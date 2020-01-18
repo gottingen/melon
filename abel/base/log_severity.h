@@ -55,53 +55,53 @@ ABEL_NAMESPACE_BEGIN
 // Unparsing a flag produces the same result as `abel::LogSeverityName()` for
 // the standard levels and a base-ten integer otherwise.
 enum class LogSeverity : int {
-  kInfo = 0,
-  kWarning = 1,
-  kError = 2,
-  kFatal = 3,
+    kInfo = 0,
+    kWarning = 1,
+    kError = 2,
+    kFatal = 3,
 };
 
 // LogSeverities()
 //
 // Returns an iterable of all standard `abel::LogSeverity` values, ordered from
 // least to most severe.
-constexpr std::array<abel::LogSeverity, 4> LogSeverities() {
-  return {{abel::LogSeverity::kInfo, abel::LogSeverity::kWarning,
-           abel::LogSeverity::kError, abel::LogSeverity::kFatal}};
+constexpr std::array<abel::LogSeverity, 4> LogSeverities () {
+    return {{abel::LogSeverity::kInfo, abel::LogSeverity::kWarning,
+             abel::LogSeverity::kError, abel::LogSeverity::kFatal}};
 }
 
 // LogSeverityName()
 //
 // Returns the all-caps string representation (e.g. "INFO") of the specified
 // severity level if it is one of the standard levels and "UNKNOWN" otherwise.
-constexpr const char* LogSeverityName(abel::LogSeverity s) {
-  return s == abel::LogSeverity::kInfo
-             ? "INFO"
-             : s == abel::LogSeverity::kWarning
-                   ? "WARNING"
-                   : s == abel::LogSeverity::kError
-                         ? "ERROR"
-                         : s == abel::LogSeverity::kFatal ? "FATAL" : "UNKNOWN";
+constexpr const char *LogSeverityName (abel::LogSeverity s) {
+    return s == abel::LogSeverity::kInfo
+           ? "INFO"
+           : s == abel::LogSeverity::kWarning
+             ? "WARNING"
+             : s == abel::LogSeverity::kError
+               ? "ERROR"
+               : s == abel::LogSeverity::kFatal ? "FATAL" : "UNKNOWN";
 }
 
 // NormalizeLogSeverity()
 //
 // Values less than `kInfo` normalize to `kInfo`; values greater than `kFatal`
 // normalize to `kError` (**NOT** `kFatal`).
-constexpr abel::LogSeverity NormalizeLogSeverity(abel::LogSeverity s) {
-  return s < abel::LogSeverity::kInfo
-             ? abel::LogSeverity::kInfo
-             : s > abel::LogSeverity::kFatal ? abel::LogSeverity::kError : s;
+constexpr abel::LogSeverity NormalizeLogSeverity (abel::LogSeverity s) {
+    return s < abel::LogSeverity::kInfo
+           ? abel::LogSeverity::kInfo
+           : s > abel::LogSeverity::kFatal ? abel::LogSeverity::kError : s;
 }
-constexpr abel::LogSeverity NormalizeLogSeverity(int s) {
-  return abel::NormalizeLogSeverity(static_cast<abel::LogSeverity>(s));
+constexpr abel::LogSeverity NormalizeLogSeverity (int s) {
+    return abel::NormalizeLogSeverity(static_cast<abel::LogSeverity>(s));
 }
 
 // operator<<
 //
 // The exact representation of a streamed `abel::LogSeverity` is deliberately
 // unspecified; do not rely on it.
-std::ostream& operator<<(std::ostream& os, abel::LogSeverity s);
+std::ostream &operator << (std::ostream &os, abel::LogSeverity s);
 
 ABEL_NAMESPACE_END
 }  // namespace abel

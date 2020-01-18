@@ -6,8 +6,8 @@
 // A constructor tag used to mark an object as safe for use as a global
 // variable, avoiding the usual lifetime issues that can affect globals.
 
-#ifndef ABEL_BASE_CONST_INIT_H_
-#define ABEL_BASE_CONST_INIT_H_
+#ifndef ABEL_BASE_PROFILE_CONST_INIT_H_
+#define ABEL_BASE_PROFILE_CONST_INIT_H_
 
 #include <abel/base/profile.h>
 
@@ -54,10 +54,10 @@ namespace abel {
 ABEL_NAMESPACE_BEGIN
 
 enum const_init_type {
-  kConstInit,
+    kConstInit,
 };
 
 ABEL_NAMESPACE_END
 }  // namespace abel
 
-#endif  // ABEL_BASE_CONST_INIT_H_
+#endif  // ABEL_BASE_PROFILE_CONST_INIT_H_
