@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="googletest-distribution"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="clang"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\abel\;CMake Files\deps\;CMake Files\deps\benchmark-1.5.0\;CMake Files\deps\benchmark-1.5.0\cmake\;CMake Files\deps\benchmark-1.5.0\src\;CMake Files\deps\googletest-1.10.x\;CMake Files\deps\googletest-1.10.x\googlemock\;CMake Files\deps\googletest-1.10.x\googlemock\cmake\;CMake Files\deps\googletest-1.10.x\googletest\;CMake Files\deps\googletest-1.10.x\googletest\cmake\;CMake Files\benchmark\;CMake Files\benchmark\algorithm\;CMake Files\benchmark\base\;CMake Files\benchmark\container\;CMake Files\benchmark\functional\;CMake Files\benchmark\numeric\;CMake Files\benchmark\strings\;CMake Files\benchmark\synchronization\;CMake Files\benchmark\types\;CMake Files\test\;CMake Files\test\testing\;CMake Files\test\algorithm\;CMake Files\test\base\;CMake Files\test\container\;CMake Files\test\debugging\;CMake Files\test\flags\;CMake Files\test\functional\;CMake Files\test\hash\;CMake Files\test\memory\;CMake Files\test\meta\;CMake Files\test\numeric\;CMake Files\test\random\;CMake Files\test\strings\;CMake Files\test\synchronization\;CMake Files\test\time\;CMake Files\test\types\;CMake Files\test\utility\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gmock">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgmockd.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 gmock"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gmock/fast">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgmockd.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 gmock/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gmock_main">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgmock_maind.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 gmock_main"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gmock_main/fast">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgmock_maind.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 gmock_main/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googlemock/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtest_main">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgtest_maind.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 gtest_main"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtest_main/fast">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgtest_maind.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 gtest_main/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtest">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgtestd.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 gtest"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtest/fast">
+				<Option output="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/lib/libgtestd.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="clang"/>
+				<Compiler>
+					<Add directory="/Users/liyinbin/github/gottingen/abel"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/include"/>
+					<Add directory="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 gtest/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/liyinbin/github/gottingen/abel/cmake-build-debug/deps/googletest-1.10.x/googletest/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/src/gmock-all.cc">
+			<Option target="gmock"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/src/gmock_main.cc">
+			<Option target="gmock_main"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/src/gtest-all.cc">
+			<Option target="gtest"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/src/gtest_main.cc">
+			<Option target="gtest_main"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/cmake/compiler.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/abel/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\abel\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/cmake/AddCXXCompilerFlag.cmake">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/cmake/CXXFeatureCheck.cmake">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/cmake/Config.cmake.in">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/cmake/GetGitVersion.cmake">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/cmake/benchmark.pc.in">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\deps\benchmark-1.5.0\src\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googlemock\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/cmake/gmock.pc.in">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googlemock\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googlemock/cmake/gmock_main.pc.in">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googlemock\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googletest\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/cmake/Config.cmake.in">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googletest\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/cmake/gtest.pc.in">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googletest\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/cmake/gtest_main.pc.in">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googletest\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/deps/googletest-1.10.x/googletest/cmake/internal_utils.cmake">
+			<Option virtualFolder="CMake Files\deps\googletest-1.10.x\googletest\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/algorithm/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\algorithm\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/base/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\base\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/container/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\container\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/functional/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\functional\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/numeric/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\numeric\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/strings/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\strings\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/synchronization/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\synchronization\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/benchmark/types/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\benchmark\types\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/testing/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\testing\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/algorithm/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\algorithm\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/base/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\base\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/container/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\container\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/debugging/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\debugging\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/flags/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\flags\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/functional/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\functional\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/hash/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\hash\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/memory/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\memory\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/meta/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\meta\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/numeric/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\numeric\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/random/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\random\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/strings/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\strings\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/synchronization/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\synchronization\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/time/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\time\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/types/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\types\"/>
+		</Unit>
+		<Unit filename="/Users/liyinbin/github/gottingen/abel/test/utility/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\utility\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

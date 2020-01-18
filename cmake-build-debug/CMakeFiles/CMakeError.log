@@ -1,0 +1,14 @@
+Performing C++ SOURCE FILE Test HAVE_CXX_FLAG_WD654 failed with the following output:
+Change Dir: /Users/liyinbin/github/gottingen/abel/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_79369/fast && /Library/Developer/CommandLineTools/usr/bin/make -f CMakeFiles/cmTC_79369.dir/build.make CMakeFiles/cmTC_79369.dir/build
+Building CXX object CMakeFiles/cmTC_79369.dir/src.cxx.o
+/Library/Developer/CommandLineTools/usr/bin/c++    -DCHECK_PTHREAD_RETURN_VALUE -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Woverloaded-virtual -Wpointer-arith -Wwrite-strings -march=native -MMD -fPIC -std=c++11  -std=c++11  -Wall  -Wextra  -Wshadow  -pedantic  -pedantic-errors  -Wshorten-64-to-32  -fstrict-aliasing  -Wno-deprecated-declarations  -Wstrict-aliasing -DHAVE_CXX_FLAG_WD654  -wd654 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk   -wd654 -o CMakeFiles/cmTC_79369.dir/src.cxx.o -c /Users/liyinbin/github/gottingen/abel/cmake-build-debug/CMakeFiles/CMakeTmp/src.cxx
+clang: error: unknown argument: '-wd654'
+clang: error: unknown argument: '-wd654'
+make[1]: *** [CMakeFiles/cmTC_79369.dir/src.cxx.o] Error 1
+make: *** [cmTC_79369/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }

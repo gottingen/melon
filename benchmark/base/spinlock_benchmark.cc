@@ -1,0 +1,40 @@
+//
+
+// See also //abel/synchronization:mutex_benchmark for a comparison of SpinLock
+// and mutex performance under varying levels of contention.
+
+#include <abel/base/internal/raw_logging.h>
+#include <abel/base/internal/scheduling_mode.h>
+#include <abel/base/internal/spinlock.h>
+#include <abel/synchronization/internal/create_thread_identity.h>
+#include <benchmark/benchmark.h>
+
+namespace {
+
+template <abel::base_internal::SchedulingMode scheduling_mode>
+static void BM_SpinLock(benchmark::State& state) {
+  // Ensure a ThreadIdentity is installed.
+  ABEL_INTERNAL_CHECK(
+      abel::synchronization_internal::GetOrCreateCurrentThreadIdentity() !=
+          nullptr,
+      "GetOrCreateCurrentThreadIdentity() failed");
+
+  static auto* spinlock = new abel::base_internal::SpinLock(scheduling_mode);
+  for (auto _ : state) {
+    abel::base_internal::SpinLockHolder holder(spinlock);
+  }
+}
+
+BENCHMARK_TEMPLATE(BM_SpinLock,
+                   abel::base_internal::SCHEDULE_KERNEL_ONLY)
+    ->UseRealTime()
+    ->Threads(1)
+    ->ThreadPerCpu();
+
+BENCHMARK_TEMPLATE(BM_SpinLock,
+                   abel::base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL)
+    ->UseRealTime()
+    ->Threads(1)
+    ->ThreadPerCpu();
+
+}  // namespace

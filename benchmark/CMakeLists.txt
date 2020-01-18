@@ -1,0 +1,12 @@
+include_directories(${PROJECT_SOURCE_DIR}/benchmark)
+
+add_subdirectory(algorithm)
+add_subdirectory(base)
+add_subdirectory(container)
+add_subdirectory(functional)
+add_subdirectory(numeric)
+#add_subdirectory(random)
+add_subdirectory(strings)
+add_subdirectory(synchronization)
+#add_subdirectory(time)
+add_subdirectory(types)
