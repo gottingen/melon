@@ -378,7 +378,7 @@ class FormatArgImpl {
   template <typename T>
   static bool Dispatch(Data arg, ConversionSpec spec, void* out) {
     // A `none` conv indicates that we want the `int` conversion.
-    if (ABEL_PREDICT_FALSE(spec.conv().id() == ConversionChar::none)) {
+    if (ABEL_UNLIKELY(spec.conv().id() == ConversionChar::none)) {
       return ToInt<T>(arg, static_cast<int*>(out), std::is_integral<T>(),
                       std::is_enum<T>());
     }

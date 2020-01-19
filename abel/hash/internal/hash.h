@@ -851,7 +851,7 @@ ABEL_FORCE_INLINE uint64_t CityHashState::CombineContiguousImpl(
   // multiplicative hash.
   uint64_t v;
   if (len > 8) {
-    if (ABEL_PREDICT_FALSE(len > PiecewiseChunkSize())) {
+    if (ABEL_UNLIKELY(len > PiecewiseChunkSize())) {
       return CombineLargeContiguousImpl32(state, first, len);
     }
     v = abel::hash_internal::CityHash32(reinterpret_cast<const char*>(first), len);
@@ -874,7 +874,7 @@ ABEL_FORCE_INLINE uint64_t CityHashState::CombineContiguousImpl(
   // multiplicative hash.
   uint64_t v;
   if (len > 16) {
-    if (ABEL_PREDICT_FALSE(len > PiecewiseChunkSize())) {
+    if (ABEL_UNLIKELY(len > PiecewiseChunkSize())) {
       return CombineLargeContiguousImpl64(state, first, len);
     }
     v = abel::hash_internal::CityHash64(reinterpret_cast<const char*>(first), len);

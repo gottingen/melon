@@ -313,7 +313,7 @@ class InlinedVector {
   // NOTE: if `i` is not within the required range of `InlinedVector::at(...)`,
   // in both debug and non-debug builds, `std::out_of_range` will be thrown.
   reference at(size_type i) {
-    if (ABEL_PREDICT_FALSE(i >= size())) {
+    if (ABEL_UNLIKELY(i >= size())) {
       base_internal::ThrowStdOutOfRange(
           "`InlinedVector::at(size_type)` failed bounds check");
     }
@@ -327,7 +327,7 @@ class InlinedVector {
   // NOTE: if `i` is not within the required range of `InlinedVector::at(...)`,
   // in both debug and non-debug builds, `std::out_of_range` will be thrown.
   const_reference at(size_type i) const {
-    if (ABEL_PREDICT_FALSE(i >= size())) {
+    if (ABEL_UNLIKELY(i >= size())) {
       base_internal::ThrowStdOutOfRange(
           "`InlinedVector::at(size_type) const` failed bounds check");
     }
@@ -452,7 +452,7 @@ class InlinedVector {
   // Overload of `InlinedVector::operator=(...)` that replaces the elements of
   // the inlined vector with copies of the elements of `other`.
   InlinedVector& operator=(const InlinedVector& other) {
-    if (ABEL_PREDICT_TRUE(this != std::addressof(other))) {
+    if (ABEL_LIKELY(this != std::addressof(other))) {
       const_pointer other_data = other.data();
       assign(other_data, other_data + other.size());
     }
@@ -466,7 +466,7 @@ class InlinedVector {
   // NOTE: as a result of calling this overload, `other` is left in a valid but
   // unspecified state.
   InlinedVector& operator=(InlinedVector&& other) {
-    if (ABEL_PREDICT_TRUE(this != std::addressof(other))) {
+    if (ABEL_LIKELY(this != std::addressof(other))) {
       if (IsMemcpyOk::value || other.storage_.GetIsAllocated()) {
         inlined_vector_internal::DestroyElements(storage_.GetAllocPtr(), data(),
                                                  size());
@@ -562,7 +562,7 @@ class InlinedVector {
     assert(pos >= begin());
     assert(pos <= end());
 
-    if (ABEL_PREDICT_TRUE(n != 0)) {
+    if (ABEL_LIKELY(n != 0)) {
       value_type dealias = v;
       return storage_.Insert(pos, CopyValueAdapter(dealias), n);
     } else {
@@ -589,7 +589,7 @@ class InlinedVector {
     assert(pos >= begin());
     assert(pos <= end());
 
-    if (ABEL_PREDICT_TRUE(first != last)) {
+    if (ABEL_LIKELY(first != last)) {
       return storage_.Insert(pos, IteratorValueAdapter<ForwardIterator>(first),
                              std::distance(first, last));
     } else {
@@ -685,7 +685,7 @@ class InlinedVector {
     assert(from <= to);
     assert(to <= end());
 
-    if (ABEL_PREDICT_TRUE(from != to)) {
+    if (ABEL_LIKELY(from != to)) {
       return storage_.Erase(from, to);
     } else {
       return const_cast<iterator>(from);
@@ -730,7 +730,7 @@ class InlinedVector {
   //
   // Swaps the contents of the inlined vector with `other`.
   void swap(InlinedVector& other) {
-    if (ABEL_PREDICT_TRUE(this != std::addressof(other))) {
+    if (ABEL_LIKELY(this != std::addressof(other))) {
       storage_.Swap(std::addressof(other.storage_));
     }
   }

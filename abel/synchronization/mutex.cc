@@ -89,10 +89,10 @@ static struct MutexGlobals {
   int num_cpus;
   int spinloop_iterations;
   // Pad this struct to a full cacheline to prevent false sharing.
-  char padding[ABEL_CACHELINE_SIZE - 2 * sizeof(int)];
-} ABEL_CACHELINE_ALIGNED mutex_globals;
+  char padding[ABEL_CACHE_LINE_SIZE - 2 * sizeof(int)];
+} ABEL_CACHE_LINE_ALIGNED mutex_globals;
 static_assert(
-    sizeof(MutexGlobals) == ABEL_CACHELINE_SIZE,
+    sizeof(MutexGlobals) == ABEL_CACHE_LINE_SIZE,
     "MutexGlobals must occupy an entire cacheline to prevent false sharing");
 
 ABEL_CONST_INIT abel::base_internal::AtomicHook<void (*)(int64_t wait_cycles)>
@@ -1855,7 +1855,7 @@ bool mutex::LockSlowWithDeadline(MuHow how, const condition *cond,
 // Arguments after the first are not evaluated unless the condition is true.
 #define RAW_CHECK_FMT(cond, ...)                                   \
   do {                                                             \
-    if (ABEL_PREDICT_FALSE(!(cond))) {                             \
+    if (ABEL_UNLIKELY(!(cond))) {                             \
       ABEL_RAW_LOG(FATAL, "Check " #cond " failed: " __VA_ARGS__); \
     }                                                              \
   } while (0)
@@ -1873,7 +1873,7 @@ static void CheckForMutexCorruption(intptr_t v, const char* label) {
   // save a branch in the common (correct) case of them not being coincident.
   static_assert(kMuReader << 3 == kMuWriter, "must match");
   static_assert(kMuWait << 3 == kMuWrWait, "must match");
-  if (ABEL_PREDICT_TRUE((w & (w << 3) & (kMuWriter | kMuWrWait)) == 0)) return;
+  if (ABEL_LIKELY((w & (w << 3) & (kMuWriter | kMuWrWait)) == 0)) return;
   RAW_CHECK_FMT((v & (kMuWriter | kMuReader)) != (kMuWriter | kMuReader),
                 "%s: mutex corrupt: both reader and writer lock held: %p",
                 label, reinterpret_cast<void *>(v));

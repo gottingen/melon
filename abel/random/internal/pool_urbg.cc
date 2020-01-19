@@ -122,7 +122,7 @@ static constexpr int kPoolSize = 8;
 
 // Shared pool entries.
 static abel::once_flag pool_once;
-ABEL_CACHELINE_ALIGNED static RandenPoolEntry* shared_pools[kPoolSize];
+ABEL_CACHE_LINE_ALIGNED static RandenPoolEntry* shared_pools[kPoolSize];
 
 // Returns an id in the range [0 ... kPoolSize), which indexes into the
 // pool of random engines.
@@ -142,7 +142,7 @@ int GetPoolID() {
 
 #ifdef ABEL_HAVE_THREAD_LOCAL
   static thread_local int my_pool_id = -1;
-  if (ABEL_PREDICT_FALSE(my_pool_id < 0)) {
+  if (ABEL_UNLIKELY(my_pool_id < 0)) {
     my_pool_id = (sequence++ % kPoolSize);
   }
   return my_pool_id;
@@ -160,7 +160,7 @@ int GetPoolID() {
   // value is 0, so add +1 to distinguish from the null value.
   intptr_t my_pool_id =
       reinterpret_cast<intptr_t>(pthread_getspecific(tid_key));
-  if (ABEL_PREDICT_FALSE(my_pool_id == 0)) {
+  if (ABEL_UNLIKELY(my_pool_id == 0)) {
     // No allocated ID, allocate the next value, cache it, and return.
     my_pool_id = (sequence++ % kPoolSize) + 1;
     int err = pthread_setspecific(tid_key, reinterpret_cast<void*>(my_pool_id));
@@ -176,7 +176,7 @@ int GetPoolID() {
 // by ARM platform code.
 RandenPoolEntry* PoolAlignedAlloc() {
   constexpr size_t kAlignment =
-      ABEL_CACHELINE_SIZE > 32 ? ABEL_CACHELINE_SIZE : 32;
+      ABEL_CACHE_LINE_SIZE > 32 ? ABEL_CACHE_LINE_SIZE : 32;
 
   // Not all the platforms that we build for have std::aligned_alloc, however
   // since we never free these objects, we can over allocate and munge the

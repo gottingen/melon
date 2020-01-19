@@ -43,7 +43,7 @@
 // so that the args are not computed when not needed.
 #define ABEL_RAW_CHECK(condition, message)                             \
   do {                                                                 \
-    if (ABEL_PREDICT_FALSE(!(condition))) {                            \
+    if (ABEL_UNLIKELY(!(condition))) {                            \
       ABEL_RAW_LOG(FATAL, "Check %s failed: %s", #condition, message); \
     }                                                                  \
   } while (0)
@@ -65,7 +65,7 @@
 
 #define ABEL_INTERNAL_CHECK(condition, message)                    \
   do {                                                             \
-    if (ABEL_PREDICT_FALSE(!(condition))) {                        \
+    if (ABEL_UNLIKELY(!(condition))) {                        \
       std::string death_message = "Check " #condition " failed: "; \
       death_message += std::string(message);                       \
       ABEL_INTERNAL_LOG(FATAL, death_message);                     \

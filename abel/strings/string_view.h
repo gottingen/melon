@@ -264,7 +264,7 @@ class string_view {
   // and an exception of type `std::out_of_range` will be thrown on invalid
   // access.
   constexpr const_reference at(size_type i) const {
-    return ABEL_PREDICT_TRUE(i < size())
+    return ABEL_LIKELY(i < size())
                ? ptr_[i]
                : ((void)base_internal::ThrowStdOutOfRange(
                       "abel::string_view::at"),
@@ -334,7 +334,7 @@ class string_view {
   // Copies the contents of the `string_view` at offset `pos` and length `n`
   // into `buf`.
   size_type copy(char* buf, size_type n, size_type pos = 0) const {
-    if (ABEL_PREDICT_FALSE(pos > length_)) {
+    if (ABEL_UNLIKELY(pos > length_)) {
       base_internal::ThrowStdOutOfRange("abel::string_view::copy");
     }
     size_type rlen = (std::min)(length_ - pos, n);
@@ -351,7 +351,7 @@ class string_view {
   // `n`) as another string_view. This function throws `std::out_of_bounds` if
   // `pos > size`.
   string_view substr(size_type pos, size_type n = npos) const {
-    if (ABEL_PREDICT_FALSE(pos > length_))
+    if (ABEL_UNLIKELY(pos > length_))
       base_internal::ThrowStdOutOfRange("abel::string_view::substr");
     n = (std::min)(n, length_ - pos);
     return string_view(ptr_ + pos, n);

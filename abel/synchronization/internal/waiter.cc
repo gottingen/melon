@@ -104,7 +104,7 @@ class Futex {
   static int Wake(std::atomic<int32_t> *v, int32_t count) {
     int err = syscall(SYS_futex, reinterpret_cast<int32_t *>(v),
                       FUTEX_WAKE | FUTEX_PRIVATE_FLAG, count);
-    if (ABEL_PREDICT_FALSE(err < 0)) {
+    if (ABEL_UNLIKELY(err < 0)) {
       err = -errno;
     }
     return err;
@@ -160,7 +160,7 @@ void Waiter::Post() {
 void Waiter::Poke() {
   // Wake one thread waiting on the futex.
   const int err = Futex::Wake(&futex_, 1);
-  if (ABEL_PREDICT_FALSE(err < 0)) {
+  if (ABEL_UNLIKELY(err < 0)) {
     ABEL_RAW_LOG(FATAL, "Futex operation failed with error %d\n", err);
   }
 }
@@ -269,7 +269,7 @@ void Waiter::Poke() {
 void Waiter::InternalCondVarPoke() {
   if (waiter_count_ != 0) {
     const int err = pthread_cond_signal(&cv_);
-    if (ABEL_PREDICT_FALSE(err != 0)) {
+    if (ABEL_UNLIKELY(err != 0)) {
       ABEL_RAW_LOG(FATAL, "pthread_cond_signal failed: %d", err);
     }
   }

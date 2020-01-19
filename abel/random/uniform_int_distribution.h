@@ -237,9 +237,9 @@ uniform_int_distribution<IntType>::Generate(
   // Two optimizations here:
   // * Rejection occurs with some probability less than 1/2, and for reasonable
   //   ranges considerably less (in particular, less than 1/(F+1)), so
-  //   ABEL_PREDICT_FALSE is apt.
+  //   ABEL_UNLIKELY is apt.
   // * `Lim` is an overestimate of `threshold`, and doesn't require a divide.
-  if (ABEL_PREDICT_FALSE(helper::lo(product) < Lim)) {
+  if (ABEL_UNLIKELY(helper::lo(product) < Lim)) {
     // This quantity is exactly equal to `2^N % Lim`, but does not require high
     // precision calculations: `2^N % Lim` is congruent to `(2^N - Lim) % Lim`.
     // Ideally this could be expressed simply as `-X` rather than `2^N - X`, but

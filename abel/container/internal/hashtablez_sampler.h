@@ -120,7 +120,7 @@ class HashtablezInfoHandle {
   explicit HashtablezInfoHandle() : info_(nullptr) {}
   explicit HashtablezInfoHandle(HashtablezInfo* info) : info_(info) {}
   ~HashtablezInfoHandle() {
-    if (ABEL_PREDICT_TRUE(info_ == nullptr)) return;
+    if (ABEL_LIKELY(info_ == nullptr)) return;
     UnsampleSlow(info_);
   }
 
@@ -130,7 +130,7 @@ class HashtablezInfoHandle {
   HashtablezInfoHandle(HashtablezInfoHandle&& o) noexcept
       : info_(abel::exchange(o.info_, nullptr)) {}
   HashtablezInfoHandle& operator=(HashtablezInfoHandle&& o) noexcept {
-    if (ABEL_PREDICT_FALSE(info_ != nullptr)) {
+    if (ABEL_UNLIKELY(info_ != nullptr)) {
       UnsampleSlow(info_);
     }
     info_ = abel::exchange(o.info_, nullptr);
@@ -138,22 +138,22 @@ class HashtablezInfoHandle {
   }
 
   ABEL_FORCE_INLINE void RecordStorageChanged(size_t size, size_t capacity) {
-    if (ABEL_PREDICT_TRUE(info_ == nullptr)) return;
+    if (ABEL_LIKELY(info_ == nullptr)) return;
     RecordStorageChangedSlow(info_, size, capacity);
   }
 
   ABEL_FORCE_INLINE void RecordRehash(size_t total_probe_length) {
-    if (ABEL_PREDICT_TRUE(info_ == nullptr)) return;
+    if (ABEL_LIKELY(info_ == nullptr)) return;
     RecordRehashSlow(info_, total_probe_length);
   }
 
   ABEL_FORCE_INLINE void RecordInsert(size_t hash, size_t distance_from_desired) {
-    if (ABEL_PREDICT_TRUE(info_ == nullptr)) return;
+    if (ABEL_LIKELY(info_ == nullptr)) return;
     RecordInsertSlow(info_, hash, distance_from_desired);
   }
 
   ABEL_FORCE_INLINE void RecordErase() {
-    if (ABEL_PREDICT_TRUE(info_ == nullptr)) return;
+    if (ABEL_LIKELY(info_ == nullptr)) return;
     RecordEraseSlow(info_);
   }
 
@@ -175,7 +175,7 @@ extern ABEL_PER_THREAD_TLS_KEYWORD int64_t global_next_sample;
 // with the global sampler.
 ABEL_FORCE_INLINE HashtablezInfoHandle Sample() {
 #if ABEL_PER_THREAD_TLS == 1
-  if (ABEL_PREDICT_TRUE(--global_next_sample > 0)) {
+  if (ABEL_LIKELY(--global_next_sample > 0)) {
     return HashtablezInfoHandle(nullptr);
   }
   return HashtablezInfoHandle(SampleSlow(&global_next_sample));

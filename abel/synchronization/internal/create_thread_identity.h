@@ -47,7 +47,7 @@ void ReclaimThreadIdentity(void* v);
 ABEL_FORCE_INLINE base_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentity() {
   base_internal::ThreadIdentity* identity =
       base_internal::CurrentThreadIdentityIfPresent();
-  if (ABEL_PREDICT_FALSE(identity == nullptr)) {
+  if (ABEL_UNLIKELY(identity == nullptr)) {
     return CreateThreadIdentity();
   }
   return identity;

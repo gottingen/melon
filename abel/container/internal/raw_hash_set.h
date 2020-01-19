@@ -1282,12 +1282,12 @@ class raw_hash_set {
     while (true) {
       Group g{ctrl_ + seq.offset()};
       for (int i : g.Match(H2(hash))) {
-        if (ABEL_PREDICT_TRUE(PolicyTraits::apply(
+        if (ABEL_LIKELY(PolicyTraits::apply(
                 EqualElement<K>{key, eq_ref()},
                 PolicyTraits::element(slots_ + seq.offset(i)))))
           return iterator_at(seq.offset(i));
       }
-      if (ABEL_PREDICT_TRUE(g.MatchEmpty())) return end();
+      if (ABEL_LIKELY(g.MatchEmpty())) return end();
       seq.next();
     }
   }
@@ -1556,7 +1556,7 @@ class raw_hash_set {
       };
 
       // Element doesn't move.
-      if (ABEL_PREDICT_TRUE(probe_index(new_i) == probe_index(i))) {
+      if (ABEL_LIKELY(probe_index(new_i) == probe_index(i))) {
         set_ctrl(i, H2(hash));
         continue;
       }
@@ -1600,11 +1600,11 @@ class raw_hash_set {
     while (true) {
       Group g{ctrl_ + seq.offset()};
       for (int i : g.Match(H2(hash))) {
-        if (ABEL_PREDICT_TRUE(PolicyTraits::element(slots_ + seq.offset(i)) ==
+        if (ABEL_LIKELY(PolicyTraits::element(slots_ + seq.offset(i)) ==
                               elem))
           return true;
       }
-      if (ABEL_PREDICT_TRUE(g.MatchEmpty())) return false;
+      if (ABEL_LIKELY(g.MatchEmpty())) return false;
       seq.next();
       assert(seq.index() < capacity_ && "full table!");
     }
@@ -1666,12 +1666,12 @@ class raw_hash_set {
     while (true) {
       Group g{ctrl_ + seq.offset()};
       for (int i : g.Match(H2(hash))) {
-        if (ABEL_PREDICT_TRUE(PolicyTraits::apply(
+        if (ABEL_LIKELY(PolicyTraits::apply(
                 EqualElement<K>{key, eq_ref()},
                 PolicyTraits::element(slots_ + seq.offset(i)))))
           return {seq.offset(i), false};
       }
-      if (ABEL_PREDICT_TRUE(g.MatchEmpty())) break;
+      if (ABEL_LIKELY(g.MatchEmpty())) break;
       seq.next();
     }
     return {prepare_insert(hash), true};
@@ -1679,7 +1679,7 @@ class raw_hash_set {
 
   size_t prepare_insert(size_t hash) ABEL_NO_INLINE {
     auto target = find_first_non_full(hash);
-    if (ABEL_PREDICT_FALSE(growth_left() == 0 &&
+    if (ABEL_UNLIKELY(growth_left() == 0 &&
                            !IsDeleted(ctrl_[target.offset]))) {
       rehash_and_grow_if_necessary();
       target = find_first_non_full(hash);

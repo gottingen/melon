@@ -148,7 +148,7 @@ static void CheckEdges(Nodes *nodes, Edges *edges, const IdMap &id,
 }
 
 static void CheckInvariants(const GraphCycles &gc) {
-  if (ABEL_PREDICT_FALSE(!gc.CheckInvariants()))
+  if (ABEL_UNLIKELY(!gc.CheckInvariants()))
     ABEL_RAW_LOG(FATAL, "CheckInvariants");
 }
 

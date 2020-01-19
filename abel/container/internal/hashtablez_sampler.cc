@@ -165,7 +165,7 @@ static bool ShouldForceSampling() {
   ABEL_CONST_INIT static std::atomic<ForceState> global_state{
       kUninitialized};
   ForceState state = global_state.load(std::memory_order_relaxed);
-  if (ABEL_PREDICT_TRUE(state == kDontForce)) return false;
+  if (ABEL_LIKELY(state == kDontForce)) return false;
 
   if (state == kUninitialized) {
     state = AbelContainerInternalSampleEverything() ? kForce : kDontForce;
@@ -175,7 +175,7 @@ static bool ShouldForceSampling() {
 }
 
 HashtablezInfo* SampleSlow(int64_t* next_sample) {
-  if (ABEL_PREDICT_FALSE(ShouldForceSampling())) {
+  if (ABEL_UNLIKELY(ShouldForceSampling())) {
     *next_sample = 1;
     return HashtablezSampler::Global().Register();
   }
@@ -198,7 +198,7 @@ HashtablezInfo* SampleSlow(int64_t* next_sample) {
   // We will only be negative on our first count, so we should just retry in
   // that case.
   if (first) {
-    if (ABEL_PREDICT_TRUE(--*next_sample > 0)) return nullptr;
+    if (ABEL_LIKELY(--*next_sample > 0)) return nullptr;
     return SampleSlow(next_sample);
   }
 

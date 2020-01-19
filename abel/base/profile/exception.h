@@ -28,7 +28,7 @@
   (false ? static_cast<void>(expr) : static_cast<void>(0))
 #else
 #define ABEL_ASSERT(expr)                           \
-  (ABEL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
+  (ABEL_LIKELY((expr)) ? static_cast<void>(0) \
                              : [] { assert(false && #expr); }())  // NOLINT
 #endif
 

@@ -26,7 +26,7 @@ namespace base_internal {
 // log_2(q) * (-log_e(2) * 1/m) = x
 // In the code, q is actually in the range 1 to 2**26, hence the -26 below
 int64_t ExponentialBiased::GetSkipCount(int64_t mean) {
-  if (ABEL_PREDICT_FALSE(!initialized_)) {
+  if (ABEL_UNLIKELY(!initialized_)) {
     Initialize();
   }
 

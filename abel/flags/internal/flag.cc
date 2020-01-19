@@ -80,7 +80,7 @@ void FlagImpl::Init() {
 // Ensures that the lazily initialized data is initialized,
 // and returns pointer to the mutex guarding flags data.
 abel::mutex* FlagImpl::DataGuard() const {
-  if (ABEL_PREDICT_FALSE(!inited_.load(std::memory_order_acquire))) {
+  if (ABEL_UNLIKELY(!inited_.load(std::memory_order_acquire))) {
     const_cast<FlagImpl*>(this)->Init();
   }
 
@@ -237,7 +237,7 @@ void FlagImpl::Read(void* dst, const flags_internal::FlagOpFn dst_op) const {
   // `dst_op` is the unmarshaling operation corresponding to the declaration
   // visibile at the call site. `op` is the Flag's defined unmarshalling
   // operation. They must match for this operation to be well-defined.
-  if (ABEL_PREDICT_FALSE(dst_op != op_)) {
+  if (ABEL_UNLIKELY(dst_op != op_)) {
     ABEL_INTERNAL_LOG(
         ERROR,
         abel::string_cat("Flag '", Name(),
@@ -262,7 +262,7 @@ void FlagImpl::Write(const void* src, const flags_internal::FlagOpFn src_op) {
   // `src_op` is the marshalling operation corresponding to the declaration
   // visible at the call site. `op` is the Flag's defined marshalling operation.
   // They must match for this operation to be well-defined.
-  if (ABEL_PREDICT_FALSE(src_op != op_)) {
+  if (ABEL_UNLIKELY(src_op != op_)) {
     ABEL_INTERNAL_LOG(
         ERROR,
         abel::string_cat("Flag '", Name(),

@@ -594,7 +594,7 @@ struct VariantCoreAccess {
   // Access a variant alternative, throwing if the index is incorrect.
   template <std::size_t I, class Variant>
   static VariantAccessResult<I, Variant> CheckedAccess(Variant&& self) {
-    if (ABEL_PREDICT_FALSE(self.index_ != I)) {
+    if (ABEL_UNLIKELY(self.index_ != I)) {
       TypedThrowBadVariantAccess<VariantAccessResult<I, Variant>>();
     }
 

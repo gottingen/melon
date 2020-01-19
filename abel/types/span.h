@@ -269,7 +269,7 @@ class Span {
   //
   // Returns a reference to the i'th element of this span.
   constexpr reference at(size_type i) const {
-    return ABEL_PREDICT_TRUE(i < size())  //
+    return ABEL_LIKELY(i < size())  //
                ? *(data() + i)
                : (base_internal::ThrowStdOutOfRange(
                       "Span::at failed bounds check"),

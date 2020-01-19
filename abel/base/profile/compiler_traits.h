@@ -2351,6 +2351,38 @@
 #endif
 
 
+
+// ABEL_BLOCK_TAIL_CALL_OPTIMIZATION
+//
+// Instructs the compiler to avoid optimizing tail-call recursion. Use of this
+// macro is useful when you wish to preserve the existing function order within
+// a stack trace for logging, debugging, or profiling purposes.
+//
+// Example:
+//
+//   int f() {
+//     int result = g();
+//     ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
+//     return result;
+//   }
+#if defined(__pnacl__)
+    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
+#elif defined(__clang__)
+    // Clang will not tail call given inline volatile assembly.
+    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
+#elif defined(__GNUC__)
+    // GCC will not tail call given inline volatile assembly.
+    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
+#elif defined(_MSC_VER)
+    #include <intrin.h>
+    // The __nop() intrinsic blocks the optimisation.
+    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __nop()
+#else
+    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
+#endif
+
+
+
 #ifndef ABEL_WARN_UNUSED_RESULT
     #if defined(ABEL_COMPILER_GNUC) && ABEL_COMPILER_VERSION >= 4007 && ABEL_COMPILER_CPP11_ENABLED
         #define ABEL_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
@@ -2393,9 +2425,9 @@
     #endif 
 #endif //ABEL_ALLOW_UNUSED
 
-#ifndef ABEL_CACHELINE_ALIGNMENT
-    #define ABEL_CACHELINE_ALIGNMENT ABEL_ALIGN(ABEL_CACHE_LINE_SIZE)
-#endif //ABEL_CACHELINE_ALIGNMENT
+#ifndef ABEL_CACHE_LINE_ALIGNED
+    #define ABEL_CACHE_LINE_ALIGNED ABEL_ALIGN(ABEL_CACHE_LINE_SIZE)
+#endif //ABEL_CACHE_LINE_ALIGNED
 
 // ABEL_PRINTF
 // ABEL_SCANF

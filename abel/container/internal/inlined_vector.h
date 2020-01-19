@@ -743,7 +743,7 @@ template <typename T, size_t N, typename A>
 auto Storage<T, N, A>::Reserve(size_type requested_capacity) -> void {
   StorageView storage_view = MakeStorageView();
 
-  if (ABEL_PREDICT_FALSE(requested_capacity <= storage_view.capacity)) return;
+  if (ABEL_UNLIKELY(requested_capacity <= storage_view.capacity)) return;
 
   AllocationTransaction allocation_tx(GetAllocPtr());
 
@@ -773,7 +773,7 @@ auto Storage<T, N, A>::ShrinkToFit() -> void {
   StorageView storage_view{GetAllocatedData(), GetSize(),
                            GetAllocatedCapacity()};
 
-  if (ABEL_PREDICT_FALSE(storage_view.size == storage_view.capacity)) return;
+  if (ABEL_UNLIKELY(storage_view.size == storage_view.capacity)) return;
 
   AllocationTransaction allocation_tx(GetAllocPtr());
 

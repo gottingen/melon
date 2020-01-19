@@ -126,14 +126,14 @@ bool ParseFormatString(string_view src, Consumer consumer) {
       return consumer.Append(string_view(p, end - p));
     }
     // We found a percent, so push the text run then process the percent.
-    if (ABEL_PREDICT_FALSE(!consumer.Append(string_view(p, percent - p)))) {
+    if (ABEL_UNLIKELY(!consumer.Append(string_view(p, percent - p)))) {
       return false;
     }
-    if (ABEL_PREDICT_FALSE(percent + 1 >= end)) return false;
+    if (ABEL_UNLIKELY(percent + 1 >= end)) return false;
 
     auto tag = GetTagForChar(percent[1]);
     if (tag.is_conv()) {
-      if (ABEL_PREDICT_FALSE(next_arg < 0)) {
+      if (ABEL_UNLIKELY(next_arg < 0)) {
         // This indicates an error in the format std::string.
         // The only way to get `next_arg < 0` here is to have a positional
         // argument first which sets next_arg to -1 and then a non-positional
@@ -148,20 +148,20 @@ bool ParseFormatString(string_view src, Consumer consumer) {
       UnboundConversion conv;
       conv.conv = tag.as_conv();
       conv.arg_position = ++next_arg;
-      if (ABEL_PREDICT_FALSE(
+      if (ABEL_UNLIKELY(
               !consumer.ConvertOne(conv, string_view(percent + 1, 1)))) {
         return false;
       }
     } else if (percent[1] != '%') {
       UnboundConversion conv;
       p = ConsumeUnboundConversion(percent + 1, end, &conv, &next_arg);
-      if (ABEL_PREDICT_FALSE(p == nullptr)) return false;
-      if (ABEL_PREDICT_FALSE(!consumer.ConvertOne(
+      if (ABEL_UNLIKELY(p == nullptr)) return false;
+      if (ABEL_UNLIKELY(!consumer.ConvertOne(
           conv, string_view(percent + 1, p - (percent + 1))))) {
         return false;
       }
     } else {
-      if (ABEL_PREDICT_FALSE(!consumer.Append("%"))) return false;
+      if (ABEL_UNLIKELY(!consumer.Append("%"))) return false;
       p = percent + 2;
       continue;
     }

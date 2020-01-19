@@ -84,7 +84,7 @@ const char *ConsumeConversion(const char *pos, const char *const end,
   // no more chars to read.
 #define ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR()          \
   do {                                                  \
-    if (ABEL_PREDICT_FALSE(pos == end)) return nullptr; \
+    if (ABEL_UNLIKELY(pos == end)) return nullptr; \
     c = *pos++;                                         \
   } while (0)
 
@@ -95,11 +95,11 @@ const char *ConsumeConversion(const char *pos, const char *const end,
     // digit doesn't match the expected characters.
     int num_digits = std::numeric_limits<int>::digits10;
     for (;;) {
-      if (ABEL_PREDICT_FALSE(pos == end)) break;
+      if (ABEL_UNLIKELY(pos == end)) break;
       c = *pos++;
       if (!std::isdigit(c)) break;
       --num_digits;
-      if (ABEL_PREDICT_FALSE(!num_digits)) break;
+      if (ABEL_UNLIKELY(!num_digits)) break;
       digits = 10 * digits + c - '0';
     }
     return digits;
@@ -107,10 +107,10 @@ const char *ConsumeConversion(const char *pos, const char *const end,
 
   if (is_positional) {
     ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
-    if (ABEL_PREDICT_FALSE(c < '1' || c > '9')) return nullptr;
+    if (ABEL_UNLIKELY(c < '1' || c > '9')) return nullptr;
     conv->arg_position = parse_digits();
     assert(conv->arg_position > 0);
-    if (ABEL_PREDICT_FALSE(c != '$')) return nullptr;
+    if (ABEL_UNLIKELY(c != '$')) return nullptr;
   }
 
   ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
@@ -155,7 +155,7 @@ flags_done:
       if (c >= '0') {
         int maybe_width = parse_digits();
         if (!is_positional && c == '$') {
-          if (ABEL_PREDICT_FALSE(*next_arg != 0)) return nullptr;
+          if (ABEL_UNLIKELY(*next_arg != 0)) return nullptr;
           // Positional conversion.
           *next_arg = -1;
           conv->flags = Flags();
@@ -166,9 +166,9 @@ flags_done:
       } else if (c == '*') {
         ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
         if (is_positional) {
-          if (ABEL_PREDICT_FALSE(c < '1' || c > '9')) return nullptr;
+          if (ABEL_UNLIKELY(c < '1' || c > '9')) return nullptr;
           conv->width.set_from_arg(parse_digits());
-          if (ABEL_PREDICT_FALSE(c != '$')) return nullptr;
+          if (ABEL_UNLIKELY(c != '$')) return nullptr;
           ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
         } else {
           conv->width.set_from_arg(++*next_arg);
@@ -183,7 +183,7 @@ flags_done:
       } else if (c == '*') {
         ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
         if (is_positional) {
-          if (ABEL_PREDICT_FALSE(c < '1' || c > '9')) return nullptr;
+          if (ABEL_UNLIKELY(c < '1' || c > '9')) return nullptr;
           conv->precision.set_from_arg(parse_digits());
           if (c != '$') return nullptr;
           ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
@@ -198,8 +198,8 @@ flags_done:
 
   auto tag = GetTagForChar(c);
 
-  if (ABEL_PREDICT_FALSE(!tag.is_conv())) {
-    if (ABEL_PREDICT_FALSE(!tag.is_length())) return nullptr;
+  if (ABEL_UNLIKELY(!tag.is_conv())) {
+    if (ABEL_UNLIKELY(!tag.is_length())) return nullptr;
 
     // It is a length modifier.
     using str_format_internal::LengthMod;
@@ -215,7 +215,7 @@ flags_done:
       conv->length_mod = length_mod;
     }
     tag = GetTagForChar(c);
-    if (ABEL_PREDICT_FALSE(!tag.is_conv())) return nullptr;
+    if (ABEL_UNLIKELY(!tag.is_conv())) return nullptr;
   }
 
   assert(CheckFastPathSetting(*conv));

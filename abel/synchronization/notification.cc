@@ -16,7 +16,7 @@ void notification::Notify() {
   mutex_lock l(&this->mutex_);
 
 #ifndef NDEBUG
-  if (ABEL_PREDICT_FALSE(notified_yet_.load(std::memory_order_relaxed))) {
+  if (ABEL_UNLIKELY(notified_yet_.load(std::memory_order_relaxed))) {
     ABEL_RAW_LOG(
         FATAL,
         "Notify() method called more than once for notification object %p",

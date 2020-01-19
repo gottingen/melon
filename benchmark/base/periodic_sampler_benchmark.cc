@@ -20,7 +20,7 @@ template <typename Sampler>
 void BM_SampleMinunumInlined(Sampler* sampler, benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(sampler);
-    if (ABEL_PREDICT_FALSE(sampler->SubtleMaybeSample())) {
+    if (ABEL_UNLIKELY(sampler->SubtleMaybeSample())) {
       benchmark::DoNotOptimize(sampler->SubtleConfirmSample());
     }
   }

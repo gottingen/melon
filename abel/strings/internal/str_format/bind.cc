@@ -191,7 +191,7 @@ std::ostream& Streamable::Print(std::ostream& os) const {
 std::string& AppendPack(std::string* out, const UntypedFormatSpecImpl format,
                         abel::Span<const FormatArgImpl> args) {
   size_t orig = out->size();
-  if (ABEL_PREDICT_FALSE(!FormatUntyped(out, format, args))) {
+  if (ABEL_UNLIKELY(!FormatUntyped(out, format, args))) {
     out->erase(orig);
   }
   return *out;
@@ -200,7 +200,7 @@ std::string& AppendPack(std::string* out, const UntypedFormatSpecImpl format,
 std::string FormatPack(const UntypedFormatSpecImpl format,
                        abel::Span<const FormatArgImpl> args) {
   std::string out;
-  if (ABEL_PREDICT_FALSE(!FormatUntyped(&out, format, args))) {
+  if (ABEL_UNLIKELY(!FormatUntyped(&out, format, args))) {
     out.clear();
   }
   return out;
