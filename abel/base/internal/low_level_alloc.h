@@ -14,8 +14,6 @@
 #include <sys/types.h>
 
 #include <cstdint>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 // LowLevelAlloc requires that the platform support low-level

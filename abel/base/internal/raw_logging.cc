@@ -9,7 +9,6 @@
 #include <cstring>
 
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <abel/base/internal/atomic_hook.h>
 #include <abel/base/log_severity.h>
 

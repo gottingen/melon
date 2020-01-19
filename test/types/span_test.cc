@@ -13,7 +13,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <testing/exception_testing.h>
 #include <abel/container/fixed_array.h>
 #include <abel/container/inlined_vector.h>

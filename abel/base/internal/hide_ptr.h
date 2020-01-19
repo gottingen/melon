@@ -1,10 +1,8 @@
-//
 
 #ifndef ABEL_BASE_INTERNAL_HIDE_PTR_H_
 #define ABEL_BASE_INTERNAL_HIDE_PTR_H_
 
 #include <cstdint>
-
 #include <abel/base/profile.h>
 
 namespace abel {

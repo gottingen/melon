@@ -16,7 +16,6 @@
 #include <cstdint>
 
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <abel/debugging/internal/address_is_readable.h>
 #include <abel/debugging/internal/vdso_support.h>  // a no-op on non-elf or non-glibc systems
 #include <abel/debugging/stacktrace.h>

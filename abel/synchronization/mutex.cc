@@ -25,8 +25,6 @@
 #include <atomic>
 #include <cinttypes>
 #include <thread>  // NOLINT(build/c++11)
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 #include <abel/base/dynamic_annotations.h>
 #include <abel/base/internal/atomic_hook.h>

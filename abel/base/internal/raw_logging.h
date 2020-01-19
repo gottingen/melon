@@ -12,7 +12,6 @@
 #include <abel/base/internal/atomic_hook.h>
 #include <abel/base/log_severity.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 
 // This is similar to LOG(severity) << format..., but
 // * it is to be used ONLY by low-level modules that can't use normal LOG()

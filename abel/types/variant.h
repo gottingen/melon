@@ -59,8 +59,6 @@ ABEL_NAMESPACE_END
 #include <new>
 #include <type_traits>
 #include <utility>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/types/internal/variant.h>

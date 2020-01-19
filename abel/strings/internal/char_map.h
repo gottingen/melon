@@ -10,8 +10,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 namespace abel {

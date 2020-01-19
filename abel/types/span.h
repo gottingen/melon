@@ -52,7 +52,6 @@
 
 #include <abel/base/internal/throw_delegate.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>   // TODO(strel): remove this include
 #include <abel/meta/type_traits.h>
 #include <abel/types/internal/span.h>
 

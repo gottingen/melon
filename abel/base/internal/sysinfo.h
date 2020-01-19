@@ -16,7 +16,6 @@
 #endif
 
 #include <cstdint>
-
 #include <abel/base/profile.h>
 
 namespace abel {

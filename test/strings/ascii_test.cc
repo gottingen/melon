@@ -9,7 +9,6 @@
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 
 namespace {
 

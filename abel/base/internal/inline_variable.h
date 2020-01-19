@@ -4,8 +4,7 @@
 #define ABEL_BASE_INTERNAL_INLINE_VARIABLE_EMULATION_H_
 
 #include <type_traits>
-
-#include <abel/base/internal/identity.h>
+#include <abel/meta/type_traits.h>
 
 // File:
 //   This file define a macro that allows the creation of or emulation of C++17

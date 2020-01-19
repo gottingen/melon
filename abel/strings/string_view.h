@@ -33,7 +33,6 @@ ABEL_NAMESPACE_END
 
 #include <abel/base/internal/throw_delegate.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 
 namespace abel {
 ABEL_NAMESPACE_BEGIN

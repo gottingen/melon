@@ -25,8 +25,6 @@
 #include <abel/debugging/stacktrace.h>
 
 #include <atomic>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 #include <abel/debugging/internal/stacktrace_config.h>
 

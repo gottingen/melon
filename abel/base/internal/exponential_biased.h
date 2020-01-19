@@ -4,8 +4,6 @@
 #define ABEL_BASE_INTERNAL_EXPONENTIAL_BIASED_H_
 
 #include <stdint.h>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 namespace abel {

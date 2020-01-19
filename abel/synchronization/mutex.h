@@ -49,7 +49,7 @@
 #include <string>
 
 #include <abel/base/const_init.h>
-#include <abel/base/internal/identity.h>
+#include <abel/meta/type_traits.h>
 #include <abel/base/internal/low_level_alloc.h>
 #include <abel/base/internal/thread_identity.h>
 #include <abel/base/internal/tsan_mutex_interface.h>

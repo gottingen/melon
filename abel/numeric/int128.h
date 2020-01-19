@@ -16,9 +16,6 @@
 #include <iosfwd>
 #include <limits>
 #include <utility>
-
-#include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 #if defined(_MSC_VER)

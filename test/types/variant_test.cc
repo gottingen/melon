@@ -25,7 +25,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <abel/memory/memory.h>
 #include <abel/meta/type_traits.h>
 #include <abel/strings/string_view.h>

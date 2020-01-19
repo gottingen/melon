@@ -5,10 +5,7 @@
 #define ABEL_BASE_INTERNAL_UNALIGNED_ACCESS_H_
 
 #include <string.h>
-
 #include <cstdint>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 // unaligned APIs

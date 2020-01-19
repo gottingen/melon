@@ -1,12 +1,9 @@
 //
 
 #include <abel/base/internal/periodic_sampler.h>
-
 #include <thread>  // NOLINT(build/c++11)
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 namespace abel {

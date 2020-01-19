@@ -29,7 +29,6 @@
 #include <abel/base/internal/scheduling_mode.h>
 #include <abel/base/internal/tsan_mutex_interface.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <abel/base/thread_annotations.h>
 
 namespace abel {

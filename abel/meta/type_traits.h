@@ -741,6 +741,19 @@ using swap_internal::StdSwapIsUnconstrained;
 
 }  // namespace type_traits_internal
 ABEL_NAMESPACE_END
+
+namespace internal {
+
+template <typename T>
+struct identity {
+    typedef T type;
+};
+
+template <typename T>
+using identity_t = typename identity<T>::type;
+
+}  // namespace internal
+
 }  // namespace abel
 
 #endif  // ABEL_META_TYPE_TRAITS_H_

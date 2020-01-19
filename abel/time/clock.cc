@@ -18,7 +18,6 @@
 #include <abel/base/internal/spinlock.h>
 #include <abel/base/internal/unscaledcycleclock.h>
 #include <abel/base/profile.h>
-#include <abel/base/profile.h>
 #include <abel/base/thread_annotations.h>
 
 namespace abel {

@@ -5,8 +5,6 @@
 
 #include <array>
 #include <ostream>
-
-#include <abel/base/profile.h>
 #include <abel/base/profile.h>
 
 namespace abel {
