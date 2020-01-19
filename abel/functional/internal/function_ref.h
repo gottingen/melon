@@ -7,7 +7,7 @@
 #include <functional>
 #include <type_traits>
 
-#include <abel/base/internal/invoke.h>
+#include <abel/functional/internal/invoke.h>
 #include <abel/meta/type_traits.h>
 
 namespace abel {

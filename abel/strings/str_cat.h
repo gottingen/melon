@@ -45,7 +45,6 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-
 #include <abel/base/profile.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/string_view.h>

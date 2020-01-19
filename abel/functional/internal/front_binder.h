@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/invoke.h>
+#include <abel/functional/internal/invoke.h>
 #include <abel/container/internal/compressed_tuple.h>
 #include <abel/meta/type_traits.h>
 #include <abel/utility/utility.h>

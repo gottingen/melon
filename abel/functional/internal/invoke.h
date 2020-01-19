@@ -19,8 +19,8 @@
 // The implementation is SFINAE-friendly: substitution failure within Invoke()
 // isn't an error.
 
-#ifndef ABEL_BASE_INTERNAL_INVOKE_H_
-#define ABEL_BASE_INTERNAL_INVOKE_H_
+#ifndef ABEL_FUNCTIONAL_INTERNAL_INVOKE_H_
+#define ABEL_FUNCTIONAL_INTERNAL_INVOKE_H_
 
 #include <algorithm>
 #include <type_traits>
@@ -170,5 +170,4 @@ InvokeT<F, Args...> Invoke(F&& f, Args&&... args) {
 }  // namespace base_internal
 ABEL_NAMESPACE_END
 }  // namespace abel
-
-#endif  // ABEL_BASE_INTERNAL_INVOKE_H_
+#endif  // ABEL_FUNCTIONAL_INTERNAL_INVOKE_H_

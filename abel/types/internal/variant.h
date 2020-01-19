@@ -16,7 +16,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/base/internal/inline_variable.h>
-#include <abel/base/internal/invoke.h>
+#include <abel/functional/internal/invoke.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/types/bad_variant_access.h>

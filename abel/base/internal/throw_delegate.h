@@ -5,7 +5,6 @@
 #define ABEL_BASE_INTERNAL_THROW_DELEGATE_H_
 
 #include <string>
-
 #include <abel/base/profile.h>
 
 namespace abel {

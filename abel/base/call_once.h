@@ -18,7 +18,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/invoke.h>
+#include <abel/functional/internal/invoke.h>
 #include <abel/base/internal/low_level_scheduling.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/scheduling_mode.h>
