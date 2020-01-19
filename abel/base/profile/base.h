@@ -154,18 +154,18 @@
     #if defined(__MINGW32__) || (defined(ABEL_PLATFORM_ANDROID) && !(defined(ABEL_ANDROID_SDK_LEVEL) && ABEL_ANDROID_SDK_LEVEL >= 21))
         #if defined(__FLT_EVAL_METHOD__)
             #if(__FLT_EVAL_METHOD__== 0)
-            typedef float float_t;
-            typedef double double_t;
+typedef float float_t;
+typedef double double_t;
             #elif(__FLT_EVAL_METHOD__ == 1)
-            typedef double float_t;
-            typedef double double_t;
+typedef double float_t;
+typedef double double_t;
             #elif(__FLT_EVAL_METHOD__ == 2)
-            typedef long double float_t;
-            typedef long double double_t;
+typedef long double float_t;
+typedef long double double_t;
             #endif
         #else
-        typedef float  float_t;
-        typedef double double_t;
+typedef float  float_t;
+typedef double double_t;
         #endif
     #endif
 
@@ -748,8 +748,8 @@ typedef char char8_t;
 // In MS C, char16_t and char32_t are already defined by the compiler/standard library.
 // In GCC C, __CHAR16_TYPE__ and __CHAR32_TYPE__ are defined instead, and we must define char16_t and char32_t from these.
         #if defined(__GNUC__) && !defined(__GXX_EXPERIMENTAL_CXX0X__) && defined(__CHAR16_TYPE__) // If using GCC and compiling in C...
-    typedef __CHAR16_TYPE__ char16_t;
-    typedef __CHAR32_TYPE__ char32_t;
+            typedef __CHAR16_TYPE__ char16_t;
+            typedef __CHAR32_TYPE__ char32_t;
         #endif
     #elif (ABEL_WCHAR_SIZE == 2)
         #if (defined(_MSC_VER) && (_MSC_VER >= 1600)) // if VS2010+ or using platforms that use Dinkumware under a compiler that doesn't natively support C++11 char16_t.
@@ -757,19 +757,19 @@ typedef char char8_t;
                 #define _CHAR16T
             #endif
             #if !defined(_HAS_CHAR16_T_LANGUAGE_SUPPORT) || !_HAS_CHAR16_T_LANGUAGE_SUPPORT
-typedef wchar_t  char16_t;
-typedef uint32_t char32_t;
+                typedef wchar_t  char16_t;
+                typedef uint32_t char32_t;
             #endif
         #else
-typedef wchar_t  char16_t;
-typedef uint32_t char32_t;
+            typedef wchar_t  char16_t;
+            typedef uint32_t char32_t;
         #endif
     #else
-typedef uint16_t char16_t;
+        typedef uint16_t char16_t;
         #if defined(__cplusplus)
-typedef wchar_t  char32_t;
+            typedef wchar_t  char32_t;
         #else
-typedef uint32_t char32_t;
+            typedef uint32_t char32_t;
         #endif
     #endif
 #endif
@@ -973,7 +973,6 @@ typedef uint32_t char32_t;
 #define ABEL_PEBIBYTE(x) (size_t(x) * 1024 * 1024 * 1024 * 1024 * 1024)
 #define ABEL_EXBIBYTE(x) (size_t(x) * 1024 * 1024 * 1024 * 1024 * 1024 * 1024)
 
-
 #ifndef ABEL_CONCAT
 # define ABEL_CONCAT(a, b) ABEL_CONCAT_HELPER(a, b)
 # define ABEL_CONCAT_HELPER(a, b) a##b
@@ -995,7 +994,7 @@ typedef uint32_t char32_t;
 
 namespace qrpc {
 template<typename T>
-ABEL_FORCE_INLINE void ignore_result(const T&) {
+ABEL_FORCE_INLINE void ignore_result (const T &) {
 }
 } // namespace qrpc
 
@@ -1014,8 +1013,8 @@ ABEL_NAMESPACE_BEGIN
 namespace macros_internal {
 // Note: this internal template function declaration is used by ABEL_ARRAYSIZE.
 // The function doesn't need a definition, as we only use its type.
-template <typename T, size_t N>
-auto ArraySizeHelper(const T (&array)[N]) -> char (&)[N];
+template<typename T, size_t N>
+auto ArraySizeHelper (const T (&array)[N]) -> char (&)[N];
 }  // namespace macros_internal
 ABEL_NAMESPACE_END
 }  // namespace abel

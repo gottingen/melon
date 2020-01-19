@@ -628,7 +628,7 @@ TEST(RandenTest, IsFastOrSlow) {
   randen_u64 engine;
   randen_u64::result_type sum = 0;
   auto start = abel::get_current_time_nanos();
-  for (int i = 0; i < kCount; i++) {
+  for (size_t i = 0; i < kCount; i++) {
     sum += engine();
   }
   auto duration = abel::get_current_time_nanos() - start;

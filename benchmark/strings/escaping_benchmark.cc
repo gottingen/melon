@@ -55,7 +55,7 @@ const char kStringValueMostEscaped[] = "\xA1\xA2\ny\xA4\xA5\xA6z\b\r";
 void CEscapeBenchmarkHelper(benchmark::State& state, const char* string_value,
                             int max_len) {
   std::string src;
-  while (src.size() < max_len) {
+  while (src.size() < static_cast<size_t>(max_len)) {
     abel::string_append(&src, string_value);
   }
 

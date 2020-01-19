@@ -1,0 +1,5 @@
+include(abel_error)
+include(abel_debug)
+include(abel_cxx_flags)
+include(abel_outof_source)
+ABEL_ENSURE_OUT_OF_SOURCE_BUILD("must out of source dir")

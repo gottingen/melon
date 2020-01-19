@@ -214,7 +214,7 @@ TEST(IntSpan, SizeLengthEmpty) {
 TEST(IntSpan, ElementAccess) {
   auto v = MakeRamp(10);
   abel::Span<int> s(v);
-  for (int i = 0; i < s.size(); ++i) {
+  for (size_t i = 0; i < s.size(); ++i) {
     EXPECT_EQ(s[i], s.at(i));
   }
 

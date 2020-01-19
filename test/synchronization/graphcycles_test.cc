@@ -123,7 +123,7 @@ static void CheckTransitiveClosure(Nodes *nodes, Edges *edges, const IdMap &id,
 
 static void CheckEdges(Nodes *nodes, Edges *edges, const IdMap &id,
                        GraphCycles *gc) {
-  int count = 0;
+  size_t count = 0;
   for (const auto &edge : *edges) {
     int a = edge.from;
     int b = edge.to;
@@ -143,7 +143,7 @@ static void CheckEdges(Nodes *nodes, Edges *edges, const IdMap &id,
   if (count != edges->size()) {
     PrintEdges(edges);
     PrintGCEdges(nodes, id, gc);
-    ABEL_RAW_LOG(FATAL, "edges->size() %zu  count %d", edges->size(), count);
+    ABEL_RAW_LOG(FATAL, "edges->size() %zu  count %zu", edges->size(), count);
   }
 }
 
@@ -168,7 +168,7 @@ static int RandomEdge(RandomEngine* rng, Edges *edges) {
 
 // Returns the index of edge (from, to) in *edges or -1 if it is not in *edges.
 static int EdgeIndex(Edges *edges, int from, int to) {
-  int i = 0;
+  size_t i = 0;
   while (i != edges->size() &&
          ((*edges)[i].from != from || (*edges)[i].to != to)) {
     i++;
@@ -221,7 +221,7 @@ TEST(GraphCycles, RandomizedTest) {
         graph_cycles.RemoveNode(ptr(node));
         ASSERT_EQ(graph_cycles.Ptr(Get(id, node)), nullptr);
         id.erase(node);
-        int i = 0;
+        size_t i = 0;
         while (i != edges.size()) {
           if (edges[i].from == node || edges[i].to == node) {
             edges[i] = edges.back();
@@ -324,7 +324,7 @@ TEST(GraphCycles, RandomizedTest) {
         nodes.pop_back();
         graph_cycles.RemoveNode(ptr(node));
         id.erase(node);
-        int j = 0;
+        size_t j = 0;
         while (j != edges.size()) {
           if (edges[j].from == node || edges[j].to == node) {
             edges[j] = edges.back();
@@ -377,7 +377,7 @@ class GraphCyclesTest : public ::testing::Test {
     GraphId path[5];
     int np = g_.FindPath(Get(id_, x), Get(id_, y), ABEL_ARRAYSIZE(path), path);
     std::string result;
-    for (int i = 0; i < np; i++) {
+    for (size_t i = 0; i < static_cast<size_t>(np); i++) {
       if (i >= ABEL_ARRAYSIZE(path)) {
         result += " ...";
         break;

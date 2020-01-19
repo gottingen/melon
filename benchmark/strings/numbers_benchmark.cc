@@ -129,7 +129,7 @@ void BM_safe_strtou64_string(benchmark::State& state) {
     benchmark::DoNotOptimize(
         abel::numbers_internal::safe_strtou64_base(str, &value, base));
   }
-  ABEL_RAW_CHECK(value == RepeatedSevens(digits, base), "");
+  ABEL_RAW_CHECK(value == static_cast<uint64_t>(RepeatedSevens(digits, base)), "");
 }
 BENCHMARK(BM_safe_strtou64_string)
     ->ArgPair(1, 8)

@@ -17,7 +17,7 @@ namespace {
 std::string MakeTestString(int desired_length) {
   static const int kAverageValueLen = 25;
   std::string test(desired_length * kAverageValueLen, 'x');
-  for (int i = 1; i < test.size(); i += kAverageValueLen) {
+  for (size_t i = 1; i < test.size(); i += kAverageValueLen) {
     test[i] = ';';
   }
   return test;
@@ -37,7 +37,7 @@ static const abel::string_view kDelimiters = ";:,.";
 std::string MakeMultiDelimiterTestString(int desired_length) {
   static const int kAverageValueLen = 25;
   std::string test(desired_length * kAverageValueLen, 'x');
-  for (int i = 0; i * kAverageValueLen < test.size(); ++i) {
+  for (size_t i = 0; i * kAverageValueLen < test.size(); ++i) {
     // Cycle through a variety of delimiters.
     test[i * kAverageValueLen] = kDelimiters[i % kDelimiters.size()];
   }

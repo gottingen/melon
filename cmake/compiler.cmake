@@ -5,7 +5,7 @@ set(CXX_FLAGS
         -D_FILE_OFFSET_BITS=64
         -Wall
         -Wextra
-        #-Werror
+        -Werror
         -Wno-unused-parameter
         -Wno-missing-field-initializers
         -Woverloaded-virtual

@@ -40,16 +40,16 @@ namespace abel {
 ABEL_NAMESPACE_BEGIN
 namespace synchronization_internal {
 
-static void MaybeBecomeIdle() {
-  base_internal::ThreadIdentity *identity =
-      base_internal::CurrentThreadIdentityIfPresent();
-  assert(identity != nullptr);
-  const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
-  const int ticker = identity->ticker.load(std::memory_order_relaxed);
-  const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
-  if (!is_idle && ticker - wait_start > Waiter::kIdlePeriods) {
-    identity->is_idle.store(true, std::memory_order_relaxed);
-  }
+static void MaybeBecomeIdle () {
+    base_internal::ThreadIdentity *identity =
+        base_internal::CurrentThreadIdentityIfPresent();
+    assert(identity != nullptr);
+    const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
+    const int ticker = identity->ticker.load(std::memory_order_relaxed);
+    const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
+    if (!is_idle && ticker - wait_start > Waiter::kIdlePeriods) {
+        identity->is_idle.store(true, std::memory_order_relaxed);
+    }
 }
 
 #if ABEL_WAITER_MODE == ABEL_WAITER_MODE_FUTEX
@@ -277,71 +277,77 @@ void Waiter::InternalCondVarPoke() {
 
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_SEM
 
-Waiter::Waiter() {
-  if (sem_init(&sem_, 0, 0) != 0) {
-    ABEL_RAW_LOG(FATAL, "sem_init failed with errno %d\n", errno);
-  }
-  wakeups_.store(0, std::memory_order_relaxed);
+Waiter::Waiter () {
+    if (sem_init(&sem_, 0, 0) != 0) {
+        ABEL_RAW_LOG(FATAL, "sem_init failed with errno %d\n", errno);
+    }
+    wakeups_.store(0, std::memory_order_relaxed);
 }
 
-Waiter::~Waiter() {
-  if (sem_destroy(&sem_) != 0) {
-    ABEL_RAW_LOG(FATAL, "sem_destroy failed with errno %d\n", errno);
-  }
+Waiter::~Waiter () {
+    if (sem_destroy(&sem_) != 0) {
+        ABEL_RAW_LOG(FATAL, "sem_destroy failed with errno %d\n", errno);
+    }
 }
 
-bool Waiter::wait(KernelTimeout t) {
-  struct timespec abs_timeout;
-  if (t.has_timeout()) {
-    abs_timeout = t.MakeAbsTimespec();
-  }
-
-  // Loop until we timeout or consume a wakeup.
-  // Note that, since the thread ticker is just reset, we don't need to check
-  // whether the thread is idle on the very first pass of the loop.
-  bool first_pass = true;
-  while (true) {
-    int x = wakeups_.load(std::memory_order_relaxed);
-    while (x != 0) {
-      if (!wakeups_.compare_exchange_weak(x, x - 1,
-                                          std::memory_order_acquire,
-                                          std::memory_order_relaxed)) {
-        continue;  // Raced with someone, retry.
-      }
-      // Successfully consumed a wakeup, we're done.
-      return true;
+bool Waiter::wait (KernelTimeout t) {
+    struct timespec abs_timeout;
+    if (t.has_timeout()) {
+        abs_timeout = t.MakeAbsTimespec();
     }
 
-    if (!first_pass) MaybeBecomeIdle();
-    // Nothing to consume, wait (looping on EINTR).
+    // Loop until we timeout or consume a wakeup.
+    // Note that, since the thread ticker is just reset, we don't need to check
+    // whether the thread is idle on the very first pass of the loop.
+    bool first_pass = true;
     while (true) {
-      if (!t.has_timeout()) {
-        if (sem_wait(&sem_) == 0) break;
-        if (errno == EINTR) continue;
-        ABEL_RAW_LOG(FATAL, "sem_wait failed: %d", errno);
-      } else {
-        if (sem_timedwait(&sem_, &abs_timeout) == 0) break;
-        if (errno == EINTR) continue;
-        if (errno == ETIMEDOUT) return false;
-        ABEL_RAW_LOG(FATAL, "sem_timedwait failed: %d", errno);
-      }
+        int x = wakeups_.load(std::memory_order_relaxed);
+        while (x != 0) {
+            if (!wakeups_.compare_exchange_weak(x, x - 1,
+                                                std::memory_order_acquire,
+                                                std::memory_order_relaxed)) {
+                continue;  // Raced with someone, retry.
+            }
+            // Successfully consumed a wakeup, we're done.
+            return true;
+        }
+
+        if (!first_pass)
+            MaybeBecomeIdle();
+        // Nothing to consume, wait (looping on EINTR).
+        while (true) {
+            if (!t.has_timeout()) {
+                if (sem_wait(&sem_) == 0)
+                    break;
+                if (errno == EINTR)
+                    continue;
+                ABEL_RAW_LOG(FATAL, "sem_wait failed: %d", errno);
+            } else {
+                if (sem_timedwait(&sem_, &abs_timeout) == 0)
+                    break;
+                if (errno == EINTR)
+                    continue;
+                if (errno == ETIMEDOUT)
+                    return false;
+                ABEL_RAW_LOG(FATAL, "sem_timedwait failed: %d", errno);
+            }
+        }
+        first_pass = false;
     }
-    first_pass = false;
-  }
 }
 
-void Waiter::Post() {
-  // Post a wakeup.
-  if (wakeups_.fetch_add(1, std::memory_order_release) == 0) {
-    // We incremented from 0, need to wake a potential waiter.
-    Poke();
-  }
+void Waiter::Post () {
+    // Post a wakeup.
+    if (wakeups_.fetch_add(1, std::memory_order_release) == 0) {
+        // We incremented from 0, need to wake a potential waiter.
+        Poke();
+    }
 }
 
-void Waiter::Poke() {
-  if (sem_post(&sem_) != 0) {  // Wake any semaphore waiter.
-    ABEL_RAW_LOG(FATAL, "sem_post failed with errno %d\n", errno);
-  }
+void Waiter::Poke () {
+    if (sem_post(&sem_) != 0) {  // Wake any semaphore waiter.
+        ABEL_RAW_LOG(FATAL, "sem_post failed with errno %d\n", errno);
+    }
 }
 
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_WIN32
