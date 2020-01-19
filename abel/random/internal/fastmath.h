@@ -10,7 +10,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 
 namespace abel {
 ABEL_NAMESPACE_BEGIN
@@ -18,7 +18,7 @@ namespace random_internal {
 
 // Returns the position of the first bit set.
 ABEL_FORCE_INLINE int LeadingSetBit(uint64_t n) {
-  return 64 - base_internal::CountLeadingZeros64(n);
+  return 64 - abel::count_leading_zeros(n);
 }
 
 // Compute log2(n) using integer operations.
@@ -27,10 +27,10 @@ ABEL_FORCE_INLINE int LeadingSetBit(uint64_t n) {
 // for instance--std::log2 rounds up rather than down, which introduces
 // definite skew in the results.
 ABEL_FORCE_INLINE int IntLog2Floor(uint64_t n) {
-  return (n <= 1) ? 0 : (63 - base_internal::CountLeadingZeros64(n));
+  return (n <= 1) ? 0 : (63 - abel::count_leading_zeros(n));
 }
 ABEL_FORCE_INLINE int IntLog2Ceil(uint64_t n) {
-  return (n <= 1) ? 0 : (64 - base_internal::CountLeadingZeros64(n - 1));
+  return (n <= 1) ? 0 : (64 - abel::count_leading_zeros(n - 1));
 }
 
 ABEL_FORCE_INLINE double StirlingLogFactorial(double n) {

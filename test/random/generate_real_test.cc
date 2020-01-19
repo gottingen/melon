@@ -8,7 +8,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #include <abel/flags/flag.h>
 
 ABEL_FLAG(int64_t, abel_random_test_trials, 50000,
@@ -401,7 +401,6 @@ TEST(GenerateRealTest, U64ToDoubleSignedTest) {
 }
 
 TEST(GenerateRealTest, ExhaustiveFloat) {
-  using abel::base_internal::CountLeadingZeros64;
   auto ToFloat = [](uint64_t a) {
     return GenerateRealFromBits<float, GeneratePositiveTag, true>(a);
   };
@@ -452,7 +451,7 @@ TEST(GenerateRealTest, ExhaustiveFloat) {
 
     // Adjust decrement and check value based on how many leading 0
     // bits are set in the current value.
-    const int clz = CountLeadingZeros64(x);
+    const auto clz = abel::count_leading_zeros(x);
     if (clz < kDig) {
       dec <<= (kDig - clz);
       chk = (~uint64_t(0)) >> (clz + 1);

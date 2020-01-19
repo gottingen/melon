@@ -89,7 +89,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #include <abel/base/internal/endian.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/common.h>
@@ -160,21 +160,6 @@ constexpr bool IsNoThrowSwappable() {
   return noexcept(swap(std::declval<T&>(), std::declval<T&>()));
 }
 
-template <typename T>
-int TrailingZeros(T x) {
-  return sizeof(T) == 8 ? base_internal::CountTrailingZerosNonZero64(
-                              static_cast<uint64_t>(x))
-                        : base_internal::CountTrailingZerosNonZero32(
-                              static_cast<uint32_t>(x));
-}
-
-template <typename T>
-int LeadingZeros(T x) {
-  return sizeof(T) == 8
-             ? base_internal::CountLeadingZeros64(static_cast<uint64_t>(x))
-             : base_internal::CountLeadingZeros32(static_cast<uint32_t>(x));
-}
-
 // An abstraction over a bitmask. It provides an easy way to iterate through the
 // indexes of the set bits of a bitmask.  When Shift=0 (platforms with SSE),
 // this is a true bitmask.  On non-SSE, platforms the arithematic used to
@@ -203,10 +188,10 @@ class BitMask {
   explicit operator bool() const { return mask_ != 0; }
   int operator*() const { return LowestBitSet(); }
   int LowestBitSet() const {
-    return container_internal::TrailingZeros(mask_) >> Shift;
+    return abel::count_tailing_zeros(mask_) >> Shift;
   }
   int HighestBitSet() const {
-    return (sizeof(T) * CHAR_BIT - container_internal::LeadingZeros(mask_) -
+    return (sizeof(T) * CHAR_BIT - abel::count_leading_zeros(mask_) -
             1) >>
            Shift;
   }
@@ -215,13 +200,13 @@ class BitMask {
   BitMask end() const { return BitMask(0); }
 
   int TrailingZeros() const {
-    return container_internal::TrailingZeros(mask_) >> Shift;
+    return abel::count_tailing_zeros(mask_) >> Shift;
   }
 
   int LeadingZeros() const {
     constexpr int total_significant_bits = SignificantBits << Shift;
     constexpr int extra_bits = sizeof(T) * 8 - total_significant_bits;
-    return container_internal::LeadingZeros(mask_ << extra_bits) >> Shift;
+    return abel::count_leading_zeros(mask_ << extra_bits) >> Shift;
   }
 
  private:
@@ -350,7 +335,7 @@ struct GroupSse2Impl {
   // Returns the number of trailing empty or deleted elements in the group.
   uint32_t CountLeadingEmptyOrDeleted() const {
     auto special = _mm_set1_epi8(kSentinel);
-    return TrailingZeros(
+    return abel::count_tailing_zeros(
         _mm_movemask_epi8(_mm_cmpgt_epi8_fixed(special, ctrl)) + 1);
   }
 
@@ -409,7 +394,7 @@ struct GroupPortableImpl {
 
   uint32_t CountLeadingEmptyOrDeleted() const {
     constexpr uint64_t gaps = 0x00FEFEFEFEFEFEFEULL;
-    return (TrailingZeros(((~ctrl & (ctrl >> 7)) | gaps) + 1) + 7) >> 3;
+    return (abel::count_tailing_zeros(((~ctrl & (ctrl >> 7)) | gaps) + 1) + 7) >> 3;
   }
 
   void ConvertSpecialToEmptyAndFullToDeleted(ctrl_t* dst) const {
@@ -456,7 +441,7 @@ ABEL_FORCE_INLINE void ConvertDeletedToEmptyAndFullToDeleted(
 
 // Rounds up the capacity to the next power of 2 minus 1, with a minimum of 1.
 ABEL_FORCE_INLINE size_t NormalizeCapacity(size_t n) {
-  return n ? ~size_t{} >> LeadingZeros(n) : 1;
+  return n ? ~size_t{} >> abel::count_leading_zeros(n) : 1;
 }
 
 // We use 7/8th as maximum load factor.

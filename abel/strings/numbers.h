@@ -23,7 +23,7 @@
 #include <string>
 #include <type_traits>
 
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #ifdef __SSE4_2__
 // TODO(jorg): Remove this when we figure out the right way
 // to swap bytes on SSE 4.2 that works with the compilers
@@ -221,7 +221,7 @@ ABEL_FORCE_INLINE size_t fast_hex_to_buffer_zero_pad16(uint64_t val, char* out) 
   }
 #endif
   // | 0x1 so that even 0 has 1 digit.
-  return 16 - abel::base_internal::CountLeadingZeros64(val | 0x1) / 4;
+  return 16 - abel::count_leading_zeros(val | 0x1) / 4;
 }
 
 }  // namespace numbers_internal

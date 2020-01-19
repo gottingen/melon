@@ -3,7 +3,7 @@
 #include <abel/random/internal/wide_multiply.h>
 
 #include <gtest/gtest.h>
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #include <abel/numeric/int128.h>
 
 using abel::random_internal::MultiplyU64ToU128;
