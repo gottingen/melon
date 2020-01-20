@@ -33,6 +33,8 @@ FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
 FILE(GLOB TIME_INTERNAL_CCTZ_SRC "time/internal/cctz/src/*.cc")
 
 
+FILE(GLOB DIGEST_SRC "digest/*.cc")
+
 SET(ABEL_SRC
         ${ALGO_SRC}
         ${BASE_SRC}
@@ -55,6 +57,7 @@ SET(ABEL_SRC
         ${TIME_SRC}
         ${TIME_INTERNAL_SRC}
         ${TIME_INTERNAL_CCTZ_SRC}
+        ${DIGEST_SRC}
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})

@@ -9,10 +9,9 @@
 // fix, so that (for example) non-const references may be passed to the invoked
 // function.
 
-#ifndef ABEL_BASE_CALL_ONCE_H_
-#define ABEL_BASE_CALL_ONCE_H_
+#ifndef ABEL_FUNCTIONAL_CALL_ONCE_H_
+#define ABEL_FUNCTIONAL_CALL_ONCE_H_
 
-#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <type_traits>

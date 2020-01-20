@@ -1,6 +1,5 @@
-//
 
-#include "inline_variable_testing.h"
+#include <testing/inline_variable_testing.h>
 
 namespace abel {
 

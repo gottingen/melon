@@ -2,8 +2,8 @@
 
 // Utilities for testing exception-safety
 
-#ifndef ABEL_BASE_INTERNAL_EXCEPTION_SAFETY_TESTING_H_
-#define ABEL_BASE_INTERNAL_EXCEPTION_SAFETY_TESTING_H_
+#ifndef ABEL_TESTING_EXCEPTION_SAFETY_TESTING_H_
+#define ABEL_TESTING_EXCEPTION_SAFETY_TESTING_H_
 
 #include <abel/base/profile.h>
 
@@ -1086,4 +1086,4 @@ class ExceptionSafetyTestBuilder {
 
 #endif  // ABEL_HAVE_EXCEPTIONS
 
-#endif  // ABEL_BASE_INTERNAL_EXCEPTION_SAFETY_TESTING_H_
+#endif  // ABEL_TESTING_EXCEPTION_SAFETY_TESTING_H_

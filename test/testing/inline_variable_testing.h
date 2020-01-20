@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_BASE_INLINE_VARIABLE_TESTING_H_
-#define ABEL_BASE_INLINE_VARIABLE_TESTING_H_
+#ifndef ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
+#define ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
 
 #include <abel/base/internal/inline_variable.h>
 
@@ -31,4 +31,4 @@ const int& get_int_b();
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INLINE_VARIABLE_TESTING_H_
+#endif  // ABEL_TESTING_INLINE_VARIABLE_TESTING_H_

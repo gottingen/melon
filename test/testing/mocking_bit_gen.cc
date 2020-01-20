@@ -1,5 +1,4 @@
-//
-//
+
 #include <testing/mocking_bit_gen.h>
 
 #include <string>

@@ -11,7 +11,7 @@
 #include <cassert>
 #include <memory>
 
-#include <abel/base/call_once.h>
+#include <abel/functional/call_once.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/spinlock.h>
 

@@ -6,7 +6,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <testing/test_util.h>
+#include <testing/time_util.h>
 #include <abel/time/time.h>
 
 using testing::HasSubstr;

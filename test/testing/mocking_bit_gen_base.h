@@ -1,7 +1,7 @@
 //
 //
-#ifndef ABEL_RANDOM_INTERNAL_MOCKING_BIT_GEN_BASE_H_
-#define ABEL_RANDOM_INTERNAL_MOCKING_BIT_GEN_BASE_H_
+#ifndef ABEL_TESTING_MOCKING_BIT_GEN_BASE_H_
+#define ABEL_TESTING_MOCKING_BIT_GEN_BASE_H_
 
 #include <atomic>
 #include <deque>
@@ -104,4 +104,4 @@ class MockingBitGenBase {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_MOCKING_BIT_GEN_BASE_H_
+#endif  // ABEL_TESTING_MOCKING_BIT_GEN_BASE_H_

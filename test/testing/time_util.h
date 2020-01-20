@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_TIME_INTERNAL_TEST_UTIL_H_
-#define ABEL_TIME_INTERNAL_TEST_UTIL_H_
+#ifndef ABEL_TESTING_INTERNAL_TIME_UTIL_H_
+#define ABEL_TESTING_INTERNAL_TIME_UTIL_H_
 
 #include <string>
 
@@ -18,4 +18,4 @@ abel::time_zone load_time_zone(const std::string& name);
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_TEST_UTIL_H_
+#endif  // ABEL_TESTING_INTERNAL_TIME_UTIL_H_

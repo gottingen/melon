@@ -1,7 +1,6 @@
-//
+
 
 #include <testing/atomic_hook_test_helper.h>
-
 #include <abel/base/profile.h>
 #include <abel/base/internal/atomic_hook.h>
 

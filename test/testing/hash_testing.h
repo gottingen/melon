@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_HASH_HASH_TESTING_H_
-#define ABEL_HASH_HASH_TESTING_H_
+#ifndef ABEL_TESTING_HASH_TESTING_H_
+#define ABEL_TESTING_HASH_TESTING_H_
 
 #include <initializer_list>
 #include <tuple>
@@ -363,4 +363,4 @@ VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values,
 
 }  // namespace abel
 
-#endif  // ABEL_HASH_HASH_TESTING_H_
+#endif  // ABEL_TESTING_HASH_TESTING_H_

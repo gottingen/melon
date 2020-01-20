@@ -9,7 +9,7 @@
 
 #include <type_traits>
 
-#include <abel/base/call_once.h>
+#include <abel/functional/call_once.h>
 #include <abel/base/profile.h>
 #include <abel/base/internal/direct_mmap.h>
 #include <abel/base/internal/scheduling_mode.h>

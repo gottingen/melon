@@ -1,9 +1,6 @@
-//
-// Generates random values for testing. Specialized only for the few types we
-// care about.
 
-#ifndef ABEL_CONTAINER_INTERNAL_HASH_GENERATOR_TESTING_H_
-#define ABEL_CONTAINER_INTERNAL_HASH_GENERATOR_TESTING_H_
+#ifndef ABEL_TESTING_HASH_GENERATOR_TESTING_H_
+#define ABEL_TESTING_HASH_GENERATOR_TESTING_H_
 
 #include <stdint.h>
 
@@ -145,4 +142,4 @@ using GeneratedType = decltype(
 
 }  // namespace abel
 
-#endif  // ABEL_CONTAINER_INTERNAL_HASH_GENERATOR_TESTING_H_
+#endif  // ABEL_TESTING_HASH_GENERATOR_TESTING_H_

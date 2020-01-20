@@ -1,19 +1,6 @@
-//
-// -----------------------------------------------------------------------------
-// mocking_bit_gen.h
-// -----------------------------------------------------------------------------
-//
-// This file includes an `abel::MockingBitGen` class to use as a mock within the
-// Googletest testing framework. Such a mock is useful to provide deterministic
-// values as return values within (otherwise random) abel distribution
-// functions. Such determinism within a mock is useful within testing frameworks
-// to test otherwise indeterminate APIs.
-//
-// More information about the Googletest testing framework is available at
-// https://github.com/google/googletest
 
-#ifndef ABEL_RANDOM_MOCKING_BIT_GEN_H_
-#define ABEL_RANDOM_MOCKING_BIT_GEN_H_
+#ifndef ABEL_TESTING_MOCKING_BIT_GEN_H_
+#define ABEL_TESTING_MOCKING_BIT_GEN_H_
 
 #include <iterator>
 #include <limits>
@@ -180,4 +167,4 @@ struct DistributionCaller<abel::MockingBitGen> {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_MOCKING_BIT_GEN_H_
+#endif  // ABEL_TESTING_MOCKING_BIT_GEN_H_

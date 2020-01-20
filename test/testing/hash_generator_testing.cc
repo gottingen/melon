@@ -1,7 +1,5 @@
-//
 
 #include <testing/hash_generator_testing.h>
-
 #include <deque>
 
 namespace abel {

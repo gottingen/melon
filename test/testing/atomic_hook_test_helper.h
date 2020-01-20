@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_BASE_ATOMIC_HOOK_TEST_HELPER_H_
-#define ABEL_BASE_ATOMIC_HOOK_TEST_HELPER_H_
+#ifndef ABEL_TESTING_ATOMIC_HOOK_TEST_HELPER_H_
+#define ABEL_TESTING_ATOMIC_HOOK_TEST_HELPER_H_
 
 #include <abel/base/internal/atomic_hook.h>
 
@@ -19,4 +19,4 @@ void RegisterFunc(VoidF func);
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_ATOMIC_HOOK_TEST_HELPER_H_
+#endif  // ABEL_TESTING_ATOMIC_HOOK_TEST_HELPER_H_

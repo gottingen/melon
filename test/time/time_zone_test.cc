@@ -3,7 +3,7 @@
 #include <abel/time/internal/cctz/include/cctz/time_zone.h>
 
 #include <gtest/gtest.h>
-#include <testing/test_util.h>
+#include <testing/time_util.h>
 #include <abel/time/time.h>
 
 namespace cctz = abel::time_internal::cctz;

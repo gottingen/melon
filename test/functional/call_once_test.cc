@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/call_once.h>
+#include <abel/functional/call_once.h>
 
 #include <thread>
 #include <vector>

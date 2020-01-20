@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <string>
 
-#include <abel/time/internal/test_util.h>
+#include <testing/time_util.h>
 #include <abel/time/time.h>
 #include <benchmark/benchmark.h>
 

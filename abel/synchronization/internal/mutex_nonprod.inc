@@ -16,7 +16,7 @@
 #include <pthread.h>
 #endif
 
-#include <abel/base/call_once.h>
+#include <abel/functional/call_once.h>
 #include <abel/time/time.h>
 
 // Declare that Mutex::ReaderLock is actually lock().  Intended primarily

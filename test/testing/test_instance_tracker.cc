@@ -1,4 +1,3 @@
-//
 
 #include <testing/test_instance_tracker.h>
 
