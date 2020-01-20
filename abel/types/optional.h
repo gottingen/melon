@@ -30,13 +30,13 @@
 #include <optional>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::bad_optional_access;
 using std::optional;
 using std::make_optional;
 using std::nullopt_t;
 using std::nullopt;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_OPTIONAL
@@ -54,7 +54,7 @@ ABEL_NAMESPACE_END
 #include <abel/types/internal/optional.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // nullopt_t
 //
@@ -744,7 +744,7 @@ constexpr auto operator>=(const U& v, const optional<T>& x)
   return static_cast<bool>(x) ? static_cast<bool>(v >= *x) : true;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 namespace std {

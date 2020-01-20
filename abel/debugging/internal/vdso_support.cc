@@ -26,7 +26,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 ABEL_CONST_INIT
@@ -176,7 +176,7 @@ static class VDSOInitHelper {
 } vdso_init_helper;
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HAVE_VDSO_SUPPORT

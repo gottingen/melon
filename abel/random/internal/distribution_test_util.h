@@ -14,7 +14,7 @@
 // non-test code.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // http://webspace.ship.edu/pgmarr/Geo441/Lectures/Lec%205%20-%20Normality%20Testing.pdf
@@ -95,7 +95,7 @@ double BetaIncomplete(double x, double p, double q);
 double BetaIncompleteInv(double p, double q, double alpha);
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_DISTRIBUTION_TEST_UTIL_H_

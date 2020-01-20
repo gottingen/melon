@@ -10,7 +10,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 template<int N>
@@ -93,5 +93,5 @@ TEST(BitCast, Double) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

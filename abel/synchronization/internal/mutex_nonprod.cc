@@ -21,7 +21,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 namespace {
@@ -306,7 +306,7 @@ bool condition::Eval() const {
 
 void register_symbolizer(bool (*)(const void*, char*, int)) {}
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif

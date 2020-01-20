@@ -6,7 +6,7 @@
 #include <abel/base/internal/inline_variable.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace inline_variable_testing_internal {
 
 struct Foo {
@@ -28,7 +28,7 @@ const int& get_int_a();
 const int& get_int_b();
 
 }  // namespace inline_variable_testing_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INLINE_VARIABLE_TESTING_H_

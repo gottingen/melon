@@ -9,7 +9,7 @@
 #include <test/container/unordered_map_modifiers_test.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -34,5 +34,5 @@ INSTANTIATE_TYPED_TEST_SUITE_P(UnorderedMap, UniquePtrModifiersTest,
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

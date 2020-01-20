@@ -33,7 +33,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // string_replace_all()
 //
@@ -200,7 +200,7 @@ int string_replace_all(const StrToStrMapping& replacements, std::string* target)
   return substitutions;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STR_REPLACE_H_

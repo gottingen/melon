@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 namespace {
 
@@ -41,7 +41,7 @@ ABEL_CONST_INIT bool tryfromenv_needs_processing
 
 }  // namespace
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 ABEL_FLAG(std::vector<std::string>, flagfile, {},
@@ -99,7 +99,7 @@ ABEL_FLAG(std::vector<std::string>, undefok, {},
           "with that name");
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 namespace {
@@ -739,5 +739,5 @@ std::vector<char*> ParseCommandLine(int argc, char* argv[]) {
       flags_internal::OnUndefinedFlag::kAbortIfUndefined);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

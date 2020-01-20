@@ -8,14 +8,14 @@
 #if !defined(__linux__) || defined(__ANDROID__)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 // On platforms other than Linux, just return true.
 bool address_is_readable(const void* /* addr */) { return true; }
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else
@@ -30,7 +30,7 @@ ABEL_NAMESPACE_END
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 // Pack a pid and two file descriptors into a 64-bit word,
@@ -119,7 +119,7 @@ bool address_is_readable(const void *addr) {
 }
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif

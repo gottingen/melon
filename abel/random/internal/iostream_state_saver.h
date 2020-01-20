@@ -12,7 +12,7 @@
 #include <abel/numeric/int128.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // The null_state_saver does nothing.
@@ -227,7 +227,7 @@ ABEL_FORCE_INLINE FloatType read_floating_point(IStream& is) {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_IOSTREAM_STATE_SAVER_H_

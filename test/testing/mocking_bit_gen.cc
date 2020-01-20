@@ -5,7 +5,7 @@
 #include <string>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 MockingBitGen::~MockingBitGen() {
 
   for (const auto& del : deleters_) {
@@ -13,5 +13,5 @@ MockingBitGen::~MockingBitGen() {
   }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

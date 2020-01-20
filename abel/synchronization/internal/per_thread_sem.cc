@@ -13,7 +13,7 @@
 #include <abel/synchronization/internal/waiter.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 void PerThreadSem::SetThreadBlockedCounter(std::atomic<int> *counter) {
@@ -51,7 +51,7 @@ void PerThreadSem::Tick(base_internal::ThreadIdentity *identity) {
 }
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 extern "C" {

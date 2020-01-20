@@ -31,7 +31,7 @@
 // TODO(calabrese) Add support for extending profiles.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace types_internal {
 
 template <class T, class /*Enabler*/ = void>
@@ -357,7 +357,7 @@ template <class T>
 struct IsProfile : IsProfileImpl<T>::type {};
 
 }  // namespace types_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TYPES_INTERNAL_CONFORMANCE_PROFILE_H_

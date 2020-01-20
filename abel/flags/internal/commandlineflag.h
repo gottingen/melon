@@ -11,7 +11,7 @@
 #include <abel/types/optional.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // Type-specific operations, eg., parsing, copying, etc. are provided
@@ -265,7 +265,7 @@ class CommandLineFlag {
   A(float)
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_COMMANDLINEFLAG_H_

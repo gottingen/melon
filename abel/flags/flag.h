@@ -25,7 +25,7 @@
 #include <abel/flags/marshalling.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Flag
 //
@@ -206,7 +206,7 @@ void SetFlag(abel::Flag<T>* flag, const V& v) {
   flag->Set(value);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 

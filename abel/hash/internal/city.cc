@@ -16,7 +16,7 @@
 #include <abel/base/internal/unaligned_access.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace hash_internal {
 
 #ifdef ABEL_SYSTEM_BIG_ENDIAN
@@ -328,5 +328,5 @@ uint64_t CityHash64WithSeeds(const char *s, size_t len, uint64_t seed0,
 }
 
 }  // namespace hash_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

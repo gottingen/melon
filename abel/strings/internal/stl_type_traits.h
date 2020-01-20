@@ -26,7 +26,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 template <typename C, template <typename...> class T>
@@ -229,6 +229,6 @@ struct IsStrictlyBaseOfAndConvertibleToSTLContainer
                         IsConvertibleToSTLContainer<C>> {};
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_STRINGS_INTERNAL_STL_TYPE_TRAITS_H_

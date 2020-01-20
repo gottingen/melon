@@ -12,7 +12,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // The algorithm generates a random number between 0 and 1 and applies the
@@ -76,5 +76,5 @@ void ExponentialBiased::Initialize() {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

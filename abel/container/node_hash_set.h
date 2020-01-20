@@ -31,7 +31,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 template <typename T>
 struct NodeHashSetPolicy;
@@ -479,7 +479,7 @@ struct IsUnorderedContainer<abel::node_hash_set<Key, Hash, KeyEqual, Allocator>>
     : std::true_type {};
 
 }  // namespace container_algorithm_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_NODE_HASH_SET_H_

@@ -12,7 +12,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::bernoulli_distribution is a drop in replacement for
 // std::bernoulli_distribution. It guarantees that (given a perfect
@@ -182,7 +182,7 @@ bool bernoulli_distribution::Generate(double p,
   }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_BERNOULLI_DISTRIBUTION_H_

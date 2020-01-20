@@ -9,7 +9,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <class UnordSet>
@@ -68,7 +68,7 @@ TYPED_TEST_P(MembersTest, BeginEnd) {
 REGISTER_TYPED_TEST_SUITE_P(MembersTest, Typedefs, SimpleFunctions, BeginEnd);
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_SET_MEMBERS_TEST_H_

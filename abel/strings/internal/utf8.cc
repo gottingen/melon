@@ -5,7 +5,7 @@
 #include <abel/strings/internal/utf8.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 size_t EncodeUTF8Char(char *buffer, char32_t utf8_char) {
@@ -37,5 +37,5 @@ size_t EncodeUTF8Char(char *buffer, char32_t utf8_char) {
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

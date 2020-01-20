@@ -5,7 +5,7 @@
 #include <cstring>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // We want to validate the type mismatch between type definition and
 // declaration. The lock-free implementation does not allow us to do it,
@@ -43,5 +43,5 @@ abel::mutex* GetGlobalConstructionGuard() { return &construction_guard; }
 
 #endif
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

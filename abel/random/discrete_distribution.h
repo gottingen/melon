@@ -17,7 +17,7 @@
 #include <abel/random/uniform_int_distribution.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::discrete_distribution
 //
@@ -229,7 +229,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   return is;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_DISCRETE_DISTRIBUTION_H_

@@ -7,7 +7,7 @@
 #include <abel/random/internal/distribution_test_util.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -216,5 +216,5 @@ double ChiSquarePValue(double chi_square, int dof) {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

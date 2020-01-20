@@ -10,7 +10,7 @@
 namespace cctz = abel::time_internal::cctz;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 extern const char RFC3339_full[] = "%Y-%m-%dT%H:%M:%E*S%Ez";
 extern const char RFC3339_sec[] =  "%Y-%m-%dT%H:%M:%S%Ez";
@@ -134,5 +134,5 @@ std::string UnparseFlag(abel::abel_time t) {
   return abel::format_time(RFC3339_full, t, abel::utc_time_zone());
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

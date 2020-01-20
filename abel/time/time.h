@@ -76,7 +76,7 @@ struct timeval;
 #include <abel/time/internal/cctz/include/cctz/time_zone.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class duration;  // Defined below
 class abel_time;      // Defined below
@@ -1558,7 +1558,7 @@ constexpr abel_time from_time_t(time_t t) {
   return time_internal::from_unix_duration(seconds(t));
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_TIME_H_

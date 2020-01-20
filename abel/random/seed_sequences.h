@@ -21,7 +21,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // abel::SeedSeq
@@ -91,7 +91,7 @@ SeedSeq CreateSeedSeqFrom(URBG* urbg) {
 //
 SeedSeq MakeSeedSeq();
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_SEED_SEQUENCES_H_

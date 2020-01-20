@@ -15,7 +15,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace functional_internal {
 
 // Invoke the method, expanding the tuple of bound arguments.
@@ -77,7 +77,7 @@ template <class F, class... BoundArgs>
 using bind_front_t = FrontBinder<decay_t<F>, abel::decay_t<BoundArgs>...>;
 
 }  // namespace functional_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FUNCTIONAL_INTERNAL_FRONT_BINDER_H_

@@ -14,7 +14,7 @@
 #include <abel/random/uniform_real_distribution.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::zipf_distribution produces random integer-values in the range [0, k],
 // distributed according to the discrete probability function:
@@ -253,7 +253,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   return is;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_ZIPF_DISTRIBUTION_H_

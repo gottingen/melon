@@ -10,7 +10,7 @@
 #include <abel/types/optional.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <class, class = void>
@@ -185,7 +185,7 @@ struct InsertReturnType {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_CONTAINER_H_

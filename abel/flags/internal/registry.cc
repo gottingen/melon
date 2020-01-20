@@ -18,7 +18,7 @@
 //    set it.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // --------------------------------------------------------------------
@@ -327,5 +327,5 @@ bool IsRetiredFlag(abel::string_view name, bool* type_is_bool) {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

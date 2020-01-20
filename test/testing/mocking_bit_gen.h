@@ -38,7 +38,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace random_internal {
 
@@ -177,7 +177,7 @@ struct DistributionCaller<abel::MockingBitGen> {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_MOCKING_BIT_GEN_H_

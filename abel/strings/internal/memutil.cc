@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 int memcasecmp(const char* s1, const char* s2, size_t len) {
@@ -96,5 +96,5 @@ const char* memmatch(const char* phaystack, size_t haylen, const char* pneedle,
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -16,7 +16,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class Cord;
 
@@ -85,7 +85,7 @@ auto InvokeFlush(T* out, string_view s)
 }
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_OUTPUT_H_

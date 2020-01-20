@@ -4,7 +4,7 @@
 #include <abel/random/gaussian_distribution.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 const gaussian_distribution_base::Tables
@@ -97,7 +97,7 @@ const gaussian_distribution_base::Tables
      0.9362826816850632339, 0.9635996931270905952, 1}};
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // clang-format on

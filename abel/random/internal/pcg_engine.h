@@ -12,7 +12,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // pcg_engine is a simplified implementation of Melissa O'Neil's PCG engine in
@@ -289,7 +289,7 @@ using pcg32_2018_engine = pcg_engine<
     random_internal::pcg_xsh_rr_64_32>;
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_PCG_ENGINE_H_

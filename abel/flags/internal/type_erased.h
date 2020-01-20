@@ -13,7 +13,7 @@
 // Registry interfaces operating on type erased handles.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // If a flag named "name" exists, store its current value in *OUTPUT
@@ -70,7 +70,7 @@ ABEL_FORCE_INLINE bool GetByName(abel::string_view name, T* dst) {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_TYPE_ERASED_H_

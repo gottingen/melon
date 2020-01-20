@@ -18,7 +18,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace inlined_vector_internal {
 
 template <typename Iterator>
@@ -874,7 +874,7 @@ auto Storage<T, N, A>::Swap(Storage* other_storage_ptr) -> void {
 }
 
 }  // namespace inlined_vector_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_INLINED_VECTOR_INTERNAL_H_

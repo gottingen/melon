@@ -24,7 +24,7 @@
 #include <link.h>  // for ElfW
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 // An in-memory ELF image (may not exist on disk).
@@ -109,7 +109,7 @@ class ElfMemImage {
 };
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HAVE_ELF_MEM_IMAGE

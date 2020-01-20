@@ -29,7 +29,7 @@
 #include <abel/time/internal/cctz/include/cctz/civil_time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -378,7 +378,7 @@ ABEL_FORCE_INLINE bool parse(const std::string& fmt, const std::string& input,
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_H_

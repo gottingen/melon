@@ -11,7 +11,7 @@
 #include <abel/random/internal/uniform_helper.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // In the absence of an explicitly provided return-type, the template
@@ -34,7 +34,7 @@ using uniform_inferred_return_t =
                           is_widening_convertible<A, B>::value, B, A>::type>;
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_DISTRIBUTIONS_H_

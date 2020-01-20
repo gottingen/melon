@@ -25,7 +25,7 @@
 #include <abel/time/internal/cctz/include/cctz/time_zone.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -70,7 +70,7 @@ ABEL_FORCE_INLINE time_point<seconds> from_unix_seconds(std::int_fast64_t t) {
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IF_H_

@@ -8,7 +8,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // Used to describe how a thread may be scheduled.  Typically associated with
@@ -39,7 +39,7 @@ enum SchedulingMode {
 };
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_SCHEDULING_MODE_H_

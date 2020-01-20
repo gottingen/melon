@@ -9,7 +9,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -159,5 +159,5 @@ std::ostream& operator<<(std::ostream& os, CivilSecond s) {
 
 }  // namespace time_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -36,7 +36,7 @@ struct TwoValues {
 
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -393,5 +393,5 @@ TEST(CompressedTupleTest, EmptyFinalClass) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

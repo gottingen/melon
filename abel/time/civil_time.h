@@ -63,7 +63,7 @@
 #include <abel/time/internal/cctz/include/cctz/civil_time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace time_internal {
 struct second_tag : cctz::detail::second_tag {};
@@ -519,7 +519,7 @@ std::ostream& operator<<(std::ostream& os, CivilSecond s);
 
 }  // namespace time_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_CIVIL_TIME_H_

@@ -32,7 +32,7 @@
 #endif  // _GLIBCXX_DEBUG
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 // This class is implicitly constructible from everything that abel::string_view
@@ -434,7 +434,7 @@ class Splitter {
 };
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_STR_SPLIT_INTERNAL_H_

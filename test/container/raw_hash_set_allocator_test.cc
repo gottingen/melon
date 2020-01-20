@@ -8,7 +8,7 @@
 #include <abel/container/internal/tracked.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -414,5 +414,5 @@ TEST_F(PropagateOnAll, Swap) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

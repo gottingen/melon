@@ -5,7 +5,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // See hashtablez_sampler.h for details.
@@ -14,5 +14,5 @@ extern "C" ABEL_WEAK bool AbelContainerInternalSampleEverything() {
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

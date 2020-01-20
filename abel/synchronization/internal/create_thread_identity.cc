@@ -15,7 +15,7 @@
 #include <abel/synchronization/internal/per_thread_sem.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 // ThreadIdentity storage is persistent, we maintain a free-list of previously
@@ -122,7 +122,7 @@ base_internal::ThreadIdentity* CreateThreadIdentity() {
 }
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_LOW_LEVEL_ALLOC_MISSING

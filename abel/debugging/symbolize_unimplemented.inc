@@ -5,7 +5,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace debugging_internal {
 
@@ -24,5 +24,5 @@ bool GetFileMappingHint(const void **, const void **, uint64_t *, const char **)
 void InitializeSymbolizer(const char*) {}
 bool Symbolize(const void *, char *, int) { return false; }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

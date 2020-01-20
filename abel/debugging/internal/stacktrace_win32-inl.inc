@@ -60,13 +60,13 @@ static int UnwindImpl(void** result, int* sizes, int max_depth, int skip_count,
 }
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 bool StackTraceWorksForTest() {
   return false;
 }
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_INTERNAL_STACKTRACE_WIN32_INL_H_

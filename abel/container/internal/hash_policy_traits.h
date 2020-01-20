@@ -11,7 +11,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // Defines how slots are initialized/destroyed/moved.
@@ -173,7 +173,7 @@ struct hash_policy_traits {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASH_POLICY_TRAITS_H_

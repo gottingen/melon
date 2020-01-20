@@ -7,7 +7,7 @@
 #include <abel/base/internal/exponential_biased.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 int64_t PeriodicSamplerBase::GetExponentialBiased(int pd) noexcept {
@@ -37,5 +37,5 @@ bool PeriodicSamplerBase::SubtleConfirmSample() noexcept {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

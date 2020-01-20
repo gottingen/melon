@@ -21,7 +21,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 class Futex;
@@ -136,7 +136,7 @@ class KernelTimeout {
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_INTERNAL_KERNEL_TIMEOUT_H_

@@ -21,7 +21,7 @@
 // primitives which might use PerThreadSem, most notably abel::mutex.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 class SimpleSemaphore {
@@ -164,5 +164,5 @@ TEST_F(PerThreadSemTest, Timeouts) {
 }  // namespace
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

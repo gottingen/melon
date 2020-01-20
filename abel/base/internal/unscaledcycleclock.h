@@ -73,7 +73,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 class UnscaledCycleClockWrapperForGetCurrentTime;
 }  // namespace time_internal
@@ -103,7 +103,7 @@ class UnscaledCycleClock {
 };
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USE_UNSCALED_CYCLECLOCK

@@ -10,7 +10,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // random_internal::is_widening_convertible<A, B>
@@ -83,7 +83,7 @@ struct make_unsigned_bits {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_TRAITS_H_

@@ -29,7 +29,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 template <class K, class V>
 struct FlatHashMapPolicy;
@@ -581,7 +581,7 @@ struct IsUnorderedContainer<
 
 }  // namespace container_algorithm_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_FLAT_HASH_MAP_H_

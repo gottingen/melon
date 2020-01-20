@@ -30,7 +30,7 @@
 ABEL_FLAG(int, test_values, 10000, "The number of values to use for tests");
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -2335,5 +2335,5 @@ TEST(Btree, EraseIf) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

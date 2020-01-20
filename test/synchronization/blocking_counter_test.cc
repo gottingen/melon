@@ -10,7 +10,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 void PauseAndDecreaseCounter(blocking_counter* counter, int* done) {
@@ -52,5 +52,5 @@ TEST(BlockingCounterTest, BasicFunctionality) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

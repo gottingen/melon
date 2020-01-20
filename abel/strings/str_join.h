@@ -47,7 +47,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // Concept: Formatter
@@ -274,7 +274,7 @@ std::string string_join(const std::tuple<T...>& value,
   return strings_internal::join_algorithm(value, separator, alpha_num_formatter());
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STR_JOIN_H_

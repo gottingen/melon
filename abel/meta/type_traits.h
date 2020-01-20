@@ -35,7 +35,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Defined and documented later on in this file.
 template <typename T>
@@ -740,7 +740,7 @@ using swap_internal::Swap;
 using swap_internal::StdSwapIsUnconstrained;
 
 }  // namespace type_traits_internal
-ABEL_NAMESPACE_END
+
 
 namespace internal {
 

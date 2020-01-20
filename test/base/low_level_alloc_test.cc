@@ -10,7 +10,7 @@
 #include <utility>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 namespace {
 
@@ -138,7 +138,7 @@ static struct BeforeMain {
 
 }  // namespace
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 int main(int argc, char *argv[]) {

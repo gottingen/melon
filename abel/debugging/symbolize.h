@@ -42,7 +42,7 @@
 #include <abel/debugging/internal/symbolize.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // InitializeSymbolizer()
 //
@@ -80,7 +80,7 @@ void InitializeSymbolizer(const char* argv0);
 //  }
 bool Symbolize(const void *pc, char *out, int out_size);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_SYMBOLIZE_H_

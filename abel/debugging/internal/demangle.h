@@ -44,7 +44,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 // Demangle `mangled`.  On success, return true and write the
@@ -53,7 +53,7 @@ namespace debugging_internal {
 bool Demangle(const char *mangled, char *out, int out_size);
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_INTERNAL_DEMANGLE_H_

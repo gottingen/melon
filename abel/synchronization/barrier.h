@@ -10,7 +10,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // barrier
 //
@@ -61,6 +61,6 @@ class barrier {
   int num_to_exit_ ABEL_GUARDED_BY(lock_);
 };
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_SYNCHRONIZATION_BARRIER_H_

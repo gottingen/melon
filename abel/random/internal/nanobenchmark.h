@@ -53,7 +53,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal_nanobenchmark {
 
 // Input influencing the function being measured (e.g. number of bytes to copy).
@@ -166,7 +166,7 @@ static ABEL_FORCE_INLINE size_t MeasureClosure(const Closure& closure,
 }
 
 }  // namespace random_internal_nanobenchmark
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_NANOBENCHMARK_H_

@@ -56,7 +56,7 @@
 #include <abel/strings/ascii.h>  // for abel::ascii_tolower
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 ABEL_FORCE_INLINE char* memcat(char* dest, size_t destlen, const char* src,
@@ -129,7 +129,7 @@ const char* memmatch(const char* phaystack, size_t haylen, const char* pneedle,
                      size_t neelen);
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_MEMUTIL_H_

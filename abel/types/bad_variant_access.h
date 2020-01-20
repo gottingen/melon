@@ -17,15 +17,15 @@
 #include <variant>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::bad_variant_access;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_VARIANT
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // bad_variant_access
@@ -61,7 +61,7 @@ namespace variant_internal {
 [[noreturn]] void rethrow();
 
 }  // namespace variant_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_VARIANT

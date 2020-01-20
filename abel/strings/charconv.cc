@@ -45,7 +45,7 @@
 // narrower mantissas.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 template <typename FloatType>
@@ -969,5 +969,5 @@ const int16_t kPower10ExponentTable[] = {
 };
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -13,7 +13,7 @@
 #include <abel/types/internal/conformance_profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace types_internal {
 
 // Creates both a Profile and a corresponding Archetype with root name "name".
@@ -426,7 +426,7 @@ using ExpandSupportedProfiles = Receiver<
 // (potentially) non-noexcept moves.
 
 }  // namespace types_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef ABEL_INTERNAL_PROFILE_AND_ARCHETYPE_ALIAS

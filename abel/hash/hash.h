@@ -60,7 +60,7 @@
 #include <abel/hash/internal/hash.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // `abel::Hash`
@@ -305,7 +305,7 @@ class HashState : public hash_internal::HashStateBase<HashState> {
   void (*combine_contiguous_)(void*, const unsigned char*, size_t);
 };
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HASH_HASH_H_

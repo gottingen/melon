@@ -16,7 +16,7 @@
 #include <abel/base/internal/unscaledcycleclock.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 #if ABEL_USE_UNSCALED_CYCLECLOCK
@@ -91,5 +91,5 @@ double CycleClock::Frequency() {
 #endif
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -18,7 +18,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Use compiler byte-swapping intrinsics if they are available.  32-bit
 // and 64-bit versions are available in Clang and GCC as of GCC 4.3.0.
@@ -247,7 +247,7 @@ ABEL_FORCE_INLINE void Store64(void *p, uint64_t v) {
 
 }  // namespace big_endian
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_ENDIAN_H_

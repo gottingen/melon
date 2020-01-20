@@ -21,7 +21,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 namespace detail {
@@ -90,5 +90,5 @@ std::ostream& operator<<(std::ostream& os, weekday wd) {
 }  // namespace detail
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

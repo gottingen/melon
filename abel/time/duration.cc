@@ -59,7 +59,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -906,5 +906,5 @@ bool ParseFlag(const std::string& text, duration* dst, std::string* ) {
 
 std::string UnparseFlag(duration d) { return format_duration(d); }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

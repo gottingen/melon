@@ -20,7 +20,7 @@
 #include <abel/base/internal/per_thread_tls.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 struct SynchLocksHeld;
 struct synch_wait_params;
@@ -231,7 +231,7 @@ ABEL_FORCE_INLINE ThreadIdentity* CurrentThreadIdentityIfPresent() {
 #endif
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_THREAD_IDENTITY_H_

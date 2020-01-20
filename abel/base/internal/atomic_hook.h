@@ -19,7 +19,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 template <typename T>
@@ -161,7 +161,7 @@ class AtomicHook<ReturnType (*)(Args...)> {
 #undef ABEL_HAVE_WORKING_CONSTEXPR_STATIC_INIT
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_ATOMIC_HOOK_H_

@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -128,5 +128,5 @@ TEST_F(Test, with_transfer) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

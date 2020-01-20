@@ -11,7 +11,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 namespace {
@@ -65,5 +65,5 @@ ScopedSetEnv::~ScopedSetEnv() {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

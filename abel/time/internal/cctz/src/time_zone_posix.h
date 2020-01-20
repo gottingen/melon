@@ -58,7 +58,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -126,7 +126,7 @@ bool ParsePosixSpec(const std::string& spec, PosixTimeZone* res);
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_POSIX_H_

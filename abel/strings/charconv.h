@@ -8,7 +8,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Workalike compatibilty version of std::chars_format from C++17.
 //
@@ -101,7 +101,7 @@ ABEL_FORCE_INLINE chars_format& operator^=(chars_format& lhs, chars_format rhs) 
   return lhs;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_CHARCONV_H_

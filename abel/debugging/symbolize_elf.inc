@@ -64,7 +64,7 @@
 #include <abel/debugging/internal/vdso_support.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Value of argv[0]. Used by MaybeInitializeObjFile().
 static char *argv0_value = nullptr;
@@ -1464,5 +1464,5 @@ bool Symbolize(const void *pc, char *out, int out_size) {
   return ok;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

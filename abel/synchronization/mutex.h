@@ -69,7 +69,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class condition;
 struct synch_wait_params;
@@ -1027,7 +1027,7 @@ enum class on_deadlock_cycle {
 // the manner chosen here.
 void set_mutex_deadlock_detection_mode(on_deadlock_cycle mode);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // In some build configurations we pass --detect-odr-violations to the

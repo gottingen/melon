@@ -11,7 +11,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 // The same as std::ostringstream but appends to a user-specified std::string,
@@ -71,7 +71,7 @@ class OStringStream : private std::basic_streambuf<char>, public std::ostream {
 };
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_OSTRINGSTREAM_H_

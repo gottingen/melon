@@ -12,7 +12,7 @@
 #include <abel/container/internal/raw_hash_set.h>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <class Policy, class Hash, class Eq, class Alloc>
@@ -179,7 +179,7 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_RAW_HASH_MAP_H_

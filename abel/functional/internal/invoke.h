@@ -32,7 +32,7 @@
 // top of this file for the API documentation.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // The five classes below each implement one of the clauses from the definition
@@ -168,6 +168,6 @@ InvokeT<F, Args...> Invoke(F&& f, Args&&... args) {
                                            std::forward<Args>(args)...);
 }
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_FUNCTIONAL_INTERNAL_INVOKE_H_

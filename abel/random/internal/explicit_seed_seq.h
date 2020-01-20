@@ -13,7 +13,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // This class conforms to the C++ Standard "Seed Sequence" concept
@@ -73,7 +73,7 @@ class ExplicitSeedSeq {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_EXPLICIT_SEED_SEQ_H_

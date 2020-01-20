@@ -28,7 +28,7 @@
 #include <abel/random/seed_sequences.h>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // abel::BitGen
@@ -170,7 +170,7 @@ using InsecureBitGen =
 // discards the intermediate results.
 // ---------------------------------------------------------------------------
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_RANDOM_H_

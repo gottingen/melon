@@ -38,7 +38,7 @@
 #include <abel/container/internal/btree_container.h>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::btree_set<>
 //
@@ -664,7 +664,7 @@ void erase_if(btree_multiset<K, C, A> &set, Pred pred) {
   }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_BTREE_SET_H_

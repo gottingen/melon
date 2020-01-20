@@ -10,7 +10,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 bad_any_cast::~bad_any_cast() = default;
 
@@ -28,7 +28,7 @@ void ThrowBadAnyCast() {
 }
 
 }  // namespace any_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_ANY

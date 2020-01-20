@@ -40,7 +40,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 // -----------------------------------------------------------------------------
 // InlinedVector
 // -----------------------------------------------------------------------------
@@ -828,7 +828,7 @@ H AbelHashValue(H h, const abel::InlinedVector<T, N, A>& a) {
   return H::combine(H::combine_contiguous(std::move(h), a.data(), size), size);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INLINED_VECTOR_H_

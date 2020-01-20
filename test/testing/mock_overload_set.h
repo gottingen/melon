@@ -11,7 +11,7 @@
 #include <testing/mocking_bit_gen.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 template <typename DistrT, typename Fn>
@@ -74,6 +74,6 @@ struct MockOverloadSet<DistrT, FirstSig, Rest...>
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_RANDOM_INTERNAL_MOCK_OVERLOAD_SET_H_

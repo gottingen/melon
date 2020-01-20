@@ -5,7 +5,7 @@
 #include <cmath>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 namespace {
@@ -106,5 +106,5 @@ double Pow10(int exp) {
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

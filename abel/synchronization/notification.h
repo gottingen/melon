@@ -44,7 +44,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // notification
@@ -104,7 +104,7 @@ class notification {
   std::atomic<bool> notified_yet_;  // written under mutex_
 };
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_NOTIFICATION_H_

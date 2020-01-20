@@ -20,7 +20,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace hash_internal {
 namespace generator_internal {
@@ -142,7 +142,7 @@ using GeneratedType = decltype(
 
 }  // namespace hash_internal
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASH_GENERATOR_TESTING_H_

@@ -3,7 +3,7 @@
 #include <abel/hash/internal/hash.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace hash_internal {
 
 uint64_t CityHashState::CombineLargeContiguousImpl32(uint64_t state,
@@ -39,5 +39,5 @@ uint64_t CityHashState::CombineLargeContiguousImpl64(uint64_t state,
 ABEL_CONST_INIT const void* const CityHashState::kSeed = &kSeed;
 
 }  // namespace hash_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

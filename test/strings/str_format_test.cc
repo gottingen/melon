@@ -10,7 +10,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 using str_format_internal::FormatArgImpl;
 
@@ -623,7 +623,7 @@ TEST_F(FormatWrapperTest, parsed_format) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // Some codegen thunks that we can use to easily dump the generated assembly for

@@ -105,7 +105,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <size_t Width>
@@ -1843,7 +1843,7 @@ struct HashtableDebugAccess<Set, abel::void_t<typename Set::raw_hash_set>> {
 
 }  // namespace hashtable_debug_internal
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_RAW_HASH_SET_H_

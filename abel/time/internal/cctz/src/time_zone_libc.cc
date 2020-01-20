@@ -28,7 +28,7 @@
 #include <abel/time/internal/cctz/include/cctz/time_zone.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -304,5 +304,5 @@ std::string TimeZoneLibC::Description() const {
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

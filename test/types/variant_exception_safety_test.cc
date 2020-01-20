@@ -22,7 +22,7 @@
 #if !defined(ABEL_INTERNAL_MSVC_2017_DBG_MODE)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 using ::testing::MakeExceptionSafetyTester;
@@ -512,7 +512,7 @@ TEST(VariantExceptionSafetyTest, Swap) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // !defined(ABEL_INTERNAL_MSVC_2017_DBG_MODE)

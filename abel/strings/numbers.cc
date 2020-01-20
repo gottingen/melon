@@ -28,7 +28,7 @@
 #include <abel/strings/str_cat.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 bool simple_atof(abel::string_view str, float* out) {
   *out = 0.0;
@@ -900,5 +900,5 @@ bool safe_strtou128_base(abel::string_view text, uint128* value, int base) {
 }
 
 }  // namespace numbers_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

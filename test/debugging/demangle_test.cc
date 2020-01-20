@@ -11,7 +11,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 namespace {
 
@@ -181,5 +181,5 @@ TEST(DemangleRegression, DeeplyNestedArrayType) {
 
 }  // namespace
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -15,7 +15,7 @@
 #include <abel/strings/ascii.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -123,5 +123,5 @@ abel::string_view  by_length::Find(abel::string_view text,
   return abel::string_view(substr.data() + length_, 0);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -49,7 +49,7 @@ extern "C" void* __mmap2(void*, size_t, int, int, int, size_t);
 #endif  // __BIONIC__
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // Platform specific logic extracted from
@@ -116,7 +116,7 @@ ABEL_FORCE_INLINE int DirectMunmap(void* start, size_t length) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // !__linux__
@@ -125,7 +125,7 @@ ABEL_NAMESPACE_END
 // actual mmap()/munmap() methods.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 ABEL_FORCE_INLINE void* DirectMmap(void* start, size_t length, int prot, int flags, int fd,
@@ -138,7 +138,7 @@ ABEL_FORCE_INLINE int DirectMunmap(void* start, size_t length) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // __linux__

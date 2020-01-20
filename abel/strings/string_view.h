@@ -9,9 +9,9 @@
 #include <string_view>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::string_view;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_STRING_VIEW
@@ -35,7 +35,7 @@ ABEL_NAMESPACE_END
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::string_view
 //
@@ -552,7 +552,7 @@ constexpr bool operator>=(string_view x, string_view y) noexcept {
 // IO Insertion Operator
 std::ostream& operator<<(std::ostream& o, string_view piece);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef ABEL_INTERNAL_STRING_VIEW_MEMCMP
@@ -560,7 +560,7 @@ ABEL_NAMESPACE_END
 #endif  // ABEL_USES_STD_STRING_VIEW
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // ClippedSubstr()
 //
@@ -581,7 +581,7 @@ ABEL_FORCE_INLINE string_view NullSafeStringView(const char* p) {
   return p ? string_view(p) : string_view();
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STRING_VIEW_H_

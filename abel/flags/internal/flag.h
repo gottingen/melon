@@ -15,7 +15,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 constexpr int64_t AtomicInit() { return 0xababababababababll; }
@@ -412,7 +412,7 @@ T* MakeFromDefaultValue(EmptyBraces) {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_FLAG_H_

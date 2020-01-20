@@ -36,7 +36,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 class condition;
 
 namespace synchronization_internal {
@@ -257,5 +257,5 @@ class synchronization_storage {
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

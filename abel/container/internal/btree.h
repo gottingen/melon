@@ -58,7 +58,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // A helper class that indicates if the Compare parameter is a key-compare-to
@@ -2595,7 +2595,7 @@ int btree<P>::internal_verify(
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_BTREE_H_

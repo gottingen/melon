@@ -15,7 +15,7 @@ extern "C" bool __google_disable_rescheduling(void);
 extern "C" void __google_enable_rescheduling(bool disable_result);
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 class SchedulingHelper;  // To allow use of SchedulingGuard.
@@ -88,7 +88,7 @@ ABEL_FORCE_INLINE void SchedulingGuard::EnableRescheduling(bool /* disable_resul
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_LOW_LEVEL_SCHEDULING_H_

@@ -13,7 +13,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 namespace {
 
@@ -112,5 +112,5 @@ TEST(ThreadIdentityTest, ReusedThreadIdentityMutexTest) {
 
 }  // namespace
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

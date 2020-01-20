@@ -14,7 +14,7 @@
 #include <abel/strings/internal/str_format/float_conversion.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 namespace {
 
@@ -387,5 +387,5 @@ ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_();
 
 }  // namespace str_format_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

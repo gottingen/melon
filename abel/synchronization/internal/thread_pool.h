@@ -14,7 +14,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 // A simple ThreadPool implementation for tests.
@@ -75,7 +75,7 @@ class ThreadPool {
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_INTERNAL_THREAD_POOL_H_

@@ -26,7 +26,7 @@
 #define VERSYM_VERSION 0x7fff
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 namespace {
@@ -364,7 +364,7 @@ void ElfMemImage::SymbolIterator::Update(int increment) {
 }
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HAVE_ELF_MEM_IMAGE

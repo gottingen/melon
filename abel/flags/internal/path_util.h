@@ -7,7 +7,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // A portable interface that returns the basename of the filename passed as an
@@ -43,7 +43,7 @@ ABEL_FORCE_INLINE abel::string_view Package(abel::string_view filename) {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_PATH_UTIL_H_

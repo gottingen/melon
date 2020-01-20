@@ -8,7 +8,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 int dummy = 0;
@@ -126,5 +126,5 @@ void BM_NonTrivialArgsFunctionRef(benchmark::State& state) {
 BENCHMARK(BM_NonTrivialArgsFunctionRef);
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

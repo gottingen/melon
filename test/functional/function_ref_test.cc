@@ -10,7 +10,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 void RunFun(FunctionRef<void()> f) { f(); }
@@ -241,5 +241,5 @@ TEST(FunctionRef, PassByValueTypes) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

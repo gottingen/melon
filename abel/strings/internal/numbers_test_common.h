@@ -13,7 +13,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 template <typename IntType>
@@ -165,7 +165,7 @@ ABEL_FORCE_INLINE const std::array<uint64_test_case, 34>& strtouint64_test_cases
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_NUMBERS_TEST_COMMON_H_

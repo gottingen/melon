@@ -11,7 +11,7 @@
 // optimization, potentially introducing ODR violations.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // RANDen = RANDom generator or beetroots in Swiss German.
@@ -32,7 +32,7 @@ class RandenHwAes {
 bool HasRandenHwAesImplementation();
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_RANDEN_HWAES_H_

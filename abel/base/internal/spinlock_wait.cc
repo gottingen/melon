@@ -20,7 +20,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // See spinlock_wait.h for spec.
@@ -65,5 +65,5 @@ int SpinLockSuggestedDelayNS(int loop) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

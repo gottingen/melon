@@ -12,7 +12,7 @@
 namespace cctz = abel::time_internal::cctz;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 
 time_zone load_time_zone(const std::string& name) {
@@ -22,11 +22,11 @@ time_zone load_time_zone(const std::string& name) {
 }
 
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz_extension {
 namespace {
@@ -114,5 +114,5 @@ ZoneInfoSourceFactory zone_info_source_factory = TestFactory;
 
 }  // namespace cctz_extension
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

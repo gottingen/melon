@@ -25,7 +25,7 @@
 #include <abel/container/internal/hashtable_debug_hooks.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // Returns the number of probes required to lookup `key`.  Returns 0 for a
@@ -91,7 +91,7 @@ size_t LowerBoundAllocatedByteSize(size_t num_elements) {
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASHTABLE_DEBUG_H_

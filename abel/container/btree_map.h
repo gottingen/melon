@@ -38,7 +38,7 @@
 #include <abel/container/internal/btree_container.h>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::btree_map<>
 //
@@ -716,7 +716,7 @@ void erase_if(btree_multimap<K, V, C, A> &map, Pred pred) {
   }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_BTREE_MAP_H_

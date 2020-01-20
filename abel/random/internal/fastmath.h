@@ -13,7 +13,7 @@
 #include <abel/base/math.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Returns the position of the first bit set.
@@ -56,7 +56,7 @@ ABEL_FORCE_INLINE constexpr uint64_t rotr(uint64_t value, uint8_t bits) {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_FASTMATH_H_

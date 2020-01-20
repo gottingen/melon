@@ -10,7 +10,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 void notification::Notify() {
   mutex_lock l(&this->mutex_);
@@ -62,5 +62,5 @@ bool notification::wait_for_notification_with_deadline(abel::abel_time deadline)
   return notified;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

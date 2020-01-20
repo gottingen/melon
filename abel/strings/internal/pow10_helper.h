@@ -12,7 +12,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 // Computes the precise value of 10^exp. (I.e. the nearest representable
@@ -21,7 +21,7 @@ namespace strings_internal {
 double Pow10(int exp);
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_POW10_HELPER_H_

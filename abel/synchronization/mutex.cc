@@ -57,7 +57,7 @@ ABEL_WEAK void abel_internal_mutex_yield () { std::this_thread::yield(); }
 }  // extern "C"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -2714,5 +2714,5 @@ bool condition::guaranteed_equal (const condition *a, const condition *b) {
         a->arg_ == b->arg_ && a->method_ == b->method_;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

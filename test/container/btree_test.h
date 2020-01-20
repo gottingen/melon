@@ -16,7 +16,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // Like remove_const but propagates the removal through std::pair.
@@ -137,7 +137,7 @@ std::vector<V> GenerateValuesWithSeed(int n, int maxval, int seed) {
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_BTREE_TEST_H_

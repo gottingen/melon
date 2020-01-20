@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace inline_variable_testing_internal {
 namespace {
 
@@ -48,5 +48,5 @@ TEST(InlineVariableTest, FunPtrType) {
 
 }  // namespace
 }  // namespace inline_variable_testing_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

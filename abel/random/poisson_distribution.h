@@ -16,7 +16,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::poisson_distribution:
 // Generates discrete variates conforming to a Poisson distribution.
@@ -240,7 +240,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   return is;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_POISSON_DISTRIBUTION_H_

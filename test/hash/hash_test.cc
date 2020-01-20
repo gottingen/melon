@@ -674,7 +674,7 @@ H AbelHashValue(H state, CustomHashType<Tags...> t) {
 }  // namespace
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace hash_internal {
 template <InvokeTag... Tags>
 struct is_uniquely_represented<
@@ -682,7 +682,7 @@ struct is_uniquely_represented<
     typename EnableIfContained<InvokeTag::kUniquelyRepresented, Tags...>::type>
     : std::true_type {};
 }  // namespace hash_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #if ABEL_HASH_INTERNAL_SUPPORT_LEGACY_HASH_

@@ -19,7 +19,7 @@
 #include <abel/time/internal/cctz/include/cctz/civil_time_detail.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -326,7 +326,7 @@ using detail::get_yearday;
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_H_

@@ -29,7 +29,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <class Reference, class Policy>
@@ -73,7 +73,7 @@ struct node_hash_policy {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_NODE_HASH_POLICY_H_

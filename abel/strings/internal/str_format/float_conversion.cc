@@ -9,7 +9,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 
 namespace {
@@ -483,5 +483,5 @@ bool ConvertFloatImpl(double v, const ConversionSpec &conv,
 }
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

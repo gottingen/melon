@@ -21,7 +21,7 @@
 #include <abel/time/internal/cctz/include/cctz/time_zone.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -46,7 +46,7 @@ std::string FixedOffsetToAbbr(const seconds& offset);
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_FIXED_H_

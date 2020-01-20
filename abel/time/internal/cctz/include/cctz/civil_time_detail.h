@@ -34,7 +34,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -612,7 +612,7 @@ std::ostream& operator<<(std::ostream& os, weekday wd);
 }  // namespace detail
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef CONSTEXPR_M

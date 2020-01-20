@@ -21,7 +21,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // bind_front()
 //
@@ -147,7 +147,7 @@ constexpr functional_internal::bind_front_t<F, BoundArgs...> bind_front(
       abel::forward<BoundArgs>(args)...);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FUNCTIONAL_BIND_FRONT_H_

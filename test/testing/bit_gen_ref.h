@@ -18,7 +18,7 @@
 #include <testing/mocking_bit_gen_base.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 template <typename URBG, typename = void, typename = void, typename = void>
@@ -134,7 +134,7 @@ struct DistributionCaller<abel::BitGenRef> {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_BIT_GEN_REF_H_

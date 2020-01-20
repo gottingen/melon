@@ -16,7 +16,7 @@
 #include <abel/flags/internal/parse.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // ParseCommandLine()
 //
@@ -41,7 +41,7 @@ ABEL_NAMESPACE_BEGIN
 // help messages and then exits the program.
 std::vector<char*> ParseCommandLine(int argc, char* argv[]);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_PARSE_H_

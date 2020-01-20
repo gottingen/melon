@@ -29,7 +29,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 // Allocates and attaches a ThreadIdentity object for the calling thread.
@@ -54,7 +54,7 @@ ABEL_FORCE_INLINE base_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentit
 }
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_INTERNAL_CREATE_THREAD_IDENTITY_H_

@@ -9,7 +9,7 @@
 #include <abel/strings/charconv.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 // Enum indicating whether a parsed float is a number or special value.
@@ -82,6 +82,6 @@ extern template ParsedFloat ParseFloat<16>(const char* begin, const char* end,
                                            abel::chars_format format_flags);
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_STRINGS_INTERNAL_CHARCONV_PARSE_H_

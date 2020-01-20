@@ -9,7 +9,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // DistributionCaller provides an opportunity to overload the general
@@ -41,7 +41,7 @@ struct DistributionCaller {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_DISTRIBUTION_CALLER_H_

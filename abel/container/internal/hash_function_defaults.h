@@ -43,7 +43,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // The hash of an object of type T is computed by using abel::Hash.
@@ -127,7 +127,7 @@ template <class T>
 using hash_default_eq = typename container_internal::HashEq<T>::Eq;
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASH_FUNCTION_DEFAULTS_H_

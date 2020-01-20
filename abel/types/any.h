@@ -48,12 +48,12 @@
 #include <any>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::any;
 using std::any_cast;
 using std::bad_any_cast;
 using std::make_any;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_ANY
@@ -80,7 +80,7 @@ ABEL_NAMESPACE_END
 #endif  // !defined(__GNUC__) || defined(__GXX_RTTI)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace any_internal {
 
@@ -524,7 +524,7 @@ T* any_cast(any* operand) noexcept {
              : nullptr;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef ABEL_ANY_DETAIL_HAS_RTTI

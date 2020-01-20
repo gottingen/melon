@@ -35,7 +35,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 constexpr static auto kFixedArrayUseDefault = static_cast<size_t>(-1);
 
@@ -494,7 +494,7 @@ void FixedArray<T, N, A>::NonEmptyInlinedStorage::AnnotateDestruct(
 #endif                   // ADDRESS_SANITIZER
   static_cast<void>(n);  // Mark used when not in asan mode
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_FIXED_ARRAY_H_

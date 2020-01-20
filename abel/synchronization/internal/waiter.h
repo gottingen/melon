@@ -49,7 +49,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 // Waiter is an OS-specific semaphore.
@@ -145,7 +145,7 @@ private:
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_INTERNAL_WAITER_H_

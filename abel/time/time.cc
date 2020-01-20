@@ -35,7 +35,7 @@
 namespace cctz = abel::time_internal::cctz;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -483,5 +483,5 @@ struct tm ToTM(abel::abel_time t, abel::time_zone tz) {
   return tm;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

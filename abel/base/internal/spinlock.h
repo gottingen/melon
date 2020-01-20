@@ -32,7 +32,7 @@
 #include <abel/base/thread_annotations.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 class ABEL_LOCKABLE SpinLock {
@@ -223,7 +223,7 @@ ABEL_FORCE_INLINE uint32_t SpinLock::TryLockInternal(uint32_t lock_value,
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_SPINLOCK_H_

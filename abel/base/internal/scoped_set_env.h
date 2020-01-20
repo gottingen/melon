@@ -9,7 +9,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 class ScopedSetEnv {
@@ -26,7 +26,7 @@ class ScopedSetEnv {
 };
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_SCOPED_SET_ENV_H_

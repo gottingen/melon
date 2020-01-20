@@ -13,7 +13,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace span_internal {
 // A constexpr min function
@@ -109,7 +109,7 @@ template <typename From, typename To>
 using EnableIfConvertibleTo =
     typename std::enable_if<IsConvertible<From, To>::value>::type;
 }  // namespace span_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TYPES_INTERNAL_SPAN_H_

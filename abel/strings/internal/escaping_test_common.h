@@ -9,7 +9,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 struct base64_testcase {
@@ -114,7 +114,7 @@ ABEL_FORCE_INLINE const std::array<base64_testcase, 5>& base64_strings() {
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_ESCAPING_TEST_COMMON_H_

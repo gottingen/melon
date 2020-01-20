@@ -17,7 +17,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace hash_testing_internal {
 
@@ -150,7 +150,7 @@ auto keys(const Set& s)
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // ABEL_UNORDERED_SUPPORTS_ALLOC_CTORS is false for glibcxx versions

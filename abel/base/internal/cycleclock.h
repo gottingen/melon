@@ -34,7 +34,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // -----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ class CycleClockSource {
 };
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_CYCLECLOCK_H_

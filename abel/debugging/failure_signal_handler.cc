@@ -34,7 +34,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 ABEL_CONST_INIT static FailureSignalHandlerOptions fsh_options;
 
@@ -344,5 +344,5 @@ void InstallFailureSignalHandler(const FailureSignalHandlerOptions& options) {
   }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

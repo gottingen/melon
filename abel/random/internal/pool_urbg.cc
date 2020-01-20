@@ -24,7 +24,7 @@ using abel::base_internal::SpinLock;
 using abel::base_internal::SpinLockHolder;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -237,5 +237,5 @@ template class RandenPool<uint32_t>;
 template class RandenPool<uint64_t>;
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

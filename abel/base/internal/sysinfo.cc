@@ -43,7 +43,7 @@
 #include <abel/base/internal/unscaledcycleclock.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 static once_flag init_system_info_once;
@@ -398,5 +398,5 @@ pid_t GetTID() {
 #endif
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

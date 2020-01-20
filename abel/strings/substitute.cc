@@ -11,7 +11,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace substitute_internal {
 
 void SubstituteAndAppendArray(std::string* output, abel::string_view format,
@@ -155,5 +155,5 @@ Arg::Arg(dec d) {
 }
 
 }  // namespace substitute_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

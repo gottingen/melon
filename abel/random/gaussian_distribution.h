@@ -21,7 +21,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // abel::gaussian_distribution_base implements the underlying ziggurat algorithm
@@ -256,7 +256,7 @@ ABEL_FORCE_INLINE double gaussian_distribution_base::zignor(
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_GAUSSIAN_DISTRIBUTION_H_

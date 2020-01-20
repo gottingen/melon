@@ -35,7 +35,7 @@
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 template <class Key, class Value>
 class NodeHashMapPolicy;
@@ -578,7 +578,7 @@ struct IsUnorderedContainer<
 
 }  // namespace container_algorithm_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_NODE_HASH_MAP_H_

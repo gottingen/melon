@@ -13,7 +13,7 @@
 #include <abel/time/time.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // now()
 //
@@ -37,7 +37,7 @@ int64_t get_current_time_nanos();
 // * Returns immediately when passed a nonpositive duration.
 void sleep_for(abel::duration duration);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // -----------------------------------------------------------------------------

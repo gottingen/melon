@@ -25,7 +25,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // string_contains()
 //
@@ -71,7 +71,7 @@ bool starts_with_case(abel::string_view text, abel::string_view prefix);
 // case in the comparison.
 bool ends_with_case(abel::string_view text, abel::string_view suffix);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_MATCH_H_

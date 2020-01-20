@@ -79,7 +79,7 @@
   ::abel::NormalizeLogSeverity(severity)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace raw_logging_internal {
 
 // Helper function to implement ABEL_RAW_LOG
@@ -159,7 +159,7 @@ extern base_internal::AtomicHook<InternalLogFunction> internal_log_function;
 void RegisterInternalLogFunction(InternalLogFunction func);
 
 }  // namespace raw_logging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_RAW_LOGGING_H_

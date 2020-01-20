@@ -42,7 +42,7 @@ void __sanitizer_unaligned_store64(void *p, uint64_t v);
 }  // extern "C"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 ABEL_FORCE_INLINE uint16_t UnalignedLoad16(const void *p) {
@@ -70,7 +70,7 @@ ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #define ABEL_INTERNAL_UNALIGNED_LOAD16(_p) \
@@ -90,7 +90,7 @@ ABEL_NAMESPACE_END
 #else
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 ABEL_FORCE_INLINE uint16_t UnalignedLoad16(const void *p) {
@@ -118,7 +118,7 @@ ABEL_FORCE_INLINE void UnalignedStore32(void *p, uint32_t v) { memcpy(p, &v, siz
 ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #define ABEL_INTERNAL_UNALIGNED_LOAD16(_p) \

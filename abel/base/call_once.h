@@ -26,7 +26,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class once_flag;
 
@@ -205,7 +205,7 @@ void call_once (abel::once_flag &flag, Callable &&fn, Args &&... args) {
     }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_CALL_ONCE_H_

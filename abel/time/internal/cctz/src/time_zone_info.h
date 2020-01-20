@@ -29,7 +29,7 @@
 #include "tzfile.h"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -132,7 +132,7 @@ class TimeZoneInfo : public TimeZoneIf {
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_INFO_H_

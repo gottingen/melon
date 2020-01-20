@@ -7,7 +7,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 
 static int64_t GetCurrentTimeNanosFromSystem() {
@@ -20,5 +20,5 @@ static int64_t GetCurrentTimeNanosFromSystem() {
 }
 
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

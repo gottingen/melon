@@ -51,7 +51,7 @@
 #endif  // __APPLE__
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // A first-fit allocator with amortized logarithmic free() time.
@@ -601,7 +601,7 @@ void *LowLevelAlloc::AllocWithArena(size_t request, Arena *arena) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_LOW_LEVEL_ALLOC_MISSING

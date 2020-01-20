@@ -5,7 +5,7 @@
 #include <abel/random/internal/pool_urbg.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 SeedSeq MakeSeedSeq() {
   SeedSeq::result_type seed_material[8];
@@ -13,5 +13,5 @@ SeedSeq MakeSeedSeq() {
   return SeedSeq(std::begin(seed_material), std::end(seed_material));
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -17,7 +17,7 @@
 #include <abel/random/internal/traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Tristate tag types controlling the output of GenerateRealFromBits.
@@ -128,7 +128,7 @@ ABEL_FORCE_INLINE RealType GenerateRealFromBits(uint64_t bits, int exp_bias = 0)
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_GENERATE_REAL_H_

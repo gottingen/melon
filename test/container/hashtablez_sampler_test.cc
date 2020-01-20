@@ -24,7 +24,7 @@ constexpr int kProbeLength = 8;
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 class HashtablezInfoHandlePeer {
  public:
@@ -343,5 +343,5 @@ TEST(HashtablezSamplerTest, Callback) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

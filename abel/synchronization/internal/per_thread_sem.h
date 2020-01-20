@@ -19,7 +19,7 @@
 #include <abel/synchronization/internal/kernel_timeout.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class mutex;
 
@@ -73,7 +73,7 @@ class PerThreadSem {
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // In some build configurations we pass --detect-odr-violations to the

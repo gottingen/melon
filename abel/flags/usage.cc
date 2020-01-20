@@ -8,7 +8,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 namespace {
 ABEL_CONST_INIT abel::mutex usage_message_guard(abel::kConstInit);
@@ -42,5 +42,5 @@ abel::string_view ProgramUsageMessage() {
              : "Warning: SetProgramUsageMessage() never called";
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

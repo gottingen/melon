@@ -49,7 +49,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -203,5 +203,5 @@ abel::optional<uint32_t> GetSaltMaterial() {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

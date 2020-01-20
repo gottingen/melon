@@ -5,7 +5,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Return whether int *arg is zero.
 static bool IsZero(void *arg) {
@@ -41,5 +41,5 @@ void blocking_counter::wait() {
   // after we return from this method.
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

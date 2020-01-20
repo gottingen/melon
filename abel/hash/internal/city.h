@@ -40,7 +40,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace hash_internal {
 
 typedef std::pair<uint64_t, uint64_t> uint128;
@@ -77,7 +77,7 @@ ABEL_FORCE_INLINE uint64_t Hash128to64(const uint128 &x) {
 }
 
 }  // namespace hash_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HASH_INTERNAL_CITY_H_

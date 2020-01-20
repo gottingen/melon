@@ -16,7 +16,7 @@
 #include <abel/base/internal/spinlock.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 #if ABEL_THREAD_IDENTITY_MODE != ABEL_THREAD_IDENTITY_MODE_USE_CPP11
@@ -124,5 +124,5 @@ ThreadIdentity* CurrentThreadIdentityIfPresent() {
 #endif
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

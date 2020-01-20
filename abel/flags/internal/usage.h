@@ -14,7 +14,7 @@
 // Usage reporting interfaces
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // The format to report the help messages in.
@@ -52,7 +52,7 @@ int HandleUsageFlags(std::ostream& out,
                      abel::string_view program_usage_message);
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 ABEL_DECLARE_FLAG(bool, help);

@@ -16,7 +16,7 @@
 #include <abel/random/internal/randen.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Deterministic pseudorandom byte generator with backtracking resistance
@@ -212,7 +212,7 @@ class alignas(16) randen_engine {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_RANDEN_ENGINE_H_

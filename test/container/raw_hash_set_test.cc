@@ -23,7 +23,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 struct RawHashSetTestOnlyAccess {
@@ -1905,5 +1905,5 @@ TEST(Sanitizer, PoisoningOnErase) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

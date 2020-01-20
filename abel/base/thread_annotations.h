@@ -244,7 +244,7 @@
 #define ABEL_TS_UNCHECKED_READ(x) abel::base_internal::ts_unchecked_read(x)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // Takes a reference to a guarded data member, and returns an unguarded
@@ -261,7 +261,7 @@ ABEL_FORCE_INLINE T &ts_unchecked_read (T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_THREAD_ANNOTATIONS_H_

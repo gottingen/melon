@@ -13,7 +13,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 // We emulate a GraphCycles object with a node vector and an edge vector.
@@ -448,5 +448,5 @@ TEST_F(GraphCyclesTest, ManyEdges) {
 }
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

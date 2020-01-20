@@ -42,7 +42,7 @@
 //          holder to acquire the lock.  There may be outstanding waiter(s).
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 ABEL_CONST_INIT static base_internal::AtomicHook<void (*)(const void *lock,
@@ -217,5 +217,5 @@ uint64_t SpinLock::DecodeWaitCycles(uint32_t lock_value) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

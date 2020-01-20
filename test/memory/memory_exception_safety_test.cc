@@ -10,7 +10,7 @@
 #include <testing/exception_safety_testing.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 constexpr int kLength = 50;
@@ -42,7 +42,7 @@ TEST(MakeUnique, CheckForLeaks) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HAVE_EXCEPTIONS

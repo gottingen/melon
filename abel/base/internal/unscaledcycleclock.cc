@@ -15,7 +15,7 @@
 #include <abel/base/internal/sysinfo.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 #if defined(__i386__)
@@ -85,7 +85,7 @@ double UnscaledCycleClock::Frequency() {
 #endif
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USE_UNSCALED_CYCLECLOCK

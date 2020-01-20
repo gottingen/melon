@@ -7,7 +7,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 static constexpr const char kExceptionMessage[] =
     "Failed generating seed-material for URBG.";
@@ -30,5 +30,5 @@ void ThrowSeedGenException() {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

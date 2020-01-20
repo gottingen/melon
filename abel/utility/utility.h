@@ -38,7 +38,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // integer_sequence
 //
@@ -331,7 +331,7 @@ constexpr T make_from_tuple(Tuple&& tup) {
           std::tuple_size<abel::decay_t<Tuple>>::value>{});
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_UTILITY_UTILITY_H_

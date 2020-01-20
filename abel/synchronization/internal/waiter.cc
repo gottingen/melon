@@ -37,7 +37,7 @@
 #include <abel/synchronization/internal/kernel_timeout.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 static void MaybeBecomeIdle () {
@@ -476,5 +476,5 @@ void Waiter::InternalCondVarPoke() {
 #endif
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

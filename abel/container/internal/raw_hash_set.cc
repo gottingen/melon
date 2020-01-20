@@ -8,7 +8,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 constexpr size_t Group::kWidth;
@@ -32,5 +32,5 @@ bool ShouldInsertBackwards(size_t hash, ctrl_t* ctrl) {
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

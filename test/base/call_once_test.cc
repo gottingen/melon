@@ -12,7 +12,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 abel::once_flag once;
@@ -91,5 +91,5 @@ TEST(CallOnceTest, ExecutionCount) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

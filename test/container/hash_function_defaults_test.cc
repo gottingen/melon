@@ -10,7 +10,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -237,7 +237,7 @@ TYPED_TEST_SUITE(StringLikeTest, StringTypesCartesianProduct);
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 enum Hash : size_t {
@@ -268,7 +268,7 @@ struct hash<Hashable<H>> {
 }  // namespace std
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -283,5 +283,5 @@ TEST(Delegate, HashDispatch) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

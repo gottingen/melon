@@ -11,7 +11,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // blocking_counter
 //
@@ -80,7 +80,7 @@ class blocking_counter {
   int num_waiting_ ABEL_GUARDED_BY(lock_);
 };
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_BLOCKING_COUNTER_H_

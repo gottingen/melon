@@ -15,7 +15,7 @@ ABEL_DECLARE_FLAG(std::vector<std::string>, tryfromenv);
 ABEL_DECLARE_FLAG(std::vector<std::string>, undefok);
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 enum class ArgvListAction { kRemoveParsedArgs, kKeepParsedArgs };
@@ -32,7 +32,7 @@ std::vector<char*> ParseCommandLineImpl(int argc, char* argv[],
                                         OnUndefinedFlag on_undef_flag);
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_PARSE_H_

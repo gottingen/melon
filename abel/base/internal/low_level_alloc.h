@@ -40,7 +40,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 class LowLevelAlloc {
@@ -105,7 +105,7 @@ class LowLevelAlloc {
 };
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_LOW_LEVEL_ALLOC_H_

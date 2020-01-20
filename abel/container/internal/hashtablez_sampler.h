@@ -38,7 +38,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // Stores information about a sampled hashtable.  All mutations to this *must*
@@ -269,7 +269,7 @@ void SetHashtablezMaxSamples(int32_t max);
 extern "C" bool AbelContainerInternalSampleEverything();
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASHTABLEZ_SAMPLER_H_

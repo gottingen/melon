@@ -9,7 +9,7 @@
 #include <test/container/hash_policy_testing.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <class UnordSet>
@@ -172,7 +172,7 @@ REGISTER_TYPED_TEST_SUITE_P(ModifiersTest, Clear, Insert, InsertHint,
                            EraseKey, Swap);
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_SET_MODIFIERS_TEST_H_

@@ -56,7 +56,7 @@
 #include <abel/types/internal/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 //------------------------------------------------------------------------------
 // Span
@@ -693,6 +693,6 @@ template <int&... ExplicitArgumentBarrier, typename T, size_t N>
 constexpr Span<const T> MakeConstSpan(const T (&array)[N]) noexcept {
   return Span<const T>(array, N);
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_TYPES_SPAN_H_

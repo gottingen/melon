@@ -40,7 +40,7 @@
 #include <testing/mocking_bit_gen.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // abel::MockUniform
@@ -242,7 +242,7 @@ using MockZipf =
                                      IntType(MockingBitGen&, IntType, double,
                                              double)>;
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_MOCK_DISTRIBUTIONS_H_

@@ -37,7 +37,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // simple_atoi()
 //
@@ -82,13 +82,13 @@ ABEL_MUST_USE_RESULT bool simple_atod(abel::string_view str, double* out);
 // unspecified state.
 ABEL_MUST_USE_RESULT bool simple_atob(abel::string_view str, bool* out);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // End of public API.  Implementation details follow.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace numbers_internal {
 
 // Digit conversion.
@@ -243,7 +243,7 @@ ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool simple_atoi(abel::string_view str,
   return numbers_internal::safe_strtou128_base(str, out, 10);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_NUMBERS_H_

@@ -10,7 +10,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 namespace {
@@ -92,5 +92,5 @@ void ThrowStdBadFunctionCall() { Throw(std::bad_function_call()); }
 void ThrowStdBadAlloc() { Throw(std::bad_alloc()); }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

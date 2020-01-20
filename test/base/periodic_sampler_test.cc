@@ -7,7 +7,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 namespace {
 
@@ -158,5 +158,5 @@ TEST(PeriodicSamplerTest, SetGlobalPeriod) {
 
 }  // namespace
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

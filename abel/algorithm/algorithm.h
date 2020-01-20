@@ -16,7 +16,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace algorithm_internal {
 
@@ -140,7 +140,7 @@ ForwardIterator rotate(ForwardIterator first, ForwardIterator middle,
                    ForwardIterator>());
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_ALGORITHM_ALGORITHM_H_

@@ -12,7 +12,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 const uint64_t kInitialNumber{0x0123456789abcdef};
@@ -249,5 +249,5 @@ TEST(EndianessTest, big_endian) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

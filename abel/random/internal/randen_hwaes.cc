@@ -61,7 +61,7 @@
 #include <cstdlib>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // No accelerated implementation.
@@ -93,7 +93,7 @@ void RandenHwAes::Generate(const void*, void*) {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // defined(ABEL_RANDEN_HWAES_IMPL)
@@ -506,7 +506,7 @@ ABEL_FORCE_INLINE ABEL_TARGET_CRYPTO void Permute(
 }  // namespace
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 bool HasRandenHwAesImplementation() { return true; }
@@ -618,7 +618,7 @@ void ABEL_TARGET_CRYPTO RandenHwAes::Generate(const void* keys,
 #endif
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // (ABEL_RANDEN_HWAES_IMPL)

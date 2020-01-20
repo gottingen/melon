@@ -13,7 +13,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class untyped_format_spec;
 
@@ -203,7 +203,7 @@ class StreamedWrapper {
 };
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_BIND_H_

@@ -21,7 +21,7 @@ ABEL_WEAK void AbelInternalReportFatalUsageError(abel::string_view) {}
 }  // extern "C"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 namespace {
@@ -137,5 +137,5 @@ void SetFlagsUsageConfig(FlagsUsageConfig usage_config) {
     flags_internal::custom_usage_config = new FlagsUsageConfig(usage_config);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

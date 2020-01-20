@@ -155,7 +155,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // Overloads of `abel_parse_flag()` and `abel_unparse_flag()` for fundamental types.
@@ -244,7 +244,7 @@ enum class LogSeverity : int;
 bool abel_parse_flag(abel::string_view, abel::LogSeverity*, std::string*);
 std::string abel_unparse_flag(abel::LogSeverity);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_MARSHALLING_H_
