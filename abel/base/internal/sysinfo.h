@@ -23,7 +23,7 @@ namespace abel {
 namespace base_internal {
 
 // Nominal core processor cycles per second of each processor.   This is _not_
-// necessarily the frequency of the CycleClock counter (see cycleclock.h)
+// necessarily the frequency of the cycle_clock counter (see cycleclock.h)
 // Thread-safe.
 double NominalCPUFrequency();
 

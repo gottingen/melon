@@ -40,7 +40,7 @@
 #include <abel/functional/call_once.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/unscaledcycleclock.h>
+#include <abel/time/unscaledcycleclock.h>
 
 namespace abel {
 
@@ -144,12 +144,12 @@ static int64_t ReadMonotonicClockNanos() {
 
 class UnscaledCycleClockWrapperForInitializeFrequency {
  public:
-  static int64_t now() { return base_internal::UnscaledCycleClock::now(); }
+  static int64_t now() { return base_internal::unscaled_cycle_clock::now(); }
 };
 
 struct TimeTscPair {
   int64_t time;  // From ReadMonotonicClockNanos().
-  int64_t tsc;   // From UnscaledCycleClock::now().
+  int64_t tsc;   // From unscaled_cycle_clock::now().
 };
 
 // Returns a pair of values (monotonic kernel time, TSC ticks) that

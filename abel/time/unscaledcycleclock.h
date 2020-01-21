@@ -1,9 +1,9 @@
 //
-// UnscaledCycleClock
-//    An UnscaledCycleClock yields the value and frequency of a cycle counter
+// unscaled_cycle_clock
+//    An unscaled_cycle_clock yields the value and frequency of a cycle counter
 //    that increments at a rate that is approximately constant.
 //    This class is for internal / whitelisted use only, you should consider
-//    using CycleClock instead.
+//    using cycle_clock instead.
 //
 // Notes:
 // The cycle counter frequency is not necessarily the core clock frequency.
@@ -20,8 +20,8 @@
 // The CPU is not required to maintain the ordering of a cycle counter read
 // with respect to surrounding instructions.
 
-#ifndef ABEL_BASE_INTERNAL_UNSCALEDCYCLECLOCK_H_
-#define ABEL_BASE_INTERNAL_UNSCALEDCYCLECLOCK_H_
+#ifndef ABEL_TIME_UNSCALEDCYCLECLOCK_H_
+#define ABEL_TIME_UNSCALEDCYCLECLOCK_H_
 
 #include <cstdint>
 
@@ -43,7 +43,7 @@
 // The following platforms often disable access to the hardware
 // counter (through a sandbox) even if the underlying hardware has a
 // usable counter. The CycleTimer interface also requires a *scaled*
-// CycleClock that runs at atleast 1 MHz. We've found some Android
+// cycle_clock that runs at atleast 1 MHz. We've found some Android
 // ARM64 devices where this is not the case, so we disable it by
 // default on Android ARM64.
 #if defined(__native_client__) ||                      \
@@ -54,7 +54,7 @@
 #define ABEL_USE_UNSCALED_CYCLECLOCK_DEFAULT 1
 #endif
 
-// UnscaledCycleClock is an optional internal feature.
+// unscaled_cycle_clock is an optional internal feature.
 // Use "#if ABEL_USE_UNSCALED_CYCLECLOCK" to test for its presence.
 // Can be overridden at compile-time via -DABEL_USE_UNSCALED_CYCLECLOCK=0|1
 #if !defined(ABEL_USE_UNSCALED_CYCLECLOCK)
@@ -65,7 +65,7 @@
 
 #if ABEL_USE_UNSCALED_CYCLECLOCK
 
-// This macro can be used to test if UnscaledCycleClock::Frequency()
+// This macro can be used to test if unscaled_cycle_clock::frequency()
 // is NominalCPUFrequency() on a particular platform.
 #if  (defined(__i386__) || defined(__x86_64__) || \
       defined(_M_IX86) || defined(_M_X64))
@@ -74,38 +74,34 @@
 
 namespace abel {
 
-namespace time_internal {
 class UnscaledCycleClockWrapperForGetCurrentTime;
-}  // namespace time_internal
 
-namespace base_internal {
-class CycleClock;
+class cycle_clock;
 class UnscaledCycleClockWrapperForInitializeFrequency;
 
-class UnscaledCycleClock {
+class unscaled_cycle_clock {
  private:
-  UnscaledCycleClock() = delete;
+    unscaled_cycle_clock() = delete;
 
   // Return the value of a cycle counter that counts at a rate that is
   // approximately constant.
   static int64_t now();
 
-  // Return the how much UnscaledCycleClock::now() increases per second.
+  // Return the how much unscaled_cycle_clock::now() increases per second.
   // This is not necessarily the core CPU clock frequency.
   // It may be the nominal value report by the kernel, rather than a measured
   // value.
-  static double Frequency();
+  static double frequency();
 
   // Whitelisted friends.
-  friend class base_internal::CycleClock;
-  friend class time_internal::UnscaledCycleClockWrapperForGetCurrentTime;
-  friend class base_internal::UnscaledCycleClockWrapperForInitializeFrequency;
+  friend class cycle_clock;
+  friend class UnscaledCycleClockWrapperForGetCurrentTime;
+  friend class UnscaledCycleClockWrapperForInitializeFrequency;
 };
 
-}  // namespace base_internal
 
 }  // namespace abel
 
 #endif  // ABEL_USE_UNSCALED_CYCLECLOCK
 
-#endif  // ABEL_BASE_INTERNAL_UNSCALEDCYCLECLOCK_H_
+#endif  // ABEL_TIME_UNSCALEDCYCLECLOCK_H_

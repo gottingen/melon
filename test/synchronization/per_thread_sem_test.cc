@@ -11,7 +11,7 @@
 #include <thread>              // NOLINT(build/c++11)
 
 #include <gtest/gtest.h>
-#include <abel/base/internal/cycleclock.h>
+#include <abel/time/cycleclock.h>
 #include <abel/base/internal/thread_identity.h>
 #include <abel/strings/str_cat.h>
 #include <abel/time/clock.h>
@@ -96,10 +96,10 @@ class PerThreadSemTest : public testing::Test {
     int64_t total_cycles = 0;
     for (int i = 0; i < kNumIterations; ++i) {
       abel::sleep_for(abel::milliseconds(20));
-      int64_t cycles = base_internal::CycleClock::now();
+      int64_t cycles = abel::cycle_clock::now();
       Post(t.identity2);
       wait(t.timeout);
-      cycles = base_internal::CycleClock::now() - cycles;
+      cycles = cycle_clock::now() - cycles;
       min_cycles = std::min(min_cycles, cycles);
       total_cycles += cycles;
     }

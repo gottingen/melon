@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/unscaledcycleclock.h>
+#include <abel/time/unscaledcycleclock.h>
 
 #if ABEL_USE_UNSCALED_CYCLECLOCK
 
@@ -16,39 +16,38 @@
 
 namespace abel {
 
-namespace base_internal {
 
 #if defined(__i386__)
 
-int64_t UnscaledCycleClock::now() {
+int64_t unscaled_cycle_clock::now() {
   int64_t ret;
   __asm__ volatile("rdtsc" : "=A"(ret));
   return ret;
 }
 
-double UnscaledCycleClock::Frequency() {
+double unscaled_cycle_clock::frequency() {
   return base_internal::NominalCPUFrequency();
 }
 
 #elif defined(__x86_64__)
 
-int64_t UnscaledCycleClock::now() {
+int64_t unscaled_cycle_clock::now() {
   uint64_t low, high;
   __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
   return (high << 32) | low;
 }
 
-double UnscaledCycleClock::Frequency() {
+double unscaled_cycle_clock::frequency() {
   return base_internal::NominalCPUFrequency();
 }
 
 #elif defined(__powerpc__) || defined(__ppc__)
 
-int64_t UnscaledCycleClock::now() {
+int64_t unscaled_cycle_clock::now() {
   return __ppc_get_timebase();
 }
 
-double UnscaledCycleClock::Frequency() {
+double unscaled_cycle_clock::Frequency() {
   return __ppc_get_timebase_freq();
 }
 
@@ -58,13 +57,13 @@ double UnscaledCycleClock::Frequency() {
 // The frequency is fixed, typically in the range 1-50MHz.  It can be
 // read at CNTFRQ special register.  We assume the OS has set up
 // the virtual timer properly.
-int64_t UnscaledCycleClock::now() {
+int64_t unscaled_cycle_clock::now() {
   int64_t virtual_timer_value;
   asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
   return virtual_timer_value;
 }
 
-double UnscaledCycleClock::Frequency() {
+double unscaled_cycle_clock::frequency() {
   uint64_t aarch64_timer_frequency;
   asm volatile("mrs %0, cntfrq_el0" : "=r"(aarch64_timer_frequency));
   return aarch64_timer_frequency;
@@ -74,17 +73,15 @@ double UnscaledCycleClock::Frequency() {
 
 #pragma intrinsic(__rdtsc)
 
-int64_t UnscaledCycleClock::now() {
+int64_t unscaled_cycle_clock::now() {
   return __rdtsc();
 }
 
-double UnscaledCycleClock::Frequency() {
+double unscaled_cycle_clock::frequency() {
   return base_internal::NominalCPUFrequency();
 }
 
 #endif
-
-}  // namespace base_internal
 
 }  // namespace abel
 

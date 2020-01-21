@@ -8,7 +8,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/base/internal/atomic_hook.h>
-#include <abel/base/internal/cycleclock.h>
+#include <abel/time/cycleclock.h>
 #include <abel/base/internal/spinlock_wait.h>
 #include <abel/base/internal/sysinfo.h> /* For NumCPUs() */
 #include <abel/functional/call_once.h>
@@ -113,7 +113,7 @@ void SpinLock::SlowLock() {
   // it.  Record the current timestamp in the local variable wait_start_time
   // so the total wait time can be stored in the lockword once this thread
   // obtains the lock.
-  int64_t wait_start_time = CycleClock::now();
+  int64_t wait_start_time = abel::cycle_clock::now();
   uint32_t wait_cycles = 0;
   int lock_wait_call_count = 0;
   while ((lock_value & kSpinLockHeld) != 0) {
@@ -155,7 +155,7 @@ void SpinLock::SlowLock() {
     // Spin again after returning from the wait routine to give this thread
     // some chance of obtaining the lock.
     lock_value = SpinLoop();
-    wait_cycles = EncodeWaitCycles(wait_start_time, CycleClock::now());
+    wait_cycles = EncodeWaitCycles(wait_start_time, cycle_clock::now());
     lock_value = TryLockInternal(lock_value, wait_cycles);
   }
 }

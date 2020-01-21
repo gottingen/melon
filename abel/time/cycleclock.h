@@ -5,13 +5,13 @@
 // File: cycleclock.h
 // -----------------------------------------------------------------------------
 //
-// This header file defines a `CycleClock`, which yields the value and frequency
+// This header file defines a `cycle_clock`, which yields the value and frequency
 // of a cycle counter that increments at a rate that is approximately constant.
 //
 // NOTE:
 //
 // The cycle counter frequency is not necessarily related to the core clock
-// frequency and should not be treated as such. That is, `CycleClock` cycles are
+// frequency and should not be treated as such. That is, `cycle_clock` cycles are
 // not necessarily "CPU cycles" and code should not rely on that behavior, even
 // if experimentally observed.
 //
@@ -26,8 +26,8 @@
 // The CPU is not required to maintain the ordering of a cycle counter read
 // with respect to surrounding instructions.
 
-#ifndef ABEL_BASE_INTERNAL_CYCLECLOCK_H_
-#define ABEL_BASE_INTERNAL_CYCLECLOCK_H_
+#ifndef ABEL_TIME_CYCLECLOCK_H_
+#define ABEL_TIME_CYCLECLOCK_H_
 
 #include <cstdint>
 
@@ -35,29 +35,27 @@
 
 namespace abel {
 
-namespace base_internal {
-
 // -----------------------------------------------------------------------------
-// CycleClock
+// cycle_clock
 // -----------------------------------------------------------------------------
-class CycleClock {
+class cycle_clock {
  public:
-  // CycleClock::now()
+  // cycle_clock::now()
   //
   // Returns the value of a cycle counter that counts at a rate that is
   // approximately constant.
   static int64_t now();
 
-  // CycleClock::Frequency()
+  // cycle_clock::frequency()
   //
-  // Returns the amount by which `CycleClock::now()` increases per second. Note
+  // Returns the amount by which `cycle_clock::now()` increases per second. Note
   // that this value may not necessarily match the core CPU clock frequency.
-  static double Frequency();
+  static double frequency();
 
  private:
-  CycleClock() = delete;  // no instances
-  CycleClock(const CycleClock&) = delete;
-  CycleClock& operator=(const CycleClock&) = delete;
+    cycle_clock() = delete;  // no instances
+    cycle_clock(const cycle_clock&) = delete;
+    cycle_clock& operator=(const cycle_clock&) = delete;
 };
 
 using CycleClockSourceFunc = int64_t (*)();
@@ -68,14 +66,13 @@ class CycleClockSource {
   //
   // Register a function that provides an alternate source for the unscaled CPU
   // cycle count value. The source function must be async signal safe, must not
-  // call CycleClock::now(), and must have a frequency that matches that of the
-  // unscaled clock used by CycleClock. A nullptr value resets CycleClock to use
+  // call cycle_clock::now(), and must have a frequency that matches that of the
+  // unscaled clock used by cycle_clock. A nullptr value resets cycle_clock to use
   // the default source.
   static void Register(CycleClockSourceFunc source);
 };
 
-}  // namespace base_internal
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_CYCLECLOCK_H_
+#endif  // ABEL_TIME_CYCLECLOCK_H_

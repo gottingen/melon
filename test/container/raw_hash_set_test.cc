@@ -14,7 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/base/internal/cycleclock.h>
+#include <abel/time/cycleclock.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/container/internal/container_memory.h>
 #include <abel/container/internal/hash_function_defaults.h>
@@ -426,7 +426,7 @@ TEST(Table, Prefetch) {
     !defined(ADDRESS_SANITIZER) && !defined(MEMORY_SANITIZER) &&            \
     !defined(THREAD_SANITIZER) && !defined(UNDEFINED_BEHAVIOR_SANITIZER) && \
     !defined(__EMSCRIPTEN__)
-  const auto now = [] { return abel::base_internal::CycleClock::now(); };
+  const auto now = [] { return abel::cycle_clock::now(); };
 
   // Make size enough to not fit in L2 cache (16.7 Mb)
   static constexpr int size = 1 << 22;

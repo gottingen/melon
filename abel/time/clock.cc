@@ -16,7 +16,7 @@
 #include <limits>
 
 #include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/unscaledcycleclock.h>
+#include <abel/time/unscaledcycleclock.h>
 #include <abel/base/profile.h>
 #include <abel/base/thread_annotations.h>
 
@@ -71,7 +71,7 @@ int64_t get_current_time_nanos() {
 // Allows override by test.
 #ifndef GET_CURRENT_TIME_NANOS_CYCLECLOCK_NOW
 #define GET_CURRENT_TIME_NANOS_CYCLECLOCK_NOW() \
-  ::abel::time_internal::UnscaledCycleClockWrapperForGetCurrentTime::now()
+  ::abel::UnscaledCycleClockWrapperForGetCurrentTime::now()
 #endif
 
 // The following counters are used only by the test code.
@@ -83,14 +83,12 @@ static int64_t stats_fast_slow_paths;
 
 namespace abel {
 
-namespace time_internal {
-// This is a friend wrapper around UnscaledCycleClock::now()
-// (needed to access UnscaledCycleClock).
+// This is a friend wrapper around unscaled_cycle_clock::now()
+// (needed to access unscaled_cycle_clock).
 class UnscaledCycleClockWrapperForGetCurrentTime {
  public:
-  static int64_t now() { return base_internal::UnscaledCycleClock::now(); }
+  static int64_t now() { return unscaled_cycle_clock::now(); }
 };
-}  // namespace time_internal
 
 // uint64_t is used in this module to provide an extra bit in multiplications
 
