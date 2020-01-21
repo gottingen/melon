@@ -93,13 +93,13 @@ static_assert(
     sizeof(MutexGlobals) == ABEL_CACHE_LINE_SIZE,
     "MutexGlobals must occupy an entire cacheline to prevent false sharing");
 
-ABEL_CONST_INIT abel::AtomicHook<void (*) (int64_t wait_cycles)>
+ABEL_CONST_INIT abel::atomic_hook<void (*) (int64_t wait_cycles)>
     submit_profile_data;
-ABEL_CONST_INIT abel::AtomicHook<
+ABEL_CONST_INIT abel::atomic_hook<
     void (*) (const char *msg, const void *obj, int64_t wait_cycles)> mutex_tracer;
-ABEL_CONST_INIT abel::AtomicHook<
+ABEL_CONST_INIT abel::atomic_hook<
     void (*) (const char *msg, const void *cv)> cond_var_tracer;
-ABEL_CONST_INIT abel::AtomicHook<
+ABEL_CONST_INIT abel::atomic_hook<
     bool (*) (const void *pc, char *out, int out_size)>
     symbolizer(abel::Symbolize);
 

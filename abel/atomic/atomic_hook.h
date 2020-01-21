@@ -21,35 +21,35 @@ namespace abel {
 
 
 template <typename T>
-class AtomicHook;
+class atomic_hook;
 
-// `AtomicHook` is a helper class, templatized on a raw function pointer type,
+// `atomic_hook` is a helper class, templatized on a raw function pointer type,
 // for implementing abel customization hooks.  It is a callable object that
-// dispatches to the registered hook.  Objects of type `AtomicHook` must have
+// dispatches to the registered hook.  Objects of type `atomic_hook` must have
 // static or thread storage duration.
 //
 // A default constructed object performs a no-op (and returns a default
 // constructed object) if no hook has been registered.
 //
 // Hooks can be pre-registered via constant initialization, for example,
-// `ABEL_CONST_INIT static AtomicHook<void(*)()> my_hook(DefaultAction);`
+// `ABEL_CONST_INIT static atomic_hook<void(*)()> my_hook(DefaultAction);`
 // and then changed at runtime via a call to `Store()`.
 //
 // Reads and writes guarantee memory_order_acquire/memory_order_release
 // semantics.
 template <typename ReturnType, typename... Args>
-class AtomicHook<ReturnType (*)(Args...)> {
+class atomic_hook<ReturnType (*)(Args...)> {
  public:
   using FnPtr = ReturnType (*)(Args...);
 
   // Constructs an object that by default performs a no-op (and
   // returns a default constructed object) when no hook as been registered.
-  constexpr AtomicHook() : AtomicHook(DummyFunction) {}
+  constexpr atomic_hook() : atomic_hook(DummyFunction) {}
 
   // Constructs an object that by default dispatches to/returns the
   // pre-registered default_fn when no hook has been registered at runtime.
 #if ABEL_HAVE_WORKING_ATOMIC_POINTER && ABEL_HAVE_WORKING_CONSTEXPR_STATIC_INIT
-  explicit constexpr AtomicHook(FnPtr default_fn)
+  explicit constexpr atomic_hook(FnPtr default_fn)
       : hook_(default_fn), default_fn_(default_fn) {}
 #else
   // On MSVC, this function sometimes executes after dynamic initialization =(.
@@ -57,7 +57,7 @@ class AtomicHook<ReturnType (*)(Args...)> {
   // to preserve it.  If not, `hook_` will be zero initialized and we have no
   // need to set it to `kUninitialized`.
   // https://developercommunity.visualstudio.com/content/problem/336946/class-with-constexpr-constructor-not-using-static.html
-  explicit constexpr AtomicHook(FnPtr default_fn)
+  explicit constexpr atomic_hook(FnPtr default_fn)
       : /* hook_(deliberately omitted), */ default_fn_(default_fn) {
     static_assert(kUninitialized == 0, "here we rely on zero-initialization");
   }

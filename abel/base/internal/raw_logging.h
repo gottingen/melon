@@ -154,7 +154,7 @@ using InternalLogFunction = void (*) (abel::LogSeverity severity,
                                       const char *file, int line,
                                       const std::string &message);
 
-extern abel::AtomicHook<InternalLogFunction> internal_log_function;
+extern abel::atomic_hook<InternalLogFunction> internal_log_function;
 
 void RegisterInternalLogFunction (InternalLogFunction func);
 

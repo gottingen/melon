@@ -45,7 +45,7 @@ namespace abel {
 
 namespace threading_internal {
 
-ABEL_CONST_INIT static AtomicHook<void (*)(const void *lock,
+ABEL_CONST_INIT static atomic_hook<void (*)(const void *lock,
                                                           int64_t wait_cycles)>
     submit_profile_data;
 

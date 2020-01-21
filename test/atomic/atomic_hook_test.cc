@@ -15,7 +15,7 @@ int value = 0;
 void TestHook(int x) { value = x; }
 
 TEST(AtomicHookTest, NoDefaultFunction) {
-  ABEL_CONST_INIT static abel::AtomicHook<void(*)(int)> hook;
+  ABEL_CONST_INIT static abel::atomic_hook<void(*)(int)> hook;
   value = 0;
 
   // Test the default DummyFunction.
@@ -41,7 +41,7 @@ TEST(AtomicHookTest, NoDefaultFunction) {
 
 TEST(AtomicHookTest, WithDefaultFunction) {
   // Set the default value to TestHook at compile-time.
-  ABEL_CONST_INIT static abel::AtomicHook<void (*)(int)> hook(
+  ABEL_CONST_INIT static abel::atomic_hook<void (*)(int)> hook(
       TestHook);
   value = 0;
 
@@ -67,7 +67,7 @@ static struct OverrideInstaller {
 
 TEST(AtomicHookTest, DynamicInitFromAnotherTU) {
   // MSVC 14.2 doesn't do constexpr static init correctly; in particular it
-  // tends to sequence static init (i.e. defaults) of `AtomicHook` objects
+  // tends to sequence static init (i.e. defaults) of `atomic_hook` objects
   // after their dynamic init (i.e. overrides), overwriting whatever value was
   // written during dynamic init.  This regression test validates the fix.
   // https://developercommunity.visualstudio.com/content/problem/336946/class-with-constexpr-constructor-not-using-static.html
