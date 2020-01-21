@@ -48,7 +48,7 @@ using std::nullopt;
 #include <utility>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <abel/meta/type_traits.h>
 #include <abel/types/bad_optional_access.h>
 #include <abel/types/internal/optional.h>

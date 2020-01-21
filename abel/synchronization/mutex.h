@@ -50,11 +50,11 @@
 
 #include <abel/base/const_init.h>
 #include <abel/meta/type_traits.h>
-#include <abel/base/internal/low_level_alloc.h>
+#include <abel/memory/internal/low_level_alloc.h>
 #include <abel/threading/internal/thread_identity.h>
-#include <abel/base/internal/tsan_mutex_interface.h>
+#include <abel/threading/internal/tsan_mutex_interface.h>
 #include <abel/base/profile.h>
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 #include <abel/synchronization/internal/kernel_timeout.h>
 #include <abel/synchronization/internal/per_thread_sem.h>
 #include <abel/time/time.h>

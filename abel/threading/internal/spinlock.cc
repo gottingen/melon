@@ -7,7 +7,7 @@
 #include <limits>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/atomic_hook.h>
+#include <abel/atomic/atomic_hook.h>
 #include <abel/time/cycleclock.h>
 #include <abel/threading/internal/spinlock_wait.h>
 #include <abel/system/sysinfo.h> /* For num_cpus() */
@@ -45,7 +45,7 @@ namespace abel {
 
 namespace threading_internal {
 
-ABEL_CONST_INIT static base_internal::AtomicHook<void (*)(const void *lock,
+ABEL_CONST_INIT static AtomicHook<void (*)(const void *lock,
                                                           int64_t wait_cycles)>
     submit_profile_data;
 

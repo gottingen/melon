@@ -3,8 +3,8 @@
 // It provides ThreadSanitizer annotations for custom mutexes.
 // See <sanitizer/tsan_interface.h> for meaning of these annotations.
 
-#ifndef ABEL_BASE_INTERNAL_TSAN_MUTEX_INTERFACE_H_
-#define ABEL_BASE_INTERNAL_TSAN_MUTEX_INTERFACE_H_
+#ifndef ABEL_THREADING_INTERNAL_TSAN_MUTEX_INTERFACE_H_
+#define ABEL_THREADING_INTERNAL_TSAN_MUTEX_INTERFACE_H_
 
 // ABEL_INTERNAL_HAVE_TSAN_INTERFACE
 // Macro intended only for internal use.
@@ -50,4 +50,4 @@
 
 #endif
 
-#endif  // ABEL_BASE_INTERNAL_TSAN_MUTEX_INTERFACE_H_
+#endif  // ABEL_THREADING_INTERNAL_TSAN_MUTEX_INTERFACE_H_

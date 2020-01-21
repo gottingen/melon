@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_BASE_INTERNAL_LOW_LEVEL_ALLOC_H_
-#define ABEL_BASE_INTERNAL_LOW_LEVEL_ALLOC_H_
+#ifndef ABEL_MEMORY_INTERNAL_LOW_LEVEL_ALLOC_H_
+#define ABEL_MEMORY_INTERNAL_LOW_LEVEL_ALLOC_H_
 
 // A simple thread-safe memory allocator that does not depend on
 // mutexes or thread-specific data.  It is intended to be used
@@ -41,7 +41,7 @@
 
 namespace abel {
 
-namespace base_internal {
+namespace memory_internal {
 
 class LowLevelAlloc {
  public:
@@ -104,8 +104,8 @@ class LowLevelAlloc {
   LowLevelAlloc();      // no instances
 };
 
-}  // namespace base_internal
+}  // namespace memory_internal
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_LOW_LEVEL_ALLOC_H_
+#endif  // ABEL_MEMORY_INTERNAL_LOW_LEVEL_ALLOC_H_

@@ -7,7 +7,7 @@
 #ifndef ABEL_SYNCHRONIZATION_BLOCKING_COUNTER_H_
 #define ABEL_SYNCHRONIZATION_BLOCKING_COUNTER_H_
 
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 #include <abel/synchronization/mutex.h>
 
 namespace abel {

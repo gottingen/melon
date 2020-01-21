@@ -7,7 +7,7 @@
 #include <atomic>
 #include <cstring>
 
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 #include <abel/flags/internal/commandlineflag.h>
 #include <abel/flags/internal/registry.h>
 #include <abel/memory/memory.h>

@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/low_level_alloc.h>
+#include <abel/memory/internal/low_level_alloc.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -11,7 +11,7 @@
 
 namespace abel {
 
-namespace base_internal {
+namespace memory_internal {
 namespace {
 
 // This test doesn't use gtest since it needs to test that everything
@@ -118,12 +118,12 @@ static void Test(bool use_new_arena, bool call_malloc_hook, int n) {
   while ((it = allocated.begin()) != allocated.end()) {
     CheckBlockDesc(it->second);
     using_low_level_alloc = true;
-    LowLevelAlloc::Free(it->second.ptr);
+      memory_internal::LowLevelAlloc::Free(it->second.ptr);
     using_low_level_alloc = false;
     allocated.erase(it);
   }
   if (use_new_arena) {
-    TEST_ASSERT(LowLevelAlloc::DeleteArena(arena));
+    TEST_ASSERT(memory_internal::LowLevelAlloc::DeleteArena(arena));
   }
 }
 

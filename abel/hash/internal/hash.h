@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #include <abel/base/profile.h>
 #include <abel/container/fixed_array.h>
 #include <abel/meta/type_traits.h>

@@ -26,11 +26,11 @@
 #include <cinttypes>
 #include <thread>  // NOLINT(build/c++11)
 #include <abel/base/profile.h>
-#include <abel/base/dynamic_annotations.h>
-#include <abel/base/internal/atomic_hook.h>
+#include <abel/threading/dynamic_annotations.h>
+#include <abel/atomic/atomic_hook.h>
 #include <abel/time/cycleclock.h>
 #include <abel/memory/hide_ptr.h>
-#include <abel/base/internal/low_level_alloc.h>
+#include <abel/memory/internal/low_level_alloc.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/threading/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
@@ -93,13 +93,13 @@ static_assert(
     sizeof(MutexGlobals) == ABEL_CACHE_LINE_SIZE,
     "MutexGlobals must occupy an entire cacheline to prevent false sharing");
 
-ABEL_CONST_INIT abel::base_internal::AtomicHook<void (*) (int64_t wait_cycles)>
+ABEL_CONST_INIT abel::AtomicHook<void (*) (int64_t wait_cycles)>
     submit_profile_data;
-ABEL_CONST_INIT abel::base_internal::AtomicHook<
+ABEL_CONST_INIT abel::AtomicHook<
     void (*) (const char *msg, const void *obj, int64_t wait_cycles)> mutex_tracer;
-ABEL_CONST_INIT abel::base_internal::AtomicHook<
+ABEL_CONST_INIT abel::AtomicHook<
     void (*) (const char *msg, const void *cv)> cond_var_tracer;
-ABEL_CONST_INIT abel::base_internal::AtomicHook<
+ABEL_CONST_INIT abel::AtomicHook<
     bool (*) (const void *pc, char *out, int out_size)>
     symbolizer(abel::Symbolize);
 
@@ -309,7 +309,7 @@ static SynchEvent *EnsureSynchEvent (std::atomic<intptr_t> *addr,
         }
         size_t l = strlen(name);
         e = reinterpret_cast<SynchEvent *>(
-            base_internal::LowLevelAlloc::Alloc(sizeof(*e) + l));
+            memory_internal::LowLevelAlloc::Alloc(sizeof(*e) + l));
         e->refcount = 2;    // one for return value, one for linked list
         e->masked_addr = hide_ptr(addr);
         e->invariant = nullptr;
@@ -328,7 +328,7 @@ static SynchEvent *EnsureSynchEvent (std::atomic<intptr_t> *addr,
 
 // Deallocate the SynchEvent *e, whose refcount has fallen to zero.
 static void DeleteSynchEvent (SynchEvent *e) {
-    base_internal::LowLevelAlloc::Free(e);
+    memory_internal::LowLevelAlloc::Free(e);
 }
 
 // Decrement the reference count of *e, or do nothing if e==null.
@@ -497,7 +497,7 @@ static PerThreadSynch *const kPerThreadSynchNull =
 
 static SynchLocksHeld *LocksHeldAlloc () {
     SynchLocksHeld *ret = reinterpret_cast<SynchLocksHeld *>(
-        base_internal::LowLevelAlloc::Alloc(sizeof(SynchLocksHeld)));
+        memory_internal::LowLevelAlloc::Alloc(sizeof(SynchLocksHeld)));
     ret->n = 0;
     ret->overflow = false;
     return ret;
@@ -1134,7 +1134,7 @@ static GraphId GetGraphIdLocked (mutex *mu)
 ABEL_EXCLUSIVE_LOCKS_REQUIRED(deadlock_graph_mu) {
     if (!deadlock_graph) {  // (re)create the deadlock graph.
         deadlock_graph =
-            new(base_internal::LowLevelAlloc::Alloc(sizeof(*deadlock_graph)))
+            new(memory_internal::LowLevelAlloc::Alloc(sizeof(*deadlock_graph)))
                 GraphCycles;
     }
     return deadlock_graph->GetId(mu);
@@ -1278,9 +1278,9 @@ struct DeadlockReportBuffers {
 struct ScopedDeadlockReportBuffers {
     ScopedDeadlockReportBuffers () {
         b = reinterpret_cast<DeadlockReportBuffers *>(
-            base_internal::LowLevelAlloc::Alloc(sizeof(*b)));
+            memory_internal::LowLevelAlloc::Alloc(sizeof(*b)));
     }
-    ~ScopedDeadlockReportBuffers () { base_internal::LowLevelAlloc::Free(b); }
+    ~ScopedDeadlockReportBuffers () { memory_internal::LowLevelAlloc::Free(b); }
     DeadlockReportBuffers *b;
 };
 

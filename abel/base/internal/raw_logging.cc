@@ -9,7 +9,7 @@
 #include <cstring>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/atomic_hook.h>
+#include <abel/atomic/atomic_hook.h>
 #include <abel/base/log_severity.h>
 
 // We know how to perform low-level writes to stderr in POSIX and Windows.  For
@@ -58,9 +58,9 @@
 // Explicitly #error out when not ABEL_LOW_LEVEL_WRITE_SUPPORTED, except for a
 // whitelisted set of platforms for which we expect not to be able to raw log.
 
-ABEL_CONST_INIT static abel::base_internal::AtomicHook<
+ABEL_CONST_INIT static abel::AtomicHook<
     abel::raw_logging_internal::LogPrefixHook> log_prefix_hook;
-ABEL_CONST_INIT static abel::base_internal::AtomicHook<
+ABEL_CONST_INIT static abel::AtomicHook<
     abel::raw_logging_internal::AbortHook> abort_hook;
 
 #ifdef ABEL_LOW_LEVEL_WRITE_SUPPORTED
@@ -212,7 +212,7 @@ bool RawLoggingFullySupported() {
 #endif  // !ABEL_LOW_LEVEL_WRITE_SUPPORTED
 }
 
-ABEL_CONST_INIT abel::base_internal::AtomicHook<InternalLogFunction>
+ABEL_CONST_INIT abel::AtomicHook<InternalLogFunction>
     internal_log_function(DefaultInternalLog);
 
 void RegisterInternalLogFunction(InternalLogFunction func) {

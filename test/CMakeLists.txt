@@ -1,6 +1,7 @@
 include_directories(${PROJECT_SOURCE_DIR}/test)
 add_subdirectory(testing)
 add_subdirectory(algorithm)
+add_subdirectory(atomic)
 add_subdirectory(base)
 add_subdirectory(container)
 add_subdirectory(debugging)

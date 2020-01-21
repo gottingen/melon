@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/base/const_init.h>
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 #include <abel/synchronization/mutex.h>
 
 namespace abel {

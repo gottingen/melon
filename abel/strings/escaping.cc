@@ -10,7 +10,7 @@
 #include <limits>
 #include <string>
 
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/unaligned_access.h>
 #include <abel/strings/internal/char_map.h>

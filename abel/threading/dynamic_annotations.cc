@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <abel/base/dynamic_annotations.h>
+#include <abel/threading/dynamic_annotations.h>
 
 #ifndef __has_feature
 #define __has_feature(x) 0

@@ -90,7 +90,7 @@
 #include <utility>
 
 #include <abel/base/math.h>
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/common.h>
 #include <abel/container/internal/compressed_tuple.h>

@@ -30,7 +30,6 @@
 #else
 #define ABEL_INTERNAL_THREAD_ANNOTATION_ATTRIBUTE(x)  // no-op
 #endif
-
 // ABEL_GUARDED_BY()
 //
 // Documents if a shared field or global variable needs to be protected by a
@@ -245,7 +244,7 @@
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 // Takes a reference to a guarded data member, and returns an unguarded
 // reference.
@@ -260,7 +259,7 @@ ABEL_FORCE_INLINE T &ts_unchecked_read (T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
     return v;
 }
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel
 

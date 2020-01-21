@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/atomic_hook.h>
+#include <abel/atomic/atomic_hook.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -15,7 +15,7 @@ int value = 0;
 void TestHook(int x) { value = x; }
 
 TEST(AtomicHookTest, NoDefaultFunction) {
-  ABEL_CONST_INIT static abel::base_internal::AtomicHook<void(*)(int)> hook;
+  ABEL_CONST_INIT static abel::AtomicHook<void(*)(int)> hook;
   value = 0;
 
   // Test the default DummyFunction.
@@ -41,7 +41,7 @@ TEST(AtomicHookTest, NoDefaultFunction) {
 
 TEST(AtomicHookTest, WithDefaultFunction) {
   // Set the default value to TestHook at compile-time.
-  ABEL_CONST_INIT static abel::base_internal::AtomicHook<void (*)(int)> hook(
+  ABEL_CONST_INIT static abel::AtomicHook<void (*)(int)> hook(
       TestHook);
   value = 0;
 

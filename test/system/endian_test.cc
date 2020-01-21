@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 
 #include <algorithm>
 #include <cstdint>

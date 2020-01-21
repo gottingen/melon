@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <abel/memory/memory.h>
 #include <abel/meta/type_traits.h>
 #include <abel/utility/utility.h>

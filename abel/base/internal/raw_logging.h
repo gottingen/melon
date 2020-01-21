@@ -9,7 +9,7 @@
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/atomic_hook.h>
+#include <abel/atomic/atomic_hook.h>
 #include <abel/base/log_severity.h>
 #include <abel/base/profile.h>
 
@@ -154,7 +154,7 @@ using InternalLogFunction = void (*) (abel::LogSeverity severity,
                                       const char *file, int line,
                                       const std::string &message);
 
-extern base_internal::AtomicHook<InternalLogFunction> internal_log_function;
+extern abel::AtomicHook<InternalLogFunction> internal_log_function;
 
 void RegisterInternalLogFunction (InternalLogFunction func);
 

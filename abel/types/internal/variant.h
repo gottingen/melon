@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <abel/functional/internal/invoke.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>

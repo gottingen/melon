@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <testing/inline_variable_testing.h>
 
 #include <gtest/gtest.h>

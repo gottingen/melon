@@ -18,7 +18,7 @@
 
 #include <abel/base/profile.h>
 // This file is a no-op if the required LowLevelAlloc support is missing.
-#include <abel/base/internal/low_level_alloc.h>
+#include <abel/memory/internal/low_level_alloc.h>
 #ifndef ABEL_LOW_LEVEL_ALLOC_MISSING
 
 #include <abel/synchronization/internal/graphcycles.h>
@@ -41,12 +41,12 @@ namespace {
 // which people are doing things like acquiring Mutexes.
 static abel::threading_internal::SpinLock arena_mu(
     abel::base_internal::kLinkerInitialized);
-static base_internal::LowLevelAlloc::Arena* arena;
+static memory_internal::LowLevelAlloc::Arena* arena;
 
 static void InitArenaIfNecessary() {
   arena_mu.lock();
   if (arena == nullptr) {
-    arena = base_internal::LowLevelAlloc::NewArena(0);
+    arena = memory_internal::LowLevelAlloc::NewArena(0);
   }
   arena_mu.unlock();
 }
@@ -125,7 +125,7 @@ class Vec {
   }
 
   void Discard() {
-    if (ptr_ != space_) base_internal::LowLevelAlloc::Free(ptr_);
+    if (ptr_ != space_) memory_internal::LowLevelAlloc::Free(ptr_);
   }
 
   void Grow(uint32_t n) {
@@ -134,7 +134,7 @@ class Vec {
     }
     size_t request = static_cast<size_t>(capacity_) * sizeof(T);
     T* copy = static_cast<T*>(
-        base_internal::LowLevelAlloc::AllocWithArena(request, arena));
+        memory_internal::LowLevelAlloc::AllocWithArena(request, arena));
     std::copy(ptr_, ptr_ + size_, copy);
     Discard();
     ptr_ = copy;
@@ -351,17 +351,17 @@ static Node* FindNode(GraphCycles::Rep* rep, GraphId id) {
 
 GraphCycles::GraphCycles() {
   InitArenaIfNecessary();
-  rep_ = new (base_internal::LowLevelAlloc::AllocWithArena(sizeof(Rep), arena))
+  rep_ = new (memory_internal::LowLevelAlloc::AllocWithArena(sizeof(Rep), arena))
       Rep;
 }
 
 GraphCycles::~GraphCycles() {
   for (auto* node : rep_->nodes_) {
     node->Node::~Node();
-    base_internal::LowLevelAlloc::Free(node);
+      memory_internal::LowLevelAlloc::Free(node);
   }
   rep_->Rep::~Rep();
-  base_internal::LowLevelAlloc::Free(rep_);
+    memory_internal::LowLevelAlloc::Free(rep_);
 }
 
 bool GraphCycles::CheckInvariants() const {
@@ -396,7 +396,7 @@ GraphId GraphCycles::GetId(void* ptr) {
     return MakeId(i, rep_->nodes_[i]->version);
   } else if (rep_->free_nodes_.empty()) {
     Node* n =
-        new (base_internal::LowLevelAlloc::AllocWithArena(sizeof(Node), arena))
+        new (memory_internal::LowLevelAlloc::AllocWithArena(sizeof(Node), arena))
             Node;
     n->version = 1;  // Avoid 0 since it is used by InvalidGraphId()
     n->visited = false;

@@ -3,7 +3,7 @@
 #ifndef ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
 #define ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
 
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 
 namespace abel {
 

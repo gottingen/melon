@@ -1,7 +1,6 @@
-//
 
-#ifndef ABEL_BASE_INTERNAL_ENDIAN_H_
-#define ABEL_BASE_INTERNAL_ENDIAN_H_
+#ifndef ABEL_SYSTEM_INTERNAL_ENDIAN_H_
+#define ABEL_SYSTEM_INTERNAL_ENDIAN_H_
 
 // The following guarantees declaration of the byte swap functions
 #ifdef _MSC_VER
@@ -250,4 +249,4 @@ ABEL_FORCE_INLINE void Store64(void *p, uint64_t v) {
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_ENDIAN_H_
+#endif  // ABEL_SYSTEM_INTERNAL_ENDIAN_H_

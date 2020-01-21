@@ -5,7 +5,7 @@
 // This allocator is slow and wasteful of memory;
 // it should not be used when performance is key.
 
-#include <abel/base/internal/low_level_alloc.h>
+#include <abel/memory/internal/low_level_alloc.h>
 
 #include <type_traits>
 
@@ -14,7 +14,7 @@
 #include <abel/memory/internal/direct_mmap.h>
 #include <abel/threading/internal/scheduling_mode.h>
 #include <abel/base/profile.h>
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 
 // LowLevelAlloc requires that the platform support low-level
 // allocation of virtual memory. Platforms lacking this cannot use
@@ -37,7 +37,7 @@
 #include <cstddef>
 #include <new>                   // for placement-new
 
-#include <abel/base/dynamic_annotations.h>
+#include <abel/threading/dynamic_annotations.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/threading/internal/spinlock.h>
 
@@ -52,7 +52,7 @@
 
 namespace abel {
 
-namespace base_internal {
+namespace memory_internal {
 
 // A first-fit allocator with amortized logarithmic free() time.
 
@@ -602,7 +602,7 @@ void *LowLevelAlloc::AllocWithArena (size_t request, Arena *arena) {
     return result;
 }
 
-}  // namespace base_internal
+}  // namespace memory_internal
 
 }  // namespace abel
 

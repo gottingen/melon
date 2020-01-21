@@ -10,7 +10,7 @@
 #include <thread>  // NOLINT(build/c++11)
 #include <vector>
 
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 #include <abel/synchronization/mutex.h>
 
 namespace abel {

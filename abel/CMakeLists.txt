@@ -13,6 +13,8 @@ FILE(GLOB FLAGS_INTERNAL_SRC "flags/internal/*.cc")
 
 FILE(GLOB HASH_INTERNAL_SRC "hash/internal/*.cc")
 
+FILE(GLOB MEMORY_INTERNAL_SRC "memory/internal/*.cc")
+
 FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 
 FILE(GLOB RANDOM_SRC "random/*.cc")
@@ -64,6 +66,7 @@ SET(ABEL_SRC
         ${SYSTEM_SRC}
         ${THREADING_SRC}
         ${THREADING_INTERNAL_SRC}
+        ${MEMORY_INTERNAL_SRC}
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})

@@ -30,7 +30,7 @@
 // we claim to support.  Also, add tests for the compiler
 // that doesn't support the Intel _bswap64 intrinsic but
 // does support all the SSE 4.2 intrinsics
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #endif
 #include <abel/base/profile.h>
 #include <abel/numeric/int128.h>

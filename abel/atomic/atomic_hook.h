@@ -1,7 +1,6 @@
-//
 
-#ifndef ABEL_BASE_INTERNAL_ATOMIC_HOOK_H_
-#define ABEL_BASE_INTERNAL_ATOMIC_HOOK_H_
+#ifndef ABEL_ATOMIC_ATOMIC_HOOK_H_
+#define ABEL_ATOMIC_ATOMIC_HOOK_H_
 
 #include <atomic>
 #include <cassert>
@@ -20,7 +19,6 @@
 
 namespace abel {
 
-namespace base_internal {
 
 template <typename T>
 class AtomicHook;
@@ -160,8 +158,7 @@ class AtomicHook<ReturnType (*)(Args...)> {
 #undef ABEL_HAVE_WORKING_ATOMIC_POINTER
 #undef ABEL_HAVE_WORKING_CONSTEXPR_STATIC_INIT
 
-}  // namespace base_internal
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_ATOMIC_HOOK_H_
+#endif  // ABEL_ATOMIC_ATOMIC_HOOK_H_
