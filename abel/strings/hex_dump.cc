@@ -3,6 +3,7 @@
 //
 #include <abel/strings/hex_dump.h>
 #include <sstream>
+#include <stdexcept>
 
 namespace abel {
 

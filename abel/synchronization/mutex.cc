@@ -81,7 +81,7 @@ static struct MutexGlobals {
         // Find machine-specific data needed for Delay() and
         // TryAcquireWithSpinning(). This runs in the global constructor
         // sequence, and before that zeros are safe values.
-        num_cpus = abel::base_internal::NumCPUs();
+        num_cpus = abel::NumCPUs();
         spinloop_iterations = num_cpus > 1 ? 1500 : 0;
     }
     int num_cpus;

@@ -92,7 +92,7 @@ uint32_t SpinLock::SpinLoop() {
   ABEL_CONST_INIT static abel::once_flag init_adaptive_spin_count;
   ABEL_CONST_INIT static int adaptive_spin_count = 0;
   base_internal::LowLevelCallOnce(&init_adaptive_spin_count, []() {
-    adaptive_spin_count = base_internal::NumCPUs() > 1 ? 1000 : 1;
+    adaptive_spin_count = NumCPUs() > 1 ? 1000 : 1;
   });
 
   int c = adaptive_spin_count;

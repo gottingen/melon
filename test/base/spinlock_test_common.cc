@@ -244,13 +244,13 @@ TEST(SpinLockWithThreads, DoesNotDeadlock) {
       base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
   SpinLock stack_noncooperative_spinlock(base_internal::SCHEDULE_KERNEL_ONLY);
   Helper::DeadlockTest(&stack_cooperative_spinlock,
-                       base_internal::NumCPUs() * 2);
+                       NumCPUs() * 2);
   Helper::DeadlockTest(&stack_noncooperative_spinlock,
-                       base_internal::NumCPUs() * 2);
+                       NumCPUs() * 2);
   Helper::DeadlockTest(&static_cooperative_spinlock,
-                       base_internal::NumCPUs() * 2);
+                       NumCPUs() * 2);
   Helper::DeadlockTest(&static_noncooperative_spinlock,
-                       base_internal::NumCPUs() * 2);
+                       NumCPUs() * 2);
 }
 
 }  // namespace

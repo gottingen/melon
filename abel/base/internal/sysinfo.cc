@@ -44,8 +44,6 @@
 
 namespace abel {
 
-namespace base_internal {
-
 static once_flag init_system_info_once;
 static int num_cpus = 0;
 static double nominal_cpu_frequency = 1.0;  // 0.0 might be dangerous.
@@ -144,7 +142,7 @@ static int64_t ReadMonotonicClockNanos() {
 
 class UnscaledCycleClockWrapperForInitializeFrequency {
  public:
-  static int64_t now() { return base_internal::unscaled_cycle_clock::now(); }
+  static int64_t now() { return unscaled_cycle_clock::now(); }
 };
 
 struct TimeTscPair {
@@ -396,7 +394,5 @@ pid_t GetTID() {
 }
 
 #endif
-
-}  // namespace base_internal
 
 }  // namespace abel

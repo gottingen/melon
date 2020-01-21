@@ -26,7 +26,7 @@ int64_t unscaled_cycle_clock::now() {
 }
 
 double unscaled_cycle_clock::frequency() {
-  return base_internal::NominalCPUFrequency();
+  return NominalCPUFrequency();
 }
 
 #elif defined(__x86_64__)
@@ -38,7 +38,7 @@ int64_t unscaled_cycle_clock::now() {
 }
 
 double unscaled_cycle_clock::frequency() {
-  return base_internal::NominalCPUFrequency();
+  return NominalCPUFrequency();
 }
 
 #elif defined(__powerpc__) || defined(__ppc__)
@@ -78,7 +78,7 @@ int64_t unscaled_cycle_clock::now() {
 }
 
 double unscaled_cycle_clock::frequency() {
-  return base_internal::NominalCPUFrequency();
+  return NominalCPUFrequency();
 }
 
 #endif

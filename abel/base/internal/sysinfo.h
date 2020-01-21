@@ -20,7 +20,6 @@
 
 namespace abel {
 
-namespace base_internal {
 
 // Nominal core processor cycles per second of each processor.   This is _not_
 // necessarily the frequency of the cycle_clock counter (see cycleclock.h)
@@ -47,6 +46,5 @@ pid_t GetTID();
 
 }  // namespace base_internal
 
-}  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_SYSINFO_H_

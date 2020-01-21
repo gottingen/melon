@@ -280,9 +280,9 @@ static void ImmediateAbortSignalHandler(int) {
 }
 #endif
 
-// abel::base_internal::GetTID() returns pid_t on most platforms, but
+// abel::GetTID() returns pid_t on most platforms, but
 // returns abel::base_internal::pid_t on Windows.
-using GetTidType = decltype(abel::base_internal::GetTID());
+using GetTidType = decltype(abel::GetTID());
 ABEL_CONST_INIT static std::atomic<GetTidType> failed_tid(0);
 
 #ifndef ABEL_HAVE_SIGACTION
@@ -292,7 +292,7 @@ static void AbelFailureSignalHandler(int signo) {
 static void AbelFailureSignalHandler(int signo, siginfo_t*, void* ucontext) {
 #endif
 
-  const GetTidType this_tid = abel::base_internal::GetTID();
+  const GetTidType this_tid = abel::GetTID();
   GetTidType previous_failed_tid = 0;
   if (!failed_tid.compare_exchange_strong(
           previous_failed_tid, static_cast<intptr_t>(this_tid),
