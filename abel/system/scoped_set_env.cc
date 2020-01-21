@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/scoped_set_env.h>
+#include <abel/system/scoped_set_env.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -12,7 +12,6 @@
 
 namespace abel {
 
-namespace base_internal {
 
 namespace {
 
@@ -34,7 +33,7 @@ void SetEnvVar(const char* name, const char* value) {
 
 }  // namespace
 
-ScopedSetEnv::ScopedSetEnv(const char* var_name, const char* new_value)
+scoped_set_env::scoped_set_env(const char* var_name, const char* new_value)
     : var_name_(var_name), was_unset_(false) {
 #ifdef _WIN32
   char buf[kMaxEnvVarValueSize];
@@ -60,10 +59,9 @@ ScopedSetEnv::ScopedSetEnv(const char* var_name, const char* new_value)
   SetEnvVar(var_name_.c_str(), new_value);
 }
 
-ScopedSetEnv::~ScopedSetEnv() {
+scoped_set_env::~scoped_set_env() {
   SetEnvVar(var_name_.c_str(), was_unset_ ? nullptr : old_value_.c_str());
 }
 
-}  // namespace base_internal
 
 }  // namespace abel
