@@ -23,7 +23,7 @@
 
 #include <abel/base/profile.h>
 // TODO(mbonadei): Remove after the backward compatibility period.
-#include <abel/base/internal/thread_annotations.h>  // IWYU pragma: export
+#include <abel/base/profile/thread.h>  // IWYU pragma: export
 
 #if defined(__clang__)
 #define ABEL_INTERNAL_THREAD_ANNOTATION_ATTRIBUTE(x) __attribute__((x))

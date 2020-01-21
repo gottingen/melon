@@ -31,7 +31,7 @@
 #include <memory>
 #include <vector>
 
-#include <abel/base/internal/per_thread_tls.h>
+#include <abel/threading/internal/per_thread_tls.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/have_sse.h>
 #include <abel/synchronization/mutex.h>

@@ -2,14 +2,14 @@
 // Core interfaces and definitions used by by low-level interfaces such as
 // SpinLock.
 
-#ifndef ABEL_BASE_INTERNAL_SCHEDULING_MODE_H_
-#define ABEL_BASE_INTERNAL_SCHEDULING_MODE_H_
+#ifndef ABEL_THREADING_INTERNAL_SCHEDULING_MODE_H_
+#define ABEL_THREADING_INTERNAL_SCHEDULING_MODE_H_
 
 #include <abel/base/profile.h>
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 // Used to describe how a thread may be scheduled.  Typically associated with
 // the declaration of a resource supporting synchronized access.
@@ -38,8 +38,8 @@ enum SchedulingMode {
   SCHEDULE_COOPERATIVE_AND_KERNEL,  // Also allow cooperative scheduling.
 };
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_SCHEDULING_MODE_H_
+#endif  // ABEL_THREADING_INTERNAL_SCHEDULING_MODE_H_

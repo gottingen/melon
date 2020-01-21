@@ -1,9 +1,8 @@
-//
 // Functions for directly invoking mmap() via syscall, avoiding the case where
 // mmap() has been locally overridden.
 
-#ifndef ABEL_BASE_INTERNAL_DIRECT_MMAP_H_
-#define ABEL_BASE_INTERNAL_DIRECT_MMAP_H_
+#ifndef ABEL_MEMORY_INTERNAL_DIRECT_MMAP_H_
+#define ABEL_MEMORY_INTERNAL_DIRECT_MMAP_H_
 
 #include <abel/base/profile.h>
 
@@ -145,4 +144,4 @@ ABEL_FORCE_INLINE int DirectMunmap(void* start, size_t length) {
 
 #endif  // ABEL_HAVE_MMAP
 
-#endif  // ABEL_BASE_INTERNAL_DIRECT_MMAP_H_
+#endif  // ABEL_MEMORY_INTERNAL_DIRECT_MMAP_H_

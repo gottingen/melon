@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include <abel/base/internal/scheduling_mode.h>
+#include <abel/threading/internal/scheduling_mode.h>
 
 extern "C" {
 

@@ -15,7 +15,7 @@
 #include <ctime>
 #include <limits>
 
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 #include <abel/time/unscaledcycleclock.h>
 #include <abel/base/profile.h>
 #include <abel/base/thread_annotations.h>
@@ -211,7 +211,7 @@ static_assert(((kMinNSBetweenSamples << (kScale + 1)) >> (kScale + 1)) ==
 
 // A reader-writer lock protecting the static locations below.
 // See SeqAcquire() and SeqRelease() above.
-static abel::base_internal::SpinLock lock(
+static abel::threading_internal::SpinLock lock(
     abel::base_internal::kLinkerInitialized);
 static std::atomic<uint64_t> seq(0);
 

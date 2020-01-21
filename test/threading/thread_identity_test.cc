@@ -1,24 +1,24 @@
 //
 
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 
 #include <thread>  // NOLINT(build/c++11)
 #include <vector>
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 #include <abel/base/profile.h>
 #include <abel/synchronization/internal/per_thread_sem.h>
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 namespace {
 
 // protects num_identities_reused
-static abel::base_internal::SpinLock map_lock(
+static abel::threading_internal::SpinLock map_lock(
     abel::base_internal::kLinkerInitialized);
 static int num_identities_reused;
 
@@ -46,7 +46,7 @@ static void TestThreadIdentityCurrent(const void* assert_no_identity) {
                    PerThreadSynch::kAlignment);
   EXPECT_EQ(identity, identity->per_thread_synch.thread_identity());
 
-  abel::base_internal::SpinLockHolder l(&map_lock);
+  abel::threading_internal::SpinLockHolder l(&map_lock);
   num_identities_reused++;
 }
 

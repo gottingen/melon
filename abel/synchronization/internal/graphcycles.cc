@@ -27,7 +27,7 @@
 #include <array>
 #include <abel/memory/hide_ptr.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 
 // Do not use STL.   This module does not use standard memory allocation.
 
@@ -39,7 +39,7 @@ namespace {
 
 // Avoid LowLevelAlloc's default arena since it calls malloc hooks in
 // which people are doing things like acquiring Mutexes.
-static abel::base_internal::SpinLock arena_mu(
+static abel::threading_internal::SpinLock arena_mu(
     abel::base_internal::kLinkerInitialized);
 static base_internal::LowLevelAlloc::Arena* arena;
 

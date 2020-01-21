@@ -17,7 +17,7 @@
 #include <atomic>
 #include <cstdint>
 
-#include <abel/base/internal/per_thread_tls.h>
+#include <abel/threading/internal/per_thread_tls.h>
 
 namespace abel {
 
@@ -25,7 +25,7 @@ namespace abel {
 struct SynchLocksHeld;
 struct synch_wait_params;
 
-namespace base_internal {
+namespace threading_internal {
 
 class SpinLock;
 struct ThreadIdentity;
@@ -230,7 +230,7 @@ ABEL_FORCE_INLINE ThreadIdentity* CurrentThreadIdentityIfPresent() {
 #error Unknown ABEL_THREAD_IDENTITY_MODE
 #endif
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel
 

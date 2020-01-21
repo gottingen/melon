@@ -1,30 +1,7 @@
-//
-// -----------------------------------------------------------------------------
-// File: thread_annotations.h
-// -----------------------------------------------------------------------------
-//
-// WARNING: This is a backwards compatible header and it will be removed after
-// the migration to prefixed thread annotations is finished; please include
-// <abel/base/thread_annotations.h>.
-//
-// This header file contains macro definitions for thread safety annotations
-// that allow developers to document the locking policies of multi-threaded
-// code. The annotations can also help program analysis tools to identify
-// potential thread safety issues.
-//
-// These annotations are implemented using compiler attributes. Using the macros
-// defined here instead of raw attributes allow for portability and future
-// compatibility.
-//
-// When referring to mutexes in the arguments of the attributes, you should
-// use variable names or more complex expressions (e.g. my_object->mutex_)
-// that evaluate to a concrete mutex object whenever possible. If the mutex
-// you want to refer to is not in scope, you may use a member pointer
-// (e.g. &MyClass::mutex_) to refer to a mutex in some (unknown) object.
+#ifndef ABEL_BASE_PROFILE_THREAD_H_
+#define ABEL_BASE_PROFILE_THREAD_H_
 
-#ifndef ABEL_BASE_INTERNAL_THREAD_ANNOTATIONS_H_
-#define ABEL_BASE_INTERNAL_THREAD_ANNOTATIONS_H_
-
+#include <abel/base/profile/compiler_traits.h>
 #if defined(__clang__)
 #define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
 #else
@@ -255,4 +232,4 @@ ABEL_FORCE_INLINE T& ts_unchecked_read(T& v) NO_THREAD_SAFETY_ANALYSIS {
 
 }  // namespace thread_safety_analysis
 
-#endif  // ABEL_BASE_INTERNAL_THREAD_ANNOTATIONS_H_
+#endif  // ABEL_BASE_PROFILE_THREAD_H_

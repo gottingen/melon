@@ -7,26 +7,26 @@
 #include <atomic>
 #include <cstdint>
 
-#include <abel/base/internal/spinlock_wait.h>
+#include <abel/threading/internal/spinlock_wait.h>
 
 #if defined(_WIN32)
-#include <abel/base/internal/spinlock_win32.inc>
+#include <abel/threading/internal/spinlock_win32.inc>
 #elif defined(__linux__)
-#include <abel/base/internal/spinlock_linux.inc>
+#include <abel/threading/internal/spinlock_linux.inc>
 #elif defined(__akaros__)
-#include <abel/base/internal/spinlock_akaros.inc>
+#include <abel/threading/internal/spinlock_akaros.inc>
 #else
-#include <abel/base/internal/spinlock_posix.inc>
+#include <abel/threading/internal/spinlock_posix.inc>
 #endif
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 // See spinlock_wait.h for spec.
 uint32_t SpinLockWait(std::atomic<uint32_t> *w, int n,
                       const SpinLockWaitTransition trans[],
-                      base_internal::SchedulingMode scheduling_mode) {
+                      threading_internal::SchedulingMode scheduling_mode) {
   int loop = 0;
   for (;;) {
     uint32_t v = w->load(std::memory_order_acquire);
@@ -64,6 +64,6 @@ int SpinLockSuggestedDelayNS(int loop) {
   return delay | ((delay - 1) & static_cast<int>(r));
 }
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel

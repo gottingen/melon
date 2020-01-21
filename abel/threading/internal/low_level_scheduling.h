@@ -2,10 +2,10 @@
 // Core interfaces and definitions used by by low-level interfaces such as
 // SpinLock.
 
-#ifndef ABEL_BASE_INTERNAL_LOW_LEVEL_SCHEDULING_H_
-#define ABEL_BASE_INTERNAL_LOW_LEVEL_SCHEDULING_H_
+#ifndef ABEL_THREADING_INTERNAL_LOW_LEVEL_SCHEDULING_H_
+#define ABEL_THREADING_INTERNAL_LOW_LEVEL_SCHEDULING_H_
 
-#include <abel/base/internal/scheduling_mode.h>
+#include <abel/threading/internal/scheduling_mode.h>
 #include <abel/base/profile.h>
 
 // The following two declarations exist so SchedulingGuard may friend them with
@@ -17,8 +17,12 @@ extern "C" void __google_enable_rescheduling(bool disable_result);
 namespace abel {
 
 namespace base_internal {
+    class SchedulingHelper;  // To allow use of SchedulingGuard.
 
-class SchedulingHelper;  // To allow use of SchedulingGuard.
+}
+
+namespace threading_internal {
+
 class SpinLock;          // To allow use of SchedulingGuard.
 
 // SchedulingGuard
@@ -64,7 +68,7 @@ class SchedulingGuard {
   };
 
   // Access to SchedulingGuard is explicitly white-listed.
-  friend class SchedulingHelper;
+  friend class abel::base_internal::SchedulingHelper;
   friend class SpinLock;
 
   SchedulingGuard(const SchedulingGuard&) = delete;
@@ -87,7 +91,7 @@ ABEL_FORCE_INLINE void SchedulingGuard::EnableRescheduling(bool /* disable_resul
   return;
 }
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel
 

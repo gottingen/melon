@@ -12,9 +12,9 @@
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/base/internal/low_level_scheduling.h>
-#include <abel/base/internal/scheduling_mode.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/low_level_scheduling.h>
+#include <abel/threading/internal/scheduling_mode.h>
+#include <abel/threading/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
 #include <abel/base/profile.h>
 #include <abel/synchronization/blocking_counter.h>
@@ -25,7 +25,7 @@ constexpr int32_t kIters = 1000;
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 // This is defined outside of anonymous namespace so that it can be
 // a friend of SpinLock to access protected methods for testing.
@@ -47,9 +47,9 @@ static uint32_t values[kArrayLength];
 static SpinLock static_spinlock(base_internal::kLinkerInitialized);
 static SpinLock static_cooperative_spinlock(
     base_internal::kLinkerInitialized,
-    base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
+    threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
 static SpinLock static_noncooperative_spinlock(
-    base_internal::kLinkerInitialized, base_internal::SCHEDULE_KERNEL_ONLY);
+    base_internal::kLinkerInitialized, threading_internal::SCHEDULE_KERNEL_ONLY);
 
 // Simple integer hash function based on the public domain lookup2 hash.
 // http://burtleburtle.net/bob/c/lookup2.c
@@ -94,15 +94,15 @@ static void ThreadedTest(SpinLock* spinlock) {
 }
 
 TEST(SpinLock, StackNonCooperativeDisablesScheduling) {
-  SpinLock spinlock(base_internal::SCHEDULE_KERNEL_ONLY);
+  SpinLock spinlock(threading_internal::SCHEDULE_KERNEL_ONLY);
   spinlock.lock();
-  EXPECT_FALSE(base_internal::SchedulingGuard::ReschedulingIsAllowed());
+  EXPECT_FALSE(threading_internal::SchedulingGuard::ReschedulingIsAllowed());
   spinlock.unlock();
 }
 
 TEST(SpinLock, StaticNonCooperativeDisablesScheduling) {
   static_noncooperative_spinlock.lock();
-  EXPECT_FALSE(base_internal::SchedulingGuard::ReschedulingIsAllowed());
+  EXPECT_FALSE(threading_internal::SchedulingGuard::ReschedulingIsAllowed());
   static_noncooperative_spinlock.unlock();
 }
 
@@ -189,12 +189,12 @@ TEST(SpinLockWithThreads, StackSpinLock) {
 }
 
 TEST(SpinLockWithThreads, StackCooperativeSpinLock) {
-  SpinLock spinlock(base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
+  SpinLock spinlock(threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
   ThreadedTest(&spinlock);
 }
 
 TEST(SpinLockWithThreads, StackNonCooperativeSpinLock) {
-  SpinLock spinlock(base_internal::SCHEDULE_KERNEL_ONLY);
+  SpinLock spinlock(threading_internal::SCHEDULE_KERNEL_ONLY);
   ThreadedTest(&spinlock);
 }
 
@@ -241,8 +241,8 @@ TEST(SpinLockWithThreads, DoesNotDeadlock) {
   };
 
   SpinLock stack_cooperative_spinlock(
-      base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
-  SpinLock stack_noncooperative_spinlock(base_internal::SCHEDULE_KERNEL_ONLY);
+      threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
+  SpinLock stack_noncooperative_spinlock(threading_internal::SCHEDULE_KERNEL_ONLY);
   Helper::DeadlockTest(&stack_cooperative_spinlock,
                        num_cpus() * 2);
   Helper::DeadlockTest(&stack_noncooperative_spinlock,
@@ -254,6 +254,6 @@ TEST(SpinLockWithThreads, DoesNotDeadlock) {
 }
 
 }  // namespace
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel

@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 
 #include <algorithm>
 #include <atomic>
@@ -9,7 +9,7 @@
 #include <abel/base/profile.h>
 #include <abel/base/internal/atomic_hook.h>
 #include <abel/time/cycleclock.h>
-#include <abel/base/internal/spinlock_wait.h>
+#include <abel/threading/internal/spinlock_wait.h>
 #include <abel/system/sysinfo.h> /* For num_cpus() */
 #include <abel/functional/call_once.h>
 
@@ -43,7 +43,7 @@
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 ABEL_CONST_INIT static base_internal::AtomicHook<void (*)(const void *lock,
                                                           int64_t wait_cycles)>
@@ -55,13 +55,13 @@ void RegisterSpinLockProfiler(void (*fn)(const void *contendedlock,
 }
 
 // Uncommon constructors.
-SpinLock::SpinLock(base_internal::SchedulingMode mode)
+SpinLock::SpinLock(threading_internal::SchedulingMode mode)
     : lockword_(IsCooperative(mode) ? kSpinLockCooperative : 0) {
   ABEL_TSAN_MUTEX_CREATE(this, __tsan_mutex_not_static);
 }
 
 SpinLock::SpinLock(base_internal::LinkerInitialized,
-                   base_internal::SchedulingMode mode) {
+                   threading_internal::SchedulingMode mode) {
   ABEL_TSAN_MUTEX_CREATE(this, 0);
   if (IsCooperative(mode)) {
     InitLinkerInitializedAndCooperative();
@@ -139,17 +139,17 @@ void SpinLock::SlowLock() {
       }
     }
 
-    base_internal::SchedulingMode scheduling_mode;
+      threading_internal::SchedulingMode scheduling_mode;
     if ((lock_value & kSpinLockCooperative) != 0) {
-      scheduling_mode = base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL;
+      scheduling_mode = threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL;
     } else {
-      scheduling_mode = base_internal::SCHEDULE_KERNEL_ONLY;
+      scheduling_mode = threading_internal::SCHEDULE_KERNEL_ONLY;
     }
     // SpinLockDelay() calls into fiber scheduler, we need to see
     // synchronization there to avoid false positives.
     ABEL_TSAN_MUTEX_PRE_DIVERT(this, 0);
     // wait for an OS specific delay.
-    base_internal::SpinLockDelay(&lockword_, lock_value, ++lock_wait_call_count,
+      threading_internal::SpinLockDelay(&lockword_, lock_value, ++lock_wait_call_count,
                                  scheduling_mode);
     ABEL_TSAN_MUTEX_POST_DIVERT(this, 0);
     // Spin again after returning from the wait routine to give this thread
@@ -161,7 +161,7 @@ void SpinLock::SlowLock() {
 }
 
 void SpinLock::SlowUnlock(uint32_t lock_value) {
-  base_internal::SpinLockWake(&lockword_,
+    threading_internal::SpinLockWake(&lockword_,
                               false);  // wake waiter if necessary
 
   // If our acquisition was contended, collect contentionz profile info.  We
@@ -216,6 +216,6 @@ uint64_t SpinLock::DecodeWaitCycles(uint32_t lock_value) {
       << (PROFILE_TIMESTAMP_SHIFT - LOCKWORD_RESERVED_SHIFT);
 }
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel

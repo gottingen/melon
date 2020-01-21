@@ -22,7 +22,7 @@
 #include <atomic>
 #include <cstdint>
 
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 #include <abel/synchronization/internal/kernel_timeout.h>
 
 // May be chosen at compile time via -DABEL_FORCE_WAITER_MODE=<index>
@@ -79,9 +79,9 @@ public:
     void Poke ();
 
     // Returns the Waiter associated with the identity.
-    static Waiter *GetWaiter (base_internal::ThreadIdentity *identity) {
+    static Waiter *GetWaiter (threading_internal::ThreadIdentity *identity) {
         static_assert(
-            sizeof(Waiter) <= sizeof(base_internal::ThreadIdentity::WaiterState),
+            sizeof(Waiter) <= sizeof(threading_internal::ThreadIdentity::WaiterState),
             "Insufficient space for Waiter");
         return reinterpret_cast<Waiter *>(identity->waiter_state.data);
     }

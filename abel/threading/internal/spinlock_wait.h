@@ -6,14 +6,14 @@
 // Operations to make atomic transitions on a word, and to allow
 // waiting for those transitions to become possible.
 
-#include <stdint.h>
+#include <cstdint>
 #include <atomic>
 
-#include <abel/base/internal/scheduling_mode.h>
+#include <abel/threading/internal/scheduling_mode.h>
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 // SpinLockWait() waits until it can perform one of several transitions from
 // "from" to "to".  It returns when it performs a transition where done==true.
@@ -29,7 +29,7 @@ struct SpinLockWaitTransition {
 // where !trans[i].done, but continue waiting.
 uint32_t SpinLockWait(std::atomic<uint32_t> *w, int n,
                       const SpinLockWaitTransition trans[],
-                      SchedulingMode scheduling_mode);
+                      threading_internal::SchedulingMode scheduling_mode);
 
 // If possible, wake some thread that has called SpinLockDelay(w, ...). If
 // "all" is true, wake all such threads.  This call is a hint, and on some
@@ -44,13 +44,13 @@ void SpinLockWake(std::atomic<uint32_t> *w, bool all);
 // In all cases, it must return in bounded time even if SpinLockWake() is not
 // called.
 void SpinLockDelay(std::atomic<uint32_t> *w, uint32_t value, int loop,
-                   base_internal::SchedulingMode scheduling_mode);
+                   threading_internal::SchedulingMode scheduling_mode);
 
 // Helper used by AbelInternalSpinLockDelay.
 // Returns a suggested delay in nanoseconds for iteration number "loop".
 int SpinLockSuggestedDelayNS(int loop);
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel
 
@@ -64,17 +64,17 @@ extern "C" {
 void AbelInternalSpinLockWake(std::atomic<uint32_t> *w, bool all);
 void AbelInternalSpinLockDelay(
     std::atomic<uint32_t> *w, uint32_t value, int loop,
-    abel::base_internal::SchedulingMode scheduling_mode);
+    abel::threading_internal::SchedulingMode scheduling_mode);
 }
 
-ABEL_FORCE_INLINE void abel::base_internal::SpinLockWake(std::atomic<uint32_t> *w,
+ABEL_FORCE_INLINE void abel::threading_internal::SpinLockWake(std::atomic<uint32_t> *w,
                                               bool all) {
   AbelInternalSpinLockWake(w, all);
 }
 
-ABEL_FORCE_INLINE void abel::base_internal::SpinLockDelay(
+ABEL_FORCE_INLINE void abel::threading_internal::SpinLockDelay(
     std::atomic<uint32_t> *w, uint32_t value, int loop,
-    abel::base_internal::SchedulingMode scheduling_mode) {
+    abel::threading_internal::SchedulingMode scheduling_mode) {
   AbelInternalSpinLockDelay(w, value, loop, scheduling_mode);
 }
 

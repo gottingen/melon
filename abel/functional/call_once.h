@@ -18,10 +18,10 @@
 #include <utility>
 
 #include <abel/functional/internal/invoke.h>
-#include <abel/base/internal/low_level_scheduling.h>
+#include <abel/threading/internal/low_level_scheduling.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/scheduling_mode.h>
-#include <abel/base/internal/spinlock_wait.h>
+#include <abel/threading/internal/scheduling_mode.h>
+#include <abel/threading/internal/spinlock_wait.h>
 #include <abel/base/profile.h>
 
 namespace abel {
@@ -93,20 +93,20 @@ void LowLevelCallOnce (abel::once_flag *flag, Callable &&fn, Args &&... args);
 // No effect for cooperative scheduling modes.
 class SchedulingHelper {
 public:
-    explicit SchedulingHelper (base_internal::SchedulingMode mode) : mode_(mode) {
-        if (mode_ == base_internal::SCHEDULE_KERNEL_ONLY) {
-            guard_result_ = base_internal::SchedulingGuard::DisableRescheduling();
+    explicit SchedulingHelper (threading_internal::SchedulingMode mode) : mode_(mode) {
+        if (mode_ == threading_internal::SCHEDULE_KERNEL_ONLY) {
+            guard_result_ = threading_internal::SchedulingGuard::DisableRescheduling();
         }
     }
 
     ~SchedulingHelper () {
-        if (mode_ == base_internal::SCHEDULE_KERNEL_ONLY) {
-            base_internal::SchedulingGuard::EnableRescheduling(guard_result_);
+        if (mode_ == threading_internal::SCHEDULE_KERNEL_ONLY) {
+            threading_internal::SchedulingGuard::EnableRescheduling(guard_result_);
         }
     }
 
 private:
-    base_internal::SchedulingMode mode_;
+    threading_internal::SchedulingMode mode_;
     bool guard_result_;
 };
 
@@ -129,7 +129,7 @@ enum {
 template<typename Callable, typename... Args>
 ABEL_NO_INLINE
 void CallOnceImpl (std::atomic<uint32_t> *control,
-                   base_internal::SchedulingMode scheduling_mode, Callable &&fn,
+                   threading_internal::SchedulingMode scheduling_mode, Callable &&fn,
                    Args &&... args) {
 #ifndef NDEBUG
     {
@@ -143,7 +143,7 @@ void CallOnceImpl (std::atomic<uint32_t> *control,
         }
     }
 #endif  // NDEBUG
-    static const base_internal::SpinLockWaitTransition trans[] = {
+    static const threading_internal::SpinLockWaitTransition trans[] = {
         {kOnceInit, kOnceRunning, true},
         {kOnceRunning, kOnceWaiter, false},
         {kOnceDone, kOnceDone, true}};
@@ -151,13 +151,13 @@ void CallOnceImpl (std::atomic<uint32_t> *control,
     // Must do this before potentially modifying control word's state.
     base_internal::SchedulingHelper maybe_disable_scheduling(scheduling_mode);
     // Short circuit the simplest case to avoid procedure call overhead.
-    // The base_internal::SpinLockWait() call returns either kOnceInit or
+    // The threading_internal::SpinLockWait() call returns either kOnceInit or
     // kOnceDone. If it returns kOnceDone, it must have loaded the control word
     // with std::memory_order_acquire and seen a value of kOnceDone.
     uint32_t old_control = kOnceInit;
     if (control->compare_exchange_strong(old_control, kOnceRunning,
                                          std::memory_order_relaxed) ||
-        base_internal::SpinLockWait(control, ABEL_ARRAYSIZE(trans), trans,
+        threading_internal::SpinLockWait(control, ABEL_ARRAYSIZE(trans), trans,
                                     scheduling_mode) == kOnceInit) {
         base_internal::Invoke(std::forward<Callable>(fn),
                               std::forward<Args>(args)...);
@@ -171,7 +171,7 @@ void CallOnceImpl (std::atomic<uint32_t> *control,
         old_control = control->load(std::memory_order_relaxed);
         control->store(base_internal::kOnceDone, std::memory_order_release);
         if (old_control == base_internal::kOnceWaiter) {
-            base_internal::SpinLockWake(control, true);
+            threading_internal::SpinLockWake(control, true);
         }
     }  // else *control is already kOnceDone
 }
@@ -185,7 +185,7 @@ void LowLevelCallOnce (abel::once_flag *flag, Callable &&fn, Args &&... args) {
     std::atomic<uint32_t> *once = base_internal::ControlWord(flag);
     uint32_t s = once->load(std::memory_order_acquire);
     if (ABEL_UNLIKELY(s != base_internal::kOnceDone)) {
-        base_internal::CallOnceImpl(once, base_internal::SCHEDULE_KERNEL_ONLY,
+        base_internal::CallOnceImpl(once, threading_internal::SCHEDULE_KERNEL_ONLY,
                                     std::forward<Callable>(fn),
                                     std::forward<Args>(args)...);
     }
@@ -199,7 +199,7 @@ void call_once (abel::once_flag &flag, Callable &&fn, Args &&... args) {
     uint32_t s = once->load(std::memory_order_acquire);
     if (ABEL_UNLIKELY(s != base_internal::kOnceDone)) {
         base_internal::CallOnceImpl(
-            once, base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL,
+            once, threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL,
             std::forward<Callable>(fn), std::forward<Args>(args)...);
     }
 }

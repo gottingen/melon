@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <abel/time/cycleclock.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 #include <abel/synchronization/blocking_counter.h>
 #include <abel/synchronization/internal/thread_pool.h>
 #include <abel/synchronization/mutex.h>
@@ -98,7 +98,7 @@ BENCHMARK_TEMPLATE(BM_Contended, abel::mutex)
     ->Arg(50)
     ->Arg(200);
 
-BENCHMARK_TEMPLATE(BM_Contended, abel::base_internal::SpinLock)
+BENCHMARK_TEMPLATE(BM_Contended, abel::threading_internal::SpinLock)
     ->UseRealTime()
     // ThreadPerCpu poorly handles non-power-of-two CPU counts.
     ->Threads(1)

@@ -32,7 +32,7 @@
 #include <type_traits>
 
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 #include <abel/base/profile.h>
 #include <abel/synchronization/internal/kernel_timeout.h>
 
@@ -41,15 +41,15 @@ namespace abel {
 namespace synchronization_internal {
 
 static void MaybeBecomeIdle () {
-    base_internal::ThreadIdentity *identity =
-        base_internal::CurrentThreadIdentityIfPresent();
-    assert(identity != nullptr);
-    const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
-    const int ticker = identity->ticker.load(std::memory_order_relaxed);
-    const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
-    if (!is_idle && ticker - wait_start > Waiter::kIdlePeriods) {
-        identity->is_idle.store(true, std::memory_order_relaxed);
-    }
+  threading_internal::ThreadIdentity *identity =
+      threading_internal::CurrentThreadIdentityIfPresent();
+  assert(identity != nullptr);
+  const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
+  const int ticker = identity->ticker.load(std::memory_order_relaxed);
+  const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
+  if (!is_idle && ticker - wait_start > Waiter::kIdlePeriods) {
+    identity->is_idle.store(true, std::memory_order_relaxed);
+  }
 }
 
 #if ABEL_WAITER_MODE == ABEL_WAITER_MODE_FUTEX
@@ -168,29 +168,29 @@ void Waiter::Poke() {
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_CONDVAR
 
 class PthreadMutexHolder {
- public:
-  explicit PthreadMutexHolder(pthread_mutex_t *mu) : mu_(mu) {
-    const int err = pthread_mutex_lock(mu_);
-    if (err != 0) {
-      ABEL_RAW_LOG(FATAL, "pthread_mutex_lock failed: %d", err);
+public:
+    explicit PthreadMutexHolder (pthread_mutex_t *mu) : mu_(mu) {
+      const int err = pthread_mutex_lock(mu_);
+      if (err != 0) {
+        ABEL_RAW_LOG(FATAL, "pthread_mutex_lock failed: %d", err);
+      }
     }
-  }
 
-  PthreadMutexHolder(const PthreadMutexHolder &rhs) = delete;
-  PthreadMutexHolder &operator=(const PthreadMutexHolder &rhs) = delete;
+    PthreadMutexHolder (const PthreadMutexHolder &rhs) = delete;
+    PthreadMutexHolder &operator = (const PthreadMutexHolder &rhs) = delete;
 
-  ~PthreadMutexHolder() {
-    const int err = pthread_mutex_unlock(mu_);
-    if (err != 0) {
-      ABEL_RAW_LOG(FATAL, "pthread_mutex_unlock failed: %d", err);
+    ~PthreadMutexHolder () {
+      const int err = pthread_mutex_unlock(mu_);
+      if (err != 0) {
+        ABEL_RAW_LOG(FATAL, "pthread_mutex_unlock failed: %d", err);
+      }
     }
-  }
 
- private:
-  pthread_mutex_t *mu_;
+private:
+    pthread_mutex_t *mu_;
 };
 
-Waiter::Waiter() {
+Waiter::Waiter () {
   const int err = pthread_mutex_init(&mu_, 0);
   if (err != 0) {
     ABEL_RAW_LOG(FATAL, "pthread_mutex_init failed: %d", err);
@@ -205,7 +205,7 @@ Waiter::Waiter() {
   wakeup_count_ = 0;
 }
 
-Waiter::~Waiter() {
+Waiter::~Waiter () {
   const int err = pthread_mutex_destroy(&mu_);
   if (err != 0) {
     ABEL_RAW_LOG(FATAL, "pthread_mutex_destroy failed: %d", err);
@@ -217,7 +217,7 @@ Waiter::~Waiter() {
   }
 }
 
-bool Waiter::wait(KernelTimeout t) {
+bool Waiter::wait (KernelTimeout t) {
   struct timespec abs_timeout;
   if (t.has_timeout()) {
     abs_timeout = t.MakeAbsTimespec();
@@ -230,7 +230,8 @@ bool Waiter::wait(KernelTimeout t) {
   // whether the thread is idle on the very first pass of the loop.
   bool first_pass = true;
   while (wakeup_count_ == 0) {
-    if (!first_pass) MaybeBecomeIdle();
+    if (!first_pass)
+      MaybeBecomeIdle();
     // No wakeups available, time to wait.
     if (!t.has_timeout()) {
       const int err = pthread_cond_wait(&cv_, &mu_);
@@ -255,18 +256,18 @@ bool Waiter::wait(KernelTimeout t) {
   return true;
 }
 
-void Waiter::Post() {
+void Waiter::Post () {
   PthreadMutexHolder h(&mu_);
   ++wakeup_count_;
   InternalCondVarPoke();
 }
 
-void Waiter::Poke() {
+void Waiter::Poke () {
   PthreadMutexHolder h(&mu_);
   InternalCondVarPoke();
 }
 
-void Waiter::InternalCondVarPoke() {
+void Waiter::InternalCondVarPoke () {
   if (waiter_count_ != 0) {
     const int err = pthread_cond_signal(&cv_);
     if (ABEL_UNLIKELY(err != 0)) {

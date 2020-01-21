@@ -9,5 +9,6 @@
 #include <abel/base/profile/have.h>
 #include <abel/base/profile/exception.h>
 #include <abel/base/profile/optimization.h>
+#include <abel/base/profile/thread.h>
 
 #endif //ABEL_BASE_PROFILE_H_

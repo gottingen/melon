@@ -27,6 +27,8 @@ FILE(GLOB TYPES_SRC "types/*.cc")
 FILE(GLOB SYNC_SRC "synchronization/*.cc")
 FILE(GLOB SYNC_INTERNAL_SRC "synchronization/internal/*.cc")
 
+FILE(GLOB THREADING_SRC "threading/*.cc")
+FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
 FILE(GLOB TIME_SRC "time/*.cc")
 FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
@@ -60,6 +62,8 @@ SET(ABEL_SRC
         ${TIME_INTERNAL_CCTZ_SRC}
         ${DIGEST_SRC}
         ${SYSTEM_SRC}
+        ${THREADING_SRC}
+        ${THREADING_INTERNAL_SRC}
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})

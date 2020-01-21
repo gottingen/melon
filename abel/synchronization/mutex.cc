@@ -32,9 +32,9 @@
 #include <abel/memory/hide_ptr.h>
 #include <abel/base/internal/low_level_alloc.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 #include <abel/base/profile.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/debugging/symbolize.h>
@@ -42,9 +42,9 @@
 #include <abel/synchronization/internal/per_thread_sem.h>
 #include <abel/time/time.h>
 
-using abel::base_internal::CurrentThreadIdentityIfPresent;
-using abel::base_internal::PerThreadSynch;
-using abel::base_internal::ThreadIdentity;
+using abel::threading_internal::CurrentThreadIdentityIfPresent;
+using abel::threading_internal::PerThreadSynch;
+using abel::threading_internal::ThreadIdentity;
 using abel::synchronization_internal::GetOrCreateCurrentThreadIdentity;
 using abel::synchronization_internal::GraphCycles;
 using abel::synchronization_internal::GraphId;
@@ -190,7 +190,7 @@ static void AtomicClearBits (std::atomic<intptr_t> *pv, intptr_t bits,
 //------------------------------------------------------------------
 
 // Data for doing deadlock detection.
-static abel::base_internal::SpinLock deadlock_graph_mu(
+static abel::threading_internal::SpinLock deadlock_graph_mu(
     abel::base_internal::kLinkerInitialized);
 
 // graph used to detect deadlocks.
@@ -256,7 +256,7 @@ static const struct {
     {0, "signal_all on "},
 };
 
-static abel::base_internal::SpinLock synch_event_mu(
+static abel::threading_internal::SpinLock synch_event_mu(
     abel::base_internal::kLinkerInitialized);
 // protects synch_event
 
@@ -1300,7 +1300,7 @@ static GraphId DeadlockCheck (mutex *mu) {
 
     SynchLocksHeld *all_locks = Synch_GetAllLocks();
 
-    abel::base_internal::SpinLockHolder lock(&deadlock_graph_mu);
+    abel::threading_internal::SpinLockHolder lock(&deadlock_graph_mu);
     const GraphId mu_id = GetGraphIdLocked(mu);
 
     if (all_locks->n == 0) {

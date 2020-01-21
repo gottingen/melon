@@ -6,14 +6,14 @@
 #include <ctime>
 #include <cerrno>
 
-#include <abel/base/internal/scheduling_mode.h>
+#include <abel/threading/internal/scheduling_mode.h>
 #include <abel/base/profile.h>
 
 extern "C" {
 
 ABEL_WEAK void AbelInternalSpinLockDelay(
     std::atomic<uint32_t>* /* lock_word */, uint32_t /* value */, int loop,
-    abel::base_internal::SchedulingMode /* mode */) {
+    abel::threading_internal::SchedulingMode /* mode */) {
   int save_errno = errno;
   if (loop == 0) {
   } else if (loop == 1) {
@@ -21,7 +21,7 @@ ABEL_WEAK void AbelInternalSpinLockDelay(
   } else {
     struct timespec tm;
     tm.tv_sec = 0;
-    tm.tv_nsec = abel::base_internal::SpinLockSuggestedDelayNS(loop);
+    tm.tv_nsec = abel::threading_internal::SpinLockSuggestedDelayNS(loop);
     nanosleep(&tm, nullptr);
   }
   errno = save_errno;

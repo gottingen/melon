@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 
 #ifndef _WIN32
 #include <pthread.h>
@@ -13,11 +13,11 @@
 
 #include <abel/functional/call_once.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 
 namespace abel {
 
-namespace base_internal {
+namespace threading_internal {
 
 #if ABEL_THREAD_IDENTITY_MODE != ABEL_THREAD_IDENTITY_MODE_USE_CPP11
 namespace {
@@ -123,6 +123,6 @@ ThreadIdentity* CurrentThreadIdentityIfPresent() {
 }
 #endif
 
-}  // namespace base_internal
+}  // namespace threading_internal
 
 }  // namespace abel

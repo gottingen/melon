@@ -14,7 +14,7 @@ void AbelInternalSpinLockDelay(std::atomic<uint32_t>* /* lock_word */,
   } else if (loop == 1) {
     Sleep(0);
   } else {
-    Sleep(abel::base_internal::SpinLockSuggestedDelayNS(loop) / 1000000);
+    Sleep(abel::threading_internal::SpinLockSuggestedDelayNS(loop) / 1000000);
   }
 }
 
