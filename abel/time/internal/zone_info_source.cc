@@ -12,20 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include <abel/time/internal/cctz/include/cctz/zone_info_source.h>
-
+#include <abel/time/internal/zone_info_source.h>
 #include <abel/base/profile.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // Defined out-of-line to avoid emitting a weak vtable in all TUs.
 ZoneInfoSource::~ZoneInfoSource() {}
 std::string ZoneInfoSource::Version() const { return std::string(); }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
@@ -33,23 +30,22 @@ std::string ZoneInfoSource::Version() const { return std::string(); }
 namespace abel {
 
 namespace time_internal {
-namespace cctz_extension {
 
 namespace {
 
-// A default for cctz_extension::zone_info_source_factory, which simply
+// A default for zone_info_source_factory, which simply
 // defers to the fallback factory.
-std::unique_ptr<abel::time_internal::cctz::ZoneInfoSource> DefaultFactory(
+std::unique_ptr<abel::time_internal::ZoneInfoSource> DefaultFactory(
     const std::string& name,
     const std::function<
-        std::unique_ptr<abel::time_internal::cctz::ZoneInfoSource>(
+        std::unique_ptr<abel::time_internal::ZoneInfoSource>(
             const std::string& name)>& fallback_factory) {
   return fallback_factory(name);
 }
 
 }  // namespace
 
-// A "weak" definition for cctz_extension::zone_info_source_factory.
+// A "weak" definition for zone_info_source_factory.
 // The user may override this with their own "strong" definition (see
 // zone_info_source.h).
 #if !defined(__has_attribute)
@@ -68,11 +64,11 @@ ZoneInfoSourceFactory default_factory = DefaultFactory;
 #if defined(_M_IX86)
 #pragma comment( \
     linker,      \
-    "/alternatename:?zone_info_source_factory@cctz_extension@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@ABV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZA=?default_factory@cctz_extension@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@ABV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZA")
+    "/alternatename:?zone_info_source_factory@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@ABV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZA=?default_factory@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@ABV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZA")
 #elif defined(_M_IA_64) || defined(_M_AMD64) || defined(_M_ARM64)
 #pragma comment( \
     linker,      \
-    "/alternatename:?zone_info_source_factory@cctz_extension@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@AEBV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZEA=?default_factory@cctz_extension@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@AEBV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZEA")
+    "/alternatename:?zone_info_source_factory@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@AEBV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZEA=?default_factory@time_internal@abel@@3P6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@5@AEBV?$function@$$A6A?AV?$unique_ptr@VZoneInfoSource@cctz@time_internal@abel@@U?$default_delete@VZoneInfoSource@cctz@time_internal@abel@@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z@5@@ZEA")
 #else
 #error Unsupported MSVC platform
 #endif  // _M_<PLATFORM>
@@ -81,7 +77,6 @@ ZoneInfoSourceFactory default_factory = DefaultFactory;
 ZoneInfoSourceFactory zone_info_source_factory = DefaultFactory;
 #endif
 
-}  // namespace cctz_extension
 }  // namespace time_internal
 
 }  // namespace abel

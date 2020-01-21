@@ -60,18 +60,18 @@
 #include <string>
 
 #include <abel/strings/string_view.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
+#include <abel/time/internal/civil_time.h>
 
 namespace abel {
 
 
 namespace time_internal {
-struct second_tag : cctz::detail::second_tag {};
-struct minute_tag : second_tag, cctz::detail::minute_tag {};
-struct hour_tag : minute_tag, cctz::detail::hour_tag {};
-struct day_tag : hour_tag, cctz::detail::day_tag {};
-struct month_tag : day_tag, cctz::detail::month_tag {};
-struct year_tag : month_tag, cctz::detail::year_tag {};
+struct second_tag : abel::time_internal::detail::second_tag {};
+struct minute_tag : second_tag, abel::time_internal::detail::minute_tag {};
+struct hour_tag : minute_tag, abel::time_internal::detail::hour_tag {};
+struct day_tag : hour_tag, abel::time_internal::detail::day_tag {};
+struct month_tag : day_tag, abel::time_internal::detail::month_tag {};
+struct year_tag : month_tag, abel::time_internal::detail::year_tag {};
 }  // namespace time_internal
 
 // -----------------------------------------------------------------------------
@@ -308,17 +308,17 @@ struct year_tag : month_tag, cctz::detail::year_tag {};
 //   }
 //
 using CivilSecond =
-    time_internal::cctz::detail::civil_time<time_internal::second_tag>;
+    abel::time_internal::detail::civil_time<time_internal::second_tag>;
 using CivilMinute =
-    time_internal::cctz::detail::civil_time<time_internal::minute_tag>;
+    abel::time_internal::detail::civil_time<time_internal::minute_tag>;
 using CivilHour =
-    time_internal::cctz::detail::civil_time<time_internal::hour_tag>;
+    abel::time_internal::detail::civil_time<time_internal::hour_tag>;
 using CivilDay =
-    time_internal::cctz::detail::civil_time<time_internal::day_tag>;
+    abel::time_internal::detail::civil_time<time_internal::day_tag>;
 using CivilMonth =
-    time_internal::cctz::detail::civil_time<time_internal::month_tag>;
+    abel::time_internal::detail::civil_time<time_internal::month_tag>;
 using CivilYear =
-    time_internal::cctz::detail::civil_time<time_internal::year_tag>;
+    abel::time_internal::detail::civil_time<time_internal::year_tag>;
 
 // civil_year_t
 //
@@ -331,7 +331,7 @@ using CivilYear =
 //   abel::civil_year_t y = cs.year();
 //   cs = abel::CivilSecond(y, 1, 1, 0, 0, 0);  // CivilSecond(CivilYear(cs))
 //
-using civil_year_t = time_internal::cctz::year_t;
+using civil_year_t = abel::time_internal::year_t;
 
 // civil_diff_t
 //
@@ -344,7 +344,7 @@ using civil_year_t = time_internal::cctz::year_t;
 //
 //   abel::civil_diff_t n_sec = cs1 - cs2;             // cs1 == cs2 + n_sec;
 //
-using civil_diff_t = time_internal::cctz::diff_t;
+using civil_diff_t = abel::time_internal::diff_t;
 
 // Weekday::monday, Weekday::tuesday, Weekday::wednesday, Weekday::thursday,
 // Weekday::friday, Weekday::saturday, Weekday::sunday
@@ -354,7 +354,7 @@ using civil_diff_t = time_internal::cctz::diff_t;
 //
 //   abel::Weekday wd = abel::Weekday::thursday;
 //
-using Weekday = time_internal::cctz::weekday;
+using Weekday = abel::time_internal::weekday;
 
 // GetWeekday()
 //
@@ -366,7 +366,7 @@ using Weekday = time_internal::cctz::weekday;
 //   abel::Weekday wd = abel::GetWeekday(a);  // wd == abel::Weekday::thursday
 //
 ABEL_FORCE_INLINE Weekday GetWeekday(CivilSecond cs) {
-  return time_internal::cctz::get_weekday(cs);
+  return abel::time_internal::get_weekday(cs);
 }
 
 // NextWeekday()
@@ -400,10 +400,10 @@ ABEL_FORCE_INLINE Weekday GetWeekday(CivilSecond cs) {
 //   abel::CivilDay thurs2 = abel::PrevWeekday(d + 1, abel::Weekday::thursday);
 //
 ABEL_FORCE_INLINE CivilDay NextWeekday(CivilDay cd, Weekday wd) {
-  return CivilDay(time_internal::cctz::next_weekday(cd, wd));
+  return CivilDay(abel::time_internal::next_weekday(cd, wd));
 }
 ABEL_FORCE_INLINE CivilDay PrevWeekday(CivilDay cd, Weekday wd) {
-  return CivilDay(time_internal::cctz::prev_weekday(cd, wd));
+  return CivilDay(abel::time_internal::prev_weekday(cd, wd));
 }
 
 // GetYearDay()
@@ -418,7 +418,7 @@ ABEL_FORCE_INLINE CivilDay PrevWeekday(CivilDay cd, Weekday wd) {
 //   int yd_dec_31 = abel::GetYearDay(b);  // yd_dec_31 = 365
 //
 ABEL_FORCE_INLINE int GetYearDay(CivilSecond cs) {
-  return time_internal::cctz::get_yearday(cs);
+  return abel::time_internal::get_yearday(cs);
 }
 
 // FormatCivilTime()

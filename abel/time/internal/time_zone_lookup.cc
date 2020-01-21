@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/time_zone.h>
 
 #if defined(__ANDROID__)
 #include <sys/system_properties.h>
@@ -38,7 +38,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 #if defined(__ANDROID__) && defined(__ANDROID_API__) && __ANDROID_API__ >= 21
 namespace {
@@ -181,7 +180,6 @@ time_zone local_time_zone() {
   return tz;
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

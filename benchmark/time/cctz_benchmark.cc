@@ -21,8 +21,8 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
 #include "time_zone_impl.h"
 
 namespace {
@@ -30,8 +30,8 @@ namespace {
 namespace cctz = abel::time_internal::cctz;
 
 void BM_Difference_Days(benchmark::State& state) {
-  const cctz::civil_day c(2014, 8, 22);
-  const cctz::civil_day epoch(1970, 1, 1);
+  const abel::time_internal::civil_day c(2014, 8, 22);
+  const abel::time_internal::civil_day epoch(1970, 1, 1);
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(c - epoch);
   }
@@ -39,8 +39,8 @@ void BM_Difference_Days(benchmark::State& state) {
 BENCHMARK(BM_Difference_Days);
 
 void BM_Step_Days(benchmark::State& state) {
-  const cctz::civil_day kStart(2014, 8, 22);
-  cctz::civil_day c = kStart;
+  const abel::time_internal::civil_day kStart(2014, 8, 22);
+  abel::time_internal::civil_day c = kStart;
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(++c);
   }
@@ -48,28 +48,28 @@ void BM_Step_Days(benchmark::State& state) {
 BENCHMARK(BM_Step_Days);
 
 void BM_GetWeekday(benchmark::State& state) {
-  const cctz::civil_day c(2014, 8, 22);
+  const abel::time_internal::civil_day c(2014, 8, 22);
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::get_weekday(c));
+    benchmark::DoNotOptimize(abel::time_internal::get_weekday(c));
   }
 }
 BENCHMARK(BM_GetWeekday);
 
 void BM_NextWeekday(benchmark::State& state) {
-  const cctz::civil_day kStart(2014, 8, 22);
-  const cctz::civil_day kDays[7] = {
+  const abel::time_internal::civil_day kStart(2014, 8, 22);
+  const abel::time_internal::civil_day kDays[7] = {
       kStart + 0, kStart + 1, kStart + 2, kStart + 3,
       kStart + 4, kStart + 5, kStart + 6,
   };
-  const cctz::weekday kWeekdays[7] = {
-      cctz::weekday::monday,   cctz::weekday::tuesday, cctz::weekday::wednesday,
-      cctz::weekday::thursday, cctz::weekday::friday,  cctz::weekday::saturday,
-      cctz::weekday::sunday,
+  const abel::time_internal::weekday kWeekdays[7] = {
+      abel::time_internal::weekday::monday,   abel::time_internal::weekday::tuesday, abel::time_internal::weekday::wednesday,
+      abel::time_internal::weekday::thursday, abel::time_internal::weekday::friday,  abel::time_internal::weekday::saturday,
+      abel::time_internal::weekday::sunday,
   };
   while (state.KeepRunningBatch(7 * 7)) {
     for (const auto from : kDays) {
       for (const auto to : kWeekdays) {
-        benchmark::DoNotOptimize(cctz::next_weekday(from, to));
+        benchmark::DoNotOptimize(abel::time_internal::next_weekday(from, to));
       }
     }
   }
@@ -77,20 +77,20 @@ void BM_NextWeekday(benchmark::State& state) {
 BENCHMARK(BM_NextWeekday);
 
 void BM_PrevWeekday(benchmark::State& state) {
-  const cctz::civil_day kStart(2014, 8, 22);
-  const cctz::civil_day kDays[7] = {
+  const abel::time_internal::civil_day kStart(2014, 8, 22);
+  const abel::time_internal::civil_day kDays[7] = {
       kStart + 0, kStart + 1, kStart + 2, kStart + 3,
       kStart + 4, kStart + 5, kStart + 6,
   };
-  const cctz::weekday kWeekdays[7] = {
-      cctz::weekday::monday,   cctz::weekday::tuesday, cctz::weekday::wednesday,
-      cctz::weekday::thursday, cctz::weekday::friday,  cctz::weekday::saturday,
-      cctz::weekday::sunday,
+  const abel::time_internal::weekday kWeekdays[7] = {
+      abel::time_internal::weekday::monday,   abel::time_internal::weekday::tuesday, abel::time_internal::weekday::wednesday,
+      abel::time_internal::weekday::thursday, abel::time_internal::weekday::friday,  abel::time_internal::weekday::saturday,
+      abel::time_internal::weekday::sunday,
   };
   while (state.KeepRunningBatch(7 * 7)) {
     for (const auto from : kDays) {
       for (const auto to : kWeekdays) {
-        benchmark::DoNotOptimize(cctz::prev_weekday(from, to));
+        benchmark::DoNotOptimize(abel::time_internal::prev_weekday(from, to));
       }
     }
   }
@@ -711,68 +711,68 @@ std::vector<std::string> AllTimeZoneNames() {
   return names;
 }
 
-cctz::time_zone TestTimeZone() {
-  cctz::time_zone tz;
-  cctz::load_time_zone("America/Los_Angeles", &tz);
+abel::time_internal::time_zone TestTimeZone() {
+  abel::time_internal::time_zone tz;
+  abel::time_internal::load_time_zone("America/Los_Angeles", &tz);
   return tz;
 }
 
 void BM_Zone_LoadUTCTimeZoneFirst(benchmark::State& state) {
-  cctz::time_zone tz;
-  cctz::load_time_zone("UTC", &tz);  // in case we're first
-  cctz::time_zone::Impl::ClearTimeZoneMapTestOnly();
+  abel::time_internal::time_zone tz;
+  abel::time_internal::load_time_zone("UTC", &tz);  // in case we're first
+  abel::time_internal::time_zone::Impl::ClearTimeZoneMapTestOnly();
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::load_time_zone("UTC", &tz));
+    benchmark::DoNotOptimize(abel::time_internal::load_time_zone("UTC", &tz));
   }
 }
 BENCHMARK(BM_Zone_LoadUTCTimeZoneFirst);
 
 void BM_Zone_LoadUTCTimeZoneLast(benchmark::State& state) {
-  cctz::time_zone tz;
+  abel::time_internal::time_zone tz;
   for (const auto& name : AllTimeZoneNames()) {
-    cctz::load_time_zone(name, &tz);  // prime cache
+    abel::time_internal::load_time_zone(name, &tz);  // prime cache
   }
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::load_time_zone("UTC", &tz));
+    benchmark::DoNotOptimize(abel::time_internal::load_time_zone("UTC", &tz));
   }
 }
 BENCHMARK(BM_Zone_LoadUTCTimeZoneLast);
 
 void BM_Zone_LoadTimeZoneFirst(benchmark::State& state) {
-  cctz::time_zone tz = cctz::utc_time_zone();  // in case we're first
+  abel::time_internal::time_zone tz = abel::time_internal::utc_time_zone();  // in case we're first
   const std::string name = "file:America/Los_Angeles";
   while (state.KeepRunning()) {
     state.PauseTiming();
-    cctz::time_zone::Impl::ClearTimeZoneMapTestOnly();
+    abel::time_internal::time_zone::Impl::ClearTimeZoneMapTestOnly();
     state.ResumeTiming();
-    benchmark::DoNotOptimize(cctz::load_time_zone(name, &tz));
+    benchmark::DoNotOptimize(abel::time_internal::load_time_zone(name, &tz));
   }
 }
 BENCHMARK(BM_Zone_LoadTimeZoneFirst);
 
 void BM_Zone_LoadTimeZoneCached(benchmark::State& state) {
-  cctz::time_zone tz = cctz::utc_time_zone();  // in case we're first
-  cctz::time_zone::Impl::ClearTimeZoneMapTestOnly();
+  abel::time_internal::time_zone tz = abel::time_internal::utc_time_zone();  // in case we're first
+  abel::time_internal::time_zone::Impl::ClearTimeZoneMapTestOnly();
   const std::string name = "file:America/Los_Angeles";
-  cctz::load_time_zone(name, &tz);  // prime cache
+  abel::time_internal::load_time_zone(name, &tz);  // prime cache
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::load_time_zone(name, &tz));
+    benchmark::DoNotOptimize(abel::time_internal::load_time_zone(name, &tz));
   }
 }
 BENCHMARK(BM_Zone_LoadTimeZoneCached);
 
 void BM_Zone_LoadLocalTimeZoneCached(benchmark::State& state) {
-  cctz::utc_time_zone();  // in case we're first
-  cctz::time_zone::Impl::ClearTimeZoneMapTestOnly();
-  cctz::local_time_zone();  // prime cache
+  abel::time_internal::utc_time_zone();  // in case we're first
+  abel::time_internal::time_zone::Impl::ClearTimeZoneMapTestOnly();
+  abel::time_internal::local_time_zone();  // prime cache
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::local_time_zone());
+    benchmark::DoNotOptimize(abel::time_internal::local_time_zone());
   }
 }
 BENCHMARK(BM_Zone_LoadLocalTimeZoneCached);
 
 void BM_Zone_LoadAllTimeZonesFirst(benchmark::State& state) {
-  cctz::time_zone tz;
+  abel::time_internal::time_zone tz;
   const std::vector<std::string> names = AllTimeZoneNames();
   for (auto index = names.size(); state.KeepRunning(); ++index) {
     if (index == names.size()) {
@@ -780,31 +780,31 @@ void BM_Zone_LoadAllTimeZonesFirst(benchmark::State& state) {
     }
     if (index == 0) {
       state.PauseTiming();
-      cctz::time_zone::Impl::ClearTimeZoneMapTestOnly();
+      abel::time_internal::time_zone::Impl::ClearTimeZoneMapTestOnly();
       state.ResumeTiming();
     }
-    benchmark::DoNotOptimize(cctz::load_time_zone(names[index], &tz));
+    benchmark::DoNotOptimize(abel::time_internal::load_time_zone(names[index], &tz));
   }
 }
 BENCHMARK(BM_Zone_LoadAllTimeZonesFirst);
 
 void BM_Zone_LoadAllTimeZonesCached(benchmark::State& state) {
-  cctz::time_zone tz;
+  abel::time_internal::time_zone tz;
   const std::vector<std::string> names = AllTimeZoneNames();
   for (const auto& name : names) {
-    cctz::load_time_zone(name, &tz);  // prime cache
+    abel::time_internal::load_time_zone(name, &tz);  // prime cache
   }
   for (auto index = names.size(); state.KeepRunning(); ++index) {
     if (index == names.size()) {
       index = 0;
     }
-    benchmark::DoNotOptimize(cctz::load_time_zone(names[index], &tz));
+    benchmark::DoNotOptimize(abel::time_internal::load_time_zone(names[index], &tz));
   }
 }
 BENCHMARK(BM_Zone_LoadAllTimeZonesCached);
 
 void BM_Zone_TimeZoneEqualityImplicit(benchmark::State& state) {
-  cctz::time_zone tz;  // implicit UTC
+  abel::time_internal::time_zone tz;  // implicit UTC
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(tz == tz);
   }
@@ -812,7 +812,7 @@ void BM_Zone_TimeZoneEqualityImplicit(benchmark::State& state) {
 BENCHMARK(BM_Zone_TimeZoneEqualityImplicit);
 
 void BM_Zone_TimeZoneEqualityExplicit(benchmark::State& state) {
-  cctz::time_zone tz = cctz::utc_time_zone();  // explicit UTC
+  abel::time_internal::time_zone tz = abel::time_internal::utc_time_zone();  // explicit UTC
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(tz == tz);
   }
@@ -820,9 +820,9 @@ void BM_Zone_TimeZoneEqualityExplicit(benchmark::State& state) {
 BENCHMARK(BM_Zone_TimeZoneEqualityExplicit);
 
 void BM_Zone_UTCTimeZone(benchmark::State& state) {
-  cctz::time_zone tz;
+  abel::time_internal::time_zone tz;
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::utc_time_zone());
+    benchmark::DoNotOptimize(abel::time_internal::utc_time_zone());
   }
 }
 BENCHMARK(BM_Zone_UTCTimeZone);
@@ -834,7 +834,7 @@ BENCHMARK(BM_Zone_UTCTimeZone);
 // The "UTC" variants use UTC instead of the Google/local time zone.
 
 void BM_Time_ToCivil_CCTZ(benchmark::State& state) {
-  const cctz::time_zone tz = TestTimeZone();
+  const abel::time_internal::time_zone tz = TestTimeZone();
   std::chrono::system_clock::time_point tp =
       std::chrono::system_clock::from_time_t(1384569027);
   std::chrono::system_clock::time_point tp2 =
@@ -842,7 +842,7 @@ void BM_Time_ToCivil_CCTZ(benchmark::State& state) {
   while (state.KeepRunning()) {
     std::swap(tp, tp2);
     tp += std::chrono::seconds(1);
-    benchmark::DoNotOptimize(cctz::convert(tp, tz));
+    benchmark::DoNotOptimize(abel::time_internal::convert(tp, tz));
   }
 }
 BENCHMARK(BM_Time_ToCivil_CCTZ);
@@ -865,12 +865,12 @@ void BM_Time_ToCivil_Libc(benchmark::State& state) {
 BENCHMARK(BM_Time_ToCivil_Libc);
 
 void BM_Time_ToCivilUTC_CCTZ(benchmark::State& state) {
-  const cctz::time_zone tz = cctz::utc_time_zone();
+  const abel::time_internal::time_zone tz = abel::time_internal::utc_time_zone();
   std::chrono::system_clock::time_point tp =
       std::chrono::system_clock::from_time_t(1384569027);
   while (state.KeepRunning()) {
     tp += std::chrono::seconds(1);
-    benchmark::DoNotOptimize(cctz::convert(tp, tz));
+    benchmark::DoNotOptimize(abel::time_internal::convert(tp, tz));
   }
 }
 BENCHMARK(BM_Time_ToCivilUTC_CCTZ);
@@ -897,15 +897,15 @@ BENCHMARK(BM_Time_ToCivilUTC_Libc);
 // The "Day0" variants require normalization of the day of month.
 
 void BM_Time_FromCivil_CCTZ(benchmark::State& state) {
-  const cctz::time_zone tz = TestTimeZone();
+  const abel::time_internal::time_zone tz = TestTimeZone();
   int i = 0;
   while (state.KeepRunning()) {
     if ((i++ & 1) == 0) {
       benchmark::DoNotOptimize(
-          cctz::convert(cctz::civil_second(2014, 12, 18, 20, 16, 18), tz));
+          abel::time_internal::convert(abel::time_internal::civil_second(2014, 12, 18, 20, 16, 18), tz));
     } else {
       benchmark::DoNotOptimize(
-          cctz::convert(cctz::civil_second(2013, 11, 15, 18, 30, 27), tz));
+          abel::time_internal::convert(abel::time_internal::civil_second(2013, 11, 15, 18, 30, 27), tz));
     }
   }
 }
@@ -938,10 +938,10 @@ void BM_Time_FromCivil_Libc(benchmark::State& state) {
 BENCHMARK(BM_Time_FromCivil_Libc);
 
 void BM_Time_FromCivilUTC_CCTZ(benchmark::State& state) {
-  const cctz::time_zone tz = cctz::utc_time_zone();
+  const abel::time_internal::time_zone tz = abel::time_internal::utc_time_zone();
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(
-        cctz::convert(cctz::civil_second(2014, 12, 18, 20, 16, 18), tz));
+        abel::time_internal::convert(abel::time_internal::civil_second(2014, 12, 18, 20, 16, 18), tz));
   }
 }
 BENCHMARK(BM_Time_FromCivilUTC_CCTZ);
@@ -949,15 +949,15 @@ BENCHMARK(BM_Time_FromCivilUTC_CCTZ);
 // There is no BM_Time_FromCivilUTC_Libc.
 
 void BM_Time_FromCivilDay0_CCTZ(benchmark::State& state) {
-  const cctz::time_zone tz = TestTimeZone();
+  const abel::time_internal::time_zone tz = TestTimeZone();
   int i = 0;
   while (state.KeepRunning()) {
     if ((i++ & 1) == 0) {
       benchmark::DoNotOptimize(
-          cctz::convert(cctz::civil_second(2014, 12, 0, 20, 16, 18), tz));
+          abel::time_internal::convert(abel::time_internal::civil_second(2014, 12, 0, 20, 16, 18), tz));
     } else {
       benchmark::DoNotOptimize(
-          cctz::convert(cctz::civil_second(2013, 11, 0, 18, 30, 27), tz));
+          abel::time_internal::convert(abel::time_internal::civil_second(2013, 11, 0, 18, 30, 27), tz));
     }
   }
 }
@@ -1002,12 +1002,12 @@ const int kNumFormats = sizeof(kFormats) / sizeof(kFormats[0]);
 void BM_Format_FormatTime(benchmark::State& state) {
   const std::string fmt = kFormats[state.range(0)];
   state.SetLabel(fmt);
-  const cctz::time_zone tz = TestTimeZone();
+  const abel::time_internal::time_zone tz = TestTimeZone();
   const std::chrono::system_clock::time_point tp =
-      cctz::convert(cctz::civil_second(1977, 6, 28, 9, 8, 7), tz) +
+      abel::time_internal::convert(abel::time_internal::civil_second(1977, 6, 28, 9, 8, 7), tz) +
       std::chrono::microseconds(1);
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::format(fmt, tp, tz));
+    benchmark::DoNotOptimize(abel::time_internal::format(fmt, tp, tz));
   }
 }
 BENCHMARK(BM_Format_FormatTime)->DenseRange(0, kNumFormats - 1);
@@ -1015,13 +1015,13 @@ BENCHMARK(BM_Format_FormatTime)->DenseRange(0, kNumFormats - 1);
 void BM_Format_ParseTime(benchmark::State& state) {
   const std::string fmt = kFormats[state.range(0)];
   state.SetLabel(fmt);
-  const cctz::time_zone tz = TestTimeZone();
+  const abel::time_internal::time_zone tz = TestTimeZone();
   std::chrono::system_clock::time_point tp =
-      cctz::convert(cctz::civil_second(1977, 6, 28, 9, 8, 7), tz) +
+      abel::time_internal::convert(abel::time_internal::civil_second(1977, 6, 28, 9, 8, 7), tz) +
       std::chrono::microseconds(1);
-  const std::string when = cctz::format(fmt, tp, tz);
+  const std::string when = abel::time_internal::format(fmt, tp, tz);
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(cctz::parse(fmt, when, tz, &tp));
+    benchmark::DoNotOptimize(abel::time_internal::parse(fmt, when, tz, &tp));
   }
 }
 BENCHMARK(BM_Format_ParseTime)->DenseRange(0, kNumFormats - 1);

@@ -25,7 +25,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
@@ -134,7 +133,6 @@ std::string FixedOffsetToAbbr(const seconds& offset) {
   return abbr;
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

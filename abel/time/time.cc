@@ -13,11 +13,11 @@
 // tz: An abel::time_zone
 // ci: An abel::time_zone::CivilInfo
 // ti: An abel::time_zone::TimeInfo
-// cd: An abel::CivilDay or a cctz::civil_day
-// cs: An abel::CivilSecond or a cctz::civil_second
+// cd: An abel::CivilDay or a abel::time_internal::civil_day
+// cs: An abel::CivilSecond or a abel::time_internal::civil_second
 // bd: An abel::abel_time::breakdown
-// cl: A cctz::time_zone::civil_lookup
-// al: A cctz::time_zone::absolute_lookup
+// cl: A abel::time_internal::time_zone::civil_lookup
+// al: A abel::time_internal::time_zone::absolute_lookup
 
 #include <abel/time/time.h>
 
@@ -29,18 +29,16 @@
 #include <ctime>
 #include <limits>
 
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
-
-namespace cctz = abel::time_internal::cctz;
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
 
 namespace abel {
 
 
 namespace {
 
-ABEL_FORCE_INLINE cctz::time_point<cctz::seconds> internal_unix_epoch() {
-  return std::chrono::time_point_cast<cctz::seconds>(
+ABEL_FORCE_INLINE abel::time_internal::time_point<abel::time_internal::seconds> internal_unix_epoch() {
+  return std::chrono::time_point_cast<abel::time_internal::seconds>(
       std::chrono::system_clock::from_time_t(0));
 }
 
@@ -125,12 +123,12 @@ ABEL_FORCE_INLINE TimeConversion InfinitePastTimeConversion() {
 
 // Makes a abel_time from sec, overflowing to infinite_future/infinite_past as
 // necessary. If sec is min/max, then consult cs+tz to check for overlow.
-abel_time MakeTimeWithOverflow(const cctz::time_point<cctz::seconds>& sec,
-                          const cctz::civil_second& cs,
-                          const cctz::time_zone& tz,
+abel_time MakeTimeWithOverflow(const abel::time_internal::time_point<abel::time_internal::seconds>& sec,
+                          const abel::time_internal::civil_second& cs,
+                          const abel::time_internal::time_zone& tz,
                           bool* normalized = nullptr) {
-  const auto max = cctz::time_point<cctz::seconds>::max();
-  const auto min = cctz::time_point<cctz::seconds>::min();
+  const auto max = abel::time_internal::time_point<abel::time_internal::seconds>::max();
+  const auto min = abel::time_internal::time_point<abel::time_internal::seconds>::min();
   if (sec == max) {
     const auto al = tz.lookup(max);
     if (cs > al.cs) {
@@ -150,34 +148,34 @@ abel_time MakeTimeWithOverflow(const cctz::time_point<cctz::seconds>& sec,
 }
 
 // Returns Mon=1..Sun=7.
-ABEL_FORCE_INLINE int MapWeekday(const cctz::weekday& wd) {
+ABEL_FORCE_INLINE int MapWeekday(const abel::time_internal::weekday& wd) {
   switch (wd) {
-    case cctz::weekday::monday:
+    case abel::time_internal::weekday::monday:
       return 1;
-    case cctz::weekday::tuesday:
+    case abel::time_internal::weekday::tuesday:
       return 2;
-    case cctz::weekday::wednesday:
+    case abel::time_internal::weekday::wednesday:
       return 3;
-    case cctz::weekday::thursday:
+    case abel::time_internal::weekday::thursday:
       return 4;
-    case cctz::weekday::friday:
+    case abel::time_internal::weekday::friday:
       return 5;
-    case cctz::weekday::saturday:
+    case abel::time_internal::weekday::saturday:
       return 6;
-    case cctz::weekday::sunday:
+    case abel::time_internal::weekday::sunday:
       return 7;
   }
   return 1;
 }
 
-bool FindTransition(const cctz::time_zone& tz,
-                    bool (cctz::time_zone::*find_transition)(
-                        const cctz::time_point<cctz::seconds>& tp,
-                        cctz::time_zone::civil_transition* trans) const,
+bool FindTransition(const abel::time_internal::time_zone& tz,
+                    bool (abel::time_internal::time_zone::*find_transition)(
+                        const abel::time_internal::time_point<abel::time_internal::seconds>& tp,
+                        abel::time_internal::time_zone::civil_transition* trans) const,
                     abel_time t, time_zone::CivilTransition* trans) {
   // Transitions are second-aligned, so we can discard any fractional part.
-  const auto tp = internal_unix_epoch() + cctz::seconds(ToUnixSeconds(t));
-  cctz::time_zone::civil_transition tr;
+  const auto tp = internal_unix_epoch() + abel::time_internal::seconds(ToUnixSeconds(t));
+    abel::time_internal::time_zone::civil_transition tr;
   if (!(tz.*find_transition)(tp, &tr)) return false;
   trans->from = CivilSecond(tr.from);
   trans->to = CivilSecond(tr.to);
@@ -194,10 +192,10 @@ abel::abel_time::breakdown abel_time::in(abel::time_zone tz) const {
   if (*this == abel::infinite_future()) return InfiniteFutureBreakdown();
   if (*this == abel::infinite_past()) return InfinitePastBreakdown();
 
-  const auto tp = internal_unix_epoch() + cctz::seconds(time_internal::GetRepHi(rep_));
-  const auto al = cctz::time_zone(tz).lookup(tp);
+  const auto tp = internal_unix_epoch() + abel::time_internal::seconds(time_internal::GetRepHi(rep_));
+  const auto al = abel::time_internal::time_zone(tz).lookup(tp);
   const auto cs = al.cs;
-  const auto cd = cctz::civil_day(cs);
+  const auto cd = abel::time_internal::civil_day(cs);
 
   abel::abel_time::breakdown bd;
   bd.year = cs.year();
@@ -207,8 +205,8 @@ abel::abel_time::breakdown abel_time::in(abel::time_zone tz) const {
   bd.minute = cs.minute();
   bd.second = cs.second();
   bd.subsecond = time_internal::MakeDuration(0, time_internal::GetRepLo(rep_));
-  bd.weekday = MapWeekday(cctz::get_weekday(cd));
-  bd.yearday = cctz::get_yearday(cd);
+  bd.weekday = MapWeekday(abel::time_internal::get_weekday(cd));
+  bd.yearday = abel::time_internal::get_yearday(cd);
   bd.offset = al.offset;
   bd.is_dst = al.is_dst;
   bd.zone_abbr = al.abbr;
@@ -340,7 +338,7 @@ abel::time_zone::CivilInfo time_zone::At(abel_time t) const {
   if (t == abel::infinite_past()) return InfinitePastCivilInfo();
 
   const auto ud = time_internal::to_unix_duration(t);
-  const auto tp = internal_unix_epoch() + cctz::seconds(time_internal::GetRepHi(ud));
+  const auto tp = internal_unix_epoch() + abel::time_internal::seconds(time_internal::GetRepHi(ud));
   const auto al = cz_.lookup(tp);
 
   time_zone::CivilInfo ci;
@@ -353,18 +351,18 @@ abel::time_zone::CivilInfo time_zone::At(abel_time t) const {
 }
 
 abel::time_zone::TimeInfo time_zone::At(CivilSecond ct) const {
-  const cctz::civil_second cs(ct);
+  const abel::time_internal::civil_second cs(ct);
   const auto cl = cz_.lookup(cs);
 
   time_zone::TimeInfo ti;
   switch (cl.kind) {
-    case cctz::time_zone::civil_lookup::UNIQUE:
+    case abel::time_internal::time_zone::civil_lookup::UNIQUE:
       ti.kind = time_zone::TimeInfo::UNIQUE;
       break;
-    case cctz::time_zone::civil_lookup::SKIPPED:
+    case abel::time_internal::time_zone::civil_lookup::SKIPPED:
       ti.kind = time_zone::TimeInfo::SKIPPED;
       break;
-    case cctz::time_zone::civil_lookup::REPEATED:
+    case abel::time_internal::time_zone::civil_lookup::REPEATED:
       ti.kind = time_zone::TimeInfo::REPEATED;
       break;
   }
@@ -375,11 +373,11 @@ abel::time_zone::TimeInfo time_zone::At(CivilSecond ct) const {
 }
 
 bool time_zone::NextTransition(abel_time t, CivilTransition* trans) const {
-  return FindTransition(cz_, &cctz::time_zone::next_transition, t, trans);
+  return FindTransition(cz_, &abel::time_internal::time_zone::next_transition, t, trans);
 }
 
 bool time_zone::PrevTransition(abel_time t, CivilTransition* trans) const {
-  return FindTransition(cz_, &cctz::time_zone::prev_transition, t, trans);
+  return FindTransition(cz_, &abel::time_internal::time_zone::prev_transition, t, trans);
 }
 
 //

@@ -24,7 +24,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
@@ -153,7 +152,6 @@ bool ParsePosixSpec(const std::string& spec, PosixTimeZone* res) {
   return p != nullptr && *p == '\0';
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

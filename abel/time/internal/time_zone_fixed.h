@@ -12,18 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_FIXED_H_
-#define ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_FIXED_H_
+#ifndef ABEL_TIME_INTERNAL_TIME_ZONE_FIXED_H_
+#define ABEL_TIME_INTERNAL_TIME_ZONE_FIXED_H_
 
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/time_zone.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // Helper functions for dealing with the names and abbreviations
 // of time zones that are a fixed offset (seconds east) from UTC.
@@ -44,9 +43,8 @@ bool FixedOffsetFromName(const std::string& name, seconds* offset);
 std::string FixedOffsetToName(const seconds& offset);
 std::string FixedOffsetToAbbr(const seconds& offset);
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_FIXED_H_
+#endif  // ABEL_TIME_INTERNAL_TIME_ZONE_FIXED_H_

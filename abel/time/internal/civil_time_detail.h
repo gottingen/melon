@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_DETAIL_H_
-#define ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_DETAIL_H_
+#ifndef ABEL_TIME_INTERNAL_CIVIL_TIME_DETAIL_H_
+#define ABEL_TIME_INTERNAL_CIVIL_TIME_DETAIL_H_
 
 #include <cstdint>
 #include <limits>
@@ -36,7 +36,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // Support years that at least span the range of 64-bit time_t values.
 using year_t = std::int_fast64_t;
@@ -610,7 +609,6 @@ std::ostream& operator<<(std::ostream& os, const civil_second& s);
 std::ostream& operator<<(std::ostream& os, weekday wd);
 
 }  // namespace detail
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
@@ -619,4 +617,4 @@ std::ostream& operator<<(std::ostream& os, weekday wd);
 #undef CONSTEXPR_F
 #undef CONSTEXPR_D
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_DETAIL_H_
+#endif  // ABEL_TIME_INTERNAL_CIVIL_TIME_DETAIL_H_

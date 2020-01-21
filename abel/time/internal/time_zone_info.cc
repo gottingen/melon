@@ -46,14 +46,13 @@
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
+#include <abel/time/internal/civil_time.h>
 #include "time_zone_fixed.h"
 #include "time_zone_posix.h"
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
@@ -717,7 +716,7 @@ bool TimeZoneInfo::Load(const std::string& name) {
   }
 
   // Find and use a ZoneInfoSource to load the named zone.
-  auto zip = cctz_extension::zone_info_source_factory(
+  auto zip = zone_info_source_factory(
       name, [](const std::string& name) -> std::unique_ptr<ZoneInfoSource> {
         if (auto zip = FileZoneInfoSource::Open(name)) return zip;
         if (auto zip = AndroidZoneInfoSource::Open(name)) return zip;
@@ -952,7 +951,6 @@ bool TimeZoneInfo::PrevTransition(const time_point<seconds>& tp,
   return true;
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

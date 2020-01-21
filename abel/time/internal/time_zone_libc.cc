@@ -24,13 +24,12 @@
 #include <utility>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
@@ -302,7 +301,6 @@ std::string TimeZoneLibC::Description() const {
   return local_ ? "localtime" : "UTC";
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

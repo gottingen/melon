@@ -22,16 +22,15 @@
 #include <vector>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
-#include <abel/time/internal/cctz/include/cctz/zone_info_source.h>
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
+#include <abel/time/internal/zone_info_source.h>
 #include "time_zone_if.h"
 #include "tzfile.h"
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // A transition to a new UTC offset.
 struct Transition {
@@ -130,7 +129,6 @@ class TimeZoneInfo : public TimeZoneIf {
   mutable std::atomic<std::size_t> time_local_hint_ = {};  // MakeTime() hint
 };
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
