@@ -11,7 +11,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // PeriodicSamplerBase provides the basic period sampler implementation.
@@ -193,7 +193,7 @@ template <typename Tag, int default_period>
 std::atomic<int> PeriodicSampler<Tag, default_period>::period_(default_period);
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_PERIODIC_SAMPLER_H_

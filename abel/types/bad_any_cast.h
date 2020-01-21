@@ -17,15 +17,15 @@
 #include <any>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::bad_any_cast;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_ANY
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // bad_any_cast
@@ -54,7 +54,7 @@ namespace any_internal {
 [[noreturn]] void ThrowBadAnyCast();
 
 }  // namespace any_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_ANY

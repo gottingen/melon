@@ -5,7 +5,7 @@
 #include <abel/strings/str_cat.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 using FixedMapping =
@@ -66,5 +66,5 @@ int string_replace_all(strings_internal::FixedMapping replacements,
   return string_replace_all<strings_internal::FixedMapping>(replacements, target);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

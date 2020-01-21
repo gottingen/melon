@@ -1,7 +1,7 @@
 //
 //
-#ifndef ABEL_RANDOM_INTERNAL_MOCKING_BIT_GEN_BASE_H_
-#define ABEL_RANDOM_INTERNAL_MOCKING_BIT_GEN_BASE_H_
+#ifndef ABEL_TESTING_MOCKING_BIT_GEN_BASE_H_
+#define ABEL_TESTING_MOCKING_BIT_GEN_BASE_H_
 
 #include <atomic>
 #include <deque>
@@ -12,7 +12,7 @@
 #include <abel/strings/str_cat.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // MockingBitGenExpectationFormatter is invoked to format unsatisfied mocks
@@ -101,7 +101,7 @@ class MockingBitGenBase {
 };  // namespace random_internal
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_MOCKING_BIT_GEN_BASE_H_
+#endif  // ABEL_TESTING_MOCKING_BIT_GEN_BASE_H_

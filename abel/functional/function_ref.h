@@ -41,7 +41,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // FunctionRef
 //
@@ -120,7 +120,7 @@ class FunctionRef<R(Args...)> {
   abel::functional_internal::Invoker<R, Args...> invoker_;
 };
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FUNCTIONAL_FUNCTION_REF_H_

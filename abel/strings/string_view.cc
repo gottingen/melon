@@ -12,7 +12,7 @@
 #include <abel/strings/internal/memutil.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 void WritePadding(std::ostream& o, size_t pad) {
@@ -217,7 +217,7 @@ constexpr string_view::size_type string_view::npos;
 ABEL_STRING_VIEW_SELECTANY
 constexpr string_view::size_type string_view::kMaxSize;
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_STRING_VIEW

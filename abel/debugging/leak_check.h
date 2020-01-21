@@ -22,7 +22,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // HaveLeakSanitizer()
 //
@@ -94,7 +94,7 @@ void RegisterLivePointers(const void* ptr, size_t size);
 // `RegisterLivePointers()`, enabling leak checking of those pointers.
 void UnRegisterLivePointers(const void* ptr, size_t size);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_LEAK_CHECK_H_

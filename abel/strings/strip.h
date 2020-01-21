@@ -17,7 +17,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 //  consume_prefix()
 //
@@ -72,7 +72,7 @@ ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view  strip_suffix(
   return str;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STRIP_H_

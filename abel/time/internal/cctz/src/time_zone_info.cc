@@ -51,7 +51,7 @@
 #include "time_zone_posix.h"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -954,5 +954,5 @@ bool TimeZoneInfo::PrevTransition(const time_point<seconds>& tp,
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

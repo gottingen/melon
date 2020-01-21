@@ -34,7 +34,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // FailureSignalHandlerOptions
 //
@@ -102,7 +102,7 @@ namespace debugging_internal {
 const char* FailureSignalToString(int signo);
 }  // namespace debugging_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_FAILURE_SIGNAL_HANDLER_H_

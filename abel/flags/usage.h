@@ -9,7 +9,7 @@
 // Usage reporting interfaces
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Sets the "usage" message to be used by help reporting routines.
 // For example:
@@ -23,7 +23,7 @@ void SetProgramUsageMessage(abel::string_view new_usage_message);
 // Returns the usage message set by SetProgramUsageMessage().
 abel::string_view ProgramUsageMessage();
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_USAGE_H_

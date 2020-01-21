@@ -19,7 +19,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class Cord;
 class format_count_capture;
@@ -427,7 +427,7 @@ ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(extern);
 
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_ARG_H_

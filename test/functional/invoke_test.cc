@@ -10,7 +10,7 @@
 #include <abel/functional/internal/invoke.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 namespace {
 
@@ -204,5 +204,5 @@ TEST(InvokeTest, SfinaeFriendly) {
 
 }  // namespace
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

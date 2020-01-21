@@ -71,7 +71,7 @@
 #include <abel/strings/strip.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace substitute_internal {
 
 // Arg
@@ -672,7 +672,7 @@ std::string Substitute(
                      "format std::string doesn't contain all of $0 through $9");
 #endif  // ABEL_BAD_CALL_IF
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_SUBSTITUTE_H_

@@ -14,12 +14,12 @@
 #endif
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #include <abel/numeric/int128.h>
 #include <abel/random/internal/traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Helper object to multiply two 64-bit values to a 128-bit value.
@@ -93,7 +93,7 @@ struct wide_multiply<uint64_t> {
 #endif
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_WIDE_MULTIPLY_H_

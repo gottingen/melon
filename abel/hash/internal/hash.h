@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #include <abel/base/profile.h>
 #include <abel/container/fixed_array.h>
 #include <abel/meta/type_traits.h>
@@ -37,7 +37,7 @@
 #include <abel/hash/internal/city.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace hash_internal {
 
 class PiecewiseCombiner;
@@ -968,7 +968,7 @@ H PiecewiseCombiner::finalize(H state) {
 }
 
 }  // namespace hash_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HASH_INTERNAL_HASH_H_

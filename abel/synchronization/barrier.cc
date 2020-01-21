@@ -6,7 +6,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Return whether int *arg is zero.
 static bool IsZero(void *arg) {
@@ -36,5 +36,5 @@ bool barrier::block() {
   return this->num_to_exit_ == 0;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

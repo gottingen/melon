@@ -11,7 +11,7 @@
 #include <testing/exception_safety_testing.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -184,7 +184,7 @@ TEST(FixedArrayExceptionSafety, FillWithAlloc) {
 
 }  // namespace
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HAVE_EXCEPTIONS

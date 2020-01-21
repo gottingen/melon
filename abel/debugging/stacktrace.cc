@@ -43,7 +43,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 typedef int (*Unwinder)(void**, int*, int, int, const void*, int*);
@@ -122,5 +122,5 @@ int DefaultStackUnwinder(void** pcs, int* sizes, int depth, int skip,
   return n;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

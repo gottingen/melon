@@ -15,7 +15,7 @@
 using ::testing::Ge;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 MATCHER_P2(IsBetween, a, b,
@@ -183,5 +183,5 @@ TEST(ExponentialBiasedTest, InitializationModes) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

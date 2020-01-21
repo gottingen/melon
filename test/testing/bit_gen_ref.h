@@ -8,8 +8,8 @@
 // that take both abel (e.g. `abel::BitGen`) and standard library (e.g.
 // `std::mt19937`) bit generators.
 
-#ifndef ABEL_RANDOM_BIT_GEN_REF_H_
-#define ABEL_RANDOM_BIT_GEN_REF_H_
+#ifndef ABEL_TESTING_BIT_GEN_REF_H_
+#define ABEL_TESTING_BIT_GEN_REF_H_
 
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
@@ -18,7 +18,7 @@
 #include <testing/mocking_bit_gen_base.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 template <typename URBG, typename = void, typename = void, typename = void>
@@ -134,7 +134,7 @@ struct DistributionCaller<abel::BitGenRef> {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_BIT_GEN_REF_H_
+#endif  // ABEL_TESTING_BIT_GEN_REF_H_

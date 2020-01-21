@@ -21,7 +21,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Each instance of NonsecureURBGBase<URBG> will be seeded by variates produced
@@ -132,7 +132,7 @@ class NonsecureURBGBase {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_NONSECURE_BASE_H_

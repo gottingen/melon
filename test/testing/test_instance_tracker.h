@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_CONTAINER_INTERNAL_TEST_INSTANCE_TRACKER_H_
-#define ABEL_CONTAINER_INTERNAL_TEST_INSTANCE_TRACKER_H_
+#ifndef ABEL_TESTING_TEST_INSTANCE_TRACKER_H_
+#define ABEL_TESTING_TEST_INSTANCE_TRACKER_H_
 
 #include <cstdlib>
 #include <ostream>
@@ -9,7 +9,7 @@
 #include <abel/types/compare.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace test_internal {
 
 // A type that counts number of occurrences of the type, the live occurrences of
@@ -256,7 +256,7 @@ class MovableOnlyInstance : public BaseCountedInstance {
 };
 
 }  // namespace test_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
-#endif  // ABEL_CONTAINER_INTERNAL_TEST_INSTANCE_TRACKER_H_
+#endif  // ABEL_TESTING_TEST_INSTANCE_TRACKER_H_

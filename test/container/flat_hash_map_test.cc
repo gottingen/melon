@@ -12,7 +12,7 @@
 #include <abel/types/any.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 using ::abel::container_internal::hash_internal::Enum;
@@ -243,5 +243,5 @@ TEST(FlatHashMap, EraseIf) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

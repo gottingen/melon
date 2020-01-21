@@ -16,7 +16,7 @@
 #include <pthread.h>
 #endif
 
-#include <abel/base/call_once.h>
+#include <abel/functional/call_once.h>
 #include <abel/time/time.h>
 
 // Declare that Mutex::ReaderLock is actually lock().  Intended primarily
@@ -36,7 +36,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 class condition;
 
 namespace synchronization_internal {
@@ -257,5 +257,5 @@ class synchronization_storage {
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

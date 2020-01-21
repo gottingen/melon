@@ -12,7 +12,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // `sequence_urbg` is a simple random number generator which meets the
@@ -42,7 +42,7 @@ class sequence_urbg {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_SEQUENCE_URBG_H_

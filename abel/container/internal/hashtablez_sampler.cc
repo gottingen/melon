@@ -16,7 +16,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 constexpr int HashtablezInfo::kMaxStackDepth;
 
@@ -254,5 +254,5 @@ void SetHashtablezMaxSamples(int32_t max) {
 }
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

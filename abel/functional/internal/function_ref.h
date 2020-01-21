@@ -11,7 +11,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace functional_internal {
 
 // Like a void* that can handle function pointers as well. The standard does not
@@ -88,7 +88,7 @@ template <bool C>
 using EnableIf = typename ::std::enable_if<C, int>::type;
 
 }  // namespace functional_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FUNCTIONAL_INTERNAL_FUNCTION_REF_H_

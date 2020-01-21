@@ -12,7 +12,7 @@
 #include <limits>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 typedef struct {
@@ -1879,5 +1879,5 @@ bool Demangle(const char *mangled, char *out, int out_size) {
 }
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

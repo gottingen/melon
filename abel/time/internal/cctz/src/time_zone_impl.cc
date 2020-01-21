@@ -24,7 +24,7 @@
 #include "time_zone_fixed.h"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -117,5 +117,5 @@ const time_zone::Impl* time_zone::Impl::UTCImpl() {
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -4,8 +4,8 @@
 #include <mutex>  // NOLINT(build/c++11)
 #include <vector>
 
-#include <abel/base/internal/cycleclock.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/time/cycleclock.h>
+#include <abel/threading/internal/spinlock.h>
 #include <abel/synchronization/blocking_counter.h>
 #include <abel/synchronization/internal/thread_pool.h>
 #include <abel/synchronization/mutex.h>
@@ -22,9 +22,9 @@ void BM_Mutex(benchmark::State& state) {
 BENCHMARK(BM_Mutex)->UseRealTime()->Threads(1)->ThreadPerCpu();
 
 static void DelayNs(int64_t ns, int* data) {
-  int64_t end = abel::base_internal::CycleClock::now() +
-                ns * abel::base_internal::CycleClock::Frequency() / 1e9;
-  while (abel::base_internal::CycleClock::now() < end) {
+  int64_t end = abel::cycle_clock::now() +
+                ns * abel::cycle_clock::frequency() / 1e9;
+  while (abel::cycle_clock::now() < end) {
     ++(*data);
     benchmark::DoNotOptimize(*data);
   }
@@ -98,7 +98,7 @@ BENCHMARK_TEMPLATE(BM_Contended, abel::mutex)
     ->Arg(50)
     ->Arg(200);
 
-BENCHMARK_TEMPLATE(BM_Contended, abel::base_internal::SpinLock)
+BENCHMARK_TEMPLATE(BM_Contended, abel::threading_internal::SpinLock)
     ->UseRealTime()
     // ThreadPerCpu poorly handles non-power-of-two CPU counts.
     ->Threads(1)

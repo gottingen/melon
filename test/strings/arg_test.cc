@@ -14,7 +14,7 @@
 #include <abel/strings/str_format.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 namespace {
 
@@ -109,5 +109,5 @@ const char kMyArray[] = "ABCDE";
 
 }  // namespace
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -9,7 +9,7 @@
 #include <abel/strings/str_cat.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 bool GetCommandLineOption(abel::string_view name, std::string* value) {
@@ -68,5 +68,5 @@ bool SpecifiedOnCommandLine(abel::string_view name) {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

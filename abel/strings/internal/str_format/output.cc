@@ -6,7 +6,7 @@
 #include <cstring>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 
 namespace {
@@ -56,5 +56,5 @@ void FILERawSink::Write(string_view v) {
 }
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

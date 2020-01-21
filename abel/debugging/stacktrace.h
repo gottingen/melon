@@ -21,7 +21,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // GetStackFrames()
 //
@@ -212,7 +212,7 @@ namespace debugging_internal {
 // working.
 extern bool StackTraceWorksForTest();
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_STACKTRACE_H_

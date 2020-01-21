@@ -8,7 +8,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::LogSeverity
 //
@@ -101,7 +101,7 @@ constexpr abel::LogSeverity NormalizeLogSeverity (int s) {
 // unspecified; do not rely on it.
 std::ostream &operator << (std::ostream &os, abel::LogSeverity s);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_LOG_SEVERITY_H_

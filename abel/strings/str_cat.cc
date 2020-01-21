@@ -13,7 +13,7 @@
 #include <abel/strings/numbers.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 alpha_num::alpha_num(hex h) {
   static_assert(numbers_internal::kFastToBufferSize >= 32,
@@ -230,5 +230,5 @@ void string_append(std::string* dest, const alpha_num& a, const alpha_num& b,
   assert(out == begin + dest->size());
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -19,7 +19,7 @@
 #include "time_zone_libc.h"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -41,5 +41,5 @@ TimeZoneIf::~TimeZoneIf() {}
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

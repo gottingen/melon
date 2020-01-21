@@ -50,7 +50,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace strings_internal {
 // alpha_num_buffer allows a way to pass a string to string_cat without having to do
@@ -388,7 +388,7 @@ SixDigits(double d) {
   return result;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STR_CAT_H_

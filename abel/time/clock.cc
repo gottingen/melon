@@ -15,13 +15,13 @@
 #include <ctime>
 #include <limits>
 
-#include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/unscaledcycleclock.h>
+#include <abel/threading/internal/spinlock.h>
+#include <abel/time/unscaledcycleclock.h>
 #include <abel/base/profile.h>
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 abel_time now() {
   // TODO(bww): Get a timespec instead so we don't have to divide.
   int64_t n = abel::get_current_time_nanos();
@@ -31,7 +31,7 @@ abel_time now() {
   }
   return time_internal::from_unix_duration(abel::nanoseconds(n));
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // Decide if we should use the fast get_current_time_nanos() algorithm
@@ -60,18 +60,18 @@ ABEL_NAMESPACE_END
 
 #if !ABEL_USE_CYCLECLOCK_FOR_GET_CURRENT_TIME_NANOS
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 int64_t get_current_time_nanos() {
   return GET_CURRENT_TIME_NANOS_FROM_SYSTEM();
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #else  // Use the cyclecounter-based implementation below.
 
 // Allows override by test.
 #ifndef GET_CURRENT_TIME_NANOS_CYCLECLOCK_NOW
 #define GET_CURRENT_TIME_NANOS_CYCLECLOCK_NOW() \
-  ::abel::time_internal::UnscaledCycleClockWrapperForGetCurrentTime::now()
+  ::abel::UnscaledCycleClockWrapperForGetCurrentTime::now()
 #endif
 
 // The following counters are used only by the test code.
@@ -82,15 +82,13 @@ static int64_t stats_slow_paths;
 static int64_t stats_fast_slow_paths;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
-namespace time_internal {
-// This is a friend wrapper around UnscaledCycleClock::now()
-// (needed to access UnscaledCycleClock).
+
+// This is a friend wrapper around unscaled_cycle_clock::now()
+// (needed to access unscaled_cycle_clock).
 class UnscaledCycleClockWrapperForGetCurrentTime {
  public:
-  static int64_t now() { return base_internal::UnscaledCycleClock::now(); }
+  static int64_t now() { return unscaled_cycle_clock::now(); }
 };
-}  // namespace time_internal
 
 // uint64_t is used in this module to provide an extra bit in multiplications
 
@@ -213,7 +211,7 @@ static_assert(((kMinNSBetweenSamples << (kScale + 1)) >> (kScale + 1)) ==
 
 // A reader-writer lock protecting the static locations below.
 // See SeqAcquire() and SeqRelease() above.
-static abel::base_internal::SpinLock lock(
+static abel::threading_internal::SpinLock lock(
     abel::base_internal::kLinkerInitialized);
 static std::atomic<uint64_t> seq(0);
 
@@ -507,12 +505,12 @@ static uint64_t UpdateLastSample(uint64_t now_cycles, uint64_t now_ns,
 
   return estimated_base_ns;
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 #endif  // ABEL_USE_CYCLECLOCK_FOR_GET_CURRENT_TIME_NANOS
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 // Returns the maximum duration that SleepOnce() can sleep for.
@@ -540,7 +538,7 @@ void SleepOnce(abel::duration to_sleep) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 extern "C" {

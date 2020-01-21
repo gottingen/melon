@@ -11,7 +11,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 // Returns true if the input value is zero or a power of two. Useful for
 // determining if the range of output values in a URBG
@@ -246,7 +246,7 @@ FastUniformBits<UIntType>::Generate(URBG& g,  // NOLINT(runtime/references)
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_FAST_UNIFORM_BITS_H_

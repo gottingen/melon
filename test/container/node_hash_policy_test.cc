@@ -9,7 +9,7 @@
 #include <abel/container/internal/hash_policy_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -53,5 +53,5 @@ TEST_F(NodeTest, transfer) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

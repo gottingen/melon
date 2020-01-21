@@ -11,7 +11,7 @@
 // Program name
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // Returns program invocation name or "UNKNOWN" if `SetProgramInvocationName()`
@@ -30,7 +30,7 @@ std::string ShortProgramInvocationName();
 void SetProgramInvocationName(abel::string_view prog_name_str);
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_PROGRAM_NAME_H_

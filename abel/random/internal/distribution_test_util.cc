@@ -13,7 +13,7 @@
 #include <abel/strings/str_format.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -402,5 +402,5 @@ double MaxErrorTolerance(double acceptance_probability) {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

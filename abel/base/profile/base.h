@@ -66,34 +66,6 @@
 #endif
 
 
-// -----------------------------------------------------------------------------
-// abelil namespace annotations
-// -----------------------------------------------------------------------------
-
-// ABEL_NAMESPACE_BEGIN/ABEL_NAMESPACE_END
-//
-// An annotation placed at the beginning/end of each `namespace abel` scope.
-// This is used to inject an inline namespace.
-//
-// The proper way to write abel code in the `abel` namespace is:
-//
-// namespace abel {
-// ABEL_NAMESPACE_BEGIN
-//
-// void Foo();  // abel::Foo().
-//
-// ABEL_NAMESPACE_END
-// }  // namespace abel
-//
-// Users of abel should not use these macros, because users of abel should
-// not write `namespace abel {` in their own code for any reason.  (abel does
-// not support forward declarations of its own types, nor does it support
-// user-provided specialization of abel templates.  Code that violates these
-// rules may be broken without warning.)
-#define ABEL_NAMESPACE_BEGIN
-#define ABEL_NAMESPACE_END
-
-
 // ------------------------------------------------------------------------
 // C98/99 Standard typedefs. From the ANSI ISO/IEC 9899 standards document
 // Most recent versions of the gcc-compiler come with these defined in
@@ -1009,14 +981,14 @@ ABEL_FORCE_INLINE void ignore_result (const T &) {
   (sizeof(::abel::macros_internal::ArraySizeHelper(array)))
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace macros_internal {
 // Note: this internal template function declaration is used by ABEL_ARRAYSIZE.
 // The function doesn't need a definition, as we only use its type.
 template<typename T, size_t N>
 auto ArraySizeHelper (const T (&array)[N]) -> char (&)[N];
 }  // namespace macros_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 
@@ -1041,13 +1013,13 @@ ABEL_NAMESPACE_END
 //       // Invocation
 //       static MyClass my_global(abel::base_internal::kLinkerInitialized);
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 enum LinkerInitialized {
     kLinkerInitialized = 0,
 };
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 

@@ -37,7 +37,7 @@
 #include <variant>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::bad_variant_access;
 using std::get;
 using std::get_if;
@@ -50,7 +50,7 @@ using std::variant_npos;
 using std::variant_size;
 using std::variant_size_v;
 using std::visit;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_VARIANT
@@ -64,7 +64,7 @@ ABEL_NAMESPACE_END
 #include <abel/types/internal/variant.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // abel::variant
@@ -783,7 +783,7 @@ operator>=(const variant<Types...>& a, const variant<Types...>& b) {
                    a.index());
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 namespace std {
@@ -804,7 +804,7 @@ struct hash<abel::variant<T...>>
 #endif  // ABEL_USES_STD_VARIANT
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace variant_internal {
 
 // Helper visitor for converting a variant<Ts...>` into another type (mostly
@@ -840,7 +840,7 @@ To ConvertVariantTo(Variant&& variant) {
                      std::forward<Variant>(variant));
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TYPES_VARIANT_H_

@@ -21,7 +21,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // Function Template: WrapUnique()
@@ -676,7 +676,7 @@ void CopyRange(Allocator& alloc, Iterator destination, InputIterator first,
   }
 }
 }  // namespace memory_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_MEMORY_MEMORY_H_

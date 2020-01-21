@@ -20,7 +20,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // unescape()
 //
@@ -145,7 +145,7 @@ std::string hex_string_to_bytes(abel::string_view from);
 // `2*from.size()`.
 std::string bytes_to_hex_string(abel::string_view from);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_ESCAPING_H_

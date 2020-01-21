@@ -69,7 +69,7 @@
 #include <abel/strings/internal/str_format/parser.h>  // IWYU pragma: export
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // untyped_format_spec
 //
@@ -518,7 +518,7 @@ ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool FormatUntyped(
       str_format_internal::UntypedFormatSpecImpl::Extract(format), args);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STR_FORMAT_H_

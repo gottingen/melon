@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
-// CycleClock
-//    A CycleClock tells you the current time in Cycles.  The "time"
+// cycle_clock
+//    A cycle_clock tells you the current time in Cycles.  The "time"
 //    is actually time since power-on.  This is like time() but doesn't
 //    involve a system call and is much more precise.
 //
@@ -11,9 +11,9 @@
 // If you need the above guarantees, please consider using a different
 // API. There are efforts to provide an interface which provides a millisecond
 // granularity and implemented as a memory read. A memory read is generally
-// cheaper than the CycleClock for many architectures.
+// cheaper than the cycle_clock for many architectures.
 //
-// Also, in some out of order CPU implementations, the CycleClock is not
+// Also, in some out of order CPU implementations, the cycle_clock is not
 // serializing. So if you're trying to count at cycles granularity, your
 // data might be inaccurate due to out of order instruction execution.
 // ----------------------------------------------------------------------

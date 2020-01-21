@@ -17,7 +17,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -27,11 +27,11 @@ std::string ZoneInfoSource::Version() const { return std::string(); }
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz_extension {
 
@@ -83,5 +83,5 @@ ZoneInfoSourceFactory zone_info_source_factory = DefaultFactory;
 
 }  // namespace cctz_extension
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

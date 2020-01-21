@@ -10,7 +10,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // RandenPool is a thread-safe random number generator [random.req.urbg] that
@@ -113,7 +113,7 @@ class PoolURBG {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_POOL_URBG_H_

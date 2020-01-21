@@ -19,7 +19,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace internal_casts {
 
@@ -164,7 +164,7 @@ ABEL_FORCE_INLINE Dest bit_cast (const Source &source) {
     return dest;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_CASTS_H_

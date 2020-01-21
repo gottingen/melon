@@ -23,7 +23,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 struct IntervalClosedClosedTag;
 struct IntervalClosedOpenTag;
@@ -259,7 +259,7 @@ struct DistributionFormatTraits<UniformDistributionWrapper<NumType>> {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_DISTRIBUTION_FORMAT_TRAITS_H_

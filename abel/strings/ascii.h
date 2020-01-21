@@ -46,7 +46,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace ascii_internal {
 
 // Declaration for an array of bitfields holding character information.
@@ -222,7 +222,7 @@ ABEL_FORCE_INLINE void trim_all(std::string* str) {
 // Removes leading, trailing, and consecutive internal whitespace.
 void trim_complete(std::string*);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_ASCII_H_

@@ -7,7 +7,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // ExponentialBiased provides a small and fast random number generator for a
@@ -110,7 +110,7 @@ ABEL_FORCE_INLINE uint64_t ExponentialBiased::NextRandom(uint64_t rnd) {
 }
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_EXPONENTIAL_BIASED_H_

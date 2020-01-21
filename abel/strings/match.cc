@@ -5,7 +5,7 @@
 #include <abel/strings/internal/memutil.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 bool EqualsIgnoreCase(abel::string_view piece1, abel::string_view piece2) {
   return (piece1.size() == piece2.size() &&
@@ -24,5 +24,5 @@ bool ends_with_case(abel::string_view text, abel::string_view suffix) {
          EqualsIgnoreCase(text.substr(text.size() - suffix.size()), suffix);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

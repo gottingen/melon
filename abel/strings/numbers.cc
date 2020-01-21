@@ -18,7 +18,7 @@
 #include <memory>
 #include <utility>
 
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/strings/ascii.h>
 #include <abel/strings/charconv.h>
@@ -28,7 +28,7 @@
 #include <abel/strings/str_cat.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 bool simple_atof(abel::string_view str, float* out) {
   *out = 0.0;
@@ -290,7 +290,7 @@ static std::pair<uint64_t, uint64_t> Mul32(std::pair<uint64_t, uint64_t> num,
   uint64_t bits128_up = (bits96_127 >> 32) + (bits64_127 < bits64_95);
   if (bits128_up == 0) return {bits64_127, bits0_63};
 
-  int shift = 64 - base_internal::CountLeadingZeros64(bits128_up);
+  int shift = 64 - abel::count_leading_zeros(bits128_up);
   uint64_t lo = (bits0_63 >> shift) + (bits64_127 << (64 - shift));
   uint64_t hi = (bits64_127 >> shift) + (bits128_up << (64 - shift));
   return {hi, lo};
@@ -321,7 +321,7 @@ static std::pair<uint64_t, uint64_t> PowFive(uint64_t num, int expfive) {
       5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5,
       5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5};
   result = Mul32(result, powers_of_five[expfive & 15]);
-  int shift = base_internal::CountLeadingZeros64(result.first);
+  int shift = abel::count_leading_zeros(result.first);
   if (shift != 0) {
     result.first = (result.first << shift) + (result.second >> (64 - shift));
     result.second = (result.second << shift);
@@ -900,5 +900,5 @@ bool safe_strtou128_base(abel::string_view text, uint128* value, int base) {
 }
 
 }  // namespace numbers_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

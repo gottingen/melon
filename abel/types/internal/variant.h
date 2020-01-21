@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <abel/functional/internal/invoke.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
@@ -25,7 +25,7 @@
 #if !defined(ABEL_USES_STD_VARIANT)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 template <class... Types>
 class variant;
@@ -1624,7 +1624,7 @@ struct VariantHashBase<Variant,
 };
 
 }  // namespace variant_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // !defined(ABEL_USES_STD_VARIANT)

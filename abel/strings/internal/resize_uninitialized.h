@@ -12,7 +12,7 @@
 #include <abel/meta/type_traits.h>  //  for void_t
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 // Is a subclass of true_type or false_type, depending on whether or not
@@ -54,7 +54,7 @@ ABEL_FORCE_INLINE void STLStringResizeUninitialized(string_type* s, size_t new_s
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_RESIZE_UNINITIALIZED_H_

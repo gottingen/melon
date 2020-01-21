@@ -11,7 +11,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // A class that tracks its copies and moves so that it can be queried in tests.
@@ -65,7 +65,7 @@ class Tracked {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_TRACKED_H_

@@ -7,7 +7,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 // Returns the program counter from signal context, or nullptr if
@@ -23,7 +23,7 @@ void DumpPCAndFrameSizesAndStackTrace(
     void (*writerfn)(const char*, void*), void* writerfn_arg);
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_INTERNAL_EXAMINE_STACK_H_

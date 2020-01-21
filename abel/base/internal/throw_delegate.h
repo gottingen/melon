@@ -8,7 +8,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 
 // Helper functions that allow throwing exceptions consistently from anywhere.
@@ -55,7 +55,7 @@ namespace base_internal {
 // [[noreturn]] void ThrowStdBadArrayNewLength();
 
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_INTERNAL_THROW_DELEGATE_H_

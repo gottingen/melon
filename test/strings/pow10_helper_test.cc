@@ -8,7 +8,7 @@
 #include <abel/strings/str_format.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 namespace {
@@ -106,5 +106,5 @@ TEST(Pow10HelperTest, Works) {
 
 }  // namespace
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

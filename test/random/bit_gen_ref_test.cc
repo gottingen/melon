@@ -8,7 +8,7 @@
 #include <abel/random/random.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class ConstBitGen : public abel::random_internal::MockingBitGenBase {
   bool CallImpl(const std::type_info&, void*, void* result) override {
@@ -84,5 +84,5 @@ TEST(BitGenRefTest, MockingBitGenBaseOverrides) {
   EXPECT_EQ(FnTest(gen_ref), 42);  // Copy
 }
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel

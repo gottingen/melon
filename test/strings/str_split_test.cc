@@ -15,7 +15,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/base/dynamic_annotations.h>  // for RunningOnValgrind
+#include <abel/threading/dynamic_annotations.h>  // for RunningOnValgrind
 #include <abel/base/profile.h>
 #include <abel/strings/numbers.h>
 

@@ -23,21 +23,21 @@
 #include <string>
 #include <type_traits>
 
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #ifdef __SSE4_2__
 // TODO(jorg): Remove this when we figure out the right way
 // to swap bytes on SSE 4.2 that works with the compilers
 // we claim to support.  Also, add tests for the compiler
 // that doesn't support the Intel _bswap64 intrinsic but
 // does support all the SSE 4.2 intrinsics
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #endif
 #include <abel/base/profile.h>
 #include <abel/numeric/int128.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // simple_atoi()
 //
@@ -82,13 +82,13 @@ ABEL_MUST_USE_RESULT bool simple_atod(abel::string_view str, double* out);
 // unspecified state.
 ABEL_MUST_USE_RESULT bool simple_atob(abel::string_view str, bool* out);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // End of public API.  Implementation details follow.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace numbers_internal {
 
 // Digit conversion.
@@ -221,7 +221,7 @@ ABEL_FORCE_INLINE size_t fast_hex_to_buffer_zero_pad16(uint64_t val, char* out) 
   }
 #endif
   // | 0x1 so that even 0 has 1 digit.
-  return 16 - abel::base_internal::CountLeadingZeros64(val | 0x1) / 4;
+  return 16 - abel::count_leading_zeros(val | 0x1) / 4;
 }
 
 }  // namespace numbers_internal
@@ -243,7 +243,7 @@ ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool simple_atoi(abel::string_view str,
   return numbers_internal::safe_strtou128_base(str, out, 10);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_NUMBERS_H_

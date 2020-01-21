@@ -11,13 +11,13 @@
 #include <limits>
 #include <type_traits>
 
-#include <abel/base/internal/bits.h>
+#include <abel/base/math.h>
 #include <abel/meta/type_traits.h>
 #include <abel/random/internal/fastmath.h>
 #include <abel/random/internal/traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Tristate tag types controlling the output of GenerateRealFromBits.
@@ -108,7 +108,7 @@ ABEL_FORCE_INLINE RealType GenerateRealFromBits(uint64_t bits, int exp_bias = 0)
 
   // Number of leading zeros is mapped to the exponent: 2^-clz
   // bits is 0..01xxxxxx. After shifting, we're left with 1xxx...0..0
-  int clz = base_internal::CountLeadingZeros64(bits);
+  auto clz = abel::count_leading_zeros(bits);
   bits <<= (IncludeZero ? clz : (clz & 63));  // remove 0-bits.
   exp -= clz;                                 // set the exponent.
   bits >>= (63 - kExp);
@@ -128,7 +128,7 @@ ABEL_FORCE_INLINE RealType GenerateRealFromBits(uint64_t bits, int exp_bias = 0)
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_GENERATE_REAL_H_

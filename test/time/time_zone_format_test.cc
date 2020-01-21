@@ -26,7 +26,7 @@
 namespace chrono = std::chrono;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -1496,5 +1496,5 @@ TEST(FormatParse, RoundTripDistantPast) {
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

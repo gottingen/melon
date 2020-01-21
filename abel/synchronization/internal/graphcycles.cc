@@ -18,35 +18,35 @@
 
 #include <abel/base/profile.h>
 // This file is a no-op if the required LowLevelAlloc support is missing.
-#include <abel/base/internal/low_level_alloc.h>
+#include <abel/memory/internal/low_level_alloc.h>
 #ifndef ABEL_LOW_LEVEL_ALLOC_MISSING
 
 #include <abel/synchronization/internal/graphcycles.h>
 
 #include <algorithm>
 #include <array>
-#include <abel/base/internal/hide_ptr.h>
+#include <abel/memory/hide_ptr.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/spinlock.h>
+#include <abel/threading/internal/spinlock.h>
 
 // Do not use STL.   This module does not use standard memory allocation.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 namespace {
 
 // Avoid LowLevelAlloc's default arena since it calls malloc hooks in
 // which people are doing things like acquiring Mutexes.
-static abel::base_internal::SpinLock arena_mu(
+static abel::threading_internal::SpinLock arena_mu(
     abel::base_internal::kLinkerInitialized);
-static base_internal::LowLevelAlloc::Arena* arena;
+static memory_internal::LowLevelAlloc::Arena* arena;
 
 static void InitArenaIfNecessary() {
   arena_mu.lock();
   if (arena == nullptr) {
-    arena = base_internal::LowLevelAlloc::NewArena(0);
+    arena = memory_internal::LowLevelAlloc::NewArena(0);
   }
   arena_mu.unlock();
 }
@@ -125,7 +125,7 @@ class Vec {
   }
 
   void Discard() {
-    if (ptr_ != space_) base_internal::LowLevelAlloc::Free(ptr_);
+    if (ptr_ != space_) memory_internal::LowLevelAlloc::Free(ptr_);
   }
 
   void Grow(uint32_t n) {
@@ -134,7 +134,7 @@ class Vec {
     }
     size_t request = static_cast<size_t>(capacity_) * sizeof(T);
     T* copy = static_cast<T*>(
-        base_internal::LowLevelAlloc::AllocWithArena(request, arena));
+        memory_internal::LowLevelAlloc::AllocWithArena(request, arena));
     std::copy(ptr_, ptr_ + size_, copy);
     Discard();
     ptr_ = copy;
@@ -283,7 +283,7 @@ class PointerMap {
   }
 
   int32_t Find(void* ptr) {
-    auto masked = base_internal::HidePtr(ptr);
+    auto masked = hide_ptr(ptr);
     for (int32_t i = table_[Hash(ptr)]; i != -1;) {
       Node* n = (*nodes_)[i];
       if (n->masked_ptr == masked) return i;
@@ -301,7 +301,7 @@ class PointerMap {
   int32_t Remove(void* ptr) {
     // Advance through linked list while keeping track of the
     // predecessor slot that points to the current entry.
-    auto masked = base_internal::HidePtr(ptr);
+    auto masked = hide_ptr(ptr);
     for (int32_t* slot = &table_[Hash(ptr)]; *slot != -1; ) {
       int32_t index = *slot;
       Node* n = (*nodes_)[index];
@@ -351,17 +351,17 @@ static Node* FindNode(GraphCycles::Rep* rep, GraphId id) {
 
 GraphCycles::GraphCycles() {
   InitArenaIfNecessary();
-  rep_ = new (base_internal::LowLevelAlloc::AllocWithArena(sizeof(Rep), arena))
+  rep_ = new (memory_internal::LowLevelAlloc::AllocWithArena(sizeof(Rep), arena))
       Rep;
 }
 
 GraphCycles::~GraphCycles() {
   for (auto* node : rep_->nodes_) {
     node->Node::~Node();
-    base_internal::LowLevelAlloc::Free(node);
+      memory_internal::LowLevelAlloc::Free(node);
   }
   rep_->Rep::~Rep();
-  base_internal::LowLevelAlloc::Free(rep_);
+    memory_internal::LowLevelAlloc::Free(rep_);
 }
 
 bool GraphCycles::CheckInvariants() const {
@@ -369,7 +369,7 @@ bool GraphCycles::CheckInvariants() const {
   NodeSet ranks;  // Set of ranks seen so far.
   for (uint32_t x = 0; x < r->nodes_.size(); x++) {
     Node* nx = r->nodes_[x];
-    void* ptr = base_internal::UnhidePtr<void>(nx->masked_ptr);
+    void* ptr = unhide_ptr<void>(nx->masked_ptr);
     if (ptr != nullptr && static_cast<uint32_t>(r->ptrmap_.Find(ptr)) != x) {
       ABEL_RAW_LOG(FATAL, "Did not find live node in hash table %u %p", x, ptr);
     }
@@ -396,12 +396,12 @@ GraphId GraphCycles::GetId(void* ptr) {
     return MakeId(i, rep_->nodes_[i]->version);
   } else if (rep_->free_nodes_.empty()) {
     Node* n =
-        new (base_internal::LowLevelAlloc::AllocWithArena(sizeof(Node), arena))
+        new (memory_internal::LowLevelAlloc::AllocWithArena(sizeof(Node), arena))
             Node;
     n->version = 1;  // Avoid 0 since it is used by InvalidGraphId()
     n->visited = false;
     n->rank = rep_->nodes_.size();
-    n->masked_ptr = base_internal::HidePtr(ptr);
+    n->masked_ptr = hide_ptr(ptr);
     n->nstack = 0;
     n->priority = 0;
     rep_->nodes_.push_back(n);
@@ -413,7 +413,7 @@ GraphId GraphCycles::GetId(void* ptr) {
     int32_t r = rep_->free_nodes_.back();
     rep_->free_nodes_.pop_back();
     Node* n = rep_->nodes_[r];
-    n->masked_ptr = base_internal::HidePtr(ptr);
+    n->masked_ptr = hide_ptr(ptr);
     n->nstack = 0;
     n->priority = 0;
     rep_->ptrmap_.Add(ptr, r);
@@ -435,7 +435,7 @@ void GraphCycles::RemoveNode(void* ptr) {
   }
   x->in.clear();
   x->out.clear();
-  x->masked_ptr = base_internal::HidePtr<void>(nullptr);
+  x->masked_ptr = hide_ptr<void>(nullptr);
   if (x->version == std::numeric_limits<uint32_t>::max()) {
     // Cannot use x any more
   } else {
@@ -447,7 +447,7 @@ void GraphCycles::RemoveNode(void* ptr) {
 void* GraphCycles::Ptr(GraphId id) {
   Node* n = FindNode(rep_, id);
   return n == nullptr ? nullptr
-                      : base_internal::UnhidePtr<void>(n->masked_ptr);
+                      : unhide_ptr<void>(n->masked_ptr);
 }
 
 bool GraphCycles::HasNode(GraphId node) {
@@ -679,7 +679,7 @@ int GraphCycles::GetStackTrace(GraphId id, void*** ptr) {
 }
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_LOW_LEVEL_ALLOC_MISSING

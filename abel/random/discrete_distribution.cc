@@ -3,7 +3,7 @@
 #include <abel/random/discrete_distribution.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Initializes the distribution table for Walker's Aliasing algorithm, described
@@ -82,5 +82,5 @@ std::vector<std::pair<double, size_t>> InitDiscreteDistribution(
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

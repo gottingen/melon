@@ -48,7 +48,7 @@ BENCHMARK(BM_Clock_Now_AbelTime_ToUnixNanos);
 
 void BM_Clock_Now_CycleClock(benchmark::State& state) {
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::base_internal::CycleClock::now());
+    benchmark::DoNotOptimize(abel::cycle_clock::now());
   }
 }
 BENCHMARK(BM_Clock_Now_CycleClock);

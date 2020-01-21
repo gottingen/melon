@@ -32,7 +32,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::uniform_real_distribution<T>
 //
@@ -183,7 +183,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   }
   return is;
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_UNIFORM_REAL_DISTRIBUTION_H_

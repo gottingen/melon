@@ -12,7 +12,7 @@
 #include <testing/exception_safety_testing.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace {
 
@@ -274,7 +274,7 @@ TEST(OptionalExceptionSafety, NothrowMoveAssign) {
 
 }  // namespace
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // #if !defined(ABEL_USES_STD_OPTIONAL) && defined(ABEL_HAVE_EXCEPTIONS)

@@ -57,7 +57,7 @@ struct hash<Hashable> {
 struct NonHashable {};
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 using ::testing::DoubleEq;
@@ -2697,7 +2697,7 @@ TEST(VariantTest, MoveCtorBug) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // #if !defined(ABEL_USES_STD_VARIANT)

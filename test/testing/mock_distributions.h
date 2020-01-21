@@ -1,32 +1,6 @@
-//
-// -----------------------------------------------------------------------------
-// File: mock_distributions.h
-// -----------------------------------------------------------------------------
-//
-// This file contains mock distribution functions for use alongside an
-// `abel::MockingBitGen` object within the Googletest testing framework. Such
-// mocks are useful to provide deterministic values as return values within
-// (otherwise random) abel distribution functions.
-//
-// The return type of each function is a mock expectation object which
-// is used to set the match result.
-//
-// More information about the Googletest testing framework is available at
-// https://github.com/google/googletest
-//
-// Example:
-//
-//   abel::MockingBitGen mock;
-//   EXPECT_CALL(abel::MockUniform<int>(), Call(mock, 1, 1000))
-//     .WillRepeatedly(testing::ReturnRoundRobin({20, 40}));
-//
-//   EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000), 20);
-//   EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000), 40);
-//   EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000), 20);
-//   EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000), 40);
 
-#ifndef ABEL_RANDOM_MOCK_DISTRIBUTIONS_H_
-#define ABEL_RANDOM_MOCK_DISTRIBUTIONS_H_
+#ifndef ABEL_TESTING_MOCK_DISTRIBUTIONS_H_
+#define ABEL_TESTING_MOCK_DISTRIBUTIONS_H_
 
 #include <limits>
 #include <type_traits>
@@ -40,7 +14,7 @@
 #include <testing/mocking_bit_gen.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // abel::MockUniform
@@ -242,7 +216,7 @@ using MockZipf =
                                      IntType(MockingBitGen&, IntType, double,
                                              double)>;
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_MOCK_DISTRIBUTIONS_H_
+#endif  // ABEL_TESTING_MOCK_DISTRIBUTIONS_H_

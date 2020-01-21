@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 TEST(BigUnsigned, ShiftLeft) {
@@ -189,5 +189,5 @@ TEST(BigUnsigned, TenToTheNth) {
 
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -14,12 +14,12 @@
 
 #include <atomic>
 
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 #include <abel/synchronization/internal/create_thread_identity.h>
 #include <abel/synchronization/internal/kernel_timeout.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class mutex;
 
@@ -33,7 +33,7 @@ class PerThreadSem {
 
   // Routine invoked periodically (once a second) by a background thread.
   // Has no effect on user-visible state.
-  static void Tick(base_internal::ThreadIdentity* identity);
+  static void Tick(threading_internal::ThreadIdentity* identity);
 
   // ---------------------------------------------------------------------------
   // Routines used by autosizing threadpools to detect when threads are
@@ -51,14 +51,14 @@ class PerThreadSem {
  private:
   // Create the PerThreadSem associated with "identity".  Initializes count=0.
   // REQUIRES: May only be called by ThreadIdentity.
-  static void Init(base_internal::ThreadIdentity* identity);
+  static void Init(threading_internal::ThreadIdentity* identity);
 
   // Destroy the PerThreadSem associated with "identity".
   // REQUIRES: May only be called by ThreadIdentity.
-  static void Destroy(base_internal::ThreadIdentity* identity);
+  static void Destroy(threading_internal::ThreadIdentity* identity);
 
   // Increments "identity"'s count.
-  static ABEL_FORCE_INLINE void Post(base_internal::ThreadIdentity* identity);
+  static ABEL_FORCE_INLINE void Post(threading_internal::ThreadIdentity* identity);
 
   // Waits until either our count > 0 or t has expired.
   // If count > 0, decrements count and returns true.  Otherwise returns false.
@@ -68,12 +68,12 @@ class PerThreadSem {
   // White-listed callers.
   friend class PerThreadSemTest;
   friend class abel::mutex;
-  friend abel::base_internal::ThreadIdentity* CreateThreadIdentity();
+  friend abel::threading_internal::ThreadIdentity* CreateThreadIdentity();
   friend void ReclaimThreadIdentity(void* v);
 };
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // In some build configurations we pass --detect-odr-violations to the
@@ -84,13 +84,13 @@ ABEL_NAMESPACE_END
 // check.
 extern "C" {
 void AbelInternalPerThreadSemPost(
-    abel::base_internal::ThreadIdentity* identity);
+    abel::threading_internal::ThreadIdentity* identity);
 bool AbelInternalPerThreadSemWait(
     abel::synchronization_internal::KernelTimeout t);
 }  // extern "C"
 
 void abel::synchronization_internal::PerThreadSem::Post(
-    abel::base_internal::ThreadIdentity* identity) {
+    abel::threading_internal::ThreadIdentity* identity) {
   AbelInternalPerThreadSemPost(identity);
 }
 

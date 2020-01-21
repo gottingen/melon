@@ -50,11 +50,11 @@
 
 #include <abel/base/const_init.h>
 #include <abel/meta/type_traits.h>
-#include <abel/base/internal/low_level_alloc.h>
-#include <abel/base/internal/thread_identity.h>
-#include <abel/base/internal/tsan_mutex_interface.h>
+#include <abel/memory/internal/low_level_alloc.h>
+#include <abel/threading/internal/thread_identity.h>
+#include <abel/threading/internal/tsan_mutex_interface.h>
 #include <abel/base/profile.h>
-#include <abel/base/thread_annotations.h>
+#include <abel/threading/thread_annotations.h>
 #include <abel/synchronization/internal/kernel_timeout.h>
 #include <abel/synchronization/internal/per_thread_sem.h>
 #include <abel/time/time.h>
@@ -69,7 +69,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class condition;
 struct synch_wait_params;
@@ -463,9 +463,9 @@ class ABEL_LOCKABLE mutex {
   // Post()/wait() versus associated PerThreadSem; in class for required
   // friendship with PerThreadSem.
   static ABEL_FORCE_INLINE void IncrementSynchSem(mutex *mu,
-                                       base_internal::PerThreadSynch *w);
+                                                  threading_internal::PerThreadSynch *w);
   static ABEL_FORCE_INLINE bool DecrementSynchSem(
-      mutex *mu, base_internal::PerThreadSynch *w,
+      mutex *mu, threading_internal::PerThreadSynch *w,
       synchronization_internal::KernelTimeout t);
 
   // slow path acquire
@@ -482,16 +482,16 @@ class ABEL_LOCKABLE mutex {
   bool AwaitCommon(const condition &cond,
                    synchronization_internal::KernelTimeout t);
   // Attempt to remove thread s from queue.
-  void TryRemove(base_internal::PerThreadSynch *s);
+  void TryRemove(threading_internal::PerThreadSynch *s);
   // Block a thread on mutex.
-  void Block(base_internal::PerThreadSynch *s);
+  void Block(threading_internal::PerThreadSynch *s);
   // Wake a thread; return successor.
-  base_internal::PerThreadSynch *Wakeup(base_internal::PerThreadSynch *w);
+  threading_internal::PerThreadSynch *Wakeup(threading_internal::PerThreadSynch *w);
 
   friend class cond_var;   // for access to Trans()/Fer().
   void Trans(MuHow how);  // used for cond_var->mutex transfer
   void Fer(
-      base_internal::PerThreadSynch *w);  // used for cond_var->mutex transfer
+      threading_internal::PerThreadSynch *w);  // used for cond_var->mutex transfer
 #endif
 
   // Catch the error of writing mutex when intending mutex_lock.
@@ -826,8 +826,8 @@ class cond_var {
       impl_;
 #else
   bool WaitCommon(mutex *mutex, synchronization_internal::KernelTimeout t);
-  void Remove(base_internal::PerThreadSynch *s);
-  void Wakeup(base_internal::PerThreadSynch *w);
+  void Remove(threading_internal::PerThreadSynch *s);
+  void Wakeup(threading_internal::PerThreadSynch *w);
   std::atomic<intptr_t> cv_;  // condition variable state.
 #endif
   cond_var(const cond_var&) = delete;
@@ -1027,7 +1027,7 @@ enum class on_deadlock_cycle {
 // the manner chosen here.
 void set_mutex_deadlock_detection_mode(on_deadlock_cycle mode);
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // In some build configurations we pass --detect-odr-violations to the

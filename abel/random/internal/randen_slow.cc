@@ -450,7 +450,7 @@ ABEL_FORCE_INLINE ABEL_RANDOM_INTERNAL_ATTRIBUTE_ALWAYS_INLINE void Permute(
 }  // namespace
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 const void* RandenSlow::GetKeys() {
@@ -490,5 +490,5 @@ void RandenSlow::Generate(const void* keys, void* state_void) {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

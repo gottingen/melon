@@ -4,7 +4,7 @@
 #include <abel/base/internal/periodic_sampler.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace base_internal {
 namespace {
 
@@ -63,5 +63,5 @@ BENCHMARK(BM_PeriodicSampler_Disabled);
 
 }  // namespace
 }  // namespace base_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

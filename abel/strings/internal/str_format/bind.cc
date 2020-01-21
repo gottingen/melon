@@ -6,7 +6,7 @@
 #include <string>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 
 namespace {
@@ -237,5 +237,5 @@ int SnprintF(char* output, size_t size, const UntypedFormatSpecImpl format,
 }
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

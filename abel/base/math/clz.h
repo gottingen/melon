@@ -19,91 +19,103 @@ ABEL_FORCE_INLINE unsigned clz_template (Integral x) {
 }
 
 template<typename Integral>
-ABEL_FORCE_INLINE unsigned clz (Integral x);
+ABEL_FORCE_INLINE unsigned clz_non_template (Integral x) {
+    auto lz = clz_template(x);
+    return sizeof(x) * 8 - 1 - lz;
+}
+
+
+template<typename Integral>
+ABEL_FORCE_INLINE unsigned count_leading_zeros (Integral x);
 
 #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
 
-//! clz (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<unsigned> (unsigned i) {
-    if (i == 0)
-        return 8 * sizeof(i);
-    return static_cast<unsigned>(__builtin_clz(i));
+ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned> (unsigned x) {
+    if (x == 0)
+        return 8 * sizeof(x);
+    return static_cast<unsigned>(__builtin_clz(x));
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<int> (int i) {
-    return clz(static_cast<unsigned>(i));
+ABEL_FORCE_INLINE unsigned count_leading_zeros<int> (int i) {
+    return count_leading_zeros(static_cast<unsigned>(i));
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<unsigned long> (unsigned long i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned long> (unsigned long i) {
     if (i == 0)
         return 8 * sizeof(i);
     return static_cast<unsigned>(__builtin_clzl(i));
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<long> (long i) {
-    return clz(static_cast<unsigned long>(i));
+ABEL_FORCE_INLINE unsigned count_leading_zeros<long> (long i) {
+    return count_leading_zeros(static_cast<unsigned long>(i));
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<unsigned long long> (unsigned long long i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned long long> (unsigned long long i) {
     if (i == 0)
         return 8 * sizeof(i);
     return static_cast<unsigned>(__builtin_clzll(i));
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<long long> (long long i) {
-    return clz(static_cast<unsigned long long>(i));
+ABEL_FORCE_INLINE unsigned count_leading_zeros<long long> (long long i) {
+    return count_leading_zeros(static_cast<unsigned long long>(i));
 }
 
 #else
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<int> (int i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<int> (int i) {
     return clz_template(i);
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<unsigned> (unsigned i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned> (unsigned i) {
     return clz_template(i);
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<long> (long i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<long> (long i) {
     return clz_template(i);
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<unsigned long> (unsigned long i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned long> (unsigned long i) {
     return clz_template(i);
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<long long> (long long i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<long long> (long long i) {
     return clz_template(i);
 }
 
-//! clz (count leading zeros)
+//! count_leading_zeros (count leading zeros)
 template<>
-ABEL_FORCE_INLINE unsigned clz<unsigned long long> (unsigned long long i) {
+ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned long long> (unsigned long long i) {
     return clz_template(i);
 }
 
 #endif
+
+template<typename Integral>
+ABEL_FORCE_INLINE unsigned count_leading_non_zeros (Integral x) {
+    auto lz = count_leading_zeros(x);
+    return sizeof(x) * 8 - 1 -lz;
+}
 
 } //namespace abel
 

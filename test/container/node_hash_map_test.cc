@@ -9,7 +9,7 @@
 #include <test/container/unordered_map_modifiers_test.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace {
 
@@ -244,5 +244,5 @@ TEST(NodeHashMap, EraseIf) {
 
 }  // namespace
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

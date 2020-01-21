@@ -29,7 +29,7 @@
 #include <abel/strings/str_cat.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 //
@@ -294,7 +294,7 @@ std::string join_range(const Range& range, abel::string_view separator) {
 }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_STR_JOIN_INTERNAL_H_

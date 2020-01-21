@@ -13,6 +13,8 @@ FILE(GLOB FLAGS_INTERNAL_SRC "flags/internal/*.cc")
 
 FILE(GLOB HASH_INTERNAL_SRC "hash/internal/*.cc")
 
+FILE(GLOB MEMORY_INTERNAL_SRC "memory/internal/*.cc")
+
 FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 
 FILE(GLOB RANDOM_SRC "random/*.cc")
@@ -27,11 +29,16 @@ FILE(GLOB TYPES_SRC "types/*.cc")
 FILE(GLOB SYNC_SRC "synchronization/*.cc")
 FILE(GLOB SYNC_INTERNAL_SRC "synchronization/internal/*.cc")
 
+FILE(GLOB THREADING_SRC "threading/*.cc")
+FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
 FILE(GLOB TIME_SRC "time/*.cc")
 FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
 FILE(GLOB TIME_INTERNAL_CCTZ_SRC "time/internal/cctz/src/*.cc")
 
+
+FILE(GLOB DIGEST_SRC "digest/*.cc")
+FILE(GLOB SYSTEM_SRC "system/*.cc")
 
 SET(ABEL_SRC
         ${ALGO_SRC}
@@ -55,6 +62,11 @@ SET(ABEL_SRC
         ${TIME_SRC}
         ${TIME_INTERNAL_SRC}
         ${TIME_INTERNAL_CCTZ_SRC}
+        ${DIGEST_SRC}
+        ${SYSTEM_SRC}
+        ${THREADING_SRC}
+        ${THREADING_INTERNAL_SRC}
+        ${MEMORY_INTERNAL_SRC}
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})

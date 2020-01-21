@@ -10,7 +10,7 @@
 #include <limits>
 #include <string>
 
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/unaligned_access.h>
 #include <abel/strings/internal/char_map.h>
@@ -21,7 +21,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 // These are used for the leave_nulls_escaped argument to CUnescapeInternal().
@@ -1095,5 +1095,5 @@ std::string bytes_to_hex_string(abel::string_view from) {
   return result;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

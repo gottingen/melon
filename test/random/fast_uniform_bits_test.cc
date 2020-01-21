@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -258,5 +258,5 @@ TEST(FastUniformBitsTest, URBG32bitRegression) {
 
 }  // namespace
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

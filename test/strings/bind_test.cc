@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 namespace {
 
@@ -139,5 +139,5 @@ TEST_F(FormatBindTest, FormatPack) {
 
 }  // namespace
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

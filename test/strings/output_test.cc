@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 TEST(InvokeFlush, String) {
@@ -56,6 +56,6 @@ TEST(BufferRawSink, Limits) {
 }
 
 }  // namespace
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 

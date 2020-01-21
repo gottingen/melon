@@ -17,15 +17,15 @@
 #include <optional>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 using std::bad_optional_access;
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #else  // ABEL_USES_STD_OPTIONAL
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // -----------------------------------------------------------------------------
 // bad_optional_access
@@ -57,7 +57,7 @@ namespace optional_internal {
 [[noreturn]] void throw_bad_optional_access();
 
 }  // namespace optional_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_OPTIONAL

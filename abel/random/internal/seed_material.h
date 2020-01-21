@@ -15,7 +15,7 @@
 #include <abel/types/span.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Returns the number of 32-bit blocks needed to contain the given number of
@@ -86,7 +86,7 @@ void MixIntoSeedMaterial(abel::Span<const uint32_t> sequence,
 abel::optional<uint32_t> GetSaltMaterial();
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_SEED_MATERIAL_H_

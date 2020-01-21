@@ -17,7 +17,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::beta_distribution:
 // Generate a floating-point variate conforming to a Beta distribution:
@@ -409,7 +409,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   return is;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_BETA_DISTRIBUTION_H_

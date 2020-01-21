@@ -29,7 +29,7 @@
 // structured/low-entropy counters to digits of Pi.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -75,5 +75,5 @@ Randen::Randen() {
 }
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

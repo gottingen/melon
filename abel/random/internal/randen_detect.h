@@ -6,7 +6,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // Returns whether the current CPU supports RandenHwAes implementation.
@@ -15,7 +15,7 @@ namespace random_internal {
 bool CPUSupportsRandenHwAes();
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_RANDEN_DETECT_H_

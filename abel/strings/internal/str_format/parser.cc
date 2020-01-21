@@ -14,7 +14,7 @@
 #include <unordered_set>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 
 using CC = ConversionChar::Id;
@@ -301,5 +301,5 @@ bool ParsedFormatBase::MatchesConversions(
 }
 
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

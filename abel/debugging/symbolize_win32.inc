@@ -19,7 +19,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 static HANDLE process = NULL;
 
@@ -65,5 +65,5 @@ bool Symbolize(const void* pc, char* out, int out_size) {
   return true;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

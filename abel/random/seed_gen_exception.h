@@ -18,7 +18,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 //------------------------------------------------------------------------------
 // SeedGenException
@@ -36,7 +36,7 @@ namespace random_internal {
 [[noreturn]] void ThrowSeedGenException();
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_SEED_GEN_EXCEPTION_H_

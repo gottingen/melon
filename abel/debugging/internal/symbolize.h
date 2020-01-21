@@ -23,7 +23,7 @@
 #include <string>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 // Iterates over all sections, invoking callback on each with the section name
@@ -42,13 +42,13 @@ bool GetSectionHeaderByName(int fd, const char *name, size_t name_len,
                             ElfW(Shdr) *out);
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 struct SymbolDecoratorArgs {
@@ -110,7 +110,7 @@ bool GetFileMappingHint(const void** start,
                         const char** filename);
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_DEBUGGING_INTERNAL_SYMBOLIZE_H_

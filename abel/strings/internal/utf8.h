@@ -10,7 +10,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 // For Unicode code points 0 through 0x10FFFF, EncodeUTF8Char writes
@@ -31,7 +31,7 @@ enum { kMaxEncodedUTF8Size = 4 };
 size_t EncodeUTF8Char(char *buffer, char32_t utf8_char);
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_UTF8_H_

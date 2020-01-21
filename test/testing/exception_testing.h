@@ -1,9 +1,6 @@
-//
 
-// Testing utilities for ABEL types which throw exceptions.
-
-#ifndef ABEL_BASE_INTERNAL_EXCEPTION_TESTING_H_
-#define ABEL_BASE_INTERNAL_EXCEPTION_TESTING_H_
+#ifndef ABEL_TRESTING_EXCEPTION_TESTING_H_
+#define ABEL_TRESTING_EXCEPTION_TESTING_H_
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
@@ -27,4 +24,4 @@
 
 #endif
 
-#endif  // ABEL_BASE_INTERNAL_EXCEPTION_TESTING_H_
+#endif  // ABEL_TRESTING_EXCEPTION_TESTING_H_

@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <abel/memory/memory.h>
 #include <abel/meta/type_traits.h>
 #include <abel/utility/utility.h>
@@ -41,7 +41,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Forward declaration
 template <typename T>
@@ -375,7 +375,7 @@ struct optional_hash_base<T, decltype(std::hash<abel::remove_const_t<T> >()(
 };
 
 }  // namespace optional_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef ABEL_OPTIONAL_USE_INHERITING_CONSTRUCTORS

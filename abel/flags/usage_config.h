@@ -41,7 +41,7 @@
 //     Shows help on modules whose name contains the specified substring
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 namespace flags_internal {
 using FlagKindFilter = std::function<bool (abel::string_view)>;
@@ -106,7 +106,7 @@ FlagsUsageConfig GetUsageConfig();
 void ReportUsageError(abel::string_view msg, bool is_fatal);
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 extern "C" {

@@ -51,13 +51,13 @@
 // or thread_local storage duration.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 enum const_init_type {
     kConstInit,
 };
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_BASE_PROFILE_CONST_INIT_H_

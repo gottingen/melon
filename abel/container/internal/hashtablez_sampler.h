@@ -31,14 +31,14 @@
 #include <memory>
 #include <vector>
 
-#include <abel/base/internal/per_thread_tls.h>
+#include <abel/threading/internal/per_thread_tls.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/have_sse.h>
 #include <abel/synchronization/mutex.h>
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // Stores information about a sampled hashtable.  All mutations to this *must*
@@ -269,7 +269,7 @@ void SetHashtablezMaxSamples(int32_t max);
 extern "C" bool AbelContainerInternalSampleEverything();
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASHTABLEZ_SAMPLER_H_

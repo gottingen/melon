@@ -28,14 +28,14 @@
 #include <type_traits>
 
 #include <abel/algorithm/algorithm.h>
-#include <abel/base/dynamic_annotations.h>
+#include <abel/threading/dynamic_annotations.h>
 #include <abel/base/internal/throw_delegate.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/compressed_tuple.h>
 #include <abel/memory/memory.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 constexpr static auto kFixedArrayUseDefault = static_cast<size_t>(-1);
 
@@ -494,7 +494,7 @@ void FixedArray<T, N, A>::NonEmptyInlinedStorage::AnnotateDestruct(
 #endif                   // ADDRESS_SANITIZER
   static_cast<void>(n);  // Mark used when not in asan mode
 }
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_FIXED_ARRAY_H_

@@ -33,7 +33,7 @@
 #endif  // defined(_MSC_VER)
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class int128;
 
@@ -230,7 +230,7 @@ constexpr uint128 Uint128Max() {
                  (std::numeric_limits<uint64_t>::max)());
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // Specialized numeric_limits for uint128.
@@ -279,7 +279,7 @@ class numeric_limits<abel::uint128> {
 }  // namespace std
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // int128
 //
@@ -465,7 +465,7 @@ constexpr int128 Int128Min() {
   return int128((std::numeric_limits<int64_t>::min)(), 0);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // Specialized numeric_limits for int128.
@@ -517,7 +517,7 @@ class numeric_limits<abel::int128> {
 //                      Implementation details follow
 // --------------------------------------------------------------------------
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 constexpr uint128 MakeUint128(uint64_t high, uint64_t low) {
   return uint128(high, low);
@@ -1067,7 +1067,7 @@ constexpr int64_t BitCastToSigned(uint64_t v) {
 #include <abel/numeric/int128_no_intrinsic.inc>  // IWYU pragma: export
 #endif  // ABEL_HAVE_INTRINSIC_INT128
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef ABEL_INTERNAL_WCHAR_T

@@ -15,7 +15,7 @@
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::exponential_distribution:
 // Generates a number conforming to an exponential distribution and is
@@ -147,7 +147,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   return is;
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_EXPONENTIAL_DISTRIBUTION_H_

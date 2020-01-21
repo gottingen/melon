@@ -36,7 +36,7 @@
 #include <abel/strings/strip.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 //------------------------------------------------------------------------------
 // Delimiters
@@ -494,7 +494,7 @@ strings_internal::Splitter<
       std::move(text), DelimiterType(d), std::move(p));
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_STR_SPLIT_H_

@@ -13,7 +13,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 class Cord;
 
@@ -394,7 +394,7 @@ ABEL_FORCE_INLINE size_t Excess(size_t used, size_t capacity) {
 
 }  // namespace str_format_internal
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_EXTENSION_H_

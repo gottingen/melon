@@ -22,7 +22,7 @@
 #include <abel/utility/utility.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // Allocates at least n bytes aligned to the specified alignment.
@@ -422,7 +422,7 @@ struct map_slot_policy {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_CONTAINER_MEMORY_H_

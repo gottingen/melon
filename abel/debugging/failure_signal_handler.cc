@@ -25,7 +25,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 #include <abel/debugging/internal/examine_stack.h>
 #include <abel/debugging/stacktrace.h>
 
@@ -34,7 +34,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 ABEL_CONST_INIT static FailureSignalHandlerOptions fsh_options;
 
@@ -280,9 +280,9 @@ static void ImmediateAbortSignalHandler(int) {
 }
 #endif
 
-// abel::base_internal::GetTID() returns pid_t on most platforms, but
+// abel::get_tid() returns pid_t on most platforms, but
 // returns abel::base_internal::pid_t on Windows.
-using GetTidType = decltype(abel::base_internal::GetTID());
+using GetTidType = decltype(abel::get_tid());
 ABEL_CONST_INIT static std::atomic<GetTidType> failed_tid(0);
 
 #ifndef ABEL_HAVE_SIGACTION
@@ -292,7 +292,7 @@ static void AbelFailureSignalHandler(int signo) {
 static void AbelFailureSignalHandler(int signo, siginfo_t*, void* ucontext) {
 #endif
 
-  const GetTidType this_tid = abel::base_internal::GetTID();
+  const GetTidType this_tid = abel::get_tid();
   GetTidType previous_failed_tid = 0;
   if (!failed_tid.compare_exchange_strong(
           previous_failed_tid, static_cast<intptr_t>(this_tid),
@@ -344,5 +344,5 @@ void InstallFailureSignalHandler(const FailureSignalHandlerOptions& options) {
   }
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

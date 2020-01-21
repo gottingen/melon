@@ -11,7 +11,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 //////////////////////////
 // [variant.bad.access] //
@@ -46,7 +46,7 @@ void rethrow() {
 }
 
 }  // namespace variant_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_VARIANT

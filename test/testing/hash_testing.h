@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_HASH_HASH_TESTING_H_
-#define ABEL_HASH_HASH_TESTING_H_
+#ifndef ABEL_TESTING_HASH_TESTING_H_
+#define ABEL_TESTING_HASH_TESTING_H_
 
 #include <initializer_list>
 #include <tuple>
@@ -16,7 +16,7 @@
 #include <abel/types/variant.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // Run the abel::Hash algorithm over all the elements passed in and verify that
 // their hash expansion is congruent with their `==` operator.
@@ -360,7 +360,7 @@ VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values,
       equals);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
-#endif  // ABEL_HASH_HASH_TESTING_H_
+#endif  // ABEL_TESTING_HASH_TESTING_H_

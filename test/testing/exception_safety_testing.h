@@ -2,8 +2,8 @@
 
 // Utilities for testing exception-safety
 
-#ifndef ABEL_BASE_INTERNAL_EXCEPTION_SAFETY_TESTING_H_
-#define ABEL_BASE_INTERNAL_EXCEPTION_SAFETY_TESTING_H_
+#ifndef ABEL_TESTING_EXCEPTION_SAFETY_TESTING_H_
+#define ABEL_TESTING_EXCEPTION_SAFETY_TESTING_H_
 
 #include <abel/base/profile.h>
 
@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 #include <gtest/gtest.h>
-#include <abel/base/internal/pretty_function.h>
+#include <abel/base/profile/pretty_function.h>
 #include <abel/memory/memory.h>
 #include <abel/meta/type_traits.h>
 #include <abel/strings/string_view.h>
@@ -1086,4 +1086,4 @@ class ExceptionSafetyTestBuilder {
 
 #endif  // ABEL_HAVE_EXCEPTIONS
 
-#endif  // ABEL_BASE_INTERNAL_EXCEPTION_SAFETY_TESTING_H_
+#endif  // ABEL_TESTING_EXCEPTION_SAFETY_TESTING_H_

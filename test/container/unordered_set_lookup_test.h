@@ -9,7 +9,7 @@
 #include <test/container/hash_policy_testing.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <class UnordSet>
@@ -73,7 +73,7 @@ TYPED_TEST_P(LookupTest, EqualRange) {
 REGISTER_TYPED_TEST_SUITE_P(LookupTest, Count, Find, EqualRange);
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_SET_LOOKUP_TEST_H_

@@ -11,7 +11,7 @@
 #include <abel/strings/internal/str_format/bind.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace str_format_internal {
 namespace {
 
@@ -647,5 +647,5 @@ TEST_F(FormatConvertTest, ExpectedFailures) {
 
 }  // namespace
 }  // namespace str_format_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

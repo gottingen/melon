@@ -17,7 +17,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 constexpr const char kChiSquared[] = "chi-squared";
@@ -71,7 +71,7 @@ double ChiSquareValue(int dof, double p);
 double ChiSquarePValue(double chi_square, int dof);
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_CHI_SQUARE_H_

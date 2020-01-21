@@ -32,7 +32,7 @@ ABEL_FLAG(std::string, helpmatch, "",
           "show help on modules whose name contains the specified substr");
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 namespace {
 
@@ -393,5 +393,5 @@ int HandleUsageFlags(std::ostream& out,
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

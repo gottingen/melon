@@ -7,7 +7,7 @@
 #include <string>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 namespace {
@@ -343,5 +343,5 @@ template class BigUnsigned<4>;
 template class BigUnsigned<84>;
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

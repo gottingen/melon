@@ -15,7 +15,7 @@
 // Global flags registry API.
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 CommandLineFlag* FindCommandLineFlag(abel::string_view name);
@@ -104,7 +104,7 @@ class FlagSaver {
 };
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_FLAGS_INTERNAL_REGISTRY_H_

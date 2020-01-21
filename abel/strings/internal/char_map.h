@@ -13,7 +13,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace strings_internal {
 
 class Charmap {
@@ -135,7 +135,7 @@ constexpr Charmap GraphCharmap() { return PrintCharmap() & ~SpaceCharmap(); }
 constexpr Charmap PunctCharmap() { return GraphCharmap() & ~AlnumCharmap(); }
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_STRINGS_INTERNAL_CHAR_MAP_H_

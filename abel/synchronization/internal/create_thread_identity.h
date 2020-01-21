@@ -25,16 +25,16 @@
 #ifndef ABEL_SYNCHRONIZATION_INTERNAL_CREATE_THREAD_IDENTITY_H_
 #define ABEL_SYNCHRONIZATION_INTERNAL_CREATE_THREAD_IDENTITY_H_
 
-#include <abel/base/internal/thread_identity.h>
+#include <abel/threading/internal/thread_identity.h>
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace synchronization_internal {
 
 // Allocates and attaches a ThreadIdentity object for the calling thread.
 // For private use only.
-base_internal::ThreadIdentity* CreateThreadIdentity();
+threading_internal::ThreadIdentity* CreateThreadIdentity();
 
 // A per-thread destructor for reclaiming associated ThreadIdentity objects.
 // For private use only.
@@ -44,9 +44,9 @@ void ReclaimThreadIdentity(void* v);
 // to be unique for its lifetime.  The returned object will remain valid for the
 // program's lifetime; although it may be re-assigned to a subsequent thread.
 // If one does not exist for the calling thread, allocate it now.
-ABEL_FORCE_INLINE base_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentity() {
-  base_internal::ThreadIdentity* identity =
-      base_internal::CurrentThreadIdentityIfPresent();
+ABEL_FORCE_INLINE threading_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentity() {
+    threading_internal::ThreadIdentity* identity =
+        threading_internal::CurrentThreadIdentityIfPresent();
   if (ABEL_UNLIKELY(identity == nullptr)) {
     return CreateThreadIdentity();
   }
@@ -54,7 +54,7 @@ ABEL_FORCE_INLINE base_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentit
 }
 
 }  // namespace synchronization_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_SYNCHRONIZATION_INTERNAL_CREATE_THREAD_IDENTITY_H_

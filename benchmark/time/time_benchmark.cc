@@ -25,7 +25,7 @@
 #include <string>
 
 #include <abel/time/clock.h>
-#include <abel/time/internal/test_util.h>
+#include <abel/testing/time_util.h>
 #include <benchmark/benchmark.h>
 
 namespace {

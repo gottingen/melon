@@ -1,11 +1,9 @@
-//
 
 #include <testing/hash_generator_testing.h>
-
 #include <deque>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace hash_internal {
 namespace {
@@ -58,5 +56,5 @@ abel::string_view Generator<abel::string_view>::operator()() const {
 
 }  // namespace hash_internal
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

@@ -15,7 +15,7 @@
 #include <abel/strings/string_view.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // abel::Flag<T> represents a flag of type 'T' created by ABEL_FLAG.
@@ -35,7 +35,7 @@ template <typename T>
 using Flag = flags_internal::Flag<T>;
 #endif
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 // ABEL_DECLARE_FLAG()

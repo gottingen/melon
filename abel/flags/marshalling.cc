@@ -14,7 +14,7 @@
 #include <abel/strings/str_split.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // --------------------------------------------------------------------
@@ -214,5 +214,5 @@ std::string abel_unparse_flag(abel::LogSeverity v) {
   return abel::UnparseFlag(static_cast<int>(v));
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel

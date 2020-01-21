@@ -8,7 +8,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 ABEL_CONST_INIT static abel::mutex program_name_guard(abel::kConstInit);
@@ -38,5 +38,5 @@ void SetProgramInvocationName(abel::string_view prog_name_str) {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

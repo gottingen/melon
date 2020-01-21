@@ -35,7 +35,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 template <typename... Ts>
@@ -244,7 +244,7 @@ template <>
 class ABEL_INTERNAL_COMPRESSED_TUPLE_DECLSPEC CompressedTuple<> {};
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #undef ABEL_INTERNAL_COMPRESSED_TUPLE_DECLSPEC

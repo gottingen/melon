@@ -9,7 +9,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 template <typename IntType>
 class uniform_int_distribution;
 
@@ -161,7 +161,7 @@ struct UniformDistributionWrapper : public UniformDistribution<NumType> {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_UNIFORM_HELPER_H_

@@ -13,7 +13,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 namespace hashtable_debug_internal {
 
@@ -66,7 +66,7 @@ struct HashtableDebugAccess {
 
 }  // namespace hashtable_debug_internal
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_HASHTABLE_DEBUG_HOOKS_H_

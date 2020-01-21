@@ -9,22 +9,22 @@
 #include <iterator>
 
 #include <abel/base/profile.h>
-#include <abel/base/call_once.h>
+#include <abel/functional/call_once.h>
 #include <abel/base/profile.h>
-#include <abel/base/internal/endian.h>
+#include <abel/system/endian.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/sysinfo.h>
+#include <abel/threading/internal/spinlock.h>
+#include <abel/system/sysinfo.h>
 #include <abel/base/internal/unaligned_access.h>
 #include <abel/random/internal/randen.h>
 #include <abel/random/internal/seed_material.h>
 #include <abel/random/seed_gen_exception.h>
 
-using abel::base_internal::SpinLock;
-using abel::base_internal::SpinLockHolder;
+using abel::threading_internal::SpinLock;
+using abel::threading_internal::SpinLockHolder;
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 namespace {
 
@@ -237,5 +237,5 @@ template class RandenPool<uint32_t>;
 template class RandenPool<uint64_t>;
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

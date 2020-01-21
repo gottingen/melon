@@ -10,7 +10,7 @@
 #include <abel/base/internal/raw_logging.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 bad_optional_access::~bad_optional_access() = default;
 
@@ -30,7 +30,7 @@ void throw_bad_optional_access() {
 }
 
 }  // namespace optional_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_USES_STD_OPTIONAL

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <abel/base/internal/cycleclock.h>
+#include <abel/time/cycleclock.h>
 #include <testing/hash_testing.h>
 #include <abel/meta/type_traits.h>
 

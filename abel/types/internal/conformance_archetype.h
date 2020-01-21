@@ -30,7 +30,7 @@
 #include <abel/types/internal/conformance_profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace types_internal {
 
 // A minimum-conforming implementation of a type with properties specified in
@@ -949,7 +949,7 @@ struct EnabledHash {
 };
 
 }  // namespace types_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 namespace std {

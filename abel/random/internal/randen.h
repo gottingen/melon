@@ -11,7 +11,7 @@
 #include <abel/random/internal/randen_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 // RANDen = RANDom generator or beetroots in Swiss German.
@@ -84,7 +84,7 @@ class Randen {
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_INTERNAL_RANDEN_H_

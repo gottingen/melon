@@ -8,7 +8,7 @@
 #include <abel/synchronization/mutex.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace flags_internal {
 
 // The help message indicating that the commandline flag has been
@@ -390,5 +390,5 @@ bool FlagImpl::ValidateInputValue(abel::string_view value) const {
 }
 
 }  // namespace flags_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

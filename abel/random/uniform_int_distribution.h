@@ -27,7 +27,7 @@
 #include <abel/random/internal/wide_multiply.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 // abel::uniform_int_distribution<T>
 //
@@ -256,7 +256,7 @@ uniform_int_distribution<IntType>::Generate(
   return helper::hi(product);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_UNIFORM_INT_DISTRIBUTION_H_

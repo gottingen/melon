@@ -17,7 +17,7 @@
 #include <sys/auxv.h>
 #endif
 
-#include <abel/base/dynamic_annotations.h>
+#include <abel/threading/dynamic_annotations.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/profile.h>
 
@@ -26,7 +26,7 @@
 #endif
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace debugging_internal {
 
 ABEL_CONST_INIT
@@ -176,7 +176,7 @@ static class VDSOInitHelper {
 } vdso_init_helper;
 
 }  // namespace debugging_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_HAVE_VDSO_SUPPORT

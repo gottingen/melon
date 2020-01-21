@@ -26,7 +26,7 @@
 #include <abel/meta/type_traits.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace compare_internal {
 
 using value_type = int8_t;
@@ -539,7 +539,7 @@ constexpr abel::weak_ordering do_three_way_comparison(const Compare &compare,
 }
 
 }  // namespace compare_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_TYPES_COMPARE_H_

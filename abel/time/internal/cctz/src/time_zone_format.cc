@@ -49,7 +49,7 @@
 #include "time_zone_if.h"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 namespace detail {
@@ -918,5 +918,5 @@ bool parse(const std::string& format, const std::string& input,
 }  // namespace detail
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

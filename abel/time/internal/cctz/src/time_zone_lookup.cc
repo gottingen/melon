@@ -36,7 +36,7 @@
 #include "time_zone_impl.h"
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace time_internal {
 namespace cctz {
 
@@ -183,5 +183,5 @@ time_zone local_time_zone() {
 
 }  // namespace cctz
 }  // namespace time_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

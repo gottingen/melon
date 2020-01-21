@@ -10,7 +10,7 @@
 #include <abel/base/profile.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace container_internal {
 
 // This is a stateful allocator, but the state lives outside of the
@@ -65,7 +65,7 @@ class CountingAllocator : public std::allocator<T> {
 };
 
 }  // namespace container_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_CONTAINER_INTERNAL_COUNTING_ALLOCATOR_H_

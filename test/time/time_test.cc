@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 #include <abel/numeric/int128.h>
 #include <abel/time/clock.h>
-#include <testing/test_util.h>
+#include <testing/time_util.h>
 
 namespace {
 

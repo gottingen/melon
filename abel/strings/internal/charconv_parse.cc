@@ -10,7 +10,7 @@
 #include <abel/strings/internal/memutil.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace {
 
 // ParseFloat<10> will read the first 19 significant digits of the mantissa.
@@ -488,5 +488,5 @@ template ParsedFloat ParseFloat<16>(const char* begin, const char* end,
                                     chars_format format_flags);
 
 }  // namespace strings_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel

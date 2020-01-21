@@ -1,17 +1,15 @@
-//
-//
 
-#ifndef ABEL_RANDOM_INTERNAL_MOCK_OVERLOAD_SET_H_
-#define ABEL_RANDOM_INTERNAL_MOCK_OVERLOAD_SET_H_
+
+#ifndef ABEL_TESTING_INTERNAL_MOCK_OVERLOAD_SET_H_
+#define ABEL_TESTING_INTERNAL_MOCK_OVERLOAD_SET_H_
 
 #include <type_traits>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <testing/mocking_bit_gen.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 namespace random_internal {
 
 template <typename DistrT, typename Fn>
@@ -74,6 +72,6 @@ struct MockOverloadSet<DistrT, FirstSig, Rest...>
 };
 
 }  // namespace random_internal
-ABEL_NAMESPACE_END
+
 }  // namespace abel
-#endif  // ABEL_RANDOM_INTERNAL_MOCK_OVERLOAD_SET_H_
+#endif  // ABEL_TESTING_INTERNAL_MOCK_OVERLOAD_SET_H_

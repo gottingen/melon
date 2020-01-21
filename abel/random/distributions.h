@@ -39,7 +39,7 @@
 #include <random>
 #include <type_traits>
 
-#include <abel/base/internal/inline_variable.h>
+#include <abel/types/internal/inline_variable.h>
 #include <abel/random/bernoulli_distribution.h>
 #include <abel/random/beta_distribution.h>
 #include <abel/random/distribution_format_traits.h>
@@ -54,7 +54,7 @@
 #include <abel/random/zipf_distribution.h>
 
 namespace abel {
-ABEL_NAMESPACE_BEGIN
+
 
 ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosedClosed,
                                {});
@@ -446,7 +446,7 @@ IntType Zipf(URBG&& urbg,  // NOLINT(runtime/references)
       distribution_t, format_t>(&urbg, hi, q, v);
 }
 
-ABEL_NAMESPACE_END
+
 }  // namespace abel
 
 #endif  // ABEL_RANDOM_DISTRIBUTIONS_H_
