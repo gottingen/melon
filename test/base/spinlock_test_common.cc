@@ -15,7 +15,7 @@
 #include <abel/base/internal/low_level_scheduling.h>
 #include <abel/base/internal/scheduling_mode.h>
 #include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 #include <abel/base/profile.h>
 #include <abel/synchronization/blocking_counter.h>
 #include <abel/synchronization/notification.h>
@@ -244,13 +244,13 @@ TEST(SpinLockWithThreads, DoesNotDeadlock) {
       base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
   SpinLock stack_noncooperative_spinlock(base_internal::SCHEDULE_KERNEL_ONLY);
   Helper::DeadlockTest(&stack_cooperative_spinlock,
-                       NumCPUs() * 2);
+                       num_cpus() * 2);
   Helper::DeadlockTest(&stack_noncooperative_spinlock,
-                       NumCPUs() * 2);
+                       num_cpus() * 2);
   Helper::DeadlockTest(&static_cooperative_spinlock,
-                       NumCPUs() * 2);
+                       num_cpus() * 2);
   Helper::DeadlockTest(&static_noncooperative_spinlock,
-                       NumCPUs() * 2);
+                       num_cpus() * 2);
 }
 
 }  // namespace

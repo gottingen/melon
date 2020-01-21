@@ -1,18 +1,8 @@
-//
-// This file includes routines to find out characteristics
-// of the machine a program is running on.  It is undoubtedly
-// system-dependent.
-
-// Functions listed here that accept a pid_t as an argument act on the
-// current process if the pid_t argument is 0
-// All functions here are thread-hostile due to file caching unless
-// commented otherwise.
-
-#ifndef ABEL_BASE_INTERNAL_SYSINFO_H_
-#define ABEL_BASE_INTERNAL_SYSINFO_H_
+#ifndef ABEL_SYSTEM_SYSINFO_H_
+#define ABEL_SYSTEM_SYSINFO_H_
 
 #ifndef _WIN32
-#include <sys/types.h>
+    #include <sys/types.h>
 #endif
 
 #include <cstdint>
@@ -20,14 +10,13 @@
 
 namespace abel {
 
-
 // Nominal core processor cycles per second of each processor.   This is _not_
 // necessarily the frequency of the cycle_clock counter (see cycleclock.h)
 // Thread-safe.
-double NominalCPUFrequency();
+double nominal_cpu_frequency ();
 
 // Number of logical processors (hyperthreads) in system. Thread-safe.
-int NumCPUs();
+int num_cpus ();
 
 // Return the thread id of the current thread, as told by the system.
 // No two currently-live threads implemented by the OS shall have the same ID.
@@ -42,9 +31,9 @@ int NumCPUs();
 // 32-bit type.
 using pid_t = uint32_t;
 #endif
-pid_t GetTID();
+pid_t get_tid ();
 
-}  // namespace base_internal
+}  // namespace abel
 
 
-#endif  // ABEL_BASE_INTERNAL_SYSINFO_H_
+#endif  // ABEL_SYSTEM_SYSINFO_H_

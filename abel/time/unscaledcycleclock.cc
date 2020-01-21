@@ -12,7 +12,7 @@
 #include <sys/platform/ppc.h>
 #endif
 
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 
 namespace abel {
 
@@ -26,7 +26,7 @@ int64_t unscaled_cycle_clock::now() {
 }
 
 double unscaled_cycle_clock::frequency() {
-  return NominalCPUFrequency();
+  return nominal_cpu_frequency();
 }
 
 #elif defined(__x86_64__)
@@ -38,7 +38,7 @@ int64_t unscaled_cycle_clock::now() {
 }
 
 double unscaled_cycle_clock::frequency() {
-  return NominalCPUFrequency();
+  return nominal_cpu_frequency();
 }
 
 #elif defined(__powerpc__) || defined(__ppc__)
@@ -78,7 +78,7 @@ int64_t unscaled_cycle_clock::now() {
 }
 
 double unscaled_cycle_clock::frequency() {
-  return NominalCPUFrequency();
+  return nominal_cpu_frequency();
 }
 
 #endif

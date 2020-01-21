@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 
 #ifndef _WIN32
 #include <sys/types.h>
@@ -20,25 +20,25 @@ namespace abel {
 namespace base_internal {
 namespace {
 
-TEST(SysinfoTest, NumCPUs) {
-  EXPECT_NE(NumCPUs(), 0)
-      << "NumCPUs() should not have the default value of 0";
+TEST(SysinfoTest, num_cpus) {
+  EXPECT_NE(abel::num_cpus(), 0)
+      << "num_cpus() should not have the default value of 0";
 }
 
-TEST(SysinfoTest, NominalCPUFrequency) {
+TEST(SysinfoTest, nominal_cpu_frequency) {
 #if !(defined(__aarch64__) && defined(__linux__)) && !defined(__EMSCRIPTEN__)
-  EXPECT_GE(NominalCPUFrequency(), 1000.0)
-      << "NominalCPUFrequency() did not return a reasonable value";
+  EXPECT_GE(nominal_cpu_frequency(), 1000.0)
+      << "nominal_cpu_frequency() did not return a reasonable value";
 #else
   // Aarch64 cannot read the CPU frequency from sysfs, so we get back 1.0.
   // Emscripten does not have a sysfs to read from at all.
-  EXPECT_EQ(NominalCPUFrequency(), 1.0)
+  EXPECT_EQ(nominal_cpu_frequency(), 1.0)
       << "CPU frequency detection was fixed! Please update unittest.";
 #endif
 }
 
-TEST(SysinfoTest, GetTID) {
-  EXPECT_EQ(GetTID(), GetTID());  // Basic compile and equality test.
+TEST(SysinfoTest, get_tid) {
+  EXPECT_EQ(get_tid(), get_tid());  // Basic compile and equality test.
 #ifdef __native_client__
   // Native Client has a race condition bug that leads to memory
   // exaustion when repeatedly creating and joining threads.
@@ -57,7 +57,7 @@ TEST(SysinfoTest, GetTID) {
 
     for (int j = 0; j < kNumThreads; ++j) {
       threads.push_back(std::thread([&]() {
-        pid_t id = GetTID();
+        pid_t id = get_tid();
         {
           mutex_lock lock(&mutex);
           ASSERT_TRUE(tids.find(id) == tids.end());
@@ -77,8 +77,8 @@ TEST(SysinfoTest, GetTID) {
 
 #ifdef __linux__
 TEST(SysinfoTest, LinuxGetTID) {
-  // On Linux, for the main thread, GetTID()==getpid() is guaranteed by the API.
-  EXPECT_EQ(GetTID(), getpid());
+  // On Linux, for the main thread, get_tid()==getpid() is guaranteed by the API.
+  EXPECT_EQ(get_tid(), getpid());
 }
 #endif
 

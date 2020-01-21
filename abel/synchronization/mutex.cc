@@ -33,7 +33,7 @@
 #include <abel/base/internal/low_level_alloc.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 #include <abel/base/internal/thread_identity.h>
 #include <abel/base/profile.h>
 #include <abel/debugging/stacktrace.h>
@@ -81,7 +81,7 @@ static struct MutexGlobals {
         // Find machine-specific data needed for Delay() and
         // TryAcquireWithSpinning(). This runs in the global constructor
         // sequence, and before that zeros are safe values.
-        num_cpus = abel::NumCPUs();
+        num_cpus = abel::num_cpus();
         spinloop_iterations = num_cpus > 1 ? 1500 : 0;
     }
     int num_cpus;

@@ -14,7 +14,7 @@
 #include <abel/base/internal/endian.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/spinlock.h>
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 #include <abel/base/internal/unaligned_access.h>
 #include <abel/random/internal/randen.h>
 #include <abel/random/internal/seed_material.h>

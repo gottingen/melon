@@ -935,7 +935,7 @@ class Benchmark {
   // a benchmark with 1, 4, 7 and 8 threads.
   Benchmark* DenseThreadRange(int min_threads, int max_threads, int stride = 1);
 
-  // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
+  // Equivalent to ThreadRange(num_cpus(), num_cpus())
   Benchmark* ThreadPerCpu();
 
   virtual void Run(State& state) = 0;

@@ -10,7 +10,7 @@
 #include <abel/base/internal/atomic_hook.h>
 #include <abel/time/cycleclock.h>
 #include <abel/base/internal/spinlock_wait.h>
-#include <abel/base/internal/sysinfo.h> /* For NumCPUs() */
+#include <abel/system/sysinfo.h> /* For num_cpus() */
 #include <abel/functional/call_once.h>
 
 // Description of lock-word:
@@ -92,7 +92,7 @@ uint32_t SpinLock::SpinLoop() {
   ABEL_CONST_INIT static abel::once_flag init_adaptive_spin_count;
   ABEL_CONST_INIT static int adaptive_spin_count = 0;
   base_internal::LowLevelCallOnce(&init_adaptive_spin_count, []() {
-    adaptive_spin_count = NumCPUs() > 1 ? 1000 : 1;
+    adaptive_spin_count = num_cpus() > 1 ? 1000 : 1;
   });
 
   int c = adaptive_spin_count;

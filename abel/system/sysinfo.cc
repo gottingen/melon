@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/sysinfo.h>
+#include <abel/system/sysinfo.h>
 
 #include <abel/base/profile.h>
 
@@ -45,17 +45,17 @@
 namespace abel {
 
 static once_flag init_system_info_once;
-static int num_cpus = 0;
-static double nominal_cpu_frequency = 1.0;  // 0.0 might be dangerous.
+static int g_num_cpus = 0;
+static double g_nominal_cpu_frequency = 1.0;  // 0.0 might be dangerous.
 
-static int GetNumCPUs() {
+static int get_num_cpus () {
 #if defined(__myriad2__)
-  return 1;
+    return 1;
 #else
-  // Other possibilities:
-  //  - Read /sys/devices/system/cpu/online and use cpumask_parse()
-  //  - sysconf(_SC_NPROCESSORS_ONLN)
-  return std::thread::hardware_concurrency();
+    // Other possibilities:
+    //  - Read /sys/devices/system/cpu/online and use cpumask_parse()
+    //  - sysconf(_SC_NPROCESSORS_ONLN)
+    return std::thread::hardware_concurrency();
 #endif
 }
 
@@ -85,14 +85,14 @@ static double GetNominalCPUFrequency() {
 
 #elif defined(CTL_HW) && defined(HW_CPU_FREQ)
 
-static double GetNominalCPUFrequency() {
-  unsigned freq;
-  size_t size = sizeof(freq);
-  int mib[2] = {CTL_HW, HW_CPU_FREQ};
-  if (sysctl(mib, 2, &freq, &size, nullptr, 0) == 0) {
-    return static_cast<double>(freq);
-  }
-  return 1.0;
+static double GetNominalCPUFrequency () {
+    unsigned freq;
+    size_t size = sizeof(freq);
+    int mib[2] = {CTL_HW, HW_CPU_FREQ};
+    if (sysctl(mib, 2, &freq, &size, nullptr, 0) == 0) {
+        return static_cast<double>(freq);
+    }
+    return 1.0;
 }
 
 #else
@@ -254,24 +254,24 @@ static double GetNominalCPUFrequency() {
 // InitializeSystemInfo() may be called before main() and before
 // malloc is properly initialized, therefore this must not allocate
 // memory.
-static void InitializeSystemInfo() {
-  num_cpus = GetNumCPUs();
-  nominal_cpu_frequency = GetNominalCPUFrequency();
+static void InitializeSystemInfo () {
+    g_num_cpus = get_num_cpus();
+    g_nominal_cpu_frequency = GetNominalCPUFrequency();
 }
 
-int NumCPUs() {
-  base_internal::LowLevelCallOnce(&init_system_info_once, InitializeSystemInfo);
-  return num_cpus;
+int num_cpus () {
+    base_internal::LowLevelCallOnce(&init_system_info_once, InitializeSystemInfo);
+    return g_num_cpus;
 }
 
-double NominalCPUFrequency() {
-  base_internal::LowLevelCallOnce(&init_system_info_once, InitializeSystemInfo);
-  return nominal_cpu_frequency;
+double nominal_cpu_frequency () {
+    base_internal::LowLevelCallOnce(&init_system_info_once, InitializeSystemInfo);
+    return g_nominal_cpu_frequency;
 }
 
 #if defined(_WIN32)
 
-pid_t GetTID() {
+pid_t get_tid() {
   return pid_t{GetCurrentThreadId()};
 }
 
@@ -281,13 +281,13 @@ pid_t GetTID() {
 #define SYS_gettid __NR_gettid
 #endif
 
-pid_t GetTID() {
+pid_t get_tid() {
   return syscall(SYS_gettid);
 }
 
 #elif defined(__akaros__)
 
-pid_t GetTID() {
+pid_t get_tid() {
   // Akaros has a concept of "vcore context", which is the state the program
   // is forced into when we need to make a user-level scheduling decision, or
   // run a signal handler.  This is analogous to the interrupt context that a
@@ -311,7 +311,7 @@ pid_t GetTID() {
 
 #elif defined(__myriad2__)
 
-pid_t GetTID() {
+pid_t get_tid() {
   uint32_t tid;
   rtems_task_ident(RTEMS_SELF, 0, &tid);
   return tid;
@@ -319,7 +319,7 @@ pid_t GetTID() {
 
 #else
 
-// Fallback implementation of GetTID using pthread_getspecific.
+// Fallback implementation of get_tid using pthread_getspecific.
 static once_flag tid_once;
 static pthread_key_t tid_key;
 static abel::base_internal::SpinLock tid_lock(
@@ -328,69 +328,69 @@ static abel::base_internal::SpinLock tid_lock(
 // We set a bit per thread in this array to indicate that an ID is in
 // use. ID 0 is unused because it is the default value returned by
 // pthread_getspecific().
-static std::vector<uint32_t>* tid_array GUARDED_BY(tid_lock) = nullptr;
+static std::vector<uint32_t> *tid_array GUARDED_BY(tid_lock) = nullptr;
 static constexpr int kBitsPerWord = 32;  // tid_array is uint32_t.
 
 // Returns the TID to tid_array.
-static void FreeTID(void *v) {
-  intptr_t tid = reinterpret_cast<intptr_t>(v);
-  int word = tid / kBitsPerWord;
-  uint32_t mask = ~(1u << (tid % kBitsPerWord));
-  abel::base_internal::SpinLockHolder lock(&tid_lock);
-  assert(0 <= word && static_cast<size_t>(word) < tid_array->size());
-  (*tid_array)[word] &= mask;
+static void FreeTID (void *v) {
+    intptr_t tid = reinterpret_cast<intptr_t>(v);
+    int word = tid / kBitsPerWord;
+    uint32_t mask = ~(1u << (tid % kBitsPerWord));
+    abel::base_internal::SpinLockHolder lock(&tid_lock);
+    assert(0 <= word && static_cast<size_t>(word) < tid_array->size());
+    (*tid_array)[word] &= mask;
 }
 
-static void InitGetTID() {
-  if (pthread_key_create(&tid_key, FreeTID) != 0) {
-    // The logging system calls GetTID() so it can't be used here.
-    perror("pthread_key_create failed");
-    abort();
-  }
+static void InitGetTID () {
+    if (pthread_key_create(&tid_key, FreeTID) != 0) {
+        // The logging system calls get_tid() so it can't be used here.
+        perror("pthread_key_create failed");
+        abort();
+    }
 
-  // Initialize tid_array.
-  abel::base_internal::SpinLockHolder lock(&tid_lock);
-  tid_array = new std::vector<uint32_t>(1);
-  (*tid_array)[0] = 1;  // ID 0 is never-allocated.
+    // Initialize tid_array.
+    abel::base_internal::SpinLockHolder lock(&tid_lock);
+    tid_array = new std::vector<uint32_t>(1);
+    (*tid_array)[0] = 1;  // ID 0 is never-allocated.
 }
 
 // Return a per-thread small integer ID from pthread's thread-specific data.
-pid_t GetTID() {
-  abel::call_once(tid_once, InitGetTID);
+pid_t get_tid () {
+    abel::call_once(tid_once, InitGetTID);
 
-  intptr_t tid = reinterpret_cast<intptr_t>(pthread_getspecific(tid_key));
-  if (tid != 0) {
-    return tid;
-  }
-
-  int bit;  // tid_array[word] = 1u << bit;
-  size_t word;
-  {
-    // Search for the first unused ID.
-    abel::base_internal::SpinLockHolder lock(&tid_lock);
-    // First search for a word in the array that is not all ones.
-    word = 0;
-    while (word < tid_array->size() && ~(*tid_array)[word] == 0) {
-      ++word;
+    intptr_t tid = reinterpret_cast<intptr_t>(pthread_getspecific(tid_key));
+    if (tid != 0) {
+        return tid;
     }
-    if (word == tid_array->size()) {
-      tid_array->push_back(0);  // No space left, add kBitsPerWord more IDs.
-    }
-    // Search for a zero bit in the word.
-    bit = 0;
-    while (bit < kBitsPerWord && (((*tid_array)[word] >> bit) & 1) != 0) {
-      ++bit;
-    }
-    tid = (word * kBitsPerWord) + bit;
-    (*tid_array)[word] |= 1u << bit;  // Mark the TID as allocated.
-  }
 
-  if (pthread_setspecific(tid_key, reinterpret_cast<void *>(tid)) != 0) {
-    perror("pthread_setspecific failed");
-    abort();
-  }
+    int bit;  // tid_array[word] = 1u << bit;
+    size_t word;
+    {
+        // Search for the first unused ID.
+        abel::base_internal::SpinLockHolder lock(&tid_lock);
+        // First search for a word in the array that is not all ones.
+        word = 0;
+        while (word < tid_array->size() && ~(*tid_array)[word] == 0) {
+            ++word;
+        }
+        if (word == tid_array->size()) {
+            tid_array->push_back(0);  // No space left, add kBitsPerWord more IDs.
+        }
+        // Search for a zero bit in the word.
+        bit = 0;
+        while (bit < kBitsPerWord && (((*tid_array)[word] >> bit) & 1) != 0) {
+            ++bit;
+        }
+        tid = (word * kBitsPerWord) + bit;
+        (*tid_array)[word] |= 1u << bit;  // Mark the TID as allocated.
+    }
 
-  return static_cast<pid_t>(tid);
+    if (pthread_setspecific(tid_key, reinterpret_cast<void *>(tid)) != 0) {
+        perror("pthread_setspecific failed");
+        abort();
+    }
+
+    return static_cast<pid_t>(tid);
 }
 
 #endif

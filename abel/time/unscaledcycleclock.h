@@ -66,7 +66,7 @@
 #if ABEL_USE_UNSCALED_CYCLECLOCK
 
 // This macro can be used to test if unscaled_cycle_clock::frequency()
-// is NominalCPUFrequency() on a particular platform.
+// is nominal_cpu_frequency() on a particular platform.
 #if  (defined(__i386__) || defined(__x86_64__) || \
       defined(_M_IX86) || defined(_M_X64))
 #define ABEL_INTERNAL_UNSCALED_CYCLECLOCK_FREQUENCY_IS_CPU_FREQUENCY
