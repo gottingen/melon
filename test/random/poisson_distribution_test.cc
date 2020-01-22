@@ -256,7 +256,7 @@ bool PoissonDistributionZTest::SingleZTest(const double p,
   abel::flat_hash_map<int32_t, int> buckets;
   std::vector<double> data;
   data.reserve(samples);
-  for (int j = 0; j < samples; j++) {
+  for (size_t j = 0; j < samples; j++) {
     const auto x = dis(rng_);
     buckets[x]++;
     data.push_back(x);
@@ -399,7 +399,7 @@ double PoissonDistributionChiSquaredTest::ChiSquaredTestImpl() {
 
   // Normalize the counts.
   std::vector<int32_t> e(expected_.size(), 0);
-  for (int i = 0; i < e.size(); i++) {
+  for (size_t i = 0; i < e.size(); i++) {
     e[i] = kSamples * expected_[i];
   }
 
