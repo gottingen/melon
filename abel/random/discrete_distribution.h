@@ -219,7 +219,7 @@ std::basic_istream<CharT, Traits>& operator>>(
   if (is.fail()) return is;
   if (n > 0) {
     p.reserve(n);
-    for (IntType i = 0; i < n && !is.fail(); ++i) {
+    for (size_t i = 0; i < n && !is.fail(); ++i) {
       auto tmp = random_internal::read_floating_point<double>(is);
       if (is.fail()) return is;
       p.push_back(tmp);
