@@ -336,7 +336,7 @@ bool BetaDistributionTest::SingleChiSquaredTest(double p, size_t samples,
   constexpr double kErr = 1e-7;
   std::vector<double> cutoffs, expected;
   const double bucket_width = 1.0 / static_cast<double>(buckets);
-  int i = 1;
+   size_t i = 1;
   int unmerged_buckets = 0;
   for (; i < buckets; ++i) {
     const double p = bucket_width * static_cast<double>(i);
