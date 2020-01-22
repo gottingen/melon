@@ -6,6 +6,7 @@ set(ABEL_GNUC_CXX_FLAGS
         -Wextra
         -Werror
         -Wno-unused-parameter
+        -Wno-unused-function
         -Wno-missing-field-initializers
         -Woverloaded-virtual
         -Wpointer-arith

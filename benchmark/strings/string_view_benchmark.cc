@@ -274,14 +274,14 @@ void StringViewMapBenchmark(benchmark::State& state) {
   }
   std::shuffle(indices.begin(), indices.end(), rng);
   ABEL_RAW_CHECK(
-      num_cold * kNumLookupsOfColdKeys + num_hot * kNumLookupsOfHotKeys ==
+      static_cast<size_t>(num_cold * kNumLookupsOfColdKeys + num_hot * kNumLookupsOfHotKeys) ==
           indices.size(),
       "");
   // After constructing the array we probe it with abel::string_views built from
   // test_strings.  This means operator== won't see equal pointers, so
   // it'll have to check for equal lengths and equal characters.
   std::vector<std::string> test_strings(indices.size());
-  for (int i = 0; i < indices.size(); i++) {
+  for (size_t i = 0; i < indices.size(); i++) {
     test_strings[i] = keys[indices[i]];
   }
 
@@ -292,9 +292,9 @@ void StringViewMapBenchmark(benchmark::State& state) {
     for (int i = 0; i < table_size; i++) {
       h[keys[i]] = i * 2;
     }
-    ABEL_RAW_CHECK(h.size() == table_size, "");
+    ABEL_RAW_CHECK(h.size() == static_cast<size_t>(table_size), "");
     uint64_t sum = 0;
-    for (int i = 0; i < indices.size(); i++) {
+    for (size_t i = 0; i < indices.size(); i++) {
       sum += h[test_strings[i]];
     }
     benchmark::DoNotOptimize(sum);

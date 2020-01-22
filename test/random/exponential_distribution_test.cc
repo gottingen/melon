@@ -248,7 +248,7 @@ double ExponentialDistributionTests::SingleChiSquaredTest() {
   D dis(lambda());
 
   std::vector<int32_t> counts(cutoffs.size(), 0);
-  for (int j = 0; j < kSamples; j++) {
+  for (size_t j = 0; j < kSamples; j++) {
     const double x = dis(rng_);
     auto it = std::upper_bound(cutoffs.begin(), cutoffs.end(), x);
     counts[std::distance(cutoffs.begin(), it)]++;
@@ -269,7 +269,7 @@ double ExponentialDistributionTests::SingleChiSquaredTest() {
   double p = abel::random_internal::ChiSquarePValue(chi_square, dof);
 
   if (chi_square > threshold) {
-    for (int i = 0; i < cutoffs.size(); i++) {
+    for (size_t i = 0; i < cutoffs.size(); i++) {
       ABEL_INTERNAL_LOG(
           INFO, abel::string_format("%d : (%f) = %d", i, cutoffs[i], counts[i]));
     }

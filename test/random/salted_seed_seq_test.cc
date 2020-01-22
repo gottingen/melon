@@ -39,7 +39,7 @@ void ConformsToInterface() {
     seq.param(std::back_inserter(state_vector));
 
     EXPECT_EQ(state_vector.size(), ABEL_ARRAYSIZE(init_array));
-    for (int i = 0; i < state_vector.size(); i++) {
+    for (size_t i = 0; i < state_vector.size(); i++) {
       EXPECT_EQ(state_vector[i], i + 1);
     }
   }
