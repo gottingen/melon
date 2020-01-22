@@ -2,7 +2,7 @@
 
 abel is an open-source collection of c++ library code. it designed to use c++ smartly.
 
-![abel](/source/abel.png)
+![abel](/docs/images/abel.png)
 
 ## status
 
