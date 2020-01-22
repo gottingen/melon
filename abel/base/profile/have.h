@@ -8,7 +8,7 @@
 #include <abel/base/profile/base.h>
 #include <abel/base/profile/options.h>
 // Included for the __GLIBC_PREREQ macro used below.
-#include <limits.h>
+#include <climits>
 
 // Included for the _STLPORT_VERSION macro used below.
 #if defined(__cplusplus)
@@ -47,9 +47,9 @@
 // gcc >= 4.8.1 using libstdc++, and Visual Studio.
 #ifdef ABEL_HAVE_STD_IS_TRIVIALLY_DESTRUCTIBLE
 #error ABEL_HAVE_STD_IS_TRIVIALLY_DESTRUCTIBLE cannot be directly set
-#elif defined(_LIBCPP_VERSION) ||                                        \
+#elif defined(_LIBCPP_VERSION) || \
     (!defined(__clang__) && defined(__GNUC__) && defined(__GLIBCXX__) && \
-     (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||        \
+     (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) || \
     defined(_MSC_VER)
 #define ABEL_HAVE_STD_IS_TRIVIALLY_DESTRUCTIBLE 1
 #endif
@@ -70,10 +70,10 @@
 #error ABEL_HAVE_STD_IS_TRIVIALLY_CONSTRUCTIBLE cannot be directly set
 #elif defined(ABEL_HAVE_STD_IS_TRIVIALLY_ASSIGNABLE)
 #error ABEL_HAVE_STD_IS_TRIVIALLY_ASSIGNABLE cannot directly set
-#elif (defined(__clang__) && defined(_LIBCPP_VERSION)) ||        \
-    (!defined(__clang__) && defined(__GNUC__) &&                 \
+#elif (defined(__clang__) && defined(_LIBCPP_VERSION)) || \
+    (!defined(__clang__) && defined(__GNUC__) && \
      (__GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ >= 4)) && \
-     (defined(_LIBCPP_VERSION) || defined(__GLIBCXX__))) ||      \
+     (defined(_LIBCPP_VERSION) || defined(__GLIBCXX__))) || \
     (defined(_MSC_VER) && !defined(__NVCC__))
 #define ABEL_HAVE_STD_IS_TRIVIALLY_CONSTRUCTIBLE 1
 #define ABEL_HAVE_STD_IS_TRIVIALLY_ASSIGNABLE 1
@@ -161,21 +161,21 @@
 //   * nvcc also defines __GNUC__ and __SIZEOF_INT128__, but not all versions
 //     actually support __int128.
 #ifdef ABEL_HAVE_INTRINSIC_INT128
-#error ABEL_HAVE_INTRINSIC_INT128 cannot be directly set
+    #error ABEL_HAVE_INTRINSIC_INT128 cannot be directly set
 #elif defined(__SIZEOF_INT128__)
-#if (defined(__clang__) && !defined(_WIN32)) || \
-    (defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 9) ||                \
-    (defined(__GNUC__) && !defined(__clang__) && !defined(__CUDACC__))
-#define ABEL_HAVE_INTRINSIC_INT128 1
-#elif defined(__CUDACC__)
-// __CUDACC_VER__ is a full version number before CUDA 9, and is defined to a
-// string explaining that it has been removed starting with CUDA 9. We use
-// nested #ifs because there is no short-circuiting in the preprocessor.
-// NOTE: `__CUDACC__` could be undefined while `__CUDACC_VER__` is defined.
-#if __CUDACC_VER__ >= 70000
-#define ABEL_HAVE_INTRINSIC_INT128 1
-#endif  // __CUDACC_VER__ >= 70000
-#endif  // defined(__CUDACC__)
+        #if (defined(__clang__) && !defined(_WIN32)) || \
+            (defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 9) || \
+            (defined(__GNUC__) && !defined(__clang__) && !defined(__CUDACC__))
+            #define ABEL_HAVE_INTRINSIC_INT128 1
+    #elif defined(__CUDACC__)
+    // __CUDACC_VER__ is a full version number before CUDA 9, and is defined to a
+    // string explaining that it has been removed starting with CUDA 9. We use
+    // nested #ifs because there is no short-circuiting in the preprocessor.
+    // NOTE: `__CUDACC__` could be undefined while `__CUDACC_VER__` is defined.
+        #if __CUDACC_VER__ >= 70000
+            #define ABEL_HAVE_INTRINSIC_INT128 1
+        #endif  // __CUDACC_VER__ >= 70000
+    #endif  // defined(__CUDACC__)
 #endif  // ABEL_HAVE_INTRINSIC_INT128
 
 // ABEL_HAVE_EXCEPTIONS
@@ -203,7 +203,7 @@
 #endif  // defined(__EXCEPTIONS) && __has_feature(cxx_exceptions)
 
 // Handle remaining special cases and default to exceptions being supported.
-#elif !(defined(__GNUC__) && (__GNUC__ < 5) && !defined(__EXCEPTIONS)) &&    \
+#elif !(defined(__GNUC__) && (__GNUC__ < 5) && !defined(__EXCEPTIONS)) && \
     !(defined(__GNUC__) && (__GNUC__ >= 5) && !defined(__cpp_exceptions)) && \
     !(defined(_MSC_VER) && !defined(_CPPUNWIND))
 #define ABEL_HAVE_EXCEPTIONS 1
@@ -238,7 +238,7 @@
 // POSIX.1-2001.
 #ifdef ABEL_HAVE_MMAP
 #error ABEL_HAVE_MMAP cannot be directly set
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||   \
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
     defined(__ros__) || defined(__native_client__) || defined(__asmjs__) || \
     defined(__wasm__) || defined(__Fuchsia__) || defined(__sun) || \
     defined(__ASYLO__)
@@ -381,7 +381,6 @@
 #error "ABEL_HAVE_STD_STRING_VIEW cannot be directly set."
 #endif
 
-
 #ifdef __has_include
 #if __has_include(<string_view>) && __cplusplus >= 201703L
 #define ABEL_HAVE_STD_STRING_VIEW 1
@@ -441,11 +440,11 @@
 #if !defined(ABEL_OPTION_USE_STD_STRING_VIEW)
 #error options.h is misconfigured.
 #elif ABEL_OPTION_USE_STD_STRING_VIEW == 0 || \
-    (ABEL_OPTION_USE_STD_STRING_VIEW == 2 &&  \
+    (ABEL_OPTION_USE_STD_STRING_VIEW == 2 && \
      !defined(ABEL_HAVE_STD_STRING_VIEW))
 #undef ABEL_USES_STD_STRING_VIEW
 #elif ABEL_OPTION_USE_STD_STRING_VIEW == 1 || \
-    (ABEL_OPTION_USE_STD_STRING_VIEW == 2 &&  \
+    (ABEL_OPTION_USE_STD_STRING_VIEW == 2 && \
      defined(ABEL_HAVE_STD_STRING_VIEW))
 #define ABEL_USES_STD_STRING_VIEW 1
 #else
@@ -1080,7 +1079,7 @@ ABEL_DISABLE_ALL_VC_WARNINGS()
 // ABEL_HAVE specifically refers to std::nullptr_t from the standard libraries.
 #if !defined(ABEL_HAVE_nullptr_t_IMPL) && !defined(ABEL_NO_HAVE_nullptr_t_IMPL)
     #if defined(ABEL_COMPILER_CPP11_ENABLED)
-        // VS2010+ with its default Dinkumware standard library.
+// VS2010+ with its default Dinkumware standard library.
         #if defined(_MSC_VER) && (_MSC_VER >= 1600) && defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY)
             #define ABEL_HAVE_nullptr_t_IMPL 1
 
@@ -1088,22 +1087,22 @@ ABEL_DISABLE_ALL_VC_WARNINGS()
             #define ABEL_HAVE_nullptr_t_IMPL 1
 
         #elif defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) // GNU libstdc++
-            // Unfortunately __GLIBCXX__ date values don't go strictly in version ordering.
+// Unfortunately __GLIBCXX__ date values don't go strictly in version ordering.
             #if (__GLIBCXX__ >= 20110325) && (__GLIBCXX__ != 20120702) && (__GLIBCXX__ != 20110428)
                 #define ABEL_HAVE_nullptr_t_IMPL 1
             #else
                 #define ABEL_NO_HAVE_nullptr_t_IMPL 1
             #endif
 
-        // We simply assume that the standard library (e.g. Dinkumware) provides std::nullptr_t.
+// We simply assume that the standard library (e.g. Dinkumware) provides std::nullptr_t.
         #elif defined(__clang__)
             #define ABEL_HAVE_nullptr_t_IMPL 1
 
-        // With GCC compiler >= 4.6, std::nullptr_t is always defined in <cstddef>, in practice.
+// With GCC compiler >= 4.6, std::nullptr_t is always defined in <cstddef>, in practice.
         #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
             #define ABEL_HAVE_nullptr_t_IMPL 1
 
-        // The EDG compiler provides nullptr, but uses an older standard library that doesn't support std::nullptr_t.
+// The EDG compiler provides nullptr, but uses an older standard library that doesn't support std::nullptr_t.
         #elif defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403)
             #define ABEL_HAVE_nullptr_t_IMPL 1
 

@@ -140,7 +140,7 @@ constexpr int128::operator unsigned __int128() const {
 // Clang on PowerPC sometimes produces incorrect __int128 to floating point
 // conversions. In that case, we do the conversion with a similar implementation
 // to the conversion operators in int128_no_intrinsic.inc.
-#if defined(__clang__) && !defined(__ppc64__)
+#if defined(__clang__) && !defined(__ppc64__) || defined(__GNUC__)
 ABEL_FORCE_INLINE int128::operator float() const { return static_cast<float>(v_); }
 
 ABEL_FORCE_INLINE int128::operator double () const { return static_cast<double>(v_); }
