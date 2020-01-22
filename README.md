@@ -2,6 +2,8 @@
 
 abel is an open-source collection of c++ library code. it designed to use c++ smartly.
 
+![abel](/source/abel.png)
+
 ## status
 
 [![Build Status](https://www.travis-ci.org/gottingen/abel.svg?branch=master)](https://travis-ci.org/gottingen/abel)
@@ -33,5 +35,7 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 ## modules
 
 <a name="examples"> </a>
+
+* [strings](/docs/en/strings.md)
 
 ## examples
