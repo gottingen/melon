@@ -1,11 +1,9 @@
 //
 
 #include <abel/algorithm/algorithm.h>
-
 #include <algorithm>
 #include <list>
 #include <vector>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
