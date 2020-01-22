@@ -292,9 +292,9 @@ void StringViewMapBenchmark(benchmark::State& state) {
     for (int i = 0; i < table_size; i++) {
       h[keys[i]] = i * 2;
     }
-    ABEL_RAW_CHECK(h.size() == table_size, "");
+    ABEL_RAW_CHECK(h.size() == static_cast<size_t>(table_size), "");
     uint64_t sum = 0;
-    for (int i = 0; i < indices.size(); i++) {
+    for (size_t i = 0; i < indices.size(); i++) {
       sum += h[test_strings[i]];
     }
     benchmark::DoNotOptimize(sum);
