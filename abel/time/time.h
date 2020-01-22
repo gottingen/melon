@@ -824,8 +824,6 @@ std::string UnparseFlag(abel_time t);
 // strings like "PST" and "EDT" are not valid TZ identifiers. Prefer to pass by
 // value rather than const reference.
 //
-// For more on the fundamental concepts of time zones, absolute times, and civil
-// times, see https://github.com/google/cctz#fundamental-concepts
 //
 // Examples:
 //
@@ -837,10 +835,6 @@ std::string UnparseFlag(abel_time t);
 //     // handle error case
 //   }
 //
-// See also:
-// - https://github.com/google/cctz
-// - https://www.iana.org/time-zones
-// - https://en.wikipedia.org/wiki/Zoneinfo
 class time_zone {
  public:
   explicit time_zone(abel::time_internal::time_zone tz) : cz_(tz) {}

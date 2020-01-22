@@ -210,7 +210,7 @@ time_zone::absolute_lookup TimeZoneLibC::BreakTime(
   al.cs = civil_second(year, tmp->tm_mon + 1, tmp->tm_mday, tmp->tm_hour,
                        tmp->tm_min, tmp->tm_sec);
   al.offset = static_cast<int>(tm_gmtoff(*tmp));
-  al.abbr = local_ ? tm_zone(*tmp) : "UTC";  // as expected by cctz
+  al.abbr = local_ ? tm_zone(*tmp) : "UTC";
   al.is_dst = tmp->tm_isdst > 0;
   return al;
 }

@@ -27,8 +27,6 @@
 
 namespace {
 
-namespace cctz = abel::time_internal::cctz;
-
 void BM_Difference_Days(benchmark::State& state) {
   const abel::time_internal::civil_day c(2014, 8, 22);
   const abel::time_internal::civil_day epoch(1970, 1, 1);
