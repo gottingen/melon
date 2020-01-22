@@ -32,8 +32,10 @@ the goals are:
 * zero external dependencies
 * build on all platform with c++, such as linux, mac, android, windows, mobiles
 * no warning and bugs on any platform and compiler
-* no union test no publish
+* when publish a interface, It must have pass unit test and benchmark for performance evaluation, documentation and use 
+cases are also required. if there are special conditions, notes them in documentation.
 * make overhead down, small overall size
+
 
 collect code and ideas from:
 
