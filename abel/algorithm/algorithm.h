@@ -1,11 +1,3 @@
-//
-// -----------------------------------------------------------------------------
-// File: algorithm.h
-// -----------------------------------------------------------------------------
-//
-// This header file contains Google extensions to the standard <algorithm> C++
-// header.
-
 #ifndef ABEL_ALGORITHM_ALGORITHM_H_
 #define ABEL_ALGORITHM_ALGORITHM_H_
 
@@ -74,19 +66,27 @@ It RotateImpl(It first, It middle, It last, std::false_type) {
 
 }  // namespace algorithm_internal
 
-// equal()
-//
-// Compares the equality of two ranges specified by pairs of iterators, using
-// the given predicate, returning true iff for each corresponding iterator i1
-// and i2 in the first and second range respectively, pred(*i1, *i2) == true
-//
-// This comparison takes at most min(`last1` - `first1`, `last2` - `first2`)
-// invocations of the predicate. Additionally, if InputIter1 and InputIter2 are
-// both random-access iterators, and `last1` - `first1` != `last2` - `first2`,
-// then the predicate is never invoked and the function returns false.
-//
-// This is a C++11-compatible implementation of C++14 `std::equal`.  See
-// https://en.cppreference.com/w/cpp/algorithm/equal for more information.
+/**
+ * @brief This is a C++11-compatible implementation of C++14 `std::equal`.See
+ * https://en.cppreference.com/w/cpp/algorithm/equal for more information.
+ * Compares the equality of two ranges specified by pairs of iterators, using
+ * the given predicate, returning
+ *
+ * This comparison takes at most min(`last1` - `first1`, `last2` - `first2`)
+ * invocations of the predicate. Additionally, if InputIter1 and InputIter2 are
+ * both random-access iterators, and `last1` - `first1` != `last2` - `first2`,
+ * then the predicate is never invoked and the function returns false.
+ * @tparam InputIter1 paired iterator template
+ * @tparam InputIter2 paired iterator template
+ * @tparam Pred factor to compare two inputs
+ * @param first1
+ * @param last1
+ * @param first2
+ * @param last2
+ * @param pred
+ * @return true iff for each corresponding iterator i1
+ * and i2 in the first and second range respectively, pred(*i1, *i2) == true
+ */
 template <typename InputIter1, typename InputIter2, typename Pred>
 bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
            InputIter2 last2, Pred&& pred) {
@@ -96,8 +96,16 @@ bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
       typename std::iterator_traits<InputIter2>::iterator_category{});
 }
 
-// Overload of equal() that performs comparison of two ranges specified by pairs
-// of iterators using operator==.
+/**
+ * @brief overload equal, using "==" operator for pred
+ * @tparam InputIter1
+ * @tparam InputIter2
+ * @param first1
+ * @param last1
+ * @param first2
+ * @param last2
+ * @return
+ */
 template <typename InputIter1, typename InputIter2>
 bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
            InputIter2 last2) {
@@ -105,32 +113,33 @@ bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
                      algorithm_internal::EqualTo{});
 }
 
-// linear_search()
-//
-// Performs a linear search for `value` using the iterator `first` up to
-// but not including `last`, returning true if [`first`, `last`) contains an
-// element equal to `value`.
-//
-// A linear search is of O(n) complexity which is guaranteed to make at most
-// n = (`last` - `first`) comparisons. A linear search over short containers
-// may be faster than a binary search, even when the container is sorted.
+
+/**
+ * @brief Performs a linear search for `value` using the iterator `first` up to
+ * but not including `last`, returning true if [`first`, `last`) contains an
+ * element equal to `value`. complexity o(n), it may fast than binary search over
+ * short containers
+ * @tparam InputIterator
+ * @tparam EqualityComparable
+ * @param first
+ * @param last
+ * @param value
+ * @return
+ */
 template <typename InputIterator, typename EqualityComparable>
 bool linear_search(InputIterator first, InputIterator last,
                    const EqualityComparable& value) {
   return std::find(first, last, value) != last;
 }
 
-// rotate()
-//
-// Performs a left rotation on a range of elements (`first`, `last`) such that
-// `middle` is now the first element. `rotate()` returns an iterator pointing to
-// the first element before rotation. This function is exactly the same as
-// `std::rotate`, but fixes a bug in gcc
-// <= 4.9 where `std::rotate` returns `void` instead of an iterator.
-//
-// The complexity of this algorithm is the same as that of `std::rotate`, but if
-// `ForwardIterator` is not a random-access iterator, then `abel::rotate`
-// performs an additional pass over the range to construct the return value.
+/**
+ * @brief
+ * @tparam ForwardIterator
+ * @param first
+ * @param middle
+ * @param last
+ * @return
+ */
 template <typename ForwardIterator>
 ForwardIterator rotate(ForwardIterator first, ForwardIterator middle,
                        ForwardIterator last) {

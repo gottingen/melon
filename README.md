@@ -20,9 +20,30 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 
 ## about abel
 
+for several years age, I have plan to prepare start a repository to de-duplicate code from the projects I have write and
+projects I like (open source). so I would develop iteratively over it. I have try it on many private project (although 
+it on github).  fortunately， it comes on Jan 1st 2020, named it abel, the name of a Mathematician.
+
+since the inception, its goal is to <font size=16> **`consolidate algorithms, data structures, system operations and make it under control`**</font>
+the goals are:
+
+* to have a lib be well implemented and tested tools and algorithm
+* aim high modularity with as little dependencies between modules as possible.
+* zero external dependencies
+* build on all platform with c++, such as linux, mac, android, windows, mobiles
+* no warning and bugs on any platform and compiler
+* no union test no publish
+* make overhead down, small overall size
+
+collect code and ideas from:
+
+* [abseil-cpp](https://github.com/abseil/abseil-cpp) from google, and make abel basic framework
+* [EASTL](https://github.com/electronicarts/EASTL) from EA
+* fermat my private cpp lib
+
 
 <a name="cmake"> </a>
-
+ 
 ## about cmake
 
 

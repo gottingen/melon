@@ -1,29 +1,3 @@
-//
-// -----------------------------------------------------------------------------
-// File: container.h
-// -----------------------------------------------------------------------------
-//
-// This header file provides Container-based versions of algorithmic functions
-// within the C++ standard library. The following standard library sets of
-// functions are covered within this file:
-//
-//   * Algorithmic <iterator> functions
-//   * Algorithmic <numeric> functions
-//   * <algorithm> functions
-//
-// The standard library functions operate on iterator ranges; the functions
-// within this API operate on containers, though many return iterator ranges.
-//
-// All functions within this API are named with a `c_` prefix. Calls such as
-// `abel::c_xx(container, ...) are equivalent to std:: functions such as
-// `std::xx(std::begin(cont), std::end(cont), ...)`. Functions that act on
-// iterators but not conceptually on iterator ranges (e.g. `std::iter_swap`)
-// have no equivalent here.
-//
-// For template parameter and variable naming, `C` indicates the container type
-// to which the function is applied, `Pred` indicates the predicate object type
-// to be used by the function and `T` indicates the applicable element type.
-
 #ifndef ABEL_ALGORITHM_CONTAINER_H_
 #define ABEL_ALGORITHM_CONTAINER_H_
 
