@@ -13,5 +13,5 @@ before_script:
   - cmake ../
 
 script:
-  - make
+  - make -j
   - make test
