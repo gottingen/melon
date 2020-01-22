@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include <abel/time/internal/cctz/include/cctz/civil_time_detail.h>
+#include <abel/time/internal/civil_time_detail.h>
 
 #include <iomanip>
 #include <ostream>
@@ -23,7 +23,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 namespace detail {
 
 // Output stream operators output a format matching YYYY-MM-DDThh:mm:ss,
@@ -88,7 +87,6 @@ std::ostream& operator<<(std::ostream& os, weekday wd) {
 }
 
 }  // namespace detail
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

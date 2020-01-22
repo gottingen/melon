@@ -24,13 +24,12 @@
 #include <utility>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
@@ -211,7 +210,7 @@ time_zone::absolute_lookup TimeZoneLibC::BreakTime(
   al.cs = civil_second(year, tmp->tm_mon + 1, tmp->tm_mday, tmp->tm_hour,
                        tmp->tm_min, tmp->tm_sec);
   al.offset = static_cast<int>(tm_gmtoff(*tmp));
-  al.abbr = local_ ? tm_zone(*tmp) : "UTC";  // as expected by cctz
+  al.abbr = local_ ? tm_zone(*tmp) : "UTC";
   al.is_dst = tmp->tm_isdst > 0;
   return al;
 }
@@ -302,7 +301,6 @@ std::string TimeZoneLibC::Description() const {
   return local_ ? "localtime" : "UTC";
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

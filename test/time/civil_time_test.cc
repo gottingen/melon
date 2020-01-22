@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
+#include <abel/time/internal/civil_time.h>
 
 #include <iomanip>
 #include <limits>
@@ -26,15 +26,14 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
-template <typename T>
-std::string Format(const T& t) {
-  std::stringstream ss;
-  ss << t;
-  return ss.str();
+template<typename T>
+std::string Format (const T &t) {
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
 }
 
 }  // namespace
@@ -326,268 +325,268 @@ TEST(CivilTime, YearDay) {
 // The remaining tests do not use constexpr.
 
 TEST(CivilTime, DefaultConstruction) {
-  civil_second ss;
-  EXPECT_EQ("1970-01-01T00:00:00", Format(ss));
+    civil_second ss;
+    EXPECT_EQ("1970-01-01T00:00:00", Format(ss));
 
-  civil_minute mm;
-  EXPECT_EQ("1970-01-01T00:00", Format(mm));
+    civil_minute mm;
+    EXPECT_EQ("1970-01-01T00:00", Format(mm));
 
-  civil_hour hh;
-  EXPECT_EQ("1970-01-01T00", Format(hh));
+    civil_hour hh;
+    EXPECT_EQ("1970-01-01T00", Format(hh));
 
-  civil_day d;
-  EXPECT_EQ("1970-01-01", Format(d));
+    civil_day d;
+    EXPECT_EQ("1970-01-01", Format(d));
 
-  civil_month m;
-  EXPECT_EQ("1970-01", Format(m));
+    civil_month m;
+    EXPECT_EQ("1970-01", Format(m));
 
-  civil_year y;
-  EXPECT_EQ("1970", Format(y));
+    civil_year y;
+    EXPECT_EQ("1970", Format(y));
 }
 
 TEST(CivilTime, StructMember) {
-  struct S {
-    civil_day day;
-  };
-  S s = {};
-  EXPECT_EQ(civil_day{}, s.day);
+    struct S {
+        civil_day day;
+    };
+    S s = {};
+    EXPECT_EQ(civil_day {}, s.day);
 }
 
 TEST(CivilTime, FieldsConstruction) {
-  EXPECT_EQ("2015-01-02T03:04:05", Format(civil_second(2015, 1, 2, 3, 4, 5)));
-  EXPECT_EQ("2015-01-02T03:04:00", Format(civil_second(2015, 1, 2, 3, 4)));
-  EXPECT_EQ("2015-01-02T03:00:00", Format(civil_second(2015, 1, 2, 3)));
-  EXPECT_EQ("2015-01-02T00:00:00", Format(civil_second(2015, 1, 2)));
-  EXPECT_EQ("2015-01-01T00:00:00", Format(civil_second(2015, 1)));
-  EXPECT_EQ("2015-01-01T00:00:00", Format(civil_second(2015)));
+    EXPECT_EQ("2015-01-02T03:04:05", Format(civil_second(2015, 1, 2, 3, 4, 5)));
+    EXPECT_EQ("2015-01-02T03:04:00", Format(civil_second(2015, 1, 2, 3, 4)));
+    EXPECT_EQ("2015-01-02T03:00:00", Format(civil_second(2015, 1, 2, 3)));
+    EXPECT_EQ("2015-01-02T00:00:00", Format(civil_second(2015, 1, 2)));
+    EXPECT_EQ("2015-01-01T00:00:00", Format(civil_second(2015, 1)));
+    EXPECT_EQ("2015-01-01T00:00:00", Format(civil_second(2015)));
 
-  EXPECT_EQ("2015-01-02T03:04", Format(civil_minute(2015, 1, 2, 3, 4, 5)));
-  EXPECT_EQ("2015-01-02T03:04", Format(civil_minute(2015, 1, 2, 3, 4)));
-  EXPECT_EQ("2015-01-02T03:00", Format(civil_minute(2015, 1, 2, 3)));
-  EXPECT_EQ("2015-01-02T00:00", Format(civil_minute(2015, 1, 2)));
-  EXPECT_EQ("2015-01-01T00:00", Format(civil_minute(2015, 1)));
-  EXPECT_EQ("2015-01-01T00:00", Format(civil_minute(2015)));
+    EXPECT_EQ("2015-01-02T03:04", Format(civil_minute(2015, 1, 2, 3, 4, 5)));
+    EXPECT_EQ("2015-01-02T03:04", Format(civil_minute(2015, 1, 2, 3, 4)));
+    EXPECT_EQ("2015-01-02T03:00", Format(civil_minute(2015, 1, 2, 3)));
+    EXPECT_EQ("2015-01-02T00:00", Format(civil_minute(2015, 1, 2)));
+    EXPECT_EQ("2015-01-01T00:00", Format(civil_minute(2015, 1)));
+    EXPECT_EQ("2015-01-01T00:00", Format(civil_minute(2015)));
 
-  EXPECT_EQ("2015-01-02T03", Format(civil_hour(2015, 1, 2, 3, 4, 5)));
-  EXPECT_EQ("2015-01-02T03", Format(civil_hour(2015, 1, 2, 3, 4)));
-  EXPECT_EQ("2015-01-02T03", Format(civil_hour(2015, 1, 2, 3)));
-  EXPECT_EQ("2015-01-02T00", Format(civil_hour(2015, 1, 2)));
-  EXPECT_EQ("2015-01-01T00", Format(civil_hour(2015, 1)));
-  EXPECT_EQ("2015-01-01T00", Format(civil_hour(2015)));
+    EXPECT_EQ("2015-01-02T03", Format(civil_hour(2015, 1, 2, 3, 4, 5)));
+    EXPECT_EQ("2015-01-02T03", Format(civil_hour(2015, 1, 2, 3, 4)));
+    EXPECT_EQ("2015-01-02T03", Format(civil_hour(2015, 1, 2, 3)));
+    EXPECT_EQ("2015-01-02T00", Format(civil_hour(2015, 1, 2)));
+    EXPECT_EQ("2015-01-01T00", Format(civil_hour(2015, 1)));
+    EXPECT_EQ("2015-01-01T00", Format(civil_hour(2015)));
 
-  EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2, 3, 4, 5)));
-  EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2, 3, 4)));
-  EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2, 3)));
-  EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2)));
-  EXPECT_EQ("2015-01-01", Format(civil_day(2015, 1)));
-  EXPECT_EQ("2015-01-01", Format(civil_day(2015)));
+    EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2, 3, 4, 5)));
+    EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2, 3, 4)));
+    EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2, 3)));
+    EXPECT_EQ("2015-01-02", Format(civil_day(2015, 1, 2)));
+    EXPECT_EQ("2015-01-01", Format(civil_day(2015, 1)));
+    EXPECT_EQ("2015-01-01", Format(civil_day(2015)));
 
-  EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2, 3, 4, 5)));
-  EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2, 3, 4)));
-  EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2, 3)));
-  EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2)));
-  EXPECT_EQ("2015-01", Format(civil_month(2015, 1)));
-  EXPECT_EQ("2015-01", Format(civil_month(2015)));
+    EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2, 3, 4, 5)));
+    EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2, 3, 4)));
+    EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2, 3)));
+    EXPECT_EQ("2015-01", Format(civil_month(2015, 1, 2)));
+    EXPECT_EQ("2015-01", Format(civil_month(2015, 1)));
+    EXPECT_EQ("2015-01", Format(civil_month(2015)));
 
-  EXPECT_EQ("2015", Format(civil_year(2015, 1, 2, 3, 4, 5)));
-  EXPECT_EQ("2015", Format(civil_year(2015, 1, 2, 3, 4)));
-  EXPECT_EQ("2015", Format(civil_year(2015, 1, 2, 3)));
-  EXPECT_EQ("2015", Format(civil_year(2015, 1, 2)));
-  EXPECT_EQ("2015", Format(civil_year(2015, 1)));
-  EXPECT_EQ("2015", Format(civil_year(2015)));
+    EXPECT_EQ("2015", Format(civil_year(2015, 1, 2, 3, 4, 5)));
+    EXPECT_EQ("2015", Format(civil_year(2015, 1, 2, 3, 4)));
+    EXPECT_EQ("2015", Format(civil_year(2015, 1, 2, 3)));
+    EXPECT_EQ("2015", Format(civil_year(2015, 1, 2)));
+    EXPECT_EQ("2015", Format(civil_year(2015, 1)));
+    EXPECT_EQ("2015", Format(civil_year(2015)));
 }
 
 TEST(CivilTime, FieldsConstructionLimits) {
-  const int kIntMax = std::numeric_limits<int>::max();
-  EXPECT_EQ("2038-01-19T03:14:07",
-            Format(civil_second(1970, 1, 1, 0, 0, kIntMax)));
-  EXPECT_EQ("6121-02-11T05:21:07",
-            Format(civil_second(1970, 1, 1, 0, kIntMax, kIntMax)));
-  EXPECT_EQ("251104-11-20T12:21:07",
-            Format(civil_second(1970, 1, 1, kIntMax, kIntMax, kIntMax)));
-  EXPECT_EQ("6130715-05-30T12:21:07",
-            Format(civil_second(1970, 1, kIntMax, kIntMax, kIntMax, kIntMax)));
-  EXPECT_EQ(
-      "185087685-11-26T12:21:07",
-      Format(civil_second(1970, kIntMax, kIntMax, kIntMax, kIntMax, kIntMax)));
+    const int kIntMax = std::numeric_limits<int>::max();
+    EXPECT_EQ("2038-01-19T03:14:07",
+              Format(civil_second(1970, 1, 1, 0, 0, kIntMax)));
+    EXPECT_EQ("6121-02-11T05:21:07",
+              Format(civil_second(1970, 1, 1, 0, kIntMax, kIntMax)));
+    EXPECT_EQ("251104-11-20T12:21:07",
+              Format(civil_second(1970, 1, 1, kIntMax, kIntMax, kIntMax)));
+    EXPECT_EQ("6130715-05-30T12:21:07",
+              Format(civil_second(1970, 1, kIntMax, kIntMax, kIntMax, kIntMax)));
+    EXPECT_EQ(
+        "185087685-11-26T12:21:07",
+        Format(civil_second(1970, kIntMax, kIntMax, kIntMax, kIntMax, kIntMax)));
 
-  const int kIntMin = std::numeric_limits<int>::min();
-  EXPECT_EQ("1901-12-13T20:45:52",
-            Format(civil_second(1970, 1, 1, 0, 0, kIntMin)));
-  EXPECT_EQ("-2182-11-20T18:37:52",
-            Format(civil_second(1970, 1, 1, 0, kIntMin, kIntMin)));
-  EXPECT_EQ("-247165-02-11T10:37:52",
-            Format(civil_second(1970, 1, 1, kIntMin, kIntMin, kIntMin)));
-  EXPECT_EQ("-6126776-08-01T10:37:52",
-            Format(civil_second(1970, 1, kIntMin, kIntMin, kIntMin, kIntMin)));
-  EXPECT_EQ(
-      "-185083747-10-31T10:37:52",
-      Format(civil_second(1970, kIntMin, kIntMin, kIntMin, kIntMin, kIntMin)));
+    const int kIntMin = std::numeric_limits<int>::min();
+    EXPECT_EQ("1901-12-13T20:45:52",
+              Format(civil_second(1970, 1, 1, 0, 0, kIntMin)));
+    EXPECT_EQ("-2182-11-20T18:37:52",
+              Format(civil_second(1970, 1, 1, 0, kIntMin, kIntMin)));
+    EXPECT_EQ("-247165-02-11T10:37:52",
+              Format(civil_second(1970, 1, 1, kIntMin, kIntMin, kIntMin)));
+    EXPECT_EQ("-6126776-08-01T10:37:52",
+              Format(civil_second(1970, 1, kIntMin, kIntMin, kIntMin, kIntMin)));
+    EXPECT_EQ(
+        "-185083747-10-31T10:37:52",
+        Format(civil_second(1970, kIntMin, kIntMin, kIntMin, kIntMin, kIntMin)));
 }
 
 TEST(CivilTime, ImplicitCrossAlignment) {
-  civil_year year(2015);
-  civil_month month = year;
-  civil_day day = month;
-  civil_hour hour = day;
-  civil_minute minute = hour;
-  civil_second second = minute;
+    civil_year year(2015);
+    civil_month month = year;
+    civil_day day = month;
+    civil_hour hour = day;
+    civil_minute minute = hour;
+    civil_second second = minute;
 
-  second = year;
-  EXPECT_EQ(second, year);
-  second = month;
-  EXPECT_EQ(second, month);
-  second = day;
-  EXPECT_EQ(second, day);
-  second = hour;
-  EXPECT_EQ(second, hour);
-  second = minute;
-  EXPECT_EQ(second, minute);
+    second = year;
+    EXPECT_EQ(second, year);
+    second = month;
+    EXPECT_EQ(second, month);
+    second = day;
+    EXPECT_EQ(second, day);
+    second = hour;
+    EXPECT_EQ(second, hour);
+    second = minute;
+    EXPECT_EQ(second, minute);
 
-  minute = year;
-  EXPECT_EQ(minute, year);
-  minute = month;
-  EXPECT_EQ(minute, month);
-  minute = day;
-  EXPECT_EQ(minute, day);
-  minute = hour;
-  EXPECT_EQ(minute, hour);
+    minute = year;
+    EXPECT_EQ(minute, year);
+    minute = month;
+    EXPECT_EQ(minute, month);
+    minute = day;
+    EXPECT_EQ(minute, day);
+    minute = hour;
+    EXPECT_EQ(minute, hour);
 
-  hour = year;
-  EXPECT_EQ(hour, year);
-  hour = month;
-  EXPECT_EQ(hour, month);
-  hour = day;
-  EXPECT_EQ(hour, day);
+    hour = year;
+    EXPECT_EQ(hour, year);
+    hour = month;
+    EXPECT_EQ(hour, month);
+    hour = day;
+    EXPECT_EQ(hour, day);
 
-  day = year;
-  EXPECT_EQ(day, year);
-  day = month;
-  EXPECT_EQ(day, month);
+    day = year;
+    EXPECT_EQ(day, year);
+    day = month;
+    EXPECT_EQ(day, month);
 
-  month = year;
-  EXPECT_EQ(month, year);
+    month = year;
+    EXPECT_EQ(month, year);
 
-  // Ensures unsafe conversions are not allowed.
-  EXPECT_FALSE((std::is_convertible<civil_second, civil_minute>::value));
-  EXPECT_FALSE((std::is_convertible<civil_second, civil_hour>::value));
-  EXPECT_FALSE((std::is_convertible<civil_second, civil_day>::value));
-  EXPECT_FALSE((std::is_convertible<civil_second, civil_month>::value));
-  EXPECT_FALSE((std::is_convertible<civil_second, civil_year>::value));
+    // Ensures unsafe conversions are not allowed.
+    EXPECT_FALSE((std::is_convertible<civil_second, civil_minute>::value));
+    EXPECT_FALSE((std::is_convertible<civil_second, civil_hour>::value));
+    EXPECT_FALSE((std::is_convertible<civil_second, civil_day>::value));
+    EXPECT_FALSE((std::is_convertible<civil_second, civil_month>::value));
+    EXPECT_FALSE((std::is_convertible<civil_second, civil_year>::value));
 
-  EXPECT_FALSE((std::is_convertible<civil_minute, civil_hour>::value));
-  EXPECT_FALSE((std::is_convertible<civil_minute, civil_day>::value));
-  EXPECT_FALSE((std::is_convertible<civil_minute, civil_month>::value));
-  EXPECT_FALSE((std::is_convertible<civil_minute, civil_year>::value));
+    EXPECT_FALSE((std::is_convertible<civil_minute, civil_hour>::value));
+    EXPECT_FALSE((std::is_convertible<civil_minute, civil_day>::value));
+    EXPECT_FALSE((std::is_convertible<civil_minute, civil_month>::value));
+    EXPECT_FALSE((std::is_convertible<civil_minute, civil_year>::value));
 
-  EXPECT_FALSE((std::is_convertible<civil_hour, civil_day>::value));
-  EXPECT_FALSE((std::is_convertible<civil_hour, civil_month>::value));
-  EXPECT_FALSE((std::is_convertible<civil_hour, civil_year>::value));
+    EXPECT_FALSE((std::is_convertible<civil_hour, civil_day>::value));
+    EXPECT_FALSE((std::is_convertible<civil_hour, civil_month>::value));
+    EXPECT_FALSE((std::is_convertible<civil_hour, civil_year>::value));
 
-  EXPECT_FALSE((std::is_convertible<civil_day, civil_month>::value));
-  EXPECT_FALSE((std::is_convertible<civil_day, civil_year>::value));
+    EXPECT_FALSE((std::is_convertible<civil_day, civil_month>::value));
+    EXPECT_FALSE((std::is_convertible<civil_day, civil_year>::value));
 
-  EXPECT_FALSE((std::is_convertible<civil_month, civil_year>::value));
+    EXPECT_FALSE((std::is_convertible<civil_month, civil_year>::value));
 }
 
 TEST(CivilTime, ExplicitCrossAlignment) {
-  //
-  // Assign from smaller units -> larger units
-  //
+    //
+    // Assign from smaller units -> larger units
+    //
 
-  civil_second second(2015, 1, 2, 3, 4, 5);
-  EXPECT_EQ("2015-01-02T03:04:05", Format(second));
+    civil_second second(2015, 1, 2, 3, 4, 5);
+    EXPECT_EQ("2015-01-02T03:04:05", Format(second));
 
-  civil_minute minute(second);
-  EXPECT_EQ("2015-01-02T03:04", Format(minute));
+    civil_minute minute(second);
+    EXPECT_EQ("2015-01-02T03:04", Format(minute));
 
-  civil_hour hour(minute);
-  EXPECT_EQ("2015-01-02T03", Format(hour));
+    civil_hour hour(minute);
+    EXPECT_EQ("2015-01-02T03", Format(hour));
 
-  civil_day day(hour);
-  EXPECT_EQ("2015-01-02", Format(day));
+    civil_day day(hour);
+    EXPECT_EQ("2015-01-02", Format(day));
 
-  civil_month month(day);
-  EXPECT_EQ("2015-01", Format(month));
+    civil_month month(day);
+    EXPECT_EQ("2015-01", Format(month));
 
-  civil_year year(month);
-  EXPECT_EQ("2015", Format(year));
+    civil_year year(month);
+    EXPECT_EQ("2015", Format(year));
 
-  //
-  // Now assign from larger units -> smaller units
-  //
+    //
+    // Now assign from larger units -> smaller units
+    //
 
-  month = civil_month(year);
-  EXPECT_EQ("2015-01", Format(month));
+    month = civil_month(year);
+    EXPECT_EQ("2015-01", Format(month));
 
-  day = civil_day(month);
-  EXPECT_EQ("2015-01-01", Format(day));
+    day = civil_day(month);
+    EXPECT_EQ("2015-01-01", Format(day));
 
-  hour = civil_hour(day);
-  EXPECT_EQ("2015-01-01T00", Format(hour));
+    hour = civil_hour(day);
+    EXPECT_EQ("2015-01-01T00", Format(hour));
 
-  minute = civil_minute(hour);
-  EXPECT_EQ("2015-01-01T00:00", Format(minute));
+    minute = civil_minute(hour);
+    EXPECT_EQ("2015-01-01T00:00", Format(minute));
 
-  second = civil_second(minute);
-  EXPECT_EQ("2015-01-01T00:00:00", Format(second));
+    second = civil_second(minute);
+    EXPECT_EQ("2015-01-01T00:00:00", Format(second));
 }
 
 // Metafunction to test whether difference is allowed between two types.
-template <typename T1, typename T2>
+template<typename T1, typename T2>
 struct HasDifference {
-  template <typename U1, typename U2>
-  static std::false_type test(...);
-  template <typename U1, typename U2>
-  static std::true_type test(decltype(std::declval<U1>() - std::declval<U2>()));
-  static constexpr bool value = decltype(test<T1, T2>(0))::value;
+    template<typename U1, typename U2>
+    static std::false_type test (...);
+    template<typename U1, typename U2>
+    static std::true_type test (decltype(std::declval<U1>() - std::declval<U2>()));
+    static constexpr bool value = decltype(test<T1, T2>(0))::value;
 };
 
 TEST(CivilTime, DisallowCrossAlignedDifference) {
-  // Difference is allowed between types with the same alignment.
-  static_assert(HasDifference<civil_second, civil_second>::value, "");
-  static_assert(HasDifference<civil_minute, civil_minute>::value, "");
-  static_assert(HasDifference<civil_hour, civil_hour>::value, "");
-  static_assert(HasDifference<civil_day, civil_day>::value, "");
-  static_assert(HasDifference<civil_month, civil_month>::value, "");
-  static_assert(HasDifference<civil_year, civil_year>::value, "");
+    // Difference is allowed between types with the same alignment.
+    static_assert(HasDifference<civil_second, civil_second>::value, "");
+    static_assert(HasDifference<civil_minute, civil_minute>::value, "");
+    static_assert(HasDifference<civil_hour, civil_hour>::value, "");
+    static_assert(HasDifference<civil_day, civil_day>::value, "");
+    static_assert(HasDifference<civil_month, civil_month>::value, "");
+    static_assert(HasDifference<civil_year, civil_year>::value, "");
 
-  // Difference is disallowed between types with different alignments.
-  static_assert(!HasDifference<civil_second, civil_minute>::value, "");
-  static_assert(!HasDifference<civil_second, civil_hour>::value, "");
-  static_assert(!HasDifference<civil_second, civil_day>::value, "");
-  static_assert(!HasDifference<civil_second, civil_month>::value, "");
-  static_assert(!HasDifference<civil_second, civil_year>::value, "");
+    // Difference is disallowed between types with different alignments.
+    static_assert(!HasDifference<civil_second, civil_minute>::value, "");
+    static_assert(!HasDifference<civil_second, civil_hour>::value, "");
+    static_assert(!HasDifference<civil_second, civil_day>::value, "");
+    static_assert(!HasDifference<civil_second, civil_month>::value, "");
+    static_assert(!HasDifference<civil_second, civil_year>::value, "");
 
-  static_assert(!HasDifference<civil_minute, civil_hour>::value, "");
-  static_assert(!HasDifference<civil_minute, civil_day>::value, "");
-  static_assert(!HasDifference<civil_minute, civil_month>::value, "");
-  static_assert(!HasDifference<civil_minute, civil_year>::value, "");
+    static_assert(!HasDifference<civil_minute, civil_hour>::value, "");
+    static_assert(!HasDifference<civil_minute, civil_day>::value, "");
+    static_assert(!HasDifference<civil_minute, civil_month>::value, "");
+    static_assert(!HasDifference<civil_minute, civil_year>::value, "");
 
-  static_assert(!HasDifference<civil_hour, civil_day>::value, "");
-  static_assert(!HasDifference<civil_hour, civil_month>::value, "");
-  static_assert(!HasDifference<civil_hour, civil_year>::value, "");
+    static_assert(!HasDifference<civil_hour, civil_day>::value, "");
+    static_assert(!HasDifference<civil_hour, civil_month>::value, "");
+    static_assert(!HasDifference<civil_hour, civil_year>::value, "");
 
-  static_assert(!HasDifference<civil_day, civil_month>::value, "");
-  static_assert(!HasDifference<civil_day, civil_year>::value, "");
+    static_assert(!HasDifference<civil_day, civil_month>::value, "");
+    static_assert(!HasDifference<civil_day, civil_year>::value, "");
 
-  static_assert(!HasDifference<civil_month, civil_year>::value, "");
+    static_assert(!HasDifference<civil_month, civil_year>::value, "");
 }
 
 TEST(CivilTime, ValueSemantics) {
-  const civil_hour a(2015, 1, 2, 3);
-  const civil_hour b = a;
-  const civil_hour c(b);
-  civil_hour d;
-  d = c;
-  EXPECT_EQ("2015-01-02T03", Format(d));
+    const civil_hour a(2015, 1, 2, 3);
+    const civil_hour b = a;
+    const civil_hour c(b);
+    civil_hour d;
+    d = c;
+    EXPECT_EQ("2015-01-02T03", Format(d));
 }
 
 TEST(CivilTime, Relational) {
-  // Tests that the alignment unit is ignored in comparison.
-  const civil_year year(2014);
-  const civil_month month(year);
-  EXPECT_EQ(year, month);
+    // Tests that the alignment unit is ignored in comparison.
+    const civil_year year(2014);
+    const civil_month month(year);
+    EXPECT_EQ(year, month);
 
 #define TEST_RELATIONAL(OLDER, YOUNGER) \
   do {                                  \
@@ -607,450 +606,450 @@ TEST(CivilTime, Relational) {
     EXPECT_GE(YOUNGER, OLDER);          \
   } while (0)
 
-  // Alignment is ignored in comparison (verified above), so kSecond is used
-  // to test comparison in all field positions.
-  TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
-                  civil_second(2015, 1, 1, 0, 0, 0));
-  TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
-                  civil_second(2014, 2, 1, 0, 0, 0));
-  TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
-                  civil_second(2014, 1, 2, 0, 0, 0));
-  TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
-                  civil_second(2014, 1, 1, 1, 0, 0));
-  TEST_RELATIONAL(civil_second(2014, 1, 1, 1, 0, 0),
-                  civil_second(2014, 1, 1, 1, 1, 0));
-  TEST_RELATIONAL(civil_second(2014, 1, 1, 1, 1, 0),
-                  civil_second(2014, 1, 1, 1, 1, 1));
+    // Alignment is ignored in comparison (verified above), so kSecond is used
+    // to test comparison in all field positions.
+    TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
+                    civil_second(2015, 1, 1, 0, 0, 0));
+    TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
+                    civil_second(2014, 2, 1, 0, 0, 0));
+    TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
+                    civil_second(2014, 1, 2, 0, 0, 0));
+    TEST_RELATIONAL(civil_second(2014, 1, 1, 0, 0, 0),
+                    civil_second(2014, 1, 1, 1, 0, 0));
+    TEST_RELATIONAL(civil_second(2014, 1, 1, 1, 0, 0),
+                    civil_second(2014, 1, 1, 1, 1, 0));
+    TEST_RELATIONAL(civil_second(2014, 1, 1, 1, 1, 0),
+                    civil_second(2014, 1, 1, 1, 1, 1));
 
-  // Tests the relational operators of two different civil-time types.
-  TEST_RELATIONAL(civil_day(2014, 1, 1), civil_minute(2014, 1, 1, 1, 1));
-  TEST_RELATIONAL(civil_day(2014, 1, 1), civil_month(2014, 2));
+    // Tests the relational operators of two different civil-time types.
+    TEST_RELATIONAL(civil_day(2014, 1, 1), civil_minute(2014, 1, 1, 1, 1));
+    TEST_RELATIONAL(civil_day(2014, 1, 1), civil_month(2014, 2));
 
 #undef TEST_RELATIONAL
 }
 
 TEST(CivilTime, Arithmetic) {
-  civil_second second(2015, 1, 2, 3, 4, 5);
-  EXPECT_EQ("2015-01-02T03:04:06", Format(second += 1));
-  EXPECT_EQ("2015-01-02T03:04:07", Format(second + 1));
-  EXPECT_EQ("2015-01-02T03:04:08", Format(2 + second));
-  EXPECT_EQ("2015-01-02T03:04:05", Format(second - 1));
-  EXPECT_EQ("2015-01-02T03:04:05", Format(second -= 1));
-  EXPECT_EQ("2015-01-02T03:04:05", Format(second++));
-  EXPECT_EQ("2015-01-02T03:04:07", Format(++second));
-  EXPECT_EQ("2015-01-02T03:04:07", Format(second--));
-  EXPECT_EQ("2015-01-02T03:04:05", Format(--second));
+    civil_second second(2015, 1, 2, 3, 4, 5);
+    EXPECT_EQ("2015-01-02T03:04:06", Format(second += 1));
+    EXPECT_EQ("2015-01-02T03:04:07", Format(second + 1));
+    EXPECT_EQ("2015-01-02T03:04:08", Format(2 + second));
+    EXPECT_EQ("2015-01-02T03:04:05", Format(second - 1));
+    EXPECT_EQ("2015-01-02T03:04:05", Format(second -= 1));
+    EXPECT_EQ("2015-01-02T03:04:05", Format(second++));
+    EXPECT_EQ("2015-01-02T03:04:07", Format(++second));
+    EXPECT_EQ("2015-01-02T03:04:07", Format(second--));
+    EXPECT_EQ("2015-01-02T03:04:05", Format(--second));
 
-  civil_minute minute(2015, 1, 2, 3, 4);
-  EXPECT_EQ("2015-01-02T03:05", Format(minute += 1));
-  EXPECT_EQ("2015-01-02T03:06", Format(minute + 1));
-  EXPECT_EQ("2015-01-02T03:07", Format(2 + minute));
-  EXPECT_EQ("2015-01-02T03:04", Format(minute - 1));
-  EXPECT_EQ("2015-01-02T03:04", Format(minute -= 1));
-  EXPECT_EQ("2015-01-02T03:04", Format(minute++));
-  EXPECT_EQ("2015-01-02T03:06", Format(++minute));
-  EXPECT_EQ("2015-01-02T03:06", Format(minute--));
-  EXPECT_EQ("2015-01-02T03:04", Format(--minute));
+    civil_minute minute(2015, 1, 2, 3, 4);
+    EXPECT_EQ("2015-01-02T03:05", Format(minute += 1));
+    EXPECT_EQ("2015-01-02T03:06", Format(minute + 1));
+    EXPECT_EQ("2015-01-02T03:07", Format(2 + minute));
+    EXPECT_EQ("2015-01-02T03:04", Format(minute - 1));
+    EXPECT_EQ("2015-01-02T03:04", Format(minute -= 1));
+    EXPECT_EQ("2015-01-02T03:04", Format(minute++));
+    EXPECT_EQ("2015-01-02T03:06", Format(++minute));
+    EXPECT_EQ("2015-01-02T03:06", Format(minute--));
+    EXPECT_EQ("2015-01-02T03:04", Format(--minute));
 
-  civil_hour hour(2015, 1, 2, 3);
-  EXPECT_EQ("2015-01-02T04", Format(hour += 1));
-  EXPECT_EQ("2015-01-02T05", Format(hour + 1));
-  EXPECT_EQ("2015-01-02T06", Format(2 + hour));
-  EXPECT_EQ("2015-01-02T03", Format(hour - 1));
-  EXPECT_EQ("2015-01-02T03", Format(hour -= 1));
-  EXPECT_EQ("2015-01-02T03", Format(hour++));
-  EXPECT_EQ("2015-01-02T05", Format(++hour));
-  EXPECT_EQ("2015-01-02T05", Format(hour--));
-  EXPECT_EQ("2015-01-02T03", Format(--hour));
+    civil_hour hour(2015, 1, 2, 3);
+    EXPECT_EQ("2015-01-02T04", Format(hour += 1));
+    EXPECT_EQ("2015-01-02T05", Format(hour + 1));
+    EXPECT_EQ("2015-01-02T06", Format(2 + hour));
+    EXPECT_EQ("2015-01-02T03", Format(hour - 1));
+    EXPECT_EQ("2015-01-02T03", Format(hour -= 1));
+    EXPECT_EQ("2015-01-02T03", Format(hour++));
+    EXPECT_EQ("2015-01-02T05", Format(++hour));
+    EXPECT_EQ("2015-01-02T05", Format(hour--));
+    EXPECT_EQ("2015-01-02T03", Format(--hour));
 
-  civil_day day(2015, 1, 2);
-  EXPECT_EQ("2015-01-03", Format(day += 1));
-  EXPECT_EQ("2015-01-04", Format(day + 1));
-  EXPECT_EQ("2015-01-05", Format(2 + day));
-  EXPECT_EQ("2015-01-02", Format(day - 1));
-  EXPECT_EQ("2015-01-02", Format(day -= 1));
-  EXPECT_EQ("2015-01-02", Format(day++));
-  EXPECT_EQ("2015-01-04", Format(++day));
-  EXPECT_EQ("2015-01-04", Format(day--));
-  EXPECT_EQ("2015-01-02", Format(--day));
+    civil_day day(2015, 1, 2);
+    EXPECT_EQ("2015-01-03", Format(day += 1));
+    EXPECT_EQ("2015-01-04", Format(day + 1));
+    EXPECT_EQ("2015-01-05", Format(2 + day));
+    EXPECT_EQ("2015-01-02", Format(day - 1));
+    EXPECT_EQ("2015-01-02", Format(day -= 1));
+    EXPECT_EQ("2015-01-02", Format(day++));
+    EXPECT_EQ("2015-01-04", Format(++day));
+    EXPECT_EQ("2015-01-04", Format(day--));
+    EXPECT_EQ("2015-01-02", Format(--day));
 
-  civil_month month(2015, 1);
-  EXPECT_EQ("2015-02", Format(month += 1));
-  EXPECT_EQ("2015-03", Format(month + 1));
-  EXPECT_EQ("2015-04", Format(2 + month));
-  EXPECT_EQ("2015-01", Format(month - 1));
-  EXPECT_EQ("2015-01", Format(month -= 1));
-  EXPECT_EQ("2015-01", Format(month++));
-  EXPECT_EQ("2015-03", Format(++month));
-  EXPECT_EQ("2015-03", Format(month--));
-  EXPECT_EQ("2015-01", Format(--month));
+    civil_month month(2015, 1);
+    EXPECT_EQ("2015-02", Format(month += 1));
+    EXPECT_EQ("2015-03", Format(month + 1));
+    EXPECT_EQ("2015-04", Format(2 + month));
+    EXPECT_EQ("2015-01", Format(month - 1));
+    EXPECT_EQ("2015-01", Format(month -= 1));
+    EXPECT_EQ("2015-01", Format(month++));
+    EXPECT_EQ("2015-03", Format(++month));
+    EXPECT_EQ("2015-03", Format(month--));
+    EXPECT_EQ("2015-01", Format(--month));
 
-  civil_year year(2015);
-  EXPECT_EQ("2016", Format(year += 1));
-  EXPECT_EQ("2017", Format(year + 1));
-  EXPECT_EQ("2018", Format(2 + year));
-  EXPECT_EQ("2015", Format(year - 1));
-  EXPECT_EQ("2015", Format(year -= 1));
-  EXPECT_EQ("2015", Format(year++));
-  EXPECT_EQ("2017", Format(++year));
-  EXPECT_EQ("2017", Format(year--));
-  EXPECT_EQ("2015", Format(--year));
+    civil_year year(2015);
+    EXPECT_EQ("2016", Format(year += 1));
+    EXPECT_EQ("2017", Format(year + 1));
+    EXPECT_EQ("2018", Format(2 + year));
+    EXPECT_EQ("2015", Format(year - 1));
+    EXPECT_EQ("2015", Format(year -= 1));
+    EXPECT_EQ("2015", Format(year++));
+    EXPECT_EQ("2017", Format(++year));
+    EXPECT_EQ("2017", Format(year--));
+    EXPECT_EQ("2015", Format(--year));
 }
 
 TEST(CivilTime, ArithmeticLimits) {
-  const int kIntMax = std::numeric_limits<int>::max();
-  const int kIntMin = std::numeric_limits<int>::min();
+    const int kIntMax = std::numeric_limits<int>::max();
+    const int kIntMin = std::numeric_limits<int>::min();
 
-  civil_second second(1970, 1, 1, 0, 0, 0);
-  second += kIntMax;
-  EXPECT_EQ("2038-01-19T03:14:07", Format(second));
-  second -= kIntMax;
-  EXPECT_EQ("1970-01-01T00:00:00", Format(second));
-  second += kIntMin;
-  EXPECT_EQ("1901-12-13T20:45:52", Format(second));
-  second -= kIntMin;
-  EXPECT_EQ("1970-01-01T00:00:00", Format(second));
+    civil_second second(1970, 1, 1, 0, 0, 0);
+    second += kIntMax;
+    EXPECT_EQ("2038-01-19T03:14:07", Format(second));
+    second -= kIntMax;
+    EXPECT_EQ("1970-01-01T00:00:00", Format(second));
+    second += kIntMin;
+    EXPECT_EQ("1901-12-13T20:45:52", Format(second));
+    second -= kIntMin;
+    EXPECT_EQ("1970-01-01T00:00:00", Format(second));
 
-  civil_minute minute(1970, 1, 1, 0, 0);
-  minute += kIntMax;
-  EXPECT_EQ("6053-01-23T02:07", Format(minute));
-  minute -= kIntMax;
-  EXPECT_EQ("1970-01-01T00:00", Format(minute));
-  minute += kIntMin;
-  EXPECT_EQ("-2114-12-08T21:52", Format(minute));
-  minute -= kIntMin;
-  EXPECT_EQ("1970-01-01T00:00", Format(minute));
+    civil_minute minute(1970, 1, 1, 0, 0);
+    minute += kIntMax;
+    EXPECT_EQ("6053-01-23T02:07", Format(minute));
+    minute -= kIntMax;
+    EXPECT_EQ("1970-01-01T00:00", Format(minute));
+    minute += kIntMin;
+    EXPECT_EQ("-2114-12-08T21:52", Format(minute));
+    minute -= kIntMin;
+    EXPECT_EQ("1970-01-01T00:00", Format(minute));
 
-  civil_hour hour(1970, 1, 1, 0);
-  hour += kIntMax;
-  EXPECT_EQ("246953-10-09T07", Format(hour));
-  hour -= kIntMax;
-  EXPECT_EQ("1970-01-01T00", Format(hour));
-  hour += kIntMin;
-  EXPECT_EQ("-243014-03-24T16", Format(hour));
-  hour -= kIntMin;
-  EXPECT_EQ("1970-01-01T00", Format(hour));
+    civil_hour hour(1970, 1, 1, 0);
+    hour += kIntMax;
+    EXPECT_EQ("246953-10-09T07", Format(hour));
+    hour -= kIntMax;
+    EXPECT_EQ("1970-01-01T00", Format(hour));
+    hour += kIntMin;
+    EXPECT_EQ("-243014-03-24T16", Format(hour));
+    hour -= kIntMin;
+    EXPECT_EQ("1970-01-01T00", Format(hour));
 
-  civil_day day(1970, 1, 1);
-  day += kIntMax;
-  EXPECT_EQ("5881580-07-11", Format(day));
-  day -= kIntMax;
-  EXPECT_EQ("1970-01-01", Format(day));
-  day += kIntMin;
-  EXPECT_EQ("-5877641-06-23", Format(day));
-  day -= kIntMin;
-  EXPECT_EQ("1970-01-01", Format(day));
+    civil_day day(1970, 1, 1);
+    day += kIntMax;
+    EXPECT_EQ("5881580-07-11", Format(day));
+    day -= kIntMax;
+    EXPECT_EQ("1970-01-01", Format(day));
+    day += kIntMin;
+    EXPECT_EQ("-5877641-06-23", Format(day));
+    day -= kIntMin;
+    EXPECT_EQ("1970-01-01", Format(day));
 
-  civil_month month(1970, 1);
-  month += kIntMax;
-  EXPECT_EQ("178958940-08", Format(month));
-  month -= kIntMax;
-  EXPECT_EQ("1970-01", Format(month));
-  month += kIntMin;
-  EXPECT_EQ("-178955001-05", Format(month));
-  month -= kIntMin;
-  EXPECT_EQ("1970-01", Format(month));
+    civil_month month(1970, 1);
+    month += kIntMax;
+    EXPECT_EQ("178958940-08", Format(month));
+    month -= kIntMax;
+    EXPECT_EQ("1970-01", Format(month));
+    month += kIntMin;
+    EXPECT_EQ("-178955001-05", Format(month));
+    month -= kIntMin;
+    EXPECT_EQ("1970-01", Format(month));
 
-  civil_year year(0);
-  year += kIntMax;
-  EXPECT_EQ("2147483647", Format(year));
-  year -= kIntMax;
-  EXPECT_EQ("0", Format(year));
-  year += kIntMin;
-  EXPECT_EQ("-2147483648", Format(year));
-  year -= kIntMin;
-  EXPECT_EQ("0", Format(year));
+    civil_year year(0);
+    year += kIntMax;
+    EXPECT_EQ("2147483647", Format(year));
+    year -= kIntMax;
+    EXPECT_EQ("0", Format(year));
+    year += kIntMin;
+    EXPECT_EQ("-2147483648", Format(year));
+    year -= kIntMin;
+    EXPECT_EQ("0", Format(year));
 }
 
 TEST(CivilTime, ArithmeticDifference) {
-  civil_second second(2015, 1, 2, 3, 4, 5);
-  EXPECT_EQ(0, second - second);
-  EXPECT_EQ(10, (second + 10) - second);
-  EXPECT_EQ(-10, (second - 10) - second);
+    civil_second second(2015, 1, 2, 3, 4, 5);
+    EXPECT_EQ(0, second - second);
+    EXPECT_EQ(10, (second + 10) - second);
+    EXPECT_EQ(-10, (second - 10) - second);
 
-  civil_minute minute(2015, 1, 2, 3, 4);
-  EXPECT_EQ(0, minute - minute);
-  EXPECT_EQ(10, (minute + 10) - minute);
-  EXPECT_EQ(-10, (minute - 10) - minute);
+    civil_minute minute(2015, 1, 2, 3, 4);
+    EXPECT_EQ(0, minute - minute);
+    EXPECT_EQ(10, (minute + 10) - minute);
+    EXPECT_EQ(-10, (minute - 10) - minute);
 
-  civil_hour hour(2015, 1, 2, 3);
-  EXPECT_EQ(0, hour - hour);
-  EXPECT_EQ(10, (hour + 10) - hour);
-  EXPECT_EQ(-10, (hour - 10) - hour);
+    civil_hour hour(2015, 1, 2, 3);
+    EXPECT_EQ(0, hour - hour);
+    EXPECT_EQ(10, (hour + 10) - hour);
+    EXPECT_EQ(-10, (hour - 10) - hour);
 
-  civil_day day(2015, 1, 2);
-  EXPECT_EQ(0, day - day);
-  EXPECT_EQ(10, (day + 10) - day);
-  EXPECT_EQ(-10, (day - 10) - day);
+    civil_day day(2015, 1, 2);
+    EXPECT_EQ(0, day - day);
+    EXPECT_EQ(10, (day + 10) - day);
+    EXPECT_EQ(-10, (day - 10) - day);
 
-  civil_month month(2015, 1);
-  EXPECT_EQ(0, month - month);
-  EXPECT_EQ(10, (month + 10) - month);
-  EXPECT_EQ(-10, (month - 10) - month);
+    civil_month month(2015, 1);
+    EXPECT_EQ(0, month - month);
+    EXPECT_EQ(10, (month + 10) - month);
+    EXPECT_EQ(-10, (month - 10) - month);
 
-  civil_year year(2015);
-  EXPECT_EQ(0, year - year);
-  EXPECT_EQ(10, (year + 10) - year);
-  EXPECT_EQ(-10, (year - 10) - year);
+    civil_year year(2015);
+    EXPECT_EQ(0, year - year);
+    EXPECT_EQ(10, (year + 10) - year);
+    EXPECT_EQ(-10, (year - 10) - year);
 }
 
 TEST(CivilTime, DifferenceLimits) {
-  const int kIntMax = std::numeric_limits<int>::max();
-  const int kIntMin = std::numeric_limits<int>::min();
+    const int kIntMax = std::numeric_limits<int>::max();
+    const int kIntMin = std::numeric_limits<int>::min();
 
-  // Check day arithmetic at the end of the year range.
-  const civil_day max_day(kIntMax, 12, 31);
-  EXPECT_EQ(1, max_day - (max_day - 1));
-  EXPECT_EQ(-1, (max_day - 1) - max_day);
+    // Check day arithmetic at the end of the year range.
+    const civil_day max_day(kIntMax, 12, 31);
+    EXPECT_EQ(1, max_day - (max_day - 1));
+    EXPECT_EQ(-1, (max_day - 1) - max_day);
 
-  // Check day arithmetic at the end of the year range.
-  const civil_day min_day(kIntMin, 1, 1);
-  EXPECT_EQ(1, (min_day + 1) - min_day);
-  EXPECT_EQ(-1, min_day - (min_day + 1));
+    // Check day arithmetic at the end of the year range.
+    const civil_day min_day(kIntMin, 1, 1);
+    EXPECT_EQ(1, (min_day + 1) - min_day);
+    EXPECT_EQ(-1, min_day - (min_day + 1));
 
-  // Check the limits of the return value.
-  const civil_day d1(1970, 1, 1);
-  const civil_day d2(5881580, 7, 11);
-  EXPECT_EQ(kIntMax, d2 - d1);
-  EXPECT_EQ(kIntMin, d1 - (d2 + 1));
+    // Check the limits of the return value.
+    const civil_day d1(1970, 1, 1);
+    const civil_day d2(5881580, 7, 11);
+    EXPECT_EQ(kIntMax, d2 - d1);
+    EXPECT_EQ(kIntMin, d1 - (d2 + 1));
 }
 
 TEST(CivilTime, Properties) {
-  civil_second ss(2015, 2, 3, 4, 5, 6);
-  EXPECT_EQ(2015, ss.year());
-  EXPECT_EQ(2, ss.month());
-  EXPECT_EQ(3, ss.day());
-  EXPECT_EQ(4, ss.hour());
-  EXPECT_EQ(5, ss.minute());
-  EXPECT_EQ(6, ss.second());
-  EXPECT_EQ(weekday::tuesday, get_weekday(ss));
-  EXPECT_EQ(34, get_yearday(ss));
+    civil_second ss(2015, 2, 3, 4, 5, 6);
+    EXPECT_EQ(2015, ss.year());
+    EXPECT_EQ(2, ss.month());
+    EXPECT_EQ(3, ss.day());
+    EXPECT_EQ(4, ss.hour());
+    EXPECT_EQ(5, ss.minute());
+    EXPECT_EQ(6, ss.second());
+    EXPECT_EQ(weekday::tuesday, get_weekday(ss));
+    EXPECT_EQ(34, get_yearday(ss));
 
-  civil_minute mm(2015, 2, 3, 4, 5, 6);
-  EXPECT_EQ(2015, mm.year());
-  EXPECT_EQ(2, mm.month());
-  EXPECT_EQ(3, mm.day());
-  EXPECT_EQ(4, mm.hour());
-  EXPECT_EQ(5, mm.minute());
-  EXPECT_EQ(0, mm.second());
-  EXPECT_EQ(weekday::tuesday, get_weekday(mm));
-  EXPECT_EQ(34, get_yearday(mm));
+    civil_minute mm(2015, 2, 3, 4, 5, 6);
+    EXPECT_EQ(2015, mm.year());
+    EXPECT_EQ(2, mm.month());
+    EXPECT_EQ(3, mm.day());
+    EXPECT_EQ(4, mm.hour());
+    EXPECT_EQ(5, mm.minute());
+    EXPECT_EQ(0, mm.second());
+    EXPECT_EQ(weekday::tuesday, get_weekday(mm));
+    EXPECT_EQ(34, get_yearday(mm));
 
-  civil_hour hh(2015, 2, 3, 4, 5, 6);
-  EXPECT_EQ(2015, hh.year());
-  EXPECT_EQ(2, hh.month());
-  EXPECT_EQ(3, hh.day());
-  EXPECT_EQ(4, hh.hour());
-  EXPECT_EQ(0, hh.minute());
-  EXPECT_EQ(0, hh.second());
-  EXPECT_EQ(weekday::tuesday, get_weekday(hh));
-  EXPECT_EQ(34, get_yearday(hh));
+    civil_hour hh(2015, 2, 3, 4, 5, 6);
+    EXPECT_EQ(2015, hh.year());
+    EXPECT_EQ(2, hh.month());
+    EXPECT_EQ(3, hh.day());
+    EXPECT_EQ(4, hh.hour());
+    EXPECT_EQ(0, hh.minute());
+    EXPECT_EQ(0, hh.second());
+    EXPECT_EQ(weekday::tuesday, get_weekday(hh));
+    EXPECT_EQ(34, get_yearday(hh));
 
-  civil_day d(2015, 2, 3, 4, 5, 6);
-  EXPECT_EQ(2015, d.year());
-  EXPECT_EQ(2, d.month());
-  EXPECT_EQ(3, d.day());
-  EXPECT_EQ(0, d.hour());
-  EXPECT_EQ(0, d.minute());
-  EXPECT_EQ(0, d.second());
-  EXPECT_EQ(weekday::tuesday, get_weekday(d));
-  EXPECT_EQ(34, get_yearday(d));
+    civil_day d(2015, 2, 3, 4, 5, 6);
+    EXPECT_EQ(2015, d.year());
+    EXPECT_EQ(2, d.month());
+    EXPECT_EQ(3, d.day());
+    EXPECT_EQ(0, d.hour());
+    EXPECT_EQ(0, d.minute());
+    EXPECT_EQ(0, d.second());
+    EXPECT_EQ(weekday::tuesday, get_weekday(d));
+    EXPECT_EQ(34, get_yearday(d));
 
-  civil_month m(2015, 2, 3, 4, 5, 6);
-  EXPECT_EQ(2015, m.year());
-  EXPECT_EQ(2, m.month());
-  EXPECT_EQ(1, m.day());
-  EXPECT_EQ(0, m.hour());
-  EXPECT_EQ(0, m.minute());
-  EXPECT_EQ(0, m.second());
-  EXPECT_EQ(weekday::sunday, get_weekday(m));
-  EXPECT_EQ(32, get_yearday(m));
+    civil_month m(2015, 2, 3, 4, 5, 6);
+    EXPECT_EQ(2015, m.year());
+    EXPECT_EQ(2, m.month());
+    EXPECT_EQ(1, m.day());
+    EXPECT_EQ(0, m.hour());
+    EXPECT_EQ(0, m.minute());
+    EXPECT_EQ(0, m.second());
+    EXPECT_EQ(weekday::sunday, get_weekday(m));
+    EXPECT_EQ(32, get_yearday(m));
 
-  civil_year y(2015, 2, 3, 4, 5, 6);
-  EXPECT_EQ(2015, y.year());
-  EXPECT_EQ(1, y.month());
-  EXPECT_EQ(1, y.day());
-  EXPECT_EQ(0, y.hour());
-  EXPECT_EQ(0, y.minute());
-  EXPECT_EQ(0, y.second());
-  EXPECT_EQ(weekday::thursday, get_weekday(y));
-  EXPECT_EQ(1, get_yearday(y));
+    civil_year y(2015, 2, 3, 4, 5, 6);
+    EXPECT_EQ(2015, y.year());
+    EXPECT_EQ(1, y.month());
+    EXPECT_EQ(1, y.day());
+    EXPECT_EQ(0, y.hour());
+    EXPECT_EQ(0, y.minute());
+    EXPECT_EQ(0, y.second());
+    EXPECT_EQ(weekday::thursday, get_weekday(y));
+    EXPECT_EQ(1, get_yearday(y));
 }
 
 TEST(CivilTime, OutputStream) {
-  // Tests formatting of civil_year, which does not pad.
-  EXPECT_EQ("2016", Format(civil_year(2016)));
-  EXPECT_EQ("123", Format(civil_year(123)));
-  EXPECT_EQ("0", Format(civil_year(0)));
-  EXPECT_EQ("-1", Format(civil_year(-1)));
+    // Tests formatting of civil_year, which does not pad.
+    EXPECT_EQ("2016", Format(civil_year(2016)));
+    EXPECT_EQ("123", Format(civil_year(123)));
+    EXPECT_EQ("0", Format(civil_year(0)));
+    EXPECT_EQ("-1", Format(civil_year(-1)));
 
-  // Tests formatting of sub-year types, which pad to 2 digits
-  EXPECT_EQ("2016-02", Format(civil_month(2016, 2)));
-  EXPECT_EQ("2016-02-03", Format(civil_day(2016, 2, 3)));
-  EXPECT_EQ("2016-02-03T04", Format(civil_hour(2016, 2, 3, 4)));
-  EXPECT_EQ("2016-02-03T04:05", Format(civil_minute(2016, 2, 3, 4, 5)));
-  EXPECT_EQ("2016-02-03T04:05:06", Format(civil_second(2016, 2, 3, 4, 5, 6)));
+    // Tests formatting of sub-year types, which pad to 2 digits
+    EXPECT_EQ("2016-02", Format(civil_month(2016, 2)));
+    EXPECT_EQ("2016-02-03", Format(civil_day(2016, 2, 3)));
+    EXPECT_EQ("2016-02-03T04", Format(civil_hour(2016, 2, 3, 4)));
+    EXPECT_EQ("2016-02-03T04:05", Format(civil_minute(2016, 2, 3, 4, 5)));
+    EXPECT_EQ("2016-02-03T04:05:06", Format(civil_second(2016, 2, 3, 4, 5, 6)));
 
-  // Tests formatting of weekday.
-  EXPECT_EQ("Monday", Format(weekday::monday));
-  EXPECT_EQ("Tuesday", Format(weekday::tuesday));
-  EXPECT_EQ("Wednesday", Format(weekday::wednesday));
-  EXPECT_EQ("Thursday", Format(weekday::thursday));
-  EXPECT_EQ("Friday", Format(weekday::friday));
-  EXPECT_EQ("Saturday", Format(weekday::saturday));
-  EXPECT_EQ("Sunday", Format(weekday::sunday));
+    // Tests formatting of weekday.
+    EXPECT_EQ("Monday", Format(weekday::monday));
+    EXPECT_EQ("Tuesday", Format(weekday::tuesday));
+    EXPECT_EQ("Wednesday", Format(weekday::wednesday));
+    EXPECT_EQ("Thursday", Format(weekday::thursday));
+    EXPECT_EQ("Friday", Format(weekday::friday));
+    EXPECT_EQ("Saturday", Format(weekday::saturday));
+    EXPECT_EQ("Sunday", Format(weekday::sunday));
 }
 
 TEST(CivilTime, OutputStreamLeftFillWidth) {
-  civil_second cs(2016, 2, 3, 4, 5, 6);
-  {
-    std::stringstream ss;
-    ss << std::left << std::setfill('.');
-    ss << std::setw(3) << 'X';
-    ss << std::setw(21) << civil_year(cs);
-    ss << std::setw(3) << 'X';
-    EXPECT_EQ("X..2016.................X..", ss.str());
-  }
-  {
-    std::stringstream ss;
-    ss << std::left << std::setfill('.');
-    ss << std::setw(3) << 'X';
-    ss << std::setw(21) << civil_month(cs);
-    ss << std::setw(3) << 'X';
-    EXPECT_EQ("X..2016-02..............X..", ss.str());
-  }
-  {
-    std::stringstream ss;
-    ss << std::left << std::setfill('.');
-    ss << std::setw(3) << 'X';
-    ss << std::setw(21) << civil_day(cs);
-    ss << std::setw(3) << 'X';
-    EXPECT_EQ("X..2016-02-03...........X..", ss.str());
-  }
-  {
-    std::stringstream ss;
-    ss << std::left << std::setfill('.');
-    ss << std::setw(3) << 'X';
-    ss << std::setw(21) << civil_hour(cs);
-    ss << std::setw(3) << 'X';
-    EXPECT_EQ("X..2016-02-03T04........X..", ss.str());
-  }
-  {
-    std::stringstream ss;
-    ss << std::left << std::setfill('.');
-    ss << std::setw(3) << 'X';
-    ss << std::setw(21) << civil_minute(cs);
-    ss << std::setw(3) << 'X';
-    EXPECT_EQ("X..2016-02-03T04:05.....X..", ss.str());
-  }
-  {
-    std::stringstream ss;
-    ss << std::left << std::setfill('.');
-    ss << std::setw(3) << 'X';
-    ss << std::setw(21) << civil_second(cs);
-    ss << std::setw(3) << 'X';
-    EXPECT_EQ("X..2016-02-03T04:05:06..X..", ss.str());
-  }
+    civil_second cs(2016, 2, 3, 4, 5, 6);
+    {
+        std::stringstream ss;
+        ss << std::left << std::setfill('.');
+        ss << std::setw(3) << 'X';
+        ss << std::setw(21) << civil_year(cs);
+        ss << std::setw(3) << 'X';
+        EXPECT_EQ("X..2016.................X..", ss.str());
+    }
+    {
+        std::stringstream ss;
+        ss << std::left << std::setfill('.');
+        ss << std::setw(3) << 'X';
+        ss << std::setw(21) << civil_month(cs);
+        ss << std::setw(3) << 'X';
+        EXPECT_EQ("X..2016-02..............X..", ss.str());
+    }
+    {
+        std::stringstream ss;
+        ss << std::left << std::setfill('.');
+        ss << std::setw(3) << 'X';
+        ss << std::setw(21) << civil_day(cs);
+        ss << std::setw(3) << 'X';
+        EXPECT_EQ("X..2016-02-03...........X..", ss.str());
+    }
+    {
+        std::stringstream ss;
+        ss << std::left << std::setfill('.');
+        ss << std::setw(3) << 'X';
+        ss << std::setw(21) << civil_hour(cs);
+        ss << std::setw(3) << 'X';
+        EXPECT_EQ("X..2016-02-03T04........X..", ss.str());
+    }
+    {
+        std::stringstream ss;
+        ss << std::left << std::setfill('.');
+        ss << std::setw(3) << 'X';
+        ss << std::setw(21) << civil_minute(cs);
+        ss << std::setw(3) << 'X';
+        EXPECT_EQ("X..2016-02-03T04:05.....X..", ss.str());
+    }
+    {
+        std::stringstream ss;
+        ss << std::left << std::setfill('.');
+        ss << std::setw(3) << 'X';
+        ss << std::setw(21) << civil_second(cs);
+        ss << std::setw(3) << 'X';
+        EXPECT_EQ("X..2016-02-03T04:05:06..X..", ss.str());
+    }
 }
 
 TEST(CivilTime, NextPrevWeekday) {
-  // Jan 1, 1970 was a Thursday.
-  const civil_day thursday(1970, 1, 1);
-  EXPECT_EQ(weekday::thursday, get_weekday(thursday));
+    // Jan 1, 1970 was a Thursday.
+    const civil_day thursday(1970, 1, 1);
+    EXPECT_EQ(weekday::thursday, get_weekday(thursday));
 
-  // Thursday -> Thursday
-  civil_day d = next_weekday(thursday, weekday::thursday);
-  EXPECT_EQ(7, d - thursday) << Format(d);
-  EXPECT_EQ(d - 14, prev_weekday(thursday, weekday::thursday));
+    // Thursday -> Thursday
+    civil_day d = next_weekday(thursday, weekday::thursday);
+    EXPECT_EQ(7, d - thursday) << Format(d);
+    EXPECT_EQ(d - 14, prev_weekday(thursday, weekday::thursday));
 
-  // Thursday -> Friday
-  d = next_weekday(thursday, weekday::friday);
-  EXPECT_EQ(1, d - thursday) << Format(d);
-  EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::friday));
+    // Thursday -> Friday
+    d = next_weekday(thursday, weekday::friday);
+    EXPECT_EQ(1, d - thursday) << Format(d);
+    EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::friday));
 
-  // Thursday -> Saturday
-  d = next_weekday(thursday, weekday::saturday);
-  EXPECT_EQ(2, d - thursday) << Format(d);
-  EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::saturday));
+    // Thursday -> Saturday
+    d = next_weekday(thursday, weekday::saturday);
+    EXPECT_EQ(2, d - thursday) << Format(d);
+    EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::saturday));
 
-  // Thursday -> Sunday
-  d = next_weekday(thursday, weekday::sunday);
-  EXPECT_EQ(3, d - thursday) << Format(d);
-  EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::sunday));
+    // Thursday -> Sunday
+    d = next_weekday(thursday, weekday::sunday);
+    EXPECT_EQ(3, d - thursday) << Format(d);
+    EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::sunday));
 
-  // Thursday -> Monday
-  d = next_weekday(thursday, weekday::monday);
-  EXPECT_EQ(4, d - thursday) << Format(d);
-  EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::monday));
+    // Thursday -> Monday
+    d = next_weekday(thursday, weekday::monday);
+    EXPECT_EQ(4, d - thursday) << Format(d);
+    EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::monday));
 
-  // Thursday -> Tuesday
-  d = next_weekday(thursday, weekday::tuesday);
-  EXPECT_EQ(5, d - thursday) << Format(d);
-  EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::tuesday));
+    // Thursday -> Tuesday
+    d = next_weekday(thursday, weekday::tuesday);
+    EXPECT_EQ(5, d - thursday) << Format(d);
+    EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::tuesday));
 
-  // Thursday -> Wednesday
-  d = next_weekday(thursday, weekday::wednesday);
-  EXPECT_EQ(6, d - thursday) << Format(d);
-  EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::wednesday));
+    // Thursday -> Wednesday
+    d = next_weekday(thursday, weekday::wednesday);
+    EXPECT_EQ(6, d - thursday) << Format(d);
+    EXPECT_EQ(d - 7, prev_weekday(thursday, weekday::wednesday));
 }
 
 TEST(CivilTime, NormalizeWithHugeYear) {
-  civil_month c(9223372036854775807, 1);
-  EXPECT_EQ("9223372036854775807-01", Format(c));
-  c = c - 1;  // Causes normalization
-  EXPECT_EQ("9223372036854775806-12", Format(c));
+    civil_month c(9223372036854775807, 1);
+    EXPECT_EQ("9223372036854775807-01", Format(c));
+    c = c - 1;  // Causes normalization
+    EXPECT_EQ("9223372036854775806-12", Format(c));
 
-  c = civil_month(-9223372036854775807 - 1, 1);
-  EXPECT_EQ("-9223372036854775808-01", Format(c));
-  c = c + 12;  // Causes normalization
-  EXPECT_EQ("-9223372036854775807-01", Format(c));
+    c = civil_month(-9223372036854775807 - 1, 1);
+    EXPECT_EQ("-9223372036854775808-01", Format(c));
+    c = c + 12;  // Causes normalization
+    EXPECT_EQ("-9223372036854775807-01", Format(c));
 }
 
 TEST(CivilTime, LeapYears) {
-  // Test data for leap years.
-  const struct {
-    int year;
-    int days;
-    struct {
-      int month;
-      int day;
-    } leap_day;  // The date of the day after Feb 28.
-  } kLeapYearTable[]{
-      {1900, 365, {3, 1}},  {1999, 365, {3, 1}},
-      {2000, 366, {2, 29}},  // leap year
-      {2001, 365, {3, 1}},  {2002, 365, {3, 1}},
-      {2003, 365, {3, 1}},  {2004, 366, {2, 29}},  // leap year
-      {2005, 365, {3, 1}},  {2006, 365, {3, 1}},
-      {2007, 365, {3, 1}},  {2008, 366, {2, 29}},  // leap year
-      {2009, 365, {3, 1}},  {2100, 365, {3, 1}},
-  };
+    // Test data for leap years.
+    const struct {
+        int year;
+        int days;
+        struct {
+            int month;
+            int day;
+        } leap_day;  // The date of the day after Feb 28.
+    } kLeapYearTable[] {
+        {1900, 365, {3, 1}}, {1999, 365, {3, 1}},
+        {2000, 366, {2, 29}},  // leap year
+        {2001, 365, {3, 1}}, {2002, 365, {3, 1}},
+        {2003, 365, {3, 1}}, {2004, 366, {2, 29}},  // leap year
+        {2005, 365, {3, 1}}, {2006, 365, {3, 1}},
+        {2007, 365, {3, 1}}, {2008, 366, {2, 29}},  // leap year
+        {2009, 365, {3, 1}}, {2100, 365, {3, 1}},
+    };
 
-  for (const auto& e : kLeapYearTable) {
-    // Tests incrementing through the leap day.
-    const civil_day feb28(e.year, 2, 28);
-    const civil_day next_day = feb28 + 1;
-    EXPECT_EQ(e.leap_day.month, next_day.month());
-    EXPECT_EQ(e.leap_day.day, next_day.day());
+    for (const auto &e : kLeapYearTable) {
+        // Tests incrementing through the leap day.
+        const civil_day feb28(e.year, 2, 28);
+        const civil_day next_day = feb28 + 1;
+        EXPECT_EQ(e.leap_day.month, next_day.month());
+        EXPECT_EQ(e.leap_day.day, next_day.day());
 
-    // Tests difference in days of leap years.
-    const civil_year year(feb28);
-    const civil_year next_year = year + 1;
-    EXPECT_EQ(e.days, civil_day(next_year) - civil_day(year));
-  }
+        // Tests difference in days of leap years.
+        const civil_year year(feb28);
+        const civil_year next_year = year + 1;
+        EXPECT_EQ(e.days, civil_day(next_year)
+            -civil_day(year));
+    }
 }
 
 TEST(CivilTime, FirstThursdayInMonth) {
-  const civil_day nov1(2014, 11, 1);
-  const civil_day thursday = next_weekday(nov1 - 1, weekday::thursday);
-  EXPECT_EQ("2014-11-06", Format(thursday));
+    const civil_day nov1(2014, 11, 1);
+    const civil_day thursday = next_weekday(nov1 - 1, weekday::thursday);
+    EXPECT_EQ("2014-11-06", Format(thursday));
 
-  // Bonus: Date of Thanksgiving in the United States
-  // Rule: Fourth Thursday of November
-  const civil_day thanksgiving = thursday + 7 * 3;
-  EXPECT_EQ("2014-11-27", Format(thanksgiving));
+    // Bonus: Date of Thanksgiving in the United States
+    // Rule: Fourth Thursday of November
+    const civil_day thanksgiving = thursday + 7 * 3;
+    EXPECT_EQ("2014-11-27", Format(thanksgiving));
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

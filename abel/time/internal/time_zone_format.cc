@@ -25,7 +25,7 @@
 #endif
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/time_zone.h>
 
 // Include time.h directly since, by C++ standards, ctime doesn't have to
 // declare strptime.
@@ -45,13 +45,12 @@
 #include <sstream>
 #endif
 
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
+#include <abel/time/internal/civil_time.h>
 #include "time_zone_if.h"
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 namespace detail {
 
 namespace {
@@ -916,7 +915,6 @@ bool parse(const std::string& format, const std::string& input,
 }
 
 }  // namespace detail
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

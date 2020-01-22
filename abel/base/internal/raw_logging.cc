@@ -58,9 +58,9 @@
 // Explicitly #error out when not ABEL_LOW_LEVEL_WRITE_SUPPORTED, except for a
 // whitelisted set of platforms for which we expect not to be able to raw log.
 
-ABEL_CONST_INIT static abel::AtomicHook<
+ABEL_CONST_INIT static abel::atomic_hook<
     abel::raw_logging_internal::LogPrefixHook> log_prefix_hook;
-ABEL_CONST_INIT static abel::AtomicHook<
+ABEL_CONST_INIT static abel::atomic_hook<
     abel::raw_logging_internal::AbortHook> abort_hook;
 
 #ifdef ABEL_LOW_LEVEL_WRITE_SUPPORTED
@@ -212,7 +212,7 @@ bool RawLoggingFullySupported() {
 #endif  // !ABEL_LOW_LEVEL_WRITE_SUPPORTED
 }
 
-ABEL_CONST_INIT abel::AtomicHook<InternalLogFunction>
+ABEL_CONST_INIT abel::atomic_hook<InternalLogFunction>
     internal_log_function(DefaultInternalLog);
 
 void RegisterInternalLogFunction(InternalLogFunction func) {

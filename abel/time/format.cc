@@ -4,10 +4,8 @@
 #include <cctype>
 #include <cstdint>
 
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/time_zone.h>
 #include <abel/time/time.h>
-
-namespace cctz = abel::time_internal::cctz;
 
 namespace abel {
 
@@ -24,12 +22,12 @@ const char kInfiniteFutureStr[] = "infinite-future";
 const char kInfinitePastStr[] = "infinite-past";
 
 struct cctz_parts {
-  cctz::time_point<cctz::seconds> sec;
-  cctz::detail::femtoseconds fem;
+  abel::time_internal::time_point<abel::time_internal::seconds> sec;
+  abel::time_internal::detail::femtoseconds fem;
 };
 
-ABEL_FORCE_INLINE cctz::time_point<cctz::seconds> unix_epoch() {
-  return std::chrono::time_point_cast<cctz::seconds>(
+ABEL_FORCE_INLINE abel::time_internal::time_point<abel::time_internal::seconds> unix_epoch() {
+  return std::chrono::time_point_cast<abel::time_internal::seconds>(
       std::chrono::system_clock::from_time_t(0));
 }
 
@@ -40,8 +38,8 @@ cctz_parts Split(abel::abel_time t) {
   const auto d = time_internal::to_unix_duration(t);
   const int64_t rep_hi = time_internal::GetRepHi(d);
   const int64_t rep_lo = time_internal::GetRepLo(d);
-  const auto sec = unix_epoch() + cctz::seconds(rep_hi);
-  const auto fem = cctz::detail::femtoseconds(rep_lo * (1000 * 1000 / 4));
+  const auto sec = unix_epoch() + abel::time_internal::seconds(rep_hi);
+  const auto fem = abel::time_internal::detail::femtoseconds(rep_lo * (1000 * 1000 / 4));
   return {sec, fem};
 }
 
@@ -61,8 +59,8 @@ std::string format_time(const std::string& format, abel::abel_time t,
   if (t == abel::infinite_future()) return kInfiniteFutureStr;
   if (t == abel::infinite_past()) return kInfinitePastStr;
   const auto parts = Split(t);
-  return cctz::detail::format(format, parts.sec, parts.fem,
-                              cctz::time_zone(tz));
+  return abel::time_internal::detail::format(format, parts.sec, parts.fem,
+                              abel::time_internal::time_zone(tz));
 }
 
 std::string format_time(abel::abel_time t, abel::time_zone tz) {
@@ -107,7 +105,7 @@ bool parse_time(const std::string& format, const std::string& input,
 
   std::string error;
   cctz_parts parts;
-  const bool b = cctz::detail::parse(format, input, cctz::time_zone(tz),
+  const bool b = abel::time_internal::detail::parse(format, input, abel::time_internal::time_zone(tz),
                                      &parts.sec, &parts.fem, &error);
   if (b) {
     *time = Join(parts);

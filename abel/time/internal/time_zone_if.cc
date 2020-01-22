@@ -21,7 +21,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 std::unique_ptr<TimeZoneIf> TimeZoneIf::Load(const std::string& name) {
   // Support "libc:localtime" and "libc:*" to access the legacy
@@ -39,7 +38,6 @@ std::unique_ptr<TimeZoneIf> TimeZoneIf::Load(const std::string& name) {
 // Defined out-of-line to avoid emitting a weak vtable in all TUs.
 TimeZoneIf::~TimeZoneIf() {}
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

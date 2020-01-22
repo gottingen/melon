@@ -12,22 +12,21 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_H_
-#define ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_H_
+#ifndef ABEL_TIME_INTERNAL_CIVIL_TIME_H_
+#define ABEL_TIME_INTERNAL_CIVIL_TIME_H_
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time_detail.h>
+#include <abel/time/internal/civil_time_detail.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // The term "civil time" refers to the legally recognized human-scale time
 // that is represented by the six fields YYYY-MM-DD hh:mm:ss. Modern-day civil
 // time follows the Gregorian Calendar and is a time-zone-independent concept.
 // A "date" is perhaps the most common example of a civil time (represented in
-// this library as cctz::civil_day). This library provides six classes and a
+// this library as abel::time_internal::civil_day). This library provides six classes and a
 // handful of functions that help with rounding, iterating, and arithmetic on
 // civil times while avoiding complications like daylight-saving time (DST).
 //
@@ -324,9 +323,8 @@ using detail::prev_weekday;
 //
 using detail::get_yearday;
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_CIVIL_TIME_H_
+#endif  // ABEL_TIME_INTERNAL_CIVIL_TIME_H_

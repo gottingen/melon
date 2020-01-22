@@ -12,24 +12,23 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IMPL_H_
-#define ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IMPL_H_
+#ifndef ABEL_TIME_INTERNAL_TIME_ZONE_IMPL_H_
+#define ABEL_TIME_INTERNAL_TIME_ZONE_IMPL_H_
 
 #include <memory>
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
 #include "time_zone_if.h"
 #include "time_zone_info.h"
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
-// time_zone::Impl is the internal object referenced by a cctz::time_zone.
+// time_zone::Impl is the internal object referenced by a abel::time_internal::time_zone.
 class time_zone::Impl {
  public:
   // The UTC time zone. Also used for other time zones that fail to load.
@@ -85,9 +84,8 @@ class time_zone::Impl {
   std::unique_ptr<TimeZoneIf> zone_;
 };
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IMPL_H_
+#endif  // ABEL_TIME_INTERNAL_TIME_ZONE_IMPL_H_

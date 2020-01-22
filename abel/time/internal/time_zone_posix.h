@@ -60,7 +60,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // The date/time of the transition. The date is specified as either:
 // (J) the Nth day of the year (1 <= N <= 365), excluding leap days, or
@@ -124,7 +123,6 @@ struct PosixTimeZone {
 // could not be parsed (although some fields of *res may have been altered).
 bool ParsePosixSpec(const std::string& spec, PosixTimeZone* res);
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

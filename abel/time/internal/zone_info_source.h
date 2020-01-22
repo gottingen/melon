@@ -25,7 +25,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // A stdio-like interface for providing zoneinfo data for a particular zone.
 class ZoneInfoSource {
@@ -41,7 +40,6 @@ class ZoneInfoSource {
   virtual std::string Version() const;
 };
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
@@ -49,28 +47,26 @@ class ZoneInfoSource {
 namespace abel {
 
 namespace time_internal {
-namespace cctz_extension {
 
 // A function-pointer type for a factory that returns a ZoneInfoSource
 // given the name of a time zone and a fallback factory.  Returns null
 // when the data for the named zone cannot be found.
 using ZoneInfoSourceFactory =
-    std::unique_ptr<abel::time_internal::cctz::ZoneInfoSource> (*)(
+    std::unique_ptr<abel::time_internal::ZoneInfoSource> (*)(
         const std::string&,
         const std::function<std::unique_ptr<
-            abel::time_internal::cctz::ZoneInfoSource>(const std::string&)>&);
+            abel::time_internal::ZoneInfoSource>(const std::string&)>&);
 
 // The user can control the mapping of zone names to zoneinfo data by
-// providing a definition for cctz_extension::zone_info_source_factory.
+// providing a definition for zone_info_source_factory.
 // For example, given functions my_factory() and my_other_factory() that
 // can return a ZoneInfoSource for a named zone, we could inject them into
-// cctz::load_time_zone() with:
+// abel::time_internal::load_time_zone() with:
 //
-//   namespace cctz_extension {
 //   namespace {
-//   std::unique_ptr<cctz::ZoneInfoSource> CustomFactory(
+//   std::unique_ptr<abel::time_internal::ZoneInfoSource> CustomFactory(
 //       const std::string& name,
-//       const std::function<std::unique_ptr<cctz::ZoneInfoSource>(
+//       const std::function<std::unique_ptr<abel::time_internal::ZoneInfoSource>(
 //           const std::string& name)>& fallback_factory) {
 //     if (auto zip = my_factory(name)) return zip;
 //     if (auto zip = fallback_factory(name)) return zip;
@@ -79,13 +75,12 @@ using ZoneInfoSourceFactory =
 //   }
 //   }  // namespace
 //   ZoneInfoSourceFactory zone_info_source_factory = CustomFactory;
-//   }  // namespace cctz_extension
 //
 // This might be used, say, to use zoneinfo data embedded in the program,
 // or read from a (possibly compressed) file archive, or both.
 //
-// cctz_extension::zone_info_source_factory() will be called:
-//   (1) from the same thread as the cctz::load_time_zone() call,
+// zone_info_source_factory() will be called:
+//   (1) from the same thread as the abel::time_internal::load_time_zone() call,
 //   (2) only once for any zone name, and
 //   (3) serially (i.e., no concurrent execution).
 //
@@ -94,7 +89,6 @@ using ZoneInfoSourceFactory =
 // is linked into the program.
 extern ZoneInfoSourceFactory zone_info_source_factory;
 
-}  // namespace cctz_extension
 }  // namespace time_internal
 
 }  // namespace abel

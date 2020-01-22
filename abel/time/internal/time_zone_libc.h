@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_LIBC_H_
-#define ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_LIBC_H_
+#ifndef ABEL_TIME_INTERNAL_TIME_ZONE_LIBC_H_
+#define ABEL_TIME_INTERNAL_TIME_ZONE_LIBC_H_
 
 #include <string>
 
@@ -23,7 +23,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // A time zone backed by gmtime_r(3), localtime_r(3), and mktime(3),
 // and which therefore only supports UTC and the local time zone.
@@ -47,9 +46,8 @@ class TimeZoneLibC : public TimeZoneIf {
   const bool local_;  // localtime or UTC
 };
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_LIBC_H_
+#endif  // ABEL_TIME_INTERNAL_TIME_ZONE_LIBC_H_

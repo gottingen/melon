@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IF_H_
-#define ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IF_H_
+#ifndef ABEL_TIME_INTERNAL_TIME_ZONE_IF_H_
+#define ABEL_TIME_INTERNAL_TIME_ZONE_IF_H_
 
 #include <chrono>
 #include <cstdint>
@@ -21,13 +21,12 @@
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/civil_time.h>
+#include <abel/time/internal/time_zone.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // A simple interface used to hide time-zone complexities from time_zone::Impl.
 // Subclasses implement the functions for civil-time conversions in the zone.
@@ -68,9 +67,8 @@ ABEL_FORCE_INLINE time_point<seconds> from_unix_seconds(std::int_fast64_t t) {
          seconds(t);
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_IF_H_
+#endif  // ABEL_TIME_INTERNAL_TIME_ZONE_IF_H_

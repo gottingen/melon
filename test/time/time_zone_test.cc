@@ -1,12 +1,11 @@
 //
 
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/time_zone.h>
 
 #include <gtest/gtest.h>
 #include <testing/time_util.h>
 #include <abel/time/time.h>
 
-namespace cctz = abel::time_internal::cctz;
 
 namespace {
 
@@ -35,9 +34,9 @@ TEST(time_zone, Equality) {
 }
 
 TEST(time_zone, CCTZConversion) {
-  const cctz::time_zone cz = cctz::utc_time_zone();
+  const abel::time_internal::time_zone cz = abel::time_internal::utc_time_zone();
   const abel::time_zone tz(cz);
-  EXPECT_EQ(cz, cctz::time_zone(tz));
+  EXPECT_EQ(cz, abel::time_internal::time_zone(tz));
 }
 
 TEST(time_zone, DefaultTimeZones) {
@@ -48,7 +47,7 @@ TEST(time_zone, DefaultTimeZones) {
 
 TEST(time_zone, fixed_time_zone) {
   const abel::time_zone tz = abel::fixed_time_zone(123);
-  const cctz::time_zone cz = cctz::fixed_time_zone(cctz::seconds(123));
+  const abel::time_internal::time_zone cz = abel::time_internal::fixed_time_zone(abel::time_internal::seconds(123));
   EXPECT_EQ(tz, abel::time_zone(cz));
 }
 
@@ -63,7 +62,7 @@ TEST(time_zone, NamedTimeZones) {
 }
 
 TEST(time_zone, Failures) {
-  abel::time_zone tz = abel::time_internal::load_time_zone("America/Los_Angeles");
+  abel::time_zone tz(abel::time_internal::load_time_zone("America/Los_Angeles"));
   EXPECT_FALSE(load_time_zone("Invalid/time_zone", &tz));
   EXPECT_EQ(abel::utc_time_zone(), tz);  // guaranteed fallback to UTC
 

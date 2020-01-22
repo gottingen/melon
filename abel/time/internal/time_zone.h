@@ -14,11 +14,11 @@
 
 // A library for translating between absolute times (represented by
 // std::chrono::time_points of the std::chrono::system_clock) and civil
-// times (represented by cctz::civil_second) using the rules defined by
-// a time zone (cctz::time_zone).
+// times (represented by abel::time_internal::civil_second) using the rules defined by
+// a time zone (abel::time_internal::time_zone).
 
-#ifndef ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_H_
-#define ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_H_
+#ifndef ABEL_TIME_INTERNAL_TIME_ZONE_H_
+#define ABEL_TIME_INTERNAL_TIME_ZONE_H_
 
 #include <chrono>
 #include <cstdint>
@@ -26,18 +26,17 @@
 #include <utility>
 
 #include <abel/base/profile.h>
-#include <abel/time/internal/cctz/include/cctz/civil_time.h>
+#include <abel/time/internal/civil_time.h>
 
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 // Convenience aliases. Not intended as public API points.
 template <typename D>
 using time_point = std::chrono::time_point<std::chrono::system_clock, D>;
 using seconds = std::chrono::duration<std::int_fast64_t>;
-using sys_seconds = seconds;  // Deprecated.  Use cctz::seconds instead.
+using sys_seconds = seconds;  // Deprecated.  Use abel::time_internal::seconds instead.
 
 namespace detail {
 template <typename D>
@@ -57,7 +56,7 @@ ABEL_FORCE_INLINE std::pair<time_point<seconds>, seconds> split_seconds(
 }
 }  // namespace detail
 
-// cctz::time_zone is an opaque, small, value-type class representing a
+// abel::time_internal::time_zone is an opaque, small, value-type class representing a
 // geo-political region within which particular rules are used for mapping
 // between absolute and civil times. abel_time zones are named using the TZ
 // identifiers from the IANA abel_time Zone Database, such as "America/Los_Angeles"
@@ -66,11 +65,11 @@ ABEL_FORCE_INLINE std::pair<time_point<seconds>, seconds> split_seconds(
 // identifiers.
 //
 // Example:
-//   cctz::time_zone utc = cctz::utc_time_zone();
-//   cctz::time_zone pst = cctz::fixed_time_zone(std::chrono::hours(-8));
-//   cctz::time_zone loc = cctz::local_time_zone();
-//   cctz::time_zone lax;
-//   if (!cctz::load_time_zone("America/Los_Angeles", &lax)) { ... }
+//   abel::time_internal::time_zone utc = abel::time_internal::utc_time_zone();
+//   abel::time_internal::time_zone pst = abel::time_internal::fixed_time_zone(std::chrono::hours(-8));
+//   abel::time_internal::time_zone loc = abel::time_internal::local_time_zone();
+//   abel::time_internal::time_zone lax;
+//   if (!abel::time_internal::load_time_zone("America/Los_Angeles", &lax)) { ... }
 //
 // See also:
 // - http://www.iana.org/time-zones
@@ -83,21 +82,21 @@ class time_zone {
 
   std::string name() const;
 
-  // An absolute_lookup represents the civil time (cctz::civil_second) within
+  // An absolute_lookup represents the civil time (abel::time_internal::civil_second) within
   // this time_zone at the given absolute time (time_point). There are
   // additionally a few other fields that may be useful when working with
   // older APIs, such as std::tm.
   //
   // Example:
-  //   const cctz::time_zone tz = ...
+  //   const abel::time_internal::time_zone tz = ...
   //   const auto tp = std::chrono::system_clock::now();
-  //   const cctz::time_zone::absolute_lookup al = tz.lookup(tp);
+  //   const abel::time_internal::time_zone::absolute_lookup al = tz.lookup(tp);
   struct absolute_lookup {
     civil_second cs;
     // Note: The following fields exist for backward compatibility with older
     // APIs. Accessing these fields directly is a sign of imprudent logic in
     // the calling code. Modern time-related code should only access this data
-    // indirectly by way of cctz::format().
+    // indirectly by way of abel::time_internal::format().
     int offset;        // civil seconds east of UTC
     bool is_dst;       // is offset non-standard?
     const char* abbr;  // time-zone abbreviation (e.g., "PST")
@@ -109,7 +108,7 @@ class time_zone {
   }
 
   // A civil_lookup represents the absolute time(s) (time_point) that
-  // correspond to the given civil time (cctz::civil_second) within this
+  // correspond to the given civil time (abel::time_internal::civil_second) within this
   // time_zone. Usually the given civil time represents a unique instant
   // in time, in which case the conversion is unambiguous. However,
   // within this time zone, the given civil time may be skipped (e.g.,
@@ -126,26 +125,26 @@ class time_zone {
   // time_point<seconds> the field is set to its maximum/minimum value.
   //
   // Example:
-  //   cctz::time_zone lax;
-  //   if (!cctz::load_time_zone("America/Los_Angeles", &lax)) { ... }
+  //   abel::time_internal::time_zone lax;
+  //   if (!abel::time_internal::load_time_zone("America/Los_Angeles", &lax)) { ... }
   //
   //   // A unique civil time.
-  //   auto jan01 = lax.lookup(cctz::civil_second(2011, 1, 1, 0, 0, 0));
-  //   // jan01.kind == cctz::time_zone::civil_lookup::UNIQUE
+  //   auto jan01 = lax.lookup(abel::time_internal::civil_second(2011, 1, 1, 0, 0, 0));
+  //   // jan01.kind == abel::time_internal::time_zone::civil_lookup::UNIQUE
   //   // jan01.pre    is 2011/01/01 00:00:00 -0800
   //   // jan01.trans  is 2011/01/01 00:00:00 -0800
   //   // jan01.post   is 2011/01/01 00:00:00 -0800
   //
   //   // A Spring DST transition, when there is a gap in civil time.
-  //   auto mar13 = lax.lookup(cctz::civil_second(2011, 3, 13, 2, 15, 0));
-  //   // mar13.kind == cctz::time_zone::civil_lookup::SKIPPED
+  //   auto mar13 = lax.lookup(abel::time_internal::civil_second(2011, 3, 13, 2, 15, 0));
+  //   // mar13.kind == abel::time_internal::time_zone::civil_lookup::SKIPPED
   //   // mar13.pre   is 2011/03/13 03:15:00 -0700
   //   // mar13.trans is 2011/03/13 03:00:00 -0700
   //   // mar13.post  is 2011/03/13 01:15:00 -0800
   //
   //   // A Fall DST transition, when civil times are repeated.
-  //   auto nov06 = lax.lookup(cctz::civil_second(2011, 11, 6, 1, 15, 0));
-  //   // nov06.kind == cctz::time_zone::civil_lookup::REPEATED
+  //   auto nov06 = lax.lookup(abel::time_internal::civil_second(2011, 11, 6, 1, 15, 0));
+  //   // nov06.kind == abel::time_internal::time_zone::civil_lookup::REPEATED
   //   // nov06.pre   is 2011/11/06 01:15:00 -0700
   //   // nov06.trans is 2011/11/06 01:00:00 -0800
   //   // nov06.post  is 2011/11/06 01:15:00 -0800
@@ -180,11 +179,11 @@ class time_zone {
   // occur.
   //
   // Example:
-  //   cctz::time_zone nyc;
-  //   if (!cctz::load_time_zone("America/New_York", &nyc)) { ... }
+  //   abel::time_internal::time_zone nyc;
+  //   if (!abel::time_internal::load_time_zone("America/New_York", &nyc)) { ... }
   //   const auto now = std::chrono::system_clock::now();
-  //   auto tp = cctz::time_point<cctz::seconds>::min();
-  //   cctz::time_zone::civil_transition trans;
+  //   auto tp = abel::time_internal::time_point<abel::time_internal::seconds>::min();
+  //   abel::time_internal::time_zone::civil_transition trans;
   //   while (tp <= now && nyc.next_transition(tp, &trans)) {
   //     // transition: trans.from -> trans.to
   //     tp = nyc.lookup(trans.to).trans;
@@ -252,7 +251,7 @@ time_zone fixed_time_zone(const seconds& offset);
 // Note: local_time_zone.name() may only be something like "localtime".
 time_zone local_time_zone();
 
-// Returns the civil time (cctz::civil_second) within the given time zone at
+// Returns the civil time (abel::time_internal::civil_second) within the given time zone at
 // the given absolute time (time_point). Since the additional fields provided
 // by the time_zone::absolute_lookup struct should rarely be needed in modern
 // code, this convert() function is simpler and should be preferred.
@@ -281,7 +280,7 @@ bool parse(const std::string&, const std::string&, const time_zone&,
            time_point<seconds>*, femtoseconds*, std::string* err = nullptr);
 }  // namespace detail
 
-// Formats the given time_point in the given cctz::time_zone according to
+// Formats the given time_point in the given abel::time_internal::time_zone according to
 // the provided format string. Uses strftime()-like formatting options,
 // with the following extensions:
 //
@@ -304,11 +303,11 @@ bool parse(const std::string&, const std::string&, const time_zone&,
 // so that the resulting string uniquely identifies an absolute time.
 //
 // Example:
-//   cctz::time_zone lax;
-//   if (!cctz::load_time_zone("America/Los_Angeles", &lax)) { ... }
-//   auto tp = cctz::convert(cctz::civil_second(2013, 1, 2, 3, 4, 5), lax);
-//   std::string f = cctz::format("%H:%M:%S", tp, lax);  // "03:04:05"
-//   f = cctz::format("%H:%M:%E3S", tp, lax);            // "03:04:05.000"
+//   abel::time_internal::time_zone lax;
+//   if (!abel::time_internal::load_time_zone("America/Los_Angeles", &lax)) { ... }
+//   auto tp = abel::time_internal::convert(abel::time_internal::civil_second(2013, 1, 2, 3, 4, 5), lax);
+//   std::string f = abel::time_internal::format("%H:%M:%S", tp, lax);  // "03:04:05"
+//   f = abel::time_internal::format("%H:%M:%E3S", tp, lax);            // "03:04:05.000"
 template <typename D>
 ABEL_FORCE_INLINE std::string format(const std::string& fmt, const time_point<D>& tp,
                           const time_zone& tz) {
@@ -319,7 +318,7 @@ ABEL_FORCE_INLINE std::string format(const std::string& fmt, const time_point<D>
 
 // Parses an input string according to the provided format string and
 // returns the corresponding time_point. Uses strftime()-like formatting
-// options, with the same extensions as cctz::format(), but with the
+// options, with the same extensions as abel::time_internal::format(), but with the
 // exceptions that %E#S is interpreted as %E*S, and %E#f as %E*f. %Ez
 // and %E*z also accept the same inputs.
 //
@@ -343,7 +342,7 @@ ABEL_FORCE_INLINE std::string format(const std::string& fmt, const time_point<D>
 // or %A), while parsed for syntactic validity, are ignored in the conversion.
 //
 // Date and time fields that are out-of-range will be treated as errors rather
-// than normalizing them like cctz::civil_second() would do. For example, it
+// than normalizing them like abel::time_internal::civil_second() would do. For example, it
 // is an error to parse the date "Oct 32, 2013" because 32 is out of range.
 //
 // A second of ":60" is normalized to ":00" of the following minute with
@@ -357,9 +356,9 @@ ABEL_FORCE_INLINE std::string format(const std::string& fmt, const time_point<D>
 // Errors are indicated by returning false.
 //
 // Example:
-//   const cctz::time_zone tz = ...
+//   const abel::time_internal::time_zone tz = ...
 //   std::chrono::system_clock::time_point tp;
-//   if (cctz::parse("%Y-%m-%d", "2015-10-09", tz, &tp)) {
+//   if (abel::time_internal::parse("%Y-%m-%d", "2015-10-09", tz, &tp)) {
 //     ...
 //   }
 template <typename D>
@@ -376,9 +375,8 @@ ABEL_FORCE_INLINE bool parse(const std::string& fmt, const std::string& input,
   return b;
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TIME_INTERNAL_CCTZ_TIME_ZONE_H_
+#endif  // ABEL_TIME_INTERNAL_TIME_ZONE_H_

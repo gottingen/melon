@@ -10,7 +10,7 @@ namespace abel {
 namespace atomic_hook_internal {
 
 using VoidF = void (*)();
-extern abel::AtomicHook<VoidF> func;
+extern abel::atomic_hook<VoidF> func;
 extern int default_func_calls;
 void DefaultFunc();
 void RegisterFunc(VoidF func);

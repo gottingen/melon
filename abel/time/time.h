@@ -73,7 +73,7 @@ struct timeval;
 #include <abel/base/profile.h>
 #include <abel/strings/string_view.h>
 #include <abel/time/civil_time.h>
-#include <abel/time/internal/cctz/include/cctz/time_zone.h>
+#include <abel/time/internal/time_zone.h>
 
 namespace abel {
 
@@ -824,8 +824,6 @@ std::string UnparseFlag(abel_time t);
 // strings like "PST" and "EDT" are not valid TZ identifiers. Prefer to pass by
 // value rather than const reference.
 //
-// For more on the fundamental concepts of time zones, absolute times, and civil
-// times, see https://github.com/google/cctz#fundamental-concepts
 //
 // Examples:
 //
@@ -837,20 +835,16 @@ std::string UnparseFlag(abel_time t);
 //     // handle error case
 //   }
 //
-// See also:
-// - https://github.com/google/cctz
-// - https://www.iana.org/time-zones
-// - https://en.wikipedia.org/wiki/Zoneinfo
 class time_zone {
  public:
-  explicit time_zone(time_internal::cctz::time_zone tz) : cz_(tz) {}
+  explicit time_zone(abel::time_internal::time_zone tz) : cz_(tz) {}
   time_zone() = default;  // UTC, but prefer utc_time_zone() to be explicit.
 
   // Copyable.
   time_zone(const time_zone&) = default;
   time_zone& operator=(const time_zone&) = default;
 
-  explicit operator time_internal::cctz::time_zone() const { return cz_; }
+  explicit operator abel::time_internal::time_zone() const { return cz_; }
 
   std::string name() const { return cz_.name(); }
 
@@ -996,7 +990,7 @@ class time_zone {
     return os << tz.name();
   }
 
-  time_internal::cctz::time_zone cz_;
+  abel::time_internal::time_zone cz_;
 };
 
 // load_time_zone()
@@ -1006,11 +1000,11 @@ class time_zone {
 // `false` and `*tz` is set to the UTC time zone.
 ABEL_FORCE_INLINE bool load_time_zone(const std::string& name, time_zone* tz) {
   if (name == "localtime") {
-    *tz = time_zone(time_internal::cctz::local_time_zone());
+    *tz = time_zone(abel::time_internal::local_time_zone());
     return true;
   }
-  time_internal::cctz::time_zone cz;
-  const bool b = time_internal::cctz::load_time_zone(name, &cz);
+  abel::time_internal::time_zone cz;
+  const bool b = time_internal::load_time_zone(name, &cz);
   *tz = time_zone(cz);
   return b;
 }
@@ -1022,14 +1016,14 @@ ABEL_FORCE_INLINE bool load_time_zone(const std::string& name, time_zone* tz) {
 // you'll get UTC (i.e., no offset) instead.
 ABEL_FORCE_INLINE time_zone fixed_time_zone(int seconds) {
   return time_zone(
-      time_internal::cctz::fixed_time_zone(std::chrono::seconds(seconds)));
+      abel::time_internal::fixed_time_zone(std::chrono::seconds(seconds)));
 }
 
 // utc_time_zone()
 //
 // Convenience method returning the UTC time zone.
 ABEL_FORCE_INLINE time_zone utc_time_zone() {
-  return time_zone(time_internal::cctz::utc_time_zone());
+  return time_zone(abel::time_internal::utc_time_zone());
 }
 
 // local_time_zone()
@@ -1039,7 +1033,7 @@ ABEL_FORCE_INLINE time_zone utc_time_zone() {
 // and particularly so in a server process, as the zone configured for the
 // local machine should be irrelevant.  Prefer an explicit zone name.
 ABEL_FORCE_INLINE time_zone local_time_zone() {
-  return time_zone(time_internal::cctz::local_time_zone());
+  return time_zone(abel::time_internal::local_time_zone());
 }
 
 // to_civil_second()

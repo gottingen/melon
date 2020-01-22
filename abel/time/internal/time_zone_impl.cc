@@ -26,7 +26,6 @@
 namespace abel {
 
 namespace time_internal {
-namespace cctz {
 
 namespace {
 
@@ -115,7 +114,6 @@ const time_zone::Impl* time_zone::Impl::UTCImpl() {
   return utc_impl;
 }
 
-}  // namespace cctz
 }  // namespace time_internal
 
 }  // namespace abel

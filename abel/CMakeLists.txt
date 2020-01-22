@@ -34,7 +34,6 @@ FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
 FILE(GLOB TIME_SRC "time/*.cc")
 FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
-FILE(GLOB TIME_INTERNAL_CCTZ_SRC "time/internal/cctz/src/*.cc")
 
 
 FILE(GLOB DIGEST_SRC "digest/*.cc")
@@ -61,7 +60,6 @@ SET(ABEL_SRC
         ${SYNC_INTERNAL_SRC}
         ${TIME_SRC}
         ${TIME_INTERNAL_SRC}
-        ${TIME_INTERNAL_CCTZ_SRC}
         ${DIGEST_SRC}
         ${SYSTEM_SRC}
         ${THREADING_SRC}
