@@ -1,2 +1,2 @@
-# string api
+# strings
 
