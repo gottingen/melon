@@ -151,24 +151,6 @@
         #define ABEL_PLATFORM_XBOXONE_XDK 	1
     #endif
 
-// Larrabee                                           // This part to be removed once __LRB__ is supported by the Larrabee compiler in 2009.
-#elif defined(ABEL_PLATFORM_LRB) || defined(__LRB__) || (defined(__EDG__) && defined(__ICC) && defined(__x86_64__))
-    #undef  ABEL_PLATFORM_LRB
-    #define ABEL_PLATFORM_LRB         1
-    #define ABEL_PLATFORM_NAME        "Larrabee"
-    #define ABEL_PLATFORM_DESCRIPTION "Larrabee on LRB1"
-    #define ABEL_PROCESSOR_X86_64 1
-    #if defined(BYTE_ORDER) && (BYTE_ORDER == 4321)
-        #define ABEL_SYSTEM_BIG_ENDIAN 1
-    #else
-        #define ABEL_SYSTEM_LITTLE_ENDIAN 1
-    #endif
-    #define ABEL_PROCESSOR_LRB 1
-    #define ABEL_PROCESSOR_LRB1 1       // Larrabee version 1
-    #define ABEL_ASM_STYLE_ATT 1        // Both types of asm style
-    #define ABEL_ASM_STYLE_INTEL 1      // are supported.
-    #define ABEL_PLATFORM_DESKTOP 1
-
 // Android (Google phone OS)
 #elif defined(ABEL_PLATFORM_ANDROID) || defined(__ANDROID__)
     #undef  ABEL_PLATFORM_ANDROID
@@ -198,22 +180,6 @@
         #define ABEL_SYSTEM_LITTLE_ENDIAN 1
     #endif
     #define ABEL_PLATFORM_MOBILE 1
-
-// Samsung SMART TV - a Linux-based smart TV
-#elif defined(ABEL_PLATFORM_SAMSUNG_TV)
-    #undef  ABEL_PLATFORM_SAMSUNG_TV
-    #define ABEL_PLATFORM_SAMSUNG_TV 1
-    #define ABEL_PLATFORM_LINUX 1
-    #define ABEL_PLATFORM_UNIX 1
-    #define ABEL_PLATFORM_POSIX 1
-    #define ABEL_PLATFORM_NAME "SamsungTV"
-    #define ABEL_PLATFORM_DESCRIPTION "Samsung SMART TV on ARM"
-    #define ABEL_ASM_STYLE_ATT 1
-    #define ABEL_SYSTEM_LITTLE_ENDIAN 1
-    #define ABEL_PROCESSOR_ARM32 1
-    #define ABEL_ABI_ARM_LINUX 1 // a.k.a. "ARM eabi"
-    #define ABEL_PROCESSOR_ARM7 1
-
 #elif defined(__APPLE__) && __APPLE__
     #include <TargetConditionals.h>
 

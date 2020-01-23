@@ -75,6 +75,8 @@ build step
 
 <a name="examples"> </a>
 
+* [base](/docs/en/base.md)
+
 * [algorithm](/docs/en/algorithm.md)
 * [atomic](/docs/en/atomic.md) 
 * [container](/docs/en/container.md)
