@@ -46,11 +46,13 @@
 //
 // GCC: https://gcc.gnu.org/gcc-5/changes.html
 // Clang: https://clang.llvm.org/docs/LanguageExtensions.html
-#ifdef __has_attribute
-#define ABEL_COMPILER_HAS_ATTRIBUTE(x) __has_attribute(x)
-#else
-#define ABEL_COMPILER_HAS_ATTRIBUTE(x) 0
-#endif
+#ifndef ABEL_COMPILER_HAS_ATTRIBUTE
+    #ifdef __has_attribute
+        #define ABEL_COMPILER_HAS_ATTRIBUTE(x) __has_attribute(x)
+    #else
+        #define ABEL_COMPILER_HAS_ATTRIBUTE(x) 0
+    #endif
+#endif //ABEL_COMPILER_HAS_ATTRIBUTE
 
 // ABEL_COMPILER_HAS_CPP_ATTRIBUTE
 //
@@ -58,12 +60,14 @@
 // It's a wrapper around `__has_cpp_attribute`, defined by ISO C++ SD-6
 // (https://en.cppreference.com/w/cpp/experimental/feature_test). If we don't
 // find `__has_cpp_attribute`, will evaluate to 0.
-#if defined(__cplusplus) && defined(__has_cpp_attribute)
-// NOTE: requiring __cplusplus above should not be necessary, but
-// works around https://bugs.llvm.org/show_bug.cgi?id=23435.
-#define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-#define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) 0
+#ifndef ABEL_COMPILER_HAS_CPP_ATTRIBUTE
+    #if defined(__cplusplus) && defined(__has_cpp_attribute)
+        // NOTE: requiring __cplusplus above should not be necessary, but
+        // works around https://bugs.llvm.org/show_bug.cgi?id=23435.
+        #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+    #else
+        #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) 0
+    #endif
 #endif
 
 
@@ -76,16 +80,19 @@
 //
 // Note: Use this macro to avoid an extra level of #ifdef __has_builtin check.
 // http://releases.llvm.org/3.3/tools/clang/docs/LanguageExtensions.html
-#ifdef __has_builtin
-#define ABEL_COMPILER_HAS_BUILTIN(x) __has_builtin(x)
-#else
-#define ABEL_COMPILER_HAS_BUILTIN(x) 0
-#endif
 
-#if defined(__is_identifier)
-#define ABEL_INTERNAL_HAS_KEYWORD(x) !(__is_identifier(x))
-#else
-#define ABEL_INTERNAL_HAS_KEYWORD(x) 0
+#ifndef ABEL_COMPILER_HAS_BUILTIN
+    #ifdef __has_builtin
+        #define ABEL_COMPILER_HAS_BUILTIN(x) __has_builtin(x)
+    #else
+        #define ABEL_COMPILER_HAS_BUILTIN(x) 0
+    #endif
+
+    #if defined(__is_identifier)
+        #define ABEL_INTERNAL_HAS_KEYWORD(x) !(__is_identifier(x))
+    #else
+        #define ABEL_INTERNAL_HAS_KEYWORD(x) 0
+    #endif
 #endif
 
 
@@ -93,16 +100,18 @@
 //
 // Prevents the compiler from optimizing away stack frames for functions which
 // end in a call to another function.
-#if ABEL_COMPILER_HAS_ATTRIBUTE(disable_tail_calls)
-#define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
-#define ABEL_COMPILER_NO_TAIL_CALL __attribute__((disable_tail_calls))
-#elif defined(__GNUC__) && !defined(__clang__)
-#define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
-#define ABEL_COMPILER_NO_TAIL_CALL \
-  __attribute__((optimize("no-optimize-sibling-calls")))
-#else
-#define ABEL_COMPILER_NO_TAIL_CALL
-#define ABEL_COMPILER_HAS_NO_TAIL_CALL 0
+#ifndef ABEL_COMPILER_NO_TAIL_CALL
+    #if ABEL_COMPILER_HAS_ATTRIBUTE(disable_tail_calls)
+        #define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
+        #define ABEL_COMPILER_NO_TAIL_CALL __attribute__((disable_tail_calls))
+    #elif defined(__GNUC__) && !defined(__clang__)
+        #define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
+        #define ABEL_COMPILER_NO_TAIL_CALL \
+          __attribute__((optimize("no-optimize-sibling-calls")))
+    #else
+        #define ABEL_COMPILER_NO_TAIL_CALL
+        #define ABEL_COMPILER_HAS_NO_TAIL_CALL 0
+    #endif
 #endif
 
 // EDG (EDG compiler front-end, used by other compilers such as SN)
@@ -1641,24 +1650,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_THREAD_LOCAL)
     #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_thread_local)
-// supported.
+        // supported.
     #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)     // VS2015+
-// supported.
+        // supported.
     #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
-// supported.
+        // supported.
     #else
         #define ABEL_COMPILER_NO_THREAD_LOCAL 1
     #endif
 #endif
 
-
-
-#ifndef ABEL_COMPILER_HAS_CPP_ATTRIBUTE
-    #ifdef __has_cpp_attribute
-        #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-    #else
-        #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) 0
-    #endif
-#endif
 
 #endif //ABEL_BASE_PROFILE_COMPILER_H_
