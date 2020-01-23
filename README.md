@@ -20,20 +20,23 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 
 ## about abel
 
-Since several years ago, I have planned to establish a repository to de-duplicate code from the projects I have been involved in or from
-the projects I have paid close attention to (open source). so I would develop iteratively over it. I have try it on many private project (although 
-it on github).  fortunately， it comes on Jan 1st 2020, named it abel, the name of a Mathematician.
+For several years, I have planned to establish a repository to de-duplicate code from the projects either I have been 
+involved in or I have paid close attention to (e.g.,open source) so that I would develop iteratively based upon the 
+repository. I have tried the codes on many private projects and the applicability is verified. The  repository , named 
+after a mathematician as 'Abel', fortunately came out on Jan 1st 2020.
 
-since the inception, its goal is to <font size=16> **`consolidate algorithms, data structures, system operations and make it under control`**</font>
-the goals are:
 
-* to have a lib be well implemented and tested tools and algorithm
-* aim high modularity with as little dependencies between modules as possible.
-* zero external dependencies
-* build on all platform with c++, such as linux, mac, android, windows, mobiles
-* no warning and bugs on any platform and compiler
-* interface of published have full documentation， use case description，performance benchmark and evaluation
-* make overhead down, small overall size
+Since the inception, it's aimed to <font size=16> **`consolidate algorithms, data structures, system operations and 
+make sure it's under control.`**</font>
+Particularly, the goals are:
+
+* to have a library that has been well implemented and tested containing tools and algorithm.
+* aim high modularity with reduced dependencies between modules.
+* zero external dependencies.
+* build on all platforms with c++, such as linux, mac, android, windows, mobiles.
+* no warning and bugs on any platform and compiler.
+* published interfaces are required to have full documentation， using case description，performance benchmark and evaluation.
+* keep overhead down, compress overall size.
 
 
 collect code and ideas from:
