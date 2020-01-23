@@ -57,7 +57,7 @@ class BigUnsigned {
   explicit BigUnsigned(abel::string_view sv) : size_(0), words_{} {
     // Check for valid input, returning a 0 otherwise.  This is reasonable
     // behavior only because this constructor is for unit tests.
-    if (std::find_if_not(sv.begin(), sv.end(), ascii_isdigit) != sv.end() ||
+    if (std::find_if_not(sv.begin(), sv.end(), ascii::is_digit) != sv.end() ||
         sv.empty()) {
       return;
     }

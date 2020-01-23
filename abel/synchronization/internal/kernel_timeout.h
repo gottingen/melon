@@ -1,4 +1,3 @@
-//
 
 // An optional absolute timeout, with nanosecond granularity,
 // compatible with abel::abel_time. Suitable for in-register

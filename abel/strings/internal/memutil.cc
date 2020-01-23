@@ -14,8 +14,8 @@ int memcasecmp(const char* s1, const char* s2, size_t len) {
 
   for (size_t i = 0; i < len; i++) {
     const int diff =
-        int{static_cast<unsigned char>(abel::ascii_tolower(us1[i]))} -
-        int{static_cast<unsigned char>(abel::ascii_tolower(us2[i]))};
+        int{static_cast<unsigned char>(abel::ascii::to_lower(us1[i]))} -
+        int{static_cast<unsigned char>(abel::ascii::to_lower(us2[i]))};
     if (diff != 0) return diff;
   }
   return 0;

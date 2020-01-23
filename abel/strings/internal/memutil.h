@@ -85,10 +85,10 @@ const char* int_memmatch(const char* haystack, size_t haylen,
   for (; haystack < hayend; ++haystack) {
     char hay = case_sensitive
                    ? *haystack
-                   : abel::ascii_tolower(static_cast<unsigned char>(*haystack));
+                   : abel::ascii::to_lower(static_cast<unsigned char>(*haystack));
     char nee = case_sensitive
                    ? *needle
-                   : abel::ascii_tolower(static_cast<unsigned char>(*needle));
+                   : abel::ascii::to_lower(static_cast<unsigned char>(*needle));
     if (hay == nee) {
       if (++needle == needleend) {
         return haystack + 1 - neelen;
