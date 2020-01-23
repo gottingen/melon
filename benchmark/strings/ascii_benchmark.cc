@@ -1,7 +1,7 @@
 //
 
 #include <abel/strings/ascii.h>
-
+#include <abel/strings/case_conv.h>
 #include <cctype>
 #include <string>
 #include <array>
@@ -57,35 +57,35 @@ inline char Noop(unsigned char b) { return static_cast<char>(b); }
 
 BENCHMARK_TEMPLATE(BM_Ascii, Noop);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isalpha);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isalpha);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_alpha);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isdigit);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isdigit);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_digit);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isalnum);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isalnum);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_alpha_numeric);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isspace);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isspace);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_space);
 BENCHMARK_TEMPLATE(BM_Ascii, std::ispunct);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_ispunct);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_punct);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isblank);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isblank);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_white);
 BENCHMARK_TEMPLATE(BM_Ascii, std::iscntrl);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_iscntrl);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_control);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isxdigit);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isxdigit);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_hex_digit);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isprint);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isprint);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_print);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isgraph);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isgraph);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_graph);
 BENCHMARK_TEMPLATE(BM_Ascii, std::isupper);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isupper);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_upper);
 BENCHMARK_TEMPLATE(BM_Ascii, std::islower);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_islower);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_lower);
 BENCHMARK_TEMPLATE(BM_Ascii, isascii);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_isascii);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::is_ascii);
 BENCHMARK_TEMPLATE(BM_Ascii, std::tolower);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_tolower);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::to_lower);
 BENCHMARK_TEMPLATE(BM_Ascii, std::toupper);
-BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii_toupper);
+BENCHMARK_TEMPLATE(BM_Ascii, abel::ascii::to_upper);
 
 static void BM_StrToLower(benchmark::State& state) {
   const int size = state.range(0);

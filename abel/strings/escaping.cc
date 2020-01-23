@@ -32,7 +32,7 @@ ABEL_FORCE_INLINE bool is_octal_digit(char c) { return ('0' <= c) && (c <= '7');
 ABEL_FORCE_INLINE int hex_digit_to_int(char c) {
   static_assert('0' == 0x30 && 'A' == 0x41 && 'a' == 0x61,
                 "Character set must be ASCII.");
-  assert(abel::ascii_isxdigit(c));
+  assert(abel::ascii::is_hex_digit(c));
   int x = static_cast<unsigned char>(c);
   if (x > '9') {
     x += 9;
@@ -136,13 +136,13 @@ bool CUnescapeInternal(abel::string_view source, bool leave_nulls_escaped,
           if (p >= last_byte) {
             if (error) *error = "String cannot end with \\x";
             return false;
-          } else if (!abel::ascii_isxdigit(p[1])) {
+          } else if (!abel::ascii::is_hex_digit(p[1])) {
             if (error) *error = "\\x cannot be followed by a non-hex digit";
             return false;
           }
           unsigned int ch = 0;
           const char* hex_start = p;
-          while (p < last_byte && abel::ascii_isxdigit(p[1]))
+          while (p < last_byte && abel::ascii::is_hex_digit(p[1]))
             // Arbitrarily many hex digits
             ch = (ch << 4) + hex_digit_to_int(*++p);
           if (ch > 0xFF) {
@@ -177,7 +177,7 @@ bool CUnescapeInternal(abel::string_view source, bool leave_nulls_escaped,
           }
           for (int i = 0; i < 4; ++i) {
             // Look one char ahead.
-            if (abel::ascii_isxdigit(p[1])) {
+            if (abel::ascii::is_hex_digit(p[1])) {
               rune = (rune << 4) + hex_digit_to_int(*++p);  // Advance p.
             } else {
               if (error) {
@@ -213,7 +213,7 @@ bool CUnescapeInternal(abel::string_view source, bool leave_nulls_escaped,
           }
           for (int i = 0; i < 8; ++i) {
             // Look one char ahead.
-            if (abel::ascii_isxdigit(p[1])) {
+            if (abel::ascii::is_hex_digit(p[1])) {
               // Don't change rune until we're sure this
               // is within the Unicode limit, but do advance p.
               uint32_t newrune = (rune << 4) + hex_digit_to_int(*++p);
@@ -312,8 +312,8 @@ std::string CEscapeInternal(abel::string_view src, bool use_hex,
         // digit then that digit must be escaped too to prevent it being
         // interpreted as part of the character code by C.
         if ((!utf8_safe || c < 0x80) &&
-            (!abel::ascii_isprint(c) ||
-             (last_hex_escape && abel::ascii_isxdigit(c)))) {
+            (!abel::ascii::is_print(c) ||
+             (last_hex_escape && abel::ascii::is_hex_digit(c)))) {
           if (use_hex) {
             dest.append("\\" "x");
             dest.push_back(numbers_internal::kHexChar[c / 16]);
@@ -447,7 +447,7 @@ bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
   ch = *src++;                                                  \
   decode = unbase64[ch];                                        \
   if (decode < 0) {                                             \
-    if (abel::ascii_isspace(ch) && szsrc >= remain) goto label; \
+    if (abel::ascii::is_space(ch) && szsrc >= remain) goto label; \
     state = 4 - remain;                                         \
     break;                                                      \
   }
@@ -537,7 +537,7 @@ bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
   // if the loop terminated because we read a bad character, return
   // now.
   if (decode < 0 && ch != kPad64Equals && ch != kPad64Dot &&
-      !abel::ascii_isspace(ch))
+      !abel::ascii::is_space(ch))
     return false;
 
   if (ch == kPad64Equals || ch == kPad64Dot) {
@@ -556,7 +556,7 @@ bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
       ch = *src++;
       decode = unbase64[ch];
       if (decode < 0) {
-        if (abel::ascii_isspace(ch)) {
+        if (abel::ascii::is_space(ch)) {
           continue;
         } else if (ch == kPad64Equals || ch == kPad64Dot) {
           // back up one character; we'll read it again when we check
@@ -640,7 +640,7 @@ bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
   while (szsrc > 0) {
     if (*src == kPad64Equals || *src == kPad64Dot)
       ++equals;
-    else if (!abel::ascii_isspace(*src))
+    else if (!abel::ascii::is_space(*src))
       return false;
     --szsrc;
     ++src;

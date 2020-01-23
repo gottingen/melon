@@ -21,6 +21,7 @@
 #include <abel/flags/usage_config.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/strip.h>
+#include <abel/strings/trim.h>
 #include <abel/synchronization/mutex.h>
 
 // --------------------------------------------------------------------

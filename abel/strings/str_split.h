@@ -34,6 +34,7 @@
 #include <abel/strings/internal/str_split_internal.h>
 #include <abel/strings/string_view.h>
 #include <abel/strings/strip.h>
+#include <abel/strings/trim.h>
 
 namespace abel {
 

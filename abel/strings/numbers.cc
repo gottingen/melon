@@ -26,6 +26,7 @@
 #include <abel/strings/internal/memutil.h>
 #include <abel/strings/match.h>
 #include <abel/strings/str_cat.h>
+#include <abel/strings/trim.h>
 
 namespace abel {
 
@@ -619,10 +620,10 @@ ABEL_FORCE_INLINE bool safe_parse_sign_and_base(abel::string_view* text /*inout*
   int base = *base_ptr;
 
   // Consume whitespace.
-  while (start < end && abel::ascii_isspace(start[0])) {
+  while (start < end && abel::ascii::is_space(start[0])) {
     ++start;
   }
-  while (start < end && abel::ascii_isspace(end[-1])) {
+  while (start < end && abel::ascii::is_space(end[-1])) {
     --end;
   }
   if (start >= end) {

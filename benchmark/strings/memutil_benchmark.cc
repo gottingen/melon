@@ -139,7 +139,7 @@ void BM_MemcasememPathological(benchmark::State& state) {
 BENCHMARK(BM_MemcasememPathological);
 
 bool case_eq(const char a, const char b) {
-  return abel::ascii_tolower(a) == abel::ascii_tolower(b);
+  return abel::ascii::to_lower(a) == abel::ascii::to_lower(b);
 }
 
 void BM_Search(benchmark::State& state) {
@@ -203,9 +203,9 @@ void BM_SearchcasePathological(benchmark::State& state) {
 BENCHMARK(BM_SearchcasePathological);
 
 char* memcasechr(const char* s, int c, size_t slen) {
-  c = abel::ascii_tolower(c);
+  c = abel::ascii::to_lower(c);
   for (; slen; ++s, --slen) {
-    if (abel::ascii_tolower(*s) == c) return const_cast<char*>(s);
+    if (abel::ascii::to_lower(*s) == c) return const_cast<char*>(s);
   }
   return nullptr;
 }

@@ -28,7 +28,7 @@ void SubstituteAndAppendArray(std::string* output, abel::string_view format,
                      abel::escape(format).c_str());
 #endif
         return;
-      } else if (abel::ascii_isdigit(format[i + 1])) {
+      } else if (abel::ascii::is_digit(format[i + 1])) {
         int index = format[i + 1] - '0';
         if (static_cast<size_t>(index) >= num_args) {
 #ifndef NDEBUG
@@ -67,7 +67,7 @@ void SubstituteAndAppendArray(std::string* output, abel::string_view format,
   char* target = &(*output)[original_size];
   for (size_t i = 0; i < format.size(); i++) {
     if (format[i] == '$') {
-      if (abel::ascii_isdigit(format[i + 1])) {
+      if (abel::ascii::is_digit(format[i + 1])) {
         const abel::string_view src = args_array[format[i + 1] - '0'];
         target = std::copy(src.begin(), src.end(), target);
         ++i;  // Skip next char.

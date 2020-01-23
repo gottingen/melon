@@ -1,4 +1,4 @@
-//
+
 
 // PerThreadSem is a low-level synchronization primitive controlling the
 // runnability of a single thread, used internally by mutex and cond_var.
