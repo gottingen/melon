@@ -20,8 +20,8 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 
 ## about abel
 
-for several years age, I have plan to prepare start a repository to de-duplicate code from the projects I have write and
-projects I like (open source). so I would develop iteratively over it. I have try it on many private project (although 
+Since several years ago, I have planned to establish a repository to de-duplicate code from the projects I have been involved in or from
+the projects I have paid close attention to (open source). so I would develop iteratively over it. I have try it on many private project (although 
 it on github).  fortunately， it comes on Jan 1st 2020, named it abel, the name of a Mathematician.
 
 since the inception, its goal is to <font size=16> **`consolidate algorithms, data structures, system operations and make it under control`**</font>
