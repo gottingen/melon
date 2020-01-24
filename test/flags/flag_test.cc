@@ -1,10 +1,8 @@
 //
 
 #include <abel/flags/flag.h>
-
 #include <algorithm>
 #include <string>
-
 #include <gtest/gtest.h>
 #include <abel/flags/usage_config.h>
 #include <abel/strings/numbers.h>
