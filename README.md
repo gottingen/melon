@@ -86,7 +86,8 @@ build step
 * [debugging](/docs/en/debugging.md)
 * [digest](/docs/en/digest.md)
 * [flags](/docs/en/flags.md)
-* [strings](/docs/en/strings.md)
+* [strings](/docs/en/strings.md) strings library contains string utilities, such as trim, split. also include a 
+    compatible version of string_view.
 
 
 ## examples
