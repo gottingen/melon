@@ -1,9 +1,8 @@
-//
 // This test contains common things needed by both escaping_test.cc and
 // escaping_benchmark.cc.
 
-#ifndef ABEL_STRINGS_INTERNAL_ESCAPING_TEST_COMMON_H_
-#define ABEL_STRINGS_INTERNAL_ESCAPING_TEST_COMMON_H_
+#ifndef ABEL_TESTING_ESCAPING_TEST_COMMON_H_
+#define ABEL_TESTING_ESCAPING_TEST_COMMON_H_
 
 #include <array>
 #include <abel/strings/string_view.h>
@@ -117,4 +116,4 @@ ABEL_FORCE_INLINE const std::array<base64_testcase, 5>& base64_strings() {
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_ESCAPING_TEST_COMMON_H_
+#endif  // ABEL_TESTING_ESCAPING_TEST_COMMON_H_

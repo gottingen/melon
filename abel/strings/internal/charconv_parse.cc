@@ -1,13 +1,13 @@
 //
 
 #include <abel/strings/internal/charconv_parse.h>
-#include <abel/strings/charconv.h>
+#include <abel/strings/char_conv.h>
 
 #include <cassert>
 #include <cstdint>
 #include <limits>
 
-#include <abel/strings/internal/memutil.h>
+#include <abel/strings/internal/char_traits.h>
 
 namespace abel {
 
@@ -292,12 +292,12 @@ bool ParseInfinityOrNan(const char* begin, const char* end,
     case 'I': {
       // An infinity std::string consists of the characters "inf" or "infinity",
       // case insensitive.
-      if (strings_internal::memcasecmp(begin + 1, "nf", 2) != 0) {
+      if (strings_internal::char_case_cmp(begin + 1, "nf", 2) != 0) {
         return false;
       }
       out->type = strings_internal::FloatType::kInfinity;
       if (end - begin >= 8 &&
-          strings_internal::memcasecmp(begin + 3, "inity", 5) == 0) {
+          strings_internal::char_case_cmp(begin + 3, "inity", 5) == 0) {
         out->end = begin + 8;
       } else {
         out->end = begin + 3;
@@ -309,7 +309,7 @@ bool ParseInfinityOrNan(const char* begin, const char* end,
       // A NaN consists of the characters "nan", case insensitive, optionally
       // followed by a parenthesized sequence of zero or more alphanumeric
       // characters and/or underscores.
-      if (strings_internal::memcasecmp(begin + 1, "an", 2) != 0) {
+      if (strings_internal::char_case_cmp(begin + 1, "an", 2) != 0) {
         return false;
       }
       out->type = strings_internal::FloatType::kNan;

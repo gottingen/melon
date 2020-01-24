@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <string>
 
 #include <abel/base/profile.h>
 

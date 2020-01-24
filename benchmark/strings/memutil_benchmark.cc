@@ -1,6 +1,6 @@
 //
 
-#include <abel/strings/internal/memutil.h>
+#include <abel/strings/internal/char_traits.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -14,10 +14,10 @@
 // - a medium search: 'ab'.  That means every letter is a possible match.
 // - a pathological search: 'aaaaaa.......aaaaab' (half as many a's as haytack)
 // We benchmark case-sensitive and case-insensitive versions of
-// three memmem implementations:
-// - memmem() from memutil.h
+// three char_mem implementations:
+// - char_mem() from memutil.h
 // - search() from STL
-// - memmatch(), a custom implementation using memchr and memcmp.
+// - char_match(), a custom implementation using memchr and memcmp.
 // Here are sample results:
 //
 // Run on (12 X 3800 MHz CPU s)
@@ -58,16 +58,16 @@
 // depending on compiler and standard library implementation. We recommend you
 // run the benchmarks for yourself on relevant platforms.
 //
-// If you need case-insensitive, STL search is slightly better than memmem for
+// If you need case-insensitive, STL search is slightly better than char_mem for
 // all cases.
 //
 // Case-sensitive is more subtle:
-// Custom memmatch is _very_ fast at scanning, so if you have very few possible
+// Custom char_match is _very_ fast at scanning, so if you have very few possible
 // matches in your haystack, that's the way to go. Performance drops
 // significantly with more matches.
 //
-// STL search is slightly faster than memmem in the medium and pathological
-// benchmarks. However, the performance of memmem is currently more dependable
+// STL search is slightly faster than char_mem in the medium and pathological
+// benchmarks. However, the performance of char_mem is currently more dependable
 // across platforms and build configurations.
 
 namespace {
@@ -85,7 +85,7 @@ const char* const kHaystack = MakeHaystack();
 void BM_Memmem(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        abel::strings_internal::memmem(kHaystack, kHaystackSize, "b", 1));
+        abel::strings_internal::char_mem(kHaystack, kHaystackSize, "b", 1));
   }
   state.SetBytesProcessed(kHaystackSize64 * state.iterations());
 }
@@ -94,7 +94,7 @@ BENCHMARK(BM_Memmem);
 void BM_MemmemMedium(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        abel::strings_internal::memmem(kHaystack, kHaystackSize, "ab", 2));
+        abel::strings_internal::char_mem(kHaystack, kHaystackSize, "ab", 2));
   }
   state.SetBytesProcessed(kHaystackSize64 * state.iterations());
 }
@@ -102,7 +102,7 @@ BENCHMARK(BM_MemmemMedium);
 
 void BM_MemmemPathological(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::memmem(
+    benchmark::DoNotOptimize(abel::strings_internal::char_mem(
         kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
         kHaystackSize - kHaystackSize / 2));
   }
@@ -113,7 +113,7 @@ BENCHMARK(BM_MemmemPathological);
 void BM_Memcasemem(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        abel::strings_internal::memcasemem(kHaystack, kHaystackSize, "b", 1));
+        abel::strings_internal::char_case_mem(kHaystack, kHaystackSize, "b", 1));
   }
   state.SetBytesProcessed(kHaystackSize64 * state.iterations());
 }
@@ -122,7 +122,7 @@ BENCHMARK(BM_Memcasemem);
 void BM_MemcasememMedium(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        abel::strings_internal::memcasemem(kHaystack, kHaystackSize, "ab", 2));
+        abel::strings_internal::char_case_mem(kHaystack, kHaystackSize, "ab", 2));
   }
   state.SetBytesProcessed(kHaystackSize64 * state.iterations());
 }
@@ -130,7 +130,7 @@ BENCHMARK(BM_MemcasememMedium);
 
 void BM_MemcasememPathological(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::memcasemem(
+    benchmark::DoNotOptimize(abel::strings_internal::char_case_mem(
         kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
         kHaystackSize - kHaystackSize / 2));
   }
@@ -221,7 +221,7 @@ const char* memcasematch(const char* phaystack, size_t haylen,
   const char* hayend = phaystack + haylen - neelen + 1;
   while ((match = static_cast<char*>(
               memcasechr(phaystack, pneedle[0], hayend - phaystack)))) {
-    if (abel::strings_internal::memcasecmp(match, pneedle, neelen) == 0)
+    if (abel::strings_internal::char_case_cmp(match, pneedle, neelen) == 0)
       return match;
     else
       phaystack = match + 1;
@@ -232,7 +232,7 @@ const char* memcasematch(const char* phaystack, size_t haylen,
 void BM_Memmatch(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        abel::strings_internal::memmatch(kHaystack, kHaystackSize, "b", 1));
+        abel::strings_internal::char_match(kHaystack, kHaystackSize, "b", 1));
   }
   state.SetBytesProcessed(kHaystackSize64 * state.iterations());
 }
@@ -241,7 +241,7 @@ BENCHMARK(BM_Memmatch);
 void BM_MemmatchMedium(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        abel::strings_internal::memmatch(kHaystack, kHaystackSize, "ab", 2));
+        abel::strings_internal::char_match(kHaystack, kHaystackSize, "ab", 2));
   }
   state.SetBytesProcessed(kHaystackSize64 * state.iterations());
 }
@@ -249,7 +249,7 @@ BENCHMARK(BM_MemmatchMedium);
 
 void BM_MemmatchPathological(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::memmatch(
+    benchmark::DoNotOptimize(abel::strings_internal::char_match(
         kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
         kHaystackSize - kHaystackSize / 2));
   }
@@ -285,7 +285,7 @@ BENCHMARK(BM_MemcasematchPathological);
 
 void BM_MemmemStartup(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::memmem(
+    benchmark::DoNotOptimize(abel::strings_internal::char_mem(
         kHaystack + kHaystackSize - 10, 10, kHaystack + kHaystackSize - 1, 1));
   }
 }
@@ -302,7 +302,7 @@ BENCHMARK(BM_SearchStartup);
 
 void BM_MemmatchStartup(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::memmatch(
+    benchmark::DoNotOptimize(abel::strings_internal::char_match(
         kHaystack + kHaystackSize - 10, 10, kHaystack + kHaystackSize - 1, 1));
   }
 }

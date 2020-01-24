@@ -1,13 +1,13 @@
 //
 
-#include <abel/strings/charconv.h>
+#include <abel/strings/char_conv.h>
 
 #include <cstdlib>
 #include <string>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/strings/internal/pow10_helper.h>
+#include <test/testing/pow10_helper.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_format.h>
 

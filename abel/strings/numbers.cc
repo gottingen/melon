@@ -21,9 +21,9 @@
 #include <abel/base/math.h>
 #include <abel/base/internal/raw_logging.h>
 #include <abel/strings/ascii.h>
-#include <abel/strings/charconv.h>
+#include <abel/strings/char_conv.h>
 #include <abel/strings/escaping.h>
-#include <abel/strings/internal/memutil.h>
+#include <abel/strings/internal/char_traits.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/trim.h>
 #include <abel/strings/compare.h>

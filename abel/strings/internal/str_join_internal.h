@@ -23,9 +23,8 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-
+#include <abel/meta/uninitialized.h>
 #include <abel/strings/internal/ostringstream.h>
-#include <abel/strings/internal/resize_uninitialized.h>
 #include <abel/strings/str_cat.h>
 
 namespace abel {
@@ -222,7 +221,7 @@ std::string join_algorithm(Iterator start, Iterator end, abel::string_view s,
     }
 
     if (result_size > 0) {
-      STLStringResizeUninitialized(&result, result_size);
+        abel::string_resize_uninitialized(&result, result_size);
 
       // Joins strings
       char* result_buf = &*result.begin();

@@ -1,9 +1,7 @@
 //
 
-#include <abel/strings/internal/pow10_helper.h>
-
+#include <test/testing/pow10_helper.h>
 #include <cmath>
-
 #include <gtest/gtest.h>
 #include <abel/strings/str_format.h>
 

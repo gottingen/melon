@@ -8,8 +8,7 @@
 #include <climits>
 #include <cstring>
 #include <ostream>
-
-#include <abel/strings/internal/memutil.h>
+#include <abel/strings/internal/char_traits.h>
 
 namespace abel {
 
@@ -73,7 +72,7 @@ string_view::size_type string_view::find(string_view s, size_type pos) const
     return npos;
   }
   const char* result =
-      strings_internal::memmatch(ptr_ + pos, length_ - pos, s.ptr_, s.length_);
+      strings_internal::char_match(ptr_ + pos, length_ - pos, s.ptr_, s.length_);
   return result ? result - ptr_ : npos;
 }
 
