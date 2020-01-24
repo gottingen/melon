@@ -1,4 +1,4 @@
-#include <abel/strings/internal/str_format/bind.h>
+#include <abel/strings/format/bind.h>
 
 #include <string.h>
 #include <limits>
@@ -7,7 +7,7 @@
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 namespace {
 
 class FormatBindTest : public ::testing::Test {
@@ -132,12 +132,12 @@ TEST_F(FormatBindTest, FormatPack) {
     SCOPED_TRACE(e.fmt);
     UntypedFormatSpecImpl format(fmt);
     EXPECT_EQ(e.summary,
-              str_format_internal::Summarize(format, abel::MakeSpan(args)))
+              format_internal::Summarize(format, abel::MakeSpan(args)))
         << "line:" << e.line;
   }
 }
 
 }  // namespace
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel

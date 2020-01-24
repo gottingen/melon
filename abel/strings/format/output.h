@@ -5,8 +5,8 @@
 // `BufferRawSink` is a simple output sink for a char buffer. Used by SnprintF.
 // `FILERawSink` is a std::FILE* based sink. Used by printf and FprintF.
 
-#ifndef ABEL_STRINGS_INTERNAL_STR_FORMAT_OUTPUT_H_
-#define ABEL_STRINGS_INTERNAL_STR_FORMAT_OUTPUT_H_
+#ifndef ABEL_STRINGS_FORMAT_OUTPUT_H_
+#define ABEL_STRINGS_FORMAT_OUTPUT_H_
 
 #include <cstdio>
 #include <ostream>
@@ -20,7 +20,7 @@ namespace abel {
 
 class Cord;
 
-namespace str_format_internal {
+namespace format_internal {
 
 // RawSink implementation that writes into a char* buffer.
 // It will not overflow the buffer, but will keep the total count of chars
@@ -80,11 +80,11 @@ ABEL_FORCE_INLINE void AbelFormatFlush(BufferRawSink* sink, string_view v) {
 
 template <typename T>
 auto InvokeFlush(T* out, string_view s)
-    -> decltype(str_format_internal::AbelFormatFlush(out, s)) {
-  str_format_internal::AbelFormatFlush(out, s);
+    -> decltype(format_internal::AbelFormatFlush(out, s)) {
+  format_internal::AbelFormatFlush(out, s);
 }
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel
 

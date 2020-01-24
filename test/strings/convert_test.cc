@@ -8,11 +8,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/strings/internal/str_format/bind.h>
+#include <abel/strings/format/bind.h>
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 namespace {
 
 template <typename T, size_t N>
@@ -646,6 +646,6 @@ TEST_F(FormatConvertTest, ExpectedFailures) {
 }
 
 }  // namespace
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel

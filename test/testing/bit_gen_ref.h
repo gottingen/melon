@@ -8,8 +8,8 @@
 // that take both abel (e.g. `abel::BitGen`) and standard library (e.g.
 // `std::mt19937`) bit generators.
 
-#ifndef ABEL_TESTING_BIT_GEN_REF_H_
-#define ABEL_TESTING_BIT_GEN_REF_H_
+#ifndef TEST_TESTING_BIT_GEN_REF_H_
+#define TEST_TESTING_BIT_GEN_REF_H_
 
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
@@ -21,10 +21,10 @@ namespace abel {
 
 namespace random_internal {
 
-template <typename URBG, typename = void, typename = void, typename = void>
-struct is_urbg : std::false_type {};
+template<typename URBG, typename = void, typename = void, typename = void>
+struct is_urbg : std::false_type { };
 
-template <typename URBG>
+template<typename URBG>
 struct is_urbg<
     URBG,
     abel::enable_if_t<std::is_same<
@@ -36,7 +36,8 @@ struct is_urbg<
     abel::enable_if_t<std::is_same<
         typename URBG::result_type,
         typename std::decay<decltype(std::declval<URBG>()())>::type>::value>>
-    : std::true_type {};
+    : std::true_type {
+};
 
 }  // namespace random_internal
 
@@ -64,77 +65,77 @@ struct is_urbg<
 //    }
 //
 class BitGenRef {
- public:
-  using result_type = uint64_t;
+public:
+    using result_type = uint64_t;
 
-  BitGenRef(const abel::BitGenRef&) = default;
-  BitGenRef(abel::BitGenRef&&) = default;
-  BitGenRef& operator=(const abel::BitGenRef&) = default;
-  BitGenRef& operator=(abel::BitGenRef&&) = default;
+    BitGenRef (const abel::BitGenRef &) = default;
+    BitGenRef (abel::BitGenRef &&) = default;
+    BitGenRef &operator = (const abel::BitGenRef &) = default;
+    BitGenRef &operator = (abel::BitGenRef &&) = default;
 
-  template <typename URBG,
-            typename abel::enable_if_t<
-                (!std::is_same<URBG, BitGenRef>::value &&
-                 random_internal::is_urbg<URBG>::value)>* = nullptr>
-  BitGenRef(URBG& gen)  // NOLINT
-      : mocked_gen_ptr_(MakeMockPointer(&gen)),
-        t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen)),
-        generate_impl_fn_(ImplFn<URBG>) {
-  }
+    template<typename URBG,
+        typename abel::enable_if_t<
+            (!std::is_same<URBG, BitGenRef>::value &&
+                random_internal::is_urbg<URBG>::value)> * = nullptr>
+    BitGenRef (URBG &gen)  // NOLINT
+        : mocked_gen_ptr_(MakeMockPointer(&gen)),
+          t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen)),
+          generate_impl_fn_(ImplFn < URBG > ) {
+    }
 
-  static constexpr result_type(min)() {
-    return (std::numeric_limits<result_type>::min)();
-  }
+    static constexpr result_type (min) () {
+        return (std::numeric_limits<result_type>::min)();
+    }
 
-  static constexpr result_type(max)() {
-    return (std::numeric_limits<result_type>::max)();
-  }
+    static constexpr result_type (max) () {
+        return (std::numeric_limits<result_type>::max)();
+    }
 
-  result_type operator()() { return generate_impl_fn_(t_erased_gen_ptr_); }
+    result_type operator () () { return generate_impl_fn_(t_erased_gen_ptr_); }
 
- private:
-  friend struct abel::random_internal::DistributionCaller<abel::BitGenRef>;
-  using impl_fn = result_type (*)(uintptr_t);
-  using mocker_base_t = abel::random_internal::MockingBitGenBase;
+private:
+    friend struct abel::random_internal::DistributionCaller<abel::BitGenRef>;
+    using impl_fn = result_type (*) (uintptr_t);
+    using mocker_base_t = abel::random_internal::MockingBitGenBase;
 
-  // Convert an arbitrary URBG pointer into either a valid mocker_base_t
-  // pointer or a nullptr.
-  static ABEL_FORCE_INLINE mocker_base_t* MakeMockPointer(mocker_base_t* t) { return t; }
-  static ABEL_FORCE_INLINE mocker_base_t* MakeMockPointer(void*) { return nullptr; }
+    // Convert an arbitrary URBG pointer into either a valid mocker_base_t
+    // pointer or a nullptr.
+    static ABEL_FORCE_INLINE mocker_base_t *MakeMockPointer (mocker_base_t *t) { return t; }
+    static ABEL_FORCE_INLINE mocker_base_t *MakeMockPointer (void *) { return nullptr; }
 
-  template <typename URBG>
-  static result_type ImplFn(uintptr_t ptr) {
-    // Ensure that the return values from operator() fill the entire
-    // range promised by result_type, min() and max().
-    abel::random_internal::FastUniformBits<result_type> fast_uniform_bits;
-    return fast_uniform_bits(*reinterpret_cast<URBG*>(ptr));
-  }
+    template<typename URBG>
+    static result_type ImplFn (uintptr_t ptr) {
+        // Ensure that the return values from operator() fill the entire
+        // range promised by result_type, min() and max().
+        abel::random_internal::FastUniformBits<result_type> fast_uniform_bits;
+        return fast_uniform_bits(*reinterpret_cast<URBG *>(ptr));
+    }
 
-  mocker_base_t* mocked_gen_ptr_;
-  uintptr_t t_erased_gen_ptr_;
-  impl_fn generate_impl_fn_;
+    mocker_base_t *mocked_gen_ptr_;
+    uintptr_t t_erased_gen_ptr_;
+    impl_fn generate_impl_fn_;
 };
 
 namespace random_internal {
 
-template <>
+template<>
 struct DistributionCaller<abel::BitGenRef> {
-  template <typename DistrT, typename FormatT, typename... Args>
-  static typename DistrT::result_type Call(abel::BitGenRef* gen_ref,
-                                           Args&&... args) {
-    auto* mock_ptr = gen_ref->mocked_gen_ptr_;
-    if (mock_ptr == nullptr) {
-      DistrT dist(std::forward<Args>(args)...);
-      return dist(*gen_ref);
-    } else {
-      return mock_ptr->template Call<DistrT, FormatT>(
-          std::forward<Args>(args)...);
+    template<typename DistrT, typename FormatT, typename... Args>
+    static typename DistrT::result_type Call (abel::BitGenRef *gen_ref,
+                                              Args &&... args) {
+        auto *mock_ptr = gen_ref->mocked_gen_ptr_;
+        if (mock_ptr == nullptr) {
+            DistrT dist(std::forward<Args>(args)...);
+            return dist(*gen_ref);
+        } else {
+            return mock_ptr->template Call<DistrT, FormatT>(
+                std::forward<Args>(args)...);
+        }
     }
-  }
 };
 
 }  // namespace random_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TESTING_BIT_GEN_REF_H_
+#endif  // TEST_TESTING_BIT_GEN_REF_H_

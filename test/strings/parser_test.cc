@@ -1,4 +1,4 @@
-#include <abel/strings/internal/str_format/parser.h>
+#include <abel/strings/format/parser.h>
 
 #include <string.h>
 
@@ -8,7 +8,7 @@
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 
 namespace {
 
@@ -389,6 +389,6 @@ TEST_F(ParsedFormatTest, ParsingFlagOrder) {
 }
 
 }  // namespace
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel

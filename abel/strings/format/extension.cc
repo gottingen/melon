@@ -1,7 +1,7 @@
 //
 //
 
-#include <abel/strings/internal/str_format/extension.h>
+#include <abel/strings/format/extension.h>
 
 #include <errno.h>
 #include <algorithm>
@@ -9,7 +9,7 @@
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 namespace {
 // clang-format off
 #define ABEL_LENGTH_MODS_EXPAND_ \
@@ -69,6 +69,6 @@ bool FormatSinkImpl::PutPaddedString(string_view v, int w, int p, bool l) {
   return true;
 }
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel

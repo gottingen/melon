@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
-#define ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
+#ifndef TEST_TESTING_INLINE_VARIABLE_TESTING_H_
+#define TEST_TESTING_INLINE_VARIABLE_TESTING_H_
 
 #include <abel/types/internal/inline_variable.h>
 
@@ -10,25 +10,26 @@ namespace abel {
 namespace inline_variable_testing_internal {
 
 struct Foo {
-  int value = 5;
+    int value = 5;
 };
 
-ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, inline_variable_foo, {});
-ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, other_inline_variable_foo, {});
+ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, inline_variable_foo, { });
+ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, other_inline_variable_foo, { });
 
 ABEL_INTERNAL_INLINE_CONSTEXPR(int, inline_variable_int, 5);
 ABEL_INTERNAL_INLINE_CONSTEXPR(int, other_inline_variable_int, 5);
 
-ABEL_INTERNAL_INLINE_CONSTEXPR(void(*)(), inline_variable_fun_ptr, nullptr);
+ABEL_INTERNAL_INLINE_CONSTEXPR(void(*)
+                                   (), inline_variable_fun_ptr, nullptr);
 
-const Foo& get_foo_a();
-const Foo& get_foo_b();
+const Foo &get_foo_a ();
+const Foo &get_foo_b ();
 
-const int& get_int_a();
-const int& get_int_b();
+const int &get_int_a ();
+const int &get_int_b ();
 
 }  // namespace inline_variable_testing_internal
 
 }  // namespace abel
 
-#endif  // ABEL_TESTING_INLINE_VARIABLE_TESTING_H_
+#endif  // TEST_TESTING_INLINE_VARIABLE_TESTING_H_

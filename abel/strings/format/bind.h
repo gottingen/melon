@@ -1,15 +1,14 @@
-#ifndef ABEL_STRINGS_INTERNAL_STR_FORMAT_BIND_H_
-#define ABEL_STRINGS_INTERNAL_STR_FORMAT_BIND_H_
+#ifndef ABEL_STRINGS_FORMAT_BIND_H_
+#define ABEL_STRINGS_FORMAT_BIND_H_
 
 #include <array>
 #include <cstdio>
 #include <sstream>
 #include <string>
-
 #include <abel/base/profile.h>
-#include <abel/strings/internal/str_format/arg.h>
-#include <abel/strings/internal/str_format/checker.h>
-#include <abel/strings/internal/str_format/parser.h>
+#include <abel/strings/format/arg.h>
+#include <abel/strings/format/checker.h>
+#include <abel/strings/format/parser.h>
 #include <abel/types/span.h>
 
 namespace abel {
@@ -17,7 +16,7 @@ namespace abel {
 
 class untyped_format_spec;
 
-namespace str_format_internal {
+namespace format_internal {
 
 class BoundConversion : public ConversionSpec {
  public:
@@ -36,7 +35,7 @@ class UntypedFormatSpecImpl {
   explicit UntypedFormatSpecImpl(string_view s)
       : data_(s.data()), size_(s.size()) {}
   explicit UntypedFormatSpecImpl(
-      const str_format_internal::ParsedFormatBase* pc)
+      const format_internal::ParsedFormatBase* pc)
       : data_(pc), size_(~size_t{}) {}
 
   bool has_parsed_conversion() const { return size_ == ~size_t{}; }
@@ -45,9 +44,9 @@ class UntypedFormatSpecImpl {
     assert(!has_parsed_conversion());
     return string_view(static_cast<const char*>(data_), size_);
   }
-  const str_format_internal::ParsedFormatBase* parsed_conversion() const {
+  const format_internal::ParsedFormatBase* parsed_conversion() const {
     assert(has_parsed_conversion());
-    return static_cast<const str_format_internal::ParsedFormatBase*>(data_);
+    return static_cast<const format_internal::ParsedFormatBase*>(data_);
   }
 
   template <typename T>
@@ -91,13 +90,13 @@ class FormatSpecTemplate
   template <typename = void>
   FormatSpecTemplate(const char* s)  // NOLINT
       __attribute__((
-          enable_if(str_format_internal::EnsureConstexpr(s), "constexpr trap"),
+          enable_if(format_internal::EnsureConstexpr(s), "constexpr trap"),
           unavailable(
               "Format specified does not match the arguments passed.")));
 
   template <typename T = void>
   FormatSpecTemplate(string_view s)  // NOLINT
-      __attribute__((enable_if(str_format_internal::EnsureConstexpr(s),
+      __attribute__((enable_if(format_internal::EnsureConstexpr(s),
                                "constexpr trap"))) {
     static_assert(sizeof(T*) == 0,
                   "Format specified does not match the arguments passed.");
@@ -202,8 +201,8 @@ class StreamedWrapper {
   const T& v_;
 };
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_BIND_H_
+#endif  // ABEL_STRINGS_FORMAT_BIND_H_

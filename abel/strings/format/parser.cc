@@ -1,4 +1,4 @@
-#include <abel/strings/internal/str_format/parser.h>
+#include <abel/strings/format/parser.h>
 
 #include <assert.h>
 #include <string.h>
@@ -15,7 +15,7 @@
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 
 using CC = ConversionChar::Id;
 using LM = LengthMod::Id;
@@ -202,7 +202,7 @@ flags_done:
     if (ABEL_UNLIKELY(!tag.is_length())) return nullptr;
 
     // It is a length modifier.
-    using str_format_internal::LengthMod;
+    using format_internal::LengthMod;
     LengthMod length_mod = tag.as_length();
     ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
     if (c == 'h' && length_mod.id() == LengthMod::h) {
@@ -300,6 +300,6 @@ bool ParsedFormatBase::MatchesConversions(
   return used.size() == convs.size() || allow_ignored;
 }
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel

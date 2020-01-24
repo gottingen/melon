@@ -1,6 +1,6 @@
 //
 
-#include <abel/random/internal/chi_square.h>
+#include <test/testing/chi_square.h>
 
 #include <algorithm>
 #include <cstddef>

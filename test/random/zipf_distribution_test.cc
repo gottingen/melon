@@ -14,7 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/internal/raw_logging.h>
-#include <abel/random/internal/chi_square.h>
+#include <test/testing/chi_square.h>
 #include <abel/random/internal/sequence_urbg.h>
 #include <abel/random/random.h>
 #include <abel/strings/str_cat.h>

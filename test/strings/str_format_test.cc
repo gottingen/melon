@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <string>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/strings/str_format.h>
@@ -12,7 +11,7 @@
 namespace abel {
 
 namespace {
-using str_format_internal::FormatArgImpl;
+using format_internal::FormatArgImpl;
 
 using FormatEntryPointTest = ::testing::Test;
 
@@ -47,8 +46,8 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
     char buf[4096]{};
     snprintf(buf, sizeof(buf), fmt, 123);
     EXPECT_EQ(
-        str_format_internal::FormatPack(
-            str_format_internal::UntypedFormatSpecImpl::Extract(format), args),
+        format_internal::FormatPack(
+            format_internal::UntypedFormatSpecImpl::Extract(format), args),
         buf);
     EXPECT_EQ(actual, buf);
   }
@@ -57,8 +56,8 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
   int i = 345;
   format_arg arg(i);
   std::string out;
-  EXPECT_TRUE(str_format_internal::FormatUntyped(
-      &out, str_format_internal::UntypedFormatSpecImpl(&pc), {&arg, 1}));
+  EXPECT_TRUE(format_internal::FormatUntyped(
+      &out, format_internal::UntypedFormatSpecImpl(&pc), {&arg, 1}));
   EXPECT_EQ("A format 345", out);
 }
 
@@ -82,8 +81,8 @@ TEST_F(FormatEntryPointTest, AppendFormatFail) {
   FormatArgImpl arg("not an int");
 
   EXPECT_EQ("orig",
-            str_format_internal::AppendPack(
-                &s, str_format_internal::UntypedFormatSpecImpl::Extract(format),
+            format_internal::AppendPack(
+                &s, format_internal::UntypedFormatSpecImpl::Extract(format),
                 {&arg, 1}));
 }
 
@@ -122,8 +121,8 @@ TEST_F(FormatEntryPointTest, FormatCountCaptureWrongType) {
   int i = 123, *ip = &n;
   FormatArgImpl args[2] = {FormatArgImpl(i), FormatArgImpl(ip)};
 
-  EXPECT_EQ("", str_format_internal::FormatPack(
-                    str_format_internal::UntypedFormatSpecImpl::Extract(format),
+  EXPECT_EQ("", format_internal::FormatPack(
+                    format_internal::UntypedFormatSpecImpl::Extract(format),
                     abel::MakeSpan(args)));
 }
 
@@ -186,8 +185,8 @@ TEST_F(FormatEntryPointTest, StreamFail) {
   std::ostringstream oss;
   untyped_format_spec format("hello %d");
   FormatArgImpl arg("non-numeric");
-  oss << str_format_internal::Streamable(
-      str_format_internal::UntypedFormatSpecImpl::Extract(format), {&arg, 1});
+  oss << format_internal::Streamable(
+      format_internal::UntypedFormatSpecImpl::Extract(format), {&arg, 1});
   EXPECT_EQ("hello ", oss.str());  // partial write
   EXPECT_TRUE(oss.fail());
 }
@@ -426,8 +425,8 @@ TEST(string_format, BehavesAsDocumented) {
   EXPECT_EQ(string_format("%qd", int{1}), "1");
 }
 
-using str_format_internal::ExtendedParsedFormat;
-using str_format_internal::ParsedFormatBase;
+using format_internal::ExtendedParsedFormat;
+using format_internal::ParsedFormatBase;
 
 struct SummarizeConsumer {
   std::string* out;
@@ -438,7 +437,7 @@ struct SummarizeConsumer {
     return true;
   }
 
-  bool ConvertOne(const str_format_internal::UnboundConversion& conv,
+  bool ConvertOne(const format_internal::UnboundConversion& conv,
                   string_view s) {
     *out += "{";
     *out += std::string(s);
@@ -532,7 +531,7 @@ TEST_F(ParsedFormatTest, SimpleUncheckedIncorrect) {
   EXPECT_FALSE((parsed_format<'s', 'd', 'g'>::New(format)));
 }
 
-using str_format_internal::Conv;
+using format_internal::Conv;
 
 TEST_F(ParsedFormatTest, UncheckedCorrect) {
   auto f = ExtendedParsedFormat<Conv::d>::New("ABC%dDEF");

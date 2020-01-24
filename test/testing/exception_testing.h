@@ -1,6 +1,6 @@
 
-#ifndef ABEL_TRESTING_EXCEPTION_TESTING_H_
-#define ABEL_TRESTING_EXCEPTION_TESTING_H_
+#ifndef TEST_TRESTING_EXCEPTION_TESTING_H_
+#define TEST_TRESTING_EXCEPTION_TESTING_H_
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
@@ -24,4 +24,4 @@
 
 #endif
 
-#endif  // ABEL_TRESTING_EXCEPTION_TESTING_H_
+#endif  // TEST_TRESTING_EXCEPTION_TESTING_H_

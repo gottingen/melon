@@ -1,5 +1,5 @@
-#ifndef ABEL_STRINGS_INTERNAL_STR_FORMAT_PARSER_H_
-#define ABEL_STRINGS_INTERNAL_STR_FORMAT_PARSER_H_
+#ifndef ABEL_STRINGS_FORMAT_PARSER_H_
+#define ABEL_STRINGS_FORMAT_PARSER_H_
 
 #include <limits.h>
 #include <stddef.h>
@@ -12,12 +12,12 @@
 #include <memory>
 #include <vector>
 
-#include <abel/strings/internal/str_format/checker.h>
-#include <abel/strings/internal/str_format/extension.h>
+#include <abel/strings/format/checker.h>
+#include <abel/strings/format/extension.h>
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 
 // The analyzed properties of a single specified conversion.
 struct UnboundConversion {
@@ -271,15 +271,15 @@ class ParsedFormatBase {
 // This is the only API that allows the user to pass a runtime specified format
 // string. These factory functions will return NULL if the format does not match
 // the conversions requested by the user.
-template <str_format_internal::Conv... C>
-class ExtendedParsedFormat : public str_format_internal::ParsedFormatBase {
+template <format_internal::Conv... C>
+class ExtendedParsedFormat : public format_internal::ParsedFormatBase {
  public:
   explicit ExtendedParsedFormat(string_view format)
 #ifdef ABEL_INTERNAL_ENABLE_FORMAT_CHECKER
       __attribute__((
-          enable_if(str_format_internal::EnsureConstexpr(format),
+          enable_if(format_internal::EnsureConstexpr(format),
                     "Format std::string is not constexpr."),
-          enable_if(str_format_internal::ValidFormatImpl<C...>(format),
+          enable_if(format_internal::ValidFormatImpl<C...>(format),
                     "Format specified does not match the template arguments.")))
 #endif  // ABEL_INTERNAL_ENABLE_FORMAT_CHECKER
       : ExtendedParsedFormat(format, false) {
@@ -317,7 +317,7 @@ class ExtendedParsedFormat : public str_format_internal::ParsedFormatBase {
   ExtendedParsedFormat(string_view s, bool allow_ignored)
       : ParsedFormatBase(s, allow_ignored, {C...}) {}
 };
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel
 

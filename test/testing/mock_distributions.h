@@ -1,6 +1,6 @@
 
-#ifndef ABEL_TESTING_MOCK_DISTRIBUTIONS_H_
-#define ABEL_TESTING_MOCK_DISTRIBUTIONS_H_
+#ifndef TEST_TESTING_MOCK_DISTRIBUTIONS_H_
+#define TEST_TESTING_MOCK_DISTRIBUTIONS_H_
 
 #include <limits>
 #include <type_traits>
@@ -35,14 +35,14 @@ namespace abel {
 //  auto x = abel::Uniform<uint32_t>(mock);
 //  assert(x == 123456)
 //
-template <typename R>
+template<typename R>
 using MockUniform = random_internal::MockOverloadSet<
     random_internal::UniformDistributionWrapper<R>,
-    R(IntervalClosedOpenTag, MockingBitGen&, R, R),
-    R(IntervalClosedClosedTag, MockingBitGen&, R, R),
-    R(IntervalOpenOpenTag, MockingBitGen&, R, R),
-    R(IntervalOpenClosedTag, MockingBitGen&, R, R), R(MockingBitGen&, R, R),
-    R(MockingBitGen&)>;
+    R (IntervalClosedOpenTag, MockingBitGen &, R, R),
+    R (IntervalClosedClosedTag, MockingBitGen &, R, R),
+    R (IntervalOpenOpenTag, MockingBitGen &, R, R),
+    R (IntervalOpenClosedTag, MockingBitGen &, R, R), R (MockingBitGen &, R, R),
+    R (MockingBitGen &)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockBernoulli
@@ -63,8 +63,8 @@ using MockUniform = random_internal::MockOverloadSet<
 //  assert(abel::Bernoulli(mock, 0.5) == false);
 //
 using MockBernoulli =
-    random_internal::MockOverloadSet<abel::bernoulli_distribution,
-                                     bool(MockingBitGen&, double)>;
+random_internal::MockOverloadSet<abel::bernoulli_distribution,
+                                 bool (MockingBitGen &, double)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockBeta
@@ -85,11 +85,11 @@ using MockBernoulli =
 //  auto x = abel::Beta<double>(mock, 3.0, 2.0);
 //  assert(x == 0.567);
 //
-template <typename RealType>
+template<typename RealType>
 using MockBeta =
-    random_internal::MockOverloadSet<abel::beta_distribution<RealType>,
-                                     RealType(MockingBitGen&, RealType,
-                                              RealType)>;
+random_internal::MockOverloadSet<abel::beta_distribution<RealType>,
+                                 RealType (MockingBitGen &, RealType,
+                                           RealType)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockExponential
@@ -111,10 +111,10 @@ using MockBeta =
 //  auto x = abel::Exponential<double>(mock, 0.5);
 //  assert(x == 12.3456789)
 //
-template <typename RealType>
+template<typename RealType>
 using MockExponential =
-    random_internal::MockOverloadSet<abel::exponential_distribution<RealType>,
-                                     RealType(MockingBitGen&, RealType)>;
+random_internal::MockOverloadSet<abel::exponential_distribution<RealType>,
+                                 RealType (MockingBitGen &, RealType)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockGaussian
@@ -136,11 +136,11 @@ using MockExponential =
 //  auto x = abel::Gaussian<double>(mock, 16.3, 3.3);
 //  assert(x == 12.3456789)
 //
-template <typename RealType>
+template<typename RealType>
 using MockGaussian =
-    random_internal::MockOverloadSet<abel::gaussian_distribution<RealType>,
-                                     RealType(MockingBitGen&, RealType,
-                                              RealType)>;
+random_internal::MockOverloadSet<abel::gaussian_distribution<RealType>,
+                                 RealType (MockingBitGen &, RealType,
+                                           RealType)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockLogUniform
@@ -162,10 +162,10 @@ using MockGaussian =
 //  auto x = abel::LogUniform<int>(mock, 10, 10000, 10);
 //  assert(x == 1221)
 //
-template <typename IntType>
+template<typename IntType>
 using MockLogUniform = random_internal::MockOverloadSet<
     abel::log_uniform_int_distribution<IntType>,
-    IntType(MockingBitGen&, IntType, IntType, IntType)>;
+    IntType (MockingBitGen &, IntType, IntType, IntType)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockPoisson
@@ -186,10 +186,10 @@ using MockLogUniform = random_internal::MockOverloadSet<
 //  auto x = abel::Poisson<int>(mock, 2.0);
 //  assert(x == 1221)
 //
-template <typename IntType>
+template<typename IntType>
 using MockPoisson =
-    random_internal::MockOverloadSet<abel::poisson_distribution<IntType>,
-                                     IntType(MockingBitGen&, double)>;
+random_internal::MockOverloadSet<abel::poisson_distribution<IntType>,
+                                 IntType (MockingBitGen &, double)>;
 
 // -----------------------------------------------------------------------------
 // abel::MockZipf
@@ -210,13 +210,12 @@ using MockPoisson =
 //  auto x = abel::Zipf<int>(mock, 1000000, 2.0, 1.0);
 //  assert(x == 1221)
 //
-template <typename IntType>
+template<typename IntType>
 using MockZipf =
-    random_internal::MockOverloadSet<abel::zipf_distribution<IntType>,
-                                     IntType(MockingBitGen&, IntType, double,
-                                             double)>;
-
+random_internal::MockOverloadSet<abel::zipf_distribution<IntType>,
+                                 IntType (MockingBitGen &, IntType, double,
+                                          double)>;
 
 }  // namespace abel
 
-#endif  // ABEL_TESTING_MOCK_DISTRIBUTIONS_H_
+#endif  // TEST_TESTING_MOCK_DISTRIBUTIONS_H_
