@@ -1,17 +1,22 @@
 language: cpp
 
-compiler:
-  - gcc
+sudo: false
 
-install:
-  - ls
+matrix:
+  include:
+    - env: CMAKE_CXX="g++" BUILD_TYPE="Debug"
+      os: linux
+
+    - env: CMAKE_CXX="clang++" BUILD_TYPE="Debug"
+      os: osx
 
 before_script:
+  # print out some version numbers
+  - $CMAKE_CXX --version
   - cmake --version
   - mkdir build
   - cd build
-  - cmake ../
-
+  - cmake ..
 script:
-  - make
+  - make -j2
   - make test
