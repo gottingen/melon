@@ -12,7 +12,7 @@ matrix:
 
 before_script:
   # print out some version numbers
-  - $CMAKE_CXX --version
+  - g++ --version
   - cmake --version
   - mkdir build
   - cd build
