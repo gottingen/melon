@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 
 #include <stddef.h>
 #include <cstdarg>
@@ -10,7 +10,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/atomic/atomic_hook.h>
-#include <abel/base/log_severity.h>
+#include <abel/log/log_severity.h>
 
 // We know how to perform low-level writes to stderr in POSIX and Windows.  For
 // these platforms, we define the token ABEL_LOW_LEVEL_WRITE_SUPPORTED.

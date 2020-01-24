@@ -24,7 +24,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/random/distributions.h>
 #include <abel/random/random.h>
 #include <test/testing/numbers_test_common.h>

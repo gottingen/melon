@@ -16,7 +16,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 #include <test/testing/chi_square.h>
 #include <test/testing/distribution_test_util.h>

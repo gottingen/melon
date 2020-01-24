@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/time/internal/zone_info_source.h>
 
 namespace abel {

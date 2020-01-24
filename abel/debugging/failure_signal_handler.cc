@@ -24,7 +24,7 @@
 #include <ctime>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/system/sysinfo.h>
 #include <abel/debugging/internal/examine_stack.h>
 #include <abel/debugging/stacktrace.h>

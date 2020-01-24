@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <array>
 #include <abel/memory/hide_ptr.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/threading/internal/spinlock.h>
 
 // Do not use STL.   This module does not use standard memory allocation.

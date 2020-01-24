@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/time/clock.h>
 #include <abel/time/time.h>
 

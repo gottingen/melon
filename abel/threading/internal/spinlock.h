@@ -37,7 +37,7 @@
 #include <abel/base/profile.h>
 #include <abel/threading/dynamic_annotations.h>
 #include <abel/threading/internal/low_level_scheduling.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/threading/internal/scheduling_mode.h>
 #include <abel/threading/internal/tsan_mutex_interface.h>
 #include <abel/base/profile.h>

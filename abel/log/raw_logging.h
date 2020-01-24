@@ -3,14 +3,14 @@
 // acquire any locks, and can therefore be used by low-level memory
 // allocation, synchronization, and signal-handling code.
 
-#ifndef ABEL_BASE_INTERNAL_RAW_LOGGING_H_
-#define ABEL_BASE_INTERNAL_RAW_LOGGING_H_
+#ifndef ABEL_LOG_RAW_LOGGING_H_
+#define ABEL_LOG_RAW_LOGGING_H_
 
 #include <string>
 
 #include <abel/base/profile.h>
 #include <abel/atomic/atomic_hook.h>
-#include <abel/base/log_severity.h>
+#include <abel/log/log_severity.h>
 #include <abel/base/profile.h>
 
 // This is similar to LOG(severity) << format..., but
@@ -162,4 +162,4 @@ void RegisterInternalLogFunction (InternalLogFunction func);
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_RAW_LOGGING_H_
+#endif  // ABEL_LOG_RAW_LOGGING_H_
