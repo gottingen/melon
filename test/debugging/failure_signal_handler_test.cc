@@ -14,7 +14,6 @@
 #include <abel/base/internal/raw_logging.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/debugging/symbolize.h>
-#include <abel/strings/match.h>
 #include <abel/strings/str_cat.h>
 
 namespace {

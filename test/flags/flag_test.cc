@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 #include <abel/flags/usage_config.h>
-#include <abel/strings/match.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>

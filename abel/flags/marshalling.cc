@@ -6,7 +6,9 @@
 #include <type_traits>
 
 #include <abel/base/profile.h>
-#include <abel/strings/match.h>
+#include <abel/strings/ascii.h>
+#include <abel/strings/ends_with.h>
+#include <abel/strings/compare.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_format.h>
@@ -28,10 +30,10 @@ bool abel_parse_flag(abel::string_view text, bool* dst, std::string*) {
   text = abel::trim_all(text);
 
   for (size_t i = 0; i < ABEL_ARRAYSIZE(kTrue); ++i) {
-    if (abel::EqualsIgnoreCase(text, kTrue[i])) {
+    if (abel::equal_case(text, kTrue[i])) {
       *dst = true;
       return true;
-    } else if (abel::EqualsIgnoreCase(text, kFalse[i])) {
+    } else if (abel::equal_case(text, kFalse[i])) {
       *dst = false;
       return true;
     }
@@ -184,19 +186,19 @@ bool abel_parse_flag(abel::string_view text, abel::LogSeverity* dst,
     return false;
   }
   if (text.front() == 'k' || text.front() == 'K') text.remove_prefix(1);
-  if (abel::EqualsIgnoreCase(text, "info")) {
+  if (abel::equal_case(text, "info")) {
     *dst = abel::LogSeverity::kInfo;
     return true;
   }
-  if (abel::EqualsIgnoreCase(text, "warning")) {
+  if (abel::equal_case(text, "warning")) {
     *dst = abel::LogSeverity::kWarning;
     return true;
   }
-  if (abel::EqualsIgnoreCase(text, "error")) {
+  if (abel::equal_case(text, "error")) {
     *dst = abel::LogSeverity::kError;
     return true;
   }
-  if (abel::EqualsIgnoreCase(text, "fatal")) {
+  if (abel::equal_case(text, "fatal")) {
     *dst = abel::LogSeverity::kFatal;
     return true;
   }

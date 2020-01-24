@@ -3,7 +3,6 @@
 #ifndef ABEL_FLAGS_INTERNAL_PATH_UTIL_H_
 #define ABEL_FLAGS_INTERNAL_PATH_UTIL_H_
 
-#include <abel/strings/match.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {

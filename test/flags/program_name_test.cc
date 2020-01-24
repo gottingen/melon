@@ -1,9 +1,8 @@
 //
 
 #include <abel/flags/internal/program_name.h>
-
+#include <abel/strings/ends_with.h>
 #include <gtest/gtest.h>
-#include <abel/strings/match.h>
 
 namespace {
 

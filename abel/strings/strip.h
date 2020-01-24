@@ -13,7 +13,8 @@
 
 #include <abel/base/profile.h>
 #include <abel/strings/ascii.h>
-#include <abel/strings/match.h>
+#include <abel/strings/ends_with.h>
+#include <abel/strings/starts_with.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
