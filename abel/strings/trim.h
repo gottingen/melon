@@ -22,52 +22,32 @@ std::string &trim_right (std::string *str);
 
 /*!
  * Trims the given string in-place only on the right. Removes all characters in
- * the given drop array, which defaults to " \r\n\t".
+ * the given drop array.
  *
  * \param str   string to process
  * \param drop  remove these characters
  * \return      reference to the modified string
  */
-std::string &trim_right (std::string *str, const char *drop);
-
-/*!
- * Trims the given string in-place only on the right. Removes all characters in
- * the given drop array, which defaults to " \r\n\t".
- *
- * \param str   string to process
- * \param drop  remove these characters
- * \return      reference to the modified string
- */
-std::string &trim_right (std::string *str, const std::string &drop);
-
+std::string &trim_right (std::string *str, abel::string_view drop);
 
 /*!
  * Trims the given string only on the right. Removes all characters in the
- * given drop array, which defaults to " \r\n\t". Returns a copy of the string.
+ * given drop array. Returns a copy of the string.
  *
  * \param str   string to process
  * \param drop  remove these characters
  * \return      new trimmed string
  */
-std::string trim_right (const std::string &str, const char *drop);
-
-/*!
- * Trims the given string only on the right. Removes all characters in the
- * given drop array, which defaults to " \r\n\t". Returns a copy of the string.
- *
- * \param str   string to process
- * \param drop  remove these characters
- * \return      new trimmed string
- */
-std::string trim_right (const std::string &str, const std::string &drop);
+abel::string_view trim_right (abel::string_view str, abel::string_view drop);
 
 /**
  * @brief
  * @param str
  * @return
  */
-ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view trim_right (
-    abel::string_view str) {
+
+
+ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view trim_right (abel::string_view str) {
     auto it = std::find_if_not(str.rbegin(), str.rend(), abel::ascii::is_space);
     return str.substr(0, str.rend() - it);
 }
@@ -76,7 +56,7 @@ ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view trim_right (
 
 /*!
  * Trims the given string in-place only on the left. Removes all characters in
- * the given drop array, which defaults to " \r\n\t".
+ * the given drop array.
  *
  * \param str   string to process
  * \return      reference to the modified string
@@ -85,43 +65,23 @@ std::string &trim_left (std::string *str);
 
 /*!
  * Trims the given string in-place only on the left. Removes all characters in
- * the given drop array, which defaults to " \r\n\t".
+ * the given drop array.
  *
  * \param str   string to process
  * \param drop  remove these characters
  * \return      reference to the modified string
  */
-std::string &trim_left (std::string *str, const char *drop);
-
-/*!
- * Trims the given string in-place only on the left. Removes all characters in
- * the given drop array, which defaults to " \r\n\t".
- *
- * \param str   string to process
- * \param drop  remove these characters
- * \return      reference to the modified string
- */
-std::string &trim_left (std::string *str, const std::string &drop);
+std::string &trim_left (std::string *str, abel::string_view drop);
 
 /*!
  * Trims the given string only on the left. Removes all characters in the given
- * drop array, which defaults to " \r\n\t". Returns a copy of the string.
+ * drop array. Returns a copy of the string.
  *
  * \param str   string to process
  * \param drop  remove these characters
  * \return      new trimmed string
  */
-std::string trim_left (const std::string &str, const char *drop);
-
-/*!
- * Trims the given string only on the left. Removes all characters in the given
- * drop array, which defaults to " \r\n\t". Returns a copy of the string.
- *
- * \param str   string to process
- * \param drop  remove these characters
- * \return      new trimmed string
- */
-std::string trim_left (const std::string &str, const std::string &drop);
+abel::string_view trim_left (abel::string_view str, abel::string_view drop);
 
 /**
  * @brief
@@ -151,17 +111,7 @@ std::string &trim_all (std::string *str);
  * \param drop  remove these characters
  * \return      reference to the modified string
  */
-std::string &trim_all (std::string *str, const char *drop);
-
-/*!
- * Trims the given string in-place on the left and right. Removes all
- * characters in the given drop array, which defaults to " \r\n\t".
- *
- * \param str   string to process
- * \param drop  remove these characters
- * \return      reference to the modified string
- */
-std::string &trim_all (std::string *str, const std::string &drop);
+std::string &trim_all (std::string *str, abel::string_view drop);
 
 
 /*!
@@ -172,17 +122,7 @@ std::string &trim_all (std::string *str, const std::string &drop);
  * \param drop  remove these characters
  * \return      reference to the modified string
  */
-std::string trim_all (const std::string &str, const char *drop);
-
-/*!
- * Trims the given string in-place on the left and right. Removes all
- * characters in the given drop array, which defaults to " \r\n\t".
- *
- * \param str   string to process
- * \param drop  remove these characters
- * \return      reference to the modified string
- */
-std::string trim_all (const std::string &str, const std::string &drop);
+abel::string_view trim_all (abel::string_view str, abel::string_view drop);
 
 ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view trim_all (
     abel::string_view str) {

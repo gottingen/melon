@@ -5,3 +5,5 @@ details see submodule document
 
 * [ascii](/docs/en/strings/ascii.md) 
 
+* [trim](/docs/en/strings/trim.md)
+
