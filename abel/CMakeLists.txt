@@ -39,6 +39,8 @@ FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
 FILE(GLOB DIGEST_SRC "digest/*.cc")
 FILE(GLOB SYSTEM_SRC "system/*.cc")
 
+FILE(GLOB LOG_SRC "log/*.cc")
+
 SET(ABEL_SRC
         ${ALGO_SRC}
         ${BASE_SRC}
@@ -65,6 +67,7 @@ SET(ABEL_SRC
         ${THREADING_SRC}
         ${THREADING_INTERNAL_SRC}
         ${MEMORY_INTERNAL_SRC}
+        ${LOG_SRC}
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})

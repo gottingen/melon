@@ -27,7 +27,7 @@ bool address_is_readable(const void* /* addr */) { return true; }
 #include <cerrno>
 #include <cstdint>
 
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 
 namespace abel {
 

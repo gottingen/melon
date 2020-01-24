@@ -11,7 +11,7 @@
 #include <cstdio>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/debugging/symbolize.h>

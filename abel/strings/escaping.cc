@@ -11,7 +11,7 @@
 #include <string>
 
 #include <abel/system/endian.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/base/internal/unaligned_access.h>
 #include <abel/strings/internal/char_map.h>
 #include <abel/strings/internal/utf8.h>

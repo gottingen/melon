@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/random/internal/nanobenchmark.h>
 #include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_engine.h>

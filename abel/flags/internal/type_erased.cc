@@ -3,7 +3,7 @@
 
 #include <abel/flags/internal/type_erased.h>
 
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/flags/config.h>
 #include <abel/flags/usage_config.h>
 #include <abel/strings/str_cat.h>

@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <testing/exception_testing.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <testing/test_instance_tracker.h>
 
 namespace {

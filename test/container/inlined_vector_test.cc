@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <testing/exception_testing.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/container/internal/counting_allocator.h>
 #include <testing/test_instance_tracker.h>
 #include <testing/hash_testing.h>

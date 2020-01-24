@@ -31,7 +31,7 @@
 #include <new>
 #include <type_traits>
 
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/threading/internal/thread_identity.h>
 #include <abel/base/profile.h>
 #include <abel/synchronization/internal/kernel_timeout.h>

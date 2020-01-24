@@ -10,7 +10,7 @@
 #include <string.h>
 #include <cassert>
 #include <cstddef>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 
 // From binutils/include/elf/common.h (this doesn't appear to be documented
 // anywhere else).

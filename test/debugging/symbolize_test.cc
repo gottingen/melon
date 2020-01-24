@@ -16,7 +16,7 @@
 #include <abel/base/profile.h>
 #include <abel/base/casts.h>
 #include <abel/threading/internal/per_thread_tls.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/debugging/internal/stack_consumption.h>
 #include <abel/memory/memory.h>
 

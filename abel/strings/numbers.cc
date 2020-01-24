@@ -19,7 +19,7 @@
 #include <utility>
 
 #include <abel/base/math.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/strings/ascii.h>
 #include <abel/strings/char_conv.h>
 #include <abel/strings/escaping.h>

@@ -4,6 +4,7 @@
 
 #ifndef ABEL_DIGEST_MD5_H_
 #define ABEL_DIGEST_MD5_H_
+
 #include <cstdint>
 #include <string>
 

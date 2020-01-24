@@ -38,7 +38,7 @@
 #include <new>                   // for placement-new
 
 #include <abel/threading/dynamic_annotations.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/threading/internal/spinlock.h>
 
 // MAP_ANONYMOUS

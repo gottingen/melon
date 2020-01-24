@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_BASE_INTERNAL_LOG_SEVERITY_H_
-#define ABEL_BASE_INTERNAL_LOG_SEVERITY_H_
+#ifndef ABEL_LOG_LOG_SEVERITY_H_
+#define ABEL_LOG_LOG_SEVERITY_H_
 
 #include <array>
 #include <ostream>
@@ -104,4 +104,4 @@ std::ostream &operator << (std::ostream &os, abel::LogSeverity s);
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_INTERNAL_LOG_SEVERITY_H_
+#endif  // ABEL_LOG_LOG_SEVERITY_H_

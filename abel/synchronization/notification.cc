@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include <abel/base/profile.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/synchronization/mutex.h>
 #include <abel/time/time.h>
 

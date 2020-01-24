@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/time/cycleclock.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/container/internal/container_memory.h>
 #include <abel/container/internal/hash_function_defaults.h>
 #include <test/container/hash_policy_testing.h>

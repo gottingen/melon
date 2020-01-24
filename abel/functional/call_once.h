@@ -19,7 +19,7 @@
 
 #include <abel/functional/internal/invoke.h>
 #include <abel/threading/internal/low_level_scheduling.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/threading/internal/scheduling_mode.h>
 #include <abel/threading/internal/spinlock_wait.h>
 #include <abel/base/profile.h>

@@ -31,7 +31,7 @@
 #include <abel/time/cycleclock.h>
 #include <abel/memory/hide_ptr.h>
 #include <abel/memory/internal/low_level_alloc.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/threading/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
 #include <abel/threading/internal/thread_identity.h>

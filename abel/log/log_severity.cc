@@ -1,6 +1,6 @@
 //
 
-#include <abel/base/log_severity.h>
+#include <abel/log/log_severity.h>
 
 #include <ostream>
 

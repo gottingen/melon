@@ -4,7 +4,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/base/internal/raw_logging.h>
+#include <abel/log/raw_logging.h>
 #include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_detect.h>
 #include <abel/random/internal/randen_traits.h>
