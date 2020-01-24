@@ -1,17 +1,15 @@
 //
 
 #include <abel/flags/internal/commandlineflag.h>
-
 #include <algorithm>
 #include <string>
-
 #include <gtest/gtest.h>
 #include <abel/flags/flag.h>
 #include <abel/flags/internal/registry.h>
 #include <abel/flags/usage_config.h>
 #include <abel/memory/memory.h>
-#include <abel/strings/match.h>
 #include <abel/strings/str_cat.h>
+#include <abel/strings/ends_with.h>
 
 ABEL_FLAG(int, int_flag, 201, "int_flag help");
 ABEL_FLAG(std::string, string_flag, "dflt",

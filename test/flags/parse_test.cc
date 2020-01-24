@@ -10,7 +10,6 @@
 #include <abel/base/internal/raw_logging.h>
 #include <abel/system/scoped_set_env.h>
 #include <abel/flags/flag.h>
-#include <abel/strings/match.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/substitute.h>
 #include <abel/types/span.h>

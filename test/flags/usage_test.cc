@@ -12,7 +12,8 @@
 #include <abel/flags/usage.h>
 #include <abel/flags/usage_config.h>
 #include <abel/memory/memory.h>
-#include <abel/strings/match.h>
+#include <abel/strings/starts_with.h>
+#include <abel/strings/contain.h>
 
 ABEL_FLAG(int, usage_reporting_test_flag_01, 101,
           "usage_reporting_test_flag_01 help message");

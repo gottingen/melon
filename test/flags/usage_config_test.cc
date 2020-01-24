@@ -5,7 +5,8 @@
 #include <gtest/gtest.h>
 #include <abel/flags/internal/path_util.h>
 #include <abel/flags/internal/program_name.h>
-#include <abel/strings/match.h>
+#include <abel/strings/starts_with.h>
+#include <abel/strings/ends_with.h>
 
 namespace {
 

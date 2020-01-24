@@ -24,10 +24,9 @@
 #include <abel/strings/charconv.h>
 #include <abel/strings/escaping.h>
 #include <abel/strings/internal/memutil.h>
-#include <abel/strings/match.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/trim.h>
-
+#include <abel/strings/compare.h>
 namespace abel {
 
 
@@ -85,15 +84,15 @@ bool simple_atod(abel::string_view str, double* out) {
 
 bool simple_atob(abel::string_view str, bool* out) {
   ABEL_RAW_CHECK(out != nullptr, "Output pointer must not be nullptr.");
-  if (EqualsIgnoreCase(str, "true") || EqualsIgnoreCase(str, "t") ||
-      EqualsIgnoreCase(str, "yes") || EqualsIgnoreCase(str, "y") ||
-      EqualsIgnoreCase(str, "1")) {
+  if (equal_case(str, "true") || equal_case(str, "t") ||
+      equal_case(str, "yes") || equal_case(str, "y") ||
+      equal_case(str, "1")) {
     *out = true;
     return true;
   }
-  if (EqualsIgnoreCase(str, "false") || EqualsIgnoreCase(str, "f") ||
-      EqualsIgnoreCase(str, "no") || EqualsIgnoreCase(str, "n") ||
-      EqualsIgnoreCase(str, "0")) {
+  if (equal_case(str, "false") || equal_case(str, "f") ||
+      equal_case(str, "no") || equal_case(str, "n") ||
+      equal_case(str, "0")) {
     *out = false;
     return true;
   }

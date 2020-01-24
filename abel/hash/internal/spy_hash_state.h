@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <abel/hash/hash.h>
-#include <abel/strings/match.h>
+#include <abel/strings/ends_with.h>
 #include <abel/strings/str_format.h>
 #include <abel/strings/str_join.h>
 
