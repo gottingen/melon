@@ -2,8 +2,8 @@
 #define ABEL_STRINGS_INTERNAL_STR_FORMAT_CHECKER_H_
 
 #include <abel/base/profile.h>
-#include <abel/strings/internal/str_format/arg.h>
-#include <abel/strings/internal/str_format/extension.h>
+#include <abel/strings/format/arg.h>
+#include <abel/strings/format/extension.h>
 
 // Compile time check support for entry points.
 
@@ -15,7 +15,7 @@
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 
 constexpr bool AllOf() { return true; }
 
@@ -26,7 +26,7 @@ constexpr bool AllOf(bool b, T... t) {
 
 template <typename Arg>
 constexpr Conv ArgumentToConv() {
-  return decltype(str_format_internal::FormatConvertImpl(
+  return decltype(format_internal::FormatConvertImpl(
       std::declval<const Arg&>(), std::declval<const ConversionSpec&>(),
       std::declval<FormatSinkImpl*>()))::kConv;
 }
@@ -319,7 +319,7 @@ constexpr bool ValidFormatImpl(string_view format) {
 
 #endif  // ABEL_INTERNAL_ENABLE_FORMAT_CHECKER
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel
 

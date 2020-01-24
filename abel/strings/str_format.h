@@ -62,14 +62,13 @@
 #include <cstdio>
 #include <string>
 
-#include <abel/strings/internal/str_format/arg.h>  // IWYU pragma: export
-#include <abel/strings/internal/str_format/bind.h>  // IWYU pragma: export
-#include <abel/strings/internal/str_format/checker.h>  // IWYU pragma: export
-#include <abel/strings/internal/str_format/extension.h>  // IWYU pragma: export
-#include <abel/strings/internal/str_format/parser.h>  // IWYU pragma: export
+#include <abel/strings/format/arg.h>  // IWYU pragma: export
+#include <abel/strings/format/bind.h>  // IWYU pragma: export
+#include <abel/strings/format/checker.h>  // IWYU pragma: export
+#include <abel/strings/format/extension.h>  // IWYU pragma: export
+#include <abel/strings/format/parser.h>  // IWYU pragma: export
 
 namespace abel {
-
 
 // untyped_format_spec
 //
@@ -83,20 +82,20 @@ namespace abel {
 //   std::string out;
 //   CHECK(abel::FormatUntyped(&out, format, {abel::format_arg(1)}));
 class untyped_format_spec {
- public:
-  untyped_format_spec() = delete;
-  untyped_format_spec(const untyped_format_spec&) = delete;
-  untyped_format_spec& operator=(const untyped_format_spec&) = delete;
+public:
+    untyped_format_spec () = delete;
+    untyped_format_spec (const untyped_format_spec &) = delete;
+    untyped_format_spec &operator = (const untyped_format_spec &) = delete;
 
-  explicit untyped_format_spec(string_view s) : spec_(s) {}
+    explicit untyped_format_spec (string_view s) : spec_(s) { }
 
- protected:
-  explicit untyped_format_spec(const str_format_internal::ParsedFormatBase* pc)
-      : spec_(pc) {}
+protected:
+    explicit untyped_format_spec (const format_internal::ParsedFormatBase *pc)
+        : spec_(pc) { }
 
- private:
-  friend str_format_internal::UntypedFormatSpecImpl;
-  str_format_internal::UntypedFormatSpecImpl spec_;
+private:
+    friend format_internal::UntypedFormatSpecImpl;
+    format_internal::UntypedFormatSpecImpl spec_;
 };
 
 // FormatStreamed()
@@ -108,9 +107,9 @@ class untyped_format_spec {
 // Example:
 //
 //   abel::string_format("%s", abel::FormatStreamed(obj));
-template <typename T>
-str_format_internal::StreamedWrapper<T> FormatStreamed(const T& v) {
-  return str_format_internal::StreamedWrapper<T>(v);
+template<typename T>
+format_internal::StreamedWrapper<T> FormatStreamed (const T &v) {
+    return format_internal::StreamedWrapper<T>(v);
 }
 
 // format_count_capture
@@ -130,18 +129,18 @@ str_format_internal::StreamedWrapper<T> FormatStreamed(const T& v) {
 //                       abel::format_count_capture(&n));
 //   EXPECT_EQ(8, n);
 class format_count_capture {
- public:
-  explicit format_count_capture(int* p) : p_(p) {}
+public:
+    explicit format_count_capture (int *p) : p_(p) { }
 
- private:
-  // FormatCountCaptureHelper is used to define FormatConvertImpl() for this
-  // class.
-  friend struct str_format_internal::FormatCountCaptureHelper;
-  // Unused() is here because of the false positive from -Wunused-private-field
-  // p_ is used in the templated function of the friend FormatCountCaptureHelper
-  // class.
-  int* Unused() { return p_; }
-  int* p_;
+private:
+    // FormatCountCaptureHelper is used to define FormatConvertImpl() for this
+    // class.
+    friend struct format_internal::FormatCountCaptureHelper;
+    // Unused() is here because of the false positive from -Wunused-private-field
+    // p_ is used in the templated function of the friend FormatCountCaptureHelper
+    // class.
+    int *Unused () { return p_; }
+    int *p_;
 };
 
 // format_spec
@@ -241,9 +240,9 @@ class format_count_capture {
 // `const char*` are all accepted. Likewise, `%d` accepts any integer-like
 // argument, etc.
 
-template <typename... Args>
+template<typename... Args>
 using format_spec =
-    typename str_format_internal::FormatSpecDeductionBarrier<Args...>::type;
+typename format_internal::FormatSpecDeductionBarrier<Args...>::type;
 
 // parsed_format
 //
@@ -270,9 +269,9 @@ using format_spec =
 //   } else {
 //     ... error case ...
 //   }
-template <char... Conv>
-using parsed_format = str_format_internal::ExtendedParsedFormat<
-    str_format_internal::ConversionCharToConv(Conv)...>;
+template<char... Conv>
+using parsed_format = format_internal::ExtendedParsedFormat<
+    format_internal::ConversionCharToConv(Conv)...>;
 
 // string_format()
 //
@@ -296,12 +295,12 @@ using parsed_format = str_format_internal::ExtendedParsedFormat<
 //   EXPECT_EQ("Welcome to The Village, Number 6!", s);
 //
 // Returns an empty string in case of error.
-template <typename... Args>
-ABEL_MUST_USE_RESULT std::string string_format(const format_spec<Args...>& format,
-                                           const Args&... args) {
-  return str_format_internal::FormatPack(
-      str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+ABEL_MUST_USE_RESULT std::string string_format (const format_spec<Args...> &format,
+                                                const Args &... args) {
+    return format_internal::FormatPack(
+        format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // string_append_format()
@@ -314,13 +313,13 @@ ABEL_MUST_USE_RESULT std::string string_format(const format_spec<Args...>& forma
 //
 //   std::string orig("For example PI is approximately ");
 //   std::cout << string_append_format(&orig, "%12.6f", 3.14);
-template <typename... Args>
-std::string& string_append_format(std::string* dst,
-                             const format_spec<Args...>& format,
-                             const Args&... args) {
-  return str_format_internal::AppendPack(
-      dst, str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+std::string &string_append_format (std::string *dst,
+                                   const format_spec<Args...> &format,
+                                   const Args &... args) {
+    return format_internal::AppendPack(
+        dst, format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // stream_format()
@@ -333,12 +332,12 @@ std::string& string_append_format(std::string* dst,
 // Example:
 //
 //   std::cout << stream_format("%12.6f", 3.14);
-template <typename... Args>
-ABEL_MUST_USE_RESULT str_format_internal::Streamable stream_format(
-    const format_spec<Args...>& format, const Args&... args) {
-  return str_format_internal::Streamable(
-      str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+ABEL_MUST_USE_RESULT format_internal::Streamable stream_format (
+    const format_spec<Args...> &format, const Args &... args) {
+    return format_internal::Streamable(
+        format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // string_printf()
@@ -354,11 +353,11 @@ ABEL_MUST_USE_RESULT str_format_internal::Streamable stream_format(
 //
 //   Outputs: "The capital of Mongolia is Ulaanbaatar"
 //
-template <typename... Args>
-int string_printf(const format_spec<Args...>& format, const Args&... args) {
-  return str_format_internal::FprintF(
-      stdout, str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+int string_printf (const format_spec<Args...> &format, const Args &... args) {
+    return format_internal::FprintF(
+        stdout, format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // string_fprintf()
@@ -374,12 +373,12 @@ int string_printf(const format_spec<Args...>& format, const Args&... args) {
 //
 //   Outputs: "The capital of Mongolia is Ulaanbaatar"
 //
-template <typename... Args>
-int string_fprintf(std::FILE* output, const format_spec<Args...>& format,
-            const Args&... args) {
-  return str_format_internal::FprintF(
-      output, str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+int string_fprintf (std::FILE *output, const format_spec<Args...> &format,
+                    const Args &... args) {
+    return format_internal::FprintF(
+        output, format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // snprintf()
@@ -403,12 +402,12 @@ int string_fprintf(std::FILE* output, const format_spec<Args...>& format,
 //
 //   Post-condition: output == "The capital of Mongolia is Ulaanbaatar"
 //
-template <typename... Args>
-int string_snprintf(char* output, std::size_t size, const format_spec<Args...>& format,
-             const Args&... args) {
-  return str_format_internal::SnprintF(
-      output, size, str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+int string_snprintf (char *output, std::size_t size, const format_spec<Args...> &format,
+                     const Args &... args) {
+    return format_internal::SnprintF(
+        output, size, format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // -----------------------------------------------------------------------------
@@ -422,18 +421,18 @@ int string_snprintf(char* output, std::size_t size, const format_spec<Args...>& 
 // format_raw_sink does not own the passed sink object. The passed object must
 // outlive the format_raw_sink.
 class format_raw_sink {
- public:
-  // Implicitly convert from any type that provides the hook function as
-  // described above.
-  template <typename T,
-            typename = typename std::enable_if<std::is_constructible<
-                str_format_internal::FormatRawSinkImpl, T*>::value>::type>
-  format_raw_sink(T* raw)  // NOLINT
-      : sink_(raw) {}
+public:
+    // Implicitly convert from any type that provides the hook function as
+    // described above.
+    template<typename T,
+        typename = typename std::enable_if<std::is_constructible<
+            format_internal::FormatRawSinkImpl, T *>::value>::type>
+    format_raw_sink (T *raw)  // NOLINT
+        : sink_(raw) { }
 
- private:
-  friend str_format_internal::FormatRawSinkImpl;
-  str_format_internal::FormatRawSinkImpl sink_;
+private:
+    friend format_internal::FormatRawSinkImpl;
+    format_internal::FormatRawSinkImpl sink_;
 };
 
 // format()
@@ -451,13 +450,13 @@ class format_raw_sink {
 //
 // On failure, this function returns `false` and the state of the sink is
 // unspecified.
-template <typename... Args>
-bool format(format_raw_sink raw_sink, const format_spec<Args...>& format,
-            const Args&... args) {
-  return str_format_internal::FormatUntyped(
-      str_format_internal::FormatRawSinkImpl::Extract(raw_sink),
-      str_format_internal::UntypedFormatSpecImpl::Extract(format),
-      {str_format_internal::FormatArgImpl(args)...});
+template<typename... Args>
+bool format (format_raw_sink raw_sink, const format_spec<Args...> &format,
+             const Args &... args) {
+    return format_internal::FormatUntyped(
+        format_internal::FormatRawSinkImpl::Extract(raw_sink),
+        format_internal::UntypedFormatSpecImpl::Extract(format),
+        {format_internal::FormatArgImpl(args)...});
 }
 
 // format_arg
@@ -468,7 +467,7 @@ bool format(format_raw_sink raw_sink, const format_spec<Args...>& format,
 // assignable. The source data must outlive the `format_arg` instance. See
 // example below.
 //
-using format_arg = str_format_internal::FormatArgImpl;
+using format_arg = format_internal::FormatArgImpl;
 
 // FormatUntyped()
 //
@@ -510,14 +509,13 @@ using format_arg = str_format_internal::FormatArgImpl;
 //     return std::move(out);
 //   }
 //
-ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool FormatUntyped(
-    format_raw_sink raw_sink, const untyped_format_spec& format,
+ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool FormatUntyped (
+    format_raw_sink raw_sink, const untyped_format_spec &format,
     abel::Span<const format_arg> args) {
-  return str_format_internal::FormatUntyped(
-      str_format_internal::FormatRawSinkImpl::Extract(raw_sink),
-      str_format_internal::UntypedFormatSpecImpl::Extract(format), args);
+    return format_internal::FormatUntyped(
+        format_internal::FormatRawSinkImpl::Extract(raw_sink),
+        format_internal::UntypedFormatSpecImpl::Extract(format), args);
 }
-
 
 }  // namespace abel
 

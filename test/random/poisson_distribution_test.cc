@@ -16,8 +16,8 @@
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/profile.h>
 #include <abel/container/flat_hash_map.h>
-#include <abel/random/internal/chi_square.h>
-#include <abel/random/internal/distribution_test_util.h>
+#include <test/testing/chi_square.h>
+#include <test/testing/distribution_test_util.h>
 #include <abel/random/internal/sequence_urbg.h>
 #include <abel/random/random.h>
 #include <abel/strings/str_cat.h>

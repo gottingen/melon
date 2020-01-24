@@ -1,7 +1,7 @@
 //
 //
-#ifndef ABEL_STRINGS_INTERNAL_STR_FORMAT_EXTENSION_H_
-#define ABEL_STRINGS_INTERNAL_STR_FORMAT_EXTENSION_H_
+#ifndef ABEL_STRINGS_FORMAT_EXTENSION_H_
+#define ABEL_STRINGS_FORMAT_EXTENSION_H_
 
 #include <limits.h>
 #include <cstddef>
@@ -9,7 +9,7 @@
 #include <ostream>
 
 #include <abel/base/profile.h>
-#include <abel/strings/internal/str_format/output.h>
+#include <abel/strings/format/output.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
@@ -17,13 +17,13 @@ namespace abel {
 
 class Cord;
 
-namespace str_format_internal {
+namespace format_internal {
 
 class FormatRawSinkImpl {
  public:
   // Implicitly convert from any type that provides the hook function as
   // described above.
-  template <typename T, decltype(str_format_internal::InvokeFlush(
+  template <typename T, decltype(format_internal::InvokeFlush(
                             std::declval<T*>(), string_view()))* = nullptr>
   FormatRawSinkImpl(T* raw)  // NOLINT
       : sink_(raw), write_(&FormatRawSinkImpl::Flush<T>) {}
@@ -38,7 +38,7 @@ class FormatRawSinkImpl {
  private:
   template <typename T>
   static void Flush(void* r, string_view s) {
-    str_format_internal::InvokeFlush(static_cast<T*>(r), s);
+    format_internal::InvokeFlush(static_cast<T*>(r), s);
   }
 
   void* sink_;
@@ -392,7 +392,7 @@ ABEL_FORCE_INLINE size_t Excess(size_t used, size_t capacity) {
   return used < capacity ? capacity - used : 0;
 }
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 
 }  // namespace abel

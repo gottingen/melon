@@ -1,9 +1,8 @@
-#ifndef ABEL_STRINGS_INTERNAL_STR_FORMAT_ARG_H_
-#define ABEL_STRINGS_INTERNAL_STR_FORMAT_ARG_H_
+#ifndef ABEL_STRINGS_FORMAT_ARG_H_
+#define ABEL_STRINGS_FORMAT_ARG_H_
 
-#include <string.h>
-#include <wchar.h>
-
+#include <cstring>
+#include <cwchar>
 #include <cstdio>
 #include <iomanip>
 #include <limits>
@@ -15,7 +14,7 @@
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/numeric/int128.h>
-#include <abel/strings/internal/str_format/extension.h>
+#include <abel/strings/format/extension.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
@@ -25,7 +24,7 @@ class Cord;
 class format_count_capture;
 class FormatSink;
 
-namespace str_format_internal {
+namespace format_internal {
 
 template <typename T, typename = void>
 struct HasUserDefinedConvert : std::false_type {};
@@ -173,7 +172,7 @@ ConvertResult<Conv::s> FormatConvertImpl(const StreamedWrapper<T>& v,
   std::ostringstream oss;
   oss << v.v_;
   if (!oss) return {false};
-  return str_format_internal::FormatConvertImpl(oss.str(), conv, out);
+  return format_internal::FormatConvertImpl(oss.str(), conv, out);
 }
 
 // Use templates and dependent types to delay evaluation of the function
@@ -185,7 +184,7 @@ struct FormatCountCaptureHelper {
                                               FormatSinkImpl* sink) {
     const abel::enable_if_t<sizeof(T) != 0, format_count_capture>& v2 = v;
 
-    if (conv.conv().id() != str_format_internal::ConversionChar::n)
+    if (conv.conv().id() != format_internal::ConversionChar::n)
       return {false};
     *v2.p_ = static_cast<int>(sink->size());
     return {true};
@@ -210,7 +209,7 @@ struct FormatArgImplFriend {
   }
 
   template <typename Arg>
-  static bool Convert(Arg arg, str_format_internal::ConversionSpec conv,
+  static bool Convert(Arg arg, format_internal::ConversionSpec conv,
                       FormatSinkImpl* out) {
     return arg.dispatcher_(arg.data_, conv, out);
   }
@@ -226,7 +225,7 @@ class FormatArgImpl {
  private:
   enum { kInlinedSpace = 8 };
 
-  using VoidPtr = str_format_internal::VoidPtr;
+  using VoidPtr = format_internal::VoidPtr;
 
   union Data {
     const void* ptr;
@@ -264,7 +263,7 @@ class FormatArgImpl {
   template <typename T, typename = void>
   struct DecayType {
     static constexpr bool kHasUserDefined =
-        str_format_internal::HasUserDefinedConvert<T>::value;
+        format_internal::HasUserDefinedConvert<T>::value;
     using type = typename std::conditional<
         !kHasUserDefined && std::is_convertible<T, const char*>::value,
         const char*,
@@ -275,7 +274,7 @@ class FormatArgImpl {
   template <typename T>
   struct DecayType<T,
                    typename std::enable_if<
-                       !str_format_internal::HasUserDefinedConvert<T>::value &&
+                       !format_internal::HasUserDefinedConvert<T>::value &&
                        std::is_enum<T>::value>::type> {
     using type = typename std::underlying_type<T>::type;
   };
@@ -291,7 +290,7 @@ class FormatArgImpl {
   }
 
  private:
-  friend struct str_format_internal::FormatArgImplFriend;
+  friend struct format_internal::FormatArgImplFriend;
   template <typename T, StoragePolicy = storage_policy<T>::value>
   struct Manager;
 
@@ -383,7 +382,7 @@ class FormatArgImpl {
                       std::is_enum<T>());
     }
 
-    return str_format_internal::FormatConvertImpl(
+    return format_internal::FormatConvertImpl(
                Manager<T>::Value(arg), spec, static_cast<FormatSinkImpl*>(out))
         .value;
   }
@@ -396,7 +395,7 @@ class FormatArgImpl {
   E template bool FormatArgImpl::Dispatch<T>(Data, ConversionSpec, void*)
 
 #define ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(...)                   \
-  ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(str_format_internal::VoidPtr,     \
+  ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(format_internal::VoidPtr,     \
                                              __VA_ARGS__);                     \
   ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(bool, __VA_ARGS__);               \
   ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(char, __VA_ARGS__);               \
@@ -426,8 +425,8 @@ class FormatArgImpl {
 ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(extern);
 
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_ARG_H_
+#endif  // ABEL_STRINGS_FORMAT_ARG_H_

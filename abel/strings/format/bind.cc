@@ -1,4 +1,4 @@
-#include <abel/strings/internal/str_format/bind.h>
+#include <abel/strings/format/bind.h>
 
 #include <cerrno>
 #include <limits>
@@ -7,7 +7,7 @@
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 
 namespace {
 
@@ -236,6 +236,6 @@ int SnprintF(char* output, size_t size, const UntypedFormatSpecImpl format,
   return static_cast<int>(total);
 }
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 }  // namespace abel

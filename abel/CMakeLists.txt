@@ -22,7 +22,7 @@ FILE(GLOB RANDOM_INTERNAL_SRC "random/internal/*.cc")
 
 FILE(GLOB STRINGS_SRC "strings/*.cc")
 FILE(GLOB STRINGS_INTERNAL_SRC "strings/internal/*.cc")
-FILE(GLOB STRINGS_INTERNAL_STR_FORMAT_SRC "strings/internal/str_format/*.cc")
+FILE(GLOB STRINGS_FORMAT_SRC "strings/format/*.cc")
 
 FILE(GLOB TYPES_SRC "types/*.cc")
 
@@ -54,7 +54,7 @@ SET(ABEL_SRC
         ${RANDOM_INTERNAL_SRC}
         ${STRINGS_SRC}
         ${STRINGS_INTERNAL_SRC}
-        ${STRINGS_INTERNAL_STR_FORMAT_SRC}
+        ${STRINGS_FORMAT_SRC}
         ${TYPES_SRC}
         ${SYNC_SRC}
         ${SYNC_INTERNAL_SRC}

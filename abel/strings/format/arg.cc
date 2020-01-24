@@ -2,7 +2,7 @@
 // POSIX spec:
 //   http://pubs.opengroup.org/onlinepubs/009695399/functions/fprintf.html
 //
-#include <abel/strings/internal/str_format/arg.h>
+#include <abel/strings/format/arg.h>
 
 #include <cassert>
 #include <cerrno>
@@ -11,11 +11,11 @@
 #include <type_traits>
 
 #include <abel/base/profile.h>
-#include <abel/strings/internal/str_format/float_conversion.h>
+#include <abel/strings/format/float_conversion.h>
 
 namespace abel {
 
-namespace str_format_internal {
+namespace format_internal {
 namespace {
 
 const char kDigit[2][32] = { "0123456789abcdef", "0123456789ABCDEF" };
@@ -385,7 +385,7 @@ ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_();
 
 
 
-}  // namespace str_format_internal
+}  // namespace format_internal
 
 
 }  // namespace abel
