@@ -7,9 +7,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-
+#include <abel/meta/uninitialized.h>
 #include <abel/strings/ascii.h>
-#include <abel/strings/internal/resize_uninitialized.h>
 #include <abel/strings/numbers.h>
 
 namespace abel {
@@ -85,7 +84,7 @@ static char* Append(char* out, const alpha_num& x) {
 
 std::string string_cat(const alpha_num& a, const alpha_num& b) {
   std::string result;
-  abel::strings_internal::STLStringResizeUninitialized(&result,
+  abel::string_resize_uninitialized(&result,
                                                        a.size() + b.size());
   char* const begin = &result[0];
   char* out = begin;
@@ -97,7 +96,7 @@ std::string string_cat(const alpha_num& a, const alpha_num& b) {
 
 std::string string_cat(const alpha_num& a, const alpha_num& b, const alpha_num& c) {
   std::string result;
-  strings_internal::STLStringResizeUninitialized(
+    string_resize_uninitialized(
       &result, a.size() + b.size() + c.size());
   char* const begin = &result[0];
   char* out = begin;
@@ -111,7 +110,7 @@ std::string string_cat(const alpha_num& a, const alpha_num& b, const alpha_num& 
 std::string string_cat(const alpha_num& a, const alpha_num& b, const alpha_num& c,
                    const alpha_num& d) {
   std::string result;
-  strings_internal::STLStringResizeUninitialized(
+    string_resize_uninitialized(
       &result, a.size() + b.size() + c.size() + d.size());
   char* const begin = &result[0];
   char* out = begin;
@@ -130,7 +129,7 @@ std::string CatPieces(std::initializer_list<abel::string_view> pieces) {
   std::string result;
   size_t total_size = 0;
   for (const abel::string_view piece : pieces) total_size += piece.size();
-  strings_internal::STLStringResizeUninitialized(&result, total_size);
+    string_resize_uninitialized(&result, total_size);
 
   char* const begin = &result[0];
   char* out = begin;
@@ -162,7 +161,7 @@ void append_pieces(std::string* dest,
     ASSERT_NO_OVERLAP(*dest, piece);
     total_size += piece.size();
   }
-  strings_internal::STLStringResizeUninitialized(dest, total_size);
+    string_resize_uninitialized(dest, total_size);
 
   char* const begin = &(*dest)[0];
   char* out = begin + old_size;
@@ -187,7 +186,7 @@ void string_append(std::string* dest, const alpha_num& a, const alpha_num& b) {
   ASSERT_NO_OVERLAP(*dest, a);
   ASSERT_NO_OVERLAP(*dest, b);
   std::string::size_type old_size = dest->size();
-  strings_internal::STLStringResizeUninitialized(
+  string_resize_uninitialized(
       dest, old_size + a.size() + b.size());
   char* const begin = &(*dest)[0];
   char* out = begin + old_size;
@@ -202,7 +201,7 @@ void string_append(std::string* dest, const alpha_num& a, const alpha_num& b,
   ASSERT_NO_OVERLAP(*dest, b);
   ASSERT_NO_OVERLAP(*dest, c);
   std::string::size_type old_size = dest->size();
-  strings_internal::STLStringResizeUninitialized(
+  string_resize_uninitialized(
       dest, old_size + a.size() + b.size() + c.size());
   char* const begin = &(*dest)[0];
   char* out = begin + old_size;
@@ -219,7 +218,7 @@ void string_append(std::string* dest, const alpha_num& a, const alpha_num& b,
   ASSERT_NO_OVERLAP(*dest, c);
   ASSERT_NO_OVERLAP(*dest, d);
   std::string::size_type old_size = dest->size();
-  strings_internal::STLStringResizeUninitialized(
+  string_resize_uninitialized(
       dest, old_size + a.size() + b.size() + c.size() + d.size());
   char* const begin = &(*dest)[0];
   char* out = begin + old_size;

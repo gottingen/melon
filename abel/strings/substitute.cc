@@ -7,7 +7,6 @@
 #include <abel/base/internal/raw_logging.h>
 #include <abel/strings/ascii.h>
 #include <abel/strings/escaping.h>
-#include <abel/strings/internal/resize_uninitialized.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
@@ -63,7 +62,7 @@ void SubstituteAndAppendArray(std::string* output, abel::string_view format,
 
   // Build the std::string.
   size_t original_size = output->size();
-  strings_internal::STLStringResizeUninitialized(output, original_size + size);
+    string_resize_uninitialized(output, original_size + size);
   char* target = &(*output)[original_size];
   for (size_t i = 0; i < format.size(); i++) {
     if (format[i] == '$') {

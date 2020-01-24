@@ -2,8 +2,8 @@
 // This file contains common things needed by numbers_test.cc,
 // numbers_legacy_test.cc and numbers_benchmark.cc.
 
-#ifndef ABEL_STRINGS_INTERNAL_NUMBERS_TEST_COMMON_H_
-#define ABEL_STRINGS_INTERNAL_NUMBERS_TEST_COMMON_H_
+#ifndef ABEL_TESTING_NUMBERS_TEST_COMMON_H_
+#define ABEL_TESTING_NUMBERS_TEST_COMMON_H_
 
 #include <array>
 #include <cstdint>
@@ -168,4 +168,4 @@ ABEL_FORCE_INLINE const std::array<uint64_test_case, 34>& strtouint64_test_cases
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_NUMBERS_TEST_COMMON_H_
+#endif  // ABEL_TESTING_NUMBERS_TEST_COMMON_H_

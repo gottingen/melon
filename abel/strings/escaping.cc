@@ -14,7 +14,6 @@
 #include <abel/base/internal/raw_logging.h>
 #include <abel/base/internal/unaligned_access.h>
 #include <abel/strings/internal/char_map.h>
-#include <abel/strings/internal/resize_uninitialized.h>
 #include <abel/strings/internal/utf8.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_join.h>
@@ -268,7 +267,7 @@ bool CUnescapeInternal(abel::string_view source, bool leave_nulls_escaped,
 // ----------------------------------------------------------------------
 bool CUnescapeInternal(abel::string_view source, bool leave_nulls_escaped,
                        std::string* dest, std::string* error) {
-  strings_internal::STLStringResizeUninitialized(dest, source.size());
+  string_resize_uninitialized(dest, source.size());
 
   ptrdiff_t dest_size;
   if (!CUnescapeInternal(source,
@@ -374,7 +373,7 @@ void CEscapeAndAppendInternal(abel::string_view src, std::string* dest) {
   }
 
   size_t cur_dest_len = dest->size();
-  strings_internal::STLStringResizeUninitialized(dest,
+  string_resize_uninitialized(dest,
                                                  cur_dest_len + escaped_len);
   char* append_ptr = &(*dest)[cur_dest_len];
 
@@ -914,7 +913,7 @@ void Base64EscapeInternal(const unsigned char* src, size_t szsrc, String* dest,
                           bool do_padding, const char* base64_chars) {
   const size_t calc_escaped_size =
       CalculateBase64EscapedLenInternal(szsrc, do_padding);
-  strings_internal::STLStringResizeUninitialized(dest, calc_escaped_size);
+  string_resize_uninitialized(dest, calc_escaped_size);
 
   const size_t escaped_len = Base64EscapeInternal(
       src, szsrc, &(*dest)[0], dest->size(), base64_chars, do_padding);
@@ -930,7 +929,7 @@ bool Base64UnescapeInternal(const char* src, size_t slen, String* dest,
   // This is documented in the base64 RFC: http://tools.ietf.org/html/rfc3548
   const size_t dest_len = 3 * (slen / 4) + (slen % 4);
 
-  strings_internal::STLStringResizeUninitialized(dest, dest_len);
+  string_resize_uninitialized(dest, dest_len);
 
   // We are getting the destination buffer by getting the beginning of the
   // std::string and converting it into a char *.
@@ -1082,14 +1081,14 @@ std::string web_safe_base64_escape(abel::string_view src) {
 std::string hex_string_to_bytes(abel::string_view from) {
   std::string result;
   const auto num = from.size() / 2;
-  strings_internal::STLStringResizeUninitialized(&result, num);
+  string_resize_uninitialized(&result, num);
   abel::HexStringToBytesInternal<std::string&>(from.data(), result, num);
   return result;
 }
 
 std::string bytes_to_hex_string(abel::string_view from) {
   std::string result;
-  strings_internal::STLStringResizeUninitialized(&result, 2 * from.size());
+  string_resize_uninitialized(&result, 2 * from.size());
   abel::BytesToHexStringInternal<std::string&>(
       reinterpret_cast<const unsigned char*>(from.data()), result, from.size());
   return result;

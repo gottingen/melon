@@ -1,7 +1,5 @@
-//
 
-#include <abel/strings/internal/resize_uninitialized.h>
-
+#include <abel/meta/uninitialized.h>
 #include <gtest/gtest.h>
 
 namespace {
@@ -28,10 +26,10 @@ TEST(ResizeUninit, WithAndWithout) {
     EXPECT_EQ(resize_call_count, 0);
     EXPECT_EQ(resize_default_init_call_count, 0);
     EXPECT_FALSE(
-        abel::strings_internal::STLStringSupportsNontrashingResize(&rs));
+        abel::string_supports_uninitialized_resize(&rs));
     EXPECT_EQ(resize_call_count, 0);
     EXPECT_EQ(resize_default_init_call_count, 0);
-    abel::strings_internal::STLStringResizeUninitialized(&rs, 237);
+    abel::string_resize_uninitialized(&rs, 237);
     EXPECT_EQ(resize_call_count, 1);
     EXPECT_EQ(resize_default_init_call_count, 0);
   }
@@ -44,10 +42,10 @@ TEST(ResizeUninit, WithAndWithout) {
     EXPECT_EQ(resize_call_count, 0);
     EXPECT_EQ(resize_default_init_call_count, 0);
     EXPECT_TRUE(
-        abel::strings_internal::STLStringSupportsNontrashingResize(&rus));
+        abel::string_supports_uninitialized_resize(&rus));
     EXPECT_EQ(resize_call_count, 0);
     EXPECT_EQ(resize_default_init_call_count, 0);
-    abel::strings_internal::STLStringResizeUninitialized(&rus, 237);
+    abel::string_resize_uninitialized(&rus, 237);
     EXPECT_EQ(resize_call_count, 0);
     EXPECT_EQ(resize_default_init_call_count, 1);
   }
