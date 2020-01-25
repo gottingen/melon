@@ -23,7 +23,7 @@ std::string MakeRandomString(size_t len) {
 TEST(FormatExtensionTest, SinkAppendSubstring) {
   for (size_t chunk_size : {1, 10, 100, 1000, 10000}) {
     std::string expected, actual;
-    abel::format_internal::FormatSinkImpl sink(&actual);
+    abel::format_internal::format_sink_impl sink(&actual);
     for (size_t chunks = 0; chunks < 10; ++chunks) {
       std::string rand = MakeRandomString(chunk_size);
       expected += rand;
@@ -37,7 +37,7 @@ TEST(FormatExtensionTest, SinkAppendSubstring) {
 TEST(FormatExtensionTest, SinkAppendChars) {
   for (size_t chunk_size : {1, 10, 100, 1000, 10000}) {
     std::string expected, actual;
-    abel::format_internal::FormatSinkImpl sink(&actual);
+    abel::format_internal::format_sink_impl sink(&actual);
     for (size_t chunks = 0; chunks < 10; ++chunks) {
       std::string rand = MakeRandomString(1);
       expected.append(chunk_size, rand[0]);

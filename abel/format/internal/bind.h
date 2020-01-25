@@ -170,7 +170,7 @@ std::string Summarize (UntypedFormatSpecImpl format,
 bool BindWithPack (const UnboundConversion *props,
                    abel::Span<const FormatArgImpl> pack, BoundConversion *bound);
 
-bool FormatUntyped (FormatRawSinkImpl raw_sink,
+bool FormatUntyped (format_raw_sink_impl raw_sink,
                     UntypedFormatSpecImpl format,
                     abel::Span<const FormatArgImpl> args);
 
@@ -196,7 +196,7 @@ private:
     template<typename S>
     friend ConvertResult<Conv::s> FormatConvertImpl (const StreamedWrapper<S> &v,
                                                      ConversionSpec conv,
-                                                     FormatSinkImpl *out);
+                                                     format_sink_impl *out);
     const T &v_;
 };
 

@@ -8,6 +8,7 @@
 #include <ostream>
 #include <abel/base/profile.h>
 #include <abel/format/internal/output.h>
+#include <abel/format/internal/format_flags.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
@@ -16,112 +17,6 @@ class Cord;
 
 namespace format_internal {
 
-class FormatRawSinkImpl {
-public:
-    // Implicitly convert from any type that provides the hook function as
-    // described above.
-    template<typename T, decltype(format_internal::invoke_flush(
-        std::declval<T *>(), string_view())) * = nullptr>
-    FormatRawSinkImpl (T *raw)  // NOLINT
-        : sink_(raw), write_(&FormatRawSinkImpl::Flush<T>) { }
-
-    void Write (string_view s) { write_(sink_, s); }
-
-    template<typename T>
-    static FormatRawSinkImpl Extract (T s) {
-        return s.sink_;
-    }
-
-private:
-    template<typename T>
-    static void Flush (void *r, string_view s) {
-        format_internal::invoke_flush(static_cast<T *>(r), s);
-    }
-
-    void *sink_;
-    void (*write_) (void *, string_view);
-};
-
-// An abstraction to which conversions write their string data.
-class FormatSinkImpl {
-public:
-    explicit FormatSinkImpl (FormatRawSinkImpl raw) : raw_(raw) { }
-
-    ~FormatSinkImpl () { Flush(); }
-
-    void Flush () {
-        raw_.Write(string_view(buf_, pos_ - buf_));
-        pos_ = buf_;
-    }
-
-    void Append (size_t n, char c) {
-        if (n == 0)
-            return;
-        size_ += n;
-        auto raw_append = [&] (size_t count) {
-            memset(pos_, c, count);
-            pos_ += count;
-        };
-        while (n > Avail()) {
-            n -= Avail();
-            if (Avail() > 0) {
-                raw_append(Avail());
-            }
-            Flush();
-        }
-        raw_append(n);
-    }
-
-    void Append (string_view v) {
-        size_t n = v.size();
-        if (n == 0)
-            return;
-        size_ += n;
-        if (n >= Avail()) {
-            Flush();
-            raw_.Write(v);
-            return;
-        }
-        memcpy(pos_, v.data(), n);
-        pos_ += n;
-    }
-
-    size_t size () const { return size_; }
-
-    // Put 'v' to 'sink' with specified width, precision, and left flag.
-    bool PutPaddedString (string_view v, int w, int p, bool l);
-
-    template<typename T>
-    T Wrap () {
-        return T(this);
-    }
-
-    template<typename T>
-    static FormatSinkImpl *Extract (T *s) {
-        return s->sink_;
-    }
-
-private:
-    size_t Avail () const { return buf_ + sizeof(buf_) - pos_; }
-
-    FormatRawSinkImpl raw_;
-    size_t size_ = 0;
-    char *pos_ = buf_;
-    char buf_[1024];
-};
-
-struct Flags {
-    bool basic : 1;     // fastest conversion: no flags, width, or precision
-    bool left : 1;      // "-"
-    bool show_pos : 1;  // "+"
-    bool sign_col : 1;  // " "
-    bool alt : 1;       // "#"
-    bool zero : 1;      // "0"
-    std::string ToString () const;
-    friend std::ostream &operator << (std::ostream &os, const Flags &v) {
-        return os << v.ToString();
-    }
-};
 
 struct LengthMod {
 public:
@@ -311,7 +206,7 @@ private:
 
 class ConversionSpec {
 public:
-    Flags flags () const { return flags_; }
+    format_flags flags () const { return flags_; }
     LengthMod length_mod () const { return length_mod_; }
     ConversionChar conv () const {
         // Keep this field first in the struct . It generates better code when
@@ -327,7 +222,7 @@ public:
     // negative value.
     int precision () const { return precision_; }
 
-    void set_flags (Flags f) { flags_ = f; }
+    void set_flags (format_flags f) { flags_ = f; }
     void set_length_mod (LengthMod lm) { length_mod_ = lm; }
     void set_conv (ConversionChar c) { conv_ = c; }
     void set_width (int w) { width_ = w; }
@@ -336,7 +231,7 @@ public:
 
 private:
     ConversionChar conv_;
-    Flags flags_;
+    format_flags flags_;
     LengthMod length_mod_;
     int width_;
     int precision_;
@@ -405,10 +300,7 @@ struct ConvertResult {
 template<Conv C>
 constexpr Conv ConvertResult<C>::kConv;
 
-// Return capacity - used, clipped to a minimum of 0.
-ABEL_FORCE_INLINE size_t Excess (size_t used, size_t capacity) {
-    return used < capacity ? capacity - used : 0;
-}
+
 
 }  // namespace format_internal
 

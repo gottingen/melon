@@ -1,61 +1,3 @@
-//
-//
-// -----------------------------------------------------------------------------
-// File: str_format.h
-// -----------------------------------------------------------------------------
-//
-// The `str_format` library is a typesafe replacement for the family of
-// `string_printf()` string formatting routines within the `<cstdio>` standard library
-// header. Like the `string_printf` family, the `str_format` uses a "format string" to
-// perform argument substitutions based on types. See the `format_spec` section
-// below for format string documentation.
-//
-// Example:
-//
-//   std::string s = abel::string_format(
-//                      "%s %s You have $%d!", "Hello", name, dollars);
-//
-// The library consists of the following basic utilities:
-//
-//   * `abel::string_format()`, a type-safe replacement for `std::sprintf()`, to
-//     write a format string to a `string` value.
-//   * `abel::string_append_format()` to append a format string to a `string`
-//   * `abel::stream_format()` to more efficiently write a format string to a
-//     stream, such as`std::cout`.
-//   * `abel::string_printf()`, `abel::string_fprintf()` and `abel::snprintf()` as
-//     replacements for `std::string_printf()`, `std::string_fprintf()` and `std::snprintf()`.
-//
-//     Note: a version of `std::sprintf()` is not supported as it is
-//     generally unsafe due to buffer overflows.
-//
-// Additionally, you can provide a format string (and its associated arguments)
-// using one of the following abstractions:
-//
-//   * A `format_spec` class template fully encapsulates a format string and its
-//     type arguments and is usually provided to `str_format` functions as a
-//     variadic argument of type `format_spec<Arg...>`. The `format_spec<Args...>`
-//     template is evaluated at compile-time, providing type safety.
-//   * A `parsed_format` instance, which encapsulates a specific, pre-compiled
-//     format string for a specific set of type(s), and which can be passed
-//     between API boundaries. (The `format_spec` type should not be used
-//     directly except as an argument type for wrapper functions.)
-//
-// The `str_format` library provides the ability to output its format strings to
-// arbitrary sink types:
-//
-//   * A generic `Format()` function to write outputs to arbitrary sink types,
-//     which must implement a `RawSinkFormat` interface. (See
-//     `str_format_sink.h` for more information.)
-//
-//   * A `FormatUntyped()` function that is similar to `Format()` except it is
-//     loosely typed. `FormatUntyped()` is not a template and does not perform
-//     any compile-time checking of the format string; instead, it returns a
-//     boolean from a runtime check.
-//
-// In addition, the `str_format` library provides extension points for
-// augmenting formatting to new types. These extensions are fully documented
-// within the `str_format_extension.h` header file.
-
 #ifndef ABEL_STRINGS_STR_FORMAT_H_
 #define ABEL_STRINGS_STR_FORMAT_H_
 
@@ -426,13 +368,13 @@ public:
     // described above.
     template<typename T,
         typename = typename std::enable_if<std::is_constructible<
-            format_internal::FormatRawSinkImpl, T *>::value>::type>
+            format_internal::format_raw_sink_impl, T *>::value>::type>
     format_raw_sink (T *raw)  // NOLINT
         : sink_(raw) { }
 
 private:
-    friend format_internal::FormatRawSinkImpl;
-    format_internal::FormatRawSinkImpl sink_;
+    friend format_internal::format_raw_sink_impl;
+    format_internal::format_raw_sink_impl sink_;
 };
 
 // format()
@@ -454,7 +396,7 @@ template<typename... Args>
 bool format (format_raw_sink raw_sink, const format_spec<Args...> &format,
              const Args &... args) {
     return format_internal::FormatUntyped(
-        format_internal::FormatRawSinkImpl::Extract(raw_sink),
+        format_internal::format_raw_sink_impl::Extract(raw_sink),
         format_internal::UntypedFormatSpecImpl::Extract(format),
         {format_internal::FormatArgImpl(args)...});
 }
@@ -513,7 +455,7 @@ ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool FormatUntyped (
     format_raw_sink raw_sink, const untyped_format_spec &format,
     abel::Span<const format_arg> args) {
     return format_internal::FormatUntyped(
-        format_internal::FormatRawSinkImpl::Extract(raw_sink),
+        format_internal::format_raw_sink_impl::Extract(raw_sink),
         format_internal::UntypedFormatSpecImpl::Extract(format), args);
 }
 

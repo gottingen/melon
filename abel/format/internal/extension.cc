@@ -41,32 +41,12 @@ const ConversionChar::Spec ConversionChar::kSpecs[] = {
 #undef X_SEP
 };
 
-std::string Flags::ToString() const {
-  std::string s;
-  s.append(left     ? "-" : "");
-  s.append(show_pos ? "+" : "");
-  s.append(sign_col ? " " : "");
-  s.append(alt      ? "#" : "");
-  s.append(zero     ? "0" : "");
-  return s;
-}
 
 const size_t LengthMod::kNumValues;
 
 const size_t ConversionChar::kNumValues;
 
-bool FormatSinkImpl::PutPaddedString(string_view v, int w, int p, bool l) {
-  size_t space_remaining = 0;
-  if (w >= 0) space_remaining = w;
-  size_t n = v.size();
-  if (p >= 0) n = std::min(n, static_cast<size_t>(p));
-  string_view shown(v.data(), n);
-  space_remaining = Excess(shown.size(), space_remaining);
-  if (!l) Append(space_remaining, ' ');
-  Append(shown);
-  if (l) Append(space_remaining, ' ');
-  return true;
-}
+
 
 }  // namespace format_internal
 

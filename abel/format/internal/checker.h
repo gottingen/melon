@@ -28,7 +28,7 @@ template <typename Arg>
 constexpr Conv ArgumentToConv() {
   return decltype(format_internal::FormatConvertImpl(
       std::declval<const Arg&>(), std::declval<const ConversionSpec&>(),
-      std::declval<FormatSinkImpl*>()))::kConv;
+      std::declval<format_sink_impl*>()))::kConv;
 }
 
 #ifdef ABEL_INTERNAL_ENABLE_FORMAT_CHECKER

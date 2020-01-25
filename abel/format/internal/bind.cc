@@ -119,7 +119,7 @@ bool ConvertAll(const UntypedFormatSpecImpl format,
 
 class DefaultConverter {
  public:
-  explicit DefaultConverter(FormatSinkImpl* sink) : sink_(sink) {}
+  explicit DefaultConverter(format_sink_impl* sink) : sink_(sink) {}
 
   void Append(string_view s) const { sink_->Append(s); }
 
@@ -128,12 +128,12 @@ class DefaultConverter {
   }
 
  private:
-  FormatSinkImpl* sink_;
+  format_sink_impl* sink_;
 };
 
 class SummarizingConverter {
  public:
-  explicit SummarizingConverter(FormatSinkImpl* sink) : sink_(sink) {}
+  explicit SummarizingConverter(format_sink_impl* sink) : sink_(sink) {}
 
   void Append(string_view s) const { sink_->Append(s); }
 
@@ -150,7 +150,7 @@ class SummarizingConverter {
   }
 
  private:
-  FormatSinkImpl* sink_;
+  format_sink_impl* sink_;
 };
 
 }  // namespace
@@ -168,7 +168,7 @@ std::string Summarize(const UntypedFormatSpecImpl format,
   {
     // inner block to destroy sink before returning out. It ensures a last
     // flush.
-    FormatSinkImpl sink(&out);
+    format_sink_impl sink(&out);
     if (!ConvertAll(format, args, Converter(&sink))) {
       return "";
     }
@@ -176,10 +176,10 @@ std::string Summarize(const UntypedFormatSpecImpl format,
   return out;
 }
 
-bool FormatUntyped(FormatRawSinkImpl raw_sink,
+bool FormatUntyped(format_raw_sink_impl raw_sink,
                    const UntypedFormatSpecImpl format,
                    abel::Span<const FormatArgImpl> args) {
-  FormatSinkImpl sink(raw_sink);
+  format_sink_impl sink(raw_sink);
   using Converter = DefaultConverter;
   return ConvertAll(format, args, Converter(&sink));
 }
