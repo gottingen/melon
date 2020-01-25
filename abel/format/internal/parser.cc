@@ -16,8 +16,8 @@ namespace abel {
 
 namespace format_internal {
 
-using CC = ConversionChar::Id;
-using LM = LengthMod::Id;
+using CC = conversion_char::Id;
+using LM = length_mod::Id;
 ABEL_CONST_INIT const ConvTag kTags[256] = {
     {}, {}, {}, {}, {}, {}, {}, {},     // 00-07
     {}, {}, {}, {}, {}, {}, {}, {},     // 08-0f
@@ -206,14 +206,14 @@ const char *ConsumeConversion (const char *pos, const char *const end,
             return nullptr;
 
         // It is a length modifier.
-        using format_internal::LengthMod;
-        LengthMod length_mod = tag.as_length();
+        using format_internal::length_mod;
+        length_mod length_mod = tag.as_length();
         ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
-        if (c == 'h' && length_mod.id() == LengthMod::h) {
-            conv->length_mod = LengthMod::FromId(LengthMod::hh);
+        if (c == 'h' && length_mod.id() == length_mod::h) {
+            conv->length_mod = length_mod::FromId(length_mod::hh);
             ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
-        } else if (c == 'l' && length_mod.id() == LengthMod::l) {
-            conv->length_mod = LengthMod::FromId(LengthMod::ll);
+        } else if (c == 'l' && length_mod.id() == length_mod::l) {
+            conv->length_mod = length_mod::FromId(length_mod::ll);
             ABEL_FORMAT_PARSER_INTERNAL_GET_CHAR();
         } else {
             conv->length_mod = length_mod;

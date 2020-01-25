@@ -9,6 +9,8 @@
 #include <abel/base/profile.h>
 #include <abel/format/internal/output.h>
 #include <abel/format/internal/format_flags.h>
+#include <abel/format/internal/length_mod.h>
+#include <abel/format/internal/conversion_char.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
@@ -17,198 +19,11 @@ class Cord;
 
 namespace format_internal {
 
-
-struct LengthMod {
-public:
-    enum Id : uint8_t {
-        h, hh, l, ll, L, j, z, t, q, none
-    };
-    static const size_t kNumValues = none + 1;
-
-    LengthMod () : id_(none) { }
-
-    // Index into the opaque array of LengthMod enums.
-    // Requires: i < kNumValues
-    static LengthMod FromIndex (size_t i) {
-        return LengthMod(kSpecs[i].value);
-    }
-
-    static LengthMod FromId (Id id) { return LengthMod(id); }
-
-    // The length modifier std::string associated with a specified LengthMod.
-    string_view name () const {
-        const Spec &spec = kSpecs[id_];
-        return {spec.name, spec.name_length};
-    }
-
-    Id id () const { return id_; }
-
-    friend bool operator == (const LengthMod &a, const LengthMod &b) {
-        return a.id() == b.id();
-    }
-    friend bool operator != (const LengthMod &a, const LengthMod &b) {
-        return !(a == b);
-    }
-    friend std::ostream &operator << (std::ostream &os, const LengthMod &v) {
-        return os << v.name();
-    }
-
-private:
-    struct Spec {
-        Id value;
-        const char *name;
-        size_t name_length;
-    };
-    static const Spec kSpecs[];
-
-    explicit LengthMod (Id id) : id_(id) { }
-
-    Id id_;
-};
-
-// clang-format off
-#define ABEL_CONVERSION_CHARS_EXPAND_(X_VAL, X_SEP) \
-  /* text */ \
-  X_VAL(c) X_SEP X_VAL(C) X_SEP X_VAL(s) X_SEP X_VAL(S) X_SEP \
-  /* ints */ \
-  X_VAL(d) X_SEP X_VAL(i) X_SEP X_VAL(o) X_SEP \
-  X_VAL(u) X_SEP X_VAL(x) X_SEP X_VAL(X) X_SEP \
-  /* floats */ \
-  X_VAL(f) X_SEP X_VAL(F) X_SEP X_VAL(e) X_SEP X_VAL(E) X_SEP \
-  X_VAL(g) X_SEP X_VAL(G) X_SEP X_VAL(a) X_SEP X_VAL(A) X_SEP \
-  /* misc */ \
-  X_VAL(n) X_SEP X_VAL(p)
-// clang-format on
-
-struct ConversionChar {
-public:
-    enum Id : uint8_t {
-        c, C, s, S,              // text
-        d, i, o, u, x, X,        // int
-        f, F, e, E, g, G, a, A,  // float
-        n, p,                    // misc
-        none
-    };
-    static const size_t kNumValues = none + 1;
-
-    ConversionChar () : id_(none) { }
-
-public:
-    // Index into the opaque array of ConversionChar enums.
-    // Requires: i < kNumValues
-    static ConversionChar FromIndex (size_t i) {
-        return ConversionChar(kSpecs[i].value);
-    }
-
-    static ConversionChar FromChar (char c) {
-        ConversionChar::Id out_id = ConversionChar::none;
-        switch (c) {
-#define X_VAL(id)                \
-  case #id[0]:                   \
-    out_id = ConversionChar::id; \
-    break;
-        ABEL_CONVERSION_CHARS_EXPAND_(X_VAL,)
-#undef X_VAL
-        default:break;
-        }
-        return ConversionChar(out_id);
-    }
-
-    static ConversionChar FromId (Id id) { return ConversionChar(id); }
-    Id id () const { return id_; }
-
-    int radix () const {
-        switch (id()) {
-        case x:
-        case X:
-        case a:
-        case A:
-        case p: return 16;
-        case o: return 8;
-        default: return 10;
-        }
-    }
-
-    bool upper () const {
-        switch (id()) {
-        case X:
-        case F:
-        case E:
-        case G:
-        case A: return true;
-        default: return false;
-        }
-    }
-
-    bool is_signed () const {
-        switch (id()) {
-        case d:
-        case i: return true;
-        default: return false;
-        }
-    }
-
-    bool is_integral () const {
-        switch (id()) {
-        case d:
-        case i:
-        case u:
-        case o:
-        case x:
-        case X:return true;
-        default: return false;
-        }
-    }
-
-    bool is_float () const {
-        switch (id()) {
-        case a:
-        case e:
-        case f:
-        case g:
-        case A:
-        case E:
-        case F:
-        case G:return true;
-        default: return false;
-        }
-    }
-
-    bool IsValid () const { return id() != none; }
-
-    // The associated char.
-    char Char () const { return kSpecs[id_].name; }
-
-    friend bool operator == (const ConversionChar &a, const ConversionChar &b) {
-        return a.id() == b.id();
-    }
-    friend bool operator != (const ConversionChar &a, const ConversionChar &b) {
-        return !(a == b);
-    }
-    friend std::ostream &operator << (std::ostream &os, const ConversionChar &v) {
-        char c = v.Char();
-        if (!c)
-            c = '?';
-        return os << c;
-    }
-
-private:
-    struct Spec {
-        Id value;
-        char name;
-    };
-    static const Spec kSpecs[];
-
-    explicit ConversionChar (Id id) : id_(id) { }
-
-    Id id_;
-};
-
 class ConversionSpec {
 public:
     format_flags flags () const { return flags_; }
-    LengthMod length_mod () const { return length_mod_; }
-    ConversionChar conv () const {
+    length_mod length_mod () const { return length_mod_; }
+    conversion_char conv () const {
         // Keep this field first in the struct . It generates better code when
         // accessing it when ConversionSpec is passed by value in registers.
         static_assert(offsetof(ConversionSpec, conv_) == 0, "");
@@ -223,16 +38,16 @@ public:
     int precision () const { return precision_; }
 
     void set_flags (format_flags f) { flags_ = f; }
-    void set_length_mod (LengthMod lm) { length_mod_ = lm; }
-    void set_conv (ConversionChar c) { conv_ = c; }
+    void set_length_mod (struct length_mod lm) { length_mod_ = lm; }
+    void set_conv (conversion_char c) { conv_ = c; }
     void set_width (int w) { width_ = w; }
     void set_precision (int p) { precision_ = p; }
     void set_left (bool b) { flags_.left = b; }
 
 private:
-    ConversionChar conv_;
+    conversion_char conv_;
     format_flags flags_;
-    LengthMod length_mod_;
+    struct length_mod length_mod_;
     int width_;
     int precision_;
 };
@@ -240,7 +55,7 @@ private:
 constexpr uint64_t ConversionCharToConvValue (char conv) {
     return
 #define CONV_SET_CASE(c) \
-  conv == #c[0] ? (uint64_t{1} << (1 + ConversionChar::Id::c)):
+  conv == #c[0] ? (uint64_t{1} << (1 + conversion_char::Id::c)):
         ABEL_CONVERSION_CHARS_EXPAND_(CONV_SET_CASE,)
         #undef CONV_SET_CASE
             conv == '*'

@@ -409,8 +409,8 @@ bool FloatToSink (const Float v, const ConversionSpec &conv,
     Buffer buffer;
 
     switch (conv.conv().id()) {
-    case ConversionChar::f:
-    case ConversionChar::F:
+    case conversion_char::f:
+    case conversion_char::F:
         if (!FloatToBuffer<FormatStyle::Fixed>(decomposed, precision, &buffer,
                                                nullptr)) {
             return FallbackToSnprintf(v, conv, sink);
@@ -419,8 +419,8 @@ bool FloatToSink (const Float v, const ConversionSpec &conv,
             buffer.pop_back();
         break;
 
-    case ConversionChar::e:
-    case ConversionChar::E:
+    case conversion_char::e:
+    case conversion_char::E:
         if (!FloatToBuffer<FormatStyle::Precision>(decomposed, precision, &buffer,
                                                    &exp)) {
             return FallbackToSnprintf(v, conv, sink);
@@ -430,8 +430,8 @@ bool FloatToSink (const Float v, const ConversionSpec &conv,
         PrintExponent(exp, conv.conv().upper() ? 'E' : 'e', &buffer);
         break;
 
-    case ConversionChar::g:
-    case ConversionChar::G:precision = std::max(0, precision - 1);
+    case conversion_char::g:
+    case conversion_char::G:precision = std::max(0, precision - 1);
         if (!FloatToBuffer<FormatStyle::Precision>(decomposed, precision, &buffer,
                                                    &exp)) {
             return FallbackToSnprintf(v, conv, sink);
@@ -464,8 +464,8 @@ bool FloatToSink (const Float v, const ConversionSpec &conv,
             PrintExponent(exp, conv.conv().upper() ? 'E' : 'e', &buffer);
         break;
 
-    case ConversionChar::a:
-    case ConversionChar::A:return FallbackToSnprintf(v, conv, sink);
+    case conversion_char::a:
+    case conversion_char::A:return FallbackToSnprintf(v, conv, sink);
 
     default:return false;
     }

@@ -50,7 +50,7 @@ struct IsSigned<abel::uint128> : std::false_type {};
 class ConvertedIntInfo {
  public:
   template <typename T>
-  ConvertedIntInfo(T v, ConversionChar conv) {
+  ConvertedIntInfo(T v, conversion_char conv) {
     using Unsigned = typename MakeUnsigned<T>::type;
     auto u = static_cast<Unsigned>(v);
     if (IsNeg(v)) {
@@ -85,7 +85,7 @@ class ConvertedIntInfo {
   }
 
   template <typename T>
-  void UnsignedToStringRight(T u, ConversionChar conv) {
+  void UnsignedToStringRight(T u, conversion_char conv) {
     char *p = end();
     switch (conv.radix()) {
       default:
@@ -121,7 +121,7 @@ string_view BaseIndicator(const ConvertedIntInfo &info,
                           const ConversionSpec conv) {
   bool alt = conv.flags().alt;
   int radix = conv.conv().radix();
-  if (conv.conv().id() == ConversionChar::p)
+  if (conv.conv().id() == conversion_char::p)
     alt = true;  // always show 0x for %p.
   // From the POSIX description of '#' flag:
   //   "For x or X conversion specifiers, a non-zero result shall have
@@ -174,7 +174,7 @@ bool ConvertIntImplInner(const ConvertedIntInfo &info,
   if (!precision_specified)
     precision = 1;
 
-  if (conv.flags().alt && conv.conv().id() == ConversionChar::o) {
+  if (conv.flags().alt && conv.conv().id() == conversion_char::o) {
     // From POSIX description of the '#' (alt) flag:
     //   "For o conversion, it increases the precision (if necessary) to
     //   force the first digit of the result to be zero."
@@ -210,7 +210,7 @@ bool ConvertIntImplInner(const ConvertedIntInfo &info,
 template <typename T>
 bool ConvertIntImplInner(T v, const ConversionSpec conv, format_sink_impl *sink) {
   ConvertedIntInfo info(v, conv.conv());
-  if (conv.flags().basic && conv.conv().id() != ConversionChar::p) {
+  if (conv.flags().basic && conv.conv().id() != conversion_char::p) {
     if (info.is_neg()) sink->Append(1, '-');
     if (info.digits().empty()) {
       sink->Append(1, '0');
@@ -227,7 +227,7 @@ bool ConvertIntArg(T v, const ConversionSpec conv, format_sink_impl *sink) {
   if (conv.conv().is_float()) {
     return FormatConvertImpl(static_cast<double>(v), conv, sink).value;
   }
-  if (conv.conv().id() == ConversionChar::c)
+  if (conv.conv().id() == conversion_char::c)
     return ConvertCharImpl(static_cast<unsigned char>(v), conv, sink);
   if (!conv.conv().is_integral())
     return false;
@@ -245,7 +245,7 @@ bool ConvertFloatArg(T v, const ConversionSpec conv, format_sink_impl *sink) {
 
 ABEL_FORCE_INLINE bool ConvertStringArg(string_view v, const ConversionSpec conv,
                              format_sink_impl *sink) {
-  if (conv.conv().id() != ConversionChar::s)
+  if (conv.conv().id() != conversion_char::s)
     return false;
   if (conv.flags().basic) {
     sink->Append(v);
@@ -273,7 +273,7 @@ ConvertResult<Conv::s> FormatConvertImpl(string_view v,
 ConvertResult<Conv::s | Conv::p> FormatConvertImpl(const char *v,
                                                    const ConversionSpec conv,
                                                    format_sink_impl *sink) {
-  if (conv.conv().id() == ConversionChar::p)
+  if (conv.conv().id() == conversion_char::p)
     return {FormatConvertImpl(VoidPtr(v), conv, sink).value};
   size_t len;
   if (v == nullptr) {
@@ -290,7 +290,7 @@ ConvertResult<Conv::s | Conv::p> FormatConvertImpl(const char *v,
 // ==================== Raw pointers ====================
 ConvertResult<Conv::p> FormatConvertImpl(VoidPtr v, const ConversionSpec conv,
                                          format_sink_impl *sink) {
-  if (conv.conv().id() != ConversionChar::p)
+  if (conv.conv().id() != conversion_char::p)
     return {false};
   if (!v.value) {
     sink->Append("(nil)");
