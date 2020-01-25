@@ -3,7 +3,7 @@
 #include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 #include <abel/strings/str_cat.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 #include <cassert>
 #include <cmath>
 #include <string>

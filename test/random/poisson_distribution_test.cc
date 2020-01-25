@@ -21,7 +21,7 @@
 #include <abel/random/internal/sequence_urbg.h>
 #include <abel/random/random.h>
 #include <abel/strings/str_cat.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 #include <abel/strings/str_replace.h>
 #include <abel/strings/strip.h>
 

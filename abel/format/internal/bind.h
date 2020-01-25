@@ -1,14 +1,14 @@
-#ifndef ABEL_FORMAT_BIND_H_
-#define ABEL_FORMAT_BIND_H_
+#ifndef ABEL_FORMAT_INTERNAL_BIND_H_
+#define ABEL_FORMAT_INTERNAL_BIND_H_
 
 #include <array>
 #include <cstdio>
 #include <sstream>
 #include <string>
 #include <abel/base/profile.h>
-#include <abel/strings/format/arg.h>
-#include <abel/strings/format/checker.h>
-#include <abel/strings/format/parser.h>
+#include <abel/format/internal/arg.h>
+#include <abel/format/internal/checker.h>
+#include <abel/format/internal/parser.h>
 #include <abel/types/span.h>
 
 namespace abel {
@@ -204,4 +204,4 @@ private:
 
 }  // namespace abel
 
-#endif  // ABEL_FORMAT_BIND_H_
+#endif  // ABEL_FORMAT_INTERNAL_BIND_H_

@@ -1,19 +1,17 @@
-#ifndef ABEL_STRINGS_FORMAT_PARSER_H_
-#define ABEL_STRINGS_FORMAT_PARSER_H_
+#ifndef ABEL_FORMAT_INTERNAL_PARSER_H_
+#define ABEL_FORMAT_INTERNAL_PARSER_H_
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
-
+#include <climits>
+#include <cstddef>
+#include <cstdlib>
 #include <cassert>
 #include <initializer_list>
 #include <iosfwd>
 #include <iterator>
 #include <memory>
 #include <vector>
-
-#include <abel/strings/format/checker.h>
-#include <abel/strings/format/extension.h>
+#include <abel/format/internal/checker.h>
+#include <abel/format/internal/extension.h>
 
 namespace abel {
 
@@ -321,4 +319,4 @@ class ExtendedParsedFormat : public format_internal::ParsedFormatBase {
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_PARSER_H_
+#endif  // ABEL_FORMAT_INTERNAL_PARSER_H_

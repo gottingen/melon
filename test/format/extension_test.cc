@@ -1,8 +1,8 @@
 //
 //
 
-#include <abel/strings/format/extension.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/internal/extension.h>
+#include <abel/format/str_format.h>
 #include <gtest/gtest.h>
 #include <random>
 #include <string>

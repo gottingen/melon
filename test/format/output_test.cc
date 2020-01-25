@@ -1,6 +1,6 @@
 //
 
-#include <abel/format/output.h>
+#include <abel/format/internal/output.h>
 #include <sstream>
 #include <string>
 #include <gmock/gmock.h>

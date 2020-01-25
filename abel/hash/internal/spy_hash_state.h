@@ -9,7 +9,7 @@
 
 #include <abel/hash/hash.h>
 #include <abel/strings/ends_with.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 #include <abel/strings/str_join.h>
 
 namespace abel {

@@ -6,12 +6,11 @@
 //
 //      https://www.apache.org/licenses/LICENSE-2.0
 //
-#include <abel/strings/format/arg.h>
-
+#include <abel/format/internal/arg.h>
 #include <ostream>
 #include <string>
 #include <gtest/gtest.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 
 namespace abel {
 

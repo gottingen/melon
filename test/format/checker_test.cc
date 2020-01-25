@@ -1,8 +1,7 @@
 #include <string>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 
 namespace abel {
 

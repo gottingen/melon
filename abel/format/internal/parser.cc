@@ -1,18 +1,17 @@
-#include <abel/strings/format/parser.h>
 
-#include <assert.h>
-#include <string.h>
-#include <wchar.h>
+
+#include <cassert>
+#include <cstring>
+#include <cwchar>
 #include <cctype>
 #include <cstdint>
-
 #include <algorithm>
 #include <initializer_list>
 #include <limits>
 #include <ostream>
 #include <string>
 #include <unordered_set>
-
+#include <abel/format/internal/parser.h>
 namespace abel {
 
 namespace format_internal {

@@ -8,7 +8,7 @@
 #include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_detect.h>
 #include <abel/random/internal/randen_traits.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 
 namespace {
 

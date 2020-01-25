@@ -1,6 +1,6 @@
 //
 
-#include <abel/strings/format/output.h>
+#include <abel/format/internal/output.h>
 #include <errno.h>
 #include <cstring>
 
