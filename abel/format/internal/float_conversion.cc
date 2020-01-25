@@ -1,5 +1,6 @@
 
 #include <abel/format/internal/float_conversion.h>
+#include <abel/format/internal/conversion_spec.h>
 #include <abel/base/profile.h>
 #include <cstring>
 #include <algorithm>
@@ -18,7 +19,7 @@ char *CopyStringTo (string_view v, char *out) {
 }
 
 template<typename Float>
-bool FallbackToSnprintf (const Float v, const ConversionSpec &conv,
+bool FallbackToSnprintf (const Float v, const conversion_spec &conv,
                          format_sink_impl *sink) {
     int w = conv.width() >= 0 ? conv.width() : 0;
     int p = conv.precision() >= 0 ? conv.precision() : -1;
@@ -95,7 +96,7 @@ enum class FormatStyle { Fixed, Precision };
 // Otherwise, return false.
 template<typename Float>
 bool ConvertNonNumericFloats (char sign_char, Float v,
-                              const ConversionSpec &conv, format_sink_impl *sink) {
+                              const conversion_spec &conv, format_sink_impl *sink) {
     char text[4], *ptr = text;
     if (sign_char)
         *ptr++ = sign_char;
@@ -357,7 +358,7 @@ bool FloatToBuffer (Decomposed<Float> decomposed, int precision, Buffer *out,
 }
 
 void WriteBufferToSink (char sign_char, string_view str,
-                        const ConversionSpec &conv, format_sink_impl *sink) {
+                        const conversion_spec &conv, format_sink_impl *sink) {
     int left_spaces = 0, zeros = 0, right_spaces = 0;
     int missing_chars =
         conv.width() >= 0 ? std::max(conv.width() - static_cast<int>(str.size()) -
@@ -381,7 +382,7 @@ void WriteBufferToSink (char sign_char, string_view str,
 }
 
 template<typename Float>
-bool FloatToSink (const Float v, const ConversionSpec &conv,
+bool FloatToSink (const Float v, const conversion_spec &conv,
                   format_sink_impl *sink) {
     // Print the sign or the sign column.
     Float abs_v = v;
@@ -479,17 +480,17 @@ bool FloatToSink (const Float v, const ConversionSpec &conv,
 
 }  // namespace
 
-bool ConvertFloatImpl (long double v, const ConversionSpec &conv,
+bool ConvertFloatImpl (long double v, const conversion_spec &conv,
                        format_sink_impl *sink) {
     return FloatToSink(v, conv, sink);
 }
 
-bool ConvertFloatImpl (float v, const ConversionSpec &conv,
+bool ConvertFloatImpl (float v, const conversion_spec &conv,
                        format_sink_impl *sink) {
     return FloatToSink(v, conv, sink);
 }
 
-bool ConvertFloatImpl (double v, const ConversionSpec &conv,
+bool ConvertFloatImpl (double v, const conversion_spec &conv,
                        format_sink_impl *sink) {
     return FloatToSink(v, conv, sink);
 }

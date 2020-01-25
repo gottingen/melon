@@ -3,18 +3,19 @@
 
 #include <abel/format/internal/extension.h>
 #include <abel/format/internal/sink_impl.h>
+#include <abel/format/internal/conversion_spec.h>
 
 namespace abel {
 
 namespace format_internal {
 
-bool ConvertFloatImpl(float v, const ConversionSpec &conv,
+bool ConvertFloatImpl(float v, const conversion_spec &conv,
                       format_sink_impl *sink);
 
-bool ConvertFloatImpl(double v, const ConversionSpec &conv,
+bool ConvertFloatImpl(double v, const conversion_spec &conv,
                       format_sink_impl *sink);
 
-bool ConvertFloatImpl(long double v, const ConversionSpec &conv,
+bool ConvertFloatImpl(long double v, const conversion_spec &conv,
                       format_sink_impl *sink);
 
 }  // namespace format_internal

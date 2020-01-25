@@ -19,39 +19,6 @@ class Cord;
 
 namespace format_internal {
 
-class ConversionSpec {
-public:
-    format_flags flags () const { return flags_; }
-    length_mod length_mod () const { return length_mod_; }
-    conversion_char conv () const {
-        // Keep this field first in the struct . It generates better code when
-        // accessing it when ConversionSpec is passed by value in registers.
-        static_assert(offsetof(ConversionSpec, conv_) == 0, "");
-        return conv_;
-    }
-
-    // Returns the specified width. If width is unspecfied, it returns a negative
-    // value.
-    int width () const { return width_; }
-    // Returns the specified precision. If precision is unspecfied, it returns a
-    // negative value.
-    int precision () const { return precision_; }
-
-    void set_flags (format_flags f) { flags_ = f; }
-    void set_length_mod (struct length_mod lm) { length_mod_ = lm; }
-    void set_conv (conversion_char c) { conv_ = c; }
-    void set_width (int w) { width_ = w; }
-    void set_precision (int p) { precision_ = p; }
-    void set_left (bool b) { flags_.left = b; }
-
-private:
-    conversion_char conv_;
-    format_flags flags_;
-    struct length_mod length_mod_;
-    int width_;
-    int precision_;
-};
-
 constexpr uint64_t ConversionCharToConvValue (char conv) {
     return
 #define CONV_SET_CASE(c) \

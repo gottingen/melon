@@ -16,7 +16,7 @@
 #include <abel/format/internal/extension.h>
 #include <abel/strings/string_view.h>
 #include <abel/format/internal/sink_impl.h>
-
+#include <abel/format/internal/conversion_spec.h>
 namespace abel {
 
 
@@ -32,7 +32,7 @@ struct HasUserDefinedConvert : std::false_type {};
 template <typename T>
 struct HasUserDefinedConvert<
     T, void_t<decltype(AbelFormatConvert(
-           std::declval<const T&>(), std::declval<ConversionSpec>(),
+           std::declval<const T&>(), std::declval<conversion_spec>(),
            std::declval<FormatSink*>()))>> : std::true_type {};
 
 template <typename T>
@@ -51,23 +51,23 @@ struct VoidPtr {
       : value(ptr ? reinterpret_cast<uintptr_t>(ptr) : 0) {}
   uintptr_t value;
 };
-ConvertResult<Conv::p> FormatConvertImpl(VoidPtr v, ConversionSpec conv,
+ConvertResult<Conv::p> FormatConvertImpl(VoidPtr v, conversion_spec conv,
                                          format_sink_impl* sink);
 
 // Strings.
 ConvertResult<Conv::s> FormatConvertImpl(const std::string& v,
-                                         ConversionSpec conv,
+                                         conversion_spec conv,
                                          format_sink_impl* sink);
-ConvertResult<Conv::s> FormatConvertImpl(string_view v, ConversionSpec conv,
+ConvertResult<Conv::s> FormatConvertImpl(string_view v, conversion_spec conv,
                                          format_sink_impl* sink);
 ConvertResult<Conv::s | Conv::p> FormatConvertImpl(const char* v,
-                                                   ConversionSpec conv,
+                                                   conversion_spec conv,
                                                    format_sink_impl* sink);
 template <class AbelCord,
           typename std::enable_if<
               std::is_same<AbelCord, abel::Cord>::value>::type* = nullptr>
 ConvertResult<Conv::s> FormatConvertImpl(const AbelCord& value,
-                                         ConversionSpec conv,
+                                         conversion_spec conv,
                                          format_sink_impl* sink) {
   if (conv.conv().id() != conversion_char::s) return {false};
 
@@ -109,50 +109,50 @@ using IntegralConvertResult =
 using FloatingConvertResult = ConvertResult<Conv::floating>;
 
 // Floats.
-FloatingConvertResult FormatConvertImpl(float v, ConversionSpec conv,
+FloatingConvertResult FormatConvertImpl(float v, conversion_spec conv,
                                         format_sink_impl* sink);
-FloatingConvertResult FormatConvertImpl(double v, ConversionSpec conv,
+FloatingConvertResult FormatConvertImpl(double v, conversion_spec conv,
                                         format_sink_impl* sink);
-FloatingConvertResult FormatConvertImpl(long double v, ConversionSpec conv,
+FloatingConvertResult FormatConvertImpl(long double v, conversion_spec conv,
                                         format_sink_impl* sink);
 
 // Chars.
-IntegralConvertResult FormatConvertImpl(char v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(char v, conversion_spec conv,
                                         format_sink_impl* sink);
-IntegralConvertResult FormatConvertImpl(signed char v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(signed char v, conversion_spec conv,
                                         format_sink_impl* sink);
-IntegralConvertResult FormatConvertImpl(unsigned char v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(unsigned char v, conversion_spec conv,
                                         format_sink_impl* sink);
 
 // Ints.
 IntegralConvertResult FormatConvertImpl(short v,  // NOLINT
-                                        ConversionSpec conv,
+                                        conversion_spec conv,
                                         format_sink_impl* sink);
 IntegralConvertResult FormatConvertImpl(unsigned short v,  // NOLINT
-                                        ConversionSpec conv,
+                                        conversion_spec conv,
                                         format_sink_impl* sink);
-IntegralConvertResult FormatConvertImpl(int v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(int v, conversion_spec conv,
                                         format_sink_impl* sink);
-IntegralConvertResult FormatConvertImpl(unsigned v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(unsigned v, conversion_spec conv,
                                         format_sink_impl* sink);
 IntegralConvertResult FormatConvertImpl(long v,  // NOLINT
-                                        ConversionSpec conv,
+                                        conversion_spec conv,
                                         format_sink_impl* sink);
 IntegralConvertResult FormatConvertImpl(unsigned long v,  // NOLINT
-                                        ConversionSpec conv,
+                                        conversion_spec conv,
                                         format_sink_impl* sink);
 IntegralConvertResult FormatConvertImpl(long long v,  // NOLINT
-                                        ConversionSpec conv,
+                                        conversion_spec conv,
                                         format_sink_impl* sink);
 IntegralConvertResult FormatConvertImpl(unsigned long long v,  // NOLINT
-                                        ConversionSpec conv,
+                                        conversion_spec conv,
                                         format_sink_impl* sink);
-IntegralConvertResult FormatConvertImpl(int128 v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(int128 v, conversion_spec conv,
                                         format_sink_impl* sink);
-IntegralConvertResult FormatConvertImpl(uint128 v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(uint128 v, conversion_spec conv,
                                         format_sink_impl* sink);
 template <typename T, enable_if_t<std::is_same<T, bool>::value, int> = 0>
-IntegralConvertResult FormatConvertImpl(T v, ConversionSpec conv,
+IntegralConvertResult FormatConvertImpl(T v, conversion_spec conv,
                                         format_sink_impl* sink) {
   return FormatConvertImpl(static_cast<int>(v), conv, sink);
 }
@@ -163,11 +163,11 @@ template <typename T>
 typename std::enable_if<std::is_enum<T>::value &&
                             !HasUserDefinedConvert<T>::value,
                         IntegralConvertResult>::type
-FormatConvertImpl(T v, ConversionSpec conv, format_sink_impl* sink);
+FormatConvertImpl(T v, conversion_spec conv, format_sink_impl* sink);
 
 template <typename T>
 ConvertResult<Conv::s> FormatConvertImpl(const StreamedWrapper<T>& v,
-                                         ConversionSpec conv,
+                                         conversion_spec conv,
                                          format_sink_impl* out) {
   std::ostringstream oss;
   oss << v.v_;
@@ -180,7 +180,7 @@ ConvertResult<Conv::s> FormatConvertImpl(const StreamedWrapper<T>& v,
 struct FormatCountCaptureHelper {
   template <class T = int>
   static ConvertResult<Conv::n> ConvertHelper(const format_count_capture& v,
-                                              ConversionSpec conv,
+                                              conversion_spec conv,
                                               format_sink_impl* sink) {
     const abel::enable_if_t<sizeof(T) != 0, format_count_capture>& v2 = v;
 
@@ -193,7 +193,7 @@ struct FormatCountCaptureHelper {
 
 template <class T = int>
 ConvertResult<Conv::n> FormatConvertImpl(const format_count_capture& v,
-                                         ConversionSpec conv,
+                                         conversion_spec conv,
                                          format_sink_impl* sink) {
   return FormatCountCaptureHelper::ConvertHelper(v, conv, sink);
 }
@@ -203,13 +203,13 @@ ConvertResult<Conv::n> FormatConvertImpl(const format_count_capture& v,
 struct FormatArgImplFriend {
   template <typename Arg>
   static bool ToInt(Arg arg, int* out) {
-    // A value initialized ConversionSpec has a `none` conv, which tells the
+    // A value initialized conversion_spec has a `none` conv, which tells the
     // dispatcher to run the `int` conversion.
     return arg.dispatcher_(arg.data_, {}, out);
   }
 
   template <typename Arg>
-  static bool Convert(Arg arg, format_internal::ConversionSpec conv,
+  static bool Convert(Arg arg, format_internal::conversion_spec conv,
                       format_sink_impl* out) {
     return arg.dispatcher_(arg.data_, conv, out);
   }
@@ -233,7 +233,7 @@ class FormatArgImpl {
     char buf[kInlinedSpace];
   };
 
-  using Dispatcher = bool (*)(Data, ConversionSpec, void* out);
+  using Dispatcher = bool (*)(Data, conversion_spec, void* out);
 
   template <typename T>
   struct store_by_value
@@ -375,7 +375,7 @@ class FormatArgImpl {
   }
 
   template <typename T>
-  static bool Dispatch(Data arg, ConversionSpec spec, void* out) {
+  static bool Dispatch(Data arg, conversion_spec spec, void* out) {
     // A `none` conv indicates that we want the `int` conversion.
     if (ABEL_UNLIKELY(spec.conv().id() == conversion_char::none)) {
       return ToInt<T>(arg, static_cast<int*>(out), std::is_integral<T>(),
@@ -392,7 +392,7 @@ class FormatArgImpl {
 };
 
 #define ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(T, E) \
-  E template bool FormatArgImpl::Dispatch<T>(Data, ConversionSpec, void*)
+  E template bool FormatArgImpl::Dispatch<T>(Data, conversion_spec, void*)
 
 #define ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(...)                   \
   ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(format_internal::VoidPtr,     \

@@ -17,7 +17,7 @@ class untyped_format_spec;
 
 namespace format_internal {
 
-class BoundConversion : public ConversionSpec {
+class BoundConversion : public conversion_spec {
 public:
     const FormatArgImpl *arg () const { return arg_; }
     void set_arg (const FormatArgImpl *a) { arg_ = a; }
@@ -195,7 +195,7 @@ public:
 private:
     template<typename S>
     friend ConvertResult<Conv::s> FormatConvertImpl (const StreamedWrapper<S> &v,
-                                                     ConversionSpec conv,
+                                                     conversion_spec conv,
                                                      format_sink_impl *out);
     const T &v_;
 };
