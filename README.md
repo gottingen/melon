@@ -79,14 +79,19 @@ build step
 <a name="examples"> </a>
 
 * [base](/docs/en/base.md)
-
+    
+    the base module contains code that other modules depends on. no extern dependencies.
 * [algorithm](/docs/en/algorithm.md)
 * [atomic](/docs/en/atomic.md) 
 * [container](/docs/en/container.md)
 * [debugging](/docs/en/debugging.md)
-* [digest](/docs/en/digest.md)
+* [digest](/docs/en/digest.md) 
+
+    the digest module contains md5, sha1, sha256 tools.
 * [flags](/docs/en/flags.md)
-* [strings](/docs/en/strings.md) strings library contains string utilities, such as trim, split. also include a 
+* [strings](/docs/en/strings.md) 
+
+    strings library contains string utilities, such as trim, split. also include a 
     compatible version of string_view.
 
 
