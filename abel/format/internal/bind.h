@@ -34,7 +34,7 @@ public:
     explicit UntypedFormatSpecImpl (string_view s)
         : data_(s.data()), size_(s.size()) { }
     explicit UntypedFormatSpecImpl (
-        const format_internal::ParsedFormatBase *pc)
+        const format_internal::parsed_format_base *pc)
         : data_(pc), size_(~size_t {}) { }
 
     bool has_parsed_conversion () const { return size_ == ~size_t {}; }
@@ -43,9 +43,9 @@ public:
         assert(!has_parsed_conversion());
         return string_view(static_cast<const char *>(data_), size_);
     }
-    const format_internal::ParsedFormatBase *parsed_conversion () const {
+    const format_internal::parsed_format_base *parsed_conversion () const {
         assert(has_parsed_conversion());
-        return static_cast<const format_internal::ParsedFormatBase *>(data_);
+        return static_cast<const format_internal::parsed_format_base *>(data_);
     }
 
     template<typename T>
@@ -64,7 +64,7 @@ struct MakeDependent {
 };
 
 // Implicitly convertible from `const char*`, `string_view`, and the
-// `ExtendedParsedFormat` type. This abstraction allows all format functions to
+// `extended_parsed_format` type. This abstraction allows all format functions to
 // operate on any without providing too many overloads.
 template<typename... Args>
 class FormatSpecTemplate
@@ -89,13 +89,13 @@ public:
     template<typename = void>
     FormatSpecTemplate (const char *s)  // NOLINT
     __attribute__((
-    enable_if(format_internal::EnsureConstexpr(s), "constexpr trap"),
+    enable_if(format_internal::ensure_constexpr(s), "constexpr trap"),
     unavailable(
     "Format specified does not match the arguments passed.")));
 
     template<typename T = void>
     FormatSpecTemplate (string_view s)  // NOLINT
-    __attribute__((enable_if(format_internal::EnsureConstexpr(s),
+    __attribute__((enable_if(format_internal::ensure_constexpr(s),
     "constexpr trap"))) {
         static_assert(sizeof(T *) == 0,
                       "Format specified does not match the arguments passed.");
@@ -123,7 +123,7 @@ public:
         sizeof...(C) == sizeof...(Args) &&
             all_of(conv_contains(argument_to_conv<Args>(),
                            C)...)>::type>
-    FormatSpecTemplate (const ExtendedParsedFormat<C...> &pc)  // NOLINT
+    FormatSpecTemplate (const extended_parsed_format<C...> &pc)  // NOLINT
         : Base(&pc) { }
 };
 
@@ -167,7 +167,7 @@ private:
 // for testing
 std::string Summarize (UntypedFormatSpecImpl format,
                        abel::Span<const FormatArgImpl> args);
-bool BindWithPack (const UnboundConversion *props,
+bool BindWithPack (const unbound_conversion *props,
                    abel::Span<const FormatArgImpl> pack, BoundConversion *bound);
 
 bool FormatUntyped (format_raw_sink_impl raw_sink,

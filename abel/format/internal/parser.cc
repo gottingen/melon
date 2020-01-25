@@ -18,7 +18,7 @@ namespace format_internal {
 
 using CC = conversion_char::Id;
 using LM = length_mod::Id;
-ABEL_CONST_INIT const ConvTag kTags[256] = {
+ABEL_CONST_INIT const conv_tag kTags[256] = {
     {}, {}, {}, {}, {}, {}, {}, {},     // 00-07
     {}, {}, {}, {}, {}, {}, {}, {},     // 08-0f
     {}, {}, {}, {}, {}, {}, {}, {},     // 10-17
@@ -55,7 +55,7 @@ ABEL_CONST_INIT const ConvTag kTags[256] = {
 
 namespace {
 
-bool CheckFastPathSetting (const UnboundConversion &conv) {
+bool check_fast_path_setting (const unbound_conversion &conv) {
     bool should_be_basic = !conv.flags.left &&      //
         !conv.flags.show_pos &&  //
         !conv.flags.sign_col &&  //
@@ -75,8 +75,8 @@ bool CheckFastPathSetting (const UnboundConversion &conv) {
 }
 
 template<bool is_positional>
-const char *ConsumeConversion (const char *pos, const char *const end,
-                               UnboundConversion *conv, int *next_arg) {
+const char *consume_conversion (const char *pos, const char *const end,
+                               unbound_conversion *conv, int *next_arg) {
     const char *const original_pos = pos;
     char c;
     // Read the next char into `c` and update `pos`. Returns false if there are
@@ -159,7 +159,7 @@ const char *ConsumeConversion (const char *pos, const char *const end,
                     *next_arg = -1;
                     conv->flags = format_flags();
                     conv->flags.basic = true;
-                    return ConsumeConversion<true>(original_pos, end, conv, next_arg);
+                    return consume_conversion<true>(original_pos, end, conv, next_arg);
                 }
                 conv->width.set_value(maybe_width);
             } else if (c == '*') {
@@ -199,7 +199,7 @@ const char *ConsumeConversion (const char *pos, const char *const end,
         }
     }
 
-    auto tag = GetTagForChar(c);
+    auto tag = get_tag_for_char(c);
 
     if (ABEL_UNLIKELY(!tag.is_conv())) {
         if (ABEL_UNLIKELY(!tag.is_length()))
@@ -218,13 +218,13 @@ const char *ConsumeConversion (const char *pos, const char *const end,
         } else {
             conv->length_mod = length_mod;
         }
-        tag = GetTagForChar(c);
+        tag = get_tag_for_char(c);
         if (ABEL_UNLIKELY(!tag.is_conv()))
             return nullptr;
     }
 
-    assert(CheckFastPathSetting(*conv));
-    (void) (&CheckFastPathSetting);
+    assert(check_fast_path_setting(*conv));
+    (void) (&check_fast_path_setting);
 
     conv->conv = tag.as_conv();
     if (!is_positional)
@@ -234,15 +234,15 @@ const char *ConsumeConversion (const char *pos, const char *const end,
 
 }  // namespace
 
-const char *ConsumeUnboundConversion (const char *p, const char *end,
-                                      UnboundConversion *conv, int *next_arg) {
+const char *consume_unbound_conversion (const char *p, const char *end,
+                                      unbound_conversion *conv, int *next_arg) {
     if (*next_arg < 0)
-        return ConsumeConversion<true>(p, end, conv, next_arg);
-    return ConsumeConversion<false>(p, end, conv, next_arg);
+        return consume_conversion<true>(p, end, conv, next_arg);
+    return consume_conversion<false>(p, end, conv, next_arg);
 }
 
-struct ParsedFormatBase::ParsedFormatConsumer {
-    explicit ParsedFormatConsumer (ParsedFormatBase *parsedformat)
+struct parsed_format_base::parsed_format_consumer {
+    explicit parsed_format_consumer (parsed_format_base *parsedformat)
         : parsed(parsedformat), data_pos(parsedformat->data_.get()) { }
 
     bool Append (string_view s) {
@@ -261,7 +261,7 @@ struct ParsedFormatBase::ParsedFormatConsumer {
         return true;
     }
 
-    bool ConvertOne (const UnboundConversion &conv, string_view s) {
+    bool ConvertOne (const unbound_conversion &conv, string_view s) {
         size_t text_end = AppendText(s);
         parsed->items_.push_back({true, text_end, conv});
         return true;
@@ -273,18 +273,18 @@ struct ParsedFormatBase::ParsedFormatConsumer {
         return static_cast<size_t>(data_pos - parsed->data_.get());
     }
 
-    ParsedFormatBase *parsed;
+    parsed_format_base *parsed;
     char *data_pos;
 };
 
-ParsedFormatBase::ParsedFormatBase (string_view format, bool allow_ignored,
-                                    std::initializer_list<format_conv> convs)
+parsed_format_base::parsed_format_base (string_view format, bool allow_ignored,
+                                        std::initializer_list<format_conv> convs)
     : data_(format.empty() ? nullptr : new char[format.size()]) {
-    has_error_ = !ParseFormatString(format, ParsedFormatConsumer(this)) ||
-        !MatchesConversions(allow_ignored, convs);
+    has_error_ = !parse_format_string(format, parsed_format_consumer(this)) ||
+        !matches_conversions(allow_ignored, convs);
 }
 
-bool ParsedFormatBase::MatchesConversions (
+bool parsed_format_base::matches_conversions (
     bool allow_ignored, std::initializer_list<format_conv> convs) const {
     std::unordered_set<int> used;
     auto add_if_valid_conv = [&] (int pos, char c) {
@@ -294,7 +294,7 @@ bool ParsedFormatBase::MatchesConversions (
         used.insert(pos);
         return true;
     };
-    for (const ConversionItem &item : items_) {
+    for (const conversion_item &item : items_) {
         if (!item.is_conversion)
             continue;
         auto &conv = item.conv;

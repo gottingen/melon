@@ -68,8 +68,8 @@ class ConsumeUnboundConversionTest : public ::testing::Test {
 public:
     std::pair<string_view, string_view> Consume (string_view src) {
         int next = 0;
-        o = UnboundConversion();  // refresh
-        const char *p = ConsumeUnboundConversion(
+        o = unbound_conversion();  // refresh
+        const char *p = consume_unbound_conversion(
             src.data(), src.data() + src.size(), &o, &next);
         if (!p)
             return {{}, src};
@@ -79,11 +79,11 @@ public:
 
     bool Run (const char *fmt, bool force_positional = false) {
         int next = force_positional ? -1 : 0;
-        o = UnboundConversion();  // refresh
-        return ConsumeUnboundConversion(fmt, fmt + strlen(fmt), &o, &next) ==
+        o = unbound_conversion();  // refresh
+        return consume_unbound_conversion(fmt, fmt + strlen(fmt), &o, &next) ==
             fmt + strlen(fmt);
     }
-    UnboundConversion o;
+    unbound_conversion o;
 };
 
 TEST_F(ConsumeUnboundConversionTest, ConsumeSpecification) {
@@ -301,7 +301,7 @@ struct SummarizeConsumer {
         return true;
     }
 
-    bool ConvertOne (const UnboundConversion &conv, string_view s) {
+    bool ConvertOne (const unbound_conversion &conv, string_view s) {
         *out += "{";
         *out += std::string(s);
         *out += ":";
@@ -318,9 +318,9 @@ struct SummarizeConsumer {
     }
 };
 
-std::string SummarizeParsedFormat (const ParsedFormatBase &pc) {
+std::string SummarizeParsedFormat (const parsed_format_base &pc) {
     std::string out;
-    if (!pc.ProcessFormat(SummarizeConsumer(&out)))
+    if (!pc.process_format(SummarizeConsumer(&out)))
         out += "!";
     return out;
 }
@@ -328,16 +328,16 @@ std::string SummarizeParsedFormat (const ParsedFormatBase &pc) {
 class ParsedFormatTest : public testing::Test { };
 
 TEST_F(ParsedFormatTest, ValueSemantics) {
-    ParsedFormatBase p1({}, true, {});  // empty format
+    parsed_format_base p1({}, true, {});  // empty format
     EXPECT_EQ("", SummarizeParsedFormat(p1));
 
-    ParsedFormatBase p2 = p1;  // copy construct (empty)
+    parsed_format_base p2 = p1;  // copy construct (empty)
     EXPECT_EQ(SummarizeParsedFormat(p1), SummarizeParsedFormat(p2));
 
-    p1 = ParsedFormatBase("hello%s", true, {format_conv::s});  // move assign
+    p1 = parsed_format_base("hello%s", true, {format_conv::s});  // move assign
     EXPECT_EQ("[hello]{s:1$s}", SummarizeParsedFormat(p1));
 
-    ParsedFormatBase p3 = p1;  // copy construct (nonempty)
+    parsed_format_base p3 = p1;  // copy construct (nonempty)
     EXPECT_EQ(SummarizeParsedFormat(p1), SummarizeParsedFormat(p3));
 
     using std::swap;
@@ -370,7 +370,7 @@ TEST_F(ParsedFormatTest, Parsing) {
     for (const auto &e : kExpect) {
         SCOPED_TRACE(e.in);
         EXPECT_EQ(e.out,
-                  SummarizeParsedFormat(ParsedFormatBase(e.in, false, e.conv_set)));
+                  SummarizeParsedFormat(parsed_format_base(e.in, false, e.conv_set)));
     }
 }
 
@@ -387,7 +387,7 @@ TEST_F(ParsedFormatTest, ParsingFlagOrder) {
     for (const auto &e : kExpect) {
         SCOPED_TRACE(e.in);
         EXPECT_EQ(e.out,
-                  SummarizeParsedFormat(ParsedFormatBase(e.in, false, e.conv_set)));
+                  SummarizeParsedFormat(parsed_format_base(e.in, false, e.conv_set)));
     }
 }
 

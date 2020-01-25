@@ -28,17 +28,17 @@ public:
 
     // Fill 'bound' with the results of applying the context's argument pack
     // to the specified 'unbound'. We synthesize a BoundConversion by
-    // lining up a UnboundConversion with a user argument. We also
+    // lining up a unbound_conversion with a user argument. We also
     // resolve any '*' specifiers for width and precision, so after
     // this call, 'bound' has all the information it needs to be formatted.
     // Returns false on failure.
-    bool Bind (const UnboundConversion *unbound, BoundConversion *bound);
+    bool Bind (const unbound_conversion *unbound, BoundConversion *bound);
 
 private:
     abel::Span<const FormatArgImpl> pack_;
 };
 
-ABEL_FORCE_INLINE bool ArgContext::Bind (const UnboundConversion *unbound,
+ABEL_FORCE_INLINE bool ArgContext::Bind (const unbound_conversion *unbound,
                                          BoundConversion *bound) {
     const FormatArgImpl *arg = nullptr;
     int arg_position = unbound->arg_position;
@@ -95,7 +95,7 @@ public:
         converter_.Append(s);
         return true;
     }
-    bool ConvertOne (const UnboundConversion &conv, string_view conv_string) {
+    bool ConvertOne (const unbound_conversion &conv, string_view conv_string) {
         BoundConversion bound;
         if (!arg_context_.Bind(&conv, &bound))
             return false;
@@ -111,10 +111,10 @@ template<typename Converter>
 bool ConvertAll (const UntypedFormatSpecImpl format,
                  abel::Span<const FormatArgImpl> args, Converter converter) {
     if (format.has_parsed_conversion()) {
-        return format.parsed_conversion()->ProcessFormat(
+        return format.parsed_conversion()->process_format(
             ConverterConsumer<Converter>(converter, args));
     } else {
-        return ParseFormatString(format.str(),
+        return parse_format_string(format.str(),
                                  ConverterConsumer<Converter>(converter, args));
     }
 }
@@ -159,7 +159,7 @@ private:
 
 }  // namespace
 
-bool BindWithPack (const UnboundConversion *props,
+bool BindWithPack (const unbound_conversion *props,
                    abel::Span<const FormatArgImpl> pack,
                    BoundConversion *bound) {
     return ArgContext(pack).Bind(props, bound);

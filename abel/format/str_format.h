@@ -32,7 +32,7 @@ public:
     explicit untyped_format_spec (string_view s) : spec_(s) { }
 
 protected:
-    explicit untyped_format_spec (const format_internal::ParsedFormatBase *pc)
+    explicit untyped_format_spec (const format_internal::parsed_format_base *pc)
         : spec_(pc) { }
 
 private:
@@ -212,7 +212,7 @@ typename format_internal::FormatSpecDeductionBarrier<Args...>::type;
 //     ... error case ...
 //   }
 template<char... format_conv>
-using parsed_format = format_internal::ExtendedParsedFormat<
+using parsed_format = format_internal::extended_parsed_format<
     format_internal::conversion_char_to_conv(format_conv)...>;
 
 // string_format()

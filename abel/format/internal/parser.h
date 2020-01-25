@@ -18,19 +18,19 @@ namespace abel {
 namespace format_internal {
 
 // The analyzed properties of a single specified conversion.
-struct UnboundConversion {
-    UnboundConversion ()
+struct unbound_conversion {
+    unbound_conversion ()
         : flags() /* This is required to zero all the fields of flags. */ {
         flags.basic = true;
     }
 
-    class InputValue {
+    class input_value {
     public:
         void set_value (int value) {
             assert(value >= 0);
-            value_ = value;
+            _value = value;
         }
-        int value () const { return value_; }
+        int value () const { return _value; }
 
         // Marks the value as "from arg". aka the '*' format.
         // Requires `value >= 1`.
@@ -39,23 +39,23 @@ struct UnboundConversion {
         // `value()`'s return value is unspecfied in this state.
         void set_from_arg (int value) {
             assert(value > 0);
-            value_ = -value - 1;
+            _value = -value - 1;
         }
-        bool is_from_arg () const { return value_ < -1; }
+        bool is_from_arg () const { return _value < -1; }
         int get_from_arg () const {
             assert(is_from_arg());
-            return -value_ - 1;
+            return -_value - 1;
         }
 
     private:
-        int value_ = -1;
+        int _value = -1;
     };
 
     // No need to initialize. It will always be set in the parser.
     int arg_position;
 
-    InputValue width;
-    InputValue precision;
+    input_value width;
+    input_value precision;
 
     format_flags flags;
     length_mod length_mod;
@@ -67,38 +67,38 @@ struct UnboundConversion {
 // If valid, it returns the first character following the conversion spec,
 // and the spec part is broken down and returned in 'conv'.
 // If invalid, returns nullptr.
-const char *ConsumeUnboundConversion (const char *p, const char *end,
-                                      UnboundConversion *conv, int *next_arg);
+const char *consume_unbound_conversion (const char *p, const char *end,
+                                        unbound_conversion *conv, int *next_arg);
 
 // Helper tag class for the table below.
 // It allows fast `char -> conversion_char/LengthMod` checking and conversions.
-class ConvTag {
+class conv_tag {
 public:
-    constexpr ConvTag (conversion_char::Id id) : tag_(id) { }  // NOLINT
+    constexpr conv_tag (conversion_char::Id id) : _tag(id) { }  // NOLINT
     // We invert the length modifiers to make them negative so that we can easily
     // test for them.
-    constexpr ConvTag (length_mod::Id id) : tag_(~id) { }  // NOLINT
+    constexpr conv_tag (length_mod::Id id) : _tag(~id) { }  // NOLINT
     // Everything else is -128, which is negative to make is_conv() simpler.
-    constexpr ConvTag () : tag_(-128) { }
+    constexpr conv_tag () : _tag(-128) { }
 
-    bool is_conv () const { return tag_ >= 0; }
-    bool is_length () const { return tag_ < 0 && tag_ != -128; }
+    bool is_conv () const { return _tag >= 0; }
+    bool is_length () const { return _tag < 0 && _tag != -128; }
     conversion_char as_conv () const {
         assert(is_conv());
-        return conversion_char::FromId(static_cast<conversion_char::Id>(tag_));
+        return conversion_char::FromId(static_cast<conversion_char::Id>(_tag));
     }
     length_mod as_length () const {
         assert(is_length());
-        return length_mod::FromId(static_cast<length_mod::Id>(~tag_));
+        return length_mod::FromId(static_cast<length_mod::Id>(~_tag));
     }
 
 private:
-    std::int8_t tag_;
+    std::int8_t _tag;
 };
 
-extern const ConvTag kTags[256];
+extern const conv_tag kTags[256];
 // Keep a single table for all the conversion chars and length modifiers.
-ABEL_FORCE_INLINE ConvTag GetTagForChar (char c) {
+ABEL_FORCE_INLINE conv_tag get_tag_for_char (char c) {
     return kTags[static_cast<unsigned char>(c)];
 }
 
@@ -107,13 +107,13 @@ ABEL_FORCE_INLINE ConvTag GetTagForChar (char c) {
 // Text runs will be passed by calling
 //   Consumer::Append(string_view);
 // ConversionItems will be passed by calling
-//   Consumer::ConvertOne(UnboundConversion, string_view);
+//   Consumer::ConvertOne(unbound_conversion, string_view);
 // In the case of ConvertOne, the string_view that is passed is the
 // portion of the format string corresponding to the conversion, not including
 // the leading %. On success, it returns true. On failure, it stops and returns
 // false.
 template<typename Consumer>
-bool ParseFormatString (string_view src, Consumer consumer) {
+bool parse_format_string (string_view src, Consumer consumer) {
     int next_arg = 0;
     const char *p = src.data();
     const char *const end = p + src.size();
@@ -130,7 +130,7 @@ bool ParseFormatString (string_view src, Consumer consumer) {
         if (ABEL_UNLIKELY(percent + 1 >= end))
             return false;
 
-        auto tag = GetTagForChar(percent[1]);
+        auto tag = get_tag_for_char(percent[1]);
         if (tag.is_conv()) {
             if (ABEL_UNLIKELY(next_arg < 0)) {
                 // This indicates an error in the format std::string.
@@ -144,7 +144,7 @@ bool ParseFormatString (string_view src, Consumer consumer) {
             // Keep this case separate from the one below.
             // ConvertOne is more efficient when the compiler can see that the `basic`
             // flag is set.
-            UnboundConversion conv;
+            unbound_conversion conv;
             conv.conv = tag.as_conv();
             conv.arg_position = ++next_arg;
             if (ABEL_UNLIKELY(
@@ -152,8 +152,8 @@ bool ParseFormatString (string_view src, Consumer consumer) {
                 return false;
             }
         } else if (percent[1] != '%') {
-            UnboundConversion conv;
-            p = ConsumeUnboundConversion(percent + 1, end, &conv, &next_arg);
+            unbound_conversion conv;
+            p = consume_unbound_conversion(percent + 1, end, &conv, &next_arg);
             if (ABEL_UNLIKELY(p == nullptr))
                 return false;
             if (ABEL_UNLIKELY(!consumer.ConvertOne(
@@ -172,20 +172,20 @@ bool ParseFormatString (string_view src, Consumer consumer) {
 
 // Always returns true, or fails to compile in a constexpr context if s does not
 // point to a constexpr char array.
-constexpr bool EnsureConstexpr (string_view s) {
+constexpr bool ensure_constexpr (string_view s) {
     return s.empty() || s[0] == s[0];
 }
 
-class ParsedFormatBase {
+class parsed_format_base {
 public:
-    explicit ParsedFormatBase (string_view format, bool allow_ignored,
-                               std::initializer_list<format_conv> convs);
+    explicit parsed_format_base (string_view format, bool allow_ignored,
+                                 std::initializer_list<format_conv> convs);
 
-    ParsedFormatBase (const ParsedFormatBase &other) { *this = other; }
+    parsed_format_base (const parsed_format_base &other) { *this = other; }
 
-    ParsedFormatBase (ParsedFormatBase &&other) { *this = std::move(other); }
+    parsed_format_base (parsed_format_base &&other) { *this = std::move(other); }
 
-    ParsedFormatBase &operator = (const ParsedFormatBase &other) {
+    parsed_format_base &operator = (const parsed_format_base &other) {
         if (this == &other)
             return *this;
         has_error_ = other.has_error_;
@@ -196,7 +196,7 @@ public:
         return *this;
     }
 
-    ParsedFormatBase &operator = (ParsedFormatBase &&other) {
+    parsed_format_base &operator = (parsed_format_base &&other) {
         if (this == &other)
             return *this;
         has_error_ = other.has_error_;
@@ -208,7 +208,7 @@ public:
     }
 
     template<typename Consumer>
-    bool ProcessFormat (Consumer consumer) const {
+    bool process_format (Consumer consumer) const {
         const char *const base = data_.get();
         string_view text(base, 0);
         for (const auto &item : items_) {
@@ -230,21 +230,21 @@ public:
 private:
     // Returns whether the conversions match and if !allow_ignored it verifies
     // that all conversions are used by the format.
-    bool MatchesConversions (bool allow_ignored,
-                             std::initializer_list<format_conv> convs) const;
+    bool matches_conversions (bool allow_ignored,
+                              std::initializer_list<format_conv> convs) const;
 
-    struct ParsedFormatConsumer;
+    struct parsed_format_consumer;
 
-    struct ConversionItem {
+    struct conversion_item {
         bool is_conversion;
         // Points to the past-the-end location of this element in the data_ array.
         size_t text_end;
-        UnboundConversion conv;
+        unbound_conversion conv;
     };
 
     bool has_error_;
     std::unique_ptr<char[]> data_;
-    std::vector<ConversionItem> items_;
+    std::vector<conversion_item> items_;
 };
 
 // A value type representing a preparsed format.  These can be created, copied
@@ -260,7 +260,7 @@ private:
 //
 // Example:
 //   // Extended format supports multiple characters per argument:
-//   using MyFormat = ExtendedParsedFormat<format_conv::d | format_conv::x>;
+//   using MyFormat = extended_parsed_format<format_conv::d | format_conv::x>;
 //   MyFormat GetFormat(bool use_hex) {
 //     if (use_hex) return MyFormat("foo %x bar");
 //     return MyFormat("foo %d bar");
@@ -276,20 +276,20 @@ private:
 // string. These factory functions will return NULL if the format does not match
 // the conversions requested by the user.
 template<format_internal::format_conv... C>
-class ExtendedParsedFormat : public format_internal::ParsedFormatBase {
+class extended_parsed_format : public format_internal::parsed_format_base {
 public:
-    explicit ExtendedParsedFormat (string_view format)
+    explicit extended_parsed_format (string_view format)
 #ifdef ABEL_INTERNAL_ENABLE_FORMAT_CHECKER
     __attribute__((
-    enable_if(format_internal::EnsureConstexpr(format),
+    enable_if(format_internal::ensure_constexpr(format),
     "Format std::string is not constexpr."),
     enable_if(format_internal::valid_format_impl<C...>(format),
     "Format specified does not match the template arguments.")))
 #endif  // ABEL_INTERNAL_ENABLE_FORMAT_CHECKER
-        : ExtendedParsedFormat(format, false) {
+        : extended_parsed_format(format, false) {
     }
 
-    // ExtendedParsedFormat factory function.
+    // extended_parsed_format factory function.
     // The user still has to specify the conversion characters, but they will not
     // be checked at compile time. Instead, it will be checked at runtime.
     // This delays the checking to runtime, but allows the user to pass
@@ -301,26 +301,26 @@ public:
     // consumed by the format and return NULL if any argument is being ignored.
     // The 'NewAllowIgnored' variant will not verify this and will allow formats
     // that ignore arguments.
-    static std::unique_ptr<ExtendedParsedFormat> New (string_view format) {
+    static std::unique_ptr<extended_parsed_format> New (string_view format) {
         return New(format, false);
     }
-    static std::unique_ptr<ExtendedParsedFormat> NewAllowIgnored (
+    static std::unique_ptr<extended_parsed_format> NewAllowIgnored (
         string_view format) {
         return New(format, true);
     }
 
 private:
-    static std::unique_ptr<ExtendedParsedFormat> New (string_view format,
-                                                      bool allow_ignored) {
-        std::unique_ptr<ExtendedParsedFormat> conv(
-            new ExtendedParsedFormat(format, allow_ignored));
+    static std::unique_ptr<extended_parsed_format> New (string_view format,
+                                                        bool allow_ignored) {
+        std::unique_ptr<extended_parsed_format> conv(
+            new extended_parsed_format(format, allow_ignored));
         if (conv->has_error())
             return nullptr;
         return conv;
     }
 
-    ExtendedParsedFormat (string_view s, bool allow_ignored)
-        : ParsedFormatBase(s, allow_ignored, {C...}) { }
+    extended_parsed_format (string_view s, bool allow_ignored)
+        : parsed_format_base(s, allow_ignored, {C...}) { }
 };
 }  // namespace format_internal
 
