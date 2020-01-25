@@ -121,7 +121,7 @@ public:
 
     template<format_conv... C, typename = typename std::enable_if<
         sizeof...(C) == sizeof...(Args) &&
-            AllOf(Contains(ArgumentToConv<Args>(),
+            AllOf(conv_contains(ArgumentToConv<Args>(),
                            C)...)>::type>
     FormatSpecTemplate (const ExtendedParsedFormat<C...> &pc)  // NOLINT
         : Base(&pc) { }

@@ -289,7 +289,7 @@ bool ParsedFormatBase::MatchesConversions (
     std::unordered_set<int> used;
     auto add_if_valid_conv = [&] (int pos, char c) {
         if (static_cast<size_t>(pos) > convs.size() ||
-            !Contains(convs.begin()[pos - 1], c))
+            !conv_contains(convs.begin()[pos - 1], c))
             return false;
         used.insert(pos);
         return true;

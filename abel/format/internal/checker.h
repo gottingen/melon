@@ -127,14 +127,14 @@ class ConvParser {
   // Consumes the next arg and verifies that it matches `conv`.
   // `error_` is set if there is no next arg or if it doesn't match `conv`.
   constexpr ConvParser ConsumeNextArg(char conv) const {
-    return SetArgs(args_.without_front()).SetError(!Contains(args_[0], conv));
+    return SetArgs(args_.without_front()).SetError(!conv_contains(args_[0], conv));
   }
 
   // Verify that positional argument `i.value` matches `conv`.
   // `error_` is set if `i.value` is not a valid argument or if it doesn't
   // match.
   constexpr ConvParser VerifyPositional(Integer i, char conv) const {
-    return SetFormat(i.format).SetError(!Contains(args_[i.value - 1], conv));
+    return SetFormat(i.format).SetError(!conv_contains(args_[i.value - 1], conv));
   }
 
   // Parse the position of the arg and store it in `arg_position_`.

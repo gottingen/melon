@@ -11,10 +11,10 @@ namespace {
 std::string ConvToString (format_conv conv) {
     std::string out;
 #define CONV_SET_CASE(c) \
-  if (Contains(conv, format_conv::c)) out += #c;
+  if (conv_contains(conv, format_conv::c)) out += #c;
     ABEL_CONVERSION_CHARS_EXPAND_(CONV_SET_CASE,)
 #undef CONV_SET_CASE
-    if (Contains(conv, format_conv::star))
+    if (conv_contains(conv, format_conv::star))
         out += "*";
     return out;
 }

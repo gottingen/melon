@@ -61,12 +61,12 @@ constexpr format_conv ConversionCharToConv (char c) {
 }
 
 // Checks whether `c` exists in `set`.
-constexpr bool Contains (format_conv set, char c) {
+constexpr bool conv_contains (format_conv set, char c) {
     return (static_cast<uint64_t>(set) & ConversionCharToConvValue(c)) != 0;
 }
 
 // Checks whether all the characters in `c` are contained in `set`
-constexpr bool Contains (format_conv set, format_conv c) {
+constexpr bool conv_contains (format_conv set, format_conv c) {
     return (static_cast<uint64_t>(set) & static_cast<uint64_t>(c)) ==
         static_cast<uint64_t>(c);
 }
