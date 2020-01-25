@@ -1,6 +1,6 @@
 
-#ifndef ABEL_FORMAT_INTERNAL_EXTENSION_H_
-#define ABEL_FORMAT_INTERNAL_EXTENSION_H_
+#ifndef ABEL_FORMAT_INTERNAL_FORMAT_CONV_H_
+#define ABEL_FORMAT_INTERNAL_FORMAT_CONV_H_
 
 #include <climits>
 #include <cstddef>
@@ -56,7 +56,7 @@ constexpr format_conv operator | (format_conv a, format_conv b) {
 }
 
 // Get a conversion with a single character in it.
-constexpr format_conv ConversionCharToConv (char c) {
+constexpr format_conv conversion_char_to_conv (char c) {
     return format_conv(ConversionCharToConvValue(c));
 }
 
@@ -89,4 +89,4 @@ constexpr format_conv convert_result<C>::kConv;
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_EXTENSION_H_
+#endif  // ABEL_FORMAT_INTERNAL_FORMAT_CONV_H_

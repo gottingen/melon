@@ -213,7 +213,7 @@ typename format_internal::FormatSpecDeductionBarrier<Args...>::type;
 //   }
 template<char... format_conv>
 using parsed_format = format_internal::ExtendedParsedFormat<
-    format_internal::ConversionCharToConv(format_conv)...>;
+    format_internal::conversion_char_to_conv(format_conv)...>;
 
 // string_format()
 //
