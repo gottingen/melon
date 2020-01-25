@@ -13,7 +13,7 @@
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/numeric/int128.h>
-#include <abel/format/internal/extension.h>
+#include <abel/format/internal/format_conv.h>
 #include <abel/strings/string_view.h>
 #include <abel/format/internal/sink_impl.h>
 #include <abel/format/internal/conversion_spec.h>
@@ -51,22 +51,22 @@ struct VoidPtr {
       : value(ptr ? reinterpret_cast<uintptr_t>(ptr) : 0) {}
   uintptr_t value;
 };
-ConvertResult<Conv::p> FormatConvertImpl(VoidPtr v, conversion_spec conv,
+convert_result<format_conv::p> FormatConvertImpl(VoidPtr v, conversion_spec conv,
                                          format_sink_impl* sink);
 
 // Strings.
-ConvertResult<Conv::s> FormatConvertImpl(const std::string& v,
+convert_result<format_conv::s> FormatConvertImpl(const std::string& v,
                                          conversion_spec conv,
                                          format_sink_impl* sink);
-ConvertResult<Conv::s> FormatConvertImpl(string_view v, conversion_spec conv,
+convert_result<format_conv::s> FormatConvertImpl(string_view v, conversion_spec conv,
                                          format_sink_impl* sink);
-ConvertResult<Conv::s | Conv::p> FormatConvertImpl(const char* v,
+convert_result<format_conv::s | format_conv::p> FormatConvertImpl(const char* v,
                                                    conversion_spec conv,
                                                    format_sink_impl* sink);
 template <class AbelCord,
           typename std::enable_if<
               std::is_same<AbelCord, abel::Cord>::value>::type* = nullptr>
-ConvertResult<Conv::s> FormatConvertImpl(const AbelCord& value,
+convert_result<format_conv::s> FormatConvertImpl(const AbelCord& value,
                                          conversion_spec conv,
                                          format_sink_impl* sink) {
   if (conv.conv().id() != conversion_char::s) return {false};
@@ -105,8 +105,8 @@ ConvertResult<Conv::s> FormatConvertImpl(const AbelCord& value,
 }
 
 using IntegralConvertResult =
-    ConvertResult<Conv::c | Conv::numeric | Conv::star>;
-using FloatingConvertResult = ConvertResult<Conv::floating>;
+    convert_result<format_conv::c | format_conv::numeric | format_conv::star>;
+using FloatingConvertResult = convert_result<format_conv::floating>;
 
 // Floats.
 FloatingConvertResult FormatConvertImpl(float v, conversion_spec conv,
@@ -166,7 +166,7 @@ typename std::enable_if<std::is_enum<T>::value &&
 FormatConvertImpl(T v, conversion_spec conv, format_sink_impl* sink);
 
 template <typename T>
-ConvertResult<Conv::s> FormatConvertImpl(const StreamedWrapper<T>& v,
+convert_result<format_conv::s> FormatConvertImpl(const StreamedWrapper<T>& v,
                                          conversion_spec conv,
                                          format_sink_impl* out) {
   std::ostringstream oss;
@@ -179,7 +179,7 @@ ConvertResult<Conv::s> FormatConvertImpl(const StreamedWrapper<T>& v,
 // until after format_count_capture is fully defined.
 struct FormatCountCaptureHelper {
   template <class T = int>
-  static ConvertResult<Conv::n> ConvertHelper(const format_count_capture& v,
+  static convert_result<format_conv::n> ConvertHelper(const format_count_capture& v,
                                               conversion_spec conv,
                                               format_sink_impl* sink) {
     const abel::enable_if_t<sizeof(T) != 0, format_count_capture>& v2 = v;
@@ -192,7 +192,7 @@ struct FormatCountCaptureHelper {
 };
 
 template <class T = int>
-ConvertResult<Conv::n> FormatConvertImpl(const format_count_capture& v,
+convert_result<format_conv::n> FormatConvertImpl(const format_count_capture& v,
                                          conversion_spec conv,
                                          format_sink_impl* sink) {
   return FormatCountCaptureHelper::ConvertHelper(v, conv, sink);

@@ -278,14 +278,14 @@ struct ParsedFormatBase::ParsedFormatConsumer {
 };
 
 ParsedFormatBase::ParsedFormatBase (string_view format, bool allow_ignored,
-                                    std::initializer_list<Conv> convs)
+                                    std::initializer_list<format_conv> convs)
     : data_(format.empty() ? nullptr : new char[format.size()]) {
     has_error_ = !ParseFormatString(format, ParsedFormatConsumer(this)) ||
         !MatchesConversions(allow_ignored, convs);
 }
 
 bool ParsedFormatBase::MatchesConversions (
-    bool allow_ignored, std::initializer_list<Conv> convs) const {
+    bool allow_ignored, std::initializer_list<format_conv> convs) const {
     std::unordered_set<int> used;
     auto add_if_valid_conv = [&] (int pos, char c) {
         if (static_cast<size_t>(pos) > convs.size() ||

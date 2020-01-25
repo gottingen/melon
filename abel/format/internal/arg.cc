@@ -258,19 +258,19 @@ ABEL_FORCE_INLINE bool ConvertStringArg(string_view v, const conversion_spec con
 }  // namespace
 
 // ==================== Strings ====================
-ConvertResult<Conv::s> FormatConvertImpl(const std::string &v,
+convert_result<format_conv::s> FormatConvertImpl(const std::string &v,
                                          const conversion_spec conv,
                                          format_sink_impl *sink) {
   return {ConvertStringArg(v, conv, sink)};
 }
 
-ConvertResult<Conv::s> FormatConvertImpl(string_view v,
+convert_result<format_conv::s> FormatConvertImpl(string_view v,
                                          const conversion_spec conv,
                                          format_sink_impl *sink) {
   return {ConvertStringArg(v, conv, sink)};
 }
 
-ConvertResult<Conv::s | Conv::p> FormatConvertImpl(const char *v,
+convert_result<format_conv::s | format_conv::p> FormatConvertImpl(const char *v,
                                                    const conversion_spec conv,
                                                    format_sink_impl *sink) {
   if (conv.conv().id() == conversion_char::p)
@@ -288,7 +288,7 @@ ConvertResult<Conv::s | Conv::p> FormatConvertImpl(const char *v,
 }
 
 // ==================== Raw pointers ====================
-ConvertResult<Conv::p> FormatConvertImpl(VoidPtr v, const conversion_spec conv,
+convert_result<format_conv::p> FormatConvertImpl(VoidPtr v, const conversion_spec conv,
                                          format_sink_impl *sink) {
   if (conv.conv().id() != conversion_char::p)
     return {false};

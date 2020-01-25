@@ -8,19 +8,19 @@ namespace abel {
 namespace format_internal {
 namespace {
 
-std::string ConvToString (Conv conv) {
+std::string ConvToString (format_conv conv) {
     std::string out;
 #define CONV_SET_CASE(c) \
-  if (Contains(conv, Conv::c)) out += #c;
+  if (Contains(conv, format_conv::c)) out += #c;
     ABEL_CONVERSION_CHARS_EXPAND_(CONV_SET_CASE,)
 #undef CONV_SET_CASE
-    if (Contains(conv, Conv::star))
+    if (Contains(conv, format_conv::star))
         out += "*";
     return out;
 }
 
 TEST(StrFormatChecker, ArgumentToConv) {
-    Conv conv = ArgumentToConv<std::string>();
+    format_conv conv = ArgumentToConv<std::string>();
     EXPECT_EQ(ConvToString(conv), "s");
 
     conv = ArgumentToConv<const char *>();

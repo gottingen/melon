@@ -7,8 +7,8 @@
 #include <abel/format/internal/arg.h>  // IWYU pragma: export
 #include <abel/format/internal//bind.h>  // IWYU pragma: export
 #include <abel/format/internal/checker.h>  // IWYU pragma: export
-#include <abel/format/internal//extension.h>  // IWYU pragma: export
-#include <abel/format/internal//parser.h>  // IWYU pragma: export
+#include <abel/format/internal/format_conv.h>  // IWYU pragma: export
+#include <abel/format/internal/parser.h>  // IWYU pragma: export
 
 namespace abel {
 
@@ -211,9 +211,9 @@ typename format_internal::FormatSpecDeductionBarrier<Args...>::type;
 //   } else {
 //     ... error case ...
 //   }
-template<char... Conv>
+template<char... format_conv>
 using parsed_format = format_internal::ExtendedParsedFormat<
-    format_internal::ConversionCharToConv(Conv)...>;
+    format_internal::ConversionCharToConv(format_conv)...>;
 
 // string_format()
 //

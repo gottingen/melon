@@ -1,7 +1,7 @@
 #ifndef ABEL_FORMAT_INTERNAL_FLOAT_CONVERSION_H_
 #define ABEL_FORMAT_INTERNAL_FLOAT_CONVERSION_H_
 
-#include <abel/format/internal/extension.h>
+#include <abel/format/internal/format_conv.h>
 #include <abel/format/internal/sink_impl.h>
 #include <abel/format/internal/conversion_spec.h>
 

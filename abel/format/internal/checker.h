@@ -3,7 +3,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/format/internal/arg.h>
-#include <abel/format/internal/extension.h>
+#include <abel/format/internal/format_conv.h>
 
 // Compile time check support for entry points.
 
@@ -25,7 +25,7 @@ constexpr bool AllOf(bool b, T... t) {
 }
 
 template <typename Arg>
-constexpr Conv ArgumentToConv() {
+constexpr format_conv ArgumentToConv() {
   return decltype(format_internal::FormatConvertImpl(
       std::declval<const Arg&>(), std::declval<const conversion_spec&>(),
       std::declval<format_sink_impl*>()))::kConv;
@@ -39,14 +39,14 @@ constexpr bool ContainsChar(const char* chars, char c) {
 
 // A constexpr compatible list of Convs.
 struct ConvList {
-  const Conv* array;
+  const format_conv* array;
   int count;
 
   // We do the bound check here to avoid having to do it on the callers.
-  // Returning an empty Conv has the same effect as short circuiting because it
+  // Returning an empty format_conv has the same effect as short circuiting because it
   // will never match any conversion.
-  constexpr Conv operator[](int i) const {
-    return i < count ? array[i] : Conv{};
+  constexpr format_conv operator[](int i) const {
+    return i < count ? array[i] : format_conv{};
   }
 
   constexpr ConvList without_front() const {
@@ -57,7 +57,7 @@ struct ConvList {
 template <size_t count>
 struct ConvListT {
   // Make sure the array has size > 0.
-  Conv list[count ? count : 1];
+  format_conv list[count ? count : 1];
 };
 
 constexpr char GetChar(string_view str, size_t index) {
@@ -310,7 +310,7 @@ class FormatParser {
   ConvList args_;
 };
 
-template <Conv... C>
+template <format_conv... C>
 constexpr bool ValidFormatImpl(string_view format) {
   return FormatParser(format,
                       {ConvListT<sizeof...(C)>{{C...}}.list, sizeof...(C)})

@@ -531,76 +531,76 @@ TEST_F(ParsedFormatTest, SimpleUncheckedIncorrect) {
   EXPECT_FALSE((parsed_format<'s', 'd', 'g'>::New(format)));
 }
 
-using format_internal::Conv;
+using format_internal::format_conv;
 
 TEST_F(ParsedFormatTest, UncheckedCorrect) {
-  auto f = ExtendedParsedFormat<Conv::d>::New("ABC%dDEF");
+  auto f = ExtendedParsedFormat<format_conv::d>::New("ABC%dDEF");
   ASSERT_TRUE(f);
   EXPECT_EQ("[ABC]{d:1$d}[DEF]", SummarizeParsedFormat(*f));
 
   std::string format = "%sFFF%dZZZ%f";
   auto f2 =
-      ExtendedParsedFormat<Conv::string, Conv::d, Conv::floating>::New(format);
+      ExtendedParsedFormat<format_conv::string, format_conv::d, format_conv::floating>::New(format);
 
   ASSERT_TRUE(f2);
   EXPECT_EQ("{s:1$s}[FFF]{d:2$d}[ZZZ]{f:3$f}", SummarizeParsedFormat(*f2));
 
-  f2 = ExtendedParsedFormat<Conv::string, Conv::d, Conv::floating>::New(
+  f2 = ExtendedParsedFormat<format_conv::string, format_conv::d, format_conv::floating>::New(
       "%s %d %f");
 
   ASSERT_TRUE(f2);
   EXPECT_EQ("{s:1$s}[ ]{d:2$d}[ ]{f:3$f}", SummarizeParsedFormat(*f2));
 
-  auto star = ExtendedParsedFormat<Conv::star, Conv::d>::New("%*d");
+  auto star = ExtendedParsedFormat<format_conv::star, format_conv::d>::New("%*d");
   ASSERT_TRUE(star);
   EXPECT_EQ("{*d:2$1$*d}", SummarizeParsedFormat(*star));
 
-  auto dollar = ExtendedParsedFormat<Conv::d, Conv::s>::New("%2$s %1$d");
+  auto dollar = ExtendedParsedFormat<format_conv::d, format_conv::s>::New("%2$s %1$d");
   ASSERT_TRUE(dollar);
   EXPECT_EQ("{2$s:2$s}[ ]{1$d:1$d}", SummarizeParsedFormat(*dollar));
   // with reuse
-  dollar = ExtendedParsedFormat<Conv::d, Conv::s>::New("%2$s %1$d %1$d");
+  dollar = ExtendedParsedFormat<format_conv::d, format_conv::s>::New("%2$s %1$d %1$d");
   ASSERT_TRUE(dollar);
   EXPECT_EQ("{2$s:2$s}[ ]{1$d:1$d}[ ]{1$d:1$d}",
             SummarizeParsedFormat(*dollar));
 }
 
 TEST_F(ParsedFormatTest, UncheckedIgnoredArgs) {
-  EXPECT_FALSE((ExtendedParsedFormat<Conv::d, Conv::s>::New("ABC")));
-  EXPECT_FALSE((ExtendedParsedFormat<Conv::d, Conv::s>::New("%dABC")));
-  EXPECT_FALSE((ExtendedParsedFormat<Conv::d, Conv::s>::New("ABC%2$s")));
-  auto f = ExtendedParsedFormat<Conv::d, Conv::s>::NewAllowIgnored("ABC");
+  EXPECT_FALSE((ExtendedParsedFormat<format_conv::d, format_conv::s>::New("ABC")));
+  EXPECT_FALSE((ExtendedParsedFormat<format_conv::d, format_conv::s>::New("%dABC")));
+  EXPECT_FALSE((ExtendedParsedFormat<format_conv::d, format_conv::s>::New("ABC%2$s")));
+  auto f = ExtendedParsedFormat<format_conv::d, format_conv::s>::NewAllowIgnored("ABC");
   ASSERT_TRUE(f);
   EXPECT_EQ("[ABC]", SummarizeParsedFormat(*f));
-  f = ExtendedParsedFormat<Conv::d, Conv::s>::NewAllowIgnored("%dABC");
+  f = ExtendedParsedFormat<format_conv::d, format_conv::s>::NewAllowIgnored("%dABC");
   ASSERT_TRUE(f);
   EXPECT_EQ("{d:1$d}[ABC]", SummarizeParsedFormat(*f));
-  f = ExtendedParsedFormat<Conv::d, Conv::s>::NewAllowIgnored("ABC%2$s");
+  f = ExtendedParsedFormat<format_conv::d, format_conv::s>::NewAllowIgnored("ABC%2$s");
   ASSERT_TRUE(f);
   EXPECT_EQ("[ABC]{2$s:2$s}", SummarizeParsedFormat(*f));
 }
 
 TEST_F(ParsedFormatTest, UncheckedMultipleTypes) {
-  auto dx = ExtendedParsedFormat<Conv::d | Conv::x>::New("%1$d %1$x");
+  auto dx = ExtendedParsedFormat<format_conv::d | format_conv::x>::New("%1$d %1$x");
   EXPECT_TRUE(dx);
   EXPECT_EQ("{1$d:1$d}[ ]{1$x:1$x}", SummarizeParsedFormat(*dx));
 
-  dx = ExtendedParsedFormat<Conv::d | Conv::x>::New("%1$d");
+  dx = ExtendedParsedFormat<format_conv::d | format_conv::x>::New("%1$d");
   EXPECT_TRUE(dx);
   EXPECT_EQ("{1$d:1$d}", SummarizeParsedFormat(*dx));
 }
 
 TEST_F(ParsedFormatTest, UncheckedIncorrect) {
-  EXPECT_FALSE(ExtendedParsedFormat<Conv::d>::New(""));
+  EXPECT_FALSE(ExtendedParsedFormat<format_conv::d>::New(""));
 
-  EXPECT_FALSE(ExtendedParsedFormat<Conv::d>::New("ABC%dDEF%d"));
+  EXPECT_FALSE(ExtendedParsedFormat<format_conv::d>::New("ABC%dDEF%d"));
 
   std::string format = "%sFFF%dZZZ%f";
-  EXPECT_FALSE((ExtendedParsedFormat<Conv::s, Conv::d, Conv::g>::New(format)));
+  EXPECT_FALSE((ExtendedParsedFormat<format_conv::s, format_conv::d, format_conv::g>::New(format)));
 }
 
 TEST_F(ParsedFormatTest, RegressionMixPositional) {
-  EXPECT_FALSE((ExtendedParsedFormat<Conv::d, Conv::o>::New("%1$d %o")));
+  EXPECT_FALSE((ExtendedParsedFormat<format_conv::d, format_conv::o>::New("%1$d %o")));
 }
 
 using FormatWrapperTest = ::testing::Test;

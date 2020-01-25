@@ -334,7 +334,7 @@ TEST_F(ParsedFormatTest, ValueSemantics) {
     ParsedFormatBase p2 = p1;  // copy construct (empty)
     EXPECT_EQ(SummarizeParsedFormat(p1), SummarizeParsedFormat(p2));
 
-    p1 = ParsedFormatBase("hello%s", true, {Conv::s});  // move assign
+    p1 = ParsedFormatBase("hello%s", true, {format_conv::s});  // move assign
     EXPECT_EQ("[hello]{s:1$s}", SummarizeParsedFormat(p1));
 
     ParsedFormatBase p3 = p1;  // copy construct (nonempty)
@@ -352,7 +352,7 @@ TEST_F(ParsedFormatTest, ValueSemantics) {
 
 struct ExpectParse {
     const char *in;
-    std::initializer_list<Conv> conv_set;
+    std::initializer_list<format_conv> conv_set;
     const char *out;
 };
 
@@ -362,9 +362,9 @@ TEST_F(ParsedFormatTest, Parsing) {
     const ExpectParse kExpect[] = {
         {"", {}, ""},
         {"ab", {}, "[ab]"},
-        {"a%d", {Conv::d}, "[a]{d:1$d}"},
-        {"a%+d", {Conv::d}, "[a]{+d:1$d}"},
-        {"a% d", {Conv::d}, "[a]{ d:1$d}"},
+        {"a%d", {format_conv::d}, "[a]{d:1$d}"},
+        {"a%+d", {format_conv::d}, "[a]{+d:1$d}"},
+        {"a% d", {format_conv::d}, "[a]{ d:1$d}"},
         {"a%b %d", {}, "[a]!"},  // stop after error
     };
     for (const auto &e : kExpect) {
@@ -376,13 +376,13 @@ TEST_F(ParsedFormatTest, Parsing) {
 
 TEST_F(ParsedFormatTest, ParsingFlagOrder) {
     const ExpectParse kExpect[] = {
-        {"a%+ 0d", {Conv::d}, "[a]{+ 0d:1$d}"},
-        {"a%+0 d", {Conv::d}, "[a]{+0 d:1$d}"},
-        {"a%0+ d", {Conv::d}, "[a]{0+ d:1$d}"},
-        {"a% +0d", {Conv::d}, "[a]{ +0d:1$d}"},
-        {"a%0 +d", {Conv::d}, "[a]{0 +d:1$d}"},
-        {"a% 0+d", {Conv::d}, "[a]{ 0+d:1$d}"},
-        {"a%+   0+d", {Conv::d}, "[a]{+   0+d:1$d}"},
+        {"a%+ 0d", {format_conv::d}, "[a]{+ 0d:1$d}"},
+        {"a%+0 d", {format_conv::d}, "[a]{+0 d:1$d}"},
+        {"a%0+ d", {format_conv::d}, "[a]{0+ d:1$d}"},
+        {"a% +0d", {format_conv::d}, "[a]{ +0d:1$d}"},
+        {"a%0 +d", {format_conv::d}, "[a]{0 +d:1$d}"},
+        {"a% 0+d", {format_conv::d}, "[a]{ 0+d:1$d}"},
+        {"a%+   0+d", {format_conv::d}, "[a]{+   0+d:1$d}"},
     };
     for (const auto &e : kExpect) {
         SCOPED_TRACE(e.in);

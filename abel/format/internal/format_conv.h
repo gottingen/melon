@@ -30,7 +30,7 @@ constexpr uint64_t ConversionCharToConvValue (char conv) {
         : 0;
 }
 
-enum class Conv : uint64_t {
+enum class format_conv : uint64_t {
 #define CONV_SET_CASE(c) c = ConversionCharToConvValue(#c[0]),
     ABEL_CONVERSION_CHARS_EXPAND_(CONV_SET_CASE,)
 #undef CONV_SET_CASE
@@ -51,36 +51,36 @@ enum class Conv : uint64_t {
 //  1. operator| on enums makes them decay to integers and the result is an
 //     integer. We need the result to stay as an enum.
 //  2. We use "enum class" which would not work even if we accepted the decay.
-constexpr Conv operator | (Conv a, Conv b) {
-    return Conv(static_cast<uint64_t>(a) | static_cast<uint64_t>(b));
+constexpr format_conv operator | (format_conv a, format_conv b) {
+    return format_conv(static_cast<uint64_t>(a) | static_cast<uint64_t>(b));
 }
 
 // Get a conversion with a single character in it.
-constexpr Conv ConversionCharToConv (char c) {
-    return Conv(ConversionCharToConvValue(c));
+constexpr format_conv ConversionCharToConv (char c) {
+    return format_conv(ConversionCharToConvValue(c));
 }
 
 // Checks whether `c` exists in `set`.
-constexpr bool Contains (Conv set, char c) {
+constexpr bool Contains (format_conv set, char c) {
     return (static_cast<uint64_t>(set) & ConversionCharToConvValue(c)) != 0;
 }
 
 // Checks whether all the characters in `c` are contained in `set`
-constexpr bool Contains (Conv set, Conv c) {
+constexpr bool Contains (format_conv set, format_conv c) {
     return (static_cast<uint64_t>(set) & static_cast<uint64_t>(c)) ==
         static_cast<uint64_t>(c);
 }
 
 // Return type of the AbelFormatConvert() functions.
-// The Conv template parameter is used to inform the framework of what
+// The format_conv template parameter is used to inform the framework of what
 // conversion characters are supported by that AbelFormatConvert routine.
-template<Conv C>
-struct ConvertResult {
-    static constexpr Conv kConv = C;
+template<format_conv C>
+struct convert_result {
+    static constexpr format_conv kConv = C;
     bool value;
 };
-template<Conv C>
-constexpr Conv ConvertResult<C>::kConv;
+template<format_conv C>
+constexpr format_conv convert_result<C>::kConv;
 
 
 

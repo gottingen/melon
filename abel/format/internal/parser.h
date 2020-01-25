@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 #include <abel/format/internal/checker.h>
-#include <abel/format/internal/extension.h>
+#include <abel/format/internal/format_conv.h>
 
 namespace abel {
 
@@ -179,7 +179,7 @@ constexpr bool EnsureConstexpr (string_view s) {
 class ParsedFormatBase {
 public:
     explicit ParsedFormatBase (string_view format, bool allow_ignored,
-                               std::initializer_list<Conv> convs);
+                               std::initializer_list<format_conv> convs);
 
     ParsedFormatBase (const ParsedFormatBase &other) { *this = other; }
 
@@ -231,7 +231,7 @@ private:
     // Returns whether the conversions match and if !allow_ignored it verifies
     // that all conversions are used by the format.
     bool MatchesConversions (bool allow_ignored,
-                             std::initializer_list<Conv> convs) const;
+                             std::initializer_list<format_conv> convs) const;
 
     struct ParsedFormatConsumer;
 
@@ -252,7 +252,7 @@ private:
 // The user must specify through the template arguments the conversion
 // characters used in the format. This will be checked at compile time.
 //
-// This class uses Conv enum values to specify each argument.
+// This class uses format_conv enum values to specify each argument.
 // This allows for more flexibility as you can specify multiple possible
 // conversion characters for each argument.
 // parsed_format<char...> is a simplified alias for when the user only
@@ -260,7 +260,7 @@ private:
 //
 // Example:
 //   // Extended format supports multiple characters per argument:
-//   using MyFormat = ExtendedParsedFormat<Conv::d | Conv::x>;
+//   using MyFormat = ExtendedParsedFormat<format_conv::d | format_conv::x>;
 //   MyFormat GetFormat(bool use_hex) {
 //     if (use_hex) return MyFormat("foo %x bar");
 //     return MyFormat("foo %d bar");
@@ -275,7 +275,7 @@ private:
 // This is the only API that allows the user to pass a runtime specified format
 // string. These factory functions will return NULL if the format does not match
 // the conversions requested by the user.
-template<format_internal::Conv... C>
+template<format_internal::format_conv... C>
 class ExtendedParsedFormat : public format_internal::ParsedFormatBase {
 public:
     explicit ExtendedParsedFormat (string_view format)
