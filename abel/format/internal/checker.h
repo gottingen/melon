@@ -17,11 +17,11 @@ namespace abel {
 
 namespace format_internal {
 
-constexpr bool AllOf () { return true; }
+constexpr bool all_of () { return true; }
 
 template<typename... T>
-constexpr bool AllOf (bool b, T... t) {
-    return b && AllOf(t...);
+constexpr bool all_of (bool b, T... t) {
+    return b && all_of(t...);
 }
 
 template<typename Arg>
@@ -108,111 +108,111 @@ constexpr checker_integer parse_positional (string_view format) {
 // See conv_parser::Run() for post conditions.
 class conv_parser {
     constexpr conv_parser set_format (string_view format) const {
-        return conv_parser(format, args_, error_, arg_position_, is_positional_);
+        return conv_parser(format, _args, _error, _arg_position, _is_positional);
     }
 
     constexpr conv_parser set_args (conv_list args) const {
-        return conv_parser(format_, args, error_, arg_position_, is_positional_);
+        return conv_parser(_format, args, _error, _arg_position, _is_positional);
     }
 
     constexpr conv_parser set_error (bool error) const {
-        return conv_parser(format_, args_, error_ || error, arg_position_,
-                           is_positional_);
+        return conv_parser(_format, _args, _error || error, _arg_position,
+                           _is_positional);
     }
 
     constexpr conv_parser set_arg_position (int arg_position) const {
-        return conv_parser(format_, args_, error_, arg_position, is_positional_);
+        return conv_parser(_format, _args, _error, arg_position, _is_positional);
     }
 
     // Consumes the next arg and verifies that it matches `conv`.
-    // `error_` is set if there is no next arg or if it doesn't match `conv`.
+    // `_error` is set if there is no next arg or if it doesn't match `conv`.
     constexpr conv_parser consume_next_arg (char conv) const {
-        return set_args(args_.without_front()).set_error(!conv_contains(args_[0], conv));
+        return set_args(_args.without_front()).set_error(!conv_contains(_args[0], conv));
     }
 
     // Verify that positional argument `i.value` matches `conv`.
-    // `error_` is set if `i.value` is not a valid argument or if it doesn't
+    // `_error` is set if `i.value` is not a valid argument or if it doesn't
     // match.
     constexpr conv_parser verify_positional (checker_integer i, char conv) const {
-        return set_format(i.format).set_error(!conv_contains(args_[i.value - 1], conv));
+        return set_format(i.format).set_error(!conv_contains(_args[i.value - 1], conv));
     }
 
-    // parse the position of the arg and store it in `arg_position_`.
+    // parse the position of the arg and store it in `_arg_position`.
     constexpr conv_parser parse_arg_position (checker_integer arg) const {
         return set_format(arg.format).set_arg_position(arg.value);
     }
 
     // Consume the flags.
     constexpr conv_parser parse_flags () const {
-        return set_format(consume_any_of(format_, "-+ #0"));
+        return set_format(consume_any_of(_format, "-+ #0"));
     }
 
     // Consume the width.
-    // If it is '*', we verify that it matches `args_`. `error_` is set if it
+    // If it is '*', we verify that it matches `_args`. `_error` is set if it
     // doesn't match.
     constexpr conv_parser parse_width () const {
-        return IsDigit(GetChar(format_, 0))
-               ? set_format(parse_digits(format_).format)
-               : GetChar(format_, 0) == '*'
-                 ? is_positional_
+        return IsDigit(GetChar(_format, 0))
+               ? set_format(parse_digits(_format).format)
+               : GetChar(_format, 0) == '*'
+                 ? _is_positional
                    ? verify_positional(
-                        parse_positional(consume_front(format_)), '*')
-                   : set_format(consume_front(format_))
+                        parse_positional(consume_front(_format)), '*')
+                   : set_format(consume_front(_format))
                        .consume_next_arg('*')
                  : *this;
     }
 
     // Consume the precision.
-    // If it is '*', we verify that it matches `args_`. `error_` is set if it
+    // If it is '*', we verify that it matches `_args`. `_error` is set if it
     // doesn't match.
     constexpr conv_parser parse_precision () const {
-        return GetChar(format_, 0) != '.'
+        return GetChar(_format, 0) != '.'
                ? *this
-               : GetChar(format_, 1) == '*'
-                 ? is_positional_
+               : GetChar(_format, 1) == '*'
+                 ? _is_positional
                    ? verify_positional(
-                        parse_positional(consume_front(format_, 2)), '*')
-                   : set_format(consume_front(format_, 2))
+                        parse_positional(consume_front(_format, 2)), '*')
+                   : set_format(consume_front(_format, 2))
                        .consume_next_arg('*')
-                 : set_format(parse_digits(consume_front(format_)).format);
+                 : set_format(parse_digits(consume_front(_format)).format);
     }
 
     // Consume the length characters.
     constexpr conv_parser parse_length () const {
-        return set_format(consume_any_of(format_, "lLhjztq"));
+        return set_format(consume_any_of(_format, "lLhjztq"));
     }
 
-    // Consume the conversion character and verify that it matches `args_`.
-    // `error_` is set if it doesn't match.
+    // Consume the conversion character and verify that it matches `_args`.
+    // `_error` is set if it doesn't match.
     constexpr conv_parser parse_conversion () const {
-        return is_positional_
-               ? verify_positional({consume_front(format_), arg_position_},
-                                   GetChar(format_, 0))
-               : consume_next_arg(GetChar(format_, 0))
-                   .set_format(consume_front(format_));
+        return _is_positional
+               ? verify_positional({consume_front(_format), _arg_position},
+                                   GetChar(_format, 0))
+               : consume_next_arg(GetChar(_format, 0))
+                   .set_format(consume_front(_format));
     }
 
     constexpr conv_parser (string_view format, conv_list args, bool error,
                            int arg_position, bool is_positional)
-        : format_(format),
-          args_(args),
-          error_(error),
-          arg_position_(arg_position),
-          is_positional_(is_positional) { }
+        : _format(format),
+          _args(args),
+          _error(error),
+          _arg_position(arg_position),
+          _is_positional(is_positional) { }
 
 public:
     constexpr conv_parser (string_view format, conv_list args, bool is_positional)
-        : format_(format),
-          args_(args),
-          error_(false),
-          arg_position_(0),
-          is_positional_(is_positional) { }
+        : _format(format),
+          _args(args),
+          _error(false),
+          _arg_position(0),
+          _is_positional(is_positional) { }
 
     // Consume the whole conversion specifier.
     // `format()` will be set to the character after the conversion character.
     // `error()` will be set if any of the arguments do not match.
     constexpr conv_parser run () const {
-        return (is_positional_ ? parse_arg_position(parse_positional(format_)) : *this)
+        return (_is_positional ? parse_arg_position(parse_positional(_format)) : *this)
             .parse_flags()
             .parse_width()
             .parse_precision()
@@ -220,23 +220,23 @@ public:
             .parse_conversion();
     }
 
-    constexpr string_view format () const { return format_; }
-    constexpr conv_list args () const { return args_; }
-    constexpr bool error () const { return error_; }
-    constexpr bool is_positional () const { return is_positional_; }
+    constexpr string_view format () const { return _format; }
+    constexpr conv_list args () const { return _args; }
+    constexpr bool error () const { return _error; }
+    constexpr bool is_positional () const { return _is_positional; }
 
 private:
-    string_view format_;
+    string_view _format;
     // Current list of arguments. If we are not in positional mode we will consume
     // from the front.
-    conv_list args_;
-    bool error_;
+    conv_list _args;
+    bool _error;
     // Holds the argument position of the conversion character, if we are in
     // positional mode. Otherwise, it is unspecified.
-    int arg_position_;
+    int _arg_position;
     // Whether we are in positional mode.
     // It changes the behavior of '*' and where to find the converted argument.
-    bool is_positional_;
+    bool _is_positional;
 };
 
 // Parses a whole format expression.
@@ -279,10 +279,10 @@ class format_parser {
         // In non-positional mode we require all arguments to be consumed.
         // In positional mode just reaching the end of the format without errors is
         // enough.
-        return (format_.empty() && (is_positional || args_.count == 0)) ||
-            (!format_.empty() &&
+        return (_format.empty() && (is_positional || _args.count == 0)) ||
+            (!_format.empty() &&
                 validate_arg(
-                    conv_parser(consume_front(format_), args_, is_positional).run()));
+                    conv_parser(consume_front(_format), _args, is_positional).run()));
     }
 
     constexpr bool validate_arg (conv_parser conv) const {
@@ -292,22 +292,22 @@ class format_parser {
 
 public:
     constexpr format_parser (string_view format, conv_list args)
-        : format_(consume_non_percent(format)), args_(args) { }
+        : _format(consume_non_percent(format)), _args(args) { }
 
     // Runs the parser for `format` and `args`.
     // It verifies that the format is valid and that all conversion specifiers
     // match the arguments passed.
     // In non-positional mode it also verfies that all arguments are consumed.
     constexpr bool run () const {
-        return run_impl(!format_.empty() && is_positional(consume_front(format_)));
+        return run_impl(!_format.empty() && is_positional(consume_front(_format)));
     }
 
 private:
-    string_view format_;
+    string_view _format;
     // Current list of arguments.
     // If we are not in positional mode we will consume from the front and will
     // have to be empty in the end.
-    conv_list args_;
+    conv_list _args;
 };
 
 template<format_conv... C>

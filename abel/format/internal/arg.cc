@@ -8,7 +8,6 @@
 #include <cstdlib>
 #include <string>
 #include <type_traits>
-
 #include <abel/base/profile.h>
 #include <abel/format/internal/float_conversion.h>
 
