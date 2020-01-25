@@ -8,7 +8,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/log/raw_logging.h>
-#include <abel/strings/format/bind.h>
+#include <abel/format/internal/bind.h>
 
 namespace abel {
 
