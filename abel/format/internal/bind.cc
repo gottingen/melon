@@ -159,13 +159,13 @@ private:
 
 }  // namespace
 
-bool BindWithPack (const unbound_conversion *props,
+bool bind_with_pack (const unbound_conversion *props,
                    abel::Span<const format_arg_impl> pack,
                    bound_conversion *bound) {
     return ArgContext(pack).Bind(props, bound);
 }
 
-std::string Summarize (const untyped_format_spec_impl format,
+std::string summarize (const untyped_format_spec_impl format,
                        abel::Span<const format_arg_impl> args) {
     typedef SummarizingConverter Converter;
     std::string out;
@@ -180,7 +180,7 @@ std::string Summarize (const untyped_format_spec_impl format,
     return out;
 }
 
-bool FormatUntyped (format_raw_sink_impl raw_sink,
+bool format_untyped (format_raw_sink_impl raw_sink,
                     const untyped_format_spec_impl format,
                     abel::Span<const format_arg_impl> args) {
     format_sink_impl sink(raw_sink);
@@ -189,33 +189,33 @@ bool FormatUntyped (format_raw_sink_impl raw_sink,
 }
 
 std::ostream &stream_able::Print (std::ostream &os) const {
-    if (!FormatUntyped(&os, format_, args_))
+    if (!format_untyped(&os, format_, args_))
         os.setstate(std::ios::failbit);
     return os;
 }
 
-std::string &AppendPack (std::string *out, const untyped_format_spec_impl format,
+std::string &append_pack (std::string *out, const untyped_format_spec_impl format,
                          abel::Span<const format_arg_impl> args) {
     size_t orig = out->size();
-    if (ABEL_UNLIKELY(!FormatUntyped(out, format, args))) {
+    if (ABEL_UNLIKELY(!format_untyped(out, format, args))) {
         out->erase(orig);
     }
     return *out;
 }
 
-std::string FormatPack (const untyped_format_spec_impl format,
+std::string format_pack (const untyped_format_spec_impl format,
                         abel::Span<const format_arg_impl> args) {
     std::string out;
-    if (ABEL_UNLIKELY(!FormatUntyped(&out, format, args))) {
+    if (ABEL_UNLIKELY(!format_untyped(&out, format, args))) {
         out.clear();
     }
     return out;
 }
 
-int FprintF (std::FILE *output, const untyped_format_spec_impl format,
+int abel_fprintf (std::FILE *output, const untyped_format_spec_impl format,
              abel::Span<const format_arg_impl> args) {
     file_raw_sink sink(output);
-    if (!FormatUntyped(&sink, format, args)) {
+    if (!format_untyped(&sink, format, args)) {
         errno = EINVAL;
         return -1;
     }
@@ -230,10 +230,10 @@ int FprintF (std::FILE *output, const untyped_format_spec_impl format,
     return static_cast<int>(sink.count());
 }
 
-int SnprintF (char *output, size_t size, const untyped_format_spec_impl format,
+int abel_snprintf (char *output, size_t size, const untyped_format_spec_impl format,
               abel::Span<const format_arg_impl> args) {
     buffer_raw_sink sink(output, size ? size - 1 : 0);
-    if (!FormatUntyped(&sink, format, args)) {
+    if (!format_untyped(&sink, format, args)) {
         errno = EINVAL;
         return -1;
     }

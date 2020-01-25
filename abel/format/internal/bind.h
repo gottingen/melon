@@ -165,24 +165,24 @@ private:
 };
 
 // for testing
-std::string Summarize (untyped_format_spec_impl format,
+std::string summarize (untyped_format_spec_impl format,
                        abel::Span<const format_arg_impl> args);
-bool BindWithPack (const unbound_conversion *props,
+bool bind_with_pack (const unbound_conversion *props,
                    abel::Span<const format_arg_impl> pack, bound_conversion *bound);
 
-bool FormatUntyped (format_raw_sink_impl raw_sink,
+bool format_untyped (format_raw_sink_impl raw_sink,
                     untyped_format_spec_impl format,
                     abel::Span<const format_arg_impl> args);
 
-std::string &AppendPack (std::string *out, untyped_format_spec_impl format,
+std::string &append_pack (std::string *out, untyped_format_spec_impl format,
                          abel::Span<const format_arg_impl> args);
 
-std::string FormatPack (const untyped_format_spec_impl format,
+std::string format_pack (const untyped_format_spec_impl format,
                         abel::Span<const format_arg_impl> args);
 
-int FprintF (std::FILE *output, untyped_format_spec_impl format,
+int abel_fprintf (std::FILE *output, untyped_format_spec_impl format,
              abel::Span<const format_arg_impl> args);
-int SnprintF (char *output, size_t size, untyped_format_spec_impl format,
+int abel_snprintf (char *output, size_t size, untyped_format_spec_impl format,
               abel::Span<const format_arg_impl> args);
 
 // Returned by Streamed(v). Converts via '%s' to the std::string created

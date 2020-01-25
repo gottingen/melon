@@ -130,7 +130,7 @@ void TestStringConvert(const T& str) {
   };
   for (const Expectation &e : kExpect) {
     untyped_format_spec_impl format(e.fmt);
-    EXPECT_EQ(e.out, FormatPack(format, abel::MakeSpan(args)));
+    EXPECT_EQ(e.out, format_pack(format, abel::MakeSpan(args)));
   }
 }
 
@@ -144,7 +144,7 @@ TEST_F(FormatConvertTest, BasicString) {
 TEST_F(FormatConvertTest, NullString) {
   const char* p = nullptr;
   untyped_format_spec_impl format("%s");
-  EXPECT_EQ("", FormatPack(format, {format_arg_impl(p)}));
+  EXPECT_EQ("", format_pack(format, {format_arg_impl(p)}));
 }
 
 TEST_F(FormatConvertTest, StringPrecision) {
@@ -152,12 +152,12 @@ TEST_F(FormatConvertTest, StringPrecision) {
   char c = 'a';
   const char* p = &c;
   untyped_format_spec_impl format("%.1s");
-  EXPECT_EQ("a", FormatPack(format, {format_arg_impl(p)}));
+  EXPECT_EQ("a", format_pack(format, {format_arg_impl(p)}));
 
   // We cap at the NUL-terminator.
   p = "ABC";
   untyped_format_spec_impl format2("%.10s");
-  EXPECT_EQ("ABC", FormatPack(format2, {format_arg_impl(p)}));
+  EXPECT_EQ("ABC", format_pack(format2, {format_arg_impl(p)}));
 }
 
 // Pointer formatting is implementation defined. This checks that the argument
@@ -193,52 +193,52 @@ TEST_F(FormatConvertTest, Pointer) {
   };
   auto args = abel::MakeConstSpan(args_array);
 
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%20p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%20p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%.1p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%.1p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%.20p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%.20p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%30.20p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%30.20p"), args),
               MatchesPointerString(&x));
 
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%-p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%-p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%-20p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%-20p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%-.1p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%-.1p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%.20p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%.20p"), args),
               MatchesPointerString(&x));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%-30.20p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%-30.20p"), args),
               MatchesPointerString(&x));
 
   // const char*
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%2$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%2$p"), args),
               MatchesPointerString(cp));
   // null const int*
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%3$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%3$p"), args),
               MatchesPointerString(nullptr));
   // null const char*
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%4$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%4$p"), args),
               MatchesPointerString(nullptr));
   // nonconst char*
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%5$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%5$p"), args),
               MatchesPointerString(mcp));
 
   // function pointers
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%6$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%6$p"), args),
               MatchesPointerString(reinterpret_cast<const void*>(fp)));
   EXPECT_THAT(
-      FormatPack(untyped_format_spec_impl("%8$p"), args),
+      format_pack(untyped_format_spec_impl("%8$p"), args),
       MatchesPointerString(reinterpret_cast<volatile const void *>(vcp)));
 
   // null function pointers
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%7$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%7$p"), args),
               MatchesPointerString(nullptr));
-  EXPECT_THAT(FormatPack(untyped_format_spec_impl("%9$p"), args),
+  EXPECT_THAT(format_pack(untyped_format_spec_impl("%9$p"), args),
               MatchesPointerString(nullptr));
 }
 
@@ -253,8 +253,8 @@ TEST_F(FormatConvertTest, Enum) {
   const format_arg_impl args[] = {format_arg_impl(k3), format_arg_impl(km3)};
   untyped_format_spec_impl format("%1$d");
   untyped_format_spec_impl format2("%2$d");
-  EXPECT_EQ("3", FormatPack(format, abel::MakeSpan(args)));
-  EXPECT_EQ("-3", FormatPack(format2, abel::MakeSpan(args)));
+  EXPECT_EQ("3", format_pack(format, abel::MakeSpan(args)));
+  EXPECT_EQ("-3", format_pack(format2, abel::MakeSpan(args)));
 }
 
 template <typename T>
@@ -353,7 +353,7 @@ TYPED_TEST_P(TypedFormatConvertTest, AllIntsWithFlags) {
                          " new_fmt: \"" +
                          new_fmt + "\"");
             untyped_format_spec_impl format(new_fmt);
-            EXPECT_EQ(old_result, FormatPack(format, abel::MakeSpan(args)));
+            EXPECT_EQ(old_result, format_pack(format, abel::MakeSpan(args)));
           }
         }
       }
@@ -376,7 +376,7 @@ TYPED_TEST_P(TypedFormatConvertTest, Char) {
   for (const T &c : kVals) {
     const format_arg_impl args[] = {format_arg_impl(c)};
     untyped_format_spec_impl format("%c");
-    EXPECT_EQ(StrPrint("%c", c), FormatPack(format, abel::MakeSpan(args)));
+    EXPECT_EQ(StrPrint("%c", c), format_pack(format, abel::MakeSpan(args)));
   }
 }
 
@@ -396,7 +396,7 @@ TEST_F(FormatConvertTest, VectorBool) {
   std::vector<bool> v = {true, false};
   const std::vector<bool> cv = {true, false};
   EXPECT_EQ("1,0,1,0",
-            FormatPack(untyped_format_spec_impl("%d,%d,%d,%d"),
+            format_pack(untyped_format_spec_impl("%d,%d,%d,%d"),
                        abel::Span<const format_arg_impl>(
                            {format_arg_impl(v[0]), format_arg_impl(v[1]),
                             format_arg_impl(cv[0]), format_arg_impl(cv[1])})));
@@ -434,7 +434,7 @@ TEST_F(FormatConvertTest, Int128) {
 
   for (auto c : cases) {
     untyped_format_spec_impl format(c.format);
-    EXPECT_EQ(c.expected, FormatPack(format, abel::MakeSpan(args)));
+    EXPECT_EQ(c.expected, format_pack(format, abel::MakeSpan(args)));
   }
 }
 
@@ -459,7 +459,7 @@ TEST_F(FormatConvertTest, Uint128) {
 
   for (auto c : cases) {
     untyped_format_spec_impl format(c.format);
-    EXPECT_EQ(c.expected, FormatPack(format, abel::MakeSpan(args)));
+    EXPECT_EQ(c.expected, format_pack(format, abel::MakeSpan(args)));
   }
 }
 
@@ -526,7 +526,7 @@ TEST_F(FormatConvertTest, Float) {
         // bug would print way too many failed expectations causing the test to
         // time out.
         ASSERT_EQ(StrPrint(fmt_str.c_str(), d, i),
-                  FormatPack(format, abel::MakeSpan(args)))
+                  format_pack(format, abel::MakeSpan(args)))
             << fmt_str << " " << StrPrint("%.18g", d) << " "
             << StrPrint("%.999f", d);
       }
@@ -569,7 +569,7 @@ TEST_F(FormatConvertTest, LongDouble) {
         // bug would print way too many failed expectations causing the test to
         // time out.
         ASSERT_EQ(StrPrint(fmt_str.c_str(), d),
-                  FormatPack(format, {&arg, 1}))
+                  format_pack(format, {&arg, 1}))
             << fmt_str << " " << StrPrint("%.18Lg", d) << " "
             << StrPrint("%.999Lf", d);
       }
@@ -604,7 +604,7 @@ TEST_F(FormatConvertTest, IntAsFloat) {
       SCOPED_TRACE(e.line);
       SCOPED_TRACE(e.fmt);
       untyped_format_spec_impl format(e.fmt);
-      EXPECT_EQ(e.out, FormatPack(format, abel::MakeSpan(args)));
+      EXPECT_EQ(e.out, format_pack(format, abel::MakeSpan(args)));
     }
   }
 }
@@ -616,9 +616,9 @@ bool FormatFails(const char* test_format, T value) {
 
   int one = 1;
   const format_arg_impl args[] = {format_arg_impl(value), format_arg_impl(one)};
-  EXPECT_EQ(FormatPack(format, abel::MakeSpan(args)), "")
+  EXPECT_EQ(format_pack(format, abel::MakeSpan(args)), "")
       << "format=" << test_format << " value=" << value;
-  return FormatPack(format, abel::MakeSpan(args)).empty();
+  return format_pack(format, abel::MakeSpan(args)).empty();
 }
 
 TEST_F(FormatConvertTest, ExpectedFailures) {

@@ -240,7 +240,7 @@ using parsed_format = format_internal::extended_parsed_format<
 template<typename... Args>
 ABEL_MUST_USE_RESULT std::string string_format (const format_spec<Args...> &format,
                                                 const Args &... args) {
-    return format_internal::FormatPack(
+    return format_internal::format_pack(
         format_internal::untyped_format_spec_impl::Extract(format),
         {format_internal::format_arg_impl(args)...});
 }
@@ -259,7 +259,7 @@ template<typename... Args>
 std::string &string_append_format (std::string *dst,
                                    const format_spec<Args...> &format,
                                    const Args &... args) {
-    return format_internal::AppendPack(
+    return format_internal::append_pack(
         dst, format_internal::untyped_format_spec_impl::Extract(format),
         {format_internal::format_arg_impl(args)...});
 }
@@ -297,7 +297,7 @@ ABEL_MUST_USE_RESULT format_internal::stream_able stream_format (
 //
 template<typename... Args>
 int string_printf (const format_spec<Args...> &format, const Args &... args) {
-    return format_internal::FprintF(
+    return format_internal::abel_fprintf(
         stdout, format_internal::untyped_format_spec_impl::Extract(format),
         {format_internal::format_arg_impl(args)...});
 }
@@ -318,7 +318,7 @@ int string_printf (const format_spec<Args...> &format, const Args &... args) {
 template<typename... Args>
 int string_fprintf (std::FILE *output, const format_spec<Args...> &format,
                     const Args &... args) {
-    return format_internal::FprintF(
+    return format_internal::abel_fprintf(
         output, format_internal::untyped_format_spec_impl::Extract(format),
         {format_internal::format_arg_impl(args)...});
 }
@@ -347,7 +347,7 @@ int string_fprintf (std::FILE *output, const format_spec<Args...> &format,
 template<typename... Args>
 int string_snprintf (char *output, std::size_t size, const format_spec<Args...> &format,
                      const Args &... args) {
-    return format_internal::SnprintF(
+    return format_internal::abel_snprintf(
         output, size, format_internal::untyped_format_spec_impl::Extract(format),
         {format_internal::format_arg_impl(args)...});
 }
@@ -395,7 +395,7 @@ private:
 template<typename... Args>
 bool format (format_raw_sink raw_sink, const format_spec<Args...> &format,
              const Args &... args) {
-    return format_internal::FormatUntyped(
+    return format_internal::format_untyped(
         format_internal::format_raw_sink_impl::Extract(raw_sink),
         format_internal::untyped_format_spec_impl::Extract(format),
         {format_internal::format_arg_impl(args)...});
@@ -454,7 +454,7 @@ using format_arg = format_internal::format_arg_impl;
 ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE bool FormatUntyped (
     format_raw_sink raw_sink, const untyped_format_spec &format,
     abel::Span<const format_arg> args) {
-    return format_internal::FormatUntyped(
+    return format_internal::format_untyped(
         format_internal::format_raw_sink_impl::Extract(raw_sink),
         format_internal::untyped_format_spec_impl::Extract(format), args);
 }

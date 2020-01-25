@@ -72,7 +72,7 @@ TEST_F(FormatBindTest, BindSingle) {
         int next = 0;
         if (Extract(e.fmt, &props, &next)) {
             ++ok_phases;
-            if (BindWithPack(&props, args, &bound)) {
+            if (bind_with_pack(&props, args, &bound)) {
                 ++ok_phases;
             }
         }
@@ -95,7 +95,7 @@ TEST_F(FormatBindTest, WidthUnderflowRegression) {
     const format_arg_impl args[] = {format_arg_impl(args_i[0]),
                                   format_arg_impl(args_i[1])};
     ASSERT_TRUE(Extract("*d", &props, &next));
-    ASSERT_TRUE(BindWithPack(&props, args, &bound));
+    ASSERT_TRUE(bind_with_pack(&props, args, &bound));
 
     EXPECT_EQ(bound.width(), std::numeric_limits<int>::max());
     EXPECT_EQ(bound.arg(), args + 1);
@@ -131,7 +131,7 @@ TEST_F(FormatBindTest, FormatPack) {
         SCOPED_TRACE(e.fmt);
         untyped_format_spec_impl format(fmt);
         EXPECT_EQ(e.summary,
-                  format_internal::Summarize(format, abel::MakeSpan(args)))
+                  format_internal::summarize(format, abel::MakeSpan(args)))
                     << "line:" << e.line;
     }
 }

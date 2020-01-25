@@ -46,7 +46,7 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
         char buf[4096] {};
         snprintf(buf, sizeof(buf), fmt, 123);
         EXPECT_EQ(
-            format_internal::FormatPack(
+            format_internal::format_pack(
                 format_internal::untyped_format_spec_impl::Extract(format), args),
             buf);
         EXPECT_EQ(actual, buf);
@@ -56,7 +56,7 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
     int i = 345;
     format_arg arg(i);
     std::string out;
-    EXPECT_TRUE(format_internal::FormatUntyped(
+    EXPECT_TRUE(format_internal::format_untyped(
         &out, format_internal::untyped_format_spec_impl(&pc), {&arg, 1}));
     EXPECT_EQ("A format 345", out);
 }
@@ -81,7 +81,7 @@ TEST_F(FormatEntryPointTest, AppendFormatFail) {
     format_arg_impl arg("not an int");
 
     EXPECT_EQ("orig",
-              format_internal::AppendPack(
+              format_internal::append_pack(
                   &s, format_internal::untyped_format_spec_impl::Extract(format),
                   {&arg, 1}));
 }
@@ -120,7 +120,7 @@ TEST_F(FormatEntryPointTest, FormatCountCaptureWrongType) {
     int i = 123, *ip = &n;
     format_arg_impl args[2] = {format_arg_impl(i), format_arg_impl(ip)};
 
-    EXPECT_EQ("", format_internal::FormatPack(
+    EXPECT_EQ("", format_internal::format_pack(
         format_internal::untyped_format_spec_impl::Extract(format),
         abel::MakeSpan(args)));
 }
