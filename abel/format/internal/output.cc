@@ -1,7 +1,6 @@
 //
 
 #include <abel/strings/format/output.h>
-
 #include <errno.h>
 #include <cstring>
 
@@ -20,33 +19,33 @@ struct ClearErrnoGuard {
 };
 }  // namespace
 
-void BufferRawSink::Write (string_view v) {
-    size_t to_write = std::min(v.size(), size_);
-    std::memcpy(buffer_, v.data(), to_write);
-    buffer_ += to_write;
-    size_ -= to_write;
-    total_written_ += v.size();
+void buffer_raw_sink::write (string_view v) {
+    size_t to_write = std::min(v.size(), _size);
+    std::memcpy(_buffer, v.data(), to_write);
+    _buffer += to_write;
+    _size -= to_write;
+    _total_written += v.size();
 }
 
-void FILERawSink::Write (string_view v) {
-    while (!v.empty() && !error_) {
+void file_raw_sink::write (string_view v) {
+    while (!v.empty() && !_error) {
         // Reset errno to zero in case the libc implementation doesn't set errno
         // when a failure occurs.
         ClearErrnoGuard guard;
 
-        if (size_t result = std::fwrite(v.data(), 1, v.size(), output_)) {
+        if (size_t result = std::fwrite(v.data(), 1, v.size(), _output)) {
             // Some progress was made.
-            count_ += result;
+            _count += result;
             v.remove_prefix(result);
         } else {
             if (errno == EINTR) {
                 continue;
             } else if (errno) {
-                error_ = errno;
-            } else if (std::ferror(output_)) {
+                _error = errno;
+            } else if (std::ferror(_output)) {
                 // Non-POSIX compliant libc implementations may not set errno, so we
                 // have check the streams error indicator.
-                error_ = EBADF;
+                _error = EBADF;
             } else {
                 // We're likely on a non-POSIX system that encountered EINTR but had no
                 // way of reporting it.

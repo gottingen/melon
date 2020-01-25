@@ -3,7 +3,7 @@
 #include <test/testing/pow10_helper.h>
 #include <cmath>
 #include <gtest/gtest.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 
 namespace abel {
 

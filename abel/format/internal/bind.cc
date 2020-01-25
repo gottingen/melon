@@ -208,7 +208,7 @@ std::string FormatPack(const UntypedFormatSpecImpl format,
 
 int FprintF(std::FILE* output, const UntypedFormatSpecImpl format,
             abel::Span<const FormatArgImpl> args) {
-  FILERawSink sink(output);
+  file_raw_sink sink(output);
   if (!FormatUntyped(&sink, format, args)) {
     errno = EINVAL;
     return -1;
@@ -226,7 +226,7 @@ int FprintF(std::FILE* output, const UntypedFormatSpecImpl format,
 
 int SnprintF(char* output, size_t size, const UntypedFormatSpecImpl format,
              abel::Span<const FormatArgImpl> args) {
-  BufferRawSink sink(output, size ? size - 1 : 0);
+  buffer_raw_sink sink(output, size ? size - 1 : 0);
   if (!FormatUntyped(&sink, format, args)) {
     errno = EINVAL;
     return -1;
