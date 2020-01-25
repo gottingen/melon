@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 #include <test/testing/pow10_helper.h>
 #include <abel/strings/str_cat.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 
 #ifdef _MSC_FULL_VER
 #define ABEL_COMPILER_DOES_EXACT_ROUNDING 0

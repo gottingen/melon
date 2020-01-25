@@ -1,8 +1,6 @@
-#include <abel/strings/format/bind.h>
-
+#include <abel/format/internal/bind.h>
 #include <string.h>
 #include <limits>
-
 #include <gtest/gtest.h>
 
 namespace abel {

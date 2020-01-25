@@ -5,8 +5,8 @@
 // `BufferRawSink` is a simple output sink for a char buffer. Used by SnprintF.
 // `FILERawSink` is a std::FILE* based sink. Used by printf and FprintF.
 
-#ifndef ABEL_STRINGS_FORMAT_OUTPUT_H_
-#define ABEL_STRINGS_FORMAT_OUTPUT_H_
+#ifndef ABEL_FORMAT_INTERNAL_OUTPUT_H_
+#define ABEL_FORMAT_INTERNAL_OUTPUT_H_
 
 #include <abel/base/profile.h>
 #include <abel/strings/string_view.h>
@@ -80,4 +80,4 @@ auto invoke_flush (T *out, string_view s)
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_OUTPUT_H_
+#endif  // ABEL_FORMAT_INTERNAL_OUTPUT_H_

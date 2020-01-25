@@ -1,9 +1,9 @@
-#ifndef ABEL_STRINGS_INTERNAL_STR_FORMAT_CHECKER_H_
-#define ABEL_STRINGS_INTERNAL_STR_FORMAT_CHECKER_H_
+#ifndef ABEL_FORMAT_INTERNAL_CHECKER_H_
+#define ABEL_FORMAT_INTERNAL_CHECKER_H_
 
 #include <abel/base/profile.h>
-#include <abel/strings/format/arg.h>
-#include <abel/strings/format/extension.h>
+#include <abel/format/internal/arg.h>
+#include <abel/format/internal/extension.h>
 
 // Compile time check support for entry points.
 
@@ -323,4 +323,4 @@ constexpr bool ValidFormatImpl(string_view format) {
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_INTERNAL_STR_FORMAT_CHECKER_H_
+#endif  // ABEL_FORMAT_INTERNAL_CHECKER_H_

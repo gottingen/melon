@@ -11,7 +11,7 @@
 #include <abel/strings/compare.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
-#include <abel/strings/str_format.h>
+#include <abel/format/str_format.h>
 #include <abel/strings/str_join.h>
 #include <abel/strings/str_split.h>
 

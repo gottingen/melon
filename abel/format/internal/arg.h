@@ -1,5 +1,5 @@
-#ifndef ABEL_STRINGS_FORMAT_ARG_H_
-#define ABEL_STRINGS_FORMAT_ARG_H_
+#ifndef ABEL_FORMAT_INTERNAL_ARG_H_
+#define ABEL_FORMAT_INTERNAL_ARG_H_
 
 #include <cstring>
 #include <cwchar>
@@ -10,11 +10,10 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
-
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/numeric/int128.h>
-#include <abel/strings/format/extension.h>
+#include <abel/format/internal/extension.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {
@@ -429,4 +428,4 @@ ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(extern);
 
 }  // namespace abel
 
-#endif  // ABEL_STRINGS_FORMAT_ARG_H_
+#endif  // ABEL_FORMAT_INTERNAL_ARG_H_

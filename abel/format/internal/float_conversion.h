@@ -1,7 +1,7 @@
-#ifndef ABEL_STRINGS_FORMAT_FLOAT_CONVERSION_H_
-#define ABEL_STRINGS_FORMAT_FLOAT_CONVERSION_H_
+#ifndef ABEL_FORMAT_INTERNAL_FLOAT_CONVERSION_H_
+#define ABEL_FORMAT_INTERNAL_FLOAT_CONVERSION_H_
 
-#include <abel/strings/format/extension.h>
+#include <abel/format/internal/extension.h>
 
 namespace abel {
 

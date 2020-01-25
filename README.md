@@ -89,6 +89,7 @@ build step
 
     the digest module contains md5, sha1, sha256 tools.
 * [flags](/docs/en/flags.md)
+* [format](/docs/en/format.md)
 * [strings](/docs/en/strings.md) 
 
     strings library contains string utilities, such as trim, split. also include a 

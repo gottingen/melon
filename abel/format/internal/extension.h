@@ -1,14 +1,13 @@
 
-#ifndef ABEL_STRINGS_FORMAT_EXTENSION_H_
-#define ABEL_STRINGS_FORMAT_EXTENSION_H_
+#ifndef ABEL_FORMAT_INTERNAL_EXTENSION_H_
+#define ABEL_FORMAT_INTERNAL_EXTENSION_H_
 
-#include <limits.h>
+#include <climits>
 #include <cstddef>
 #include <cstring>
 #include <ostream>
-
 #include <abel/base/profile.h>
-#include <abel/strings/format/output.h>
+#include <abel/format/internal/output.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {

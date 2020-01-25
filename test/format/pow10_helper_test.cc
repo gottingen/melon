@@ -1,4 +1,3 @@
-//
 
 #include <test/testing/pow10_helper.h>
 #include <cmath>

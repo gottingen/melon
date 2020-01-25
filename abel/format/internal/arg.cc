@@ -2,8 +2,7 @@
 // POSIX spec:
 //   http://pubs.opengroup.org/onlinepubs/009695399/functions/fprintf.html
 //
-#include <abel/strings/format/arg.h>
-
+#include <abel/format/internal/arg.h>
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
@@ -11,7 +10,7 @@
 #include <type_traits>
 
 #include <abel/base/profile.h>
-#include <abel/strings/format/float_conversion.h>
+#include <abel/format/internal/float_conversion.h>
 
 namespace abel {
 

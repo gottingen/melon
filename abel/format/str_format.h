@@ -62,11 +62,11 @@
 #include <cstdio>
 #include <string>
 
-#include <abel/strings/format/arg.h>  // IWYU pragma: export
-#include <abel/strings/format/bind.h>  // IWYU pragma: export
-#include <abel/strings/format/checker.h>  // IWYU pragma: export
-#include <abel/strings/format/extension.h>  // IWYU pragma: export
-#include <abel/strings/format/parser.h>  // IWYU pragma: export
+#include <abel/format/internal/arg.h>  // IWYU pragma: export
+#include <abel/format/internal//bind.h>  // IWYU pragma: export
+#include <abel/format/internal/checker.h>  // IWYU pragma: export
+#include <abel/format/internal//extension.h>  // IWYU pragma: export
+#include <abel/format/internal//parser.h>  // IWYU pragma: export
 
 namespace abel {
 
