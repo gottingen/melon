@@ -103,12 +103,12 @@ public:
 
     // Good format overload.
     FormatSpecTemplate (const char *s)  // NOLINT
-    __attribute__((enable_if(ValidFormatImpl<ArgumentToConv<Args>()...>(s),
+    __attribute__((enable_if(valid_format_impl<argument_to_conv<Args>()...>(s),
     "bad format trap")))
         : Base(s) { }
 
     FormatSpecTemplate (string_view s)  // NOLINT
-    __attribute__((enable_if(ValidFormatImpl<ArgumentToConv<Args>()...>(s),
+    __attribute__((enable_if(valid_format_impl<argument_to_conv<Args>()...>(s),
     "bad format trap")))
         : Base(s) { }
 
@@ -121,7 +121,7 @@ public:
 
     template<format_conv... C, typename = typename std::enable_if<
         sizeof...(C) == sizeof...(Args) &&
-            AllOf(conv_contains(ArgumentToConv<Args>(),
+            AllOf(conv_contains(argument_to_conv<Args>(),
                            C)...)>::type>
     FormatSpecTemplate (const ExtendedParsedFormat<C...> &pc)  // NOLINT
         : Base(&pc) { }

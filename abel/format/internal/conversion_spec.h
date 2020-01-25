@@ -7,7 +7,6 @@
 namespace abel {
 namespace format_internal {
 
-
 class conversion_spec {
 public:
     format_flags flags () const { return flags_; }

@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <iostream>
 
-
 namespace abel {
 namespace format_internal {
 
@@ -147,7 +146,6 @@ private:
 
     Id id_;
 };
-
 
 } //namespace format_internal
 } //namespace abel

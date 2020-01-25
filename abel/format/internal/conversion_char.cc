@@ -5,7 +5,6 @@
 namespace abel {
 namespace format_internal {
 
-
 const conversion_char::Spec conversion_char::kSpecs[] = {
 #define X_VAL(id) { conversion_char::id, #id[0] }
 #define X_SEP ,
@@ -15,10 +14,7 @@ const conversion_char::Spec conversion_char::kSpecs[] = {
 #undef X_SEP
 };
 
-
 const size_t conversion_char::kNumValues;
-
-
 
 } //format_internal
 } //abel

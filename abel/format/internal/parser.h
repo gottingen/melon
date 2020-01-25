@@ -283,7 +283,7 @@ public:
     __attribute__((
     enable_if(format_internal::EnsureConstexpr(format),
     "Format std::string is not constexpr."),
-    enable_if(format_internal::ValidFormatImpl<C...>(format),
+    enable_if(format_internal::valid_format_impl<C...>(format),
     "Format specified does not match the template arguments.")))
 #endif  // ABEL_INTERNAL_ENABLE_FORMAT_CHECKER
         : ExtendedParsedFormat(format, false) {

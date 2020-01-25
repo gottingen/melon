@@ -20,19 +20,19 @@ std::string ConvToString (format_conv conv) {
 }
 
 TEST(StrFormatChecker, ArgumentToConv) {
-    format_conv conv = ArgumentToConv<std::string>();
+    format_conv conv = argument_to_conv<std::string>();
     EXPECT_EQ(ConvToString(conv), "s");
 
-    conv = ArgumentToConv<const char *>();
+    conv = argument_to_conv<const char *>();
     EXPECT_EQ(ConvToString(conv), "sp");
 
-    conv = ArgumentToConv<double>();
+    conv = argument_to_conv<double>();
     EXPECT_EQ(ConvToString(conv), "fFeEgGaA");
 
-    conv = ArgumentToConv<int>();
+    conv = argument_to_conv<int>();
     EXPECT_EQ(ConvToString(conv), "cdiouxXfFeEgGaA*");
 
-    conv = ArgumentToConv<std::string *>();
+    conv = argument_to_conv<std::string *>();
     EXPECT_EQ(ConvToString(conv), "p");
 }
 
@@ -45,7 +45,7 @@ struct Case {
 
 template<typename... Args>
 constexpr Case ValidFormat (const char *format) {
-    return {ValidFormatImpl<ArgumentToConv<Args>()...>(format), format};
+    return {valid_format_impl<argument_to_conv<Args>()...>(format), format};
 }
 
 TEST(StrFormatChecker, ValidFormat) {
