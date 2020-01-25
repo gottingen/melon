@@ -13,34 +13,34 @@ namespace format_internal {
 namespace {
 
 ABEL_FORCE_INLINE bool BindFromPosition (int position, int *value,
-                                         abel::Span<const FormatArgImpl> pack) {
+                                         abel::Span<const format_arg_impl> pack) {
     assert(position > 0);
     if (static_cast<size_t>(position) > pack.size()) {
         return false;
     }
     // -1 because positions are 1-based
-    return FormatArgImplFriend::ToInt(pack[position - 1], value);
+    return format_arg_impl_friend::to_int(pack[position - 1], value);
 }
 
 class ArgContext {
 public:
-    explicit ArgContext (abel::Span<const FormatArgImpl> pack) : pack_(pack) { }
+    explicit ArgContext (abel::Span<const format_arg_impl> pack) : pack_(pack) { }
 
     // Fill 'bound' with the results of applying the context's argument pack
-    // to the specified 'unbound'. We synthesize a BoundConversion by
+    // to the specified 'unbound'. We synthesize a bound_conversion by
     // lining up a unbound_conversion with a user argument. We also
     // resolve any '*' specifiers for width and precision, so after
     // this call, 'bound' has all the information it needs to be formatted.
     // Returns false on failure.
-    bool Bind (const unbound_conversion *unbound, BoundConversion *bound);
+    bool Bind (const unbound_conversion *unbound, bound_conversion *bound);
 
 private:
-    abel::Span<const FormatArgImpl> pack_;
+    abel::Span<const format_arg_impl> pack_;
 };
 
 ABEL_FORCE_INLINE bool ArgContext::Bind (const unbound_conversion *unbound,
-                                         BoundConversion *bound) {
-    const FormatArgImpl *arg = nullptr;
+                                         bound_conversion *bound) {
+    const format_arg_impl *arg = nullptr;
     int arg_position = unbound->arg_position;
     if (static_cast<size_t>(arg_position - 1) >= pack_.size())
         return false;
@@ -88,7 +88,7 @@ ABEL_FORCE_INLINE bool ArgContext::Bind (const unbound_conversion *unbound,
 template<typename Converter>
 class ConverterConsumer {
 public:
-    ConverterConsumer (Converter converter, abel::Span<const FormatArgImpl> pack)
+    ConverterConsumer (Converter converter, abel::Span<const format_arg_impl> pack)
         : converter_(converter), arg_context_(pack) { }
 
     bool Append (string_view s) {
@@ -96,7 +96,7 @@ public:
         return true;
     }
     bool ConvertOne (const unbound_conversion &conv, string_view conv_string) {
-        BoundConversion bound;
+        bound_conversion bound;
         if (!arg_context_.Bind(&conv, &bound))
             return false;
         return converter_.ConvertOne(bound, conv_string);
@@ -108,14 +108,14 @@ private:
 };
 
 template<typename Converter>
-bool ConvertAll (const UntypedFormatSpecImpl format,
-                 abel::Span<const FormatArgImpl> args, Converter converter) {
+bool ConvertAll (const untyped_format_spec_impl format,
+                 abel::Span<const format_arg_impl> args, Converter converter) {
     if (format.has_parsed_conversion()) {
         return format.parsed_conversion()->process_format(
             ConverterConsumer<Converter>(converter, args));
     } else {
         return parse_format_string(format.str(),
-                                 ConverterConsumer<Converter>(converter, args));
+                                   ConverterConsumer<Converter>(converter, args));
     }
 }
 
@@ -125,8 +125,8 @@ public:
 
     void Append (string_view s) const { sink_->Append(s); }
 
-    bool ConvertOne (const BoundConversion &bound, string_view /*conv*/) const {
-        return FormatArgImplFriend::Convert(*bound.arg(), bound, sink_);
+    bool ConvertOne (const bound_conversion &bound, string_view /*conv*/) const {
+        return format_arg_impl_friend::convert(*bound.arg(), bound, sink_);
     }
 
 private:
@@ -139,11 +139,11 @@ public:
 
     void Append (string_view s) const { sink_->Append(s); }
 
-    bool ConvertOne (const BoundConversion &bound, string_view /*conv*/) const {
-        UntypedFormatSpecImpl spec("%d");
+    bool ConvertOne (const bound_conversion &bound, string_view /*conv*/) const {
+        untyped_format_spec_impl spec("%d");
 
         std::ostringstream ss;
-        ss << "{" << Streamable(spec, {*bound.arg()}) << ":" << bound.flags();
+        ss << "{" << stream_able(spec, {*bound.arg()}) << ":" << bound.flags();
         if (bound.width() >= 0)
             ss << bound.width();
         if (bound.precision() >= 0)
@@ -160,13 +160,13 @@ private:
 }  // namespace
 
 bool BindWithPack (const unbound_conversion *props,
-                   abel::Span<const FormatArgImpl> pack,
-                   BoundConversion *bound) {
+                   abel::Span<const format_arg_impl> pack,
+                   bound_conversion *bound) {
     return ArgContext(pack).Bind(props, bound);
 }
 
-std::string Summarize (const UntypedFormatSpecImpl format,
-                       abel::Span<const FormatArgImpl> args) {
+std::string Summarize (const untyped_format_spec_impl format,
+                       abel::Span<const format_arg_impl> args) {
     typedef SummarizingConverter Converter;
     std::string out;
     {
@@ -181,21 +181,21 @@ std::string Summarize (const UntypedFormatSpecImpl format,
 }
 
 bool FormatUntyped (format_raw_sink_impl raw_sink,
-                    const UntypedFormatSpecImpl format,
-                    abel::Span<const FormatArgImpl> args) {
+                    const untyped_format_spec_impl format,
+                    abel::Span<const format_arg_impl> args) {
     format_sink_impl sink(raw_sink);
     using Converter = DefaultConverter;
     return ConvertAll(format, args, Converter(&sink));
 }
 
-std::ostream &Streamable::Print (std::ostream &os) const {
+std::ostream &stream_able::Print (std::ostream &os) const {
     if (!FormatUntyped(&os, format_, args_))
         os.setstate(std::ios::failbit);
     return os;
 }
 
-std::string &AppendPack (std::string *out, const UntypedFormatSpecImpl format,
-                         abel::Span<const FormatArgImpl> args) {
+std::string &AppendPack (std::string *out, const untyped_format_spec_impl format,
+                         abel::Span<const format_arg_impl> args) {
     size_t orig = out->size();
     if (ABEL_UNLIKELY(!FormatUntyped(out, format, args))) {
         out->erase(orig);
@@ -203,8 +203,8 @@ std::string &AppendPack (std::string *out, const UntypedFormatSpecImpl format,
     return *out;
 }
 
-std::string FormatPack (const UntypedFormatSpecImpl format,
-                        abel::Span<const FormatArgImpl> args) {
+std::string FormatPack (const untyped_format_spec_impl format,
+                        abel::Span<const format_arg_impl> args) {
     std::string out;
     if (ABEL_UNLIKELY(!FormatUntyped(&out, format, args))) {
         out.clear();
@@ -212,8 +212,8 @@ std::string FormatPack (const UntypedFormatSpecImpl format,
     return out;
 }
 
-int FprintF (std::FILE *output, const UntypedFormatSpecImpl format,
-             abel::Span<const FormatArgImpl> args) {
+int FprintF (std::FILE *output, const untyped_format_spec_impl format,
+             abel::Span<const format_arg_impl> args) {
     file_raw_sink sink(output);
     if (!FormatUntyped(&sink, format, args)) {
         errno = EINVAL;
@@ -230,8 +230,8 @@ int FprintF (std::FILE *output, const UntypedFormatSpecImpl format,
     return static_cast<int>(sink.count());
 }
 
-int SnprintF (char *output, size_t size, const UntypedFormatSpecImpl format,
-              abel::Span<const FormatArgImpl> args) {
+int SnprintF (char *output, size_t size, const untyped_format_spec_impl format,
+              abel::Span<const format_arg_impl> args) {
     buffer_raw_sink sink(output, size ? size - 1 : 0);
     if (!FormatUntyped(&sink, format, args)) {
         errno = EINVAL;

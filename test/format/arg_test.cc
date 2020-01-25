@@ -26,39 +26,39 @@ public:
 
 TEST_F(FormatArgImplTest, ToInt) {
     int out = 0;
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(FormatArgImpl(1), &out));
+    EXPECT_TRUE(format_arg_impl_friend::to_int(format_arg_impl(1), &out));
     EXPECT_EQ(1, out);
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(FormatArgImpl(-1), &out));
+    EXPECT_TRUE(format_arg_impl_friend::to_int(format_arg_impl(-1), &out));
     EXPECT_EQ(-1, out);
     EXPECT_TRUE(
-        FormatArgImplFriend::ToInt(FormatArgImpl(static_cast<char>(64)), &out));
+        format_arg_impl_friend::to_int(format_arg_impl(static_cast<char>(64)), &out));
     EXPECT_EQ(64, out);
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(
-        FormatArgImpl(static_cast<unsigned long long>(123456)), &out));  // NOLINT
+    EXPECT_TRUE(format_arg_impl_friend::to_int(
+        format_arg_impl(static_cast<unsigned long long>(123456)), &out));  // NOLINT
     EXPECT_EQ(123456, out);
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(
-        FormatArgImpl(static_cast<unsigned long long>(  // NOLINT
+    EXPECT_TRUE(format_arg_impl_friend::to_int(
+        format_arg_impl(static_cast<unsigned long long>(  // NOLINT
                           std::numeric_limits<int>::max()) +
             1),
         &out));
     EXPECT_EQ(std::numeric_limits<int>::max(), out);
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(
-        FormatArgImpl(static_cast<long long>(  // NOLINT
+    EXPECT_TRUE(format_arg_impl_friend::to_int(
+        format_arg_impl(static_cast<long long>(  // NOLINT
                           std::numeric_limits<int>::min()) -
             10),
         &out));
     EXPECT_EQ(std::numeric_limits<int>::min(), out);
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(FormatArgImpl(false), &out));
+    EXPECT_TRUE(format_arg_impl_friend::to_int(format_arg_impl(false), &out));
     EXPECT_EQ(0, out);
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(FormatArgImpl(true), &out));
+    EXPECT_TRUE(format_arg_impl_friend::to_int(format_arg_impl(true), &out));
     EXPECT_EQ(1, out);
-    EXPECT_FALSE(FormatArgImplFriend::ToInt(FormatArgImpl(2.2), &out));
-    EXPECT_FALSE(FormatArgImplFriend::ToInt(FormatArgImpl(3.2f), &out));
-    EXPECT_FALSE(FormatArgImplFriend::ToInt(
-        FormatArgImpl(static_cast<int *>(nullptr)), &out));
-    EXPECT_FALSE(FormatArgImplFriend::ToInt(FormatArgImpl(hi()), &out));
-    EXPECT_FALSE(FormatArgImplFriend::ToInt(FormatArgImpl("hi"), &out));
-    EXPECT_TRUE(FormatArgImplFriend::ToInt(FormatArgImpl(kBlue), &out));
+    EXPECT_FALSE(format_arg_impl_friend::to_int(format_arg_impl(2.2), &out));
+    EXPECT_FALSE(format_arg_impl_friend::to_int(format_arg_impl(3.2f), &out));
+    EXPECT_FALSE(format_arg_impl_friend::to_int(
+        format_arg_impl(static_cast<int *>(nullptr)), &out));
+    EXPECT_FALSE(format_arg_impl_friend::to_int(format_arg_impl(hi()), &out));
+    EXPECT_FALSE(format_arg_impl_friend::to_int(format_arg_impl("hi"), &out));
+    EXPECT_TRUE(format_arg_impl_friend::to_int(format_arg_impl(kBlue), &out));
     EXPECT_EQ(2, out);
 }
 
@@ -66,28 +66,28 @@ extern const char kMyArray[];
 
 TEST_F(FormatArgImplTest, CharArraysDecayToCharPtr) {
     const char *a = "";
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl(a)),
-              FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl("")));
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl(a)),
-              FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl("A")));
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl(a)),
-              FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl("ABC")));
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl(a)),
-              FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl(kMyArray)));
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl(a)),
+              format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl("")));
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl(a)),
+              format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl("A")));
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl(a)),
+              format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl("ABC")));
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl(a)),
+              format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl(kMyArray)));
 }
 
 TEST_F(FormatArgImplTest, OtherPtrDecayToVoidPtr) {
-    auto expected = FormatArgImplFriend::GetVTablePtrForTest(
-        FormatArgImpl(static_cast<void *>(nullptr)));
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(
-        FormatArgImpl(static_cast<int *>(nullptr))),
+    auto expected = format_arg_impl_friend::GetVTablePtrForTest(
+        format_arg_impl(static_cast<void *>(nullptr)));
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(
+        format_arg_impl(static_cast<int *>(nullptr))),
               expected);
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(
-        FormatArgImpl(static_cast<volatile int *>(nullptr))),
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(
+        format_arg_impl(static_cast<volatile int *>(nullptr))),
               expected);
 
     auto p = static_cast<void (*) ()>([] { });
-    EXPECT_EQ(FormatArgImplFriend::GetVTablePtrForTest(FormatArgImpl(p)),
+    EXPECT_EQ(format_arg_impl_friend::GetVTablePtrForTest(format_arg_impl(p)),
               expected);
 }
 
@@ -100,7 +100,7 @@ TEST_F(FormatArgImplTest, WorksWithCharArraysOfUnknownSize) {
     conv.set_width(-1);
     conv.set_precision(-1);
     EXPECT_TRUE(
-        FormatArgImplFriend::Convert(FormatArgImpl(kMyArray), conv, &sink));
+        format_arg_impl_friend::convert(format_arg_impl(kMyArray), conv, &sink));
     sink.Flush();
     EXPECT_EQ("ABCDE", s);
 }

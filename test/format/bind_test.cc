@@ -21,15 +21,15 @@ TEST_F(FormatBindTest, BindSingle) {
         int line;
         const char *fmt;
         int ok_phases;
-        const FormatArgImpl *arg;
+        const format_arg_impl *arg;
         int width;
         int precision;
         int next_arg;
     };
     const int no = -1;
     const int ia[] = {10, 20, 30, 40};
-    const FormatArgImpl args[] = {FormatArgImpl(ia[0]), FormatArgImpl(ia[1]),
-                                  FormatArgImpl(ia[2]), FormatArgImpl(ia[3])};
+    const format_arg_impl args[] = {format_arg_impl(ia[0]), format_arg_impl(ia[1]),
+                                  format_arg_impl(ia[2]), format_arg_impl(ia[3])};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     const Expectation kExpect[] = {
@@ -67,7 +67,7 @@ TEST_F(FormatBindTest, BindSingle) {
         SCOPED_TRACE(e.line);
         SCOPED_TRACE(e.fmt);
         unbound_conversion props;
-        BoundConversion bound;
+        bound_conversion bound;
         int ok_phases = 0;
         int next = 0;
         if (Extract(e.fmt, &props, &next)) {
@@ -89,11 +89,11 @@ TEST_F(FormatBindTest, BindSingle) {
 
 TEST_F(FormatBindTest, WidthUnderflowRegression) {
     unbound_conversion props;
-    BoundConversion bound;
+    bound_conversion bound;
     int next = 0;
     const int args_i[] = {std::numeric_limits<int>::min(), 17};
-    const FormatArgImpl args[] = {FormatArgImpl(args_i[0]),
-                                  FormatArgImpl(args_i[1])};
+    const format_arg_impl args[] = {format_arg_impl(args_i[0]),
+                                  format_arg_impl(args_i[1])};
     ASSERT_TRUE(Extract("*d", &props, &next));
     ASSERT_TRUE(BindWithPack(&props, args, &bound));
 
@@ -108,9 +108,9 @@ TEST_F(FormatBindTest, FormatPack) {
         const char *summary;
     };
     const int ia[] = {10, 20, 30, 40, -10};
-    const FormatArgImpl args[] = {FormatArgImpl(ia[0]), FormatArgImpl(ia[1]),
-                                  FormatArgImpl(ia[2]), FormatArgImpl(ia[3]),
-                                  FormatArgImpl(ia[4])};
+    const format_arg_impl args[] = {format_arg_impl(ia[0]), format_arg_impl(ia[1]),
+                                  format_arg_impl(ia[2]), format_arg_impl(ia[3]),
+                                  format_arg_impl(ia[4])};
     const Expectation kExpect[] = {
         {__LINE__, "a%4db%dc", "a{10:4d}b{20:d}c"},
         {__LINE__, "a%.4db%dc", "a{10:.4d}b{20:d}c"},
@@ -129,7 +129,7 @@ TEST_F(FormatBindTest, FormatPack) {
         abel::string_view fmt = e.fmt;
         SCOPED_TRACE(e.line);
         SCOPED_TRACE(e.fmt);
-        UntypedFormatSpecImpl format(fmt);
+        untyped_format_spec_impl format(fmt);
         EXPECT_EQ(e.summary,
                   format_internal::Summarize(format, abel::MakeSpan(args)))
                     << "line:" << e.line;

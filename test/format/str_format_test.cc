@@ -11,7 +11,7 @@
 namespace abel {
 
 namespace {
-using format_internal::FormatArgImpl;
+using format_internal::format_arg_impl;
 
 using FormatEntryPointTest = ::testing::Test;
 
@@ -38,8 +38,8 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
     for (const char *fmt : formats) {
         std::string actual;
         int i = 123;
-        FormatArgImpl arg_123(i);
-        abel::Span<const FormatArgImpl> args(&arg_123, 1);
+        format_arg_impl arg_123(i);
+        abel::Span<const format_arg_impl> args(&arg_123, 1);
         untyped_format_spec format(fmt);
 
         EXPECT_TRUE(FormatUntyped(&actual, format, args));
@@ -47,7 +47,7 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
         snprintf(buf, sizeof(buf), fmt, 123);
         EXPECT_EQ(
             format_internal::FormatPack(
-                format_internal::UntypedFormatSpecImpl::Extract(format), args),
+                format_internal::untyped_format_spec_impl::Extract(format), args),
             buf);
         EXPECT_EQ(actual, buf);
     }
@@ -57,7 +57,7 @@ TEST_F(FormatEntryPointTest, UntypedFormat) {
     format_arg arg(i);
     std::string out;
     EXPECT_TRUE(format_internal::FormatUntyped(
-        &out, format_internal::UntypedFormatSpecImpl(&pc), {&arg, 1}));
+        &out, format_internal::untyped_format_spec_impl(&pc), {&arg, 1}));
     EXPECT_EQ("A format 345", out);
 }
 
@@ -78,11 +78,11 @@ TEST_F(FormatEntryPointTest, AppendFormatFail) {
     std::string s = "orig";
 
     untyped_format_spec format(" more %d");
-    FormatArgImpl arg("not an int");
+    format_arg_impl arg("not an int");
 
     EXPECT_EQ("orig",
               format_internal::AppendPack(
-                  &s, format_internal::UntypedFormatSpecImpl::Extract(format),
+                  &s, format_internal::untyped_format_spec_impl::Extract(format),
                   {&arg, 1}));
 }
 
@@ -118,10 +118,10 @@ TEST_F(FormatEntryPointTest, FormatCountCaptureWrongType) {
     int n = 0;
     untyped_format_spec format("%d%n");
     int i = 123, *ip = &n;
-    FormatArgImpl args[2] = {FormatArgImpl(i), FormatArgImpl(ip)};
+    format_arg_impl args[2] = {format_arg_impl(i), format_arg_impl(ip)};
 
     EXPECT_EQ("", format_internal::FormatPack(
-        format_internal::UntypedFormatSpecImpl::Extract(format),
+        format_internal::untyped_format_spec_impl::Extract(format),
         abel::MakeSpan(args)));
 }
 
@@ -183,9 +183,9 @@ TEST_F(FormatEntryPointTest, StreamOk) {
 TEST_F(FormatEntryPointTest, StreamFail) {
     std::ostringstream oss;
     untyped_format_spec format("hello %d");
-    FormatArgImpl arg("non-numeric");
-    oss << format_internal::Streamable(
-        format_internal::UntypedFormatSpecImpl::Extract(format), {&arg, 1});
+    format_arg_impl arg("non-numeric");
+    oss << format_internal::stream_able(
+        format_internal::untyped_format_spec_impl::Extract(format), {&arg, 1});
     EXPECT_EQ("hello ", oss.str());  // partial write
     EXPECT_TRUE(oss.fail());
 }

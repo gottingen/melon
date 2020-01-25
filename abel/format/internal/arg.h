@@ -26,49 +26,50 @@ class FormatSink;
 namespace format_internal {
 
 template<typename T, typename = void>
-struct HasUserDefinedConvert : std::false_type { };
+struct has_user_defined_convert : std::false_type { };
 
 template<typename T>
-struct HasUserDefinedConvert<
+struct has_user_defined_convert<
     T, void_t<decltype(AbelFormatConvert(
         std::declval<const T &>(), std::declval<conversion_spec>(),
         std::declval<FormatSink *>()))>> : std::true_type {
 };
 
 template<typename T>
-class StreamedWrapper;
+class streamed_wrapper;
 
 // If 'v' can be converted (in the printf sense) according to 'conv',
 // then convert it, appending to `sink` and return `true`.
 // Otherwise fail and return `false`.
 
 // Raw pointers.
-struct VoidPtr {
-    VoidPtr () = default;
+struct void_ptr {
+    void_ptr () = default;
     template<typename T,
         decltype(reinterpret_cast<uintptr_t>(std::declval<T *>())) = 0>
-    VoidPtr (T *ptr)  // NOLINT
+    void_ptr (T *ptr)  // NOLINT
         : value(ptr ? reinterpret_cast<uintptr_t>(ptr) : 0) { }
     uintptr_t value;
 };
-convert_result<format_conv::p> FormatConvertImpl (VoidPtr v, conversion_spec conv,
-                                                  format_sink_impl *sink);
+
+convert_result<format_conv::p> format_convert_impl (void_ptr v, conversion_spec conv,
+                                                    format_sink_impl *sink);
 
 // Strings.
-convert_result<format_conv::s> FormatConvertImpl (const std::string &v,
-                                                  conversion_spec conv,
-                                                  format_sink_impl *sink);
-convert_result<format_conv::s> FormatConvertImpl (string_view v, conversion_spec conv,
-                                                  format_sink_impl *sink);
-convert_result<format_conv::s | format_conv::p> FormatConvertImpl (const char *v,
-                                                                   conversion_spec conv,
-                                                                   format_sink_impl *sink);
+convert_result<format_conv::s> format_convert_impl (const std::string &v,
+                                                    conversion_spec conv,
+                                                    format_sink_impl *sink);
+convert_result<format_conv::s> format_convert_impl (string_view v, conversion_spec conv,
+                                                    format_sink_impl *sink);
+convert_result<format_conv::s | format_conv::p> format_convert_impl (const char *v,
+                                                                     conversion_spec conv,
+                                                                     format_sink_impl *sink);
 template<class AbelCord,
     typename std::enable_if<
         std::is_same<AbelCord, abel::Cord>::value>::type * = nullptr>
-convert_result<format_conv::s> FormatConvertImpl (const AbelCord &value,
-                                                  conversion_spec conv,
-                                                  format_sink_impl *sink) {
+convert_result<format_conv::s> format_convert_impl (const AbelCord &value,
+                                                    conversion_spec conv,
+                                                    format_sink_impl *sink) {
     if (conv.conv().id() != conversion_char::s)
         return {false};
 
@@ -108,81 +109,81 @@ convert_result<format_conv::s> FormatConvertImpl (const AbelCord &value,
     return {true};
 }
 
-using IntegralConvertResult =
+using integral_convert_result =
 convert_result<format_conv::c | format_conv::numeric | format_conv::star>;
-using FloatingConvertResult = convert_result<format_conv::floating>;
+using floating_convert_result = convert_result<format_conv::floating>;
 
 // Floats.
-FloatingConvertResult FormatConvertImpl (float v, conversion_spec conv,
-                                         format_sink_impl *sink);
-FloatingConvertResult FormatConvertImpl (double v, conversion_spec conv,
-                                         format_sink_impl *sink);
-FloatingConvertResult FormatConvertImpl (long double v, conversion_spec conv,
-                                         format_sink_impl *sink);
+floating_convert_result format_convert_impl (float v, conversion_spec conv,
+                                             format_sink_impl *sink);
+floating_convert_result format_convert_impl (double v, conversion_spec conv,
+                                             format_sink_impl *sink);
+floating_convert_result format_convert_impl (long double v, conversion_spec conv,
+                                             format_sink_impl *sink);
 
 // Chars.
-IntegralConvertResult FormatConvertImpl (char v, conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (signed char v, conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (unsigned char v, conversion_spec conv,
-                                         format_sink_impl *sink);
+integral_convert_result format_convert_impl (char v, conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (signed char v, conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (unsigned char v, conversion_spec conv,
+                                             format_sink_impl *sink);
 
 // Ints.
-IntegralConvertResult FormatConvertImpl (short v,  // NOLINT
-                                         conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (unsigned short v,  // NOLINT
-                                         conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (int v, conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (unsigned v, conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (long v,  // NOLINT
-                                         conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (unsigned long v,  // NOLINT
-                                         conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (long long v,  // NOLINT
-                                         conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (unsigned long long v,  // NOLINT
-                                         conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (int128 v, conversion_spec conv,
-                                         format_sink_impl *sink);
-IntegralConvertResult FormatConvertImpl (uint128 v, conversion_spec conv,
-                                         format_sink_impl *sink);
+integral_convert_result format_convert_impl (short v,  // NOLINT
+                                             conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (unsigned short v,  // NOLINT
+                                             conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (int v, conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (unsigned v, conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (long v,  // NOLINT
+                                             conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (unsigned long v,  // NOLINT
+                                             conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (long long v,  // NOLINT
+                                             conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (unsigned long long v,  // NOLINT
+                                             conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (int128 v, conversion_spec conv,
+                                             format_sink_impl *sink);
+integral_convert_result format_convert_impl (uint128 v, conversion_spec conv,
+                                             format_sink_impl *sink);
 template<typename T, enable_if_t<std::is_same<T, bool>::value, int> = 0>
-IntegralConvertResult FormatConvertImpl (T v, conversion_spec conv,
-                                         format_sink_impl *sink) {
-    return FormatConvertImpl(static_cast<int>(v), conv, sink);
+integral_convert_result format_convert_impl (T v, conversion_spec conv,
+                                             format_sink_impl *sink) {
+    return format_convert_impl(static_cast<int>(v), conv, sink);
 }
 
 // We provide this function to help the checker, but it is never defined.
-// FormatArgImpl will use the underlying Convert functions instead.
+// format_arg_impl will use the underlying Convert functions instead.
 template<typename T>
 typename std::enable_if<std::is_enum<T>::value &&
-    !HasUserDefinedConvert<T>::value,
-                        IntegralConvertResult>::type
-FormatConvertImpl (T v, conversion_spec conv, format_sink_impl *sink);
+    !has_user_defined_convert<T>::value,
+                        integral_convert_result>::type
+format_convert_impl (T v, conversion_spec conv, format_sink_impl *sink);
 
 template<typename T>
-convert_result<format_conv::s> FormatConvertImpl (const StreamedWrapper<T> &v,
-                                                  conversion_spec conv,
-                                                  format_sink_impl *out) {
+convert_result<format_conv::s> format_convert_impl (const streamed_wrapper<T> &v,
+                                                    conversion_spec conv,
+                                                    format_sink_impl *out) {
     std::ostringstream oss;
     oss << v.v_;
     if (!oss)
         return {false};
-    return format_internal::FormatConvertImpl(oss.str(), conv, out);
+    return format_internal::format_convert_impl(oss.str(), conv, out);
 }
 
 // Use templates and dependent types to delay evaluation of the function
 // until after format_count_capture is fully defined.
-struct FormatCountCaptureHelper {
+struct format_count_capture_helper {
     template<class T = int>
     static convert_result<format_conv::n> ConvertHelper (const format_count_capture &v,
                                                          conversion_spec conv,
@@ -197,40 +198,40 @@ struct FormatCountCaptureHelper {
 };
 
 template<class T = int>
-convert_result<format_conv::n> FormatConvertImpl (const format_count_capture &v,
-                                                  conversion_spec conv,
-                                                  format_sink_impl *sink) {
-    return FormatCountCaptureHelper::ConvertHelper(v, conv, sink);
+convert_result<format_conv::n> format_convert_impl (const format_count_capture &v,
+                                                    conversion_spec conv,
+                                                    format_sink_impl *sink) {
+    return format_count_capture_helper::ConvertHelper(v, conv, sink);
 }
 
 // Helper friend struct to hide implementation details from the public API of
-// FormatArgImpl.
-struct FormatArgImplFriend {
+// format_arg_impl.
+struct format_arg_impl_friend {
     template<typename Arg>
-    static bool ToInt (Arg arg, int *out) {
+    static bool to_int (Arg arg, int *out) {
         // A value initialized conversion_spec has a `none` conv, which tells the
         // dispatcher to run the `int` conversion.
-        return arg.dispatcher_(arg.data_, {}, out);
+        return arg._dispatcher(arg._data, {}, out);
     }
 
     template<typename Arg>
-    static bool Convert (Arg arg, format_internal::conversion_spec conv,
+    static bool convert (Arg arg, format_internal::conversion_spec conv,
                          format_sink_impl *out) {
-        return arg.dispatcher_(arg.data_, conv, out);
+        return arg._dispatcher(arg._data, conv, out);
     }
 
     template<typename Arg>
-    static typename Arg::Dispatcher GetVTablePtrForTest (Arg arg) {
-        return arg.dispatcher_;
+    static typename Arg::dispatcher GetVTablePtrForTest (Arg arg) {
+        return arg._dispatcher;
     }
 };
 
 // A type-erased handle to a format argument.
-class FormatArgImpl {
+class format_arg_impl {
 private:
     enum { kInlinedSpace = 8 };
 
-    using VoidPtr = format_internal::VoidPtr;
+    using void_ptr = format_internal::void_ptr;
 
     union Data {
         const void *ptr;
@@ -238,7 +239,7 @@ private:
         char buf[kInlinedSpace];
     };
 
-    using Dispatcher = bool (*) (Data, conversion_spec, void *out);
+    using dispatcher = bool (*) (Data, conversion_spec, void *out);
 
     template<typename T>
     struct store_by_value
@@ -246,13 +247,13 @@ private:
             (std::is_integral<T>::value ||
                 std::is_floating_point<T>::value ||
                 std::is_pointer<T>::value ||
-                std::is_same<VoidPtr, T>::value)> {
+                std::is_same<void_ptr, T>::value)> {
     };
 
-    enum StoragePolicy { ByPointer, ByVolatilePointer, ByValue };
+    enum enum_storage_policy { ByPointer, ByVolatilePointer, ByValue };
     template<typename T>
     struct storage_policy
-        : std::integral_constant<StoragePolicy,
+        : std::integral_constant<enum_storage_policy,
                                  (std::is_volatile<T>::value
                                   ? ByVolatilePointer
                                   : (store_by_value<T>::value ? ByValue
@@ -267,28 +268,28 @@ private:
     //   - Decay all enums to their underlying type.
     //   - Decay function pointers to void*.
     template<typename T, typename = void>
-    struct DecayType {
+    struct decay_type {
         static constexpr bool kHasUserDefined =
-            format_internal::HasUserDefinedConvert<T>::value;
+            format_internal::has_user_defined_convert<T>::value;
         using type = typename std::conditional<
             !kHasUserDefined && std::is_convertible<T, const char *>::value,
             const char *,
             typename std::conditional<!kHasUserDefined &&
-                std::is_convertible<T, VoidPtr>::value,
-                                      VoidPtr, const T &>::type>::type;
+                std::is_convertible<T, void_ptr>::value,
+                                      void_ptr, const T &>::type>::type;
     };
     template<typename T>
-    struct DecayType<T,
-                     typename std::enable_if<
-                         !format_internal::HasUserDefinedConvert<T>::value &&
-                             std::is_enum<T>::value>::type> {
+    struct decay_type<T,
+                      typename std::enable_if<
+                          !format_internal::has_user_defined_convert<T>::value &&
+                              std::is_enum<T>::value>::type> {
         using type = typename std::underlying_type<T>::type;
     };
 
 public:
     template<typename T>
-    explicit FormatArgImpl (const T &value) {
-        using D = typename DecayType<T>::type;
+    explicit format_arg_impl (const T &value) {
+        using D = typename decay_type<T>::type;
         static_assert(
             std::is_same<D, const T &>::value || storage_policy<D>::value == ByValue,
             "Decayed types must be stored by value");
@@ -296,12 +297,12 @@ public:
     }
 
 private:
-    friend struct format_internal::FormatArgImplFriend;
-    template<typename T, StoragePolicy = storage_policy<T>::value>
-    struct Manager;
+    friend struct format_internal::format_arg_impl_friend;
+    template<typename T, enum_storage_policy = storage_policy<T>::value>
+    struct manager;
 
     template<typename T>
-    struct Manager<T, ByPointer> {
+    struct manager<T, ByPointer> {
         static Data SetValue (const T &value) {
             Data data;
             data.ptr = std::addressof(value);
@@ -312,7 +313,7 @@ private:
     };
 
     template<typename T>
-    struct Manager<T, ByVolatilePointer> {
+    struct manager<T, ByVolatilePointer> {
         static Data SetValue (const T &value) {
             Data data;
             data.volatile_ptr = &value;
@@ -325,7 +326,7 @@ private:
     };
 
     template<typename T>
-    struct Manager<T, ByValue> {
+    struct manager<T, ByValue> {
         static Data SetValue (const T &value) {
             Data data;
             memcpy(data.buf, &value, sizeof(value));
@@ -341,8 +342,8 @@ private:
 
     template<typename T>
     void Init (const T &value) {
-        data_ = Manager<T>::SetValue(value);
-        dispatcher_ = &Dispatch<T>;
+        _data = manager<T>::SetValue(value);
+        _dispatcher = &Dispatch<T>;
     }
 
     template<typename T>
@@ -363,7 +364,7 @@ private:
     template<typename T>
     static bool ToInt (Data arg, int *out, std::true_type /* is_integral */,
                        std::false_type) {
-        *out = ToIntVal(Manager<T>::Value(arg));
+        *out = ToIntVal(manager<T>::Value(arg));
         return true;
     }
 
@@ -371,7 +372,7 @@ private:
     static bool ToInt (Data arg, int *out, std::false_type,
                        std::true_type /* is_enum */) {
         *out = ToIntVal(static_cast<typename std::underlying_type<T>::type>(
-                            Manager<T>::Value(arg)));
+                            manager<T>::Value(arg)));
         return true;
     }
 
@@ -388,20 +389,20 @@ private:
                             std::is_enum<T>());
         }
 
-        return format_internal::FormatConvertImpl(
-            Manager<T>::Value(arg), spec, static_cast<format_sink_impl *>(out))
+        return format_internal::format_convert_impl(
+            manager<T>::Value(arg), spec, static_cast<format_sink_impl *>(out))
             .value;
     }
 
-    Data data_;
-    Dispatcher dispatcher_;
+    Data _data;
+    dispatcher _dispatcher;
 };
 
 #define ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(T, E) \
-  E template bool FormatArgImpl::Dispatch<T>(Data, conversion_spec, void*)
+  E template bool format_arg_impl::Dispatch<T>(Data, conversion_spec, void*)
 
 #define ABEL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(...)                   \
-  ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(format_internal::VoidPtr,     \
+  ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(format_internal::void_ptr,     \
                                              __VA_ARGS__);                     \
   ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(bool, __VA_ARGS__);               \
   ABEL_INTERNAL_FORMAT_DISPATCH_INSTANTIATE_(char, __VA_ARGS__);               \

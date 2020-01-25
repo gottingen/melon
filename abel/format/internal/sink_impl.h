@@ -22,7 +22,7 @@ public:
 
     template<typename T>
     static format_raw_sink_impl Extract (T s) {
-        return s.sink_;
+        return s._sink;
     }
 
 private:

@@ -234,7 +234,7 @@ bool ConvertIntImplInner (T v, const conversion_spec conv, format_sink_impl *sin
 template<typename T>
 bool ConvertIntArg (T v, const conversion_spec conv, format_sink_impl *sink) {
     if (conv.conv().is_float()) {
-        return FormatConvertImpl(static_cast<double>(v), conv, sink).value;
+        return format_convert_impl(static_cast<double>(v), conv, sink).value;
     }
     if (conv.conv().id() == conversion_char::c)
         return ConvertCharImpl(static_cast<unsigned char>(v), conv, sink);
@@ -242,7 +242,7 @@ bool ConvertIntArg (T v, const conversion_spec conv, format_sink_impl *sink) {
         return false;
     if (!conv.conv().is_signed() && IsSigned<T>::value) {
         using U = typename MakeUnsigned<T>::type;
-        return FormatConvertImpl(static_cast<U>(v), conv, sink).value;
+        return format_convert_impl(static_cast<U>(v), conv, sink).value;
     }
     return ConvertIntImplInner(v, conv, sink);
 }
@@ -267,23 +267,23 @@ ABEL_FORCE_INLINE bool ConvertStringArg (string_view v, const conversion_spec co
 }  // namespace
 
 // ==================== Strings ====================
-convert_result<format_conv::s> FormatConvertImpl (const std::string &v,
-                                                  const conversion_spec conv,
-                                                  format_sink_impl *sink) {
+convert_result<format_conv::s> format_convert_impl (const std::string &v,
+                                                    const conversion_spec conv,
+                                                    format_sink_impl *sink) {
     return {ConvertStringArg(v, conv, sink)};
 }
 
-convert_result<format_conv::s> FormatConvertImpl (string_view v,
-                                                  const conversion_spec conv,
-                                                  format_sink_impl *sink) {
+convert_result<format_conv::s> format_convert_impl (string_view v,
+                                                    const conversion_spec conv,
+                                                    format_sink_impl *sink) {
     return {ConvertStringArg(v, conv, sink)};
 }
 
-convert_result<format_conv::s | format_conv::p> FormatConvertImpl (const char *v,
-                                                                   const conversion_spec conv,
-                                                                   format_sink_impl *sink) {
+convert_result<format_conv::s | format_conv::p> format_convert_impl (const char *v,
+                                                                     const conversion_spec conv,
+                                                                     format_sink_impl *sink) {
     if (conv.conv().id() == conversion_char::p)
-        return {FormatConvertImpl(VoidPtr(v), conv, sink).value};
+        return {format_convert_impl(void_ptr(v), conv, sink).value};
     size_t len;
     if (v == nullptr) {
         len = 0;
@@ -297,8 +297,8 @@ convert_result<format_conv::s | format_conv::p> FormatConvertImpl (const char *v
 }
 
 // ==================== Raw pointers ====================
-convert_result<format_conv::p> FormatConvertImpl (VoidPtr v, const conversion_spec conv,
-                                                  format_sink_impl *sink) {
+convert_result<format_conv::p> format_convert_impl (void_ptr v, const conversion_spec conv,
+                                                    format_sink_impl *sink) {
     if (conv.conv().id() != conversion_char::p)
         return {false};
     if (!v.value) {
@@ -309,83 +309,83 @@ convert_result<format_conv::p> FormatConvertImpl (VoidPtr v, const conversion_sp
 }
 
 // ==================== Floats ====================
-FloatingConvertResult FormatConvertImpl (float v, const conversion_spec conv,
-                                         format_sink_impl *sink) {
+floating_convert_result format_convert_impl (float v, const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertFloatArg(v, conv, sink)};
 }
-FloatingConvertResult FormatConvertImpl (double v, const conversion_spec conv,
-                                         format_sink_impl *sink) {
+floating_convert_result format_convert_impl (double v, const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertFloatArg(v, conv, sink)};
 }
-FloatingConvertResult FormatConvertImpl (long double v,
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+floating_convert_result format_convert_impl (long double v,
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertFloatArg(v, conv, sink)};
 }
 
 // ==================== Chars ====================
-IntegralConvertResult FormatConvertImpl (char v, const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (char v, const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (signed char v,
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (signed char v,
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (unsigned char v,
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (unsigned char v,
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
 
 // ==================== Ints ====================
-IntegralConvertResult FormatConvertImpl (short v,  // NOLINT
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (short v,  // NOLINT
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (unsigned short v,  // NOLINT
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (unsigned short v,  // NOLINT
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (int v, const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (int v, const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (unsigned v, const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (unsigned v, const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (long v,  // NOLINT
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (long v,  // NOLINT
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (unsigned long v,  // NOLINT
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (unsigned long v,  // NOLINT
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (long long v,  // NOLINT
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (long long v,  // NOLINT
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (unsigned long long v,  // NOLINT
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (unsigned long long v,  // NOLINT
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (abel::int128 v,
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (abel::int128 v,
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
-IntegralConvertResult FormatConvertImpl (abel::uint128 v,
-                                         const conversion_spec conv,
-                                         format_sink_impl *sink) {
+integral_convert_result format_convert_impl (abel::uint128 v,
+                                             const conversion_spec conv,
+                                             format_sink_impl *sink) {
     return {ConvertIntArg(v, conv, sink)};
 }
 

@@ -26,7 +26,7 @@ constexpr bool all_of (bool b, T... t) {
 
 template<typename Arg>
 constexpr format_conv argument_to_conv () {
-    return decltype(format_internal::FormatConvertImpl(
+    return decltype(format_internal::format_convert_impl(
         std::declval<const Arg &>(), std::declval<const conversion_spec &>(),
         std::declval<format_sink_impl *>()))::kConv;
 }
