@@ -9,7 +9,7 @@
 
 #include <abel/hash/hash.h>
 #include <abel/strings/ends_with.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 #include <abel/strings/str_join.h>
 
 namespace abel {
@@ -117,12 +117,12 @@ class SpyHashStateImpl : public HashStateBase<SpyHashStateImpl<T>> {
       size_t offset = 0;
       for (char c : s) {
         if (offset % 16 == 0) {
-          out << abel::stream_format("\n0x%04x: ", offset);
+          out << fmt::sprintf("\n0x%04x: ", offset);
         }
         if (offset % 2 == 0) {
           out << " ";
         }
-        out << abel::stream_format("%02x", c);
+        out << fmt::sprintf("%02x", c);
         ++offset;
       }
       out << "\n";

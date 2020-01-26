@@ -11,7 +11,7 @@
 #include <abel/strings/compare.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 #include <abel/strings/str_join.h>
 #include <abel/strings/str_split.h>
 
@@ -155,7 +155,7 @@ std::string UnparseFloatingPointVal(T v) {
   // digits10 is guaranteed to roundtrip correctly in std::string -> value -> std::string
   // conversions, but may not be enough to represent all the values correctly.
   std::string digit10_str =
-      abel::string_format("%.*g", std::numeric_limits<T>::digits10, v);
+      fmt::sprintf("%.*g", std::numeric_limits<T>::digits10, v);
   if (std::isnan(v) || std::isinf(v)) return digit10_str;
 
   T roundtrip_val = 0;
@@ -167,7 +167,7 @@ std::string UnparseFloatingPointVal(T v) {
 
   // max_digits10 is the number of base-10 digits that are necessary to uniquely
   // represent all distinct values.
-  return abel::string_format("%.*g", std::numeric_limits<T>::max_digits10, v);
+  return fmt::sprintf("%.*g", std::numeric_limits<T>::max_digits10, v);
 }
 std::string Unparse(float v) { return UnparseFloatingPointVal(v); }
 std::string Unparse(double v) { return UnparseFloatingPointVal(v); }

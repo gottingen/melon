@@ -20,7 +20,7 @@
 #include <abel/random/internal/sequence_urbg.h>
 #include <abel/random/random.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 #include <abel/strings/str_replace.h>
 #include <abel/strings/strip.h>
 
@@ -81,7 +81,7 @@ TYPED_TEST(BetaDistributionInterfaceTest, SerializeTest) {
     for (TypeParam alpha : kValues) {
         for (TypeParam beta : kValues) {
             ABEL_INTERNAL_LOG(
-                INFO, abel::string_format("Smoke test for Beta(%a, %a)", alpha, beta));
+                INFO, fmt::sprintf("Smoke test for Beta(%a, %a)", alpha, beta));
 
             param_type param(alpha, beta);
             abel::beta_distribution<TypeParam> before(alpha, beta);
@@ -320,7 +320,7 @@ bool BetaDistributionTest::SingleZTestOnMeanAndVariance (double p,
     if (!pass) {
         ABEL_INTERNAL_LOG(
             INFO,
-            abel::string_format(
+            fmt::sprintf(
                 "Beta(%f, %f), "
                 "mean: sample %f, expect %f, which is %f stddevs away, "
                 "variance: sample %f, expect %f, which is %f stddevs away.",
@@ -389,13 +389,13 @@ bool BetaDistributionTest::SingleChiSquaredTest (double p, size_t samples,
     if (!pass) {
         for (size_t i = 0; i < cutoffs.size(); i++) {
             ABEL_INTERNAL_LOG(
-                INFO, abel::string_format("cutoff[%d] = %f, actual count %d, expected %d",
+                INFO, fmt::sprintf("cutoff[%d] = %f, actual count %d, expected %d",
                                           i, cutoffs[i], counts[i],
                                           static_cast<int>(expected[i])));
         }
 
         ABEL_INTERNAL_LOG(
-            INFO, abel::string_format(
+            INFO, fmt::sprintf(
             "Beta(%f, %f) %s %f, p = %f", alpha_, beta_,
             abel::random_internal::kChiSquared, chi_square,
             abel::random_internal::ChiSquarePValue(chi_square, dof)));

@@ -8,7 +8,7 @@
 #include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_detect.h>
 #include <abel/random/internal/randen_traits.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 
 namespace {
 
@@ -47,8 +47,8 @@ TEST(RandenHwAesTest, Default) {
 
   uint64_t* id = d.state;
   for (const auto& elem : kGolden) {
-    auto a = abel::string_format("%#x", elem);
-    auto b = abel::string_format("%#x", *id++);
+    auto a = fmt::sprintf("%#x", elem);
+    auto b = fmt::sprintf("%#x", *id++);
     EXPECT_EQ(a, b);
   }
 }
