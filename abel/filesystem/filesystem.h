@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------------------
 //
-// ghc::filesystem - A C++17-like filesystem implementation for C++11/C++147/C++17
+// abel::filesystem - A C++17-like filesystem implementation for C++11/C++147/C++17
 //
 //---------------------------------------------------------------------------------------
 //
@@ -51,33 +51,33 @@
 
 #include <abel/base/profile.h>
 
-#if defined(GHC_FILESYSTEM_IMPLEMENTATION)
-                                                                                                                        #define GHC_EXPAND_IMPL
-    #define GHC_INLINE
+#if defined(ABEL_FILESYSTEM_IMPLEMENTATION)
+                                                                                                                        #define ABEL_EXPAND_IMPL
+    #define ABEL_INLINE
     #ifdef ABEL_PLATFORM_WINDOWS
-        #define GHC_FS_API
-        #define GHC_FS_API_CLASS
+        #define ABEL_FS_API
+        #define ABEL_FS_API_CLASS
     #else
-        #define GHC_FS_API __attribute__((visibility("default")))
-        #define GHC_FS_API_CLASS __attribute__((visibility("default")))
+        #define ABEL_FS_API __attribute__((visibility("default")))
+        #define ABEL_FS_API_CLASS __attribute__((visibility("default")))
     #endif
-#elif defined(GHC_FILESYSTEM_FWD)
-    #define GHC_INLINE
+#elif defined(ABEL_FILESYSTEM_FWD)
+    #define ABEL_INLINE
     #ifdef ABEL_PLATFORM_WINDOWS
-        #define GHC_FS_API extern
-        #define GHC_FS_API_CLASS
+        #define ABEL_FS_API extern
+        #define ABEL_FS_API_CLASS
     #else
-        #define GHC_FS_API extern
-        #define GHC_FS_API_CLASS
+        #define ABEL_FS_API extern
+        #define ABEL_FS_API_CLASS
     #endif
 #else
-    #define GHC_EXPAND_IMPL
-    #define GHC_INLINE inline
-    #define GHC_FS_API
-    #define GHC_FS_API_CLASS
+    #define ABEL_EXPAND_IMPL
+    #define ABEL_INLINE inline
+    #define ABEL_FS_API
+    #define ABEL_FS_API_CLASS
 #endif
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 #ifdef ABEL_PLATFORM_WINDOWS
     #include <windows.h>
@@ -122,7 +122,7 @@
 #include <utility>
 #include <vector>
 
-#else  // GHC_EXPAND_IMPL
+#else  // ABEL_EXPAND_IMPL
                                                                                                                         #include <chrono>
 #include <fstream>
 #include <memory>
@@ -133,7 +133,7 @@
 #ifdef ABEL_PLATFORM_WINDOWS
 #include <vector>
 #endif
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Behaviour Switches (see README.md, should match the config in test/filesystem_test.cpp):
@@ -166,7 +166,7 @@ namespace abel {
 namespace filesystem {
 
 // temporary existing exception type for yet unimplemented parts
-class GHC_FS_API_CLASS not_implemented_exception : public std::logic_error {
+class ABEL_FS_API_CLASS not_implemented_exception : public std::logic_error {
 public:
     not_implemented_exception ()
         : std::logic_error("function not implemented yet.") {
@@ -190,7 +190,7 @@ constexpr char_type path_helper_base<char_type>::preferred_separator;
 #endif
 
 // 30.10.8 class path
-class GHC_FS_API_CLASS path
+class ABEL_FS_API_CLASS path
 #if defined(ABEL_PLATFORM_WINDOWS) && defined(GHC_WIN_WSTRING_STRING_TYPE)
                                                                                                                             #define GHC_USE_WCHAR_T
     : private path_helper_base<std::wstring::value_type>
@@ -410,16 +410,16 @@ private:
 };
 
 // 30.10.8.6 path non-member functions
-GHC_FS_API void swap (path &lhs, path &rhs) noexcept;
-GHC_FS_API size_t hash_value (const path &p) noexcept;
-GHC_FS_API bool operator == (const path &lhs, const path &rhs) noexcept;
-GHC_FS_API bool operator != (const path &lhs, const path &rhs) noexcept;
-GHC_FS_API bool operator < (const path &lhs, const path &rhs) noexcept;
-GHC_FS_API bool operator <= (const path &lhs, const path &rhs) noexcept;
-GHC_FS_API bool operator > (const path &lhs, const path &rhs) noexcept;
-GHC_FS_API bool operator >= (const path &lhs, const path &rhs) noexcept;
+ABEL_FS_API void swap (path &lhs, path &rhs) noexcept;
+ABEL_FS_API size_t hash_value (const path &p) noexcept;
+ABEL_FS_API bool operator == (const path &lhs, const path &rhs) noexcept;
+ABEL_FS_API bool operator != (const path &lhs, const path &rhs) noexcept;
+ABEL_FS_API bool operator < (const path &lhs, const path &rhs) noexcept;
+ABEL_FS_API bool operator <= (const path &lhs, const path &rhs) noexcept;
+ABEL_FS_API bool operator > (const path &lhs, const path &rhs) noexcept;
+ABEL_FS_API bool operator >= (const path &lhs, const path &rhs) noexcept;
 
-GHC_FS_API path operator / (const path &lhs, const path &rhs);
+ABEL_FS_API path operator / (const path &lhs, const path &rhs);
 
 // 30.10.8.6.1 path inserter and extractor
 template<class charT, class traits>
@@ -434,7 +434,7 @@ template<class InputIterator>
 path u8path (InputIterator first, InputIterator last);
 
 // 30.10.9 class filesystem_error
-class GHC_FS_API_CLASS filesystem_error : public std::system_error {
+class ABEL_FS_API_CLASS filesystem_error : public std::system_error {
 public:
     filesystem_error (const std::string &what_arg, std::error_code ec);
     filesystem_error (const std::string &what_arg, const path &p1, std::error_code ec);
@@ -449,7 +449,7 @@ private:
     path _p1, _p2;
 };
 
-class GHC_FS_API_CLASS path::iterator {
+class ABEL_FS_API_CLASS path::iterator {
 public:
     using value_type = const path;
     using difference_type = std::ptrdiff_t;
@@ -559,7 +559,7 @@ enum class directory_options : uint16_t {
 };
 
 // 30.10.11 class file_status
-class GHC_FS_API_CLASS file_status {
+class ABEL_FS_API_CLASS file_status {
 public:
     // 30.10.11.1 constructors and destructor
     file_status () noexcept;
@@ -585,7 +585,7 @@ private:
 using file_time_type = std::chrono::time_point<std::chrono::system_clock>;
 
 // 30.10.12 Class directory_entry
-class GHC_FS_API_CLASS directory_entry {
+class ABEL_FS_API_CLASS directory_entry {
 public:
     // 30.10.12.1 constructors and destructor
     directory_entry () noexcept = default;
@@ -660,9 +660,9 @@ private:
 };
 
 // 30.10.13 Class directory_iterator
-class GHC_FS_API_CLASS directory_iterator {
+class ABEL_FS_API_CLASS directory_iterator {
 public:
-    class GHC_FS_API_CLASS proxy {
+    class ABEL_FS_API_CLASS proxy {
     public:
         const directory_entry &operator * () const & noexcept { return _dir_entry; }
         directory_entry operator * () && noexcept { return std::move(_dir_entry); }
@@ -713,11 +713,11 @@ private:
 };
 
 // 30.10.13.2 directory_iterator non-member functions
-GHC_FS_API directory_iterator begin (directory_iterator iter) noexcept;
-GHC_FS_API directory_iterator end (const directory_iterator &) noexcept;
+ABEL_FS_API directory_iterator begin (directory_iterator iter) noexcept;
+ABEL_FS_API directory_iterator end (const directory_iterator &) noexcept;
 
 // 30.10.14 class recursive_directory_iterator
-class GHC_FS_API_CLASS recursive_directory_iterator {
+class ABEL_FS_API_CLASS recursive_directory_iterator {
 public:
     using iterator_category = std::input_iterator_tag;
     using value_type = directory_entry;
@@ -775,140 +775,140 @@ private:
 };
 
 // 30.10.14.2 directory_iterator non-member functions
-GHC_FS_API recursive_directory_iterator begin (recursive_directory_iterator iter) noexcept;
-GHC_FS_API recursive_directory_iterator end (const recursive_directory_iterator &) noexcept;
+ABEL_FS_API recursive_directory_iterator begin (recursive_directory_iterator iter) noexcept;
+ABEL_FS_API recursive_directory_iterator end (const recursive_directory_iterator &) noexcept;
 
 // 30.10.15 filesystem operations
-GHC_FS_API path absolute (const path &p);
-GHC_FS_API path absolute (const path &p, std::error_code &ec);
+ABEL_FS_API path absolute (const path &p);
+ABEL_FS_API path absolute (const path &p, std::error_code &ec);
 
-GHC_FS_API path canonical (const path &p);
-GHC_FS_API path canonical (const path &p, std::error_code &ec);
+ABEL_FS_API path canonical (const path &p);
+ABEL_FS_API path canonical (const path &p, std::error_code &ec);
 
-GHC_FS_API void copy (const path &from, const path &to);
-GHC_FS_API void copy (const path &from, const path &to, std::error_code &ec) noexcept;
-GHC_FS_API void copy (const path &from, const path &to, copy_options options);
-GHC_FS_API void copy (const path &from, const path &to, copy_options options, std::error_code &ec) noexcept;
+ABEL_FS_API void copy (const path &from, const path &to);
+ABEL_FS_API void copy (const path &from, const path &to, std::error_code &ec) noexcept;
+ABEL_FS_API void copy (const path &from, const path &to, copy_options options);
+ABEL_FS_API void copy (const path &from, const path &to, copy_options options, std::error_code &ec) noexcept;
 
-GHC_FS_API bool copy_file (const path &from, const path &to);
-GHC_FS_API bool copy_file (const path &from, const path &to, std::error_code &ec) noexcept;
-GHC_FS_API bool copy_file (const path &from, const path &to, copy_options option);
-GHC_FS_API bool copy_file (const path &from, const path &to, copy_options option, std::error_code &ec) noexcept;
+ABEL_FS_API bool copy_file (const path &from, const path &to);
+ABEL_FS_API bool copy_file (const path &from, const path &to, std::error_code &ec) noexcept;
+ABEL_FS_API bool copy_file (const path &from, const path &to, copy_options option);
+ABEL_FS_API bool copy_file (const path &from, const path &to, copy_options option, std::error_code &ec) noexcept;
 
-GHC_FS_API void copy_symlink (const path &existing_symlink, const path &new_symlink);
-GHC_FS_API void copy_symlink (const path &existing_symlink, const path &new_symlink, std::error_code &ec) noexcept;
+ABEL_FS_API void copy_symlink (const path &existing_symlink, const path &new_symlink);
+ABEL_FS_API void copy_symlink (const path &existing_symlink, const path &new_symlink, std::error_code &ec) noexcept;
 
-GHC_FS_API bool create_directories (const path &p);
-GHC_FS_API bool create_directories (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool create_directories (const path &p);
+ABEL_FS_API bool create_directories (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API bool create_directory (const path &p);
-GHC_FS_API bool create_directory (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool create_directory (const path &p);
+ABEL_FS_API bool create_directory (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API bool create_directory (const path &p, const path &attributes);
-GHC_FS_API bool create_directory (const path &p, const path &attributes, std::error_code &ec) noexcept;
+ABEL_FS_API bool create_directory (const path &p, const path &attributes);
+ABEL_FS_API bool create_directory (const path &p, const path &attributes, std::error_code &ec) noexcept;
 
-GHC_FS_API void create_directory_symlink (const path &to, const path &new_symlink);
-GHC_FS_API void create_directory_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept;
+ABEL_FS_API void create_directory_symlink (const path &to, const path &new_symlink);
+ABEL_FS_API void create_directory_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept;
 
-GHC_FS_API void create_hard_link (const path &to, const path &new_hard_link);
-GHC_FS_API void create_hard_link (const path &to, const path &new_hard_link, std::error_code &ec) noexcept;
+ABEL_FS_API void create_hard_link (const path &to, const path &new_hard_link);
+ABEL_FS_API void create_hard_link (const path &to, const path &new_hard_link, std::error_code &ec) noexcept;
 
-GHC_FS_API void create_symlink (const path &to, const path &new_symlink);
-GHC_FS_API void create_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept;
+ABEL_FS_API void create_symlink (const path &to, const path &new_symlink);
+ABEL_FS_API void create_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept;
 
-GHC_FS_API path current_path ();
-GHC_FS_API path current_path (std::error_code &ec);
-GHC_FS_API void current_path (const path &p);
-GHC_FS_API void current_path (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API path current_path ();
+ABEL_FS_API path current_path (std::error_code &ec);
+ABEL_FS_API void current_path (const path &p);
+ABEL_FS_API void current_path (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API bool exists (file_status s) noexcept;
-GHC_FS_API bool exists (const path &p);
-GHC_FS_API bool exists (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool exists (file_status s) noexcept;
+ABEL_FS_API bool exists (const path &p);
+ABEL_FS_API bool exists (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API bool equivalent (const path &p1, const path &p2);
-GHC_FS_API bool equivalent (const path &p1, const path &p2, std::error_code &ec) noexcept;
+ABEL_FS_API bool equivalent (const path &p1, const path &p2);
+ABEL_FS_API bool equivalent (const path &p1, const path &p2, std::error_code &ec) noexcept;
 
-GHC_FS_API uintmax_t file_size (const path &p);
-GHC_FS_API uintmax_t file_size (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API uintmax_t file_size (const path &p);
+ABEL_FS_API uintmax_t file_size (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API uintmax_t hard_link_count (const path &p);
-GHC_FS_API uintmax_t hard_link_count (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API uintmax_t hard_link_count (const path &p);
+ABEL_FS_API uintmax_t hard_link_count (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API bool is_block_file (file_status s) noexcept;
-GHC_FS_API bool is_block_file (const path &p);
-GHC_FS_API bool is_block_file (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_character_file (file_status s) noexcept;
-GHC_FS_API bool is_character_file (const path &p);
-GHC_FS_API bool is_character_file (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_directory (file_status s) noexcept;
-GHC_FS_API bool is_directory (const path &p);
-GHC_FS_API bool is_directory (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_empty (const path &p);
-GHC_FS_API bool is_empty (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_fifo (file_status s) noexcept;
-GHC_FS_API bool is_fifo (const path &p);
-GHC_FS_API bool is_fifo (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_other (file_status s) noexcept;
-GHC_FS_API bool is_other (const path &p);
-GHC_FS_API bool is_other (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_regular_file (file_status s) noexcept;
-GHC_FS_API bool is_regular_file (const path &p);
-GHC_FS_API bool is_regular_file (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_socket (file_status s) noexcept;
-GHC_FS_API bool is_socket (const path &p);
-GHC_FS_API bool is_socket (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API bool is_symlink (file_status s) noexcept;
-GHC_FS_API bool is_symlink (const path &p);
-GHC_FS_API bool is_symlink (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_block_file (file_status s) noexcept;
+ABEL_FS_API bool is_block_file (const path &p);
+ABEL_FS_API bool is_block_file (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_character_file (file_status s) noexcept;
+ABEL_FS_API bool is_character_file (const path &p);
+ABEL_FS_API bool is_character_file (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_directory (file_status s) noexcept;
+ABEL_FS_API bool is_directory (const path &p);
+ABEL_FS_API bool is_directory (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_empty (const path &p);
+ABEL_FS_API bool is_empty (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_fifo (file_status s) noexcept;
+ABEL_FS_API bool is_fifo (const path &p);
+ABEL_FS_API bool is_fifo (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_other (file_status s) noexcept;
+ABEL_FS_API bool is_other (const path &p);
+ABEL_FS_API bool is_other (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_regular_file (file_status s) noexcept;
+ABEL_FS_API bool is_regular_file (const path &p);
+ABEL_FS_API bool is_regular_file (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_socket (file_status s) noexcept;
+ABEL_FS_API bool is_socket (const path &p);
+ABEL_FS_API bool is_socket (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool is_symlink (file_status s) noexcept;
+ABEL_FS_API bool is_symlink (const path &p);
+ABEL_FS_API bool is_symlink (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API file_time_type last_write_time (const path &p);
-GHC_FS_API file_time_type last_write_time (const path &p, std::error_code &ec) noexcept;
-GHC_FS_API void last_write_time (const path &p, file_time_type new_time);
-GHC_FS_API void last_write_time (const path &p, file_time_type new_time, std::error_code &ec) noexcept;
+ABEL_FS_API file_time_type last_write_time (const path &p);
+ABEL_FS_API file_time_type last_write_time (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API void last_write_time (const path &p, file_time_type new_time);
+ABEL_FS_API void last_write_time (const path &p, file_time_type new_time, std::error_code &ec) noexcept;
 
-GHC_FS_API void permissions (const path &p, perms prms, perm_options opts = perm_options::replace);
-GHC_FS_API void permissions (const path &p, perms prms, std::error_code &ec) noexcept;
-GHC_FS_API void permissions (const path &p, perms prms, perm_options opts, std::error_code &ec);
+ABEL_FS_API void permissions (const path &p, perms prms, perm_options opts = perm_options::replace);
+ABEL_FS_API void permissions (const path &p, perms prms, std::error_code &ec) noexcept;
+ABEL_FS_API void permissions (const path &p, perms prms, perm_options opts, std::error_code &ec);
 
-GHC_FS_API path proximate (const path &p, std::error_code &ec);
-GHC_FS_API path proximate (const path &p, const path &base = current_path());
-GHC_FS_API path proximate (const path &p, const path &base, std::error_code &ec);
+ABEL_FS_API path proximate (const path &p, std::error_code &ec);
+ABEL_FS_API path proximate (const path &p, const path &base = current_path());
+ABEL_FS_API path proximate (const path &p, const path &base, std::error_code &ec);
 
-GHC_FS_API path read_symlink (const path &p);
-GHC_FS_API path read_symlink (const path &p, std::error_code &ec);
+ABEL_FS_API path read_symlink (const path &p);
+ABEL_FS_API path read_symlink (const path &p, std::error_code &ec);
 
-GHC_FS_API path relative (const path &p, std::error_code &ec);
-GHC_FS_API path relative (const path &p, const path &base = current_path());
-GHC_FS_API path relative (const path &p, const path &base, std::error_code &ec);
+ABEL_FS_API path relative (const path &p, std::error_code &ec);
+ABEL_FS_API path relative (const path &p, const path &base = current_path());
+ABEL_FS_API path relative (const path &p, const path &base, std::error_code &ec);
 
-GHC_FS_API bool remove (const path &p);
-GHC_FS_API bool remove (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API bool remove (const path &p);
+ABEL_FS_API bool remove (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API uintmax_t remove_all (const path &p);
-GHC_FS_API uintmax_t remove_all (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API uintmax_t remove_all (const path &p);
+ABEL_FS_API uintmax_t remove_all (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API void rename (const path &from, const path &to);
-GHC_FS_API void rename (const path &from, const path &to, std::error_code &ec) noexcept;
+ABEL_FS_API void rename (const path &from, const path &to);
+ABEL_FS_API void rename (const path &from, const path &to, std::error_code &ec) noexcept;
 
-GHC_FS_API void resize_file (const path &p, uintmax_t size);
-GHC_FS_API void resize_file (const path &p, uintmax_t size, std::error_code &ec) noexcept;
+ABEL_FS_API void resize_file (const path &p, uintmax_t size);
+ABEL_FS_API void resize_file (const path &p, uintmax_t size, std::error_code &ec) noexcept;
 
-GHC_FS_API space_info space (const path &p);
-GHC_FS_API space_info space (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API space_info space (const path &p);
+ABEL_FS_API space_info space (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API file_status status (const path &p);
-GHC_FS_API file_status status (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API file_status status (const path &p);
+ABEL_FS_API file_status status (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API bool status_known (file_status s) noexcept;
+ABEL_FS_API bool status_known (file_status s) noexcept;
 
-GHC_FS_API file_status symlink_status (const path &p);
-GHC_FS_API file_status symlink_status (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API file_status symlink_status (const path &p);
+ABEL_FS_API file_status symlink_status (const path &p, std::error_code &ec) noexcept;
 
-GHC_FS_API path temp_directory_path ();
-GHC_FS_API path temp_directory_path (std::error_code &ec) noexcept;
+ABEL_FS_API path temp_directory_path ();
+ABEL_FS_API path temp_directory_path (std::error_code &ec) noexcept;
 
-GHC_FS_API path weakly_canonical (const path &p);
-GHC_FS_API path weakly_canonical (const path &p, std::error_code &ec) noexcept;
+ABEL_FS_API path weakly_canonical (const path &p);
+ABEL_FS_API path weakly_canonical (const path &p, std::error_code &ec) noexcept;
 
 // Non-C++17 add-on std::fstream wrappers with path
 template<class charT, class traits = std::char_traits<charT>>
@@ -1012,7 +1012,7 @@ typedef basic_ofstream<wchar_t> wofstream;
 typedef basic_fstream<char> fstream;
 typedef basic_fstream<wchar_t> wfstream;
 
-class GHC_FS_API_CLASS u8arguments {
+class ABEL_FS_API_CLASS u8arguments {
 public:
     u8arguments (int &argc, char **&argv);
     ~u8arguments () {
@@ -1039,13 +1039,13 @@ private:
 //-------------------------------------------------------------------------------------------------
 
 namespace detail {
-// GHC_FS_API void postprocess_path_with_format(path::impl_string_type& p, path::format fmt);
+// ABEL_FS_API void postprocess_path_with_format(path::impl_string_type& p, path::format fmt);
 enum utf8_states_t { S_STRT = 0, S_RJCT = 8 };
-GHC_FS_API void appendUTF8 (std::string &str, uint32_t unicode);
-GHC_FS_API bool is_surrogate (uint32_t c);
-GHC_FS_API bool is_high_surrogate (uint32_t c);
-GHC_FS_API bool is_low_surrogate (uint32_t c);
-GHC_FS_API unsigned consumeUtf8Fragment (const unsigned state, const uint8_t fragment, uint32_t &codepoint);
+ABEL_FS_API void appendUTF8 (std::string &str, uint32_t unicode);
+ABEL_FS_API bool is_surrogate (uint32_t c);
+ABEL_FS_API bool is_high_surrogate (uint32_t c);
+ABEL_FS_API bool is_low_surrogate (uint32_t c);
+ABEL_FS_API unsigned consumeUtf8Fragment (const unsigned state, const uint8_t fragment, uint32_t &codepoint);
 enum class portable_error {
     none = 0,
     exists,
@@ -1055,19 +1055,19 @@ enum class portable_error {
     invalid_argument,
     is_a_directory,
 };
-GHC_FS_API std::error_code make_error_code (portable_error err);
+ABEL_FS_API std::error_code make_error_code (portable_error err);
 #ifdef ABEL_PLATFORM_WINDOWS
-GHC_FS_API std::error_code make_system_error(uint32_t err = 0);
+ABEL_FS_API std::error_code make_system_error(uint32_t err = 0);
 #else
-GHC_FS_API std::error_code make_system_error (int err = 0);
+ABEL_FS_API std::error_code make_system_error (int err = 0);
 #endif
 }  // namespace detail
 
 namespace detail {
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
-GHC_INLINE std::error_code make_error_code (portable_error err) {
+ABEL_INLINE std::error_code make_error_code (portable_error err) {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             switch (err) {
         case portable_error::none:
@@ -1104,17 +1104,17 @@ GHC_INLINE std::error_code make_error_code (portable_error err) {
 }
 
 #ifdef ABEL_PLATFORM_WINDOWS
-                                                                                                                        GHC_INLINE std::error_code make_system_error(uint32_t err)
+                                                                                                                        ABEL_INLINE std::error_code make_system_error(uint32_t err)
 {
     return std::error_code(err ? static_cast<int>(err) : static_cast<int>(::GetLastError()), std::system_category());
 }
 #else
-GHC_INLINE std::error_code make_system_error (int err) {
+ABEL_INLINE std::error_code make_system_error (int err) {
     return std::error_code(err ? err : errno, std::system_category());
 }
 #endif
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<typename Enum>
 using EnableBitmask = typename std::enable_if<
@@ -1165,27 +1165,27 @@ detail::EnableBitmask<Enum> &operator ^= (Enum &X, Enum Y) {
     return X;
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 namespace detail {
 
-GHC_INLINE bool in_range (uint32_t c, uint32_t lo, uint32_t hi) {
+ABEL_INLINE bool in_range (uint32_t c, uint32_t lo, uint32_t hi) {
     return (static_cast<uint32_t>(c - lo) < (hi - lo + 1));
 }
 
-GHC_INLINE bool is_surrogate (uint32_t c) {
+ABEL_INLINE bool is_surrogate (uint32_t c) {
     return in_range(c, 0xd800, 0xdfff);
 }
 
-GHC_INLINE bool is_high_surrogate (uint32_t c) {
+ABEL_INLINE bool is_high_surrogate (uint32_t c) {
     return (c & 0xfffffc00) == 0xd800;
 }
 
-GHC_INLINE bool is_low_surrogate (uint32_t c) {
+ABEL_INLINE bool is_low_surrogate (uint32_t c) {
     return (c & 0xfffffc00) == 0xdc00;
 }
 
-GHC_INLINE void appendUTF8 (std::string &str, uint32_t unicode) {
+ABEL_INLINE void appendUTF8 (std::string &str, uint32_t unicode) {
     if (unicode <= 0x7f) {
         str.push_back(static_cast<char>(unicode));
     } else if (unicode >= 0x80 && unicode <= 0x7ff) {
@@ -1212,7 +1212,7 @@ GHC_INLINE void appendUTF8 (std::string &str, uint32_t unicode) {
 // Thanks to Bjoern Hoehrmann (https://bjoern.hoehrmann.de/utf-8/decoder/dfa/)
 // and Taylor R Campbell for the ideas to this DFA approach of UTF-8 decoding;
 // Generating debugging and shrinking my own DFA from scratch was a day of fun!
-GHC_INLINE unsigned consumeUtf8Fragment (const unsigned state, const uint8_t fragment, uint32_t &codepoint) {
+ABEL_INLINE unsigned consumeUtf8Fragment (const unsigned state, const uint8_t fragment, uint32_t &codepoint) {
     static const uint32_t utf8_state_info[] = {
         // encoded states
         0x11111111u, 0x11111111u, 0x77777777u, 0x77777777u, 0x88888888u, 0x88888888u, 0x88888888u, 0x88888888u,
@@ -1226,7 +1226,7 @@ GHC_INLINE unsigned consumeUtf8Fragment (const unsigned state, const uint8_t fra
         (utf8_state_info[category + 16] >> (state << 2)) & 0xf);
 }
 
-GHC_INLINE bool validUtf8 (const std::string &utf8String) {
+ABEL_INLINE bool validUtf8 (const std::string &utf8String) {
     std::string::const_iterator iter = utf8String.begin();
     unsigned utf8_state = S_STRT;
     std::uint32_t codepoint = 0;
@@ -1373,17 +1373,17 @@ inline std::string toUtf8 (const charT *unicodeString) {
 
 }  // namespace detail
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 namespace detail {
 
-GHC_INLINE bool startsWith (const std::string &what, const std::string &with) {
+ABEL_INLINE bool startsWith (const std::string &what, const std::string &with) {
     return with.length() <= what.length() && equal(with.begin(), with.end(), what.begin());
 }
 
 }  // namespace detail
 
-GHC_INLINE void path::postprocess_path_with_format (path::impl_string_type &p, path::format fmt) {
+ABEL_INLINE void path::postprocess_path_with_format (path::impl_string_type &p, path::format fmt) {
 #ifdef GHC_RAISE_UNICODE_ERRORS
                                                                                                                             if(!detail::validUtf8(p)) {
         path t;
@@ -1435,7 +1435,7 @@ GHC_INLINE void path::postprocess_path_with_format (path::impl_string_type &p, p
     }
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<class Source, typename>
 inline path::path (const Source &source, format fmt)
@@ -1482,11 +1482,11 @@ inline path::path (InputIterator first, InputIterator last, format fmt)
     // delegated
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 namespace detail {
 
-GHC_INLINE bool equals_simple_insensitive (const char *str1, const char *str2) {
+ABEL_INLINE bool equals_simple_insensitive (const char *str1, const char *str2) {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             #ifdef __GNUC__
     while (::tolower((unsigned char)*str1) == ::tolower((unsigned char)*str2++)) {
@@ -1502,11 +1502,11 @@ GHC_INLINE bool equals_simple_insensitive (const char *str1, const char *str2) {
 #endif
 }
 
-GHC_INLINE const char *strerror_adapter (char *gnu, char *) {
+ABEL_INLINE const char *strerror_adapter (char *gnu, char *) {
     return gnu;
 }
 
-GHC_INLINE const char *strerror_adapter (int posix, char *buffer) {
+ABEL_INLINE const char *strerror_adapter (int posix, char *buffer) {
     if (posix) {
         return "Error in strerror_r!";
     }
@@ -1514,7 +1514,7 @@ GHC_INLINE const char *strerror_adapter (int posix, char *buffer) {
 }
 
 template<typename ErrorNumber>
-GHC_INLINE std::string systemErrorText (ErrorNumber code = 0) {
+ABEL_INLINE std::string systemErrorText (ErrorNumber code = 0) {
 #if defined(ABEL_PLATFORM_WINDOWS)
     LPVOID msgBuf;
     DWORD dw = code ? static_cast<DWORD>(code) : ::GetLastError();
@@ -1532,7 +1532,7 @@ GHC_INLINE std::string systemErrorText (ErrorNumber code = 0) {
                                                                                                                         using CreateSymbolicLinkW_fp = BOOLEAN(WINAPI*)(LPCWSTR, LPCWSTR, DWORD);
 using CreateHardLinkW_fp = BOOLEAN(WINAPI*)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES);
 
-GHC_INLINE void create_symlink(const path& target_name, const path& new_symlink, bool to_directory, std::error_code& ec)
+ABEL_INLINE void create_symlink(const path& target_name, const path& new_symlink, bool to_directory, std::error_code& ec)
 {
     std::error_code tec;
     auto fs = status(target_name, tec);
@@ -1562,7 +1562,7 @@ GHC_INLINE void create_symlink(const path& target_name, const path& new_symlink,
     }
 }
 
-GHC_INLINE void create_hardlink(const path& target_name, const path& new_hardlink, std::error_code& ec)
+ABEL_INLINE void create_hardlink(const path& target_name, const path& new_hardlink, std::error_code& ec)
 {
 #if defined(__GNUC__) && __GNUC__ >= 8
 #pragma GCC diagnostic push
@@ -1582,13 +1582,13 @@ GHC_INLINE void create_hardlink(const path& target_name, const path& new_hardlin
     }
 }
 #else
-GHC_INLINE void create_symlink (const path &target_name, const path &new_symlink, bool, std::error_code &ec) {
+ABEL_INLINE void create_symlink (const path &target_name, const path &new_symlink, bool, std::error_code &ec) {
     if (::symlink(target_name.c_str(), new_symlink.c_str()) != 0) {
         ec = detail::make_system_error();
     }
 }
 
-GHC_INLINE void create_hardlink (const path &target_name, const path &new_hardlink, std::error_code &ec) {
+ABEL_INLINE void create_hardlink (const path &target_name, const path &new_hardlink, std::error_code &ec) {
     if (::link(target_name.c_str(), new_hardlink.c_str()) != 0) {
         ec = detail::make_system_error();
     }
@@ -1596,7 +1596,7 @@ GHC_INLINE void create_hardlink (const path &target_name, const path &new_hardli
 #endif
 
 template<typename T>
-GHC_INLINE file_status file_status_from_st_mode (T mode) {
+ABEL_INLINE file_status file_status_from_st_mode (T mode) {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             file_type ft = file_type::unknown;
     if ((mode & _S_IFDIR) == _S_IFDIR) {
@@ -1632,7 +1632,7 @@ GHC_INLINE file_status file_status_from_st_mode (T mode) {
 #endif
 }
 
-GHC_INLINE path resolveSymlink (const path &p, std::error_code &ec) {
+ABEL_INLINE path resolveSymlink (const path &p, std::error_code &ec) {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             #ifndef REPARSE_DATA_BUFFER_HEADER_SIZE
     typedef struct _REPARSE_DATA_BUFFER
@@ -1715,7 +1715,7 @@ GHC_INLINE path resolveSymlink (const path &p, std::error_code &ec) {
 }
 
 #ifdef ABEL_PLATFORM_WINDOWS
-                                                                                                                        GHC_INLINE time_t timeFromFILETIME(const FILETIME& ft)
+                                                                                                                        ABEL_INLINE time_t timeFromFILETIME(const FILETIME& ft)
 {
     ULARGE_INTEGER ull;
     ull.LowPart = ft.dwLowDateTime;
@@ -1723,7 +1723,7 @@ GHC_INLINE path resolveSymlink (const path &p, std::error_code &ec) {
     return static_cast<time_t>(ull.QuadPart / 10000000ULL - 11644473600ULL);
 }
 
-GHC_INLINE void timeToFILETIME(time_t t, FILETIME& ft)
+ABEL_INLINE void timeToFILETIME(time_t t, FILETIME& ft)
 {
     LONGLONG ll;
     ll = Int32x32To64(t, 10000000) + 116444736000000000;
@@ -1732,19 +1732,19 @@ GHC_INLINE void timeToFILETIME(time_t t, FILETIME& ft)
 }
 
 template <typename INFO>
-GHC_INLINE uintmax_t hard_links_from_INFO(const INFO* info)
+ABEL_INLINE uintmax_t hard_links_from_INFO(const INFO* info)
 {
     return static_cast<uintmax_t>(-1);
 }
 
 template <>
-GHC_INLINE uintmax_t hard_links_from_INFO<BY_HANDLE_FILE_INFORMATION>(const BY_HANDLE_FILE_INFORMATION* info)
+ABEL_INLINE uintmax_t hard_links_from_INFO<BY_HANDLE_FILE_INFORMATION>(const BY_HANDLE_FILE_INFORMATION* info)
 {
     return info->nNumberOfLinks;
 }
 
 template <typename INFO>
-GHC_INLINE file_status status_from_INFO(const path& p, const INFO* info, std::error_code&, uintmax_t* sz = nullptr, time_t* lwt = nullptr) noexcept
+ABEL_INLINE file_status status_from_INFO(const path& p, const INFO* info, std::error_code&, uintmax_t* sz = nullptr, time_t* lwt = nullptr) noexcept
 {
     file_type ft = file_type::unknown;
     if ((info->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)) {
@@ -1777,7 +1777,7 @@ GHC_INLINE file_status status_from_INFO(const path& p, const INFO* info, std::er
 
 #endif
 
-GHC_INLINE bool is_not_found_error (std::error_code &ec) {
+ABEL_INLINE bool is_not_found_error (std::error_code &ec) {
 #ifdef ABEL_PLATFORM_WINDOWS
     return ec.value() == ERROR_FILE_NOT_FOUND || ec.value() == ERROR_PATH_NOT_FOUND || ec.value() == ERROR_INVALID_NAME;
 #else
@@ -1785,7 +1785,7 @@ GHC_INLINE bool is_not_found_error (std::error_code &ec) {
 #endif
 }
 
-GHC_INLINE file_status symlink_status_ex (const path &p,
+ABEL_INLINE file_status symlink_status_ex (const path &p,
                                           std::error_code &ec,
                                           uintmax_t *sz = nullptr,
                                           uintmax_t *nhl = nullptr,
@@ -1829,7 +1829,7 @@ GHC_INLINE file_status symlink_status_ex (const path &p,
 #endif
 }
 
-GHC_INLINE file_status status_ex (const path &p,
+ABEL_INLINE file_status status_ex (const path &p,
                                   std::error_code &ec,
                                   file_status *sls = nullptr,
                                   uintmax_t *sz = nullptr,
@@ -1905,7 +1905,7 @@ GHC_INLINE file_status status_ex (const path &p,
 
 }  // namespace detail
 
-GHC_INLINE u8arguments::u8arguments (int &argc, char **&argv)
+ABEL_INLINE u8arguments::u8arguments (int &argc, char **&argv)
     : _argc(argc), _argv(argv), _refargc(argc), _refargv(argv), _isvalid(false) {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             LPWSTR* p;
@@ -1934,17 +1934,17 @@ GHC_INLINE u8arguments::u8arguments (int &argc, char **&argv)
 //-----------------------------------------------------------------------------
 // 30.10.8.4.1 constructors and destructor
 
-GHC_INLINE path::path () noexcept { }
+ABEL_INLINE path::path () noexcept { }
 
-GHC_INLINE path::path (const path &p)
+ABEL_INLINE path::path (const path &p)
     : _path(p._path) {
 }
 
-GHC_INLINE path::path (path &&p) noexcept
+ABEL_INLINE path::path (path &&p) noexcept
     : _path(std::move(p._path)) {
 }
 
-GHC_INLINE path::path (string_type &&source, format fmt)
+ABEL_INLINE path::path (string_type &&source, format fmt)
 #ifdef GHC_USE_WCHAR_T
 : _path(detail::toUtf8(source))
 #else
@@ -1954,7 +1954,7 @@ GHC_INLINE path::path (string_type &&source, format fmt)
     postprocess_path_with_format(_path, fmt);
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<class Source, typename>
 inline path::path (const Source &source, const std::locale &loc, format fmt)
@@ -1980,28 +1980,28 @@ inline path::path (InputIterator first, InputIterator last, const std::locale &l
     }
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
-GHC_INLINE path::~path () { }
+ABEL_INLINE path::~path () { }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.2 assignments
 
-GHC_INLINE path &path::operator = (const path &p) {
+ABEL_INLINE path &path::operator = (const path &p) {
     _path = p._path;
     return *this;
 }
 
-GHC_INLINE path &path::operator = (path &&p) noexcept {
+ABEL_INLINE path &path::operator = (path &&p) noexcept {
     _path = std::move(p._path);
     return *this;
 }
 
-GHC_INLINE path &path::operator = (path::string_type &&source) {
+ABEL_INLINE path &path::operator = (path::string_type &&source) {
     return assign(source);
 }
 
-GHC_INLINE path &path::assign (path::string_type &&source) {
+ABEL_INLINE path &path::assign (path::string_type &&source) {
 #ifdef GHC_USE_WCHAR_T
     _path = detail::toUtf8(source);
 #else
@@ -2011,7 +2011,7 @@ GHC_INLINE path &path::assign (path::string_type &&source) {
     return *this;
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<class Source>
 inline path &path::operator = (const Source &source) {
@@ -2038,12 +2038,12 @@ inline path &path::assign (InputIterator first, InputIterator last) {
     return *this;
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.3 appends
 
-GHC_INLINE path &path::operator /= (const path &p) {
+ABEL_INLINE path &path::operator /= (const path &p) {
     if (p.empty()) {
         // was: if ((!has_root_directory() && is_absolute()) || has_filename())
         if (!_path.empty() && _path[_path.length() - 1] != '/' && _path[_path.length() - 1] != ':') {
@@ -2076,7 +2076,7 @@ GHC_INLINE path &path::operator /= (const path &p) {
     return *this;
 }
 
-GHC_INLINE void path::append_name (const char *name) {
+ABEL_INLINE void path::append_name (const char *name) {
     if (_path.empty()) {
         this->operator /=(path(name));
     } else {
@@ -2087,7 +2087,7 @@ GHC_INLINE void path::append_name (const char *name) {
     }
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<class Source>
 inline path &path::operator /= (const Source &source) {
@@ -2110,31 +2110,31 @@ inline path &path::append (InputIterator first, InputIterator last) {
     return append(part);
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.4 concatenation
 
-GHC_INLINE path &path::operator += (const path &x) {
+ABEL_INLINE path &path::operator += (const path &x) {
     return concat(x._path);
 }
 
-GHC_INLINE path &path::operator += (const string_type &x) {
+ABEL_INLINE path &path::operator += (const string_type &x) {
     return concat(x);
 }
 
 #ifdef __cpp_lib_string_view
-GHC_INLINE path& path::operator+=(std::basic_string_view<value_type> x)
+ABEL_INLINE path& path::operator+=(std::basic_string_view<value_type> x)
 {
     return concat(x);
 }
 #endif
 
-GHC_INLINE path &path::operator += (const value_type *x) {
+ABEL_INLINE path &path::operator += (const value_type *x) {
     return concat(string_type(x));
 }
 
-GHC_INLINE path &path::operator += (value_type x) {
+ABEL_INLINE path &path::operator += (value_type x) {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             if (x == '\\') {
         x = generic_separator;
@@ -2150,7 +2150,7 @@ GHC_INLINE path &path::operator += (value_type x) {
     return *this;
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<class Source>
 inline path::path_from_string<Source> &path::operator += (const Source &x) {
@@ -2178,33 +2178,33 @@ inline path &path::concat (InputIterator first, InputIterator last) {
     return *this;
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.5 modifiers
-GHC_INLINE void path::clear () noexcept {
+ABEL_INLINE void path::clear () noexcept {
     _path.clear();
 }
 
-GHC_INLINE path &path::make_preferred () {
+ABEL_INLINE path &path::make_preferred () {
     // as this filesystem implementation only uses generic_format
     // internally, this must be a no-op
     return *this;
 }
 
-GHC_INLINE path &path::remove_filename () {
+ABEL_INLINE path &path::remove_filename () {
     if (has_filename()) {
         _path.erase(_path.size() - filename()._path.size());
     }
     return *this;
 }
 
-GHC_INLINE path &path::replace_filename (const path &replacement) {
+ABEL_INLINE path &path::replace_filename (const path &replacement) {
     remove_filename();
     return append(replacement);
 }
 
-GHC_INLINE path &path::replace_extension (const path &replacement) {
+ABEL_INLINE path &path::replace_extension (const path &replacement) {
     if (has_extension()) {
         _path.erase(_path.size() - extension()._path.size());
     }
@@ -2214,14 +2214,14 @@ GHC_INLINE path &path::replace_extension (const path &replacement) {
     return concat(replacement);
 }
 
-GHC_INLINE void path::swap (path &rhs) noexcept {
+ABEL_INLINE void path::swap (path &rhs) noexcept {
     _path.swap(rhs._path);
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.6, native format observers
 #ifdef ABEL_PLATFORM_WINDOWS
-                                                                                                                        GHC_INLINE path::impl_string_type path::native_impl() const
+                                                                                                                        ABEL_INLINE path::impl_string_type path::native_impl() const
 {
     impl_string_type result;
     if (is_absolute() && _path.length() > MAX_PATH - 10) {
@@ -2247,12 +2247,12 @@ GHC_INLINE void path::swap (path &rhs) noexcept {
     return result;
 }
 #else
-GHC_INLINE const path::impl_string_type &path::native_impl () const {
+ABEL_INLINE const path::impl_string_type &path::native_impl () const {
     return _path;
 }
 #endif
 
-GHC_INLINE const path::string_type &path::native () const {
+ABEL_INLINE const path::string_type &path::native () const {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             #ifdef GHC_USE_WCHAR_T
     _native_cache = detail::fromUtf8<string_type>(native_impl());
@@ -2265,28 +2265,28 @@ GHC_INLINE const path::string_type &path::native () const {
 #endif
 }
 
-GHC_INLINE const path::value_type *path::c_str () const {
+ABEL_INLINE const path::value_type *path::c_str () const {
     return native().c_str();
 }
 
-GHC_INLINE path::operator path::string_type () const {
+ABEL_INLINE path::operator path::string_type () const {
     return native();
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 template<class EcharT, class traits, class Allocator>
 inline std::basic_string<EcharT, traits, Allocator> path::string (const Allocator &a) const {
     return detail::fromUtf8<std::basic_string<EcharT, traits, Allocator>>(native_impl(), a);
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
-GHC_INLINE std::string path::string () const {
+ABEL_INLINE std::string path::string () const {
     return native_impl();
 }
 
-GHC_INLINE std::wstring path::wstring () const {
+ABEL_INLINE std::wstring path::wstring () const {
 #ifdef GHC_USE_WCHAR_T
     return native();
 #else
@@ -2294,19 +2294,19 @@ GHC_INLINE std::wstring path::wstring () const {
 #endif
 }
 
-GHC_INLINE std::string path::u8string () const {
+ABEL_INLINE std::string path::u8string () const {
     return native_impl();
 }
 
-GHC_INLINE std::u16string path::u16string () const {
+ABEL_INLINE std::u16string path::u16string () const {
     return detail::fromUtf8<std::u16string>(native_impl());
 }
 
-GHC_INLINE std::u32string path::u32string () const {
+ABEL_INLINE std::u32string path::u32string () const {
     return detail::fromUtf8<std::u32string>(native_impl());
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.7, generic format observers
@@ -2315,52 +2315,52 @@ inline std::basic_string<EcharT, traits, Allocator> path::generic_string (const 
     return detail::fromUtf8<std::basic_string<EcharT, traits, Allocator>>(_path, a);
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
-GHC_INLINE const std::string &path::generic_string () const {
+ABEL_INLINE const std::string &path::generic_string () const {
     return _path;
 }
 
-GHC_INLINE std::wstring path::generic_wstring () const {
+ABEL_INLINE std::wstring path::generic_wstring () const {
     return detail::fromUtf8<std::wstring>(_path);
 }
 
-GHC_INLINE std::string path::generic_u8string () const {
+ABEL_INLINE std::string path::generic_u8string () const {
     return _path;
 }
 
-GHC_INLINE std::u16string path::generic_u16string () const {
+ABEL_INLINE std::u16string path::generic_u16string () const {
     return detail::fromUtf8<std::u16string>(_path);
 }
 
-GHC_INLINE std::u32string path::generic_u32string () const {
+ABEL_INLINE std::u32string path::generic_u32string () const {
     return detail::fromUtf8<std::u32string>(_path);
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.8, compare
-GHC_INLINE int path::compare (const path &p) const noexcept {
+ABEL_INLINE int path::compare (const path &p) const noexcept {
     return native().compare(p.native());
 }
 
-GHC_INLINE int path::compare (const string_type &s) const {
+ABEL_INLINE int path::compare (const string_type &s) const {
     return native().compare(path(s).native());
 }
 
 #ifdef __cpp_lib_string_view
-GHC_INLINE int path::compare(std::basic_string_view<value_type> s) const
+ABEL_INLINE int path::compare(std::basic_string_view<value_type> s) const
 {
     return native().compare(path(s).native());
 }
 #endif
 
-GHC_INLINE int path::compare (const value_type *s) const {
+ABEL_INLINE int path::compare (const value_type *s) const {
     return native().compare(path(s).native());
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.9, decomposition
-GHC_INLINE path path::root_name () const {
+ABEL_INLINE path path::root_name () const {
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             if (_path.length() >= 2 && std::toupper(static_cast<unsigned char>(_path[0])) >= 'A' && std::toupper(static_cast<unsigned char>(_path[0])) <= 'Z' && _path[1] == ':') {
         return path(_path.substr(0, 2));
@@ -2377,7 +2377,7 @@ GHC_INLINE path path::root_name () const {
     return path();
 }
 
-GHC_INLINE path path::root_directory () const {
+ABEL_INLINE path path::root_directory () const {
     path root = root_name();
     if (_path.length() > root._path.length() && _path[root._path.length()] == '/') {
         return path("/");
@@ -2385,16 +2385,16 @@ GHC_INLINE path path::root_directory () const {
     return path();
 }
 
-GHC_INLINE path path::root_path () const {
+ABEL_INLINE path path::root_path () const {
     return root_name().generic_string() + root_directory().generic_string();
 }
 
-GHC_INLINE path path::relative_path () const {
+ABEL_INLINE path path::relative_path () const {
     std::string root = root_path()._path;
     return path(_path.substr((std::min)(root.length(), _path.length())), generic_format);
 }
 
-GHC_INLINE path path::parent_path () const {
+ABEL_INLINE path path::parent_path () const {
     if (has_relative_path()) {
         if (empty() || begin() == --end()) {
             return path();
@@ -2415,11 +2415,11 @@ GHC_INLINE path path::parent_path () const {
     }
 }
 
-GHC_INLINE path path::filename () const {
+ABEL_INLINE path path::filename () const {
     return relative_path().empty() ? path() : path(*--end());
 }
 
-GHC_INLINE path path::stem () const {
+ABEL_INLINE path path::stem () const {
     impl_string_type fn = filename().string();
     if (fn != "." && fn != "..") {
         impl_string_type::size_type n = fn.rfind('.');
@@ -2430,7 +2430,7 @@ GHC_INLINE path path::stem () const {
     return path {fn};
 }
 
-GHC_INLINE path path::extension () const {
+ABEL_INLINE path path::extension () const {
     impl_string_type fn = filename().string();
     impl_string_type::size_type pos = fn.find_last_of('.');
     if (pos == std::string::npos || pos == 0) {
@@ -2441,43 +2441,43 @@ GHC_INLINE path path::extension () const {
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.10, query
-GHC_INLINE bool path::empty () const noexcept {
+ABEL_INLINE bool path::empty () const noexcept {
     return _path.empty();
 }
 
-GHC_INLINE bool path::has_root_name () const {
+ABEL_INLINE bool path::has_root_name () const {
     return !root_name().empty();
 }
 
-GHC_INLINE bool path::has_root_directory () const {
+ABEL_INLINE bool path::has_root_directory () const {
     return !root_directory().empty();
 }
 
-GHC_INLINE bool path::has_root_path () const {
+ABEL_INLINE bool path::has_root_path () const {
     return !root_path().empty();
 }
 
-GHC_INLINE bool path::has_relative_path () const {
+ABEL_INLINE bool path::has_relative_path () const {
     return !relative_path().empty();
 }
 
-GHC_INLINE bool path::has_parent_path () const {
+ABEL_INLINE bool path::has_parent_path () const {
     return !parent_path().empty();
 }
 
-GHC_INLINE bool path::has_filename () const {
+ABEL_INLINE bool path::has_filename () const {
     return !filename().empty();
 }
 
-GHC_INLINE bool path::has_stem () const {
+ABEL_INLINE bool path::has_stem () const {
     return !stem().empty();
 }
 
-GHC_INLINE bool path::has_extension () const {
+ABEL_INLINE bool path::has_extension () const {
     return !extension().empty();
 }
 
-GHC_INLINE bool path::is_absolute () const {
+ABEL_INLINE bool path::is_absolute () const {
 #ifdef ABEL_PLATFORM_WINDOWS
     return has_root_name() && has_root_directory();
 #else
@@ -2485,13 +2485,13 @@ GHC_INLINE bool path::is_absolute () const {
 #endif
 }
 
-GHC_INLINE bool path::is_relative () const {
+ABEL_INLINE bool path::is_relative () const {
     return !is_absolute();
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.4.11, generation
-GHC_INLINE path path::lexically_normal () const {
+ABEL_INLINE path path::lexically_normal () const {
     path dest;
     bool lastDotDot = false;
     for (string_type s : *this) {
@@ -2521,7 +2521,7 @@ GHC_INLINE path path::lexically_normal () const {
     return dest;
 }
 
-GHC_INLINE path path::lexically_relative (const path &base) const {
+ABEL_INLINE path path::lexically_relative (const path &base) const {
     if (root_name() != base.root_name() || is_absolute() != base.is_absolute()
         || (!has_root_directory() && base.has_root_directory())) {
         return path();
@@ -2555,16 +2555,16 @@ GHC_INLINE path path::lexically_relative (const path &base) const {
     return result;
 }
 
-GHC_INLINE path path::lexically_proximate (const path &base) const {
+ABEL_INLINE path path::lexically_proximate (const path &base) const {
     path result = lexically_relative(base);
     return result.empty() ? *this : result;
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.5, iterators
-GHC_INLINE path::iterator::iterator () { }
+ABEL_INLINE path::iterator::iterator () { }
 
-GHC_INLINE path::iterator::iterator (const path::impl_string_type::const_iterator &first,
+ABEL_INLINE path::iterator::iterator (const path::impl_string_type::const_iterator &first,
                                      const path::impl_string_type::const_iterator &last,
                                      const path::impl_string_type::const_iterator &pos)
     : _first(first), _last(last), _iter(pos) {
@@ -2589,7 +2589,7 @@ GHC_INLINE path::iterator::iterator (const path::impl_string_type::const_iterato
     }
 }
 
-GHC_INLINE path::impl_string_type::const_iterator path::iterator::increment (const path::impl_string_type::const_iterator &pos) const {
+ABEL_INLINE path::impl_string_type::const_iterator path::iterator::increment (const path::impl_string_type::const_iterator &pos) const {
     path::impl_string_type::const_iterator i = pos;
     bool fromStart = i == _first;
     if (i != _last) {
@@ -2618,7 +2618,7 @@ GHC_INLINE path::impl_string_type::const_iterator path::iterator::increment (con
     return i;
 }
 
-GHC_INLINE path::impl_string_type::const_iterator path::iterator::decrement (const path::impl_string_type::const_iterator &pos) const {
+ABEL_INLINE path::impl_string_type::const_iterator path::iterator::decrement (const path::impl_string_type::const_iterator &pos) const {
     path::impl_string_type::const_iterator i = pos;
     if (i != _first) {
         --i;
@@ -2645,7 +2645,7 @@ GHC_INLINE path::impl_string_type::const_iterator path::iterator::decrement (con
     return i;
 }
 
-GHC_INLINE void path::iterator::updateCurrent () {
+ABEL_INLINE void path::iterator::updateCurrent () {
     if (_iter != _first && _iter != _last && (*_iter == '/' && _iter != _root) && (_iter + 1 == _last)) {
         _current = "";
     } else {
@@ -2658,7 +2658,7 @@ GHC_INLINE void path::iterator::updateCurrent () {
     }
 }
 
-GHC_INLINE path::iterator &path::iterator::operator ++ () {
+ABEL_INLINE path::iterator &path::iterator::operator ++ () {
     _iter = increment(_iter);
     while (_iter != _last &&     // we didn't reach the end
         _iter != _root &&     // this is not a root position
@@ -2671,89 +2671,89 @@ GHC_INLINE path::iterator &path::iterator::operator ++ () {
     return *this;
 }
 
-GHC_INLINE path::iterator path::iterator::operator ++ (int) {
+ABEL_INLINE path::iterator path::iterator::operator ++ (int) {
     path::iterator i {*this};
     ++(*this);
     return i;
 }
 
-GHC_INLINE path::iterator &path::iterator::operator -- () {
+ABEL_INLINE path::iterator &path::iterator::operator -- () {
     _iter = decrement(_iter);
     updateCurrent();
     return *this;
 }
 
-GHC_INLINE path::iterator path::iterator::operator -- (int) {
+ABEL_INLINE path::iterator path::iterator::operator -- (int) {
     auto i = *this;
     --(*this);
     return i;
 }
 
-GHC_INLINE bool path::iterator::operator == (const path::iterator &other) const {
+ABEL_INLINE bool path::iterator::operator == (const path::iterator &other) const {
     return _iter == other._iter;
 }
 
-GHC_INLINE bool path::iterator::operator != (const path::iterator &other) const {
+ABEL_INLINE bool path::iterator::operator != (const path::iterator &other) const {
     return _iter != other._iter;
 }
 
-GHC_INLINE path::iterator::reference path::iterator::operator * () const {
+ABEL_INLINE path::iterator::reference path::iterator::operator * () const {
     return _current;
 }
 
-GHC_INLINE path::iterator::pointer path::iterator::operator -> () const {
+ABEL_INLINE path::iterator::pointer path::iterator::operator -> () const {
     return &_current;
 }
 
-GHC_INLINE path::iterator path::begin () const {
+ABEL_INLINE path::iterator path::begin () const {
     return iterator(_path.begin(), _path.end(), _path.begin());
 }
 
-GHC_INLINE path::iterator path::end () const {
+ABEL_INLINE path::iterator path::end () const {
     return iterator(_path.begin(), _path.end(), _path.end());
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.8.6, path non-member functions
-GHC_INLINE void swap (path &lhs, path &rhs) noexcept {
+ABEL_INLINE void swap (path &lhs, path &rhs) noexcept {
     swap(lhs._path, rhs._path);
 }
 
-GHC_INLINE size_t hash_value (const path &p) noexcept {
+ABEL_INLINE size_t hash_value (const path &p) noexcept {
     return std::hash<std::string>()(p.generic_string());
 }
 
-GHC_INLINE bool operator == (const path &lhs, const path &rhs) noexcept {
+ABEL_INLINE bool operator == (const path &lhs, const path &rhs) noexcept {
     return lhs.generic_string() == rhs.generic_string();
 }
 
-GHC_INLINE bool operator != (const path &lhs, const path &rhs) noexcept {
+ABEL_INLINE bool operator != (const path &lhs, const path &rhs) noexcept {
     return lhs.generic_string() != rhs.generic_string();
 }
 
-GHC_INLINE bool operator < (const path &lhs, const path &rhs) noexcept {
+ABEL_INLINE bool operator < (const path &lhs, const path &rhs) noexcept {
     return lhs.generic_string() < rhs.generic_string();
 }
 
-GHC_INLINE bool operator <= (const path &lhs, const path &rhs) noexcept {
+ABEL_INLINE bool operator <= (const path &lhs, const path &rhs) noexcept {
     return lhs.generic_string() <= rhs.generic_string();
 }
 
-GHC_INLINE bool operator > (const path &lhs, const path &rhs) noexcept {
+ABEL_INLINE bool operator > (const path &lhs, const path &rhs) noexcept {
     return lhs.generic_string() > rhs.generic_string();
 }
 
-GHC_INLINE bool operator >= (const path &lhs, const path &rhs) noexcept {
+ABEL_INLINE bool operator >= (const path &lhs, const path &rhs) noexcept {
     return lhs.generic_string() >= rhs.generic_string();
 }
 
-GHC_INLINE path operator / (const path &lhs, const path &rhs) {
+ABEL_INLINE path operator / (const path &lhs, const path &rhs) {
     path result(lhs);
     result /= rhs;
     return result;
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
 // 30.10.8.6.1 path inserter and extractor
@@ -2804,22 +2804,22 @@ inline std::basic_istream<charT, traits> &operator >> (std::basic_istream<charT,
     return is;
 }
 
-#ifdef GHC_EXPAND_IMPL
+#ifdef ABEL_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
 // 30.10.9 Class filesystem_error
-GHC_INLINE filesystem_error::filesystem_error (const std::string &what_arg, std::error_code ec)
+ABEL_INLINE filesystem_error::filesystem_error (const std::string &what_arg, std::error_code ec)
     : std::system_error(ec, what_arg), _what_arg(what_arg), _ec(ec) {
 }
 
-GHC_INLINE filesystem_error::filesystem_error (const std::string &what_arg, const path &p1, std::error_code ec)
+ABEL_INLINE filesystem_error::filesystem_error (const std::string &what_arg, const path &p1, std::error_code ec)
     : std::system_error(ec, what_arg), _what_arg(what_arg), _ec(ec), _p1(p1) {
     if (!_p1.empty()) {
         _what_arg += ": '" + _p1.u8string() + "'";
     }
 }
 
-GHC_INLINE filesystem_error::filesystem_error (const std::string &what_arg,
+ABEL_INLINE filesystem_error::filesystem_error (const std::string &what_arg,
                                                const path &p1,
                                                const path &p2,
                                                std::error_code ec)
@@ -2832,21 +2832,21 @@ GHC_INLINE filesystem_error::filesystem_error (const std::string &what_arg,
     }
 }
 
-GHC_INLINE const path &filesystem_error::path1 () const noexcept {
+ABEL_INLINE const path &filesystem_error::path1 () const noexcept {
     return _p1;
 }
 
-GHC_INLINE const path &filesystem_error::path2 () const noexcept {
+ABEL_INLINE const path &filesystem_error::path2 () const noexcept {
     return _p2;
 }
 
-GHC_INLINE const char *filesystem_error::what () const noexcept {
+ABEL_INLINE const char *filesystem_error::what () const noexcept {
     return _what_arg.c_str();
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.15, filesystem operations
-GHC_INLINE path absolute (const path &p) {
+ABEL_INLINE path absolute (const path &p) {
     std::error_code ec;
     path result = absolute(p, ec);
     if (ec) {
@@ -2855,7 +2855,7 @@ GHC_INLINE path absolute (const path &p) {
     return result;
 }
 
-GHC_INLINE path absolute (const path &p, std::error_code &ec) {
+ABEL_INLINE path absolute (const path &p, std::error_code &ec) {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             if (p.empty()) {
@@ -2900,7 +2900,7 @@ GHC_INLINE path absolute (const path &p, std::error_code &ec) {
 #endif
 }
 
-GHC_INLINE path canonical (const path &p) {
+ABEL_INLINE path canonical (const path &p) {
     std::error_code ec;
     auto result = canonical(p, ec);
     if (ec) {
@@ -2909,7 +2909,7 @@ GHC_INLINE path canonical (const path &p) {
     return result;
 }
 
-GHC_INLINE path canonical (const path &p, std::error_code &ec) {
+ABEL_INLINE path canonical (const path &p, std::error_code &ec) {
     if (p.empty()) {
         ec = detail::make_error_code(detail::portable_error::not_found);
         return path();
@@ -2967,15 +2967,15 @@ GHC_INLINE path canonical (const path &p, std::error_code &ec) {
     return result;
 }
 
-GHC_INLINE void copy (const path &from, const path &to) {
+ABEL_INLINE void copy (const path &from, const path &to) {
     copy(from, to, copy_options::none);
 }
 
-GHC_INLINE void copy (const path &from, const path &to, std::error_code &ec) noexcept {
+ABEL_INLINE void copy (const path &from, const path &to, std::error_code &ec) noexcept {
     copy(from, to, copy_options::none, ec);
 }
 
-GHC_INLINE void copy (const path &from, const path &to, copy_options options) {
+ABEL_INLINE void copy (const path &from, const path &to, copy_options options) {
     std::error_code ec;
     copy(from, to, options, ec);
     if (ec) {
@@ -2983,7 +2983,7 @@ GHC_INLINE void copy (const path &from, const path &to, copy_options options) {
     }
 }
 
-GHC_INLINE void copy (const path &from, const path &to, copy_options options, std::error_code &ec) noexcept {
+ABEL_INLINE void copy (const path &from, const path &to, copy_options options, std::error_code &ec) noexcept {
     std::error_code tec;
     file_status fs_from, fs_to;
     ec.clear();
@@ -3053,15 +3053,15 @@ GHC_INLINE void copy (const path &from, const path &to, copy_options options, st
     return;
 }
 
-GHC_INLINE bool copy_file (const path &from, const path &to) {
+ABEL_INLINE bool copy_file (const path &from, const path &to) {
     return copy_file(from, to, copy_options::none);
 }
 
-GHC_INLINE bool copy_file (const path &from, const path &to, std::error_code &ec) noexcept {
+ABEL_INLINE bool copy_file (const path &from, const path &to, std::error_code &ec) noexcept {
     return copy_file(from, to, copy_options::none, ec);
 }
 
-GHC_INLINE bool copy_file (const path &from, const path &to, copy_options option) {
+ABEL_INLINE bool copy_file (const path &from, const path &to, copy_options option) {
     std::error_code ec;
     auto result = copy_file(from, to, option, ec);
     if (ec) {
@@ -3070,7 +3070,7 @@ GHC_INLINE bool copy_file (const path &from, const path &to, copy_options option
     return result;
 }
 
-GHC_INLINE bool copy_file (const path &from, const path &to, copy_options options, std::error_code &ec) noexcept {
+ABEL_INLINE bool copy_file (const path &from, const path &to, copy_options options, std::error_code &ec) noexcept {
     std::error_code tecf, tect;
     auto sf = status(from, tecf);
     auto st = status(to, tect);
@@ -3144,7 +3144,7 @@ GHC_INLINE bool copy_file (const path &from, const path &to, copy_options option
 #endif
 }
 
-GHC_INLINE void copy_symlink (const path &existing_symlink, const path &new_symlink) {
+ABEL_INLINE void copy_symlink (const path &existing_symlink, const path &new_symlink) {
     std::error_code ec;
     copy_symlink(existing_symlink, new_symlink, ec);
     if (ec) {
@@ -3152,7 +3152,7 @@ GHC_INLINE void copy_symlink (const path &existing_symlink, const path &new_syml
     }
 }
 
-GHC_INLINE void copy_symlink (const path &existing_symlink, const path &new_symlink, std::error_code &ec) noexcept {
+ABEL_INLINE void copy_symlink (const path &existing_symlink, const path &new_symlink, std::error_code &ec) noexcept {
     ec.clear();
     auto to = read_symlink(existing_symlink, ec);
     if (!ec) {
@@ -3164,7 +3164,7 @@ GHC_INLINE void copy_symlink (const path &existing_symlink, const path &new_syml
     }
 }
 
-GHC_INLINE bool create_directories (const path &p) {
+ABEL_INLINE bool create_directories (const path &p) {
     std::error_code ec;
     auto result = create_directories(p, ec);
     if (ec) {
@@ -3173,7 +3173,7 @@ GHC_INLINE bool create_directories (const path &p) {
     return result;
 }
 
-GHC_INLINE bool create_directories (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool create_directories (const path &p, std::error_code &ec) noexcept {
     path current;
     ec.clear();
     for (path::string_type part : p) {
@@ -3207,7 +3207,7 @@ GHC_INLINE bool create_directories (const path &p, std::error_code &ec) noexcept
     return true;
 }
 
-GHC_INLINE bool create_directory (const path &p) {
+ABEL_INLINE bool create_directory (const path &p) {
     std::error_code ec;
     auto result = create_directory(p, path(), ec);
     if (ec) {
@@ -3216,11 +3216,11 @@ GHC_INLINE bool create_directory (const path &p) {
     return result;
 }
 
-GHC_INLINE bool create_directory (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool create_directory (const path &p, std::error_code &ec) noexcept {
     return create_directory(p, path(), ec);
 }
 
-GHC_INLINE bool create_directory (const path &p, const path &attributes) {
+ABEL_INLINE bool create_directory (const path &p, const path &attributes) {
     std::error_code ec;
     auto result = create_directory(p, attributes, ec);
     if (ec) {
@@ -3229,7 +3229,7 @@ GHC_INLINE bool create_directory (const path &p, const path &attributes) {
     return result;
 }
 
-GHC_INLINE bool create_directory (const path &p, const path &attributes, std::error_code &ec) noexcept {
+ABEL_INLINE bool create_directory (const path &p, const path &attributes, std::error_code &ec) noexcept {
     std::error_code tec;
     ec.clear();
     auto fs = status(p, tec);
@@ -3271,7 +3271,7 @@ GHC_INLINE bool create_directory (const path &p, const path &attributes, std::er
     return true;
 }
 
-GHC_INLINE void create_directory_symlink (const path &to, const path &new_symlink) {
+ABEL_INLINE void create_directory_symlink (const path &to, const path &new_symlink) {
     std::error_code ec;
     create_directory_symlink(to, new_symlink, ec);
     if (ec) {
@@ -3279,11 +3279,11 @@ GHC_INLINE void create_directory_symlink (const path &to, const path &new_symlin
     }
 }
 
-GHC_INLINE void create_directory_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept {
+ABEL_INLINE void create_directory_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept {
     detail::create_symlink(to, new_symlink, true, ec);
 }
 
-GHC_INLINE void create_hard_link (const path &to, const path &new_hard_link) {
+ABEL_INLINE void create_hard_link (const path &to, const path &new_hard_link) {
     std::error_code ec;
     create_hard_link(to, new_hard_link, ec);
     if (ec) {
@@ -3291,11 +3291,11 @@ GHC_INLINE void create_hard_link (const path &to, const path &new_hard_link) {
     }
 }
 
-GHC_INLINE void create_hard_link (const path &to, const path &new_hard_link, std::error_code &ec) noexcept {
+ABEL_INLINE void create_hard_link (const path &to, const path &new_hard_link, std::error_code &ec) noexcept {
     detail::create_hardlink(to, new_hard_link, ec);
 }
 
-GHC_INLINE void create_symlink (const path &to, const path &new_symlink) {
+ABEL_INLINE void create_symlink (const path &to, const path &new_symlink) {
     std::error_code ec;
     create_symlink(to, new_symlink, ec);
     if (ec) {
@@ -3303,11 +3303,11 @@ GHC_INLINE void create_symlink (const path &to, const path &new_symlink) {
     }
 }
 
-GHC_INLINE void create_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept {
+ABEL_INLINE void create_symlink (const path &to, const path &new_symlink, std::error_code &ec) noexcept {
     detail::create_symlink(to, new_symlink, false, ec);
 }
 
-GHC_INLINE path current_path () {
+ABEL_INLINE path current_path () {
     std::error_code ec;
     auto result = current_path(ec);
     if (ec) {
@@ -3316,7 +3316,7 @@ GHC_INLINE path current_path () {
     return result;
 }
 
-GHC_INLINE path current_path (std::error_code &ec) {
+ABEL_INLINE path current_path (std::error_code &ec) {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             DWORD pathlen = ::GetCurrentDirectoryW(0, 0);
@@ -3337,7 +3337,7 @@ GHC_INLINE path current_path (std::error_code &ec) {
 #endif
 }
 
-GHC_INLINE void current_path (const path &p) {
+ABEL_INLINE void current_path (const path &p) {
     std::error_code ec;
     current_path(p, ec);
     if (ec) {
@@ -3345,7 +3345,7 @@ GHC_INLINE void current_path (const path &p) {
     }
 }
 
-GHC_INLINE void current_path (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE void current_path (const path &p, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             if (!::SetCurrentDirectoryW(detail::fromUtf8<std::wstring>(p.u8string()).c_str())) {
@@ -3358,15 +3358,15 @@ GHC_INLINE void current_path (const path &p, std::error_code &ec) noexcept {
 #endif
 }
 
-GHC_INLINE bool exists (file_status s) noexcept {
+ABEL_INLINE bool exists (file_status s) noexcept {
     return status_known(s) && s.type() != file_type::not_found;
 }
 
-GHC_INLINE bool exists (const path &p) {
+ABEL_INLINE bool exists (const path &p) {
     return exists(status(p));
 }
 
-GHC_INLINE bool exists (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool exists (const path &p, std::error_code &ec) noexcept {
     file_status s = status(p, ec);
     if (status_known(s)) {
         ec.clear();
@@ -3374,7 +3374,7 @@ GHC_INLINE bool exists (const path &p, std::error_code &ec) noexcept {
     return exists(s);
 }
 
-GHC_INLINE bool equivalent (const path &p1, const path &p2) {
+ABEL_INLINE bool equivalent (const path &p1, const path &p2) {
     std::error_code ec;
     bool result = equivalent(p1, p2, ec);
     if (ec) {
@@ -3383,7 +3383,7 @@ GHC_INLINE bool equivalent (const path &p1, const path &p2) {
     return result;
 }
 
-GHC_INLINE bool equivalent (const path &p1, const path &p2, std::error_code &ec) noexcept {
+ABEL_INLINE bool equivalent (const path &p1, const path &p2, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             std::shared_ptr<void> file1(::CreateFileW(p1.wstring().c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0), CloseHandle);
@@ -3429,7 +3429,7 @@ GHC_INLINE bool equivalent (const path &p1, const path &p2, std::error_code &ec)
 #endif
 }
 
-GHC_INLINE uintmax_t file_size (const path &p) {
+ABEL_INLINE uintmax_t file_size (const path &p) {
     std::error_code ec;
     auto result = file_size(p, ec);
     if (ec) {
@@ -3438,7 +3438,7 @@ GHC_INLINE uintmax_t file_size (const path &p) {
     return result;
 }
 
-GHC_INLINE uintmax_t file_size (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE uintmax_t file_size (const path &p, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             WIN32_FILE_ATTRIBUTE_DATA attr;
@@ -3457,7 +3457,7 @@ GHC_INLINE uintmax_t file_size (const path &p, std::error_code &ec) noexcept {
 #endif
 }
 
-GHC_INLINE uintmax_t hard_link_count (const path &p) {
+ABEL_INLINE uintmax_t hard_link_count (const path &p) {
     std::error_code ec;
     auto result = hard_link_count(p, ec);
     if (ec) {
@@ -3466,7 +3466,7 @@ GHC_INLINE uintmax_t hard_link_count (const path &p) {
     return result;
 }
 
-GHC_INLINE uintmax_t hard_link_count (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE uintmax_t hard_link_count (const path &p, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             uintmax_t result = static_cast<uintmax_t>(-1);
@@ -3494,43 +3494,43 @@ GHC_INLINE uintmax_t hard_link_count (const path &p, std::error_code &ec) noexce
 #endif
 }
 
-GHC_INLINE bool is_block_file (file_status s) noexcept {
+ABEL_INLINE bool is_block_file (file_status s) noexcept {
     return s.type() == file_type::block;
 }
 
-GHC_INLINE bool is_block_file (const path &p) {
+ABEL_INLINE bool is_block_file (const path &p) {
     return is_block_file(status(p));
 }
 
-GHC_INLINE bool is_block_file (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_block_file (const path &p, std::error_code &ec) noexcept {
     return is_block_file(status(p, ec));
 }
 
-GHC_INLINE bool is_character_file (file_status s) noexcept {
+ABEL_INLINE bool is_character_file (file_status s) noexcept {
     return s.type() == file_type::character;
 }
 
-GHC_INLINE bool is_character_file (const path &p) {
+ABEL_INLINE bool is_character_file (const path &p) {
     return is_character_file(status(p));
 }
 
-GHC_INLINE bool is_character_file (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_character_file (const path &p, std::error_code &ec) noexcept {
     return is_character_file(status(p, ec));
 }
 
-GHC_INLINE bool is_directory (file_status s) noexcept {
+ABEL_INLINE bool is_directory (file_status s) noexcept {
     return s.type() == file_type::directory;
 }
 
-GHC_INLINE bool is_directory (const path &p) {
+ABEL_INLINE bool is_directory (const path &p) {
     return is_directory(status(p));
 }
 
-GHC_INLINE bool is_directory (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_directory (const path &p, std::error_code &ec) noexcept {
     return is_directory(status(p, ec));
 }
 
-GHC_INLINE bool is_empty (const path &p) {
+ABEL_INLINE bool is_empty (const path &p) {
     if (is_directory(p)) {
         return directory_iterator(p) == directory_iterator();
     } else {
@@ -3538,7 +3538,7 @@ GHC_INLINE bool is_empty (const path &p) {
     }
 }
 
-GHC_INLINE bool is_empty (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_empty (const path &p, std::error_code &ec) noexcept {
     auto fs = status(p, ec);
     if (ec) {
         return false;
@@ -3558,67 +3558,67 @@ GHC_INLINE bool is_empty (const path &p, std::error_code &ec) noexcept {
     }
 }
 
-GHC_INLINE bool is_fifo (file_status s) noexcept {
+ABEL_INLINE bool is_fifo (file_status s) noexcept {
     return s.type() == file_type::fifo;
 }
 
-GHC_INLINE bool is_fifo (const path &p) {
+ABEL_INLINE bool is_fifo (const path &p) {
     return is_fifo(status(p));
 }
 
-GHC_INLINE bool is_fifo (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_fifo (const path &p, std::error_code &ec) noexcept {
     return is_fifo(status(p, ec));
 }
 
-GHC_INLINE bool is_other (file_status s) noexcept {
+ABEL_INLINE bool is_other (file_status s) noexcept {
     return exists(s) && !is_regular_file(s) && !is_directory(s) && !is_symlink(s);
 }
 
-GHC_INLINE bool is_other (const path &p) {
+ABEL_INLINE bool is_other (const path &p) {
     return is_other(status(p));
 }
 
-GHC_INLINE bool is_other (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_other (const path &p, std::error_code &ec) noexcept {
     return is_other(status(p, ec));
 }
 
-GHC_INLINE bool is_regular_file (file_status s) noexcept {
+ABEL_INLINE bool is_regular_file (file_status s) noexcept {
     return s.type() == file_type::regular;
 }
 
-GHC_INLINE bool is_regular_file (const path &p) {
+ABEL_INLINE bool is_regular_file (const path &p) {
     return is_regular_file(status(p));
 }
 
-GHC_INLINE bool is_regular_file (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_regular_file (const path &p, std::error_code &ec) noexcept {
     return is_regular_file(status(p, ec));
 }
 
-GHC_INLINE bool is_socket (file_status s) noexcept {
+ABEL_INLINE bool is_socket (file_status s) noexcept {
     return s.type() == file_type::socket;
 }
 
-GHC_INLINE bool is_socket (const path &p) {
+ABEL_INLINE bool is_socket (const path &p) {
     return is_socket(status(p));
 }
 
-GHC_INLINE bool is_socket (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_socket (const path &p, std::error_code &ec) noexcept {
     return is_socket(status(p, ec));
 }
 
-GHC_INLINE bool is_symlink (file_status s) noexcept {
+ABEL_INLINE bool is_symlink (file_status s) noexcept {
     return s.type() == file_type::symlink;
 }
 
-GHC_INLINE bool is_symlink (const path &p) {
+ABEL_INLINE bool is_symlink (const path &p) {
     return is_symlink(symlink_status(p));
 }
 
-GHC_INLINE bool is_symlink (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool is_symlink (const path &p, std::error_code &ec) noexcept {
     return is_symlink(symlink_status(p, ec));
 }
 
-GHC_INLINE file_time_type last_write_time (const path &p) {
+ABEL_INLINE file_time_type last_write_time (const path &p) {
     std::error_code ec;
     auto result = last_write_time(p, ec);
     if (ec) {
@@ -3627,14 +3627,14 @@ GHC_INLINE file_time_type last_write_time (const path &p) {
     return result;
 }
 
-GHC_INLINE file_time_type last_write_time (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE file_time_type last_write_time (const path &p, std::error_code &ec) noexcept {
     time_t result = 0;
     ec.clear();
     file_status fs = detail::status_ex(p, ec, nullptr, nullptr, nullptr, &result);
     return ec ? (file_time_type::min)() : std::chrono::system_clock::from_time_t(result);
 }
 
-GHC_INLINE void last_write_time (const path &p, file_time_type new_time) {
+ABEL_INLINE void last_write_time (const path &p, file_time_type new_time) {
     std::error_code ec;
     last_write_time(p, new_time, ec);
     if (ec) {
@@ -3642,7 +3642,7 @@ GHC_INLINE void last_write_time (const path &p, file_time_type new_time) {
     }
 }
 
-GHC_INLINE void last_write_time (const path &p, file_time_type new_time, std::error_code &ec) noexcept {
+ABEL_INLINE void last_write_time (const path &p, file_time_type new_time, std::error_code &ec) noexcept {
     ec.clear();
     auto d = new_time.time_since_epoch();
 #ifdef ABEL_PLATFORM_WINDOWS
@@ -3695,7 +3695,7 @@ GHC_INLINE void last_write_time (const path &p, file_time_type new_time, std::er
 #endif
 }
 
-GHC_INLINE void permissions (const path &p, perms prms, perm_options opts) {
+ABEL_INLINE void permissions (const path &p, perms prms, perm_options opts) {
     std::error_code ec;
     permissions(p, prms, opts, ec);
     if (ec) {
@@ -3703,11 +3703,11 @@ GHC_INLINE void permissions (const path &p, perms prms, perm_options opts) {
     }
 }
 
-GHC_INLINE void permissions (const path &p, perms prms, std::error_code &ec) noexcept {
+ABEL_INLINE void permissions (const path &p, perms prms, std::error_code &ec) noexcept {
     permissions(p, prms, perm_options::replace, ec);
 }
 
-GHC_INLINE void permissions (const path &p, perms prms, perm_options opts, std::error_code &ec) {
+ABEL_INLINE void permissions (const path &p, perms prms, perm_options opts, std::error_code &ec) {
     if (static_cast<int>(opts & (perm_options::replace | perm_options::add | perm_options::remove)) == 0) {
         ec = detail::make_error_code(detail::portable_error::invalid_argument);
         return;
@@ -3751,19 +3751,19 @@ GHC_INLINE void permissions (const path &p, perms prms, perm_options opts, std::
 #endif
 }
 
-GHC_INLINE path proximate (const path &p, std::error_code &ec) {
+ABEL_INLINE path proximate (const path &p, std::error_code &ec) {
     return proximate(p, current_path(), ec);
 }
 
-GHC_INLINE path proximate (const path &p, const path &base) {
+ABEL_INLINE path proximate (const path &p, const path &base) {
     return weakly_canonical(p).lexically_proximate(weakly_canonical(base));
 }
 
-GHC_INLINE path proximate (const path &p, const path &base, std::error_code &ec) {
+ABEL_INLINE path proximate (const path &p, const path &base, std::error_code &ec) {
     return weakly_canonical(p, ec).lexically_proximate(weakly_canonical(base, ec));
 }
 
-GHC_INLINE path read_symlink (const path &p) {
+ABEL_INLINE path read_symlink (const path &p) {
     std::error_code ec;
     auto result = read_symlink(p, ec);
     if (ec) {
@@ -3772,7 +3772,7 @@ GHC_INLINE path read_symlink (const path &p) {
     return result;
 }
 
-GHC_INLINE path read_symlink (const path &p, std::error_code &ec) {
+ABEL_INLINE path read_symlink (const path &p, std::error_code &ec) {
     file_status fs = symlink_status(p, ec);
     if (fs.type() != file_type::symlink) {
         ec = detail::make_error_code(detail::portable_error::invalid_argument);
@@ -3782,19 +3782,19 @@ GHC_INLINE path read_symlink (const path &p, std::error_code &ec) {
     return ec ? path() : result;
 }
 
-GHC_INLINE path relative (const path &p, std::error_code &ec) {
+ABEL_INLINE path relative (const path &p, std::error_code &ec) {
     return relative(p, current_path(ec), ec);
 }
 
-GHC_INLINE path relative (const path &p, const path &base) {
+ABEL_INLINE path relative (const path &p, const path &base) {
     return weakly_canonical(p).lexically_relative(weakly_canonical(base));
 }
 
-GHC_INLINE path relative (const path &p, const path &base, std::error_code &ec) {
+ABEL_INLINE path relative (const path &p, const path &base, std::error_code &ec) {
     return weakly_canonical(p, ec).lexically_relative(weakly_canonical(base, ec));
 }
 
-GHC_INLINE bool remove (const path &p) {
+ABEL_INLINE bool remove (const path &p) {
     std::error_code ec;
     auto result = remove(p, ec);
     if (ec) {
@@ -3803,7 +3803,7 @@ GHC_INLINE bool remove (const path &p) {
     return result;
 }
 
-GHC_INLINE bool remove (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE bool remove (const path &p, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             std::wstring np = detail::fromUtf8<std::wstring>(p.u8string());
@@ -3839,7 +3839,7 @@ GHC_INLINE bool remove (const path &p, std::error_code &ec) noexcept {
     return ec ? false : true;
 }
 
-GHC_INLINE uintmax_t remove_all (const path &p) {
+ABEL_INLINE uintmax_t remove_all (const path &p) {
     std::error_code ec;
     auto result = remove_all(p, ec);
     if (ec) {
@@ -3848,7 +3848,7 @@ GHC_INLINE uintmax_t remove_all (const path &p) {
     return result;
 }
 
-GHC_INLINE uintmax_t remove_all (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE uintmax_t remove_all (const path &p, std::error_code &ec) noexcept {
     ec.clear();
     uintmax_t count = 0;
     if (p == "/") {
@@ -3887,7 +3887,7 @@ GHC_INLINE uintmax_t remove_all (const path &p, std::error_code &ec) noexcept {
     return count;
 }
 
-GHC_INLINE void rename (const path &from, const path &to) {
+ABEL_INLINE void rename (const path &from, const path &to) {
     std::error_code ec;
     rename(from, to, ec);
     if (ec) {
@@ -3895,7 +3895,7 @@ GHC_INLINE void rename (const path &from, const path &to) {
     }
 }
 
-GHC_INLINE void rename (const path &from, const path &to, std::error_code &ec) noexcept {
+ABEL_INLINE void rename (const path &from, const path &to, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             if (from != to) {
@@ -3912,7 +3912,7 @@ GHC_INLINE void rename (const path &from, const path &to, std::error_code &ec) n
 #endif
 }
 
-GHC_INLINE void resize_file (const path &p, uintmax_t size) {
+ABEL_INLINE void resize_file (const path &p, uintmax_t size) {
     std::error_code ec;
     resize_file(p, size, ec);
     if (ec) {
@@ -3920,7 +3920,7 @@ GHC_INLINE void resize_file (const path &p, uintmax_t size) {
     }
 }
 
-GHC_INLINE void resize_file (const path &p, uintmax_t size, std::error_code &ec) noexcept {
+ABEL_INLINE void resize_file (const path &p, uintmax_t size, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             LARGE_INTEGER lisize;
@@ -3943,7 +3943,7 @@ GHC_INLINE void resize_file (const path &p, uintmax_t size, std::error_code &ec)
 #endif
 }
 
-GHC_INLINE space_info space (const path &p) {
+ABEL_INLINE space_info space (const path &p) {
     std::error_code ec;
     auto result = space(p, ec);
     if (ec) {
@@ -3952,7 +3952,7 @@ GHC_INLINE space_info space (const path &p) {
     return result;
 }
 
-GHC_INLINE space_info space (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE space_info space (const path &p, std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             ULARGE_INTEGER freeBytesAvailableToCaller = {0, 0};
@@ -3978,7 +3978,7 @@ GHC_INLINE space_info space (const path &p, std::error_code &ec) noexcept {
 #endif
 }
 
-GHC_INLINE file_status status (const path &p) {
+ABEL_INLINE file_status status (const path &p) {
     std::error_code ec;
     auto result = status(p, ec);
     if (result.type() == file_type::none) {
@@ -3987,15 +3987,15 @@ GHC_INLINE file_status status (const path &p) {
     return result;
 }
 
-GHC_INLINE file_status status (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE file_status status (const path &p, std::error_code &ec) noexcept {
     return detail::status_ex(p, ec);
 }
 
-GHC_INLINE bool status_known (file_status s) noexcept {
+ABEL_INLINE bool status_known (file_status s) noexcept {
     return s.type() != file_type::none;
 }
 
-GHC_INLINE file_status symlink_status (const path &p) {
+ABEL_INLINE file_status symlink_status (const path &p) {
     std::error_code ec;
     auto result = symlink_status(p, ec);
     if (result.type() == file_type::none) {
@@ -4004,11 +4004,11 @@ GHC_INLINE file_status symlink_status (const path &p) {
     return result;
 }
 
-GHC_INLINE file_status symlink_status (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE file_status symlink_status (const path &p, std::error_code &ec) noexcept {
     return detail::symlink_status_ex(p, ec);
 }
 
-GHC_INLINE path temp_directory_path () {
+ABEL_INLINE path temp_directory_path () {
     std::error_code ec;
     path result = temp_directory_path(ec);
     if (ec) {
@@ -4017,7 +4017,7 @@ GHC_INLINE path temp_directory_path () {
     return result;
 }
 
-GHC_INLINE path temp_directory_path (std::error_code &ec) noexcept {
+ABEL_INLINE path temp_directory_path (std::error_code &ec) noexcept {
     ec.clear();
 #ifdef ABEL_PLATFORM_WINDOWS
                                                                                                                             wchar_t buffer[512];
@@ -4040,7 +4040,7 @@ GHC_INLINE path temp_directory_path (std::error_code &ec) noexcept {
 #endif
 }
 
-GHC_INLINE path weakly_canonical (const path &p) {
+ABEL_INLINE path weakly_canonical (const path &p) {
     std::error_code ec;
     auto result = weakly_canonical(p, ec);
     if (ec) {
@@ -4049,7 +4049,7 @@ GHC_INLINE path weakly_canonical (const path &p) {
     return result;
 }
 
-GHC_INLINE path weakly_canonical (const path &p, std::error_code &ec) noexcept {
+ABEL_INLINE path weakly_canonical (const path &p, std::error_code &ec) noexcept {
     path result;
     ec.clear();
     bool scan = true;
@@ -4087,52 +4087,52 @@ GHC_INLINE path weakly_canonical (const path &p, std::error_code &ec) noexcept {
 //-----------------------------------------------------------------------------
 // 30.10.11 class file_status
 // 30.10.11.1 constructors and destructor
-GHC_INLINE file_status::file_status () noexcept
+ABEL_INLINE file_status::file_status () noexcept
     : file_status(file_type::none) {
 }
 
-GHC_INLINE file_status::file_status (file_type ft, perms prms) noexcept
+ABEL_INLINE file_status::file_status (file_type ft, perms prms) noexcept
     : _type(ft), _perms(prms) {
 }
 
-GHC_INLINE file_status::file_status (const file_status &other) noexcept
+ABEL_INLINE file_status::file_status (const file_status &other) noexcept
     : _type(other._type), _perms(other._perms) {
 }
 
-GHC_INLINE file_status::file_status (file_status &&other) noexcept
+ABEL_INLINE file_status::file_status (file_status &&other) noexcept
     : _type(other._type), _perms(other._perms) {
 }
 
-GHC_INLINE file_status::~file_status () { }
+ABEL_INLINE file_status::~file_status () { }
 
 // assignments:
-GHC_INLINE file_status &file_status::operator = (const file_status &rhs) noexcept {
+ABEL_INLINE file_status &file_status::operator = (const file_status &rhs) noexcept {
     _type = rhs._type;
     _perms = rhs._perms;
     return *this;
 }
 
-GHC_INLINE file_status &file_status::operator = (file_status &&rhs) noexcept {
+ABEL_INLINE file_status &file_status::operator = (file_status &&rhs) noexcept {
     _type = rhs._type;
     _perms = rhs._perms;
     return *this;
 }
 
 // 30.10.11.3 modifiers
-GHC_INLINE void file_status::type (file_type ft) noexcept {
+ABEL_INLINE void file_status::type (file_type ft) noexcept {
     _type = ft;
 }
 
-GHC_INLINE void file_status::permissions (perms prms) noexcept {
+ABEL_INLINE void file_status::permissions (perms prms) noexcept {
     _perms = prms;
 }
 
 // 30.10.11.2 observers
-GHC_INLINE file_type file_status::type () const noexcept {
+ABEL_INLINE file_type file_status::type () const noexcept {
     return _type;
 }
 
-GHC_INLINE perms file_status::permissions () const noexcept {
+ABEL_INLINE perms file_status::permissions () const noexcept {
     return _perms;
 }
 
@@ -4142,7 +4142,7 @@ GHC_INLINE perms file_status::permissions () const noexcept {
 // directory_entry::directory_entry() noexcept = default;
 // directory_entry::directory_entry(const directory_entry&) = default;
 // directory_entry::directory_entry(directory_entry&&) noexcept = default;
-GHC_INLINE directory_entry::directory_entry (const filesystem::path &p)
+ABEL_INLINE directory_entry::directory_entry (const filesystem::path &p)
     : _path(p), _file_size(0)
 #ifndef ABEL_PLATFORM_WINDOWS
     , _hard_link_count(0)
@@ -4151,7 +4151,7 @@ GHC_INLINE directory_entry::directory_entry (const filesystem::path &p)
     refresh();
 }
 
-GHC_INLINE directory_entry::directory_entry (const filesystem::path &p, std::error_code &ec)
+ABEL_INLINE directory_entry::directory_entry (const filesystem::path &p, std::error_code &ec)
     : _path(p), _file_size(0)
 #ifndef ABEL_PLATFORM_WINDOWS
     , _hard_link_count(0)
@@ -4160,34 +4160,34 @@ GHC_INLINE directory_entry::directory_entry (const filesystem::path &p, std::err
     refresh(ec);
 }
 
-GHC_INLINE directory_entry::~directory_entry () { }
+ABEL_INLINE directory_entry::~directory_entry () { }
 
 // assignments:
 // directory_entry& directory_entry::operator=(const directory_entry&) = default;
 // directory_entry& directory_entry::operator=(directory_entry&&) noexcept = default;
 
 // 30.10.12.2 directory_entry modifiers
-GHC_INLINE void directory_entry::assign (const filesystem::path &p) {
+ABEL_INLINE void directory_entry::assign (const filesystem::path &p) {
     _path = p;
     refresh();
 }
 
-GHC_INLINE void directory_entry::assign (const filesystem::path &p, std::error_code &ec) {
+ABEL_INLINE void directory_entry::assign (const filesystem::path &p, std::error_code &ec) {
     _path = p;
     refresh(ec);
 }
 
-GHC_INLINE void directory_entry::replace_filename (const filesystem::path &p) {
+ABEL_INLINE void directory_entry::replace_filename (const filesystem::path &p) {
     _path.replace_filename(p);
     refresh();
 }
 
-GHC_INLINE void directory_entry::replace_filename (const filesystem::path &p, std::error_code &ec) {
+ABEL_INLINE void directory_entry::replace_filename (const filesystem::path &p, std::error_code &ec) {
     _path.replace_filename(p);
     refresh(ec);
 }
 
-GHC_INLINE void directory_entry::refresh () {
+ABEL_INLINE void directory_entry::refresh () {
     std::error_code ec;
     refresh(ec);
     if (ec) {
@@ -4195,7 +4195,7 @@ GHC_INLINE void directory_entry::refresh () {
     }
 }
 
-GHC_INLINE void directory_entry::refresh (std::error_code &ec) noexcept {
+ABEL_INLINE void directory_entry::refresh (std::error_code &ec) noexcept {
 #ifdef ABEL_PLATFORM_WINDOWS
     _status = detail::status_ex(_path, ec, &_symlink_status, &_file_size, nullptr, &_last_write_time);
 #else
@@ -4204,100 +4204,100 @@ GHC_INLINE void directory_entry::refresh (std::error_code &ec) noexcept {
 }
 
 // 30.10.12.3 directory_entry observers
-GHC_INLINE const filesystem::path &directory_entry::path () const noexcept {
+ABEL_INLINE const filesystem::path &directory_entry::path () const noexcept {
     return _path;
 }
 
-GHC_INLINE directory_entry::operator const filesystem::path & () const noexcept {
+ABEL_INLINE directory_entry::operator const filesystem::path & () const noexcept {
     return _path;
 }
 
-GHC_INLINE bool directory_entry::exists () const {
+ABEL_INLINE bool directory_entry::exists () const {
     return filesystem::exists(status());
 }
 
-GHC_INLINE bool directory_entry::exists (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::exists (std::error_code &ec) const noexcept {
     return filesystem::exists(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_block_file () const {
+ABEL_INLINE bool directory_entry::is_block_file () const {
     return filesystem::is_block_file(status());
 }
-GHC_INLINE bool directory_entry::is_block_file (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_block_file (std::error_code &ec) const noexcept {
     return filesystem::is_block_file(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_character_file () const {
+ABEL_INLINE bool directory_entry::is_character_file () const {
     return filesystem::is_character_file(status());
 }
 
-GHC_INLINE bool directory_entry::is_character_file (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_character_file (std::error_code &ec) const noexcept {
     return filesystem::is_character_file(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_directory () const {
+ABEL_INLINE bool directory_entry::is_directory () const {
     return filesystem::is_directory(status());
 }
 
-GHC_INLINE bool directory_entry::is_directory (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_directory (std::error_code &ec) const noexcept {
     return filesystem::is_directory(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_fifo () const {
+ABEL_INLINE bool directory_entry::is_fifo () const {
     return filesystem::is_fifo(status());
 }
 
-GHC_INLINE bool directory_entry::is_fifo (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_fifo (std::error_code &ec) const noexcept {
     return filesystem::is_fifo(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_other () const {
+ABEL_INLINE bool directory_entry::is_other () const {
     return filesystem::is_other(status());
 }
 
-GHC_INLINE bool directory_entry::is_other (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_other (std::error_code &ec) const noexcept {
     return filesystem::is_other(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_regular_file () const {
+ABEL_INLINE bool directory_entry::is_regular_file () const {
     return filesystem::is_regular_file(status());
 }
 
-GHC_INLINE bool directory_entry::is_regular_file (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_regular_file (std::error_code &ec) const noexcept {
     return filesystem::is_regular_file(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_socket () const {
+ABEL_INLINE bool directory_entry::is_socket () const {
     return filesystem::is_socket(status());
 }
 
-GHC_INLINE bool directory_entry::is_socket (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_socket (std::error_code &ec) const noexcept {
     return filesystem::is_socket(status(ec));
 }
 
-GHC_INLINE bool directory_entry::is_symlink () const {
+ABEL_INLINE bool directory_entry::is_symlink () const {
     return filesystem::is_symlink(symlink_status());
 }
 
-GHC_INLINE bool directory_entry::is_symlink (std::error_code &ec) const noexcept {
+ABEL_INLINE bool directory_entry::is_symlink (std::error_code &ec) const noexcept {
     return filesystem::is_symlink(symlink_status(ec));
 }
 
-GHC_INLINE uintmax_t directory_entry::file_size () const {
+ABEL_INLINE uintmax_t directory_entry::file_size () const {
     if (_status.type() != file_type::none) {
         return _file_size;
     }
     return filesystem::file_size(path());
 }
 
-GHC_INLINE uintmax_t directory_entry::file_size (std::error_code &ec) const noexcept {
+ABEL_INLINE uintmax_t directory_entry::file_size (std::error_code &ec) const noexcept {
     if (_status.type() != file_type::none) {
         return _file_size;
     }
     return filesystem::file_size(path(), ec);
 }
 
-GHC_INLINE uintmax_t directory_entry::hard_link_count () const {
+ABEL_INLINE uintmax_t directory_entry::hard_link_count () const {
 #ifndef ABEL_PLATFORM_WINDOWS
     if (_status.type() != file_type::none) {
         return _hard_link_count;
@@ -4306,7 +4306,7 @@ GHC_INLINE uintmax_t directory_entry::hard_link_count () const {
     return filesystem::hard_link_count(path());
 }
 
-GHC_INLINE uintmax_t directory_entry::hard_link_count (std::error_code &ec) const noexcept {
+ABEL_INLINE uintmax_t directory_entry::hard_link_count (std::error_code &ec) const noexcept {
 #ifndef ABEL_PLATFORM_WINDOWS
     if (_status.type() != file_type::none) {
         return _hard_link_count;
@@ -4315,69 +4315,69 @@ GHC_INLINE uintmax_t directory_entry::hard_link_count (std::error_code &ec) cons
     return filesystem::hard_link_count(path(), ec);
 }
 
-GHC_INLINE file_time_type directory_entry::last_write_time () const {
+ABEL_INLINE file_time_type directory_entry::last_write_time () const {
     if (_status.type() != file_type::none) {
         return std::chrono::system_clock::from_time_t(_last_write_time);
     }
     return filesystem::last_write_time(path());
 }
 
-GHC_INLINE file_time_type directory_entry::last_write_time (std::error_code &ec) const noexcept {
+ABEL_INLINE file_time_type directory_entry::last_write_time (std::error_code &ec) const noexcept {
     if (_status.type() != file_type::none) {
         return std::chrono::system_clock::from_time_t(_last_write_time);
     }
     return filesystem::last_write_time(path(), ec);
 }
 
-GHC_INLINE file_status directory_entry::status () const {
+ABEL_INLINE file_status directory_entry::status () const {
     if (_status.type() != file_type::none) {
         return _status;
     }
     return filesystem::status(path());
 }
 
-GHC_INLINE file_status directory_entry::status (std::error_code &ec) const noexcept {
+ABEL_INLINE file_status directory_entry::status (std::error_code &ec) const noexcept {
     if (_status.type() != file_type::none) {
         return _status;
     }
     return filesystem::status(path(), ec);
 }
 
-GHC_INLINE file_status directory_entry::symlink_status () const {
+ABEL_INLINE file_status directory_entry::symlink_status () const {
     if (_symlink_status.type() != file_type::none) {
         return _symlink_status;
     }
     return filesystem::symlink_status(path());
 }
 
-GHC_INLINE file_status directory_entry::symlink_status (std::error_code &ec) const noexcept {
+ABEL_INLINE file_status directory_entry::symlink_status (std::error_code &ec) const noexcept {
     if (_symlink_status.type() != file_type::none) {
         return _symlink_status;
     }
     return filesystem::symlink_status(path(), ec);
 }
 
-GHC_INLINE bool directory_entry::operator < (const directory_entry &rhs) const noexcept {
+ABEL_INLINE bool directory_entry::operator < (const directory_entry &rhs) const noexcept {
     return _path < rhs._path;
 }
 
-GHC_INLINE bool directory_entry::operator == (const directory_entry &rhs) const noexcept {
+ABEL_INLINE bool directory_entry::operator == (const directory_entry &rhs) const noexcept {
     return _path == rhs._path;
 }
 
-GHC_INLINE bool directory_entry::operator != (const directory_entry &rhs) const noexcept {
+ABEL_INLINE bool directory_entry::operator != (const directory_entry &rhs) const noexcept {
     return _path != rhs._path;
 }
 
-GHC_INLINE bool directory_entry::operator <= (const directory_entry &rhs) const noexcept {
+ABEL_INLINE bool directory_entry::operator <= (const directory_entry &rhs) const noexcept {
     return _path <= rhs._path;
 }
 
-GHC_INLINE bool directory_entry::operator > (const directory_entry &rhs) const noexcept {
+ABEL_INLINE bool directory_entry::operator > (const directory_entry &rhs) const noexcept {
     return _path > rhs._path;
 }
 
-GHC_INLINE bool directory_entry::operator >= (const directory_entry &rhs) const noexcept {
+ABEL_INLINE bool directory_entry::operator >= (const directory_entry &rhs) const noexcept {
     return _path >= rhs._path;
 }
 
@@ -4540,11 +4540,11 @@ public:
 #endif
 
 // 30.10.13.1 member functions
-GHC_INLINE directory_iterator::directory_iterator () noexcept
+ABEL_INLINE directory_iterator::directory_iterator () noexcept
     : _impl(new impl(path(), directory_options::none)) {
 }
 
-GHC_INLINE directory_iterator::directory_iterator (const path &p)
+ABEL_INLINE directory_iterator::directory_iterator (const path &p)
     : _impl(new impl(p, directory_options::none)) {
     if (_impl->_ec) {
         throw filesystem_error(detail::systemErrorText(_impl->_ec.value()), p, _impl->_ec);
@@ -4552,21 +4552,21 @@ GHC_INLINE directory_iterator::directory_iterator (const path &p)
     _impl->_ec.clear();
 }
 
-GHC_INLINE directory_iterator::directory_iterator (const path &p, directory_options options)
+ABEL_INLINE directory_iterator::directory_iterator (const path &p, directory_options options)
     : _impl(new impl(p, options)) {
     if (_impl->_ec) {
         throw filesystem_error(detail::systemErrorText(_impl->_ec.value()), p, _impl->_ec);
     }
 }
 
-GHC_INLINE directory_iterator::directory_iterator (const path &p, std::error_code &ec) noexcept
+ABEL_INLINE directory_iterator::directory_iterator (const path &p, std::error_code &ec) noexcept
     : _impl(new impl(p, directory_options::none)) {
     if (_impl->_ec) {
         ec = _impl->_ec;
     }
 }
 
-GHC_INLINE directory_iterator::directory_iterator (const path &p,
+ABEL_INLINE directory_iterator::directory_iterator (const path &p,
                                                    directory_options options,
                                                    std::error_code &ec) noexcept
     : _impl(new impl(p, options)) {
@@ -4575,35 +4575,35 @@ GHC_INLINE directory_iterator::directory_iterator (const path &p,
     }
 }
 
-GHC_INLINE directory_iterator::directory_iterator (const directory_iterator &rhs)
+ABEL_INLINE directory_iterator::directory_iterator (const directory_iterator &rhs)
     : _impl(rhs._impl) {
 }
 
-GHC_INLINE directory_iterator::directory_iterator (directory_iterator &&rhs) noexcept
+ABEL_INLINE directory_iterator::directory_iterator (directory_iterator &&rhs) noexcept
     : _impl(std::move(rhs._impl)) {
 }
 
-GHC_INLINE directory_iterator::~directory_iterator () { }
+ABEL_INLINE directory_iterator::~directory_iterator () { }
 
-GHC_INLINE directory_iterator &directory_iterator::operator = (const directory_iterator &rhs) {
+ABEL_INLINE directory_iterator &directory_iterator::operator = (const directory_iterator &rhs) {
     _impl = rhs._impl;
     return *this;
 }
 
-GHC_INLINE directory_iterator &directory_iterator::operator = (directory_iterator &&rhs) noexcept {
+ABEL_INLINE directory_iterator &directory_iterator::operator = (directory_iterator &&rhs) noexcept {
     _impl = std::move(rhs._impl);
     return *this;
 }
 
-GHC_INLINE const directory_entry &directory_iterator::operator * () const {
+ABEL_INLINE const directory_entry &directory_iterator::operator * () const {
     return _impl->_dir_entry;
 }
 
-GHC_INLINE const directory_entry *directory_iterator::operator -> () const {
+ABEL_INLINE const directory_entry *directory_iterator::operator -> () const {
     return &_impl->_dir_entry;
 }
 
-GHC_INLINE directory_iterator &directory_iterator::operator ++ () {
+ABEL_INLINE directory_iterator &directory_iterator::operator ++ () {
     std::error_code ec;
     _impl->increment(ec);
     if (ec) {
@@ -4612,102 +4612,102 @@ GHC_INLINE directory_iterator &directory_iterator::operator ++ () {
     return *this;
 }
 
-GHC_INLINE directory_iterator &directory_iterator::increment (std::error_code &ec) noexcept {
+ABEL_INLINE directory_iterator &directory_iterator::increment (std::error_code &ec) noexcept {
     _impl->increment(ec);
     return *this;
 }
 
-GHC_INLINE bool directory_iterator::operator == (const directory_iterator &rhs) const {
+ABEL_INLINE bool directory_iterator::operator == (const directory_iterator &rhs) const {
     return _impl->_current == rhs._impl->_current;
 }
 
-GHC_INLINE bool directory_iterator::operator != (const directory_iterator &rhs) const {
+ABEL_INLINE bool directory_iterator::operator != (const directory_iterator &rhs) const {
     return _impl->_current != rhs._impl->_current;
 }
 
 // 30.10.13.2 directory_iterator non-member functions
 
-GHC_INLINE directory_iterator begin (directory_iterator iter) noexcept {
+ABEL_INLINE directory_iterator begin (directory_iterator iter) noexcept {
     return iter;
 }
 
-GHC_INLINE directory_iterator end (const directory_iterator &) noexcept {
+ABEL_INLINE directory_iterator end (const directory_iterator &) noexcept {
     return directory_iterator();
 }
 
 //-----------------------------------------------------------------------------
 // 30.10.14 class recursive_directory_iterator
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator () noexcept
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator () noexcept
     : _impl(new recursive_directory_iterator_impl(directory_options::none, true)) {
     _impl->_dir_iter_stack.push(directory_iterator());
 }
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p)
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p)
     : _impl(new recursive_directory_iterator_impl(directory_options::none, true)) {
     _impl->_dir_iter_stack.push(directory_iterator(p));
 }
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p, directory_options options)
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p, directory_options options)
     : _impl(new recursive_directory_iterator_impl(options, true)) {
     _impl->_dir_iter_stack.push(directory_iterator(p, options));
 }
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p,
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p,
                                                                        directory_options options,
                                                                        std::error_code &ec) noexcept
     : _impl(new recursive_directory_iterator_impl(options, true)) {
     _impl->_dir_iter_stack.push(directory_iterator(p, options, ec));
 }
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p, std::error_code &ec) noexcept
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator (const path &p, std::error_code &ec) noexcept
     : _impl(new recursive_directory_iterator_impl(directory_options::none, true)) {
     _impl->_dir_iter_stack.push(directory_iterator(p, ec));
 }
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator (const recursive_directory_iterator &rhs)
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator (const recursive_directory_iterator &rhs)
     : _impl(rhs._impl) {
 }
 
-GHC_INLINE recursive_directory_iterator::recursive_directory_iterator (recursive_directory_iterator &&rhs) noexcept
+ABEL_INLINE recursive_directory_iterator::recursive_directory_iterator (recursive_directory_iterator &&rhs) noexcept
     : _impl(std::move(rhs._impl)) {
 }
 
-GHC_INLINE recursive_directory_iterator::~recursive_directory_iterator () { }
+ABEL_INLINE recursive_directory_iterator::~recursive_directory_iterator () { }
 
 // 30.10.14.1 observers
-GHC_INLINE directory_options recursive_directory_iterator::options () const {
+ABEL_INLINE directory_options recursive_directory_iterator::options () const {
     return _impl->_options;
 }
 
-GHC_INLINE int recursive_directory_iterator::depth () const {
+ABEL_INLINE int recursive_directory_iterator::depth () const {
     return static_cast<int>(_impl->_dir_iter_stack.size() - 1);
 }
 
-GHC_INLINE bool recursive_directory_iterator::recursion_pending () const {
+ABEL_INLINE bool recursive_directory_iterator::recursion_pending () const {
     return _impl->_recursion_pending;
 }
 
-GHC_INLINE const directory_entry &recursive_directory_iterator::operator * () const {
+ABEL_INLINE const directory_entry &recursive_directory_iterator::operator * () const {
     return *(_impl->_dir_iter_stack.top());
 }
 
-GHC_INLINE const directory_entry *recursive_directory_iterator::operator -> () const {
+ABEL_INLINE const directory_entry *recursive_directory_iterator::operator -> () const {
     return &(*(_impl->_dir_iter_stack.top()));
 }
 
 // 30.10.14.1 modifiers recursive_directory_iterator&
-GHC_INLINE recursive_directory_iterator &recursive_directory_iterator::operator = (const recursive_directory_iterator &rhs) {
+ABEL_INLINE recursive_directory_iterator &recursive_directory_iterator::operator = (const recursive_directory_iterator &rhs) {
     _impl = rhs._impl;
     return *this;
 }
 
-GHC_INLINE recursive_directory_iterator &recursive_directory_iterator::operator = (recursive_directory_iterator &&rhs) noexcept {
+ABEL_INLINE recursive_directory_iterator &recursive_directory_iterator::operator = (recursive_directory_iterator &&rhs) noexcept {
     _impl = std::move(rhs._impl);
     return *this;
 }
 
-GHC_INLINE recursive_directory_iterator &recursive_directory_iterator::operator ++ () {
+ABEL_INLINE recursive_directory_iterator &recursive_directory_iterator::operator ++ () {
     std::error_code ec;
     increment(ec);
     if (ec) {
@@ -4718,7 +4718,7 @@ GHC_INLINE recursive_directory_iterator &recursive_directory_iterator::operator 
     return *this;
 }
 
-GHC_INLINE recursive_directory_iterator &recursive_directory_iterator::increment (std::error_code &ec) noexcept {
+ABEL_INLINE recursive_directory_iterator &recursive_directory_iterator::increment (std::error_code &ec) noexcept {
     if (recursion_pending() && is_directory((*this)->status()) && (!is_symlink((*this)->symlink_status())
         || (options() & directory_options::follow_directory_symlink) != directory_options::none)) {
         _impl->_dir_iter_stack.push(directory_iterator((*this)->path(), _impl->_options, ec));
@@ -4737,7 +4737,7 @@ GHC_INLINE recursive_directory_iterator &recursive_directory_iterator::increment
     return *this;
 }
 
-GHC_INLINE void recursive_directory_iterator::pop () {
+ABEL_INLINE void recursive_directory_iterator::pop () {
     std::error_code ec;
     pop(ec);
     if (ec) {
@@ -4747,7 +4747,7 @@ GHC_INLINE void recursive_directory_iterator::pop () {
     }
 }
 
-GHC_INLINE void recursive_directory_iterator::pop (std::error_code &ec) {
+ABEL_INLINE void recursive_directory_iterator::pop (std::error_code &ec) {
     if (depth() == 0) {
         *this = recursive_directory_iterator();
     } else {
@@ -4758,35 +4758,35 @@ GHC_INLINE void recursive_directory_iterator::pop (std::error_code &ec) {
     }
 }
 
-GHC_INLINE void recursive_directory_iterator::disable_recursion_pending () {
+ABEL_INLINE void recursive_directory_iterator::disable_recursion_pending () {
     _impl->_recursion_pending = false;
 }
 
 // other members as required by 27.2.3, input iterators
-GHC_INLINE bool recursive_directory_iterator::operator == (const recursive_directory_iterator &rhs) const {
+ABEL_INLINE bool recursive_directory_iterator::operator == (const recursive_directory_iterator &rhs) const {
     return _impl->_dir_iter_stack.top() == rhs._impl->_dir_iter_stack.top();
 }
 
-GHC_INLINE bool recursive_directory_iterator::operator != (const recursive_directory_iterator &rhs) const {
+ABEL_INLINE bool recursive_directory_iterator::operator != (const recursive_directory_iterator &rhs) const {
     return _impl->_dir_iter_stack.top() != rhs._impl->_dir_iter_stack.top();
 }
 
 // 30.10.14.2 directory_iterator non-member functions
-GHC_INLINE recursive_directory_iterator begin (recursive_directory_iterator iter) noexcept {
+ABEL_INLINE recursive_directory_iterator begin (recursive_directory_iterator iter) noexcept {
     return iter;
 }
 
-GHC_INLINE recursive_directory_iterator end (const recursive_directory_iterator &) noexcept {
+ABEL_INLINE recursive_directory_iterator end (const recursive_directory_iterator &) noexcept {
     return recursive_directory_iterator();
 }
 
-#endif  // GHC_EXPAND_IMPL
+#endif  // ABEL_EXPAND_IMPL
 
 }  // namespace filesystem
 }  // namespace abel
 
 // cleanup some macros
-#undef GHC_INLINE
-#undef GHC_EXPAND_IMPL
+#undef ABEL_INLINE
+#undef ABEL_EXPAND_IMPL
 
 #endif  // ABEL_FILESYSTEM_FILESYSTEM_H_
