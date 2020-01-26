@@ -3,7 +3,7 @@
 #include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 #include <cassert>
 #include <cmath>
 #include <string>
@@ -57,7 +57,7 @@ DistributionMoments ComputeDistributionMoments (
 }
 
 std::ostream &operator << (std::ostream &os, const DistributionMoments &moments) {
-    return os << abel::string_format("mean=%f, stddev=%f, skewness=%f, kurtosis=%f",
+    return os << fmt::sprintf("mean=%f, stddev=%f, skewness=%f, kurtosis=%f",
                                      moments.mean, std::sqrt(moments.variance),
                                      moments.skewness, moments.kurtosis);
 }

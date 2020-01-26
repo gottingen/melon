@@ -20,7 +20,7 @@
 #include <abel/random/internal/sequence_urbg.h>
 #include <abel/random/random.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 #include <abel/strings/str_replace.h>
 #include <abel/strings/strip.h>
 
@@ -99,7 +99,7 @@ TYPED_TEST(GaussianDistributionInterfaceTest, SerializeTest) {
                 }
                 if (!std::is_same<TypeParam, long double>::value) {
                     ABEL_INTERNAL_LOG(
-                        INFO, abel::string_format("Range{%f, %f}: %f, %f", mean, stddev,
+                        INFO, fmt::sprintf("Range{%f, %f}: %f, %f", mean, stddev,
                                                   sample_min, sample_max));
                 }
 
@@ -243,7 +243,7 @@ bool GaussianDistributionTests::SingleZTest (const double p,
 
     if (!pass || jb > 9.21) {
         ABEL_INTERNAL_LOG(
-            INFO, abel::string_format("p=%f max_err=%f\n"
+            INFO, fmt::sprintf("p=%f max_err=%f\n"
                                       " mean=%f vs. %f\n"
                                       " stddev=%f vs. %f\n"
                                       " skewness=%f vs. %f\n"
@@ -301,7 +301,7 @@ double GaussianDistributionTests::SingleChiSquaredTest () {
     if (chi_square > threshold) {
         for (size_t i = 0; i < cutoffs.size(); i++) {
             ABEL_INTERNAL_LOG(
-                INFO, abel::string_format("%d : (%f) = %d", i, cutoffs[i], counts[i]));
+                INFO, fmt::sprintf("%d : (%f) = %d", i, cutoffs[i], counts[i]));
         }
 
         ABEL_INTERNAL_LOG(

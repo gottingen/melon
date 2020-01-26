@@ -21,7 +21,7 @@
 #include <abel/random/internal/sequence_urbg.h>
 #include <abel/random/random.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/str_format.h>
+#include <abel/format/printf.h>
 #include <abel/strings/str_replace.h>
 #include <abel/strings/strip.h>
 
@@ -271,7 +271,7 @@ bool PoissonDistributionZTest::SingleZTest(const double p,
 
   if (!pass) {
     ABEL_INTERNAL_LOG(
-        INFO, abel::string_format("p=%f max_err=%f\n"
+        INFO, fmt::sprintf("p=%f max_err=%f\n"
                               " mean=%f vs. %f\n"
                               " stddev=%f vs. %f\n"
                               " skewness=%f vs. %f\n"
