@@ -3649,10 +3649,10 @@ FMT_END_NAMESPACE
 
     #include <fmt/format.h>
     // A compile-time error because 'd' is an invalid specifier for strings.
-    std::string s = format(fmt("{:d}"), "foo");
+    std::string s = format(abel_fmt("{:d}"), "foo");
   \endrst
  */
-//# define format(s) FMT_STRING(s)
+# define abel_fmt(s) FMT_STRING(s)
 #endif
 
 #ifdef FMT_HEADER_ONLY
