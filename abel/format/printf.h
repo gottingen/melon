@@ -11,7 +11,7 @@
 #include <algorithm>  // std::fill_n
 #include <limits>     // std::numeric_limits
 
-#include "ostream.h"
+#include <abel/format/ostream.h>
 
 FMT_BEGIN_NAMESPACE
 namespace internal {

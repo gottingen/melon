@@ -8,7 +8,7 @@
 #ifndef FMT_OSTREAM_H_
 #define FMT_OSTREAM_H_
 
-#include "format.h"
+#include <abel/format/format.h>
 #include <ostream>
 
 FMT_BEGIN_NAMESPACE

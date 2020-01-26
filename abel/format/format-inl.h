@@ -8,10 +8,8 @@
 #ifndef FMT_FORMAT_INL_H_
 #define FMT_FORMAT_INL_H_
 
-#include "format.h"
-
+#include <abel/format/format.h>
 #include <string.h>
-
 #include <cctype>
 #include <cerrno>
 #include <climits>
