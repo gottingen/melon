@@ -311,7 +311,7 @@ class Flag final : public flags_internal::CommandLineFlag {
   // CommandLineFlag interface
   abel::string_view Name() const override { return impl_.Name(); }
   std::string Filename() const override { return impl_.Filename(); }
-  abel::string_view Typename() const override { return ""; }
+  abel::string_view Typename() const override { return abel::string_view(""); }
   std::string Help() const override { return impl_.Help(); }
   bool IsModified() const override { return impl_.IsModified(); }
   bool IsSpecifiedOnCommandLine() const override {

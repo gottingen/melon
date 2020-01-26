@@ -682,13 +682,13 @@ TEST(StringViewTest, STL2Substr) {
 
 TEST(StringViewTest, TruncSubstr) {
     const abel::string_view hi("hi");
-    EXPECT_EQ("", abel::ClippedSubstr(hi, 0, 0));
-    EXPECT_EQ("h", abel::ClippedSubstr(hi, 0, 1));
-    EXPECT_EQ("hi", abel::ClippedSubstr(hi, 0));
-    EXPECT_EQ("i", abel::ClippedSubstr(hi, 1));
-    EXPECT_EQ("", abel::ClippedSubstr(hi, 2));
-    EXPECT_EQ("", abel::ClippedSubstr(hi, 3));  // truncation
-    EXPECT_EQ("", abel::ClippedSubstr(hi, 3, 2));  // truncation
+    EXPECT_EQ("", abel::clipped_substr(hi, 0, 0));
+    EXPECT_EQ("h", abel::clipped_substr(hi, 0, 1));
+    EXPECT_EQ("hi", abel::clipped_substr(hi, 0));
+    EXPECT_EQ("i", abel::clipped_substr(hi, 1));
+    EXPECT_EQ("", abel::clipped_substr(hi, 2));
+    EXPECT_EQ("", abel::clipped_substr(hi, 3));  // truncation
+    EXPECT_EQ("", abel::clipped_substr(hi, 3, 2));  // truncation
 }
 
 TEST(StringViewTest, UTF8) {
@@ -903,16 +903,16 @@ TEST(StringViewTest, ExplicitConversionOperator) {
     EXPECT_EQ(sp, std::string(sp));
 }
 
-TEST(StringViewTest, NullSafeStringView) {
+TEST(StringViewTest, null_safe_string_view) {
     {
-        abel::string_view s = abel::NullSafeStringView(nullptr);
+        abel::string_view s = abel::null_safe_string_view(nullptr);
         EXPECT_EQ(nullptr, s.data());
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(abel::string_view(), s);
     }
     {
         static const char kHi[] = "hi";
-        abel::string_view s = abel::NullSafeStringView(kHi);
+        abel::string_view s = abel::null_safe_string_view(kHi);
         EXPECT_EQ(kHi, s.data());
         EXPECT_EQ(strlen(kHi), s.size());
         EXPECT_EQ(abel::string_view("hi"), s);
