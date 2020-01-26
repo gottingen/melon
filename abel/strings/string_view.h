@@ -159,7 +159,7 @@ public:
         : basic_string_view(str.data(), str.size()) { }
 
     // Implicit constructor of a `basic_string_view` from NUL-terminated `str`. When
-    // accepting possibly null strings, use `abel::NullSafeStringView(str)`
+    // accepting possibly null strings, use `abel::null_safe_string_view(str)`
     // instead (see below).
     constexpr basic_string_view (const value_type *const str)
         : ptr_(str),
@@ -618,23 +618,23 @@ std::ostream &operator << (std::ostream &o, basic_string_view<T> piece);
 
 namespace abel {
 
-// ClippedSubstr()
+// clipped_substr()
 //
 // Like `s.substr(pos, n)`, but clips `pos` to an upper bound of `s.size()`.
 // Provided because std::basic_string_view::substr throws if `pos > size()`
 template<typename T>
-ABEL_FORCE_INLINE basic_string_view<T> ClippedSubstr (basic_string_view<T> s, size_t pos,
+ABEL_FORCE_INLINE basic_string_view<T> clipped_substr (basic_string_view<T> s, size_t pos,
                                                       size_t n = basic_string_view<T>::npos) {
     pos = (std::min)(pos, static_cast<size_t>(s.size()));
     return s.substr(pos, n);
 }
 
-// NullSafeStringView()
+// null_safe_string_view()
 //
 // Creates an `abel::basic_string_view` from a pointer `p` even if it's null-valued.
 // This function should be used where an `abel::basic_string_view` can be created from
 // a possibly-null pointer.
-ABEL_FORCE_INLINE string_view NullSafeStringView (const char *p) {
+ABEL_FORCE_INLINE string_view null_safe_string_view (const char *p) {
     return p ? string_view(p) : string_view();
 }
 
