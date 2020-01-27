@@ -7,6 +7,10 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 ## status
 
 [![Build Status](https://www.travis-ci.org/gottingen/abel.svg?branch=master)](https://travis-ci.org/gottingen/abel)
+[![Coverage Status](https://coveralls.io/repos/github/gottingen/abel/badge.svg?branch=master)](https://coveralls.io/github/gottingen/abel?branch=master)
+
+* centos7 gcc-4.8+ ok
+* macos   llvm     ok
 
 ## content index
 
@@ -39,13 +43,6 @@ Particularly, the goals are:
 * no warning and bugs on any platform and compiler.
 * published interfaces are required to have full documentation， using case description，performance benchmark and evaluation.
 * keep overhead down, compress overall size.
-
-
-collect code and ideas from:
-
-* [abseil-cpp](https://github.com/abseil/abseil-cpp) from google, and make abel basic framework
-* [EASTL](https://github.com/electronicarts/EASTL) from EA
-* fermat my private cpp lib
 
 
 <a name="cmake"> </a>
@@ -88,9 +85,10 @@ build step
 * [digest](/docs/en/digest.md) 
 
     the digest module contains md5, sha1, sha256 tools.
+    
 * [filesystem](/docs/en/filesystem.md)
 
- the filesystem module contain a C++17-like filesystem implementation for C++11/C++147/C++17
+    the filesystem module contain a C++17-like filesystem implementation for C++11/C++147/C++17
 
 * [flags](/docs/en/flags.md)
 * [format](/docs/en/format.md)
