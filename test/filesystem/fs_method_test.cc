@@ -791,17 +791,17 @@ TEST(fs, weakly_canonical) {
 }
 
 TEST(fs, support_string_view) {
-#if __cpp_lib_string_view
+//#if __cpp_lib_string_view
     std::string p("foo/bar");
-        std::string_view sv(p);
+        abel::string_view sv(p);
         EXPECT_TRUE(fs::path(sv, fs::path::format::generic_format).generic_string() == "foo/bar");
         fs::path p2("fo");
-        p2 += std::string_view("o");
+        p2 += abel::string_view("o");
         EXPECT_TRUE(p2 == "foo");
-        EXPECT_TRUE(p2.compare(std::string_view("foo")) == 0);
-#else
-    EXPECT_TRUE("std::string_view specific tests are empty without std::string_view.");
-#endif
+        EXPECT_TRUE(p2.compare(abel::string_view("foo")) == 0);
+//#else
+ //   EXPECT_TRUE("std::string_view specific tests are empty without std::string_view.");
+//#endif
 }
 
 TEST(fs, filename_support) {
