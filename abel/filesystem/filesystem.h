@@ -105,6 +105,7 @@
     #include <Availability.h>
 #endif
 
+#include <abel/strings/string_view.h>
 #include <algorithm>
 #include <cctype>
 #include <chrono>
@@ -221,12 +222,12 @@ public:
     template<class CharT, class Traits, class Alloc>
     struct _is_basic_string<std::basic_string<CharT, Traits, Alloc>> : std::true_type {
     };
-#ifdef __cpp_lib_string_view
+//#ifdef __cpp_lib_string_view
     template <class CharT>
-    struct _is_basic_string<std::basic_string_view<CharT>> : std::true_type
+    struct _is_basic_string<abel::basic_string_view<CharT>> : std::true_type
     {
     };
-#endif
+//#endif
 
     template<typename T1, typename T2 = void>
     using path_type = typename std::enable_if<!std::is_same<path, T1>::value, path>::type;
@@ -288,9 +289,9 @@ public:
     // 30.10.8.4.4 concatenation
     path &operator += (const path &x);
     path &operator += (const string_type &x);
-#ifdef __cpp_lib_string_view
-    path& operator+=(std::basic_string_view<value_type> x);
-#endif
+//#ifdef __cpp_lib_string_view
+    path& operator+=(abel::basic_string_view<value_type> x);
+//#endif
     path &operator += (const value_type *x);
     path &operator += (value_type x);
     template<class Source>
@@ -334,9 +335,9 @@ public:
     // 30.10.8.4.8 compare
     int compare (const path &p) const noexcept;
     int compare (const string_type &s) const;
-#ifdef __cpp_lib_string_view
-    int compare(std::basic_string_view<value_type> s) const;
-#endif
+//#ifdef __cpp_lib_string_view
+    int compare(abel::basic_string_view<value_type> s) const;
+//#endif
     int compare (const value_type *s) const;
 
     // 30.10.8.4.9 decomposition
@@ -1458,14 +1459,14 @@ inline path::path (const std::u32string &source, format fmt) {
     postprocess_path_with_format(_path, fmt);
 }
 
-#ifdef __cpp_lib_string_view
+//#ifdef __cpp_lib_string_view
     template <>
-    inline path::path(const std::string_view& source, format fmt)
+    inline path::path(const abel::string_view& source, format fmt)
     {
         _path = detail::toUtf8(std::string(source));
         postprocess_path_with_format(_path, fmt);
     }
-#endif
+//#endif
 
 template<class Source, typename>
 inline path u8path (const Source &source) {
@@ -2123,12 +2124,12 @@ ABEL_INLINE path &path::operator += (const string_type &x) {
     return concat(x);
 }
 
-#ifdef __cpp_lib_string_view
-ABEL_INLINE path& path::operator+=(std::basic_string_view<value_type> x)
+//#ifdef __cpp_lib_string_view
+ABEL_INLINE path& path::operator+=(abel::basic_string_view<value_type> x)
 {
     return concat(x);
 }
-#endif
+//#endif
 
 ABEL_INLINE path &path::operator += (const value_type *x) {
     return concat(string_type(x));
@@ -2347,12 +2348,12 @@ ABEL_INLINE int path::compare (const string_type &s) const {
     return native().compare(path(s).native());
 }
 
-#ifdef __cpp_lib_string_view
-ABEL_INLINE int path::compare(std::basic_string_view<value_type> s) const
+//#ifdef __cpp_lib_string_view
+ABEL_INLINE int path::compare(abel::basic_string_view<value_type> s) const
 {
     return native().compare(path(s).native());
 }
-#endif
+//#endif
 
 ABEL_INLINE int path::compare (const value_type *s) const {
     return native().compare(path(s).native());
