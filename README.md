@@ -84,9 +84,10 @@ build step
 * [digest](/docs/en/digest.md) 
 
     the digest module contains md5, sha1, sha256 tools.
+    
 * [filesystem](/docs/en/filesystem.md)
 
- the filesystem module contain a C++17-like filesystem implementation for C++11/C++147/C++17
+    the filesystem module contain a C++17-like filesystem implementation for C++11/C++147/C++17
 
 * [flags](/docs/en/flags.md)
 * [format](/docs/en/format.md)
