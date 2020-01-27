@@ -161,12 +161,11 @@ public:
     // Implicit constructor of a `basic_string_view` from NUL-terminated `str`. When
     // accepting possibly null strings, use `abel::null_safe_string_view(str)`
     // instead (see below).
-    constexpr basic_string_view (const value_type *const str)
+    constexpr basic_string_view (const value_type *str)
         : ptr_(str),
-          length_(str ? CheckLengthInternal(StrlenInternal(str)) : 0) { }
-
-    // Implicit constructor of a `basic_string_view` from a `const char*` and length.
-    constexpr basic_string_view (const char *data, size_type len)
+          length_(str ? std::char_traits<value_type>::length(str) : 0) { }
+    // Implicit constructor of a `basic_string_view` from a `const value_type*` and length.
+    constexpr basic_string_view (const value_type *data, size_type len)
         : ptr_(data), length_(CheckLengthInternal(len)) { }
 
     // NOTE: Harmlessly omitted to work around gdb bug.
@@ -333,10 +332,10 @@ public:
 
     // Converts to `std::basic_string`.
     template<typename A>
-    explicit operator std::basic_string<char, traits_type, A> () const {
+    explicit operator std::basic_string<value_type , traits_type, A> () const {
         if (!data())
             return {};
-        return std::basic_string<char, traits_type, A>(data(), size());
+        return std::basic_string<value_type, traits_type, A>(data(), size());
     }
 
     // basic_string_view::copy()
@@ -349,7 +348,7 @@ public:
         }
         size_type rlen = (std::min)(length_ - pos, n);
         if (rlen > 0) {
-            const char *start = ptr_ + pos;
+            const value_type *start = ptr_ + pos;
             traits_type::copy(buf, start, rlen);
         }
         return rlen;
@@ -399,17 +398,17 @@ public:
 
     // Overload of `basic_string_view::compare()` for comparing a `basic_string_view` and a
     // a different  C-style std::string `s`.
-    int compare (const char *s) const { return compare(basic_string_view(s)); }
+    int compare (const value_type *s) const { return compare(basic_string_view(s)); }
 
     // Overload of `basic_string_view::compare()` for comparing a substring of the
     // `basic_string_view` and a different std::string C-style std::string `s`.
-    int compare (size_type pos1, size_type count1, const char *s) const {
+    int compare (size_type pos1, size_type count1, const value_type *s) const {
         return substr(pos1, count1).compare(basic_string_view(s));
     }
 
     // Overload of `basic_string_view::compare()` for comparing a substring of the
     // `basic_string_view` and a substring of a different C-style std::string `s`.
-    int compare (size_type pos1, size_type count1, const char *s,
+    int compare (size_type pos1, size_type count1, const value_type *s,
                  size_type count2) const {
         return substr(pos1, count1).compare(basic_string_view(s, count2));
     }
@@ -425,7 +424,7 @@ public:
 
     // Overload of `basic_string_view::find()` for finding the given character `c`
     // within the `basic_string_view`.
-    size_type find (char c, size_type pos = 0) const noexcept;
+    size_type find (value_type c, size_type pos = 0) const noexcept;
 
     // basic_string_view::rfind()
     //
@@ -437,7 +436,7 @@ public:
 
     // Overload of `basic_string_view::rfind()` for finding the last given character `c`
     // within the `basic_string_view`.
-    size_type rfind (char c, size_type pos = npos) const noexcept;
+    size_type rfind (value_type c, size_type pos = npos) const noexcept;
 
     // basic_string_view::find_first_of()
     //
@@ -449,7 +448,7 @@ public:
 
     // Overload of `basic_string_view::find_first_of()` for finding a character `c`
     // within the `basic_string_view`.
-    size_type find_first_of (char c, size_type pos = 0) const
+    size_type find_first_of (value_type c, size_type pos = 0) const
     noexcept {
         return find(c, pos);
     }
@@ -464,7 +463,7 @@ public:
 
     // Overload of `basic_string_view::find_last_of()` for finding a character `c`
     // within the `basic_string_view`.
-    size_type find_last_of (char c, size_type pos = npos) const
+    size_type find_last_of (value_type c, size_type pos = npos) const
     noexcept {
         return rfind(c, pos);
     }
@@ -478,7 +477,7 @@ public:
 
     // Overload of `basic_string_view::find_first_not_of()` for finding a character
     // that is not `c` within the `basic_string_view`.
-    size_type find_first_not_of (char c, size_type pos = 0) const noexcept;
+    size_type find_first_not_of (value_type c, size_type pos = 0) const noexcept;
 
     // basic_string_view::find_last_not_of()
     //
@@ -490,8 +489,7 @@ public:
 
     // Overload of `basic_string_view::find_last_not_of()` for finding a character
     // that is not `c` within the `basic_string_view`.
-    size_type find_last_not_of (char c, size_type pos = npos) const
-    noexcept;
+    size_type find_last_not_of (value_type c, size_type pos = npos) const noexcept;
 
 private:
     static constexpr size_type kMaxSize =
@@ -501,23 +499,6 @@ private:
         return (void) ABEL_ASSERT(len <= kMaxSize), len;
     }
 
-    static constexpr size_type StrlenInternal (const char *str) {
-#if defined(_MSC_VER) && _MSC_VER >= 1910 && !defined(__clang__)
-        // MSVC 2017+ can evaluate this at compile-time.
-        const char* begin = str;
-        while (*str != '\0') ++str;
-        return str - begin;
-#elif ABEL_COMPILER_HAS_BUILTIN(__builtin_strlen) || \
-    (defined(__GNUC__) && !defined(__clang__))
-        // GCC has __builtin_strlen according to
-        // https://gcc.gnu.org/onlinedocs/gcc-4.7.0/gcc/Other-Builtins.html, but
-        // ABEL_COMPILER_HAS_BUILTIN doesn't detect that, so we use the extra checks above.
-        // __builtin_strlen is constexpr.
-        return __builtin_strlen(str);
-#else
-        return str ? strlen(str) : 0;
-#endif
-    }
 
     static constexpr int CompareImpl (size_type length_a, size_type length_b,
                                       int compare_result) {
@@ -532,6 +513,8 @@ private:
 };
 
 using string_view = basic_string_view<char>;
+using wstring_view = basic_string_view<wchar_t>;
+
 // This large function is defined ABEL_FORCE_INLINE so that in a fairly common case where
 // one of the arguments is a literal, the compiler can elide a lot of the
 // following comparisons.
@@ -654,21 +637,22 @@ inline void WritePadding (std::ostream &o, size_t pad) {
     }
 }
 
+template <typename T>
 class LookupTable {
 public:
     // For each character in wanted, sets the index corresponding
     // to the ASCII code of that character. This is used by
     // the find_.*_of methods below to tell whether or not a character is in
     // the lookup table in constant time.
-    explicit LookupTable (string_view wanted) {
-        for (char c : wanted) {
+    explicit LookupTable (basic_string_view<T> wanted) {
+        for (T c : wanted) {
             table_[Index(c)] = true;
         }
     }
-    bool operator [] (char c) const { return table_[Index(c)]; }
+    bool operator [] (T c) const { return table_[Index(c)]; }
 
 private:
-    static unsigned char Index (char c) { return static_cast<unsigned char>(c); }
+    static unsigned char Index (T c) { return static_cast<unsigned char>(c); }
     bool table_[UCHAR_MAX + 1] = {};
 };
 
@@ -705,18 +689,18 @@ inline typename basic_string_view<T>::size_type basic_string_view<T>::find (basi
             return 0;
         return npos;
     }
-    const char *result =
-        strings_internal::char_match(ptr_ + pos, length_ - pos, s.ptr_, s.length_);
+    const value_type *result =
+        static_cast<const value_type *>(strings_internal::char_match(ptr_ + pos, length_ - pos, s.ptr_, s.length_));
     return result ? result - ptr_ : npos;
 }
 
 template<typename T>
-inline typename basic_string_view<T>::size_type basic_string_view<T>::find (char c, size_type pos) const noexcept {
+inline typename basic_string_view<T>::size_type basic_string_view<T>::find (value_type c, size_type pos) const noexcept {
     if (empty() || pos >= length_) {
         return npos;
     }
-    const char *result =
-        static_cast<const char *>(memchr(ptr_ + pos, c, length_ - pos));
+    const value_type *result =
+        static_cast<const value_type *>(memchr(ptr_ + pos, c, length_ - pos));
     return result != nullptr ? result - ptr_ : npos;
 }
 
@@ -727,14 +711,14 @@ noexcept {
         return npos;
     if (s.empty())
         return std::min(length_, pos);
-    const char *last = ptr_ + std::min(length_ - s.length_, pos) + s.length_;
-    const char *result = std::find_end(ptr_, last, s.ptr_, s.ptr_ + s.length_);
+    const value_type *last = ptr_ + std::min(length_ - s.length_, pos) + s.length_;
+    const value_type *result = std::find_end(ptr_, last, s.ptr_, s.ptr_ + s.length_);
     return result != last ? result - ptr_ : npos;
 }
 
 // Search range is [0..pos] inclusive.  If pos == npos, search everything.
 template<typename T>
-inline typename basic_string_view<T>::size_type basic_string_view<T>::rfind (char c, size_type pos) const
+inline typename basic_string_view<T>::size_type basic_string_view<T>::rfind (value_type c, size_type pos) const
 noexcept {
     // Note: memrchr() is not available on Windows.
     if (empty())
@@ -759,7 +743,7 @@ noexcept {
     // Avoid the cost of LookupTable() for a single-character search.
     if (s.length_ == 1)
         return find_first_of(s.ptr_[0], pos);
-    LookupTable tbl(s);
+    LookupTable<value_type> tbl(s);
     for (size_type i = pos; i < length_; ++i) {
         if (tbl[ptr_[i]]) {
             return i;
@@ -776,7 +760,7 @@ noexcept {
     // Avoid the cost of LookupTable() for a single-character search.
     if (s.length_ == 1)
         return find_first_not_of(s.ptr_[0], pos);
-    LookupTable tbl(s);
+    LookupTable<value_type> tbl(s);
     for (size_type i = pos; i < length_; ++i) {
         if (!tbl[ptr_[i]]) {
             return i;
@@ -786,7 +770,7 @@ noexcept {
 }
 
 template <typename T>
-inline typename basic_string_view<T>::size_type basic_string_view<T>::find_first_not_of (char c,
+inline typename basic_string_view<T>::size_type basic_string_view<T>::find_first_not_of (value_type c,
                                                        size_type pos) const
 noexcept {
     if (empty())
@@ -807,7 +791,7 @@ inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_
     // Avoid the cost of LookupTable() for a single-character search.
     if (s.length_ == 1)
         return find_last_of(s.ptr_[0], pos);
-    LookupTable tbl(s);
+    LookupTable<value_type> tbl(s);
     for (size_type i = std::min(pos, length_ - 1);; --i) {
         if (tbl[ptr_[i]]) {
             return i;
@@ -830,7 +814,7 @@ noexcept {
     // Avoid the cost of LookupTable() for a single-character search.
     if (s.length_ == 1)
         return find_last_not_of(s.ptr_[0], pos);
-    LookupTable tbl(s);
+    LookupTable<value_type> tbl(s);
     for (;; --i) {
         if (!tbl[ptr_[i]]) {
             return i;
@@ -842,7 +826,7 @@ noexcept {
 }
 
 template <typename T>
-inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_not_of (char c,
+inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_not_of (value_type c,
                                                       size_type pos) const
 noexcept {
     if (empty())

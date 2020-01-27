@@ -96,7 +96,7 @@ inline int fmt_snprintf(char *buffer, size_t size, const char *format, ...) {
 const char RESET_COLOR[] = "\x1b[0m";
 const wchar_t WRESET_COLOR[] = L"\x1b[0m"; 
 
-typedef void (*FormatFunc)(internal::buffer &, int, string_view);
+typedef void (*FormatFunc)(internal::buffer &, int, abel::string_view);
 
 // Portable thread-safe version of strerror.
 // Sets buffer to point to a string describing the error code.
@@ -166,7 +166,7 @@ int safe_strerror(
 }
 
 void format_error_code(internal::buffer &out, int error_code,
-                       string_view message) FMT_NOEXCEPT {
+                       abel::string_view message) FMT_NOEXCEPT {
   // Report error code making sure that the output fits into
   // inline_buffer_size to avoid dynamic memory allocation and potential
   // bad_alloc.
@@ -193,7 +193,7 @@ void format_error_code(internal::buffer &out, int error_code,
 }
 
 void report_error(FormatFunc func, int error_code,
-                  string_view message) FMT_NOEXCEPT {
+                  abel::string_view message) FMT_NOEXCEPT {
   memory_buffer full_message;
   func(full_message, error_code, message);
   // Use Writer::data instead of Writer::c_str to avoid potential memory
@@ -219,7 +219,7 @@ FMT_FUNC Char internal::thousands_sep(locale_provider *lp) {
 }
 
 FMT_FUNC void system_error::init(
-    int err_code, string_view format_str, format_args args) {
+    int err_code, abel::string_view format_str, format_args args) {
   error_code_ = err_code;
   memory_buffer buffer;
   format_system_error(buffer, err_code, vformat(format_str, args));
@@ -448,7 +448,7 @@ FMT_FUNC void internal::format_windows_error(
 #endif  // FMT_USE_WINDOWS_H
 
 FMT_FUNC void format_system_error(
-    internal::buffer &out, int error_code, string_view message) FMT_NOEXCEPT {
+    internal::buffer &out, int error_code, abel::string_view message) FMT_NOEXCEPT {
   FMT_TRY {
     memory_buffer buf;
     buf.resize(inline_buffer_size);
@@ -480,38 +480,38 @@ FMT_FUNC void internal::error_handler::on_error(const char *message) {
 }
 
 FMT_FUNC void report_system_error(
-    int error_code, fmt::string_view message) FMT_NOEXCEPT {
+    int error_code, abel::string_view message) FMT_NOEXCEPT {
   report_error(format_system_error, error_code, message);
 }
 
 #if FMT_USE_WINDOWS_H
 FMT_FUNC void report_windows_error(
-    int error_code, fmt::string_view message) FMT_NOEXCEPT {
+    int error_code, abel::string_view message) FMT_NOEXCEPT {
   report_error(internal::format_windows_error, error_code, message);
 }
 #endif
 
-FMT_FUNC void vprint(std::FILE *f, string_view format_str, format_args args) {
+FMT_FUNC void vprint(std::FILE *f, abel::string_view format_str, format_args args) {
   memory_buffer buffer;
   vformat_to(buffer, format_str, args);
   std::fwrite(buffer.data(), 1, buffer.size(), f);
 }
 
-FMT_FUNC void vprint(std::FILE *f, wstring_view format_str, wformat_args args) {
+FMT_FUNC void vprint(std::FILE *f, abel::wstring_view format_str, wformat_args args) {
   wmemory_buffer buffer;
   vformat_to(buffer, format_str, args);
   std::fwrite(buffer.data(), sizeof(wchar_t), buffer.size(), f);
 }
 
-FMT_FUNC void vprint(string_view format_str, format_args args) {
+FMT_FUNC void vprint(abel::string_view format_str, format_args args) {
   vprint(stdout, format_str, args);
 }
 
-FMT_FUNC void vprint(wstring_view format_str, wformat_args args) {
+FMT_FUNC void vprint(abel::wstring_view format_str, wformat_args args) {
   vprint(stdout, format_str, args);
 }
 
-FMT_FUNC void vprint_colored(color c, string_view format, format_args args) {
+FMT_FUNC void vprint_colored(color c, abel::string_view format, format_args args) {
   char escape[] = "\x1b[30m";
   escape[3] = static_cast<char>('0' + c);
   std::fputs(escape, stdout);
@@ -519,7 +519,7 @@ FMT_FUNC void vprint_colored(color c, string_view format, format_args args) {
   std::fputs(RESET_COLOR, stdout);
 }
 
-FMT_FUNC void vprint_colored(color c, wstring_view format, wformat_args args) {
+FMT_FUNC void vprint_colored(color c, abel::wstring_view format, wformat_args args) {
   wchar_t escape[] = L"\x1b[30m";
   escape[3] = static_cast<wchar_t>('0' + c);
   std::fputws(escape, stdout);

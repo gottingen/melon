@@ -83,7 +83,7 @@ std::string read(file &f, std::size_t count) {
 
 #endif  // FMT_USE_FILE_DESCRIPTORS
 
-std::string format_system_error(int error_code, fmt::string_view message) {
+std::string format_system_error(int error_code,abel::string_view message) {
   fmt::memory_buffer out;
   format_system_error(out, error_code, message);
   return to_string(out);
