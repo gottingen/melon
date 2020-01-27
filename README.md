@@ -7,6 +7,7 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 ## status
 
 [![Build Status](https://www.travis-ci.org/gottingen/abel.svg?branch=master)](https://travis-ci.org/gottingen/abel)
+[![Coverage Status](https://coveralls.io/repos/github/gottingen/abel/badge.svg?branch=master)](https://coveralls.io/github/gottingen/abel?branch=master)
 
 * centos7 gcc-4.8+ ok
 * macos   llvm     ok
