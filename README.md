@@ -8,6 +8,9 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 
 [![Build Status](https://www.travis-ci.org/gottingen/abel.svg?branch=master)](https://travis-ci.org/gottingen/abel)
 
+* centos7 gcc-4.8+ ok
+* macos   llvm     ok
+
 ## content index
 
 * [about abel](#about)
@@ -39,13 +42,6 @@ Particularly, the goals are:
 * no warning and bugs on any platform and compiler.
 * published interfaces are required to have full documentation， using case description，performance benchmark and evaluation.
 * keep overhead down, compress overall size.
-
-
-collect code and ideas from:
-
-* [abseil-cpp](https://github.com/abseil/abseil-cpp) from google, and make abel basic framework
-* [EASTL](https://github.com/electronicarts/EASTL) from EA
-* fermat my private cpp lib
 
 
 <a name="cmake"> </a>
