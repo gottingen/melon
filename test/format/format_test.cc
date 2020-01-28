@@ -27,7 +27,7 @@ using std::size_t;
 using fmt::basic_writer;
 using fmt::format;
 using fmt::format_error;
-using fmt::string_view;
+using abel::string_view;
 using fmt::memory_buffer;
 using fmt::wmemory_buffer;
 
@@ -214,7 +214,7 @@ TEST(WriterTest, WriteDoubleWithFilledBuffer
         ++i)
         writer.write(' ');
     writer.write(1.2);
-    fmt::string_view sv(buf.data(), buf.size());
+    abel::string_view sv(buf.data(), buf.size());
     sv.
         remove_prefix(fmt::inline_buffer_size);
     EXPECT_EQ("1.2", sv);
@@ -330,7 +330,7 @@ TEST(FormatterTest, ArgErrors
 template<int N>
 struct TestFormat {
     template<typename... Args>
-    static std::string format (fmt::string_view format_str, const Args &... args) {
+    static std::string format (abel::string_view format_str, const Args &... args) {
         return TestFormat<N - 1>::format(format_str, N - 1, args...);
     }
 };
@@ -338,7 +338,7 @@ struct TestFormat {
 template<>
 struct TestFormat<0> {
     template<typename... Args>
-    static std::string format (fmt::string_view format_str, const Args &... args) {
+    static std::string format (abel::string_view format_str, const Args &... args) {
         return fmt::format(format_str, args...);
     }
 };
@@ -1229,7 +1229,7 @@ TEST(FormatterTest, FormatStdStringView
 #endif
 
 struct ConvertibleToStringView {
-    operator fmt::string_view () const { return "foo"; }
+    operator abel::string_view () const { return "foo"; }
 };
 
 TEST(FormatterTest, FormatConvertibleToStringView
@@ -1677,7 +1677,7 @@ public:
     }
 };
 
-void custom_vformat (fmt::string_view format_str, fmt::format_args args) {
+void custom_vformat (abel::string_view format_str, fmt::format_args args) {
     fmt::memory_buffer buffer;
     fmt::vformat_to<mock_arg_formatter>(buffer, format_str, args);
 }
@@ -1789,14 +1789,14 @@ TEST(FormatTest, FormatToN
     EXPECT_EQ(buffer
                   +3, result.out);
     EXPECT_EQ("123x",
-              fmt::string_view(buffer,
+              abel::string_view(buffer,
                                4));
     result = fmt::format_to_n(buffer, 3, "{:s}", "foobar");
     EXPECT_EQ(6u, result.size);
     EXPECT_EQ(buffer
                   +3, result.out);
     EXPECT_EQ("foox",
-              fmt::string_view(buffer,
+              abel::string_view(buffer,
                                4));
 }
 

@@ -11,11 +11,11 @@
 #include <thread>              // NOLINT(build/c++11)
 
 #include <gtest/gtest.h>
-#include <abel/time/cycleclock.h>
+#include <abel/chrono/internal/cycle_clock.h>
 #include <abel/threading/internal/thread_identity.h>
 #include <abel/strings/str_cat.h>
-#include <abel/time/clock.h>
-#include <abel/time/time.h>
+#include <abel/chrono/clock.h>
+#include <abel/chrono/time.h>
 
 // In this test we explicitly avoid the use of synchronization
 // primitives which might use PerThreadSem, most notably abel::mutex.
@@ -96,10 +96,10 @@ public:
         int64_t total_cycles = 0;
         for (int i = 0; i < kNumIterations; ++i) {
             abel::sleep_for(abel::milliseconds(20));
-            int64_t cycles = abel::cycle_clock::now();
+            int64_t cycles = abel::chrono_internal::cycle_clock::now();
             Post(t.identity2);
             wait(t.timeout);
-            cycles = cycle_clock::now() - cycles;
+            cycles = chrono_internal::cycle_clock::now() - cycles;
             min_cycles = std::min(min_cycles, cycles);
             total_cycles += cycles;
         }

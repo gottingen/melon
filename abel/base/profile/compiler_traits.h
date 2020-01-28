@@ -1802,35 +1802,28 @@
 //     ABEL_CONSTEXPR int GetValue() { return 37; }
 //     ABEL_CONSTEXPR_OR_CONST double gValue = std::sin(kTwoPi);
 //
-#if !defined(ABEL_CONSTEXPR)
-    #if defined(ABEL_COMPILER_NO_CONSTEXPR)
-        #define ABEL_CONSTEXPR
+
+#ifndef ABEL_CONSTEXPR_MEMBER
+    #if ABEL_COMPILER_CPP14_ENABLED
+        #define ABEL_CONSTEXPR_MEMBER constexpr
     #else
-        #define ABEL_CONSTEXPR constexpr
+        #define ABEL_CONSTEXPR_MEMBER
     #endif
 #endif
 
-#ifndef ABEL_CONSTEXPR_OR_INLINE
+#ifndef ABEL_CONSTEXPR_VARIABLE
     #if ABEL_COMPILER_CPP14_ENABLED
-        #define ABEL_CONSTEXPR_OR_INLINE constexpr
+        #define ABEL_CONSTEXPR_VARIABLE constexpr
     #else
-        #define ABEL_CONSTEXPR_OR_INLINE inline
+        #define ABEL_CONSTEXPR_VARIABLE const
     #endif
 #endif
 
 #ifndef ABEL_CONSTEXPR_FUNCTION
-#if ABEL_COMPILER_CPP14_ENABLED
+    #if ABEL_COMPILER_CPP14_ENABLED
         #define ABEL_CONSTEXPR_FUNCTION constexpr
     #else
-        #define ABEL_CONSTEXPR_FUNCTION
-    #endif
-#endif
-
-#if !defined(ABEL_CONSTEXPR_OR_CONST)
-    #if defined(ABEL_COMPILER_NO_CONSTEXPR)
-        #define ABEL_CONSTEXPR_OR_CONST const
-    #else
-        #define ABEL_CONSTEXPR_OR_CONST constexpr
+        #define ABEL_CONSTEXPR_FUNCTION inline
     #endif
 #endif
 

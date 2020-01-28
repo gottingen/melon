@@ -33,13 +33,13 @@ class formatbuf : public std::basic_streambuf<Char> {
   // to overflow. There is no disadvantage here for sputn since this always
   // results in a call to xsputn.
 
-  int_type overflow(int_type ch = traits_type::eof()) FMT_OVERRIDE {
+  int_type overflow(int_type ch = traits_type::eof()) ABEL_OVERRIDE {
     if (!traits_type::eq_int_type(ch, traits_type::eof()))
       buffer_.push_back(static_cast<Char>(ch));
     return ch;
   }
 
-  std::streamsize xsputn(const Char *s, std::streamsize count) FMT_OVERRIDE {
+  std::streamsize xsputn(const Char *s, std::streamsize count) ABEL_OVERRIDE {
     buffer_.append(s, s + count);
     return count;
   }
@@ -116,21 +116,21 @@ struct format_enum<T,
 template <typename T, typename Char>
 struct formatter<T, Char,
     typename std::enable_if<internal::is_streamable<T, Char>::value>::type>
-    : formatter<basic_string_view<Char>, Char> {
+    : formatter<abel::basic_string_view<Char>, Char> {
 
   template <typename Context>
   auto format(const T &value, Context &ctx) -> decltype(ctx.out()) {
     basic_memory_buffer<Char> buffer;
     internal::format_value(buffer, value);
-    basic_string_view<Char> str(buffer.data(), buffer.size());
-    formatter<basic_string_view<Char>, Char>::format(str, ctx);
+      abel::basic_string_view<Char> str(buffer.data(), buffer.size());
+    formatter<abel::basic_string_view<Char>, Char>::format(str, ctx);
     return ctx.out();
   }
 };
 
 template <typename Char>
 inline void vprint(std::basic_ostream<Char> &os,
-                   basic_string_view<Char> format_str,
+                   abel::basic_string_view<Char> format_str,
                    basic_format_args<typename buffer_context<Char>::type> args) {
   basic_memory_buffer<Char> buffer;
   vformat_to(buffer, format_str, args);
@@ -146,13 +146,13 @@ inline void vprint(std::basic_ostream<Char> &os,
   \endrst
  */
 template <typename... Args>
-inline void print(std::ostream &os, string_view format_str,
+inline void print(std::ostream &os, abel::string_view format_str,
                   const Args & ... args) {
   vprint<char>(os, format_str, make_format_args<format_context>(args...));
 }
 
 template <typename... Args>
-inline void print(std::wostream &os, wstring_view format_str,
+inline void print(std::wostream &os, abel::wstring_view format_str,
                   const Args & ... args) {
   vprint<wchar_t>(os, format_str, make_format_args<wformat_context>(args...));
 }

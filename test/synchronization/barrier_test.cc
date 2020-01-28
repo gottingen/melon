@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <abel/synchronization/mutex.h>
-#include <abel/time/clock.h>
+#include <abel/chrono/clock.h>
 
 
 TEST(barrier, SanityTest) {

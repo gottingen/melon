@@ -33,8 +33,8 @@ FILE(GLOB SYNC_INTERNAL_SRC "synchronization/internal/*.cc")
 FILE(GLOB THREADING_SRC "threading/*.cc")
 FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
-FILE(GLOB TIME_SRC "time/*.cc")
-FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
+#FILE(GLOB TIME_SRC "time/*.cc")
+#FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
 
 
 FILE(GLOB DIGEST_SRC "digest/*.cc")
@@ -42,7 +42,12 @@ FILE(GLOB SYSTEM_SRC "system/*.cc")
 
 FILE(GLOB LOG_SRC "log/*.cc")
 
+FILE(GLOB CHRONO_SRC "chrono/*.cc")
+FILE(GLOB CHRONO_INTERNAL_SRC "chrono/internal/*.cc")
+
 SET(ABEL_SRC
+        ${CHRONO_SRC}
+        ${CHRONO_INTERNAL_SRC}
         ${ALGO_SRC}
         ${BASE_SRC}
         ${BASE_INTERNAL_SRC}
@@ -61,8 +66,8 @@ SET(ABEL_SRC
         ${TYPES_SRC}
         ${SYNC_SRC}
         ${SYNC_INTERNAL_SRC}
-        ${TIME_SRC}
-        ${TIME_INTERNAL_SRC}
+        #${TIME_SRC}
+        #${TIME_INTERNAL_SRC}
         ${DIGEST_SRC}
         ${SYSTEM_SRC}
         ${THREADING_SRC}

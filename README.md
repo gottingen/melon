@@ -79,7 +79,8 @@ build step
     
     the base module contains code that other modules depends on. no extern dependencies.
 * [algorithm](/docs/en/algorithm.md)
-* [atomic](/docs/en/atomic.md) 
+* [atomic](/docs/en/atomic.md)
+* [chrono](/docs/en/chrono.md) 
 * [container](/docs/en/container.md)
 * [debugging](/docs/en/debugging.md)
 * [digest](/docs/en/digest.md) 

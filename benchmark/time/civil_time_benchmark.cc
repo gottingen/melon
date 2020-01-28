@@ -27,8 +27,8 @@ namespace {
 // BM_CivilSecondAbelHash           4.10           4.10   171800000
 
 void BM_Difference_Days(benchmark::State& state) {
-  const abel::CivilDay c(2014, 8, 22);
-  const abel::CivilDay epoch(1970, 1, 1);
+  const abel::chrono_day c(2014, 8, 22);
+  const abel::chrono_day epoch(1970, 1, 1);
   while (state.KeepRunning()) {
     const abel::civil_diff_t n = c - epoch;
     benchmark::DoNotOptimize(n);
@@ -37,8 +37,8 @@ void BM_Difference_Days(benchmark::State& state) {
 BENCHMARK(BM_Difference_Days);
 
 void BM_Step_Days(benchmark::State& state) {
-  const abel::CivilDay kStart(2014, 8, 22);
-  abel::CivilDay c = kStart;
+  const abel::chrono_day kStart(2014, 8, 22);
+  abel::chrono_day c = kStart;
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(++c);
   }
@@ -46,9 +46,9 @@ void BM_Step_Days(benchmark::State& state) {
 BENCHMARK(BM_Step_Days);
 
 void BM_Format(benchmark::State& state) {
-  const abel::CivilSecond c(2014, 1, 2, 3, 4, 5);
+  const abel::chrono_second c(2014, 1, 2, 3, 4, 5);
   while (state.KeepRunning()) {
-    const std::string s = abel::FormatCivilTime(c);
+    const std::string s = abel::format_chrono_time(c);
     benchmark::DoNotOptimize(s);
   }
 }
@@ -56,19 +56,19 @@ BENCHMARK(BM_Format);
 
 void BM_Parse(benchmark::State& state) {
   const std::string f = "2014-01-02T03:04:05";
-  abel::CivilSecond c;
+  abel::chrono_second c;
   while (state.KeepRunning()) {
-    const bool b = abel::ParseCivilTime(f, &c);
+    const bool b = abel::parse_chrono_time(f, &c);
     benchmark::DoNotOptimize(b);
   }
 }
 BENCHMARK(BM_Parse);
 
 void BM_RoundTripFormatParse(benchmark::State& state) {
-  const abel::CivilSecond c(2014, 1, 2, 3, 4, 5);
-  abel::CivilSecond out;
+  const abel::chrono_second c(2014, 1, 2, 3, 4, 5);
+  abel::chrono_second out;
   while (state.KeepRunning()) {
-    const bool b = abel::ParseCivilTime(abel::FormatCivilTime(c), &out);
+    const bool b = abel::parse_chrono_time(abel::format_chrono_time(c), &out);
     benchmark::DoNotOptimize(b);
   }
 }
@@ -88,22 +88,22 @@ void BM_CivilTimeAbelHash(benchmark::State& state) {
   }
 }
 void BM_CivilYearAbelHash(benchmark::State& state) {
-  BM_CivilTimeAbelHash<abel::CivilYear>(state);
+  BM_CivilTimeAbelHash<abel::chrono_year>(state);
 }
 void BM_CivilMonthAbelHash(benchmark::State& state) {
-  BM_CivilTimeAbelHash<abel::CivilMonth>(state);
+  BM_CivilTimeAbelHash<abel::chrono_month>(state);
 }
 void BM_CivilDayAbelHash(benchmark::State& state) {
-  BM_CivilTimeAbelHash<abel::CivilDay>(state);
+  BM_CivilTimeAbelHash<abel::chrono_day>(state);
 }
 void BM_CivilHourAbelHash(benchmark::State& state) {
-  BM_CivilTimeAbelHash<abel::CivilHour>(state);
+  BM_CivilTimeAbelHash<abel::chrono_hour>(state);
 }
 void BM_CivilMinuteAbelHash(benchmark::State& state) {
-  BM_CivilTimeAbelHash<abel::CivilMinute>(state);
+  BM_CivilTimeAbelHash<abel::chrono_minute>(state);
 }
 void BM_CivilSecondAbelHash(benchmark::State& state) {
-  BM_CivilTimeAbelHash<abel::CivilSecond>(state);
+  BM_CivilTimeAbelHash<abel::chrono_second>(state);
 }
 BENCHMARK(BM_CivilYearAbelHash);
 BENCHMARK(BM_CivilMonthAbelHash);

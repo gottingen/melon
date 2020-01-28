@@ -23,42 +23,42 @@ enum class character_properties : uint32_t {
     ePrint = 0x0200
 };
 
-ABEL_CONSTEXPR_OR_INLINE character_properties operator & (character_properties lhs, character_properties rhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties operator & (character_properties lhs, character_properties rhs) {
     return static_cast<character_properties>(
         static_cast<uint32_t>(lhs) &
             static_cast<uint32_t>(rhs)
     );
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties operator | (character_properties lhs, character_properties rhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties operator | (character_properties lhs, character_properties rhs) {
     return static_cast<character_properties>(
         static_cast<uint32_t>(lhs) |
             static_cast<uint32_t>(rhs)
     );
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties operator ~ (character_properties lhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties operator ~ (character_properties lhs) {
     return static_cast<character_properties>(~static_cast<uint32_t>(lhs));
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties operator ^ (character_properties lhs, character_properties rhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties operator ^ (character_properties lhs, character_properties rhs) {
     return static_cast<character_properties>(
         static_cast<uint32_t>(lhs) ^
             static_cast<uint32_t>(rhs)
     );
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties &operator &= (character_properties &lhs, character_properties rhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties &operator &= (character_properties &lhs, character_properties rhs) {
     lhs = lhs & rhs;
     return lhs;
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties &operator |= (character_properties &lhs, character_properties rhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties &operator |= (character_properties &lhs, character_properties rhs) {
     lhs = lhs | rhs;
     return lhs;
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties &operator ^= (character_properties &lhs, character_properties rhs) {
+ABEL_CONSTEXPR_FUNCTION character_properties &operator ^= (character_properties &lhs, character_properties rhs) {
     lhs = lhs ^ rhs;
     return lhs;
 }
@@ -201,17 +201,17 @@ private:
     static const char                 kToLower[256];
 };
 
-/// @brief ABEL_CONSTEXPR_OR_INLINEs
+/// @brief ABEL_CONSTEXPR_FUNCTIONs
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_white (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_white (unsigned char ch) noexcept {
     return ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r';
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_blank (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_blank (unsigned char ch) noexcept {
     return ch == ' ' || ch == '\t';
 }
 
-ABEL_CONSTEXPR_OR_INLINE character_properties ascii::properties (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION character_properties ascii::properties (unsigned char ch) noexcept {
     if (is_ascii(ch)) {
         return kCharacterProperties[ch];
     } else {
@@ -219,67 +219,67 @@ ABEL_CONSTEXPR_OR_INLINE character_properties ascii::properties (unsigned char c
     }
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_ascii (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_ascii (unsigned char ch) noexcept {
     return (static_cast<uint32_t>(ch) & 0xFFFFFF80) == 0;
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::has_properties (unsigned char ch, character_properties prop) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::has_properties (unsigned char ch, character_properties prop) noexcept {
     return (properties(ch) & prop) == prop;
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::has_some_properties (unsigned char ch, character_properties prop) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::has_some_properties (unsigned char ch, character_properties prop) noexcept {
     return (properties(ch) & prop) != character_properties::eNone;
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_space (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_space (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eSpace);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_print (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_print (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::ePrint);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_graph (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_graph (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eGraph);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_digit (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_digit (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eDigit);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_hex_digit (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_hex_digit (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eHexDigit);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_punct (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_punct (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::ePunct);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_alpha (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_alpha (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eAlpha);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_control (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_control (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eControl);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_alpha_numeric (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_alpha_numeric (unsigned char ch) noexcept {
     return has_some_properties(ch, character_properties::eAlpha | character_properties::eDigit);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_lower (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_lower (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eLower);
 }
 
-ABEL_CONSTEXPR_OR_INLINE bool ascii::is_upper (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION bool ascii::is_upper (unsigned char ch) noexcept {
     return has_properties(ch, character_properties::eUpper);
 }
 
-ABEL_CONSTEXPR_OR_INLINE char ascii::to_lower (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION char ascii::to_lower (unsigned char ch) noexcept {
     return kToLower[ch];
 }
 
-ABEL_CONSTEXPR_OR_INLINE char ascii::to_upper (unsigned char ch) noexcept {
+ABEL_CONSTEXPR_FUNCTION char ascii::to_upper (unsigned char ch) noexcept {
     return kToUpper[ch];
 }
 

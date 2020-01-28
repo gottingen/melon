@@ -6,8 +6,8 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <abel/time/clock.h>
-#include <abel/time/time.h>
+#include <abel/chrono/clock.h>
+#include <abel/chrono/time.h>
 
 namespace abel {
 

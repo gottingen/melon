@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../deps/benchmark-1.5.0/include/benchmark/benchmark.h
+stdint.h
+-
+algorithm
+-
+cassert
+-
+cstddef
+-
+iosfwd
+-
+map
+-
+set
+-
+string
+-
+vector
+-
+initializer_list
+-
+type_traits
+-
+utility
+-
+intrin.h
+-
+
+/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/src/benchmark_main.cc
+benchmark/benchmark.h
+/Users/liyinbin/github/gottingen/abel/deps/benchmark-1.5.0/src/benchmark/benchmark.h
+

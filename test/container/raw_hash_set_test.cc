@@ -14,7 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/time/cycleclock.h>
+#include <abel/chrono/internal/cycle_clock.h>
 #include <abel/log/raw_logging.h>
 #include <abel/container/internal/container_memory.h>
 #include <abel/container/internal/hash_function_defaults.h>

@@ -942,6 +942,7 @@ TEST(StringViewTest, ConstexprCompiles) {
 
 #else  // ABEL_USES_STD_STRING_VIEW
 
+/*
 // This duplicates the check for __builtin_strlen in the header.
 #if ABEL_COMPILER_HAS_BUILTIN(__builtin_strlen) || \
     (defined(__GNUC__) && !defined(__clang__))
@@ -954,7 +955,7 @@ TEST(StringViewTest, ConstexprCompiles) {
 #if defined(_MSC_VER) && _MSC_VER >= 1910
 #define ABEL_HAVE_CONSTEXPR_STRING_VIEW_FROM_CSTR 1
 #endif
-
+*/
 #endif  // ABEL_USES_STD_STRING_VIEW
 
 #ifdef ABEL_HAVE_CONSTEXPR_STRING_VIEW_FROM_CSTR

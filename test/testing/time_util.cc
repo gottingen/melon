@@ -4,11 +4,11 @@
 #include <cstddef>
 #include <cstring>
 #include <abel/log/raw_logging.h>
-#include <abel/time/internal/zone_info_source.h>
+#include <abel/chrono/internal/zone_info_source.h>
 
 namespace abel {
 
-namespace time_internal {
+namespace chrono_internal {
 
 abel::time_zone load_time_zone (const std::string &name) {
     abel::time_zone tz;
@@ -16,20 +16,20 @@ abel::time_zone load_time_zone (const std::string &name) {
     return tz;
 }
 
-}  // namespace time_internal
+}  // namespace chrono_internal
 
 }  // namespace abel
 
 namespace abel {
 
-namespace time_internal {
+namespace chrono_internal {
 namespace {
 
 // Embed the zoneinfo data for time zones used during tests and benchmarks.
 // The data was generated using "xxd -i zoneinfo-file".  There is no need
 // to update the data as long as the tests do not depend on recent changes
 // (and the past rules remain the same).
-#include <abel/time/internal/zoneinfo.inc>
+#include <abel/chrono/internal/zoneinfo.inc>
 
 const struct ZoneInfo {
     const char *name;
@@ -62,19 +62,19 @@ const struct ZoneInfo {
 #endif
 };
 
-class TestZoneInfoSource : public abel::time_internal::ZoneInfoSource {
+class TestZoneInfoSource : public abel::chrono_internal::zone_info_source {
 public:
     TestZoneInfoSource (const char *data, std::size_t size)
         : data_(data), end_(data + size) { }
 
-    std::size_t Read (void *ptr, std::size_t size) override {
+    std::size_t read (void *ptr, std::size_t size) override {
         const std::size_t len = std::min<std::size_t>(size, end_ - data_);
         memcpy(ptr, data_, len);
         data_ += len;
         return len;
     }
 
-    int Skip (std::size_t offset) override {
+    int skip (std::size_t offset) override {
         data_ += std::min<std::size_t>(offset, end_ - data_);
         return 0;
     }
@@ -84,15 +84,15 @@ private:
     const char *const end_;
 };
 
-std::unique_ptr<abel::time_internal::ZoneInfoSource> TestFactory (
+std::unique_ptr<abel::chrono_internal::zone_info_source> TestFactory (
     const std::string &name,
-    const std::function<std::unique_ptr<abel::time_internal::ZoneInfoSource> (
+    const std::function<std::unique_ptr<abel::chrono_internal::zone_info_source> (
         const std::string &name)> & /*fallback_factory*/) {
     for (const ZoneInfo &zoneinfo : kZoneInfo) {
         if (name == zoneinfo.name) {
             if (zoneinfo.data == nullptr)
                 return nullptr;
-            return std::unique_ptr<abel::time_internal::ZoneInfoSource>(
+            return std::unique_ptr<abel::chrono_internal::zone_info_source>(
                 new TestZoneInfoSource(zoneinfo.data, zoneinfo.length));
         }
     }
@@ -107,7 +107,7 @@ std::unique_ptr<abel::time_internal::ZoneInfoSource> TestFactory (
 ZoneInfoSourceFactory zone_info_source_factory = TestFactory;
 #endif
 
-}  // namespace time_internal
+}  // namespace chrono_internal
 
 }  // namespace abel
 

@@ -22,7 +22,7 @@ public:
     }
 };
 
-std::string custom_vformat (fmt::string_view format_str, fmt::format_args args) {
+std::string custom_vformat (abel::string_view format_str, fmt::format_args args) {
     fmt::memory_buffer buffer;
     // Pass custom argument formatter as a template arg to vwrite.
     fmt::vformat_to<custom_arg_formatter>(buffer, format_str, args);

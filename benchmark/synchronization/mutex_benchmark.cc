@@ -4,7 +4,7 @@
 #include <mutex>  // NOLINT(build/c++11)
 #include <vector>
 
-#include <abel/time/cycleclock.h>
+#include <abel/chrono/internal/cycle_clock.h>
 #include <abel/threading/internal/spinlock.h>
 #include <abel/synchronization/blocking_counter.h>
 #include <abel/synchronization/internal/thread_pool.h>
@@ -22,9 +22,9 @@ void BM_Mutex(benchmark::State& state) {
 BENCHMARK(BM_Mutex)->UseRealTime()->Threads(1)->ThreadPerCpu();
 
 static void DelayNs(int64_t ns, int* data) {
-  int64_t end = abel::cycle_clock::now() +
-                ns * abel::cycle_clock::frequency() / 1e9;
-  while (abel::cycle_clock::now() < end) {
+  int64_t end = abel::chrono_internal::cycle_clock::now() +
+                ns * abel::chrono_internal::cycle_clock::frequency() / 1e9;
+  while (abel::chrono_internal::cycle_clock::now() < end) {
     ++(*data);
     benchmark::DoNotOptimize(*data);
   }
