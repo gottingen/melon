@@ -5,7 +5,7 @@
 #ifndef ABEL_CHRONO_INTERNAL_CHRONO_POSIX_TIME_H_
 #define ABEL_CHRONO_INTERNAL_CHRONO_POSIX_TIME_H_
 
-#include <abel/time/clock.h>
+#include <abel/chrono/clock.h>
 #include <sys/time.h>
 #include <ctime>
 #include <cstdint>

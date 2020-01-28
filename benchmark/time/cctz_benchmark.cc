@@ -21,8 +21,8 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
-#include <abel/time/internal/civil_time.h>
-#include <abel/time/internal/time_zone.h>
+#include <abel/chrono/internal/chrono_time_internal.h>
+#include <abel/chrono/internal/time_zone.h>
 #include "time_zone_impl.h"
 
 namespace {

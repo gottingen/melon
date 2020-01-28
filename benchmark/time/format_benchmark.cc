@@ -15,7 +15,7 @@
 #include <string>
 
 #include <testing/time_util.h>
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 #include <benchmark/benchmark.h>
 
 namespace {
