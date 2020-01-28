@@ -33,12 +33,12 @@
 //
 // The abel time library provides the following support for civil time values:
 //
-// * `abel::CivilSecond`
-// * `abel::CivilMinute`
-// * `abel::CivilHour`
-// * `abel::CivilDay`
-// * `abel::CivilMonth`
-// * `abel::CivilYear`
+// * `abel::chrono_second`
+// * `abel::chrono_minute`
+// * `abel::chrono_hour`
+// * `abel::chrono_day`
+// * `abel::chrono_month`
+// * `abel::chrono_year`
 //
 // and also provides support for the following absolute time values:
 //

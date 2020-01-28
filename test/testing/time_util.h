@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 
 #include <cstdarg>
 #include <cstdio>
@@ -14,12 +14,12 @@
 
 namespace abel {
 
-namespace time_internal {
+namespace chrono_internal {
 
 // Loads the named timezone, but dies on any failure.
 abel::time_zone load_time_zone (const std::string &name);
 
-}  // namespace time_internal
+}  // namespace chrono_internal
 
 }  // namespace abel
 

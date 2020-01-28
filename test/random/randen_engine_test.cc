@@ -12,7 +12,7 @@
 #include <abel/log/raw_logging.h>
 #include <abel/random/internal/explicit_seed_seq.h>
 #include <abel/strings/str_cat.h>
-#include <abel/time/clock.h>
+#include <abel/chrono/clock.h>
 
 #define UPDATE_GOLDEN 0
 

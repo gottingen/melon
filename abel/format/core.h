@@ -58,15 +58,6 @@
 # define FMT_CONSTEXPR_DECL
 #endif
 
-#ifndef FMT_OVERRIDE
-# if ABEL_COMPILER_HAS_FEATURE(cxx_override) || \
-     (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-     FMT_MSC_VER >= 1900
-#  define FMT_OVERRIDE override
-# else
-#  define FMT_OVERRIDE
-# endif
-#endif
 
 #if ABEL_COMPILER_HAS_FEATURE(cxx_explicit_conversions) || \
     FMT_MSC_VER >= 1800
@@ -282,7 +273,7 @@ private:
     Container &container_;
 
 protected:
-    void grow (std::size_t capacity) FMT_OVERRIDE {
+    void grow (std::size_t capacity) ABEL_OVERRIDE {
         container_.resize(capacity);
         this->set(&container_[0], capacity);
     }
@@ -592,7 +583,7 @@ public:
 
     FMT_CONSTEXPR basic_format_arg () : type_(internal::none_type) { }
 
-    FMT_EXPLICIT operator bool () const FMT_NOEXCEPT {
+    ABEL_EXPLICIT operator bool () const FMT_NOEXCEPT {
         return type_ != internal::none_type;
     }
 

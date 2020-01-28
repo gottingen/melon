@@ -57,7 +57,7 @@
 #include <abel/threading/thread_annotations.h>
 #include <abel/synchronization/internal/kernel_timeout.h>
 #include <abel/synchronization/internal/per_thread_sem.h>
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 
 // Decide if we should use the non-production implementation because
 // the production implementation hasn't been fully ported yet.

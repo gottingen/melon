@@ -28,7 +28,7 @@
 #include <abel/base/profile.h>
 #include <abel/threading/dynamic_annotations.h>
 #include <abel/atomic/atomic_hook.h>
-#include <abel/time/cycleclock.h>
+#include <abel/chrono/internal/cycle_clock.h>
 #include <abel/memory/hide_ptr.h>
 #include <abel/memory/internal/low_level_alloc.h>
 #include <abel/log/raw_logging.h>
@@ -40,7 +40,7 @@
 #include <abel/debugging/symbolize.h>
 #include <abel/synchronization/internal/graphcycles.h>
 #include <abel/synchronization/internal/per_thread_sem.h>
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 
 using abel::threading_internal::CurrentThreadIdentityIfPresent;
 using abel::threading_internal::PerThreadSynch;
@@ -456,7 +456,7 @@ struct synch_wait_params {
           cvmu(cvmu_arg),
           thread(thread_arg),
           cv_word(cv_word_arg),
-          contention_start_cycles(abel::cycle_clock::now()) { }
+          contention_start_cycles(abel::chrono_internal::cycle_clock::now()) { }
 
     const mutex::MuHow how;  // How this thread needs to wait.
     const condition *cond;  // The condition that this thread is waiting for.
@@ -881,7 +881,7 @@ static PerThreadSynch *Enqueue (PerThreadSynch *head,
     } else {
         PerThreadSynch *enqueue_after = nullptr;  // we'll put s after this element
 #ifdef ABEL_HAVE_PTHREAD_GETSCHEDPARAM
-        int64_t now_cycles = cycle_clock::now();
+        int64_t now_cycles = chrono_internal::cycle_clock::now();
         if (s->next_priority_read_cycles < now_cycles) {
             // Every so often, update our idea of the thread's priority.
             // pthread_getschedparam() is 5% of the block/wakeup time;
@@ -895,7 +895,7 @@ static PerThreadSynch *Enqueue (PerThreadSynch *head,
                 s->priority = param.sched_priority;
                 s->next_priority_read_cycles =
                     now_cycles +
-                        static_cast<int64_t>(cycle_clock::frequency());
+                        static_cast<int64_t>(chrono_internal::cycle_clock::frequency());
             }
         }
         if (s->priority > head->priority) {  // s's priority is above head's
@@ -2297,7 +2297,7 @@ void mutex::UnlockSlow (synch_wait_params *waitp) {
         if (!cond_waiter) {
             // Sample lock contention events only if the (first) waiter was trying to
             // acquire the lock, not waiting on a condition variable or condition.
-            int64_t wait_cycles =cycle_clock::now() - enqueue_timestamp;
+            int64_t wait_cycles = chrono_internal::cycle_clock::now() - enqueue_timestamp;
             mutex_tracer("slow release", this, wait_cycles);
             ABEL_TSAN_MUTEX_PRE_DIVERT(this, 0);
             submit_profile_data(enqueue_timestamp);

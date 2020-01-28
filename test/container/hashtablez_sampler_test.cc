@@ -14,8 +14,8 @@
 #include <abel/synchronization/internal/thread_pool.h>
 #include <abel/synchronization/mutex.h>
 #include <abel/synchronization/notification.h>
-#include <abel/time/clock.h>
-#include <abel/time/time.h>
+#include <abel/chrono/clock.h>
+#include <abel/chrono/time.h>
 
 #if SWISSTABLE_HAVE_SSE2
 constexpr int kProbeLength = 16;

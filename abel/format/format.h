@@ -479,7 +479,7 @@ private:
     }
 
 protected:
-    void grow (std::size_t size) FMT_OVERRIDE;
+    void grow (std::size_t size) ABEL_OVERRIDE;
 
 public:
     explicit basic_memory_buffer (const Allocator &alloc = Allocator())
@@ -591,7 +591,7 @@ public:
     }
 
 protected:
-    FMT_API void grow (std::size_t size) FMT_OVERRIDE;
+    FMT_API void grow (std::size_t size) ABEL_OVERRIDE;
 };
 
 namespace internal {

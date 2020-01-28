@@ -163,15 +163,15 @@ BENCHMARK(BM_Time_ToUnixMillis);
 void BM_Time_ToUnixSeconds(benchmark::State& state) {
   const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::ToUnixSeconds(t));
+    benchmark::DoNotOptimize(abel::to_unix_seconds(t));
   }
 }
 BENCHMARK(BM_Time_ToUnixSeconds);
 
 //
-// from_civil
+// from_chrono
 //
-// In each "from_civil" benchmark we switch between two YMDhms values
+// In each "from_chrono" benchmark we switch between two YMDhms values
 // separated by at least one transition in order to defeat any internal
 // caching of previous results (e.g., see time_local_hint_).
 //
@@ -185,9 +185,9 @@ void BM_Time_FromCivil_Abel(benchmark::State& state) {
   int i = 0;
   while (state.KeepRunning()) {
     if ((i & 1) == 0) {
-      abel::from_civil(abel::CivilSecond(2014, 12, 18, 20, 16, 18), tz);
+      abel::from_chrono(abel::chrono_second(2014, 12, 18, 20, 16, 18), tz);
     } else {
-      abel::from_civil(abel::CivilSecond(2013, 11, 15, 18, 30, 27), tz);
+      abel::from_chrono(abel::chrono_second(2013, 11, 15, 18, 30, 27), tz);
     }
     ++i;
   }
@@ -224,7 +224,7 @@ BENCHMARK(BM_Time_FromCivil_Libc);
 void BM_Time_FromCivilUTC_Abel(benchmark::State& state) {
   const abel::time_zone tz = abel::utc_time_zone();
   while (state.KeepRunning()) {
-    abel::from_civil(abel::CivilSecond(2014, 12, 18, 20, 16, 18), tz);
+    abel::from_chrono(abel::chrono_second(2014, 12, 18, 20, 16, 18), tz);
   }
 }
 BENCHMARK(BM_Time_FromCivilUTC_Abel);
@@ -235,9 +235,9 @@ void BM_Time_FromCivilDay0_Abel(benchmark::State& state) {
   int i = 0;
   while (state.KeepRunning()) {
     if ((i & 1) == 0) {
-      abel::from_civil(abel::CivilSecond(2014, 12, 0, 20, 16, 18), tz);
+      abel::from_chrono(abel::chrono_second(2014, 12, 0, 20, 16, 18), tz);
     } else {
-      abel::from_civil(abel::CivilSecond(2013, 11, 0, 18, 30, 27), tz);
+      abel::from_chrono(abel::chrono_second(2013, 11, 0, 18, 30, 27), tz);
     }
     ++i;
   }

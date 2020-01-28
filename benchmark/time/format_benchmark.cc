@@ -38,7 +38,7 @@ void BM_Format_FormatTime(benchmark::State& state) {
   const abel::time_zone lax =
       abel::time_internal::load_time_zone("America/Los_Angeles");
   const abel::abel_time t =
-      abel::from_civil(abel::CivilSecond(1977, 6, 28, 9, 8, 7), lax) +
+      abel::from_chrono(abel::chrono_second(1977, 6, 28, 9, 8, 7), lax) +
       abel::nanoseconds(1);
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(abel::format_time(fmt, t, lax).length());
@@ -51,7 +51,7 @@ void BM_Format_ParseTime(benchmark::State& state) {
   state.SetLabel(fmt);
   const abel::time_zone lax =
       abel::time_internal::load_time_zone("America/Los_Angeles");
-  abel::abel_time t = abel::from_civil(abel::CivilSecond(1977, 6, 28, 9, 8, 7), lax) +
+  abel::abel_time t = abel::from_chrono(abel::chrono_second(1977, 6, 28, 9, 8, 7), lax) +
                  abel::nanoseconds(1);
   const std::string when = abel::format_time(fmt, t, lax);
   std::string err;
