@@ -3,6 +3,7 @@
 //
 
 #include <test/testing/filesystem_test_util.h>
+#include <abel/chrono/time.h>
 #include <gtest/gtest.h>
 #include <iomanip>
 #include <iostream>
@@ -449,13 +450,19 @@ TEST(fs, hard_link_count) {
 }
 
 static fs::file_time_type timeFromString (const std::string &str) {
-    struct ::tm tm;
+    abel::abel_time at;
+    abel::time_zone tz;
+    std::string  err;
+    abel::parse_time("%Y-%m-%dT%H:%M:%S", str,  &at, &err);
+    struct ::tm tm = abel::to_tm(at);
+    /*
     ::memset(&tm, 0, sizeof(::tm));
     std::istringstream is(str);
     is >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
     if (is.fail()) {
         throw std::exception();
     }
+     */
     return from_time_t<fs::file_time_type>(std::mktime(&tm));
 }
 
@@ -503,7 +510,7 @@ TEST(fs, permissions) {
     EXPECT_NO_THROW(fs::permissions("foo", allWrite, fs::perm_options::remove));
     EXPECT_TRUE((fs::status("foo").permissions() & fs::perms::owner_write) != fs::perms::owner_write);
     EXPECT_THROW(fs::resize_file("foo", 1024), fs::filesystem_error);
-    EXPECT_TRUE(fs::file_size("foo") == 512);
+    EXPECT_EQ(fs::file_size("foo"), 512);
     EXPECT_NO_THROW(fs::permissions("foo", fs::perms::owner_write, fs::perm_options::add));
     EXPECT_TRUE((fs::status("foo").permissions() & fs::perms::owner_write) == fs::perms::owner_write);
     EXPECT_NO_THROW(fs::resize_file("foo", 2048));

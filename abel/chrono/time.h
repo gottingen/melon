@@ -1126,6 +1126,9 @@ abel_time from_tm (const struct tm &tm, time_zone tz);
 // See ctime(3) for a description of the values of the tm fields.
 struct tm to_tm (abel_time t, time_zone tz);
 
+inline struct tm to_tm (abel_time t) {
+    return to_tm(t, abel::utc_time_zone());
+}
 // RFC3339_full
 // RFC3339_sec
 //
