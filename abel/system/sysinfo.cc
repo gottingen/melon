@@ -142,7 +142,7 @@ static int64_t ReadMonotonicClockNanos() {
 
 class unscaled_cycle_clock_wrapper_for_initialize_frequency {
  public:
-  static int64_t now() { return unscaled_cycle_clock::now(); }
+  static int64_t now() { return chrono_internal::unscaled_cycle_clock::now(); }
 };
 
 struct TimeTscPair {
