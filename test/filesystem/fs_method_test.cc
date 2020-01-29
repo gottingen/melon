@@ -4,6 +4,11 @@
 
 #include <test/testing/filesystem_test_util.h>
 #include <gtest/gtest.h>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <locale>
+#include <iomanip>
 
 TEST(fs, canonical) {
     EXPECT_THROW(fs::canonical(""), fs::filesystem_error);

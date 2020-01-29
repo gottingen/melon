@@ -18,7 +18,7 @@
 #include <algorithm>
 
 #include <abel/log/raw_logging.h>
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 
 namespace abel {
 

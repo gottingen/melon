@@ -18,7 +18,7 @@
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 #include <benchmark/benchmark.h>
 
 namespace {

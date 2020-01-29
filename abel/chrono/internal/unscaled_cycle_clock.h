@@ -75,13 +75,12 @@
 namespace abel {
 
 class unscaled_cycle_clock_wrapper_for_get_current_time;
-
+class unscaled_cycle_clock_wrapper_for_initialize_frequency;
 namespace chrono_internal {
 
 
 
 class cycle_clock;
-class unscaled_cycle_clock_wrapper_for_initialize_frequency;
 
 class unscaled_cycle_clock {
 private:
@@ -100,7 +99,7 @@ private:
     // Whitelisted friends.
     friend class cycle_clock;
     friend class abel::unscaled_cycle_clock_wrapper_for_get_current_time;
-    friend class unscaled_cycle_clock_wrapper_for_initialize_frequency;
+    friend class abel::unscaled_cycle_clock_wrapper_for_initialize_frequency;
 };
 
 } //namespace chrono_internal

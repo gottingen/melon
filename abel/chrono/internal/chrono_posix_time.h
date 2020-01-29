@@ -5,7 +5,7 @@
 #ifndef ABEL_CHRONO_INTERNAL_CHRONO_POSIX_TIME_H_
 #define ABEL_CHRONO_INTERNAL_CHRONO_POSIX_TIME_H_
 
-#include <abel/time/clock.h>
+#include <abel/chrono/clock.h>
 #include <sys/time.h>
 #include <ctime>
 #include <cstdint>
@@ -15,7 +15,7 @@ namespace abel {
 
 namespace chrono_internal {
 
-static int64_t GetCurrentTimeNanosFromSystem () {
+static inline int64_t get_current_time_nanos_from_system () {
     const int64_t kNanosPerSecond = 1000 * 1000 * 1000;
     struct timespec ts;
     ABEL_RAW_CHECK(clock_gettime(CLOCK_REALTIME, &ts) == 0,

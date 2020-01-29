@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 
 #if !defined(_WIN32)
 #include <sys/time.h>
@@ -24,7 +24,7 @@
 #include <memory>
 #include <string>
 
-#include <abel/time/clock.h>
+#include <abel/chrono/clock.h>
 #include <abel/testing/time_util.h>
 #include <benchmark/benchmark.h>
 

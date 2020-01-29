@@ -17,7 +17,7 @@
 #endif
 
 #include <abel/functional/call_once.h>
-#include <abel/time/time.h>
+#include <abel/chrono/time.h>
 
 // Declare that Mutex::ReaderLock is actually lock().  Intended primarily
 // for tests, and even then as a last resort.
