@@ -211,7 +211,7 @@ static bool has_host_root_name_support()
 }
 
 template <class T>
-class TestAllocator {
+class TestAllocator : public std::allocator<T>{
 public:
     using value_type = T;
 
@@ -224,6 +224,12 @@ public:
     value_type* allocate(std::size_t n) { return static_cast<value_type*>(::operator new(n * sizeof(value_type))); }
 
     void deallocate(value_type* p, std::size_t) noexcept { ::operator delete(p); }
+
+
+    template <class U>
+    struct rebind {
+        using other = TestAllocator<U>;
+    };
 };
 
 template <class T, class U>

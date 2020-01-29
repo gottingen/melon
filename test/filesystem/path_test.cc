@@ -246,10 +246,10 @@ TEST(path, geobs) {
     EXPECT_TRUE(fs::u8path("\xc3\xa4\\\xe2\x82\xac").generic_u32string() == std::u32string(U"\U000000E4/\U000020AC"));
 #else
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_string() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
-#ifndef USE_STD_FS
-    auto t = fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_string<char, std::char_traits<char>, TestAllocator<char>>();
-    EXPECT_TRUE(t.c_str() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
-#endif
+    #if !defined(USE_STD_FS)
+        auto t = fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_string<char, std::char_traits<char>, TestAllocator<char>>();
+        EXPECT_TRUE(t.c_str() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
+    #endif
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_wstring() == std::wstring(L"ä/€"));
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_u8string() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_u16string() == std::u16string(u"\u00E4/\u20AC"));
