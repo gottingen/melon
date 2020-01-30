@@ -142,7 +142,7 @@ TEST(LogFile, filename3) {
 #if defined(_MSC_VER) || !(__GNUC__ <= 4 && __GNUC_MINOR__ < 9)
 #include <regex>
 
-TEST("daily_file_sink::daily_filename_calculator", "[daily_file_sink]]")
+TEST(dailyfilesink, daily_file_sink)
 {
     // daily_YYYY-MM-DD_hh-mm.txt
     auto filename = abel::sinks::daily_filename_calculator::calc_filename("daily.txt", abel::details::os::localtime());
