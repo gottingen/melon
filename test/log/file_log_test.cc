@@ -1,7 +1,7 @@
 
 #include <test/testing/log_includes.h>
 
-TEST(file_log, simple_file_logger) {
+TEST(FileLog, simplefilelogger) {
     prepare_logdir();
     std::string filename = "logs/simple_log";
 
@@ -16,7 +16,7 @@ TEST(file_log, simple_file_logger) {
     EXPECT_TRUE(count_lines(filename) == 2);
 }
 
-TEST(file_log, flush_on) {
+TEST(FileLog, flush_on) {
     prepare_logdir();
     std::string filename = "logs/simple_log";
 
@@ -34,7 +34,7 @@ TEST(file_log, flush_on) {
     EXPECT_TRUE(count_lines(filename) == 3);
 }
 
-TEST(file_log, rotating_file_logger1) {
+TEST(FileLog, rotatingfilelogger1) {
     prepare_logdir();
     size_t max_size = 1024 * 10;
     std::string basename = "logs/rotating_log";
@@ -49,7 +49,7 @@ TEST(file_log, rotating_file_logger1) {
     EXPECT_TRUE(count_lines(filename) == 10);
 }
 
-TEST(file_log, rotating_file_logger2) {
+TEST(FileLog, rotatingfilelogger2) {
     prepare_logdir();
     size_t max_size = 1024 * 10;
     std::string basename = "logs/rotating_log";
@@ -71,7 +71,7 @@ TEST(file_log, rotating_file_logger2) {
     EXPECT_TRUE(get_filesize(filename1) <= max_size);
 }
 
-TEST(file_log, daily_logger_dateonly) {
+TEST(FileLog, dailyloggerdateonly) {
     using sink_type = abel::sinks::daily_file_sink<std::mutex, abel::sinks::daily_filename_calculator>;
 
     prepare_logdir();
@@ -99,7 +99,7 @@ struct custom_daily_file_name_calculator {
     }
 };
 
-TEST(file_log, daily_logger_custom) {
+TEST(FileLog, dailyloggercustom) {
     using sink_type = abel::sinks::daily_file_sink<std::mutex, custom_daily_file_name_calculator>;
 
     prepare_logdir();
@@ -123,17 +123,17 @@ TEST(file_log, daily_logger_custom) {
  * File name calculations
  */
 
-TEST(log_file, filename1) {
+TEST(LogFile, filename1) {
     auto filename = abel::sinks::rotating_file_sink_st::calc_filename("rotated.txt", 3);
     EXPECT_TRUE(filename == "rotated.3.txt");
 }
 
-TEST(log_file, filename2) {
+TEST(LogFile, filename2) {
     auto filename = abel::sinks::rotating_file_sink_st::calc_filename("rotated", 3);
     EXPECT_TRUE(filename == "rotated.3");
 }
 
-TEST(log_file, filename3) {
+TEST(LogFile, filename3) {
     auto filename = abel::sinks::rotating_file_sink_st::calc_filename("rotated.txt", 0);
     EXPECT_TRUE(filename == "rotated.txt");
 }

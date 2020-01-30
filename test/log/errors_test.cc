@@ -17,7 +17,7 @@ protected:
     }
 };
 
-TEST(default_error_handler, errors) {
+TEST(defaultErrorHandler, errors) {
 
     prepare_logdir();
     std::string filename = "logs/simple_log.txt";
@@ -37,7 +37,7 @@ TEST(default_error_handler, errors) {
 
 struct custom_ex {
 };
-TEST(errors, custom_error_handler) {
+TEST(errors, customerrorhandler) {
     prepare_logdir();
     std::string filename = "logs/simple_log.txt";
     auto logger = abel::create<abel::sinks::basic_file_sink_mt>("logger", filename, true);
@@ -56,7 +56,7 @@ TEST(errors, custom_error_handler) {
                     == 2);
 }
 
-TEST(errors, default_error_handler2) {
+TEST(errors, defaulterrorhandler2) {
     abel::drop_all();
     auto logger = abel::create<failing_sink>("failed_logger");
     logger->set_error_handler([=] (const std::string &) {
@@ -67,7 +67,7 @@ TEST(errors, default_error_handler2) {
                      ->info("Some message"), custom_ex);
 }
 
-TEST(errors, flush_error_handler) {
+TEST(errors, flusherrorhandler) {
     abel::drop_all();
     auto logger = abel::create<failing_sink>("failed_logger");
     logger->set_error_handler([=] (const std::string &) {
@@ -78,7 +78,7 @@ TEST(errors, flush_error_handler) {
     );
 }
 
-TEST(errors, async_error_handler) {
+TEST(errors, asyncerrorhandler) {
     prepare_logdir();
     std::string err_msg("log failed with some msg");
 
@@ -106,7 +106,7 @@ TEST(errors, async_error_handler) {
 }
 
 // Make sure async error handler is executed
-TEST(errors, async_error_handler2) {
+TEST(errors, asyncerrorhandler2) {
     prepare_logdir();
     std::string err_msg("This is async handler error message");
     {

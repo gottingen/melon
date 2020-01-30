@@ -14,7 +14,7 @@ static void write_with_helper (file_helper &helper, size_t howmany) {
     helper.flush();
 }
 
-TEST(file_heler, file_helper_filename) {
+TEST(fileHeler, filehelperfilename) {
     prepare_logdir();
 
     file_helper helper;
@@ -22,7 +22,7 @@ TEST(file_heler, file_helper_filename) {
     EXPECT_TRUE(helper.filename() == target_filename);
 }
 
-TEST(file_helper_size, file_helper_size) {
+TEST(filehelpersize, filehelpersize) {
     prepare_logdir();
     size_t expected_size = 123;
     {
@@ -34,7 +34,7 @@ TEST(file_helper_size, file_helper_size) {
     EXPECT_TRUE(get_filesize(target_filename) == expected_size);
 }
 
-TEST(file_helper, file_helper_exists) {
+TEST(filehelper, filehelperexists) {
     prepare_logdir();
     EXPECT_TRUE(!file_helper::file_exists(target_filename));
     file_helper helper;
@@ -42,7 +42,7 @@ TEST(file_helper, file_helper_exists) {
     EXPECT_TRUE(file_helper::file_exists(target_filename));
 }
 
-TEST(file_hlper, file_helper_reopen) {
+TEST(filehlper, filehelperreopen) {
     prepare_logdir();
     file_helper helper;
     helper.open(target_filename);
@@ -52,7 +52,7 @@ TEST(file_hlper, file_helper_reopen) {
     EXPECT_TRUE(helper.size() == 0);
 }
 
-TEST(file_helper, file_helper_reopen2) {
+TEST(filehelper, filehelperreopen2) {
     prepare_logdir();
     size_t expected_size = 14;
     file_helper helper;
@@ -78,7 +78,7 @@ static void test_split_ext (const char *fname, const char *expect_base, const ch
     EXPECT_TRUE(ext == expected_ext);
 }
 
-TEST(file_helpwe, file_helper_split_by_extenstion) {
+TEST(filehelpwe, filehelpersplitbyextenstion) {
     test_split_ext("mylog.txt", "mylog", ".txt");
     test_split_ext(".mylog.txt", ".mylog", ".txt");
     test_split_ext(".mylog", ".mylog", "");
