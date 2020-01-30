@@ -40,7 +40,7 @@ struct async_msg
 
 // support for vs2013 move
 #if defined(_MSC_VER) && _MSC_VER <= 1800
-    async_msg(async_msg &&other) SPDLOG_NOEXCEPT : msg_type(other.msg_type),
+    async_msg(async_msg &&other) ABEL_NOEXCEPT : msg_type(other.msg_type),
                                                    level(other.level),
                                                    time(other.time),
                                                    thread_id(other.thread_id),
@@ -50,7 +50,7 @@ struct async_msg
     {
     }
 
-    async_msg &operator=(async_msg &&other) SPDLOG_NOEXCEPT
+    async_msg &operator=(async_msg &&other) ABEL_NOEXCEPT
     {
         msg_type = other.msg_type;
         level = other.level;

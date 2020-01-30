@@ -1,9 +1,5 @@
-// Formatting library for C++ - test utilities
-//
-// Copyright (c) 2012 - present, Victor Zverovich
-// All rights reserved.
-//
-// For the license information refer to format.h.
+#ifndef TEST_TESTING_UTIL_H_
+#define TEST_TESTING_UTIL_H_
 
 #include <cstdarg>
 #include <cstdio>
@@ -83,3 +79,4 @@ class Date {
   int month() const { return month_; }
   int day() const { return day_; }
 };
+#endif //TEST_TESTING_UTIL_H_

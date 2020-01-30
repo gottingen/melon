@@ -65,7 +65,7 @@ public:
     template<typename... Args>
     void critical (const char *fmt, const Args &... args);
 
-#ifdef SPDLOG_WCHAR_TO_UTF8_SUPPORT
+#if !defined (ABEL_WCHAR_T_NON_NATIVE) && defined(_WIN32)
     template<typename... Args>
     void log(level::level_enum lvl, const wchar_t *fmt, const Args &... args);
 
@@ -86,7 +86,7 @@ public:
 
     template<typename... Args>
     void critical(const wchar_t *fmt, const Args &... args);
-#endif // SPDLOG_WCHAR_TO_UTF8_SUPPORT
+#endif // ABEL_WCHAR_T_NON_NATIVE
 
     template<typename T>
     void log (level::level_enum lvl, const T &);
@@ -140,7 +140,7 @@ protected:
     void default_err_handler_ (const std::string &msg);
 
     // increment the message count (only if
-    // defined(SPDLOG_ENABLE_MESSAGE_COUNTER))
+    // defined(ABEL_LOG_ENABLE_MESSAGE_COUNTER))
     void incr_msg_counter_ (details::log_msg &msg);
 
     const std::string name_;
@@ -151,7 +151,7 @@ protected:
     std::atomic<time_t> last_err_time_;
     std::atomic<size_t> msg_counter_;
 
-#ifdef SPDLOG_WCHAR_TO_UTF8_SUPPORT
+#if  !defined (ABEL_WCHAR_T_NON_NATIVE) && defined(_WIN32)
     std::wstring_convert<std::codecvt_utf8<wchar_t>> wstring_converter_;
     std::mutex wstring_converter_mutex_;
 #endif

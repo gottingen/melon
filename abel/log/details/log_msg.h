@@ -17,13 +17,8 @@ struct log_msg {
     log_msg () = default;
     log_msg (const std::string *loggers_name, level::level_enum lvl)
         : logger_name(loggers_name), level(lvl) {
-#ifndef SPDLOG_NO_DATETIME
         time = abel::now();
-#endif
-
-#ifndef SPDLOG_NO_THREAD_ID
         thread_id = abel::thread_id();
-#endif
     }
 
     log_msg (const log_msg &other) = delete;

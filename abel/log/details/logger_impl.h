@@ -52,7 +52,7 @@ inline void abel::logger::log (level::level_enum lvl, const char *fmt, const Arg
         fmt::format_to(log_msg.raw, fmt, args...);
         sink_it_(log_msg);
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 }
 
 template<typename... Args>
@@ -65,7 +65,7 @@ inline void abel::logger::log (level::level_enum lvl, const char *msg) {
         fmt::format_to(log_msg.raw, "{}", msg);
         sink_it_(log_msg);
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 }
 
 template<typename T>
@@ -78,7 +78,7 @@ inline void abel::logger::log (level::level_enum lvl, const T &msg) {
         fmt::format_to(log_msg.raw, "{}", msg);
         sink_it_(log_msg);
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 }
 
 template<typename... Args>
@@ -141,7 +141,7 @@ inline void abel::logger::critical (const T &msg) {
     log(level::critical, msg);
 }
 
-#ifdef SPDLOG_WCHAR_TO_UTF8_SUPPORT
+#if !defined(ABEL_WCHAR_T_NON_NATIVE) && defined(_WIN32)
 template<typename... Args>
 inline void abel::logger::log(level::level_enum lvl, const wchar_t *fmt, const Args &... args)
 {
@@ -160,7 +160,7 @@ inline void abel::logger::log(level::level_enum lvl, const wchar_t *fmt, const A
         }
         log(lvl, utf8_string.c_str(), args...);
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 }
 
 template<typename... Args>
@@ -199,7 +199,7 @@ inline void abel::logger::critical(const wchar_t *fmt, const Args &... args)
     log(level::critical, fmt, args...);
 }
 
-#endif // SPDLOG_WCHAR_TO_UTF8_SUPPORT
+#endif // ABEL_WCHAR_T_NON_NATIVE
 
 //
 // name and level
@@ -224,7 +224,7 @@ inline void abel::logger::flush () {
     try {
         flush_();
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 }
 
 inline void abel::logger::flush_on (level::level_enum log_level) {
@@ -249,7 +249,7 @@ inline bool abel::logger::should_log (abel::level::level_enum msg_level) const {
 // line_logger
 //
 inline void abel::logger::sink_it_ (details::log_msg &msg) {
-#if defined(SPDLOG_ENABLE_MESSAGE_COUNTER)
+#if defined(ABEL_LOG_ENABLE_MESSAGE_COUNTER)
     incr_msg_counter_(msg);
 #endif
     for (auto &sink : sinks_) {

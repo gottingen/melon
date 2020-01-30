@@ -34,18 +34,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //---------------------------------------------------------------------------------------
-//
-// To dynamically select std::filesystem where available, you could use:
-//
-// #if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
-// #include <filesystem>
-// namespace fs = std::filesystem;
-// #else
-// #include <ghc/filesystem.hpp>
-// namespace fs = ghc::filesystem;
-// #endif
-//
-//---------------------------------------------------------------------------------------
+
 #ifndef ABEL_FILESYSTEM_FILESYSTEM_H_
 #define ABEL_FILESYSTEM_FILESYSTEM_H_
 
@@ -150,17 +139,17 @@
 // LWG #2937 enforces that fs::equivalent emits an error, if !fs::exists(p1)||!exists(p2)
 #define LWG_2937_BEHAVIOUR
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// UTF8-Everywhere is the original behaviour of ghc::filesystem. With this define you can
+// UTF8-Everywhere is the original behaviour of abel::filesystem. With this define you can
 // enable the more standard conforming implementation option that uses wstring on Windows
-// as ghc::filesystem::string_type.
-// #define GHC_WIN_WSTRING_STRING_TYPE
+// as abel::filesystem::string_type.
+// #define ABEL_WIN_WSTRING_STRING_TYPE
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Raise errors/exceptions when invalid unicode codepoints or UTF-8 sequences are found,
 // instead of replacing them with the unicode replacement character (U+FFFD).
-// #define GHC_RAISE_UNICODE_ERRORS
+// #define ABEL_RAISE_UNICODE_ERRORS
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-// ghc::filesystem version in decimal (major * 10000 + minor * 100 + patch)
+// abel::filesystem version in decimal (major * 10000 + minor * 100 + patch)
 #define ABEL_FILESYSTEM_VERSION 10211L
 
 namespace abel {
@@ -192,8 +181,8 @@ constexpr char_type path_helper_base<char_type>::preferred_separator;
 
 // 30.10.8 class path
 class ABEL_FS_API_CLASS path
-#if defined(ABEL_PLATFORM_WINDOWS) && defined(GHC_WIN_WSTRING_STRING_TYPE)
-                                                                                                                            #define GHC_USE_WCHAR_T
+#if defined(ABEL_PLATFORM_WINDOWS) && defined(ABEL_WIN_WSTRING_STRING_TYPE)
+    #define ABEL_FS_USE_WCHAR_T
     : private path_helper_base<std::wstring::value_type>
 {
 public:
@@ -210,7 +199,7 @@ public:
     /// The path format in wich the constructor argument is given.
     enum format {
         generic_format,  ///< The generic format, internally used by
-        ///< ghc::filesystem::path with slashes
+        ///< abel::filesystem::path with slashes
             native_format,   ///< The format native to the current platform this code
         ///< is build for
             auto_format,     ///< Try to auto-detect the format, fallback to native
@@ -231,7 +220,7 @@ public:
 
     template<typename T1, typename T2 = void>
     using path_type = typename std::enable_if<!std::is_same<path, T1>::value, path>::type;
-#ifdef GHC_USE_WCHAR_T
+#ifdef ABEL_FS_USE_WCHAR_T
                                                                                                                             template <typename T>
     using path_from_string = typename std::enable_if<_is_basic_string<T>::value || std::is_same<char const*, typename std::decay<T>::type>::value || std::is_same<char*, typename std::decay<T>::type>::value ||
                                                          std::is_same<wchar_t const*, typename std::decay<T>::type>::value || std::is_same<wchar_t*, typename std::decay<T>::type>::value,
@@ -1202,7 +1191,7 @@ ABEL_INLINE void appendUTF8 (std::string &str, uint32_t unicode) {
         str.push_back(static_cast<char>(((unicode & 0xfff) >> 6) + 128));
         str.push_back(static_cast<char>((unicode & 0x3f) + 128));
     } else {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
         throw filesystem_error("Illegal code point for unicode character.", str, std::make_error_code(std::errc::illegal_byte_sequence));
 #else
         appendUTF8(str, 0xfffd);
@@ -1273,7 +1262,7 @@ inline StringType fromUtf8 (const std::string &utf8String,
             }
             codepoint = 0;
         } else if (utf8_state == S_RJCT) {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
             throw filesystem_error("Illegal byte sequence for unicode character.", utf8String, std::make_error_code(std::errc::illegal_byte_sequence));
 #else
             result += static_cast<typename StringType::value_type>(0xfffd);
@@ -1283,7 +1272,7 @@ inline StringType fromUtf8 (const std::string &utf8String,
         }
     }
     if (utf8_state) {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
         throw filesystem_error("Illegal byte sequence for unicode character.", utf8String, std::make_error_code(std::errc::illegal_byte_sequence));
 #else
         result += static_cast<typename StringType::value_type>(0xfffd);
@@ -1305,7 +1294,7 @@ inline StringType fromUtf8 (const std::string &utf8String,
             result += static_cast<typename StringType::value_type>(codepoint);
             codepoint = 0;
         } else if (utf8_state == S_RJCT) {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
             throw filesystem_error("Illegal byte sequence for unicode character.", utf8String, std::make_error_code(std::errc::illegal_byte_sequence));
 #else
             result += static_cast<typename StringType::value_type>(0xfffd);
@@ -1315,7 +1304,7 @@ inline StringType fromUtf8 (const std::string &utf8String,
         }
     }
     if (utf8_state) {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
         throw filesystem_error("Illegal byte sequence for unicode character.", utf8String, std::make_error_code(std::errc::illegal_byte_sequence));
 #else
         result += static_cast<typename StringType::value_type>(0xfffd);
@@ -1341,7 +1330,7 @@ inline std::string toUtf8 (const std::basic_string<charT, traits, Alloc> &unicod
             if (iter != unicodeString.end() && is_high_surrogate(c) && is_low_surrogate(*iter)) {
                 appendUTF8(result, (char32_t(c) << 10) + *iter - 0x35fdc00);
             } else {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
                 throw filesystem_error("Illegal code point for unicode character.", result, std::make_error_code(std::errc::illegal_byte_sequence));
 #else
                 appendUTF8(result, 0xfffd);
@@ -1385,7 +1374,7 @@ ABEL_INLINE bool startsWith (const std::string &what, const std::string &with) {
 }  // namespace detail
 
 ABEL_INLINE void path::postprocess_path_with_format (path::impl_string_type &p, path::format fmt) {
-#ifdef GHC_RAISE_UNICODE_ERRORS
+#ifdef ABEL_RAISE_UNICODE_ERRORS
                                                                                                                             if(!detail::validUtf8(p)) {
         path t;
         t._path = p;
@@ -1946,7 +1935,7 @@ ABEL_INLINE path::path (path &&p) noexcept
 }
 
 ABEL_INLINE path::path (string_type &&source, format fmt)
-#ifdef GHC_USE_WCHAR_T
+#ifdef ABEL_FS_USE_WCHAR_T
 : _path(detail::toUtf8(source))
 #else
     : _path(std::move(source))
@@ -2003,7 +1992,7 @@ ABEL_INLINE path &path::operator = (path::string_type &&source) {
 }
 
 ABEL_INLINE path &path::assign (path::string_type &&source) {
-#ifdef GHC_USE_WCHAR_T
+#ifdef ABEL_FS_USE_WCHAR_T
     _path = detail::toUtf8(source);
 #else
     _path = std::move(source);
@@ -2142,7 +2131,7 @@ ABEL_INLINE path &path::operator += (value_type x) {
     }
 #endif
     if (_path.empty() || _path.back() != generic_separator) {
-#ifdef GHC_USE_WCHAR_T
+#ifdef ABEL_FS_USE_WCHAR_T
         _path += detail::toUtf8(string_type(1, x));
 #else
         _path += x;
@@ -2255,7 +2244,7 @@ ABEL_INLINE const path::impl_string_type &path::native_impl () const {
 
 ABEL_INLINE const path::string_type &path::native () const {
 #ifdef ABEL_PLATFORM_WINDOWS
-                                                                                                                            #ifdef GHC_USE_WCHAR_T
+                                                                                                                            #ifdef ABEL_FS_USE_WCHAR_T
     _native_cache = detail::fromUtf8<string_type>(native_impl());
 #else
     _native_cache = native_impl();
@@ -2288,7 +2277,7 @@ ABEL_INLINE std::string path::string () const {
 }
 
 ABEL_INLINE std::wstring path::wstring () const {
-#ifdef GHC_USE_WCHAR_T
+#ifdef ABEL_FS_USE_WCHAR_T
     return native();
 #else
     return detail::fromUtf8<std::wstring>(native());

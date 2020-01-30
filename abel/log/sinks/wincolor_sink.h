@@ -58,7 +58,7 @@ public:
         colors_[level] = color;
     }
 
-    void log(const details::log_msg &msg) SPDLOG_FINAL override
+    void log(const details::log_msg &msg) ABEL_INHERITANCE_FINAL override
     {
         std::lock_guard<mutex_t> lock(mutex_);
         fmt::memory_buffer formatted;
@@ -82,18 +82,18 @@ public:
         }
     }
 
-    void flush() SPDLOG_FINAL override
+    void flush() ABEL_INHERITANCE_FINAL override
     {
         // windows console always flushed?
     }
 
-    void set_pattern(const std::string &pattern) override SPDLOG_FINAL
+    void set_pattern(const std::string &pattern) override ABEL_INHERITANCE_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::unique_ptr<abel::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override SPDLOG_FINAL
+    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override ABEL_INHERITANCE_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::move(sink_formatter);

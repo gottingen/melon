@@ -32,7 +32,7 @@ struct daily_filename_calculator {
                          fmt::wmemory_buffer>::type w;
         fmt::format_to(
             w,
-            SPDLOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}{}"),
+            ABEL_LOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}{}"),
             basename,
             now_tm.tm_year + 1900,
             now_tm.tm_mon + 1,
@@ -46,7 +46,7 @@ struct daily_filename_calculator {
  * Rotating file sink based on date. rotates at midnight
  */
 template<typename Mutex, typename FileNameCalc = daily_filename_calculator>
-class daily_file_sink SPDLOG_FINAL : public base_sink<Mutex> {
+class daily_file_sink ABEL_INHERITANCE_FINAL : public base_sink<Mutex> {
 public:
     // create daily file sink which rotates on given time
     daily_file_sink (filename_t base_filename, int rotation_hour, int rotation_minute, bool truncate = false)

@@ -5,8 +5,8 @@
 //
 // For the license information refer to format.h.
 
-#ifndef FMT_GTEST_EXTRA_H_
-#define FMT_GTEST_EXTRA_H_
+#ifndef TEST_TESTING_GTEST_EXTRA_H_
+#define TEST_TESTING_GTEST_EXTRA_H_
 
 #include <string>
 #include <gmock/gmock.h>
@@ -158,4 +158,4 @@ struct ScopedMock : testing::StrictMock<Mock> {
   ~ScopedMock() { Mock::instance = nullptr; }
 };
 
-#endif  // FMT_GTEST_EXTRA_H_
+#endif  // TEST_TESTING_GTEST_EXTRA_H_

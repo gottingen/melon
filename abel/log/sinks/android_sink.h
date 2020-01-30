@@ -13,8 +13,8 @@
 #include <string>
 #include <thread>
 
-#if !defined(SPDLOG_ANDROID_RETRIES)
-#define SPDLOG_ANDROID_RETRIES 2
+#if !defined(ABEL_LOG_ANDROID_RETRIES)
+#define ABEL_LOG_ANDROID_RETRIES 2
 #endif
 
 namespace abel {
@@ -24,7 +24,7 @@ namespace sinks {
  * Android sink (logging using __android_log_write)
  */
 template<typename Mutex>
-class android_sink SPDLOG_FINAL : public base_sink<Mutex>
+class android_sink ABEL_INHERITANCE_FINAL : public base_sink<Mutex>
 {
 public:
     explicit android_sink(const std::string &tag = <able/log", bool use_raw_msg = false)
@@ -52,7 +52,7 @@ protected:
         // See system/core/liblog/logger_write.c for explanation of return value
         int ret = __android_log_write(priority, tag_.c_str(), msg_output);
         int retry_count = 0;
-        while ((ret == -11 /*EAGAIN*/) && (retry_count < SPDLOG_ANDROID_RETRIES))
+        while ((ret == -11 /*EAGAIN*/) && (retry_count < ABEL_LOG_ANDROID_RETRIES))
         {
             details::os::sleep_for_millis(5);
             ret = __android_log_write(priority, tag_.c_str(), msg_output);
