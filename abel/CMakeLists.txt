@@ -35,10 +35,6 @@ FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
 FILE(GLOB THREAD_SRC "thread/*.cc")
 
-#FILE(GLOB TIME_SRC "time/*.cc")
-#FILE(GLOB TIME_INTERNAL_SRC "time/internal/*.cc")
-
-
 FILE(GLOB DIGEST_SRC "digest/*.cc")
 FILE(GLOB SYSTEM_SRC "system/*.cc")
 

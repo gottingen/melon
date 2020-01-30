@@ -1,5 +1,6 @@
 
-#pragma once
+#ifndef ABEL_LOG_COMMON_H_
+#define ABEL_LOG_COMMON_H_
 
 #include <atomic>
 #include <chrono>
@@ -131,3 +132,5 @@ using filename_t = std::string;
         err_handler_("Unknown exeption in logger");                                                                                        \
     }
 } // namespace abel
+
+#endif//ABEL_LOG_COMMON_H_
