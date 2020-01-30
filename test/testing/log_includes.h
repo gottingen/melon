@@ -8,8 +8,8 @@
 #include <ostream>
 #include <string>
 
-#define SPDLOG_TRACE_ON
-#define SPDLOG_DEBUG_ON
+#define ABEL_LOG_TRACE_ON
+#define ABEL_LOG_DEBUG_ON
 
 #include <abel/log/async.h>
 #include <abel/log/sinks/basic_file_sink.h>

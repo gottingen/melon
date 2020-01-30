@@ -38,7 +38,7 @@ inline abel::async_logger::async_logger(
 // send the log message to the thread pool
 inline void abel::async_logger::sink_it_(details::log_msg &msg)
 {
-#if defined(SPDLOG_ENABLE_MESSAGE_COUNTER)
+#if defined(ABEL_LOG_ENABLE_MESSAGE_COUNTER)
     incr_msg_counter_(msg);
 #endif
     if (auto pool_ptr = thread_pool_.lock())
@@ -79,7 +79,7 @@ inline void abel::async_logger::backend_log_(details::log_msg &incoming_log_msg)
             }
         }
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 
     if (should_flush_(incoming_log_msg))
     {
@@ -96,5 +96,5 @@ inline void abel::async_logger::backend_flush_()
             sink->flush();
         }
     }
-    SPDLOG_CATCH_AND_HANDLE
+    ABEL_LOG_CATCH_AND_HANDLE
 }

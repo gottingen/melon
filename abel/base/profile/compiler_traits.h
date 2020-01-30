@@ -1082,7 +1082,7 @@
     #elif defined(__FUNCSIG__)
         #define ABEL_CURRENT_FUNCTION __FUNCSIG__
     #elif (defined __INTEL_COMPILER && __INTEL_COMPILER >= 600) || (defined __IBMCPP__ && __IBMCPP__ >= 500) || (defined CS_UNDEFINED_STRING && CS_UNDEFINED_STRING >= 0x4200)
-#define ABEL_CURRENT_FUNCTION __FUNCTION__
+        #define ABEL_CURRENT_FUNCTION __FUNCTION__
     #elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901
         #define ABEL_CURRENT_FUNCTION __func__
     #else

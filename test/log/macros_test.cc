@@ -9,8 +9,8 @@ TEST(macros, debug) {
     logger->set_pattern("%v");
     logger->set_level(abel::level::trace);
 
-    SPDLOG_TRACE(logger, "Test message 1");
-    SPDLOG_DEBUG(logger, "Test message 2");
+    ABEL_LOG_TRACE(logger, "Test message 1");
+    ABEL_LOG_DEBUG(logger, "Test message 2");
     logger->flush();
 
     EXPECT_TRUE(ends_with(file_contents(filename), "Test message 2\n"));
@@ -25,9 +25,9 @@ TEST(macros, debugstring) {
     logger->set_pattern("%v");
     logger->set_level(abel::level::trace);
 
-    SPDLOG_TRACE(logger, "Test message {}", 1);
-    // SPDLOG_DEBUG(logger, "Test message 2");
-    SPDLOG_DEBUG(logger, "Test message {}", 222);
+    ABEL_LOG_TRACE(logger, "Test message {}", 1);
+    // ABEL_LOG_DEBUG(logger, "Test message 2");
+    ABEL_LOG_DEBUG(logger, "Test message {}", 222);
     logger->flush();
 
     EXPECT_TRUE(ends_with(file_contents(filename), "Test message 222\n"));

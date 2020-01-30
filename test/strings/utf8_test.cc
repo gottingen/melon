@@ -1,4 +1,3 @@
-//
 
 #include <abel/strings/internal/utf8.h>
 

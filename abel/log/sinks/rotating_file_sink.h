@@ -23,7 +23,7 @@ namespace sinks {
 // Rotating file sink based on size
 //
 template<typename Mutex>
-class rotating_file_sink SPDLOG_FINAL : public base_sink<Mutex> {
+class rotating_file_sink ABEL_INHERITANCE_FINAL : public base_sink<Mutex> {
 public:
     rotating_file_sink (filename_t base_filename, std::size_t max_size, std::size_t max_files)
         : base_filename_(std::move(base_filename)), max_size_(max_size), max_files_(max_files) {
@@ -40,9 +40,9 @@ public:
         if (index != 0u) {
             filename_t basename, ext;
             std::tie(basename, ext) = details::file_helper::split_by_extenstion(filename);
-            fmt::format_to(w, SPDLOG_FILENAME_T("{}.{}{}"), basename, index, ext);
+            fmt::format_to(w, ABEL_LOG_FILENAME_T("{}.{}{}"), basename, index, ext);
         } else {
-            fmt::format_to(w, SPDLOG_FILENAME_T("{}"), filename);
+            fmt::format_to(w, ABEL_LOG_FILENAME_T("{}"), filename);
         }
         return fmt::to_string(w);
     }

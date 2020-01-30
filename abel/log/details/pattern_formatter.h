@@ -101,7 +101,7 @@ class B_formatter : public flag_formatter {
 };
 
 // Date and time representation (Thu Aug 23 15:35:46 2014)
-class c_formatter SPDLOG_FINAL : public flag_formatter {
+class c_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         // fmt::format_to(dest, "{} {} {} ", days[tm_time.tm_wday],
         // months[tm_time.tm_mon], tm_time.tm_mday);
@@ -125,14 +125,14 @@ class c_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // year - 2 digit
-class C_formatter SPDLOG_FINAL : public flag_formatter {
+class C_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_year % 100, dest);
     }
 };
 
 // Short MM/DD/YY date, equivalent to %m/%d/%y 08/23/01
-class D_formatter SPDLOG_FINAL : public flag_formatter {
+class D_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_mon + 1, dest);
         dest.push_back('/');
@@ -143,56 +143,56 @@ class D_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // year - 4 digit
-class Y_formatter SPDLOG_FINAL : public flag_formatter {
+class Y_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::append_int(tm_time.tm_year + 1900, dest);
     }
 };
 
 // month 1-12
-class m_formatter SPDLOG_FINAL : public flag_formatter {
+class m_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_mon + 1, dest);
     }
 };
 
 // day of month 1-31
-class d_formatter SPDLOG_FINAL : public flag_formatter {
+class d_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_mday, dest);
     }
 };
 
 // hours in 24 format 0-23
-class H_formatter SPDLOG_FINAL : public flag_formatter {
+class H_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_hour, dest);
     }
 };
 
 // hours in 12 format 1-12
-class I_formatter SPDLOG_FINAL : public flag_formatter {
+class I_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(to12h(tm_time), dest);
     }
 };
 
 // minutes 0-59
-class M_formatter SPDLOG_FINAL : public flag_formatter {
+class M_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_min, dest);
     }
 };
 
 // seconds 0-59
-class S_formatter SPDLOG_FINAL : public flag_formatter {
+class S_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_sec, dest);
     }
 };
 
 // milliseconds
-class e_formatter SPDLOG_FINAL : public flag_formatter {
+class e_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         auto millis = abel::to_duration(msg.time);
         fmt_helper::pad3(static_cast<int>(to_int64_milliseconds(millis)), dest);
@@ -200,7 +200,7 @@ class e_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // microseconds
-class f_formatter SPDLOG_FINAL : public flag_formatter {
+class f_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         auto micros = abel::to_duration(msg.time);
         fmt_helper::pad6(static_cast<int>(abel::to_int64_microseconds(micros)), dest);
@@ -208,7 +208,7 @@ class f_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // nanoseconds
-class F_formatter SPDLOG_FINAL : public flag_formatter {
+class F_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         auto ns = abel::to_duration(msg.time);
         fmt::format_to(dest, "{:09}", abel::to_int64_nanoseconds(ns));
@@ -216,7 +216,7 @@ class F_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // seconds since epoch
-class E_formatter SPDLOG_FINAL : public flag_formatter {
+class E_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         auto duration = abel::to_duration(msg.time);
         fmt_helper::append_int(abel::to_int64_seconds(duration), dest);
@@ -224,14 +224,14 @@ class E_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // AM/PM
-class p_formatter SPDLOG_FINAL : public flag_formatter {
+class p_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::append_c_str(ampm(tm_time), dest);
     }
 };
 
 // 12 hour clock 02:55:02 pm
-class r_formatter SPDLOG_FINAL : public flag_formatter {
+class r_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(to12h(tm_time), dest);
         dest.push_back(':');
@@ -244,7 +244,7 @@ class r_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // 24-hour HH:MM time, equivalent to %H:%M
-class R_formatter SPDLOG_FINAL : public flag_formatter {
+class R_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         fmt_helper::pad2(tm_time.tm_hour, dest);
         dest.push_back(':');
@@ -253,7 +253,7 @@ class R_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // ISO 8601 time format (HH:MM:SS), equivalent to %H:%M:%S
-class T_formatter SPDLOG_FINAL : public flag_formatter {
+class T_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         // fmt::format_to(dest, "{:02}:{:02}:{:02}", tm_time.tm_hour,
         // tm_time.tm_min, tm_time.tm_sec);
@@ -266,7 +266,7 @@ class T_formatter SPDLOG_FINAL : public flag_formatter {
 };
 
 // ISO 8601 offset from UTC in timezone (+-HH:MM)
-class z_formatter SPDLOG_FINAL : public flag_formatter {
+class z_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
 public:
     const std::chrono::seconds cache_refresh = std::chrono::seconds(5);
 
@@ -314,33 +314,33 @@ private:
 };
 
 // Thread id
-class t_formatter SPDLOG_FINAL : public flag_formatter {
+class t_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         fmt_helper::pad6(msg.thread_id, dest);
     }
 };
 
 // Current pid
-class pid_formatter SPDLOG_FINAL : public flag_formatter {
+class pid_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &, const std::tm &, fmt::memory_buffer &dest) override {
         fmt_helper::append_int(abel::pid(), dest);
     }
 };
 
 // message counter formatter
-class i_formatter SPDLOG_FINAL : public flag_formatter {
+class i_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         fmt_helper::pad6(msg.msg_id, dest);
     }
 };
 
-class v_formatter SPDLOG_FINAL : public flag_formatter {
+class v_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         fmt_helper::append_buf(msg.raw, dest);
     }
 };
 
-class ch_formatter SPDLOG_FINAL : public flag_formatter {
+class ch_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
 public:
     explicit ch_formatter (char ch)
         : ch_(ch) {
@@ -354,7 +354,7 @@ private:
 };
 
 // aggregate user chars to display as is
-class aggregate_formatter SPDLOG_FINAL : public flag_formatter {
+class aggregate_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
 public:
     aggregate_formatter () = default;
 
@@ -370,12 +370,12 @@ private:
 };
 
 // mark the color range. expect it to be in the form of "%^colored text%$"
-class color_start_formatter SPDLOG_FINAL : public flag_formatter {
+class color_start_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         msg.color_range_start = dest.size();
     }
 };
-class color_stop_formatter SPDLOG_FINAL : public flag_formatter {
+class color_stop_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
         msg.color_range_end = dest.size();
     }
@@ -383,11 +383,9 @@ class color_stop_formatter SPDLOG_FINAL : public flag_formatter {
 
 // Full info formatter
 // pattern: [%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v
-class full_formatter SPDLOG_FINAL : public flag_formatter {
+class full_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &tm_time, fmt::memory_buffer &dest) override {
         using namespace std::chrono;
-#ifndef SPDLOG_NO_DATETIME
-
         // cache the date/time part for the next second.
         auto secs = abel::to_unix_seconds(msg.time);
 
@@ -420,18 +418,10 @@ class full_formatter SPDLOG_FINAL : public flag_formatter {
         fmt_helper::pad3(static_cast<int>(abel::to_int64_milliseconds(millis)), dest);
         dest.push_back(']');
         dest.push_back(' ');
-
-#else // no datetime needed
-        (void)tm_time;
-#endif
-
-#ifndef SPDLOG_NO_NAME
         dest.push_back('[');
         fmt_helper::append_str(*msg.logger_name, dest);
         dest.push_back(']');
         dest.push_back(' ');
-#endif
-
         dest.push_back('[');
         // wrap the level name with color
         msg.color_range_start = dest.size();
@@ -449,7 +439,7 @@ private:
 
 } // namespace details
 
-class pattern_formatter SPDLOG_FINAL : public formatter {
+class pattern_formatter ABEL_INHERITANCE_FINAL : public formatter {
 public:
     explicit pattern_formatter (
         std::string pattern,
@@ -468,14 +458,11 @@ public:
     }
 
     void format (const details::log_msg &msg, fmt::memory_buffer &dest) override {
-#ifndef SPDLOG_NO_DATETIME
-       // auto secs = std::chrono::duration_cast<std::chrono::seconds>(msg.time.time_since_epoch());
         auto secs = abel::to_unix_seconds(msg.time);
         if (secs != last_log_secs_) {
             cached_tm_ = get_time_(msg);
             last_log_secs_ = secs;
         }
-#endif
         for (auto &f : formatters_) {
             f->format(msg, cached_tm_, dest);
         }

@@ -15,7 +15,7 @@
 //    1. Checks if its log level is enough to log the message
 //    2. Push a new copy of the message to a queue (or block the caller until
 //    space is available in the queue)
-//    3. will throw spdlog_ex upon log exceptions
+//    3. will throw log_ex upon log exceptions
 // Upon destruction, logs all remaining messages in the queue before
 // destructing..
 
@@ -40,7 +40,7 @@ namespace details {
 class thread_pool;
 }
 
-class async_logger SPDLOG_FINAL : public std::enable_shared_from_this<async_logger>, public logger
+class async_logger ABEL_INHERITANCE_FINAL : public std::enable_shared_from_this<async_logger>, public logger
 {
     friend class details::thread_pool;
 

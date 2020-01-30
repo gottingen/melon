@@ -79,7 +79,7 @@ public:
     const std::string on_cyan = "\033[46m";
     const std::string on_white = "\033[47m";
 
-    void log(const details::log_msg &msg) SPDLOG_FINAL override
+    void log(const details::log_msg &msg) ABEL_INHERITANCE_FINAL override
     {
         // Wrap the originally formatted message in color codes.
         // If color is not supported in the terminal, log as is instead.
@@ -105,19 +105,19 @@ public:
         fflush(target_file_);
     }
 
-    void flush() SPDLOG_FINAL override
+    void flush() ABEL_INHERITANCE_FINAL override
     {
         std::lock_guard<mutex_t> lock(mutex_);
         fflush(target_file_);
     }
 
-    void set_pattern(const std::string &pattern) override SPDLOG_FINAL
+    void set_pattern(const std::string &pattern) override ABEL_INHERITANCE_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::unique_ptr<abel::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override SPDLOG_FINAL
+    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override ABEL_INHERITANCE_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::move(sink_formatter);
