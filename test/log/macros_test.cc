@@ -17,7 +17,7 @@ TEST(macros, debug) {
     EXPECT_TRUE(count_lines(filename) == 2);
 }
 
-TEST(macros, debug_string) {
+TEST(macros, debugstring) {
     prepare_logdir();
     std::string filename = "logs/simple_log";
 

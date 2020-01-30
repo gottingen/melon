@@ -35,13 +35,12 @@ TEST(discardpolicy, async) {
     EXPECT_TRUE(test_sink->msg_counter() < messages);
 }
 
-TEST(DiscarPpolicy, async
-) {
+TEST(DiscarPpolicy, async) {
     using namespace abel;
     size_t queue_size = 2;
     size_t messages = 10240;
     abel::init_thread_pool(queue_size,
-                             1);
+                           1);
 
     auto logger = abel::create_async_nb<sinks::test_sink_mt>("as2");
     for (
