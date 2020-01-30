@@ -82,7 +82,7 @@ TEST(path, assign) {
     EXPECT_TRUE(p1 == p3);
     p3 = fs::path {"/usr/local"};
     EXPECT_TRUE(p2 == p3);
-#if defined(IS_WCHAR_PATH) || defined(GHC_USE_WCHAR_T)
+#if defined(IS_WCHAR_PATH) || defined(ABEL_FS_USE_WCHAR_T)
     p3 = fs::path::string_type{L"/foo/bar"};
         EXPECT_TRUE(p1 == p3);
         p3.assign(fs::path::string_type{L"/usr/local"});
@@ -202,7 +202,7 @@ TEST(path, modifiers) {
 
 TEST(path, observers) {
 #ifdef ABEL_PLATFORM_WINDOWS
-#if defined(IS_WCHAR_PATH) || defined(GHC_USE_WCHAR_T)
+#if defined(IS_WCHAR_PATH) || defined(ABEL_FS_USE_WCHAR_T)
     EXPECT_TRUE(fs::u8path("\xc3\xa4\\\xe2\x82\xac").native() == fs::path::string_type(L"\u00E4\\\u20AC"));
     // EXPECT_TRUE(fs::u8path("\xc3\xa4\\\xe2\x82\xac").string() == std::string("ä\\€")); // MSVCs returns local DBCS encoding
 #else
