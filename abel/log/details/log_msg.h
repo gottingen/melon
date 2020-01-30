@@ -18,7 +18,7 @@ struct log_msg {
     log_msg (const std::string *loggers_name, level::level_enum lvl)
         : logger_name(loggers_name), level(lvl) {
 #ifndef SPDLOG_NO_DATETIME
-        time = os::now();
+        time = abel::now();
 #endif
 
 #ifndef SPDLOG_NO_THREAD_ID
@@ -32,7 +32,7 @@ struct log_msg {
 
     const std::string *logger_name {nullptr};
     level::level_enum level;
-    log_clock::time_point time;
+    abel::abel_time time;
     size_t thread_id;
     fmt::memory_buffer raw;
     size_t msg_id {0};

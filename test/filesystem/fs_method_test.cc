@@ -451,10 +451,9 @@ TEST(fs, hard_link_count) {
 
 static fs::file_time_type timeFromString (const std::string &str) {
     abel::abel_time at;
-    abel::time_zone tz;
     std::string  err;
     abel::parse_time("%Y-%m-%dT%H:%M:%S", str,  &at, &err);
-    struct ::tm tm = abel::to_tm(at);
+    struct ::tm tm = abel::utc_tm(at);
     /*
     ::memset(&tm, 0, sizeof(::tm));
     std::istringstream is(str);

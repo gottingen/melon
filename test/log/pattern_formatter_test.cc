@@ -47,7 +47,7 @@ TEST(pattern_formatter, name) {
 }
 
 TEST(pattern_formatter, date) {
-    auto now_tm = spdlog::details::os::localtime();
+    auto now_tm = abel::local_tm(abel::now());
     std::stringstream oss;
     oss << std::setfill('0') << std::setw(2) << now_tm.tm_mon + 1 << "/" << std::setw(2) << now_tm.tm_mday << "/"
         << std::setw(2)

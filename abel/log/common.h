@@ -57,7 +57,6 @@ namespace sinks {
 class sink;
 }
 
-using log_clock = std::chrono::system_clock;
 using sink_ptr = std::shared_ptr<sinks::sink>;
 using sinks_init_list = std::initializer_list<sink_ptr>;
 using log_err_handler = std::function<void(const std::string &err_msg)>;

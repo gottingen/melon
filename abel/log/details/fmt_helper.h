@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <abel/format/format.h>
+#include <abel/chrono/clock.h>
 
 // Some fmt helpers to efficiently format and pad ints and strings
 namespace spdlog {
@@ -111,18 +112,6 @@ inline void pad6(size_t n, fmt::basic_memory_buffer<char, Buffer_Size> &dest)
     }
     pad3(static_cast<int>(n / 1000), dest);
     pad3(static_cast<int>(n % 1000), dest);
-}
-
-// return fraction of a second of the given time_point.
-// e.g.
-// fraction<std::milliseconds>(tp) -> will return the millis part of the second
-template<typename ToDuration>
-inline ToDuration time_fraction(const log_clock::time_point &tp)
-{
-    using namespace std::chrono;
-    auto duration = tp.time_since_epoch();
-    auto secs = duration_cast<seconds>(duration);
-    return duration_cast<ToDuration>(duration) - duration_cast<ToDuration>(secs);
 }
 
 } // namespace fmt_helper

@@ -5,7 +5,8 @@
 #pragma once
 
 #include <abel/log/common.h>
-
+#include <abel/chrono/time.h>
+#include <abel/chrono/clock.h>
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -57,7 +58,7 @@ namespace spdlog {
 namespace details {
 namespace os {
 
-
+/*
 inline spdlog::log_clock::time_point now()
 {
 
@@ -118,7 +119,7 @@ inline bool operator!=(const std::tm &tm1, const std::tm &tm2)
 {
     return !(tm1 == tm2);
 }
-
+*/
 // eol definition
 #if !defined(SPDLOG_EOL)
 #ifdef _WIN32
@@ -259,7 +260,7 @@ inline size_t filesize(FILE *f)
 */
 // Return utc offset in minutes or throw spdlog_ex on failure
 
-inline int utc_minutes_offset(const std::tm &tm = details::os::localtime())
+inline int utc_minutes_offset(const std::tm &tm = abel::local_tm(abel::now()))
 {
 
 #ifdef _WIN32

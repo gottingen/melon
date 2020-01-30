@@ -60,6 +60,7 @@ using EnableIfFloat =
 typename std::enable_if<std::is_floating_point<T>::value, int>::type;
 }  // namespace chrono_internal
 
+
 // duration
 //
 // The `abel::duration` class represents a signed, fixed-length span of time.
@@ -726,6 +727,10 @@ abel_time time_from_timeval (timeval tv);
 timespec to_timespec (abel_time t);
 timeval to_timeval (abel_time t);
 
+ABEL_FORCE_INLINE duration to_duration(abel_time t) {
+    return nanoseconds(to_unix_nanos(t));
+}
+
 // from_chrono()
 //
 // Converts a std::chrono::system_clock::time_point to an abel::abel_time.
@@ -1114,7 +1119,7 @@ ABEL_FORCE_INLINE abel_time format_date_time (int64_t year, int mon, int day, in
 // Converts the `tm_year`, `tm_mon`, `tm_mday`, `tm_hour`, `tm_min`, and
 // `tm_sec` fields to an `abel::abel_time` using the given time zone. See ctime(3)
 // for a description of the expected values of the tm fields. If the indicated
-// time instant is not unique (see `abel::time_zone::At(abel::chrono_second)`
+// time instant is not unique (see `abel::time_zone::at(abel::chrono_second)`
 // above), the `tm_isdst` field is consulted to select the desired instant
 // (`tm_isdst` > 0 means DST, `tm_isdst` == 0 means no DST, `tm_isdst` < 0
 // means use the post-transition offset).
@@ -1126,9 +1131,25 @@ abel_time from_tm (const struct tm &tm, time_zone tz);
 // See ctime(3) for a description of the values of the tm fields.
 struct tm to_tm (abel_time t, time_zone tz);
 
-inline struct tm to_tm (abel_time t) {
+inline struct tm local_tm (abel_time t) {
+    return to_tm(t, abel::local_time_zone());
+}
+
+inline struct tm utc_tm (abel_time t) {
     return to_tm(t, abel::utc_time_zone());
 }
+
+inline bool operator==(const std::tm &tm1, const std::tm &tm2)
+{
+    return (tm1.tm_sec == tm2.tm_sec && tm1.tm_min == tm2.tm_min && tm1.tm_hour == tm2.tm_hour && tm1.tm_mday == tm2.tm_mday &&
+        tm1.tm_mon == tm2.tm_mon && tm1.tm_year == tm2.tm_year && tm1.tm_isdst == tm2.tm_isdst);
+}
+
+inline bool operator!=(const std::tm &tm1, const std::tm &tm2)
+{
+    return !(tm1 == tm2);
+}
+
 // RFC3339_full
 // RFC3339_sec
 //

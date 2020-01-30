@@ -27,7 +27,7 @@ struct async_msg
 {
     async_msg_type msg_type;
     level::level_enum level;
-    log_clock::time_point time;
+    abel::abel_time time;
     size_t thread_id;
     fmt::basic_memory_buffer<char, 176> raw;
 

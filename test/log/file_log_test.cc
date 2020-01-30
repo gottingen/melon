@@ -77,7 +77,7 @@ TEST(file_log, daily_logger_dateonly) {
     prepare_logdir();
     // calculate filename (time based)
     std::string basename = "logs/daily_dateonly";
-    std::tm tm = spdlog::details::os::localtime();
+    std::tm tm = abel::local_tm(abel::now());
     fmt::memory_buffer w;
     fmt::format_to(w, "{}_{:04d}-{:02d}-{:02d}", basename, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 
@@ -105,7 +105,7 @@ TEST(file_log, daily_logger_custom) {
     prepare_logdir();
     // calculate filename (time based)
     std::string basename = "logs/daily_dateonly";
-    std::tm tm = spdlog::details::os::localtime();
+    std::tm tm = abel::local_tm(abel::now());
     fmt::memory_buffer w;
     fmt::format_to(w, "{}{:04d}{:02d}{:02d}", basename, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 
