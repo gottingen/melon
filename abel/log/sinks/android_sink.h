@@ -3,7 +3,8 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 
-#pragma once
+#ifndef ABEL_LOG_SINK_ANDROID_SINK_H_
+#define ABEL_LOG_SINK_ANDROID_SINK_H_
 
 #include <abel/log/details/fmt_helper.h>
 #include <abel/log/details/null_mutex.h>
@@ -112,3 +113,5 @@ inline std::shared_ptr<logger> android_logger_st(const std::string &logger_name,
 }
 
 } // namespace abel
+
+#endif //ABEL_LOG_SINK_ANDROID_SINK_H_

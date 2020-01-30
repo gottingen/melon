@@ -5,7 +5,8 @@
 // abel main header file.
 // see example.cpp for usage example
 
-#pragma once
+#ifndef ABEL_LOG_LOG_H_
+#define ABEL_LOG_LOG_H_
 
 #include <abel/log/common.h>
 #include <abel/log/details/registry.h>
@@ -140,3 +141,4 @@ inline void shutdown () {
 #endif
 
 } // namespace abel
+#endif //ABEL_LOG_LOG_H_

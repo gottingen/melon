@@ -3,7 +3,8 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 
-#pragma once
+#ifndef ABEL_LOG_LOGGER_H_
+#define ABEL_LOG_LOGGER_H_
 
 // Thread safe logger (except for set_pattern(..), set_formatter(..) and
 // set_error_handler())
@@ -159,3 +160,4 @@ protected:
 } // namespace abel
 
 #include "details/logger_impl.h"
+#endif //ABEL_LOG_LOGGER_H_
