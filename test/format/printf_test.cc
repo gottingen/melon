@@ -11,7 +11,7 @@
 
 #include <abel/format/core.h>
 #include <abel/format/printf.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 #include <test/testing/util.h>
 
 using fmt::format;

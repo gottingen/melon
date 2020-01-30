@@ -10,7 +10,7 @@
 # define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "posix-mock.h"
+#include "posix_mock.h"
 #include <abel/format/posix.cc>
 #include <memory>
 #include <errno.h>
@@ -24,7 +24,7 @@
 #endif
 
 #include <gmock/gmock.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 #include <test/testing/util.h>
 
 using fmt::buffered_file;

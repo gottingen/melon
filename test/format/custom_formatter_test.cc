@@ -6,7 +6,7 @@
 // For the license information refer to format.h.
 
 #include <abel/format/format.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 
 // MSVC 2013 is known to be broken.
 #if !FMT_MSC_VER || FMT_MSC_VER > 1800

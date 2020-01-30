@@ -9,7 +9,7 @@
 #include <cstring>
 
 #include <abel/format/posix.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 #include <test/testing/util.h>
 
 #ifdef fileno

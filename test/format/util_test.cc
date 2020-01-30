@@ -5,7 +5,7 @@
 //
 // For the license information refer to format.h.
 
-#include <test/testing/test-assert.h>
+#include <test/testing/test_assert.h>
 #include <cfloat>
 #include <climits>
 #include <cstring>
@@ -17,7 +17,7 @@
 #endif
 
 #include <gmock/gmock.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 #include <test/testing/mock-allocator.h>
 #include <test/testing/util.h>
 

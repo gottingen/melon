@@ -8,7 +8,7 @@
 #define FMT_EXTENDED_COLORS
 #define FMT_NOEXCEPT
 #undef FMT_SHARED
-#include <test/testing/test-assert.h>
+#include <test/testing/test_assert.h>
 
 // Include format.cc instead of format.h to test implementation.
 #include <abel/format/format.cc>
@@ -18,7 +18,7 @@
 #include <cstring>
 
 #include <gmock/gmock.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 #include <test/testing/util.h>
 
 #undef min

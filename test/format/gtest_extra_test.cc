@@ -5,7 +5,7 @@
 //
 // For the license information refer to format.h.
 
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 
 #include <cstring>
 #include <algorithm>

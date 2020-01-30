@@ -16,7 +16,7 @@
 
 #include <abel/format/format.h>
 #include <gmock/gmock.h>
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 #include <test/testing/mock-allocator.h>
 #include <test/testing/util.h>
 

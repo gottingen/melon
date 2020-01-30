@@ -18,7 +18,7 @@ class AssertionFailure : public std::logic_error {
 #define FMT_ASSERT(condition, message) \
   if (!(condition)) throw AssertionFailure(message);
 
-#include <test/testing/gtest-extra.h>
+#include <test/testing/gtest_extra.h>
 
 // Expects an assertion failure.
 #define EXPECT_ASSERT(stmt, message) \

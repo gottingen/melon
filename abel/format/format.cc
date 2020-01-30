@@ -5,7 +5,7 @@
 //
 // For the license information refer to format.h.
 
-#include <abel/format/format-inl.h>
+#include <abel/format/format_inl.h>
 
 FMT_BEGIN_NAMESPACE
 namespace internal {
