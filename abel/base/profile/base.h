@@ -710,7 +710,7 @@ typedef long ssize_t;
 #ifndef CHAR8_T_DEFINED // If the user hasn't already defined these...
     #define CHAR8_T_DEFINED
     #if defined(ABEL_PLATFORM_APPLE)
-        #define char8_t char    // The Apple debugger is too stupid to realize char8_t is typedef'd to char, so we #define it.
+// enum char8_t : unsigned char {};    // The Apple debugger is too stupid to realize char8_t is typedef'd to char, so we #define it.
     #else
 typedef char char8_t;
     #endif
@@ -720,8 +720,8 @@ typedef char char8_t;
 // In MS C, char16_t and char32_t are already defined by the compiler/standard library.
 // In GCC C, __CHAR16_TYPE__ and __CHAR32_TYPE__ are defined instead, and we must define char16_t and char32_t from these.
         #if defined(__GNUC__) && !defined(__GXX_EXPERIMENTAL_CXX0X__) && defined(__CHAR16_TYPE__) // If using GCC and compiling in C...
-            typedef __CHAR16_TYPE__ char16_t;
-            typedef __CHAR32_TYPE__ char32_t;
+typedef __CHAR16_TYPE__ char16_t;
+typedef __CHAR32_TYPE__ char32_t;
         #endif
     #elif (ABEL_WCHAR_SIZE == 2)
         #if (defined(_MSC_VER) && (_MSC_VER >= 1600)) // if VS2010+ or using platforms that use Dinkumware under a compiler that doesn't natively support C++11 char16_t.
@@ -729,19 +729,19 @@ typedef char char8_t;
                 #define _CHAR16T
             #endif
             #if !defined(_HAS_CHAR16_T_LANGUAGE_SUPPORT) || !_HAS_CHAR16_T_LANGUAGE_SUPPORT
-                typedef wchar_t  char16_t;
-                typedef uint32_t char32_t;
+typedef wchar_t  char16_t;
+typedef uint32_t char32_t;
             #endif
         #else
-            typedef wchar_t  char16_t;
-            typedef uint32_t char32_t;
+typedef wchar_t  char16_t;
+typedef uint32_t char32_t;
         #endif
     #else
-        typedef uint16_t char16_t;
+typedef uint16_t char16_t;
         #if defined(__cplusplus)
-            typedef wchar_t  char32_t;
+typedef wchar_t  char32_t;
         #else
-            typedef uint32_t char32_t;
+typedef uint32_t char32_t;
         #endif
     #endif
 #endif
@@ -1019,6 +1019,14 @@ enum LinkerInitialized {
     kLinkerInitialized = 0,
 };
 }  // namespace base_internal
+
+#if !defined(ABEL_EOL)
+#ifdef _WIN32
+#define ABEL_EOL "\r\n"
+#else
+#define ABEL_EOL "\n"
+#endif
+#endif
 
 }  // namespace abel
 

@@ -1,6 +1,9 @@
+// Formatting library for C++ - assertion tests
 //
-// Created by liyinbin on 2020/1/26.
+// Copyright (c) 2012 - present, Victor Zverovich
+// All rights reserved.
 //
+// For the license information refer to format.h.
 
 #include <abel/format/core.h>
 #include <gtest/gtest.h>
@@ -14,6 +17,6 @@
 #endif
 
 TEST(AssertTest, Fail) {
-    EXPECT_DEBUG_DEATH_IF_SUPPORTED(
-        FMT_ASSERT(false, "don't panic!"), "don't panic!");
+  EXPECT_DEBUG_DEATH_IF_SUPPORTED(
+      FMT_ASSERT(false, "don't panic!"), "don't panic!");
 }
