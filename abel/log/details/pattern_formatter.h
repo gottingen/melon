@@ -7,11 +7,11 @@
 
 #include <abel/log/details/fmt_helper.h>
 #include <abel/log/details/log_msg.h>
-#include <abel/log/details/os.h>
 #include <abel/format/format.h>
 #include <abel/log/formatter.h>
 #include <abel/system/process.h>
 #include <abel/chrono/time.h>
+#include <abel/log/details/file_helper.h>
 #include <array>
 #include <chrono>
 #include <ctime>
@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-namespace spdlog {
+namespace abel_log {
 namespace details {
 
 class flag_formatter {
@@ -281,7 +281,7 @@ public:
         // No need to chache under gcc,
         // it is very fast (already stored in tm.tm_gmtoff)
         (void) (msg);
-        int total_minutes = os::utc_minutes_offset(tm_time);
+        int total_minutes = abel::utc_minutes_offset(tm_time);
 #endif
         bool is_negative = total_minutes < 0;
         if (is_negative) {
@@ -454,7 +454,7 @@ public:
     explicit pattern_formatter (
         std::string pattern,
         pattern_time_type time_type = pattern_time_type::local,
-        std::string eol = spdlog::details::os::default_eol)
+        std::string eol = abel_log::details::default_eol)
         : pattern_(std::move(pattern)), eol_(std::move(eol)), pattern_time_type_(time_type), last_log_secs_(0) {
         std::memset(&cached_tm_, 0, sizeof(cached_tm_));
         compile_pattern_(pattern_);
@@ -639,4 +639,4 @@ private:
         }
     }
 };
-} // namespace spdlog
+} // namespace abel_log

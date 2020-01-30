@@ -7,12 +7,10 @@
 
 #include <abel/log/details/null_mutex.h>
 #include <abel/log/sinks/base_sink.h>
-
-#include <chrono>
 #include <mutex>
 #include <thread>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 
 template<class Mutex>
@@ -48,4 +46,4 @@ using test_sink_mt = test_sink<std::mutex>;
 using test_sink_st = test_sink<details::null_mutex>;
 
 } // namespace sinks
-} // namespace spdlog
+} // namespace abel_log

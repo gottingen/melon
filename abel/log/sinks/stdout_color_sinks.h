@@ -1,18 +1,14 @@
-//
-// Copyright(c) 2018 spdlog
-// Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
 
-#include <abel/log/spdlog.h>
+#include <abel/log/log.h>
 #ifdef _WIN32
 #include <abel/log/sinks/wincolor_sink.h>
 #else
 #include <abel/log/sinks/ansicolor_sink.h>
 #endif
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 #ifdef _WIN32
 using stdout_color_sink_mt = wincolor_stdout_sink_mt;
@@ -50,4 +46,4 @@ inline std::shared_ptr<logger> stderr_color_st(const std::string &logger_name)
 {
     return Factory::template create<sinks::stderr_color_sink_mt>(logger_name);
 }
-} // namespace spdlog
+} // namespace abel_log

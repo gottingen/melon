@@ -6,7 +6,7 @@
 // cirucal q view of std::vector.
 #pragma once
 
-namespace spdlog {
+namespace abel_log {
 namespace details {
 template<typename T>
 class circular_q
@@ -59,4 +59,4 @@ private:
     std::vector<T> v_;
 };
 } // namespace details
-} // namespace spdlog
+} // namespace abel_log

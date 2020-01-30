@@ -17,7 +17,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
-namespace spdlog {
+namespace abel_log {
 namespace details {
 
 class periodic_worker
@@ -68,4 +68,4 @@ private:
     std::condition_variable cv_;
 };
 } // namespace details
-} // namespace spdlog
+} // namespace abel_log

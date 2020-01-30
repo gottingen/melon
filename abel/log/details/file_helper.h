@@ -11,7 +11,7 @@
 // Throw spdlog_ex exception on errors
 
 #include <abel/log/details/log_msg.h>
-#include "../details/os.h"
+#include <abel/filesystem/filesystem.h>
 #include <abel/filesystem/filesystem.h>
 #include <abel/chrono/clock.h>
 #include <cerrno>
@@ -21,8 +21,46 @@
 #include <thread>
 #include <tuple>
 
-namespace spdlog {
+namespace abel_log {
 namespace details {
+
+static const char *default_eol = ABEL_EOL;
+
+inline bool fopen_s(FILE **fp, const filename_t &filename, const filename_t &mode)
+{
+#ifdef _WIN32
+    #ifdef SPDLOG_WCHAR_FILENAMES
+    *fp = _wfsopen((filename.c_str()), mode.c_str(), _SH_DENYWR);
+#else
+    *fp = _fsopen((filename.c_str()), mode.c_str(), _SH_DENYWR);
+#endif
+#else // unix
+    *fp = fopen((filename.c_str()), mode.c_str());
+#endif
+
+#ifdef SPDLOG_PREVENT_CHILD_FD
+    if (*fp != nullptr)
+    {
+        prevent_child_fd(*fp);
+    }
+#endif
+    return *fp == nullptr;
+}
+
+#if defined(_WIN32) && defined(SPDLOG_WCHAR_FILENAMES)
+#define SPDLOG_FILENAME_T(s) L##s
+inline std::string filename_to_str(const filename_t &filename)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> c;
+    return c.to_bytes(filename);
+}
+#else
+#define SPDLOG_FILENAME_T(s) s
+inline std::string filename_to_str(const filename_t &filename)
+{
+    return filename;
+}
+#endif
 
 class file_helper
 {
@@ -48,14 +86,14 @@ public:
         _filename = fname;
         for (int tries = 0; tries < open_tries; ++tries)
         {
-            if (!os::fopen_s(&fd_, fname, mode))
+            if (!fopen_s(&fd_, fname, mode))
             {
                 return;
             }
             abel::sleep_for(abel::milliseconds(open_interval));
         }
 
-        throw spdlog_ex("Failed opening file " + os::filename_to_str(_filename) + " for writing", errno);
+        throw spdlog_ex("Failed opening file " + filename_to_str(_filename) + " for writing", errno);
     }
 
     void reopen(bool truncate)
@@ -87,7 +125,7 @@ public:
         auto data = buf.data();
         if (std::fwrite(data, 1, msg_size, fd_) != msg_size)
         {
-            throw spdlog_ex("Failed writing to file " + os::filename_to_str(_filename), errno);
+            throw spdlog_ex("Failed writing to file " + filename_to_str(_filename), errno);
         }
     }
 
@@ -95,7 +133,7 @@ public:
     {
         if (fd_ == nullptr)
         {
-            throw spdlog_ex("Cannot use size() on closed file " + os::filename_to_str(_filename));
+            throw spdlog_ex("Cannot use size() on closed file " + filename_to_str(_filename));
         }
         return abel::filesystem::file_size(_filename);
     }
@@ -123,7 +161,7 @@ public:
     // ".mylog" => (".mylog". "")
     // "my_folder/.mylog" => ("my_folder/.mylog", "")
     // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-    static std::tuple<filename_t, filename_t> split_by_extenstion(const spdlog::filename_t &fname)
+    static std::tuple<filename_t, filename_t> split_by_extenstion(const abel_log::filename_t &fname)
     {
         auto ext_index = fname.rfind('.');
 
@@ -131,14 +169,14 @@ public:
         // extension
         if (ext_index == filename_t::npos || ext_index == 0 || ext_index == fname.size() - 1)
         {
-            return std::make_tuple(fname, spdlog::filename_t());
+            return std::make_tuple(fname, abel_log::filename_t());
         }
 
         // treat casese like "/etc/rc.d/somelogfile or "/abc/.hiddenfile"
-        auto folder_index = fname.rfind(details::os::folder_sep);
+        auto folder_index = fname.rfind(abel::filesystem::path::preferred_separator);
         if (folder_index != fname.npos && folder_index >= ext_index - 1)
         {
-            return std::make_tuple(fname, spdlog::filename_t());
+            return std::make_tuple(fname, abel_log::filename_t());
         }
 
         // finally - return a valid base and extension tuple
@@ -150,4 +188,4 @@ private:
     filename_t _filename;
 };
 } // namespace details
-} // namespace spdlog
+} // namespace abel_log

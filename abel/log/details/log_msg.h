@@ -6,12 +6,12 @@
 #pragma once
 
 #include <abel/log/common.h>
-#include <abel/log/details/os.h>
 #include <abel/thread/this_thread.h>
+#include <abel/chrono/clock.h>
 #include <string>
 #include <utility>
 
-namespace spdlog {
+namespace abel_log {
 namespace details {
 struct log_msg {
     log_msg () = default;
@@ -41,4 +41,4 @@ struct log_msg {
     mutable size_t color_range_end {0};
 };
 } // namespace details
-} // namespace spdlog
+} // namespace abel_log

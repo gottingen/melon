@@ -8,7 +8,7 @@
 #include <abel/log/details/null_mutex.h>
 #include <abel/format/format.h>
 #include <abel/log/sinks/base_sink.h>
-#include <abel/log/spdlog.h>
+#include <abel/log/log.h>
 
 #include <chrono>
 #include <cstdio>
@@ -16,7 +16,7 @@
 #include <mutex>
 #include <string>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 
 /*
@@ -118,4 +118,4 @@ inline std::shared_ptr<logger> daily_logger_st (
     const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false) {
     return Factory::template create<sinks::daily_file_sink_st>(logger_name, filename, hour, minute, truncate);
 }
-} // namespace spdlog
+} // namespace abel_log

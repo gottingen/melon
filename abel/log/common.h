@@ -1,11 +1,5 @@
-//
-// Copyright(c) 2015 Gabi Melman.
-// Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
-
-#include <abel/log/tweakme.h>
 
 #include <atomic>
 #include <chrono>
@@ -49,7 +43,7 @@
 
 #include <abel/format/format.h>
 
-namespace spdlog {
+namespace abel_log {
 
 class formatter;
 
@@ -90,16 +84,16 @@ static const char *level_names[] SPDLOG_LEVEL_NAMES;
 
 static const char *short_level_names[]{"T", "D", "I", "W", "E", "C", "O"};
 
-inline const char *to_c_str(spdlog::level::level_enum l)
+inline const char *to_c_str(abel_log::level::level_enum l)
 {
     return level_names[l];
 }
 
-inline const char *to_short_c_str(spdlog::level::level_enum l)
+inline const char *to_short_c_str(abel_log::level::level_enum l)
 {
     return short_level_names[l];
 }
-inline spdlog::level::level_enum from_str(const std::string &name)
+inline abel_log::level::level_enum from_str(const std::string &name)
 {
     static std::unordered_map<std::string, level_enum> name_to_level = // map string->level
         {{level_names[0], level::trace},                               // trace
@@ -179,4 +173,4 @@ using filename_t = std::string;
     {                                                                                                                                      \
         err_handler_("Unknown exeption in logger");                                                                                        \
     }
-} // namespace spdlog
+} // namespace abel_log

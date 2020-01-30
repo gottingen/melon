@@ -13,14 +13,12 @@
 #include <abel/log/common.h>
 #include <abel/log/details/periodic_worker.h>
 #include <abel/log/logger.h>
-
-#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-namespace spdlog {
+namespace abel_log {
 namespace details {
 class thread_pool;
 
@@ -215,4 +213,4 @@ private:
 };
 
 } // namespace details
-} // namespace spdlog
+} // namespace abel_log

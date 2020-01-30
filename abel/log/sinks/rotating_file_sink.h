@@ -8,8 +8,7 @@
 #include <abel/log/details/null_mutex.h>
 #include <abel/format/format.h>
 #include <abel/log/sinks/base_sink.h>
-#include <abel/log/spdlog.h>
-
+#include <abel/log/log.h>
 #include <cerrno>
 #include <chrono>
 #include <ctime>
@@ -17,7 +16,7 @@
 #include <string>
 #include <tuple>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 
 //
@@ -71,7 +70,7 @@ private:
     // log.2.txt -> log.3.txt
     // log.3.txt -> delete
     void rotate_ () {
-        using details::os::filename_to_str;
+        using details::filename_to_str;
         file_helper_.close();
         for (auto i = max_files_; i > 0; --i) {
             filename_t src = calc_filename(base_filename_, i - 1);
@@ -91,8 +90,8 @@ private:
                     abel::filesystem::rename(src, target, ec);
                     if (ec) {
                         throw spdlog_ex(
-                            "rotating_file_sink: failed renaming " + filename_to_str(src) + " to "
-                                + filename_to_str(target), errno);
+                            "rotating_file_sink: failed renaming " + details::filename_to_str(src) + " to "
+                                + details::filename_to_str(target), errno);
                     }
                 }
             }
@@ -127,4 +126,4 @@ inline std::shared_ptr<logger> rotating_logger_st (
     const std::string &logger_name, const filename_t &filename, size_t max_file_size, size_t max_files) {
     return Factory::template create<sinks::rotating_file_sink_st>(logger_name, filename, max_file_size, max_files);
 }
-} // namespace spdlog
+} // namespace abel_log

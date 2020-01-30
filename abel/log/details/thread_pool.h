@@ -2,17 +2,15 @@
 
 #include <abel/log/details/log_msg.h>
 #include <abel/log/details/mpmc_blocking_q.h>
-#include <abel/log/details/os.h>
-
 #include <chrono>
 #include <memory>
 #include <thread>
 #include <vector>
 
-namespace spdlog {
+namespace abel_log {
 namespace details {
 
-using async_logger_ptr = std::shared_ptr<spdlog::async_logger>;
+using async_logger_ptr = std::shared_ptr<abel_log::async_logger>;
 
 enum class async_msg_type
 {
@@ -217,4 +215,4 @@ private:
 };
 
 } // namespace details
-} // namespace spdlog
+} // namespace abel_log

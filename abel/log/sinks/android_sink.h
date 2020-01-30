@@ -7,11 +7,8 @@
 
 #include <abel/log/details/fmt_helper.h>
 #include <abel/log/details/null_mutex.h>
-#include <abel/log/details/os.h>
 #include <abel/log/sinks/base_sink.h>
-
 #include <android/log.h>
-#include <chrono>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -20,7 +17,7 @@
 #define SPDLOG_ANDROID_RETRIES 2
 #endif
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 
 /*
@@ -71,21 +68,21 @@ protected:
     void flush_() override {}
 
 private:
-    static android_LogPriority convert_to_android_(spdlog::level::level_enum level)
+    static android_LogPriority convert_to_android_(abel_log::level::level_enum level)
     {
         switch (level)
         {
-        case spdlog::level::trace:
+        case abel_log::level::trace:
             return ANDROID_LOG_VERBOSE;
-        case spdlog::level::debug:
+        case abel_log::level::debug:
             return ANDROID_LOG_DEBUG;
-        case spdlog::level::info:
+        case abel_log::level::info:
             return ANDROID_LOG_INFO;
-        case spdlog::level::warn:
+        case abel_log::level::warn:
             return ANDROID_LOG_WARN;
-        case spdlog::level::err:
+        case abel_log::level::err:
             return ANDROID_LOG_ERROR;
-        case spdlog::level::critical:
+        case abel_log::level::critical:
             return ANDROID_LOG_FATAL;
         default:
             return ANDROID_LOG_DEFAULT;
@@ -114,4 +111,4 @@ inline std::shared_ptr<logger> android_logger_st(const std::string &logger_name,
     return Factory::template create<sinks::android_sink_st>(logger_name, tag);
 }
 
-} // namespace spdlog
+} // namespace abel_log

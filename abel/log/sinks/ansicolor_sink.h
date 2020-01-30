@@ -1,20 +1,15 @@
-//
-// Copyright(c) 2017 spdlog authors.
-// Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
 
 #include <abel/log/details/console_globals.h>
 #include <abel/log/details/null_mutex.h>
-#include <abel/log/details/os.h>
 #include <abel/system/terminal.h>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 
 /**
@@ -119,10 +114,10 @@ public:
     void set_pattern(const std::string &pattern) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
-        formatter_ = std::unique_ptr<spdlog::formatter>(new pattern_formatter(pattern));
+        formatter_ = std::unique_ptr<abel_log::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override SPDLOG_FINAL
+    void set_formatter(std::unique_ptr<abel_log::formatter> sink_formatter) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::move(sink_formatter);
@@ -153,4 +148,4 @@ using ansicolor_stderr_sink_st = ansicolor_sink<details::console_stderr, details
 
 } // namespace sinks
 
-} // namespace spdlog
+} // namespace abel_log

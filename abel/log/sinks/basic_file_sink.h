@@ -7,12 +7,12 @@
 #include <abel/log/details/file_helper.h>
 #include <abel/log/details/null_mutex.h>
 #include <abel/log/sinks/base_sink.h>
-#include <abel/log/spdlog.h>
+#include <abel/log/log.h>
 
 #include <mutex>
 #include <string>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 /*
  * Trivial file sink with single file as target
@@ -63,4 +63,4 @@ inline std::shared_ptr<logger> basic_logger_st(const std::string &logger_name, c
     return Factory::template create<sinks::basic_file_sink_st>(logger_name, filename, truncate);
 }
 
-} // namespace spdlog
+} // namespace abel_log

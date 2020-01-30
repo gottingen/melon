@@ -6,13 +6,13 @@
 #pragma once
 
 #include <abel/log/sinks/base_sink.h>
-#include <abel/log/spdlog.h>
+#include <abel/log/log.h>
 
 #include <array>
 #include <string>
 #include <syslog.h>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 /**
  * Sink that write to syslog using the `syscall()` library call.
@@ -61,9 +61,6 @@ private:
     // is and not a string copy
     const std::string ident_;
 
-    //
-    // Simply maps spdlog's log level to syslog priority level.
-    //
     int syslog_prio_from_level(const details::log_msg &msg) const
     {
         return priorities_[static_cast<size_t>(msg.level)];
@@ -88,4 +85,4 @@ inline std::shared_ptr<logger> syslog_logger_st(
 {
     return Factory::template create<sinks::syslog_sink_st>(logger_name, syslog_ident, syslog_option, syslog_facility);
 }
-} // namespace spdlog
+} // namespace abel_log

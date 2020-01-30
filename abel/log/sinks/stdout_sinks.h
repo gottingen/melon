@@ -7,14 +7,14 @@
 
 #include <abel/log/details/console_globals.h>
 #include <abel/log/details/null_mutex.h>
-#include <abel/log/spdlog.h"
+#include <abel/log/log.h>
 
 #include <cstdio>
 #include <memory>
 #include <mutex>
-#include <spdlog/details/console_globals.h>
+#include <abel/log/details/console_globals.h>
 
-namespace spdlog {
+namespace abel_log {
 
 namespace sinks {
 
@@ -51,10 +51,10 @@ public:
     void set_pattern(const std::string &pattern) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
-        formatter_ = std::unique_ptr<spdlog::formatter>(new pattern_formatter(pattern));
+        formatter_ = std::unique_ptr<abel_log::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override SPDLOG_FINAL
+    void set_formatter(std::unique_ptr<abel_log::formatter> sink_formatter) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::move(sink_formatter);
@@ -97,4 +97,4 @@ inline std::shared_ptr<logger> stderr_logger_st(const std::string &logger_name)
 {
     return Factory::template create<sinks::stderr_sink_st>(logger_name);
 }
-} // namespace spdlog
+} // namespace abel_log

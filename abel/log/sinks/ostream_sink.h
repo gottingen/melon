@@ -11,7 +11,7 @@
 #include <mutex>
 #include <ostream>
 
-namespace spdlog {
+namespace abel_log {
 namespace sinks {
 template<typename Mutex>
 class ostream_sink SPDLOG_FINAL : public base_sink<Mutex>
@@ -48,4 +48,4 @@ using ostream_sink_mt = ostream_sink<std::mutex>;
 using ostream_sink_st = ostream_sink<details::null_mutex>;
 
 } // namespace sinks
-} // namespace spdlog
+} // namespace abel_log
