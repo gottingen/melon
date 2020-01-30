@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <pthread.h>
 #include <abel/base/profile.h>
+#include <abel/system/platform_headers.h>
 
 namespace abel {
 

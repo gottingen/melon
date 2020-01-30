@@ -5,6 +5,7 @@
 #ifndef ABEL_THREAD_THIS_THREAD_H_
 #define ABEL_THREAD_THIS_THREAD_H_
 #include <cstddef>
+
 namespace abel {
 
 namespace this_thread {
