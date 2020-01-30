@@ -137,7 +137,7 @@ TEST(LogFile, filename3) {
     auto filename = abel::sinks::rotating_file_sink_st::calc_filename("rotated.txt", 0);
     EXPECT_TRUE(filename == "rotated.txt");
 }
-
+/*
 // regex supported only from gcc 4.9 and above
 #if defined(_MSC_VER) || !(__GNUC__ <= 4 && __GNUC_MINOR__ < 9)
 #include <regex>
@@ -145,10 +145,12 @@ TEST(LogFile, filename3) {
 TEST(dailyfilesink, daily_file_sink)
 {
     // daily_YYYY-MM-DD_hh-mm.txt
-    auto filename = abel::sinks::daily_filename_calculator::calc_filename("daily.txt", abel::details::os::localtime());
+    auto filename = abel::sinks::daily_filename_calculator::calc_filename("daily.txt", abel::local_tm(abel::now()));
     // date regex based on https://www.regular-expressions.info/dates.html
     std::regex re(R"(^daily_(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])\.txt$)");
     std::smatch match;
     EXPECT_TRUE(std::regex_match(filename, match, re));
 }
+
 #endif
+ */
