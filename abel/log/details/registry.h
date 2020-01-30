@@ -18,7 +18,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace abel_log {
+namespace abel {
 namespace details {
 class thread_pool;
 
@@ -213,4 +213,4 @@ private:
 };
 
 } // namespace details
-} // namespace abel_log
+} // namespace abel

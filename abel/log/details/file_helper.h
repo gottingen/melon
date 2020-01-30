@@ -21,7 +21,7 @@
 #include <thread>
 #include <tuple>
 
-namespace abel_log {
+namespace abel {
 namespace details {
 
 static const char *default_eol = ABEL_EOL;
@@ -161,7 +161,7 @@ public:
     // ".mylog" => (".mylog". "")
     // "my_folder/.mylog" => ("my_folder/.mylog", "")
     // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-    static std::tuple<filename_t, filename_t> split_by_extenstion(const abel_log::filename_t &fname)
+    static std::tuple<filename_t, filename_t> split_by_extenstion(const abel::filename_t &fname)
     {
         auto ext_index = fname.rfind('.');
 
@@ -169,14 +169,14 @@ public:
         // extension
         if (ext_index == filename_t::npos || ext_index == 0 || ext_index == fname.size() - 1)
         {
-            return std::make_tuple(fname, abel_log::filename_t());
+            return std::make_tuple(fname, abel::filename_t());
         }
 
         // treat casese like "/etc/rc.d/somelogfile or "/abc/.hiddenfile"
         auto folder_index = fname.rfind(abel::filesystem::path::preferred_separator);
         if (folder_index != fname.npos && folder_index >= ext_index - 1)
         {
-            return std::make_tuple(fname, abel_log::filename_t());
+            return std::make_tuple(fname, abel::filename_t());
         }
 
         // finally - return a valid base and extension tuple
@@ -188,4 +188,4 @@ private:
     filename_t _filename;
 };
 } // namespace details
-} // namespace abel_log
+} // namespace abel

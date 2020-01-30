@@ -17,7 +17,7 @@
 #define SPDLOG_ANDROID_RETRIES 2
 #endif
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 
 /*
@@ -68,21 +68,21 @@ protected:
     void flush_() override {}
 
 private:
-    static android_LogPriority convert_to_android_(abel_log::level::level_enum level)
+    static android_LogPriority convert_to_android_(abel::level::level_enum level)
     {
         switch (level)
         {
-        case abel_log::level::trace:
+        case abel::level::trace:
             return ANDROID_LOG_VERBOSE;
-        case abel_log::level::debug:
+        case abel::level::debug:
             return ANDROID_LOG_DEBUG;
-        case abel_log::level::info:
+        case abel::level::info:
             return ANDROID_LOG_INFO;
-        case abel_log::level::warn:
+        case abel::level::warn:
             return ANDROID_LOG_WARN;
-        case abel_log::level::err:
+        case abel::level::err:
             return ANDROID_LOG_ERROR;
-        case abel_log::level::critical:
+        case abel::level::critical:
             return ANDROID_LOG_FATAL;
         default:
             return ANDROID_LOG_DEFAULT;
@@ -111,4 +111,4 @@ inline std::shared_ptr<logger> android_logger_st(const std::string &logger_name,
     return Factory::template create<sinks::android_sink_st>(logger_name, tag);
 }
 
-} // namespace abel_log
+} // namespace abel

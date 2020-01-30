@@ -15,7 +15,7 @@
 #include <string>
 
 template<typename It>
-inline abel_log::async_logger::async_logger(
+inline abel::async_logger::async_logger(
     std::string logger_name, const It &begin, const It &end, std::weak_ptr<details::thread_pool> tp, async_overflow_policy overflow_policy)
     : logger(std::move(logger_name), begin, end)
     , thread_pool_(tp)
@@ -23,20 +23,20 @@ inline abel_log::async_logger::async_logger(
 {
 }
 
-inline abel_log::async_logger::async_logger(
+inline abel::async_logger::async_logger(
     std::string logger_name, sinks_init_list sinks_list, std::weak_ptr<details::thread_pool> tp, async_overflow_policy overflow_policy)
     : async_logger(std::move(logger_name), sinks_list.begin(), sinks_list.end(), tp, overflow_policy)
 {
 }
 
-inline abel_log::async_logger::async_logger(
+inline abel::async_logger::async_logger(
     std::string logger_name, sink_ptr single_sink, std::weak_ptr<details::thread_pool> tp, async_overflow_policy overflow_policy)
     : async_logger(std::move(logger_name), {single_sink}, tp, overflow_policy)
 {
 }
 
 // send the log message to the thread pool
-inline void abel_log::async_logger::sink_it_(details::log_msg &msg)
+inline void abel::async_logger::sink_it_(details::log_msg &msg)
 {
 #if defined(SPDLOG_ENABLE_MESSAGE_COUNTER)
     incr_msg_counter_(msg);
@@ -52,7 +52,7 @@ inline void abel_log::async_logger::sink_it_(details::log_msg &msg)
 }
 
 // send flush request to the thread pool
-inline void abel_log::async_logger::flush_()
+inline void abel::async_logger::flush_()
 {
     if (auto pool_ptr = thread_pool_.lock())
     {
@@ -67,7 +67,7 @@ inline void abel_log::async_logger::flush_()
 //
 // backend functions - called from the thread pool to do the actual job
 //
-inline void abel_log::async_logger::backend_log_(details::log_msg &incoming_log_msg)
+inline void abel::async_logger::backend_log_(details::log_msg &incoming_log_msg)
 {
     try
     {
@@ -87,7 +87,7 @@ inline void abel_log::async_logger::backend_log_(details::log_msg &incoming_log_
     }
 }
 
-inline void abel_log::async_logger::backend_flush_()
+inline void abel::async_logger::backend_flush_()
 {
     try
     {

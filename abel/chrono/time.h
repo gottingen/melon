@@ -1546,7 +1546,7 @@ inline int utc_minutes_offset(const std::tm &tm)
     auto rv = GetDynamicTimeZoneInformation(&tzinfo);
 #endif
     if (rv == TIME_ZONE_ID_INVALID)
-        throw abel_log::spdlog_ex("Failed getting timezone info. ", errno);
+        throw abel::spdlog_ex("Failed getting timezone info. ", errno);
 
     int offset = -tzinfo.Bias;
     if (tm.tm_isdst)

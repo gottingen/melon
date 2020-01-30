@@ -16,7 +16,7 @@
 #include <string>
 #include <tuple>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 
 //
@@ -126,4 +126,4 @@ inline std::shared_ptr<logger> rotating_logger_st (
     const std::string &logger_name, const filename_t &filename, size_t max_file_size, size_t max_files) {
     return Factory::template create<sinks::rotating_file_sink_st>(logger_name, filename, max_file_size, max_files);
 }
-} // namespace abel_log
+} // namespace abel

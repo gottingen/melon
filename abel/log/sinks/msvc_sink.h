@@ -15,7 +15,7 @@
 #include <mutex>
 #include <string>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 /*
  * MSVC sink (logging using OutputDebugStringA)
@@ -45,6 +45,6 @@ using windebug_sink_mt = msvc_sink_mt;
 using windebug_sink_st = msvc_sink_st;
 
 } // namespace sinks
-} // namespace abel_log
+} // namespace abel
 
 #endif

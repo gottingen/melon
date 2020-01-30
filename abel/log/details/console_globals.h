@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <mutex>
 
-namespace abel_log {
+namespace abel {
 namespace details {
 struct console_stdout
 {
@@ -58,4 +58,4 @@ struct console_nullmutex
     }
 };
 } // namespace details
-} // namespace abel_log
+} // namespace abel

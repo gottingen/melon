@@ -24,7 +24,7 @@
 #include <memory>
 #include <mutex>
 
-namespace abel_log {
+namespace abel {
 
 namespace details {
 static const size_t default_async_q_size = 8192;
@@ -61,13 +61,13 @@ using async_factory = async_factory_impl<async_overflow_policy::block>;
 using async_factory_nonblock = async_factory_impl<async_overflow_policy::overrun_oldest>;
 
 template<typename Sink, typename... SinkArgs>
-inline std::shared_ptr<abel_log::logger> create_async(const std::string &logger_name, SinkArgs &&... sink_args)
+inline std::shared_ptr<abel::logger> create_async(const std::string &logger_name, SinkArgs &&... sink_args)
 {
     return async_factory::create<Sink>(logger_name, std::forward<SinkArgs>(sink_args)...);
 }
 
 template<typename Sink, typename... SinkArgs>
-inline std::shared_ptr<abel_log::logger> create_async_nb(const std::string &logger_name, SinkArgs &&... sink_args)
+inline std::shared_ptr<abel::logger> create_async_nb(const std::string &logger_name, SinkArgs &&... sink_args)
 {
     return async_factory_nonblock::create<Sink>(logger_name, std::forward<SinkArgs>(sink_args)...);
 }
@@ -80,8 +80,8 @@ inline void init_thread_pool(size_t q_size, size_t thread_count)
 }
 
 // get the global thread pool.
-inline std::shared_ptr<abel_log::details::thread_pool> thread_pool()
+inline std::shared_ptr<abel::details::thread_pool> thread_pool()
 {
     return details::registry::instance().get_tp();
 }
-} // namespace abel_log
+} // namespace abel

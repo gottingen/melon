@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 
 /**
@@ -114,10 +114,10 @@ public:
     void set_pattern(const std::string &pattern) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
-        formatter_ = std::unique_ptr<abel_log::formatter>(new pattern_formatter(pattern));
+        formatter_ = std::unique_ptr<abel::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<abel_log::formatter> sink_formatter) override SPDLOG_FINAL
+    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::move(sink_formatter);
@@ -148,4 +148,4 @@ using ansicolor_stderr_sink_st = ansicolor_sink<details::console_stderr, details
 
 } // namespace sinks
 
-} // namespace abel_log
+} // namespace abel

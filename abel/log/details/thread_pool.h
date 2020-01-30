@@ -7,10 +7,10 @@
 #include <thread>
 #include <vector>
 
-namespace abel_log {
+namespace abel {
 namespace details {
 
-using async_logger_ptr = std::shared_ptr<abel_log::async_logger>;
+using async_logger_ptr = std::shared_ptr<abel::async_logger>;
 
 enum class async_msg_type
 {
@@ -215,4 +215,4 @@ private:
 };
 
 } // namespace details
-} // namespace abel_log
+} // namespace abel

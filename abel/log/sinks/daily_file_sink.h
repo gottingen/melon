@@ -16,7 +16,7 @@
 #include <mutex>
 #include <string>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 
 /*
@@ -118,4 +118,4 @@ inline std::shared_ptr<logger> daily_logger_st (
     const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false) {
     return Factory::template create<sinks::daily_file_sink_st>(logger_name, filename, hour, minute, truncate);
 }
-} // namespace abel_log
+} // namespace abel

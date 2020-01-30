@@ -12,7 +12,7 @@
 #include <string>
 #include <syslog.h>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 /**
  * Sink that write to syslog using the `syscall()` library call.
@@ -85,4 +85,4 @@ inline std::shared_ptr<logger> syslog_logger_st(
 {
     return Factory::template create<sinks::syslog_sink_st>(logger_name, syslog_ident, syslog_option, syslog_facility);
 }
-} // namespace abel_log
+} // namespace abel

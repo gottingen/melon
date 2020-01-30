@@ -16,7 +16,7 @@
 #include <abel/log/formatter.h>
 #include <abel/log/sinks/sink.h>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 template<typename Mutex>
 class base_sink : public sink
@@ -45,10 +45,10 @@ public:
     void set_pattern(const std::string &pattern) SPDLOG_FINAL override
     {
         std::lock_guard<Mutex> lock(mutex_);
-        formatter_ = std::unique_ptr<abel_log::formatter>(new pattern_formatter(pattern));
+        formatter_ = std::unique_ptr<abel::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<abel_log::formatter> sink_formatter) SPDLOG_FINAL override
+    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) SPDLOG_FINAL override
     {
         std::lock_guard<Mutex> lock(mutex_);
         formatter_ = std::move(sink_formatter);
@@ -60,4 +60,4 @@ protected:
     Mutex mutex_;
 };
 } // namespace sinks
-} // namespace abel_log
+} // namespace abel

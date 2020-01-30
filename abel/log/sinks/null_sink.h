@@ -10,7 +10,7 @@
 
 #include <mutex>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 
 template<typename Mutex>
@@ -25,4 +25,4 @@ using null_sink_mt = null_sink<std::mutex>;
 using null_sink_st = null_sink<details::null_mutex>;
 
 } // namespace sinks
-} // namespace abel_log
+} // namespace abel

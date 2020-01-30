@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <wincon.h>
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 /*
  * Windows color console sink. Uses WriteConsoleA to write to the console with
@@ -90,10 +90,10 @@ public:
     void set_pattern(const std::string &pattern) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
-        formatter_ = std::unique_ptr<abel_log::formatter>(new pattern_formatter(pattern));
+        formatter_ = std::unique_ptr<abel::formatter>(new pattern_formatter(pattern));
     }
 
-    void set_formatter(std::unique_ptr<abel_log::formatter> sink_formatter) override SPDLOG_FINAL
+    void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override SPDLOG_FINAL
     {
         std::lock_guard<mutex_t> lock(mutex_);
         formatter_ = std::move(sink_formatter);
@@ -133,4 +133,4 @@ using wincolor_stderr_sink_mt = wincolor_sink<details::console_stderr, details::
 using wincolor_stderr_sink_st = wincolor_sink<details::console_stderr, details::console_nullmutex>;
 
 } // namespace sinks
-} // namespace abel_log
+} // namespace abel

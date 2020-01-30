@@ -8,7 +8,7 @@
 #include <abel/log/sinks/ansicolor_sink.h>
 #endif
 
-namespace abel_log {
+namespace abel {
 namespace sinks {
 #ifdef _WIN32
 using stdout_color_sink_mt = wincolor_stdout_sink_mt;
@@ -46,4 +46,4 @@ inline std::shared_ptr<logger> stderr_color_st(const std::string &logger_name)
 {
     return Factory::template create<sinks::stderr_color_sink_mt>(logger_name);
 }
-} // namespace abel_log
+} // namespace abel

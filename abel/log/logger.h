@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace abel_log {
+namespace abel {
 
 class logger {
 public:
@@ -145,8 +145,8 @@ protected:
 
     const std::string name_;
     std::vector<sink_ptr> sinks_;
-    abel_log::level_t level_;
-    abel_log::level_t flush_level_;
+    abel::level_t level_;
+    abel::level_t flush_level_;
     log_err_handler err_handler_;
     std::atomic<time_t> last_err_time_;
     std::atomic<size_t> msg_counter_;
@@ -156,6 +156,6 @@ protected:
     std::mutex wstring_converter_mutex_;
 #endif
 };
-} // namespace abel_log
+} // namespace abel
 
 #include "details/logger_impl.h"

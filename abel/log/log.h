@@ -2,7 +2,7 @@
 // Copyright(c) 2015-2018 Gabi Melman.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
-// abel_log main header file.
+// abel main header file.
 // see example.cpp for usage example
 
 #pragma once
@@ -15,14 +15,14 @@
 #include <memory>
 #include <string>
 
-namespace abel_log {
+namespace abel {
 
 // Default logger factory-  creates synchronous loggers
 struct synchronous_factory
 {
     template<typename Sink, typename... SinkArgs>
 
-    static std::shared_ptr<abel_log::logger> create(std::string logger_name, SinkArgs &&... args)
+    static std::shared_ptr<abel::logger> create(std::string logger_name, SinkArgs &&... args)
     {
         auto sink = std::make_shared<Sink>(std::forward<SinkArgs>(args)...);
         auto new_logger = std::make_shared<logger>(std::move(logger_name), std::move(sink));
@@ -37,32 +37,32 @@ using default_factory = synchronous_factory;
 // The logger's level, formatter and flush level will be set according the
 // global settings.
 // Example:
-// abel_log::create<daily_file_sink_st>("logger_name", "dailylog_filename", 11, 59);
+// abel::create<daily_file_sink_st>("logger_name", "dailylog_filename", 11, 59);
 template<typename Sink, typename... SinkArgs>
-inline std::shared_ptr<abel_log::logger> create(std::string logger_name, SinkArgs &&... sink_args)
+inline std::shared_ptr<abel::logger> create(std::string logger_name, SinkArgs &&... sink_args)
 {
     return default_factory::create<Sink>(std::move(logger_name), std::forward<SinkArgs>(sink_args)...);
 }
 
 // Return an existing logger or nullptr if a logger with such name doesn't
 // exist.
-// example: abel_log::get("my_logger")->info("hello {}", "world");
+// example: abel::get("my_logger")->info("hello {}", "world");
 inline std::shared_ptr<logger> get(const std::string &name)
 {
     return details::registry::instance().get(name);
 }
 
 // Set global formatter. Each sink in each logger will get a clone of this object
-inline void set_formatter(std::unique_ptr<abel_log::formatter> formatter)
+inline void set_formatter(std::unique_ptr<abel::formatter> formatter)
 {
     details::registry::instance().set_formatter(std::move(formatter));
 }
 
 // Set global format string.
-// example: abel_log::set_pattern("%Y-%m-%d %H:%M:%S.%e %l : %v");
+// example: abel::set_pattern("%Y-%m-%d %H:%M:%S.%e %l : %v");
 inline void set_pattern(std::string pattern, pattern_time_type time_type = pattern_time_type::local)
 {
-    set_formatter(std::unique_ptr<abel_log::formatter>(new pattern_formatter(pattern, time_type)));
+    set_formatter(std::unique_ptr<abel::formatter>(new pattern_formatter(pattern, time_type)));
 }
 
 // Set global logging level
@@ -98,7 +98,7 @@ inline void register_logger(std::shared_ptr<logger> logger)
 
 // Apply a user defined function on all registered loggers
 // Example:
-// abel_log::apply_all([&](std::shared_ptr<abel_log::logger> l) {l->flush();});
+// abel::apply_all([&](std::shared_ptr<abel::logger> l) {l->flush();});
 inline void apply_all(std::function<void(std::shared_ptr<logger>)> fun)
 {
     details::registry::instance().apply_all(std::move(fun));
@@ -116,7 +116,7 @@ inline void drop_all()
     details::registry::instance().drop_all();
 }
 
-// stop any running threads started by abel_log and clean registry loggers
+// stop any running threads started by abel and clean registry loggers
 inline void shutdown()
 {
     details::registry::instance().shutdown();
@@ -130,7 +130,7 @@ inline void shutdown()
 // SPDLOG_TRACE(..) will also print current file and line.
 //
 // Example:
-// abel_log::set_level(abel_log::level::trace);
+// abel::set_level(abel::level::trace);
 // SPDLOG_TRACE(my_logger, "some trace message");
 // SPDLOG_TRACE(my_logger, "another trace message {} {}", 1, 2);
 // SPDLOG_DEBUG(my_logger, "some debug message {} {}", 3, 4);
@@ -156,4 +156,4 @@ inline void shutdown()
 #define SPDLOG_DEBUG(logger, ...) (void)0
 #endif
 
-} // namespace abel_log
+} // namespace abel

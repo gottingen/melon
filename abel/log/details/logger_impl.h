@@ -11,7 +11,7 @@
 // create logger with given name, sinks and the default pattern formatter
 // all other ctors will call this one
 template<typename It>
-inline abel_log::logger::logger (std::string logger_name, const It &begin, const It &end)
+inline abel::logger::logger (std::string logger_name, const It &begin, const It &end)
     : name_(std::move(logger_name)), sinks_(begin, end), level_(level::info), flush_level_(level::off),
       last_err_time_(0), msg_counter_(1) // message counter will start from 1. 0-message id will be
 // reserved for controll messages
@@ -20,29 +20,29 @@ inline abel_log::logger::logger (std::string logger_name, const It &begin, const
 }
 
 // ctor with sinks as init list
-inline abel_log::logger::logger (std::string logger_name, sinks_init_list sinks_list)
+inline abel::logger::logger (std::string logger_name, sinks_init_list sinks_list)
     : logger(std::move(logger_name), sinks_list.begin(), sinks_list.end()) {
 }
 
 // ctor with single sink
-inline abel_log::logger::logger (std::string logger_name, abel_log::sink_ptr single_sink)
+inline abel::logger::logger (std::string logger_name, abel::sink_ptr single_sink)
     : logger(std::move(logger_name), {std::move(single_sink)}) {
 }
 
-inline abel_log::logger::~logger () = default;
+inline abel::logger::~logger () = default;
 
-inline void abel_log::logger::set_formatter (std::unique_ptr<abel_log::formatter> f) {
+inline void abel::logger::set_formatter (std::unique_ptr<abel::formatter> f) {
     for (auto &sink : sinks_) {
         sink->set_formatter(f->clone());
     }
 }
 
-inline void abel_log::logger::set_pattern (std::string pattern, pattern_time_type time_type) {
-    set_formatter(std::unique_ptr<abel_log::formatter>(new pattern_formatter(std::move(pattern), time_type)));
+inline void abel::logger::set_pattern (std::string pattern, pattern_time_type time_type) {
+    set_formatter(std::unique_ptr<abel::formatter>(new pattern_formatter(std::move(pattern), time_type)));
 }
 
 template<typename... Args>
-inline void abel_log::logger::log (level::level_enum lvl, const char *fmt, const Args &... args) {
+inline void abel::logger::log (level::level_enum lvl, const char *fmt, const Args &... args) {
     if (!should_log(lvl)) {
         return;
     }
@@ -56,7 +56,7 @@ inline void abel_log::logger::log (level::level_enum lvl, const char *fmt, const
 }
 
 template<typename... Args>
-inline void abel_log::logger::log (level::level_enum lvl, const char *msg) {
+inline void abel::logger::log (level::level_enum lvl, const char *msg) {
     if (!should_log(lvl)) {
         return;
     }
@@ -69,7 +69,7 @@ inline void abel_log::logger::log (level::level_enum lvl, const char *msg) {
 }
 
 template<typename T>
-inline void abel_log::logger::log (level::level_enum lvl, const T &msg) {
+inline void abel::logger::log (level::level_enum lvl, const T &msg) {
     if (!should_log(lvl)) {
         return;
     }
@@ -82,68 +82,68 @@ inline void abel_log::logger::log (level::level_enum lvl, const T &msg) {
 }
 
 template<typename... Args>
-inline void abel_log::logger::trace (const char *fmt, const Args &... args) {
+inline void abel::logger::trace (const char *fmt, const Args &... args) {
     log(level::trace, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::debug (const char *fmt, const Args &... args) {
+inline void abel::logger::debug (const char *fmt, const Args &... args) {
     log(level::debug, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::info (const char *fmt, const Args &... args) {
+inline void abel::logger::info (const char *fmt, const Args &... args) {
     log(level::info, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::warn (const char *fmt, const Args &... args) {
+inline void abel::logger::warn (const char *fmt, const Args &... args) {
     log(level::warn, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::error (const char *fmt, const Args &... args) {
+inline void abel::logger::error (const char *fmt, const Args &... args) {
     log(level::err, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::critical (const char *fmt, const Args &... args) {
+inline void abel::logger::critical (const char *fmt, const Args &... args) {
     log(level::critical, fmt, args...);
 }
 
 template<typename T>
-inline void abel_log::logger::trace (const T &msg) {
+inline void abel::logger::trace (const T &msg) {
     log(level::trace, msg);
 }
 
 template<typename T>
-inline void abel_log::logger::debug (const T &msg) {
+inline void abel::logger::debug (const T &msg) {
     log(level::debug, msg);
 }
 
 template<typename T>
-inline void abel_log::logger::info (const T &msg) {
+inline void abel::logger::info (const T &msg) {
     log(level::info, msg);
 }
 
 template<typename T>
-inline void abel_log::logger::warn (const T &msg) {
+inline void abel::logger::warn (const T &msg) {
     log(level::warn, msg);
 }
 
 template<typename T>
-inline void abel_log::logger::error (const T &msg) {
+inline void abel::logger::error (const T &msg) {
     log(level::err, msg);
 }
 
 template<typename T>
-inline void abel_log::logger::critical (const T &msg) {
+inline void abel::logger::critical (const T &msg) {
     log(level::critical, msg);
 }
 
 #ifdef SPDLOG_WCHAR_TO_UTF8_SUPPORT
 template<typename... Args>
-inline void abel_log::logger::log(level::level_enum lvl, const wchar_t *fmt, const Args &... args)
+inline void abel::logger::log(level::level_enum lvl, const wchar_t *fmt, const Args &... args)
 {
     if (!should_log(lvl))
     {
@@ -164,37 +164,37 @@ inline void abel_log::logger::log(level::level_enum lvl, const wchar_t *fmt, con
 }
 
 template<typename... Args>
-inline void abel_log::logger::trace(const wchar_t *fmt, const Args &... args)
+inline void abel::logger::trace(const wchar_t *fmt, const Args &... args)
 {
     log(level::trace, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::debug(const wchar_t *fmt, const Args &... args)
+inline void abel::logger::debug(const wchar_t *fmt, const Args &... args)
 {
     log(level::debug, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::info(const wchar_t *fmt, const Args &... args)
+inline void abel::logger::info(const wchar_t *fmt, const Args &... args)
 {
     log(level::info, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::warn(const wchar_t *fmt, const Args &... args)
+inline void abel::logger::warn(const wchar_t *fmt, const Args &... args)
 {
     log(level::warn, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::error(const wchar_t *fmt, const Args &... args)
+inline void abel::logger::error(const wchar_t *fmt, const Args &... args)
 {
     log(level::err, fmt, args...);
 }
 
 template<typename... Args>
-inline void abel_log::logger::critical(const wchar_t *fmt, const Args &... args)
+inline void abel::logger::critical(const wchar_t *fmt, const Args &... args)
 {
     log(level::critical, fmt, args...);
 }
@@ -204,43 +204,43 @@ inline void abel_log::logger::critical(const wchar_t *fmt, const Args &... args)
 //
 // name and level
 //
-inline const std::string &abel_log::logger::name () const {
+inline const std::string &abel::logger::name () const {
     return name_;
 }
 
-inline void abel_log::logger::set_level (abel_log::level::level_enum log_level) {
+inline void abel::logger::set_level (abel::level::level_enum log_level) {
     level_.store(log_level);
 }
 
-inline void abel_log::logger::set_error_handler (abel_log::log_err_handler err_handler) {
+inline void abel::logger::set_error_handler (abel::log_err_handler err_handler) {
     err_handler_ = std::move(err_handler);
 }
 
-inline abel_log::log_err_handler abel_log::logger::error_handler () {
+inline abel::log_err_handler abel::logger::error_handler () {
     return err_handler_;
 }
 
-inline void abel_log::logger::flush () {
+inline void abel::logger::flush () {
     try {
         flush_();
     }
     SPDLOG_CATCH_AND_HANDLE
 }
 
-inline void abel_log::logger::flush_on (level::level_enum log_level) {
+inline void abel::logger::flush_on (level::level_enum log_level) {
     flush_level_.store(log_level);
 }
 
-inline bool abel_log::logger::should_flush_ (const details::log_msg &msg) {
+inline bool abel::logger::should_flush_ (const details::log_msg &msg) {
     auto flush_level = flush_level_.load(std::memory_order_relaxed);
     return (msg.level >= flush_level) && (msg.level != level::off);
 }
 
-inline abel_log::level::level_enum abel_log::logger::level () const {
-    return static_cast<abel_log::level::level_enum>(level_.load(std::memory_order_relaxed));
+inline abel::level::level_enum abel::logger::level () const {
+    return static_cast<abel::level::level_enum>(level_.load(std::memory_order_relaxed));
 }
 
-inline bool abel_log::logger::should_log (abel_log::level::level_enum msg_level) const {
+inline bool abel::logger::should_log (abel::level::level_enum msg_level) const {
     return msg_level >= level_.load(std::memory_order_relaxed);
 }
 
@@ -248,7 +248,7 @@ inline bool abel_log::logger::should_log (abel_log::level::level_enum msg_level)
 // protected virtual called at end of each user log call (if enabled) by the
 // line_logger
 //
-inline void abel_log::logger::sink_it_ (details::log_msg &msg) {
+inline void abel::logger::sink_it_ (details::log_msg &msg) {
 #if defined(SPDLOG_ENABLE_MESSAGE_COUNTER)
     incr_msg_counter_(msg);
 #endif
@@ -263,13 +263,13 @@ inline void abel_log::logger::sink_it_ (details::log_msg &msg) {
     }
 }
 
-inline void abel_log::logger::flush_ () {
+inline void abel::logger::flush_ () {
     for (auto &sink : sinks_) {
         sink->flush();
     }
 }
 
-inline void abel_log::logger::default_err_handler_ (const std::string &msg) {
+inline void abel::logger::default_err_handler_ (const std::string &msg) {
     auto now = abel::now();
     auto secs = abel::to_unix_seconds(now);
     if (secs - last_err_time_ < 60) {
@@ -282,14 +282,14 @@ inline void abel_log::logger::default_err_handler_ (const std::string &msg) {
     fmt::print(stderr, "[*** LOG ERROR ***] [{}] [{}] {}\n", date_buf, name(), msg);
 }
 
-inline void abel_log::logger::incr_msg_counter_ (details::log_msg &msg) {
+inline void abel::logger::incr_msg_counter_ (details::log_msg &msg) {
     msg.msg_id = msg_counter_.fetch_add(1, std::memory_order_relaxed);
 }
 
-inline const std::vector<abel_log::sink_ptr> &abel_log::logger::sinks () const {
+inline const std::vector<abel::sink_ptr> &abel::logger::sinks () const {
     return sinks_;
 }
 
-inline std::vector<abel_log::sink_ptr> &abel_log::logger::sinks () {
+inline std::vector<abel::sink_ptr> &abel::logger::sinks () {
     return sinks_;
 }

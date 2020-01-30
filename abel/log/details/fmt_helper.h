@@ -9,7 +9,7 @@
 #include <abel/chrono/clock.h>
 
 // Some fmt helpers to efficiently format and pad ints and strings
-namespace abel_log {
+namespace abel {
 namespace details {
 namespace fmt_helper {
 
@@ -116,4 +116,4 @@ inline void pad6(size_t n, fmt::basic_memory_buffer<char, Buffer_Size> &dest)
 
 } // namespace fmt_helper
 } // namespace details
-} // namespace abel_log
+} // namespace abel
