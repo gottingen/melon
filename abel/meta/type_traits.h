@@ -791,7 +791,7 @@ class integer_sequence
 public:
     typedef T value_type;
     static_assert(std::is_integral<T>::value, "eastl::integer_sequence can only be instantiated with an integral type");
-    static ABEL_CONSTEXPR_VARIABLE size_t size() ABEL_NOEXCEPT { return sizeof...(Ints); }
+    static ABEL_CONSTEXPR_FUNCTION size_t size() ABEL_NOEXCEPT { return sizeof...(Ints); }
 };
 
 template <size_t N, typename IndexSeq>
