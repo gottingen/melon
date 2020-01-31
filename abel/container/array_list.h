@@ -84,11 +84,13 @@ private:
 
 public:
     class iterator : public basic_iterator<T> {
+        friend class array_list;
         using basic_iterator<T>::basic_iterator;
     public:
         iterator () = default;
     };
     class const_iterator : public basic_iterator<const T> {
+        friend class array_list;
         using basic_iterator<T>::basic_iterator;
     public:
         const_iterator () = default;
