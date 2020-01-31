@@ -20,7 +20,6 @@
 
 namespace abel {
 
-
 namespace internal_casts {
 
 template<class Dest, class Source>
@@ -163,7 +162,6 @@ ABEL_FORCE_INLINE Dest bit_cast (const Source &source) {
     memcpy(&dest, &source, sizeof(dest));
     return dest;
 }
-
 
 }  // namespace abel
 

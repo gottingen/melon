@@ -18,25 +18,25 @@
 #if defined(__STDC__)
     #define ABEL_COMPILER_IS_ANSIC 1    // The compiler claims to be ANSI C
 
-    // Is the compiler a C99 compiler or equivalent?
-    // From ISO/IEC 9899:1999:
-    //    6.10.8 Predefined macro names
-    //    __STDC_VERSION__ The integer constant 199901L. (150)
-    //
-    //    150) This macro was not specified in ISO/IEC 9899:1990 and was
-    //    specified as 199409L in ISO/IEC 9899/AMD1:1995. The intention
-    //    is that this will remain an integer constant of type long int
-    //    that is increased with each revision of this International Standard.
-    //
+// Is the compiler a C99 compiler or equivalent?
+// From ISO/IEC 9899:1999:
+//    6.10.8 Predefined macro names
+//    __STDC_VERSION__ The integer constant 199901L. (150)
+//
+//    150) This macro was not specified in ISO/IEC 9899:1990 and was
+//    specified as 199409L in ISO/IEC 9899/AMD1:1995. The intention
+//    is that this will remain an integer constant of type long int
+//    that is increased with each revision of this International Standard.
+//
     #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
         #define ABEL_COMPILER_IS_C99 1
     #endif
 
-     // Is the compiler a C11 compiler?
-     // From ISO/IEC 9899:2011:
-    //   Page 176, 6.10.8.1 (Predefined macro names) :
-     //   __STDC_VERSION__ The integer constant 201112L. (178)
-    //
+// Is the compiler a C11 compiler?
+// From ISO/IEC 9899:2011:
+//   Page 176, 6.10.8.1 (Predefined macro names) :
+//   __STDC_VERSION__ The integer constant 201112L. (178)
+//
     #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
         #define ABEL_COMPILER_IS_C11 1
     #endif
@@ -351,7 +351,7 @@
     #elif !defined(ABEL_COMPILER_NO_VARIADIC_MACROS)
         #define ABEL_PRAGMA_PACK_VC(...)
     #else
-    // No support. However, all compilers of significance to us support variadic macros.
+// No support. However, all compilers of significance to us support variadic macros.
     #endif
 #endif
 
@@ -540,18 +540,18 @@
         #define ABEL_DISABLE_VC_WARNING(w)  \
                 __pragma(warning(push))       \
                 __pragma(warning(disable:w))
-        #else
-            #define ABEL_DISABLE_VC_WARNING(w)
-        #endif
+    #else
+        #define ABEL_DISABLE_VC_WARNING(w)
+    #endif
 #endif
 
 #ifndef ABEL_RESTORE_VC_WARNING
     #if defined(_MSC_VER)
         #define ABEL_RESTORE_VC_WARNING()   \
                 __pragma(warning(pop))
-        #else
-            #define ABEL_RESTORE_VC_WARNING()
-        #endif
+    #else
+        #define ABEL_RESTORE_VC_WARNING()
+    #endif
 #endif
 
 
@@ -573,18 +573,18 @@
         #define ABEL_ENABLE_VC_WARNING_AS_ERROR(w) \
                     __pragma(warning(push)) \
                     __pragma(warning(error:w))
-        #else
-            #define ABEL_ENABLE_VC_WARNING_AS_ERROR(w)
-        #endif
+    #else
+        #define ABEL_ENABLE_VC_WARNING_AS_ERROR(w)
+    #endif
 #endif
 
 #ifndef ABEL_DISABLE_VC_WARNING_AS_ERROR
     #if defined(_MSC_VER)
         #define ABEL_DISABLE_VC_WARNING_AS_ERROR() \
                     __pragma(warning(pop))
-        #else
-            #define ABEL_DISABLE_VC_WARNING_AS_ERROR()
-        #endif
+    #else
+        #define ABEL_DISABLE_VC_WARNING_AS_ERROR()
+    #endif
 #endif
 
 
@@ -613,18 +613,18 @@
     #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
         #define ABEL_DISABLE_GCC_WARNING(w)   \
                 _Pragma(CBGCCWHELP2(w))
-        #else
-            #define ABEL_DISABLE_GCC_WARNING(w)
-        #endif
+    #else
+        #define ABEL_DISABLE_GCC_WARNING(w)
+    #endif
 #endif
 
 #ifndef ABEL_RESTORE_GCC_WARNING
     #if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
         #define ABEL_RESTORE_GCC_WARNING()    \
                 _Pragma("GCC diagnostic pop")
-        #else
-            #define ABEL_RESTORE_GCC_WARNING()
-        #endif
+    #else
+        #define ABEL_RESTORE_GCC_WARNING()
+    #endif
 #endif
 
 
@@ -1026,8 +1026,8 @@
 // It can't handle the C language, is limited to places where template declarations
 // can be used, and requires the type x to be usable as a functions reference argument.
     #if defined(__cplusplus) && defined(__EDG__)
-        template <typename T>
-        inline void CBBaseUnused(T const volatile & x) { (void)x; }
+template <typename T>
+inline void CBBaseUnused(T const volatile & x) { (void)x; }
         #define ABEL_UNUSED(x) CBBaseUnused(x)
     #else
         #define ABEL_UNUSED(x) (void)x
@@ -1051,7 +1051,6 @@
 #ifndef ABEL_EMPTY
     #define ABEL_EMPTY (void)0
 #endif
-
 
 #ifndef ABEL_NULL
     #if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
@@ -1163,23 +1162,23 @@
             #define ABEL_WCHAR_SIZE 4
         #endif
     #elif defined(ABEL_PLATFORM_UNIX)
-        // It is standard on Unix to have wchar_t be int32_t or uint32_t.
-        // All versions of GNUC default to a 32 bit wchar_t, but CB has used
-        // the -fshort-wchar GCC command line option to force it to 16 bit.
-        // If you know that the compiler is set to use a wchar_t of other than
-        // the default, you need to manually define ABEL_WCHAR_SIZE for the build.
+// It is standard on Unix to have wchar_t be int32_t or uint32_t.
+// All versions of GNUC default to a 32 bit wchar_t, but CB has used
+// the -fshort-wchar GCC command line option to force it to 16 bit.
+// If you know that the compiler is set to use a wchar_t of other than
+// the default, you need to manually define ABEL_WCHAR_SIZE for the build.
         #define ABEL_WCHAR_SIZE 4
     #else
-        // It is standard on Windows to have wchar_t be uint16_t.  GCC
-        // defines wchar_t as int by default.  Electronic Arts has
-        // standardized on wchar_t being an unsigned 16 bit value on all
-        // console platforms. Given that there is currently no known way to
-        // tell at preprocessor time what the size of wchar_t is, we declare
-        // it to be 2, as this is the Electronic Arts standard. If you have
-        // ABEL_WCHAR_SIZE != sizeof(wchar_t), then your code might not be
-        // broken, but it also won't work with wchar libraries and data from
-        // other parts of CB. Under GCC, you can force wchar_t to two bytes
-        // with the -fshort-wchar compiler argument.
+// It is standard on Windows to have wchar_t be uint16_t.  GCC
+// defines wchar_t as int by default.  Electronic Arts has
+// standardized on wchar_t being an unsigned 16 bit value on all
+// console platforms. Given that there is currently no known way to
+// tell at preprocessor time what the size of wchar_t is, we declare
+// it to be 2, as this is the Electronic Arts standard. If you have
+// ABEL_WCHAR_SIZE != sizeof(wchar_t), then your code might not be
+// broken, but it also won't work with wchar libraries and data from
+// other parts of CB. Under GCC, you can force wchar_t to two bytes
+// with the -fshort-wchar compiler argument.
         #define ABEL_WCHAR_SIZE 2
     #endif
 #endif
@@ -1207,10 +1206,10 @@
     #elif defined(ABEL_COMPILER_IS_C99)
         #define ABEL_RESTRICT restrict
     #else
-        // If the compiler didn't support restricted pointers, defining ABEL_RESTRICT
-        // away would result in compiling and running fine but you just wouldn't
-        // the same level of optimization. On the other hand, all the major compilers
-        // support restricted pointers.
+// If the compiler didn't support restricted pointers, defining ABEL_RESTRICT
+// away would result in compiling and running fine but you just wouldn't
+// the same level of optimization. On the other hand, all the major compilers
+// support restricted pointers.
         #define ABEL_RESTRICT
     #endif
 #endif
@@ -1262,7 +1261,7 @@
     #if defined(ABEL_COMPILER_CPP14_ENABLED)
         #define ABEL_DEPRECATED_MESSAGE(msg) [[deprecated(#msg)]]
     #else
-        // Compiler does not support depreaction messages, explicitly drop the msg but still mark the function as deprecated
+// Compiler does not support depreaction messages, explicitly drop the msg but still mark the function as deprecated
         #define ABEL_DEPRECATED_MESSAGE(msg) ABEL_DEPRECATED
     #endif
 #endif
@@ -2243,7 +2242,6 @@
 //
 #define ABEL_DISABLE_MOVE_OPERATOR(ClassName) ClassName & operator=(ClassName&&) ABEL_FUNCTION_DELETE
 
-
 #define ABEL_DISABLE_IMPLICIT_CTOR(ClassName) \
     ABEL_NON_COPYABLE(ClassName); \
     ABEL_DISABLE_DEFAULT_CTOR(ClassName)
@@ -2269,17 +2267,16 @@
 //     };
 //
 #ifdef __cplusplus
-    struct CBNonCopyable
-        {
-    #if defined(ABEL_COMPILER_NO_DEFAULTED_FUNCTIONS) || defined(__EDG__) // EDG doesn't appear to behave properly for the case of defaulted constructors; it generates a mistaken warning about missing default constructors.
-                CBNonCopyable(){} // Putting {} here has the downside that it allows a class to create itself,
-               ~CBNonCopyable(){} // but avoids linker errors that can occur with some compilers (e.g. Green Hills).
-    #else
-                CBNonCopyable() = default;
-               ~CBNonCopyable() = default;
-    #endif
-            ABEL_NON_COPYABLE(CBNonCopyable)
-        };
+struct CBNonCopyable {
+#if defined(ABEL_COMPILER_NO_DEFAULTED_FUNCTIONS) || defined(__EDG__) // EDG doesn't appear to behave properly for the case of defaulted constructors; it generates a mistaken warning about missing default constructors.
+    CBNonCopyable(){} // Putting {} here has the downside that it allows a class to create itself,
+   ~CBNonCopyable(){} // but avoids linker errors that can occur with some compilers (e.g. Green Hills).
+#else
+    CBNonCopyable () = default;
+    ~CBNonCopyable () = default;
+#endif
+    ABEL_NON_COPYABLE(CBNonCopyable)
+};
 #endif
 
 
@@ -2361,20 +2358,18 @@
 #if defined(__pnacl__)
     #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
 #elif defined(__clang__)
-    // Clang will not tail call given inline volatile assembly.
+// Clang will not tail call given inline volatile assembly.
     #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
 #elif defined(__GNUC__)
-    // GCC will not tail call given inline volatile assembly.
+// GCC will not tail call given inline volatile assembly.
     #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
 #elif defined(_MSC_VER)
     #include <intrin.h>
-    // The __nop() intrinsic blocks the optimisation.
+// The __nop() intrinsic blocks the optimisation.
     #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __nop()
 #else
     #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
 #endif
-
-
 
 #ifndef ABEL_WARN_UNUSED_RESULT
     #if defined(ABEL_COMPILER_GNUC) && ABEL_COMPILER_VERSION >= 4007 && ABEL_COMPILER_CPP11_ENABLED
@@ -2385,7 +2380,7 @@
 #endif //WARN_UNUSED_RESULT
 
 #ifndef ABEL_PRINTF_FORMAT
-     #if defined(ABEL_COMPILER_GNUC)
+    #if defined(ABEL_COMPILER_GNUC)
         #define ABEL_PRINTF_FORMAT(format_param, dots_param) __attribute__((format(printf, format_param, dots_param)))
     #else
         #define ABEL_PRINTF_FORMAT(format_param, dots_param)
@@ -2394,7 +2389,6 @@
 
 #define ABEL_WPRINTF_FORMAT(format_param, dots_param)
 
-
 #ifndef ABEL_CDECL
     #if defined(ABEL_PLATFORM_WINDOWS)
         #define ABEL_CDECL __cdecl
@@ -2402,7 +2396,6 @@
         #define ABEL_CDECL
     #endif
 #endif //ABEL_CDECL
-
 
 #if defined(COMPILER_GCC)
 #define ABEL_ALLOW_UNUSED __attribute__((unused))
@@ -2415,7 +2408,7 @@
         #define ABEL_ALLOW_UNUSED __attribute__((unused))
     #else
         #define ABEL_ALLOW_UNUSED
-    #endif 
+    #endif
 #endif //ABEL_ALLOW_UNUSED
 
 #ifndef ABEL_CACHE_LINE_ALIGNED
@@ -2723,7 +2716,7 @@
 // a prerequisite. Labeled sections are not supported on Darwin/iOS.
 #ifdef ABEL_HAVE_ATTRIBUTE_SECTION
 #error ABEL_HAVE_ATTRIBUTE_SECTION cannot be directly set
-#elif (ABEL_COMPILER_HAS_ATTRIBUTE(section) ||                \
+#elif (ABEL_COMPILER_HAS_ATTRIBUTE(section) || \
        (defined(__GNUC__) && !defined(__clang__))) && \
     !defined(__APPLE__) && ABEL_WEAK_SUPPORTED
 #define ABEL_HAVE_ATTRIBUTE_SECTION 1
@@ -2927,12 +2920,5 @@
 #define ABEL_XRAY_NEVER_INSTRUMENT
 #define ABEL_XRAY_LOG_ARGS(N)
 #endif
-
-
-
-
-
-
-
 
 #endif //ABEL_BASE_PROFILE_COMPILER_TRAITS_H_

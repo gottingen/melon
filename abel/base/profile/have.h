@@ -163,15 +163,15 @@
 #ifdef ABEL_HAVE_INTRINSIC_INT128
     #error ABEL_HAVE_INTRINSIC_INT128 cannot be directly set
 #elif defined(__SIZEOF_INT128__)
-        #if (defined(__clang__) && !defined(_WIN32)) || \
+    #if (defined(__clang__) && !defined(_WIN32)) || \
             (defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 9) || \
             (defined(__GNUC__) && !defined(__clang__) && !defined(__CUDACC__))
-            #define ABEL_HAVE_INTRINSIC_INT128 1
+        #define ABEL_HAVE_INTRINSIC_INT128 1
     #elif defined(__CUDACC__)
-    // __CUDACC_VER__ is a full version number before CUDA 9, and is defined to a
-    // string explaining that it has been removed starting with CUDA 9. We use
-    // nested #ifs because there is no short-circuiting in the preprocessor.
-    // NOTE: `__CUDACC__` could be undefined while `__CUDACC_VER__` is defined.
+// __CUDACC_VER__ is a full version number before CUDA 9, and is defined to a
+// string explaining that it has been removed starting with CUDA 9. We use
+// nested #ifs because there is no short-circuiting in the preprocessor.
+// NOTE: `__CUDACC__` could be undefined while `__CUDACC_VER__` is defined.
         #if __CUDACC_VER__ >= 70000
             #define ABEL_HAVE_INTRINSIC_INT128 1
         #endif  // __CUDACC_VER__ >= 70000

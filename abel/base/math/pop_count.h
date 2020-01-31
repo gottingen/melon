@@ -44,32 +44,32 @@ static ABEL_FORCE_INLINE unsigned popcount_generic64 (uint64_t x) {
 #if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_GNUC)
 
 //! popcount (count one bits)
-static ABEL_FORCE_INLINE unsigned popcount(unsigned i) {
+static ABEL_FORCE_INLINE unsigned popcount (unsigned i) {
     return static_cast<unsigned>(__builtin_popcount(i));
 }
 
 //! popcount (count one bits)
-static ABEL_FORCE_INLINE unsigned popcount(int i) {
+static ABEL_FORCE_INLINE unsigned popcount (int i) {
     return popcount(static_cast<unsigned>(i));
 }
 
 //! popcount (count one bits)
-static ABEL_FORCE_INLINE unsigned popcount(unsigned long i) {
+static ABEL_FORCE_INLINE unsigned popcount (unsigned long i) {
     return static_cast<unsigned>(__builtin_popcountl(i));
 }
 
 //! popcount (count one bits)
-static ABEL_FORCE_INLINE unsigned popcount(long i) {
+static ABEL_FORCE_INLINE unsigned popcount (long i) {
     return popcount(static_cast<unsigned long>(i));
 }
 
 //! popcount (count one bits)
-static ABEL_FORCE_INLINE unsigned popcount(unsigned long long i) {
+static ABEL_FORCE_INLINE unsigned popcount (unsigned long long i) {
     return static_cast<unsigned>(__builtin_popcountll(i));
 }
 
 //! popcount (count one bits)
-static ABEL_FORCE_INLINE unsigned popcount(long long i) {
+static ABEL_FORCE_INLINE unsigned popcount (long long i) {
     return popcount(static_cast<unsigned long long>(i));
 }
 

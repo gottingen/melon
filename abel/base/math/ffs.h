@@ -24,37 +24,37 @@ static ABEL_FORCE_INLINE unsigned ffs_template (Integral x) {
 
 //! find first set bit in integer, or zero if none are set.
 static ABEL_FORCE_INLINE
-unsigned ffs(int i) {
+unsigned ffs (int i) {
     return static_cast<unsigned>(__builtin_ffs(i));
 }
 
 //! find first set bit in integer, or zero if none are set.
 static ABEL_FORCE_INLINE
-unsigned ffs(unsigned i) {
+unsigned ffs (unsigned i) {
     return ffs(static_cast<int>(i));
 }
 
 //! find first set bit in integer, or zero if none are set.
 static ABEL_FORCE_INLINE
-unsigned ffs(long i) {
+unsigned ffs (long i) {
     return static_cast<unsigned>(__builtin_ffsl(i));
 }
 
 //! find first set bit in integer, or zero if none are set.
 static ABEL_FORCE_INLINE
-unsigned ffs(unsigned long i) {
+unsigned ffs (unsigned long i) {
     return ffs(static_cast<long>(i));
 }
 
 //! find first set bit in integer, or zero if none are set.
 static ABEL_FORCE_INLINE
-unsigned ffs(long long i) {
+unsigned ffs (long long i) {
     return static_cast<unsigned>(__builtin_ffsll(i));
 }
 
 //! find first set bit in integer, or zero if none are set.
 static ABEL_FORCE_INLINE
-unsigned ffs(unsigned long long i) {
+unsigned ffs (unsigned long long i) {
     return ffs(static_cast<long long>(i));
 }
 

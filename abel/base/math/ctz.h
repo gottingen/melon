@@ -44,41 +44,44 @@ ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned char> (unsigned char i) 
 #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
 
 //! count_tailing_zeros (count trailing zeros)
-template <>
-ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned>(unsigned i) {
-    if (i == 0) return 8 * sizeof(i);
+template<>
+ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned> (unsigned i) {
+    if (i == 0)
+        return 8 * sizeof(i);
     return static_cast<unsigned>(__builtin_ctz(i));
 }
 
 //! count_tailing_zeros (count trailing zeros)
-template <>
-ABEL_FORCE_INLINE unsigned count_tailing_zeros<int>(int i) {
+template<>
+ABEL_FORCE_INLINE unsigned count_tailing_zeros<int> (int i) {
     return count_tailing_zeros(static_cast<unsigned>(i));
 }
 
 //! count_tailing_zeros (count trailing zeros)
-template <>
-ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned long>(unsigned long i) {
-    if (i == 0) return 8 * sizeof(i);
+template<>
+ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned long> (unsigned long i) {
+    if (i == 0)
+        return 8 * sizeof(i);
     return static_cast<unsigned>(__builtin_ctzl(i));
 }
 
 //! count_tailing_zeros (count trailing zeros)
-template <>
-ABEL_FORCE_INLINE unsigned count_tailing_zeros<long>(long i) {
+template<>
+ABEL_FORCE_INLINE unsigned count_tailing_zeros<long> (long i) {
     return count_tailing_zeros(static_cast<unsigned long>(i));
 }
 
 //! count_tailing_zeros (count trailing zeros)
-template <>
-ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned long long>(unsigned long long i) {
-    if (i == 0) return 8 * sizeof(i);
+template<>
+ABEL_FORCE_INLINE unsigned count_tailing_zeros<unsigned long long> (unsigned long long i) {
+    if (i == 0)
+        return 8 * sizeof(i);
     return static_cast<unsigned>(__builtin_ctzll(i));
 }
 
 //! count_tailing_zeros (count trailing zeros)
-template <>
-ABEL_FORCE_INLINE unsigned count_tailing_zeros<long long>(long long i) {
+template<>
+ABEL_FORCE_INLINE unsigned count_tailing_zeros<long long> (long long i) {
     return count_tailing_zeros(static_cast<unsigned long long>(i));
 }
 

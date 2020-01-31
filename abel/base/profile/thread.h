@@ -215,19 +215,18 @@
 // but the compiler cannot confirm that.
 #define TS_UNCHECKED_READ(x) thread_safety_analysis::ts_unchecked_read(x)
 
-
 namespace thread_safety_analysis {
 
 // Takes a reference to a guarded data member, and returns an unguarded
 // reference.
-template <typename T>
-ABEL_FORCE_INLINE const T& ts_unchecked_read(const T& v) NO_THREAD_SAFETY_ANALYSIS {
-  return v;
+template<typename T>
+ABEL_FORCE_INLINE const T &ts_unchecked_read (const T &v) NO_THREAD_SAFETY_ANALYSIS {
+    return v;
 }
 
-template <typename T>
-ABEL_FORCE_INLINE T& ts_unchecked_read(T& v) NO_THREAD_SAFETY_ANALYSIS {
-  return v;
+template<typename T>
+ABEL_FORCE_INLINE T &ts_unchecked_read (T &v) NO_THREAD_SAFETY_ANALYSIS {
+    return v;
 }
 
 }  // namespace thread_safety_analysis

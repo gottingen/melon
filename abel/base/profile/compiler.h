@@ -24,8 +24,6 @@
     #endif
 #endif
 
-
-
 #ifndef ABEL_COMPILER_HAS_INCLUDE
     #if defined(__has_include) && !defined(__INTELLISENSE__) && \
     (!defined(__INTEL_COMPILER) || __INTEL_COMPILER >= 1600)
@@ -62,8 +60,8 @@
 // find `__has_cpp_attribute`, will evaluate to 0.
 #ifndef ABEL_COMPILER_HAS_CPP_ATTRIBUTE
     #if defined(__cplusplus) && defined(__has_cpp_attribute)
-        // NOTE: requiring __cplusplus above should not be necessary, but
-        // works around https://bugs.llvm.org/show_bug.cgi?id=23435.
+// NOTE: requiring __cplusplus above should not be necessary, but
+// works around https://bugs.llvm.org/show_bug.cgi?id=23435.
         #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
     #else
         #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) 0
@@ -171,9 +169,9 @@
 // decided to not define __cplusplus like thus until they have fully completed their
 // C++14 support.
 #if !defined(ABEL_COMPILER_CPP14_ENABLED) && defined(__cplusplus)
-    #if (__cplusplus >= 201402L) 								// Clang and GCC defines this like so in C++14 mode.
+    #if (__cplusplus >= 201402L)                                // Clang and GCC defines this like so in C++14 mode.
         #define ABEL_COMPILER_CPP14_ENABLED 1
-    #elif defined(_MSC_VER) && (_MSC_VER >= 1900)  	// VS2015+
+    #elif defined(_MSC_VER) && (_MSC_VER >= 1900)    // VS2015+
         #define ABEL_COMPILER_CPP14_ENABLED 1
     #endif
 #endif
@@ -1385,7 +1383,7 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Not supported by VC++ as of VS2013.
     #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-        // Versions of EDG prior to 4.5 only support extended sizeof in non-member functions. Full support was added in 4.5
+// Versions of EDG prior to 4.5 only support extended sizeof in non-member functions. Full support was added in 4.5
     #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
 // supported.
     #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
@@ -1650,15 +1648,14 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_THREAD_LOCAL)
     #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_thread_local)
-        // supported.
+// supported.
     #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)     // VS2015+
-        // supported.
+// supported.
     #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
-        // supported.
+// supported.
     #else
         #define ABEL_COMPILER_NO_THREAD_LOCAL 1
     #endif
 #endif
-
 
 #endif //ABEL_BASE_PROFILE_COMPILER_H_

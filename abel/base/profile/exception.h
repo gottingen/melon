@@ -32,14 +32,13 @@
                              : [] { assert(false && #expr); }())  // NOLINT
 #endif
 
-
 #ifndef ABEL_FAIL_MSG
     #define ABEL_FAIL_MSG(m) ABEL_ASSERT_MSG(false, (m))
 
 #endif
 
 #ifndef ABEL_STATIC_ASSERT_MSG
-    #define ABEL_STATIC_ASSERT_MSG(e,m) static_assert(e, #m)
+    #define ABEL_STATIC_ASSERT_MSG(e, m) static_assert(e, #m)
 #endif
 
 #ifndef ABEL_STATIC_ASSERT
