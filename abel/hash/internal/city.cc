@@ -20,8 +20,8 @@ namespace abel {
 namespace hash_internal {
 
 #ifdef ABEL_SYSTEM_BIG_ENDIAN
-#define uint32_in_expected_order(x) (abel::gbswap_32(x))
-#define uint64_in_expected_order(x) (abel::gbswap_64(x))
+#define uint32_in_expected_order(x) (abel::bit_swap32(x))
+#define uint64_in_expected_order(x) (abel::bit_swap64(x))
 #else
 #define uint32_in_expected_order(x) (x)
 #define uint64_in_expected_order(x) (x)
@@ -157,9 +157,9 @@ uint32_t CityHash32 (const char *s, size_t len) {
         h = Rotate32(h, 19);
         h = h * 5 + 0xe6546b64;
         g ^= b4;
-        g = abel::gbswap_32(g) * 5;
+        g = abel::bit_swap32(g) * 5;
         h += b4 * 5;
-        h = abel::gbswap_32(h);
+        h = abel::bit_swap32(h);
         f += b0;
         PERMUTE3(f, h, g);
         s += 20;
@@ -271,11 +271,11 @@ static uint64_t HashLen33to64 (const char *s, size_t len) {
     uint64_t h = Fetch64(s + len - 16) * mul;
     uint64_t u = Rotate(a + g, 43) + (Rotate(b, 30) + c) * 9;
     uint64_t v = ((a + g) ^ d) + f + 1;
-    uint64_t w = abel::gbswap_64((u + v) * mul) + h;
+    uint64_t w = abel::bit_swap64((u + v) * mul) + h;
     uint64_t x = Rotate(e + f, 42) + c;
-    uint64_t y = (abel::gbswap_64((v + w) * mul) + g) * mul;
+    uint64_t y = (abel::bit_swap64((v + w) * mul) + g) * mul;
     uint64_t z = e + f + c;
-    a = abel::gbswap_64((x + z) * mul + y) + b;
+    a = abel::bit_swap64((x + z) * mul + y) + b;
     b = ShiftMix((z + a) * mul + d + h) * mul;
     return b + x;
 }

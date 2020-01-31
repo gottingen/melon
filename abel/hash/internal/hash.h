@@ -789,15 +789,15 @@ class CityHashState : public HashStateBase<CityHashState> {
   // .second.
   static std::pair<uint64_t, uint64_t> Read9To16(const unsigned char* p,
                                                  size_t len) {
-    uint64_t high = little_endian::Load64(p + len - 8);
-    return {little_endian::Load64(p), high >> (128 - len * 8)};
+    uint64_t high = little_endian::load64(p + len - 8);
+    return {little_endian::load64(p), high >> (128 - len * 8)};
   }
 
   // Reads 4 to 8 bytes from p. Zero pads to fill uint64_t.
   static uint64_t Read4To8(const unsigned char* p, size_t len) {
-    return (static_cast<uint64_t>(little_endian::Load32(p + len - 4))
+    return (static_cast<uint64_t>(little_endian::load32(p + len - 4))
             << (len - 4) * 8) |
-           little_endian::Load32(p);
+           little_endian::load32(p);
   }
 
   // Reads 1 to 3 bytes from p. Zero pads to fill uint32_t.

@@ -1,13 +1,11 @@
 //
 
 #include <abel/system/endian.h>
-
 #include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <random>
 #include <vector>
-
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 
@@ -78,7 +76,7 @@ void ManualByteSwap(char* bytes, int length) {
 }
 
 template<typename T>
-ABEL_FORCE_INLINE T UnalignedLoad(const char* p) {
+ABEL_FORCE_INLINE T Unalignedload(const char* p) {
   static_assert(
       sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8,
       "Unexpected type size");
@@ -115,24 +113,24 @@ static void GBSwapHelper(const std::vector<T>& host_values_to_test,
 
     ASSERT_EQ(0, memcmp(actual_value, expected_value, sizeof(host_value)))
         << "Swap output for 0x" << std::hex << host_value << " does not match. "
-        << "Expected: 0x" << UnalignedLoad<T>(expected_value) << "; "
-        << "actual: 0x" <<  UnalignedLoad<T>(actual_value);
+        << "Expected: 0x" << Unalignedload<T>(expected_value) << "; "
+        << "actual: 0x" <<  Unalignedload<T>(actual_value);
   }
 }
 
 void Swap16(char* bytes) {
   ABEL_INTERNAL_UNALIGNED_STORE16(
-      bytes, gbswap_16(ABEL_INTERNAL_UNALIGNED_LOAD16(bytes)));
+      bytes, bit_swap16(ABEL_INTERNAL_UNALIGNED_LOAD16(bytes)));
 }
 
 void Swap32(char* bytes) {
   ABEL_INTERNAL_UNALIGNED_STORE32(
-      bytes, gbswap_32(ABEL_INTERNAL_UNALIGNED_LOAD32(bytes)));
+      bytes, bit_swap32(ABEL_INTERNAL_UNALIGNED_LOAD32(bytes)));
 }
 
 void Swap64(char* bytes) {
   ABEL_INTERNAL_UNALIGNED_STORE64(
-      bytes, gbswap_64(ABEL_INTERNAL_UNALIGNED_LOAD64(bytes)));
+      bytes, bit_swap64(ABEL_INTERNAL_UNALIGNED_LOAD64(bytes)));
 }
 
 TEST(EndianessTest, Uint16) {
@@ -150,11 +148,11 @@ TEST(EndianessTest, Uint64) {
 TEST(EndianessTest, ghtonll_gntohll) {
   // Test that abel::ghtonl compiles correctly
   uint32_t test = 0x01234567;
-  EXPECT_EQ(abel::gntohl(abel::ghtonl(test)), test);
+  EXPECT_EQ(abel::abel_ntohl(abel::abel_htonl(test)), test);
 
-  uint64_t comp = abel::ghtonll(kInitialNumber);
+  uint64_t comp = abel::abel_htonll(kInitialNumber);
   EXPECT_EQ(comp, kInitialInNetworkOrder);
-  comp = abel::gntohll(kInitialInNetworkOrder);
+  comp = abel::abel_ntohll(kInitialInNetworkOrder);
   EXPECT_EQ(comp, kInitialNumber);
 
   // Test that htonll and ntohll are each others' inverse functions on a
@@ -162,9 +160,9 @@ TEST(EndianessTest, ghtonll_gntohll) {
   // particularly nice base 2.
   uint64_t value = 1;
   for (int i = 0; i < 100; ++i) {
-    comp = abel::ghtonll(abel::gntohll(value));
+    comp = abel::abel_htonll(abel::abel_ntohll(value));
     EXPECT_EQ(value, comp);
-    comp = abel::gntohll(abel::ghtonll(value));
+    comp = abel::abel_ntohll(abel::abel_htonll(value));
     EXPECT_EQ(value, comp);
     value *= 37;
   }
@@ -172,79 +170,79 @@ TEST(EndianessTest, ghtonll_gntohll) {
 
 TEST(EndianessTest, little_endian) {
   // Check little_endian uint16_t.
-  uint64_t comp = little_endian::FromHost16(k16Value);
+  uint64_t comp = little_endian::from_host16(k16Value);
   EXPECT_EQ(comp, k16ValueLE);
-  comp = little_endian::ToHost16(k16ValueLE);
+  comp = little_endian::to_host16(k16ValueLE);
   EXPECT_EQ(comp, k16Value);
 
   // Check little_endian uint32_t.
-  comp = little_endian::FromHost32(k32Value);
+  comp = little_endian::from_host32(k32Value);
   EXPECT_EQ(comp, k32ValueLE);
-  comp = little_endian::ToHost32(k32ValueLE);
+  comp = little_endian::to_host32(k32ValueLE);
   EXPECT_EQ(comp, k32Value);
 
   // Check little_endian uint64_t.
-  comp = little_endian::FromHost64(k64Value);
+  comp = little_endian::from_host64(k64Value);
   EXPECT_EQ(comp, k64ValueLE);
-  comp = little_endian::ToHost64(k64ValueLE);
+  comp = little_endian::to_host64(k64ValueLE);
   EXPECT_EQ(comp, k64Value);
 
-  // Check little-endian Load and store functions.
+  // Check little-endian load and store functions.
   uint16_t u16Buf;
   uint32_t u32Buf;
   uint64_t u64Buf;
 
-  little_endian::Store16(&u16Buf, k16Value);
+  little_endian::store16(&u16Buf, k16Value);
   EXPECT_EQ(u16Buf, k16ValueLE);
-  comp = little_endian::Load16(&u16Buf);
+  comp = little_endian::load16(&u16Buf);
   EXPECT_EQ(comp, k16Value);
 
-  little_endian::Store32(&u32Buf, k32Value);
+  little_endian::store32(&u32Buf, k32Value);
   EXPECT_EQ(u32Buf, k32ValueLE);
-  comp = little_endian::Load32(&u32Buf);
+  comp = little_endian::load32(&u32Buf);
   EXPECT_EQ(comp, k32Value);
 
-  little_endian::Store64(&u64Buf, k64Value);
+  little_endian::store64(&u64Buf, k64Value);
   EXPECT_EQ(u64Buf, k64ValueLE);
-  comp = little_endian::Load64(&u64Buf);
+  comp = little_endian::load64(&u64Buf);
   EXPECT_EQ(comp, k64Value);
 }
 
 TEST(EndianessTest, big_endian) {
-  // Check big-endian Load and store functions.
+  // Check big-endian load and store functions.
   uint16_t u16Buf;
   uint32_t u32Buf;
   uint64_t u64Buf;
 
   unsigned char buffer[10];
-  big_endian::Store16(&u16Buf, k16Value);
+  big_endian::store16(&u16Buf, k16Value);
   EXPECT_EQ(u16Buf, k16ValueBE);
-  uint64_t comp = big_endian::Load16(&u16Buf);
+  uint64_t comp = big_endian::load16(&u16Buf);
   EXPECT_EQ(comp, k16Value);
 
-  big_endian::Store32(&u32Buf, k32Value);
+  big_endian::store32(&u32Buf, k32Value);
   EXPECT_EQ(u32Buf, k32ValueBE);
-  comp = big_endian::Load32(&u32Buf);
+  comp = big_endian::load32(&u32Buf);
   EXPECT_EQ(comp, k32Value);
 
-  big_endian::Store64(&u64Buf, k64Value);
+  big_endian::store64(&u64Buf, k64Value);
   EXPECT_EQ(u64Buf, k64ValueBE);
-  comp = big_endian::Load64(&u64Buf);
+  comp = big_endian::load64(&u64Buf);
   EXPECT_EQ(comp, k64Value);
 
-  big_endian::Store16(buffer + 1, k16Value);
+  big_endian::store16(buffer + 1, k16Value);
   EXPECT_EQ(u16Buf, k16ValueBE);
-  comp = big_endian::Load16(buffer + 1);
+  comp = big_endian::load16(buffer + 1);
   EXPECT_EQ(comp, k16Value);
 
-  big_endian::Store32(buffer + 1, k32Value);
+  big_endian::store32(buffer + 1, k32Value);
   EXPECT_EQ(u32Buf, k32ValueBE);
-  comp = big_endian::Load32(buffer + 1);
+  comp = big_endian::load32(buffer + 1);
   EXPECT_EQ(comp, k32Value);
 
-  big_endian::Store64(buffer + 1, k64Value);
+  big_endian::store64(buffer + 1, k64Value);
   EXPECT_EQ(u64Buf, k64ValueBE);
-  comp = big_endian::Load64(buffer + 1);
+  comp = big_endian::load64(buffer + 1);
   EXPECT_EQ(comp, k64Value);
 }
 
