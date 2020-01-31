@@ -32,5 +32,4 @@
 #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
 #endif
 
-
 #endif  // ABEL_BASE_OPTIMIZATION_H_

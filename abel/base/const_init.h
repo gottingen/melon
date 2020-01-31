@@ -52,11 +52,9 @@
 
 namespace abel {
 
-
 enum const_init_type {
     kConstInit,
 };
-
 
 }  // namespace abel
 

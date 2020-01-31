@@ -231,7 +231,7 @@
         #define ABEL_PLATFORM_OSX 1
         #define ABEL_PLATFORM_UNIX 1
         #define ABEL_PLATFORM_POSIX 1
-  //#define ABEL_PLATFORM_BSD 1           We don't currently define this. OSX has some BSD history but a lot of the API is different.
+//#define ABEL_PLATFORM_BSD 1           We don't currently define this. OSX has some BSD history but a lot of the API is different.
         #define ABEL_PLATFORM_NAME "OSX"
         #if defined(__i386__) || defined(__intel__)
             #define ABEL_PROCESSOR_X86 1
