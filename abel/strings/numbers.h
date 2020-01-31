@@ -203,7 +203,7 @@ ABEL_MUST_USE_RESULT bool safe_strtoi_base(abel::string_view s, int_type* out,
 // since 0 has one digit).
 ABEL_FORCE_INLINE size_t fast_hex_to_buffer_zero_pad16(uint64_t val, char* out) {
 #ifdef __SSE4_2__
-  uint64_t be = abel::big_endian::FromHost64(val);
+  uint64_t be = big_endian::FromHost64(val);
   const auto kNibbleMask = _mm_set1_epi8(0xf);
   const auto kHexDigits = _mm_setr_epi8('0', '1', '2', '3', '4', '5', '6', '7',
                                         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f');
