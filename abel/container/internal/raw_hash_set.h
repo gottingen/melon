@@ -188,7 +188,7 @@ class BitMask {
   explicit operator bool() const { return mask_ != 0; }
   int operator*() const { return LowestBitSet(); }
   int LowestBitSet() const {
-    return abel::count_tailing_zeros(mask_) >> Shift;
+    return abel::count_trailing_zeros(mask_) >> Shift;
   }
   int HighestBitSet() const {
     return (sizeof(T) * CHAR_BIT - abel::count_leading_zeros(mask_) -
@@ -200,7 +200,7 @@ class BitMask {
   BitMask end() const { return BitMask(0); }
 
   int TrailingZeros() const {
-    return abel::count_tailing_zeros(mask_) >> Shift;
+    return abel::count_trailing_zeros(mask_) >> Shift;
   }
 
   int LeadingZeros() const {
@@ -335,7 +335,7 @@ struct GroupSse2Impl {
   // Returns the number of trailing empty or deleted elements in the group.
   uint32_t CountLeadingEmptyOrDeleted() const {
     auto special = _mm_set1_epi8(kSentinel);
-    return abel::count_tailing_zeros(
+    return abel::count_trailing_zeros(
         _mm_movemask_epi8(_mm_cmpgt_epi8_fixed(special, ctrl)) + 1);
   }
 
@@ -394,7 +394,7 @@ struct GroupPortableImpl {
 
   uint32_t CountLeadingEmptyOrDeleted() const {
     constexpr uint64_t gaps = 0x00FEFEFEFEFEFEFEULL;
-    return (abel::count_tailing_zeros(((~ctrl & (ctrl >> 7)) | gaps) + 1) + 7) >> 3;
+    return (abel::count_trailing_zeros(((~ctrl & (ctrl >> 7)) | gaps) + 1) + 7) >> 3;
   }
 
   void ConvertSpecialToEmptyAndFullToDeleted(ctrl_t* dst) const {

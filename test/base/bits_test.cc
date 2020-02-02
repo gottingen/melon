@@ -46,7 +46,7 @@ TEST(BitsTest, count_leading_zeros_32) {
 }
 
 int CTZ64 (uint64_t n) {
-    auto fast = abel::count_tailing_zeros(n);
+    auto fast = abel::count_trailing_zeros(n);
     auto slow = abel::ctz_template(n);
     EXPECT_EQ(fast, slow) << n;
     return fast;
@@ -64,7 +64,7 @@ TEST(BitsTest, count_tailing_zeros_64) {
 }
 
 int CTZ32 (uint32_t n) {
-    auto fast = abel::count_tailing_zeros(n);
+    auto fast = abel::count_trailing_zeros(n);
     auto slow = abel::ctz_template(n);
     EXPECT_EQ(fast, slow) << n;
     return fast;

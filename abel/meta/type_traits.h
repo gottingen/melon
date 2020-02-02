@@ -9,6 +9,7 @@
 #include <utility>
 #include <cstddef>
 #include <abel/base/profile.h>
+#include <memory>
 
 // MSVC constructibility traits do not detect destructor properties and so our
 // implementations should not use them as a source-of-truth.
@@ -781,6 +782,13 @@ struct function_traits : public function_traits<decltype(&T::operator ())> { };
 
 template<typename T>
 struct function_traits<T &> : public function_traits<typename std::remove_reference<T>::type> { };
+
+template<typename T>
+struct is_smart_ptr : std::false_type {};
+
+template<typename T>
+struct is_smart_ptr<std::unique_ptr<T>> : std::true_type {};
+
 
 }  // namespace abel
 

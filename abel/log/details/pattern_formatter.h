@@ -194,24 +194,27 @@ class S_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
 // milliseconds
 class e_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
+        static constexpr abel::duration one_sec = abel::seconds(1);
         auto millis = abel::to_duration(msg.time);
-        fmt_helper::pad3(static_cast<int>(to_int64_milliseconds(millis)), dest);
+        fmt_helper::pad3(static_cast<int>(to_int64_milliseconds(millis % one_sec)), dest);
     }
 };
 
 // microseconds
 class f_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
+        static constexpr abel::duration one_sec = abel::seconds(1);
         auto micros = abel::to_duration(msg.time);
-        fmt_helper::pad6(static_cast<int>(abel::to_int64_microseconds(micros)), dest);
+        fmt_helper::pad6(static_cast<int>(abel::to_int64_microseconds(micros % one_sec)), dest);
     }
 };
 
 // nanoseconds
 class F_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
     void format (const details::log_msg &msg, const std::tm &, fmt::memory_buffer &dest) override {
+        static constexpr abel::duration one_sec = abel::seconds(1);
         auto ns = abel::to_duration(msg.time);
-        fmt::format_to(dest, "{:09}", abel::to_int64_nanoseconds(ns));
+        fmt::format_to(dest, "{:09}", abel::to_int64_nanoseconds(ns % one_sec));
     }
 };
 
@@ -413,9 +416,9 @@ class full_formatter ABEL_INHERITANCE_FINAL : public flag_formatter {
             cache_timestamp_ = secs;
         }
         fmt_helper::append_buf(cached_datetime_, dest);
-
+        static constexpr abel::duration one_sec = abel::seconds(1);
         auto millis = abel::to_duration(msg.time);
-        fmt_helper::pad3(static_cast<int>(abel::to_int64_milliseconds(millis)), dest);
+        fmt_helper::pad3(static_cast<int>(abel::to_int64_milliseconds(millis % one_sec)), dest);
         dest.push_back(']');
         dest.push_back(' ');
         dest.push_back('[');

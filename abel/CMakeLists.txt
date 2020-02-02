@@ -4,6 +4,7 @@ FILE(GLOB BASE_SRC "base/*.cc")
 FILE(GLOB BASE_INTERNAL_SRC "base/internal/*.cc")
 
 FILE(GLOB CONMTAINER_INTERNAL_SRC "container/internal/*.cc")
+FILE(GLOB CONMTAINER_SRC "container/*.cc")
 
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
 FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
@@ -50,6 +51,7 @@ SET(ABEL_SRC
         ${BASE_SRC}
         ${BASE_INTERNAL_SRC}
         ${CONMTAINER_INTERNAL_SRC}
+        ${CONMTAINER_SRC}
         ${DEBUG_INTERNAL_SRC}
         ${DEBUG_SRC}
         ${FLAGS_INTERNAL_SRC}

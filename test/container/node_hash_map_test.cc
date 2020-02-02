@@ -1,7 +1,6 @@
 //
 
 #include <abel/container/node_hash_map.h>
-
 #include <abel/container/internal/tracked.h>
 #include <test/container/unordered_map_constructor_test.h>
 #include <test/container/unordered_map_lookup_test.h>

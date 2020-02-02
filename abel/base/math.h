@@ -17,5 +17,7 @@
 #include <abel/base/math/power.h>
 #include <abel/base/math/rol.h>
 #include <abel/base/math/ror.h>
+#include <abel/base/math/align.h>
+#include <abel/base/math/bits.h>
 
 #endif //ABEL_BASE_MATH_H_
