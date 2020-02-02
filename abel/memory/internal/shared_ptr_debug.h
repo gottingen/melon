@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/2.
 //
 
-#ifndef ABEL_SCHEDULE_INTERNAL_SHARED_PTR_DEBUG_H_
-#define ABEL_SCHEDULE_INTERNAL_SHARED_PTR_DEBUG_H_
+#ifndef ABEL_MEMORY_INTERNAL_SHARED_PTR_DEBUG_H_
+#define ABEL_MEMORY_INTERNAL_SHARED_PTR_DEBUG_H_
 
 #include <thread>
 #include <cassert>
@@ -48,4 +48,4 @@ private:
 
 } //namespace abel
 
-#endif //ABEL_SCHEDULE_INTERNAL_SHARED_PTR_DEBUG_H_
+#endif //ABEL_MEMORY_INTERNAL_SHARED_PTR_DEBUG_H_

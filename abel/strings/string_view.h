@@ -332,7 +332,7 @@ public:
 
     // Converts to `std::basic_string`.
     template<typename A>
-    explicit operator std::basic_string<value_type , traits_type, A> () const {
+    explicit operator std::basic_string<value_type, traits_type, A> () const {
         if (!data())
             return {};
         return std::basic_string<value_type, traits_type, A>(data(), size());
@@ -499,7 +499,6 @@ private:
         return (void) ABEL_ASSERT(len <= kMaxSize), len;
     }
 
-
     static constexpr int CompareImpl (size_type length_a, size_type length_b,
                                       int compare_result) {
         return compare_result == 0 ? static_cast<int>(length_a > length_b) -
@@ -514,6 +513,10 @@ private:
 
 using string_view = basic_string_view<char>;
 using wstring_view = basic_string_view<wchar_t>;
+
+typedef basic_string_view<char> u8string_view;  // Actually not a C++17 type, but added for consistency.
+typedef basic_string_view<char16_t> u16string_view;
+typedef basic_string_view<char32_t> u32string_view;
 
 // This large function is defined ABEL_FORCE_INLINE so that in a fairly common case where
 // one of the arguments is a literal, the compiler can elide a lot of the
@@ -565,7 +568,8 @@ constexpr bool operator != (typename std::decay<basic_string_view<T>>::type x, b
 }
 
 template<typename T>
-constexpr bool operator != (typename std::decay<basic_string_view<T>>::type x, typename std::decay<basic_string_view<T>>::type y) noexcept {
+constexpr bool operator != (typename std::decay<basic_string_view<T>>::type x,
+                            typename std::decay<basic_string_view<T>>::type y) noexcept {
     return !(x == y);
 }
 
@@ -607,7 +611,7 @@ namespace abel {
 // Provided because std::basic_string_view::substr throws if `pos > size()`
 template<typename T>
 ABEL_FORCE_INLINE basic_string_view<T> clipped_substr (basic_string_view<T> s, size_t pos,
-                                                      size_t n = basic_string_view<T>::npos) {
+                                                       size_t n = basic_string_view<T>::npos) {
     pos = (std::min)(pos, static_cast<size_t>(s.size()));
     return s.substr(pos, n);
 }
@@ -637,7 +641,7 @@ inline void WritePadding (std::ostream &o, size_t pad) {
     }
 }
 
-template <typename T>
+template<typename T>
 class LookupTable {
 public:
     // For each character in wanted, sets the index corresponding
@@ -683,7 +687,7 @@ inline std::ostream &operator << (std::ostream &o, string_view piece) {
 
 template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find (basic_string_view<T> s,
-                                                                     basic_string_view<T>::size_type pos) const noexcept {
+                                                                            basic_string_view<T>::size_type pos) const noexcept {
     if (empty() || pos > length_) {
         if (empty() && pos == 0 && s.empty())
             return 0;
@@ -695,7 +699,8 @@ inline typename basic_string_view<T>::size_type basic_string_view<T>::find (basi
 }
 
 template<typename T>
-inline typename basic_string_view<T>::size_type basic_string_view<T>::find (value_type c, size_type pos) const noexcept {
+inline typename basic_string_view<T>::size_type basic_string_view<T>::find (value_type c,
+                                                                            size_type pos) const noexcept {
     if (empty() || pos >= length_) {
         return npos;
     }
@@ -705,7 +710,8 @@ inline typename basic_string_view<T>::size_type basic_string_view<T>::find (valu
 }
 
 template<typename T>
-inline typename basic_string_view<T>::size_type basic_string_view<T>::rfind (basic_string_view<T> s, size_type pos) const
+inline typename basic_string_view<T>::size_type basic_string_view<T>::rfind (basic_string_view<T> s,
+                                                                             size_type pos) const
 noexcept {
     if (length_ < s.length_)
         return npos;
@@ -735,7 +741,7 @@ noexcept {
 
 template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find_first_of (basic_string_view<T> s,
-                                                   size_type pos) const
+                                                                                     size_type pos) const
 noexcept {
     if (empty() || s.empty()) {
         return npos;
@@ -751,9 +757,9 @@ noexcept {
     }
     return npos;
 }
-template <typename T>
+template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find_first_not_of (basic_string_view<T> s,
-                                                       size_type pos) const
+                                                                                         size_type pos) const
 noexcept {
     if (empty())
         return npos;
@@ -769,9 +775,9 @@ noexcept {
     return npos;
 }
 
-template <typename T>
+template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find_first_not_of (value_type c,
-                                                       size_type pos) const
+                                                                                         size_type pos) const
 noexcept {
     if (empty())
         return npos;
@@ -783,9 +789,9 @@ noexcept {
     return npos;
 }
 
-template <typename T>
+template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_of (basic_string_view<T> s,
-                                                  size_type pos) const noexcept {
+                                                                                    size_type pos) const noexcept {
     if (empty() || s.empty())
         return npos;
     // Avoid the cost of LookupTable() for a single-character search.
@@ -802,9 +808,9 @@ inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_
     return npos;
 }
 
-template <typename T>
+template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_not_of (basic_string_view<T> s,
-                                                      size_type pos) const
+                                                                                        size_type pos) const
 noexcept {
     if (empty())
         return npos;
@@ -825,9 +831,9 @@ noexcept {
     return npos;
 }
 
-template <typename T>
+template<typename T>
 inline typename basic_string_view<T>::size_type basic_string_view<T>::find_last_not_of (value_type c,
-                                                      size_type pos) const
+                                                                                        size_type pos) const
 noexcept {
     if (empty())
         return npos;
@@ -855,12 +861,27 @@ noexcept {
 #endif
 
 ABEL_STRING_VIEW_SELECTANY
-template <typename T>
+template<typename T>
 constexpr typename basic_string_view<T>::size_type basic_string_view<T>::npos;
 ABEL_STRING_VIEW_SELECTANY
-template <typename T>
+template<typename T>
 constexpr typename basic_string_view<T>::size_type basic_string_view<T>::kMaxSize;
 
 }  // namespace abel
+
+namespace std {
+
+template<> struct hash<abel::string_view> {
+    size_t operator () (const abel::string_view &x) const {
+        abel::string_view::const_iterator p = x.cbegin();
+        abel::string_view::const_iterator end = x.cend();
+        uint32_t result = 2166136261U; // We implement an FNV-like string hash.
+        while (p != end)
+            result = (result * 16777619) ^ (uint8_t) *p++;
+        return (size_t) result;
+    }
+};
+
+}
 
 #endif  // ABEL_STRINGS_STRING_VIEW_H_
