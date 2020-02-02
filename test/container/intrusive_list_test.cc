@@ -7,6 +7,7 @@
 #include <abel/container/intrusive_list.h>
 #include <iterator>
 #include <cstdio>
+#include <stdarg.h>
 
 template <typename InputIterator, typename StackValue>
 bool VerifySequence(InputIterator first, InputIterator last, StackValue /*unused*/, const char* pName, ...)
