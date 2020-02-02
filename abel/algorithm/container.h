@@ -195,7 +195,6 @@ container_algorithm_internal::ContainerIter<C> c_find_if (C &c, Pred &&pred) {
 // c_find_if_not()
 //
 // Container-based version of the <algorithm> `std::find_if_not()` function to
-// find the first element in a container not matching the given condition.
 template<typename C, typename Pred>
 container_algorithm_internal::ContainerIter<C> c_find_if_not (C &c,
                                                               Pred &&pred) {
