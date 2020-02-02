@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/1/31.
 //
 
-#ifndef ABEL_META_APPLY_H_
-#define ABEL_ABEL_META_APPLY_H_
+#ifndef ABEL_FUNCTIONAL_APPLY_H_
+#define ABEL_FUNCTIONAL_APPLY_H_
 
 #include <tuple>
 #include <utility>
@@ -45,4 +45,4 @@ auto apply (Func &&func, const std::tuple<T...> &args) {
 
 } //namespace abel
 
-#endif //ABEL_ABEL_META_APPLY_H_
+#endif //ABEL_FUNCTIONAL_APPLY_H_
