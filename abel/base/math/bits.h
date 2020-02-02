@@ -8,6 +8,7 @@
 #include <abel/base/math/clz.h>
 #include <abel/base/math/ctz.h>
 #include <bitset>
+#include <limits>
 
 namespace abel {
 
