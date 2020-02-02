@@ -1,0 +1,8 @@
+//
+// Created by liyinbin on 2020/2/2.
+//
+
+#ifndef ABEL_ABEL_UTILITY_NON_COPYABLE_H_
+#define ABEL_ABEL_UTILITY_NON_COPYABLE_H_
+
+#endif //ABEL_ABEL_UTILITY_NON_COPYABLE_H_
