@@ -72,8 +72,7 @@ TEST(fixed_circular_buffer, test_random_walk) {
                 d.pop_front();
             }
             break;
-        case 4:
-            c_sort(c);
+        case 4:c_sort(c);
             c_sort(d);
             break;
         case 5:
@@ -85,15 +84,12 @@ TEST(fixed_circular_buffer, test_random_walk) {
                 EXPECT_EQ(m, n);
             }
             break;
-        case 6:
-            c.clear();
+        case 6:c.clear();
             d.clear();
             break;
-        case 7:
-           c_reverse(c);
+        case 7:c_reverse(c);
             c_reverse(d);
-        default:
-            abort();
+        default:abort();
         }
         EXPECT_EQ(c.size(), d.size());
         EXPECT_TRUE(c_equal(c, d));

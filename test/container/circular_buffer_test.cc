@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 #include <abel/container/circular_buffer.h>
 
-
 TEST(circular, erase) {
     abel::circular_buffer<int> buf;
 
