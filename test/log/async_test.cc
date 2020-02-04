@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 
 TEST(BasicAsync, async) {
-    using namespace abel;
-    auto test_sink = std::make_shared<sinks::test_sink_mt>();
+    using namespace abel::log;
+    auto test_sink = std::make_shared<abel::sinks::test_sink_mt>();
     size_t queue_size = 128;
     size_t messages = 256;
     {
@@ -22,8 +22,8 @@ TEST(BasicAsync, async) {
 }
 
 TEST(discardpolicy, async) {
-    using namespace abel;
-    auto test_sink = std::make_shared<sinks::test_sink_mt>();
+    using namespace abel::log;
+    auto test_sink = std::make_shared<abel::sinks::test_sink_mt>();
     size_t queue_size = 2;
     size_t messages = 10240;
 
@@ -36,27 +36,27 @@ TEST(discardpolicy, async) {
 }
 
 TEST(DiscarPpolicy, async) {
-    using namespace abel;
+    using namespace abel::log;
     size_t queue_size = 2;
     size_t messages = 10240;
-    abel::init_thread_pool(queue_size,
+    abel::log::init_thread_pool(queue_size,
                            1);
 
-    auto logger = abel::create_async_nb<sinks::test_sink_mt>("as2");
+    auto logger = abel::log::create_async_nb<abel::sinks::test_sink_mt>("as2");
     for (
         size_t i = 0;
         i < messages;
         i++) {
         logger->info("Hello message");
     }
-    auto sink = std::static_pointer_cast<sinks::test_sink_mt>(logger->sinks()[0]);
+    auto sink = std::static_pointer_cast<abel::sinks::test_sink_mt>(logger->sinks()[0]);
     EXPECT_TRUE(sink->msg_counter() < messages);
-    abel::drop_all();
+    abel::log::drop_all();
 }
 
 TEST(flush, async) {
-    using namespace abel;
-    auto test_sink = std::make_shared<sinks::test_sink_mt>();
+    using namespace abel::log;
+    auto test_sink = std::make_shared<abel::sinks::test_sink_mt>();
     size_t queue_size = 256;
     size_t messages = 256;
     {
@@ -74,22 +74,22 @@ TEST(flush, async) {
 }
 
 TEST(AsyncPeriodicFlush, async) {
-    using namespace abel;
+    using namespace abel::log;
 
-    auto logger = abel::create_async<sinks::test_sink_mt>("as");
+    auto logger = abel::log::create_async<abel::sinks::test_sink_mt>("as");
 
-    auto test_sink = std::static_pointer_cast<sinks::test_sink_mt>(logger->sinks()[0]);
+    auto test_sink = std::static_pointer_cast<abel::sinks::test_sink_mt>(logger->sinks()[0]);
 
-    abel::flush_every(std::chrono::seconds(1));
+    abel::log::flush_every(std::chrono::seconds(1));
     std::this_thread::sleep_for(std::chrono::milliseconds(1100));
     EXPECT_TRUE(test_sink->flush_counter() == 1);
-    abel::flush_every(std::chrono::seconds(0));
-    abel::drop_all();
+    abel::log::flush_every(std::chrono::seconds(0));
+    abel::log::drop_all();
 }
 
 TEST(wait_empty, async) {
-    using namespace abel;
-    auto test_sink = std::make_shared<sinks::test_sink_mt>();
+    using namespace abel::log;
+    auto test_sink = std::make_shared<abel::sinks::test_sink_mt>();
     test_sink->set_delay(std::chrono::milliseconds(5));
     size_t messages = 100;
 
@@ -106,8 +106,8 @@ TEST(wait_empty, async) {
 }
 
 TEST(multithreads, async) {
-    using namespace abel;
-    auto test_sink = std::make_shared<sinks::test_sink_mt>();
+    using namespace abel::log;
+    auto test_sink = std::make_shared<abel::sinks::test_sink_mt>();
     size_t queue_size = 128;
     size_t messages = 256;
     size_t n_threads = 10;
@@ -140,9 +140,9 @@ TEST(ToFile, async) {
     size_t tp_threads = 1;
     std::string filename = "logs/async_test.log";
     {
-        auto file_sink = std::make_shared<abel::sinks::basic_file_sink_mt>(filename, true);
-        auto tp = std::make_shared<abel::details::thread_pool>(messages, tp_threads);
-        auto logger = std::make_shared<abel::async_logger>("as", std::move(file_sink), std::move(tp));
+        auto file_sink = std::make_shared<abel::log::sinks::basic_file_sink_mt>(filename, true);
+        auto tp = std::make_shared<abel::log::details::thread_pool>(messages, tp_threads);
+        auto logger = std::make_shared<abel::log::async_logger>("as", std::move(file_sink), std::move(tp));
 
         for (size_t j = 0; j < messages; j++) {
             logger->info("Hello message #{}", j);
@@ -160,9 +160,9 @@ TEST(multi_workers, async) {
     size_t tp_threads = 10;
     std::string filename = "logs/async_test.log";
     {
-        auto file_sink = std::make_shared<abel::sinks::basic_file_sink_mt>(filename, true);
-        auto tp = std::make_shared<abel::details::thread_pool>(messages, tp_threads);
-        auto logger = std::make_shared<abel::async_logger>("as", std::move(file_sink), std::move(tp));
+        auto file_sink = std::make_shared<abel::log::sinks::basic_file_sink_mt>(filename, true);
+        auto tp = std::make_shared<abel::log::details::thread_pool>(messages, tp_threads);
+        auto logger = std::make_shared<abel::log::async_logger>("as", std::move(file_sink), std::move(tp));
 
         for (size_t j = 0; j < messages; j++) {
             logger->info("Hello message #{}", j);

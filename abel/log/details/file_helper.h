@@ -18,6 +18,7 @@
 #include <tuple>
 
 namespace abel {
+namespace log {
 namespace details {
 
 static const char *default_eol = ABEL_EOL;
@@ -80,12 +81,12 @@ public:
             abel::sleep_for(abel::milliseconds(open_interval));
         }
 
-        throw spdlog_ex("Failed opening file " + filename_to_str(_filename) + " for writing", errno);
+        throw log_ex("Failed opening file " + filename_to_str(_filename) + " for writing", errno);
     }
 
     void reopen (bool truncate) {
         if (_filename.empty()) {
-            throw spdlog_ex("Failed re opening file - was not opened before");
+            throw log_ex("Failed re opening file - was not opened before");
         }
         open(_filename, truncate);
     }
@@ -105,13 +106,13 @@ public:
         size_t msg_size = buf.size();
         auto data = buf.data();
         if (std::fwrite(data, 1, msg_size, fd_) != msg_size) {
-            throw spdlog_ex("Failed writing to file " + filename_to_str(_filename), errno);
+            throw log_ex("Failed writing to file " + filename_to_str(_filename), errno);
         }
     }
 
     size_t size () const {
         if (fd_ == nullptr) {
-            throw spdlog_ex("Cannot use size() on closed file " + filename_to_str(_filename));
+            throw log_ex("Cannot use size() on closed file " + filename_to_str(_filename));
         }
         return abel::filesystem::file_size(_filename);
     }
@@ -137,19 +138,19 @@ public:
     // ".mylog" => (".mylog". "")
     // "my_folder/.mylog" => ("my_folder/.mylog", "")
     // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-    static std::tuple<filename_t, filename_t> split_by_extenstion (const abel::filename_t &fname) {
+    static std::tuple<filename_t, filename_t> split_by_extenstion (const abel::log::filename_t &fname) {
         auto ext_index = fname.rfind('.');
 
         // no valid extension found - return whole path and empty string as
         // extension
         if (ext_index == filename_t::npos || ext_index == 0 || ext_index == fname.size() - 1) {
-            return std::make_tuple(fname, abel::filename_t());
+            return std::make_tuple(fname, abel::log::filename_t());
         }
 
         // treat casese like "/etc/rc.d/somelogfile or "/abc/.hiddenfile"
         auto folder_index = fname.rfind(abel::filesystem::path::preferred_separator);
         if (folder_index != fname.npos && folder_index >= ext_index - 1) {
-            return std::make_tuple(fname, abel::filename_t());
+            return std::make_tuple(fname, abel::log::filename_t());
         }
 
         // finally - return a valid base and extension tuple
@@ -161,4 +162,5 @@ private:
     filename_t _filename;
 };
 } // namespace details
+} //namespace log
 } // namespace abel

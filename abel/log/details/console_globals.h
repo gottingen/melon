@@ -9,11 +9,10 @@
 #include <mutex>
 
 namespace abel {
+namespace log {
 namespace details {
-struct console_stdout
-{
-    static FILE *stream()
-    {
+struct console_stdout {
+    static FILE *stream () {
         return stdout;
     }
 #ifdef _WIN32
@@ -24,10 +23,8 @@ struct console_stdout
 #endif
 };
 
-struct console_stderr
-{
-    static FILE *stream()
-    {
+struct console_stderr {
+    static FILE *stream () {
         return stderr;
     }
 #ifdef _WIN32
@@ -38,24 +35,21 @@ struct console_stderr
 #endif
 };
 
-struct console_mutex
-{
+struct console_mutex {
     using mutex_t = std::mutex;
-    static mutex_t &mutex()
-    {
+    static mutex_t &mutex () {
         static mutex_t s_mutex;
         return s_mutex;
     }
 };
 
-struct console_nullmutex
-{
+struct console_nullmutex {
     using mutex_t = null_mutex;
-    static mutex_t &mutex()
-    {
+    static mutex_t &mutex () {
         static mutex_t s_mutex;
         return s_mutex;
     }
 };
 } // namespace details
+} //namespace log
 } // namespace abel

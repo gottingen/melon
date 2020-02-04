@@ -10,7 +10,8 @@ option(ABEL_STATUS_DEBUG "cmake toolchain debug info" ON)
 
 option(ENABLE_TESTING "enable unit test" ON)
 option(ABEL_PACKAGE_GEN "enable package gen" ON)
-option(ENABLE_BENCHMARK "enable benchmark" ON)
+option(ENABLE_BENCHMARK "enable benchmark" OFF)
+option(ENABLE_EXAMPLE "enable benchmark" ON)
 
 
 set(CMAKE_BUILD_TYPE Debug)

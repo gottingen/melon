@@ -16,6 +16,7 @@
 #include <string>
 
 namespace abel {
+namespace log {
 namespace sinks {
 /*
  * MSVC sink (logging using OutputDebugStringA)
@@ -45,6 +46,7 @@ using windebug_sink_mt = msvc_sink_mt;
 using windebug_sink_st = msvc_sink_st;
 
 } // namespace sinks
+} //namespace log
 } // namespace abel
 
 #endif

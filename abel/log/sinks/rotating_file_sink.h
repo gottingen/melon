@@ -17,6 +17,7 @@
 #include <tuple>
 
 namespace abel {
+namespace log {
 namespace sinks {
 
 //
@@ -78,7 +79,7 @@ private:
 
             if (details::file_helper::file_exists(target)) {
                 if (abel::filesystem::remove(target) != 0) {
-                    throw spdlog_ex("rotating_file_sink: failed removing " + filename_to_str(target), errno);
+                    throw log_ex("rotating_file_sink: failed removing " + filename_to_str(target), errno);
                 }
             }
             if (details::file_helper::file_exists(src)) {
@@ -89,7 +90,7 @@ private:
                     abel::filesystem::remove(target);
                     abel::filesystem::rename(src, target, ec);
                     if (ec) {
-                        throw spdlog_ex(
+                        throw log_ex(
                             "rotating_file_sink: failed renaming " + details::filename_to_str(src) + " to "
                                 + details::filename_to_str(target), errno);
                     }
@@ -126,4 +127,6 @@ inline std::shared_ptr<logger> rotating_logger_st (
     const std::string &logger_name, const filename_t &filename, size_t max_file_size, size_t max_files) {
     return Factory::template create<sinks::rotating_file_sink_st>(logger_name, filename, max_file_size, max_files);
 }
+
+} //namespace log {
 } // namespace abel

@@ -20,7 +20,7 @@
 #include <abel/format/format.h>
 
 namespace abel {
-
+namespace log {
 class formatter;
 
 namespace sinks {
@@ -54,14 +54,14 @@ static const char *level_names[] ABEL_LOG_LEVEL_NAMES;
 
 static const char *short_level_names[] {"T", "D", "I", "W", "E", "C", "O"};
 
-inline const char *to_c_str (abel::level::level_enum l) {
+inline const char *to_c_str (abel::log::level::level_enum l) {
     return level_names[l];
 }
 
-inline const char *to_short_c_str (abel::level::level_enum l) {
+inline const char *to_short_c_str (abel::log::level::level_enum l) {
     return short_level_names[l];
 }
-inline abel::level::level_enum from_str (const std::string &name) {
+inline abel::log::level::level_enum from_str (const std::string &name) {
     static std::unordered_map<std::string, level_enum> name_to_level = // map string->level
         {{level_names[0], level::trace},                               // trace
          {level_names[1], level::debug},                            // debug
@@ -90,12 +90,12 @@ enum class pattern_time_type {
 //
 // Log exception
 //
-class spdlog_ex : public std::runtime_error {
+class log_ex : public std::runtime_error {
 public:
-    explicit spdlog_ex (const std::string &msg)
+    explicit log_ex (const std::string &msg)
         : runtime_error(msg) {
     }
-    spdlog_ex (std::string msg, int last_errno)
+    log_ex (std::string msg, int last_errno)
         : runtime_error(std::move(msg)), last_errno_(last_errno) {
     }
     const char *what () const ABEL_NOEXCEPT override {
@@ -131,6 +131,7 @@ using filename_t = std::string;
     {                                                                                                                                      \
         err_handler_("Unknown exeption in logger");                                                                                        \
     }
+} //namespace log
 } // namespace abel
 
 #endif//ABEL_LOG_COMMON_H_

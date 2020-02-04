@@ -13,6 +13,11 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(abel)
 
+if (ENABLE_EXAMPLE)
+    add_subdirectory(example)
+endif (ENABLE_EXAMPLE)
+
+
 if (ENABLE_BENCHMARK)
     include_directories(${PROJECT_SOURCE_DIR}/deps/benchmark-1.5.0/include)
     add_subdirectory(deps/benchmark-1.5.0)

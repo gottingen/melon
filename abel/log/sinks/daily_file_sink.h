@@ -17,6 +17,7 @@
 #include <string>
 
 namespace abel {
+namespace log {
 namespace sinks {
 
 /*
@@ -53,7 +54,7 @@ public:
         : base_filename_(std::move(base_filename)), rotation_h_(rotation_hour), rotation_m_(rotation_minute),
           truncate_(truncate) {
         if (rotation_hour < 0 || rotation_hour > 23 || rotation_minute < 0 || rotation_minute > 59) {
-            throw spdlog_ex("daily_file_sink: Invalid rotation time in ctor");
+            throw log_ex("daily_file_sink: Invalid rotation time in ctor");
         }
         auto now = abel::now();
         file_helper_.open(FileNameCalc::calc_filename(base_filename_, abel::local_tm(now)), truncate_);
@@ -118,4 +119,5 @@ inline std::shared_ptr<logger> daily_logger_st (
     const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false) {
     return Factory::template create<sinks::daily_file_sink_st>(logger_name, filename, hour, minute, truncate);
 }
+} //namespace log
 } // namespace abel

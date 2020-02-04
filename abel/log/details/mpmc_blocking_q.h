@@ -18,22 +18,20 @@
 #include <mutex>
 
 namespace abel {
+namespace log {
 namespace details {
 
 template<typename T>
-class mpmc_blocking_queue
-{
+class mpmc_blocking_queue {
 public:
     using item_type = T;
-    explicit mpmc_blocking_queue(size_t max_items)
-        : q_(max_items)
-    {
+    explicit mpmc_blocking_queue (size_t max_items)
+        : q_(max_items) {
     }
 
 #ifndef __MINGW32__
     // try to enqueue and block if no room left
-    void enqueue(T &&item)
-    {
+    void enqueue (T &&item) {
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             pop_cv_.wait(lock, [this] { return !this->q_.full(); });
@@ -43,8 +41,7 @@ public:
     }
 
     // enqueue immediately. overrun oldest message in the queue if no room left.
-    void enqueue_nowait(T &&item)
-    {
+    void enqueue_nowait (T &&item) {
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             q_.push_back(std::move(item));
@@ -54,12 +51,10 @@ public:
 
     // try to dequeue item. if no item found. wait upto timeout and try again
     // Return true, if succeeded dequeue item, false otherwise
-    bool dequeue_for(T &popped_item, std::chrono::milliseconds wait_duration)
-    {
+    bool dequeue_for (T &popped_item, std::chrono::milliseconds wait_duration) {
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if (!push_cv_.wait_for(lock, wait_duration, [this] { return !this->q_.empty(); }))
-            {
+            if (!push_cv_.wait_for(lock, wait_duration, [this] { return !this->q_.empty(); })) {
                 return false;
             }
             q_.pop_front(popped_item);
@@ -109,7 +104,8 @@ private:
     std::mutex queue_mutex_;
     std::condition_variable push_cv_;
     std::condition_variable pop_cv_;
-    abel::details::circular_q<T> q_;
+    abel::log::details::circular_q<T> q_;
 };
 } // namespace details
+} //namespace log
 } // namespace abel

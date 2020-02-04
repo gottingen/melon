@@ -4,7 +4,9 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 
-#pragma once
+#ifndef ABEL_LOG_DETAIL_PERIODIC_WORKER_H_
+#define ABEL_LOG_DETAIL_PERIODIC_WORKER_H_
+
 
 // periodic worker thread - periodically executes the given callback function.
 //
@@ -18,25 +20,21 @@
 #include <mutex>
 #include <thread>
 namespace abel {
+namespace log {
 namespace details {
 
-class periodic_worker
-{
+class periodic_worker {
 public:
-    periodic_worker(std::function<void()> callback_fun, std::chrono::seconds interval)
-    {
+    periodic_worker (std::function<void ()> callback_fun, std::chrono::seconds interval) {
         active_ = (interval > std::chrono::seconds::zero());
-        if (!active_)
-        {
+        if (!active_) {
             return;
         }
 
-        worker_thread_ = std::thread([this, callback_fun, interval]() {
-            for (;;)
-            {
+        worker_thread_ = std::thread([this, callback_fun, interval] () {
+            for (;;) {
                 std::unique_lock<std::mutex> lock(this->mutex_);
-                if (this->cv_.wait_for(lock, interval, [this] { return !this->active_; }))
-                {
+                if (this->cv_.wait_for(lock, interval, [this] { return !this->active_; })) {
                     return; // active_ == false, so exit this thread
                 }
                 callback_fun();
@@ -44,14 +42,12 @@ public:
         });
     }
 
-    periodic_worker(const periodic_worker &) = delete;
-    periodic_worker &operator=(const periodic_worker &) = delete;
+    periodic_worker (const periodic_worker &) = delete;
+    periodic_worker &operator = (const periodic_worker &) = delete;
 
     // stop the worker thread and join it
-    ~periodic_worker()
-    {
-        if (worker_thread_.joinable())
-        {
+    ~periodic_worker () {
+        if (worker_thread_.joinable()) {
             {
                 std::lock_guard<std::mutex> lock(mutex_);
                 active_ = false;
@@ -68,4 +64,7 @@ private:
     std::condition_variable cv_;
 };
 } // namespace details
+} //namespace log
 } // namespace abel
+#endif //ABEL_LOG_DETAIL_PERIODIC_WORKER_H_
+

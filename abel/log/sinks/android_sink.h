@@ -19,6 +19,7 @@
 #endif
 
 namespace abel {
+namespace log {
 namespace sinks {
 
 /*
@@ -62,7 +63,7 @@ protected:
 
         if (ret < 0)
         {
-            throw spdlog_ex("__android_log_write() failed", ret);
+            throw log_ex("__android_log_write() failed", ret);
         }
     }
 
@@ -111,7 +112,7 @@ inline std::shared_ptr<logger> android_logger_st(const std::string &logger_name,
 {
     return Factory::template create<sinks::android_sink_st>(logger_name, tag);
 }
-
+} //namespace log
 } // namespace abel
 
 #endif //ABEL_LOG_SINK_ANDROID_SINK_H_

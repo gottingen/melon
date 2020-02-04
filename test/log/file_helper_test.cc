@@ -1,8 +1,8 @@
 
 #include <test/testing/log_includes.h>
 
-using abel::details::file_helper;
-using abel::details::log_msg;
+using abel::log::details::file_helper;
+using abel::log::details::log_msg;
 
 static const std::string target_filename = "logs/file_helper_test.txt";
 
@@ -64,15 +64,15 @@ TEST(filehelper, filehelperreopen2) {
 }
 
 static void test_split_ext (const char *fname, const char *expect_base, const char *expect_ext) {
-    abel::filename_t filename(fname);
-    abel::filename_t expected_base(expect_base);
-    abel::filename_t expected_ext(expect_ext);
+    abel::log::filename_t filename(fname);
+    abel::log::filename_t expected_base(expect_base);
+    abel::log::filename_t expected_ext(expect_ext);
 
 #ifdef _WIN32 // replace folder sep
     std::replace(filename.begin(), filename.end(), '/', '\\');
     std::replace(expected_base.begin(), expected_base.end(), '/', '\\');
 #endif
-    abel::filename_t basename, ext;
+    abel::log::filename_t basename, ext;
     std::tie(basename, ext) = file_helper::split_by_extenstion(filename);
     EXPECT_TRUE(basename == expected_base);
     EXPECT_TRUE(ext == expected_ext);

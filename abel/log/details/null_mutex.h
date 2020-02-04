@@ -9,37 +9,33 @@
 // null, no cost dummy "mutex" and dummy "atomic" int
 
 namespace abel {
+namespace log {
 namespace details {
-struct null_mutex
-{
-    void lock() {}
-    void unlock() {}
-    bool try_lock()
-    {
+struct null_mutex {
+    void lock () { }
+    void unlock () { }
+    bool try_lock () {
         return true;
     }
 };
 
-struct null_atomic_int
-{
+struct null_atomic_int {
     int value;
-    null_atomic_int() = default;
+    null_atomic_int () = default;
 
-    explicit null_atomic_int(int val)
-        : value(val)
-    {
+    explicit null_atomic_int (int val)
+        : value(val) {
     }
 
-    int load(std::memory_order) const
-    {
+    int load (std::memory_order) const {
         return value;
     }
 
-    void store(int val)
-    {
+    void store (int val) {
         value = val;
     }
 };
 
 } // namespace details
+} //namespace log
 } // namespace abel
