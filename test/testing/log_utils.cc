@@ -2,7 +2,7 @@
 
 void prepare_logdir()
 {
-    abel::drop_all();
+    abel::log::drop_all();
 #ifdef _WIN32
     system("if not exist logs mkdir logs");
     system("del /F /Q logs\\*");

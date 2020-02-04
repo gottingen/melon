@@ -12,6 +12,7 @@
 #include <utility>
 
 namespace abel {
+namespace log {
 namespace details {
 struct log_msg {
     log_msg () = default;
@@ -36,4 +37,5 @@ struct log_msg {
     mutable size_t color_range_end {0};
 };
 } // namespace details
+} //namespace log {
 } // namespace abel

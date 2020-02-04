@@ -23,6 +23,7 @@
 #include <vector>
 
 namespace abel {
+namespace log {
 namespace details {
 
 class flag_formatter {
@@ -447,7 +448,7 @@ public:
     explicit pattern_formatter (
         std::string pattern,
         pattern_time_type time_type = pattern_time_type::local,
-        std::string eol = abel::details::default_eol)
+        std::string eol = abel::log::details::default_eol)
         : pattern_(std::move(pattern)), eol_(std::move(eol)), pattern_time_type_(time_type), last_log_secs_(0) {
         std::memset(&cached_tm_, 0, sizeof(cached_tm_));
         compile_pattern_(pattern_);
@@ -629,4 +630,5 @@ private:
         }
     }
 };
+} //namespace log
 } // namespace abel

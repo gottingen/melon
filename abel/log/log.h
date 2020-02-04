@@ -16,12 +16,12 @@
 #include <string>
 
 namespace abel {
-
+namespace log {
 // Default logger factory-  creates synchronous loggers
 struct synchronous_factory {
     template<typename Sink, typename... SinkArgs>
 
-    static std::shared_ptr<abel::logger> create (std::string logger_name, SinkArgs &&... args) {
+    static std::shared_ptr<abel::log::logger> create (std::string logger_name, SinkArgs &&... args) {
         auto sink = std::make_shared<Sink>(std::forward<SinkArgs>(args)...);
         auto new_logger = std::make_shared<logger>(std::move(logger_name), std::move(sink));
         details::registry::instance().register_and_init(new_logger);
@@ -37,7 +37,7 @@ using default_factory = synchronous_factory;
 // Example:
 // abel::create<daily_file_sink_st>("logger_name", "dailylog_filename", 11, 59);
 template<typename Sink, typename... SinkArgs>
-inline std::shared_ptr<abel::logger> create (std::string logger_name, SinkArgs &&... sink_args) {
+inline std::shared_ptr<abel::log::logger> create (std::string logger_name, SinkArgs &&... sink_args) {
     return default_factory::create<Sink>(std::move(logger_name), std::forward<SinkArgs>(sink_args)...);
 }
 
@@ -49,14 +49,14 @@ inline std::shared_ptr<logger> get (const std::string &name) {
 }
 
 // Set global formatter. Each sink in each logger will get a clone of this object
-inline void set_formatter (std::unique_ptr<abel::formatter> formatter) {
+inline void set_formatter (std::unique_ptr<abel::log::formatter> formatter) {
     details::registry::instance().set_formatter(std::move(formatter));
 }
 
 // Set global format string.
 // example: abel::set_pattern("%Y-%m-%d %H:%M:%S.%e %l : %v");
 inline void set_pattern (std::string pattern, pattern_time_type time_type = pattern_time_type::local) {
-    set_formatter(std::unique_ptr<abel::formatter>(new pattern_formatter(pattern, time_type)));
+    set_formatter(std::unique_ptr<abel::log::formatter>(new pattern_formatter(pattern, time_type)));
 }
 
 // Set global logging level
@@ -139,6 +139,6 @@ inline void shutdown () {
 #else
     #define ABEL_LOG_DEBUG(logger, ...) (void)0
 #endif
-
+}
 } // namespace abel
 #endif //ABEL_LOG_LOG_H_

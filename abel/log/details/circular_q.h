@@ -7,22 +7,20 @@
 #pragma once
 
 namespace abel {
+namespace log {
 namespace details {
 template<typename T>
-class circular_q
-{
+class circular_q {
 public:
     using item_type = T;
 
-    explicit circular_q(size_t max_items)
+    explicit circular_q (size_t max_items)
         : max_items_(max_items + 1) // one item is reserved as marker for full q
-        , v_(max_items_)
-    {
+        , v_(max_items_) {
     }
 
     // push back, overrun (oldest) item if no room left
-    void push_back(T &&item)
-    {
+    void push_back (T &&item) {
         v_[tail_] = std::move(item);
         tail_ = (tail_ + 1) % max_items_;
 
@@ -34,19 +32,16 @@ public:
 
     // Pop item from front.
     // If there are no elements in the container, the behavior is undefined.
-    void pop_front(T &popped_item)
-    {
+    void pop_front (T &popped_item) {
         popped_item = std::move(v_[head_]);
         head_ = (head_ + 1) % max_items_;
     }
 
-    bool empty()
-    {
+    bool empty () {
         return tail_ == head_;
     }
 
-    bool full()
-    {
+    bool full () {
         // head is ahead of the tail by 1
         return ((tail_ + 1) % max_items_) == head_;
     }
@@ -59,4 +54,5 @@ private:
     std::vector<T> v_;
 };
 } // namespace details
+} //namespace log {
 } // namespace abel

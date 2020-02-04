@@ -14,7 +14,7 @@ namespace abel {
 namespace sinks {
 
 template<class Mutex>
-class test_sink : public base_sink<Mutex> {
+class test_sink : public abel::log::sinks::base_sink<Mutex> {
 public:
     size_t msg_counter () {
         return msg_counter_;
@@ -29,7 +29,7 @@ public:
     }
 
 protected:
-    void sink_it_ (const details::log_msg &) override {
+    void sink_it_ (const abel::log::details::log_msg &) override {
         msg_counter_++;
         std::this_thread::sleep_for(delay_);
     }
@@ -43,7 +43,7 @@ protected:
 };
 
 using test_sink_mt = test_sink<std::mutex>;
-using test_sink_st = test_sink<details::null_mutex>;
+using test_sink_st = test_sink<abel::log::details::null_mutex>;
 
 } // namespace sinks
 } // namespace abel
