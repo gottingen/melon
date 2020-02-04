@@ -11,7 +11,7 @@
 
 using namespace abel;
 
-TEST(array_list,chunked_fifo_small) {
+TEST(array_list, chunked_fifo_small) {
     // Check all the methods of array_list but with a trivial type (int) and
     // only a few elements - and in particular a single chunk is enough.
     array_list<int> fifo;
@@ -48,7 +48,7 @@ TEST(array_list,chunked_fifo_small) {
     fifo.reserve(1280);
 }
 
-TEST(array_list,chunked_fifo_fullchunk) {
+TEST(array_list, chunked_fifo_fullchunk) {
     // Grow a array_list to exactly fill a chunk, and see what happens when
     // we cross that chunk.
     constexpr size_t N = 128;
@@ -58,47 +58,47 @@ TEST(array_list,chunked_fifo_fullchunk) {
     }
     EXPECT_EQ(fifo.size(), N);
     fifo.push_back(N);
-    EXPECT_EQ(fifo.size(), N+1);
-    for (int i = 0 ; i < static_cast<int>(N+1); i++) {
+    EXPECT_EQ(fifo.size(), N + 1);
+    for (int i = 0; i < static_cast<int>(N + 1); i++) {
         EXPECT_EQ(fifo.front(), i);
-        EXPECT_EQ(fifo.size(), N+1-i);
+        EXPECT_EQ(fifo.size(), N + 1 - i);
         fifo.pop_front();
     }
     EXPECT_EQ(fifo.size(), 0u);
     EXPECT_EQ(fifo.empty(), true);
 }
 
-TEST(array_list,chunked_fifo_big) {
+TEST(array_list, chunked_fifo_big) {
     // Grow a array_list to many elements, and see things are working as
     // expected
     array_list<int> fifo;
     constexpr size_t N = 100000;
-    for (int i=0; i < static_cast<int>(N); i++) {
+    for (int i = 0; i < static_cast<int>(N); i++) {
         fifo.push_back(i);
     }
     EXPECT_EQ(fifo.size(), N);
     EXPECT_EQ(fifo.empty(), false);
-    for (int i = 0 ; i < static_cast<int>(N); i++) {
+    for (int i = 0; i < static_cast<int>(N); i++) {
         EXPECT_EQ(fifo.front(), i);
-        EXPECT_EQ(fifo.size(), N-i);
+        EXPECT_EQ(fifo.size(), N - i);
         fifo.pop_front();
     }
     EXPECT_EQ(fifo.size(), 0u);
     EXPECT_EQ(fifo.empty(), true);
 }
 
-TEST(array_list,chunked_fifo_constructor) {
+TEST(array_list, chunked_fifo_constructor) {
     // Check that array_list appropriately calls the type's constructor
     // and destructor, and doesn't need anything else.
     struct typ {
         int val;
-        unsigned* constructed;
-        unsigned* destructed;
-        typ(int val, unsigned* constructed, unsigned* destructed)
-        : val(val), constructed(constructed), destructed(destructed) {
+        unsigned *constructed;
+        unsigned *destructed;
+        typ (int val, unsigned *constructed, unsigned *destructed)
+            : val(val), constructed(constructed), destructed(destructed) {
             ++*constructed;
         }
-        ~typ() { ++*destructed; }
+        ~typ () { ++*destructed; }
     };
     array_list<typ> fifo;
     unsigned constructed = 0, destructed = 0;
@@ -109,11 +109,11 @@ TEST(array_list,chunked_fifo_constructor) {
     EXPECT_EQ(fifo.size(), N);
     EXPECT_EQ(constructed, N);
     EXPECT_EQ(destructed, 0u);
-    for (unsigned i = 0 ; i < N; i++) {
+    for (unsigned i = 0; i < N; i++) {
         EXPECT_EQ(fifo.front().val, static_cast<int>(i));
-        EXPECT_EQ(fifo.size(), N-i);
+        EXPECT_EQ(fifo.size(), N - i);
         fifo.pop_front();
-        EXPECT_EQ(destructed, i+1);
+        EXPECT_EQ(destructed, i + 1);
     }
     EXPECT_EQ(fifo.size(), 0u);
     EXPECT_EQ(fifo.empty(), true);
@@ -125,9 +125,9 @@ TEST(array_list,chunked_fifo_constructor) {
         for (unsigned i = 0; i < N; i++) {
             fifo.emplace_back(i, &constructed, &destructed);
             EXPECT_EQ(fifo.front().val, 0);
-            EXPECT_EQ(fifo.size(), i+1);
+            EXPECT_EQ(fifo.size(), i + 1);
             EXPECT_EQ(fifo.empty(), false);
-            EXPECT_EQ(constructed, i+1);
+            EXPECT_EQ(constructed, i + 1);
             EXPECT_EQ(destructed, 0u);
         }
     }
@@ -135,12 +135,12 @@ TEST(array_list,chunked_fifo_constructor) {
     EXPECT_EQ(destructed, N);
 }
 
-TEST(array_list,chunked_fifo_construct_fail) {
+TEST(array_list, chunked_fifo_construct_fail) {
     // Check that if we fail to construct the item pushed, the queue remains
     // empty.
-    class my_exception {};
+    class my_exception { };
     struct typ {
-        typ() {
+        typ () {
             throw my_exception();
         }
     };
@@ -149,22 +149,22 @@ TEST(array_list,chunked_fifo_construct_fail) {
     EXPECT_EQ(fifo.empty(), true);
     try {
         fifo.emplace_back();
-    } catch(my_exception) {
+    } catch (my_exception) {
         // expected, ignore
     }
     EXPECT_EQ(fifo.size(), 0u);
     EXPECT_EQ(fifo.empty(), true);
 }
 
-TEST(array_list,chunked_fifo_construct_fail2) {
+TEST(array_list, chunked_fifo_construct_fail2) {
     // A slightly more elaborate test, with a chunk size of 2
     // items, and the third addition failing, so the question is
     // not whether empty() is wrong immediately, but whether after
     // we pop the two items, it will become true or we'll be left
     // with an empty chunk.
-    class my_exception {};
+    class my_exception { };
     struct typ {
-        typ(bool fail) {
+        typ (bool fail) {
             if (fail) {
                 throw my_exception();
             }
@@ -177,7 +177,7 @@ TEST(array_list,chunked_fifo_construct_fail2) {
     fifo.emplace_back(false);
     try {
         fifo.emplace_back(true);
-    } catch(my_exception) {
+    } catch (my_exception) {
         // expected, ignore
     }
     EXPECT_EQ(fifo.size(), 2u);
@@ -190,10 +190,10 @@ TEST(array_list,chunked_fifo_construct_fail2) {
     EXPECT_EQ(fifo.empty(), true);
 }
 
-TEST(array_list,chunked_fifo_iterator) {
+TEST(array_list, chunked_fifo_iterator) {
     constexpr auto items_per_chunk = 8;
-    auto fifo = array_list<int, items_per_chunk>{};
-    auto reference = std::deque<int>{};
+    auto fifo = array_list<int, items_per_chunk> {};
+    auto reference = std::deque<int> {};
 
     EXPECT_TRUE(fifo.begin() == fifo.end());
 

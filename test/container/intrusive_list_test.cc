@@ -9,26 +9,23 @@
 #include <cstdio>
 #include <stdarg.h>
 
-template <typename InputIterator, typename StackValue>
-bool VerifySequence(InputIterator first, InputIterator last, StackValue /*unused*/, const char* pName, ...)
-{
+template<typename InputIterator, typename StackValue>
+bool VerifySequence (InputIterator first, InputIterator last, StackValue /*unused*/, const char *pName, ...) {
     typedef typename std::iterator_traits<InputIterator>::value_type value_type;
 
-    int        argIndex = 0;
-    int        seqIndex = 0;
-    bool       bReturnValue = true;
+    int argIndex = 0;
+    int seqIndex = 0;
+    bool bReturnValue = true;
     StackValue next;
 
     va_list args;
     va_start(args, pName);
 
-    for( ; first != last; ++first, ++argIndex, ++seqIndex)
-    {
+    for (; first != last; ++first, ++argIndex, ++seqIndex) {
         next = va_arg(args, StackValue);
 
-        if((next == StackValue(-1)) || !(value_type(next) == *first))
-        {
-            if(pName)
+        if ((next == StackValue(-1)) || !(value_type(next) == *first)) {
+            if (pName)
                 ::printf("[%s] Mismatch at index %d\n", pName, argIndex);
             else
                 ::printf("Mismatch at index %d\n", argIndex);
@@ -36,21 +33,19 @@ bool VerifySequence(InputIterator first, InputIterator last, StackValue /*unused
         }
     }
 
-    for(; first != last; ++first)
+    for (; first != last; ++first)
         ++seqIndex;
 
-    if(bReturnValue)
-    {
+    if (bReturnValue) {
         next = va_arg(args, StackValue);
 
-        if(!(next == StackValue(-1)))
-        {
+        if (!(next == StackValue(-1))) {
             do {
                 ++argIndex;
                 next = va_arg(args, StackValue);
-            } while(!(next == StackValue(-1)));
+            } while (!(next == StackValue(-1)));
 
-            if(pName)
+            if (pName)
                 ::printf("[%s] Too many elements: expected %d, found %d\n", pName, argIndex, seqIndex);
             else
                 ::printf("Too many elements: expected %d, found %d\n", argIndex, seqIndex);
@@ -77,7 +72,7 @@ struct IntNode : public abel::intrusive_list_node {
 
 class ListInit {
 public:
-    ListInit (abel::intrusive_list <IntNode> &container, IntNode *pNodeArray)
+    ListInit (abel::intrusive_list<IntNode> &container, IntNode *pNodeArray)
         : mpContainer(&container), mpNodeArray(pNodeArray) {
         mpContainer->clear();
     }
@@ -95,7 +90,7 @@ public:
     }
 
 protected:
-    abel::intrusive_list <IntNode> *mpContainer;
+    abel::intrusive_list<IntNode> *mpContainer;
     IntNode *mpNodeArray;
 };
 
@@ -107,13 +102,13 @@ TEST(intrusive_list, all) {
     int i = 0;
     {
         const size_t offset = offsetof(abel::intrusive_list_node, prev);
-        EXPECT_TRUE(offset == sizeof(abel::intrusive_list_node * ));
+        EXPECT_TRUE(offset == sizeof(abel::intrusive_list_node *));
     }
 
     {
         IntNode nodes[20];
 
-        abel::intrusive_list <IntNode> ilist;
+        abel::intrusive_list<IntNode> ilist;
 
         // Enforce that the intrusive_list copy ctor is visible. If it is not,
         // then the class is not a POD type as it is supposed to be.
@@ -150,7 +145,7 @@ TEST(intrusive_list, all) {
 
 
         // const_iterator / begin
-        const abel::intrusive_list <IntNode> cilist;
+        const abel::intrusive_list<IntNode> cilist;
         abel::intrusive_list<IntNode>::const_iterator cit;
         for (cit = cilist.begin(); cit != cilist.end(); ++cit)
             EXPECT_TRUE(cit == cilist.end()); // This is guaranteed to be false.
@@ -196,65 +191,79 @@ TEST(intrusive_list, all) {
         ListInit(ilist, nodes) += 0, 1, 2, 3, 4, 5, 6, 7, 8, 9;
 
         ilist.splice(++ilist.begin(), ilist, --ilist.end());
-        EXPECT_TRUE(VerifySequence(ilist.begin(), ilist.end(), int(), "splice(single)", 0, 9, 1, 2, 3, 4, 5, 6, 7, 8, -1));
+        EXPECT_TRUE(VerifySequence(ilist.begin(),
+                                   ilist.end(),
+                                   int(),
+                                   "splice(single)",
+                                   0,
+                                   9,
+                                   1,
+                                   2,
+                                   3,
+                                   4,
+                                   5,
+                                   6,
+                                   7,
+                                   8,
+                                   -1));
 
-        intrusive_list <IntNode> ilist2;
+        intrusive_list<IntNode> ilist2;
         ListInit(ilist2, nodes + 10) += 10, 11, 12, 13, 14, 15, 16, 17, 18, 19;
 
         ilist.splice(++ ++ilist.begin(), ilist2);
         EXPECT_TRUE(VerifySequence(ilist2.begin(), ilist2.end(), int(), "splice(whole)", -1));
         EXPECT_TRUE(VerifySequence(ilist.begin(),
-                              ilist.end(),
-                              int(),
-                              "splice(whole)",
-                              0,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              -1));
+                                   ilist.end(),
+                                   int(),
+                                   "splice(whole)",
+                                   0,
+                                   9,
+                                   10,
+                                   11,
+                                   12,
+                                   13,
+                                   14,
+                                   15,
+                                   16,
+                                   17,
+                                   18,
+                                   19,
+                                   1,
+                                   2,
+                                   3,
+                                   4,
+                                   5,
+                                   6,
+                                   7,
+                                   8,
+                                   -1));
 
         ilist.splice(ilist.begin(), ilist, ++ ++ilist.begin(), -- --ilist.end());
         EXPECT_TRUE(VerifySequence(ilist.begin(),
-                              ilist.end(),
-                              int(),
-                              "splice(range)",
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              0,
-                              9,
-                              7,
-                              8,
-                              -1));
+                                   ilist.end(),
+                                   int(),
+                                   "splice(range)",
+                                   10,
+                                   11,
+                                   12,
+                                   13,
+                                   14,
+                                   15,
+                                   16,
+                                   17,
+                                   18,
+                                   19,
+                                   1,
+                                   2,
+                                   3,
+                                   4,
+                                   5,
+                                   6,
+                                   0,
+                                   9,
+                                   7,
+                                   8,
+                                   -1));
 
         ilist.clear();
         ilist.swap(ilist2);
@@ -363,8 +372,8 @@ TEST(intrusive_list, all) {
         // Test copy construction and assignment.
         // The following *should* not compile.
 
-        intrusive_list <IntNode> ilist1;
-        intrusive_list <IntNode> ilist2(ilist1);
+        intrusive_list<IntNode> ilist1;
+        intrusive_list<IntNode> ilist2(ilist1);
         ilist1 = ilist2;
     }
 
@@ -375,29 +384,29 @@ TEST(intrusive_list, all) {
         const int kSize = 10;
         IntNode nodes[kSize];
 
-        intrusive_list <IntNode> listEmpty;
+        intrusive_list<IntNode> listEmpty;
         listEmpty.sort();
         EXPECT_TRUE(VerifySequence(listEmpty.begin(), listEmpty.end(), int(), "list::sort", -1));
 
-        intrusive_list <IntNode> list1;
+        intrusive_list<IntNode> list1;
         ListInit(list1, nodes) += 1;
         list1.sort();
         EXPECT_TRUE(VerifySequence(list1.begin(), list1.end(), int(), "list::sort", 1, -1));
         list1.clear();
 
-        intrusive_list <IntNode> list4;
+        intrusive_list<IntNode> list4;
         ListInit(list4, nodes) += 1, 9, 2, 3;
         list4.sort();
         EXPECT_TRUE(VerifySequence(list4.begin(), list4.end(), int(), "list::sort", 1, 2, 3, 9, -1));
         list4.clear();
 
-        intrusive_list <IntNode> listA;
+        intrusive_list<IntNode> listA;
         ListInit(listA, nodes) += 1, 9, 2, 3, 5, 7, 4, 6, 8, 0;
         listA.sort();
         EXPECT_TRUE(VerifySequence(listA.begin(), listA.end(), int(), "list::sort", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1));
         listA.clear();
 
-        intrusive_list <IntNode> listB;
+        intrusive_list<IntNode> listB;
         ListInit(listB, nodes) += 1, 9, 2, 3, 5, 7, 4, 6, 8, 0;
         listB.sort(std::less<int>());
         EXPECT_TRUE(VerifySequence(listB.begin(), listB.end(), int(), "list::sort", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1));
@@ -412,34 +421,34 @@ TEST(intrusive_list, all) {
         IntNode nodesA[kSize];
         IntNode nodesB[kSize];
 
-        intrusive_list <IntNode> listA;
+        intrusive_list<IntNode> listA;
         ListInit(listA, nodesA) += 1, 2, 3, 4, 4, 5, 9, 9;
 
-        intrusive_list <IntNode> listB;
+        intrusive_list<IntNode> listB;
         ListInit(listB, nodesB) += 1, 2, 3, 4, 4, 5, 9, 9;
 
         listA.merge(listB);
         EXPECT_TRUE(VerifySequence(listA.begin(),
-                              listA.end(),
-                              int(),
-                              "list::merge",
-                              1,
-                              1,
-                              2,
-                              2,
-                              3,
-                              3,
-                              4,
-                              4,
-                              4,
-                              4,
-                              5,
-                              5,
-                              9,
-                              9,
-                              9,
-                              9,
-                              -1));
+                                   listA.end(),
+                                   int(),
+                                   "list::merge",
+                                   1,
+                                   1,
+                                   2,
+                                   2,
+                                   3,
+                                   3,
+                                   4,
+                                   4,
+                                   4,
+                                   4,
+                                   5,
+                                   5,
+                                   9,
+                                   9,
+                                   9,
+                                   9,
+                                   -1));
         EXPECT_TRUE(VerifySequence(listB.begin(), listB.end(), int(), "list::merge", -1));
     }
 
@@ -451,12 +460,12 @@ TEST(intrusive_list, all) {
         IntNode nodesA[kSize];
         IntNode nodesB[kSize];
 
-        intrusive_list <IntNode> listA;
+        intrusive_list<IntNode> listA;
         ListInit(listA, nodesA) += 1, 2, 3, 4, 4, 5, 9, 9;
         listA.unique();
         EXPECT_TRUE(VerifySequence(listA.begin(), listA.end(), int(), "list::unique", 1, 2, 3, 4, 5, 9, -1));
 
-        intrusive_list <IntNode> listB;
+        intrusive_list<IntNode> listB;
         ListInit(listB, nodesB) += 1, 2, 3, 4, 4, 5, 9, 9;
         listB.unique(std::equal_to<int>());
         EXPECT_TRUE(VerifySequence(listA.begin(), listA.end(), int(), "list::unique", 1, 2, 3, 4, 5, 9, -1));
