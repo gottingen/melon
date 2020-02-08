@@ -34,6 +34,7 @@
 // THL A29 Limited ("Tencent Modifications"). 
 // All Tencent Modifications are Copyright (C) 2015 THL A29 Limited.
 
+#include <abel/base/profile.h>
 #ifndef _MSC_VER // [
 #error "Use this header only with Microsoft Visual C++ compilers!"
 #endif // _MSC_VER ]

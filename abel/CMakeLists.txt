@@ -36,6 +36,8 @@ FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
 FILE(GLOB THREAD_SRC "thread/*.cc")
 
+FILE(GLOB METRICS_SRC "metrics/*.cc")
+
 FILE(GLOB DIGEST_SRC "digest/*.cc")
 FILE(GLOB SYSTEM_SRC "system/*.cc")
 
@@ -57,6 +59,7 @@ SET(ABEL_SRC
         ${FLAGS_INTERNAL_SRC}
         ${FLAGS_SRC}
         ${HASH_INTERNAL_SRC}
+        ${METRICS_SRC}
         ${NUMERIC_SRC}
         ${RANDOM_SRC}
         ${RANDOM_INTERNAL_SRC}
