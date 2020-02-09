@@ -7,9 +7,6 @@ matrix:
     - env: CMAKE_CXX="g++" BUILD_TYPE="Debug"
       os: linux
 
-    - env: CMAKE_CXX="clang++" BUILD_TYPE="Debug"
-      os: osx
-
 before_script:
   # print out some version numbers
   - $CMAKE_CXX --version

@@ -33,4 +33,6 @@ if (ENABLE_TESTING)
     add_subdirectory(test)
 endif (ENABLE_TESTING)
 
-
+if (ABEL_PACKAGE_GEN)
+    include(abel_package)
+endif ()

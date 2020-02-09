@@ -36,6 +36,8 @@ FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
 
 FILE(GLOB THREAD_SRC "thread/*.cc")
 
+FILE(GLOB METRICS_SRC "metrics/*.cc")
+
 FILE(GLOB DIGEST_SRC "digest/*.cc")
 FILE(GLOB SYSTEM_SRC "system/*.cc")
 
@@ -57,6 +59,7 @@ SET(ABEL_SRC
         ${FLAGS_INTERNAL_SRC}
         ${FLAGS_SRC}
         ${HASH_INTERNAL_SRC}
+        ${METRICS_SRC}
         ${NUMERIC_SRC}
         ${RANDOM_SRC}
         ${RANDOM_INTERNAL_SRC}
@@ -76,10 +79,43 @@ SET(ABEL_SRC
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})
+add_library(abel_shared SHARED ${ABEL_SRC})
+
 target_link_libraries(abel_static pthread)
 if(APPLE)
         find_library(CoreFoundation CoreFoundation)
         target_link_libraries(abel_static ${CoreFoundation} pthread)
+        target_link_libraries(abel_shared ${CoreFoundation} pthread)
 else()
         target_link_libraries(abel_static pthread)
 endif()
+
+set_target_properties(abel_shared PROPERTIES
+        OUTPUT_NAME abel
+        VERSION     ${CMAKE_PROJECT_VERSION}
+        SOVERSION   ${CMAKE_PROJECT_VERSION_MAJOR}
+        )
+
+set_target_properties(abel_static PROPERTIES
+        OUTPUT_NAME abel
+        VERSION     ${CMAKE_PROJECT_VERSION}
+        SOVERSION   ${CMAKE_PROJECT_VERSION_MAJOR}
+        )
+
+install(TARGETS abel_static abel_shared
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        )
+
+file(COPY ${PROJECT_SOURCE_DIR}/abel
+        DESTINATION ${PROJECT_BINARY_DIR}/include
+        FILES_MATCHING
+        PATTERN "*.h"
+        )
+
+install(DIRECTORY ${PROJECT_BINARY_DIR}/include/abel
+        DESTINATION include
+        FILES_MATCHING
+        PATTERN "*.h"
+        )
