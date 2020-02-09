@@ -8,6 +8,8 @@ build_path = $(current_folder)/$(build_folder)
 
 test: ## Run tests
 	@echo "start testing ..."
+	@cd $(build_path); \
+    		make test;
 
 release: .clean-build ## Run tests with race detector
 	@echo "buiding release package ..."

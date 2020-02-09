@@ -11,6 +11,7 @@ set(ABEL_GNUC_CXX_FLAGS
         -Woverloaded-virtual
         -Wpointer-arith
         -Wwrite-strings
+        -Wno-maybe-uninitialized
         -march=native
         -MMD
         -fPIC

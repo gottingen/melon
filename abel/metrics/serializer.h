@@ -18,7 +18,7 @@ public:
 
     virtual ~serializer () = default;
 
-    virtual std::string format (const std::vector<cache_metrics> &) const;
+    std::string format (const std::vector<cache_metrics> &) const;
 
     virtual void format (std::ostream &stdout, const std::vector<cache_metrics> &) const = 0;
 };
