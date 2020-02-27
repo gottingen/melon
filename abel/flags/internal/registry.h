@@ -16,21 +16,23 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
-CommandLineFlag* FindCommandLineFlag(abel::string_view name);
-CommandLineFlag* FindRetiredFlag(abel::string_view name);
+        CommandLineFlag *FindCommandLineFlag(abel::string_view name);
+
+        CommandLineFlag *FindRetiredFlag(abel::string_view name);
 
 // Executes specified visitor for each non-retired flag in the registry.
 // Requires the caller hold the registry lock.
-void ForEachFlagUnlocked(std::function<void(CommandLineFlag*)> visitor);
+        void ForEachFlagUnlocked(std::function<void(CommandLineFlag *)> visitor);
+
 // Executes specified visitor for each non-retired flag in the registry. While
 // callback are executed, the registry is locked and can't be changed.
-void ForEachFlag(std::function<void(CommandLineFlag*)> visitor);
+        void ForEachFlag(std::function<void(CommandLineFlag *)> visitor);
 
 //-----------------------------------------------------------------------------
 
-bool RegisterCommandLineFlag(CommandLineFlag*);
+        bool RegisterCommandLineFlag(CommandLineFlag *);
 
 //-----------------------------------------------------------------------------
 // Retired registrations:
@@ -65,18 +67,18 @@ bool RegisterCommandLineFlag(CommandLineFlag*);
 //
 
 // Retire flag with name "name" and type indicated by ops.
-bool Retire(const char* name, FlagOpFn ops);
+        bool Retire(const char *name, FlagOpFn ops);
 
 // Registered a retired flag with name 'flag_name' and type 'T'.
-template <typename T>
-ABEL_FORCE_INLINE bool RetiredFlag(const char* flag_name) {
-  return flags_internal::Retire(flag_name, flags_internal::FlagOps<T>);
-}
+        template<typename T>
+        ABEL_FORCE_INLINE bool RetiredFlag(const char *flag_name) {
+            return flags_internal::Retire(flag_name, flags_internal::FlagOps<T>);
+        }
 
 // If the flag is retired, returns true and indicates in |*type_is_bool|
 // whether the type of the retired flag is a bool.
 // Only to be called by code that needs to explicitly ignore retired flags.
-bool IsRetiredFlag(abel::string_view name, bool* type_is_bool);
+        bool IsRetiredFlag(abel::string_view name, bool *type_is_bool);
 
 //-----------------------------------------------------------------------------
 // Saves the states (value, default value, whether the user has set
@@ -88,22 +90,24 @@ bool IsRetiredFlag(abel::string_view name, bool* type_is_bool);
 // lifetime, so concurrent _direct_ access to those flags
 // (i.e. FLAGS_foo instead of {Get,Set}CommandLineOption()) is unsafe.
 
-class FlagSaver {
- public:
-  FlagSaver();
-  ~FlagSaver();
+        class FlagSaver {
+        public:
+            FlagSaver();
 
-  FlagSaver(const FlagSaver&) = delete;
-  void operator=(const FlagSaver&) = delete;
+            ~FlagSaver();
 
-  // Prevents saver from restoring the saved state of flags.
-  void Ignore();
+            FlagSaver(const FlagSaver &) = delete;
 
- private:
-  class FlagSaverImpl* impl_;  // we use pimpl here to keep API steady
-};
+            void operator=(const FlagSaver &) = delete;
 
-}  // namespace flags_internal
+            // Prevents saver from restoring the saved state of flags.
+            void Ignore();
+
+        private:
+            class FlagSaverImpl *impl_;  // we use pimpl here to keep API steady
+        };
+
+    }  // namespace flags_internal
 
 }  // namespace abel
 

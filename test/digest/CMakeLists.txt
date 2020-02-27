@@ -1,7 +1,7 @@
 
 file(GLOB META_SRC "*.cc")
 
-foreach(fl ${META_SRC})
+foreach (fl ${META_SRC})
 
     string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" SRC_NAME ${fl})
     set(TEST_NAME digest_${SRC_NAME})
@@ -22,4 +22,4 @@ foreach(fl ${META_SRC})
             NAME ${TEST_NAME}
             COMMAND ${TEST_NAME}
     )
-endforeach(fl ${SRC})
+endforeach (fl ${SRC})

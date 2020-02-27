@@ -94,11 +94,13 @@ TEST(array_list, chunked_fifo_constructor) {
         int val;
         unsigned *constructed;
         unsigned *destructed;
-        typ (int val, unsigned *constructed, unsigned *destructed)
-            : val(val), constructed(constructed), destructed(destructed) {
+
+        typ(int val, unsigned *constructed, unsigned *destructed)
+                : val(val), constructed(constructed), destructed(destructed) {
             ++*constructed;
         }
-        ~typ () { ++*destructed; }
+
+        ~typ() { ++*destructed; }
     };
     array_list<typ> fifo;
     unsigned constructed = 0, destructed = 0;
@@ -138,9 +140,10 @@ TEST(array_list, chunked_fifo_constructor) {
 TEST(array_list, chunked_fifo_construct_fail) {
     // Check that if we fail to construct the item pushed, the queue remains
     // empty.
-    class my_exception { };
+    class my_exception {
+    };
     struct typ {
-        typ () {
+        typ() {
             throw my_exception();
         }
     };
@@ -162,9 +165,10 @@ TEST(array_list, chunked_fifo_construct_fail2) {
     // not whether empty() is wrong immediately, but whether after
     // we pop the two items, it will become true or we'll be left
     // with an empty chunk.
-    class my_exception { };
+    class my_exception {
+    };
     struct typ {
-        typ (bool fail) {
+        typ(bool fail) {
             if (fail) {
                 throw my_exception();
             }
@@ -192,8 +196,8 @@ TEST(array_list, chunked_fifo_construct_fail2) {
 
 TEST(array_list, chunked_fifo_iterator) {
     constexpr auto items_per_chunk = 8;
-    auto fifo = array_list<int, items_per_chunk> {};
-    auto reference = std::deque<int> {};
+    auto fifo = array_list<int, items_per_chunk>{};
+    auto reference = std::deque<int>{};
 
     EXPECT_TRUE(fifo.begin() == fifo.end());
 

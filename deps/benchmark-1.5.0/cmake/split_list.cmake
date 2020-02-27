@@ -1,3 +1,3 @@
 macro(split_list listname)
-  string(REPLACE ";" " " ${listname} "${${listname}}")
+    string(REPLACE ";" " " ${listname} "${${listname}}")
 endmacro()

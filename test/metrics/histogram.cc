@@ -13,7 +13,7 @@
 using abel::metrics::histogram;
 
 TEST(HistogramTest, initialize_with_zero) {
-    histogram hist {{}};
+    histogram hist{{}};
     auto metric = hist.collect();
     auto h = metric.histogram;
     EXPECT_EQ(h.sample_count, 0U);
@@ -21,7 +21,7 @@ TEST(HistogramTest, initialize_with_zero) {
 }
 
 TEST(HistogramTest, sample_count) {
-    histogram hist {{1}};
+    histogram hist{{1}};
     hist.observe(0);
     hist.observe(200);
     auto metric = hist.collect();
@@ -30,7 +30,7 @@ TEST(HistogramTest, sample_count) {
 }
 
 TEST(HistogramTest, sample_sum) {
-    histogram hist {{1}};
+    histogram hist{{1}};
     hist.observe(0);
     hist.observe(1);
     hist.observe(101);
@@ -40,14 +40,14 @@ TEST(HistogramTest, sample_sum) {
 }
 
 TEST(HistogramTest, bucket_size) {
-    histogram hist {{1, 2}};
+    histogram hist{{1, 2}};
     auto metric = hist.collect();
     auto h = metric.histogram;
     EXPECT_EQ(h.bucket.size(), 3U);
 }
 
 TEST(HistogramTest, bucket_bounds) {
-    histogram hist {{1, 2}};
+    histogram hist{{1, 2}};
     auto metric = hist.collect();
     auto h = metric.histogram;
     EXPECT_EQ(h.bucket.at(0).upper_bound, 1);
@@ -57,7 +57,7 @@ TEST(HistogramTest, bucket_bounds) {
 }
 
 TEST(HistogramTest, bucket_counts_not_reset_by_collection) {
-    histogram hist {{1, 2}};
+    histogram hist{{1, 2}};
     hist.observe(1.5);
     hist.collect();
     hist.observe(1.5);
@@ -68,7 +68,7 @@ TEST(HistogramTest, bucket_counts_not_reset_by_collection) {
 }
 
 TEST(HistogramTest, cumulative_bucket_count) {
-    histogram hist {{1, 2}};
+    histogram hist{{1, 2}};
     hist.observe(0);
     hist.observe(0.5);
     hist.observe(1);

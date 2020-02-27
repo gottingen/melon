@@ -10,37 +10,38 @@
 #include <memory>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-class gauge {
-public:
-    gauge () = default;
+        class gauge {
+        public:
+            gauge() = default;
 
-    explicit gauge (const double value);
+            explicit gauge(const double value);
 
-    void update (const double value) noexcept;
+            void update(const double value) noexcept;
 
-    void inc () noexcept;
+            void inc() noexcept;
 
-    void inc (const double v) noexcept;
+            void inc(const double v) noexcept;
 
-    void dec () noexcept;
+            void dec() noexcept;
 
-    void dec (const double v) noexcept;
+            void dec(const double v) noexcept;
 
-    double value () const noexcept;
+            double value() const noexcept;
 
-    cache_metrics collect () const noexcept;
-private:
-    void change (double value) noexcept;
+            cache_metrics collect() const noexcept;
 
-private:
-    std::atomic<double> _value {0.0};
-};
+        private:
+            void change(double value) noexcept;
 
-typedef std::shared_ptr<gauge> gauge_ptr;
+        private:
+            std::atomic<double> _value{0.0};
+        };
 
-} //namespace metrics
+        typedef std::shared_ptr<gauge> gauge_ptr;
+
+    } //namespace metrics
 } //namespace abel
 
 #endif //ABEL_METRICS_GAUGE_H_

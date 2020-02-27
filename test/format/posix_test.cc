@@ -23,12 +23,12 @@ using fmt::file;
 using std::unique_ptr;
 
 // Checks if the file is open by reading one character from it.
-static bool isopen (int fd) {
+static bool isopen(int fd) {
     char buffer;
     return FMT_POSIX(read(fd, &buffer, 1)) == 1;
 }
 
-static bool isclosed (int fd) {
+static bool isclosed(int fd) {
     char buffer;
     std::streamsize result = 0;
     SUPPRESS_ASSERT(result = FMT_POSIX(read(fd, &buffer, 1)));
@@ -36,7 +36,7 @@ static bool isclosed (int fd) {
 }
 
 // Opens a file for reading.
-static file open_file () {
+static file open_file() {
     file read_end, write_end;
     file::pipe(read_end, write_end);
     write_end.write(FILE_CONTENT, std::strlen(FILE_CONTENT));
@@ -45,7 +45,7 @@ static file open_file () {
 }
 
 // Attempts to write a string to a file.
-static void write (file &f, fmt::string_view s) {
+static void write(file &f, fmt::string_view s) {
     std::size_t num_chars_left = s.size();
     const char *ptr = s.data();
     do {
@@ -209,7 +209,7 @@ TEST(FileTest, MoveAssignmentClosesFile) {
     EXPECT_TRUE(isclosed(old_fd));
 }
 
-static file OpenBufferedFile (int &fd) {
+static file OpenBufferedFile(int &fd) {
     file f = open_file();
     fd = f.descriptor();
     return f;
@@ -313,6 +313,7 @@ TEST(FileTest, DupError) {
     EXPECT_SYSTEM_ERROR_NOASSERT(file::dup(value),
                                  EBADF, "cannot duplicate file descriptor -1");
 }
+
 #endif
 
 TEST(FileTest, Dup2) {
@@ -365,7 +366,7 @@ TEST(FileTest, Fdopen) {
 TEST(FileTest, FdopenError) {
     file f;
     EXPECT_SYSTEM_ERROR_NOASSERT(
-        f.fdopen("r"), EBADF, "cannot associate stream with file descriptor");
+            f.fdopen("r"), EBADF, "cannot associate stream with file descriptor");
 }
 
 #ifdef FMT_LOCALE
@@ -375,4 +376,5 @@ TEST(LocaleTest, Strtod) {
     EXPECT_EQ(4.2, locale.strtod(ptr));
     EXPECT_EQ(start + 3, ptr);
 }
+
 #endif

@@ -25,7 +25,7 @@ namespace abel {
   }
 #endif
 
-ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_ATOMIC_GET)
+    ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_ATOMIC_GET)
 
 #undef ABEL_FLAGS_ATOMIC_GET
 
@@ -33,13 +33,13 @@ ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_ATOMIC_GET)
 // builds.
 #if defined(_MSC_VER) && !defined(__clang__)
 
-namespace flags_internal {
+    namespace flags_internal {
 
-ABEL_CONST_INIT static abel::mutex construction_guard(abel::kConstInit);
+    ABEL_CONST_INIT static abel::mutex construction_guard(abel::kConstInit);
 
-abel::mutex* GetGlobalConstructionGuard() { return &construction_guard; }
+    abel::mutex* GetGlobalConstructionGuard() { return &construction_guard; }
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 #endif
 

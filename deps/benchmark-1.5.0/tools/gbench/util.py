@@ -31,7 +31,7 @@ def is_executable_file(filename):
             b'\xfe\xed\xfa\xcf',  # MH_MAGIC_64
             b'\xcf\xfa\xed\xfe',  # MH_CIGAM_64
             b'\xca\xfe\xba\xbe',  # FAT_MAGIC
-            b'\xbe\xba\xfe\xca'   # FAT_CIGAM
+            b'\xbe\xba\xfe\xca'  # FAT_CIGAM
         ]
     elif sys.platform.startswith('win'):
         return magic_bytes == b'MZ'
@@ -134,7 +134,7 @@ def run_benchmark(exe_name, benchmark_flags):
         thandle, output_name = tempfile.mkstemp()
         os.close(thandle)
         benchmark_flags = list(benchmark_flags) + \
-            ['--benchmark_out=%s' % output_name]
+                          ['--benchmark_out=%s' % output_name]
 
     cmd = [exe_name] + benchmark_flags
     print("RUNNING: %s" % ' '.join(cmd))

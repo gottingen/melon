@@ -23,11 +23,11 @@
 using namespace rapidjson;
 using namespace std;
 
-template <typename StringStreamType>
+template<typename StringStreamType>
 static void TestStringStream() {
     typedef typename StringStreamType::char_type Ch;
 
-    Ch s[] = { 'A', 'B', 'C', '\0' };
+    Ch s[] = {'A', 'B', 'C', '\0'};
     StringStreamType oss(s);
     BasicOStreamWrapper<StringStreamType> os(oss);
     for (size_t i = 0; i < 3; i++)
@@ -55,29 +55,29 @@ TEST(OStreamWrapper, wstringstream) {
 
 TEST(OStreamWrapper, cout) {
     OStreamWrapper os(cout);
-    const char* s = "Hello World!\n";
+    const char *s = "Hello World!\n";
     while (*s)
         os.Put(*s++);
     os.Flush();
 }
 
-template <typename FileStreamType>
+template<typename FileStreamType>
 static void TestFileStream() {
     char filename[L_tmpnam];
-    FILE* fp = TempFile(filename);
+    FILE *fp = TempFile(filename);
     fclose(fp);
 
-    const char* s = "Hello World!\n";
+    const char *s = "Hello World!\n";
     {
         ofstream ofs(filename, ios::out | ios::binary);
         BasicOStreamWrapper<ofstream> osw(ofs);
-        for (const char* p = s; *p; p++)
+        for (const char *p = s; *p; p++)
             osw.Put(*p);
         osw.Flush();
     }
 
     fp = fopen(filename, "r");
-    for (const char* p = s; *p; p++)
+    for (const char *p = s; *p; p++)
         EXPECT_EQ(*p, static_cast<char>(fgetc(fp)));
     fclose(fp);
 }

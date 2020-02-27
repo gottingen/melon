@@ -449,10 +449,10 @@ TEST(fs, hard_link_count) {
     ec.clear();
 }
 
-static fs::file_time_type timeFromString (const std::string &str) {
+static fs::file_time_type timeFromString(const std::string &str) {
     abel::abel_time at;
-    std::string  err;
-    abel::parse_time("%Y-%m-%dT%H:%M:%S", str,  &at, &err);
+    std::string err;
+    abel::parse_time("%Y-%m-%dT%H:%M:%S", str, &at, &err);
     struct ::tm tm = abel::utc_tm(at);
     /*
     ::memset(&tm, 0, sizeof(::tm));
@@ -472,9 +472,10 @@ TEST(fs, last_write_time) {
     generateFile("foo");
     auto now = fs::file_time_type::clock::now();
     EXPECT_TRUE(
-        std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time(t.path()) - now).count()) < 3);
+            std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time(t.path()) - now).count()) <
+            3);
     EXPECT_TRUE(
-        std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time("foo") - now).count()) < 3);
+            std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time("foo") - now).count()) < 3);
     EXPECT_THROW(fs::last_write_time("bar"), fs::filesystem_error);
     EXPECT_NO_THROW(ft = fs::last_write_time("bar", ec));
     EXPECT_TRUE(ft == fs::file_time_type::min());
@@ -490,11 +491,11 @@ TEST(fs, last_write_time) {
     auto nt = timeFromString("2015-10-21T04:30:00");
     EXPECT_NO_THROW(fs::last_write_time(t.path() / "foo", nt));
     EXPECT_TRUE(
-        std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time("foo") - nt).count()) < 1);
+            std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time("foo") - nt).count()) < 1);
     nt = timeFromString("2015-10-21T04:29:00");
     EXPECT_NO_THROW(fs::last_write_time("foo", nt, ec));
     EXPECT_TRUE(
-        std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time("foo") - nt).count()) < 1);
+            std::abs(std::chrono::duration_cast<std::chrono::seconds>(fs::last_write_time("foo") - nt).count()) < 1);
     EXPECT_TRUE(!ec);
     EXPECT_THROW(fs::last_write_time("bar", nt), fs::filesystem_error);
     EXPECT_NO_THROW(fs::last_write_time("bar", nt, ec));
@@ -703,18 +704,18 @@ TEST(fs, status) {
     fs = fs::status(t.path());
     EXPECT_TRUE(fs.type() == fs::file_type::directory);
     EXPECT_TRUE((fs.permissions() & (fs::perms::owner_read | fs::perms::owner_write))
-                    == (fs::perms::owner_read | fs::perms::owner_write));
+                == (fs::perms::owner_read | fs::perms::owner_write));
     generateFile("foobar");
     fs = fs::status(t.path() / "foobar");
     EXPECT_TRUE(fs.type() == fs::file_type::regular);
     EXPECT_TRUE((fs.permissions() & (fs::perms::owner_read | fs::perms::owner_write))
-                    == (fs::perms::owner_read | fs::perms::owner_write));
+                == (fs::perms::owner_read | fs::perms::owner_write));
     if (is_symlink_creation_supported()) {
         fs::create_symlink(t.path() / "foobar", t.path() / "barfoo");
         fs = fs::status(t.path() / "barfoo");
         EXPECT_TRUE(fs.type() == fs::file_type::regular);
         EXPECT_TRUE((fs.permissions() & (fs::perms::owner_read | fs::perms::owner_write))
-                        == (fs::perms::owner_read | fs::perms::owner_write));
+                    == (fs::perms::owner_read | fs::perms::owner_write));
     }
 }
 
@@ -745,12 +746,12 @@ TEST(fs, symlink_status) {
     fs = fs::symlink_status(t.path());
     EXPECT_TRUE(fs.type() == fs::file_type::directory);
     EXPECT_TRUE((fs.permissions() & (fs::perms::owner_read | fs::perms::owner_write))
-                    == (fs::perms::owner_read | fs::perms::owner_write));
+                == (fs::perms::owner_read | fs::perms::owner_write));
     generateFile("foobar");
     fs = fs::symlink_status(t.path() / "foobar");
     EXPECT_TRUE(fs.type() == fs::file_type::regular);
     EXPECT_TRUE((fs.permissions() & (fs::perms::owner_read | fs::perms::owner_write))
-                    == (fs::perms::owner_read | fs::perms::owner_write));
+                == (fs::perms::owner_read | fs::perms::owner_write));
     if (is_symlink_creation_supported()) {
         fs::create_symlink(t.path() / "foobar", t.path() / "barfoo");
         fs = fs::symlink_status(t.path() / "barfoo");
@@ -804,14 +805,14 @@ TEST(fs, weakly_canonical) {
 TEST(fs, support_string_view) {
 //#if __cpp_lib_string_view
     std::string p("foo/bar");
-        abel::string_view sv(p);
-        EXPECT_TRUE(fs::path(sv, fs::path::format::generic_format).generic_string() == "foo/bar");
-        fs::path p2("fo");
-        p2 += abel::string_view("o");
-        EXPECT_TRUE(p2 == "foo");
-        EXPECT_TRUE(p2.compare(abel::string_view("foo")) == 0);
+    abel::string_view sv(p);
+    EXPECT_TRUE(fs::path(sv, fs::path::format::generic_format).generic_string() == "foo/bar");
+    fs::path p2("fo");
+    p2 += abel::string_view("o");
+    EXPECT_TRUE(p2 == "foo");
+    EXPECT_TRUE(p2.compare(abel::string_view("foo")) == 0);
 //#else
- //   EXPECT_TRUE("std::string_view specific tests are empty without std::string_view.");
+    //   EXPECT_TRUE("std::string_view specific tests are empty without std::string_view.");
 //#endif
 }
 

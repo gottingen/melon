@@ -6,13 +6,13 @@
 
 namespace abel {
 
-namespace container_internal {
+    namespace container_internal {
 
 // See hashtablez_sampler.h for details.
-extern "C" ABEL_WEAK bool AbelContainerInternalSampleEverything() {
-  return false;
-}
+        extern "C" ABEL_WEAK bool AbelContainerInternalSampleEverything() {
+            return false;
+        }
 
-}  // namespace container_internal
+    }  // namespace container_internal
 
 }  // namespace abel

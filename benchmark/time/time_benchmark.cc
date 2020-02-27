@@ -14,8 +14,11 @@
 #include <abel/chrono/time.h>
 
 #if !defined(_WIN32)
+
 #include <sys/time.h>
+
 #endif  // _WIN32
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -34,30 +37,32 @@ namespace {
 // Addition/Subtraction of a duration
 //
 
-void BM_Time_Arithmetic(benchmark::State& state) {
-  const abel::duration nano = abel::nanoseconds(1);
-  const abel::duration sec = abel::seconds(1);
-  abel::abel_time t = abel::unix_epoch();
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(t += nano);
-    benchmark::DoNotOptimize(t -= sec);
-  }
-}
-BENCHMARK(BM_Time_Arithmetic);
+    void BM_Time_Arithmetic(benchmark::State &state) {
+        const abel::duration nano = abel::nanoseconds(1);
+        const abel::duration sec = abel::seconds(1);
+        abel::abel_time t = abel::unix_epoch();
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(t += nano);
+            benchmark::DoNotOptimize(t -= sec);
+        }
+    }
+
+    BENCHMARK(BM_Time_Arithmetic);
 
 //
 // abel_time difference
 //
 
-void BM_Time_Difference(benchmark::State& state) {
-  abel::abel_time start = abel::now();
-  abel::abel_time end = start + abel::nanoseconds(1);
-  abel::duration diff;
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(diff += end - start);
-  }
-}
-BENCHMARK(BM_Time_Difference);
+    void BM_Time_Difference(benchmark::State &state) {
+        abel::abel_time start = abel::now();
+        abel::abel_time end = start + abel::nanoseconds(1);
+        abel::duration diff;
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(diff += end - start);
+        }
+    }
+
+    BENCHMARK(BM_Time_Difference);
 
 //
 // ToDateTime
@@ -69,104 +74,113 @@ BENCHMARK(BM_Time_Difference);
 // The "UTC" variants use UTC instead of the Google/local time zone.
 //
 
-void BM_Time_ToDateTime_Abel(benchmark::State& state) {
-  const abel::time_zone tz =
-      abel::time_internal::load_time_zone("America/Los_Angeles");
-  abel::abel_time t = abel::from_unix_seconds(1384569027);
-  abel::abel_time t2 = abel::from_unix_seconds(1418962578);
-  while (state.KeepRunning()) {
-    std::swap(t, t2);
-    t += abel::seconds(1);
-    benchmark::DoNotOptimize(t.in(tz));
-  }
-}
-BENCHMARK(BM_Time_ToDateTime_Abel);
+    void BM_Time_ToDateTime_Abel(benchmark::State &state) {
+        const abel::time_zone tz =
+                abel::time_internal::load_time_zone("America/Los_Angeles");
+        abel::abel_time t = abel::from_unix_seconds(1384569027);
+        abel::abel_time t2 = abel::from_unix_seconds(1418962578);
+        while (state.KeepRunning()) {
+            std::swap(t, t2);
+            t += abel::seconds(1);
+            benchmark::DoNotOptimize(t.in(tz));
+        }
+    }
 
-void BM_Time_ToDateTime_Libc(benchmark::State& state) {
-  // No timezone support, so just use localtime.
-  time_t t = 1384569027;
-  time_t t2 = 1418962578;
-  while (state.KeepRunning()) {
-    std::swap(t, t2);
-    t += 1;
-    struct tm tm;
+    BENCHMARK(BM_Time_ToDateTime_Abel);
+
+    void BM_Time_ToDateTime_Libc(benchmark::State &state) {
+        // No timezone support, so just use localtime.
+        time_t t = 1384569027;
+        time_t t2 = 1418962578;
+        while (state.KeepRunning()) {
+            std::swap(t, t2);
+            t += 1;
+            struct tm tm;
 #if !defined(_WIN32)
-    benchmark::DoNotOptimize(localtime_r(&t, &tm));
+            benchmark::DoNotOptimize(localtime_r(&t, &tm));
 #else   // _WIN32
-    benchmark::DoNotOptimize(localtime_s(&tm, &t));
+            benchmark::DoNotOptimize(localtime_s(&tm, &t));
 #endif  // _WIN32
-  }
-}
-BENCHMARK(BM_Time_ToDateTime_Libc);
+        }
+    }
 
-void BM_Time_ToDateTimeUTC_Abel(benchmark::State& state) {
-  const abel::time_zone tz = abel::utc_time_zone();
-  abel::abel_time t = abel::from_unix_seconds(1384569027);
-  while (state.KeepRunning()) {
-    t += abel::seconds(1);
-    benchmark::DoNotOptimize(t.in(tz));
-  }
-}
-BENCHMARK(BM_Time_ToDateTimeUTC_Abel);
+    BENCHMARK(BM_Time_ToDateTime_Libc);
 
-void BM_Time_ToDateTimeUTC_Libc(benchmark::State& state) {
-  time_t t = 1384569027;
-  while (state.KeepRunning()) {
-    t += 1;
-    struct tm tm;
+    void BM_Time_ToDateTimeUTC_Abel(benchmark::State &state) {
+        const abel::time_zone tz = abel::utc_time_zone();
+        abel::abel_time t = abel::from_unix_seconds(1384569027);
+        while (state.KeepRunning()) {
+            t += abel::seconds(1);
+            benchmark::DoNotOptimize(t.in(tz));
+        }
+    }
+
+    BENCHMARK(BM_Time_ToDateTimeUTC_Abel);
+
+    void BM_Time_ToDateTimeUTC_Libc(benchmark::State &state) {
+        time_t t = 1384569027;
+        while (state.KeepRunning()) {
+            t += 1;
+            struct tm tm;
 #if !defined(_WIN32)
-    benchmark::DoNotOptimize(gmtime_r(&t, &tm));
+            benchmark::DoNotOptimize(gmtime_r(&t, &tm));
 #else   // _WIN32
-    benchmark::DoNotOptimize(gmtime_s(&tm, &t));
+            benchmark::DoNotOptimize(gmtime_s(&tm, &t));
 #endif  // _WIN32
-  }
-}
-BENCHMARK(BM_Time_ToDateTimeUTC_Libc);
+        }
+    }
+
+    BENCHMARK(BM_Time_ToDateTimeUTC_Libc);
 
 //
 // from_unix_micros
 //
 
-void BM_Time_FromUnixMicros(benchmark::State& state) {
-  int i = 0;
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::from_unix_micros(i));
-    ++i;
-  }
-}
-BENCHMARK(BM_Time_FromUnixMicros);
+    void BM_Time_FromUnixMicros(benchmark::State &state) {
+        int i = 0;
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::from_unix_micros(i));
+            ++i;
+        }
+    }
 
-void BM_Time_ToUnixNanos(benchmark::State& state) {
-  const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(to_unix_nanos(t));
-  }
-}
-BENCHMARK(BM_Time_ToUnixNanos);
+    BENCHMARK(BM_Time_FromUnixMicros);
 
-void BM_Time_ToUnixMicros(benchmark::State& state) {
-  const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(to_unix_micros(t));
-  }
-}
-BENCHMARK(BM_Time_ToUnixMicros);
+    void BM_Time_ToUnixNanos(benchmark::State &state) {
+        const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(to_unix_nanos(t));
+        }
+    }
 
-void BM_Time_ToUnixMillis(benchmark::State& state) {
-  const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(to_unix_millis(t));
-  }
-}
-BENCHMARK(BM_Time_ToUnixMillis);
+    BENCHMARK(BM_Time_ToUnixNanos);
 
-void BM_Time_ToUnixSeconds(benchmark::State& state) {
-  const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::to_unix_seconds(t));
-  }
-}
-BENCHMARK(BM_Time_ToUnixSeconds);
+    void BM_Time_ToUnixMicros(benchmark::State &state) {
+        const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(to_unix_micros(t));
+        }
+    }
+
+    BENCHMARK(BM_Time_ToUnixMicros);
+
+    void BM_Time_ToUnixMillis(benchmark::State &state) {
+        const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(to_unix_millis(t));
+        }
+    }
+
+    BENCHMARK(BM_Time_ToUnixMillis);
+
+    void BM_Time_ToUnixSeconds(benchmark::State &state) {
+        const abel::abel_time t = abel::unix_epoch() + abel::seconds(123);
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::to_unix_seconds(t));
+        }
+    }
+
+    BENCHMARK(BM_Time_ToUnixSeconds);
 
 //
 // from_chrono
@@ -179,138 +193,147 @@ BENCHMARK(BM_Time_ToUnixSeconds);
 // The "Day0" variants require normalization of the day of month.
 //
 
-void BM_Time_FromCivil_Abel(benchmark::State& state) {
-  const abel::time_zone tz =
-      abel::time_internal::load_time_zone("America/Los_Angeles");
-  int i = 0;
-  while (state.KeepRunning()) {
-    if ((i & 1) == 0) {
-      abel::from_chrono(abel::chrono_second(2014, 12, 18, 20, 16, 18), tz);
-    } else {
-      abel::from_chrono(abel::chrono_second(2013, 11, 15, 18, 30, 27), tz);
+    void BM_Time_FromCivil_Abel(benchmark::State &state) {
+        const abel::time_zone tz =
+                abel::time_internal::load_time_zone("America/Los_Angeles");
+        int i = 0;
+        while (state.KeepRunning()) {
+            if ((i & 1) == 0) {
+                abel::from_chrono(abel::chrono_second(2014, 12, 18, 20, 16, 18), tz);
+            } else {
+                abel::from_chrono(abel::chrono_second(2013, 11, 15, 18, 30, 27), tz);
+            }
+            ++i;
+        }
     }
-    ++i;
-  }
-}
-BENCHMARK(BM_Time_FromCivil_Abel);
 
-void BM_Time_FromCivil_Libc(benchmark::State& state) {
-  // No timezone support, so just use localtime.
-  int i = 0;
-  while (state.KeepRunning()) {
-    struct tm tm;
-    if ((i & 1) == 0) {
-      tm.tm_year = 2014 - 1900;
-      tm.tm_mon = 12 - 1;
-      tm.tm_mday = 18;
-      tm.tm_hour = 20;
-      tm.tm_min = 16;
-      tm.tm_sec = 18;
-    } else {
-      tm.tm_year = 2013 - 1900;
-      tm.tm_mon = 11 - 1;
-      tm.tm_mday = 15;
-      tm.tm_hour = 18;
-      tm.tm_min = 30;
-      tm.tm_sec = 27;
+    BENCHMARK(BM_Time_FromCivil_Abel);
+
+    void BM_Time_FromCivil_Libc(benchmark::State &state) {
+        // No timezone support, so just use localtime.
+        int i = 0;
+        while (state.KeepRunning()) {
+            struct tm tm;
+            if ((i & 1) == 0) {
+                tm.tm_year = 2014 - 1900;
+                tm.tm_mon = 12 - 1;
+                tm.tm_mday = 18;
+                tm.tm_hour = 20;
+                tm.tm_min = 16;
+                tm.tm_sec = 18;
+            } else {
+                tm.tm_year = 2013 - 1900;
+                tm.tm_mon = 11 - 1;
+                tm.tm_mday = 15;
+                tm.tm_hour = 18;
+                tm.tm_min = 30;
+                tm.tm_sec = 27;
+            }
+            tm.tm_isdst = -1;
+            mktime(&tm);
+            ++i;
+        }
     }
-    tm.tm_isdst = -1;
-    mktime(&tm);
-    ++i;
-  }
-}
-BENCHMARK(BM_Time_FromCivil_Libc);
 
-void BM_Time_FromCivilUTC_Abel(benchmark::State& state) {
-  const abel::time_zone tz = abel::utc_time_zone();
-  while (state.KeepRunning()) {
-    abel::from_chrono(abel::chrono_second(2014, 12, 18, 20, 16, 18), tz);
-  }
-}
-BENCHMARK(BM_Time_FromCivilUTC_Abel);
+    BENCHMARK(BM_Time_FromCivil_Libc);
 
-void BM_Time_FromCivilDay0_Abel(benchmark::State& state) {
-  const abel::time_zone tz =
-      abel::time_internal::load_time_zone("America/Los_Angeles");
-  int i = 0;
-  while (state.KeepRunning()) {
-    if ((i & 1) == 0) {
-      abel::from_chrono(abel::chrono_second(2014, 12, 0, 20, 16, 18), tz);
-    } else {
-      abel::from_chrono(abel::chrono_second(2013, 11, 0, 18, 30, 27), tz);
+    void BM_Time_FromCivilUTC_Abel(benchmark::State &state) {
+        const abel::time_zone tz = abel::utc_time_zone();
+        while (state.KeepRunning()) {
+            abel::from_chrono(abel::chrono_second(2014, 12, 18, 20, 16, 18), tz);
+        }
     }
-    ++i;
-  }
-}
-BENCHMARK(BM_Time_FromCivilDay0_Abel);
 
-void BM_Time_FromCivilDay0_Libc(benchmark::State& state) {
-  // No timezone support, so just use localtime.
-  int i = 0;
-  while (state.KeepRunning()) {
-    struct tm tm;
-    if ((i & 1) == 0) {
-      tm.tm_year = 2014 - 1900;
-      tm.tm_mon = 12 - 1;
-      tm.tm_mday = 0;
-      tm.tm_hour = 20;
-      tm.tm_min = 16;
-      tm.tm_sec = 18;
-    } else {
-      tm.tm_year = 2013 - 1900;
-      tm.tm_mon = 11 - 1;
-      tm.tm_mday = 0;
-      tm.tm_hour = 18;
-      tm.tm_min = 30;
-      tm.tm_sec = 27;
+    BENCHMARK(BM_Time_FromCivilUTC_Abel);
+
+    void BM_Time_FromCivilDay0_Abel(benchmark::State &state) {
+        const abel::time_zone tz =
+                abel::time_internal::load_time_zone("America/Los_Angeles");
+        int i = 0;
+        while (state.KeepRunning()) {
+            if ((i & 1) == 0) {
+                abel::from_chrono(abel::chrono_second(2014, 12, 0, 20, 16, 18), tz);
+            } else {
+                abel::from_chrono(abel::chrono_second(2013, 11, 0, 18, 30, 27), tz);
+            }
+            ++i;
+        }
     }
-    tm.tm_isdst = -1;
-    mktime(&tm);
-    ++i;
-  }
-}
-BENCHMARK(BM_Time_FromCivilDay0_Libc);
+
+    BENCHMARK(BM_Time_FromCivilDay0_Abel);
+
+    void BM_Time_FromCivilDay0_Libc(benchmark::State &state) {
+        // No timezone support, so just use localtime.
+        int i = 0;
+        while (state.KeepRunning()) {
+            struct tm tm;
+            if ((i & 1) == 0) {
+                tm.tm_year = 2014 - 1900;
+                tm.tm_mon = 12 - 1;
+                tm.tm_mday = 0;
+                tm.tm_hour = 20;
+                tm.tm_min = 16;
+                tm.tm_sec = 18;
+            } else {
+                tm.tm_year = 2013 - 1900;
+                tm.tm_mon = 11 - 1;
+                tm.tm_mday = 0;
+                tm.tm_hour = 18;
+                tm.tm_min = 30;
+                tm.tm_sec = 27;
+            }
+            tm.tm_isdst = -1;
+            mktime(&tm);
+            ++i;
+        }
+    }
+
+    BENCHMARK(BM_Time_FromCivilDay0_Libc);
 
 //
 // To/FromTimespec
 //
 
-void BM_Time_ToTimespec(benchmark::State& state) {
-  abel::abel_time now = abel::now();
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::to_timespec(now));
-  }
-}
-BENCHMARK(BM_Time_ToTimespec);
-
-void BM_Time_FromTimespec(benchmark::State& state) {
-  timespec ts = abel::to_timespec(abel::now());
-  while (state.KeepRunning()) {
-    if (++ts.tv_nsec == 1000 * 1000 * 1000) {
-      ++ts.tv_sec;
-      ts.tv_nsec = 0;
+    void BM_Time_ToTimespec(benchmark::State &state) {
+        abel::abel_time now = abel::now();
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::to_timespec(now));
+        }
     }
-    benchmark::DoNotOptimize(abel::time_from_timespec(ts));
-  }
-}
-BENCHMARK(BM_Time_FromTimespec);
+
+    BENCHMARK(BM_Time_ToTimespec);
+
+    void BM_Time_FromTimespec(benchmark::State &state) {
+        timespec ts = abel::to_timespec(abel::now());
+        while (state.KeepRunning()) {
+            if (++ts.tv_nsec == 1000 * 1000 * 1000) {
+                ++ts.tv_sec;
+                ts.tv_nsec = 0;
+            }
+            benchmark::DoNotOptimize(abel::time_from_timespec(ts));
+        }
+    }
+
+    BENCHMARK(BM_Time_FromTimespec);
 
 //
 // Comparison with infinite_future/Past
 //
 
-void BM_Time_InfiniteFuture(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::infinite_future());
-  }
-}
-BENCHMARK(BM_Time_InfiniteFuture);
+    void BM_Time_InfiniteFuture(benchmark::State &state) {
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::infinite_future());
+        }
+    }
 
-void BM_Time_InfinitePast(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::infinite_past());
-  }
-}
-BENCHMARK(BM_Time_InfinitePast);
+    BENCHMARK(BM_Time_InfiniteFuture);
+
+    void BM_Time_InfinitePast(benchmark::State &state) {
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::infinite_past());
+        }
+    }
+
+    BENCHMARK(BM_Time_InfinitePast);
 
 }  // namespace

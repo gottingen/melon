@@ -3,7 +3,7 @@
 // log to str and return it
 template<typename... Args>
 
-static std::string log_to_str (const std::string &msg, const Args &... args) {
+static std::string log_to_str(const std::string &msg, const Args &... args) {
     std::ostringstream oss;
     auto oss_sink = std::make_shared<abel::log::sinks::ostream_sink_mt>(oss);
     abel::log::logger oss_logger("pattern_tester", oss_sink);
@@ -19,7 +19,8 @@ TEST(patternformatter, empty) {
     std::string msg = "Hello custom eol test";
     std::string eol = ";)";
     // auto formatter = std::make_shared<abel::pattern_formatter>("%v", abel::pattern_time_type::local, ";)");
-    std::unique_ptr<abel::log::formatter>(new abel::log::pattern_formatter("%v", abel::log::pattern_time_type::local, ";)"));
+    std::unique_ptr<abel::log::formatter>(
+            new abel::log::pattern_formatter("%v", abel::log::pattern_time_type::local, ";)"));
 
     EXPECT_TRUE(log_to_str(msg, "%v", abel::log::pattern_time_type::local, ";)") == msg + eol);
 }
@@ -34,16 +35,18 @@ TEST(patternformatter, empty2) {
 
 TEST(patternformatter, level) {
     EXPECT_TRUE(
-        log_to_str("Some message", "[%l] %v", abel::log::pattern_time_type::local, "\n") == "[info] Some message\n");
+            log_to_str("Some message", "[%l] %v", abel::log::pattern_time_type::local, "\n") ==
+            "[info] Some message\n");
 }
 
 TEST(patternformatter, shortname) {
-    EXPECT_TRUE(log_to_str("Some message", "[%L] %v", abel::log::pattern_time_type::local, "\n") == "[I] Some message\n");
+    EXPECT_TRUE(
+            log_to_str("Some message", "[%L] %v", abel::log::pattern_time_type::local, "\n") == "[I] Some message\n");
 }
 
 TEST(patternformatter, name) {
     EXPECT_TRUE(log_to_str("Some message", "[%n] %v", abel::log::pattern_time_type::local, "\n")
-                    == "[pattern_tester] Some message\n");
+                == "[pattern_tester] Some message\n");
 }
 
 TEST(patternformatter, date) {
@@ -56,7 +59,8 @@ TEST(patternformatter, date) {
 }
 
 TEST(patternformatter, color) {
-    auto formatter = std::make_shared<abel::log::pattern_formatter>("%^%v%$", abel::log::pattern_time_type::local, "\n");
+    auto formatter = std::make_shared<abel::log::pattern_formatter>("%^%v%$", abel::log::pattern_time_type::local,
+                                                                    "\n");
     abel::log::details::log_msg msg;
     fmt::format_to(msg.raw, "Hello");
     fmt::memory_buffer formatted;
@@ -86,7 +90,8 @@ TEST(patternformatter, color3) {
 }
 
 TEST(patternformatter, color4) {
-    auto formatter = std::make_shared<abel::log::pattern_formatter>("XX%^YYY%$", abel::log::pattern_time_type::local, "\n");
+    auto formatter = std::make_shared<abel::log::pattern_formatter>("XX%^YYY%$", abel::log::pattern_time_type::local,
+                                                                    "\n");
     abel::log::details::log_msg msg;
     fmt::format_to(msg.raw, "ignored");
     fmt::memory_buffer formatted;

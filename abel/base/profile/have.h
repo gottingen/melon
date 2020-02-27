@@ -12,7 +12,9 @@
 
 // Included for the _STLPORT_VERSION macro used below.
 #if defined(__cplusplus)
+
 #include <cstddef>
+
 #endif
 
 #if defined(__APPLE__)
@@ -20,13 +22,14 @@
 // __IPHONE_8_0.
 #include <Availability.h>
 #include <TargetConditionals.h>
+
 #endif
 
 
 /* ABEL_HAVE_XXX_FEATURE */
 
 #if !defined(ABEL_HAVE_EXTENSIONS_FEATURE) && !defined(ABEL_NO_HAVE_EXTENSIONS_FEATURE)
-    #define ABEL_HAVE_EXTENSIONS_FEATURE 1
+#define ABEL_HAVE_EXTENSIONS_FEATURE 1
 #endif
 
 
@@ -161,21 +164,21 @@
 //   * nvcc also defines __GNUC__ and __SIZEOF_INT128__, but not all versions
 //     actually support __int128.
 #ifdef ABEL_HAVE_INTRINSIC_INT128
-    #error ABEL_HAVE_INTRINSIC_INT128 cannot be directly set
+#error ABEL_HAVE_INTRINSIC_INT128 cannot be directly set
 #elif defined(__SIZEOF_INT128__)
-    #if (defined(__clang__) && !defined(_WIN32)) || \
+#if (defined(__clang__) && !defined(_WIN32)) || \
             (defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 9) || \
             (defined(__GNUC__) && !defined(__clang__) && !defined(__CUDACC__))
-        #define ABEL_HAVE_INTRINSIC_INT128 1
-    #elif defined(__CUDACC__)
+#define ABEL_HAVE_INTRINSIC_INT128 1
+#elif defined(__CUDACC__)
 // __CUDACC_VER__ is a full version number before CUDA 9, and is defined to a
 // string explaining that it has been removed starting with CUDA 9. We use
 // nested #ifs because there is no short-circuiting in the preprocessor.
 // NOTE: `__CUDACC__` could be undefined while `__CUDACC_VER__` is defined.
-        #if __CUDACC_VER__ >= 70000
-            #define ABEL_HAVE_INTRINSIC_INT128 1
-        #endif  // __CUDACC_VER__ >= 70000
-    #endif  // defined(__CUDACC__)
+#if __CUDACC_VER__ >= 70000
+#define ABEL_HAVE_INTRINSIC_INT128 1
+#endif  // __CUDACC_VER__ >= 70000
+#endif  // defined(__CUDACC__)
 #endif  // ABEL_HAVE_INTRINSIC_INT128
 
 // ABEL_HAVE_EXCEPTIONS
@@ -465,39 +468,39 @@
 
 // Dinkumware
 #if !defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && !defined(ABEL_NO_HAVE_DINKUMWARE_CPP_LIBRARY)
-    #if defined(__cplusplus)
+#if defined(__cplusplus)
 ABEL_DISABLE_ALL_VC_WARNINGS()
-        #include <cstddef> // Need to trigger the compilation of yvals.h without directly using <yvals.h> because it might not exist.
+#include <cstddef> // Need to trigger the compilation of yvals.h without directly using <yvals.h> because it might not exist.
         ABEL_RESTORE_ALL_VC_WARNINGS()
-    #endif
+#endif
 
-    #if defined(__cplusplus) && defined(_CPPLIB_VER) /* If using the Dinkumware Standard library... */
-        #define ABEL_HAVE_DINKUMWARE_CPP_LIBRARY 1
-    #else
-        #define ABEL_NO_HAVE_DINKUMWARE_CPP_LIBRARY 1
-    #endif
+#if defined(__cplusplus) && defined(_CPPLIB_VER) /* If using the Dinkumware Standard library... */
+#define ABEL_HAVE_DINKUMWARE_CPP_LIBRARY 1
+#else
+#define ABEL_NO_HAVE_DINKUMWARE_CPP_LIBRARY 1
+#endif
 #endif
 
 // GCC libstdc++
 #if !defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && !defined(ABEL_NO_HAVE_LIBSTDCPP_LIBRARY)
-    #if defined(__GLIBCXX__) /* If using libstdc++ ... */
-        #define ABEL_HAVE_LIBSTDCPP_LIBRARY 1
-    #else
-        #define ABEL_NO_HAVE_LIBSTDCPP_LIBRARY 1
-    #endif
+#if defined(__GLIBCXX__) /* If using libstdc++ ... */
+#define ABEL_HAVE_LIBSTDCPP_LIBRARY 1
+#else
+#define ABEL_NO_HAVE_LIBSTDCPP_LIBRARY 1
+#endif
 #endif
 
 // Clang libc++
 #if !defined(ABEL_HAVE_LIBCPP_LIBRARY) && !defined(ABEL_NO_HAVE_LIBCPP_LIBRARY)
-    #if defined(__clang__)
+#if defined(__clang__)
 #if defined(__cplusplus) && __has_include(<__config>)
-    #define ABEL_HAVE_LIBCPP_LIBRARY 1 // We could also #include <ciso646> and check if defined(_LIBCPP_VERSION).
+#define ABEL_HAVE_LIBCPP_LIBRARY 1 // We could also #include <ciso646> and check if defined(_LIBCPP_VERSION).
 #endif
-    #endif
+#endif
 
-    #if !defined(ABEL_HAVE_LIBCPP_LIBRARY)
-        #define ABEL_NO_HAVE_LIBCPP_LIBRARY 1
-    #endif
+#if !defined(ABEL_HAVE_LIBCPP_LIBRARY)
+#define ABEL_NO_HAVE_LIBCPP_LIBRARY 1
+#endif
 #endif
 
 
@@ -505,365 +508,365 @@ ABEL_DISABLE_ALL_VC_WARNINGS()
 
 // #include <sys/types.h>
 #if !defined(ABEL_HAVE_SYS_TYPES_H) && !defined(ABEL_NO_HAVE_SYS_TYPES_H)
-    #define ABEL_HAVE_SYS_TYPES_H 1
+#define ABEL_HAVE_SYS_TYPES_H 1
 #endif
 
 // #include <io.h> (and not sys/io.h or asm/io.h)
 #if !defined(ABEL_HAVE_IO_H) && !defined(ABEL_NO_HAVE_IO_H)
 // Unix doesn't have Microsoft's <io.h> but has the same functionality in <fcntl.h> and <sys/stat.h>.
-    #if defined(ABEL_PLATFORM_MICROSOFT)
-        #define ABEL_HAVE_IO_H 1
-    #else
-        #define ABEL_NO_HAVE_IO_H 1
-    #endif
+#if defined(ABEL_PLATFORM_MICROSOFT)
+#define ABEL_HAVE_IO_H 1
+#else
+#define ABEL_NO_HAVE_IO_H 1
+#endif
 #endif
 
 // #include <inttypes.h>
 #if !defined(ABEL_HAVE_INTTYPES_H) && !defined(ABEL_NO_HAVE_INTTYPES_H)
-    #if !defined(ABEL_PLATFORM_MICROSOFT)
-        #define ABEL_HAVE_INTTYPES_H 1
-    #else
-        #define ABEL_NO_HAVE_INTTYPES_H 1
-    #endif
+#if !defined(ABEL_PLATFORM_MICROSOFT)
+#define ABEL_HAVE_INTTYPES_H 1
+#else
+#define ABEL_NO_HAVE_INTTYPES_H 1
+#endif
 #endif
 
 // #include <unistd.h>
 #if !defined(ABEL_HAVE_UNISTD_H) && !defined(ABEL_NO_HAVE_UNISTD_H)
-    #if defined(ABEL_PLATFORM_UNIX)
-        #define ABEL_HAVE_UNISTD_H 1
-    #else
-        #define ABEL_NO_HAVE_UNISTD_H 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX)
+#define ABEL_HAVE_UNISTD_H 1
+#else
+#define ABEL_NO_HAVE_UNISTD_H 1
+#endif
 #endif
 
 // #include <sys/time.h>
 #if !defined(ABEL_HAVE_SYS_TIME_H) && !defined(ABEL_NO_HAVE_SYS_TIME_H)
-    #if !defined(ABEL_PLATFORM_MICROSOFT) && !defined(_CPPLIB_VER) /* _CPPLIB_VER indicates Dinkumware. */
-        #define ABEL_HAVE_SYS_TIME_H 1 /* defines struct timeval */
-    #else
-        #define ABEL_NO_HAVE_SYS_TIME_H 1
-    #endif
+#if !defined(ABEL_PLATFORM_MICROSOFT) && !defined(_CPPLIB_VER) /* _CPPLIB_VER indicates Dinkumware. */
+#define ABEL_HAVE_SYS_TIME_H 1 /* defines struct timeval */
+#else
+#define ABEL_NO_HAVE_SYS_TIME_H 1
+#endif
 #endif
 
 // #include <ptrace.h>
 #if !defined(ABEL_HAVE_SYS_PTRACE_H) && !defined(ABEL_NO_HAVE_SYS_PTRACE_H)
-    #if defined(ABEL_PLATFORM_UNIX) && !defined(__CYGWIN__) && (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_SERVER))
-        #define ABEL_HAVE_SYS_PTRACE_H 1 /* declares the ptrace function */
-    #else
-        #define ABEL_NO_HAVE_SYS_PTRACE_H 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX) && !defined(__CYGWIN__) && (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_SERVER))
+#define ABEL_HAVE_SYS_PTRACE_H 1 /* declares the ptrace function */
+#else
+#define ABEL_NO_HAVE_SYS_PTRACE_H 1
+#endif
 #endif
 
 // #include <sys/stat.h>
 #if !defined(ABEL_HAVE_SYS_STAT_H) && !defined(ABEL_NO_HAVE_SYS_STAT_H)
-    #if (defined(ABEL_PLATFORM_UNIX) && !(defined(ABEL_PLATFORM_SONY) && defined(ABEL_PLATFORM_CONSOLE))) || defined(__APPLE__) || defined(ABEL_PLATFORM_ANDROID)
-        #define ABEL_HAVE_SYS_STAT_H 1 /* declares the stat struct and function */
-    #else
-        #define ABEL_NO_HAVE_SYS_STAT_H 1
-    #endif
+#if (defined(ABEL_PLATFORM_UNIX) && !(defined(ABEL_PLATFORM_SONY) && defined(ABEL_PLATFORM_CONSOLE))) || defined(__APPLE__) || defined(ABEL_PLATFORM_ANDROID)
+#define ABEL_HAVE_SYS_STAT_H 1 /* declares the stat struct and function */
+#else
+#define ABEL_NO_HAVE_SYS_STAT_H 1
+#endif
 #endif
 
 // #include <locale.h>
 #if !defined(ABEL_HAVE_LOCALE_H) && !defined(ABEL_NO_HAVE_LOCALE_H)
-    #define ABEL_HAVE_LOCALE_H 1
+#define ABEL_HAVE_LOCALE_H 1
 #endif
 
 // #include <signal.h>
 #if !defined(ABEL_HAVE_SIGNAL_H) && !defined(ABEL_NO_HAVE_SIGNAL_H)
-    #if !defined(ABEL_PLATFORM_BSD) && !defined(ABEL_PLATFORM_SONY) && !defined(CS_UNDEFINED_STRING)
-        #define ABEL_HAVE_SIGNAL_H 1
-    #else
-        #define ABEL_NO_HAVE_SIGNAL_H 1
-    #endif
+#if !defined(ABEL_PLATFORM_BSD) && !defined(ABEL_PLATFORM_SONY) && !defined(CS_UNDEFINED_STRING)
+#define ABEL_HAVE_SIGNAL_H 1
+#else
+#define ABEL_NO_HAVE_SIGNAL_H 1
+#endif
 #endif
 
 // #include <sys/signal.h>
 #if !defined(ABEL_HAVE_SYS_SIGNAL_H) && !defined(ABEL_NO_HAVE_SYS_SIGNAL_H)
-    #if defined(ABEL_PLATFORM_BSD) || defined(ABEL_PLATFORM_SONY)
-        #define ABEL_HAVE_SYS_SIGNAL_H 1
-    #else
-        #define ABEL_NO_HAVE_SYS_SIGNAL_H 1
-    #endif
+#if defined(ABEL_PLATFORM_BSD) || defined(ABEL_PLATFORM_SONY)
+#define ABEL_HAVE_SYS_SIGNAL_H 1
+#else
+#define ABEL_NO_HAVE_SYS_SIGNAL_H 1
+#endif
 #endif
 
 // #include <pthread.h>
 #if !defined(ABEL_HAVE_PTHREAD_H) && !defined(ABEL_NO_HAVE_PTHREAD_H)
-    #if defined(ABEL_PLATFORM_UNIX) || defined(ABEL_PLATFORM_APPLE) || defined(ABEL_PLATFORM_POSIX)
-        #define ABEL_HAVE_PTHREAD_H 1 /* It can be had under Microsoft/Windows with the http://sourceware.org/pthreads-win32/ library */
-    #else
-        #define ABEL_NO_HAVE_PTHREAD_H 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX) || defined(ABEL_PLATFORM_APPLE) || defined(ABEL_PLATFORM_POSIX)
+#define ABEL_HAVE_PTHREAD_H 1 /* It can be had under Microsoft/Windows with the http://sourceware.org/pthreads-win32/ library */
+#else
+#define ABEL_NO_HAVE_PTHREAD_H 1
+#endif
 #endif
 
 // #include <wchar.h>
 #if !defined(ABEL_HAVE_WCHAR_H) && !defined(ABEL_NO_HAVE_WCHAR_H)
-    #if defined(ABEL_PLATFORM_DESKTOP) && defined(ABEL_PLATFORM_UNIX) && defined(ABEL_PLATFORM_SONY) && defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_WCHAR_H 1
-    #else
-        #define ABEL_NO_HAVE_WCHAR_H 1
-    #endif
+#if defined(ABEL_PLATFORM_DESKTOP) && defined(ABEL_PLATFORM_UNIX) && defined(ABEL_PLATFORM_SONY) && defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_WCHAR_H 1
+#else
+#define ABEL_NO_HAVE_WCHAR_H 1
+#endif
 #endif
 
 // #include <malloc.h>
 #if !defined(ABEL_HAVE_MALLOC_H) && !defined(ABEL_NO_HAVE_MALLOC_H)
-    #if defined(_MSC_VER) || defined(__MINGW32__)
-        #define ABEL_HAVE_MALLOC_H 1
-    #else
-        #define ABEL_NO_HAVE_MALLOC_H 1
-    #endif
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#define ABEL_HAVE_MALLOC_H 1
+#else
+#define ABEL_NO_HAVE_MALLOC_H 1
+#endif
 #endif
 
 // #include <alloca.h>
 #if !defined(ABEL_HAVE_ALLOCA_H) && !defined(ABEL_NO_HAVE_ALLOCA_H)
-    #if !defined(ABEL_HAVE_MALLOC_H) && !defined(ABEL_PLATFORM_SONY)
-        #define ABEL_HAVE_ALLOCA_H 1
-    #else
-        #define ABEL_NO_HAVE_ALLOCA_H 1
-    #endif
+#if !defined(ABEL_HAVE_MALLOC_H) && !defined(ABEL_PLATFORM_SONY)
+#define ABEL_HAVE_ALLOCA_H 1
+#else
+#define ABEL_NO_HAVE_ALLOCA_H 1
+#endif
 #endif
 
 // #include <execinfo.h>
 #if !defined(ABEL_HAVE_EXECINFO_H) && !defined(ABEL_NO_HAVE_EXECINFO_H)
-    #if (defined(ABEL_PLATFORM_LINUX) || defined(ABEL_PLATFORM_OSX)) && !defined(ABEL_PLATFORM_ANDROID)
-        #define ABEL_HAVE_EXECINFO_H 1
-    #else
-        #define ABEL_NO_HAVE_EXECINFO_H 1
-    #endif
+#if (defined(ABEL_PLATFORM_LINUX) || defined(ABEL_PLATFORM_OSX)) && !defined(ABEL_PLATFORM_ANDROID)
+#define ABEL_HAVE_EXECINFO_H 1
+#else
+#define ABEL_NO_HAVE_EXECINFO_H 1
+#endif
 #endif
 
 // #include <semaphore.h> (Unix semaphore support)
 #if !defined(ABEL_HAVE_SEMAPHORE_H) && !defined(ABEL_NO_HAVE_SEMAPHORE_H)
-    #if defined(ABEL_PLATFORM_UNIX)
-        #define ABEL_HAVE_SEMAPHORE_H 1
-    #else
-        #define ABEL_NO_HAVE_SEMAPHORE_H 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX)
+#define ABEL_HAVE_SEMAPHORE_H 1
+#else
+#define ABEL_NO_HAVE_SEMAPHORE_H 1
+#endif
 #endif
 
 // #include <dirent.h> (Unix semaphore support)
 #if !defined(ABEL_HAVE_DIRENT_H) && !defined(ABEL_NO_HAVE_DIRENT_H)
-    #if defined(ABEL_PLATFORM_UNIX) && !defined(ABEL_PLATFORM_CONSOLE)
-        #define ABEL_HAVE_DIRENT_H 1
-    #else
-        #define ABEL_NO_HAVE_DIRENT_H 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX) && !defined(ABEL_PLATFORM_CONSOLE)
+#define ABEL_HAVE_DIRENT_H 1
+#else
+#define ABEL_NO_HAVE_DIRENT_H 1
+#endif
 #endif
 
 // #include <array>, <forward_list>, <ununordered_set>, <unordered_map>
 #if !defined(ABEL_HAVE_CPP11_CONTAINERS) && !defined(ABEL_NO_HAVE_CPP11_CONTAINERS)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_CONTAINERS 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004) // Actually GCC 4.3 supports array and unordered_
-        #define ABEL_HAVE_CPP11_CONTAINERS 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_CONTAINERS 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_CONTAINERS 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_CONTAINERS 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004) // Actually GCC 4.3 supports array and unordered_
+#define ABEL_HAVE_CPP11_CONTAINERS 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_CONTAINERS 1
+#else
+#define ABEL_NO_HAVE_CPP11_CONTAINERS 1
+#endif
 #endif
 
 // #include <atomic>
 #if !defined(ABEL_HAVE_CPP11_ATOMIC) && !defined(ABEL_NO_HAVE_CPP11_ATOMIC)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_ATOMIC 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
-        #define ABEL_HAVE_CPP11_ATOMIC 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_ATOMIC 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_ATOMIC 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_ATOMIC 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
+#define ABEL_HAVE_CPP11_ATOMIC 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_ATOMIC 1
+#else
+#define ABEL_NO_HAVE_CPP11_ATOMIC 1
+#endif
 #endif
 
 // #include <condition_variable>
 #if !defined(ABEL_HAVE_CPP11_CONDITION_VARIABLE) && !defined(ABEL_NO_HAVE_CPP11_CONDITION_VARIABLE)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_CONDITION_VARIABLE 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
-        #define ABEL_HAVE_CPP11_CONDITION_VARIABLE 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_CONDITION_VARIABLE 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_CONDITION_VARIABLE 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_CONDITION_VARIABLE 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
+#define ABEL_HAVE_CPP11_CONDITION_VARIABLE 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_CONDITION_VARIABLE 1
+#else
+#define ABEL_NO_HAVE_CPP11_CONDITION_VARIABLE 1
+#endif
 #endif
 
 // #include <mutex>
 #if !defined(ABEL_HAVE_CPP11_MUTEX) && !defined(ABEL_NO_HAVE_CPP11_MUTEX)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_MUTEX 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
-        #define ABEL_HAVE_CPP11_MUTEX 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_MUTEX 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_MUTEX 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_MUTEX 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
+#define ABEL_HAVE_CPP11_MUTEX 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_MUTEX 1
+#else
+#define ABEL_NO_HAVE_CPP11_MUTEX 1
+#endif
 #endif
 
 // #include <thread>
 #if !defined(ABEL_HAVE_CPP11_THREAD) && !defined(ABEL_NO_HAVE_CPP11_THREAD)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_THREAD 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
-        #define ABEL_HAVE_CPP11_THREAD 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_THREAD 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_THREAD 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_THREAD 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
+#define ABEL_HAVE_CPP11_THREAD 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_THREAD 1
+#else
+#define ABEL_NO_HAVE_CPP11_THREAD 1
+#endif
 #endif
 
 // #include <future>
 #if !defined(ABEL_HAVE_CPP11_FUTURE) && !defined(ABEL_NO_HAVE_CPP11_FUTURE)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_FUTURE 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4005)
-        #define ABEL_HAVE_CPP11_FUTURE 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_FUTURE 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_FUTURE 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_FUTURE 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4005)
+#define ABEL_HAVE_CPP11_FUTURE 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_FUTURE 1
+#else
+#define ABEL_NO_HAVE_CPP11_FUTURE 1
+#endif
 #endif
 
 
 // #include <type_traits>
 #if !defined(ABEL_HAVE_CPP11_TYPE_TRAITS) && !defined(ABEL_NO_HAVE_CPP11_TYPE_TRAITS)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_TYPE_TRAITS 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007) // Prior versions of libstdc++ have incomplete support for C++11 type traits.
-        #define ABEL_HAVE_CPP11_TYPE_TRAITS 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_TYPE_TRAITS 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_TYPE_TRAITS 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_TYPE_TRAITS 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007) // Prior versions of libstdc++ have incomplete support for C++11 type traits.
+#define ABEL_HAVE_CPP11_TYPE_TRAITS 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_TYPE_TRAITS 1
+#else
+#define ABEL_NO_HAVE_CPP11_TYPE_TRAITS 1
+#endif
 #endif
 
 // #include <tuple>
 #if !defined(ABEL_HAVE_CPP11_TUPLES) && !defined(ABEL_NO_HAVE_CPP11_TUPLES)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_TUPLES 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4003)
-        #define ABEL_HAVE_CPP11_TUPLES 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_TUPLES 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_TUPLES 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_TUPLES 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4003)
+#define ABEL_HAVE_CPP11_TUPLES 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_TUPLES 1
+#else
+#define ABEL_NO_HAVE_CPP11_TUPLES 1
+#endif
 #endif
 
 // #include <regex>
 #if !defined(ABEL_HAVE_CPP11_REGEX) && !defined(ABEL_NO_HAVE_CPP11_REGEX)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) && (defined(_HAS_EXCEPTIONS) && _HAS_EXCEPTIONS) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_REGEX 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4003)
-        #define ABEL_HAVE_CPP11_REGEX 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_REGEX 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_REGEX 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) && (defined(_HAS_EXCEPTIONS) && _HAS_EXCEPTIONS) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_REGEX 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4003)
+#define ABEL_HAVE_CPP11_REGEX 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_REGEX 1
+#else
+#define ABEL_NO_HAVE_CPP11_REGEX 1
+#endif
 #endif
 
 // #include <random>
 #if !defined(ABEL_HAVE_CPP11_RANDOM) && !defined(ABEL_NO_HAVE_CPP11_RANDOM)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_RANDOM 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4005)
-        #define ABEL_HAVE_CPP11_RANDOM 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_RANDOM 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_RANDOM 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_RANDOM 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4005)
+#define ABEL_HAVE_CPP11_RANDOM 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_RANDOM 1
+#else
+#define ABEL_NO_HAVE_CPP11_RANDOM 1
+#endif
 #endif
 
 // #include <chrono>
 #if !defined(ABEL_HAVE_CPP11_CHRONO) && !defined(ABEL_NO_HAVE_CPP11_CHRONO)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_CHRONO 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007) // chrono was broken in glibc prior to 4.7.
-        #define ABEL_HAVE_CPP11_CHRONO 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_CHRONO 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_CHRONO 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_CHRONO 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007) // chrono was broken in glibc prior to 4.7.
+#define ABEL_HAVE_CPP11_CHRONO 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_CHRONO 1
+#else
+#define ABEL_NO_HAVE_CPP11_CHRONO 1
+#endif
 #endif
 
 // #include <scoped_allocator>
 #if !defined(ABEL_HAVE_CPP11_SCOPED_ALLOCATOR) && !defined(ABEL_NO_HAVE_CPP11_SCOPED_ALLOCATOR)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
-        #define ABEL_HAVE_CPP11_SCOPED_ALLOCATOR 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
-        #define ABEL_HAVE_CPP11_SCOPED_ALLOCATOR 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_SCOPED_ALLOCATOR 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_SCOPED_ALLOCATOR 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 540) // Dinkumware. VS2012+
+#define ABEL_HAVE_CPP11_SCOPED_ALLOCATOR 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4007)
+#define ABEL_HAVE_CPP11_SCOPED_ALLOCATOR 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_SCOPED_ALLOCATOR 1
+#else
+#define ABEL_NO_HAVE_CPP11_SCOPED_ALLOCATOR 1
+#endif
 #endif
 
 // #include <initializer_list>
 #if !defined(ABEL_HAVE_CPP11_INITIALIZER_LIST) && !defined(ABEL_NO_HAVE_CPP11_INITIALIZER_LIST)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_CLANG) && (ABEL_COMPILER_VERSION >= 301) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) && !defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBCPP_LIBRARY) && defined(ABEL_COMPILER_CLANG) && (ABEL_COMPILER_VERSION >= 301) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) && !defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) && !defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS)
-        #define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_INITIALIZER_LIST 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_CLANG) && (ABEL_COMPILER_VERSION >= 301) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) && !defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBCPP_LIBRARY) && defined(ABEL_COMPILER_CLANG) && (ABEL_COMPILER_VERSION >= 301) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) && !defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS) && !defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1) && !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS)
+#define ABEL_HAVE_CPP11_INITIALIZER_LIST 1
+#else
+#define ABEL_NO_HAVE_CPP11_INITIALIZER_LIST 1
+#endif
 #endif
 
 // #include <system_error>
 #if !defined(ABEL_HAVE_CPP11_SYSTEM_ERROR) && !defined(ABEL_NO_HAVE_CPP11_SYSTEM_ERROR)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_CLANG) && (ABEL_COMPILER_VERSION >= 301) && !defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004) && !defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_SYSTEM_ERROR 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_CLANG) && (ABEL_COMPILER_VERSION >= 301) && !defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004) && !defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_SYSTEM_ERROR 1
+#else
+#define ABEL_NO_HAVE_CPP11_SYSTEM_ERROR 1
+#endif
 #endif
 
 // #include <codecvt>
 #if !defined(ABEL_HAVE_CPP11_CODECVT) && !defined(ABEL_NO_HAVE_CPP11_CODECVT)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_CODECVT 1
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_CODECVT 1
 // Future versions of libc++ may support this header.  However, at the moment there isn't
 // a reliable way of detecting if this header is available.
 //#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4008)
 //    #define ABEL_HAVE_CPP11_CODECVT 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_CODECVT 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_CODECVT 1
-    #endif
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_CODECVT 1
+#else
+#define ABEL_NO_HAVE_CPP11_CODECVT 1
+#endif
 #endif
 
 // #include <typeindex>
 #if !defined(ABEL_HAVE_CPP11_TYPEINDEX) && !defined(ABEL_NO_HAVE_CPP11_TYPEINDEX)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_TYPEINDEX 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
-        #define ABEL_HAVE_CPP11_TYPEINDEX 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_TYPEINDEX 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_TYPEINDEX 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_TYPEINDEX 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
+#define ABEL_HAVE_CPP11_TYPEINDEX 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_TYPEINDEX 1
+#else
+#define ABEL_NO_HAVE_CPP11_TYPEINDEX 1
+#endif
 #endif
 
 
@@ -872,106 +875,106 @@ ABEL_DISABLE_ALL_VC_WARNINGS()
 /* ABEL_HAVE_XXX_DECL */
 
 #if !defined(ABEL_HAVE_mkstemps_DECL) && !defined(ABEL_NO_HAVE_mkstemps_DECL)
-    #if defined(ABEL_PLATFORM_APPLE) || defined(CS_UNDEFINED_STRING)
-        #define ABEL_HAVE_mkstemps_DECL 1
-    #else
-        #define ABEL_NO_HAVE_mkstemps_DECL 1
-    #endif
+#if defined(ABEL_PLATFORM_APPLE) || defined(CS_UNDEFINED_STRING)
+#define ABEL_HAVE_mkstemps_DECL 1
+#else
+#define ABEL_NO_HAVE_mkstemps_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_gettimeofday_DECL) && !defined(ABEL_NO_HAVE_gettimeofday_DECL)
-    #if defined(ABEL_PLATFORM_POSIX) /* Posix means Linux, Unix, and Macintosh OSX, among others (including Linux-based mobile platforms). */
-        #define ABEL_HAVE_gettimeofday_DECL 1
-    #else
-        #define ABEL_NO_HAVE_gettimeofday_DECL 1
-    #endif
+#if defined(ABEL_PLATFORM_POSIX) /* Posix means Linux, Unix, and Macintosh OSX, among others (including Linux-based mobile platforms). */
+#define ABEL_HAVE_gettimeofday_DECL 1
+#else
+#define ABEL_NO_HAVE_gettimeofday_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_strcasecmp_DECL) && !defined(ABEL_NO_HAVE_strcasecmp_DECL)
-    #if !defined(ABEL_PLATFORM_MICROSOFT)
-        #define ABEL_HAVE_strcasecmp_DECL  1     /* This is found as stricmp when not found as strcasecmp */
-        #define ABEL_HAVE_strncasecmp_DECL 1
-    #else
-        #define ABEL_HAVE_stricmp_DECL  1
-        #define ABEL_HAVE_strnicmp_DECL 1
-    #endif
+#if !defined(ABEL_PLATFORM_MICROSOFT)
+#define ABEL_HAVE_strcasecmp_DECL  1     /* This is found as stricmp when not found as strcasecmp */
+#define ABEL_HAVE_strncasecmp_DECL 1
+#else
+#define ABEL_HAVE_stricmp_DECL  1
+#define ABEL_HAVE_strnicmp_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_mmap_DECL) && !defined(ABEL_NO_HAVE_mmap_DECL)
-    #if defined(ABEL_PLATFORM_POSIX)
-        #define ABEL_HAVE_mmap_DECL 1 /* mmap functionality varies significantly between systems. */
-    #else
-        #define ABEL_NO_HAVE_mmap_DECL 1
-    #endif
+#if defined(ABEL_PLATFORM_POSIX)
+#define ABEL_HAVE_mmap_DECL 1 /* mmap functionality varies significantly between systems. */
+#else
+#define ABEL_NO_HAVE_mmap_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_fopen_DECL) && !defined(ABEL_NO_HAVE_fopen_DECL)
-    #define ABEL_HAVE_fopen_DECL 1 /* C FILE functionality such as fopen */
+#define ABEL_HAVE_fopen_DECL 1 /* C FILE functionality such as fopen */
 #endif
 
 #if !defined(ABEL_HAVE_ISNAN) && !defined(ABEL_NO_HAVE_ISNAN)
-    #if defined(ABEL_PLATFORM_MICROSOFT) && !defined(ABEL_PLATFORM_MINGW)
-        #define ABEL_HAVE_ISNAN(x)  _isnan(x)          /* declared in <math.h> */
-        #define ABEL_HAVE_ISINF(x)  !_finite(x)
-    #elif defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_HAVE_ISNAN(x)  std::isnan(x)      /* declared in <cmath> */
-        #define ABEL_HAVE_ISINF(x)  std::isinf(x)
-    #elif defined(ABEL_PLATFORM_ANDROID)
-        #define ABEL_HAVE_ISNAN(x)  __builtin_isnan(x) /* There are a number of standard libraries for Android and it's hard to tell them apart, so just go with builtins */
-        #define ABEL_HAVE_ISINF(x)  __builtin_isinf(x)
-    #elif defined(__GNUC__) && defined(__CYGWIN__)
-        #define ABEL_HAVE_ISNAN(x)  __isnand(x)        /* declared nowhere, it seems. */
-        #define ABEL_HAVE_ISINF(x)  __isinfd(x)
-    #else
-        #define ABEL_HAVE_ISNAN(x)  std::isnan(x)      /* declared in <cmath> */
-        #define ABEL_HAVE_ISINF(x)  std::isinf(x)
-    #endif
+#if defined(ABEL_PLATFORM_MICROSOFT) && !defined(ABEL_PLATFORM_MINGW)
+#define ABEL_HAVE_ISNAN(x)  _isnan(x)          /* declared in <math.h> */
+#define ABEL_HAVE_ISINF(x)  !_finite(x)
+#elif defined(ABEL_PLATFORM_APPLE)
+#define ABEL_HAVE_ISNAN(x)  std::isnan(x)      /* declared in <cmath> */
+#define ABEL_HAVE_ISINF(x)  std::isinf(x)
+#elif defined(ABEL_PLATFORM_ANDROID)
+#define ABEL_HAVE_ISNAN(x)  __builtin_isnan(x) /* There are a number of standard libraries for Android and it's hard to tell them apart, so just go with builtins */
+#define ABEL_HAVE_ISINF(x)  __builtin_isinf(x)
+#elif defined(__GNUC__) && defined(__CYGWIN__)
+#define ABEL_HAVE_ISNAN(x)  __isnand(x)        /* declared nowhere, it seems. */
+#define ABEL_HAVE_ISINF(x)  __isinfd(x)
+#else
+#define ABEL_HAVE_ISNAN(x)  std::isnan(x)      /* declared in <cmath> */
+#define ABEL_HAVE_ISINF(x)  std::isinf(x)
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_itoa_DECL) && !defined(ABEL_NO_HAVE_itoa_DECL)
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_HAVE_itoa_DECL 1
-    #else
-        #define ABEL_NO_HAVE_itoa_DECL 1
-    #endif
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_HAVE_itoa_DECL 1
+#else
+#define ABEL_NO_HAVE_itoa_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_nanosleep_DECL) && !defined(ABEL_NO_HAVE_nanosleep_DECL)
-    #if (defined(ABEL_PLATFORM_UNIX) && !defined(ABEL_PLATFORM_SONY)) || defined(ABEL_PLATFORM_IPHONE) || defined(ABEL_PLATFORM_OSX) || defined(ABEL_PLATFORM_SONY) || defined(CS_UNDEFINED_STRING)
-        #define ABEL_HAVE_nanosleep_DECL 1
-    #else
-        #define ABEL_NO_HAVE_nanosleep_DECL 1
-    #endif
+#if (defined(ABEL_PLATFORM_UNIX) && !defined(ABEL_PLATFORM_SONY)) || defined(ABEL_PLATFORM_IPHONE) || defined(ABEL_PLATFORM_OSX) || defined(ABEL_PLATFORM_SONY) || defined(CS_UNDEFINED_STRING)
+#define ABEL_HAVE_nanosleep_DECL 1
+#else
+#define ABEL_NO_HAVE_nanosleep_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_utime_DECL) && !defined(ABEL_NO_HAVE_utime_DECL)
-    #if defined(ABEL_PLATFORM_MICROSOFT)
-        #define ABEL_HAVE_utime_DECL _utime
-    #elif ABEL_PLATFORM_UNIX
-        #define ABEL_HAVE_utime_DECL utime
-    #else
-        #define ABEL_NO_HAVE_utime_DECL 1
-    #endif
+#if defined(ABEL_PLATFORM_MICROSOFT)
+#define ABEL_HAVE_utime_DECL _utime
+#elif ABEL_PLATFORM_UNIX
+#define ABEL_HAVE_utime_DECL utime
+#else
+#define ABEL_NO_HAVE_utime_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_ftruncate_DECL) && !defined(ABEL_NO_HAVE_ftruncate_DECL)
-    #if !defined(__MINGW32__)
-        #define ABEL_HAVE_ftruncate_DECL 1
-    #else
-        #define ABEL_NO_HAVE_ftruncate_DECL 1
-    #endif
+#if !defined(__MINGW32__)
+#define ABEL_HAVE_ftruncate_DECL 1
+#else
+#define ABEL_NO_HAVE_ftruncate_DECL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_localtime_DECL) && !defined(ABEL_NO_HAVE_localtime_DECL)
-    #define ABEL_HAVE_localtime_DECL 1
+#define ABEL_HAVE_localtime_DECL 1
 #endif
 
 #if !defined(ABEL_HAVE_pthread_getattr_np_DECL) && !defined(ABEL_NO_HAVE_pthread_getattr_np_DECL)
-    #if defined(ABEL_PLATFORM_LINUX)
-        #define ABEL_HAVE_pthread_getattr_np_DECL 1
-    #else
-        #define ABEL_NO_HAVE_pthread_getattr_np_DECL 1
-    #endif
+#if defined(ABEL_PLATFORM_LINUX)
+#define ABEL_HAVE_pthread_getattr_np_DECL 1
+#else
+#define ABEL_NO_HAVE_pthread_getattr_np_DECL 1
+#endif
 #endif
 
 
@@ -979,200 +982,200 @@ ABEL_DISABLE_ALL_VC_WARNINGS()
 /* ABEL_HAVE_XXX_IMPL*/
 
 #if !defined(ABEL_HAVE_WCHAR_IMPL) && !defined(ABEL_NO_HAVE_WCHAR_IMPL)
-    #if defined(ABEL_PLATFORM_DESKTOP)
-        #define ABEL_HAVE_WCHAR_IMPL 1      /* Specifies if wchar_t string functions are provided, such as wcslen, wprintf, etc. Implies ABEL_HAVE_WCHAR_H */
-    #else
-        #define ABEL_NO_HAVE_WCHAR_IMPL 1
-    #endif
+#if defined(ABEL_PLATFORM_DESKTOP)
+#define ABEL_HAVE_WCHAR_IMPL 1      /* Specifies if wchar_t string functions are provided, such as wcslen, wprintf, etc. Implies ABEL_HAVE_WCHAR_H */
+#else
+#define ABEL_NO_HAVE_WCHAR_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_getenv_IMPL) && !defined(ABEL_NO_HAVE_getenv_IMPL)
-    #if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_WINRT)
-        #define ABEL_HAVE_getenv_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_getenv_IMPL 1
-    #endif
+#if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_WINRT)
+#define ABEL_HAVE_getenv_IMPL 1
+#else
+#define ABEL_NO_HAVE_getenv_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_setenv_IMPL) && !defined(ABEL_NO_HAVE_setenv_IMPL)
-    #if defined(ABEL_PLATFORM_UNIX) && defined(ABEL_PLATFORM_POSIX)
-        #define ABEL_HAVE_setenv_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_setenv_IMPL 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX) && defined(ABEL_PLATFORM_POSIX)
+#define ABEL_HAVE_setenv_IMPL 1
+#else
+#define ABEL_NO_HAVE_setenv_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_unsetenv_IMPL) && !defined(ABEL_NO_HAVE_unsetenv_IMPL)
-    #if defined(ABEL_PLATFORM_UNIX) && defined(ABEL_PLATFORM_POSIX)
-        #define ABEL_HAVE_unsetenv_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_unsetenv_IMPL 1
-    #endif
+#if defined(ABEL_PLATFORM_UNIX) && defined(ABEL_PLATFORM_POSIX)
+#define ABEL_HAVE_unsetenv_IMPL 1
+#else
+#define ABEL_NO_HAVE_unsetenv_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_putenv_IMPL) && !defined(ABEL_NO_HAVE_putenv_IMPL)
-    #if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_WINRT)
-        #define ABEL_HAVE_putenv_IMPL 1        /* With Microsoft compilers you may need to use _putenv, as they have deprecated putenv. */
-    #else
-        #define ABEL_NO_HAVE_putenv_IMPL 1
-    #endif
+#if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_WINRT)
+#define ABEL_HAVE_putenv_IMPL 1        /* With Microsoft compilers you may need to use _putenv, as they have deprecated putenv. */
+#else
+#define ABEL_NO_HAVE_putenv_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_time_IMPL) && !defined(ABEL_NO_HAVE_time_IMPL)
-    #define ABEL_HAVE_time_IMPL 1
-    #define ABEL_HAVE_clock_IMPL 1
+#define ABEL_HAVE_time_IMPL 1
+#define ABEL_HAVE_clock_IMPL 1
 #endif
 
 // <cstdio> fopen()
 #if !defined(ABEL_HAVE_fopen_IMPL) && !defined(ABEL_NO_HAVE_fopen_IMPL)
-    #define ABEL_HAVE_fopen_IMPL 1  /* C FILE functionality such as fopen */
+#define ABEL_HAVE_fopen_IMPL 1  /* C FILE functionality such as fopen */
 #endif
 
 // <arpa/inet.h> inet_ntop()
 #if !defined(ABEL_HAVE_inet_ntop_IMPL) && !defined(ABEL_NO_HAVE_inet_ntop_IMPL)
-    #if (defined(ABEL_PLATFORM_UNIX) || defined(ABEL_PLATFORM_POSIX)) && !defined(ABEL_PLATFORM_SONY) && !defined(CS_UNDEFINED_STRING)
-        #define ABEL_HAVE_inet_ntop_IMPL 1  /* This doesn't identify if the platform SDK has some alternative function that does the same thing; */
-        #define ABEL_HAVE_inet_pton_IMPL 1  /* it identifies strictly the <arpa/inet.h> inet_ntop and inet_pton functions. For example, Microsoft has InetNtop in <Ws2tcpip.h> */
-    #else
-        #define ABEL_NO_HAVE_inet_ntop_IMPL 1
-        #define ABEL_NO_HAVE_inet_pton_IMPL 1
-    #endif
+#if (defined(ABEL_PLATFORM_UNIX) || defined(ABEL_PLATFORM_POSIX)) && !defined(ABEL_PLATFORM_SONY) && !defined(CS_UNDEFINED_STRING)
+#define ABEL_HAVE_inet_ntop_IMPL 1  /* This doesn't identify if the platform SDK has some alternative function that does the same thing; */
+#define ABEL_HAVE_inet_pton_IMPL 1  /* it identifies strictly the <arpa/inet.h> inet_ntop and inet_pton functions. For example, Microsoft has InetNtop in <Ws2tcpip.h> */
+#else
+#define ABEL_NO_HAVE_inet_ntop_IMPL 1
+#define ABEL_NO_HAVE_inet_pton_IMPL 1
+#endif
 #endif
 
 // <time.h> clock_gettime()
 #if !defined(ABEL_HAVE_clock_gettime_IMPL) && !defined(ABEL_NO_HAVE_clock_gettime_IMPL)
-    #if defined(ABEL_PLATFORM_LINUX) || defined(__CYGWIN__) || (defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0)) || (defined(ABEL_PLATFORM_POSIX) && defined(_CPPLIB_VER) /*Dinkumware*/)
-        #define ABEL_HAVE_clock_gettime_IMPL 1 /* You need to link the 'rt' library to get this */
-    #else
-        #define ABEL_NO_HAVE_clock_gettime_IMPL 1
-    #endif
+#if defined(ABEL_PLATFORM_LINUX) || defined(__CYGWIN__) || (defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0)) || (defined(ABEL_PLATFORM_POSIX) && defined(_CPPLIB_VER) /*Dinkumware*/)
+#define ABEL_HAVE_clock_gettime_IMPL 1 /* You need to link the 'rt' library to get this */
+#else
+#define ABEL_NO_HAVE_clock_gettime_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_getcwd_IMPL) && !defined(ABEL_NO_HAVE_getcwd_IMPL)
-    #if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_ANDROID) && !defined(ABEL_PLATFORM_WINRT)
-        #define ABEL_HAVE_getcwd_IMPL 1       /* With Microsoft compilers you may need to use _getcwd, as they have deprecated getcwd. And in any case it's present at <direct.h> */
-    #else
-        #define ABEL_NO_HAVE_getcwd_IMPL 1
-    #endif
+#if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_ANDROID) && !defined(ABEL_PLATFORM_WINRT)
+#define ABEL_HAVE_getcwd_IMPL 1       /* With Microsoft compilers you may need to use _getcwd, as they have deprecated getcwd. And in any case it's present at <direct.h> */
+#else
+#define ABEL_NO_HAVE_getcwd_IMPL 1
+#endif
 #endif
 
 #if !defined(ABEL_HAVE_tmpnam_IMPL) && !defined(ABEL_NO_HAVE_tmpnam_IMPL)
-    #if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_ANDROID)
-        #define ABEL_HAVE_tmpnam_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_tmpnam_IMPL 1
-    #endif
+#if (defined(ABEL_PLATFORM_DESKTOP) || defined(ABEL_PLATFORM_UNIX)) && !defined(ABEL_PLATFORM_ANDROID)
+#define ABEL_HAVE_tmpnam_IMPL 1
+#else
+#define ABEL_NO_HAVE_tmpnam_IMPL 1
+#endif
 #endif
 
 // nullptr, the built-in C++11 type.
 // This ABEL_HAVE is deprecated, as ABEL_COMPILER_NO_NULLPTR is more appropriate, given that nullptr is a compiler-level feature and not a library feature.
 #if !defined(ABEL_HAVE_nullptr_IMPL) && !defined(ABEL_NO_HAVE_nullptr_IMPL)
-    #if defined(ABEL_COMPILER_NO_NULLPTR)
-        #define ABEL_NO_HAVE_nullptr_IMPL 1
-    #else
-        #define ABEL_HAVE_nullptr_IMPL 1
-    #endif
+#if defined(ABEL_COMPILER_NO_NULLPTR)
+#define ABEL_NO_HAVE_nullptr_IMPL 1
+#else
+#define ABEL_HAVE_nullptr_IMPL 1
+#endif
 #endif
 
 // <cstddef> std::nullptr_t
 // Note that <cxxbase/nullptr.h> implements a portable nullptr implementation, but this
 // ABEL_HAVE specifically refers to std::nullptr_t from the standard libraries.
 #if !defined(ABEL_HAVE_nullptr_t_IMPL) && !defined(ABEL_NO_HAVE_nullptr_t_IMPL)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED)
+#if defined(ABEL_COMPILER_CPP11_ENABLED)
 // VS2010+ with its default Dinkumware standard library.
-        #if defined(_MSC_VER) && (_MSC_VER >= 1600) && defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY)
-            #define ABEL_HAVE_nullptr_t_IMPL 1
+#if defined(_MSC_VER) && (_MSC_VER >= 1600) && defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY)
+#define ABEL_HAVE_nullptr_t_IMPL 1
 
-        #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) // clang/llvm libc++
-            #define ABEL_HAVE_nullptr_t_IMPL 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) // clang/llvm libc++
+#define ABEL_HAVE_nullptr_t_IMPL 1
 
-        #elif defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) // GNU libstdc++
+#elif defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) // GNU libstdc++
 // Unfortunately __GLIBCXX__ date values don't go strictly in version ordering.
-            #if (__GLIBCXX__ >= 20110325) && (__GLIBCXX__ != 20120702) && (__GLIBCXX__ != 20110428)
-                #define ABEL_HAVE_nullptr_t_IMPL 1
-            #else
-                #define ABEL_NO_HAVE_nullptr_t_IMPL 1
-            #endif
+#if (__GLIBCXX__ >= 20110325) && (__GLIBCXX__ != 20120702) && (__GLIBCXX__ != 20110428)
+#define ABEL_HAVE_nullptr_t_IMPL 1
+#else
+#define ABEL_NO_HAVE_nullptr_t_IMPL 1
+#endif
 
 // We simply assume that the standard library (e.g. Dinkumware) provides std::nullptr_t.
-        #elif defined(__clang__)
-            #define ABEL_HAVE_nullptr_t_IMPL 1
+#elif defined(__clang__)
+#define ABEL_HAVE_nullptr_t_IMPL 1
 
 // With GCC compiler >= 4.6, std::nullptr_t is always defined in <cstddef>, in practice.
-        #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
-            #define ABEL_HAVE_nullptr_t_IMPL 1
+#elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
+#define ABEL_HAVE_nullptr_t_IMPL 1
 
 // The EDG compiler provides nullptr, but uses an older standard library that doesn't support std::nullptr_t.
-        #elif defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403)
-            #define ABEL_HAVE_nullptr_t_IMPL 1
+#elif defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403)
+#define ABEL_HAVE_nullptr_t_IMPL 1
 
-        #else
-            #define ABEL_NO_HAVE_nullptr_t_IMPL 1
-        #endif
-    #else
-        #define ABEL_NO_HAVE_nullptr_t_IMPL 1
-    #endif
+#else
+#define ABEL_NO_HAVE_nullptr_t_IMPL 1
+#endif
+#else
+#define ABEL_NO_HAVE_nullptr_t_IMPL 1
+#endif
 #endif
 
 // <exception> std::terminate
 #if !defined(ABEL_HAVE_std_terminate_IMPL) && !defined(ABEL_NO_HAVE_std_terminate_IMPL)
-    #if !defined(ABEL_PLATFORM_IPHONE) && !defined(ABEL_PLATFORM_ANDROID)
-        #define ABEL_HAVE_std_terminate_IMPL 1 /* iOS doesn't appear to provide an implementation for std::terminate under the armv6 target. */
-    #else
-        #define ABEL_NO_HAVE_std_terminate_IMPL 1
-    #endif
+#if !defined(ABEL_PLATFORM_IPHONE) && !defined(ABEL_PLATFORM_ANDROID)
+#define ABEL_HAVE_std_terminate_IMPL 1 /* iOS doesn't appear to provide an implementation for std::terminate under the armv6 target. */
+#else
+#define ABEL_NO_HAVE_std_terminate_IMPL 1
+#endif
 #endif
 
 // <iterator>: std::begin, std::end, std::prev, std::next, std::move_iterator.
 #if !defined(ABEL_HAVE_CPP11_ITERATOR_IMPL) && !defined(ABEL_NO_HAVE_CPP11_ITERATOR_IMPL)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_ITERATOR_IMPL 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
-        #define ABEL_HAVE_CPP11_ITERATOR_IMPL 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_ITERATOR_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_ITERATOR_IMPL 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_ITERATOR_IMPL 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
+#define ABEL_HAVE_CPP11_ITERATOR_IMPL 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_ITERATOR_IMPL 1
+#else
+#define ABEL_NO_HAVE_CPP11_ITERATOR_IMPL 1
+#endif
 #endif
 
 // <memory>: std::weak_ptr, std::shared_ptr, std::unique_ptr, std::bad_weak_ptr, std::owner_less
 #if !defined(ABEL_HAVE_CPP11_SMART_POINTER_IMPL) && !defined(ABEL_NO_HAVE_CPP11_SMART_POINTER_IMPL)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_SMART_POINTER_IMPL 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
-        #define ABEL_HAVE_CPP11_SMART_POINTER_IMPL 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_SMART_POINTER_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_SMART_POINTER_IMPL 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_SMART_POINTER_IMPL 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
+#define ABEL_HAVE_CPP11_SMART_POINTER_IMPL 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_SMART_POINTER_IMPL 1
+#else
+#define ABEL_NO_HAVE_CPP11_SMART_POINTER_IMPL 1
+#endif
 #endif
 
 // <functional>: std::function, std::mem_fn, std::bad_function_call, std::is_bind_expression, std::is_placeholder, std::reference_wrapper, std::hash, std::bind, std::ref, std::cref.
 #if !defined(ABEL_HAVE_CPP11_FUNCTIONAL_IMPL) && !defined(ABEL_NO_HAVE_CPP11_FUNCTIONAL_IMPL)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_FUNCTIONAL_IMPL 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
-        #define ABEL_HAVE_CPP11_FUNCTIONAL_IMPL 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_FUNCTIONAL_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_FUNCTIONAL_IMPL 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_FUNCTIONAL_IMPL 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
+#define ABEL_HAVE_CPP11_FUNCTIONAL_IMPL 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_FUNCTIONAL_IMPL 1
+#else
+#define ABEL_NO_HAVE_CPP11_FUNCTIONAL_IMPL 1
+#endif
 #endif
 
 // <exception> std::current_exception, std::rethrow_exception, std::exception_ptr, std::make_exception_ptr
 #if !defined(ABEL_HAVE_CPP11_EXCEPTION_IMPL) && !defined(ABEL_NO_HAVE_CPP11_EXCEPTION_IMPL)
-    #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
-        #define ABEL_HAVE_CPP11_EXCEPTION_IMPL 1
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
-        #define ABEL_HAVE_CPP11_EXCEPTION_IMPL 1
-    #elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
-        #define ABEL_HAVE_CPP11_EXCEPTION_IMPL 1
-    #else
-        #define ABEL_NO_HAVE_CPP11_EXCEPTION_IMPL 1
-    #endif
+#if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && (_CPPLIB_VER >= 520) && !(defined(_HAS_CPP0X) && _HAS_CPP0X) // Dinkumware. VS2010+
+#define ABEL_HAVE_CPP11_EXCEPTION_IMPL 1
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(ABEL_HAVE_LIBSTDCPP_LIBRARY) && defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
+#define ABEL_HAVE_CPP11_EXCEPTION_IMPL 1
+#elif defined(ABEL_HAVE_LIBCPP_LIBRARY) && (_LIBCPP_VERSION >= 1)
+#define ABEL_HAVE_CPP11_EXCEPTION_IMPL 1
+#else
+#define ABEL_NO_HAVE_CPP11_EXCEPTION_IMPL 1
+#endif
 #endif
 
 #endif //ABEL_BASE_PROFILE_HAVE_H_

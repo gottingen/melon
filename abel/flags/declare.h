@@ -16,23 +16,23 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
 // abel::Flag<T> represents a flag of type 'T' created by ABEL_FLAG.
-template <typename T>
-class Flag;
+        template<typename T>
+        class Flag;
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 // Flag
 //
 // Forward declaration of the `abel::Flag` type for use in defining the macro.
 #if defined(_MSC_VER) && !defined(__clang__)
-template <typename T>
-class Flag;
+    template <typename T>
+    class Flag;
 #else
-template <typename T>
-using Flag = flags_internal::Flag<T>;
+    template<typename T>
+    using Flag = flags_internal::Flag<T>;
 #endif
 
 

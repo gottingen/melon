@@ -14,10 +14,13 @@
 #include <abel/chrono/clock.h>
 
 #if !defined(_WIN32)
+
 #include <sys/time.h>
+
 #else
 #include <winsock2.h>
 #endif  // _WIN32
+
 #include <cstdio>
 
 #include <abel/base/internal/cycleclock.h>
@@ -25,50 +28,57 @@
 
 namespace {
 
-void BM_Clock_Now_AbelTime(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::now());
-  }
-}
-BENCHMARK(BM_Clock_Now_AbelTime);
+    void BM_Clock_Now_AbelTime(benchmark::State &state) {
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::now());
+        }
+    }
 
-void BM_Clock_Now_GetCurrentTimeNanos(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::get_current_time_nanos());
-  }
-}
-BENCHMARK(BM_Clock_Now_GetCurrentTimeNanos);
+    BENCHMARK(BM_Clock_Now_AbelTime);
 
-void BM_Clock_Now_AbelTime_ToUnixNanos(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::to_unix_nanos(abel::now()));
-  }
-}
-BENCHMARK(BM_Clock_Now_AbelTime_ToUnixNanos);
+    void BM_Clock_Now_GetCurrentTimeNanos(benchmark::State &state) {
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::get_current_time_nanos());
+        }
+    }
 
-void BM_Clock_Now_CycleClock(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(abel::cycle_clock::now());
-  }
-}
-BENCHMARK(BM_Clock_Now_CycleClock);
+    BENCHMARK(BM_Clock_Now_GetCurrentTimeNanos);
+
+    void BM_Clock_Now_AbelTime_ToUnixNanos(benchmark::State &state) {
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::to_unix_nanos(abel::now()));
+        }
+    }
+
+    BENCHMARK(BM_Clock_Now_AbelTime_ToUnixNanos);
+
+    void BM_Clock_Now_CycleClock(benchmark::State &state) {
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(abel::cycle_clock::now());
+        }
+    }
+
+    BENCHMARK(BM_Clock_Now_CycleClock);
 
 #if !defined(_WIN32)
-static void BM_Clock_Now_gettimeofday(benchmark::State& state) {
-  struct timeval tv;
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(gettimeofday(&tv, nullptr));
-  }
-}
-BENCHMARK(BM_Clock_Now_gettimeofday);
 
-static void BM_Clock_Now_clock_gettime(benchmark::State& state) {
-  struct timespec ts;
-  while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(clock_gettime(CLOCK_REALTIME, &ts));
-  }
-}
-BENCHMARK(BM_Clock_Now_clock_gettime);
+    static void BM_Clock_Now_gettimeofday(benchmark::State &state) {
+        struct timeval tv;
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(gettimeofday(&tv, nullptr));
+        }
+    }
+
+    BENCHMARK(BM_Clock_Now_gettimeofday);
+
+    static void BM_Clock_Now_clock_gettime(benchmark::State &state) {
+        struct timespec ts;
+        while (state.KeepRunning()) {
+            benchmark::DoNotOptimize(clock_gettime(CLOCK_REALTIME, &ts));
+        }
+    }
+
+    BENCHMARK(BM_Clock_Now_clock_gettime);
 #endif  // _WIN32
 
 }  // namespace

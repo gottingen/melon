@@ -40,13 +40,13 @@ TEST(DiscarPpolicy, async) {
     size_t queue_size = 2;
     size_t messages = 10240;
     abel::log::init_thread_pool(queue_size,
-                           1);
+                                1);
 
     auto logger = abel::log::create_async_nb<abel::sinks::test_sink_mt>("as2");
     for (
-        size_t i = 0;
-        i < messages;
-        i++) {
+            size_t i = 0;
+            i < messages;
+            i++) {
         logger->info("Hello message");
     }
     auto sink = std::static_pointer_cast<abel::sinks::test_sink_mt>(logger->sinks()[0]);

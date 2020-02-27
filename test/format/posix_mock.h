@@ -14,8 +14,10 @@
 #ifdef _WIN32
 # include <windows.h>
 #else
+
 # include <sys/param.h>  // for FreeBSD version
 # include <sys/types.h>  // for ssize_t
+
 #endif
 
 #ifndef _MSC_VER
@@ -26,42 +28,53 @@ namespace test {
 
 #ifndef _MSC_VER
 // Size type for read and write.
-typedef size_t size_t;
-typedef ssize_t ssize_t;
-int open(const char *path, int oflag, int mode);
-int fstat(int fd, struct stat *buf);
+    typedef size_t size_t;
+    typedef ssize_t ssize_t;
+
+    int open(const char *path, int oflag, int mode);
+
+    int fstat(int fd, struct stat *buf);
+
 #else
-typedef unsigned size_t;
-typedef int ssize_t;
-errno_t sopen_s(
-    int* pfh, const char *filename, int oflag, int shflag, int pmode);
+    typedef unsigned size_t;
+    typedef int ssize_t;
+    errno_t sopen_s(
+        int* pfh, const char *filename, int oflag, int shflag, int pmode);
 #endif
 
 #ifndef _WIN32
-long sysconf(int name);
+
+    long sysconf(int name);
+
 #else
-DWORD GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh);
+    DWORD GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh);
 #endif
 
-int close(int fildes);
+    int close(int fildes);
 
-int dup(int fildes);
-int dup2(int fildes, int fildes2);
+    int dup(int fildes);
 
-FILE *fdopen(int fildes, const char *mode);
+    int dup2(int fildes, int fildes2);
 
-ssize_t read(int fildes, void *buf, size_t nbyte);
-ssize_t write(int fildes, const void *buf, size_t nbyte);
+    FILE *fdopen(int fildes, const char *mode);
+
+    ssize_t read(int fildes, void *buf, size_t nbyte);
+
+    ssize_t write(int fildes, const void *buf, size_t nbyte);
 
 #ifndef _WIN32
-int pipe(int fildes[2]);
+
+    int pipe(int fildes[2]);
+
 #else
-int pipe(int *pfds, unsigned psize, int textmode);
+    int pipe(int *pfds, unsigned psize, int textmode);
 #endif
 
-FILE *fopen(const char *filename, const char *mode);
-int fclose(FILE *stream);
-int (fileno)(FILE *stream);
+    FILE *fopen(const char *filename, const char *mode);
+
+    int fclose(FILE *stream);
+
+    int (fileno)(FILE *stream);
 }  // namespace test
 
 #define FMT_SYSTEM(call) test::call

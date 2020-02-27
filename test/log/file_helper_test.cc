@@ -6,7 +6,7 @@ using abel::log::details::log_msg;
 
 static const std::string target_filename = "logs/file_helper_test.txt";
 
-static void write_with_helper (file_helper &helper, size_t howmany) {
+static void write_with_helper(file_helper &helper, size_t howmany) {
     log_msg msg;
     fmt::memory_buffer formatted;
     fmt::format_to(formatted, "{}", std::string(howmany, '1'));
@@ -63,7 +63,7 @@ TEST(filehelper, filehelperreopen2) {
     EXPECT_TRUE(helper.size() == expected_size);
 }
 
-static void test_split_ext (const char *fname, const char *expect_base, const char *expect_ext) {
+static void test_split_ext(const char *fname, const char *expect_base, const char *expect_ext) {
     abel::log::filename_t filename(fname);
     abel::log::filename_t expected_base(expect_base);
     abel::log::filename_t expected_ext(expect_ext);

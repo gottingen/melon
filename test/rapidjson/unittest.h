@@ -56,28 +56,32 @@
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #endif
 
-template <typename Ch>
-inline unsigned StrLen(const Ch* s) {
-    const Ch* p = s;
+template<typename Ch>
+inline unsigned StrLen(const Ch *s) {
+    const Ch *p = s;
     while (*p) p++;
     return unsigned(p - s);
 }
 
 template<typename Ch>
-inline int StrCmp(const Ch* s1, const Ch* s2) {
-    while(*s1 && (*s1 == *s2)) { s1++; s2++; }
-    return static_cast<unsigned>(*s1) < static_cast<unsigned>(*s2) ? -1 : static_cast<unsigned>(*s1) > static_cast<unsigned>(*s2);
+inline int StrCmp(const Ch *s1, const Ch *s2) {
+    while (*s1 && (*s1 == *s2)) {
+        s1++;
+        s2++;
+    }
+    return static_cast<unsigned>(*s1) < static_cast<unsigned>(*s2) ? -1 : static_cast<unsigned>(*s1) >
+                                                                          static_cast<unsigned>(*s2);
 }
 
-template <typename Ch>
-inline Ch* StrDup(const Ch* str) {
+template<typename Ch>
+inline Ch *StrDup(const Ch *str) {
     size_t bufferSize = sizeof(Ch) * (StrLen(str) + 1);
-    Ch* buffer = static_cast<Ch*>(malloc(bufferSize));
+    Ch *buffer = static_cast<Ch *>(malloc(bufferSize));
     memcpy(buffer, str, bufferSize);
     return buffer;
 }
 
-inline FILE* TempFile(char *filename) {
+inline FILE *TempFile(char *filename) {
 #ifdef _MSC_VER
     filename = tmpnam(filename);
 
@@ -108,8 +112,10 @@ inline FILE* TempFile(char *filename) {
 
 class AssertException : public std::logic_error {
 public:
-    AssertException(const char* w) : std::logic_error(w) {}
-    AssertException(const AssertException& rhs) : std::logic_error(rhs) {}
+    AssertException(const char *w) : std::logic_error(w) {}
+
+    AssertException(const AssertException &rhs) : std::logic_error(rhs) {}
+
     virtual ~AssertException() throw();
 };
 

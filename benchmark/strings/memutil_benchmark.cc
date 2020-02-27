@@ -72,240 +72,263 @@
 
 namespace {
 
-constexpr int kHaystackSize = 10000;
-constexpr int64_t kHaystackSize64 = kHaystackSize;
-const char* MakeHaystack() {
-  char* haystack = new char[kHaystackSize];
-  for (int i = 0; i < kHaystackSize - 1; ++i) haystack[i] = 'a';
-  haystack[kHaystackSize - 1] = 'b';
-  return haystack;
-}
-const char* const kHaystack = MakeHaystack();
+    constexpr int kHaystackSize = 10000;
+    constexpr int64_t kHaystackSize64 = kHaystackSize;
 
-void BM_Memmem(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        abel::strings_internal::char_mem(kHaystack, kHaystackSize, "b", 1));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_Memmem);
+    const char *MakeHaystack() {
+        char *haystack = new char[kHaystackSize];
+        for (int i = 0; i < kHaystackSize - 1; ++i) haystack[i] = 'a';
+        haystack[kHaystackSize - 1] = 'b';
+        return haystack;
+    }
 
-void BM_MemmemMedium(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        abel::strings_internal::char_mem(kHaystack, kHaystackSize, "ab", 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemmemMedium);
+    const char *const kHaystack = MakeHaystack();
 
-void BM_MemmemPathological(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::char_mem(
-        kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
-        kHaystackSize - kHaystackSize / 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemmemPathological);
+    void BM_Memmem(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    abel::strings_internal::char_mem(kHaystack, kHaystackSize, "b", 1));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_Memcasemem(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        abel::strings_internal::char_case_mem(kHaystack, kHaystackSize, "b", 1));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_Memcasemem);
+    BENCHMARK(BM_Memmem);
 
-void BM_MemcasememMedium(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        abel::strings_internal::char_case_mem(kHaystack, kHaystackSize, "ab", 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemcasememMedium);
+    void BM_MemmemMedium(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    abel::strings_internal::char_mem(kHaystack, kHaystackSize, "ab", 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_MemcasememPathological(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::char_case_mem(
-        kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
-        kHaystackSize - kHaystackSize / 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemcasememPathological);
+    BENCHMARK(BM_MemmemMedium);
 
-bool case_eq(const char a, const char b) {
-  return abel::ascii::to_lower(a) == abel::ascii::to_lower(b);
-}
+    void BM_MemmemPathological(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(abel::strings_internal::char_mem(
+                    kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
+                    kHaystackSize - kHaystackSize / 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_Search(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
-                                         kHaystack + kHaystackSize - 1,
-                                         kHaystack + kHaystackSize));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_Search);
+    BENCHMARK(BM_MemmemPathological);
 
-void BM_SearchMedium(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
-                                         kHaystack + kHaystackSize - 2,
-                                         kHaystack + kHaystackSize));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_SearchMedium);
+    void BM_Memcasemem(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    abel::strings_internal::char_case_mem(kHaystack, kHaystackSize, "b", 1));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_SearchPathological(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
-                                         kHaystack + kHaystackSize / 2,
-                                         kHaystack + kHaystackSize));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_SearchPathological);
+    BENCHMARK(BM_Memcasemem);
 
-void BM_Searchcase(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
-                                         kHaystack + kHaystackSize - 1,
-                                         kHaystack + kHaystackSize, case_eq));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_Searchcase);
+    void BM_MemcasememMedium(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    abel::strings_internal::char_case_mem(kHaystack, kHaystackSize, "ab", 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_SearchcaseMedium(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
-                                         kHaystack + kHaystackSize - 2,
-                                         kHaystack + kHaystackSize, case_eq));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_SearchcaseMedium);
+    BENCHMARK(BM_MemcasememMedium);
 
-void BM_SearchcasePathological(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
-                                         kHaystack + kHaystackSize / 2,
-                                         kHaystack + kHaystackSize, case_eq));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_SearchcasePathological);
+    void BM_MemcasememPathological(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(abel::strings_internal::char_case_mem(
+                    kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
+                    kHaystackSize - kHaystackSize / 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-char* memcasechr(const char* s, int c, size_t slen) {
-  c = abel::ascii::to_lower(c);
-  for (; slen; ++s, --slen) {
-    if (abel::ascii::to_lower(*s) == c) return const_cast<char*>(s);
-  }
-  return nullptr;
-}
+    BENCHMARK(BM_MemcasememPathological);
 
-const char* memcasematch(const char* phaystack, size_t haylen,
-                         const char* pneedle, size_t neelen) {
-  if (0 == neelen) {
-    return phaystack;  // even if haylen is 0
-  }
-  if (haylen < neelen) return nullptr;
+    bool case_eq(const char a, const char b) {
+        return abel::ascii::to_lower(a) == abel::ascii::to_lower(b);
+    }
 
-  const char* match;
-  const char* hayend = phaystack + haylen - neelen + 1;
-  while ((match = static_cast<char*>(
-              memcasechr(phaystack, pneedle[0], hayend - phaystack)))) {
-    if (abel::strings_internal::char_case_cmp(match, pneedle, neelen) == 0)
-      return match;
-    else
-      phaystack = match + 1;
-  }
-  return nullptr;
-}
+    void BM_Search(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
+                                                 kHaystack + kHaystackSize - 1,
+                                                 kHaystack + kHaystackSize));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_Memmatch(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        abel::strings_internal::char_match(kHaystack, kHaystackSize, "b", 1));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_Memmatch);
+    BENCHMARK(BM_Search);
 
-void BM_MemmatchMedium(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        abel::strings_internal::char_match(kHaystack, kHaystackSize, "ab", 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemmatchMedium);
+    void BM_SearchMedium(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
+                                                 kHaystack + kHaystackSize - 2,
+                                                 kHaystack + kHaystackSize));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_MemmatchPathological(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::char_match(
-        kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
-        kHaystackSize - kHaystackSize / 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemmatchPathological);
+    BENCHMARK(BM_SearchMedium);
 
-void BM_Memcasematch(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(memcasematch(kHaystack, kHaystackSize, "b", 1));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_Memcasematch);
+    void BM_SearchPathological(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
+                                                 kHaystack + kHaystackSize / 2,
+                                                 kHaystack + kHaystackSize));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_MemcasematchMedium(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(memcasematch(kHaystack, kHaystackSize, "ab", 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemcasematchMedium);
+    BENCHMARK(BM_SearchPathological);
 
-void BM_MemcasematchPathological(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(memcasematch(kHaystack, kHaystackSize,
-                                          kHaystack + kHaystackSize / 2,
-                                          kHaystackSize - kHaystackSize / 2));
-  }
-  state.SetBytesProcessed(kHaystackSize64 * state.iterations());
-}
-BENCHMARK(BM_MemcasematchPathological);
+    void BM_Searchcase(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
+                                                 kHaystack + kHaystackSize - 1,
+                                                 kHaystack + kHaystackSize, case_eq));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_MemmemStartup(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::char_mem(
-        kHaystack + kHaystackSize - 10, 10, kHaystack + kHaystackSize - 1, 1));
-  }
-}
-BENCHMARK(BM_MemmemStartup);
+    BENCHMARK(BM_Searchcase);
 
-void BM_SearchStartup(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        std::search(kHaystack + kHaystackSize - 10, kHaystack + kHaystackSize,
-                    kHaystack + kHaystackSize - 1, kHaystack + kHaystackSize));
-  }
-}
-BENCHMARK(BM_SearchStartup);
+    void BM_SearchcaseMedium(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
+                                                 kHaystack + kHaystackSize - 2,
+                                                 kHaystack + kHaystackSize, case_eq));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
 
-void BM_MemmatchStartup(benchmark::State& state) {
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(abel::strings_internal::char_match(
-        kHaystack + kHaystackSize - 10, 10, kHaystack + kHaystackSize - 1, 1));
-  }
-}
-BENCHMARK(BM_MemmatchStartup);
+    BENCHMARK(BM_SearchcaseMedium);
+
+    void BM_SearchcasePathological(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(std::search(kHaystack, kHaystack + kHaystackSize,
+                                                 kHaystack + kHaystackSize / 2,
+                                                 kHaystack + kHaystackSize, case_eq));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_SearchcasePathological);
+
+    char *memcasechr(const char *s, int c, size_t slen) {
+        c = abel::ascii::to_lower(c);
+        for (; slen; ++s, --slen) {
+            if (abel::ascii::to_lower(*s) == c) return const_cast<char *>(s);
+        }
+        return nullptr;
+    }
+
+    const char *memcasematch(const char *phaystack, size_t haylen,
+                             const char *pneedle, size_t neelen) {
+        if (0 == neelen) {
+            return phaystack;  // even if haylen is 0
+        }
+        if (haylen < neelen) return nullptr;
+
+        const char *match;
+        const char *hayend = phaystack + haylen - neelen + 1;
+        while ((match = static_cast<char *>(
+                memcasechr(phaystack, pneedle[0], hayend - phaystack)))) {
+            if (abel::strings_internal::char_case_cmp(match, pneedle, neelen) == 0)
+                return match;
+            else
+                phaystack = match + 1;
+        }
+        return nullptr;
+    }
+
+    void BM_Memmatch(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    abel::strings_internal::char_match(kHaystack, kHaystackSize, "b", 1));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_Memmatch);
+
+    void BM_MemmatchMedium(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    abel::strings_internal::char_match(kHaystack, kHaystackSize, "ab", 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_MemmatchMedium);
+
+    void BM_MemmatchPathological(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(abel::strings_internal::char_match(
+                    kHaystack, kHaystackSize, kHaystack + kHaystackSize / 2,
+                    kHaystackSize - kHaystackSize / 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_MemmatchPathological);
+
+    void BM_Memcasematch(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(memcasematch(kHaystack, kHaystackSize, "b", 1));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_Memcasematch);
+
+    void BM_MemcasematchMedium(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(memcasematch(kHaystack, kHaystackSize, "ab", 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_MemcasematchMedium);
+
+    void BM_MemcasematchPathological(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(memcasematch(kHaystack, kHaystackSize,
+                                                  kHaystack + kHaystackSize / 2,
+                                                  kHaystackSize - kHaystackSize / 2));
+        }
+        state.SetBytesProcessed(kHaystackSize64 * state.iterations());
+    }
+
+    BENCHMARK(BM_MemcasematchPathological);
+
+    void BM_MemmemStartup(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(abel::strings_internal::char_mem(
+                    kHaystack + kHaystackSize - 10, 10, kHaystack + kHaystackSize - 1, 1));
+        }
+    }
+
+    BENCHMARK(BM_MemmemStartup);
+
+    void BM_SearchStartup(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(
+                    std::search(kHaystack + kHaystackSize - 10, kHaystack + kHaystackSize,
+                                kHaystack + kHaystackSize - 1, kHaystack + kHaystackSize));
+        }
+    }
+
+    BENCHMARK(BM_SearchStartup);
+
+    void BM_MemmatchStartup(benchmark::State &state) {
+        for (auto _ : state) {
+            benchmark::DoNotOptimize(abel::strings_internal::char_match(
+                    kHaystack + kHaystackSize - 10, 10, kHaystack + kHaystackSize - 1, 1));
+        }
+    }
+
+    BENCHMARK(BM_MemmatchStartup);
 
 }  // namespace

@@ -16,7 +16,7 @@
 // (namespaces, inline) which are absent or incompatible in C.
 #if defined(__cplusplus)
 
-#if defined(ADDRESS_SANITIZER) || defined(THREAD_SANITIZER) ||\
+#if defined(ADDRESS_SANITIZER) || defined(THREAD_SANITIZER) || \
     defined(MEMORY_SANITIZER)
 // Consider we have an unaligned load/store of 4 bytes from address 0x...05.
 // AddressSanitizer will treat it as a 3-byte access to the range 05:07 and
@@ -91,33 +91,33 @@ ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) {
 
 namespace abel {
 
-namespace base_internal {
+    namespace base_internal {
 
-ABEL_FORCE_INLINE uint16_t UnalignedLoad16(const void *p) {
-  uint16_t t;
-  memcpy(&t, p, sizeof t);
-  return t;
-}
+        ABEL_FORCE_INLINE uint16_t UnalignedLoad16(const void *p) {
+            uint16_t t;
+            memcpy(&t, p, sizeof t);
+            return t;
+        }
 
-ABEL_FORCE_INLINE uint32_t UnalignedLoad32(const void *p) {
-  uint32_t t;
-  memcpy(&t, p, sizeof t);
-  return t;
-}
+        ABEL_FORCE_INLINE uint32_t UnalignedLoad32(const void *p) {
+            uint32_t t;
+            memcpy(&t, p, sizeof t);
+            return t;
+        }
 
-ABEL_FORCE_INLINE uint64_t UnalignedLoad64(const void *p) {
-  uint64_t t;
-  memcpy(&t, p, sizeof t);
-  return t;
-}
+        ABEL_FORCE_INLINE uint64_t UnalignedLoad64(const void *p) {
+            uint64_t t;
+            memcpy(&t, p, sizeof t);
+            return t;
+        }
 
-ABEL_FORCE_INLINE void UnalignedStore16(void *p, uint16_t v) { memcpy(p, &v, sizeof v); }
+        ABEL_FORCE_INLINE void UnalignedStore16(void *p, uint16_t v) { memcpy(p, &v, sizeof v); }
 
-ABEL_FORCE_INLINE void UnalignedStore32(void *p, uint32_t v) { memcpy(p, &v, sizeof v); }
+        ABEL_FORCE_INLINE void UnalignedStore32(void *p, uint32_t v) { memcpy(p, &v, sizeof v); }
 
-ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
+        ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
 
-}  // namespace base_internal
+    }  // namespace base_internal
 
 }  // namespace abel
 

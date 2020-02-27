@@ -14,7 +14,7 @@
 
 namespace abel {
 
-namespace random_internal {
+    namespace random_internal {
 
 // This class conforms to the C++ Standard "Seed Sequence" concept
 // [rand.req.seedseq].
@@ -28,51 +28,54 @@ namespace random_internal {
 // If this class is asked to generate more seed material than was provided to
 // the constructor, then the remaining bytes will be filled with deterministic,
 // nonrandom data.
-class ExplicitSeedSeq {
- public:
-  using result_type = uint32_t;
+        class ExplicitSeedSeq {
+        public:
+            using result_type = uint32_t;
 
-  ExplicitSeedSeq() : state_() {}
+            ExplicitSeedSeq() : state_() {}
 
-  // Copy and move both allowed.
-  ExplicitSeedSeq(const ExplicitSeedSeq& other) = default;
-  ExplicitSeedSeq& operator=(const ExplicitSeedSeq& other) = default;
-  ExplicitSeedSeq(ExplicitSeedSeq&& other) = default;
-  ExplicitSeedSeq& operator=(ExplicitSeedSeq&& other) = default;
+            // Copy and move both allowed.
+            ExplicitSeedSeq(const ExplicitSeedSeq &other) = default;
 
-  template <typename Iterator>
-  ExplicitSeedSeq(Iterator begin, Iterator end) {
-    for (auto it = begin; it != end; it++) {
-      state_.push_back(*it & 0xffffffff);
-    }
-  }
+            ExplicitSeedSeq &operator=(const ExplicitSeedSeq &other) = default;
 
-  template <typename T>
-  ExplicitSeedSeq(std::initializer_list<T> il)
-      : ExplicitSeedSeq(il.begin(), il.end()) {}
+            ExplicitSeedSeq(ExplicitSeedSeq &&other) = default;
 
-  size_t size() const { return state_.size(); }
+            ExplicitSeedSeq &operator=(ExplicitSeedSeq &&other) = default;
 
-  template <typename OutIterator>
-  void param(OutIterator out) const {
-    std::copy(std::begin(state_), std::end(state_), out);
-  }
+            template<typename Iterator>
+            ExplicitSeedSeq(Iterator begin, Iterator end) {
+                for (auto it = begin; it != end; it++) {
+                    state_.push_back(*it & 0xffffffff);
+                }
+            }
 
-  template <typename OutIterator>
-  void generate(OutIterator begin, OutIterator end) {
-    for (size_t index = 0; begin != end; begin++) {
-      *begin = state_.empty() ? 0 : state_[index++];
-      if (index >= state_.size()) {
-        index = 0;
-      }
-    }
-  }
+            template<typename T>
+            ExplicitSeedSeq(std::initializer_list<T> il)
+                    : ExplicitSeedSeq(il.begin(), il.end()) {}
 
- protected:
-  std::vector<uint32_t> state_;
-};
+            size_t size() const { return state_.size(); }
 
-}  // namespace random_internal
+            template<typename OutIterator>
+            void param(OutIterator out) const {
+                std::copy(std::begin(state_), std::end(state_), out);
+            }
+
+            template<typename OutIterator>
+            void generate(OutIterator begin, OutIterator end) {
+                for (size_t index = 0; begin != end; begin++) {
+                    *begin = state_.empty() ? 0 : state_[index++];
+                    if (index >= state_.size()) {
+                        index = 0;
+                    }
+                }
+            }
+
+        protected:
+            std::vector<uint32_t> state_;
+        };
+
+    }  // namespace random_internal
 
 }  // namespace abel
 

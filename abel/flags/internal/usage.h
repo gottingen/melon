@@ -15,16 +15,16 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
 // The format to report the help messages in.
-enum class HelpFormat {
-  kHumanReadable,
-};
+        enum class HelpFormat {
+            kHumanReadable,
+        };
 
 // Outputs the help message describing specific flag.
-void FlagHelp(std::ostream& out, const flags_internal::CommandLineFlag& flag,
-              HelpFormat format = HelpFormat::kHumanReadable);
+        void FlagHelp(std::ostream &out, const flags_internal::CommandLineFlag &flag,
+                      HelpFormat format = HelpFormat::kHumanReadable);
 
 // Produces the help messages for all flags matching the filter. A flag matches
 // the filter if it is defined in a file with a filename which includes
@@ -35,8 +35,8 @@ void FlagHelp(std::ostream& out, const flags_internal::CommandLineFlag& flag,
 //  .../path/to/file.<ext>
 // for any extension 'ext'. If the filter is empty this function produces help
 // messages for all flags.
-void FlagsHelp(std::ostream& out, abel::string_view filter,
-               HelpFormat format, abel::string_view program_usage_message);
+        void FlagsHelp(std::ostream &out, abel::string_view filter,
+                       HelpFormat format, abel::string_view program_usage_message);
 
 // --------------------------------------------------------------------
 
@@ -48,10 +48,10 @@ void FlagsHelp(std::ostream& out, abel::string_view filter,
 // -1 - if no usage flags were set on a commmand line.
 // Non negative return values are expected to be used as an exit code for a
 // binary.
-int HandleUsageFlags(std::ostream& out,
-                     abel::string_view program_usage_message);
+        int HandleUsageFlags(std::ostream &out,
+                             abel::string_view program_usage_message);
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 }  // namespace abel
 

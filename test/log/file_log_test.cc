@@ -92,7 +92,7 @@ TEST(FileLog, dailyloggerdateonly) {
 }
 
 struct custom_daily_file_name_calculator {
-    static abel::log::filename_t calc_filename (const abel::log::filename_t &basename, const tm &now_tm) {
+    static abel::log::filename_t calc_filename(const abel::log::filename_t &basename, const tm &now_tm) {
         fmt::memory_buffer w;
         fmt::format_to(w, "{}{:04d}{:02d}{:02d}", basename, now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday);
         return fmt::to_string(w);

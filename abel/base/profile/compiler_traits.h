@@ -16,7 +16,7 @@
 
 // Determine if this compiler is ANSI C compliant and if it is C99 compliant.
 #if defined(__STDC__)
-    #define ABEL_COMPILER_IS_ANSIC 1    // The compiler claims to be ANSI C
+#define ABEL_COMPILER_IS_ANSIC 1    // The compiler claims to be ANSI C
 
 // Is the compiler a C99 compiler or equivalent?
 // From ISO/IEC 9899:1999:
@@ -28,18 +28,18 @@
 //    is that this will remain an integer constant of type long int
 //    that is increased with each revision of this International Standard.
 //
-    #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-        #define ABEL_COMPILER_IS_C99 1
-    #endif
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+#define ABEL_COMPILER_IS_C99 1
+#endif
 
 // Is the compiler a C11 compiler?
 // From ISO/IEC 9899:2011:
 //   Page 176, 6.10.8.1 (Predefined macro names) :
 //   __STDC_VERSION__ The integer constant 201112L. (178)
 //
-    #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-        #define ABEL_COMPILER_IS_C11 1
-    #endif
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define ABEL_COMPILER_IS_C11 1
+#endif
 #endif
 
 // Some compilers (e.g. GCC) define __USE_ISOC99 if they are not
@@ -47,34 +47,34 @@
 // to use C99 functionality. Metrowerks defines _MSL_C99 as 1 in
 // this case, but 0 otherwise.
 #if (defined(__USE_ISOC99) || (defined(_MSL_C99) && (_MSL_C99 == 1))) && !defined(ABEL_COMPILER_IS_C99)
-    #define ABEL_COMPILER_IS_C99 1
+#define ABEL_COMPILER_IS_C99 1
 #endif
 
 // Metrowerks defines C99 types (e.g. intptr_t) instrinsically when in C99 mode (-lang C99 on the command line).
 #if (defined(_MSL_C99) && (_MSL_C99 == 1))
-    #define ABEL_COMPILER_HAS_C99_TYPES 1
+#define ABEL_COMPILER_HAS_C99_TYPES 1
 #endif
 
 #if defined(__GNUC__)
-    #if (((__GNUC__ * 100) + __GNUC_MINOR__) >= 302) // Also, GCC defines _HAS_C9X.
-        #define ABEL_COMPILER_HAS_C99_TYPES 1 // The compiler is not necessarily a C99 compiler, but it defines C99 types.
+#if (((__GNUC__ * 100) + __GNUC_MINOR__) >= 302) // Also, GCC defines _HAS_C9X.
+#define ABEL_COMPILER_HAS_C99_TYPES 1 // The compiler is not necessarily a C99 compiler, but it defines C99 types.
 
-        #ifndef __STDC_LIMIT_MACROS
-            #define __STDC_LIMIT_MACROS 1
-        #endif
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS 1
+#endif
 
-        #ifndef __STDC_CONSTANT_MACROS
-            #define __STDC_CONSTANT_MACROS 1    // This tells the GCC compiler that we want it to use its native C99 types.
-        #endif
-    #endif
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS 1    // This tells the GCC compiler that we want it to use its native C99 types.
+#endif
+#endif
 #endif
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)
-    #define ABEL_COMPILER_HAS_C99_TYPES 1
+#define ABEL_COMPILER_HAS_C99_TYPES 1
 #endif
 
 #ifdef  __cplusplus
-    #define ABEL_COMPILER_IS_CPLUSPLUS 1
+#define ABEL_COMPILER_IS_CPLUSPLUS 1
 #endif
 
 
@@ -97,9 +97,9 @@
 // something like __LINE__(Var+37).
 //
 #ifndef ABEL_PREPROCESSOR_JOIN
-    #define ABEL_PREPROCESSOR_JOIN(a, b)  ABEL_PREPROCESSOR_JOIN1(a, b)
-    #define ABEL_PREPROCESSOR_JOIN1(a, b) ABEL_PREPROCESSOR_JOIN2(a, b)
-    #define ABEL_PREPROCESSOR_JOIN2(a, b) a##b
+#define ABEL_PREPROCESSOR_JOIN(a, b)  ABEL_PREPROCESSOR_JOIN1(a, b)
+#define ABEL_PREPROCESSOR_JOIN1(a, b) ABEL_PREPROCESSOR_JOIN2(a, b)
+#define ABEL_PREPROCESSOR_JOIN2(a, b) a##b
 #endif
 
 
@@ -110,8 +110,8 @@
 //     printf("Line: %s", ABEL_STRINGIFY(__LINE__));
 //
 #ifndef ABEL_STRINGIFY
-    #define ABEL_STRINGIFY(x)     ABEL_STRINGIFYIMPL(x)
-    #define ABEL_STRINGIFYIMPL(x) #x
+#define ABEL_STRINGIFY(x)     ABEL_STRINGIFYIMPL(x)
+#define ABEL_STRINGIFYIMPL(x) #x
 #endif
 
 
@@ -119,7 +119,7 @@
 // ABEL_IDENTITY
 //
 #ifndef ABEL_IDENTITY
-    #define ABEL_IDENTITY(x) x
+#define ABEL_IDENTITY(x) x
 #endif
 
 
@@ -127,11 +127,11 @@
 // ABEL_COMPILER_MANAGED_CPP
 // Defined if this is being compiled with Managed C++ extensions
 #ifdef ABEL_COMPILER_MSVC
-    #if ABEL_COMPILER_VERSION >= 1300
-        #ifdef _MANAGED
-            #define ABEL_COMPILER_MANAGED_CPP 1
-        #endif
-    #endif
+#if ABEL_COMPILER_VERSION >= 1300
+#ifdef _MANAGED
+#define ABEL_COMPILER_MANAGED_CPP 1
+#endif
+#endif
 #endif
 
 
@@ -143,9 +143,9 @@
 // you can use intmax_t and uintmax_t to use the actual types.
 //
 #if defined(__GNUC__) && defined(__x86_64__)
-    #define ABEL_COMPILER_INTMAX_SIZE 16  // intmax_t is __int128_t (GCC extension) and is 16 bytes.
+#define ABEL_COMPILER_INTMAX_SIZE 16  // intmax_t is __int128_t (GCC extension) and is 16 bytes.
 #else
-    #define ABEL_COMPILER_INTMAX_SIZE 8   // intmax_t is int64_t and is 8 bytes.
+#define ABEL_COMPILER_INTMAX_SIZE 8   // intmax_t is int64_t and is 8 bytes.
 #endif
 
 
@@ -161,16 +161,16 @@
 //     int x = SOME_MACRO(SomeTemplate<int ABEL_COMMA() int CBCOMMA() char>);
 //
 #ifndef ABEL_LPAREN
-    #define ABEL_LPAREN() (
+#define ABEL_LPAREN() (
 #endif
 #ifndef ABEL_RPAREN
-    #define ABEL_RPAREN() )
+#define ABEL_RPAREN() )
 #endif
 #ifndef ABEL_COMMA
-    #define ABEL_COMMA()  ,
+#define ABEL_COMMA()  ,
 #endif
 #ifndef ABEL_SEMI
-    #define ABEL_SEMI()   ;
+#define ABEL_SEMI()   ;
 #endif
 
 
@@ -193,9 +193,9 @@
 //     size_t n = ABEL_OFFSETOF(A, y);
 //
 #if defined(__GNUC__)                       // We can't use GCC 4's __builtin_offsetof because it mistakenly complains about non-PODs that are really PODs.
-    #define ABEL_OFFSETOF(struct_, member_)  ((size_t)(((uintptr_t)&reinterpret_cast<const volatile char&>((((struct_*)65536)->member_))) - 65536))
+#define ABEL_OFFSETOF(struct_, member_)  ((size_t)(((uintptr_t)&reinterpret_cast<const volatile char&>((((struct_*)65536)->member_))) - 65536))
 #else
-    #define ABEL_OFFSETOF(struct_, member_)  offsetof(struct_, member_)
+#define ABEL_OFFSETOF(struct_, member_)  offsetof(struct_, member_)
 #endif
 
 // ------------------------------------------------------------------------
@@ -211,9 +211,9 @@
 //     size_t n = ABEL_SIZEOF_MEMBER(A, y);
 //
 #ifndef ABEL_COMPILER_NO_EXTENDED_SIZEOF
-    #define ABEL_SIZEOF_MEMBER(struct_, member_) (sizeof(struct_::member_))
+#define ABEL_SIZEOF_MEMBER(struct_, member_) (sizeof(struct_::member_))
 #else
-    #define ABEL_SIZEOF_MEMBER(struct_, member_) (sizeof(((struct_*)0)->member_))
+#define ABEL_SIZEOF_MEMBER(struct_, member_) (sizeof(((struct_*)0)->member_))
 #endif
 
 // ------------------------------------------------------------------------
@@ -252,16 +252,16 @@
 //    typedef ABEL_ALIGNED(X, X16, 16); X16 x16;                      typedef X X16; X16 x16;         Define X16 as an X which is aligned on 16.
 
 #if !defined(ABEL_ALIGN_MAX)          // If the user hasn't globally set an alternative value...
-    #if defined(ABEL_PROCESSOR_ARM)                       // ARM compilers in general tend to limit automatic variables to 8 or less.
-        #define ABEL_ALIGN_MAX_STATIC    1048576
-        #define ABEL_ALIGN_MAX_AUTOMATIC       1          // Typically they support only built-in natural aligment types (both arm-eabi and apple-abi).
-    #elif defined(ABEL_PLATFORM_APPLE)
-        #define ABEL_ALIGN_MAX_STATIC    1048576
-        #define ABEL_ALIGN_MAX_AUTOMATIC      16
-    #else
-        #define ABEL_ALIGN_MAX_STATIC    1048576          // Arbitrarily high value. What is the actual max?
-        #define ABEL_ALIGN_MAX_AUTOMATIC 1048576
-    #endif
+#if defined(ABEL_PROCESSOR_ARM)                       // ARM compilers in general tend to limit automatic variables to 8 or less.
+#define ABEL_ALIGN_MAX_STATIC    1048576
+#define ABEL_ALIGN_MAX_AUTOMATIC       1          // Typically they support only built-in natural aligment types (both arm-eabi and apple-abi).
+#elif defined(ABEL_PLATFORM_APPLE)
+#define ABEL_ALIGN_MAX_STATIC    1048576
+#define ABEL_ALIGN_MAX_AUTOMATIC      16
+#else
+#define ABEL_ALIGN_MAX_STATIC    1048576          // Arbitrarily high value. What is the actual max?
+#define ABEL_ALIGN_MAX_AUTOMATIC 1048576
+#endif
 #endif
 
 // EDG intends to be compatible with GCC but has a bug whereby it
@@ -270,53 +270,53 @@
 // the size like postfix does.  Prefix also fails on templates.  So gcc style post fix
 // is still used, but the user will need to use ABEL_POSTFIX_ALIGN before the constructor parameters.
 #if defined(__GNUC__) && (__GNUC__ < 3)
-    #define ABEL_ALIGN_OF(type) ((size_t)__alignof__(type))
-    #define ABEL_ALIGN(n)
-    #define ABEL_PREFIX_ALIGN(n)
-    #define ABEL_POSTFIX_ALIGN(n) __attribute__((aligned(n)))
-    #define ABEL_ALIGNED(variable_type, variable, n) variable_type variable __attribute__((aligned(n)))
-    #define ABEL_PACKED __attribute__((packed))
+#define ABEL_ALIGN_OF(type) ((size_t)__alignof__(type))
+#define ABEL_ALIGN(n)
+#define ABEL_PREFIX_ALIGN(n)
+#define ABEL_POSTFIX_ALIGN(n) __attribute__((aligned(n)))
+#define ABEL_ALIGNED(variable_type, variable, n) variable_type variable __attribute__((aligned(n)))
+#define ABEL_PACKED __attribute__((packed))
 
 // GCC 3.x+, IBM, and clang support prefix attributes.
 #elif (defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__xlC__) || defined(__clang__)
-    #define ABEL_ALIGN_OF(type) ((size_t)__alignof__(type))
-    #define ABEL_ALIGN(n) __attribute__((aligned(n)))
-    #define ABEL_PREFIX_ALIGN(n)
-    #define ABEL_POSTFIX_ALIGN(n) __attribute__((aligned(n)))
-    #define ABEL_ALIGNED(variable_type, variable, n) variable_type variable __attribute__((aligned(n)))
-    #define ABEL_PACKED __attribute__((packed))
+#define ABEL_ALIGN_OF(type) ((size_t)__alignof__(type))
+#define ABEL_ALIGN(n) __attribute__((aligned(n)))
+#define ABEL_PREFIX_ALIGN(n)
+#define ABEL_POSTFIX_ALIGN(n) __attribute__((aligned(n)))
+#define ABEL_ALIGNED(variable_type, variable, n) variable_type variable __attribute__((aligned(n)))
+#define ABEL_PACKED __attribute__((packed))
 
 // Metrowerks supports prefix attributes.
 // Metrowerks does not support packed alignment attributes.
 #elif defined(ABEL_COMPILER_INTEL) || defined(CS_UNDEFINED_STRING) || (defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300))
-    #define ABEL_ALIGN_OF(type) ((size_t)__alignof(type))
-    #define ABEL_ALIGN(n) __declspec(align(n))
-    #define ABEL_PREFIX_ALIGN(n) ABEL_ALIGN(n)
-    #define ABEL_POSTFIX_ALIGN(n)
-    #define ABEL_ALIGNED(variable_type, variable, n) ABEL_ALIGN(n) variable_type variable
-    #define ABEL_PACKED // See ABEL_PRAGMA_PACK_VC for an alternative.
+#define ABEL_ALIGN_OF(type) ((size_t)__alignof(type))
+#define ABEL_ALIGN(n) __declspec(align(n))
+#define ABEL_PREFIX_ALIGN(n) ABEL_ALIGN(n)
+#define ABEL_POSTFIX_ALIGN(n)
+#define ABEL_ALIGNED(variable_type, variable, n) ABEL_ALIGN(n) variable_type variable
+#define ABEL_PACKED // See ABEL_PRAGMA_PACK_VC for an alternative.
 
 // Arm brand compiler
 #elif defined(ABEL_COMPILER_ARM)
-    #define ABEL_ALIGN_OF(type) ((size_t)__ALIGNOF__(type))
-    #define ABEL_ALIGN(n) __align(n)
-    #define ABEL_PREFIX_ALIGN(n) __align(n)
-    #define ABEL_POSTFIX_ALIGN(n)
-    #define ABEL_ALIGNED(variable_type, variable, n) __align(n) variable_type variable
-    #define ABEL_PACKED __packed
+#define ABEL_ALIGN_OF(type) ((size_t)__ALIGNOF__(type))
+#define ABEL_ALIGN(n) __align(n)
+#define ABEL_PREFIX_ALIGN(n) __align(n)
+#define ABEL_POSTFIX_ALIGN(n)
+#define ABEL_ALIGNED(variable_type, variable, n) __align(n) variable_type variable
+#define ABEL_PACKED __packed
 
 #else // Unusual compilers
 // There is nothing we can do about some of these. This is not as bad a problem as it seems.
 // If the given platform/compiler doesn't support alignment specifications, then it's somewhat
 // likely that alignment doesn't matter for that platform. Otherwise they would have defined
 // functionality to manipulate alignment.
-    #define ABEL_ALIGN(n)
-    #define ABEL_PREFIX_ALIGN(n)
-    #define ABEL_POSTFIX_ALIGN(n)
-    #define ABEL_ALIGNED(variable_type, variable, n) variable_type variable
-    #define ABEL_PACKED
+#define ABEL_ALIGN(n)
+#define ABEL_PREFIX_ALIGN(n)
+#define ABEL_POSTFIX_ALIGN(n)
+#define ABEL_ALIGNED(variable_type, variable, n) variable_type variable
+#define ABEL_PACKED
 
-    #ifdef __cplusplus
+#ifdef __cplusplus
         template <typename T> struct CBAlignOf1 { enum { s = sizeof (T), value = s ^ (s & (s - 1)) }; };
             template <typename T> struct CBlignOf2;
             template <int size_diff> struct helper { template <typename T> struct Val { enum { value = size_diff }; }; };
@@ -325,15 +325,15 @@
             enum { diff = sizeof (Big) - sizeof (T), value = helper<diff>::template Val<Big>::value }; };
             template <typename T> struct CBAlignof3 { enum { x = CBAlignOf2<T>::value, y = CBlignOf1<T>::value, value = x < y ? x : y }; };
             template <typename T> struct CBAlignof3 { enum { x = CBAlignOf2<T>::value, y = CBlignOf1<T>::value, value = x < y ? x : y }; };
-        #define ABEL_ALIGN_OF(type) ((size_t)CBAlignof3<type>::value)
+#define ABEL_ALIGN_OF(type) ((size_t)CBAlignof3<type>::value)
 
-    #else
+#else
 // C implementation of ABEL_ALIGN_OF
 // This implementation works for most cases, but doesn't directly work
 // for types such as function pointer declarations. To work with those
 // types you need to typedef the type and then use the typedef in ABEL_ALIGN_OF.
-        #define ABEL_ALIGN_OF(type) ((size_t)offsetof(struct { char c; type m; }, m))
-    #endif
+#define ABEL_ALIGN_OF(type) ((size_t)offsetof(struct { char c; type m; }, m))
+#endif
 #endif
 
 // ABEL_PRAGMA_PACK_VC
@@ -346,13 +346,13 @@
 //    ABEL_PRAGMA_PACK_VC(pop)
 //
 #if !defined(ABEL_PRAGMA_PACK_VC)
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_PRAGMA_PACK_VC(...) __pragma(pack(__VA_ARGS__))
-    #elif !defined(ABEL_COMPILER_NO_VARIADIC_MACROS)
-        #define ABEL_PRAGMA_PACK_VC(...)
-    #else
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_PRAGMA_PACK_VC(...) __pragma(pack(__VA_ARGS__))
+#elif !defined(ABEL_COMPILER_NO_VARIADIC_MACROS)
+#define ABEL_PRAGMA_PACK_VC(...)
+#else
 // No support. However, all compilers of significance to us support variadic macros.
-    #endif
+#endif
 #endif
 
 
@@ -377,18 +377,18 @@
 //       { ... }
 //
 #ifndef ABEL_LIKELY
-    #if (defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__clang__)
-        #if defined(__cplusplus)
-            #define ABEL_LIKELY(x)   __builtin_expect(!!(x), true)
-            #define ABEL_UNLIKELY(x) __builtin_expect(!!(x), false)
-        #else
-            #define ABEL_LIKELY(x)   __builtin_expect(!!(x), 1)
-            #define ABEL_UNLIKELY(x) __builtin_expect(!!(x), 0)
-        #endif
-    #else
-        #define ABEL_LIKELY(x)   (x)
-        #define ABEL_UNLIKELY(x) (x)
-    #endif
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__clang__)
+#if defined(__cplusplus)
+#define ABEL_LIKELY(x)   __builtin_expect(!!(x), true)
+#define ABEL_UNLIKELY(x) __builtin_expect(!!(x), false)
+#else
+#define ABEL_LIKELY(x)   __builtin_expect(!!(x), 1)
+#define ABEL_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#endif
+#else
+#define ABEL_LIKELY(x)   (x)
+#define ABEL_UNLIKELY(x) (x)
+#endif
 #endif
 
 
@@ -399,11 +399,11 @@
 // Defines if the GCC attribute init_priority is supported by the compiler.
 //
 #if !defined(ABEL_INIT_PRIORITY_AVAILABLE)
-    #if defined(__GNUC__) && !defined(__EDG__) // EDG typically #defines __GNUC__ but doesn't implement init_priority.
-        #define ABEL_INIT_PRIORITY_AVAILABLE 1
-    #elif defined(__clang__)
-        #define ABEL_INIT_PRIORITY_AVAILABLE 1  // Clang implements init_priority
-    #endif
+#if defined(__GNUC__) && !defined(__EDG__) // EDG typically #defines __GNUC__ but doesn't implement init_priority.
+#define ABEL_INIT_PRIORITY_AVAILABLE 1
+#elif defined(__clang__)
+#define ABEL_INIT_PRIORITY_AVAILABLE 1  // Clang implements init_priority
+#endif
 #endif
 
 
@@ -418,11 +418,11 @@
 //     SomeClass gSomeClass ABEL_INIT_PRIORITY(2000);
 //
 #if !defined(ABEL_INIT_PRIORITY)
-    #if defined(ABEL_INIT_PRIORITY_AVAILABLE)
-        #define ABEL_INIT_PRIORITY(x)  __attribute__ ((init_priority (x)))
-    #else
-        #define ABEL_INIT_PRIORITY(x)
-    #endif
+#if defined(ABEL_INIT_PRIORITY_AVAILABLE)
+#define ABEL_INIT_PRIORITY(x)  __attribute__ ((init_priority (x)))
+#else
+#define ABEL_INIT_PRIORITY(x)
+#endif
 #endif
 
 
@@ -435,15 +435,15 @@
 // or 2 (full proper support).
 //
 #ifndef ABEL_MAY_ALIAS_AVAILABLE
-    #if defined(__GNUC__) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 303)
-        #if   !defined(__EDG__)                 // define it as 1 while defining GCC's support as 2.
-            #define ABEL_MAY_ALIAS_AVAILABLE 2
-        #else
-            #define ABEL_MAY_ALIAS_AVAILABLE 0
-        #endif
-    #else
-        #define ABEL_MAY_ALIAS_AVAILABLE 0
-    #endif
+#if defined(__GNUC__) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 303)
+#if   !defined(__EDG__)                 // define it as 1 while defining GCC's support as 2.
+#define ABEL_MAY_ALIAS_AVAILABLE 2
+#else
+#define ABEL_MAY_ALIAS_AVAILABLE 0
+#endif
+#else
+#define ABEL_MAY_ALIAS_AVAILABLE 0
+#endif
 #endif
 
 
@@ -462,9 +462,9 @@
 //    pvoid_may_alias gPtr = NULL;
 //
 #if ABEL_MAY_ALIAS_AVAILABLE
-    #define ABEL_MAY_ALIAS __attribute__((__may_alias__))
+#define ABEL_MAY_ALIAS __attribute__((__may_alias__))
 #else
-    #define ABEL_MAY_ALIAS
+#define ABEL_MAY_ALIAS
 #endif
 
 
@@ -490,11 +490,11 @@
 //    }
 //
 #ifndef ABEL_ASSUME
-    #if defined(_MSC_VER) && (_MSC_VER >= 1300) // If VC7.0 and later
-        #define ABEL_ASSUME(x) __assume(x)
-    #else
-        #define ABEL_ASSUME(x)
-    #endif
+#if defined(_MSC_VER) && (_MSC_VER >= 1300) // If VC7.0 and later
+#define ABEL_ASSUME(x) __assume(x)
+#else
+#define ABEL_ASSUME(x)
+#endif
 #endif
 
 
@@ -513,11 +513,11 @@
 //    }
 //
 #ifndef ABEL_ANALYSIS_ASSUME
-    #if defined(_MSC_VER) && (_MSC_VER >= 1300) // If VC7.0 and later
-        #define ABEL_ANALYSIS_ASSUME(x) __analysis_assume(!!(x)) // !! because that allows for convertible-to-bool in addition to bool.
-    #else
-        #define ABEL_ANALYSIS_ASSUME(x)
-    #endif
+#if defined(_MSC_VER) && (_MSC_VER >= 1300) // If VC7.0 and later
+#define ABEL_ANALYSIS_ASSUME(x) __analysis_assume(!!(x)) // !! because that allows for convertible-to-bool in addition to bool.
+#else
+#define ABEL_ANALYSIS_ASSUME(x)
+#endif
 #endif
 
 
@@ -536,22 +536,22 @@
 //     ABEL_RESTORE_VC_WARNING()
 //
 #ifndef ABEL_DISABLE_VC_WARNING
-    #if defined(_MSC_VER)
-        #define ABEL_DISABLE_VC_WARNING(w)  \
+#if defined(_MSC_VER)
+#define ABEL_DISABLE_VC_WARNING(w)  \
                 __pragma(warning(push))       \
                 __pragma(warning(disable:w))
-    #else
-        #define ABEL_DISABLE_VC_WARNING(w)
-    #endif
+#else
+#define ABEL_DISABLE_VC_WARNING(w)
+#endif
 #endif
 
 #ifndef ABEL_RESTORE_VC_WARNING
-    #if defined(_MSC_VER)
-        #define ABEL_RESTORE_VC_WARNING()   \
+#if defined(_MSC_VER)
+#define ABEL_RESTORE_VC_WARNING()   \
                 __pragma(warning(pop))
-    #else
-        #define ABEL_RESTORE_VC_WARNING()
-    #endif
+#else
+#define ABEL_RESTORE_VC_WARNING()
+#endif
 #endif
 
 
@@ -569,22 +569,22 @@
 //     ABEL_DISABLE_VC_WARNING_AS_ERROR()
 //
 #ifndef ABEL_ENABLE_VC_WARNING_AS_ERROR
-    #if defined(_MSC_VER)
-        #define ABEL_ENABLE_VC_WARNING_AS_ERROR(w) \
+#if defined(_MSC_VER)
+#define ABEL_ENABLE_VC_WARNING_AS_ERROR(w) \
                     __pragma(warning(push)) \
                     __pragma(warning(error:w))
-    #else
-        #define ABEL_ENABLE_VC_WARNING_AS_ERROR(w)
-    #endif
+#else
+#define ABEL_ENABLE_VC_WARNING_AS_ERROR(w)
+#endif
 #endif
 
 #ifndef ABEL_DISABLE_VC_WARNING_AS_ERROR
-    #if defined(_MSC_VER)
-        #define ABEL_DISABLE_VC_WARNING_AS_ERROR() \
+#if defined(_MSC_VER)
+#define ABEL_DISABLE_VC_WARNING_AS_ERROR() \
                     __pragma(warning(pop))
-    #else
-        #define ABEL_DISABLE_VC_WARNING_AS_ERROR()
-    #endif
+#else
+#define ABEL_DISABLE_VC_WARNING_AS_ERROR()
+#endif
 #endif
 
 
@@ -600,31 +600,31 @@
 //     ABEL_RESTORE_GCC_WARNING()
 //
 #ifndef ABEL_DISABLE_GCC_WARNING
-    #if defined(ABEL_COMPILER_GNUC)
-        #define CBGCCWHELP0(x) #x
-        #define CBGCCWHELP1(x) CBGCCWHELP0(GCC diagnostic ignored x)
-        #define CBGCCWHELP2(x) CBGCCWHELP1(#x)
-    #endif
+#if defined(ABEL_COMPILER_GNUC)
+#define CBGCCWHELP0(x) #x
+#define CBGCCWHELP1(x) CBGCCWHELP0(GCC diagnostic ignored x)
+#define CBGCCWHELP2(x) CBGCCWHELP1(#x)
+#endif
 
-    #if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006) // Can't test directly for __GNUC__ because some compilers lie.
-        #define ABEL_DISABLE_GCC_WARNING(w)   \
+#if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006) // Can't test directly for __GNUC__ because some compilers lie.
+#define ABEL_DISABLE_GCC_WARNING(w)   \
                 _Pragma("GCC diagnostic push")  \
                 _Pragma(CBGCCWHELP2(w))
-    #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
-        #define ABEL_DISABLE_GCC_WARNING(w)   \
+#elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
+#define ABEL_DISABLE_GCC_WARNING(w)   \
                 _Pragma(CBGCCWHELP2(w))
-    #else
-        #define ABEL_DISABLE_GCC_WARNING(w)
-    #endif
+#else
+#define ABEL_DISABLE_GCC_WARNING(w)
+#endif
 #endif
 
 #ifndef ABEL_RESTORE_GCC_WARNING
-    #if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
-        #define ABEL_RESTORE_GCC_WARNING()    \
+#if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
+#define ABEL_RESTORE_GCC_WARNING()    \
                 _Pragma("GCC diagnostic pop")
-    #else
-        #define ABEL_RESTORE_GCC_WARNING()
-    #endif
+#else
+#define ABEL_RESTORE_GCC_WARNING()
+#endif
 #endif
 
 
@@ -650,31 +650,31 @@
 //     ABEL_DISABLE_GCC_WARNING_AS_ERROR()
 //
 #ifndef ABEL_ENABLE_GCC_WARNING_AS_ERROR
-    #if defined(ABEL_COMPILER_GNUC)
-        #define CBGCCWERRORHELP0(x) #x
-        #define CBGCCWERRORHELP1(x) CBGCCWERRORHELP0(GCC diagnostic error x)
-        #define CBGCCWERRORHELP2(x) CBGCCWERRORHELP1(#x)
-    #endif
+#if defined(ABEL_COMPILER_GNUC)
+#define CBGCCWERRORHELP0(x) #x
+#define CBGCCWERRORHELP1(x) CBGCCWERRORHELP0(GCC diagnostic error x)
+#define CBGCCWERRORHELP2(x) CBGCCWERRORHELP1(#x)
+#endif
 
-    #if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006) // Can't test directly for __GNUC__ because some compilers lie.
-        #define ABEL_ENABLE_GCC_WARNING_AS_ERROR(w)   \
+#if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006) // Can't test directly for __GNUC__ because some compilers lie.
+#define ABEL_ENABLE_GCC_WARNING_AS_ERROR(w)   \
                 _Pragma("GCC diagnostic push")  \
                 _Pragma(CBGCCWERRORHELP2(w))
-    #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
-        #define ABEL_DISABLE_GCC_WARNING(w)   \
+#elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4004)
+#define ABEL_DISABLE_GCC_WARNING(w)   \
                 _Pragma(CBGCCWERRORHELP2(w))
-    #else
-        #define ABEL_DISABLE_GCC_WARNING(w)
-    #endif
+#else
+#define ABEL_DISABLE_GCC_WARNING(w)
+#endif
 #endif
 
 #ifndef ABEL_DISABLE_GCC_WARNING_AS_ERROR
-    #if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
-        #define ABEL_DISABLE_GCC_WARNING_AS_ERROR()    \
+#if defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006)
+#define ABEL_DISABLE_GCC_WARNING_AS_ERROR()    \
                 _Pragma("GCC diagnostic pop")
-    #else
-        #define ABEL_DISABLE_GCC_WARNING_AS_ERROR()
-    #endif
+#else
+#define ABEL_DISABLE_GCC_WARNING_AS_ERROR()
+#endif
 #endif
 
 
@@ -690,27 +690,27 @@
 //     ABEL_RESTORE_CLANG_WARNING()
 //
 #ifndef ABEL_DISABLE_CLANG_WARNING
-    #if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
-        #define CBCLANGWHELP0(x) #x
-        #define CBCLANGWHELP1(x) CBCLANGWHELP0(clang diagnostic ignored x)
-        #define CBCLANGWHELP2(x) CBCLANGWHELP1(#x)
+#if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
+#define CBCLANGWHELP0(x) #x
+#define CBCLANGWHELP1(x) CBCLANGWHELP0(clang diagnostic ignored x)
+#define CBCLANGWHELP2(x) CBCLANGWHELP1(#x)
 
-        #define ABEL_DISABLE_CLANG_WARNING(w)   \
+#define ABEL_DISABLE_CLANG_WARNING(w)   \
                 _Pragma("clang diagnostic push")  \
                 _Pragma(CBCLANGWHELP2(-Wunknown-warning-option))\
                 _Pragma(CBCLANGWHELP2(w))
-    #else
-        #define ABEL_DISABLE_CLANG_WARNING(w)
-    #endif
+#else
+#define ABEL_DISABLE_CLANG_WARNING(w)
+#endif
 #endif
 
 #ifndef ABEL_RESTORE_CLANG_WARNING
-    #if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
-        #define ABEL_RESTORE_CLANG_WARNING()    \
+#if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
+#define ABEL_RESTORE_CLANG_WARNING()    \
                 _Pragma("clang diagnostic pop")
-    #else
-        #define ABEL_RESTORE_CLANG_WARNING()
-    #endif
+#else
+#define ABEL_RESTORE_CLANG_WARNING()
+#endif
 #endif
 
 
@@ -733,26 +733,26 @@
 //     ABEL_DISABLE_CLANG_WARNING_AS_ERROR()
 //
 #ifndef ABEL_ENABLE_CLANG_WARNING_AS_ERROR
-    #if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
-        #define CBCLANGWERRORHELP0(x) #x
-        #define CBCLANGWERRORHELP1(x) CBCLANGWERRORHELP0(clang diagnostic error x)
-        #define CBCLANGWERRORHELP2(x) CBCLANGWERRORHELP1(#x)
+#if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
+#define CBCLANGWERRORHELP0(x) #x
+#define CBCLANGWERRORHELP1(x) CBCLANGWERRORHELP0(clang diagnostic error x)
+#define CBCLANGWERRORHELP2(x) CBCLANGWERRORHELP1(#x)
 
-        #define ABEL_ENABLE_CLANG_WARNING_AS_ERROR(w)   \
+#define ABEL_ENABLE_CLANG_WARNING_AS_ERROR(w)   \
                 _Pragma("clang diagnostic push")  \
                 _Pragma(CBCLANGWERRORHELP2(w))
-    #else
-        #define ABEL_DISABLE_CLANG_WARNING(w)
-    #endif
+#else
+#define ABEL_DISABLE_CLANG_WARNING(w)
+#endif
 #endif
 
 #ifndef ABEL_DISABLE_CLANG_WARNING_AS_ERROR
-    #if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
-        #define ABEL_DISABLE_CLANG_WARNING_AS_ERROR()    \
+#if defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_CLANG_CL)
+#define ABEL_DISABLE_CLANG_WARNING_AS_ERROR()    \
                 _Pragma("clang diagnostic pop")
-    #else
-        #define ABEL_DISABLE_CLANG_WARNING_AS_ERROR()
-    #endif
+#else
+#define ABEL_DISABLE_CLANG_WARNING_AS_ERROR()
+#endif
 #endif
 
 
@@ -773,11 +773,11 @@
 //     ABEL_RESTORE_SN_WARNING()
 //
 #ifndef ABEL_DISABLE_SN_WARNING
-    #define ABEL_DISABLE_SN_WARNING(w)
+#define ABEL_DISABLE_SN_WARNING(w)
 #endif
 
 #ifndef ABEL_RESTORE_SN_WARNING
-    #define ABEL_RESTORE_SN_WARNING()
+#define ABEL_RESTORE_SN_WARNING()
 #endif
 
 
@@ -790,11 +790,11 @@
 //     ABEL_RESTORE_ALL_SN_WARNINGS()
 //
 #ifndef ABEL_DISABLE_ALL_SN_WARNINGS
-    #define ABEL_DISABLE_ALL_SN_WARNINGS()
+#define ABEL_DISABLE_ALL_SN_WARNINGS()
 #endif
 
 #ifndef ABEL_RESTORE_ALL_SN_WARNINGS
-    #define ABEL_RESTORE_ALL_SN_WARNINGS()
+#define ABEL_RESTORE_ALL_SN_WARNINGS()
 #endif
 
 
@@ -812,11 +812,11 @@
 //     ABEL_RESTORE_GHS_WARNING()
 //
 #ifndef ABEL_DISABLE_GHS_WARNING
-    #define ABEL_DISABLE_GHS_WARNING(w)
+#define ABEL_DISABLE_GHS_WARNING(w)
 #endif
 
 #ifndef ABEL_RESTORE_GHS_WARNING
-    #define ABEL_RESTORE_GHS_WARNING()
+#define ABEL_RESTORE_GHS_WARNING()
 #endif
 
 
@@ -856,25 +856,25 @@
 //
 #ifndef ABEL_DISABLE_EDG_WARNING
 // EDG-based compilers are inconsistent in how the implement warning pragmas.
-    #if defined(ABEL_COMPILER_EDG) && !defined(ABEL_COMPILER_INTEL) && !defined(ABEL_COMPILER_RVCT)
-        #define CBEDGWHELP0(x) #x
-        #define CBEDGWHELP1(x) CBEDGWHELP0(diag_suppress x)
+#if defined(ABEL_COMPILER_EDG) && !defined(ABEL_COMPILER_INTEL) && !defined(ABEL_COMPILER_RVCT)
+#define CBEDGWHELP0(x) #x
+#define CBEDGWHELP1(x) CBEDGWHELP0(diag_suppress x)
 
-        #define ABEL_DISABLE_EDG_WARNING(w)   \
+#define ABEL_DISABLE_EDG_WARNING(w)   \
                 _Pragma("control %push diag")   \
                 _Pragma(CBEDGWHELP1(w))
-    #else
-        #define ABEL_DISABLE_EDG_WARNING(w)
-    #endif
+#else
+#define ABEL_DISABLE_EDG_WARNING(w)
+#endif
 #endif
 
 #ifndef ABEL_RESTORE_EDG_WARNING
-    #if defined(ABEL_COMPILER_EDG) && !defined(ABEL_COMPILER_INTEL) && !defined(ABEL_COMPILER_RVCT)
-        #define ABEL_RESTORE_EDG_WARNING()   \
+#if defined(ABEL_COMPILER_EDG) && !defined(ABEL_COMPILER_INTEL) && !defined(ABEL_COMPILER_RVCT)
+#define ABEL_RESTORE_EDG_WARNING()   \
                 _Pragma("control %pop diag")
-    #else
-        #define ABEL_RESTORE_EDG_WARNING()
-    #endif
+#else
+#define ABEL_RESTORE_EDG_WARNING()
+#endif
 #endif
 
 
@@ -917,12 +917,12 @@
 //     ABEL_RESTORE_CW_WARNING(10324)
 //
 #ifndef ABEL_DISABLE_CW_WARNING
-    #define ABEL_DISABLE_CW_WARNING(w)
+#define ABEL_DISABLE_CW_WARNING(w)
 #endif
 
 #ifndef ABEL_RESTORE_CW_WARNING
 
-    #define ABEL_RESTORE_CW_WARNING(w)
+#define ABEL_RESTORE_CW_WARNING(w)
 
 #endif
 
@@ -931,12 +931,12 @@
 // ABEL_DISABLE_ALL_CW_WARNINGS / ABEL_RESTORE_ALL_CW_WARNINGS
 //
 #ifndef ABEL_DISABLE_ALL_CW_WARNINGS
-    #define ABEL_DISABLE_ALL_CW_WARNINGS()
+#define ABEL_DISABLE_ALL_CW_WARNINGS()
 
 #endif
 
 #ifndef ABEL_RESTORE_ALL_CW_WARNINGS
-    #define ABEL_RESTORE_ALL_CW_WARNINGS()
+#define ABEL_RESTORE_ALL_CW_WARNINGS()
 #endif
 
 
@@ -960,13 +960,13 @@
 //    ABEL_PURE void Function();
 //
 #ifndef ABEL_PURE
-    #if defined(ABEL_COMPILER_GNUC)
-        #define ABEL_PURE __attribute__((pure))
-    #elif defined(ABEL_COMPILER_ARM)  // Arm brand compiler for ARM CPU
-        #define ABEL_PURE __pure
-    #else
-        #define ABEL_PURE
-    #endif
+#if defined(ABEL_COMPILER_GNUC)
+#define ABEL_PURE __attribute__((pure))
+#elif defined(ABEL_COMPILER_ARM)  // Arm brand compiler for ARM CPU
+#define ABEL_PURE __pure
+#else
+#define ABEL_PURE
+#endif
 #endif
 
 
@@ -991,19 +991,19 @@
 //    ABEL_WEAK void Function();
 //
 #ifndef ABEL_WEAK
-    #if defined(_MSC_VER) && (_MSC_VER >= 1300) // If VC7.0 and later
-        #define ABEL_WEAK __declspec(selectany)
-        #define ABEL_WEAK_SUPPORTED 1
-    #elif defined(_MSC_VER) || (defined(__GNUC__) && defined(__CYGWIN__))
-        #define ABEL_WEAK
-        #define ABEL_WEAK_SUPPORTED 0
-    #elif defined(ABEL_COMPILER_ARM)  // Arm brand compiler for ARM CPU
-        #define ABEL_WEAK __weak
-        #define ABEL_WEAK_SUPPORTED 1
-    #else                           // GCC and IBM compilers, others.
-        #define ABEL_WEAK __attribute__((weak))
-        #define ABEL_WEAK_SUPPORTED 1
-    #endif
+#if defined(_MSC_VER) && (_MSC_VER >= 1300) // If VC7.0 and later
+#define ABEL_WEAK __declspec(selectany)
+#define ABEL_WEAK_SUPPORTED 1
+#elif defined(_MSC_VER) || (defined(__GNUC__) && defined(__CYGWIN__))
+#define ABEL_WEAK
+#define ABEL_WEAK_SUPPORTED 0
+#elif defined(ABEL_COMPILER_ARM)  // Arm brand compiler for ARM CPU
+#define ABEL_WEAK __weak
+#define ABEL_WEAK_SUPPORTED 1
+#else                           // GCC and IBM compilers, others.
+#define ABEL_WEAK __attribute__((weak))
+#define ABEL_WEAK_SUPPORTED 1
+#endif
 #endif
 
 
@@ -1025,13 +1025,13 @@
 // The EDG solution below is pretty weak and needs to be augmented or replaced.
 // It can't handle the C language, is limited to places where template declarations
 // can be used, and requires the type x to be usable as a functions reference argument.
-    #if defined(__cplusplus) && defined(__EDG__)
+#if defined(__cplusplus) && defined(__EDG__)
 template <typename T>
 inline void CBBaseUnused(T const volatile & x) { (void)x; }
-        #define ABEL_UNUSED(x) CBBaseUnused(x)
-    #else
-        #define ABEL_UNUSED(x) (void)x
-    #endif
+#define ABEL_UNUSED(x) CBBaseUnused(x)
+#else
+#define ABEL_UNUSED(x) (void)x
+#endif
 #endif
 
 
@@ -1049,15 +1049,15 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //    #endif
 //
 #ifndef ABEL_EMPTY
-    #define ABEL_EMPTY (void)0
+#define ABEL_EMPTY (void)0
 #endif
 
 #ifndef ABEL_NULL
-    #if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
-        #define ABEL_NULL NULL
-    #else
-        #define ABEL_NULL nullptr
-    #endif
+#if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
+#define ABEL_NULL NULL
+#else
+#define ABEL_NULL nullptr
+#endif
 
 #endif
 // ------------------------------------------------------------------------
@@ -1076,17 +1076,17 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // compilers.
 //
 #ifndef ABEL_CURRENT_FUNCTION
-    #if defined __GNUC__ || (defined __ICC && __ICC >= 600)
-        #define ABEL_CURRENT_FUNCTION __PRETTY_FUNCTION__
-    #elif defined(__FUNCSIG__)
-        #define ABEL_CURRENT_FUNCTION __FUNCSIG__
-    #elif (defined __INTEL_COMPILER && __INTEL_COMPILER >= 600) || (defined __IBMCPP__ && __IBMCPP__ >= 500) || (defined CS_UNDEFINED_STRING && CS_UNDEFINED_STRING >= 0x4200)
-        #define ABEL_CURRENT_FUNCTION __FUNCTION__
-    #elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901
-        #define ABEL_CURRENT_FUNCTION __func__
-    #else
-        #define ABEL_CURRENT_FUNCTION "(unknown function)"
-    #endif
+#if defined __GNUC__ || (defined __ICC && __ICC >= 600)
+#define ABEL_CURRENT_FUNCTION __PRETTY_FUNCTION__
+#elif defined(__FUNCSIG__)
+#define ABEL_CURRENT_FUNCTION __FUNCSIG__
+#elif (defined __INTEL_COMPILER && __INTEL_COMPILER >= 600) || (defined __IBMCPP__ && __IBMCPP__ >= 500) || (defined CS_UNDEFINED_STRING && CS_UNDEFINED_STRING >= 0x4200)
+#define ABEL_CURRENT_FUNCTION __FUNCTION__
+#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901
+#define ABEL_CURRENT_FUNCTION __func__
+#else
+#define ABEL_CURRENT_FUNCTION "(unknown function)"
+#endif
 #endif
 
 
@@ -1103,72 +1103,72 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     Borland
 //     SunPro
 //     IBM Visual Age
-    #if defined(ABEL_COMPILER_INTEL)
-        #if (ABEL_COMPILER_VERSION < 700)
-            #define ABEL_WCHAR_T_NON_NATIVE 1
-        #else
-            #if (!defined(_WCHAR_T_DEFINED) && !defined(_WCHAR_T))
-                #define ABEL_WCHAR_T_NON_NATIVE 1
-            #endif
-        #endif
-    #elif defined(ABEL_COMPILER_MSVC) || defined(ABEL_COMPILER_BORLAND) || (defined(ABEL_COMPILER_CLANG) && defined(ABEL_PLATFORM_WINDOWS))
-        #ifndef _NATIVE_WCHAR_T_DEFINED
-            #define ABEL_WCHAR_T_NON_NATIVE 1
-        #endif
-    #elif defined(__EDG_VERSION__) && (!defined(_WCHAR_T) && (__EDG_VERSION__ < 400)) // EDG prior to v4 uses _WCHAR_T to indicate if wchar_t is native. v4+ may define something else, but we're not currently aware of it.
-        #define ABEL_WCHAR_T_NON_NATIVE 1
-    #endif
+#if defined(ABEL_COMPILER_INTEL)
+#if (ABEL_COMPILER_VERSION < 700)
+#define ABEL_WCHAR_T_NON_NATIVE 1
+#else
+#if (!defined(_WCHAR_T_DEFINED) && !defined(_WCHAR_T))
+#define ABEL_WCHAR_T_NON_NATIVE 1
+#endif
+#endif
+#elif defined(ABEL_COMPILER_MSVC) || defined(ABEL_COMPILER_BORLAND) || (defined(ABEL_COMPILER_CLANG) && defined(ABEL_PLATFORM_WINDOWS))
+#ifndef _NATIVE_WCHAR_T_DEFINED
+#define ABEL_WCHAR_T_NON_NATIVE 1
+#endif
+#elif defined(__EDG_VERSION__) && (!defined(_WCHAR_T) && (__EDG_VERSION__ < 400)) // EDG prior to v4 uses _WCHAR_T to indicate if wchar_t is native. v4+ may define something else, but we're not currently aware of it.
+#define ABEL_WCHAR_T_NON_NATIVE 1
+#endif
 #endif
 
 #ifndef ABEL_WCHAR_SIZE // If the user hasn't specified that it is a given size...
-    #if defined(__WCHAR_MAX__) // GCC defines this for most platforms.
-        #if (__WCHAR_MAX__ == 2147483647) || (__WCHAR_MAX__ == 4294967295)
-            #define ABEL_WCHAR_SIZE 4
-        #elif (__WCHAR_MAX__ == 32767) || (__WCHAR_MAX__ == 65535)
-            #define ABEL_WCHAR_SIZE 2
-        #elif (__WCHAR_MAX__ == 127) || (__WCHAR_MAX__ == 255)
-            #define ABEL_WCHAR_SIZE 1
-        #else
-            #define ABEL_WCHAR_SIZE 4
-        #endif
-    #elif defined(WCHAR_MAX) // The SN and Arm compilers define this.
-        #if (WCHAR_MAX == 2147483647) || (WCHAR_MAX == 4294967295)
-            #define ABEL_WCHAR_SIZE 4
-        #elif (WCHAR_MAX == 32767) || (WCHAR_MAX == 65535)
-            #define ABEL_WCHAR_SIZE 2
-        #elif (WCHAR_MAX == 127) || (WCHAR_MAX == 255)
-            #define ABEL_WCHAR_SIZE 1
-        #else
-            #define ABEL_WCHAR_SIZE 4
-        #endif
-    #elif defined(__WCHAR_BIT) // Green Hills (and other versions of EDG?) uses this.
-        #if (__WCHAR_BIT == 16)
-            #define ABEL_WCHAR_SIZE 2
-        #elif (__WCHAR_BIT == 32)
-            #define ABEL_WCHAR_SIZE 4
-        #elif (__WCHAR_BIT == 8)
-            #define ABEL_WCHAR_SIZE 1
-        #else
-            #define ABEL_WCHAR_SIZE 4
-        #endif
-    #elif defined(_WCMAX) // The SN and Arm compilers define this.
-        #if (_WCMAX == 2147483647) || (_WCMAX == 4294967295)
-            #define ABEL_WCHAR_SIZE 4
-        #elif (_WCMAX == 32767) || (_WCMAX == 65535)
-            #define ABEL_WCHAR_SIZE 2
-        #elif (_WCMAX == 127) || (_WCMAX == 255)
-            #define ABEL_WCHAR_SIZE 1
-        #else
-            #define ABEL_WCHAR_SIZE 4
-        #endif
-    #elif defined(ABEL_PLATFORM_UNIX)
+#if defined(__WCHAR_MAX__) // GCC defines this for most platforms.
+#if (__WCHAR_MAX__ == 2147483647) || (__WCHAR_MAX__ == 4294967295)
+#define ABEL_WCHAR_SIZE 4
+#elif (__WCHAR_MAX__ == 32767) || (__WCHAR_MAX__ == 65535)
+#define ABEL_WCHAR_SIZE 2
+#elif (__WCHAR_MAX__ == 127) || (__WCHAR_MAX__ == 255)
+#define ABEL_WCHAR_SIZE 1
+#else
+#define ABEL_WCHAR_SIZE 4
+#endif
+#elif defined(WCHAR_MAX) // The SN and Arm compilers define this.
+#if (WCHAR_MAX == 2147483647) || (WCHAR_MAX == 4294967295)
+#define ABEL_WCHAR_SIZE 4
+#elif (WCHAR_MAX == 32767) || (WCHAR_MAX == 65535)
+#define ABEL_WCHAR_SIZE 2
+#elif (WCHAR_MAX == 127) || (WCHAR_MAX == 255)
+#define ABEL_WCHAR_SIZE 1
+#else
+#define ABEL_WCHAR_SIZE 4
+#endif
+#elif defined(__WCHAR_BIT) // Green Hills (and other versions of EDG?) uses this.
+#if (__WCHAR_BIT == 16)
+#define ABEL_WCHAR_SIZE 2
+#elif (__WCHAR_BIT == 32)
+#define ABEL_WCHAR_SIZE 4
+#elif (__WCHAR_BIT == 8)
+#define ABEL_WCHAR_SIZE 1
+#else
+#define ABEL_WCHAR_SIZE 4
+#endif
+#elif defined(_WCMAX) // The SN and Arm compilers define this.
+#if (_WCMAX == 2147483647) || (_WCMAX == 4294967295)
+#define ABEL_WCHAR_SIZE 4
+#elif (_WCMAX == 32767) || (_WCMAX == 65535)
+#define ABEL_WCHAR_SIZE 2
+#elif (_WCMAX == 127) || (_WCMAX == 255)
+#define ABEL_WCHAR_SIZE 1
+#else
+#define ABEL_WCHAR_SIZE 4
+#endif
+#elif defined(ABEL_PLATFORM_UNIX)
 // It is standard on Unix to have wchar_t be int32_t or uint32_t.
 // All versions of GNUC default to a 32 bit wchar_t, but CB has used
 // the -fshort-wchar GCC command line option to force it to 16 bit.
 // If you know that the compiler is set to use a wchar_t of other than
 // the default, you need to manually define ABEL_WCHAR_SIZE for the build.
-        #define ABEL_WCHAR_SIZE 4
-    #else
+#define ABEL_WCHAR_SIZE 4
+#else
 // It is standard on Windows to have wchar_t be uint16_t.  GCC
 // defines wchar_t as int by default.  Electronic Arts has
 // standardized on wchar_t being an unsigned 16 bit value on all
@@ -1179,8 +1179,8 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // broken, but it also won't work with wchar libraries and data from
 // other parts of CB. Under GCC, you can force wchar_t to two bytes
 // with the -fshort-wchar compiler argument.
-        #define ABEL_WCHAR_SIZE 2
-    #endif
+#define ABEL_WCHAR_SIZE 2
+#endif
 #endif
 
 
@@ -1195,23 +1195,23 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //    void DoSomething(char* ABEL_RESTRICT p1, char* ABEL_RESTRICT p2);
 //
 #ifndef ABEL_RESTRICT
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // If VC8 (VS2005) or later...
-        #define ABEL_RESTRICT __restrict
-    #elif defined(ABEL_COMPILER_CLANG)
-        #define ABEL_RESTRICT __restrict
-    #elif defined(ABEL_COMPILER_GNUC)     // Includes GCC and other compilers emulating GCC.
-        #define ABEL_RESTRICT __restrict  // GCC defines 'restrict' (as opposed to __restrict) in C99 mode only.
-    #elif defined(ABEL_COMPILER_ARM)
-        #define ABEL_RESTRICT __restrict
-    #elif defined(ABEL_COMPILER_IS_C99)
-        #define ABEL_RESTRICT restrict
-    #else
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // If VC8 (VS2005) or later...
+#define ABEL_RESTRICT __restrict
+#elif defined(ABEL_COMPILER_CLANG)
+#define ABEL_RESTRICT __restrict
+#elif defined(ABEL_COMPILER_GNUC)     // Includes GCC and other compilers emulating GCC.
+#define ABEL_RESTRICT __restrict  // GCC defines 'restrict' (as opposed to __restrict) in C99 mode only.
+#elif defined(ABEL_COMPILER_ARM)
+#define ABEL_RESTRICT __restrict
+#elif defined(ABEL_COMPILER_IS_C99)
+#define ABEL_RESTRICT restrict
+#else
 // If the compiler didn't support restricted pointers, defining ABEL_RESTRICT
 // away would result in compiling and running fine but you just wouldn't
 // the same level of optimization. On the other hand, all the major compilers
 // support restricted pointers.
-        #define ABEL_RESTRICT
-    #endif
+#define ABEL_RESTRICT
+#endif
 #endif
 
 
@@ -1230,40 +1230,40 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //
 
 #ifndef ABEL_DEPRECATED
-    #if defined(ABEL_COMPILER_CPP14_ENABLED)
-        #define ABEL_DEPRECATED [[deprecated]]
-    #elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION > 1300) // If VC7 (VS2003) or later...
-        #define ABEL_DEPRECATED __declspec(deprecated)
-    #elif defined(ABEL_COMPILER_MSVC)
-        #define ABEL_DEPRECATED
-    #else
-        #define ABEL_DEPRECATED __attribute__((deprecated))
-    #endif
+#if defined(ABEL_COMPILER_CPP14_ENABLED)
+#define ABEL_DEPRECATED [[deprecated]]
+#elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION > 1300) // If VC7 (VS2003) or later...
+#define ABEL_DEPRECATED __declspec(deprecated)
+#elif defined(ABEL_COMPILER_MSVC)
+#define ABEL_DEPRECATED
+#else
+#define ABEL_DEPRECATED __attribute__((deprecated))
+#endif
 #endif
 
 #ifndef ABEL_PREFIX_DEPRECATED
-    #if defined(ABEL_COMPILER_CPP14_ENABLED)
-        #define ABEL_PREFIX_DEPRECATED [[deprecated]]
-        #define ABEL_POSTFIX_DEPRECATED
-    #elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION > 1300) // If VC7 (VS2003) or later...
-        #define ABEL_PREFIX_DEPRECATED __declspec(deprecated)
-        #define ABEL_POSTFIX_DEPRECATED
-    #elif defined(ABEL_COMPILER_MSVC)
-        #define ABEL_PREFIX_DEPRECATED
-        #define ABEL_POSTFIX_DEPRECATED
-    #else
-        #define ABEL_PREFIX_DEPRECATED
-        #define ABEL_POSTFIX_DEPRECATED __attribute__((deprecated))
-    #endif
+#if defined(ABEL_COMPILER_CPP14_ENABLED)
+#define ABEL_PREFIX_DEPRECATED [[deprecated]]
+#define ABEL_POSTFIX_DEPRECATED
+#elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION > 1300) // If VC7 (VS2003) or later...
+#define ABEL_PREFIX_DEPRECATED __declspec(deprecated)
+#define ABEL_POSTFIX_DEPRECATED
+#elif defined(ABEL_COMPILER_MSVC)
+#define ABEL_PREFIX_DEPRECATED
+#define ABEL_POSTFIX_DEPRECATED
+#else
+#define ABEL_PREFIX_DEPRECATED
+#define ABEL_POSTFIX_DEPRECATED __attribute__((deprecated))
+#endif
 #endif
 
 #ifndef ABEL_DEPRECATED_MESSAGE
-    #if defined(ABEL_COMPILER_CPP14_ENABLED)
-        #define ABEL_DEPRECATED_MESSAGE(msg) [[deprecated(#msg)]]
-    #else
+#if defined(ABEL_COMPILER_CPP14_ENABLED)
+#define ABEL_DEPRECATED_MESSAGE(msg) [[deprecated(#msg)]]
+#else
 // Compiler does not support depreaction messages, explicitly drop the msg but still mark the function as deprecated
-        #define ABEL_DEPRECATED_MESSAGE(msg) ABEL_DEPRECATED
-    #endif
+#define ABEL_DEPRECATED_MESSAGE(msg) ABEL_DEPRECATED
+#endif
 #endif
 
 
@@ -1288,29 +1288,29 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // The CodeWarrior compiler doesn't have the concept of forcing inlining per function.
 //
 #ifndef ABEL_FORCE_INLINE
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_FORCE_INLINE __forceinline
-    #elif defined(ABEL_COMPILER_GNUC) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 301) || defined(ABEL_COMPILER_CLANG)
-        #if defined(__cplusplus)
-            #define ABEL_FORCE_INLINE inline __attribute__((always_inline))
-        #else
-            #define ABEL_FORCE_INLINE __inline__ __attribute__((always_inline))
-        #endif
-    #else
-        #if defined(__cplusplus)
-            #define ABEL_FORCE_INLINE inline
-        #else
-            #define ABEL_FORCE_INLINE __inline
-        #endif
-    #endif
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_FORCE_INLINE __forceinline
+#elif defined(ABEL_COMPILER_GNUC) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 301) || defined(ABEL_COMPILER_CLANG)
+#if defined(__cplusplus)
+#define ABEL_FORCE_INLINE inline __attribute__((always_inline))
+#else
+#define ABEL_FORCE_INLINE __inline__ __attribute__((always_inline))
+#endif
+#else
+#if defined(__cplusplus)
+#define ABEL_FORCE_INLINE inline
+#else
+#define ABEL_FORCE_INLINE __inline
+#endif
+#endif
 #endif
 
 #if defined(ABEL_COMPILER_GNUC) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 301) || defined(ABEL_COMPILER_CLANG)
-    #define ABEL_PREFIX_FORCE_INLINE  inline
-    #define ABEL_POSTFIX_FORCE_INLINE __attribute__((always_inline))
+#define ABEL_PREFIX_FORCE_INLINE  inline
+#define ABEL_POSTFIX_FORCE_INLINE __attribute__((always_inline))
 #else
-    #define ABEL_PREFIX_FORCE_INLINE  inline
-    #define ABEL_POSTFIX_FORCE_INLINE
+#define ABEL_PREFIX_FORCE_INLINE  inline
+#define ABEL_POSTFIX_FORCE_INLINE
 #endif
 
 
@@ -1331,11 +1331,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //		};
 //
 #ifndef ABEL_FORCE_INLINE_LAMBDA
-    #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
-        #define ABEL_FORCE_INLINE_LAMBDA __attribute__((always_inline))
-    #else
-        #define ABEL_FORCE_INLINE_LAMBDA
-    #endif
+#if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
+#define ABEL_FORCE_INLINE_LAMBDA __attribute__((always_inline))
+#else
+#define ABEL_FORCE_INLINE_LAMBDA
+#endif
 #endif
 
 
@@ -1362,24 +1362,24 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // functions individually with ABEL_FORCE_INLINE.
 //
 #ifndef ABEL_NO_INLINE
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // If VC8 (VS2005) or later...
-        #define ABEL_NO_INLINE __declspec(noinline)
-    #elif defined(ABEL_COMPILER_MSVC)
-        #define ABEL_NO_INLINE
-    #else
-        #define ABEL_NO_INLINE __attribute__((noinline))
-    #endif
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // If VC8 (VS2005) or later...
+#define ABEL_NO_INLINE __declspec(noinline)
+#elif defined(ABEL_COMPILER_MSVC)
+#define ABEL_NO_INLINE
+#else
+#define ABEL_NO_INLINE __attribute__((noinline))
+#endif
 #endif
 
 #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // If VC8 (VS2005) or later...
-    #define ABEL_PREFIX_NO_INLINE  __declspec(noinline)
-    #define ABEL_POSTFIX_NO_INLINE
+#define ABEL_PREFIX_NO_INLINE  __declspec(noinline)
+#define ABEL_POSTFIX_NO_INLINE
 #elif defined(ABEL_COMPILER_MSVC)
-    #define ABEL_PREFIX_NO_INLINE
-    #define ABEL_POSTFIX_NO_INLINE
+#define ABEL_PREFIX_NO_INLINE
+#define ABEL_POSTFIX_NO_INLINE
 #else
-    #define ABEL_PREFIX_NO_INLINE
-    #define ABEL_POSTFIX_NO_INLINE __attribute__((noinline))
+#define ABEL_PREFIX_NO_INLINE
+#define ABEL_POSTFIX_NO_INLINE __attribute__((noinline))
 #endif
 
 
@@ -1396,13 +1396,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     };
 //
 #ifdef ABEL_COMPILER_MSVC
-    #define ABEL_NO_VTABLE           __declspec(novtable)
-    #define ABEL_CLASS_NO_VTABLE(x)  class __declspec(novtable) x
-    #define ABEL_STRUCT_NO_VTABLE(x) struct __declspec(novtable) x
+#define ABEL_NO_VTABLE           __declspec(novtable)
+#define ABEL_CLASS_NO_VTABLE(x)  class __declspec(novtable) x
+#define ABEL_STRUCT_NO_VTABLE(x) struct __declspec(novtable) x
 #else
-    #define ABEL_NO_VTABLE
-    #define ABEL_CLASS_NO_VTABLE(x)  class x
-    #define ABEL_STRUCT_NO_VTABLE(x) struct x
+#define ABEL_NO_VTABLE
+#define ABEL_CLASS_NO_VTABLE(x)  class x
+#define ABEL_STRUCT_NO_VTABLE(x) struct x
 #endif
 
 
@@ -1423,27 +1423,27 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //       void ABEL_PASCAL_FUNC(DoNothing(int x)){}
 //
 #ifndef ABEL_PASCAL
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_PASCAL __stdcall
-    #elif defined(ABEL_COMPILER_GNUC) && defined(ABEL_PROCESSOR_X86)
-        #define ABEL_PASCAL __attribute__((stdcall))
-    #else
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_PASCAL __stdcall
+#elif defined(ABEL_COMPILER_GNUC) && defined(ABEL_PROCESSOR_X86)
+#define ABEL_PASCAL __attribute__((stdcall))
+#else
 // Some compilers simply don't support pascal calling convention.
 // As a result, there isn't an issue here, since the specification of
 // pascal calling convention is for the purpose of disambiguating the
 // calling convention that is applied.
-        #define ABEL_PASCAL
-    #endif
+#define ABEL_PASCAL
+#endif
 #endif
 
 #ifndef ABEL_PASCAL_FUNC
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_PASCAL_FUNC(funcname_and_paramlist)    __stdcall funcname_and_paramlist
-    #elif defined(ABEL_COMPILER_GNUC) && defined(ABEL_PROCESSOR_X86)
-        #define ABEL_PASCAL_FUNC(funcname_and_paramlist)    __attribute__((stdcall)) funcname_and_paramlist
-    #else
-        #define ABEL_PASCAL_FUNC(funcname_and_paramlist)    funcname_and_paramlist
-    #endif
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_PASCAL_FUNC(funcname_and_paramlist)    __stdcall funcname_and_paramlist
+#elif defined(ABEL_COMPILER_GNUC) && defined(ABEL_PROCESSOR_X86)
+#define ABEL_PASCAL_FUNC(funcname_and_paramlist)    __attribute__((stdcall)) funcname_and_paramlist
+#else
+#define ABEL_PASCAL_FUNC(funcname_and_paramlist)    funcname_and_paramlist
+#endif
 #endif
 
 
@@ -1464,30 +1464,30 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // ABEL_SSE4_2) to detect what specific support is available.  ABEL_SSE being
 // equal to 3 really only indicates that SSE3 or greater is supported.
 #ifndef ABEL_SSE
-    #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
-        #if defined(__SSE3__)
-            #define ABEL_SSE 3
-        #elif defined(__SSE2__)
-            #define ABEL_SSE 2
-        #elif defined(__SSE__) && __SSE__
-            #define ABEL_SSE 1
-        #else
-            #define ABEL_SSE 0
-        #endif
-    #elif (defined(ABEL_SSE3) && ABEL_SSE3) || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_SSE 3
-    #elif defined(ABEL_SSE2) && ABEL_SSE2
-        #define ABEL_SSE 2
-    #elif defined(ABEL_PROCESSOR_X86) && defined(_MSC_FULL_VER) && !defined(__NOSSE__) && defined(_M_IX86_FP)
-        #define ABEL_SSE _M_IX86_FP
-    #elif defined(ABEL_PROCESSOR_X86) && defined(ABEL_COMPILER_INTEL) && !defined(__NOSSE__)
-        #define ABEL_SSE 1
-    #elif defined(ABEL_PROCESSOR_X86_64)
+#if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
+#if defined(__SSE3__)
+#define ABEL_SSE 3
+#elif defined(__SSE2__)
+#define ABEL_SSE 2
+#elif defined(__SSE__) && __SSE__
+#define ABEL_SSE 1
+#else
+#define ABEL_SSE 0
+#endif
+#elif (defined(ABEL_SSE3) && ABEL_SSE3) || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_SSE 3
+#elif defined(ABEL_SSE2) && ABEL_SSE2
+#define ABEL_SSE 2
+#elif defined(ABEL_PROCESSOR_X86) && defined(_MSC_FULL_VER) && !defined(__NOSSE__) && defined(_M_IX86_FP)
+#define ABEL_SSE _M_IX86_FP
+#elif defined(ABEL_PROCESSOR_X86) && defined(ABEL_COMPILER_INTEL) && !defined(__NOSSE__)
+#define ABEL_SSE 1
+#elif defined(ABEL_PROCESSOR_X86_64)
 // All x64 processors support SSE2 or higher
-        #define ABEL_SSE 2
-    #else
-        #define ABEL_SSE 0
-    #endif
+#define ABEL_SSE 2
+#else
+#define ABEL_SSE 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1499,46 +1499,46 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // feature/level of SSE is not supported, and 1 indicates support is
 // available.
 #ifndef ABEL_SSE2
-    #if ABEL_SSE >= 2
-        #define ABEL_SSE2 1
-    #else
-        #define ABEL_SSE2 0
-    #endif
+#if ABEL_SSE >= 2
+#define ABEL_SSE2 1
+#else
+#define ABEL_SSE2 0
+#endif
 #endif
 #ifndef ABEL_SSE3
-    #if ABEL_SSE >= 3
-        #define ABEL_SSE3 1
-    #else
-        #define ABEL_SSE3 0
-    #endif
+#if ABEL_SSE >= 3
+#define ABEL_SSE3 1
+#else
+#define ABEL_SSE3 0
+#endif
 #endif
 #ifndef ABEL_SSSE3
-    #if defined __SSSE3__ || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_SSSE3 1
-    #else
-        #define ABEL_SSSE3 0
-    #endif
+#if defined __SSSE3__ || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_SSSE3 1
+#else
+#define ABEL_SSSE3 0
+#endif
 #endif
 #ifndef ABEL_SSE4_1
-    #if defined __SSE4_1__ || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_SSE4_1 1
-    #else
-        #define ABEL_SSE4_1 0
-    #endif
+#if defined __SSE4_1__ || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_SSE4_1 1
+#else
+#define ABEL_SSE4_1 0
+#endif
 #endif
 #ifndef ABEL_SSE4_2
-    #if defined __SSE4_2__ || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_SSE4_2 1
-    #else
-        #define ABEL_SSE4_2 0
-    #endif
+#if defined __SSE4_2__ || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_SSE4_2 1
+#else
+#define ABEL_SSE4_2 0
+#endif
 #endif
 #ifndef ABEL_SSE4A
-    #if defined __SSE4A__ || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_SSE4A 1
-    #else
-        #define ABEL_SSE4A 0
-    #endif
+#if defined __SSE4A__ || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_SSE4A 1
+#else
+#define ABEL_SSE4A 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1550,41 +1550,41 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //  1 indicates AVX1 is supported
 //  2 indicates AVX2 is supported
 #ifndef ABEL_AVX
-    #if defined __AVX2__
-        #define ABEL_AVX 2
-    #elif defined __AVX__ || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_AVX 1
-    #else
-        #define ABEL_AVX 0
-    #endif
+#if defined __AVX2__
+#define ABEL_AVX 2
+#elif defined __AVX__ || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_AVX 1
+#else
+#define ABEL_AVX 0
+#endif
 #endif
 #ifndef ABEL_AVX2
-    #if ABEL_AVX >= 2
-        #define ABEL_AVX2 1
-    #else
-        #define ABEL_AVX2 0
-    #endif
+#if ABEL_AVX >= 2
+#define ABEL_AVX2 1
+#else
+#define ABEL_AVX2 0
+#endif
 #endif
 
 // ABEL_FP16C may be used to determine the existence of float <-> half conversion operations on an x86 CPU.
 // (For example to determine if _mm_cvtph_ps or _mm_cvtps_ph could be used.)
 #ifndef ABEL_FP16C
-    #if defined __F16C__ || defined ABEL_PLATFORM_XBOXONE
-        #define ABEL_FP16C 1
-    #else
-        #define ABEL_FP16C 0
-    #endif
+#if defined __F16C__ || defined ABEL_PLATFORM_XBOXONE
+#define ABEL_FP16C 1
+#else
+#define ABEL_FP16C 0
+#endif
 #endif
 
 // ABEL_FP128 may be used to determine if __float128 is a supported type for use. This type is enabled by a GCC extension (_GLIBCXX_USE_FLOAT128)
 // but has support by some implementations of clang (__FLOAT128__)
 // PS4 does not support __float128 as of SDK 5.500 https://ps4.siedev.net/resources/documents/SDK/5.500/CPU_Compiler_ABI-Overview/0003.html
 #ifndef ABEL_FP128
-    #if (defined __FLOAT128__ || defined _GLIBCXX_USE_FLOAT128) && !defined(ABEL_PLATFORM_SONY)
-        #define ABEL_FP128 1
-    #else
-        #define ABEL_FP128 0
-    #endif
+#if (defined __FLOAT128__ || defined _GLIBCXX_USE_FLOAT128) && !defined(ABEL_PLATFORM_SONY)
+#define ABEL_FP128 1
+#else
+#define ABEL_FP128 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1592,22 +1592,22 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // ABEL_ABM may be used to determine if Advanced Bit Manipulation sets are available for the target architecture (POPCNT, LZCNT)
 //
 #ifndef ABEL_ABM
-    #if defined(__ABM__) || defined(ABEL_PLATFORM_XBOXONE) || defined(ABEL_PLATFORM_SONY)
-        #define ABEL_ABM 1
-    #else
-        #define ABEL_ABM 0
-    #endif
+#if defined(__ABM__) || defined(ABEL_PLATFORM_XBOXONE) || defined(ABEL_PLATFORM_SONY)
+#define ABEL_ABM 1
+#else
+#define ABEL_ABM 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
 // ABEL_NEON
 // ABEL_NEON may be used to determine if NEON is supported.
 #ifndef ABEL_NEON
-    #if defined(__ARM_NEON__) || defined(__ARM_NEON)
-        #define ABEL_NEON 1
-    #else
-        #define ABEL_NEON 0
-    #endif
+#if defined(__ARM_NEON__) || defined(__ARM_NEON)
+#define ABEL_NEON 1
+#else
+#define ABEL_NEON 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1619,20 +1619,20 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //  1 indicates BMI1 is supported
 //  2 indicates BMI2 is supported
 #ifndef ABEL_BMI
-    #if defined(__BMI2__)
-        #define ABEL_BMI 2
-    #elif defined(__BMI__) || defined(ABEL_PLATFORM_XBOXONE)
-        #define ABEL_BMI 1
-    #else
-        #define ABEL_BMI 0
-    #endif
+#if defined(__BMI2__)
+#define ABEL_BMI 2
+#elif defined(__BMI__) || defined(ABEL_PLATFORM_XBOXONE)
+#define ABEL_BMI 1
+#else
+#define ABEL_BMI 0
+#endif
 #endif
 #ifndef ABEL_BMI2
-    #if ABEL_BMI >= 2
-        #define ABEL_BMI2 1
-    #else
-        #define ABEL_BMI2 0
-    #endif
+#if ABEL_BMI >= 2
+#define ABEL_BMI2 1
+#else
+#define ABEL_BMI2 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1646,22 +1646,22 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //  0 indicates no FMA3 support
 //  1 indicates FMA3 is supported
 #ifndef ABEL_FMA3
-    #if defined(__FMA__) || ABEL_AVX2 >= 1
-        #define ABEL_FMA3 1
-    #else
-        #define ABEL_FMA3 0
-    #endif
+#if defined(__FMA__) || ABEL_AVX2 >= 1
+#define ABEL_FMA3 1
+#else
+#define ABEL_FMA3 0
+#endif
 #endif
 
 // ------------------------------------------------------------------------
 // ABEL_TBM
 // ABEL_TBM may be used to determine if Trailing Bit Manipulation instructions are available for the target architecture
 #ifndef ABEL_TBM
-    #if defined(__TBM__)
-        #define ABEL_TBM 1
-    #else
-        #define ABEL_TBM 0
-    #endif
+#if defined(__TBM__)
+#define ABEL_TBM 1
+#else
+#define ABEL_TBM 0
+#endif
 #endif
 
 
@@ -1670,11 +1670,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // import declaration specification
 // specifies that the declared symbol is imported from another dynamic library.
 #ifndef ABEL_IMPORT
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_IMPORT __declspec(dllimport)
-    #else
-        #define ABEL_IMPORT
-    #endif
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_IMPORT __declspec(dllimport)
+#else
+#define ABEL_IMPORT
+#endif
 #endif
 
 
@@ -1685,11 +1685,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // this is not the same as the C++ export keyword. The C++ export keyword has been
 // removed from the language as of C++11.
 #ifndef ABEL_EXPORT
-    #if defined(ABEL_COMPILER_MSVC)
-        #define ABEL_EXPORT __declspec(dllexport)
-    #else
-        #define ABEL_EXPORT
-    #endif
+#if defined(ABEL_COMPILER_MSVC)
+#define ABEL_EXPORT __declspec(dllexport)
+#else
+#define ABEL_EXPORT
+#endif
 #endif
 
 
@@ -1705,11 +1705,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //        struct D : B { void f(int) ABEL_OVERRIDE; };
 //
 #ifndef ABEL_OVERRIDE
-    #if defined(ABEL_COMPILER_NO_OVERRIDE)
-        #define ABEL_OVERRIDE
-    #else
-        #define ABEL_OVERRIDE override
-    #endif
+#if defined(ABEL_COMPILER_NO_OVERRIDE)
+#define ABEL_OVERRIDE
+#else
+#define ABEL_OVERRIDE override
+#endif
 #endif
 
 
@@ -1725,13 +1725,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     struct B { virtual void f() ABEL_INHERITANCE_FINAL; };
 //
 #ifndef ABEL_INHERITANCE_FINAL
-    #if defined(ABEL_COMPILER_NO_INHERITANCE_FINAL)
-        #define ABEL_INHERITANCE_FINAL
-    #elif (defined(_MSC_VER) && (ABEL_COMPILER_VERSION < 1700))  // Pre-VS2012
-        #define ABEL_INHERITANCE_FINAL sealed
-    #else
-        #define ABEL_INHERITANCE_FINAL final
-    #endif
+#if defined(ABEL_COMPILER_NO_INHERITANCE_FINAL)
+#define ABEL_INHERITANCE_FINAL
+#elif (defined(_MSC_VER) && (ABEL_COMPILER_VERSION < 1700))  // Pre-VS2012
+#define ABEL_INHERITANCE_FINAL sealed
+#else
+#define ABEL_INHERITANCE_FINAL final
+#endif
 #endif
 
 
@@ -1745,7 +1745,7 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     struct B : public A { virtual void f() ABEL_FINAL_OVERRIDE; };
 //
 #ifndef ABEL_FINAL_OVERRIDE
-    #define ABEL_FINAL_OVERRIDE ABEL_OVERRIDE ABEL_INHERITANCE_FINAL
+#define ABEL_FINAL_OVERRIDE ABEL_OVERRIDE ABEL_INHERITANCE_FINAL
 #endif
 
 
@@ -1758,11 +1758,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     struct B { virtual void f() ABEL_SEALED; };
 //
 #ifndef ABEL_SEALED
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // VS2005 (VC8) and later
-        #define ABEL_SEALED sealed
-    #else
-        #define ABEL_SEALED
-    #endif
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // VS2005 (VC8) and later
+#define ABEL_SEALED sealed
+#else
+#define ABEL_SEALED
+#endif
 #endif
 
 
@@ -1775,19 +1775,19 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     struct X ABEL_ABSTRACT { virtual void f(){} };
 //
 #ifndef ABEL_ABSTRACT
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // VS2005 (VC8) and later
-        #define ABEL_ABSTRACT abstract
-    #else
-        #define ABEL_ABSTRACT
-    #endif
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1400) // VS2005 (VC8) and later
+#define ABEL_ABSTRACT abstract
+#else
+#define ABEL_ABSTRACT
+#endif
 #endif
 
 #ifndef ABEL_EXPLICIT
-    #if defined(ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS) && ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS == 1
-        #define ABEL_EXPLICIT
-    #else
-        #define ABEL_EXPLICIT explicit
-    #endif
+#if defined(ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS) && ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS == 1
+#define ABEL_EXPLICIT
+#else
+#define ABEL_EXPLICIT explicit
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1803,27 +1803,27 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //
 
 #ifndef ABEL_CONSTEXPR_MEMBER
-    #if ABEL_COMPILER_CPP14_ENABLED
-        #define ABEL_CONSTEXPR_MEMBER constexpr
-    #else
-        #define ABEL_CONSTEXPR_MEMBER
-    #endif
+#if ABEL_COMPILER_CPP14_ENABLED
+#define ABEL_CONSTEXPR_MEMBER constexpr
+#else
+#define ABEL_CONSTEXPR_MEMBER
+#endif
 #endif
 
 #ifndef ABEL_CONSTEXPR_VARIABLE
-    #if ABEL_COMPILER_CPP14_ENABLED
-        #define ABEL_CONSTEXPR_VARIABLE constexpr
-    #else
-        #define ABEL_CONSTEXPR_VARIABLE const
-    #endif
+#if ABEL_COMPILER_CPP14_ENABLED
+#define ABEL_CONSTEXPR_VARIABLE constexpr
+#else
+#define ABEL_CONSTEXPR_VARIABLE const
+#endif
 #endif
 
 #ifndef ABEL_CONSTEXPR_FUNCTION
-    #if ABEL_COMPILER_CPP14_ENABLED
-        #define ABEL_CONSTEXPR_FUNCTION constexpr
-    #else
-        #define ABEL_CONSTEXPR_FUNCTION inline
-    #endif
+#if ABEL_COMPILER_CPP14_ENABLED
+#define ABEL_CONSTEXPR_FUNCTION constexpr
+#else
+#define ABEL_CONSTEXPR_FUNCTION inline
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1839,11 +1839,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // 	{ ... }
 //
 #if !defined(ABEL_CONSTEXPR_IF)
-    #if defined(ABEL_COMPILER_NO_CONSTEXPR_IF)
-        #define ABEL_CONSTEXPR_IF(predicate) if ((predicate))
-    #else
-        #define ABEL_CONSTEXPR_IF(predicate) if constexpr ((predicate))
-    #endif
+#if defined(ABEL_COMPILER_NO_CONSTEXPR_IF)
+#define ABEL_CONSTEXPR_IF(predicate) if ((predicate))
+#else
+#define ABEL_CONSTEXPR_IF(predicate) if constexpr ((predicate))
+#endif
 #endif
 
 
@@ -1857,11 +1857,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     ABEL_EXTERN_TEMPLATE(class basic_string<char>);
 //
 #if !defined(ABEL_EXTERN_TEMPLATE)
-    #if defined(ABEL_COMPILER_NO_EXTERN_TEMPLATE)
-        #define ABEL_EXTERN_TEMPLATE(declaration)
-    #else
-        #define ABEL_EXTERN_TEMPLATE(declaration) extern template declaration
-    #endif
+#if defined(ABEL_COMPILER_NO_EXTERN_TEMPLATE)
+#define ABEL_EXTERN_TEMPLATE(declaration)
+#else
+#define ABEL_EXTERN_TEMPLATE(declaration) extern template declaration
+#endif
 #endif
 
 
@@ -1889,15 +1889,15 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //         { T t; }
 //
 #if !defined(ABEL_NOEXCEPT)
-    #if defined(ABEL_COMPILER_NO_NOEXCEPT)
-        #define ABEL_NOEXCEPT
-        #define ABEL_NOEXCEPT_IF(predicate)
-        #define ABEL_NOEXCEPT_EXPR(expression) false
-    #else
-        #define ABEL_NOEXCEPT noexcept
-        #define ABEL_NOEXCEPT_IF(predicate) noexcept((predicate))
-        #define ABEL_NOEXCEPT_EXPR(expression) noexcept((expression))
-    #endif
+#if defined(ABEL_COMPILER_NO_NOEXCEPT)
+#define ABEL_NOEXCEPT
+#define ABEL_NOEXCEPT_IF(predicate)
+#define ABEL_NOEXCEPT_EXPR(expression) false
+#else
+#define ABEL_NOEXCEPT noexcept
+#define ABEL_NOEXCEPT_IF(predicate) noexcept((predicate))
+#define ABEL_NOEXCEPT_EXPR(expression) noexcept((expression))
+#endif
 #endif
 
 
@@ -1914,13 +1914,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //         { throw "error"; }
 //
 #if !defined(ABEL_NORETURN)
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
-        #define ABEL_NORETURN __declspec(noreturn)
-    #elif defined(ABEL_COMPILER_NO_NORETURN)
-        #define ABEL_NORETURN
-    #else
-        #define ABEL_NORETURN [[noreturn]]
-    #endif
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
+#define ABEL_NORETURN __declspec(noreturn)
+#elif defined(ABEL_COMPILER_NO_NORETURN)
+#define ABEL_NORETURN
+#else
+#define ABEL_NORETURN [[noreturn]]
+#endif
 #endif
 
 
@@ -1937,11 +1937,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //
 //
 #if !defined(ABEL_CARRIES_DEPENDENCY)
-    #if defined(ABEL_COMPILER_NO_CARRIES_DEPENDENCY)
-        #define ABEL_CARRIES_DEPENDENCY
-    #else
-        #define ABEL_CARRIES_DEPENDENCY [[carries_dependency]]
-    #endif
+#if defined(ABEL_COMPILER_NO_CARRIES_DEPENDENCY)
+#define ABEL_CARRIES_DEPENDENCY
+#else
+#define ABEL_CARRIES_DEPENDENCY [[carries_dependency]]
+#endif
 #endif
 
 
@@ -1973,11 +1973,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // 		}
 //
 #if !defined(ABEL_FALLTHROUGH)
-    #if defined(ABEL_COMPILER_NO_FALLTHROUGH)
-        #define ABEL_FALLTHROUGH
-    #else
-        #define ABEL_FALLTHROUGH [[fallthrough]]
-    #endif
+#if defined(ABEL_COMPILER_NO_FALLTHROUGH)
+#define ABEL_FALLTHROUGH
+#else
+#define ABEL_FALLTHROUGH [[fallthrough]]
+#endif
 #endif
 
 
@@ -2005,11 +2005,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     }
 //
 #if !defined(ABEL_NODISCARD)
-    #if defined(ABEL_COMPILER_NO_NODISCARD)
-        #define ABEL_NODISCARD
-    #else
-        #define ABEL_NODISCARD [[nodiscard]]
-    #endif
+#if defined(ABEL_COMPILER_NO_NODISCARD)
+#define ABEL_NODISCARD
+#else
+#define ABEL_NODISCARD [[nodiscard]]
+#endif
 #endif
 
 
@@ -2028,11 +2028,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //    }
 //
 #if !defined(ABEL_MAYBE_UNUSED)
-    #if defined(ABEL_COMPILER_NO_MAYBE_UNUSED)
-        #define ABEL_MAYBE_UNUSED
-    #else
-        #define ABEL_MAYBE_UNUSED [[maybe_unused]]
-    #endif
+#if defined(ABEL_COMPILER_NO_MAYBE_UNUSED)
+#define ABEL_MAYBE_UNUSED
+#else
+#define ABEL_MAYBE_UNUSED [[maybe_unused]]
+#endif
 #endif
 
 
@@ -2047,11 +2047,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     ABEL_NO_UBSAN int SomeFunction() { ... }
 //
 #ifndef ABEL_NO_UBSAN
-    #if defined(ABEL_COMPILER_CLANG)
-        #define ABEL_NO_UBSAN __attribute__((no_sanitize("undefined")))
-    #else
-        #define ABEL_NO_UBSAN
-    #endif
+#if defined(ABEL_COMPILER_CLANG)
+#define ABEL_NO_UBSAN __attribute__((no_sanitize("undefined")))
+#else
+#define ABEL_NO_UBSAN
+#endif
 #endif
 
 
@@ -2066,11 +2066,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     ABEL_NO_ASAN int SomeFunction() { ... }
 //
 #ifndef ABEL_NO_ASAN
-    #if defined(ABEL_COMPILER_CLANG)
-        #define ABEL_NO_ASAN __attribute__((no_sanitize("address")))
-    #else
-        #define ABEL_NO_ASAN
-    #endif
+#if defined(ABEL_COMPILER_CLANG)
+#define ABEL_NO_ASAN __attribute__((no_sanitize("address")))
+#else
+#define ABEL_NO_ASAN
+#endif
 #endif
 
 
@@ -2081,13 +2081,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // Specifies whether the code is being built with Clang's Address Sanitizer.
 //
 #if defined(__has_feature)
-    #if __has_feature(address_sanitizer)
-        #define ABEL_ASAN_ENABLED 1
-    #else
-        #define ABEL_ASAN_ENABLED 0
-    #endif
+#if __has_feature(address_sanitizer)
+#define ABEL_ASAN_ENABLED 1
 #else
-    #define ABEL_ASAN_ENABLED 0
+#define ABEL_ASAN_ENABLED 0
+#endif
+#else
+#define ABEL_ASAN_ENABLED 0
 #endif
 
 
@@ -2119,20 +2119,20 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //    };
 //
 #if !defined(ABEL_NON_COPYABLE)
-    #if defined(ABEL_COMPILER_NO_DELETED_FUNCTIONS)
-        #define ABEL_NON_COPYABLE(CBClass_)               \
+#if defined(ABEL_COMPILER_NO_DELETED_FUNCTIONS)
+#define ABEL_NON_COPYABLE(CBClass_)               \
               private:                                      \
                 ABEL_DISABLE_VC_WARNING(4822);	/* local class member function does not have a body	*/		\
                 CBClass_(const CBClass_&);                  \
                 void operator=(const CBClass_&);			\
                 ABEL_RESTORE_VC_WARNING()
-    #else
-        #define ABEL_NON_COPYABLE(CBClass_)               \
+#else
+#define ABEL_NON_COPYABLE(CBClass_)               \
                 ABEL_DISABLE_VC_WARNING(4822);    /* local class member function does not have a body	*/        \
                 CBClass_(const CBClass_&) = delete;         \
                 void operator=(const CBClass_&) = delete;    \
                 ABEL_RESTORE_VC_WARNING()
-    #endif
+#endif
 #endif
 
 
@@ -2157,9 +2157,9 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // which you can do in the associated source file for the class.
 //
 #if defined(ABEL_COMPILER_NO_DELETED_FUNCTIONS)
-    #define ABEL_FUNCTION_DELETE
+#define ABEL_FUNCTION_DELETE
 #else
-    #define ABEL_FUNCTION_DELETE = delete
+#define ABEL_FUNCTION_DELETE = delete
 #endif
 
 // ------------------------------------------------------------------------
@@ -2267,16 +2267,21 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     };
 //
 #ifdef __cplusplus
+
 struct CBNonCopyable {
 #if defined(ABEL_COMPILER_NO_DEFAULTED_FUNCTIONS) || defined(__EDG__) // EDG doesn't appear to behave properly for the case of defaulted constructors; it generates a mistaken warning about missing default constructors.
     CBNonCopyable(){} // Putting {} here has the downside that it allows a class to create itself,
    ~CBNonCopyable(){} // but avoids linker errors that can occur with some compilers (e.g. Green Hills).
 #else
-    CBNonCopyable () = default;
-    ~CBNonCopyable () = default;
+
+    CBNonCopyable() = default;
+
+    ~CBNonCopyable() = default;
+
 #endif
     ABEL_NON_COPYABLE(CBNonCopyable)
 };
+
 #endif
 
 
@@ -2309,35 +2314,35 @@ struct CBNonCopyable {
 //     ABEL_OPTIMIZE_ON()
 //
 #if !defined(ABEL_OPTIMIZE_OFF)
-    #if   defined(ABEL_COMPILER_MSVC)
-        #define ABEL_OPTIMIZE_OFF() __pragma(optimize("", off))
-    #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION > 4004) && (defined(__i386__) || defined(__x86_64__)) // GCC 4.4+ - Seems to work only on x86/Linux so far. However, GCC 4.4 itself appears broken and screws up parameter passing conventions.
-        #define ABEL_OPTIMIZE_OFF()            \
+#if   defined(ABEL_COMPILER_MSVC)
+#define ABEL_OPTIMIZE_OFF() __pragma(optimize("", off))
+#elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION > 4004) && (defined(__i386__) || defined(__x86_64__)) // GCC 4.4+ - Seems to work only on x86/Linux so far. However, GCC 4.4 itself appears broken and screws up parameter passing conventions.
+#define ABEL_OPTIMIZE_OFF()            \
                 _Pragma("GCC push_options")      \
                 _Pragma("GCC optimize 0")
-    #elif defined(ABEL_COMPILER_CLANG) && (!defined(ABEL_PLATFORM_ANDROID) || (ABEL_COMPILER_VERSION >= 380))
-        #define ABEL_OPTIMIZE_OFF() \
+#elif defined(ABEL_COMPILER_CLANG) && (!defined(ABEL_PLATFORM_ANDROID) || (ABEL_COMPILER_VERSION >= 380))
+#define ABEL_OPTIMIZE_OFF() \
                 ABEL_DISABLE_CLANG_WARNING(-Wunknown-pragmas) \
                 _Pragma("clang optimize off") \
                 ABEL_RESTORE_CLANG_WARNING()
-    #else
-        #define ABEL_OPTIMIZE_OFF()
-    #endif
+#else
+#define ABEL_OPTIMIZE_OFF()
+#endif
 #endif
 
 #if !defined(ABEL_OPTIMIZE_ON)
-    #if   defined(ABEL_COMPILER_MSVC)
-        #define ABEL_OPTIMIZE_ON() __pragma(optimize("", on))
-    #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION > 4004) && (defined(__i386__) || defined(__x86_64__)) // GCC 4.4+ - Seems to work only on x86/Linux so far. However, GCC 4.4 itself appears broken and screws up parameter passing conventions.
-        #define ABEL_OPTIMIZE_ON() _Pragma("GCC pop_options")
-    #elif defined(ABEL_COMPILER_CLANG) && (!defined(ABEL_PLATFORM_ANDROID) || (ABEL_COMPILER_VERSION >= 380))
-        #define ABEL_OPTIMIZE_ON() \
+#if   defined(ABEL_COMPILER_MSVC)
+#define ABEL_OPTIMIZE_ON() __pragma(optimize("", on))
+#elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION > 4004) && (defined(__i386__) || defined(__x86_64__)) // GCC 4.4+ - Seems to work only on x86/Linux so far. However, GCC 4.4 itself appears broken and screws up parameter passing conventions.
+#define ABEL_OPTIMIZE_ON() _Pragma("GCC pop_options")
+#elif defined(ABEL_COMPILER_CLANG) && (!defined(ABEL_PLATFORM_ANDROID) || (ABEL_COMPILER_VERSION >= 380))
+#define ABEL_OPTIMIZE_ON() \
                 ABEL_DISABLE_CLANG_WARNING(-Wunknown-pragmas) \
                 _Pragma("clang optimize on") \
                 ABEL_RESTORE_CLANG_WARNING()
-    #else
-        #define ABEL_OPTIMIZE_ON()
-    #endif
+#else
+#define ABEL_OPTIMIZE_ON()
+#endif
 #endif
 
 
@@ -2356,45 +2361,45 @@ struct CBNonCopyable {
 //     return result;
 //   }
 #if defined(__pnacl__)
-    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
+#define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
 #elif defined(__clang__)
 // Clang will not tail call given inline volatile assembly.
-    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
+#define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
 #elif defined(__GNUC__)
 // GCC will not tail call given inline volatile assembly.
-    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
+#define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __asm__ __volatile__("")
 #elif defined(_MSC_VER)
-    #include <intrin.h>
+#include <intrin.h>
 // The __nop() intrinsic blocks the optimisation.
-    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __nop()
+#define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() __nop()
 #else
-    #define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
+#define ABEL_BLOCK_TAIL_CALL_OPTIMIZATION() if (volatile int x = 0) { (void)x; }
 #endif
 
 #ifndef ABEL_WARN_UNUSED_RESULT
-    #if defined(ABEL_COMPILER_GNUC) && ABEL_COMPILER_VERSION >= 4007 && ABEL_COMPILER_CPP11_ENABLED
-        #define ABEL_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
-    #else
-        #define ABEL_WARN_UNUSED_RESULT
-    #endif
+#if defined(ABEL_COMPILER_GNUC) && ABEL_COMPILER_VERSION >= 4007 && ABEL_COMPILER_CPP11_ENABLED
+#define ABEL_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+#define ABEL_WARN_UNUSED_RESULT
+#endif
 #endif //WARN_UNUSED_RESULT
 
 #ifndef ABEL_PRINTF_FORMAT
-    #if defined(ABEL_COMPILER_GNUC)
-        #define ABEL_PRINTF_FORMAT(format_param, dots_param) __attribute__((format(printf, format_param, dots_param)))
-    #else
-        #define ABEL_PRINTF_FORMAT(format_param, dots_param)
-    #endif
+#if defined(ABEL_COMPILER_GNUC)
+#define ABEL_PRINTF_FORMAT(format_param, dots_param) __attribute__((format(printf, format_param, dots_param)))
+#else
+#define ABEL_PRINTF_FORMAT(format_param, dots_param)
+#endif
 #endif //ABEL_PRINTF_FORMAT
 
 #define ABEL_WPRINTF_FORMAT(format_param, dots_param)
 
 #ifndef ABEL_CDECL
-    #if defined(ABEL_PLATFORM_WINDOWS)
-        #define ABEL_CDECL __cdecl
-    #else
-        #define ABEL_CDECL
-    #endif
+#if defined(ABEL_PLATFORM_WINDOWS)
+#define ABEL_CDECL __cdecl
+#else
+#define ABEL_CDECL
+#endif
 #endif //ABEL_CDECL
 
 #if defined(COMPILER_GCC)
@@ -2404,15 +2409,15 @@ struct CBNonCopyable {
 #endif
 
 #ifndef ABEL_ALLOW_UNUSED
-    #if defined(ABEL_COMPILER_GNUC)
-        #define ABEL_ALLOW_UNUSED __attribute__((unused))
-    #else
-        #define ABEL_ALLOW_UNUSED
-    #endif
+#if defined(ABEL_COMPILER_GNUC)
+#define ABEL_ALLOW_UNUSED __attribute__((unused))
+#else
+#define ABEL_ALLOW_UNUSED
+#endif
 #endif //ABEL_ALLOW_UNUSED
 
 #ifndef ABEL_CACHE_LINE_ALIGNED
-    #define ABEL_CACHE_LINE_ALIGNED ABEL_ALIGN(ABEL_CACHE_LINE_SIZE)
+#define ABEL_CACHE_LINE_ALIGNED ABEL_ALIGN(ABEL_CACHE_LINE_SIZE)
 #endif //ABEL_CACHE_LINE_ALIGNED
 
 // ABEL_PRINTF
@@ -2475,9 +2480,9 @@ struct CBNonCopyable {
 // NOTE: The GCC nonnull attribute actually accepts a list of arguments, but
 // ABEL_ATTRIBUTE_NONNULL does not.
 #if ABEL_COMPILER_HAS_ATTRIBUTE(nonnull) || (defined(__GNUC__) && !defined(__clang__))
-    #define ABEL_NONNULL(arg_index) __attribute__((nonnull(arg_index)))
+#define ABEL_NONNULL(arg_index) __attribute__((nonnull(arg_index)))
 #else
-    #define ABEL_NONNULL(...)
+#define ABEL_NONNULL(...)
 #endif
 
 // ABEL_NO_SANITIZE_ADDRESS
@@ -2489,9 +2494,9 @@ struct CBNonCopyable {
 // NOTE: GCC supports AddressSanitizer(asan) since 4.8.
 // https://gcc.gnu.org/gcc-4.8/changes.html
 #if defined(__GNUC__)
-    #define ABEL_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#define ABEL_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
 #else
-    #define ABEL_NO_SANITIZE_ADDRESS
+#define ABEL_NO_SANITIZE_ADDRESS
 #endif
 
 // ABEL_NO_SANITIZE_MEMORY
@@ -2503,9 +2508,9 @@ struct CBNonCopyable {
 // with initialized-ness rather than addressability issues.
 // NOTE: MemorySanitizer(msan) is supported by Clang but not GCC.
 #if defined(__clang__)
-    #define ABEL_NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
+#define ABEL_NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
 #else
-    #define ABEL_NO_SANITIZE_MEMORY
+#define ABEL_NO_SANITIZE_MEMORY
 #endif
 
 // ABEL_NO_SANITIZE_THREAD
@@ -2613,9 +2618,9 @@ struct CBNonCopyable {
 // Tells the compiler to align the function start at least to certain
 // alignment boundary
 #if ABEL_COMPILER_HAS_ATTRIBUTE(aligned) || (defined(__GNUC__) && !defined(__clang__))
-    #define ABEL_FUNC_ALIGN(bytes) __attribute__((aligned(bytes)))
+#define ABEL_FUNC_ALIGN(bytes) __attribute__((aligned(bytes)))
 #else
-    #define ABEL_FUNC_ALIGN(bytes)
+#define ABEL_FUNC_ALIGN(bytes)
 #endif
 
 

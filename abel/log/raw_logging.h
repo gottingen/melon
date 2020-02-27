@@ -80,30 +80,30 @@
 
 namespace abel {
 
-namespace raw_logging_internal {
+    namespace raw_logging_internal {
 
 // Helper function to implement ABEL_RAW_LOG
 // Logs format... at "severity" level, reporting it
 // as called from file:line.
 // This does not allocate memory or acquire locks.
-void RawLog (abel::LogSeverity severity, const char *file, int line,
-             const char *format, ...) ABEL_PRINTF(4, 5);
+        void RawLog(abel::LogSeverity severity, const char *file, int line,
+                    const char *format, ...) ABEL_PRINTF(4, 5);
 
 // Writes the provided buffer directly to stderr, in a safe, low-level manner.
 //
 // In POSIX this means calling write(), which is async-signal safe and does
 // not malloc.  If the platform supports the SYS_write syscall, we invoke that
 // directly to side-step any libc interception.
-void SafeWriteToStderr (const char *s, size_t len);
+        void SafeWriteToStderr(const char *s, size_t len);
 
 // compile-time function to get the "base" filename, that is, the part of
 // a filename after the last "/" or "\" path separator.  The search starts at
 // the end of the string; the second parameter is the length of the string.
-constexpr const char *Basename (const char *fname, int offset) {
-    return offset == 0 || fname[offset - 1] == '/' || fname[offset - 1] == '\\'
-           ? fname + offset
-           : Basename(fname, offset - 1);
-}
+        constexpr const char *Basename(const char *fname, int offset) {
+            return offset == 0 || fname[offset - 1] == '/' || fname[offset - 1] == '\\'
+                   ? fname + offset
+                   : Basename(fname, offset - 1);
+        }
 
 // For testing only.
 // Returns true if raw logging is fully supported. When it is not
@@ -111,7 +111,7 @@ constexpr const char *Basename (const char *fname, int offset) {
 // severity will cause an abort.
 //
 // TODO(gfalcon): Come up with a better name for this method.
-bool RawLoggingFullySupported ();
+        bool RawLoggingFullySupported();
 
 // Function type for a raw_logging customization hook for suppressing messages
 // by severity, and for writing custom prefixes on non-suppressed messages.
@@ -131,8 +131,8 @@ bool RawLoggingFullySupported ();
 // 'buffer' and 'buf_size' are pointers to the buffer and buffer size.  If the
 // hook writes a prefix, it must increment *buffer and decrement *buf_size
 // accordingly.
-using LogPrefixHook = bool (*) (abel::LogSeverity severity, const char *file,
-                                int line, char **buffer, int *buf_size);
+        using LogPrefixHook = bool (*)(abel::LogSeverity severity, const char *file,
+                                       int line, char **buffer, int *buf_size);
 
 // Function type for a raw_logging customization hook called to abort a process
 // when a FATAL message is logged.  If the provided AbortHook() returns, the
@@ -143,22 +143,22 @@ using LogPrefixHook = bool (*) (abel::LogSeverity severity, const char *file,
 // The NUL-terminated logged message lives in the buffer between 'buf_start'
 // and 'buf_end'.  'prefix_end' points to the first non-prefix character of the
 // buffer (as written by the LogPrefixHook.)
-using AbortHook = void (*) (const char *file, int line, const char *buf_start,
-                            const char *prefix_end, const char *buf_end);
+        using AbortHook = void (*)(const char *file, int line, const char *buf_start,
+                                   const char *prefix_end, const char *buf_end);
 
 // Internal logging function for ABEL_INTERNAL_LOG to dispatch to.
 //
 // TODO(gfalcon): When string_view no longer depends on base, change this
 // interface to take its message as a string_view instead.
-using InternalLogFunction = void (*) (abel::LogSeverity severity,
-                                      const char *file, int line,
-                                      const std::string &message);
+        using InternalLogFunction = void (*)(abel::LogSeverity severity,
+                                             const char *file, int line,
+                                             const std::string &message);
 
-extern abel::atomic_hook<InternalLogFunction> internal_log_function;
+        extern abel::atomic_hook<InternalLogFunction> internal_log_function;
 
-void RegisterInternalLogFunction (InternalLogFunction func);
+        void RegisterInternalLogFunction(InternalLogFunction func);
 
-}  // namespace raw_logging_internal
+    }  // namespace raw_logging_internal
 
 }  // namespace abel
 

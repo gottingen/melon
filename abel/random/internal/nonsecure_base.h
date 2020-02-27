@@ -22,116 +22,119 @@
 
 namespace abel {
 
-namespace random_internal {
+    namespace random_internal {
 
 // Each instance of NonsecureURBGBase<URBG> will be seeded by variates produced
 // by a thread-unique URBG-instance.
-template <typename URBG>
-class NonsecureURBGBase {
- public:
-  using result_type = typename URBG::result_type;
+        template<typename URBG>
+        class NonsecureURBGBase {
+        public:
+            using result_type = typename URBG::result_type;
 
-  // Default constructor
-  NonsecureURBGBase() : urbg_(ConstructURBG()) {}
+            // Default constructor
+            NonsecureURBGBase() : urbg_(ConstructURBG()) {}
 
-  // Copy disallowed, move allowed.
-  NonsecureURBGBase(const NonsecureURBGBase&) = delete;
-  NonsecureURBGBase& operator=(const NonsecureURBGBase&) = delete;
-  NonsecureURBGBase(NonsecureURBGBase&&) = default;
-  NonsecureURBGBase& operator=(NonsecureURBGBase&&) = default;
+            // Copy disallowed, move allowed.
+            NonsecureURBGBase(const NonsecureURBGBase &) = delete;
 
-  // Constructor using a seed
-  template <class SSeq, typename = typename abel::enable_if_t<
-                            !std::is_same<SSeq, NonsecureURBGBase>::value>>
-  explicit NonsecureURBGBase(SSeq&& seq)
-      : urbg_(ConstructURBG(std::forward<SSeq>(seq))) {}
+            NonsecureURBGBase &operator=(const NonsecureURBGBase &) = delete;
 
-  // Note: on MSVC, min() or max() can be interpreted as MIN() or MAX(), so we
-  // enclose min() or max() in parens as (min)() and (max)().
-  // Additionally, clang-format requires no space before this construction.
+            NonsecureURBGBase(NonsecureURBGBase &&) = default;
 
-  // NonsecureURBGBase::min()
-  static constexpr result_type(min)() { return (URBG::min)(); }
+            NonsecureURBGBase &operator=(NonsecureURBGBase &&) = default;
 
-  // NonsecureURBGBase::max()
-  static constexpr result_type(max)() { return (URBG::max)(); }
+            // Constructor using a seed
+            template<class SSeq, typename = typename abel::enable_if_t<
+                    !std::is_same<SSeq, NonsecureURBGBase>::value>>
+            explicit NonsecureURBGBase(SSeq &&seq)
+                    : urbg_(ConstructURBG(std::forward<SSeq>(seq))) {}
 
-  // NonsecureURBGBase::operator()()
-  result_type operator()() { return urbg_(); }
+            // Note: on MSVC, min() or max() can be interpreted as MIN() or MAX(), so we
+            // enclose min() or max() in parens as (min)() and (max)().
+            // Additionally, clang-format requires no space before this construction.
 
-  // NonsecureURBGBase::discard()
-  void discard(unsigned long long values) {  // NOLINT(runtime/int)
-    urbg_.discard(values);
-  }
+            // NonsecureURBGBase::min()
+            static constexpr result_type (min)() { return (URBG::min)(); }
 
-  bool operator==(const NonsecureURBGBase& other) const {
-    return urbg_ == other.urbg_;
-  }
+            // NonsecureURBGBase::max()
+            static constexpr result_type (max)() { return (URBG::max)(); }
 
-  bool operator!=(const NonsecureURBGBase& other) const {
-    return !(urbg_ == other.urbg_);
-  }
+            // NonsecureURBGBase::operator()()
+            result_type operator()() { return urbg_(); }
 
- private:
-  // Seeder is a custom seed sequence type where generate() fills the provided
-  // buffer via the RandenPool entropy source.
-  struct Seeder {
-    using result_type = uint32_t;
+            // NonsecureURBGBase::discard()
+            void discard(unsigned long long values) {  // NOLINT(runtime/int)
+                urbg_.discard(values);
+            }
 
-    size_t size() { return 0; }
+            bool operator==(const NonsecureURBGBase &other) const {
+                return urbg_ == other.urbg_;
+            }
 
-    template <typename OutIterator>
-    void param(OutIterator) const {}
+            bool operator!=(const NonsecureURBGBase &other) const {
+                return !(urbg_ == other.urbg_);
+            }
 
-    template <typename RandomAccessIterator>
-    void generate(RandomAccessIterator begin, RandomAccessIterator end) {
-      if (begin != end) {
-        // begin, end must be random access iterators assignable from uint32_t.
-        generate_impl(
-            std::integral_constant<bool, sizeof(*begin) == sizeof(uint32_t)>{},
-            begin, end);
-      }
-    }
+        private:
+            // Seeder is a custom seed sequence type where generate() fills the provided
+            // buffer via the RandenPool entropy source.
+            struct Seeder {
+                using result_type = uint32_t;
 
-    // Commonly, generate is invoked with a pointer to a buffer which
-    // can be cast to a uint32_t.
-    template <typename RandomAccessIterator>
-    void generate_impl(std::integral_constant<bool, true>,
-                       RandomAccessIterator begin, RandomAccessIterator end) {
-      auto buffer = abel::MakeSpan(begin, end);
-      auto target = abel::MakeSpan(reinterpret_cast<uint32_t*>(buffer.data()),
-                                   buffer.size());
-      RandenPool<uint32_t>::Fill(target);
-    }
+                size_t size() { return 0; }
 
-    // The non-uint32_t case should be uncommon, and involves an extra copy,
-    // filling the uint32_t buffer and then mixing into the output.
-    template <typename RandomAccessIterator>
-    void generate_impl(std::integral_constant<bool, false>,
-                       RandomAccessIterator begin, RandomAccessIterator end) {
-      const size_t n = std::distance(begin, end);
-      abel::InlinedVector<uint32_t, 8> data(n, 0);
-      RandenPool<uint32_t>::Fill(abel::MakeSpan(data.begin(), data.end()));
-      std::copy(std::begin(data), std::end(data), begin);
-    }
-  };
+                template<typename OutIterator>
+                void param(OutIterator) const {}
 
-  static URBG ConstructURBG() {
-    Seeder seeder;
-    return URBG(seeder);
-  }
+                template<typename RandomAccessIterator>
+                void generate(RandomAccessIterator begin, RandomAccessIterator end) {
+                    if (begin != end) {
+                        // begin, end must be random access iterators assignable from uint32_t.
+                        generate_impl(
+                                std::integral_constant<bool, sizeof(*begin) == sizeof(uint32_t)>{},
+                                begin, end);
+                    }
+                }
 
-  template <typename SSeq>
-  static URBG ConstructURBG(SSeq&& seq) {  // NOLINT(runtime/references)
-    auto salted_seq =
-        random_internal::MakeSaltedSeedSeq(std::forward<SSeq>(seq));
-    return URBG(salted_seq);
-  }
+                // Commonly, generate is invoked with a pointer to a buffer which
+                // can be cast to a uint32_t.
+                template<typename RandomAccessIterator>
+                void generate_impl(std::integral_constant<bool, true>,
+                                   RandomAccessIterator begin, RandomAccessIterator end) {
+                    auto buffer = abel::MakeSpan(begin, end);
+                    auto target = abel::MakeSpan(reinterpret_cast<uint32_t *>(buffer.data()),
+                                                 buffer.size());
+                    RandenPool<uint32_t>::Fill(target);
+                }
 
-  URBG urbg_;
-};
+                // The non-uint32_t case should be uncommon, and involves an extra copy,
+                // filling the uint32_t buffer and then mixing into the output.
+                template<typename RandomAccessIterator>
+                void generate_impl(std::integral_constant<bool, false>,
+                                   RandomAccessIterator begin, RandomAccessIterator end) {
+                    const size_t n = std::distance(begin, end);
+                    abel::InlinedVector<uint32_t, 8> data(n, 0);
+                    RandenPool<uint32_t>::Fill(abel::MakeSpan(data.begin(), data.end()));
+                    std::copy(std::begin(data), std::end(data), begin);
+                }
+            };
 
-}  // namespace random_internal
+            static URBG ConstructURBG() {
+                Seeder seeder;
+                return URBG(seeder);
+            }
+
+            template<typename SSeq>
+            static URBG ConstructURBG(SSeq &&seq) {  // NOLINT(runtime/references)
+                auto salted_seq =
+                        random_internal::MakeSaltedSeedSeq(std::forward<SSeq>(seq));
+                return URBG(salted_seq);
+            }
+
+            URBG urbg_;
+        };
+
+    }  // namespace random_internal
 
 }  // namespace abel
 

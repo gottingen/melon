@@ -48,7 +48,7 @@
 #include "gmock/internal/gmock-port.h"
 
 namespace testing {
-namespace internal {
+    namespace internal {
 
 // A macro from the ACTION* family (defined later in this file)
 // defines an action that can be used in a mock function.  Typically,
@@ -64,114 +64,136 @@ namespace internal {
 // instead of testing::internal.  However, this is an INTERNAL TYPE
 // and subject to change without notice, so a user MUST NOT USE THIS
 // TYPE DIRECTLY.
-struct ExcessiveArg {};
+        struct ExcessiveArg {
+        };
 
 // A helper class needed for implementing the ACTION* macros.
-template <typename Result, class Impl>
-class ActionHelper {
- public:
-  static Result Perform(Impl* impl, const ::std::tuple<>& args) {
-    return impl->template gmock_PerformImpl<>(args, ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg());
-  }
+        template<typename Result, class Impl>
+        class ActionHelper {
+        public:
+            static Result Perform(Impl *impl, const ::std::tuple<> &args) {
+                return impl->template gmock_PerformImpl<>(args, ExcessiveArg(),
+                                                          ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
+                                                          ExcessiveArg(),
+                                                          ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
+                                                          ExcessiveArg(),
+                                                          ExcessiveArg());
+            }
 
-  template <typename A0>
-  static Result Perform(Impl* impl, const ::std::tuple<A0>& args) {
-    return impl->template gmock_PerformImpl<A0>(args, std::get<0>(args),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg());
-  }
+            template<typename A0>
+            static Result Perform(Impl *impl, const ::std::tuple<A0> &args) {
+                return impl->template gmock_PerformImpl<A0>(args, std::get<0>(args),
+                                                            ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
+                                                            ExcessiveArg(),
+                                                            ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
+                                                            ExcessiveArg(),
+                                                            ExcessiveArg());
+            }
 
-  template <typename A0, typename A1>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1>& args) {
-    return impl->template gmock_PerformImpl<A0, A1>(args, std::get<0>(args),
-        std::get<1>(args), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg());
-  }
+            template<typename A0, typename A1>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1> &args) {
+                return impl->template gmock_PerformImpl<A0, A1>(args, std::get<0>(args),
+                                                                std::get<1>(args), ExcessiveArg(), ExcessiveArg(),
+                                                                ExcessiveArg(),
+                                                                ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
+                                                                ExcessiveArg(),
+                                                                ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2>(args,
-        std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2>(args,
+                                                                    std::get<0>(args), std::get<1>(args),
+                                                                    std::get<2>(args),
+                                                                    ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
+                                                                    ExcessiveArg(),
+                                                                    ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3>(args,
-        std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), ExcessiveArg(), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2, typename A3>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3>(args,
+                                                                        std::get<0>(args), std::get<1>(args),
+                                                                        std::get<2>(args),
+                                                                        std::get<3>(args), ExcessiveArg(),
+                                                                        ExcessiveArg(), ExcessiveArg(),
+                                                                        ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3, typename A4>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3,
-      A4>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4>(args,
-        std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), std::get<4>(args), ExcessiveArg(), ExcessiveArg(),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2, typename A3, typename A4>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3,
+                    A4> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4>(args,
+                                                                            std::get<0>(args), std::get<1>(args),
+                                                                            std::get<2>(args),
+                                                                            std::get<3>(args), std::get<4>(args),
+                                                                            ExcessiveArg(), ExcessiveArg(),
+                                                                            ExcessiveArg(), ExcessiveArg(),
+                                                                            ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3, typename A4,
-      typename A5>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3, A4,
-      A5>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5>(args,
-        std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), std::get<4>(args), std::get<5>(args),
-        ExcessiveArg(), ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2, typename A3, typename A4,
+                    typename A5>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3, A4,
+                    A5> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5>(args,
+                                                                                std::get<0>(args), std::get<1>(args),
+                                                                                std::get<2>(args),
+                                                                                std::get<3>(args), std::get<4>(args),
+                                                                                std::get<5>(args),
+                                                                                ExcessiveArg(), ExcessiveArg(),
+                                                                                ExcessiveArg(), ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3, typename A4,
-      typename A5, typename A6>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
-      A6>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6>(args,
-        std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), std::get<4>(args), std::get<5>(args),
-        std::get<6>(args), ExcessiveArg(), ExcessiveArg(), ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2, typename A3, typename A4,
+                    typename A5, typename A6>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
+                    A6> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6>(args,
+                                                                                    std::get<0>(args),
+                                                                                    std::get<1>(args),
+                                                                                    std::get<2>(args),
+                                                                                    std::get<3>(args),
+                                                                                    std::get<4>(args),
+                                                                                    std::get<5>(args),
+                                                                                    std::get<6>(args), ExcessiveArg(),
+                                                                                    ExcessiveArg(), ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3, typename A4,
-      typename A5, typename A6, typename A7>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
-      A6, A7>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6,
-        A7>(args, std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), std::get<4>(args), std::get<5>(args),
-        std::get<6>(args), std::get<7>(args), ExcessiveArg(), ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2, typename A3, typename A4,
+                    typename A5, typename A6, typename A7>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
+                    A6, A7> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6,
+                        A7>(args, std::get<0>(args), std::get<1>(args), std::get<2>(args),
+                            std::get<3>(args), std::get<4>(args), std::get<5>(args),
+                            std::get<6>(args), std::get<7>(args), ExcessiveArg(), ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3, typename A4,
-      typename A5, typename A6, typename A7, typename A8>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
-      A6, A7, A8>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6, A7,
-        A8>(args, std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), std::get<4>(args), std::get<5>(args),
-        std::get<6>(args), std::get<7>(args), std::get<8>(args),
-        ExcessiveArg());
-  }
+            template<typename A0, typename A1, typename A2, typename A3, typename A4,
+                    typename A5, typename A6, typename A7, typename A8>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
+                    A6, A7, A8> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6, A7,
+                        A8>(args, std::get<0>(args), std::get<1>(args), std::get<2>(args),
+                            std::get<3>(args), std::get<4>(args), std::get<5>(args),
+                            std::get<6>(args), std::get<7>(args), std::get<8>(args),
+                            ExcessiveArg());
+            }
 
-  template <typename A0, typename A1, typename A2, typename A3, typename A4,
-      typename A5, typename A6, typename A7, typename A8, typename A9>
-  static Result Perform(Impl* impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
-      A6, A7, A8, A9>& args) {
-    return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6, A7, A8,
-        A9>(args, std::get<0>(args), std::get<1>(args), std::get<2>(args),
-        std::get<3>(args), std::get<4>(args), std::get<5>(args),
-        std::get<6>(args), std::get<7>(args), std::get<8>(args),
-        std::get<9>(args));
-  }
-};
+            template<typename A0, typename A1, typename A2, typename A3, typename A4,
+                    typename A5, typename A6, typename A7, typename A8, typename A9>
+            static Result Perform(Impl *impl, const ::std::tuple<A0, A1, A2, A3, A4, A5,
+                    A6, A7, A8, A9> &args) {
+                return impl->template gmock_PerformImpl<A0, A1, A2, A3, A4, A5, A6, A7, A8,
+                        A9>(args, std::get<0>(args), std::get<1>(args), std::get<2>(args),
+                            std::get<3>(args), std::get<4>(args), std::get<5>(args),
+                            std::get<6>(args), std::get<7>(args), std::get<8>(args),
+                            std::get<9>(args));
+            }
+        };
 
-}  // namespace internal
+    }  // namespace internal
 }  // namespace testing
 
 // The ACTION* family of macros can be used in a namespace scope to
@@ -1628,247 +1650,258 @@ namespace testing {
 //   InvokeArgument action from temporary values and have it performed
 //   later.
 
-namespace internal {
-namespace invoke_argument {
+    namespace internal {
+        namespace invoke_argument {
 
 // Appears in InvokeArgumentAdl's argument list to help avoid
 // accidental calls to user functions of the same name.
-struct AdlTag {};
+            struct AdlTag {
+            };
 
 // InvokeArgumentAdl - a helper for InvokeArgument.
 // The basic overloads are provided here for generic functors.
 // Overloads for other custom-callables are provided in the
 // internal/custom/callback-actions.h header.
 
-template <typename R, typename F>
-R InvokeArgumentAdl(AdlTag, F f) {
-  return f();
-}
-template <typename R, typename F, typename A1>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1) {
-  return f(a1);
-}
-template <typename R, typename F, typename A1, typename A2>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2) {
-  return f(a1, a2);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3) {
-  return f(a1, a2, a3);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4) {
-  return f(a1, a2, a3, a4);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4, typename A5>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) {
-  return f(a1, a2, a3, a4, a5);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4, typename A5, typename A6>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6) {
-  return f(a1, a2, a3, a4, a5, a6);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4, typename A5, typename A6, typename A7>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
-    A7 a7) {
-  return f(a1, a2, a3, a4, a5, a6, a7);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4, typename A5, typename A6, typename A7, typename A8>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
-    A7 a7, A8 a8) {
-  return f(a1, a2, a3, a4, a5, a6, a7, a8);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4, typename A5, typename A6, typename A7, typename A8,
-    typename A9>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
-    A7 a7, A8 a8, A9 a9) {
-  return f(a1, a2, a3, a4, a5, a6, a7, a8, a9);
-}
-template <typename R, typename F, typename A1, typename A2, typename A3,
-    typename A4, typename A5, typename A6, typename A7, typename A8,
-    typename A9, typename A10>
-R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
-    A7 a7, A8 a8, A9 a9, A10 a10) {
-  return f(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
-}
-}  // namespace invoke_argument
-}  // namespace internal
+            template<typename R, typename F>
+            R InvokeArgumentAdl(AdlTag, F f) {
+                return f();
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_0_VALUE_PARAMS()) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args));
-}
+            template<typename R, typename F, typename A1>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1) {
+                return f(a1);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_1_VALUE_PARAMS(p0)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0);
-}
+            template<typename R, typename F, typename A1, typename A2>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2) {
+                return f(a1, a2);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_2_VALUE_PARAMS(p0, p1)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3) {
+                return f(a1, a2, a3);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_3_VALUE_PARAMS(p0, p1, p2)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4) {
+                return f(a1, a2, a3, a4);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_4_VALUE_PARAMS(p0, p1, p2, p3)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4, typename A5>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) {
+                return f(a1, a2, a3, a4, a5);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_5_VALUE_PARAMS(p0, p1, p2, p3, p4)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3, p4);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4, typename A5, typename A6>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6) {
+                return f(a1, a2, a3, a4, a5, a6);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_6_VALUE_PARAMS(p0, p1, p2, p3, p4, p5)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3, p4, p5);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4, typename A5, typename A6, typename A7>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
+                                A7 a7) {
+                return f(a1, a2, a3, a4, a5, a6, a7);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_7_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4, typename A5, typename A6, typename A7, typename A8>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
+                                A7 a7, A8 a8) {
+                return f(a1, a2, a3, a4, a5, a6, a7, a8);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_8_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4, typename A5, typename A6, typename A7, typename A8,
+                    typename A9>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
+                                A7 a7, A8 a8, A9 a9) {
+                return f(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+            }
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_9_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7, p8);
-}
+            template<typename R, typename F, typename A1, typename A2, typename A3,
+                    typename A4, typename A5, typename A6, typename A7, typename A8,
+                    typename A9, typename A10>
+            R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
+                                A7 a7, A8 a8, A9 a9, A10 a10) {
+                return f(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+            }
+        }  // namespace invoke_argument
+    }  // namespace internal
 
-ACTION_TEMPLATE(InvokeArgument,
-                HAS_1_TEMPLATE_PARAMS(int, k),
-                AND_10_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
-  return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
-      ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
-}
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_0_VALUE_PARAMS()) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args));
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_1_VALUE_PARAMS(p0)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_2_VALUE_PARAMS(p0, p1)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_3_VALUE_PARAMS(p0, p1, p2)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_4_VALUE_PARAMS(p0, p1, p2, p3)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_5_VALUE_PARAMS(p0, p1, p2, p3, p4)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3, p4);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_6_VALUE_PARAMS(p0, p1, p2, p3, p4, p5)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3, p4, p5);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_7_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_8_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_9_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7, p8);
+    }
+
+    ACTION_TEMPLATE(InvokeArgument,
+                    HAS_1_TEMPLATE_PARAMS(int, k),
+                    AND_10_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)) {
+        using internal::invoke_argument::InvokeArgumentAdl;
+        return InvokeArgumentAdl<return_type>(
+                internal::invoke_argument::AdlTag(),
+                ::std::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+    }
 
 // Various overloads for ReturnNew<T>().
 //
 // The ReturnNew<T>(a1, a2, ..., a_k) action returns a pointer to a new
 // instance of type T, constructed on the heap with constructor arguments
 // a1, a2, ..., and a_k. The caller assumes ownership of the returned value.
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_0_VALUE_PARAMS()) {
-  return new T();
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_0_VALUE_PARAMS()) {
+        return new T();
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_1_VALUE_PARAMS(p0)) {
-  return new T(p0);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_1_VALUE_PARAMS(p0)) {
+        return new T(p0);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_2_VALUE_PARAMS(p0, p1)) {
-  return new T(p0, p1);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_2_VALUE_PARAMS(p0, p1)) {
+        return new T(p0, p1);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_3_VALUE_PARAMS(p0, p1, p2)) {
-  return new T(p0, p1, p2);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_3_VALUE_PARAMS(p0, p1, p2)) {
+        return new T(p0, p1, p2);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_4_VALUE_PARAMS(p0, p1, p2, p3)) {
-  return new T(p0, p1, p2, p3);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_4_VALUE_PARAMS(p0, p1, p2, p3)) {
+        return new T(p0, p1, p2, p3);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_5_VALUE_PARAMS(p0, p1, p2, p3, p4)) {
-  return new T(p0, p1, p2, p3, p4);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_5_VALUE_PARAMS(p0, p1, p2, p3, p4)) {
+        return new T(p0, p1, p2, p3, p4);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_6_VALUE_PARAMS(p0, p1, p2, p3, p4, p5)) {
-  return new T(p0, p1, p2, p3, p4, p5);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_6_VALUE_PARAMS(p0, p1, p2, p3, p4, p5)) {
+        return new T(p0, p1, p2, p3, p4, p5);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_7_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6)) {
-  return new T(p0, p1, p2, p3, p4, p5, p6);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_7_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6)) {
+        return new T(p0, p1, p2, p3, p4, p5, p6);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_8_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7)) {
-  return new T(p0, p1, p2, p3, p4, p5, p6, p7);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_8_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7)) {
+        return new T(p0, p1, p2, p3, p4, p5, p6, p7);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_9_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8)) {
-  return new T(p0, p1, p2, p3, p4, p5, p6, p7, p8);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_9_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8)) {
+        return new T(p0, p1, p2, p3, p4, p5, p6, p7, p8);
+    }
 
-ACTION_TEMPLATE(ReturnNew,
-                HAS_1_TEMPLATE_PARAMS(typename, T),
-                AND_10_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)) {
-  return new T(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
-}
+    ACTION_TEMPLATE(ReturnNew,
+                    HAS_1_TEMPLATE_PARAMS(typename, T),
+                    AND_10_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)) {
+        return new T(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+    }
 
 #ifdef _MSC_VER
 # pragma warning(pop)

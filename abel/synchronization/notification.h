@@ -49,60 +49,64 @@ namespace abel {
 // -----------------------------------------------------------------------------
 // notification
 // -----------------------------------------------------------------------------
-class notification {
- public:
-  // Initializes the "notified" state to unnotified.
-  notification() : notified_yet_(false) {}
-  explicit notification(bool prenotify) : notified_yet_(prenotify) {}
-  notification(const notification&) = delete;
-  notification& operator=(const notification&) = delete;
-  ~notification();
+    class notification {
+    public:
+        // Initializes the "notified" state to unnotified.
+        notification() : notified_yet_(false) {}
 
-  // notification::has_been_notified()
-  //
-  // Returns the value of the notification's internal "notified" state.
-  bool has_been_notified() const {
-    return has_been_notified_internal(&this->notified_yet_);
-  }
+        explicit notification(bool prenotify) : notified_yet_(prenotify) {}
 
-  // notification::wait_for_notification()
-  //
-  // Blocks the calling thread until the notification's "notified" state is
-  // `true`. Note that if `Notify()` has been previously called on this
-  // notification, this function will immediately return.
-  void wait_for_notification() const;
+        notification(const notification &) = delete;
 
-  // notification::wait_for_notification_with_timeout()
-  //
-  // Blocks until either the notification's "notified" state is `true` (which
-  // may occur immediately) or the timeout has elapsed, returning the value of
-  // its "notified" state in either case.
-  bool wait_for_notification_with_timeout(abel::duration timeout) const;
+        notification &operator=(const notification &) = delete;
 
-  // notification::wait_for_notification_with_deadline()
-  //
-  // Blocks until either the notification's "notified" state is `true` (which
-  // may occur immediately) or the deadline has expired, returning the value of
-  // its "notified" state in either case.
-  bool wait_for_notification_with_deadline(abel::abel_time deadline) const;
+        ~notification();
 
-  // notification::Notify()
-  //
-  // Sets the "notified" state of this notification to `true` and wakes waiting
-  // threads. Note: do not call `Notify()` multiple times on the same
-  // `notification`; calling `Notify()` more than once on the same notification
-  // results in undefined behavior.
-  void Notify();
+        // notification::has_been_notified()
+        //
+        // Returns the value of the notification's internal "notified" state.
+        bool has_been_notified() const {
+            return has_been_notified_internal(&this->notified_yet_);
+        }
 
- private:
-  static ABEL_FORCE_INLINE bool has_been_notified_internal(
-      const std::atomic<bool>* notified_yet) {
-    return notified_yet->load(std::memory_order_acquire);
-  }
+        // notification::wait_for_notification()
+        //
+        // Blocks the calling thread until the notification's "notified" state is
+        // `true`. Note that if `Notify()` has been previously called on this
+        // notification, this function will immediately return.
+        void wait_for_notification() const;
 
-  mutable mutex mutex_;
-  std::atomic<bool> notified_yet_;  // written under mutex_
-};
+        // notification::wait_for_notification_with_timeout()
+        //
+        // Blocks until either the notification's "notified" state is `true` (which
+        // may occur immediately) or the timeout has elapsed, returning the value of
+        // its "notified" state in either case.
+        bool wait_for_notification_with_timeout(abel::duration timeout) const;
+
+        // notification::wait_for_notification_with_deadline()
+        //
+        // Blocks until either the notification's "notified" state is `true` (which
+        // may occur immediately) or the deadline has expired, returning the value of
+        // its "notified" state in either case.
+        bool wait_for_notification_with_deadline(abel::abel_time deadline) const;
+
+        // notification::Notify()
+        //
+        // Sets the "notified" state of this notification to `true` and wakes waiting
+        // threads. Note: do not call `Notify()` multiple times on the same
+        // `notification`; calling `Notify()` more than once on the same notification
+        // results in undefined behavior.
+        void Notify();
+
+    private:
+        static ABEL_FORCE_INLINE bool has_been_notified_internal(
+                const std::atomic<bool> *notified_yet) {
+            return notified_yet->load(std::memory_order_acquire);
+        }
+
+        mutable mutex mutex_;
+        std::atomic<bool> notified_yet_;  // written under mutex_
+    };
 
 
 }  // namespace abel

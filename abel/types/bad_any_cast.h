@@ -43,17 +43,18 @@ namespace abel {
 //   } catch(const abel::bad_any_cast& e) {
 //     std::cout << "Bad any cast: " << e.what() << '\n';
 //   }
-class bad_any_cast : public std::bad_cast {
- public:
-  ~bad_any_cast() override;
-  const char* what() const noexcept override;
-};
+    class bad_any_cast : public std::bad_cast {
+    public:
+        ~bad_any_cast() override;
 
-namespace any_internal {
+        const char *what() const noexcept override;
+    };
 
-[[noreturn]] void ThrowBadAnyCast();
+    namespace any_internal {
 
-}  // namespace any_internal
+        [[noreturn]] void ThrowBadAnyCast();
+
+    }  // namespace any_internal
 
 }  // namespace abel
 

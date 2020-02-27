@@ -11,8 +11,8 @@
 #include <stdexcept>
 
 class AssertionFailure : public std::logic_error {
- public:
-  explicit AssertionFailure(const char *message) : std::logic_error(message) {}
+public:
+    explicit AssertionFailure(const char *message) : std::logic_error(message) {}
 };
 
 #define FMT_ASSERT(condition, message) \

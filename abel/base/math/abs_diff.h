@@ -4,6 +4,7 @@
 
 #ifndef ABEL_BASE_MATH_ABS_DIFF_H_
 #define ABEL_BASE_MATH_ABS_DIFF_H_
+
 #include <abel/base/profile.h>
 
 namespace abel {
@@ -15,10 +16,10 @@ namespace abel {
  * @param b
  * @return
  */
-template<typename T>
-ABEL_FORCE_INLINE T abs_diff (const T &a, const T &b) {
-    return a > b ? a - b : b - a;
-}
+    template<typename T>
+    ABEL_FORCE_INLINE T abs_diff(const T &a, const T &b) {
+        return a > b ? a - b : b - a;
+    }
 
 } //namespace abel
 

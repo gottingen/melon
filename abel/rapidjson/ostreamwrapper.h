@@ -40,40 +40,61 @@ RAPIDJSON_NAMESPACE_BEGIN
 
     \tparam StreamType Class derived from \c std::basic_ostream.
 */
-   
-template <typename StreamType>
-class BasicOStreamWrapper {
-public:
-    typedef typename StreamType::char_type Ch;
-    BasicOStreamWrapper(StreamType& stream) : stream_(stream) {}
 
-    void Put(Ch c) {
-        stream_.put(c);
-    }
+    template<typename StreamType>
+    class BasicOStreamWrapper {
+    public:
+        typedef typename StreamType::char_type Ch;
 
-    void Flush() {
-        stream_.flush();
-    }
+        BasicOStreamWrapper(StreamType &stream) : stream_(stream) {}
 
-    // Not implemented
-    char Peek() const { RAPIDJSON_ASSERT(false); return 0; }
-    char Take() { RAPIDJSON_ASSERT(false); return 0; }
-    size_t Tell() const { RAPIDJSON_ASSERT(false); return 0; }
-    char* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
-    size_t PutEnd(char*) { RAPIDJSON_ASSERT(false); return 0; }
+        void Put(Ch c) {
+            stream_.put(c);
+        }
 
-private:
-    BasicOStreamWrapper(const BasicOStreamWrapper&);
-    BasicOStreamWrapper& operator=(const BasicOStreamWrapper&);
+        void Flush() {
+            stream_.flush();
+        }
 
-    StreamType& stream_;
-};
+        // Not implemented
+        char Peek() const {
+            RAPIDJSON_ASSERT(false);
+            return 0;
+        }
 
-typedef BasicOStreamWrapper<std::ostream> OStreamWrapper;
-typedef BasicOStreamWrapper<std::wostream> WOStreamWrapper;
+        char Take() {
+            RAPIDJSON_ASSERT(false);
+            return 0;
+        }
+
+        size_t Tell() const {
+            RAPIDJSON_ASSERT(false);
+            return 0;
+        }
+
+        char *PutBegin() {
+            RAPIDJSON_ASSERT(false);
+            return 0;
+        }
+
+        size_t PutEnd(char *) {
+            RAPIDJSON_ASSERT(false);
+            return 0;
+        }
+
+    private:
+        BasicOStreamWrapper(const BasicOStreamWrapper &);
+
+        BasicOStreamWrapper &operator=(const BasicOStreamWrapper &);
+
+        StreamType &stream_;
+    };
+
+    typedef BasicOStreamWrapper<std::ostream> OStreamWrapper;
+    typedef BasicOStreamWrapper<std::wostream> WOStreamWrapper;
 
 #ifdef __clang__
-RAPIDJSON_DIAG_POP
+    RAPIDJSON_DIAG_POP
 #endif
 
 RAPIDJSON_NAMESPACE_END

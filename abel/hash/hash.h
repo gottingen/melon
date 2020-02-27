@@ -197,8 +197,8 @@ namespace abel {
 // Note: unlike `std::hash', `abel::Hash` should never be specialized. It must
 // only be extended by adding `AbelHashValue()` overloads.
 //
-template <typename T>
-using Hash = abel::hash_internal::Hash<T>;
+    template<typename T>
+    using Hash = abel::hash_internal::Hash<T>;
 
 // HashState
 //
@@ -242,68 +242,73 @@ using Hash = abel::hash_internal::Hash<T>;
 //     int v1_;
 //     std::string v2_;
 //   };
-class HashState : public hash_internal::HashStateBase<HashState> {
- public:
-  // HashState::Create()
-  //
-  // Create a new `HashState` instance that wraps `state`. All calls to
-  // `combine()` and `combine_contiguous()` on the new instance will be
-  // redirected to the original `state` object. The `state` object must outlive
-  // the `HashState` instance.
-  template <typename T>
-  static HashState Create(T* state) {
-    HashState s;
-    s.Init(state);
-    return s;
-  }
+    class HashState : public hash_internal::HashStateBase<HashState> {
+    public:
+        // HashState::Create()
+        //
+        // Create a new `HashState` instance that wraps `state`. All calls to
+        // `combine()` and `combine_contiguous()` on the new instance will be
+        // redirected to the original `state` object. The `state` object must outlive
+        // the `HashState` instance.
+        template<typename T>
+        static HashState Create(T *state) {
+            HashState s;
+            s.Init(state);
+            return s;
+        }
 
-  HashState(const HashState&) = delete;
-  HashState& operator=(const HashState&) = delete;
-  HashState(HashState&&) = default;
-  HashState& operator=(HashState&&) = default;
+        HashState(const HashState &) = delete;
 
-  // HashState::combine()
-  //
-  // Combines an arbitrary number of values into a hash state, returning the
-  // updated state.
-  using HashState::HashStateBase::combine;
+        HashState &operator=(const HashState &) = delete;
 
-  // HashState::combine_contiguous()
-  //
-  // Combines a contiguous array of `size` elements into a hash state, returning
-  // the updated state.
-  static HashState combine_contiguous(HashState hash_state,
-                                      const unsigned char* first, size_t size) {
-    hash_state.combine_contiguous_(hash_state.state_, first, size);
-    return hash_state;
-  }
-  using HashState::HashStateBase::combine_contiguous;
+        HashState(HashState &&) = default;
 
- private:
-  HashState() = default;
+        HashState &operator=(HashState &&) = default;
 
-  template <typename T>
-  static void CombineContiguousImpl(void* p, const unsigned char* first,
-                                    size_t size) {
-    T& state = *static_cast<T*>(p);
-    state = T::combine_contiguous(std::move(state), first, size);
-  }
+        // HashState::combine()
+        //
+        // Combines an arbitrary number of values into a hash state, returning the
+        // updated state.
+        using HashState::HashStateBase::combine;
 
-  template <typename T>
-  void Init(T* state) {
-    state_ = state;
-    combine_contiguous_ = &CombineContiguousImpl<T>;
-  }
+        // HashState::combine_contiguous()
+        //
+        // Combines a contiguous array of `size` elements into a hash state, returning
+        // the updated state.
+        static HashState combine_contiguous(HashState hash_state,
+                                            const unsigned char *first, size_t size) {
+            hash_state.combine_contiguous_(hash_state.state_, first, size);
+            return hash_state;
+        }
 
-  // Do not erase an already erased state.
-  void Init(HashState* state) {
-    state_ = state->state_;
-    combine_contiguous_ = state->combine_contiguous_;
-  }
+        using HashState::HashStateBase::combine_contiguous;
 
-  void* state_;
-  void (*combine_contiguous_)(void*, const unsigned char*, size_t);
-};
+    private:
+        HashState() = default;
+
+        template<typename T>
+        static void CombineContiguousImpl(void *p, const unsigned char *first,
+                                          size_t size) {
+            T &state = *static_cast<T *>(p);
+            state = T::combine_contiguous(std::move(state), first, size);
+        }
+
+        template<typename T>
+        void Init(T *state) {
+            state_ = state;
+            combine_contiguous_ = &CombineContiguousImpl<T>;
+        }
+
+        // Do not erase an already erased state.
+        void Init(HashState *state) {
+            state_ = state->state_;
+            combine_contiguous_ = state->combine_contiguous_;
+        }
+
+        void *state_;
+
+        void (*combine_contiguous_)(void *, const unsigned char *, size_t);
+    };
 
 
 }  // namespace abel

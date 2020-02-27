@@ -9,7 +9,7 @@
 
 namespace abel {
 
-namespace base_internal {
+    namespace base_internal {
 
 // Helper functions that allow throwing exceptions consistently from anywhere.
 // The main use case is for header-based libraries (eg templates), as they will
@@ -25,27 +25,45 @@ namespace base_internal {
 // both with and without exceptions and you need to conform to an interface
 // that uses exceptions.
 
-[[noreturn]] void ThrowStdLogicError(const std::string& what_arg);
-[[noreturn]] void ThrowStdLogicError(const char* what_arg);
-[[noreturn]] void ThrowStdInvalidArgument(const std::string& what_arg);
-[[noreturn]] void ThrowStdInvalidArgument(const char* what_arg);
-[[noreturn]] void ThrowStdDomainError(const std::string& what_arg);
-[[noreturn]] void ThrowStdDomainError(const char* what_arg);
-[[noreturn]] void ThrowStdLengthError(const std::string& what_arg);
-[[noreturn]] void ThrowStdLengthError(const char* what_arg);
-[[noreturn]] void ThrowStdOutOfRange(const std::string& what_arg);
-[[noreturn]] void ThrowStdOutOfRange(const char* what_arg);
-[[noreturn]] void ThrowStdRuntimeError(const std::string& what_arg);
-[[noreturn]] void ThrowStdRuntimeError(const char* what_arg);
-[[noreturn]] void ThrowStdRangeError(const std::string& what_arg);
-[[noreturn]] void ThrowStdRangeError(const char* what_arg);
-[[noreturn]] void ThrowStdOverflowError(const std::string& what_arg);
-[[noreturn]] void ThrowStdOverflowError(const char* what_arg);
-[[noreturn]] void ThrowStdUnderflowError(const std::string& what_arg);
-[[noreturn]] void ThrowStdUnderflowError(const char* what_arg);
+        [[noreturn]] void ThrowStdLogicError(const std::string &what_arg);
 
-[[noreturn]] void ThrowStdBadFunctionCall();
-[[noreturn]] void ThrowStdBadAlloc();
+        [[noreturn]] void ThrowStdLogicError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdInvalidArgument(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdInvalidArgument(const char *what_arg);
+
+        [[noreturn]] void ThrowStdDomainError(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdDomainError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdLengthError(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdLengthError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdOutOfRange(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdOutOfRange(const char *what_arg);
+
+        [[noreturn]] void ThrowStdRuntimeError(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdRuntimeError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdRangeError(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdRangeError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdOverflowError(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdOverflowError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdUnderflowError(const std::string &what_arg);
+
+        [[noreturn]] void ThrowStdUnderflowError(const char *what_arg);
+
+        [[noreturn]] void ThrowStdBadFunctionCall();
+
+        [[noreturn]] void ThrowStdBadAlloc();
 
 // ThrowStdBadArrayNewLength() cannot be consistently supported because
 // std::bad_array_new_length is missing in libstdc++ until 4.9.0.
@@ -54,7 +72,7 @@ namespace base_internal {
 // libcxx (as of 3.2) and msvc (as of 2015) both have it.
 // [[noreturn]] void ThrowStdBadArrayNewLength();
 
-}  // namespace base_internal
+    }  // namespace base_internal
 
 }  // namespace abel
 

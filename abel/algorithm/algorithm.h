@@ -10,61 +10,61 @@
 namespace abel {
 
 
-namespace algorithm_internal {
+    namespace algorithm_internal {
 
 // Performs comparisons with operator==, similar to C++14's `std::equal_to<>`.
-struct EqualTo {
-  template <typename T, typename U>
-  bool operator()(const T& a, const U& b) const {
-    return a == b;
-  }
-};
+        struct EqualTo {
+            template<typename T, typename U>
+            bool operator()(const T &a, const U &b) const {
+                return a == b;
+            }
+        };
 
-template <typename InputIter1, typename InputIter2, typename Pred>
-bool EqualImpl(InputIter1 first1, InputIter1 last1, InputIter2 first2,
-               InputIter2 last2, Pred pred, std::input_iterator_tag,
-               std::input_iterator_tag) {
-  while (true) {
-    if (first1 == last1) return first2 == last2;
-    if (first2 == last2) return false;
-    if (!pred(*first1, *first2)) return false;
-    ++first1;
-    ++first2;
-  }
-}
+        template<typename InputIter1, typename InputIter2, typename Pred>
+        bool EqualImpl(InputIter1 first1, InputIter1 last1, InputIter2 first2,
+                       InputIter2 last2, Pred pred, std::input_iterator_tag,
+                       std::input_iterator_tag) {
+            while (true) {
+                if (first1 == last1) return first2 == last2;
+                if (first2 == last2) return false;
+                if (!pred(*first1, *first2)) return false;
+                ++first1;
+                ++first2;
+            }
+        }
 
-template <typename InputIter1, typename InputIter2, typename Pred>
-bool EqualImpl(InputIter1 first1, InputIter1 last1, InputIter2 first2,
-               InputIter2 last2, Pred&& pred, std::random_access_iterator_tag,
-               std::random_access_iterator_tag) {
-  return (last1 - first1 == last2 - first2) &&
-         std::equal(first1, last1, first2, std::forward<Pred>(pred));
-}
+        template<typename InputIter1, typename InputIter2, typename Pred>
+        bool EqualImpl(InputIter1 first1, InputIter1 last1, InputIter2 first2,
+                       InputIter2 last2, Pred &&pred, std::random_access_iterator_tag,
+                       std::random_access_iterator_tag) {
+            return (last1 - first1 == last2 - first2) &&
+                   std::equal(first1, last1, first2, std::forward<Pred>(pred));
+        }
 
 // When we are using our own internal predicate that just applies operator==, we
 // forward to the non-predicate form of std::equal. This enables an optimization
 // in libstdc++ that can result in std::memcmp being used for integer types.
-template <typename InputIter1, typename InputIter2>
-bool EqualImpl(InputIter1 first1, InputIter1 last1, InputIter2 first2,
-               InputIter2 last2, algorithm_internal::EqualTo /* unused */,
-               std::random_access_iterator_tag,
-               std::random_access_iterator_tag) {
-  return (last1 - first1 == last2 - first2) &&
-         std::equal(first1, last1, first2);
-}
+        template<typename InputIter1, typename InputIter2>
+        bool EqualImpl(InputIter1 first1, InputIter1 last1, InputIter2 first2,
+                       InputIter2 last2, algorithm_internal::EqualTo /* unused */,
+                       std::random_access_iterator_tag,
+                       std::random_access_iterator_tag) {
+            return (last1 - first1 == last2 - first2) &&
+                   std::equal(first1, last1, first2);
+        }
 
-template <typename It>
-It RotateImpl(It first, It middle, It last, std::true_type) {
-  return std::rotate(first, middle, last);
-}
+        template<typename It>
+        It RotateImpl(It first, It middle, It last, std::true_type) {
+            return std::rotate(first, middle, last);
+        }
 
-template <typename It>
-It RotateImpl(It first, It middle, It last, std::false_type) {
-  std::rotate(first, middle, last);
-  return std::next(first, std::distance(middle, last));
-}
+        template<typename It>
+        It RotateImpl(It first, It middle, It last, std::false_type) {
+            std::rotate(first, middle, last);
+            return std::next(first, std::distance(middle, last));
+        }
 
-}  // namespace algorithm_internal
+    }  // namespace algorithm_internal
 
 /**
  * @brief This is a C++11-compatible implementation of C++14 `std::equal`.See
@@ -87,14 +87,14 @@ It RotateImpl(It first, It middle, It last, std::false_type) {
  * @return true iff for each corresponding iterator i1
  * and i2 in the first and second range respectively, pred(*i1, *i2) == true
  */
-template <typename InputIter1, typename InputIter2, typename Pred>
-bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
-           InputIter2 last2, Pred&& pred) {
-  return algorithm_internal::EqualImpl(
-      first1, last1, first2, last2, std::forward<Pred>(pred),
-      typename std::iterator_traits<InputIter1>::iterator_category{},
-      typename std::iterator_traits<InputIter2>::iterator_category{});
-}
+    template<typename InputIter1, typename InputIter2, typename Pred>
+    bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
+               InputIter2 last2, Pred &&pred) {
+        return algorithm_internal::EqualImpl(
+                first1, last1, first2, last2, std::forward<Pred>(pred),
+                typename std::iterator_traits<InputIter1>::iterator_category{},
+                typename std::iterator_traits<InputIter2>::iterator_category{});
+    }
 
 /**
  * @brief overload equal, using "==" operator for pred
@@ -106,12 +106,12 @@ bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
  * @param last2
  * @return
  */
-template <typename InputIter1, typename InputIter2>
-bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
-           InputIter2 last2) {
-  return abel::equal(first1, last1, first2, last2,
-                     algorithm_internal::EqualTo{});
-}
+    template<typename InputIter1, typename InputIter2>
+    bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
+               InputIter2 last2) {
+        return abel::equal(first1, last1, first2, last2,
+                           algorithm_internal::EqualTo{});
+    }
 
 
 /**
@@ -126,11 +126,11 @@ bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
  * @param value
  * @return
  */
-template <typename InputIterator, typename EqualityComparable>
-bool linear_search(InputIterator first, InputIterator last,
-                   const EqualityComparable& value) {
-  return std::find(first, last, value) != last;
-}
+    template<typename InputIterator, typename EqualityComparable>
+    bool linear_search(InputIterator first, InputIterator last,
+                       const EqualityComparable &value) {
+        return std::find(first, last, value) != last;
+    }
 
 /**
  * @brief
@@ -140,14 +140,14 @@ bool linear_search(InputIterator first, InputIterator last,
  * @param last
  * @return
  */
-template <typename ForwardIterator>
-ForwardIterator rotate(ForwardIterator first, ForwardIterator middle,
-                       ForwardIterator last) {
-  return algorithm_internal::RotateImpl(
-      first, middle, last,
-      std::is_same<decltype(std::rotate(first, middle, last)),
-                   ForwardIterator>());
-}
+    template<typename ForwardIterator>
+    ForwardIterator rotate(ForwardIterator first, ForwardIterator middle,
+                           ForwardIterator last) {
+        return algorithm_internal::RotateImpl(
+                first, middle, last,
+                std::is_same<decltype(std::rotate(first, middle, last)),
+                        ForwardIterator>());
+    }
 
 
 }  // namespace abel

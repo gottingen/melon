@@ -104,8 +104,8 @@ namespace abel {
 // discards the intermediate results.
 // ---------------------------------------------------------------------------
 
-using BitGen = random_internal::NonsecureURBGBase<
-    random_internal::randen_engine<uint64_t>>;
+    using BitGen = random_internal::NonsecureURBGBase<
+            random_internal::randen_engine<uint64_t>>;
 
 // -----------------------------------------------------------------------------
 // abel::InsecureBitGen
@@ -145,7 +145,7 @@ using BitGen = random_internal::NonsecureURBGBase<
 // Prefer `abel::BitGen` over `abel::InsecureBitGen` as the general type is
 // often fast enough for the vast majority of applications.
 
-using InsecureBitGen =
+    using InsecureBitGen =
     random_internal::NonsecureURBGBase<random_internal::pcg64_2018_engine>;
 
 // ---------------------------------------------------------------------------

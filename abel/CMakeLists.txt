@@ -21,6 +21,8 @@ FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 FILE(GLOB RANDOM_SRC "random/*.cc")
 FILE(GLOB RANDOM_INTERNAL_SRC "random/internal/*.cc")
 
+FILE(GLOB STAT_SRC "statistics/*.cc")
+
 FILE(GLOB STRINGS_SRC "strings/*.cc")
 FILE(GLOB STRINGS_INTERNAL_SRC "strings/internal/*.cc")
 
@@ -63,6 +65,7 @@ SET(ABEL_SRC
         ${NUMERIC_SRC}
         ${RANDOM_SRC}
         ${RANDOM_INTERNAL_SRC}
+        ${STAT_SRC}
         ${STRINGS_SRC}
         ${STRINGS_INTERNAL_SRC}
         ${FORMAT_SRC}
@@ -79,27 +82,27 @@ SET(ABEL_SRC
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})
-add_library(abel_shared SHARED ${ABEL_SRC})
+add_library(abel_shared SHARED ${ABEL_SRC} statistics/exponential_biased.h statistics/exponential_biased.cc statistics/periodic_sampler.h statistics/periodic_sampler.cc)
 
 target_link_libraries(abel_static pthread)
-if(APPLE)
-        find_library(CoreFoundation CoreFoundation)
-        target_link_libraries(abel_static ${CoreFoundation} pthread)
-        target_link_libraries(abel_shared ${CoreFoundation} pthread)
-else()
-        target_link_libraries(abel_static pthread)
-endif()
+if (APPLE)
+    find_library(CoreFoundation CoreFoundation)
+    target_link_libraries(abel_static ${CoreFoundation} pthread)
+    target_link_libraries(abel_shared ${CoreFoundation} pthread)
+else ()
+    target_link_libraries(abel_static pthread)
+endif ()
 
 set_target_properties(abel_shared PROPERTIES
         OUTPUT_NAME abel
-        VERSION     ${CMAKE_PROJECT_VERSION}
-        SOVERSION   ${CMAKE_PROJECT_VERSION_MAJOR}
+        VERSION ${CMAKE_PROJECT_VERSION}
+        SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
         )
 
 set_target_properties(abel_static PROPERTIES
         OUTPUT_NAME abel
-        VERSION     ${CMAKE_PROJECT_VERSION}
-        SOVERSION   ${CMAKE_PROJECT_VERSION_MAJOR}
+        VERSION ${CMAKE_PROJECT_VERSION}
+        SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
         )
 
 install(TARGETS abel_static abel_shared

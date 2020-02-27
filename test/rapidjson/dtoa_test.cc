@@ -17,7 +17,7 @@
 
 #ifdef __GNUC__
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(type-limits)
+RAPIDJSON_DIAG_OFF(type - limits)
 #endif
 
 using namespace rapidjson::internal;

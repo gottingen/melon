@@ -13,7 +13,9 @@
 #include <condition_variable>
 #include <mutex>
 #else
+
 #include <pthread.h>
+
 #endif
 
 #include <abel/functional/call_once.h>
@@ -37,73 +39,86 @@
 
 namespace abel {
 
-class condition;
+    class condition;
 
-namespace synchronization_internal {
+    namespace synchronization_internal {
 
-class mutex_impl;
+        class mutex_impl;
 
 // Do not use this implementation detail of cond_var. Provides most of the
 // implementation, but should not be placed directly in static storage
 // because it will not linker initialize properly. See
 // synchronization_storage<T> below for what we mean by linker
 // initialization.
-class cond_var_impl {
- public:
-  cond_var_impl();
-  cond_var_impl(const cond_var_impl&) = delete;
-  cond_var_impl& operator=(const cond_var_impl&) = delete;
-  ~cond_var_impl();
+        class cond_var_impl {
+        public:
+            cond_var_impl();
 
-  void signal();
-  void signal_all();
-  void wait(mutex_impl* mutex);
-  bool wait_with_deadline(mutex_impl* mutex, abel::Time deadline);
+            cond_var_impl(const cond_var_impl &) = delete;
 
- private:
+            cond_var_impl &operator=(const cond_var_impl &) = delete;
+
+            ~cond_var_impl();
+
+            void signal();
+
+            void signal_all();
+
+            void wait(mutex_impl *mutex);
+
+            bool wait_with_deadline(mutex_impl *mutex, abel::Time deadline);
+
+        private:
 #if defined(_WIN32)
-  std::condition_variable_any std_cv_;
+            std::condition_variable_any std_cv_;
 #else
-  pthread_cond_t pthread_cv_;
+            pthread_cond_t pthread_cv_;
 #endif
-};
+        };
 
 // Do not use this implementation detail of Mutex. Provides most of the
 // implementation, but should not be placed directly in static storage
 // because it will not linker initialize properly. See
 // synchronization_storage<T> below for what we mean by linker
 // initialization.
-class mutex_impl {
- public:
-  mutex_impl();
-  mutex_impl(const mutex_impl&) = delete;
-  mutex_impl& operator=(const mutex_impl&) = delete;
-  ~mutex_impl();
+        class mutex_impl {
+        public:
+            mutex_impl();
 
-  void lock();
-  bool try_lock();
-  void unlock();
-  void await(const condition& cond);
-  bool await_with_deadline(const condition& cond, abel::Time deadline);
+            mutex_impl(const mutex_impl &) = delete;
 
- private:
-  friend class cond_var_impl;
+            mutex_impl &operator=(const mutex_impl &) = delete;
+
+            ~mutex_impl();
+
+            void lock();
+
+            bool try_lock();
+
+            void unlock();
+
+            void await(const condition &cond);
+
+            bool await_with_deadline(const condition &cond, abel::Time deadline);
+
+        private:
+            friend class cond_var_impl;
 
 #if defined(_WIN32)
-  std::mutex std_mutex_;
+            std::mutex std_mutex_;
 #else
-  pthread_mutex_t pthread_mutex_;
+            pthread_mutex_t pthread_mutex_;
 #endif
 
-  // True if the underlying mutex is locked.  If the destructor is entered
-  // while locked_, the underlying mutex is unlocked.  Mutex supports
-  // destruction while locked, but the same is undefined behavior for both
-  // pthread_mutex_t and std::mutex.
-  bool locked_ = false;
+            // True if the underlying mutex is locked.  If the destructor is entered
+            // while locked_, the underlying mutex is unlocked.  Mutex supports
+            // destruction while locked, but the same is undefined behavior for both
+            // pthread_mutex_t and std::mutex.
+            bool locked_ = false;
 
-  // Signaled before releasing the lock, in support of Await.
-  cond_var_impl released_;
-};
+            // Signaled before releasing the lock, in support of Await.
+            cond_var_impl released_;
+        };
 
 // Do not use this implementation detail of cond_var and Mutex.  A storage
 // space for T that supports a LinkerInitialized constructor. T must
@@ -203,59 +218,60 @@ class mutex_impl {
 // So, we would need a class with a constexpr default constructor and a
 // trivial destructor. Today, we can achieve neither desired property using
 // std::mutex directly.
-template <typename T>
-class synchronization_storage {
- public:
-  // Instances allocated on the heap or on the stack should use the default
-  // constructor.
-  synchronization_storage()
-      : is_dynamic_(true), once_() {}
+        template<typename T>
+        class synchronization_storage {
+        public:
+            // Instances allocated on the heap or on the stack should use the default
+            // constructor.
+            synchronization_storage()
+                    : is_dynamic_(true), once_() {}
 
-  // Instances allocated in static storage (not on the heap, not on the
-  // stack) should use this constructor.
-  explicit synchronization_storage(base_internal::LinkerInitialized) {}
+            // Instances allocated in static storage (not on the heap, not on the
+            // stack) should use this constructor.
+            explicit synchronization_storage(base_internal::LinkerInitialized) {}
 
-  constexpr explicit synchronization_storage(abel::const_init_type)
-      : is_dynamic_(false), once_(), space_{{0}} {}
+            constexpr explicit synchronization_storage(abel::const_init_type)
+                    : is_dynamic_(false), once_(), space_{{0}} {}
 
-  synchronization_storage(synchronization_storage&) = delete;
-  synchronization_storage& operator=(synchronization_storage&) = delete;
+            synchronization_storage(synchronization_storage &) = delete;
 
-  ~synchronization_storage() {
-    if (is_dynamic_) {
-      get()->~T();
-    }
-  }
+            synchronization_storage &operator=(synchronization_storage &) = delete;
 
-  // Retrieve the object in storage. This is fast and thread safe, but does
-  // incur the cost of abel::call_once().
-  //
-  // For instances in static storage constructed with the
-  // LinkerInitialized constructor, may be called at any time without
-  // regard for order of dynamic initialization or destruction of objects
-  // in static storage. See the class comment for caveats.
-  T* get() {
-    abel::call_once(once_, synchronization_storage::Construct, this);
-    return reinterpret_cast<T*>(&space_);
-  }
+            ~synchronization_storage() {
+                if (is_dynamic_) {
+                    get()->~T();
+                }
+            }
 
- private:
-  static void Construct(synchronization_storage<T>* self) {
-    new (&self->space_) T();
-  }
+            // Retrieve the object in storage. This is fast and thread safe, but does
+            // incur the cost of abel::call_once().
+            //
+            // For instances in static storage constructed with the
+            // LinkerInitialized constructor, may be called at any time without
+            // regard for order of dynamic initialization or destruction of objects
+            // in static storage. See the class comment for caveats.
+            T *get() {
+                abel::call_once(once_, synchronization_storage::Construct, this);
+                return reinterpret_cast<T *>(&space_);
+            }
 
-  // When true, T's destructor is run when this is destructed.
-  //
-  // The LinkerInitialized constructor assumes this value will be set
-  // false by static initialization.
-  bool is_dynamic_;
+        private:
+            static void Construct(synchronization_storage<T> *self) {
+                new(&self->space_) T();
+            }
 
-  abel::once_flag once_;
+            // When true, T's destructor is run when this is destructed.
+            //
+            // The LinkerInitialized constructor assumes this value will be set
+            // false by static initialization.
+            bool is_dynamic_;
 
-  // An aligned space for T.
-  typename std::aligned_storage<sizeof(T), alignof(T)>::type space_;
-};
+            abel::once_flag once_;
 
-}  // namespace synchronization_internal
+            // An aligned space for T.
+            typename std::aligned_storage<sizeof(T), alignof(T)>::type space_;
+        };
+
+    }  // namespace synchronization_internal
 
 }  // namespace abel

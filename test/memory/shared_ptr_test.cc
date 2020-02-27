@@ -11,13 +11,16 @@
 
 using namespace abel;
 
-struct expected_exception : public std::exception {};
+struct expected_exception : public std::exception {
+};
 
 struct A {
     static bool destroyed;
+
     A() {
         destroyed = false;
     }
+
     virtual ~A() {
         destroyed = true;
     }
@@ -44,6 +47,7 @@ TEST(shared_ptr, explot_dynamic_cast_use_after_free_problem) {
 class C : public enable_shared_from_this<C> {
 public:
     shared_ptr<C> dup() { return shared_from_this(); }
+
     shared_ptr<const C> get() const { return shared_from_this(); }
 };
 
@@ -55,7 +59,8 @@ TEST(shared_ptr, test_const_ptr) {
     EXPECT_TRUE(cca == ca);
 }
 
-struct D {};
+struct D {
+};
 
 TEST(shared_ptr, test_lw_const_ptr_1) {
     auto pd1 = make_lw_shared<const D>(D());
@@ -64,9 +69,10 @@ TEST(shared_ptr, test_lw_const_ptr_1) {
     EXPECT_TRUE(pd2 == pd3);
 }
 
-struct E : enable_lw_shared_from_this<E> {};
+struct E : enable_lw_shared_from_this<E> {
+};
 
-TEST(shared_ptr,test_lw_const_ptr_2) {
+TEST(shared_ptr, test_lw_const_ptr_2) {
     auto pe1 = make_lw_shared<const E>();
     auto pe2 = make_lw_shared<E>();
     lw_shared_ptr<const E> pe3 = pe2;
@@ -79,7 +85,7 @@ struct F : enable_lw_shared_from_this<F> {
     }
 };
 
-TEST(shared_ptr,test_shared_from_this_called_on_const_object) {
+TEST(shared_ptr, test_shared_from_this_called_on_const_object) {
     auto ptr = make_lw_shared<F>();
     ptr->const_method();
 }
@@ -93,13 +99,13 @@ TEST(shared_ptr, test_exception_thrown_from_constructor_is_propagated) {
     try {
         auto ptr = make_lw_shared<X>();
         EXPECT_TRUE(1) << "onstructor should have thrown";
-    } catch (const expected_exception& e) {
-        EXPECT_TRUE(1)  << "Expected exception caught";
+    } catch (const expected_exception &e) {
+        EXPECT_TRUE(1) << "Expected exception caught";
     }
     try {
         auto ptr = ::make_shared<X>();
         EXPECT_TRUE(1) << "Constructor should have thrown";
-    } catch (const expected_exception& e) {
+    } catch (const expected_exception &e) {
         EXPECT_TRUE(1) << "Expected exception caught";
     }
 }
@@ -108,24 +114,24 @@ TEST(shared_ptr, test_indirect_functors) {
     {
         std::multiset<shared_ptr<string_view>, indirect_less<shared_ptr<string_view>>> a_set;
 
-    a_set.insert(make_shared<string_view>("k3"));
-    a_set.insert(make_shared<string_view>("k1"));
-    a_set.insert(make_shared<string_view>("k2"));
-    a_set.insert(make_shared<string_view>("k4"));
-    a_set.insert(make_shared<string_view>("k0"));
+        a_set.insert(make_shared<string_view>("k3"));
+        a_set.insert(make_shared<string_view>("k1"));
+        a_set.insert(make_shared<string_view>("k2"));
+        a_set.insert(make_shared<string_view>("k4"));
+        a_set.insert(make_shared<string_view>("k0"));
 
 
-    auto i = a_set.begin();
-    EXPECT_EQ(string_view("k0"), *(*i++));
-    EXPECT_EQ(string_view("k1"), *(*i++));
-    EXPECT_EQ(string_view("k2"), *(*i++));
-    EXPECT_EQ(string_view("k3"), *(*i++));
-    EXPECT_EQ(string_view("k4"), *(*i++));
+        auto i = a_set.begin();
+        EXPECT_EQ(string_view("k0"), *(*i++));
+        EXPECT_EQ(string_view("k1"), *(*i++));
+        EXPECT_EQ(string_view("k2"), *(*i++));
+        EXPECT_EQ(string_view("k3"), *(*i++));
+        EXPECT_EQ(string_view("k4"), *(*i++));
     }
 
     {
         std::unordered_map<shared_ptr<string_view>, bool,
-        indirect_hash<shared_ptr<string_view>>, indirect_equal_to<shared_ptr<string_view>>> a_map;
+                indirect_hash<shared_ptr<string_view>>, indirect_equal_to<shared_ptr<string_view>>> a_map;
 
         a_map.emplace(make_shared<string_view>("k3"), true);
         a_map.emplace(make_shared<string_view>("k1"), true);

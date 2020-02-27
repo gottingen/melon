@@ -9,7 +9,7 @@
 
 namespace abel {
 
-namespace threading_internal {
+    namespace threading_internal {
 
 // Used to describe how a thread may be scheduled.  Typically associated with
 // the declaration of a resource supporting synchronized access.
@@ -33,12 +33,12 @@ namespace threading_internal {
 // NOTE: Cooperative resources may not be nested below non-cooperative ones.
 // This means that it is invalid to to acquire a SCHEDULE_COOPERATIVE_AND_KERNEL
 // resource if a SCHEDULE_KERNEL_ONLY resource is already held.
-enum SchedulingMode {
-  SCHEDULE_KERNEL_ONLY = 0,         // Allow scheduling only the host OS.
-  SCHEDULE_COOPERATIVE_AND_KERNEL,  // Also allow cooperative scheduling.
-};
+        enum SchedulingMode {
+            SCHEDULE_KERNEL_ONLY = 0,         // Allow scheduling only the host OS.
+            SCHEDULE_COOPERATIVE_AND_KERNEL,  // Also allow cooperative scheduling.
+        };
 
-}  // namespace threading_internal
+    }  // namespace threading_internal
 
 }  // namespace abel
 

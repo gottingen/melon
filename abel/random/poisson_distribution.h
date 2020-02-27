@@ -38,207 +38,211 @@ namespace abel {
 // beig thread-safe: This limits the implementation to not using lgamma provided
 // by <math.h>.
 //
-template <typename IntType = int>
-class poisson_distribution {
- public:
-  using result_type = IntType;
+    template<typename IntType = int>
+    class poisson_distribution {
+    public:
+        using result_type = IntType;
 
-  class param_type {
-   public:
-    using distribution_type = poisson_distribution;
-    explicit param_type(double mean = 1.0);
+        class param_type {
+        public:
+            using distribution_type = poisson_distribution;
 
-    double mean() const { return mean_; }
+            explicit param_type(double mean = 1.0);
 
-    friend bool operator==(const param_type& a, const param_type& b) {
-      return a.mean_ == b.mean_;
-    }
+            double mean() const { return mean_; }
 
-    friend bool operator!=(const param_type& a, const param_type& b) {
-      return !(a == b);
-    }
+            friend bool operator==(const param_type &a, const param_type &b) {
+                return a.mean_ == b.mean_;
+            }
 
-   private:
-    friend class poisson_distribution;
+            friend bool operator!=(const param_type &a, const param_type &b) {
+                return !(a == b);
+            }
 
-    double mean_;
-    double emu_;  // e ^ -mean_
-    double lmu_;  // ln(mean_)
-    double s_;
-    double log_k_;
-    int split_;
+        private:
+            friend class poisson_distribution;
 
-    static_assert(std::is_integral<IntType>::value,
-                  "Class-template abel::poisson_distribution<> must be "
-                  "parameterized using an integral type.");
-  };
+            double mean_;
+            double emu_;  // e ^ -mean_
+            double lmu_;  // ln(mean_)
+            double s_;
+            double log_k_;
+            int split_;
 
-  poisson_distribution() : poisson_distribution(1.0) {}
+            static_assert(std::is_integral<IntType>::value,
+                          "Class-template abel::poisson_distribution<> must be "
+                          "parameterized using an integral type.");
+        };
 
-  explicit poisson_distribution(double mean) : param_(mean) {}
+        poisson_distribution() : poisson_distribution(1.0) {}
 
-  explicit poisson_distribution(const param_type& p) : param_(p) {}
+        explicit poisson_distribution(double mean) : param_(mean) {}
 
-  void reset() {}
+        explicit poisson_distribution(const param_type &p) : param_(p) {}
 
-  // generating functions
-  template <typename URBG>
-  result_type operator()(URBG& g) {  // NOLINT(runtime/references)
-    return (*this)(g, param_);
-  }
+        void reset() {}
 
-  template <typename URBG>
-  result_type operator()(URBG& g,  // NOLINT(runtime/references)
-                         const param_type& p);
+        // generating functions
+        template<typename URBG>
+        result_type operator()(URBG &g) {  // NOLINT(runtime/references)
+            return (*this)(g, param_);
+        }
 
-  param_type param() const { return param_; }
-  void param(const param_type& p) { param_ = p; }
+        template<typename URBG>
+        result_type operator()(URBG &g,  // NOLINT(runtime/references)
+                               const param_type &p);
 
-  result_type(min)() const { return 0; }
-  result_type(max)() const { return (std::numeric_limits<result_type>::max)(); }
+        param_type param() const { return param_; }
 
-  double mean() const { return param_.mean(); }
+        void param(const param_type &p) { param_ = p; }
 
-  friend bool operator==(const poisson_distribution& a,
-                         const poisson_distribution& b) {
-    return a.param_ == b.param_;
-  }
-  friend bool operator!=(const poisson_distribution& a,
-                         const poisson_distribution& b) {
-    return a.param_ != b.param_;
-  }
+        result_type (min)() const { return 0; }
 
- private:
-  param_type param_;
-  random_internal::FastUniformBits<uint64_t> fast_u64_;
-};
+        result_type (max)() const { return (std::numeric_limits<result_type>::max)(); }
+
+        double mean() const { return param_.mean(); }
+
+        friend bool operator==(const poisson_distribution &a,
+                               const poisson_distribution &b) {
+            return a.param_ == b.param_;
+        }
+
+        friend bool operator!=(const poisson_distribution &a,
+                               const poisson_distribution &b) {
+            return a.param_ != b.param_;
+        }
+
+    private:
+        param_type param_;
+        random_internal::FastUniformBits <uint64_t> fast_u64_;
+    };
 
 // -----------------------------------------------------------------------------
 // Implementation details follow
 // -----------------------------------------------------------------------------
 
-template <typename IntType>
-poisson_distribution<IntType>::param_type::param_type(double mean)
-    : mean_(mean), split_(0) {
-  assert(mean >= 0);
-  assert(mean <= (std::numeric_limits<result_type>::max)());
-  // As a defensive measure, avoid large values of the mean.  The rejection
-  // algorithm used does not support very large values well.  It my be worth
-  // changing algorithms to better deal with these cases.
-  assert(mean <= 1e10);
-  if (mean_ < 10) {
-    // For small lambda, use the knuth method.
-    split_ = 1;
-    emu_ = std::exp(-mean_);
-  } else if (mean_ <= 50) {
-    // Use split-knuth method.
-    split_ = 1 + static_cast<int>(mean_ / 10.0);
-    emu_ = std::exp(-mean_ / static_cast<double>(split_));
-  } else {
-    // Use ratio of uniforms method.
-    constexpr double k2E = 0.7357588823428846;
-    constexpr double kSA = 0.4494580810294493;
+    template<typename IntType>
+    poisson_distribution<IntType>::param_type::param_type(double mean)
+            : mean_(mean), split_(0) {
+        assert(mean >= 0);
+        assert(mean <= (std::numeric_limits<result_type>::max)());
+        // As a defensive measure, avoid large values of the mean.  The rejection
+        // algorithm used does not support very large values well.  It my be worth
+        // changing algorithms to better deal with these cases.
+        assert(mean <= 1e10);
+        if (mean_ < 10) {
+            // For small lambda, use the knuth method.
+            split_ = 1;
+            emu_ = std::exp(-mean_);
+        } else if (mean_ <= 50) {
+            // Use split-knuth method.
+            split_ = 1 + static_cast<int>(mean_ / 10.0);
+            emu_ = std::exp(-mean_ / static_cast<double>(split_));
+        } else {
+            // Use ratio of uniforms method.
+            constexpr double k2E = 0.7357588823428846;
+            constexpr double kSA = 0.4494580810294493;
 
-    lmu_ = std::log(mean_);
-    double a = mean_ + 0.5;
-    s_ = kSA + std::sqrt(k2E * a);
-    const double mode = std::ceil(mean_) - 1;
-    log_k_ = lmu_ * mode - abel::random_internal::StirlingLogFactorial(mode);
-  }
-}
-
-template <typename IntType>
-template <typename URBG>
-typename poisson_distribution<IntType>::result_type
-poisson_distribution<IntType>::operator()(
-    URBG& g,  // NOLINT(runtime/references)
-    const param_type& p) {
-  using random_internal::GeneratePositiveTag;
-  using random_internal::GenerateRealFromBits;
-  using random_internal::GenerateSignedTag;
-
-  if (p.split_ != 0) {
-    // Use Knuth's algorithm with range splitting to avoid floating-point
-    // errors. Knuth's algorithm is: Ui is a sequence of uniform variates on
-    // (0,1); return the number of variates required for product(Ui) <
-    // exp(-lambda).
-    //
-    // The expected number of variates required for Knuth's method can be
-    // computed as follows:
-    // The expected value of U is 0.5, so solving for 0.5^n < exp(-lambda) gives
-    // the expected number of uniform variates
-    // required for a given lambda, which is:
-    //  lambda = [2, 5,  9, 10, 11, 12, 13, 14, 15, 16, 17]
-    //  n      = [3, 8, 13, 15, 16, 18, 19, 21, 22, 24, 25]
-    //
-    result_type n = 0;
-    for (int split = p.split_; split > 0; --split) {
-      double r = 1.0;
-      do {
-        r *= GenerateRealFromBits<double, GeneratePositiveTag, true>(
-            fast_u64_(g));  // U(-1, 0)
-        ++n;
-      } while (r > p.emu_);
-      --n;
+            lmu_ = std::log(mean_);
+            double a = mean_ + 0.5;
+            s_ = kSA + std::sqrt(k2E * a);
+            const double mode = std::ceil(mean_) - 1;
+            log_k_ = lmu_ * mode - abel::random_internal::StirlingLogFactorial(mode);
+        }
     }
-    return n;
-  }
 
-  // Use ratio of uniforms method.
-  //
-  // Let u ~ Uniform(0, 1), v ~ Uniform(-1, 1),
-  //     a = lambda + 1/2,
-  //     s = 1.5 - sqrt(3/e) + sqrt(2(lambda + 1/2)/e),
-  //     x = s * v/u + a.
-  // P(floor(x) = k | u^2 < f(floor(x))/k), where
-  // f(m) = lambda^m exp(-lambda)/ m!, for 0 <= m, and f(m) = 0 otherwise,
-  // and k = max(f).
-  const double a = p.mean_ + 0.5;
-  for (;;) {
-    const double u = GenerateRealFromBits<double, GeneratePositiveTag, false>(
-        fast_u64_(g));  // U(0, 1)
-    const double v = GenerateRealFromBits<double, GenerateSignedTag, false>(
-        fast_u64_(g));  // U(-1, 1)
+    template<typename IntType>
+    template<typename URBG>
+    typename poisson_distribution<IntType>::result_type
+    poisson_distribution<IntType>::operator()(
+            URBG &g,  // NOLINT(runtime/references)
+            const param_type &p) {
+        using random_internal::GeneratePositiveTag;
+        using random_internal::GenerateRealFromBits;
+        using random_internal::GenerateSignedTag;
 
-    const double x = std::floor(p.s_ * v / u + a);
-    if (x < 0) continue;  // f(negative) = 0
-    const double rhs = x * p.lmu_;
-    // clang-format off
-    double s = (x <= 1.0) ? 0.0
-             : (x == 2.0) ? 0.693147180559945
-             : abel::random_internal::StirlingLogFactorial(x);
-    // clang-format on
-    const double lhs = 2.0 * std::log(u) + p.log_k_ + s;
-    if (lhs < rhs) {
-      return x > (max)() ? (max)()
-                         : static_cast<result_type>(x);  // f(x)/k >= u^2
+        if (p.split_ != 0) {
+            // Use Knuth's algorithm with range splitting to avoid floating-point
+            // errors. Knuth's algorithm is: Ui is a sequence of uniform variates on
+            // (0,1); return the number of variates required for product(Ui) <
+            // exp(-lambda).
+            //
+            // The expected number of variates required for Knuth's method can be
+            // computed as follows:
+            // The expected value of U is 0.5, so solving for 0.5^n < exp(-lambda) gives
+            // the expected number of uniform variates
+            // required for a given lambda, which is:
+            //  lambda = [2, 5,  9, 10, 11, 12, 13, 14, 15, 16, 17]
+            //  n      = [3, 8, 13, 15, 16, 18, 19, 21, 22, 24, 25]
+            //
+            result_type n = 0;
+            for (int split = p.split_; split > 0; --split) {
+                double r = 1.0;
+                do {
+                    r *= GenerateRealFromBits<double, GeneratePositiveTag, true>(
+                            fast_u64_(g));  // U(-1, 0)
+                    ++n;
+                } while (r > p.emu_);
+                --n;
+            }
+            return n;
+        }
+
+        // Use ratio of uniforms method.
+        //
+        // Let u ~ Uniform(0, 1), v ~ Uniform(-1, 1),
+        //     a = lambda + 1/2,
+        //     s = 1.5 - sqrt(3/e) + sqrt(2(lambda + 1/2)/e),
+        //     x = s * v/u + a.
+        // P(floor(x) = k | u^2 < f(floor(x))/k), where
+        // f(m) = lambda^m exp(-lambda)/ m!, for 0 <= m, and f(m) = 0 otherwise,
+        // and k = max(f).
+        const double a = p.mean_ + 0.5;
+        for (;;) {
+            const double u = GenerateRealFromBits<double, GeneratePositiveTag, false>(
+                    fast_u64_(g));  // U(0, 1)
+            const double v = GenerateRealFromBits<double, GenerateSignedTag, false>(
+                    fast_u64_(g));  // U(-1, 1)
+
+            const double x = std::floor(p.s_ * v / u + a);
+            if (x < 0) continue;  // f(negative) = 0
+            const double rhs = x * p.lmu_;
+            // clang-format off
+            double s = (x <= 1.0) ? 0.0
+                                  : (x == 2.0) ? 0.693147180559945
+                                               : abel::random_internal::StirlingLogFactorial(x);
+            // clang-format on
+            const double lhs = 2.0 * std::log(u) + p.log_k_ + s;
+            if (lhs < rhs) {
+                return x > (max)() ? (max)()
+                                   : static_cast<result_type>(x);  // f(x)/k >= u^2
+            }
+        }
     }
-  }
-}
 
-template <typename CharT, typename Traits, typename IntType>
-std::basic_ostream<CharT, Traits>& operator<<(
-    std::basic_ostream<CharT, Traits>& os,  // NOLINT(runtime/references)
-    const poisson_distribution<IntType>& x) {
-  auto saver = random_internal::make_ostream_state_saver(os);
-  os.precision(random_internal::stream_precision_helper<double>::kPrecision);
-  os << x.mean();
-  return os;
-}
+    template<typename CharT, typename Traits, typename IntType>
+    std::basic_ostream<CharT, Traits> &operator<<(
+            std::basic_ostream<CharT, Traits> &os,  // NOLINT(runtime/references)
+            const poisson_distribution<IntType> &x) {
+        auto saver = random_internal::make_ostream_state_saver(os);
+        os.precision(random_internal::stream_precision_helper<double>::kPrecision);
+        os << x.mean();
+        return os;
+    }
 
-template <typename CharT, typename Traits, typename IntType>
-std::basic_istream<CharT, Traits>& operator>>(
-    std::basic_istream<CharT, Traits>& is,  // NOLINT(runtime/references)
-    poisson_distribution<IntType>& x) {     // NOLINT(runtime/references)
-  using param_type = typename poisson_distribution<IntType>::param_type;
+    template<typename CharT, typename Traits, typename IntType>
+    std::basic_istream<CharT, Traits> &operator>>(
+            std::basic_istream<CharT, Traits> &is,  // NOLINT(runtime/references)
+            poisson_distribution<IntType> &x) {     // NOLINT(runtime/references)
+        using param_type = typename poisson_distribution<IntType>::param_type;
 
-  auto saver = random_internal::make_istream_state_saver(is);
-  double mean = random_internal::read_floating_point<double>(is);
-  if (!is.fail()) {
-    x.param(param_type(mean));
-  }
-  return is;
-}
+        auto saver = random_internal::make_istream_state_saver(is);
+        double mean = random_internal::read_floating_point<double>(is);
+        if (!is.fail()) {
+            x.param(param_type(mean));
+        }
+        return is;
+    }
 
 
 }  // namespace abel

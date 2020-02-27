@@ -45,7 +45,7 @@ using namespace rapidjson_simd;
 #define SIMD_SUFFIX(name) name
 #endif
 
-template <typename StreamType>
+template<typename StreamType>
 void TestSkipWhitespace() {
     for (size_t step = 1; step < 32; step++) {
         char buffer[1025];
@@ -96,14 +96,15 @@ TEST(SIMD, SIMD_SUFFIX(SkipWhitespace_EncodedMemoryStream)) {
 }
 
 struct ScanCopyUnescapedStringHandler : BaseReaderHandler<UTF8<>, ScanCopyUnescapedStringHandler> {
-    bool String(const char* str, size_t length, bool) {
+    bool String(const char *str, size_t length, bool) {
         memcpy(buffer, str, length + 1);
         return true;
     }
+
     char buffer[1024 + 5 + 32];
 };
 
-template <unsigned parseFlags, typename StreamType>
+template<unsigned parseFlags, typename StreamType>
 void TestScanCopyUnescapedString() {
     char buffer[1024 + 5 + 32];
     char backup[1024 + 5 + 32];
@@ -111,7 +112,7 @@ void TestScanCopyUnescapedString() {
     // Test "ABCDABCD...\\"
     for (size_t offset = 0; offset < 32; offset++) {
         for (size_t step = 0; step < 1024; step++) {
-            char* json = buffer + offset;
+            char *json = buffer + offset;
             char *p = json;
             *p++ = '\"';
             for (size_t i = 0; i < step; i++)
@@ -135,7 +136,7 @@ void TestScanCopyUnescapedString() {
     // Test "\\ABCDABCD..."
     for (size_t offset = 0; offset < 32; offset++) {
         for (size_t step = 0; step < 1024; step++) {
-            char* json = buffer + offset;
+            char *json = buffer + offset;
             char *p = json;
             *p++ = '\"';
             *p++ = '\\';
@@ -166,8 +167,8 @@ TEST(SIMD, SIMD_SUFFIX(ScanWriteUnescapedString)) {
     char buffer[2048 + 1 + 32];
     for (size_t offset = 0; offset < 32; offset++) {
         for (size_t step = 0; step < 1024; step++) {
-            char* s = buffer + offset;
-            char* p = s;
+            char *s = buffer + offset;
+            char *p = s;
             for (size_t i = 0; i < step; i++)
                 *p++ = "ABCD"[i % 4];
             char escape = "\0\n\\\""[step % 4];
@@ -178,7 +179,7 @@ TEST(SIMD, SIMD_SUFFIX(ScanWriteUnescapedString)) {
             StringBuffer sb;
             Writer<StringBuffer> writer(sb);
             writer.String(s, SizeType(step * 2 + 1));
-            const char* q = sb.GetString();
+            const char *q = sb.GetString();
             EXPECT_EQ('\"', *q++);
             for (size_t i = 0; i < step; i++)
                 EXPECT_EQ("ABCD"[i % 4], *q++);
@@ -189,16 +190,13 @@ TEST(SIMD, SIMD_SUFFIX(ScanWriteUnescapedString)) {
                 EXPECT_EQ('0', *q++);
                 EXPECT_EQ('0', *q++);
                 EXPECT_EQ('0', *q++);
-            }
-            else if (escape == '\n') {
+            } else if (escape == '\n') {
                 EXPECT_EQ('\\', *q++);
                 EXPECT_EQ('n', *q++);
-            }
-            else if (escape == '\\') {
+            } else if (escape == '\\') {
                 EXPECT_EQ('\\', *q++);
                 EXPECT_EQ('\\', *q++);
-            }
-            else if (escape == '\"') {
+            } else if (escape == '\"') {
                 EXPECT_EQ('\\', *q++);
                 EXPECT_EQ('\"', *q++);
             }

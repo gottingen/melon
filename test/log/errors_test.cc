@@ -4,15 +4,16 @@
 
 class failing_sink : public abel::log::sinks::base_sink<std::mutex> {
 public:
-    failing_sink () = default;
-    ~failing_sink () = default;
+    failing_sink() = default;
+
+    ~failing_sink() = default;
 
 protected:
-    void sink_it_ (const abel::log::details::log_msg &) override {
+    void sink_it_(const abel::log::details::log_msg &) override {
         throw std::runtime_error("some error happened during log");
     }
 
-    void flush_ () override {
+    void flush_() override {
         throw std::runtime_error("some error happened during flush");
     }
 };
@@ -27,12 +28,12 @@ TEST(defaultErrorHandler, errors) {
     logger->info("Test message {} {}", 1);
     logger->info("Test message {}", 2);
     logger->
-        flush();
+            flush();
 
     EXPECT_TRUE(file_contents(filename)
-                    == std::string("Test message 2\n"));
+                == std::string("Test message 2\n"));
     EXPECT_TRUE(count_lines(filename)
-                    == 1);
+                == 1);
 }
 
 struct custom_ex {
@@ -42,37 +43,37 @@ TEST(errors, customerrorhandler) {
     std::string filename = "logs/simple_log.txt";
     auto logger = abel::log::create<abel::log::sinks::basic_file_sink_mt>("logger", filename, true);
     logger->
-        flush_on(abel::log::level::info);
-    logger->set_error_handler([=] (const std::string &) {
+            flush_on(abel::log::level::info);
+    logger->set_error_handler([=](const std::string &) {
         throw
-            custom_ex();
+                custom_ex();
     });
     logger->info("Good message #1");
 
     EXPECT_THROW(logger
-                     ->info("Bad format msg {} {}", "xxx"), custom_ex);
+                         ->info("Bad format msg {} {}", "xxx"), custom_ex);
     logger->info("Good message #2");
     EXPECT_TRUE(count_lines(filename)
-                    == 2);
+                == 2);
 }
 
 TEST(errors, defaulterrorhandler2) {
     abel::log::drop_all();
     auto logger = abel::log::create<failing_sink>("failed_logger");
-    logger->set_error_handler([=] (const std::string &) {
+    logger->set_error_handler([=](const std::string &) {
         throw
-            custom_ex();
+                custom_ex();
     });
     EXPECT_THROW(logger
-                     ->info("Some message"), custom_ex);
+                         ->info("Some message"), custom_ex);
 }
 
 TEST(errors, flusherrorhandler) {
     abel::log::drop_all();
     auto logger = abel::log::create<failing_sink>("failed_logger");
-    logger->set_error_handler([=] (const std::string &) {
+    logger->set_error_handler([=](const std::string &) {
         throw
-            custom_ex();
+                custom_ex();
     });
     EXPECT_THROW(logger->flush(), custom_ex
     );
@@ -86,7 +87,7 @@ TEST(errors, asyncerrorhandler) {
     {
         abel::log::init_thread_pool(128, 1);
         auto logger = abel::log::create_async<abel::log::sinks::basic_file_sink_mt>("logger", filename, true);
-        logger->set_error_handler([=] (const std::string &) {
+        logger->set_error_handler([=](const std::string &) {
             std::ofstream ofs("logs/custom_err.txt");
             if (!ofs)
                 throw std::runtime_error("Failed open logs/custom_err.txt");
@@ -100,9 +101,9 @@ TEST(errors, asyncerrorhandler) {
     }
     abel::log::init_thread_pool(128, 1);
     EXPECT_TRUE(count_lines(filename)
-                    == 2);
+                == 2);
     EXPECT_TRUE(file_contents("logs/custom_err.txt")
-                    == err_msg);
+                == err_msg);
 }
 
 // Make sure async error handler is executed
@@ -112,7 +113,7 @@ TEST(errors, asyncerrorhandler2) {
     {
         abel::log::init_thread_pool(128, 1);
         auto logger = abel::log::create_async<failing_sink>("failed_logger");
-        logger->set_error_handler([=] (const std::string &) {
+        logger->set_error_handler([=](const std::string &) {
             std::ofstream ofs("logs/custom_err2.txt");
             if (!ofs)
                 throw std::runtime_error("Failed open logs/custom_err2.txt");
@@ -125,5 +126,5 @@ TEST(errors, asyncerrorhandler2) {
 
     abel::log::init_thread_pool(128, 1);
     EXPECT_TRUE(file_contents("logs/custom_err2.txt")
-                    == err_msg);
+                == err_msg);
 }

@@ -9,28 +9,28 @@
 
 // Note: This is used to generate the ABEL_COMPILER_STRING macros
 #ifndef INTERNAL_STRINGIZE
-    #define INTERNAL_STRINGIZE(x) INTERNAL_PRIMITIVE_STRINGIZE(x)
+#define INTERNAL_STRINGIZE(x) INTERNAL_PRIMITIVE_STRINGIZE(x)
 #endif
 #ifndef INTERNAL_PRIMITIVE_STRINGIZE
-    #define INTERNAL_PRIMITIVE_STRINGIZE(x) #x
+#define INTERNAL_PRIMITIVE_STRINGIZE(x) #x
 #endif
 
 // ABEL_COMPILER_HAS_FEATURE
 #ifndef ABEL_COMPILER_HAS_FEATURE
-    #if defined(__clang__)
-        #define ABEL_COMPILER_HAS_FEATURE(x) __has_feature(x)
-    #else
-        #define ABEL_COMPILER_HAS_FEATURE(x) 0
-    #endif
+#if defined(__clang__)
+#define ABEL_COMPILER_HAS_FEATURE(x) __has_feature(x)
+#else
+#define ABEL_COMPILER_HAS_FEATURE(x) 0
+#endif
 #endif
 
 #ifndef ABEL_COMPILER_HAS_INCLUDE
-    #if defined(__has_include) && !defined(__INTELLISENSE__) && \
+#if defined(__has_include) && !defined(__INTELLISENSE__) && \
     (!defined(__INTEL_COMPILER) || __INTEL_COMPILER >= 1600)
-        #define ABEL_COMPILER_HAS_INCLUDE(x) __has_include(x)
-    #else
-        #define ABEL_COMPILER_HAS_INCLUDE(x) 0
-    #endif
+#define ABEL_COMPILER_HAS_INCLUDE(x) __has_include(x)
+#else
+#define ABEL_COMPILER_HAS_INCLUDE(x) 0
+#endif
 #endif
 
 
@@ -45,11 +45,11 @@
 // GCC: https://gcc.gnu.org/gcc-5/changes.html
 // Clang: https://clang.llvm.org/docs/LanguageExtensions.html
 #ifndef ABEL_COMPILER_HAS_ATTRIBUTE
-    #ifdef __has_attribute
-        #define ABEL_COMPILER_HAS_ATTRIBUTE(x) __has_attribute(x)
-    #else
-        #define ABEL_COMPILER_HAS_ATTRIBUTE(x) 0
-    #endif
+#ifdef __has_attribute
+#define ABEL_COMPILER_HAS_ATTRIBUTE(x) __has_attribute(x)
+#else
+#define ABEL_COMPILER_HAS_ATTRIBUTE(x) 0
+#endif
 #endif //ABEL_COMPILER_HAS_ATTRIBUTE
 
 // ABEL_COMPILER_HAS_CPP_ATTRIBUTE
@@ -59,13 +59,13 @@
 // (https://en.cppreference.com/w/cpp/experimental/feature_test). If we don't
 // find `__has_cpp_attribute`, will evaluate to 0.
 #ifndef ABEL_COMPILER_HAS_CPP_ATTRIBUTE
-    #if defined(__cplusplus) && defined(__has_cpp_attribute)
+#if defined(__cplusplus) && defined(__has_cpp_attribute)
 // NOTE: requiring __cplusplus above should not be necessary, but
 // works around https://bugs.llvm.org/show_bug.cgi?id=23435.
-        #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-    #else
-        #define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) 0
-    #endif
+#define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+#define ABEL_COMPILER_HAS_CPP_ATTRIBUTE(x) 0
+#endif
 #endif
 
 
@@ -80,17 +80,17 @@
 // http://releases.llvm.org/3.3/tools/clang/docs/LanguageExtensions.html
 
 #ifndef ABEL_COMPILER_HAS_BUILTIN
-    #ifdef __has_builtin
-        #define ABEL_COMPILER_HAS_BUILTIN(x) __has_builtin(x)
-    #else
-        #define ABEL_COMPILER_HAS_BUILTIN(x) 0
-    #endif
+#ifdef __has_builtin
+#define ABEL_COMPILER_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define ABEL_COMPILER_HAS_BUILTIN(x) 0
+#endif
 
-    #if defined(__is_identifier)
-        #define ABEL_INTERNAL_HAS_KEYWORD(x) !(__is_identifier(x))
-    #else
-        #define ABEL_INTERNAL_HAS_KEYWORD(x) 0
-    #endif
+#if defined(__is_identifier)
+#define ABEL_INTERNAL_HAS_KEYWORD(x) !(__is_identifier(x))
+#else
+#define ABEL_INTERNAL_HAS_KEYWORD(x) 0
+#endif
 #endif
 
 
@@ -99,29 +99,29 @@
 // Prevents the compiler from optimizing away stack frames for functions which
 // end in a call to another function.
 #ifndef ABEL_COMPILER_NO_TAIL_CALL
-    #if ABEL_COMPILER_HAS_ATTRIBUTE(disable_tail_calls)
-        #define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
-        #define ABEL_COMPILER_NO_TAIL_CALL __attribute__((disable_tail_calls))
-    #elif defined(__GNUC__) && !defined(__clang__)
-        #define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
-        #define ABEL_COMPILER_NO_TAIL_CALL \
+#if ABEL_COMPILER_HAS_ATTRIBUTE(disable_tail_calls)
+#define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
+#define ABEL_COMPILER_NO_TAIL_CALL __attribute__((disable_tail_calls))
+#elif defined(__GNUC__) && !defined(__clang__)
+#define ABEL_COMPILER_HAS_NO_TAIL_CALL 1
+#define ABEL_COMPILER_NO_TAIL_CALL \
           __attribute__((optimize("no-optimize-sibling-calls")))
-    #else
-        #define ABEL_COMPILER_NO_TAIL_CALL
-        #define ABEL_COMPILER_HAS_NO_TAIL_CALL 0
-    #endif
+#else
+#define ABEL_COMPILER_NO_TAIL_CALL
+#define ABEL_COMPILER_HAS_NO_TAIL_CALL 0
+#endif
 #endif
 
 // EDG (EDG compiler front-end, used by other compilers such as SN)
 #if defined(__EDG_VERSION__)
-    #define ABEL_COMPILER_EDG 1
+#define ABEL_COMPILER_EDG 1
 
-    #if defined(_MSC_VER)
-        #define ABEL_COMPILER_EDG_VC_MODE 1
-    #endif
-    #if defined(__GNUC__)
-        #define ABEL_COMPILER_EDG_GCC_MODE 1
-    #endif
+#if defined(_MSC_VER)
+#define ABEL_COMPILER_EDG_VC_MODE 1
+#endif
+#if defined(__GNUC__)
+#define ABEL_COMPILER_EDG_GCC_MODE 1
+#endif
 #endif
 
 // ABEL_COMPILER_WINRTCX_ENABLED
@@ -131,7 +131,7 @@
 // Components enabled, usually via the '-ZW' compiler flags being used. This option allows for using
 // ref counted hat-type '^' objects and other C++/CX specific keywords like "ref new"
 #if !defined(ABEL_COMPILER_WINRTCX_ENABLED) && defined(__cplusplus_winrt)
-    #define ABEL_COMPILER_WINRTCX_ENABLED 1
+#define ABEL_COMPILER_WINRTCX_ENABLED 1
 #endif
 
 
@@ -147,15 +147,15 @@
 // C++11 support.
 //
 #if !defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__cplusplus)
-    #if (__cplusplus >= 201103L)    // Clang and GCC defines this like so in C++11 mode.
-        #define ABEL_COMPILER_CPP11_ENABLED 1
-    #elif defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
-        #define ABEL_COMPILER_CPP11_ENABLED 1
-    #elif defined(_MSC_VER) && _MSC_VER >= 1600         // Microsoft unilaterally enables its C++11 support; there is no way to disable it.
-        #define ABEL_COMPILER_CPP11_ENABLED 1
-    #elif defined(__EDG_VERSION__) // && ???
+#if (__cplusplus >= 201103L)    // Clang and GCC defines this like so in C++11 mode.
+#define ABEL_COMPILER_CPP11_ENABLED 1
+#elif defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
+#define ABEL_COMPILER_CPP11_ENABLED 1
+#elif defined(_MSC_VER) && _MSC_VER >= 1600         // Microsoft unilaterally enables its C++11 support; there is no way to disable it.
+#define ABEL_COMPILER_CPP11_ENABLED 1
+#elif defined(__EDG_VERSION__) // && ???
 // To do: Is there a generic way to determine this?
-    #endif
+#endif
 #endif
 
 
@@ -169,11 +169,11 @@
 // decided to not define __cplusplus like thus until they have fully completed their
 // C++14 support.
 #if !defined(ABEL_COMPILER_CPP14_ENABLED) && defined(__cplusplus)
-    #if (__cplusplus >= 201402L)                                // Clang and GCC defines this like so in C++14 mode.
-        #define ABEL_COMPILER_CPP14_ENABLED 1
-    #elif defined(_MSC_VER) && (_MSC_VER >= 1900)    // VS2015+
-        #define ABEL_COMPILER_CPP14_ENABLED 1
-    #endif
+#if (__cplusplus >= 201402L)                                // Clang and GCC defines this like so in C++14 mode.
+#define ABEL_COMPILER_CPP14_ENABLED 1
+#elif defined(_MSC_VER) && (_MSC_VER >= 1900)    // VS2015+
+#define ABEL_COMPILER_CPP14_ENABLED 1
+#endif
 #endif
 
 
@@ -187,11 +187,11 @@
 // decided to not define __cplusplus like thus until they have fully completed their
 // C++17 support.
 #if !defined(ABEL_COMPILER_CPP17_ENABLED) && defined(__cplusplus)
-    #if (__cplusplus >= 201703L)
-        #define ABEL_COMPILER_CPP17_ENABLED 1
-    #elif defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L) // C++17+
-        #define ABEL_COMPILER_CPP17_ENABLED 1
-    #endif
+#if (__cplusplus >= 201703L)
+#define ABEL_COMPILER_CPP17_ENABLED 1
+#elif defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L) // C++17+
+#define ABEL_COMPILER_CPP17_ENABLED 1
+#endif
 #endif
 
 
@@ -219,207 +219,207 @@
 // If you want to detect compiling for the ARM processor, check for ABEL_PROCESSOR_ARM
 // being defined.
 // This compiler is also identified by defined(__CC_ARM) || defined(__ARMCC__).
-    #define ABEL_COMPILER_RVCT    1
-    #define ABEL_COMPILER_ARM     1
-    #define ABEL_COMPILER_VERSION __ARMCC_VERSION
-    #define ABEL_COMPILER_NAME    "RVCT"
+#define ABEL_COMPILER_RVCT    1
+#define ABEL_COMPILER_ARM     1
+#define ABEL_COMPILER_VERSION __ARMCC_VERSION
+#define ABEL_COMPILER_NAME    "RVCT"
   //#define ABEL_COMPILER_STRING (defined below)
 
 // Clang's GCC-compatible driver.
 #elif defined(__clang__) && !defined(_MSC_VER)
-    #define ABEL_COMPILER_CLANG   1
-    #define ABEL_COMPILER_VERSION (__clang_major__ * 100 + __clang_minor__)
-    #define ABEL_COMPILER_NAME    "clang"
-    #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME __clang_version__
+#define ABEL_COMPILER_CLANG   1
+#define ABEL_COMPILER_VERSION (__clang_major__ * 100 + __clang_minor__)
+#define ABEL_COMPILER_NAME    "clang"
+#define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME __clang_version__
 
 // GCC (a.k.a. GNUC)
 #elif defined(__GNUC__) // GCC compilers exist for many platforms.
-    #define ABEL_COMPILER_GNUC    1
-    #define ABEL_COMPILER_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
-    #define ABEL_COMPILER_NAME    "GCC"
-    #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( __GNUC__ ) "." INTERNAL_STRINGIZE( __GNUC_MINOR__ )
+#define ABEL_COMPILER_GNUC    1
+#define ABEL_COMPILER_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
+#define ABEL_COMPILER_NAME    "GCC"
+#define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( __GNUC__ ) "." INTERNAL_STRINGIZE( __GNUC_MINOR__ )
 
-    #if (__GNUC__ == 2) && (__GNUC_MINOR__ < 95) // If GCC < 2.95...
-        #define ABEL_COMPILER_NO_MEMBER_TEMPLATES 1
-    #endif
-    #if (__GNUC__ == 2) && (__GNUC_MINOR__ <= 97) // If GCC <= 2.97...
-        #define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1
-    #endif
-    #if (__GNUC__ == 3) && ((__GNUC_MINOR__ == 1) || (__GNUC_MINOR__ == 2)) // If GCC 3.1 or 3.2 (but not pre 3.1 or post 3.2)...
-        #define ABEL_COMPILER_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS 1
-    #endif
+#if (__GNUC__ == 2) && (__GNUC_MINOR__ < 95) // If GCC < 2.95...
+#define ABEL_COMPILER_NO_MEMBER_TEMPLATES 1
+#endif
+#if (__GNUC__ == 2) && (__GNUC_MINOR__ <= 97) // If GCC <= 2.97...
+#define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1
+#endif
+#if (__GNUC__ == 3) && ((__GNUC_MINOR__ == 1) || (__GNUC_MINOR__ == 2)) // If GCC 3.1 or 3.2 (but not pre 3.1 or post 3.2)...
+#define ABEL_COMPILER_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS 1
+#endif
 
 // Borland C++
 #elif defined(__BORLANDC__)
-    #define ABEL_COMPILER_BORLANDC 1
-    #define ABEL_COMPILER_VERSION  __BORLANDC__
-    #define ABEL_COMPILER_NAME     "Borland C"
+#define ABEL_COMPILER_BORLANDC 1
+#define ABEL_COMPILER_VERSION  __BORLANDC__
+#define ABEL_COMPILER_NAME     "Borland C"
 //#define ABEL_COMPILER_STRING (defined below)
 
-    #if (__BORLANDC__ <= 0x0550)      // If Borland C++ Builder 4 and 5...
-        #define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1
-    #endif
-    #if (__BORLANDC__ >= 0x561) && (__BORLANDC__ < 0x600)
-        #define ABEL_COMPILER_NO_MEMBER_FUNCTION_SPECIALIZATION 1
-    #endif
+#if (__BORLANDC__ <= 0x0550)      // If Borland C++ Builder 4 and 5...
+#define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1
+#endif
+#if (__BORLANDC__ >= 0x561) && (__BORLANDC__ < 0x600)
+#define ABEL_COMPILER_NO_MEMBER_FUNCTION_SPECIALIZATION 1
+#endif
 
 
 // Intel C++
 // The Intel Windows compiler masquerades as VC++ and defines _MSC_VER.
 // The Intel compiler is based on the EDG compiler front-end.
 #elif defined(__ICL) || defined(__ICC)
-    #define ABEL_COMPILER_INTEL 1
+#define ABEL_COMPILER_INTEL 1
 
 // Should we enable the following? We probably should do so since enabling it does a lot more good than harm
 // for users. The Intel Windows compiler does a pretty good job of emulating VC++ and so the user would likely
 // have to handle few special cases where the Intel compiler doesn't emulate VC++ correctly.
-    #if defined(_MSC_VER)
-        #define ABEL_COMPILER_MSVC 1
-        #define ABEL_COMPILER_MICROSOFT 1
-    #endif
+#if defined(_MSC_VER)
+#define ABEL_COMPILER_MSVC 1
+#define ABEL_COMPILER_MICROSOFT 1
+#endif
 
 // Should we enable the following? This isn't as clear because as of this writing we don't know if the Intel
 // compiler truly emulates GCC well enough that enabling this does more good than harm.
-    #if defined(__GNUC__)
-        #define ABEL_COMPILER_GNUC 1
-    #endif
+#if defined(__GNUC__)
+#define ABEL_COMPILER_GNUC 1
+#endif
 
-    #if defined(__ICL)
-        #define ABEL_COMPILER_VERSION __ICL
-    #elif defined(__ICC)
-        #define ABEL_COMPILER_VERSION __ICC
-    #endif
-    #define ABEL_COMPILER_NAME "Intel C++"
-    #if defined(_MSC_VER)
-        #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( ABEL_COMPILER_VERSION ) ", EDG version " INTERNAL_STRINGIZE( __EDG_VERSION__ ) ", VC++ version " INTERNAL_STRINGIZE( _MSC_VER )
-    #elif defined(__GNUC__)
-        #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( ABEL_COMPILER_VERSION ) ", EDG version " INTERNAL_STRINGIZE( __EDG_VERSION__ ) ", GCC version " INTERNAL_STRINGIZE( __GNUC__ )
-    #else
-        #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( ABEL_COMPILER_VERSION ) ", EDG version " INTERNAL_STRINGIZE( __EDG_VERSION__ )
-    #endif
+#if defined(__ICL)
+#define ABEL_COMPILER_VERSION __ICL
+#elif defined(__ICC)
+#define ABEL_COMPILER_VERSION __ICC
+#endif
+#define ABEL_COMPILER_NAME "Intel C++"
+#if defined(_MSC_VER)
+#define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( ABEL_COMPILER_VERSION ) ", EDG version " INTERNAL_STRINGIZE( __EDG_VERSION__ ) ", VC++ version " INTERNAL_STRINGIZE( _MSC_VER )
+#elif defined(__GNUC__)
+#define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( ABEL_COMPILER_VERSION ) ", EDG version " INTERNAL_STRINGIZE( __EDG_VERSION__ ) ", GCC version " INTERNAL_STRINGIZE( __GNUC__ )
+#else
+#define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( ABEL_COMPILER_VERSION ) ", EDG version " INTERNAL_STRINGIZE( __EDG_VERSION__ )
+#endif
 
 
 #elif defined(_MSC_VER)
-    #define ABEL_COMPILER_MSVC 1
-    #define ABEL_COMPILER_MICROSOFT 1
-    #define ABEL_COMPILER_VERSION _MSC_VER
-    #define ABEL_COMPILER_NAME "Microsoft Visual C++"
+#define ABEL_COMPILER_MSVC 1
+#define ABEL_COMPILER_MICROSOFT 1
+#define ABEL_COMPILER_VERSION _MSC_VER
+#define ABEL_COMPILER_NAME "Microsoft Visual C++"
 //#define ABEL_COMPILER_STRING (defined below)
 
-    #if defined(__clang__)
+#if defined(__clang__)
   // Clang's MSVC-compatible driver.
-        #define ABEL_COMPILER_CLANG_CL 1
-    #endif
+#define ABEL_COMPILER_CLANG_CL 1
+#endif
 
-    #define ABEL_STANDARD_LIBRARY_MSVC 1
-    #define ABEL_STANDARD_LIBRARY_MICROSOFT 1
+#define ABEL_STANDARD_LIBRARY_MSVC 1
+#define ABEL_STANDARD_LIBRARY_MICROSOFT 1
 
-    #if (_MSC_VER <= 1200) // If VC6.x and earlier...
-        #if (_MSC_VER < 1200)
-            #define ABEL_COMPILER_MSVCOLD 1
-        #else
-            #define ABEL_COMPILER_MSVC6 1
-        #endif
+#if (_MSC_VER <= 1200) // If VC6.x and earlier...
+#if (_MSC_VER < 1200)
+#define ABEL_COMPILER_MSVCOLD 1
+#else
+#define ABEL_COMPILER_MSVC6 1
+#endif
 
-        #if (_MSC_VER < 1200) // If VC5.x or earlier...
-            #define ABEL_COMPILER_NO_TEMPLATE_SPECIALIZATION 1
-        #endif
-        #define ABEL_COMPILER_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS 1     // The compiler compiles this OK, but executes it wrong. Fixed in VC7.0
-        #define ABEL_COMPILER_NO_VOID_RETURNS 1                             // The compiler fails to compile such cases. Fixed in VC7.0
-        #define ABEL_COMPILER_NO_EXCEPTION_STD_NAMESPACE 1                  // The compiler fails to compile such cases. Fixed in VC7.0
-        #define ABEL_COMPILER_NO_DEDUCED_TYPENAME 1                         // The compiler fails to compile such cases. Fixed in VC7.0
-        #define ABEL_COMPILER_NO_STATIC_CONSTANTS 1                         // The compiler fails to compile such cases. Fixed in VC7.0
-        #define ABEL_COMPILER_NO_COVARIANT_RETURN_TYPE 1                    // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_ARGUMENT_DEPENDENT_LOOKUP 1                // The compiler compiles this OK, but executes it wrong. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_TEMPLATE_TEMPLATES 1                       // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_TEMPLATE_PARTIAL_SPECIALIZATION 1          // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1                  // The compiler fails to compile such cases. Fixed in VC7.1
+#if (_MSC_VER < 1200) // If VC5.x or earlier...
+#define ABEL_COMPILER_NO_TEMPLATE_SPECIALIZATION 1
+#endif
+#define ABEL_COMPILER_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS 1     // The compiler compiles this OK, but executes it wrong. Fixed in VC7.0
+#define ABEL_COMPILER_NO_VOID_RETURNS 1                             // The compiler fails to compile such cases. Fixed in VC7.0
+#define ABEL_COMPILER_NO_EXCEPTION_STD_NAMESPACE 1                  // The compiler fails to compile such cases. Fixed in VC7.0
+#define ABEL_COMPILER_NO_DEDUCED_TYPENAME 1                         // The compiler fails to compile such cases. Fixed in VC7.0
+#define ABEL_COMPILER_NO_STATIC_CONSTANTS 1                         // The compiler fails to compile such cases. Fixed in VC7.0
+#define ABEL_COMPILER_NO_COVARIANT_RETURN_TYPE 1                    // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_ARGUMENT_DEPENDENT_LOOKUP 1                // The compiler compiles this OK, but executes it wrong. Fixed in VC7.1
+#define ABEL_COMPILER_NO_TEMPLATE_TEMPLATES 1                       // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_TEMPLATE_PARTIAL_SPECIALIZATION 1          // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1                  // The compiler fails to compile such cases. Fixed in VC7.1
   //#define ABEL_COMPILER_NO_MEMBER_TEMPLATES 1                       // VC6.x supports member templates properly 95% of the time. So do we flag the remaining 5%?
   //#define ABEL_COMPILER_NO_MEMBER_TEMPLATE_SPECIALIZATION 1         // VC6.x supports member templates properly 95% of the time. So do we flag the remaining 5%?
 
-    #elif (_MSC_VER <= 1300) // If VC7.0 and earlier...
-        #define ABEL_COMPILER_MSVC7 1
+#elif (_MSC_VER <= 1300) // If VC7.0 and earlier...
+#define ABEL_COMPILER_MSVC7 1
 
-        #define ABEL_COMPILER_NO_COVARIANT_RETURN_TYPE 1                    // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_ARGUMENT_DEPENDENT_LOOKUP 1                // The compiler compiles this OK, but executes it wrong. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_TEMPLATE_TEMPLATES 1                       // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_TEMPLATE_PARTIAL_SPECIALIZATION 1          // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1                  // The compiler fails to compile such cases. Fixed in VC7.1
-        #define ABEL_COMPILER_NO_MEMBER_FUNCTION_SPECIALIZATION 1           // This is the case only for VC7.0 and not VC6 or VC7.1+. Fixed in VC7.1
+#define ABEL_COMPILER_NO_COVARIANT_RETURN_TYPE 1                    // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_ARGUMENT_DEPENDENT_LOOKUP 1                // The compiler compiles this OK, but executes it wrong. Fixed in VC7.1
+#define ABEL_COMPILER_NO_TEMPLATE_TEMPLATES 1                       // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_TEMPLATE_PARTIAL_SPECIALIZATION 1          // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_MEMBER_TEMPLATE_FRIENDS 1                  // The compiler fails to compile such cases. Fixed in VC7.1
+#define ABEL_COMPILER_NO_MEMBER_FUNCTION_SPECIALIZATION 1           // This is the case only for VC7.0 and not VC6 or VC7.1+. Fixed in VC7.1
   //#define ABEL_COMPILER_NO_MEMBER_TEMPLATES 1                       // VC7.0 supports member templates properly 95% of the time. So do we flag the remaining 5%?
 
-    #elif (_MSC_VER < 1400) // VS2003       _MSC_VER of 1300 means VC7 (VS2003)
+#elif (_MSC_VER < 1400) // VS2003       _MSC_VER of 1300 means VC7 (VS2003)
   // The VC7.1 and later compiler is fairly close to the C++ standard
   // and thus has no compiler limitations that we are concerned about.
-        #define ABEL_COMPILER_MSVC7_2003 1
-        #define ABEL_COMPILER_MSVC7_1    1
+#define ABEL_COMPILER_MSVC7_2003 1
+#define ABEL_COMPILER_MSVC7_1    1
 
-    #elif (_MSC_VER < 1500) // VS2005       _MSC_VER of 1400 means VC8 (VS2005)
-        #define ABEL_COMPILER_MSVC8_2005 1
-        #define ABEL_COMPILER_MSVC8_0    1
+#elif (_MSC_VER < 1500) // VS2005       _MSC_VER of 1400 means VC8 (VS2005)
+#define ABEL_COMPILER_MSVC8_2005 1
+#define ABEL_COMPILER_MSVC8_0    1
 
-    #elif (_MSC_VER < 1600) // VS2008.      _MSC_VER of 1500 means VC9 (VS2008)
-        #define ABEL_COMPILER_MSVC9_2008 1
-        #define ABEL_COMPILER_MSVC9_0    1
+#elif (_MSC_VER < 1600) // VS2008.      _MSC_VER of 1500 means VC9 (VS2008)
+#define ABEL_COMPILER_MSVC9_2008 1
+#define ABEL_COMPILER_MSVC9_0    1
 
-    #elif (_MSC_VER < 1700) // VS2010       _MSC_VER of 1600 means VC10 (VS2010)
-        #define ABEL_COMPILER_MSVC_2010 1
-        #define ABEL_COMPILER_MSVC10_0  1
+#elif (_MSC_VER < 1700) // VS2010       _MSC_VER of 1600 means VC10 (VS2010)
+#define ABEL_COMPILER_MSVC_2010 1
+#define ABEL_COMPILER_MSVC10_0  1
 
-    #elif (_MSC_VER < 1800) // VS2012       _MSC_VER of 1700 means VS2011/VS2012
-        #define ABEL_COMPILER_MSVC_2011 1   // Microsoft changed the name to VS2012 before shipping, despite referring to it as VS2011 up to just a few weeks before shipping.
-        #define ABEL_COMPILER_MSVC11_0  1
-        #define ABEL_COMPILER_MSVC_2012 1
-        #define ABEL_COMPILER_MSVC12_0  1
+#elif (_MSC_VER < 1800) // VS2012       _MSC_VER of 1700 means VS2011/VS2012
+#define ABEL_COMPILER_MSVC_2011 1   // Microsoft changed the name to VS2012 before shipping, despite referring to it as VS2011 up to just a few weeks before shipping.
+#define ABEL_COMPILER_MSVC11_0  1
+#define ABEL_COMPILER_MSVC_2012 1
+#define ABEL_COMPILER_MSVC12_0  1
 
-    #elif (_MSC_VER < 1900) // VS2013       _MSC_VER of 1800 means VS2013
-        #define ABEL_COMPILER_MSVC_2013 1
-        #define ABEL_COMPILER_MSVC13_0  1
+#elif (_MSC_VER < 1900) // VS2013       _MSC_VER of 1800 means VS2013
+#define ABEL_COMPILER_MSVC_2013 1
+#define ABEL_COMPILER_MSVC13_0  1
 
-    #elif (_MSC_VER < 1910) // VS2015       _MSC_VER of 1900 means VS2015
-        #define ABEL_COMPILER_MSVC_2015 1
-        #define ABEL_COMPILER_MSVC14_0  1
+#elif (_MSC_VER < 1910) // VS2015       _MSC_VER of 1900 means VS2015
+#define ABEL_COMPILER_MSVC_2015 1
+#define ABEL_COMPILER_MSVC14_0  1
 
-    #elif (_MSC_VER < 1911) // VS2017       _MSC_VER of 1910 means VS2017
-        #define ABEL_COMPILER_MSVC_2017 1
-        #define ABEL_COMPILER_MSVC15_0  1
+#elif (_MSC_VER < 1911) // VS2017       _MSC_VER of 1910 means VS2017
+#define ABEL_COMPILER_MSVC_2017 1
+#define ABEL_COMPILER_MSVC15_0  1
 
-    #endif
+#endif
 
 
 // IBM
 #elif defined(__xlC__)
-    #define ABEL_COMPILER_IBM     1
-    #define ABEL_COMPILER_NAME    "IBM XL C"
-    #define ABEL_COMPILER_VERSION __xlC__
-    #define ABEL_COMPILER_STRING "IBM XL C compiler, version " INTERNAL_STRINGIZE( __xlC__ )
+#define ABEL_COMPILER_IBM     1
+#define ABEL_COMPILER_NAME    "IBM XL C"
+#define ABEL_COMPILER_VERSION __xlC__
+#define ABEL_COMPILER_STRING "IBM XL C compiler, version " INTERNAL_STRINGIZE( __xlC__ )
 
 // Unknown
 #else // Else the compiler is unknown
 
-    #define ABEL_COMPILER_VERSION 0
-    #define ABEL_COMPILER_NAME   "Unknown"
+#define ABEL_COMPILER_VERSION 0
+#define ABEL_COMPILER_NAME   "Unknown"
 
 #endif
 
 #ifndef ABEL_COMPILER_STRING
-    #define ABEL_COMPILER_STRING ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE(ABEL_COMPILER_VERSION)
+#define ABEL_COMPILER_STRING ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE(ABEL_COMPILER_VERSION)
 #endif
 
 
 // Deprecated definitions
 // For backwards compatibility, should be supported for at least the life of cxxbase v2.0.x.
 #ifndef ABEL_COMPILER_NO_TEMPLATE_PARTIAL_SPECIALIZATION
-    #define ABEL_COMPILER_PARTIAL_TEMPLATE_SPECIALIZATION 1
+#define ABEL_COMPILER_PARTIAL_TEMPLATE_SPECIALIZATION 1
 #endif
 #ifndef ABEL_COMPILER_NO_TEMPLATE_SPECIALIZATION
-    #define ABEL_COMPILER_TEMPLATE_SPECIALIZATION 1
+#define ABEL_COMPILER_TEMPLATE_SPECIALIZATION 1
 #endif
 #ifndef ABEL_COMPILER_NO_MEMBER_TEMPLATES
-    #define ABEL_COMPILER_MEMBER_TEMPLATES 1
+#define ABEL_COMPILER_MEMBER_TEMPLATES 1
 #endif
 #ifndef ABEL_COMPILER_NO_MEMBER_TEMPLATE_SPECIALIZATION
-    #define ABEL_COMPILER_MEMBER_TEMPLATE_SPECIALIZATION 1
+#define ABEL_COMPILER_MEMBER_TEMPLATE_SPECIALIZATION 1
 #endif
 
 
@@ -441,9 +441,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef ABEL_COMPILER_VA_COPY_REQUIRED
-    #if   ((defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__clang__)) && (!defined(__i386__) || defined(__x86_64__)) && !defined(__ppc__) && !defined(__PPC__) && !defined(__PPC64__)
-        #define ABEL_COMPILER_VA_COPY_REQUIRED 1
-    #endif
+#if   ((defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__clang__)) && (!defined(__i386__) || defined(__x86_64__)) && !defined(__ppc__) && !defined(__PPC__) && !defined(__PPC64__)
+#define ABEL_COMPILER_VA_COPY_REQUIRED 1
+#endif
 #endif
 
 
@@ -453,17 +453,17 @@
 // is not available (possibly due to being disabled by the user).
 //
 #if defined(__EDG_VERSION__) && !defined(__RTTI)
-    #define ABEL_COMPILER_NO_RTTI 1
+#define ABEL_COMPILER_NO_RTTI 1
 #elif defined(__clang__) && !ABEL_COMPILER_HAS_FEATURE(cxx_rtti)
-    #define ABEL_COMPILER_NO_RTTI 1
+#define ABEL_COMPILER_NO_RTTI 1
 #elif defined(__IBMCPP__) && !defined(__RTTI_ALL__)
-    #define ABEL_COMPILER_NO_RTTI 1
+#define ABEL_COMPILER_NO_RTTI 1
 #elif defined(__GXX_ABI_VERSION) && !defined(__GXX_RTTI)
-    #define ABEL_COMPILER_NO_RTTI 1
+#define ABEL_COMPILER_NO_RTTI 1
 #elif defined(_MSC_VER) && !defined(_CPPRTTI)
-    #define ABEL_COMPILER_NO_RTTI 1
+#define ABEL_COMPILER_NO_RTTI 1
 #elif defined(__ARMCC_VERSION) && defined(__TARGET_CPU_MPCORE) && !defined(__RTTI)
-    #define ABEL_COMPILER_NO_RTTI 1
+#define ABEL_COMPILER_NO_RTTI 1
 #endif
 
 
@@ -483,16 +483,16 @@
 // don't, check for ABEL_COMPILER_NO_EXCEPTIONS being defined.
 //
 #if !defined(ABEL_COMPILER_NO_EXCEPTIONS) && !defined(ABEL_COMPILER_NO_UNWIND)
-    #if defined(ABEL_COMPILER_GNUC) && defined(_NO_EX) // GCC on some platforms defines _NO_EX when exceptions are disabled.
-        #define ABEL_COMPILER_NO_EXCEPTIONS 1
+#if defined(ABEL_COMPILER_GNUC) && defined(_NO_EX) // GCC on some platforms defines _NO_EX when exceptions are disabled.
+#define ABEL_COMPILER_NO_EXCEPTIONS 1
 
-    #elif (defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_RVCT)) && !defined(__EXCEPTIONS) // GCC and most EDG-based compilers define __EXCEPTIONS when exception handling is enabled.
-        #define ABEL_COMPILER_NO_EXCEPTIONS 1
+#elif (defined(ABEL_COMPILER_CLANG) || defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_RVCT)) && !defined(__EXCEPTIONS) // GCC and most EDG-based compilers define __EXCEPTIONS when exception handling is enabled.
+#define ABEL_COMPILER_NO_EXCEPTIONS 1
 
-    #elif (defined(ABEL_COMPILER_BORLAND) || defined(ABEL_COMPILER_MSVC)) && !defined(_CPPUNWIND)
-        #define ABEL_COMPILER_NO_UNWIND 1
+#elif (defined(ABEL_COMPILER_BORLAND) || defined(ABEL_COMPILER_MSVC)) && !defined(_CPPUNWIND)
+#define ABEL_COMPILER_NO_UNWIND 1
 
-    #endif // ABEL_COMPILER_NO_EXCEPTIONS / ABEL_COMPILER_NO_UNWIND
+#endif // ABEL_COMPILER_NO_EXCEPTIONS / ABEL_COMPILER_NO_UNWIND
 #endif // !defined(ABEL_COMPILER_NO_EXCEPTIONS) && !defined(ABEL_COMPILER_NO_UNWIND)
 
 
@@ -508,39 +508,41 @@
 //
 //This is duplicated from cxxbase's eacompilertraits.h
 #ifndef ABEL_DISABLE_ALL_VC_WARNINGS
-    #if defined(_MSC_VER)
+#if defined(_MSC_VER)
 #define ABEL_DISABLE_ALL_VC_WARNINGS()  \
                 __pragma(warning(push, 0)) \
                 __pragma(warning(disable: 4244 4265 4267 4350 4472 4509 4548 4623 4710 4985 6320 4755 4625 4626 4702)) // Some warnings need to be explicitly called out.
-    #else
-        #define ABEL_DISABLE_ALL_VC_WARNINGS()
-    #endif
+#else
+#define ABEL_DISABLE_ALL_VC_WARNINGS()
+#endif
 #endif
 
 //This is duplicated from cxxbase's eacompilertraits.h
 #ifndef ABEL_RESTORE_ALL_VC_WARNINGS
-    #if defined(_MSC_VER)
+#if defined(_MSC_VER)
 #define ABEL_RESTORE_ALL_VC_WARNINGS()  \
                 __pragma(warning(pop))
-    #else
-        #define ABEL_RESTORE_ALL_VC_WARNINGS()
-    #endif
+#else
+#define ABEL_RESTORE_ALL_VC_WARNINGS()
+#endif
 #endif
 
 // Dinkumware
 //This is duplicated from cxxbase's eahave.h
 #if !defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY) && !defined(ABEL_NO_HAVE_DINKUMWARE_CPP_LIBRARY)
-    #if defined(__cplusplus)
+#if defined(__cplusplus)
 ABEL_DISABLE_ALL_VC_WARNINGS()
-        #include <cstddef> // Need to trigger the compilation of yvals.h without directly using <yvals.h> because it might not exist.
-ABEL_RESTORE_ALL_VC_WARNINGS()
-    #endif
 
-    #if defined(__cplusplus) && defined(_CPPLIB_VER) /* If using the Dinkumware Standard library... */
-        #define ABEL_HAVE_DINKUMWARE_CPP_LIBRARY 1
-    #else
-        #define ABEL_NO_HAVE_DINKUMWARE_CPP_LIBRARY 1
-    #endif
+#include <cstddef> // Need to trigger the compilation of yvals.h without directly using <yvals.h> because it might not exist.
+
+ABEL_RESTORE_ALL_VC_WARNINGS()
+#endif
+
+#if defined(__cplusplus) && defined(_CPPLIB_VER) /* If using the Dinkumware Standard library... */
+#define ABEL_HAVE_DINKUMWARE_CPP_LIBRARY 1
+#else
+#define ABEL_NO_HAVE_DINKUMWARE_CPP_LIBRARY 1
+#endif
 #endif
 
 
@@ -548,13 +550,13 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 //
 #if !defined(ABEL_COMPILER_NO_ALIGNED_NEW)
-    #if defined(_HAS_ALIGNED_NEW) && _HAS_ALIGNED_NEW // VS2017 15.5 Preview
+#if defined(_HAS_ALIGNED_NEW) && _HAS_ALIGNED_NEW // VS2017 15.5 Preview
 // supported.
-    #elif defined(ABEL_COMPILER_CPP17_ENABLED)
+#elif defined(ABEL_COMPILER_CPP17_ENABLED)
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_ALIGNED_NEW 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_ALIGNED_NEW 1
+#endif
 #endif
 
 // ABEL_COMPILER_NO_NEW_THROW_SPEC / ABEL_THROW_SPEC_NEW / ABEL_THROW_SPEC_DELETE
@@ -576,40 +578,40 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //      void  operator delete[](void*, const std::nothrow_t&) ABEL_THROW_SPEC_DELETE_NONE();
 //
 #if defined(ABEL_HAVE_DINKUMWARE_CPP_LIBRARY)
-    #if defined(_MSC_VER) && (_MSC_VER >= 1912)  // VS2017 15.3+
-        #define ABEL_THROW_SPEC_NEW(x)        noexcept(false)
-        #define ABEL_THROW_SPEC_NEW_NONE()    noexcept
-        #define ABEL_THROW_SPEC_DELETE_NONE() noexcept
+#if defined(_MSC_VER) && (_MSC_VER >= 1912)  // VS2017 15.3+
+#define ABEL_THROW_SPEC_NEW(x)        noexcept(false)
+#define ABEL_THROW_SPEC_NEW_NONE()    noexcept
+#define ABEL_THROW_SPEC_DELETE_NONE() noexcept
 
-    #elif defined(_MSC_VER) && (_MSC_VER >= 1910)  // VS2017+
-        #define ABEL_THROW_SPEC_NEW(x)        throw(x)
-        #define ABEL_THROW_SPEC_NEW_NONE()    throw()
-        #define ABEL_THROW_SPEC_DELETE_NONE() throw()
+#elif defined(_MSC_VER) && (_MSC_VER >= 1910)  // VS2017+
+#define ABEL_THROW_SPEC_NEW(x)        throw(x)
+#define ABEL_THROW_SPEC_NEW_NONE()    throw()
+#define ABEL_THROW_SPEC_DELETE_NONE() throw()
 
-    #else
-        #if defined(ABEL_PLATFORM_SONY)
-            #define ABEL_THROW_SPEC_NEW(X)        _THROWS(X)
-        #elif defined(_MSC_VER)
+#else
+#if defined(ABEL_PLATFORM_SONY)
+#define ABEL_THROW_SPEC_NEW(X)        _THROWS(X)
+#elif defined(_MSC_VER)
 // Disabled warning "nonstandard extension used: 'throw (...)'" as this warning is a W4 warning which is usually off by default
 // and doesn't convey any important information but will still complain when building with /Wall (which most teams do)
-            #define ABEL_THROW_SPEC_NEW(X)        __pragma(warning(push)) __pragma(warning(disable: 4987)) _THROWS(X) __pragma(warning(pop))
-        #else
-            #define ABEL_THROW_SPEC_NEW(X)        _THROW1(X)
-        #endif
-        #define ABEL_THROW_SPEC_NEW_NONE()    _THROW0()
-        #define ABEL_THROW_SPEC_DELETE_NONE() _THROW0()
-
-    #endif
-#elif defined(ABEL_COMPILER_NO_EXCEPTIONS) && !defined(ABEL_COMPILER_RVCT) && !defined(ABEL_PLATFORM_LINUX) && !defined(ABEL_PLATFORM_APPLE) && !defined(CS_UNDEFINED_STRING)
-    #define ABEL_COMPILER_NO_NEW_THROW_SPEC 1
-
-    #define ABEL_THROW_SPEC_NEW(x)
-    #define ABEL_THROW_SPEC_NEW_NONE()
-    #define ABEL_THROW_SPEC_DELETE_NONE()
+#define ABEL_THROW_SPEC_NEW(X)        __pragma(warning(push)) __pragma(warning(disable: 4987)) _THROWS(X) __pragma(warning(pop))
 #else
-    #define ABEL_THROW_SPEC_NEW(x)        throw(x)
-    #define ABEL_THROW_SPEC_NEW_NONE()    throw()
-    #define ABEL_THROW_SPEC_DELETE_NONE() throw()
+#define ABEL_THROW_SPEC_NEW(X)        _THROW1(X)
+#endif
+#define ABEL_THROW_SPEC_NEW_NONE()    _THROW0()
+#define ABEL_THROW_SPEC_DELETE_NONE() _THROW0()
+
+#endif
+#elif defined(ABEL_COMPILER_NO_EXCEPTIONS) && !defined(ABEL_COMPILER_RVCT) && !defined(ABEL_PLATFORM_LINUX) && !defined(ABEL_PLATFORM_APPLE) && !defined(CS_UNDEFINED_STRING)
+#define ABEL_COMPILER_NO_NEW_THROW_SPEC 1
+
+#define ABEL_THROW_SPEC_NEW(x)
+#define ABEL_THROW_SPEC_NEW_NONE()
+#define ABEL_THROW_SPEC_DELETE_NONE()
+#else
+#define ABEL_THROW_SPEC_NEW(x)        throw(x)
+#define ABEL_THROW_SPEC_NEW_NONE()    throw()
+#define ABEL_THROW_SPEC_DELETE_NONE() throw()
 #endif
 
 
@@ -624,7 +626,7 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
         //#include <android/api-level.h>
         //
         //#if (__ANDROID_API__ < 9) // Earlier versions of Android provide no std C++ STL implementation.
-    #define ABEL_COMPILER_NO_STANDARD_CPP_LIBRARY 1
+#define ABEL_COMPILER_NO_STANDARD_CPP_LIBRARY 1
         //#endif
 #endif
 
@@ -658,13 +660,13 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //     #define MY_PRINTF(format, ...) printf(format, __VA_ARGS__)
 //
 #if !defined(ABEL_COMPILER_NO_VARIADIC_MACROS)
-    #if defined(_MSC_VER) && (_MSC_VER < 1500) // If earlier than VS2008..
-        #define ABEL_COMPILER_NO_VARIADIC_MACROS 1
-    #elif defined(__GNUC__) && (((__GNUC__ * 100) + __GNUC_MINOR__)) < 401 // If earlier than GCC 4.1..
-        #define ABEL_COMPILER_NO_VARIADIC_MACROS 1
-    #elif defined(ABEL_COMPILER_EDG) // Includes other compilers
+#if defined(_MSC_VER) && (_MSC_VER < 1500) // If earlier than VS2008..
+#define ABEL_COMPILER_NO_VARIADIC_MACROS 1
+#elif defined(__GNUC__) && (((__GNUC__ * 100) + __GNUC_MINOR__)) < 401 // If earlier than GCC 4.1..
+#define ABEL_COMPILER_NO_VARIADIC_MACROS 1
+#elif defined(ABEL_COMPILER_EDG) // Includes other compilers
 // variadic macros are supported
-    #endif
+#endif
 #endif
 
 
@@ -675,17 +677,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // which is required by the Standard to have some support itself.
 //
 #if !defined(ABEL_COMPILER_NO_RVALUE_REFERENCES)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_VER >= 1600)                // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_VER >= 1600)                // VS2010+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403) // EDG 4.3+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403) // EDG 4.3+.
 // supported. Earlier EDG supported a subset of rvalue references. Implicit move constructors and assignment operators aren't supported until EDG 4.5.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_rvalue_references)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_rvalue_references)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_RVALUE_REFERENCES 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_RVALUE_REFERENCES 1
+#endif
 #endif
 
 
@@ -696,19 +698,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //     extern template void DoSomething(KnownType u);
 //
 #if !defined(ABEL_COMPILER_NO_EXTERN_TEMPLATE)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_VER >= 1700)                 // VS2012+...
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_VER >= 1700)                 // VS2012+...
 // Extern template is supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401)  // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401)  // EDG 4.1+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && defined(__apple_build_version__) && (ABEL_COMPILER_VERSION >= 401)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && defined(__apple_build_version__) && (ABEL_COMPILER_VERSION >= 401)
 // Extern template is supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && !defined(__apple_build_version__)             // Clang other than Apple's Clang
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && !defined(__apple_build_version__)             // Clang other than Apple's Clang
 // Extern template is supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)    // GCC 4.6+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)    // GCC 4.6+
 // Extern template is supported.
-    #else
-        #define ABEL_COMPILER_NO_EXTERN_TEMPLATE 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_EXTERN_TEMPLATE 1
+#endif
 #endif
 
 
@@ -725,17 +727,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //        f += 1.0;
 //
 #if !defined(ABEL_COMPILER_NO_RANGE_BASED_FOR_LOOP)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700))      // VS2012+...
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700))      // VS2012+...
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405)  // EDG 4.5+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405)  // EDG 4.5+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(__clang__) && (ABEL_COMPILER_VERSION >= 300))  // Clang 3.x+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(__clang__) && (ABEL_COMPILER_VERSION >= 300))  // Clang 3.x+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006))  // GCC 4.6+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006))  // GCC 4.6+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_RANGE_BASED_FOR_LOOP 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_RANGE_BASED_FOR_LOOP 1
+#endif
 #endif
 
 
@@ -744,19 +746,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 = constexpr (const expression) declarations.
 //
 #if !defined(ABEL_COMPILER_NO_CONSTEXPR)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)) // VS2015+... Not present in VC++ up to and including VS2013.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && (defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)) // VS2015+... Not present in VC++ up to and including VS2013.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 406) // EDG 4.6+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 406) // EDG 4.6+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_constexpr)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_constexpr)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006) // GCC 4.6+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006) // GCC 4.6+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900) // VS 2015+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900) // VS 2015+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_CONSTEXPR 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_CONSTEXPR 1
+#endif
 #endif
 
 
@@ -765,15 +767,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++17 = constexpr if(const expression) conditionals.
 //
 #if !defined(ABEL_COMPILER_NO_CONSTEXPR_IF)
-    #if defined(ABEL_COMPILER_CPP17_ENABLED) && (defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1911)) // VS2017 15.3+
+#if defined(ABEL_COMPILER_CPP17_ENABLED) && (defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1911)) // VS2017 15.3+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP17_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 309) // Clang 3.9+
+#elif defined(ABEL_COMPILER_CPP17_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 309) // Clang 3.9+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP17_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 7000) // GCC 7+
+#elif defined(ABEL_COMPILER_CPP17_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 7000) // GCC 7+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_CONSTEXPR_IF 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_CONSTEXPR_IF 1
+#endif
 #endif
 
 
@@ -782,15 +784,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to the C++11 override specifier.
 //
 #ifndef ABEL_COMPILER_NO_OVERRIDE
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION > 1600)  // VC++ > VS2010, even without C++11 support. VS2010 does support override, however will generate warnings due to the keyword being 'non-standard'
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION > 1600)  // VC++ > VS2010, even without C++11 support. VS2010 does support override, however will generate warnings due to the keyword being 'non-standard'
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)    // Clang 2.9+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)    // Clang 2.9+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)  // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)  // GCC 4.7+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_OVERRIDE 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_OVERRIDE 1
+#endif
 #endif
 
 
@@ -799,15 +801,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to the C++11 final specifier.
 //
 #ifndef ABEL_COMPILER_NO_INHERITANCE_FINAL
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1500)  // VS2008+, even without C++11 support.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1500)  // VS2008+, even without C++11 support.
 // supported, though you need to use ABEL_INHERITANCE_FINAL for it to work with VS versions prior to 2012.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+
 // supported
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)  // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)  // GCC 4.7+
 // supported
-    #else
-        #define ABEL_COMPILER_NO_INHERITANCE_FINAL 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_INHERITANCE_FINAL 1
+#endif
 #endif
 
 
@@ -816,17 +818,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 auto.
 //
 #if !defined(ABEL_COMPILER_NO_AUTO)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported with the exception of the usage of braced initializer lists as of EDG 4.3.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_AUTO 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_AUTO 1
+#endif
 #endif
 
 
@@ -836,17 +838,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Note that <cxxbase/nullptr.h> implements a portable nullptr implementation.
 //
 #if !defined(ABEL_COMPILER_NO_NULLPTR)
-    #if (defined(_MSC_VER) && (_MSC_VER >= 1600)) && defined(ABEL_COMPILER_CPP11_ENABLED)
+#if (defined(_MSC_VER) && (_MSC_VER >= 1600)) && defined(ABEL_COMPILER_CPP11_ENABLED)
 // supported
-    #elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006) && defined(ABEL_COMPILER_CPP11_ENABLED)
+#elif defined(ABEL_COMPILER_GNUC) && (ABEL_COMPILER_VERSION >= 4006) && defined(ABEL_COMPILER_CPP11_ENABLED)
 // supported
-    #elif  defined(__clang__) && defined(ABEL_COMPILER_CPP11_ENABLED)
+#elif  defined(__clang__) && defined(ABEL_COMPILER_CPP11_ENABLED)
 // supported
-    #elif defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403) && defined(ABEL_COMPILER_CPP11_ENABLED)
+#elif defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403) && defined(ABEL_COMPILER_CPP11_ENABLED)
 // supported
-    #else
-        #define ABEL_COMPILER_NO_NULLPTR 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_NULLPTR 1
+#endif
 #endif
 
 
@@ -855,17 +857,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 decltype.
 //
 #if !defined(ABEL_COMPILER_NO_DECLTYPE)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported, though VS2010 doesn't support the spec completely as specified in the final standard.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4003)   // GCC 4.3+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4003)   // GCC 4.3+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_DECLTYPE 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_DECLTYPE 1
+#endif
 #endif
 
 
@@ -876,33 +878,33 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 = default and = delete function declarations.
 //
 #if !defined(ABEL_COMPILER_NO_DEFAULTED_FUNCTIONS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+
 // supported, but as of VS2013 it isn't supported for defaulted move constructors and move assignment operators.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported, but as of EDG 4.3 it isn't supported for defaulted move constructors and move assignment operators until EDG 4.5.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300)    // Clang 3.0+, including Apple's Clang
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300)    // Clang 3.0+, including Apple's Clang
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
+#else
 // VC++ doesn't support it as of VS2012.
-        #define ABEL_COMPILER_NO_DEFAULTED_FUNCTIONS 1
-    #endif
+#define ABEL_COMPILER_NO_DEFAULTED_FUNCTIONS 1
+#endif
 #endif
 
 #if !defined(ABEL_COMPILER_NO_DELETED_FUNCTIONS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+
 // supported, but as of VS2013 it isn't supported for defaulted move constructors and move assignment operators.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)    // Clang 2.9+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)    // Clang 2.9+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
+#else
 // VC++ doesn't support it as of VS2012.
-        #define ABEL_COMPILER_NO_DELETED_FUNCTIONS 1
-    #endif
+#define ABEL_COMPILER_NO_DELETED_FUNCTIONS 1
+#endif
 #endif
 
 
@@ -911,19 +913,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 lambda expressions.
 //
 #if !defined(ABEL_COMPILER_NO_LAMBDA_EXPRESSIONS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported, though VS2010 doesn't support the spec completely as specified in the final standard.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported. However, converting lambdas to function pointers is not supported until EDG 4.5.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__)  // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__)  // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_LAMBDA_EXPRESSIONS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_LAMBDA_EXPRESSIONS 1
+#endif
 #endif
 
 
@@ -932,19 +934,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 trailing-return-type. Also sometimes referred to as "incomplete return type".
 //
 #if !defined(ABEL_COMPILER_NO_TRAILING_RETURN_TYPES)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported, though VS2010 doesn't support the spec completely as specified in the final standard.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
 // supported. However, use of "this" in trailing return types is not supported untiil EDG 4.4
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__)  // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__)  // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_TRAILING_RETURN_TYPES 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_TRAILING_RETURN_TYPES 1
+#endif
 #endif
 
 
@@ -953,17 +955,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 strongly typed enums, which includes enum classes and sized enums. Doesn't include forward-declared enums.
 //
 #if !defined(ABEL_COMPILER_NO_STRONGLY_TYPED_ENUMS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700)     // VS2012+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700)     // VS2012+
 // supported. A subset of this is actually supported by VS2010.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 400) // EDG 4.0+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 400) // EDG 4.0+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_STRONGLY_TYPED_ENUMS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_STRONGLY_TYPED_ENUMS 1
+#endif
 #endif
 
 
@@ -972,19 +974,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 forward declared enums.
 //
 #if !defined(ABEL_COMPILER_NO_FORWARD_DECLARED_ENUMS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700)     // VS2012+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700)     // VS2012+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
 // supported. EDG 4.3 supports basic forward-declared enums, but not forward-declared strongly typed enums.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__)  // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__)  // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)   // GCC 4.6+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)   // GCC 4.6+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_FORWARD_DECLARED_ENUMS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_FORWARD_DECLARED_ENUMS 1
+#endif
 #endif
 
 
@@ -993,19 +995,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // Refers to C++11 variadic templates.
 //
 #if !defined(ABEL_COMPILER_NO_VARIADIC_TEMPLATES)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_FULL_VER == 170051025)    // VS2012 November Preview for Windows only.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_FULL_VER == 170051025)    // VS2012 November Preview for Windows only.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403) // EDG 4.3+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403) // EDG 4.3+.
 // supported, though 4.1 has partial support for variadic templates.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported, though GCC 4.3 has partial support for variadic templates.
-    #else
-        #define ABEL_COMPILER_NO_VARIADIC_TEMPLATES 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_VARIADIC_TEMPLATES 1
+#endif
 #endif
 
 
@@ -1019,19 +1021,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //     Dictionary<int> StringIntDictionary;
 //
 #if !defined(ABEL_COMPILER_NO_TEMPLATE_ALIASES)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
 // supported, though 4.1 has partial support for variadic templates.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
 // supported, though GCC 4.3 has partial support for variadic templates.
-    #else
-        #define ABEL_COMPILER_NO_TEMPLATE_ALIASES 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_TEMPLATE_ALIASES 1
+#endif
 #endif
 
 
@@ -1043,15 +1045,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //     constexpr T pi = T(3.1415926535897932385);
 //
 #if !defined(ABEL_COMPILER_NO_VARIABLE_TEMPLATES)
-    #if defined(_MSC_VER) && (_MSC_FULL_VER >= 190023918)    // VS2015 Update 2 and above.
+#if defined(_MSC_VER) && (_MSC_FULL_VER >= 190023918)    // VS2015 Update 2 and above.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP14_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 304) && !defined(__apple_build_version__)    // Clang 3.4+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP14_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 304) && !defined(__apple_build_version__)    // Clang 3.4+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP14_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 5000)   // GCC 5+
+#elif defined(ABEL_COMPILER_CPP14_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 5000)   // GCC 5+
 // supported.
-    #elif !defined(ABEL_COMPILER_CPP14_ENABLED)
-        #define ABEL_COMPILER_NO_VARIABLE_TEMPLATES 1
-    #endif
+#elif !defined(ABEL_COMPILER_CPP14_ENABLED)
+#define ABEL_COMPILER_NO_VARIABLE_TEMPLATES 1
+#endif
 #endif
 
 
@@ -1069,7 +1071,7 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.cppreference.com/w/cpp/language/inline
 //
 #if !defined(ABEL_COMPILER_NO_INLINE_VARIABLES)
-    #define ABEL_COMPILER_NO_INLINE_VARIABLES 1
+#define ABEL_COMPILER_NO_INLINE_VARIABLES 1
 #endif
 
 
@@ -1079,21 +1081,21 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // This refers to the compiler support for this and not the Standard Library support (std::initializer_list).
 //
 #if !defined(ABEL_COMPILER_NO_INITIALIZER_LISTS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)     // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_FULL_VER == 170051025)    // VS2012 November Preview for Windows only.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_FULL_VER == 170051025)    // VS2012 November Preview for Windows only.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported, though GCC 4.3 has partial support for it.
-    #else
-        #define ABEL_COMPILER_NO_INITIALIZER_LISTS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_INITIALIZER_LISTS 1
+#endif
 #endif
 
 
@@ -1104,19 +1106,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://blog.aaronballman.com/2011/09/understanding-attributes/
 //
 #if !defined(ABEL_COMPILER_NO_NORETURN)
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300)                                   // VS2003+
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300)                                   // VS2003+
 // supported via __declspec(noreturn). You need to use that or ABEL_NORETURN. VC++ up to VS2013 doesn't support any C++11 attribute types.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_NORETURN 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_NORETURN 1
+#endif
 #endif
 
 
@@ -1127,18 +1129,18 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://blog.aaronballman.com/2011/09/understanding-attributes/
 //
 #if !defined(ABEL_COMPILER_NO_CARRIES_DEPENDENCY)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
 // supported; stricter than other compilers in its usage.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
         // Currently GNUC doesn't appear to support this attribute.
         //#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)                        // GCC 4.8+
         //    // supported.
-    #else
-        #define ABEL_COMPILER_NO_CARRIES_DEPENDENCY 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_CARRIES_DEPENDENCY 1
+#endif
 #endif
 
 
@@ -1148,11 +1150,11 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.cppreference.com/w/cpp/language/attributes
 //
 #if !defined(ABEL_COMPILER_NO_FALLTHROUGH)
-    #if defined(ABEL_COMPILER_CPP17_ENABLED)
+#if defined(ABEL_COMPILER_CPP17_ENABLED)
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_FALLTHROUGH 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_FALLTHROUGH 1
+#endif
 #endif
 
 
@@ -1162,11 +1164,11 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.cppreference.com/w/cpp/language/attributes
 //
 #if !defined(ABEL_COMPILER_NO_NODISCARD)
-    #if defined(ABEL_COMPILER_CPP17_ENABLED)
+#if defined(ABEL_COMPILER_CPP17_ENABLED)
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_NODISCARD 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_NODISCARD 1
+#endif
 #endif
 
 
@@ -1176,13 +1178,13 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.cppreference.com/w/cpp/language/attributes
 //
 #if !defined(ABEL_COMPILER_NO_MAYBE_UNUSED)
-    #if defined(ABEL_COMPILER_CPP17_ENABLED)
+#if defined(ABEL_COMPILER_CPP17_ENABLED)
 // supported.
-    #elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1912) // VS2017 15.3+
+#elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1912) // VS2017 15.3+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_MAYBE_UNUSED 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_MAYBE_UNUSED 1
+#endif
 #endif
 
 
@@ -1193,13 +1195,13 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 //
 #if !defined(ABEL_COMPILER_NO_STRUCTURED_BINDING)
-    #if defined(ABEL_COMPILER_CPP17_ENABLED)
+#if defined(ABEL_COMPILER_CPP17_ENABLED)
 // supported.
-    #elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1912) // VS2017 15.3+
+#elif defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1912) // VS2017 15.3+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_STRUCTURED_BINDING 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_STRUCTURED_BINDING 1
+#endif
 #endif
 
 
@@ -1213,11 +1215,11 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //   A a = { .y = 42, .x = 1 };
 //
 #if !defined(ABEL_COMPILER_NO_DESIGNATED_INITIALIZERS)
-    #if defined(ABEL_COMPILER_CPP20_ENABLED)
+#if defined(ABEL_COMPILER_CPP20_ENABLED)
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_DESIGNATED_INITIALIZERS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_DESIGNATED_INITIALIZERS 1
+#endif
 #endif
 
 
@@ -1227,17 +1229,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2008/n2756.htm
 //
 #if !defined(ABEL_COMPILER_NO_NONSTATIC_MEMBER_INITIALIZERS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_NONSTATIC_MEMBER_INITIALIZERS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_NONSTATIC_MEMBER_INITIALIZERS 1
+#endif
 #endif
 
 
@@ -1247,17 +1249,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // declarations such as typedef eastl::list<eastl::list<int>> ListList;
 //
 #if !defined(ABEL_COMPILER_NO_RIGHT_ANGLE_BRACKETS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4003)   // GCC 4.3+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4003)   // GCC 4.3+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_RIGHT_ANGLE_BRACKETS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_RIGHT_ANGLE_BRACKETS 1
+#endif
 #endif
 
 
@@ -1268,13 +1270,13 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_ALIGNOF)
 // Not supported by VC++ as of VS2013, though ABEL_ALIGN_OF is supported on all coompilers as an alternative.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)    // Clang 2.9+, including Apple's Clang.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)    // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)  // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)  // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_ALIGNOF 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_ALIGNOF 1
+#endif
 #endif
 
 
@@ -1284,15 +1286,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_ALIGNAS)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_ALIGNAS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_ALIGNAS 1
+#endif
 #endif
 
 
@@ -1303,19 +1305,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // https://www.ibm.com/developerworks/mydeveloperworks/blogs/5894415f-be62-4bc0-81c5-3956e82276f3/entry/c_0x_delegating_constructors
 //
 #if !defined(ABEL_COMPILER_NO_DELEGATING_CONSTRUCTORS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_DELEGATING_CONSTRUCTORS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_DELEGATING_CONSTRUCTORS 1
+#endif
 #endif
 
 
@@ -1326,13 +1328,13 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_INHERITING_CONSTRUCTORS)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_inheriting_constructors)    // Clang
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_inheriting_constructors)    // Clang
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_INHERITING_CONSTRUCTORS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_INHERITING_CONSTRUCTORS 1
+#endif
 #endif
 
 
@@ -1343,15 +1345,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_USER_DEFINED_LITERALS)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_USER_DEFINED_LITERALS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_USER_DEFINED_LITERALS 1
+#endif
 #endif
 
 
@@ -1360,17 +1362,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //     http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2342.htm
 //
 #if !defined(ABEL_COMPILER_NO_STANDARD_LAYOUT_TYPES)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700)                            // VS2012+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1700)                            // VS2012+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_STANDARD_LAYOUT_TYPES 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_STANDARD_LAYOUT_TYPES 1
+#endif
 #endif
 
 
@@ -1381,18 +1383,18 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_EXTENDED_SIZEOF)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
 // Versions of EDG prior to 4.5 only support extended sizeof in non-member functions. Full support was added in 4.5
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_EXTENDED_SIZEOF 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_EXTENDED_SIZEOF 1
+#endif
 #endif
 
 
@@ -1403,15 +1405,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_INLINE_NAMESPACES)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004) // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004) // GCC 4.4+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_INLINE_NAMESPACES 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_INLINE_NAMESPACES 1
+#endif
 #endif
 
 
@@ -1421,17 +1423,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_UNRESTRICTED_UNIONS)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 406) // EDG 4.6+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 406) // EDG 4.6+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)   // GCC 4.6+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)   // GCC 4.6+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_UNRESTRICTED_UNIONS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_UNRESTRICTED_UNIONS 1
+#endif
 #endif
 
 
@@ -1440,21 +1442,21 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.wikipedia.org/wiki/C%2B%2B11#Explicit_conversion_operators
 //
 #if !defined(ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_FULL_VER == 170051025)                         // VS2012 November Preview for Windows only.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (_MSC_FULL_VER == 170051025)                         // VS2012 November Preview for Windows only.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 404) // EDG 4.4+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 404) // EDG 4.4+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_EXPLICIT_CONVERSION_OPERATORS 1
+#endif
 #endif
 
 
@@ -1464,17 +1466,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://stackoverflow.com/questions/2447458/default-template-arguments-for-function-templates
 //
 #if !defined(ABEL_COMPILER_NO_FUNCTION_TEMPLATE_DEFAULT_ARGS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)        // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)        // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403)    // EDG 4.4+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 403)    // EDG 4.4+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)      // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)      // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4003) // GCC 4.3+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4003) // GCC 4.3+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_FUNCTION_TEMPLATE_DEFAULT_ARGS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_FUNCTION_TEMPLATE_DEFAULT_ARGS 1
+#endif
 #endif
 
 
@@ -1484,20 +1486,20 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://stackoverflow.com/questions/5751977/local-type-as-template-arguments-in-c
 //
 #if !defined(ABEL_COMPILER_NO_LOCAL_CLASS_TEMPLATE_PARAMETERS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported.
-        #if (ABEL_COMPILER_VERSION < 1700)    // VS2010 generates a warning, but the C++ language now allows it.
-            #pragma warning(disable: 4836) // nonstandard extension used: local types or unnamed types cannot be used as template arguments.
-        #endif
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
+#if (ABEL_COMPILER_VERSION < 1700)    // VS2010 generates a warning, but the C++ language now allows it.
+#pragma warning(disable: 4836) // nonstandard extension used: local types or unnamed types cannot be used as template arguments.
+#endif
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 402) // EDG 4.2+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_LOCAL_CLASS_TEMPLATE_PARAMETERS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_LOCAL_CLASS_TEMPLATE_PARAMETERS 1
+#endif
 #endif
 
 
@@ -1508,19 +1510,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.cppreference.com/w/cpp/language/noexcept
 //
 #if !defined(ABEL_COMPILER_NO_NOEXCEPT)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)     // VS2014+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)     // VS2014+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 405) // EDG 4.5+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)   // GCC 4.6+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4006)   // GCC 4.6+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_NOEXCEPT 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_NOEXCEPT 1
+#endif
 #endif
 
 
@@ -1530,19 +1532,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.wikipedia.org/wiki/C%2B%2B11#New_string_literals
 //
 #if !defined(ABEL_COMPILER_NO_RAW_LITERALS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                            // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                            // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_RAW_LITERALS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_RAW_LITERALS 1
+#endif
 #endif
 
 
@@ -1552,19 +1554,19 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 //
 #if !defined(ABEL_COMPILER_NO_UNICODE_STRING_LITERALS)
 // Not supported by VC++ as of VS2013.
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
 // supported. It's not clear if it's v4.4 or v4.7 that adds this support.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 300) && !defined(__apple_build_version__) // Clang 3.0+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 407) // EDG 4.7+.
 // supported. It's not clear if it's v4.4 or v4.7 that adds this support.
-    #else
-        #define ABEL_COMPILER_NO_UNICODE_STRING_LITERALS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_UNICODE_STRING_LITERALS 1
+#endif
 #endif
 
 
@@ -1574,9 +1576,9 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.cppreference.com/w/cpp/language/types
 //
 #if !defined(ABEL_COMPILER_NO_NEW_CHARACTER_TYPES)
-    #if defined(ABEL_COMPILER_NO_UNICODE_STRING_LITERALS) // Some compilers have had support for char16_t prior to support for u"", but it's not useful to have the former without the latter.
-        #define ABEL_COMPILER_NO_NEW_CHARACTER_TYPES 1
-    #endif
+#if defined(ABEL_COMPILER_NO_UNICODE_STRING_LITERALS) // Some compilers have had support for char16_t prior to support for u"", but it's not useful to have the former without the latter.
+#define ABEL_COMPILER_NO_NEW_CHARACTER_TYPES 1
+#endif
 #endif
 
 
@@ -1588,15 +1590,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 #if !defined(ABEL_COMPILER_NO_UNICODE_CHAR_NAME_LITERALS)
 // VC++ up till at least VS2013 supports \u and \U but supports them wrong with respect to the C++11 Standard.
 
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)    // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4005)   // GCC 4.5+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_UNICODE_CHAR_NAME_LITERALS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_UNICODE_CHAR_NAME_LITERALS 1
+#endif
 #endif
 
 
@@ -1605,17 +1607,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://en.wikipedia.org/wiki/C%2B%2B11#Uniform_initialization
 //
 #if !defined(ABEL_COMPILER_NO_UNIFIED_INITIALIZATION_SYNTAX)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1800)                          // VS2013+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 401) && defined(__apple_build_version__)  // Apple clang 4.1+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 301) && !defined(__apple_build_version__) // Clang 3.1+, not including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4004)   // GCC 4.4+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_UNIFIED_INITIALIZATION_SYNTAX 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_UNIFIED_INITIALIZATION_SYNTAX 1
+#endif
 #endif
 
 
@@ -1624,17 +1626,17 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1791.pdf
 //
 #if !defined(ABEL_COMPILER_NO_EXTENDED_FRIEND_DECLARATIONS)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1600)     // VS2010+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__EDG_VERSION__) && (__EDG_VERSION__ >= 401) // EDG 4.1+.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && (ABEL_COMPILER_VERSION >= 209)   // Clang 2.9+, including Apple's Clang.
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4007)   // GCC 4.7+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_EXTENDED_FRIEND_DECLARATIONS 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_EXTENDED_FRIEND_DECLARATIONS 1
+#endif
 #endif
 
 
@@ -1647,15 +1649,15 @@ ABEL_RESTORE_ALL_VC_WARNINGS()
 // https://en.cppreference.com/w/cpp/keyword/thread_local
 //
 #if !defined(ABEL_COMPILER_NO_THREAD_LOCAL)
-    #if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_thread_local)
+#if defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__clang__) && ABEL_COMPILER_HAS_FEATURE(cxx_thread_local)
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)     // VS2015+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (ABEL_COMPILER_VERSION >= 1900)     // VS2015+
 // supported.
-    #elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
+#elif defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__GNUC__) && (ABEL_COMPILER_VERSION >= 4008)   // GCC 4.8+
 // supported.
-    #else
-        #define ABEL_COMPILER_NO_THREAD_LOCAL 1
-    #endif
+#else
+#define ABEL_COMPILER_NO_THREAD_LOCAL 1
+#endif
 #endif
 
 #endif //ABEL_BASE_PROFILE_COMPILER_H_

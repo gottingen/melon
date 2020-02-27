@@ -2,7 +2,7 @@
 #include "sink_test.h"
 
 template<class T>
-std::string log_info (const T &what, abel::log::level::level_enum logger_level = abel::log::level::info) {
+std::string log_info(const T &what, abel::log::level::level_enum logger_level = abel::log::level::info) {
 
     std::ostringstream oss;
     auto oss_sink = std::make_shared<abel::log::sinks::ostream_sink_mt>(oss);

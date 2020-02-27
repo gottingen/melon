@@ -5,11 +5,11 @@
 
 namespace abel {
 
-MockingBitGen::~MockingBitGen () {
+    MockingBitGen::~MockingBitGen() {
 
-    for (const auto &del : deleters_) {
-        del();
+        for (const auto &del : deleters_) {
+            del();
+        }
     }
-}
 
 }  // namespace abel

@@ -7,63 +7,66 @@
 #include "benchmark/benchmark.h"
 
 namespace benchmark {
-namespace internal {
+    namespace internal {
 
-typedef std::basic_ostream<char>&(EndLType)(std::basic_ostream<char>&);
+        typedef std::basic_ostream<char> &(EndLType)(std::basic_ostream<char> &);
 
-class LogType {
-  friend LogType& GetNullLogInstance();
-  friend LogType& GetErrorLogInstance();
+        class LogType {
+            friend LogType &GetNullLogInstance();
 
-  // FIXME: Add locking to output.
-  template <class Tp>
-  friend LogType& operator<<(LogType&, Tp const&);
-  friend LogType& operator<<(LogType&, EndLType*);
+            friend LogType &GetErrorLogInstance();
 
- private:
-  LogType(std::ostream* out) : out_(out) {}
-  std::ostream* out_;
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(LogType);
-};
+            // FIXME: Add locking to output.
+            template<class Tp>
+            friend LogType &operator<<(LogType &, Tp const &);
 
-template <class Tp>
-LogType& operator<<(LogType& log, Tp const& value) {
-  if (log.out_) {
-    *log.out_ << value;
-  }
-  return log;
-}
+            friend LogType &operator<<(LogType &, EndLType *);
 
-inline LogType& operator<<(LogType& log, EndLType* m) {
-  if (log.out_) {
-    *log.out_ << m;
-  }
-  return log;
-}
+        private:
+            LogType(std::ostream *out) : out_(out) {}
 
-inline int& LogLevel() {
-  static int log_level = 0;
-  return log_level;
-}
+            std::ostream *out_;
+            BENCHMARK_DISALLOW_COPY_AND_ASSIGN(LogType);
+        };
 
-inline LogType& GetNullLogInstance() {
-  static LogType log(nullptr);
-  return log;
-}
+        template<class Tp>
+        LogType &operator<<(LogType &log, Tp const &value) {
+            if (log.out_) {
+                *log.out_ << value;
+            }
+            return log;
+        }
 
-inline LogType& GetErrorLogInstance() {
-  static LogType log(&std::clog);
-  return log;
-}
+        inline LogType &operator<<(LogType &log, EndLType *m) {
+            if (log.out_) {
+                *log.out_ << m;
+            }
+            return log;
+        }
 
-inline LogType& GetLogInstanceForLevel(int level) {
-  if (level <= LogLevel()) {
-    return GetErrorLogInstance();
-  }
-  return GetNullLogInstance();
-}
+        inline int &LogLevel() {
+            static int log_level = 0;
+            return log_level;
+        }
 
-}  // end namespace internal
+        inline LogType &GetNullLogInstance() {
+            static LogType log(nullptr);
+            return log;
+        }
+
+        inline LogType &GetErrorLogInstance() {
+            static LogType log(&std::clog);
+            return log;
+        }
+
+        inline LogType &GetLogInstanceForLevel(int level) {
+            if (level <= LogLevel()) {
+                return GetErrorLogInstance();
+            }
+            return GetNullLogInstance();
+        }
+
+    }  // end namespace internal
 }  // end namespace benchmark
 
 // clang-format off

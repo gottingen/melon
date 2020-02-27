@@ -57,7 +57,7 @@ namespace abel {
 //   abel::InitializeSymbolizer(argv[0]);
 //   // Now you can use the symbolizer
 // }
-void InitializeSymbolizer(const char* argv0);
+    void InitializeSymbolizer(const char *argv0);
 
 // Symbolize()
 //
@@ -78,7 +78,7 @@ void InitializeSymbolizer(const char* argv0);
 //     }
 //     abel::printf("%*p  %s\n", pc, symbol);
 //  }
-bool Symbolize(const void *pc, char *out, int out_size);
+    bool Symbolize(const void *pc, char *out, int out_size);
 
 
 }  // namespace abel

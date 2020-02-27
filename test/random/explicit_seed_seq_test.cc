@@ -12,39 +12,39 @@
 
 namespace {
 
-template<typename Sseq>
-bool ConformsToInterface () {
-    // Check that the SeedSequence can be default-constructed.
-    { Sseq default_constructed_seq; }
-    // Check that the SeedSequence can be constructed with two iterators.
-    {
-        uint32_t init_array[] = {1, 3, 5, 7, 9};
-        Sseq iterator_constructed_seq(init_array, &init_array[5]);
-    }
-    // Check that the SeedSequence can be std::initializer_list-constructed.
-    { Sseq list_constructed_seq = {1, 3, 5, 7, 9, 11, 13}; }
-    // Check that param() and size() return state provided to constructor.
-    {
-        uint32_t init_array[] = {1, 2, 3, 4, 5};
-        Sseq seq(init_array, &init_array[ABEL_ARRAYSIZE(init_array)]);
-        EXPECT_EQ(seq.size(), ABEL_ARRAYSIZE(init_array));
-
-        uint32_t state_array[ABEL_ARRAYSIZE(init_array)];
-        seq.param(state_array);
-
-        for (size_t i = 0; i < ABEL_ARRAYSIZE(state_array); i++) {
-            EXPECT_EQ(state_array[i], i + 1);
+    template<typename Sseq>
+    bool ConformsToInterface() {
+        // Check that the SeedSequence can be default-constructed.
+        { Sseq default_constructed_seq; }
+        // Check that the SeedSequence can be constructed with two iterators.
+        {
+            uint32_t init_array[] = {1, 3, 5, 7, 9};
+            Sseq iterator_constructed_seq(init_array, &init_array[5]);
         }
-    }
-    // Check for presence of generate() method.
-    {
-        Sseq seq;
-        uint32_t seeds[5];
+        // Check that the SeedSequence can be std::initializer_list-constructed.
+        { Sseq list_constructed_seq = {1, 3, 5, 7, 9, 11, 13}; }
+        // Check that param() and size() return state provided to constructor.
+        {
+            uint32_t init_array[] = {1, 2, 3, 4, 5};
+            Sseq seq(init_array, &init_array[ABEL_ARRAYSIZE(init_array)]);
+            EXPECT_EQ(seq.size(), ABEL_ARRAYSIZE(init_array));
 
-        seq.generate(seeds, &seeds[ABEL_ARRAYSIZE(seeds)]);
+            uint32_t state_array[ABEL_ARRAYSIZE(init_array)];
+            seq.param(state_array);
+
+            for (size_t i = 0; i < ABEL_ARRAYSIZE(state_array); i++) {
+                EXPECT_EQ(state_array[i], i + 1);
+            }
+        }
+        // Check for presence of generate() method.
+        {
+            Sseq seq;
+            uint32_t seeds[5];
+
+            seq.generate(seeds, &seeds[ABEL_ARRAYSIZE(seeds)]);
+        }
+        return true;
     }
-    return true;
-}
 }  // namespace
 
 TEST(SeedSequences, CheckInterfaces) {
@@ -71,7 +71,7 @@ TEST(ExplicitSeeqSeq, SeedMaterialIsForwardedIdentically) {
     const size_t kNumBlocks = 128;
 
     uint32_t seed_material[kNumBlocks];
-    std::random_device urandom {"/dev/urandom"};
+    std::random_device urandom{"/dev/urandom"};
     for (uint32_t &seed : seed_material) {
         seed = urandom();
     }
@@ -176,7 +176,7 @@ TEST(ExplicitSeedSeq, CopyAndMoveConstructors) {
 
         // Apply move-constructor move the sequence to another instance.
         abel::random_internal::ExplicitSeedSeq moved_seq(
-            std::move(seq_from_entropy));
+                std::move(seq_from_entropy));
         std::vector<uint32_t> seeds_2;
         seeds_2.resize(1000, 1);
         moved_seq.generate(seeds_2.begin(), seeds_2.end());

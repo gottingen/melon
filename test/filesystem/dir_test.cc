@@ -227,9 +227,9 @@ TEST(directory, riterator) {
         TemporaryDirectory t;
         std::error_code ec;
         EXPECT_TRUE(fs::recursive_directory_iterator(t.path(), fs::directory_options::none)
-                        == fs::recursive_directory_iterator());
+                    == fs::recursive_directory_iterator());
         EXPECT_TRUE(fs::recursive_directory_iterator(t.path(), fs::directory_options::none, ec)
-                        == fs::recursive_directory_iterator());
+                    == fs::recursive_directory_iterator());
         EXPECT_TRUE(!ec);
         EXPECT_TRUE(fs::recursive_directory_iterator(t.path(), ec) == fs::recursive_directory_iterator());
         EXPECT_TRUE(!ec);
@@ -340,7 +340,7 @@ TEST(directory, absolute) {
     EXPECT_TRUE(fs::absolute(fs::current_path()) == fs::current_path());
     EXPECT_TRUE(fs::absolute(".") == fs::current_path() / ".");
     EXPECT_TRUE((fs::absolute("..") == fs::current_path().parent_path()
-        || fs::absolute("..") == fs::current_path() / ".."));
+                 || fs::absolute("..") == fs::current_path() / ".."));
     EXPECT_TRUE(fs::absolute("foo") == fs::current_path() / "foo");
     std::error_code ec;
     EXPECT_TRUE(fs::absolute("", ec) == fs::current_path() / "");

@@ -12,23 +12,24 @@
 #include <memory>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-class histogram {
-public:
+        class histogram {
+        public:
 
-    histogram (const bucket &buckets) noexcept;
+            histogram(const bucket &buckets) noexcept;
 
-    void observe (double value) noexcept;
+            void observe(double value) noexcept;
 
-    cache_metrics collect () const noexcept;
-private:
-    const bucket _bucket_boundaries;
-    std::vector<counter> _bucket_counts;
-    counter _sum;
-};
+            cache_metrics collect() const noexcept;
 
-typedef std::shared_ptr<histogram> histogram_ptr;
-} //namespace metrics
+        private:
+            const bucket _bucket_boundaries;
+            std::vector<counter> _bucket_counts;
+            counter _sum;
+        };
+
+        typedef std::shared_ptr<histogram> histogram_ptr;
+    } //namespace metrics
 } //namespace abel
 #endif //ABEL_ABEL_METRICS_HISTOGRAM_H_

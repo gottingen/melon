@@ -34,7 +34,8 @@ class GoogleBenchmarkConan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             if self.settings.compiler == "Visual Studio" and float(self.settings.compiler.version.value) <= 12:
-                raise ConanInvalidConfiguration("{} {} does not support Visual Studio <= 12".format(self.name, self.version))
+                raise ConanInvalidConfiguration(
+                    "{} {} does not support Visual Studio <= 12".format(self.name, self.version))
             del self.options.fPIC
 
     def configure(self):
@@ -52,7 +53,8 @@ class GoogleBenchmarkConan(ConanFile):
         # See https://github.com/google/benchmark/pull/638 for Windows 32 build explanation
         if self.settings.os != "Windows":
             cmake.definitions["BENCHMARK_BUILD_32_BITS"] = "ON" if "64" not in str(self.settings.arch) else "OFF"
-            cmake.definitions["BENCHMARK_USE_LIBCXX"] = "ON" if (str(self.settings.compiler.libcxx) == "libc++") else "OFF"
+            cmake.definitions["BENCHMARK_USE_LIBCXX"] = "ON" if (
+                        str(self.settings.compiler.libcxx) == "libc++") else "OFF"
         else:
             cmake.definitions["BENCHMARK_USE_LIBCXX"] = "OFF"
 

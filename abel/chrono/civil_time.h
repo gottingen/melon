@@ -63,15 +63,21 @@
 
 namespace abel {
 
-namespace chrono_internal {
+    namespace chrono_internal {
 
-struct second_tag : abel::chrono_internal::detail::second_tag {};
-struct minute_tag : second_tag, abel::chrono_internal::detail::minute_tag {};
-struct hour_tag : minute_tag, abel::chrono_internal::detail::hour_tag {};
-struct day_tag : hour_tag, abel::chrono_internal::detail::day_tag {};
-struct month_tag : day_tag, abel::chrono_internal::detail::month_tag {};
-struct year_tag : month_tag, abel::chrono_internal::detail::year_tag {};
-}  // namespace chrono_internal
+        struct second_tag : abel::chrono_internal::detail::second_tag {
+        };
+        struct minute_tag : second_tag, abel::chrono_internal::detail::minute_tag {
+        };
+        struct hour_tag : minute_tag, abel::chrono_internal::detail::hour_tag {
+        };
+        struct day_tag : hour_tag, abel::chrono_internal::detail::day_tag {
+        };
+        struct month_tag : day_tag, abel::chrono_internal::detail::month_tag {
+        };
+        struct year_tag : month_tag, abel::chrono_internal::detail::year_tag {
+        };
+    }  // namespace chrono_internal
 
 // -----------------------------------------------------------------------------
 // chrono_second, chrono_minute, chrono_hour, chrono_day, chrono_month, chrono_year
@@ -306,17 +312,17 @@ struct year_tag : month_tag, abel::chrono_internal::detail::year_tag {};
 //     // error, month overflow
 //   }
 //
-using chrono_second =
+    using chrono_second =
     abel::chrono_internal::detail::civil_time<chrono_internal::second_tag>;
-using chrono_minute =
+    using chrono_minute =
     abel::chrono_internal::detail::civil_time<chrono_internal::minute_tag>;
-using chrono_hour =
+    using chrono_hour =
     abel::chrono_internal::detail::civil_time<chrono_internal::hour_tag>;
-using chrono_day =
+    using chrono_day =
     abel::chrono_internal::detail::civil_time<chrono_internal::day_tag>;
-using chrono_month =
+    using chrono_month =
     abel::chrono_internal::detail::civil_time<chrono_internal::month_tag>;
-using chrono_year =
+    using chrono_year =
     abel::chrono_internal::detail::civil_time<chrono_internal::year_tag>;
 
 // chrono_year_t
@@ -330,7 +336,7 @@ using chrono_year =
 //   abel::chrono_year_t y = cs.year();
 //   cs = abel::chrono_second(y, 1, 1, 0, 0, 0);  // chrono_second(chrono_year(cs))
 //
-using chrono_year_t = abel::chrono_internal::year_t;
+    using chrono_year_t = abel::chrono_internal::year_t;
 
 // civil_diff_t
 //
@@ -343,7 +349,7 @@ using chrono_year_t = abel::chrono_internal::year_t;
 //
 //   abel::civil_diff_t n_sec = cs1 - cs2;             // cs1 == cs2 + n_sec;
 //
-using chrono_diff_t = abel::chrono_internal::diff_t;
+    using chrono_diff_t = abel::chrono_internal::diff_t;
 
 // chrono_weekday::monday, chrono_weekday::tuesday, chrono_weekday::wednesday, chrono_weekday::thursday,
 // chrono_weekday::friday, chrono_weekday::saturday, chrono_weekday::sunday
@@ -353,7 +359,7 @@ using chrono_diff_t = abel::chrono_internal::diff_t;
 //
 //   abel::chrono_weekday wd = abel::chrono_weekday::thursday;
 //
-using chrono_weekday = abel::chrono_internal::weekday;
+    using chrono_weekday = abel::chrono_internal::weekday;
 
 // GetWeekday()
 //
@@ -364,9 +370,9 @@ using chrono_weekday = abel::chrono_internal::weekday;
 //   abel::chrono_day a(2015, 8, 13);
 //   abel::chrono_weekday wd = abel::GetWeekday(a);  // wd == abel::chrono_weekday::thursday
 //
-ABEL_FORCE_INLINE chrono_weekday GetWeekday(chrono_second cs) {
-  return abel::chrono_internal::get_weekday(cs);
-}
+    ABEL_FORCE_INLINE chrono_weekday GetWeekday(chrono_second cs) {
+        return abel::chrono_internal::get_weekday(cs);
+    }
 
 // NextWeekday()
 // PrevWeekday()
@@ -398,12 +404,13 @@ ABEL_FORCE_INLINE chrono_weekday GetWeekday(chrono_second cs) {
 //   // Gets the previous Thursday if d is not already Thursday
 //   abel::chrono_day thurs2 = abel::PrevWeekday(d + 1, abel::chrono_weekday::thursday);
 //
-ABEL_FORCE_INLINE chrono_day NextWeekday(chrono_day cd, chrono_weekday wd) {
-  return chrono_day(abel::chrono_internal::next_weekday(cd, wd));
-}
-ABEL_FORCE_INLINE chrono_day PrevWeekday(chrono_day cd, chrono_weekday wd) {
-  return chrono_day(abel::chrono_internal::prev_weekday(cd, wd));
-}
+    ABEL_FORCE_INLINE chrono_day NextWeekday(chrono_day cd, chrono_weekday wd) {
+        return chrono_day(abel::chrono_internal::next_weekday(cd, wd));
+    }
+
+    ABEL_FORCE_INLINE chrono_day PrevWeekday(chrono_day cd, chrono_weekday wd) {
+        return chrono_day(abel::chrono_internal::prev_weekday(cd, wd));
+    }
 
 // get_yearday()
 //
@@ -416,9 +423,9 @@ ABEL_FORCE_INLINE chrono_day PrevWeekday(chrono_day cd, chrono_weekday wd) {
 //   abel::chrono_day b(2015, 12, 31);
 //   int yd_dec_31 = abel::get_yearday(b);  // yd_dec_31 = 365
 //
-ABEL_FORCE_INLINE int get_yearday(chrono_second cs) {
-  return abel::chrono_internal::get_yearday(cs);
-}
+    ABEL_FORCE_INLINE int get_yearday(chrono_second cs) {
+        return abel::chrono_internal::get_yearday(cs);
+    }
 
 // format_chrono_time()
 //
@@ -439,12 +446,17 @@ ABEL_FORCE_INLINE int get_yearday(chrono_second cs) {
 //   abel::chrono_day d = abel::chrono_day(1969, 7, 20);
 //   std::string day_string = abel::format_chrono_time(d);  // "1969-07-20"
 //
-std::string format_chrono_time(chrono_second c);
-std::string format_chrono_time(chrono_minute c);
-std::string format_chrono_time(chrono_hour c);
-std::string format_chrono_time(chrono_day c);
-std::string format_chrono_time(chrono_month c);
-std::string format_chrono_time(chrono_year c);
+    std::string format_chrono_time(chrono_second c);
+
+    std::string format_chrono_time(chrono_minute c);
+
+    std::string format_chrono_time(chrono_hour c);
+
+    std::string format_chrono_time(chrono_day c);
+
+    std::string format_chrono_time(chrono_month c);
+
+    std::string format_chrono_time(chrono_year c);
 
 // abel::parse_chrono_time()
 //
@@ -470,12 +482,17 @@ std::string format_chrono_time(chrono_year c);
 // Note that parsing will fail if the string's format does not match the
 // expected type exactly. `ParseLenientCivilTime()` below is more lenient.
 //
-bool parse_chrono_time(abel::string_view s, chrono_second* c);
-bool parse_chrono_time(abel::string_view s, chrono_minute* c);
-bool parse_chrono_time(abel::string_view s, chrono_hour* c);
-bool parse_chrono_time(abel::string_view s, chrono_day* c);
-bool parse_chrono_time(abel::string_view s, chrono_month* c);
-bool parse_chrono_time(abel::string_view s, chrono_year* c);
+    bool parse_chrono_time(abel::string_view s, chrono_second *c);
+
+    bool parse_chrono_time(abel::string_view s, chrono_minute *c);
+
+    bool parse_chrono_time(abel::string_view s, chrono_hour *c);
+
+    bool parse_chrono_time(abel::string_view s, chrono_day *c);
+
+    bool parse_chrono_time(abel::string_view s, chrono_month *c);
+
+    bool parse_chrono_time(abel::string_view s, chrono_year *c);
 
 // ParseLenientCivilTime()
 //
@@ -490,14 +507,19 @@ bool parse_chrono_time(abel::string_view s, chrono_year* c);
 //   ok = abel::ParseLenientCivilTime("1969-07-20T10", &d);   // OK: T10 floored
 //   ok = abel::ParseLenientCivilTime("1969-07", &d);   // OK: day defaults to 1
 //
-bool ParseLenientCivilTime(abel::string_view s, chrono_second* c);
-bool ParseLenientCivilTime(abel::string_view s, chrono_minute* c);
-bool ParseLenientCivilTime(abel::string_view s, chrono_hour* c);
-bool ParseLenientCivilTime(abel::string_view s, chrono_day* c);
-bool ParseLenientCivilTime(abel::string_view s, chrono_month* c);
-bool ParseLenientCivilTime(abel::string_view s, chrono_year* c);
+    bool ParseLenientCivilTime(abel::string_view s, chrono_second *c);
 
-namespace chrono_internal {  // For functions found via ADL on civil-time tags.
+    bool ParseLenientCivilTime(abel::string_view s, chrono_minute *c);
+
+    bool ParseLenientCivilTime(abel::string_view s, chrono_hour *c);
+
+    bool ParseLenientCivilTime(abel::string_view s, chrono_day *c);
+
+    bool ParseLenientCivilTime(abel::string_view s, chrono_month *c);
+
+    bool ParseLenientCivilTime(abel::string_view s, chrono_year *c);
+
+    namespace chrono_internal {  // For functions found via ADL on civil-time tags.
 
 // Streaming Operators
 //
@@ -509,14 +531,19 @@ namespace chrono_internal {  // For functions found via ADL on civil-time tags.
 //   abel::chrono_day d = abel::chrono_day(1969, 7, 20);
 //   std::cout << "Date is: " << d << "\n";
 //
-std::ostream& operator<<(std::ostream& os, chrono_year y);
-std::ostream& operator<<(std::ostream& os, chrono_month m);
-std::ostream& operator<<(std::ostream& os, chrono_day d);
-std::ostream& operator<<(std::ostream& os, chrono_hour h);
-std::ostream& operator<<(std::ostream& os, chrono_minute m);
-std::ostream& operator<<(std::ostream& os, chrono_second s);
+        std::ostream &operator<<(std::ostream &os, chrono_year y);
 
-}  // namespace chrono_internal
+        std::ostream &operator<<(std::ostream &os, chrono_month m);
+
+        std::ostream &operator<<(std::ostream &os, chrono_day d);
+
+        std::ostream &operator<<(std::ostream &os, chrono_hour h);
+
+        std::ostream &operator<<(std::ostream &os, chrono_minute m);
+
+        std::ostream &operator<<(std::ostream &os, chrono_second s);
+
+    }  // namespace chrono_internal
 
 
 }  // namespace abel

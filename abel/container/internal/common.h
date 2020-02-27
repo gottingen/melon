@@ -11,180 +11,192 @@
 
 namespace abel {
 
-namespace container_internal {
+    namespace container_internal {
 
-template <class, class = void>
-struct IsTransparent : std::false_type {};
-template <class T>
-struct IsTransparent<T, abel::void_t<typename T::is_transparent>>
-    : std::true_type {};
+        template<class, class = void>
+        struct IsTransparent : std::false_type {
+        };
+        template<class T>
+        struct IsTransparent<T, abel::void_t<typename T::is_transparent>>
+                : std::true_type {
+        };
 
-template <bool is_transparent>
-struct KeyArg {
-  // Transparent. Forward `K`.
-  template <typename K, typename key_type>
-  using type = K;
-};
+        template<bool is_transparent>
+        struct KeyArg {
+            // Transparent. Forward `K`.
+            template<typename K, typename key_type>
+            using type = K;
+        };
 
-template <>
-struct KeyArg<false> {
-  // Not transparent. Always use `key_type`.
-  template <typename K, typename key_type>
-  using type = key_type;
-};
+        template<>
+        struct KeyArg<false> {
+            // Not transparent. Always use `key_type`.
+            template<typename K, typename key_type>
+            using type = key_type;
+        };
 
 // The node_handle concept from C++17.
 // We specialize node_handle for sets and maps. node_handle_base holds the
 // common API of both.
-template <typename PolicyTraits, typename Alloc>
-class node_handle_base {
- protected:
-  using slot_type = typename PolicyTraits::slot_type;
+        template<typename PolicyTraits, typename Alloc>
+        class node_handle_base {
+        protected:
+            using slot_type = typename PolicyTraits::slot_type;
 
- public:
-  using allocator_type = Alloc;
+        public:
+            using allocator_type = Alloc;
 
-  constexpr node_handle_base() {}
-  node_handle_base(node_handle_base&& other) noexcept {
-    *this = std::move(other);
-  }
-  ~node_handle_base() { destroy(); }
-  node_handle_base& operator=(node_handle_base&& other) noexcept {
-    destroy();
-    if (!other.empty()) {
-      alloc_ = other.alloc_;
-      PolicyTraits::transfer(alloc(), slot(), other.slot());
-      other.reset();
-    }
-    return *this;
-  }
+            constexpr node_handle_base() {}
 
-  bool empty() const noexcept { return !alloc_; }
-  explicit operator bool() const noexcept { return !empty(); }
-  allocator_type get_allocator() const { return *alloc_; }
+            node_handle_base(node_handle_base &&other) noexcept {
+                *this = std::move(other);
+            }
 
- protected:
-  friend struct CommonAccess;
+            ~node_handle_base() { destroy(); }
 
-  struct transfer_tag_t {};
-  node_handle_base(transfer_tag_t, const allocator_type& a, slot_type* s)
-      : alloc_(a) {
-    PolicyTraits::transfer(alloc(), slot(), s);
-  }
+            node_handle_base &operator=(node_handle_base &&other) noexcept {
+                destroy();
+                if (!other.empty()) {
+                    alloc_ = other.alloc_;
+                    PolicyTraits::transfer(alloc(), slot(), other.slot());
+                    other.reset();
+                }
+                return *this;
+            }
 
-  struct move_tag_t {};
-  node_handle_base(move_tag_t, const allocator_type& a, slot_type* s)
-      : alloc_(a) {
-    PolicyTraits::construct(alloc(), slot(), s);
-  }
+            bool empty() const noexcept { return !alloc_; }
 
-  void destroy() {
-    if (!empty()) {
-      PolicyTraits::destroy(alloc(), slot());
-      reset();
-    }
-  }
+            explicit operator bool() const noexcept { return !empty(); }
 
-  void reset() {
-    assert(alloc_.has_value());
-    alloc_ = abel::nullopt;
-  }
+            allocator_type get_allocator() const { return *alloc_; }
 
-  slot_type* slot() const {
-    assert(!empty());
-    return reinterpret_cast<slot_type*>(std::addressof(slot_space_));
-  }
-  allocator_type* alloc() { return std::addressof(*alloc_); }
+        protected:
+            friend struct CommonAccess;
 
- private:
-  abel::optional<allocator_type> alloc_;
-  mutable abel::aligned_storage_t<sizeof(slot_type), alignof(slot_type)>
-      slot_space_;
-};
+            struct transfer_tag_t {
+            };
+
+            node_handle_base(transfer_tag_t, const allocator_type &a, slot_type *s)
+                    : alloc_(a) {
+                PolicyTraits::transfer(alloc(), slot(), s);
+            }
+
+            struct move_tag_t {
+            };
+
+            node_handle_base(move_tag_t, const allocator_type &a, slot_type *s)
+                    : alloc_(a) {
+                PolicyTraits::construct(alloc(), slot(), s);
+            }
+
+            void destroy() {
+                if (!empty()) {
+                    PolicyTraits::destroy(alloc(), slot());
+                    reset();
+                }
+            }
+
+            void reset() {
+                assert(alloc_.has_value());
+                alloc_ = abel::nullopt;
+            }
+
+            slot_type *slot() const {
+                assert(!empty());
+                return reinterpret_cast<slot_type *>(std::addressof(slot_space_));
+            }
+
+            allocator_type *alloc() { return std::addressof(*alloc_); }
+
+        private:
+            abel::optional<allocator_type> alloc_;
+            mutable abel::aligned_storage_t<sizeof(slot_type), alignof(slot_type)>
+                    slot_space_;
+        };
 
 // For sets.
-template <typename Policy, typename PolicyTraits, typename Alloc,
-          typename = void>
-class node_handle : public node_handle_base<PolicyTraits, Alloc> {
-  using Base = node_handle_base<PolicyTraits, Alloc>;
+        template<typename Policy, typename PolicyTraits, typename Alloc,
+                typename = void>
+        class node_handle : public node_handle_base<PolicyTraits, Alloc> {
+            using Base = node_handle_base<PolicyTraits, Alloc>;
 
- public:
-  using value_type = typename PolicyTraits::value_type;
+        public:
+            using value_type = typename PolicyTraits::value_type;
 
-  constexpr node_handle() {}
+            constexpr node_handle() {}
 
-  value_type& value() const { return PolicyTraits::element(this->slot()); }
+            value_type &value() const { return PolicyTraits::element(this->slot()); }
 
- private:
-  friend struct CommonAccess;
+        private:
+            friend struct CommonAccess;
 
-  using Base::Base;
-};
+            using Base::Base;
+        };
 
 // For maps.
-template <typename Policy, typename PolicyTraits, typename Alloc>
-class node_handle<Policy, PolicyTraits, Alloc,
-                  abel::void_t<typename Policy::mapped_type>>
-    : public node_handle_base<PolicyTraits, Alloc> {
-  using Base = node_handle_base<PolicyTraits, Alloc>;
+        template<typename Policy, typename PolicyTraits, typename Alloc>
+        class node_handle<Policy, PolicyTraits, Alloc,
+                abel::void_t<typename Policy::mapped_type>>
+                : public node_handle_base<PolicyTraits, Alloc> {
+            using Base = node_handle_base<PolicyTraits, Alloc>;
 
- public:
-  using key_type = typename Policy::key_type;
-  using mapped_type = typename Policy::mapped_type;
+        public:
+            using key_type = typename Policy::key_type;
+            using mapped_type = typename Policy::mapped_type;
 
-  constexpr node_handle() {}
+            constexpr node_handle() {}
 
-  auto key() const -> decltype(PolicyTraits::key(this->slot())) {
-    return PolicyTraits::key(this->slot());
-  }
+            auto key() const -> decltype(PolicyTraits::key(this->slot())) {
+                return PolicyTraits::key(this->slot());
+            }
 
-  mapped_type& mapped() const {
-    return PolicyTraits::value(&PolicyTraits::element(this->slot()));
-  }
+            mapped_type &mapped() const {
+                return PolicyTraits::value(&PolicyTraits::element(this->slot()));
+            }
 
- private:
-  friend struct CommonAccess;
+        private:
+            friend struct CommonAccess;
 
-  using Base::Base;
-};
+            using Base::Base;
+        };
 
 // Provide access to non-public node-handle functions.
-struct CommonAccess {
-  template <typename Node>
-  static auto GetSlot(const Node& node) -> decltype(node.slot()) {
-    return node.slot();
-  }
+        struct CommonAccess {
+            template<typename Node>
+            static auto GetSlot(const Node &node) -> decltype(node.slot()) {
+                return node.slot();
+            }
 
-  template <typename Node>
-  static void Destroy(Node* node) {
-    node->destroy();
-  }
+            template<typename Node>
+            static void Destroy(Node *node) {
+                node->destroy();
+            }
 
-  template <typename Node>
-  static void Reset(Node* node) {
-    node->reset();
-  }
+            template<typename Node>
+            static void Reset(Node *node) {
+                node->reset();
+            }
 
-  template <typename T, typename... Args>
-  static T Transfer(Args&&... args) {
-    return T(typename T::transfer_tag_t{}, std::forward<Args>(args)...);
-  }
+            template<typename T, typename... Args>
+            static T Transfer(Args &&... args) {
+                return T(typename T::transfer_tag_t{}, std::forward<Args>(args)...);
+            }
 
-  template <typename T, typename... Args>
-  static T Move(Args&&... args) {
-    return T(typename T::move_tag_t{}, std::forward<Args>(args)...);
-  }
-};
+            template<typename T, typename... Args>
+            static T Move(Args &&... args) {
+                return T(typename T::move_tag_t{}, std::forward<Args>(args)...);
+            }
+        };
 
 // Implement the insert_return_type<> concept of C++17.
-template <class Iterator, class NodeType>
-struct InsertReturnType {
-  Iterator position;
-  bool inserted;
-  NodeType node;
-};
+        template<class Iterator, class NodeType>
+        struct InsertReturnType {
+            Iterator position;
+            bool inserted;
+            NodeType node;
+        };
 
-}  // namespace container_internal
+    }  // namespace container_internal
 
 }  // namespace abel
 

@@ -18,7 +18,9 @@
 #endif
 
 #if FMT_USE_FILE_DESCRIPTORS
+
 # include <abel/format/posix.h>
+
 #endif
 
 #define FMT_TEST_THROW_(statement, expected_exception, expected_message, fail) \
@@ -72,23 +74,25 @@ std::string format_system_error(int error_code, fmt::string_view message);
 // Captures file output by redirecting it to a pipe.
 // The output it can handle is limited by the pipe capacity.
 class OutputRedirect {
- private:
-  FILE *file_;
-  fmt::file original_;  // Original file passed to redirector.
-  fmt::file read_end_;  // Read end of the pipe where the output is redirected.
+private:
+    FILE *file_;
+    fmt::file original_;  // Original file passed to redirector.
+    fmt::file read_end_;  // Read end of the pipe where the output is redirected.
 
-  GTEST_DISALLOW_COPY_AND_ASSIGN_(OutputRedirect);
+    GTEST_DISALLOW_COPY_AND_ASSIGN_(OutputRedirect);
 
-  void flush();
-  void restore();
+    void flush();
 
- public:
-  explicit OutputRedirect(FILE *file);
-  ~OutputRedirect() FMT_NOEXCEPT;
+    void restore();
 
-  // Restores the original file, reads output from the pipe into a string
-  // and returns it.
-  std::string restore_and_read();
+public:
+    explicit OutputRedirect(FILE *file);
+
+    ~OutputRedirect() FMT_NOEXCEPT;
+
+    // Restores the original file, reads output from the pipe into a string
+    // and returns it.
+    std::string restore_and_read();
 };
 
 #define FMT_TEST_WRITE_(statement, expected_output, file, fail) \
@@ -152,10 +156,11 @@ std::string read(fmt::file &f, std::size_t count);
 
 #endif  // FMT_USE_FILE_DESCRIPTORS
 
-template <typename Mock>
+template<typename Mock>
 struct ScopedMock : testing::StrictMock<Mock> {
-  ScopedMock() { Mock::instance = this; }
-  ~ScopedMock() { Mock::instance = nullptr; }
+    ScopedMock() { Mock::instance = this; }
+
+    ~ScopedMock() { Mock::instance = nullptr; }
 };
 
 #endif  // TEST_TESTING_GTEST_EXTRA_H_

@@ -11,18 +11,18 @@
 #include <vector>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-class serializer {
-public:
+        class serializer {
+        public:
 
-    virtual ~serializer () = default;
+            virtual ~serializer() = default;
 
-    std::string format (const std::vector<cache_metrics> &) const;
+            std::string format(const std::vector<cache_metrics> &) const;
 
-    virtual void format (std::ostream &stdout, const std::vector<cache_metrics> &) const = 0;
-};
-} //namespace metrics
+            virtual void format(std::ostream &stdout, const std::vector<cache_metrics> &) const = 0;
+        };
+    } //namespace metrics
 } //namespace abel
 
 

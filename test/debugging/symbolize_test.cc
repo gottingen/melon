@@ -3,8 +3,10 @@
 #include <abel/debugging/symbolize.h>
 
 #ifndef _WIN32
+
 #include <fcntl.h>
 #include <sys/mman.h>
+
 #endif
 
 #include <cstring>
@@ -31,55 +33,55 @@ using testing::Contains;
 // Functions to symbolize. Use C linkage to avoid mangled names.
 extern "C" {
 ABEL_NO_INLINE void nonstatic_func() {
-  // The next line makes this a unique function to prevent the compiler from
-  // folding identical functions together.
-  volatile int x = __LINE__;
-  static_cast<void>(x);
-  ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
+    // The next line makes this a unique function to prevent the compiler from
+    // folding identical functions together.
+    volatile int x = __LINE__;
+    static_cast<void>(x);
+    ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
 }
 
 ABEL_NO_INLINE static void static_func() {
-  // The next line makes this a unique function to prevent the compiler from
-  // folding identical functions together.
-  volatile int x = __LINE__;
-  static_cast<void>(x);
-  ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
+    // The next line makes this a unique function to prevent the compiler from
+    // folding identical functions together.
+    volatile int x = __LINE__;
+    static_cast<void>(x);
+    ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
 }
 }  // extern "C"
 
 struct Foo {
-  static void func(int x);
+    static void func(int x);
 };
 
 // A C++ method that should have a mangled name.
 ABEL_NO_INLINE void Foo::func(int) {
-  // The next line makes this a unique function to prevent the compiler from
-  // folding identical functions together.
-  volatile int x = __LINE__;
-  static_cast<void>(x);
-  ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
+    // The next line makes this a unique function to prevent the compiler from
+    // folding identical functions together.
+    volatile int x = __LINE__;
+    static_cast<void>(x);
+    ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
 }
 
 // Create functions that will remain in different text sections in the
 // final binary when linker option "-z,keep-text-section-prefix" is used.
 int ABEL_ATTRIBUTE_SECTION_VARIABLE(.text.unlikely) unlikely_func() {
-  return 0;
+    return 0;
 }
 
 int ABEL_ATTRIBUTE_SECTION_VARIABLE(.text.hot) hot_func() {
-  return 0;
+    return 0;
 }
 
 int ABEL_ATTRIBUTE_SECTION_VARIABLE(.text.startup) startup_func() {
-  return 0;
+    return 0;
 }
 
 int ABEL_ATTRIBUTE_SECTION_VARIABLE(.text.exit) exit_func() {
-  return 0;
+    return 0;
 }
 
 int /*ABEL_ATTRIBUTE_SECTION_VARIABLE(.text)*/ regular_func() {
-  return 0;
+    return 0;
 }
 
 // Thread-local data may confuse the symbolizer, ensure that it does not.
@@ -99,7 +101,7 @@ static volatile bool volatile_bool = false;
 // Force the binary to be large enough that a THP .text remap will succeed.
 static constexpr size_t kHpageSize = 1 << 21;
 const char kHpageTextPadding[kHpageSize * 4] ABEL_ATTRIBUTE_SECTION_VARIABLE(
-    .text) = "";
+        .text) = "";
 #endif  // !defined(__EMSCRIPTEN__)
 
 static char try_symbolize_buffer[4096];
@@ -110,25 +112,25 @@ static char try_symbolize_buffer[4096];
 // the result of abel::Symbolize().
 
 static const char *TrySymbolizeWithLimit(void *pc, int limit) {
-  ABEL_RAW_CHECK(static_cast<size_t>(limit) <= sizeof(try_symbolize_buffer),
-                 "try_symbolize_buffer is too small");
+    ABEL_RAW_CHECK(static_cast<size_t>(limit) <= sizeof(try_symbolize_buffer),
+                   "try_symbolize_buffer is too small");
 
-  // Use the heap to facilitate heap and buffer sanitizer tools.
-  auto heap_buffer = abel::make_unique<char[]>(sizeof(try_symbolize_buffer));
-  bool found = abel::Symbolize(pc, heap_buffer.get(), limit);
-  if (found) {
-    ABEL_RAW_CHECK(strnlen(heap_buffer.get(), static_cast<size_t>(limit)) < static_cast<size_t>(limit),
-                   "abel::Symbolize() did not properly terminate the string");
-    strncpy(try_symbolize_buffer, heap_buffer.get(),
-            sizeof(try_symbolize_buffer) - 1);
-    try_symbolize_buffer[sizeof(try_symbolize_buffer) - 1] = '\0';
-  }
+    // Use the heap to facilitate heap and buffer sanitizer tools.
+    auto heap_buffer = abel::make_unique<char[]>(sizeof(try_symbolize_buffer));
+    bool found = abel::Symbolize(pc, heap_buffer.get(), limit);
+    if (found) {
+        ABEL_RAW_CHECK(strnlen(heap_buffer.get(), static_cast<size_t>(limit)) < static_cast<size_t>(limit),
+                       "abel::Symbolize() did not properly terminate the string");
+        strncpy(try_symbolize_buffer, heap_buffer.get(),
+                sizeof(try_symbolize_buffer) - 1);
+        try_symbolize_buffer[sizeof(try_symbolize_buffer) - 1] = '\0';
+    }
 
-  return found ? try_symbolize_buffer : nullptr;
+    return found ? try_symbolize_buffer : nullptr;
 }
 
 static const char *TrySymbolize(void *pc) {
-  return TrySymbolizeWithLimit(pc, sizeof(try_symbolize_buffer));
+    return TrySymbolizeWithLimit(pc, sizeof(try_symbolize_buffer));
 }
 
 #ifdef ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE
@@ -501,36 +503,36 @@ TEST(Symbolize, SymbolizeWithDemangling) {
 #else  // Symbolizer unimplemented
 
 TEST(Symbolize, Unimplemented) {
-  char buf[64];
-  EXPECT_FALSE(abel::Symbolize((void *)(&nonstatic_func), buf, sizeof(buf)));
-  EXPECT_FALSE(abel::Symbolize((void *)(&static_func), buf, sizeof(buf)));
-  EXPECT_FALSE(abel::Symbolize((void *)(&Foo::func), buf, sizeof(buf)));
+    char buf[64];
+    EXPECT_FALSE(abel::Symbolize((void *) (&nonstatic_func), buf, sizeof(buf)));
+    EXPECT_FALSE(abel::Symbolize((void *) (&static_func), buf, sizeof(buf)));
+    EXPECT_FALSE(abel::Symbolize((void *) (&Foo::func), buf, sizeof(buf)));
 }
 
 #endif
 
 int main(int argc, char **argv) {
 #if !defined(__EMSCRIPTEN__)
-  // Make sure kHpageTextPadding is linked into the binary.
-  if (volatile_bool) {
-    ABEL_RAW_LOG(INFO, "%s", kHpageTextPadding);
-  }
+    // Make sure kHpageTextPadding is linked into the binary.
+    if (volatile_bool) {
+        ABEL_RAW_LOG(INFO, "%s", kHpageTextPadding);
+    }
 #endif  // !defined(__EMSCRIPTEN__)
 
 #if ABEL_PER_THREAD_TLS
-  // Touch the per-thread variables.
-  symbolize_test_thread_small[0] = 0;
-  symbolize_test_thread_big[0] = 0;
+    // Touch the per-thread variables.
+    symbolize_test_thread_small[0] = 0;
+    symbolize_test_thread_big[0] = 0;
 #endif
 
-  abel::InitializeSymbolizer(argv[0]);
-  testing::InitGoogleTest(&argc, argv);
+    abel::InitializeSymbolizer(argv[0]);
+    testing::InitGoogleTest(&argc, argv);
 
 #ifdef ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE
-  TestWithPCInsideInlineFunction();
-  TestWithPCInsideNonInlineFunction();
-  TestWithReturnAddress();
+    TestWithPCInsideInlineFunction();
+    TestWithPCInsideNonInlineFunction();
+    TestWithReturnAddress();
 #endif
 
-  return RUN_ALL_TESTS();
+    return RUN_ALL_TESTS();
 }

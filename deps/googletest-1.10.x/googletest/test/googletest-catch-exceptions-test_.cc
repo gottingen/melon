@@ -284,10 +284,10 @@ void TerminateHandler() {
 
 #endif  // GTEST_HAS_EXCEPTIONS
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 #if GTEST_HAS_EXCEPTIONS
-  std::set_terminate(&TerminateHandler);
+    std::set_terminate(&TerminateHandler);
 #endif
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

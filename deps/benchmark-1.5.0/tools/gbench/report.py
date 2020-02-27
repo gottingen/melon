@@ -1,4 +1,5 @@
 import unittest
+
 """report.py - Utilities for reporting statistics about benchmark results
 """
 import os
@@ -154,6 +155,7 @@ def extract_field(partition, field_name):
     rhs = [x[field_name] for x in partition[1]]
     return [lhs, rhs]
 
+
 def calc_utest(timings_cpu, timings_time):
     min_rep_cnt = min(len(timings_time[0]),
                       len(timings_time[1]),
@@ -170,6 +172,7 @@ def calc_utest(timings_cpu, timings_time):
         timings_cpu[0], timings_cpu[1], alternative='two-sided').pvalue
 
     return (min_rep_cnt >= UTEST_OPTIMAL_REPETITIONS), cpu_pvalue, time_pvalue
+
 
 def print_utest(partition, utest_alpha, first_col_width, use_color=True):
     def get_utest_color(pval):
@@ -343,11 +346,11 @@ class TestReportDifference(unittest.TestCase):
             ['BM_10PercentFaster', '-0.1000', '-0.1000', '100', '90', '100', '90'],
             ['BM_10PercentSlower', '+0.1000', '+0.1000', '100', '110', '100', '110'],
             ['BM_100xSlower', '+99.0000', '+99.0000',
-                '100', '10000', '100', '10000'],
+             '100', '10000', '100', '10000'],
             ['BM_100xFaster', '-0.9900', '-0.9900',
-                '10000', '100', '10000', '100'],
+             '10000', '100', '10000', '100'],
             ['BM_10PercentCPUToTime', '+0.1000',
-                '-0.1000', '100', '110', '100', '90'],
+             '-0.1000', '100', '110', '100', '90'],
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_NotBadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
@@ -466,7 +469,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
 
 
 class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
-        unittest.TestCase):
+    unittest.TestCase):
     def load_results(self):
         import json
         testInputs = os.path.join(

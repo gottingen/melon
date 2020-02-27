@@ -4,6 +4,7 @@
 
 #ifndef ABEL_DIGEST_BASE64_H_
 #define ABEL_DIGEST_BASE64_H_
+
 #include <string>
 
 namespace abel {
@@ -19,7 +20,7 @@ namespace abel {
  * @param line_break  break the output string every n characters
  * @return  base64 encoded string
  */
-std::string base64_encode (const void *data, size_t size, size_t line_break = 0);
+    std::string base64_encode(const void *data, size_t size, size_t line_break = 0);
 
 /**
  * @brief Encode the given binary string into base64 representation as described in RFC
@@ -30,7 +31,7 @@ std::string base64_encode (const void *data, size_t size, size_t line_break = 0)
  * @param line_break break the output string every n characters
  * @return base64 encoded string
  */
-std::string base64_encode (const std::string &str, size_t line_break = 0);
+    std::string base64_encode(const std::string &str, size_t line_break = 0);
 
 /**
  * @brief Decode a string in base64 representation as described in RFC 2045 or RFC 3548
@@ -42,7 +43,7 @@ std::string base64_encode (const std::string &str, size_t line_break = 0);
  * @param strict throw exception on invalid character
  * @return  decoded binary data
  */
-std::string base64_decode (const void *data, size_t size, bool strict = true);
+    std::string base64_decode(const void *data, size_t size, bool strict = true);
 
 /**
  * @brief Decode a string in base64 representation as described in RFC 2045 or RFC 3548
@@ -54,7 +55,7 @@ std::string base64_decode (const void *data, size_t size, bool strict = true);
  * @param strict throw exception on invalid character
  * @return decoded binary data
  */
-std::string base64_decode (const std::string &str, bool strict = true);
+    std::string base64_decode(const std::string &str, bool strict = true);
 
 }
 #endif //ABEL_DIGEST_BASE64_H_

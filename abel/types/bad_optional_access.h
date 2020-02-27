@@ -44,19 +44,21 @@ namespace abel {
 //   } catch(const abel::bad_optional_access& e) {
 //     std::cout << "Bad optional access: " << e.what() << '\n';
 //   }
-class bad_optional_access : public std::exception {
- public:
-  bad_optional_access() = default;
-  ~bad_optional_access() override;
-  const char* what() const noexcept override;
-};
+    class bad_optional_access : public std::exception {
+    public:
+        bad_optional_access() = default;
 
-namespace optional_internal {
+        ~bad_optional_access() override;
+
+        const char *what() const noexcept override;
+    };
+
+    namespace optional_internal {
 
 // throw delegator
-[[noreturn]] void throw_bad_optional_access();
+        [[noreturn]] void throw_bad_optional_access();
 
-}  // namespace optional_internal
+    }  // namespace optional_internal
 
 }  // namespace abel
 

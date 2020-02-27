@@ -20,17 +20,17 @@
 using namespace rapidjson;
 
 static const char kJson[] = "{\n"
-"    \"foo\":[\"bar\", \"baz\"],\n"
-"    \"\" : 0,\n"
-"    \"a/b\" : 1,\n"
-"    \"c%d\" : 2,\n"
-"    \"e^f\" : 3,\n"
-"    \"g|h\" : 4,\n"
-"    \"i\\\\j\" : 5,\n"
-"    \"k\\\"l\" : 6,\n"
-"    \" \" : 7,\n"
-"    \"m~n\" : 8\n"
-"}";
+                            "    \"foo\":[\"bar\", \"baz\"],\n"
+                            "    \"\" : 0,\n"
+                            "    \"a/b\" : 1,\n"
+                            "    \"c%d\" : 2,\n"
+                            "    \"e^f\" : 3,\n"
+                            "    \"g|h\" : 4,\n"
+                            "    \"i\\\\j\" : 5,\n"
+                            "    \"k\\\"l\" : 6,\n"
+                            "    \" \" : 7,\n"
+                            "    \"m~n\" : 8\n"
+                            "}";
 
 TEST(Pointer, DefaultConstructor) {
     Pointer p;
@@ -63,7 +63,7 @@ TEST(Pointer, Parse) {
         EXPECT_EQ(kPointerInvalidIndex, p.GetTokens()[0].index);
     }
 
-    #if RAPIDJSON_HAS_STDSTRING
+#if RAPIDJSON_HAS_STDSTRING
     {
         Pointer p(std::string("/foo"));
         EXPECT_TRUE(p.IsValid());
@@ -72,7 +72,7 @@ TEST(Pointer, Parse) {
         EXPECT_STREQ("foo", p.GetTokens()[0].name);
         EXPECT_EQ(kPointerInvalidIndex, p.GetTokens()[0].index);
     }
-    #endif
+#endif
 
     {
         Pointer p("/foo/0");
@@ -400,22 +400,22 @@ TEST(Pointer, Parse_URIFragment) {
 
 TEST(Pointer, Stringify) {
     // Test by roundtrip
-    const char* sources[] = {
-        "",
-        "/foo",
-        "/foo/0",
-        "/",
-        "/a~1b",
-        "/c%d",
-        "/e^f",
-        "/g|h",
-        "/i\\j",
-        "/k\"l",
-        "/ ",
-        "/m~0n",
-        "/\xC2\xA2",
-        "/\xE2\x82\xAC",
-        "/\xF0\x9D\x84\x9E"
+    const char *sources[] = {
+            "",
+            "/foo",
+            "/foo/0",
+            "/",
+            "/a~1b",
+            "/c%d",
+            "/e^f",
+            "/g|h",
+            "/i\\j",
+            "/k\"l",
+            "/ ",
+            "/m~0n",
+            "/\xC2\xA2",
+            "/\xE2\x82\xAC",
+            "/\xF0\x9D\x84\x9E"
     };
 
     for (size_t i = 0; i < sizeof(sources) / sizeof(sources[0]); i++) {
@@ -444,7 +444,7 @@ TEST(Pointer, Stringify) {
 #define NAME(s) { s, sizeof(s) / sizeof(s[0]) - 1, kPointerInvalidIndex }
 #define INDEX(i) { #i, sizeof(#i) - 1, i }
 
-static const Pointer::Token kTokens[] = { NAME("foo"), INDEX(0) }; // equivalent to "/foo/0"
+static const Pointer::Token kTokens[] = {NAME("foo"), INDEX(0)}; // equivalent to "/foo/0"
 
 #undef NAME
 #undef INDEX
@@ -573,24 +573,24 @@ TEST(Pointer, Inequality) {
 TEST(Pointer, Create) {
     Document d;
     {
-        Value* v = &Pointer("").Create(d, d.GetAllocator());
+        Value *v = &Pointer("").Create(d, d.GetAllocator());
         EXPECT_EQ(&d, v);
     }
     {
-        Value* v = &Pointer("/foo").Create(d, d.GetAllocator());
+        Value *v = &Pointer("/foo").Create(d, d.GetAllocator());
         EXPECT_EQ(&d["foo"], v);
     }
     {
-        Value* v = &Pointer("/foo/0").Create(d, d.GetAllocator());
+        Value *v = &Pointer("/foo/0").Create(d, d.GetAllocator());
         EXPECT_EQ(&d["foo"][0], v);
     }
     {
-        Value* v = &Pointer("/foo/-").Create(d, d.GetAllocator());
+        Value *v = &Pointer("/foo/-").Create(d, d.GetAllocator());
         EXPECT_EQ(&d["foo"][1], v);
     }
 
     {
-        Value* v = &Pointer("/foo/-/-").Create(d, d.GetAllocator());
+        Value *v = &Pointer("/foo/-/-").Create(d, d.GetAllocator());
         // "foo/-" is a newly created null value x.
         // "foo/-/-" finds that x is not an array, it converts x to empty object
         // and treats - as "-" member name
@@ -599,13 +599,13 @@ TEST(Pointer, Create) {
 
     {
         // Document with no allocator
-        Value* v = &Pointer("/foo/-").Create(d);
+        Value *v = &Pointer("/foo/-").Create(d);
         EXPECT_EQ(&d["foo"][3], v);
     }
 
     {
         // Value (not document) must give allocator
-        Value* v = &Pointer("/-").Create(d["foo"], d.GetAllocator());
+        Value *v = &Pointer("/-").Create(d["foo"], d.GetAllocator());
         EXPECT_EQ(&d["foo"][4], v);
     }
 }
@@ -643,7 +643,7 @@ TEST(Pointer, GetWithDefault) {
     d.Parse(kJson);
 
     // Value version
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
     const Value v("qux");
     EXPECT_TRUE(Value("bar") == Pointer("/foo/0").GetWithDefault(d, v, a));
     EXPECT_TRUE(Value("baz") == Pointer("/foo/1").GetWithDefault(d, v, a));
@@ -746,8 +746,8 @@ TEST(Pointer, GetWithDefault_NoAllocator) {
 TEST(Pointer, Set) {
     Document d;
     d.Parse(kJson);
-    Document::AllocatorType& a = d.GetAllocator();
-    
+    Document::AllocatorType &a = d.GetAllocator();
+
     // Value version
     Pointer("/foo/0").Set(d, Value(123).Move(), a);
     EXPECT_EQ(123, d["foo"][0].GetInt());
@@ -806,7 +806,7 @@ TEST(Pointer, Set) {
 TEST(Pointer, Set_NoAllocator) {
     Document d;
     d.Parse(kJson);
-    
+
     // Value version
     Pointer("/foo/0").Set(d, Value(123).Move());
     EXPECT_EQ(123, d["foo"][0].GetInt());
@@ -865,7 +865,7 @@ TEST(Pointer, Set_NoAllocator) {
 TEST(Pointer, Swap) {
     Document d;
     d.Parse(kJson);
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
     Pointer("/foo/0").Swap(d, *Pointer("/foo/1").Get(d), a);
     EXPECT_STREQ("baz", d["foo"][0].GetString());
     EXPECT_STREQ("bar", d["foo"][1].GetString());
@@ -920,14 +920,14 @@ TEST(Pointer, Erase) {
 
 TEST(Pointer, CreateValueByPointer) {
     Document d;
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
 
     {
-        Value& v = CreateValueByPointer(d, Pointer("/foo/0"), a);
+        Value &v = CreateValueByPointer(d, Pointer("/foo/0"), a);
         EXPECT_EQ(&d["foo"][0], &v);
     }
     {
-        Value& v = CreateValueByPointer(d, "/foo/1", a);
+        Value &v = CreateValueByPointer(d, "/foo/1", a);
         EXPECT_EQ(&d["foo"][1], &v);
     }
 }
@@ -936,11 +936,11 @@ TEST(Pointer, CreateValueByPointer_NoAllocator) {
     Document d;
 
     {
-        Value& v = CreateValueByPointer(d, Pointer("/foo/0"));
+        Value &v = CreateValueByPointer(d, Pointer("/foo/0"));
         EXPECT_EQ(&d["foo"][0], &v);
     }
     {
-        Value& v = CreateValueByPointer(d, "/foo/1");
+        Value &v = CreateValueByPointer(d, "/foo/1");
         EXPECT_EQ(&d["foo"][1], &v);
     }
 }
@@ -957,13 +957,15 @@ TEST(Pointer, GetValueByPointer) {
     EXPECT_EQ(1, unresolvedTokenIndex);
     EXPECT_TRUE(GetValueByPointer(d, "/foo/a", &unresolvedTokenIndex) == 0); // "/foo" is an array, cannot query by "a"
     EXPECT_EQ(1, unresolvedTokenIndex);
-    EXPECT_TRUE(GetValueByPointer(d, "/foo/0/0", &unresolvedTokenIndex) == 0); // "/foo/0" is an string, cannot further query
+    EXPECT_TRUE(GetValueByPointer(d, "/foo/0/0", &unresolvedTokenIndex) ==
+                0); // "/foo/0" is an string, cannot further query
     EXPECT_EQ(2, unresolvedTokenIndex);
-    EXPECT_TRUE(GetValueByPointer(d, "/foo/0/a", &unresolvedTokenIndex) == 0); // "/foo/0" is an string, cannot further query
+    EXPECT_TRUE(GetValueByPointer(d, "/foo/0/a", &unresolvedTokenIndex) ==
+                0); // "/foo/0" is an string, cannot further query
     EXPECT_EQ(2, unresolvedTokenIndex);
 
     // const version
-    const Value& v = d;
+    const Value &v = d;
     EXPECT_EQ(&d["foo"][0], GetValueByPointer(v, Pointer("/foo/0")));
     EXPECT_EQ(&d["foo"][0], GetValueByPointer(v, "/foo/0"));
 
@@ -971,9 +973,11 @@ TEST(Pointer, GetValueByPointer) {
     EXPECT_EQ(1, unresolvedTokenIndex);
     EXPECT_TRUE(GetValueByPointer(v, "/foo/a", &unresolvedTokenIndex) == 0); // "/foo" is an array, cannot query by "a"
     EXPECT_EQ(1, unresolvedTokenIndex);
-    EXPECT_TRUE(GetValueByPointer(v, "/foo/0/0", &unresolvedTokenIndex) == 0); // "/foo/0" is an string, cannot further query
+    EXPECT_TRUE(GetValueByPointer(v, "/foo/0/0", &unresolvedTokenIndex) ==
+                0); // "/foo/0" is an string, cannot further query
     EXPECT_EQ(2, unresolvedTokenIndex);
-    EXPECT_TRUE(GetValueByPointer(v, "/foo/0/a", &unresolvedTokenIndex) == 0); // "/foo/0" is an string, cannot further query
+    EXPECT_TRUE(GetValueByPointer(v, "/foo/0/a", &unresolvedTokenIndex) ==
+                0); // "/foo/0" is an string, cannot further query
     EXPECT_EQ(2, unresolvedTokenIndex);
 
 }
@@ -982,7 +986,7 @@ TEST(Pointer, GetValueByPointerWithDefault_Pointer) {
     Document d;
     d.Parse(kJson);
 
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
     const Value v("qux");
     EXPECT_TRUE(Value("bar") == GetValueByPointerWithDefault(d, Pointer("/foo/0"), v, a));
     EXPECT_TRUE(Value("bar") == GetValueByPointerWithDefault(d, Pointer("/foo/0"), v, a));
@@ -1035,7 +1039,7 @@ TEST(Pointer, GetValueByPointerWithDefault_String) {
     Document d;
     d.Parse(kJson);
 
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
     const Value v("qux");
     EXPECT_TRUE(Value("bar") == GetValueByPointerWithDefault(d, "/foo/0", v, a));
     EXPECT_TRUE(Value("bar") == GetValueByPointerWithDefault(d, "/foo/0", v, a));
@@ -1191,7 +1195,7 @@ TEST(Pointer, GetValueByPointerWithDefault_String_NoAllocator) {
 TEST(Pointer, SetValueByPointer_Pointer) {
     Document d;
     d.Parse(kJson);
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
 
     // Value version
     SetValueByPointer(d, Pointer("/foo/0"), Value(123).Move(), a);
@@ -1248,7 +1252,7 @@ TEST(Pointer, SetValueByPointer_Pointer) {
 TEST(Pointer, SetValueByPointer_String) {
     Document d;
     d.Parse(kJson);
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
 
     // Value version
     SetValueByPointer(d, "/foo/0", Value(123).Move(), a);
@@ -1417,7 +1421,7 @@ TEST(Pointer, SetValueByPointer_String_NoAllocator) {
 TEST(Pointer, SwapValueByPointer) {
     Document d;
     d.Parse(kJson);
-    Document::AllocatorType& a = d.GetAllocator();
+    Document::AllocatorType &a = d.GetAllocator();
     SwapValueByPointer(d, Pointer("/foo/0"), *GetValueByPointer(d, "/foo/1"), a);
     EXPECT_STREQ("baz", d["foo"][0].GetString());
     EXPECT_STREQ("bar", d["foo"][1].GetString());
@@ -1491,27 +1495,32 @@ TEST(Pointer, Ambiguity) {
 // https://github.com/miloyip/rapidjson/issues/483
 namespace myjson {
 
-class MyAllocator
-{
-public:
-    static const bool kNeedFree = true;
-    void * Malloc(size_t _size) { return malloc(_size); }
-    void * Realloc(void *_org_p, size_t _org_size, size_t _new_size) { (void)_org_size; return realloc(_org_p, _new_size); }
-    static void Free(void *_p) { return free(_p); }
-};
+    class MyAllocator {
+    public:
+        static const bool kNeedFree = true;
 
-typedef rapidjson::GenericDocument<
+        void *Malloc(size_t _size) { return malloc(_size); }
+
+        void *Realloc(void *_org_p, size_t _org_size, size_t _new_size) {
+            (void) _org_size;
+            return realloc(_org_p, _new_size);
+        }
+
+        static void Free(void *_p) { return free(_p); }
+    };
+
+    typedef rapidjson::GenericDocument<
             rapidjson::UTF8<>,
-            rapidjson::MemoryPoolAllocator< MyAllocator >,
+            rapidjson::MemoryPoolAllocator<MyAllocator>,
             MyAllocator
-        > Document;
+    > Document;
 
-typedef rapidjson::GenericPointer<
+    typedef rapidjson::GenericPointer<
             ::myjson::Document::ValueType,
             MyAllocator
-        > Pointer;
+    > Pointer;
 
-typedef ::myjson::Document::ValueType Value;
+    typedef ::myjson::Document::ValueType Value;
 
 }
 

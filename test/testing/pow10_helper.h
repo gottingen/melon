@@ -13,14 +13,14 @@
 
 namespace abel {
 
-namespace strings_internal {
+    namespace strings_internal {
 
 // Computes the precise value of 10^exp. (I.e. the nearest representable
 // double to the exact value, rounding to nearest-even in the (single) case of
 // being exactly halfway between.)
-double Pow10 (int exp);
+        double Pow10(int exp);
 
-}  // namespace strings_internal
+    }  // namespace strings_internal
 
 }  // namespace abel
 

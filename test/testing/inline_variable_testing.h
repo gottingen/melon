@@ -7,28 +7,30 @@
 
 namespace abel {
 
-namespace inline_variable_testing_internal {
+    namespace inline_variable_testing_internal {
 
-struct Foo {
-    int value = 5;
-};
+        struct Foo {
+            int value = 5;
+        };
 
-ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, inline_variable_foo, { });
-ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, other_inline_variable_foo, { });
+        ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, inline_variable_foo, {});
+        ABEL_INTERNAL_INLINE_CONSTEXPR(Foo, other_inline_variable_foo, {});
 
-ABEL_INTERNAL_INLINE_CONSTEXPR(int, inline_variable_int, 5);
-ABEL_INTERNAL_INLINE_CONSTEXPR(int, other_inline_variable_int, 5);
+        ABEL_INTERNAL_INLINE_CONSTEXPR(int, inline_variable_int, 5);
+        ABEL_INTERNAL_INLINE_CONSTEXPR(int, other_inline_variable_int, 5);
 
-ABEL_INTERNAL_INLINE_CONSTEXPR(void(*)
-                                   (), inline_variable_fun_ptr, nullptr);
+        ABEL_INTERNAL_INLINE_CONSTEXPR(void(*)
+                                               (), inline_variable_fun_ptr, nullptr);
 
-const Foo &get_foo_a ();
-const Foo &get_foo_b ();
+        const Foo &get_foo_a();
 
-const int &get_int_a ();
-const int &get_int_b ();
+        const Foo &get_foo_b();
 
-}  // namespace inline_variable_testing_internal
+        const int &get_int_a();
+
+        const int &get_int_b();
+
+    }  // namespace inline_variable_testing_internal
 
 }  // namespace abel
 

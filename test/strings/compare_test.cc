@@ -7,15 +7,15 @@
 
 namespace {
 
-TEST(MatchTest, EqualsIgnoreCase) {
-    std::string text = "the";
-    abel::string_view data(text);
+    TEST(MatchTest, EqualsIgnoreCase) {
+        std::string text = "the";
+        abel::string_view data(text);
 
-    EXPECT_TRUE(abel::equal_case(data, "The"));
-    EXPECT_TRUE(abel::equal_case(data, "THE"));
-    EXPECT_TRUE(abel::equal_case(data, "the"));
-    EXPECT_FALSE(abel::equal_case(data, "Quick"));
-    EXPECT_FALSE(abel::equal_case(data, "then"));
-}
+        EXPECT_TRUE(abel::equal_case(data, "The"));
+        EXPECT_TRUE(abel::equal_case(data, "THE"));
+        EXPECT_TRUE(abel::equal_case(data, "the"));
+        EXPECT_FALSE(abel::equal_case(data, "Quick"));
+        EXPECT_FALSE(abel::equal_case(data, "then"));
+    }
 
 }

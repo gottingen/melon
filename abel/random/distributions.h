@@ -56,13 +56,13 @@
 namespace abel {
 
 
-ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosedClosed,
-                               {});
-ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosed, {});
-ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedOpenTag, IntervalClosedOpen, {});
-ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenOpenTag, IntervalOpenOpen, {});
-ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenOpenTag, IntervalOpen, {});
-ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenClosedTag, IntervalOpenClosed, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosedClosed,
+                                   {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosed, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedOpenTag, IntervalClosedOpen, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenOpenTag, IntervalOpenOpen, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenOpenTag, IntervalOpen, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenClosedTag, IntervalOpenClosed, {});
 
 // -----------------------------------------------------------------------------
 // abel::Uniform<T>(tag, bitgen, lo, hi)
@@ -106,109 +106,109 @@ ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenClosedTag, IntervalOpenClosed, {});
 //
 //   auto x = abel::Uniform<float>(bitgen, 0, 1);
 //
-template <typename R = void, typename TagType, typename URBG>
-typename abel::enable_if_t<!std::is_same<R, void>::value, R>  //
-Uniform(TagType tag,
-        URBG&& urbg,  // NOLINT(runtime/references)
-        R lo, R hi) {
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = random_internal::UniformDistributionWrapper<R>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+    template<typename R = void, typename TagType, typename URBG>
+    typename abel::enable_if_t<!std::is_same<R, void>::value, R>  //
+    Uniform(TagType tag,
+            URBG &&urbg,  // NOLINT(runtime/references)
+            R lo, R hi) {
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = random_internal::UniformDistributionWrapper<R>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  auto a = random_internal::uniform_lower_bound(tag, lo, hi);
-  auto b = random_internal::uniform_upper_bound(tag, lo, hi);
-  if (a > b) return a;
+        auto a = random_internal::uniform_lower_bound(tag, lo, hi);
+        auto b = random_internal::uniform_upper_bound(tag, lo, hi);
+        if (a > b) return a;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, tag, lo, hi);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, tag, lo, hi);
+    }
 
 // abel::Uniform<T>(bitgen, lo, hi)
 //
 // Overload of `Uniform()` using the default closed-open interval of [lo, hi),
 // and returning values of type `T`
-template <typename R = void, typename URBG>
-typename abel::enable_if_t<!std::is_same<R, void>::value, R>  //
-Uniform(URBG&& urbg,  // NOLINT(runtime/references)
-        R lo, R hi) {
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = random_internal::UniformDistributionWrapper<R>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+    template<typename R = void, typename URBG>
+    typename abel::enable_if_t<!std::is_same<R, void>::value, R>  //
+    Uniform(URBG &&urbg,  // NOLINT(runtime/references)
+            R lo, R hi) {
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = random_internal::UniformDistributionWrapper<R>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  constexpr auto tag = abel::IntervalClosedOpen;
-  auto a = random_internal::uniform_lower_bound(tag, lo, hi);
-  auto b = random_internal::uniform_upper_bound(tag, lo, hi);
-  if (a > b) return a;
+        constexpr auto tag = abel::IntervalClosedOpen;
+        auto a = random_internal::uniform_lower_bound(tag, lo, hi);
+        auto b = random_internal::uniform_upper_bound(tag, lo, hi);
+        if (a > b) return a;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, lo, hi);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, lo, hi);
+    }
 
 // abel::Uniform(tag, bitgen, lo, hi)
 //
 // Overload of `Uniform()` using different (but compatible) lo, hi types. Note
 // that a compile-error will result if the return type cannot be deduced
 // correctly from the passed types.
-template <typename R = void, typename TagType, typename URBG, typename A,
-          typename B>
-typename abel::enable_if_t<std::is_same<R, void>::value,
-                           random_internal::uniform_inferred_return_t<A, B>>
-Uniform(TagType tag,
-        URBG&& urbg,  // NOLINT(runtime/references)
-        A lo, B hi) {
-  using gen_t = abel::decay_t<URBG>;
-  using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
-  using distribution_t = random_internal::UniformDistributionWrapper<return_t>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+    template<typename R = void, typename TagType, typename URBG, typename A,
+            typename B>
+    typename abel::enable_if_t<std::is_same<R, void>::value,
+            random_internal::uniform_inferred_return_t<A, B>>
+    Uniform(TagType tag,
+            URBG &&urbg,  // NOLINT(runtime/references)
+            A lo, B hi) {
+        using gen_t = abel::decay_t<URBG>;
+        using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
+        using distribution_t = random_internal::UniformDistributionWrapper<return_t>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  auto a = random_internal::uniform_lower_bound<return_t>(tag, lo, hi);
-  auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
-  if (a > b) return a;
+        auto a = random_internal::uniform_lower_bound<return_t>(tag, lo, hi);
+        auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
+        if (a > b) return a;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, tag, static_cast<return_t>(lo),
-                                static_cast<return_t>(hi));
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, tag, static_cast<return_t>(lo),
+                                          static_cast<return_t>(hi));
+    }
 
 // abel::Uniform(bitgen, lo, hi)
 //
 // Overload of `Uniform()` using different (but compatible) lo, hi types and the
 // default closed-open interval of [lo, hi). Note that a compile-error will
 // result if the return type cannot be deduced correctly from the passed types.
-template <typename R = void, typename URBG, typename A, typename B>
-typename abel::enable_if_t<std::is_same<R, void>::value,
-                           random_internal::uniform_inferred_return_t<A, B>>
-Uniform(URBG&& urbg,  // NOLINT(runtime/references)
-        A lo, B hi) {
-  using gen_t = abel::decay_t<URBG>;
-  using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
-  using distribution_t = random_internal::UniformDistributionWrapper<return_t>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+    template<typename R = void, typename URBG, typename A, typename B>
+    typename abel::enable_if_t<std::is_same<R, void>::value,
+            random_internal::uniform_inferred_return_t<A, B>>
+    Uniform(URBG &&urbg,  // NOLINT(runtime/references)
+            A lo, B hi) {
+        using gen_t = abel::decay_t<URBG>;
+        using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
+        using distribution_t = random_internal::UniformDistributionWrapper<return_t>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  constexpr auto tag = abel::IntervalClosedOpen;
-  auto a = random_internal::uniform_lower_bound<return_t>(tag, lo, hi);
-  auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
-  if (a > b) return a;
+        constexpr auto tag = abel::IntervalClosedOpen;
+        auto a = random_internal::uniform_lower_bound<return_t>(tag, lo, hi);
+        auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
+        if (a > b) return a;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, static_cast<return_t>(lo),
-                                static_cast<return_t>(hi));
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, static_cast<return_t>(lo),
+                                          static_cast<return_t>(hi));
+    }
 
 // abel::Uniform<unsigned T>(bitgen)
 //
 // Overload of Uniform() using the minimum and maximum values of a given type
 // `T` (which must be unsigned), returning a value of type `unsigned T`
-template <typename R, typename URBG>
-typename abel::enable_if_t<!std::is_signed<R>::value, R>  //
-Uniform(URBG&& urbg) {  // NOLINT(runtime/references)
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = random_internal::UniformDistributionWrapper<R>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+    template<typename R, typename URBG>
+    typename abel::enable_if_t<!std::is_signed<R>::value, R>  //
+    Uniform(URBG &&urbg) {  // NOLINT(runtime/references)
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = random_internal::UniformDistributionWrapper<R>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::Bernoulli(bitgen, p)
@@ -230,16 +230,16 @@ Uniform(URBG&& urbg) {  // NOLINT(runtime/references)
 //     std::cout << "Asteroid field navigation successful.";
 //   }
 //
-template <typename URBG>
-bool Bernoulli(URBG&& urbg,  // NOLINT(runtime/references)
-               double p) {
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = abel::bernoulli_distribution;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+    template<typename URBG>
+    bool Bernoulli(URBG &&urbg,  // NOLINT(runtime/references)
+                   double p) {
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = abel::bernoulli_distribution;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, p);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, p);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::Beta<T>(bitgen, alpha, beta)
@@ -258,21 +258,21 @@ bool Bernoulli(URBG&& urbg,  // NOLINT(runtime/references)
 //   ...
 //   double sample = abel::Beta(bitgen, 3.0, 2.0);
 //
-template <typename RealType, typename URBG>
-RealType Beta(URBG&& urbg,  // NOLINT(runtime/references)
-              RealType alpha, RealType beta) {
-  static_assert(
-      std::is_floating_point<RealType>::value,
-      "Template-argument 'RealType' must be a floating-point type, in "
-      "abel::Beta<RealType, URBG>(...)");
+    template<typename RealType, typename URBG>
+    RealType Beta(URBG &&urbg,  // NOLINT(runtime/references)
+                  RealType alpha, RealType beta) {
+        static_assert(
+                std::is_floating_point<RealType>::value,
+                "Template-argument 'RealType' must be a floating-point type, in "
+                "abel::Beta<RealType, URBG>(...)");
 
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = typename abel::beta_distribution<RealType>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = typename abel::beta_distribution<RealType>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, alpha, beta);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, alpha, beta);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::Exponential<T>(bitgen, lambda = 1)
@@ -291,21 +291,21 @@ RealType Beta(URBG&& urbg,  // NOLINT(runtime/references)
 //   ...
 //   double call_length = abel::Exponential(bitgen, 7.0);
 //
-template <typename RealType, typename URBG>
-RealType Exponential(URBG&& urbg,  // NOLINT(runtime/references)
-                     RealType lambda = 1) {
-  static_assert(
-      std::is_floating_point<RealType>::value,
-      "Template-argument 'RealType' must be a floating-point type, in "
-      "abel::Exponential<RealType, URBG>(...)");
+    template<typename RealType, typename URBG>
+    RealType Exponential(URBG &&urbg,  // NOLINT(runtime/references)
+                         RealType lambda = 1) {
+        static_assert(
+                std::is_floating_point<RealType>::value,
+                "Template-argument 'RealType' must be a floating-point type, in "
+                "abel::Exponential<RealType, URBG>(...)");
 
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = typename abel::exponential_distribution<RealType>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = typename abel::exponential_distribution<RealType>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, lambda);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, lambda);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::Gaussian<T>(bitgen, mean = 0, stddev = 1)
@@ -323,21 +323,21 @@ RealType Exponential(URBG&& urbg,  // NOLINT(runtime/references)
 //   ...
 //   double giraffe_height = abel::Gaussian(bitgen, 16.3, 3.3);
 //
-template <typename RealType, typename URBG>
-RealType Gaussian(URBG&& urbg,  // NOLINT(runtime/references)
-                  RealType mean = 0, RealType stddev = 1) {
-  static_assert(
-      std::is_floating_point<RealType>::value,
-      "Template-argument 'RealType' must be a floating-point type, in "
-      "abel::Gaussian<RealType, URBG>(...)");
+    template<typename RealType, typename URBG>
+    RealType Gaussian(URBG &&urbg,  // NOLINT(runtime/references)
+                      RealType mean = 0, RealType stddev = 1) {
+        static_assert(
+                std::is_floating_point<RealType>::value,
+                "Template-argument 'RealType' must be a floating-point type, in "
+                "abel::Gaussian<RealType, URBG>(...)");
 
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = typename abel::gaussian_distribution<RealType>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = typename abel::gaussian_distribution<RealType>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, mean, stddev);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, mean, stddev);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::LogUniform<T>(bitgen, lo, hi, base = 2)
@@ -367,20 +367,20 @@ RealType Gaussian(URBG&& urbg,  // NOLINT(runtime/references)
 //   ...
 //   int v = abel::LogUniform(bitgen, 0, 1000);
 //
-template <typename IntType, typename URBG>
-IntType LogUniform(URBG&& urbg,  // NOLINT(runtime/references)
-                   IntType lo, IntType hi, IntType base = 2) {
-  static_assert(std::is_integral<IntType>::value,
-                "Template-argument 'IntType' must be an integral type, in "
-                "abel::LogUniform<IntType, URBG>(...)");
+    template<typename IntType, typename URBG>
+    IntType LogUniform(URBG &&urbg,  // NOLINT(runtime/references)
+                       IntType lo, IntType hi, IntType base = 2) {
+        static_assert(std::is_integral<IntType>::value,
+                      "Template-argument 'IntType' must be an integral type, in "
+                      "abel::LogUniform<IntType, URBG>(...)");
 
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = typename abel::log_uniform_int_distribution<IntType>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = typename abel::log_uniform_int_distribution<IntType>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, lo, hi, base);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, lo, hi, base);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::Poisson<T>(bitgen, mean = 1)
@@ -398,20 +398,20 @@ IntType LogUniform(URBG&& urbg,  // NOLINT(runtime/references)
 //   ...
 //   int requests_per_minute = abel::Poisson<int>(bitgen, 3.2);
 //
-template <typename IntType, typename URBG>
-IntType Poisson(URBG&& urbg,  // NOLINT(runtime/references)
-                double mean = 1.0) {
-  static_assert(std::is_integral<IntType>::value,
-                "Template-argument 'IntType' must be an integral type, in "
-                "abel::Poisson<IntType, URBG>(...)");
+    template<typename IntType, typename URBG>
+    IntType Poisson(URBG &&urbg,  // NOLINT(runtime/references)
+                    double mean = 1.0) {
+        static_assert(std::is_integral<IntType>::value,
+                      "Template-argument 'IntType' must be an integral type, in "
+                      "abel::Poisson<IntType, URBG>(...)");
 
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = typename abel::poisson_distribution<IntType>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = typename abel::poisson_distribution<IntType>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, mean);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, mean);
+    }
 
 // -----------------------------------------------------------------------------
 // abel::Zipf<T>(bitgen, hi = max, q = 2, v = 1)
@@ -430,21 +430,21 @@ IntType Poisson(URBG&& urbg,  // NOLINT(runtime/references)
 //   ...
 //   int term_rank = abel::Zipf<int>(bitgen);
 //
-template <typename IntType, typename URBG>
-IntType Zipf(URBG&& urbg,  // NOLINT(runtime/references)
-             IntType hi = (std::numeric_limits<IntType>::max)(), double q = 2.0,
-             double v = 1.0) {
-  static_assert(std::is_integral<IntType>::value,
-                "Template-argument 'IntType' must be an integral type, in "
-                "abel::Zipf<IntType, URBG>(...)");
+    template<typename IntType, typename URBG>
+    IntType Zipf(URBG &&urbg,  // NOLINT(runtime/references)
+                 IntType hi = (std::numeric_limits<IntType>::max)(), double q = 2.0,
+                 double v = 1.0) {
+        static_assert(std::is_integral<IntType>::value,
+                      "Template-argument 'IntType' must be an integral type, in "
+                      "abel::Zipf<IntType, URBG>(...)");
 
-  using gen_t = abel::decay_t<URBG>;
-  using distribution_t = typename abel::zipf_distribution<IntType>;
-  using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using gen_t = abel::decay_t<URBG>;
+        using distribution_t = typename abel::zipf_distribution<IntType>;
+        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
 
-  return random_internal::DistributionCaller<gen_t>::template Call<
-      distribution_t, format_t>(&urbg, hi, q, v);
-}
+        return random_internal::DistributionCaller<gen_t>::template Call<
+                distribution_t, format_t>(&urbg, hi, q, v);
+    }
 
 
 }  // namespace abel

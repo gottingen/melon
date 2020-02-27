@@ -2,6 +2,7 @@
 #define ABEL_BASE_PROFILE_THREAD_H_
 
 #include <abel/base/profile/compiler_traits.h>
+
 #if defined(__clang__)
 #define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
 #else
@@ -219,15 +220,15 @@ namespace thread_safety_analysis {
 
 // Takes a reference to a guarded data member, and returns an unguarded
 // reference.
-template<typename T>
-ABEL_FORCE_INLINE const T &ts_unchecked_read (const T &v) NO_THREAD_SAFETY_ANALYSIS {
-    return v;
-}
+    template<typename T>
+    ABEL_FORCE_INLINE const T &ts_unchecked_read(const T &v) NO_THREAD_SAFETY_ANALYSIS {
+        return v;
+    }
 
-template<typename T>
-ABEL_FORCE_INLINE T &ts_unchecked_read (T &v) NO_THREAD_SAFETY_ANALYSIS {
-    return v;
-}
+    template<typename T>
+    ABEL_FORCE_INLINE T &ts_unchecked_read(T &v) NO_THREAD_SAFETY_ANALYSIS {
+        return v;
+    }
 
 }  // namespace thread_safety_analysis
 

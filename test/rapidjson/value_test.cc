@@ -18,7 +18,8 @@
 
 #ifdef __clang__
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(c++98-compat)
+RAPIDJSON_DIAG_OFF(c++
+                           98 - compat)
 #endif
 
 using namespace rapidjson;
@@ -131,18 +132,18 @@ TEST(Value, AssignmentOperator) {
 
     x = "Hello";
     EXPECT_TRUE(x.IsString());
-    EXPECT_STREQ(x.GetString(),"Hello");
+    EXPECT_STREQ(x.GetString(), "Hello");
 
-    y = StringRef(x.GetString(),x.GetStringLength());
+    y = StringRef(x.GetString(), x.GetStringLength());
     EXPECT_TRUE(y.IsString());
-    EXPECT_EQ(y.GetString(),x.GetString());
-    EXPECT_EQ(y.GetStringLength(),x.GetStringLength());
+    EXPECT_EQ(y.GetString(), x.GetString());
+    EXPECT_EQ(y.GetStringLength(), x.GetStringLength());
 
     static char mstr[] = "mutable";
     // y = mstr; // should not compile
     y = StringRef(mstr);
     EXPECT_TRUE(y.IsString());
-    EXPECT_EQ(y.GetString(),mstr);
+    EXPECT_EQ(y.GetString(), mstr);
 
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
     // C++11 move assignment
@@ -161,16 +162,16 @@ TEST(Value, AssignmentOperator) {
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
 }
 
-template <typename A, typename B> 
-void TestEqual(const A& a, const B& b) {
+template<typename A, typename B>
+void TestEqual(const A &a, const B &b) {
     EXPECT_TRUE (a == b);
     EXPECT_FALSE(a != b);
     EXPECT_TRUE (b == a);
     EXPECT_FALSE(b != a);
 }
 
-template <typename A, typename B> 
-void TestUnequal(const A& a, const B& b) {
+template<typename A, typename B>
+void TestUnequal(const A &a, const B &b) {
     EXPECT_FALSE(a == b);
     EXPECT_TRUE (a != b);
     EXPECT_FALSE(b == a);
@@ -181,18 +182,20 @@ TEST(Value, EqualtoOperator) {
     Value::AllocatorType allocator;
     Value x(kObjectType);
     x.AddMember("hello", "world", allocator)
-        .AddMember("t", Value(true).Move(), allocator)
-        .AddMember("f", Value(false).Move(), allocator)
-        .AddMember("n", Value(kNullType).Move(), allocator)
-        .AddMember("i", 123, allocator)
-        .AddMember("pi", 3.14, allocator)
-        .AddMember("a", Value(kArrayType).Move().PushBack(1, allocator).PushBack(2, allocator).PushBack(3, allocator), allocator);
+            .AddMember("t", Value(true).Move(), allocator)
+            .AddMember("f", Value(false).Move(), allocator)
+            .AddMember("n", Value(kNullType).Move(), allocator)
+            .AddMember("i", 123, allocator)
+            .AddMember("pi", 3.14, allocator)
+            .AddMember("a",
+                       Value(kArrayType).Move().PushBack(1, allocator).PushBack(2, allocator).PushBack(3, allocator),
+                       allocator);
 
     // Test templated operator==() and operator!=()
     TestEqual(x["hello"], "world");
-    const char* cc = "world";
+    const char *cc = "world";
     TestEqual(x["hello"], cc);
-    char* c = strdup("world");
+    char *c = strdup("world");
     TestEqual(x["hello"], c);
     free(c);
 
@@ -246,7 +249,7 @@ TEST(Value, EqualtoOperator) {
     TestUnequal(x, y);
 }
 
-template <typename Value>
+template<typename Value>
 void TestCopyFrom() {
     typename Value::AllocatorType a;
     Value v1(1234);
@@ -682,9 +685,12 @@ TEST(Value, IsLosslessDouble) {
     EXPECT_TRUE(Value(RAPIDJSON_UINT64_C2(0xA0000000, 0x00000000)).IsLosslessDouble());
 #endif
 
-    EXPECT_FALSE(Value(static_cast<int64_t>(RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF))).IsLosslessDouble()); // INT64_MAX
-    EXPECT_FALSE(Value(-static_cast<int64_t>(RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF))).IsLosslessDouble()); // -INT64_MAX
-    EXPECT_TRUE(Value(-static_cast<int64_t>(RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF)) - 1).IsLosslessDouble()); // INT64_MIN
+    EXPECT_FALSE(
+            Value(static_cast<int64_t>(RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF))).IsLosslessDouble()); // INT64_MAX
+    EXPECT_FALSE(
+            Value(-static_cast<int64_t>(RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF))).IsLosslessDouble()); // -INT64_MAX
+    EXPECT_TRUE(Value(-static_cast<int64_t>(RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF)) -
+                      1).IsLosslessDouble()); // INT64_MIN
     EXPECT_FALSE(Value(RAPIDJSON_UINT64_C2(0xFFFFFFFF, 0xFFFFFFFF)).IsLosslessDouble()); // UINT64_MAX
 
     EXPECT_TRUE(Value(3.4028234e38f).IsLosslessDouble()); // FLT_MAX
@@ -727,26 +733,26 @@ TEST(Value, String) {
     Value(cstr).Swap(x);
     EXPECT_TRUE(x.IsString());
     EXPECT_EQ(x.GetString(), cstr);
-    EXPECT_EQ(x.GetStringLength(), sizeof(cstr)-1);
+    EXPECT_EQ(x.GetStringLength(), sizeof(cstr) - 1);
 
     static char mstr[] = "Howdy"; // non-const array
     // Value(mstr).Swap(x); // should not compile
     Value(StringRef(mstr)).Swap(x);
     EXPECT_TRUE(x.IsString());
     EXPECT_EQ(x.GetString(), mstr);
-    EXPECT_EQ(x.GetStringLength(), sizeof(mstr)-1);
-    strncpy(mstr,"Hello", sizeof(mstr));
+    EXPECT_EQ(x.GetStringLength(), sizeof(mstr) - 1);
+    strncpy(mstr, "Hello", sizeof(mstr));
     EXPECT_STREQ(x.GetString(), "Hello");
 
-    const char* pstr = cstr;
+    const char *pstr = cstr;
     //Value(pstr).Swap(x); // should not compile
     Value(StringRef(pstr)).Swap(x);
     EXPECT_TRUE(x.IsString());
     EXPECT_EQ(x.GetString(), cstr);
-    EXPECT_EQ(x.GetStringLength(), sizeof(cstr)-1);
+    EXPECT_EQ(x.GetStringLength(), sizeof(cstr) - 1);
 
-    char* mpstr = mstr;
-    Value(StringRef(mpstr,sizeof(mstr)-1)).Swap(x);
+    char *mpstr = mstr;
+    Value(StringRef(mpstr, sizeof(mstr) - 1)).Swap(x);
     EXPECT_TRUE(x.IsString());
     EXPECT_EQ(x.GetString(), mstr);
     EXPECT_EQ(x.GetStringLength(), 5u);
@@ -805,9 +811,9 @@ TEST(Value, String) {
     EXPECT_EQ(5u, w.GetStringLength());
 
     // templated functions
-    EXPECT_TRUE(z.Is<const char*>());
-    EXPECT_STREQ(cstr, z.Get<const char*>());
-    EXPECT_STREQ("Apple", z.Set<const char*>("Apple").Get<const char*>());
+    EXPECT_TRUE(z.Is<const char *>());
+    EXPECT_STREQ(cstr, z.Get<const char *>());
+    EXPECT_STREQ("Apple", z.Set<const char *>("Apple").Get<const char *>());
 
 #if RAPIDJSON_HAS_STDSTRING
     {
@@ -862,9 +868,9 @@ TEST(Value, SetStringNullException) {
     EXPECT_THROW(v.SetString(0, 0), AssertException);
 }
 
-template <typename T, typename Allocator>
-static void TestArray(T& x, Allocator& allocator) {
-    const T& y = x;
+template<typename T, typename Allocator>
+static void TestArray(T &x, Allocator &allocator) {
+    const T &y = x;
 
     // PushBack()
     Value v;
@@ -1001,7 +1007,7 @@ static void TestArray(T& x, Allocator& allocator) {
             x.Clear();
             for (unsigned i = 0; i < n; i++)
                 x.PushBack(Value(kArrayType).PushBack(i, allocator).Move(), allocator);
-            
+
             itr = x.Erase(x.Begin() + first, x.Begin() + last);
             if (last == n)
                 EXPECT_EQ(x.End(), itr);
@@ -1020,7 +1026,7 @@ static void TestArray(T& x, Allocator& allocator) {
 
 TEST(Value, Array) {
     Value x(kArrayType);
-    const Value& y = x;
+    const Value &y = x;
     Value::AllocatorType allocator;
 
     EXPECT_EQ(kArrayType, x.GetType());
@@ -1081,8 +1087,8 @@ TEST(Value, ArrayHelper) {
         Value::Array a3 = a;
         EXPECT_EQ(1, a3.Size());
 
-        Value::ConstArray y = static_cast<const Value&>(x).GetArray();
-        (void)y;
+        Value::ConstArray y = static_cast<const Value &>(x).GetArray();
+        (void) y;
         // y.PushBack(1, allocator); // should not compile
 
         // Templated functions
@@ -1133,7 +1139,7 @@ TEST(Value, ArrayHelperRangeFor) {
 
     {
         int i = 0;
-        for (auto& v : x.GetArray()) {
+        for (auto &v : x.GetArray()) {
             EXPECT_EQ(i, v.GetInt());
             i++;
         }
@@ -1141,7 +1147,7 @@ TEST(Value, ArrayHelperRangeFor) {
     }
     {
         int i = 0;
-        for (const auto& v : const_cast<const Value&>(x).GetArray()) {
+        for (const auto &v : const_cast<const Value &>(x).GetArray()) {
             EXPECT_EQ(i, v.GetInt());
             i++;
         }
@@ -1151,11 +1157,12 @@ TEST(Value, ArrayHelperRangeFor) {
     // Array a = x.GetArray();
     // Array ca = const_cast<const Value&>(x).GetArray();
 }
+
 #endif
 
-template <typename T, typename Allocator>
-static void TestObject(T& x, Allocator& allocator) {
-    const T& y = x; // const version
+template<typename T, typename Allocator>
+static void TestObject(T &x, Allocator &allocator) {
+    const T &y = x; // const version
 
     // AddMember()
     x.AddMember("A", "Apple", allocator);
@@ -1184,7 +1191,7 @@ static void TestObject(T& x, Allocator& allocator) {
         EXPECT_EQ(1u, o["uint"].GetUint());
         EXPECT_EQ(int64_t(-4294967296), o["int64"].GetInt64());
         EXPECT_EQ(uint64_t(4294967296), o["uint64"].GetUint64());
-        EXPECT_STREQ("Jelly",o["string"].GetString());
+        EXPECT_STREQ("Jelly", o["string"].GetString());
         EXPECT_EQ(8u, o.MemberCount());
     }
 
@@ -1276,7 +1283,7 @@ static void TestObject(T& x, Allocator& allocator) {
 #endif
 
     // member iterator
-    Value::MemberIterator itr = x.MemberBegin(); 
+    Value::MemberIterator itr = x.MemberBegin();
     EXPECT_TRUE(itr != x.MemberEnd());
     EXPECT_STREQ("A", itr->name.GetString());
     EXPECT_STREQ("Apple", itr->value.GetString());
@@ -1292,7 +1299,7 @@ static void TestObject(T& x, Allocator& allocator) {
     EXPECT_FALSE(itr != x.MemberEnd());
 
     // const member iterator
-    Value::ConstMemberIterator citr = y.MemberBegin(); 
+    Value::ConstMemberIterator citr = y.MemberBegin();
     EXPECT_TRUE(citr != y.MemberEnd());
     EXPECT_STREQ("A", citr->name.GetString());
     EXPECT_STREQ("Apple", citr->value.GetString());
@@ -1308,7 +1315,7 @@ static void TestObject(T& x, Allocator& allocator) {
     EXPECT_FALSE(citr != y.MemberEnd());
 
     // member iterator conversions/relations
-    itr  = x.MemberBegin();
+    itr = x.MemberBegin();
     citr = x.MemberBegin(); // const conversion
     TestEqual(itr, citr);
     EXPECT_TRUE(itr < x.MemberEnd());
@@ -1350,7 +1357,7 @@ static void TestObject(T& x, Allocator& allocator) {
 
     // Use array members to ensure removed elements' destructor is called.
     // { "a": [0], "b": [1],[2],...]
-    const char keys[][2] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" };
+    const char keys[][2] = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
     for (int i = 0; i < 10; i++)
         x.AddMember(keys[i], Value(kArrayType).PushBack(i, allocator), allocator);
 
@@ -1411,7 +1418,7 @@ static void TestObject(T& x, Allocator& allocator) {
             for (unsigned i = 0; i < first; i++)
                 EXPECT_EQ(i, x[keys[i]][0].GetUint());
             for (unsigned i = first; i < n - removeCount; i++)
-                EXPECT_EQ(i + removeCount, x[keys[i+removeCount]][0].GetUint());
+                EXPECT_EQ(i + removeCount, x[keys[i + removeCount]][0].GetUint());
         }
     }
 
@@ -1423,7 +1430,7 @@ static void TestObject(T& x, Allocator& allocator) {
 
 TEST(Value, Object) {
     Value x(kObjectType);
-    const Value& y = x; // const version
+    const Value &y = x; // const version
     Value::AllocatorType allocator;
 
     EXPECT_EQ(kObjectType, x.GetType());
@@ -1462,8 +1469,8 @@ TEST(Value, ObjectHelper) {
         Value::Object o3 = o;
         EXPECT_EQ(1, o3.MemberCount());
 
-        Value::ConstObject y = static_cast<const Value&>(x).GetObject();
-        (void)y;
+        Value::ConstObject y = static_cast<const Value &>(x).GetObject();
+        (void) y;
         // y.AddMember("1", 1, allocator); // should not compile
 
         // Templated functions
@@ -1487,7 +1494,7 @@ TEST(Value, ObjectHelper) {
         EXPECT_STREQ("apple", y["a"].GetString());
         EXPECT_TRUE(x.IsObject());  // Invariant
     }
-    
+
     {
         Value x(kObjectType);
         x.AddMember("a", "apple", allocator);
@@ -1511,7 +1518,7 @@ TEST(Value, ObjectHelperRangeFor) {
 
     {
         int i = 0;
-        for (auto& m : x.GetObject()) {
+        for (auto &m : x.GetObject()) {
             char name[10];
             sprintf(name, "%d", i);
             EXPECT_STREQ(name, m.name.GetString());
@@ -1522,7 +1529,7 @@ TEST(Value, ObjectHelperRangeFor) {
     }
     {
         int i = 0;
-        for (const auto& m : const_cast<const Value&>(x).GetObject()) {
+        for (const auto &m : const_cast<const Value &>(x).GetObject()) {
             char name[10];
             sprintf(name, "%d", i);
             EXPECT_STREQ(name, m.name.GetString());
@@ -1535,6 +1542,7 @@ TEST(Value, ObjectHelperRangeFor) {
     // Object a = x.GetObject();
     // Object ca = const_cast<const Value&>(x).GetObject();
 }
+
 #endif
 
 TEST(Value, EraseMember_String) {
@@ -1558,11 +1566,11 @@ TEST(Value, EraseMember_String) {
 TEST(Value, BigNestedArray) {
     MemoryPoolAllocator<> allocator;
     Value x(kArrayType);
-    static const SizeType  n = 200;
+    static const SizeType n = 200;
 
     for (SizeType i = 0; i < n; i++) {
         Value y(kArrayType);
-        for (SizeType  j = 0; j < n; j++) {
+        for (SizeType j = 0; j < n; j++) {
             Value number(static_cast<int>(i * n + j));
             y.PushBack(number, allocator);
         }
@@ -1605,7 +1613,7 @@ TEST(Value, BigNestedObject) {
     for (SizeType i = 0; i < n; i++) {
         char name1[10];
         sprintf(name1, "%d", i);
-        
+
         for (SizeType j = 0; j < n; j++) {
             char name2[10];
             sprintf(name2, "%d", j);
@@ -1619,9 +1627,9 @@ TEST(Value, BigNestedObject) {
 // http://code.google.com/p/rapidjson/issues/detail?id=18
 TEST(Value, RemoveLastElement) {
     rapidjson::Document doc;
-    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
-    rapidjson::Value objVal(rapidjson::kObjectType);        
-    objVal.AddMember("var1", 123, allocator);       
+    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+    rapidjson::Value objVal(rapidjson::kObjectType);
+    objVal.AddMember("var1", 123, allocator);
     objVal.AddMember("var2", "444", allocator);
     objVal.AddMember("var3", 555, allocator);
     EXPECT_TRUE(objVal.HasMember("var3"));
@@ -1635,47 +1643,61 @@ TEST(Document, CrtAllocator) {
 
     V::AllocatorType allocator;
     V o(kObjectType);
-    o.AddMember("x", 1, allocator); // Should not call destructor on uninitialized name/value of newly allocated members.
+    o.AddMember("x", 1,
+                allocator); // Should not call destructor on uninitialized name/value of newly allocated members.
 
     V a(kArrayType);
     a.PushBack(1, allocator);   // Should not call destructor on uninitialized Value of newly allocated elements.
 }
 
-static void TestShortStringOptimization(const char* str) {
+static void TestShortStringOptimization(const char *str) {
     const rapidjson::SizeType len = static_cast<rapidjson::SizeType>(strlen(str));
-	
+
     rapidjson::Document doc;
     rapidjson::Value val;
     val.SetString(str, len, doc.GetAllocator());
-	
-	EXPECT_EQ(val.GetStringLength(), len);
-	EXPECT_STREQ(val.GetString(), str);
+
+    EXPECT_EQ(val.GetStringLength(), len);
+    EXPECT_STREQ(val.GetString(), str);
 }
 
 TEST(Value, AllocateShortString) {
-	TestShortStringOptimization("");                 // edge case: empty string
-	TestShortStringOptimization("12345678");         // regular case for short strings: 8 chars
-	TestShortStringOptimization("12345678901");      // edge case: 11 chars in 32-bit mode (=> short string)
-	TestShortStringOptimization("123456789012");     // edge case: 12 chars in 32-bit mode (=> regular string)
-	TestShortStringOptimization("123456789012345");  // edge case: 15 chars in 64-bit mode (=> short string)
-	TestShortStringOptimization("1234567890123456"); // edge case: 16 chars in 64-bit mode (=> regular string)
+    TestShortStringOptimization("");                 // edge case: empty string
+    TestShortStringOptimization("12345678");         // regular case for short strings: 8 chars
+    TestShortStringOptimization("12345678901");      // edge case: 11 chars in 32-bit mode (=> short string)
+    TestShortStringOptimization("123456789012");     // edge case: 12 chars in 32-bit mode (=> regular string)
+    TestShortStringOptimization("123456789012345");  // edge case: 15 chars in 64-bit mode (=> short string)
+    TestShortStringOptimization("1234567890123456"); // edge case: 16 chars in 64-bit mode (=> regular string)
 }
 
-template <int e>
+template<int e>
 struct TerminateHandler {
     bool Null() { return e != 0; }
+
     bool Bool(bool) { return e != 1; }
+
     bool Int(int) { return e != 2; }
+
     bool Uint(unsigned) { return e != 3; }
+
     bool Int64(int64_t) { return e != 4; }
+
     bool Uint64(uint64_t) { return e != 5; }
+
     bool Double(double) { return e != 6; }
-    bool RawNumber(const char*, SizeType, bool) { return e != 7; }
-    bool String(const char*, SizeType, bool) { return e != 8; }
+
+    bool RawNumber(const char *, SizeType, bool) { return e != 7; }
+
+    bool String(const char *, SizeType, bool) { return e != 8; }
+
     bool StartObject() { return e != 9; }
-    bool Key(const char*, SizeType, bool)  { return e != 10; }
+
+    bool Key(const char *, SizeType, bool) { return e != 10; }
+
     bool EndObject(SizeType) { return e != 11; }
+
     bool StartArray() { return e != 12; }
+
     bool EndArray(SizeType) { return e != 13; }
 };
 
@@ -1707,7 +1729,7 @@ TEST(Value, AcceptTerminationByHandler) {
 }
 
 struct ValueIntComparer {
-    bool operator()(const Value& lhs, const Value& rhs) const {
+    bool operator()(const Value &lhs, const Value &rhs) const {
         return lhs.GetInt() < rhs.GetInt();
     }
 };
@@ -1724,24 +1746,24 @@ TEST(Value, Sorting) {
     EXPECT_EQ(3, a[1].GetInt());
     EXPECT_EQ(5, a[2].GetInt());
 }
+
 #endif
 
 // http://stackoverflow.com/questions/35222230/
 
-static void MergeDuplicateKey(Value& v, Value::AllocatorType& a) {
+static void MergeDuplicateKey(Value &v, Value::AllocatorType &a) {
     if (v.IsObject()) {
         // Convert all key:value into key:[value]
         for (Value::MemberIterator itr = v.MemberBegin(); itr != v.MemberEnd(); ++itr)
             itr->value = Value(kArrayType).Move().PushBack(itr->value, a);
-        
+
         // Merge arrays if key is duplicated
         for (Value::MemberIterator itr = v.MemberBegin(); itr != v.MemberEnd();) {
             Value::MemberIterator itr2 = v.FindMember(itr->name);
             if (itr != itr2) {
                 itr2->value.PushBack(itr->value[0], a);
                 itr = v.EraseMember(itr);
-            }
-            else
+            } else
                 ++itr;
         }
 
@@ -1751,8 +1773,7 @@ static void MergeDuplicateKey(Value& v, Value::AllocatorType& a) {
                 itr->value = itr->value[0];
             MergeDuplicateKey(itr->value, a); // Recursion on the value
         }
-    }
-    else if (v.IsArray())
+    } else if (v.IsArray())
         for (Value::ValueIterator itr = v.Begin(); itr != v.End(); ++itr)
             MergeDuplicateKey(*itr, a);
 }
@@ -1760,27 +1781,27 @@ static void MergeDuplicateKey(Value& v, Value::AllocatorType& a) {
 TEST(Value, MergeDuplicateKey) {
     Document d;
     d.Parse(
-        "{"
-        "    \"key1\": {"
-        "        \"a\": \"asdf\","
-        "        \"b\": \"foo\","
-        "        \"b\": \"bar\","
-        "        \"c\": \"fdas\""
-        "    }"
-        "}");
+            "{"
+            "    \"key1\": {"
+            "        \"a\": \"asdf\","
+            "        \"b\": \"foo\","
+            "        \"b\": \"bar\","
+            "        \"c\": \"fdas\""
+            "    }"
+            "}");
 
     Document d2;
     d2.Parse(
-        "{"
-        "    \"key1\": {"
-        "        \"a\": \"asdf\","
-        "        \"b\": ["
-        "            \"foo\","
-        "            \"bar\""
-        "        ],"
-        "        \"c\": \"fdas\""
-        "    }"
-        "}");
+            "{"
+            "    \"key1\": {"
+            "        \"a\": \"asdf\","
+            "        \"b\": ["
+            "            \"foo\","
+            "            \"bar\""
+            "        ],"
+            "        \"c\": \"fdas\""
+            "    }"
+            "}");
 
     EXPECT_NE(d2, d);
     MergeDuplicateKey(d, d.GetAllocator());

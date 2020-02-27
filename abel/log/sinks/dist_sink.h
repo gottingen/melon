@@ -18,46 +18,49 @@
 // is called
 
 namespace abel {
-namespace log {
-namespace sinks {
+    namespace log {
+        namespace sinks {
 
-template<typename Mutex>
-class dist_sink : public base_sink<Mutex> {
-public:
-    dist_sink () = default;
-    dist_sink (const dist_sink &) = delete;
-    dist_sink &operator = (const dist_sink &) = delete;
+            template<typename Mutex>
+            class dist_sink : public base_sink<Mutex> {
+            public:
+                dist_sink() = default;
 
-    void add_sink (std::shared_ptr<sink> sink) {
-        std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
-        sinks_.push_back(sink);
-    }
+                dist_sink(const dist_sink &) = delete;
 
-    void remove_sink (std::shared_ptr<sink> sink) {
-        std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
-        sinks_.erase(std::remove(sinks_.begin(), sinks_.end(), sink), sinks_.end());
-    }
+                dist_sink &operator=(const dist_sink &) = delete;
 
-protected:
-    void sink_it_ (const details::log_msg &msg) override {
+                void add_sink(std::shared_ptr<sink> sink) {
+                    std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
+                    sinks_.push_back(sink);
+                }
 
-        for (auto &sink : sinks_) {
-            if (sink->should_log(msg.level)) {
-                sink->log(msg);
-            }
-        }
-    }
+                void remove_sink(std::shared_ptr<sink> sink) {
+                    std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
+                    sinks_.erase(std::remove(sinks_.begin(), sinks_.end(), sink), sinks_.end());
+                }
 
-    void flush_ () override {
-        for (auto &sink : sinks_)
-            sink->flush();
-    }
-    std::vector<std::shared_ptr<sink>> sinks_;
-};
+            protected:
+                void sink_it_(const details::log_msg &msg) override {
 
-using dist_sink_mt = dist_sink<std::mutex>;
-using dist_sink_st = dist_sink<details::null_mutex>;
+                    for (auto &sink : sinks_) {
+                        if (sink->should_log(msg.level)) {
+                            sink->log(msg);
+                        }
+                    }
+                }
 
-} // namespace sinks
-} //namespace log
+                void flush_() override {
+                    for (auto &sink : sinks_)
+                        sink->flush();
+                }
+
+                std::vector<std::shared_ptr<sink>> sinks_;
+            };
+
+            using dist_sink_mt = dist_sink<std::mutex>;
+            using dist_sink_st = dist_sink<details::null_mutex>;
+
+        } // namespace sinks
+    } //namespace log
 } // namespace abel

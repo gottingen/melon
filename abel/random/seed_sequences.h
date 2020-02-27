@@ -39,7 +39,7 @@ namespace abel {
 //   abel::SeedSeq my_seed_seq({a, b, c});
 //   std::mt19937 my_bitgen(my_seed_seq);
 //
-using SeedSeq = random_internal::SaltedSeedSeq<std::seed_seq>;
+    using SeedSeq = random_internal::SaltedSeedSeq<std::seed_seq>;
 
 // -----------------------------------------------------------------------------
 // abel::CreateSeedSeqFrom(bitgen*)
@@ -62,17 +62,17 @@ using SeedSeq = random_internal::SaltedSeedSeq<std::seed_seq>;
 //   abel::BitGen new_engine(seed_seq); // derived from my_bitgen, but not
 //                                      // correlated.
 //
-template <typename URBG>
-SeedSeq CreateSeedSeqFrom(URBG* urbg) {
-  SeedSeq::result_type
-      seed_material[random_internal::kEntropyBlocksNeeded];
+    template<typename URBG>
+    SeedSeq CreateSeedSeqFrom(URBG *urbg) {
+        SeedSeq::result_type
+                seed_material[random_internal::kEntropyBlocksNeeded];
 
-  if (!random_internal::ReadSeedMaterialFromURBG(
-          urbg, abel::MakeSpan(seed_material))) {
-    random_internal::ThrowSeedGenException();
-  }
-  return SeedSeq(std::begin(seed_material), std::end(seed_material));
-}
+        if (!random_internal::ReadSeedMaterialFromURBG(
+                urbg, abel::MakeSpan(seed_material))) {
+            random_internal::ThrowSeedGenException();
+        }
+        return SeedSeq(std::begin(seed_material), std::end(seed_material));
+    }
 
 // -----------------------------------------------------------------------------
 // abel::MakeSeedSeq()
@@ -89,7 +89,7 @@ SeedSeq CreateSeedSeqFrom(URBG* urbg) {
 //   std::mt19937 rng2(my_seed_seq);
 //   EXPECT_EQ(rng1(), rng2());
 //
-SeedSeq MakeSeedSeq();
+    SeedSeq MakeSeedSeq();
 
 
 }  // namespace abel

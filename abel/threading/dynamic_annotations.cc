@@ -30,30 +30,30 @@
 extern "C" {
 #endif
 
-void AnnotateRWLockCreate (const char *, int,
-                           const volatile void *) { }
-void AnnotateRWLockDestroy (const char *, int,
-                            const volatile void *) { }
-void AnnotateRWLockAcquired (const char *, int,
-                             const volatile void *, long) { }
-void AnnotateRWLockReleased (const char *, int,
-                             const volatile void *, long) { }
-void AnnotateBenignRace (const char *, int,
-                         const volatile void *,
-                         const char *) { }
-void AnnotateBenignRaceSized (const char *, int,
-                              const volatile void *,
-                              size_t,
-                              const char *) { }
-void AnnotateThreadName (const char *, int,
-                         const char *) { }
-void AnnotateIgnoreReadsBegin (const char *, int) { }
-void AnnotateIgnoreReadsEnd (const char *, int) { }
-void AnnotateIgnoreWritesBegin (const char *, int) { }
-void AnnotateIgnoreWritesEnd (const char *, int) { }
-void AnnotateEnableRaceDetection (const char *, int, int) { }
-void AnnotateMemoryIsInitialized (const char *, int,
-                                  const volatile void *mem, size_t size) {
+void AnnotateRWLockCreate(const char *, int,
+                          const volatile void *) {}
+void AnnotateRWLockDestroy(const char *, int,
+                           const volatile void *) {}
+void AnnotateRWLockAcquired(const char *, int,
+                            const volatile void *, long) {}
+void AnnotateRWLockReleased(const char *, int,
+                            const volatile void *, long) {}
+void AnnotateBenignRace(const char *, int,
+                        const volatile void *,
+                        const char *) {}
+void AnnotateBenignRaceSized(const char *, int,
+                             const volatile void *,
+                             size_t,
+                             const char *) {}
+void AnnotateThreadName(const char *, int,
+                        const char *) {}
+void AnnotateIgnoreReadsBegin(const char *, int) {}
+void AnnotateIgnoreReadsEnd(const char *, int) {}
+void AnnotateIgnoreWritesBegin(const char *, int) {}
+void AnnotateIgnoreWritesEnd(const char *, int) {}
+void AnnotateEnableRaceDetection(const char *, int, int) {}
+void AnnotateMemoryIsInitialized(const char *, int,
+                                 const volatile void *mem, size_t size) {
 #if __has_feature(memory_sanitizer)
     __msan_unpoison(mem, size);
 #else
@@ -62,8 +62,8 @@ void AnnotateMemoryIsInitialized (const char *, int,
 #endif
 }
 
-void AnnotateMemoryIsUninitialized (const char *, int,
-                                    const volatile void *mem, size_t size) {
+void AnnotateMemoryIsUninitialized(const char *, int,
+                                   const volatile void *mem, size_t size) {
 #if __has_feature(memory_sanitizer)
     __msan_allocated_memory(mem, size);
 #else
@@ -72,7 +72,7 @@ void AnnotateMemoryIsUninitialized (const char *, int,
 #endif
 }
 
-static int GetRunningOnValgrind (void) {
+static int GetRunningOnValgrind(void) {
 #ifdef RUNNING_ON_VALGRIND
     if (RUNNING_ON_VALGRIND) return 1;
 #endif
@@ -84,7 +84,7 @@ static int GetRunningOnValgrind (void) {
 }
 
 /* See the comments in dynamic_annotations.h */
-int RunningOnValgrind (void) {
+int RunningOnValgrind(void) {
     static volatile int running_on_valgrind = -1;
     int local_running_on_valgrind = running_on_valgrind;
     /* C doesn't have thread-safe initialization of statics, and we
@@ -96,7 +96,7 @@ int RunningOnValgrind (void) {
 }
 
 /* See the comments in dynamic_annotations.h */
-double ValgrindSlowdown (void) {
+double ValgrindSlowdown(void) {
     /* Same initialization hack as in RunningOnValgrind(). */
     static volatile double slowdown = 0.0;
     double local_slowdown = slowdown;

@@ -10,63 +10,63 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
-bool GetCommandLineOption(abel::string_view name, std::string* value) {
-  if (name.empty()) return false;
-  assert(value);
+        bool GetCommandLineOption(abel::string_view name, std::string *value) {
+            if (name.empty()) return false;
+            assert(value);
 
-  CommandLineFlag* flag = flags_internal::FindCommandLineFlag(name);
-  if (flag == nullptr || flag->IsRetired()) {
-    return false;
-  }
+            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            if (flag == nullptr || flag->IsRetired()) {
+                return false;
+            }
 
-  *value = flag->CurrentValue();
-  return true;
-}
+            *value = flag->CurrentValue();
+            return true;
+        }
 
-bool SetCommandLineOption(abel::string_view name, abel::string_view value) {
-  return SetCommandLineOptionWithMode(name, value,
-                                      flags_internal::SET_FLAGS_VALUE);
-}
+        bool SetCommandLineOption(abel::string_view name, abel::string_view value) {
+            return SetCommandLineOptionWithMode(name, value,
+                                                flags_internal::SET_FLAGS_VALUE);
+        }
 
-bool SetCommandLineOptionWithMode(abel::string_view name,
-                                  abel::string_view value,
-                                  FlagSettingMode set_mode) {
-  CommandLineFlag* flag = flags_internal::FindCommandLineFlag(name);
+        bool SetCommandLineOptionWithMode(abel::string_view name,
+                                          abel::string_view value,
+                                          FlagSettingMode set_mode) {
+            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
 
-  if (!flag || flag->IsRetired()) return false;
+            if (!flag || flag->IsRetired()) return false;
 
-  std::string error;
-  if (!flag->SetFromString(value, set_mode, kProgrammaticChange, &error)) {
-    // Errors here are all of the form: the provided name was a recognized
-    // flag, but the value was invalid (bad type, or validation failed).
-    flags_internal::ReportUsageError(error, false);
-    return false;
-  }
+            std::string error;
+            if (!flag->SetFromString(value, set_mode, kProgrammaticChange, &error)) {
+                // Errors here are all of the form: the provided name was a recognized
+                // flag, but the value was invalid (bad type, or validation failed).
+                flags_internal::ReportUsageError(error, false);
+                return false;
+            }
 
-  return true;
-}
-
-// --------------------------------------------------------------------
-
-bool IsValidFlagValue(abel::string_view name, abel::string_view value) {
-  CommandLineFlag* flag = flags_internal::FindCommandLineFlag(name);
-
-  return flag != nullptr &&
-         (flag->IsRetired() || flag->ValidateInputValue(value));
-}
+            return true;
+        }
 
 // --------------------------------------------------------------------
 
-bool SpecifiedOnCommandLine(abel::string_view name) {
-  CommandLineFlag* flag = flags_internal::FindCommandLineFlag(name);
-  if (flag != nullptr && !flag->IsRetired()) {
-    return flag->IsSpecifiedOnCommandLine();
-  }
-  return false;
-}
+        bool IsValidFlagValue(abel::string_view name, abel::string_view value) {
+            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
 
-}  // namespace flags_internal
+            return flag != nullptr &&
+                   (flag->IsRetired() || flag->ValidateInputValue(value));
+        }
+
+// --------------------------------------------------------------------
+
+        bool SpecifiedOnCommandLine(abel::string_view name) {
+            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            if (flag != nullptr && !flag->IsRetired()) {
+                return flag->IsSpecifiedOnCommandLine();
+            }
+            return false;
+        }
+
+    }  // namespace flags_internal
 
 }  // namespace abel

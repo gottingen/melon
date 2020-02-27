@@ -23,38 +23,38 @@
 
 namespace abel {
 
-namespace chrono_internal {
+    namespace chrono_internal {
 
 // A stdio-like interface for providing zoneinfo data for a particular zone.
-class zone_info_source {
-public:
-    virtual ~zone_info_source ();
+        class zone_info_source {
+        public:
+            virtual ~zone_info_source();
 
-    virtual std::size_t read (void *ptr, std::size_t size) = 0;  // like fread()
-    virtual int skip (std::size_t offset) = 0;                   // like fseek()
+            virtual std::size_t read(void *ptr, std::size_t size) = 0;  // like fread()
+            virtual int skip(std::size_t offset) = 0;                   // like fseek()
 
-    // Until the zoneinfo data supports versioning information, we provide
-    // a way for a ZoneInfoSource to indicate it out-of-band.  The default
-    // implementation returns an empty std::string.
-    virtual std::string version () const;
-};
+            // Until the zoneinfo data supports versioning information, we provide
+            // a way for a ZoneInfoSource to indicate it out-of-band.  The default
+            // implementation returns an empty std::string.
+            virtual std::string version() const;
+        };
 
-}  // namespace chrono_internal
+    }  // namespace chrono_internal
 
 }  // namespace abel
 
 namespace abel {
 
-namespace chrono_internal {
+    namespace chrono_internal {
 
 // A function-pointer type for a factory that returns a ZoneInfoSource
 // given the name of a time zone and a fallback factory.  Returns null
 // when the data for the named zone cannot be found.
-using ZoneInfoSourceFactory =
-std::unique_ptr<abel::chrono_internal::zone_info_source> (*) (
-    const std::string &,
-    const std::function<std::unique_ptr<
-        abel::chrono_internal::zone_info_source> (const std::string &)> &);
+        using ZoneInfoSourceFactory =
+        std::unique_ptr<abel::chrono_internal::zone_info_source> (*)(
+                const std::string &,
+                const std::function<std::unique_ptr<
+                        abel::chrono_internal::zone_info_source>(const std::string &)> &);
 
 // The user can control the mapping of zone names to zoneinfo data by
 // providing a definition for zone_info_source_factory.
@@ -86,9 +86,9 @@ std::unique_ptr<abel::chrono_internal::zone_info_source> (*) (
 // The fallback factory obtains zoneinfo data by reading files in ${TZDIR},
 // and it is used automatically when no zone_info_source_factory definition
 // is linked into the program.
-extern ZoneInfoSourceFactory zone_info_source_factory;
+        extern ZoneInfoSourceFactory zone_info_source_factory;
 
-}  // namespace chrono_internal
+    }  // namespace chrono_internal
 
 }  // namespace abel
 

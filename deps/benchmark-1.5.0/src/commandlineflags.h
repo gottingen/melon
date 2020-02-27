@@ -25,9 +25,11 @@
 namespace benchmark {
 // Parses a bool/Int32/string from the environment variable
 // corresponding to the given Google Test flag.
-bool BoolFromEnv(const char* flag, bool default_val);
-int32_t Int32FromEnv(const char* flag, int32_t default_val);
-const char* StringFromEnv(const char* flag, const char* default_val);
+    bool BoolFromEnv(const char *flag, bool default_val);
+
+    int32_t Int32FromEnv(const char *flag, int32_t default_val);
+
+    const char *StringFromEnv(const char *flag, const char *default_val);
 
 // Parses a string for a bool flag, in the form of either
 // "--flag=value" or "--flag".
@@ -38,36 +40,36 @@ const char* StringFromEnv(const char* flag, const char* default_val);
 //
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
-bool ParseBoolFlag(const char* str, const char* flag, bool* value);
+    bool ParseBoolFlag(const char *str, const char *flag, bool *value);
 
 // Parses a string for an Int32 flag, in the form of
 // "--flag=value".
 //
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
-bool ParseInt32Flag(const char* str, const char* flag, int32_t* value);
+    bool ParseInt32Flag(const char *str, const char *flag, int32_t *value);
 
 // Parses a string for a Double flag, in the form of
 // "--flag=value".
 //
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
-bool ParseDoubleFlag(const char* str, const char* flag, double* value);
+    bool ParseDoubleFlag(const char *str, const char *flag, double *value);
 
 // Parses a string for a string flag, in the form of
 // "--flag=value".
 //
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
-bool ParseStringFlag(const char* str, const char* flag, std::string* value);
+    bool ParseStringFlag(const char *str, const char *flag, std::string *value);
 
 // Returns true if the string matches the flag.
-bool IsFlag(const char* str, const char* flag);
+    bool IsFlag(const char *str, const char *flag);
 
 // Returns true unless value starts with one of: '0', 'f', 'F', 'n' or 'N', or
 // some non-alphanumeric character. As a special case, also returns true if
 // value is the empty string.
-bool IsTruthyFlagValue(const std::string& value);
+    bool IsTruthyFlagValue(const std::string &value);
 }  // end namespace benchmark
 
 #endif  // BENCHMARK_COMMANDLINEFLAGS_H_

@@ -16,6 +16,6 @@ TEST(TemporaryDirectory, fsTestTmpdir) {
         );
     }
     EXPECT_TRUE(!
-                    fs::exists(tempPath)
+                        fs::exists(tempPath)
     );
 }

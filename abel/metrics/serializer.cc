@@ -6,12 +6,12 @@
 #include <sstream>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-std::string serializer::format (const std::vector<cache_metrics> &metrics) const {
-    std::ostringstream ss;
-    format(ss, metrics);
-    return ss.str();
-}
-} //namespace metrics
+        std::string serializer::format(const std::vector<cache_metrics> &metrics) const {
+            std::ostringstream ss;
+            format(ss, metrics);
+            return ss.str();
+        }
+    } //namespace metrics
 } //namespace abel

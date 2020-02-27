@@ -12,7 +12,7 @@
 
 namespace abel {
 
-namespace strings_internal {
+    namespace strings_internal {
 
 // The same as std::ostringstream but appends to a user-specified std::string,
 // and is faster. It is ~70% faster to create, ~50% faster to write to, and
@@ -48,29 +48,32 @@ namespace strings_internal {
 //   strm << 3.14;
 //
 // Note: flush() has no effect. No reason to call it.
-class OStringStream : private std::basic_streambuf<char>, public std::ostream {
- public:
-  // The argument can be null, in which case you'll need to call str(p) with a
-  // non-null argument before you can write to the stream.
-  //
-  // The destructor of OStringStream doesn't use the std::string. It's OK to
-  // destroy the std::string before the stream.
-  explicit OStringStream(std::string* s) : std::ostream(this), s_(s) {}
+        class OStringStream : private std::basic_streambuf<char>, public std::ostream {
+        public:
+            // The argument can be null, in which case you'll need to call str(p) with a
+            // non-null argument before you can write to the stream.
+            //
+            // The destructor of OStringStream doesn't use the std::string. It's OK to
+            // destroy the std::string before the stream.
+            explicit OStringStream(std::string *s) : std::ostream(this), s_(s) {}
 
-  std::string* str() { return s_; }
-  const std::string* str() const { return s_; }
-  void str(std::string* s) { s_ = s; }
+            std::string *str() { return s_; }
 
- private:
-  using Buf = std::basic_streambuf<char>;
+            const std::string *str() const { return s_; }
 
-  Buf::int_type overflow(int c) override;
-  std::streamsize xsputn(const char* s, std::streamsize n) override;
+            void str(std::string *s) { s_ = s; }
 
-  std::string* s_;
-};
+        private:
+            using Buf = std::basic_streambuf<char>;
 
-}  // namespace strings_internal
+            Buf::int_type overflow(int c) override;
+
+            std::streamsize xsputn(const char *s, std::streamsize n) override;
+
+            std::string *s_;
+        };
+
+    }  // namespace strings_internal
 
 }  // namespace abel
 

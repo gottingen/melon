@@ -7,15 +7,17 @@
 
 namespace abel {
 
-namespace atomic_hook_internal {
+    namespace atomic_hook_internal {
 
-using VoidF = void (*) ();
-extern abel::atomic_hook<VoidF> func;
-extern int default_func_calls;
-void DefaultFunc ();
-void RegisterFunc (VoidF func);
+        using VoidF = void (*)();
+        extern abel::atomic_hook<VoidF> func;
+        extern int default_func_calls;
 
-}  // namespace atomic_hook_internal
+        void DefaultFunc();
+
+        void RegisterFunc(VoidF func);
+
+    }  // namespace atomic_hook_internal
 
 }  // namespace abel
 

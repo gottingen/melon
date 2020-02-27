@@ -36,8 +36,11 @@
 // These tests are used to detect if filtering is working. Only
 // 'TestThatSucceeds' should ever run.
 
-TEST(TestFilterTest, TestThatSucceeds) {}
+TEST(TestFilterTest, TestThatSucceeds
+) {
+}
 
-TEST(TestFilterTest, TestThatFails) {
-  ASSERT_TRUE(false) << "This test should never be run.";
+TEST(TestFilterTest, TestThatFails
+) {
+ASSERT_TRUE(false) << "This test should never be run.";
 }

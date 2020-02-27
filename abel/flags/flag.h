@@ -52,103 +52,103 @@ namespace abel {
 //
 // No public methods of `abel::Flag<T>` are part of the abel Flags API.
 #if !defined(_MSC_VER) || defined(__clang__)
-template <typename T>
-using Flag = flags_internal::Flag<T>;
+    template<typename T>
+    using Flag = flags_internal::Flag<T>;
 #else
-// MSVC debug builds do not implement initialization with constexpr constructors
-// correctly. To work around this we add a level of indirection, so that the
-// class `abel::Flag` contains an `internal::Flag*` (instead of being an alias
-// to that class) and dynamically allocates an instance when necessary. We also
-// forward all calls to internal::Flag methods via trampoline methods. In this
-// setup the `abel::Flag` class does not have constructor and virtual methods,
-// all the data members are public and thus MSVC is able to initialize it at
-// link time. To deal with multiple threads accessing the flag for the first
-// time concurrently we use an atomic boolean indicating if flag object is
-// initialized. We also employ the double-checked locking pattern where the
-// second level of protection is a global mutex, so if two threads attempt to
-// construct the flag concurrently only one wins.
-// This solution is based on a recomendation here:
-// https://developercommunity.visualstudio.com/content/problem/336946/class-with-constexpr-constructor-not-using-static.html?childToView=648454#comment-648454
+    // MSVC debug builds do not implement initialization with constexpr constructors
+    // correctly. To work around this we add a level of indirection, so that the
+    // class `abel::Flag` contains an `internal::Flag*` (instead of being an alias
+    // to that class) and dynamically allocates an instance when necessary. We also
+    // forward all calls to internal::Flag methods via trampoline methods. In this
+    // setup the `abel::Flag` class does not have constructor and virtual methods,
+    // all the data members are public and thus MSVC is able to initialize it at
+    // link time. To deal with multiple threads accessing the flag for the first
+    // time concurrently we use an atomic boolean indicating if flag object is
+    // initialized. We also employ the double-checked locking pattern where the
+    // second level of protection is a global mutex, so if two threads attempt to
+    // construct the flag concurrently only one wins.
+    // This solution is based on a recomendation here:
+    // https://developercommunity.visualstudio.com/content/problem/336946/class-with-constexpr-constructor-not-using-static.html?childToView=648454#comment-648454
 
-namespace flags_internal {
-abel::mutex* GetGlobalConstructionGuard();
-}  // namespace flags_internal
+    namespace flags_internal {
+    abel::mutex* GetGlobalConstructionGuard();
+    }  // namespace flags_internal
 
-template <typename T>
-class Flag {
- public:
-  // No constructor and destructor to ensure this is an aggregate type.
-  // Visual Studio 2015 still requires the constructor for class to be
-  // constexpr initializable.
+    template <typename T>
+    class Flag {
+     public:
+      // No constructor and destructor to ensure this is an aggregate type.
+      // Visual Studio 2015 still requires the constructor for class to be
+      // constexpr initializable.
 #if _MSC_VER <= 1900
-  constexpr Flag(const char* name, const char* filename,
-                 const flags_internal::FlagMarshallingOpFn marshalling_op,
-                 const flags_internal::HelpGenFunc help_gen,
-                 const flags_internal::FlagDfltGenFunc default_value_gen)
-      : name_(name),
-        filename_(filename),
-        marshalling_op_(marshalling_op),
-        help_gen_(help_gen),
-        default_value_gen_(default_value_gen),
-        inited_(false),
-        impl_(nullptr) {}
+      constexpr Flag(const char* name, const char* filename,
+                     const flags_internal::FlagMarshallingOpFn marshalling_op,
+                     const flags_internal::HelpGenFunc help_gen,
+                     const flags_internal::FlagDfltGenFunc default_value_gen)
+          : name_(name),
+            filename_(filename),
+            marshalling_op_(marshalling_op),
+            help_gen_(help_gen),
+            default_value_gen_(default_value_gen),
+            inited_(false),
+            impl_(nullptr) {}
 #endif
 
-  flags_internal::Flag<T>* GetImpl() const {
-    if (!inited_.load(std::memory_order_acquire)) {
-      abel::mutex_lock l(flags_internal::GetGlobalConstructionGuard());
+      flags_internal::Flag<T>* GetImpl() const {
+        if (!inited_.load(std::memory_order_acquire)) {
+          abel::mutex_lock l(flags_internal::GetGlobalConstructionGuard());
 
-      if (inited_.load(std::memory_order_acquire)) {
+          if (inited_.load(std::memory_order_acquire)) {
+            return impl_;
+          }
+
+          impl_ = new flags_internal::Flag<T>(
+              name_, filename_, marshalling_op_,
+              {flags_internal::FlagHelpSrc(help_gen_),
+               flags_internal::FlagHelpSrcKind::kGenFunc},
+              default_value_gen_);
+          inited_.store(true, std::memory_order_release);
+        }
+
         return impl_;
       }
 
-      impl_ = new flags_internal::Flag<T>(
-          name_, filename_, marshalling_op_,
-          {flags_internal::FlagHelpSrc(help_gen_),
-           flags_internal::FlagHelpSrcKind::kGenFunc},
-          default_value_gen_);
-      inited_.store(true, std::memory_order_release);
-    }
-  
-    return impl_;
-  }
+      // Public methods of `abel::Flag<T>` are NOT part of the abel Flags API.
+      bool IsRetired() const { return GetImpl()->IsRetired(); }
+      bool IsAbelFlag() const { return GetImpl()->IsAbelFlag(); }
+      abel::string_view Name() const { return GetImpl()->Name(); }
+      std::string Help() const { return GetImpl()->Help(); }
+      bool IsModified() const { return GetImpl()->IsModified(); }
+      bool IsSpecifiedOnCommandLine() const {
+        return GetImpl()->IsSpecifiedOnCommandLine();
+      }
+      abel::string_view Typename() const { return GetImpl()->Typename(); }
+      std::string Filename() const { return GetImpl()->Filename(); }
+      std::string DefaultValue() const { return GetImpl()->DefaultValue(); }
+      std::string CurrentValue() const { return GetImpl()->CurrentValue(); }
+      template <typename U>
+      ABEL_FORCE_INLINE bool IsOfType() const {
+        return GetImpl()->template IsOfType<U>();
+      }
+      T Get() const { return GetImpl()->Get(); }
+      bool AtomicGet(T* v) const { return GetImpl()->AtomicGet(v); }
+      void Set(const T& v) { GetImpl()->Set(v); }
+      void SetCallback(const flags_internal::FlagCallback mutation_callback) {
+        GetImpl()->SetCallback(mutation_callback);
+      }
+      void InvokeCallback() { GetImpl()->InvokeCallback(); }
 
-  // Public methods of `abel::Flag<T>` are NOT part of the abel Flags API.
-  bool IsRetired() const { return GetImpl()->IsRetired(); }
-  bool IsAbelFlag() const { return GetImpl()->IsAbelFlag(); }
-  abel::string_view Name() const { return GetImpl()->Name(); }
-  std::string Help() const { return GetImpl()->Help(); }
-  bool IsModified() const { return GetImpl()->IsModified(); }
-  bool IsSpecifiedOnCommandLine() const {
-    return GetImpl()->IsSpecifiedOnCommandLine();
-  }
-  abel::string_view Typename() const { return GetImpl()->Typename(); }
-  std::string Filename() const { return GetImpl()->Filename(); }
-  std::string DefaultValue() const { return GetImpl()->DefaultValue(); }
-  std::string CurrentValue() const { return GetImpl()->CurrentValue(); }
-  template <typename U>
-  ABEL_FORCE_INLINE bool IsOfType() const {
-    return GetImpl()->template IsOfType<U>();
-  }
-  T Get() const { return GetImpl()->Get(); }
-  bool AtomicGet(T* v) const { return GetImpl()->AtomicGet(v); }
-  void Set(const T& v) { GetImpl()->Set(v); }
-  void SetCallback(const flags_internal::FlagCallback mutation_callback) {
-    GetImpl()->SetCallback(mutation_callback);
-  }
-  void InvokeCallback() { GetImpl()->InvokeCallback(); }
+      // The data members are logically private, but they need to be public for
+      // this to be an aggregate type.
+      const char* name_;
+      const char* filename_;
+      const flags_internal::FlagMarshallingOpFn marshalling_op_;
+      const flags_internal::HelpGenFunc help_gen_;
+      const flags_internal::FlagDfltGenFunc default_value_gen_;
 
-  // The data members are logically private, but they need to be public for
-  // this to be an aggregate type.
-  const char* name_;
-  const char* filename_;
-  const flags_internal::FlagMarshallingOpFn marshalling_op_;
-  const flags_internal::HelpGenFunc help_gen_;
-  const flags_internal::FlagDfltGenFunc default_value_gen_;
-
-  mutable std::atomic<bool> inited_;
-  mutable flags_internal::Flag<T>* impl_;
-};
+      mutable std::atomic<bool> inited_;
+      mutable flags_internal::Flag<T>* impl_;
+    };
 #endif
 
 // GetFlag()
@@ -167,22 +167,24 @@ class Flag {
 //
 //   // FLAGS_firstname is a Flag of type `std::string`
 //   std::string first_name = abel::GetFlag(FLAGS_firstname);
-template <typename T>
-ABEL_MUST_USE_RESULT T GetFlag(const abel::Flag<T>& flag) {
+    template<typename T>
+    ABEL_MUST_USE_RESULT T GetFlag(const abel::Flag<T> &flag) {
 #define ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE(BIT) \
   static_assert(                                    \
       !std::is_same<T, BIT>::value,                 \
       "Do not specify explicit template parameters to abel::GetFlag");
-  ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE)
+        ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE)
 #undef ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE
 
-  return flag.Get();
-}
+        return flag.Get();
+    }
 
 // Overload for `GetFlag()` for types that support lock-free reads.
 #define ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT(T) \
   ABEL_MUST_USE_RESULT T GetFlag(const abel::Flag<T>& flag);
-ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT)
+
+    ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT)
+
 #undef ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT
 
 // SetFlag()
@@ -192,19 +194,19 @@ ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT)
 // flag's variable name (e.g. `FLAGS_name`). This function is
 // thread-safe, but is potentially expensive. Avoid setting flags in general,
 // but especially within performance-critical code.
-template <typename T>
-void SetFlag(abel::Flag<T>* flag, const T& v) {
-  flag->Set(v);
-}
+    template<typename T>
+    void SetFlag(abel::Flag<T> *flag, const T &v) {
+        flag->Set(v);
+    }
 
 // Overload of `SetFlag()` to allow callers to pass in a value that is
 // convertible to `T`. E.g., use this overload to pass a "const char*" when `T`
 // is `std::string`.
-template <typename T, typename V>
-void SetFlag(abel::Flag<T>* flag, const V& v) {
-  T value(v);
-  flag->Set(value);
-}
+    template<typename T, typename V>
+    void SetFlag(abel::Flag<T> *flag, const V &v) {
+        T value(v);
+        flag->Set(value);
+    }
 
 
 }  // namespace abel

@@ -85,4 +85,4 @@ TEST(RangesTest, FormatStruct) {
 }
 
 #endif  // (__cplusplus > 201402L) || (defined(_MSVC_LANG) && _MSVC_LANG >
-        // 201402L && _MSC_VER >= 1910)
+// 201402L && _MSC_VER >= 1910)

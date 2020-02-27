@@ -18,140 +18,150 @@
 
 namespace abel {
 
-namespace container_internal {
-namespace hash_testing_internal {
+    namespace container_internal {
+        namespace hash_testing_internal {
 
-template<class Derived>
-struct WithId {
-    WithId () : id_(next_id<Derived>()) { }
-    WithId (const WithId &that) : id_(that.id_) { }
-    WithId (WithId &&that) : id_(that.id_) { that.id_ = 0; }
-    WithId &operator = (const WithId &that) {
-        id_ = that.id_;
-        return *this;
-    }
-    WithId &operator = (WithId &&that) {
-        id_ = that.id_;
-        that.id_ = 0;
-        return *this;
-    }
+            template<class Derived>
+            struct WithId {
+                WithId() : id_(next_id<Derived>()) {}
 
-    size_t id () const { return id_; }
+                WithId(const WithId &that) : id_(that.id_) {}
 
-    friend bool operator == (const WithId &a, const WithId &b) {
-        return a.id_ == b.id_;
-    }
-    friend bool operator != (const WithId &a, const WithId &b) { return !(a == b); }
+                WithId(WithId &&that) : id_(that.id_) { that.id_ = 0; }
 
-protected:
-    explicit WithId (size_t id) : id_(id) { }
+                WithId &operator=(const WithId &that) {
+                    id_ = that.id_;
+                    return *this;
+                }
 
-private:
-    size_t id_;
+                WithId &operator=(WithId &&that) {
+                    id_ = that.id_;
+                    that.id_ = 0;
+                    return *this;
+                }
 
-    template<class T>
-    static size_t next_id () {
-        // 0 is reserved for moved from state.
-        static size_t gId = 1;
-        return gId++;
-    }
-};
+                size_t id() const { return id_; }
 
-}  // namespace hash_testing_internal
+                friend bool operator==(const WithId &a, const WithId &b) {
+                    return a.id_ == b.id_;
+                }
 
-struct NonStandardLayout {
-    NonStandardLayout () { }
-    explicit NonStandardLayout (std::string s) : value(std::move(s)) { }
-    virtual ~NonStandardLayout () { }
+                friend bool operator!=(const WithId &a, const WithId &b) { return !(a == b); }
 
-    friend bool operator == (const NonStandardLayout &a,
-                             const NonStandardLayout &b) {
-        return a.value == b.value;
-    }
-    friend bool operator != (const NonStandardLayout &a,
-                             const NonStandardLayout &b) {
-        return a.value != b.value;
-    }
+            protected:
+                explicit WithId(size_t id) : id_(id) {}
 
-    template<typename H>
-    friend H AbelHashValue (H h, const NonStandardLayout &v) {
-        return H::combine(std::move(h), v.value);
-    }
+            private:
+                size_t id_;
 
-    std::string value;
-};
+                template<class T>
+                static size_t next_id() {
+                    // 0 is reserved for moved from state.
+                    static size_t gId = 1;
+                    return gId++;
+                }
+            };
 
-struct StatefulTestingHash
-    : abel::container_internal::hash_testing_internal::WithId<
-        StatefulTestingHash> {
-    template<class T>
-    size_t operator () (const T &t) const {
-        return abel::Hash<T> {}(t);
-    }
-};
+        }  // namespace hash_testing_internal
 
-struct StatefulTestingEqual
-    : abel::container_internal::hash_testing_internal::WithId<
-        StatefulTestingEqual> {
-    template<class T, class U>
-    bool operator () (const T &t, const U &u) const {
-        return t == u;
-    }
-};
+        struct NonStandardLayout {
+            NonStandardLayout() {}
+
+            explicit NonStandardLayout(std::string s) : value(std::move(s)) {}
+
+            virtual ~NonStandardLayout() {}
+
+            friend bool operator==(const NonStandardLayout &a,
+                                   const NonStandardLayout &b) {
+                return a.value == b.value;
+            }
+
+            friend bool operator!=(const NonStandardLayout &a,
+                                   const NonStandardLayout &b) {
+                return a.value != b.value;
+            }
+
+            template<typename H>
+            friend H AbelHashValue(H h, const NonStandardLayout &v) {
+                return H::combine(std::move(h), v.value);
+            }
+
+            std::string value;
+        };
+
+        struct StatefulTestingHash
+                : abel::container_internal::hash_testing_internal::WithId<
+                        StatefulTestingHash> {
+            template<class T>
+            size_t operator()(const T &t) const {
+                return abel::Hash<T>{}(t);
+            }
+        };
+
+        struct StatefulTestingEqual
+                : abel::container_internal::hash_testing_internal::WithId<
+                        StatefulTestingEqual> {
+            template<class T, class U>
+            bool operator()(const T &t, const U &u) const {
+                return t == u;
+            }
+        };
 
 // It is expected that Alloc() == Alloc() for all allocators so we cannot use
 // WithId base. We need to explicitly assign ids.
-template<class T = int>
-struct Alloc : std::allocator<T> {
-    using propagate_on_container_swap = std::true_type;
+        template<class T = int>
+        struct Alloc : std::allocator<T> {
+            using propagate_on_container_swap = std::true_type;
 
-    // Using old paradigm for this to ensure compatibility.
-    explicit Alloc (size_t id = 0) : id_(id) { }
+            // Using old paradigm for this to ensure compatibility.
+            explicit Alloc(size_t id = 0) : id_(id) {}
 
-    Alloc (const Alloc &) = default;
-    Alloc &operator = (const Alloc &) = default;
+            Alloc(const Alloc &) = default;
 
-    template<class U>
-    Alloc (const Alloc<U> &that) : std::allocator<T>(that), id_(that.id()) { }
+            Alloc &operator=(const Alloc &) = default;
 
-    template<class U>
-    struct rebind {
-        using other = Alloc<U>;
-    };
+            template<class U>
+            Alloc(const Alloc<U> &that) : std::allocator<T>(that), id_(that.id()) {}
 
-    size_t id () const { return id_; }
+            template<class U>
+            struct rebind {
+                using other = Alloc<U>;
+            };
 
-    friend bool operator == (const Alloc &a, const Alloc &b) {
-        return a.id_ == b.id_;
-    }
-    friend bool operator != (const Alloc &a, const Alloc &b) { return !(a == b); }
+            size_t id() const { return id_; }
 
-private:
-    size_t id_ = (std::numeric_limits<size_t>::max)();
-};
+            friend bool operator==(const Alloc &a, const Alloc &b) {
+                return a.id_ == b.id_;
+            }
 
-template<class Map>
-auto items (const Map &m) -> std::vector<
-    std::pair<typename Map::key_type, typename Map::mapped_type>> {
-    using std::get;
-    std::vector<std::pair<typename Map::key_type, typename Map::mapped_type>> res;
-    res.reserve(m.size());
-    for (const auto &v : m)
-        res.emplace_back(get<0>(v), get<1>(v));
-    return res;
-}
+            friend bool operator!=(const Alloc &a, const Alloc &b) { return !(a == b); }
 
-template<class Set>
-auto keys (const Set &s)
--> std::vector<typename std::decay<typename Set::key_type>::type> {
-    std::vector<typename std::decay<typename Set::key_type>::type> res;
-    res.reserve(s.size());
-    for (const auto &v : s)
-        res.emplace_back(v);
-    return res;
-}
+        private:
+            size_t id_ = (std::numeric_limits<size_t>::max)();
+        };
 
-}  // namespace container_internal
+        template<class Map>
+        auto items(const Map &m) -> std::vector<
+                std::pair<typename Map::key_type, typename Map::mapped_type>> {
+            using std::get;
+            std::vector<std::pair<typename Map::key_type, typename Map::mapped_type>> res;
+            res.reserve(m.size());
+            for (const auto &v : m)
+                res.emplace_back(get<0>(v), get<1>(v));
+            return res;
+        }
+
+        template<class Set>
+        auto keys(const Set &s)
+        -> std::vector<typename std::decay<typename Set::key_type>::type> {
+            std::vector<typename std::decay<typename Set::key_type>::type> res;
+            res.reserve(s.size());
+            for (const auto &v : s)
+                res.emplace_back(v);
+            return res;
+        }
+
+    }  // namespace container_internal
 
 }  // namespace abel
 

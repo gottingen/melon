@@ -373,12 +373,19 @@ TEST(Regex, QuantifierMinMax5) {
 #define EURO "\xE2\x82\xAC" // "\xE2\x82\xAC" is UTF-8 sequence of Euro sign U+20AC
 
 TEST(Regex, Unicode) {
-    Regex re("a" EURO "+b"); 
+    Regex re("a" EURO "+b");
     ASSERT_TRUE(re.IsValid());
-    EXPECT_TRUE(re.Match("a" EURO "b"));
-    EXPECT_TRUE(re.Match("a" EURO EURO "b"));
+    EXPECT_TRUE(re.Match("a"
+                        EURO
+                        "b"));
+    EXPECT_TRUE(re.Match("a"
+                        EURO
+                        EURO
+                        "b"));
     EXPECT_FALSE(re.Match("a?b"));
-    EXPECT_FALSE(re.Match("a" EURO "\xAC" "b")); // unaware of UTF-8 will match
+    EXPECT_FALSE(re.Match("a"
+                         EURO
+                         "\xAC" "b")); // unaware of UTF-8 will match
 }
 
 TEST(Regex, AnyCharacter) {
@@ -532,7 +539,7 @@ TEST(Regex, Search_BothAnchor) {
 }
 
 TEST(Regex, Escape) {
-    const char* s = "\\^\\$\\|\\(\\)\\?\\*\\+\\.\\[\\]\\{\\}\\\\\\f\\n\\r\\t\\v[\\b][\\[][\\]]";
+    const char *s = "\\^\\$\\|\\(\\)\\?\\*\\+\\.\\[\\]\\{\\}\\\\\\f\\n\\r\\t\\v[\\b][\\[][\\]]";
     Regex re(s);
     ASSERT_TRUE(re.IsValid());
     EXPECT_TRUE(re.Match("^$|()?*+.[]{}\\\x0C\n\r\t\x0B\b[]"));
