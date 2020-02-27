@@ -1,8 +1,8 @@
 //
 //
 
-#ifndef ABEL_BASE_INTERNAL_UNALIGNED_ACCESS_H_
-#define ABEL_BASE_INTERNAL_UNALIGNED_ACCESS_H_
+#ifndef ABEL_ATOMIC_UNALIGNED_ACCESS_H_
+#define ABEL_ATOMIC_UNALIGNED_ACCESS_H_
 
 #include <string.h>
 #include <cstdint>
@@ -43,100 +43,95 @@ void __sanitizer_unaligned_store64(void *p, uint64_t v);
 
 namespace abel {
 
-namespace base_internal {
-
-ABEL_FORCE_INLINE uint16_t UnalignedLoad16(const void *p) {
+ABEL_FORCE_INLINE uint16_t unaligned_load16(const void *p) {
   return __sanitizer_unaligned_load16(p);
 }
 
-ABEL_FORCE_INLINE uint32_t UnalignedLoad32(const void *p) {
+ABEL_FORCE_INLINE uint32_t unaligned_load32(const void *p) {
   return __sanitizer_unaligned_load32(p);
 }
 
-ABEL_FORCE_INLINE uint64_t UnalignedLoad64(const void *p) {
+ABEL_FORCE_INLINE uint64_t unaligned_load64(const void *p) {
   return __sanitizer_unaligned_load64(p);
 }
 
-ABEL_FORCE_INLINE void UnalignedStore16(void *p, uint16_t v) {
+ABEL_FORCE_INLINE void unaligned_store16(void *p, uint16_t v) {
   __sanitizer_unaligned_store16(p, v);
 }
 
-ABEL_FORCE_INLINE void UnalignedStore32(void *p, uint32_t v) {
+ABEL_FORCE_INLINE void unaligned_store32(void *p, uint32_t v) {
   __sanitizer_unaligned_store32(p, v);
 }
 
-ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) {
+ABEL_FORCE_INLINE void unaligned_store64(void *p, uint64_t v) {
   __sanitizer_unaligned_store64(p, v);
 }
 
-}  // namespace base_internal
 
 }  // namespace abel
 
 #define ABEL_INTERNAL_UNALIGNED_LOAD16(_p) \
-  (abel::base_internal::UnalignedLoad16(_p))
+  (abel::unaligned_load16(_p))
 #define ABEL_INTERNAL_UNALIGNED_LOAD32(_p) \
-  (abel::base_internal::UnalignedLoad32(_p))
+  (abel::unaligned_load32(_p))
 #define ABEL_INTERNAL_UNALIGNED_LOAD64(_p) \
-  (abel::base_internal::UnalignedLoad64(_p))
+  (abel::unaligned_load64(_p))
 
 #define ABEL_INTERNAL_UNALIGNED_STORE16(_p, _val) \
-  (abel::base_internal::UnalignedStore16(_p, _val))
+  (abel::unaligned_store16(_p, _val))
 #define ABEL_INTERNAL_UNALIGNED_STORE32(_p, _val) \
-  (abel::base_internal::UnalignedStore32(_p, _val))
+  (abel::unaligned_store32(_p, _val))
 #define ABEL_INTERNAL_UNALIGNED_STORE64(_p, _val) \
-  (abel::base_internal::UnalignedStore64(_p, _val))
+  (abel::unaligned_store64(_p, _val))
 
 #else
 
 namespace abel {
 
-    namespace base_internal {
 
-        ABEL_FORCE_INLINE uint16_t UnalignedLoad16(const void *p) {
-            uint16_t t;
-            memcpy(&t, p, sizeof t);
-            return t;
-        }
+    ABEL_FORCE_INLINE uint16_t unaligned_load16(const void *p) {
+        uint16_t t;
+        memcpy(&t, p, sizeof t);
+        return t;
+    }
 
-        ABEL_FORCE_INLINE uint32_t UnalignedLoad32(const void *p) {
-            uint32_t t;
-            memcpy(&t, p, sizeof t);
-            return t;
-        }
+    ABEL_FORCE_INLINE uint32_t unaligned_load32(const void *p) {
+        uint32_t t;
+        memcpy(&t, p, sizeof t);
+        return t;
+    }
 
-        ABEL_FORCE_INLINE uint64_t UnalignedLoad64(const void *p) {
-            uint64_t t;
-            memcpy(&t, p, sizeof t);
-            return t;
-        }
+    ABEL_FORCE_INLINE uint64_t unaligned_load64(const void *p) {
+        uint64_t t;
+        memcpy(&t, p, sizeof t);
+        return t;
+    }
 
-        ABEL_FORCE_INLINE void UnalignedStore16(void *p, uint16_t v) { memcpy(p, &v, sizeof v); }
+    ABEL_FORCE_INLINE void unaligned_store16(void *p, uint16_t v) { memcpy(p, &v, sizeof v); }
 
-        ABEL_FORCE_INLINE void UnalignedStore32(void *p, uint32_t v) { memcpy(p, &v, sizeof v); }
+    ABEL_FORCE_INLINE void unaligned_store32(void *p, uint32_t v) { memcpy(p, &v, sizeof v); }
 
-        ABEL_FORCE_INLINE void UnalignedStore64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
+    ABEL_FORCE_INLINE void unaligned_store64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
 
-    }  // namespace base_internal
 
 }  // namespace abel
 
 #define ABEL_INTERNAL_UNALIGNED_LOAD16(_p) \
-  (abel::base_internal::UnalignedLoad16(_p))
+  (abel::unaligned_load16(_p))
 #define ABEL_INTERNAL_UNALIGNED_LOAD32(_p) \
-  (abel::base_internal::UnalignedLoad32(_p))
+  (abel::unaligned_load32(_p))
 #define ABEL_INTERNAL_UNALIGNED_LOAD64(_p) \
-  (abel::base_internal::UnalignedLoad64(_p))
+  (abel::unaligned_load64(_p))
 
 #define ABEL_INTERNAL_UNALIGNED_STORE16(_p, _val) \
-  (abel::base_internal::UnalignedStore16(_p, _val))
+  (abel::unaligned_store16(_p, _val))
 #define ABEL_INTERNAL_UNALIGNED_STORE32(_p, _val) \
-  (abel::base_internal::UnalignedStore32(_p, _val))
+  (abel::unaligned_store32(_p, _val))
 #define ABEL_INTERNAL_UNALIGNED_STORE64(_p, _val) \
-  (abel::base_internal::UnalignedStore64(_p, _val))
+  (abel::unaligned_store64(_p, _val))
 
 #endif
 
 #endif  // defined(__cplusplus), end of unaligned API
 
-#endif  // ABEL_BASE_INTERNAL_UNALIGNED_ACCESS_H_
+#endif  // ABEL_ATOMIC_UNALIGNED_ACCESS_H_

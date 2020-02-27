@@ -9,7 +9,7 @@
 #include <type_traits>
 
 #include <abel/algorithm/algorithm.h>
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/meta/type_traits.h>
 
 namespace abel {

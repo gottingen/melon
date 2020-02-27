@@ -15,7 +15,7 @@
 #include <abel/log/raw_logging.h>
 #include <abel/threading/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
-#include <abel/base/internal/unaligned_access.h>
+#include <abel/atomic/unaligned_access.h>
 #include <abel/random/internal/randen.h>
 #include <abel/random/internal/seed_material.h>
 #include <abel/random/seed_gen_exception.h>

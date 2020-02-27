@@ -29,7 +29,7 @@
 
 #include <abel/algorithm/algorithm.h>
 #include <abel/threading/dynamic_annotations.h>
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/compressed_tuple.h>
 #include <abel/memory/memory.h>
@@ -224,7 +224,7 @@ namespace abel {
         // fiexed array, or throws std::out_of_range
         reference at(size_type i) {
             if (ABEL_UNLIKELY(i >= size())) {
-                base_internal::ThrowStdOutOfRange("FixedArray::at failed bounds check");
+                throw_std_out_of_range("FixedArray::at failed bounds check");
             }
             return data()[i];
         }
@@ -233,7 +233,7 @@ namespace abel {
         // of the fixed array.
         const_reference at(size_type i) const {
             if (ABEL_UNLIKELY(i >= size())) {
-                base_internal::ThrowStdOutOfRange("FixedArray::at failed bounds check");
+                throw_std_out_of_range("FixedArray::at failed bounds check");
             }
             return data()[i];
         }

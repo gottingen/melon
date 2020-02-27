@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/container/internal/container_memory.h>
 #include <abel/container/internal/raw_hash_set.h>  // IWYU pragma: export
 
@@ -131,7 +131,7 @@ namespace abel {
             MappedReference<P> at(const key_arg<K> &key) {
                 auto it = this->find(key);
                 if (it == this->end()) {
-                    base_internal::ThrowStdOutOfRange(
+                    throw_std_out_of_range(
                             "abel::container_internal::raw_hash_map<>::at");
                 }
                 return Policy::value(&*it);
@@ -141,7 +141,7 @@ namespace abel {
             MappedConstReference<P> at(const key_arg<K> &key) const {
                 auto it = this->find(key);
                 if (it == this->end()) {
-                    base_internal::ThrowStdOutOfRange(
+                    throw_std_out_of_range(
                             "abel::container_internal::raw_hash_map<>::at");
                 }
                 return Policy::value(&*it);

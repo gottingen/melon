@@ -37,7 +37,7 @@ using std::string_view;
 #include <limits>
 #include <string>
 
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
 
 namespace abel {
@@ -276,7 +276,7 @@ namespace abel {
         constexpr const_reference at(size_type i) const {
             return ABEL_LIKELY(i < size())
                    ? ptr_[i]
-                   : ((void) base_internal::ThrowStdOutOfRange(
+                   : ((void) throw_std_out_of_range(
                             "abel::basic_string_view::at"),
                             ptr_[i]);
         }
@@ -346,7 +346,7 @@ namespace abel {
         // into `buf`.
         size_type copy(value_type *buf, size_type n, size_type pos = 0) const {
             if (ABEL_UNLIKELY(pos > length_)) {
-                base_internal::ThrowStdOutOfRange("abel::basic_string_view::copy");
+                throw_std_out_of_range("abel::basic_string_view::copy");
             }
             size_type rlen = (std::min)(length_ - pos, n);
             if (rlen > 0) {
@@ -363,7 +363,7 @@ namespace abel {
         // `pos > size`.
         basic_string_view substr(size_type pos, size_type n = npos) const {
             if (ABEL_UNLIKELY(pos > length_))
-                base_internal::ThrowStdOutOfRange("abel::basic_string_view::substr");
+                throw_std_out_of_range("abel::basic_string_view::substr");
             n = (std::min)(n, length_ - pos);
             return basic_string_view(ptr_ + pos, n);
         }

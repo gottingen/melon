@@ -50,7 +50,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/types/internal/span.h>
@@ -271,7 +271,7 @@ namespace abel {
         constexpr reference at(size_type i) const {
             return ABEL_LIKELY(i < size())  //
                    ? *(data() + i)
-                   : (base_internal::ThrowStdOutOfRange(
+                   : (throw_std_out_of_range(
                             "Span::at failed bounds check"),
                             *(data() + i));
         }
@@ -372,7 +372,7 @@ namespace abel {
         constexpr Span subspan(size_type pos = 0, size_type len = npos) const {
             return (pos <= size())
                    ? Span(data() + pos, span_internal::Min(size() - pos, len))
-                   : (base_internal::ThrowStdOutOfRange("pos > size()"), Span());
+                   : (throw_std_out_of_range("pos > size()"), Span());
         }
 
         // Span::first()
@@ -389,7 +389,7 @@ namespace abel {
         constexpr Span first(size_type len) const {
             return (len <= size())
                    ? Span(data(), len)
-                   : (base_internal::ThrowStdOutOfRange("len > size()"), Span());
+                   : (throw_std_out_of_range("len > size()"), Span());
         }
 
         // Span::last()
@@ -406,7 +406,7 @@ namespace abel {
         constexpr Span last(size_type len) const {
             return (len <= size())
                    ? Span(size() - len + data(), len)
-                   : (base_internal::ThrowStdOutOfRange("len > size()"), Span());
+                   : (throw_std_out_of_range("len > size()"), Span());
         }
 
         // Support for abel::Hash.

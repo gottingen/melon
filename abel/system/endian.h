@@ -13,7 +13,7 @@
 
 #include <cstdint>
 #include <abel/base/profile.h>
-#include <abel/base/internal/unaligned_access.h>
+#include <abel/atomic/unaligned_access.h>
 #include <abel/base/profile.h>
 #include <abel/base/math.h>
 

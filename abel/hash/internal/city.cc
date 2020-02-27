@@ -13,7 +13,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/system/endian.h>
-#include <abel/base/internal/unaligned_access.h>
+#include <abel/atomic/unaligned_access.h>
 
 namespace abel {
 

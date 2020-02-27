@@ -8,7 +8,7 @@
 #include <iterator>
 #include <utility>
 
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/container/internal/btree.h>  // IWYU pragma: export
 #include <abel/container/internal/common.h>
 #include <abel/meta/type_traits.h>
@@ -479,7 +479,7 @@ namespace abel {
             mapped_type &at(const key_arg<K> &key) {
                 auto it = this->find(key);
                 if (it == this->end())
-                    base_internal::ThrowStdOutOfRange("abel::btree_map::at");
+                    throw_std_out_of_range("abel::btree_map::at");
                 return it->second;
             }
 
@@ -487,7 +487,7 @@ namespace abel {
             const mapped_type &at(const key_arg<K> &key) const {
                 auto it = this->find(key);
                 if (it == this->end())
-                    base_internal::ThrowStdOutOfRange("abel::btree_map::at");
+                    throw_std_out_of_range("abel::btree_map::at");
                 return it->second;
             }
         };

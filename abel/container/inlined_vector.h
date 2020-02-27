@@ -34,7 +34,7 @@
 #include <utility>
 
 #include <abel/algorithm/algorithm.h>
-#include <abel/base/internal/throw_delegate.h>
+#include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/inlined_vector.h>
 #include <abel/memory/memory.h>
@@ -314,7 +314,7 @@ namespace abel {
         // in both debug and non-debug builds, `std::out_of_range` will be thrown.
         reference at(size_type i) {
             if (ABEL_UNLIKELY(i >= size())) {
-                base_internal::ThrowStdOutOfRange(
+                throw_std_out_of_range(
                         "`InlinedVector::at(size_type)` failed bounds check");
             }
 
@@ -328,7 +328,7 @@ namespace abel {
         // in both debug and non-debug builds, `std::out_of_range` will be thrown.
         const_reference at(size_type i) const {
             if (ABEL_UNLIKELY(i >= size())) {
-                base_internal::ThrowStdOutOfRange(
+                throw_std_out_of_range(
                         "`InlinedVector::at(size_type) const` failed bounds check");
             }
 
