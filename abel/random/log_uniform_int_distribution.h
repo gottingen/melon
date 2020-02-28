@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <abel/random/internal/generate_real.h>
 #include <abel/random/internal/iostream_state_saver.h>
-#include <abel/random/internal/traits.h>
+#include <abel/meta/type_traits.h>
 #include <abel/random/uniform_int_distribution.h>
 #include <abel/base/math.h>
 
@@ -30,7 +30,7 @@ namespace abel {
     class log_uniform_int_distribution {
     private:
         using unsigned_type =
-        typename random_internal::make_unsigned_bits<IntType>::type;
+        typename make_unsigned_bits<IntType>::type;
 
     public:
         using result_type = IntType;

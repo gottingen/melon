@@ -7,7 +7,6 @@
 
 #include <abel/meta/type_traits.h>
 #include <abel/random/internal/distribution_caller.h>
-#include <abel/random/internal/traits.h>
 #include <abel/random/internal/uniform_helper.h>
 
 namespace abel {
@@ -28,7 +27,7 @@ namespace abel {
 // Return-type for abel::Uniform() when the return-type is inferred.
         template<typename A, typename B>
         using uniform_inferred_return_t =
-        abel::enable_if_t<abel::disjunction<is_widening_convertible<A, B>,
+        abel::enable_if_t<abel::disjunction<abel::is_widening_convertible<A, B>,
                 is_widening_convertible<B, A>>::value,
                 typename std::conditional<
                         is_widening_convertible<A, B>::value, B, A>::type>;

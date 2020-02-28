@@ -23,7 +23,7 @@
 #include <abel/base/profile.h>
 #include <abel/random/internal/fast_uniform_bits.h>
 #include <abel/random/internal/iostream_state_saver.h>
-#include <abel/random/internal/traits.h>
+#include <abel/meta/type_traits.h>
 #include <abel/random/internal/wide_multiply.h>
 
 namespace abel {
@@ -45,7 +45,7 @@ namespace abel {
     class uniform_int_distribution {
     private:
         using unsigned_type =
-        typename random_internal::make_unsigned_bits<IntType>::type;
+        typename make_unsigned_bits<IntType>::type;
 
     public:
         using result_type = IntType;
@@ -186,10 +186,10 @@ namespace abel {
 
     template<typename IntType>
     template<typename URBG>
-    typename random_internal::make_unsigned_bits<IntType>::type
+    typename make_unsigned_bits<IntType>::type
     uniform_int_distribution<IntType>::Generate(
             URBG &g,  // NOLINT(runtime/references)
-            typename random_internal::make_unsigned_bits<IntType>::type R) {
+            typename make_unsigned_bits<IntType>::type R) {
         random_internal::FastUniformBits<unsigned_type> fast_bits;
         unsigned_type bits = fast_bits(g);
         const unsigned_type Lim = R + 1;

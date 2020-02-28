@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <limits>
 #include <type_traits>
-
 #include <abel/base/profile.h>
 
 namespace abel {

@@ -16,7 +16,7 @@
 #include <abel/base/profile.h>
 #include <abel/base/math.h>
 #include <abel/numeric/int128.h>
-#include <abel/random/internal/traits.h>
+#include <abel/meta/type_traits.h>
 
 namespace abel {
 
@@ -64,7 +64,7 @@ namespace abel {
         struct wide_multiply {
             static constexpr size_t kN = std::numeric_limits<UIntType>::digits;
             using input_type = UIntType;
-            using result_type = typename random_internal::unsigned_bits<kN * 2>::type;
+            using result_type = typename unsigned_bits<kN * 2>::type;
 
             static result_type multiply(input_type a, input_type b) {
                 return static_cast<result_type>(a) * b;
