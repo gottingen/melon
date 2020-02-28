@@ -12,7 +12,6 @@
 
 #include <abel/meta/type_traits.h>
 #include <abel/random/internal/fast_uniform_bits.h>
-#include <abel/random/internal/fastmath.h>
 #include <abel/random/internal/generate_real.h>
 #include <abel/random/internal/iostream_state_saver.h>
 

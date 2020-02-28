@@ -10,12 +10,11 @@
 #include <limits>
 #include <ostream>
 #include <type_traits>
-
-#include <abel/random/internal/fastmath.h>
 #include <abel/random/internal/generate_real.h>
 #include <abel/random/internal/iostream_state_saver.h>
 #include <abel/random/internal/traits.h>
 #include <abel/random/uniform_int_distribution.h>
+#include <abel/base/math.h>
 
 namespace abel {
 
@@ -56,8 +55,8 @@ namespace abel {
                 if (base_ == 2) {
                     // Determine where the first set bit is on range(), giving a log2(range)
                     // value which can be used to construct bounds.
-                    log_range_ = (std::min)(random_internal::LeadingSetBit(range()),
-                                            std::numeric_limits<unsigned_type>::digits);
+                    log_range_ = std::min(leading_set_bit(static_cast<int64_t>(range())),
+                                          static_cast<unsigned>(std::numeric_limits<unsigned_type>::digits));
                 } else {
                     // NOTE: Computing the logN(x) introduces error from 2 sources:
                     // 1. Conversion of int to double loses precision for values >=

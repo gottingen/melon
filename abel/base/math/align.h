@@ -10,6 +10,7 @@
 #include <cstdlib>
 
 namespace able {
+
     template<typename T>
     ABEL_FORCE_INLINE constexpr
     T align_up(T v, T align) {

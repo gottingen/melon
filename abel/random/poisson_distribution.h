@@ -9,9 +9,7 @@
 #include <limits>
 #include <ostream>
 #include <type_traits>
-
 #include <abel/random/internal/fast_uniform_bits.h>
-#include <abel/random/internal/fastmath.h>
 #include <abel/random/internal/generate_real.h>
 #include <abel/random/internal/iostream_state_saver.h>
 
@@ -147,7 +145,7 @@ namespace abel {
             double a = mean_ + 0.5;
             s_ = kSA + std::sqrt(k2E * a);
             const double mode = std::ceil(mean_) - 1;
-            log_k_ = lmu_ * mode - abel::random_internal::StirlingLogFactorial(mode);
+            log_k_ = lmu_ * mode - abel::stirling_log_factorial(mode);
         }
     }
 
@@ -210,7 +208,7 @@ namespace abel {
             // clang-format off
             double s = (x <= 1.0) ? 0.0
                                   : (x == 2.0) ? 0.693147180559945
-                                               : abel::random_internal::StirlingLogFactorial(x);
+                                               : abel::stirling_log_factorial(x);
             // clang-format on
             const double lhs = 2.0 * std::log(u) + p.log_k_ + s;
             if (lhs < rhs) {

@@ -82,19 +82,19 @@ namespace abel {
         }
 
         static ABEL_FORCE_INLINE uint64_t Sigma0(uint64_t x) {
-            return ror64(x, 28) ^ ror64(x, 34) ^ ror64(x, 39);
+            return ror(x, 28) ^ ror(x, 34) ^ ror(x, 39);
         }
 
         static ABEL_FORCE_INLINE uint64_t Sigma1(uint64_t x) {
-            return ror64(x, 14) ^ ror64(x, 18) ^ ror64(x, 41);
+            return ror(x, 14) ^ ror(x, 18) ^ ror(x, 41);
         }
 
         static ABEL_FORCE_INLINE uint64_t Gamma0(uint64_t x) {
-            return ror64(x, 1) ^ ror64(x, 8) ^ Sh(x, 7);
+            return ror(x, 1) ^ ror(x, 8) ^ Sh(x, 7);
         }
 
         static ABEL_FORCE_INLINE uint64_t Gamma1(uint64_t x) {
-            return ror64(x, 19) ^ ror64(x, 61) ^ Sh(x, 6);
+            return ror(x, 19) ^ ror(x, 61) ^ Sh(x, 6);
         }
 
         static void sha512_compress(uint64_t state[8], const uint8_t *buf) {

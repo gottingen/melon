@@ -62,25 +62,25 @@ namespace abel {
         static ABEL_FORCE_INLINE void FF(uint32_t &a, uint32_t &b, uint32_t &c, uint32_t &d,
                                          uint32_t M, uint32_t s, uint32_t t) {
             a = (a + F(b, c, d) + M + t);
-            a = rol32(a, s) + b;
+            a = rol(a, s) + b;
         }
 
         static ABEL_FORCE_INLINE void GG(uint32_t &a, uint32_t &b, uint32_t &c, uint32_t &d,
                                          uint32_t M, uint32_t s, uint32_t t) {
             a = (a + G(b, c, d) + M + t);
-            a = rol32(a, s) + b;
+            a = rol(a, s) + b;
         }
 
         static ABEL_FORCE_INLINE void HH(uint32_t &a, uint32_t &b, uint32_t &c, uint32_t &d,
                                          uint32_t M, uint32_t s, uint32_t t) {
             a = (a + H(b, c, d) + M + t);
-            a = rol32(a, s) + b;
+            a = rol(a, s) + b;
         }
 
         static ABEL_FORCE_INLINE void II(uint32_t &a, uint32_t &b, uint32_t &c, uint32_t &d,
                                          uint32_t M, uint32_t s, uint32_t t) {
             a = (a + I(b, c, d) + M + t);
-            a = rol32(a, s) + b;
+            a = rol(a, s) + b;
         }
 
         static const uint8_t kWorder[64] = {

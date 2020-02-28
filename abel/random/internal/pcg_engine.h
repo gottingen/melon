@@ -4,11 +4,10 @@
 #define ABEL_RANDOM_INTERNAL_PCG_ENGINE_H_
 
 #include <type_traits>
-
+#include <abel/base/math.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
 #include <abel/numeric/int128.h>
-#include <abel/random/internal/fastmath.h>
 #include <abel/random/internal/iostream_state_saver.h>
 
 namespace abel {
@@ -255,7 +254,7 @@ namespace abel {
                 uint64_t rotate = h >> 58u;
                 uint64_t s = Uint128Low64(state) ^ h;
 #endif
-                return random_internal::rotr(s, rotate);
+                return ror(s, rotate);
             }
         };
 
@@ -278,7 +277,7 @@ namespace abel {
             using result_type = uint32_t;
 
             ABEL_FORCE_INLINE uint32_t operator()(uint64_t state) {
-                return random_internal::rotr(
+                return ror(
                         static_cast<uint32_t>(((state >> 18) ^ state) >> 27), state >> 59);
             }
         };

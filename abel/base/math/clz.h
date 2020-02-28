@@ -29,6 +29,9 @@ namespace abel {
     template<typename Integral>
     ABEL_FORCE_INLINE unsigned count_leading_zeros(Integral x);
 
+    template <typename Integral>
+    ABEL_FORCE_INLINE unsigned leading_set_bit(Integral x);
+
 #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_CLANG)
 
     template<>
@@ -38,10 +41,20 @@ namespace abel {
         return static_cast<unsigned>(__builtin_clz(x));
     }
 
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<unsigned>(unsigned x) {
+        return sizeof(unsigned) * 8 - count_leading_zeros(x);
+    }
+
 //! count_leading_zeros (count leading zeros)
     template<>
     ABEL_FORCE_INLINE unsigned count_leading_zeros<int>(int i) {
         return count_leading_zeros(static_cast<unsigned>(i));
+    }
+
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<int>(int x) {
+        return sizeof(int) * 8 - count_leading_zeros(x);
     }
 
 //! count_leading_zeros (count leading zeros)
@@ -52,10 +65,20 @@ namespace abel {
         return static_cast<unsigned>(__builtin_clzl(i));
     }
 
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<unsigned long>(unsigned long x) {
+        return sizeof(unsigned long) * 8 - count_leading_zeros(x);
+    }
+
 //! count_leading_zeros (count leading zeros)
     template<>
     ABEL_FORCE_INLINE unsigned count_leading_zeros<long>(long i) {
         return count_leading_zeros(static_cast<unsigned long>(i));
+    }
+
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<long>(long x) {
+        return sizeof(long) * 8  - count_leading_zeros(x);
     }
 
 //! count_leading_zeros (count leading zeros)
@@ -66,10 +89,20 @@ namespace abel {
         return static_cast<unsigned>(__builtin_clzll(i));
     }
 
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<unsigned long long>(unsigned long long x) {
+        return sizeof(unsigned long long) * 8 - count_leading_zeros(x);
+    }
+
 //! count_leading_zeros (count leading zeros)
     template<>
     ABEL_FORCE_INLINE unsigned count_leading_zeros<long long>(long long i) {
         return count_leading_zeros(static_cast<unsigned long long>(i));
+    }
+
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<long long>(long long x) {
+        return sizeof(long long) * 8 - count_leading_zeros(x);
     }
 
 #else
@@ -80,10 +113,20 @@ namespace abel {
         return clz_template(i);
     }
 
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<int>(int x) {
+        return sizeof(int) * 8 - count_leading_zeros(x);
+    }
+
     //! count_leading_zeros (count leading zeros)
     template<>
     ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned> (unsigned i) {
         return clz_template(i);
+    }
+
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<unsigned>(unsigned x) {
+        return sizeof(unsigned) * 8 - count_leading_zeros(x);
     }
 
     //! count_leading_zeros (count leading zeros)
@@ -92,10 +135,20 @@ namespace abel {
         return clz_template(i);
     }
 
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<long>(long x) {
+        return sizeof(long) * 8 - count_leading_zeros(x);
+    }
+
     //! count_leading_zeros (count leading zeros)
     template<>
     ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned long> (unsigned long i) {
         return clz_template(i);
+    }
+
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<unsigned long>(unsigned long x) {
+        return sizeof(unsigned long) * 8 - count_leading_zeros(x);
     }
 
     //! count_leading_zeros (count leading zeros)
@@ -104,10 +157,20 @@ namespace abel {
         return clz_template(i);
     }
 
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<long long>(long long x) {
+        return sizeof(long long) * 8 - count_leading_zeros(x);
+    }
+
     //! count_leading_zeros (count leading zeros)
     template<>
     ABEL_FORCE_INLINE unsigned count_leading_zeros<unsigned long long> (unsigned long long i) {
         return clz_template(i);
+    }
+
+    template <>
+    ABEL_FORCE_INLINE unsigned leading_set_bit<unsigned long long>(unsigned long long x) {
+        return sizeof(unsigned long long) * 8 - count_leading_zeros(x);
     }
 
 #endif
@@ -117,6 +180,7 @@ namespace abel {
         auto lz = count_leading_zeros(x);
         return sizeof(x) * 8 - 1 - lz;
     }
+
 
 } //namespace abel
 

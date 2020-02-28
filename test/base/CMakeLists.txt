@@ -6,8 +6,7 @@ foreach (fl ${META_SRC})
     string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" SRC_NAME ${fl})
     set(TEST_NAME base_${SRC_NAME})
     add_executable(${TEST_NAME}
-            ${SRC_NAME}.cc
-            )
+            ${SRC_NAME}.cc)
 
     target_link_libraries(${TEST_NAME}
             gtest

@@ -10,10 +10,8 @@
 #include <cstring>
 #include <limits>
 #include <type_traits>
-
 #include <abel/base/math.h>
 #include <abel/meta/type_traits.h>
-#include <abel/random/internal/fastmath.h>
 #include <abel/random/internal/traits.h>
 
 namespace abel {

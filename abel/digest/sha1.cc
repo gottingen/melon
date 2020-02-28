@@ -75,28 +75,28 @@ namespace abel {
 
             /* expand it */
             for (i = 16; i < 80; i++) {
-                W[i] = rol32(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+                W[i] = rol(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
             }
 
             /* compress */
             for (i = 0; i < 20; ++i) {
-                e = (rol32(a, 5) + F0(b, c, d) + e + W[i] + 0x5a827999UL);
-                b = rol32(b, 30);
+                e = (rol(a, 5) + F0(b, c, d) + e + W[i] + 0x5a827999UL);
+                b = rol(b, 30);
                 t = e, e = d, d = c, c = b, b = a, a = t;
             }
             for (; i < 40; ++i) {
-                e = (rol32(a, 5) + F1(b, c, d) + e + W[i] + 0x6ed9eba1UL);
-                b = rol32(b, 30);
+                e = (rol(a, 5) + F1(b, c, d) + e + W[i] + 0x6ed9eba1UL);
+                b = rol(b, 30);
                 t = e, e = d, d = c, c = b, b = a, a = t;
             }
             for (; i < 60; ++i) {
-                e = (rol32(a, 5) + F2(b, c, d) + e + W[i] + 0x8f1bbcdcUL);
-                b = rol32(b, 30);
+                e = (rol(a, 5) + F2(b, c, d) + e + W[i] + 0x8f1bbcdcUL);
+                b = rol(b, 30);
                 t = e, e = d, d = c, c = b, b = a, a = t;
             }
             for (; i < 80; ++i) {
-                e = (rol32(a, 5) + F3(b, c, d) + e + W[i] + 0xca62c1d6UL);
-                b = rol32(b, 30);
+                e = (rol(a, 5) + F3(b, c, d) + e + W[i] + 0xca62c1d6UL);
+                b = rol(b, 30);
                 t = e, e = d, d = c, c = b, b = a, a = t;
             }
 
