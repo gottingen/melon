@@ -4,7 +4,7 @@
 
 #include <abel/digest/sha512.h>
 #include <abel/strings/hex_dump.h>
-#include <abel/base/math/ror.h>
+#include <abel/math/rotr.h>
 #include <abel/base/profile.h>
 
 namespace abel {
@@ -82,19 +82,19 @@ namespace abel {
         }
 
         static ABEL_FORCE_INLINE uint64_t Sigma0(uint64_t x) {
-            return ror(x, 28) ^ ror(x, 34) ^ ror(x, 39);
+            return rotr(x, 28) ^ rotr(x, 34) ^ rotr(x, 39);
         }
 
         static ABEL_FORCE_INLINE uint64_t Sigma1(uint64_t x) {
-            return ror(x, 14) ^ ror(x, 18) ^ ror(x, 41);
+            return rotr(x, 14) ^ rotr(x, 18) ^ rotr(x, 41);
         }
 
         static ABEL_FORCE_INLINE uint64_t Gamma0(uint64_t x) {
-            return ror(x, 1) ^ ror(x, 8) ^ Sh(x, 7);
+            return rotr(x, 1) ^ rotr(x, 8) ^ Sh(x, 7);
         }
 
         static ABEL_FORCE_INLINE uint64_t Gamma1(uint64_t x) {
-            return ror(x, 19) ^ ror(x, 61) ^ Sh(x, 6);
+            return rotr(x, 19) ^ rotr(x, 61) ^ Sh(x, 6);
         }
 
         static void sha512_compress(uint64_t state[8], const uint8_t *buf) {

@@ -868,6 +868,12 @@ namespace abel {
                 typename std::make_unsigned<IntType>::type>::digits>::type;
     };
 
+    template<typename To>
+    constexpr To implicit_cast(typename abel::internal::identity_t<To> to) {
+        return to;
+    }
+
+
 }  // namespace abel
 
 #endif  // ABEL_META_TYPE_TRAITS_H_

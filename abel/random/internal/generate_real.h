@@ -10,8 +10,8 @@
 #include <cstring>
 #include <limits>
 #include <type_traits>
-#include <abel/base/math.h>
 #include <abel/meta/type_traits.h>
+#include <abel/math/countl_zero.h>
 
 namespace abel {
 
@@ -108,7 +108,7 @@ namespace abel {
 
             // Number of leading zeros is mapped to the exponent: 2^-clz
             // bits is 0..01xxxxxx. After shifting, we're left with 1xxx...0..0
-            auto clz = abel::count_leading_zeros(bits);
+            auto clz = abel::countl_zero(bits);
             bits <<= (IncludeZero ? clz : (clz & 63));  // remove 0-bits.
             exp -= clz;                                 // set the exponent.
             bits >>= (63 - kExp);

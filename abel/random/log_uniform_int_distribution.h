@@ -14,7 +14,6 @@
 #include <abel/random/internal/iostream_state_saver.h>
 #include <abel/meta/type_traits.h>
 #include <abel/random/uniform_int_distribution.h>
-#include <abel/base/math.h>
 
 namespace abel {
 

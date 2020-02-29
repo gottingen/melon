@@ -1802,6 +1802,15 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     ABEL_CONSTEXPR_OR_CONST double gValue = std::sin(kTwoPi);
 //
 
+#ifndef ABEL_CONSTEXPR
+#if ABEL_COMPILER_CPP11_ENABLED
+#define ABEL_CONSTEXPR constexpr
+#else
+#define ABEL_CONSTEXPR
+#endif
+#endif
+
+
 #ifndef ABEL_CONSTEXPR_MEMBER
 #if ABEL_COMPILER_CPP14_ENABLED
 #define ABEL_CONSTEXPR_MEMBER constexpr
@@ -1825,6 +1834,7 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 #define ABEL_CONSTEXPR_FUNCTION inline
 #endif
 #endif
+
 
 // ------------------------------------------------------------------------
 // ABEL_CONSTEXPR_IF

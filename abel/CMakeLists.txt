@@ -80,7 +80,7 @@ SET(ABEL_SRC
         )
 
 add_library(abel_static STATIC ${ABEL_SRC})
-add_library(abel_shared SHARED ${ABEL_SRC} statistics/exponential_biased.h statistics/exponential_biased.cc statistics/periodic_sampler.h statistics/periodic_sampler.cc)
+add_library(abel_shared SHARED ${ABEL_SRC})
 
 target_link_libraries(abel_static pthread)
 if (APPLE)

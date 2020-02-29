@@ -6,7 +6,7 @@
 #define ABEL_CONTAINER_CIRCULAR_BUFFER_H_
 
 #include <abel/base/profile.h>
-#include <abel/base/math.h>
+#include <abel/math/log.h>
 #include <abel/memory/transfer.h>
 #include <memory>
 #include <algorithm>
@@ -255,7 +255,7 @@ namespace abel {
     circular_buffer<T, Alloc>::reserve(size_t size) {
         if (capacity() < size) {
             // Make sure that the new capacity is a power of two.
-            expand(size_t(1) << integer_log2_ceil(size));
+            expand(size_t(1) << log2_ceil(size));
         }
     }
 

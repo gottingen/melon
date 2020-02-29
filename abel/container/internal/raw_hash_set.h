@@ -88,8 +88,6 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-
-#include <abel/base/math.h>
 #include <abel/system/endian.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/common.h>
@@ -103,6 +101,8 @@
 #include <abel/memory/memory.h>
 #include <abel/meta/type_traits.h>
 #include <abel/utility/utility.h>
+#include <abel/math/countl_zero.h>
+#include <abel/math/countr_zero.h>
 
 namespace abel {
 
@@ -197,11 +197,11 @@ namespace abel {
             int operator*() const { return LowestBitSet(); }
 
             int LowestBitSet() const {
-                return abel::count_trailing_zeros(mask_) >> Shift;
+                return abel::countr_zero(mask_) >> Shift;
             }
 
             int HighestBitSet() const {
-                return (sizeof(T) * CHAR_BIT - abel::count_leading_zeros(mask_) -
+                return (sizeof(T) * CHAR_BIT - abel::countl_zero(mask_) -
                         1) >>
                            Shift;
             }
@@ -211,13 +211,13 @@ namespace abel {
             BitMask end() const { return BitMask(0); }
 
             int TrailingZeros() const {
-                return abel::count_trailing_zeros(mask_) >> Shift;
+                return abel::countr_zero(mask_) >> Shift;
             }
 
             int LeadingZeros() const {
                 constexpr int total_significant_bits = SignificantBits << Shift;
                 constexpr int extra_bits = sizeof(T) * 8 - total_significant_bits;
-                return abel::count_leading_zeros(mask_ << extra_bits) >> Shift;
+                return abel::countl_zero(mask_ << extra_bits) >> Shift;
             }
 
         private:
@@ -351,7 +351,7 @@ namespace abel {
             // Returns the number of trailing empty or deleted elements in the group.
             uint32_t CountLeadingEmptyOrDeleted() const {
                 auto special = _mm_set1_epi8(kSentinel);
-                return abel::count_trailing_zeros(
+                return abel::countr_zero(
                         _mm_movemask_epi8(_mm_cmpgt_epi8_fixed(special, ctrl)) + 1);
             }
 
@@ -411,7 +411,7 @@ namespace abel {
 
             uint32_t CountLeadingEmptyOrDeleted() const {
                 constexpr uint64_t gaps = 0x00FEFEFEFEFEFEFEULL;
-                return (abel::count_trailing_zeros(((~ctrl & (ctrl >> 7)) | gaps) + 1) + 7) >> 3;
+                return (abel::countr_zero(((~ctrl & (ctrl >> 7)) | gaps) + 1) + 7) >> 3;
             }
 
             void ConvertSpecialToEmptyAndFullToDeleted(ctrl_t *dst) const {
@@ -458,7 +458,7 @@ namespace abel {
 
 // Rounds up the capacity to the next power of 2 minus 1, with a minimum of 1.
         ABEL_FORCE_INLINE size_t NormalizeCapacity(size_t n) {
-            return n ? ~size_t{} >> abel::count_leading_zeros(n) : 1;
+            return n ? ~size_t{} >> abel::countl_zero(n) : 1;
         }
 
 // We use 7/8th as maximum load factor.

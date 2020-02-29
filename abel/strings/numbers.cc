@@ -18,7 +18,6 @@
 #include <memory>
 #include <utility>
 
-#include <abel/base/math.h>
 #include <abel/log/raw_logging.h>
 #include <abel/strings/ascii.h>
 #include <abel/strings/char_conv.h>
@@ -299,7 +298,7 @@ namespace abel {
         uint64_t bits128_up = (bits96_127 >> 32) + (bits64_127 < bits64_95);
         if (bits128_up == 0) return {bits64_127, bits0_63};
 
-        int shift = 64 - abel::count_leading_zeros(bits128_up);
+        int shift = 64 - abel::countl_zero(bits128_up);
         uint64_t lo = (bits0_63 >> shift) + (bits64_127 << (64 - shift));
         uint64_t hi = (bits64_127 >> shift) + (bits128_up << (64 - shift));
         return {hi, lo};
@@ -330,7 +329,7 @@ namespace abel {
                 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5,
                 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5};
         result = Mul32(result, powers_of_five[expfive & 15]);
-        int shift = abel::count_leading_zeros(result.first);
+        int shift = abel::countl_zero(result.first);
         if (shift != 0) {
             result.first = (result.first << shift) + (result.second >> (64 - shift));
             result.second = (result.second << shift);

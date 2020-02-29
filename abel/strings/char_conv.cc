@@ -8,11 +8,11 @@
 #include <cmath>
 #include <cstring>
 
-#include <abel/base/casts.h>
-#include <abel/base/math.h>
+#include <abel/math/bit_cast.h>
 #include <abel/numeric/int128.h>
 #include <abel/strings/internal/charconv_bigint.h>
 #include <abel/strings/internal/charconv_parse.h>
+#include <abel/math/countl_zero.h>
 
 #ifdef ABEL_BIT_PACK_FLOATS
 #error ABEL_BIT_PACK_FLOATS cannot be directly set
@@ -149,9 +149,9 @@ namespace abel {
 // minus the number of leading zero bits.)
         int BitWidth(uint128 value) {
             if (Uint128High64(value) == 0) {
-                return 64 - abel::count_leading_zeros(Uint128Low64(value));
+                return 64 - abel::countl_zero(Uint128Low64(value));
             }
-            return 128 - abel::count_leading_zeros(Uint128High64(value));
+            return 128 - abel::countl_zero(Uint128High64(value));
         }
 
         template<typename FloatType>
@@ -317,7 +317,7 @@ namespace abel {
                 const strings_internal::ParsedFloat &parsed_hex) {
             uint64_t mantissa = parsed_hex.mantissa;
             int exponent = parsed_hex.exponent;
-            int mantissa_width = 64 - abel::count_leading_zeros(mantissa);
+            int mantissa_width = 64 - abel::countl_zero(mantissa);
             const int shift = NormalizedShiftSize<FloatType>(mantissa_width, exponent);
             bool result_exact;
             exponent += shift;

@@ -1,7 +1,6 @@
 //
 
 #include <abel/atomic/atomic_hook.h>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>

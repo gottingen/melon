@@ -3,7 +3,7 @@
 #include <abel/types/compare.h>
 
 #include <gtest/gtest.h>
-#include <abel/base/casts.h>
+#include <abel/math/bit_cast.h>
 
 namespace abel {
 

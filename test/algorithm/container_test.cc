@@ -17,7 +17,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/base/casts.h>
+#include <abel/math/bit_cast.h>
 #include <abel/base/profile.h>
 #include <abel/memory/memory.h>
 #include <abel/types/span.h>

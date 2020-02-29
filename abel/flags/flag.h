@@ -17,7 +17,7 @@
 #define ABEL_FLAGS_FLAG_H_
 
 #include <abel/base/profile.h>
-#include <abel/base/casts.h>
+#include <abel/math/bit_cast.h>
 #include <abel/flags/config.h>
 #include <abel/flags/declare.h>
 #include <abel/flags/internal/commandlineflag.h>

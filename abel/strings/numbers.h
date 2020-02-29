@@ -23,8 +23,6 @@
 #include <string>
 #include <type_traits>
 
-#include <abel/base/math.h>
-
 #ifdef __SSE4_2__
 // TODO(jorg): Remove this when we figure out the right way
 // to swap bytes on SSE 4.2 that works with the compilers
@@ -37,6 +35,7 @@
 #include <abel/base/profile.h>
 #include <abel/numeric/int128.h>
 #include <abel/strings/string_view.h>
+#include <abel/math/countl_zero.h>
 
 namespace abel {
 
@@ -230,7 +229,7 @@ namespace abel {
             }
 #endif
             // | 0x1 so that even 0 has 1 digit.
-            return 16 - abel::count_leading_zeros(val | 0x1) / 4;
+            return 16 - abel::countl_zero(val | 0x1) / 4;
         }
 
     }  // namespace numbers_internal

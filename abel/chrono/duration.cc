@@ -54,7 +54,7 @@
 #include <limits>
 #include <string>
 
-#include <abel/base/casts.h>
+#include <abel/math/bit_cast.h>
 #include <abel/numeric/int128.h>
 #include <abel/chrono/time.h>
 
