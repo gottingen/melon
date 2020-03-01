@@ -186,7 +186,7 @@ namespace abel {
             return nullptr;
 #else
             bool first = *next_sample < 0;
-            *next_sample = g_exponential_biased_generator.GetStride(
+            *next_sample = g_exponential_biased_generator.get_stride(
                 g_hashtablez_sample_parameter.load(std::memory_order_relaxed));
             // Small values of interval are equivalent to just sampling next time.
             ABEL_ASSERT(*next_sample >= 1);
