@@ -7,6 +7,7 @@
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
+#include <abel/math/pow.h>
 
 namespace abel {
 
@@ -18,8 +19,7 @@ namespace abel {
         }
 
         template<typename T>
-        ABEL_CONSTEXPR T
-        atan_series_order(const T x, const T x_pow, const unsigned int order,
+        ABEL_CONSTEXPR T atan_series_order(const T x, const T x_pow, const unsigned int order,
                           const unsigned int max_order) ABEL_NOEXCEPT {
             return (order == 1 ? ABEL_HALF_PI - T(1) / x + atan_series_order(x * x, pow(x, 3), order + 1, max_order) :
                     order < max_order ? atan_series_order_calc(x, x_pow, order) +

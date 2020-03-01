@@ -11,6 +11,7 @@
 #include <abel/math/is_nan.h>
 #include <abel/math/min.h>
 #include <abel/math/max.h>
+#include <abel/math/log_gamma.h>
 
 namespace abel {
 

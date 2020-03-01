@@ -18,8 +18,7 @@
 
 #ifdef __clang__
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(c++
-                           98 - compat)
+RAPIDJSON_DIAG_OFF(c++98-compat)
 #endif
 
 using namespace rapidjson;

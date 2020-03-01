@@ -26,17 +26,16 @@ using namespace rapidjson;
 RAPIDJSON_DIAG_PUSH
 #ifdef __GNUC__
 RAPIDJSON_DIAG_OFF(effc++)
-RAPIDJSON_DIAG_OFF(float - equal)
-RAPIDJSON_DIAG_OFF(missing - noreturn)
+RAPIDJSON_DIAG_OFF(float-equal)
+RAPIDJSON_DIAG_OFF(missing-noreturn)
 #if __GNUC__ >= 7
 RAPIDJSON_DIAG_OFF(dangling-else)
 #endif
 #endif // __GNUC__
 
 #ifdef __clang__
-RAPIDJSON_DIAG_OFF(variadic - macros)
-RAPIDJSON_DIAG_OFF(c++
-                           98 - compat - pedantic)
+RAPIDJSON_DIAG_OFF(variadic-macros)
+RAPIDJSON_DIAG_OFF(c++98-compat-pedantic)
 #endif
 
 template<bool expect>

@@ -10,6 +10,7 @@
 #include <abel/math/max.h>
 #include <abel/math/min.h>
 #include <abel/math//incomplete_gamma.h>
+#include <abel/math/log_gamma.h>
 
 namespace abel {
 

@@ -29,8 +29,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 #ifdef __GNUC__
         RAPIDJSON_DIAG_PUSH
         RAPIDJSON_DIAG_OFF(effc++)
-        RAPIDJSON_DIAG_OFF(array -
-                           bounds) // some gcc versions generate wrong warnings https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
+        RAPIDJSON_DIAG_OFF(array-bounds) // some gcc versions generate wrong warnings https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
 #endif
 
         inline void

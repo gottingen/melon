@@ -18,7 +18,7 @@
 
 #ifdef __clang__
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(unreachable - code)
+RAPIDJSON_DIAG_OFF(unreachable-code)
 #endif
 
 #define BIGINTEGER_LITERAL(s) BigInteger(s, sizeof(s) - 1)
