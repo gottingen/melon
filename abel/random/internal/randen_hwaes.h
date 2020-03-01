@@ -12,26 +12,28 @@
 
 namespace abel {
 
-namespace random_internal {
+    namespace random_internal {
 
 // RANDen = RANDom generator or beetroots in Swiss German.
 // 'Strong' (well-distributed, unpredictable, backtracking-resistant) random
 // generator, faster in some benchmarks than std::mt19937_64 and pcg64_c32.
 //
 // RandenHwAes implements the basic state manipulation methods.
-class RandenHwAes {
- public:
-  static void Generate(const void* keys, void* state_void);
-  static void Absorb(const void* seed_void, void* state_void);
-  static const void* GetKeys();
-};
+        class RandenHwAes {
+        public:
+            static void Generate(const void *keys, void *state_void);
+
+            static void Absorb(const void *seed_void, void *state_void);
+
+            static const void *GetKeys();
+        };
 
 // HasRandenHwAesImplementation returns true when there is an accelerated
 // implementation, and false otherwise.  If there is no implementation,
 // then attempting to use it will abort the program.
-bool HasRandenHwAesImplementation();
+        bool HasRandenHwAesImplementation();
 
-}  // namespace random_internal
+    }  // namespace random_internal
 
 }  // namespace abel
 

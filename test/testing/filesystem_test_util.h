@@ -20,48 +20,51 @@
 #include <thread>
 
 
-
 #if (defined(WIN32) || defined(_WIN32)) && !defined(__GNUC__)
 #define NOMINMAX 1
 #endif
 
 #ifdef USE_STD_FS
-    #include <filesystem>
-    namespace fs {
-    using namespace std::filesystem;
-    using ifstream = std::ifstream;
-    using ofstream = std::ofstream;
-    using fstream = std::fstream;
-    }  // namespace fs
-    #ifdef __GNUC__
-        #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-    #endif
+#include <filesystem>
+namespace fs {
+using namespace std::filesystem;
+using ifstream = std::ifstream;
+using ofstream = std::ofstream;
+using fstream = std::fstream;
+}  // namespace fs
+#ifdef __GNUC__
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
 
-    #ifdef _MSC_VER
-        #define IS_WCHAR_PATH
-    #endif
+#ifdef _MSC_VER
+#define IS_WCHAR_PATH
+#endif
 
-    #ifdef WIN32
-        #define GHC_OS_WINDOWS
-    #endif
+#ifdef WIN32
+#define GHC_OS_WINDOWS
+#endif
 
 #else
-    #include <abel/filesystem/filesystem.h>
-    namespace fs {
-        using namespace abel::filesystem;
-        using ifstream = abel::filesystem::ifstream;
-        using ofstream = abel::filesystem::ofstream;
-        using fstream = abel::filesystem::fstream;
-    }  // namespace fs
+
+#include <abel/filesystem/filesystem.h>
+
+namespace fs {
+    using namespace abel::filesystem;
+    using ifstream = abel::filesystem::ifstream;
+    using ofstream = abel::filesystem::ofstream;
+    using fstream = abel::filesystem::fstream;
+}  // namespace fs
 #endif
 
 #if defined(WIN32) || defined(_WIN32)
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <sys/socket.h>
-    #include <sys/stat.h>
-    #include <sys/types.h>
-    #include <sys/un.h>
+
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/un.h>
+
 #endif
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -78,17 +81,15 @@
 #define TEST_LWG_2937_BEHAVIOUR
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-template <typename TP>
-std::time_t to_time_t(TP tp)
-{
+template<typename TP>
+std::time_t to_time_t(TP tp) {
     using namespace std::chrono;
     auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now() + system_clock::now());
     return system_clock::to_time_t(sctp);
 }
 
-template <typename TP>
-TP from_time_t(std::time_t t)
-{
+template<typename TP>
+TP from_time_t(std::time_t t) {
     using namespace std::chrono;
     auto sctp = system_clock::from_time_t(t);
     auto tp = time_point_cast<typename TP::duration>(sctp - system_clock::now() + TP::clock::now());
@@ -96,14 +97,16 @@ TP from_time_t(std::time_t t)
 }
 
 
-enum class TempOpt { none, change_path };
-class TemporaryDirectory
-{
+enum class TempOpt {
+    none, change_path
+};
+
+class TemporaryDirectory {
 public:
-    TemporaryDirectory(TempOpt opt = TempOpt::none)
-    {
+    TemporaryDirectory(TempOpt opt = TempOpt::none) {
         static auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        static auto rng = std::bind(std::uniform_int_distribution<int>(0, 35), std::mt19937(static_cast<unsigned int>(seed) ^ static_cast<unsigned int>(reinterpret_cast<ptrdiff_t>(&opt))));
+        static auto rng = std::bind(std::uniform_int_distribution<int>(0, 35), std::mt19937(
+                static_cast<unsigned int>(seed) ^ static_cast<unsigned int>(reinterpret_cast<ptrdiff_t>(&opt))));
         std::string filename;
         do {
             filename = "test_";
@@ -119,128 +122,123 @@ public:
         }
     }
 
-    ~TemporaryDirectory()
-    {
+    ~TemporaryDirectory() {
         if (!_orig_dir.empty()) {
             fs::current_path(_orig_dir);
         }
         fs::remove_all(_path);
     }
 
-    const fs::path& path() const { return _path; }
+    const fs::path &path() const { return _path; }
 
 private:
     fs::path _path;
     fs::path _orig_dir;
 };
 
-static void generateFile(const fs::path& pathname, int withSize = -1)
-{
+static void generateFile(const fs::path &pathname, int withSize = -1) {
     fs::ofstream outfile(pathname);
     if (withSize < 0) {
         outfile << "Hello world!" << std::endl;
-    }
-    else {
+    } else {
         outfile << std::string(size_t(withSize), '*');
     }
 }
 
 #ifdef ABEL_PLATFORM_WINDOWS
-    inline bool isWow64Proc()
-    {
-        typedef BOOL(WINAPI * IsWow64Process_t)(HANDLE, PBOOL);
-        BOOL bIsWow64 = FALSE;
-        auto fnIsWow64Process = (IsWow64Process_t)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
-        if (NULL != fnIsWow64Process) {
-            if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64)) {
-                bIsWow64 = FALSE;
-            }
+inline bool isWow64Proc()
+{
+    typedef BOOL(WINAPI * IsWow64Process_t)(HANDLE, PBOOL);
+    BOOL bIsWow64 = FALSE;
+    auto fnIsWow64Process = (IsWow64Process_t)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+    if (NULL != fnIsWow64Process) {
+        if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64)) {
+            bIsWow64 = FALSE;
         }
-        return bIsWow64 == TRUE;
     }
+    return bIsWow64 == TRUE;
+}
 
-    static bool is_symlink_creation_supported()
-    {
-        bool result = true;
-        HKEY key;
-        REGSAM flags = KEY_READ;
-    #ifdef _WIN64
+static bool is_symlink_creation_supported()
+{
+    bool result = true;
+    HKEY key;
+    REGSAM flags = KEY_READ;
+#ifdef _WIN64
+    flags |= KEY_WOW64_64KEY;
+#elif defined(KEY_WOW64_64KEY)
+    if (isWow64Proc()) {
         flags |= KEY_WOW64_64KEY;
-    #elif defined(KEY_WOW64_64KEY)
-        if (isWow64Proc()) {
-            flags |= KEY_WOW64_64KEY;
-        }
-        else {
-            flags |= KEY_WOW64_32KEY;
-        }
-    #else
-        result = false;
-    #endif
-        if (result) {
-            auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock", 0, flags, &key);
-            if (err == ERROR_SUCCESS) {
-                DWORD val = 0, size = sizeof(DWORD);
-                err = RegQueryValueExW(key, L"AllowDevelopmentWithoutDevLicense", 0, NULL, reinterpret_cast<LPBYTE>(&val), &size);
-                RegCloseKey(key);
-                if (err != ERROR_SUCCESS) {
-                    result = false;
-                }
-                else {
-                    result = (val != 0);
-                }
-            }
-            else {
-                result = false;
-            }
-        }
-        if (!result) {
-            std::clog << "Warning: Symlink creation not supported." << std::endl;
-        }
-        return result;
+    }
+    else {
+        flags |= KEY_WOW64_32KEY;
     }
 #else
-    static bool is_symlink_creation_supported()
-    {
-        return true;
+    result = false;
+#endif
+    if (result) {
+        auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock", 0, flags, &key);
+        if (err == ERROR_SUCCESS) {
+            DWORD val = 0, size = sizeof(DWORD);
+            err = RegQueryValueExW(key, L"AllowDevelopmentWithoutDevLicense", 0, NULL, reinterpret_cast<LPBYTE>(&val), &size);
+            RegCloseKey(key);
+            if (err != ERROR_SUCCESS) {
+                result = false;
+            }
+            else {
+                result = (val != 0);
+            }
+        }
+        else {
+            result = false;
+        }
     }
+    if (!result) {
+        std::clog << "Warning: Symlink creation not supported." << std::endl;
+    }
+    return result;
+}
+#else
+
+static bool is_symlink_creation_supported() {
+    return true;
+}
+
 #endif
 
-static bool has_host_root_name_support()
-{
+static bool has_host_root_name_support() {
     return fs::path("//host").has_root_name();
 }
 
-template <class T>
-class TestAllocator : public std::allocator<T>{
+template<class T>
+class TestAllocator : public std::allocator<T> {
 public:
     using value_type = T;
 
     TestAllocator() noexcept {}
-    template <class U>
-    TestAllocator(TestAllocator<U> const&) noexcept
-    {
+
+    template<class U>
+    TestAllocator(TestAllocator<U> const &) noexcept {
     }
 
-    value_type* allocate(std::size_t n) { return static_cast<value_type*>(::operator new(n * sizeof(value_type))); }
+    value_type *allocate(std::size_t n) { return static_cast<value_type *>(::operator new(n * sizeof(value_type))); }
 
-    void deallocate(value_type* p, std::size_t) noexcept { ::operator delete(p); }
+    void deallocate(value_type *p, std::size_t) noexcept { ::operator delete(p); }
 
 
-    template <class U>
+    template<class U>
     struct rebind {
         using other = TestAllocator<U>;
     };
 };
 
-template <class T, class U>
-bool operator==(TestAllocator<T> const&, TestAllocator<U> const&) noexcept
-{
+template<class T, class U>
+bool operator==(TestAllocator<T> const &, TestAllocator<U> const &) noexcept {
     return true;
 }
 
-template <class T, class U>
-bool operator!=(TestAllocator<T> const& x, TestAllocator<U> const& y) noexcept
-{
+template<class T, class U>
+bool operator!=(TestAllocator<T> const &x, TestAllocator<U> const &y) noexcept {
     return !(x == y);
 }
 

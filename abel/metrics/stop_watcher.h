@@ -10,20 +10,20 @@
 #include <abel/chrono/time.h>
 
 namespace abel {
-namespace metrics {
-class timer;
+    namespace metrics {
+        class timer;
 
-class stop_watcher {
-public:
-    stop_watcher (abel::abel_time, std::shared_ptr<timer> recorder);
+        class stop_watcher {
+        public:
+            stop_watcher(abel::abel_time, std::shared_ptr<timer> recorder);
 
-    void stop ();
+            void stop();
 
-private:
-    const abel::abel_time _start;
-    std::shared_ptr<timer> _recorder;
-};
-} //namespace metrics
+        private:
+            const abel::abel_time _start;
+            std::shared_ptr<timer> _recorder;
+        };
+    } //namespace metrics
 } //namespace abel
 
 

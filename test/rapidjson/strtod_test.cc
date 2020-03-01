@@ -38,7 +38,7 @@ TEST(Strtod, CheckApproximationCase) {
     union {
         double d;
         uint64_t u;
-    }u;
+    } u;
     u.u = 0x465a72e467d88 | ((static_cast<uint64_t>(-149 + kExponentBias)) << kSignificandSize);
     const double b = u.d;
     const uint64_t bInt = (u.u & kSignificandMask) | kHiddenBit;
@@ -66,8 +66,7 @@ TEST(Strtod, CheckApproximationCase) {
     if (dExp >= 0) {
         dS_Exp2 += dExp;
         dS_Exp5 += dExp;
-    }
-    else {
+    } else {
         bS_Exp2 -= dExp;
         bS_Exp5 -= dExp;
         hS_Exp2 -= dExp;
@@ -117,7 +116,7 @@ TEST(Strtod, CheckApproximationCase) {
     EXPECT_TRUE(BIGINTEGER_LITERAL("17763568394002504646778106689453125") == hS);
 
     EXPECT_EQ(1, dS.Compare(bS));
-    
+
     BigInteger delta(0);
     EXPECT_FALSE(dS.Difference(bS, &delta));
     EXPECT_TRUE(BIGINTEGER_LITERAL("16216586195252933526457586554279088") == delta);

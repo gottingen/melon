@@ -10,7 +10,7 @@
 #include <stdarg.h>
 
 template<typename InputIterator, typename StackValue>
-bool VerifySequence (InputIterator first, InputIterator last, StackValue /*unused*/, const char *pName, ...) {
+bool VerifySequence(InputIterator first, InputIterator last, StackValue /*unused*/, const char *pName, ...) {
     typedef typename std::iterator_traits<InputIterator>::value_type value_type;
 
     int argIndex = 0;
@@ -61,42 +61,43 @@ bool VerifySequence (InputIterator first, InputIterator last, StackValue /*unuse
 using namespace abel;
 
 namespace {
-struct IntNode : public abel::intrusive_list_node {
-    int mX;
+    struct IntNode : public abel::intrusive_list_node {
+        int mX;
 
-    IntNode (int x = 0)
-        : mX(x) { }
+        IntNode(int x = 0)
+                : mX(x) {}
 
-    operator int () const { return mX; }
-};
+        operator int() const { return mX; }
+    };
 
-class ListInit {
-public:
-    ListInit (abel::intrusive_list<IntNode> &container, IntNode *pNodeArray)
-        : mpContainer(&container), mpNodeArray(pNodeArray) {
-        mpContainer->clear();
-    }
+    class ListInit {
+    public:
+        ListInit(abel::intrusive_list<IntNode> &container, IntNode *pNodeArray)
+                : mpContainer(&container), mpNodeArray(pNodeArray) {
+            mpContainer->clear();
+        }
 
-    ListInit &operator += (int x) {
-        mpNodeArray->mX = x;
-        mpContainer->push_back(*mpNodeArray++);
-        return *this;
-    }
+        ListInit &operator+=(int x) {
+            mpNodeArray->mX = x;
+            mpContainer->push_back(*mpNodeArray++);
+            return *this;
+        }
 
-    ListInit &operator , (int x) {
-        mpNodeArray->mX = x;
-        mpContainer->push_back(*mpNodeArray++);
-        return *this;
-    }
+        ListInit &operator,(int x) {
+            mpNodeArray->mX = x;
+            mpContainer->push_back(*mpNodeArray++);
+            return *this;
+        }
 
-protected:
-    abel::intrusive_list<IntNode> *mpContainer;
-    IntNode *mpNodeArray;
-};
+    protected:
+        abel::intrusive_list<IntNode> *mpContainer;
+        IntNode *mpNodeArray;
+    };
 
 }
 
-template class abel::intrusive_list<IntNode>;
+template
+class abel::intrusive_list<IntNode>;
 
 TEST(intrusive_list, all) {
     int i = 0;

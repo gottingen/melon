@@ -99,8 +99,8 @@
 #define GMOCK_INTERNAL_ASSERT_VALID_SPEC(_Spec) \
   GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_ASSERT_VALID_SPEC_ELEMENT, ~, _Spec)
 
-#define GMOCK_INTERNAL_MOCK_METHOD_IMPL(_N, _MethodName, _Constness,           \
-                                        _Override, _Final, _Noexcept,          \
+#define GMOCK_INTERNAL_MOCK_METHOD_IMPL(_N, _MethodName, _Constness, \
+                                        _Override, _Final, _Noexcept, \
                                         _CallType, _Signature)                 \
   typename ::testing::internal::Function<GMOCK_PP_REMOVE_PARENS(               \
       _Signature)>::Result                                                     \

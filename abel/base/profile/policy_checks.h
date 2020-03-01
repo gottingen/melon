@@ -16,7 +16,9 @@
 
 // Included for the _STLPORT_VERSION macro used below.
 #if defined(__cplusplus)
+
 #include <cstddef>
+
 #endif
 
 // -----------------------------------------------------------------------------

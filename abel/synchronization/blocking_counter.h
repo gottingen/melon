@@ -45,40 +45,41 @@ namespace abel {
 //
 //     bcount.wait();                    // wait for all work to be complete
 //
-class blocking_counter {
- public:
-  explicit blocking_counter(int initial_count)
-      : count_(initial_count), num_waiting_(0) {}
+    class blocking_counter {
+    public:
+        explicit blocking_counter(int initial_count)
+                : count_(initial_count), num_waiting_(0) {}
 
-  blocking_counter(const blocking_counter&) = delete;
-  blocking_counter& operator=(const blocking_counter&) = delete;
+        blocking_counter(const blocking_counter &) = delete;
 
-  // blocking_counter::decrement_count()
-  //
-  // Decrements the counter's "count" by one, and return "count == 0". This
-  // function requires that "count != 0" when it is called.
-  //
-  // Memory ordering: For any threads X and Y, any action taken by X
-  // before it calls `decrement_count()` is visible to thread Y after
-  // Y's call to `decrement_count()`, provided Y's call returns `true`.
-  bool decrement_count();
+        blocking_counter &operator=(const blocking_counter &) = delete;
 
-  // blocking_counter::wait()
-  //
-  // Blocks until the counter reaches zero. This function may be called at most
-  // once. On return, `decrement_count()` will have been called "initial_count"
-  // times and the blocking counter may be destroyed.
-  //
-  // Memory ordering: For any threads X and Y, any action taken by X
-  // before X calls `decrement_count()` is visible to Y after Y returns
-  // from `wait()`.
-  void wait();
+        // blocking_counter::decrement_count()
+        //
+        // Decrements the counter's "count" by one, and return "count == 0". This
+        // function requires that "count != 0" when it is called.
+        //
+        // Memory ordering: For any threads X and Y, any action taken by X
+        // before it calls `decrement_count()` is visible to thread Y after
+        // Y's call to `decrement_count()`, provided Y's call returns `true`.
+        bool decrement_count();
 
- private:
-  mutex lock_;
-  int count_ ABEL_GUARDED_BY(lock_);
-  int num_waiting_ ABEL_GUARDED_BY(lock_);
-};
+        // blocking_counter::wait()
+        //
+        // Blocks until the counter reaches zero. This function may be called at most
+        // once. On return, `decrement_count()` will have been called "initial_count"
+        // times and the blocking counter may be destroyed.
+        //
+        // Memory ordering: For any threads X and Y, any action taken by X
+        // before X calls `decrement_count()` is visible to Y after Y returns
+        // from `wait()`.
+        void wait();
+
+    private:
+        mutex lock_;
+        int count_ ABEL_GUARDED_BY(lock_);
+        int num_waiting_ ABEL_GUARDED_BY(lock_);
+    };
 
 
 }  // namespace abel

@@ -10,21 +10,21 @@
 
 namespace {
 
-std::string* big_string;
-std::string* after_replacing_the;
-std::string* after_replacing_many;
+    std::string *big_string;
+    std::string *after_replacing_the;
+    std::string *after_replacing_many;
 
-struct Replacement {
-  const char* needle;
-  const char* replacement;
-} replacements[] = {
-    {"the", "box"},          //
-    {"brown", "quick"},      //
-    {"jumped", "liquored"},  //
-    {"dozen", "brown"},      //
-    {"lazy", "pack"},        //
-    {"liquor", "shakes"},    //
-};
+    struct Replacement {
+        const char *needle;
+        const char *replacement;
+    } replacements[] = {
+            {"the",    "box"},          //
+            {"brown",  "quick"},      //
+            {"jumped", "liquored"},  //
+            {"dozen",  "brown"},      //
+            {"lazy",   "pack"},        //
+            {"liquor", "shakes"},    //
+    };
 
 // Here, we set up a string for use in global-replace benchmarks.
 // We started with a million blanks, and then deterministically insert
@@ -37,74 +37,76 @@ struct Replacement {
 //
 // And then we create "after_replacing_many" to be a string that is result
 // of preferring several substitutions.
-void SetUpStrings() {
-  if (big_string == nullptr) {
-    size_t r = 0;
-    big_string = new std::string(1000 * 1000, ' ');
-    for (std::string phrase : {"the quick brown fox jumped over the lazy dogs",
-                               "pack my box with the five dozen liquor jugs"}) {
-      for (int i = 0; i < 10 * 1000; ++i) {
-        r = r * 237 + 41;  // not very random.
-        memcpy(&(*big_string)[r % (big_string->size() - phrase.size())],
-               phrase.data(), phrase.size());
-      }
-    }
-    // big_string->resize(50);
-    // OK, we've set up the std::string, now let's set up expectations - first by
-    // just replacing "the" with "box"
-    after_replacing_the = new std::string(*big_string);
-    for (size_t pos = 0;
-         (pos = after_replacing_the->find("the", pos)) != std::string::npos;) {
-      memcpy(&(*after_replacing_the)[pos], "box", 3);
-    }
-    // And then with all the replacements.
-    after_replacing_many = new std::string(*big_string);
-    for (size_t pos = 0;;) {
-      size_t next_pos = static_cast<size_t>(-1);
-      const char* needle_string = nullptr;
-      const char* replacement_string = nullptr;
-      for (const auto& r : replacements) {
-        auto needlepos = after_replacing_many->find(r.needle, pos);
-        if (needlepos != std::string::npos && needlepos < next_pos) {
-          next_pos = needlepos;
-          needle_string = r.needle;
-          replacement_string = r.replacement;
+    void SetUpStrings() {
+        if (big_string == nullptr) {
+            size_t r = 0;
+            big_string = new std::string(1000 * 1000, ' ');
+            for (std::string phrase : {"the quick brown fox jumped over the lazy dogs",
+                                       "pack my box with the five dozen liquor jugs"}) {
+                for (int i = 0; i < 10 * 1000; ++i) {
+                    r = r * 237 + 41;  // not very random.
+                    memcpy(&(*big_string)[r % (big_string->size() - phrase.size())],
+                           phrase.data(), phrase.size());
+                }
+            }
+            // big_string->resize(50);
+            // OK, we've set up the std::string, now let's set up expectations - first by
+            // just replacing "the" with "box"
+            after_replacing_the = new std::string(*big_string);
+            for (size_t pos = 0;
+                 (pos = after_replacing_the->find("the", pos)) != std::string::npos;) {
+                memcpy(&(*after_replacing_the)[pos], "box", 3);
+            }
+            // And then with all the replacements.
+            after_replacing_many = new std::string(*big_string);
+            for (size_t pos = 0;;) {
+                size_t next_pos = static_cast<size_t>(-1);
+                const char *needle_string = nullptr;
+                const char *replacement_string = nullptr;
+                for (const auto &r : replacements) {
+                    auto needlepos = after_replacing_many->find(r.needle, pos);
+                    if (needlepos != std::string::npos && needlepos < next_pos) {
+                        next_pos = needlepos;
+                        needle_string = r.needle;
+                        replacement_string = r.replacement;
+                    }
+                }
+                if (next_pos > after_replacing_many->size()) break;
+                after_replacing_many->replace(next_pos, strlen(needle_string),
+                                              replacement_string);
+                next_pos += strlen(replacement_string);
+                pos = next_pos;
+            }
         }
-      }
-      if (next_pos > after_replacing_many->size()) break;
-      after_replacing_many->replace(next_pos, strlen(needle_string),
-                                    replacement_string);
-      next_pos += strlen(replacement_string);
-      pos = next_pos;
     }
-  }
-}
 
-void BM_StrReplaceAllOneReplacement(benchmark::State& state) {
-  SetUpStrings();
-  std::string src = *big_string;
-  for (auto _ : state) {
-    std::string dest = abel::string_replace_all(src, {{"the", "box"}});
-    ABEL_RAW_CHECK(dest == *after_replacing_the,
-                   "not benchmarking intended behavior");
-  }
-}
-BENCHMARK(BM_StrReplaceAllOneReplacement);
+    void BM_StrReplaceAllOneReplacement(benchmark::State &state) {
+        SetUpStrings();
+        std::string src = *big_string;
+        for (auto _ : state) {
+            std::string dest = abel::string_replace_all(src, {{"the", "box"}});
+            ABEL_RAW_CHECK(dest == *after_replacing_the,
+                           "not benchmarking intended behavior");
+        }
+    }
 
-void BM_StrReplaceAll(benchmark::State& state) {
-  SetUpStrings();
-  std::string src = *big_string;
-  for (auto _ : state) {
-    std::string dest = abel::string_replace_all(src, {{"the", "box"},
-                                                 {"brown", "quick"},
-                                                 {"jumped", "liquored"},
-                                                 {"dozen", "brown"},
-                                                 {"lazy", "pack"},
-                                                 {"liquor", "shakes"}});
-    ABEL_RAW_CHECK(dest == *after_replacing_many,
-                   "not benchmarking intended behavior");
-  }
-}
-BENCHMARK(BM_StrReplaceAll);
+    BENCHMARK(BM_StrReplaceAllOneReplacement);
+
+    void BM_StrReplaceAll(benchmark::State &state) {
+        SetUpStrings();
+        std::string src = *big_string;
+        for (auto _ : state) {
+            std::string dest = abel::string_replace_all(src, {{"the",    "box"},
+                                                              {"brown",  "quick"},
+                                                              {"jumped", "liquored"},
+                                                              {"dozen",  "brown"},
+                                                              {"lazy",   "pack"},
+                                                              {"liquor", "shakes"}});
+            ABEL_RAW_CHECK(dest == *after_replacing_many,
+                           "not benchmarking intended behavior");
+        }
+    }
+
+    BENCHMARK(BM_StrReplaceAll);
 
 }  // namespace

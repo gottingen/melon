@@ -7,14 +7,14 @@
 
 namespace abel {
 
-namespace random_internal {
+    namespace random_internal {
 
 // Returns whether the current CPU supports RandenHwAes implementation.
 // This typically involves supporting cryptographic extensions on whichever
 // platform is currently running.
-bool CPUSupportsRandenHwAes();
+        bool CPUSupportsRandenHwAes();
 
-}  // namespace random_internal
+    }  // namespace random_internal
 
 }  // namespace abel
 

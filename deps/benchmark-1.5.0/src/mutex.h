@@ -66,89 +66,93 @@
 
 namespace benchmark {
 
-typedef std::condition_variable Condition;
+    typedef std::condition_variable Condition;
 
 // NOTE: Wrappers for std::mutex and std::unique_lock are provided so that
 // we can annotate them with thread safety attributes and use the
 // -Wthread-safety warning with clang. The standard library types cannot be
 // used directly because they do not provided the required annotations.
-class CAPABILITY("mutex") Mutex {
- public:
-  Mutex() {}
+    class CAPABILITY("mutex") Mutex {
+    public:
+        Mutex() {}
 
-  void lock() ACQUIRE() { mut_.lock(); }
-  void unlock() RELEASE() { mut_.unlock(); }
-  std::mutex& native_handle() { return mut_; }
+        void lock() ACQUIRE() { mut_.lock(); }
 
- private:
-  std::mutex mut_;
-};
+        void unlock() RELEASE() { mut_.unlock(); }
 
-class SCOPED_CAPABILITY MutexLock {
-  typedef std::unique_lock<std::mutex> MutexLockImp;
+        std::mutex &native_handle() { return mut_; }
 
- public:
-  MutexLock(Mutex& m) ACQUIRE(m) : ml_(m.native_handle()) {}
-  ~MutexLock() RELEASE() {}
-  MutexLockImp& native_handle() { return ml_; }
+    private:
+        std::mutex mut_;
+    };
 
- private:
-  MutexLockImp ml_;
-};
+    class SCOPED_CAPABILITY MutexLock {
+        typedef std::unique_lock<std::mutex> MutexLockImp;
 
-class Barrier {
- public:
-  Barrier(int num_threads) : running_threads_(num_threads) {}
+    public:
+        MutexLock(Mutex &m) ACQUIRE(m) : ml_(m.native_handle()) {}
 
-  // Called by each thread
-  bool wait() EXCLUDES(lock_) {
-    bool last_thread = false;
-    {
-      MutexLock ml(lock_);
-      last_thread = createBarrier(ml);
-    }
-    if (last_thread) phase_condition_.notify_all();
-    return last_thread;
-  }
+        ~MutexLock() RELEASE() {}
 
-  void removeThread() EXCLUDES(lock_) {
-    MutexLock ml(lock_);
-    --running_threads_;
-    if (entered_ != 0) phase_condition_.notify_all();
-  }
+        MutexLockImp &native_handle() { return ml_; }
 
- private:
-  Mutex lock_;
-  Condition phase_condition_;
-  int running_threads_;
+    private:
+        MutexLockImp ml_;
+    };
 
-  // State for barrier management
-  int phase_number_ = 0;
-  int entered_ = 0;  // Number of threads that have entered this barrier
+    class Barrier {
+    public:
+        Barrier(int num_threads) : running_threads_(num_threads) {}
 
-  // Enter the barrier and wait until all other threads have also
-  // entered the barrier.  Returns iff this is the last thread to
-  // enter the barrier.
-  bool createBarrier(MutexLock& ml) REQUIRES(lock_) {
-    CHECK_LT(entered_, running_threads_);
-    entered_++;
-    if (entered_ < running_threads_) {
-      // Wait for all threads to enter
-      int phase_number_cp = phase_number_;
-      auto cb = [this, phase_number_cp]() {
-        return this->phase_number_ > phase_number_cp ||
-               entered_ == running_threads_;  // A thread has aborted in error
-      };
-      phase_condition_.wait(ml.native_handle(), cb);
-      if (phase_number_ > phase_number_cp) return false;
-      // else (running_threads_ == entered_) and we are the last thread.
-    }
-    // Last thread has reached the barrier
-    phase_number_++;
-    entered_ = 0;
-    return true;
-  }
-};
+        // Called by each thread
+        bool wait() EXCLUDES(lock_) {
+            bool last_thread = false;
+            {
+                MutexLock ml(lock_);
+                last_thread = createBarrier(ml);
+            }
+            if (last_thread) phase_condition_.notify_all();
+            return last_thread;
+        }
+
+        void removeThread() EXCLUDES(lock_) {
+            MutexLock ml(lock_);
+            --running_threads_;
+            if (entered_ != 0) phase_condition_.notify_all();
+        }
+
+    private:
+        Mutex lock_;
+        Condition phase_condition_;
+        int running_threads_;
+
+        // State for barrier management
+        int phase_number_ = 0;
+        int entered_ = 0;  // Number of threads that have entered this barrier
+
+        // Enter the barrier and wait until all other threads have also
+        // entered the barrier.  Returns iff this is the last thread to
+        // enter the barrier.
+        bool createBarrier(MutexLock &ml) REQUIRES(lock_) {
+            CHECK_LT(entered_, running_threads_);
+            entered_++;
+            if (entered_ < running_threads_) {
+                // Wait for all threads to enter
+                int phase_number_cp = phase_number_;
+                auto cb = [this, phase_number_cp]() {
+                    return this->phase_number_ > phase_number_cp ||
+                           entered_ == running_threads_;  // A thread has aborted in error
+                };
+                phase_condition_.wait(ml.native_handle(), cb);
+                if (phase_number_ > phase_number_cp) return false;
+                // else (running_threads_ == entered_) and we are the last thread.
+            }
+            // Last thread has reached the barrier
+            phase_number_++;
+            entered_ = 0;
+            return true;
+        }
+    };
 
 }  // end namespace benchmark
 

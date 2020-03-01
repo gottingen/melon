@@ -18,26 +18,26 @@
    "sizeof(*(pointer))". "pointer" must be a non-void* pointer.  Insert at the
    point where "pointer" has been allocated, preferably close to the point
    where the race happens.  See also ANNOTATE_BENIGN_RACE_STATIC. */
-    #define ANNOTATE_BENIGN_RACE(pointer, description) \
+#define ANNOTATE_BENIGN_RACE(pointer, description) \
     AnnotateBenignRaceSized(__FILE__, __LINE__, pointer, \
                             sizeof(*(pointer)), description)
 
 /* Same as ANNOTATE_BENIGN_RACE(address, description), but applies to
    the memory range [address, address+size). */
-    #define ANNOTATE_BENIGN_RACE_SIZED(address, size, description) \
+#define ANNOTATE_BENIGN_RACE_SIZED(address, size, description) \
     AnnotateBenignRaceSized(__FILE__, __LINE__, address, size, description)
 
 /* Enable (enable!=0) or disable (enable==0) race detection for all threads.
    This annotation could be useful if you want to skip expensive race analysis
    during some period of program execution, e.g. during initialization. */
-    #define ANNOTATE_ENABLE_RACE_DETECTION(enable) \
+#define ANNOTATE_ENABLE_RACE_DETECTION(enable) \
     AnnotateEnableRaceDetection(__FILE__, __LINE__, enable)
 
 /* -------------------------------------------------------------
    Annotations useful for debugging. */
 
 /* Report the current thread name to a race detector. */
-    #define ANNOTATE_THREAD_NAME(name) \
+#define ANNOTATE_THREAD_NAME(name) \
     AnnotateThreadName(__FILE__, __LINE__, name)
 
 /* -------------------------------------------------------------
@@ -46,55 +46,55 @@
    The "lock" argument is a pointer to the lock object. */
 
 /* Report that a lock has been created at address "lock". */
-    #define ANNOTATE_RWLOCK_CREATE(lock) \
+#define ANNOTATE_RWLOCK_CREATE(lock) \
     AnnotateRWLockCreate(__FILE__, __LINE__, lock)
 
 /* Report that a linker initialized lock has been created at address "lock".
  */
 #ifdef THREAD_SANITIZER
-    #define ANNOTATE_RWLOCK_CREATE_STATIC(lock) \
+#define ANNOTATE_RWLOCK_CREATE_STATIC(lock) \
     AnnotateRWLockCreateStatic(__FILE__, __LINE__, lock)
 #else
-    #define ANNOTATE_RWLOCK_CREATE_STATIC(lock) ANNOTATE_RWLOCK_CREATE(lock)
+#define ANNOTATE_RWLOCK_CREATE_STATIC(lock) ANNOTATE_RWLOCK_CREATE(lock)
 #endif
 
 /* Report that the lock at address "lock" is about to be destroyed. */
-    #define ANNOTATE_RWLOCK_DESTROY(lock) \
+#define ANNOTATE_RWLOCK_DESTROY(lock) \
     AnnotateRWLockDestroy(__FILE__, __LINE__, lock)
 
 /* Report that the lock at address "lock" has been acquired.
    is_w=1 for writer lock, is_w=0 for reader lock. */
-    #define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) \
+#define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) \
     AnnotateRWLockAcquired(__FILE__, __LINE__, lock, is_w)
 
 /* Report that the lock at address "lock" is about to be released. */
-    #define ANNOTATE_RWLOCK_RELEASED(lock, is_w) \
+#define ANNOTATE_RWLOCK_RELEASED(lock, is_w) \
     AnnotateRWLockReleased(__FILE__, __LINE__, lock, is_w)
 
 #else  /* DYNAMIC_ANNOTATIONS_ENABLED == 0 */
 
-    #define ANNOTATE_RWLOCK_CREATE(lock) /* empty */
-    #define ANNOTATE_RWLOCK_CREATE_STATIC(lock) /* empty */
-    #define ANNOTATE_RWLOCK_DESTROY(lock) /* empty */
-    #define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) /* empty */
-    #define ANNOTATE_RWLOCK_RELEASED(lock, is_w) /* empty */
-    #define ANNOTATE_BENIGN_RACE(address, description) /* empty */
-    #define ANNOTATE_BENIGN_RACE_SIZED(address, size, description) /* empty */
-    #define ANNOTATE_THREAD_NAME(name) /* empty */
-    #define ANNOTATE_ENABLE_RACE_DETECTION(enable) /* empty */
+#define ANNOTATE_RWLOCK_CREATE(lock) /* empty */
+#define ANNOTATE_RWLOCK_CREATE_STATIC(lock) /* empty */
+#define ANNOTATE_RWLOCK_DESTROY(lock) /* empty */
+#define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) /* empty */
+#define ANNOTATE_RWLOCK_RELEASED(lock, is_w) /* empty */
+#define ANNOTATE_BENIGN_RACE(address, description) /* empty */
+#define ANNOTATE_BENIGN_RACE_SIZED(address, size, description) /* empty */
+#define ANNOTATE_THREAD_NAME(name) /* empty */
+#define ANNOTATE_ENABLE_RACE_DETECTION(enable) /* empty */
 
 #endif  /* DYNAMIC_ANNOTATIONS_ENABLED */
 
 /* These annotations are also made available to LLVM's Memory Sanitizer */
 #if DYNAMIC_ANNOTATIONS_ENABLED == 1 || defined(MEMORY_SANITIZER)
-    #define ANNOTATE_MEMORY_IS_INITIALIZED(address, size) \
+#define ANNOTATE_MEMORY_IS_INITIALIZED(address, size) \
     AnnotateMemoryIsInitialized(__FILE__, __LINE__, address, size)
 
-    #define ANNOTATE_MEMORY_IS_UNINITIALIZED(address, size) \
+#define ANNOTATE_MEMORY_IS_UNINITIALIZED(address, size) \
     AnnotateMemoryIsUninitialized(__FILE__, __LINE__, address, size)
 #else
-    #define ANNOTATE_MEMORY_IS_INITIALIZED(address, size) /* empty */
-    #define ANNOTATE_MEMORY_IS_UNINITIALIZED(address, size) /* empty */
+#define ANNOTATE_MEMORY_IS_INITIALIZED(address, size) /* empty */
+#define ANNOTATE_MEMORY_IS_UNINITIALIZED(address, size) /* empty */
 #endif  /* DYNAMIC_ANNOTATIONS_ENABLED || MEMORY_SANITIZER */
 
 /* TODO(delesley) -- Replace __CLANG_SUPPORT_DYN_ANNOTATION__ with the
@@ -102,23 +102,23 @@
 #if defined(__clang__) && (!defined(SWIG)) \
  && defined(__CLANG_SUPPORT_DYN_ANNOTATION__)
 
-    #if DYNAMIC_ANNOTATIONS_ENABLED == 0
-        #define ANNOTALYSIS_ENABLED
-    #endif
+#if DYNAMIC_ANNOTATIONS_ENABLED == 0
+#define ANNOTALYSIS_ENABLED
+#endif
 
 /* When running in opt-mode, GCC will issue a warning, if these attributes are
    compiled. Only include them when compiling using Clang. */
-    #define ATTRIBUTE_IGNORE_READS_BEGIN \
+#define ATTRIBUTE_IGNORE_READS_BEGIN \
       __attribute((exclusive_lock_function("*")))
-    #define ATTRIBUTE_IGNORE_READS_END \
+#define ATTRIBUTE_IGNORE_READS_END \
       __attribute((unlock_function("*")))
 #else
-    #define ATTRIBUTE_IGNORE_READS_BEGIN  /* empty */
-    #define ATTRIBUTE_IGNORE_READS_END  /* empty */
+#define ATTRIBUTE_IGNORE_READS_BEGIN  /* empty */
+#define ATTRIBUTE_IGNORE_READS_END  /* empty */
 #endif  /* defined(__clang__) && ... */
 
 #if (DYNAMIC_ANNOTATIONS_ENABLED != 0) || defined(ANNOTALYSIS_ENABLED)
-    #define ANNOTATIONS_ENABLED
+#define ANNOTATIONS_ENABLED
 #endif
 
 #if (DYNAMIC_ANNOTATIONS_ENABLED != 0)
@@ -128,19 +128,19 @@
    Useful to ignore intentional racey reads, while still checking
    other reads and all writes.
    See also ANNOTATE_UNPROTECTED_READ. */
-    #define ANNOTATE_IGNORE_READS_BEGIN() \
+#define ANNOTATE_IGNORE_READS_BEGIN() \
     AnnotateIgnoreReadsBegin(__FILE__, __LINE__)
 
 /* Stop ignoring reads. */
-    #define ANNOTATE_IGNORE_READS_END() \
+#define ANNOTATE_IGNORE_READS_END() \
     AnnotateIgnoreReadsEnd(__FILE__, __LINE__)
 
 /* Similar to ANNOTATE_IGNORE_READS_BEGIN, but ignore writes instead. */
-    #define ANNOTATE_IGNORE_WRITES_BEGIN() \
+#define ANNOTATE_IGNORE_WRITES_BEGIN() \
     AnnotateIgnoreWritesBegin(__FILE__, __LINE__)
 
 /* Stop ignoring writes. */
-    #define ANNOTATE_IGNORE_WRITES_END() \
+#define ANNOTATE_IGNORE_WRITES_END() \
     AnnotateIgnoreWritesEnd(__FILE__, __LINE__)
 
 /* Clang provides limited support for static thread-safety analysis
@@ -148,23 +148,23 @@
  according to whether Annotalysis support is available. */
 #elif defined(ANNOTALYSIS_ENABLED)
 
-    #define ANNOTATE_IGNORE_READS_BEGIN() \
+#define ANNOTATE_IGNORE_READS_BEGIN() \
     StaticAnnotateIgnoreReadsBegin(__FILE__, __LINE__)
 
-    #define ANNOTATE_IGNORE_READS_END() \
+#define ANNOTATE_IGNORE_READS_END() \
     StaticAnnotateIgnoreReadsEnd(__FILE__, __LINE__)
 
-    #define ANNOTATE_IGNORE_WRITES_BEGIN() \
+#define ANNOTATE_IGNORE_WRITES_BEGIN() \
     StaticAnnotateIgnoreWritesBegin(__FILE__, __LINE__)
 
-    #define ANNOTATE_IGNORE_WRITES_END() \
+#define ANNOTATE_IGNORE_WRITES_END() \
     StaticAnnotateIgnoreWritesEnd(__FILE__, __LINE__)
 
 #else
-    #define ANNOTATE_IGNORE_READS_BEGIN()  /* empty */
-    #define ANNOTATE_IGNORE_READS_END()  /* empty */
-    #define ANNOTATE_IGNORE_WRITES_BEGIN()  /* empty */
-    #define ANNOTATE_IGNORE_WRITES_END()  /* empty */
+#define ANNOTATE_IGNORE_READS_BEGIN()  /* empty */
+#define ANNOTATE_IGNORE_READS_END()  /* empty */
+#define ANNOTATE_IGNORE_WRITES_BEGIN()  /* empty */
+#define ANNOTATE_IGNORE_WRITES_END()  /* empty */
 #endif
 
 /* Implement the ANNOTATE_IGNORE_READS_AND_WRITES_* annotations using the more
@@ -172,64 +172,65 @@
 #if defined(ANNOTATIONS_ENABLED)
 
 /* Start ignoring all memory accesses (both reads and writes). */
-    #define ANNOTATE_IGNORE_READS_AND_WRITES_BEGIN() \
+#define ANNOTATE_IGNORE_READS_AND_WRITES_BEGIN() \
     do {                                           \
       ANNOTATE_IGNORE_READS_BEGIN();               \
       ANNOTATE_IGNORE_WRITES_BEGIN();              \
     }while (0)
 
 /* Stop ignoring both reads and writes. */
-    #define ANNOTATE_IGNORE_READS_AND_WRITES_END()   \
+#define ANNOTATE_IGNORE_READS_AND_WRITES_END()   \
     do {                                           \
       ANNOTATE_IGNORE_WRITES_END();                \
       ANNOTATE_IGNORE_READS_END();                 \
     }while (0)
 
 #else
-    #define ANNOTATE_IGNORE_READS_AND_WRITES_BEGIN()  /* empty */
-    #define ANNOTATE_IGNORE_READS_AND_WRITES_END()  /* empty */
+#define ANNOTATE_IGNORE_READS_AND_WRITES_BEGIN()  /* empty */
+#define ANNOTATE_IGNORE_READS_AND_WRITES_END()  /* empty */
 #endif
 
 /* Use the macros above rather than using these functions directly. */
 #include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-void AnnotateRWLockCreate (const char *file, int line,
+void AnnotateRWLockCreate(const char *file, int line,
+                          const volatile void *lock);
+void AnnotateRWLockCreateStatic(const char *file, int line,
+                                const volatile void *lock);
+void AnnotateRWLockDestroy(const char *file, int line,
                            const volatile void *lock);
-void AnnotateRWLockCreateStatic (const char *file, int line,
-                                 const volatile void *lock);
-void AnnotateRWLockDestroy (const char *file, int line,
-                            const volatile void *lock);
-void AnnotateRWLockAcquired (const char *file, int line,
-                             const volatile void *lock, long is_w);  /* NOLINT */
-void AnnotateRWLockReleased (const char *file, int line,
-                             const volatile void *lock, long is_w);  /* NOLINT */
-void AnnotateBenignRace (const char *file, int line,
-                         const volatile void *address,
-                         const char *description);
-void AnnotateBenignRaceSized (const char *file, int line,
-                              const volatile void *address,
-                              size_t size,
-                              const char *description);
-void AnnotateThreadName (const char *file, int line,
-                         const char *name);
-void AnnotateEnableRaceDetection (const char *file, int line, int enable);
-void AnnotateMemoryIsInitialized (const char *file, int line,
-                                  const volatile void *mem, size_t size);
-void AnnotateMemoryIsUninitialized (const char *file, int line,
-                                    const volatile void *mem, size_t size);
+void AnnotateRWLockAcquired(const char *file, int line,
+                            const volatile void *lock, long is_w);  /* NOLINT */
+void AnnotateRWLockReleased(const char *file, int line,
+                            const volatile void *lock, long is_w);  /* NOLINT */
+void AnnotateBenignRace(const char *file, int line,
+                        const volatile void *address,
+                        const char *description);
+void AnnotateBenignRaceSized(const char *file, int line,
+                             const volatile void *address,
+                             size_t size,
+                             const char *description);
+void AnnotateThreadName(const char *file, int line,
+                        const char *name);
+void AnnotateEnableRaceDetection(const char *file, int line, int enable);
+void AnnotateMemoryIsInitialized(const char *file, int line,
+                                 const volatile void *mem, size_t size);
+void AnnotateMemoryIsUninitialized(const char *file, int line,
+                                   const volatile void *mem, size_t size);
 
 /* Annotations expand to these functions, when Dynamic Annotations are enabled.
    These functions are either implemented as no-op calls, if no Sanitizer is
    attached, or provided with externally-linked implementations by a library
    like ThreadSanitizer. */
-void AnnotateIgnoreReadsBegin (const char *file, int line)
+void AnnotateIgnoreReadsBegin(const char *file, int line)
 ATTRIBUTE_IGNORE_READS_BEGIN;
-void AnnotateIgnoreReadsEnd (const char *file, int line)
+void AnnotateIgnoreReadsEnd(const char *file, int line)
 ATTRIBUTE_IGNORE_READS_END;
-void AnnotateIgnoreWritesBegin (const char *file, int line);
-void AnnotateIgnoreWritesEnd (const char *file, int line);
+void AnnotateIgnoreWritesBegin(const char *file, int line);
+void AnnotateIgnoreWritesEnd(const char *file, int line);
 
 #if defined(ANNOTALYSIS_ENABLED)
 /* When Annotalysis is enabled without Dynamic Annotations, the use of
@@ -266,7 +267,7 @@ static ABEL_FORCE_INLINE void StaticAnnotateIgnoreWritesEnd(
     - Make your tool intercept the function RunningOnValgrind() and
       change its return value.
  */
-int RunningOnValgrind (void);
+int RunningOnValgrind(void);
 
 /* ValgrindSlowdown returns:
     * 1.0, if (RunningOnValgrind() == 0)
@@ -279,7 +280,7 @@ int RunningOnValgrind (void);
      SleepForSeconds(5 * ValgrindSlowdown());
    }
  */
-double ValgrindSlowdown (void);
+double ValgrindSlowdown(void);
 
 #ifdef __cplusplus
 }
@@ -302,25 +303,25 @@ ABEL_FORCE_INLINE T ANNOTATE_UNPROTECTED_READ(const volatile T &x) { /* NOLINT *
   return res;
   }
 #else
-    #define ANNOTATE_UNPROTECTED_READ(x) (x)
+#define ANNOTATE_UNPROTECTED_READ(x) (x)
 #endif
 
 #if DYNAMIC_ANNOTATIONS_ENABLED != 0 && defined(__cplusplus)
 /* Apply ANNOTATE_BENIGN_RACE_SIZED to a static variable. */
-    #define ANNOTATE_BENIGN_RACE_STATIC(static_var, description)        \
+#define ANNOTATE_BENIGN_RACE_STATIC(static_var, description)        \
     namespace {                                                       \
       class static_var ## _annotator {                                \
        public:                                                        \
         static_var ## _annotator() {                                  \
           ANNOTATE_BENIGN_RACE_SIZED(&static_var,                     \
                                       sizeof(static_var),             \
-    # static_var ": " description);                           \
+# static_var ": " description);                           \
         }                                                             \
       };                                                              \
       static static_var ## _annotator the ## static_var ## _annotator;\
     }  // namespace
 #else /* DYNAMIC_ANNOTATIONS_ENABLED == 0 */
-    #define ANNOTATE_BENIGN_RACE_STATIC(static_var, description)  /* empty */
+#define ANNOTATE_BENIGN_RACE_STATIC(static_var, description)  /* empty */
 #endif /* DYNAMIC_ANNOTATIONS_ENABLED */
 
 #ifdef ADDRESS_SANITIZER

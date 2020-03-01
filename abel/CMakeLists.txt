@@ -1,7 +1,6 @@
 
 FILE(GLOB ALGO_SRC "algorithm/*.cc")
 FILE(GLOB BASE_SRC "base/*.cc")
-FILE(GLOB BASE_INTERNAL_SRC "base/internal/*.cc")
 
 FILE(GLOB CONMTAINER_INTERNAL_SRC "container/internal/*.cc")
 FILE(GLOB CONMTAINER_SRC "container/*.cc")
@@ -20,6 +19,8 @@ FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 
 FILE(GLOB RANDOM_SRC "random/*.cc")
 FILE(GLOB RANDOM_INTERNAL_SRC "random/internal/*.cc")
+
+FILE(GLOB STAT_SRC "statistics/*.cc")
 
 FILE(GLOB STRINGS_SRC "strings/*.cc")
 FILE(GLOB STRINGS_INTERNAL_SRC "strings/internal/*.cc")
@@ -51,7 +52,6 @@ SET(ABEL_SRC
         ${CHRONO_INTERNAL_SRC}
         ${ALGO_SRC}
         ${BASE_SRC}
-        ${BASE_INTERNAL_SRC}
         ${CONMTAINER_INTERNAL_SRC}
         ${CONMTAINER_SRC}
         ${DEBUG_INTERNAL_SRC}
@@ -63,6 +63,7 @@ SET(ABEL_SRC
         ${NUMERIC_SRC}
         ${RANDOM_SRC}
         ${RANDOM_INTERNAL_SRC}
+        ${STAT_SRC}
         ${STRINGS_SRC}
         ${STRINGS_INTERNAL_SRC}
         ${FORMAT_SRC}
@@ -82,24 +83,24 @@ add_library(abel_static STATIC ${ABEL_SRC})
 add_library(abel_shared SHARED ${ABEL_SRC})
 
 target_link_libraries(abel_static pthread)
-if(APPLE)
-        find_library(CoreFoundation CoreFoundation)
-        target_link_libraries(abel_static ${CoreFoundation} pthread)
-        target_link_libraries(abel_shared ${CoreFoundation} pthread)
-else()
-        target_link_libraries(abel_static pthread)
-endif()
+if (APPLE)
+    find_library(CoreFoundation CoreFoundation)
+    target_link_libraries(abel_static ${CoreFoundation} pthread)
+    target_link_libraries(abel_shared ${CoreFoundation} pthread)
+else ()
+    target_link_libraries(abel_static pthread)
+endif ()
 
 set_target_properties(abel_shared PROPERTIES
         OUTPUT_NAME abel
-        VERSION     ${CMAKE_PROJECT_VERSION}
-        SOVERSION   ${CMAKE_PROJECT_VERSION_MAJOR}
+        VERSION ${CMAKE_PROJECT_VERSION}
+        SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
         )
 
 set_target_properties(abel_static PROPERTIES
         OUTPUT_NAME abel
-        VERSION     ${CMAKE_PROJECT_VERSION}
-        SOVERSION   ${CMAKE_PROJECT_VERSION_MAJOR}
+        VERSION ${CMAKE_PROJECT_VERSION}
+        SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
         )
 
 install(TARGETS abel_static abel_shared

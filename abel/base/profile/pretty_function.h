@@ -11,11 +11,11 @@
 // differentiate between overload sets.  ABEL_PRETTY_FUNCTION is a portable
 // version of these macros which forwards to the correct macro on each compiler.
 #if defined(_MSC_VER)
-#define ABEL_PRETTY_FUNCTION __FUNCSIG__
+    #define ABEL_PRETTY_FUNCTION __FUNCSIG__
 #elif defined(__GNUC__)
-#define ABEL_PRETTY_FUNCTION __PRETTY_FUNCTION__
+    #define ABEL_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #else
-#error "Unsupported compiler"
+    #error "Unsupported compiler"
 #endif
 
 #endif  // ABEL_BASE_PROFILE_PRETTY_FUNCTION_H_

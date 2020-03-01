@@ -125,18 +125,18 @@ ABEL_FORCE_INLINE int DirectMunmap(void* start, size_t length) {
 
 namespace abel {
 
-namespace base_internal {
+    namespace base_internal {
 
-ABEL_FORCE_INLINE void* DirectMmap(void* start, size_t length, int prot, int flags, int fd,
-                        off_t offset) {
-  return mmap(start, length, prot, flags, fd, offset);
-}
+        ABEL_FORCE_INLINE void *DirectMmap(void *start, size_t length, int prot, int flags, int fd,
+                                           off_t offset) {
+            return mmap(start, length, prot, flags, fd, offset);
+        }
 
-ABEL_FORCE_INLINE int DirectMunmap(void* start, size_t length) {
-  return munmap(start, length);
-}
+        ABEL_FORCE_INLINE int DirectMunmap(void *start, size_t length) {
+            return munmap(start, length);
+        }
 
-}  // namespace base_internal
+    }  // namespace base_internal
 
 }  // namespace abel
 

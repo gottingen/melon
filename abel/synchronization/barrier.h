@@ -34,32 +34,33 @@ namespace abel {
 //   if (barrier->Block()) delete barrier;  // Exactly one call to `Block()`
 //                                          // returns `true`; that call
 //                                          // deletes the barrier.
-class barrier {
- public:
-  // `num_threads` is the number of threads that will participate in the barrier
-  explicit barrier(int num_threads)
-      : num_to_block_(num_threads), num_to_exit_(num_threads) {}
+    class barrier {
+    public:
+        // `num_threads` is the number of threads that will participate in the barrier
+        explicit barrier(int num_threads)
+                : num_to_block_(num_threads), num_to_exit_(num_threads) {}
 
-  barrier(const barrier&) = delete;
-  barrier& operator=(const barrier&) = delete;
+        barrier(const barrier &) = delete;
 
-  // barrier::Block()
-  //
-  // Blocks the current thread, and returns only when the `num_threads`
-  // threshold of threads utilizing this barrier has been reached. `Block()`
-  // returns `true` for precisely one caller, which may then destroy the
-  // barrier.
-  //
-  // Memory ordering: For any threads X and Y, any action taken by X
-  // before X calls `Block()` will be visible to Y after Y returns from
-  // `Block()`.
-  bool block();
+        barrier &operator=(const barrier &) = delete;
 
- private:
-  mutex lock_;
-  int num_to_block_ ABEL_GUARDED_BY(lock_);
-  int num_to_exit_ ABEL_GUARDED_BY(lock_);
-};
+        // barrier::Block()
+        //
+        // Blocks the current thread, and returns only when the `num_threads`
+        // threshold of threads utilizing this barrier has been reached. `Block()`
+        // returns `true` for precisely one caller, which may then destroy the
+        // barrier.
+        //
+        // Memory ordering: For any threads X and Y, any action taken by X
+        // before X calls `Block()` will be visible to Y after Y returns from
+        // `Block()`.
+        bool block();
+
+    private:
+        mutex lock_;
+        int num_to_block_ ABEL_GUARDED_BY(lock_);
+        int num_to_exit_ ABEL_GUARDED_BY(lock_);
+    };
 
 
 }  // namespace abel

@@ -11,7 +11,7 @@ namespace abel {
 // now()
 //
 // Returns the current time, expressed as an `abel::abel_time` absolute time value.
-abel::abel_time now();
+    abel::abel_time now();
 
 // get_current_time_nanos()
 //
@@ -19,7 +19,7 @@ abel::abel_time now();
 // Epoch (https://en.wikipedia.org/wiki/Unix_time). Prefer `abel::now()` instead
 // for all but the most performance-sensitive cases (i.e. when you are calling
 // this function hundreds of thousands of times per second).
-int64_t get_current_time_nanos();
+    int64_t get_current_time_nanos();
 
 // sleep_for()
 //
@@ -28,7 +28,7 @@ int64_t get_current_time_nanos();
 // Notes:
 // * signal interruptions will not reduce the sleep duration.
 // * Returns immediately when passed a nonpositive duration.
-void sleep_for(abel::duration duration);
+    void sleep_for(abel::duration duration);
 
 
 }  // namespace abel
@@ -48,7 +48,7 @@ void abel_internal_sleep_for(abel::duration duration);
 }  // extern "C"
 
 ABEL_FORCE_INLINE void abel::sleep_for(abel::duration duration) {
-  abel_internal_sleep_for(duration);
+    abel_internal_sleep_for(duration);
 }
 
 #endif  // ABEL_TIME_CLOCK_H_

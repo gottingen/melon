@@ -9,46 +9,50 @@
 #include "log.h"
 
 namespace benchmark {
-namespace internal {
+    namespace internal {
 
-typedef void(AbortHandlerT)();
+        typedef void(AbortHandlerT)();
 
-inline AbortHandlerT*& GetAbortHandler() {
-  static AbortHandlerT* handler = &std::abort;
-  return handler;
-}
+        inline AbortHandlerT *&GetAbortHandler() {
+            static AbortHandlerT *handler = &std::abort;
+            return handler;
+        }
 
-BENCHMARK_NORETURN inline void CallAbortHandler() {
-  GetAbortHandler()();
-  std::abort();  // fallback to enforce noreturn
-}
+        BENCHMARK_NORETURN inline void CallAbortHandler() {
+            GetAbortHandler()();
+            std::abort();  // fallback to enforce noreturn
+        }
 
 // CheckHandler is the class constructed by failing CHECK macros. CheckHandler
 // will log information about the failures and abort when it is destructed.
-class CheckHandler {
- public:
-  CheckHandler(const char* check, const char* file, const char* func, int line)
-      : log_(GetErrorLogInstance()) {
-    log_ << file << ":" << line << ": " << func << ": Check `" << check
-         << "' failed. ";
-  }
+        class CheckHandler {
+        public:
+            CheckHandler(const char *check, const char *file, const char *func, int line)
+                    : log_(GetErrorLogInstance()) {
+                log_ << file << ":" << line << ": " << func << ": Check `" << check
+                     << "' failed. ";
+            }
 
-  LogType& GetLog() { return log_; }
+            LogType &GetLog() { return log_; }
 
-  BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
-    log_ << std::endl;
-    CallAbortHandler();
-  }
+            BENCHMARK_NORETURN ~CheckHandler()
 
-  CheckHandler& operator=(const CheckHandler&) = delete;
-  CheckHandler(const CheckHandler&) = delete;
-  CheckHandler() = delete;
+            BENCHMARK_NOEXCEPT_OP(false) {
+                log_ << std::endl;
+                CallAbortHandler();
+            }
 
- private:
-  LogType& log_;
-};
+            CheckHandler &operator=(const CheckHandler &) = delete;
 
-}  // end namespace internal
+            CheckHandler(const CheckHandler &) = delete;
+
+            CheckHandler() = delete;
+
+        private:
+            LogType &log_;
+        };
+
+    }  // end namespace internal
 }  // end namespace benchmark
 
 // The CHECK macro returns a std::ostream object that can have extra information

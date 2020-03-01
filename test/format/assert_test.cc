@@ -17,6 +17,6 @@
 #endif
 
 TEST(AssertTest, Fail) {
-  EXPECT_DEBUG_DEATH_IF_SUPPORTED(
-      FMT_ASSERT(false, "don't panic!"), "don't panic!");
+    EXPECT_DEBUG_DEATH_IF_SUPPORTED(
+            FMT_ASSERT(false, "don't panic!"), "don't panic!");
 }

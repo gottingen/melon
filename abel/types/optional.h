@@ -60,17 +60,17 @@ namespace abel {
 //
 // Class type for `abel::nullopt` used to indicate an `abel::optional<T>` type
 // that does not contain a value.
-struct nullopt_t {
-  // It must not be default-constructible to avoid ambiguity for opt = {}.
-  explicit constexpr nullopt_t(optional_internal::init_t) noexcept {}
-};
+    struct nullopt_t {
+        // It must not be default-constructible to avoid ambiguity for opt = {}.
+        explicit constexpr nullopt_t(optional_internal::init_t) noexcept {}
+    };
 
 // nullopt
 //
 // A tag constant of type `abel::nullopt_t` used to indicate an empty
 // `abel::optional` in certain functions, such as construction or assignment.
-ABEL_INTERNAL_INLINE_CONSTEXPR(nullopt_t, nullopt,
-                               nullopt_t(optional_internal::init_t()));
+    ABEL_INTERNAL_INLINE_CONSTEXPR(nullopt_t, nullopt,
+                                   nullopt_t(optional_internal::init_t()));
 
 // -----------------------------------------------------------------------------
 // abel::optional
@@ -102,347 +102,351 @@ ABEL_INTERNAL_INLINE_CONSTEXPR(nullopt_t, nullopt,
 //       b) if T's move constructor allocates, it uses the same allocation
 //          function as the default allocator.
 //
-template <typename T>
-class optional : private optional_internal::optional_data<T>,
-                 private optional_internal::optional_ctor_base<
-                     optional_internal::ctor_copy_traits<T>::traits>,
-                 private optional_internal::optional_assign_base<
-                     optional_internal::assign_copy_traits<T>::traits> {
-  using data_base = optional_internal::optional_data<T>;
+    template<typename T>
+    class optional : private optional_internal::optional_data<T>,
+                     private optional_internal::optional_ctor_base<
+                             optional_internal::ctor_copy_traits<T>::traits>,
+                     private optional_internal::optional_assign_base<
+                             optional_internal::assign_copy_traits<T>::traits> {
+        using data_base = optional_internal::optional_data<T>;
 
- public:
-  typedef T value_type;
+    public:
+        typedef T value_type;
 
-  // Constructors
+        // Constructors
 
-  // Constructs an `optional` holding an empty value, NOT a default constructed
-  // `T`.
-  constexpr optional() noexcept {}
+        // Constructs an `optional` holding an empty value, NOT a default constructed
+        // `T`.
+        constexpr optional() noexcept {}
 
-  // Constructs an `optional` initialized with `nullopt` to hold an empty value.
-  constexpr optional(nullopt_t) noexcept {}  // NOLINT(runtime/explicit)
+        // Constructs an `optional` initialized with `nullopt` to hold an empty value.
+        constexpr optional(nullopt_t) noexcept {}  // NOLINT(runtime/explicit)
 
-  // Copy constructor, standard semantics
-  optional(const optional& src) = default;
+        // Copy constructor, standard semantics
+        optional(const optional &src) = default;
 
-  // Move constructor, standard semantics
-  optional(optional&& src) = default;
+        // Move constructor, standard semantics
+        optional(optional &&src) = default;
 
-  // Constructs a non-empty `optional` direct-initialized value of type `T` from
-  // the arguments `std::forward<Args>(args)...`  within the `optional`.
-  // (The `in_place_t` is a tag used to indicate that the contained object
-  // should be constructed in-place.)
-  template <typename InPlaceT, typename... Args,
-            abel::enable_if_t<abel::conjunction<
-                std::is_same<InPlaceT, in_place_t>,
-                std::is_constructible<T, Args&&...> >::value>* = nullptr>
-  constexpr explicit optional(InPlaceT, Args&&... args)
-      : data_base(in_place_t(), abel::forward<Args>(args)...) {}
+        // Constructs a non-empty `optional` direct-initialized value of type `T` from
+        // the arguments `std::forward<Args>(args)...`  within the `optional`.
+        // (The `in_place_t` is a tag used to indicate that the contained object
+        // should be constructed in-place.)
+        template<typename InPlaceT, typename... Args,
+                abel::enable_if_t<abel::conjunction<
+                        std::is_same<InPlaceT, in_place_t>,
+                        std::is_constructible<T, Args &&...> >::value> * = nullptr>
+        constexpr explicit optional(InPlaceT, Args &&... args)
+                : data_base(in_place_t(), abel::forward<Args>(args)...) {}
 
-  // Constructs a non-empty `optional` direct-initialized value of type `T` from
-  // the arguments of an initializer_list and `std::forward<Args>(args)...`.
-  // (The `in_place_t` is a tag used to indicate that the contained object
-  // should be constructed in-place.)
-  template <typename U, typename... Args,
-            typename = typename std::enable_if<std::is_constructible<
-                T, std::initializer_list<U>&, Args&&...>::value>::type>
-  constexpr explicit optional(in_place_t, std::initializer_list<U> il,
-                              Args&&... args)
-      : data_base(in_place_t(), il, abel::forward<Args>(args)...) {
-  }
+        // Constructs a non-empty `optional` direct-initialized value of type `T` from
+        // the arguments of an initializer_list and `std::forward<Args>(args)...`.
+        // (The `in_place_t` is a tag used to indicate that the contained object
+        // should be constructed in-place.)
+        template<typename U, typename... Args,
+                typename = typename std::enable_if<std::is_constructible<
+                        T, std::initializer_list<U> &, Args &&...>::value>::type>
+        constexpr explicit optional(in_place_t, std::initializer_list<U> il,
+                                    Args &&... args)
+                : data_base(in_place_t(), il, abel::forward<Args>(args)...) {
+        }
 
-  // Value constructor (implicit)
-  template <
-      typename U = T,
-      typename std::enable_if<
-          abel::conjunction<abel::negation<std::is_same<
+        // Value constructor (implicit)
+        template<
+                typename U = T,
+                typename std::enable_if<
+                        abel::conjunction<abel::negation<std::is_same<
                                 in_place_t, typename std::decay<U>::type> >,
-                            abel::negation<std::is_same<
-                                optional<T>, typename std::decay<U>::type> >,
-                            std::is_convertible<U&&, T>,
-                            std::is_constructible<T, U&&> >::value,
-          bool>::type = false>
-  constexpr optional(U&& v) : data_base(in_place_t(), abel::forward<U>(v)) {}
+                                abel::negation<std::is_same<
+                                        optional<T>, typename std::decay<U>::type> >,
+                                std::is_convertible<U &&, T>,
+                                std::is_constructible<T, U &&> >::value,
+                        bool>::type = false>
+        constexpr optional(U &&v) : data_base(in_place_t(), abel::forward<U>(v)) {}
 
-  // Value constructor (explicit)
-  template <
-      typename U = T,
-      typename std::enable_if<
-          abel::conjunction<abel::negation<std::is_same<
+        // Value constructor (explicit)
+        template<
+                typename U = T,
+                typename std::enable_if<
+                        abel::conjunction<abel::negation<std::is_same<
                                 in_place_t, typename std::decay<U>::type>>,
-                            abel::negation<std::is_same<
-                                optional<T>, typename std::decay<U>::type>>,
-                            abel::negation<std::is_convertible<U&&, T>>,
-                            std::is_constructible<T, U&&>>::value,
-          bool>::type = false>
-  explicit constexpr optional(U&& v)
-      : data_base(in_place_t(), abel::forward<U>(v)) {}
+                                abel::negation<std::is_same<
+                                        optional<T>, typename std::decay<U>::type>>,
+                                abel::negation<std::is_convertible<U &&, T>>,
+                                std::is_constructible<T, U &&>>::value,
+                        bool>::type = false>
+        explicit constexpr optional(U &&v)
+                : data_base(in_place_t(), abel::forward<U>(v)) {}
 
-  // Converting copy constructor (implicit)
-  template <typename U,
-            typename std::enable_if<
-                abel::conjunction<
-                    abel::negation<std::is_same<T, U> >,
-                    std::is_constructible<T, const U&>,
-                    abel::negation<
-                        optional_internal::
-                            is_constructible_convertible_from_optional<T, U> >,
-                    std::is_convertible<const U&, T> >::value,
-                bool>::type = false>
-  optional(const optional<U>& rhs) {
-    if (rhs) {
-      this->construct(*rhs);
-    }
-  }
+        // Converting copy constructor (implicit)
+        template<typename U,
+                typename std::enable_if<
+                        abel::conjunction<
+                                abel::negation<std::is_same<T, U> >,
+                                std::is_constructible<T, const U &>,
+                                abel::negation<
+                                        optional_internal::
+                                        is_constructible_convertible_from_optional<T, U> >,
+                                std::is_convertible<const U &, T> >::value,
+                        bool>::type = false>
+        optional(const optional<U> &rhs) {
+            if (rhs) {
+                this->construct(*rhs);
+            }
+        }
 
-  // Converting copy constructor (explicit)
-  template <typename U,
-            typename std::enable_if<
-                abel::conjunction<
-                    abel::negation<std::is_same<T, U>>,
-                    std::is_constructible<T, const U&>,
-                    abel::negation<
-                        optional_internal::
-                            is_constructible_convertible_from_optional<T, U>>,
-                    abel::negation<std::is_convertible<const U&, T>>>::value,
-                bool>::type = false>
-  explicit optional(const optional<U>& rhs) {
-    if (rhs) {
-      this->construct(*rhs);
-    }
-  }
+        // Converting copy constructor (explicit)
+        template<typename U,
+                typename std::enable_if<
+                        abel::conjunction<
+                                abel::negation<std::is_same<T, U>>,
+                                std::is_constructible<T, const U &>,
+                                abel::negation<
+                                        optional_internal::
+                                        is_constructible_convertible_from_optional<T, U>>,
+                                abel::negation<std::is_convertible<const U &, T>>>::value,
+                        bool>::type = false>
+        explicit optional(const optional<U> &rhs) {
+            if (rhs) {
+                this->construct(*rhs);
+            }
+        }
 
-  // Converting move constructor (implicit)
-  template <typename U,
-            typename std::enable_if<
-                abel::conjunction<
-                    abel::negation<std::is_same<T, U> >,
-                    std::is_constructible<T, U&&>,
-                    abel::negation<
-                        optional_internal::
-                            is_constructible_convertible_from_optional<T, U> >,
-                    std::is_convertible<U&&, T> >::value,
-                bool>::type = false>
-  optional(optional<U>&& rhs) {
-    if (rhs) {
-      this->construct(std::move(*rhs));
-    }
-  }
+        // Converting move constructor (implicit)
+        template<typename U,
+                typename std::enable_if<
+                        abel::conjunction<
+                                abel::negation<std::is_same<T, U> >,
+                                std::is_constructible<T, U &&>,
+                                abel::negation<
+                                        optional_internal::
+                                        is_constructible_convertible_from_optional<T, U> >,
+                                std::is_convertible<U &&, T> >::value,
+                        bool>::type = false>
+        optional(optional<U> &&rhs) {
+            if (rhs) {
+                this->construct(std::move(*rhs));
+            }
+        }
 
-  // Converting move constructor (explicit)
-  template <
-      typename U,
-      typename std::enable_if<
-          abel::conjunction<
-              abel::negation<std::is_same<T, U>>, std::is_constructible<T, U&&>,
-              abel::negation<
-                  optional_internal::is_constructible_convertible_from_optional<
-                      T, U>>,
-              abel::negation<std::is_convertible<U&&, T>>>::value,
-          bool>::type = false>
-  explicit optional(optional<U>&& rhs) {
-    if (rhs) {
-      this->construct(std::move(*rhs));
-    }
-  }
+        // Converting move constructor (explicit)
+        template<
+                typename U,
+                typename std::enable_if<
+                        abel::conjunction<
+                                abel::negation<std::is_same<T, U>>, std::is_constructible<T, U &&>,
+                                abel::negation<
+                                        optional_internal::is_constructible_convertible_from_optional<
+                                                T, U>>,
+                                abel::negation<std::is_convertible<U &&, T>>>::value,
+                        bool>::type = false>
+        explicit optional(optional<U> &&rhs) {
+            if (rhs) {
+                this->construct(std::move(*rhs));
+            }
+        }
 
-  // Destructor. Trivial if `T` is trivially destructible.
-  ~optional() = default;
+        // Destructor. Trivial if `T` is trivially destructible.
+        ~optional() = default;
 
-  // Assignment Operators
+        // Assignment Operators
 
-  // Assignment from `nullopt`
-  //
-  // Example:
-  //
-  //   struct S { int value; };
-  //   optional<S> opt = abel::nullopt;  // Could also use opt = { };
-  optional& operator=(nullopt_t) noexcept {
-    this->destruct();
-    return *this;
-  }
+        // Assignment from `nullopt`
+        //
+        // Example:
+        //
+        //   struct S { int value; };
+        //   optional<S> opt = abel::nullopt;  // Could also use opt = { };
+        optional &operator=(nullopt_t) noexcept {
+            this->destruct();
+            return *this;
+        }
 
-  // Copy assignment operator, standard semantics
-  optional& operator=(const optional& src) = default;
+        // Copy assignment operator, standard semantics
+        optional &operator=(const optional &src) = default;
 
-  // Move assignment operator, standard semantics
-  optional& operator=(optional&& src) = default;
+        // Move assignment operator, standard semantics
+        optional &operator=(optional &&src) = default;
 
-  // Value assignment operators
-  template <
-      typename U = T,
-      typename = typename std::enable_if<abel::conjunction<
-          abel::negation<
-              std::is_same<optional<T>, typename std::decay<U>::type>>,
-          abel::negation<
-              abel::conjunction<std::is_scalar<T>,
-                                std::is_same<T, typename std::decay<U>::type>>>,
-          std::is_constructible<T, U>, std::is_assignable<T&, U>>::value>::type>
-  optional& operator=(U&& v) {
-    this->assign(std::forward<U>(v));
-    return *this;
-  }
+        // Value assignment operators
+        template<
+                typename U = T,
+                typename = typename std::enable_if<abel::conjunction<
+                        abel::negation<
+                                std::is_same<optional<T>, typename std::decay<U>::type>>,
+                        abel::negation<
+                                abel::conjunction<std::is_scalar<T>,
+                                        std::is_same<T, typename std::decay<U>::type>>>,
+                        std::is_constructible<T, U>, std::is_assignable<T &, U>>::value>::type>
+        optional &operator=(U &&v) {
+            this->assign(std::forward<U>(v));
+            return *this;
+        }
 
-  template <
-      typename U,
-      typename = typename std::enable_if<abel::conjunction<
-          abel::negation<std::is_same<T, U>>,
-          std::is_constructible<T, const U&>, std::is_assignable<T&, const U&>,
-          abel::negation<
-              optional_internal::
-                  is_constructible_convertible_assignable_from_optional<
-                      T, U>>>::value>::type>
-  optional& operator=(const optional<U>& rhs) {
-    if (rhs) {
-      this->assign(*rhs);
-    } else {
-      this->destruct();
-    }
-    return *this;
-  }
+        template<
+                typename U,
+                typename = typename std::enable_if<abel::conjunction<
+                        abel::negation<std::is_same<T, U>>,
+                        std::is_constructible<T, const U &>, std::is_assignable<T &, const U &>,
+                        abel::negation<
+                                optional_internal::
+                                is_constructible_convertible_assignable_from_optional<
+                                        T, U>>>::value>::type>
+        optional &operator=(const optional<U> &rhs) {
+            if (rhs) {
+                this->assign(*rhs);
+            } else {
+                this->destruct();
+            }
+            return *this;
+        }
 
-  template <typename U,
-            typename = typename std::enable_if<abel::conjunction<
-                abel::negation<std::is_same<T, U>>, std::is_constructible<T, U>,
-                std::is_assignable<T&, U>,
-                abel::negation<
-                    optional_internal::
-                        is_constructible_convertible_assignable_from_optional<
-                            T, U>>>::value>::type>
-  optional& operator=(optional<U>&& rhs) {
-    if (rhs) {
-      this->assign(std::move(*rhs));
-    } else {
-      this->destruct();
-    }
-    return *this;
-  }
+        template<typename U,
+                typename = typename std::enable_if<abel::conjunction<
+                        abel::negation<std::is_same<T, U>>, std::is_constructible<T, U>,
+                        std::is_assignable<T &, U>,
+                        abel::negation<
+                                optional_internal::
+                                is_constructible_convertible_assignable_from_optional<
+                                        T, U>>>::value>::type>
+        optional &operator=(optional<U> &&rhs) {
+            if (rhs) {
+                this->assign(std::move(*rhs));
+            } else {
+                this->destruct();
+            }
+            return *this;
+        }
 
-  // Modifiers
+        // Modifiers
 
-  // optional::reset()
-  //
-  // Destroys the inner `T` value of an `abel::optional` if one is present.
-  ABEL_REINITIALIZES void reset() noexcept { this->destruct(); }
+        // optional::reset()
+        //
+        // Destroys the inner `T` value of an `abel::optional` if one is present.
+        ABEL_REINITIALIZES void reset() noexcept { this->destruct(); }
 
-  // optional::emplace()
-  //
-  // (Re)constructs the underlying `T` in-place with the given forwarded
-  // arguments.
-  //
-  // Example:
-  //
-  //   optional<Foo> opt;
-  //   opt.emplace(arg1,arg2,arg3);  // Constructs Foo(arg1,arg2,arg3)
-  //
-  // If the optional is non-empty, and the `args` refer to subobjects of the
-  // current object, then behaviour is undefined, because the current object
-  // will be destructed before the new object is constructed with `args`.
-  template <typename... Args,
-            typename = typename std::enable_if<
-                std::is_constructible<T, Args&&...>::value>::type>
-  T& emplace(Args&&... args) {
-    this->destruct();
-    this->construct(std::forward<Args>(args)...);
-    return reference();
-  }
+        // optional::emplace()
+        //
+        // (Re)constructs the underlying `T` in-place with the given forwarded
+        // arguments.
+        //
+        // Example:
+        //
+        //   optional<Foo> opt;
+        //   opt.emplace(arg1,arg2,arg3);  // Constructs Foo(arg1,arg2,arg3)
+        //
+        // If the optional is non-empty, and the `args` refer to subobjects of the
+        // current object, then behaviour is undefined, because the current object
+        // will be destructed before the new object is constructed with `args`.
+        template<typename... Args,
+                typename = typename std::enable_if<
+                        std::is_constructible<T, Args &&...>::value>::type>
+        T &emplace(Args &&... args) {
+            this->destruct();
+            this->construct(std::forward<Args>(args)...);
+            return reference();
+        }
 
-  // Emplace reconstruction overload for an initializer list and the given
-  // forwarded arguments.
-  //
-  // Example:
-  //
-  //   struct Foo {
-  //     Foo(std::initializer_list<int>);
-  //   };
-  //
-  //   optional<Foo> opt;
-  //   opt.emplace({1,2,3});  // Constructs Foo({1,2,3})
-  template <typename U, typename... Args,
-            typename = typename std::enable_if<std::is_constructible<
-                T, std::initializer_list<U>&, Args&&...>::value>::type>
-  T& emplace(std::initializer_list<U> il, Args&&... args) {
-    this->destruct();
-    this->construct(il, std::forward<Args>(args)...);
-    return reference();
-  }
+        // Emplace reconstruction overload for an initializer list and the given
+        // forwarded arguments.
+        //
+        // Example:
+        //
+        //   struct Foo {
+        //     Foo(std::initializer_list<int>);
+        //   };
+        //
+        //   optional<Foo> opt;
+        //   opt.emplace({1,2,3});  // Constructs Foo({1,2,3})
+        template<typename U, typename... Args,
+                typename = typename std::enable_if<std::is_constructible<
+                        T, std::initializer_list<U> &, Args &&...>::value>::type>
+        T &emplace(std::initializer_list<U> il, Args &&... args) {
+            this->destruct();
+            this->construct(il, std::forward<Args>(args)...);
+            return reference();
+        }
 
-  // Swaps
+        // Swaps
 
-  // Swap, standard semantics
-  void swap(optional& rhs) noexcept(
-      std::is_nothrow_move_constructible<T>::value&&
-          type_traits_internal::IsNothrowSwappable<T>::value) {
-    if (*this) {
-      if (rhs) {
-        type_traits_internal::Swap(**this, *rhs);
-      } else {
-        rhs.construct(std::move(**this));
-        this->destruct();
-      }
-    } else {
-      if (rhs) {
-        this->construct(std::move(*rhs));
-        rhs.destruct();
-      } else {
-        // No effect (swap(disengaged, disengaged)).
-      }
-    }
-  }
+        // Swap, standard semantics
+        void swap(optional &rhs) noexcept(
+        std::is_nothrow_move_constructible<T>::value &&
+        type_traits_internal::IsNothrowSwappable<T>::value) {
+            if (*this) {
+                if (rhs) {
+                    type_traits_internal::Swap(**this, *rhs);
+                } else {
+                    rhs.construct(std::move(**this));
+                    this->destruct();
+                }
+            } else {
+                if (rhs) {
+                    this->construct(std::move(*rhs));
+                    rhs.destruct();
+                } else {
+                    // No effect (swap(disengaged, disengaged)).
+                }
+            }
+        }
 
-  // Observers
+        // Observers
 
-  // optional::operator->()
-  //
-  // Accesses the underlying `T` value's member `m` of an `optional`. If the
-  // `optional` is empty, behavior is undefined.
-  //
-  // If you need myOpt->foo in constexpr, use (*myOpt).foo instead.
-  const T* operator->() const {
-    assert(this->engaged_);
-    return std::addressof(this->data_);
-  }
-  T* operator->() {
-    assert(this->engaged_);
-    return std::addressof(this->data_);
-  }
+        // optional::operator->()
+        //
+        // Accesses the underlying `T` value's member `m` of an `optional`. If the
+        // `optional` is empty, behavior is undefined.
+        //
+        // If you need myOpt->foo in constexpr, use (*myOpt).foo instead.
+        const T *operator->() const {
+            assert(this->engaged_);
+            return std::addressof(this->data_);
+        }
 
-  // optional::operator*()
-  //
-  // Accesses the underlying `T` value of an `optional`. If the `optional` is
-  // empty, behavior is undefined.
-  constexpr const T& operator*() const& {
-    return ABEL_ASSERT(this->engaged_), reference();
-  }
-  T& operator*() & {
-    assert(this->engaged_);
-    return reference();
-  }
-  constexpr const T&& operator*() const && {
-    return abel::move(reference());
-  }
-  T&& operator*() && {
-    assert(this->engaged_);
-    return std::move(reference());
-  }
+        T *operator->() {
+            assert(this->engaged_);
+            return std::addressof(this->data_);
+        }
 
-  // optional::operator bool()
-  //
-  // Returns false if and only if the `optional` is empty.
-  //
-  //   if (opt) {
-  //     // do something with opt.value();
-  //   } else {
-  //     // opt is empty.
-  //   }
-  //
-  constexpr explicit operator bool() const noexcept { return this->engaged_; }
+        // optional::operator*()
+        //
+        // Accesses the underlying `T` value of an `optional`. If the `optional` is
+        // empty, behavior is undefined.
+        constexpr const T &operator*() const &{
+            return ABEL_ASSERT(this->engaged_), reference();
+        }
 
-  // optional::has_value()
-  //
-  // Determines whether the `optional` contains a value. Returns `false` if and
-  // only if `*this` is empty.
-  constexpr bool has_value() const noexcept { return this->engaged_; }
+        T &operator*() &{
+            assert(this->engaged_);
+            return reference();
+        }
+
+        constexpr const T &&operator*() const &&{
+            return abel::move(reference());
+        }
+
+        T &&operator*() &&{
+            assert(this->engaged_);
+            return std::move(reference());
+        }
+
+        // optional::operator bool()
+        //
+        // Returns false if and only if the `optional` is empty.
+        //
+        //   if (opt) {
+        //     // do something with opt.value();
+        //   } else {
+        //     // opt is empty.
+        //   }
+        //
+        constexpr explicit operator bool() const noexcept { return this->engaged_; }
+
+        // optional::has_value()
+        //
+        // Determines whether the `optional` contains a value. Returns `false` if and
+        // only if `*this` is empty.
+        constexpr bool has_value() const noexcept { return this->engaged_; }
 
 // Suppress bogus warning on MSVC: MSVC complains call to reference() after
 // throw_bad_optional_access() is unreachable.
@@ -450,78 +454,85 @@ class optional : private optional_internal::optional_data<T>,
 #pragma warning(push)
 #pragma warning(disable : 4702)
 #endif  // _MSC_VER
-  // optional::value()
-  //
-  // Returns a reference to an `optional`s underlying value. The constness
-  // and lvalue/rvalue-ness of the `optional` is preserved to the view of
-  // the `T` sub-object. Throws `abel::bad_optional_access` when the `optional`
-  // is empty.
-  constexpr const T& value() const & {
-    return static_cast<bool>(*this)
-               ? reference()
-               : (optional_internal::throw_bad_optional_access(), reference());
-  }
-  T& value() & {
-    return static_cast<bool>(*this)
-               ? reference()
-               : (optional_internal::throw_bad_optional_access(), reference());
-  }
-  T&& value() && {  // NOLINT(build/c++11)
-    return std::move(
-        static_cast<bool>(*this)
-            ? reference()
-            : (optional_internal::throw_bad_optional_access(), reference()));
-  }
-  constexpr const T&& value() const && {  // NOLINT(build/c++11)
-    return abel::move(
-        static_cast<bool>(*this)
-            ? reference()
-            : (optional_internal::throw_bad_optional_access(), reference()));
-  }
+
+        // optional::value()
+        //
+        // Returns a reference to an `optional`s underlying value. The constness
+        // and lvalue/rvalue-ness of the `optional` is preserved to the view of
+        // the `T` sub-object. Throws `abel::bad_optional_access` when the `optional`
+        // is empty.
+        constexpr const T &value() const &{
+            return static_cast<bool>(*this)
+                   ? reference()
+                   : (optional_internal::throw_bad_optional_access(), reference());
+        }
+
+        T &value() &{
+            return static_cast<bool>(*this)
+                   ? reference()
+                   : (optional_internal::throw_bad_optional_access(), reference());
+        }
+
+        T &&value() &&{  // NOLINT(build/c++11)
+            return std::move(
+                    static_cast<bool>(*this)
+                    ? reference()
+                    : (optional_internal::throw_bad_optional_access(), reference()));
+        }
+
+        constexpr const T &&value() const &&{  // NOLINT(build/c++11)
+            return abel::move(
+                    static_cast<bool>(*this)
+                    ? reference()
+                    : (optional_internal::throw_bad_optional_access(), reference()));
+        }
+
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif  // _MSC_VER
 
-  // optional::value_or()
-  //
-  // Returns either the value of `T` or a passed default `v` if the `optional`
-  // is empty.
-  template <typename U>
-  constexpr T value_or(U&& v) const& {
-    static_assert(std::is_copy_constructible<value_type>::value,
-                  "optional<T>::value_or: T must be copy constructible");
-    static_assert(std::is_convertible<U&&, value_type>::value,
-                  "optional<T>::value_or: U must be convertible to T");
-    return static_cast<bool>(*this)
-               ? **this
-               : static_cast<T>(abel::forward<U>(v));
-  }
-  template <typename U>
-  T value_or(U&& v) && {  // NOLINT(build/c++11)
-    static_assert(std::is_move_constructible<value_type>::value,
-                  "optional<T>::value_or: T must be move constructible");
-    static_assert(std::is_convertible<U&&, value_type>::value,
-                  "optional<T>::value_or: U must be convertible to T");
-    return static_cast<bool>(*this) ? std::move(**this)
-                                    : static_cast<T>(std::forward<U>(v));
-  }
+        // optional::value_or()
+        //
+        // Returns either the value of `T` or a passed default `v` if the `optional`
+        // is empty.
+        template<typename U>
+        constexpr T value_or(U &&v) const &{
+            static_assert(std::is_copy_constructible<value_type>::value,
+                          "optional<T>::value_or: T must be copy constructible");
+            static_assert(std::is_convertible<U &&, value_type>::value,
+                          "optional<T>::value_or: U must be convertible to T");
+            return static_cast<bool>(*this)
+                   ? **this
+                   : static_cast<T>(abel::forward<U>(v));
+        }
 
- private:
-  // Private accessors for internal storage viewed as reference to T.
-  constexpr const T& reference() const { return this->data_; }
-  T& reference() { return this->data_; }
+        template<typename U>
+        T value_or(U &&v) &&{  // NOLINT(build/c++11)
+            static_assert(std::is_move_constructible<value_type>::value,
+                          "optional<T>::value_or: T must be move constructible");
+            static_assert(std::is_convertible<U &&, value_type>::value,
+                          "optional<T>::value_or: U must be convertible to T");
+            return static_cast<bool>(*this) ? std::move(**this)
+                                            : static_cast<T>(std::forward<U>(v));
+        }
 
-  // T constraint checks.  You can't have an optional of nullopt_t, in_place_t
-  // or a reference.
-  static_assert(
-      !std::is_same<nullopt_t, typename std::remove_cv<T>::type>::value,
-      "optional<nullopt_t> is not allowed.");
-  static_assert(
-      !std::is_same<in_place_t, typename std::remove_cv<T>::type>::value,
-      "optional<in_place_t> is not allowed.");
-  static_assert(!std::is_reference<T>::value,
-                "optional<reference> is not allowed.");
-};
+    private:
+        // Private accessors for internal storage viewed as reference to T.
+        constexpr const T &reference() const { return this->data_; }
+
+        T &reference() { return this->data_; }
+
+        // T constraint checks.  You can't have an optional of nullopt_t, in_place_t
+        // or a reference.
+        static_assert(
+                !std::is_same<nullopt_t, typename std::remove_cv<T>::type>::value,
+                "optional<nullopt_t> is not allowed.");
+        static_assert(
+                !std::is_same<in_place_t, typename std::remove_cv<T>::type>::value,
+                "optional<in_place_t> is not allowed.");
+        static_assert(!std::is_reference<T>::value,
+                      "optional<reference> is not allowed.");
+    };
 
 // Non-member functions
 
@@ -529,13 +540,13 @@ class optional : private optional_internal::optional_data<T>,
 //
 // Performs a swap between two `abel::optional` objects, using standard
 // semantics.
-template <typename T, typename std::enable_if<
-                          std::is_move_constructible<T>::value &&
-                              type_traits_internal::IsSwappable<T>::value,
-                          bool>::type = false>
-void swap(optional<T>& a, optional<T>& b) noexcept(noexcept(a.swap(b))) {
-  a.swap(b);
-}
+    template<typename T, typename std::enable_if<
+            std::is_move_constructible<T>::value &&
+            type_traits_internal::IsSwappable<T>::value,
+            bool>::type = false>
+    void swap(optional<T> &a, optional<T> &b) noexcept(noexcept(a.swap(b))) {
+        a.swap(b);
+    }
 
 // make_optional()
 //
@@ -552,22 +563,22 @@ void swap(optional<T>& a, optional<T>& b) noexcept(noexcept(a.swap(b))) {
 //
 //   constexpr abel::optional<int> opt = abel::make_optional(1);
 //   static_assert(opt.value() == 1, "");
-template <typename T>
-constexpr optional<typename std::decay<T>::type> make_optional(T&& v) {
-  return optional<typename std::decay<T>::type>(abel::forward<T>(v));
-}
+    template<typename T>
+    constexpr optional<typename std::decay<T>::type> make_optional(T &&v) {
+        return optional<typename std::decay<T>::type>(abel::forward<T>(v));
+    }
 
-template <typename T, typename... Args>
-constexpr optional<T> make_optional(Args&&... args) {
-  return optional<T>(in_place_t(), abel::forward<Args>(args)...);
-}
+    template<typename T, typename... Args>
+    constexpr optional<T> make_optional(Args &&... args) {
+        return optional<T>(in_place_t(), abel::forward<Args>(args)...);
+    }
 
-template <typename T, typename U, typename... Args>
-constexpr optional<T> make_optional(std::initializer_list<U> il,
-                                    Args&&... args) {
-  return optional<T>(in_place_t(), il,
-                     abel::forward<Args>(args)...);
-}
+    template<typename T, typename U, typename... Args>
+    constexpr optional<T> make_optional(std::initializer_list<U> il,
+                                        Args &&... args) {
+        return optional<T>(in_place_t(), il,
+                           abel::forward<Args>(args)...);
+    }
 
 // Relational operators [optional.relops]
 
@@ -583,166 +594,192 @@ constexpr optional<T> make_optional(std::initializer_list<U> il,
 // code in an obvious way here, and the original text retained as function docs.
 // Returns: If bool(x) != bool(y), false; otherwise if bool(x) == false, true;
 // otherwise *x == *y.
-template <typename T, typename U>
-constexpr auto operator==(const optional<T>& x, const optional<U>& y)
+    template<typename T, typename U>
+    constexpr auto operator==(const optional<T> &x, const optional<U> &y)
     -> decltype(optional_internal::convertible_to_bool(*x == *y)) {
-  return static_cast<bool>(x) != static_cast<bool>(y)
-             ? false
-             : static_cast<bool>(x) == false ? true
-                                             : static_cast<bool>(*x == *y);
-}
+        return static_cast<bool>(x) != static_cast<bool>(y)
+               ? false
+               : static_cast<bool>(x) == false ? true
+                                               : static_cast<bool>(*x == *y);
+    }
 
 // Returns: If bool(x) != bool(y), true; otherwise, if bool(x) == false, false;
 // otherwise *x != *y.
-template <typename T, typename U>
-constexpr auto operator!=(const optional<T>& x, const optional<U>& y)
+    template<typename T, typename U>
+    constexpr auto operator!=(const optional<T> &x, const optional<U> &y)
     -> decltype(optional_internal::convertible_to_bool(*x != *y)) {
-  return static_cast<bool>(x) != static_cast<bool>(y)
-             ? true
-             : static_cast<bool>(x) == false ? false
-                                             : static_cast<bool>(*x != *y);
-}
+        return static_cast<bool>(x) != static_cast<bool>(y)
+               ? true
+               : static_cast<bool>(x) == false ? false
+                                               : static_cast<bool>(*x != *y);
+    }
+
 // Returns: If !y, false; otherwise, if !x, true; otherwise *x < *y.
-template <typename T, typename U>
-constexpr auto operator<(const optional<T>& x, const optional<U>& y)
+    template<typename T, typename U>
+    constexpr auto operator<(const optional<T> &x, const optional<U> &y)
     -> decltype(optional_internal::convertible_to_bool(*x < *y)) {
-  return !y ? false : !x ? true : static_cast<bool>(*x < *y);
-}
+        return !y ? false : !x ? true : static_cast<bool>(*x < *y);
+    }
+
 // Returns: If !x, false; otherwise, if !y, true; otherwise *x > *y.
-template <typename T, typename U>
-constexpr auto operator>(const optional<T>& x, const optional<U>& y)
+    template<typename T, typename U>
+    constexpr auto operator>(const optional<T> &x, const optional<U> &y)
     -> decltype(optional_internal::convertible_to_bool(*x > *y)) {
-  return !x ? false : !y ? true : static_cast<bool>(*x > *y);
-}
+        return !x ? false : !y ? true : static_cast<bool>(*x > *y);
+    }
+
 // Returns: If !x, true; otherwise, if !y, false; otherwise *x <= *y.
-template <typename T, typename U>
-constexpr auto operator<=(const optional<T>& x, const optional<U>& y)
+    template<typename T, typename U>
+    constexpr auto operator<=(const optional<T> &x, const optional<U> &y)
     -> decltype(optional_internal::convertible_to_bool(*x <= *y)) {
-  return !x ? true : !y ? false : static_cast<bool>(*x <= *y);
-}
+        return !x ? true : !y ? false : static_cast<bool>(*x <= *y);
+    }
+
 // Returns: If !y, true; otherwise, if !x, false; otherwise *x >= *y.
-template <typename T, typename U>
-constexpr auto operator>=(const optional<T>& x, const optional<U>& y)
+    template<typename T, typename U>
+    constexpr auto operator>=(const optional<T> &x, const optional<U> &y)
     -> decltype(optional_internal::convertible_to_bool(*x >= *y)) {
-  return !y ? true : !x ? false : static_cast<bool>(*x >= *y);
-}
+        return !y ? true : !x ? false : static_cast<bool>(*x >= *y);
+    }
 
 // Comparison with nullopt [optional.nullops]
 // The C++17 (N4606) "Returns:" statements are used directly here.
-template <typename T>
-constexpr bool operator==(const optional<T>& x, nullopt_t) noexcept {
-  return !x;
-}
-template <typename T>
-constexpr bool operator==(nullopt_t, const optional<T>& x) noexcept {
-  return !x;
-}
-template <typename T>
-constexpr bool operator!=(const optional<T>& x, nullopt_t) noexcept {
-  return static_cast<bool>(x);
-}
-template <typename T>
-constexpr bool operator!=(nullopt_t, const optional<T>& x) noexcept {
-  return static_cast<bool>(x);
-}
-template <typename T>
-constexpr bool operator<(const optional<T>&, nullopt_t) noexcept {
-  return false;
-}
-template <typename T>
-constexpr bool operator<(nullopt_t, const optional<T>& x) noexcept {
-  return static_cast<bool>(x);
-}
-template <typename T>
-constexpr bool operator<=(const optional<T>& x, nullopt_t) noexcept {
-  return !x;
-}
-template <typename T>
-constexpr bool operator<=(nullopt_t, const optional<T>&) noexcept {
-  return true;
-}
-template <typename T>
-constexpr bool operator>(const optional<T>& x, nullopt_t) noexcept {
-  return static_cast<bool>(x);
-}
-template <typename T>
-constexpr bool operator>(nullopt_t, const optional<T>&) noexcept {
-  return false;
-}
-template <typename T>
-constexpr bool operator>=(const optional<T>&, nullopt_t) noexcept {
-  return true;
-}
-template <typename T>
-constexpr bool operator>=(nullopt_t, const optional<T>& x) noexcept {
-  return !x;
-}
+    template<typename T>
+    constexpr bool operator==(const optional<T> &x, nullopt_t) noexcept {
+        return !x;
+    }
+
+    template<typename T>
+    constexpr bool operator==(nullopt_t, const optional<T> &x) noexcept {
+        return !x;
+    }
+
+    template<typename T>
+    constexpr bool operator!=(const optional<T> &x, nullopt_t) noexcept {
+        return static_cast<bool>(x);
+    }
+
+    template<typename T>
+    constexpr bool operator!=(nullopt_t, const optional<T> &x) noexcept {
+        return static_cast<bool>(x);
+    }
+
+    template<typename T>
+    constexpr bool operator<(const optional<T> &, nullopt_t) noexcept {
+        return false;
+    }
+
+    template<typename T>
+    constexpr bool operator<(nullopt_t, const optional<T> &x) noexcept {
+        return static_cast<bool>(x);
+    }
+
+    template<typename T>
+    constexpr bool operator<=(const optional<T> &x, nullopt_t) noexcept {
+        return !x;
+    }
+
+    template<typename T>
+    constexpr bool operator<=(nullopt_t, const optional<T> &) noexcept {
+        return true;
+    }
+
+    template<typename T>
+    constexpr bool operator>(const optional<T> &x, nullopt_t) noexcept {
+        return static_cast<bool>(x);
+    }
+
+    template<typename T>
+    constexpr bool operator>(nullopt_t, const optional<T> &) noexcept {
+        return false;
+    }
+
+    template<typename T>
+    constexpr bool operator>=(const optional<T> &, nullopt_t) noexcept {
+        return true;
+    }
+
+    template<typename T>
+    constexpr bool operator>=(nullopt_t, const optional<T> &x) noexcept {
+        return !x;
+    }
 
 // Comparison with T [optional.comp_with_t]
 
 // Requires: The expression, e.g. "*x == v" shall be well-formed and its result
 // shall be convertible to bool.
 // The C++17 (N4606) "Equivalent to:" statements are used directly here.
-template <typename T, typename U>
-constexpr auto operator==(const optional<T>& x, const U& v)
+    template<typename T, typename U>
+    constexpr auto operator==(const optional<T> &x, const U &v)
     -> decltype(optional_internal::convertible_to_bool(*x == v)) {
-  return static_cast<bool>(x) ? static_cast<bool>(*x == v) : false;
-}
-template <typename T, typename U>
-constexpr auto operator==(const U& v, const optional<T>& x)
+        return static_cast<bool>(x) ? static_cast<bool>(*x == v) : false;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator==(const U &v, const optional<T> &x)
     -> decltype(optional_internal::convertible_to_bool(v == *x)) {
-  return static_cast<bool>(x) ? static_cast<bool>(v == *x) : false;
-}
-template <typename T, typename U>
-constexpr auto operator!=(const optional<T>& x, const U& v)
+        return static_cast<bool>(x) ? static_cast<bool>(v == *x) : false;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator!=(const optional<T> &x, const U &v)
     -> decltype(optional_internal::convertible_to_bool(*x != v)) {
-  return static_cast<bool>(x) ? static_cast<bool>(*x != v) : true;
-}
-template <typename T, typename U>
-constexpr auto operator!=(const U& v, const optional<T>& x)
+        return static_cast<bool>(x) ? static_cast<bool>(*x != v) : true;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator!=(const U &v, const optional<T> &x)
     -> decltype(optional_internal::convertible_to_bool(v != *x)) {
-  return static_cast<bool>(x) ? static_cast<bool>(v != *x) : true;
-}
-template <typename T, typename U>
-constexpr auto operator<(const optional<T>& x, const U& v)
+        return static_cast<bool>(x) ? static_cast<bool>(v != *x) : true;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator<(const optional<T> &x, const U &v)
     -> decltype(optional_internal::convertible_to_bool(*x < v)) {
-  return static_cast<bool>(x) ? static_cast<bool>(*x < v) : true;
-}
-template <typename T, typename U>
-constexpr auto operator<(const U& v, const optional<T>& x)
+        return static_cast<bool>(x) ? static_cast<bool>(*x < v) : true;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator<(const U &v, const optional<T> &x)
     -> decltype(optional_internal::convertible_to_bool(v < *x)) {
-  return static_cast<bool>(x) ? static_cast<bool>(v < *x) : false;
-}
-template <typename T, typename U>
-constexpr auto operator<=(const optional<T>& x, const U& v)
+        return static_cast<bool>(x) ? static_cast<bool>(v < *x) : false;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator<=(const optional<T> &x, const U &v)
     -> decltype(optional_internal::convertible_to_bool(*x <= v)) {
-  return static_cast<bool>(x) ? static_cast<bool>(*x <= v) : true;
-}
-template <typename T, typename U>
-constexpr auto operator<=(const U& v, const optional<T>& x)
+        return static_cast<bool>(x) ? static_cast<bool>(*x <= v) : true;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator<=(const U &v, const optional<T> &x)
     -> decltype(optional_internal::convertible_to_bool(v <= *x)) {
-  return static_cast<bool>(x) ? static_cast<bool>(v <= *x) : false;
-}
-template <typename T, typename U>
-constexpr auto operator>(const optional<T>& x, const U& v)
+        return static_cast<bool>(x) ? static_cast<bool>(v <= *x) : false;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator>(const optional<T> &x, const U &v)
     -> decltype(optional_internal::convertible_to_bool(*x > v)) {
-  return static_cast<bool>(x) ? static_cast<bool>(*x > v) : false;
-}
-template <typename T, typename U>
-constexpr auto operator>(const U& v, const optional<T>& x)
+        return static_cast<bool>(x) ? static_cast<bool>(*x > v) : false;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator>(const U &v, const optional<T> &x)
     -> decltype(optional_internal::convertible_to_bool(v > *x)) {
-  return static_cast<bool>(x) ? static_cast<bool>(v > *x) : true;
-}
-template <typename T, typename U>
-constexpr auto operator>=(const optional<T>& x, const U& v)
+        return static_cast<bool>(x) ? static_cast<bool>(v > *x) : true;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator>=(const optional<T> &x, const U &v)
     -> decltype(optional_internal::convertible_to_bool(*x >= v)) {
-  return static_cast<bool>(x) ? static_cast<bool>(*x >= v) : false;
-}
-template <typename T, typename U>
-constexpr auto operator>=(const U& v, const optional<T>& x)
+        return static_cast<bool>(x) ? static_cast<bool>(*x >= v) : false;
+    }
+
+    template<typename T, typename U>
+    constexpr auto operator>=(const U &v, const optional<T> &x)
     -> decltype(optional_internal::convertible_to_bool(v >= *x)) {
-  return static_cast<bool>(x) ? static_cast<bool>(v >= *x) : true;
-}
+        return static_cast<bool>(x) ? static_cast<bool>(v >= *x) : true;
+    }
 
 
 }  // namespace abel
@@ -750,9 +787,10 @@ constexpr auto operator>=(const U& v, const optional<T>& x)
 namespace std {
 
 // std::hash specialization for abel::optional.
-template <typename T>
-struct hash<abel::optional<T> >
-    : abel::optional_internal::optional_hash_base<T> {};
+    template<typename T>
+    struct hash<abel::optional<T> >
+            : abel::optional_internal::optional_hash_base<T> {
+    };
 
 }  // namespace std
 

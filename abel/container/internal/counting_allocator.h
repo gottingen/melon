@@ -11,60 +11,61 @@
 
 namespace abel {
 
-namespace container_internal {
+    namespace container_internal {
 
 // This is a stateful allocator, but the state lives outside of the
 // allocator (in whatever test is using the allocator). This is odd
 // but helps in tests where the allocator is propagated into nested
 // containers - that chain of allocators uses the same state and is
 // thus easier to query for aggregate allocation information.
-template <typename T>
-class CountingAllocator : public std::allocator<T> {
- public:
-  using Alloc = std::allocator<T>;
-  using pointer = typename Alloc::pointer;
-  using size_type = typename Alloc::size_type;
+        template<typename T>
+        class CountingAllocator : public std::allocator<T> {
+        public:
+            using Alloc = std::allocator<T>;
+            using pointer = typename Alloc::pointer;
+            using size_type = typename Alloc::size_type;
 
-  CountingAllocator() : bytes_used_(nullptr) {}
-  explicit CountingAllocator(int64_t* b) : bytes_used_(b) {}
+            CountingAllocator() : bytes_used_(nullptr) {}
 
-  template <typename U>
-  CountingAllocator(const CountingAllocator<U>& x)
-      : Alloc(x), bytes_used_(x.bytes_used_) {}
+            explicit CountingAllocator(int64_t *b) : bytes_used_(b) {}
 
-  pointer allocate(size_type n,
-                   std::allocator<void>::const_pointer hint = nullptr) {
-    assert(bytes_used_ != nullptr);
-    *bytes_used_ += n * sizeof(T);
-    return Alloc::allocate(n, hint);
-  }
+            template<typename U>
+            CountingAllocator(const CountingAllocator<U> &x)
+                    : Alloc(x), bytes_used_(x.bytes_used_) {}
 
-  void deallocate(pointer p, size_type n) {
-    Alloc::deallocate(p, n);
-    assert(bytes_used_ != nullptr);
-    *bytes_used_ -= n * sizeof(T);
-  }
+            pointer allocate(size_type n,
+                             std::allocator<void>::const_pointer hint = nullptr) {
+                assert(bytes_used_ != nullptr);
+                *bytes_used_ += n * sizeof(T);
+                return Alloc::allocate(n, hint);
+            }
 
-  template<typename U>
-  class rebind {
-   public:
-    using other = CountingAllocator<U>;
-  };
+            void deallocate(pointer p, size_type n) {
+                Alloc::deallocate(p, n);
+                assert(bytes_used_ != nullptr);
+                *bytes_used_ -= n * sizeof(T);
+            }
 
-  friend bool operator==(const CountingAllocator& a,
-                         const CountingAllocator& b) {
-    return a.bytes_used_ == b.bytes_used_;
-  }
+            template<typename U>
+            class rebind {
+            public:
+                using other = CountingAllocator<U>;
+            };
 
-  friend bool operator!=(const CountingAllocator& a,
-                         const CountingAllocator& b) {
-    return !(a == b);
-  }
+            friend bool operator==(const CountingAllocator &a,
+                                   const CountingAllocator &b) {
+                return a.bytes_used_ == b.bytes_used_;
+            }
 
-  int64_t* bytes_used_;
-};
+            friend bool operator!=(const CountingAllocator &a,
+                                   const CountingAllocator &b) {
+                return !(a == b);
+            }
 
-}  // namespace container_internal
+            int64_t *bytes_used_;
+        };
+
+    }  // namespace container_internal
 
 }  // namespace abel
 

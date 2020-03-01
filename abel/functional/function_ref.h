@@ -47,8 +47,8 @@ namespace abel {
 //
 // Dummy class declaration to allow the partial specialization based on function
 // types below.
-template <typename T>
-class FunctionRef;
+    template<typename T>
+    class FunctionRef;
 
 // FunctionRef
 //
@@ -71,54 +71,54 @@ class FunctionRef;
 // Note: the assignment operator within an `abel::FunctionRef` is intentionally
 // deleted to prevent misuse; because the `abel::FunctionRef` does not own the
 // underlying type, assignment likely indicates misuse.
-template <typename R, typename... Args>
-class FunctionRef<R(Args...)> {
- private:
-  // Used to disable constructors for objects that are not compatible with the
-  // signature of this FunctionRef.
-  template <typename F,
-            typename FR = abel::base_internal::InvokeT<F, Args&&...>>
-  using EnableIfCompatible =
-      typename std::enable_if<std::is_void<R>::value ||
-                              std::is_convertible<FR, R>::value>::type;
+    template<typename R, typename... Args>
+    class FunctionRef<R(Args...)> {
+    private:
+        // Used to disable constructors for objects that are not compatible with the
+        // signature of this FunctionRef.
+        template<typename F,
+                typename FR = abel::base_internal::InvokeT<F, Args &&...>>
+        using EnableIfCompatible =
+        typename std::enable_if<std::is_void<R>::value ||
+                                std::is_convertible<FR, R>::value>::type;
 
- public:
-  // Constructs a FunctionRef from any invokable type.
-  template <typename F, typename = EnableIfCompatible<const F&>>
-  FunctionRef(const F& f)  // NOLINT(runtime/explicit)
-      : invoker_(&abel::functional_internal::InvokeObject<F, R, Args...>) {
-    abel::functional_internal::AssertNonNull(f);
-    ptr_.obj = &f;
-  }
+    public:
+        // Constructs a FunctionRef from any invokable type.
+        template<typename F, typename = EnableIfCompatible<const F &>>
+        FunctionRef(const F &f)  // NOLINT(runtime/explicit)
+                : invoker_(&abel::functional_internal::InvokeObject<F, R, Args...>) {
+            abel::functional_internal::AssertNonNull(f);
+            ptr_.obj = &f;
+        }
 
-  // Overload for function pointers. This eliminates a level of indirection that
-  // would happen if the above overload was used (it lets us store the pointer
-  // instead of a pointer to a pointer).
-  //
-  // This overload is also used for references to functions, since references to
-  // functions can decay to function pointers implicitly.
-  template <
-      typename F, typename = EnableIfCompatible<F*>,
-      abel::functional_internal::EnableIf<abel::is_function<F>::value> = 0>
-  FunctionRef(F* f)  // NOLINT(runtime/explicit)
-      : invoker_(&abel::functional_internal::InvokeFunction<F*, R, Args...>) {
-    assert(f != nullptr);
-    ptr_.fun = reinterpret_cast<decltype(ptr_.fun)>(f);
-  }
+        // Overload for function pointers. This eliminates a level of indirection that
+        // would happen if the above overload was used (it lets us store the pointer
+        // instead of a pointer to a pointer).
+        //
+        // This overload is also used for references to functions, since references to
+        // functions can decay to function pointers implicitly.
+        template<
+                typename F, typename = EnableIfCompatible<F *>,
+                abel::functional_internal::EnableIf<abel::is_function<F>::value> = 0>
+        FunctionRef(F *f)  // NOLINT(runtime/explicit)
+                : invoker_(&abel::functional_internal::InvokeFunction<F *, R, Args...>) {
+            assert(f != nullptr);
+            ptr_.fun = reinterpret_cast<decltype(ptr_.fun)>(f);
+        }
 
-  // To help prevent subtle lifetime bugs, FunctionRef is not assignable.
-  // Typically, it should only be used as an argument type.
-  FunctionRef& operator=(const FunctionRef& rhs) = delete;
+        // To help prevent subtle lifetime bugs, FunctionRef is not assignable.
+        // Typically, it should only be used as an argument type.
+        FunctionRef &operator=(const FunctionRef &rhs) = delete;
 
-  // Call the underlying object.
-  R operator()(Args... args) const {
-    return invoker_(ptr_, std::forward<Args>(args)...);
-  }
+        // Call the underlying object.
+        R operator()(Args... args) const {
+            return invoker_(ptr_, std::forward<Args>(args)...);
+        }
 
- private:
-  abel::functional_internal::VoidPtr ptr_;
-  abel::functional_internal::Invoker<R, Args...> invoker_;
-};
+    private:
+        abel::functional_internal::VoidPtr ptr_;
+        abel::functional_internal::Invoker<R, Args...> invoker_;
+    };
 
 
 }  // namespace abel

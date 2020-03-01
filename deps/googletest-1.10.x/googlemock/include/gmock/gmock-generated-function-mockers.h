@@ -48,7 +48,7 @@
 #include "gmock/internal/gmock-internal-utils.h"
 
 namespace testing {
-namespace internal {
+    namespace internal {
 // Removes the given pointer; this is a helper for the expectation setter method
 // for parameterless matchers.
 //
@@ -89,26 +89,26 @@ namespace internal {
 //     }
 //   }
 //
-template <typename MockType>
-const MockType* AdjustConstness_const(const MockType* mock) {
-  return mock;
-}
+        template<typename MockType>
+        const MockType *AdjustConstness_const(const MockType *mock) {
+            return mock;
+        }
 
 // Removes const from and returns the given pointer; this is a helper for the
 // expectation setter method for parameterless matchers.
-template <typename MockType>
-MockType* AdjustConstness_(const MockType* mock) {
-  return const_cast<MockType*>(mock);
-}
+        template<typename MockType>
+        MockType *AdjustConstness_(const MockType *mock) {
+            return const_cast<MockType *>(mock);
+        }
 
-}  // namespace internal
+    }  // namespace internal
 
 // The style guide prohibits "using" statements in a namespace scope
 // inside a header file.  However, the FunctionMocker class template
 // is meant to be defined in the ::testing namespace.  The following
 // line is just a trick for working around a bug in MSVC 8.0, which
 // cannot handle it if we define FunctionMocker in ::testing.
-using internal::FunctionMocker;
+    using internal::FunctionMocker;
 
 // GMOCK_RESULT_(tn, F) expands to the result type of function type F.
 // We define this as a variadic macro in case F contains unprotected

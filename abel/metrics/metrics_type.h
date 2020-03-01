@@ -6,17 +6,17 @@
 #define ABEL_METRICS_METRICS_TYPE_H_
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-enum class metrics_type {
-    mt_untyped,
-    mt_counter,
-    mt_timer,
-    mt_gauge,
-    mt_histogram
-};
+        enum class metrics_type {
+            mt_untyped,
+            mt_counter,
+            mt_timer,
+            mt_gauge,
+            mt_histogram
+        };
 
-} //namespace metrics
+    } //namespace metrics
 } //namespace abel
 
 #endif //ABEL_METRICS_METRICS_TYPE_H_

@@ -14,7 +14,7 @@
 
 TEST(ScopeTest, scope) {
     auto scopePtr = abel::metrics::scope::new_root_scope("test", "_",
-                                               {{"product", "demo1"}});
+                                                         {{"product", "demo1"}});
     auto c = scopePtr->get_counter("counter");
     c->inc(1);
 
@@ -26,19 +26,20 @@ TEST(ScopeTest, scope) {
     h->observe(0.4);
 
     abel::metrics::bucket
-        durationBucket = abel::metrics::bucket_builder::exponential_duration(abel::nanoseconds(100000000), 2, 20);
+            durationBucket = abel::metrics::bucket_builder::exponential_duration(abel::nanoseconds(100000000), 2, 20);
     auto h1 = scopePtr->get_histogram("duration_histogram", durationBucket);
     h1->observe(0.4);
 
     abel::metrics::bucket
-        durationBucket1 = abel::metrics::bucket_builder::exponential_duration(abel::nanoseconds(100000000), 3, 20);
+            durationBucket1 = abel::metrics::bucket_builder::exponential_duration(abel::nanoseconds(100000000), 3, 20);
     auto t1 = scopePtr->get_timer("duration_timer", durationBucket1);
     t1->observe(400000000);
     auto sw = t1->start();
     std::this_thread::sleep_for(std::chrono::nanoseconds(600000000));
     sw.stop();
 
-    scopePtr->tagged({{"host", "h1"}, {"user", "u1"}})->get_gauge("qps2")->inc(5);
+    scopePtr->tagged({{"host", "h1"},
+                      {"user", "u1"}})->get_gauge("qps2")->inc(5);
 
     std::vector<abel::metrics::cache_metrics> cm;
     scopePtr->collect(cm);

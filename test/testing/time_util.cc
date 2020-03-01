@@ -8,27 +8,28 @@
 
 namespace abel {
 
-namespace chrono_internal {
+    namespace chrono_internal {
 
-abel::time_zone load_time_zone (const std::string &name) {
-    abel::time_zone tz;
-    ABEL_RAW_CHECK(load_time_zone(name, &tz), name.c_str());
-    return tz;
-}
+        abel::time_zone load_time_zone(const std::string &name) {
+            abel::time_zone tz;
+            ABEL_RAW_CHECK(load_time_zone(name, &tz), name.c_str());
+            return tz;
+        }
 
-}  // namespace chrono_internal
+    }  // namespace chrono_internal
 
 }  // namespace abel
 
 namespace abel {
 
-namespace chrono_internal {
-namespace {
+    namespace chrono_internal {
+        namespace {
 
 // Embed the zoneinfo data for time zones used during tests and benchmarks.
 // The data was generated using "xxd -i zoneinfo-file".  There is no need
 // to update the data as long as the tests do not depend on recent changes
 // (and the past rules remain the same).
+
 #include <abel/chrono/internal/zoneinfo.inc>
 
 const struct ZoneInfo {
@@ -36,45 +37,45 @@ const struct ZoneInfo {
     const char *data;
     std::size_t length;
 } kZoneInfo[] = {
-    // The three real time zones used by :time_test and :time_benchmark.
-    {"America/Los_Angeles",  //
-     reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
-    {"America/New_York",  //
-     reinterpret_cast<char *>(America_New_York), America_New_York_len},
-    {"Australia/Sydney",  //
-     reinterpret_cast<char *>(Australia_Sydney), Australia_Sydney_len},
+        // The three real time zones used by :time_test and :time_benchmark.
+        {"America/Los_Angeles",  //
+         reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
+        {"America/New_York",  //
+         reinterpret_cast<char *>(America_New_York), America_New_York_len},
+        {"Australia/Sydney",  //
+         reinterpret_cast<char *>(Australia_Sydney), Australia_Sydney_len},
 
-    // Other zones named in tests but which should fail to load.
-    {"Invalid/time_zone", nullptr, 0},
-    {"", nullptr, 0},
+        // Other zones named in tests but which should fail to load.
+        {"Invalid/time_zone", nullptr, 0},
+        {"", nullptr, 0},
 
-    // Also allow for loading the local time zone under TZ=US/Pacific.
-    {"US/Pacific",  //
-     reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
+        // Also allow for loading the local time zone under TZ=US/Pacific.
+        {"US/Pacific",  //
+         reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
 
-    // Allows use of the local time zone from a system-specific location.
+        // Allows use of the local time zone from a system-specific location.
 #ifdef _MSC_VER
 {"localtime",  //
  reinterpret_cast<char*>(America_Los_Angeles), America_Los_Angeles_len},
 #else
-    {"/etc/localtime",  //
-     reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
+        {"/etc/localtime",  //
+         reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
 #endif
 };
 
 class TestZoneInfoSource : public abel::chrono_internal::zone_info_source {
 public:
-    TestZoneInfoSource (const char *data, std::size_t size)
-        : data_(data), end_(data + size) { }
+    TestZoneInfoSource(const char *data, std::size_t size)
+            : data_(data), end_(data + size) {}
 
-    std::size_t read (void *ptr, std::size_t size) override {
+    std::size_t read(void *ptr, std::size_t size) override {
         const std::size_t len = std::min<std::size_t>(size, end_ - data_);
         memcpy(ptr, data_, len);
         data_ += len;
         return len;
     }
 
-    int skip (std::size_t offset) override {
+    int skip(std::size_t offset) override {
         data_ += std::min<std::size_t>(offset, end_ - data_);
         return 0;
     }
@@ -84,16 +85,16 @@ private:
     const char *const end_;
 };
 
-std::unique_ptr<abel::chrono_internal::zone_info_source> TestFactory (
-    const std::string &name,
-    const std::function<std::unique_ptr<abel::chrono_internal::zone_info_source> (
-        const std::string &name)> & /*fallback_factory*/) {
+std::unique_ptr<abel::chrono_internal::zone_info_source> TestFactory(
+        const std::string &name,
+        const std::function<std::unique_ptr<abel::chrono_internal::zone_info_source>(
+                const std::string &name)> & /*fallback_factory*/) {
     for (const ZoneInfo &zoneinfo : kZoneInfo) {
         if (name == zoneinfo.name) {
             if (zoneinfo.data == nullptr)
                 return nullptr;
             return std::unique_ptr<abel::chrono_internal::zone_info_source>(
-                new TestZoneInfoSource(zoneinfo.data, zoneinfo.length));
+                    new TestZoneInfoSource(zoneinfo.data, zoneinfo.length));
         }
     }
     ABEL_RAW_LOG(FATAL, "Unexpected time zone \"%s\" in test", name.c_str());

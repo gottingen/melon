@@ -139,13 +139,13 @@ namespace abel {
 //   // dangling references.
 //   foo->DoInFuture(abel::bind_front(Print, std::ref(hi), "Guest"));  // BAD!
 //   auto f = abel::bind_front(Print, std::ref(hi), "Guest"); // BAD!
-template <class F, class... BoundArgs>
-constexpr functional_internal::bind_front_t<F, BoundArgs...> bind_front(
-    F&& func, BoundArgs&&... args) {
-  return functional_internal::bind_front_t<F, BoundArgs...>(
-      abel::in_place, abel::forward<F>(func),
-      abel::forward<BoundArgs>(args)...);
-}
+    template<class F, class... BoundArgs>
+    constexpr functional_internal::bind_front_t<F, BoundArgs...> bind_front(
+            F &&func, BoundArgs &&... args) {
+        return functional_internal::bind_front_t<F, BoundArgs...>(
+                abel::in_place, abel::forward<F>(func),
+                abel::forward<BoundArgs>(args)...);
+    }
 
 
 }  // namespace abel

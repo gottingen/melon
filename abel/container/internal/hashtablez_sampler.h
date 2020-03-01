@@ -39,236 +39,249 @@
 
 namespace abel {
 
-namespace container_internal {
+    namespace container_internal {
 
 // Stores information about a sampled hashtable.  All mutations to this *must*
 // be made through `Record*` functions below.  All reads from this *must* only
 // occur in the callback to `HashtablezSampler::Iterate`.
-struct HashtablezInfo {
-  // Constructs the object but does not fill in any fields.
-  HashtablezInfo();
-  ~HashtablezInfo();
-  HashtablezInfo(const HashtablezInfo&) = delete;
-  HashtablezInfo& operator=(const HashtablezInfo&) = delete;
+        struct HashtablezInfo {
+            // Constructs the object but does not fill in any fields.
+            HashtablezInfo();
 
-  // Puts the object into a clean state, fills in the logically `const` members,
-  // blocking for any readers that are currently sampling the object.
-  void PrepareForSampling() ABEL_EXCLUSIVE_LOCKS_REQUIRED(init_mu);
+            ~HashtablezInfo();
 
-  // These fields are mutated by the various Record* APIs and need to be
-  // thread-safe.
-  std::atomic<size_t> capacity;
-  std::atomic<size_t> size;
-  std::atomic<size_t> num_erases;
-  std::atomic<size_t> max_probe_length;
-  std::atomic<size_t> total_probe_length;
-  std::atomic<size_t> hashes_bitwise_or;
-  std::atomic<size_t> hashes_bitwise_and;
+            HashtablezInfo(const HashtablezInfo &) = delete;
 
-  // `HashtablezSampler` maintains intrusive linked lists for all samples.  See
-  // comments on `HashtablezSampler::all_` for details on these.  `init_mu`
-  // guards the ability to restore the sample to a pristine state.  This
-  // prevents races with sampling and resurrecting an object.
-  abel::mutex init_mu;
-  HashtablezInfo* next;
-  HashtablezInfo* dead ABEL_GUARDED_BY(init_mu);
+            HashtablezInfo &operator=(const HashtablezInfo &) = delete;
 
-  // All of the fields below are set by `PrepareForSampling`, they must not be
-  // mutated in `Record*` functions.  They are logically `const` in that sense.
-  // These are guarded by init_mu, but that is not externalized to clients, who
-  // can only read them during `HashtablezSampler::Iterate` which will hold the
-  // lock.
-  static constexpr int kMaxStackDepth = 64;
-  abel::abel_time create_time;
-  int32_t depth;
-  void* stack[kMaxStackDepth];
-};
+            // Puts the object into a clean state, fills in the logically `const` members,
+            // blocking for any readers that are currently sampling the object.
+            void PrepareForSampling() ABEL_EXCLUSIVE_LOCKS_REQUIRED(init_mu);
 
-ABEL_FORCE_INLINE void RecordRehashSlow(HashtablezInfo* info, size_t total_probe_length) {
+            // These fields are mutated by the various Record* APIs and need to be
+            // thread-safe.
+            std::atomic<size_t> capacity;
+            std::atomic<size_t> size;
+            std::atomic<size_t> num_erases;
+            std::atomic<size_t> max_probe_length;
+            std::atomic<size_t> total_probe_length;
+            std::atomic<size_t> hashes_bitwise_or;
+            std::atomic<size_t> hashes_bitwise_and;
+
+            // `HashtablezSampler` maintains intrusive linked lists for all samples.  See
+            // comments on `HashtablezSampler::all_` for details on these.  `init_mu`
+            // guards the ability to restore the sample to a pristine state.  This
+            // prevents races with sampling and resurrecting an object.
+            abel::mutex init_mu;
+            HashtablezInfo *next;
+            HashtablezInfo *dead ABEL_GUARDED_BY(init_mu);
+
+            // All of the fields below are set by `PrepareForSampling`, they must not be
+            // mutated in `Record*` functions.  They are logically `const` in that sense.
+            // These are guarded by init_mu, but that is not externalized to clients, who
+            // can only read them during `HashtablezSampler::Iterate` which will hold the
+            // lock.
+            static constexpr int kMaxStackDepth = 64;
+            abel::abel_time create_time;
+            int32_t depth;
+            void *stack[kMaxStackDepth];
+        };
+
+        ABEL_FORCE_INLINE void RecordRehashSlow(HashtablezInfo *info, size_t total_probe_length) {
 #if SWISSTABLE_HAVE_SSE2
-  total_probe_length /= 16;
+            total_probe_length /= 16;
 #else
-  total_probe_length /= 8;
+            total_probe_length /= 8;
 #endif
-  info->total_probe_length.store(total_probe_length, std::memory_order_relaxed);
-  info->num_erases.store(0, std::memory_order_relaxed);
-}
+            info->total_probe_length.store(total_probe_length, std::memory_order_relaxed);
+            info->num_erases.store(0, std::memory_order_relaxed);
+        }
 
-ABEL_FORCE_INLINE void RecordStorageChangedSlow(HashtablezInfo* info, size_t size,
-                                     size_t capacity) {
-  info->size.store(size, std::memory_order_relaxed);
-  info->capacity.store(capacity, std::memory_order_relaxed);
-  if (size == 0) {
-    // This is a clear, reset the total/num_erases too.
-    RecordRehashSlow(info, 0);
-  }
-}
+        ABEL_FORCE_INLINE void RecordStorageChangedSlow(HashtablezInfo *info, size_t size,
+                                                        size_t capacity) {
+            info->size.store(size, std::memory_order_relaxed);
+            info->capacity.store(capacity, std::memory_order_relaxed);
+            if (size == 0) {
+                // This is a clear, reset the total/num_erases too.
+                RecordRehashSlow(info, 0);
+            }
+        }
 
-void RecordInsertSlow(HashtablezInfo* info, size_t hash,
-                      size_t distance_from_desired);
+        void RecordInsertSlow(HashtablezInfo *info, size_t hash,
+                              size_t distance_from_desired);
 
-ABEL_FORCE_INLINE void RecordEraseSlow(HashtablezInfo* info) {
-  info->size.fetch_sub(1, std::memory_order_relaxed);
-  info->num_erases.fetch_add(1, std::memory_order_relaxed);
-}
+        ABEL_FORCE_INLINE void RecordEraseSlow(HashtablezInfo *info) {
+            info->size.fetch_sub(1, std::memory_order_relaxed);
+            info->num_erases.fetch_add(1, std::memory_order_relaxed);
+        }
 
-HashtablezInfo* SampleSlow(int64_t* next_sample);
-void UnsampleSlow(HashtablezInfo* info);
+        HashtablezInfo *SampleSlow(int64_t *next_sample);
 
-class HashtablezInfoHandle {
- public:
-  explicit HashtablezInfoHandle() : info_(nullptr) {}
-  explicit HashtablezInfoHandle(HashtablezInfo* info) : info_(info) {}
-  ~HashtablezInfoHandle() {
-    if (ABEL_LIKELY(info_ == nullptr)) return;
-    UnsampleSlow(info_);
-  }
+        void UnsampleSlow(HashtablezInfo *info);
 
-  HashtablezInfoHandle(const HashtablezInfoHandle&) = delete;
-  HashtablezInfoHandle& operator=(const HashtablezInfoHandle&) = delete;
+        class HashtablezInfoHandle {
+        public:
+            explicit HashtablezInfoHandle() : info_(nullptr) {}
 
-  HashtablezInfoHandle(HashtablezInfoHandle&& o) noexcept
-      : info_(abel::exchange(o.info_, nullptr)) {}
-  HashtablezInfoHandle& operator=(HashtablezInfoHandle&& o) noexcept {
-    if (ABEL_UNLIKELY(info_ != nullptr)) {
-      UnsampleSlow(info_);
-    }
-    info_ = abel::exchange(o.info_, nullptr);
-    return *this;
-  }
+            explicit HashtablezInfoHandle(HashtablezInfo *info) : info_(info) {}
 
-  ABEL_FORCE_INLINE void RecordStorageChanged(size_t size, size_t capacity) {
-    if (ABEL_LIKELY(info_ == nullptr)) return;
-    RecordStorageChangedSlow(info_, size, capacity);
-  }
+            ~HashtablezInfoHandle() {
+                if (ABEL_LIKELY(info_ == nullptr)) return;
+                UnsampleSlow(info_);
+            }
 
-  ABEL_FORCE_INLINE void RecordRehash(size_t total_probe_length) {
-    if (ABEL_LIKELY(info_ == nullptr)) return;
-    RecordRehashSlow(info_, total_probe_length);
-  }
+            HashtablezInfoHandle(const HashtablezInfoHandle &) = delete;
 
-  ABEL_FORCE_INLINE void RecordInsert(size_t hash, size_t distance_from_desired) {
-    if (ABEL_LIKELY(info_ == nullptr)) return;
-    RecordInsertSlow(info_, hash, distance_from_desired);
-  }
+            HashtablezInfoHandle &operator=(const HashtablezInfoHandle &) = delete;
 
-  ABEL_FORCE_INLINE void RecordErase() {
-    if (ABEL_LIKELY(info_ == nullptr)) return;
-    RecordEraseSlow(info_);
-  }
+            HashtablezInfoHandle(HashtablezInfoHandle &&o) noexcept
+                    : info_(abel::exchange(o.info_, nullptr)) {}
 
-  friend ABEL_FORCE_INLINE void swap(HashtablezInfoHandle& lhs,
-                          HashtablezInfoHandle& rhs) {
-    std::swap(lhs.info_, rhs.info_);
-  }
+            HashtablezInfoHandle &operator=(HashtablezInfoHandle &&o) noexcept {
+                if (ABEL_UNLIKELY(info_ != nullptr)) {
+                    UnsampleSlow(info_);
+                }
+                info_ = abel::exchange(o.info_, nullptr);
+                return *this;
+            }
 
- private:
-  friend class HashtablezInfoHandlePeer;
-  HashtablezInfo* info_;
-};
+            ABEL_FORCE_INLINE void RecordStorageChanged(size_t size, size_t capacity) {
+                if (ABEL_LIKELY(info_ == nullptr)) return;
+                RecordStorageChangedSlow(info_, size, capacity);
+            }
+
+            ABEL_FORCE_INLINE void RecordRehash(size_t total_probe_length) {
+                if (ABEL_LIKELY(info_ == nullptr)) return;
+                RecordRehashSlow(info_, total_probe_length);
+            }
+
+            ABEL_FORCE_INLINE void RecordInsert(size_t hash, size_t distance_from_desired) {
+                if (ABEL_LIKELY(info_ == nullptr)) return;
+                RecordInsertSlow(info_, hash, distance_from_desired);
+            }
+
+            ABEL_FORCE_INLINE void RecordErase() {
+                if (ABEL_LIKELY(info_ == nullptr)) return;
+                RecordEraseSlow(info_);
+            }
+
+            friend ABEL_FORCE_INLINE void swap(HashtablezInfoHandle &lhs,
+                                               HashtablezInfoHandle &rhs) {
+                std::swap(lhs.info_, rhs.info_);
+            }
+
+        private:
+            friend class HashtablezInfoHandlePeer;
+
+            HashtablezInfo *info_;
+        };
 
 #if ABEL_PER_THREAD_TLS == 1
-extern ABEL_PER_THREAD_TLS_KEYWORD int64_t global_next_sample;
+        extern ABEL_PER_THREAD_TLS_KEYWORD int64_t global_next_sample;
 #endif  // ABEL_PER_THREAD_TLS
 
 // Returns an RAII sampling handle that manages registration and unregistation
 // with the global sampler.
-ABEL_FORCE_INLINE HashtablezInfoHandle Sample() {
+        ABEL_FORCE_INLINE HashtablezInfoHandle Sample() {
 #if ABEL_PER_THREAD_TLS == 1
-  if (ABEL_LIKELY(--global_next_sample > 0)) {
-    return HashtablezInfoHandle(nullptr);
-  }
-  return HashtablezInfoHandle(SampleSlow(&global_next_sample));
+            if (ABEL_LIKELY(--global_next_sample > 0)) {
+              return HashtablezInfoHandle(nullptr);
+            }
+            return HashtablezInfoHandle(SampleSlow(&global_next_sample));
 #else
-  return HashtablezInfoHandle(nullptr);
+            return HashtablezInfoHandle(nullptr);
 #endif  // !ABEL_PER_THREAD_TLS
-}
+        }
 
 // Holds samples and their associated stack traces with a soft limit of
 // `SetHashtablezMaxSamples()`.
 //
 // Thread safe.
-class HashtablezSampler {
- public:
-  // Returns a global Sampler.
-  static HashtablezSampler& Global();
+        class HashtablezSampler {
+        public:
+            // Returns a global Sampler.
+            static HashtablezSampler &Global();
 
-  HashtablezSampler();
-  ~HashtablezSampler();
+            HashtablezSampler();
 
-  // Registers for sampling.  Returns an opaque registration info.
-  HashtablezInfo* Register();
+            ~HashtablezSampler();
 
-  // Unregisters the sample.
-  void Unregister(HashtablezInfo* sample);
+            // Registers for sampling.  Returns an opaque registration info.
+            HashtablezInfo *Register();
 
-  // The dispose callback will be called on all samples the moment they are
-  // being unregistered. Only affects samples that are unregistered after the
-  // callback has been set.
-  // Returns the previous callback.
-  using DisposeCallback = void (*)(const HashtablezInfo&);
-  DisposeCallback SetDisposeCallback(DisposeCallback f);
+            // Unregisters the sample.
+            void Unregister(HashtablezInfo *sample);
 
-  // Iterates over all the registered `StackInfo`s.  Returning the number of
-  // samples that have been dropped.
-  int64_t Iterate(const std::function<void(const HashtablezInfo& stack)>& f);
+            // The dispose callback will be called on all samples the moment they are
+            // being unregistered. Only affects samples that are unregistered after the
+            // callback has been set.
+            // Returns the previous callback.
+            using DisposeCallback = void (*)(const HashtablezInfo &);
 
- private:
-  void PushNew(HashtablezInfo* sample);
-  void PushDead(HashtablezInfo* sample);
-  HashtablezInfo* PopDead();
+            DisposeCallback SetDisposeCallback(DisposeCallback f);
 
-  std::atomic<size_t> dropped_samples_;
-  std::atomic<size_t> size_estimate_;
+            // Iterates over all the registered `StackInfo`s.  Returning the number of
+            // samples that have been dropped.
+            int64_t Iterate(const std::function<void(const HashtablezInfo &stack)> &f);
 
-  // Intrusive lock free linked lists for tracking samples.
-  //
-  // `all_` records all samples (they are never removed from this list) and is
-  // terminated with a `nullptr`.
-  //
-  // `graveyard_.dead` is a circular linked list.  When it is empty,
-  // `graveyard_.dead == &graveyard`.  The list is circular so that
-  // every item on it (even the last) has a non-null dead pointer.  This allows
-  // `Iterate` to determine if a given sample is live or dead using only
-  // information on the sample itself.
-  //
-  // For example, nodes [A, B, C, D, E] with [A, C, E] alive and [B, D] dead
-  // looks like this (G is the Graveyard):
-  //
-  //           +---+    +---+    +---+    +---+    +---+
-  //    all -->| A |--->| B |--->| C |--->| D |--->| E |
-  //           |   |    |   |    |   |    |   |    |   |
-  //   +---+   |   | +->|   |-+  |   | +->|   |-+  |   |
-  //   | G |   +---+ |  +---+ |  +---+ |  +---+ |  +---+
-  //   |   |         |        |        |        |
-  //   |   | --------+        +--------+        |
-  //   +---+                                    |
-  //     ^                                      |
-  //     +--------------------------------------+
-  //
-  std::atomic<HashtablezInfo*> all_;
-  HashtablezInfo graveyard_;
+        private:
+            void PushNew(HashtablezInfo *sample);
 
-  std::atomic<DisposeCallback> dispose_;
-};
+            void PushDead(HashtablezInfo *sample);
+
+            HashtablezInfo *PopDead();
+
+            std::atomic<size_t> dropped_samples_;
+            std::atomic<size_t> size_estimate_;
+
+            // Intrusive lock free linked lists for tracking samples.
+            //
+            // `all_` records all samples (they are never removed from this list) and is
+            // terminated with a `nullptr`.
+            //
+            // `graveyard_.dead` is a circular linked list.  When it is empty,
+            // `graveyard_.dead == &graveyard`.  The list is circular so that
+            // every item on it (even the last) has a non-null dead pointer.  This allows
+            // `Iterate` to determine if a given sample is live or dead using only
+            // information on the sample itself.
+            //
+            // For example, nodes [A, B, C, D, E] with [A, C, E] alive and [B, D] dead
+            // looks like this (G is the Graveyard):
+            //
+            //           +---+    +---+    +---+    +---+    +---+
+            //    all -->| A |--->| B |--->| C |--->| D |--->| E |
+            //           |   |    |   |    |   |    |   |    |   |
+            //   +---+   |   | +->|   |-+  |   | +->|   |-+  |   |
+            //   | G |   +---+ |  +---+ |  +---+ |  +---+ |  +---+
+            //   |   |         |        |        |        |
+            //   |   | --------+        +--------+        |
+            //   +---+                                    |
+            //     ^                                      |
+            //     +--------------------------------------+
+            //
+            std::atomic<HashtablezInfo *> all_;
+            HashtablezInfo graveyard_;
+
+            std::atomic<DisposeCallback> dispose_;
+        };
 
 // Enables or disables sampling for Swiss tables.
-void SetHashtablezEnabled(bool enabled);
+        void SetHashtablezEnabled(bool enabled);
 
 // Sets the rate at which Swiss tables will be sampled.
-void SetHashtablezSampleParameter(int32_t rate);
+        void SetHashtablezSampleParameter(int32_t rate);
 
 // Sets a soft max for the number of samples that will be kept.
-void SetHashtablezMaxSamples(int32_t max);
+        void SetHashtablezMaxSamples(int32_t max);
 
 // Configuration override.
 // This allows process-wide sampling without depending on order of
 // initialization of static storage duration objects.
 // The definition of this constant is weak, which allows us to inject a
 // different value for it at link time.
-extern "C" bool AbelContainerInternalSampleEverything();
+        extern "C" bool AbelContainerInternalSampleEverything();
 
-}  // namespace container_internal
+    }  // namespace container_internal
 
 }  // namespace abel
 

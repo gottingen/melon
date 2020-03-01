@@ -30,11 +30,11 @@ namespace abel {
 //   abel::string_view input("abc");
 //   EXPECT_TRUE(abel:: consume_prefix(&input, "a"));
 //   EXPECT_EQ(input, "bc");
-ABEL_FORCE_INLINE bool  consume_prefix(abel::string_view* str, abel::string_view expected) {
-  if (!abel::starts_with(*str, expected)) return false;
-  str->remove_prefix(expected.size());
-  return true;
-}
+    ABEL_FORCE_INLINE bool consume_prefix(abel::string_view *str, abel::string_view expected) {
+        if (!abel::starts_with(*str, expected)) return false;
+        str->remove_prefix(expected.size());
+        return true;
+    }
 //  consume_suffix()
 //
 // Strips the `expected` suffix from the end of the given string, returning
@@ -45,33 +45,33 @@ ABEL_FORCE_INLINE bool  consume_prefix(abel::string_view* str, abel::string_view
 //   abel::string_view input("abcdef");
 //   EXPECT_TRUE(abel:: consume_suffix(&input, "def"));
 //   EXPECT_EQ(input, "abc");
-ABEL_FORCE_INLINE bool  consume_suffix(abel::string_view* str, abel::string_view expected) {
-  if (!abel::ends_with(*str, expected)) return false;
-  str->remove_suffix(expected.size());
-  return true;
-}
+    ABEL_FORCE_INLINE bool consume_suffix(abel::string_view *str, abel::string_view expected) {
+        if (!abel::ends_with(*str, expected)) return false;
+        str->remove_suffix(expected.size());
+        return true;
+    }
 
 //  strip_prefix()
 //
 // Returns a view into the input string 'str' with the given 'prefix' removed,
 // but leaving the original string intact. If the prefix does not match at the
 // start of the string, returns the original string instead.
-ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view  strip_prefix(
-    abel::string_view str, abel::string_view prefix) {
-  if (abel::starts_with(str, prefix)) str.remove_prefix(prefix.size());
-  return str;
-}
+    ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view strip_prefix(
+            abel::string_view str, abel::string_view prefix) {
+        if (abel::starts_with(str, prefix)) str.remove_prefix(prefix.size());
+        return str;
+    }
 
 //  strip_suffix()
 //
 // Returns a view into the input string 'str' with the given 'suffix' removed,
 // but leaving the original string intact. If the suffix does not match at the
 // end of the string, returns the original string instead.
-ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view  strip_suffix(
-    abel::string_view str, abel::string_view suffix) {
-  if (abel::ends_with(str, suffix)) str.remove_suffix(suffix.size());
-  return str;
-}
+    ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view strip_suffix(
+            abel::string_view str, abel::string_view suffix) {
+        if (abel::ends_with(str, suffix)) str.remove_suffix(suffix.size());
+        return str;
+    }
 
 
 }  // namespace abel

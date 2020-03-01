@@ -10,27 +10,28 @@
 #include <memory>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-class counter {
-public:
+        class counter {
+        public:
 
-    counter () = default;
+            counter() = default;
 
-    void inc ();
+            void inc();
 
-    void inc (double);
+            void inc(double);
 
-    double value () const;
+            double value() const;
 
-    cache_metrics collect () const noexcept;
-private:
-    gauge _gauge {0.0};
-};
+            cache_metrics collect() const noexcept;
 
-typedef std::shared_ptr<counter> counter_ptr;
+        private:
+            gauge _gauge{0.0};
+        };
 
-} //namespace ,metrics
+        typedef std::shared_ptr<counter> counter_ptr;
+
+    } //namespace ,metrics
 } //namespace abel
 
 #endif //ABEL_ABEL_METRICS_COUNTER_H_

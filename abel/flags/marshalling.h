@@ -156,58 +156,66 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
 // Overloads of `abel_parse_flag()` and `abel_unparse_flag()` for fundamental types.
-bool abel_parse_flag(abel::string_view, bool*, std::string*);
-bool abel_parse_flag(abel::string_view, short*, std::string*);           // NOLINT
-bool abel_parse_flag(abel::string_view, unsigned short*, std::string*);  // NOLINT
-bool abel_parse_flag(abel::string_view, int*, std::string*);             // NOLINT
-bool abel_parse_flag(abel::string_view, unsigned int*, std::string*);    // NOLINT
-bool abel_parse_flag(abel::string_view, long*, std::string*);            // NOLINT
-bool abel_parse_flag(abel::string_view, unsigned long*, std::string*);   // NOLINT
-bool abel_parse_flag(abel::string_view, long long*, std::string*);       // NOLINT
-bool abel_parse_flag(abel::string_view, unsigned long long*,             // NOLINT
-                   std::string*);
-bool abel_parse_flag(abel::string_view, float*, std::string*);
-bool abel_parse_flag(abel::string_view, double*, std::string*);
-bool abel_parse_flag(abel::string_view, std::string*, std::string*);
-bool abel_parse_flag(abel::string_view, std::vector<std::string>*, std::string*);
+        bool abel_parse_flag(abel::string_view, bool *, std::string *);
 
-template <typename T>
-bool InvokeParseFlag(abel::string_view input, T* dst, std::string* err) {
-  // Comment on next line provides a good compiler error message if T
-  // does not have abel_parse_flag(abel::string_view, T*, std::string*).
-  return abel_parse_flag(input, dst, err);  // Is T missing abel_parse_flag?
-}
+        bool abel_parse_flag(abel::string_view, short *, std::string *);           // NOLINT
+        bool abel_parse_flag(abel::string_view, unsigned short *, std::string *);  // NOLINT
+        bool abel_parse_flag(abel::string_view, int *, std::string *);             // NOLINT
+        bool abel_parse_flag(abel::string_view, unsigned int *, std::string *);    // NOLINT
+        bool abel_parse_flag(abel::string_view, long *, std::string *);            // NOLINT
+        bool abel_parse_flag(abel::string_view, unsigned long *, std::string *);   // NOLINT
+        bool abel_parse_flag(abel::string_view, long long *, std::string *);       // NOLINT
+        bool abel_parse_flag(abel::string_view, unsigned long long *,             // NOLINT
+                             std::string *);
+
+        bool abel_parse_flag(abel::string_view, float *, std::string *);
+
+        bool abel_parse_flag(abel::string_view, double *, std::string *);
+
+        bool abel_parse_flag(abel::string_view, std::string *, std::string *);
+
+        bool abel_parse_flag(abel::string_view, std::vector<std::string> *, std::string *);
+
+        template<typename T>
+        bool InvokeParseFlag(abel::string_view input, T *dst, std::string *err) {
+            // Comment on next line provides a good compiler error message if T
+            // does not have abel_parse_flag(abel::string_view, T*, std::string*).
+            return abel_parse_flag(input, dst, err);  // Is T missing abel_parse_flag?
+        }
 
 // Strings and std:: containers do not have the same overload resolution
 // considerations as fundamental types. Naming these 'abel_unparse_flag' means we
 // can avoid the need for additional specializations of Unparse (below).
-std::string abel_unparse_flag(abel::string_view v);
-std::string abel_unparse_flag(const std::vector<std::string>&);
+        std::string abel_unparse_flag(abel::string_view v);
 
-template <typename T>
-std::string Unparse(const T& v) {
-  // Comment on next line provides a good compiler error message if T does not
-  // have UnparseFlag.
-  return abel_unparse_flag(v);  // Is T missing abel_unparse_flag?
-}
+        std::string abel_unparse_flag(const std::vector<std::string> &);
+
+        template<typename T>
+        std::string Unparse(const T &v) {
+            // Comment on next line provides a good compiler error message if T does not
+            // have UnparseFlag.
+            return abel_unparse_flag(v);  // Is T missing abel_unparse_flag?
+        }
 
 // Overloads for builtin types.
-std::string Unparse(bool v);
-std::string Unparse(short v);               // NOLINT
-std::string Unparse(unsigned short v);      // NOLINT
-std::string Unparse(int v);                 // NOLINT
-std::string Unparse(unsigned int v);        // NOLINT
-std::string Unparse(long v);                // NOLINT
-std::string Unparse(unsigned long v);       // NOLINT
-std::string Unparse(long long v);           // NOLINT
-std::string Unparse(unsigned long long v);  // NOLINT
-std::string Unparse(float v);
-std::string Unparse(double v);
+        std::string Unparse(bool v);
 
-}  // namespace flags_internal
+        std::string Unparse(short v);               // NOLINT
+        std::string Unparse(unsigned short v);      // NOLINT
+        std::string Unparse(int v);                 // NOLINT
+        std::string Unparse(unsigned int v);        // NOLINT
+        std::string Unparse(long v);                // NOLINT
+        std::string Unparse(unsigned long v);       // NOLINT
+        std::string Unparse(long long v);           // NOLINT
+        std::string Unparse(unsigned long long v);  // NOLINT
+        std::string Unparse(float v);
+
+        std::string Unparse(double v);
+
+    }  // namespace flags_internal
 
 // ParseFlag()
 //
@@ -218,10 +226,10 @@ std::string Unparse(double v);
 // Some implementations of `abel_parse_flag()` for types which consist of other,
 // constituent types which already have abel flag support, may need to call
 // `abel::ParseFlag()` on those consituent string values. (See above.)
-template <typename T>
-ABEL_FORCE_INLINE bool ParseFlag(abel::string_view input, T* dst, std::string* error) {
-  return flags_internal::InvokeParseFlag(input, dst, error);
-}
+    template<typename T>
+    ABEL_FORCE_INLINE bool ParseFlag(abel::string_view input, T *dst, std::string *error) {
+        return flags_internal::InvokeParseFlag(input, dst, error);
+    }
 
 // UnparseFlag()
 //
@@ -232,17 +240,19 @@ ABEL_FORCE_INLINE bool ParseFlag(abel::string_view input, T* dst, std::string* e
 // Some implementations of `abel_unparse_flag()` for types which consist of other,
 // constituent types which already have abel flag support, may want to call
 // `abel::UnparseFlag()` on those constituent types. (See above.)
-template <typename T>
-ABEL_FORCE_INLINE std::string UnparseFlag(const T& v) {
-  return flags_internal::Unparse(v);
-}
+    template<typename T>
+    ABEL_FORCE_INLINE std::string UnparseFlag(const T &v) {
+        return flags_internal::Unparse(v);
+    }
 
 // Overloads for `abel::LogSeverity` can't (easily) appear alongside that type's
 // definition because it is layered below flags.  See proper documentation in
 // base/log_severity.h.
-enum class LogSeverity : int;
-bool abel_parse_flag(abel::string_view, abel::LogSeverity*, std::string*);
-std::string abel_unparse_flag(abel::LogSeverity);
+    enum class LogSeverity : int;
+
+    bool abel_parse_flag(abel::string_view, abel::LogSeverity *, std::string *);
+
+    std::string abel_unparse_flag(abel::LogSeverity);
 
 
 }  // namespace abel

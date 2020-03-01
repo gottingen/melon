@@ -104,8 +104,8 @@ namespace abel {
 // is not allowed to allocate additional storage, such as dynamic memory, to
 // allocate the contained value. The contained value shall be allocated in a
 // region of the variant storage suitably aligned for all alternative types.
-template <typename... Ts>
-class variant;
+    template<typename... Ts>
+    class variant;
 
 // swap()
 //
@@ -117,15 +117,15 @@ class variant;
 // type (in which case, they will be swapped) or to two different types (in
 // which case the values will need to be moved).
 //
-template <
-    typename... Ts,
-    abel::enable_if_t<
-        abel::conjunction<std::is_move_constructible<Ts>...,
-                          type_traits_internal::IsSwappable<Ts>...>::value,
-        int> = 0>
-void swap(variant<Ts...>& v, variant<Ts...>& w) noexcept(noexcept(v.swap(w))) {
-  v.swap(w);
-}
+    template<
+            typename... Ts,
+            abel::enable_if_t<
+                    abel::conjunction<std::is_move_constructible<Ts>...,
+                            type_traits_internal::IsSwappable<Ts>...>::value,
+                    int> = 0>
+    void swap(variant<Ts...> &v, variant<Ts...> &w) noexcept(noexcept(v.swap(w))) {
+        v.swap(w);
+    }
 
 // variant_size
 //
@@ -153,24 +153,28 @@ void swap(variant<Ts...>& v, variant<Ts...>& w) noexcept(noexcept(v.swap(w))) {
 // Note that the set of cv-qualified specializations of `variant_size` are
 // provided to ensure that those specializations compile (especially when passed
 // within template logic).
-template <class T>
-struct variant_size;
+    template<class T>
+    struct variant_size;
 
-template <class... Ts>
-struct variant_size<variant<Ts...>>
-    : std::integral_constant<std::size_t, sizeof...(Ts)> {};
+    template<class... Ts>
+    struct variant_size<variant<Ts...>>
+            : std::integral_constant<std::size_t, sizeof...(Ts)> {
+    };
 
 // Specialization of `variant_size` for const qualified variants.
-template <class T>
-struct variant_size<const T> : variant_size<T>::type {};
+    template<class T>
+    struct variant_size<const T> : variant_size<T>::type {
+    };
 
 // Specialization of `variant_size` for volatile qualified variants.
-template <class T>
-struct variant_size<volatile T> : variant_size<T>::type {};
+    template<class T>
+    struct variant_size<volatile T> : variant_size<T>::type {
+    };
 
 // Specialization of `variant_size` for const volatile qualified variants.
-template <class T>
-struct variant_size<const volatile T> : variant_size<T>::type {};
+    template<class T>
+    struct variant_size<const volatile T> : variant_size<T>::type {
+    };
 
 // variant_alternative
 //
@@ -196,33 +200,33 @@ struct variant_size<const volatile T> : variant_size<T>::type {};
 // Note that the set of cv-qualified specializations of `variant_alternative`
 // are provided to ensure that those specializations compile (especially when
 // passed within template logic).
-template <std::size_t I, class T>
-struct variant_alternative;
+    template<std::size_t I, class T>
+    struct variant_alternative;
 
-template <std::size_t I, class... Types>
-struct variant_alternative<I, variant<Types...>> {
-  using type =
-      variant_internal::VariantAlternativeSfinaeT<I, variant<Types...>>;
-};
+    template<std::size_t I, class... Types>
+    struct variant_alternative<I, variant<Types...>> {
+        using type =
+        variant_internal::VariantAlternativeSfinaeT<I, variant<Types...>>;
+    };
 
 // Specialization of `variant_alternative` for const qualified variants.
-template <std::size_t I, class T>
-struct variant_alternative<I, const T> {
-  using type = const typename variant_alternative<I, T>::type;
-};
+    template<std::size_t I, class T>
+    struct variant_alternative<I, const T> {
+        using type = const typename variant_alternative<I, T>::type;
+    };
 
 // Specialization of `variant_alternative` for volatile qualified variants.
-template <std::size_t I, class T>
-struct variant_alternative<I, volatile T> {
-  using type = volatile typename variant_alternative<I, T>::type;
-};
+    template<std::size_t I, class T>
+    struct variant_alternative<I, volatile T> {
+        using type = volatile typename variant_alternative<I, T>::type;
+    };
 
 // Specialization of `variant_alternative` for const volatile qualified
 // variants.
-template <std::size_t I, class T>
-struct variant_alternative<I, const volatile T> {
-  using type = const volatile typename variant_alternative<I, T>::type;
-};
+    template<std::size_t I, class T>
+    struct variant_alternative<I, const volatile T> {
+        using type = const volatile typename variant_alternative<I, T>::type;
+    };
 
 // Template type alias for variant_alternative<I, T>::type.
 //
@@ -231,8 +235,8 @@ struct variant_alternative<I, const volatile T> {
 //   using alternative_type_0
 //     = abel::variant_alternative_t<0, abel::variant<int, std::string>>;
 //   static_assert(std::is_same<alternative_type_0, int>::value, "");
-template <std::size_t I, class T>
-using variant_alternative_t = typename variant_alternative<I, T>::type;
+    template<std::size_t I, class T>
+    using variant_alternative_t = typename variant_alternative<I, T>::type;
 
 // holds_alternative()
 //
@@ -245,15 +249,15 @@ using variant_alternative_t = typename variant_alternative<I, T>::type;
 //   if (abel::holds_alternative<int>(foo)) {
 //       std::cout << "The variant holds an integer";
 //   }
-template <class T, class... Types>
-constexpr bool holds_alternative(const variant<Types...>& v) noexcept {
-  static_assert(
-      variant_internal::UnambiguousIndexOfImpl<variant<Types...>, T,
-                                               0>::value != sizeof...(Types),
-      "The type T must occur exactly once in Types...");
-  return v.index() ==
-         variant_internal::UnambiguousIndexOf<variant<Types...>, T>::value;
-}
+    template<class T, class... Types>
+    constexpr bool holds_alternative(const variant<Types...> &v) noexcept {
+        static_assert(
+                variant_internal::UnambiguousIndexOfImpl<variant<Types...>, T,
+                        0>::value != sizeof...(Types),
+                "The type T must occur exactly once in Types...");
+        return v.index() ==
+               variant_internal::UnambiguousIndexOf<variant<Types...>, T>::value;
+    }
 
 // get()
 //
@@ -281,64 +285,64 @@ constexpr bool holds_alternative(const variant<Types...>& v) noexcept {
 //   int k = abel::get<1>(b);
 
 // Overload for getting a variant's lvalue by type.
-template <class T, class... Types>
-constexpr T& get(variant<Types...>& v) {  // NOLINT
-  return variant_internal::VariantCoreAccess::CheckedAccess<
-      variant_internal::IndexOf<T, Types...>::value>(v);
-}
+    template<class T, class... Types>
+    constexpr T &get(variant<Types...> &v) {  // NOLINT
+        return variant_internal::VariantCoreAccess::CheckedAccess<
+                variant_internal::IndexOf<T, Types...>::value>(v);
+    }
 
 // Overload for getting a variant's rvalue by type.
 // Note: `abel::move()` is required to allow use of constexpr in C++11.
-template <class T, class... Types>
-constexpr T&& get(variant<Types...>&& v) {
-  return variant_internal::VariantCoreAccess::CheckedAccess<
-      variant_internal::IndexOf<T, Types...>::value>(abel::move(v));
-}
+    template<class T, class... Types>
+    constexpr T &&get(variant<Types...> &&v) {
+        return variant_internal::VariantCoreAccess::CheckedAccess<
+                variant_internal::IndexOf<T, Types...>::value>(abel::move(v));
+    }
 
 // Overload for getting a variant's const lvalue by type.
-template <class T, class... Types>
-constexpr const T& get(const variant<Types...>& v) {
-  return variant_internal::VariantCoreAccess::CheckedAccess<
-      variant_internal::IndexOf<T, Types...>::value>(v);
-}
+    template<class T, class... Types>
+    constexpr const T &get(const variant<Types...> &v) {
+        return variant_internal::VariantCoreAccess::CheckedAccess<
+                variant_internal::IndexOf<T, Types...>::value>(v);
+    }
 
 // Overload for getting a variant's const rvalue by type.
 // Note: `abel::move()` is required to allow use of constexpr in C++11.
-template <class T, class... Types>
-constexpr const T&& get(const variant<Types...>&& v) {
-  return variant_internal::VariantCoreAccess::CheckedAccess<
-      variant_internal::IndexOf<T, Types...>::value>(abel::move(v));
-}
+    template<class T, class... Types>
+    constexpr const T &&get(const variant<Types...> &&v) {
+        return variant_internal::VariantCoreAccess::CheckedAccess<
+                variant_internal::IndexOf<T, Types...>::value>(abel::move(v));
+    }
 
 // Overload for getting a variant's lvalue by index.
-template <std::size_t I, class... Types>
-constexpr variant_alternative_t<I, variant<Types...>>& get(
-    variant<Types...>& v) {  // NOLINT
-  return variant_internal::VariantCoreAccess::CheckedAccess<I>(v);
-}
+    template<std::size_t I, class... Types>
+    constexpr variant_alternative_t<I, variant<Types...>> &get(
+            variant<Types...> &v) {  // NOLINT
+        return variant_internal::VariantCoreAccess::CheckedAccess<I>(v);
+    }
 
 // Overload for getting a variant's rvalue by index.
 // Note: `abel::move()` is required to allow use of constexpr in C++11.
-template <std::size_t I, class... Types>
-constexpr variant_alternative_t<I, variant<Types...>>&& get(
-    variant<Types...>&& v) {
-  return variant_internal::VariantCoreAccess::CheckedAccess<I>(abel::move(v));
-}
+    template<std::size_t I, class... Types>
+    constexpr variant_alternative_t<I, variant<Types...>> &&get(
+            variant<Types...> &&v) {
+        return variant_internal::VariantCoreAccess::CheckedAccess<I>(abel::move(v));
+    }
 
 // Overload for getting a variant's const lvalue by index.
-template <std::size_t I, class... Types>
-constexpr const variant_alternative_t<I, variant<Types...>>& get(
-    const variant<Types...>& v) {
-  return variant_internal::VariantCoreAccess::CheckedAccess<I>(v);
-}
+    template<std::size_t I, class... Types>
+    constexpr const variant_alternative_t<I, variant<Types...>> &get(
+            const variant<Types...> &v) {
+        return variant_internal::VariantCoreAccess::CheckedAccess<I>(v);
+    }
 
 // Overload for getting a variant's const rvalue by index.
 // Note: `abel::move()` is required to allow use of constexpr in C++11.
-template <std::size_t I, class... Types>
-constexpr const variant_alternative_t<I, variant<Types...>>&& get(
-    const variant<Types...>&& v) {
-  return variant_internal::VariantCoreAccess::CheckedAccess<I>(abel::move(v));
-}
+    template<std::size_t I, class... Types>
+    constexpr const variant_alternative_t<I, variant<Types...>> &&get(
+            const variant<Types...> &&v) {
+        return variant_internal::VariantCoreAccess::CheckedAccess<I>(abel::move(v));
+    }
 
 // get_if()
 //
@@ -352,40 +356,40 @@ constexpr const variant_alternative_t<I, variant<Types...>>&& get(
 
 // Overload for getting a pointer to the value stored in the given variant by
 // index.
-template <std::size_t I, class... Types>
-constexpr abel::add_pointer_t<variant_alternative_t<I, variant<Types...>>>
-get_if(variant<Types...>* v) noexcept {
-  return (v != nullptr && v->index() == I)
-             ? std::addressof(
-                   variant_internal::VariantCoreAccess::Access<I>(*v))
-             : nullptr;
-}
+    template<std::size_t I, class... Types>
+    constexpr abel::add_pointer_t<variant_alternative_t<I, variant<Types...>>>
+    get_if(variant<Types...> *v) noexcept {
+        return (v != nullptr && v->index() == I)
+               ? std::addressof(
+                        variant_internal::VariantCoreAccess::Access<I>(*v))
+               : nullptr;
+    }
 
 // Overload for getting a pointer to the const value stored in the given
 // variant by index.
-template <std::size_t I, class... Types>
-constexpr abel::add_pointer_t<const variant_alternative_t<I, variant<Types...>>>
-get_if(const variant<Types...>* v) noexcept {
-  return (v != nullptr && v->index() == I)
-             ? std::addressof(
-                   variant_internal::VariantCoreAccess::Access<I>(*v))
-             : nullptr;
-}
+    template<std::size_t I, class... Types>
+    constexpr abel::add_pointer_t<const variant_alternative_t<I, variant<Types...>>>
+    get_if(const variant<Types...> *v) noexcept {
+        return (v != nullptr && v->index() == I)
+               ? std::addressof(
+                        variant_internal::VariantCoreAccess::Access<I>(*v))
+               : nullptr;
+    }
 
 // Overload for getting a pointer to the value stored in the given variant by
 // type.
-template <class T, class... Types>
-constexpr abel::add_pointer_t<T> get_if(variant<Types...>* v) noexcept {
-  return abel::get_if<variant_internal::IndexOf<T, Types...>::value>(v);
-}
+    template<class T, class... Types>
+    constexpr abel::add_pointer_t<T> get_if(variant<Types...> *v) noexcept {
+        return abel::get_if<variant_internal::IndexOf<T, Types...>::value>(v);
+    }
 
 // Overload for getting a pointer to the const value stored in the given variant
 // by type.
-template <class T, class... Types>
-constexpr abel::add_pointer_t<const T> get_if(
-    const variant<Types...>* v) noexcept {
-  return abel::get_if<variant_internal::IndexOf<T, Types...>::value>(v);
-}
+    template<class T, class... Types>
+    constexpr abel::add_pointer_t<const T> get_if(
+            const variant<Types...> *v) noexcept {
+        return abel::get_if<variant_internal::IndexOf<T, Types...>::value>(v);
+    }
 
 // visit()
 //
@@ -411,292 +415,298 @@ constexpr abel::add_pointer_t<const T> get_if(
 //   abel::variant<int, std::string> foo = std::string("foo");
 //   GetVariant visitor;
 //   abel::visit(visitor, foo);  // Prints `The variant's value is: foo'
-template <typename Visitor, typename... Variants>
-variant_internal::VisitResult<Visitor, Variants...> visit(Visitor&& vis,
-                                                          Variants&&... vars) {
-  return variant_internal::
-      VisitIndices<variant_size<abel::decay_t<Variants> >::value...>::Run(
-          variant_internal::PerformVisitation<Visitor, Variants...>{
-              std::forward_as_tuple(abel::forward<Variants>(vars)...),
-              abel::forward<Visitor>(vis)},
-          vars.index()...);
-}
+    template<typename Visitor, typename... Variants>
+    variant_internal::VisitResult<Visitor, Variants...> visit(Visitor &&vis,
+                                                              Variants &&... vars) {
+        return variant_internal::
+        VisitIndices<variant_size<abel::decay_t<Variants> >::value...>::Run(
+                variant_internal::PerformVisitation<Visitor, Variants...>{
+                        std::forward_as_tuple(abel::forward<Variants>(vars)...),
+                        abel::forward<Visitor>(vis)},
+                vars.index()...);
+    }
 
 // monostate
 //
 // The monostate class serves as a first alternative type for a variant for
 // which the first variant type is otherwise not default-constructible.
-struct monostate {};
+    struct monostate {
+    };
 
 // `abel::monostate` Relational Operators
 
-constexpr bool operator<(monostate, monostate) noexcept { return false; }
-constexpr bool operator>(monostate, monostate) noexcept { return false; }
-constexpr bool operator<=(monostate, monostate) noexcept { return true; }
-constexpr bool operator>=(monostate, monostate) noexcept { return true; }
-constexpr bool operator==(monostate, monostate) noexcept { return true; }
-constexpr bool operator!=(monostate, monostate) noexcept { return false; }
+    constexpr bool operator<(monostate, monostate) noexcept { return false; }
+
+    constexpr bool operator>(monostate, monostate) noexcept { return false; }
+
+    constexpr bool operator<=(monostate, monostate) noexcept { return true; }
+
+    constexpr bool operator>=(monostate, monostate) noexcept { return true; }
+
+    constexpr bool operator==(monostate, monostate) noexcept { return true; }
+
+    constexpr bool operator!=(monostate, monostate) noexcept { return false; }
 
 
 //------------------------------------------------------------------------------
 // `abel::variant` Template Definition
 //------------------------------------------------------------------------------
-template <typename T0, typename... Tn>
-class variant<T0, Tn...> : private variant_internal::VariantBase<T0, Tn...> {
-  static_assert(abel::conjunction<std::is_object<T0>,
-                                  std::is_object<Tn>...>::value,
-                "Attempted to instantiate a variant containing a non-object "
-                "type.");
-  // Intentionally not qualifying `negation` with `abel::` to work around a bug
-  // in MSVC 2015 with inline namespace and variadic template.
-  static_assert(abel::conjunction<negation<std::is_array<T0> >,
-                                  negation<std::is_array<Tn> >...>::value,
-                "Attempted to instantiate a variant containing an array type.");
-  static_assert(abel::conjunction<std::is_nothrow_destructible<T0>,
-                                  std::is_nothrow_destructible<Tn>...>::value,
-                "Attempted to instantiate a variant containing a non-nothrow "
-                "destructible type.");
+    template<typename T0, typename... Tn>
+    class variant<T0, Tn...> : private variant_internal::VariantBase<T0, Tn...> {
+        static_assert(abel::conjunction<std::is_object<T0>,
+                              std::is_object<Tn>...>::value,
+                      "Attempted to instantiate a variant containing a non-object "
+                      "type.");
+        // Intentionally not qualifying `negation` with `abel::` to work around a bug
+        // in MSVC 2015 with inline namespace and variadic template.
+        static_assert(abel::conjunction<negation<std::is_array<T0> >,
+                              negation<std::is_array<Tn> >...>::value,
+                      "Attempted to instantiate a variant containing an array type.");
+        static_assert(abel::conjunction<std::is_nothrow_destructible<T0>,
+                              std::is_nothrow_destructible<Tn>...>::value,
+                      "Attempted to instantiate a variant containing a non-nothrow "
+                      "destructible type.");
 
-  friend struct variant_internal::VariantCoreAccess;
+        friend struct variant_internal::VariantCoreAccess;
 
- private:
-  using Base = variant_internal::VariantBase<T0, Tn...>;
+    private:
+        using Base = variant_internal::VariantBase<T0, Tn...>;
 
- public:
-  // Constructors
+    public:
+        // Constructors
 
-  // Constructs a variant holding a default-initialized value of the first
-  // alternative type.
-  constexpr variant() /*noexcept(see 111above)*/ = default;
+        // Constructs a variant holding a default-initialized value of the first
+        // alternative type.
+        constexpr variant() /*noexcept(see 111above)*/ = default;
 
-  // Copy constructor, standard semantics
-  variant(const variant& other) = default;
+        // Copy constructor, standard semantics
+        variant(const variant &other) = default;
 
-  // Move constructor, standard semantics
-  variant(variant&& other) /*noexcept(see above)*/ = default;
+        // Move constructor, standard semantics
+        variant(variant &&other) /*noexcept(see above)*/ = default;
 
-  // Constructs a variant of an alternative type specified by overload
-  // resolution of the provided forwarding arguments through
-  // direct-initialization.
-  //
-  // Note: If the selected constructor is a constexpr constructor, this
-  // constructor shall be a constexpr constructor.
-  //
-  // NOTE: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0608r1.html
-  // has been voted passed the design phase in the C++ standard meeting in Mar
-  // 2018. It will be implemented and integrated into `abel::variant`.
-  template <
-      class T,
-      std::size_t I = std::enable_if<
-          variant_internal::IsNeitherSelfNorInPlace<variant,
-                                                    abel::decay_t<T>>::value,
-          variant_internal::IndexOfConstructedType<variant, T>>::type::value,
-      class Tj = abel::variant_alternative_t<I, variant>,
-      abel::enable_if_t<std::is_constructible<Tj, T>::value>* =
-          nullptr>
-  constexpr variant(T&& t) noexcept(std::is_nothrow_constructible<Tj, T>::value)
-      : Base(variant_internal::EmplaceTag<I>(), abel::forward<T>(t)) {}
+        // Constructs a variant of an alternative type specified by overload
+        // resolution of the provided forwarding arguments through
+        // direct-initialization.
+        //
+        // Note: If the selected constructor is a constexpr constructor, this
+        // constructor shall be a constexpr constructor.
+        //
+        // NOTE: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0608r1.html
+        // has been voted passed the design phase in the C++ standard meeting in Mar
+        // 2018. It will be implemented and integrated into `abel::variant`.
+        template<
+                class T,
+                std::size_t I = std::enable_if<
+                        variant_internal::IsNeitherSelfNorInPlace<variant,
+                                abel::decay_t<T>>::value,
+                        variant_internal::IndexOfConstructedType<variant, T>>::type::value,
+                class Tj = abel::variant_alternative_t<I, variant>,
+                abel::enable_if_t<std::is_constructible<Tj, T>::value> * =
+                nullptr>
+        constexpr variant(T &&t) noexcept(std::is_nothrow_constructible<Tj, T>::value)
+                : Base(variant_internal::EmplaceTag<I>(), abel::forward<T>(t)) {}
 
-  // Constructs a variant of an alternative type from the arguments through
-  // direct-initialization.
-  //
-  // Note: If the selected constructor is a constexpr constructor, this
-  // constructor shall be a constexpr constructor.
-  template <class T, class... Args,
-            typename std::enable_if<std::is_constructible<
-                variant_internal::UnambiguousTypeOfT<variant, T>,
-                Args...>::value>::type* = nullptr>
-  constexpr explicit variant(in_place_type_t<T>, Args&&... args)
-      : Base(variant_internal::EmplaceTag<
-                 variant_internal::UnambiguousIndexOf<variant, T>::value>(),
-             abel::forward<Args>(args)...) {}
+        // Constructs a variant of an alternative type from the arguments through
+        // direct-initialization.
+        //
+        // Note: If the selected constructor is a constexpr constructor, this
+        // constructor shall be a constexpr constructor.
+        template<class T, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        variant_internal::UnambiguousTypeOfT<variant, T>,
+                        Args...>::value>::type * = nullptr>
+        constexpr explicit variant(in_place_type_t<T>, Args &&... args)
+                : Base(variant_internal::EmplaceTag<
+                               variant_internal::UnambiguousIndexOf<variant, T>::value>(),
+                       abel::forward<Args>(args)...) {}
 
-  // Constructs a variant of an alternative type from an initializer list
-  // and other arguments through direct-initialization.
-  //
-  // Note: If the selected constructor is a constexpr constructor, this
-  // constructor shall be a constexpr constructor.
-  template <class T, class U, class... Args,
-            typename std::enable_if<std::is_constructible<
-                variant_internal::UnambiguousTypeOfT<variant, T>,
-                std::initializer_list<U>&, Args...>::value>::type* = nullptr>
-  constexpr explicit variant(in_place_type_t<T>, std::initializer_list<U> il,
-                             Args&&... args)
-      : Base(variant_internal::EmplaceTag<
-                 variant_internal::UnambiguousIndexOf<variant, T>::value>(),
-             il, abel::forward<Args>(args)...) {}
+        // Constructs a variant of an alternative type from an initializer list
+        // and other arguments through direct-initialization.
+        //
+        // Note: If the selected constructor is a constexpr constructor, this
+        // constructor shall be a constexpr constructor.
+        template<class T, class U, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        variant_internal::UnambiguousTypeOfT<variant, T>,
+                        std::initializer_list<U> &, Args...>::value>::type * = nullptr>
+        constexpr explicit variant(in_place_type_t<T>, std::initializer_list<U> il,
+                                   Args &&... args)
+                : Base(variant_internal::EmplaceTag<
+                               variant_internal::UnambiguousIndexOf<variant, T>::value>(),
+                       il, abel::forward<Args>(args)...) {}
 
-  // Constructs a variant of an alternative type from a provided index,
-  // through value-initialization using the provided forwarded arguments.
-  template <std::size_t I, class... Args,
-            typename std::enable_if<std::is_constructible<
-                variant_internal::VariantAlternativeSfinaeT<I, variant>,
-                Args...>::value>::type* = nullptr>
-  constexpr explicit variant(in_place_index_t<I>, Args&&... args)
-      : Base(variant_internal::EmplaceTag<I>(), abel::forward<Args>(args)...) {}
+        // Constructs a variant of an alternative type from a provided index,
+        // through value-initialization using the provided forwarded arguments.
+        template<std::size_t I, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        variant_internal::VariantAlternativeSfinaeT<I, variant>,
+                        Args...>::value>::type * = nullptr>
+        constexpr explicit variant(in_place_index_t<I>, Args &&... args)
+                : Base(variant_internal::EmplaceTag<I>(), abel::forward<Args>(args)...) {}
 
-  // Constructs a variant of an alternative type from a provided index,
-  // through value-initialization of an initializer list and the provided
-  // forwarded arguments.
-  template <std::size_t I, class U, class... Args,
-            typename std::enable_if<std::is_constructible<
-                variant_internal::VariantAlternativeSfinaeT<I, variant>,
-                std::initializer_list<U>&, Args...>::value>::type* = nullptr>
-  constexpr explicit variant(in_place_index_t<I>, std::initializer_list<U> il,
-                             Args&&... args)
-      : Base(variant_internal::EmplaceTag<I>(), il,
-             abel::forward<Args>(args)...) {}
+        // Constructs a variant of an alternative type from a provided index,
+        // through value-initialization of an initializer list and the provided
+        // forwarded arguments.
+        template<std::size_t I, class U, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        variant_internal::VariantAlternativeSfinaeT<I, variant>,
+                        std::initializer_list<U> &, Args...>::value>::type * = nullptr>
+        constexpr explicit variant(in_place_index_t<I>, std::initializer_list<U> il,
+                                   Args &&... args)
+                : Base(variant_internal::EmplaceTag<I>(), il,
+                       abel::forward<Args>(args)...) {}
 
-  // Destructors
+        // Destructors
 
-  // Destroys the variant's currently contained value, provided that
-  // `abel::valueless_by_exception()` is false.
-  ~variant() = default;
+        // Destroys the variant's currently contained value, provided that
+        // `abel::valueless_by_exception()` is false.
+        ~variant() = default;
 
-  // Assignment Operators
+        // Assignment Operators
 
-  // Copy assignment operator
-  variant& operator=(const variant& other) = default;
+        // Copy assignment operator
+        variant &operator=(const variant &other) = default;
 
-  // Move assignment operator
-  variant& operator=(variant&& other) /*noexcept(see above)*/ = default;
+        // Move assignment operator
+        variant &operator=(variant &&other) /*noexcept(see above)*/ = default;
 
-  // Converting assignment operator
-  //
-  // NOTE: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0608r1.html
-  // has been voted passed the design phase in the C++ standard meeting in Mar
-  // 2018. It will be implemented and integrated into `abel::variant`.
-  template <
-      class T,
-      std::size_t I = std::enable_if<
-          !std::is_same<abel::decay_t<T>, variant>::value,
-          variant_internal::IndexOfConstructedType<variant, T>>::type::value,
-      class Tj = abel::variant_alternative_t<I, variant>,
-      typename std::enable_if<std::is_assignable<Tj&, T>::value &&
-                              std::is_constructible<Tj, T>::value>::type* =
-          nullptr>
-  variant& operator=(T&& t) noexcept(
-      std::is_nothrow_assignable<Tj&, T>::value&&
-          std::is_nothrow_constructible<Tj, T>::value) {
-    variant_internal::VisitIndices<sizeof...(Tn) + 1>::Run(
-        variant_internal::VariantCoreAccess::MakeConversionAssignVisitor(
-            this, abel::forward<T>(t)),
-        index());
+        // Converting assignment operator
+        //
+        // NOTE: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0608r1.html
+        // has been voted passed the design phase in the C++ standard meeting in Mar
+        // 2018. It will be implemented and integrated into `abel::variant`.
+        template<
+                class T,
+                std::size_t I = std::enable_if<
+                        !std::is_same<abel::decay_t<T>, variant>::value,
+                        variant_internal::IndexOfConstructedType<variant, T>>::type::value,
+                class Tj = abel::variant_alternative_t<I, variant>,
+                typename std::enable_if<std::is_assignable<Tj &, T>::value &&
+                                        std::is_constructible<Tj, T>::value>::type * =
+                nullptr>
+        variant &operator=(T &&t) noexcept(
+        std::is_nothrow_assignable<Tj &, T>::value &&
+        std::is_nothrow_constructible<Tj, T>::value) {
+            variant_internal::VisitIndices<sizeof...(Tn) + 1>::Run(
+                    variant_internal::VariantCoreAccess::MakeConversionAssignVisitor(
+                            this, abel::forward<T>(t)),
+                    index());
 
-    return *this;
-  }
+            return *this;
+        }
 
 
-  // emplace() Functions
+        // emplace() Functions
 
-  // Constructs a value of the given alternative type T within the variant.
-  //
-  // Example:
-  //
-  //   abel::variant<std::vector<int>, int, std::string> v;
-  //   v.emplace<int>(99);
-  //   v.emplace<std::string>("abc");
-  template <
-      class T, class... Args,
-      typename std::enable_if<std::is_constructible<
-          abel::variant_alternative_t<
-              variant_internal::UnambiguousIndexOf<variant, T>::value, variant>,
-          Args...>::value>::type* = nullptr>
-  T& emplace(Args&&... args) {
-    return variant_internal::VariantCoreAccess::Replace<
-        variant_internal::UnambiguousIndexOf<variant, T>::value>(
-        this, abel::forward<Args>(args)...);
-  }
+        // Constructs a value of the given alternative type T within the variant.
+        //
+        // Example:
+        //
+        //   abel::variant<std::vector<int>, int, std::string> v;
+        //   v.emplace<int>(99);
+        //   v.emplace<std::string>("abc");
+        template<
+                class T, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        abel::variant_alternative_t<
+                                variant_internal::UnambiguousIndexOf<variant, T>::value, variant>,
+                        Args...>::value>::type * = nullptr>
+        T &emplace(Args &&... args) {
+            return variant_internal::VariantCoreAccess::Replace<
+                    variant_internal::UnambiguousIndexOf<variant, T>::value>(
+                    this, abel::forward<Args>(args)...);
+        }
 
-  // Constructs a value of the given alternative type T within the variant using
-  // an initializer list.
-  //
-  // Example:
-  //
-  //   abel::variant<std::vector<int>, int, std::string> v;
-  //   v.emplace<std::vector<int>>({0, 1, 2});
-  template <
-      class T, class U, class... Args,
-      typename std::enable_if<std::is_constructible<
-          abel::variant_alternative_t<
-              variant_internal::UnambiguousIndexOf<variant, T>::value, variant>,
-          std::initializer_list<U>&, Args...>::value>::type* = nullptr>
-  T& emplace(std::initializer_list<U> il, Args&&... args) {
-    return variant_internal::VariantCoreAccess::Replace<
-        variant_internal::UnambiguousIndexOf<variant, T>::value>(
-        this, il, abel::forward<Args>(args)...);
-  }
+        // Constructs a value of the given alternative type T within the variant using
+        // an initializer list.
+        //
+        // Example:
+        //
+        //   abel::variant<std::vector<int>, int, std::string> v;
+        //   v.emplace<std::vector<int>>({0, 1, 2});
+        template<
+                class T, class U, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        abel::variant_alternative_t<
+                                variant_internal::UnambiguousIndexOf<variant, T>::value, variant>,
+                        std::initializer_list<U> &, Args...>::value>::type * = nullptr>
+        T &emplace(std::initializer_list<U> il, Args &&... args) {
+            return variant_internal::VariantCoreAccess::Replace<
+                    variant_internal::UnambiguousIndexOf<variant, T>::value>(
+                    this, il, abel::forward<Args>(args)...);
+        }
 
-  // Destroys the current value of the variant (provided that
-  // `abel::valueless_by_exception()` is false, and constructs a new value at
-  // the given index.
-  //
-  // Example:
-  //
-  //   abel::variant<std::vector<int>, int, int> v;
-  //   v.emplace<1>(99);
-  //   v.emplace<2>(98);
-  //   v.emplace<int>(99);  // Won't compile. 'int' isn't a unique type.
-  template <std::size_t I, class... Args,
-            typename std::enable_if<
-                std::is_constructible<abel::variant_alternative_t<I, variant>,
-                                      Args...>::value>::type* = nullptr>
-  abel::variant_alternative_t<I, variant>& emplace(Args&&... args) {
-    return variant_internal::VariantCoreAccess::Replace<I>(
-        this, abel::forward<Args>(args)...);
-  }
+        // Destroys the current value of the variant (provided that
+        // `abel::valueless_by_exception()` is false, and constructs a new value at
+        // the given index.
+        //
+        // Example:
+        //
+        //   abel::variant<std::vector<int>, int, int> v;
+        //   v.emplace<1>(99);
+        //   v.emplace<2>(98);
+        //   v.emplace<int>(99);  // Won't compile. 'int' isn't a unique type.
+        template<std::size_t I, class... Args,
+                typename std::enable_if<
+                        std::is_constructible<abel::variant_alternative_t<I, variant>,
+                                Args...>::value>::type * = nullptr>
+        abel::variant_alternative_t<I, variant> &emplace(Args &&... args) {
+            return variant_internal::VariantCoreAccess::Replace<I>(
+                    this, abel::forward<Args>(args)...);
+        }
 
-  // Destroys the current value of the variant (provided that
-  // `abel::valueless_by_exception()` is false, and constructs a new value at
-  // the given index using an initializer list and the provided arguments.
-  //
-  // Example:
-  //
-  //   abel::variant<std::vector<int>, int, int> v;
-  //   v.emplace<0>({0, 1, 2});
-  template <std::size_t I, class U, class... Args,
-            typename std::enable_if<std::is_constructible<
-                abel::variant_alternative_t<I, variant>,
-                std::initializer_list<U>&, Args...>::value>::type* = nullptr>
-  abel::variant_alternative_t<I, variant>& emplace(std::initializer_list<U> il,
-                                                   Args&&... args) {
-    return variant_internal::VariantCoreAccess::Replace<I>(
-        this, il, abel::forward<Args>(args)...);
-  }
+        // Destroys the current value of the variant (provided that
+        // `abel::valueless_by_exception()` is false, and constructs a new value at
+        // the given index using an initializer list and the provided arguments.
+        //
+        // Example:
+        //
+        //   abel::variant<std::vector<int>, int, int> v;
+        //   v.emplace<0>({0, 1, 2});
+        template<std::size_t I, class U, class... Args,
+                typename std::enable_if<std::is_constructible<
+                        abel::variant_alternative_t<I, variant>,
+                        std::initializer_list<U> &, Args...>::value>::type * = nullptr>
+        abel::variant_alternative_t<I, variant> &emplace(std::initializer_list<U> il,
+                                                         Args &&... args) {
+            return variant_internal::VariantCoreAccess::Replace<I>(
+                    this, il, abel::forward<Args>(args)...);
+        }
 
-  // variant::valueless_by_exception()
-  //
-  // Returns false if and only if the variant currently holds a valid value.
-  constexpr bool valueless_by_exception() const noexcept {
-    return this->index_ == abel::variant_npos;
-  }
+        // variant::valueless_by_exception()
+        //
+        // Returns false if and only if the variant currently holds a valid value.
+        constexpr bool valueless_by_exception() const noexcept {
+            return this->index_ == abel::variant_npos;
+        }
 
-  // variant::index()
-  //
-  // Returns the index value of the variant's currently selected alternative
-  // type.
-  constexpr std::size_t index() const noexcept { return this->index_; }
+        // variant::index()
+        //
+        // Returns the index value of the variant's currently selected alternative
+        // type.
+        constexpr std::size_t index() const noexcept { return this->index_; }
 
-  // variant::swap()
-  //
-  // Swaps the values of two variant objects.
-  //
-  void swap(variant& rhs) noexcept(
-      abel::conjunction<
-          std::is_nothrow_move_constructible<T0>,
-          std::is_nothrow_move_constructible<Tn>...,
-          type_traits_internal::IsNothrowSwappable<T0>,
-          type_traits_internal::IsNothrowSwappable<Tn>...>::value) {
-    return variant_internal::VisitIndices<sizeof...(Tn) + 1>::Run(
-        variant_internal::Swap<T0, Tn...>{this, &rhs}, rhs.index());
-  }
-};
+        // variant::swap()
+        //
+        // Swaps the values of two variant objects.
+        //
+        void swap(variant &rhs) noexcept(
+        abel::conjunction<
+                std::is_nothrow_move_constructible<T0>,
+                std::is_nothrow_move_constructible<Tn>...,
+                type_traits_internal::IsNothrowSwappable<T0>,
+                type_traits_internal::IsNothrowSwappable<Tn>...>::value) {
+            return variant_internal::VisitIndices<sizeof...(Tn) + 1>::Run(
+                    variant_internal::Swap<T0, Tn...>{this, &rhs}, rhs.index());
+        }
+    };
 
 // We need a valid declaration of variant<> for SFINAE and overload resolution
 // to work properly above, but we don't need a full declaration since this type
 // will never be constructed. This declaration, though incomplete, suffices.
-template <>
-class variant<>;
+    template<>
+    class variant<>;
 
 //------------------------------------------------------------------------------
 // Relational Operators
@@ -723,65 +733,65 @@ class variant<>;
 // the same relative order.
 
 // Equal-to operator
-template <typename... Types>
-constexpr variant_internal::RequireAllHaveEqualT<Types...> operator==(
-    const variant<Types...>& a, const variant<Types...>& b) {
-  return (a.index() == b.index()) &&
-         variant_internal::VisitIndices<sizeof...(Types)>::Run(
-             variant_internal::EqualsOp<Types...>{&a, &b}, a.index());
-}
+    template<typename... Types>
+    constexpr variant_internal::RequireAllHaveEqualT<Types...> operator==(
+            const variant<Types...> &a, const variant<Types...> &b) {
+        return (a.index() == b.index()) &&
+               variant_internal::VisitIndices<sizeof...(Types)>::Run(
+                       variant_internal::EqualsOp<Types...>{&a, &b}, a.index());
+    }
 
 // Not equal operator
-template <typename... Types>
-constexpr variant_internal::RequireAllHaveNotEqualT<Types...> operator!=(
-    const variant<Types...>& a, const variant<Types...>& b) {
-  return (a.index() != b.index()) ||
-         variant_internal::VisitIndices<sizeof...(Types)>::Run(
-             variant_internal::NotEqualsOp<Types...>{&a, &b}, a.index());
-}
+    template<typename... Types>
+    constexpr variant_internal::RequireAllHaveNotEqualT<Types...> operator!=(
+            const variant<Types...> &a, const variant<Types...> &b) {
+        return (a.index() != b.index()) ||
+               variant_internal::VisitIndices<sizeof...(Types)>::Run(
+                       variant_internal::NotEqualsOp<Types...>{&a, &b}, a.index());
+    }
 
 // Less-than operator
-template <typename... Types>
-constexpr variant_internal::RequireAllHaveLessThanT<Types...> operator<(
-    const variant<Types...>& a, const variant<Types...>& b) {
-  return (a.index() != b.index())
-             ? (a.index() + 1) < (b.index() + 1)
-             : variant_internal::VisitIndices<sizeof...(Types)>::Run(
-                   variant_internal::LessThanOp<Types...>{&a, &b}, a.index());
-}
+    template<typename... Types>
+    constexpr variant_internal::RequireAllHaveLessThanT<Types...> operator<(
+            const variant<Types...> &a, const variant<Types...> &b) {
+        return (a.index() != b.index())
+               ? (a.index() + 1) < (b.index() + 1)
+               : variant_internal::VisitIndices<sizeof...(Types)>::Run(
+                        variant_internal::LessThanOp<Types...>{&a, &b}, a.index());
+    }
 
 // Greater-than operator
-template <typename... Types>
-constexpr variant_internal::RequireAllHaveGreaterThanT<Types...> operator>(
-    const variant<Types...>& a, const variant<Types...>& b) {
-  return (a.index() != b.index())
-             ? (a.index() + 1) > (b.index() + 1)
-             : variant_internal::VisitIndices<sizeof...(Types)>::Run(
-                   variant_internal::GreaterThanOp<Types...>{&a, &b},
-                   a.index());
-}
+    template<typename... Types>
+    constexpr variant_internal::RequireAllHaveGreaterThanT<Types...> operator>(
+            const variant<Types...> &a, const variant<Types...> &b) {
+        return (a.index() != b.index())
+               ? (a.index() + 1) > (b.index() + 1)
+               : variant_internal::VisitIndices<sizeof...(Types)>::Run(
+                        variant_internal::GreaterThanOp<Types...>{&a, &b},
+                        a.index());
+    }
 
 // Less-than or equal-to operator
-template <typename... Types>
-constexpr variant_internal::RequireAllHaveLessThanOrEqualT<Types...> operator<=(
-    const variant<Types...>& a, const variant<Types...>& b) {
-  return (a.index() != b.index())
-             ? (a.index() + 1) < (b.index() + 1)
-             : variant_internal::VisitIndices<sizeof...(Types)>::Run(
-                   variant_internal::LessThanOrEqualsOp<Types...>{&a, &b},
-                   a.index());
-}
+    template<typename... Types>
+    constexpr variant_internal::RequireAllHaveLessThanOrEqualT<Types...> operator<=(
+            const variant<Types...> &a, const variant<Types...> &b) {
+        return (a.index() != b.index())
+               ? (a.index() + 1) < (b.index() + 1)
+               : variant_internal::VisitIndices<sizeof...(Types)>::Run(
+                        variant_internal::LessThanOrEqualsOp<Types...>{&a, &b},
+                        a.index());
+    }
 
 // Greater-than or equal-to operator
-template <typename... Types>
-constexpr variant_internal::RequireAllHaveGreaterThanOrEqualT<Types...>
-operator>=(const variant<Types...>& a, const variant<Types...>& b) {
-  return (a.index() != b.index())
-             ? (a.index() + 1) > (b.index() + 1)
-             : variant_internal::VisitIndices<sizeof...(Types)>::Run(
-                   variant_internal::GreaterThanOrEqualsOp<Types...>{&a, &b},
-                   a.index());
-}
+    template<typename... Types>
+    constexpr variant_internal::RequireAllHaveGreaterThanOrEqualT<Types...>
+    operator>=(const variant<Types...> &a, const variant<Types...> &b) {
+        return (a.index() != b.index())
+               ? (a.index() + 1) > (b.index() + 1)
+               : variant_internal::VisitIndices<sizeof...(Types)>::Run(
+                        variant_internal::GreaterThanOrEqualsOp<Types...>{&a, &b},
+                        a.index());
+    }
 
 
 }  // namespace abel
@@ -789,15 +799,16 @@ operator>=(const variant<Types...>& a, const variant<Types...>& b) {
 namespace std {
 
 // hash()
-template <>  // NOLINT
-struct hash<abel::monostate> {
-  std::size_t operator()(abel::monostate) const { return 0; }
-};
+    template<>  // NOLINT
+    struct hash<abel::monostate> {
+        std::size_t operator()(abel::monostate) const { return 0; }
+    };
 
-template <class... T>  // NOLINT
-struct hash<abel::variant<T...>>
-    : abel::variant_internal::VariantHashBase<abel::variant<T...>, void,
-                                              abel::remove_const_t<T>...> {};
+    template<class... T>  // NOLINT
+    struct hash<abel::variant<T...>>
+            : abel::variant_internal::VariantHashBase<abel::variant<T...>, void,
+                    abel::remove_const_t<T>...> {
+    };
 
 }  // namespace std
 
@@ -805,19 +816,19 @@ struct hash<abel::variant<T...>>
 
 namespace abel {
 
-namespace variant_internal {
+    namespace variant_internal {
 
 // Helper visitor for converting a variant<Ts...>` into another type (mostly
 // variant) that can be constructed from any type.
-template <typename To>
-struct ConversionVisitor {
-  template <typename T>
-  To operator()(T&& v) const {
-    return To(std::forward<T>(v));
-  }
-};
+        template<typename To>
+        struct ConversionVisitor {
+            template<typename T>
+            To operator()(T &&v) const {
+                return To(std::forward<T>(v));
+            }
+        };
 
-}  // namespace variant_internal
+    }  // namespace variant_internal
 
 // ConvertVariantTo()
 //
@@ -834,11 +845,11 @@ struct ConversionVisitor {
 //     return abel::ConvertVariantTo<abel::variant<name, float>>(
 //              InternalReq(req));
 //   }
-template <typename To, typename Variant>
-To ConvertVariantTo(Variant&& variant) {
-  return abel::visit(variant_internal::ConversionVisitor<To>{},
-                     std::forward<Variant>(variant));
-}
+    template<typename To, typename Variant>
+    To ConvertVariantTo(Variant &&variant) {
+        return abel::visit(variant_internal::ConversionVisitor<To>{},
+                           std::forward<Variant>(variant));
+    }
 
 
 }  // namespace abel

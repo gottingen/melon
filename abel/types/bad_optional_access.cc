@@ -12,24 +12,24 @@
 namespace abel {
 
 
-bad_optional_access::~bad_optional_access() = default;
+    bad_optional_access::~bad_optional_access() = default;
 
-const char* bad_optional_access::what() const noexcept {
-  return "optional has no value";
-}
+    const char *bad_optional_access::what() const noexcept {
+        return "optional has no value";
+    }
 
-namespace optional_internal {
+    namespace optional_internal {
 
-void throw_bad_optional_access() {
+        void throw_bad_optional_access() {
 #ifdef ABEL_HAVE_EXCEPTIONS
-  throw bad_optional_access();
+            throw bad_optional_access();
 #else
-  ABEL_RAW_LOG(FATAL, "Bad optional access");
-  abort();
+            ABEL_RAW_LOG(FATAL, "Bad optional access");
+            abort();
 #endif
-}
+        }
 
-}  // namespace optional_internal
+    }  // namespace optional_internal
 
 }  // namespace abel
 

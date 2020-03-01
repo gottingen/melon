@@ -10,7 +10,7 @@ TEST(path_preferred_separator, fs_path_generic) {
     EXPECT_TRUE(fs::path::preferred_separator == '\\');
 #else
     EXPECT_TRUE(fs::path::preferred_separator
-                    == '/');
+                == '/');
 #endif
 }
 
@@ -18,9 +18,10 @@ TEST(path_preferred_separator, fs_path_generic) {
 TEST(path, has_root_name) {
     if (!has_host_root_name_support()) {
         EXPECT_TRUE(
-            "This implementation doesn't support path(\"//host\").has_root_name() == true [C++17 30.12.8.1 par. 4] on this platform, tests based on this are skipped. (Should be okay.)");
+                "This implementation doesn't support path(\"//host\").has_root_name() == true [C++17 30.12.8.1 par. 4] on this platform, tests based on this are skipped. (Should be okay.)");
     }
 }
+
 #endif
 
 TEST(path, ctor) {
@@ -75,12 +76,12 @@ TEST(path, ctor) {
 }
 
 TEST(path, assign) {
-    fs::path p1 {"/foo/bar"};
-    fs::path p2 {"/usr/local"};
+    fs::path p1{"/foo/bar"};
+    fs::path p2{"/usr/local"};
     fs::path p3;
     p3 = p1;
     EXPECT_TRUE(p1 == p3);
-    p3 = fs::path {"/usr/local"};
+    p3 = fs::path{"/usr/local"};
     EXPECT_TRUE(p2 == p3);
 #if defined(IS_WCHAR_PATH) || defined(ABEL_FS_USE_WCHAR_T)
     p3 = fs::path::string_type{L"/foo/bar"};
@@ -88,9 +89,9 @@ TEST(path, assign) {
         p3.assign(fs::path::string_type{L"/usr/local"});
         EXPECT_TRUE(p2 == p3);
 #else
-    p3 = fs::path::string_type {"/foo/bar"};
+    p3 = fs::path::string_type{"/foo/bar"};
     EXPECT_TRUE(p1 == p3);
-    p3.assign(fs::path::string_type {"/usr/local"});
+    p3.assign(fs::path::string_type{"/usr/local"});
     EXPECT_TRUE(p2 == p3);
 #endif
     p3 = std::u16string(u"/foo/bar");
@@ -99,7 +100,7 @@ TEST(path, assign) {
     EXPECT_TRUE(p2 == p3);
     p3.assign(std::u16string(u"/foo/bar"));
     EXPECT_TRUE(p1 == p3);
-    std::string s {"/usr/local"};
+    std::string s{"/usr/local"};
     p3.assign(s.begin(), s.end());
     EXPECT_TRUE(p2 == p3);
 }
@@ -122,8 +123,8 @@ TEST(path, append) {
     }
 #endif
     EXPECT_TRUE(fs::path("/foo/bar") / "some///other" == "/foo/bar/some/other");
-    fs::path p1 {"/tmp/test"};
-    fs::path p2 {"foobar.txt"};
+    fs::path p1{"/tmp/test"};
+    fs::path p2{"foobar.txt"};
     fs::path p3 = p1 / p2;
     EXPECT_TRUE("/tmp/test/foobar.txt" == p3);
 // TODO: append(first, last)
@@ -195,7 +196,7 @@ TEST(path, modifiers) {
     fs::path p1 = "foo";
     fs::path p2 = "bar";
     p1.
-        swap(p2);
+            swap(p2);
     EXPECT_TRUE(p1 == "bar");
     EXPECT_TRUE(p2 == "foo");
 }
@@ -224,9 +225,10 @@ TEST(path, observers) {
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").u8string() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").u16string() == std::u16string(u"\u00E4/\u20AC"));
     EXPECT_TRUE(
-        "This check might fail on GCC8 (with \"Illegal byte sequence\") due to not detecting the valid unicode codepoint U+1D11E.");
+            "This check might fail on GCC8 (with \"Illegal byte sequence\") due to not detecting the valid unicode codepoint U+1D11E.");
     EXPECT_TRUE(
-        fs::u8path("\xc3\xa4/\xe2\x82\xac\xf0\x9d\x84\x9e").u16string() == std::u16string(u"\u00E4/\u20AC\U0001D11E"));
+            fs::u8path("\xc3\xa4/\xe2\x82\xac\xf0\x9d\x84\x9e").u16string() ==
+            std::u16string(u"\u00E4/\u20AC\U0001D11E"));
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").u32string() == std::u32string(U"\U000000E4/\U000020AC"));
 #endif
 }
@@ -246,10 +248,10 @@ TEST(path, geobs) {
     EXPECT_TRUE(fs::u8path("\xc3\xa4\\\xe2\x82\xac").generic_u32string() == std::u32string(U"\U000000E4/\U000020AC"));
 #else
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_string() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
-    #if !defined(USE_STD_FS)
-        auto t = fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_string<char, std::char_traits<char>, TestAllocator<char>>();
-        EXPECT_TRUE(t.c_str() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
-    #endif
+#if !defined(USE_STD_FS)
+    auto t = fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_string<char, std::char_traits<char>, TestAllocator<char>>();
+    EXPECT_TRUE(t.c_str() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
+#endif
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_wstring() == std::wstring(L"ä/€"));
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_u8string() == std::string(u8"\xc3\xa4/\xe2\x82\xac"));
     EXPECT_TRUE(fs::u8path("\xc3\xa4/\xe2\x82\xac").generic_u16string() == std::u16string(u"\u00E4/\u20AC"));
@@ -404,8 +406,8 @@ TEST(path, decomposition) {
     EXPECT_TRUE(fs::path("..bar").extension() == ".bar");
 
     if (
-        has_host_root_name_support()
-        ) {
+            has_host_root_name_support()
+            ) {
 // //host-based root-names
         EXPECT_TRUE(fs::path("//host").root_name() == "//host");
         EXPECT_TRUE(fs::path("//host/foo").root_name() == "//host");
@@ -557,8 +559,8 @@ TEST(path, gen) {
 // lexically_proximate()
     EXPECT_TRUE(fs::path("/a/d").lexically_proximate("/a/b/c") == "../../d");
     if (
-        has_host_root_name_support()
-        ) {
+            has_host_root_name_support()
+            ) {
         EXPECT_TRUE(fs::path("//host1/a/d").lexically_proximate("//host2/a/b/c") == "//host1/a/d");
     }
     EXPECT_TRUE(fs::path("a/d").lexically_proximate("/a/b/c") == "a/d");
@@ -574,7 +576,7 @@ TEST(path, gen) {
 #endif
 }
 
-static std::string iterateResult (const fs::path &path) {
+static std::string iterateResult(const fs::path &path) {
     std::ostringstream result;
     for (fs::path::const_iterator i = path.begin(); i != path.end(); ++i) {
         if (i != path.begin()) {
@@ -585,7 +587,7 @@ static std::string iterateResult (const fs::path &path) {
     return result.str();
 }
 
-static std::string reverseIterateResult (const fs::path &path) {
+static std::string reverseIterateResult(const fs::path &path) {
     std::ostringstream result;
     fs::path::const_iterator iter = path.end();
     bool first = true;
@@ -642,9 +644,9 @@ TEST(path, iterators) {
         fs::path p2;
         for (
             auto pe
-            : p1) {
+                : p1) {
             p2 /=
-                pe;
+                    pe;
         }
         EXPECT_TRUE(p1 == p2);
         EXPECT_TRUE("bar" == *(--fs::path("/foo/bar").end()));
@@ -655,8 +657,8 @@ TEST(path, iterators) {
     }
 
     if (
-        has_host_root_name_support()
-        ) {
+            has_host_root_name_support()
+            ) {
         EXPECT_TRUE("foo" == *(--fs::path("//host/foo").end()));
         auto p = fs::path("//host/foo");
         auto pi = p.end();
@@ -671,9 +673,9 @@ TEST(path, iterators) {
             fs::path p2;
             for (
                 auto pe
-                : p1) {
+                    : p1) {
                 p2 /=
-                    pe;
+                        pe;
             }
             EXPECT_TRUE(p1 == p2);
         }

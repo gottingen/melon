@@ -7,13 +7,13 @@
 
 namespace abel {
 
-namespace debugging_internal {
+    namespace debugging_internal {
 
 // Return whether the byte at *addr is readable, without faulting.
 // Save and restores errno.
-bool address_is_readable(const void *addr);
+        bool address_is_readable(const void *addr);
 
-}  // namespace debugging_internal
+    }  // namespace debugging_internal
 
 }  // namespace abel
 

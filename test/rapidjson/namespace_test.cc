@@ -31,7 +31,7 @@
 
 static const char json[] = "{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3,4]}";
 
-TEST(NamespaceTest,Using) {
+TEST(NamespaceTest, Using) {
     using namespace RAPIDJSON_NAMESPACE;
     typedef GenericDocument<UTF8<>, CrtAllocator> DocumentType;
     DocumentType doc;
@@ -40,7 +40,7 @@ TEST(NamespaceTest,Using) {
     EXPECT_TRUE(!doc.HasParseError());
 }
 
-TEST(NamespaceTest,Direct) {
+TEST(NamespaceTest, Direct) {
     typedef RAPIDJSON_NAMESPACE::Document Document;
     typedef RAPIDJSON_NAMESPACE::Reader Reader;
     typedef RAPIDJSON_NAMESPACE::StringStream StringStream;
@@ -55,7 +55,7 @@ TEST(NamespaceTest,Direct) {
     reader.Parse(s, writer);
 
     EXPECT_STREQ(json, buffer.GetString());
-    EXPECT_EQ(sizeof(json)-1, buffer.GetSize());
+    EXPECT_EQ(sizeof(json) - 1, buffer.GetSize());
     EXPECT_TRUE(writer.IsComplete());
 
     Document doc;

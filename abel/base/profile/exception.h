@@ -4,11 +4,12 @@
 
 #ifndef ABEL_BASE_PROFILE_EXCEPTION_H_
 #define ABEL_BASE_PROFILE_EXCEPTION_H_
+
 #include <abel/base/profile/have.h>
 #include <cassert>
 
 #ifndef ABEL_ASSERT_MSG
-    #define ABEL_ASSERT_MSG(e, m) assert((e)&&(m))
+#define ABEL_ASSERT_MSG(e, m) assert((e)&&(m))
 #endif
 
 // ABEL_ASSERT()
@@ -33,19 +34,19 @@
 #endif
 
 #ifndef ABEL_FAIL_MSG
-    #define ABEL_FAIL_MSG(m) ABEL_ASSERT_MSG(false, (m))
+#define ABEL_FAIL_MSG(m) ABEL_ASSERT_MSG(false, (m))
 
 #endif
 
 #ifndef ABEL_STATIC_ASSERT_MSG
-    #define ABEL_STATIC_ASSERT_MSG(e, m) static_assert(e, #m)
+#define ABEL_STATIC_ASSERT_MSG(e, m) static_assert(e, #m)
 #endif
 
 #ifndef ABEL_STATIC_ASSERT
-    #define ABEL_STATIC_ASSERT(e) static_assert(e, #e)
+#define ABEL_STATIC_ASSERT(e) static_assert(e, #e)
 #endif
 #ifndef ABEL_THROW
-    #define ABEL_THROW(x) do { static_cast<void>(sizeof(x)); assert(false); } while(false);
+#define ABEL_THROW(x) do { static_cast<void>(sizeof(x)); assert(false); } while(false);
 #endif
 
 #ifdef ABEL_HAVE_EXCEPTIONS

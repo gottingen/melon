@@ -71,9 +71,9 @@
 namespace testing {
 
 // Declares Google Mock flags that we want a user to use programmatically.
-GMOCK_DECLARE_bool_(catch_leaked_mocks);
-GMOCK_DECLARE_string_(verbose);
-GMOCK_DECLARE_int32_(default_mock_behavior);
+    GMOCK_DECLARE_bool_(catch_leaked_mocks);
+    GMOCK_DECLARE_string_(verbose);
+    GMOCK_DECLARE_int32_(default_mock_behavior);
 
 // Initializes Google Mock.  This must be called before running the
 // tests.  In particular, it parses the command line for the flags
@@ -86,15 +86,15 @@ GMOCK_DECLARE_int32_(default_mock_behavior);
 // Since Google Test is needed for Google Mock to work, this function
 // also initializes Google Test and parses its flags, if that hasn't
 // been done.
-GTEST_API_ void InitGoogleMock(int* argc, char** argv);
+    GTEST_API_ void InitGoogleMock(int *argc, char **argv);
 
 // This overloaded version can be used in Windows programs compiled in
 // UNICODE mode.
-GTEST_API_ void InitGoogleMock(int* argc, wchar_t** argv);
+    GTEST_API_ void InitGoogleMock(int *argc, wchar_t **argv);
 
 // This overloaded version can be used on Arduino/embedded platforms where
 // there is no argc/argv.
-GTEST_API_ void InitGoogleMock();
+    GTEST_API_ void InitGoogleMock();
 
 }  // namespace testing
 

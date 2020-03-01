@@ -7,12 +7,11 @@
 
 #include <abel/meta/type_traits.h>
 #include <abel/random/internal/distribution_caller.h>
-#include <abel/random/internal/traits.h>
 #include <abel/random/internal/uniform_helper.h>
 
 namespace abel {
 
-namespace random_internal {
+    namespace random_internal {
 
 // In the absence of an explicitly provided return-type, the template
 // "uniform_inferred_return_t<A, B>" is used to derive a suitable type, based on
@@ -26,14 +25,14 @@ namespace random_internal {
 // If no such conversion between {A, B} exists, then the overload for
 // abel::Uniform() will be discarded, and the call will be ill-formed.
 // Return-type for abel::Uniform() when the return-type is inferred.
-template <typename A, typename B>
-using uniform_inferred_return_t =
-    abel::enable_if_t<abel::disjunction<is_widening_convertible<A, B>,
-                                        is_widening_convertible<B, A>>::value,
-                      typename std::conditional<
-                          is_widening_convertible<A, B>::value, B, A>::type>;
+        template<typename A, typename B>
+        using uniform_inferred_return_t =
+        abel::enable_if_t<abel::disjunction<abel::is_widening_convertible<A, B>,
+                is_widening_convertible<B, A>>::value,
+                typename std::conditional<
+                        is_widening_convertible<A, B>::value, B, A>::type>;
 
-}  // namespace random_internal
+    }  // namespace random_internal
 
 }  // namespace abel
 

@@ -11,12 +11,11 @@
 namespace abel {
 
 
-
-bool ends_with_case(abel::string_view text, abel::string_view suffix) {
-    if(text.size() >= suffix.size()) {
-        return abel::compare_case(text.substr(text.size() - suffix.size()), suffix) == 0;
+    bool ends_with_case(abel::string_view text, abel::string_view suffix) {
+        if (text.size() >= suffix.size()) {
+            return abel::compare_case(text.substr(text.size() - suffix.size()), suffix) == 0;
+        }
+        return false;
     }
-    return false;
-}
 
 } //namespace abel

@@ -28,13 +28,13 @@ namespace abel {
 //
 // Returns true if a leak-checking sanitizer (either ASan or standalone LSan) is
 // currently built into this target.
-bool HaveLeakSanitizer();
+    bool HaveLeakSanitizer();
 
 // DoIgnoreLeak()
 //
 // Implements `IgnoreLeak()` below. This function should usually
 // not be called directly; calling `IgnoreLeak()` is preferred.
-void DoIgnoreLeak(const void* ptr);
+    void DoIgnoreLeak(const void *ptr);
 
 // IgnoreLeak()
 //
@@ -51,11 +51,11 @@ void DoIgnoreLeak(const void* ptr);
 // time `IgnoreLeak()` is called, the call is a no-op; if it is actively
 // allocated, the object must not get deallocated later.
 //
-template <typename T>
-T* IgnoreLeak(T* ptr) {
-  DoIgnoreLeak(ptr);
-  return ptr;
-}
+    template<typename T>
+    T *IgnoreLeak(T *ptr) {
+        DoIgnoreLeak(ptr);
+        return ptr;
+    }
 
 // LeakCheckDisabler
 //
@@ -72,13 +72,16 @@ T* IgnoreLeak(T* ptr) {
 //   }
 //
 // REQUIRES: Destructor runs in same thread as constructor
-class LeakCheckDisabler {
- public:
-  LeakCheckDisabler();
-  LeakCheckDisabler(const LeakCheckDisabler&) = delete;
-  LeakCheckDisabler& operator=(const LeakCheckDisabler&) = delete;
-  ~LeakCheckDisabler();
-};
+    class LeakCheckDisabler {
+    public:
+        LeakCheckDisabler();
+
+        LeakCheckDisabler(const LeakCheckDisabler &) = delete;
+
+        LeakCheckDisabler &operator=(const LeakCheckDisabler &) = delete;
+
+        ~LeakCheckDisabler();
+    };
 
 // RegisterLivePointers()
 //
@@ -86,13 +89,13 @@ class LeakCheckDisabler {
 // referenced and for which leak checking should be ignored. This function is
 // useful if you store pointers in mapped memory, for memory ranges that we know
 // are correct but for which normal analysis would flag as leaked code.
-void RegisterLivePointers(const void* ptr, size_t size);
+    void RegisterLivePointers(const void *ptr, size_t size);
 
 // UnRegisterLivePointers()
 //
 // Deregisters the pointers previously marked as active in
 // `RegisterLivePointers()`, enabling leak checking of those pointers.
-void UnRegisterLivePointers(const void* ptr, size_t size);
+    void UnRegisterLivePointers(const void *ptr, size_t size);
 
 
 }  // namespace abel

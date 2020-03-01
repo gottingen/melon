@@ -11,7 +11,9 @@
 #define ABEL_FLAGS_STRIP_NAMES 1
 
 #elif defined(__APPLE__)
+
 #include <TargetConditionals.h>
+
 #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 #define ABEL_FLAGS_STRIP_NAMES 1
 #elif defined(TARGET_OS_EMBEDDED) && TARGET_OS_EMBEDDED

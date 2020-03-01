@@ -48,19 +48,22 @@ namespace abel {
 //   } catch(const abel::bad_variant_access& e) {
 //     std::cout << "Bad variant access: " << e.what() << '\n';
 //   }
-class bad_variant_access : public std::exception {
- public:
-  bad_variant_access() noexcept = default;
-  ~bad_variant_access() override;
-  const char* what() const noexcept override;
-};
+    class bad_variant_access : public std::exception {
+    public:
+        bad_variant_access() noexcept = default;
 
-namespace variant_internal {
+        ~bad_variant_access() override;
 
-[[noreturn]] void throw_bad_variant_access();
-[[noreturn]] void rethrow();
+        const char *what() const noexcept override;
+    };
 
-}  // namespace variant_internal
+    namespace variant_internal {
+
+        [[noreturn]] void throw_bad_variant_access();
+
+        [[noreturn]] void rethrow();
+
+    }  // namespace variant_internal
 
 }  // namespace abel
 

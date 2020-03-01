@@ -12,30 +12,33 @@
 #include <utility>
 
 namespace abel {
-namespace log {
-namespace details {
-struct log_msg {
-    log_msg () = default;
-    log_msg (const std::string *loggers_name, level::level_enum lvl)
-        : logger_name(loggers_name), level(lvl) {
-        time = abel::now();
-        thread_id = abel::thread_id();
-    }
+    namespace log {
+        namespace details {
+            struct log_msg {
+                log_msg() = default;
 
-    log_msg (const log_msg &other) = delete;
-    log_msg (log_msg &&other) = delete;
-    log_msg &operator = (log_msg &&other) = delete;
+                log_msg(const std::string *loggers_name, level::level_enum lvl)
+                        : logger_name(loggers_name), level(lvl) {
+                    time = abel::now();
+                    thread_id = abel::thread_id();
+                }
 
-    const std::string *logger_name {nullptr};
-    level::level_enum level;
-    abel::abel_time time;
-    size_t thread_id;
-    fmt::memory_buffer raw;
-    size_t msg_id {0};
-    // info about wrapping the formatted text with color
-    mutable size_t color_range_start {0};
-    mutable size_t color_range_end {0};
-};
-} // namespace details
-} //namespace log {
+                log_msg(const log_msg &other) = delete;
+
+                log_msg(log_msg &&other) = delete;
+
+                log_msg &operator=(log_msg &&other) = delete;
+
+                const std::string *logger_name{nullptr};
+                level::level_enum level;
+                abel::abel_time time;
+                size_t thread_id;
+                fmt::memory_buffer raw;
+                size_t msg_id{0};
+                // info about wrapping the formatted text with color
+                mutable size_t color_range_start{0};
+                mutable size_t color_range_end{0};
+            };
+        } // namespace details
+    } //namespace log {
 } // namespace abel

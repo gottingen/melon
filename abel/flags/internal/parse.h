@@ -16,22 +16,26 @@ ABEL_DECLARE_FLAG(std::vector<std::string>, undefok);
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
-enum class ArgvListAction { kRemoveParsedArgs, kKeepParsedArgs };
-enum class UsageFlagsAction { kHandleUsage, kIgnoreUsage };
-enum class OnUndefinedFlag {
-  kIgnoreUndefined,
-  kReportUndefined,
-  kAbortIfUndefined
-};
+        enum class ArgvListAction {
+            kRemoveParsedArgs, kKeepParsedArgs
+        };
+        enum class UsageFlagsAction {
+            kHandleUsage, kIgnoreUsage
+        };
+        enum class OnUndefinedFlag {
+            kIgnoreUndefined,
+            kReportUndefined,
+            kAbortIfUndefined
+        };
 
-std::vector<char*> ParseCommandLineImpl(int argc, char* argv[],
-                                        ArgvListAction arg_list_act,
-                                        UsageFlagsAction usage_flag_act,
-                                        OnUndefinedFlag on_undef_flag);
+        std::vector<char *> ParseCommandLineImpl(int argc, char *argv[],
+                                                 ArgvListAction arg_list_act,
+                                                 UsageFlagsAction usage_flag_act,
+                                                 OnUndefinedFlag on_undef_flag);
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 }  // namespace abel
 

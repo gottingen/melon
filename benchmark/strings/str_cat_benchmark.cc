@@ -10,119 +10,128 @@
 
 namespace {
 
-const char kStringOne[] = "Once Upon A abel_time, ";
-const char kStringTwo[] = "There was a std::string benchmark";
+    const char kStringOne[] = "Once Upon A abel_time, ";
+    const char kStringTwo[] = "There was a std::string benchmark";
 
 // We want to include negative numbers in the benchmark, so this function
 // is used to count 0, 1, -1, 2, -2, 3, -3, ...
-inline int IncrementAlternatingSign(int i) {
-  return i > 0 ? -i : 1 - i;
-}
-
-void BM_Sum_By_StrCat(benchmark::State& state) {
-  int i = 0;
-  char foo[100];
-  for (auto _ : state) {
-    // NOLINTNEXTLINE(runtime/printf)
-    strcpy(foo, abel::string_cat(kStringOne, i, kStringTwo, i * 65536ULL).c_str());
-    int sum = 0;
-    for (char* f = &foo[0]; *f != 0; ++f) {
-      sum += *f;
+    inline int IncrementAlternatingSign(int i) {
+        return i > 0 ? -i : 1 - i;
     }
-    benchmark::DoNotOptimize(sum);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_Sum_By_StrCat);
 
-void BM_StrCat_By_snprintf(benchmark::State& state) {
-  int i = 0;
-  char on_stack[1000];
-  for (auto _ : state) {
-    snprintf(on_stack, sizeof(on_stack), "%s %s:%d", kStringOne, kStringTwo, i);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_StrCat_By_snprintf);
+    void BM_Sum_By_StrCat(benchmark::State &state) {
+        int i = 0;
+        char foo[100];
+        for (auto _ : state) {
+            // NOLINTNEXTLINE(runtime/printf)
+            strcpy(foo, abel::string_cat(kStringOne, i, kStringTwo, i * 65536ULL).c_str());
+            int sum = 0;
+            for (char *f = &foo[0]; *f != 0; ++f) {
+                sum += *f;
+            }
+            benchmark::DoNotOptimize(sum);
+            i = IncrementAlternatingSign(i);
+        }
+    }
 
-void BM_StrCat_By_Strings(benchmark::State& state) {
-  int i = 0;
-  for (auto _ : state) {
-    std::string result =
-        std::string(kStringOne) + " " + kStringTwo + ":" + abel::string_cat(i);
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_StrCat_By_Strings);
+    BENCHMARK(BM_Sum_By_StrCat);
 
-void BM_StrCat_By_StringOpPlus(benchmark::State& state) {
-  int i = 0;
-  for (auto _ : state) {
-    std::string result = kStringOne;
-    result += " ";
-    result += kStringTwo;
-    result += ":";
-    result += abel::string_cat(i);
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_StrCat_By_StringOpPlus);
+    void BM_StrCat_By_snprintf(benchmark::State &state) {
+        int i = 0;
+        char on_stack[1000];
+        for (auto _ : state) {
+            snprintf(on_stack, sizeof(on_stack), "%s %s:%d", kStringOne, kStringTwo, i);
+            i = IncrementAlternatingSign(i);
+        }
+    }
 
-void BM_StrCat_By_StrCat(benchmark::State& state) {
-  int i = 0;
-  for (auto _ : state) {
-    std::string result = abel::string_cat(kStringOne, " ", kStringTwo, ":", i);
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_StrCat_By_StrCat);
+    BENCHMARK(BM_StrCat_By_snprintf);
 
-void BM_HexCat_By_StrCat(benchmark::State& state) {
-  int i = 0;
-  for (auto _ : state) {
-    std::string result =
-        abel::string_cat(kStringOne, " ", abel::hex(int64_t{i} + 0x10000000));
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_HexCat_By_StrCat);
+    void BM_StrCat_By_Strings(benchmark::State &state) {
+        int i = 0;
+        for (auto _ : state) {
+            std::string result =
+                    std::string(kStringOne) + " " + kStringTwo + ":" + abel::string_cat(i);
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
 
-void BM_HexCat_By_Substitute(benchmark::State& state) {
-  int i = 0;
-  for (auto _ : state) {
-    std::string result = abel::Substitute(
-        "$0 $1", kStringOne, reinterpret_cast<void*>(int64_t{i} + 0x10000000));
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_HexCat_By_Substitute);
+    BENCHMARK(BM_StrCat_By_Strings);
 
-void BM_FloatToString_By_StrCat(benchmark::State& state) {
-  int i = 0;
-  float foo = 0.0f;
-  for (auto _ : state) {
-    std::string result = abel::string_cat(foo += 1.001f, " != ", int64_t{i});
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_FloatToString_By_StrCat);
+    void BM_StrCat_By_StringOpPlus(benchmark::State &state) {
+        int i = 0;
+        for (auto _ : state) {
+            std::string result = kStringOne;
+            result += " ";
+            result += kStringTwo;
+            result += ":";
+            result += abel::string_cat(i);
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
 
-void BM_DoubleToString_By_SixDigits(benchmark::State& state) {
-  int i = 0;
-  double foo = 0.0;
-  for (auto _ : state) {
-    std::string result =
-        abel::string_cat(abel::SixDigits(foo += 1.001), " != ", int64_t{i});
-    benchmark::DoNotOptimize(result);
-    i = IncrementAlternatingSign(i);
-  }
-}
-BENCHMARK(BM_DoubleToString_By_SixDigits);
+    BENCHMARK(BM_StrCat_By_StringOpPlus);
+
+    void BM_StrCat_By_StrCat(benchmark::State &state) {
+        int i = 0;
+        for (auto _ : state) {
+            std::string result = abel::string_cat(kStringOne, " ", kStringTwo, ":", i);
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
+
+    BENCHMARK(BM_StrCat_By_StrCat);
+
+    void BM_HexCat_By_StrCat(benchmark::State &state) {
+        int i = 0;
+        for (auto _ : state) {
+            std::string result =
+                    abel::string_cat(kStringOne, " ", abel::hex(int64_t{i} + 0x10000000));
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
+
+    BENCHMARK(BM_HexCat_By_StrCat);
+
+    void BM_HexCat_By_Substitute(benchmark::State &state) {
+        int i = 0;
+        for (auto _ : state) {
+            std::string result = abel::Substitute(
+                    "$0 $1", kStringOne, reinterpret_cast<void *>(int64_t{i} + 0x10000000));
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
+
+    BENCHMARK(BM_HexCat_By_Substitute);
+
+    void BM_FloatToString_By_StrCat(benchmark::State &state) {
+        int i = 0;
+        float foo = 0.0f;
+        for (auto _ : state) {
+            std::string result = abel::string_cat(foo += 1.001f, " != ", int64_t{i});
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
+
+    BENCHMARK(BM_FloatToString_By_StrCat);
+
+    void BM_DoubleToString_By_SixDigits(benchmark::State &state) {
+        int i = 0;
+        double foo = 0.0;
+        for (auto _ : state) {
+            std::string result =
+                    abel::string_cat(abel::SixDigits(foo += 1.001), " != ", int64_t{i});
+            benchmark::DoNotOptimize(result);
+            i = IncrementAlternatingSign(i);
+        }
+    }
+
+    BENCHMARK(BM_DoubleToString_By_SixDigits);
 
 }  // namespace

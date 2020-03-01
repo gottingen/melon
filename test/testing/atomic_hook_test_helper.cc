@@ -6,13 +6,15 @@
 
 namespace abel {
 
-namespace atomic_hook_internal {
+    namespace atomic_hook_internal {
 
-ABEL_CONST_INIT abel::atomic_hook<VoidF> func(DefaultFunc);
-ABEL_CONST_INIT int default_func_calls = 0;
-void DefaultFunc () { default_func_calls++; }
-void RegisterFunc (VoidF f) { func.Store(f); }
+        ABEL_CONST_INIT abel::atomic_hook<VoidF> func(DefaultFunc);
+        ABEL_CONST_INIT int default_func_calls = 0;
 
-}  // namespace atomic_hook_internal
+        void DefaultFunc() { default_func_calls++; }
+
+        void RegisterFunc(VoidF f) { func.Store(f); }
+
+    }  // namespace atomic_hook_internal
 
 }  // namespace abel

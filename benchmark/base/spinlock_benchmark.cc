@@ -11,30 +11,36 @@
 
 namespace {
 
-template <abel::threading_internal::SchedulingMode scheduling_mode>
-static void BM_SpinLock(benchmark::State& state) {
-  // Ensure a ThreadIdentity is installed.
-  ABEL_INTERNAL_CHECK(
-      abel::synchronization_internal::GetOrCreateCurrentThreadIdentity() !=
-          nullptr,
-      "GetOrCreateCurrentThreadIdentity() failed");
+    template<abel::threading_internal::SchedulingMode scheduling_mode>
+    static void BM_SpinLock(benchmark::State &state) {
+        // Ensure a ThreadIdentity is installed.
+        ABEL_INTERNAL_CHECK(
+                abel::synchronization_internal::GetOrCreateCurrentThreadIdentity() !=
+                nullptr,
+                "GetOrCreateCurrentThreadIdentity() failed");
 
-  static auto* spinlock = new abel::threading_internal::SpinLock(scheduling_mode);
-  for (auto _ : state) {
-    abel::threading_internal::SpinLockHolder holder(spinlock);
-  }
-}
+        static auto *spinlock = new abel::threading_internal::SpinLock(scheduling_mode);
+        for (auto _ : state) {
+            abel::threading_internal::SpinLockHolder holder(spinlock);
+        }
+    }
 
-BENCHMARK_TEMPLATE(BM_SpinLock,
-                   abel::threading_internal::SCHEDULE_KERNEL_ONLY)
+    BENCHMARK_TEMPLATE(BM_SpinLock,
+            abel::threading_internal::SCHEDULE_KERNEL_ONLY
+    )
     ->UseRealTime()
     ->Threads(1)
-    ->ThreadPerCpu();
+    ->
 
-BENCHMARK_TEMPLATE(BM_SpinLock,
-                   abel::threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL)
+    ThreadPerCpu();
+
+    BENCHMARK_TEMPLATE(BM_SpinLock,
+            abel::threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL
+    )
     ->UseRealTime()
     ->Threads(1)
-    ->ThreadPerCpu();
+    ->
+
+    ThreadPerCpu();
 
 }  // namespace

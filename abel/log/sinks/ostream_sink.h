@@ -12,37 +12,39 @@
 #include <ostream>
 
 namespace abel {
-namespace log {
-namespace sinks {
-template<typename Mutex>
-class ostream_sink ABEL_INHERITANCE_FINAL : public base_sink<Mutex> {
-public:
-    explicit ostream_sink (std::ostream &os, bool force_flush = false)
-        : ostream_(os), force_flush_(force_flush) {
-    }
-    ostream_sink (const ostream_sink &) = delete;
-    ostream_sink &operator = (const ostream_sink &) = delete;
+    namespace log {
+        namespace sinks {
+            template<typename Mutex>
+            class ostream_sink ABEL_INHERITANCE_FINAL : public base_sink<Mutex> {
+            public:
+                explicit ostream_sink(std::ostream &os, bool force_flush = false)
+                        : ostream_(os), force_flush_(force_flush) {
+                }
 
-protected:
-    void sink_it_ (const details::log_msg &msg) override {
-        fmt::memory_buffer formatted;
-        sink::formatter_->format(msg, formatted);
-        ostream_.write(formatted.data(), formatted.size());
-        if (force_flush_)
-            ostream_.flush();
-    }
+                ostream_sink(const ostream_sink &) = delete;
 
-    void flush_ () override {
-        ostream_.flush();
-    }
+                ostream_sink &operator=(const ostream_sink &) = delete;
 
-    std::ostream &ostream_;
-    bool force_flush_;
-};
+            protected:
+                void sink_it_(const details::log_msg &msg) override {
+                    fmt::memory_buffer formatted;
+                    sink::formatter_->format(msg, formatted);
+                    ostream_.write(formatted.data(), formatted.size());
+                    if (force_flush_)
+                        ostream_.flush();
+                }
 
-using ostream_sink_mt = ostream_sink<std::mutex>;
-using ostream_sink_st = ostream_sink<details::null_mutex>;
+                void flush_() override {
+                    ostream_.flush();
+                }
 
-} // namespace sinks
-} //namespace log
+                std::ostream &ostream_;
+                bool force_flush_;
+            };
+
+            using ostream_sink_mt = ostream_sink<std::mutex>;
+            using ostream_sink_st = ostream_sink<details::null_mutex>;
+
+        } // namespace sinks
+    } //namespace log
 } // namespace abel

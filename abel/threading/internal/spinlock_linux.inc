@@ -36,19 +36,19 @@ static_assert(sizeof(std::atomic<uint32_t>) == sizeof(int),
 extern "C" {
 
 ABEL_WEAK void AbelInternalSpinLockDelay(
-    std::atomic<uint32_t> *w, uint32_t value, int loop,
-    abel::threading_internal::SchedulingMode) {
-  int save_errno = errno;
-  struct timespec tm;
-  tm.tv_sec = 0;
-  tm.tv_nsec = abel::threading_internal::SpinLockSuggestedDelayNS(loop);
-  syscall(SYS_futex, w, FUTEX_WAIT | FUTEX_PRIVATE_FLAG, value, &tm);
-  errno = save_errno;
+        std::atomic<uint32_t> *w, uint32_t value, int loop,
+        abel::threading_internal::SchedulingMode) {
+    int save_errno = errno;
+    struct timespec tm;
+    tm.tv_sec = 0;
+    tm.tv_nsec = abel::threading_internal::SpinLockSuggestedDelayNS(loop);
+    syscall(SYS_futex, w, FUTEX_WAIT | FUTEX_PRIVATE_FLAG, value, &tm);
+    errno = save_errno;
 }
 
 ABEL_WEAK void AbelInternalSpinLockWake(std::atomic<uint32_t> *w,
-                                                  bool all) {
-  syscall(SYS_futex, w, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, all ? INT_MAX : 1, 0);
+                                        bool all) {
+    syscall(SYS_futex, w, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, all ? INT_MAX : 1, 0);
 }
 
 }  // extern "C"

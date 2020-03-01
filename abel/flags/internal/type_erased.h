@@ -14,22 +14,22 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
 // If a flag named "name" exists, store its current value in *OUTPUT
 // and return true.  Else return false without changing *OUTPUT.
 // Thread-safe.
-bool GetCommandLineOption(abel::string_view name, std::string* value);
+        bool GetCommandLineOption(abel::string_view name, std::string *value);
 
 // Set the value of the flag named "name" to value.  If successful,
 // returns true.  If not successful (e.g., the flag was not found or
 // the value is not a valid value), returns false.
 // Thread-safe.
-bool SetCommandLineOption(abel::string_view name, abel::string_view value);
+        bool SetCommandLineOption(abel::string_view name, abel::string_view value);
 
-bool SetCommandLineOptionWithMode(abel::string_view name,
-                                  abel::string_view value,
-                                  FlagSettingMode set_mode);
+        bool SetCommandLineOptionWithMode(abel::string_view name,
+                                          abel::string_view value,
+                                          FlagSettingMode set_mode);
 
 //-----------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ bool SetCommandLineOptionWithMode(abel::string_view name,
 // (a) "name" names a registered flag
 // (b) "value" can be parsed succesfully according to the type of the flag
 // (c) parsed value passes any validator associated with the flag
-bool IsValidFlagValue(abel::string_view name, abel::string_view value);
+        bool IsValidFlagValue(abel::string_view name, abel::string_view value);
 
 //-----------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ bool IsValidFlagValue(abel::string_view name, abel::string_view value);
 // result of this function.  So for example, if a flag was passed on
 // the command line but then reset via SET_FLAGS_DEFAULT, this
 // function will still return true.
-bool SpecifiedOnCommandLine(abel::string_view name);
+        bool SpecifiedOnCommandLine(abel::string_view name);
 
 //-----------------------------------------------------------------------------
 
@@ -56,20 +56,20 @@ bool SpecifiedOnCommandLine(abel::string_view name);
 // its current value in *dst and return true.  Else return false
 // without touching *dst.  T must obey all of the requirements for
 // types passed to DEFINE_FLAG.
-template <typename T>
-ABEL_FORCE_INLINE bool GetByName(abel::string_view name, T* dst) {
-  CommandLineFlag* flag = flags_internal::FindCommandLineFlag(name);
-  if (!flag) return false;
+        template<typename T>
+        ABEL_FORCE_INLINE bool GetByName(abel::string_view name, T *dst) {
+            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            if (!flag) return false;
 
-  if (auto val = flag->Get<T>()) {
-    *dst = *val;
-    return true;
-  }
+            if (auto val = flag->Get<T>()) {
+                *dst = *val;
+                return true;
+            }
 
-  return false;
-}
+            return false;
+        }
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 }  // namespace abel
 

@@ -20,7 +20,7 @@ TEST(circular, erase) {
     buf.push_back(4);
     buf.push_back(5);
 
-    buf.erase(std::remove_if(buf.begin(), buf.end(), [] (int v) { return (v & 1) == 0; }), buf.end());
+    buf.erase(std::remove_if(buf.begin(), buf.end(), [](int v) { return (v & 1) == 0; }), buf.end());
 
     EXPECT_TRUE(buf.size() == 3);
     EXPECT_TRUE(!buf.empty());

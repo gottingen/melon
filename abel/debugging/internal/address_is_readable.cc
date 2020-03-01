@@ -9,12 +9,12 @@
 
 namespace abel {
 
-namespace debugging_internal {
+    namespace debugging_internal {
 
 // On platforms other than Linux, just return true.
-bool address_is_readable(const void* /* addr */) { return true; }
+        bool address_is_readable(const void * /* addr */) { return true; }
 
-}  // namespace debugging_internal
+    }  // namespace debugging_internal
 
 }  // namespace abel
 

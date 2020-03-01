@@ -7,7 +7,7 @@
 
 namespace abel {
 
-namespace flags_internal {
+    namespace flags_internal {
 
 // A portable interface that returns the basename of the filename passed as an
 // argument. It is similar to basename(3)
@@ -17,13 +17,13 @@ namespace flags_internal {
 // returns "file.cc"
 //     flags_internal::Basename("file.cc")
 // returns "file.cc"
-ABEL_FORCE_INLINE abel::string_view Basename(abel::string_view filename) {
-  auto last_slash_pos = filename.find_last_of("/\\");
+        ABEL_FORCE_INLINE abel::string_view Basename(abel::string_view filename) {
+            auto last_slash_pos = filename.find_last_of("/\\");
 
-  return last_slash_pos == abel::string_view::npos
-             ? filename
-             : filename.substr(last_slash_pos + 1);
-}
+            return last_slash_pos == abel::string_view::npos
+                   ? filename
+                   : filename.substr(last_slash_pos + 1);
+        }
 
 // A portable interface that returns the directory name of the filename
 // passed as an argument, including the trailing slash.
@@ -33,15 +33,15 @@ ABEL_FORCE_INLINE abel::string_view Basename(abel::string_view filename) {
 // returns "a/b/prog/"
 //      flags_internal::Package("file.cc")
 // returns ""
-ABEL_FORCE_INLINE abel::string_view Package(abel::string_view filename) {
-  auto last_slash_pos = filename.find_last_of("/\\");
+        ABEL_FORCE_INLINE abel::string_view Package(abel::string_view filename) {
+            auto last_slash_pos = filename.find_last_of("/\\");
 
-  return last_slash_pos == abel::string_view::npos
-             ? abel::string_view()
-             : filename.substr(0, last_slash_pos + 1);
-}
+            return last_slash_pos == abel::string_view::npos
+                   ? abel::string_view()
+                   : filename.substr(0, last_slash_pos + 1);
+        }
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 }  // namespace abel
 

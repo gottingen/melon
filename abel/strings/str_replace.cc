@@ -6,47 +6,47 @@
 
 namespace abel {
 
-namespace strings_internal {
+    namespace strings_internal {
 
-using FixedMapping =
-    std::initializer_list<std::pair<abel::string_view, abel::string_view>>;
+        using FixedMapping =
+        std::initializer_list<std::pair<abel::string_view, abel::string_view>>;
 
 // Applies the ViableSubstitutions in subs_ptr to the abel::string_view s, and
 // stores the result in *result_ptr. Returns the number of substitutions that
 // occurred.
-int apply_substitutions(
-    abel::string_view s,
-    std::vector<strings_internal::viable_substitution>* subs_ptr,
-    std::string* result_ptr) {
-  auto& subs = *subs_ptr;
-  int substitutions = 0;
-  size_t pos = 0;
-  while (!subs.empty()) {
-    auto& sub = subs.back();
-    if (sub.offset >= pos) {
-      if (pos <= s.size()) {
-        string_append(result_ptr, s.substr(pos, sub.offset - pos), sub.replacement);
-      }
-      pos = sub.offset + sub.old.size();
-      substitutions += 1;
-    }
-    sub.offset = s.find(sub.old, pos);
-    if (sub.offset == s.npos) {
-      subs.pop_back();
-    } else {
-      // Insertion sort to ensure the last viable_substitution continues to be
-      // before all the others.
-      size_t index = subs.size();
-      while (--index && subs[index - 1].OccursBefore(subs[index])) {
-        std::swap(subs[index], subs[index - 1]);
-      }
-    }
-  }
-  result_ptr->append(s.data() + pos, s.size() - pos);
-  return substitutions;
-}
+        int apply_substitutions(
+                abel::string_view s,
+                std::vector<strings_internal::viable_substitution> *subs_ptr,
+                std::string *result_ptr) {
+            auto &subs = *subs_ptr;
+            int substitutions = 0;
+            size_t pos = 0;
+            while (!subs.empty()) {
+                auto &sub = subs.back();
+                if (sub.offset >= pos) {
+                    if (pos <= s.size()) {
+                        string_append(result_ptr, s.substr(pos, sub.offset - pos), sub.replacement);
+                    }
+                    pos = sub.offset + sub.old.size();
+                    substitutions += 1;
+                }
+                sub.offset = s.find(sub.old, pos);
+                if (sub.offset == s.npos) {
+                    subs.pop_back();
+                } else {
+                    // Insertion sort to ensure the last viable_substitution continues to be
+                    // before all the others.
+                    size_t index = subs.size();
+                    while (--index && subs[index - 1].OccursBefore(subs[index])) {
+                        std::swap(subs[index], subs[index - 1]);
+                    }
+                }
+            }
+            result_ptr->append(s.data() + pos, s.size() - pos);
+            return substitutions;
+        }
 
-}  // namespace strings_internal
+    }  // namespace strings_internal
 
 // We can implement this in terms of the generic string_replace_all, but
 // we must specify the template overload because C++ cannot deduce the type
@@ -56,15 +56,15 @@ int apply_substitutions(
 // Note that we implement them here, rather than in the header, so that they
 // aren't inlined.
 
-std::string string_replace_all(abel::string_view s,
-                          strings_internal::FixedMapping replacements) {
-  return string_replace_all<strings_internal::FixedMapping>(s, replacements);
-}
+    std::string string_replace_all(abel::string_view s,
+                                   strings_internal::FixedMapping replacements) {
+        return string_replace_all<strings_internal::FixedMapping>(s, replacements);
+    }
 
-int string_replace_all(strings_internal::FixedMapping replacements,
-                  std::string* target) {
-  return string_replace_all<strings_internal::FixedMapping>(replacements, target);
-}
+    int string_replace_all(strings_internal::FixedMapping replacements,
+                           std::string *target) {
+        return string_replace_all<strings_internal::FixedMapping>(replacements, target);
+    }
 
 
 }  // namespace abel

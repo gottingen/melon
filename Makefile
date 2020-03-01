@@ -1,5 +1,5 @@
 
-.PHONY: test release debug install help .clean-build
+.PHONY: test release debug install help clean .clean-build
 .DEFAULT_GOAL := help
 
 build_folder = build
@@ -29,6 +29,10 @@ install: ## Install abel
 	@echo "install abel now ..."
 	@cd $(build_path); \
 	make install
+
+clean: ## Clean build
+	@echo "clean build.."
+	@rm -r $(build_path)
 
 .clean-build:
 	@echo "clean building env ..."

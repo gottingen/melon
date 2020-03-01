@@ -14,7 +14,8 @@ TEST(registry, drop) {
 TEST(registry,
      explicitRegistry) {
     abel::log::drop_all();
-    auto logger = std::make_shared<abel::log::logger>(tested_logger_name, std::make_shared<abel::log::sinks::null_sink_st>());
+    auto logger = std::make_shared<abel::log::logger>(tested_logger_name,
+                                                      std::make_shared<abel::log::sinks::null_sink_st>());
     abel::log::register_logger(logger);
     EXPECT_TRUE(abel::log::get(tested_logger_name) != nullptr);
     // Throw if registring existing name
@@ -23,19 +24,21 @@ TEST(registry,
 
 TEST(registry, apply) {
     abel::log::drop_all();
-    auto logger = std::make_shared<abel::log::logger>(tested_logger_name, std::make_shared<abel::log::sinks::null_sink_st>());
+    auto logger = std::make_shared<abel::log::logger>(tested_logger_name,
+                                                      std::make_shared<abel::log::sinks::null_sink_st>());
     abel::log::register_logger(logger);
     auto logger2 =
-        std::make_shared<abel::log::logger>(tested_logger_name2, std::make_shared<abel::log::sinks::null_sink_st>());
+            std::make_shared<abel::log::logger>(tested_logger_name2,
+                                                std::make_shared<abel::log::sinks::null_sink_st>());
     abel::log::register_logger(logger2);
 
     int counter = 0;
-    abel::log::apply_all([&counter] (std::shared_ptr<abel::log::logger> l) { counter++; });
+    abel::log::apply_all([&counter](std::shared_ptr<abel::log::logger> l) { counter++; });
     EXPECT_TRUE(counter == 2);
 
     counter = 0;
     abel::log::drop(tested_logger_name2);
-    abel::log::apply_all([&counter] (std::shared_ptr<abel::log::logger> l) {
+    abel::log::apply_all([&counter](std::shared_ptr<abel::log::logger> l) {
         EXPECT_TRUE(l->name() == tested_logger_name);
         counter++;
     });

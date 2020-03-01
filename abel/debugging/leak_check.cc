@@ -10,12 +10,17 @@
 
 namespace abel {
 
-bool HaveLeakSanitizer() { return false; }
-void DoIgnoreLeak(const void*) { }
-void RegisterLivePointers(const void*, size_t) { }
-void UnRegisterLivePointers(const void*, size_t) { }
-LeakCheckDisabler::LeakCheckDisabler() { }
-LeakCheckDisabler::~LeakCheckDisabler() { }
+    bool HaveLeakSanitizer() { return false; }
+
+    void DoIgnoreLeak(const void *) {}
+
+    void RegisterLivePointers(const void *, size_t) {}
+
+    void UnRegisterLivePointers(const void *, size_t) {}
+
+    LeakCheckDisabler::LeakCheckDisabler() {}
+
+    LeakCheckDisabler::~LeakCheckDisabler() {}
 
 }  // namespace abel
 

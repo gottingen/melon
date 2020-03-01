@@ -244,22 +244,22 @@
 
 namespace abel {
 
-namespace threading_internal {
+    namespace threading_internal {
 
 // Takes a reference to a guarded data member, and returns an unguarded
 // reference.
 // Do not used this function directly, use ABEL_TS_UNCHECKED_READ instead.
-template<typename T>
-ABEL_FORCE_INLINE const T &ts_unchecked_read (const T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
-    return v;
-}
+        template<typename T>
+        ABEL_FORCE_INLINE const T &ts_unchecked_read(const T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
+            return v;
+        }
 
-template<typename T>
-ABEL_FORCE_INLINE T &ts_unchecked_read (T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
-    return v;
-}
+        template<typename T>
+        ABEL_FORCE_INLINE T &ts_unchecked_read(T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
+            return v;
+        }
 
-}  // namespace threading_internal
+    }  // namespace threading_internal
 
 }  // namespace abel
 

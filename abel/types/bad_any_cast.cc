@@ -12,22 +12,22 @@
 namespace abel {
 
 
-bad_any_cast::~bad_any_cast() = default;
+    bad_any_cast::~bad_any_cast() = default;
 
-const char* bad_any_cast::what() const noexcept { return "Bad any cast"; }
+    const char *bad_any_cast::what() const noexcept { return "Bad any cast"; }
 
-namespace any_internal {
+    namespace any_internal {
 
-void ThrowBadAnyCast() {
+        void ThrowBadAnyCast() {
 #ifdef ABEL_HAVE_EXCEPTIONS
-  throw bad_any_cast();
+            throw bad_any_cast();
 #else
-  ABEL_RAW_LOG(FATAL, "Bad any cast");
-  std::abort();
+            ABEL_RAW_LOG(FATAL, "Bad any cast");
+            std::abort();
 #endif
-}
+        }
 
-}  // namespace any_internal
+    }  // namespace any_internal
 
 }  // namespace abel
 

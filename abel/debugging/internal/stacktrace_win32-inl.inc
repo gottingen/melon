@@ -27,45 +27,51 @@
 #include <windows.h>    // for GetProcAddress and GetModuleHandle
 #include <cassert>
 
-typedef USHORT NTAPI RtlCaptureStackBackTrace_Function(
-    IN ULONG frames_to_skip,
-    IN ULONG frames_to_capture,
-    OUT PVOID *backtrace,
-    OUT PULONG backtrace_hash);
+typedef USHORT NTAPI
+RtlCaptureStackBackTrace_Function(
+        IN
+ULONG frames_to_skip,
+        IN
+ULONG frames_to_capture,
+        OUT
+PVOID *backtrace,
+        OUT
+PULONG backtrace_hash
+);
 
 // Load the function we need at static init time, where we don't have
 // to worry about someone else holding the loader's lock.
-static RtlCaptureStackBackTrace_Function* const RtlCaptureStackBackTrace_fn =
-   (RtlCaptureStackBackTrace_Function*)
-   GetProcAddress(GetModuleHandleA("ntdll.dll"), "RtlCaptureStackBackTrace");
+static RtlCaptureStackBackTrace_Function *const RtlCaptureStackBackTrace_fn =
+        (RtlCaptureStackBackTrace_Function *)
+                GetProcAddress(GetModuleHandleA("ntdll.dll"), "RtlCaptureStackBackTrace");
 
-template <bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
-static int UnwindImpl(void** result, int* sizes, int max_depth, int skip_count,
-                      const void*, int* min_dropped_frames) {
-  int n = 0;
-  if (!RtlCaptureStackBackTrace_fn) {
-    // can't find a stacktrace with no function to call
-  } else {
-    n = (int)RtlCaptureStackBackTrace_fn(skip_count + 2, max_depth, result, 0);
-  }
-  if (IS_STACK_FRAMES) {
-    // No implementation for finding out the stack frame sizes yet.
-    memset(sizes, 0, sizeof(*sizes) * n);
-  }
-  if (min_dropped_frames != nullptr) {
-    // Not implemented.
-    *min_dropped_frames = 0;
-  }
-  return n;
+template<bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
+static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
+                      const void *, int *min_dropped_frames) {
+    int n = 0;
+    if (!RtlCaptureStackBackTrace_fn) {
+        // can't find a stacktrace with no function to call
+    } else {
+        n = (int) RtlCaptureStackBackTrace_fn(skip_count + 2, max_depth, result, 0);
+    }
+    if (IS_STACK_FRAMES) {
+        // No implementation for finding out the stack frame sizes yet.
+        memset(sizes, 0, sizeof(*sizes) * n);
+    }
+    if (min_dropped_frames != nullptr) {
+        // Not implemented.
+        *min_dropped_frames = 0;
+    }
+    return n;
 }
 
 namespace abel {
 
-namespace debugging_internal {
-bool StackTraceWorksForTest() {
-  return false;
-}
-}  // namespace debugging_internal
+    namespace debugging_internal {
+        bool StackTraceWorksForTest() {
+            return false;
+        }
+    }  // namespace debugging_internal
 
 }  // namespace abel
 

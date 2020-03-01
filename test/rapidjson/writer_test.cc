@@ -23,13 +23,15 @@
 using namespace rapidjson;
 
 TEST(Writer, Compact) {
-    StringStream s("{ \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3] } ");
+    StringStream s(
+            "{ \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3] } ");
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     buffer.ShrinkToFit();
     Reader reader;
     reader.Parse<0>(s, writer);
-    EXPECT_STREQ("{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3]}", buffer.GetString());
+    EXPECT_STREQ("{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3]}",
+                 buffer.GetString());
     EXPECT_EQ(77u, buffer.GetSize());
     EXPECT_TRUE(writer.IsComplete());
 }
@@ -102,7 +104,7 @@ TEST(Writer, ScanWriteUnescapedString) {
 
     // Use different offset to test different alignments
     for (int i = 0; i < 32; i++) {
-        char* p = buffer2 + i;
+        char *p = buffer2 + i;
         memcpy(p, json, sizeof(json));
         TEST_ROUNDTRIP(p);
     }
@@ -122,8 +124,8 @@ TEST(Writer, Double) {
 }
 
 // UTF8 -> TargetEncoding -> UTF8
-template <typename TargetEncoding>
-void TestTranscode(const char* json) {
+template<typename TargetEncoding>
+void TestTranscode(const char *json) {
     StringStream s(json);
     GenericStringBuffer<TargetEncoding> buffer;
     Writer<GenericStringBuffer<TargetEncoding>, UTF8<>, TargetEncoding> writer(buffer);
@@ -155,7 +157,7 @@ TEST(Writer, Transcode) {
     TestTranscode<UTF32<> >(json);
 
     // UTF8 -> AutoUTF -> UTF8
-    UTFType types[] = { kUTF8, kUTF16LE , kUTF16BE, kUTF32LE , kUTF32BE };
+    UTFType types[] = {kUTF8, kUTF16LE, kUTF16BE, kUTF32LE, kUTF32BE};
     for (size_t i = 0; i < 5; i++) {
         StringStream s(json);
         MemoryBuffer buffer;
@@ -182,37 +184,58 @@ class OStreamWrapper {
 public:
     typedef char Ch;
 
-    OStreamWrapper(std::ostream& os) : os_(os) {}
+    OStreamWrapper(std::ostream &os) : os_(os) {}
 
-    Ch Peek() const { assert(false); return '\0'; }
-    Ch Take() { assert(false); return '\0'; }
+    Ch Peek() const {
+        assert(false);
+        return '\0';
+    }
+
+    Ch Take() {
+        assert(false);
+        return '\0';
+    }
+
     size_t Tell() const { return 0; }
 
-    Ch* PutBegin() { assert(false); return 0; }
+    Ch *PutBegin() {
+        assert(false);
+        return 0;
+    }
+
     void Put(Ch c) { os_.put(c); }
+
     void Flush() { os_.flush(); }
-    size_t PutEnd(Ch*) { assert(false); return 0; }
+
+    size_t PutEnd(Ch *) {
+        assert(false);
+        return 0;
+    }
 
 private:
-    OStreamWrapper(const OStreamWrapper&);
-    OStreamWrapper& operator=(const OStreamWrapper&);
+    OStreamWrapper(const OStreamWrapper &);
 
-    std::ostream& os_;
+    OStreamWrapper &operator=(const OStreamWrapper &);
+
+    std::ostream &os_;
 };
 
 TEST(Writer, OStreamWrapper) {
-    StringStream s("{ \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3], \"u64\": 1234567890123456789, \"i64\":-1234567890123456789 } ");
-    
+    StringStream s(
+            "{ \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3], \"u64\": 1234567890123456789, \"i64\":-1234567890123456789 } ");
+
     std::stringstream ss;
     OStreamWrapper os(ss);
-    
+
     Writer<OStreamWrapper> writer(os);
 
     Reader reader;
     reader.Parse<0>(s, writer);
-    
+
     std::string actual = ss.str();
-    EXPECT_STREQ("{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3],\"u64\":1234567890123456789,\"i64\":-1234567890123456789}", actual.c_str());
+    EXPECT_STREQ(
+            "{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3],\"u64\":1234567890123456789,\"i64\":-1234567890123456789}",
+            actual.c_str());
 }
 
 TEST(Writer, AssertRootMayBeAnyValue) {
@@ -372,7 +395,7 @@ TEST(Writer, InvalidEncoding) {
     {
         StringBuffer buffer;
         Writer<StringBuffer, UTF32<> > writer(buffer);
-        static const UTF32<>::Ch s[] = { 0x110000, 0 }; // Out of U+0000 to U+10FFFF
+        static const UTF32<>::Ch s[] = {0x110000, 0}; // Out of U+0000 to U+10FFFF
         EXPECT_FALSE(writer.String(s));
     }
 
@@ -380,7 +403,7 @@ TEST(Writer, InvalidEncoding) {
     {
         StringBuffer buffer;
         Writer<StringBuffer, UTF32<>, ASCII<> > writer(buffer);
-        static const UTF32<>::Ch s[] = { 0x110000, 0 }; // Out of U+0000 to U+10FFFF
+        static const UTF32<>::Ch s[] = {0x110000, 0}; // Out of U+0000 to U+10FFFF
         EXPECT_FALSE(writer.String(s));
     }
 }

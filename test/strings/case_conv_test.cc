@@ -13,7 +13,6 @@
 #include <abel/base/profile.h>
 
 
-
 TEST(AsciiStrTo, Lower) {
     const char buf[] = "ABCDEF";
     const std::string str("GHIJKL");

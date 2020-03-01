@@ -34,68 +34,108 @@
 
 namespace {
 
-using ::testing::EmptyTestEventListener;
-using ::testing::InitGoogleTest;
-using ::testing::Message;
-using ::testing::Test;
-using ::testing::TestEventListeners;
-using ::testing::TestInfo;
-using ::testing::UnitTest;
+    using ::testing::EmptyTestEventListener;
+    using ::testing::InitGoogleTest;
+    using ::testing::Message;
+    using ::testing::Test;
+    using ::testing::TestEventListeners;
+    using ::testing::TestInfo;
+    using ::testing::UnitTest;
 
 // The test methods are empty, as the sole purpose of this program is
 // to print the test names before/after shuffling.
 
-class A : public Test {};
-TEST_F(A, A) {}
-TEST_F(A, B) {}
+    class A : public Test {
+    };
 
-TEST(ADeathTest, A) {}
-TEST(ADeathTest, B) {}
-TEST(ADeathTest, C) {}
+    TEST_F(A, A
+    ) {
+}
+TEST_F(A, B
+) {
+}
 
-TEST(B, A) {}
-TEST(B, B) {}
-TEST(B, C) {}
-TEST(B, DISABLED_D) {}
-TEST(B, DISABLED_E) {}
+TEST(ADeathTest, A
+) {
+}
+TEST(ADeathTest, B
+) {
+}
+TEST(ADeathTest, C
+) {
+}
 
-TEST(BDeathTest, A) {}
-TEST(BDeathTest, B) {}
+TEST(B, A
+) {
+}
+TEST(B, B
+) {
+}
+TEST(B, C
+) {
+}
+TEST(B, DISABLED_D
+) {
+}
+TEST(B, DISABLED_E
+) {
+}
 
-TEST(C, A) {}
-TEST(C, B) {}
-TEST(C, C) {}
-TEST(C, DISABLED_D) {}
+TEST(BDeathTest, A
+) {
+}
+TEST(BDeathTest, B
+) {
+}
 
-TEST(CDeathTest, A) {}
+TEST(C, A
+) {
+}
+TEST(C, B
+) {
+}
+TEST(C, C
+) {
+}
+TEST(C, DISABLED_D
+) {
+}
 
-TEST(DISABLED_D, A) {}
-TEST(DISABLED_D, DISABLED_B) {}
+TEST(CDeathTest, A
+) {
+}
+
+TEST(DISABLED_D, A
+) {
+}
+TEST(DISABLED_D, DISABLED_B
+) {
+}
 
 // This printer prints the full test names only, starting each test
 // iteration with a "----" marker.
 class TestNamePrinter : public EmptyTestEventListener {
- public:
-  void OnTestIterationStart(const UnitTest& /* unit_test */,
-                            int /* iteration */) override {
-    printf("----\n");
-  }
+public:
+    void OnTestIterationStart(const UnitTest & /* unit_test */,
+                              int /* iteration */) override {
+        printf("----\n");
+    }
 
-  void OnTestStart(const TestInfo& test_info) override {
-    printf("%s.%s\n", test_info.test_case_name(), test_info.name());
-  }
+    void OnTestStart(const TestInfo &test_info) override {
+        printf("%s.%s\n", test_info.test_case_name(), test_info.name());
+    }
 };
 
 }  // namespace
 
 int main(int argc, char **argv) {
-  InitGoogleTest(&argc, argv);
+    InitGoogleTest(&argc, argv);
 
-  // Replaces the default printer with TestNamePrinter, which prints
-  // the test name only.
-  TestEventListeners& listeners = UnitTest::GetInstance()->listeners();
-  delete listeners.Release(listeners.default_result_printer());
-  listeners.Append(new TestNamePrinter);
+    // Replaces the default printer with TestNamePrinter, which prints
+    // the test name only.
+    TestEventListeners &listeners = UnitTest::GetInstance()->listeners();
+    delete listeners.Release(listeners.default_result_printer());
+    listeners.Append(new TestNamePrinter);
 
-  return RUN_ALL_TESTS();
+    return RUN_ALL_TESTS();
 }

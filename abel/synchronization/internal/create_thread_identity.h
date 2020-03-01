@@ -30,30 +30,30 @@
 
 namespace abel {
 
-namespace synchronization_internal {
+    namespace synchronization_internal {
 
 // Allocates and attaches a ThreadIdentity object for the calling thread.
 // For private use only.
-threading_internal::ThreadIdentity* CreateThreadIdentity();
+        threading_internal::ThreadIdentity *CreateThreadIdentity();
 
 // A per-thread destructor for reclaiming associated ThreadIdentity objects.
 // For private use only.
-void ReclaimThreadIdentity(void* v);
+        void ReclaimThreadIdentity(void *v);
 
 // Returns the ThreadIdentity object representing the calling thread; guaranteed
 // to be unique for its lifetime.  The returned object will remain valid for the
 // program's lifetime; although it may be re-assigned to a subsequent thread.
 // If one does not exist for the calling thread, allocate it now.
-ABEL_FORCE_INLINE threading_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentity() {
-    threading_internal::ThreadIdentity* identity =
-        threading_internal::CurrentThreadIdentityIfPresent();
-  if (ABEL_UNLIKELY(identity == nullptr)) {
-    return CreateThreadIdentity();
-  }
-  return identity;
-}
+        ABEL_FORCE_INLINE threading_internal::ThreadIdentity *GetOrCreateCurrentThreadIdentity() {
+            threading_internal::ThreadIdentity *identity =
+                    threading_internal::CurrentThreadIdentityIfPresent();
+            if (ABEL_UNLIKELY(identity == nullptr)) {
+                return CreateThreadIdentity();
+            }
+            return identity;
+        }
 
-}  // namespace synchronization_internal
+    }  // namespace synchronization_internal
 
 }  // namespace abel
 

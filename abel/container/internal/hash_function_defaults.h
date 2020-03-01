@@ -44,89 +44,100 @@
 
 namespace abel {
 
-namespace container_internal {
+    namespace container_internal {
 
 // The hash of an object of type T is computed by using abel::Hash.
-template <class T, class E = void>
-struct HashEq {
-  using Hash = abel::Hash<T>;
-  using Eq = std::equal_to<T>;
-};
+        template<class T, class E = void>
+        struct HashEq {
+            using Hash = abel::Hash<T>;
+            using Eq = std::equal_to<T>;
+        };
 
-struct StringHash {
-  using is_transparent = void;
+        struct StringHash {
+            using is_transparent = void;
 
-  size_t operator()(abel::string_view v) const {
-    return abel::Hash<abel::string_view>{}(v);
-  }
-};
+            size_t operator()(abel::string_view v) const {
+                return abel::Hash<abel::string_view>{}(v);
+            }
+        };
 
 // Supports heterogeneous lookup for string-like elements.
-struct StringHashEq {
-  using Hash = StringHash;
-  struct Eq {
-    using is_transparent = void;
-    bool operator()(abel::string_view lhs, abel::string_view rhs) const {
-      return lhs == rhs;
-    }
-  };
-};
+        struct StringHashEq {
+            using Hash = StringHash;
 
-template <>
-struct HashEq<std::string> : StringHashEq {};
-template <>
-struct HashEq<abel::string_view> : StringHashEq {};
+            struct Eq {
+                using is_transparent = void;
+
+                bool operator()(abel::string_view lhs, abel::string_view rhs) const {
+                    return lhs == rhs;
+                }
+            };
+        };
+
+        template<>
+        struct HashEq<std::string> : StringHashEq {
+        };
+        template<>
+        struct HashEq<abel::string_view> : StringHashEq {
+        };
 
 // Supports heterogeneous lookup for pointers and smart pointers.
-template <class T>
-struct HashEq<T*> {
-  struct Hash {
-    using is_transparent = void;
-    template <class U>
-    size_t operator()(const U& ptr) const {
-      return abel::Hash<const T*>{}(HashEq::ToPtr(ptr));
-    }
-  };
-  struct Eq {
-    using is_transparent = void;
-    template <class A, class B>
-    bool operator()(const A& a, const B& b) const {
-      return HashEq::ToPtr(a) == HashEq::ToPtr(b);
-    }
-  };
+        template<class T>
+        struct HashEq<T *> {
+            struct Hash {
+                using is_transparent = void;
 
- private:
-  static const T* ToPtr(const T* ptr) { return ptr; }
-  template <class U, class D>
-  static const T* ToPtr(const std::unique_ptr<U, D>& ptr) {
-    return ptr.get();
-  }
-  template <class U>
-  static const T* ToPtr(const std::shared_ptr<U>& ptr) {
-    return ptr.get();
-  }
-};
+                template<class U>
+                size_t operator()(const U &ptr) const {
+                    return abel::Hash<const T *>{}(HashEq::ToPtr(ptr));
+                }
+            };
 
-template <class T, class D>
-struct HashEq<std::unique_ptr<T, D>> : HashEq<T*> {};
-template <class T>
-struct HashEq<std::shared_ptr<T>> : HashEq<T*> {};
+            struct Eq {
+                using is_transparent = void;
+
+                template<class A, class B>
+                bool operator()(const A &a, const B &b) const {
+                    return HashEq::ToPtr(a) == HashEq::ToPtr(b);
+                }
+            };
+
+        private:
+            static const T *ToPtr(const T *ptr) { return ptr; }
+
+            template<class U, class D>
+            static const T *ToPtr(const std::unique_ptr<U, D> &ptr) {
+                return ptr.get();
+            }
+
+            template<class U>
+            static const T *ToPtr(const std::shared_ptr<U> &ptr) {
+                return ptr.get();
+            }
+        };
+
+        template<class T, class D>
+        struct HashEq<std::unique_ptr<T, D>> : HashEq<T *> {
+        };
+        template<class T>
+        struct HashEq<std::shared_ptr<T>> : HashEq<T *> {
+        };
 
 // This header's visibility is restricted.  If you need to access the default
 // hasher please use the container's ::hasher alias instead.
 //
 // Example: typename Hash = typename abel::flat_hash_map<K, V>::hasher
-template <class T>
-using hash_default_hash = typename container_internal::HashEq<T>::Hash;
+        template<class T>
+        using hash_default_hash = typename container_internal::HashEq<T>::Hash;
 
 // This header's visibility is restricted.  If you need to access the default
 // key equal please use the container's ::key_equal alias instead.
 //
 // Example: typename Eq = typename abel::flat_hash_map<K, V, Hash>::key_equal
-template <class T>
-using hash_default_eq = typename container_internal::HashEq<T>::Eq;
+        template<class T>
+        using hash_default_eq = typename container_internal::HashEq<T>::Eq;
 
-}  // namespace container_internal
+    }  // namespace container_internal
 
 }  // namespace abel
 

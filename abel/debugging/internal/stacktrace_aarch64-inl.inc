@@ -62,11 +62,11 @@ static const unsigned char* GetKernelRtSigreturnAddress() {
 // Compute the size of a stack frame in [low..high).  We assume that
 // low < high.  Return size of kUnknownFrameSize.
 template<typename T>
-static ABEL_FORCE_INLINE uintptr_t ComputeStackFrameSize(const T* low,
-                                              const T* high) {
-  const char* low_char_ptr = reinterpret_cast<const char *>(low);
-  const char* high_char_ptr = reinterpret_cast<const char *>(high);
-  return low < high ? high_char_ptr - low_char_ptr : kUnknownFrameSize;
+static ABEL_FORCE_INLINE uintptr_t ComputeStackFrameSize(const T *low,
+                                                         const T *high) {
+    const char *low_char_ptr = reinterpret_cast<const char *>(low);
+    const char *high_char_ptr = reinterpret_cast<const char *>(high);
+    return low < high ? high_char_ptr - low_char_ptr : kUnknownFrameSize;
 }
 
 // Given a pointer to a stack frame, locate and return the calling
@@ -75,117 +75,117 @@ static ABEL_FORCE_INLINE uintptr_t ComputeStackFrameSize(const T* low,
 // "STRICT_UNWINDING") to reduce the chance that a bad pointer is returned.
 template<bool STRICT_UNWINDING, bool WITH_CONTEXT>
 static void **NextStackFrame(void **old_frame_pointer, const void *uc) {
-  void **new_frame_pointer = reinterpret_cast<void**>(*old_frame_pointer);
-  bool check_frame_size = true;
+    void **new_frame_pointer = reinterpret_cast<void **>(*old_frame_pointer);
+    bool check_frame_size = true;
 
 #if defined(__linux__)
-  if (WITH_CONTEXT && uc != nullptr) {
-    // Check to see if next frame's return address is __kernel_rt_sigreturn.
-    if (old_frame_pointer[1] == GetKernelRtSigreturnAddress()) {
-      const ucontext_t *ucv = static_cast<const ucontext_t *>(uc);
-      // old_frame_pointer[0] is not suitable for unwinding, look at
-      // ucontext to discover frame pointer before signal.
-      void **const pre_signal_frame_pointer =
-          reinterpret_cast<void **>(ucv->uc_mcontext.regs[29]);
+    if (WITH_CONTEXT && uc != nullptr) {
+      // Check to see if next frame's return address is __kernel_rt_sigreturn.
+      if (old_frame_pointer[1] == GetKernelRtSigreturnAddress()) {
+        const ucontext_t *ucv = static_cast<const ucontext_t *>(uc);
+        // old_frame_pointer[0] is not suitable for unwinding, look at
+        // ucontext to discover frame pointer before signal.
+        void **const pre_signal_frame_pointer =
+            reinterpret_cast<void **>(ucv->uc_mcontext.regs[29]);
 
-      // Check that alleged frame pointer is actually readable. This is to
-      // prevent "double fault" in case we hit the first fault due to e.g.
-      // stack corruption.
-      if (!abel::debugging_internal::address_is_readable(
-              pre_signal_frame_pointer))
-        return nullptr;
+        // Check that alleged frame pointer is actually readable. This is to
+        // prevent "double fault" in case we hit the first fault due to e.g.
+        // stack corruption.
+        if (!abel::debugging_internal::address_is_readable(
+                pre_signal_frame_pointer))
+          return nullptr;
 
-      // Alleged frame pointer is readable, use it for further unwinding.
-      new_frame_pointer = pre_signal_frame_pointer;
+        // Alleged frame pointer is readable, use it for further unwinding.
+        new_frame_pointer = pre_signal_frame_pointer;
 
-      // Skip frame size check if we return from a signal. We may be using a
-      // an alternate stack for signals.
-      check_frame_size = false;
+        // Skip frame size check if we return from a signal. We may be using a
+        // an alternate stack for signals.
+        check_frame_size = false;
+      }
     }
-  }
 #endif
 
-  // aarch64 ABI requires stack pointer to be 16-byte-aligned.
-  if ((reinterpret_cast<uintptr_t>(new_frame_pointer) & 15) != 0)
-    return nullptr;
+    // aarch64 ABI requires stack pointer to be 16-byte-aligned.
+    if ((reinterpret_cast<uintptr_t>(new_frame_pointer) & 15) != 0)
+        return nullptr;
 
-  // Check frame size.  In strict mode, we assume frames to be under
-  // 100,000 bytes.  In non-strict mode, we relax the limit to 1MB.
-  if (check_frame_size) {
-    const uintptr_t max_size = STRICT_UNWINDING ? 100000 : 1000000;
-    const uintptr_t frame_size =
-        ComputeStackFrameSize(old_frame_pointer, new_frame_pointer);
-    if (frame_size == kUnknownFrameSize || frame_size > max_size)
-      return nullptr;
-  }
+    // Check frame size.  In strict mode, we assume frames to be under
+    // 100,000 bytes.  In non-strict mode, we relax the limit to 1MB.
+    if (check_frame_size) {
+        const uintptr_t max_size = STRICT_UNWINDING ? 100000 : 1000000;
+        const uintptr_t frame_size =
+                ComputeStackFrameSize(old_frame_pointer, new_frame_pointer);
+        if (frame_size == kUnknownFrameSize || frame_size > max_size)
+            return nullptr;
+    }
 
-  return new_frame_pointer;
+    return new_frame_pointer;
 }
 
-template <bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
-static int UnwindImpl(void** result, int* sizes, int max_depth, int skip_count,
+template<bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
+static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
                       const void *ucp, int *min_dropped_frames) {
 #ifdef __GNUC__
-  void **frame_pointer = reinterpret_cast<void**>(__builtin_frame_address(0));
+    void **frame_pointer = reinterpret_cast<void **>(__builtin_frame_address(0));
 #else
 # error reading stack point not yet supported on this platform.
 #endif
 
-  skip_count++;    // Skip the frame for this function.
-  int n = 0;
+    skip_count++;    // Skip the frame for this function.
+    int n = 0;
 
-  // The frame pointer points to low address of a frame.  The first 64-bit
-  // word of a frame points to the next frame up the call chain, which normally
-  // is just after the high address of the current frame.  The second word of
-  // a frame contains return adress of to the caller.   To find a pc value
-  // associated with the current frame, we need to go down a level in the call
-  // chain.  So we remember return the address of the last frame seen.  This
-  // does not work for the first stack frame, which belongs to UnwindImp() but
-  // we skip the frame for UnwindImp() anyway.
-  void* prev_return_address = nullptr;
+    // The frame pointer points to low address of a frame.  The first 64-bit
+    // word of a frame points to the next frame up the call chain, which normally
+    // is just after the high address of the current frame.  The second word of
+    // a frame contains return adress of to the caller.   To find a pc value
+    // associated with the current frame, we need to go down a level in the call
+    // chain.  So we remember return the address of the last frame seen.  This
+    // does not work for the first stack frame, which belongs to UnwindImp() but
+    // we skip the frame for UnwindImp() anyway.
+    void *prev_return_address = nullptr;
 
-  while (frame_pointer && n < max_depth) {
-    // The abel::GetStackFrames routine is called when we are in some
-    // informational context (the failure signal handler for example).
-    // Use the non-strict unwinding rules to produce a stack trace
-    // that is as complete as possible (even if it contains a few bogus
-    // entries in some rare cases).
-    void **next_frame_pointer =
-        NextStackFrame<!IS_STACK_FRAMES, IS_WITH_CONTEXT>(frame_pointer, ucp);
+    while (frame_pointer && n < max_depth) {
+        // The abel::GetStackFrames routine is called when we are in some
+        // informational context (the failure signal handler for example).
+        // Use the non-strict unwinding rules to produce a stack trace
+        // that is as complete as possible (even if it contains a few bogus
+        // entries in some rare cases).
+        void **next_frame_pointer =
+                NextStackFrame<!IS_STACK_FRAMES, IS_WITH_CONTEXT>(frame_pointer, ucp);
 
-    if (skip_count > 0) {
-      skip_count--;
-    } else {
-      result[n] = prev_return_address;
-      if (IS_STACK_FRAMES) {
-        sizes[n] = ComputeStackFrameSize(frame_pointer, next_frame_pointer);
-      }
-      n++;
+        if (skip_count > 0) {
+            skip_count--;
+        } else {
+            result[n] = prev_return_address;
+            if (IS_STACK_FRAMES) {
+                sizes[n] = ComputeStackFrameSize(frame_pointer, next_frame_pointer);
+            }
+            n++;
+        }
+        prev_return_address = frame_pointer[1];
+        frame_pointer = next_frame_pointer;
     }
-    prev_return_address = frame_pointer[1];
-    frame_pointer = next_frame_pointer;
-  }
-  if (min_dropped_frames != nullptr) {
-    // Implementation detail: we clamp the max of frames we are willing to
-    // count, so as not to spend too much time in the loop below.
-    const int kMaxUnwind = 200;
-    int j = 0;
-    for (; frame_pointer != nullptr && j < kMaxUnwind; j++) {
-      frame_pointer =
-          NextStackFrame<!IS_STACK_FRAMES, IS_WITH_CONTEXT>(frame_pointer, ucp);
+    if (min_dropped_frames != nullptr) {
+        // Implementation detail: we clamp the max of frames we are willing to
+        // count, so as not to spend too much time in the loop below.
+        const int kMaxUnwind = 200;
+        int j = 0;
+        for (; frame_pointer != nullptr && j < kMaxUnwind; j++) {
+            frame_pointer =
+                    NextStackFrame<!IS_STACK_FRAMES, IS_WITH_CONTEXT>(frame_pointer, ucp);
+        }
+        *min_dropped_frames = j;
     }
-    *min_dropped_frames = j;
-  }
-  return n;
+    return n;
 }
 
 namespace abel {
 
-namespace debugging_internal {
-bool StackTraceWorksForTest() {
-  return true;
-}
-}  // namespace debugging_internal
+    namespace debugging_internal {
+        bool StackTraceWorksForTest() {
+            return true;
+        }
+    }  // namespace debugging_internal
 
 }  // namespace abel
 

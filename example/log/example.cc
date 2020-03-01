@@ -1,19 +1,27 @@
 
 #include <iostream>
 
-void stdout_example ();
-void basic_example ();
-void rotating_example ();
-void daily_example ();
-void async_example ();
-void multi_sink_example ();
-void user_defined_example ();
-void err_handler_example ();
-void syslog_example ();
+void stdout_example();
+
+void basic_example();
+
+void rotating_example();
+
+void daily_example();
+
+void async_example();
+
+void multi_sink_example();
+
+void user_defined_example();
+
+void err_handler_example();
+
+void syslog_example();
 
 #include <abel/log/log.h>
 
-int main (int, char *[]) {
+int main(int, char *[]) {
 
     try {
         // console logging example
@@ -36,7 +44,7 @@ int main (int, char *[]) {
         abel::log::flush_every(std::chrono::seconds(3));
 
         // apply some function on all registered loggers
-        abel::log::apply_all([&] (std::shared_ptr<abel::log::logger> l) { l->info("End of example."); });
+        abel::log::apply_all([&](std::shared_ptr<abel::log::logger> l) { l->info("End of example."); });
 
         abel::log::shutdown();
     }
@@ -48,7 +56,8 @@ int main (int, char *[]) {
 }
 
 #include <abel/log/sinks/stdout_color_sinks.h>
-void stdout_example () {
+
+void stdout_example() {
     // create color multi threaded logger
     auto console = abel::log::stdout_color_mt("console");
     console->error("Some error message with arg: {}", 1);
@@ -82,25 +91,29 @@ void stdout_example () {
 }
 
 #include <abel/log/sinks/basic_file_sink.h>
-void basic_example () {
+
+void basic_example() {
     // Create basic file logger (not rotated)
     auto my_logger = abel::log::basic_logger_mt("basic_logger", "logs/basic-log.txt");
 }
 
 #include <abel/log/sinks/rotating_file_sink.h>
-void rotating_example () {
+
+void rotating_example() {
     // Create a file rotating logger with 5mb size max and 3 rotated files
     auto rotating_logger = abel::log::rotating_logger_mt("some_logger_name", "logs/rotating.txt", 1048576 * 5, 3);
 }
 
 #include <abel/log/sinks/daily_file_sink.h>
-void daily_example () {
+
+void daily_example() {
     // Create a daily logger - a new file is created every day on 2:30am
     auto daily_logger = abel::log::daily_logger_mt("daily_logger", "logs/daily.txt", 2, 30);
 }
 
 #include <abel/log/async.h>
-void async_example () {
+
+void async_example() {
     // default thread pool settings can be modified *before* creating the async logger:
     // abel::init_thread_pool(32768, 1); // queue with max 32k items 1 backing thread.
     auto async_file = abel::log::basic_logger_mt<abel::log::async_factory>("async_file_logger", "logs/async_log.txt");
@@ -115,7 +128,7 @@ void async_example () {
 // create logger with 2 targets with different log levels and formats
 // the console will show only warnings or errors, while the file will log all
 
-void multi_sink_example () {
+void multi_sink_example() {
     auto console_sink = std::make_shared<abel::log::sinks::stdout_color_sink_mt>();
     console_sink->set_level(abel::log::level::warn);
     console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");

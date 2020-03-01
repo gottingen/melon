@@ -45,155 +45,171 @@
 
 namespace abel {
 
-namespace threading_internal {
+    namespace threading_internal {
 
-class ABEL_LOCKABLE SpinLock {
-public:
-    SpinLock () : lockword_(kSpinLockCooperative) {
-        ABEL_TSAN_MUTEX_CREATE(this, __tsan_mutex_not_static);
-    }
+        class ABEL_LOCKABLE SpinLock {
+        public:
+            SpinLock() : lockword_(kSpinLockCooperative) {
+                ABEL_TSAN_MUTEX_CREATE(this, __tsan_mutex_not_static);
+            }
 
-    // Special constructor for use with static SpinLock objects.  E.g.,
-    //
-    //    static SpinLock lock(base_internal::kLinkerInitialized);
-    //
-    // When initialized using this constructor, we depend on the fact
-    // that the linker has already initialized the memory appropriately. The lock
-    // is initialized in non-cooperative mode.
-    //
-    // A SpinLock constructed like this can be freely used from global
-    // initializers without worrying about the order in which global
-    // initializers run.
-    explicit SpinLock (base_internal::LinkerInitialized) {
-        // Does nothing; lockword_ is already initialized
-        ABEL_TSAN_MUTEX_CREATE(this, 0);
-    }
+            // Special constructor for use with static SpinLock objects.  E.g.,
+            //
+            //    static SpinLock lock(base_internal::kLinkerInitialized);
+            //
+            // When initialized using this constructor, we depend on the fact
+            // that the linker has already initialized the memory appropriately. The lock
+            // is initialized in non-cooperative mode.
+            //
+            // A SpinLock constructed like this can be freely used from global
+            // initializers without worrying about the order in which global
+            // initializers run.
+            explicit SpinLock(base_internal::LinkerInitialized) {
+                // Does nothing; lockword_ is already initialized
+                ABEL_TSAN_MUTEX_CREATE(this, 0);
+            }
 
-    // Constructors that allow non-cooperative spinlocks to be created for use
-    // inside thread schedulers.  Normal clients should not use these.
-    explicit SpinLock (threading_internal::SchedulingMode mode);
-    SpinLock (base_internal::LinkerInitialized,
-              threading_internal::SchedulingMode mode);
+            // Constructors that allow non-cooperative spinlocks to be created for use
+            // inside thread schedulers.  Normal clients should not use these.
+            explicit SpinLock(threading_internal::SchedulingMode mode);
 
-    ~SpinLock () { ABEL_TSAN_MUTEX_DESTROY(this, __tsan_mutex_not_static); }
+            SpinLock(base_internal::LinkerInitialized,
+                     threading_internal::SchedulingMode mode);
 
-    // Acquire this SpinLock.
-    ABEL_FORCE_INLINE void lock () ABEL_EXCLUSIVE_LOCK_FUNCTION() {
-        ABEL_TSAN_MUTEX_PRE_LOCK(this, 0);
-        if (!TryLockImpl()) {
-            SlowLock();
-        }
-        ABEL_TSAN_MUTEX_POST_LOCK(this, 0, 0);
-    }
+            ~SpinLock() { ABEL_TSAN_MUTEX_DESTROY(this, __tsan_mutex_not_static); }
 
-    // Try to acquire this SpinLock without blocking and return true if the
-    // acquisition was successful.  If the lock was not acquired, false is
-    // returned.  If this SpinLock is free at the time of the call, try_lock
-    // will return true with high probability.
-    ABEL_FORCE_INLINE bool try_lock () ABEL_EXCLUSIVE_TRYLOCK_FUNCTION(true) {
-        ABEL_TSAN_MUTEX_PRE_LOCK(this, __tsan_mutex_try_lock);
-        bool res = TryLockImpl();
-        ABEL_TSAN_MUTEX_POST_LOCK(
-            this, __tsan_mutex_try_lock | (res ? 0 : __tsan_mutex_try_lock_failed),
-            0);
-        return res;
-    }
+            // Acquire this SpinLock.
+            ABEL_FORCE_INLINE void lock() ABEL_EXCLUSIVE_LOCK_FUNCTION() {
+                ABEL_TSAN_MUTEX_PRE_LOCK(this, 0);
+                if (!TryLockImpl()) {
+                    SlowLock();
+                }
+                ABEL_TSAN_MUTEX_POST_LOCK(this, 0, 0);
+            }
 
-    // Release this SpinLock, which must be held by the calling thread.
-    ABEL_FORCE_INLINE void unlock () ABEL_UNLOCK_FUNCTION() {
-        ABEL_TSAN_MUTEX_PRE_UNLOCK(this, 0);
-        uint32_t lock_value = lockword_.load(std::memory_order_relaxed);
-        lock_value = lockword_.exchange(lock_value & kSpinLockCooperative,
-                                        std::memory_order_release);
+            // Try to acquire this SpinLock without blocking and return true if the
+            // acquisition was successful.  If the lock was not acquired, false is
+            // returned.  If this SpinLock is free at the time of the call, try_lock
+            // will return true with high probability.
+            ABEL_FORCE_INLINE bool try_lock() ABEL_EXCLUSIVE_TRYLOCK_FUNCTION(true) {
+                ABEL_TSAN_MUTEX_PRE_LOCK(this, __tsan_mutex_try_lock);
+                bool res = TryLockImpl();
+                ABEL_TSAN_MUTEX_POST_LOCK(
+                        this, __tsan_mutex_try_lock | (res ? 0 : __tsan_mutex_try_lock_failed),
+                        0);
+                return res;
+            }
 
-        if ((lock_value & kSpinLockDisabledScheduling) != 0) {
-            threading_internal::SchedulingGuard::EnableRescheduling(true);
-        }
-        if ((lock_value & kWaitTimeMask) != 0) {
-            // Collect contentionz profile info, and speed the wakeup of any waiter.
-            // The wait_cycles value indicates how long this thread spent waiting
-            // for the lock.
-            SlowUnlock(lock_value);
-        }
-        ABEL_TSAN_MUTEX_POST_UNLOCK(this, 0);
-    }
+            // Release this SpinLock, which must be held by the calling thread.
+            ABEL_FORCE_INLINE void unlock() ABEL_UNLOCK_FUNCTION() {
+                ABEL_TSAN_MUTEX_PRE_UNLOCK(this, 0);
+                uint32_t lock_value = lockword_.load(std::memory_order_relaxed);
+                lock_value = lockword_.exchange(lock_value & kSpinLockCooperative,
+                                                std::memory_order_release);
 
-    // Determine if the lock is held.  When the lock is held by the invoking
-    // thread, true will always be returned. Intended to be used as
-    // CHECK(lock.IsHeld()).
-    ABEL_FORCE_INLINE bool IsHeld () const {
-        return (lockword_.load(std::memory_order_relaxed) & kSpinLockHeld) != 0;
-    }
+                if ((lock_value & kSpinLockDisabledScheduling) != 0) {
+                    threading_internal::SchedulingGuard::EnableRescheduling(true);
+                }
+                if ((lock_value & kWaitTimeMask) != 0) {
+                    // Collect contentionz profile info, and speed the wakeup of any waiter.
+                    // The wait_cycles value indicates how long this thread spent waiting
+                    // for the lock.
+                    SlowUnlock(lock_value);
+                }
+                ABEL_TSAN_MUTEX_POST_UNLOCK(this, 0);
+            }
 
-protected:
-    // These should not be exported except for testing.
+            // Determine if the lock is held.  When the lock is held by the invoking
+            // thread, true will always be returned. Intended to be used as
+            // CHECK(lock.IsHeld()).
+            ABEL_FORCE_INLINE bool IsHeld() const {
+                return (lockword_.load(std::memory_order_relaxed) & kSpinLockHeld) != 0;
+            }
 
-    // Store number of cycles between wait_start_time and wait_end_time in a
-    // lock value.
-    static uint32_t EncodeWaitCycles (int64_t wait_start_time,
-                                      int64_t wait_end_time);
+        protected:
+            // These should not be exported except for testing.
 
-    // Extract number of wait cycles in a lock value.
-    static uint64_t DecodeWaitCycles (uint32_t lock_value);
+            // Store number of cycles between wait_start_time and wait_end_time in a
+            // lock value.
+            static uint32_t EncodeWaitCycles(int64_t wait_start_time,
+                                             int64_t wait_end_time);
 
-    // Provide access to protected method above.  Use for testing only.
-    friend struct SpinLockTest;
+            // Extract number of wait cycles in a lock value.
+            static uint64_t DecodeWaitCycles(uint32_t lock_value);
 
-private:
-    // lockword_ is used to store the following:
-    //
-    // bit[0] encodes whether a lock is being held.
-    // bit[1] encodes whether a lock uses cooperative scheduling.
-    // bit[2] encodes whether a lock disables scheduling.
-    // bit[3:31] encodes time a lock spent on waiting as a 29-bit unsigned int.
-    enum { kSpinLockHeld = 1 };
-    enum { kSpinLockCooperative = 2 };
-    enum { kSpinLockDisabledScheduling = 4 };
-    enum { kSpinLockSleeper = 8 };
-    enum {
-        kWaitTimeMask =                      // Includes kSpinLockSleeper.
-        ~(kSpinLockHeld | kSpinLockCooperative | kSpinLockDisabledScheduling)
-    };
+            // Provide access to protected method above.  Use for testing only.
+            friend struct SpinLockTest;
 
-    // Returns true if the provided scheduling mode is cooperative.
-    static constexpr bool IsCooperative (
-        threading_internal::SchedulingMode scheduling_mode) {
-        return scheduling_mode == threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL;
-    }
+        private:
+            // lockword_ is used to store the following:
+            //
+            // bit[0] encodes whether a lock is being held.
+            // bit[1] encodes whether a lock uses cooperative scheduling.
+            // bit[2] encodes whether a lock disables scheduling.
+            // bit[3:31] encodes time a lock spent on waiting as a 29-bit unsigned int.
+            enum {
+                kSpinLockHeld = 1
+            };
+            enum {
+                kSpinLockCooperative = 2
+            };
+            enum {
+                kSpinLockDisabledScheduling = 4
+            };
+            enum {
+                kSpinLockSleeper = 8
+            };
+            enum {
+                kWaitTimeMask =                      // Includes kSpinLockSleeper.
+                ~(kSpinLockHeld | kSpinLockCooperative | kSpinLockDisabledScheduling)
+            };
 
-    uint32_t TryLockInternal (uint32_t lock_value, uint32_t wait_cycles);
-    void InitLinkerInitializedAndCooperative ();
-    void SlowLock () ABEL_COLD;
-    void SlowUnlock (uint32_t lock_value) ABEL_COLD;
-    uint32_t SpinLoop ();
+            // Returns true if the provided scheduling mode is cooperative.
+            static constexpr bool IsCooperative(
+                    threading_internal::SchedulingMode scheduling_mode) {
+                return scheduling_mode == threading_internal::SCHEDULE_COOPERATIVE_AND_KERNEL;
+            }
 
-    ABEL_FORCE_INLINE bool TryLockImpl () {
-        uint32_t lock_value = lockword_.load(std::memory_order_relaxed);
-        return (TryLockInternal(lock_value, 0) & kSpinLockHeld) == 0;
-    }
+            uint32_t TryLockInternal(uint32_t lock_value, uint32_t wait_cycles);
 
-    std::atomic<uint32_t> lockword_;
+            void InitLinkerInitializedAndCooperative();
 
-    SpinLock (const SpinLock &) = delete;
-    SpinLock &operator = (const SpinLock &) = delete;
-};
+            void SlowLock() ABEL_COLD;
+
+            void SlowUnlock(uint32_t lock_value) ABEL_COLD;
+
+            uint32_t SpinLoop();
+
+            ABEL_FORCE_INLINE bool TryLockImpl() {
+                uint32_t lock_value = lockword_.load(std::memory_order_relaxed);
+                return (TryLockInternal(lock_value, 0) & kSpinLockHeld) == 0;
+            }
+
+            std::atomic<uint32_t> lockword_;
+
+            SpinLock(const SpinLock &) = delete;
+
+            SpinLock &operator=(const SpinLock &) = delete;
+        };
 
 // Corresponding locker object that arranges to acquire a spinlock for
 // the duration of a C++ scope.
-class ABEL_SCOPED_LOCKABLE SpinLockHolder {
-public:
-    ABEL_FORCE_INLINE explicit SpinLockHolder (SpinLock *l) ABEL_EXCLUSIVE_LOCK_FUNCTION(l)
-        : lock_(l) {
-        l->lock();
-    }
-    ABEL_FORCE_INLINE ~SpinLockHolder () ABEL_UNLOCK_FUNCTION() { lock_->unlock(); }
+        class ABEL_SCOPED_LOCKABLE SpinLockHolder {
+        public:
+            ABEL_FORCE_INLINE explicit SpinLockHolder(SpinLock *l) ABEL_EXCLUSIVE_LOCK_FUNCTION(l)
+                    : lock_(l) {
+                l->lock();
+            }
 
-    SpinLockHolder (const SpinLockHolder &) = delete;
-    SpinLockHolder &operator = (const SpinLockHolder &) = delete;
+            ABEL_FORCE_INLINE ~SpinLockHolder() ABEL_UNLOCK_FUNCTION() { lock_->unlock(); }
 
-private:
-    SpinLock *lock_;
-};
+            SpinLockHolder(const SpinLockHolder &) = delete;
+
+            SpinLockHolder &operator=(const SpinLockHolder &) = delete;
+
+        private:
+            SpinLock *lock_;
+        };
 
 // Register a hook for profiling support.
 //
@@ -202,8 +218,8 @@ private:
 // and the number of wait cycles.  This is thread-safe, but only a single
 // profiler can be registered.  It is an error to call this function multiple
 // times with different arguments.
-void RegisterSpinLockProfiler (void (*fn) (const void *lock,
-                                           int64_t wait_cycles));
+        void RegisterSpinLockProfiler(void (*fn)(const void *lock,
+                                                 int64_t wait_cycles));
 
 //------------------------------------------------------------------------------
 // Public interface ends here.
@@ -211,32 +227,32 @@ void RegisterSpinLockProfiler (void (*fn) (const void *lock,
 
 // If (result & kSpinLockHeld) == 0, then *this was successfully locked.
 // Otherwise, returns last observed value for lockword_.
-ABEL_FORCE_INLINE uint32_t SpinLock::TryLockInternal (uint32_t lock_value,
-                                                      uint32_t wait_cycles) {
-    if ((lock_value & kSpinLockHeld) != 0) {
-        return lock_value;
-    }
+        ABEL_FORCE_INLINE uint32_t SpinLock::TryLockInternal(uint32_t lock_value,
+                                                             uint32_t wait_cycles) {
+            if ((lock_value & kSpinLockHeld) != 0) {
+                return lock_value;
+            }
 
-    uint32_t sched_disabled_bit = 0;
-    if ((lock_value & kSpinLockCooperative) == 0) {
-        // For non-cooperative locks we must make sure we mark ourselves as
-        // non-reschedulable before we attempt to CompareAndSwap.
-        if (threading_internal::SchedulingGuard::DisableRescheduling()) {
-            sched_disabled_bit = kSpinLockDisabledScheduling;
+            uint32_t sched_disabled_bit = 0;
+            if ((lock_value & kSpinLockCooperative) == 0) {
+                // For non-cooperative locks we must make sure we mark ourselves as
+                // non-reschedulable before we attempt to CompareAndSwap.
+                if (threading_internal::SchedulingGuard::DisableRescheduling()) {
+                    sched_disabled_bit = kSpinLockDisabledScheduling;
+                }
+            }
+
+            if (!lockword_.compare_exchange_strong(
+                    lock_value,
+                    kSpinLockHeld | lock_value | wait_cycles | sched_disabled_bit,
+                    std::memory_order_acquire, std::memory_order_relaxed)) {
+                threading_internal::SchedulingGuard::EnableRescheduling(sched_disabled_bit != 0);
+            }
+
+            return lock_value;
         }
-    }
 
-    if (!lockword_.compare_exchange_strong(
-        lock_value,
-        kSpinLockHeld | lock_value | wait_cycles | sched_disabled_bit,
-        std::memory_order_acquire, std::memory_order_relaxed)) {
-        threading_internal::SchedulingGuard::EnableRescheduling(sched_disabled_bit != 0);
-    }
-
-    return lock_value;
-}
-
-}  // namespace threading_internal
+    }  // namespace threading_internal
 
 }  // namespace abel
 

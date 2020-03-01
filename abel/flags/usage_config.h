@@ -43,69 +43,69 @@
 namespace abel {
 
 
-namespace flags_internal {
-using FlagKindFilter = std::function<bool (abel::string_view)>;
-}  // namespace flags_internal
+    namespace flags_internal {
+        using FlagKindFilter = std::function<bool(abel::string_view)>;
+    }  // namespace flags_internal
 
 // FlagsUsageConfig
 //
 // This structure contains the collection of callbacks for changing the behavior
 // of the usage reporting routines in abel Flags.
-struct FlagsUsageConfig {
-  // Returns true if flags defined in the given source code file should be
-  // reported with --helpshort flag. For example, if the file
-  // "path/to/my/code.cc" defines the flag "--my_flag", and
-  // contains_helpshort_flags("path/to/my/code.cc") returns true, invoking the
-  // program with --helpshort will include information about --my_flag in the
-  // program output.
-  flags_internal::FlagKindFilter contains_helpshort_flags;
+    struct FlagsUsageConfig {
+        // Returns true if flags defined in the given source code file should be
+        // reported with --helpshort flag. For example, if the file
+        // "path/to/my/code.cc" defines the flag "--my_flag", and
+        // contains_helpshort_flags("path/to/my/code.cc") returns true, invoking the
+        // program with --helpshort will include information about --my_flag in the
+        // program output.
+        flags_internal::FlagKindFilter contains_helpshort_flags;
 
-  // Returns true if flags defined in the filename should be reported with
-  // --help flag. For example, if the file
-  // "path/to/my/code.cc" defines the flag "--my_flag", and
-  // contains_help_flags("path/to/my/code.cc") returns true, invoking the
-  // program with --help will include information about --my_flag in the
-  // program output.
-  flags_internal::FlagKindFilter contains_help_flags;
+        // Returns true if flags defined in the filename should be reported with
+        // --help flag. For example, if the file
+        // "path/to/my/code.cc" defines the flag "--my_flag", and
+        // contains_help_flags("path/to/my/code.cc") returns true, invoking the
+        // program with --help will include information about --my_flag in the
+        // program output.
+        flags_internal::FlagKindFilter contains_help_flags;
 
-  // Returns true if flags defined in the filename should be reported with
-  // --helppackage flag. For example, if the file
-  // "path/to/my/code.cc" defines the flag "--my_flag", and
-  // contains_helppackage_flags("path/to/my/code.cc") returns true, invoking the
-  // program with --helppackage will include information about --my_flag in the
-  // program output.
-  flags_internal::FlagKindFilter contains_helppackage_flags;
+        // Returns true if flags defined in the filename should be reported with
+        // --helppackage flag. For example, if the file
+        // "path/to/my/code.cc" defines the flag "--my_flag", and
+        // contains_helppackage_flags("path/to/my/code.cc") returns true, invoking the
+        // program with --helppackage will include information about --my_flag in the
+        // program output.
+        flags_internal::FlagKindFilter contains_helppackage_flags;
 
-  // Generates std::string containing program version. This is the std::string reported
-  // when user specifies --version in a command line.
-  std::function<std::string()> version_string;
+        // Generates std::string containing program version. This is the std::string reported
+        // when user specifies --version in a command line.
+        std::function<std::string()> version_string;
 
-  // Normalizes the filename specific to the build system/filesystem used. This
-  // routine is used when we report the information about the flag definition
-  // location. For instance, if your build resides at some location you do not
-  // want to expose in the usage output, you can trim it to show only relevant
-  // part.
-  // For example:
-  //   normalize_filename("/my_company/some_long_path/src/project/file.cc")
-  // might produce
-  //   "project/file.cc".
-  std::function<std::string(abel::string_view)> normalize_filename;
-};
+        // Normalizes the filename specific to the build system/filesystem used. This
+        // routine is used when we report the information about the flag definition
+        // location. For instance, if your build resides at some location you do not
+        // want to expose in the usage output, you can trim it to show only relevant
+        // part.
+        // For example:
+        //   normalize_filename("/my_company/some_long_path/src/project/file.cc")
+        // might produce
+        //   "project/file.cc".
+        std::function<std::string(abel::string_view)> normalize_filename;
+    };
 
 // SetFlagsUsageConfig()
 //
 // Sets the usage reporting configuration callbacks. If any of the callbacks are
 // not set in usage_config instance, then the default value of the callback is
 // used.
-void SetFlagsUsageConfig(FlagsUsageConfig usage_config);
+    void SetFlagsUsageConfig(FlagsUsageConfig usage_config);
 
-namespace flags_internal {
+    namespace flags_internal {
 
-FlagsUsageConfig GetUsageConfig();
+        FlagsUsageConfig GetUsageConfig();
 
-void ReportUsageError(abel::string_view msg, bool is_fatal);
+        void ReportUsageError(abel::string_view msg, bool is_fatal);
 
-}  // namespace flags_internal
+    }  // namespace flags_internal
 
 }  // namespace abel
 

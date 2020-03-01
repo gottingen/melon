@@ -12,15 +12,16 @@
 #include <vector>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-class prometheus_serializer : public serializer {
-public:
-    using serializer::serializer;
-    void format (std::ostream &stdout, const std::vector<cache_metrics> &) const override;
-};
+        class prometheus_serializer : public serializer {
+        public:
+            using serializer::serializer;
 
-} //namespace metrics
+            void format(std::ostream &stdout, const std::vector<cache_metrics> &) const override;
+        };
+
+    } //namespace metrics
 } //namespace abel
 
 #endif //ABEL_METRICS_PROM_SERIALIZER_H_

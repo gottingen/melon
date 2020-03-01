@@ -13,32 +13,34 @@
 #include <vector>
 
 namespace abel {
-namespace metrics {
+    namespace metrics {
 
-class timer : public std::enable_shared_from_this<timer> {
-public:
-    void observe (abel::duration);
+        class timer : public std::enable_shared_from_this<timer> {
+        public:
+            void observe(abel::duration);
 
-    void observe (int64_t);
+            void observe(int64_t);
 
-    stop_watcher start ();
+            stop_watcher start();
 
-    cache_metrics collect () const noexcept;
+            cache_metrics collect() const noexcept;
 
-    static std::shared_ptr<timer> new_timer (const bucket &buckets);
+            static std::shared_ptr<timer> new_timer(const bucket &buckets);
 
-    void record (abel::abel_time start);
+            void record(abel::abel_time start);
 
-private:
-    timer (const bucket &buckets);
-private:
-    const bucket _bucket_boundaries;
-    std::vector<counter> _bucket_counts;
-    counter _sum;
-};
-typedef std::shared_ptr<timer> timer_ptr;
+        private:
+            timer(const bucket &buckets);
 
-} //namespace metrics
+        private:
+            const bucket _bucket_boundaries;
+            std::vector<counter> _bucket_counts;
+            counter _sum;
+        };
+
+        typedef std::shared_ptr<timer> timer_ptr;
+
+    } //namespace metrics
 } //namespace abel
 
 #endif //ABEL_ABEL_METRICS_TIMER_H_

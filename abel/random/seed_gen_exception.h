@@ -23,19 +23,21 @@ namespace abel {
 //------------------------------------------------------------------------------
 // SeedGenException
 //------------------------------------------------------------------------------
-class SeedGenException : public std::exception {
- public:
-  SeedGenException() = default;
-  ~SeedGenException() override;
-  const char* what() const noexcept override;
-};
+    class SeedGenException : public std::exception {
+    public:
+        SeedGenException() = default;
 
-namespace random_internal {
+        ~SeedGenException() override;
+
+        const char *what() const noexcept override;
+    };
+
+    namespace random_internal {
 
 // throw delegator
-[[noreturn]] void ThrowSeedGenException();
+        [[noreturn]] void ThrowSeedGenException();
 
-}  // namespace random_internal
+    }  // namespace random_internal
 
 }  // namespace abel
 
