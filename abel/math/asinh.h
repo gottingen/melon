@@ -7,6 +7,9 @@
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
+#include <abel/math/log.h>
+#include <abel/math/sqrt.h>
+#include <abel/math/abs.h>
 
 namespace abel {
 

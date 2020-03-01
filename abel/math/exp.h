@@ -11,6 +11,7 @@
 #include <abel/math/find_whole.h>
 #include <abel/math/pow_integer.h>
 #include <abel/math/find_fraction.h>
+#include <abel/math/abs.h>
 
 namespace abel {
 

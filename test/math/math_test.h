@@ -66,7 +66,7 @@
     } else if (err_val < 1e-14) {                                                   \
         test_success = true;                                                        \
     }                                                                               \
-    EXPECT_TRUE(test_success);}
+    EXPECT_TRUE(test_success)<<err_val;}
 
 
 #define MATH_TEST_EXPECT(abel_fn, expected_val, ...)                              \

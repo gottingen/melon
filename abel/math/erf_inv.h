@@ -9,6 +9,8 @@
 #include <abel/math/exp.h>
 #include <abel/math/max.h>
 #include <abel/math/min.h>
+#include <abel/math/abs.h>
+#include <abel/math/erf.h>
 
 namespace abel {
 

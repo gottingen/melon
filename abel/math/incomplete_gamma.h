@@ -12,6 +12,9 @@
 #include <abel/math/min.h>
 #include <abel/math/max.h>
 #include <abel/math/log_gamma.h>
+#include <abel/math/tgamma.h>
+#include <abel/math/log.h>
+#include <abel/math/exp.h>
 
 namespace abel {
 

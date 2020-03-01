@@ -8,7 +8,10 @@
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
 #include <abel/math//find_whole.h>
-
+#include <abel/math/abs.h>
+#include <abel/math/exp.h>
+#include <abel/math/log_gamma.h>
+#include <limits>
 
 namespace abel {
 

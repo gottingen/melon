@@ -10,6 +10,7 @@
 #include <abel/math/is_finit.h>
 #include <abel/math/sgn.h>
 #include <abel/math/find_whole.h>
+#include <abel/math/abs.h>
 
 namespace abel {
 

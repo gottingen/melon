@@ -8,6 +8,7 @@
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
 #include <abel/math/pow.h>
+#include <abel/math/abs.h>
 
 namespace abel {
 

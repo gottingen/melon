@@ -9,6 +9,7 @@
 #include <abel/math/is_nan.h>
 #include <abel/math/mantissa.h>
 #include <abel/math/find_exponent.h>
+#include <abel/math/abs.h>
 
 namespace abel {
 

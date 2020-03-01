@@ -8,6 +8,8 @@
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
 #include <abel/math/neg_zero.h>
+#include <abel/math/abs.h>
+#include <abel/math/atan.h>
 
 namespace abel {
     namespace math_internal {

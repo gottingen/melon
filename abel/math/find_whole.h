@@ -8,6 +8,7 @@
 #include <abel/math/option.h>
 #include <abel/math/floor.h>
 #include <abel/math/sgn.h>
+#include <abel/math/abs.h>
 
 namespace abel {
 
