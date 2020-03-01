@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <abel/base/profile.h>
 #include <memory>
+#include <limits>
 
 // MSVC constructibility traits do not detect destructor properties and so our
 // implementations should not use them as a source-of-truth.
