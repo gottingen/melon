@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_IS_EVEN_H
-#define ABEL_IS_EVEN_H
+#ifndef ABEL_MATH_IS_EVEN_H_
+#define ABEL_MATH_IS_EVEN_H_
 
 #include <abel/math/option.h>
 
@@ -19,4 +19,4 @@ namespace abel {
 
 } //namespace abel
 
-#endif //ABEL_IS_EVEN_H
+#endif //ABEL_MATH_IS_EVEN_H_

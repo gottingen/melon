@@ -2,7 +2,7 @@
 // Created by liyinbin on 2020/2/27.
 //
 
-#include <abel/statistics/periodic_sampler.h>
+#include <abel/stats/random/periodic_sampler.h>
 #include <atomic>
 
 namespace abel {

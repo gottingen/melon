@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_INCOMPLETE_BETA_H
-#define ABEL_INCOMPLETE_BETA_H
+#ifndef ABEL_MATH_INCOMPLETE_BETA_H_
+#define ABEL_MATH_INCOMPLETE_BETA_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_odd.h>
@@ -108,4 +108,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_INCOMPLETE_BETA_H
+#endif //ABEL_MATH_INCOMPLETE_BETA_H_

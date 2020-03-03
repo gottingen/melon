@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_LOG_PLUS_ONE_H
-#define ABEL_LOG_PLUS_ONE_H
+#ifndef ABEL_MATH_LOG_PLUS_ONE_H_
+#define ABEL_MATH_LOG_PLUS_ONE_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -39,4 +39,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_LOG_PLUS_ONE_H
+#endif //ABEL_MATH_LOG_PLUS_ONE_H_

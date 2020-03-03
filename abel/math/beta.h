@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_BETA_H
-#define ABEL_BETA_H
+#ifndef ABEL_MATH_BETA_H_
+#define ABEL_MATH_BETA_H_
 
 #include <abel/math/option.h>
 
@@ -14,4 +14,4 @@ namespace abel {
         return exp( lbeta(a,b) );
     }
 }
-#endif //ABEL_BETA_H
+#endif //ABEL_MATH_BETA_H_

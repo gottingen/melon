@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_ATAN_H
-#define ABEL_ATAN_H
+#ifndef ABEL_MATH_ATAN_H_
+#define ABEL_MATH_ATAN_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -81,4 +81,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_ATAN_H
+#endif //ABEL_MATH_ATAN_H_

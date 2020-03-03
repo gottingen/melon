@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_LOG_MULTIVARIATE_GAMMA_H
-#define ABEL_LOG_MULTIVARIATE_GAMMA_H
+#ifndef ABEL_MATH_LOG_MULTIVARIATE_GAMMA_H_
+#define ABEL_MATH_LOG_MULTIVARIATE_GAMMA_H_
 
 #include <abel/math/option.h>
 
@@ -30,4 +30,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_LOG_MULTIVARIATE_GAMMA_H
+#endif //ABEL_MATH_LOG_MULTIVARIATE_GAMMA_H_

@@ -1,6 +1,6 @@
 //
 
-#include <abel/statistics/periodic_sampler.h>
+#include <abel/stats/random/periodic_sampler.h>
 #include <thread>  // NOLINT(build/c++11)
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

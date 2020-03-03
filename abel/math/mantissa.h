@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_MANTISSA_H
-#define ABEL_MANTISSA_H
+#ifndef ABEL_MATH_MANTISSA_H_
+#define ABEL_MATH_MANTISSA_H_
 
 #include <abel/math/option.h>
 
@@ -19,4 +19,4 @@ namespace abel {
     } //namespace math_internal
 
 }
-#endif //ABEL_MANTISSA_H
+#endif //ABEL_MATH_MANTISSA_H_

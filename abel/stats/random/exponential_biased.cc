@@ -2,7 +2,7 @@
 // Created by liyinbin on 2020/2/27.
 //
 
-#include <abel/statistics/exponential_biased.h>
+#include <abel/stats/random/exponential_biased.h>
 #include <stdint.h>
 #include <algorithm>
 #include <atomic>

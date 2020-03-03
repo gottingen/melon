@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_MIN_H
-#define ABEL_MIN_H
+#ifndef ABEL_MATH_MIN_H_
+#define ABEL_MATH_MIN_H_
 
 #include <abel/math/option.h>
 
@@ -15,4 +15,4 @@ namespace abel {
     }
 } //namespace abel
 
-#endif //ABEL_MIN_H
+#endif //ABEL_MATH_MIN_H_

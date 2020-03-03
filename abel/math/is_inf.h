@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_IS_INF_H
-#define ABEL_IS_INF_H
+#ifndef ABEL_MATH_IS_INF_H_
+#define ABEL_MATH_IS_INF_H_
 
 #include <abel/math/option.h>
 
@@ -92,4 +92,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_IS_INF_H
+#endif //ABEL_MATH_IS_INF_H_

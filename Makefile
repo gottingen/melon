@@ -15,15 +15,15 @@ release: .clean-build ## Run tests with race detector
 	@echo "buiding release package ..."
 	@cd $(build_path); \
 		cmake .. -DCMAKE_BUILD_TYPE=Release; \
-		make; \
-		cpack --verbose
+		make -j2; \
+		make package
 
 debug: .clean-build ## Generate test coverage report
 	@echo "buiding debug package ..."
 	@cd $(build_path); \
     		cmake .. -DCMAKE_BUILD_TYPE=Debug; \
-    		make; \
-    		cpack --verbose
+    		make -j2; \
+    		make package
 
 install: ## Install abel
 	@echo "install abel now ..."

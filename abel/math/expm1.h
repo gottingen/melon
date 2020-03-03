@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_EXPM1_H
-#define ABEL_EXPM1_H
+#ifndef ABEL_MATH_EXPM1_H_
+#define ABEL_MATH_EXPM1_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -35,4 +35,4 @@ namespace abel {
 
 
 }
-#endif //ABEL_EXPM1_H
+#endif //ABEL_MATH_EXPM1_H_

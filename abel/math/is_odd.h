@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_IS_ODD_H
-#define ABEL_IS_ODD_H
+#ifndef ABEL_MATH_IS_ODD_H_
+#define ABEL_MATH_IS_ODD_H_
 
 #include <abel/math/option.h>
 

@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_LCM_H
-#define ABEL_LCM_H
+#ifndef ABEL_MATH_LCM_H_
+#define ABEL_MATH_LCM_H_
 
 #include <abel/math/option.h>
 #include <abel/math/gcd.h>
@@ -31,4 +31,4 @@ namespace abel {
         return math_internal::lcm_type_check(a, b);
     }
 }
-#endif //ABEL_LCM_H
+#endif //ABEL_MATH_LCM_H_

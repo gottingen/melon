@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_LOG_H
-#define ABEL_LOG_H
+#ifndef ABEL_MATH_LOG_H_
+#define ABEL_MATH_LOG_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -231,6 +231,22 @@ namespace abel {
         return n * logn - n + 0.5 * (kLog2PI + logn) + (1.0 / 12.0) * ninv -
                (1.0 / 360.0) * ninv * ninv * ninv;
     }
+
+    template<typename T>
+    ABEL_CONSTEXPR T log_if(const T x, const bool log_form) ABEL_NOEXCEPT {
+        return log_form ? abel::log(x) : x;
+    }
+
+    template<typename T>
+    ABEL_CONSTEXPR T log_zero_if(const bool log_form) ABEL_NOEXCEPT {
+        return log_form ? - std::numeric_limits<T>::infinity() : T(0);
+    }
+
+    template<typename T>
+    ABEL_CONSTEXPR T log_one_if(const bool log_form) ABEL_NOEXCEPT {
+        return log_form ? T(0) : T(1);
+    }
+
 } //namespace abel
 
-#endif //ABEL_LOG_H
+#endif //ABEL_MATH_LOG_H_

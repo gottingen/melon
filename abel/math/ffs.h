@@ -2,8 +2,8 @@
 // Created by liyinbin on 2019/12/8.
 //
 
-#ifndef ABEL_BASE_MATH_FFS_H_
-#define ABEL_BASE_MATH_FFS_H_
+#ifndef ABEL_MATH_FFS_H_
+#define ABEL_MATH_FFS_H_
 
 #include <abel/base/profile.h>
 
@@ -99,4 +99,4 @@ namespace abel {
 #endif
 } //namespace abel
 
-#endif //ABEL_BASE_MATH_FFS_H_
+#endif //ABEL_MATH_FFS_H_

@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/3/1.
 //
 
-#ifndef ABEL_BIT_FLOOR_H
-#define ABEL_BIT_FLOOR_H
+#ifndef ABEL_MATH_BIT_FLOOR_H_
+#define ABEL_MATH_BIT_FLOOR_H_
 
 namespace abel {
 
@@ -16,7 +16,7 @@ namespace abel {
         result += (result == 0);
 
         result--;
-        for (index_t i = 0; i < stdgpu::numeric_limits<T>::digits; ++i) {
+        for (size_t i = 0; i < std::numeric_limits<T>::digits; ++i) {
             result |= result >> i;
         }
         result++;
@@ -30,4 +30,4 @@ namespace abel {
 
 } //namespace abel
 
-#endif //ABEL_BIT_FLOOR_H
+#endif //ABEL_MATH_BIT_FLOOR_H_
