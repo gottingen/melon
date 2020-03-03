@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_ATANH_H
-#define ABEL_ATANH_H
+#ifndef ABEL_MATH_ATANH_H_
+#define ABEL_MATH_ATANH_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -38,4 +38,4 @@ namespace abel {
         return math_internal::atanh_check(static_cast<return_t<T>>(x));
     }
 }
-#endif //ABEL_ATANH_H
+#endif //ABEL_MATH_ATANH_H_

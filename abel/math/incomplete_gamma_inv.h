@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_INCOMPLETE_GAMA_INV_H
-#define ABEL_INCOMPLETE_GAMA_INV_H
+#ifndef ABEL_MATH_INCOMPLETE_GAMA_INV_H_
+#define ABEL_MATH_INCOMPLETE_GAMA_INV_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -171,4 +171,4 @@ namespace abel {
 
 } //namespace abel
 
-#endif //ABEL_INCOMPLETE_GAMA_INV_H
+#endif //ABEL_MATH_INCOMPLETE_GAMA_INV_H_

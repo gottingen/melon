@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/1.
 //
 
-#ifndef ABEL_BASE_MATH_ALIGN_H_
-#define ABEL_BASE_MATH_ALIGN_H_
+#ifndef ABEL_MATH_ALIGN_H_
+#define ABEL_MATH_ALIGN_H_
 
 #include <abel/base/profile.h>
 #include <cstdint>
@@ -38,4 +38,4 @@ namespace able {
     }
 } //namespace abel
 
-#endif //ABEL_BASE_MATH_ALIGN_H_
+#endif //ABEL_MATH_ALIGN_H_

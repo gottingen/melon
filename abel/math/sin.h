@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_SIN_H
-#define ABEL_SIN_H
+#ifndef ABEL_MATH_SIN_H_
+#define ABEL_MATH_SIN_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -44,4 +44,4 @@ namespace abel {
         return math_internal::sin_check(static_cast<return_t<T>>(x));
     }
 }
-#endif //ABEL_SIN_H
+#endif //ABEL_MATH_SIN_H_

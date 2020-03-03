@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_GCD_H
-#define ABEL_GCD_H
+#ifndef ABEL_MATH_GCD_H_
+#define ABEL_MATH_GCD_H_
 
 #include <abel/math/option.h>
 

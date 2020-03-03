@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_NEG_ZERO_H
-#define ABEL_NEG_ZERO_H
+#ifndef ABEL_MATH_NEG_ZERO_H_
+#define ABEL_MATH_NEG_ZERO_H_
 
 #include <abel/math/option.h>
 
@@ -20,4 +20,4 @@ namespace abel {
     } //namespace math_internal
 
 }
-#endif //ABEL_NEG_ZERO_H
+#endif //ABEL_MATH_NEG_ZERO_H_

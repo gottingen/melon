@@ -1,7 +1,7 @@
 //
 
 #include <benchmark/benchmark.h>
-#include <abel/statistics/periodic_sampler.h>
+#include <abel/stats/random/periodic_sampler.h>
 
 namespace abel {
 

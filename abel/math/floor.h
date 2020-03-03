@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_FLOOR_H
-#define ABEL_FLOOR_H
+#ifndef ABEL_MATH_FLOOR_H_
+#define ABEL_MATH_FLOOR_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -40,4 +40,4 @@ namespace abel {
         return math_internal::floor_check(static_cast<return_t<T>>(x));
     }
 }
-#endif //ABEL_FLOOR_H
+#endif //ABEL_MATH_FLOOR_H_

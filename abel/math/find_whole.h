@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_FIND_WHOLE_H
-#define ABEL_FIND_WHOLE_H
+#ifndef ABEL_MATH_FIND_WHOLE_H_
+#define ABEL_MATH_FIND_WHOLE_H_
 
 #include <abel/math/option.h>
 #include <abel/math/floor.h>
@@ -24,4 +24,4 @@ namespace abel {
     } //namespace abel
 
 }
-#endif //ABEL_FIND_WHOLE_H
+#endif //ABEL_MATH_FIND_WHOLE_H_

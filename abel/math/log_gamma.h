@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_LOG_GAMMA_H
-#define ABEL_LOG_GAMMA_H
+#ifndef ABEL_MATH_LOG_GAMMA_H_
+#define ABEL_MATH_LOG_GAMMA_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -77,4 +77,4 @@ namespace abel {
         return math_internal::lgamma_check(static_cast<return_t<T>>(x));
     }
 }
-#endif //ABEL_LOG_GAMMA_H
+#endif //ABEL_MATH_LOG_GAMMA_H_

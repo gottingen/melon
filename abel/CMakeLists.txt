@@ -20,7 +20,7 @@ FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 FILE(GLOB RANDOM_SRC "random/*.cc")
 FILE(GLOB RANDOM_INTERNAL_SRC "random/internal/*.cc")
 
-FILE(GLOB STAT_SRC "statistics/*.cc")
+FILE(GLOB STATS_RND_SRC "stats/random/*.cc")
 
 FILE(GLOB STRINGS_SRC "strings/*.cc")
 FILE(GLOB STRINGS_INTERNAL_SRC "strings/internal/*.cc")
@@ -63,7 +63,7 @@ SET(ABEL_SRC
         ${NUMERIC_SRC}
         ${RANDOM_SRC}
         ${RANDOM_INTERNAL_SRC}
-        ${STAT_SRC}
+        ${STATS_RND_SRC}
         ${STRINGS_SRC}
         ${STRINGS_INTERNAL_SRC}
         ${FORMAT_SRC}

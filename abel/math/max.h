@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_MAX_H
-#define ABEL_MAX_H
+#ifndef ABEL_MATH_MAX_H_
+#define ABEL_MATH_MAX_H_
 
 #include <abel/math/option.h>
 
@@ -14,4 +14,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_MAX_H
+#endif //ABEL_MATH_MAX_H_

@@ -9,7 +9,7 @@
 #include <limits>
 
 #include <abel/base/profile.h>
-#include <abel/statistics/exponential_biased.h>
+#include <abel/stats/random/exponential_biased.h>
 #include <abel/container/internal/have_sse.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/memory/memory.h>

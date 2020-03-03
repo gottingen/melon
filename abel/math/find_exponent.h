@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_FIND_EXPONENT_H
-#define ABEL_FIND_EXPONENT_H
+#ifndef ABEL_MATH_FIND_EXPONENT_H_
+#define ABEL_MATH_FIND_EXPONENT_H_
 
 #include <abel/math/option.h>
 
@@ -24,4 +24,4 @@ namespace abel {
     } //namespace math_internal
 
 }
-#endif //ABEL_FIND_EXPONENT_H
+#endif //ABEL_MATH_FIND_EXPONENT_H_

@@ -1,6 +1,6 @@
 //
 
-#include <abel/statistics/exponential_biased.h>
+#include <abel/stats/random/exponential_biased.h>
 #include <stddef.h>
 #include <cmath>
 #include <cstdint>

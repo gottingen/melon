@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_IS_FINIT_H
-#define ABEL_IS_FINIT_H
+#ifndef ABEL_MATH_IS_FINIT_H_
+#define ABEL_MATH_IS_FINIT_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -40,4 +40,4 @@ namespace abel {
 
     }
 }
-#endif //ABEL_IS_FINIT_H
+#endif //ABEL_MATH_IS_FINIT_H_

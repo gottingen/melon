@@ -1,0 +1,77 @@
+//
+// Created by liyinbin on 2020/3/1.
+//
+
+#ifndef ABEL_MATH_ALL_H_
+#define ABEL_MATH_ALL_H_
+
+#include <abel/math/abs.h>
+#include <abel/math/abs_diff.h>
+#include <abel/math/acos.h>
+#include <abel/math/acosh.h>
+#include <abel/math/align.h>
+#include <abel/math/asin.h>
+#include <abel/math/asinh.h>
+#include <abel/math/atan.h>
+#include <abel/math/atan2.h>
+#include <abel/math/atanh.h>
+#include <abel/math/beta.h>
+#include <abel/math/binomial_coef.h>
+#include <abel/math/bit.h>
+#include <abel/math/bit_cast.h>
+//#include <abel/math/bit_floor.h>
+#include <abel/math/bit_swap.h>
+#include <abel/math/ceil.h>
+#include <abel/math/cos.h>
+#include <abel/math/cosh.h>
+#include <abel/math/countl_zero.h>
+#include <abel/math/countr_zero.h>
+#include <abel/math/erf.h>
+#include <abel/math/erf_inv.h>
+#include <abel/math/exp.h>
+#include <abel/math/expm1.h>
+#include <abel/math/factorial.h>
+#include <abel/math/ffs.h>
+#include <abel/math/find_exponent.h>
+#include <abel/math/find_fraction.h>
+#include <abel/math/find_whole.h>
+#include <abel/math/floor.h>
+#include <abel/math/gcd.h>
+#include <abel/math/incomplete_beta.h>
+#include <abel/math/incomplete_beta_inv.h>
+#include <abel/math/incomplete_gamma.h>
+#include <abel/math/incomplete_gamma_inv.h>
+#include <abel/math/is_even.h>
+#include <abel/math/is_finit.h>
+#include <abel/math/is_inf.h>
+#include <abel/math/is_nan.h>
+#include <abel/math/is_odd.h>
+#include <abel/math/lcm.h>
+#include <abel/math/log.h>
+#include <abel/math/log_beta.h>
+#include <abel/math/log_binomial_coef.h>
+#include <abel/math/log_gamma.h>
+#include <abel/math/log_multivariate_gamma.h>
+#include <abel/math/log_plus_one.h>
+#include <abel/math/mantissa.h>
+#include <abel/math/max.h>
+#include <abel/math/min.h>
+#include <abel/math/neg_zero.h>
+#include <abel/math/option.h>
+#include <abel/math/popcount.h>
+#include <abel/math/pow.h>
+#include <abel/math/pow_integer.h>
+#include <abel/math/pow_traits.h>
+#include <abel/math/rotl.h>
+#include <abel/math/rotr.h>
+#include <abel/math/round.h>
+#include <abel/math/sgn.h>
+#include <abel/math/sin.h>
+#include <abel/math/sinh.h>
+#include <abel/math/sqrt.h>
+#include <abel/math/tan.h>
+#include <abel/math/tanh.h>
+#include <abel/math/tgamma.h>
+#include <abel/math/trunc.h>
+
+#endif //ABEL_MATH_ALL_H_

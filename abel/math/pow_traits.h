@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/3/1.
 //
 
-#ifndef ABEL_POW_TRAITS_H
-#define ABEL_POW_TRAITS_H
+#ifndef ABEL_MATH_POW_TRAITS_H_
+#define ABEL_MATH_POW_TRAITS_H_
 
 #include <abel/base/profile.h>
 
@@ -49,4 +49,4 @@ namespace abel {
         return is_power_of_two_template(i);
     }
 }
-#endif //ABEL_POW_TRAITS_H
+#endif //ABEL_MATH_POW_TRAITS_H_

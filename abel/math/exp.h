@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_EXP_H
-#define ABEL_EXP_H
+#ifndef ABEL_MATH_EXP_H_
+#define ABEL_MATH_EXP_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -52,5 +52,11 @@ namespace abel {
     ABEL_CONSTEXPR return_t<T> exp(const T x) ABEL_NOEXCEPT {
         return math_internal::exp_check(static_cast<return_t<T>>(x));
     }
+
+    template<typename T>
+    ABEL_CONSTEXPR T exp_if(const T x, const bool exp_form) ABEL_NOEXCEPT {
+        return exp_form ? abel::exp(x) : x;
+    }
+
 }
-#endif //ABEL_EXP_H
+#endif //ABEL_MATH_EXP_H_

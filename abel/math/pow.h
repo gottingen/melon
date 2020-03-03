@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_POW_H
-#define ABEL_POW_H
+#ifndef ABEL_MATH_POW_H_
+#define ABEL_MATH_POW_H_
 
 #include <abel/math/option.h>
 #include <abel/math/pow_integer.h>
@@ -39,4 +39,4 @@ namespace abel {
     }
 
 }
-#endif //ABEL_POW_H
+#endif //ABEL_MATH_POW_H_

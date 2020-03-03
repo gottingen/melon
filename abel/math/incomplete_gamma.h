@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_INCOMPLETE_GAMA_H
-#define ABEL_INCOMPLETE_GAMA_H
+#ifndef ABEL_MATH_INCOMPLETE_GAMA_H_
+#define ABEL_MATH_INCOMPLETE_GAMA_H_
 
 #include <abel/math/option.h>
 #include <abel/math/quadrature/gauss_legendre_50.h>
@@ -135,4 +135,4 @@ namespace abel {
 
 } //namespace abel
 
-#endif //ABEL_INCOMPLETE_GAMA_H
+#endif //ABEL_MATH_INCOMPLETE_GAMA_H_

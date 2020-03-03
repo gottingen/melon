@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_ROUND_H
-#define ABEL_ROUND_H
+#ifndef ABEL_MATH_ROUND_H_
+#define ABEL_MATH_ROUND_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -129,4 +129,4 @@ namespace abel {
 
 
 }
-#endif //ABEL_ROUND_H
+#endif //ABEL_MATH_ROUND_H_

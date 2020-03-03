@@ -2,8 +2,8 @@
 // Created by liyinbin on 2020/2/28.
 //
 
-#ifndef ABEL_INCOMPLETE_BETA_INV_H
-#define ABEL_INCOMPLETE_BETA_INV_H
+#ifndef ABEL_MATH_INCOMPLETE_BETA_INV_H_
+#define ABEL_MATH_INCOMPLETE_BETA_INV_H_
 
 #include <abel/math/option.h>
 #include <abel/math/is_nan.h>
@@ -59,8 +59,10 @@ namespace abel {
         ABEL_CONSTEXPR T
         incomplete_beta_inv_initial_val_1_int_w(const T value, const T ab_term_2, const T h_term) ABEL_NOEXCEPT {
             // return( value * sqrt(h_term + lambda)/h_term - ab_term_2*(lambda + 5.0/6.0 -2.0/(3.0*h_term)) );
-            return (value * sqrt(h_term + (value * value - T(3)) / T(6)) / h_term \
- - ab_term_2 * ((value * value - T(3)) / T(6) + T(5) / T(6) - T(2) / (T(3) * h_term)));
+            return (value * sqrt(h_term + (value * value - T(3)) / T(6)) / h_term - ab_term_2 *
+                                                                                    ((value * value - T(3)) / T(6) +
+                                                                                     T(5) / T(6) -
+                                                                                     T(2) / (T(3) * h_term)));
         }
 
         template<typename T>
@@ -71,7 +73,7 @@ namespace abel {
 
         template<typename T>
         ABEL_CONSTEXPR T incomplete_beta_inv_initial_val_1(const T alpha_par, const T beta_par, const T t_val,
-                                                                    const T sgn_term) ABEL_NOEXCEPT {   // a > 1.0
+                                                           const T sgn_term) ABEL_NOEXCEPT {   // a > 1.0
             return incomplete_beta_inv_initial_val_1_int_end(alpha_par, beta_par,
                                                              incomplete_beta_inv_initial_val_1_int_w(
                                                                      sgn_term *
@@ -162,7 +164,7 @@ namespace abel {
 
         template<typename T>
         ABEL_CONSTEXPR T incomplete_beta_inv_ratio_val_2(const T value, const T alpha_par, const T beta_par,
-                                                                  const T deriv_1) ABEL_NOEXCEPT {
+                                                         const T deriv_1) ABEL_NOEXCEPT {
             return (incomplete_beta_inv_deriv_2(value, alpha_par, beta_par, deriv_1) / deriv_1);
         }
 
@@ -240,4 +242,4 @@ namespace abel {
     }
 } //namespace abel
 
-#endif //ABEL_INCOMPLETE_BETA_INV_H
+#endif //ABEL_MATH_INCOMPLETE_BETA_INV_H_
