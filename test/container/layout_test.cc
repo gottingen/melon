@@ -20,7 +20,7 @@ namespace abel {
     namespace container_internal {
         namespace {
 
-            using ::abel::Span;
+            using ::abel::span;
             using ::testing::ElementsAre;
 
             size_t Distance(const void *from, const void *to) {
@@ -785,111 +785,111 @@ namespace abel {
                     using L = Layout<int32_t>;
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int32_t>>(L::Partial(0).Slice<0>(p)).data()));
+                            Distance(p, Type<span<const int32_t>>(L::Partial(0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int32_t>>(L::Partial(3).Slice<0>(p)).data()));
-                    EXPECT_EQ(0, Distance(p, Type<Span<const int32_t>>(L(3).Slice<0>(p)).data()));
+                            Distance(p, Type<span<const int32_t>>(L::Partial(3).Slice<0>(p)).data()));
+                    EXPECT_EQ(0, Distance(p, Type<span<const int32_t>>(L(3).Slice<0>(p)).data()));
                 }
                 {
                     using L = Layout<int32_t, int32_t>;
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int32_t>>(L::Partial(3).Slice<0>(p)).data()));
+                            Distance(p, Type<span<const int32_t>>(L::Partial(3).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(p,
-                                     Type<Span<const int32_t>>(L::Partial(3, 5).Slice<0>(p)).data()));
+                                     Type<span<const int32_t>>(L::Partial(3, 5).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             12,
                             Distance(p,
-                                     Type<Span<const int32_t>>(L::Partial(3, 5).Slice<1>(p)).data()));
+                                     Type<span<const int32_t>>(L::Partial(3, 5).Slice<1>(p)).data()));
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<const int32_t>>(L(3, 5).Slice<0>(p)).data()));
+                              Distance(p, Type<span<const int32_t>>(L(3, 5).Slice<0>(p)).data()));
                     EXPECT_EQ(12,
-                              Distance(p, Type<Span<const int32_t>>(L(3, 5).Slice<1>(p)).data()));
+                              Distance(p, Type<span<const int32_t>>(L(3, 5).Slice<1>(p)).data()));
                 }
                 {
                     using L = Layout<int8_t, int32_t, Int128>;
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int8_t>>(L::Partial(0).Slice<0>(p)).data()));
+                            Distance(p, Type<span<const int8_t>>(L::Partial(0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int8_t>>(L::Partial(1).Slice<0>(p)).data()));
+                            Distance(p, Type<span<const int8_t>>(L::Partial(1).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int8_t>>(L::Partial(5).Slice<0>(p)).data()));
+                            Distance(p, Type<span<const int8_t>>(L::Partial(5).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<const int8_t>>(L::Partial(0, 0).Slice<0>(p)).data()));
+                            p, Type<span<const int8_t>>(L::Partial(0, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(p,
-                                     Type<Span<const int32_t>>(L::Partial(0, 0).Slice<1>(p)).data()));
+                                     Type<span<const int32_t>>(L::Partial(0, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<const int8_t>>(L::Partial(1, 0).Slice<0>(p)).data()));
+                            p, Type<span<const int8_t>>(L::Partial(1, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             4,
                             Distance(p,
-                                     Type<Span<const int32_t>>(L::Partial(1, 0).Slice<1>(p)).data()));
+                                     Type<span<const int32_t>>(L::Partial(1, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<const int8_t>>(L::Partial(5, 3).Slice<0>(p)).data()));
+                            p, Type<span<const int8_t>>(L::Partial(5, 3).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             8,
                             Distance(p,
-                                     Type<Span<const int32_t>>(L::Partial(5, 3).Slice<1>(p)).data()));
+                                     Type<span<const int32_t>>(L::Partial(5, 3).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int8_t>>(L::Partial(0, 0, 0).Slice<0>(p)).data()));
-                    EXPECT_EQ(
-                            0,
-                            Distance(
-                                    p,
-                                    Type<Span<const int32_t>>(L::Partial(0, 0, 0).Slice<1>(p)).data()));
+                                    p, Type<span<const int8_t>>(L::Partial(0, 0, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
                                     p,
-                                    Type<Span<const Int128>>(L::Partial(0, 0, 0).Slice<2>(p)).data()));
+                                    Type<span<const int32_t>>(L::Partial(0, 0, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int8_t>>(L::Partial(1, 0, 0).Slice<0>(p)).data()));
+                                    p,
+                                    Type<span<const Int128>>(L::Partial(0, 0, 0).Slice<2>(p)).data()));
+                    EXPECT_EQ(
+                            0,
+                            Distance(
+                                    p, Type<span<const int8_t>>(L::Partial(1, 0, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             4,
                             Distance(
                                     p,
-                                    Type<Span<const int32_t>>(L::Partial(1, 0, 0).Slice<1>(p)).data()));
+                                    Type<span<const int32_t>>(L::Partial(1, 0, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             8,
                             Distance(
                                     p,
-                                    Type<Span<const Int128>>(L::Partial(1, 0, 0).Slice<2>(p)).data()));
+                                    Type<span<const Int128>>(L::Partial(1, 0, 0).Slice<2>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int8_t>>(L::Partial(5, 3, 1).Slice<0>(p)).data()));
+                                    p, Type<span<const int8_t>>(L::Partial(5, 3, 1).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             24,
                             Distance(
                                     p,
-                                    Type<Span<const Int128>>(L::Partial(5, 3, 1).Slice<2>(p)).data()));
+                                    Type<span<const Int128>>(L::Partial(5, 3, 1).Slice<2>(p)).data()));
                     EXPECT_EQ(
                             8,
                             Distance(
                                     p,
-                                    Type<Span<const int32_t>>(L::Partial(5, 3, 1).Slice<1>(p)).data()));
+                                    Type<span<const int32_t>>(L::Partial(5, 3, 1).Slice<1>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<const int8_t>>(L(5, 3, 1).Slice<0>(p)).data()));
+                            0, Distance(p, Type<span<const int8_t>>(L(5, 3, 1).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             24,
-                            Distance(p, Type<Span<const Int128>>(L(5, 3, 1).Slice<2>(p)).data()));
+                            Distance(p, Type<span<const Int128>>(L(5, 3, 1).Slice<2>(p)).data()));
                     EXPECT_EQ(
-                            8, Distance(p, Type<Span<const int32_t>>(L(5, 3, 1).Slice<1>(p)).data()));
+                            8, Distance(p, Type<span<const int32_t>>(L(5, 3, 1).Slice<1>(p)).data()));
                 }
             }
 
@@ -900,98 +900,98 @@ namespace abel {
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int32_t>>(L::Partial(0).Slice<int32_t>(p)).data()));
+                                    p, Type<span<const int32_t>>(L::Partial(0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int32_t>>(L::Partial(3).Slice<int32_t>(p)).data()));
+                                    p, Type<span<const int32_t>>(L::Partial(3).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<const int32_t>>(L(3).Slice<int32_t>(p)).data()));
+                            0, Distance(p, Type<span<const int32_t>>(L(3).Slice<int32_t>(p)).data()));
                 }
                 {
                     using L = Layout<int8_t, int32_t, Int128>;
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<const int8_t>>(L::Partial(0).Slice<int8_t>(p)).data()));
+                            p, Type<span<const int8_t>>(L::Partial(0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<const int8_t>>(L::Partial(1).Slice<int8_t>(p)).data()));
+                            p, Type<span<const int8_t>>(L::Partial(1).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<const int8_t>>(L::Partial(5).Slice<int8_t>(p)).data()));
+                            p, Type<span<const int8_t>>(L::Partial(5).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int8_t>>(L::Partial(0, 0).Slice<int8_t>(p)).data()));
+                                    p, Type<span<const int8_t>>(L::Partial(0, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
                                     p,
-                                    Type<Span<const int32_t>>(L::Partial(0, 0).Slice<int32_t>(p)).data()));
+                                    Type<span<const int32_t>>(L::Partial(0, 0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int8_t>>(L::Partial(1, 0).Slice<int8_t>(p)).data()));
+                                    p, Type<span<const int8_t>>(L::Partial(1, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             4,
                             Distance(
                                     p,
-                                    Type<Span<const int32_t>>(L::Partial(1, 0).Slice<int32_t>(p)).data()));
+                                    Type<span<const int32_t>>(L::Partial(1, 0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<const int8_t>>(L::Partial(5, 3).Slice<int8_t>(p)).data()));
+                                    p, Type<span<const int8_t>>(L::Partial(5, 3).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             8,
                             Distance(
                                     p,
-                                    Type<Span<const int32_t>>(L::Partial(5, 3).Slice<int32_t>(p)).data()));
+                                    Type<span<const int32_t>>(L::Partial(5, 3).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
                                     p,
-                                    Type<Span<const int8_t>>(L::Partial(0, 0, 0).Slice<int8_t>(p)).data()));
+                                    Type<span<const int8_t>>(L::Partial(0, 0, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int32_t>>(L::Partial(0, 0, 0).Slice<int32_t>(p))
+                            Distance(p, Type<span<const int32_t>>(L::Partial(0, 0, 0).Slice<int32_t>(p))
                                     .data()));
-                    EXPECT_EQ(0, Distance(p, Type<Span<const Int128>>(
+                    EXPECT_EQ(0, Distance(p, Type<span<const Int128>>(
                             L::Partial(0, 0, 0).Slice<Int128>(p))
                             .data()));
                     EXPECT_EQ(
                             0,
                             Distance(
                                     p,
-                                    Type<Span<const int8_t>>(L::Partial(1, 0, 0).Slice<int8_t>(p)).data()));
+                                    Type<span<const int8_t>>(L::Partial(1, 0, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             4,
-                            Distance(p, Type<Span<const int32_t>>(L::Partial(1, 0, 0).Slice<int32_t>(p))
+                            Distance(p, Type<span<const int32_t>>(L::Partial(1, 0, 0).Slice<int32_t>(p))
                                     .data()));
-                    EXPECT_EQ(8, Distance(p, Type<Span<const Int128>>(
+                    EXPECT_EQ(8, Distance(p, Type<span<const Int128>>(
                             L::Partial(1, 0, 0).Slice<Int128>(p))
                             .data()));
                     EXPECT_EQ(
                             0,
                             Distance(
                                     p,
-                                    Type<Span<const int8_t>>(L::Partial(5, 3, 1).Slice<int8_t>(p)).data()));
-                    EXPECT_EQ(24, Distance(p, Type<Span<const Int128>>(
+                                    Type<span<const int8_t>>(L::Partial(5, 3, 1).Slice<int8_t>(p)).data()));
+                    EXPECT_EQ(24, Distance(p, Type<span<const Int128>>(
                             L::Partial(5, 3, 1).Slice<Int128>(p))
                             .data()));
                     EXPECT_EQ(
                             8,
-                            Distance(p, Type<Span<const int32_t>>(L::Partial(5, 3, 1).Slice<int32_t>(p))
+                            Distance(p, Type<span<const int32_t>>(L::Partial(5, 3, 1).Slice<int32_t>(p))
                                     .data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<const int8_t>>(L(5, 3, 1).Slice<int8_t>(p)).data()));
+                            Distance(p, Type<span<const int8_t>>(L(5, 3, 1).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             24,
                             Distance(p,
-                                     Type<Span<const Int128>>(L(5, 3, 1).Slice<Int128>(p)).data()));
+                                     Type<span<const Int128>>(L(5, 3, 1).Slice<Int128>(p)).data()));
                     EXPECT_EQ(
                             8, Distance(
-                            p, Type<Span<const int32_t>>(L(5, 3, 1).Slice<int32_t>(p)).data()));
+                            p, Type<span<const int32_t>>(L(5, 3, 1).Slice<int32_t>(p)).data()));
                 }
             }
 
@@ -1000,74 +1000,74 @@ namespace abel {
                 {
                     using L = Layout<int32_t>;
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int32_t>>(L::Partial(0).Slice<0>(p)).data()));
+                              Distance(p, Type<span<int32_t>>(L::Partial(0).Slice<0>(p)).data()));
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int32_t>>(L::Partial(3).Slice<0>(p)).data()));
-                    EXPECT_EQ(0, Distance(p, Type<Span<int32_t>>(L(3).Slice<0>(p)).data()));
+                              Distance(p, Type<span<int32_t>>(L::Partial(3).Slice<0>(p)).data()));
+                    EXPECT_EQ(0, Distance(p, Type<span<int32_t>>(L(3).Slice<0>(p)).data()));
                 }
                 {
                     using L = Layout<int32_t, int32_t>;
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int32_t>>(L::Partial(3).Slice<0>(p)).data()));
+                              Distance(p, Type<span<int32_t>>(L::Partial(3).Slice<0>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int32_t>>(L::Partial(3, 5).Slice<0>(p)).data()));
+                            0, Distance(p, Type<span<int32_t>>(L::Partial(3, 5).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             12,
-                            Distance(p, Type<Span<int32_t>>(L::Partial(3, 5).Slice<1>(p)).data()));
-                    EXPECT_EQ(0, Distance(p, Type<Span<int32_t>>(L(3, 5).Slice<0>(p)).data()));
-                    EXPECT_EQ(12, Distance(p, Type<Span<int32_t>>(L(3, 5).Slice<1>(p)).data()));
+                            Distance(p, Type<span<int32_t>>(L::Partial(3, 5).Slice<1>(p)).data()));
+                    EXPECT_EQ(0, Distance(p, Type<span<int32_t>>(L(3, 5).Slice<0>(p)).data()));
+                    EXPECT_EQ(12, Distance(p, Type<span<int32_t>>(L(3, 5).Slice<1>(p)).data()));
                 }
                 {
                     using L = Layout<int8_t, int32_t, Int128>;
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int8_t>>(L::Partial(0).Slice<0>(p)).data()));
+                              Distance(p, Type<span<int8_t>>(L::Partial(0).Slice<0>(p)).data()));
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int8_t>>(L::Partial(1).Slice<0>(p)).data()));
+                              Distance(p, Type<span<int8_t>>(L::Partial(1).Slice<0>(p)).data()));
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int8_t>>(L::Partial(5).Slice<0>(p)).data()));
+                              Distance(p, Type<span<int8_t>>(L::Partial(5).Slice<0>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int8_t>>(L::Partial(0, 0).Slice<0>(p)).data()));
+                            0, Distance(p, Type<span<int8_t>>(L::Partial(0, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int32_t>>(L::Partial(0, 0).Slice<1>(p)).data()));
+                            0, Distance(p, Type<span<int32_t>>(L::Partial(0, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int8_t>>(L::Partial(1, 0).Slice<0>(p)).data()));
+                            0, Distance(p, Type<span<int8_t>>(L::Partial(1, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
-                            4, Distance(p, Type<Span<int32_t>>(L::Partial(1, 0).Slice<1>(p)).data()));
+                            4, Distance(p, Type<span<int32_t>>(L::Partial(1, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int8_t>>(L::Partial(5, 3).Slice<0>(p)).data()));
+                            0, Distance(p, Type<span<int8_t>>(L::Partial(5, 3).Slice<0>(p)).data()));
                     EXPECT_EQ(
-                            8, Distance(p, Type<Span<int32_t>>(L::Partial(5, 3).Slice<1>(p)).data()));
+                            8, Distance(p, Type<span<int32_t>>(L::Partial(5, 3).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int8_t>>(L::Partial(0, 0, 0).Slice<0>(p)).data()));
+                            Distance(p, Type<span<int8_t>>(L::Partial(0, 0, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int32_t>>(L::Partial(0, 0, 0).Slice<1>(p)).data()));
+                            Distance(p, Type<span<int32_t>>(L::Partial(0, 0, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<Int128>>(L::Partial(0, 0, 0).Slice<2>(p)).data()));
+                            p, Type<span<Int128>>(L::Partial(0, 0, 0).Slice<2>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int8_t>>(L::Partial(1, 0, 0).Slice<0>(p)).data()));
+                            Distance(p, Type<span<int8_t>>(L::Partial(1, 0, 0).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             4,
-                            Distance(p, Type<Span<int32_t>>(L::Partial(1, 0, 0).Slice<1>(p)).data()));
+                            Distance(p, Type<span<int32_t>>(L::Partial(1, 0, 0).Slice<1>(p)).data()));
                     EXPECT_EQ(
                             8, Distance(
-                            p, Type<Span<Int128>>(L::Partial(1, 0, 0).Slice<2>(p)).data()));
+                            p, Type<span<Int128>>(L::Partial(1, 0, 0).Slice<2>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int8_t>>(L::Partial(5, 3, 1).Slice<0>(p)).data()));
+                            Distance(p, Type<span<int8_t>>(L::Partial(5, 3, 1).Slice<0>(p)).data()));
                     EXPECT_EQ(
                             24, Distance(
-                            p, Type<Span<Int128>>(L::Partial(5, 3, 1).Slice<2>(p)).data()));
+                            p, Type<span<Int128>>(L::Partial(5, 3, 1).Slice<2>(p)).data()));
                     EXPECT_EQ(
                             8,
-                            Distance(p, Type<Span<int32_t>>(L::Partial(5, 3, 1).Slice<1>(p)).data()));
-                    EXPECT_EQ(0, Distance(p, Type<Span<int8_t>>(L(5, 3, 1).Slice<0>(p)).data()));
+                            Distance(p, Type<span<int32_t>>(L::Partial(5, 3, 1).Slice<1>(p)).data()));
+                    EXPECT_EQ(0, Distance(p, Type<span<int8_t>>(L(5, 3, 1).Slice<0>(p)).data()));
                     EXPECT_EQ(24,
-                              Distance(p, Type<Span<Int128>>(L(5, 3, 1).Slice<2>(p)).data()));
-                    EXPECT_EQ(8, Distance(p, Type<Span<int32_t>>(L(5, 3, 1).Slice<1>(p)).data()));
+                              Distance(p, Type<span<Int128>>(L(5, 3, 1).Slice<2>(p)).data()));
+                    EXPECT_EQ(8, Distance(p, Type<span<int32_t>>(L(5, 3, 1).Slice<1>(p)).data()));
                 }
             }
 
@@ -1077,81 +1077,81 @@ namespace abel {
                     using L = Layout<int32_t>;
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int32_t>>(L::Partial(0).Slice<int32_t>(p)).data()));
+                            Distance(p, Type<span<int32_t>>(L::Partial(0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int32_t>>(L::Partial(3).Slice<int32_t>(p)).data()));
-                    EXPECT_EQ(0, Distance(p, Type<Span<int32_t>>(L(3).Slice<int32_t>(p)).data()));
+                            Distance(p, Type<span<int32_t>>(L::Partial(3).Slice<int32_t>(p)).data()));
+                    EXPECT_EQ(0, Distance(p, Type<span<int32_t>>(L(3).Slice<int32_t>(p)).data()));
                 }
                 {
                     using L = Layout<int8_t, int32_t, Int128>;
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int8_t>>(L::Partial(0).Slice<int8_t>(p)).data()));
+                            0, Distance(p, Type<span<int8_t>>(L::Partial(0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int8_t>>(L::Partial(1).Slice<int8_t>(p)).data()));
+                            0, Distance(p, Type<span<int8_t>>(L::Partial(1).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
-                            0, Distance(p, Type<Span<int8_t>>(L::Partial(5).Slice<int8_t>(p)).data()));
+                            0, Distance(p, Type<span<int8_t>>(L::Partial(5).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int8_t>>(L::Partial(0, 0).Slice<int8_t>(p)).data()));
+                            Distance(p, Type<span<int8_t>>(L::Partial(0, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<int32_t>>(L::Partial(0, 0).Slice<int32_t>(p)).data()));
+                            p, Type<span<int32_t>>(L::Partial(0, 0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int8_t>>(L::Partial(1, 0).Slice<int8_t>(p)).data()));
+                            Distance(p, Type<span<int8_t>>(L::Partial(1, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             4, Distance(
-                            p, Type<Span<int32_t>>(L::Partial(1, 0).Slice<int32_t>(p)).data()));
+                            p, Type<span<int32_t>>(L::Partial(1, 0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
-                            Distance(p, Type<Span<int8_t>>(L::Partial(5, 3).Slice<int8_t>(p)).data()));
+                            Distance(p, Type<span<int8_t>>(L::Partial(5, 3).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             8, Distance(
-                            p, Type<Span<int32_t>>(L::Partial(5, 3).Slice<int32_t>(p)).data()));
+                            p, Type<span<int32_t>>(L::Partial(5, 3).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<int8_t>>(L::Partial(0, 0, 0).Slice<int8_t>(p)).data()));
+                            p, Type<span<int8_t>>(L::Partial(0, 0, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
-                                    p, Type<Span<int32_t>>(L::Partial(0, 0, 0).Slice<int32_t>(p)).data()));
+                                    p, Type<span<int32_t>>(L::Partial(0, 0, 0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             0,
                             Distance(
                                     p,
-                                    Type<Span<Int128>>(L::Partial(0, 0, 0).Slice<Int128>(p)).data()));
+                                    Type<span<Int128>>(L::Partial(0, 0, 0).Slice<Int128>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<int8_t>>(L::Partial(1, 0, 0).Slice<int8_t>(p)).data()));
+                            p, Type<span<int8_t>>(L::Partial(1, 0, 0).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             4,
                             Distance(
-                                    p, Type<Span<int32_t>>(L::Partial(1, 0, 0).Slice<int32_t>(p)).data()));
+                                    p, Type<span<int32_t>>(L::Partial(1, 0, 0).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(
                             8,
                             Distance(
                                     p,
-                                    Type<Span<Int128>>(L::Partial(1, 0, 0).Slice<Int128>(p)).data()));
+                                    Type<span<Int128>>(L::Partial(1, 0, 0).Slice<Int128>(p)).data()));
                     EXPECT_EQ(
                             0, Distance(
-                            p, Type<Span<int8_t>>(L::Partial(5, 3, 1).Slice<int8_t>(p)).data()));
+                            p, Type<span<int8_t>>(L::Partial(5, 3, 1).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             24,
                             Distance(
                                     p,
-                                    Type<Span<Int128>>(L::Partial(5, 3, 1).Slice<Int128>(p)).data()));
+                                    Type<span<Int128>>(L::Partial(5, 3, 1).Slice<Int128>(p)).data()));
                     EXPECT_EQ(
                             8,
                             Distance(
-                                    p, Type<Span<int32_t>>(L::Partial(5, 3, 1).Slice<int32_t>(p)).data()));
+                                    p, Type<span<int32_t>>(L::Partial(5, 3, 1).Slice<int32_t>(p)).data()));
                     EXPECT_EQ(0,
-                              Distance(p, Type<Span<int8_t>>(L(5, 3, 1).Slice<int8_t>(p)).data()));
+                              Distance(p, Type<span<int8_t>>(L(5, 3, 1).Slice<int8_t>(p)).data()));
                     EXPECT_EQ(
                             24,
-                            Distance(p, Type<Span<Int128>>(L(5, 3, 1).Slice<Int128>(p)).data()));
+                            Distance(p, Type<span<Int128>>(L(5, 3, 1).Slice<Int128>(p)).data()));
                     EXPECT_EQ(
-                            8, Distance(p, Type<Span<int32_t>>(L(5, 3, 1).Slice<int32_t>(p)).data()));
+                            8, Distance(p, Type<span<int32_t>>(L(5, 3, 1).Slice<int32_t>(p)).data()));
                 }
             }
 
@@ -1207,26 +1207,26 @@ namespace abel {
                 }
                 {
                     const auto x = L::Partial(1);
-                    EXPECT_THAT(Type<std::tuple<Span<const int8_t>>>(x.Slices(p)),
+                    EXPECT_THAT(Type<std::tuple<span<const int8_t>>>(x.Slices(p)),
                                 Tuple(IsSameSlice(x.Slice<0>(p))));
                 }
                 {
                     const auto x = L::Partial(1, 2);
                     EXPECT_THAT(
-                            (Type<std::tuple<Span<const int8_t>, Span<const int8_t>>>(x.Slices(p))),
+                            (Type<std::tuple<span<const int8_t>, span<const int8_t>>>(x.Slices(p))),
                             Tuple(IsSameSlice(x.Slice<0>(p)), IsSameSlice(x.Slice<1>(p))));
                 }
                 {
                     const auto x = L::Partial(1, 2, 3);
-                    EXPECT_THAT((Type<std::tuple<Span<const int8_t>, Span<const int8_t>,
-                            Span<const Int128>>>(x.Slices(p))),
+                    EXPECT_THAT((Type<std::tuple<span<const int8_t>, span<const int8_t>,
+                            span<const Int128>>>(x.Slices(p))),
                                 Tuple(IsSameSlice(x.Slice<0>(p)), IsSameSlice(x.Slice<1>(p)),
                                       IsSameSlice(x.Slice<2>(p))));
                 }
                 {
                     const L x(1, 2, 3);
-                    EXPECT_THAT((Type<std::tuple<Span<const int8_t>, Span<const int8_t>,
-                            Span<const Int128>>>(x.Slices(p))),
+                    EXPECT_THAT((Type<std::tuple<span<const int8_t>, span<const int8_t>,
+                            span<const Int128>>>(x.Slices(p))),
                                 Tuple(IsSameSlice(x.Slice<0>(p)), IsSameSlice(x.Slice<1>(p)),
                                       IsSameSlice(x.Slice<2>(p))));
                 }
@@ -1241,25 +1241,25 @@ namespace abel {
                 }
                 {
                     const auto x = L::Partial(1);
-                    EXPECT_THAT(Type<std::tuple<Span<int8_t>>>(x.Slices(p)),
+                    EXPECT_THAT(Type<std::tuple<span<int8_t>>>(x.Slices(p)),
                                 Tuple(IsSameSlice(x.Slice<0>(p))));
                 }
                 {
                     const auto x = L::Partial(1, 2);
-                    EXPECT_THAT((Type<std::tuple<Span<int8_t>, Span<int8_t>>>(x.Slices(p))),
+                    EXPECT_THAT((Type<std::tuple<span<int8_t>, span<int8_t>>>(x.Slices(p))),
                                 Tuple(IsSameSlice(x.Slice<0>(p)), IsSameSlice(x.Slice<1>(p))));
                 }
                 {
                     const auto x = L::Partial(1, 2, 3);
                     EXPECT_THAT(
-                            (Type<std::tuple<Span<int8_t>, Span<int8_t>, Span<Int128>>>(x.Slices(p))),
+                            (Type<std::tuple<span<int8_t>, span<int8_t>, span<Int128>>>(x.Slices(p))),
                             Tuple(IsSameSlice(x.Slice<0>(p)), IsSameSlice(x.Slice<1>(p)),
                                   IsSameSlice(x.Slice<2>(p))));
                 }
                 {
                     const L x(1, 2, 3);
                     EXPECT_THAT(
-                            (Type<std::tuple<Span<int8_t>, Span<int8_t>, Span<Int128>>>(x.Slices(p))),
+                            (Type<std::tuple<span<int8_t>, span<int8_t>, span<Int128>>>(x.Slices(p))),
                             Tuple(IsSameSlice(x.Slice<0>(p)), IsSameSlice(x.Slice<1>(p)),
                                   IsSameSlice(x.Slice<2>(p))));
                 }
@@ -1452,19 +1452,19 @@ namespace abel {
                 Type<std::tuple<const int32_t *>>(x.Pointers(cuc));
                 Type<std::tuple<const int32_t *>>(x.Pointers(csc));
 
-                Type<Span<int32_t>>(x.Slice<0>(c));
-                Type<Span<int32_t>>(x.Slice<0>(uc));
-                Type<Span<int32_t>>(x.Slice<0>(sc));
-                Type<Span<const int32_t>>(x.Slice<0>(cc));
-                Type<Span<const int32_t>>(x.Slice<0>(cuc));
-                Type<Span<const int32_t>>(x.Slice<0>(csc));
+                Type<span<int32_t>>(x.Slice<0>(c));
+                Type<span<int32_t>>(x.Slice<0>(uc));
+                Type<span<int32_t>>(x.Slice<0>(sc));
+                Type<span<const int32_t>>(x.Slice<0>(cc));
+                Type<span<const int32_t>>(x.Slice<0>(cuc));
+                Type<span<const int32_t>>(x.Slice<0>(csc));
 
-                Type<std::tuple<Span<int32_t>>>(x.Slices(c));
-                Type<std::tuple<Span<int32_t>>>(x.Slices(uc));
-                Type<std::tuple<Span<int32_t>>>(x.Slices(sc));
-                Type<std::tuple<Span<const int32_t>>>(x.Slices(cc));
-                Type<std::tuple<Span<const int32_t>>>(x.Slices(cuc));
-                Type<std::tuple<Span<const int32_t>>>(x.Slices(csc));
+                Type<std::tuple<span<int32_t>>>(x.Slices(c));
+                Type<std::tuple<span<int32_t>>>(x.Slices(uc));
+                Type<std::tuple<span<int32_t>>>(x.Slices(sc));
+                Type<std::tuple<span<const int32_t>>>(x.Slices(cc));
+                Type<std::tuple<span<const int32_t>>>(x.Slices(cuc));
+                Type<std::tuple<span<const int32_t>>>(x.Slices(csc));
             }
 
             TEST(Layout, ConstElementType) {
@@ -1496,20 +1496,20 @@ namespace abel {
                 EXPECT_THAT(Type<std::tuple<const int32_t *>>(x.Pointers(c)), Tuple(p));
                 EXPECT_THAT(Type<std::tuple<const int32_t *>>(x.Pointers(cc)), Tuple(p));
 
-                EXPECT_THAT(Type<Span<const int32_t>>(x.Slice<0>(c)),
-                            IsSameSlice(Span<const int32_t>(p, 1)));
-                EXPECT_THAT(Type<Span<const int32_t>>(x.Slice<0>(cc)),
-                            IsSameSlice(Span<const int32_t>(p, 1)));
+                EXPECT_THAT(Type<span<const int32_t>>(x.Slice<0>(c)),
+                            IsSameSlice(span<const int32_t>(p, 1)));
+                EXPECT_THAT(Type<span<const int32_t>>(x.Slice<0>(cc)),
+                            IsSameSlice(span<const int32_t>(p, 1)));
 
-                EXPECT_THAT(Type<Span<const int32_t>>(x.Slice<const int32_t>(c)),
-                            IsSameSlice(Span<const int32_t>(p, 1)));
-                EXPECT_THAT(Type<Span<const int32_t>>(x.Slice<const int32_t>(cc)),
-                            IsSameSlice(Span<const int32_t>(p, 1)));
+                EXPECT_THAT(Type<span<const int32_t>>(x.Slice<const int32_t>(c)),
+                            IsSameSlice(span<const int32_t>(p, 1)));
+                EXPECT_THAT(Type<span<const int32_t>>(x.Slice<const int32_t>(cc)),
+                            IsSameSlice(span<const int32_t>(p, 1)));
 
-                EXPECT_THAT(Type<std::tuple<Span<const int32_t>>>(x.Slices(c)),
-                            Tuple(IsSameSlice(Span<const int32_t>(p, 1))));
-                EXPECT_THAT(Type<std::tuple<Span<const int32_t>>>(x.Slices(cc)),
-                            Tuple(IsSameSlice(Span<const int32_t>(p, 1))));
+                EXPECT_THAT(Type<std::tuple<span<const int32_t>>>(x.Slices(c)),
+                            Tuple(IsSameSlice(span<const int32_t>(p, 1))));
+                EXPECT_THAT(Type<std::tuple<span<const int32_t>>>(x.Slices(cc)),
+                            Tuple(IsSameSlice(span<const int32_t>(p, 1))));
             }
 
             namespace example {

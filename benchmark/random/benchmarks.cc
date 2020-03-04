@@ -15,18 +15,18 @@
 
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
-#include <abel/random/bernoulli_distribution.h>
-#include <abel/random/beta_distribution.h>
-#include <abel/random/exponential_distribution.h>
-#include <abel/random/gaussian_distribution.h>
-#include <abel/random/internal/fast_uniform_bits.h>
-#include <abel/random/internal/randen_engine.h>
-#include <abel/random/log_uniform_int_distribution.h>
-#include <abel/random/poisson_distribution.h>
-#include <abel/random/random.h>
-#include <abel/random/uniform_int_distribution.h>
-#include <abel/random/uniform_real_distribution.h>
-#include <abel/random/zipf_distribution.h>
+#include <abel/stats/random/bernoulli_distribution.h>
+#include <abel/stats/random/beta_distribution.h>
+#include <abel/stats/random/exponential_distribution.h>
+#include <abel/stats/random/gaussian_distribution.h>
+#include <abel/stats/random/internal/fast_uniform_bits.h>
+#include <abel/stats/random/engine/randen_engine.h>
+#include <abel/stats/random/log_uniform_int_distribution.h>
+#include <abel/stats/random/poisson_distribution.h>
+#include <abel/stats/random/random.h>
+#include <abel/stats/random/uniform_int_distribution.h>
+#include <abel/stats/random/uniform_real_distribution.h>
+#include <abel/stats/random/zipf_distribution.h>
 #include <benchmark/benchmark.h>
 
 namespace {

@@ -8,7 +8,7 @@
 #include <string>
 #include <typeinfo>
 
-#include <abel/random/random.h>
+#include <abel/stats/random/random.h>
 #include <abel/strings/str_cat.h>
 
 namespace abel {
@@ -32,7 +32,7 @@ namespace abel {
                                    const typename DistrT::result_type &result) {
                 return abel::string_cat(
                         FormatT::FunctionName(), "(", FormatT::FormatArgs(dist), ") => {",
-                        FormatT::FormatResults(abel::MakeSpan(&result, 1)), "}");
+                        FormatT::FormatResults(abel::make_span(&result, 1)), "}");
             }
         };
 

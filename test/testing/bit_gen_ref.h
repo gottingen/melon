@@ -13,8 +13,8 @@
 
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
-#include <abel/random/internal/distribution_caller.h>
-#include <abel/random/internal/fast_uniform_bits.h>
+#include <abel/stats/random/internal/distribution_caller.h>
+#include <abel/stats/random/internal/fast_uniform_bits.h>
 #include <testing/mocking_bit_gen_base.h>
 
 namespace abel {

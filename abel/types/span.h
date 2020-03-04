@@ -4,39 +4,39 @@
 // span.h
 // -----------------------------------------------------------------------------
 //
-// This header file defines a `Span<T>` type for holding a view of an existing
-// array of data. The `Span` object, much like the `abel::string_view` object,
+// This header file defines a `span<T>` type for holding a view of an existing
+// array of data. The `span` object, much like the `abel::string_view` object,
 // does not own such data itself. A span provides a lightweight way to pass
 // around view of such data.
 //
-// Additionally, this header file defines `MakeSpan()` and `MakeConstSpan()`
-// factory functions, for clearly creating spans of type `Span<T>` or read-only
-// `Span<const T>` when such types may be difficult to identify due to issues
+// Additionally, this header file defines `make_span()` and `make_const_span()`
+// factory functions, for clearly creating spans of type `span<T>` or read-only
+// `span<const T>` when such types may be difficult to identify due to issues
 // with implicit conversion.
 //
 // The C++ standards committee currently has a proposal for a `std::span` type,
 // (http://wg21.link/p0122), which is not yet part of the standard (though may
 // become part of C++20). As of August 2017, the differences between
-// `abel::Span` and this proposal are:
-//    * `abel::Span` uses `size_t` for `size_type`
-//    * `abel::Span` has no `operator()`
-//    * `abel::Span` has no constructors for `std::unique_ptr` or
+// `abel::span` and this proposal are:
+//    * `abel::span` uses `size_t` for `size_type`
+//    * `abel::span` has no `operator()`
+//    * `abel::span` has no constructors for `std::unique_ptr` or
 //      `std::shared_ptr`
-//    * `abel::Span` has the factory functions `MakeSpan()` and
-//      `MakeConstSpan()`
-//    * `abel::Span` has `front()` and `back()` methods
-//    * bounds-checked access to `abel::Span` is accomplished with `at()`
-//    * `abel::Span` has compiler-provided move and copy constructors and
+//    * `abel::span` has the factory functions `make_span()` and
+//      `make_const_span()`
+//    * `abel::span` has `front()` and `back()` methods
+//    * bounds-checked access to `abel::span` is accomplished with `at()`
+//    * `abel::span` has compiler-provided move and copy constructors and
 //      assignment. This is due to them being specified as `constexpr`, but that
 //      implies const in C++11.
-//    * `abel::Span` has no `element_type` or `index_type` typedefs
-//    * A read-only `abel::Span<const T>` can be implicitly constructed from an
+//    * `abel::span` has no `element_type` or `index_type` typedefs
+//    * A read-only `abel::span<const T>` can be implicitly constructed from an
 //      initializer list.
-//    * `abel::Span` has no `bytes()`, `size_bytes()`, `as_bytes()`, or
+//    * `abel::span` has no `bytes()`, `size_bytes()`, `as_bytes()`, or
 //      `as_mutable_bytes()` methods
-//    * `abel::Span` has no static extent template parameter, nor constructors
+//    * `abel::span` has no static extent template parameter, nor constructors
 //      which exist only because of the static extent parameter.
-//    * `abel::Span` has an explicit mutable-reference constructor
+//    * `abel::span` has an explicit mutable-reference constructor
 //
 // For more information, see the class comments below.
 #ifndef ABEL_TYPES_SPAN_H_
@@ -49,7 +49,6 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
-
 #include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
 #include <abel/meta/type_traits.h>
@@ -59,70 +58,70 @@ namespace abel {
 
 
 //------------------------------------------------------------------------------
-// Span
+// span
 //------------------------------------------------------------------------------
 //
-// A `Span` is an "array view" type for holding a view of a contiguous data
-// array; the `Span` object does not and cannot own such data itself. A span
+// A `span` is an "array view" type for holding a view of a contiguous data
+// array; the `span` object does not and cannot own such data itself. A span
 // provides an easy way to provide overloads for anything operating on
 // contiguous sequences without needing to manage pointers and array lengths
 // manually.
 
 // A span is conceptually a pointer (ptr) and a length (size) into an already
 // existing array of contiguous memory; the array it represents references the
-// elements "ptr[0] .. ptr[size-1]". Passing a properly-constructed `Span`
+// elements "ptr[0] .. ptr[size-1]". Passing a properly-constructed `span`
 // instead of raw pointers avoids many issues related to index out of bounds
 // errors.
 //
 // Spans may also be constructed from containers holding contiguous sequences.
 // Such containers must supply `data()` and `size() const` methods (e.g
 // `std::vector<T>`, `abel::InlinedVector<T, N>`). All implicit conversions to
-// `abel::Span` from such containers will create spans of type `const T`;
+// `abel::span` from such containers will create spans of type `const T`;
 // spans which can mutate their values (of type `T`) must use explicit
 // constructors.
 //
-// A `Span<T>` is somewhat analogous to an `abel::string_view`, but for an array
-// of elements of type `T`. A user of `Span` must ensure that the data being
-// pointed to outlives the `Span` itself.
+// A `span<T>` is somewhat analogous to an `abel::string_view`, but for an array
+// of elements of type `T`. A user of `span` must ensure that the data being
+// pointed to outlives the `span` itself.
 //
-// You can construct a `Span<T>` in several ways:
+// You can construct a `span<T>` in several ways:
 //
 //   * Explicitly from a reference to a container type
 //   * Explicitly from a pointer and size
 //   * Implicitly from a container type (but only for spans of type `const T`)
-//   * Using the `MakeSpan()` or `MakeConstSpan()` factory functions.
+//   * Using the `make_span()` or `make_const_span()` factory functions.
 //
 // Examples:
 //
-//   // Construct a Span explicitly from a container:
+//   // Construct a span explicitly from a container:
 //   std::vector<int> v = {1, 2, 3, 4, 5};
-//   auto span = abel::Span<const int>(v);
+//   auto span = abel::span<const int>(v);
 //
-//   // Construct a Span explicitly from a C-style array:
+//   // Construct a span explicitly from a C-style array:
 //   int a[5] =  {1, 2, 3, 4, 5};
-//   auto span = abel::Span<const int>(a);
+//   auto span = abel::span<const int>(a);
 //
-//   // Construct a Span implicitly from a container
-//   void MyRoutine(abel::Span<const int> a) {
+//   // Construct a span implicitly from a container
+//   void MyRoutine(abel::span<const int> a) {
 //     ...
 //   }
 //   std::vector v = {1,2,3,4,5};
-//   MyRoutine(v)                     // convert to Span<const T>
+//   MyRoutine(v)                     // convert to span<const T>
 //
-// Note that `Span` objects, in addition to requiring that the memory they
+// Note that `span` objects, in addition to requiring that the memory they
 // point to remains alive, must also ensure that such memory does not get
 // reallocated. Therefore, to avoid undefined behavior, containers with
 // associated span views should not invoke operations that may reallocate memory
 // (such as resizing) or invalidate iterators into the container.
 //
-// One common use for a `Span` is when passing arguments to a routine that can
+// One common use for a `span` is when passing arguments to a routine that can
 // accept a variety of array types (e.g. a `std::vector`, `abel::InlinedVector`,
 // a C-style array, etc.). Instead of creating overloads for each case, you
-// can simply specify a `Span` as the argument to such a routine.
+// can simply specify a `span` as the argument to such a routine.
 //
 // Example:
 //
-//   void MyRoutine(abel::Span<const int> a) {
+//   void MyRoutine(abel::span<const int> a) {
 //     ...
 //   }
 //
@@ -134,11 +133,11 @@ namespace abel {
 //
 //   // Explicit constructor from pointer,size
 //   int* my_array = new int[10];
-//   MyRoutine(abel::Span<const int>(my_array, 10));
+//   MyRoutine(abel::span<const int>(my_array, 10));
     template<typename T>
-    class Span {
+    class span {
     private:
-        // Used to determine whether a Span can be constructed from a container of
+        // Used to determine whether a span can be constructed from a container of
         // type C.
         template<typename C>
         using EnableIfConvertibleFrom =
@@ -170,34 +169,34 @@ namespace abel {
 
         static const size_type npos = ~(size_type(0));
 
-        constexpr Span() noexcept : Span(nullptr, 0) {}
+        constexpr span() noexcept : span(nullptr, 0) {}
 
-        constexpr Span(pointer array, size_type length) noexcept
+        constexpr span(pointer array, size_type length) noexcept
                 : ptr_(array), len_(length) {}
 
         // Implicit conversion constructors
         template<size_t N>
-        constexpr Span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
-                : Span(a, N) {}
+        constexpr span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
+                : span(a, N) {}
 
-        // Explicit reference constructor for a mutable `Span<T>` type. Can be
-        // replaced with MakeSpan() to infer the type parameter.
+        // Explicit reference constructor for a mutable `span<T>` type. Can be
+        // replaced with make_span() to infer the type parameter.
         template<typename V, typename = EnableIfConvertibleFrom<V>,
                 typename = EnableIfMutableView<V>>
-        explicit Span(V &v) noexcept  // NOLINT(runtime/references)
-                : Span(span_internal::GetData(v), v.size()) {}
+        explicit span(V &v) noexcept  // NOLINT(runtime/references)
+                : span(span_internal::GetData(v), v.size()) {}
 
-        // Implicit reference constructor for a read-only `Span<const T>` type
+        // Implicit reference constructor for a read-only `span<const T>` type
         template<typename V, typename = EnableIfConvertibleFrom<V>,
                 typename = EnableIfConstView<V>>
-        constexpr Span(const V &v) noexcept  // NOLINT(runtime/explicit)
-                : Span(span_internal::GetData(v), v.size()) {}
+        constexpr span(const V &v) noexcept  // NOLINT(runtime/explicit)
+                : span(span_internal::GetData(v), v.size()) {}
 
         // Implicit constructor from an initializer list, making it possible to pass a
-        // brace-enclosed initializer list to a function expecting a `Span`. Such
-        // spans constructed from an initializer list must be of type `Span<const T>`.
+        // brace-enclosed initializer list to a function expecting a `span`. Such
+        // spans constructed from an initializer list must be of type `span<const T>`.
         //
-        //   void Process(abel::Span<const int> x);
+        //   void Process(abel::span<const int> x);
         //   Process({1, 2, 3});
         //
         // Note that as always the array referenced by the span must outlive the span.
@@ -210,7 +209,7 @@ namespace abel {
         //
         //   // Assume that this function uses the array directly, not retaining any
         //   // copy of the span or pointer to any of its elements.
-        //   void Process(abel::Span<const int> ints);
+        //   void Process(abel::span<const int> ints);
         //
         //   // Okay: the std::initializer_list<int> will reference a temporary array
         //   // that isn't destroyed until after the call to Process returns.
@@ -218,46 +217,46 @@ namespace abel {
         //
         //   // Not okay: the storage used by the std::initializer_list<int> is not
         //   // allowed to be referenced after the first line.
-        //   abel::Span<const int> ints = { 17, 19 };
+        //   abel::span<const int> ints = { 17, 19 };
         //   Process(ints);
         //
         //   // Not okay for the same reason as above: even when the elements of the
         //   // initializer list expression are not temporaries the underlying array
         //   // is, so the initializer list must still outlive the span.
         //   const int foo = 17;
-        //   abel::Span<const int> ints = { foo };
+        //   abel::span<const int> ints = { foo };
         //   Process(ints);
         //
         template<typename LazyT = T,
                 typename = EnableIfConstView<LazyT>>
-        Span(
+        span(
                 std::initializer_list<value_type> v) noexcept  // NOLINT(runtime/explicit)
-                : Span(v.begin(), v.size()) {}
+                : span(v.begin(), v.size()) {}
 
         // Accessors
 
-        // Span::data()
+        // span::data()
         //
         // Returns a pointer to the span's underlying array of data (which is held
         // outside the span).
         constexpr pointer data() const noexcept { return ptr_; }
 
-        // Span::size()
+        // span::size()
         //
         // Returns the size of this span.
         constexpr size_type size() const noexcept { return len_; }
 
-        // Span::length()
+        // span::length()
         //
         // Returns the length (size) of this span.
         constexpr size_type length() const noexcept { return size(); }
 
-        // Span::empty()
+        // span::empty()
         //
         // Returns a boolean indicating whether or not this span is considered empty.
         constexpr bool empty() const noexcept { return size() == 0; }
 
-        // Span::operator[]
+        // span::operator[]
         //
         // Returns a reference to the i'th element of this span.
         constexpr reference operator[](size_type i) const noexcept {
@@ -265,78 +264,78 @@ namespace abel {
             return *(data() + i);
         }
 
-        // Span::at()
+        // span::at()
         //
         // Returns a reference to the i'th element of this span.
         constexpr reference at(size_type i) const {
             return ABEL_LIKELY(i < size())  //
                    ? *(data() + i)
                    : (throw_std_out_of_range(
-                            "Span::at failed bounds check"),
+                            "span::at failed bounds check"),
                             *(data() + i));
         }
 
-        // Span::front()
+        // span::front()
         //
         // Returns a reference to the first element of this span.
         constexpr reference front() const noexcept {
             return ABEL_ASSERT(size() > 0), *data();
         }
 
-        // Span::back()
+        // span::back()
         //
         // Returns a reference to the last element of this span.
         constexpr reference back() const noexcept {
             return ABEL_ASSERT(size() > 0), *(data() + size() - 1);
         }
 
-        // Span::begin()
+        // span::begin()
         //
         // Returns an iterator to the first element of this span.
         constexpr iterator begin() const noexcept { return data(); }
 
-        // Span::cbegin()
+        // span::cbegin()
         //
         // Returns a const iterator to the first element of this span.
         constexpr const_iterator cbegin() const noexcept { return begin(); }
 
-        // Span::end()
+        // span::end()
         //
         // Returns an iterator to the last element of this span.
         constexpr iterator end() const noexcept { return data() + size(); }
 
-        // Span::cend()
+        // span::cend()
         //
         // Returns a const iterator to the last element of this span.
         constexpr const_iterator cend() const noexcept { return end(); }
 
-        // Span::rbegin()
+        // span::rbegin()
         //
         // Returns a reverse iterator starting at the last element of this span.
         constexpr reverse_iterator rbegin() const noexcept {
             return reverse_iterator(end());
         }
 
-        // Span::crbegin()
+        // span::crbegin()
         //
         // Returns a reverse const iterator starting at the last element of this span.
         constexpr const_reverse_iterator crbegin() const noexcept { return rbegin(); }
 
-        // Span::rend()
+        // span::rend()
         //
         // Returns a reverse iterator starting at the first element of this span.
         constexpr reverse_iterator rend() const noexcept {
             return reverse_iterator(begin());
         }
 
-        // Span::crend()
+        // span::crend()
         //
         // Returns a reverse iterator starting at the first element of this span.
         constexpr const_reverse_iterator crend() const noexcept { return rend(); }
 
-        // Span mutations
+        // span mutations
 
-        // Span::remove_prefix()
+        // span::remove_prefix()
         //
         // Removes the first `n` elements from the span.
         void remove_prefix(size_type n) noexcept {
@@ -345,7 +344,7 @@ namespace abel {
             len_ -= n;
         }
 
-        // Span::remove_suffix()
+        // span::remove_suffix()
         //
         // Removes the last `n` elements from the span.
         void remove_suffix(size_type n) noexcept {
@@ -353,9 +352,9 @@ namespace abel {
             len_ -= n;
         }
 
-        // Span::subspan()
+        // span::subspan()
         //
-        // Returns a `Span` starting at element `pos` and of length `len`. Both `pos`
+        // Returns a `span` starting at element `pos` and of length `len`. Both `pos`
         // and `len` are of type `size_type` and thus non-negative. Parameter `pos`
         // must be <= size(). Any `len` value that points past the end of the span
         // will be trimmed to at most size() - `pos`. A default `len` value of `npos`
@@ -364,54 +363,54 @@ namespace abel {
         // Examples:
         //
         //   std::vector<int> vec = {10, 11, 12, 13};
-        //   abel::MakeSpan(vec).subspan(1, 2);  // {11, 12}
-        //   abel::MakeSpan(vec).subspan(2, 8);  // {12, 13}
-        //   abel::MakeSpan(vec).subspan(1);     // {11, 12, 13}
-        //   abel::MakeSpan(vec).subspan(4);     // {}
-        //   abel::MakeSpan(vec).subspan(5);     // throws std::out_of_range
-        constexpr Span subspan(size_type pos = 0, size_type len = npos) const {
+        //   abel::make_span(vec).subspan(1, 2);  // {11, 12}
+        //   abel::make_span(vec).subspan(2, 8);  // {12, 13}
+        //   abel::make_span(vec).subspan(1);     // {11, 12, 13}
+        //   abel::make_span(vec).subspan(4);     // {}
+        //   abel::make_span(vec).subspan(5);     // throws std::out_of_range
+        constexpr span subspan(size_type pos = 0, size_type len = npos) const {
             return (pos <= size())
-                   ? Span(data() + pos, span_internal::Min(size() - pos, len))
-                   : (throw_std_out_of_range("pos > size()"), Span());
+                   ? span(data() + pos, span_internal::Min(size() - pos, len))
+                   : (throw_std_out_of_range("pos > size()"), span());
         }
 
-        // Span::first()
+        // span::first()
         //
-        // Returns a `Span` containing first `len` elements. Parameter `len` is of
+        // Returns a `span` containing first `len` elements. Parameter `len` is of
         // type `size_type` and thus non-negative. `len` value must be <= size().
         //
         // Examples:
         //
         //   std::vector<int> vec = {10, 11, 12, 13};
-        //   abel::MakeSpan(vec).first(1);  // {10}
-        //   abel::MakeSpan(vec).first(3);  // {10, 11, 12}
-        //   abel::MakeSpan(vec).first(5);  // throws std::out_of_range
-        constexpr Span first(size_type len) const {
+        //   abel::make_span(vec).first(1);  // {10}
+        //   abel::make_span(vec).first(3);  // {10, 11, 12}
+        //   abel::make_span(vec).first(5);  // throws std::out_of_range
+        constexpr span first(size_type len) const {
             return (len <= size())
-                   ? Span(data(), len)
-                   : (throw_std_out_of_range("len > size()"), Span());
+                   ? span(data(), len)
+                   : (throw_std_out_of_range("len > size()"), span());
         }
 
-        // Span::last()
+        // span::last()
         //
-        // Returns a `Span` containing last `len` elements. Parameter `len` is of
+        // Returns a `span` containing last `len` elements. Parameter `len` is of
         // type `size_type` and thus non-negative. `len` value must be <= size().
         //
         // Examples:
         //
         //   std::vector<int> vec = {10, 11, 12, 13};
-        //   abel::MakeSpan(vec).last(1);  // {13}
-        //   abel::MakeSpan(vec).last(3);  // {11, 12, 13}
-        //   abel::MakeSpan(vec).last(5);  // throws std::out_of_range
-        constexpr Span last(size_type len) const {
+        //   abel::make_span(vec).last(1);  // {13}
+        //   abel::make_span(vec).last(3);  // {11, 12, 13}
+        //   abel::make_span(vec).last(5);  // throws std::out_of_range
+        constexpr span last(size_type len) const {
             return (len <= size())
-                   ? Span(size() - len + data(), len)
-                   : (throw_std_out_of_range("len > size()"), Span());
+                   ? span(size() - len + data(), len)
+                   : (throw_std_out_of_range("len > size()"), span());
         }
 
         // Support for abel::Hash.
         template<typename H>
-        friend H AbelHashValue(H h, Span v) {
+        friend H AbelHashValue(H h, span v) {
             return H::combine(H::combine_contiguous(std::move(h), v.data(), v.size()),
                               v.size());
         }
@@ -422,301 +421,301 @@ namespace abel {
     };
 
     template<typename T>
-    const typename Span<T>::size_type Span<T>::npos;
+    const typename span<T>::size_type span<T>::npos;
 
-// Span relationals
+// span relationals
 
 // Equality is compared element-by-element, while ordering is lexicographical.
 // We provide three overloads for each operator to cover any combination on the
-// left or right hand side of mutable Span<T>, read-only Span<const T>, and
-// convertible-to-read-only Span<T>.
+// left or right hand side of mutable span<T>, read-only span<const T>, and
+// convertible-to-read-only span<T>.
 // TODO(zhangxy): Due to MSVC overload resolution bug with partial ordering
 // template functions, 5 overloads per operator is needed as a workaround. We
 // should update them to 3 overloads per operator using non-deduced context like
 // string_view, i.e.
-// - (Span<T>, Span<T>)
-// - (Span<T>, non_deduced<Span<const T>>)
-// - (non_deduced<Span<const T>>, Span<T>)
+// - (span<T>, span<T>)
+// - (span<T>, non_deduced<span<const T>>)
+// - (non_deduced<span<const T>>, span<T>)
 
 // operator==
     template<typename T>
-    bool operator==(Span<T> a, Span<T> b) {
-        return span_internal::EqualImpl<Span, const T>(a, b);
+    bool operator==(span<T> a, span<T> b) {
+        return span_internal::EqualImpl<span, const T>(a, b);
     }
 
     template<typename T>
-    bool operator==(Span<const T> a, Span<T> b) {
-        return span_internal::EqualImpl<Span, const T>(a, b);
+    bool operator==(span<const T> a, span<T> b) {
+        return span_internal::EqualImpl<span, const T>(a, b);
     }
 
     template<typename T>
-    bool operator==(Span<T> a, Span<const T> b) {
-        return span_internal::EqualImpl<Span, const T>(a, b);
+    bool operator==(span<T> a, span<const T> b) {
+        return span_internal::EqualImpl<span, const T>(a, b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator==(const U &a, Span<T> b) {
-        return span_internal::EqualImpl<Span, const T>(a, b);
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator==(const U &a, span<T> b) {
+        return span_internal::EqualImpl<span, const T>(a, b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator==(Span<T> a, const U &b) {
-        return span_internal::EqualImpl<Span, const T>(a, b);
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator==(span<T> a, const U &b) {
+        return span_internal::EqualImpl<span, const T>(a, b);
     }
 
 // operator!=
     template<typename T>
-    bool operator!=(Span<T> a, Span<T> b) {
+    bool operator!=(span<T> a, span<T> b) {
         return !(a == b);
     }
 
     template<typename T>
-    bool operator!=(Span<const T> a, Span<T> b) {
+    bool operator!=(span<const T> a, span<T> b) {
         return !(a == b);
     }
 
     template<typename T>
-    bool operator!=(Span<T> a, Span<const T> b) {
+    bool operator!=(span<T> a, span<const T> b) {
         return !(a == b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator!=(const U &a, Span<T> b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator!=(const U &a, span<T> b) {
         return !(a == b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator!=(Span<T> a, const U &b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator!=(span<T> a, const U &b) {
         return !(a == b);
     }
 
 // operator<
     template<typename T>
-    bool operator<(Span<T> a, Span<T> b) {
-        return span_internal::LessThanImpl<Span, const T>(a, b);
+    bool operator<(span<T> a, span<T> b) {
+        return span_internal::LessThanImpl<span, const T>(a, b);
     }
 
     template<typename T>
-    bool operator<(Span<const T> a, Span<T> b) {
-        return span_internal::LessThanImpl<Span, const T>(a, b);
+    bool operator<(span<const T> a, span<T> b) {
+        return span_internal::LessThanImpl<span, const T>(a, b);
     }
 
     template<typename T>
-    bool operator<(Span<T> a, Span<const T> b) {
-        return span_internal::LessThanImpl<Span, const T>(a, b);
+    bool operator<(span<T> a, span<const T> b) {
+        return span_internal::LessThanImpl<span, const T>(a, b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator<(const U &a, Span<T> b) {
-        return span_internal::LessThanImpl<Span, const T>(a, b);
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator<(const U &a, span<T> b) {
+        return span_internal::LessThanImpl<span, const T>(a, b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator<(Span<T> a, const U &b) {
-        return span_internal::LessThanImpl<Span, const T>(a, b);
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator<(span<T> a, const U &b) {
+        return span_internal::LessThanImpl<span, const T>(a, b);
     }
 
 // operator>
     template<typename T>
-    bool operator>(Span<T> a, Span<T> b) {
+    bool operator>(span<T> a, span<T> b) {
         return b < a;
     }
 
     template<typename T>
-    bool operator>(Span<const T> a, Span<T> b) {
+    bool operator>(span<const T> a, span<T> b) {
         return b < a;
     }
 
     template<typename T>
-    bool operator>(Span<T> a, Span<const T> b) {
+    bool operator>(span<T> a, span<const T> b) {
         return b < a;
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator>(const U &a, Span<T> b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator>(const U &a, span<T> b) {
         return b < a;
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator>(Span<T> a, const U &b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator>(span<T> a, const U &b) {
         return b < a;
     }
 
 // operator<=
     template<typename T>
-    bool operator<=(Span<T> a, Span<T> b) {
+    bool operator<=(span<T> a, span<T> b) {
         return !(b < a);
     }
 
     template<typename T>
-    bool operator<=(Span<const T> a, Span<T> b) {
+    bool operator<=(span<const T> a, span<T> b) {
         return !(b < a);
     }
 
     template<typename T>
-    bool operator<=(Span<T> a, Span<const T> b) {
+    bool operator<=(span<T> a, span<const T> b) {
         return !(b < a);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator<=(const U &a, Span<T> b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator<=(const U &a, span<T> b) {
         return !(b < a);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator<=(Span<T> a, const U &b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator<=(span<T> a, const U &b) {
         return !(b < a);
     }
 
 // operator>=
     template<typename T>
-    bool operator>=(Span<T> a, Span<T> b) {
+    bool operator>=(span<T> a, span<T> b) {
         return !(a < b);
     }
 
     template<typename T>
-    bool operator>=(Span<const T> a, Span<T> b) {
+    bool operator>=(span<const T> a, span<T> b) {
         return !(a < b);
     }
 
     template<typename T>
-    bool operator>=(Span<T> a, Span<const T> b) {
+    bool operator>=(span<T> a, span<const T> b) {
         return !(a < b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator>=(const U &a, Span<T> b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator>=(const U &a, span<T> b) {
         return !(a < b);
     }
 
     template<
             typename T, typename U,
-            typename = span_internal::EnableIfConvertibleTo<U, abel::Span<const T>>>
-    bool operator>=(Span<T> a, const U &b) {
+            typename = span_internal::EnableIfConvertibleTo<U, abel::span<const T>>>
+    bool operator>=(span<T> a, const U &b) {
         return !(a < b);
     }
 
-// MakeSpan()
+// make_span()
 //
-// Constructs a mutable `Span<T>`, deducing `T` automatically from either a
+// Constructs a mutable `span<T>`, deducing `T` automatically from either a
 // container or pointer+size.
 //
-// Because a read-only `Span<const T>` is implicitly constructed from container
+// Because a read-only `span<const T>` is implicitly constructed from container
 // types regardless of whether the container itself is a const container,
-// constructing mutable spans of type `Span<T>` from containers requires
-// explicit constructors. The container-accepting version of `MakeSpan()`
+// constructing mutable spans of type `span<T>` from containers requires
+// explicit constructors. The container-accepting version of `make_span()`
 // deduces the type of `T` by the constness of the pointer received from the
 // container's `data()` member. Similarly, the pointer-accepting version returns
-// a `Span<const T>` if `T` is `const`, and a `Span<T>` otherwise.
+// a `span<const T>` if `T` is `const`, and a `span<T>` otherwise.
 //
 // Examples:
 //
-//   void MyRoutine(abel::Span<MyComplicatedType> a) {
+//   void MyRoutine(abel::span<MyComplicatedType> a) {
 //     ...
 //   };
 //   // my_vector is a container of non-const types
 //   std::vector<MyComplicatedType> my_vector;
 //
-//   // Constructing a Span implicitly attempts to create a Span of type
-//   // `Span<const T>`
+//   // Constructing a span implicitly attempts to create a span of type
+//   // `span<const T>`
 //   MyRoutine(my_vector);                // error, type mismatch
 //
-//   // Explicitly constructing the Span is verbose
-//   MyRoutine(abel::Span<MyComplicatedType>(my_vector));
+//   // Explicitly constructing the span is verbose
+//   MyRoutine(abel::span<MyComplicatedType>(my_vector));
 //
-//   // Use MakeSpan() to make an abel::Span<T>
-//   MyRoutine(abel::MakeSpan(my_vector));
+//   // Use make_span() to make an abel::span<T>
+//   MyRoutine(abel::make_span(my_vector));
 //
 //   // Construct a span from an array ptr+size
-//   abel::Span<T> my_span() {
-//     return abel::MakeSpan(&array[0], num_elements_);
+//   abel::span<T> my_span() {
+//     return abel::make_span(&array[0], num_elements_);
 //   }
 //
     template<int &... ExplicitArgumentBarrier, typename T>
-    constexpr Span<T> MakeSpan(T *ptr, size_t size) noexcept {
-        return Span<T>(ptr, size);
+    constexpr span<T> make_span(T *ptr, size_t size) noexcept {
+        return span<T>(ptr, size);
     }
 
     template<int &... ExplicitArgumentBarrier, typename T>
-    Span<T> MakeSpan(T *begin, T *end) noexcept {
-        return ABEL_ASSERT(begin <= end), Span<T>(begin, end - begin);
+    span<T> make_span(T *begin, T *end) noexcept {
+        return ABEL_ASSERT(begin <= end), span<T>(begin, end - begin);
     }
 
     template<int &... ExplicitArgumentBarrier, typename C>
-    constexpr auto MakeSpan(C &c) noexcept  // NOLINT(runtime/references)
-    -> decltype(abel::MakeSpan(span_internal::GetData(c), c.size())) {
-        return MakeSpan(span_internal::GetData(c), c.size());
+    constexpr auto make_span(C &c) noexcept  // NOLINT(runtime/references)
+    -> decltype(abel::make_span(span_internal::GetData(c), c.size())) {
+        return make_span(span_internal::GetData(c), c.size());
     }
 
     template<int &... ExplicitArgumentBarrier, typename T, size_t N>
-    constexpr Span<T> MakeSpan(T (&array)[N]) noexcept {
-        return Span<T>(array, N);
+    constexpr span<T> make_span(T (&array)[N]) noexcept {
+        return span<T>(array, N);
     }
 
-// MakeConstSpan()
+// make_const_span()
 //
-// Constructs a `Span<const T>` as with `MakeSpan`, deducing `T` automatically,
-// but always returning a `Span<const T>`.
+// Constructs a `span<const T>` as with `make_span`, deducing `T` automatically,
+// but always returning a `span<const T>`.
 //
 // Examples:
 //
-//   void ProcessInts(abel::Span<const int> some_ints);
+//   void ProcessInts(abel::span<const int> some_ints);
 //
 //   // Call with a pointer and size.
 //   int array[3] = { 0, 0, 0 };
-//   ProcessInts(abel::MakeConstSpan(&array[0], 3));
+//   ProcessInts(abel::make_const_span(&array[0], 3));
 //
 //   // Call with a [begin, end) pair.
-//   ProcessInts(abel::MakeConstSpan(&array[0], &array[3]));
+//   ProcessInts(abel::make_const_span(&array[0], &array[3]));
 //
 //   // Call directly with an array.
-//   ProcessInts(abel::MakeConstSpan(array));
+//   ProcessInts(abel::make_const_span(array));
 //
 //   // Call with a contiguous container.
 //   std::vector<int> some_ints = ...;
-//   ProcessInts(abel::MakeConstSpan(some_ints));
-//   ProcessInts(abel::MakeConstSpan(std::vector<int>{ 0, 0, 0 }));
+//   ProcessInts(abel::make_const_span(some_ints));
+//   ProcessInts(abel::make_const_span(std::vector<int>{ 0, 0, 0 }));
 //
     template<int &... ExplicitArgumentBarrier, typename T>
-    constexpr Span<const T> MakeConstSpan(T *ptr, size_t size) noexcept {
-        return Span<const T>(ptr, size);
+    constexpr span<const T> make_const_span(T *ptr, size_t size) noexcept {
+        return span<const T>(ptr, size);
     }
 
     template<int &... ExplicitArgumentBarrier, typename T>
-    Span<const T> MakeConstSpan(T *begin, T *end) noexcept {
-        return ABEL_ASSERT(begin <= end), Span<const T>(begin, end - begin);
+    span<const T> make_const_span(T *begin, T *end) noexcept {
+        return ABEL_ASSERT(begin <= end), span<const T>(begin, end - begin);
     }
 
     template<int &... ExplicitArgumentBarrier, typename C>
-    constexpr auto MakeConstSpan(const C &c) noexcept -> decltype(MakeSpan(c)) {
-        return MakeSpan(c);
+    constexpr auto make_const_span(const C &c) noexcept -> decltype(make_span(c)) {
+        return make_span(c);
     }
 
     template<int &... ExplicitArgumentBarrier, typename T, size_t N>
-    constexpr Span<const T> MakeConstSpan(const T (&array)[N]) noexcept {
-        return Span<const T>(array, N);
+    constexpr span<const T> make_const_span(const T (&array)[N]) noexcept {
+        return span<const T>(array, N);
     }
 
 }  // namespace abel

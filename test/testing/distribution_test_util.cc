@@ -22,7 +22,7 @@ namespace abel {
         }  // namespace
 
         DistributionMoments ComputeDistributionMoments(
-                abel::Span<const double> data_points) {
+                abel::span<const double> data_points) {
             DistributionMoments result;
 
             // Compute m1

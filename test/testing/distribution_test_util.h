@@ -31,7 +31,7 @@ namespace abel {
         };
 
         DistributionMoments ComputeDistributionMoments(
-                abel::Span<const double> data_points);
+                abel::span<const double> data_points);
 
         std::ostream &operator<<(std::ostream &os, const DistributionMoments &moments);
 

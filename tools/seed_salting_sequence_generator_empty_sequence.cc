@@ -3,7 +3,7 @@
 #include <iostream>
 #include <random>
 
-#include <abel/random/random.h>
+#include <abel/stats/random/random.h>
 
 // This program is used in integration tests.
 

@@ -45,57 +45,57 @@ namespace {
     }
 
     TEST(IntSpan, EmptyCtors) {
-        abel::Span<int> s;
+        abel::span<int> s;
         EXPECT_THAT(s, SpanIs(nullptr, 0));
     }
 
     TEST(IntSpan, PtrLenCtor) {
         int a[] = {1, 2, 3};
-        abel::Span<int> s(&a[0], 2);
+        abel::span<int> s(&a[0], 2);
         EXPECT_THAT(s, SpanIs(a, 2));
     }
 
     TEST(IntSpan, ArrayCtor) {
         int a[] = {1, 2, 3};
-        abel::Span<int> s(a);
+        abel::span<int> s(a);
         EXPECT_THAT(s, SpanIs(a, 3));
 
-        EXPECT_TRUE((std::is_constructible<abel::Span<const int>, int[3]>::value));
+        EXPECT_TRUE((std::is_constructible<abel::span<const int>, int[3]>::value));
         EXPECT_TRUE(
-                (std::is_constructible<abel::Span<const int>, const int[3]>::value));
-        EXPECT_FALSE((std::is_constructible<abel::Span<int>, const int[3]>::value));
-        EXPECT_TRUE((std::is_convertible<int[3], abel::Span<const int>>::value));
+                (std::is_constructible<abel::span<const int>, const int[3]>::value));
+        EXPECT_FALSE((std::is_constructible<abel::span<int>, const int[3]>::value));
+        EXPECT_TRUE((std::is_convertible<int[3], abel::span<const int>>::value));
         EXPECT_TRUE(
-                (std::is_convertible<const int[3], abel::Span<const int>>::value));
+                (std::is_convertible<const int[3], abel::span<const int>>::value));
     }
 
     template<typename T>
-    void TakesGenericSpan(abel::Span<T>) {}
+    void TakesGenericSpan(abel::span<T>) {}
 
     TEST(IntSpan, ContainerCtor) {
         std::vector<int> empty;
-        abel::Span<int> s_empty(empty);
+        abel::span<int> s_empty(empty);
         EXPECT_THAT(s_empty, SpanIs(empty));
 
         std::vector<int> filled{1, 2, 3};
-        abel::Span<int> s_filled(filled);
+        abel::span<int> s_filled(filled);
         EXPECT_THAT(s_filled, SpanIs(filled));
 
-        abel::Span<int> s_from_span(filled);
+        abel::span<int> s_from_span(filled);
         EXPECT_THAT(s_from_span, SpanIs(s_filled));
 
-        abel::Span<const int> const_filled = filled;
+        abel::span<const int> const_filled = filled;
         EXPECT_THAT(const_filled, SpanIs(filled));
 
-        abel::Span<const int> const_from_span = s_filled;
+        abel::span<const int> const_from_span = s_filled;
         EXPECT_THAT(const_from_span, SpanIs(s_filled));
 
         EXPECT_TRUE(
-                (std::is_convertible<std::vector<int> &, abel::Span<const int>>::value));
+                (std::is_convertible<std::vector<int> &, abel::span<const int>>::value));
         EXPECT_TRUE(
-                (std::is_convertible<abel::Span<int> &, abel::Span<const int>>::value));
+                (std::is_convertible<abel::span<int> &, abel::span<const int>>::value));
 
-        TakesGenericSpan(abel::Span<int>(filled));
+        TakesGenericSpan(abel::span<int>(filled));
     }
 
 // A struct supplying shallow data() const.
@@ -109,7 +109,7 @@ namespace {
 
     TEST(IntSpan, ShallowConstness) {
         const ContainerWithShallowConstData c{MakeRamp(20)};
-        abel::Span<int> s(
+        abel::span<int> s(
                 c);  // We should be able to do this even though data() is const.
         s[0] = -1;
         EXPECT_EQ(c.storage[0], -1);
@@ -117,32 +117,32 @@ namespace {
 
     TEST(CharSpan, StringCtor) {
         std::string empty = "";
-        abel::Span<char> s_empty(empty);
+        abel::span<char> s_empty(empty);
         EXPECT_THAT(s_empty, SpanIs(empty));
 
         std::string abc = "abc";
-        abel::Span<char> s_abc(abc);
+        abel::span<char> s_abc(abc);
         EXPECT_THAT(s_abc, SpanIs(abc));
 
-        abel::Span<const char> s_const_abc = abc;
+        abel::span<const char> s_const_abc = abc;
         EXPECT_THAT(s_const_abc, SpanIs(abc));
 
-        EXPECT_FALSE((std::is_constructible<abel::Span<int>, std::string>::value));
+        EXPECT_FALSE((std::is_constructible<abel::span<int>, std::string>::value));
         EXPECT_FALSE(
-                (std::is_constructible<abel::Span<const int>, std::string>::value));
+                (std::is_constructible<abel::span<const int>, std::string>::value));
         EXPECT_TRUE(
-                (std::is_convertible<std::string, abel::Span<const char>>::value));
+                (std::is_convertible<std::string, abel::span<const char>>::value));
     }
 
     TEST(IntSpan, FromConstPointer) {
-        EXPECT_TRUE((std::is_constructible<abel::Span<const int *const>,
+        EXPECT_TRUE((std::is_constructible<abel::span<const int *const>,
                 std::vector<int *>>::value));
-        EXPECT_TRUE((std::is_constructible<abel::Span<const int *const>,
+        EXPECT_TRUE((std::is_constructible<abel::span<const int *const>,
                 std::vector<const int *>>::value));
         EXPECT_FALSE((
-                             std::is_constructible<abel::Span<const int *>, std::vector<int *>>::value));
+                             std::is_constructible<abel::span<const int *>, std::vector<int *>>::value));
         EXPECT_FALSE((
-                             std::is_constructible<abel::Span<int *>, std::vector<const int *>>::value));
+                             std::is_constructible<abel::span<int *>, std::vector<const int *>>::value));
     }
 
     struct TypeWithMisleadingData {
@@ -163,9 +163,9 @@ namespace {
 
     TEST(IntSpan, EvilTypes) {
         EXPECT_FALSE(
-                (std::is_constructible<abel::Span<int>, TypeWithMisleadingData &>::value));
+                (std::is_constructible<abel::span<int>, TypeWithMisleadingData &>::value));
         EXPECT_FALSE(
-                (std::is_constructible<abel::Span<int>, TypeWithMisleadingSize &>::value));
+                (std::is_constructible<abel::span<int>, TypeWithMisleadingSize &>::value));
     }
 
     struct Base {
@@ -180,13 +180,13 @@ namespace {
     };
 
     TEST(IntSpan, SpanOfDerived) {
-        EXPECT_TRUE((std::is_constructible<abel::Span<int>, Base &>::value));
-        EXPECT_TRUE((std::is_constructible<abel::Span<int>, Derived &>::value));
+        EXPECT_TRUE((std::is_constructible<abel::span<int>, Base &>::value));
+        EXPECT_TRUE((std::is_constructible<abel::span<int>, Derived &>::value));
         EXPECT_FALSE(
-                (std::is_constructible<abel::Span<Base>, std::vector<Derived>>::value));
+                (std::is_constructible<abel::span<Base>, std::vector<Derived>>::value));
     }
 
-    void TestInitializerList(abel::Span<const int> s, const std::vector<int> &v) {
+    void TestInitializerList(abel::span<const int> s, const std::vector<int> &v) {
         EXPECT_TRUE(abel::equal(s.begin(), s.end(), v.begin(), v.end()));
     }
 
@@ -195,26 +195,26 @@ namespace {
         TestInitializerList({1}, {1});
         TestInitializerList({1, 2, 3}, {1, 2, 3});
 
-        EXPECT_FALSE((std::is_constructible<abel::Span<int>,
+        EXPECT_FALSE((std::is_constructible<abel::span<int>,
                 std::initializer_list<int>>::value));
         EXPECT_FALSE((
-                             std::is_convertible<abel::Span<int>, std::initializer_list<int>>::value));
+                             std::is_convertible<abel::span<int>, std::initializer_list<int>>::value));
     }
 
     TEST(IntSpan, Data) {
         int i;
-        abel::Span<int> s(&i, 1);
+        abel::span<int> s(&i, 1);
         EXPECT_EQ(&i, s.data());
     }
 
     TEST(IntSpan, SizeLengthEmpty) {
-        abel::Span<int> empty;
+        abel::span<int> empty;
         EXPECT_EQ(empty.size(), 0);
         EXPECT_TRUE(empty.empty());
         EXPECT_EQ(empty.size(), empty.length());
 
         auto v = MakeRamp(10);
-        abel::Span<int> s(v);
+        abel::span<int> s(v);
         EXPECT_EQ(s.size(), 10);
         EXPECT_FALSE(s.empty());
         EXPECT_EQ(s.size(), s.length());
@@ -222,7 +222,7 @@ namespace {
 
     TEST(IntSpan, ElementAccess) {
         auto v = MakeRamp(10);
-        abel::Span<int> s(v);
+        abel::span<int> s(v);
         for (size_t i = 0; i < s.size(); ++i) {
             EXPECT_EQ(s[i], s.at(i));
         }
@@ -233,7 +233,7 @@ namespace {
 
     TEST(IntSpan, AtThrows) {
         auto v = MakeRamp(10);
-        abel::Span<int> s(v);
+        abel::span<int> s(v);
 
         EXPECT_EQ(s.at(9), 9);
         ABEL_BASE_INTERNAL_EXPECT_FAIL(s.at(10), std::out_of_range,
@@ -242,7 +242,7 @@ namespace {
 
     TEST(IntSpan, RemovePrefixAndSuffix) {
         auto v = MakeRamp(20, 1);
-        abel::Span<int> s(v);
+        abel::span<int> s(v);
         EXPECT_EQ(s.size(), 20);
 
         s.remove_suffix(0);
@@ -269,127 +269,127 @@ namespace {
 
     TEST(IntSpan, Subspan) {
         std::vector<int> empty;
-        EXPECT_EQ(abel::MakeSpan(empty).subspan(), empty);
-        EXPECT_THAT(abel::MakeSpan(empty).subspan(0, 0), SpanIs(empty));
-        EXPECT_THAT(abel::MakeSpan(empty).subspan(0, abel::Span<const int>::npos),
+        EXPECT_EQ(abel::make_span(empty).subspan(), empty);
+        EXPECT_THAT(abel::make_span(empty).subspan(0, 0), SpanIs(empty));
+        EXPECT_THAT(abel::make_span(empty).subspan(0, abel::span<const int>::npos),
                     SpanIs(empty));
 
         auto ramp = MakeRamp(10);
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(), SpanIs(ramp));
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(0, 10), SpanIs(ramp));
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(0, abel::Span<const int>::npos),
+        EXPECT_THAT(abel::make_span(ramp).subspan(), SpanIs(ramp));
+        EXPECT_THAT(abel::make_span(ramp).subspan(0, 10), SpanIs(ramp));
+        EXPECT_THAT(abel::make_span(ramp).subspan(0, abel::span<const int>::npos),
                     SpanIs(ramp));
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(0, 3), SpanIs(ramp.data(), 3));
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(5, abel::Span<const int>::npos),
+        EXPECT_THAT(abel::make_span(ramp).subspan(0, 3), SpanIs(ramp.data(), 3));
+        EXPECT_THAT(abel::make_span(ramp).subspan(5, abel::span<const int>::npos),
                     SpanIs(ramp.data() + 5, 5));
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(3, 3), SpanIs(ramp.data() + 3, 3));
-        EXPECT_THAT(abel::MakeSpan(ramp).subspan(10, 5), SpanIs(ramp.data() + 10, 0));
+        EXPECT_THAT(abel::make_span(ramp).subspan(3, 3), SpanIs(ramp.data() + 3, 3));
+        EXPECT_THAT(abel::make_span(ramp).subspan(10, 5), SpanIs(ramp.data() + 10, 0));
 
 #ifdef ABEL_HAVE_EXCEPTIONS
-        EXPECT_THROW(abel::MakeSpan(ramp).subspan(11, 5), std::out_of_range);
+        EXPECT_THROW(abel::make_span(ramp).subspan(11, 5), std::out_of_range);
 #else
-        EXPECT_DEATH_IF_SUPPORTED(abel::MakeSpan(ramp).subspan(11, 5), "");
+        EXPECT_DEATH_IF_SUPPORTED(abel::make_span(ramp).subspan(11, 5), "");
 #endif
     }
 
     TEST(IntSpan, First) {
         std::vector<int> empty;
-        EXPECT_THAT(abel::MakeSpan(empty).first(0), SpanIs(empty));
+        EXPECT_THAT(abel::make_span(empty).first(0), SpanIs(empty));
 
         auto ramp = MakeRamp(10);
-        EXPECT_THAT(abel::MakeSpan(ramp).first(0), SpanIs(ramp.data(), 0));
-        EXPECT_THAT(abel::MakeSpan(ramp).first(10), SpanIs(ramp));
-        EXPECT_THAT(abel::MakeSpan(ramp).first(3), SpanIs(ramp.data(), 3));
+        EXPECT_THAT(abel::make_span(ramp).first(0), SpanIs(ramp.data(), 0));
+        EXPECT_THAT(abel::make_span(ramp).first(10), SpanIs(ramp));
+        EXPECT_THAT(abel::make_span(ramp).first(3), SpanIs(ramp.data(), 3));
 
 #ifdef ABEL_HAVE_EXCEPTIONS
-        EXPECT_THROW(abel::MakeSpan(ramp).first(11), std::out_of_range);
+        EXPECT_THROW(abel::make_span(ramp).first(11), std::out_of_range);
 #else
-        EXPECT_DEATH_IF_SUPPORTED(abel::MakeSpan(ramp).first(11), "");
+        EXPECT_DEATH_IF_SUPPORTED(abel::make_span(ramp).first(11), "");
 #endif
     }
 
     TEST(IntSpan, Last) {
         std::vector<int> empty;
-        EXPECT_THAT(abel::MakeSpan(empty).last(0), SpanIs(empty));
+        EXPECT_THAT(abel::make_span(empty).last(0), SpanIs(empty));
 
         auto ramp = MakeRamp(10);
-        EXPECT_THAT(abel::MakeSpan(ramp).last(0), SpanIs(ramp.data() + 10, 0));
-        EXPECT_THAT(abel::MakeSpan(ramp).last(10), SpanIs(ramp));
-        EXPECT_THAT(abel::MakeSpan(ramp).last(3), SpanIs(ramp.data() + 7, 3));
+        EXPECT_THAT(abel::make_span(ramp).last(0), SpanIs(ramp.data() + 10, 0));
+        EXPECT_THAT(abel::make_span(ramp).last(10), SpanIs(ramp));
+        EXPECT_THAT(abel::make_span(ramp).last(3), SpanIs(ramp.data() + 7, 3));
 
 #ifdef ABEL_HAVE_EXCEPTIONS
-        EXPECT_THROW(abel::MakeSpan(ramp).last(11), std::out_of_range);
+        EXPECT_THROW(abel::make_span(ramp).last(11), std::out_of_range);
 #else
-        EXPECT_DEATH_IF_SUPPORTED(abel::MakeSpan(ramp).last(11), "");
+        EXPECT_DEATH_IF_SUPPORTED(abel::make_span(ramp).last(11), "");
 #endif
     }
 
-    TEST(IntSpan, MakeSpanPtrLength) {
+    TEST(IntSpan, make_spanPtrLength) {
         std::vector<int> empty;
-        auto s_empty = abel::MakeSpan(empty.data(), empty.size());
+        auto s_empty = abel::make_span(empty.data(), empty.size());
         EXPECT_THAT(s_empty, SpanIs(empty));
 
         std::array<int, 3> a{{1, 2, 3}};
-        auto s = abel::MakeSpan(a.data(), a.size());
+        auto s = abel::make_span(a.data(), a.size());
         EXPECT_THAT(s, SpanIs(a));
 
-        EXPECT_THAT(abel::MakeConstSpan(empty.data(), empty.size()), SpanIs(s_empty));
-        EXPECT_THAT(abel::MakeConstSpan(a.data(), a.size()), SpanIs(s));
+        EXPECT_THAT(abel::make_const_span(empty.data(), empty.size()), SpanIs(s_empty));
+        EXPECT_THAT(abel::make_const_span(a.data(), a.size()), SpanIs(s));
     }
 
-    TEST(IntSpan, MakeSpanTwoPtrs) {
+    TEST(IntSpan, make_spanTwoPtrs) {
         std::vector<int> empty;
-        auto s_empty = abel::MakeSpan(empty.data(), empty.data());
+        auto s_empty = abel::make_span(empty.data(), empty.data());
         EXPECT_THAT(s_empty, SpanIs(empty));
 
         std::vector<int> v{1, 2, 3};
-        auto s = abel::MakeSpan(v.data(), v.data() + 1);
+        auto s = abel::make_span(v.data(), v.data() + 1);
         EXPECT_THAT(s, SpanIs(v.data(), 1));
 
-        EXPECT_THAT(abel::MakeConstSpan(empty.data(), empty.data()), SpanIs(s_empty));
-        EXPECT_THAT(abel::MakeConstSpan(v.data(), v.data() + 1), SpanIs(s));
+        EXPECT_THAT(abel::make_const_span(empty.data(), empty.data()), SpanIs(s_empty));
+        EXPECT_THAT(abel::make_const_span(v.data(), v.data() + 1), SpanIs(s));
     }
 
-    TEST(IntSpan, MakeSpanContainer) {
+    TEST(IntSpan, make_spanContainer) {
         std::vector<int> empty;
-        auto s_empty = abel::MakeSpan(empty);
+        auto s_empty = abel::make_span(empty);
         EXPECT_THAT(s_empty, SpanIs(empty));
 
         std::vector<int> v{1, 2, 3};
-        auto s = abel::MakeSpan(v);
+        auto s = abel::make_span(v);
         EXPECT_THAT(s, SpanIs(v));
 
-        EXPECT_THAT(abel::MakeConstSpan(empty), SpanIs(s_empty));
-        EXPECT_THAT(abel::MakeConstSpan(v), SpanIs(s));
+        EXPECT_THAT(abel::make_const_span(empty), SpanIs(s_empty));
+        EXPECT_THAT(abel::make_const_span(v), SpanIs(s));
 
-        EXPECT_THAT(abel::MakeSpan(s), SpanIs(s));
-        EXPECT_THAT(abel::MakeConstSpan(s), SpanIs(s));
+        EXPECT_THAT(abel::make_span(s), SpanIs(s));
+        EXPECT_THAT(abel::make_const_span(s), SpanIs(s));
     }
 
-    TEST(CharSpan, MakeSpanString) {
+    TEST(CharSpan, make_spanString) {
         std::string empty = "";
-        auto s_empty = abel::MakeSpan(empty);
+        auto s_empty = abel::make_span(empty);
         EXPECT_THAT(s_empty, SpanIs(empty));
 
         std::string str = "abc";
-        auto s_str = abel::MakeSpan(str);
+        auto s_str = abel::make_span(str);
         EXPECT_THAT(s_str, SpanIs(str));
 
-        EXPECT_THAT(abel::MakeConstSpan(empty), SpanIs(s_empty));
-        EXPECT_THAT(abel::MakeConstSpan(str), SpanIs(s_str));
+        EXPECT_THAT(abel::make_const_span(empty), SpanIs(s_empty));
+        EXPECT_THAT(abel::make_const_span(str), SpanIs(s_str));
     }
 
-    TEST(IntSpan, MakeSpanArray) {
+    TEST(IntSpan, make_spanArray) {
         int a[] = {1, 2, 3};
-        auto s = abel::MakeSpan(a);
+        auto s = abel::make_span(a);
         EXPECT_THAT(s, SpanIs(a, 3));
 
         const int ca[] = {1, 2, 3};
-        auto s_ca = abel::MakeSpan(ca);
+        auto s_ca = abel::make_span(ca);
         EXPECT_THAT(s_ca, SpanIs(ca, 3));
 
-        EXPECT_THAT(abel::MakeConstSpan(a), SpanIs(s));
-        EXPECT_THAT(abel::MakeConstSpan(ca), SpanIs(s_ca));
+        EXPECT_THAT(abel::make_const_span(a), SpanIs(s));
+        EXPECT_THAT(abel::make_const_span(ca), SpanIs(s_ca));
     }
 
 // Compile-asserts that the argument has the expected decayed type.
@@ -398,7 +398,7 @@ namespace {
         testing::StaticAssertTypeEq<Expected, T>();
     }
 
-    TEST(IntSpan, MakeSpanTypes) {
+    TEST(IntSpan, make_spanTypes) {
         std::vector<int> vec;
         const std::vector<int> cvec;
         int a[1];
@@ -407,23 +407,23 @@ namespace {
         const int *cip = ca;
         std::string s = "";
         const std::string cs = "";
-        CheckType<abel::Span<int>>(abel::MakeSpan(vec));
-        CheckType<abel::Span<const int>>(abel::MakeSpan(cvec));
-        CheckType<abel::Span<int>>(abel::MakeSpan(ip, ip + 1));
-        CheckType<abel::Span<int>>(abel::MakeSpan(ip, 1));
-        CheckType<abel::Span<const int>>(abel::MakeSpan(cip, cip + 1));
-        CheckType<abel::Span<const int>>(abel::MakeSpan(cip, 1));
-        CheckType<abel::Span<int>>(abel::MakeSpan(a));
-        CheckType<abel::Span<int>>(abel::MakeSpan(a, a + 1));
-        CheckType<abel::Span<int>>(abel::MakeSpan(a, 1));
-        CheckType<abel::Span<const int>>(abel::MakeSpan(ca));
-        CheckType<abel::Span<const int>>(abel::MakeSpan(ca, ca + 1));
-        CheckType<abel::Span<const int>>(abel::MakeSpan(ca, 1));
-        CheckType<abel::Span<char>>(abel::MakeSpan(s));
-        CheckType<abel::Span<const char>>(abel::MakeSpan(cs));
+        CheckType<abel::span<int>>(abel::make_span(vec));
+        CheckType<abel::span<const int>>(abel::make_span(cvec));
+        CheckType<abel::span<int>>(abel::make_span(ip, ip + 1));
+        CheckType<abel::span<int>>(abel::make_span(ip, 1));
+        CheckType<abel::span<const int>>(abel::make_span(cip, cip + 1));
+        CheckType<abel::span<const int>>(abel::make_span(cip, 1));
+        CheckType<abel::span<int>>(abel::make_span(a));
+        CheckType<abel::span<int>>(abel::make_span(a, a + 1));
+        CheckType<abel::span<int>>(abel::make_span(a, 1));
+        CheckType<abel::span<const int>>(abel::make_span(ca));
+        CheckType<abel::span<const int>>(abel::make_span(ca, ca + 1));
+        CheckType<abel::span<const int>>(abel::make_span(ca, 1));
+        CheckType<abel::span<char>>(abel::make_span(s));
+        CheckType<abel::span<const char>>(abel::make_span(cs));
     }
 
-    TEST(ConstIntSpan, MakeConstSpanTypes) {
+    TEST(ConstIntSpan, make_const_spanTypes) {
         std::vector<int> vec;
         const std::vector<int> cvec;
         int array[1];
@@ -432,16 +432,16 @@ namespace {
         const int *cptr = carray;
         std::string s = "";
         std::string cs = "";
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(vec));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(cvec));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(ptr, ptr + 1));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(ptr, 1));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(cptr, cptr + 1));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(cptr, 1));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(array));
-        CheckType<abel::Span<const int>>(abel::MakeConstSpan(carray));
-        CheckType<abel::Span<const char>>(abel::MakeConstSpan(s));
-        CheckType<abel::Span<const char>>(abel::MakeConstSpan(cs));
+        CheckType<abel::span<const int>>(abel::make_const_span(vec));
+        CheckType<abel::span<const int>>(abel::make_const_span(cvec));
+        CheckType<abel::span<const int>>(abel::make_const_span(ptr, ptr + 1));
+        CheckType<abel::span<const int>>(abel::make_const_span(ptr, 1));
+        CheckType<abel::span<const int>>(abel::make_const_span(cptr, cptr + 1));
+        CheckType<abel::span<const int>>(abel::make_const_span(cptr, 1));
+        CheckType<abel::span<const int>>(abel::make_const_span(array));
+        CheckType<abel::span<const int>>(abel::make_const_span(carray));
+        CheckType<abel::span<const char>>(abel::make_const_span(s));
+        CheckType<abel::span<const char>>(abel::make_const_span(cs));
     }
 
     TEST(IntSpan, Equality) {
@@ -453,8 +453,8 @@ namespace {
         // These two slices are from different vectors, but have the same size and
         // have the same elements (right now).  They should compare equal. Test both
         // == and !=.
-        const abel::Span<const int> from1 = vec1;
-        const abel::Span<const int> from2 = vec2;
+        const abel::span<const int> from1 = vec1;
+        const abel::span<const int> from2 = vec2;
         EXPECT_EQ(from1, from1);
         EXPECT_FALSE(from1 != from1);
         EXPECT_EQ(from1, from2);
@@ -462,21 +462,21 @@ namespace {
 
         // These two slices have different underlying vector values. They should be
         // considered not equal. Test both == and !=.
-        const abel::Span<const int> from_other = other_vec;
+        const abel::span<const int> from_other = other_vec;
         EXPECT_NE(from1, from_other);
         EXPECT_FALSE(from1 == from_other);
 
         // Comparison between a vector and its slice should be equal. And vice-versa.
-        // This ensures implicit conversion to Span works on both sides of ==.
+        // This ensures implicit conversion to span works on both sides of ==.
         EXPECT_EQ(vec1, from1);
         EXPECT_FALSE(vec1 != from1);
         EXPECT_EQ(from1, vec1);
         EXPECT_FALSE(from1 != vec1);
 
-        // This verifies that abel::Span<T> can be compared freely with
-        // abel::Span<const T>.
-        const abel::Span<int> mutable_from1(vec1);
-        const abel::Span<int> mutable_from2(vec2);
+        // This verifies that abel::span<T> can be compared freely with
+        // abel::span<const T>.
+        const abel::span<int> mutable_from1(vec1);
+        const abel::span<int> mutable_from2(vec2);
         EXPECT_EQ(from1, mutable_from1);
         EXPECT_EQ(mutable_from1, from1);
         EXPECT_EQ(mutable_from1, mutable_from2);
@@ -489,23 +489,23 @@ namespace {
         EXPECT_EQ(mutable_from1, vec1);
         EXPECT_FALSE(mutable_from1 != vec1);
 
-        // Comparison between convertible-to-Span-of-const and Span-of-mutable. Arrays
+        // Comparison between convertible-to-span-of-const and span-of-mutable. Arrays
         // are used because they're the only value type which converts to a
-        // Span-of-mutable. EXPECT_TRUE is used instead of EXPECT_EQ to avoid
+        // span-of-mutable. EXPECT_TRUE is used instead of EXPECT_EQ to avoid
         // array-to-pointer decay.
         EXPECT_TRUE(arr1 == mutable_from1);
         EXPECT_FALSE(arr1 != mutable_from1);
         EXPECT_TRUE(mutable_from1 == arr1);
         EXPECT_FALSE(mutable_from1 != arr1);
 
-        // Comparison between convertible-to-Span-of-mutable and Span-of-const
+        // Comparison between convertible-to-span-of-mutable and span-of-const
         EXPECT_TRUE(arr2 == from1);
         EXPECT_FALSE(arr2 != from1);
         EXPECT_TRUE(from1 == arr2);
         EXPECT_FALSE(from1 != arr2);
 
         // With a different size, the array slices should not be equal.
-        EXPECT_NE(from1, abel::Span<const int>(from1).subspan(0, from1.size() - 1));
+        EXPECT_NE(from1, abel::span<const int>(from1).subspan(0, from1.size() - 1));
 
         // With different contents, the array slices should not be equal.
         ++vec2.back();
@@ -529,8 +529,8 @@ namespace {
         int arr_before_[3], arr_after_[3];
         const int carr_after_[3];
         std::vector<int> vec_before_, vec_after_;
-        abel::Span<int> before_, after_;
-        abel::Span<const int> cbefore_, cafter_;
+        abel::span<int> before_, after_;
+        abel::span<const int> cbefore_, cafter_;
     };
 
     TEST_F(IntSpanOrderComparisonTest, CompareSpans) {
@@ -614,7 +614,7 @@ namespace {
     }
 
     TEST_F(IntSpanOrderComparisonTest, EmptySpans) {
-        abel::Span<int> empty;
+        abel::span<int> empty;
         EXPECT_FALSE(empty < empty);
         EXPECT_TRUE(empty <= empty);
         EXPECT_FALSE(empty > empty);
@@ -630,42 +630,42 @@ namespace {
     }
 
     TEST(IntSpan, ExposesContainerTypesAndConsts) {
-        abel::Span<int> slice;
-        CheckType<abel::Span<int>::iterator>(slice.begin());
+        abel::span<int> slice;
+        CheckType<abel::span<int>::iterator>(slice.begin());
         EXPECT_TRUE((std::is_convertible<decltype(slice.begin()),
-                abel::Span<int>::const_iterator>::value));
-        CheckType<abel::Span<int>::const_iterator>(slice.cbegin());
+                abel::span<int>::const_iterator>::value));
+        CheckType<abel::span<int>::const_iterator>(slice.cbegin());
         EXPECT_TRUE((std::is_convertible<decltype(slice.end()),
-                abel::Span<int>::const_iterator>::value));
-        CheckType<abel::Span<int>::const_iterator>(slice.cend());
-        CheckType<abel::Span<int>::reverse_iterator>(slice.rend());
+                abel::span<int>::const_iterator>::value));
+        CheckType<abel::span<int>::const_iterator>(slice.cend());
+        CheckType<abel::span<int>::reverse_iterator>(slice.rend());
         EXPECT_TRUE(
                 (std::is_convertible<decltype(slice.rend()),
-                        abel::Span<int>::const_reverse_iterator>::value));
-        CheckType<abel::Span<int>::const_reverse_iterator>(slice.crend());
-        testing::StaticAssertTypeEq<int, abel::Span<int>::value_type>();
-        testing::StaticAssertTypeEq<int, abel::Span<const int>::value_type>();
-        testing::StaticAssertTypeEq<int *, abel::Span<int>::pointer>();
-        testing::StaticAssertTypeEq<const int *, abel::Span<const int>::pointer>();
-        testing::StaticAssertTypeEq<int &, abel::Span<int>::reference>();
-        testing::StaticAssertTypeEq<const int &, abel::Span<const int>::reference>();
-        testing::StaticAssertTypeEq<const int &, abel::Span<int>::const_reference>();
+                        abel::span<int>::const_reverse_iterator>::value));
+        CheckType<abel::span<int>::const_reverse_iterator>(slice.crend());
+        testing::StaticAssertTypeEq<int, abel::span<int>::value_type>();
+        testing::StaticAssertTypeEq<int, abel::span<const int>::value_type>();
+        testing::StaticAssertTypeEq<int *, abel::span<int>::pointer>();
+        testing::StaticAssertTypeEq<const int *, abel::span<const int>::pointer>();
+        testing::StaticAssertTypeEq<int &, abel::span<int>::reference>();
+        testing::StaticAssertTypeEq<const int &, abel::span<const int>::reference>();
+        testing::StaticAssertTypeEq<const int &, abel::span<int>::const_reference>();
         testing::StaticAssertTypeEq<const int &,
-                abel::Span<const int>::const_reference>();
-        EXPECT_EQ(static_cast<abel::Span<int>::size_type>(-1), abel::Span<int>::npos);
+                abel::span<const int>::const_reference>();
+        EXPECT_EQ(static_cast<abel::span<int>::size_type>(-1), abel::span<int>::npos);
     }
 
     TEST(IntSpan, IteratorsAndReferences) {
         auto accept_pointer = [](int *) {};
         auto accept_reference = [](int &) {};
-        auto accept_iterator = [](abel::Span<int>::iterator) {};
-        auto accept_const_iterator = [](abel::Span<int>::const_iterator) {};
-        auto accept_reverse_iterator = [](abel::Span<int>::reverse_iterator) {};
+        auto accept_iterator = [](abel::span<int>::iterator) {};
+        auto accept_const_iterator = [](abel::span<int>::const_iterator) {};
+        auto accept_reverse_iterator = [](abel::span<int>::reverse_iterator) {};
         auto accept_const_reverse_iterator =
-                [](abel::Span<int>::const_reverse_iterator) {};
+                [](abel::span<int>::const_reverse_iterator) {};
 
         int a[1];
-        abel::Span<int> s = a;
+        abel::span<int> s = a;
 
         accept_pointer(s.data());
         accept_iterator(s.begin());
@@ -690,14 +690,14 @@ namespace {
     TEST(IntSpan, IteratorsAndReferences_Const) {
         auto accept_pointer = [](int *) {};
         auto accept_reference = [](int &) {};
-        auto accept_iterator = [](abel::Span<int>::iterator) {};
-        auto accept_const_iterator = [](abel::Span<int>::const_iterator) {};
-        auto accept_reverse_iterator = [](abel::Span<int>::reverse_iterator) {};
+        auto accept_iterator = [](abel::span<int>::iterator) {};
+        auto accept_const_iterator = [](abel::span<int>::const_iterator) {};
+        auto accept_reverse_iterator = [](abel::span<int>::reverse_iterator) {};
         auto accept_const_reverse_iterator =
-                [](abel::Span<int>::const_reverse_iterator) {};
+                [](abel::span<int>::const_reverse_iterator) {};
 
         int a[1];
-        const abel::Span<int> s = a;
+        const abel::span<int> s = a;
 
         accept_pointer(s.data());
         accept_iterator(s.begin());
@@ -722,22 +722,22 @@ namespace {
     TEST(IntSpan, NoexceptTest) {
         int a[] = {1, 2, 3};
         std::vector<int> v;
-        EXPECT_TRUE(noexcept(abel::Span<const int>()));
-        EXPECT_TRUE(noexcept(abel::Span<const int>(a, 2)));
-        EXPECT_TRUE(noexcept(abel::Span<const int>(a)));
-        EXPECT_TRUE(noexcept(abel::Span<const int>(v)));
-        EXPECT_TRUE(noexcept(abel::Span<int>(v)));
-        EXPECT_TRUE(noexcept(abel::Span<const int>({1, 2, 3})));
-        EXPECT_TRUE(noexcept(abel::MakeSpan(v)));
-        EXPECT_TRUE(noexcept(abel::MakeSpan(a)));
-        EXPECT_TRUE(noexcept(abel::MakeSpan(a, 2)));
-        EXPECT_TRUE(noexcept(abel::MakeSpan(a, a + 1)));
-        EXPECT_TRUE(noexcept(abel::MakeConstSpan(v)));
-        EXPECT_TRUE(noexcept(abel::MakeConstSpan(a)));
-        EXPECT_TRUE(noexcept(abel::MakeConstSpan(a, 2)));
-        EXPECT_TRUE(noexcept(abel::MakeConstSpan(a, a + 1)));
+        EXPECT_TRUE(noexcept(abel::span<const int>()));
+        EXPECT_TRUE(noexcept(abel::span<const int>(a, 2)));
+        EXPECT_TRUE(noexcept(abel::span<const int>(a)));
+        EXPECT_TRUE(noexcept(abel::span<const int>(v)));
+        EXPECT_TRUE(noexcept(abel::span<int>(v)));
+        EXPECT_TRUE(noexcept(abel::span<const int>({1, 2, 3})));
+        EXPECT_TRUE(noexcept(abel::make_span(v)));
+        EXPECT_TRUE(noexcept(abel::make_span(a)));
+        EXPECT_TRUE(noexcept(abel::make_span(a, 2)));
+        EXPECT_TRUE(noexcept(abel::make_span(a, a + 1)));
+        EXPECT_TRUE(noexcept(abel::make_const_span(v)));
+        EXPECT_TRUE(noexcept(abel::make_const_span(a)));
+        EXPECT_TRUE(noexcept(abel::make_const_span(a, 2)));
+        EXPECT_TRUE(noexcept(abel::make_const_span(a, a + 1)));
 
-        abel::Span<int> s(v);
+        abel::span<int> s(v);
         EXPECT_TRUE(noexcept(s.data()));
         EXPECT_TRUE(noexcept(s.size()));
         EXPECT_TRUE(noexcept(s.length()));
@@ -782,18 +782,18 @@ namespace {
         static constexpr int a[] = {1, 2, 3};
         static constexpr int sized_arr[2] = {1, 2};
         static constexpr ContainerWithConstexprMethods c{1};
-        ABEL_TEST_CONSTEXPR(abel::Span<const int>());
-        ABEL_TEST_CONSTEXPR(abel::Span<const int>(a, 2));
-        ABEL_TEST_CONSTEXPR(abel::Span<const int>(sized_arr));
-        ABEL_TEST_CONSTEXPR(abel::Span<const int>(c));
-        ABEL_TEST_CONSTEXPR(abel::MakeSpan(&a[0], 1));
-        ABEL_TEST_CONSTEXPR(abel::MakeSpan(c));
-        ABEL_TEST_CONSTEXPR(abel::MakeSpan(a));
-        ABEL_TEST_CONSTEXPR(abel::MakeConstSpan(&a[0], 1));
-        ABEL_TEST_CONSTEXPR(abel::MakeConstSpan(c));
-        ABEL_TEST_CONSTEXPR(abel::MakeConstSpan(a));
+        ABEL_TEST_CONSTEXPR(abel::span<const int>());
+        ABEL_TEST_CONSTEXPR(abel::span<const int>(a, 2));
+        ABEL_TEST_CONSTEXPR(abel::span<const int>(sized_arr));
+        ABEL_TEST_CONSTEXPR(abel::span<const int>(c));
+        ABEL_TEST_CONSTEXPR(abel::make_span(&a[0], 1));
+        ABEL_TEST_CONSTEXPR(abel::make_span(c));
+        ABEL_TEST_CONSTEXPR(abel::make_span(a));
+        ABEL_TEST_CONSTEXPR(abel::make_const_span(&a[0], 1));
+        ABEL_TEST_CONSTEXPR(abel::make_const_span(c));
+        ABEL_TEST_CONSTEXPR(abel::make_const_span(a));
 
-        constexpr abel::Span<const int> span = c;
+        constexpr abel::span<const int> span = c;
         ABEL_TEST_CONSTEXPR(span.data());
         ABEL_TEST_CONSTEXPR(span.size());
         ABEL_TEST_CONSTEXPR(span.length());
@@ -810,15 +810,15 @@ namespace {
         char bytes[10000];
     };
 
-    TEST(Span, SpanSize) {
-        EXPECT_LE(sizeof(abel::Span<int>), 2 * sizeof(void *));
-        EXPECT_LE(sizeof(abel::Span<BigStruct>), 2 * sizeof(void *));
+    TEST(span, SpanSize) {
+        EXPECT_LE(sizeof(abel::span<int>), 2 * sizeof(void *));
+        EXPECT_LE(sizeof(abel::span<BigStruct>), 2 * sizeof(void *));
     }
 
-    TEST(Span, Hash) {
+    TEST(span, Hash) {
         int array[] = {1, 2, 3, 4};
         int array2[] = {1, 2, 3};
-        using T = abel::Span<const int>;
+        using T = abel::span<const int>;
         EXPECT_TRUE(abel::VerifyTypeImplementsAbelHashCorrectly(
                 {// Empties
                         T(), T(nullptr, 0), T(array, 0), T(array2, 0),

@@ -11,16 +11,19 @@ FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
 FILE(GLOB FLAGS_SRC "flags/*.cc")
 FILE(GLOB FLAGS_INTERNAL_SRC "flags/internal/*.cc")
 
+FILE(GLOB HARDWARE_SRC "hardware/*.cc")
+
 FILE(GLOB HASH_INTERNAL_SRC "hash/internal/*.cc")
 
 FILE(GLOB MEMORY_INTERNAL_SRC "memory/internal/*.cc")
 
 FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 
-FILE(GLOB RANDOM_SRC "random/*.cc")
-FILE(GLOB RANDOM_INTERNAL_SRC "random/internal/*.cc")
 
 FILE(GLOB STATS_RND_SRC "stats/random/*.cc")
+FILE(GLOB STATS_RND_ENGINE_SRC "stats/random/engine/*.cc")
+FILE(GLOB STATS_RND_INTERNAL_SRC "stats/random/internal/*.cc")
+FILE(GLOB STATS_RND_SEED_SRC "stats/random/seed/*.cc")
 
 FILE(GLOB STRINGS_SRC "strings/*.cc")
 FILE(GLOB STRINGS_INTERNAL_SRC "strings/internal/*.cc")
@@ -58,11 +61,13 @@ SET(ABEL_SRC
         ${DEBUG_SRC}
         ${FLAGS_INTERNAL_SRC}
         ${FLAGS_SRC}
+        ${HARDWARE_SRC}
         ${HASH_INTERNAL_SRC}
         ${METRICS_SRC}
         ${NUMERIC_SRC}
-        ${RANDOM_SRC}
-        ${RANDOM_INTERNAL_SRC}
+        ${STATS_RND_ENGINE_SRC}
+        ${STATS_RND_SEED_SRC}
+        ${STATS_RND_INTERNAL_SRC}
         ${STATS_RND_SRC}
         ${STRINGS_SRC}
         ${STRINGS_INTERNAL_SRC}

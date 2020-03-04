@@ -25,6 +25,14 @@ TEST(math, log2_floor) {
     EXPECT_EQ(1, log2_floor(2));
     EXPECT_EQ(63, log2_floor(~kZero));
 
+    EXPECT_EQ(log2_floor(uint16_t{0}), 0);
+    EXPECT_EQ(log2_floor(uint16_t{1}), 0);
+    EXPECT_EQ(log2_floor(uint16_t{2}), 1);
+    EXPECT_EQ(log2_floor(uint16_t{3}), 1);
+    EXPECT_EQ(log2_floor(uint16_t{4}), 2);
+    EXPECT_EQ(log2_floor(uint16_t{5}), 2);
+    EXPECT_EQ(log2_floor(std::numeric_limits<uint64_t>::max()), 63);
+
 // A boundary case: Converting 0xffffffffffffffff requires > 53
 // bits of precision, so the conversion to double rounds up,
 // and the result of std::log2(x) > IntLog2Floor(x).

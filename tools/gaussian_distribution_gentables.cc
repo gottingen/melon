@@ -4,7 +4,7 @@
 //
 // $ blaze run :gaussian_distribution_gentables > gaussian_distribution.cc
 //
-#include <abel/random/gaussian_distribution.h>
+#include <abel/stats/random/gaussian_distribution.h>
 
 #include <cmath>
 #include <cstddef>

@@ -500,9 +500,9 @@ namespace abel {
 
             AllocationTransaction allocation_tx(GetAllocPtr());
 
-            abel::Span<value_type> assign_loop;
-            abel::Span<value_type> construct_loop;
-            abel::Span<value_type> destroy_loop;
+            abel::span<value_type> assign_loop;
+            abel::span<value_type> construct_loop;
+            abel::span<value_type> destroy_loop;
 
             if (new_size > storage_view.capacity) {
                 size_type new_capacity = ComputeCapacity(storage_view.capacity, new_size);
@@ -546,9 +546,9 @@ namespace abel {
             AllocationTransaction allocation_tx(GetAllocPtr());
             ConstructionTransaction construction_tx(GetAllocPtr());
 
-            abel::Span<value_type> construct_loop;
-            abel::Span<value_type> move_construct_loop;
-            abel::Span<value_type> destroy_loop;
+            abel::span<value_type> construct_loop;
+            abel::span<value_type> move_construct_loop;
+            abel::span<value_type> destroy_loop;
 
             if (new_size > storage_view.capacity) {
                 size_type new_capacity = ComputeCapacity(storage_view.capacity, new_size);
@@ -633,19 +633,19 @@ namespace abel {
                 IteratorValueAdapter<MoveIterator> move_construction_values(
                         MoveIterator(storage_view.data +
                                      (move_construction_destination_index - insert_count)));
-                abel::Span<value_type> move_construction = {
+                abel::span<value_type> move_construction = {
                         storage_view.data + move_construction_destination_index,
                         new_size - move_construction_destination_index};
 
                 pointer move_assignment_values = storage_view.data + insert_index;
-                abel::Span<value_type> move_assignment = {
+                abel::span<value_type> move_assignment = {
                         storage_view.data + insert_end_index,
                         move_construction_destination_index - insert_end_index};
 
-                abel::Span<value_type> insert_assignment = {move_assignment_values,
+                abel::span<value_type> insert_assignment = {move_assignment_values,
                                                             move_construction.size()};
 
-                abel::Span<value_type> insert_construction = {
+                abel::span<value_type> insert_construction = {
                         insert_assignment.data() + insert_assignment.size(),
                         insert_count - insert_assignment.size()};
 

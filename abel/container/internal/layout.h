@@ -249,7 +249,7 @@ namespace abel {
 // Note: We're not qualifying this with abel:: because it doesn't compile under
 // MSVC.
             template<class T>
-            using SliceType = Span<T>;
+            using SliceType = span<T>;
 
 // This namespace contains no types. It prevents functions defined in it from
 // being found by ADL.
@@ -523,8 +523,8 @@ namespace abel {
                 //   // int[3], 4 bytes of padding, double[4].
                 //   Layout<int, double> x(3, 4);
                 //   unsigned char* p = new unsigned char[x.AllocSize()];
-                //   Span<int> ints = x.Slice<0>(p);
-                //   Span<double> doubles = x.Slice<1>(p);
+                //   span<int> ints = x.Slice<0>(p);
+                //   span<double> doubles = x.Slice<1>(p);
                 //
                 // Requires: `N < NumSizes`.
                 // Requires: `p` is aligned to `Alignment()`.
@@ -541,8 +541,8 @@ namespace abel {
                 //   // int[3], 4 bytes of padding, double[4].
                 //   Layout<int, double> x(3, 4);
                 //   unsigned char* p = new unsigned char[x.AllocSize()];
-                //   Span<int> ints = x.Slice<int>(p);
-                //   Span<double> doubles = x.Slice<double>(p);
+                //   span<int> ints = x.Slice<int>(p);
+                //   span<double> doubles = x.Slice<double>(p);
                 //
                 // Requires: `p` is aligned to `Alignment()`.
                 template<class T, class Char>
@@ -558,8 +558,8 @@ namespace abel {
                 //   Layout<int, double> x(3, 4);
                 //   unsigned char* p = new unsigned char[x.AllocSize()];
                 //
-                //   Span<int> ints;
-                //   Span<double> doubles;
+                //   span<int> ints;
+                //   span<double> doubles;
                 //   std::tie(ints, doubles) = x.Slices(p);
                 //
                 // Requires: `p` is aligned to `Alignment()`.
