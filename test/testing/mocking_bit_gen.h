@@ -15,8 +15,8 @@
 #include <gtest/gtest.h>
 #include <abel/container/flat_hash_map.h>
 #include <abel/meta/type_traits.h>
-#include <abel/random/distributions.h>
-#include <abel/random/internal/distribution_caller.h>
+#include <abel/stats/random/distributions.h>
+#include <abel/stats/random/internal/distribution_caller.h>
 #include <testing/mocking_bit_gen_base.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_join.h>

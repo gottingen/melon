@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <abel/random/internal/nanobenchmark.h>
+#include <abel/stats/random/internal/nanobenchmark.h>
 
 #include <sys/types.h>
 
@@ -29,7 +29,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/log/raw_logging.h>
-#include <abel/random/internal/randen_engine.h>
+#include <abel/stats/random/engine/randen_engine.h>
 
 // OS
 #if defined(_WIN32) || defined(_WIN64)

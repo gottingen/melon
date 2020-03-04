@@ -119,7 +119,7 @@ namespace {
 
     struct FlagfileData {
         const abel::string_view file_name;
-        const abel::Span<const char *const> file_lines;
+        const abel::span<const char *const> file_lines;
     };
 
 // clang-format off
@@ -569,14 +569,14 @@ namespace {
 
         const char *in_args1[] = {
                 "testbin",
-                GetFlagfileFlag({{"parse_test.ff1", abel::MakeConstSpan(ff1_data)}},
+                GetFlagfileFlag({{"parse_test.ff1", abel::make_const_span(ff1_data)}},
                                 &flagfile_flag),
         };
         TestParse(in_args1, -1, 0.1, "q2w2  ", true);
 
         const char *in_args2[] = {
                 "testbin",
-                GetFlagfileFlag({{"parse_test.ff2", abel::MakeConstSpan(ff2_data)}},
+                GetFlagfileFlag({{"parse_test.ff2", abel::make_const_span(ff2_data)}},
                                 &flagfile_flag),
         };
         TestParse(in_args2, 100, 0.1, "q2w2  ", false);
@@ -589,8 +589,8 @@ namespace {
 
         const char *in_args1[] = {
                 "testbin",
-                GetFlagfileFlag({{"parse_test.ff2", abel::MakeConstSpan(ff2_data)},
-                                 {"parse_test.ff1", abel::MakeConstSpan(ff1_data)}},
+                GetFlagfileFlag({{"parse_test.ff2", abel::make_const_span(ff2_data)},
+                                 {"parse_test.ff1", abel::make_const_span(ff1_data)}},
                                 &flagfile_flag),
         };
         TestParse(in_args1, -1, 0.1, "q2w2  ", true);
@@ -603,7 +603,7 @@ namespace {
 
         const char *in_args1[] = {
                 "testbin", "--int_flag=3",
-                GetFlagfileFlag({{"parse_test.ff1", abel::MakeConstSpan(ff1_data)}},
+                GetFlagfileFlag({{"parse_test.ff1", abel::make_const_span(ff1_data)}},
                                 &flagfile_flag),
                 "-double_flag=0.2"};
         TestParse(in_args1, -1, 0.2, "q2w2  ", true);
@@ -621,7 +621,7 @@ namespace {
 
         const char *in_args1[] = {
                 "testbin",
-                GetFlagfileFlag({{"parse_test.ff3", abel::MakeConstSpan(ff3_data)}},
+                GetFlagfileFlag({{"parse_test.ff3", abel::make_const_span(ff3_data)}},
                                 &flagfile_flag),
         };
         TestParse(in_args1, 100, 0.1, "q2w2  ", false);
@@ -639,7 +639,7 @@ namespace {
         const char *in_args1[] = {
                 "testbin",
                 GetFlagfileFlag({{"parse_test.ff4",
-                                         abel::MakeConstSpan(ff4_data)}}, &flagfile_flag),
+                                         abel::make_const_span(ff4_data)}}, &flagfile_flag),
         };
         EXPECT_DEATH(InvokeParse(in_args1),
                      "Unknown command line flag 'unknown_flag'");
@@ -651,7 +651,7 @@ namespace {
         const char *in_args2[] = {
                 "testbin",
                 GetFlagfileFlag({{"parse_test.ff5",
-                                         abel::MakeConstSpan(ff5_data)}}, &flagfile_flag),
+                                         abel::make_const_span(ff5_data)}}, &flagfile_flag),
         };
         EXPECT_DEATH(InvokeParse(in_args2),
                      "Unknown command line flag 'int_flag 10'");
@@ -662,7 +662,7 @@ namespace {
 
         const char *in_args3[] = {
                 "testbin",
-                GetFlagfileFlag({{"parse_test.ff6", abel::MakeConstSpan(ff6_data)}},
+                GetFlagfileFlag({{"parse_test.ff6", abel::make_const_span(ff6_data)}},
                                 &flagfile_flag),
         };
         EXPECT_DEATH(InvokeParse(in_args3),
@@ -682,7 +682,7 @@ namespace {
 
         const char *in_args5[] = {
                 "testbin",
-                GetFlagfileFlag({{"parse_test.ff7", abel::MakeConstSpan(ff7_data)}},
+                GetFlagfileFlag({{"parse_test.ff7", abel::make_const_span(ff7_data)}},
                                 &flagfile_flag),
         };
         EXPECT_DEATH(InvokeParse(in_args5),

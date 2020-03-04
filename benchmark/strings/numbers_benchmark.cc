@@ -8,8 +8,8 @@
 
 #include <benchmark/benchmark.h>
 #include <abel/log/raw_logging.h>
-#include <abel/random/distributions.h>
-#include <abel/random/random.h>
+#include <abel/stats/random/distributions.h>
+#include <abel/stats/random/random.h>
 #include <abel/strings/numbers.h>
 
 namespace {

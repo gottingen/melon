@@ -25,8 +25,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/log/raw_logging.h>
-#include <abel/random/distributions.h>
-#include <abel/random/random.h>
+#include <abel/stats/random/distributions.h>
+#include <abel/stats/random/random.h>
 #include <test/testing/numbers_test_common.h>
 #include <test/testing/pow10_helper.h>
 #include <abel/strings/str_cat.h>

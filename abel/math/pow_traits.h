@@ -11,41 +11,46 @@
 namespace abel {
 
     template<typename Integral>
-    static ABEL_FORCE_INLINE bool is_power_of_two_template(Integral i) {
-        if (i <= 0)
+    ABEL_CONSTEXPR bool is_power_of_two_template(Integral i) {
+        /*
+        if (i < 0)
             return false;
-        return !(i & (i - 1));
+        return (i == 0 || !(i & (i - 1)));
+        */
+        return (i < 0 ? false : i== 0?
+                true : !(i & (i - 1)) ?
+                true : false);
     }
 
 // is_power_of_two()
 
 //! does what it says: true if i is a power of two
-    static ABEL_FORCE_INLINE bool is_power_of_two(int i) {
+    ABEL_CONSTEXPR bool is_power_of_two(int i) {
         return is_power_of_two_template(i);
     }
 
 //! does what it says: true if i is a power of two
-    static ABEL_FORCE_INLINE bool is_power_of_two(unsigned int i) {
+    ABEL_CONSTEXPR bool is_power_of_two(unsigned int i) {
         return is_power_of_two_template(i);
     }
 
 //! does what it says: true if i is a power of two
-    static ABEL_FORCE_INLINE bool is_power_of_two(long i) {
+    ABEL_CONSTEXPR bool is_power_of_two(long i) {
         return is_power_of_two_template(i);
     }
 
 //! does what it says: true if i is a power of two
-    static ABEL_FORCE_INLINE bool is_power_of_two(unsigned long i) {
+    ABEL_CONSTEXPR bool is_power_of_two(unsigned long i) {
         return is_power_of_two_template(i);
     }
 
 //! does what it says: true if i is a power of two
-    static ABEL_FORCE_INLINE bool is_power_of_two(long long i) {
+    ABEL_CONSTEXPR bool is_power_of_two(long long i) {
         return is_power_of_two_template(i);
     }
 
 //! does what it says: true if i is a power of two
-    static ABEL_FORCE_INLINE bool is_power_of_two(unsigned long long i) {
+    ABEL_CONSTEXPR bool is_power_of_two(unsigned long long i) {
         return is_power_of_two_template(i);
     }
 }

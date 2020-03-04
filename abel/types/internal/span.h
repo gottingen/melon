@@ -43,8 +43,8 @@ namespace abel {
         using HasSize =
         std::is_integral<abel::decay_t<decltype(std::declval<C &>().size())>>;
 
-// We want to enable conversion from vector<T*> to Span<const T* const> but
-// disable conversion from vector<Derived> to Span<Base>. Here we use
+// We want to enable conversion from vector<T*> to span<const T* const> but
+// disable conversion from vector<Derived> to span<Base>. Here we use
 // the fact that U** is convertible to Q* const* if and only if Q is the same
 // type or a more cv-qualified version of U.  We also decay the result type of
 // data() to avoid problems with classes which have a member function data()
