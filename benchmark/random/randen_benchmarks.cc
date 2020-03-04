@@ -4,10 +4,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-
+#include <abel/base/profile.h>
 #include <abel/log/raw_logging.h>
 #include <abel/random/internal/nanobenchmark.h>
-#include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_engine.h>
 #include <abel/random/internal/randen_hwaes.h>
 #include <abel/random/internal/randen_slow.h>

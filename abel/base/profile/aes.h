@@ -1,38 +1,9 @@
 //
-
-#ifndef ABEL_RANDOM_INTERNAL_PLATFORM_H_
-#define ABEL_RANDOM_INTERNAL_PLATFORM_H_
-
-// HERMETIC NOTE: The randen_hwaes target must not introduce duplicate
-// symbols from arbitrary system and other headers, since it may be built
-// with different flags from other targets, using different levels of
-// optimization, potentially introducing ODR violations.
-
-// -----------------------------------------------------------------------------
-// Platform Feature Checks
-// -----------------------------------------------------------------------------
-
-// Currently supported operating systems and associated preprocessor
-// symbols:
+// Created by liyinbin on 2020/3/4.
 //
-//   Linux and Linux-derived           __linux__
-//   Android                           __ANDROID__ (implies __linux__)
-//   Linux (non-Android)               __linux__ && !__ANDROID__
-//   Darwin (macOS and iOS)            __APPLE__
-//   Akaros (http://akaros.org)        __ros__
-//   Windows                           _WIN32
-//   NaCL                              __native_client__
-//   AsmJS                             __asmjs__
-//   WebAssembly                       __wasm__
-//   Fuchsia                           __Fuchsia__
-//
-// Note that since Android defines both __ANDROID__ and __linux__, one
-// may probe for either Linux or Android by simply testing for __linux__.
-//
-// NOTE: For __APPLE__ platforms, we use #include <TargetConditionals.h>
-// to distinguish os variants.
-//
-// http://nadeausoftware.com/articles/2012/01/c_c_tip_how_use_compiler_predefined_macros_detect_operating_system
+
+#ifndef ABEL_BASE_AES_H_
+#define ABEL_BASE_AES_H_
 
 #if defined(__APPLE__)
 
@@ -67,19 +38,6 @@
 //  * for gcc, clang: "echo | gcc -E -dM -"
 #endif
 
-// -----------------------------------------------------------------------------
-// Attribute Checks
-// -----------------------------------------------------------------------------
-
-// ABEL_RANDOM_INTERNAL_RESTRICT annotates whether pointers may be considered
-// to be unaliased.
-#if defined(__clang__) || defined(__GNUC__)
-#define ABEL_RANDOM_INTERNAL_RESTRICT __restrict__
-#elif defined(_MSC_VER)
-#define ABEL_RANDOM_INTERNAL_RESTRICT __restrict
-#else
-#define ABEL_RANDOM_INTERNAL_RESTRICT
-#endif
 
 // ABEL_HAVE_ACCELERATED_AES indicates whether the currently active compiler
 // flags (e.g. -maes) allow using hardware accelerated AES instructions, which
@@ -119,34 +77,34 @@
 #define ABEL_HAVE_ACCELERATED_AES 0
 #endif
 
-// ABEL_RANDOM_INTERNAL_AES_DISPATCH indicates whether the currently active
+// ABEL_AES_DISPATCH indicates whether the currently active
 // platform has, or should use run-time dispatch for selecting the
 // acclerated Randen implementation.
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 0
+#define ABEL_AES_DISPATCH 0
 
 #if defined(ABEL_ARCH_X86_64)
 // Dispatch is available on x86_64
-#undef ABEL_RANDOM_INTERNAL_AES_DISPATCH
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 1
+#undef ABEL_AES_DISPATCH
+#define ABEL_AES_DISPATCH 1
 #elif defined(__linux__) && defined(ABEL_ARCH_PPC)
 // Or when running linux PPC
-#undef ABEL_RANDOM_INTERNAL_AES_DISPATCH
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 1
+#undef ABEL_AES_DISPATCH
+#define ABEL_AES_DISPATCH 1
 #elif defined(__linux__) && defined(ABEL_ARCH_AARCH64)
 // Or when running linux AArch64
-#undef ABEL_RANDOM_INTERNAL_AES_DISPATCH
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 1
+#undef ABEL_AES_DISPATCH
+#define ABEL_AES_DISPATCH 1
 #elif defined(__linux__) && defined(ABEL_ARCH_ARM) && (__ARM_ARCH >= 8)
 // Or when running linux ARM v8 or higher.
 // (This captures a lot of Android configurations.)
-#undef ABEL_RANDOM_INTERNAL_AES_DISPATCH
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 1
+#undef ABEL_AES_DISPATCH
+#define ABEL_AES_DISPATCH 1
 #endif
 
 // NaCl does not allow dispatch.
 #if defined(__native_client__)
-#undef ABEL_RANDOM_INTERNAL_AES_DISPATCH
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 0
+#undef ABEL_AES_DISPATCH
+#define ABEL_AES_DISPATCH 0
 #endif
 
 // iOS does not support dispatch, even on x86, since applications
@@ -154,8 +112,9 @@
 // each specific supported platform/architecture.
 #if (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) || \
     (defined(TARGET_OS_IPHONE_SIMULATOR) && TARGET_OS_IPHONE_SIMULATOR)
-#undef ABEL_RANDOM_INTERNAL_AES_DISPATCH
-#define ABEL_RANDOM_INTERNAL_AES_DISPATCH 0
+#undef ABEL_AES_DISPATCH
+#define ABEL_AES_DISPATCH 0
 #endif
 
-#endif  // ABEL_RANDOM_INTERNAL_PLATFORM_H_
+
+#endif //ABEL_BASE_AES_H_

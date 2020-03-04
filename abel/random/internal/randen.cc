@@ -41,7 +41,7 @@ namespace abel {
             RandenState GetRandenState() {
                 static const RandenState state = []() {
                     RandenState tmp;
-#if ABEL_RANDOM_INTERNAL_AES_DISPATCH
+#if ABEL_AES_DISPATCH
                     // HW AES Dispatch.
                     if (HasRandenHwAesImplementation() && CPUSupportsRandenHwAes()) {
                         tmp.has_crypto = true;
@@ -69,7 +69,7 @@ namespace abel {
         Randen::Randen() {
             auto tmp = GetRandenState();
             keys_ = tmp.keys;
-#if ABEL_RANDOM_INTERNAL_AES_DISPATCH
+#if ABEL_AES_DISPATCH
             has_crypto_ = tmp.has_crypto;
 #endif
         }

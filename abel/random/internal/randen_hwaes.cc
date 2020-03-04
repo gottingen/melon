@@ -6,12 +6,10 @@
 // optimization, potentially introducing ODR violations.
 
 #include <abel/random/internal/randen_hwaes.h>
-
+#include <abel/base/profile.h>
 #include <cstdint>
 #include <cstring>
 
-#include <abel/base/profile.h>
-#include <abel/random/internal/platform.h>
 
 // ABEL_RANDEN_HWAES_IMPL indicates whether this file will contain
 // a hardware accelerated implementation of randen, or whether it
@@ -19,7 +17,7 @@
 #if defined(ABEL_ARCH_X86_64) || defined(ABEL_ARCH_X86_32)
 // The platform.h directives are sufficient to indicate whether
 // we should build accelerated implementations for x86.
-#if (ABEL_HAVE_ACCELERATED_AES || ABEL_RANDOM_INTERNAL_AES_DISPATCH)
+#if (ABEL_HAVE_ACCELERATED_AES || ABEL_AES_DISPATCH)
 #define ABEL_RANDEN_HWAES_IMPL 1
 #endif
 #elif defined(ABEL_ARCH_PPC)
@@ -37,7 +35,7 @@
     (defined(__ARM_NEON) && defined(__ARM_FEATURE_CRYPTO))
 #define ABEL_RANDEN_HWAES_IMPL 1
 
-#elif ABEL_RANDOM_INTERNAL_AES_DISPATCH && !defined(__APPLE__) && \
+#elif ABEL_AES_DISPATCH && !defined(__APPLE__) && \
     (defined(__GNUC__) && __GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ > 9)
 // ...or, on GCC, we can use an ASM directive to
 // instruct the assember to allow crypto instructions.
@@ -70,7 +68,7 @@ bool HasRandenHwAesImplementation() { return false; }
 // NOLINTNEXTLINE
 const void* RandenHwAes::GetKeys() {
   // Attempted to dispatch to an unsupported dispatch target.
-  const int d = ABEL_RANDOM_INTERNAL_AES_DISPATCH;
+  const int d = ABEL_AES_DISPATCH;
   fprintf(stderr, "AES Hardware detection failed (%d).\n", d);
   exit(1);
   return nullptr;
@@ -79,7 +77,7 @@ const void* RandenHwAes::GetKeys() {
 // NOLINTNEXTLINE
 void RandenHwAes::Absorb(const void*, void*) {
   // Attempted to dispatch to an unsupported dispatch target.
-  const int d = ABEL_RANDOM_INTERNAL_AES_DISPATCH;
+  const int d = ABEL_AES_DISPATCH;
   fprintf(stderr, "AES Hardware detection failed (%d).\n", d);
   exit(1);
 }
@@ -87,7 +85,7 @@ void RandenHwAes::Absorb(const void*, void*) {
 // NOLINTNEXTLINE
 void RandenHwAes::Generate(const void*, void*) {
   // Attempted to dispatch to an unsupported dispatch target.
-  const int d = ABEL_RANDOM_INTERNAL_AES_DISPATCH;
+  const int d = ABEL_AES_DISPATCH;
   fprintf(stderr, "AES Hardware detection failed (%d).\n", d);
   exit(1);
 }
@@ -430,7 +428,7 @@ namespace {
 // parallel hides the 7-cycle AESNI latency on HSW. Note that the Feistel
 // XORs are 'free' (included in the second AES instruction).
     ABEL_FORCE_INLINE ABEL_TARGET_CRYPTO const u64x2 *FeistelRound(
-            uint64_t *state, const u64x2 *ABEL_RANDOM_INTERNAL_RESTRICT keys) {
+            uint64_t *state, const u64x2 *ABEL_RESTRICT keys) {
         static_assert(kFeistelBlocks == 16, "Expecting 16 FeistelBlocks.");
 
         // MSVC does a horrible job at unrolling loops.
@@ -490,8 +488,8 @@ namespace {
 // 2^64 queries if the round function is a PRF. This is similar to the b=8 case
 // of Simpira v2, but more efficient than its generic construction for b=16.
     ABEL_FORCE_INLINE ABEL_TARGET_CRYPTO void Permute(
-            const void *ABEL_RANDOM_INTERNAL_RESTRICT keys, uint64_t *state) {
-        const u64x2 *ABEL_RANDOM_INTERNAL_RESTRICT keys128 =
+            const void *ABEL_RESTRICT keys, uint64_t *state) {
+        const u64x2 *ABEL_RESTRICT keys128 =
                 static_cast<const u64x2 *>(keys);
 
         // (Successfully unrolled; the first iteration jumps into the second half)

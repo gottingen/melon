@@ -29,7 +29,6 @@
 
 #include <abel/base/profile.h>
 #include <abel/log/raw_logging.h>
-#include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_engine.h>
 
 // OS
@@ -82,7 +81,7 @@ namespace abel {
 
 // TODO(janwas): Merge with the one in randen_hwaes.cc?
                 void Cpuid(const uint32_t level, const uint32_t count,
-                           uint32_t *ABEL_RANDOM_INTERNAL_RESTRICT abcd) {
+                           uint32_t *ABEL_RESTRICT abcd) {
 #if defined(ABEL_OS_WIN)
                     int regs[4];
                     __cpuidex(regs, level, count);
@@ -361,7 +360,7 @@ namespace abel {
                     std::sort(unique.begin(), unique.end());
 
                     // Write that many copies of each unique value to the array.
-                    T *ABEL_RANDOM_INTERNAL_RESTRICT p = values;
+                    T *ABEL_RESTRICT p = values;
                     for (const auto &value_count : unique) {
                         std::fill(p, p + value_count.second, value_count.first);
                         p += value_count.second;
@@ -372,7 +371,7 @@ namespace abel {
 // @return i in [idx_begin, idx_begin + half_count) that minimizes
 // sorted[i + half_count] - sorted[i].
                 template<typename T>
-                size_t MinRange(const T *const ABEL_RANDOM_INTERNAL_RESTRICT sorted,
+                size_t MinRange(const T *const ABEL_RESTRICT sorted,
                                 const size_t idx_begin, const size_t half_count) {
                     T min_range = (std::numeric_limits<T>::max)();
                     size_t min_idx = 0;
@@ -396,7 +395,7 @@ namespace abel {
 // affected by outliers in highly-skewed distributions than the median.
 // The averaging operation below assumes "T" is an unsigned integer type.
                 template<typename T>
-                T ModeOfSorted(const T *const ABEL_RANDOM_INTERNAL_RESTRICT sorted,
+                T ModeOfSorted(const T *const ABEL_RESTRICT sorted,
                                const size_t num_values) {
                     size_t idx_begin = 0;
                     size_t half_count = num_values / 2;
