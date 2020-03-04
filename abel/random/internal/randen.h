@@ -4,8 +4,7 @@
 #define ABEL_RANDOM_INTERNAL_RANDEN_H_
 
 #include <cstddef>
-
-#include <abel/random/internal/platform.h>
+#include <abel/base/profile.h>
 #include <abel/random/internal/randen_hwaes.h>
 #include <abel/random/internal/randen_slow.h>
 #include <abel/random/internal/randen_traits.h>
@@ -35,7 +34,7 @@ namespace abel {
             void Generate(T (&state)[N]) const {
                 static_assert(N * sizeof(T) == kStateBytes,
                               "Randen::Generate() requires kStateBytes of state");
-#if ABEL_RANDOM_INTERNAL_AES_DISPATCH
+#if ABEL_AES_DISPATCH
                 // HW AES Dispatch.
                 if (has_crypto_) {
                     RandenHwAes::Generate(keys_, state);
@@ -60,7 +59,7 @@ namespace abel {
 
                 static_assert(N * sizeof(T) == RandenTraits::kStateBytes,
                               "Randen::Absorb() requires kStateBytes of state");
-#if ABEL_RANDOM_INTERNAL_AES_DISPATCH
+#if ABEL_AES_DISPATCH
                 // HW AES Dispatch.
                 if (has_crypto_) {
                     RandenHwAes::Absorb(seed, state);
@@ -78,7 +77,7 @@ namespace abel {
 
         private:
             const void *keys_;
-#if ABEL_RANDOM_INTERNAL_AES_DISPATCH
+#if ABEL_AES_DISPATCH
             bool has_crypto_;
 #endif
         };

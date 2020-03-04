@@ -1,13 +1,11 @@
 //
 
 #include <abel/random/internal/randen_slow.h>
-
+#include <abel/base/profile.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 
-#include <abel/base/profile.h>
-#include <abel/random/internal/platform.h>
 
 #if ABEL_COMPILER_HAS_ATTRIBUTE(always_inline) || \
     (defined(__GNUC__) && !defined(__clang__))
@@ -238,9 +236,9 @@ namespace {
     };
 
     ABEL_FORCE_INLINE ABEL_RANDOM_INTERNAL_ATTRIBUTE_ALWAYS_INLINE Vector128
-    Vector128Load(const void *ABEL_RANDOM_INTERNAL_RESTRICT from) {
+    Vector128Load(const void *ABEL_RESTRICT from) {
         Vector128 result;
-        const uint8_t *ABEL_RANDOM_INTERNAL_RESTRICT src =
+        const uint8_t *ABEL_RESTRICT src =
                 reinterpret_cast<const uint8_t *>(from);
 
         result.s[0] = static_cast<uint32_t>(src[0]) << 24 |
@@ -263,7 +261,7 @@ namespace {
     }
 
     ABEL_FORCE_INLINE ABEL_RANDOM_INTERNAL_ATTRIBUTE_ALWAYS_INLINE void Vector128Store(
-            const Vector128 &v, void *ABEL_RANDOM_INTERNAL_RESTRICT to) {
+            const Vector128 &v, void *ABEL_RESTRICT to) {
         uint8_t *dst = reinterpret_cast<uint8_t *>(to);
         dst[0] = static_cast<uint8_t>(v.s[0] >> 24);
         dst[1] = static_cast<uint8_t>(v.s[0] >> 16);
@@ -353,14 +351,14 @@ namespace {
 
 // The improved Feistel block shuffle function for 16 blocks.
     ABEL_FORCE_INLINE ABEL_RANDOM_INTERNAL_ATTRIBUTE_ALWAYS_INLINE void BlockShuffle(
-            uint64_t *ABEL_RANDOM_INTERNAL_RESTRICT state_u64) {
+            uint64_t *ABEL_RESTRICT state_u64) {
         static_assert(kFeistelBlocks == 16,
                       "Feistel block shuffle only works for 16 blocks.");
 
         constexpr size_t shuffle[kFeistelBlocks] = {7, 2, 13, 4, 11, 8, 3, 6,
                                                     15, 0, 9, 10, 1, 14, 5, 12};
 
-        u64x2 *ABEL_RANDOM_INTERNAL_RESTRICT state =
+        u64x2 *ABEL_RESTRICT state =
                 reinterpret_cast<u64x2 *>(state_u64);
 
         // The fully unrolled loop without the memcpy improves the speed by about
@@ -414,8 +412,8 @@ namespace {
 // parallel hides the 7-cycle AESNI latency on HSW. Note that the Feistel
 // XORs are 'free' (included in the second AES instruction).
     ABEL_FORCE_INLINE ABEL_RANDOM_INTERNAL_ATTRIBUTE_ALWAYS_INLINE const u64x2 *FeistelRound(
-            uint64_t *ABEL_RANDOM_INTERNAL_RESTRICT state,
-            const u64x2 *ABEL_RANDOM_INTERNAL_RESTRICT keys) {
+            uint64_t *ABEL_RESTRICT state,
+            const u64x2 *ABEL_RESTRICT keys) {
         for (size_t branch = 0; branch < kFeistelBlocks; branch += 4) {
             const Vector128 s0 = Vector128Load(state + kLanes * branch);
             const Vector128 s1 = Vector128Load(state + kLanes * (branch + 1));
@@ -440,8 +438,8 @@ namespace {
 // 2^64 queries if the round function is a PRF. This is similar to the b=8 case
 // of Simpira v2, but more efficient than its generic construction for b=16.
     ABEL_FORCE_INLINE ABEL_RANDOM_INTERNAL_ATTRIBUTE_ALWAYS_INLINE void Permute(
-            const void *keys, uint64_t *ABEL_RANDOM_INTERNAL_RESTRICT state) {
-        const u64x2 *ABEL_RANDOM_INTERNAL_RESTRICT keys128 =
+            const void *keys, uint64_t *ABEL_RESTRICT state) {
+        const u64x2 *ABEL_RESTRICT keys128 =
                 static_cast<const u64x2 *>(keys);
         for (size_t round = 0; round < kFeistelRounds; ++round) {
             keys128 = FeistelRound(state, keys128);
@@ -462,9 +460,9 @@ namespace abel {
         }
 
         void RandenSlow::Absorb(const void *seed_void, void *state_void) {
-            uint64_t *ABEL_RANDOM_INTERNAL_RESTRICT state =
+            uint64_t *ABEL_RESTRICT state =
                     reinterpret_cast<uint64_t *>(state_void);
-            const uint64_t *ABEL_RANDOM_INTERNAL_RESTRICT seed =
+            const uint64_t *ABEL_RESTRICT seed =
                     reinterpret_cast<const uint64_t *>(seed_void);
 
             constexpr size_t kCapacityBlocks = kCapacityBytes / sizeof(uint64_t);
@@ -478,7 +476,7 @@ namespace abel {
         void RandenSlow::Generate(const void *keys, void *state_void) {
             static_assert(kCapacityBytes == sizeof(Vector128), "Capacity mismatch");
 
-            uint64_t *ABEL_RANDOM_INTERNAL_RESTRICT state =
+            uint64_t *ABEL_RESTRICT state =
                     reinterpret_cast<uint64_t *>(state_void);
 
             const Vector128 prev_inner = Vector128Load(state);

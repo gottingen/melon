@@ -18,11 +18,10 @@
 // optimization, potentially introducing ODR violations.
 
 #include <abel/random/internal/randen_detect.h>
-
+#include <abel/base/profile.h>
 #include <cstdint>
 #include <cstring>
 
-#include <abel/random/internal/platform.h>
 
 #if defined(ABEL_ARCH_X86_64)
 #define ABEL_INTERNAL_USE_X86_CPUID

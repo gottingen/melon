@@ -1,11 +1,10 @@
 //
 
 #include <abel/random/internal/randen_hwaes.h>
-
+#include <abel/base/profile.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/log/raw_logging.h>
-#include <abel/random/internal/platform.h>
 #include <abel/random/internal/randen_detect.h>
 #include <abel/random/internal/randen_traits.h>
 #include <abel/format/printf.h>
@@ -59,8 +58,8 @@ int main(int argc, char *argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
     ABEL_RAW_LOG(INFO, "ABEL_HAVE_ACCELERATED_AES=%d", ABEL_HAVE_ACCELERATED_AES);
-    ABEL_RAW_LOG(INFO, "ABEL_RANDOM_INTERNAL_AES_DISPATCH=%d",
-                 ABEL_RANDOM_INTERNAL_AES_DISPATCH);
+    ABEL_RAW_LOG(INFO, "ABEL_AES_DISPATCH=%d",
+                 ABEL_AES_DISPATCH);
 
 #if defined(ABEL_ARCH_X86_64)
     ABEL_RAW_LOG(INFO, "ABEL_ARCH_X86_64");
