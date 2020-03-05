@@ -6,7 +6,7 @@
 #include <cstring>
 #include <abel/base/profile.h>
 #include <abel/log/raw_logging.h>
-#include <abel/stats/random/internal/nanobenchmark.h>
+#include <benchmark/stats/nanobenchmark.h>
 #include <abel/stats/random/engine/randen_engine.h>
 #include <abel/stats/random/engine/randen_hwaes.h>
 #include <abel/stats/random/engine/randen_slow.h>
@@ -15,7 +15,7 @@
 namespace {
 
     using abel::random_internal::Randen;
-    using abel::random_internal::RandenHwAes;
+    using abel::random_internal::randen_hw_aes;
     using abel::random_internal::RandenSlow;
 
     using abel::random_internal_nanobenchmark::FuncInput;
@@ -137,12 +137,12 @@ namespace {
         static const FuncInput inputs[] = {unpredictable * 100, unpredictable * 1000};
 
 #if !defined(ABEL_INTERNAL_DISABLE_AES) && ABEL_HAVE_ACCELERATED_AES
-        Measure<AbsorbFn<RandenHwAes>>("Absorb (HwAes)", inputs);
+        Measure<AbsorbFn<randen_hw_aes>>("Absorb (HwAes)", inputs);
 #endif
         Measure<AbsorbFn<RandenSlow>>("Absorb (Slow)", inputs);
 
 #if !defined(ABEL_INTERNAL_DISABLE_AES) && ABEL_HAVE_ACCELERATED_AES
-        Measure<GenerateFn<RandenHwAes>>("Generate (HwAes)", inputs);
+        Measure<GenerateFn<randen_hw_aes>>("Generate (HwAes)", inputs);
 #endif
         Measure<GenerateFn<RandenSlow>>("Generate (Slow)", inputs);
 

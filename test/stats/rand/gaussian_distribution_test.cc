@@ -63,7 +63,7 @@ namespace {
         };
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
 
         // Use a loop to generate the combinations of {+/-x, +/-y}, and assign x, y to
         // all values in kParams,
@@ -210,7 +210,7 @@ namespace {
         template<typename D>
         double SingleChiSquaredTest();
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     template<typename D>

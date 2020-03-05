@@ -86,13 +86,13 @@ namespace {
         }
     }
 
-    TEST(DiscreteDistributionTest, InitDiscreteDistribution) {
+    TEST(DiscreteDistributionTest, init_discrete_distribution) {
         using testing::Pair;
 
         {
             std::vector<double> p({1.0, 2.0, 3.0});
             std::vector<std::pair<double, size_t>> q =
-                    abel::random_internal::InitDiscreteDistribution(&p);
+                    abel::random_internal::init_discrete_distribution(&p);
 
             EXPECT_THAT(p, testing::ElementsAre(1 / 6.0, 2 / 6.0, 3 / 6.0));
 
@@ -107,7 +107,7 @@ namespace {
             std::vector<double> p({1.0, 2.0, 3.0, 5.0, 2.0});
 
             std::vector<std::pair<double, size_t>> q =
-                    abel::random_internal::InitDiscreteDistribution(&p);
+                    abel::random_internal::init_discrete_distribution(&p);
 
             EXPECT_THAT(p, testing::ElementsAre(1 / 13.0, 2 / 13.0, 3 / 13.0, 5 / 13.0,
                                                 2 / 13.0));
@@ -145,7 +145,7 @@ namespace {
         std::iota(std::begin(weights), std::end(weights), 1);
         abel::discrete_distribution<int> dist(std::begin(weights), std::end(weights));
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
 
         std::vector<int32_t> counts(kBuckets, 0);
         for (size_t i = 0; i < kTrials; i++) {

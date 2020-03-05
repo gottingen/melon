@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_SEQUENCE_URBG_H_
-#define ABEL_RANDOM_INTERNAL_SEQUENCE_URBG_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_SEQUENCE_URBG_H_
+#define ABEL_STATS_RANDOM_ENGINE_SEQUENCE_URBG_H_
 
 #include <cstdint>
 #include <cstring>
@@ -47,4 +47,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_SEQUENCE_URBG_H_
+#endif  // ABEL_STATS_RANDOM_ENGINE_SEQUENCE_URBG_H_

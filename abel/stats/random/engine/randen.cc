@@ -33,27 +33,27 @@ namespace abel {
     namespace random_internal {
         namespace {
 
-            struct RandenState {
+            struct randen_state {
                 const void *keys;
                 bool has_crypto;
             };
 
-            RandenState GetRandenState() {
-                static const RandenState state = []() {
-                    RandenState tmp;
+            randen_state get_randen_state() {
+                static const randen_state state = []() {
+                    randen_state tmp;
 #if ABEL_AES_DISPATCH
                     // HW AES Dispatch.
-                    if (HasRandenHwAesImplementation() && abel::is_supports_aes()) {
+                    if (has_randen_hw_aes_implementation() && abel::is_supports_aes()) {
                         tmp.has_crypto = true;
-                        tmp.keys = RandenHwAes::GetKeys();
+                        tmp.keys = randen_hw_aes::get_keys();
                     } else {
                         tmp.has_crypto = false;
-                        tmp.keys = RandenSlow::GetKeys();
+                        tmp.keys = randen_slow::get_keys();
                     }
 #elif ABEL_HAVE_ACCELERATED_AES
                     // HW AES is enabled.
                     tmp.has_crypto = true;
-                    tmp.keys = RandenHwAes::GetKeys();
+                    tmp.keys = randen_hw_aes::GetKeys();
 #else
                     // HW AES is disabled.
                     tmp.has_crypto = false;
@@ -66,11 +66,11 @@ namespace abel {
 
         }  // namespace
 
-        Randen::Randen() {
-            auto tmp = GetRandenState();
-            keys_ = tmp.keys;
+        randen::randen() {
+            auto tmp = get_randen_state();
+            _keys = tmp.keys;
 #if ABEL_AES_DISPATCH
-            has_crypto_ = tmp.has_crypto;
+            _has_crypto = tmp.has_crypto;
 #endif
         }
 

@@ -36,7 +36,7 @@
 //
 // https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/bits/random.tcc
 // * GCC uses the Devroye rejection algorithm, based on
-// Devroye, L. Non-Uniform Random Variates Generation. Springer-Verlag,
+// Devroye, L. Non-uniform Random Variates Generation. Springer-Verlag,
 // New York, 1986, Ch. X, Sects. 3.3 & 3.4 (+ Errata!), ~p.511
 //   http://www.nrbook.com/devroye/
 //
@@ -97,7 +97,7 @@ namespace {
 
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const double m : kParams) {
             const double mean = std::min(kMax, m);
             const param_type param(mean);
@@ -252,7 +252,7 @@ namespace {
         template<typename D>
         bool SingleZTest(const double p, const size_t samples);
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     template<typename D>
@@ -354,7 +354,7 @@ namespace {
     private:
         void InitChiSquaredTest(const double buckets);
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
         std::vector<size_t> cutoffs_;
         std::vector<double> expected_;
     };
@@ -474,7 +474,7 @@ namespace {
         using testing::ElementsAre;
         // abel::poisson_distribution stability relies on stability of
         // std::exp, std::log, std::sqrt, std::ceil, std::floor, and
-        // abel::FastUniformBits, abel::StirlingLogFactorial, abel::RandU64ToDouble.
+        // abel::fast_uniform_bits, abel::StirlingLogFactorial, abel::RandU64ToDouble.
         abel::random_internal::sequence_urbg urbg({
                                                           0x035b0dc7e0a18acfull, 0x06cebe0d2653682eull,
                                                           0x0061e9b23861596bull,

@@ -53,10 +53,10 @@ namespace abel {
         }
 */
 // Returns the number of bits of randomness returned through
-// `PowerOfTwoVariate(urbg)`.
+// `power_of_two_variate(urbg)`.
 
         template<typename URBG>
-        constexpr size_t NumBits() {
+        constexpr size_t num_bits() {
             return RangeSize<URBG>() == 0
                    ? std::numeric_limits<typename URBG::result_type>::digits
                    : abel::log2_floor(PowerOfTwoSubRangeSize<URBG>());
@@ -65,13 +65,13 @@ namespace abel {
 // Given a shift value `n`, constructs a mask with exactly the low `n` bits set.
 // If `n == 0`, all bits are set.
         template<typename UIntType>
-        constexpr UIntType MaskFromShift(UIntType n) {
+        constexpr UIntType mask_from_shift(UIntType n) {
             return ((n % std::numeric_limits<UIntType>::digits) == 0)
                    ? ~UIntType{0}
                    : (UIntType{1} << n) - UIntType{1};
         }
 
-// FastUniformBits implements a fast path to acquire uniform independent bits
+// fast_uniform_bits implements a fast path to acquire uniform independent bits
 // from a type which conforms to the [rand.req.urbg] concept.
 // Parameterized by:
 //  `UIntType`: the result (output) type
@@ -81,7 +81,7 @@ namespace abel {
 // not, however, facilitate the production of pseudorandom bits from an un-owned
 // generator that will outlive the std::independent_bits_engine instance.
         template<typename UIntType = uint64_t>
-        class FastUniformBits {
+        class fast_uniform_bits {
         public:
             using result_type = UIntType;
 
@@ -96,39 +96,39 @@ namespace abel {
 
         private:
             static_assert(std::is_unsigned<UIntType>::value,
-                          "Class-template FastUniformBits<> must be parameterized using "
+                          "Class-template fast_uniform_bits<> must be parameterized using "
                           "an unsigned type.");
 
-            // PowerOfTwoVariate() generates a single random variate, always returning a
+            // power_of_two_variate() generates a single random variate, always returning a
             // value in the half-open interval `[0, PowerOfTwoSubRangeSize<URBG>())`. If
             // the URBG already generates values in a power-of-two range, the generator
             // itself is used. Otherwise, we use rejection sampling on the largest
             // possible power-of-two-sized subrange.
-            struct PowerOfTwoTag {
+            struct pow_of_two_tag {
             };
-            struct RejectionSamplingTag {
+            struct rejection_sampling_tag {
             };
 
             template<typename URBG>
-            static typename URBG::result_type PowerOfTwoVariate(
+            static typename URBG::result_type power_of_two_variate(
                     URBG &g) {  // NOLINT(runtime/references)
                 using tag =
                 typename std::conditional<abel::is_power_of_two(RangeSize<URBG>()),
-                        PowerOfTwoTag, RejectionSamplingTag>::type;
-                return PowerOfTwoVariate(g, tag{});
+                        pow_of_two_tag, rejection_sampling_tag>::type;
+                return power_of_two_variate(g, tag{});
             }
 
             template<typename URBG>
-            static typename URBG::result_type PowerOfTwoVariate(
+            static typename URBG::result_type power_of_two_variate(
                     URBG &g,  // NOLINT(runtime/references)
-                    PowerOfTwoTag) {
+                    pow_of_two_tag) {
                 return g() - (URBG::min)();
             }
 
             template<typename URBG>
-            static typename URBG::result_type PowerOfTwoVariate(
+            static typename URBG::result_type power_of_two_variate(
                     URBG &g,  // NOLINT(runtime/references)
-                    RejectionSamplingTag) {
+                    rejection_sampling_tag) {
                 // Use rejection sampling to ensure uniformity across the range.
                 typename URBG::result_type u;
                 do {
@@ -150,8 +150,8 @@ namespace abel {
 
         template<typename UIntType>
         template<typename URBG>
-        typename FastUniformBits<UIntType>::result_type
-        FastUniformBits<UIntType>::operator()(URBG &g) {  // NOLINT(runtime/references)
+        typename fast_uniform_bits<UIntType>::result_type
+        fast_uniform_bits<UIntType>::operator()(URBG &g) {  // NOLINT(runtime/references)
             // kRangeMask is the mask used when sampling variates from the URBG when the
             // width of the URBG range is not a power of 2.
             // Y = (2 ^ kRange) - 1
@@ -167,20 +167,20 @@ namespace abel {
 
         template<typename UIntType>
         template<typename URBG>
-        typename FastUniformBits<UIntType>::result_type
-        FastUniformBits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
+        typename fast_uniform_bits<UIntType>::result_type
+        fast_uniform_bits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
                                             std::true_type /* avoid_looping */) {
             // The width of the result_type is less than than the width of the random bits
             // provided by URBG.  Thus, generate a single value and then simply mask off
             // the required bits.
 
-            return PowerOfTwoVariate(g) & (max)();
+            return power_of_two_variate(g) & (max)();
         }
 
         template<typename UIntType>
         template<typename URBG>
-        typename FastUniformBits<UIntType>::result_type
-        FastUniformBits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
+        typename fast_uniform_bits<UIntType>::result_type
+        fast_uniform_bits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
                                             std::false_type /* avoid_looping */) {
             // See [rand.adapt.ibits] for more details on the constants calculated below.
             //
@@ -200,7 +200,7 @@ namespace abel {
             // where `kTotalWidth` is the total number of bits in `result_type`.
             //
             constexpr size_t kTotalWidth = std::numeric_limits<result_type>::digits;
-            constexpr size_t kUrbgWidth = NumBits<URBG>();
+            constexpr size_t kUrbgWidth = num_bits<URBG>();
             constexpr size_t kTotalIters =
                     kTotalWidth / kUrbgWidth + (kTotalWidth % kUrbgWidth != 0);
             constexpr size_t kSmallWidth = kTotalWidth / kTotalIters;
@@ -230,17 +230,17 @@ namespace abel {
             result_type s = 0;
 
             constexpr size_t kSmallShift = kSmallWidth % kTotalWidth;
-            constexpr result_type kSmallMask = MaskFromShift(result_type{kSmallShift});
+            constexpr result_type kSmallMask = mask_from_shift(result_type{kSmallShift});
             for (size_t n = 0; n < kSmallIters; ++n) {
                 s = (s << kSmallShift) +
-                    (static_cast<result_type>(PowerOfTwoVariate(g)) & kSmallMask);
+                    (static_cast<result_type>(power_of_two_variate(g)) & kSmallMask);
             }
 
             constexpr size_t kLargeShift = kLargeWidth % kTotalWidth;
-            constexpr result_type kLargeMask = MaskFromShift(result_type{kLargeShift});
+            constexpr result_type kLargeMask = mask_from_shift(result_type{kLargeShift});
             for (size_t n = 0; n < kLargeIters; ++n) {
                 s = (s << kLargeShift) +
-                    (static_cast<result_type>(PowerOfTwoVariate(g)) & kLargeMask);
+                    (static_cast<result_type>(power_of_two_variate(g)) & kLargeMask);
             }
 
             static_assert(

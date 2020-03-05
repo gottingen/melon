@@ -113,7 +113,7 @@ namespace abel {
 
     private:
         param_type param_;
-        random_internal::FastUniformBits <uint64_t> fast_u64_;
+        random_internal::fast_uniform_bits <uint64_t> fast_u64_;
     };
 
 // -----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ namespace abel {
             constexpr double k2E = 0.7357588823428846;
             constexpr double kSA = 0.4494580810294493;
 
-            lmu_ = std::log(mean_);
+            lmu_ = abel::log(mean_);
             double a = mean_ + 0.5;
             s_ = kSA + std::sqrt(k2E * a);
             const double mode = std::ceil(mean_) - 1;
@@ -156,9 +156,9 @@ namespace abel {
     poisson_distribution<IntType>::operator()(
             URBG &g,  // NOLINT(runtime/references)
             const param_type &p) {
-        using random_internal::GeneratePositiveTag;
-        using random_internal::GenerateRealFromBits;
-        using random_internal::GenerateSignedTag;
+        using random_internal::generate_positive_tag;
+        using random_internal::generate_real_from_bits;
+        using random_internal::generate_signed_tag;
 
         if (p.split_ != 0) {
             // Use Knuth's algorithm with range splitting to avoid floating-point
@@ -178,7 +178,7 @@ namespace abel {
             for (int split = p.split_; split > 0; --split) {
                 double r = 1.0;
                 do {
-                    r *= GenerateRealFromBits<double, GeneratePositiveTag, true>(
+                    r *= generate_real_from_bits<double, generate_positive_tag, true>(
                             fast_u64_(g));  // U(-1, 0)
                     ++n;
                 } while (r > p.emu_);
@@ -189,7 +189,7 @@ namespace abel {
 
         // Use ratio of uniforms method.
         //
-        // Let u ~ Uniform(0, 1), v ~ Uniform(-1, 1),
+        // Let u ~ uniform(0, 1), v ~ uniform(-1, 1),
         //     a = lambda + 1/2,
         //     s = 1.5 - sqrt(3/e) + sqrt(2(lambda + 1/2)/e),
         //     x = s * v/u + a.
@@ -198,9 +198,9 @@ namespace abel {
         // and k = max(f).
         const double a = p.mean_ + 0.5;
         for (;;) {
-            const double u = GenerateRealFromBits<double, GeneratePositiveTag, false>(
+            const double u = generate_real_from_bits<double, generate_positive_tag, false>(
                     fast_u64_(g));  // U(0, 1)
-            const double v = GenerateRealFromBits<double, GenerateSignedTag, false>(
+            const double v = generate_real_from_bits<double, generate_signed_tag, false>(
                     fast_u64_(g));  // U(-1, 1)
 
             const double x = std::floor(p.s_ * v / u + a);
@@ -211,7 +211,7 @@ namespace abel {
                                   : (x == 2.0) ? 0.693147180559945
                                                : abel::stirling_log_factorial(x);
             // clang-format on
-            const double lhs = 2.0 * std::log(u) + p.log_k_ + s;
+            const double lhs = 2.0 * abel::log(u) + p.log_k_ + s;
             if (lhs < rhs) {
                 return x > (max)() ? (max)()
                                    : static_cast<result_type>(x);  // f(x)/k >= u^2

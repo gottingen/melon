@@ -39,8 +39,8 @@ namespace abel {
         class MockingBitGenBase {
             template<typename>
             friend
-            struct DistributionCaller;
-            using generator_type = abel::BitGen;
+            struct distribution_caller;
+            using generator_type = abel::bit_gen;
 
         public:
             // URBG interface
@@ -73,11 +73,11 @@ namespace abel {
             }
 
             // Call the generating distribution function.
-            // Invoked by DistributionCaller<>::Call<DistT, FormatT>.
+            // Invoked by distribution_caller<>::Call<DistT, FormatT>.
             // DistT is the distribution type.
             // FormatT is the distribution formatter traits type.
             template<typename DistrT, typename FormatT, typename... Args>
-            typename DistrT::result_type Call(Args &&... args) {
+            typename DistrT::result_type call(Args &&... args) {
                 using distr_result_type = typename DistrT::result_type;
                 using ArgTupleT = std::tuple<abel::decay_t<Args>...>;
 

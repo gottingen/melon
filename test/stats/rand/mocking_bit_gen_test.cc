@@ -19,15 +19,15 @@ namespace {
     TEST(BasicMocking, AllDistributionsAreOverridable) {
         abel::MockingBitGen gen;
 
-        EXPECT_NE(abel::Uniform<int>(gen, 1, 1000000), 20);
+        EXPECT_NE(abel::uniform<int>(gen, 1, 1000000), 20);
         EXPECT_CALL(abel::MockUniform<int>(), Call(gen, 1, 1000000))
         .WillOnce(Return(20));
-        EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000000), 20);
+        EXPECT_EQ(abel::uniform<int>(gen, 1, 1000000), 20);
 
-        EXPECT_NE(abel::Uniform<double>(gen, 0.0, 100.0), 5.0);
+        EXPECT_NE(abel::uniform<double>(gen, 0.0, 100.0), 5.0);
         EXPECT_CALL(abel::MockUniform<double>(), Call(gen, 0.0, 100.0))
         .WillOnce(Return(5.0));
-        EXPECT_EQ(abel::Uniform<double>(gen, 0.0, 100.0), 5.0);
+        EXPECT_EQ(abel::uniform<double>(gen, 0.0, 100.0), 5.0);
 
         EXPECT_NE(abel::Exponential<double>(gen, 1.0), 42);
         EXPECT_CALL(abel::MockExponential<double>(), Call(gen, 1.0))
@@ -62,15 +62,15 @@ namespace {
     TEST(BasicMocking, OnDistribution) {
         abel::MockingBitGen gen;
 
-        EXPECT_NE(abel::Uniform<int>(gen, 1, 1000000), 20);
+        EXPECT_NE(abel::uniform<int>(gen, 1, 1000000), 20);
         ON_CALL(abel::MockUniform<int>(), Call(gen, 1, 1000000))
         .WillByDefault(Return(20));
-        EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000000), 20);
+        EXPECT_EQ(abel::uniform<int>(gen, 1, 1000000), 20);
 
-        EXPECT_NE(abel::Uniform<double>(gen, 0.0, 100.0), 5.0);
+        EXPECT_NE(abel::uniform<double>(gen, 0.0, 100.0), 5.0);
         ON_CALL(abel::MockUniform<double>(), Call(gen, 0.0, 100.0))
         .WillByDefault(Return(5.0));
-        EXPECT_EQ(abel::Uniform<double>(gen, 0.0, 100.0), 5.0);
+        EXPECT_EQ(abel::uniform<double>(gen, 0.0, 100.0), 5.0);
 
         EXPECT_NE(abel::Exponential<double>(gen, 1.0), 42);
         ON_CALL(abel::MockExponential<double>(), Call(gen, 1.0))
@@ -118,9 +118,9 @@ namespace {
                 .WillOnce(Return(20))
                 .WillOnce(Return(40))
                 .WillOnce(Return(60));
-        EXPECT_EQ(abel::Uniform(gen, 1, 10000), 20);
-        EXPECT_EQ(abel::Uniform(gen, 1, 10000), 40);
-        EXPECT_EQ(abel::Uniform(gen, 1, 10000), 60);
+        EXPECT_EQ(abel::uniform(gen, 1, 10000), 20);
+        EXPECT_EQ(abel::uniform(gen, 1, 10000), 40);
+        EXPECT_EQ(abel::uniform(gen, 1, 10000), 60);
     }
 
     TEST(BasicMocking, DefaultArgument) {
@@ -135,7 +135,7 @@ namespace {
 
     TEST(BasicMocking, MultipleGenerators) {
         auto get_value = [](abel::BitGenRef gen_ref) {
-            return abel::Uniform(gen_ref, 1, 1000000);
+            return abel::uniform(gen_ref, 1, 1000000);
         };
         abel::MockingBitGen unmocked_generator;
         abel::MockingBitGen mocked_with_3;
@@ -164,8 +164,8 @@ namespace {
         abel::MockingBitGen gen;
         EXPECT_CALL(abel::MockUniform<uint32_t>(), Call(gen)).WillOnce(Return(42));
 
-        EXPECT_NE(abel::Uniform<uint16_t>(gen), 42);  // Not mocked
-        EXPECT_EQ(abel::Uniform<uint32_t>(gen), 42);  // Mock triggered
+        EXPECT_NE(abel::uniform<uint16_t>(gen), 42);  // Not mocked
+        EXPECT_EQ(abel::uniform<uint32_t>(gen), 42);  // Mock triggered
     }
 
     TEST(BasicMocking, FailsOnUnsatisfiedMocks) {
@@ -185,21 +185,21 @@ namespace {
         EXPECT_CALL(abel::MockUniform<int>(),
                     Call(abel::IntervalClosed, gen, 1, 1000000))
         .WillOnce(Return(301));
-        EXPECT_NE(abel::Uniform(gen, 1, 1000000), 301);  // Not mocked
-        EXPECT_EQ(abel::Uniform(abel::IntervalClosed, gen, 1, 1000000), 301);
+        EXPECT_NE(abel::uniform(gen, 1, 1000000), 301);  // Not mocked
+        EXPECT_EQ(abel::uniform(abel::IntervalClosed, gen, 1, 1000000), 301);
     }
 
     TEST(OnUniform, RespectsNoArgUnsignedShorthand) {
         abel::MockingBitGen gen;
         EXPECT_CALL(abel::MockUniform<uint32_t>(), Call(gen)).WillOnce(Return(42));
-        EXPECT_EQ(abel::Uniform<uint32_t>(gen), 42);
+        EXPECT_EQ(abel::uniform<uint32_t>(gen), 42);
     }
 
     TEST(RepeatedlyModifier, ForceSnakeEyesForManyDice) {
         auto roll_some_dice = [](abel::BitGenRef gen_ref) {
             std::vector<int> results(16);
             for (auto &r : results) {
-                r = abel::Uniform(abel::IntervalClosed, gen_ref, 1, 6);
+                r = abel::uniform(abel::IntervalClosed, gen_ref, 1, 6);
             }
             return results;
         };
@@ -227,12 +227,12 @@ namespace {
         EXPECT_CALL(abel::MockUniform<int>(), Call(gen, 1000001, 2000000))
                 .Times(3)
                 .WillRepeatedly(Return(1));
-        EXPECT_EQ(abel::Uniform(gen, 1000001, 2000000), 1);
-        EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 0);
-        EXPECT_EQ(abel::Uniform(gen, 1000001, 2000000), 1);
-        EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 0);
-        EXPECT_EQ(abel::Uniform(gen, 1000001, 2000000), 1);
-        EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 0);
+        EXPECT_EQ(abel::uniform(gen, 1000001, 2000000), 1);
+        EXPECT_EQ(abel::uniform(gen, 1, 1000000), 0);
+        EXPECT_EQ(abel::uniform(gen, 1000001, 2000000), 1);
+        EXPECT_EQ(abel::uniform(gen, 1, 1000000), 0);
+        EXPECT_EQ(abel::uniform(gen, 1000001, 2000000), 1);
+        EXPECT_EQ(abel::uniform(gen, 1, 1000000), 0);
     }
 
     TEST(TimesModifier, ModifierSaturatesAndExpires) {
@@ -244,12 +244,12 @@ namespace {
                             .WillRepeatedly(Return(15))
                             .RetiresOnSaturation();
 
-                    EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 15);
-                    EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 15);
-                    EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 15);
+                    EXPECT_EQ(abel::uniform(gen, 1, 1000000), 15);
+                    EXPECT_EQ(abel::uniform(gen, 1, 1000000), 15);
+                    EXPECT_EQ(abel::uniform(gen, 1, 1000000), 15);
                     // Times(3) has expired - Should get a different value now.
 
-                    EXPECT_NE(abel::Uniform(gen, 1, 1000000), 15);
+                    EXPECT_NE(abel::uniform(gen, 1, 1000000), 15);
                 }(),
                 "");
     }
@@ -271,8 +271,8 @@ namespace {
                     Call(abel::IntervalClosed, gen, _, Ne(1000)))
             .WillByDefault(Return(99));
 
-            EXPECT_EQ(abel::Uniform(abel::IntervalClosed, gen, 10, 1000000), 99);
-            EXPECT_EQ(abel::Uniform(abel::IntervalClosed, gen, 10, 1000), 11);
+            EXPECT_EQ(abel::uniform(abel::IntervalClosed, gen, 10, 1000000), 99);
+            EXPECT_EQ(abel::uniform(abel::IntervalClosed, gen, 10, 1000), 11);
         }
 
         {
@@ -281,17 +281,17 @@ namespace {
             .WillByDefault(Return(25));
             ON_CALL(abel::MockUniform<int>(), Call(gen, Ne(1), _))
             .WillByDefault(Return(99));
-            EXPECT_EQ(abel::Uniform(gen, 3, 1000000), 99);
-            EXPECT_EQ(abel::Uniform(gen, 1, 1000000), 25);
+            EXPECT_EQ(abel::uniform(gen, 3, 1000000), 99);
+            EXPECT_EQ(abel::uniform(gen, 1, 1000000), 25);
         }
 
         {
             abel::MockingBitGen gen;
             ON_CALL(abel::MockUniform<int>(), Call(gen, _, _))
             .WillByDefault(Return(145));
-            EXPECT_EQ(abel::Uniform(gen, 1, 1000), 145);
-            EXPECT_EQ(abel::Uniform(gen, 10, 1000), 145);
-            EXPECT_EQ(abel::Uniform(gen, 100, 1000), 145);
+            EXPECT_EQ(abel::uniform(gen, 1, 1000), 145);
+            EXPECT_EQ(abel::uniform(gen, 10, 1000), 145);
+            EXPECT_EQ(abel::uniform(gen, 100, 1000), 145);
         }
     }
 
@@ -303,7 +303,7 @@ namespace {
         ON_CALL(abel::MockUniform<size_t>(), Call(gen, 0, _))
         .WillByDefault(Return(0));
         for (int i = 0; i < 100; i++) {
-            auto &elem = values[abel::Uniform(gen, 0u, values.size())];
+            auto &elem = values[abel::uniform(gen, 0u, values.size())];
             EXPECT_EQ(elem, 11);
         }
     }

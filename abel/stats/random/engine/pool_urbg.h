@@ -1,11 +1,10 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_POOL_URBG_H_
-#define ABEL_RANDOM_INTERNAL_POOL_URBG_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_POOL_URBG_H_
+#define ABEL_STATS_RANDOM_ENGINE_POOL_URBG_H_
 
 #include <cinttypes>
 #include <limits>
-
 #include <abel/meta/type_traits.h>
 #include <abel/types/span.h>
 
@@ -13,16 +12,16 @@ namespace abel {
 
     namespace random_internal {
 
-// RandenPool is a thread-safe random number generator [random.req.urbg] that
+// randen_pool is a thread-safe random number generator [random.req.urbg] that
 // uses an underlying pool of Randen generators to generate values.  Each thread
 // has affinity to one instance of the underlying pool generators.  Concurrent
 // access is guarded by a spin-lock.
         template<typename T>
-        class RandenPool {
+        class randen_pool {
         public:
             using result_type = T;
             static_assert(std::is_unsigned<result_type>::value,
-                          "RandenPool template argument must be a built-in unsigned "
+                          "randen_pool template argument must be a built-in unsigned "
                           "integer type");
 
             static constexpr result_type (min)() {
@@ -33,7 +32,7 @@ namespace abel {
                 return (std::numeric_limits<result_type>::max)();
             }
 
-            RandenPool() {}
+            randen_pool() {}
 
             // Returns a single value.
             ABEL_FORCE_INLINE result_type operator()() { return Generate(); }
@@ -47,25 +46,25 @@ namespace abel {
         };
 
         extern template
-        class RandenPool<uint8_t>;
+        class randen_pool<uint8_t>;
 
         extern template
-        class RandenPool<uint16_t>;
+        class randen_pool<uint16_t>;
 
         extern template
-        class RandenPool<uint32_t>;
+        class randen_pool<uint32_t>;
 
         extern template
-        class RandenPool<uint64_t>;
+        class randen_pool<uint64_t>;
 
 // PoolURBG uses an underlying pool of random generators to implement a
 // thread-compatible [random.req.urbg] interface with an internal cache of
 // values.
         template<typename T, size_t kBufferSize>
         class PoolURBG {
-            // Inheritance to access the protected static members of RandenPool.
+            // Inheritance to access the protected static members of randen_pool.
             using unsigned_type = typename make_unsigned_bits<T>::type;
-            using PoolType = RandenPool<unsigned_type>;
+            using PoolType = randen_pool<unsigned_type>;
             using SpanType = abel::span<unsigned_type>;
 
             static constexpr size_t kInitialBuffer = kBufferSize + 1;
@@ -91,13 +90,13 @@ namespace abel {
                 return (std::numeric_limits<result_type>::max)();
             }
 
-            PoolURBG() : next_(kInitialBuffer) {}
+            PoolURBG() : _next(kInitialBuffer) {}
 
             // copy-constructor does not copy cache.
-            PoolURBG(const PoolURBG &) : next_(kInitialBuffer) {}
+            PoolURBG(const PoolURBG &) : _next(kInitialBuffer) {}
 
             const PoolURBG &operator=(const PoolURBG &) {
-                next_ = kInitialBuffer;
+                _next = kInitialBuffer;
                 return *this;
             }
 
@@ -107,22 +106,22 @@ namespace abel {
             PoolURBG &operator=(PoolURBG &&) = default;
 
             ABEL_FORCE_INLINE result_type operator()() {
-                if (next_ >= kBufferSize) {
-                    next_ = (kBufferSize > 2 && next_ > kBufferSize) ? kHalfBuffer : 0;
-                    PoolType::Fill(SpanType(reinterpret_cast<unsigned_type *>(state_ + next_),
-                                            kBufferSize - next_));
+                if (_next >= kBufferSize) {
+                    _next = (kBufferSize > 2 && _next > kBufferSize) ? kHalfBuffer : 0;
+                    PoolType::Fill(SpanType(reinterpret_cast<unsigned_type *>(_state + _next),
+                                            kBufferSize - _next));
                 }
-                return state_[next_++];
+                return _state[_next++];
             }
 
         private:
             // Buffer size.
-            size_t next_;  // index within state_
-            result_type state_[kBufferSize];
+            size_t _next;  // index within _state
+            result_type _state[kBufferSize];
         };
 
     }  // namespace random_internal
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_POOL_URBG_H_
+#endif  // ABEL_STATS_RANDOM_ENGINE_POOL_URBG_H_

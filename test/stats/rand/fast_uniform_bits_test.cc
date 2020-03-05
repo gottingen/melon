@@ -21,7 +21,7 @@ namespace abel {
 
             TYPED_TEST(FastUniformBitsTypedTest, BasicTest) {
                 using Limits = std::numeric_limits<TypeParam>;
-                using FastBits = FastUniformBits<TypeParam>;
+                using FastBits = fast_uniform_bits<TypeParam>;
 
                 EXPECT_EQ(0, FastBits::min());
                 EXPECT_EQ(Limits::max(), FastBits::max());
@@ -174,7 +174,7 @@ namespace abel {
 
                 // 8-bit types
                 {
-                    FastUniformBits<uint8_t> fast8;
+                    fast_uniform_bits<uint8_t> fast8;
                     EXPECT_EQ(0x11, fast8(urng4));
                     EXPECT_EQ(0x2, fast8(urng31));
                     EXPECT_EQ(0x1, fast8(urng32));
@@ -182,7 +182,7 @@ namespace abel {
 
                 // 16-bit types
                 {
-                    FastUniformBits<uint16_t> fast16;
+                    fast_uniform_bits<uint16_t> fast16;
                     EXPECT_EQ(0x1111, fast16(urng4));
                     EXPECT_EQ(0xf02, fast16(urng31));
                     EXPECT_EQ(0xf01, fast16(urng32));
@@ -190,7 +190,7 @@ namespace abel {
 
                 // 32-bit types
                 {
-                    FastUniformBits<uint32_t> fast32;
+                    fast_uniform_bits<uint32_t> fast32;
                     EXPECT_EQ(0x11111111, fast32(urng4));
                     EXPECT_EQ(0x0f020f02, fast32(urng31));
                     EXPECT_EQ(0x74010f01, fast32(urng32));
@@ -198,7 +198,7 @@ namespace abel {
 
                 // 64-bit types
                 {
-                    FastUniformBits<uint64_t> fast64;
+                    fast_uniform_bits<uint64_t> fast64;
                     EXPECT_EQ(0x1111111111111111, fast64(urng4));
                     EXPECT_EQ(0x387811c3c0870f02, fast64(urng31));
                     EXPECT_EQ(0x74010f0174010f01, fast64(urng32));
@@ -209,7 +209,7 @@ namespace abel {
                 // Validate with deterministic 32-bit std::minstd_rand
                 // to ensure that operator() performs as expected.
                 std::minstd_rand gen(1);
-                FastUniformBits<uint64_t> fast64;
+                fast_uniform_bits<uint64_t> fast64;
 
                 EXPECT_EQ(0x05e47095f847c122ull, fast64(gen));
                 EXPECT_EQ(0x8f82c1ba30b64d22ull, fast64(gen));

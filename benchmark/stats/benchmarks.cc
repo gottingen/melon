@@ -245,9 +245,9 @@ namespace {
   BENCHMARK_TEMPLATE(BM_ShuffleReuse, Engine, 100);                            \
   BENCHMARK_TEMPLATE(BM_ShuffleReuse, Engine, 1000);                           \
   BENCHMARK_TEMPLATE(BM_Dist, Engine,                                          \
-                     abel::random_internal::FastUniformBits<uint32_t>);        \
+                     abel::random_internal::fast_uniform_bits<uint32_t>);        \
   BENCHMARK_TEMPLATE(BM_Dist, Engine,                                          \
-                     abel::random_internal::FastUniformBits<uint64_t>);        \
+                     abel::random_internal::fast_uniform_bits<uint64_t>);        \
   BENCHMARK_TEMPLATE(BM_Dist, Engine, std::uniform_int_distribution<int32_t>); \
   BENCHMARK_TEMPLATE(BM_Dist, Engine, std::uniform_int_distribution<int64_t>); \
   BENCHMARK_TEMPLATE(BM_Dist, Engine,                                          \
@@ -282,7 +282,7 @@ namespace {
   BENCHMARK_TEMPLATE(BM_ShuffleReuse, Engine, 1000)->ThreadPerCpu();
 
 #define BM_EXTENDED(Engine)                                                    \
-  /* -------------- Extended Uniform -----------------------*/                 \
+  /* -------------- Extended uniform -----------------------*/                 \
   BENCHMARK_TEMPLATE(BM_Small, Engine,                                         \
                      std::uniform_int_distribution<int32_t>);                  \
   BENCHMARK_TEMPLATE(BM_Small, Engine,                                         \
@@ -346,10 +346,10 @@ namespace {
   BENCHMARK_TEMPLATE(BM_Gamma, Engine, std::gamma_distribution<double>, 199);
 
 // ABEL Recommended interfaces.
-    BM_BASIC(abel::InsecureBitGen);  // === pcg64_2018_engine
-    BM_BASIC(abel::BitGen);    // === randen_engine<uint64_t>.
-    BM_THREAD(abel::BitGen);
-    BM_EXTENDED(abel::BitGen);
+    BM_BASIC(abel::insecure_bit_gen);  // === pcg64_2018_engine
+    BM_BASIC(abel::bit_gen);    // === randen_engine<uint64_t>.
+    BM_THREAD(abel::bit_gen);
+    BM_EXTENDED(abel::bit_gen);
 
 // Instantiate benchmarks for multiple engines.
     using randen_engine_64 = abel::random_internal::randen_engine<uint64_t>;

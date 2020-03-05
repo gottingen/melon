@@ -98,7 +98,7 @@ namespace abel {
 
     private:
         param_type param_;
-        random_internal::FastUniformBits <uint64_t> fast_u64_;
+        random_internal::fast_uniform_bits <uint64_t> fast_u64_;
     };
 
 // --------------------------------------------------------------------------
@@ -111,12 +111,12 @@ namespace abel {
     exponential_distribution<RealType>::operator()(
             URBG &g,  // NOLINT(runtime/references)
             const param_type &p) {
-        using random_internal::GenerateNegativeTag;
-        using random_internal::GenerateRealFromBits;
+        using random_internal::generate_negative_tag;
+        using random_internal::generate_real_from_bits;
         using real_type =
         abel::conditional_t<std::is_same<RealType, float>::value, float, double>;
 
-        const result_type u = GenerateRealFromBits<real_type, GenerateNegativeTag,
+        const result_type u = generate_real_from_bits<real_type, generate_negative_tag,
                 false>(fast_u64_(g));  // U(-1, 0)
 
         // log1p(-x) is mathematically equivalent to log(1 - x) but has more

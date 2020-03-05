@@ -3,6 +3,7 @@
 //
 
 #include <abel/stats/random/exponential_biased.h>
+#include <abel/math/all.h>
 #include <stdint.h>
 #include <algorithm>
 #include <atomic>
@@ -27,7 +28,7 @@ namespace abel {
         // under piii debug for some binaries.
         double q = static_cast<uint32_t>(rng >> (kPrngNumBits - 26)) + 1.0;
         // Put the computed p-value through the CDF of a geometric.
-        double interval = _bias + (std::log2(q) - 26) * (-std::log(2.0) * mean);
+        double interval = _bias + (std::log2(q) - 26) * (-abel::log(2.0) * mean);
         // Very large values of interval overflow int64_t. To avoid that, we will
         // cheat and clamp any huge values to (int64_t max)/2. This is a potential
         // source of bias, but the mean would need to be such a large value that it's

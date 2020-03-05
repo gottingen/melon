@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_NONSECURE_BASE_H_
-#define ABEL_RANDOM_INTERNAL_NONSECURE_BASE_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_NONSECURE_BASE_H_
+#define ABEL_STATS_RANDOM_ENGINE_NONSECURE_BASE_H_
 
 #include <algorithm>
 #include <cstdint>
@@ -24,60 +24,60 @@ namespace abel {
 
     namespace random_internal {
 
-// Each instance of NonsecureURBGBase<URBG> will be seeded by variates produced
+// Each instance of nonsecure_urbg_base<URBG> will be seeded by variates produced
 // by a thread-unique URBG-instance.
         template<typename URBG>
-        class NonsecureURBGBase {
+        class nonsecure_urbg_base {
         public:
             using result_type = typename URBG::result_type;
 
             // Default constructor
-            NonsecureURBGBase() : urbg_(ConstructURBG()) {}
+            nonsecure_urbg_base() : urbg_(construct_urbg()) {}
 
             // Copy disallowed, move allowed.
-            NonsecureURBGBase(const NonsecureURBGBase &) = delete;
+            nonsecure_urbg_base(const nonsecure_urbg_base &) = delete;
 
-            NonsecureURBGBase &operator=(const NonsecureURBGBase &) = delete;
+            nonsecure_urbg_base &operator=(const nonsecure_urbg_base &) = delete;
 
-            NonsecureURBGBase(NonsecureURBGBase &&) = default;
+            nonsecure_urbg_base(nonsecure_urbg_base &&) = default;
 
-            NonsecureURBGBase &operator=(NonsecureURBGBase &&) = default;
+            nonsecure_urbg_base &operator=(nonsecure_urbg_base &&) = default;
 
             // Constructor using a seed
             template<class SSeq, typename = typename abel::enable_if_t<
-                    !std::is_same<SSeq, NonsecureURBGBase>::value>>
-            explicit NonsecureURBGBase(SSeq &&seq)
-                    : urbg_(ConstructURBG(std::forward<SSeq>(seq))) {}
+                    !std::is_same<SSeq, nonsecure_urbg_base>::value>>
+            explicit nonsecure_urbg_base(SSeq &&seq)
+                    : urbg_(construct_urbg(std::forward<SSeq>(seq))) {}
 
             // Note: on MSVC, min() or max() can be interpreted as MIN() or MAX(), so we
             // enclose min() or max() in parens as (min)() and (max)().
             // Additionally, clang-format requires no space before this construction.
 
-            // NonsecureURBGBase::min()
+            // nonsecure_urbg_base::min()
             static constexpr result_type (min)() { return (URBG::min)(); }
 
-            // NonsecureURBGBase::max()
+            // nonsecure_urbg_base::max()
             static constexpr result_type (max)() { return (URBG::max)(); }
 
-            // NonsecureURBGBase::operator()()
+            // nonsecure_urbg_base::operator()()
             result_type operator()() { return urbg_(); }
 
-            // NonsecureURBGBase::discard()
+            // nonsecure_urbg_base::discard()
             void discard(unsigned long long values) {  // NOLINT(runtime/int)
                 urbg_.discard(values);
             }
 
-            bool operator==(const NonsecureURBGBase &other) const {
+            bool operator==(const nonsecure_urbg_base &other) const {
                 return urbg_ == other.urbg_;
             }
 
-            bool operator!=(const NonsecureURBGBase &other) const {
+            bool operator!=(const nonsecure_urbg_base &other) const {
                 return !(urbg_ == other.urbg_);
             }
 
         private:
             // Seeder is a custom seed sequence type where generate() fills the provided
-            // buffer via the RandenPool entropy source.
+            // buffer via the randen_pool entropy source.
             struct Seeder {
                 using result_type = uint32_t;
 
@@ -104,7 +104,7 @@ namespace abel {
                     auto buffer = abel::make_span(begin, end);
                     auto target = abel::make_span(reinterpret_cast<uint32_t *>(buffer.data()),
                                                  buffer.size());
-                    RandenPool<uint32_t>::Fill(target);
+                    randen_pool<uint32_t>::Fill(target);
                 }
 
                 // The non-uint32_t case should be uncommon, and involves an extra copy,
@@ -114,20 +114,20 @@ namespace abel {
                                    RandomAccessIterator begin, RandomAccessIterator end) {
                     const size_t n = std::distance(begin, end);
                     abel::InlinedVector<uint32_t, 8> data(n, 0);
-                    RandenPool<uint32_t>::Fill(abel::make_span(data.begin(), data.end()));
+                    randen_pool<uint32_t>::Fill(abel::make_span(data.begin(), data.end()));
                     std::copy(std::begin(data), std::end(data), begin);
                 }
             };
 
-            static URBG ConstructURBG() {
+            static URBG construct_urbg() {
                 Seeder seeder;
                 return URBG(seeder);
             }
 
             template<typename SSeq>
-            static URBG ConstructURBG(SSeq &&seq) {  // NOLINT(runtime/references)
+            static URBG construct_urbg(SSeq &&seq) {  // NOLINT(runtime/references)
                 auto salted_seq =
-                        random_internal::MakeSaltedSeedSeq(std::forward<SSeq>(seq));
+                        random_internal::make_salted_seed_seq(std::forward<SSeq>(seq));
                 return URBG(salted_seq);
             }
 
@@ -138,4 +138,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_NONSECURE_BASE_H_
+#endif  // ABEL_STATS_RANDOM_ENGINE_NONSECURE_BASE_H_

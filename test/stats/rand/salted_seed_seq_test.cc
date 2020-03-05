@@ -10,9 +10,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-using abel::random_internal::GetSaltMaterial;
-using abel::random_internal::MakeSaltedSeedSeq;
-using abel::random_internal::SaltedSeedSeq;
+using abel::random_internal::get_salt_material;
+using abel::random_internal::make_salted_seed_seq;
+using abel::random_internal::salted_seed_seq;
 using testing::Eq;
 using testing::Pointwise;
 
@@ -52,18 +52,18 @@ namespace {
         }
     }
 
-    TEST(SaltedSeedSeq, CheckInterfaces) {
+    TEST(salted_seed_seq, CheckInterfaces) {
         // Control case
         ConformsToInterface<std::seed_seq>();
 
         // abel classes
-        ConformsToInterface<SaltedSeedSeq<std::seed_seq>>();
+        ConformsToInterface<salted_seed_seq<std::seed_seq>>();
     }
 
-    TEST(SaltedSeedSeq, CheckConstructingFromOtherSequence) {
+    TEST(salted_seed_seq, CheckConstructingFromOtherSequence) {
         std::vector<uint32_t> seed_values(10, 1);
         std::seed_seq seq(seed_values.begin(), seed_values.end());
-        auto salted_seq = MakeSaltedSeedSeq(std::move(seq));
+        auto salted_seq = make_salted_seed_seq(std::move(seq));
 
         EXPECT_EQ(seq.size(), salted_seq.size());
 
@@ -73,19 +73,19 @@ namespace {
         EXPECT_EQ(seed_values, param_result);
     }
 
-    TEST(SaltedSeedSeq, SaltedSaltedSeedSeqIsNotDoubleSalted) {
+    TEST(salted_seed_seq, SaltedSaltedSeedSeqIsNotDoubleSalted) {
         uint32_t init[] = {1, 3, 5, 7, 9};
 
         std::seed_seq seq(std::begin(init), std::end(init));
 
         // The first salting.
-        SaltedSeedSeq<std::seed_seq> salted_seq = MakeSaltedSeedSeq(std::move(seq));
+        salted_seed_seq<std::seed_seq> salted_seq = make_salted_seed_seq(std::move(seq));
         uint32_t a[16];
         salted_seq.generate(std::begin(a), std::end(a));
 
         // The second salting.
-        SaltedSeedSeq<std::seed_seq> salted_salted_seq =
-                MakeSaltedSeedSeq(std::move(salted_seq));
+        salted_seed_seq<std::seed_seq> salted_salted_seq =
+                make_salted_seed_seq(std::move(salted_seq));
         uint32_t b[16];
         salted_salted_seq.generate(std::begin(b), std::end(b));
 
@@ -93,7 +93,7 @@ namespace {
         EXPECT_THAT(b, Pointwise(Eq(), a)) << "a[0] " << a[0];
     }
 
-    TEST(SaltedSeedSeq, SeedMaterialIsSalted) {
+    TEST(salted_seed_seq, SeedMaterialIsSalted) {
         const size_t kNumBlocks = 16;
 
         uint32_t seed_material[kNumBlocks];
@@ -103,10 +103,10 @@ namespace {
         }
 
         std::seed_seq seq(std::begin(seed_material), std::end(seed_material));
-        SaltedSeedSeq<std::seed_seq> salted_seq(std::begin(seed_material),
+        salted_seed_seq<std::seed_seq> salted_seq(std::begin(seed_material),
                                                 std::end(seed_material));
 
-        bool salt_is_available = GetSaltMaterial().has_value();
+        bool salt_is_available = get_salt_material().has_value();
 
         // If salt is available generated sequence should be different.
         if (salt_is_available) {
@@ -120,10 +120,10 @@ namespace {
         }
     }
 
-    TEST(SaltedSeedSeq, GenerateAcceptsDifferentTypes) {
+    TEST(salted_seed_seq, GenerateAcceptsDifferentTypes) {
         const size_t kNumBlocks = 4;
 
-        SaltedSeedSeq<std::seed_seq> seq({1, 2, 3});
+        salted_seed_seq<std::seed_seq> seq({1, 2, 3});
 
         uint32_t expected[kNumBlocks];
         seq.generate(std::begin(expected), std::end(expected));

@@ -15,14 +15,14 @@ namespace {
     TEST(SeedSequences, Examples) {
         {
             abel::SeedSeq seed_seq({1, 2, 3});
-            abel::BitGen bitgen(seed_seq);
+            abel::bit_gen bitgen(seed_seq);
 
             EXPECT_NE(0, bitgen());
         }
         {
-            abel::BitGen engine;
+            abel::bit_gen engine;
             auto seed_seq = abel::CreateSeedSeqFrom(&engine);
-            abel::BitGen bitgen(seed_seq);
+            abel::bit_gen bitgen(seed_seq);
 
             EXPECT_NE(engine(), bitgen());
         }
@@ -36,7 +36,7 @@ namespace {
 
     TEST(CreateSeedSeqFrom, CompatibleWithStdTypes) {
         using ExampleNonsecureURBG =
-        abel::random_internal::NonsecureURBGBase<std::minstd_rand0>;
+        abel::random_internal::nonsecure_urbg_base<std::minstd_rand0>;
 
         // Construct a URBG instance.
         ExampleNonsecureURBG rng;
@@ -50,7 +50,7 @@ namespace {
 
     TEST(CreateSeedSeqFrom, CompatibleWithBitGenerator) {
         // Construct a URBG instance.
-        abel::BitGen rng;
+        abel::bit_gen rng;
 
         // Construct a Seed Sequence from its variates.
         auto seq_from_rng = abel::CreateSeedSeqFrom(&rng);
@@ -61,7 +61,7 @@ namespace {
 
     TEST(CreateSeedSeqFrom, CompatibleWithInsecureBitGen) {
         // Construct a URBG instance.
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
 
         // Construct a Seed Sequence from its variates.
         auto seq_from_rng = abel::CreateSeedSeqFrom(&rng);
@@ -107,10 +107,10 @@ namespace {
     }
 
     TEST(CreateSeedSeqFrom, ReproducesVariateSequencesForInsecureBitGen) {
-        TestReproducibleVariateSequencesForNonsecureURBG<abel::InsecureBitGen>();
+        TestReproducibleVariateSequencesForNonsecureURBG<abel::insecure_bit_gen>();
     }
 
     TEST(CreateSeedSeqFrom, ReproducesVariateSequencesForBitGenerator) {
-        TestReproducibleVariateSequencesForNonsecureURBG<abel::BitGen>();
+        TestReproducibleVariateSequencesForNonsecureURBG<abel::bit_gen>();
     }
 }  // namespace

@@ -35,8 +35,8 @@ namespace abel {
 
 // MockingBitGen
 //
-// `abel::MockingBitGen` is a mock Uniform Random Bit Generator (URBG) class
-// which can act in place of an `abel::BitGen` URBG within tests using the
+// `abel::MockingBitGen` is a mock uniform Random Bit Generator (URBG) class
+// which can act in place of an `abel::bit_gen` URBG within tests using the
 // Googletest testing framework.
 //
 // Usage:
@@ -55,7 +55,7 @@ namespace abel {
 //       .WillByDefault(testing::Return(true));
 //   EXPECT_TRUE(abel::Bernoulli(bitgen, 0.5));
 //
-//  // Mock a call to an `abel::Uniform` distribution within Googletest
+//  // Mock a call to an `abel::uniform` distribution within Googletest
 //  abel::MockingBitGen bitgen;
 //
 //   ON_CALL(abel::MockUniform<int>(), Call(bitgen, testing::_, testing::_))
@@ -63,8 +63,8 @@ namespace abel {
 //           return (low + high) / 2;
 //       });
 //
-//   EXPECT_EQ(abel::Uniform<int>(gen, 0, 10), 5);
-//   EXPECT_EQ(abel::Uniform<int>(gen, 30, 40), 35);
+//   EXPECT_EQ(abel::uniform<int>(gen, 0, 10), 5);
+//   EXPECT_EQ(abel::uniform<int>(gen, 30, 40), 35);
 //
 // At this time, only mock distributions supplied within the abel random
 // library are officially supported.
@@ -145,7 +145,7 @@ namespace abel {
         template<typename, typename>
         friend
         struct ::abel::random_internal::MockSingleOverload;
-        friend struct ::abel::random_internal::DistributionCaller<
+        friend struct ::abel::random_internal::distribution_caller<
                 abel::MockingBitGen>;
     };
 
@@ -156,11 +156,11 @@ namespace abel {
     namespace random_internal {
 
         template<>
-        struct DistributionCaller<abel::MockingBitGen> {
+        struct distribution_caller<abel::MockingBitGen> {
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(abel::MockingBitGen *gen,
+            static typename DistrT::result_type call(abel::MockingBitGen *gen,
                                                      Args &&... args) {
-                return gen->template Call<DistrT, FormatT>(std::forward<Args>(args)...);
+                return gen->template call<DistrT, FormatT>(std::forward<Args>(args)...);
             }
         };
 

@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_RANDEN_TRAITS_H_
-#define ABEL_RANDOM_INTERNAL_RANDEN_TRAITS_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_RANDEN_TRAITS_H_
+#define ABEL_STATS_RANDOM_ENGINE_RANDEN_TRAITS_H_
 
 // HERMETIC NOTE: The randen_hwaes target must not introduce duplicate
 // symbols from arbitrary system and other headers, since it may be built
@@ -22,7 +22,7 @@ namespace abel {
 //
 // RandenTraits contains the basic algorithm traits, such as the size of the
 // state, seed, sponge, etc.
-        struct RandenTraits {
+        struct randen_traits {
             // Size of the entire sponge / state for the randen PRNG.
             static constexpr size_t kStateBytes = 256;  // 2048-bit
 
@@ -48,4 +48,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_RANDEN_TRAITS_H_
+#endif  // ABEL_STATS_RANDOM_ENGINE_RANDEN_TRAITS_H_

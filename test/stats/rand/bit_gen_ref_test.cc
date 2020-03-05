@@ -19,23 +19,23 @@ namespace abel {
 
     namespace random_internal {
         template<>
-        struct DistributionCaller<ConstBitGen> {
+        struct distribution_caller<ConstBitGen> {
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(ConstBitGen *gen, Args &&... args) {
-                return gen->template Call<DistrT, FormatT>(std::forward<Args>(args)...);
+            static typename DistrT::result_type call(ConstBitGen *gen, Args &&... args) {
+                return gen->template call<DistrT, FormatT>(std::forward<Args>(args)...);
             }
         };
     }  // namespace random_internal
 
     namespace {
-        int FnTest(abel::BitGenRef gen_ref) { return abel::Uniform(gen_ref, 1, 7); }
+        int FnTest(abel::BitGenRef gen_ref) { return abel::uniform(gen_ref, 1, 7); }
 
         template<typename T>
         class BitGenRefTest : public testing::Test {
         };
 
         using BitGenTypes =
-        ::testing::Types<abel::BitGen, abel::InsecureBitGen, std::mt19937,
+        ::testing::Types<abel::bit_gen, abel::insecure_bit_gen, std::mt19937,
                 std::mt19937_64, std::minstd_rand>;
         TYPED_TEST_SUITE(BitGenRefTest, BitGenTypes);
 

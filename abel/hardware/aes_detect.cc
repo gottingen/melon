@@ -90,7 +90,7 @@ namespace abel {
 
 // CPUSupportsRandenHwAes returns whether the CPU is a microarchitecture
 // which supports the crpyto/aes instructions or extensions necessary to use the
-// accelerated RandenHwAes implementation.
+// accelerated randen_hw_aes implementation.
 //
 // 1. For x86 it is sufficient to use the CPUID instruction to detect whether
 //    the cpu supports AES instructions. Done.

@@ -12,15 +12,15 @@ namespace {
     TEST(MockDistributions, Examples) {
         abel::MockingBitGen gen;
 
-        EXPECT_NE(abel::Uniform<int>(gen, 1, 1000000), 20);
+        EXPECT_NE(abel::uniform<int>(gen, 1, 1000000), 20);
         EXPECT_CALL(abel::MockUniform<int>(), Call(gen, 1, 1000000))
         .WillOnce(Return(20));
-        EXPECT_EQ(abel::Uniform<int>(gen, 1, 1000000), 20);
+        EXPECT_EQ(abel::uniform<int>(gen, 1, 1000000), 20);
 
-        EXPECT_NE(abel::Uniform<double>(gen, 0.0, 100.0), 5.0);
+        EXPECT_NE(abel::uniform<double>(gen, 0.0, 100.0), 5.0);
         EXPECT_CALL(abel::MockUniform<double>(), Call(gen, 0.0, 100.0))
         .WillOnce(Return(5.0));
-        EXPECT_EQ(abel::Uniform<double>(gen, 0.0, 100.0), 5.0);
+        EXPECT_EQ(abel::uniform<double>(gen, 0.0, 100.0), 5.0);
 
         EXPECT_NE(abel::Exponential<double>(gen, 1.0), 42);
         EXPECT_CALL(abel::MockExponential<double>(), Call(gen, 1.0))

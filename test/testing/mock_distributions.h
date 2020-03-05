@@ -20,7 +20,7 @@ namespace abel {
 // abel::MockUniform
 // -----------------------------------------------------------------------------
 //
-// Matches calls to abel::Uniform.
+// Matches calls to abel::uniform.
 //
 // `abel::MockUniform` is a class template used in conjunction with Googletest's
 // `ON_CALL()` and `EXPECT_CALL()` macros. To use it, default-construct an
@@ -32,12 +32,12 @@ namespace abel {
 //  abel::MockingBitGen mock;
 //  EXPECT_CALL(abel::MockUniform<uint32_t>(), Call(mock))
 //     .WillOnce(Return(123456));
-//  auto x = abel::Uniform<uint32_t>(mock);
+//  auto x = abel::uniform<uint32_t>(mock);
 //  assert(x == 123456)
 //
     template<typename R>
     using MockUniform = random_internal::MockOverloadSet<
-            random_internal::UniformDistributionWrapper<R>,
+            random_internal::uniform_distribution_wrapper<R>,
             R(IntervalClosedOpenTag, MockingBitGen &, R, R),
             R(IntervalClosedClosedTag, MockingBitGen &, R, R),
             R(IntervalOpenOpenTag, MockingBitGen &, R, R),

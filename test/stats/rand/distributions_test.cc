@@ -112,7 +112,7 @@ namespace {
 
     template<typename A, typename B>
     auto InferredUniformReturnT(int)
-    -> decltype(abel::Uniform(std::declval<abel::InsecureBitGen &>(),
+    -> decltype(abel::uniform(std::declval<abel::insecure_bit_gen &>(),
                               std::declval<A>(), std::declval<B>()));
 
     template<typename, typename>
@@ -120,8 +120,8 @@ namespace {
 
     template<typename TagType, typename A, typename B>
     auto InferredTaggedUniformReturnT(int)
-    -> decltype(abel::Uniform(std::declval<TagType>(),
-                              std::declval<abel::InsecureBitGen &>(),
+    -> decltype(abel::uniform(std::declval<TagType>(),
+                              std::declval<abel::insecure_bit_gen &>(),
                               std::declval<A>(), std::declval<B>()));
 
     template<typename, typename, typename>
@@ -129,21 +129,21 @@ namespace {
 
 // Given types <A, B, Expect>, CheckArgsInferType() verifies that
 //
-//   abel::Uniform(gen, A{}, B{})
+//   abel::uniform(gen, A{}, B{})
 //
 // returns the type "Expect".
 //
-// This interface can also be used to assert that a given abel::Uniform()
+// This interface can also be used to assert that a given abel::uniform()
 // overload does not exist / will not compile. Given types <A, B>, the
 // expression
 //
-//   decltype(abel::Uniform(..., std::declval<A>(), std::declval<B>()))
+//   decltype(abel::uniform(..., std::declval<A>(), std::declval<B>()))
 //
 // will not compile, leaving the definition of InferredUniformReturnT<A, B> to
 // resolve (via SFINAE) to the overload which returns type "Invalid". This
 // allows tests to assert that an invocation such as
 //
-//   abel::Uniform(gen, 1.23f, std::numeric_limits<int>::max() - 1)
+//   abel::uniform(gen, 1.23f, std::numeric_limits<int>::max() - 1)
 //
 // should not compile, since neither type, float nor int, can precisely
 // represent both endpoint-values. Writing:
@@ -171,15 +171,15 @@ namespace {
 
     template<typename A, typename B, typename ExplicitRet>
     auto ExplicitUniformReturnT(int) -> decltype(
-    abel::Uniform<ExplicitRet>(*std::declval<abel::InsecureBitGen *>(),
+    abel::uniform<ExplicitRet>(*std::declval<abel::insecure_bit_gen *>(),
                                std::declval<A>(), std::declval<B>()));
 
     template<typename, typename, typename ExplicitRet>
     Invalid ExplicitUniformReturnT(...);
 
     template<typename TagType, typename A, typename B, typename ExplicitRet>
-    auto ExplicitTaggedUniformReturnT(int) -> decltype(abel::Uniform<ExplicitRet>(
-            std::declval<TagType>(), *std::declval<abel::InsecureBitGen *>(),
+    auto ExplicitTaggedUniformReturnT(int) -> decltype(abel::uniform<ExplicitRet>(
+            std::declval<TagType>(), *std::declval<abel::insecure_bit_gen *>(),
             std::declval<A>(), std::declval<B>()));
 
     template<typename, typename, typename, typename ExplicitRet>
@@ -187,7 +187,7 @@ namespace {
 
 // Given types <A, B, Expect>, CheckArgsReturnExpectedType() verifies that
 //
-//   abel::Uniform<Expect>(gen, A{}, B{})
+//   abel::uniform<Expect>(gen, A{}, B{})
 //
 // returns the type "Expect", and that the function-overload has the signature
 //
@@ -276,34 +276,34 @@ namespace {
         CheckArgsInferType<float, double, double>();
 
         // Examples.
-        abel::InsecureBitGen gen;
-        EXPECT_NE(1, abel::Uniform(gen, static_cast<uint16_t>(0), 1.0f));
-        EXPECT_NE(1, abel::Uniform(gen, 0, 1.0));
-        EXPECT_NE(1, abel::Uniform(abel::IntervalOpenOpen, gen,
+        abel::insecure_bit_gen gen;
+        EXPECT_NE(1, abel::uniform(gen, static_cast<uint16_t>(0), 1.0f));
+        EXPECT_NE(1, abel::uniform(gen, 0, 1.0));
+        EXPECT_NE(1, abel::uniform(abel::IntervalOpenOpen, gen,
                                    static_cast<uint16_t>(0), 1.0f));
-        EXPECT_NE(1, abel::Uniform(abel::IntervalOpenOpen, gen, 0, 1.0));
-        EXPECT_NE(1, abel::Uniform(abel::IntervalOpenOpen, gen, -1, 1.0));
-        EXPECT_NE(1, abel::Uniform<double>(abel::IntervalOpenOpen, gen, -1, 1));
-        EXPECT_NE(1, abel::Uniform<float>(abel::IntervalOpenOpen, gen, 0, 1));
-        EXPECT_NE(1, abel::Uniform<float>(gen, 0, 1));
+        EXPECT_NE(1, abel::uniform(abel::IntervalOpenOpen, gen, 0, 1.0));
+        EXPECT_NE(1, abel::uniform(abel::IntervalOpenOpen, gen, -1, 1.0));
+        EXPECT_NE(1, abel::uniform<double>(abel::IntervalOpenOpen, gen, -1, 1));
+        EXPECT_NE(1, abel::uniform<float>(abel::IntervalOpenOpen, gen, 0, 1));
+        EXPECT_NE(1, abel::uniform<float>(gen, 0, 1));
     }
 
     TEST_F(RandomDistributionsTest, UniformNoBounds) {
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
 
-        abel::Uniform<uint8_t>(gen);
-        abel::Uniform<uint16_t>(gen);
-        abel::Uniform<uint32_t>(gen);
-        abel::Uniform<uint64_t>(gen);
+        abel::uniform<uint8_t>(gen);
+        abel::uniform<uint16_t>(gen);
+        abel::uniform<uint32_t>(gen);
+        abel::uniform<uint64_t>(gen);
     }
 
 // TODO(lar): Validate properties of non-default interval-semantics.
     TEST_F(RandomDistributionsTest, UniformReal) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
-            values[i] = abel::Uniform(gen, 0, 1.0);
+            values[i] = abel::uniform(gen, 0, 1.0);
         }
 
         const auto moments =
@@ -317,10 +317,10 @@ namespace {
     TEST_F(RandomDistributionsTest, UniformInt) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             const int64_t kMax = 1000000000000ll;
-            int64_t j = abel::Uniform(abel::IntervalClosedClosed, gen, 0, kMax);
+            int64_t j = abel::uniform(abel::IntervalClosedClosed, gen, 0, kMax);
             // convert to double.
             values[i] = static_cast<double>(j) / static_cast<double>(kMax);
         }
@@ -333,23 +333,23 @@ namespace {
         EXPECT_NEAR(9 / 5.0, moments.kurtosis, 0.02);
 
         /*
-        // NOTE: These are not supported by abel::Uniform, which is specialized
+        // NOTE: These are not supported by abel::uniform, which is specialized
         // on integer and real valued types.
 
         enum E { E0, E1 };    // enum
         enum S : int { S0, S1 };    // signed enum
         enum U : unsigned int { U0, U1 };  // unsigned enum
 
-        abel::Uniform(gen, E0, E1);
-        abel::Uniform(gen, S0, S1);
-        abel::Uniform(gen, U0, U1);
+        abel::uniform(gen, E0, E1);
+        abel::uniform(gen, S0, S1);
+        abel::uniform(gen, U0, U1);
         */
     }
 
     TEST_F(RandomDistributionsTest, Exponential) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Exponential<double>(gen);
         }
@@ -365,7 +365,7 @@ namespace {
     TEST_F(RandomDistributionsTest, PoissonDefault) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Poisson<int64_t>(gen);
         }
@@ -382,7 +382,7 @@ namespace {
         constexpr double kMean = 100000000.0;
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Poisson<int64_t>(gen, kMean);
         }
@@ -399,7 +399,7 @@ namespace {
         constexpr double kP = 0.5151515151;
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Bernoulli(gen, kP);
         }
@@ -414,7 +414,7 @@ namespace {
         constexpr double kBeta = 3.0;
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Beta(gen, kAlpha, kBeta);
         }
@@ -427,7 +427,7 @@ namespace {
     TEST_F(RandomDistributionsTest, Zipf) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Zipf<int64_t>(gen, 100);
         }
@@ -443,7 +443,7 @@ namespace {
     TEST_F(RandomDistributionsTest, Gaussian) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::Gaussian<double>(gen);
         }
@@ -459,7 +459,7 @@ namespace {
     TEST_F(RandomDistributionsTest, LogUniform) {
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (int i = 0; i < kSize; i++) {
             values[i] = abel::LogUniform<int64_t>(gen, 0, (1 << 10) - 1);
         }

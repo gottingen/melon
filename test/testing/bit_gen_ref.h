@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 //
 // This header defines a bit generator "reference" class, for use in interfaces
-// that take both abel (e.g. `abel::BitGen`) and standard library (e.g.
+// that take both abel (e.g. `abel::bit_gen`) and standard library (e.g.
 // `std::mt19937`) bit generators.
 
 #ifndef TEST_TESTING_BIT_GEN_REF_H_
@@ -49,7 +49,7 @@ namespace abel {
 // `abel::BitGenRef` is a type-erasing class that provides a generator-agnostic
 // non-owning "reference" interface for use in place of any specific uniform
 // random bit generator (URBG). This class may be used for both abel
-// (e.g. `abel::BitGen`, `abel::InsecureBitGen`) and Standard library (e.g
+// (e.g. `abel::bit_gen`, `abel::insecure_bit_gen`) and Standard library (e.g
 // `std::mt19937`, `std::minstd_rand`) bit generators.
 //
 // Like other reference classes, `abel::BitGenRef` does not own the
@@ -62,7 +62,7 @@ namespace abel {
 //
 // Example:
 //    void TakesBitGenRef(abel::BitGenRef gen) {
-//      int x = abel::Uniform<int>(gen, 0, 1000);
+//      int x = abel::uniform<int>(gen, 0, 1000);
 //    }
 //
     class BitGenRef {
@@ -98,7 +98,7 @@ namespace abel {
         result_type operator()() { return generate_impl_fn_(t_erased_gen_ptr_); }
 
     private:
-        friend struct abel::random_internal::DistributionCaller<abel::BitGenRef>;
+        friend struct abel::random_internal::distribution_caller<abel::BitGenRef>;
         using impl_fn = result_type (*)(uintptr_t);
         using mocker_base_t = abel::random_internal::MockingBitGenBase;
 
@@ -112,7 +112,7 @@ namespace abel {
         static result_type ImplFn(uintptr_t ptr) {
             // Ensure that the return values from operator() fill the entire
             // range promised by result_type, min() and max().
-            abel::random_internal::FastUniformBits<result_type> fast_uniform_bits;
+            abel::random_internal::fast_uniform_bits<result_type> fast_uniform_bits;
             return fast_uniform_bits(*reinterpret_cast<URBG *>(ptr));
         }
 
@@ -124,16 +124,16 @@ namespace abel {
     namespace random_internal {
 
         template<>
-        struct DistributionCaller<abel::BitGenRef> {
+        struct distribution_caller<abel::BitGenRef> {
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(abel::BitGenRef *gen_ref,
+            static typename DistrT::result_type call(abel::BitGenRef *gen_ref,
                                                      Args &&... args) {
                 auto *mock_ptr = gen_ref->mocked_gen_ptr_;
                 if (mock_ptr == nullptr) {
                     DistrT dist(std::forward<Args>(args)...);
                     return dist(*gen_ref);
                 } else {
-                    return mock_ptr->template Call<DistrT, FormatT>(
+                    return mock_ptr->template call<DistrT, FormatT>(
                             std::forward<Args>(args)...);
                 }
             }

@@ -61,7 +61,7 @@ namespace abel {
             // using, e.g. abi::__cxa_demangle.
         }
 
-// Distribution traits used by DistributionCaller and internal implementation
+// Distribution traits used by distribution_caller and internal implementation
 // details of the mocking framework.
 /*
 struct DistributionFormatTraits {
@@ -81,7 +81,7 @@ struct DistributionFormatTraits {
             using distribution_t = abel::uniform_int_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
-            static constexpr const char *Name() { return "Uniform"; }
+            static constexpr const char *Name() { return "uniform"; }
 
             static std::string FunctionName() {
                 return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
@@ -102,7 +102,7 @@ struct DistributionFormatTraits {
             using distribution_t = abel::uniform_real_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
-            static constexpr const char *Name() { return "Uniform"; }
+            static constexpr const char *Name() { return "uniform"; }
 
             static std::string FunctionName() {
                 return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
@@ -256,14 +256,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename NumType>
-        struct UniformDistributionWrapper;
+        struct uniform_distribution_wrapper;
 
         template<typename NumType>
-        struct DistributionFormatTraits<UniformDistributionWrapper<NumType>> {
-            using distribution_t = UniformDistributionWrapper<NumType>;
+        struct DistributionFormatTraits<uniform_distribution_wrapper<NumType>> {
+            using distribution_t = uniform_distribution_wrapper<NumType>;
             using result_t = NumType;
 
-            static constexpr const char *Name() { return "Uniform"; }
+            static constexpr const char *Name() { return "uniform"; }
 
             static std::string FunctionName() {
                 return abel::string_cat(Name(), "<", ScalarTypeName<NumType>(), ">");

@@ -48,7 +48,7 @@ namespace {
         using param_type = typename abel::beta_distribution<TypeParam>::param_type;
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         const TypeParam kValues[] = {
                 TypeParam(1e-20), TypeParam(1e-12), TypeParam(1e-8), TypeParam(1e-4),
                 TypeParam(1e-3), TypeParam(0.1), TypeParam(0.25),
@@ -150,7 +150,7 @@ namespace {
 
     TYPED_TEST(BetaDistributionInterfaceTest, DegenerateCases) {
         // Extreme cases when the params are abnormal.
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         constexpr int kCount = 1000;
         const TypeParam kSmallValues[] = {
                 std::numeric_limits<TypeParam>::min(),
@@ -280,7 +280,7 @@ namespace {
         template<class D>
         bool SingleChiSquaredTest(double p, size_t samples, size_t buckets);
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     template<class D>

@@ -38,7 +38,7 @@ namespace {
         const TypeParam kNegOneOrZero = std::is_unsigned<TypeParam>::value ? 0 : -1;
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const auto &param : {
                 param_type(),
                 param_type(2, 2),  // Same
@@ -108,7 +108,7 @@ namespace {
 #if defined(NDEBUG)
         // opt-mode, for invalid parameters, will generate a garbage value,
         // but should not enter an infinite loop.
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         abel::uniform_int_distribution<TypeParam> dist(10, 1);
         auto x = dist(gen);
 
@@ -123,7 +123,7 @@ namespace {
         using param_type =
         typename abel::uniform_int_distribution<TypeParam>::param_type;
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
         std::vector<double> values(kSize);
         for (const auto &param :
                 {param_type(0, Limits::max()), param_type(13, 127)}) {
@@ -167,7 +167,7 @@ namespace {
         const TypeParam min = std::is_unsigned<TypeParam>::value ? 37 : -37;
         const TypeParam max = min + kBuckets;
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
         abel::uniform_int_distribution<TypeParam> dist(min, max);
 
         std::vector<int32_t> counts(kBuckets + 1, 0);

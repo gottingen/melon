@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_EXPLICIT_SEED_SEQ_H_
-#define ABEL_RANDOM_INTERNAL_EXPLICIT_SEED_SEQ_H_
+#ifndef ABEL_STATS_RAND_SEED_EXPLICIT_SEED_SEQ_H_
+#define ABEL_STATS_RAND_SEED_EXPLICIT_SEED_SEQ_H_
 
 #include <algorithm>
 #include <cstddef>
@@ -19,40 +19,40 @@ namespace abel {
 // This class conforms to the C++ Standard "Seed Sequence" concept
 // [rand.req.seedseq].
 //
-// An "ExplicitSeedSeq" is meant to provide a conformant interface for
+// An "explicit_seed_seq" is meant to provide a conformant interface for
 // forwarding pre-computed seed material to the constructor of a class
-// conforming to the "Uniform Random Bit Generator" concept. This class makes no
+// conforming to the "uniform Random Bit Generator" concept. This class makes no
 // attempt to mutate the state provided by its constructor, and returns it
-// directly via ExplicitSeedSeq::generate().
+// directly via explicit_seed_seq::generate().
 //
 // If this class is asked to generate more seed material than was provided to
 // the constructor, then the remaining bytes will be filled with deterministic,
 // nonrandom data.
-        class ExplicitSeedSeq {
+        class explicit_seed_seq {
         public:
             using result_type = uint32_t;
 
-            ExplicitSeedSeq() : state_() {}
+            explicit_seed_seq() : state_() {}
 
             // Copy and move both allowed.
-            ExplicitSeedSeq(const ExplicitSeedSeq &other) = default;
+            explicit_seed_seq(const explicit_seed_seq &other) = default;
 
-            ExplicitSeedSeq &operator=(const ExplicitSeedSeq &other) = default;
+            explicit_seed_seq &operator=(const explicit_seed_seq &other) = default;
 
-            ExplicitSeedSeq(ExplicitSeedSeq &&other) = default;
+            explicit_seed_seq(explicit_seed_seq &&other) = default;
 
-            ExplicitSeedSeq &operator=(ExplicitSeedSeq &&other) = default;
+            explicit_seed_seq &operator=(explicit_seed_seq &&other) = default;
 
             template<typename Iterator>
-            ExplicitSeedSeq(Iterator begin, Iterator end) {
+            explicit_seed_seq(Iterator begin, Iterator end) {
                 for (auto it = begin; it != end; it++) {
                     state_.push_back(*it & 0xffffffff);
                 }
             }
 
             template<typename T>
-            ExplicitSeedSeq(std::initializer_list<T> il)
-                    : ExplicitSeedSeq(il.begin(), il.end()) {}
+            explicit_seed_seq(std::initializer_list<T> il)
+                    : explicit_seed_seq(il.begin(), il.end()) {}
 
             size_t size() const { return state_.size(); }
 
@@ -79,4 +79,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_EXPLICIT_SEED_SEQ_H_
+#endif  // ABEL_STATS_RAND_SEED_EXPLICIT_SEED_SEQ_H_

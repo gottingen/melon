@@ -1,13 +1,11 @@
 //
 
 #include <abel/stats/random/engine/pool_urbg.h>
-
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <cstring>
 #include <iterator>
-
 #include <abel/base/profile.h>
 #include <abel/functional/call_once.h>
 #include <abel/system/endian.h>
@@ -28,75 +26,75 @@ namespace abel {
         namespace {
 
 // RandenPoolEntry is a thread-safe pseudorandom bit generator, implementing a
-// single generator within a RandenPool<T>. It is an internal implementation
+// single generator within a randen_pool<T>. It is an internal implementation
 // detail, and does not aim to conform to [rand.req.urng].
 //
 // NOTE: There are alignment issues when used on ARM, for instance.
 // See the allocation code in PoolAlignedAlloc().
             class RandenPoolEntry {
             public:
-                static constexpr size_t kState = RandenTraits::kStateBytes / sizeof(uint32_t);
+                static constexpr size_t kState = randen_traits::kStateBytes / sizeof(uint32_t);
                 static constexpr size_t kCapacity =
-                        RandenTraits::kCapacityBytes / sizeof(uint32_t);
+                        randen_traits::kCapacityBytes / sizeof(uint32_t);
 
                 void Init(abel::span<const uint32_t> data) {
-                    SpinLockHolder l(&mu_);  // Always uncontested.
-                    std::copy(data.begin(), data.end(), std::begin(state_));
-                    next_ = kState;
+                    SpinLockHolder l(&_mu);  // Always uncontested.
+                    std::copy(data.begin(), data.end(), std::begin(_state));
+                    _next = kState;
                 }
 
                 // Copy bytes into out.
-                void Fill(uint8_t *out, size_t bytes) ABEL_LOCKS_EXCLUDED(mu_);
+                void Fill(uint8_t *out, size_t bytes) ABEL_LOCKS_EXCLUDED(_mu);
 
                 // Returns random bits from the buffer in units of T.
                 template<typename T>
-                ABEL_FORCE_INLINE T Generate() ABEL_LOCKS_EXCLUDED(mu_);
+                ABEL_FORCE_INLINE T Generate() ABEL_LOCKS_EXCLUDED(_mu);
 
-                ABEL_FORCE_INLINE void MaybeRefill() ABEL_EXCLUSIVE_LOCKS_REQUIRED(mu_) {
-                    if (next_ >= kState) {
-                        next_ = kCapacity;
-                        impl_.Generate(state_);
+                ABEL_FORCE_INLINE void MaybeRefill() ABEL_EXCLUSIVE_LOCKS_REQUIRED(_mu) {
+                    if (_next >= kState) {
+                        _next = kCapacity;
+                        _impl.Generate(_state);
                     }
                 }
 
             private:
                 // Randen URBG state.
-                uint32_t state_[kState] ABEL_GUARDED_BY(mu_);  // First to satisfy alignment.
-                SpinLock mu_;
-                const Randen impl_;
-                size_t next_ ABEL_GUARDED_BY(mu_);
+                uint32_t _state[kState] ABEL_GUARDED_BY(_mu);  // First to satisfy alignment.
+                SpinLock _mu;
+                const randen _impl;
+                size_t _next ABEL_GUARDED_BY(_mu);
             };
 
             template<>
             ABEL_FORCE_INLINE uint8_t RandenPoolEntry::Generate<uint8_t>() {
-                SpinLockHolder l(&mu_);
+                SpinLockHolder l(&_mu);
                 MaybeRefill();
-                return static_cast<uint8_t>(state_[next_++]);
+                return static_cast<uint8_t>(_state[_next++]);
             }
 
             template<>
             ABEL_FORCE_INLINE uint16_t RandenPoolEntry::Generate<uint16_t>() {
-                SpinLockHolder l(&mu_);
+                SpinLockHolder l(&_mu);
                 MaybeRefill();
-                return static_cast<uint16_t>(state_[next_++]);
+                return static_cast<uint16_t>(_state[_next++]);
             }
 
             template<>
             ABEL_FORCE_INLINE uint32_t RandenPoolEntry::Generate<uint32_t>() {
-                SpinLockHolder l(&mu_);
+                SpinLockHolder l(&_mu);
                 MaybeRefill();
-                return state_[next_++];
+                return _state[_next++];
             }
 
             template<>
             ABEL_FORCE_INLINE uint64_t RandenPoolEntry::Generate<uint64_t>() {
-                SpinLockHolder l(&mu_);
-                if (next_ >= kState - 1) {
-                    next_ = kCapacity;
-                    impl_.Generate(state_);
+                SpinLockHolder l(&_mu);
+                if (_next >= kState - 1) {
+                    _next = kCapacity;
+                    _impl.Generate(_state);
                 }
-                auto p = state_ + next_;
-                next_ += 2;
+                auto p = _state + _next;
+                _next += 2;
 
                 uint64_t result;
                 std::memcpy(&result, p, sizeof(result));
@@ -104,15 +102,15 @@ namespace abel {
             }
 
             void RandenPoolEntry::Fill(uint8_t *out, size_t bytes) {
-                SpinLockHolder l(&mu_);
+                SpinLockHolder l(&_mu);
                 while (bytes > 0) {
                     MaybeRefill();
-                    size_t remaining = (kState - next_) * sizeof(state_[0]);
+                    size_t remaining = (kState - _next) * sizeof(_state[0]);
                     size_t to_copy = std::min(bytes, remaining);
-                    std::memcpy(out, &state_[next_], to_copy);
+                    std::memcpy(out, &_state[_next], to_copy);
                     out += to_copy;
                     bytes -= to_copy;
-                    next_ += (to_copy + sizeof(state_[0]) - 1) / sizeof(state_[0]);
+                    _next += (to_copy + sizeof(_state[0]) - 1) / sizeof(_state[0]);
                 }
             }
 
@@ -195,12 +193,12 @@ namespace abel {
 // pool instances.
             void InitPoolURBG() {
                 static constexpr size_t kSeedSize =
-                        RandenTraits::kStateBytes / sizeof(uint32_t);
+                        randen_traits::kStateBytes / sizeof(uint32_t);
                 // Read the seed data from OS entropy once.
                 uint32_t seed_material[kPoolSize * kSeedSize];
-                if (!random_internal::ReadSeedMaterialFromOSEntropy(
+                if (!random_internal::read_seed_material_from_os_entropy(
                         abel::make_span(seed_material))) {
-                    random_internal::ThrowSeedGenException();
+                    random_internal::throw_seed_gen_exception();
                 }
                 for (int i = 0; i < kPoolSize; i++) {
                     shared_pools[i] = PoolAlignedAlloc();
@@ -218,29 +216,29 @@ namespace abel {
         }  // namespace
 
         template<typename T>
-        typename RandenPool<T>::result_type RandenPool<T>::Generate() {
+        typename randen_pool<T>::result_type randen_pool<T>::Generate() {
             auto *pool = GetPoolForCurrentThread();
             return pool->Generate<T>();
         }
 
         template<typename T>
-        void RandenPool<T>::Fill(abel::span<result_type> data) {
+        void randen_pool<T>::Fill(abel::span<result_type> data) {
             auto *pool = GetPoolForCurrentThread();
             pool->Fill(reinterpret_cast<uint8_t *>(data.data()),
                        data.size() * sizeof(result_type));
         }
 
         template
-        class RandenPool<uint8_t>;
+        class randen_pool<uint8_t>;
 
         template
-        class RandenPool<uint16_t>;
+        class randen_pool<uint16_t>;
 
         template
-        class RandenPool<uint32_t>;
+        class randen_pool<uint32_t>;
 
         template
-        class RandenPool<uint64_t>;
+        class randen_pool<uint64_t>;
 
     }  // namespace random_internal
 

@@ -144,7 +144,7 @@ namespace abel {
 
         }  // namespace
 
-        bool ReadSeedMaterialFromOSEntropy(abel::span<uint32_t> values) {
+        bool read_seed_material_from_os_entropy(abel::span<uint32_t> values) {
             assert(values.data() != nullptr);
             if (values.data() == nullptr) {
                 return false;
@@ -155,7 +155,7 @@ namespace abel {
             return ReadSeedMaterialFromOSEntropyImpl(values);
         }
 
-        void MixIntoSeedMaterial(abel::span<const uint32_t> sequence,
+        void mix_into_seed_material(abel::span<const uint32_t> sequence,
                                  abel::span<uint32_t> seed_material) {
             // Algorithm is based on code available at
             // https://gist.github.com/imneme/540829265469e673d045
@@ -187,13 +187,13 @@ namespace abel {
             }
         }
 
-        abel::optional<uint32_t> GetSaltMaterial() {
+        abel::optional<uint32_t> get_salt_material() {
             // Salt must be common for all generators within the same process so read it
             // only once and store in static variable.
             static const auto salt_material = []() -> abel::optional<uint32_t> {
                 uint32_t salt_value = 0;
 
-                if (random_internal::ReadSeedMaterialFromOSEntropy(
+                if (random_internal::read_seed_material_from_os_entropy(
                         make_span(&salt_value, 1))) {
                     return salt_value;
                 }

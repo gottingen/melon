@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_RANDEN_HWAES_H_
-#define ABEL_RANDOM_INTERNAL_RANDEN_HWAES_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_RANDEN_HWAES_H_
+#define ABEL_STATS_RANDOM_ENGINE_RANDEN_HWAES_H_
 
 #include <abel/base/profile.h>
 
@@ -18,23 +18,23 @@ namespace abel {
 // 'Strong' (well-distributed, unpredictable, backtracking-resistant) random
 // generator, faster in some benchmarks than std::mt19937_64 and pcg64_c32.
 //
-// RandenHwAes implements the basic state manipulation methods.
-        class RandenHwAes {
+// randen_hw_aes implements the basic state manipulation methods.
+        class randen_hw_aes {
         public:
-            static void Generate(const void *keys, void *state_void);
+            static void generate(const void *keys, void *state_void);
 
-            static void Absorb(const void *seed_void, void *state_void);
+            static void absorb(const void *seed_void, void *state_void);
 
-            static const void *GetKeys();
+            static const void *get_keys();
         };
 
 // HasRandenHwAesImplementation returns true when there is an accelerated
 // implementation, and false otherwise.  If there is no implementation,
 // then attempting to use it will abort the program.
-        bool HasRandenHwAesImplementation();
+        bool has_randen_hw_aes_implementation();
 
     }  // namespace random_internal
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_RANDEN_HWAES_H_
+#endif  // ABEL_STATS_RANDOM_ENGINE_RANDEN_HWAES_H_

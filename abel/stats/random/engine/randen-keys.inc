@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_RANDEN_KEYS_INC_
-#define ABEL_RANDOM_INTERNAL_RANDEN_KEYS_INC_
+#ifndef ABEL_STATS_RANDOM_ENGINE_RANDEN_KEYS_INC_
+#define ABEL_STATS_RANDOM_ENGINE_RANDEN_KEYS_INC_
 
 // Textual header to include the randen_keys where necessary.
 // REQUIRES: struct u64x2{}
@@ -192,4 +192,4 @@ alignas(16) constexpr u64x2 round_keys[kRoundKeys] = {
         u64x2(0xBCF46B2ED4A10068ull, 0xD40824713320F46Aull),
         u64x2(0x43B7D4B7500061AFull, 0x1E39F62E97244546ull)};
 
-#endif  // ABEL_RANDOM_INTERNAL_RANDEN_KEYS_INC_
+#endif  // ABEL_STATS_RANDOM_ENGINE_RANDEN_KEYS_INC_

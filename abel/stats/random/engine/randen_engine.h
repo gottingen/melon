@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_RANDEN_ENGINE_H_
-#define ABEL_RANDOM_INTERNAL_RANDEN_ENGINE_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_RANDEN_ENGINE_H_
+#define ABEL_STATS_RANDOM_ENGINE_RANDEN_ENGINE_H_
 
 #include <algorithm>
 #include <cinttypes>
@@ -59,12 +59,12 @@ namespace abel {
             // Returns random bits from the buffer in units of result_type.
             result_type operator()() {
                 // Refill the buffer if needed (unlikely).
-                if (next_ >= kStateSizeT) {
-                    next_ = kCapacityT;
-                    impl_.Generate(state_);
+                if (_next >= kStateSizeT) {
+                    _next = kCapacityT;
+                    _impl.Generate(_state);
                 }
 
-                return state_[next_++];
+                return _state[_next++];
             }
 
             template<class SeedSequence>
@@ -77,11 +77,11 @@ namespace abel {
             }
 
             void seed(result_type seed_value = 0) {
-                next_ = kStateSizeT;
+                _next = kStateSizeT;
                 // Zeroes the inner state and fills the outer state with seed_value to
                 // mimics behaviour of reseed
-                std::fill(std::begin(state_), std::begin(state_) + kCapacityT, 0);
-                std::fill(std::begin(state_) + kCapacityT, std::end(state_), seed_value);
+                std::fill(std::begin(_state), std::begin(_state) + kCapacityT, 0);
+                std::fill(std::begin(_state) + kCapacityT, std::end(_state), seed_value);
             }
 
             // Inserts entropy into (part of) the state. Calling this periodically with
@@ -94,7 +94,7 @@ namespace abel {
                               "SeedSequence::result_type must be 32-bit");
 
                 constexpr size_t kBufferSize =
-                        Randen::kSeedBytes / sizeof(sequence_result_type);
+                        randen::kSeedBytes / sizeof(sequence_result_type);
                 alignas(16) sequence_result_type buffer[kBufferSize];
 
                 // Randen::Absorb XORs the seed into state, which is then mixed by a call
@@ -128,30 +128,30 @@ namespace abel {
                 } else {
                     seq.generate(std::begin(buffer), std::end(buffer));
                 }
-                impl_.Absorb(buffer, state_);
+                _impl.Absorb(buffer, _state);
 
                 // Generate will be called when operator() is called
-                next_ = kStateSizeT;
+                _next = kStateSizeT;
             }
 
             void discard(uint64_t count) {
-                uint64_t step = std::min<uint64_t>(kStateSizeT - next_, count);
+                uint64_t step = std::min<uint64_t>(kStateSizeT - _next, count);
                 count -= step;
 
                 constexpr uint64_t kRateT = kStateSizeT - kCapacityT;
                 while (count > 0) {
-                    next_ = kCapacityT;
-                    impl_.Generate(state_);
+                    _next = kCapacityT;
+                    _impl.Generate(_state);
                     step = std::min<uint64_t>(kRateT, count);
                     count -= step;
                 }
-                next_ += step;
+                _next += step;
             }
 
             bool operator==(const randen_engine &other) const {
-                return next_ == other.next_ &&
-                       std::equal(std::begin(state_), std::end(state_),
-                                  std::begin(other.state_));
+                return _next == other._next &&
+                       std::equal(std::begin(_state), std::end(_state),
+                                  std::begin(other._state));
             }
 
             bool operator!=(const randen_engine &other) const {
@@ -165,13 +165,13 @@ namespace abel {
                 using numeric_type =
                 typename random_internal::stream_format_type<result_type>::type;
                 auto saver = random_internal::make_ostream_state_saver(os);
-                for (const auto &elem : engine.state_) {
+                for (const auto &elem : engine._state) {
                     // In the case that `elem` is `uint8_t`, it must be cast to something
                     // larger so that it prints as an integer rather than a character. For
                     // simplicity, apply the cast all circumstances.
                     os << static_cast<numeric_type>(elem) << os.fill();
                 }
-                os << engine.next_;
+                os << engine._next;
                 return os;
             }
 
@@ -194,25 +194,25 @@ namespace abel {
                 if (is.fail()) {
                     return is;
                 }
-                std::memcpy(engine.state_, state, sizeof(engine.state_));
-                engine.next_ = next;
+                std::memcpy(engine._state, state, sizeof(engine._state));
+                engine._next = next;
                 return is;
             }
 
         private:
             static constexpr size_t kStateSizeT =
-                    Randen::kStateBytes / sizeof(result_type);
+                    randen::kStateBytes / sizeof(result_type);
             static constexpr size_t kCapacityT =
-                    Randen::kCapacityBytes / sizeof(result_type);
+                    randen::kCapacityBytes / sizeof(result_type);
 
             // First kCapacityT are `inner', the others are accessible random bits.
-            alignas(16) result_type state_[kStateSizeT];
-            size_t next_;  // index within state_
-            Randen impl_;
+            alignas(16) result_type _state[kStateSizeT];
+            size_t _next;  // index within _state
+            randen _impl;
         };
 
     }  // namespace random_internal
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_RANDEN_ENGINE_H_
+#endif  // ABEL_STATS_RANDOM_ENGINE_RANDEN_ENGINE_H_

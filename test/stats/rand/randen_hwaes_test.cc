@@ -11,15 +11,15 @@
 
 namespace {
 
-    using abel::random_internal::RandenHwAes;
-    using abel::random_internal::RandenTraits;
+    using abel::random_internal::randen_hw_aes;
+    using abel::random_internal::randen_traits;
 
     struct randen {
         static constexpr size_t kStateSizeT =
-                RandenTraits::kStateBytes / sizeof(uint64_t);
+                randen_traits::kStateBytes / sizeof(uint64_t);
         uint64_t state[kStateSizeT];
         static constexpr size_t kSeedSizeT =
-                RandenTraits::kSeedBytes / sizeof(uint32_t);
+                randen_traits::kSeedBytes / sizeof(uint32_t);
         uint32_t seed[kSeedSizeT];
     };
 
@@ -42,7 +42,7 @@ namespace {
 
         alignas(16) randen d;
         memset(d.state, 0, sizeof(d.state));
-        RandenHwAes::Generate(RandenHwAes::GetKeys(), d.state);
+        randen_hw_aes::generate(randen_hw_aes::get_keys(), d.state);
 
         uint64_t *id = d.state;
         for (const auto &elem : kGolden) {
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     ABEL_RAW_LOG(INFO, "ARCH Unknown");
 #endif
 
-    int x = abel::random_internal::HasRandenHwAesImplementation();
+    int x = abel::random_internal::has_randen_hw_aes_implementation();
     ABEL_RAW_LOG(INFO, "HasRandenHwAesImplementation = %d", x);
 
     int y = abel::is_supports_aes();

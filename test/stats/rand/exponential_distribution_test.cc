@@ -69,7 +69,7 @@ namespace {
         };
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
 
         for (const TypeParam lambda : kParams) {
             // Some values may be invalid; skip those.
@@ -199,7 +199,7 @@ namespace {
         template<typename D>
         double SingleChiSquaredTest();
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     template<typename D>

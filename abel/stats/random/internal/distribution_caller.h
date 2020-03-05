@@ -12,11 +12,11 @@ namespace abel {
 
     namespace random_internal {
 
-// DistributionCaller provides an opportunity to overload the general
+// distribution_caller provides an opportunity to overload the general
 // mechanism for calling a distribution, allowing for mock-RNG classes
 // to intercept such calls.
         template<typename URBG>
-        struct DistributionCaller {
+        struct distribution_caller {
             // Call the provided distribution type. The parameters are expected
             // to be explicitly specified.
             // DistrT is the distribution type.
@@ -34,7 +34,7 @@ namespace abel {
             // }
             //
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(URBG *urbg, Args &&... args) {
+            static typename DistrT::result_type call(URBG *urbg, Args &&... args) {
                 DistrT dist(std::forward<Args>(args)...);
                 return dist(*urbg);
             }

@@ -9,7 +9,7 @@ namespace abel {
 
     SeedSeq MakeSeedSeq() {
         SeedSeq::result_type seed_material[8];
-        random_internal::RandenPool<uint32_t>::Fill(abel::make_span(seed_material));
+        random_internal::randen_pool<uint32_t>::Fill(abel::make_span(seed_material));
         return SeedSeq(std::begin(seed_material), std::end(seed_material));
     }
 

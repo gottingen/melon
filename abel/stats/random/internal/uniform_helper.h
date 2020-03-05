@@ -55,7 +55,7 @@ namespace abel {
 //    uniform_lower_bound(tag, a, b)
 // and
 //    uniform_upper_bound(tag, a, b)
-// are used as implementation-details for abel::Uniform().
+// are used as implementation-details for abel::uniform().
 //
 // Conceptually,
 //    [a, b] == [uniform_lower_bound(IntervalClosedClosed, a, b),
@@ -143,26 +143,26 @@ namespace abel {
         }
 
         template<typename NumType>
-        using UniformDistribution =
+        using uniform_distribution =
         typename std::conditional<std::is_integral<NumType>::value,
                 abel::uniform_int_distribution<NumType>,
                 abel::uniform_real_distribution<NumType>>::type;
 
         template<typename NumType>
-        struct UniformDistributionWrapper : public UniformDistribution<NumType> {
+        struct uniform_distribution_wrapper : public uniform_distribution<NumType> {
             template<typename TagType>
-            explicit UniformDistributionWrapper(TagType, NumType lo, NumType hi)
-                    : UniformDistribution<NumType>(
+            explicit uniform_distribution_wrapper(TagType, NumType lo, NumType hi)
+                    : uniform_distribution<NumType>(
                     uniform_lower_bound<NumType>(TagType{}, lo, hi),
                     uniform_upper_bound<NumType>(TagType{}, lo, hi)) {}
 
-            explicit UniformDistributionWrapper(NumType lo, NumType hi)
-                    : UniformDistribution<NumType>(
+            explicit uniform_distribution_wrapper(NumType lo, NumType hi)
+                    : uniform_distribution<NumType>(
                     uniform_lower_bound<NumType>(IntervalClosedOpenTag(), lo, hi),
                     uniform_upper_bound<NumType>(IntervalClosedOpenTag(), lo, hi)) {}
 
-            explicit UniformDistributionWrapper()
-                    : UniformDistribution<NumType>(std::numeric_limits<NumType>::lowest(),
+            explicit uniform_distribution_wrapper()
+                    : uniform_distribution<NumType>(std::numeric_limits<NumType>::lowest(),
                                                    (std::numeric_limits<NumType>::max)()) {}
         };
 

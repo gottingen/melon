@@ -39,7 +39,7 @@ namespace abel {
 //   abel::SeedSeq my_seed_seq({a, b, c});
 //   std::mt19937 my_bitgen(my_seed_seq);
 //
-    using SeedSeq = random_internal::SaltedSeedSeq<std::seed_seq>;
+    using SeedSeq = random_internal::salted_seed_seq<std::seed_seq>;
 
 // -----------------------------------------------------------------------------
 // abel::CreateSeedSeqFrom(bitgen*)
@@ -57,9 +57,9 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen my_bitgen;
+//   abel::bit_gen my_bitgen;
 //   auto seed_seq = abel::CreateSeedSeqFrom(&my_bitgen);
-//   abel::BitGen new_engine(seed_seq); // derived from my_bitgen, but not
+//   abel::bit_gen new_engine(seed_seq); // derived from my_bitgen, but not
 //                                      // correlated.
 //
     template<typename URBG>
@@ -67,9 +67,9 @@ namespace abel {
         SeedSeq::result_type
                 seed_material[random_internal::kEntropyBlocksNeeded];
 
-        if (!random_internal::ReadSeedMaterialFromURBG(
+        if (!random_internal::read_seed_material_from_urbg(
                 urbg, abel::make_span(seed_material))) {
-            random_internal::ThrowSeedGenException();
+            random_internal::throw_seed_gen_exception();
         }
         return SeedSeq(std::begin(seed_material), std::end(seed_material));
     }

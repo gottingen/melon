@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_RANDOM_INTERNAL_PCG_ENGINE_H_
-#define ABEL_RANDOM_INTERNAL_PCG_ENGINE_H_
+#ifndef ABEL_STATS_RANDOM_ENGINE_PCG_ENGINE_H_
+#define ABEL_STATS_RANDOM_ENGINE_PCG_ENGINE_H_
 
 #include <type_traits>
 #include <abel/base/profile.h>
@@ -300,4 +300,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_RANDOM_INTERNAL_PCG_ENGINE_H_
+#endif  //ABEL_STATS_RANDOM_ENGINE_PCG_ENGINE_H_

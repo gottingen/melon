@@ -14,65 +14,65 @@ namespace {
     template<typename URBG>
     void TestUniform(URBG *gen) {
         // [a, b) default-semantics, inferred types.
-        abel::Uniform(*gen, 0, 100);     // int
-        abel::Uniform(*gen, 0, 1.0);     // Promoted to double
-        abel::Uniform(*gen, 0.0f, 1.0);  // Promoted to double
-        abel::Uniform(*gen, 0.0, 1.0);   // double
-        abel::Uniform(*gen, -1, 1L);     // Promoted to long
+        abel::uniform(*gen, 0, 100);     // int
+        abel::uniform(*gen, 0, 1.0);     // Promoted to double
+        abel::uniform(*gen, 0.0f, 1.0);  // Promoted to double
+        abel::uniform(*gen, 0.0, 1.0);   // double
+        abel::uniform(*gen, -1, 1L);     // Promoted to long
 
         // Roll a die.
-        abel::Uniform(abel::IntervalClosedClosed, *gen, 1, 6);
+        abel::uniform(abel::IntervalClosedClosed, *gen, 1, 6);
 
         // Get a fraction.
-        abel::Uniform(abel::IntervalOpenOpen, *gen, 0.0, 1.0);
+        abel::uniform(abel::IntervalOpenOpen, *gen, 0.0, 1.0);
 
         // Assign a value to a random element.
         std::vector<int> elems = {10, 20, 30, 40, 50};
-        elems[abel::Uniform(*gen, 0u, elems.size())] = 5;
-        elems[abel::Uniform<size_t>(*gen, 0, elems.size())] = 3;
+        elems[abel::uniform(*gen, 0u, elems.size())] = 5;
+        elems[abel::uniform<size_t>(*gen, 0, elems.size())] = 3;
 
         // Choose some epsilon around zero.
-        abel::Uniform(abel::IntervalOpenOpen, *gen, -1.0, 1.0);
+        abel::uniform(abel::IntervalOpenOpen, *gen, -1.0, 1.0);
 
         // (a, b) semantics, inferred types.
-        abel::Uniform(abel::IntervalOpenOpen, *gen, 0, 1.0);  // Promoted to double
+        abel::uniform(abel::IntervalOpenOpen, *gen, 0, 1.0);  // Promoted to double
 
         // Explict overriding of types.
-        abel::Uniform<int>(*gen, 0, 100);
-        abel::Uniform<int8_t>(*gen, 0, 100);
-        abel::Uniform<int16_t>(*gen, 0, 100);
-        abel::Uniform<uint16_t>(*gen, 0, 100);
-        abel::Uniform<int32_t>(*gen, 0, 1 << 10);
-        abel::Uniform<uint32_t>(*gen, 0, 1 << 10);
-        abel::Uniform<int64_t>(*gen, 0, 1 << 10);
-        abel::Uniform<uint64_t>(*gen, 0, 1 << 10);
+        abel::uniform<int>(*gen, 0, 100);
+        abel::uniform<int8_t>(*gen, 0, 100);
+        abel::uniform<int16_t>(*gen, 0, 100);
+        abel::uniform<uint16_t>(*gen, 0, 100);
+        abel::uniform<int32_t>(*gen, 0, 1 << 10);
+        abel::uniform<uint32_t>(*gen, 0, 1 << 10);
+        abel::uniform<int64_t>(*gen, 0, 1 << 10);
+        abel::uniform<uint64_t>(*gen, 0, 1 << 10);
 
-        abel::Uniform<float>(*gen, 0.0, 1.0);
-        abel::Uniform<float>(*gen, 0, 1);
-        abel::Uniform<float>(*gen, -1, 1);
-        abel::Uniform<double>(*gen, 0.0, 1.0);
+        abel::uniform<float>(*gen, 0.0, 1.0);
+        abel::uniform<float>(*gen, 0, 1);
+        abel::uniform<float>(*gen, -1, 1);
+        abel::uniform<double>(*gen, 0.0, 1.0);
 
-        abel::Uniform<float>(*gen, -1.0, 0);
-        abel::Uniform<double>(*gen, -1.0, 0);
+        abel::uniform<float>(*gen, -1.0, 0);
+        abel::uniform<double>(*gen, -1.0, 0);
 
         // Tagged
-        abel::Uniform<double>(abel::IntervalClosedClosed, *gen, 0, 1);
-        abel::Uniform<double>(abel::IntervalClosedOpen, *gen, 0, 1);
-        abel::Uniform<double>(abel::IntervalOpenOpen, *gen, 0, 1);
-        abel::Uniform<double>(abel::IntervalOpenClosed, *gen, 0, 1);
-        abel::Uniform<double>(abel::IntervalClosedClosed, *gen, 0, 1);
-        abel::Uniform<double>(abel::IntervalOpenOpen, *gen, 0, 1);
+        abel::uniform<double>(abel::IntervalClosedClosed, *gen, 0, 1);
+        abel::uniform<double>(abel::IntervalClosedOpen, *gen, 0, 1);
+        abel::uniform<double>(abel::IntervalOpenOpen, *gen, 0, 1);
+        abel::uniform<double>(abel::IntervalOpenClosed, *gen, 0, 1);
+        abel::uniform<double>(abel::IntervalClosedClosed, *gen, 0, 1);
+        abel::uniform<double>(abel::IntervalOpenOpen, *gen, 0, 1);
 
-        abel::Uniform<int>(abel::IntervalClosedClosed, *gen, 0, 100);
-        abel::Uniform<int>(abel::IntervalClosedOpen, *gen, 0, 100);
-        abel::Uniform<int>(abel::IntervalOpenOpen, *gen, 0, 100);
-        abel::Uniform<int>(abel::IntervalOpenClosed, *gen, 0, 100);
-        abel::Uniform<int>(abel::IntervalClosedClosed, *gen, 0, 100);
-        abel::Uniform<int>(abel::IntervalOpenOpen, *gen, 0, 100);
+        abel::uniform<int>(abel::IntervalClosedClosed, *gen, 0, 100);
+        abel::uniform<int>(abel::IntervalClosedOpen, *gen, 0, 100);
+        abel::uniform<int>(abel::IntervalOpenOpen, *gen, 0, 100);
+        abel::uniform<int>(abel::IntervalOpenClosed, *gen, 0, 100);
+        abel::uniform<int>(abel::IntervalClosedClosed, *gen, 0, 100);
+        abel::uniform<int>(abel::IntervalOpenOpen, *gen, 0, 100);
 
         // With *generator as an R-value reference.
-        abel::Uniform<int>(URBG(), 0, 100);
-        abel::Uniform<double>(URBG(), 0.0, 1.0);
+        abel::uniform<int>(URBG(), 0, 100);
+        abel::uniform<double>(URBG(), 0.0, 1.0);
     }
 
     template<typename URBG>
@@ -154,14 +154,14 @@ namespace {
         CompatibilityTest<std::mt19937_64>();
     }
 
-    TEST(BitGen, Compatibility) {
-        // Validate with abel::BitGen
-        CompatibilityTest<abel::BitGen>();
+    TEST(bit_gen, Compatibility) {
+        // Validate with abel::bit_gen
+        CompatibilityTest<abel::bit_gen>();
     }
 
-    TEST(InsecureBitGen, Compatibility) {
-        // Validate with abel::InsecureBitGen
-        CompatibilityTest<abel::InsecureBitGen>();
+    TEST(insecure_bit_gen, Compatibility) {
+        // Validate with abel::insecure_bit_gen
+        CompatibilityTest<abel::insecure_bit_gen>();
     }
 
 }  // namespace

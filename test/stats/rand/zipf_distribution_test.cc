@@ -39,7 +39,7 @@ namespace {
         using param_type = typename abel::zipf_distribution<TypeParam>::param_type;
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const auto &param : {
                 param_type(),
                 param_type(32),
@@ -203,7 +203,7 @@ namespace {
     public:
         ZipfTest() : ZipfModel(GetParam().k(), GetParam().q(), GetParam().v()) {}
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     TEST_P(ZipfTest, ChiSquaredTest) {

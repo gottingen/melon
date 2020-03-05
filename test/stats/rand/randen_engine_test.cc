@@ -18,7 +18,7 @@
 
 using randen_u64 = abel::random_internal::randen_engine<uint64_t>;
 using randen_u32 = abel::random_internal::randen_engine<uint32_t>;
-using abel::random_internal::ExplicitSeedSeq;
+using abel::random_internal::explicit_seed_seq;
 
 namespace {
 
@@ -131,7 +131,7 @@ namespace {
         using randen = typename abel::random_internal::randen_engine<TypeParam>;
 
         for (size_t discard = 0; discard < kTwoBufferValues; ++discard) {
-            ExplicitSeedSeq seed_sequence{12, 34, 56};
+            explicit_seed_seq seed_sequence{12, 34, 56};
             randen engine(seed_sequence);
             engine.discard(discard);
 
@@ -373,7 +373,7 @@ namespace {
                 0x76fe31389bacd9d5,
         };
 
-        ExplicitSeedSeq seed_sequence{12, 34, 56};
+        explicit_seed_seq seed_sequence{12, 34, 56};
         randen_u64 engine(seed_sequence);
 #if UPDATE_GOLDEN
         (void)kGolden;  // Silence warning.
@@ -509,7 +509,7 @@ namespace {
                 0x9bacd9d5, 0x76fe3138,
         };
 
-        ExplicitSeedSeq seed_sequence{12, 34, 56};
+        explicit_seed_seq seed_sequence{12, 34, 56};
         randen_u32 engine(seed_sequence);
 #if UPDATE_GOLDEN
         (void)kGolden;  // Silence warning.

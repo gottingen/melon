@@ -58,7 +58,7 @@ namespace {
         constexpr const TypeParam a{1152921504606846976};
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const auto &param : {
                 param_type(),
                 param_type(TypeParam(2.0), TypeParam(2.0)),  // Same
@@ -173,7 +173,7 @@ namespace {
 #if defined(NDEBUG)
         // opt-mode, for invalid parameters, will generate a garbage value,
         // but should not enter an infinite loop.
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         {
           abel::uniform_real_distribution<TypeParam> dist(10.0, 1.0);
           auto x = dist(gen);
@@ -198,7 +198,7 @@ namespace {
         constexpr int kSize = 1000000;
         std::vector<double> values(kSize);
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
         abel::uniform_real_distribution<TypeParam> dist;
         for (int i = 0; i < kSize; i++) {
             values[i] = dist(rng);
@@ -228,7 +228,7 @@ namespace {
         const int kThreshold =
                 abel::random_internal::ChiSquareValue(kBuckets - 1, 0.999999);
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
         for (const auto &param : {param_type(0, 1), param_type(5, 12),
                                   param_type(-5, 13), param_type(-5, -2)}) {
             const double min_val = param.a();

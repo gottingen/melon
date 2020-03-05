@@ -9,7 +9,7 @@
 #include <limits>
 #include <ostream>
 #include <type_traits>
-
+#include <abel/math/all.h>
 #include <abel/meta/type_traits.h>
 #include <abel/stats/random/internal/fast_uniform_bits.h>
 #include <abel/stats/random/internal/generate_real.h>
@@ -119,32 +119,22 @@ namespace abel {
         private:
             friend class beta_distribution;
 
-#ifdef _MSC_VER
-            // MSVC does not have constexpr implementations for std::log and std::exp
-            // so they are computed at runtime.
-#define ABEL_RANDOM_INTERNAL_LOG_EXP_CONSTEXPR
-#else
-#define ABEL_RANDOM_INTERNAL_LOG_EXP_CONSTEXPR constexpr
-#endif
-
             // The threshold for whether std::exp(1/a) is finite.
             // Note that this value is quite large, and a smaller a_ is NOT abnormal.
-            static ABEL_RANDOM_INTERNAL_LOG_EXP_CONSTEXPR result_type
+            static ABEL_CONSTEXPR result_type
             ThresholdForSmallA() {
                 return result_type(1) /
                        std::log((std::numeric_limits<result_type>::max)());
             }
 
             // The threshold for whether a * std::log(a) is finite.
-            static ABEL_RANDOM_INTERNAL_LOG_EXP_CONSTEXPR result_type
+            static ABEL_CONSTEXPR result_type
             ThresholdForLargeA() {
                 return std::exp(
                         std::log((std::numeric_limits<result_type>::max)()) -
                         std::log(std::log((std::numeric_limits<result_type>::max)())) -
                         ThresholdPadding());
             }
-
-#undef ABEL_RANDOM_INTERNAL_LOG_EXP_CONSTEXPR
 
             // Pad the threshold for large A for long double on PPC. This is done via a
             // template specialization below.
@@ -230,19 +220,19 @@ namespace abel {
 
     private:
         template<typename URBG>
-        result_type AlgorithmJoehnk(URBG &g,  // NOLINT(runtime/references)
+        result_type algorithm_joehnk(URBG &g,  // NOLINT(runtime/references)
                                     const param_type &p);
 
         template<typename URBG>
-        result_type AlgorithmCheng(URBG &g,  // NOLINT(runtime/references)
+        result_type algorithm_cheng(URBG &g,  // NOLINT(runtime/references)
                                    const param_type &p);
 
         template<typename URBG>
-        result_type DegenerateCase(URBG &g,  // NOLINT(runtime/references)
+        result_type degenerate_case(URBG &g,  // NOLINT(runtime/references)
                                    const param_type &p) {
             if (p.method_ == param_type::DEGENERATE_SMALL && p.alpha_ == p.beta_) {
                 // Returns 0 or 1 with equal probability.
-                random_internal::FastUniformBits<uint8_t> fast_u8;
+                random_internal::fast_uniform_bits<uint8_t> fast_u8;
                 return static_cast<result_type>((fast_u8(g) & 0x10) !=
                                                 0);  // pick any single bit.
             }
@@ -250,7 +240,7 @@ namespace abel {
         }
 
         param_type param_;
-        random_internal::FastUniformBits<uint64_t> fast_u64_;
+        random_internal::fast_uniform_bits<uint64_t> fast_u64_;
     };
 
 #if defined(__powerpc64__) || defined(__PPC64__) || defined(__powerpc__) || \
@@ -266,11 +256,11 @@ namespace abel {
     template<typename RealType>
     template<typename URBG>
     typename beta_distribution<RealType>::result_type
-    beta_distribution<RealType>::AlgorithmJoehnk(
+    beta_distribution<RealType>::algorithm_joehnk(
             URBG &g,  // NOLINT(runtime/references)
             const param_type &p) {
-        using random_internal::GeneratePositiveTag;
-        using random_internal::GenerateRealFromBits;
+        using random_internal::generate_positive_tag;
+        using random_internal::generate_real_from_bits;
         using real_type =
         abel::conditional_t<std::is_same<RealType, float>::value, float, double>;
 
@@ -280,16 +270,16 @@ namespace abel {
 
         result_type u, v, x, y, z;
         for (;;) {
-            u = GenerateRealFromBits<real_type, GeneratePositiveTag, false>(
+            u = generate_real_from_bits<real_type, generate_positive_tag, false>(
                     fast_u64_(g));
-            v = GenerateRealFromBits<real_type, GeneratePositiveTag, false>(
+            v = generate_real_from_bits<real_type, generate_positive_tag, false>(
                     fast_u64_(g));
 
-            // Direct method. std::pow is slow for float, so rely on the optimizer to
+            // Direct method. abel::pow is slow for float, so rely on the optimizer to
             // remove the std::pow() path for that case.
             if (!std::is_same<float, result_type>::value) {
-                x = std::pow(u, p.a_);
-                y = std::pow(v, p.b_);
+                x = abel::pow(u, p.a_);
+                y = abel::pow(v, p.b_);
                 z = x + y;
                 if (z > 1) {
                     // Reject if and only if `x + y > 1.0`
@@ -324,11 +314,11 @@ namespace abel {
     template<typename RealType>
     template<typename URBG>
     typename beta_distribution<RealType>::result_type
-    beta_distribution<RealType>::AlgorithmCheng(
+    beta_distribution<RealType>::algorithm_cheng(
             URBG &g,  // NOLINT(runtime/references)
             const param_type &p) {
-        using random_internal::GeneratePositiveTag;
-        using random_internal::GenerateRealFromBits;
+        using random_internal::generate_positive_tag;
+        using random_internal::generate_real_from_bits;
         using real_type =
         abel::conditional_t<std::is_same<RealType, float>::value, float, double>;
 
@@ -343,9 +333,9 @@ namespace abel {
         const bool use_algorithm_ba = (p.method_ == param_type::CHENG_BA);
         result_type u1, u2, v, w, z, r, s, t, bw_inv, lhs;
         for (;;) {
-            u1 = GenerateRealFromBits<real_type, GeneratePositiveTag, false>(
+            u1 = generate_real_from_bits<real_type, generate_positive_tag, false>(
                     fast_u64_(g));
-            u2 = GenerateRealFromBits<real_type, GeneratePositiveTag, false>(
+            u2 = generate_real_from_bits<real_type, generate_positive_tag, false>(
                     fast_u64_(g));
             v = p.y_ * std::log(u1 / (1 - u1));
             w = p.a_ * std::exp(v);
@@ -375,13 +365,13 @@ namespace abel {
                                             const param_type &p) {
         switch (p.method_) {
             case param_type::JOEHNK:
-                return AlgorithmJoehnk(g, p);
+                return algorithm_joehnk(g, p);
             case param_type::CHENG_BA:
                 ABEL_FALLTHROUGH_INTENDED;
             case param_type::CHENG_BB:
-                return AlgorithmCheng(g, p);
+                return algorithm_cheng(g, p);
             default:
-                return DegenerateCase(g, p);
+                return degenerate_case(g, p);
         }
     }
 
