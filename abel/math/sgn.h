@@ -5,8 +5,6 @@
 #ifndef ABEL_MATH_SGN_H_
 #define ABEL_MATH_SGN_H_
 
-#include <abel/math/option.h>
-
 namespace abel {
 
 

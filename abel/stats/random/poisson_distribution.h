@@ -142,7 +142,7 @@ namespace abel {
             constexpr double k2E = 0.7357588823428846;
             constexpr double kSA = 0.4494580810294493;
 
-            lmu_ = abel::log(mean_);
+            lmu_ = std::log(mean_);
             double a = mean_ + 0.5;
             s_ = kSA + std::sqrt(k2E * a);
             const double mode = std::ceil(mean_) - 1;
@@ -211,7 +211,7 @@ namespace abel {
                                   : (x == 2.0) ? 0.693147180559945
                                                : abel::stirling_log_factorial(x);
             // clang-format on
-            const double lhs = 2.0 * abel::log(u) + p.log_k_ + s;
+            const double lhs = 2.0 * std::log(u) + p.log_k_ + s;
             if (lhs < rhs) {
                 return x > (max)() ? (max)()
                                    : static_cast<result_type>(x);  // f(x)/k >= u^2

@@ -66,8 +66,8 @@ namespace abel {
                     //
                     // Thus a result which should equal K may equal K +/- epsilon,
                     // which can eliminate some values depending on where the bounds fall.
-                    const double inv_log_base = 1.0 / abel::log(base_);
-                    const double log_range = abel::log(static_cast<double>(range()) + 0.5);
+                    const double inv_log_base = 1.0 / std::log(base_);
+                    const double log_range = std::log(static_cast<double>(range()) + 0.5);
                     log_range_ = static_cast<int>(std::ceil(inv_log_base * log_range));
                 }
             }

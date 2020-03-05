@@ -6,7 +6,6 @@
 #define ABEL_MATH_ABS_DIFF_H_
 
 #include <abel/base/profile.h>
-#include <abel/math/abs.h>
 #include <vector>
 #include <cstddef>
 

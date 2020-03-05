@@ -208,9 +208,9 @@ namespace abel {
             do {
                 // kRInv = 1/r, U(0, 1)
                 x = kRInv *
-                    abel::log(generate_real_from_bits<double, generate_positive_tag, false>(
+                    std::log(generate_real_from_bits<double, generate_positive_tag, false>(
                             fast_u64_(g)));
-                y = -abel::log(
+                y = -std::log(
                         generate_real_from_bits<double, generate_positive_tag, false>(fast_u64_(g)));
             } while ((y + y) < (x * x));
             return neg ? (x - kR) : (kR - x);

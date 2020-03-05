@@ -278,8 +278,8 @@ namespace abel {
             // Direct method. abel::pow is slow for float, so rely on the optimizer to
             // remove the std::pow() path for that case.
             if (!std::is_same<float, result_type>::value) {
-                x = abel::pow(u, p.a_);
-                y = abel::pow(v, p.b_);
+                x = std::pow(u, p.a_);
+                y = std::pow(v, p.b_);
                 z = x + y;
                 if (z > 1) {
                     // Reject if and only if `x + y > 1.0`
