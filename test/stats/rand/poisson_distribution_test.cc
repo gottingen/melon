@@ -36,7 +36,7 @@
 //
 // https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/bits/random.tcc
 // * GCC uses the Devroye rejection algorithm, based on
-// Devroye, L. Non-Uniform Random Variates Generation. Springer-Verlag,
+// Devroye, L. Non-uniform Random Variates Generation. Springer-Verlag,
 // New York, 1986, Ch. X, Sects. 3.3 & 3.4 (+ Errata!), ~p.511
 //   http://www.nrbook.com/devroye/
 //

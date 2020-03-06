@@ -35,7 +35,7 @@ namespace abel {
 
 // MockingBitGen
 //
-// `abel::MockingBitGen` is a mock Uniform Random Bit Generator (URBG) class
+// `abel::MockingBitGen` is a mock uniform Random Bit Generator (URBG) class
 // which can act in place of an `abel::bit_gen` URBG within tests using the
 // Googletest testing framework.
 //
@@ -51,20 +51,20 @@ namespace abel {
 //  // Mock a call to an `abel::Bernoulli` distribution using Googletest
 //   abel::MockingBitGen bitgen;
 //
-//   ON_CALL(abel::MockBernoulli(), Call(bitgen, 0.5))
+//   ON_CALL(abel::MockBernoulli(), call(bitgen, 0.5))
 //       .WillByDefault(testing::Return(true));
 //   EXPECT_TRUE(abel::Bernoulli(bitgen, 0.5));
 //
-//  // Mock a call to an `abel::Uniform` distribution within Googletest
+//  // Mock a call to an `abel::uniform` distribution within Googletest
 //  abel::MockingBitGen bitgen;
 //
-//   ON_CALL(abel::MockUniform<int>(), Call(bitgen, testing::_, testing::_))
+//   ON_CALL(abel::MockUniform<int>(), call(bitgen, testing::_, testing::_))
 //       .WillByDefault([] (int low, int high) {
 //           return (low + high) / 2;
 //       });
 //
-//   EXPECT_EQ(abel::Uniform<int>(gen, 0, 10), 5);
-//   EXPECT_EQ(abel::Uniform<int>(gen, 30, 40), 35);
+//   EXPECT_EQ(abel::uniform<int>(gen, 0, 10), 5);
+//   EXPECT_EQ(abel::uniform<int>(gen, 30, 40), 35);
 //
 // At this time, only mock distributions supplied within the abel random
 // library are officially supported.
@@ -90,7 +90,7 @@ namespace abel {
         // The returned MockFunction<...> type can be used to setup additional
         // distribution parameters of the expectation.
         template<typename DistrT, typename... Args, typename... Ms>
-        decltype(std::declval<MockFnType<DistrT, Args...>>().gmock_Call(
+        decltype(std::declval<MockFnType<DistrT, Args...>>().gmock_call(
                 std::declval<Ms>()...))
         Register(Ms &&... matchers) {
             auto &mock =
@@ -104,7 +104,7 @@ namespace abel {
             }
 
             return static_cast<MockFnType<DistrT, Args...> *>(mock.mock_fn)
-                    ->gmock_Call(std::forward<Ms>(matchers)...);
+                    ->gmock_call(std::forward<Ms>(matchers)...);
         }
 
         mutable std::vector<std::function<void()>> deleters_;
@@ -124,7 +124,7 @@ namespace abel {
             *static_cast<result_type *>(result) = abel::apply(
                     [mock_fn](Args... args) -> result_type {
                         return (*static_cast<MockFnType<DistrT, Args...> *>(mock_fn))
-                                .Call(std::move(args)...);
+                                .call(std::move(args)...);
                     },
                     *static_cast<std::tuple<Args...> *>(dist_args));
         }
@@ -158,9 +158,9 @@ namespace abel {
         template<>
         struct distribution_caller<abel::MockingBitGen> {
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(abel::MockingBitGen *gen,
+            static typename DistrT::result_type call(abel::MockingBitGen *gen,
                                                      Args &&... args) {
-                return gen->template Call<DistrT, FormatT>(std::forward<Args>(args)...);
+                return gen->template call<DistrT, FormatT>(std::forward<Args>(args)...);
             }
         };
 

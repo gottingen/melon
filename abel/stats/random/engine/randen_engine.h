@@ -94,11 +94,11 @@ namespace abel {
                               "SeedSequence::result_type must be 32-bit");
 
                 constexpr size_t kBufferSize =
-                        Randen::kSeedBytes / sizeof(sequence_result_type);
+                        randen::kSeedBytes / sizeof(sequence_result_type);
                 alignas(16) sequence_result_type buffer[kBufferSize];
 
-                // Randen::Absorb XORs the seed into state, which is then mixed by a call
-                // to Randen::Generate. Seeding with only the provided entropy is preferred
+                // randen::Absorb XORs the seed into state, which is then mixed by a call
+                // to randen::Generate. Seeding with only the provided entropy is preferred
                 // to using an arbitrary generate() call, so use [rand.req.seed_seq]
                 // size as a proxy for the number of entropy units that can be generated
                 // without relying on seed sequence mixing...
@@ -108,7 +108,7 @@ namespace abel {
                     const size_t requested_entropy = (entropy_size == 0) ? 8u : entropy_size;
                     std::fill(std::begin(buffer) + requested_entropy, std::end(buffer), 0);
                     seq.generate(std::begin(buffer), std::begin(buffer) + requested_entropy);
-                    // The Randen paper suggests preferentially initializing even-numbered
+                    // The randen paper suggests preferentially initializing even-numbered
                     // 128-bit vectors of the randen state (there are 16 such vectors).
                     // The seed data is merged into the state offset by 128-bits, which
                     // implies prefering seed bytes [16..31, ..., 208..223]. Since the
@@ -201,14 +201,14 @@ namespace abel {
 
         private:
             static constexpr size_t kStateSizeT =
-                    Randen::kStateBytes / sizeof(result_type);
+                    randen::kStateBytes / sizeof(result_type);
             static constexpr size_t kCapacityT =
-                    Randen::kCapacityBytes / sizeof(result_type);
+                    randen::kCapacityBytes / sizeof(result_type);
 
             // First kCapacityT are `inner', the others are accessible random bits.
             alignas(16) result_type state_[kStateSizeT];
             size_t next_;  // index within state_
-            Randen impl_;
+            randen impl_;
         };
 
     }  // namespace random_internal

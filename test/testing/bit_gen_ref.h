@@ -62,7 +62,7 @@ namespace abel {
 //
 // Example:
 //    void TakesBitGenRef(abel::BitGenRef gen) {
-//      int x = abel::Uniform<int>(gen, 0, 1000);
+//      int x = abel::uniform<int>(gen, 0, 1000);
 //    }
 //
     class BitGenRef {
@@ -126,14 +126,14 @@ namespace abel {
         template<>
         struct distribution_caller<abel::BitGenRef> {
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(abel::BitGenRef *gen_ref,
+            static typename DistrT::result_type call(abel::BitGenRef *gen_ref,
                                                      Args &&... args) {
                 auto *mock_ptr = gen_ref->mocked_gen_ptr_;
                 if (mock_ptr == nullptr) {
                     DistrT dist(std::forward<Args>(args)...);
                     return dist(*gen_ref);
                 } else {
-                    return mock_ptr->template Call<DistrT, FormatT>(
+                    return mock_ptr->template call<DistrT, FormatT>(
                             std::forward<Args>(args)...);
                 }
             }

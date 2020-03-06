@@ -12,9 +12,9 @@ namespace abel {
     namespace random_internal {
 
 // RANDen = RANDom generator or beetroots in Swiss German.
-// RandenSlow implements the basic state manipulation methods for
+// randen_slow implements the basic state manipulation methods for
 // architectures lacking AES hardware acceleration intrinsics.
-        class RandenSlow {
+        class randen_slow {
         public:
             // Size of the entire sponge / state for the randen PRNG.
             static constexpr size_t kStateBytes = 256;  // 2048-bit
@@ -23,11 +23,11 @@ namespace abel {
             // require more frequent calls to RandenGenerate.
             static constexpr size_t kCapacityBytes = 16;  // 128-bit
 
-            static void Generate(const void *keys, void *state_void);
+            static void generate(const void *keys, void *state_void);
 
-            static void Absorb(const void *seed_void, void *state_void);
+            static void absorb(const void *seed_void, void *state_void);
 
-            static const void *GetKeys();
+            static const void *get_keys();
         };
 
     }  // namespace random_internal

@@ -77,7 +77,7 @@ namespace abel {
 
         private:
             // Seeder is a custom seed sequence type where generate() fills the provided
-            // buffer via the RandenPool entropy source.
+            // buffer via the randen_pool entropy source.
             struct Seeder {
                 using result_type = uint32_t;
 
@@ -104,7 +104,7 @@ namespace abel {
                     auto buffer = abel::make_span(begin, end);
                     auto target = abel::make_span(reinterpret_cast<uint32_t *>(buffer.data()),
                                                  buffer.size());
-                    RandenPool<uint32_t>::Fill(target);
+                    randen_pool<uint32_t>::fill(target);
                 }
 
                 // The non-uint32_t case should be uncommon, and involves an extra copy,
@@ -114,7 +114,7 @@ namespace abel {
                                    RandomAccessIterator begin, RandomAccessIterator end) {
                     const size_t n = std::distance(begin, end);
                     abel::InlinedVector<uint32_t, 8> data(n, 0);
-                    RandenPool<uint32_t>::Fill(abel::make_span(data.begin(), data.end()));
+                    randen_pool<uint32_t>::fill(abel::make_span(data.begin(), data.end()));
                     std::copy(std::begin(data), std::end(data), begin);
                 }
             };

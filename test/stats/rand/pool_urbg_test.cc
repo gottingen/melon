@@ -12,20 +12,20 @@
 #include <abel/meta/type_traits.h>
 #include <abel/types/span.h>
 
-using abel::random_internal::PoolURBG;
-using abel::random_internal::RandenPool;
+using abel::random_internal::pool_urbg;
+using abel::random_internal::randen_pool;
 
 namespace {
 
-// is_randen_pool trait is true when parameterized by an RandenPool
+// is_randen_pool trait is true when parameterized by an randen_pool
     template<typename T>
     using is_randen_pool = typename abel::disjunction<  //
-            std::is_same<T, RandenPool<uint8_t>>,           //
-            std::is_same<T, RandenPool<uint16_t>>,          //
-            std::is_same<T, RandenPool<uint32_t>>,          //
-            std::is_same<T, RandenPool<uint64_t>>>;         //
+            std::is_same<T, randen_pool<uint8_t>>,           //
+            std::is_same<T, randen_pool<uint16_t>>,          //
+            std::is_same<T, randen_pool<uint32_t>>,          //
+            std::is_same<T, randen_pool<uint64_t>>>;         //
 
-// MyFill either calls RandenPool::Fill() or std::generate(..., rng)
+// MyFill either calls randen_pool::Fill() or std::generate(..., rng)
     template<typename T, typename V>
     typename abel::enable_if_t<abel::negation<is_randen_pool<T>>::value, void>  //
     MyFill(T &rng, abel::span<V> data) {  // NOLINT(runtime/references)
@@ -35,7 +35,7 @@ namespace {
     template<typename T, typename V>
     typename abel::enable_if_t<is_randen_pool<T>::value, void>  //
     MyFill(T &rng, abel::span<V> data) {  // NOLINT(runtime/references)
-        rng.Fill(data);
+        rng.fill(data);
     }
 
     template<typename EngineType>
@@ -43,18 +43,18 @@ namespace {
     };
 
     using EngineTypes = ::testing::Types<  //
-            RandenPool<uint8_t>,               //
-            RandenPool<uint16_t>,              //
-            RandenPool<uint32_t>,              //
-            RandenPool<uint64_t>,              //
-            PoolURBG<uint8_t, 2>,              //
-            PoolURBG<uint16_t, 2>,             //
-            PoolURBG<uint32_t, 2>,             //
-            PoolURBG<uint64_t, 2>,             //
-            PoolURBG<unsigned int, 8>,         // NOLINT(runtime/int)
-            PoolURBG<unsigned long, 8>,        // NOLINT(runtime/int)
-            PoolURBG<unsigned long int, 4>,    // NOLINT(runtime/int)
-            PoolURBG<unsigned long long, 4>>;  // NOLINT(runtime/int)
+            randen_pool<uint8_t>,               //
+            randen_pool<uint16_t>,              //
+            randen_pool<uint32_t>,              //
+            randen_pool<uint64_t>,              //
+            pool_urbg<uint8_t, 2>,              //
+            pool_urbg<uint16_t, 2>,             //
+            pool_urbg<uint32_t, 2>,             //
+            pool_urbg<uint64_t, 2>,             //
+            pool_urbg<unsigned int, 8>,         // NOLINT(runtime/int)
+            pool_urbg<unsigned long, 8>,        // NOLINT(runtime/int)
+            pool_urbg<unsigned long int, 4>,    // NOLINT(runtime/int)
+            pool_urbg<unsigned long long, 4>>;  // NOLINT(runtime/int)
 
     TYPED_TEST_SUITE(PoolURBGTypedTest, EngineTypes);
 
@@ -145,27 +145,27 @@ namespace {
 }  // namespace
 
 /*
-$ nanobenchmarks 1 RandenPool construct
-$ nanobenchmarks 1 PoolURBG construct
+$ nanobenchmarks 1 randen_pool construct
+$ nanobenchmarks 1 pool_urbg construct
 
-RandenPool<uint32_t> | 1    | 1000 |    48482.00 ticks | 48.48 ticks | 13.9 ns
-RandenPool<uint32_t> | 10   | 2000 |  1028795.00 ticks | 51.44 ticks | 14.7 ns
-RandenPool<uint32_t> | 100  | 1000 |  5119968.00 ticks | 51.20 ticks | 14.6 ns
-RandenPool<uint32_t> | 1000 |  500 | 25867936.00 ticks | 51.74 ticks | 14.8 ns
+randen_pool<uint32_t> | 1    | 1000 |    48482.00 ticks | 48.48 ticks | 13.9 ns
+randen_pool<uint32_t> | 10   | 2000 |  1028795.00 ticks | 51.44 ticks | 14.7 ns
+randen_pool<uint32_t> | 100  | 1000 |  5119968.00 ticks | 51.20 ticks | 14.6 ns
+randen_pool<uint32_t> | 1000 |  500 | 25867936.00 ticks | 51.74 ticks | 14.8 ns
 
-RandenPool<uint64_t> | 1    | 1000 |    49921.00 ticks | 49.92 ticks | 14.3 ns
-RandenPool<uint64_t> | 10   | 2000 |  1208269.00 ticks | 60.41 ticks | 17.3 ns
-RandenPool<uint64_t> | 100  | 1000 |  5844955.00 ticks | 58.45 ticks | 16.7 ns
-RandenPool<uint64_t> | 1000 |  500 | 28767404.00 ticks | 57.53 ticks | 16.4 ns
+randen_pool<uint64_t> | 1    | 1000 |    49921.00 ticks | 49.92 ticks | 14.3 ns
+randen_pool<uint64_t> | 10   | 2000 |  1208269.00 ticks | 60.41 ticks | 17.3 ns
+randen_pool<uint64_t> | 100  | 1000 |  5844955.00 ticks | 58.45 ticks | 16.7 ns
+randen_pool<uint64_t> | 1000 |  500 | 28767404.00 ticks | 57.53 ticks | 16.4 ns
 
-PoolURBG<uint32_t,8> | 1    | 1000 |    86431.00 ticks | 86.43 ticks | 24.7 ns
-PoolURBG<uint32_t,8> | 10   | 1000 |   206191.00 ticks | 20.62 ticks |  5.9 ns
-PoolURBG<uint32_t,8> | 100  | 1000 |  1516049.00 ticks | 15.16 ticks |  4.3 ns
-PoolURBG<uint32_t,8> | 1000 |  500 |  7613936.00 ticks | 15.23 ticks |  4.4 ns
+pool_urbg<uint32_t,8> | 1    | 1000 |    86431.00 ticks | 86.43 ticks | 24.7 ns
+pool_urbg<uint32_t,8> | 10   | 1000 |   206191.00 ticks | 20.62 ticks |  5.9 ns
+pool_urbg<uint32_t,8> | 100  | 1000 |  1516049.00 ticks | 15.16 ticks |  4.3 ns
+pool_urbg<uint32_t,8> | 1000 |  500 |  7613936.00 ticks | 15.23 ticks |  4.4 ns
 
-PoolURBG<uint64_t,4> | 1    | 1000 |    96668.00 ticks | 96.67 ticks | 27.6 ns
-PoolURBG<uint64_t,4> | 10   | 1000 |   282423.00 ticks | 28.24 ticks |  8.1 ns
-PoolURBG<uint64_t,4> | 100  | 1000 |  2609587.00 ticks | 26.10 ticks |  7.5 ns
-PoolURBG<uint64_t,4> | 1000 |  500 | 12408757.00 ticks | 24.82 ticks |  7.1 ns
+pool_urbg<uint64_t,4> | 1    | 1000 |    96668.00 ticks | 96.67 ticks | 27.6 ns
+pool_urbg<uint64_t,4> | 10   | 1000 |   282423.00 ticks | 28.24 ticks |  8.1 ns
+pool_urbg<uint64_t,4> | 100  | 1000 |  2609587.00 ticks | 26.10 ticks |  7.5 ns
+pool_urbg<uint64_t,4> | 1000 |  500 | 12408757.00 ticks | 24.82 ticks |  7.1 ns
 
 */

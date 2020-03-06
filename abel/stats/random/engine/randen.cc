@@ -43,21 +43,21 @@ namespace abel {
                     RandenState tmp;
 #if ABEL_AES_DISPATCH
                     // HW AES Dispatch.
-                    if (HasRandenHwAesImplementation() && abel::is_supports_aes()) {
+                    if (has_randen_hw_aes_implementation() && abel::is_supports_aes()) {
                         tmp.has_crypto = true;
-                        tmp.keys = RandenHwAes::GetKeys();
+                        tmp.keys = randen_hw_aes::get_keys();
                     } else {
                         tmp.has_crypto = false;
-                        tmp.keys = RandenSlow::GetKeys();
+                        tmp.keys = randen_slow::get_keys();
                     }
 #elif ABEL_HAVE_ACCELERATED_AES
                     // HW AES is enabled.
                     tmp.has_crypto = true;
-                    tmp.keys = RandenHwAes::GetKeys();
+                    tmp.keys = randen_hw_aes::GetKeys();
 #else
                     // HW AES is disabled.
                     tmp.has_crypto = false;
-                    tmp.keys = RandenSlow::GetKeys();
+                    tmp.keys = randen_slow::GetKeys();
 #endif
                     return tmp;
                 }();
@@ -66,7 +66,7 @@ namespace abel {
 
         }  // namespace
 
-        Randen::Randen() {
+        randen::randen() {
             auto tmp = GetRandenState();
             keys_ = tmp.keys;
 #if ABEL_AES_DISPATCH

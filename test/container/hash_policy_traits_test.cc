@@ -53,24 +53,24 @@ namespace abel {
             struct Test : ::testing::Test {
                 Test() {
                     PolicyWithoutOptionalOps::construct = [&](void *a1, Slot *a2, Slot a3) {
-                        construct.Call(a1, a2, std::move(a3));
+                        construct.call(a1, a2, std::move(a3));
                     };
                     PolicyWithoutOptionalOps::destroy = [&](void *a1, Slot *a2) {
-                        destroy.Call(a1, a2);
+                        destroy.call(a1, a2);
                     };
 
                     PolicyWithoutOptionalOps::element = [&](Slot *a1) -> Slot & {
-                        return element.Call(a1);
+                        return element.call(a1);
                     };
                     PolicyWithoutOptionalOps::apply_impl = [&](int a1) -> int {
-                        return apply.Call(a1);
+                        return apply.call(a1);
                     };
                     PolicyWithoutOptionalOps::value = [&](Slot *a1) -> Slot & {
-                        return value.Call(a1);
+                        return value.call(a1);
                     };
 
                     PolicyWithOptionalOps::transfer = [&](void *a1, Slot *a2, Slot *a3) {
-                        return transfer.Call(a1, a2, a3);
+                        return transfer.call(a1, a2, a3);
                     };
                 }
 
@@ -88,43 +88,43 @@ namespace abel {
             };
 
             TEST_F(Test, construct) {
-                EXPECT_CALL(construct, Call(&alloc, &a, 53));
+                EXPECT_CALL(construct, call(&alloc, &a, 53));
                 hash_policy_traits<PolicyWithoutOptionalOps>::construct(&alloc, &a, 53);
             }
 
             TEST_F(Test, destroy) {
-                EXPECT_CALL(destroy, Call(&alloc, &a));
+                EXPECT_CALL(destroy, call(&alloc, &a));
                 hash_policy_traits<PolicyWithoutOptionalOps>::destroy(&alloc, &a);
             }
 
             TEST_F(Test, element) {
                 int b = 0;
-                EXPECT_CALL(element, Call(&a)).WillOnce(ReturnRef(b));
+                EXPECT_CALL(element, call(&a)).WillOnce(ReturnRef(b));
                 EXPECT_EQ(&b, &hash_policy_traits<PolicyWithoutOptionalOps>::element(&a));
             }
 
             TEST_F(Test, apply) {
-                EXPECT_CALL(apply, Call(42)).WillOnce(Return(1337));
+                EXPECT_CALL(apply, call(42)).WillOnce(Return(1337));
                 EXPECT_EQ(1337, (hash_policy_traits<PolicyWithoutOptionalOps>::apply(42)));
             }
 
             TEST_F(Test, value) {
                 int b = 0;
-                EXPECT_CALL(value, Call(&a)).WillOnce(ReturnRef(b));
+                EXPECT_CALL(value, call(&a)).WillOnce(ReturnRef(b));
                 EXPECT_EQ(&b, &hash_policy_traits<PolicyWithoutOptionalOps>::value(&a));
             }
 
             TEST_F(Test, without_transfer) {
                 int b = 42;
-                EXPECT_CALL(element, Call(&b)).WillOnce(::testing::ReturnRef(b));
-                EXPECT_CALL(construct, Call(&alloc, &a, b));
-                EXPECT_CALL(destroy, Call(&alloc, &b));
+                EXPECT_CALL(element, call(&b)).WillOnce(::testing::ReturnRef(b));
+                EXPECT_CALL(construct, call(&alloc, &a, b));
+                EXPECT_CALL(destroy, call(&alloc, &b));
                 hash_policy_traits<PolicyWithoutOptionalOps>::transfer(&alloc, &a, &b);
             }
 
             TEST_F(Test, with_transfer) {
                 int b = 42;
-                EXPECT_CALL(transfer, Call(&alloc, &a, &b));
+                EXPECT_CALL(transfer, call(&alloc, &a, &b));
                 hash_policy_traits<PolicyWithOptionalOps>::transfer(&alloc, &a, &b);
             }
 

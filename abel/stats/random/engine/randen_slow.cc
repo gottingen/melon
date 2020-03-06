@@ -334,7 +334,7 @@ namespace {
 // Combine these three ideas and also change Simpira's subround keys from
 // structured/low-entropy counters to digits of Pi.
 
-// Randen constants.
+// randen constants.
     constexpr size_t kFeistelBlocks = 16;
     constexpr size_t kFeistelFunctions = kFeistelBlocks / 2;  // = 8
     constexpr size_t kFeistelRounds = 16 + 1;  // > 4 * log2(kFeistelBlocks)
@@ -453,13 +453,13 @@ namespace abel {
 
     namespace random_internal {
 
-        const void *RandenSlow::GetKeys() {
+        const void *randen_slow::get_keys() {
             // Round keys for one AES per Feistel round and branch.
             // The canonical implementation uses first digits of Pi.
             return round_keys;
         }
 
-        void RandenSlow::Absorb(const void *seed_void, void *state_void) {
+        void randen_slow::absorb(const void *seed_void, void *state_void) {
             uint64_t *ABEL_RESTRICT state =
                     reinterpret_cast<uint64_t *>(state_void);
             const uint64_t *ABEL_RESTRICT seed =
@@ -473,7 +473,7 @@ namespace abel {
             }
         }
 
-        void RandenSlow::Generate(const void *keys, void *state_void) {
+        void randen_slow::generate(const void *keys, void *state_void) {
             static_assert(kCapacityBytes == sizeof(Vector128), "Capacity mismatch");
 
             uint64_t *ABEL_RESTRICT state =

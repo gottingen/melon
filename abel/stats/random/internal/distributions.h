@@ -23,8 +23,8 @@ namespace abel {
 // compile-time logic for deciding if such a conversion is possible.
 //
 // If no such conversion between {A, B} exists, then the overload for
-// abel::Uniform() will be discarded, and the call will be ill-formed.
-// Return-type for abel::Uniform() when the return-type is inferred.
+// abel::uniform() will be discarded, and the call will be ill-formed.
+// Return-type for abel::uniform() when the return-type is inferred.
         template<typename A, typename B>
         using uniform_inferred_return_t =
         abel::enable_if_t<abel::disjunction<abel::is_widening_convertible<A, B>,

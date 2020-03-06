@@ -14,9 +14,9 @@
 
 namespace {
 
-    using abel::random_internal::Randen;
-    using abel::random_internal::RandenHwAes;
-    using abel::random_internal::RandenSlow;
+    using abel::random_internal::randen;
+    using abel::random_internal::randen_hw_aes;
+    using abel::random_internal::randen_slow;
 
     using abel::random_internal_nanobenchmark::FuncInput;
     using abel::random_internal_nanobenchmark::FuncOutput;
@@ -27,10 +27,10 @@ namespace {
     using abel::random_internal_nanobenchmark::Result;
 
 // Local state parameters.
-    static constexpr size_t kStateSizeT = Randen::kStateBytes / sizeof(uint64_t);
-    static constexpr size_t kSeedSizeT = Randen::kSeedBytes / sizeof(uint32_t);
+    static constexpr size_t kStateSizeT = randen::kStateBytes / sizeof(uint64_t);
+    static constexpr size_t kSeedSizeT = randen::kSeedBytes / sizeof(uint32_t);
 
-// Randen implementation benchmarks.
+// randen implementation benchmarks.
     template<typename T>
     struct AbsorbFn : public T {
         mutable uint64_t state[kStateSizeT] = {};
@@ -137,14 +137,14 @@ namespace {
         static const FuncInput inputs[] = {unpredictable * 100, unpredictable * 1000};
 
 #if !defined(ABEL_INTERNAL_DISABLE_AES) && ABEL_HAVE_ACCELERATED_AES
-        measure<AbsorbFn<RandenHwAes>>("Absorb (HwAes)", inputs);
+        measure<AbsorbFn<randen_hw_aes>>("Absorb (HwAes)", inputs);
 #endif
-        measure<AbsorbFn<RandenSlow>>("Absorb (Slow)", inputs);
+        measure<AbsorbFn<randen_slow>>("Absorb (Slow)", inputs);
 
 #if !defined(ABEL_INTERNAL_DISABLE_AES) && ABEL_HAVE_ACCELERATED_AES
-        measure<GenerateFn<RandenHwAes>>("Generate (HwAes)", inputs);
+        measure<GenerateFn<randen_hw_aes>>("Generate (HwAes)", inputs);
 #endif
-        measure<GenerateFn<RandenSlow>>("Generate (Slow)", inputs);
+        measure<GenerateFn<randen_slow>>("Generate (Slow)", inputs);
 
         // measure the production engine.
         static const FuncInput inputs1[] = {unpredictable * 1000,

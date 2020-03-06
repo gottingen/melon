@@ -55,7 +55,7 @@ namespace abel {
 //    uniform_lower_bound(tag, a, b)
 // and
 //    uniform_upper_bound(tag, a, b)
-// are used as implementation-details for abel::Uniform().
+// are used as implementation-details for abel::uniform().
 //
 // Conceptually,
 //    [a, b] == [uniform_lower_bound(IntervalClosedClosed, a, b),

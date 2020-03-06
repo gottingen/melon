@@ -9,23 +9,23 @@
 
 namespace {
 
-    using abel::random_internal::Randen;
+    using abel::random_internal::randen;
 
 // Local state parameters.
-    constexpr size_t kStateSizeT = Randen::kStateBytes / sizeof(uint64_t);
+    constexpr size_t kStateSizeT = randen::kStateBytes / sizeof(uint64_t);
 
     TEST(RandenTest, CopyAndMove) {
-        static_assert(std::is_copy_constructible<Randen>::value,
-                      "Randen must be copy constructible");
+        static_assert(std::is_copy_constructible<randen>::value,
+                      "randen must be copy constructible");
 
-        static_assert(abel::is_copy_assignable<Randen>::value,
-                      "Randen must be copy assignable");
+        static_assert(abel::is_copy_assignable<randen>::value,
+                      "randen must be copy assignable");
 
-        static_assert(std::is_move_constructible<Randen>::value,
-                      "Randen must be move constructible");
+        static_assert(std::is_move_constructible<randen>::value,
+                      "randen must be move constructible");
 
-        static_assert(abel::is_move_assignable<Randen>::value,
-                      "Randen must be move assignable");
+        static_assert(abel::is_move_assignable<randen>::value,
+                      "randen must be move assignable");
     }
 
     TEST(RandenTest, Default) {
@@ -46,7 +46,7 @@ namespace {
         alignas(16) uint64_t state[kStateSizeT];
         std::memset(state, 0, sizeof(state));
 
-        Randen r;
+        randen r;
         r.Generate(state);
 
         auto id = std::begin(state);
