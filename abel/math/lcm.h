@@ -27,6 +27,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_t<T1, T2> lcm(const T1 a, const T2 b) ABEL_NOEXCEPT {
         return math_internal::lcm_type_check(a, b);
     }

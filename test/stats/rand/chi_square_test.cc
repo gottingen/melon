@@ -12,14 +12,14 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 
-using abel::random_internal::ChiSquare;
-using abel::random_internal::ChiSquarePValue;
-using abel::random_internal::ChiSquareValue;
-using abel::random_internal::ChiSquareWithExpected;
+using abel::random_internal::chi_square;
+using abel::random_internal::chi_square_p_value;
+using abel::random_internal::chi_square_value;
+using abel::random_internal::chi_square_with_expected;
 
 namespace {
 
-    TEST(ChiSquare, Value) {
+    TEST(chi_square, Value) {
         struct {
             int line;
             double chi_square;
@@ -79,23 +79,23 @@ namespace {
         for (const auto &spec : specs) {
             SCOPED_TRACE(spec.line);
             // Verify all values are have at most a 1% relative error.
-            const double val = ChiSquareValue(spec.df, spec.confidence);
+            const double val = chi_square_value(spec.df, spec.confidence);
             const double err = std::max(5e-6, spec.chi_square / 5e3);  // 1 part in 5000
             EXPECT_NEAR(spec.chi_square, val, err) << spec.line;
         }
 
         // Relaxed test for extreme values, from
-        //  http://www.ciphersbyritter.com/JAVASCRP/NORMCHIK.HTM#ChiSquare
-        EXPECT_NEAR(49.2680, ChiSquareValue(100, 1e-6), 5);  // 0.000'005 mark
-        EXPECT_NEAR(123.499, ChiSquareValue(200, 1e-6), 5);  // 0.000'005 mark
+        //  http://www.ciphersbyritter.com/JAVASCRP/NORMCHIK.HTM#chi_square
+        EXPECT_NEAR(49.2680, chi_square_value(100, 1e-6), 5);  // 0.000'005 mark
+        EXPECT_NEAR(123.499, chi_square_value(200, 1e-6), 5);  // 0.000'005 mark
 
-        EXPECT_NEAR(149.449, ChiSquareValue(100, 0.999), 0.01);
-        EXPECT_NEAR(161.318, ChiSquareValue(100, 0.9999), 0.01);
-        EXPECT_NEAR(172.098, ChiSquareValue(100, 0.99999), 0.01);
+        EXPECT_NEAR(149.449, chi_square_value(100, 0.999), 0.01);
+        EXPECT_NEAR(161.318, chi_square_value(100, 0.9999), 0.01);
+        EXPECT_NEAR(172.098, chi_square_value(100, 0.99999), 0.01);
 
-        EXPECT_NEAR(381.426, ChiSquareValue(300, 0.999), 0.05);
-        EXPECT_NEAR(399.756, ChiSquareValue(300, 0.9999), 0.1);
-        EXPECT_NEAR(416.126, ChiSquareValue(300, 0.99999), 0.2);
+        EXPECT_NEAR(381.426, chi_square_value(300, 0.999), 0.05);
+        EXPECT_NEAR(399.756, chi_square_value(300, 0.9999), 0.1);
+        EXPECT_NEAR(416.126, chi_square_value(300, 0.99999), 0.2);
     }
 
     TEST(ChiSquareTest, PValue) {
@@ -122,7 +122,7 @@ namespace {
         };
         for (const auto &spec : specs) {
             SCOPED_TRACE(spec.line);
-            const double pval = ChiSquarePValue(spec.chi_square, spec.df);
+            const double pval = chi_square_p_value(spec.chi_square, spec.df);
             EXPECT_NEAR(spec.pval, pval, 1e-3);
         }
     }
@@ -147,13 +147,13 @@ namespace {
         };
         for (const auto &spec : specs) {
             SCOPED_TRACE(spec.line);
-            double chi_square = 0;
+            double chiSquare = 0;
             for (size_t i = 0; i < spec.expected.size(); ++i) {
                 const double diff = spec.actual[i] - spec.expected[i];
-                chi_square += (diff * diff) / spec.expected[i];
+                chiSquare += (diff * diff) / spec.expected[i];
             }
-            EXPECT_NEAR(chi_square,
-                        ChiSquare(std::begin(spec.actual), std::end(spec.actual),
+            EXPECT_NEAR(chiSquare,
+                        chi_square(std::begin(spec.actual), std::end(spec.actual),
                                   std::begin(spec.expected), std::end(spec.expected)),
                         1e-5);
         }
@@ -166,12 +166,12 @@ namespace {
         // 4.25410123524
         double sum = std::accumulate(std::begin(data), std::end(data), double{0});
         size_t n = std::distance(std::begin(data), std::end(data));
-        double a = ChiSquareWithExpected(std::begin(data), std::end(data), sum / n);
+        double a = chi_square_with_expected(std::begin(data), std::end(data), sum / n);
         EXPECT_NEAR(4.254101, a, 1e-6);
 
         // ... Or with known values.
         double b =
-                ChiSquareWithExpected(std::begin(data), std::end(data), 910267586.0);
+                chi_square_with_expected(std::begin(data), std::end(data), 910267586.0);
         EXPECT_NEAR(4.254101, b, 1e-6);
     }
 
@@ -384,23 +384,23 @@ namespace {
         //    0.90      0.95     0.975      0.99     0.999
         for (size_t i = 0; i < ABEL_ARRAYSIZE(data); i++) {
             const double E = 0.0001;
-            EXPECT_NEAR(ChiSquarePValue(data[i][0], i + 1), 0.10, E)
+            EXPECT_NEAR(chi_square_p_value(data[i][0], i + 1), 0.10, E)
                                 << i << " " << data[i][0];
-            EXPECT_NEAR(ChiSquarePValue(data[i][1], i + 1), 0.05, E)
+            EXPECT_NEAR(chi_square_p_value(data[i][1], i + 1), 0.05, E)
                                 << i << " " << data[i][1];
-            EXPECT_NEAR(ChiSquarePValue(data[i][2], i + 1), 0.025, E)
+            EXPECT_NEAR(chi_square_p_value(data[i][2], i + 1), 0.025, E)
                                 << i << " " << data[i][2];
-            EXPECT_NEAR(ChiSquarePValue(data[i][3], i + 1), 0.01, E)
+            EXPECT_NEAR(chi_square_p_value(data[i][3], i + 1), 0.01, E)
                                 << i << " " << data[i][3];
-            EXPECT_NEAR(ChiSquarePValue(data[i][4], i + 1), 0.001, E)
+            EXPECT_NEAR(chi_square_p_value(data[i][4], i + 1), 0.001, E)
                                 << i << " " << data[i][4];
 
             const double F = 0.1;
-            EXPECT_NEAR(ChiSquareValue(i + 1, 0.90), data[i][0], F) << i;
-            EXPECT_NEAR(ChiSquareValue(i + 1, 0.95), data[i][1], F) << i;
-            EXPECT_NEAR(ChiSquareValue(i + 1, 0.975), data[i][2], F) << i;
-            EXPECT_NEAR(ChiSquareValue(i + 1, 0.99), data[i][3], F) << i;
-            EXPECT_NEAR(ChiSquareValue(i + 1, 0.999), data[i][4], F) << i;
+            EXPECT_NEAR(chi_square_value(i + 1, 0.90), data[i][0], F) << i;
+            EXPECT_NEAR(chi_square_value(i + 1, 0.95), data[i][1], F) << i;
+            EXPECT_NEAR(chi_square_value(i + 1, 0.975), data[i][2], F) << i;
+            EXPECT_NEAR(chi_square_value(i + 1, 0.99), data[i][3], F) << i;
+            EXPECT_NEAR(chi_square_value(i + 1, 0.999), data[i][4], F) << i;
         }
     }
 
@@ -410,17 +410,17 @@ namespace {
         const int counts[10] = {6, 6, 18, 33, 38, 38, 28, 21, 9, 3};
         const double expected[10] = {4.6, 8.8, 18.4, 30.0, 38.2,
                                      38.2, 30.0, 18.4, 8.8, 4.6};
-        double chi_square = ChiSquare(std::begin(counts), std::end(counts),
+        double chiSquare = chi_square(std::begin(counts), std::end(counts),
                                       std::begin(expected), std::end(expected));
-        EXPECT_NEAR(chi_square, 2.69, 0.001);
+        EXPECT_NEAR(chiSquare, 2.69, 0.001);
 
         // Degrees of freedom: 10 bins. two estimated parameters. = 10 - 2 - 1.
         const int dof = 7;
         // The critical value of 7, 95% => 14.067 (see above test)
-        double p_value_05 = ChiSquarePValue(14.067, dof);
+        double p_value_05 = chi_square_p_value(14.067, dof);
         EXPECT_NEAR(p_value_05, 0.05, 0.001);  // 95%-ile p-value
 
-        double p_actual = ChiSquarePValue(chi_square, dof);
+        double p_actual = chi_square_p_value(chiSquare, dof);
         EXPECT_GT(p_actual, 0.05);  // Accept the null hypothesis.
     }
 
@@ -434,18 +434,18 @@ namespace {
         double sum = std::accumulate(std::begin(rolls), std::end(rolls), double{0});
         size_t n = std::distance(std::begin(rolls), std::end(rolls));
 
-        double a = ChiSquareWithExpected(std::begin(rolls), std::end(rolls), sum / n);
+        double a = chi_square_with_expected(std::begin(rolls), std::end(rolls), sum / n);
         EXPECT_NEAR(a, 4.70588, 1e-5);
-        EXPECT_LT(a, ChiSquareValue(4, 0.95));
+        EXPECT_LT(a, chi_square_value(4, 0.95));
 
-        double p_a = ChiSquarePValue(a, 4);
+        double p_a = chi_square_p_value(a, 4);
         EXPECT_NEAR(p_a, 0.318828, 1e-5);  // Accept the null hypothesis.
 
-        double b = ChiSquareWithExpected(std::begin(rolls), std::end(rolls), 17.0);
+        double b = chi_square_with_expected(std::begin(rolls), std::end(rolls), 17.0);
         EXPECT_NEAR(b, 4.70588, 1e-5);
-        EXPECT_LT(b, ChiSquareValue(5, 0.95));
+        EXPECT_LT(b, chi_square_value(5, 0.95));
 
-        double p_b = ChiSquarePValue(b, 5);
+        double p_b = chi_square_p_value(b, 5);
         EXPECT_NEAR(p_b, 0.4528180, 1e-5);  // Accept the null hypothesis.
     }
 

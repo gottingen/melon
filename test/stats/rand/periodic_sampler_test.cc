@@ -134,7 +134,7 @@ namespace abel {
             EXPECT_THAT(sampler.period(), Eq(100));
         }
 
-        TEST(PeriodicSamplerTest, SetGlobalPeriod) {
+        TEST(PeriodicSamplerTest, set_global_period) {
             struct Tag1 {
             };
             struct Tag2 {
@@ -150,8 +150,8 @@ namespace abel {
                 periodic_sampler<Tag2, 50> sampler2;
                 EXPECT_THAT(sampler1.period(), Eq(25));
                 EXPECT_THAT(sampler2.period(), Eq(50));
-                sampler1.SetGlobalPeriod(10);
-                sampler2.SetGlobalPeriod(20);
+                sampler1.set_global_period(10);
+                sampler2.set_global_period(20);
             });
             thread.join();
 

@@ -39,7 +39,7 @@ namespace {
         using param_type = typename abel::zipf_distribution<TypeParam>::param_type;
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const auto &param : {
                 param_type(),
                 param_type(32),
@@ -203,7 +203,7 @@ namespace {
     public:
         ZipfTest() : ZipfModel(GetParam().k(), GetParam().q(), GetParam().v()) {}
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     TEST_P(ZipfTest, ChiSquaredTest) {
@@ -278,14 +278,14 @@ namespace {
         // NOTE: This test runs about 15x per invocation, so a value of 0.9995 is
         // approximately correct for a test suite failure rate of 1 in 100.  In
         // practice we see failures slightly higher than that.
-        const double threshold = abel::random_internal::ChiSquareValue(dof, 0.9999);
+        const double threshold = abel::random_internal::chi_square_value(dof, 0.9999);
 
-        const double chi_square = abel::random_internal::ChiSquare(
+        const double chi_square = abel::random_internal::chi_square(
                 std::begin(buckets), std::end(buckets), std::begin(expected),
                 std::end(expected));
 
         const double p_actual =
-                abel::random_internal::ChiSquarePValue(chi_square, dof);
+                abel::random_internal::chi_square_p_value(chi_square, dof);
 
         // Log if the chi_squared value is above the threshold.
         if (chi_square > threshold) {

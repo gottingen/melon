@@ -51,7 +51,7 @@ namespace {
         size_t trials = para.second;
         double p = para.first;
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
 
         size_t yes = 0;
         abel::bernoulli_distribution dist(p);
@@ -100,7 +100,7 @@ namespace {
 
 // NOTE: abel::bernoulli_distribution is not guaranteed to be stable.
     TEST(BernoulliTest, StabilityTest) {
-        // abel::bernoulli_distribution stability relies on FastUniformBits and
+        // abel::bernoulli_distribution stability relies on fast_uniform_bits and
         // integer arithmetic.
         abel::random_internal::sequence_urbg urbg({
                                                           0x0003eb76f6f7f755ull, 0xFFCEA50FDB2F953Bull,

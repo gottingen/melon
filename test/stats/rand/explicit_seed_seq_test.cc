@@ -52,14 +52,14 @@ TEST(SeedSequences, CheckInterfaces) {
     EXPECT_TRUE(ConformsToInterface<std::seed_seq>());
 
     // abel classes
-    EXPECT_TRUE(ConformsToInterface<abel::random_internal::ExplicitSeedSeq>());
+    EXPECT_TRUE(ConformsToInterface<abel::random_internal::explicit_seed_seq>());
 }
 
-TEST(ExplicitSeedSeq, DefaultConstructorGeneratesZeros) {
+TEST(explicit_seed_seq, DefaultConstructorGeneratesZeros) {
     const size_t kNumBlocks = 128;
 
     uint32_t outputs[kNumBlocks];
-    abel::random_internal::ExplicitSeedSeq seq;
+    abel::random_internal::explicit_seed_seq seq;
     seq.generate(outputs, &outputs[kNumBlocks]);
 
     for (uint32_t &seed : outputs) {
@@ -75,7 +75,7 @@ TEST(ExplicitSeeqSeq, SeedMaterialIsForwardedIdentically) {
     for (uint32_t &seed : seed_material) {
         seed = urandom();
     }
-    abel::random_internal::ExplicitSeedSeq seq(seed_material,
+    abel::random_internal::explicit_seed_seq seq(seed_material,
                                                &seed_material[kNumBlocks]);
 
     // Check that output is same as seed-material provided to constructor.
@@ -110,7 +110,7 @@ TEST(ExplicitSeeqSeq, SeedMaterialIsForwardedIdentically) {
     }
 }
 
-TEST(ExplicitSeedSeq, CopyAndMoveConstructors) {
+TEST(explicit_seed_seq, CopyAndMoveConstructors) {
     using testing::Each;
     using testing::Eq;
     using testing::Not;
@@ -121,11 +121,11 @@ TEST(ExplicitSeedSeq, CopyAndMoveConstructors) {
     for (uint32_t &entry : entropy) {
         entry = urandom();
     }
-    abel::random_internal::ExplicitSeedSeq seq_from_entropy(std::begin(entropy),
+    abel::random_internal::explicit_seed_seq seq_from_entropy(std::begin(entropy),
                                                             std::end(entropy));
     // Copy constructor.
     {
-        abel::random_internal::ExplicitSeedSeq seq_copy(seq_from_entropy);
+        abel::random_internal::explicit_seed_seq seq_copy(seq_from_entropy);
         EXPECT_EQ(seq_copy.size(), seq_from_entropy.size());
 
         std::vector<uint32_t> seeds_1;
@@ -143,7 +143,7 @@ TEST(ExplicitSeedSeq, CopyAndMoveConstructors) {
         for (uint32_t &entry : entropy) {
             entry = urandom();
         }
-        abel::random_internal::ExplicitSeedSeq another_seq(std::begin(entropy),
+        abel::random_internal::explicit_seed_seq another_seq(std::begin(entropy),
                                                            std::end(entropy));
 
         std::vector<uint32_t> seeds_1;
@@ -175,7 +175,7 @@ TEST(ExplicitSeedSeq, CopyAndMoveConstructors) {
         seq_from_entropy.generate(seeds_1.begin(), seeds_1.end());
 
         // Apply move-constructor move the sequence to another instance.
-        abel::random_internal::ExplicitSeedSeq moved_seq(
+        abel::random_internal::explicit_seed_seq moved_seq(
                 std::move(seq_from_entropy));
         std::vector<uint32_t> seeds_2;
         seeds_2.resize(1000, 1);

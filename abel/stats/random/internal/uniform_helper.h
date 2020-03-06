@@ -21,33 +21,33 @@ namespace abel {
 
     namespace random_internal {
         template<typename T>
-        struct TagTypeCompare {
+        struct tag_type_compare {
         };
 
         template<typename T>
-        constexpr bool operator==(TagTypeCompare<T>, TagTypeCompare<T>) {
+        constexpr bool operator==(tag_type_compare<T>, tag_type_compare<T>) {
             // Tags are mono-states. They always compare equal.
             return true;
         }
 
         template<typename T>
-        constexpr bool operator!=(TagTypeCompare<T>, TagTypeCompare<T>) {
+        constexpr bool operator!=(tag_type_compare<T>, tag_type_compare<T>) {
             return false;
         }
 
     }  // namespace random_internal
 
-    struct IntervalClosedClosedTag
-            : public random_internal::TagTypeCompare<IntervalClosedClosedTag> {
+    struct interval_closed_closed_tag
+            : public random_internal::tag_type_compare<interval_closed_closed_tag> {
     };
-    struct IntervalClosedOpenTag
-            : public random_internal::TagTypeCompare<IntervalClosedOpenTag> {
+    struct interval_closed_open_tag
+            : public random_internal::tag_type_compare<interval_closed_open_tag> {
     };
-    struct IntervalOpenClosedTag
-            : public random_internal::TagTypeCompare<IntervalOpenClosedTag> {
+    struct interval_open_closed_tag
+            : public random_internal::tag_type_compare<interval_open_closed_tag> {
     };
-    struct IntervalOpenOpenTag
-            : public random_internal::TagTypeCompare<IntervalOpenOpenTag> {
+    struct interval_open_open_tag
+            : public random_internal::tag_type_compare<interval_open_open_tag> {
     };
 
     namespace random_internal {
@@ -71,8 +71,8 @@ namespace abel {
         typename abel::enable_if_t<
                 abel::conjunction<
                         std::is_integral<IntType>,
-                        abel::disjunction<std::is_same<Tag, IntervalOpenClosedTag>,
-                                std::is_same<Tag, IntervalOpenOpenTag>>>::value,
+                        abel::disjunction<std::is_same<Tag, interval_open_closed_tag>,
+                                std::is_same<Tag, interval_open_open_tag>>>::value,
                 IntType>
         uniform_lower_bound(Tag, IntType a, IntType) {
             return a + 1;
@@ -82,8 +82,8 @@ namespace abel {
         typename abel::enable_if_t<
                 abel::conjunction<
                         std::is_floating_point<FloatType>,
-                        abel::disjunction<std::is_same<Tag, IntervalOpenClosedTag>,
-                                std::is_same<Tag, IntervalOpenOpenTag>>>::value,
+                        abel::disjunction<std::is_same<Tag, interval_open_closed_tag>,
+                                std::is_same<Tag, interval_open_open_tag>>>::value,
                 FloatType>
         uniform_lower_bound(Tag, FloatType a, FloatType b) {
             return std::nextafter(a, b);
@@ -91,8 +91,8 @@ namespace abel {
 
         template<typename NumType, typename Tag>
         typename abel::enable_if_t<
-                abel::disjunction<std::is_same<Tag, IntervalClosedClosedTag>,
-                        std::is_same<Tag, IntervalClosedOpenTag>>::value,
+                abel::disjunction<std::is_same<Tag, interval_closed_closed_tag>,
+                        std::is_same<Tag, interval_closed_open_tag>>::value,
                 NumType>
         uniform_lower_bound(Tag, NumType a, NumType) {
             return a;
@@ -102,8 +102,8 @@ namespace abel {
         typename abel::enable_if_t<
                 abel::conjunction<
                         std::is_integral<IntType>,
-                        abel::disjunction<std::is_same<Tag, IntervalClosedOpenTag>,
-                                std::is_same<Tag, IntervalOpenOpenTag>>>::value,
+                        abel::disjunction<std::is_same<Tag, interval_closed_open_tag>,
+                                std::is_same<Tag, interval_open_open_tag>>>::value,
                 IntType>
         uniform_upper_bound(Tag, IntType, IntType b) {
             return b - 1;
@@ -113,8 +113,8 @@ namespace abel {
         typename abel::enable_if_t<
                 abel::conjunction<
                         std::is_floating_point<FloatType>,
-                        abel::disjunction<std::is_same<Tag, IntervalClosedOpenTag>,
-                                std::is_same<Tag, IntervalOpenOpenTag>>>::value,
+                        abel::disjunction<std::is_same<Tag, interval_closed_open_tag>,
+                                std::is_same<Tag, interval_open_open_tag>>>::value,
                 FloatType>
         uniform_upper_bound(Tag, FloatType, FloatType b) {
             return b;
@@ -124,8 +124,8 @@ namespace abel {
         typename abel::enable_if_t<
                 abel::conjunction<
                         std::is_integral<IntType>,
-                        abel::disjunction<std::is_same<Tag, IntervalClosedClosedTag>,
-                                std::is_same<Tag, IntervalOpenClosedTag>>>::value,
+                        abel::disjunction<std::is_same<Tag, interval_closed_closed_tag>,
+                                std::is_same<Tag, interval_open_closed_tag>>>::value,
                 IntType>
         uniform_upper_bound(Tag, IntType, IntType b) {
             return b;
@@ -135,34 +135,34 @@ namespace abel {
         typename abel::enable_if_t<
                 abel::conjunction<
                         std::is_floating_point<FloatType>,
-                        abel::disjunction<std::is_same<Tag, IntervalClosedClosedTag>,
-                                std::is_same<Tag, IntervalOpenClosedTag>>>::value,
+                        abel::disjunction<std::is_same<Tag, interval_closed_closed_tag>,
+                                std::is_same<Tag, interval_open_closed_tag>>>::value,
                 FloatType>
         uniform_upper_bound(Tag, FloatType, FloatType b) {
             return std::nextafter(b, (std::numeric_limits<FloatType>::max)());
         }
 
         template<typename NumType>
-        using UniformDistribution =
+        using uniform_distribution =
         typename std::conditional<std::is_integral<NumType>::value,
                 abel::uniform_int_distribution<NumType>,
                 abel::uniform_real_distribution<NumType>>::type;
 
         template<typename NumType>
-        struct UniformDistributionWrapper : public UniformDistribution<NumType> {
+        struct uniform_distribution_wrapper : public uniform_distribution<NumType> {
             template<typename TagType>
-            explicit UniformDistributionWrapper(TagType, NumType lo, NumType hi)
-                    : UniformDistribution<NumType>(
+            explicit uniform_distribution_wrapper(TagType, NumType lo, NumType hi)
+                    : uniform_distribution<NumType>(
                     uniform_lower_bound<NumType>(TagType{}, lo, hi),
                     uniform_upper_bound<NumType>(TagType{}, lo, hi)) {}
 
-            explicit UniformDistributionWrapper(NumType lo, NumType hi)
-                    : UniformDistribution<NumType>(
-                    uniform_lower_bound<NumType>(IntervalClosedOpenTag(), lo, hi),
-                    uniform_upper_bound<NumType>(IntervalClosedOpenTag(), lo, hi)) {}
+            explicit uniform_distribution_wrapper(NumType lo, NumType hi)
+                    : uniform_distribution<NumType>(
+                    uniform_lower_bound<NumType>(interval_closed_open_tag(), lo, hi),
+                    uniform_upper_bound<NumType>(interval_closed_open_tag(), lo, hi)) {}
 
-            explicit UniformDistributionWrapper()
-                    : UniformDistribution<NumType>(std::numeric_limits<NumType>::lowest(),
+            explicit uniform_distribution_wrapper()
+                    : uniform_distribution<NumType>(std::numeric_limits<NumType>::lowest(),
                                                    (std::numeric_limits<NumType>::max)()) {}
         };
 

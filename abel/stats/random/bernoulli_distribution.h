@@ -120,7 +120,7 @@ namespace abel {
     template<typename URBG>
     bool bernoulli_distribution::Generate(double p,
                                           URBG &g) {  // NOLINT(runtime/references)
-        random_internal::FastUniformBits<uint32_t> fast_u32;
+        random_internal::fast_uniform_bits<uint32_t> fast_u32;
 
         while (true) {
             // There are two aspects of the definition of `c` below that are worth

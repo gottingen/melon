@@ -133,6 +133,7 @@ namespace abel {
 
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> erf_inv(const T p) ABEL_NOEXCEPT {
         return math_internal::erf_inv_begin( static_cast<return_t<T>>(p) );
     }

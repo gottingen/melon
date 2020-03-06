@@ -56,13 +56,13 @@
 namespace abel {
 
 
-    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosedClosed,
+    ABEL_INTERNAL_INLINE_CONSTEXPR(interval_closed_closed_tag, IntervalClosedClosed,
                                    {});
-    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedClosedTag, IntervalClosed, {});
-    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalClosedOpenTag, IntervalClosedOpen, {});
-    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenOpenTag, IntervalOpenOpen, {});
-    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenOpenTag, IntervalOpen, {});
-    ABEL_INTERNAL_INLINE_CONSTEXPR(IntervalOpenClosedTag, IntervalOpenClosed, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(interval_closed_closed_tag, IntervalClosed, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(interval_closed_open_tag, IntervalClosedOpen, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(interval_open_open_tag, IntervalOpenOpen, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(interval_open_open_tag, IntervalOpen, {});
+    ABEL_INTERNAL_INLINE_CONSTEXPR(interval_open_closed_tag, IntervalOpenClosed, {});
 
 // -----------------------------------------------------------------------------
 // abel::Uniform<T>(tag, bitgen, lo, hi)
@@ -91,7 +91,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //
 //   // Produce a random float value between 0.0 and 1.0, inclusive
 //   auto x = abel::Uniform(abel::IntervalClosedClosed, bitgen, 0.0f, 1.0f);
@@ -112,14 +112,14 @@ namespace abel {
             URBG &&urbg,  // NOLINT(runtime/references)
             R lo, R hi) {
         using gen_t = abel::decay_t<URBG>;
-        using distribution_t = random_internal::UniformDistributionWrapper<R>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using distribution_t = random_internal::uniform_distribution_wrapper<R>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
         auto a = random_internal::uniform_lower_bound(tag, lo, hi);
         auto b = random_internal::uniform_upper_bound(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, tag, lo, hi);
     }
 
@@ -132,15 +132,15 @@ namespace abel {
     Uniform(URBG &&urbg,  // NOLINT(runtime/references)
             R lo, R hi) {
         using gen_t = abel::decay_t<URBG>;
-        using distribution_t = random_internal::UniformDistributionWrapper<R>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using distribution_t = random_internal::uniform_distribution_wrapper<R>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
         constexpr auto tag = abel::IntervalClosedOpen;
         auto a = random_internal::uniform_lower_bound(tag, lo, hi);
         auto b = random_internal::uniform_upper_bound(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, lo, hi);
     }
 
@@ -158,14 +158,14 @@ namespace abel {
             A lo, B hi) {
         using gen_t = abel::decay_t<URBG>;
         using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
-        using distribution_t = random_internal::UniformDistributionWrapper<return_t>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using distribution_t = random_internal::uniform_distribution_wrapper<return_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
         auto a = random_internal::uniform_lower_bound<return_t>(tag, lo, hi);
         auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, tag, static_cast<return_t>(lo),
                                           static_cast<return_t>(hi));
     }
@@ -182,15 +182,15 @@ namespace abel {
             A lo, B hi) {
         using gen_t = abel::decay_t<URBG>;
         using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
-        using distribution_t = random_internal::UniformDistributionWrapper<return_t>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using distribution_t = random_internal::uniform_distribution_wrapper<return_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
         constexpr auto tag = abel::IntervalClosedOpen;
         auto a = random_internal::uniform_lower_bound<return_t>(tag, lo, hi);
         auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, static_cast<return_t>(lo),
                                           static_cast<return_t>(hi));
     }
@@ -203,10 +203,10 @@ namespace abel {
     typename abel::enable_if_t<!std::is_signed<R>::value, R>  //
     Uniform(URBG &&urbg) {  // NOLINT(runtime/references)
         using gen_t = abel::decay_t<URBG>;
-        using distribution_t = random_internal::UniformDistributionWrapper<R>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using distribution_t = random_internal::uniform_distribution_wrapper<R>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg);
     }
 
@@ -224,7 +224,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   if (abel::Bernoulli(bitgen, 1.0/3721.0)) {
 //     std::cout << "Asteroid field navigation successful.";
@@ -235,9 +235,9 @@ namespace abel {
                    double p) {
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = abel::bernoulli_distribution;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, p);
     }
 
@@ -254,7 +254,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   double sample = abel::Beta(bitgen, 3.0, 2.0);
 //
@@ -268,9 +268,9 @@ namespace abel {
 
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = typename abel::beta_distribution<RealType>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, alpha, beta);
     }
 
@@ -287,7 +287,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   double call_length = abel::Exponential(bitgen, 7.0);
 //
@@ -301,9 +301,9 @@ namespace abel {
 
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = typename abel::exponential_distribution<RealType>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, lambda);
     }
 
@@ -319,7 +319,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   double giraffe_height = abel::Gaussian(bitgen, 16.3, 3.3);
 //
@@ -333,9 +333,9 @@ namespace abel {
 
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = typename abel::gaussian_distribution<RealType>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, mean, stddev);
     }
 
@@ -363,7 +363,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   int v = abel::LogUniform(bitgen, 0, 1000);
 //
@@ -376,9 +376,9 @@ namespace abel {
 
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = typename abel::log_uniform_int_distribution<IntType>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, lo, hi, base);
     }
 
@@ -394,7 +394,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   int requests_per_minute = abel::Poisson<int>(bitgen, 3.2);
 //
@@ -407,9 +407,9 @@ namespace abel {
 
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = typename abel::poisson_distribution<IntType>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, mean);
     }
 
@@ -426,7 +426,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen bitgen;
+//   abel::bit_gen bitgen;
 //   ...
 //   int term_rank = abel::Zipf<int>(bitgen);
 //
@@ -440,9 +440,9 @@ namespace abel {
 
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = typename abel::zipf_distribution<IntType>;
-        using format_t = random_internal::DistributionFormatTraits<distribution_t>;
+        using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::DistributionCaller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template Call<
                 distribution_t, format_t>(&urbg, hi, q, v);
     }
 

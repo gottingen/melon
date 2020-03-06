@@ -36,6 +36,7 @@ namespace abel {
 
     template<typename T1, typename T2>
     ABEL_CONSTEXPR
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     common_t<T1, T2>
     gcd(const T1 a, const T2 b)
     ABEL_NOEXCEPT {

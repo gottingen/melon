@@ -16,32 +16,32 @@
 namespace {
 
     using ExampleNonsecureURBG =
-    abel::random_internal::NonsecureURBGBase<std::mt19937>;
+    abel::random_internal::nonsecure_urgb_base<std::mt19937>;
 
     template<typename T>
     void Use(const T &) {}
 
 }  // namespace
 
-TEST(NonsecureURBGBase, DefaultConstructorIsValid) {
+TEST(nonsecure_urgb_base, DefaultConstructorIsValid) {
     ExampleNonsecureURBG urbg;
 }
 
 // Ensure that the recommended template-instantiations are valid.
 TEST(RecommendedTemplates, CanBeConstructed) {
-    abel::BitGen default_generator;
-    abel::InsecureBitGen insecure_generator;
+    abel::bit_gen default_generator;
+    abel::insecure_bit_gen insecure_generator;
 }
 
 TEST(RecommendedTemplates, CanDiscardValues) {
-    abel::BitGen default_generator;
-    abel::InsecureBitGen insecure_generator;
+    abel::bit_gen default_generator;
+    abel::insecure_bit_gen insecure_generator;
 
     default_generator.discard(5);
     insecure_generator.discard(5);
 }
 
-TEST(NonsecureURBGBase, StandardInterface) {
+TEST(nonsecure_urgb_base, StandardInterface) {
     // Names after definition of [rand.req.urbg] in C++ standard.
     // e us a value of E
     // v is a lvalue of E
@@ -52,21 +52,21 @@ TEST(NonsecureURBGBase, StandardInterface) {
     // os is a some specialization of basic_ostream
     // is is a some specialization of basic_istream
 
-    using E = abel::random_internal::NonsecureURBGBase<std::minstd_rand>;
+    using E = abel::random_internal::nonsecure_urgb_base<std::minstd_rand>;
 
     using T = typename E::result_type;
 
     static_assert(!std::is_copy_constructible<E>::value,
-                  "NonsecureURBGBase should not be copy constructible");
+                  "nonsecure_urgb_base should not be copy constructible");
 
     static_assert(!abel::is_copy_assignable<E>::value,
-                  "NonsecureURBGBase should not be copy assignable");
+                  "nonsecure_urgb_base should not be copy assignable");
 
     static_assert(std::is_move_constructible<E>::value,
-                  "NonsecureURBGBase should be move constructible");
+                  "nonsecure_urgb_base should be move constructible");
 
     static_assert(abel::is_move_assignable<E>::value,
-                  "NonsecureURBGBase should be move assignable");
+                  "nonsecure_urgb_base should be move assignable");
 
     static_assert(std::is_same<decltype(std::declval<E>()()), T>::value,
                   "return type of operator() must be result_type");
@@ -125,12 +125,12 @@ TEST(NonsecureURBGBase, StandardInterface) {
     e.discard(z);
 }
 
-TEST(NonsecureURBGBase, SeedSeqConstructorIsValid) {
+TEST(nonsecure_urgb_base, SeedSeqConstructorIsValid) {
     std::seed_seq seq;
     ExampleNonsecureURBG rbg(seq);
 }
 
-TEST(NonsecureURBGBase, CompatibleWithDistributionUtils) {
+TEST(nonsecure_urgb_base, CompatibleWithDistributionUtils) {
     ExampleNonsecureURBG rbg;
 
     abel::Uniform(rbg, 0, 100);
@@ -139,7 +139,7 @@ TEST(NonsecureURBGBase, CompatibleWithDistributionUtils) {
     abel::Exponential<float>(rbg);
 }
 
-TEST(NonsecureURBGBase, CompatibleWithStdDistributions) {
+TEST(nonsecure_urgb_base, CompatibleWithStdDistributions) {
     ExampleNonsecureURBG rbg;
 
     // Cast to void to suppress [[nodiscard]] warnings
@@ -148,7 +148,7 @@ TEST(NonsecureURBGBase, CompatibleWithStdDistributions) {
     static_cast<void>(std::bernoulli_distribution(0.2)(rbg));
 }
 
-TEST(NonsecureURBGBase, ConsecutiveDefaultInstancesYieldUniqueVariates) {
+TEST(nonsecure_urgb_base, ConsecutiveDefaultInstancesYieldUniqueVariates) {
     const size_t kNumSamples = 128;
 
     ExampleNonsecureURBG rbg1;
@@ -159,7 +159,7 @@ TEST(NonsecureURBGBase, ConsecutiveDefaultInstancesYieldUniqueVariates) {
     }
 }
 
-TEST(NonsecureURBGBase, EqualSeedSequencesYieldEqualVariates) {
+TEST(nonsecure_urgb_base, EqualSeedSequencesYieldEqualVariates) {
     std::seed_seq seq;
 
     ExampleNonsecureURBG rbg1(seq);
@@ -181,7 +181,7 @@ TEST(NonsecureURBGBase, EqualSeedSequencesYieldEqualVariates) {
 }
 
 // This is a PRNG-compatible type specifically designed to test
-// that NonsecureURBGBase::Seeder can correctly handle iterators
+// that nonsecure_urgb_base::Seeder can correctly handle iterators
 // to arbitrary non-uint32_t size types.
 template<typename T>
 struct SeederTestEngine {
@@ -221,16 +221,16 @@ struct SeederTestEngine {
     T state[2];
 };
 
-TEST(NonsecureURBGBase, SeederWorksForU32) {
+TEST(nonsecure_urgb_base, SeederWorksForU32) {
     using U32 =
-    abel::random_internal::NonsecureURBGBase<SeederTestEngine<uint32_t>>;
+    abel::random_internal::nonsecure_urgb_base<SeederTestEngine<uint32_t>>;
     U32 x;
     EXPECT_NE(0, x());
 }
 
-TEST(NonsecureURBGBase, SeederWorksForU64) {
+TEST(nonsecure_urgb_base, SeederWorksForU64) {
     using U64 =
-    abel::random_internal::NonsecureURBGBase<SeederTestEngine<uint64_t>>;
+    abel::random_internal::nonsecure_urgb_base<SeederTestEngine<uint64_t>>;
 
     U64 x;
     EXPECT_NE(0, x());

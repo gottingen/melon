@@ -35,6 +35,7 @@ namespace abel {
     } //namespace math_internal
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> asin(const T x) ABEL_NOEXCEPT {
         return math_internal::asin_check(static_cast<return_t<T>>(x));
     }

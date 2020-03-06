@@ -198,9 +198,9 @@ namespace abel {
                         RandenTraits::kStateBytes / sizeof(uint32_t);
                 // Read the seed data from OS entropy once.
                 uint32_t seed_material[kPoolSize * kSeedSize];
-                if (!random_internal::ReadSeedMaterialFromOSEntropy(
+                if (!random_internal::read_seed_material_from_os_entropy(
                         abel::make_span(seed_material))) {
-                    random_internal::ThrowSeedGenException();
+                    random_internal::throw_seed_gen_exception();
                 }
                 for (int i = 0; i < kPoolSize; i++) {
                     shared_pools[i] = PoolAlignedAlloc();

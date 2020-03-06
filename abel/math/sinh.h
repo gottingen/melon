@@ -23,7 +23,9 @@ namespace abel {
 
 
     template<typename T>
-    ABEL_CONSTEXPR return_t<T> sinh(const T x) ABEL_NOEXCEPT {
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
+    ABEL_CONSTEXPR
+    return_t<T> sinh(const T x) ABEL_NOEXCEPT {
         return math_internal::sinh_check(static_cast<return_t<T>>(x));
     }
 

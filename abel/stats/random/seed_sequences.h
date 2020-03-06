@@ -24,25 +24,25 @@ namespace abel {
 
 
 // -----------------------------------------------------------------------------
-// abel::SeedSeq
+// abel::seed_seq
 // -----------------------------------------------------------------------------
 //
-// `abel::SeedSeq` constructs a seed sequence according to [rand.req.seedseq]
-// for use within bit generators. `abel::SeedSeq`, unlike `std::seed_seq`
+// `abel::seed_seq` constructs a seed sequence according to [rand.req.seedseq]
+// for use within bit generators. `abel::seed_seq`, unlike `std::seed_seq`
 // additionally salts the generated seeds with extra implementation-defined
-// entropy. For that reason, you can use `abel::SeedSeq` in combination with
+// entropy. For that reason, you can use `abel::seed_seq` in combination with
 // standard library bit generators (e.g. `std::mt19937`) to introduce
 // non-determinism in your seeds.
 //
 // Example:
 //
-//   abel::SeedSeq my_seed_seq({a, b, c});
+//   abel::seed_seq my_seed_seq({a, b, c});
 //   std::mt19937 my_bitgen(my_seed_seq);
 //
-    using SeedSeq = random_internal::SaltedSeedSeq<std::seed_seq>;
+    using seed_seq = random_internal::salted_seed_seq<std::seed_seq>;
 
 // -----------------------------------------------------------------------------
-// abel::CreateSeedSeqFrom(bitgen*)
+// abel::create_seed_seq_from(bitgen*)
 // -----------------------------------------------------------------------------
 //
 // Constructs a seed sequence conforming to [rand.req.seedseq] using variates
@@ -57,39 +57,39 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen my_bitgen;
-//   auto seed_seq = abel::CreateSeedSeqFrom(&my_bitgen);
-//   abel::BitGen new_engine(seed_seq); // derived from my_bitgen, but not
+//   abel::bit_gen my_bitgen;
+//   auto seed_seq = abel::create_seed_seq_from(&my_bitgen);
+//   abel::bit_gen new_engine(seed_seq); // derived from my_bitgen, but not
 //                                      // correlated.
 //
     template<typename URBG>
-    SeedSeq CreateSeedSeqFrom(URBG *urbg) {
-        SeedSeq::result_type
+    seed_seq create_seed_seq_from(URBG *urbg) {
+        seed_seq::result_type
                 seed_material[random_internal::kEntropyBlocksNeeded];
 
-        if (!random_internal::ReadSeedMaterialFromURBG(
+        if (!random_internal::read_seed_material_from_urbg(
                 urbg, abel::make_span(seed_material))) {
-            random_internal::ThrowSeedGenException();
+            random_internal::throw_seed_gen_exception();
         }
-        return SeedSeq(std::begin(seed_material), std::end(seed_material));
+        return seed_seq(std::begin(seed_material), std::end(seed_material));
     }
 
 // -----------------------------------------------------------------------------
-// abel::MakeSeedSeq()
+// abel::make_seed_seq()
 // -----------------------------------------------------------------------------
 //
-// Constructs an `abel::SeedSeq` salting the generated values using
+// Constructs an `abel::seed_seq` salting the generated values using
 // implementation-defined entropy. The returned sequence can be used to create
 // equivalent bit generators correlated using this sequence.
 //
 // Example:
 //
-//   auto my_seed_seq = abel::MakeSeedSeq();
+//   auto my_seed_seq = abel::make_seed_seq();
 //   std::mt19937 rng1(my_seed_seq);
 //   std::mt19937 rng2(my_seed_seq);
 //   EXPECT_EQ(rng1(), rng2());
 //
-    SeedSeq MakeSeedSeq();
+    seed_seq make_seed_seq();
 
 
 }  // namespace abel

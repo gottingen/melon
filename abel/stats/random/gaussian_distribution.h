@@ -58,12 +58,12 @@ namespace abel {
             //
             // x = {3.71308, 3.44261, 3.22308, ..., 0}
             // f = {0.00101, 0.00266, 0.00554, ..., 1}
-            struct Tables {
+            struct gaussian_tables {
                 double x[kMask + 2];
                 double f[kMask + 2];
             };
-            static const Tables zg_;
-            random_internal::FastUniformBits<uint64_t> fast_u64_;
+            static const gaussian_tables zg_;
+            random_internal::fast_uniform_bits<uint64_t> fast_u64_;
         };
 
     }  // namespace random_internal
@@ -200,18 +200,18 @@ namespace abel {
 
         template<typename URBG>
         ABEL_FORCE_INLINE double gaussian_distribution_base::zignor_fallback(URBG &g, bool neg) {
-            using random_internal::GeneratePositiveTag;
-            using random_internal::GenerateRealFromBits;
+            using random_internal::generate_positive_tag;
+            using random_internal::generate_real_from_bits;
 
             // This fallback path happens approximately 0.05% of the time.
             double x, y;
             do {
                 // kRInv = 1/r, U(0, 1)
                 x = kRInv *
-                    std::log(GenerateRealFromBits<double, GeneratePositiveTag, false>(
+                    std::log(generate_real_from_bits<double, generate_positive_tag, false>(
                             fast_u64_(g)));
                 y = -std::log(
-                        GenerateRealFromBits<double, GeneratePositiveTag, false>(fast_u64_(g)));
+                        generate_real_from_bits<double, generate_positive_tag, false>(fast_u64_(g)));
             } while ((y + y) < (x * x));
             return neg ? (x - kR) : (kR - x);
         }
@@ -219,9 +219,9 @@ namespace abel {
         template<typename URBG>
         ABEL_FORCE_INLINE double gaussian_distribution_base::zignor(
                 URBG &g) {  // NOLINT(runtime/references)
-            using random_internal::GeneratePositiveTag;
-            using random_internal::GenerateRealFromBits;
-            using random_internal::GenerateSignedTag;
+            using random_internal::generate_positive_tag;
+            using random_internal::generate_real_from_bits;
+            using random_internal::generate_signed_tag;
 
             while (true) {
                 // We use a single uint64_t to generate both a double and a strip.
@@ -230,7 +230,7 @@ namespace abel {
                 // values (those smaller than 1/2^5, which all end up on the left tail).
                 uint64_t bits = fast_u64_(g);
                 int i = static_cast<int>(bits & kMask);  // pick a random strip
-                double j = GenerateRealFromBits<double, GenerateSignedTag, false>(
+                double j = generate_real_from_bits<double, generate_signed_tag, false>(
                         bits);  // U(-1, 1)
                 const double x = j * zg_.x[i];
 
@@ -248,7 +248,7 @@ namespace abel {
                 }
 
                 // i > 0: Wedge samples using precomputed values.
-                double v = GenerateRealFromBits<double, GeneratePositiveTag, false>(
+                double v = generate_real_from_bits<double, generate_positive_tag, false>(
                         fast_u64_(g));  // U(0, 1)
                 if ((zg_.f[i + 1] + v * (zg_.f[i] - zg_.f[i + 1])) <
                     std::exp(-0.5 * x * x)) {

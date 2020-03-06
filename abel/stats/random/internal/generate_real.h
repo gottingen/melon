@@ -17,22 +17,22 @@ namespace abel {
 
     namespace random_internal {
 
-// Tristate tag types controlling the output of GenerateRealFromBits.
-        struct GeneratePositiveTag {
+// Tristate tag types controlling the output of generate_real_from_bits.
+        struct generate_positive_tag {
         };
-        struct GenerateNegativeTag {
+        struct generate_negative_tag {
         };
-        struct GenerateSignedTag {
+        struct generate_signed_tag {
         };
 
-// GenerateRealFromBits generates a single real value from a single 64-bit
+// generate_real_from_bits generates a single real value from a single 64-bit
 // `bits` with template fields controlling the output.
 //
 // The `SignedTag` parameter controls whether positive, negative,
 // or either signed/unsigned may be returned.
-//   When SignedTag == GeneratePositiveTag, range is U(0, 1)
-//   When SignedTag == GenerateNegativeTag, range is U(-1, 0)
-//   When SignedTag == GenerateSignedTag, range is U(-1, 1)
+//   When SignedTag == generate_positive_tag, range is U(0, 1)
+//   When SignedTag == generate_negative_tag, range is U(-1, 0)
+//   When SignedTag == generate_signed_tag, range is U(-1, 1)
 //
 // When the `IncludeZero` parameter is true, the function may return 0 for some
 // inputs, otherwise it never returns 0.
@@ -47,15 +47,15 @@ namespace abel {
 //   `U(0, 1) * 2.0 - 1.0`.
 //
 // Scaling the result by powers of 2 (and avoiding a multiply) is also possible:
-//   GenerateRealFromBits<double>(..., -1);  => U(0, 0.5)
-//   GenerateRealFromBits<double>(..., 1);   => U(0, 2)
+//   generate_real_from_bits<double>(..., -1);  => U(0, 0.5)
+//   generate_real_from_bits<double>(..., 1);   => U(0, 2)
 //
         template<typename RealType,  // Real type, either float or double.
-                typename SignedTag = GeneratePositiveTag,  // Whether a positive,
+                typename SignedTag = generate_positive_tag,  // Whether a positive,
                 // negative, or signed
                 // value is generated.
                 bool IncludeZero = true>
-        ABEL_FORCE_INLINE RealType GenerateRealFromBits(uint64_t bits, int exp_bias = 0) {
+        ABEL_FORCE_INLINE RealType generate_real_from_bits(uint64_t bits, int exp_bias = 0) {
             using real_type = RealType;
             using uint_type = abel::conditional_t<std::is_same<real_type, float>::value,
                     uint32_t, uint64_t>;
@@ -63,7 +63,7 @@ namespace abel {
             static_assert(
                     (std::is_same<double, real_type>::value ||
                      std::is_same<float, real_type>::value),
-                    "GenerateRealFromBits must be parameterized by either float or double.");
+                    "generate_real_from_bits must be parameterized by either float or double.");
 
             static_assert(sizeof(uint_type) == sizeof(real_type),
                           "Mismatched unsinged and real types.");
@@ -72,9 +72,9 @@ namespace abel {
                            std::numeric_limits<real_type>::radix == 2),
                           "RealType representation is not IEEE 754 binary.");
 
-            static_assert((std::is_same<SignedTag, GeneratePositiveTag>::value ||
-                           std::is_same<SignedTag, GenerateNegativeTag>::value ||
-                           std::is_same<SignedTag, GenerateSignedTag>::value),
+            static_assert((std::is_same<SignedTag, generate_positive_tag>::value ||
+                           std::is_same<SignedTag, generate_negative_tag>::value ||
+                           std::is_same<SignedTag, generate_signed_tag>::value),
                           "");
 
             static constexpr int kExp = std::numeric_limits<real_type>::digits - 1;
@@ -86,10 +86,10 @@ namespace abel {
             // Determine the sign bit.
             // Depending on the SignedTag, this may use the left-most bit
             // or it may be a constant value.
-            uint_type sign = std::is_same<SignedTag, GenerateNegativeTag>::value
+            uint_type sign = std::is_same<SignedTag, generate_negative_tag>::value
                              ? (static_cast<uint_type>(1) << (kUintBits - 1))
                              : 0;
-            if (std::is_same<SignedTag, GenerateSignedTag>::value) {
+            if (std::is_same<SignedTag, generate_signed_tag>::value) {
                 if (std::is_same<uint_type, uint64_t>::value) {
                     sign = bits & uint64_t{0x8000000000000000};
                 }
@@ -116,7 +116,7 @@ namespace abel {
             // Construct the 32-bit or 64-bit IEEE 754 floating-point value from
             // the individual fields: sign, exp, mantissa(bits).
             uint_type val =
-                    (std::is_same<SignedTag, GeneratePositiveTag>::value ? 0u : sign) |
+                    (std::is_same<SignedTag, generate_positive_tag>::value ? 0u : sign) |
                     (static_cast<uint_type>(exp) << kExp) |
                     (static_cast<uint_type>(bits) & kMask);
 

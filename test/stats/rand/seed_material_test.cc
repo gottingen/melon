@@ -28,54 +28,54 @@ namespace {
     using testing::Ne;
     using testing::Pointwise;
 
-    TEST(SeedBitsToBlocks, VerifyCases) {
-        EXPECT_EQ(0, abel::random_internal::SeedBitsToBlocks(0));
-        EXPECT_EQ(1, abel::random_internal::SeedBitsToBlocks(1));
-        EXPECT_EQ(1, abel::random_internal::SeedBitsToBlocks(31));
-        EXPECT_EQ(1, abel::random_internal::SeedBitsToBlocks(32));
-        EXPECT_EQ(2, abel::random_internal::SeedBitsToBlocks(33));
-        EXPECT_EQ(4, abel::random_internal::SeedBitsToBlocks(127));
-        EXPECT_EQ(4, abel::random_internal::SeedBitsToBlocks(128));
-        EXPECT_EQ(5, abel::random_internal::SeedBitsToBlocks(129));
+    TEST(seed_bits_to_blocks, VerifyCases) {
+        EXPECT_EQ(0, abel::random_internal::seed_bits_to_blocks(0));
+        EXPECT_EQ(1, abel::random_internal::seed_bits_to_blocks(1));
+        EXPECT_EQ(1, abel::random_internal::seed_bits_to_blocks(31));
+        EXPECT_EQ(1, abel::random_internal::seed_bits_to_blocks(32));
+        EXPECT_EQ(2, abel::random_internal::seed_bits_to_blocks(33));
+        EXPECT_EQ(4, abel::random_internal::seed_bits_to_blocks(127));
+        EXPECT_EQ(4, abel::random_internal::seed_bits_to_blocks(128));
+        EXPECT_EQ(5, abel::random_internal::seed_bits_to_blocks(129));
     }
 
-    TEST(ReadSeedMaterialFromOSEntropy, SuccessiveReadsAreDistinct) {
+    TEST(read_seed_material_from_os_entropy, SuccessiveReadsAreDistinct) {
         constexpr size_t kSeedMaterialSize = 64;
         uint32_t seed_material_1[kSeedMaterialSize] = {};
         uint32_t seed_material_2[kSeedMaterialSize] = {};
 
-        EXPECT_TRUE(abel::random_internal::ReadSeedMaterialFromOSEntropy(
+        EXPECT_TRUE(abel::random_internal::read_seed_material_from_os_entropy(
                 abel::span<uint32_t>(seed_material_1, kSeedMaterialSize)));
-        EXPECT_TRUE(abel::random_internal::ReadSeedMaterialFromOSEntropy(
+        EXPECT_TRUE(abel::random_internal::read_seed_material_from_os_entropy(
                 abel::span<uint32_t>(seed_material_2, kSeedMaterialSize)));
 
         EXPECT_THAT(seed_material_1, Pointwise(Ne(), seed_material_2));
     }
 
-    TEST(ReadSeedMaterialFromOSEntropy, ReadZeroBytesIsNoOp) {
+    TEST(read_seed_material_from_os_entropy, ReadZeroBytesIsNoOp) {
         uint32_t seed_material[32] = {};
         std::memset(seed_material, 0xAA, sizeof(seed_material));
-        EXPECT_TRUE(abel::random_internal::ReadSeedMaterialFromOSEntropy(
+        EXPECT_TRUE(abel::random_internal::read_seed_material_from_os_entropy(
                 abel::span<uint32_t>(seed_material, 0)));
 
         EXPECT_THAT(seed_material, Each(Eq(0xAAAAAAAA)));
     }
 
-    TEST(ReadSeedMaterialFromOSEntropy, NullPtrVectorArgument) {
+    TEST(read_seed_material_from_os_entropy, NullPtrVectorArgument) {
 #ifdef NDEBUG
-        EXPECT_FALSE(abel::random_internal::ReadSeedMaterialFromOSEntropy(
+        EXPECT_FALSE(abel::random_internal::read_seed_material_from_os_entropy(
             abel::span<uint32_t>(nullptr, 32)));
 #else
         bool result;
         ABEL_EXPECT_DEATH_IF_SUPPORTED(
-                result = abel::random_internal::ReadSeedMaterialFromOSEntropy(
+                result = abel::random_internal::read_seed_material_from_os_entropy(
                         abel::span<uint32_t>(nullptr, 32)),
                 "!= nullptr");
         (void) result;  // suppress unused-variable warning
 #endif
     }
 
-    TEST(ReadSeedMaterialFromURBG, SeedMaterialEqualsVariateSequence) {
+    TEST(read_seed_material_from_urbg, SeedMaterialEqualsVariateSequence) {
         // Two default-constructed instances of std::mt19937_64 are guaranteed to
         // produce equal variate-sequences.
         std::mt19937 urbg_1;
@@ -83,48 +83,48 @@ namespace {
         constexpr size_t kSeedMaterialSize = 1024;
         uint32_t seed_material[kSeedMaterialSize] = {};
 
-        EXPECT_TRUE(abel::random_internal::ReadSeedMaterialFromURBG(
+        EXPECT_TRUE(abel::random_internal::read_seed_material_from_urbg(
                 &urbg_1, abel::span<uint32_t>(seed_material, kSeedMaterialSize)));
         for (uint32_t seed : seed_material) {
             EXPECT_EQ(seed, urbg_2());
         }
     }
 
-    TEST(ReadSeedMaterialFromURBG, ReadZeroBytesIsNoOp) {
+    TEST(read_seed_material_from_urbg, ReadZeroBytesIsNoOp) {
         std::mt19937_64 urbg;
         uint32_t seed_material[32];
         std::memset(seed_material, 0xAA, sizeof(seed_material));
-        EXPECT_TRUE(abel::random_internal::ReadSeedMaterialFromURBG(
+        EXPECT_TRUE(abel::random_internal::read_seed_material_from_urbg(
                 &urbg, abel::span<uint32_t>(seed_material, 0)));
 
         EXPECT_THAT(seed_material, Each(Eq(0xAAAAAAAA)));
     }
 
-    TEST(ReadSeedMaterialFromURBG, NullUrbgArgument) {
+    TEST(read_seed_material_from_urbg, NullUrbgArgument) {
         constexpr size_t kSeedMaterialSize = 32;
         uint32_t seed_material[kSeedMaterialSize];
 #ifdef NDEBUG
-        EXPECT_FALSE(abel::random_internal::ReadSeedMaterialFromURBG<std::mt19937_64>(
+        EXPECT_FALSE(abel::random_internal::read_seed_material_from_urbg<std::mt19937_64>(
             nullptr, abel::span<uint32_t>(seed_material, kSeedMaterialSize)));
 #else
         bool result;
         ABEL_EXPECT_DEATH_IF_SUPPORTED(
-                result = abel::random_internal::ReadSeedMaterialFromURBG<std::mt19937_64>(
+                result = abel::random_internal::read_seed_material_from_urbg<std::mt19937_64>(
                         nullptr, abel::span<uint32_t>(seed_material, kSeedMaterialSize)),
                 "!= nullptr");
         (void) result;  // suppress unused-variable warning
 #endif
     }
 
-    TEST(ReadSeedMaterialFromURBG, NullPtrVectorArgument) {
+    TEST(read_seed_material_from_urbg, NullPtrVectorArgument) {
         std::mt19937_64 urbg;
 #ifdef NDEBUG
-        EXPECT_FALSE(abel::random_internal::ReadSeedMaterialFromURBG(
+        EXPECT_FALSE(abel::random_internal::read_seed_material_from_urbg(
             &urbg, abel::span<uint32_t>(nullptr, 32)));
 #else
         bool result;
         ABEL_EXPECT_DEATH_IF_SUPPORTED(
-                result = abel::random_internal::ReadSeedMaterialFromURBG(
+                result = abel::random_internal::read_seed_material_from_urbg(
                         &urbg, abel::span<uint32_t>(nullptr, 32)),
                 "!= nullptr");
         (void) result;  // suppress unused-variable warning
@@ -145,7 +145,7 @@ namespace {
         // anywhere in the range of 30%-70%.
         for (uint32_t v = 1; v != 0; v <<= 1) {
             std::vector<uint32_t> seed_material_copy = seed_material;
-            abel::random_internal::MixIntoSeedMaterial(
+            abel::random_internal::mix_into_seed_material(
                     abel::span<uint32_t>(&v, 1),
                     abel::span<uint32_t>(seed_material_copy.data(),
                                          seed_material_copy.size()));
@@ -170,7 +170,7 @@ namespace {
         // anywhere in the range of 30%-70%.
         for (uint32_t v = 1; v != 0; v <<= 1) {
             std::vector<uint32_t> seed_material_copy = seed_material;
-            abel::random_internal::MixIntoSeedMaterial(
+            abel::random_internal::mix_into_seed_material(
                     abel::span<uint32_t>(&v, 1),
                     abel::span<uint32_t>(seed_material_copy.data(),
                                          seed_material_copy.size()));

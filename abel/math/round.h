@@ -32,7 +32,8 @@ namespace abel {
 
 
     template<typename T>
-    ABEL_CONSTEXPR return_t<T> round(const T x) ABEL_NOEXCEPT {
+    ABEL_CONSTEXPR  ABEL_DEPRECATED_MESSAGE("use std version instead")
+    return_t<T> round(const T x) ABEL_NOEXCEPT {
         return math_internal::round_check(static_cast<return_t<T>>(x));
     }
 

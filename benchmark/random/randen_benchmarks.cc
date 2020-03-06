@@ -6,7 +6,7 @@
 #include <cstring>
 #include <abel/base/profile.h>
 #include <abel/log/raw_logging.h>
-#include <abel/stats/random/internal/nanobenchmark.h>
+#include <benchmark/random/nanobenchmark.h>
 #include <abel/stats/random/engine/randen_engine.h>
 #include <abel/stats/random/engine/randen_hwaes.h>
 #include <abel/stats/random/engine/randen_slow.h>
@@ -20,10 +20,10 @@ namespace {
 
     using abel::random_internal_nanobenchmark::FuncInput;
     using abel::random_internal_nanobenchmark::FuncOutput;
-    using abel::random_internal_nanobenchmark::InvariantTicksPerSecond;
-    using abel::random_internal_nanobenchmark::MeasureClosure;
+    using abel::random_internal_nanobenchmark::invariant_ticks_per_second;
+    using abel::random_internal_nanobenchmark::measure_closure;
     using abel::random_internal_nanobenchmark::Params;
-    using abel::random_internal_nanobenchmark::PinThreadToCPU;
+    using abel::random_internal_nanobenchmark::pin_thread_to_cpu;
     using abel::random_internal_nanobenchmark::Result;
 
 // Local state parameters.
@@ -84,11 +84,11 @@ namespace {
             ABEL_RAW_LOG(
                     WARNING,
                     "WARNING: Measurement failed, should not happen when using "
-                    "PinThreadToCPU unless the region to measure takes > 1 second.\n");
+                    "pin_thread_to_cpu unless the region to measure takes > 1 second.\n");
             return;
         }
 
-        static const double ns_per_tick = 1e9 / InvariantTicksPerSecond();
+        static const double ns_per_tick = 1e9 / invariant_ticks_per_second();
         static constexpr const double kNsPerS = 1e9;                 // ns/s
         static constexpr const double kMBPerByte = 1.0 / 1048576.0;  // Mb / b
         static auto header = [] {
@@ -111,14 +111,14 @@ namespace {
 
 // Fails here
     template<typename Op, size_t N>
-    void Measure(const char *name, const FuncInput (&inputs)[N]) {
+    void measure(const char *name, const FuncInput (&inputs)[N]) {
         Op op;
 
         Result results[N];
         Params params;
         params.verbose = false;
         params.max_evals = 6;  // avoid test timeout
-        const size_t num_results = MeasureClosure(op, inputs, N, results, params);
+        const size_t num_results = measure_closure(op, inputs, N, results, params);
         Print(name, num_results, results, op.bytes());
     }
 
@@ -129,7 +129,7 @@ namespace {
             if (!abel::simple_atoi(argv[1], &cpu)) {
                 ABEL_RAW_LOG(FATAL, "The optional argument must be a CPU number >= 0.\n");
             }
-            PinThreadToCPU(cpu);
+            pin_thread_to_cpu(cpu);
         }
 
         // The compiler cannot reduce this to a constant.
@@ -137,20 +137,20 @@ namespace {
         static const FuncInput inputs[] = {unpredictable * 100, unpredictable * 1000};
 
 #if !defined(ABEL_INTERNAL_DISABLE_AES) && ABEL_HAVE_ACCELERATED_AES
-        Measure<AbsorbFn<RandenHwAes>>("Absorb (HwAes)", inputs);
+        measure<AbsorbFn<RandenHwAes>>("Absorb (HwAes)", inputs);
 #endif
-        Measure<AbsorbFn<RandenSlow>>("Absorb (Slow)", inputs);
+        measure<AbsorbFn<RandenSlow>>("Absorb (Slow)", inputs);
 
 #if !defined(ABEL_INTERNAL_DISABLE_AES) && ABEL_HAVE_ACCELERATED_AES
-        Measure<GenerateFn<RandenHwAes>>("Generate (HwAes)", inputs);
+        measure<GenerateFn<RandenHwAes>>("Generate (HwAes)", inputs);
 #endif
-        Measure<GenerateFn<RandenSlow>>("Generate (Slow)", inputs);
+        measure<GenerateFn<RandenSlow>>("Generate (Slow)", inputs);
 
-        // Measure the production engine.
+        // measure the production engine.
         static const FuncInput inputs1[] = {unpredictable * 1000,
                                             unpredictable * 10000};
-        Measure<Engine<uint64_t>>("randen_engine<uint64_t>", inputs1);
-        Measure<Engine<uint32_t>>("randen_engine<uint32_t>", inputs1);
+        measure<Engine<uint64_t>>("randen_engine<uint64_t>", inputs1);
+        measure<Engine<uint32_t>>("randen_engine<uint32_t>", inputs1);
     }
 
 }  // namespace

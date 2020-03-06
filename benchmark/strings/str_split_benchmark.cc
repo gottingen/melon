@@ -46,7 +46,7 @@ namespace {
         return test;
     }
 
-// Measure  string_split with by_any_char with four delimiters to choose from.
+// measure  string_split with by_any_char with four delimiters to choose from.
     void BM_Split2StringViewByAnyChar(benchmark::State &state) {
         std::string test = MakeMultiDelimiterTestString(state.range(0));
         for (auto _ : state) {

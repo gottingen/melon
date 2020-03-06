@@ -8,7 +8,7 @@ namespace abel {
 
 // Initializes the distribution table for Walker's Aliasing algorithm, described
 // in Knuth, Vol 2. as well as in https://en.wikipedia.org/wiki/Alias_method
-        std::vector<std::pair<double, size_t>> InitDiscreteDistribution(
+        std::vector<std::pair<double, size_t>> init_discrete_distribution(
                 std::vector<double> *probabilities) {
             // The empty-case should already be handled by the constructor.
             assert(probabilities);

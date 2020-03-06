@@ -38,7 +38,7 @@ namespace {
         const TypeParam kNegOneOrZero = std::is_unsigned<TypeParam>::value ? 0 : -1;
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const auto &param : {
                 param_type(),
                 param_type(2, 2),  // Same
@@ -108,7 +108,7 @@ namespace {
 #if defined(NDEBUG)
         // opt-mode, for invalid parameters, will generate a garbage value,
         // but should not enter an infinite loop.
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         abel::uniform_int_distribution<TypeParam> dist(10, 1);
         auto x = dist(gen);
 
@@ -123,7 +123,7 @@ namespace {
         using param_type =
         typename abel::uniform_int_distribution<TypeParam>::param_type;
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
         std::vector<double> values(kSize);
         for (const auto &param :
                 {param_type(0, Limits::max()), param_type(13, 127)}) {
@@ -162,12 +162,12 @@ namespace {
 
         // Empirically validated with --runs_per_test=10000.
         const int kThreshold =
-                abel::random_internal::ChiSquareValue(kBuckets, 0.999999);
+                abel::random_internal::chi_square_value(kBuckets, 0.999999);
 
         const TypeParam min = std::is_unsigned<TypeParam>::value ? 37 : -37;
         const TypeParam max = min + kBuckets;
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
         abel::uniform_int_distribution<TypeParam> dist(min, max);
 
         std::vector<int32_t> counts(kBuckets + 1, 0);
@@ -175,11 +175,11 @@ namespace {
             auto x = dist(rng);
             counts[x - min]++;
         }
-        double chi_square = abel::random_internal::ChiSquareWithExpected(
+        double chi_square = abel::random_internal::chi_square_with_expected(
                 std::begin(counts), std::end(counts), kExpected);
         if (chi_square > kThreshold) {
             double p_value =
-                    abel::random_internal::ChiSquarePValue(chi_square, kBuckets);
+                    abel::random_internal::chi_square_p_value(chi_square, kBuckets);
 
             // Chi-squared test failed. Output does not appear to be uniform.
             std::string msg;

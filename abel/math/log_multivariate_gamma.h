@@ -25,6 +25,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T1> lmgamma(const T1 a, const T2 p) ABEL_NOEXCEPT {
         return math_internal::lmgamma_recur(static_cast<return_t<T1>>(a), p);
     }

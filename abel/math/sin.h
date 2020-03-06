@@ -40,7 +40,8 @@ namespace abel {
 
 
     template<typename T>
-    ABEL_CONSTEXPR return_t<T> sin(const T x) ABEL_NOEXCEPT {
+    ABEL_CONSTEXPR ABEL_DEPRECATED_MESSAGE("use std version instead")
+    return_t<T> sin(const T x) ABEL_NOEXCEPT {
         return math_internal::sin_check(static_cast<return_t<T>>(x));
     }
 }

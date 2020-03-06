@@ -40,6 +40,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_t<T1, T2> binomial_coef(const T1 n, const T2 k) ABEL_NOEXCEPT {
         return math_internal::binomial_coef_type_check(n, k);
     }

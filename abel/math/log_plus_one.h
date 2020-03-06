@@ -34,6 +34,7 @@ namespace abel {
 
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> log1p(const T x) ABEL_NOEXCEPT {
         return math_internal::log1p_check(static_cast<return_t<T>>(x));
     }

@@ -159,7 +159,7 @@ namespace {
     ->Arg(50)
     ->Arg(200);
 
-// Measure the overhead of conditions on mutex release (when they must be
+// measure the overhead of conditions on mutex release (when they must be
 // evaluated).  mutex has (some) support for equivalence classes allowing
 // Conditions with the same function/argument to potentially not be multiply
 // evaluated.

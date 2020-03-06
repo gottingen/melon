@@ -97,7 +97,7 @@ namespace {
 
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
         for (const double m : kParams) {
             const double mean = std::min(kMax, m);
             const param_type param(mean);
@@ -252,7 +252,7 @@ namespace {
         template<typename D>
         bool SingleZTest(const double p, const size_t samples);
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     template<typename D>
@@ -354,7 +354,7 @@ namespace {
     private:
         void InitChiSquaredTest(const double buckets);
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
         std::vector<size_t> cutoffs_;
         std::vector<double> expected_;
     };
@@ -417,12 +417,12 @@ namespace {
         const int dof = static_cast<int>(counts.size()) - 1;
 
         // The threshold for logging is 1-in-50.
-        const double threshold = abel::random_internal::ChiSquareValue(dof, 0.98);
+        const double threshold = abel::random_internal::chi_square_value(dof, 0.98);
 
-        const double chi_square = abel::random_internal::ChiSquare(
+        const double chi_square = abel::random_internal::chi_square(
                 std::begin(counts), std::end(counts), std::begin(e), std::end(e));
 
-        const double p = abel::random_internal::ChiSquarePValue(chi_square, dof);
+        const double p = abel::random_internal::chi_square_p_value(chi_square, dof);
 
         // Log if the chi_squared value is above the threshold.
         if (chi_square > threshold) {
@@ -474,7 +474,7 @@ namespace {
         using testing::ElementsAre;
         // abel::poisson_distribution stability relies on stability of
         // std::exp, std::log, std::sqrt, std::ceil, std::floor, and
-        // abel::FastUniformBits, abel::StirlingLogFactorial, abel::RandU64ToDouble.
+        // abel::fast_uniform_bits, abel::StirlingLogFactorial, abel::RandU64ToDouble.
         abel::random_internal::sequence_urbg urbg({
                                                           0x035b0dc7e0a18acfull, 0x06cebe0d2653682eull,
                                                           0x0061e9b23861596bull,

@@ -39,8 +39,8 @@
 // resolution to about 40 CPU cycles. However, shorter functions must still
 // be invoked repeatedly. For more realistic branch prediction performance,
 // we vary the input parameter according to a user-specified distribution.
-// Thus, instead of VaryInputs(Measure(Repeat(func))), we change the
-// loop nesting to Measure(Repeat(VaryInputs(func))). We also estimate the
+// Thus, instead of VaryInputs(measure(Repeat(func))), we change the
+// loop nesting to measure(Repeat(VaryInputs(func))). We also estimate the
 // central tendency of the measurement samples with the "half sample mode",
 // which is more robust to outliers and skewed data than the mean or median.
 
@@ -64,7 +64,7 @@ namespace abel {
 
 // Function to measure: either 1) a captureless lambda or function with two
 // arguments or 2) a lambda with capture, in which case the first argument
-// is reserved for use by MeasureClosure.
+// is reserved for use by measure_closure.
         using Func = FuncOutput (*)(const void *, FuncInput);
 
 // Internal parameters that determine precision/resolution/measuring time.
@@ -117,25 +117,25 @@ namespace abel {
             // Robust estimate (mode or median) of duration.
             float ticks;
 
-            // Measure of variability (median absolute deviation relative to "ticks").
+            // measure of variability (median absolute deviation relative to "ticks").
             float variability;
         };
 
 // Ensures the thread is running on the specified cpu, and no others.
 // Reduces noise due to desynchronized socket RDTSC and context switches.
 // If "cpu" is negative, pin to the currently running core.
-        void PinThreadToCPU(const int cpu = -1);
+        void pin_thread_to_cpu(const int cpu = -1);
 
 // Returns tick rate, useful for converting measurements to seconds. Invariant
 // means the tick counter frequency is independent of CPU throttling or sleep.
 // This call may be expensive, callers should cache the result.
-        double InvariantTicksPerSecond();
+        double invariant_ticks_per_second();
 
 // Precisely measures the number of ticks elapsed when calling "func" with the
 // given inputs, shuffled to ensure realistic branch prediction hit rates.
 //
 // "func" returns a 'proof of work' to ensure its computations are not elided.
-// "arg" is passed to Func, or reserved for internal use by MeasureClosure.
+// "arg" is passed to Func, or reserved for internal use by measure_closure.
 // "inputs" is an array of "num_inputs" (not necessarily unique) arguments to
 //   "func". The values should be chosen to maximize coverage of "func". This
 //   represents a distribution, so a value's frequency should reflect its
@@ -143,24 +143,24 @@ namespace abel {
 //   uniform distribution over [0, 4) could be represented as {3,0,2,1}.
 // Returns how many Result were written to "results": one per unique input, or
 //   zero if the measurement failed (an error message goes to stderr).
-        size_t Measure(const Func func, const void *arg, const FuncInput *inputs,
+        size_t measure(const Func func, const void *arg, const FuncInput *inputs,
                        const size_t num_inputs, Result *results,
                        const Params &p = Params());
 
 // Calls operator() of the given closure (lambda function).
         template<class Closure>
-        static FuncOutput CallClosure(const void *f, const FuncInput input) {
+        static FuncOutput call_closure(const void *f, const FuncInput input) {
             return (*reinterpret_cast<const Closure *>(f))(input);
         }
 
-// Same as Measure, except "closure" is typically a lambda function of
+// Same as measure, except "closure" is typically a lambda function of
 // FuncInput -> FuncOutput with a capture list.
         template<class Closure>
-        static ABEL_FORCE_INLINE size_t MeasureClosure(const Closure &closure,
+        static ABEL_FORCE_INLINE size_t measure_closure(const Closure &closure,
                                                        const FuncInput *inputs,
                                                        const size_t num_inputs, Result *results,
                                                        const Params &p = Params()) {
-            return Measure(reinterpret_cast<Func>(&CallClosure<Closure>),
+            return measure(reinterpret_cast<Func>(&call_closure<Closure>),
                            reinterpret_cast<const void *>(&closure), inputs, num_inputs,
                            results, p);
         }

@@ -36,6 +36,7 @@ namespace abel {
 
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> floor(const T x) ABEL_NOEXCEPT {
         return math_internal::floor_check(static_cast<return_t<T>>(x));
     }

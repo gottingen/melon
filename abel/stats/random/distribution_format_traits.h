@@ -25,18 +25,18 @@
 namespace abel {
 
 
-    struct IntervalClosedClosedTag;
-    struct IntervalClosedOpenTag;
-    struct IntervalOpenClosedTag;
-    struct IntervalOpenOpenTag;
+    struct interval_closed_closed_tag;
+    struct interval_closed_open_tag;
+    struct interval_open_closed_tag;
+    struct interval_open_open_tag;
 
     namespace random_internal {
 
-// ScalarTypeName defines a preferred hierarchy of preferred type names for
+// scalar_type_name defines a preferred hierarchy of preferred type names for
 // scalars, and is evaluated at compile time for the specific type
 // specialization.
         template<typename T>
-        constexpr const char *ScalarTypeName() {
+        constexpr const char *scalar_type_name() {
             static_assert(std::is_integral<T>() || std::is_floating_point<T>(), "");
             // clang-format off
             return
@@ -61,10 +61,10 @@ namespace abel {
             // using, e.g. abi::__cxa_demangle.
         }
 
-// Distribution traits used by DistributionCaller and internal implementation
+// Distribution traits used by distribution_caller and internal implementation
 // details of the mocking framework.
 /*
-struct DistributionFormatTraits {
+struct distribution_format_traits {
    // Returns the parameterized name of the distribution function.
    static constexpr const char* FunctionName()
    // Format DistrT parameters.
@@ -74,17 +74,17 @@ struct DistributionFormatTraits {
 };
 */
         template<typename DistrT>
-        struct DistributionFormatTraits;
+        struct distribution_format_traits;
 
         template<typename R>
-        struct DistributionFormatTraits<abel::uniform_int_distribution<R>> {
+        struct distribution_format_traits<abel::uniform_int_distribution<R>> {
             using distribution_t = abel::uniform_int_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Uniform"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -98,14 +98,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::uniform_real_distribution<R>> {
+        struct distribution_format_traits<abel::uniform_real_distribution<R>> {
             using distribution_t = abel::uniform_real_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Uniform"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -118,14 +118,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::exponential_distribution<R>> {
+        struct distribution_format_traits<abel::exponential_distribution<R>> {
             using distribution_t = abel::exponential_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Exponential"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -138,14 +138,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::poisson_distribution<R>> {
+        struct distribution_format_traits<abel::poisson_distribution<R>> {
             using distribution_t = abel::poisson_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Poisson"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -158,7 +158,7 @@ struct DistributionFormatTraits {
         };
 
         template<>
-        struct DistributionFormatTraits<abel::bernoulli_distribution> {
+        struct distribution_format_traits<abel::bernoulli_distribution> {
             using distribution_t = abel::bernoulli_distribution;
             using result_t = typename distribution_t::result_type;
 
@@ -176,14 +176,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::beta_distribution<R>> {
+        struct distribution_format_traits<abel::beta_distribution<R>> {
             using distribution_t = abel::beta_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Beta"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -196,14 +196,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::zipf_distribution<R>> {
+        struct distribution_format_traits<abel::zipf_distribution<R>> {
             using distribution_t = abel::zipf_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Zipf"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -216,14 +216,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::gaussian_distribution<R>> {
+        struct distribution_format_traits<abel::gaussian_distribution<R>> {
             using distribution_t = abel::gaussian_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "Gaussian"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -236,14 +236,14 @@ struct DistributionFormatTraits {
         };
 
         template<typename R>
-        struct DistributionFormatTraits<abel::log_uniform_int_distribution<R>> {
+        struct distribution_format_traits<abel::log_uniform_int_distribution<R>> {
             using distribution_t = abel::log_uniform_int_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
             static constexpr const char *Name() { return "LogUniform"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<R>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {
@@ -256,17 +256,17 @@ struct DistributionFormatTraits {
         };
 
         template<typename NumType>
-        struct UniformDistributionWrapper;
+        struct uniform_distribution_wrapper;
 
         template<typename NumType>
-        struct DistributionFormatTraits<UniformDistributionWrapper<NumType>> {
-            using distribution_t = UniformDistributionWrapper<NumType>;
+        struct distribution_format_traits<uniform_distribution_wrapper<NumType>> {
+            using distribution_t = uniform_distribution_wrapper<NumType>;
             using result_t = NumType;
 
             static constexpr const char *Name() { return "Uniform"; }
 
             static std::string FunctionName() {
-                return abel::string_cat(Name(), "<", ScalarTypeName<NumType>(), ">");
+                return abel::string_cat(Name(), "<", scalar_type_name<NumType>(), ">");
             }
 
             static std::string FormatArgs(const distribution_t &d) {

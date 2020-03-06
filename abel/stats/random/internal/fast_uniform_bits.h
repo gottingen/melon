@@ -71,7 +71,7 @@ namespace abel {
                    : (UIntType{1} << n) - UIntType{1};
         }
 
-// FastUniformBits implements a fast path to acquire uniform independent bits
+// fast_uniform_bits implements a fast path to acquire uniform independent bits
 // from a type which conforms to the [rand.req.urbg] concept.
 // Parameterized by:
 //  `UIntType`: the result (output) type
@@ -81,7 +81,7 @@ namespace abel {
 // not, however, facilitate the production of pseudorandom bits from an un-owned
 // generator that will outlive the std::independent_bits_engine instance.
         template<typename UIntType = uint64_t>
-        class FastUniformBits {
+        class fast_uniform_bits {
         public:
             using result_type = UIntType;
 
@@ -96,7 +96,7 @@ namespace abel {
 
         private:
             static_assert(std::is_unsigned<UIntType>::value,
-                          "Class-template FastUniformBits<> must be parameterized using "
+                          "Class-template fast_uniform_bits<> must be parameterized using "
                           "an unsigned type.");
 
             // PowerOfTwoVariate() generates a single random variate, always returning a
@@ -150,8 +150,8 @@ namespace abel {
 
         template<typename UIntType>
         template<typename URBG>
-        typename FastUniformBits<UIntType>::result_type
-        FastUniformBits<UIntType>::operator()(URBG &g) {  // NOLINT(runtime/references)
+        typename fast_uniform_bits<UIntType>::result_type
+        fast_uniform_bits<UIntType>::operator()(URBG &g) {  // NOLINT(runtime/references)
             // kRangeMask is the mask used when sampling variates from the URBG when the
             // width of the URBG range is not a power of 2.
             // Y = (2 ^ kRange) - 1
@@ -167,8 +167,8 @@ namespace abel {
 
         template<typename UIntType>
         template<typename URBG>
-        typename FastUniformBits<UIntType>::result_type
-        FastUniformBits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
+        typename fast_uniform_bits<UIntType>::result_type
+        fast_uniform_bits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
                                             std::true_type /* avoid_looping */) {
             // The width of the result_type is less than than the width of the random bits
             // provided by URBG.  Thus, generate a single value and then simply mask off
@@ -179,8 +179,8 @@ namespace abel {
 
         template<typename UIntType>
         template<typename URBG>
-        typename FastUniformBits<UIntType>::result_type
-        FastUniformBits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
+        typename fast_uniform_bits<UIntType>::result_type
+        fast_uniform_bits<UIntType>::Generate(URBG &g,  // NOLINT(runtime/references)
                                             std::false_type /* avoid_looping */) {
             // See [rand.adapt.ibits] for more details on the constants calculated below.
             //

@@ -76,6 +76,7 @@ namespace abel {
 
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> log(const T x) ABEL_NOEXCEPT {
         return math_internal::log_check(static_cast<return_t<T>>(x));
     }
@@ -86,6 +87,7 @@ namespace abel {
 
 //! calculate the log2 floor of an integer type
     template<typename IntegerType>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR unsigned log2_floor(IntegerType n) {
         return (n <= 1) ? 0 : 1 + log2_floor(n / 2);
     }
