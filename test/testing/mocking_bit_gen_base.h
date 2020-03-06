@@ -77,7 +77,7 @@ namespace abel {
             // DistT is the distribution type.
             // FormatT is the distribution formatter traits type.
             template<typename DistrT, typename FormatT, typename... Args>
-            typename DistrT::result_type Call(Args &&... args) {
+            typename DistrT::result_type call(Args &&... args) {
                 using distr_result_type = typename DistrT::result_type;
                 using ArgTupleT = std::tuple<abel::decay_t<Args>...>;
 

@@ -10,7 +10,7 @@
 // The abel random library defines the following distributions within this
 // file:
 //
-//   * `abel::Uniform` for uniform (constant) distributions having constant
+//   * `abel::uniform` for uniform (constant) distributions having constant
 //     probability
 //   * `abel::Bernoulli` for discrete distributions having exactly two outcomes
 //   * `abel::Beta` for continuous distributions parameterized through two
@@ -65,10 +65,10 @@ namespace abel {
     ABEL_INTERNAL_INLINE_CONSTEXPR(interval_open_closed_tag, IntervalOpenClosed, {});
 
 // -----------------------------------------------------------------------------
-// abel::Uniform<T>(tag, bitgen, lo, hi)
+// abel::uniform<T>(tag, bitgen, lo, hi)
 // -----------------------------------------------------------------------------
 //
-// `abel::Uniform()` produces random values of type `T` uniformly distributed in
+// `abel::uniform()` produces random values of type `T` uniformly distributed in
 // a defined interval {lo, hi}. The interval `tag` defines the type of interval
 // which should be one of the following possible values:
 //
@@ -80,7 +80,7 @@ namespace abel {
 // where "open" refers to an exclusive value (excluded) from the output, while
 // "closed" refers to an inclusive value (included) from the output.
 //
-// In the absence of an explicit return type `T`, `abel::Uniform()` will deduce
+// In the absence of an explicit return type `T`, `abel::uniform()` will deduce
 // the return type based on the provided endpoint arguments {A lo, B hi}.
 // Given these endpoints, one of {A, B} will be chosen as the return type, if
 // a type can be implicitly converted into the other in a lossless way. The
@@ -94,21 +94,21 @@ namespace abel {
 //   abel::bit_gen bitgen;
 //
 //   // Produce a random float value between 0.0 and 1.0, inclusive
-//   auto x = abel::Uniform(abel::IntervalClosedClosed, bitgen, 0.0f, 1.0f);
+//   auto x = abel::uniform(abel::IntervalClosedClosed, bitgen, 0.0f, 1.0f);
 //
 //   // The most common interval of `abel::IntervalClosedOpen` is available by
 //   // default:
 //
-//   auto x = abel::Uniform(bitgen, 0.0f, 1.0f);
+//   auto x = abel::uniform(bitgen, 0.0f, 1.0f);
 //
 //   // Return-types are typically inferred from the arguments, however callers
 //   // can optionally provide an explicit return-type to the template.
 //
-//   auto x = abel::Uniform<float>(bitgen, 0, 1);
+//   auto x = abel::uniform<float>(bitgen, 0, 1);
 //
     template<typename R = void, typename TagType, typename URBG>
     typename abel::enable_if_t<!std::is_same<R, void>::value, R>  //
-    Uniform(TagType tag,
+    uniform(TagType tag,
             URBG &&urbg,  // NOLINT(runtime/references)
             R lo, R hi) {
         using gen_t = abel::decay_t<URBG>;
@@ -119,17 +119,17 @@ namespace abel {
         auto b = random_internal::uniform_upper_bound(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, tag, lo, hi);
     }
 
-// abel::Uniform<T>(bitgen, lo, hi)
+// abel::uniform<T>(bitgen, lo, hi)
 //
-// Overload of `Uniform()` using the default closed-open interval of [lo, hi),
+// Overload of `uniform()` using the default closed-open interval of [lo, hi),
 // and returning values of type `T`
     template<typename R = void, typename URBG>
     typename abel::enable_if_t<!std::is_same<R, void>::value, R>  //
-    Uniform(URBG &&urbg,  // NOLINT(runtime/references)
+    uniform(URBG &&urbg,  // NOLINT(runtime/references)
             R lo, R hi) {
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = random_internal::uniform_distribution_wrapper<R>;
@@ -140,20 +140,20 @@ namespace abel {
         auto b = random_internal::uniform_upper_bound(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, lo, hi);
     }
 
-// abel::Uniform(tag, bitgen, lo, hi)
+// abel::uniform(tag, bitgen, lo, hi)
 //
-// Overload of `Uniform()` using different (but compatible) lo, hi types. Note
+// Overload of `uniform()` using different (but compatible) lo, hi types. Note
 // that a compile-error will result if the return type cannot be deduced
 // correctly from the passed types.
     template<typename R = void, typename TagType, typename URBG, typename A,
             typename B>
     typename abel::enable_if_t<std::is_same<R, void>::value,
             random_internal::uniform_inferred_return_t<A, B>>
-    Uniform(TagType tag,
+    uniform(TagType tag,
             URBG &&urbg,  // NOLINT(runtime/references)
             A lo, B hi) {
         using gen_t = abel::decay_t<URBG>;
@@ -165,20 +165,20 @@ namespace abel {
         auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, tag, static_cast<return_t>(lo),
                                           static_cast<return_t>(hi));
     }
 
-// abel::Uniform(bitgen, lo, hi)
+// abel::uniform(bitgen, lo, hi)
 //
-// Overload of `Uniform()` using different (but compatible) lo, hi types and the
+// Overload of `uniform()` using different (but compatible) lo, hi types and the
 // default closed-open interval of [lo, hi). Note that a compile-error will
 // result if the return type cannot be deduced correctly from the passed types.
     template<typename R = void, typename URBG, typename A, typename B>
     typename abel::enable_if_t<std::is_same<R, void>::value,
             random_internal::uniform_inferred_return_t<A, B>>
-    Uniform(URBG &&urbg,  // NOLINT(runtime/references)
+    uniform(URBG &&urbg,  // NOLINT(runtime/references)
             A lo, B hi) {
         using gen_t = abel::decay_t<URBG>;
         using return_t = typename random_internal::uniform_inferred_return_t<A, B>;
@@ -190,23 +190,23 @@ namespace abel {
         auto b = random_internal::uniform_upper_bound<return_t>(tag, lo, hi);
         if (a > b) return a;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, static_cast<return_t>(lo),
                                           static_cast<return_t>(hi));
     }
 
-// abel::Uniform<unsigned T>(bitgen)
+// abel::uniform<unsigned T>(bitgen)
 //
-// Overload of Uniform() using the minimum and maximum values of a given type
+// Overload of uniform() using the minimum and maximum values of a given type
 // `T` (which must be unsigned), returning a value of type `unsigned T`
     template<typename R, typename URBG>
     typename abel::enable_if_t<!std::is_signed<R>::value, R>  //
-    Uniform(URBG &&urbg) {  // NOLINT(runtime/references)
+    uniform(URBG &&urbg) {  // NOLINT(runtime/references)
         using gen_t = abel::decay_t<URBG>;
         using distribution_t = random_internal::uniform_distribution_wrapper<R>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg);
     }
 
@@ -218,7 +218,7 @@ namespace abel {
 // (where 0.0 <= p <= 1.0) equaling `true`.
 //
 // Prefer `abel::Bernoulli` to produce boolean values over other alternatives
-// such as comparing an `abel::Uniform()` value to a specific output.
+// such as comparing an `abel::uniform()` value to a specific output.
 //
 // See https://en.wikipedia.org/wiki/Bernoulli_distribution
 //
@@ -237,7 +237,7 @@ namespace abel {
         using distribution_t = abel::bernoulli_distribution;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, p);
     }
 
@@ -270,7 +270,7 @@ namespace abel {
         using distribution_t = typename abel::beta_distribution<RealType>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, alpha, beta);
     }
 
@@ -303,7 +303,7 @@ namespace abel {
         using distribution_t = typename abel::exponential_distribution<RealType>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, lambda);
     }
 
@@ -335,7 +335,7 @@ namespace abel {
         using distribution_t = typename abel::gaussian_distribution<RealType>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, mean, stddev);
     }
 
@@ -359,7 +359,7 @@ namespace abel {
 // If `lo` is nonzero then this distribution is shifted to the desired interval,
 // so LogUniform(lo, hi, b) is equivalent to LogUniform(0, hi-lo, b)+lo.
 //
-// See http://ecolego.facilia.se/ecolego/show/Log-Uniform%20Distribution
+// See http://ecolego.facilia.se/ecolego/show/Log-uniform%20Distribution
 //
 // Example:
 //
@@ -378,7 +378,7 @@ namespace abel {
         using distribution_t = typename abel::log_uniform_int_distribution<IntType>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, lo, hi, base);
     }
 
@@ -409,7 +409,7 @@ namespace abel {
         using distribution_t = typename abel::poisson_distribution<IntType>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, mean);
     }
 
@@ -442,7 +442,7 @@ namespace abel {
         using distribution_t = typename abel::zipf_distribution<IntType>;
         using format_t = random_internal::distribution_format_traits<distribution_t>;
 
-        return random_internal::distribution_caller<gen_t>::template Call<
+        return random_internal::distribution_caller<gen_t>::template call<
                 distribution_t, format_t>(&urbg, hi, q, v);
     }
 

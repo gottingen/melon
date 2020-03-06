@@ -20,9 +20,9 @@ namespace abel {
 // 'Strong' (well-distributed, unpredictable, backtracking-resistant) random
 // generator, faster in some benchmarks than std::mt19937_64 and pcg64_c32.
 //
-// RandenTraits contains the basic algorithm traits, such as the size of the
+// randen_traits contains the basic algorithm traits, such as the size of the
 // state, seed, sponge, etc.
-        struct RandenTraits {
+        struct randen_traits {
             // Size of the entire sponge / state for the randen PRNG.
             static constexpr size_t kStateBytes = 256;  // 2048-bit
 

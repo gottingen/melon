@@ -133,8 +133,8 @@ TEST(nonsecure_urgb_base, SeedSeqConstructorIsValid) {
 TEST(nonsecure_urgb_base, CompatibleWithDistributionUtils) {
     ExampleNonsecureURBG rbg;
 
-    abel::Uniform(rbg, 0, 100);
-    abel::Uniform(rbg, 0.5, 0.7);
+    abel::uniform(rbg, 0, 100);
+    abel::uniform(rbg, 0.5, 0.7);
     abel::Poisson<uint32_t>(rbg);
     abel::Exponential<float>(rbg);
 }

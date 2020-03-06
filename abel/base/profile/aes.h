@@ -79,7 +79,7 @@
 
 // ABEL_AES_DISPATCH indicates whether the currently active
 // platform has, or should use run-time dispatch for selecting the
-// acclerated Randen implementation.
+// acclerated randen implementation.
 #define ABEL_AES_DISPATCH 0
 
 #if defined(ABEL_ARCH_X86_64)

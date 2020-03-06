@@ -282,7 +282,7 @@ namespace {
   BENCHMARK_TEMPLATE(BM_ShuffleReuse, Engine, 1000)->ThreadPerCpu();
 
 #define BM_EXTENDED(Engine)                                                    \
-  /* -------------- Extended Uniform -----------------------*/                 \
+  /* -------------- Extended uniform -----------------------*/                 \
   BENCHMARK_TEMPLATE(BM_Small, Engine,                                         \
                      std::uniform_int_distribution<int32_t>);                  \
   BENCHMARK_TEMPLATE(BM_Small, Engine,                                         \

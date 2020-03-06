@@ -21,7 +21,7 @@ namespace abel {
 //
 // An "explicit_seed_seq" is meant to provide a conformant interface for
 // forwarding pre-computed seed material to the constructor of a class
-// conforming to the "Uniform Random Bit Generator" concept. This class makes no
+// conforming to the "uniform Random Bit Generator" concept. This class makes no
 // attempt to mutate the state provided by its constructor, and returns it
 // directly via explicit_seed_seq::generate().
 //

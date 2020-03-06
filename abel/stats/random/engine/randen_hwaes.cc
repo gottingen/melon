@@ -53,7 +53,7 @@
 
 #if !defined(ABEL_RANDEN_HWAES_IMPL)
 // No accelerated implementation is supported.
-// The RandenHwAes functions are stubs that print an error and exit.
+// The randen_hw_aes functions are stubs that print an error and exit.
 
 #include <cstdio>
 #include <cstdlib>
@@ -63,10 +63,10 @@ namespace abel {
 namespace random_internal {
 
 // No accelerated implementation.
-bool HasRandenHwAesImplementation() { return false; }
+bool has_randen_hw_aes_implementation() { return false; }
 
 // NOLINTNEXTLINE
-const void* RandenHwAes::GetKeys() {
+const void* randen_hw_aes::GetKeys() {
   // Attempted to dispatch to an unsupported dispatch target.
   const int d = ABEL_AES_DISPATCH;
   fprintf(stderr, "AES Hardware detection failed (%d).\n", d);
@@ -75,7 +75,7 @@ const void* RandenHwAes::GetKeys() {
 }
 
 // NOLINTNEXTLINE
-void RandenHwAes::Absorb(const void*, void*) {
+void randen_hw_aes::Absorb(const void*, void*) {
   // Attempted to dispatch to an unsupported dispatch target.
   const int d = ABEL_AES_DISPATCH;
   fprintf(stderr, "AES Hardware detection failed (%d).\n", d);
@@ -83,7 +83,7 @@ void RandenHwAes::Absorb(const void*, void*) {
 }
 
 // NOLINTNEXTLINE
-void RandenHwAes::Generate(const void*, void*) {
+void randen_hw_aes::Generate(const void*, void*) {
   // Attempted to dispatch to an unsupported dispatch target.
   const int d = ABEL_AES_DISPATCH;
   fprintf(stderr, "AES Hardware detection failed (%d).\n", d);
@@ -162,9 +162,9 @@ ABEL_FORCE_INLINE ABEL_TARGET_CRYPTO Vector128 AesRound(const Vector128& state,
 
 // Enables native loads in the round loop by pre-swapping.
 ABEL_FORCE_INLINE ABEL_TARGET_CRYPTO void SwapEndian(uint64_t* state) {
-  using abel::random_internal::RandenTraits;
+  using abel::random_internal::randen_traits;
   constexpr size_t kLanes = 2;
-  constexpr size_t kFeistelBlocks = RandenTraits::kFeistelBlocks;
+  constexpr size_t kFeistelBlocks = randen_traits::kFeistelBlocks;
 
   for (uint32_t branch = 0; branch < kFeistelBlocks; ++branch) {
     const Vector128 v = ReverseBytes(Vector128Load(state + kLanes * branch));
@@ -329,8 +329,8 @@ namespace {
 // REQUIRES: Vector128 AesRound(Vector128, Vector128) {...}
 // REQUIRES: void SwapEndian(uint64_t*) {...}
 //
-// PROVIDES: abel::random_internal::RandenHwAes::Absorb
-// PROVIDES: abel::random_internal::RandenHwAes::Generate
+// PROVIDES: abel::random_internal::randen_hw_aes::Absorb
+// PROVIDES: abel::random_internal::randen_hw_aes::Generate
 
 // RANDen = RANDom generator or beetroots in Swiss German.
 // 'Strong' (well-distributed, unpredictable, backtracking-resistant) random
@@ -355,13 +355,13 @@ namespace {
 // We combine these three ideas and also change Simpira's subround keys from
 // structured/low-entropy counters to digits of Pi.
 
-// Randen constants.
-    using abel::random_internal::RandenTraits;
-    constexpr size_t kStateBytes = RandenTraits::kStateBytes;
-    constexpr size_t kCapacityBytes = RandenTraits::kCapacityBytes;
-    constexpr size_t kFeistelBlocks = RandenTraits::kFeistelBlocks;
-    constexpr size_t kFeistelRounds = RandenTraits::kFeistelRounds;
-    constexpr size_t kFeistelFunctions = RandenTraits::kFeistelFunctions;
+// randen constants.
+    using abel::random_internal::randen_traits;
+    constexpr size_t kStateBytes = randen_traits::kStateBytes;
+    constexpr size_t kCapacityBytes = randen_traits::kCapacityBytes;
+    constexpr size_t kFeistelBlocks = randen_traits::kFeistelBlocks;
+    constexpr size_t kFeistelRounds = randen_traits::kFeistelRounds;
+    constexpr size_t kFeistelFunctions = randen_traits::kFeistelFunctions;
 
 // Independent keys (272 = 2.1 KiB) for the first AES subround of each function.
     constexpr size_t kKeys = kFeistelRounds * kFeistelFunctions;
@@ -508,16 +508,16 @@ namespace abel {
 
     namespace random_internal {
 
-        bool HasRandenHwAesImplementation() { return true; }
+        bool has_randen_hw_aes_implementation() { return true; }
 
-        const void *ABEL_TARGET_CRYPTO RandenHwAes::GetKeys() {
+        const void *ABEL_TARGET_CRYPTO randen_hw_aes::get_keys() {
             // Round keys for one AES per Feistel round and branch.
             // The canonical implementation uses first digits of Pi.
             return round_keys;
         }
 
 // NOLINTNEXTLINE
-        void ABEL_TARGET_CRYPTO RandenHwAes::Absorb(const void *seed_void,
+        void ABEL_TARGET_CRYPTO randen_hw_aes::absorb(const void *seed_void,
                                                     void *state_void) {
             auto *state = static_cast<uint64_t *>(state_void);
             const auto *seed = static_cast<const uint64_t *>(seed_void);
@@ -527,8 +527,8 @@ namespace abel {
 
             static_assert(kCapacityBlocks * sizeof(Vector128) == kCapacityBytes,
                           "Not i*V");
-            static_assert(kCapacityBlocks == 1, "Unexpected Randen kCapacityBlocks");
-            static_assert(kStateBlocks == 16, "Unexpected Randen kStateBlocks");
+            static_assert(kCapacityBlocks == 1, "Unexpected randen kCapacityBlocks");
+            static_assert(kStateBlocks == 16, "Unexpected randen kStateBlocks");
 
             Vector128 b1 = Vector128Load(state + kLanes * 1);
             b1 ^= Vector128Load(seed + kLanes * 0);
@@ -592,7 +592,7 @@ namespace abel {
         }
 
 // NOLINTNEXTLINE
-        void ABEL_TARGET_CRYPTO RandenHwAes::Generate(const void *keys,
+        void ABEL_TARGET_CRYPTO randen_hw_aes::generate(const void *keys,
                                                       void *state_void) {
             static_assert(kCapacityBytes == sizeof(Vector128), "Capacity mismatch");
 

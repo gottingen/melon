@@ -34,7 +34,7 @@ namespace abel {
             // }
             //
             template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type Call(URBG *urbg, Args &&... args) {
+            static typename DistrT::result_type call(URBG *urbg, Args &&... args) {
                 DistrT dist(std::forward<Args>(args)...);
                 return dist(*urbg);
             }

@@ -3,7 +3,7 @@
 // File: random.h
 // -----------------------------------------------------------------------------
 //
-// This header defines the recommended Uniform Random Bit Generator (URBG)
+// This header defines the recommended uniform Random Bit Generator (URBG)
 // types for use within the abel Random library. These types are not
 // suitable for security-related use-cases, but should suffice for most other
 // uses of generating random values.
@@ -66,7 +66,7 @@ namespace abel {
 //  // Generate an integer value in the closed interval [1,6]
 //  int die_roll2 = abel::uniform_int_distribution<int>(1, 6)(gen_with_seed);
 //
-// `abel::bit_gen` meets the requirements of the Uniform Random Bit Generator
+// `abel::bit_gen` meets the requirements of the uniform Random Bit Generator
 // (URBG) concept as per the C++17 standard [rand.req.urng] though differs
 // slightly with [rand.req.eng]. Like its standard library equivalents (e.g.
 // `std::mersenne_twister_engine`) `abel::bit_gen` is not cryptographically
@@ -136,7 +136,7 @@ namespace abel {
 // type, conforming to [rand.req.seed_seq], which will be mixed with additional
 // non-deterministic data. (See std_seed_seq.h for more information.)
 //
-// `abel::insecure_bit_gen` meets the requirements of the Uniform Random Bit
+// `abel::insecure_bit_gen` meets the requirements of the uniform Random Bit
 // Generator (URBG) concept as per the C++17 standard [rand.req.urng] though
 // its implementation differs slightly with [rand.req.eng]. Like its standard
 // library equivalents (e.g. `std::mersenne_twister_engine`)

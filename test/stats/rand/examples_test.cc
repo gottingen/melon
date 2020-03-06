@@ -16,19 +16,19 @@ TEST(Examples, Basic) {
     std::vector<int> objs = {10, 20, 30, 40, 50};
 
     // Choose an element from a set.
-    auto elem = objs[abel::Uniform(gen, 0u, objs.size())];
+    auto elem = objs[abel::uniform(gen, 0u, objs.size())];
     Use(elem);
 
     // Generate a uniform value between 1 and 6.
-    auto dice_roll = abel::Uniform<int>(abel::IntervalClosedClosed, gen, 1, 6);
+    auto dice_roll = abel::uniform<int>(abel::IntervalClosedClosed, gen, 1, 6);
     Use(dice_roll);
 
     // Generate a random byte.
-    auto byte = abel::Uniform<uint8_t>(gen);
+    auto byte = abel::uniform<uint8_t>(gen);
     Use(byte);
 
     // Generate a fractional value from [0f, 1f).
-    auto fraction = abel::Uniform<float>(gen, 0, 1);
+    auto fraction = abel::uniform<float>(gen, 0, 1);
     Use(fraction);
 
     // Toss a fair coin; 50/50 probability.
@@ -56,7 +56,7 @@ TEST(Examples, CreateingCorrelatedVariateSequences) {
         abel::bit_gen gen_2(my_seed);  // Produces same variates as gen_1.
 
         EXPECT_EQ(abel::Bernoulli(gen_1, 0.5), abel::Bernoulli(gen_2, 0.5));
-        EXPECT_EQ(abel::Uniform<uint32_t>(gen_1), abel::Uniform<uint32_t>(gen_2));
+        EXPECT_EQ(abel::uniform<uint32_t>(gen_1), abel::uniform<uint32_t>(gen_2));
     }
 
     // Create a correlated sequence from an existing URBG.
@@ -68,7 +68,7 @@ TEST(Examples, CreateingCorrelatedVariateSequences) {
         abel::bit_gen gen_2(my_seed);
 
         EXPECT_EQ(abel::Bernoulli(gen_1, 0.5), abel::Bernoulli(gen_2, 0.5));
-        EXPECT_EQ(abel::Uniform<uint32_t>(gen_1), abel::Uniform<uint32_t>(gen_2));
+        EXPECT_EQ(abel::uniform<uint32_t>(gen_1), abel::uniform<uint32_t>(gen_2));
     }
 
     // An alternate construction which uses user-supplied data
@@ -81,7 +81,7 @@ TEST(Examples, CreateingCorrelatedVariateSequences) {
         abel::bit_gen gen_2(my_seed);
 
         EXPECT_EQ(abel::Bernoulli(gen_1, 0.5), abel::Bernoulli(gen_2, 0.5));
-        EXPECT_EQ(abel::Uniform<uint32_t>(gen_1), abel::Uniform<uint32_t>(gen_2));
+        EXPECT_EQ(abel::uniform<uint32_t>(gen_1), abel::uniform<uint32_t>(gen_2));
     }
 }
 

@@ -1901,19 +1901,19 @@ namespace testing {
         }
 
         // Implementation detail: the expansion of the MOCK_METHOD macro.
-        R Call(Args... args) {
-            mock_.SetOwnerAndName(this, "Call");
+        R call(Args... args) {
+            mock_.SetOwnerAndName(this, "call");
             return mock_.Invoke(std::forward<Args>(args)...);
         }
 
-        internal::MockSpec<R(Args...)> gmock_Call(Matcher<Args>... m) {
+        internal::MockSpec<R(Args...)> gmock_call(Matcher<Args>... m) {
             mock_.RegisterOwner(this);
             return mock_.With(std::move(m)...);
         }
 
-        internal::MockSpec<R(Args...)> gmock_Call(const internal::WithoutMatchers &,
+        internal::MockSpec<R(Args...)> gmock_call(const internal::WithoutMatchers &,
                                                   R (*)(Args...)) {
-            return this->gmock_Call(::testing::A<Args>()...);
+            return this->gmock_call(::testing::A<Args>()...);
         }
 
     private:

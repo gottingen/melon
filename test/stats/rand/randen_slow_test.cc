@@ -8,12 +8,12 @@
 
 namespace {
 
-    using abel::random_internal::RandenSlow;
+    using abel::random_internal::randen_slow;
 
 // Local state parameters.
     constexpr size_t kSeedBytes =
-            RandenSlow::kStateBytes - RandenSlow::kCapacityBytes;
-    constexpr size_t kStateSizeT = RandenSlow::kStateBytes / sizeof(uint64_t);
+            randen_slow::kStateBytes - randen_slow::kCapacityBytes;
+    constexpr size_t kStateSizeT = randen_slow::kStateBytes / sizeof(uint64_t);
     constexpr size_t kSeedSizeT = kSeedBytes / sizeof(uint32_t);
 
     struct randen {
@@ -38,7 +38,7 @@ namespace {
 
         alignas(16) randen d;
         std::memset(d.state, 0, sizeof(d.state));
-        RandenSlow::Generate(RandenSlow::GetKeys(), d.state);
+        randen_slow::generate(randen_slow::get_keys(), d.state);
 
         uint64_t *id = d.state;
         for (const auto &elem : kGolden) {

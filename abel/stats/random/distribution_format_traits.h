@@ -81,7 +81,7 @@ struct distribution_format_traits {
             using distribution_t = abel::uniform_int_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
-            static constexpr const char *Name() { return "Uniform"; }
+            static constexpr const char *Name() { return "uniform"; }
 
             static std::string FunctionName() {
                 return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
@@ -102,7 +102,7 @@ struct distribution_format_traits {
             using distribution_t = abel::uniform_real_distribution<R>;
             using result_t = typename distribution_t::result_type;
 
-            static constexpr const char *Name() { return "Uniform"; }
+            static constexpr const char *Name() { return "uniform"; }
 
             static std::string FunctionName() {
                 return abel::string_cat(Name(), "<", scalar_type_name<R>(), ">");
@@ -263,7 +263,7 @@ struct distribution_format_traits {
             using distribution_t = uniform_distribution_wrapper<NumType>;
             using result_t = NumType;
 
-            static constexpr const char *Name() { return "Uniform"; }
+            static constexpr const char *Name() { return "uniform"; }
 
             static std::string FunctionName() {
                 return abel::string_cat(Name(), "<", scalar_type_name<NumType>(), ">");

@@ -14,7 +14,7 @@
 // Python script:
 /*
 python << EOF
-"""Generates Randen round keys array from pi-hex.62500.txt file."""
+"""Generates randen round keys array from pi-hex.62500.txt file."""
 import binascii
 
 KEYS = 136
