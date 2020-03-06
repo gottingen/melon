@@ -175,7 +175,7 @@ namespace abel {
         // Setting a period of 0 disables the sampler, i.e., every call to Sample()
         // will return false. Setting a period of 1 puts the sampler in 'always on'
         // mode, i.e., every call to Sample() returns true.
-        static void SetGlobalPeriod(int period) {
+        static void set_global_period(int period) {
             _period.store(period, std::memory_order_relaxed);
         }
 

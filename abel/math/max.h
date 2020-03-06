@@ -9,7 +9,10 @@
 
 namespace abel {
 
-    template<typename T1, typename T2> ABEL_CONSTEXPR common_t<T1, T2> max(const T1 x, const T2 y) ABEL_NOEXCEPT {
+    template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
+    ABEL_CONSTEXPR
+    common_t<T1, T2> max(const T1 x, const T2 y) ABEL_NOEXCEPT {
         return (y < x ? x : y);
     }
 

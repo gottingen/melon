@@ -13,16 +13,16 @@
 ABEL_FLAG(int64_t, abel_random_test_trials, 50000,
           "Number of trials for the probability tests.");
 
-using abel::random_internal::GenerateNegativeTag;
-using abel::random_internal::GeneratePositiveTag;
-using abel::random_internal::GenerateRealFromBits;
-using abel::random_internal::GenerateSignedTag;
+using abel::random_internal::generate_negative_tag;
+using abel::random_internal::generate_positive_tag;
+using abel::random_internal::generate_real_from_bits;
+using abel::random_internal::generate_signed_tag;
 
 namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Positive_NoZero_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GeneratePositiveTag, false>(a);
+            return generate_real_from_bits<float, generate_positive_tag, false>(a);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), 2.710505431e-20f);
         EXPECT_EQ(ToFloat(0x0000000000000001), 5.421010862e-20f);
@@ -33,7 +33,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Positive_Zero_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GeneratePositiveTag, true>(a);
+            return generate_real_from_bits<float, generate_positive_tag, true>(a);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), 0.0);
         EXPECT_EQ(ToFloat(0x0000000000000001), 5.421010862e-20f);
@@ -44,7 +44,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Negative_NoZero_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GenerateNegativeTag, false>(a);
+            return generate_real_from_bits<float, generate_negative_tag, false>(a);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), -2.710505431e-20f);
         EXPECT_EQ(ToFloat(0x0000000000000001), -5.421010862e-20f);
@@ -55,7 +55,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Negative_Zero_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GenerateNegativeTag, true>(a);
+            return generate_real_from_bits<float, generate_negative_tag, true>(a);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), 0.0);
         EXPECT_EQ(ToFloat(0x0000000000000001), -5.421010862e-20f);
@@ -66,7 +66,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Signed_NoZero_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GenerateSignedTag, false>(a);
+            return generate_real_from_bits<float, generate_signed_tag, false>(a);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), 5.421010862e-20f);
         EXPECT_EQ(ToFloat(0x0000000000000001), 1.084202172e-19f);
@@ -78,7 +78,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Signed_Zero_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GenerateSignedTag, true>(a);
+            return generate_real_from_bits<float, generate_signed_tag, true>(a);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), 0);
         EXPECT_EQ(ToFloat(0x0000000000000001), 1.084202172e-19f);
@@ -90,7 +90,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloat_Signed_Bias_Test) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GenerateSignedTag, true>(a, 1);
+            return generate_real_from_bits<float, generate_signed_tag, true>(a, 1);
         };
         EXPECT_EQ(ToFloat(0x0000000000000000), 0);
         EXPECT_EQ(ToFloat(0x0000000000000001), 2 * 1.084202172e-19f);
@@ -102,7 +102,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToFloatTest) {
         auto ToFloat = [](uint64_t a) -> float {
-            return GenerateRealFromBits<float, GeneratePositiveTag, true>(a);
+            return generate_real_from_bits<float, generate_positive_tag, true>(a);
         };
 
         EXPECT_EQ(ToFloat(0x0000000000000000), 0.0f);
@@ -156,7 +156,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_Positive_NoZero_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GeneratePositiveTag, false>(a);
+            return generate_real_from_bits<double, generate_positive_tag, false>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), 2.710505431213761085e-20);
@@ -169,7 +169,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_Positive_Zero_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GeneratePositiveTag, true>(a);
+            return generate_real_from_bits<double, generate_positive_tag, true>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), 0.0);
@@ -181,7 +181,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_Negative_NoZero_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GenerateNegativeTag, false>(a);
+            return generate_real_from_bits<double, generate_negative_tag, false>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), -2.710505431213761085e-20);
@@ -194,7 +194,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_Negative_Zero_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GenerateNegativeTag, true>(a);
+            return generate_real_from_bits<double, generate_negative_tag, true>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), 0.0);
@@ -207,7 +207,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_Signed_NoZero_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GenerateSignedTag, false>(a);
+            return generate_real_from_bits<double, generate_signed_tag, false>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), 5.42101086242752217004e-20);
@@ -220,7 +220,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_Signed_Zero_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GenerateSignedTag, true>(a);
+            return generate_real_from_bits<double, generate_signed_tag, true>(a);
         };
         EXPECT_EQ(ToDouble(0x0000000000000000), 0);
         EXPECT_EQ(ToDouble(0x0000000000000001), 1.084202172485504434e-19);
@@ -232,7 +232,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDouble_GenerateSignedTag_Bias_Test) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GenerateSignedTag, true>(a, -1);
+            return generate_real_from_bits<double, generate_signed_tag, true>(a, -1);
         };
         EXPECT_EQ(ToDouble(0x0000000000000000), 0);
         EXPECT_EQ(ToDouble(0x0000000000000001), 1.084202172485504434e-19 / 2);
@@ -244,7 +244,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDoubleTest) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GeneratePositiveTag, true>(a);
+            return generate_real_from_bits<double, generate_positive_tag, true>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), 0.0);
@@ -318,7 +318,7 @@ namespace {
 
     TEST(GenerateRealTest, U64ToDoubleSignedTest) {
         auto ToDouble = [](uint64_t a) {
-            return GenerateRealFromBits<double, GenerateSignedTag, false>(a);
+            return generate_real_from_bits<double, generate_signed_tag, false>(a);
         };
 
         EXPECT_EQ(ToDouble(0x0000000000000000), 5.42101086242752217004e-20);
@@ -401,7 +401,7 @@ namespace {
 
     TEST(GenerateRealTest, ExhaustiveFloat) {
         auto ToFloat = [](uint64_t a) {
-            return GenerateRealFromBits<float, GeneratePositiveTag, true>(a);
+            return generate_real_from_bits<float, generate_positive_tag, true>(a);
         };
 
         // Rely on RandU64ToFloat generating values from greatest to least when

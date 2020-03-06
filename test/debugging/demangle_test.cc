@@ -115,7 +115,7 @@ static const char *DemangleIt(const char * const mangled) {
             }
 
             TEST(Demangle, DemangleStackConsumption) {
-              // Measure stack consumption of Demangle for nested mangled names of varying
+              // measure stack consumption of Demangle for nested mangled names of varying
               // depth.  Since Demangle is implemented as a recursive descent parser,
               // stack consumption will grow as the nesting depth increases.  By measuring
               // the stack consumption for increasing depths, we can see the growing

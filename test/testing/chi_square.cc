@@ -88,7 +88,7 @@ namespace abel {
 
 // Calculates the critical chi-square value given degrees-of-freedom and a
 // p-value, usually using bisection. Also known by the name CRITCHI.
-        double ChiSquareValue(int dof, double p) {
+        double chi_square_value(int dof, double p) {
             static constexpr double kChiEpsilon =
                     0.000001;  // Accuracy of the approximation.
             static constexpr double kChiMax =
@@ -122,7 +122,7 @@ namespace abel {
             double max_chisq = kChiMax;
             double current = dof / std::sqrt(p_value);
             while ((max_chisq - min_chisq) > kChiEpsilon) {
-                if (ChiSquarePValue(current, dof) < p_value) {
+                if (chi_square_p_value(current, dof) < p_value) {
                     max_chisq = current;
                 } else {
                     min_chisq = current;
@@ -139,7 +139,7 @@ namespace abel {
 //     Hill, I. D. and Pike, M. C.  Algorithm 299
 //     Collected Algorithms of the CACM 1963 p. 243
 //
-        double ChiSquarePValue(double chi_square, int dof) {
+        double chi_square_p_value(double chi_square, int dof) {
             static constexpr double kLogSqrtPi =
                     0.5723649429247000870717135;  // Log[Sqrt[Pi]]
             static constexpr double kInverseSqrtPi =

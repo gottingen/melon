@@ -154,14 +154,14 @@ namespace {
         CompatibilityTest<std::mt19937_64>();
     }
 
-    TEST(BitGen, Compatibility) {
-        // Validate with abel::BitGen
-        CompatibilityTest<abel::BitGen>();
+    TEST(bit_gen, Compatibility) {
+        // Validate with abel::bit_gen
+        CompatibilityTest<abel::bit_gen>();
     }
 
-    TEST(InsecureBitGen, Compatibility) {
-        // Validate with abel::InsecureBitGen
-        CompatibilityTest<abel::InsecureBitGen>();
+    TEST(insecure_bit_gen, Compatibility) {
+        // Validate with abel::insecure_bit_gen
+        CompatibilityTest<abel::insecure_bit_gen>();
     }
 
 }  // namespace

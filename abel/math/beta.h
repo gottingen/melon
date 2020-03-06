@@ -10,6 +10,7 @@
 namespace abel {
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_return_t<T1,T2> beta(const T1 a, const T2 b) ABEL_NOEXCEPT {
         return exp( lbeta(a,b) );
     }

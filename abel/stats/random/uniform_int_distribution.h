@@ -36,7 +36,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen gen;
+//   abel::bit_gen gen;
 //
 //   // Use the distribution to produce a value between 1 and 6, inclusive.
 //   int die_roll = abel::uniform_int_distribution<int>(1, 6)(gen);
@@ -190,7 +190,7 @@ namespace abel {
     uniform_int_distribution<IntType>::Generate(
             URBG &g,  // NOLINT(runtime/references)
             typename make_unsigned_bits<IntType>::type R) {
-        random_internal::FastUniformBits<unsigned_type> fast_bits;
+        random_internal::fast_uniform_bits<unsigned_type> fast_bits;
         unsigned_type bits = fast_bits(g);
         const unsigned_type Lim = R + 1;
         if ((R & Lim) == 0) {

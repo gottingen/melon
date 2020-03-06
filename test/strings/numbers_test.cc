@@ -1268,7 +1268,7 @@ namespace {
         TestFastHexToBufferZeroPad16(std::numeric_limits<uint64_t>::max());
         TestFastHexToBufferZeroPad16(std::numeric_limits<int64_t>::min());
         TestFastHexToBufferZeroPad16(std::numeric_limits<int64_t>::max());
-        abel::BitGen rng;
+        abel::bit_gen rng;
         for (int i = 0; i < 100000; ++i) {
             TestFastHexToBufferZeroPad16(
                     abel::LogUniform(rng, std::numeric_limits<uint64_t>::min(),

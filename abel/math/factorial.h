@@ -52,6 +52,7 @@ namespace abel {
     } //namespace math_internal
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR T factorial(const T x) ABEL_NOEXCEPT {
         return math_internal::factorial_recur(x);
     }

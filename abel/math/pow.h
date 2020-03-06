@@ -34,6 +34,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_t<T1, T2> pow(const T1 base, const T2 exp_term) ABEL_NOEXCEPT {
         return math_internal::pow_check(base, exp_term);
     }

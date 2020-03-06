@@ -102,6 +102,7 @@ namespace abel {
 
 
     template<typename T1, typename T2, typename T3>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_return_t<T1, T2, T3>
     incomplete_beta(const T1 a, const T2 b, const T3 z) ABEL_NOEXCEPT {
         return math_internal::incomplete_beta_type_check(a, b, z);

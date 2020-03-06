@@ -16,7 +16,7 @@
 
 namespace {
 
-    using abel::random_internal::ExplicitSeedSeq;
+    using abel::random_internal::explicit_seed_seq;
     using abel::random_internal::pcg32_2018_engine;
     using abel::random_internal::pcg64_2018_engine;
 
@@ -130,7 +130,7 @@ namespace {
         using engine_type = TypeParam;
 
         for (size_t discard = 0; discard < kTwoBufferValues; ++discard) {
-            ExplicitSeedSeq seed_sequence{12, 34, 56};
+            explicit_seed_seq seed_sequence{12, 34, 56};
             engine_type engine(seed_sequence);
             engine.discard(discard);
 
@@ -376,7 +376,7 @@ namespace {
                 0x572f3ca2f1a078c6,
         };
 
-        ExplicitSeedSeq seed_sequence{12, 34, 56};
+        explicit_seed_seq seed_sequence{12, 34, 56};
         pcg64_2018_engine engine(seed_sequence);
 #if UPDATE_GOLDEN
         (void)kGolden;  // Silence warning.
@@ -548,7 +548,7 @@ namespace {
                 0xbbdeceb9,
         };
 
-        ExplicitSeedSeq seed_sequence{12, 34, 56};
+        explicit_seed_seq seed_sequence{12, 34, 56};
         pcg32_2018_engine engine(seed_sequence);
 #if UPDATE_GOLDEN
         (void)kGolden;  // Silence warning.

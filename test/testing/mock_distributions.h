@@ -37,11 +37,11 @@ namespace abel {
 //
     template<typename R>
     using MockUniform = random_internal::MockOverloadSet<
-            random_internal::UniformDistributionWrapper<R>,
-            R(IntervalClosedOpenTag, MockingBitGen &, R, R),
-            R(IntervalClosedClosedTag, MockingBitGen &, R, R),
-            R(IntervalOpenOpenTag, MockingBitGen &, R, R),
-            R(IntervalOpenClosedTag, MockingBitGen &, R, R), R(MockingBitGen &, R, R),
+            random_internal::uniform_distribution_wrapper<R>,
+            R(interval_closed_open_tag, MockingBitGen &, R, R),
+            R(interval_closed_closed_tag, MockingBitGen &, R, R),
+            R(interval_open_open_tag, MockingBitGen &, R, R),
+            R(interval_open_closed_tag, MockingBitGen &, R, R), R(MockingBitGen &, R, R),
             R(MockingBitGen &)>;
 
 // -----------------------------------------------------------------------------

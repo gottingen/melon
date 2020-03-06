@@ -25,7 +25,7 @@ namespace abel {
 // Returns the measured chi square value, using a single expected value.  This
 // assumes that the values in [begin, end) are uniformly distributed.
         template<typename Iterator>
-        double ChiSquareWithExpected(Iterator begin, Iterator end, double expected) {
+        double chi_square_with_expected(Iterator begin, Iterator end, double expected) {
             // Compute the sum and the number of buckets.
             assert(expected >= 10);  // require at least 10 samples per bucket.
             double chi_square = 0;
@@ -41,7 +41,7 @@ namespace abel {
 // from the first set of iterators, and the expected value of each bucket from
 // the second set of iterators.
         template<typename Iterator, typename Expected>
-        double ChiSquare(Iterator it, Iterator end, Expected eit, Expected eend) {
+        double chi_square(Iterator it, Iterator end, Expected eit, Expected eend) {
             double chi_square = 0;
             for (; it != end && eit != eend; ++it, ++eit) {
                 if (*it > 0) {
@@ -64,11 +64,11 @@ namespace abel {
 
 // Calculates critical chi-square values to produce the given p-value using a
 // bisection search for a value within epsilon, relying on the monotonicity of
-// ChiSquarePValue().
-        double ChiSquareValue(int dof, double p);
+// chi_square_p_value().
+        double chi_square_value(int dof, double p);
 
 // Calculates the p-value (probability) of a given chi-square value.
-        double ChiSquarePValue(double chi_square, int dof);
+        double chi_square_p_value(double chi_square, int dof);
 
     }  // namespace random_internal
 

@@ -39,6 +39,7 @@ namespace abel {
 
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> tgamma(const T x) ABEL_NOEXCEPT {
         return math_internal::tgamma_check(static_cast<return_t<T>>(x));
     }

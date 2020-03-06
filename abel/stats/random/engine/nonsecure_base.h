@@ -24,54 +24,54 @@ namespace abel {
 
     namespace random_internal {
 
-// Each instance of NonsecureURBGBase<URBG> will be seeded by variates produced
+// Each instance of nonsecure_urgb_base<URBG> will be seeded by variates produced
 // by a thread-unique URBG-instance.
         template<typename URBG>
-        class NonsecureURBGBase {
+        class nonsecure_urgb_base {
         public:
             using result_type = typename URBG::result_type;
 
             // Default constructor
-            NonsecureURBGBase() : urbg_(ConstructURBG()) {}
+            nonsecure_urgb_base() : urbg_(construct_urgb()) {}
 
             // Copy disallowed, move allowed.
-            NonsecureURBGBase(const NonsecureURBGBase &) = delete;
+            nonsecure_urgb_base(const nonsecure_urgb_base &) = delete;
 
-            NonsecureURBGBase &operator=(const NonsecureURBGBase &) = delete;
+            nonsecure_urgb_base &operator=(const nonsecure_urgb_base &) = delete;
 
-            NonsecureURBGBase(NonsecureURBGBase &&) = default;
+            nonsecure_urgb_base(nonsecure_urgb_base &&) = default;
 
-            NonsecureURBGBase &operator=(NonsecureURBGBase &&) = default;
+            nonsecure_urgb_base &operator=(nonsecure_urgb_base &&) = default;
 
             // Constructor using a seed
             template<class SSeq, typename = typename abel::enable_if_t<
-                    !std::is_same<SSeq, NonsecureURBGBase>::value>>
-            explicit NonsecureURBGBase(SSeq &&seq)
-                    : urbg_(ConstructURBG(std::forward<SSeq>(seq))) {}
+                    !std::is_same<SSeq, nonsecure_urgb_base>::value>>
+            explicit nonsecure_urgb_base(SSeq &&seq)
+                    : urbg_(construct_urgb(std::forward<SSeq>(seq))) {}
 
             // Note: on MSVC, min() or max() can be interpreted as MIN() or MAX(), so we
             // enclose min() or max() in parens as (min)() and (max)().
             // Additionally, clang-format requires no space before this construction.
 
-            // NonsecureURBGBase::min()
+            // nonsecure_urgb_base::min()
             static constexpr result_type (min)() { return (URBG::min)(); }
 
-            // NonsecureURBGBase::max()
+            // nonsecure_urgb_base::max()
             static constexpr result_type (max)() { return (URBG::max)(); }
 
-            // NonsecureURBGBase::operator()()
+            // nonsecure_urgb_base::operator()()
             result_type operator()() { return urbg_(); }
 
-            // NonsecureURBGBase::discard()
+            // nonsecure_urgb_base::discard()
             void discard(unsigned long long values) {  // NOLINT(runtime/int)
                 urbg_.discard(values);
             }
 
-            bool operator==(const NonsecureURBGBase &other) const {
+            bool operator==(const nonsecure_urgb_base &other) const {
                 return urbg_ == other.urbg_;
             }
 
-            bool operator!=(const NonsecureURBGBase &other) const {
+            bool operator!=(const nonsecure_urgb_base &other) const {
                 return !(urbg_ == other.urbg_);
             }
 
@@ -119,15 +119,15 @@ namespace abel {
                 }
             };
 
-            static URBG ConstructURBG() {
+            static URBG construct_urgb() {
                 Seeder seeder;
                 return URBG(seeder);
             }
 
             template<typename SSeq>
-            static URBG ConstructURBG(SSeq &&seq) {  // NOLINT(runtime/references)
+            static URBG construct_urgb(SSeq &&seq) {  // NOLINT(runtime/references)
                 auto salted_seq =
-                        random_internal::MakeSaltedSeedSeq(std::forward<SSeq>(seq));
+                        random_internal::Makesalted_seed_seq(std::forward<SSeq>(seq));
                 return URBG(salted_seq);
             }
 

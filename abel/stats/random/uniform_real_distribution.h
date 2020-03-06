@@ -41,7 +41,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::BitGen gen;
+//   abel::bit_gen gen;
 //
 //   // Use the distribution to produce a value between 0.0 (inclusive)
 //   // and 1.0 (exclusive).
@@ -136,7 +136,7 @@ namespace abel {
 
     private:
         param_type param_;
-        random_internal::FastUniformBits <uint64_t> fast_u64_;
+        random_internal::fast_uniform_bits <uint64_t> fast_u64_;
     };
 
 // -----------------------------------------------------------------------------
@@ -147,14 +147,14 @@ namespace abel {
     typename uniform_real_distribution<RealType>::result_type
     uniform_real_distribution<RealType>::operator()(
             URBG &gen, const param_type &p) {  // NOLINT(runtime/references)
-        using random_internal::GeneratePositiveTag;
-        using random_internal::GenerateRealFromBits;
+        using random_internal::generate_positive_tag;
+        using random_internal::generate_real_from_bits;
         using real_type =
         abel::conditional_t<std::is_same<RealType, float>::value, float, double>;
 
         while (true) {
             const result_type sample =
-                    GenerateRealFromBits<real_type, GeneratePositiveTag, true>(
+                    generate_real_from_bits<real_type, generate_positive_tag, true>(
                             fast_u64_(gen));
             const result_type res = p.a() + (sample * p.range_);
             if (res < p.b() || p.range_ <= 0 || !std::isfinite(p.range_)) {

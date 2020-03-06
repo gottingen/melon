@@ -49,11 +49,13 @@ namespace abel {
 
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> exp(const T x) ABEL_NOEXCEPT {
         return math_internal::exp_check(static_cast<return_t<T>>(x));
     }
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR T exp_if(const T x, const bool exp_form) ABEL_NOEXCEPT {
         return exp_form ? abel::exp(x) : x;
     }

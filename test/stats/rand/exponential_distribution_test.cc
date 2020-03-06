@@ -69,7 +69,7 @@ namespace {
         };
 
         constexpr int kCount = 1000;
-        abel::InsecureBitGen gen;
+        abel::insecure_bit_gen gen;
 
         for (const TypeParam lambda : kParams) {
             // Some values may be invalid; skip those.
@@ -199,7 +199,7 @@ namespace {
         template<typename D>
         double SingleChiSquaredTest();
 
-        abel::InsecureBitGen rng_;
+        abel::insecure_bit_gen rng_;
     };
 
     template<typename D>
@@ -265,14 +265,14 @@ namespace {
         const int dof = static_cast<int>(counts.size()) - 1;
 
         // Our threshold for logging is 1-in-50.
-        const double threshold = abel::random_internal::ChiSquareValue(dof, 0.98);
+        const double threshold = abel::random_internal::chi_square_value(dof, 0.98);
 
         const double expected =
                 static_cast<double>(kSamples) / static_cast<double>(counts.size());
 
-        double chi_square = abel::random_internal::ChiSquareWithExpected(
+        double chi_square = abel::random_internal::chi_square_with_expected(
                 std::begin(counts), std::end(counts), expected);
-        double p = abel::random_internal::ChiSquarePValue(chi_square, dof);
+        double p = abel::random_internal::chi_square_p_value(chi_square, dof);
 
         if (chi_square > threshold) {
             for (size_t i = 0; i < cutoffs.size(); i++) {

@@ -25,6 +25,7 @@ namespace abel {
     }
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> asinh(const T x) ABEL_NOEXCEPT {
         return math_internal::asinh_compute(static_cast<return_t<T>>(x));
     }

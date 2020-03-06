@@ -267,7 +267,7 @@ namespace {
     ->ArgPair(10, 8);
 
     void BM_FastHexToBufferZeroPad16(benchmark::State &state) {
-        abel::BitGen rng;
+        abel::bit_gen rng;
         std::vector<uint64_t> nums;
         nums.resize(1000);
         auto min = std::numeric_limits<uint64_t>::min();

@@ -30,6 +30,7 @@ namespace abel {
     } //namespace math_internal
 
     template<typename T>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR return_t<T> tanh(const T x) ABEL_NOEXCEPT {
         return math_internal::tanh_check(static_cast<return_t<T>>(x));
     }

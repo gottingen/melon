@@ -7,7 +7,7 @@ namespace abel {
 
     namespace random_internal {
 
-        const gaussian_distribution_base::Tables
+        const gaussian_distribution_base::gaussian_tables
                 gaussian_distribution_base::zg_ = {
                 {3.7130862467425505,      3.442619855899000214,    3.223084984581141565,
                         3.083228858216868318,    2.978696252647779819,   2.894344007021528942,

@@ -37,6 +37,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_return_t<T1, T2> atan2(const T1 y, const T2 x) ABEL_NOEXCEPT {
         return math_internal::atan2_type_check(x, y);
     }

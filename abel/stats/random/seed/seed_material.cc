@@ -62,7 +62,7 @@ namespace abel {
 #if defined(ABEL_RANDOM_USE_BCRYPT)
 
             // On Windows potentially use the BCRYPT CNG API to read available entropy.
-            bool ReadSeedMaterialFromOSEntropyImpl(abel::span<uint32_t> values) {
+            bool read_seed_material_from_os_entropyImpl(abel::span<uint32_t> values) {
               BCRYPT_ALG_HANDLE hProvider;
               NTSTATUS ret;
               ret = BCryptOpenAlgorithmProvider(&hProvider, BCRYPT_RNG_ALGORITHM,
@@ -83,7 +83,7 @@ namespace abel {
 #elif defined(ABEL_RANDOM_USE_NACL_SECURE_RANDOM)
 
             // On NaCL use nacl_secure_random to acquire bytes.
-            bool ReadSeedMaterialFromOSEntropyImpl(abel::span<uint32_t> values) {
+            bool read_seed_material_from_os_entropyImpl(abel::span<uint32_t> values) {
               auto buffer = reinterpret_cast<uint8_t*>(values.data());
               size_t buffer_size = sizeof(uint32_t) * values.size();
 
@@ -103,7 +103,7 @@ namespace abel {
 
 #elif defined(__Fuchsia__)
 
-            bool ReadSeedMaterialFromOSEntropyImpl(abel::span<uint32_t> values) {
+            bool read_seed_material_from_os_entropyImpl(abel::span<uint32_t> values) {
               auto buffer = reinterpret_cast<uint8_t*>(values.data());
               size_t buffer_size = sizeof(uint32_t) * values.size();
               zx_cprng_draw(buffer, buffer_size);
@@ -113,7 +113,7 @@ namespace abel {
 #else
 
 // On *nix, read entropy from /dev/urandom.
-            bool ReadSeedMaterialFromOSEntropyImpl(abel::span<uint32_t> values) {
+            bool read_seed_material_from_os_entropyImpl(abel::span<uint32_t> values) {
                 const char kEntropyFile[] = "/dev/urandom";
 
                 auto buffer = reinterpret_cast<uint8_t *>(values.data());
@@ -144,7 +144,7 @@ namespace abel {
 
         }  // namespace
 
-        bool ReadSeedMaterialFromOSEntropy(abel::span<uint32_t> values) {
+        bool read_seed_material_from_os_entropy(abel::span<uint32_t> values) {
             assert(values.data() != nullptr);
             if (values.data() == nullptr) {
                 return false;
@@ -152,10 +152,10 @@ namespace abel {
             if (values.empty()) {
                 return true;
             }
-            return ReadSeedMaterialFromOSEntropyImpl(values);
+            return read_seed_material_from_os_entropyImpl(values);
         }
 
-        void MixIntoSeedMaterial(abel::span<const uint32_t> sequence,
+        void mix_into_seed_material(abel::span<const uint32_t> sequence,
                                  abel::span<uint32_t> seed_material) {
             // Algorithm is based on code available at
             // https://gist.github.com/imneme/540829265469e673d045
@@ -187,13 +187,13 @@ namespace abel {
             }
         }
 
-        abel::optional<uint32_t> GetSaltMaterial() {
+        abel::optional<uint32_t> get_salt_material() {
             // Salt must be common for all generators within the same process so read it
             // only once and store in static variable.
             static const auto salt_material = []() -> abel::optional<uint32_t> {
                 uint32_t salt_value = 0;
 
-                if (random_internal::ReadSeedMaterialFromOSEntropy(
+                if (random_internal::read_seed_material_from_os_entropy(
                         make_span(&salt_value, 1))) {
                     return salt_value;
                 }

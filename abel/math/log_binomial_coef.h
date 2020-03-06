@@ -25,6 +25,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_return_t<T1, T2> log_binomial_coef(const T1 n, const T2 k) ABEL_NOEXCEPT {
         return math_internal::log_binomial_coef_type_check(n, k);
     }

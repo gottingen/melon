@@ -86,13 +86,13 @@ namespace {
         }
     }
 
-    TEST(DiscreteDistributionTest, InitDiscreteDistribution) {
+    TEST(DiscreteDistributionTest, init_discrete_distribution) {
         using testing::Pair;
 
         {
             std::vector<double> p({1.0, 2.0, 3.0});
             std::vector<std::pair<double, size_t>> q =
-                    abel::random_internal::InitDiscreteDistribution(&p);
+                    abel::random_internal::init_discrete_distribution(&p);
 
             EXPECT_THAT(p, testing::ElementsAre(1 / 6.0, 2 / 6.0, 3 / 6.0));
 
@@ -107,7 +107,7 @@ namespace {
             std::vector<double> p({1.0, 2.0, 3.0, 5.0, 2.0});
 
             std::vector<std::pair<double, size_t>> q =
-                    abel::random_internal::InitDiscreteDistribution(&p);
+                    abel::random_internal::init_discrete_distribution(&p);
 
             EXPECT_THAT(p, testing::ElementsAre(1 / 13.0, 2 / 13.0, 3 / 13.0, 5 / 13.0,
                                                 2 / 13.0));
@@ -139,13 +139,13 @@ namespace {
         // in this file. And the test could fail for other reasons.
         // Empirically validated with --runs_per_test=10000.
         const int kThreshold =
-                abel::random_internal::ChiSquareValue(kBuckets, 0.99999);
+                abel::random_internal::chi_square_value(kBuckets, 0.99999);
 
         std::vector<double> weights(kBuckets, 0);
         std::iota(std::begin(weights), std::end(weights), 1);
         abel::discrete_distribution<int> dist(std::begin(weights), std::end(weights));
 
-        abel::InsecureBitGen rng;
+        abel::insecure_bit_gen rng;
 
         std::vector<int32_t> counts(kBuckets, 0);
         for (size_t i = 0; i < kTrials; i++) {
@@ -163,12 +163,12 @@ namespace {
         }
 
         double chi_square =
-                abel::random_internal::ChiSquare(std::begin(counts), std::end(counts),
+                abel::random_internal::chi_square(std::begin(counts), std::end(counts),
                                                  std::begin(weights), std::end(weights));
 
         if (chi_square > kThreshold) {
             double p_value =
-                    abel::random_internal::ChiSquarePValue(chi_square, kBuckets);
+                    abel::random_internal::chi_square_p_value(chi_square, kBuckets);
 
             // Chi-squared test failed. Output does not appear to be uniform.
             std::string msg;

@@ -166,7 +166,7 @@ namespace abel {
 // probabilities used by the discrete distribution.  `*probabilities` will be
 // scaled, if necessary, so that its entries sum to a value sufficiently close
 // to 1.0.
-        std::vector<std::pair<double, size_t>> InitDiscreteDistribution(
+        std::vector<std::pair<double, size_t>> init_discrete_distribution(
                 std::vector<double> *probabilities);
 
     }  // namespace random_internal
@@ -178,7 +178,7 @@ namespace abel {
             q_.emplace_back(1.0, 0);
         } else {
             assert(n() <= (std::numeric_limits<IntType>::max)());
-            q_ = random_internal::InitDiscreteDistribution(&p_);
+            q_ = random_internal::init_discrete_distribution(&p_);
         }
     }
 

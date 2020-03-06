@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <abel/stats/random/internal/nanobenchmark.h>
+#include <benchmark/random/nanobenchmark.h>
 
 #include <sys/types.h>
 
@@ -212,7 +212,7 @@ namespace abel {
 // by several under/over-count errata, so we use the TSC instead.
 
 // Returns a 64-bit timestamp in unit of 'ticks'; to convert to seconds,
-// divide by InvariantTicksPerSecond.
+// divide by invariant_ticks_per_second.
                 inline uint64_t Start64() {
                     uint64_t t;
 #if defined(ABEL_ARCH_PPC)
@@ -492,7 +492,7 @@ namespace abel {
 
                 // Choose initial samples_per_eval based on a single estimated duration.
                 Ticks est = measure_duration();
-                static const double ticks_per_second = InvariantTicksPerSecond();
+                static const double ticks_per_second = invariant_ticks_per_second();
                 const size_t ticks_per_eval = ticks_per_second * p.seconds_per_eval;
                 size_t samples_per_eval = ticks_per_eval / est;
                 samples_per_eval = (std::max)(samples_per_eval, p.min_samples_per_eval);
@@ -689,13 +689,13 @@ namespace abel {
 
         }  // namespace
 
-        void PinThreadToCPU(int cpu) {
+        void pin_thread_to_cpu(int cpu) {
             // We might migrate to another CPU before pinning below, but at least cpu
             // will be one of the CPUs on which this thread ran.
 #if defined(ABEL_OS_WIN)
             if (cpu < 0) {
               cpu = static_cast<int>(GetCurrentProcessorNumber());
-              ABEL_RAW_CHECK(cpu >= 0, "PinThreadToCPU detect failed");
+              ABEL_RAW_CHECK(cpu >= 0, "pin_thread_to_cpu detect failed");
               if (cpu >= 64) {
                 // NOTE: On wine, at least, GetCurrentProcessorNumber() sometimes returns
                 // a value > 64, which is out of range. When this happens, log a message
@@ -712,7 +712,7 @@ namespace abel {
 #elif defined(ABEL_OS_LINUX) && !defined(ABEL_OS_ANDROID)
             if (cpu < 0) {
               cpu = sched_getcpu();
-              ABEL_RAW_CHECK(cpu >= 0, "PinThreadToCPU detect failed");
+              ABEL_RAW_CHECK(cpu >= 0, "pin_thread_to_cpu detect failed");
             }
             const pid_t pid = 0;  // current thread
             cpu_set_t set;
@@ -725,7 +725,7 @@ namespace abel {
 
 // Returns tick rate. Invariant means the tick counter frequency is independent
 // of CPU throttling or sleep. May be expensive, caller should cache the result.
-        double InvariantTicksPerSecond() {
+        double invariant_ticks_per_second() {
 #if defined(ABEL_ARCH_PPC)
             return __ppc_get_timebase_freq();
 #elif defined(ABEL_ARCH_X86_64)
@@ -778,7 +778,7 @@ namespace abel {
             return unique.size();
         }
 
-        size_t Measure(const Func func, const void *arg, const FuncInput *inputs,
+        size_t measure(const Func func, const void *arg, const FuncInput *inputs,
                        const size_t num_inputs, Result *results, const Params &p) {
             ABEL_RAW_CHECK(num_inputs != 0, "No inputs");
 

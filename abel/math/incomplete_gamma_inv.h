@@ -165,6 +165,7 @@ namespace abel {
 
 
     template<typename T1, typename T2>
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     ABEL_CONSTEXPR common_return_t<T1, T2> incomplete_gamma_inv(const T1 a, const T2 p) ABEL_NOEXCEPT {
         return math_internal::incomplete_gamma_inv_type_check(a, p);
     }

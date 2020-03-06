@@ -12,7 +12,7 @@ template<typename T>
 void Use(T) {}
 
 TEST(Examples, Basic) {
-    abel::BitGen gen;
+    abel::bit_gen gen;
     std::vector<int> objs = {10, 20, 30, 40, 50};
 
     // Choose an element from a set.
@@ -45,15 +45,15 @@ TEST(Examples, Basic) {
 
 TEST(Examples, CreateingCorrelatedVariateSequences) {
     // Unexpected PRNG correlation is often a source of bugs,
-    // so when using abel::BitGen it must be an intentional choice.
+    // so when using abel::bit_gen it must be an intentional choice.
     // NOTE: All of these only exhibit process-level stability.
 
     // Create a correlated sequence from system entropy.
     {
-        auto my_seed = abel::MakeSeedSeq();
+        auto my_seed = abel::make_seed_seq();
 
-        abel::BitGen gen_1(my_seed);
-        abel::BitGen gen_2(my_seed);  // Produces same variates as gen_1.
+        abel::bit_gen gen_1(my_seed);
+        abel::bit_gen gen_2(my_seed);  // Produces same variates as gen_1.
 
         EXPECT_EQ(abel::Bernoulli(gen_1, 0.5), abel::Bernoulli(gen_2, 0.5));
         EXPECT_EQ(abel::Uniform<uint32_t>(gen_1), abel::Uniform<uint32_t>(gen_2));
@@ -61,11 +61,11 @@ TEST(Examples, CreateingCorrelatedVariateSequences) {
 
     // Create a correlated sequence from an existing URBG.
     {
-        abel::BitGen gen;
+        abel::bit_gen gen;
 
-        auto my_seed = abel::CreateSeedSeqFrom(&gen);
-        abel::BitGen gen_1(my_seed);
-        abel::BitGen gen_2(my_seed);
+        auto my_seed = abel::create_seed_seq_from(&gen);
+        abel::bit_gen gen_1(my_seed);
+        abel::bit_gen gen_2(my_seed);
 
         EXPECT_EQ(abel::Bernoulli(gen_1, 0.5), abel::Bernoulli(gen_2, 0.5));
         EXPECT_EQ(abel::Uniform<uint32_t>(gen_1), abel::Uniform<uint32_t>(gen_2));
@@ -77,8 +77,8 @@ TEST(Examples, CreateingCorrelatedVariateSequences) {
         const char kData[] = "A simple seed string";
         std::seed_seq my_seed(std::begin(kData), std::end(kData));
 
-        abel::BitGen gen_1(my_seed);
-        abel::BitGen gen_2(my_seed);
+        abel::bit_gen gen_1(my_seed);
+        abel::bit_gen gen_2(my_seed);
 
         EXPECT_EQ(abel::Bernoulli(gen_1, 0.5), abel::Bernoulli(gen_2, 0.5));
         EXPECT_EQ(abel::Uniform<uint32_t>(gen_1), abel::Uniform<uint32_t>(gen_2));

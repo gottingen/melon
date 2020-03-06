@@ -235,6 +235,7 @@ namespace abel {
 
     template<typename T1, typename T2, typename T3>
     ABEL_CONSTEXPR
+    ABEL_DEPRECATED_MESSAGE("use std version instead")
     common_t<T1, T2, T3>
     incomplete_beta_inv(const T1 a, const T2 b, const T3 p)
     ABEL_NOEXCEPT {
