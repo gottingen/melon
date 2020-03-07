@@ -5,18 +5,15 @@
 #ifndef ABEL_MATH_IS_ODD_H_
 #define ABEL_MATH_IS_ODD_H_
 
-#include <abel/math/option.h>
+#include <abel/base/profile.h>
 
 namespace abel {
 
-    namespace math_internal {
+    ABEL_CONSTEXPR bool is_odd(const long long x) ABEL_NOEXCEPT {
+        // return( x % long long(2) == long long(0) ? false : true );
+        return (x & 1U) != 0;
+    }
 
-        ABEL_CONSTEXPR bool is_odd(const long long x) ABEL_NOEXCEPT {
-            // return( x % long long(2) == long long(0) ? false : true );
-            return (x & 1U) != 0;
-        }
-
-    } //namespace math_internal
 } //abel
 
 #endif //ABEL_IS_ODD_H

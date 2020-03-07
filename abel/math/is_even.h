@@ -5,17 +5,13 @@
 #ifndef ABEL_MATH_IS_EVEN_H_
 #define ABEL_MATH_IS_EVEN_H_
 
-#include <abel/math/option.h>
-
+#include <abel/math/is_odd.h>
 namespace abel {
 
-    namespace math_internal {
 
-        ABEL_CONSTEXPR bool is_even(const long long x) ABEL_NOEXCEPT {
-            return !is_odd(x);
-        }
-
-    } //namespace math_internal
+    ABEL_CONSTEXPR bool is_even(const long long x) ABEL_NOEXCEPT {
+        return !is_odd(x);
+    }
 
 } //namespace abel
 
