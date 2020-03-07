@@ -28,7 +28,7 @@
 #include <string>
 
 #include <abel/chrono/clock.h>
-#include <abel/testing/time_util.h>
+#include <test/testing/time_util.h>
 #include <benchmark/benchmark.h>
 
 namespace {
@@ -76,7 +76,7 @@ namespace {
 
     void BM_Time_ToDateTime_Abel(benchmark::State &state) {
         const abel::time_zone tz =
-                abel::time_internal::load_time_zone("America/Los_Angeles");
+                abel::chrono_internal::load_time_zone("America/Los_Angeles");
         abel::abel_time t = abel::from_unix_seconds(1384569027);
         abel::abel_time t2 = abel::from_unix_seconds(1418962578);
         while (state.KeepRunning()) {
@@ -195,7 +195,7 @@ namespace {
 
     void BM_Time_FromCivil_Abel(benchmark::State &state) {
         const abel::time_zone tz =
-                abel::time_internal::load_time_zone("America/Los_Angeles");
+                abel::chrono_internal::load_time_zone("America/Los_Angeles");
         int i = 0;
         while (state.KeepRunning()) {
             if ((i & 1) == 0) {
@@ -248,7 +248,7 @@ namespace {
 
     void BM_Time_FromCivilDay0_Abel(benchmark::State &state) {
         const abel::time_zone tz =
-                abel::time_internal::load_time_zone("America/Los_Angeles");
+                abel::chrono_internal::load_time_zone("America/Los_Angeles");
         int i = 0;
         while (state.KeepRunning()) {
             if ((i & 1) == 0) {

@@ -87,8 +87,8 @@ namespace abel {
             return MultiplyU64ToU128(a, b);
           }
 
-          static uint64_t hi(result_type r) { return Uint128High64(r); }
-          static uint64_t lo(result_type r) { return Uint128Low64(r); }
+          static uint64_t hi(result_type r) { return uint128_high64(r); }
+          static uint64_t lo(result_type r) { return uint128_low64(r); }
         };
 #endif
 

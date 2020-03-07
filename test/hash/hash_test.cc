@@ -33,7 +33,7 @@
 
 namespace {
 
-    using abel::Hash;
+    using abel::hash;
     using abel::hash_internal::SpyHashState;
 
     template<typename T>
@@ -47,10 +47,10 @@ namespace {
         return SpyHashState::combine(SpyHashState(), value);
     }
 
-// Helper trait to verify if T is hashable. We use abel::Hash's poison status to
+// Helper trait to verify if T is hashable. We use abel::hash's poison status to
 // detect it.
     template<typename T>
-    using is_hashable = std::is_default_constructible<abel::Hash<T>>;
+    using is_hashable = std::is_default_constructible<abel::hash<T>>;
 
     TYPED_TEST_P(HashValueIntTest, BasicUsage) {
         EXPECT_TRUE((is_hashable<TypeParam>::value));
@@ -65,8 +65,8 @@ namespace {
     TYPED_TEST_P(HashValueIntTest, FastPath) {
         // Test the fast-path to make sure the values are the same.
         TypeParam n = 42;
-        EXPECT_EQ(abel::Hash<TypeParam>{}(n),
-                  abel::Hash<std::tuple<TypeParam>>{}(std::tuple<TypeParam>(n)));
+        EXPECT_EQ(abel::hash<TypeParam>{}(n),
+                  abel::hash<std::tuple<TypeParam>>{}(std::tuple<TypeParam>(n)));
     }
 
     REGISTER_TYPED_TEST_SUITE_P(HashValueIntTest, BasicUsage, FastPath);
@@ -146,7 +146,7 @@ namespace {
             size_t bits_and = ~size_t{};
 
             for (size_t i = 0; i < kNumValues; ++i) {
-                size_t hash = abel::Hash<void *>()(data.get() + i * align);
+                size_t hash = abel::hash<void *>()(data.get() + i * align);
                 bits_or |= hash;
                 bits_and &= hash;
             }
@@ -379,15 +379,15 @@ namespace {
             std::multiset<int>>;
     INSTANTIATE_TYPED_TEST_SUITE_P(My, HashValueSequenceTest, IntSequenceTypes);
 
-// Private type that only supports AbelHashValue to make sure our chosen hash
-// implentation is recursive within abel::Hash.
+// Private type that only supports abel_hash_value to make sure our chosen hash
+// implentation is recursive within abel::hash.
 // It uses std::abs() on the value to provide different bitwise representations
 // of the same logical value.
     struct Private {
         int i;
 
         template<typename H>
-        friend H AbelHashValue(H h, Private p) {
+        friend H abel_hash_value(H h, Private p) {
             return H::combine(std::move(h), std::abs(p.i));
         }
 
@@ -403,7 +403,7 @@ namespace {
     };
 
 // Test helper for combine_piecewise_buffer.  It holds a string_view to the
-// buffer-to-be-hashed.  Its AbelHashValue specialization will split up its
+// buffer-to-be-hashed.  Its abel_hash_value specialization will split up its
 // contents at the character offsets requested.
     class PiecewiseHashTester {
     public:
@@ -419,11 +419,11 @@ namespace {
                   split_locations_(std::move(split_locations)) {}
 
         template<typename H>
-        friend H AbelHashValue(H h, const PiecewiseHashTester &p) {
+        friend H abel_hash_value(H h, const PiecewiseHashTester &p) {
             if (!p.piecewise_) {
                 return H::combine_contiguous(std::move(h), p.buf_.data(), p.buf_.size());
             }
-            abel::hash_internal::PiecewiseCombiner combiner;
+            abel::hash_internal::piecewise_combiner combiner;
             if (p.split_locations_.empty()) {
                 h = combiner.add_buffer(std::move(h), p.buf_.data(), p.buf_.size());
                 return combiner.finalize(std::move(h));
@@ -452,7 +452,7 @@ namespace {
 // by "bar"
     struct DummyFooBar {
         template<typename H>
-        friend H AbelHashValue(H h, const DummyFooBar &) {
+        friend H abel_hash_value(H h, const DummyFooBar &) {
             const char *foo = "foo";
             const char *bar = "bar";
             h = H::combine_contiguous(std::move(h), foo, 3);
@@ -462,7 +462,7 @@ namespace {
     };
 
     TEST(HashValueTest, CombinePiecewiseBuffer) {
-        abel::Hash<PiecewiseHashTester> hash;
+        abel::hash<PiecewiseHashTester> hash;
 
         // Check that hashing an empty buffer through the piecewise API works.
         EXPECT_EQ(hash(PiecewiseHashTester("")), hash(PiecewiseHashTester("", {})));
@@ -476,7 +476,7 @@ namespace {
         // But hashing "foobar" in pieces gives a different answer than hashing "foo"
         // contiguously, then "bar" contiguously.
         EXPECT_NE(hash(PiecewiseHashTester("foobar", {3})),
-                  abel::Hash<DummyFooBar>()(DummyFooBar{}));
+                  abel::hash<DummyFooBar>()(DummyFooBar{}));
 
         // Test hashing a large buffer incrementally, broken up in several different
         // ways.  Arrange for breaks on and near the stride boundaries to look for
@@ -574,7 +574,7 @@ namespace {
     };
 
     template<typename T>
-    struct IsHashCallable<T, abel::void_t<decltype(std::declval<abel::Hash<T>>()(
+    struct IsHashCallable<T, abel::void_t<decltype(std::declval<abel::hash<T>>()(
             std::declval<const T &>()))>> : std::true_type {
     };
 
@@ -589,13 +589,13 @@ namespace {
 
     TEST(IsHashableTest, ValidHash) {
         EXPECT_TRUE((is_hashable<int>::value));
-        EXPECT_TRUE(std::is_default_constructible<abel::Hash<int>>::value);
-        EXPECT_TRUE(std::is_copy_constructible<abel::Hash<int>>::value);
-        EXPECT_TRUE(std::is_move_constructible<abel::Hash<int>>::value);
-        EXPECT_TRUE(abel::is_copy_assignable<abel::Hash<int>>::value);
-        EXPECT_TRUE(abel::is_move_assignable<abel::Hash<int>>::value);
+        EXPECT_TRUE(std::is_default_constructible<abel::hash<int>>::value);
+        EXPECT_TRUE(std::is_copy_constructible<abel::hash<int>>::value);
+        EXPECT_TRUE(std::is_move_constructible<abel::hash<int>>::value);
+        EXPECT_TRUE(abel::is_copy_assignable<abel::hash<int>>::value);
+        EXPECT_TRUE(abel::is_move_assignable<abel::hash<int>>::value);
         EXPECT_TRUE(IsHashCallable<int>::value);
-        EXPECT_TRUE(IsAggregateInitializable<abel::Hash<int>>::value);
+        EXPECT_TRUE(IsAggregateInitializable<abel::hash<int>>::value);
     }
 
 #if ABEL_META_INTERNAL_STD_HASH_SFINAE_FRIENDLY_
@@ -603,15 +603,15 @@ namespace {
         struct X {
         };
         EXPECT_FALSE((is_hashable<X>::value));
-        EXPECT_FALSE(std::is_default_constructible<abel::Hash<X>>::value);
-        EXPECT_FALSE(std::is_copy_constructible<abel::Hash<X>>::value);
-        EXPECT_FALSE(std::is_move_constructible<abel::Hash<X>>::value);
-        EXPECT_FALSE(abel::is_copy_assignable<abel::Hash<X>>::value);
-        EXPECT_FALSE(abel::is_move_assignable<abel::Hash<X>>::value);
+        EXPECT_FALSE(std::is_default_constructible<abel::hash<X>>::value);
+        EXPECT_FALSE(std::is_copy_constructible<abel::hash<X>>::value);
+        EXPECT_FALSE(std::is_move_constructible<abel::hash<X>>::value);
+        EXPECT_FALSE(abel::is_copy_assignable<abel::hash<X>>::value);
+        EXPECT_FALSE(abel::is_move_assignable<abel::hash<X>>::value);
         EXPECT_FALSE(IsHashCallable<X>::value);
 #if !defined(__GNUC__) || __GNUC__ < 9
         // This doesn't compile on GCC 9.
-        EXPECT_FALSE(IsAggregateInitializable<abel::Hash<X>>::value);
+        EXPECT_FALSE(IsAggregateInitializable<abel::hash<X>>::value);
 #endif
     }
 
@@ -619,18 +619,18 @@ namespace {
 
 // Hashable types
 //
-// These types exist simply to exercise various AbelHashValue behaviors, so
-// they are named by what their AbelHashValue overload does.
+// These types exist simply to exercise various abel_hash_value behaviors, so
+// they are named by what their abel_hash_value overload does.
     struct NoOp {
         template<typename HashCode>
-        friend HashCode AbelHashValue(HashCode h, NoOp n) {
+        friend HashCode abel_hash_value(HashCode h, NoOp n) {
             return h;
         }
     };
 
     struct EmptyCombine {
         template<typename HashCode>
-        friend HashCode AbelHashValue(HashCode h, EmptyCombine e) {
+        friend HashCode abel_hash_value(HashCode h, EmptyCombine e) {
             return HashCode::combine(std::move(h));
         }
     };
@@ -638,7 +638,7 @@ namespace {
     template<typename Int>
     struct CombineIterative {
         template<typename HashCode>
-        friend HashCode AbelHashValue(HashCode h, CombineIterative c) {
+        friend HashCode abel_hash_value(HashCode h, CombineIterative c) {
             for (int i = 0; i < 5; ++i) {
                 h = HashCode::combine(std::move(h), Int(i));
             }
@@ -649,7 +649,7 @@ namespace {
     template<typename Int>
     struct CombineVariadic {
         template<typename HashCode>
-        friend HashCode AbelHashValue(HashCode h, CombineVariadic c) {
+        friend HashCode abel_hash_value(HashCode h, CombineVariadic c) {
             return HashCode::combine(std::move(h), Int(0), Int(1), Int(2), Int(3),
                                      Int(4));
         }
@@ -695,7 +695,7 @@ namespace {
     template<
             typename H, InvokeTag... Tags,
             typename = typename EnableIfContained<InvokeTag::kHashValue, Tags...>::type>
-    H AbelHashValue(H state, CustomHashType<Tags...> t) {
+    H abel_hash_value(H state, CustomHashType<Tags...> t) {
         static_assert(MinTag<Tags...>::value == InvokeTag::kHashValue, "");
         return H::combine(std::move(state),
                           t.value + static_cast<int>(InvokeTag::kHashValue));
@@ -778,8 +778,8 @@ namespace {
     }
 
     TEST(HashTest, NoOpsAreEquivalent) {
-        EXPECT_EQ(Hash<NoOp>()({}), Hash<NoOp>()({}));
-        EXPECT_EQ(Hash<NoOp>()({}), Hash<EmptyCombine>()({}));
+        EXPECT_EQ(hash<NoOp>()({}), hash<NoOp>()({}));
+        EXPECT_EQ(hash<NoOp>()({}), hash<EmptyCombine>()({}));
     }
 
     template<typename T>
@@ -789,16 +789,16 @@ namespace {
     TYPED_TEST_SUITE_P(HashIntTest);
 
     TYPED_TEST_P(HashIntTest, BasicUsage) {
-        EXPECT_NE(Hash<NoOp>()({}), Hash<TypeParam>()(0));
-        EXPECT_NE(Hash<NoOp>()({}),
-                  Hash<TypeParam>()(std::numeric_limits<TypeParam>::max()));
+        EXPECT_NE(hash<NoOp>()({}), hash<TypeParam>()(0));
+        EXPECT_NE(hash<NoOp>()({}),
+                  hash<TypeParam>()(std::numeric_limits<TypeParam>::max()));
         if (std::numeric_limits<TypeParam>::min() != 0) {
-            EXPECT_NE(Hash<NoOp>()({}),
-                      Hash<TypeParam>()(std::numeric_limits<TypeParam>::min()));
+            EXPECT_NE(hash<NoOp>()({}),
+                      hash<TypeParam>()(std::numeric_limits<TypeParam>::min()));
         }
 
-        EXPECT_EQ(Hash<CombineIterative<TypeParam>>()({}),
-                  Hash<CombineVariadic<TypeParam>>()({}));
+        EXPECT_EQ(hash<CombineIterative<TypeParam>>()({}),
+                  hash<CombineVariadic<TypeParam>>()({}));
     }
 
     REGISTER_TYPED_TEST_SUITE_P(HashIntTest, BasicUsage);
@@ -811,7 +811,7 @@ namespace {
         int i;
 
         template<typename H>
-        friend H AbelHashValue(H hash_state, const StructWithPadding &s) {
+        friend H abel_hash_value(H hash_state, const StructWithPadding &s) {
             return H::combine(std::move(hash_state), s.c, s.i);
         }
     };
@@ -829,7 +829,7 @@ namespace {
         T *end;
 
         template<typename H>
-        friend H AbelHashValue(H hash_state, const ArraySlice &slice) {
+        friend H abel_hash_value(H hash_state, const ArraySlice &slice) {
             for (auto t = slice.begin; t != slice.end; ++t) {
                 hash_state = H::combine(std::move(hash_state), *t);
             }
@@ -859,13 +859,13 @@ namespace {
                                         << " object representations";
         }
 
-        EXPECT_EQ(Hash<StructWithPadding>()(s1[0]), Hash<StructWithPadding>()(s2[0]));
-        EXPECT_EQ(Hash<ArraySlice<StructWithPadding>>()({s1, s1 + kNumStructs}),
-                  Hash<ArraySlice<StructWithPadding>>()({s2, s2 + kNumStructs}));
+        EXPECT_EQ(hash<StructWithPadding>()(s1[0]), hash<StructWithPadding>()(s2[0]));
+        EXPECT_EQ(hash<ArraySlice<StructWithPadding>>()({s1, s1 + kNumStructs}),
+                  hash<ArraySlice<StructWithPadding>>()({s2, s2 + kNumStructs}));
     }
 
     TEST(HashTest, StandardHashContainerUsage) {
-        std::unordered_map<int, std::string, Hash<int>> map = {{0,  "foo"},
+        std::unordered_map<int, std::string, hash<int>> map = {{0,  "foo"},
                                                                {42, "bar"}};
 
         EXPECT_NE(map.find(0), map.end());
@@ -877,14 +877,14 @@ namespace {
         ConvertibleFromNoOp(NoOp) {}  // NOLINT(runtime/explicit)
 
         template<typename H>
-        friend H AbelHashValue(H hash_state, ConvertibleFromNoOp) {
+        friend H abel_hash_value(H hash_state, ConvertibleFromNoOp) {
             return H::combine(std::move(hash_state), 1);
         }
     };
 
     TEST(HashTest, HeterogeneousCall) {
-        EXPECT_NE(Hash<ConvertibleFromNoOp>()(NoOp()),
-                  Hash<NoOp>()(NoOp()));
+        EXPECT_NE(hash<ConvertibleFromNoOp>()(NoOp()),
+                  hash<NoOp>()(NoOp()));
     }
 
     TEST(IsUniquelyRepresentedTest, SanityTest) {
@@ -901,27 +901,27 @@ namespace {
         std::string s;
 
         template<typename H>
-        friend H AbelHashValue(H hash_state, IntAndString int_and_string) {
+        friend H abel_hash_value(H hash_state, IntAndString int_and_string) {
             return H::combine(std::move(hash_state), int_and_string.s,
                               int_and_string.i);
         }
     };
 
     TEST(HashTest, SmallValueOn64ByteBoundary) {
-        Hash<IntAndString>()(IntAndString{0, std::string(63, '0')});
+        hash<IntAndString>()(IntAndString{0, std::string(63, '0')});
     }
 
     struct TypeErased {
         size_t n;
 
         template<typename H>
-        friend H AbelHashValue(H hash_state, const TypeErased &v) {
-            v.HashValue(abel::HashState::Create(&hash_state));
+        friend H abel_hash_value(H hash_state, const TypeErased &v) {
+            v.HashValue(abel::hash_state::create(&hash_state));
             return hash_state;
         }
 
-        void HashValue(abel::HashState state) const {
-            abel::HashState::combine(std::move(state), n);
+        void HashValue(abel::hash_state state) const {
+            abel::hash_state::combine(std::move(state), n);
         }
     };
 
@@ -953,8 +953,8 @@ namespace std {
 namespace {
 
     TEST(HashTest, DoesNotUseImplicitConversionsToBool) {
-        EXPECT_NE(abel::Hash<ValueWithBoolConversion>()(ValueWithBoolConversion{0}),
-                  abel::Hash<ValueWithBoolConversion>()(ValueWithBoolConversion{1}));
+        EXPECT_NE(abel::hash<ValueWithBoolConversion>()(ValueWithBoolConversion{0}),
+                  abel::hash<ValueWithBoolConversion>()(ValueWithBoolConversion{1}));
     }
 
 }  // namespace

@@ -16,32 +16,32 @@ namespace abel {
 
     namespace hash_internal {
 
-// SpyHashState is an implementation of the HashState API that simply
+// SpyHashState is an implementation of the hash_state API that simply
 // accumulates all input bytes in an internal buffer. This makes it useful
-// for testing AbelHashValue overloads (so long as they are templated on the
-// HashState parameter), since it can report the exact hash representation
-// that the AbelHashValue overload produces.
+// for testing abel_hash_value overloads (so long as they are templated on the
+// hash_state parameter), since it can report the exact hash representation
+// that the abel_hash_value overload produces.
 //
 // Sample usage:
 // EXPECT_EQ(SpyHashState::combine(SpyHashState(), foo),
 //           SpyHashState::combine(SpyHashState(), bar));
         template<typename T>
-        class SpyHashStateImpl : public HashStateBase<SpyHashStateImpl<T>> {
+        class spy_hash_state_impl : public hash_state_base<spy_hash_state_impl<T>> {
         public:
-            SpyHashStateImpl() : error_(std::make_shared<abel::optional<std::string>>()) {
+            spy_hash_state_impl() : error_(std::make_shared<abel::optional<std::string>>()) {
                 static_assert(std::is_void<T>::value, "");
             }
 
             // Move-only
-            SpyHashStateImpl(const SpyHashStateImpl &) = delete;
+            spy_hash_state_impl(const spy_hash_state_impl &) = delete;
 
-            SpyHashStateImpl &operator=(const SpyHashStateImpl &) = delete;
+            spy_hash_state_impl &operator=(const spy_hash_state_impl &) = delete;
 
-            SpyHashStateImpl(SpyHashStateImpl &&other) noexcept {
+            spy_hash_state_impl(spy_hash_state_impl &&other) noexcept {
                 *this = std::move(other);
             }
 
-            SpyHashStateImpl &operator=(SpyHashStateImpl &&other) noexcept {
+            spy_hash_state_impl &operator=(spy_hash_state_impl &&other) noexcept {
                 hash_representation_ = std::move(other.hash_representation_);
                 error_ = other.error_;
                 moved_from_ = other.moved_from_;
@@ -50,7 +50,7 @@ namespace abel {
             }
 
             template<typename U>
-            SpyHashStateImpl(SpyHashStateImpl<U> &&other) {  // NOLINT
+            spy_hash_state_impl(spy_hash_state_impl<U> &&other) {  // NOLINT
                 hash_representation_ = std::move(other.hash_representation_);
                 error_ = other.error_;
                 moved_from_ = other.moved_from_;
@@ -58,19 +58,19 @@ namespace abel {
             }
 
             template<typename A, typename... Args>
-            static SpyHashStateImpl combine(SpyHashStateImpl s, const A &a,
+            static spy_hash_state_impl combine(spy_hash_state_impl s, const A &a,
                                             const Args &... args) {
-                // Pass an instance of SpyHashStateImpl<A> when trying to combine `A`. This
+                // Pass an instance of spy_hash_state_impl<A> when trying to combine `A`. This
                 // allows us to test that the user only uses this instance for combine calls
-                // and does not call AbelHashValue directly.
-                // See AbelHashValue implementation at the bottom.
-                s = SpyHashStateImpl<A>::HashStateBase::combine(std::move(s), a);
-                return SpyHashStateImpl::combine(std::move(s), args...);
+                // and does not call abel_hash_value directly.
+                // See abel_hash_value implementation at the bottom.
+                s = spy_hash_state_impl<A>::hash_state_base::combine(std::move(s), a);
+                return spy_hash_state_impl::combine(std::move(s), args...);
             }
 
-            static SpyHashStateImpl combine(SpyHashStateImpl s) {
+            static spy_hash_state_impl combine(spy_hash_state_impl s) {
                 if (direct_abel_hash_value_error_) {
-                    *s.error_ = "AbelHashValue should not be invoked directly.";
+                    *s.error_ = "abel_hash_value should not be invoked directly.";
                 } else if (s.moved_from_) {
                     *s.error_ = "Used moved-from instance of the hash state object.";
                 }
@@ -81,15 +81,15 @@ namespace abel {
                 direct_abel_hash_value_error_ = true;
             }
 
-            // Two SpyHashStateImpl objects are equal if they hold equal hash
+            // Two spy_hash_state_impl objects are equal if they hold equal hash
             // representations.
-            friend bool operator==(const SpyHashStateImpl &lhs,
-                                   const SpyHashStateImpl &rhs) {
+            friend bool operator==(const spy_hash_state_impl &lhs,
+                                   const spy_hash_state_impl &rhs) {
                 return lhs.hash_representation_ == rhs.hash_representation_;
             }
 
-            friend bool operator!=(const SpyHashStateImpl &lhs,
-                                   const SpyHashStateImpl &rhs) {
+            friend bool operator!=(const spy_hash_state_impl &lhs,
+                                   const spy_hash_state_impl &rhs) {
                 return !(lhs == rhs);
             }
 
@@ -100,8 +100,8 @@ namespace abel {
                 kUnequal,
             };
 
-            static CompareResult Compare(const SpyHashStateImpl &a,
-                                         const SpyHashStateImpl &b) {
+            static CompareResult Compare(const spy_hash_state_impl &a,
+                                         const spy_hash_state_impl &b) {
                 const std::string a_flat = abel::string_join(a.hash_representation_, "");
                 const std::string b_flat = abel::string_join(b.hash_representation_, "");
                 if (a_flat == b_flat) return CompareResult::kEqual;
@@ -113,7 +113,7 @@ namespace abel {
             // operator<< prints the hash representation as a hex and ASCII dump, to
             // facilitate debugging.
             friend std::ostream &operator<<(std::ostream &out,
-                                            const SpyHashStateImpl &hash_state) {
+                                            const spy_hash_state_impl &hash_state) {
                 out << "[\n";
                 for (auto &s : hash_state.hash_representation_) {
                     size_t offset = 0;
@@ -134,7 +134,7 @@ namespace abel {
 
             // The base case of the combine recursion, which writes raw bytes into the
             // internal buffer.
-            static SpyHashStateImpl combine_contiguous(SpyHashStateImpl hash_state,
+            static spy_hash_state_impl combine_contiguous(spy_hash_state_impl hash_state,
                                                        const unsigned char *begin,
                                                        size_t size) {
                 const size_t large_chunk_stride = PiecewiseChunkSize();
@@ -143,7 +143,7 @@ namespace abel {
                     // doing it piecewise by the stride length, followed by the (possibly
                     // empty) remainder.
                     while (size >= large_chunk_stride) {
-                        hash_state = SpyHashStateImpl::combine_contiguous(
+                        hash_state = spy_hash_state_impl::combine_contiguous(
                                 std::move(hash_state), begin, large_chunk_stride);
                         begin += large_chunk_stride;
                         size -= large_chunk_stride;
@@ -155,7 +155,7 @@ namespace abel {
                 return hash_state;
             }
 
-            using SpyHashStateImpl::HashStateBase::combine_contiguous;
+            using spy_hash_state_impl::hash_state_base::combine_contiguous;
 
             abel::optional<std::string> error() const {
                 if (moved_from_) {
@@ -167,11 +167,11 @@ namespace abel {
         private:
             template<typename U>
             friend
-            class SpyHashStateImpl;
+            class spy_hash_state_impl;
 
-            // This is true if SpyHashStateImpl<T> has been passed to a call of
-            // AbelHashValue with the wrong type. This detects that the user called
-            // AbelHashValue directly (because the hash state type does not match).
+            // This is true if spy_hash_state_impl<T> has been passed to a call of
+            // abel_hash_value with the wrong type. This detects that the user called
+            // abel_hash_value directly (because the hash state type does not match).
             static bool direct_abel_hash_value_error_;
 
             std::vector<std::string> hash_representation_;
@@ -183,7 +183,7 @@ namespace abel {
         };
 
         template<typename T>
-        bool SpyHashStateImpl<T>::direct_abel_hash_value_error_;
+        bool spy_hash_state_impl<T>::direct_abel_hash_value_error_;
 
         template<bool &B>
         struct OdrUse {
@@ -211,10 +211,10 @@ namespace abel {
                 //  - Second, it triggers a SFINAE error disabling the overload to prevent
                 //    compile time errors. If we didn't disable the overload we would get
                 //    ambiguous overload errors, which we don't want.
-                int = RunOnStartup<SpyHashStateImpl<T>::SetDirectAbelHashValueError>::run>
-        void AbelHashValue(SpyHashStateImpl<T>, const U &);
+                int = RunOnStartup<spy_hash_state_impl<T>::SetDirectAbelHashValueError>::run>
+        void abel_hash_value(spy_hash_state_impl<T>, const U &);
 
-        using SpyHashState = SpyHashStateImpl<void>;
+        using SpyHashState = spy_hash_state_impl<void>;
 
     }  // namespace hash_internal
 

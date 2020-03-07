@@ -169,8 +169,8 @@ namespace {
         big_copy = big;
         EXPECT_EQ(big >> 73, big_copy >>= 73);
 
-        EXPECT_EQ(abel::Uint128High64(biggest), std::numeric_limits<uint64_t>::max());
-        EXPECT_EQ(abel::Uint128Low64(biggest), std::numeric_limits<uint64_t>::max());
+        EXPECT_EQ(abel::uint128_high64(biggest), std::numeric_limits<uint64_t>::max());
+        EXPECT_EQ(abel::uint128_low64(biggest), std::numeric_limits<uint64_t>::max());
         EXPECT_EQ(zero + one, one);
         EXPECT_EQ(one + one, two);
         EXPECT_EQ(big_minus_one + one, big);
@@ -184,8 +184,8 @@ namespace {
         EXPECT_EQ(zero - 1, biggest);
         EXPECT_EQ(high_low - one, low_high);
         EXPECT_EQ(low_high + one, high_low);
-        EXPECT_EQ(abel::Uint128High64((abel::uint128(1) << 64) - 1), 0);
-        EXPECT_EQ(abel::Uint128Low64((abel::uint128(1) << 64) - 1),
+        EXPECT_EQ(abel::uint128_high64((abel::uint128(1) << 64) - 1), 0);
+        EXPECT_EQ(abel::uint128_low64((abel::uint128(1) << 64) - 1),
                   std::numeric_limits<uint64_t>::max());
         EXPECT_TRUE(!!one);
         EXPECT_TRUE(!!high_low);
@@ -485,9 +485,9 @@ namespace {
                 0,
                 1,
                 0xffeeddccbbaa9988,
-                abel::MakeInt128(0x7766554433221100, 0),
-                abel::MakeInt128(0x1234567890abcdef, 0xfedcba0987654321),
-                abel::Int128Max()};
+                abel::make_int128(0x7766554433221100, 0),
+                abel::make_int128(0x1234567890abcdef, 0xfedcba0987654321),
+                abel::int128_max()};
         for (abel::int128 value : nonnegative_signed_values) {
             EXPECT_EQ(value, abel::int128(abel::uint128(value)));
 
@@ -498,8 +498,8 @@ namespace {
 
         abel::int128 negative_values[] = {
                 -1, -0x1234567890abcdef,
-                abel::MakeInt128(-0x5544332211ffeedd, 0),
-                -abel::MakeInt128(0x76543210fedcba98, 0xabcdef0123456789)};
+                abel::make_int128(-0x5544332211ffeedd, 0),
+                -abel::make_int128(0x76543210fedcba98, 0xabcdef0123456789)};
         for (abel::int128 value : negative_values) {
             EXPECT_EQ(abel::uint128(-value), -abel::uint128(value));
 
@@ -571,12 +571,12 @@ namespace {
     TEST(Int128, BoolConversionTest) {
         EXPECT_FALSE(abel::int128(0));
         for (int i = 0; i < 64; ++i) {
-            EXPECT_TRUE(abel::MakeInt128(0, uint64_t{1} << i));
+            EXPECT_TRUE(abel::make_int128(0, uint64_t{1} << i));
         }
         for (int i = 0; i < 63; ++i) {
-            EXPECT_TRUE(abel::MakeInt128(int64_t{1} << i, 0));
+            EXPECT_TRUE(abel::make_int128(int64_t{1} << i, 0));
         }
-        EXPECT_TRUE(abel::Int128Min());
+        EXPECT_TRUE(abel::int128_min());
 
         EXPECT_EQ(abel::int128(1), abel::int128(true));
         EXPECT_EQ(abel::int128(0), abel::int128(false));
@@ -639,10 +639,10 @@ namespace {
 
         // Round trip conversions with a small sample of random large positive values.
         abel::int128 large_values[] = {
-                abel::MakeInt128(0x5b0640d96c7b3d9f, 0xb7a7189e51d18622),
-                abel::MakeInt128(0x34bed042c6f65270, 0x73b236570669a089),
-                abel::MakeInt128(0x43deba9e6da12724, 0xf7f0f83da686797d),
-                abel::MakeInt128(0x71e8d383be4e5589, 0x75c3f96fb00752b6)};
+                abel::make_int128(0x5b0640d96c7b3d9f, 0xb7a7189e51d18622),
+                abel::make_int128(0x34bed042c6f65270, 0x73b236570669a089),
+                abel::make_int128(0x43deba9e6da12724, 0xf7f0f83da686797d),
+                abel::make_int128(0x71e8d383be4e5589, 0x75c3f96fb00752b6)};
         for (abel::int128 value : large_values) {
             // Make value have as many significant bits as can be represented by
             // the mantissa, also making sure the highest and lowest bit in the range
@@ -673,20 +673,20 @@ namespace {
 
         // Check limits
         EXPECT_DOUBLE_EQ(std::ldexp(static_cast<TypeParam>(1), 127),
-                         static_cast<TypeParam>(abel::Int128Max()));
+                         static_cast<TypeParam>(abel::int128_max()));
         EXPECT_DOUBLE_EQ(-std::ldexp(static_cast<TypeParam>(1), 127),
-                         static_cast<TypeParam>(abel::Int128Min()));
+                         static_cast<TypeParam>(abel::int128_min()));
     }
 
     TEST(Int128, FactoryTest) {
-        EXPECT_EQ(abel::int128(-1), abel::MakeInt128(-1, -1));
-        EXPECT_EQ(abel::int128(-31), abel::MakeInt128(-1, -31));
+        EXPECT_EQ(abel::int128(-1), abel::make_int128(-1, -1));
+        EXPECT_EQ(abel::int128(-31), abel::make_int128(-1, -31));
         EXPECT_EQ(abel::int128(std::numeric_limits<int64_t>::min()),
-                  abel::MakeInt128(-1, std::numeric_limits<int64_t>::min()));
-        EXPECT_EQ(abel::int128(0), abel::MakeInt128(0, 0));
-        EXPECT_EQ(abel::int128(1), abel::MakeInt128(0, 1));
+                  abel::make_int128(-1, std::numeric_limits<int64_t>::min()));
+        EXPECT_EQ(abel::int128(0), abel::make_int128(0, 0));
+        EXPECT_EQ(abel::int128(1), abel::make_int128(0, 1));
         EXPECT_EQ(abel::int128(std::numeric_limits<int64_t>::max()),
-                  abel::MakeInt128(0, std::numeric_limits<int64_t>::max()));
+                  abel::make_int128(0, std::numeric_limits<int64_t>::max()));
     }
 
     TEST(Int128, HighLowTest) {
@@ -700,16 +700,16 @@ namespace {
                              {123,  456},
                              {-654, 321}};
         for (const HighLowPair &pair : values) {
-            abel::int128 value = abel::MakeInt128(pair.high, pair.low);
-            EXPECT_EQ(pair.low, abel::Int128Low64(value));
-            EXPECT_EQ(pair.high, abel::Int128High64(value));
+            abel::int128 value = abel::make_int128(pair.high, pair.low);
+            EXPECT_EQ(pair.low, abel::int128_low64(value));
+            EXPECT_EQ(pair.high, abel::int128_high64(value));
         }
     }
 
     TEST(Int128, LimitsTest) {
-        EXPECT_EQ(abel::MakeInt128(0x7fffffffffffffff, 0xffffffffffffffff),
-                  abel::Int128Max());
-        EXPECT_EQ(abel::Int128Max(), ~abel::Int128Min());
+        EXPECT_EQ(abel::make_int128(0x7fffffffffffffff, 0xffffffffffffffff),
+                  abel::int128_max());
+        EXPECT_EQ(abel::int128_max(), ~abel::int128_min());
     }
 
 #if defined(ABEL_HAVE_INTRINSIC_INT128)
@@ -717,7 +717,7 @@ namespace {
         __int128 intrinsic =
                 (static_cast<__int128>(0x3a5b76c209de76f6) << 64) + 0x1f25e1d63a2b46c5;
         abel::int128 custom =
-                abel::MakeInt128(0x3a5b76c209de76f6, 0x1f25e1d63a2b46c5);
+                abel::make_int128(0x3a5b76c209de76f6, 0x1f25e1d63a2b46c5);
 
         EXPECT_EQ(custom, abel::int128(intrinsic));
         EXPECT_EQ(intrinsic, static_cast<__int128>(custom));
@@ -729,11 +729,11 @@ namespace {
         constexpr abel::int128 zero = abel::int128();
         constexpr abel::int128 one = 1;
         constexpr abel::int128 minus_two = -2;
-        constexpr abel::int128 min = abel::Int128Min();
-        constexpr abel::int128 max = abel::Int128Max();
+        constexpr abel::int128 min = abel::int128_min();
+        constexpr abel::int128 max = abel::int128_max();
         EXPECT_EQ(zero, abel::int128(0));
         EXPECT_EQ(one, abel::int128(1));
-        EXPECT_EQ(minus_two, abel::MakeInt128(-1, -2));
+        EXPECT_EQ(minus_two, abel::make_int128(-1, -2));
         EXPECT_GT(max, one);
         EXPECT_LT(min, minus_two);
     }
@@ -745,9 +745,9 @@ namespace {
         };
         TestCase cases[] = {
                 {abel::int128(0),               abel::int128(123)},
-                {abel::MakeInt128(-12, 34),     abel::MakeInt128(12, 34)},
-                {abel::MakeInt128(1, 1000),     abel::MakeInt128(1000, 1)},
-                {abel::MakeInt128(-1000, 1000), abel::MakeInt128(-1, 1)},
+                {abel::make_int128(-12, 34),     abel::make_int128(12, 34)},
+                {abel::make_int128(1, 1000),     abel::make_int128(1000, 1)},
+                {abel::make_int128(-1000, 1000), abel::make_int128(-1, 1)},
         };
         for (const TestCase &pair : cases) {
             SCOPED_TRACE(::testing::Message() << "pair.smaller = " << pair.smaller
@@ -787,18 +787,18 @@ namespace {
 
             EXPECT_EQ(abel::int128(-value), -abel::int128(value));
             EXPECT_EQ(abel::int128(value), -abel::int128(-value));
-            EXPECT_EQ(abel::MakeInt128(-value, 0), -abel::MakeInt128(value, 0));
-            EXPECT_EQ(abel::MakeInt128(value, 0), -abel::MakeInt128(-value, 0));
+            EXPECT_EQ(abel::make_int128(-value, 0), -abel::make_int128(value, 0));
+            EXPECT_EQ(abel::make_int128(value, 0), -abel::make_int128(-value, 0));
         }
     }
 
     TEST(Int128, LogicalNotTest) {
         EXPECT_TRUE(!abel::int128(0));
         for (int i = 0; i < 64; ++i) {
-            EXPECT_FALSE(!abel::MakeInt128(0, uint64_t{1} << i));
+            EXPECT_FALSE(!abel::make_int128(0, uint64_t{1} << i));
         }
         for (int i = 0; i < 63; ++i) {
-            EXPECT_FALSE(!abel::MakeInt128(int64_t{1} << i, 0));
+            EXPECT_FALSE(!abel::make_int128(int64_t{1} << i, 0));
         }
     }
 
@@ -831,24 +831,24 @@ namespace {
                       abel::int128(pair.second) -= abel::int128(pair.first));
 
             EXPECT_EQ(
-                    abel::MakeInt128(pair.second + pair.first, 0),
-                    abel::MakeInt128(pair.second, 0) + abel::MakeInt128(pair.first, 0));
+                    abel::make_int128(pair.second + pair.first, 0),
+                    abel::make_int128(pair.second, 0) + abel::make_int128(pair.first, 0));
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first + pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) += abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first + pair.second, 0),
+                    abel::make_int128(pair.first, 0) += abel::make_int128(pair.second, 0));
 
             EXPECT_EQ(
-                    abel::MakeInt128(pair.second - pair.first, 0),
-                    abel::MakeInt128(pair.second, 0) - abel::MakeInt128(pair.first, 0));
+                    abel::make_int128(pair.second - pair.first, 0),
+                    abel::make_int128(pair.second, 0) - abel::make_int128(pair.first, 0));
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first - pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) -= abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first - pair.second, 0),
+                    abel::make_int128(pair.first, 0) -= abel::make_int128(pair.second, 0));
         }
 
         // check positive carry
-        EXPECT_EQ(abel::MakeInt128(31, 0),
-                  abel::MakeInt128(20, 1) +
-                  abel::MakeInt128(10, std::numeric_limits<uint64_t>::max()));
+        EXPECT_EQ(abel::make_int128(31, 0),
+                  abel::make_int128(20, 1) +
+                  abel::make_int128(10, std::numeric_limits<uint64_t>::max()));
     }
 
     TEST(Int128, IncrementDecrementTest) {
@@ -900,10 +900,10 @@ namespace {
             EXPECT_EQ(abel::int128(pair.first * pair.second),
                       abel::int128(pair.first) *= abel::int128(pair.second));
 
-            EXPECT_EQ(abel::MakeInt128(pair.first * pair.second, 0),
-                      abel::MakeInt128(pair.first, 0) * abel::int128(pair.second));
-            EXPECT_EQ(abel::MakeInt128(pair.first * pair.second, 0),
-                      abel::MakeInt128(pair.first, 0) *= abel::int128(pair.second));
+            EXPECT_EQ(abel::make_int128(pair.first * pair.second, 0),
+                      abel::make_int128(pair.first, 0) * abel::int128(pair.second));
+            EXPECT_EQ(abel::make_int128(pair.first * pair.second, 0),
+                      abel::make_int128(pair.first, 0) *= abel::int128(pair.second));
         }
 
         // Pairs of positive random values that will not overflow 64-bit
@@ -919,7 +919,7 @@ namespace {
 
             abel::int128 a = abel::int128(pair.first << 32);
             abel::int128 b = abel::int128(pair.second << 32);
-            abel::int128 c = abel::MakeInt128(pair.first * pair.second, 0);
+            abel::int128 c = abel::make_int128(pair.first * pair.second, 0);
 
             EXPECT_EQ(c, a * b);
             EXPECT_EQ(-c, -a * b);
@@ -934,10 +934,10 @@ namespace {
 
         // check 0, 1, and -1 behavior with large values
         abel::int128 large_values[] = {
-                {abel::MakeInt128(0xd66f061af02d0408, 0x727d2846cb475b53)},
-                {abel::MakeInt128(0x27b8d5ed6104452d, 0x03f8a33b0ee1df4f)},
-                {-abel::MakeInt128(0x621b6626b9e8d042, 0x27311ac99df00938)},
-                {-abel::MakeInt128(0x34e0656f1e95fb60, 0x4281cfd731257a47)},
+                {abel::make_int128(0xd66f061af02d0408, 0x727d2846cb475b53)},
+                {abel::make_int128(0x27b8d5ed6104452d, 0x03f8a33b0ee1df4f)},
+                {-abel::make_int128(0x621b6626b9e8d042, 0x27311ac99df00938)},
+                {-abel::make_int128(0x34e0656f1e95fb60, 0x4281cfd731257a47)},
         };
         for (abel::int128 value : large_values) {
             EXPECT_EQ(0, 0 * value);
@@ -957,25 +957,25 @@ namespace {
         }
 
         // Manually calculated random large value cases
-        EXPECT_EQ(abel::MakeInt128(0xcd0efd3442219bb, 0xde47c05bcd9df6e1),
-                  abel::MakeInt128(0x7c6448, 0x3bc4285c47a9d253) * 0x1a6037537b);
-        EXPECT_EQ(-abel::MakeInt128(0x1f8f149850b1e5e6, 0x1e50d6b52d272c3e),
-                  -abel::MakeInt128(0x23, 0x2e68a513ca1b8859) * 0xe5a434cd14866e);
-        EXPECT_EQ(-abel::MakeInt128(0x55cae732029d1fce, 0xca6474b6423263e4),
-                  0xa9b98a8ddf66bc * -abel::MakeInt128(0x81, 0x672e58231e2469d7));
-        EXPECT_EQ(abel::MakeInt128(0x19c8b7620b507dc4, 0xfec042b71a5f29a4),
-                  -0x3e39341147 * -abel::MakeInt128(0x6a14b2, 0x5ed34cca42327b3c));
+        EXPECT_EQ(abel::make_int128(0xcd0efd3442219bb, 0xde47c05bcd9df6e1),
+                  abel::make_int128(0x7c6448, 0x3bc4285c47a9d253) * 0x1a6037537b);
+        EXPECT_EQ(-abel::make_int128(0x1f8f149850b1e5e6, 0x1e50d6b52d272c3e),
+                  -abel::make_int128(0x23, 0x2e68a513ca1b8859) * 0xe5a434cd14866e);
+        EXPECT_EQ(-abel::make_int128(0x55cae732029d1fce, 0xca6474b6423263e4),
+                  0xa9b98a8ddf66bc * -abel::make_int128(0x81, 0x672e58231e2469d7));
+        EXPECT_EQ(abel::make_int128(0x19c8b7620b507dc4, 0xfec042b71a5f29a4),
+                  -0x3e39341147 * -abel::make_int128(0x6a14b2, 0x5ed34cca42327b3c));
 
-        EXPECT_EQ(abel::MakeInt128(0xcd0efd3442219bb, 0xde47c05bcd9df6e1),
-                  abel::MakeInt128(0x7c6448, 0x3bc4285c47a9d253) *= 0x1a6037537b);
-        EXPECT_EQ(-abel::MakeInt128(0x1f8f149850b1e5e6, 0x1e50d6b52d272c3e),
-                  -abel::MakeInt128(0x23, 0x2e68a513ca1b8859) *= 0xe5a434cd14866e);
-        EXPECT_EQ(-abel::MakeInt128(0x55cae732029d1fce, 0xca6474b6423263e4),
+        EXPECT_EQ(abel::make_int128(0xcd0efd3442219bb, 0xde47c05bcd9df6e1),
+                  abel::make_int128(0x7c6448, 0x3bc4285c47a9d253) *= 0x1a6037537b);
+        EXPECT_EQ(-abel::make_int128(0x1f8f149850b1e5e6, 0x1e50d6b52d272c3e),
+                  -abel::make_int128(0x23, 0x2e68a513ca1b8859) *= 0xe5a434cd14866e);
+        EXPECT_EQ(-abel::make_int128(0x55cae732029d1fce, 0xca6474b6423263e4),
                   abel::int128(0xa9b98a8ddf66bc) *=
-                          -abel::MakeInt128(0x81, 0x672e58231e2469d7));
-        EXPECT_EQ(abel::MakeInt128(0x19c8b7620b507dc4, 0xfec042b71a5f29a4),
+                          -abel::make_int128(0x81, 0x672e58231e2469d7));
+        EXPECT_EQ(abel::make_int128(0x19c8b7620b507dc4, 0xfec042b71a5f29a4),
                   abel::int128(-0x3e39341147) *=
-                          -abel::MakeInt128(0x6a14b2, 0x5ed34cca42327b3c));
+                          -abel::make_int128(0x6a14b2, 0x5ed34cca42327b3c));
     }
 
     TEST(Int128, DivisionAndModuloTest) {
@@ -1009,10 +1009,10 @@ namespace {
         // Test behavior with 0, 1, and -1 with a sample of randomly generated large
         // values.
         abel::int128 values[] = {
-                abel::MakeInt128(0x63d26ee688a962b2, 0x9e1411abda5c1d70),
-                abel::MakeInt128(0x152f385159d6f986, 0xbf8d48ef63da395d),
-                -abel::MakeInt128(0x3098d7567030038c, 0x14e7a8a098dc2164),
-                -abel::MakeInt128(0x49a037aca35c809f, 0xa6a87525480ef330),
+                abel::make_int128(0x63d26ee688a962b2, 0x9e1411abda5c1d70),
+                abel::make_int128(0x152f385159d6f986, 0xbf8d48ef63da395d),
+                -abel::make_int128(0x3098d7567030038c, 0x14e7a8a098dc2164),
+                -abel::make_int128(0x49a037aca35c809f, 0xa6a87525480ef330),
         };
         for (abel::int128 value : values) {
             SCOPED_TRACE(::testing::Message() << "value = " << value);
@@ -1034,17 +1034,17 @@ namespace {
         }
 
         // Min and max values
-        EXPECT_EQ(0, abel::Int128Max() / abel::Int128Min());
-        EXPECT_EQ(abel::Int128Max(), abel::Int128Max() % abel::Int128Min());
-        EXPECT_EQ(-1, abel::Int128Min() / abel::Int128Max());
-        EXPECT_EQ(-1, abel::Int128Min() % abel::Int128Max());
+        EXPECT_EQ(0, abel::int128_max() / abel::int128_min());
+        EXPECT_EQ(abel::int128_max(), abel::int128_max() % abel::int128_min());
+        EXPECT_EQ(-1, abel::int128_min() / abel::int128_max());
+        EXPECT_EQ(-1, abel::int128_min() % abel::int128_max());
 
         // Power of two division and modulo of random large dividends
         abel::int128 positive_values[] = {
-                abel::MakeInt128(0x21e1a1cc69574620, 0xe7ac447fab2fc869),
-                abel::MakeInt128(0x32c2ff3ab89e66e8, 0x03379a613fd1ce74),
-                abel::MakeInt128(0x6f32ca786184dcaf, 0x046f9c9ecb3a9ce1),
-                abel::MakeInt128(0x1aeb469dd990e0ee, 0xda2740f243cd37eb),
+                abel::make_int128(0x21e1a1cc69574620, 0xe7ac447fab2fc869),
+                abel::make_int128(0x32c2ff3ab89e66e8, 0x03379a613fd1ce74),
+                abel::make_int128(0x6f32ca786184dcaf, 0x046f9c9ecb3a9ce1),
+                abel::make_int128(0x1aeb469dd990e0ee, 0xda2740f243cd37eb),
         };
         for (abel::int128 value : positive_values) {
             for (int i = 0; i < 127; ++i) {
@@ -1068,24 +1068,24 @@ namespace {
             abel::int128 remainder;
         };
         DivisionModCase manual_cases[] = {
-                {abel::MakeInt128(0x6ada48d489007966, 0x3c9c5c98150d5d69),
-                                                                            abel::MakeInt128(0x8bc308fb,
+                {abel::make_int128(0x6ada48d489007966, 0x3c9c5c98150d5d69),
+                                                                            abel::make_int128(0x8bc308fb,
                                                                                              0x8cb9cc9a3b803344),  0xc3b87e08,
-                                                                                                                                                abel::MakeInt128(
+                                                                                                                                                abel::make_int128(
                                                                                                                                                         0x1b7db5e1,
                                                                                                                                                         0xd9eca34b7af04b49)},
-                {abel::MakeInt128(0xd6946511b5b, 0x4886c5c96546bf5f),
-                                                                            -abel::MakeInt128(0x263b,
+                {abel::make_int128(0xd6946511b5b, 0x4886c5c96546bf5f),
+                                                                            -abel::make_int128(0x263b,
                                                                                               0xfd516279efcfe2dc), -0x59cbabf0,
-                                                                                                                                                abel::MakeInt128(
+                                                                                                                                                abel::make_int128(
                                                                                                                                                         0x622,
                                                                                                                                                         0xf462909155651d1f)},
-                {-abel::MakeInt128(0x33db734f9e8d1399, 0x8447ac92482bca4d), 0x37495078240,
-                                                                                                                   -abel::MakeInt128(
+                {-abel::make_int128(0x33db734f9e8d1399, 0x8447ac92482bca4d), 0x37495078240,
+                                                                                                                   -abel::make_int128(
                                                                                                                            0xf01f1,
                                                                                                                            0xbc0368bf9a77eae8), -0x21a508f404d},
-                {-abel::MakeInt128(0x13f837b409a07e7d, 0x7fc8e248a7d73560), -0x1b9f,
-                                                                                                                   abel::MakeInt128(
+                {-abel::make_int128(0x13f837b409a07e7d, 0x7fc8e248a7d73560), -0x1b9f,
+                                                                                                                   abel::make_int128(
                                                                                                                            0xb9157556d724,
                                                                                                                            0xb14f635714d7563e), -0x1ade},
         };
@@ -1103,8 +1103,8 @@ namespace {
         EXPECT_EQ(abel::int128(-1), ~abel::int128(0));
 
         abel::int128 values[]{
-                0, -1, 0xde400bee05c3ff6b, abel::MakeInt128(0x7f32178dd81d634a, 0),
-                abel::MakeInt128(0xaf539057055613a9, 0x7d104d7d946c2e4d)};
+                0, -1, 0xde400bee05c3ff6b, abel::make_int128(0x7f32178dd81d634a, 0),
+                abel::make_int128(0xaf539057055613a9, 0x7d104d7d946c2e4d)};
         for (abel::int128 value : values) {
             EXPECT_EQ(value, ~~value);
 
@@ -1140,8 +1140,8 @@ namespace {
             SCOPED_TRACE(::testing::Message()
                                  << "pair = {" << pair.first << ", " << pair.second << '}');
 
-            EXPECT_EQ(abel::MakeInt128(~pair.first, ~pair.second),
-                      ~abel::MakeInt128(pair.first, pair.second));
+            EXPECT_EQ(abel::make_int128(~pair.first, ~pair.second),
+                      ~abel::make_int128(pair.first, pair.second));
 
             EXPECT_EQ(abel::int128(pair.first & pair.second),
                       abel::int128(pair.first) & abel::int128(pair.second));
@@ -1158,24 +1158,24 @@ namespace {
                       abel::int128(pair.first) ^= abel::int128(pair.second));
 
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first & pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) & abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first & pair.second, 0),
+                    abel::make_int128(pair.first, 0) & abel::make_int128(pair.second, 0));
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first | pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) | abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first | pair.second, 0),
+                    abel::make_int128(pair.first, 0) | abel::make_int128(pair.second, 0));
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first ^ pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) ^ abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first ^ pair.second, 0),
+                    abel::make_int128(pair.first, 0) ^ abel::make_int128(pair.second, 0));
 
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first & pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) &= abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first & pair.second, 0),
+                    abel::make_int128(pair.first, 0) &= abel::make_int128(pair.second, 0));
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first | pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) |= abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first | pair.second, 0),
+                    abel::make_int128(pair.first, 0) |= abel::make_int128(pair.second, 0));
             EXPECT_EQ(
-                    abel::MakeInt128(pair.first ^ pair.second, 0),
-                    abel::MakeInt128(pair.first, 0) ^= abel::MakeInt128(pair.second, 0));
+                    abel::make_int128(pair.first ^ pair.second, 0),
+                    abel::make_int128(pair.first, 0) ^= abel::make_int128(pair.second, 0));
         }
     }
 
@@ -1192,18 +1192,18 @@ namespace {
             for (int j = 0; j < 64; ++j) {
                 // Left shift from j-th bit to (i + 64)-th bit.
                 SCOPED_TRACE(::testing::Message() << "i = " << i << "; j = " << j);
-                EXPECT_EQ(abel::MakeInt128(uint64_t{1} << i, 0),
+                EXPECT_EQ(abel::make_int128(uint64_t{1} << i, 0),
                           abel::int128(uint64_t{1} << j) << (i + 64 - j));
-                EXPECT_EQ(abel::MakeInt128(uint64_t{1} << i, 0),
+                EXPECT_EQ(abel::make_int128(uint64_t{1} << i, 0),
                           abel::int128(uint64_t{1} << j) <<= (i + 64 - j));
             }
             for (int j = 0; j <= i; ++j) {
                 // Left shift from (j + 64)-th bit to (i + 64)-th bit.
                 SCOPED_TRACE(::testing::Message() << "i = " << i << "; j = " << j);
-                EXPECT_EQ(abel::MakeInt128(uint64_t{1} << i, 0),
-                          abel::MakeInt128(uint64_t{1} << j, 0) << (i - j));
-                EXPECT_EQ(abel::MakeInt128(uint64_t{1} << i, 0),
-                          abel::MakeInt128(uint64_t{1} << j, 0) <<= (i - j));
+                EXPECT_EQ(abel::make_int128(uint64_t{1} << i, 0),
+                          abel::make_int128(uint64_t{1} << j, 0) << (i - j));
+                EXPECT_EQ(abel::make_int128(uint64_t{1} << i, 0),
+                          abel::make_int128(uint64_t{1} << j, 0) <<= (i - j));
             }
         }
 
@@ -1218,19 +1218,19 @@ namespace {
                 // Right shift from (j + 64)-th bit to i-th bit.
                 SCOPED_TRACE(::testing::Message() << "i = " << i << "; j = " << j);
                 EXPECT_EQ(uint64_t{1} << i,
-                          abel::MakeInt128(uint64_t{1} << j, 0) >> (j + 64 - i));
+                          abel::make_int128(uint64_t{1} << j, 0) >> (j + 64 - i));
                 EXPECT_EQ(uint64_t{1} << i,
-                          abel::MakeInt128(uint64_t{1} << j, 0) >>= (j + 64 - i));
+                          abel::make_int128(uint64_t{1} << j, 0) >>= (j + 64 - i));
             }
         }
         for (int i = 0; i < 63; ++i) {
             for (int j = i; j < 63; ++j) {
                 // Right shift from (j + 64)-th bit to (i + 64)-th bit.
                 SCOPED_TRACE(::testing::Message() << "i = " << i << "; j = " << j);
-                EXPECT_EQ(abel::MakeInt128(uint64_t{1} << i, 0),
-                          abel::MakeInt128(uint64_t{1} << j, 0) >> (j - i));
-                EXPECT_EQ(abel::MakeInt128(uint64_t{1} << i, 0),
-                          abel::MakeInt128(uint64_t{1} << j, 0) >>= (j - i));
+                EXPECT_EQ(abel::make_int128(uint64_t{1} << i, 0),
+                          abel::make_int128(uint64_t{1} << j, 0) >> (j - i));
+                EXPECT_EQ(abel::make_int128(uint64_t{1} << i, 0),
+                          abel::make_int128(uint64_t{1} << j, 0) >>= (j - i));
             }
         }
     }
@@ -1241,9 +1241,9 @@ namespace {
         static_assert(std::numeric_limits<abel::int128>::is_integer, "");
         EXPECT_EQ(static_cast<int>(127 * std::log10(2)),
                   std::numeric_limits<abel::int128>::digits10);
-        EXPECT_EQ(abel::Int128Min(), std::numeric_limits<abel::int128>::min());
-        EXPECT_EQ(abel::Int128Min(), std::numeric_limits<abel::int128>::lowest());
-        EXPECT_EQ(abel::Int128Max(), std::numeric_limits<abel::int128>::max());
+        EXPECT_EQ(abel::int128_min(), std::numeric_limits<abel::int128>::min());
+        EXPECT_EQ(abel::int128_min(), std::numeric_limits<abel::int128>::lowest());
+        EXPECT_EQ(abel::int128_max(), std::numeric_limits<abel::int128>::max());
     }
 
 }  // namespace

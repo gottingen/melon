@@ -23,7 +23,7 @@ using ::testing::ElementsAreArray;
 
 namespace {
 
-// Helper routine to determine if a abel::FixedArray used stack allocation.
+// Helper routine to determine if a abel::fixed_array used stack allocation.
     template<typename ArrayType>
     static bool IsOnStack(const ArrayType &a) {
         return a.size() <= ArrayType::inline_elements;
@@ -80,36 +80,36 @@ namespace {
     int ThreeInts::counter = 0;
 
     TEST(FixedArrayTest, CopyCtor) {
-        abel::FixedArray<int, 10> on_stack(5);
+        abel::fixed_array<int, 10> on_stack(5);
         std::iota(on_stack.begin(), on_stack.end(), 0);
-        abel::FixedArray<int, 10> stack_copy = on_stack;
+        abel::fixed_array<int, 10> stack_copy = on_stack;
         EXPECT_THAT(stack_copy, ElementsAreArray(on_stack));
         EXPECT_TRUE(IsOnStack(stack_copy));
 
-        abel::FixedArray<int, 10> allocated(15);
+        abel::fixed_array<int, 10> allocated(15);
         std::iota(allocated.begin(), allocated.end(), 0);
-        abel::FixedArray<int, 10> alloced_copy = allocated;
+        abel::fixed_array<int, 10> alloced_copy = allocated;
         EXPECT_THAT(alloced_copy, ElementsAreArray(allocated));
         EXPECT_FALSE(IsOnStack(alloced_copy));
     }
 
     TEST(FixedArrayTest, MoveCtor) {
-        abel::FixedArray<std::unique_ptr<int>, 10> on_stack(5);
+        abel::fixed_array<std::unique_ptr<int>, 10> on_stack(5);
         for (int i = 0; i < 5; ++i) {
             on_stack[i] = abel::make_unique<int>(i);
         }
 
-        abel::FixedArray<std::unique_ptr<int>, 10> stack_copy = std::move(on_stack);
+        abel::fixed_array<std::unique_ptr<int>, 10> stack_copy = std::move(on_stack);
         for (int i = 0; i < 5; ++i)
             EXPECT_EQ(*(stack_copy[i]), i);
         EXPECT_EQ(stack_copy.size(), on_stack.size());
 
-        abel::FixedArray<std::unique_ptr<int>, 10> allocated(15);
+        abel::fixed_array<std::unique_ptr<int>, 10> allocated(15);
         for (int i = 0; i < 15; ++i) {
             allocated[i] = abel::make_unique<int>(i);
         }
 
-        abel::FixedArray<std::unique_ptr<int>, 10> alloced_copy =
+        abel::fixed_array<std::unique_ptr<int>, 10> alloced_copy =
                 std::move(allocated);
         for (int i = 0; i < 15; ++i)
             EXPECT_EQ(*(alloced_copy[i]), i);
@@ -120,50 +120,50 @@ namespace {
         // Small object arrays
         {
             // Short arrays should be on the stack
-            abel::FixedArray<int> array(4);
+            abel::fixed_array<int> array(4);
             EXPECT_TRUE(IsOnStack(array));
         }
 
         {
             // Large arrays should be on the heap
-            abel::FixedArray<int> array(1048576);
+            abel::fixed_array<int> array(1048576);
             EXPECT_FALSE(IsOnStack(array));
         }
 
         {
             // Arrays of <= default size should be on the stack
-            abel::FixedArray<int, 100> array(100);
+            abel::fixed_array<int, 100> array(100);
             EXPECT_TRUE(IsOnStack(array));
         }
 
         {
             // Arrays of > default size should be on the heap
-            abel::FixedArray<int, 100> array(101);
+            abel::fixed_array<int, 100> array(101);
             EXPECT_FALSE(IsOnStack(array));
         }
 
         {
             // Arrays with different size elements should use approximately
             // same amount of stack space
-            abel::FixedArray<int> array1(0);
-            abel::FixedArray<char> array2(0);
+            abel::fixed_array<int> array1(0);
+            abel::fixed_array<char> array2(0);
             EXPECT_LE(sizeof(array1), sizeof(array2) + 100);
             EXPECT_LE(sizeof(array2), sizeof(array1) + 100);
         }
 
         {
             // Ensure that vectors are properly constructed inside a fixed array.
-            abel::FixedArray<std::vector<int>> array(2);
+            abel::fixed_array<std::vector<int>> array(2);
             EXPECT_EQ(0, array[0].size());
             EXPECT_EQ(0, array[1].size());
         }
 
         {
-            // Regardless of abel::FixedArray implementation, check that a type with a
+            // Regardless of abel::fixed_array implementation, check that a type with a
             // low alignment requirement and a non power-of-two size is initialized
             // correctly.
             ThreeInts::counter = 1;
-            abel::FixedArray<ThreeInts> array(2);
+            abel::fixed_array<ThreeInts> array(2);
             EXPECT_EQ(1, array[0].x_);
             EXPECT_EQ(1, array[0].y_);
             EXPECT_EQ(1, array[0].z_);
@@ -174,7 +174,7 @@ namespace {
     }
 
     TEST(FixedArrayTest, AtThrows) {
-        abel::FixedArray<int> a = {1, 2, 3};
+        abel::fixed_array<int> a = {1, 2, 3};
         EXPECT_EQ(a.at(2), 3);
         ABEL_BASE_INTERNAL_EXPECT_FAIL(a.at(3), std::out_of_range,
                                        "failed bounds check");
@@ -182,9 +182,9 @@ namespace {
 
     TEST(FixedArrayRelationalsTest, EqualArrays) {
         for (int i = 0; i < 10; ++i) {
-            abel::FixedArray<int, 5> a1(i);
+            abel::fixed_array<int, 5> a1(i);
             std::iota(a1.begin(), a1.end(), 0);
-            abel::FixedArray<int, 5> a2(a1.begin(), a1.end());
+            abel::fixed_array<int, 5> a2(a1.begin(), a1.end());
 
             EXPECT_TRUE(a1 == a2);
             EXPECT_FALSE(a1 != a2);
@@ -203,9 +203,9 @@ namespace {
 
     TEST(FixedArrayRelationalsTest, UnequalArrays) {
         for (int i = 1; i < 10; ++i) {
-            abel::FixedArray<int, 5> a1(i);
+            abel::fixed_array<int, 5> a1(i);
             std::iota(a1.begin(), a1.end(), 0);
-            abel::FixedArray<int, 5> a2(a1.begin(), a1.end());
+            abel::fixed_array<int, 5> a2(a1.begin(), a1.end());
             --a2[i / 2];
 
             EXPECT_FALSE(a1 == a2);
@@ -230,7 +230,7 @@ namespace {
         ConstructionTester::constructions = 0;
         ConstructionTester::destructions = 0;
         {
-            abel::FixedArray<ConstructionTester, stack_elements> array(n);
+            abel::fixed_array<ConstructionTester, stack_elements> array(n);
 
             EXPECT_THAT(array.size(), n);
             EXPECT_THAT(array.memsize(), sizeof(ConstructionTester) * n);
@@ -276,9 +276,9 @@ namespace {
         ConstructionTester::destructions = 0;
         {
             using InnerArray = ConstructionTester[elements_per_inner_array];
-            // Heap-allocate the FixedArray to avoid blowing the stack frame.
+            // Heap-allocate the fixed_array to avoid blowing the stack frame.
             auto array_ptr =
-                    abel::make_unique<abel::FixedArray<InnerArray, inline_elements>>(n);
+                    abel::make_unique<abel::fixed_array<InnerArray, inline_elements>>(n);
             auto &array = *array_ptr;
 
             ASSERT_EQ(array.size(), n);
@@ -330,7 +330,7 @@ namespace {
 
     TEST(IteratorConstructorTest, NonInline) {
         int const kInput[] = {2, 3, 5, 7, 11, 13, 17};
-        abel::FixedArray<int, ABEL_ARRAYSIZE(kInput) - 1> const fixed(
+        abel::fixed_array<int, ABEL_ARRAYSIZE(kInput) - 1> const fixed(
                 kInput, kInput + ABEL_ARRAYSIZE(kInput));
         ASSERT_EQ(ABEL_ARRAYSIZE(kInput), fixed.size());
         for (size_t i = 0; i < ABEL_ARRAYSIZE(kInput); ++i) {
@@ -340,7 +340,7 @@ namespace {
 
     TEST(IteratorConstructorTest, Inline) {
         int const kInput[] = {2, 3, 5, 7, 11, 13, 17};
-        abel::FixedArray<int, ABEL_ARRAYSIZE(kInput)> const fixed(
+        abel::fixed_array<int, ABEL_ARRAYSIZE(kInput)> const fixed(
                 kInput, kInput + ABEL_ARRAYSIZE(kInput));
         ASSERT_EQ(ABEL_ARRAYSIZE(kInput), fixed.size());
         for (size_t i = 0; i < ABEL_ARRAYSIZE(kInput); ++i) {
@@ -351,7 +351,7 @@ namespace {
     TEST(IteratorConstructorTest, NonPod) {
         char const *kInput[] = {"red", "orange", "yellow", "green",
                                 "blue", "indigo", "violet"};
-        abel::FixedArray<std::string> const fixed(kInput,
+        abel::fixed_array<std::string> const fixed(kInput,
                                                   kInput + ABEL_ARRAYSIZE(kInput));
         ASSERT_EQ(ABEL_ARRAYSIZE(kInput), fixed.size());
         for (size_t i = 0; i < ABEL_ARRAYSIZE(kInput); ++i) {
@@ -361,7 +361,7 @@ namespace {
 
     TEST(IteratorConstructorTest, FromEmptyVector) {
         std::vector<int> const empty;
-        abel::FixedArray<int> const fixed(empty.begin(), empty.end());
+        abel::fixed_array<int> const fixed(empty.begin(), empty.end());
         EXPECT_EQ(0, fixed.size());
         EXPECT_EQ(empty.size(), fixed.size());
     }
@@ -369,7 +369,7 @@ namespace {
     TEST(IteratorConstructorTest, FromNonEmptyVector) {
         int const kInput[] = {2, 3, 5, 7, 11, 13, 17};
         std::vector<int> const items(kInput, kInput + ABEL_ARRAYSIZE(kInput));
-        abel::FixedArray<int> const fixed(items.begin(), items.end());
+        abel::fixed_array<int> const fixed(items.begin(), items.end());
         ASSERT_EQ(items.size(), fixed.size());
         for (size_t i = 0; i < items.size(); ++i) {
             ASSERT_EQ(items[i], fixed[i]);
@@ -379,39 +379,39 @@ namespace {
     TEST(IteratorConstructorTest, FromBidirectionalIteratorRange) {
         int const kInput[] = {2, 3, 5, 7, 11, 13, 17};
         std::list<int> const items(kInput, kInput + ABEL_ARRAYSIZE(kInput));
-        abel::FixedArray<int> const fixed(items.begin(), items.end());
+        abel::fixed_array<int> const fixed(items.begin(), items.end());
         EXPECT_THAT(fixed, testing::ElementsAreArray(kInput));
     }
 
     TEST(InitListConstructorTest, InitListConstruction) {
-        abel::FixedArray<int> fixed = {1, 2, 3};
+        abel::fixed_array<int> fixed = {1, 2, 3};
         EXPECT_THAT(fixed, testing::ElementsAreArray({1, 2, 3}));
     }
 
     TEST(FillConstructorTest, NonEmptyArrays) {
-        abel::FixedArray<int> stack_array(4, 1);
+        abel::fixed_array<int> stack_array(4, 1);
         EXPECT_THAT(stack_array, testing::ElementsAreArray({1, 1, 1, 1}));
 
-        abel::FixedArray<int, 0> heap_array(4, 1);
+        abel::fixed_array<int, 0> heap_array(4, 1);
         EXPECT_THAT(stack_array, testing::ElementsAreArray({1, 1, 1, 1}));
     }
 
     TEST(FillConstructorTest, EmptyArray) {
-        abel::FixedArray<int> empty_fill(0, 1);
-        abel::FixedArray<int> empty_size(0);
+        abel::fixed_array<int> empty_fill(0, 1);
+        abel::fixed_array<int> empty_size(0);
         EXPECT_EQ(empty_fill, empty_size);
     }
 
     TEST(FillConstructorTest, NotTriviallyCopyable) {
         std::string str = "abcd";
-        abel::FixedArray<std::string> strings = {str, str, str, str};
+        abel::fixed_array<std::string> strings = {str, str, str, str};
 
-        abel::FixedArray<std::string> array(4, str);
+        abel::fixed_array<std::string> array(4, str);
         EXPECT_EQ(array, strings);
     }
 
     TEST(FillConstructorTest, Disambiguation) {
-        abel::FixedArray<size_t> a(1, 2);
+        abel::fixed_array<size_t> a(1, 2);
         EXPECT_THAT(a, testing::ElementsAre(2));
     }
 
@@ -453,7 +453,7 @@ namespace {
 //     error: call to int __builtin___sprintf_chk(etc...)
 //     will always overflow destination buffer [-Werror]
     TEST(FixedArrayTest, AvoidParanoidDiagnostics) {
-        abel::FixedArray<char, 32> buf(32);
+        abel::fixed_array<char, 32> buf(32);
         sprintf(buf.data(), "foo");  // NOLINT(runtime/printf)
     }
 
@@ -462,22 +462,22 @@ namespace {
             char c[1 << 20];
         };  // too big for even one on the stack
 
-        // Simulate the data members of abel::FixedArray, a pointer and a size_t.
+        // Simulate the data members of abel::fixed_array, a pointer and a size_t.
         struct Data {
             TooBig *p;
             size_t size;
         };
 
         // Make sure TooBig objects are not inlined for 0 or default size.
-        static_assert(sizeof(abel::FixedArray<TooBig, 0>) == sizeof(Data),
-                      "0-sized abel::FixedArray should have same size as Data.");
-        static_assert(alignof(abel::FixedArray<TooBig, 0>) == alignof(Data),
-                      "0-sized abel::FixedArray should have same alignment as Data.");
-        static_assert(sizeof(abel::FixedArray<TooBig>) == sizeof(Data),
-                      "default-sized abel::FixedArray should have same size as Data");
+        static_assert(sizeof(abel::fixed_array<TooBig, 0>) == sizeof(Data),
+                      "0-sized abel::fixed_array should have same size as Data.");
+        static_assert(alignof(abel::fixed_array<TooBig, 0>) == alignof(Data),
+                      "0-sized abel::fixed_array should have same alignment as Data.");
+        static_assert(sizeof(abel::fixed_array<TooBig>) == sizeof(Data),
+                      "default-sized abel::fixed_array should have same size as Data");
         static_assert(
-                alignof(abel::FixedArray<TooBig>) == alignof(Data),
-                "default-sized abel::FixedArray should have same alignment as Data.");
+                alignof(abel::fixed_array<TooBig>) == alignof(Data),
+                "default-sized abel::fixed_array should have same alignment as Data.");
     }
 
 // PickyDelete EXPECTs its class-scope deallocation funcs are unused.
@@ -497,46 +497,46 @@ namespace {
         }
     };
 
-    TEST(FixedArrayTest, UsesGlobalAlloc) { abel::FixedArray<PickyDelete, 0> a(5); }
+    TEST(FixedArrayTest, UsesGlobalAlloc) { abel::fixed_array<PickyDelete, 0> a(5); }
 
     TEST(FixedArrayTest, Data) {
         static const int kInput[] = {2, 3, 5, 7, 11, 13, 17};
-        abel::FixedArray<int> fa(std::begin(kInput), std::end(kInput));
+        abel::fixed_array<int> fa(std::begin(kInput), std::end(kInput));
         EXPECT_EQ(fa.data(), &*fa.begin());
         EXPECT_EQ(fa.data(), &fa[0]);
 
-        const abel::FixedArray<int> &cfa = fa;
+        const abel::fixed_array<int> &cfa = fa;
         EXPECT_EQ(cfa.data(), &*cfa.begin());
         EXPECT_EQ(cfa.data(), &cfa[0]);
     }
 
     TEST(FixedArrayTest, Empty) {
-        abel::FixedArray<int> empty(0);
-        abel::FixedArray<int> inline_filled(1);
-        abel::FixedArray<int, 0> heap_filled(1);
+        abel::fixed_array<int> empty(0);
+        abel::fixed_array<int> inline_filled(1);
+        abel::fixed_array<int, 0> heap_filled(1);
         EXPECT_TRUE(empty.empty());
         EXPECT_FALSE(inline_filled.empty());
         EXPECT_FALSE(heap_filled.empty());
     }
 
     TEST(FixedArrayTest, FrontAndBack) {
-        abel::FixedArray<int, 3 * sizeof(int)> inlined = {1, 2, 3};
+        abel::fixed_array<int, 3 * sizeof(int)> inlined = {1, 2, 3};
         EXPECT_EQ(inlined.front(), 1);
         EXPECT_EQ(inlined.back(), 3);
 
-        abel::FixedArray<int, 0> allocated = {1, 2, 3};
+        abel::fixed_array<int, 0> allocated = {1, 2, 3};
         EXPECT_EQ(allocated.front(), 1);
         EXPECT_EQ(allocated.back(), 3);
 
-        abel::FixedArray<int> one_element = {1};
+        abel::fixed_array<int> one_element = {1};
         EXPECT_EQ(one_element.front(), one_element.back());
     }
 
     TEST(FixedArrayTest, ReverseIteratorInlined) {
-        abel::FixedArray<int, 5 * sizeof(int)> a = {0, 1, 2, 3, 4};
+        abel::fixed_array<int, 5 * sizeof(int)> a = {0, 1, 2, 3, 4};
 
         int counter = 5;
-        for (abel::FixedArray<int>::reverse_iterator iter = a.rbegin();
+        for (abel::fixed_array<int>::reverse_iterator iter = a.rbegin();
              iter != a.rend(); ++iter) {
             counter--;
             EXPECT_EQ(counter, *iter);
@@ -544,7 +544,7 @@ namespace {
         EXPECT_EQ(counter, 0);
 
         counter = 5;
-        for (abel::FixedArray<int>::const_reverse_iterator iter = a.rbegin();
+        for (abel::fixed_array<int>::const_reverse_iterator iter = a.rbegin();
              iter != a.rend(); ++iter) {
             counter--;
             EXPECT_EQ(counter, *iter);
@@ -560,10 +560,10 @@ namespace {
     }
 
     TEST(FixedArrayTest, ReverseIteratorAllocated) {
-        abel::FixedArray<int, 0> a = {0, 1, 2, 3, 4};
+        abel::fixed_array<int, 0> a = {0, 1, 2, 3, 4};
 
         int counter = 5;
-        for (abel::FixedArray<int>::reverse_iterator iter = a.rbegin();
+        for (abel::fixed_array<int>::reverse_iterator iter = a.rbegin();
              iter != a.rend(); ++iter) {
             counter--;
             EXPECT_EQ(counter, *iter);
@@ -571,7 +571,7 @@ namespace {
         EXPECT_EQ(counter, 0);
 
         counter = 5;
-        for (abel::FixedArray<int>::const_reverse_iterator iter = a.rbegin();
+        for (abel::fixed_array<int>::const_reverse_iterator iter = a.rbegin();
              iter != a.rend(); ++iter) {
             counter--;
             EXPECT_EQ(counter, *iter);
@@ -587,19 +587,19 @@ namespace {
     }
 
     TEST(FixedArrayTest, Fill) {
-        abel::FixedArray<int, 5 * sizeof(int)> inlined(5);
+        abel::fixed_array<int, 5 * sizeof(int)> inlined(5);
         int fill_val = 42;
         inlined.fill(fill_val);
         for (int i : inlined)
             EXPECT_EQ(i, fill_val);
 
-        abel::FixedArray<int, 0> allocated(5);
+        abel::fixed_array<int, 0> allocated(5);
         allocated.fill(fill_val);
         for (int i : allocated)
             EXPECT_EQ(i, fill_val);
 
         // It doesn't do anything, just make sure this compiles.
-        abel::FixedArray<int> empty(0);
+        abel::fixed_array<int> empty(0);
         empty.fill(fill_val);
     }
 
@@ -608,7 +608,7 @@ namespace {
     TEST(FixedArrayTest, DefaultCtorDoesNotValueInit) {
       using T = char;
       constexpr auto capacity = 10;
-      using FixedArrType = abel::FixedArray<T, capacity>;
+      using FixedArrType = abel::fixed_array<T, capacity>;
       using FixedArrBuffType =
           abel::aligned_storage_t<sizeof(FixedArrType), alignof(FixedArrType)>;
       constexpr auto scrubbed_bits = 0x95;
@@ -690,7 +690,7 @@ namespace {
     TEST(AllocatorSupportTest, CountInlineAllocations) {
         constexpr size_t inlined_size = 4;
         using Alloc = CountingAllocator<int>;
-        using AllocFxdArr = abel::FixedArray<int, inlined_size, Alloc>;
+        using AllocFxdArr = abel::fixed_array<int, inlined_size, Alloc>;
 
         int64_t allocated = 0;
         int64_t active_instances = 0;
@@ -711,7 +711,7 @@ namespace {
     TEST(AllocatorSupportTest, CountOutoflineAllocations) {
         constexpr size_t inlined_size = 4;
         using Alloc = CountingAllocator<int>;
-        using AllocFxdArr = abel::FixedArray<int, inlined_size, Alloc>;
+        using AllocFxdArr = abel::fixed_array<int, inlined_size, Alloc>;
 
         int64_t allocated = 0;
         int64_t active_instances = 0;
@@ -732,7 +732,7 @@ namespace {
     TEST(AllocatorSupportTest, CountCopyInlineAllocations) {
         constexpr size_t inlined_size = 4;
         using Alloc = CountingAllocator<int>;
-        using AllocFxdArr = abel::FixedArray<int, inlined_size, Alloc>;
+        using AllocFxdArr = abel::fixed_array<int, inlined_size, Alloc>;
 
         int64_t allocated1 = 0;
         int64_t allocated2 = 0;
@@ -760,7 +760,7 @@ namespace {
     TEST(AllocatorSupportTest, CountCopyOutoflineAllocations) {
         constexpr size_t inlined_size = 4;
         using Alloc = CountingAllocator<int>;
-        using AllocFxdArr = abel::FixedArray<int, inlined_size, Alloc>;
+        using AllocFxdArr = abel::fixed_array<int, inlined_size, Alloc>;
 
         int64_t allocated1 = 0;
         int64_t allocated2 = 0;
@@ -792,7 +792,7 @@ namespace {
 
         constexpr size_t inlined_size = 4;
         using Alloc = CountingAllocator<int>;
-        using AllocFxdArr = abel::FixedArray<int, inlined_size, Alloc>;
+        using AllocFxdArr = abel::fixed_array<int, inlined_size, Alloc>;
 
         {
             auto len = inlined_size / 2;
@@ -817,7 +817,7 @@ namespace {
 
 #ifdef ADDRESS_SANITIZER
     TEST(FixedArrayTest, AddressSanitizerAnnotations1) {
-      abel::FixedArray<int, 32> a(10);
+      abel::fixed_array<int, 32> a(10);
       int* raw = a.data();
       raw[0] = 0;
       raw[9] = 0;
@@ -828,7 +828,7 @@ namespace {
     }
 
     TEST(FixedArrayTest, AddressSanitizerAnnotations2) {
-      abel::FixedArray<char, 17> a(12);
+      abel::fixed_array<char, 17> a(12);
       char* raw = a.data();
       raw[0] = 0;
       raw[11] = 0;
@@ -839,7 +839,7 @@ namespace {
     }
 
     TEST(FixedArrayTest, AddressSanitizerAnnotations3) {
-      abel::FixedArray<uint64_t, 20> a(20);
+      abel::fixed_array<uint64_t, 20> a(20);
       uint64_t* raw = a.data();
       raw[0] = 0;
       raw[19] = 0;
@@ -848,7 +848,7 @@ namespace {
     }
 
     TEST(FixedArrayTest, AddressSanitizerAnnotations4) {
-      abel::FixedArray<ThreeInts> a(10);
+      abel::fixed_array<ThreeInts> a(10);
       ThreeInts* raw = a.data();
       raw[0] = ThreeInts();
       raw[9] = ThreeInts();
@@ -865,7 +865,7 @@ namespace {
 #endif  // ADDRESS_SANITIZER
 
     TEST(FixedArrayTest, AbelHashValueWorks) {
-        using V = abel::FixedArray<int>;
+        using V = abel::fixed_array<int>;
         std::vector<V> cases;
 
         // Generate a variety of vectors some of these are small enough for the inline

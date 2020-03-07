@@ -23,7 +23,7 @@
 
 #include <cstdio>
 
-#include <abel/base/internal/cycleclock.h>
+#include <abel/chrono/internal/cycle_clock.h>
 #include <benchmark/benchmark.h>
 
 namespace {
@@ -54,7 +54,7 @@ namespace {
 
     void BM_Clock_Now_CycleClock(benchmark::State &state) {
         while (state.KeepRunning()) {
-            benchmark::DoNotOptimize(abel::cycle_clock::now());
+            benchmark::DoNotOptimize(abel::chrono_internal::cycle_clock::now());
         }
     }
 

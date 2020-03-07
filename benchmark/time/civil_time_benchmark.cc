@@ -1,10 +1,8 @@
 //
 
 #include <abel/chrono/civil_time.h>
-
 #include <numeric>
 #include <vector>
-
 #include <abel/hash/hash.h>
 #include <benchmark/benchmark.h>
 
@@ -30,7 +28,7 @@ namespace {
         const abel::chrono_day c(2014, 8, 22);
         const abel::chrono_day epoch(1970, 1, 1);
         while (state.KeepRunning()) {
-            const abel::civil_diff_t n = c - epoch;
+            const abel::chrono_diff_t n = c - epoch;
             benchmark::DoNotOptimize(n);
         }
     }
@@ -85,7 +83,7 @@ namespace {
         std::vector<T> civil_times(kSize);
         std::iota(civil_times.begin(), civil_times.end(), T(2018));
 
-        abel::Hash<T> abel_hasher;
+        abel::hash<T> abel_hasher;
         while (state.KeepRunningBatch(kSize)) {
             for (const T civil_time : civil_times) {
                 benchmark::DoNotOptimize(abel_hasher(civil_time));

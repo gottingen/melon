@@ -175,30 +175,30 @@ namespace {
         CheckInt128Case({std::numeric_limits<uint64_t>::max(), kHex,
                                 /*width = */ 0, "ffffffffffffffff"});
         CheckInt128Case(
-                {abel::MakeInt128(1, 0), kDec, /*width = */ 0, "18446744073709551616"});
+                {abel::make_int128(1, 0), kDec, /*width = */ 0, "18446744073709551616"});
         CheckInt128Case(
-                {abel::MakeInt128(1, 0), kOct, /*width = */ 0, "2000000000000000000000"});
+                {abel::make_int128(1, 0), kOct, /*width = */ 0, "2000000000000000000000"});
         CheckInt128Case(
-                {abel::MakeInt128(1, 0), kHex, /*width = */ 0, "10000000000000000"});
-        CheckInt128Case({abel::MakeInt128(std::numeric_limits<int64_t>::max(),
+                {abel::make_int128(1, 0), kHex, /*width = */ 0, "10000000000000000"});
+        CheckInt128Case({abel::make_int128(std::numeric_limits<int64_t>::max(),
                                           std::numeric_limits<uint64_t>::max()),
                          std::ios::dec, /*width = */ 0,
                          "170141183460469231731687303715884105727"});
-        CheckInt128Case({abel::MakeInt128(std::numeric_limits<int64_t>::max(),
+        CheckInt128Case({abel::make_int128(std::numeric_limits<int64_t>::max(),
                                           std::numeric_limits<uint64_t>::max()),
                          std::ios::oct, /*width = */ 0,
                          "1777777777777777777777777777777777777777777"});
-        CheckInt128Case({abel::MakeInt128(std::numeric_limits<int64_t>::max(),
+        CheckInt128Case({abel::make_int128(std::numeric_limits<int64_t>::max(),
                                           std::numeric_limits<uint64_t>::max()),
                          std::ios::hex, /*width = */ 0,
                          "7fffffffffffffffffffffffffffffff"});
-        CheckInt128Case({abel::MakeInt128(std::numeric_limits<int64_t>::min(), 0),
+        CheckInt128Case({abel::make_int128(std::numeric_limits<int64_t>::min(), 0),
                          std::ios::dec, /*width = */ 0,
                          "-170141183460469231731687303715884105728"});
-        CheckInt128Case({abel::MakeInt128(std::numeric_limits<int64_t>::min(), 0),
+        CheckInt128Case({abel::make_int128(std::numeric_limits<int64_t>::min(), 0),
                          std::ios::oct, /*width = */ 0,
                          "2000000000000000000000000000000000000000000"});
-        CheckInt128Case({abel::MakeInt128(std::numeric_limits<int64_t>::min(), 0),
+        CheckInt128Case({abel::make_int128(std::numeric_limits<int64_t>::min(), 0),
                          std::ios::hex, /*width = */ 0,
                          "80000000000000000000000000000000"});
         CheckInt128Case({-1, std::ios::dec, /*width = */ 0, "-1"});

@@ -27,11 +27,11 @@ ABEL_FORCE_INLINE int128 &int128::operator=(__int128 v) {
     return *this;
 }
 
-constexpr uint64_t Int128Low64(int128 v) {
+constexpr uint64_t int128_low64(int128 v) {
     return static_cast<uint64_t>(v.v_ & ~uint64_t{0});
 }
 
-constexpr int64_t Int128High64(int128 v) {
+constexpr int64_t int128_high64(int128 v) {
     // Initially cast to unsigned to prevent a right shift on a negative value.
     return int128_internal::BitCastToSigned(
             static_cast<uint64_t>(static_cast<unsigned __int128>(v.v_) >> 64));
@@ -161,27 +161,27 @@ ABEL_FORCE_INLINE int128::operator float() const {
   // difference between the high and low 64 bits when interpreted as two's
   // complement overwhelms the precision of the mantissa.
   //
-  // Also check to make sure we don't negate Int128Min()
-  return v_ < 0 && *this != Int128Min()
+  // Also check to make sure we don't negate int128_min()
+  return v_ < 0 && *this != int128_min()
              ? -static_cast<float>(-*this)
-             : static_cast<float>(Int128Low64(*this)) +
-                   std::ldexp(static_cast<float>(Int128High64(*this)), 64);
+             : static_cast<float>(int128_low64(*this)) +
+                   std::ldexp(static_cast<float>(int128_high64(*this)), 64);
 }
 
 ABEL_FORCE_INLINE int128::operator double() const {
   // See comment in int128::operator float() above.
-  return v_ < 0 && *this != Int128Min()
+  return v_ < 0 && *this != int128_min()
              ? -static_cast<double>(-*this)
-             : static_cast<double>(Int128Low64(*this)) +
-                   std::ldexp(static_cast<double>(Int128High64(*this)), 64);
+             : static_cast<double>(int128_low64(*this)) +
+                   std::ldexp(static_cast<double>(int128_high64(*this)), 64);
 }
 
 ABEL_FORCE_INLINE int128::operator long double() const {
   // See comment in int128::operator float() above.
-  return v_ < 0 && *this != Int128Min()
+  return v_ < 0 && *this != int128_min()
              ? -static_cast<long double>(-*this)
-             : static_cast<long double>(Int128Low64(*this)) +
-                   std::ldexp(static_cast<long double>(Int128High64(*this)),
+             : static_cast<long double>(int128_low64(*this)) +
+                   std::ldexp(static_cast<long double>(int128_high64(*this)),
                               64);
 }
 #endif  // Clang on PowerPC

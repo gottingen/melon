@@ -478,7 +478,7 @@ namespace abel {
                 }
 
                 template<typename H>
-                friend H AbelHashValue(H h, civil_time a) {
+                friend H abel_hash_value(H h, civil_time a) {
                     return impl::AbelHashValueImpl(T{}, std::move(h), a.f_);
                 }
 

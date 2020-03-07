@@ -410,7 +410,7 @@ namespace abel {
 
         // Support for abel::Hash.
         template<typename H>
-        friend H AbelHashValue(H h, span v) {
+        friend H abel_hash_value(H h, span v) {
             return H::combine(H::combine_contiguous(std::move(h), v.data(), v.size()),
                               v.size());
         }

@@ -5,9 +5,9 @@
 // representation when ABEL_HAVE_INTRINSIC_INT128 is *not* defined. This file
 // is included by int128.h and relies on ABEL_INTERNAL_WCHAR_T being defined.
 
-constexpr uint64_t Int128Low64(int128 v) { return v.lo_; }
+constexpr uint64_t int128_low64(int128 v) { return v.lo_; }
 
-constexpr int64_t Int128High64(int128 v) { return v.hi_; }
+constexpr int64_t int128_high64(int128 v) { return v.hi_; }
 
 #if defined(ABEL_SYSTEM_LITTLE_ENDIAN)
 
@@ -28,7 +28,7 @@ constexpr int128::int128(unsigned long v) : lo_{v}, hi_{0} {}
 constexpr int128::int128(unsigned long long v) : lo_{v}, hi_{0} {}
 
 constexpr int128::int128(uint128 v)
-    : lo_{Uint128Low64(v)}, hi_{static_cast<int64_t>(Uint128High64(v))} {}
+    : lo_{uint128_low64(v)}, hi_{static_cast<int64_t>(uint128_high64(v))} {}
 
 #elif defined(ABEL_SYSTEM_BIG_ENDIAN)
 
@@ -49,7 +49,7 @@ constexpr int128::int128(unsigned long v) : hi_{0}, lo_{v} {}
 constexpr int128::int128(unsigned long long v) : hi_{0}, lo_{v} {}
 
 constexpr int128::int128(uint128 v)
-    : hi_{static_cast<int64_t>(Uint128High64(v))}, lo_{Uint128Low64(v)} {}
+    : hi_{static_cast<int64_t>(uint128_high64(v))}, lo_{uint128_low64(v)} {}
 
 #else  // byte order
 #error "Unsupported byte order: must be little-endian or big-endian."
@@ -133,8 +133,8 @@ ABEL_FORCE_INLINE int128::operator float() const {
     // difference between the high and low 64 bits when interpreted as two's
     // complement overwhelms the precision of the mantissa.
     //
-    // Also check to make sure we don't negate Int128Min()
-    return hi_ < 0 && *this != Int128Min()
+    // Also check to make sure we don't negate int128_min()
+    return hi_ < 0 && *this != int128_min()
            ? -static_cast<float>(-*this)
            : static_cast<float>(lo_) +
              std::ldexp(static_cast<float>(hi_), 64);
@@ -142,7 +142,7 @@ ABEL_FORCE_INLINE int128::operator float() const {
 
 ABEL_FORCE_INLINE int128::operator double() const {
     // See comment in int128::operator float() above.
-    return hi_ < 0 && *this != Int128Min()
+    return hi_ < 0 && *this != int128_min()
            ? -static_cast<double>(-*this)
            : static_cast<double>(lo_) +
              std::ldexp(static_cast<double>(hi_), 64);
@@ -150,7 +150,7 @@ ABEL_FORCE_INLINE int128::operator double() const {
 
 ABEL_FORCE_INLINE int128::operator long double() const {
     // See comment in int128::operator float() above.
-    return hi_ < 0 && *this != Int128Min()
+    return hi_ < 0 && *this != int128_min()
            ? -static_cast<long double>(-*this)
            : static_cast<long double>(lo_) +
              std::ldexp(static_cast<long double>(hi_), 64);
@@ -159,8 +159,8 @@ ABEL_FORCE_INLINE int128::operator long double() const {
 // Comparison operators.
 
 ABEL_FORCE_INLINE bool operator==(int128 lhs, int128 rhs) {
-    return (Int128Low64(lhs) == Int128Low64(rhs) &&
-            Int128High64(lhs) == Int128High64(rhs));
+    return (int128_low64(lhs) == int128_low64(rhs) &&
+            int128_high64(lhs) == int128_high64(rhs));
 }
 
 ABEL_FORCE_INLINE bool operator!=(int128 lhs, int128 rhs) {
@@ -168,15 +168,15 @@ ABEL_FORCE_INLINE bool operator!=(int128 lhs, int128 rhs) {
 }
 
 ABEL_FORCE_INLINE bool operator<(int128 lhs, int128 rhs) {
-    return (Int128High64(lhs) == Int128High64(rhs))
-           ? (Int128Low64(lhs) < Int128Low64(rhs))
-           : (Int128High64(lhs) < Int128High64(rhs));
+    return (int128_high64(lhs) == int128_high64(rhs))
+           ? (int128_low64(lhs) < int128_low64(rhs))
+           : (int128_high64(lhs) < int128_high64(rhs));
 }
 
 ABEL_FORCE_INLINE bool operator>(int128 lhs, int128 rhs) {
-    return (Int128High64(lhs) == Int128High64(rhs))
-           ? (Int128Low64(lhs) > Int128Low64(rhs))
-           : (Int128High64(lhs) > Int128High64(rhs));
+    return (int128_high64(lhs) == int128_high64(rhs))
+           ? (int128_low64(lhs) > int128_low64(rhs))
+           : (int128_high64(lhs) > int128_high64(rhs));
 }
 
 ABEL_FORCE_INLINE bool operator<=(int128 lhs, int128 rhs) {
@@ -192,21 +192,21 @@ ABEL_FORCE_INLINE bool operator>=(int128 lhs, int128 rhs) {
 ABEL_FORCE_INLINE int128
 operator-(int128
 v) {
-int64_t hi = ~Int128High64(v);
-uint64_t lo = ~Int128Low64(v) + 1;
+int64_t hi = ~int128_high64(v);
+uint64_t lo = ~int128_low64(v) + 1;
 if (lo == 0) ++
 hi;  // carry
 return
-MakeInt128(hi, lo
+make_int128(hi, lo
 );
 }
 
 ABEL_FORCE_INLINE bool operator!(int128
 v) {
 return !
-Int128Low64(v)
+int128_low64(v)
 && !
-Int128High64(v);
+int128_high64(v);
 }
 
 ABEL_FORCE_INLINE int128
@@ -214,7 +214,7 @@ operator~(int128
 val) {
 return
 
-MakeInt128(~Int128High64(val), ~Int128Low64(val)
+make_int128(~int128_high64(val), ~int128_low64(val)
 
 );
 }
@@ -226,17 +226,17 @@ operator+(int128
 lhs,
 int128 rhs
 ) {
-int128 result = MakeInt128(Int128High64(lhs) + Int128High64(rhs),
-                           Int128Low64(lhs) + Int128Low64(rhs));
+int128 result = make_int128(int128_high64(lhs) + int128_high64(rhs),
+                           int128_low64(lhs) + int128_low64(rhs));
 if (
-Int128Low64(result)
+int128_low64(result)
 <
-Int128Low64(lhs)
+int128_low64(lhs)
 ) {  // check for carry
 return
-MakeInt128(Int128High64(result)
+make_int128(int128_high64(result)
 + 1,
-Int128Low64(result)
+int128_low64(result)
 );
 }
 return
@@ -248,17 +248,17 @@ operator-(int128
 lhs,
 int128 rhs
 ) {
-int128 result = MakeInt128(Int128High64(lhs) - Int128High64(rhs),
-                           Int128Low64(lhs) - Int128Low64(rhs));
+int128 result = make_int128(int128_high64(lhs) - int128_high64(rhs),
+                           int128_low64(lhs) - int128_low64(rhs));
 if (
-Int128Low64(lhs)
+int128_low64(lhs)
 <
-Int128Low64(rhs)
+int128_low64(rhs)
 ) {  // check for carry
 return
-MakeInt128(Int128High64(result)
+make_int128(int128_high64(result)
 - 1,
-Int128Low64(result)
+int128_low64(result)
 );
 }
 return
@@ -273,8 +273,8 @@ int128 rhs
 uint128 result = uint128(lhs) * rhs;
 return
 
-MakeInt128(int128_internal::BitCastToSigned(Uint128High64(result)),
-        Uint128Low64(result)
+make_int128(int128_internal::BitCastToSigned(uint128_high64(result)),
+        uint128_low64(result)
 
 );
 }
@@ -317,12 +317,12 @@ lhs,
 int128 rhs
 ) {
 return
-MakeInt128(Int128High64(lhs)
+make_int128(int128_high64(lhs)
 |
-Int128High64(rhs),
-        Int128Low64(lhs)
+int128_high64(rhs),
+        int128_low64(lhs)
 |
-Int128Low64(rhs)
+int128_low64(rhs)
 );
 }
 
@@ -332,12 +332,12 @@ lhs,
 int128 rhs
 ) {
 return
-MakeInt128(Int128High64(lhs)
+make_int128(int128_high64(lhs)
 &
-Int128High64(rhs),
-        Int128Low64(lhs)
+int128_high64(rhs),
+        int128_low64(lhs)
 &
-Int128Low64(rhs)
+int128_low64(rhs)
 );
 }
 
@@ -347,12 +347,12 @@ lhs,
 int128 rhs
 ) {
 return
-MakeInt128(Int128High64(lhs)
+make_int128(int128_high64(lhs)
 ^
-Int128High64(rhs),
-        Int128Low64(lhs)
+int128_high64(rhs),
+        int128_low64(lhs)
 ^
-Int128Low64(rhs)
+int128_low64(rhs)
 );
 }
 
@@ -365,20 +365,20 @@ int amount
 if (amount < 64) {
 if (amount != 0) {
 return
-MakeInt128(
-(Int128High64(lhs)
+make_int128(
+(int128_high64(lhs)
 << amount) |
 static_cast
-<int64_t>(Int128Low64(lhs)
+<int64_t>(int128_low64(lhs)
 >> (64 - amount)),
-Int128Low64(lhs)
+int128_low64(lhs)
 << amount);
 }
 return
 lhs;
 }
-return MakeInt128(static_cast
-<int64_t>(Int128Low64(lhs)
+return make_int128(static_cast
+<int64_t>(int128_low64(lhs)
 << (amount - 64)), 0);
 }
 
@@ -391,21 +391,21 @@ int amount
 if (amount < 64) {
 if (amount != 0) {
 return
-MakeInt128(
-        Int128High64(lhs)
+make_int128(
+        int128_high64(lhs)
 >> amount,
 (
-Int128Low64(lhs)
+int128_low64(lhs)
 >> amount) |
 (static_cast
-<uint64_t>(Int128High64(lhs)
+<uint64_t>(int128_high64(lhs)
 ) << (64 - amount)));
 }
 return
 lhs;
 }
-return MakeInt128(0,
+return make_int128(0,
 static_cast
-<uint64_t>(Int128High64(lhs)
+<uint64_t>(int128_high64(lhs)
 >> (amount - 64)));
 }

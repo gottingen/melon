@@ -250,9 +250,9 @@ namespace abel {
                 state ^= state >> 64;
                 uint64_t s = static_cast<uint64_t>(state);
 #else
-                uint64_t h = Uint128High64(state);
+                uint64_t h = uint128_high64(state);
                 uint64_t rotate = h >> 58u;
-                uint64_t s = Uint128Low64(state) ^ h;
+                uint64_t s = uint128_low64(state) ^ h;
 #endif
                 return rotr(s, rotate);
             }

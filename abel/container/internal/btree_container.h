@@ -216,7 +216,7 @@ namespace abel {
 
             // Support abel::Hash.
             template<typename State>
-            friend State AbelHashValue(State h, const btree_container &b) {
+            friend State abel_hash_value(State h, const btree_container &b) {
                 for (const auto &v : b) {
                     h = State::combine(std::move(h), v);
                 }

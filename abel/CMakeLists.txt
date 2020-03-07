@@ -8,8 +8,8 @@ FILE(GLOB CONMTAINER_SRC "container/*.cc")
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
 FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
 
-FILE(GLOB FLAGS_SRC "flags/*.cc")
-FILE(GLOB FLAGS_INTERNAL_SRC "flags/internal/*.cc")
+FILE(GLOB CONFIG_FLAGS_SRC "config/flags/*.cc")
+FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/flags/internal/*.cc")
 
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
 
@@ -59,8 +59,8 @@ SET(ABEL_SRC
         ${CONMTAINER_SRC}
         ${DEBUG_INTERNAL_SRC}
         ${DEBUG_SRC}
-        ${FLAGS_INTERNAL_SRC}
-        ${FLAGS_SRC}
+        ${CONFIG_FLAGS_INTERNAL_SRC}
+        ${CONFIG_FLAGS_SRC}
         ${HARDWARE_SRC}
         ${HASH_INTERNAL_SRC}
         ${METRICS_SRC}

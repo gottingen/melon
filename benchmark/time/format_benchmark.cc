@@ -13,8 +13,7 @@
 
 #include <cstddef>
 #include <string>
-
-#include <testing/time_util.h>
+#include <test/testing/time_util.h>
 #include <abel/chrono/time.h>
 #include <benchmark/benchmark.h>
 
@@ -36,7 +35,7 @@ namespace {
         const std::string fmt = kFormats[state.range(0)];
         state.SetLabel(fmt);
         const abel::time_zone lax =
-                abel::time_internal::load_time_zone("America/Los_Angeles");
+                abel::chrono_internal::load_time_zone("America/Los_Angeles");
         const abel::abel_time t =
                 abel::from_chrono(abel::chrono_second(1977, 6, 28, 9, 8, 7), lax) +
                 abel::nanoseconds(1);
@@ -52,7 +51,7 @@ namespace {
         const std::string fmt = kFormats[state.range(0)];
         state.SetLabel(fmt);
         const abel::time_zone lax =
-                abel::time_internal::load_time_zone("America/Los_Angeles");
+                abel::chrono_internal::load_time_zone("America/Los_Angeles");
         abel::abel_time t = abel::from_chrono(abel::chrono_second(1977, 6, 28, 9, 8, 7), lax) +
                             abel::nanoseconds(1);
         const std::string when = abel::format_time(fmt, t, lax);

@@ -129,8 +129,8 @@ namespace abel {
         ABEL_FORCE_INLINE duration MakeDurationFromU128(uint128 u128, bool is_neg) {
             int64_t rep_hi;
             uint32_t rep_lo;
-            const uint64_t h64 = Uint128High64(u128);
-            const uint64_t l64 = Uint128Low64(u128);
+            const uint64_t h64 = uint128_high64(u128);
+            const uint64_t l64 = uint128_low64(u128);
             if (h64 == 0) {  // fastpath
                 const uint64_t hi = l64 / kTicksPerSecond;
                 rep_hi = static_cast<int64_t>(hi);
@@ -151,9 +151,9 @@ namespace abel {
                 }
                 const uint128 kTicksPerSecond128 = static_cast<uint64_t>(kTicksPerSecond);
                 const uint128 hi = u128 / kTicksPerSecond128;
-                rep_hi = static_cast<int64_t>(Uint128Low64(hi));
+                rep_hi = static_cast<int64_t>(uint128_low64(hi));
                 rep_lo =
-                        static_cast<uint32_t>(Uint128Low64(u128 - hi * kTicksPerSecond128));
+                        static_cast<uint32_t>(uint128_low64(u128 - hi * kTicksPerSecond128));
             }
             if (is_neg) {
                 rep_hi = -rep_hi;
@@ -205,11 +205,11 @@ namespace abel {
         struct SafeMultiply {
             uint128 operator()(uint128 a, uint128 b) const {
                 // b hi is always zero because it originated as an int64_t.
-                assert(Uint128High64(b) == 0);
+                assert(uint128_high64(b) == 0);
                 // Fastpath to avoid the expensive overflow check with division.
-                if (Uint128High64(a) == 0) {
-                    return (((Uint128Low64(a) | Uint128Low64(b)) >> 32) == 0)
-                           ? static_cast<uint128>(Uint128Low64(a) * Uint128Low64(b))
+                if (uint128_high64(a) == 0) {
+                    return (((uint128_low64(a) | uint128_low64(b)) >> 32) == 0)
+                           ? static_cast<uint128>(uint128_low64(a) * uint128_low64(b))
                            : a * b;
                 }
                 return b == 0 ? b : (a > kuint128max / b) ? kuint128max : a * b;
@@ -377,11 +377,11 @@ namespace abel {
             *rem = MakeDurationFromU128(remainder128, num_neg);
 
             if (!quotient_neg || quotient128 == 0) {
-                return Uint128Low64(quotient128) & kint64max;
+                return uint128_low64(quotient128) & kint64max;
             }
             // The quotient needs to be negated, but we need to carefully handle
             // quotient128s with the top bit on.
-            return -static_cast<int64_t>(Uint128Low64(quotient128 - 1) & kint64max) - 1;
+            return -static_cast<int64_t>(uint128_low64(quotient128 - 1) & kint64max) - 1;
         }
 
     }  // namespace chrono_internal
