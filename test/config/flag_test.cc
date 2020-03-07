@@ -150,7 +150,7 @@ namespace {
 
 #if !ABEL_FLAGS_STRIP_NAMES
     TEST_F(FlagTest, TestFlagDefinition) {
-        abel::string_view expected_file_name = "flags/flag_test.cc";
+        abel::string_view expected_file_name = "config/flag_test.cc";
 
         EXPECT_EQ(FLAGS_test_flag_01.Name(), "test_flag_01");
         EXPECT_EQ(FLAGS_test_flag_01.Help(), "test flag 01");
