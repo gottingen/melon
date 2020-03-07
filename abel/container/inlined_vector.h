@@ -737,7 +737,7 @@ namespace abel {
 
     private:
         template<typename H, typename TheT, size_t TheN, typename TheA>
-        friend H AbelHashValue(H h, const abel::InlinedVector<TheT, TheN, TheA> &a);
+        friend H abel_hash_value(H h, const abel::InlinedVector<TheT, TheN, TheA> &a);
 
         Storage storage_;
     };
@@ -818,12 +818,12 @@ namespace abel {
         return !(a < b);
     }
 
-// `AbelHashValue(...)`
+// `abel_hash_value(...)`
 //
 // Provides `abel::Hash` support for `abel::InlinedVector`. It is uncommon to
 // call this directly.
     template<typename H, typename T, size_t N, typename A>
-    H AbelHashValue(H h, const abel::InlinedVector<T, N, A> &a) {
+    H abel_hash_value(H h, const abel::InlinedVector<T, N, A> &a) {
         auto size = a.size();
         return H::combine(H::combine_contiguous(std::move(h), a.data(), size), size);
     }

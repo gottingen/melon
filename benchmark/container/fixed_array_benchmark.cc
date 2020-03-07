@@ -25,7 +25,7 @@ namespace {
     void BM_FixedArray(benchmark::State &state) {
         const int size = state.range(0);
         for (auto _ : state) {
-            abel::FixedArray<C, stack_size> fa(size);
+            abel::fixed_array<C, stack_size> fa(size);
             benchmark::DoNotOptimize(fa.data());
         }
     }

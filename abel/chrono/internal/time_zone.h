@@ -214,7 +214,7 @@ namespace abel {
             friend bool operator!=(time_zone lhs, time_zone rhs) { return !(lhs == rhs); }
 
             template<typename H>
-            friend H AbelHashValue(H h, time_zone tz) {
+            friend H abel_hash_value(H h, time_zone tz) {
                 return H::combine(std::move(h), &tz.effective_impl());
             }
 

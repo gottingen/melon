@@ -3,13 +3,13 @@
 // File: fixed_array.h
 // -----------------------------------------------------------------------------
 //
-// A `FixedArray<T>` represents a non-resizable array of `T` where the length of
+// A `fixed_array<T>` represents a non-resizable array of `T` where the length of
 // the array can be determined at run-time. It is a good replacement for
 // non-standard and deprecated uses of `alloca()` and variable length arrays
 // within the GCC extension. (See
 // https://gcc.gnu.org/onlinedocs/gcc/Variable-Length.html).
 //
-// `FixedArray` allocates small arrays inline, keeping performance fast by
+// `fixed_array` allocates small arrays inline, keeping performance fast by
 // avoiding heap operations. It also helps reduce the chances of
 // accidentally overflowing your stack if large input is passed to
 // your function.
@@ -40,33 +40,33 @@ namespace abel {
     constexpr static auto kFixedArrayUseDefault = static_cast<size_t>(-1);
 
 // -----------------------------------------------------------------------------
-// FixedArray
+// fixed_array
 // -----------------------------------------------------------------------------
 //
-// A `FixedArray` provides a run-time fixed-size array, allocating a small array
+// A `fixed_array` provides a run-time fixed-size array, allocating a small array
 // inline for efficiency.
 //
 // Most users should not specify an `inline_elements` argument and let
-// `FixedArray` automatically determine the number of elements
+// `fixed_array` automatically determine the number of elements
 // to store inline based on `sizeof(T)`. If `inline_elements` is specified, the
-// `FixedArray` implementation will use inline storage for arrays with a
+// `fixed_array` implementation will use inline storage for arrays with a
 // length <= `inline_elements`.
 //
-// Note that a `FixedArray` constructed with a `size_type` argument will
+// Note that a `fixed_array` constructed with a `size_type` argument will
 // default-initialize its values by leaving trivially constructible types
 // uninitialized (e.g. int, int[4], double), and others default-constructed.
 // This matches the behavior of c-style arrays and `std::array`, but not
 // `std::vector`.
 //
-// Note that `FixedArray` does not provide a public allocator; if it requires a
+// Note that `fixed_array` does not provide a public allocator; if it requires a
 // heap allocation, it will do so with global `::operator new[]()` and
 // `::operator delete[]()`, even if T provides class-scope overrides for these
 // operators.
     template<typename T, size_t N = kFixedArrayUseDefault,
             typename A = std::allocator<T>>
-    class FixedArray {
+    class fixed_array {
         static_assert(!std::is_array<T>::value || std::extent<T>::value > 0,
-                      "Arrays with unknown bounds cannot be used with FixedArray.");
+                      "Arrays with unknown bounds cannot be used with fixed_array.");
 
         static constexpr size_t kInlineBytesDefault = 256;
 
@@ -110,20 +110,20 @@ namespace abel {
                 (N == kFixedArrayUseDefault ? kInlineBytesDefault / sizeof(value_type)
                                             : static_cast<size_type>(N));
 
-        FixedArray(
-                const FixedArray &other,
+        fixed_array(
+                const fixed_array &other,
                 const allocator_type &a = allocator_type()) noexcept(NoexceptCopyable())
-                : FixedArray(other.begin(), other.end(), a) {}
+                : fixed_array(other.begin(), other.end(), a) {}
 
-        FixedArray(
-                FixedArray &&other,
+        fixed_array(
+                fixed_array &&other,
                 const allocator_type &a = allocator_type()) noexcept(NoexceptMovable())
-                : FixedArray(std::make_move_iterator(other.begin()),
+                : fixed_array(std::make_move_iterator(other.begin()),
                              std::make_move_iterator(other.end()), a) {}
 
         // Creates an array object that can store `n` elements.
         // Note that trivially constructible elements will be uninitialized.
-        explicit FixedArray(size_type n, const allocator_type &a = allocator_type())
+        explicit fixed_array(size_type n, const allocator_type &a = allocator_type())
                 : storage_(n, a) {
             if (DefaultConstructorIsNonTrivial()) {
                 memory_internal::ConstructRange(storage_.alloc(), storage_.begin(),
@@ -132,7 +132,7 @@ namespace abel {
         }
 
         // Creates an array initialized with `n` copies of `val`.
-        FixedArray(size_type n, const value_type &val,
+        fixed_array(size_type n, const value_type &val,
                    const allocator_type &a = allocator_type())
                 : storage_(n, a) {
             memory_internal::ConstructRange(storage_.alloc(), storage_.begin(),
@@ -140,68 +140,68 @@ namespace abel {
         }
 
         // Creates an array initialized with the size and contents of `init_list`.
-        FixedArray(std::initializer_list<value_type> init_list,
+        fixed_array(std::initializer_list<value_type> init_list,
                    const allocator_type &a = allocator_type())
-                : FixedArray(init_list.begin(), init_list.end(), a) {}
+                : fixed_array(init_list.begin(), init_list.end(), a) {}
 
         // Creates an array initialized with the elements from the input
         // range. The array's size will always be `std::distance(first, last)`.
         // REQUIRES: Iterator must be a forward_iterator or better.
         template<typename Iterator, EnableIfForwardIterator<Iterator> * = nullptr>
-        FixedArray(Iterator first, Iterator last,
+        fixed_array(Iterator first, Iterator last,
                    const allocator_type &a = allocator_type())
                 : storage_(std::distance(first, last), a) {
             memory_internal::CopyRange(storage_.alloc(), storage_.begin(), first, last);
         }
 
-        ~FixedArray() noexcept {
+        ~fixed_array() noexcept {
             for (auto *cur = storage_.begin(); cur != storage_.end(); ++cur) {
                 AllocatorTraits::destroy(storage_.alloc(), cur);
             }
         }
 
         // Assignments are deleted because they break the invariant that the size of a
-        // `FixedArray` never changes.
-        void operator=(FixedArray &&) = delete;
+        // `fixed_array` never changes.
+        void operator=(fixed_array &&) = delete;
 
-        void operator=(const FixedArray &) = delete;
+        void operator=(const fixed_array &) = delete;
 
-        // FixedArray::size()
+        // fixed_array::size()
         //
         // Returns the length of the fixed array.
         size_type size() const { return storage_.size(); }
 
-        // FixedArray::max_size()
+        // fixed_array::max_size()
         //
         // Returns the largest possible value of `std::distance(begin(), end())` for a
-        // `FixedArray<T>`. This is equivalent to the most possible addressable bytes
+        // `fixed_array<T>`. This is equivalent to the most possible addressable bytes
         // over the number of bytes taken by T.
         constexpr size_type max_size() const {
             return (std::numeric_limits<difference_type>::max)() / sizeof(value_type);
         }
 
-        // FixedArray::empty()
+        // fixed_array::empty()
         //
         // Returns whether or not the fixed array is empty.
         bool empty() const { return size() == 0; }
 
-        // FixedArray::memsize()
+        // fixed_array::memsize()
         //
         // Returns the memory size of the fixed array in bytes.
         size_t memsize() const { return size() * sizeof(value_type); }
 
-        // FixedArray::data()
+        // fixed_array::data()
         //
-        // Returns a const T* pointer to elements of the `FixedArray`. This pointer
+        // Returns a const T* pointer to elements of the `fixed_array`. This pointer
         // can be used to access (but not modify) the contained elements.
         const_pointer data() const { return AsValueType(storage_.begin()); }
 
-        // Overload of FixedArray::data() to return a T* pointer to elements of the
+        // Overload of fixed_array::data() to return a T* pointer to elements of the
         // fixed array. This pointer can be used to access and modify the contained
         // elements.
         pointer data() { return AsValueType(storage_.begin()); }
 
-        // FixedArray::operator[]
+        // fixed_array::operator[]
         //
         // Returns a reference the ith element of the fixed array.
         // REQUIRES: 0 <= i < size()
@@ -210,7 +210,7 @@ namespace abel {
             return data()[i];
         }
 
-        // Overload of FixedArray::operator()[] to return a const reference to the
+        // Overload of fixed_array::operator()[] to return a const reference to the
         // ith element of the fixed array.
         // REQUIRES: 0 <= i < size()
         const_reference operator[](size_type i) const {
@@ -218,138 +218,138 @@ namespace abel {
             return data()[i];
         }
 
-        // FixedArray::at
+        // fixed_array::at
         //
         // Bounds-checked access.  Returns a reference to the ith element of the
         // fiexed array, or throws std::out_of_range
         reference at(size_type i) {
             if (ABEL_UNLIKELY(i >= size())) {
-                throw_std_out_of_range("FixedArray::at failed bounds check");
+                throw_std_out_of_range("fixed_array::at failed bounds check");
             }
             return data()[i];
         }
 
-        // Overload of FixedArray::at() to return a const reference to the ith element
+        // Overload of fixed_array::at() to return a const reference to the ith element
         // of the fixed array.
         const_reference at(size_type i) const {
             if (ABEL_UNLIKELY(i >= size())) {
-                throw_std_out_of_range("FixedArray::at failed bounds check");
+                throw_std_out_of_range("fixed_array::at failed bounds check");
             }
             return data()[i];
         }
 
-        // FixedArray::front()
+        // fixed_array::front()
         //
         // Returns a reference to the first element of the fixed array.
         reference front() { return *begin(); }
 
-        // Overload of FixedArray::front() to return a reference to the first element
+        // Overload of fixed_array::front() to return a reference to the first element
         // of a fixed array of const values.
         const_reference front() const { return *begin(); }
 
-        // FixedArray::back()
+        // fixed_array::back()
         //
         // Returns a reference to the last element of the fixed array.
         reference back() { return *(end() - 1); }
 
-        // Overload of FixedArray::back() to return a reference to the last element
+        // Overload of fixed_array::back() to return a reference to the last element
         // of a fixed array of const values.
         const_reference back() const { return *(end() - 1); }
 
-        // FixedArray::begin()
+        // fixed_array::begin()
         //
         // Returns an iterator to the beginning of the fixed array.
         iterator begin() { return data(); }
 
-        // Overload of FixedArray::begin() to return a const iterator to the
+        // Overload of fixed_array::begin() to return a const iterator to the
         // beginning of the fixed array.
         const_iterator begin() const { return data(); }
 
-        // FixedArray::cbegin()
+        // fixed_array::cbegin()
         //
         // Returns a const iterator to the beginning of the fixed array.
         const_iterator cbegin() const { return begin(); }
 
-        // FixedArray::end()
+        // fixed_array::end()
         //
         // Returns an iterator to the end of the fixed array.
         iterator end() { return data() + size(); }
 
-        // Overload of FixedArray::end() to return a const iterator to the end of the
+        // Overload of fixed_array::end() to return a const iterator to the end of the
         // fixed array.
         const_iterator end() const { return data() + size(); }
 
-        // FixedArray::cend()
+        // fixed_array::cend()
         //
         // Returns a const iterator to the end of the fixed array.
         const_iterator cend() const { return end(); }
 
-        // FixedArray::rbegin()
+        // fixed_array::rbegin()
         //
         // Returns a reverse iterator from the end of the fixed array.
         reverse_iterator rbegin() { return reverse_iterator(end()); }
 
-        // Overload of FixedArray::rbegin() to return a const reverse iterator from
+        // Overload of fixed_array::rbegin() to return a const reverse iterator from
         // the end of the fixed array.
         const_reverse_iterator rbegin() const {
             return const_reverse_iterator(end());
         }
 
-        // FixedArray::crbegin()
+        // fixed_array::crbegin()
         //
         // Returns a const reverse iterator from the end of the fixed array.
         const_reverse_iterator crbegin() const { return rbegin(); }
 
-        // FixedArray::rend()
+        // fixed_array::rend()
         //
         // Returns a reverse iterator from the beginning of the fixed array.
         reverse_iterator rend() { return reverse_iterator(begin()); }
 
-        // Overload of FixedArray::rend() for returning a const reverse iterator
+        // Overload of fixed_array::rend() for returning a const reverse iterator
         // from the beginning of the fixed array.
         const_reverse_iterator rend() const {
             return const_reverse_iterator(begin());
         }
 
-        // FixedArray::crend()
+        // fixed_array::crend()
         //
         // Returns a reverse iterator from the beginning of the fixed array.
         const_reverse_iterator crend() const { return rend(); }
 
-        // FixedArray::fill()
+        // fixed_array::fill()
         //
         // Assigns the given `value` to all elements in the fixed array.
         void fill(const value_type &val) { std::fill(begin(), end(), val); }
 
         // Relational operators. Equality operators are elementwise using
         // `operator==`, while order operators order FixedArrays lexicographically.
-        friend bool operator==(const FixedArray &lhs, const FixedArray &rhs) {
+        friend bool operator==(const fixed_array &lhs, const fixed_array &rhs) {
             return abel::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
         }
 
-        friend bool operator!=(const FixedArray &lhs, const FixedArray &rhs) {
+        friend bool operator!=(const fixed_array &lhs, const fixed_array &rhs) {
             return !(lhs == rhs);
         }
 
-        friend bool operator<(const FixedArray &lhs, const FixedArray &rhs) {
+        friend bool operator<(const fixed_array &lhs, const fixed_array &rhs) {
             return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
                                                 rhs.end());
         }
 
-        friend bool operator>(const FixedArray &lhs, const FixedArray &rhs) {
+        friend bool operator>(const fixed_array &lhs, const fixed_array &rhs) {
             return rhs < lhs;
         }
 
-        friend bool operator<=(const FixedArray &lhs, const FixedArray &rhs) {
+        friend bool operator<=(const fixed_array &lhs, const fixed_array &rhs) {
             return !(rhs < lhs);
         }
 
-        friend bool operator>=(const FixedArray &lhs, const FixedArray &rhs) {
+        friend bool operator>=(const fixed_array &lhs, const fixed_array &rhs) {
             return !(lhs < rhs);
         }
 
         template<typename H>
-        friend H AbelHashValue(H h, const FixedArray &v) {
+        friend H abel_hash_value(H h, const fixed_array &v) {
             return H::combine(H::combine_contiguous(std::move(h), v.data(), v.size()),
                               v.size());
         }
@@ -369,7 +369,7 @@ namespace abel {
         // single element, rather than the packed array that it really is.
         // e.g.:
         //
-        //     FixedArray<char> buf(1);
+        //     fixed_array<char> buf(1);
         //     sprintf(buf.data(), "foo");
         //
         //     error: call to int __builtin___sprintf_chk(etc...)
@@ -429,8 +429,8 @@ namespace abel {
         // Storage
         //
         // An instance of Storage manages the inline and out-of-line memory for
-        // instances of FixedArray. This guarantees that even when construction of
-        // individual elements fails in the FixedArray constructor body, the
+        // instances of fixed_array. This guarantees that even when construction of
+        // individual elements fails in the fixed_array constructor body, the
         // destructor for Storage will still be called and out-of-line memory will be
         // properly deallocated.
         //
@@ -479,15 +479,15 @@ namespace abel {
     };
 
     template<typename T, size_t N, typename A>
-    constexpr size_t FixedArray<T, N, A>::kInlineBytesDefault;
+    constexpr size_t fixed_array<T, N, A>::kInlineBytesDefault;
 
     template<typename T, size_t N, typename A>
-    constexpr typename FixedArray<T, N, A>::size_type
-            FixedArray<T, N, A>::inline_elements;
+    constexpr typename fixed_array<T, N, A>::size_type
+            fixed_array<T, N, A>::inline_elements;
 
     template<typename T, size_t N, typename A>
-    void FixedArray<T, N, A>::NonEmptyInlinedStorage::AnnotateConstruct(
-            typename FixedArray<T, N, A>::size_type n) {
+    void fixed_array<T, N, A>::NonEmptyInlinedStorage::AnnotateConstruct(
+            typename fixed_array<T, N, A>::size_type n) {
 #ifdef ADDRESS_SANITIZER
         if (!n) return;
         ANNOTATE_CONTIGUOUS_CONTAINER(data(), RedzoneEnd(), RedzoneEnd(), data() + n);
@@ -497,8 +497,8 @@ namespace abel {
     }
 
     template<typename T, size_t N, typename A>
-    void FixedArray<T, N, A>::NonEmptyInlinedStorage::AnnotateDestruct(
-            typename FixedArray<T, N, A>::size_type n) {
+    void fixed_array<T, N, A>::NonEmptyInlinedStorage::AnnotateDestruct(
+            typename fixed_array<T, N, A>::size_type n) {
 #ifdef ADDRESS_SANITIZER
         if (!n) return;
         ANNOTATE_CONTIGUOUS_CONTAINER(data(), RedzoneEnd(), data() + n, RedzoneEnd());

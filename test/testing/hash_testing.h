@@ -41,7 +41,7 @@ namespace abel {
 //
 //
 // Ideally, the values passed should provide enough coverage of the `==`
-// operator and the AbelHashValue implementations.
+// operator and the abel_hash_value implementations.
 // For dynamically sized types, the empty state should usually be included in
 // the values.
 //
@@ -60,11 +60,11 @@ namespace abel {
 //   3. If `a == b` evaluates to false their hash expansion must be unequal.
 //   4. If `a == b` evaluates to false neither hash expansion can be a
 //      suffix of the other.
-//   5. AbelHashValue overloads should not be called by the user. They are only
+//   5. abel_hash_value overloads should not be called by the user. They are only
 //      meant to be called by the framework. Users should call H::combine() and
 //      H::combine_contiguous().
 //   6. No moved-from instance of the hash state is used in the implementation
-//      of AbelHashValue.
+//      of abel_hash_value.
 //
 // The values do not have to have the same type. This can be useful for
 // equivalent types that support heterogeneous lookup.
@@ -76,7 +76,7 @@ namespace abel {
 // struct Bad2 {
 //   int a, b;
 //   template <typename H>
-//   friend H AbelHashValue(H state, Bad2 x) {
+//   friend H abel_hash_value(H state, Bad2 x) {
 //     // Uses a and b.
 //     return H::combine(std::move(state), x.a, x.b);
 //   }
@@ -93,7 +93,7 @@ namespace abel {
 // struct Bad3 {
 //   int a, b;
 //   template <typename H>
-//   friend H AbelHashValue(H state, Bad3 x) {
+//   friend H abel_hash_value(H state, Bad3 x) {
 //     // Only uses a.
 //     return H::combine(std::move(state), x.a);
 //   }
@@ -110,7 +110,7 @@ namespace abel {
 // struct Bad4 {
 //   int *p, size;
 //   template <typename H>
-//   friend H AbelHashValue(H state, Bad4 x) {
+//   friend H abel_hash_value(H state, Bad4 x) {
 //     return H::combine_contiguous(std::move(state), x.p, x.p + x.size);
 //   }
 //   friend bool operator==(Bad4 x, Bad4 y) {
@@ -122,7 +122,7 @@ namespace abel {
 // An easy solution to this is to combine the size after combining the range,
 // like so:
 // template <typename H>
-// friend H AbelHashValue(H state, Bad4 x) {
+// friend H abel_hash_value(H state, Bad4 x) {
 //   return H::combine(
 //       H::combine_contiguous(std::move(state), x.p, x.p + x.size), x.size);
 // }
@@ -220,7 +220,7 @@ namespace abel {
             }
 
             // We assume that equality is correctly implemented.
-            // Now we verify that AbelHashValue is also correctly implemented.
+            // Now we verify that abel_hash_value is also correctly implemented.
 
             for (const auto &c : classes) {
                 // All elements of the equivalence class must have the same hash

@@ -338,7 +338,7 @@ namespace abel {
 //
     using chrono_year_t = abel::chrono_internal::year_t;
 
-// civil_diff_t
+// chrono_diff_t
 //
 // Type alias of the difference between two civil-time values.
 // This type is used to indicate arguments that are not
@@ -347,7 +347,7 @@ namespace abel {
 //
 // Example:
 //
-//   abel::civil_diff_t n_sec = cs1 - cs2;             // cs1 == cs2 + n_sec;
+//   abel::chrono_diff_t n_sec = cs1 - cs2;             // cs1 == cs2 + n_sec;
 //
     using chrono_diff_t = abel::chrono_internal::diff_t;
 

@@ -82,7 +82,7 @@ namespace abel {
             }
 
             template<typename H>
-            friend H AbelHashValue(H h, const NonStandardLayout &v) {
+            friend H abel_hash_value(H h, const NonStandardLayout &v) {
                 return H::combine(std::move(h), v.value);
             }
 
@@ -94,7 +94,7 @@ namespace abel {
                         StatefulTestingHash> {
             template<class T>
             size_t operator()(const T &t) const {
-                return abel::Hash<T>{}(t);
+                return abel::hash<T>{}(t);
             }
         };
 

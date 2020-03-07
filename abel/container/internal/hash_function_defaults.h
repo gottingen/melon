@@ -49,7 +49,7 @@ namespace abel {
 // The hash of an object of type T is computed by using abel::Hash.
         template<class T, class E = void>
         struct HashEq {
-            using Hash = abel::Hash<T>;
+            using Hash = abel::hash<T>;
             using Eq = std::equal_to<T>;
         };
 
@@ -57,7 +57,7 @@ namespace abel {
             using is_transparent = void;
 
             size_t operator()(abel::string_view v) const {
-                return abel::Hash<abel::string_view>{}(v);
+                return abel::hash<abel::string_view>{}(v);
             }
         };
 
@@ -89,7 +89,7 @@ namespace abel {
 
                 template<class U>
                 size_t operator()(const U &ptr) const {
-                    return abel::Hash<const T *>{}(HashEq::ToPtr(ptr));
+                    return abel::hash<const T *>{}(HashEq::ToPtr(ptr));
                 }
             };
 

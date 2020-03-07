@@ -321,7 +321,7 @@ namespace abel {
                 }
             };
 
-            struct StringHash : abel::Hash<abel::string_view> {
+            struct StringHash : abel::hash<abel::string_view> {
                 using is_transparent = void;
             };
             struct StringEq : std::equal_to<abel::string_view> {
@@ -1571,7 +1571,7 @@ namespace abel {
 
             TEST(Table, NoThrowMoveConstruct) {
                 ASSERT_TRUE(
-                        std::is_nothrow_copy_constructible<abel::Hash<abel::string_view>>::value);
+                        std::is_nothrow_copy_constructible<abel::hash<abel::string_view>>::value);
                 ASSERT_TRUE(std::is_nothrow_copy_constructible<
                         std::equal_to<abel::string_view>>
                                     ::value);
@@ -1581,7 +1581,7 @@ namespace abel {
 
             TEST(Table, NoThrowMoveAssign) {
                 ASSERT_TRUE(
-                        std::is_nothrow_move_assignable<abel::Hash<abel::string_view>>::value);
+                        std::is_nothrow_move_assignable<abel::hash<abel::string_view>>::value);
                 ASSERT_TRUE(
                         std::is_nothrow_move_assignable<std::equal_to<abel::string_view>>::value);
                 ASSERT_TRUE(std::is_nothrow_move_assignable<std::allocator<int>>::value);
@@ -1592,7 +1592,7 @@ namespace abel {
 
             TEST(Table, NoThrowSwappable) {
                 ASSERT_TRUE(
-                        container_internal::IsNoThrowSwappable<abel::Hash<abel::string_view>>());
+                        container_internal::IsNoThrowSwappable<abel::hash<abel::string_view>>());
                 ASSERT_TRUE(container_internal::IsNoThrowSwappable<
                         std::equal_to<abel::string_view>>
                                     ());
@@ -1681,7 +1681,7 @@ namespace abel {
 
             TEST(Table, HeterogeneousLookupOverloads) {
                 using NonTransparentTable =
-                raw_hash_set<StringPolicy, abel::Hash<abel::string_view>,
+                raw_hash_set<StringPolicy, abel::hash<abel::string_view>,
                         std::equal_to<abel::string_view>, std::allocator<int>>;
 
                 EXPECT_FALSE((VerifyResultOf<CallFind, NonTransparentTable>()));

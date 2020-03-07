@@ -166,7 +166,7 @@ namespace abel {
         duration &operator/=(float r) { return *this /= static_cast<double>(r); }
 
         template<typename H>
-        friend H AbelHashValue(H h, duration d) {
+        friend H abel_hash_value(H h, duration d) {
             return H::combine(std::move(h), d.rep_hi_, d.rep_lo_);
         }
 
@@ -680,7 +680,7 @@ std::string UnparseFlag(duration d);
         breakdown in(time_zone tz) const;
 
         template<typename H>
-        friend H AbelHashValue(H h, abel_time t) {
+        friend H abel_hash_value(H h, abel_time t) {
             return H::combine(std::move(h), t.rep_);
         }
 
@@ -1055,7 +1055,7 @@ std::string UnparseFlag(abel_time t);
         bool prev_transition(abel_time t, chrono_transition *trans) const;
 
         template<typename H>
-        friend H AbelHashValue(H h, time_zone tz) {
+        friend H abel_hash_value(H h, time_zone tz) {
             return H::combine(std::move(h), tz.cz_);
         }
 

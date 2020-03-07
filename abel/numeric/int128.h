@@ -206,15 +206,15 @@ namespace abel {
 
         uint128 &operator--();
 
-        // Uint128Low64()
+        // uint128_low64()
         //
         // Returns the lower 64-bit value of a `uint128` value.
-        friend constexpr uint64_t Uint128Low64(uint128 v);
+        friend constexpr uint64_t uint128_low64(uint128 v);
 
-        // Uint128High64()
+        // uint128_high64()
         //
         // Returns the higher 64-bit value of a `uint128` value.
-        friend constexpr uint64_t Uint128High64(uint128 v);
+        friend constexpr uint64_t uint128_high64(uint128 v);
 
         // MakeUInt128()
         //
@@ -234,8 +234,8 @@ namespace abel {
 
         // Support for abel::Hash.
         template<typename H>
-        friend H AbelHashValue(H h, uint128 v) {
-            return H::combine(std::move(h), Uint128High64(v), Uint128Low64(v));
+        friend H abel_hash_value(H h, uint128 v) {
+            return H::combine(std::move(h), uint128_high64(v), uint128_low64(v));
         }
 
     private:
@@ -478,17 +478,17 @@ namespace abel {
 
         int128 &operator>>=(int amount);
 
-        // Int128Low64()
+        // int128_low64()
         //
         // Returns the lower 64-bit value of a `int128` value.
-        friend constexpr uint64_t Int128Low64(int128 v);
+        friend constexpr uint64_t int128_low64(int128 v);
 
-        // Int128High64()
+        // int128_high64()
         //
         // Returns the higher 64-bit value of a `int128` value.
-        friend constexpr int64_t Int128High64(int128 v);
+        friend constexpr int64_t int128_high64(int128 v);
 
-        // MakeInt128()
+        // make_int128()
         //
         // Constructs a `int128` numeric value from two 64-bit integers. Note that
         // signedness is conveyed in the upper `high` value.
@@ -500,24 +500,24 @@ namespace abel {
         //
         // Example:
         //
-        //   abel::int128 big = abel::MakeInt128(1, 0);
-        //   abel::int128 big_n = abel::MakeInt128(-1, 0);
-        friend constexpr int128 MakeInt128(int64_t high, uint64_t low);
+        //   abel::int128 big = abel::make_int128(1, 0);
+        //   abel::int128 big_n = abel::make_int128(-1, 0);
+        friend constexpr int128 make_int128(int64_t high, uint64_t low);
 
-        // Int128Max()
+        // int128_max()
         //
         // Returns the maximum value for a 128-bit signed integer.
-        friend constexpr int128 Int128Max();
+        friend constexpr int128 int128_max();
 
-        // Int128Min()
+        // int128_min()
         //
         // Returns the minimum value for a 128-bit signed integer.
-        friend constexpr int128 Int128Min();
+        friend constexpr int128 int128_min();
 
         // Support for abel::Hash.
         template<typename H>
-        friend H AbelHashValue(H h, int128 v) {
-            return H::combine(std::move(h), Int128High64(v), Int128Low64(v));
+        friend H abel_hash_value(H h, int128 v) {
+            return H::combine(std::move(h), int128_high64(v), int128_low64(v));
         }
 
     private:
@@ -542,12 +542,12 @@ namespace abel {
 
 // TODO(abel-team) add operator>>(std::istream&, int128)
 
-    constexpr int128 Int128Max() {
+    constexpr int128 int128_max() {
         return int128((std::numeric_limits<int64_t>::max)(),
                       (std::numeric_limits<uint64_t>::max)());
     }
 
-    constexpr int128 Int128Min() {
+    constexpr int128 int128_min() {
         return int128((std::numeric_limits<int64_t>::min)(), 0);
     }
 
@@ -586,11 +586,11 @@ namespace std {
 #endif  // ABEL_HAVE_INTRINSIC_INT128
         static constexpr bool tinyness_before = false;
 
-        static constexpr abel::int128 (min)() { return abel::Int128Min(); }
+        static constexpr abel::int128 (min)() { return abel::int128_min(); }
 
-        static constexpr abel::int128 lowest() { return abel::Int128Min(); }
+        static constexpr abel::int128 lowest() { return abel::int128_min(); }
 
-        static constexpr abel::int128 (max)() { return abel::Int128Max(); }
+        static constexpr abel::int128 (max)() { return abel::int128_max(); }
 
         static constexpr abel::int128 epsilon() { return 0; }
 
@@ -709,9 +709,9 @@ namespace abel {
         return *this;
     }
 
-    constexpr uint64_t Uint128Low64(uint128 v) { return v.lo_; }
+    constexpr uint64_t uint128_low64(uint128 v) { return v.lo_; }
 
-    constexpr uint64_t Uint128High64(uint128 v) { return v.hi_; }
+    constexpr uint64_t uint128_high64(uint128 v) { return v.hi_; }
 
 // Constructors from integer types.
 
@@ -753,7 +753,7 @@ namespace abel {
 #endif  // ABEL_HAVE_INTRINSIC_INT128
 
     constexpr uint128::uint128(int128 v)
-            : lo_{Int128Low64(v)}, hi_{static_cast<uint64_t>(Int128High64(v))} {}
+            : lo_{int128_low64(v)}, hi_{static_cast<uint64_t>(int128_high64(v))} {}
 
 #elif defined(ABEL_SYSTEM_BIG_ENDIAN)
 
@@ -786,7 +786,7 @@ namespace abel {
 #endif  // ABEL_HAVE_INTRINSIC_INT128
 
     constexpr uint128::uint128(int128 v)
-        : hi_{static_cast<uint64_t>(Int128High64(v))}, lo_{Int128Low64(v)} {}
+        : hi_{static_cast<uint64_t>(int128_high64(v))}, lo_{int128_low64(v)} {}
 
 #else  // byte order
 #error "Unsupported byte order: must be little-endian or big-endian."
@@ -876,8 +876,8 @@ namespace abel {
 // Comparison operators.
 
     ABEL_FORCE_INLINE bool operator==(uint128 lhs, uint128 rhs) {
-        return (Uint128Low64(lhs) == Uint128Low64(rhs) &&
-                Uint128High64(lhs) == Uint128High64(rhs));
+        return (uint128_low64(lhs) == uint128_low64(rhs) &&
+                uint128_high64(lhs) == uint128_high64(rhs));
     }
 
     ABEL_FORCE_INLINE bool operator!=(uint128 lhs, uint128 rhs) {
@@ -885,62 +885,62 @@ namespace abel {
     }
 
     ABEL_FORCE_INLINE bool operator<(uint128 lhs, uint128 rhs) {
-        return (Uint128High64(lhs) == Uint128High64(rhs))
-               ? (Uint128Low64(lhs) < Uint128Low64(rhs))
-               : (Uint128High64(lhs) < Uint128High64(rhs));
+        return (uint128_high64(lhs) == uint128_high64(rhs))
+               ? (uint128_low64(lhs) < uint128_low64(rhs))
+               : (uint128_high64(lhs) < uint128_high64(rhs));
     }
 
     ABEL_FORCE_INLINE bool operator>(uint128 lhs, uint128 rhs) {
-        return (Uint128High64(lhs) == Uint128High64(rhs))
-               ? (Uint128Low64(lhs) > Uint128Low64(rhs))
-               : (Uint128High64(lhs) > Uint128High64(rhs));
+        return (uint128_high64(lhs) == uint128_high64(rhs))
+               ? (uint128_low64(lhs) > uint128_low64(rhs))
+               : (uint128_high64(lhs) > uint128_high64(rhs));
     }
 
     ABEL_FORCE_INLINE bool operator<=(uint128 lhs, uint128 rhs) {
-        return (Uint128High64(lhs) == Uint128High64(rhs))
-               ? (Uint128Low64(lhs) <= Uint128Low64(rhs))
-               : (Uint128High64(lhs) <= Uint128High64(rhs));
+        return (uint128_high64(lhs) == uint128_high64(rhs))
+               ? (uint128_low64(lhs) <= uint128_low64(rhs))
+               : (uint128_high64(lhs) <= uint128_high64(rhs));
     }
 
     ABEL_FORCE_INLINE bool operator>=(uint128 lhs, uint128 rhs) {
-        return (Uint128High64(lhs) == Uint128High64(rhs))
-               ? (Uint128Low64(lhs) >= Uint128Low64(rhs))
-               : (Uint128High64(lhs) >= Uint128High64(rhs));
+        return (uint128_high64(lhs) == uint128_high64(rhs))
+               ? (uint128_low64(lhs) >= uint128_low64(rhs))
+               : (uint128_high64(lhs) >= uint128_high64(rhs));
     }
 
 // Unary operators.
 
     ABEL_FORCE_INLINE uint128 operator-(uint128 val) {
-        uint64_t hi = ~Uint128High64(val);
-        uint64_t lo = ~Uint128Low64(val) + 1;
+        uint64_t hi = ~uint128_high64(val);
+        uint64_t lo = ~uint128_low64(val) + 1;
         if (lo == 0)
             ++hi;  // carry
         return MakeUint128(hi, lo);
     }
 
     ABEL_FORCE_INLINE bool operator!(uint128 val) {
-        return !Uint128High64(val) && !Uint128Low64(val);
+        return !uint128_high64(val) && !uint128_low64(val);
     }
 
 // Logical operators.
 
     ABEL_FORCE_INLINE uint128 operator~(uint128 val) {
-        return MakeUint128(~Uint128High64(val), ~Uint128Low64(val));
+        return MakeUint128(~uint128_high64(val), ~uint128_low64(val));
     }
 
     ABEL_FORCE_INLINE uint128 operator|(uint128 lhs, uint128 rhs) {
-        return MakeUint128(Uint128High64(lhs) | Uint128High64(rhs),
-                           Uint128Low64(lhs) | Uint128Low64(rhs));
+        return MakeUint128(uint128_high64(lhs) | uint128_high64(rhs),
+                           uint128_low64(lhs) | uint128_low64(rhs));
     }
 
     ABEL_FORCE_INLINE uint128 operator&(uint128 lhs, uint128 rhs) {
-        return MakeUint128(Uint128High64(lhs) & Uint128High64(rhs),
-                           Uint128Low64(lhs) & Uint128Low64(rhs));
+        return MakeUint128(uint128_high64(lhs) & uint128_high64(rhs),
+                           uint128_low64(lhs) & uint128_low64(rhs));
     }
 
     ABEL_FORCE_INLINE uint128 operator^(uint128 lhs, uint128 rhs) {
-        return MakeUint128(Uint128High64(lhs) ^ Uint128High64(rhs),
-                           Uint128Low64(lhs) ^ Uint128Low64(rhs));
+        return MakeUint128(uint128_high64(lhs) ^ uint128_high64(rhs),
+                           uint128_low64(lhs) ^ uint128_low64(rhs));
     }
 
     ABEL_FORCE_INLINE uint128 &uint128::operator|=(uint128 other) {
@@ -969,12 +969,12 @@ namespace abel {
         if (amount < 64) {
             if (amount != 0) {
                 return MakeUint128(
-                        (Uint128High64(lhs) << amount) | (Uint128Low64(lhs) >> (64 - amount)),
-                        Uint128Low64(lhs) << amount);
+                        (uint128_high64(lhs) << amount) | (uint128_low64(lhs) >> (64 - amount)),
+                        uint128_low64(lhs) << amount);
             }
             return lhs;
         }
-        return MakeUint128(Uint128Low64(lhs) << (amount - 64), 0);
+        return MakeUint128(uint128_low64(lhs) << (amount - 64), 0);
     }
 
     ABEL_FORCE_INLINE uint128 operator>>(uint128 lhs, int amount) {
@@ -982,29 +982,29 @@ namespace abel {
         // special-casing.
         if (amount < 64) {
             if (amount != 0) {
-                return MakeUint128(Uint128High64(lhs) >> amount,
-                                   (Uint128Low64(lhs) >> amount) |
-                                   (Uint128High64(lhs) << (64 - amount)));
+                return MakeUint128(uint128_high64(lhs) >> amount,
+                                   (uint128_low64(lhs) >> amount) |
+                                   (uint128_high64(lhs) << (64 - amount)));
             }
             return lhs;
         }
-        return MakeUint128(0, Uint128High64(lhs) >> (amount - 64));
+        return MakeUint128(0, uint128_high64(lhs) >> (amount - 64));
     }
 
     ABEL_FORCE_INLINE uint128 operator+(uint128 lhs, uint128 rhs) {
-        uint128 result = MakeUint128(Uint128High64(lhs) + Uint128High64(rhs),
-                                     Uint128Low64(lhs) + Uint128Low64(rhs));
-        if (Uint128Low64(result) < Uint128Low64(lhs)) {  // check for carry
-            return MakeUint128(Uint128High64(result) + 1, Uint128Low64(result));
+        uint128 result = MakeUint128(uint128_high64(lhs) + uint128_high64(rhs),
+                                     uint128_low64(lhs) + uint128_low64(rhs));
+        if (uint128_low64(result) < uint128_low64(lhs)) {  // check for carry
+            return MakeUint128(uint128_high64(result) + 1, uint128_low64(result));
         }
         return result;
     }
 
     ABEL_FORCE_INLINE uint128 operator-(uint128 lhs, uint128 rhs) {
-        uint128 result = MakeUint128(Uint128High64(lhs) - Uint128High64(rhs),
-                                     Uint128Low64(lhs) - Uint128Low64(rhs));
-        if (Uint128Low64(lhs) < Uint128Low64(rhs)) {  // check for carry
-            return MakeUint128(Uint128High64(result) - 1, Uint128Low64(result));
+        uint128 result = MakeUint128(uint128_high64(lhs) - uint128_high64(rhs),
+                                     uint128_low64(lhs) - uint128_low64(rhs));
+        if (uint128_low64(lhs) < uint128_low64(rhs)) {  // check for carry
+            return MakeUint128(uint128_high64(result) - 1, uint128_low64(result));
         }
         return result;
     }
@@ -1017,18 +1017,18 @@ namespace abel {
                static_cast<unsigned __int128>(rhs);
 #elif defined(_MSC_VER) && defined(_M_X64)
         uint64_t carry;
-        uint64_t low = _umul128(Uint128Low64(lhs), Uint128Low64(rhs), &carry);
-        return MakeUint128(Uint128Low64(lhs) * Uint128High64(rhs) +
-                               Uint128High64(lhs) * Uint128Low64(rhs) + carry,
+        uint64_t low = _umul128(uint128_low64(lhs), uint128_low64(rhs), &carry);
+        return MakeUint128(uint128_low64(lhs) * uint128_high64(rhs) +
+                               uint128_high64(lhs) * uint128_low64(rhs) + carry,
                            low);
 #else   // ABEL_HAVE_INTRINSIC128
-        uint64_t a32 = Uint128Low64(lhs) >> 32;
-        uint64_t a00 = Uint128Low64(lhs) & 0xffffffff;
-        uint64_t b32 = Uint128Low64(rhs) >> 32;
-        uint64_t b00 = Uint128Low64(rhs) & 0xffffffff;
+        uint64_t a32 = uint128_low64(lhs) >> 32;
+        uint64_t a00 = uint128_low64(lhs) & 0xffffffff;
+        uint64_t b32 = uint128_low64(rhs) >> 32;
+        uint64_t b00 = uint128_low64(rhs) & 0xffffffff;
         uint128 result =
-            MakeUint128(Uint128High64(lhs) * Uint128Low64(rhs) +
-                            Uint128Low64(lhs) * Uint128High64(rhs) + a32 * b32,
+            MakeUint128(uint128_high64(lhs) * uint128_low64(rhs) +
+                            uint128_low64(lhs) * uint128_high64(rhs) + a32 * b32,
                         a00 * b00);
         result += uint128(a32 * b00) << 32;
         result += uint128(a00 * b32) << 32;
@@ -1060,7 +1060,7 @@ namespace abel {
         return *this;
     }
 
-    constexpr int128 MakeInt128(int64_t high, uint64_t low) {
+    constexpr int128 make_int128(int64_t high, uint64_t low) {
         return int128(high, low);
     }
 

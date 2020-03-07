@@ -562,11 +562,11 @@ namespace abel {
         };
 
         void TestUnchanging(const uint64_t *expected, int offset, int len) {
-            EXPECT_EQ(expected[0], CityHash64(data + offset, len));
-            EXPECT_EQ(expected[3], CityHash32(data + offset, len));
-            EXPECT_EQ(expected[1], CityHash64WithSeed(data + offset, len, kSeed0));
+            EXPECT_EQ(expected[0], city_hash64(data + offset, len));
+            EXPECT_EQ(expected[3], city_hash32(data + offset, len));
+            EXPECT_EQ(expected[1], city_hash64_with_seed(data + offset, len, kSeed0));
             EXPECT_EQ(expected[2],
-                      CityHash64WithSeeds(data + offset, len, kSeed0, kSeed1));
+                      city_hash64_with_seeds(data + offset, len, kSeed0, kSeed1));
         }
 
         TEST(CityHashTest, Unchanging) {

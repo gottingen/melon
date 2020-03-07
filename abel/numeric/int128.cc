@@ -48,10 +48,10 @@ namespace abel {
 // Like Fls64() above, but returns the 0-based position of the last set bit
 // (i.e., most significant bit) in the given uint128. The argument may not be 0.
         static ABEL_FORCE_INLINE int Fls128(uint128 n) {
-            if (uint64_t hi = Uint128High64(n)) {
+            if (uint64_t hi = uint128_high64(n)) {
                 return Fls64(hi) + 64;
             }
-            return Fls64(Uint128Low64(n));
+            return Fls64(uint128_low64(n));
         }
 
 // Long division/modulo for uint128 implemented using the shift-subtract
@@ -201,16 +201,16 @@ namespace abel {
             DivModImpl(high, div, &high, &low);
             uint128 mid;
             DivModImpl(high, div, &high, &mid);
-            if (Uint128Low64(high) != 0) {
-                os << Uint128Low64(high);
+            if (uint128_low64(high) != 0) {
+                os << uint128_low64(high);
                 os << std::noshowbase << std::setfill('0') << std::setw(div_base_log);
-                os << Uint128Low64(mid);
+                os << uint128_low64(mid);
                 os << std::setw(div_base_log);
-            } else if (Uint128Low64(mid) != 0) {
-                os << Uint128Low64(mid);
+            } else if (uint128_low64(mid) != 0) {
+                os << uint128_low64(mid);
                 os << std::noshowbase << std::setfill('0') << std::setw(div_base_log);
             }
-            os << Uint128Low64(low);
+            os << uint128_low64(low);
             return os.str();
         }
 
@@ -241,8 +241,8 @@ namespace abel {
     namespace {
 
         uint128 UnsignedAbsoluteValue(int128 v) {
-            // Cast to uint128 before possibly negating because -Int128Min() is undefined.
-            return Int128High64(v) < 0 ? -uint128(v) : uint128(v);
+            // Cast to uint128 before possibly negating because -int128_min() is undefined.
+            return int128_high64(v) < 0 ? -uint128(v) : uint128(v);
         }
 
     }  // namespace
@@ -263,8 +263,8 @@ namespace abel {
       // difference between the high and low 64 bits when interpreted as two's
       // complement overwhelms the precision of the mantissa.
       uint128 result = v < 0 ? -MakeUint128FromFloat(-v) : MakeUint128FromFloat(v);
-      return MakeInt128(int128_internal::BitCastToSigned(Uint128High64(result)),
-                        Uint128Low64(result));
+      return make_int128(int128_internal::BitCastToSigned(uint128_high64(result)),
+                        uint128_low64(result));
     }
 
     }  // namespace
@@ -274,27 +274,27 @@ namespace abel {
     int128::int128(long double v) : int128(MakeInt128FromFloat(v)) {}
 
     int128 operator/(int128 lhs, int128 rhs) {
-      assert(lhs != Int128Min() || rhs != -1);  // UB on two's complement.
+      assert(lhs != int128_min() || rhs != -1);  // UB on two's complement.
 
       uint128 quotient = 0;
       uint128 remainder = 0;
       DivModImpl(UnsignedAbsoluteValue(lhs), UnsignedAbsoluteValue(rhs),
                  &quotient, &remainder);
-      if ((Int128High64(lhs) < 0) != (Int128High64(rhs) < 0)) quotient = -quotient;
-      return MakeInt128(int128_internal::BitCastToSigned(Uint128High64(quotient)),
-                        Uint128Low64(quotient));
+      if ((int128_high64(lhs) < 0) != (int128_high64(rhs) < 0)) quotient = -quotient;
+      return make_int128(int128_internal::BitCastToSigned(uint128_high64(quotient)),
+                        uint128_low64(quotient));
     }
 
     int128 operator%(int128 lhs, int128 rhs) {
-      assert(lhs != Int128Min() || rhs != -1);  // UB on two's complement.
+      assert(lhs != int128_min() || rhs != -1);  // UB on two's complement.
 
       uint128 quotient = 0;
       uint128 remainder = 0;
       DivModImpl(UnsignedAbsoluteValue(lhs), UnsignedAbsoluteValue(rhs),
                  &quotient, &remainder);
-      if (Int128High64(lhs) < 0) remainder = -remainder;
-      return MakeInt128(int128_internal::BitCastToSigned(Uint128High64(remainder)),
-                        Uint128Low64(remainder));
+      if (int128_high64(lhs) < 0) remainder = -remainder;
+      return make_int128(int128_internal::BitCastToSigned(uint128_high64(remainder)),
+                        uint128_low64(remainder));
     }
 #endif  // ABEL_HAVE_INTRINSIC_INT128
 
@@ -307,7 +307,7 @@ namespace abel {
                 (flags & std::ios::basefield) == std::ios::dec ||
                 (flags & std::ios::basefield) == std::ios_base::fmtflags();
         if (print_as_decimal) {
-            if (Int128High64(v) < 0) {
+            if (int128_high64(v) < 0) {
                 rep = "-";
             } else if (flags & std::ios::showpos) {
                 rep = "+";

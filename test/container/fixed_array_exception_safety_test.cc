@@ -31,12 +31,12 @@ namespace abel {
         testing::ThrowingAllocator<MoveThrower,
                 testing::AllocSpec::kEverythingThrows>;
 
-        using FixedArr = abel::FixedArray<Thrower, kInlined>;
-        using FixedArrWithAlloc = abel::FixedArray<Thrower, kInlined, ThrowAlloc>;
+        using FixedArr = abel::fixed_array<Thrower, kInlined>;
+        using FixedArrWithAlloc = abel::fixed_array<Thrower, kInlined, ThrowAlloc>;
 
-        using MoveFixedArr = abel::FixedArray<MoveThrower, kInlined>;
+        using MoveFixedArr = abel::fixed_array<MoveThrower, kInlined>;
         using MoveFixedArrWithAlloc =
-        abel::FixedArray<MoveThrower, kInlined, MoveThrowAlloc>;
+        abel::fixed_array<MoveThrower, kInlined, MoveThrowAlloc>;
 
         TEST(FixedArrayExceptionSafety, CopyConstructor) {
             auto small = FixedArr(kSmallSize);
@@ -110,7 +110,7 @@ namespace abel {
 
         TEST(FixedArrayExceptionSafety, InitListConstructor) {
             constexpr int small_inlined = 3;
-            using SmallFixedArr = abel::FixedArray<Thrower, small_inlined>;
+            using SmallFixedArr = abel::fixed_array<Thrower, small_inlined>;
 
             TestThrowingCtor<SmallFixedArr>(std::initializer_list<Thrower>{});
             // Test inlined allocation
@@ -124,7 +124,7 @@ namespace abel {
         TEST(FixedArrayExceptionSafety, InitListConstructorWithAlloc) {
             constexpr int small_inlined = 3;
             using SmallFixedArrWithAlloc =
-            abel::FixedArray<Thrower, small_inlined, ThrowAlloc>;
+            abel::fixed_array<Thrower, small_inlined, ThrowAlloc>;
 
             TestThrowingCtor<SmallFixedArrWithAlloc>(std::initializer_list<Thrower>{});
             // Test inlined allocation

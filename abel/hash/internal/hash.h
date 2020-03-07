@@ -40,43 +40,43 @@ namespace abel {
 
     namespace hash_internal {
 
-        class PiecewiseCombiner;
+        class piecewise_combiner;
 
 // Internal detail: Large buffers are hashed in smaller chunks.  This function
 // returns the size of these chunks.
         constexpr size_t PiecewiseChunkSize() { return 1024; }
 
-// HashStateBase
+// hash_state_base
 //
 // A hash state object represents an intermediate state in the computation
-// of an unspecified hash algorithm. `HashStateBase` provides a CRTP style
+// of an unspecified hash algorithm. `hash_state_base` provides a CRTP style
 // base class for hash state implementations. Developers adding type support
 // for `abel::Hash` should not rely on any parts of the state object other than
 // the following member functions:
 //
-//   * HashStateBase::combine()
-//   * HashStateBase::combine_contiguous()
+//   * hash_state_base::combine()
+//   * hash_state_base::combine_contiguous()
 //
 // A derived hash state class of type `H` must provide a static member function
 // with a signature similar to the following:
 //
 //    `static H combine_contiguous(H state, const unsigned char*, size_t)`.
 //
-// `HashStateBase` will provide a complete implementation for a hash state
+// `hash_state_base` will provide a complete implementation for a hash state
 // object in terms of this method.
 //
 // Example:
 //
 //   // Use CRTP to define your derived class.
-//   struct MyHashState : HashStateBase<MyHashState> {
+//   struct MyHashState : hash_state_base<MyHashState> {
 //       static H combine_contiguous(H state, const unsigned char*, size_t);
-//       using MyHashState::HashStateBase::combine;
-//       using MyHashState::HashStateBase::combine_contiguous;
+//       using MyHashState::hash_state_base::combine;
+//       using MyHashState::hash_state_base::combine_contiguous;
 //   };
         template<typename H>
-        class HashStateBase {
+        class hash_state_base {
         public:
-            // HashStateBase::combine()
+            // hash_state_base::combine()
             //
             // Combines an arbitrary number of values into a hash state, returning the
             // updated state.
@@ -98,7 +98,7 @@ namespace abel {
 
             static H combine(H state) { return state; }
 
-            // HashStateBase::combine_contiguous()
+            // hash_state_base::combine_contiguous()
             //
             // Combines a contiguous array of `size` elements into a hash state, returning
             // the updated state.
@@ -114,7 +114,7 @@ namespace abel {
             static H combine_contiguous(H state, const T *data, size_t size);
 
         private:
-            friend class PiecewiseCombiner;
+            friend class piecewise_combiner;
         };
 
 // is_uniquely_represented
@@ -189,9 +189,9 @@ namespace abel {
             return H::combine_contiguous(std::move(hash_state), start, sizeof(value));
         }
 
-// PiecewiseCombiner
+// piecewise_combiner
 //
-// PiecewiseCombiner is an internal-only helper class for hashing a piecewise
+// piecewise_combiner is an internal-only helper class for hashing a piecewise
 // buffer of `char` or `unsigned char` as though it were contiguous.  This class
 // provides two methods:
 //
@@ -204,20 +204,20 @@ namespace abel {
 // `H::combine_contiguous`.
 //
 //  Example usage:
-//    PiecewiseCombiner combiner;
+//    piecewise_combiner combiner;
 //    for (const auto& piece : pieces) {
 //      state = combiner.add_buffer(std::move(state), piece.data, piece.size);
 //    }
 //    return combiner.finalize(std::move(state));
-        class PiecewiseCombiner {
+        class piecewise_combiner {
         public:
-            PiecewiseCombiner() : position_(0) {}
+            piecewise_combiner() : position_(0) {}
 
-            PiecewiseCombiner(const PiecewiseCombiner &) = delete;
+            piecewise_combiner(const piecewise_combiner &) = delete;
 
-            PiecewiseCombiner &operator=(const PiecewiseCombiner &) = delete;
+            piecewise_combiner &operator=(const piecewise_combiner &) = delete;
 
-            // PiecewiseCombiner::add_buffer()
+            // piecewise_combiner::add_buffer()
             //
             // Appends the given range of bytes to the sequence to be hashed, which may
             // modify the provided hash state.
@@ -230,7 +230,7 @@ namespace abel {
                                   reinterpret_cast<const unsigned char *>(data), size);
             }
 
-            // PiecewiseCombiner::finalize()
+            // piecewise_combiner::finalize()
             //
             // Finishes combining the hash sequence, which may may modify the provided
             // hash state.
@@ -248,28 +248,28 @@ namespace abel {
         };
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Basic Types
+// abel_hash_value for Basic Types
 // -----------------------------------------------------------------------------
 
-// Note: Default `AbelHashValue` implementations live in `hash_internal`. This
+// Note: Default `abel_hash_value` implementations live in `hash_internal`. This
 // allows us to block lexical scope lookup when doing an unqualified call to
-// `AbelHashValue` below. User-defined implementations of `AbelHashValue` can
+// `abel_hash_value` below. User-defined implementations of `abel_hash_value` can
 // only be found via ADL.
 
-// AbelHashValue() for hashing bool values
+// abel_hash_value() for hashing bool values
 //
 // We use SFINAE to ensure that this overload only accepts bool, not types that
 // are convertible to bool.
         template<typename H, typename B>
-        typename std::enable_if<std::is_same<B, bool>::value, H>::type AbelHashValue(
+        typename std::enable_if<std::is_same<B, bool>::value, H>::type abel_hash_value(
                 H hash_state, B value) {
             return H::combine(std::move(hash_state),
                               static_cast<unsigned char>(value ? 1 : 0));
         }
 
-// AbelHashValue() for hashing enum values
+// abel_hash_value() for hashing enum values
         template<typename H, typename Enum>
-        typename std::enable_if<std::is_enum<Enum>::value, H>::type AbelHashValue(
+        typename std::enable_if<std::is_enum<Enum>::value, H>::type abel_hash_value(
                 H hash_state, Enum e) {
             // In practice, we could almost certainly just invoke hash_bytes directly,
             // but it's possible that a sanitizer might one day want to
@@ -280,12 +280,12 @@ namespace abel {
                               static_cast<typename std::underlying_type<Enum>::type>(e));
         }
 
-// AbelHashValue() for hashing floating-point values
+// abel_hash_value() for hashing floating-point values
         template<typename H, typename Float>
         typename std::enable_if<std::is_same<Float, float>::value ||
                                 std::is_same<Float, double>::value,
                 H>::type
-        AbelHashValue(H hash_state, Float value) {
+        abel_hash_value(H hash_state, Float value) {
             return hash_internal::hash_bytes(std::move(hash_state),
                                              value == 0 ? 0 : value);
         }
@@ -296,7 +296,7 @@ namespace abel {
 // convert it to something else first.
         template<typename H, typename LongDouble>
         typename std::enable_if<std::is_same<LongDouble, long double>::value, H>::type
-        AbelHashValue(H hash_state, LongDouble value) {
+        abel_hash_value(H hash_state, LongDouble value) {
             const int category = std::fpclassify(value);
             switch (category) {
                 case FP_INFINITE:
@@ -325,9 +325,9 @@ namespace abel {
             return H::combine(std::move(hash_state), category);
         }
 
-// AbelHashValue() for hashing pointers
+// abel_hash_value() for hashing pointers
         template<typename H, typename T>
-        H AbelHashValue(H hash_state, T *ptr) {
+        H abel_hash_value(H hash_state, T *ptr) {
             auto v = reinterpret_cast<uintptr_t>(ptr);
             // Due to alignment, pointers tend to have low bits as zero, and the next few
             // bits follow a pattern since they are also multiples of some base value.
@@ -336,28 +336,28 @@ namespace abel {
             return H::combine(std::move(hash_state), v, v);
         }
 
-// AbelHashValue() for hashing nullptr_t
+// abel_hash_value() for hashing nullptr_t
         template<typename H>
-        H AbelHashValue(H hash_state, std::nullptr_t) {
+        H abel_hash_value(H hash_state, std::nullptr_t) {
             return H::combine(std::move(hash_state), static_cast<void *>(nullptr));
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Composite Types
+// abel_hash_value for Composite Types
 // -----------------------------------------------------------------------------
 
 // is_hashable()
 //
 // Trait class which returns true if T is hashable by the abel::Hash framework.
-// Used for the AbelHashValue implementations for composite types below.
+// Used for the abel_hash_value implementations for composite types below.
         template<typename T>
         struct is_hashable;
 
-// AbelHashValue() for hashing pairs
+// abel_hash_value() for hashing pairs
         template<typename H, typename T1, typename T2>
         typename std::enable_if<is_hashable<T1>::value && is_hashable<T2>::value,
                 H>::type
-        AbelHashValue(H hash_state, const std::pair<T1, T2> &p) {
+        abel_hash_value(H hash_state, const std::pair<T1, T2> &p) {
             return H::combine(std::move(hash_state), p.first, p.second);
         }
 
@@ -370,7 +370,7 @@ namespace abel {
             return H::combine(std::move(hash_state), std::get<Is>(t)...);
         }
 
-// AbelHashValue for hashing tuples
+// abel_hash_value for hashing tuples
         template<typename H, typename... Ts>
 #if defined(_MSC_VER)
         // This SFINAE gets MSVC confused under some conditions. Let's just disable it
@@ -379,32 +379,32 @@ namespace abel {
 #else  // _MSC_VER
         typename std::enable_if<abel::conjunction<is_hashable<Ts>...>::value, H>::type
 #endif  // _MSC_VER
-        AbelHashValue(H hash_state, const std::tuple<Ts...> &t) {
+        abel_hash_value(H hash_state, const std::tuple<Ts...> &t) {
             return hash_internal::hash_tuple(std::move(hash_state), t,
                                              abel::make_index_sequence<sizeof...(Ts)>());
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Pointers
+// abel_hash_value for Pointers
 // -----------------------------------------------------------------------------
 
-// AbelHashValue for hashing unique_ptr
+// abel_hash_value for hashing unique_ptr
         template<typename H, typename T, typename D>
-        H AbelHashValue(H hash_state, const std::unique_ptr<T, D> &ptr) {
+        H abel_hash_value(H hash_state, const std::unique_ptr<T, D> &ptr) {
             return H::combine(std::move(hash_state), ptr.get());
         }
 
-// AbelHashValue for hashing shared_ptr
+// abel_hash_value for hashing shared_ptr
         template<typename H, typename T>
-        H AbelHashValue(H hash_state, const std::shared_ptr<T> &ptr) {
+        H abel_hash_value(H hash_state, const std::shared_ptr<T> &ptr) {
             return H::combine(std::move(hash_state), ptr.get());
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for String-Like Types
+// abel_hash_value for String-Like Types
 // -----------------------------------------------------------------------------
 
-// AbelHashValue for hashing strings
+// abel_hash_value for hashing strings
 //
 // All the string-like types supported here provide the same hash expansion for
 // the same character sequence. These types are:
@@ -418,7 +418,7 @@ namespace abel {
 // misbehave in cases where the traits' `eq()` member isn't equivalent to `==`
 // on the underlying character type.
         template<typename H>
-        H AbelHashValue(H hash_state, abel::string_view str) {
+        H abel_hash_value(H hash_state, abel::string_view str) {
             return H::combine(
                     H::combine_contiguous(std::move(hash_state), str.data(), str.size()),
                     str.size());
@@ -429,7 +429,7 @@ namespace abel {
                 typename = abel::enable_if_t<std::is_same<Char, wchar_t>::value ||
                                              std::is_same<Char, char16_t>::value ||
                                              std::is_same<Char, char32_t>::value>>
-        H AbelHashValue(
+        H abel_hash_value(
                 H hash_state,
                 const std::basic_string<Char, std::char_traits<Char>, Alloc> &str) {
             return H::combine(
@@ -438,20 +438,20 @@ namespace abel {
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Sequence Containers
+// abel_hash_value for Sequence Containers
 // -----------------------------------------------------------------------------
 
-// AbelHashValue for hashing std::array
+// abel_hash_value for hashing std::array
         template<typename H, typename T, size_t N>
-        typename std::enable_if<is_hashable<T>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<T>::value, H>::type abel_hash_value(
                 H hash_state, const std::array<T, N> &array) {
             return H::combine_contiguous(std::move(hash_state), array.data(),
                                          array.size());
         }
 
-// AbelHashValue for hashing std::deque
+// abel_hash_value for hashing std::deque
         template<typename H, typename T, typename Allocator>
-        typename std::enable_if<is_hashable<T>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<T>::value, H>::type abel_hash_value(
                 H hash_state, const std::deque<T, Allocator> &deque) {
             // TODO(gromer): investigate a more efficient implementation taking
             // advantage of the chunk structure.
@@ -461,9 +461,9 @@ namespace abel {
             return H::combine(std::move(hash_state), deque.size());
         }
 
-// AbelHashValue for hashing std::forward_list
+// abel_hash_value for hashing std::forward_list
         template<typename H, typename T, typename Allocator>
-        typename std::enable_if<is_hashable<T>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<T>::value, H>::type abel_hash_value(
                 H hash_state, const std::forward_list<T, Allocator> &list) {
             size_t size = 0;
             for (const T &t : list) {
@@ -473,9 +473,9 @@ namespace abel {
             return H::combine(std::move(hash_state), size);
         }
 
-// AbelHashValue for hashing std::list
+// abel_hash_value for hashing std::list
         template<typename H, typename T, typename Allocator>
-        typename std::enable_if<is_hashable<T>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<T>::value, H>::type abel_hash_value(
                 H hash_state, const std::list<T, Allocator> &list) {
             for (const auto &t : list) {
                 hash_state = H::combine(std::move(hash_state), t);
@@ -483,41 +483,41 @@ namespace abel {
             return H::combine(std::move(hash_state), list.size());
         }
 
-// AbelHashValue for hashing std::vector
+// abel_hash_value for hashing std::vector
 //
 // Do not use this for vector<bool>. It does not have a .data(), and a fallback
 // for std::hash<> is most likely faster.
         template<typename H, typename T, typename Allocator>
         typename std::enable_if<is_hashable<T>::value && !std::is_same<T, bool>::value,
                 H>::type
-        AbelHashValue(H hash_state, const std::vector<T, Allocator> &vector) {
+        abel_hash_value(H hash_state, const std::vector<T, Allocator> &vector) {
             return H::combine(H::combine_contiguous(std::move(hash_state), vector.data(),
                                                     vector.size()),
                               vector.size());
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Ordered Associative Containers
+// abel_hash_value for Ordered Associative Containers
 // -----------------------------------------------------------------------------
 
-// AbelHashValue for hashing std::map
+// abel_hash_value for hashing std::map
         template<typename H, typename Key, typename T, typename Compare,
                 typename Allocator>
         typename std::enable_if<is_hashable<Key>::value && is_hashable<T>::value,
                 H>::type
-        AbelHashValue(H hash_state, const std::map<Key, T, Compare, Allocator> &map) {
+        abel_hash_value(H hash_state, const std::map<Key, T, Compare, Allocator> &map) {
             for (const auto &t : map) {
                 hash_state = H::combine(std::move(hash_state), t);
             }
             return H::combine(std::move(hash_state), map.size());
         }
 
-// AbelHashValue for hashing std::multimap
+// abel_hash_value for hashing std::multimap
         template<typename H, typename Key, typename T, typename Compare,
                 typename Allocator>
         typename std::enable_if<is_hashable<Key>::value && is_hashable<T>::value,
                 H>::type
-        AbelHashValue(H hash_state,
+        abel_hash_value(H hash_state,
                       const std::multimap<Key, T, Compare, Allocator> &map) {
             for (const auto &t : map) {
                 hash_state = H::combine(std::move(hash_state), t);
@@ -525,9 +525,9 @@ namespace abel {
             return H::combine(std::move(hash_state), map.size());
         }
 
-// AbelHashValue for hashing std::set
+// abel_hash_value for hashing std::set
         template<typename H, typename Key, typename Compare, typename Allocator>
-        typename std::enable_if<is_hashable<Key>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<Key>::value, H>::type abel_hash_value(
                 H hash_state, const std::set<Key, Compare, Allocator> &set) {
             for (const auto &t : set) {
                 hash_state = H::combine(std::move(hash_state), t);
@@ -535,9 +535,9 @@ namespace abel {
             return H::combine(std::move(hash_state), set.size());
         }
 
-// AbelHashValue for hashing std::multiset
+// abel_hash_value for hashing std::multiset
         template<typename H, typename Key, typename Compare, typename Allocator>
-        typename std::enable_if<is_hashable<Key>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<Key>::value, H>::type abel_hash_value(
                 H hash_state, const std::multiset<Key, Compare, Allocator> &set) {
             for (const auto &t : set) {
                 hash_state = H::combine(std::move(hash_state), t);
@@ -546,12 +546,12 @@ namespace abel {
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Wrapper Types
+// abel_hash_value for Wrapper Types
 // -----------------------------------------------------------------------------
 
-// AbelHashValue for hashing abel::optional
+// abel_hash_value for hashing abel::optional
         template<typename H, typename T>
-        typename std::enable_if<is_hashable<T>::value, H>::type AbelHashValue(
+        typename std::enable_if<is_hashable<T>::value, H>::type abel_hash_value(
                 H hash_state, const abel::optional<T> &opt) {
             if (opt) hash_state = H::combine(std::move(hash_state), *opt);
             return H::combine(std::move(hash_state), opt.has_value());
@@ -568,10 +568,10 @@ namespace abel {
             }
         };
 
-// AbelHashValue for hashing abel::variant
+// abel_hash_value for hashing abel::variant
         template<typename H, typename... T>
         typename std::enable_if<conjunction<is_hashable<T>...>::value, H>::type
-        AbelHashValue(H hash_state, const abel::variant<T...> &v) {
+        abel_hash_value(H hash_state, const abel::variant<T...> &v) {
             if (!v.valueless_by_exception()) {
                 hash_state = abel::visit(VariantVisitor<H>{std::move(hash_state)}, v);
             }
@@ -579,10 +579,10 @@ namespace abel {
         }
 
 // -----------------------------------------------------------------------------
-// AbelHashValue for Other Types
+// abel_hash_value for Other Types
 // -----------------------------------------------------------------------------
 
-// AbelHashValue for hashing std::bitset is not defined, for the same reason as
+// abel_hash_value for hashing std::bitset is not defined, for the same reason as
 // for vector<bool> (see std::vector above): It does not expose the raw bytes,
 // and a fallback to std::hash<> is most likely faster.
 
@@ -628,11 +628,11 @@ namespace abel {
 // `false`.
         struct HashSelect {
         private:
-            struct State : HashStateBase<State> {
+            struct State : hash_state_base<State> {
                 static State combine_contiguous(State hash_state, const unsigned char *,
                                                 size_t);
 
-                using State::HashStateBase::combine_contiguous;
+                using State::hash_state_base::combine_contiguous;
             };
 
             struct UniquelyRepresentedProbe {
@@ -647,9 +647,9 @@ namespace abel {
                 template<typename H, typename T>
                 static auto Invoke(H state, const T &value) -> abel::enable_if_t<
                         std::is_same<H,
-                                decltype(AbelHashValue(std::move(state), value))>::value,
+                                decltype(abel_hash_value(std::move(state), value))>::value,
                         H> {
-                    return AbelHashValue(std::move(state), value);
+                    return abel_hash_value(std::move(state), value);
                 }
             };
 
@@ -708,7 +708,7 @@ namespace abel {
         };
 
 // CityHashState
-        class CityHashState : public HashStateBase<CityHashState> {
+        class CityHashState : public hash_state_base<CityHashState> {
             // abel::uint128 is not an alias or a thin wrapper around the intrinsic.
             // We use the intrinsic when available to improve performance.
 #ifdef ABEL_HAVE_INTRINSIC_INT128
@@ -743,7 +743,7 @@ namespace abel {
                                               std::integral_constant<int, sizeof(size_t)>{}));
             }
 
-            using CityHashState::HashStateBase::combine_contiguous;
+            using CityHashState::hash_state_base::combine_contiguous;
 
             // CityHashState::hash()
             //
@@ -872,7 +872,7 @@ namespace abel {
                 if (ABEL_UNLIKELY(len > PiecewiseChunkSize())) {
                     return CombineLargeContiguousImpl32(state, first, len);
                 }
-                v = abel::hash_internal::CityHash32(reinterpret_cast<const char *>(first), len);
+                v = abel::hash_internal::city_hash32(reinterpret_cast<const char *>(first), len);
             } else if (len >= 4) {
                 v = Read4To8(first, len);
             } else if (len > 0) {
@@ -895,7 +895,7 @@ namespace abel {
                 if (ABEL_UNLIKELY(len > PiecewiseChunkSize())) {
                     return CombineLargeContiguousImpl64(state, first, len);
                 }
-                v = abel::hash_internal::CityHash64(reinterpret_cast<const char *>(first), len);
+                v = abel::hash_internal::city_hash64(reinterpret_cast<const char *>(first), len);
             } else if (len > 8) {
                 auto p = Read9To16(first, len);
                 state = Mix(state, p.first);
@@ -911,7 +911,7 @@ namespace abel {
             return Mix(state, v);
         }
 
-        struct AggregateBarrier {
+        struct aggregate_barrier {
         };
 
 // HashImpl
@@ -919,12 +919,12 @@ namespace abel {
 // Add a private base class to make sure this type is not an aggregate.
 // Aggregates can be aggregate initialized even if the default constructor is
 // deleted.
-        struct PoisonedHash : private AggregateBarrier {
-            PoisonedHash() = delete;
+        struct poisoned_hash : private aggregate_barrier {
+            poisoned_hash() = delete;
 
-            PoisonedHash(const PoisonedHash &) = delete;
+            poisoned_hash(const poisoned_hash &) = delete;
 
-            PoisonedHash &operator=(const PoisonedHash &) = delete;
+            poisoned_hash &operator=(const poisoned_hash &) = delete;
         };
 
         template<typename T>
@@ -933,28 +933,28 @@ namespace abel {
         };
 
         template<typename T>
-        struct Hash
-                : abel::conditional_t<is_hashable<T>::value, HashImpl<T>, PoisonedHash> {
+        struct hash
+                : abel::conditional_t<is_hashable<T>::value, HashImpl<T>, poisoned_hash> {
         };
 
         template<typename H>
         template<typename T, typename... Ts>
-        H HashStateBase<H>::combine(H state, const T &value, const Ts &... values) {
+        H hash_state_base<H>::combine(H state, const T &value, const Ts &... values) {
             return H::combine(hash_internal::HashSelect::template Apply<T>::Invoke(
                     std::move(state), value),
                               values...);
         }
 
-// HashStateBase::combine_contiguous()
+// hash_state_base::combine_contiguous()
         template<typename H>
         template<typename T>
-        H HashStateBase<H>::combine_contiguous(H state, const T *data, size_t size) {
+        H hash_state_base<H>::combine_contiguous(H state, const T *data, size_t size) {
             return hash_internal::hash_range_or_bytes(std::move(state), data, size);
         }
 
-// HashStateBase::PiecewiseCombiner::add_buffer()
+// hash_state_base::piecewise_combiner::add_buffer()
         template<typename H>
-        H PiecewiseCombiner::add_buffer(H state, const unsigned char *data,
+        H piecewise_combiner::add_buffer(H state, const unsigned char *data,
                                         size_t size) {
             if (position_ + size < PiecewiseChunkSize()) {
                 // This partial chunk does not fill our existing buffer
@@ -982,9 +982,9 @@ namespace abel {
             return state;
         }
 
-// HashStateBase::PiecewiseCombiner::finalize()
+// hash_state_base::piecewise_combiner::finalize()
         template<typename H>
-        H PiecewiseCombiner::finalize(H state) {
+        H piecewise_combiner::finalize(H state) {
             // Hash the remainder left in the buffer, which may be empty
             return H::combine_contiguous(std::move(state), buf_, position_);
         }

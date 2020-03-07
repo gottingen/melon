@@ -4,19 +4,20 @@ file(GLOB SRC "*.cc")
 foreach (fl ${SRC})
 
     string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" TEST_NAME ${fl})
-    add_executable(${TEST_NAME}
+    set(EXE_NAME time_${TEST_NAME})
+    add_executable(${EXE_NAME}
             ${TEST_NAME}.cc
             )
 
-    target_link_libraries(${TEST_NAME}
+    target_link_libraries(${EXE_NAME}
             benchmark
             benchmark_main
             abel_static
+            testing_static
             pthread
             )
     add_test(
-            NAME ${TEST_NAME}
-            COMMAND ${TEST_NAME}
+            NAME ${EXE_NAME}
+            COMMAND ${EXE_NAME}
     )
 endforeach (fl ${SRC})
-

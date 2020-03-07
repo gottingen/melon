@@ -1002,12 +1002,12 @@ namespace abel {
 
 // Base class for std::hash specializations when an Archetype doesn't support
 // hashing.
-        struct PoisonedHash {
-            PoisonedHash() = delete;
+        struct poisoned_hash {
+            poisoned_hash() = delete;
 
-            PoisonedHash(const PoisonedHash &) = delete;
+            poisoned_hash(const poisoned_hash &) = delete;
 
-            PoisonedHash &operator=(const PoisonedHash &) = delete;
+            poisoned_hash &operator=(const poisoned_hash &) = delete;
         };
 
 // Base class for std::hash specializations when an Archetype supports hashing.
@@ -1031,7 +1031,7 @@ namespace std {
     struct hash<::abel::types_internal::Archetype<Prof>>
             : conditional<::abel::types_internal::PropertiesOfT<Prof>::is_hashable,
                     ::abel::types_internal::EnabledHash<Prof>,
-                    ::abel::types_internal::PoisonedHash>::type {
+                    ::abel::types_internal::poisoned_hash>::type {
     };
 
 }  // namespace std

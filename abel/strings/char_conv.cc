@@ -148,10 +148,10 @@ namespace abel {
 // Returns the bit width of the given uint128.  (Equivalently, returns 128
 // minus the number of leading zero bits.)
         int BitWidth(uint128 value) {
-            if (Uint128High64(value) == 0) {
-                return 64 - abel::countl_zero(Uint128Low64(value));
+            if (uint128_high64(value) == 0) {
+                return 64 - abel::countl_zero(uint128_low64(value));
             }
-            return 128 - abel::countl_zero(Uint128High64(value));
+            return 128 - abel::countl_zero(uint128_high64(value));
         }
 
         template<typename FloatType>

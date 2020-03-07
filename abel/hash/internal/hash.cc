@@ -11,7 +11,7 @@ namespace abel {
                                                              size_t len) {
             while (len >= PiecewiseChunkSize()) {
                 state =
-                        Mix(state, abel::hash_internal::CityHash32(reinterpret_cast<const char *>(first),
+                        Mix(state, abel::hash_internal::city_hash32(reinterpret_cast<const char *>(first),
                                                                    PiecewiseChunkSize()));
                 len -= PiecewiseChunkSize();
                 first += PiecewiseChunkSize();
@@ -26,7 +26,7 @@ namespace abel {
                                                              size_t len) {
             while (len >= PiecewiseChunkSize()) {
                 state =
-                        Mix(state, abel::hash_internal::CityHash64(reinterpret_cast<const char *>(first),
+                        Mix(state, abel::hash_internal::city_hash64(reinterpret_cast<const char *>(first),
                                                                    PiecewiseChunkSize()));
                 len -= PiecewiseChunkSize();
                 first += PiecewiseChunkSize();

@@ -182,8 +182,8 @@ namespace abel {
 
             template<typename OStream>
             ABEL_FORCE_INLINE void write(abel::uint128 val, OStream &out) {
-                uint64_t h = Uint128High64(val);
-                uint64_t l = Uint128Low64(val);
+                uint64_t h = uint128_high64(val);
+                uint64_t l = uint128_low64(val);
                 out << h << out.fill() << l;
             }
         };
