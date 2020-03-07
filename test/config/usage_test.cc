@@ -161,7 +161,7 @@ namespace {
         std::string usage_test_flags_out =
                 R"(usage_test: Custom usage message
 
-  Flags from abel/test/flags/usage_test.cc:
+  Flags from abel/test/config/usage_test.cc:
     --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
       default: 101;
     --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
@@ -185,7 +185,7 @@ namespace {
         EXPECT_EQ(test_buf_01.str(), usage_test_flags_out);
 
         std::stringstream test_buf_02;
-        flags::FlagsHelp(test_buf_02, "flags/usage_test.cc",
+        flags::FlagsHelp(test_buf_02, "config/usage_test.cc",
                          flags::HelpFormat::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_02.str(), usage_test_flags_out);
 
@@ -195,7 +195,7 @@ namespace {
         EXPECT_EQ(test_buf_03.str(), usage_test_flags_out);
 
         std::stringstream test_buf_04;
-        flags::FlagsHelp(test_buf_04, "flags/invalid_file_name.cc",
+        flags::FlagsHelp(test_buf_04, "config/invalid_file_name.cc",
                          flags::HelpFormat::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_04.str(),
                   R"(usage_test: Custom usage message
@@ -211,9 +211,9 @@ namespace {
         EXPECT_TRUE(
                 abel::starts_with(test_out_str, "usage_test: Custom usage message"));
         EXPECT_TRUE(abel::string_contains(
-                test_out_str, "Flags from abel/test/flags/usage_test.cc:"));
+                test_out_str, "Flags from abel/test/config/usage_test.cc:"));
         EXPECT_TRUE(abel::string_contains(test_out_str,
-                                          "Flags from abel/test/flags/usage_test.cc:"));
+                                          "Flags from abel/test/config/usage_test.cc:"));
         EXPECT_TRUE(
                 abel::string_contains(test_out_str, "-usage_reporting_test_flag_01 "));
         EXPECT_TRUE(abel::string_contains(test_out_str, "-help (show help"))
@@ -237,7 +237,7 @@ namespace {
         EXPECT_EQ(test_buf.str(),
                   R"(usage_test: Custom usage message
 
-  Flags from abel/test/flags/usage_test.cc:
+  Flags from abel/test/config/usage_test.cc:
     --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
       default: 101;
     --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
@@ -266,7 +266,7 @@ namespace {
         EXPECT_EQ(test_buf.str(),
                   R"(usage_test: Custom usage message
 
-  Flags from abel/test/flags/usage_test.cc:
+  Flags from abel/test/config/usage_test.cc:
     --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
       default: 101;
     --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
@@ -297,7 +297,7 @@ Try --helpfull to get a list of all flags.
         EXPECT_EQ(test_buf.str(),
                   R"(usage_test: Custom usage message
 
-  Flags from abel/test/flags/usage_test.cc:
+  Flags from abel/test/config/usage_test.cc:
     --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
       default: 101;
     --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
@@ -362,7 +362,7 @@ Try --helpfull to get a list of all flags.
         EXPECT_EQ(test_buf_02.str(),
                   R"(usage_test: Custom usage message
 
-  Flags from abel/test/flags/usage_test.cc:
+  Flags from abel/test/config/usage_test.cc:
     --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
       default: 101;
     --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
