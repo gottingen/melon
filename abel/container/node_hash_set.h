@@ -53,10 +53,10 @@ namespace abel {
 //   slots (open, deleted, and empty) within the hash set.
 // * Returns `void` from the `erase(iterator)` overload.
 //
-// By default, `node_hash_set` uses the `abel::Hash` hashing framework.
-// All fundamental and abel types that support the `abel::Hash` framework have
+// By default, `node_hash_set` uses the `abel::hash` hashing framework.
+// All fundamental and abel types that support the `abel::hash` framework have
 // a compatible equality operator for comparing insertions into `node_hash_set`.
-// If your type is not yet supported by the `abel::Hash` framework, see
+// If your type is not yet supported by the `abel::hash` framework, see
 // abel/hash/hash.h for information on extending abel hashing to user-defined
 // types.
 //

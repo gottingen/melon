@@ -14,8 +14,8 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <abel/synchronization/barrier.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/barrier.h>
+#include <abel/thread/mutex.h>
 
 namespace abel {
 

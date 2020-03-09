@@ -55,10 +55,10 @@
 #include <cstring>
 
 #include <abel/math/bit_cast.h>
-#include <abel/threading/dynamic_annotations.h>
+#include <abel/thread/dynamic_annotations.h>
 #include <abel/memory/internal/low_level_alloc.h>
 #include <abel/log/raw_logging.h>
-#include <abel/threading/internal/spinlock.h>
+#include <abel/thread/internal/spinlock.h>
 #include <abel/base/profile.h>
 #include <abel/debugging/internal/demangle.h>
 #include <abel/debugging/internal/vdso_support.h>
@@ -138,13 +138,13 @@ namespace abel {
 // Moreover, we are using only try_lock(), if the decorator list
 // is being modified (is busy), we skip all decorators, and possibly
 // loose some info. Sorry, that's the best we could do.
-            threading_internal::SpinLock g_decorators_mu(base_internal::kLinkerInitialized);
+            thread_internal::SpinLock g_decorators_mu(base_internal::kLinkerInitialized);
 
             const int kMaxFileMappingHints = 8;
             int g_num_file_mapping_hints;
             FileMappingHint g_file_mapping_hints[kMaxFileMappingHints];
 // Protects g_file_mapping_hints.
-            threading_internal::SpinLock g_file_mapping_mu(base_internal::kLinkerInitialized);
+            thread_internal::SpinLock g_file_mapping_mu(base_internal::kLinkerInitialized);
 
 // Async-signal-safe function to zero a buffer.
 // memset() is not guaranteed to be async-signal-safe.

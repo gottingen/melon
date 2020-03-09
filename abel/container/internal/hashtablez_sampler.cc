@@ -13,7 +13,7 @@
 #include <abel/container/internal/have_sse.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/memory/memory.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/mutex.h>
 
 namespace abel {
 
@@ -27,16 +27,12 @@ namespace abel {
             ABEL_CONST_INIT std::atomic<int32_t> g_hashtablez_sample_parameter{1 << 10};
             ABEL_CONST_INIT std::atomic<int32_t> g_hashtablez_max_samples{1 << 20};
 
-#if ABEL_PER_THREAD_TLS == 1
-            ABEL_PER_THREAD_TLS_KEYWORD abel::exponential_biased
+            ABEL_THREAD_LOCAL abel::exponential_biased
                 g_exponential_biased_generator;
-#endif
 
         }  // namespace
 
-#if ABEL_PER_THREAD_TLS == 1
-        ABEL_PER_THREAD_TLS_KEYWORD int64_t global_next_sample = 0;
-#endif  // ABEL_PER_THREAD_TLS == 1
+        ABEL_THREAD_LOCAL int64_t global_next_sample = 0;
 
 
         HashtablezSampler &HashtablezSampler::Global() {
@@ -181,10 +177,6 @@ namespace abel {
                 return HashtablezSampler::Global().Register();
             }
 
-#if ABEL_PER_THREAD_TLS == 0
-            *next_sample = std::numeric_limits<int64_t>::max();
-            return nullptr;
-#else
             bool first = *next_sample < 0;
             *next_sample = g_exponential_biased_generator.get_stride(
                 g_hashtablez_sample_parameter.load(std::memory_order_relaxed));
@@ -204,7 +196,6 @@ namespace abel {
             }
 
             return HashtablezSampler::Global().Register();
-#endif
         }
 
         void UnsampleSlow(HashtablezInfo *info) {

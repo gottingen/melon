@@ -30,11 +30,9 @@
 #include <functional>
 #include <memory>
 #include <vector>
-
-#include <abel/threading/internal/per_thread_tls.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/have_sse.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/mutex.h>
 #include <abel/utility/utility.h>
 
 namespace abel {
@@ -176,21 +174,15 @@ namespace abel {
             HashtablezInfo *info_;
         };
 
-#if ABEL_PER_THREAD_TLS == 1
-        extern ABEL_PER_THREAD_TLS_KEYWORD int64_t global_next_sample;
-#endif  // ABEL_PER_THREAD_TLS
+        extern ABEL_THREAD_LOCAL int64_t global_next_sample;
 
 // Returns an RAII sampling handle that manages registration and unregistation
 // with the global sampler.
         ABEL_FORCE_INLINE HashtablezInfoHandle Sample() {
-#if ABEL_PER_THREAD_TLS == 1
             if (ABEL_LIKELY(--global_next_sample > 0)) {
-              return HashtablezInfoHandle(nullptr);
+                return HashtablezInfoHandle(nullptr);
             }
             return HashtablezInfoHandle(SampleSlow(&global_next_sample));
-#else
-            return HashtablezInfoHandle(nullptr);
-#endif  // !ABEL_PER_THREAD_TLS
         }
 
 // Holds samples and their associated stack traces with a soft limit of

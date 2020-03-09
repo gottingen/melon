@@ -232,7 +232,7 @@ namespace abel {
         // Returns the highest value for a 128-bit unsigned integer.
         friend constexpr uint128 Uint128Max();
 
-        // Support for abel::Hash.
+        // Support for abel::hash.
         template<typename H>
         friend H abel_hash_value(H h, uint128 v) {
             return H::combine(std::move(h), uint128_high64(v), uint128_low64(v));
@@ -514,7 +514,7 @@ namespace abel {
         // Returns the minimum value for a 128-bit signed integer.
         friend constexpr int128 int128_min();
 
-        // Support for abel::Hash.
+        // Support for abel::hash.
         template<typename H>
         friend H abel_hash_value(H h, int128 v) {
             return H::combine(std::move(h), int128_high64(v), int128_low64(v));

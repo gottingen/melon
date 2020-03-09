@@ -820,7 +820,7 @@ namespace abel {
 
 // `abel_hash_value(...)`
 //
-// Provides `abel::Hash` support for `abel::InlinedVector`. It is uncommon to
+// Provides `abel::hash` support for `abel::InlinedVector`. It is uncommon to
 // call this directly.
     template<typename H, typename T, size_t N, typename A>
     H abel_hash_value(H h, const abel::InlinedVector<T, N, A> &a) {

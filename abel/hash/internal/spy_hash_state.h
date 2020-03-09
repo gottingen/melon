@@ -16,15 +16,15 @@ namespace abel {
 
     namespace hash_internal {
 
-// SpyHashState is an implementation of the hash_state API that simply
+// spy_hash_state is an implementation of the hash_state API that simply
 // accumulates all input bytes in an internal buffer. This makes it useful
 // for testing abel_hash_value overloads (so long as they are templated on the
 // hash_state parameter), since it can report the exact hash representation
 // that the abel_hash_value overload produces.
 //
 // Sample usage:
-// EXPECT_EQ(SpyHashState::combine(SpyHashState(), foo),
-//           SpyHashState::combine(SpyHashState(), bar));
+// EXPECT_EQ(spy_hash_state::combine(spy_hash_state(), foo),
+//           spy_hash_state::combine(spy_hash_state(), bar));
         template<typename T>
         class spy_hash_state_impl : public hash_state_base<spy_hash_state_impl<T>> {
         public:
@@ -176,7 +176,7 @@ namespace abel {
 
             std::vector<std::string> hash_representation_;
             // This is a shared_ptr because we want all instances of the particular
-            // SpyHashState run to share the field. This way we can set the error for
+            // spy_hash_state run to share the field. This way we can set the error for
             // use-after-move and all the copies will see it.
             std::shared_ptr<abel::optional<std::string>> error_;
             bool moved_from_ = false;
@@ -214,7 +214,7 @@ namespace abel {
                 int = RunOnStartup<spy_hash_state_impl<T>::SetDirectAbelHashValueError>::run>
         void abel_hash_value(spy_hash_state_impl<T>, const U &);
 
-        using SpyHashState = spy_hash_state_impl<void>;
+        using spy_hash_state = spy_hash_state_impl<void>;
 
     }  // namespace hash_internal
 

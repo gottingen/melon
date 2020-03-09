@@ -14,7 +14,8 @@
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>
 #include <abel/strings/string_view.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/mutex.h>
+
 
 ABEL_FLAG(bool, help, false,
           "show help on important flags for this binary [tip: all flags can "

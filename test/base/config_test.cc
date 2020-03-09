@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #include <gtest/gtest.h>
-#include <abel/synchronization/internal/thread_pool.h>
+#include <abel/thread/internal/thread_pool.h>
 
 namespace {
 
@@ -29,12 +29,11 @@ namespace {
 #endif
     }
 
-#if defined(ABEL_HAVE_THREAD_LOCAL)
     TEST(ConfigTest, ThreadLocal) {
         static thread_local int mine_mine_mine = 16;
         EXPECT_EQ(16, mine_mine_mine);
         {
-            abel::synchronization_internal::ThreadPool pool(1);
+            abel::thread_internal::ThreadPool pool(1);
             pool.Schedule([&] {
                 EXPECT_EQ(16, mine_mine_mine);
                 mine_mine_mine = 32;
@@ -44,6 +43,5 @@ namespace {
         EXPECT_EQ(16, mine_mine_mine);
     }
 
-#endif
 
 }  // namespace

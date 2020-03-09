@@ -17,7 +17,7 @@
 #include <sys/auxv.h>
 #endif
 
-#include <abel/threading/dynamic_annotations.h>
+#include <abel/thread/dynamic_annotations.h>
 #include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 

@@ -10,10 +10,10 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/have_sse.h>
-#include <abel/synchronization/blocking_counter.h>
-#include <abel/synchronization/internal/thread_pool.h>
-#include <abel/synchronization/mutex.h>
-#include <abel/synchronization/notification.h>
+#include <abel/thread/blocking_counter.h>
+#include <abel/thread/internal/thread_pool.h>
+#include <abel/thread/mutex.h>
+#include <abel/thread/notification.h>
 #include <abel/chrono/clock.h>
 #include <abel/chrono/time.h>
 
@@ -36,7 +36,7 @@ namespace abel {
         };
 
         namespace {
-            using ::abel::synchronization_internal::ThreadPool;
+            using ::abel::thread_internal::ThreadPool;
             using ::testing::IsEmpty;
             using ::testing::UnorderedElementsAre;
 

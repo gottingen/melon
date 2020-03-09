@@ -32,12 +32,7 @@ FILE(GLOB FORMAT_SRC "format/*.cc")
 
 FILE(GLOB TYPES_SRC "types/*.cc")
 
-FILE(GLOB SYNC_SRC "synchronization/*.cc")
-FILE(GLOB SYNC_INTERNAL_SRC "synchronization/internal/*.cc")
-
-FILE(GLOB THREADING_SRC "threading/*.cc")
-FILE(GLOB THREADING_INTERNAL_SRC "threading/internal/*.cc")
-
+FILE(GLOB THREAD_INTERNAL_SRC "thread/internal/*.cc")
 FILE(GLOB THREAD_SRC "thread/*.cc")
 
 FILE(GLOB METRICS_SRC "metrics/*.cc")
@@ -73,14 +68,11 @@ SET(ABEL_SRC
         ${STRINGS_INTERNAL_SRC}
         ${FORMAT_SRC}
         ${TYPES_SRC}
-        ${SYNC_SRC}
-        ${SYNC_INTERNAL_SRC}
         ${DIGEST_SRC}
         ${SYSTEM_SRC}
-        ${THREADING_SRC}
-        ${THREADING_INTERNAL_SRC}
         ${MEMORY_INTERNAL_SRC}
         ${LOG_SRC}
+        ${THREAD_INTERNAL_SRC}
         ${THREAD_SRC}
         )
 

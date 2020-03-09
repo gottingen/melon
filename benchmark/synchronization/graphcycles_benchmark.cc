@@ -1,6 +1,6 @@
 //
 
-#include <abel/synchronization/internal/graphcycles.h>
+#include <abel/thread/internal/graphcycles.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -14,8 +14,8 @@ namespace {
     void BM_StressTest(benchmark::State &state) {
         const int num_nodes = state.range(0);
         while (state.KeepRunningBatch(num_nodes)) {
-            abel::synchronization_internal::GraphCycles g;
-            std::vector<abel::synchronization_internal::GraphId> nodes(num_nodes);
+            abel::thread_internal::GraphCycles g;
+            std::vector<abel::thread_internal::GraphId> nodes(num_nodes);
             for (int i = 0; i < num_nodes; i++) {
                 nodes[i] = g.GetId(reinterpret_cast<void *>(static_cast<uintptr_t>(i)));
             }

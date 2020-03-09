@@ -11,10 +11,10 @@
 #include <limits>
 #include <abel/chrono/clock.h>
 #include <abel/base/profile.h>
-#include <abel/threading/internal/spinlock.h>
+#include <abel/thread/internal/spinlock.h>
 #include <abel/chrono/internal/unscaled_cycle_clock.h>
 #include <abel/base/profile.h>
-#include <abel/threading/thread_annotations.h>
+#include <abel/thread/thread_annotations.h>
 
 namespace abel {
 
@@ -211,7 +211,7 @@ namespace abel {
 
 // A reader-writer lock protecting the static locations below.
 // See SeqAcquire() and SeqRelease() above.
-    static abel::threading_internal::SpinLock lock(
+    static abel::thread_internal::SpinLock lock(
             abel::base_internal::kLinkerInitialized);
     static std::atomic<uint64_t> seq(0);
 

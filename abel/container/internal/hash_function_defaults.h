@@ -46,7 +46,7 @@ namespace abel {
 
     namespace container_internal {
 
-// The hash of an object of type T is computed by using abel::Hash.
+// The hash of an object of type T is computed by using abel::hash.
         template<class T, class E = void>
         struct HashEq {
             using Hash = abel::hash<T>;

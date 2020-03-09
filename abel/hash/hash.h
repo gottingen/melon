@@ -6,8 +6,8 @@
 // This header file defines the abel `hash` library and the abel hashing
 // framework. This framework consists of the following:
 //
-//   * The `abel::Hash` functor, which is used to invoke the hasher within the
-//     abel hashing framework. `abel::Hash<T>` supports most basic types and
+//   * The `abel::hash` functor, which is used to invoke the hasher within the
+//     abel hashing framework. `abel::hash<T>` supports most basic types and
 //     a number of abel types out of the box.
 //   * `abel_hash_value`, an extension point that allows you to extend types to
 //     support abel hashing without requiring you to define a hashing
@@ -21,7 +21,7 @@
 // provides most of its utility by abstracting away the hash algorithm (and its
 // implementation) entirely. Instead, a type invokes the abel hashing
 // framework by simply combining its state with the state of known, hashable
-// types. Hashing of that combined state is separately done by `abel::Hash`.
+// types. Hashing of that combined state is separately done by `abel::hash`.
 //
 // One should assume that a hash algorithm is chosen randomly at the start of
 // each process.  E.g., abel::hash<int>()(9) in one process and
@@ -52,7 +52,7 @@
 //     ...
 //   };
 //
-// For more information, see Adding Type Support to `abel::Hash` below.
+// For more information, see Adding Type Support to `abel::hash` below.
 //
 #ifndef ABEL_HASH_HASH_H_
 #define ABEL_HASH_HASH_H_
@@ -63,10 +63,10 @@ namespace abel {
 
 
 // -----------------------------------------------------------------------------
-// `abel::Hash`
+// `abel::hash`
 // -----------------------------------------------------------------------------
 //
-// `abel::Hash<T>` is a convenient general-purpose hash functor for any type `T`
+// `abel::hash<T>` is a convenient general-purpose hash functor for any type `T`
 // satisfying any of the following conditions (in order):
 //
 //  * T is an arithmetic or pointer type
@@ -75,7 +75,7 @@ namespace abel {
 //  - T defines a specialization of `HASH_NAMESPACE::hash<T>`
 //  - T defines a specialization of `std::hash<T>`
 //
-// `abel::Hash` intrinsically supports the following types:
+// `abel::hash` intrinsically supports the following types:
 //
 //   * All integral types (including bool)
 //   * All enum types
@@ -102,15 +102,16 @@ namespace abel {
 // may be added, in which case the above list will be updated.
 //
 // -----------------------------------------------------------------------------
-// abel::Hash Invocation Evaluation
+// abel::hash Invocation Evaluation
 // -----------------------------------------------------------------------------
 //
-// When invoked, `abel::Hash<T>` searches for supplied hash functions in the
+// When invoked, `abel::hash<T>` searches for supplied hash functions in the
 // following order:
 //
 //   * Natively supported types out of the box (see above)
 //   * Types for which an `abel_hash_value()` overload is provided (such as
-//     user-defined types). See "Adding Type Support to `abel::Hash`" below.
+//     user-defined types). See "Adding Type Support to `abel::hash`" below.
+
 //   * Types which define a `HASH_NAMESPACE::hash<T>` specialization (aka
 //     `__gnu_cxx::hash<T>` for gcc/Clang or `stdext::hash<T>` for MSVC)
 //   * Types which define a `std::hash<T>` specialization
@@ -123,17 +124,17 @@ namespace abel {
 // The Hash State Concept, and using `hash_state` for Type Erasure
 // -----------------------------------------------------------------------------
 //
-// The `abel::Hash` framework relies on the Concept of a "hash state." Such a
+// The `abel::hash` framework relies on the Concept of a "hash state." Such a
 // hash state is used in several places:
 //
-// * Within existing implementations of `abel::Hash<T>` to store the hashed
+// * Within existing implementations of `abel::hash<T>` to store the hashed
 //   state of an object. Note that it is up to the implementation how it stores
 //   such state. A hash table, for example, may mix the state to produce an
 //   integer value; a testing framework may simply hold a vector of that state.
 // * Within implementations of `abel_hash_value()` used to extend user-defined
-//   types. (See "Adding Type Support to abel::Hash" below.)
+//   types. (See "Adding Type Support to abel::hash" below.)
 // * Inside a `hash_state`, providing type erasure for the concept of a hash
-//   state, which you can use to extend the `abel::Hash` framework for types
+//   state, which you can use to extend the `abel::hash` framework for types
 //   that are otherwise difficult to extend using `abel_hash_value()`. (See the
 //   `hash_state` class below.)
 //
@@ -172,7 +173,7 @@ namespace abel {
 //    loop instead.
 //
 // -----------------------------------------------------------------------------
-// Adding Type Support to `abel::Hash`
+// Adding Type Support to `abel::hash`
 // -----------------------------------------------------------------------------
 //
 // To add support for your user-defined type, add a proper `abel_hash_value()`
@@ -194,7 +195,7 @@ namespace abel {
 // file and namespace as said type. The proper `abel_hash_value` implementation
 // for a given type will be discovered via ADL.
 //
-// Note: unlike `std::hash', `abel::Hash` should never be specialized. It must
+// Note: unlike `std::hash', `abel::hash` should never be specialized. It must
 // only be extended by adding `abel_hash_value()` overloads.
 //
     template<typename T>
@@ -287,7 +288,7 @@ namespace abel {
         hash_state() = default;
 
         template<typename T>
-        static void CombineContiguousImpl(void *p, const unsigned char *first,
+        static void combine_contiguous_impl(void *p, const unsigned char *first,
                                           size_t size) {
             T &state = *static_cast<T *>(p);
             state = T::combine_contiguous(std::move(state), first, size);
@@ -296,7 +297,7 @@ namespace abel {
         template<typename T>
         void Init(T *state) {
             state_ = state;
-            combine_contiguous_ = &CombineContiguousImpl<T>;
+            combine_contiguous_ = &combine_contiguous_impl<T>;
         }
 
         // Do not erase an already erased state.

@@ -34,7 +34,7 @@
 namespace {
 
     using abel::hash;
-    using abel::hash_internal::SpyHashState;
+    using abel::hash_internal::spy_hash_state;
 
     template<typename T>
     class HashValueIntTest : public testing::Test {
@@ -43,8 +43,8 @@ namespace {
     TYPED_TEST_SUITE_P(HashValueIntTest);
 
     template<typename T>
-    SpyHashState SpyHash(const T &value) {
-        return SpyHashState::combine(SpyHashState(), value);
+    spy_hash_state SpyHash(const T &value) {
+        return spy_hash_state::combine(spy_hash_state(), value);
     }
 
 // Helper trait to verify if T is hashable. We use abel::hash's poison status to
