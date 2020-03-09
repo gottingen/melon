@@ -2937,4 +2937,16 @@ struct CBNonCopyable {
 #endif
 
 
+#ifndef ABEL_THREAD_LOCAL
+
+#if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_CLANG)
+#define ABEL_THREAD_LOCAL __thread
+#elif defined(ABEL_COMPILER_MSVC)
+#define ABEL_THREAD_LOCAL __declspec(thread)
+#else
+#define ABEL_THREAD_LOCAL thread_local
+#endif
+
+#endif //ABEL_THREAD_LOCAL
+
 #endif //ABEL_BASE_PROFILE_COMPILER_TRAITS_H_

@@ -12,15 +12,15 @@
 #include <abel/functional/call_once.h>
 #include <abel/system/endian.h>
 #include <abel/log/raw_logging.h>
-#include <abel/threading/internal/spinlock.h>
+#include <abel/thread/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
 #include <abel/atomic/unaligned_access.h>
 #include <abel/stats/random/engine/randen.h>
 #include <abel/stats/random/seed/seed_material.h>
 #include <abel/stats/random/seed/seed_gen_exception.h>
 
-using abel::threading_internal::SpinLock;
-using abel::threading_internal::SpinLockHolder;
+using abel::thread_internal::SpinLock;
+using abel::thread_internal::SpinLockHolder;
 
 namespace abel {
 
@@ -139,36 +139,12 @@ namespace abel {
 
                 ABEL_CONST_INIT static std::atomic<int64_t> sequence{0};
 
-#ifdef ABEL_HAVE_THREAD_LOCAL
                 static thread_local int my_pool_id = -1;
                 if (ABEL_UNLIKELY(my_pool_id < 0)) {
                     my_pool_id = (sequence++ % kPoolSize);
                 }
                 return my_pool_id;
-#else
-                static pthread_key_t tid_key = [] {
-                  pthread_key_t tmp_key;
-                  int err = pthread_key_create(&tmp_key, nullptr);
-                  if (err) {
-                    ABEL_RAW_LOG(FATAL, "pthread_key_create failed with %d", err);
-                  }
-                  return tmp_key;
-                }();
 
-                // Store the value in the pthread_{get/set}specific. However an uninitialized
-                // value is 0, so add +1 to distinguish from the null value.
-                intptr_t my_pool_id =
-                    reinterpret_cast<intptr_t>(pthread_getspecific(tid_key));
-                if (ABEL_UNLIKELY(my_pool_id == 0)) {
-                  // No allocated ID, allocate the next value, cache it, and return.
-                  my_pool_id = (sequence++ % kPoolSize) + 1;
-                  int err = pthread_setspecific(tid_key, reinterpret_cast<void*>(my_pool_id));
-                  if (err) {
-                    ABEL_RAW_LOG(FATAL, "pthread_setspecific failed with %d", err);
-                  }
-                }
-                return my_pool_id - 1;
-#endif
             }
 
 // Allocate a RandenPoolEntry with at least 32-byte alignment, which is required

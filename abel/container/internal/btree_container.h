@@ -214,7 +214,7 @@ namespace abel {
 
             value_compare value_comp() const { return tree_.value_comp(); }
 
-            // Support abel::Hash.
+            // Support abel::hash.
             template<typename State>
             friend State abel_hash_value(State h, const btree_container &b) {
                 for (const auto &v : b) {

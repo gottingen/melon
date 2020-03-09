@@ -28,7 +28,7 @@
 #include <type_traits>
 
 #include <abel/algorithm/algorithm.h>
-#include <abel/threading/dynamic_annotations.h>
+#include <abel/thread/dynamic_annotations.h>
 #include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/compressed_tuple.h>

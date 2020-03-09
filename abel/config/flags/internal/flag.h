@@ -7,12 +7,12 @@
 #include <atomic>
 #include <cstring>
 
-#include <abel/threading/thread_annotations.h>
+#include <abel/thread/thread_annotations.h>
 #include <abel/config/flags/internal/commandlineflag.h>
 #include <abel/config/flags/internal/registry.h>
 #include <abel/memory/memory.h>
 #include <abel/strings/str_cat.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/mutex.h>
 
 namespace abel {
 

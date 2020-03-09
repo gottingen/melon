@@ -43,7 +43,7 @@
 
 #include <abel/functional/call_once.h>
 #include <abel/log/raw_logging.h>
-#include <abel/threading/internal/spinlock.h>
+#include <abel/thread/internal/spinlock.h>
 #include <abel/chrono/internal/unscaled_cycle_clock.h>
 
 namespace abel {
@@ -326,7 +326,7 @@ namespace abel {
 // Fallback implementation of get_tid using pthread_getspecific.
     static once_flag tid_once;
     static pthread_key_t tid_key;
-    static abel::threading_internal::SpinLock tid_lock(
+    static abel::thread_internal::SpinLock tid_lock(
             abel::base_internal::kLinkerInitialized);
 
 // We set a bit per thread in this array to indicate that an ID is in
@@ -340,7 +340,7 @@ namespace abel {
         intptr_t tid = reinterpret_cast<intptr_t>(v);
         int word = tid / kBitsPerWord;
         uint32_t mask = ~(1u << (tid % kBitsPerWord));
-        abel::threading_internal::SpinLockHolder lock(&tid_lock);
+        abel::thread_internal::SpinLockHolder lock(&tid_lock);
         assert(0 <= word && static_cast<size_t>(word) < tid_array->size());
         (*tid_array)[word] &= mask;
     }
@@ -353,7 +353,7 @@ namespace abel {
         }
 
         // Initialize tid_array.
-        abel::threading_internal::SpinLockHolder lock(&tid_lock);
+        abel::thread_internal::SpinLockHolder lock(&tid_lock);
         tid_array = new std::vector<uint32_t>(1);
         (*tid_array)[0] = 1;  // ID 0 is never-allocated.
     }
@@ -371,7 +371,7 @@ namespace abel {
         size_t word;
         {
             // Search for the first unused ID.
-            abel::threading_internal::SpinLockHolder lock(&tid_lock);
+            abel::thread_internal::SpinLockHolder lock(&tid_lock);
             // First search for a word in the array that is not all ones.
             word = 0;
             while (word < tid_array->size() && ~(*tid_array)[word] == 0) {

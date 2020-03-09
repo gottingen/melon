@@ -169,10 +169,9 @@ namespace abel {
             ABEL_CONST_INIT static exponential_biased eb_static;
             EXPECT_THAT(eb_static.get_skip_count(2), Ge(0));
 
-#if ABEL_HAVE_THREAD_LOCAL
+
             thread_local exponential_biased eb_thread;
             EXPECT_THAT(eb_thread.get_skip_count(2), Ge(0));
-#endif
 
             exponential_biased eb_stack;
             EXPECT_THAT(eb_stack.get_skip_count(2), Ge(0));

@@ -12,5 +12,6 @@ namespace abel {
     ABEL_CONSTEXPR int sgn(const T x) ABEL_NOEXCEPT {
         return (x > T(0) ? 1 : x < T(0) ? -1 : 0);
     }
-}
+} //namespace abel
+
 #endif //ABEL_MATH_SGN_H_

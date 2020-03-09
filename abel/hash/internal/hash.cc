@@ -6,7 +6,7 @@ namespace abel {
 
     namespace hash_internal {
 
-        uint64_t CityHashState::CombineLargeContiguousImpl32(uint64_t state,
+        uint64_t city_hash_state::combine_large_contiguous_impl32(uint64_t state,
                                                              const unsigned char *first,
                                                              size_t len) {
             while (len >= PiecewiseChunkSize()) {
@@ -17,11 +17,11 @@ namespace abel {
                 first += PiecewiseChunkSize();
             }
             // Handle the remainder.
-            return CombineContiguousImpl(state, first, len,
+            return combine_contiguous_impl(state, first, len,
                                          std::integral_constant<int, 4>{});
         }
 
-        uint64_t CityHashState::CombineLargeContiguousImpl64(uint64_t state,
+        uint64_t city_hash_state::combine_large_contiguous_impl64(uint64_t state,
                                                              const unsigned char *first,
                                                              size_t len) {
             while (len >= PiecewiseChunkSize()) {
@@ -32,11 +32,11 @@ namespace abel {
                 first += PiecewiseChunkSize();
             }
             // Handle the remainder.
-            return CombineContiguousImpl(state, first, len,
+            return combine_contiguous_impl(state, first, len,
                                          std::integral_constant<int, 8>{});
         }
 
-        ABEL_CONST_INIT const void *const CityHashState::kSeed = &kSeed;
+        ABEL_CONST_INIT const void *const city_hash_state::kSeed = &kSeed;
 
     }  // namespace hash_internal
 

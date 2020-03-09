@@ -17,7 +17,7 @@
 
 namespace abel {
 
-// Run the abel::Hash algorithm over all the elements passed in and verify that
+// Run the abel::hash algorithm over all the elements passed in and verify that
 // their hash expansion is congruent with their `==` operator.
 //
 // It is used in conjunction with EXPECT_TRUE. Failures will output information
@@ -167,8 +167,8 @@ namespace abel {
 
         struct ExpandVisitor {
             template<typename T>
-            SpyHashState operator()(const T *value) const {
-                return SpyHashState::combine(SpyHashState(), *value);
+            spy_hash_state operator()(const T *value) const {
+                return spy_hash_state::combine(spy_hash_state(), *value);
             }
         };
 
@@ -185,7 +185,7 @@ namespace abel {
                     return abel::visit(PrintVisitor{index}, value);
                 }
 
-                SpyHashState expand() const { return abel::visit(ExpandVisitor{}, value); }
+                spy_hash_state expand() const { return abel::visit(ExpandVisitor{}, value); }
             };
 
             using EqClass = std::vector<Info>;
@@ -208,7 +208,7 @@ namespace abel {
                 c->push_back({value, i});
                 ++i;
 
-                // Verify potential errors captured by SpyHashState.
+                // Verify potential errors captured by spy_hash_state.
                 if (auto error = c->back().expand().error()) {
                     return testing::AssertionFailure() << *error;
                 }
@@ -225,7 +225,7 @@ namespace abel {
             for (const auto &c : classes) {
                 // All elements of the equivalence class must have the same hash
                 // expansion.
-                const SpyHashState expected = c[0].expand();
+                const spy_hash_state expected = c[0].expand();
                 for (const Info &v : c) {
                     if (v.expand() != v.expand()) {
                         return testing::AssertionFailure()
@@ -243,23 +243,23 @@ namespace abel {
                 for (const auto &c2 : classes) {
                     if (&c == &c2)
                         continue;
-                    const SpyHashState c2_hash = c2[0].expand();
-                    switch (SpyHashState::Compare(expected, c2_hash)) {
-                        case SpyHashState::CompareResult::kEqual:
+                    const spy_hash_state c2_hash = c2[0].expand();
+                    switch (spy_hash_state::Compare(expected, c2_hash)) {
+                        case spy_hash_state::CompareResult::kEqual:
                             return testing::AssertionFailure()
                                     << "Values " << c[0].ToString() << " and " << c2[0].ToString()
                                     << " evaluate as unequal but have an equal hash expansion.";
-                        case SpyHashState::CompareResult::kBSuffixA:
+                        case spy_hash_state::CompareResult::kBSuffixA:
                             return testing::AssertionFailure()
                                     << "Hash expansion of " << c2[0].ToString()
                                     << " is a suffix of the hash expansion of " << c[0].ToString()
                                     << ".";
-                        case SpyHashState::CompareResult::kASuffixB:
+                        case spy_hash_state::CompareResult::kASuffixB:
                             return testing::AssertionFailure()
                                     << "Hash expansion of " << c[0].ToString()
                                     << " is a suffix of the hash expansion of " << c2[0].ToString()
                                     << ".";
-                        case SpyHashState::CompareResult::kUnequal:
+                        case spy_hash_state::CompareResult::kUnequal:
                             break;
                     }
                 }

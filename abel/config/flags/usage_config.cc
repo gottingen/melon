@@ -10,7 +10,7 @@
 #include <abel/config/flags/internal/program_name.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/strip.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/mutex.h>
 
 extern "C" {
 

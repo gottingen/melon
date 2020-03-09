@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/threading/dynamic_annotations.h>
+#include <abel/thread/dynamic_annotations.h>
 
 #if defined(ABEL_HAVE_STD_STRING_VIEW) || defined(__ANDROID__)
 // We don't control the death messaging when using std::string_view.

@@ -5,7 +5,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/config/flags/usage_config.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/mutex.h>
 
 namespace abel {
 

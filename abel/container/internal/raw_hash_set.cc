@@ -15,13 +15,8 @@ namespace abel {
 
 // Returns "random" seed.
         ABEL_FORCE_INLINE size_t RandomSeed() {
-#if ABEL_HAVE_THREAD_LOCAL
             static thread_local size_t counter = 0;
             size_t value = ++counter;
-#else   // ABEL_HAVE_THREAD_LOCAL
-            static std::atomic<size_t> counter(0);
-            size_t value = counter.fetch_add(1, std::memory_order_relaxed);
-#endif  // ABEL_HAVE_THREAD_LOCAL
             return value ^ static_cast<size_t>(reinterpret_cast<uintptr_t>(&counter));
         }
 

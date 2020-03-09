@@ -12,9 +12,9 @@
 #include <abel/functional/call_once.h>
 #include <abel/base/profile.h>
 #include <abel/memory/internal/direct_mmap.h>
-#include <abel/threading/internal/scheduling_mode.h>
+#include <abel/thread/internal/scheduling_mode.h>
 #include <abel/base/profile.h>
-#include <abel/threading/thread_annotations.h>
+#include <abel/thread/thread_annotations.h>
 
 // LowLevelAlloc requires that the platform support low-level
 // allocation of virtual memory. Platforms lacking this cannot use
@@ -39,9 +39,9 @@
 #include <cstddef>
 #include <new>                   // for placement-new
 
-#include <abel/threading/dynamic_annotations.h>
+#include <abel/thread/dynamic_annotations.h>
 #include <abel/log/raw_logging.h>
-#include <abel/threading/internal/spinlock.h>
+#include <abel/thread/internal/spinlock.h>
 
 // MAP_ANONYMOUS
 #if defined(__APPLE__)
@@ -194,7 +194,7 @@ namespace abel {
             // Constructs an arena with the given LowLevelAlloc flags.
             explicit Arena(uint32_t flags_value);
 
-            threading_internal::SpinLock mu;
+            thread_internal::SpinLock mu;
             // Head of free list, sorted by address
             AllocList freelist ABEL_GUARDED_BY(mu);
             // Count of allocated blocks
@@ -345,7 +345,7 @@ namespace abel {
         }  // namespace
 
         LowLevelAlloc::Arena::Arena(uint32_t flags_value)
-                : mu(threading_internal::SCHEDULE_KERNEL_ONLY),
+                : mu(thread_internal::SCHEDULE_KERNEL_ONLY),
                   allocation_count(0),
                   flags(flags_value),
                   pagesize(GetPageSize()),

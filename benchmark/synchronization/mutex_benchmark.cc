@@ -5,10 +5,10 @@
 #include <vector>
 
 #include <abel/chrono/internal/cycle_clock.h>
-#include <abel/threading/internal/spinlock.h>
-#include <abel/synchronization/blocking_counter.h>
-#include <abel/synchronization/internal/thread_pool.h>
-#include <abel/synchronization/mutex.h>
+#include <abel/thread/internal/spinlock.h>
+#include <abel/thread/blocking_counter.h>
+#include <abel/thread/internal/thread_pool.h>
+#include <abel/thread/mutex.h>
 #include <benchmark/benchmark.h>
 
 namespace {
@@ -107,7 +107,7 @@ namespace {
     ->Arg(50)
     ->Arg(200);
 
-    BENCHMARK_TEMPLATE(BM_Contended, abel::threading_internal::SpinLock
+    BENCHMARK_TEMPLATE(BM_Contended, abel::thread_internal::SpinLock
     )
     ->UseRealTime()
     // ThreadPerCpu poorly handles non-power-of-two CPU counts.
@@ -188,7 +188,7 @@ namespace {
         std::vector<int> equivalence_classes(num_classes, 1);
 
         // Must be declared last to be destroyed first.
-        abel::synchronization_internal::ThreadPool pool(num_waiters);
+        abel::thread_internal::ThreadPool pool(num_waiters);
 
         for (int i = 0; i < num_waiters; i++) {
             // mutex considers Conditions with the same function and argument

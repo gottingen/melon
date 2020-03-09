@@ -408,7 +408,7 @@ namespace abel {
                    : (throw_std_out_of_range("len > size()"), span());
         }
 
-        // Support for abel::Hash.
+        // Support for abel::hash.
         template<typename H>
         friend H abel_hash_value(H h, span v) {
             return H::combine(H::combine_contiguous(std::move(h), v.data(), v.size()),

@@ -51,7 +51,7 @@ namespace abel {
 // A hash state object represents an intermediate state in the computation
 // of an unspecified hash algorithm. `hash_state_base` provides a CRTP style
 // base class for hash state implementations. Developers adding type support
-// for `abel::Hash` should not rely on any parts of the state object other than
+// for `abel::hash` should not rely on any parts of the state object other than
 // the following member functions:
 //
 //   * hash_state_base::combine()
@@ -348,7 +348,7 @@ namespace abel {
 
 // is_hashable()
 //
-// Trait class which returns true if T is hashable by the abel::Hash framework.
+// Trait class which returns true if T is hashable by the abel::hash framework.
 // Used for the abel_hash_value implementations for composite types below.
         template<typename T>
         struct is_hashable;
@@ -617,16 +617,16 @@ namespace abel {
 #define ABEL_HASH_INTERNAL_SUPPORT_LEGACY_HASH_ 0
 #endif
 
-// HashSelect
+// hash_select
 //
 // Type trait to select the appropriate hash implementation to use.
-// HashSelect::type<T> will give the proper hash implementation, to be invoked
+// hash_select::type<T> will give the proper hash implementation, to be invoked
 // as:
-//   HashSelect::type<T>::Invoke(state, value)
-// Also, HashSelect::type<T>::value is a boolean equal to `true` if there is a
+//   hash_select::type<T>::Invoke(state, value)
+// Also, hash_select::type<T>::value is a boolean equal to `true` if there is a
 // valid `Invoke` function. Types that are not hashable will have a ::value of
 // `false`.
-        struct HashSelect {
+        struct hash_select {
         private:
             struct State : hash_state_base<State> {
                 static State combine_contiguous(State hash_state, const unsigned char *,
@@ -704,11 +704,11 @@ namespace abel {
 
         template<typename T>
         struct is_hashable
-                : std::integral_constant<bool, HashSelect::template Apply<T>::value> {
+                : std::integral_constant<bool, hash_select::template Apply<T>::value> {
         };
 
-// CityHashState
-        class CityHashState : public hash_state_base<CityHashState> {
+// city_hash_state
+        class city_hash_state : public hash_state_base<city_hash_state> {
             // abel::uint128 is not an alias or a thin wrapper around the intrinsic.
             // We use the intrinsic when available to improve performance.
 #ifdef ABEL_HAVE_INTRINSIC_INT128
@@ -727,25 +727,25 @@ namespace abel {
 
         public:
             // Move only
-            CityHashState(CityHashState &&) = default;
+            city_hash_state(city_hash_state &&) = default;
 
-            CityHashState &operator=(CityHashState &&) = default;
+            city_hash_state &operator=(city_hash_state &&) = default;
 
-            // CityHashState::combine_contiguous()
+            // city_hash_state::combine_contiguous()
             //
             // Fundamental base case for hash recursion: mixes the given range of bytes
             // into the hash state.
-            static CityHashState combine_contiguous(CityHashState hash_state,
+            static city_hash_state combine_contiguous(city_hash_state hash_state,
                                                     const unsigned char *first,
                                                     size_t size) {
-                return CityHashState(
-                        CombineContiguousImpl(hash_state.state_, first, size,
+                return city_hash_state(
+                        combine_contiguous_impl(hash_state.state_, first, size,
                                               std::integral_constant<int, sizeof(size_t)>{}));
             }
 
-            using CityHashState::hash_state_base::combine_contiguous;
+            using city_hash_state::hash_state_base::combine_contiguous;
 
-            // CityHashState::hash()
+            // city_hash_state::hash()
             //
             // For performance reasons in non-opt mode, we specialize this for
             // integral types.
@@ -757,47 +757,47 @@ namespace abel {
                 return static_cast<size_t>(Mix(Seed(), static_cast<uint64_t>(value)));
             }
 
-            // Overload of CityHashState::hash()
+            // Overload of city_hash_state::hash()
             template<typename T, abel::enable_if_t<!IntegralFastPath<T>::value, int> = 0>
             static size_t hash(const T &value) {
-                return static_cast<size_t>(combine(CityHashState{}, value).state_);
+                return static_cast<size_t>(combine(city_hash_state{}, value).state_);
             }
 
         private:
             // Invoked only once for a given argument; that plus the fact that this is
             // move-only ensures that there is only one non-moved-from object.
-            CityHashState() : state_(Seed()) {}
+            city_hash_state() : state_(Seed()) {}
 
             // Workaround for MSVC bug.
             // We make the type copyable to fix the calling convention, even though we
             // never actually copy it. Keep it private to not affect the public API of the
             // type.
-            CityHashState(const CityHashState &) = default;
+            city_hash_state(const city_hash_state &) = default;
 
-            explicit CityHashState(uint64_t state) : state_(state) {}
+            explicit city_hash_state(uint64_t state) : state_(state) {}
 
             // Implementation of the base case for combine_contiguous where we actually
             // mix the bytes into the state.
             // Dispatch to different implementations of the combine_contiguous depending
             // on the value of `sizeof(size_t)`.
-            static uint64_t CombineContiguousImpl(uint64_t state,
+            static uint64_t combine_contiguous_impl(uint64_t state,
                                                   const unsigned char *first, size_t len,
                                                   std::integral_constant<int, 4>
                                                   /* sizeof_size_t */);
 
-            static uint64_t CombineContiguousImpl(uint64_t state,
+            static uint64_t combine_contiguous_impl(uint64_t state,
                                                   const unsigned char *first, size_t len,
                                                   std::integral_constant<int, 8>
                                                   /* sizeof_size_t*/);
 
-            // Slow dispatch path for calls to CombineContiguousImpl with a size argument
+            // Slow dispatch path for calls to combine_contiguous_impl with a size argument
             // larger than PiecewiseChunkSize().  Has the same effect as calling
-            // CombineContiguousImpl() repeatedly with the chunk stride size.
-            static uint64_t CombineLargeContiguousImpl32(uint64_t state,
+            // combine_contiguous_impl() repeatedly with the chunk stride size.
+            static uint64_t combine_large_contiguous_impl32(uint64_t state,
                                                          const unsigned char *first,
                                                          size_t len);
 
-            static uint64_t CombineLargeContiguousImpl64(uint64_t state,
+            static uint64_t combine_large_contiguous_impl64(uint64_t state,
                                                          const unsigned char *first,
                                                          size_t len);
 
@@ -861,8 +861,8 @@ namespace abel {
             uint64_t state_;
         };
 
-// CityHashState::CombineContiguousImpl()
-        ABEL_FORCE_INLINE uint64_t CityHashState::CombineContiguousImpl(
+// city_hash_state::combine_contiguous_impl()
+        ABEL_FORCE_INLINE uint64_t city_hash_state::combine_contiguous_impl(
                 uint64_t state, const unsigned char *first, size_t len,
                 std::integral_constant<int, 4> /* sizeof_size_t */) {
             // For large values we use CityHash, for small ones we just use a
@@ -870,7 +870,7 @@ namespace abel {
             uint64_t v;
             if (len > 8) {
                 if (ABEL_UNLIKELY(len > PiecewiseChunkSize())) {
-                    return CombineLargeContiguousImpl32(state, first, len);
+                    return combine_large_contiguous_impl32(state, first, len);
                 }
                 v = abel::hash_internal::city_hash32(reinterpret_cast<const char *>(first), len);
             } else if (len >= 4) {
@@ -884,8 +884,8 @@ namespace abel {
             return Mix(state, v);
         }
 
-// Overload of CityHashState::CombineContiguousImpl()
-        ABEL_FORCE_INLINE uint64_t CityHashState::CombineContiguousImpl(
+// Overload of city_hash_state::combine_contiguous_impl()
+        ABEL_FORCE_INLINE uint64_t city_hash_state::combine_contiguous_impl(
                 uint64_t state, const unsigned char *first, size_t len,
                 std::integral_constant<int, 8> /* sizeof_size_t */) {
             // For large values we use CityHash, for small ones we just use a
@@ -893,7 +893,7 @@ namespace abel {
             uint64_t v;
             if (len > 16) {
                 if (ABEL_UNLIKELY(len > PiecewiseChunkSize())) {
-                    return CombineLargeContiguousImpl64(state, first, len);
+                    return combine_large_contiguous_impl64(state, first, len);
                 }
                 v = abel::hash_internal::city_hash64(reinterpret_cast<const char *>(first), len);
             } else if (len > 8) {
@@ -929,7 +929,7 @@ namespace abel {
 
         template<typename T>
         struct HashImpl {
-            size_t operator()(const T &value) const { return CityHashState::hash(value); }
+            size_t operator()(const T &value) const { return city_hash_state::hash(value); }
         };
 
         template<typename T>
@@ -940,7 +940,7 @@ namespace abel {
         template<typename H>
         template<typename T, typename... Ts>
         H hash_state_base<H>::combine(H state, const T &value, const Ts &... values) {
-            return H::combine(hash_internal::HashSelect::template Apply<T>::Invoke(
+            return H::combine(hash_internal::hash_select::template Apply<T>::Invoke(
                     std::move(state), value),
                               values...);
         }
