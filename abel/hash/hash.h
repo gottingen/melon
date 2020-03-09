@@ -111,6 +111,7 @@ namespace abel {
 //   * Natively supported types out of the box (see above)
 //   * Types for which an `abel_hash_value()` overload is provided (such as
 //     user-defined types). See "Adding Type Support to `abel::hash`" below.
+
 //   * Types which define a `HASH_NAMESPACE::hash<T>` specialization (aka
 //     `__gnu_cxx::hash<T>` for gcc/Clang or `stdext::hash<T>` for MSVC)
 //   * Types which define a `std::hash<T>` specialization
