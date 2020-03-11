@@ -651,16 +651,15 @@ namespace memory_internal {
     void ConstructRange(Allocator &alloc, Iterator first, Iterator last,
                         const Args &... args) {
         for (Iterator cur = first; cur != last; ++cur) {
-            ABEL_INTERNAL_TRY {
+            ABEL_TRY {
                 std::allocator_traits<Allocator>::construct(alloc, std::addressof(*cur),
                                                             args...);
-            }
-            ABEL_INTERNAL_CATCH_ANY {
+            } ABEL_CATCH (...) {
                 while (cur != first) {
                     --cur;
                     std::allocator_traits<Allocator>::destroy(alloc, std::addressof(*cur));
                 }
-                ABEL_INTERNAL_RETHROW;
+                ABEL_RETHROW;
             }
         }
     }
@@ -670,16 +669,15 @@ namespace memory_internal {
                    InputIterator last) {
         for (Iterator cur = destination; first != last;
              static_cast<void>(++cur), static_cast<void>(++first)) {
-            ABEL_INTERNAL_TRY {
+            ABEL_TRY {
                 std::allocator_traits<Allocator>::construct(alloc, std::addressof(*cur),
                                                             *first);
-            }
-            ABEL_INTERNAL_CATCH_ANY {
+            } ABEL_CATCH (...) {
                 while (cur != destination) {
                     --cur;
                     std::allocator_traits<Allocator>::destroy(alloc, std::addressof(*cur));
                 }
-                ABEL_INTERNAL_RETHROW;
+                ABEL_RETHROW;
             }
         }
     }
