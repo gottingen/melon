@@ -68,12 +68,12 @@ namespace abel {
         void ConstructElements(AllocatorType *alloc_ptr, Pointer construct_first,
                                ValueAdapter *values_ptr, SizeType construct_size) {
             for (SizeType i = 0; i < construct_size; ++i) {
-                ABEL_INTERNAL_TRY {
+                ABEL_TRY {
                     values_ptr->ConstructNext(alloc_ptr, construct_first + i);
                 }
-                ABEL_INTERNAL_CATCH_ANY {
+                ABEL_CATCH (...) {
                     inlined_vector_internal::DestroyElements(alloc_ptr, construct_first, i);
-                    ABEL_INTERNAL_RETHROW;
+                    ABEL_RETHROW;
                 }
             }
         }
@@ -700,14 +700,14 @@ namespace abel {
                                        std::forward<Args>(args)...);
 
             if (allocation_tx.DidAllocate()) {
-                ABEL_INTERNAL_TRY {
+                ABEL_TRY {
                     inlined_vector_internal::ConstructElements(
                             GetAllocPtr(), allocation_tx.GetData(), &move_values,
                             storage_view.size);
                 }
-                ABEL_INTERNAL_CATCH_ANY {
+                ABEL_CATCH (...) {
                     AllocatorTraits::destroy(*GetAllocPtr(), last_ptr);
-                    ABEL_INTERNAL_RETHROW;
+                    ABEL_RETHROW;
                 }
 
                 inlined_vector_internal::DestroyElements(GetAllocPtr(), storage_view.data,
@@ -796,13 +796,13 @@ namespace abel {
                 construct_data = GetInlinedData();
             }
 
-            ABEL_INTERNAL_TRY {
+            ABEL_TRY {
                 inlined_vector_internal::ConstructElements(GetAllocPtr(), construct_data,
                                                            &move_values, storage_view.size);
             }
-            ABEL_INTERNAL_CATCH_ANY {
+            ABEL_CATCH (...) {
                 SetAllocatedData(storage_view.data, storage_view.capacity);
-                ABEL_INTERNAL_RETHROW;
+                ABEL_RETHROW;
             }
 
             inlined_vector_internal::DestroyElements(GetAllocPtr(), storage_view.data,
@@ -858,15 +858,14 @@ namespace abel {
                 IteratorValueAdapter<MoveIterator> move_values(
                         MoveIterator(inlined_ptr->GetInlinedData()));
 
-                ABEL_INTERNAL_TRY {
+                ABEL_TRY {
                     inlined_vector_internal::ConstructElements(
                             inlined_ptr->GetAllocPtr(), allocated_ptr->GetInlinedData(),
                             &move_values, inlined_ptr->GetSize());
-                }
-                ABEL_INTERNAL_CATCH_ANY {
+                } ABEL_CATCH (...) {
                     allocated_ptr->SetAllocatedData(allocated_storage_view.data,
                                                     allocated_storage_view.capacity);
-                    ABEL_INTERNAL_RETHROW;
+                    ABEL_RETHROW;
                 }
 
                 inlined_vector_internal::DestroyElements(inlined_ptr->GetAllocPtr(),

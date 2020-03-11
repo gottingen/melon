@@ -43,20 +43,20 @@
 #endif
 
 #ifndef ABEL_STATIC_ASSERT
-#define ABEL_STATIC_ASSERT(e) static_assert(e, #e)
-#endif
-#ifndef ABEL_THROW
-#define ABEL_THROW(x) do { static_cast<void>(sizeof(x)); assert(false); } while(false);
+    #define ABEL_STATIC_ASSERT(e) static_assert(e, #e)
 #endif
 
+
 #ifdef ABEL_HAVE_EXCEPTIONS
-#define ABEL_INTERNAL_TRY try
-#define ABEL_INTERNAL_CATCH_ANY catch (...)
-#define ABEL_INTERNAL_RETHROW do { throw; } while (false)
-#else  // ABEL_HAVE_EXCEPTIONS
-#define ABEL_INTERNAL_TRY if (true)
-#define ABEL_INTERNAL_CATCH_ANY else if (false)
-#define ABEL_INTERNAL_RETHROW do {} while (false)
-#endif  // ABEL_HAVE_EXCEPTIONS
+    #define ABEL_TRY try
+    #define ABEL_CATCH(...) catch(__VA_ARGS__)
+    #define ABEL_RETHROW throw
+    #define ABEL_THROW(expr) throw (expr)
+#else
+    #define ABEL_TRY ABEL_CONSTEXPR_IF (true)
+    #define ABEL_CATCH(...) else ABEL_CONSTEXPR_IF (false)
+    #define ABEL_RETHROW do {} while (false)
+    #define ABEL_THROW(expr) ABEL_ASSERT(expr)
+#endif
 
 #endif //ABEL_BASE_PROFILE_EXCEPTION_H_
