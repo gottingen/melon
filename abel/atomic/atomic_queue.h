@@ -212,6 +212,7 @@ namespace abel {
 
         // Memory allocation can be customized if needed.
         // malloc should return nullptr on failure, and handle alignment like std::malloc.
+
 #if defined(malloc) || defined(free)
         // Gah, this is 2015, stop defining macros that break standard code already!
     // Work around malloc/free being special macros:
@@ -226,6 +227,7 @@ namespace abel {
         static inline void free(void *ptr) { return std::free(ptr); }
 
 #endif
+
     };
 
 
@@ -248,7 +250,9 @@ namespace abel {
     class ConcurrentQueueTests;
 
 
+
     namespace atomic_internal {
+
         struct ConcurrentQueueProducerTypelessBase {
             ConcurrentQueueProducerTypelessBase *next;
             std::atomic<bool> inactive;
@@ -396,6 +400,7 @@ namespace abel {
             static void unsubscribe(ThreadExitListener *listener) {
                 auto &tlsInst = instance();
                 ThreadExitListener **prev = &tlsInst.tail;
+
                 for (auto ptr = tlsInst.tail; ptr != nullptr; ptr = ptr->next) {
                     if (ptr == listener) {
                         *prev = ptr->next;
@@ -404,6 +409,7 @@ namespace abel {
                     prev = &ptr->next;
                 }
             }
+
 
         private:
             ThreadExitNotifier() : tail(nullptr) {}
@@ -421,6 +427,7 @@ namespace abel {
                 }
             }
 
+
             // Thread-local
             static inline ThreadExitNotifier &instance() {
                 static thread_local ThreadExitNotifier notifier;
@@ -429,6 +436,7 @@ namespace abel {
 
         private:
             ThreadExitListener *tail;
+
         };
 
         template<typename T>
@@ -1466,6 +1474,7 @@ namespace abel {
             inline void reset_empty() {
                 ABEL_CONSTEXPR_IF (context == explicit_context &&
                                    BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
+
                     // Reset flags
                     for (size_t i = 0; i != BLOCK_SIZE; ++i) {
                         emptyFlags[i].store(false, std::memory_order_relaxed);
@@ -2130,6 +2139,7 @@ private:
                                                                                                 static_cast<index_t>(actualCount)
                                                                                               : endIndex;
                             auto block = localBlockIndex->entries[indexIndex].block;
+
                             if (ABEL_NOEXCEPT_EXPR(
                                     atomic_internal::deref_noexcept(itemFirst) = std::move((*(*block)[index])))) {
                                 while (index != endIndex) {
@@ -2282,6 +2292,7 @@ private:
                 if (!this->inactive.load(std::memory_order_relaxed)) {
                     atomic_internal::ThreadExitNotifier::unsubscribe(&threadExitListener);
                 }
+
 
                 // Destroy all remaining elements!
                 auto tail = this->tailIndex.load(std::memory_order_relaxed);
@@ -2550,6 +2561,7 @@ private:
                             while (currentTailIndex != stopIndex) {
                                 new((*this->tailBlock)[currentTailIndex]) T(
                                         atomic_internal::nomove_if<(bool) !ABEL_NOEXCEPT_EXPR(new((T *) nullptr) T(
+
                                                 atomic_internal::deref_noexcept(
                                                         itemFirst)))>::eval(
                                                 *itemFirst));
@@ -2692,8 +2704,10 @@ private:
                             }
                             if (block->ConcurrentQueue::Block::template set_many_empty<implicit_context>(
                                     blockStartIndex, static_cast<size_t>(endIndex - blockStartIndex))) {
+
                                 // Note that the set_many_empty above did a release, meaning that anybody who acquires the block
                                 // we're about to free can use it safely since our writes (and reads!) will have happened-before then.
+
                                 entry->value.store(nullptr, std::memory_order_relaxed);
                                 this->parent->add_block_to_free_list(block);        // releases the above store
                             }
@@ -2837,6 +2851,7 @@ private:
         private:
             size_t nextBlockIndexCapacity;
             std::atomic<BlockIndexHeader *> blockIndex;
+
 
         public:
             atomic_internal::ThreadExitListener threadExitListener;
@@ -3274,6 +3289,7 @@ private:
                             new(newHash->entries + i) ImplicitProducerKVP;
                             newHash->entries[i].key.store(atomic_internal::invalid_thread_id,
                                                           std::memory_order_relaxed);
+
                         }
                         newHash->prev = mainHash;
                         implicitProducerHash.store(newHash, std::memory_order_release);
@@ -3315,6 +3331,7 @@ private:
                             (probedKey == reusable && mainHash->entries[index].key.compare_exchange_strong(reusable, id,
                                                                                                            std::memory_order_acquire,
                                                                                                            std::memory_order_acquire))) {
+
                             mainHash->entries[index].value = producer;
                             break;
                         }
@@ -3329,6 +3346,7 @@ private:
                 mainHash = implicitProducerHash.load(std::memory_order_acquire);
             }
         }
+
 
         void implicit_producer_thread_exited(ImplicitProducer *producer) {
             // Remove from thread exit listeners
