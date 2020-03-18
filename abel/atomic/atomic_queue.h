@@ -54,7 +54,7 @@ ABEL_DISABLE_GCC_WARNING(-Wconversion)
 
 // Platform-specific definitions of a numeric thread ID type and an invalid value
 namespace abel {
-   namespace  atomic_internal {
+    namespace atomic_internal {
         template<typename thread_id_t>
         struct thread_id_converter {
             typedef thread_id_t thread_id_numeric_size_t;
@@ -112,7 +112,7 @@ namespace abel {namespace  atomic_internal {
 #else
 
 namespace abel {
-   namespace  atomic_internal {
+    namespace atomic_internal {
         typedef std::uintptr_t thread_id_t;
         static const thread_id_t invalid_thread_id = 0;        // Address can't be nullptr
         static const thread_id_t invalid_thread_id2 = 1;        // Member accesses off a null pointer are also generally invalid. Plus it's not aligned.
@@ -125,7 +125,7 @@ namespace abel {
 #endif
 
 namespace abel {
-   namespace  atomic_internal {
+    namespace atomic_internal {
         template<typename T>
         struct const_numeric_max {
             static_assert(std::is_integral<T>::value, "const_numeric_max can only be used with integers");
@@ -212,20 +212,20 @@ namespace abel {
 
         // Memory allocation can be customized if needed.
         // malloc should return nullptr on failure, and handle alignment like std::malloc.
-    #if defined(malloc) || defined(free)
-            // Gah, this is 2015, stop defining macros that break standard code already!
-        // Work around malloc/free being special macros:
-        static inline void* WORKAROUND_malloc(size_t size) { return malloc(size); }
-        static inline void WORKAROUND_free(void* ptr) { return free(ptr); }
-        static inline void* (malloc)(size_t size) { return WORKAROUND_malloc(size); }
-        static inline void (free)(void* ptr) { return WORKAROUND_free(ptr); }
-    #else
+#if defined(malloc) || defined(free)
+        // Gah, this is 2015, stop defining macros that break standard code already!
+    // Work around malloc/free being special macros:
+    static inline void* WORKAROUND_malloc(size_t size) { return malloc(size); }
+    static inline void WORKAROUND_free(void* ptr) { return free(ptr); }
+    static inline void* (malloc)(size_t size) { return WORKAROUND_malloc(size); }
+    static inline void (free)(void* ptr) { return WORKAROUND_free(ptr); }
+#else
 
-            static inline void *malloc(size_t size) { return std::malloc(size); }
+        static inline void *malloc(size_t size) { return std::malloc(size); }
 
-            static inline void free(void *ptr) { return std::free(ptr); }
+        static inline void free(void *ptr) { return std::free(ptr); }
 
-    #endif
+#endif
     };
 
 
@@ -248,7 +248,7 @@ namespace abel {
     class ConcurrentQueueTests;
 
 
-   namespace  atomic_internal {
+    namespace atomic_internal {
         struct ConcurrentQueueProducerTypelessBase {
             ConcurrentQueueProducerTypelessBase *next;
             std::atomic<bool> inactive;
@@ -375,30 +375,27 @@ namespace abel {
         template<typename T> struct is_trivially_destructible : std::has_trivial_destructor<T> { };
 #endif
 
-        struct ThreadExitListener
-        {
-            typedef void (*callback_t)(void*);
+        struct ThreadExitListener {
+            typedef void (*callback_t)(void *);
+
             callback_t callback;
-            void* userData;
-    
-            ThreadExitListener* next;		// reserved for use by the ThreadExitNotifier
+            void *userData;
+
+            ThreadExitListener *next;        // reserved for use by the ThreadExitNotifier
         };
-    
-    
-        class ThreadExitNotifier
-        {
+
+
+        class ThreadExitNotifier {
         public:
-            static void subscribe(ThreadExitListener* listener)
-            {
-                auto& tlsInst = instance();
+            static void subscribe(ThreadExitListener *listener) {
+                auto &tlsInst = instance();
                 listener->next = tlsInst.tail;
                 tlsInst.tail = listener;
             }
-    
-            static void unsubscribe(ThreadExitListener* listener)
-            {
-                auto& tlsInst = instance();
-                ThreadExitListener** prev = &tlsInst.tail;
+
+            static void unsubscribe(ThreadExitListener *listener) {
+                auto &tlsInst = instance();
+                ThreadExitListener **prev = &tlsInst.tail;
                 for (auto ptr = tlsInst.tail; ptr != nullptr; ptr = ptr->next) {
                     if (ptr == listener) {
                         *prev = ptr->next;
@@ -407,30 +404,31 @@ namespace abel {
                     prev = &ptr->next;
                 }
             }
-    
+
         private:
-            ThreadExitNotifier() : tail(nullptr) { }
-            ThreadExitNotifier(ThreadExitNotifier const&) ABEL_FUNCTION_DELETE;
-            ThreadExitNotifier& operator=(ThreadExitNotifier const&) ABEL_FUNCTION_DELETE;
-    
-            ~ThreadExitNotifier()
-            {
+            ThreadExitNotifier() : tail(nullptr) {}
+
+            ThreadExitNotifier(ThreadExitNotifier const &) ABEL_FUNCTION_DELETE;
+
+            ThreadExitNotifier &operator=(ThreadExitNotifier const &) ABEL_FUNCTION_DELETE;
+
+            ~ThreadExitNotifier() {
                 // This thread is about to exit, let everyone know!
-                assert(this == &instance() && "If this assert fails, you likely have a buggy compiler! Change the preprocessor conditions such that MOODYCAMEL_CPP11_THREAD_LOCAL_SUPPORTED is no longer defined.");
+                assert(this == &instance() &&
+                       "If this assert fails, you likely have a buggy compiler! Change the preprocessor conditions such that MOODYCAMEL_CPP11_THREAD_LOCAL_SUPPORTED is no longer defined.");
                 for (auto ptr = tail; ptr != nullptr; ptr = ptr->next) {
                     ptr->callback(ptr->userData);
                 }
             }
-    
+
             // Thread-local
-            static inline ThreadExitNotifier& instance()
-            {
+            static inline ThreadExitNotifier &instance() {
                 static thread_local ThreadExitNotifier notifier;
                 return notifier;
             }
-    
+
         private:
-            ThreadExitListener* tail;
+            ThreadExitListener *tail;
         };
 
         template<typename T>
@@ -1386,7 +1384,7 @@ namespace abel {
             template<InnerQueueContext context>
             inline bool is_empty() const {
                 ABEL_CONSTEXPR_IF (context == explicit_context &&
-                                         BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
+                                   BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
                     // Check flags
                     for (size_t i = 0; i < BLOCK_SIZE; ++i) {
                         if (!emptyFlags[i].load(std::memory_order_relaxed)) {
@@ -1412,7 +1410,7 @@ namespace abel {
             template<InnerQueueContext context>
             inline bool set_empty(ABEL_MAYBE_UNUSED index_t i) {
                 ABEL_CONSTEXPR_IF (context == explicit_context &&
-                                         BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
+                                   BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
                     // Set flag
                     assert(!emptyFlags[BLOCK_SIZE - 1 -
                                        static_cast<size_t>(i & static_cast<index_t>(BLOCK_SIZE - 1))].load(
@@ -1433,7 +1431,7 @@ namespace abel {
             template<InnerQueueContext context>
             inline bool set_many_empty(ABEL_MAYBE_UNUSED index_t i, size_t count) {
                 ABEL_CONSTEXPR_IF (context == explicit_context &&
-                                         BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
+                                   BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
                     // Set flags
                     std::atomic_thread_fence(std::memory_order_release);
                     i = BLOCK_SIZE - 1 - static_cast<size_t>(i & static_cast<index_t>(BLOCK_SIZE - 1)) - count + 1;
@@ -1453,7 +1451,7 @@ namespace abel {
             template<InnerQueueContext context>
             inline void set_all_empty() {
                 ABEL_CONSTEXPR_IF (context == explicit_context &&
-                                         BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
+                                   BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
                     // Set all flags
                     for (size_t i = 0; i != BLOCK_SIZE; ++i) {
                         emptyFlags[i].store(true, std::memory_order_relaxed);
@@ -1467,7 +1465,7 @@ namespace abel {
             template<InnerQueueContext context>
             inline void reset_empty() {
                 ABEL_CONSTEXPR_IF (context == explicit_context &&
-                                         BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
+                                   BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD) {
                     // Reset flags
                     for (size_t i = 0; i != BLOCK_SIZE; ++i) {
                         emptyFlags[i].store(false, std::memory_order_relaxed);
@@ -1616,11 +1614,13 @@ private:
                         // (or the head block is the tail block and was fully dequeued, but the head/tail are still not on a boundary)
                         size_t i = (pr_blockIndexFront - pr_blockIndexSlotsUsed) & (pr_blockIndexSize - 1);
                         while (atomic_internal::circular_less_than<index_t>(pr_blockIndexEntries[i].base + BLOCK_SIZE,
-                                                                    this->headIndex.load(std::memory_order_relaxed))) {
+                                                                            this->headIndex.load(
+                                                                                    std::memory_order_relaxed))) {
                             i = (i + 1) & (pr_blockIndexSize - 1);
                         }
                         assert(atomic_internal::circular_less_than<index_t>(pr_blockIndexEntries[i].base,
-                                                                    this->headIndex.load(std::memory_order_relaxed)));
+                                                                            this->headIndex.load(
+                                                                                    std::memory_order_relaxed)));
                         halfDequeuedBlock = pr_blockIndexEntries[i].block;
                     }
 
@@ -1918,10 +1918,11 @@ private:
 
                         auto head = this->headIndex.load(std::memory_order_relaxed);
                         assert(!atomic_internal::circular_less_than<index_t>(currentTailIndex, head));
-                        bool full = !atomic_internal::circular_less_than<index_t>(head, currentTailIndex + BLOCK_SIZE) ||
-                                    (MAX_SUBQUEUE_SIZE != atomic_internal::const_numeric_max<size_t>::value &&
-                                     (MAX_SUBQUEUE_SIZE == 0 ||
-                                      MAX_SUBQUEUE_SIZE - BLOCK_SIZE < currentTailIndex - head));
+                        bool full =
+                                !atomic_internal::circular_less_than<index_t>(head, currentTailIndex + BLOCK_SIZE) ||
+                                (MAX_SUBQUEUE_SIZE != atomic_internal::const_numeric_max<size_t>::value &&
+                                 (MAX_SUBQUEUE_SIZE == 0 ||
+                                  MAX_SUBQUEUE_SIZE - BLOCK_SIZE < currentTailIndex - head));
                         if (pr_blockIndexRaw == nullptr || pr_blockIndexSlotsUsed == pr_blockIndexSize || full) {
                             ABEL_CONSTEXPR_IF (allocMode == CannotAlloc) {
                                 // Failed to allocate, undo changes (but keep injected blocks)
@@ -2022,8 +2023,8 @@ private:
                                 // be executed
                                 new((*this->tailBlock)[currentTailIndex]) T(
                                         atomic_internal::nomove_if<(bool) !ABEL_NOEXCEPT_EXPR(new((T *) nullptr) T(
-                                                                                                    atomic_internal::deref_noexcept(
-                                                                                                            itemFirst)))>::eval(
+                                                atomic_internal::deref_noexcept(
+                                                        itemFirst)))>::eval(
                                                 *itemFirst));
                                 ++currentTailIndex;
                                 ++itemFirst;
@@ -2129,7 +2130,8 @@ private:
                                                                                                 static_cast<index_t>(actualCount)
                                                                                               : endIndex;
                             auto block = localBlockIndex->entries[indexIndex].block;
-                            if (ABEL_NOEXCEPT_EXPR(atomic_internal::deref_noexcept(itemFirst) = std::move((*(*block)[index])))) {
+                            if (ABEL_NOEXCEPT_EXPR(
+                                    atomic_internal::deref_noexcept(itemFirst) = std::move((*(*block)[index])))) {
                                 while (index != endIndex) {
                                     auto &el = *((*block)[index]);
                                     *itemFirst++ = std::move(el);
@@ -2277,9 +2279,9 @@ private:
                 // empty (all other remaining blocks must be completely full).
 
                 // Unregister ourselves for thread termination notification
-            if (!this->inactive.load(std::memory_order_relaxed)) {
-                atomic_internal::ThreadExitNotifier::unsubscribe(&threadExitListener);
-            }
+                if (!this->inactive.load(std::memory_order_relaxed)) {
+                    atomic_internal::ThreadExitNotifier::unsubscribe(&threadExitListener);
+                }
 
                 // Destroy all remaining elements!
                 auto tail = this->tailIndex.load(std::memory_order_relaxed);
@@ -2428,7 +2430,7 @@ private:
                             el.~T(); // NOLINT
 
                             if (block->ConcurrentQueue::Block::template set_empty<implicit_context>(index)) {
-                                    // Add the block back into the global free pool (and remove from block index)
+                                // Add the block back into the global free pool (and remove from block index)
                                 entry->value.store(nullptr, std::memory_order_relaxed);
                                 this->parent->add_block_to_free_list(block);        // releases the above store
                             }
@@ -2474,10 +2476,11 @@ private:
                         bool indexInserted = false;
                         auto head = this->headIndex.load(std::memory_order_relaxed);
                         assert(!atomic_internal::circular_less_than<index_t>(currentTailIndex, head));
-                        bool full = !atomic_internal::circular_less_than<index_t>(head, currentTailIndex + BLOCK_SIZE) ||
-                                    (MAX_SUBQUEUE_SIZE != atomic_internal::const_numeric_max<size_t>::value &&
-                                     (MAX_SUBQUEUE_SIZE == 0 ||
-                                      MAX_SUBQUEUE_SIZE - BLOCK_SIZE < currentTailIndex - head));
+                        bool full =
+                                !atomic_internal::circular_less_than<index_t>(head, currentTailIndex + BLOCK_SIZE) ||
+                                (MAX_SUBQUEUE_SIZE != atomic_internal::const_numeric_max<size_t>::value &&
+                                 (MAX_SUBQUEUE_SIZE == 0 ||
+                                  MAX_SUBQUEUE_SIZE - BLOCK_SIZE < currentTailIndex - head));
                         if (full ||
                             !(indexInserted = insert_block_index_entry<allocMode>(idxEntry, currentTailIndex)) ||
                             (newBlock = this->parent->ConcurrentQueue::template requisition_block<allocMode>()) ==
@@ -2547,8 +2550,8 @@ private:
                             while (currentTailIndex != stopIndex) {
                                 new((*this->tailBlock)[currentTailIndex]) T(
                                         atomic_internal::nomove_if<(bool) !ABEL_NOEXCEPT_EXPR(new((T *) nullptr) T(
-                                                                                                    atomic_internal::deref_noexcept(
-                                                                                                            itemFirst)))>::eval(
+                                                atomic_internal::deref_noexcept(
+                                                        itemFirst)))>::eval(
                                                 *itemFirst));
                                 ++currentTailIndex;
                                 ++itemFirst;
@@ -2689,8 +2692,8 @@ private:
                             }
                             if (block->ConcurrentQueue::Block::template set_many_empty<implicit_context>(
                                     blockStartIndex, static_cast<size_t>(endIndex - blockStartIndex))) {
-                                    // Note that the set_many_empty above did a release, meaning that anybody who acquires the block
-                                    // we're about to free can use it safely since our writes (and reads!) will have happened-before then.
+                                // Note that the set_many_empty above did a release, meaning that anybody who acquires the block
+                                // we're about to free can use it safely since our writes (and reads!) will have happened-before then.
                                 entry->value.store(nullptr, std::memory_order_relaxed);
                                 this->parent->add_block_to_free_list(block);        // releases the above store
                             }
@@ -2835,9 +2838,9 @@ private:
             size_t nextBlockIndexCapacity;
             std::atomic<BlockIndexHeader *> blockIndex;
 
-            public:
-        atomic_internal::ThreadExitListener threadExitListener;
-    private:
+        public:
+            atomic_internal::ThreadExitListener threadExitListener;
+        private:
 
 #ifdef MCDBGQ_TRACKMEM
             friend struct MemStats;
@@ -3213,8 +3216,14 @@ private:
                                 probedKey = mainHash->entries[index].key.load(std::memory_order_relaxed);
                                 auto empty = atomic_internal::invalid_thread_id;
                                 auto reusable = atomic_internal::invalid_thread_id2;
-                            if ((probedKey == empty    && mainHash->entries[index].key.compare_exchange_strong(empty,    id, std::memory_order_relaxed, std::memory_order_relaxed)) ||
-                                (probedKey == reusable && mainHash->entries[index].key.compare_exchange_strong(reusable, id, std::memory_order_acquire, std::memory_order_acquire))) {
+                                if ((probedKey == empty &&
+                                     mainHash->entries[index].key.compare_exchange_strong(empty, id,
+                                                                                          std::memory_order_relaxed,
+                                                                                          std::memory_order_relaxed)) ||
+                                    (probedKey == reusable &&
+                                     mainHash->entries[index].key.compare_exchange_strong(reusable, id,
+                                                                                          std::memory_order_acquire,
+                                                                                          std::memory_order_acquire))) {
                                     mainHash->entries[index].value = value;
                                     break;
                                 }
@@ -3263,7 +3272,8 @@ private:
                                 raw + sizeof(ImplicitProducerHash)));
                         for (size_t i = 0; i != newCapacity; ++i) {
                             new(newHash->entries + i) ImplicitProducerKVP;
-                            newHash->entries[i].key.store(atomic_internal::invalid_thread_id, std::memory_order_relaxed);
+                            newHash->entries[i].key.store(atomic_internal::invalid_thread_id,
+                                                          std::memory_order_relaxed);
                         }
                         newHash->prev = mainHash;
                         implicitProducerHash.store(newHash, std::memory_order_release);
@@ -3289,8 +3299,8 @@ private:
                     }
 
                     producer->threadExitListener.callback = &ConcurrentQueue::implicit_producer_thread_exited_callback;
-                producer->threadExitListener.userData = producer;
-                atomic_internal::ThreadExitNotifier::subscribe(&producer->threadExitListener);
+                    producer->threadExitListener.userData = producer;
+                    atomic_internal::ThreadExitNotifier::subscribe(&producer->threadExitListener);
 
                     auto index = hashedId;
                     while (true) {
@@ -3299,8 +3309,12 @@ private:
 
                         auto empty = atomic_internal::invalid_thread_id;
                         auto reusable = atomic_internal::invalid_thread_id2;
-                    if ((probedKey == empty    && mainHash->entries[index].key.compare_exchange_strong(empty,    id, std::memory_order_relaxed, std::memory_order_relaxed)) ||
-                        (probedKey == reusable && mainHash->entries[index].key.compare_exchange_strong(reusable, id, std::memory_order_acquire, std::memory_order_acquire))) {
+                        if ((probedKey == empty &&
+                             mainHash->entries[index].key.compare_exchange_strong(empty, id, std::memory_order_relaxed,
+                                                                                  std::memory_order_relaxed)) ||
+                            (probedKey == reusable && mainHash->entries[index].key.compare_exchange_strong(reusable, id,
+                                                                                                           std::memory_order_acquire,
+                                                                                                           std::memory_order_acquire))) {
                             mainHash->entries[index].value = producer;
                             break;
                         }
@@ -3316,46 +3330,46 @@ private:
             }
         }
 
-        void implicit_producer_thread_exited(ImplicitProducer* producer)
-    {
-        // Remove from thread exit listeners
-        atomic_internal::ThreadExitNotifier::unsubscribe(&producer->threadExitListener);
+        void implicit_producer_thread_exited(ImplicitProducer *producer) {
+            // Remove from thread exit listeners
+            atomic_internal::ThreadExitNotifier::unsubscribe(&producer->threadExitListener);
 
-        // Remove from hash
+            // Remove from hash
 #ifdef MCDBGQ_NOLOCKFREE_IMPLICITPRODHASH
-        debug::DebugLock lock(implicitProdMutex);
+            debug::DebugLock lock(implicitProdMutex);
 #endif
-        auto hash = implicitProducerHash.load(std::memory_order_acquire);
-        assert(hash != nullptr);		// The thread exit listener is only registered if we were added to a hash in the first place
-        auto id = atomic_internal::thread_id();
-        auto hashedId = atomic_internal::hash_thread_id(id);
-        atomic_internal::thread_id_t probedKey;
+            auto hash = implicitProducerHash.load(std::memory_order_acquire);
+            assert(hash !=
+                   nullptr);        // The thread exit listener is only registered if we were added to a hash in the first place
+            auto id = atomic_internal::thread_id();
+            auto hashedId = atomic_internal::hash_thread_id(id);
+            atomic_internal::thread_id_t probedKey;
 
-        // We need to traverse all the hashes just in case other threads aren't on the current one yet and are
-        // trying to add an entry thinking there's a free slot (because they reused a producer)
-        for (; hash != nullptr; hash = hash->prev) {
-            auto index = hashedId;
-            do {
-                index &= hash->capacity - 1;
-                probedKey = hash->entries[index].key.load(std::memory_order_relaxed);
-                if (probedKey == id) {
-                    hash->entries[index].key.store(atomic_internal::invalid_thread_id2, std::memory_order_release);
-                    break;
-                }
-                ++index;
-            } while (probedKey != atomic_internal::invalid_thread_id);		// Can happen if the hash has changed but we weren't put back in it yet, or if we weren't added to this hash in the first place
+            // We need to traverse all the hashes just in case other threads aren't on the current one yet and are
+            // trying to add an entry thinking there's a free slot (because they reused a producer)
+            for (; hash != nullptr; hash = hash->prev) {
+                auto index = hashedId;
+                do {
+                    index &= hash->capacity - 1;
+                    probedKey = hash->entries[index].key.load(std::memory_order_relaxed);
+                    if (probedKey == id) {
+                        hash->entries[index].key.store(atomic_internal::invalid_thread_id2, std::memory_order_release);
+                        break;
+                    }
+                    ++index;
+                } while (probedKey !=
+                         atomic_internal::invalid_thread_id);        // Can happen if the hash has changed but we weren't put back in it yet, or if we weren't added to this hash in the first place
+            }
+
+            // Mark the queue as being recyclable
+            producer->inactive.store(true, std::memory_order_release);
         }
 
-        // Mark the queue as being recyclable
-        producer->inactive.store(true, std::memory_order_release);
-    }
-
-    static void implicit_producer_thread_exited_callback(void* userData)
-    {
-        auto producer = static_cast<ImplicitProducer*>(userData);
-        auto queue = producer->parent;
-        queue->implicit_producer_thread_exited(producer);
-    }
+        static void implicit_producer_thread_exited_callback(void *userData) {
+            auto producer = static_cast<ImplicitProducer *>(userData);
+            auto queue = producer->parent;
+            queue->implicit_producer_thread_exited(producer);
+        }
 
         //////////////////////////////////
         // Utility functions

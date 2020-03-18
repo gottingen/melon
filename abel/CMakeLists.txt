@@ -84,8 +84,9 @@ if (APPLE)
     find_library(CoreFoundation CoreFoundation)
     target_link_libraries(abel_static ${CoreFoundation} pthread)
     target_link_libraries(abel_shared ${CoreFoundation} pthread)
-else ()
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     target_link_libraries(abel_static pthread)
+    target_link_libraries(abel_shared pthread rt)
 endif ()
 
 set_target_properties(abel_shared PROPERTIES

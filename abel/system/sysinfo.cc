@@ -130,7 +130,7 @@ namespace abel {
     // Reads a monotonic time source and returns a value in
     // nanoseconds. The returned value uses an arbitrary epoch, not the
     // Unix epoch.
-    static int64_t ReadMonotonicClockNanos() {
+    static int64_t read_monotonic_clock_nanos() {
       struct timespec t;
 #ifdef CLOCK_MONOTONIC_RAW
       int rc = clock_gettime(CLOCK_MONOTONIC_RAW, &t);
@@ -150,7 +150,7 @@ namespace abel {
     };
 
     struct TimeTscPair {
-      int64_t time;  // From ReadMonotonicClockNanos().
+      int64_t time;  // From read_monotonic_clock_nanos().
       int64_t tsc;   // From unscaled_cycle_clock::now().
     };
 
@@ -163,9 +163,9 @@ namespace abel {
       int64_t best_latency = std::numeric_limits<int64_t>::max();
       TimeTscPair best;
       for (int i = 0; i < 10; ++i) {
-        int64_t t0 = ReadMonotonicClockNanos();
+        int64_t t0 = read_monotonic_clock_nanos();
         int64_t tsc = unscaled_cycle_clock_wrapper_for_initialize_frequency::now();
-        int64_t t1 = ReadMonotonicClockNanos();
+        int64_t t1 = read_monotonic_clock_nanos();
         int64_t latency = t1 - t0;
         if (latency < best_latency) {
           best_latency = latency;
