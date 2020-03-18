@@ -13,6 +13,8 @@ option(ABEL_PACKAGE_GEN "enable package gen" OFF)
 option(ENABLE_BENCHMARK "enable benchmark" ON)
 option(ENABLE_EXAMPLE "enable benchmark" ON)
 
+set(ABEL_STD -std=c++11)
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(CMAKE_MACOSX_RPATH 1)

@@ -5,7 +5,7 @@ project(abel CXX)
 list(APPEND CMAKE_MODULE_PATH
         ${PROJECT_SOURCE_DIR}/cmake
         ${PROJECT_SOURCE_DIR}/cmake/modules)
-include(project_profile)
+
 include(abel_module)
 #include(compiler)
 
