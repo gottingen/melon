@@ -58,7 +58,7 @@ TEST(shared_ptr, test_const_ptr) {
     shared_ptr<const C> cca = ca->get();
     EXPECT_TRUE(cca == ca);
 }
-
+/*
 struct D {
 };
 
@@ -189,3 +189,4 @@ TEST(shared_ptr, test_const_release) {
     do_test_release<const A>();
     do_test_release<const A_esft>();
 }
+*/
