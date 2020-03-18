@@ -8,14 +8,17 @@ foreach (fl ${META_SRC})
     add_executable(${TEST_NAME}
             ${SRC_NAME}.cc
             )
+    if(APPLE)
+        target_link_libraries(${TEST_NAME}
+                abel_static
+                pthread
+                )
+    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        target_link_libraries(${TEST_NAME}
+                abel_static
+                rt
+                pthread
+                )
+    endif()
 
-    target_link_libraries(${TEST_NAME}
-            abel_static
-            pthread
-            )
-
-    add_test(
-            NAME ${TEST_NAME}
-            COMMAND ${TEST_NAME}
-    )
 endforeach (fl ${SRC})

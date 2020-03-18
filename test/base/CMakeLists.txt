@@ -8,14 +8,40 @@ foreach (fl ${META_SRC})
     add_executable(${TEST_NAME}
             ${SRC_NAME}.cc)
 
-    target_link_libraries(${TEST_NAME}
-            gtest
-            gmock
-            gtest_main
-            testing_static
-            abel_static
-            pthread
-            )
+    if(APPLE)
+            if(APPLE)
+        target_link_libraries(${TEST_NAME}
+                gtest
+                gmock
+                gtest_main
+                testing_static
+                abel_static
+                pthread
+                )
+    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        target_link_libraries(${TEST_NAME}
+                gtest
+                gmock
+                gtest_main
+                testing_static
+                abel_static
+                pthread
+                rt
+                )
+    endif()
+    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        target_link_libraries(${TEST_NAME}
+                gtest
+                gmock
+                gtest_main
+                testing_static
+                abel_static
+                pthread
+                rt
+                )
+    endif()
+
+
 
     add_test(
             NAME ${TEST_NAME}
