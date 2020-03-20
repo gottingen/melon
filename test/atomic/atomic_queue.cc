@@ -49,14 +49,14 @@ namespace abel {
 
     std::atomic<std::size_t> tracking_allocator::usage(0);
 
-    struct MallocTrackingTraits : public ConcurrentQueueDefaultTraits
+    struct MallocTrackingTraits : public atomic_queue_default_traits
     {
         static inline void* malloc(std::size_t size) { return tracking_allocator::malloc(size); }
         static inline void free(void* ptr) { tracking_allocator::free(ptr); }
     };
 
 TEST(atomic_queue, ctor) {
-    abel:: ConcurrentQueue<int, MallocTrackingTraits> q;
+    abel:: atomic_queue<int, MallocTrackingTraits> q;
     EXPECT_EQ(q.size_approx(), 0);
 }
 

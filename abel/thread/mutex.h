@@ -47,7 +47,6 @@
 #include <atomic>
 #include <cstdint>
 #include <string>
-
 #include <abel/base/const_init.h>
 #include <abel/meta/type_traits.h>
 #include <abel/memory/internal/low_level_alloc.h>

@@ -1,37 +1,3 @@
-//
-// Created by liyinbin on 2020/3/10.
-//
-
-// Provides a C++11 implementation of a multi-producer, multi-consumer lock-free queue.
-// An overview, including benchmark results, is provided here:
-//     http://moodycamel.com/blog/2014/a-fast-general-purpose-lock-free-queue-for-c++
-// The full design is also described in excruciating detail at:
-//    http://moodycamel.com/blog/2014/detailed-design-of-a-lock-free-queue
-
-// Simplified BSD license:
-// Copyright (c) 2013-2016, Cameron Desrochers.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-// - Redistributions of source code must retain the above copyright notice, this list of
-// conditions and the following disclaimer.
-// - Redistributions in binary form must reproduce the above copyright notice, this list of
-// conditions and the following disclaimer in the documentation and/or other materials
-// provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
-// THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
-// OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-// TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-// EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
 #ifndef ABEL_ATOMIC_ATOMIC_QUEUE_H_
 #define ABEL_ATOMIC_ATOMIC_QUEUE_H_
 
@@ -62,8 +28,9 @@ namespace abel {
 
             static thread_id_hash_t prehash(thread_id_t const &x) { return x; }
         };
-    }
-}
+    } //namespace atomic_internal
+} // namespace abel
+
 #if defined(_WIN32) || defined(__WINDOWS__) || defined(__WIN32__)
 // No sense pulling in windows.h in a header, we'll manually declare the function
 // we use and rely on backwards-compatibility for this not to break
@@ -120,8 +87,8 @@ namespace abel {
             static ABEL_THREAD_LOCAL int x;
             return reinterpret_cast<thread_id_t>(&x);
         }
-    }
-}
+    } //namespace atomic_internal
+} //namespace abel
 #endif
 
 namespace abel {
@@ -149,13 +116,13 @@ namespace abel {
         } max_align_t;
     }
 
-// Default traits for the ConcurrentQueue. To change some of the
+// Default traits for the atomic_queue. To change some of the
 // traits without re-implementing all of them, inherit from this
 // struct and shadow the declarations you wish to be different;
 // since the traits are used as a template type parameter, the
 // shadowed declarations will be used where defined, and the defaults
 // otherwise.
-    struct ConcurrentQueueDefaultTraits {
+    struct atomic_queue_default_traits {
         // General-purpose size type. std::size_t is strongly recommended.
         typedef std::size_t size_t;
 
@@ -238,27 +205,26 @@ namespace abel {
 //    4) Failing that, use the single-parameter methods of the queue
 // Having said that, don't create tokens willy-nilly -- ideally there should be
 // a maximum of one token per thread (of each kind).
-    struct ProducerToken;
-    struct ConsumerToken;
+    struct producer_token;
+    struct consumer_token;
 
     template<typename T, typename Traits>
-    class ConcurrentQueue;
+    class atomic_queue;
 
     template<typename T, typename Traits>
-    class BlockingConcurrentQueue;
+    class blocking_atomic_queue;
 
     class ConcurrentQueueTests;
 
 
-
     namespace atomic_internal {
 
-        struct ConcurrentQueueProducerTypelessBase {
-            ConcurrentQueueProducerTypelessBase *next;
+        struct atomic_queue_producer_type_less_base {
+            atomic_queue_producer_type_less_base *next;
             std::atomic<bool> inactive;
-            ProducerToken *token;
+            producer_token *token;
 
-            ConcurrentQueueProducerTypelessBase()
+            atomic_queue_producer_type_less_base()
                     : next(nullptr), inactive(false), token(nullptr) {
             }
         };
@@ -493,14 +459,14 @@ namespace abel {
     }
 
 
-    struct ProducerToken {
+    struct producer_token {
         template<typename T, typename Traits>
-        explicit ProducerToken(ConcurrentQueue<T, Traits> &queue);
+        explicit producer_token(atomic_queue<T, Traits> &queue);
 
         template<typename T, typename Traits>
-        explicit ProducerToken(BlockingConcurrentQueue<T, Traits> &queue);
+        explicit producer_token(blocking_atomic_queue<T, Traits> &queue);
 
-        ProducerToken(ProducerToken &&other) ABEL_NOEXCEPT
+        producer_token(producer_token &&other) ABEL_NOEXCEPT
                 : producer(other.producer) {
             other.producer = nullptr;
             if (producer != nullptr) {
@@ -508,12 +474,12 @@ namespace abel {
             }
         }
 
-        inline ProducerToken &operator=(ProducerToken &&other) ABEL_NOEXCEPT {
+        inline producer_token &operator=(producer_token &&other) ABEL_NOEXCEPT {
             swap(other);
             return *this;
         }
 
-        void swap(ProducerToken &other) ABEL_NOEXCEPT {
+        void swap(producer_token &other) ABEL_NOEXCEPT {
             std::swap(producer, other.producer);
             if (producer != nullptr) {
                 producer->token = this;
@@ -533,7 +499,7 @@ namespace abel {
         // but not which one; that's up to the user to track.
         inline bool valid() const { return producer != nullptr; }
 
-        ~ProducerToken() {
+        ~producer_token() {
             if (producer != nullptr) {
                 producer->token = nullptr;
                 producer->inactive.store(true, std::memory_order_release);
@@ -541,40 +507,40 @@ namespace abel {
         }
 
         // Disable copying and assignment
-        ProducerToken(ProducerToken const &) ABEL_FUNCTION_DELETE;
+        producer_token(producer_token const &) ABEL_FUNCTION_DELETE;
 
-        ProducerToken &operator=(ProducerToken const &) ABEL_FUNCTION_DELETE;
+        producer_token &operator=(producer_token const &) ABEL_FUNCTION_DELETE;
 
     private:
         template<typename T, typename Traits> friend
-        class ConcurrentQueue;
+        class atomic_queue;
 
         friend class ConcurrentQueueTests;
 
     protected:
-        atomic_internal::ConcurrentQueueProducerTypelessBase *producer;
+        atomic_internal::atomic_queue_producer_type_less_base *producer;
     };
 
 
-    struct ConsumerToken {
+    struct consumer_token {
         template<typename T, typename Traits>
-        explicit ConsumerToken(ConcurrentQueue<T, Traits> &q);
+        explicit consumer_token(atomic_queue<T, Traits> &q);
 
         template<typename T, typename Traits>
-        explicit ConsumerToken(BlockingConcurrentQueue<T, Traits> &q);
+        explicit consumer_token(blocking_atomic_queue<T, Traits> &q);
 
-        ConsumerToken(ConsumerToken &&other) ABEL_NOEXCEPT
+        consumer_token(consumer_token &&other) ABEL_NOEXCEPT
                 : initialOffset(other.initialOffset), lastKnownGlobalOffset(other.lastKnownGlobalOffset),
                   itemsConsumedFromCurrent(other.itemsConsumedFromCurrent), currentProducer(other.currentProducer),
                   desiredProducer(other.desiredProducer) {
         }
 
-        inline ConsumerToken &operator=(ConsumerToken &&other) ABEL_NOEXCEPT {
+        inline consumer_token &operator=(consumer_token &&other) ABEL_NOEXCEPT {
             swap(other);
             return *this;
         }
 
-        void swap(ConsumerToken &other) ABEL_NOEXCEPT {
+        void swap(consumer_token &other) ABEL_NOEXCEPT {
             std::swap(initialOffset, other.initialOffset);
             std::swap(lastKnownGlobalOffset, other.lastKnownGlobalOffset);
             std::swap(itemsConsumedFromCurrent, other.itemsConsumedFromCurrent);
@@ -583,36 +549,36 @@ namespace abel {
         }
 
         // Disable copying and assignment
-        ConsumerToken(ConsumerToken const &) ABEL_FUNCTION_DELETE;
+        consumer_token(consumer_token const &) ABEL_FUNCTION_DELETE;
 
-        ConsumerToken &operator=(ConsumerToken const &) ABEL_FUNCTION_DELETE;
+        consumer_token &operator=(consumer_token const &) ABEL_FUNCTION_DELETE;
 
     private:
         template<typename T, typename Traits> friend
-        class ConcurrentQueue;
+        class atomic_queue;
 
         friend class ConcurrentQueueTests;
 
-    private: // but shared with ConcurrentQueue
+    private: // but shared with atomic_queue
         std::uint32_t initialOffset;
         std::uint32_t lastKnownGlobalOffset;
         std::uint32_t itemsConsumedFromCurrent;
-        atomic_internal::ConcurrentQueueProducerTypelessBase *currentProducer;
-        atomic_internal::ConcurrentQueueProducerTypelessBase *desiredProducer;
+        atomic_internal::atomic_queue_producer_type_less_base *currentProducer;
+        atomic_internal::atomic_queue_producer_type_less_base *desiredProducer;
     };
 
 // Need to forward-declare this swap because it's in a namespace.
 // See http://stackoverflow.com/questions/4492062/why-does-a-c-friend-class-need-a-forward-declaration-only-in-other-namespaces
     template<typename T, typename Traits>
-    inline void swap(typename ConcurrentQueue<T, Traits>::ImplicitProducerKVP &a,
-                     typename ConcurrentQueue<T, Traits>::ImplicitProducerKVP &b) ABEL_NOEXCEPT;
+    inline void swap(typename atomic_queue<T, Traits>::implicit_producer_kvp &a,
+                     typename atomic_queue<T, Traits>::implicit_producer_kvp &b) ABEL_NOEXCEPT;
 
 
-    template<typename T, typename Traits = ConcurrentQueueDefaultTraits>
-    class ConcurrentQueue {
+    template<typename T, typename Traits = atomic_queue_default_traits>
+    class atomic_queue {
     public:
-        typedef ::abel::ProducerToken producer_token_t;
-        typedef ::abel::ConsumerToken consumer_token_t;
+        typedef ::abel::producer_token producer_token_t;
+        typedef ::abel::consumer_token consumer_token_t;
 
         typedef typename Traits::index_t index_t;
         typedef typename Traits::size_t size_t;
@@ -670,7 +636,7 @@ namespace abel {
         // queue is fully constructed before it starts being used by other threads (this
         // includes making the memory effects of construction visible, possibly with a
         // memory barrier).
-        explicit ConcurrentQueue(size_t capacity = 6 * BLOCK_SIZE)
+        explicit atomic_queue(size_t capacity = 6 * BLOCK_SIZE)
                 : producerListTail(nullptr),
                   producerCount(0),
                   initialBlockPoolIndex(0),
@@ -685,7 +651,7 @@ namespace abel {
         // Computes the correct amount of pre-allocated blocks for you based
         // on the minimum number of elements you want available at any given
         // time, and the maximum concurrent number of each type of producer.
-        ConcurrentQueue(size_t minCapacity, size_t maxExplicitProducers, size_t maxImplicitProducers)
+        atomic_queue(size_t minCapacity, size_t maxExplicitProducers, size_t maxImplicitProducers)
                 : producerListTail(nullptr),
                   producerCount(0),
                   initialBlockPoolIndex(0),
@@ -702,7 +668,7 @@ namespace abel {
         // Note: The queue should not be accessed concurrently while it's
         // being deleted. It's up to the user to synchronize this.
         // This method is not thread safe.
-        ~ConcurrentQueue() {
+        ~atomic_queue() {
             // Destroy producers
             auto ptr = producerListTail.load(std::memory_order_relaxed);
             while (ptr != nullptr) {
@@ -722,7 +688,7 @@ namespace abel {
                     if (prev !=
                         nullptr) {        // The last hash is part of this object and was not allocated dynamically
                         for (size_t i = 0; i != hash->capacity; ++i) {
-                            hash->entries[i].~ImplicitProducerKVP();
+                            hash->entries[i].~implicit_producer_kvp();
                         }
                         hash->~ImplicitProducerHash();
                         (Traits::free)(hash);
@@ -746,9 +712,9 @@ namespace abel {
         }
 
         // Disable copying and copy assignment
-        ConcurrentQueue(ConcurrentQueue const &) ABEL_FUNCTION_DELETE;
+        atomic_queue(atomic_queue const &) ABEL_FUNCTION_DELETE;
 
-        ConcurrentQueue &operator=(ConcurrentQueue const &) ABEL_FUNCTION_DELETE;
+        atomic_queue &operator=(atomic_queue const &) ABEL_FUNCTION_DELETE;
 
         // Moving is supported, but note that it is *not* a thread-safe operation.
         // Nobody can use the queue while it's being moved, and the memory effects
@@ -756,7 +722,7 @@ namespace abel {
         // Note: When a queue is moved, its tokens are still valid but can only be
         // used with the destination queue (i.e. semantically they are moved along
         // with the queue itself).
-        ConcurrentQueue(ConcurrentQueue &&other) ABEL_NOEXCEPT
+        atomic_queue(atomic_queue &&other) ABEL_NOEXCEPT
                 : producerListTail(other.producerListTail.load(std::memory_order_relaxed)),
                   producerCount(other.producerCount.load(std::memory_order_relaxed)),
                   initialBlockPoolIndex(other.initialBlockPoolIndex.load(std::memory_order_relaxed)),
@@ -781,7 +747,7 @@ namespace abel {
             reown_producers();
         }
 
-        inline ConcurrentQueue &operator=(ConcurrentQueue &&other) ABEL_NOEXCEPT {
+        inline atomic_queue &operator=(atomic_queue &&other) ABEL_NOEXCEPT {
             return swap_internal(other);
         }
 
@@ -790,12 +756,12 @@ namespace abel {
         // the tokens that were created for one queue must be used with
         // only the swapped queue (i.e. the tokens are tied to the
         // queue's movable state, not the object itself).
-        inline void swap(ConcurrentQueue &other) ABEL_NOEXCEPT {
+        inline void swap(atomic_queue &other) ABEL_NOEXCEPT {
             swap_internal(other);
         }
 
     private:
-        ConcurrentQueue &swap_internal(ConcurrentQueue &other) {
+        atomic_queue &swap_internal(atomic_queue &other) {
             if (this == &other) {
                 return *this;
             }
@@ -944,7 +910,7 @@ namespace abel {
             // Instead of simply trying each producer in turn (which could cause needless contention on the first
             // producer), we score them heuristically.
             size_t nonEmptyCount = 0;
-            ProducerBase *best = nullptr;
+            producer_base *best = nullptr;
             size_t bestSize = 0;
             for (auto ptr = producerListTail.load(std::memory_order_acquire);
                  nonEmptyCount < 3 && ptr != nullptr; ptr = ptr->next_prod()) {
@@ -1014,7 +980,7 @@ namespace abel {
 
             // If there was at least one non-empty queue but it appears empty at the time
             // we try to dequeue from it, we need to make sure every queue's been tried
-            if (static_cast<ProducerBase *>(token.currentProducer)->dequeue(item)) {
+            if (static_cast<producer_base *>(token.currentProducer)->dequeue(item)) {
                 if (++token.itemsConsumedFromCurrent == EXPLICIT_CONSUMER_CONSUMPTION_QUOTA_BEFORE_ROTATE) {
                     globalExplicitConsumerOffset.fetch_add(1, std::memory_order_relaxed);
                 }
@@ -1022,11 +988,11 @@ namespace abel {
             }
 
             auto tail = producerListTail.load(std::memory_order_acquire);
-            auto ptr = static_cast<ProducerBase *>(token.currentProducer)->next_prod();
+            auto ptr = static_cast<producer_base *>(token.currentProducer)->next_prod();
             if (ptr == nullptr) {
                 ptr = tail;
             }
-            while (ptr != static_cast<ProducerBase *>(token.currentProducer)) {
+            while (ptr != static_cast<producer_base *>(token.currentProducer)) {
                 if (ptr->dequeue(item)) {
                     token.currentProducer = ptr;
                     token.itemsConsumedFromCurrent = 1;
@@ -1071,7 +1037,7 @@ namespace abel {
                 }
             }
 
-            size_t count = static_cast<ProducerBase *>(token.currentProducer)->dequeue_bulk(itemFirst, max);
+            size_t count = static_cast<producer_base *>(token.currentProducer)->dequeue_bulk(itemFirst, max);
             if (count == max) {
                 if ((token.itemsConsumedFromCurrent += static_cast<std::uint32_t>(max)) >=
                     EXPLICIT_CONSUMER_CONSUMPTION_QUOTA_BEFORE_ROTATE) {
@@ -1083,11 +1049,11 @@ namespace abel {
             max -= count;
 
             auto tail = producerListTail.load(std::memory_order_acquire);
-            auto ptr = static_cast<ProducerBase *>(token.currentProducer)->next_prod();
+            auto ptr = static_cast<producer_base *>(token.currentProducer)->next_prod();
             if (ptr == nullptr) {
                 ptr = tail;
             }
-            while (ptr != static_cast<ProducerBase *>(token.currentProducer)) {
+            while (ptr != static_cast<producer_base *>(token.currentProducer)) {
                 auto dequeued = ptr->dequeue_bulk(itemFirst, max);
                 count += dequeued;
                 if (dequeued != 0) {
@@ -1115,7 +1081,7 @@ namespace abel {
         // Never allocates. Thread-safe.
         template<typename U>
         inline bool try_dequeue_from_producer(producer_token_t const &producer, U &item) {
-            return static_cast<ExplicitProducer *>(producer.producer)->dequeue(item);
+            return static_cast<explicit_producer *>(producer.producer)->dequeue(item);
         }
 
         // Attempts to dequeue several elements from a specific producer's inner queue.
@@ -1127,7 +1093,7 @@ namespace abel {
         // Never allocates. Thread-safe.
         template<typename It>
         inline size_t try_dequeue_bulk_from_producer(producer_token_t const &producer, It itemFirst, size_t max) {
-            return static_cast<ExplicitProducer *>(producer.producer)->dequeue_bulk(itemFirst, max);
+            return static_cast<explicit_producer *>(producer.producer)->dequeue_bulk(itemFirst, max);
         }
 
 
@@ -1162,10 +1128,10 @@ namespace abel {
 
 
     private:
-        friend struct ProducerToken;
-        friend struct ConsumerToken;
-        struct ExplicitProducer;
-        friend struct ExplicitProducer;
+        friend struct producer_token;
+        friend struct consumer_token;
+        struct explicit_producer;
+        friend struct explicit_producer;
         struct ImplicitProducer;
         friend struct ImplicitProducer;
 
@@ -1182,7 +1148,7 @@ namespace abel {
 
         template<AllocationMode canAlloc, typename U>
         inline bool inner_enqueue(producer_token_t const &token, U &&element) {
-            return static_cast<ExplicitProducer *>(token.producer)->ConcurrentQueue::ExplicitProducer::template enqueue<canAlloc>(
+            return static_cast<explicit_producer *>(token.producer)->atomic_queue::explicit_producer::template enqueue<canAlloc>(
                     std::forward<U>(element));
         }
 
@@ -1190,13 +1156,13 @@ namespace abel {
         inline bool inner_enqueue(U &&element) {
             auto producer = get_or_add_implicit_producer();
             return producer == nullptr ? false
-                                       : producer->ConcurrentQueue::ImplicitProducer::template enqueue<canAlloc>(
+                                       : producer->atomic_queue::ImplicitProducer::template enqueue<canAlloc>(
                             std::forward<U>(element));
         }
 
         template<AllocationMode canAlloc, typename It>
         inline bool inner_enqueue_bulk(producer_token_t const &token, It itemFirst, size_t count) {
-            return static_cast<ExplicitProducer *>(token.producer)->ConcurrentQueue::ExplicitProducer::template enqueue_bulk<canAlloc>(
+            return static_cast<explicit_producer *>(token.producer)->atomic_queue::explicit_producer::template enqueue_bulk<canAlloc>(
                     itemFirst, count);
         }
 
@@ -1204,7 +1170,7 @@ namespace abel {
         inline bool inner_enqueue_bulk(It itemFirst, size_t count) {
             auto producer = get_or_add_implicit_producer();
             return producer == nullptr ? false
-                                       : producer->ConcurrentQueue::ImplicitProducer::template enqueue_bulk<canAlloc>(
+                                       : producer->atomic_queue::ImplicitProducer::template enqueue_bulk<canAlloc>(
                             itemFirst, count);
         }
 
@@ -1223,7 +1189,7 @@ namespace abel {
                 std::uint32_t offset = prodCount - 1 - (token.initialOffset % prodCount);
                 token.desiredProducer = tail;
                 for (std::uint32_t i = 0; i != offset; ++i) {
-                    token.desiredProducer = static_cast<ProducerBase *>(token.desiredProducer)->next_prod();
+                    token.desiredProducer = static_cast<producer_base *>(token.desiredProducer)->next_prod();
                     if (token.desiredProducer == nullptr) {
                         token.desiredProducer = tail;
                     }
@@ -1235,7 +1201,7 @@ namespace abel {
                 delta = delta % prodCount;
             }
             for (std::uint32_t i = 0; i != delta; ++i) {
-                token.desiredProducer = static_cast<ProducerBase *>(token.desiredProducer)->next_prod();
+                token.desiredProducer = static_cast<producer_base *>(token.desiredProducer)->next_prod();
                 if (token.desiredProducer == nullptr) {
                     token.desiredProducer = tail;
                 }
@@ -1528,8 +1494,8 @@ private:
         // Producer base
         ///////////////////////////
 
-        struct ProducerBase : public atomic_internal::ConcurrentQueueProducerTypelessBase {
-            ProducerBase(ConcurrentQueue *parent_, bool isExplicit_) :
+        struct producer_base : public atomic_internal::atomic_queue_producer_type_less_base {
+            producer_base(atomic_queue *parent_, bool isExplicit_) :
                     tailIndex(0),
                     headIndex(0),
                     dequeueOptimisticCount(0),
@@ -1539,12 +1505,12 @@ private:
                     parent(parent_) {
             }
 
-            virtual ~ProducerBase() {};
+            virtual ~producer_base() {};
 
             template<typename U>
             inline bool dequeue(U &element) {
                 if (isExplicit) {
-                    return static_cast<ExplicitProducer *>(this)->dequeue(element);
+                    return static_cast<explicit_producer *>(this)->dequeue(element);
                 } else {
                     return static_cast<ImplicitProducer *>(this)->dequeue(element);
                 }
@@ -1553,13 +1519,13 @@ private:
             template<typename It>
             inline size_t dequeue_bulk(It &itemFirst, size_t max) {
                 if (isExplicit) {
-                    return static_cast<ExplicitProducer *>(this)->dequeue_bulk(itemFirst, max);
+                    return static_cast<explicit_producer *>(this)->dequeue_bulk(itemFirst, max);
                 } else {
                     return static_cast<ImplicitProducer *>(this)->dequeue_bulk(itemFirst, max);
                 }
             }
 
-            inline ProducerBase *next_prod() const { return static_cast<ProducerBase *>(next); }
+            inline producer_base *next_prod() const { return static_cast<producer_base *>(next); }
 
             inline size_t size_approx() const {
                 auto tail = tailIndex.load(std::memory_order_relaxed);
@@ -1580,7 +1546,7 @@ private:
 
         public:
             bool isExplicit;
-            ConcurrentQueue *parent;
+            atomic_queue *parent;
 
         protected:
 #ifdef MCDBGQ_TRACKMEM
@@ -1593,9 +1559,9 @@ private:
         // Explicit queue
         ///////////////////////////
 
-        struct ExplicitProducer : public ProducerBase {
-            explicit ExplicitProducer(ConcurrentQueue *parent_) :
-                    ProducerBase(parent_, true),
+        struct explicit_producer : public producer_base {
+            explicit explicit_producer(atomic_queue *parent_) :
+                    producer_base(parent_, true),
                     blockIndex(nullptr),
                     pr_blockIndexSlotsUsed(0),
                     pr_blockIndexSize(EXPLICIT_INITIAL_INDEX_SIZE >> 1),
@@ -1611,7 +1577,7 @@ private:
                         0);        // This creates an index with double the number of current entries, i.e. EXPLICIT_INITIAL_INDEX_SIZE
             }
 
-            ~ExplicitProducer() {
+            ~explicit_producer() {
                 // Destruct any elements not yet dequeued.
                 // Since we're in the destructor, we can assume all elements
                 // are either completely dequeued or completely not (no halfways).
@@ -1637,7 +1603,7 @@ private:
                     auto block = this->tailBlock;
                     do {
                         block = block->next;
-                        if (block->ConcurrentQueue::Block::template is_empty<explicit_context>()) {
+                        if (block->atomic_queue::Block::template is_empty<explicit_context>()) {
                             continue;
                         }
 
@@ -1692,10 +1658,10 @@ private:
                     auto startBlock = this->tailBlock;
                     auto originalBlockIndexSlotsUsed = pr_blockIndexSlotsUsed;
                     if (this->tailBlock != nullptr &&
-                        this->tailBlock->next->ConcurrentQueue::Block::template is_empty<explicit_context>()) {
+                        this->tailBlock->next->atomic_queue::Block::template is_empty<explicit_context>()) {
                         // We can re-use the block ahead of us, it's empty!
                         this->tailBlock = this->tailBlock->next;
-                        this->tailBlock->ConcurrentQueue::Block::template reset_empty<explicit_context>();
+                        this->tailBlock->atomic_queue::Block::template reset_empty<explicit_context>();
 
                         // We'll put the block on the block index (guaranteed to be room since we're conceptually removing the
                         // last block from it first -- except instead of removing then adding, we can just overwrite).
@@ -1730,14 +1696,14 @@ private:
                         }
 
                         // Insert a new block in the circular linked list
-                        auto newBlock = this->parent->ConcurrentQueue::template requisition_block<allocMode>();
+                        auto newBlock = this->parent->atomic_queue::template requisition_block<allocMode>();
                         if (newBlock == nullptr) {
                             return false;
                         }
 #ifdef MCDBGQ_TRACKMEM
                         newBlock->owner = this;
 #endif
-                        newBlock->ConcurrentQueue::Block::template reset_empty<explicit_context>();
+                        newBlock->atomic_queue::Block::template reset_empty<explicit_context>();
                         if (this->tailBlock == nullptr) {
                             newBlock->next = newBlock;
                         } else {
@@ -1865,7 +1831,7 @@ private:
 
                                 ~Guard() {
                                     (*block)[index]->~T();
-                                    block->ConcurrentQueue::Block::template set_empty<explicit_context>(index);
+                                    block->atomic_queue::Block::template set_empty<explicit_context>(index);
                                 }
                             } guard = {block, index};
 
@@ -1873,7 +1839,7 @@ private:
                         } else {
                             element = std::move(el); // NOLINT
                             el.~T(); // NOLINT
-                            block->ConcurrentQueue::Block::template set_empty<explicit_context>(index);
+                            block->atomic_queue::Block::template set_empty<explicit_context>(index);
                         }
 
                         return true;
@@ -1907,7 +1873,7 @@ private:
                     // Allocate as many blocks as possible from ahead
                     while (blockBaseDiff > 0 && this->tailBlock != nullptr &&
                            this->tailBlock->next != firstAllocatedBlock &&
-                           this->tailBlock->next->ConcurrentQueue::Block::template is_empty<explicit_context>()) {
+                           this->tailBlock->next->atomic_queue::Block::template is_empty<explicit_context>()) {
                         blockBaseDiff -= static_cast<index_t>(BLOCK_SIZE);
                         currentTailIndex += static_cast<index_t>(BLOCK_SIZE);
 
@@ -1954,7 +1920,7 @@ private:
                         }
 
                         // Insert a new block in the circular linked list
-                        auto newBlock = this->parent->ConcurrentQueue::template requisition_block<allocMode>();
+                        auto newBlock = this->parent->atomic_queue::template requisition_block<allocMode>();
                         if (newBlock == nullptr) {
                             pr_blockIndexFront = originalBlockIndexFront;
                             pr_blockIndexSlotsUsed = originalBlockIndexSlotsUsed;
@@ -1965,7 +1931,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                         newBlock->owner = this;
 #endif
-                        newBlock->ConcurrentQueue::Block::template set_all_empty<explicit_context>();
+                        newBlock->atomic_queue::Block::template set_all_empty<explicit_context>();
                         if (this->tailBlock == nullptr) {
                             newBlock->next = newBlock;
                         } else {
@@ -1987,7 +1953,7 @@ private:
                     // publish the new block index front
                     auto block = firstAllocatedBlock;
                     while (true) {
-                        block->ConcurrentQueue::Block::template reset_empty<explicit_context>();
+                        block->atomic_queue::Block::template reset_empty<explicit_context>();
                         if (block == this->tailBlock) {
                             break;
                         }
@@ -2166,7 +2132,7 @@ private:
                                         while (index != endIndex) {
                                             (*block)[index++]->~T();
                                         }
-                                        block->ConcurrentQueue::Block::template set_many_empty<explicit_context>(
+                                        block->atomic_queue::Block::template set_many_empty<explicit_context>(
                                                 firstIndexInBlock, static_cast<size_t>(endIndex - firstIndexInBlock));
                                         indexIndex = (indexIndex + 1) & (localBlockIndex->size - 1);
 
@@ -2182,7 +2148,7 @@ private:
                                     ABEL_RETHROW;
                                 }
                             }
-                            block->ConcurrentQueue::Block::template set_many_empty<explicit_context>(firstIndexInBlock,
+                            block->atomic_queue::Block::template set_many_empty<explicit_context>(firstIndexInBlock,
                                                                                                      static_cast<size_t>(
                                                                                                              endIndex -
                                                                                                              firstIndexInBlock));
@@ -2274,9 +2240,9 @@ private:
         // Implicit queue
         //////////////////////////////////
 
-        struct ImplicitProducer : public ProducerBase {
-            ImplicitProducer(ConcurrentQueue *parent_) :
-                    ProducerBase(parent_, false),
+        struct ImplicitProducer : public producer_base {
+            ImplicitProducer(atomic_queue *parent_) :
+                    producer_base(parent_, false),
                     nextBlockIndexCapacity(IMPLICIT_INITIAL_INDEX_SIZE),
                     blockIndex(nullptr) {
                 new_block_index();
@@ -2357,7 +2323,7 @@ private:
                     }
 
                     // Get ahold of a new block
-                    auto newBlock = this->parent->ConcurrentQueue::template requisition_block<allocMode>();
+                    auto newBlock = this->parent->atomic_queue::template requisition_block<allocMode>();
                     if (newBlock == nullptr) {
                         rewind_block_index_tail();
                         idxEntry->value.store(nullptr, std::memory_order_relaxed);
@@ -2366,7 +2332,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                     newBlock->owner = this;
 #endif
-                    newBlock->ConcurrentQueue::Block::template reset_empty<implicit_context>();
+                    newBlock->atomic_queue::Block::template reset_empty<implicit_context>();
 
                     if (!ABEL_NOEXCEPT_EXPR(new((T *) nullptr) T(std::forward<U>(element)))) {
                         // May throw, try to insert now before we publish the fact that we have this new block
@@ -2400,7 +2366,7 @@ private:
 
             template<typename U>
             bool dequeue(U &element) {
-                // See ExplicitProducer::dequeue for rationale and explanation
+                // See explicit_producer::dequeue for rationale and explanation
                 index_t tail = this->tailIndex.load(std::memory_order_relaxed);
                 index_t overcommit = this->dequeueOvercommit.load(std::memory_order_relaxed);
                 if (atomic_internal::circular_less_than<index_t>(
@@ -2424,11 +2390,11 @@ private:
                                 Block *block;
                                 index_t index;
                                 BlockIndexEntry *entry;
-                                ConcurrentQueue *parent;
+                                atomic_queue *parent;
 
                                 ~Guard() {
                                     (*block)[index]->~T();
-                                    if (block->ConcurrentQueue::Block::template set_empty<implicit_context>(index)) {
+                                    if (block->atomic_queue::Block::template set_empty<implicit_context>(index)) {
                                         entry->value.store(nullptr, std::memory_order_relaxed);
                                         parent->add_block_to_free_list(block);
                                     }
@@ -2440,7 +2406,7 @@ private:
                             element = std::move(el); // NOLINT
                             el.~T(); // NOLINT
 
-                            if (block->ConcurrentQueue::Block::template set_empty<implicit_context>(index)) {
+                            if (block->atomic_queue::Block::template set_empty<implicit_context>(index)) {
                                 // Add the block back into the global free pool (and remove from block index)
                                 entry->value.store(nullptr, std::memory_order_relaxed);
                                 this->parent->add_block_to_free_list(block);        // releases the above store
@@ -2494,7 +2460,7 @@ private:
                                   MAX_SUBQUEUE_SIZE - BLOCK_SIZE < currentTailIndex - head));
                         if (full ||
                             !(indexInserted = insert_block_index_entry<allocMode>(idxEntry, currentTailIndex)) ||
-                            (newBlock = this->parent->ConcurrentQueue::template requisition_block<allocMode>()) ==
+                            (newBlock = this->parent->atomic_queue::template requisition_block<allocMode>()) ==
                             nullptr) {
                             // Index allocation or block allocation failed; revert any other allocations
                             // and index insertions done so far for this operation
@@ -2518,7 +2484,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                         newBlock->owner = this;
 #endif
-                        newBlock->ConcurrentQueue::Block::template reset_empty<implicit_context>();
+                        newBlock->atomic_queue::Block::template reset_empty<implicit_context>();
                         newBlock->next = nullptr;
 
                         // Insert the new block into the index
@@ -2683,7 +2649,7 @@ private:
                                             (*block)[index++]->~T();
                                         }
 
-                                        if (block->ConcurrentQueue::Block::template set_many_empty<implicit_context>(
+                                        if (block->atomic_queue::Block::template set_many_empty<implicit_context>(
                                                 blockStartIndex, static_cast<size_t>(endIndex - blockStartIndex))) {
                                             entry->value.store(nullptr, std::memory_order_relaxed);
                                             this->parent->add_block_to_free_list(block);
@@ -2702,7 +2668,7 @@ private:
                                     ABEL_RETHROW;
                                 }
                             }
-                            if (block->ConcurrentQueue::Block::template set_many_empty<implicit_context>(
+                            if (block->atomic_queue::Block::template set_many_empty<implicit_context>(
                                     blockStartIndex, static_cast<size_t>(endIndex - blockStartIndex))) {
 
                                 // Note that the set_many_empty above did a release, meaning that anybody who acquires the block
@@ -2949,10 +2915,10 @@ private:
             size_t implicitBlockIndexBytes;
             size_t explicitBlockIndexBytes;
 
-            friend class ConcurrentQueue;
+            friend class atomic_queue;
 
         private:
-            static MemStats getFor(ConcurrentQueue* q)
+            static MemStats getFor(atomic_queue* q)
             {
                 MemStats stats = { 0 };
 
@@ -2994,15 +2960,15 @@ private:
                         }
                     }
                     else {
-                        auto prod = static_cast<ExplicitProducer*>(ptr);
-                        stats.queueClassBytes += sizeof(ExplicitProducer);
+                        auto prod = static_cast<explicit_producer*>(ptr);
+                        stats.queueClassBytes += sizeof(explicit_producer);
                         auto tailBlock = prod->tailBlock;
                         bool wasNonEmpty = false;
                         if (tailBlock != nullptr) {
                             auto block = tailBlock;
                             do {
                                 ++stats.allocatedBlocks;
-                                if (!block->ConcurrentQueue::Block::template is_empty<explicit_context>() || wasNonEmpty) {
+                                if (!block->atomic_queue::Block::template is_empty<explicit_context>() || wasNonEmpty) {
                                     ++stats.usedBlocks;
                                     wasNonEmpty = wasNonEmpty || block != tailBlock;
                                 }
@@ -3012,8 +2978,8 @@ private:
                         }
                         auto index = prod->blockIndex.load(std::memory_order_relaxed);
                         while (index != nullptr) {
-                            stats.explicitBlockIndexBytes += sizeof(typename ExplicitProducer::BlockIndexHeader) + index->size * sizeof(typename ExplicitProducer::BlockIndexEntry);
-                            index = static_cast<typename ExplicitProducer::BlockIndexHeader*>(index->prev);
+                            stats.explicitBlockIndexBytes += sizeof(typename explicit_producer::BlockIndexHeader) + index->size * sizeof(typename explicit_producer::BlockIndexEntry);
+                            index = static_cast<typename explicit_producer::BlockIndexHeader*>(index->prev);
                         }
                     }
                 }
@@ -3023,7 +2989,7 @@ private:
                 stats.freeBlocks += freeOnInitialPool;
 
                 stats.blockClassBytes = sizeof(Block) * stats.allocatedBlocks;
-                stats.queueClassBytes += sizeof(ConcurrentQueue);
+                stats.queueClassBytes += sizeof(atomic_queue);
 
                 return stats;
             }
@@ -3043,12 +3009,12 @@ private:
         // Producer list manipulation
         //////////////////////////////////
 
-        ProducerBase *recycle_or_create_producer(bool isExplicit) {
+        producer_base *recycle_or_create_producer(bool isExplicit) {
             bool recycled;
             return recycle_or_create_producer(isExplicit, recycled);
         }
 
-        ProducerBase *recycle_or_create_producer(bool isExplicit, bool &recycled) {
+        producer_base *recycle_or_create_producer(bool isExplicit, bool &recycled) {
 #ifdef MCDBGQ_NOLOCKFREE_IMPLICITPRODHASH
             debug::DebugLock lock(implicitProdMutex);
 #endif
@@ -3067,11 +3033,11 @@ private:
 
             recycled = false;
             return add_producer(
-                    isExplicit ? static_cast<ProducerBase *>(create<ExplicitProducer>(this)) : create<ImplicitProducer>(
+                    isExplicit ? static_cast<producer_base *>(create<explicit_producer>(this)) : create<ImplicitProducer>(
                             this));
         }
 
-        ProducerBase *add_producer(ProducerBase *producer) {
+        producer_base *add_producer(producer_base *producer) {
             // Handle failed memory allocation
             if (producer == nullptr) {
                 return nullptr;
@@ -3103,23 +3069,23 @@ private:
         // Implicit producer hash
         //////////////////////////////////
 
-        struct ImplicitProducerKVP {
+        struct implicit_producer_kvp {
             std::atomic<atomic_internal::thread_id_t> key;
             ImplicitProducer *value;        // No need for atomicity since it's only read by the thread that sets it in the first place
 
-            ImplicitProducerKVP() : value(nullptr) {}
+            implicit_producer_kvp() : value(nullptr) {}
 
-            ImplicitProducerKVP(ImplicitProducerKVP &&other) ABEL_NOEXCEPT {
+            implicit_producer_kvp(implicit_producer_kvp &&other) ABEL_NOEXCEPT {
                 key.store(other.key.load(std::memory_order_relaxed), std::memory_order_relaxed);
                 value = other.value;
             }
 
-            inline ImplicitProducerKVP &operator=(ImplicitProducerKVP &&other) ABEL_NOEXCEPT {
+            inline implicit_producer_kvp &operator=(implicit_producer_kvp &&other) ABEL_NOEXCEPT {
                 swap(other);
                 return *this;
             }
 
-            inline void swap(ImplicitProducerKVP &other) ABEL_NOEXCEPT {
+            inline void swap(implicit_producer_kvp &other) ABEL_NOEXCEPT {
                 if (this != &other) {
                     atomic_internal::swap_relaxed(key, other.key);
                     std::swap(value, other.value);
@@ -3128,12 +3094,12 @@ private:
         };
 
         template<typename XT, typename XTraits>
-        friend void abel::swap(typename ConcurrentQueue<XT, XTraits>::ImplicitProducerKVP &,
-                               typename ConcurrentQueue<XT, XTraits>::ImplicitProducerKVP &) ABEL_NOEXCEPT;
+        friend void abel::swap(typename atomic_queue<XT, XTraits>::implicit_producer_kvp &,
+                               typename atomic_queue<XT, XTraits>::implicit_producer_kvp &) ABEL_NOEXCEPT;
 
         struct ImplicitProducerHash {
             size_t capacity;
-            ImplicitProducerKVP *entries;
+            implicit_producer_kvp *entries;
             ImplicitProducerHash *prev;
         };
 
@@ -3154,7 +3120,7 @@ private:
             }
         }
 
-        void swap_implicit_producer_hashes(ConcurrentQueue &other) {
+        void swap_implicit_producer_hashes(atomic_queue &other) {
             ABEL_CONSTEXPR_IF (INITIAL_IMPLICIT_PRODUCER_HASH_SIZE == 0) {
                 return;
             } else {
@@ -3272,8 +3238,8 @@ private:
                             newCapacity <<= 1;
                         }
                         auto raw = static_cast<char *>((Traits::malloc)(
-                                sizeof(ImplicitProducerHash) + std::alignment_of<ImplicitProducerKVP>::value - 1 +
-                                sizeof(ImplicitProducerKVP) * newCapacity));
+                                sizeof(ImplicitProducerHash) + std::alignment_of<implicit_producer_kvp>::value - 1 +
+                                sizeof(implicit_producer_kvp) * newCapacity));
                         if (raw == nullptr) {
                             // Allocation failed
                             implicitProducerHashCount.fetch_sub(1, std::memory_order_relaxed);
@@ -3283,10 +3249,10 @@ private:
 
                         auto newHash = new(raw) ImplicitProducerHash;
                         newHash->capacity = newCapacity;
-                        newHash->entries = reinterpret_cast<ImplicitProducerKVP *>(atomic_internal::align_for<ImplicitProducerKVP>(
+                        newHash->entries = reinterpret_cast<implicit_producer_kvp *>(atomic_internal::align_for<implicit_producer_kvp>(
                                 raw + sizeof(ImplicitProducerHash)));
                         for (size_t i = 0; i != newCapacity; ++i) {
-                            new(newHash->entries + i) ImplicitProducerKVP;
+                            new(newHash->entries + i) implicit_producer_kvp;
                             newHash->entries[i].key.store(atomic_internal::invalid_thread_id,
                                                           std::memory_order_relaxed);
 
@@ -3314,7 +3280,7 @@ private:
                         implicitProducerHashCount.fetch_sub(1, std::memory_order_relaxed);
                     }
 
-                    producer->threadExitListener.callback = &ConcurrentQueue::implicit_producer_thread_exited_callback;
+                    producer->threadExitListener.callback = &atomic_queue::implicit_producer_thread_exited_callback;
                     producer->threadExitListener.userData = producer;
                     atomic_internal::ThreadExitNotifier::subscribe(&producer->threadExitListener);
 
@@ -3455,7 +3421,7 @@ private:
         }
 
     private:
-        std::atomic<ProducerBase *> producerListTail;
+        std::atomic<producer_base *> producerListTail;
         std::atomic<std::uint32_t> producerCount;
 
         std::atomic<size_t> initialBlockPoolIndex;
@@ -3471,7 +3437,7 @@ private:
         std::atomic<ImplicitProducerHash *> implicitProducerHash;
         std::atomic<size_t> implicitProducerHashCount;        // Number of slots logically used
         ImplicitProducerHash initialImplicitProducerHash;
-        std::array<ImplicitProducerKVP, INITIAL_IMPLICIT_PRODUCER_HASH_SIZE> initialImplicitProducerHashEntries;
+        std::array<implicit_producer_kvp, INITIAL_IMPLICIT_PRODUCER_HASH_SIZE> initialImplicitProducerHashEntries;
         std::atomic_flag implicitProducerHashResizeInProgress;
 
         std::atomic<std::uint32_t> nextExplicitConsumerId;
@@ -3485,7 +3451,7 @@ private:
 
 
     template<typename T, typename Traits>
-    ProducerToken::ProducerToken(ConcurrentQueue<T, Traits> &queue)
+    producer_token::producer_token(atomic_queue<T, Traits> &queue)
             : producer(queue.recycle_or_create_producer(true)) {
         if (producer != nullptr) {
             producer->token = this;
@@ -3493,44 +3459,44 @@ private:
     }
 
     template<typename T, typename Traits>
-    ProducerToken::ProducerToken(BlockingConcurrentQueue<T, Traits> &queue)
-            : producer(reinterpret_cast<ConcurrentQueue<T, Traits> *>(&queue)->recycle_or_create_producer(true)) {
+    producer_token::producer_token(blocking_atomic_queue<T, Traits> &queue)
+            : producer(reinterpret_cast<atomic_queue<T, Traits> *>(&queue)->recycle_or_create_producer(true)) {
         if (producer != nullptr) {
             producer->token = this;
         }
     }
 
     template<typename T, typename Traits>
-    ConsumerToken::ConsumerToken(ConcurrentQueue<T, Traits> &queue)
+    consumer_token::consumer_token(atomic_queue<T, Traits> &queue)
             : itemsConsumedFromCurrent(0), currentProducer(nullptr), desiredProducer(nullptr) {
         initialOffset = queue.nextExplicitConsumerId.fetch_add(1, std::memory_order_release);
         lastKnownGlobalOffset = -1;
     }
 
     template<typename T, typename Traits>
-    ConsumerToken::ConsumerToken(BlockingConcurrentQueue<T, Traits> &queue)
+    consumer_token::consumer_token(blocking_atomic_queue<T, Traits> &queue)
             : itemsConsumedFromCurrent(0), currentProducer(nullptr), desiredProducer(nullptr) {
-        initialOffset = reinterpret_cast<ConcurrentQueue<T, Traits> *>(&queue)->nextExplicitConsumerId.fetch_add(1,
+        initialOffset = reinterpret_cast<atomic_queue<T, Traits> *>(&queue)->nextExplicitConsumerId.fetch_add(1,
                                                                                                                  std::memory_order_release);
         lastKnownGlobalOffset = -1;
     }
 
     template<typename T, typename Traits>
-    inline void swap(ConcurrentQueue<T, Traits> &a, ConcurrentQueue<T, Traits> &b) ABEL_NOEXCEPT {
+    inline void swap(atomic_queue<T, Traits> &a, atomic_queue<T, Traits> &b) ABEL_NOEXCEPT {
         a.swap(b);
     }
 
-    inline void swap(ProducerToken &a, ProducerToken &b) ABEL_NOEXCEPT {
+    inline void swap(producer_token &a, producer_token &b) ABEL_NOEXCEPT {
         a.swap(b);
     }
 
-    inline void swap(ConsumerToken &a, ConsumerToken &b) ABEL_NOEXCEPT {
+    inline void swap(consumer_token &a, consumer_token &b) ABEL_NOEXCEPT {
         a.swap(b);
     }
 
     template<typename T, typename Traits>
-    inline void swap(typename ConcurrentQueue<T, Traits>::ImplicitProducerKVP &a,
-                     typename ConcurrentQueue<T, Traits>::ImplicitProducerKVP &b) ABEL_NOEXCEPT {
+    inline void swap(typename atomic_queue<T, Traits>::implicit_producer_kvp &a,
+                     typename atomic_queue<T, Traits>::implicit_producer_kvp &b) ABEL_NOEXCEPT {
         a.swap(b);
     }
 

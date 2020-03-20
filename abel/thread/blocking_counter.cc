@@ -1,7 +1,6 @@
 //
 
 #include <abel/thread/blocking_counter.h>
-
 #include <abel/log/raw_logging.h>
 
 namespace abel {
