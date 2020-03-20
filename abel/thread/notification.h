@@ -38,7 +38,6 @@
 #define ABEL_SYNCHRONIZATION_NOTIFICATION_H_
 
 #include <atomic>
-
 #include <abel/base/profile.h>
 #include <abel/thread/mutex.h>
 #include <abel/chrono/time.h>
