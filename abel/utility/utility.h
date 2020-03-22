@@ -280,9 +280,9 @@ namespace abel {
 //       // Invokes a lambda.
 //       abel::apply(user_lambda, tuple4);
 //   }
+
     template<typename Functor, typename Tuple>
-    auto apply(Functor &&functor, Tuple &&t)
-    -> decltype(utility_internal::apply_helper(
+    auto apply(Functor &&functor, Tuple &&t) -> decltype(utility_internal::apply_helper(
             abel::forward<Functor>(functor), abel::forward<Tuple>(t),
             abel::make_index_sequence<std::tuple_size<
                     typename std::remove_reference<Tuple>::type>::value>{})) {

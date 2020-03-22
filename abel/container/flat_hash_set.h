@@ -18,7 +18,6 @@
 
 #include <type_traits>
 #include <utility>
-
 #include <abel/algorithm/container.h>
 #include <abel/base/profile.h>
 #include <abel/container/internal/container_memory.h>

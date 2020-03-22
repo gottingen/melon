@@ -2076,11 +2076,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     ABEL_NO_ASAN int SomeFunction() { ... }
 //
 #ifndef ABEL_NO_ASAN
-#if defined(ABEL_COMPILER_CLANG)
-#define ABEL_NO_ASAN __attribute__((no_sanitize("address")))
-#else
-#define ABEL_NO_ASAN
-#endif
+    #if defined(ABEL_COMPILER_CLANG)
+        #define ABEL_NO_ASAN __attribute__((no_sanitize("address")))
+    #else
+        #define ABEL_NO_ASAN
+    #endif
 #endif
 
 
@@ -2091,13 +2091,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // Specifies whether the code is being built with Clang's Address Sanitizer.
 //
 #if defined(__has_feature)
-#if __has_feature(address_sanitizer)
-#define ABEL_ASAN_ENABLED 1
+    #if __has_feature(address_sanitizer)
+        #define ABEL_ASAN_ENABLED 1
+    #else
+        #define ABEL_ASAN_ENABLED 0
+    #endif
 #else
-#define ABEL_ASAN_ENABLED 0
-#endif
-#else
-#define ABEL_ASAN_ENABLED 0
+    #define ABEL_ASAN_ENABLED 0
 #endif
 
 
@@ -2939,13 +2939,15 @@ struct CBNonCopyable {
 
 #ifndef ABEL_THREAD_LOCAL
 
-#if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_CLANG)
-#define ABEL_THREAD_LOCAL __thread
-#elif defined(ABEL_COMPILER_MSVC)
-#define ABEL_THREAD_LOCAL __declspec(thread)
-#else
-#define ABEL_THREAD_LOCAL thread_local
-#endif
+    #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_CLANG)
+        #define ABEL_THREAD_LOCAL __thread
+    #elif defined(ABEL_COMPILER_MSVC)
+        #define ABEL_THREAD_LOCAL __declspec(thread)
+    #else
+        #define ABEL_THREAD_LOCAL thread_local
+    #endif
+
+    #define ABEL_THREAD_STACK_LOCAL thread_local
 
 #endif //ABEL_THREAD_LOCAL
 

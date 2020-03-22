@@ -1036,6 +1036,13 @@ namespace abel {
 #endif
 #endif
 
+
+#if defined(__GLIBCXX__)
+    typedef ::max_align_t std_max_align_t;      // libstdc++ forgot to add it to std:: for a while
+#else
+    typedef std::max_align_t std_max_align_t;   // Others (e.g. MSVC) insist it can *only* be accessed via std::
+#endif
+
 }  // namespace abel
 
 
