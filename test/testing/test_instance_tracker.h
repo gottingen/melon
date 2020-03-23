@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <ostream>
 
-#include <abel/types/compare.h>
+#include <abel/asl/compare.h>
 
 namespace abel {
 

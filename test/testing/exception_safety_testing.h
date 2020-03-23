@@ -21,10 +21,10 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile/pretty_function.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/string_view.h>
 #include <abel/strings/substitute.h>
-#include <abel/utility/utility.h>
+#include <abel/asl/utility.h>
 
 namespace testing {
 

@@ -11,7 +11,7 @@
 #include <abel/chrono/internal/cycle_clock.h>
 #include <abel/thread/internal/spinlock_wait.h>
 #include <abel/system/sysinfo.h> /* For num_cpus() */
-#include <abel/functional/call_once.h>
+#include <abel/asl/functional/call_once.h>
 
 // Description of lock-word:
 //  31..00: [............................3][2][1][0]

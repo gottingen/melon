@@ -11,8 +11,8 @@
 
 #include <abel/base/profile.h>
 #include <abel/stats/random/internal/fast_uniform_bits.h>
-#include <abel/types/optional.h>
-#include <abel/types/span.h>
+#include <abel/asl/optional.h>
+#include <abel/asl/span.h>
 
 namespace abel {
 

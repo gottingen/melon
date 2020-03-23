@@ -9,7 +9,7 @@
 #include <iterator>
 
 #include <abel/base/profile.h>
-#include <abel/functional/call_once.h>
+#include <abel/asl/functional/call_once.h>
 #include <abel/system/endian.h>
 #include <abel/log/raw_logging.h>
 #include <abel/thread/internal/spinlock.h>

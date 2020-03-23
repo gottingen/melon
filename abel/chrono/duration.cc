@@ -55,7 +55,7 @@
 #include <string>
 
 #include <abel/math/bit_cast.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 #include <abel/chrono/time.h>
 
 namespace abel {

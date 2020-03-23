@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <abel/stats/random/internal/generate_real.h>
 #include <abel/stats/random/internal/iostream_state_saver.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/uniform_int_distribution.h>
 
 namespace abel {

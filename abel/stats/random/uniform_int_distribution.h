@@ -23,7 +23,7 @@
 #include <abel/base/profile.h>
 #include <abel/stats/random/internal/fast_uniform_bits.h>
 #include <abel/stats/random/internal/iostream_state_saver.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/internal/wide_multiply.h>
 
 namespace abel {

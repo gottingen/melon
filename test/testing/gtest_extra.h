@@ -11,7 +11,7 @@
 #include <string>
 #include <gmock/gmock.h>
 
-#include <abel/format/format.h>
+#include <abel/asl/format.h>
 
 #ifndef FMT_USE_FILE_DESCRIPTORS
 # define FMT_USE_FILE_DESCRIPTORS 1
@@ -19,7 +19,7 @@
 
 #if FMT_USE_FILE_DESCRIPTORS
 
-# include <abel/format/posix.h>
+# include <abel/asl/format/posix.h>
 
 #endif
 

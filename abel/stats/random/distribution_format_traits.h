@@ -7,7 +7,7 @@
 #include <tuple>
 #include <typeinfo>
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/bernoulli_distribution.h>
 #include <abel/stats/random/beta_distribution.h>
 #include <abel/stats/random/exponential_distribution.h>
@@ -20,7 +20,7 @@
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_join.h>
 #include <abel/strings/string_view.h>
-#include <abel/types/span.h>
+#include <abel/asl/span.h>
 
 namespace abel {
 

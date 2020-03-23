@@ -6,10 +6,10 @@
 #define ABEL_SCHEDULE_SHARED_PTR_H_
 
 #include <abel/memory/internal/shared_ptr_debug.h>
-#include <abel/functional/indirect.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/functional/indirect.h>
+#include <abel/asl/type_traits.h>
 #include <abel/memory/internal/parent_from_member.h>
-#include <abel/utility/utility.h>
+#include <abel/asl/utility.h>
 #include <utility>
 #include <type_traits>
 #include <functional>

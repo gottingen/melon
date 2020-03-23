@@ -1,9 +1,7 @@
 //
 
-#include <abel/functional/function_ref.h>
-
+#include <abel/asl/functional.h>
 #include <memory>
-
 #include <benchmark/benchmark.h>
 #include <abel/base/profile.h>
 

@@ -10,7 +10,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/container/fixed_array.h>
+#include <abel/asl/fixed_array.h>
 #include <abel/strings/str_cat.h>
 
 #include <test/testing/escaping_test_common.h>

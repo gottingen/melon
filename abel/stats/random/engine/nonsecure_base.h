@@ -13,12 +13,12 @@
 #include <vector>
 
 #include <abel/base/profile.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/engine/pool_urbg.h>
 #include <abel/stats/random/seed/salted_seed_seq.h>
 #include <abel/stats/random/seed/seed_material.h>
-#include <abel/types/optional.h>
-#include <abel/types/span.h>
+#include <abel/asl/optional.h>
+#include <abel/asl/span.h>
 
 namespace abel {
 

@@ -18,7 +18,7 @@
 #include <abel/stats/random/seed/salted_seed_seq.h>
 #include <abel/stats/random/seed/seed_material.h>
 #include <abel/stats/random/seed/seed_gen_exception.h>
-#include <abel/types/span.h>
+#include <abel/asl/span.h>
 
 namespace abel {
 

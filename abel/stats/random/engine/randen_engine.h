@@ -11,7 +11,7 @@
 #include <limits>
 #include <type_traits>
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/internal/iostream_state_saver.h>
 #include <abel/stats/random/engine/randen.h>
 

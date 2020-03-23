@@ -14,8 +14,8 @@
 #endif
 
 #include <abel/base/profile.h>
-#include <abel/numeric/int128.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/numeric.h>
+#include <abel/asl/type_traits.h>
 
 namespace abel {
 

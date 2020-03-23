@@ -18,5 +18,6 @@ namespace abel {
 
     size_t thread_id();
 
+
 } //namespace abel
 #endif //ABEL_THREAD_THIS_THREAD_H_

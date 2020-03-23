@@ -4,7 +4,7 @@
 #include <cstring>
 
 #include <benchmark/benchmark.h>
-#include <abel/algorithm/algorithm.h>
+#include <abel/asl/algorithm.h>
 
 namespace {
 

@@ -10,7 +10,7 @@
 #include <cstring>
 #include <limits>
 #include <type_traits>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/math/countl_zero.h>
 
 namespace abel {

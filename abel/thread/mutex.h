@@ -48,7 +48,7 @@
 #include <cstdint>
 #include <string>
 #include <abel/base/const_init.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/memory/internal/low_level_alloc.h>
 #include <abel/thread/internal/thread_identity.h>
 #include <abel/thread/internal/tsan_mutex_interface.h>
@@ -671,12 +671,12 @@ namespace abel {
         // come from base classes. A simpler signature like
         // `condition(T*, bool (T::*)())` does not suffice.
         template<typename T>
-        condition(T *object, bool (abel::internal::identity<T>::type::* method)());
+        condition(T *object, bool (abel::identity<T>::type::* method)());
 
         // Same as above, for const members
         template<typename T>
         condition(const T *object,
-                  bool (abel::internal::identity<T>::type::* method)() const);
+                  bool (abel::identity<T>::type::* method)() const);
 
         // A condition that returns the value of `*cond`
         explicit condition(const bool *cond);
@@ -972,7 +972,7 @@ namespace abel {
 
     template<typename T>
     ABEL_FORCE_INLINE condition::condition(T *object,
-                                           bool (abel::internal::identity<T>::type::*method)())
+                                           bool (abel::identity<T>::type::*method)())
             : eval_(&CastAndCallMethod<T>),
               function_(nullptr),
               method_(reinterpret_cast<InternalMethodType>(method)),
@@ -980,7 +980,7 @@ namespace abel {
 
     template<typename T>
     ABEL_FORCE_INLINE condition::condition(const T *object,
-                                           bool (abel::internal::identity<T>::type::*method)()
+                                           bool (abel::identity<T>::type::*method)()
                                            const)
             : eval_(&CastAndCallMethod<T>),
               function_(nullptr),

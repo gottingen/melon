@@ -5,7 +5,7 @@
 #include <string>
 
 #include <benchmark/benchmark.h>
-#include <abel/container/fixed_array.h>
+#include <abel/asl/fixed_array.h>
 
 namespace {
 

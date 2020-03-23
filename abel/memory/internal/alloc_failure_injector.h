@@ -8,7 +8,7 @@
 #include <limits>
 #include <cstdint>
 #include <functional>
-#include <abel/utility/non_copyable.h>
+#include <abel/asl/functional/non_copyable.h>
 
 namespace abel {
     namespace memory_internal {

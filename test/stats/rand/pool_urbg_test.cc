@@ -9,8 +9,8 @@
 #include <iterator>
 
 #include <gtest/gtest.h>
-#include <abel/meta/type_traits.h>
-#include <abel/types/span.h>
+#include <abel/asl/type_traits.h>
+#include <abel/asl/span.h>
 
 using abel::random_internal::pool_urbg;
 using abel::random_internal::randen_pool;

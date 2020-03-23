@@ -23,7 +23,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <abel/meta/uninitialized.h>
+#include <abel/asl/uninitialized.h>
 #include <abel/strings/internal/ostringstream.h>
 #include <abel/strings/str_cat.h>
 
