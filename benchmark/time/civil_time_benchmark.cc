@@ -3,7 +3,7 @@
 #include <abel/chrono/civil_time.h>
 #include <numeric>
 #include <vector>
-#include <abel/hash/hash.h>
+#include <abel/asl/hash.h>
 #include <benchmark/benchmark.h>
 
 namespace {

@@ -3,7 +3,7 @@ FILE(GLOB ASL_SRC "asl/*.cc")
 FILE(GLOB ASL_CONTAINER_SRC "asl/container/*.cc")
 FILE(GLOB ASL_NUMERIC_SRC "asl/numeric/*.cc")
 FILE(GLOB ASL_FORMAT_SRC "asl/format/*.cc")
-
+FILE(GLOB ASL_HASH_SRC "asl/hash/*.cc")
 FILE(GLOB BASE_SRC "base/*.cc")
 
 
@@ -16,7 +16,7 @@ FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/flags/internal/*.cc")
 
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
 
-FILE(GLOB HASH_INTERNAL_SRC "hash/internal/*.cc")
+
 
 FILE(GLOB MEMORY_INTERNAL_SRC "memory/internal/*.cc")
 
@@ -48,6 +48,7 @@ SET(ABEL_SRC
         ${ASL_CONTAINER_SRC}
         ${ASL_NUMERIC_SRC}
         ${ASL_FORMAT_SRC}
+        ${ASL_HASH_SRC}
         ${BASE_SRC}
         ${CHRONO_SRC}
         ${CHRONO_INTERNAL_SRC}
@@ -56,7 +57,6 @@ SET(ABEL_SRC
         ${CONFIG_FLAGS_INTERNAL_SRC}
         ${CONFIG_FLAGS_SRC}
         ${HARDWARE_SRC}
-        ${HASH_INTERNAL_SRC}
         ${METRICS_SRC}
         ${STATS_RND_ENGINE_SRC}
         ${STATS_RND_SEED_SRC}

@@ -6,7 +6,7 @@
 // possible hash functions, by using SIMD instructions, or by
 // compromising on hash quality.
 
-#include <abel/hash/internal/city.h>
+#include <abel/asl/hash/city.h>
 
 #include <string.h>  // for memcpy and memset
 #include <algorithm>

@@ -1,6 +1,6 @@
 //
 
-#include <abel/hash/internal/hash.h>
+#include <abel/asl/hash/hash.h>
 
 namespace abel {
 

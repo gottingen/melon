@@ -1,6 +1,6 @@
 //
 
-#include <abel/hash/hash.h>
+#include <abel/asl/hash.h>
 
 #include <array>
 #include <bitset>
@@ -27,7 +27,7 @@
 #include <gtest/gtest.h>
 #include <abel/asl/flat_hash_set.h>
 #include <testing/hash_testing.h>
-#include <abel/hash/internal/spy_hash_state.h>
+#include <abel/asl/hash/spy_hash_state.h>
 #include <abel/asl/type_traits.h>
 #include <abel/asl/numeric.h>
 

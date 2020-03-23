@@ -10,7 +10,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/hash/internal/spy_hash_state.h>
+#include <abel/asl/hash/spy_hash_state.h>
 #include <abel/asl/type_traits.h>
 #include <abel/strings/str_cat.h>
 #include <abel/asl/variant.h>

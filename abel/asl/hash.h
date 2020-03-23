@@ -54,10 +54,10 @@
 //
 // For more information, see Adding Type Support to `abel::hash` below.
 //
-#ifndef ABEL_HASH_HASH_H_
-#define ABEL_HASH_HASH_H_
+#ifndef ABEL_ASL_HASH_H_
+#define ABEL_ASL_HASH_H_
 
-#include <abel/hash/internal/hash.h>
+#include <abel/asl/hash/hash.h>
 
 namespace abel {
 
@@ -314,4 +314,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_HASH_HASH_H_
+#endif  // ABEL_ASL_HASH_H_
