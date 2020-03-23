@@ -7,6 +7,7 @@
 
 #include <abel/asl/internal/config.h>
 #include <abel/asl/internal/type_common.h>
+#include <limits>
 
 namespace abel {
 
