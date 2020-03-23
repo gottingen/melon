@@ -39,7 +39,7 @@
 #include <type_traits>
 
 #include <abel/base/profile.h>
-#include <abel/hash/hash.h>
+#include <abel/asl/hash.h>
 #include <abel/strings/string_view.h>
 
 namespace abel {

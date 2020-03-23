@@ -2,7 +2,7 @@
 
 #include <cstdlib>
 
-#include <abel/hash/hash.h>
+#include <abel/asl/hash.h>
 
 // Prints the hash of argv[1].
 int main(int argc, char **argv) {

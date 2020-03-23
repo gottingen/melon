@@ -1,6 +1,6 @@
 //
 
-#include <abel/hash/internal/city.h>
+#include <abel/asl/hash/city.h>
 
 #include <string.h>
 #include <cstdio>

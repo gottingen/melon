@@ -3,8 +3,8 @@
 // File: hash.h
 // -----------------------------------------------------------------------------
 //
-#ifndef ABEL_HASH_INTERNAL_HASH_H_
-#define ABEL_HASH_INTERNAL_HASH_H_
+#ifndef ABEL_ASL_HASH_HASH_H_
+#define ABEL_ASL_HASH_HASH_H_
 
 #include <algorithm>
 #include <array>
@@ -34,7 +34,7 @@
 #include <abel/asl/optional.h>
 #include <abel/asl/variant.h>
 #include <abel/asl/utility.h>
-#include <abel/hash/internal/city.h>
+#include <abel/asl/hash/city.h>
 
 namespace abel {
 
@@ -993,4 +993,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_HASH_INTERNAL_HASH_H_
+#endif  // ABEL_ASL_HASH_HASH_H_

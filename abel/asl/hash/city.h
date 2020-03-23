@@ -29,8 +29,8 @@
 // of a+b is easily derived from the hashes of a and b.  This property
 // doesn't hold for any hash functions in this file.
 
-#ifndef ABEL_HASH_INTERNAL_CITY_H_
-#define ABEL_HASH_INTERNAL_CITY_H_
+#ifndef ABEL_ASL_HASH_CITY_H_
+#define ABEL_ASL_HASH_CITY_H_
 
 #include <stdint.h>
 #include <stdlib.h>  // for size_t.
@@ -79,4 +79,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_HASH_INTERNAL_CITY_H_
+#endif  // ABEL_ASL_HASH_CITY_H_

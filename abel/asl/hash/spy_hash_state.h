@@ -1,13 +1,13 @@
 //
 
-#ifndef ABEL_HASH_INTERNAL_SPY_HASH_STATE_H_
-#define ABEL_HASH_INTERNAL_SPY_HASH_STATE_H_
+#ifndef ABEL_ASL_HASH_SPY_HASH_STATE_H_
+#define ABEL_ASL_HASH_SPY_HASH_STATE_H_
 
 #include <ostream>
 #include <string>
 #include <vector>
 
-#include <abel/hash/hash.h>
+#include <abel/asl/hash.h>
 #include <abel/strings/ends_with.h>
 #include <abel/asl/format/printf.h>
 #include <abel/strings/str_join.h>
@@ -220,4 +220,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_HASH_INTERNAL_SPY_HASH_STATE_H_
+#endif  // ABEL_ASL_HASH_SPY_HASH_STATE_H_

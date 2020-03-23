@@ -25,8 +25,8 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FMT_FORMAT_H_
-#define FMT_FORMAT_H_
+#ifndef ABEL_ASL_FORMAT_FORMAT_H_
+#define ABEL_ASL_FORMAT_FORMAT_H_
 
 #include <algorithm>
 #include <cassert>
@@ -4069,4 +4069,4 @@ FMT_END_NAMESPACE
 # pragma GCC diagnostic pop
 #endif
 
-#endif  // FMT_FORMAT_H_
+#endif  // ABEL_ASL_FORMAT_FORMAT_H_
