@@ -15,7 +15,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 #include <abel/chrono/clock.h>
 #include <testing/time_util.h>
 

@@ -9,7 +9,7 @@
 #include <cstring>
 
 #include <abel/math/bit_cast.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 #include <abel/strings/internal/charconv_bigint.h>
 #include <abel/strings/internal/charconv_parse.h>
 #include <abel/math/countl_zero.h>

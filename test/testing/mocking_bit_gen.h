@@ -13,16 +13,16 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/container/flat_hash_map.h>
+#include <abel/asl/flat_hash_map.h>
 #include <abel/asl/type_traits.h>
 #include <abel/stats/random/distributions.h>
 #include <abel/stats/random/internal/distribution_caller.h>
 #include <testing/mocking_bit_gen_base.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_join.h>
-#include <abel/types/span.h>
-#include <abel/types/variant.h>
-#include <abel/utility/utility.h>
+#include <abel/asl/span.h>
+#include <abel/asl/variant.h>
+#include <abel/asl/utility.h>
 
 namespace abel {
 

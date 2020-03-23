@@ -1,9 +1,12 @@
 
-FILE(GLOB ALGO_SRC "algorithm/*.cc")
+FILE(GLOB ASL_SRC "asl/*.cc")
+FILE(GLOB ASL_CONTAINER_SRC "asl/container/*.cc")
+FILE(GLOB ASL_NUMERIC_SRC "asl/numeric/*.cc")
+FILE(GLOB ASL_FORMAT_SRC "asl/format/*.cc")
+
 FILE(GLOB BASE_SRC "base/*.cc")
 
-FILE(GLOB CONMTAINER_INTERNAL_SRC "container/internal/*.cc")
-FILE(GLOB CONMTAINER_SRC "container/*.cc")
+
 
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
 FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
@@ -17,8 +20,6 @@ FILE(GLOB HASH_INTERNAL_SRC "hash/internal/*.cc")
 
 FILE(GLOB MEMORY_INTERNAL_SRC "memory/internal/*.cc")
 
-FILE(GLOB NUMERIC_SRC "numeric/*.cc")
-
 
 FILE(GLOB STATS_RND_SRC "stats/random/*.cc")
 FILE(GLOB STATS_RND_ENGINE_SRC "stats/random/engine/*.cc")
@@ -28,9 +29,6 @@ FILE(GLOB STATS_RND_SEED_SRC "stats/random/seed/*.cc")
 FILE(GLOB STRINGS_SRC "strings/*.cc")
 FILE(GLOB STRINGS_INTERNAL_SRC "strings/internal/*.cc")
 
-FILE(GLOB FORMAT_SRC "format/*.cc")
-
-FILE(GLOB TYPES_SRC "types/*.cc")
 
 FILE(GLOB THREAD_INTERNAL_SRC "thread/internal/*.cc")
 FILE(GLOB THREAD_SRC "thread/*.cc")
@@ -46,12 +44,13 @@ FILE(GLOB CHRONO_SRC "chrono/*.cc")
 FILE(GLOB CHRONO_INTERNAL_SRC "chrono/internal/*.cc")
 
 SET(ABEL_SRC
+        ${ASL_SRC}
+        ${ASL_CONTAINER_SRC}
+        ${ASL_NUMERIC_SRC}
+        ${ASL_FORMAT_SRC}
+        ${BASE_SRC}
         ${CHRONO_SRC}
         ${CHRONO_INTERNAL_SRC}
-        ${ALGO_SRC}
-        ${BASE_SRC}
-        ${CONMTAINER_INTERNAL_SRC}
-        ${CONMTAINER_SRC}
         ${DEBUG_INTERNAL_SRC}
         ${DEBUG_SRC}
         ${CONFIG_FLAGS_INTERNAL_SRC}
@@ -59,14 +58,12 @@ SET(ABEL_SRC
         ${HARDWARE_SRC}
         ${HASH_INTERNAL_SRC}
         ${METRICS_SRC}
-        ${NUMERIC_SRC}
         ${STATS_RND_ENGINE_SRC}
         ${STATS_RND_SEED_SRC}
         ${STATS_RND_INTERNAL_SRC}
         ${STATS_RND_SRC}
         ${STRINGS_SRC}
         ${STRINGS_INTERNAL_SRC}
-        ${FORMAT_SRC}
         ${TYPES_SRC}
         ${DIGEST_SRC}
         ${SYSTEM_SRC}

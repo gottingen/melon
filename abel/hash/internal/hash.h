@@ -27,13 +27,13 @@
 
 #include <abel/system/endian.h>
 #include <abel/base/profile.h>
-#include <abel/container/fixed_array.h>
+#include <abel/asl/fixed_array.h>
 #include <abel/asl/type_traits.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 #include <abel/strings/string_view.h>
-#include <abel/types/optional.h>
-#include <abel/types/variant.h>
-#include <abel/utility/utility.h>
+#include <abel/asl/optional.h>
+#include <abel/asl/variant.h>
+#include <abel/asl/utility.h>
 #include <abel/hash/internal/city.h>
 
 namespace abel {

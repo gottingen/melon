@@ -18,7 +18,7 @@
 #include <abel/stats/random/engine/sequence_urbg.h>
 #include <abel/stats/random/random.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/printf.h>
+#include <abel/asl/format/printf.h>
 #include <abel/strings/str_replace.h>
 #include <abel/strings/strip.h>
 

@@ -15,13 +15,13 @@
 #include <gtest/gtest.h>
 #include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
-#include <abel/container/flat_hash_map.h>
+#include <abel/asl/flat_hash_map.h>
 #include <test/testing/chi_square.h>
 #include <test/testing/distribution_test_util.h>
 #include <abel/stats/random/engine/sequence_urbg.h>
 #include <abel/stats/random/random.h>
 #include <abel/strings/str_cat.h>
-#include <abel/format/printf.h>
+#include <abel/asl/format/printf.h>
 #include <abel/strings/str_replace.h>
 #include <abel/strings/strip.h>
 

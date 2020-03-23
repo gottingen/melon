@@ -33,7 +33,7 @@
 #endif
 
 #include <abel/base/profile.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 #include <abel/strings/string_view.h>
 #include <abel/math/countl_zero.h>
 

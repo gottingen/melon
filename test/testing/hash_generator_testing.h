@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <test/container/hash_policy_testing.h>
+#include <test/asl/hash_policy_testing.h>
 #include <abel/memory/memory.h>
 #include <abel/asl/type_traits.h>
 #include <abel/strings/string_view.h>

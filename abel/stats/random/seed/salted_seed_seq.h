@@ -11,11 +11,11 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/container/inlined_vector.h>
+#include <abel/asl/inlined_vector.h>
 #include <abel/asl/type_traits.h>
 #include <abel/stats/random/seed/seed_material.h>
-#include <abel/types/optional.h>
-#include <abel/types/span.h>
+#include <abel/asl/optional.h>
+#include <abel/asl/span.h>
 
 namespace abel {
 

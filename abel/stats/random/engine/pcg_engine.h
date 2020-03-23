@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <abel/base/profile.h>
 #include <abel/asl/type_traits.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 #include <abel/stats/random/internal/iostream_state_saver.h>
 #include <abel/math/rotr.h>
 

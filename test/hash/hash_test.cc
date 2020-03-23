@@ -25,11 +25,11 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/container/flat_hash_set.h>
+#include <abel/asl/flat_hash_set.h>
 #include <testing/hash_testing.h>
 #include <abel/hash/internal/spy_hash_state.h>
 #include <abel/asl/type_traits.h>
-#include <abel/numeric/int128.h>
+#include <abel/asl/numeric.h>
 
 namespace {
 

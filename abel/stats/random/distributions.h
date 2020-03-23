@@ -39,7 +39,7 @@
 #include <random>
 #include <type_traits>
 
-#include <abel/types/internal/inline_variable.h>
+#include <abel/asl/internal/inline_variable.h>
 #include <abel/stats/random/bernoulli_distribution.h>
 #include <abel/stats/random/beta_distribution.h>
 #include <abel/stats/random/distribution_format_traits.h>

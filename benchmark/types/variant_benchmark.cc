@@ -5,7 +5,7 @@
 // in building other tests. All other public variant methods should have
 // explicit tests.
 
-#include <abel/types/variant.h>
+#include <abel/asl/variant.h>
 
 #include <cstddef>
 #include <cstdlib>
@@ -13,7 +13,7 @@
 #include <tuple>
 
 #include <benchmark/benchmark.h>
-#include <abel/utility/utility.h>
+#include <abel/asl/utility.h>
 
 namespace abel {
 
