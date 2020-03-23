@@ -6,10 +6,11 @@
 #include <abel/memory/memory.h>
 #include <memory>
 #include <gtest/gtest.h>
+#include <abel/base/profile.h>
 
 
 using namespace abel;
-
+#if ABEL_COMPILER_CPP14_ENABLED
 TEST(noncopyable_function, basic_tests) {
         struct s {
             int f1(int x) const { return x + 1; }
@@ -67,5 +68,5 @@ TEST(noncopyable_function, small_move_tests) {
 TEST(noncopyable_function, large_move_tests) {
         do_move_tests<1000>();
 }
-
+#endif
 
