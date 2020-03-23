@@ -99,7 +99,7 @@
 #include <abel/container/internal/have_sse.h>
 #include <abel/container/internal/layout.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/utility/utility.h>
 #include <abel/math/countl_zero.h>
 #include <abel/math/countr_zero.h>

@@ -52,7 +52,7 @@
 #include <abel/container/internal/container_memory.h>
 #include <abel/container/internal/layout.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/string_view.h>
 #include <abel/types/compare.h>
 #include <abel/utility/utility.h>
@@ -1934,7 +1934,7 @@ namespace abel {
                           "Key comparison must be nothrow copy constructible");
             static_assert(std::is_nothrow_copy_constructible<allocator_type>::value,
                           "Allocator must be nothrow copy constructible");
-            static_assert(type_traits_internal::is_trivially_copyable<iterator>::value,
+            static_assert(abel::is_trivially_copyable<iterator>::value,
                           "iterator not trivially copyable.");
 
             // Note: We assert that kTargetValues, which is computed from

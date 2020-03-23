@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/log/raw_logging.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/string_view.h>
 
 struct Hashable {
@@ -1582,16 +1582,16 @@ namespace {
         static_assert(is_hash_enabled_for<abel::optional<int>>::value, "");
         static_assert(is_hash_enabled_for<abel::optional<Hashable>>::value, "");
         static_assert(
-                abel::type_traits_internal::IsHashable<abel::optional<int>>::value, "");
+                abel::is_hashable<abel::optional<int>>::value, "");
         static_assert(
-                abel::type_traits_internal::IsHashable<abel::optional<Hashable>>::value,
+                abel::is_hashable<abel::optional<Hashable>>::value,
                 "");
-        abel::type_traits_internal::AssertHashEnabled<abel::optional<int>>();
-        abel::type_traits_internal::AssertHashEnabled<abel::optional<Hashable>>();
+        abel::assert_hash_enabled<abel::optional<int>>();
+        abel::assert_hash_enabled<abel::optional<Hashable>>();
 
 #if ABEL_META_INTERNAL_STD_HASH_SFINAE_FRIENDLY_
         static_assert(!is_hash_enabled_for<abel::optional<NonHashable>>::value, "");
-        static_assert(!abel::type_traits_internal::IsHashable<
+        static_assert(!abel::is_hashable<
                               abel::optional<NonHashable>>::value,
                       "");
 #endif

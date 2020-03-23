@@ -28,7 +28,7 @@
 #include <abel/container/flat_hash_set.h>
 #include <testing/hash_testing.h>
 #include <abel/hash/internal/spy_hash_state.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/numeric/int128.h>
 
 namespace {

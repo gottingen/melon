@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <abel/chrono/internal/cycle_clock.h>
 #include <testing/hash_testing.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 #if defined(_MSC_VER) && _MSC_VER == 1900
 // Disable "unary minus operator applied to unsigned type" warnings in Microsoft

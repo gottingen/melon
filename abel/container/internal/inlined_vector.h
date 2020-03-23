@@ -14,7 +14,7 @@
 #include <abel/base/profile.h>
 #include <abel/container/internal/compressed_tuple.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/span.h>
 
 namespace abel {

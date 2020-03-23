@@ -49,7 +49,7 @@ using std::nullopt;
 
 #include <abel/base/profile.h>
 #include <abel/types/internal/inline_variable.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/bad_optional_access.h>
 #include <abel/types/internal/optional.h>
 
@@ -372,10 +372,10 @@ namespace abel {
         // Swap, standard semantics
         void swap(optional &rhs) noexcept(
         std::is_nothrow_move_constructible<T>::value &&
-        type_traits_internal::IsNothrowSwappable<T>::value) {
+        abel::is_nothrow_swappable<T>::value) {
             if (*this) {
                 if (rhs) {
-                    type_traits_internal::Swap(**this, *rhs);
+                    abel::abel_swap(**this, *rhs);
                 } else {
                     rhs.construct(std::move(**this));
                     this->destruct();
@@ -542,7 +542,7 @@ namespace abel {
 // semantics.
     template<typename T, typename std::enable_if<
             std::is_move_constructible<T>::value &&
-            type_traits_internal::IsSwappable<T>::value,
+            abel::is_swappable<T>::value,
             bool>::type = false>
     void swap(optional<T> &a, optional<T> &b) noexcept(noexcept(a.swap(b))) {
         a.swap(b);

@@ -11,7 +11,7 @@
 #include <abel/base/throw_delegate.h>
 #include <abel/container/internal/btree.h>  // IWYU pragma: export
 #include <abel/container/internal/common.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 namespace abel {
 

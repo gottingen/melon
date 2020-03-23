@@ -14,7 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/container/flat_hash_map.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/distributions.h>
 #include <abel/stats/random/internal/distribution_caller.h>
 #include <testing/mocking_bit_gen_base.h>

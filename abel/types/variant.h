@@ -60,7 +60,7 @@ using std::visit;
 #include <type_traits>
 #include <utility>
 #include <abel/base/profile.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/internal/variant.h>
 
 namespace abel {
@@ -121,7 +121,7 @@ namespace abel {
             typename... Ts,
             abel::enable_if_t<
                     abel::conjunction<std::is_move_constructible<Ts>...,
-                            type_traits_internal::IsSwappable<Ts>...>::value,
+                            abel::is_swappable<Ts>...>::value,
                     int> = 0>
     void swap(variant<Ts...> &v, variant<Ts...> &w) noexcept(noexcept(v.swap(w))) {
         v.swap(w);
@@ -695,8 +695,8 @@ namespace abel {
         abel::conjunction<
                 std::is_nothrow_move_constructible<T0>,
                 std::is_nothrow_move_constructible<Tn>...,
-                type_traits_internal::IsNothrowSwappable<T0>,
-                type_traits_internal::IsNothrowSwappable<Tn>...>::value) {
+                abel::is_nothrow_swappable<T0>,
+                abel::is_nothrow_swappable<Tn>...>::value) {
             return variant_internal::VisitIndices<sizeof...(Tn) + 1>::Run(
                     variant_internal::Swap<T0, Tn...>{this, &rhs}, rhs.index());
         }

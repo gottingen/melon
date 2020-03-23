@@ -35,7 +35,7 @@
 #include <abel/base/profile.h>
 #include <abel/types/internal/inline_variable.h>
 #include <abel/functional/internal/invoke.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 namespace abel {
 

@@ -6,7 +6,7 @@
 #include <cinttypes>
 #include <limits>
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/span.h>
 
 namespace abel {

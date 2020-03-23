@@ -26,7 +26,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 // The following code is internal implementation detail.  See the comment at the
 // top of this file for the API documentation.

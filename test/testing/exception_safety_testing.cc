@@ -4,7 +4,7 @@
 #ifdef ABEL_HAVE_EXCEPTIONS
 
 #include <gtest/gtest.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 namespace testing {
 

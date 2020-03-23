@@ -4,7 +4,7 @@
 #define ABEL_TYPES_INTERNAL_INLINE_VARIABLE_EMULATION_H_
 
 #include <type_traits>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 // File:
 //   This file define a macro that allows the creation of or emulation of C++17
@@ -76,14 +76,14 @@
 #define ABEL_INTERNAL_INLINE_CONSTEXPR(var_type, name, init)                  \
   template <class /*AbelInternalDummy*/ = void>                               \
   struct AbelInternalInlineVariableHolder##name {                             \
-    static constexpr ::abel::internal::identity_t<var_type> kInstance = init; \
+    static constexpr ::abel::identity_t<var_type> kInstance = init; \
   };                                                                          \
                                                                               \
   template <class AbelInternalDummy>                                          \
-  constexpr ::abel::internal::identity_t<var_type>                            \
+  constexpr ::abel::identity_t<var_type>                            \
       AbelInternalInlineVariableHolder##name<AbelInternalDummy>::kInstance;   \
                                                                               \
-  static constexpr const ::abel::internal::identity_t<var_type>&              \
+  static constexpr const ::abel::identity_t<var_type>&              \
       name = /* NOLINT */                                                     \
       AbelInternalInlineVariableHolder##name<>::kInstance;                    \
   static_assert(sizeof(void (*)(decltype(name))) != 0,                        \

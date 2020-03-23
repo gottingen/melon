@@ -21,7 +21,7 @@
 #include <abel/config/flags/flag.h>
 #include <testing/hash_testing.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>
 #include <abel/strings/string_view.h>

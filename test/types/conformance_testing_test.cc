@@ -5,7 +5,7 @@
 #include <utility>
 
 #include <gtest/gtest.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/internal/conformance_aliases.h>
 
 namespace {
@@ -17,7 +17,7 @@ namespace {
 
     template<class T>
     using DefaultConstructibleWithNew =
-    abel::type_traits_internal::is_detected<DefaultConstructibleWithNewImpl, T>;
+    abel::is_detected<DefaultConstructibleWithNewImpl, T>;
 
     template<class T>
     using MoveConstructibleWithNewImpl =
@@ -25,7 +25,7 @@ namespace {
 
     template<class T>
     using MoveConstructibleWithNew =
-    abel::type_traits_internal::is_detected<MoveConstructibleWithNewImpl, T>;
+    abel::is_detected<MoveConstructibleWithNewImpl, T>;
 
     template<class T>
     using CopyConstructibleWithNewImpl =
@@ -33,7 +33,7 @@ namespace {
 
     template<class T>
     using CopyConstructibleWithNew =
-    abel::type_traits_internal::is_detected<CopyConstructibleWithNewImpl, T>;
+    abel::is_detected<CopyConstructibleWithNewImpl, T>;
 
     template<class T,
             class Result =
@@ -43,7 +43,7 @@ namespace {
 
     template<class T>
     using NothrowDefaultConstructibleWithNew =
-    abel::type_traits_internal::is_detected<
+    abel::is_detected<
             NothrowDefaultConstructibleWithNewImpl, T>;
 
     template<class T,
@@ -54,7 +54,7 @@ namespace {
 
     template<class T>
     using NothrowMoveConstructibleWithNew =
-    abel::type_traits_internal::is_detected<NothrowMoveConstructibleWithNewImpl,
+    abel::is_detected<NothrowMoveConstructibleWithNewImpl,
             T>;
 
     template<class T,
@@ -65,7 +65,7 @@ namespace {
 
     template<class T>
     using NothrowCopyConstructibleWithNew =
-    abel::type_traits_internal::is_detected<NothrowCopyConstructibleWithNewImpl,
+    abel::is_detected<NothrowCopyConstructibleWithNewImpl,
             T>;
 
 // NOTE: ?: is used to verify contextually-convertible to bool and not simply
@@ -78,7 +78,7 @@ namespace {
   using name##Impl = decltype(ABEL_INTERNAL_COMPARISON_OP_EXPR(op));        \
                                                                             \
   template <class T>                                                        \
-  using name = abel::type_traits_internal::is_detected<name##Impl, T>;      \
+  using name = abel::is_detected<name##Impl, T>;      \
                                                                             \
   template <class T,                                                        \
             class Result = std::integral_constant<                          \
@@ -87,7 +87,7 @@ namespace {
                                                                             \
   template <class T>                                                        \
   using Nothrow##name =                                                     \
-      abel::type_traits_internal::is_detected<Nothrow##name##Impl, T>
+      abel::is_detected<Nothrow##name##Impl, T>
 
     ABEL_INTERNAL_COMPARISON_OP_TRAIT(EqualityComparable, ==);
     ABEL_INTERNAL_COMPARISON_OP_TRAIT(InequalityComparable, !=);
@@ -651,16 +651,16 @@ namespace {
         //////////////////////////////////////////////////////////////////////////////
         switch (expected_props::swappable_support) {
             case ti::swappable::maybe:
-                EXPECT_FALSE(abel::type_traits_internal::IsSwappable<arch>::value);
-                EXPECT_FALSE(abel::type_traits_internal::IsNothrowSwappable<arch>::value);
+                EXPECT_FALSE(abel::is_swappable<arch>::value);
+                EXPECT_FALSE(abel::is_nothrow_swappable<arch>::value);
                 break;
             case ti::swappable::yes:
-                EXPECT_TRUE(abel::type_traits_internal::IsSwappable<arch>::value);
-                EXPECT_FALSE(abel::type_traits_internal::IsNothrowSwappable<arch>::value);
+                EXPECT_TRUE(abel::is_swappable<arch>::value);
+                EXPECT_FALSE(abel::is_nothrow_swappable<arch>::value);
                 break;
             case ti::swappable::nothrow:
-                EXPECT_TRUE(abel::type_traits_internal::IsSwappable<arch>::value);
-                EXPECT_TRUE(abel::type_traits_internal::IsNothrowSwappable<arch>::value);
+                EXPECT_TRUE(abel::is_swappable<arch>::value);
+                EXPECT_TRUE(abel::is_nothrow_swappable<arch>::value);
                 break;
         }
 
@@ -670,11 +670,11 @@ namespace {
         switch (expected_props::hashable_support) {
             case ti::hashable::maybe:
 #if ABEL_META_INTERNAL_STD_HASH_SFINAE_FRIENDLY_
-                EXPECT_FALSE(abel::type_traits_internal::IsHashable<arch>::value);
+                EXPECT_FALSE(abel::is_hashable<arch>::value);
 #endif  // ABEL_META_INTERNAL_STD_HASH_SFINAE_FRIENDLY_
                 break;
             case ti::hashable::yes:
-                EXPECT_TRUE(abel::type_traits_internal::IsHashable<arch>::value);
+                EXPECT_TRUE(abel::is_hashable<arch>::value);
                 break;
         }
     }

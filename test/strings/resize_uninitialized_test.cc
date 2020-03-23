@@ -1,5 +1,5 @@
 
-#include <abel/meta/uninitialized.h>
+#include <abel/asl/uninitialized.h>
 #include <gtest/gtest.h>
 
 namespace {

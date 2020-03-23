@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <utility>
 #include <abel/base/profile.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 namespace abel {
 
@@ -22,8 +22,8 @@ namespace abel {
                 : std::integral_constant<
                         bool,
                         sizeof(Dest) == sizeof(Source) &&
-                        type_traits_internal::is_trivially_copyable<Source>::value &&
-                        type_traits_internal::is_trivially_copyable<Dest>::value &&
+                        abel::is_trivially_copyable<Source>::value &&
+                        abel::is_trivially_copyable<Dest>::value &&
                         std::is_default_constructible<Dest>::value> {
         };
 

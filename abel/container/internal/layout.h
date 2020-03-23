@@ -161,7 +161,7 @@
 #include <sanitizer/asan_interface.h>
 #endif
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/str_cat.h>
 #include <abel/types/span.h>
 #include <abel/utility/utility.h>

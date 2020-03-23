@@ -11,7 +11,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <abel/hash/internal/spy_hash_state.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/str_cat.h>
 #include <abel/types/variant.h>
 

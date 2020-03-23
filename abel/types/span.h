@@ -51,7 +51,7 @@
 #include <utility>
 #include <abel/base/throw_delegate.h>
 #include <abel/base/profile.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/internal/span.h>
 
 namespace abel {

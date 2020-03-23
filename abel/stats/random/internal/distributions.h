@@ -3,9 +3,8 @@
 #ifndef ABEL_RANDOM_INTERNAL_DISTRIBUTIONS_H_
 #define ABEL_RANDOM_INTERNAL_DISTRIBUTIONS_H_
 
-#include <type_traits>
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/internal/distribution_caller.h>
 #include <abel/stats/random/internal/uniform_helper.h>
 

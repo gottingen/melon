@@ -12,7 +12,7 @@
 #include <utility>
 
 #include <abel/container/inlined_vector.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/seed/seed_material.h>
 #include <abel/types/optional.h>
 #include <abel/types/span.h>

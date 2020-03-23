@@ -26,7 +26,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/strings/string_view.h>
 
 #ifdef ABEL_HAVE_EXCEPTIONS
@@ -2113,16 +2113,16 @@ namespace abel {
         }
 
         TEST(VariantTest, Hash) {
-            static_assert(type_traits_internal::IsHashable<variant<int>>::value, "");
-            static_assert(type_traits_internal::IsHashable<variant<Hashable>>::value, "");
-            static_assert(type_traits_internal::IsHashable<variant<int, Hashable>>::value,
+            static_assert(abel::is_hashable<variant<int>>::value, "");
+            static_assert(abel::is_hashable<variant<Hashable>>::value, "");
+            static_assert(abel::is_hashable<variant<int, Hashable>>::value,
                           "");
 
 #if ABEL_META_INTERNAL_STD_HASH_SFINAE_FRIENDLY_
-            static_assert(!type_traits_internal::IsHashable<variant<NonHashable>>::value,
+            static_assert(!abel::is_hashable<variant<NonHashable>>::value,
                           "");
             static_assert(
-                    !type_traits_internal::IsHashable<variant<Hashable, NonHashable>>::value,
+                    !abel::is_hashable<variant<Hashable, NonHashable>>::value,
                     "");
 #endif
 
@@ -2147,10 +2147,10 @@ namespace abel {
                 EXPECT_GT(hashcodes.size(), 90);
 
                 // test const-qualified
-                static_assert(type_traits_internal::IsHashable<variant<const int>>::value,
+                static_assert(abel::is_hashable<variant<const int>>::value,
                               "");
                 static_assert(
-                        type_traits_internal::IsHashable<variant<const Hashable>>::value, "");
+                        abel::is_hashable<variant<const Hashable>>::value, "");
                 std::hash<abel::variant<const int>> c_hash;
                 for (int i = 0; i < 100; ++i) {
                     EXPECT_EQ(hash(i), c_hash(i));

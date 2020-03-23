@@ -10,7 +10,7 @@
 #include <abel/utility/utility.h>
 #include <abel/schedule//preempt.h>
 #include <abel/schedule/thread_impl.h>
-#include <abel/meta//type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/memory/internal/alloc_failure_injector.h>
 #include <type_traits>
 #include <stdexcept>

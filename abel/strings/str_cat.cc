@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <abel/meta/uninitialized.h>
+#include <abel/asl/uninitialized.h>
 #include <abel/strings/ascii.h>
 #include <abel/strings/numbers.h>
 

@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <testing/hash_generator_testing.h>
 #include <test/container/hash_policy_testing.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 
 namespace abel {
 

@@ -1,13 +1,11 @@
 //
 
-#include <abel/meta/type_traits.h>
-
+#include <abel/asl/type_traits.h>
 #include <cstdint>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
-
 #include <gtest/gtest.h>
 
 namespace {
@@ -56,10 +54,10 @@ namespace {
 
     template<class Class, class... T>
     using BarIsCallable =
-    abel::type_traits_internal::is_detected<BarIsCallableImpl, Class, T...>;
+    abel::is_detected<BarIsCallableImpl, Class, T...>;
 
     template<class Class, class... T>
-    using BarIsCallableConv = abel::type_traits_internal::is_detected_convertible<
+    using BarIsCallableConv = abel::is_detected_convertible<
             ReturnType, BarIsCallableImpl, Class, T...>;
 
 // NOTE: Test of detail type_traits_internal::is_detected.
@@ -860,60 +858,60 @@ namespace {
 
     TEST(TypeTraitsTest, TestTriviallyCopyable) {
         // Verify that arithmetic types and pointers are trivially copyable.
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<bool>::value);
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<char>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<bool>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<char>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<unsigned char>::value);
+                abel::is_trivially_copyable<unsigned char>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<signed char>::value);
+                abel::is_trivially_copyable<signed char>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<wchar_t>::value);
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<int>::value);
+                abel::is_trivially_copyable<wchar_t>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<int>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<unsigned int>::value);
+                abel::is_trivially_copyable<unsigned int>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<int16_t>::value);
+                abel::is_trivially_copyable<int16_t>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<uint16_t>::value);
+                abel::is_trivially_copyable<uint16_t>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<int64_t>::value);
+                abel::is_trivially_copyable<int64_t>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<uint64_t>::value);
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<float>::value);
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<double>::value);
+                abel::is_trivially_copyable<uint64_t>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<float>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<double>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<long double>::value);
+                abel::is_trivially_copyable<long double>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<std::string *>::value);
+                abel::is_trivially_copyable<std::string *>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<Trivial *>::value);
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<
+                abel::is_trivially_copyable<Trivial *>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<
                             const std::string*>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<const Trivial *>::value);
+                abel::is_trivially_copyable<const Trivial *>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<std::string **>::value);
+                abel::is_trivially_copyable<std::string **>::value);
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<Trivial **>::value);
+                abel::is_trivially_copyable<Trivial **>::value);
 
         // const qualified types are not assignable but are constructible
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<const int>::value);
+                abel::is_trivially_copyable<const int>::value);
 
         // Trivial copy constructor/assignment and destructor.
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<Trivial>::value);
+                abel::is_trivially_copyable<Trivial>::value);
         // Trivial copy assignment, but non-trivial copy constructor/destructor.
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE(abel::is_trivially_copyable<
                              TrivialCopyAssign > ::value);
         // Trivial copy constructor, but non-trivial assignment.
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE(abel::is_trivially_copyable<
                              TrivialCopyCtor > ::value);
 
         // Types with a non-trivial copy constructor/assignment
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE(abel::is_trivially_copyable<
                              NontrivialCopyCtor > ::value);
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE(abel::is_trivially_copyable<
                              NontrivialCopyAssign > ::value);
 
         // Types without copy constructor/assignment, but with move
@@ -922,51 +920,51 @@ namespace {
         //             MovableNonCopyable>::value);
 
         // Types without copy/move constructor/assignment
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE(abel::is_trivially_copyable<
                              NonCopyableOrMovable > ::value);
 
         // No copy assign, but has trivial copy constructor.
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_TRUE(abel::is_trivially_copyable<
                             DeletedCopyAssign > ::value);
 
         // types with vtables
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<Base>::value);
+        EXPECT_FALSE(abel::is_trivially_copyable<Base>::value);
 
         // Verify that simple_pair is trivially copyable if members are
-        EXPECT_TRUE((abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_TRUE((abel::is_trivially_copyable<
                 simple_pair<int, char *>>::value));
-        EXPECT_TRUE((abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_TRUE((abel::is_trivially_copyable<
                 simple_pair<int, Trivial>>::value));
 
         // Verify that types not trivially copyable are
         // correctly marked as such.
         EXPECT_FALSE(
-                abel::type_traits_internal::is_trivially_copyable<std::string>::value);
-        EXPECT_FALSE(abel::type_traits_internal::is_trivially_copyable<
+                abel::is_trivially_copyable<std::string>::value);
+        EXPECT_FALSE(abel::is_trivially_copyable<
                              std::vector<int>>
                              ::value);
 
         // Verify that simple_pairs of types not trivially copyable
         // are not marked as trivial.
-        EXPECT_FALSE((abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE((abel::is_trivially_copyable<
                 simple_pair<int, std::string>>::value));
-        EXPECT_FALSE((abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE((abel::is_trivially_copyable<
                 simple_pair<std::string, int>>::value));
-        EXPECT_FALSE((abel::type_traits_internal::is_trivially_copyable<
+        EXPECT_FALSE((abel::is_trivially_copyable<
                 simple_pair<int, TrivialCopyAssign>>::value));
 
         // Verify that arrays of trivially copyable types are trivially copyable
         using int10 = int[10];
-        EXPECT_TRUE(abel::type_traits_internal::is_trivially_copyable<int10>::value);
+        EXPECT_TRUE(abel::is_trivially_copyable<int10>::value);
         using int10x10 = int[10][10];
         EXPECT_TRUE(
-                abel::type_traits_internal::is_trivially_copyable<int10x10>::value);
+                abel::is_trivially_copyable<int10x10>::value);
 
         // Verify that references are handled correctly
         EXPECT_FALSE(
-                abel::type_traits_internal::is_trivially_copyable<Trivial &&>::value);
+                abel::is_trivially_copyable<Trivial &&>::value);
         EXPECT_FALSE(
-                abel::type_traits_internal::is_trivially_copyable<Trivial &>::value);
+                abel::is_trivially_copyable<Trivial &>::value);
     }
 
 #define ABEL_INTERNAL_EXPECT_ALIAS_EQUIVALENCE(trait_name, ...)          \
@@ -1345,15 +1343,15 @@ namespace {
 
     }  // namespace adl_namespace
 
-    TEST(TypeTraitsTest, IsSwappable) {
-        using abel::type_traits_internal::IsSwappable;
-        using abel::type_traits_internal::StdSwapIsUnconstrained;
+    TEST(TypeTraitsTest, is_swappable) {
+        using abel::is_swappable;
+        using abel::std_swap_is_unconstrained;
 
-        EXPECT_TRUE(IsSwappable<int>::value);
+        EXPECT_TRUE(is_swappable<int>::value);
 
         struct S {
         };
-        EXPECT_TRUE(IsSwappable<S>::value);
+        EXPECT_TRUE(is_swappable<S>::value);
 
         struct NoConstruct {
             NoConstruct(NoConstruct &&) = delete;
@@ -1363,7 +1361,7 @@ namespace {
             ~NoConstruct() = default;
         };
 
-        EXPECT_EQ(IsSwappable<NoConstruct>::value, StdSwapIsUnconstrained::value);
+        EXPECT_EQ(is_swappable<NoConstruct>::value, std_swap_is_unconstrained::value);
         struct NoAssign {
             NoAssign(NoAssign &&) {}
 
@@ -1372,18 +1370,18 @@ namespace {
             ~NoAssign() = default;
         };
 
-        EXPECT_EQ(IsSwappable<NoAssign>::value, StdSwapIsUnconstrained::value);
+        EXPECT_EQ(is_swappable<NoAssign>::value, std_swap_is_unconstrained::value);
 
-        EXPECT_FALSE(IsSwappable<adl_namespace::DeletedSwap>::value);
+        EXPECT_FALSE(is_swappable<adl_namespace::DeletedSwap>::value);
 
-        EXPECT_TRUE(IsSwappable<adl_namespace::SpecialNoexceptSwap>::value);
+        EXPECT_TRUE(is_swappable<adl_namespace::SpecialNoexceptSwap>::value);
     }
 
-    TEST(TypeTraitsTest, IsNothrowSwappable) {
-        using abel::type_traits_internal::IsNothrowSwappable;
-        using abel::type_traits_internal::StdSwapIsUnconstrained;
+    TEST(TypeTraitsTest, is_nothrow_swappable) {
+        using abel::is_nothrow_swappable;
+        using abel::std_swap_is_unconstrained;
 
-        EXPECT_TRUE(IsNothrowSwappable<int>::value);
+        EXPECT_TRUE(is_nothrow_swappable<int>::value);
 
         struct NonNoexceptMoves {
             NonNoexceptMoves(NonNoexceptMoves &&) {}
@@ -1393,7 +1391,7 @@ namespace {
             ~NonNoexceptMoves() = default;
         };
 
-        EXPECT_FALSE(IsNothrowSwappable<NonNoexceptMoves>::value);
+        EXPECT_FALSE(is_nothrow_swappable<NonNoexceptMoves>::value);
 
         struct NoConstruct {
             NoConstruct(NoConstruct &&) = delete;
@@ -1403,7 +1401,7 @@ namespace {
             ~NoConstruct() = default;
         };
 
-        EXPECT_FALSE(IsNothrowSwappable<NoConstruct>::value);
+        EXPECT_FALSE(is_nothrow_swappable<NoConstruct>::value);
 
         struct NoAssign {
             NoAssign(NoAssign &&) {}
@@ -1413,11 +1411,11 @@ namespace {
             ~NoAssign() = default;
         };
 
-        EXPECT_FALSE(IsNothrowSwappable<NoAssign>::value);
+        EXPECT_FALSE(is_nothrow_swappable<NoAssign>::value);
 
-        EXPECT_FALSE(IsNothrowSwappable<adl_namespace::DeletedSwap>::value);
+        EXPECT_FALSE(is_nothrow_swappable<adl_namespace::DeletedSwap>::value);
 
-        //EXPECT_TRUE(IsNothrowSwappable<adl_namespace::SpecialNoexceptSwap>::value);
+        //EXPECT_TRUE(is_nothrow_swappable<adl_namespace::SpecialNoexceptSwap>::value);
     }
 
 

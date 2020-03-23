@@ -28,7 +28,7 @@
 #include <abel/system/endian.h>
 #include <abel/base/profile.h>
 #include <abel/container/fixed_array.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/numeric/int128.h>
 #include <abel/strings/string_view.h>
 #include <abel/types/optional.h>
@@ -671,7 +671,7 @@ namespace abel {
             struct StdHashProbe {
                 template<typename H, typename T>
                 static auto Invoke(H state, const T &value)
-                -> abel::enable_if_t<type_traits_internal::IsHashable<T>::value, H> {
+                -> abel::enable_if_t<abel::is_hashable<T>::value, H> {
                     return hash_internal::hash_bytes(std::move(state), std::hash<T>{}(value));
                 }
             };

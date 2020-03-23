@@ -8,7 +8,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/distributions.h>
 #include <testing/mock_overload_set.h>
 #include <testing/mocking_bit_gen.h>

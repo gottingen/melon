@@ -18,7 +18,7 @@
 #include <abel/types/internal/inline_variable.h>
 #include <abel/functional/internal/invoke.h>
 #include <abel/base/profile.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/types/bad_variant_access.h>
 #include <abel/utility/utility.h>
 
@@ -1072,7 +1072,7 @@ namespace abel {
             std::size_t index_;
         };
 
-        using abel::internal::identity;
+        using abel::identity;
 
 // OverloadSet::Overload() is a unary function which is overloaded to
 // take any of the element types of the variant, by reference-to-const.
@@ -1118,7 +1118,7 @@ namespace abel {
         template<class T>
         using NotEqualResult = decltype(std::declval<T>() != std::declval<T>());
 
-        using type_traits_internal::is_detected_convertible;
+        using abel::is_detected_convertible;
 
         template<class... T>
         using RequireAllHaveEqualT = abel::enable_if_t<
@@ -1596,7 +1596,7 @@ namespace abel {
 
             template<std::size_t I>
             void operator()(SizeT<I>) const {
-                type_traits_internal::Swap(VariantCoreAccess::Access<I>(*v),
+                abel::abel_swap(VariantCoreAccess::Access<I>(*v),
                                            VariantCoreAccess::Access<I>(*w));
             }
 
@@ -1656,13 +1656,13 @@ namespace abel {
         template<typename Variant, typename... Ts>
         struct VariantHashBase<Variant,
                 abel::enable_if_t<abel::conjunction<
-                        type_traits_internal::IsHashable<Ts>...>::value>,
+                        abel::is_hashable<Ts>...>::value>,
                 Ts...> {
             using argument_type = Variant;
             using result_type = size_t;
 
             size_t operator()(const Variant &var) const {
-                type_traits_internal::AssertHashEnabled<Ts...>();
+                abel::assert_hash_enabled<Ts...>();
                 if (var.valueless_by_exception()) {
                     return 239799884;
                 }

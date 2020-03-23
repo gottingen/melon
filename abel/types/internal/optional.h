@@ -9,7 +9,7 @@
 
 #include <abel/types/internal/inline_variable.h>
 #include <abel/memory/memory.h>
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/utility/utility.h>
 
 // ABEL_OPTIONAL_USE_INHERITING_CONSTRUCTORS
@@ -400,7 +400,7 @@ namespace abel {
             using result_type = size_t;
 
             size_t operator()(const abel::optional<T> &opt) const {
-                abel::type_traits_internal::AssertHashEnabled<abel::remove_const_t<T>>();
+                abel::assert_hash_enabled<abel::remove_const_t<T>>();
                 if (opt) {
                     return std::hash<abel::remove_const_t<T> >()(*opt);
                 } else {

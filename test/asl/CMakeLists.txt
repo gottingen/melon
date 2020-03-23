@@ -4,7 +4,7 @@ file(GLOB META_SRC "*.cc")
 foreach (fl ${META_SRC})
 
     string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" SRC_NAME ${fl})
-    set(TEST_NAME meta_${SRC_NAME})
+    set(TEST_NAME asl_${SRC_NAME})
     add_executable(${TEST_NAME}
             ${SRC_NAME}.cc
             )

@@ -7,7 +7,7 @@
 #include <tuple>
 #include <typeinfo>
 
-#include <abel/meta/type_traits.h>
+#include <abel/asl/type_traits.h>
 #include <abel/stats/random/bernoulli_distribution.h>
 #include <abel/stats/random/beta_distribution.h>
 #include <abel/stats/random/exponential_distribution.h>
