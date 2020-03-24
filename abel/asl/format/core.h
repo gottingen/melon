@@ -51,20 +51,6 @@
 # define FMT_EXPLICIT
 #endif
 
-#ifndef FMT_NULL
-# if ABEL_COMPILER_HAS_FEATURE(cxx_nullptr) || \
-   (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-   FMT_MSC_VER >= 1600
-#  define FMT_NULL nullptr
-#  define FMT_USE_NULLPTR 1
-# else
-#  define FMT_NULL NULL
-# endif
-#endif
-
-#ifndef FMT_USE_NULLPTR
-# define FMT_USE_NULLPTR 0
-#endif
 
 #if ABEL_COMPILER_HAS_CPP_ATTRIBUTE(noreturn)
 # define FMT_NORETURN [[noreturn]]
@@ -134,10 +120,6 @@
 # define FMT_API
 #endif
 
-#ifndef FMT_ASSERT
-# define FMT_ASSERT(condition, message) assert((condition) && message)
-#endif
-
 #define FMT_DELETED = delete
 
 // A macro to disallow the copy construction and assignment.
@@ -175,7 +157,7 @@ FMT_BEGIN_NAMESPACE
 // Casts nonnegative integer to unsigned.
             template<typename Int>
             FMT_CONSTEXPR typename std::make_unsigned<Int>::type to_unsigned(Int value) {
-                FMT_ASSERT(value >= 0, "negative value");
+                ABEL_ASSERT_MSG(value >= 0, "negative value");
                 return static_cast<typename std::make_unsigned<Int>::type>(value);
             }
 
@@ -205,12 +187,12 @@ FMT_BEGIN_NAMESPACE
             typedef std::experimental::basic_string_view<Char> type;
 #else
             struct type {
-              const char *data() const { return FMT_NULL; }
+              const char *data() const { return ABEL_NULL; }
               size_t size() const { return 0; }
             };
 #endif
 
-            FMT_CONSTEXPR basic_string_view() FMT_NOEXCEPT : data_(FMT_NULL), size_(0) {}
+            FMT_CONSTEXPR basic_string_view() FMT_NOEXCEPT : data_(ABEL_NULL), size_(0) {}
 
             /** Constructs a string reference object from a C string and a size. */
             FMT_CONSTEXPR basic_string_view(const Char *s, size_t count) FMT_NOEXCEPT
@@ -309,7 +291,7 @@ FMT_BEGIN_NAMESPACE
                 std::size_t capacity_;
 
             protected:
-                basic_buffer(T *p = FMT_NULL, std::size_t sz = 0, std::size_t cap = 0)
+                basic_buffer(T *p = ABEL_NULL, std::size_t sz = 0, std::size_t cap = 0)
                 FMT_NOEXCEPT: ptr_(p), size_(sz), capacity_(cap) {}
 
                 /** Sets the buffer data and capacity. */
@@ -437,12 +419,12 @@ FMT_BEGIN_NAMESPACE
             };
 
             FMT_CONSTEXPR bool is_integral(type t) {
-                FMT_ASSERT(t != internal::named_arg_type, "invalid argument type");
+                ABEL_ASSERT_MSG(t != internal::named_arg_type, "invalid argument type");
                 return t > internal::none_type && t <= internal::last_integer_type;
             }
 
             FMT_CONSTEXPR bool is_arithmetic(type t) {
-                FMT_ASSERT(t != internal::named_arg_type, "invalid argument type");
+                ABEL_ASSERT_MSG(t != internal::named_arg_type, "invalid argument type");
                 return t > internal::none_type && t <= internal::last_numeric_type;
             }
 
@@ -646,11 +628,8 @@ FMT_BEGIN_NAMESPACE
 
             FMT_MAKE_VALUE_SAME(pointer_type, const void*)
 
-#if FMT_USE_NULLPTR
-
             FMT_MAKE_VALUE(pointer_type, std::nullptr_t, const void*)
 
-#endif
 
 // Formatting of arbitrary pointers is disallowed. If you want to output a
 // pointer cast it to "void *" or "const void *". In particular, this forbids
@@ -828,7 +807,7 @@ FMT_BEGIN_NAMESPACE
                 }
 
             public:
-                arg_map() : map_(FMT_NULL), size_(0) {}
+                arg_map() : map_(ABEL_NULL), size_(0) {}
 
                 void init(const basic_format_args<Context> &args);
 

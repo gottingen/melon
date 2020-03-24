@@ -1,4 +1,4 @@
-// Formatting library for C++ - test version of FMT_ASSERT
+// Formatting library for C++ - test version of ABEL_ASSERT_MSG
 //
 // Copyright (c) 2012 - present, Victor Zverovich
 // All rights reserved.
@@ -15,7 +15,7 @@ public:
     explicit AssertionFailure(const char *message) : std::logic_error(message) {}
 };
 
-#define FMT_ASSERT(condition, message) \
+#define ABEL_ASSERT_MSG(condition, message) \
   if (!(condition)) throw AssertionFailure(message);
 
 #include <test/testing/gtest_extra.h>

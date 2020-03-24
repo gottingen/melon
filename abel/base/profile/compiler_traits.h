@@ -1053,13 +1053,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 #endif
 
 #ifndef ABEL_NULL
-#if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
-#define ABEL_NULL NULL
-#else
-#define ABEL_NULL nullptr
+    #if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
+        #define ABEL_NULL NULL
+    #else
+        #define ABEL_NULL nullptr
+    #endif
 #endif
 
-#endif
 // ------------------------------------------------------------------------
 // ABEL_CURRENT_FUNCTION
 //

@@ -136,7 +136,7 @@ FMT_BEGIN_NAMESPACE
 
         public:
             // Constructs a buffered_file object which doesn't represent any file.
-            buffered_file() FMT_NOEXCEPT : file_(FMT_NULL) {}
+            buffered_file() FMT_NOEXCEPT : file_(ABEL_NULL) {}
 
             // Destroys the object closing the file it represents if any.
             FMT_API ~buffered_file() FMT_DTOR_NOEXCEPT;
@@ -158,7 +158,7 @@ FMT_BEGIN_NAMESPACE
 
             // A "move constructor" for moving from an lvalue.
             buffered_file(buffered_file &f) FMT_NOEXCEPT : file_(f.file_) {
-              f.file_ = FMT_NULL;
+              f.file_ = ABEL_NULL;
             }
 
             // A "move assignment operator" for moving from a temporary.
@@ -172,7 +172,7 @@ FMT_BEGIN_NAMESPACE
             buffered_file &operator=(buffered_file &other) {
               close();
               file_ = other.file_;
-              other.file_ = FMT_NULL;
+              other.file_ = ABEL_NULL;
               return *this;
             }
 
@@ -180,7 +180,7 @@ FMT_BEGIN_NAMESPACE
             //   buffered_file file = buffered_file(...);
             operator Proxy() FMT_NOEXCEPT {
               Proxy p = {file_};
-              file_ = FMT_NULL;
+              file_ = ABEL_NULL;
               return p;
             }
 
@@ -190,13 +190,13 @@ FMT_BEGIN_NAMESPACE
 
         public:
             buffered_file(buffered_file &&other) FMT_NOEXCEPT : file_(other.file_) {
-                other.file_ = FMT_NULL;
+                other.file_ = ABEL_NULL;
             }
 
             buffered_file &operator=(buffered_file &&other) {
                 close();
                 file_ = other.file_;
-                other.file_ = FMT_NULL;
+                other.file_ = ABEL_NULL;
                 return *this;
             }
 
@@ -391,7 +391,7 @@ FMT_BEGIN_NAMESPACE
         public:
             typedef locale_t Type;
 
-            Locale() : locale_(newlocale(LC_NUMERIC_MASK, "C", FMT_NULL)) {
+            Locale() : locale_(newlocale(LC_NUMERIC_MASK, "C", ABEL_NULL)) {
                 if (!locale_)
                     FMT_THROW(system_error(errno, "cannot create locale"));
             }
@@ -403,7 +403,7 @@ FMT_BEGIN_NAMESPACE
             // Converts string to floating-point number and advances str past the end
             // of the parsed input.
             double strtod(const char *&str) const {
-                char *end = FMT_NULL;
+                char *end = ABEL_NULL;
                 double result = strtod_l(str, &end, locale_);
                 str = end;
                 return result;

@@ -89,7 +89,7 @@ FMT_BEGIN_NAMESPACE
 
             public:
                 static FMT_CONSTEXPR_DECL const bool value =
-                        !std::is_void<decltype(check<T>(FMT_NULL))>::value;
+                        !std::is_void<decltype(check<T>(ABEL_NULL))>::value;
             };
 
             template<typename... Ts>
@@ -123,7 +123,7 @@ FMT_BEGIN_NAMESPACE
 
             public:
                 static FMT_CONSTEXPR_DECL const bool value =
-                        !std::is_void<decltype(check<T>(FMT_NULL))>::value;
+                        !std::is_void<decltype(check<T>(ABEL_NULL))>::value;
             };
 
 // Check for integer_sequence

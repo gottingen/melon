@@ -954,7 +954,7 @@ TEST(IteratorTest, CountingIterator) {
 }
 
 TEST(IteratorTest, TruncatingIterator) {
-    char *p = FMT_NULL;
+    char *p = nullptr;
     fmt::internal::truncating_iterator<char *> it(p, 3);
     auto prev = it++;
     EXPECT_EQ(prev.base(), p);

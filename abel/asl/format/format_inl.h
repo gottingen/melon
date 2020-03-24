@@ -98,7 +98,7 @@ FMT_BEGIN_NAMESPACE
 // Buffer should be at least of size 1.
             int safe_strerror(
                     int error_code, char *&buffer, std::size_t buffer_size) FMT_NOEXCEPT {
-                FMT_ASSERT(buffer != FMT_NULL && buffer_size != 0, "invalid buffer");
+                ABEL_ASSERT_MSG(buffer != ABEL_NULL && buffer_size != 0, "invalid buffer");
 
                 class dispatcher {
                 private:
@@ -352,7 +352,7 @@ FMT_BEGIN_NAMESPACE
           }
 
           int length = MultiByteToWideChar(
-              CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size, FMT_NULL, 0);
+              CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size, ABEL_NULL, 0);
           if (length == 0)
             FMT_THROW(windows_error(GetLastError(), ERROR_MSG));
           buffer_.resize(length + 1);
@@ -382,12 +382,12 @@ FMT_BEGIN_NAMESPACE
           }
 
           int length = WideCharToMultiByte(
-                CP_UTF8, 0, s.data(), s_size, FMT_NULL, 0, FMT_NULL, FMT_NULL);
+                CP_UTF8, 0, s.data(), s_size, ABEL_NULL, 0, ABEL_NULL, ABEL_NULL);
           if (length == 0)
             return GetLastError();
           buffer_.resize(length + 1);
           length = WideCharToMultiByte(
-            CP_UTF8, 0, s.data(), s_size, &buffer_[0], length, FMT_NULL, FMT_NULL);
+            CP_UTF8, 0, s.data(), s_size, &buffer_[0], length, ABEL_NULL, ABEL_NULL);
           if (length == 0)
             return GetLastError();
           buffer_[length] = 0;
@@ -412,8 +412,8 @@ FMT_BEGIN_NAMESPACE
               wchar_t *system_message = &buf[0];
               int result = FormatMessageW(
                   FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                  FMT_NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  system_message, static_cast<uint32_t>(buf.size()), FMT_NULL);
+                  ABEL_NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                  system_message, static_cast<uint32_t>(buf.size()), ABEL_NULL);
               if (result != 0) {
                 utf16_to_utf8 utf8_message;
                 if (utf8_message.convert(system_message) == ERROR_SUCCESS) {

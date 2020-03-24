@@ -354,7 +354,7 @@ FMT_BEGIN_NAMESPACE
 
 // Returns an fp number representing x - y. Result may not be normalized.
             inline fp operator-(fp x, fp y) {
-                FMT_ASSERT(x.f >= y.f && x.e == y.e, "invalid operands");
+                ABEL_ASSERT_MSG(x.f >= y.f && x.e == y.e, "invalid operands");
                 return fp(x.f - y.f, x.e);
             }
 
@@ -1240,7 +1240,7 @@ FMT_BEGIN_NAMESPACE
                 case internal::none_type:
                     break;
                 case internal::named_arg_type:
-                    FMT_ASSERT(false, "invalid argument type");
+                    ABEL_ASSERT_MSG(false, "invalid argument type");
                     break;
                 case internal::int_type:
                     return vis(arg.value_.int_value);
@@ -1608,7 +1608,7 @@ FMT_BEGIN_NAMESPACE
                 arg_formatter_base(Range r, format_specs &s) : writer_(r), specs_(s) {}
 
                 iterator operator()(monostate) {
-                    FMT_ASSERT(false, "invalid argument type");
+                    ABEL_ASSERT_MSG(false, "invalid argument type");
                     return out();
                 }
 
@@ -3027,7 +3027,7 @@ FMT_BEGIN_NAMESPACE
                 T value, const format_specs &spec,
                 internal::basic_buffer<char_type> &buffer) {
             // Buffer capacity must be non-zero, otherwise MSVC's vsnprintf_s will fail.
-            FMT_ASSERT(buffer.capacity() != 0, "empty buffer");
+            ABEL_ASSERT_MSG(buffer.capacity() != 0, "empty buffer");
 
             // Build format string.
             enum {
@@ -3048,7 +3048,7 @@ FMT_BEGIN_NAMESPACE
             *format_ptr = '\0';
 
             // Format using snprintf.
-            char_type * start = FMT_NULL;
+            char_type * start = ABEL_NULL;
             for (;;) {
                 std::size_t buffer_size = buffer.capacity();
                 start = &buffer[0];
@@ -3256,7 +3256,7 @@ FMT_BEGIN_NAMESPACE
                 switch (type) {
                     case internal::none_type:
                     case internal::named_arg_type:
-                        FMT_ASSERT(false, "invalid argument type");
+                        ABEL_ASSERT_MSG(false, "invalid argument type");
                         break;
                     case internal::int_type:
                     case internal::uint_type:
