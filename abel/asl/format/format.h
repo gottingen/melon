@@ -111,7 +111,7 @@ FMT_END_NAMESPACE
 
 #ifndef FMT_USE_USER_DEFINED_LITERALS
 // For Intel's compiler both it and the system gcc/msc must support UDLs.
-# if (FMT_HAS_FEATURE(cxx_user_literals) || \
+# if (ABEL_COMPILER_HAS_FEATURE(cxx_user_literals) || \
       FMT_GCC_VERSION >= 407 || FMT_MSC_VER >= 1900) && \
       (!FMT_ICC_VERSION || FMT_ICC_VERSION >= 1500)
 #  define FMT_USE_USER_DEFINED_LITERALS 1
@@ -138,14 +138,14 @@ FMT_END_NAMESPACE
 # endif
 #endif
 
-#if FMT_HAS_GXX_CXX11 || FMT_HAS_FEATURE(cxx_trailing_return) || \
+#if FMT_HAS_GXX_CXX11 || ABEL_COMPILER_HAS_FEATURE(cxx_trailing_return) || \
     FMT_MSC_VER >= 1600
 # define FMT_USE_TRAILING_RETURN 1
 #else
 # define FMT_USE_TRAILING_RETURN 0
 #endif
 
-#if FMT_HAS_GXX_CXX11 || FMT_HAS_FEATURE(cxx_rvalue_references) || \
+#if FMT_HAS_GXX_CXX11 || ABEL_COMPILER_HAS_FEATURE(cxx_rvalue_references) || \
     FMT_MSC_VER >= 1600
 # define FMT_USE_RVALUE_REFERENCES 1
 #else
@@ -982,7 +982,7 @@ FMT_BEGIN_NAMESPACE
 
 #endif
 
-#if FMT_HAS_CPP_ATTRIBUTE(always_inline)
+#if ABEL_COMPILER_HAS_CPP_ATTRIBUTE(always_inline)
 # define FMT_ALWAYS_INLINE __attribute__((always_inline))
 #else
 # define FMT_ALWAYS_INLINE

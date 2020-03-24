@@ -1,13 +1,7 @@
-// Formatting library for C++ - the core API
-//
-// Copyright (c) 2012 - present, Victor Zverovich
-// All rights reserved.
-//
-// For the license information refer to format.h.
+#ifndef ABEL_ASL_FORMAT_CORE_H_
+#define ABEL_ASL_FORMAT_CORE_H_
 
-#ifndef FMT_CORE_H_
-#define FMT_CORE_H_
-
+#include <abel/base/profile.h>
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -15,26 +9,6 @@
 #include <string>
 #include <type_traits>
 
-// The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 50100
-
-#ifdef __has_feature
-# define FMT_HAS_FEATURE(x) __has_feature(x)
-#else
-# define FMT_HAS_FEATURE(x) 0
-#endif
-
-#ifdef __has_include
-# define FMT_HAS_INCLUDE(x) __has_include(x)
-#else
-# define FMT_HAS_INCLUDE(x) 0
-#endif
-
-#ifdef __has_cpp_attribute
-# define FMT_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-# define FMT_HAS_CPP_ATTRIBUTE(x) 0
-#endif
 
 #if defined(__GNUC__) && !defined(__clang__)
 # define FMT_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
@@ -58,7 +32,7 @@
 // GCC doesn't allow throw in constexpr until version 6 (bug 67371).
 #ifndef FMT_USE_CONSTEXPR
 # define FMT_USE_CONSTEXPR \
-  (FMT_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VER >= 1910 || \
+  (ABEL_COMPILER_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VER >= 1910 || \
    (FMT_GCC_VERSION >= 600 && __cplusplus >= 201402L))
 #endif
 #if FMT_USE_CONSTEXPR
@@ -70,7 +44,7 @@
 #endif
 
 #ifndef FMT_OVERRIDE
-# if FMT_HAS_FEATURE(cxx_override) || \
+# if ABEL_COMPILER_HAS_FEATURE(cxx_override) || \
      (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
      FMT_MSC_VER >= 1900
 #  define FMT_OVERRIDE override
@@ -79,7 +53,7 @@
 # endif
 #endif
 
-#if FMT_HAS_FEATURE(cxx_explicit_conversions) || \
+#if ABEL_COMPILER_HAS_FEATURE(cxx_explicit_conversions) || \
     FMT_MSC_VER >= 1800
 # define FMT_EXPLICIT explicit
 #else
@@ -87,7 +61,7 @@
 #endif
 
 #ifndef FMT_NULL
-# if FMT_HAS_FEATURE(cxx_nullptr) || \
+# if ABEL_COMPILER_HAS_FEATURE(cxx_nullptr) || \
    (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
    FMT_MSC_VER >= 1600
 #  define FMT_NULL nullptr
@@ -101,7 +75,7 @@
 # define FMT_USE_NULLPTR 0
 #endif
 
-#if FMT_HAS_CPP_ATTRIBUTE(noreturn)
+#if ABEL_COMPILER_HAS_CPP_ATTRIBUTE(noreturn)
 # define FMT_NORETURN [[noreturn]]
 #else
 # define FMT_NORETURN
@@ -122,7 +96,7 @@
 # define FMT_USE_NOEXCEPT 0
 #endif
 
-#if FMT_USE_NOEXCEPT || FMT_HAS_FEATURE(cxx_noexcept) || \
+#if FMT_USE_NOEXCEPT || ABEL_COMPILER_HAS_FEATURE(cxx_noexcept) || \
     (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
     FMT_MSC_VER >= 1900
 # define FMT_DETECTED_NOEXCEPT noexcept
@@ -147,7 +121,7 @@
 #endif
 
 #ifndef FMT_BEGIN_NAMESPACE
-# if FMT_HAS_FEATURE(cxx_inline_namespaces) || FMT_GCC_VERSION >= 404 || \
+# if ABEL_COMPILER_HAS_FEATURE(cxx_inline_namespaces) || FMT_GCC_VERSION >= 404 || \
      FMT_MSC_VER >= 1900
 #  define FMT_INLINE_NAMESPACE inline namespace
 #  define FMT_END_NAMESPACE }}
@@ -181,14 +155,14 @@
     void operator=(const Type &) FMT_DELETED
 
 // libc++ supports string_view in pre-c++17.
-#if (FMT_HAS_INCLUDE(<string_view>) && \
+#if (ABEL_COMPILER_HAS_INCLUDE(<string_view>) && \
       (__cplusplus > 201402L || defined(_LIBCPP_VERSION))) || \
     (defined(_MSVC_LANG) && _MSVC_LANG > 201402L && _MSC_VER >= 1910)
 
 # include <string_view>
 
 # define FMT_USE_STD_STRING_VIEW
-#elif (FMT_HAS_INCLUDE(<experimental/string_view>) && \
+#elif (ABEL_COMPILER_HAS_INCLUDE(<experimental/string_view>) && \
        __cplusplus >= 201402L)
 # include <experimental/string_view>
 # define FMT_USE_EXPERIMENTAL_STRING_VIEW
@@ -1409,4 +1383,4 @@ FMT_BEGIN_NAMESPACE
         }
 FMT_END_NAMESPACE
 
-#endif  // FMT_CORE_H_
+#endif  // ABEL_ASL_FORMAT_CORE_H_

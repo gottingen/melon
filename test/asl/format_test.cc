@@ -1404,7 +1404,7 @@ TEST(FormatTest, Enum) {
     EXPECT_EQ("0", fmt::format("{}", A));
 }
 
-#if FMT_HAS_FEATURE(cxx_strong_enums)
+#if ABEL_COMPILER_HAS_FEATURE(cxx_strong_enums)
 enum TestFixedEnum : short {
     B
 };

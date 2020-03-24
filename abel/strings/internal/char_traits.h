@@ -6,7 +6,7 @@
 #define ABEL_STRINGS_INTERNAL_CHAR_TRAITS_H_
 
 #include <abel/base/profile.h>  // disable some warnings on Windows
-#include <abel/strings/ascii.h>  // for abel::ascii_tolower
+#include <abel/asl/ascii.h>  // for abel::ascii_tolower
 #include <cstddef>
 #include <cstring>
 

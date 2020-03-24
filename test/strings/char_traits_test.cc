@@ -2,7 +2,7 @@
 #include <abel/strings/internal/char_traits.h>
 #include <cstdlib>
 #include <gtest/gtest.h>
-#include <abel/strings/ascii.h>
+#include <abel/asl/ascii.h>
 
 namespace {
 /*
