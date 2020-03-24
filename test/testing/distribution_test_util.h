@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/asl/span.h>
 
 // NOTE: The functions in this file are test only, and are should not be used in

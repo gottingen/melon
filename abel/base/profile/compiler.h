@@ -147,15 +147,15 @@
 // C++11 support.
 //
 #if !defined(ABEL_COMPILER_CPP11_ENABLED) && defined(__cplusplus)
-#if (__cplusplus >= 201103L)    // Clang and GCC defines this like so in C++11 mode.
-#define ABEL_COMPILER_CPP11_ENABLED 1
-#elif defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
-#define ABEL_COMPILER_CPP11_ENABLED 1
-#elif defined(_MSC_VER) && _MSC_VER >= 1600         // Microsoft unilaterally enables its C++11 support; there is no way to disable it.
-#define ABEL_COMPILER_CPP11_ENABLED 1
-#elif defined(__EDG_VERSION__) // && ???
-// To do: Is there a generic way to determine this?
-#endif
+    #if (__cplusplus >= 201103L)    // Clang and GCC defines this like so in C++11 mode.
+        #define ABEL_COMPILER_CPP11_ENABLED 1
+    #elif defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
+        #define ABEL_COMPILER_CPP11_ENABLED 1
+    #elif defined(_MSC_VER) && _MSC_VER >= 1600         // Microsoft unilaterally enables its C++11 support; there is no way to disable it.
+        #define ABEL_COMPILER_CPP11_ENABLED 1
+    #elif defined(__EDG_VERSION__) // && ???
+        // To do: Is there a generic way to determine this?
+    #endif
 #endif
 
 
@@ -229,6 +229,7 @@
 #elif defined(__clang__) && !defined(_MSC_VER)
 #define ABEL_COMPILER_CLANG   1
 #define ABEL_COMPILER_VERSION (__clang_major__ * 100 + __clang_minor__)
+#define ABEL_CLANG_VERSION ABEL_COMPILER_VERSION
 #define ABEL_COMPILER_NAME    "clang"
 #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME __clang_version__
 
@@ -236,6 +237,7 @@
 #elif defined(__GNUC__) // GCC compilers exist for many platforms.
 #define ABEL_COMPILER_GNUC    1
 #define ABEL_COMPILER_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
+#define ABEL_GNUC_VERSION  ABEL_COMPILER_VERSION
 #define ABEL_COMPILER_NAME    "GCC"
 #define ABEL_COMPILER_STRING  ABEL_COMPILER_NAME " compiler, version " INTERNAL_STRINGIZE( __GNUC__ ) "." INTERNAL_STRINGIZE( __GNUC_MINOR__ )
 
@@ -253,6 +255,7 @@
 #elif defined(__BORLANDC__)
 #define ABEL_COMPILER_BORLANDC 1
 #define ABEL_COMPILER_VERSION  __BORLANDC__
+#define ABEL_BORLANDC_VERSION ABEL_COMPILER_VERSION
 #define ABEL_COMPILER_NAME     "Borland C"
 //#define ABEL_COMPILER_STRING (defined below)
 

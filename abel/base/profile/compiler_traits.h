@@ -1705,11 +1705,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //        struct D : B { void f(int) ABEL_OVERRIDE; };
 //
 #ifndef ABEL_OVERRIDE
-#if defined(ABEL_COMPILER_NO_OVERRIDE)
-#define ABEL_OVERRIDE
-#else
-#define ABEL_OVERRIDE override
-#endif
+    #if defined(ABEL_COMPILER_NO_OVERRIDE)
+        #define ABEL_OVERRIDE
+    #else
+        #define ABEL_OVERRIDE override
+    #endif
 #endif
 
 

@@ -21,7 +21,7 @@
 #include <abel/log/raw_logging.h>
 #include <abel/asl/ascii.h>
 #include <abel/strings/escaping.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/strings/strip.h>
 
 #if defined(__native_client__)

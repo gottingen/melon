@@ -5,7 +5,7 @@
 #ifndef ABEL_STRINGS_COMPARE_H_
 #define ABEL_STRINGS_COMPARE_H_
 
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 
 namespace abel {
 /**

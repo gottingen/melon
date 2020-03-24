@@ -43,15 +43,6 @@
 # define FMT_CONSTEXPR_DECL
 #endif
 
-#ifndef FMT_OVERRIDE
-# if ABEL_COMPILER_HAS_FEATURE(cxx_override) || \
-     (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-     FMT_MSC_VER >= 1900
-#  define FMT_OVERRIDE override
-# else
-#  define FMT_OVERRIDE
-# endif
-#endif
 
 #if ABEL_COMPILER_HAS_FEATURE(cxx_explicit_conversions) || \
     FMT_MSC_VER >= 1800
@@ -390,7 +381,7 @@ FMT_BEGIN_NAMESPACE
                 Container &container_;
 
             protected:
-                void grow(std::size_t capacity) FMT_OVERRIDE {
+                void grow(std::size_t capacity) ABEL_OVERRIDE {
                     container_.resize(capacity);
                     this->set(&container_[0], capacity);
                 }
@@ -1050,20 +1041,9 @@ FMT_BEGIN_NAMESPACE
             static const long long TYPES;
 #endif
 
-#if (FMT_GCC_VERSION && FMT_GCC_VERSION <= 405) || \
-    (FMT_MSC_VER && FMT_MSC_VER <= 1800)
-            // Workaround array initialization issues in gcc <= 4.5 and MSVC <= 2013.
-            format_arg_store(const Args &... args) {
-              value_type init[DATA_SIZE] =
-                {internal::make_arg<IS_PACKED, Context>(args)...};
-              std::memcpy(data_, init, sizeof(init));
-            }
-#else
-
             format_arg_store(const Args &... args)
                     : data_{internal::make_arg<IS_PACKED, Context>(args)...} {}
 
-#endif
         };
 
 #if !FMT_USE_CONSTEXPR

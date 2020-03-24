@@ -20,7 +20,7 @@
 #include <abel/asl/container/hash_function_defaults.h>
 #include <test/asl/hash_policy_testing.h>
 #include <abel/asl/container/hashtable_debug.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 
 namespace abel {
 

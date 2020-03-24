@@ -25,7 +25,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/asl/type_traits.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 
 #ifdef _GLIBCXX_DEBUG
 #include <abel/strings/internal/stl_type_traits.h>
