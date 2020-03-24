@@ -1924,13 +1924,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //         { throw "error"; }
 //
 #if !defined(ABEL_NORETURN)
-#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
-#define ABEL_NORETURN __declspec(noreturn)
-#elif defined(ABEL_COMPILER_NO_NORETURN)
-#define ABEL_NORETURN
-#else
-#define ABEL_NORETURN [[noreturn]]
-#endif
+    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
+        #define ABEL_NORETURN __declspec(noreturn)
+    #elif defined(ABEL_COMPILER_NO_NORETURN)
+        #define ABEL_NORETURN
+    #else
+        #define ABEL_NORETURN [[noreturn]]
+    #endif
 #endif
 
 

@@ -88,7 +88,7 @@ private:
 public:
     explicit OutputRedirect(FILE *file);
 
-    ~OutputRedirect() FMT_NOEXCEPT;
+    ~OutputRedirect() ABEL_NOEXCEPT;
 
     // Restores the original file, reads output from the pipe into a string
     // and returns it.

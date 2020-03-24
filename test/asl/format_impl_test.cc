@@ -6,7 +6,7 @@
 // For the license information refer to format.h.
 
 #define FMT_EXTENDED_COLORS
-#define FMT_NOEXCEPT
+#define ABEL_NOEXCEPT
 #undef FMT_SHARED
 
 #include <test/testing/test_assert.h>
@@ -32,7 +32,7 @@ struct ValueExtractor : fmt::internal::function<T> {
     }
 
     template<typename U>
-    FMT_NORETURN T operator()(U) {
+    ABEL_NORETURN T operator()(U) {
         throw std::runtime_error(fmt::format("invalid type {}", typeid(U).name()));
     }
 };

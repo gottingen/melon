@@ -97,7 +97,7 @@ FMT_BEGIN_NAMESPACE
 //   other  - failure
 // Buffer should be at least of size 1.
             int safe_strerror(
-                    int error_code, char *&buffer, std::size_t buffer_size) FMT_NOEXCEPT {
+                    int error_code, char *&buffer, std::size_t buffer_size) ABEL_NOEXCEPT {
                 ABEL_ASSERT_MSG(buffer != ABEL_NULL && buffer_size != 0, "invalid buffer");
 
                 class dispatcher {
@@ -155,7 +155,7 @@ FMT_BEGIN_NAMESPACE
             }
 
             void format_error_code(internal::buffer &out, int error_code,
-                                   string_view message) FMT_NOEXCEPT {
+                                   string_view message) ABEL_NOEXCEPT {
                 // Report error code making sure that the output fits into
                 // inline_buffer_size to avoid dynamic memory allocation and potential
                 // bad_alloc.
@@ -182,7 +182,7 @@ FMT_BEGIN_NAMESPACE
             }
 
             void report_error(FormatFunc func, int error_code,
-                              string_view message) FMT_NOEXCEPT {
+                              string_view message) ABEL_NOEXCEPT {
                 memory_buffer full_message;
                 func(full_message, error_code, message);
                 // Use Writer::data instead of Writer::c_str to avoid potential memory
@@ -404,7 +404,7 @@ FMT_BEGIN_NAMESPACE
         }
 
         FMT_FUNC void internal::format_windows_error(
-            internal::buffer &out, int error_code, string_view message) FMT_NOEXCEPT {
+            internal::buffer &out, int error_code, string_view message) ABEL_NOEXCEPT {
           FMT_TRY {
             wmemory_buffer buf;
             buf.resize(inline_buffer_size);
@@ -436,7 +436,7 @@ FMT_BEGIN_NAMESPACE
 #endif  // FMT_USE_WINDOWS_H
 
         FMT_FUNC void format_system_error(
-                internal::buffer &out, int error_code, string_view message) FMT_NOEXCEPT {
+                internal::buffer &out, int error_code, string_view message) ABEL_NOEXCEPT {
             FMT_TRY {
                 memory_buffer buf;
                 buf.resize(inline_buffer_size);
@@ -468,13 +468,13 @@ FMT_BEGIN_NAMESPACE
         }
 
         FMT_FUNC void report_system_error(
-                int error_code, fmt::string_view message) FMT_NOEXCEPT {
+                int error_code, fmt::string_view message) ABEL_NOEXCEPT {
             report_error(format_system_error, error_code, message);
         }
 
 #if FMT_USE_WINDOWS_H
         FMT_FUNC void report_windows_error(
-            int error_code, fmt::string_view message) FMT_NOEXCEPT {
+            int error_code, fmt::string_view message) ABEL_NOEXCEPT {
           report_error(internal::format_windows_error, error_code, message);
         }
 #endif

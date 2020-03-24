@@ -44,20 +44,6 @@
 #endif
 
 
-#if ABEL_COMPILER_HAS_FEATURE(cxx_explicit_conversions) || \
-    FMT_MSC_VER >= 1800
-# define FMT_EXPLICIT explicit
-#else
-# define FMT_EXPLICIT
-#endif
-
-
-#if ABEL_COMPILER_HAS_CPP_ATTRIBUTE(noreturn)
-# define FMT_NORETURN [[noreturn]]
-#else
-# define FMT_NORETURN
-#endif
-
 // Check if exceptions are disabled.
 #if defined(__GNUC__) && !defined(__EXCEPTIONS)
 # define FMT_EXCEPTIONS 0
@@ -68,34 +54,6 @@
 # define FMT_EXCEPTIONS 1
 #endif
 
-// Define FMT_USE_NOEXCEPT to make fmt use noexcept (C++11 feature).
-#ifndef FMT_USE_NOEXCEPT
-# define FMT_USE_NOEXCEPT 0
-#endif
-
-#if FMT_USE_NOEXCEPT || ABEL_COMPILER_HAS_FEATURE(cxx_noexcept) || \
-    (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-    FMT_MSC_VER >= 1900
-# define FMT_DETECTED_NOEXCEPT noexcept
-#else
-# define FMT_DETECTED_NOEXCEPT throw()
-#endif
-
-#ifndef FMT_NOEXCEPT
-# if FMT_EXCEPTIONS
-#  define FMT_NOEXCEPT FMT_DETECTED_NOEXCEPT
-# else
-#  define FMT_NOEXCEPT
-# endif
-#endif
-
-// This is needed because GCC still uses throw() in its headers when exceptions
-// are disabled.
-#if FMT_GCC_VERSION
-# define FMT_DTOR_NOEXCEPT FMT_DETECTED_NOEXCEPT
-#else
-# define FMT_DTOR_NOEXCEPT FMT_NOEXCEPT
-#endif
 
 #ifndef FMT_BEGIN_NAMESPACE
 # if ABEL_COMPILER_HAS_FEATURE(cxx_inline_namespaces) || FMT_GCC_VERSION >= 404 || \
@@ -141,10 +99,6 @@
 # define FMT_USE_EXPERIMENTAL_STRING_VIEW
 #endif
 
-// std::result_of is defined in <functional> in gcc 4.4.
-#if FMT_GCC_VERSION && FMT_GCC_VERSION <= 404
-# include <functional>
-#endif
 
 FMT_BEGIN_NAMESPACE
 
@@ -152,7 +106,7 @@ FMT_BEGIN_NAMESPACE
 
 // An implementation of declval for pre-C++11 compilers such as gcc 4.
             template<typename T>
-            typename std::add_rvalue_reference<T>::type declval() FMT_NOEXCEPT;
+            typename std::add_rvalue_reference<T>::type declval() ABEL_NOEXCEPT;
 
 // Casts nonnegative integer to unsigned.
             template<typename Int>
@@ -192,10 +146,10 @@ FMT_BEGIN_NAMESPACE
             };
 #endif
 
-            FMT_CONSTEXPR basic_string_view() FMT_NOEXCEPT : data_(ABEL_NULL), size_(0) {}
+            FMT_CONSTEXPR basic_string_view() ABEL_NOEXCEPT : data_(ABEL_NULL), size_(0) {}
 
             /** Constructs a string reference object from a C string and a size. */
-            FMT_CONSTEXPR basic_string_view(const Char *s, size_t count) FMT_NOEXCEPT
+            FMT_CONSTEXPR basic_string_view(const Char *s, size_t count) ABEL_NOEXCEPT
                     : data_(s), size_(count) {}
 
             /**
@@ -210,10 +164,10 @@ FMT_BEGIN_NAMESPACE
             /** Constructs a string reference from a ``std::basic_string`` object. */
             template<typename Alloc>
             FMT_CONSTEXPR basic_string_view(
-                    const std::basic_string<Char, Alloc> &s) FMT_NOEXCEPT
+                    const std::basic_string<Char, Alloc> &s) ABEL_NOEXCEPT
                     : data_(s.c_str()), size_(s.size()) {}
 
-            FMT_CONSTEXPR basic_string_view(type s) FMT_NOEXCEPT
+            FMT_CONSTEXPR basic_string_view(type s) ABEL_NOEXCEPT
                     : data_(s.data()), size_(s.size()) {}
 
             /** Returns a pointer to the string data. */
@@ -292,10 +246,10 @@ FMT_BEGIN_NAMESPACE
 
             protected:
                 basic_buffer(T *p = ABEL_NULL, std::size_t sz = 0, std::size_t cap = 0)
-                FMT_NOEXCEPT: ptr_(p), size_(sz), capacity_(cap) {}
+                ABEL_NOEXCEPT: ptr_(p), size_(sz), capacity_(cap) {}
 
                 /** Sets the buffer data and capacity. */
-                void set(T *buf_data, std::size_t buf_capacity) FMT_NOEXCEPT {
+                void set(T *buf_data, std::size_t buf_capacity) ABEL_NOEXCEPT {
                     ptr_ = buf_data;
                     capacity_ = buf_capacity;
                 }
@@ -309,21 +263,21 @@ FMT_BEGIN_NAMESPACE
 
                 virtual ~basic_buffer() {}
 
-                T *begin() FMT_NOEXCEPT { return ptr_; }
+                T *begin() ABEL_NOEXCEPT { return ptr_; }
 
-                T *end() FMT_NOEXCEPT { return ptr_ + size_; }
+                T *end() ABEL_NOEXCEPT { return ptr_ + size_; }
 
                 /** Returns the size of this buffer. */
-                std::size_t size() const FMT_NOEXCEPT { return size_; }
+                std::size_t size() const ABEL_NOEXCEPT { return size_; }
 
                 /** Returns the capacity of this buffer. */
-                std::size_t capacity() const FMT_NOEXCEPT { return capacity_; }
+                std::size_t capacity() const ABEL_NOEXCEPT { return capacity_; }
 
                 /** Returns a pointer to the buffer data. */
-                T *data() FMT_NOEXCEPT { return ptr_; }
+                T *data() ABEL_NOEXCEPT { return ptr_; }
 
                 /** Returns a pointer to the buffer data. */
-                const T *data() const FMT_NOEXCEPT { return ptr_; }
+                const T *data() const ABEL_NOEXCEPT { return ptr_; }
 
                 /**
                   Resizes the buffer. If T is a POD type new elements may not be initialized.
@@ -718,7 +672,7 @@ FMT_BEGIN_NAMESPACE
 
             FMT_CONSTEXPR basic_format_arg() : type_(internal::none_type) {}
 
-            FMT_EXPLICIT operator bool() const FMT_NOEXCEPT {
+            explicit operator bool() const ABEL_NOEXCEPT {
                 return type_ != internal::none_type;
             }
 
@@ -747,12 +701,12 @@ FMT_BEGIN_NAMESPACE
 
             // Returns an iterator to the beginning of the format string range being
             // parsed.
-            FMT_CONSTEXPR iterator begin() const FMT_NOEXCEPT {
+            FMT_CONSTEXPR iterator begin() const ABEL_NOEXCEPT {
                 return format_str_.begin();
             }
 
             // Returns an iterator past the end of the format string range being parsed.
-            FMT_CONSTEXPR iterator end() const FMT_NOEXCEPT { return format_str_.end(); }
+            FMT_CONSTEXPR iterator end() const ABEL_NOEXCEPT { return format_str_.end(); }
 
             // Advances the begin iterator to ``it``.
             FMT_CONSTEXPR void advance_to(iterator it) {

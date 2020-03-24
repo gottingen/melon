@@ -251,13 +251,13 @@ FMT_BEGIN_NAMESPACE
             }
 
             template<typename T, std::size_t N>
-            FMT_CONSTEXPR T *begin(T (&array)[N]) FMT_NOEXCEPT { return array; }
+            FMT_CONSTEXPR T *begin(T (&array)[N]) ABEL_NOEXCEPT { return array; }
 
             template<typename C>
             FMT_CONSTEXPR auto end(const C &c) -> decltype(c.end()) { return c.end(); }
 
             template<typename T, std::size_t N>
-            FMT_CONSTEXPR T *end(T (&array)[N]) FMT_NOEXCEPT { return array + N; }
+            FMT_CONSTEXPR T *end(T (&array)[N]) ABEL_NOEXCEPT { return array + N; }
 
 // For std::result_of in gcc 4.4.
             template<typename Result>
@@ -1214,7 +1214,7 @@ FMT_BEGIN_NAMESPACE
             };
 
             FMT_API void format_windows_error(fmt::internal::buffer &out, int error_code,
-                                              fmt::string_view message) FMT_NOEXCEPT;
+                                              fmt::string_view message) ABEL_NOEXCEPT;
 #endif
 
             template<typename T = void>
@@ -2468,7 +2468,7 @@ FMT_BEGIN_NAMESPACE
   \endrst
  */
         FMT_API void format_system_error(internal::buffer &out, int error_code,
-                                         fmt::string_view message) FMT_NOEXCEPT;
+                                         fmt::string_view message) ABEL_NOEXCEPT;
 
 /**
   This template provides operations for formatting and writing data into a
@@ -3072,7 +3072,7 @@ FMT_BEGIN_NAMESPACE
 // Reports a system error without throwing an exception.
 // Can be used to report errors from destructors.
         FMT_API void report_system_error(int error_code,
-                                         string_view message) FMT_NOEXCEPT;
+                                         string_view message) ABEL_NOEXCEPT;
 
 #if FMT_USE_WINDOWS_H
 
@@ -3119,7 +3119,7 @@ FMT_BEGIN_NAMESPACE
         // Reports a Windows error without throwing an exception.
         // Can be used to report errors from destructors.
         FMT_API void report_windows_error(int error_code,
-                                          string_view message) FMT_NOEXCEPT;
+                                          string_view message) ABEL_NOEXCEPT;
 
 #endif
 
