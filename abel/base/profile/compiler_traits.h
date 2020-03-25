@@ -1053,13 +1053,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 #endif
 
 #ifndef ABEL_NULL
-#if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
-#define ABEL_NULL NULL
-#else
-#define ABEL_NULL nullptr
+    #if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
+        #define ABEL_NULL NULL
+    #else
+        #define ABEL_NULL nullptr
+    #endif
 #endif
 
-#endif
 // ------------------------------------------------------------------------
 // ABEL_CURRENT_FUNCTION
 //
@@ -1705,11 +1705,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //        struct D : B { void f(int) ABEL_OVERRIDE; };
 //
 #ifndef ABEL_OVERRIDE
-#if defined(ABEL_COMPILER_NO_OVERRIDE)
-#define ABEL_OVERRIDE
-#else
-#define ABEL_OVERRIDE override
-#endif
+    #if defined(ABEL_COMPILER_NO_OVERRIDE)
+        #define ABEL_OVERRIDE
+    #else
+        #define ABEL_OVERRIDE override
+    #endif
 #endif
 
 
@@ -1924,13 +1924,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //         { throw "error"; }
 //
 #if !defined(ABEL_NORETURN)
-#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
-#define ABEL_NORETURN __declspec(noreturn)
-#elif defined(ABEL_COMPILER_NO_NORETURN)
-#define ABEL_NORETURN
-#else
-#define ABEL_NORETURN [[noreturn]]
-#endif
+    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
+        #define ABEL_NORETURN __declspec(noreturn)
+    #elif defined(ABEL_COMPILER_NO_NORETURN)
+        #define ABEL_NORETURN
+    #else
+        #define ABEL_NORETURN [[noreturn]]
+    #endif
 #endif
 
 

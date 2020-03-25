@@ -62,12 +62,12 @@
 #include <type_traits>
 #include <vector>
 #include <abel/base/profile.h>
-#include <abel/strings/ascii.h>
+#include <abel/asl/ascii.h>
 #include <abel/strings/escaping.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/strings/strip.h>
 
 namespace abel {

@@ -33,13 +33,13 @@ FMT_BEGIN_NAMESPACE
                 // to overflow. There is no disadvantage here for sputn since this always
                 // results in a call to xsputn.
 
-                int_type overflow(int_type ch = traits_type::eof()) FMT_OVERRIDE {
+                int_type overflow(int_type ch = traits_type::eof()) ABEL_OVERRIDE {
                     if (!traits_type::eq_int_type(ch, traits_type::eof()))
                         buffer_.push_back(static_cast<Char>(ch));
                     return ch;
                 }
 
-                std::streamsize xsputn(const Char *s, std::streamsize count) FMT_OVERRIDE {
+                std::streamsize xsputn(const Char *s, std::streamsize count) ABEL_OVERRIDE {
                     buffer_.append(s, s + count);
                     return count;
                 }

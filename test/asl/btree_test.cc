@@ -24,7 +24,7 @@
 #include <abel/asl/type_traits.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/asl/compare.h>
 
 ABEL_FLAG(int, test_values, 10000, "The number of values to use for tests");

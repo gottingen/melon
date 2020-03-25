@@ -69,14 +69,14 @@ namespace {
 
 FMT_BEGIN_NAMESPACE
 
-        buffered_file::~buffered_file() FMT_NOEXCEPT {
+        buffered_file::~buffered_file() ABEL_NOEXCEPT {
             if (file_ && FMT_SYSTEM(fclose(file_)) != 0)
                 report_system_error(errno, "cannot close file");
         }
 
         buffered_file::buffered_file(cstring_view filename, cstring_view mode) {
             FMT_RETRY_VAL(file_,
-                          FMT_SYSTEM(fopen(filename.c_str(), mode.c_str())), FMT_NULL);
+                          FMT_SYSTEM(fopen(filename.c_str(), mode.c_str())), ABEL_NULL);
             if (!file_)
                 FMT_THROW(system_error(errno, "cannot open file {}", filename.c_str()));
         }
@@ -85,7 +85,7 @@ FMT_BEGIN_NAMESPACE
             if (!file_)
                 return;
             int result = FMT_SYSTEM(fclose(file_));
-            file_ = FMT_NULL;
+            file_ = nullptr;
             if (result != 0)
                 FMT_THROW(system_error(errno, "cannot close file"));
         }
@@ -113,7 +113,7 @@ FMT_BEGIN_NAMESPACE
                 FMT_THROW(system_error(errno, "cannot open file {}", path.c_str()));
         }
 
-        file::~file() FMT_NOEXCEPT {
+        file::~file() ABEL_NOEXCEPT {
             // Don't retry close in case of EINTR!
             // See http://linux.derkeiler.com/Mailing-Lists/Kernel/2005-09/3000.html
             if (fd_ != -1 && FMT_POSIX_CALL(close(fd_)) != 0)
@@ -191,7 +191,7 @@ FMT_BEGIN_NAMESPACE
             }
         }
 
-        void file::dup2(int fd, error_code &ec) FMT_NOEXCEPT {
+        void file::dup2(int fd, error_code &ec) ABEL_NOEXCEPT {
             int result = 0;
             FMT_RETRY(result, FMT_POSIX_CALL(dup2(fd_, fd)));
             if (result == -1)

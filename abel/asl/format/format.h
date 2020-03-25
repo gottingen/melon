@@ -111,7 +111,7 @@ FMT_END_NAMESPACE
 
 #ifndef FMT_USE_USER_DEFINED_LITERALS
 // For Intel's compiler both it and the system gcc/msc must support UDLs.
-# if (FMT_HAS_FEATURE(cxx_user_literals) || \
+# if (ABEL_COMPILER_HAS_FEATURE(cxx_user_literals) || \
       FMT_GCC_VERSION >= 407 || FMT_MSC_VER >= 1900) && \
       (!FMT_ICC_VERSION || FMT_ICC_VERSION >= 1500)
 #  define FMT_USE_USER_DEFINED_LITERALS 1
@@ -138,14 +138,14 @@ FMT_END_NAMESPACE
 # endif
 #endif
 
-#if FMT_HAS_GXX_CXX11 || FMT_HAS_FEATURE(cxx_trailing_return) || \
+#if FMT_HAS_GXX_CXX11 || ABEL_COMPILER_HAS_FEATURE(cxx_trailing_return) || \
     FMT_MSC_VER >= 1600
 # define FMT_USE_TRAILING_RETURN 1
 #else
 # define FMT_USE_TRAILING_RETURN 0
 #endif
 
-#if FMT_HAS_GXX_CXX11 || FMT_HAS_FEATURE(cxx_rvalue_references) || \
+#if FMT_HAS_GXX_CXX11 || ABEL_COMPILER_HAS_FEATURE(cxx_rvalue_references) || \
     FMT_MSC_VER >= 1600
 # define FMT_USE_RVALUE_REFERENCES 1
 #else
@@ -251,13 +251,13 @@ FMT_BEGIN_NAMESPACE
             }
 
             template<typename T, std::size_t N>
-            FMT_CONSTEXPR T *begin(T (&array)[N]) FMT_NOEXCEPT { return array; }
+            FMT_CONSTEXPR T *begin(T (&array)[N]) ABEL_NOEXCEPT { return array; }
 
             template<typename C>
             FMT_CONSTEXPR auto end(const C &c) -> decltype(c.end()) { return c.end(); }
 
             template<typename T, std::size_t N>
-            FMT_CONSTEXPR T *end(T (&array)[N]) FMT_NOEXCEPT { return array + N; }
+            FMT_CONSTEXPR T *end(T (&array)[N]) ABEL_NOEXCEPT { return array + N; }
 
 // For std::result_of in gcc 4.4.
             template<typename Result>
@@ -354,7 +354,7 @@ FMT_BEGIN_NAMESPACE
 
 // Returns an fp number representing x - y. Result may not be normalized.
             inline fp operator-(fp x, fp y) {
-                FMT_ASSERT(x.f >= y.f && x.e == y.e, "invalid operands");
+                ABEL_ASSERT_MSG(x.f >= y.f && x.e == y.e, "invalid operands");
                 return fp(x.f - y.f, x.e);
             }
 
@@ -567,7 +567,7 @@ FMT_BEGIN_NAMESPACE
             }
 
         protected:
-            void grow(std::size_t size) FMT_OVERRIDE;
+            void grow(std::size_t size) ABEL_OVERRIDE;
 
         public:
             explicit basic_memory_buffer(const Allocator &alloc = Allocator())
@@ -680,7 +680,7 @@ FMT_BEGIN_NAMESPACE
             }
 
         protected:
-            FMT_API void grow(std::size_t size) FMT_OVERRIDE;
+            FMT_API void grow(std::size_t size) ABEL_OVERRIDE;
         };
 
         namespace internal {
@@ -982,7 +982,7 @@ FMT_BEGIN_NAMESPACE
 
 #endif
 
-#if FMT_HAS_CPP_ATTRIBUTE(always_inline)
+#if ABEL_COMPILER_HAS_CPP_ATTRIBUTE(always_inline)
 # define FMT_ALWAYS_INLINE __attribute__((always_inline))
 #else
 # define FMT_ALWAYS_INLINE
@@ -1214,7 +1214,7 @@ FMT_BEGIN_NAMESPACE
             };
 
             FMT_API void format_windows_error(fmt::internal::buffer &out, int error_code,
-                                              fmt::string_view message) FMT_NOEXCEPT;
+                                              fmt::string_view message) ABEL_NOEXCEPT;
 #endif
 
             template<typename T = void>
@@ -1240,7 +1240,7 @@ FMT_BEGIN_NAMESPACE
                 case internal::none_type:
                     break;
                 case internal::named_arg_type:
-                    FMT_ASSERT(false, "invalid argument type");
+                    ABEL_ASSERT_MSG(false, "invalid argument type");
                     break;
                 case internal::int_type:
                     return vis(arg.value_.int_value);
@@ -1608,7 +1608,7 @@ FMT_BEGIN_NAMESPACE
                 arg_formatter_base(Range r, format_specs &s) : writer_(r), specs_(s) {}
 
                 iterator operator()(monostate) {
-                    FMT_ASSERT(false, "invalid argument type");
+                    ABEL_ASSERT_MSG(false, "invalid argument type");
                     return out();
                 }
 
@@ -2468,7 +2468,7 @@ FMT_BEGIN_NAMESPACE
   \endrst
  */
         FMT_API void format_system_error(internal::buffer &out, int error_code,
-                                         fmt::string_view message) FMT_NOEXCEPT;
+                                         fmt::string_view message) ABEL_NOEXCEPT;
 
 /**
   This template provides operations for formatting and writing data into a
@@ -3027,7 +3027,7 @@ FMT_BEGIN_NAMESPACE
                 T value, const format_specs &spec,
                 internal::basic_buffer<char_type> &buffer) {
             // Buffer capacity must be non-zero, otherwise MSVC's vsnprintf_s will fail.
-            FMT_ASSERT(buffer.capacity() != 0, "empty buffer");
+            ABEL_ASSERT_MSG(buffer.capacity() != 0, "empty buffer");
 
             // Build format string.
             enum {
@@ -3048,7 +3048,7 @@ FMT_BEGIN_NAMESPACE
             *format_ptr = '\0';
 
             // Format using snprintf.
-            char_type * start = FMT_NULL;
+            char_type * start = ABEL_NULL;
             for (;;) {
                 std::size_t buffer_size = buffer.capacity();
                 start = &buffer[0];
@@ -3072,7 +3072,7 @@ FMT_BEGIN_NAMESPACE
 // Reports a system error without throwing an exception.
 // Can be used to report errors from destructors.
         FMT_API void report_system_error(int error_code,
-                                         string_view message) FMT_NOEXCEPT;
+                                         string_view message) ABEL_NOEXCEPT;
 
 #if FMT_USE_WINDOWS_H
 
@@ -3119,7 +3119,7 @@ FMT_BEGIN_NAMESPACE
         // Reports a Windows error without throwing an exception.
         // Can be used to report errors from destructors.
         FMT_API void report_windows_error(int error_code,
-                                          string_view message) FMT_NOEXCEPT;
+                                          string_view message) ABEL_NOEXCEPT;
 
 #endif
 
@@ -3256,7 +3256,7 @@ FMT_BEGIN_NAMESPACE
                 switch (type) {
                     case internal::none_type:
                     case internal::named_arg_type:
-                        FMT_ASSERT(false, "invalid argument type");
+                        ABEL_ASSERT_MSG(false, "invalid argument type");
                         break;
                     case internal::int_type:
                     case internal::uint_type:

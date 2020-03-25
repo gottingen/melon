@@ -18,5 +18,5 @@
 
 TEST(AssertTest, Fail) {
     EXPECT_DEBUG_DEATH_IF_SUPPORTED(
-            FMT_ASSERT(false, "don't panic!"), "don't panic!");
+            ABEL_ASSERT_MSG(false, "don't panic!"), "don't panic!");
 }

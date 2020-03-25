@@ -36,7 +36,7 @@ FMT_BEGIN_NAMESPACE
                     return handle(localtime_r(&time_, &tm_));
                 }
 
-                bool handle(std::tm *tm) { return tm != FMT_NULL; }
+                bool handle(std::tm *tm) { return tm != ABEL_NULL; }
 
                 bool handle(internal::null<>) {
                     using namespace fmt::internal;
@@ -49,7 +49,7 @@ FMT_BEGIN_NAMESPACE
                     using namespace fmt::internal;
                     std::tm *tm = std::localtime(&time_);
                     if (tm) tm_ = *tm;
-                    return tm != FMT_NULL;
+                    return tm != ABEL_NULL;
                 }
             };
             dispatcher lt(time);
@@ -72,7 +72,7 @@ FMT_BEGIN_NAMESPACE
                     return handle(gmtime_r(&time_, &tm_));
                 }
 
-                bool handle(std::tm *tm) { return tm != FMT_NULL; }
+                bool handle(std::tm *tm) { return tm != ABEL_NULL; }
 
                 bool handle(internal::null<>) {
                     using namespace fmt::internal;
@@ -84,7 +84,7 @@ FMT_BEGIN_NAMESPACE
                 bool fallback(internal::null<>) {
                     std::tm *tm = std::gmtime(&time_);
                     if (tm) tm_ = *tm;
-                    return tm != FMT_NULL;
+                    return tm != ABEL_NULL;
                 }
             };
             dispatcher gt(time);

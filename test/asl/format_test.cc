@@ -1067,9 +1067,7 @@ TEST(FormatterTest, FormatPointer) {
     EXPECT_EQ("0x" + std::string(sizeof(void *) * CHAR_BIT / 4, 'f'),
               format("{0}", reinterpret_cast<void *>(~uintptr_t())));
     EXPECT_EQ("0x1234", format("{}", fmt::ptr(reinterpret_cast<int *>(0x1234))));
-#if FMT_USE_NULLPTR
-    EXPECT_EQ("0x0", format("{}", FMT_NULL));
-#endif
+    EXPECT_EQ("0x0", format("{}", ABEL_NULL));
 }
 
 TEST(FormatterTest, FormatString) {
@@ -1404,7 +1402,7 @@ TEST(FormatTest, Enum) {
     EXPECT_EQ("0", fmt::format("{}", A));
 }
 
-#if FMT_HAS_FEATURE(cxx_strong_enums)
+#if ABEL_COMPILER_HAS_FEATURE(cxx_strong_enums)
 enum TestFixedEnum : short {
     B
 };

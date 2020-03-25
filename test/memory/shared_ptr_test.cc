@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <set>
 #include <unordered_map>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/memory/shared_ptr.h>
 
 using namespace abel;

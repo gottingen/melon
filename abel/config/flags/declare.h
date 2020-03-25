@@ -12,7 +12,7 @@
 #ifndef ABEL_FLAGS_DECLARE_H_
 #define ABEL_FLAGS_DECLARE_H_
 
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 
 namespace abel {
 

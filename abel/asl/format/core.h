@@ -1,13 +1,7 @@
-// Formatting library for C++ - the core API
-//
-// Copyright (c) 2012 - present, Victor Zverovich
-// All rights reserved.
-//
-// For the license information refer to format.h.
+#ifndef ABEL_ASL_FORMAT_CORE_H_
+#define ABEL_ASL_FORMAT_CORE_H_
 
-#ifndef FMT_CORE_H_
-#define FMT_CORE_H_
-
+#include <abel/base/profile.h>
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -15,26 +9,6 @@
 #include <string>
 #include <type_traits>
 
-// The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 50100
-
-#ifdef __has_feature
-# define FMT_HAS_FEATURE(x) __has_feature(x)
-#else
-# define FMT_HAS_FEATURE(x) 0
-#endif
-
-#ifdef __has_include
-# define FMT_HAS_INCLUDE(x) __has_include(x)
-#else
-# define FMT_HAS_INCLUDE(x) 0
-#endif
-
-#ifdef __has_cpp_attribute
-# define FMT_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-# define FMT_HAS_CPP_ATTRIBUTE(x) 0
-#endif
 
 #if defined(__GNUC__) && !defined(__clang__)
 # define FMT_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
@@ -58,7 +32,7 @@
 // GCC doesn't allow throw in constexpr until version 6 (bug 67371).
 #ifndef FMT_USE_CONSTEXPR
 # define FMT_USE_CONSTEXPR \
-  (FMT_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VER >= 1910 || \
+  (ABEL_COMPILER_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VER >= 1910 || \
    (FMT_GCC_VERSION >= 600 && __cplusplus >= 201402L))
 #endif
 #if FMT_USE_CONSTEXPR
@@ -69,43 +43,6 @@
 # define FMT_CONSTEXPR_DECL
 #endif
 
-#ifndef FMT_OVERRIDE
-# if FMT_HAS_FEATURE(cxx_override) || \
-     (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-     FMT_MSC_VER >= 1900
-#  define FMT_OVERRIDE override
-# else
-#  define FMT_OVERRIDE
-# endif
-#endif
-
-#if FMT_HAS_FEATURE(cxx_explicit_conversions) || \
-    FMT_MSC_VER >= 1800
-# define FMT_EXPLICIT explicit
-#else
-# define FMT_EXPLICIT
-#endif
-
-#ifndef FMT_NULL
-# if FMT_HAS_FEATURE(cxx_nullptr) || \
-   (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-   FMT_MSC_VER >= 1600
-#  define FMT_NULL nullptr
-#  define FMT_USE_NULLPTR 1
-# else
-#  define FMT_NULL NULL
-# endif
-#endif
-
-#ifndef FMT_USE_NULLPTR
-# define FMT_USE_NULLPTR 0
-#endif
-
-#if FMT_HAS_CPP_ATTRIBUTE(noreturn)
-# define FMT_NORETURN [[noreturn]]
-#else
-# define FMT_NORETURN
-#endif
 
 // Check if exceptions are disabled.
 #if defined(__GNUC__) && !defined(__EXCEPTIONS)
@@ -117,37 +54,9 @@
 # define FMT_EXCEPTIONS 1
 #endif
 
-// Define FMT_USE_NOEXCEPT to make fmt use noexcept (C++11 feature).
-#ifndef FMT_USE_NOEXCEPT
-# define FMT_USE_NOEXCEPT 0
-#endif
-
-#if FMT_USE_NOEXCEPT || FMT_HAS_FEATURE(cxx_noexcept) || \
-    (FMT_GCC_VERSION >= 408 && FMT_HAS_GXX_CXX11) || \
-    FMT_MSC_VER >= 1900
-# define FMT_DETECTED_NOEXCEPT noexcept
-#else
-# define FMT_DETECTED_NOEXCEPT throw()
-#endif
-
-#ifndef FMT_NOEXCEPT
-# if FMT_EXCEPTIONS
-#  define FMT_NOEXCEPT FMT_DETECTED_NOEXCEPT
-# else
-#  define FMT_NOEXCEPT
-# endif
-#endif
-
-// This is needed because GCC still uses throw() in its headers when exceptions
-// are disabled.
-#if FMT_GCC_VERSION
-# define FMT_DTOR_NOEXCEPT FMT_DETECTED_NOEXCEPT
-#else
-# define FMT_DTOR_NOEXCEPT FMT_NOEXCEPT
-#endif
 
 #ifndef FMT_BEGIN_NAMESPACE
-# if FMT_HAS_FEATURE(cxx_inline_namespaces) || FMT_GCC_VERSION >= 404 || \
+# if ABEL_COMPILER_HAS_FEATURE(cxx_inline_namespaces) || FMT_GCC_VERSION >= 404 || \
      FMT_MSC_VER >= 1900
 #  define FMT_INLINE_NAMESPACE inline namespace
 #  define FMT_END_NAMESPACE }}
@@ -169,10 +78,6 @@
 # define FMT_API
 #endif
 
-#ifndef FMT_ASSERT
-# define FMT_ASSERT(condition, message) assert((condition) && message)
-#endif
-
 #define FMT_DELETED = delete
 
 // A macro to disallow the copy construction and assignment.
@@ -181,23 +86,19 @@
     void operator=(const Type &) FMT_DELETED
 
 // libc++ supports string_view in pre-c++17.
-#if (FMT_HAS_INCLUDE(<string_view>) && \
+#if (ABEL_COMPILER_HAS_INCLUDE(<string_view>) && \
       (__cplusplus > 201402L || defined(_LIBCPP_VERSION))) || \
     (defined(_MSVC_LANG) && _MSVC_LANG > 201402L && _MSC_VER >= 1910)
 
 # include <string_view>
 
 # define FMT_USE_STD_STRING_VIEW
-#elif (FMT_HAS_INCLUDE(<experimental/string_view>) && \
+#elif (ABEL_COMPILER_HAS_INCLUDE(<experimental/string_view>) && \
        __cplusplus >= 201402L)
 # include <experimental/string_view>
 # define FMT_USE_EXPERIMENTAL_STRING_VIEW
 #endif
 
-// std::result_of is defined in <functional> in gcc 4.4.
-#if FMT_GCC_VERSION && FMT_GCC_VERSION <= 404
-# include <functional>
-#endif
 
 FMT_BEGIN_NAMESPACE
 
@@ -205,12 +106,12 @@ FMT_BEGIN_NAMESPACE
 
 // An implementation of declval for pre-C++11 compilers such as gcc 4.
             template<typename T>
-            typename std::add_rvalue_reference<T>::type declval() FMT_NOEXCEPT;
+            typename std::add_rvalue_reference<T>::type declval() ABEL_NOEXCEPT;
 
 // Casts nonnegative integer to unsigned.
             template<typename Int>
             FMT_CONSTEXPR typename std::make_unsigned<Int>::type to_unsigned(Int value) {
-                FMT_ASSERT(value >= 0, "negative value");
+                ABEL_ASSERT_MSG(value >= 0, "negative value");
                 return static_cast<typename std::make_unsigned<Int>::type>(value);
             }
 
@@ -240,15 +141,15 @@ FMT_BEGIN_NAMESPACE
             typedef std::experimental::basic_string_view<Char> type;
 #else
             struct type {
-              const char *data() const { return FMT_NULL; }
+              const char *data() const { return ABEL_NULL; }
               size_t size() const { return 0; }
             };
 #endif
 
-            FMT_CONSTEXPR basic_string_view() FMT_NOEXCEPT : data_(FMT_NULL), size_(0) {}
+            FMT_CONSTEXPR basic_string_view() ABEL_NOEXCEPT : data_(ABEL_NULL), size_(0) {}
 
             /** Constructs a string reference object from a C string and a size. */
-            FMT_CONSTEXPR basic_string_view(const Char *s, size_t count) FMT_NOEXCEPT
+            FMT_CONSTEXPR basic_string_view(const Char *s, size_t count) ABEL_NOEXCEPT
                     : data_(s), size_(count) {}
 
             /**
@@ -263,10 +164,10 @@ FMT_BEGIN_NAMESPACE
             /** Constructs a string reference from a ``std::basic_string`` object. */
             template<typename Alloc>
             FMT_CONSTEXPR basic_string_view(
-                    const std::basic_string<Char, Alloc> &s) FMT_NOEXCEPT
+                    const std::basic_string<Char, Alloc> &s) ABEL_NOEXCEPT
                     : data_(s.c_str()), size_(s.size()) {}
 
-            FMT_CONSTEXPR basic_string_view(type s) FMT_NOEXCEPT
+            FMT_CONSTEXPR basic_string_view(type s) ABEL_NOEXCEPT
                     : data_(s.data()), size_(s.size()) {}
 
             /** Returns a pointer to the string data. */
@@ -344,11 +245,11 @@ FMT_BEGIN_NAMESPACE
                 std::size_t capacity_;
 
             protected:
-                basic_buffer(T *p = FMT_NULL, std::size_t sz = 0, std::size_t cap = 0)
-                FMT_NOEXCEPT: ptr_(p), size_(sz), capacity_(cap) {}
+                basic_buffer(T *p = ABEL_NULL, std::size_t sz = 0, std::size_t cap = 0)
+                ABEL_NOEXCEPT: ptr_(p), size_(sz), capacity_(cap) {}
 
                 /** Sets the buffer data and capacity. */
-                void set(T *buf_data, std::size_t buf_capacity) FMT_NOEXCEPT {
+                void set(T *buf_data, std::size_t buf_capacity) ABEL_NOEXCEPT {
                     ptr_ = buf_data;
                     capacity_ = buf_capacity;
                 }
@@ -362,21 +263,21 @@ FMT_BEGIN_NAMESPACE
 
                 virtual ~basic_buffer() {}
 
-                T *begin() FMT_NOEXCEPT { return ptr_; }
+                T *begin() ABEL_NOEXCEPT { return ptr_; }
 
-                T *end() FMT_NOEXCEPT { return ptr_ + size_; }
+                T *end() ABEL_NOEXCEPT { return ptr_ + size_; }
 
                 /** Returns the size of this buffer. */
-                std::size_t size() const FMT_NOEXCEPT { return size_; }
+                std::size_t size() const ABEL_NOEXCEPT { return size_; }
 
                 /** Returns the capacity of this buffer. */
-                std::size_t capacity() const FMT_NOEXCEPT { return capacity_; }
+                std::size_t capacity() const ABEL_NOEXCEPT { return capacity_; }
 
                 /** Returns a pointer to the buffer data. */
-                T *data() FMT_NOEXCEPT { return ptr_; }
+                T *data() ABEL_NOEXCEPT { return ptr_; }
 
                 /** Returns a pointer to the buffer data. */
-                const T *data() const FMT_NOEXCEPT { return ptr_; }
+                const T *data() const ABEL_NOEXCEPT { return ptr_; }
 
                 /**
                   Resizes the buffer. If T is a POD type new elements may not be initialized.
@@ -416,7 +317,7 @@ FMT_BEGIN_NAMESPACE
                 Container &container_;
 
             protected:
-                void grow(std::size_t capacity) FMT_OVERRIDE {
+                void grow(std::size_t capacity) ABEL_OVERRIDE {
                     container_.resize(capacity);
                     this->set(&container_[0], capacity);
                 }
@@ -472,12 +373,12 @@ FMT_BEGIN_NAMESPACE
             };
 
             FMT_CONSTEXPR bool is_integral(type t) {
-                FMT_ASSERT(t != internal::named_arg_type, "invalid argument type");
+                ABEL_ASSERT_MSG(t != internal::named_arg_type, "invalid argument type");
                 return t > internal::none_type && t <= internal::last_integer_type;
             }
 
             FMT_CONSTEXPR bool is_arithmetic(type t) {
-                FMT_ASSERT(t != internal::named_arg_type, "invalid argument type");
+                ABEL_ASSERT_MSG(t != internal::named_arg_type, "invalid argument type");
                 return t > internal::none_type && t <= internal::last_numeric_type;
             }
 
@@ -681,11 +582,8 @@ FMT_BEGIN_NAMESPACE
 
             FMT_MAKE_VALUE_SAME(pointer_type, const void*)
 
-#if FMT_USE_NULLPTR
-
             FMT_MAKE_VALUE(pointer_type, std::nullptr_t, const void*)
 
-#endif
 
 // Formatting of arbitrary pointers is disallowed. If you want to output a
 // pointer cast it to "void *" or "const void *". In particular, this forbids
@@ -774,7 +672,7 @@ FMT_BEGIN_NAMESPACE
 
             FMT_CONSTEXPR basic_format_arg() : type_(internal::none_type) {}
 
-            FMT_EXPLICIT operator bool() const FMT_NOEXCEPT {
+            explicit operator bool() const ABEL_NOEXCEPT {
                 return type_ != internal::none_type;
             }
 
@@ -803,12 +701,12 @@ FMT_BEGIN_NAMESPACE
 
             // Returns an iterator to the beginning of the format string range being
             // parsed.
-            FMT_CONSTEXPR iterator begin() const FMT_NOEXCEPT {
+            FMT_CONSTEXPR iterator begin() const ABEL_NOEXCEPT {
                 return format_str_.begin();
             }
 
             // Returns an iterator past the end of the format string range being parsed.
-            FMT_CONSTEXPR iterator end() const FMT_NOEXCEPT { return format_str_.end(); }
+            FMT_CONSTEXPR iterator end() const ABEL_NOEXCEPT { return format_str_.end(); }
 
             // Advances the begin iterator to ``it``.
             FMT_CONSTEXPR void advance_to(iterator it) {
@@ -863,7 +761,7 @@ FMT_BEGIN_NAMESPACE
                 }
 
             public:
-                arg_map() : map_(FMT_NULL), size_(0) {}
+                arg_map() : map_(ABEL_NULL), size_(0) {}
 
                 void init(const basic_format_args<Context> &args);
 
@@ -1076,20 +974,9 @@ FMT_BEGIN_NAMESPACE
             static const long long TYPES;
 #endif
 
-#if (FMT_GCC_VERSION && FMT_GCC_VERSION <= 405) || \
-    (FMT_MSC_VER && FMT_MSC_VER <= 1800)
-            // Workaround array initialization issues in gcc <= 4.5 and MSVC <= 2013.
-            format_arg_store(const Args &... args) {
-              value_type init[DATA_SIZE] =
-                {internal::make_arg<IS_PACKED, Context>(args)...};
-              std::memcpy(data_, init, sizeof(init));
-            }
-#else
-
             format_arg_store(const Args &... args)
                     : data_{internal::make_arg<IS_PACKED, Context>(args)...} {}
 
-#endif
         };
 
 #if !FMT_USE_CONSTEXPR
@@ -1409,4 +1296,4 @@ FMT_BEGIN_NAMESPACE
         }
 FMT_END_NAMESPACE
 
-#endif  // FMT_CORE_H_
+#endif  // ABEL_ASL_FORMAT_CORE_H_

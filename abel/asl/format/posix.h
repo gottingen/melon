@@ -120,9 +120,9 @@ FMT_BEGIN_NAMESPACE
             int value_;
 
         public:
-            explicit error_code(int value = 0) FMT_NOEXCEPT : value_(value) {}
+            explicit error_code(int value = 0) ABEL_NOEXCEPT : value_(value) {}
 
-            int get() const FMT_NOEXCEPT { return value_; }
+            int get() const ABEL_NOEXCEPT { return value_; }
         };
 
 // A buffered file.
@@ -136,10 +136,10 @@ FMT_BEGIN_NAMESPACE
 
         public:
             // Constructs a buffered_file object which doesn't represent any file.
-            buffered_file() FMT_NOEXCEPT : file_(FMT_NULL) {}
+            buffered_file() ABEL_NOEXCEPT : file_(ABEL_NULL) {}
 
             // Destroys the object closing the file it represents if any.
-            FMT_API ~buffered_file() FMT_DTOR_NOEXCEPT;
+            FMT_API ~buffered_file() ABEL_NOEXCEPT;
 
 #if !FMT_USE_RVALUE_REFERENCES
             // Emulate a move constructor and a move assignment operator if rvalue
@@ -154,11 +154,11 @@ FMT_BEGIN_NAMESPACE
 
           public:
             // A "move constructor" for moving from a temporary.
-            buffered_file(Proxy p) FMT_NOEXCEPT : file_(p.file) {}
+            buffered_file(Proxy p) ABEL_NOEXCEPT : file_(p.file) {}
 
             // A "move constructor" for moving from an lvalue.
-            buffered_file(buffered_file &f) FMT_NOEXCEPT : file_(f.file_) {
-              f.file_ = FMT_NULL;
+            buffered_file(buffered_file &f) ABEL_NOEXCEPT : file_(f.file_) {
+              f.file_ = ABEL_NULL;
             }
 
             // A "move assignment operator" for moving from a temporary.
@@ -172,15 +172,15 @@ FMT_BEGIN_NAMESPACE
             buffered_file &operator=(buffered_file &other) {
               close();
               file_ = other.file_;
-              other.file_ = FMT_NULL;
+              other.file_ = ABEL_NULL;
               return *this;
             }
 
             // Returns a proxy object for moving from a temporary:
             //   buffered_file file = buffered_file(...);
-            operator Proxy() FMT_NOEXCEPT {
+            operator Proxy() ABEL_NOEXCEPT {
               Proxy p = {file_};
-              file_ = FMT_NULL;
+              file_ = ABEL_NULL;
               return p;
             }
 
@@ -189,14 +189,14 @@ FMT_BEGIN_NAMESPACE
             FMT_DISALLOW_COPY_AND_ASSIGN(buffered_file);
 
         public:
-            buffered_file(buffered_file &&other) FMT_NOEXCEPT : file_(other.file_) {
-                other.file_ = FMT_NULL;
+            buffered_file(buffered_file &&other) ABEL_NOEXCEPT : file_(other.file_) {
+                other.file_ = ABEL_NULL;
             }
 
             buffered_file &operator=(buffered_file &&other) {
                 close();
                 file_ = other.file_;
-                other.file_ = FMT_NULL;
+                other.file_ = ABEL_NULL;
                 return *this;
             }
 
@@ -209,7 +209,7 @@ FMT_BEGIN_NAMESPACE
             FMT_API void close();
 
             // Returns the pointer to a FILE object representing this file.
-            FILE *get() const FMT_NOEXCEPT { return file_; }
+            FILE *get() const ABEL_NOEXCEPT { return file_; }
 
             // We place parentheses around fileno to workaround a bug in some versions
             // of MinGW that define fileno as a macro.
@@ -226,7 +226,7 @@ FMT_BEGIN_NAMESPACE
         };
 
 // A file. Closed file is represented by a file object with descriptor -1.
-// Methods that are not declared with FMT_NOEXCEPT may throw
+// Methods that are not declared with ABEL_NOEXCEPT may throw
 // fmt::system_error in case of failure. Note that some errors such as
 // closing the file multiple times will cause a crash on Windows rather
 // than an exception. You can get standard behavior by overriding the
@@ -247,7 +247,7 @@ FMT_BEGIN_NAMESPACE
             };
 
             // Constructs a file object which doesn't represent any file.
-            file() FMT_NOEXCEPT : fd_(-1) {}
+            file() ABEL_NOEXCEPT : fd_(-1) {}
 
             // Opens a file and constructs a file object representing this file.
             FMT_API file(cstring_view path, int oflag);
@@ -265,10 +265,10 @@ FMT_BEGIN_NAMESPACE
 
            public:
             // A "move constructor" for moving from a temporary.
-            file(Proxy p) FMT_NOEXCEPT : fd_(p.fd) {}
+            file(Proxy p) ABEL_NOEXCEPT : fd_(p.fd) {}
 
             // A "move constructor" for moving from an lvalue.
-            file(file &other) FMT_NOEXCEPT : fd_(other.fd_) {
+            file(file &other) ABEL_NOEXCEPT : fd_(other.fd_) {
               other.fd_ = -1;
             }
 
@@ -289,7 +289,7 @@ FMT_BEGIN_NAMESPACE
 
             // Returns a proxy object for moving from a temporary:
             //   file f = file(...);
-            operator Proxy() FMT_NOEXCEPT {
+            operator Proxy() ABEL_NOEXCEPT {
               Proxy p = {fd_};
               fd_ = -1;
               return p;
@@ -300,7 +300,7 @@ FMT_BEGIN_NAMESPACE
             FMT_DISALLOW_COPY_AND_ASSIGN(file);
 
         public:
-            file(file &&other) FMT_NOEXCEPT : fd_(other.fd_) {
+            file(file &&other) ABEL_NOEXCEPT : fd_(other.fd_) {
                 other.fd_ = -1;
             }
 
@@ -314,10 +314,10 @@ FMT_BEGIN_NAMESPACE
 #endif
 
             // Destroys the object closing the file it represents if any.
-            FMT_API ~file() FMT_DTOR_NOEXCEPT;
+            FMT_API ~file() ABEL_NOEXCEPT;
 
             // Returns the file descriptor.
-            int descriptor() const FMT_NOEXCEPT { return fd_; }
+            int descriptor() const ABEL_NOEXCEPT { return fd_; }
 
             // Closes the file.
             FMT_API void close();
@@ -342,7 +342,7 @@ FMT_BEGIN_NAMESPACE
 
             // Makes fd be the copy of this file descriptor, closing fd first if
             // necessary.
-            FMT_API void dup2(int fd, error_code &ec) FMT_NOEXCEPT;
+            FMT_API void dup2(int fd, error_code &ec) ABEL_NOEXCEPT;
 
             // Creates a pipe setting up read_end and write_end file objects for reading
             // and writing respectively.
@@ -391,7 +391,7 @@ FMT_BEGIN_NAMESPACE
         public:
             typedef locale_t Type;
 
-            Locale() : locale_(newlocale(LC_NUMERIC_MASK, "C", FMT_NULL)) {
+            Locale() : locale_(newlocale(LC_NUMERIC_MASK, "C", ABEL_NULL)) {
                 if (!locale_)
                     FMT_THROW(system_error(errno, "cannot create locale"));
             }
@@ -403,7 +403,7 @@ FMT_BEGIN_NAMESPACE
             // Converts string to floating-point number and advances str past the end
             // of the parsed input.
             double strtod(const char *&str) const {
-                char *end = FMT_NULL;
+                char *end = ABEL_NULL;
                 double result = strtod_l(str, &end, locale_);
                 str = end;
                 return result;

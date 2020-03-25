@@ -8,7 +8,7 @@
 #include <abel/config/flags/config.h>
 #include <abel/config/flags/usage_config.h>
 #include <abel/strings/str_cat.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/thread/mutex.h>
 
 // --------------------------------------------------------------------

@@ -89,7 +89,7 @@ FMT_BEGIN_NAMESPACE
 
             public:
                 static FMT_CONSTEXPR_DECL const bool value =
-                        !std::is_void<decltype(check<T>(FMT_NULL))>::value;
+                        !std::is_void<decltype(check<T>(ABEL_NULL))>::value;
             };
 
             template<typename... Ts>
@@ -123,7 +123,7 @@ FMT_BEGIN_NAMESPACE
 
             public:
                 static FMT_CONSTEXPR_DECL const bool value =
-                        !std::is_void<decltype(check<T>(FMT_NULL))>::value;
+                        !std::is_void<decltype(check<T>(ABEL_NULL))>::value;
             };
 
 // Check for integer_sequence
@@ -160,7 +160,7 @@ FMT_BEGIN_NAMESPACE
 #endif
 
             template<class Tuple, class F, size_t... Is>
-            void for_each(index_sequence<Is...>, Tuple &&tup, F &&f) FMT_NOEXCEPT {
+            void for_each(index_sequence<Is...>, Tuple &&tup, F &&f) ABEL_NOEXCEPT {
                 using std::get;
                 // using free function get<I>(T) now.
                 const int _[] = {0, ((void) f(get<Is>(tup)), 0)...};

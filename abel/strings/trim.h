@@ -6,8 +6,8 @@
 #define ABEL_STRINGS_TRIM_H_
 
 #include <abel/base/profile.h>
-#include <abel/strings/ascii.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/ascii.h>
+#include <abel/asl/string_view.h>
 #include <string>
 
 namespace abel {

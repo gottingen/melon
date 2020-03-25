@@ -19,7 +19,7 @@
 #include <abel/stats/random/zipf_distribution.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_join.h>
-#include <abel/strings/string_view.h>
+#include <abel/asl/string_view.h>
 #include <abel/asl/span.h>
 
 namespace abel {
