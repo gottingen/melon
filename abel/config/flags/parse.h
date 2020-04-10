@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 //
 // This file defines the main parsing function for abel flags:
-// `abel::ParseCommandLine()`.
+// `abel::parse_command_line()`.
 
 #ifndef ABEL_FLAGS_PARSE_H_
 #define ABEL_FLAGS_PARSE_H_
@@ -18,7 +18,7 @@
 namespace abel {
 
 
-// ParseCommandLine()
+// parse_command_line()
 //
 // Parses the set of command-line arguments passed in the `argc` (argument
 // count) and `argv[]` (argument vector) parameters from `main()`, assigning
@@ -39,7 +39,7 @@ namespace abel {
 // After all flags and flag arguments are parsed, this function looks for any
 // built-in usage flags (e.g. `--help`), and if any were specified, it reports
 // help messages and then exits the program.
-    std::vector<char *> ParseCommandLine(int argc, char *argv[]);
+    std::vector<char *> parse_command_line(int argc, char *argv[]);
 
 
 }  // namespace abel

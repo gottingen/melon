@@ -169,7 +169,7 @@ namespace abel {
 
             T roundtrip_val = 0;
             std::string err;
-            if (abel::ParseFlag(digit10_str, &roundtrip_val, &err) &&
+            if (abel::parse_flag(digit10_str, &roundtrip_val, &err) &&
                 roundtrip_val == v) {
                 return digit10_str;
             }
@@ -216,7 +216,7 @@ namespace abel {
             return true;
         }
         std::underlying_type<abel::LogSeverity>::type numeric_value;
-        if (abel::ParseFlag(text, &numeric_value, err)) {
+        if (abel::parse_flag(text, &numeric_value, err)) {
             *dst = static_cast<abel::LogSeverity>(numeric_value);
             return true;
         }
@@ -226,7 +226,7 @@ namespace abel {
 
     std::string abel_unparse_flag(abel::LogSeverity v) {
         if (v == abel::NormalizeLogSeverity(v)) return abel::LogSeverityName(v);
-        return abel::UnparseFlag(static_cast<int>(v));
+        return abel::unparse_flag(static_cast<int>(v));
     }
 
 

@@ -49,7 +49,7 @@ namespace {
         const std::string to_parse = abel::string_cat(GetParam());
         abel::LogSeverity value;
         std::string error;
-        EXPECT_THAT(abel::ParseFlag(to_parse, &value, &error), IsFalse()) << value;
+        EXPECT_THAT(abel::parse_flag(to_parse, &value, &error), IsFalse()) << value;
     }
 
     using ParseFlagFromAlmostOutOfRangeIntegerTest = TestWithParam<int>;
@@ -64,7 +64,7 @@ namespace {
         const std::string to_parse = abel::string_cat(GetParam());
         abel::LogSeverity value;
         std::string error;
-        ASSERT_THAT(abel::ParseFlag(to_parse, &value, &error), IsTrue()) << error;
+        ASSERT_THAT(abel::parse_flag(to_parse, &value, &error), IsTrue()) << error;
         EXPECT_THAT(value, Eq(expected));
     }
 
@@ -90,7 +90,7 @@ namespace {
         const abel::LogSeverity expected = std::get<1>(GetParam());
         abel::LogSeverity value;
         std::string error;
-        ASSERT_THAT(abel::ParseFlag(to_parse, &value, &error), IsTrue()) << error;
+        ASSERT_THAT(abel::parse_flag(to_parse, &value, &error), IsTrue()) << error;
         EXPECT_THAT(value, Eq(expected));
     }
 
@@ -108,7 +108,7 @@ namespace {
         const auto expected = static_cast<abel::LogSeverity>(std::get<1>(GetParam()));
         abel::LogSeverity value;
         std::string error;
-        ASSERT_THAT(abel::ParseFlag(to_parse, &value, &error), IsTrue()) << error;
+        ASSERT_THAT(abel::parse_flag(to_parse, &value, &error), IsTrue()) << error;
         EXPECT_THAT(value, Eq(expected));
     }
 
@@ -143,7 +143,7 @@ namespace {
         const abel::LogSeverity expected = std::get<1>(GetParam());
         abel::LogSeverity value;
         std::string error;
-        ASSERT_THAT(abel::ParseFlag(to_parse, &value, &error), IsTrue()) << error;
+        ASSERT_THAT(abel::parse_flag(to_parse, &value, &error), IsTrue()) << error;
         EXPECT_THAT(value, Eq(expected));
     }
 
@@ -156,7 +156,7 @@ namespace {
         const abel::string_view to_parse = GetParam();
         abel::LogSeverity value;
         std::string error;
-        EXPECT_THAT(abel::ParseFlag(to_parse, &value, &error), IsFalse()) << value;
+        EXPECT_THAT(abel::parse_flag(to_parse, &value, &error), IsFalse()) << value;
     }
 
     using UnparseFlagToEnumeratorTest =
@@ -172,11 +172,11 @@ namespace {
     TEST_P(UnparseFlagToEnumeratorTest, ReturnsExpectedValueAndRoundTrips) {
         const abel::LogSeverity to_unparse = std::get<0>(GetParam());
         const abel::string_view expected = std::get<1>(GetParam());
-        const std::string stringified_value = abel::UnparseFlag(to_unparse);
+        const std::string stringified_value = abel::unparse_flag(to_unparse);
         EXPECT_THAT(stringified_value, Eq(expected));
         abel::LogSeverity reparsed_value;
         std::string error;
-        EXPECT_THAT(abel::ParseFlag(stringified_value, &reparsed_value, &error),
+        EXPECT_THAT(abel::parse_flag(stringified_value, &reparsed_value, &error),
                     IsTrue());
         EXPECT_THAT(reparsed_value, Eq(to_unparse));
     }
@@ -191,11 +191,11 @@ namespace {
         const abel::LogSeverity to_unparse =
                 static_cast<abel::LogSeverity>(GetParam());
         const std::string expected = abel::string_cat(GetParam());
-        const std::string stringified_value = abel::UnparseFlag(to_unparse);
+        const std::string stringified_value = abel::unparse_flag(to_unparse);
         EXPECT_THAT(stringified_value, Eq(expected));
         abel::LogSeverity reparsed_value;
         std::string error;
-        EXPECT_THAT(abel::ParseFlag(stringified_value, &reparsed_value, &error),
+        EXPECT_THAT(abel::parse_flag(stringified_value, &reparsed_value, &error),
                     IsTrue());
         EXPECT_THAT(reparsed_value, Eq(to_unparse));
     }

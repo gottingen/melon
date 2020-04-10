@@ -107,7 +107,7 @@
 // given type will be discovered via Argument-Dependent Lookup (ADL).
 //
 // `abel_parse_flag()` may need, in turn, to parse simpler constituent types
-// using `abel::ParseFlag()`. For example, a custom struct `MyFlagType`
+// using `abel::parse_flag()`. For example, a custom struct `MyFlagType`
 // consisting of a `std::pair<int, std::string>` would add an `abel_parse_flag()`
 // overload for its `MyFlagType` like so:
 //
@@ -125,26 +125,26 @@
 //   std::string abel_unparse_flag(const MyFlagType&);
 //
 //   // Within the implementation, `abel_parse_flag()` will, in turn invoke
-//   // `abel::ParseFlag()` on its constituent `int` and `std::string` types
+//   // `abel::parse_flag()` on its constituent `int` and `std::string` types
 //   // (which have built-in abel flag support.
 //
 //   bool abel_parse_flag(abel::string_view text, MyFlagType* flag,
 //                      std::string* err) {
 //     std::pair<abel::string_view, abel::string_view> tokens =
 //         abel::StrSplit(text, ',');
-//     if (!abel::ParseFlag(tokens.first, &flag->my_flag_data.first, err))
+//     if (!abel::parse_flag(tokens.first, &flag->my_flag_data.first, err))
 //         return false;
-//     if (!abel::ParseFlag(tokens.second, &flag->my_flag_data.second, err))
+//     if (!abel::parse_flag(tokens.second, &flag->my_flag_data.second, err))
 //         return false;
 //     return true;
 //   }
 //
-//   // Similarly, for unparsing, we can simply invoke `abel::UnparseFlag()` on
+//   // Similarly, for unparsing, we can simply invoke `abel::unparse_flag()` on
 //   // the constituent types.
 //   std::string abel_unparse_flag(const MyFlagType& flag) {
-//     return abel::string_cat(abel::UnparseFlag(flag.my_flag_data.first),
+//     return abel::string_cat(abel::unparse_flag(flag.my_flag_data.first),
 //                         ",",
-//                         abel::UnparseFlag(flag.my_flag_data.second));
+//                         abel::unparse_flag(flag.my_flag_data.second));
 //   }
 #ifndef ABEL_FLAGS_MARSHALLING_H_
 #define ABEL_FLAGS_MARSHALLING_H_
@@ -196,7 +196,7 @@ namespace abel {
         template<typename T>
         std::string Unparse(const T &v) {
             // Comment on next line provides a good compiler error message if T does not
-            // have UnparseFlag.
+            // have unparse_flag.
             return abel_unparse_flag(v);  // Is T missing abel_unparse_flag?
         }
 
@@ -217,7 +217,7 @@ namespace abel {
 
     }  // namespace flags_internal
 
-// ParseFlag()
+// parse_flag()
 //
 // Parses a string value into a flag value of type `T`. Do not add overloads of
 // this function for your type directly; instead, add an `abel_parse_flag()`
@@ -225,13 +225,13 @@ namespace abel {
 //
 // Some implementations of `abel_parse_flag()` for types which consist of other,
 // constituent types which already have abel flag support, may need to call
-// `abel::ParseFlag()` on those consituent string values. (See above.)
+// `abel::parse_flag()` on those consituent string values. (See above.)
     template<typename T>
-    ABEL_FORCE_INLINE bool ParseFlag(abel::string_view input, T *dst, std::string *error) {
+    ABEL_FORCE_INLINE bool parse_flag(abel::string_view input, T *dst, std::string *error) {
         return flags_internal::InvokeParseFlag(input, dst, error);
     }
 
-// UnparseFlag()
+// unparse_flag()
 //
 // Unparses a flag value of type `T` into a string value. Do not add overloads
 // of this function for your type directly; instead, add an `abel_unparse_flag()`
@@ -239,9 +239,9 @@ namespace abel {
 //
 // Some implementations of `abel_unparse_flag()` for types which consist of other,
 // constituent types which already have abel flag support, may want to call
-// `abel::UnparseFlag()` on those constituent types. (See above.)
+// `abel::unparse_flag()` on those constituent types. (See above.)
     template<typename T>
-    ABEL_FORCE_INLINE std::string UnparseFlag(const T &v) {
+    ABEL_FORCE_INLINE std::string unparse_flag(const T &v) {
         return flags_internal::Unparse(v);
     }
 

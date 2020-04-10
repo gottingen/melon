@@ -367,7 +367,7 @@ namespace abel {
                 abel::mutex_lock l(&flags_internal::processing_checks_guard);
 
                 // flagfile could have been set either on a command line or
-                // programmatically before invoking ParseCommandLine. Note that we do not
+                // programmatically before invoking parse_command_line. Note that we do not
                 // actually process arguments specified in the flagfile, but instead
                 // create a secondary arguments list to be processed along with the rest
                 // of the comamnd line arguments. Since we always the process most recently
@@ -739,7 +739,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-    std::vector<char *> ParseCommandLine(int argc, char *argv[]) {
+    std::vector<char *> parse_command_line(int argc, char *argv[]) {
         return flags_internal::ParseCommandLineImpl(
                 argc, argv, flags_internal::ArgvListAction::kRemoveParsedArgs,
                 flags_internal::UsageFlagsAction::kHandleUsage,

@@ -2064,7 +2064,7 @@ RAPIDJSON_MULTILINEMACRO_END
 /*!
     This helper class is a functor, designed as a parameter of \ref GenericDocument::Populate().
 
-    \tparam parseFlags Combination of \ref ParseFlag.
+    \tparam parseFlags Combination of \ref parse_flag.
     \tparam InputStream Type of input stream, implementing Stream concept.
     \tparam SourceEncoding Encoding of the input stream.
     \tparam SchemaDocumentType Type of schema document.

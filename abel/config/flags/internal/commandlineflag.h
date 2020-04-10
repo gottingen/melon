@@ -78,7 +78,7 @@ namespace abel {
                     // initialize the temporary instance of type T based on current value in
                     // destination (which is going to be flag's default value).
                     T temp(*static_cast<T *>(v2));
-                    if (!abel::ParseFlag<T>(*static_cast<const abel::string_view *>(v1), &temp,
+                    if (!abel::parse_flag<T>(*static_cast<const abel::string_view *>(v1), &temp,
                                             static_cast<std::string *>(v3))) {
                         return nullptr;
                     }
@@ -87,7 +87,7 @@ namespace abel {
                 }
                 case kUnparse:
                     *static_cast<std::string *>(v2) =
-                            abel::UnparseFlag<T>(*static_cast<const T *>(v1));
+                            abel::unparse_flag<T>(*static_cast<const T *>(v1));
                     return nullptr;
                 default:
                     return nullptr;

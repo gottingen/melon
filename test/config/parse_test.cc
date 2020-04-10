@@ -198,7 +198,7 @@ namespace {
 
     template<int N>
     std::vector<char *> InvokeParse(const char *(&in_argv)[N]) {
-        return abel::ParseCommandLine(N, const_cast<char **>(in_argv));
+        return abel::parse_command_line(N, const_cast<char **>(in_argv));
     }
 
 // --------------------------------------------------------------------

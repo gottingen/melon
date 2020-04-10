@@ -2479,7 +2479,7 @@ RAPIDJSON_NAMESPACE_BEGIN
         //!@{
 
         //! Parse JSON text from an input stream (with Encoding conversion)
-        /*! \tparam parseFlags Combination of \ref ParseFlag.
+        /*! \tparam parseFlags Combination of \ref parse_flag.
             \tparam SourceEncoding Encoding of input stream
             \tparam InputStream Type of input stream, implementing Stream concept
             \param is Input stream to be parsed.
@@ -2499,7 +2499,7 @@ RAPIDJSON_NAMESPACE_BEGIN
         }
 
         //! Parse JSON text from an input stream
-        /*! \tparam parseFlags Combination of \ref ParseFlag.
+        /*! \tparam parseFlags Combination of \ref parse_flag.
             \tparam InputStream Type of input stream, implementing Stream concept
             \param is Input stream to be parsed.
             \return The document itself for fluent API.
@@ -2524,7 +2524,7 @@ RAPIDJSON_NAMESPACE_BEGIN
         //!@{
 
         //! Parse JSON text from a mutable string
-        /*! \tparam parseFlags Combination of \ref ParseFlag.
+        /*! \tparam parseFlags Combination of \ref parse_flag.
             \param str Mutable zero-terminated string to be parsed.
             \return The document itself for fluent API.
         */
@@ -2547,7 +2547,7 @@ RAPIDJSON_NAMESPACE_BEGIN
         //!@{
 
         //! Parse JSON text from a read-only string (with Encoding conversion)
-        /*! \tparam parseFlags Combination of \ref ParseFlag (must not contain \ref kParseInsituFlag).
+        /*! \tparam parseFlags Combination of \ref parse_flag (must not contain \ref kParseInsituFlag).
             \tparam SourceEncoding Transcoding from input Encoding
             \param str Read-only zero-terminated string to be parsed.
         */
@@ -2559,7 +2559,7 @@ RAPIDJSON_NAMESPACE_BEGIN
         }
 
         //! Parse JSON text from a read-only string
-        /*! \tparam parseFlags Combination of \ref ParseFlag (must not contain \ref kParseInsituFlag).
+        /*! \tparam parseFlags Combination of \ref parse_flag (must not contain \ref kParseInsituFlag).
             \param str Read-only zero-terminated string to be parsed.
         */
         template<unsigned parseFlags>
