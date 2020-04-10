@@ -335,7 +335,7 @@ namespace abel {
                              abel::string_view program_usage_message) {
             if (abel::GetFlag(FLAGS_helpshort)) {
                 flags_internal::FlagsHelpImpl(
-                        out, flags_internal::GetUsageConfig().contains_helpshort_flags,
+                        out, flags_internal::get_usage_config().contains_helpshort_flags,
                         HelpFormat::kHumanReadable, program_usage_message);
                 return 1;
             }
@@ -363,7 +363,7 @@ namespace abel {
 
             if (abel::GetFlag(FLAGS_help)) {
                 flags_internal::FlagsHelpImpl(
-                        out, flags_internal::GetUsageConfig().contains_help_flags,
+                        out, flags_internal::get_usage_config().contains_help_flags,
                         HelpFormat::kHumanReadable, program_usage_message);
 
                 out << "\nTry --helpfull to get a list of all flags.\n";
@@ -373,7 +373,7 @@ namespace abel {
 
             if (abel::GetFlag(FLAGS_helppackage)) {
                 flags_internal::FlagsHelpImpl(
-                        out, flags_internal::GetUsageConfig().contains_helppackage_flags,
+                        out, flags_internal::get_usage_config().contains_helppackage_flags,
                         HelpFormat::kHumanReadable, program_usage_message);
 
                 out << "\nTry --helpfull to get a list of all flags.\n";
@@ -382,8 +382,8 @@ namespace abel {
             }
 
             if (abel::GetFlag(FLAGS_version)) {
-                if (flags_internal::GetUsageConfig().version_string)
-                    out << flags_internal::GetUsageConfig().version_string();
+                if (flags_internal::get_usage_config().version_string)
+                    out << flags_internal::get_usage_config().version_string();
                 // Unlike help, we may be asking for version in a script, so return 0
                 return 0;
             }

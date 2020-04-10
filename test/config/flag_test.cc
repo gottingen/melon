@@ -62,9 +62,9 @@ namespace {
     protected:
         static void SetUpTestSuite() {
             // Install a function to normalize filenames before this test is run.
-            abel::FlagsUsageConfig default_config;
+            abel::flags_usage_config default_config;
             default_config.normalize_filename = &FlagTest::NormalizeFileName;
-            abel::SetFlagsUsageConfig(default_config);
+            abel::set_flags_usage_config(default_config);
         }
 
     private:

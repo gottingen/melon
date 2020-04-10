@@ -81,17 +81,17 @@ namespace abel {
 // --------------------------------------------------------------------
 
             ABEL_CONST_INIT abel::mutex custom_usage_config_guard(abel::kConstInit);
-            ABEL_CONST_INIT FlagsUsageConfig *custom_usage_config
+            ABEL_CONST_INIT flags_usage_config *custom_usage_config
                     ABEL_GUARDED_BY(custom_usage_config_guard) = nullptr;
 
         }  // namespace
 
-        FlagsUsageConfig GetUsageConfig() {
+        flags_usage_config get_usage_config() {
             abel::mutex_lock l(&custom_usage_config_guard);
 
             if (custom_usage_config) return *custom_usage_config;
 
-            FlagsUsageConfig default_config;
+            flags_usage_config default_config;
             default_config.contains_helpshort_flags = &ContainsHelpshortFlags;
             default_config.contains_help_flags = &ContainsHelppackageFlags;
             default_config.contains_helppackage_flags = &ContainsHelppackageFlags;
@@ -111,7 +111,7 @@ namespace abel {
 
     }  // namespace flags_internal
 
-    void SetFlagsUsageConfig(FlagsUsageConfig usage_config) {
+    void set_flags_usage_config(flags_usage_config usage_config) {
         abel::mutex_lock l(&flags_internal::custom_usage_config_guard);
 
         if (!usage_config.contains_helpshort_flags)
@@ -134,7 +134,7 @@ namespace abel {
         if (flags_internal::custom_usage_config)
             *flags_internal::custom_usage_config = usage_config;
         else
-            flags_internal::custom_usage_config = new FlagsUsageConfig(usage_config);
+            flags_internal::custom_usage_config = new flags_usage_config(usage_config);
     }
 
 

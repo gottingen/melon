@@ -70,9 +70,9 @@ namespace {
         UsageReportingTest() {
             // Install default config for the use on this unit test.
             // Binary may install a custom config before tests are run.
-            abel::FlagsUsageConfig default_config;
+            abel::flags_usage_config default_config;
             default_config.normalize_filename = &NormalizeFileName;
-            abel::SetFlagsUsageConfig(default_config);
+            abel::set_flags_usage_config(default_config);
         }
 
     private:
@@ -84,12 +84,12 @@ namespace {
     using UsageReportingDeathTest = UsageReportingTest;
 
     TEST_F(UsageReportingDeathTest, TestSetProgramUsageMessage) {
-        EXPECT_EQ(abel::ProgramUsageMessage(), kTestUsageMessage);
+        EXPECT_EQ(abel::program_usage_message(), kTestUsageMessage);
 
 #ifndef _WIN32
         // TODO(rogeeff): figure out why this does not work on Windows.
-        EXPECT_DEATH(abel::SetProgramUsageMessage("custom usage message"),
-                     ".*SetProgramUsageMessage\\(\\) called twice.*");
+        EXPECT_DEATH(abel::set_program_usage_message("custom usage message"),
+                     ".*set_program_usage_message\\(\\) called twice.*");
 #endif
     }
 
@@ -388,7 +388,7 @@ Try --helpfull to get a list of all flags.
 int main(int argc, char *argv[]) {
     (void) abel::GetFlag(FLAGS_undefok);  // Force linking of parse.cc
     flags::SetProgramInvocationName("usage_test");
-    abel::SetProgramUsageMessage(kTestUsageMessage);
+    abel::set_program_usage_message(kTestUsageMessage);
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

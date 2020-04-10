@@ -20,11 +20,11 @@ namespace abel {
 
 // --------------------------------------------------------------------
 // Sets the "usage" message to be used by help reporting routines.
-    void SetProgramUsageMessage(abel::string_view new_usage_message) {
+    void set_program_usage_message(abel::string_view new_usage_message) {
         abel::mutex_lock l(&flags_internal::usage_message_guard);
 
         if (flags_internal::program_usage_message != nullptr) {
-            ABEL_INTERNAL_LOG(FATAL, "SetProgramUsageMessage() called twice.");
+            ABEL_INTERNAL_LOG(FATAL, "set_program_usage_message() called twice.");
             std::exit(1);
         }
 
@@ -32,15 +32,15 @@ namespace abel {
     }
 
 // --------------------------------------------------------------------
-// Returns the usage message set by SetProgramUsageMessage().
+// Returns the usage message set by set_program_usage_message().
 // Note: We able to return string_view here only because calling
-// SetProgramUsageMessage twice is prohibited.
-    abel::string_view ProgramUsageMessage() {
+// set_program_usage_message twice is prohibited.
+    abel::string_view program_usage_message() {
         abel::mutex_lock l(&flags_internal::usage_message_guard);
 
         return flags_internal::program_usage_message != nullptr
                ? abel::string_view(*flags_internal::program_usage_message)
-               : "Warning: SetProgramUsageMessage() never called";
+               : "Warning: set_program_usage_message() never called";
     }
 
 

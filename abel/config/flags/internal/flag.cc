@@ -124,7 +124,7 @@ namespace abel {
         abel::string_view FlagImpl::Name() const { return name_; }
 
         std::string FlagImpl::Filename() const {
-            return flags_internal::GetUsageConfig().normalize_filename(filename_);
+            return flags_internal::get_usage_config().normalize_filename(filename_);
         }
 
         std::string FlagImpl::Help() const {

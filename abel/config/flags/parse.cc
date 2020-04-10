@@ -703,13 +703,13 @@ namespace abel {
 
             if (!success) {
                 flags_internal::HandleUsageFlags(std::cout,
-                                                 ProgramUsageMessage());
+                                                 program_usage_message());
                 std::exit(1);
             }
 
             if (usage_flag_act == UsageFlagsAction::kHandleUsage) {
                 int exit_code = flags_internal::HandleUsageFlags(
-                        std::cout, ProgramUsageMessage());
+                        std::cout, program_usage_message());
 
                 if (exit_code != -1) {
                     std::exit(exit_code);

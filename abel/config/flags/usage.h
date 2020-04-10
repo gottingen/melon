@@ -13,15 +13,15 @@ namespace abel {
 
 // Sets the "usage" message to be used by help reporting routines.
 // For example:
-//  abel::SetProgramUsageMessage(
+//  abel::set_program_usage_message(
 //      abel::string_cat("This program does nothing.  Sample usage:\n", argv[0],
 //                   " <uselessarg1> <uselessarg2>"));
 // Do not include commandline flags in the usage: we do that for you!
-// Note: Calling SetProgramUsageMessage twice will trigger a call to std::exit.
-    void SetProgramUsageMessage(abel::string_view new_usage_message);
+// Note: Calling set_program_usage_message twice will trigger a call to std::exit.
+    void set_program_usage_message(abel::string_view new_usage_message);
 
-// Returns the usage message set by SetProgramUsageMessage().
-    abel::string_view ProgramUsageMessage();
+// Returns the usage message set by set_program_usage_message().
+    abel::string_view program_usage_message();
 
 
 }  // namespace abel

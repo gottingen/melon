@@ -47,11 +47,11 @@ namespace abel {
         using FlagKindFilter = std::function<bool(abel::string_view)>;
     }  // namespace flags_internal
 
-// FlagsUsageConfig
+// flags_usage_config
 //
 // This structure contains the collection of callbacks for changing the behavior
 // of the usage reporting routines in abel Flags.
-    struct FlagsUsageConfig {
+    struct flags_usage_config {
         // Returns true if flags defined in the given source code file should be
         // reported with --helpshort flag. For example, if the file
         // "path/to/my/code.cc" defines the flag "--my_flag", and
@@ -92,16 +92,16 @@ namespace abel {
         std::function<std::string(abel::string_view)> normalize_filename;
     };
 
-// SetFlagsUsageConfig()
+// set_flags_usage_config()
 //
 // Sets the usage reporting configuration callbacks. If any of the callbacks are
 // not set in usage_config instance, then the default value of the callback is
 // used.
-    void SetFlagsUsageConfig(FlagsUsageConfig usage_config);
+    void set_flags_usage_config(flags_usage_config usage_config);
 
     namespace flags_internal {
 
-        FlagsUsageConfig GetUsageConfig();
+        flags_usage_config get_usage_config();
 
         void ReportUsageError(abel::string_view msg, bool is_fatal);
 

@@ -1,9 +1,7 @@
 //
 
 #include <abel/config/flags/internal/program_name.h>
-
 #include <string>
-
 #include <abel/config/flags/internal/path_util.h>
 #include <abel/thread/mutex.h>
 
