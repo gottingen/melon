@@ -24,9 +24,9 @@ namespace abel {
         class Flag;
 
         template<typename T>
-        class FlagState : public flags_internal::FlagStateInterface {
+        class flag_state : public flags_internal::FlagStateInterface {
         public:
-            FlagState(Flag<T> *flag, T &&cur, bool modified, bool on_command_line,
+            flag_state(Flag<T> *flag, T &&cur, bool modified, bool on_command_line,
                       int64_t counter)
                     : flag_(flag),
                       cur_value_(std::move(cur)),
@@ -34,7 +34,7 @@ namespace abel {
                       on_command_line_(on_command_line),
                       counter_(counter) {}
 
-            ~FlagState() override = default;
+            ~flag_state() override = default;
 
         private:
             friend class Flag<T>;
@@ -222,7 +222,7 @@ namespace abel {
                 T &&cur_value = flag->Get();
                 abel::mutex_lock l(DataGuard());
 
-                return abel::make_unique<flags_internal::FlagState<T>>(
+                return abel::make_unique<flags_internal::flag_state<T>>(
                         flag, std::move(cur_value), modified_, on_command_line_, counter_);
             }
 
@@ -301,7 +301,7 @@ namespace abel {
 
 // This is "unspecified" implementation of abel::Flag<T> type.
         template<typename T>
-        class Flag final : public flags_internal::CommandLineFlag {
+        class Flag final : public flags_internal::command_line_flag {
         public:
             constexpr Flag(const char *name, const char *filename,
                            const flags_internal::FlagMarshallingOpFn marshalling_op,
@@ -311,7 +311,7 @@ namespace abel {
                             default_value_gen) {}
 
             T Get() const {
-                // See implementation notes in CommandLineFlag::Get().
+                // See implementation notes in command_line_flag::Get().
                 union U {
                     T value;
 
@@ -333,7 +333,7 @@ namespace abel {
                 impl_.SetCallback(mutation_callback);
             }
 
-            // CommandLineFlag interface
+            // command_line_flag interface
             abel::string_view Name() const override { return impl_.Name(); }
 
             std::string Filename() const override { return impl_.Filename(); }
@@ -365,7 +365,7 @@ namespace abel {
 
             // Restores the flag state to the supplied state object. If there is
             // nothing to restore returns false. Otherwise returns true.
-            bool RestoreState(const flags_internal::FlagState<T> &flag_state) {
+            bool RestoreState(const flags_internal::flag_state<T> &flag_state) {
                 return impl_.RestoreState(&flag_state.cur_value_, flag_state.modified_,
                                           flag_state.on_command_line_, flag_state.counter_);
             }
@@ -382,7 +382,7 @@ namespace abel {
             }
 
         private:
-            friend class FlagState<T>;
+            friend class flag_state<T>;
 
             void Destroy() override { impl_.Destroy(); }
 
@@ -399,7 +399,7 @@ namespace abel {
         };
 
         template<typename T>
-        ABEL_FORCE_INLINE void FlagState<T>::Restore() const {
+        ABEL_FORCE_INLINE void flag_state<T>::Restore() const {
             if (flag_->RestoreState(*this)) {
                 ABEL_INTERNAL_LOG(INFO,
                                   abel::string_cat("Restore saved value of ", flag_->Name(),

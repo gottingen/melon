@@ -16,7 +16,7 @@ namespace abel {
             if (name.empty()) return false;
             assert(value);
 
-            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
             if (flag == nullptr || flag->IsRetired()) {
                 return false;
             }
@@ -33,7 +33,7 @@ namespace abel {
         bool SetCommandLineOptionWithMode(abel::string_view name,
                                           abel::string_view value,
                                           FlagSettingMode set_mode) {
-            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
 
             if (!flag || flag->IsRetired()) return false;
 
@@ -51,7 +51,7 @@ namespace abel {
 // --------------------------------------------------------------------
 
         bool IsValidFlagValue(abel::string_view name, abel::string_view value) {
-            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
 
             return flag != nullptr &&
                    (flag->IsRetired() || flag->ValidateInputValue(value));
@@ -60,7 +60,7 @@ namespace abel {
 // --------------------------------------------------------------------
 
         bool SpecifiedOnCommandLine(abel::string_view name) {
-            CommandLineFlag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
             if (flag != nullptr && !flag->IsRetired()) {
                 return flag->IsSpecifiedOnCommandLine();
             }

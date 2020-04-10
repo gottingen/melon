@@ -18,21 +18,21 @@ namespace abel {
 
     namespace flags_internal {
 
-        CommandLineFlag *FindCommandLineFlag(abel::string_view name);
+        command_line_flag *FindCommandLineFlag(abel::string_view name);
 
-        CommandLineFlag *FindRetiredFlag(abel::string_view name);
+        command_line_flag *FindRetiredFlag(abel::string_view name);
 
 // Executes specified visitor for each non-retired flag in the registry.
 // Requires the caller hold the registry lock.
-        void ForEachFlagUnlocked(std::function<void(CommandLineFlag *)> visitor);
+        void ForEachFlagUnlocked(std::function<void(command_line_flag *)> visitor);
 
 // Executes specified visitor for each non-retired flag in the registry. While
 // callback are executed, the registry is locked and can't be changed.
-        void ForEachFlag(std::function<void(CommandLineFlag *)> visitor);
+        void ForEachFlag(std::function<void(command_line_flag *)> visitor);
 
 //-----------------------------------------------------------------------------
 
-        bool RegisterCommandLineFlag(CommandLineFlag *);
+        bool RegisterCommandLineFlag(command_line_flag *);
 
 //-----------------------------------------------------------------------------
 // Retired registrations:

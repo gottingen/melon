@@ -37,7 +37,7 @@ namespace abel {
     namespace flags_internal {
         namespace {
 
-            abel::string_view TypenameForHelp(const flags_internal::CommandLineFlag &flag) {
+            abel::string_view TypenameForHelp(const flags_internal::command_line_flag &flag) {
                 // Only report names of v1 built-in types
 #define HANDLE_V1_BUILTIN_TYPE(t) \
   if (flag.IsOfType<t>()) {       \
@@ -187,7 +187,7 @@ namespace abel {
                 bool first_line_;
             };
 
-            void FlagHelpHumanReadable(const flags_internal::CommandLineFlag &flag,
+            void FlagHelpHumanReadable(const flags_internal::command_line_flag &flag,
                                        std::ostream *out) {
                 FlagHelpPrettyPrinter printer(80, out);  // Max line length is 80.
 
@@ -254,10 +254,10 @@ namespace abel {
                 // name.
                 std::map<std::string,
                         std::map<std::string,
-                                std::vector<const flags_internal::CommandLineFlag *>>>
+                                std::vector<const flags_internal::command_line_flag *>>>
                         matching_flags;
 
-                flags_internal::ForEachFlag([&](flags_internal::CommandLineFlag *flag) {
+                flags_internal::ForEachFlag([&](flags_internal::command_line_flag *flag) {
                     std::string flag_filename = flag->Filename();
 
                     // Ignore retired flags.
@@ -311,7 +311,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 // Produces the help message describing specific flag.
-        void FlagHelp(std::ostream &out, const flags_internal::CommandLineFlag &flag,
+        void FlagHelp(std::ostream &out, const flags_internal::command_line_flag &flag,
                       HelpFormat format) {
             if (format == HelpFormat::kHumanReadable)
                 flags_internal::FlagHelpHumanReadable(flag, &out);

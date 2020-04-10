@@ -251,8 +251,8 @@ namespace abel {
 // Returns:
 //  found flag or nullptr
 //  is negative in case of --nofoo
-            std::tuple<CommandLineFlag *, bool> LocateFlag(abel::string_view flag_name) {
-                CommandLineFlag *flag = flags_internal::FindCommandLineFlag(flag_name);
+            std::tuple<command_line_flag *, bool> LocateFlag(abel::string_view flag_name) {
+                command_line_flag *flag = flags_internal::FindCommandLineFlag(flag_name);
                 bool is_negative = false;
 
                 if (!flag && abel::consume_prefix(&flag_name, "no")) {
@@ -269,7 +269,7 @@ namespace abel {
 // back.
             void CheckDefaultValuesParsingRoundtrip() {
 #ifndef NDEBUG
-                flags_internal::ForEachFlag([&](CommandLineFlag *flag) {
+                flags_internal::ForEachFlag([&](command_line_flag *flag) {
                     if (flag->IsRetired()) return;
 
 #define IGNORE_TYPE(T) \
@@ -451,7 +451,7 @@ namespace abel {
 //  deduced value
 // We are also mutating curr_list in case if we need to get a hold of next
 // argument in the input.
-            std::tuple<bool, abel::string_view> DeduceFlagValue(const CommandLineFlag &flag,
+            std::tuple<bool, abel::string_view> DeduceFlagValue(const command_line_flag &flag,
                                                                 abel::string_view value,
                                                                 bool is_negative,
                                                                 bool is_empty_value,
@@ -648,7 +648,7 @@ namespace abel {
                 }
 
                 // 80. Locate the flag based on flag name. Handle both --foo and --nofoo
-                CommandLineFlag *flag = nullptr;
+                command_line_flag *flag = nullptr;
                 bool is_negative = false;
                 std::tie(flag, is_negative) = LocateFlag(flag_name);
 

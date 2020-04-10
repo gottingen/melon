@@ -23,7 +23,7 @@ namespace abel {
         };
 
 // Outputs the help message describing specific flag.
-        void FlagHelp(std::ostream &out, const flags_internal::CommandLineFlag &flag,
+        void FlagHelp(std::ostream &out, const flags_internal::command_line_flag &flag,
                       HelpFormat format = HelpFormat::kHumanReadable);
 
 // Produces the help messages for all flags matching the filter. A flag matches

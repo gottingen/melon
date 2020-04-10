@@ -128,8 +128,8 @@ namespace abel {
                     op(flags_internal::kSizeof, nullptr, nullptr)));
         }
 
-// Handle to FlagState objects. Specific flag state objects will restore state
-// of a flag produced this flag state from method CommandLineFlag::SaveState().
+// Handle to flag_state objects. Specific flag state objects will restore state
+// of a flag produced this flag state from method command_line_flag::SaveState().
         class FlagStateInterface {
         public:
             virtual ~FlagStateInterface() {}
@@ -139,17 +139,17 @@ namespace abel {
         };
 
 // Holds all information for a flag.
-        class CommandLineFlag {
+        class command_line_flag {
         public:
-            constexpr CommandLineFlag() = default;
+            constexpr command_line_flag() = default;
 
             // Virtual destructor
             virtual void Destroy() = 0;
 
             // Not copyable/assignable.
-            CommandLineFlag(const CommandLineFlag &) = delete;
+            command_line_flag(const command_line_flag &) = delete;
 
-            CommandLineFlag &operator=(const CommandLineFlag &) = delete;
+            command_line_flag &operator=(const command_line_flag &) = delete;
 
             // Non-polymorphic access methods.
 
@@ -178,7 +178,7 @@ namespace abel {
                 //     explicitly. This makes `U` a kind of RAII wrapper around non default
                 //     constructible value of T, which is destructed when we leave the
                 //     scope. We do need to destroy U.value, which is constructed by
-                //     CommandLineFlag::Read even though we left it in a moved-from state
+                //     command_line_flag::Read even though we left it in a moved-from state
                 //     after std::move.
                 //
                 // All of this serves to avoid requiring `T` being default constructible.
@@ -252,7 +252,7 @@ namespace abel {
             virtual void CheckDefaultValueParsingRoundtrip() const = 0;
 
         protected:
-            ~CommandLineFlag() = default;
+            ~command_line_flag() = default;
 
         private:
             // Copy-construct a new value of the flag's type in a memory referenced by
