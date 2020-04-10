@@ -618,7 +618,7 @@ namespace abel {
 
                 using V = typename remove_pair_const<typename T::value_type>::type;
                 const std::vector<V> random_values = GenerateValuesWithSeed<V>(
-                        abel::GetFlag(FLAGS_test_values), 4 * abel::GetFlag(FLAGS_test_values),
+                        abel::get_flag(FLAGS_test_values), 4 * abel::get_flag(FLAGS_test_values),
                         testing::GTEST_FLAG(random_seed));
 
                 unique_checker<T, C> container;
@@ -642,7 +642,7 @@ namespace abel {
 
                 using V = typename remove_pair_const<typename T::value_type>::type;
                 const std::vector<V> random_values = GenerateValuesWithSeed<V>(
-                        abel::GetFlag(FLAGS_test_values), 4 * abel::GetFlag(FLAGS_test_values),
+                        abel::get_flag(FLAGS_test_values), 4 * abel::get_flag(FLAGS_test_values),
                         testing::GTEST_FLAG(random_seed));
 
                 multi_checker<T, C> container;

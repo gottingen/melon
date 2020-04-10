@@ -49,7 +49,7 @@ namespace abel {
 ABEL_FLAG(std::vector<std::string>, flagfile, {},
           "comma-separated list of files to load flags from")
 .OnUpdate([]() {
-    if (abel::GetFlag(FLAGS_flagfile).empty()) return;
+    if (abel::get_flag(FLAGS_flagfile).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);
 
@@ -65,7 +65,7 @@ ABEL_FLAG(std::vector<std::string>, fromenv, {},
           "comma-separated list of flags to set from the environment"
           " [use 'export FLAGS_flag1=value']")
 .OnUpdate([]() {
-    if (abel::GetFlag(FLAGS_fromenv).empty()) return;
+    if (abel::get_flag(FLAGS_fromenv).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);
 
@@ -81,7 +81,7 @@ ABEL_FLAG(std::vector<std::string>, tryfromenv, {},
           "comma-separated list of flags to try to set from the environment if "
           "present")
 .OnUpdate([]() {
-    if (abel::GetFlag(FLAGS_tryfromenv).empty()) return;
+    if (abel::get_flag(FLAGS_tryfromenv).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);
 
@@ -384,7 +384,7 @@ namespace abel {
                 // multiple times. We are collecting them all into a single list and set
                 // the value of FLAGS_flagfile to that value at the end of the parsing.
                 if (flags_internal::flagfile_needs_processing) {
-                    auto flagfiles = abel::GetFlag(FLAGS_flagfile);
+                    auto flagfiles = abel::get_flag(FLAGS_flagfile);
 
                     if (input_args->size() == 1) {
                         flagfile_value->insert(flagfile_value->end(), flagfiles.begin(),
@@ -400,7 +400,7 @@ namespace abel {
                 // programmatically and at runtime on a command line. Unlike flagfile these
                 // can't be recursive.
                 if (flags_internal::fromenv_needs_processing) {
-                    auto flags_list = abel::GetFlag(FLAGS_fromenv);
+                    auto flags_list = abel::get_flag(FLAGS_fromenv);
 
                     success &= ReadFlagsFromEnv(flags_list, input_args, true);
 
@@ -408,7 +408,7 @@ namespace abel {
                 }
 
                 if (flags_internal::tryfromenv_needs_processing) {
-                    auto flags_list = abel::GetFlag(FLAGS_tryfromenv);
+                    auto flags_list = abel::get_flag(FLAGS_tryfromenv);
 
                     success &= ReadFlagsFromEnv(flags_list, input_args, false);
 
@@ -426,17 +426,17 @@ namespace abel {
                 // --flagfile=f1 --flagfile=f2 the final value of the FLAGS_flagfile flag is
                 // going to be {"f1", "f2"}
                 if (!flagfile_value.empty()) {
-                    abel::SetFlag(&FLAGS_flagfile, flagfile_value);
+                    abel::set_flag(&FLAGS_flagfile, flagfile_value);
                     abel::mutex_lock l(&flags_internal::processing_checks_guard);
                     flags_internal::flagfile_needs_processing = false;
                 }
 
                 // fromenv/tryfromenv are set to <undefined> value.
-                if (!abel::GetFlag(FLAGS_fromenv).empty()) {
-                    abel::SetFlag(&FLAGS_fromenv, {});
+                if (!abel::get_flag(FLAGS_fromenv).empty()) {
+                    abel::set_flag(&FLAGS_fromenv, {});
                 }
-                if (!abel::GetFlag(FLAGS_tryfromenv).empty()) {
-                    abel::SetFlag(&FLAGS_tryfromenv, {});
+                if (!abel::get_flag(FLAGS_tryfromenv).empty()) {
+                    abel::set_flag(&FLAGS_tryfromenv, {});
                 }
 
                 abel::mutex_lock l(&flags_internal::processing_checks_guard);
@@ -540,7 +540,7 @@ namespace abel {
 // --------------------------------------------------------------------
 
             bool CanIgnoreUndefinedFlag(abel::string_view flag_name) {
-                auto undefok = abel::GetFlag(FLAGS_undefok);
+                auto undefok = abel::get_flag(FLAGS_undefok);
                 if (std::find(undefok.begin(), undefok.end(), flag_name) != undefok.end()) {
                     return true;
                 }

@@ -111,10 +111,10 @@ def _ParseAndStripGTestFlags(argv):
                 i += 1
 
 
-def GetFlag(flag):
+def get_flag(flag):
     """Returns the value of the given flag."""
 
-    # In case GetFlag() is called before Main(), we always call
+    # In case get_flag() is called before Main(), we always call
     # _ParseAndStripGTestFlags() here to make sure the --gtest_* flags
     # are parsed.
     _ParseAndStripGTestFlags(sys.argv)
@@ -125,13 +125,13 @@ def GetFlag(flag):
 def GetSourceDir():
     """Returns the absolute path of the directory where the .py files are."""
 
-    return os.path.abspath(GetFlag('source_dir'))
+    return os.path.abspath(get_flag('source_dir'))
 
 
 def GetBuildDir():
     """Returns the absolute path of the directory where the test binaries are."""
 
-    return os.path.abspath(GetFlag('build_dir'))
+    return os.path.abspath(get_flag('build_dir'))
 
 
 _temp_dir = None

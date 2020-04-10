@@ -436,7 +436,7 @@ namespace {
             }
         };
 
-        size_t limit = abel::GetFlag(FLAGS_abel_random_test_trials);
+        size_t limit = abel::get_flag(FLAGS_abel_random_test_trials);
 
         // Generate all uint64_t which have unique floating point values.
         // Counting down from 0xFFFFFFFFFFFFFFFFu ... 0x0u

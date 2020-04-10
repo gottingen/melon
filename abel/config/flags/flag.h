@@ -11,7 +11,7 @@
 // detail) and you do not construct or manipulate actual `abel::Flag<T>`
 // instances. Instead, you define and declare flags using the
 // `ABEL_FLAG()` and `ABEL_DECLARE_FLAG()` macros, and get and set flag values
-// using the `abel::GetFlag()` and `abel::SetFlag()` functions.
+// using the `abel::get_flag()` and `abel::set_flag()` functions.
 
 #ifndef ABEL_FLAGS_FLAG_H_
 #define ABEL_FLAGS_FLAG_H_
@@ -151,59 +151,59 @@ namespace abel {
     };
 #endif
 
-// GetFlag()
+// get_flag()
 //
 // Returns the value (of type `T`) of an `abel::Flag<T>` instance, by value. Do
-// not construct an `abel::Flag<T>` directly and call `abel::GetFlag()`;
+// not construct an `abel::Flag<T>` directly and call `abel::get_flag()`;
 // instead, refer to flag's constructed variable name (e.g. `FLAGS_name`).
 // Because this function returns by value and not by reference, it is
 // thread-safe, but note that the operation may be expensive; as a result, avoid
-// `abel::GetFlag()` within any tight loops.
+// `abel::get_flag()` within any tight loops.
 //
 // Example:
 //
 //   // FLAGS_count is a Flag of type `int`
-//   int my_count = abel::GetFlag(FLAGS_count);
+//   int my_count = abel::get_flag(FLAGS_count);
 //
 //   // FLAGS_firstname is a Flag of type `std::string`
-//   std::string first_name = abel::GetFlag(FLAGS_firstname);
+//   std::string first_name = abel::get_flag(FLAGS_firstname);
     template<typename T>
-    ABEL_MUST_USE_RESULT T GetFlag(const abel::Flag<T> &flag) {
+    ABEL_MUST_USE_RESULT T get_flag(const abel::Flag<T> &flag) {
 #define ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE(BIT) \
   static_assert(                                    \
       !std::is_same<T, BIT>::value,                 \
-      "Do not specify explicit template parameters to abel::GetFlag");
+      "Do not specify explicit template parameters to abel::get_flag");
         ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE)
 #undef ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE
 
         return flag.Get();
     }
 
-// Overload for `GetFlag()` for types that support lock-free reads.
+// Overload for `get_flag()` for types that support lock-free reads.
 #define ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT(T) \
-  ABEL_MUST_USE_RESULT T GetFlag(const abel::Flag<T>& flag);
+  ABEL_MUST_USE_RESULT T get_flag(const abel::Flag<T>& flag);
 
     ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT)
 
 #undef ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT
 
-// SetFlag()
+// set_flag()
 //
 // Sets the value of an `abel::Flag` to the value `v`. Do not construct an
-// `abel::Flag<T>` directly and call `abel::SetFlag()`; instead, use the
+// `abel::Flag<T>` directly and call `abel::set_flag()`; instead, use the
 // flag's variable name (e.g. `FLAGS_name`). This function is
 // thread-safe, but is potentially expensive. Avoid setting flags in general,
 // but especially within performance-critical code.
     template<typename T>
-    void SetFlag(abel::Flag<T> *flag, const T &v) {
+    void set_flag(abel::Flag<T> *flag, const T &v) {
         flag->Set(v);
     }
 
-// Overload of `SetFlag()` to allow callers to pass in a value that is
+// Overload of `set_flag()` to allow callers to pass in a value that is
 // convertible to `T`. E.g., use this overload to pass a "const char*" when `T`
 // is `std::string`.
     template<typename T, typename V>
-    void SetFlag(abel::Flag<T> *flag, const V &v) {
+    void set_flag(abel::Flag<T> *flag, const V &v) {
         T value(v);
         flag->Set(value);
     }

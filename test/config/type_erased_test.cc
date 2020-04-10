@@ -46,10 +46,10 @@ namespace {
 
     TEST_F(TypeErasedTest, TestSetCommandLineOption) {
         EXPECT_TRUE(flags::SetCommandLineOption("int_flag", "101"));
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 101);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 101);
 
         EXPECT_TRUE(flags::SetCommandLineOption("string_flag", "asdfgh"));
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), "asdfgh");
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "asdfgh");
 
         EXPECT_FALSE(flags::SetCommandLineOption("bool_retired_flag", "true"));
 
@@ -61,11 +61,11 @@ namespace {
     TEST_F(TypeErasedTest, TestSetCommandLineOptionWithMode_SET_FLAGS_VALUE) {
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("int_flag", "101",
                                                         flags::SET_FLAGS_VALUE));
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 101);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 101);
 
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("string_flag", "asdfgh",
                                                         flags::SET_FLAGS_VALUE));
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), "asdfgh");
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "asdfgh");
 
         EXPECT_FALSE(flags::SetCommandLineOptionWithMode("bool_retired_flag", "true",
                                                          flags::SET_FLAGS_VALUE));
@@ -79,17 +79,17 @@ namespace {
     TEST_F(TypeErasedTest, TestSetCommandLineOptionWithMode_SET_FLAG_IF_DEFAULT) {
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("int_flag", "101",
                                                         flags::SET_FLAG_IF_DEFAULT));
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 101);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 101);
 
         // This semantic is broken. We return true instead of false. Value is not
         // updated.
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("int_flag", "202",
                                                         flags::SET_FLAG_IF_DEFAULT));
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 101);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 101);
 
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("string_flag", "asdfgh",
                                                         flags::SET_FLAG_IF_DEFAULT));
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), "asdfgh");
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "asdfgh");
 
         EXPECT_FALSE(flags::SetCommandLineOptionWithMode("bool_retired_flag", "true",
                                                          flags::SET_FLAG_IF_DEFAULT));
@@ -106,7 +106,7 @@ namespace {
 
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("string_flag", "asdfgh",
                                                         flags::SET_FLAGS_DEFAULT));
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), "asdfgh");
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "asdfgh");
 
         EXPECT_FALSE(flags::SetCommandLineOptionWithMode("bool_retired_flag", "true",
                                                          flags::SET_FLAGS_DEFAULT));
@@ -117,7 +117,7 @@ namespace {
         // This should be successfull, since flag is still is not set
         EXPECT_TRUE(flags::SetCommandLineOptionWithMode("int_flag", "202",
                                                         flags::SET_FLAG_IF_DEFAULT));
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 202);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 202);
     }
 
 // --------------------------------------------------------------------

@@ -212,10 +212,10 @@ namespace {
         EXPECT_EQ(out_args.size(), 1 + exp_position_args);
         EXPECT_STREQ(out_args[0], "testbin");
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), int_flag_value);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_double_flag), double_flag_val, 0.0001);
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), string_flag_val);
-        EXPECT_EQ(abel::GetFlag(FLAGS_bool_flag), bool_flag_val);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), int_flag_value);
+        EXPECT_NEAR(abel::get_flag(FLAGS_double_flag), double_flag_val, 0.0001);
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), string_flag_val);
+        EXPECT_EQ(abel::get_flag(FLAGS_bool_flag), bool_flag_val);
     }
 
 // --------------------------------------------------------------------
@@ -363,12 +363,12 @@ namespace {
         };
         InvokeParse(in_args1);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_udt_flag).value, 1);
+        EXPECT_EQ(abel::get_flag(FLAGS_udt_flag).value, 1);
 
         const char *in_args2[] = {"testbin", "--udt_flag", "AAA"};
         InvokeParse(in_args2);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_udt_flag).value, 10);
+        EXPECT_EQ(abel::get_flag(FLAGS_udt_flag).value, 10);
     }
 
 // --------------------------------------------------------------------
@@ -802,7 +802,7 @@ namespace {
         EXPECT_THAT(out_args1, ElementsAreArray({abel::string_view("testbin"),
                                                  abel::string_view("arg1")}));
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 21);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 21);
 
         const char *in_args2[] = {
                 "testbin",
@@ -822,7 +822,7 @@ namespace {
                         {abel::string_view("testbin"), abel::string_view("--undef_flag=aa"),
                          abel::string_view("--string_flag=AA"), abel::string_view("arg1")}));
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), "AA");
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "AA");
     }
 
 // --------------------------------------------------------------------
@@ -846,7 +846,7 @@ namespace {
                 flags::UsageFlagsAction::kIgnoreUsage,
                 flags::OnUndefinedFlag::kAbortIfUndefined);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 3);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 3);
     }
 
 }  // namespace

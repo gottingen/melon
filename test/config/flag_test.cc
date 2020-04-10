@@ -213,54 +213,54 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(FlagTest, TestDefault) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_01), true);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_02), 1234);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_03), -34);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_04), 189);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_05), 10765);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_06), 40000);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_07), -1234567);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_08), 9876543);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_09), -9.876e-50, 1e-55);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_10), 1.234e12f, 1e5f);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_11), "");
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_01), true);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_02), 1234);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_03), -34);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_04), 189);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_05), 10765);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_06), 40000);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_07), -1234567);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_08), 9876543);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_09), -9.876e-50, 1e-55);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_10), 1.234e12f, 1e5f);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_11), "");
     }
 
 // --------------------------------------------------------------------
 
     TEST_F(FlagTest, TestGetSet) {
-        abel::SetFlag(&FLAGS_test_flag_01, false);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_01), false);
+        abel::set_flag(&FLAGS_test_flag_01, false);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_01), false);
 
-        abel::SetFlag(&FLAGS_test_flag_02, 321);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_02), 321);
+        abel::set_flag(&FLAGS_test_flag_02, 321);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_02), 321);
 
-        abel::SetFlag(&FLAGS_test_flag_03, 67);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_03), 67);
+        abel::set_flag(&FLAGS_test_flag_03, 67);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_03), 67);
 
-        abel::SetFlag(&FLAGS_test_flag_04, 1);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_04), 1);
+        abel::set_flag(&FLAGS_test_flag_04, 1);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_04), 1);
 
-        abel::SetFlag(&FLAGS_test_flag_05, -908);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_05), -908);
+        abel::set_flag(&FLAGS_test_flag_05, -908);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_05), -908);
 
-        abel::SetFlag(&FLAGS_test_flag_06, 4001);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_06), 4001);
+        abel::set_flag(&FLAGS_test_flag_06, 4001);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_06), 4001);
 
-        abel::SetFlag(&FLAGS_test_flag_07, -23456);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_07), -23456);
+        abel::set_flag(&FLAGS_test_flag_07, -23456);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_07), -23456);
 
-        abel::SetFlag(&FLAGS_test_flag_08, 975310);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_08), 975310);
+        abel::set_flag(&FLAGS_test_flag_08, 975310);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_08), 975310);
 
-        abel::SetFlag(&FLAGS_test_flag_09, 1.00001);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_09), 1.00001, 1e-10);
+        abel::set_flag(&FLAGS_test_flag_09, 1.00001);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_09), 1.00001, 1e-10);
 
-        abel::SetFlag(&FLAGS_test_flag_10, -3.54f);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_10), -3.54f, 1e-6f);
+        abel::set_flag(&FLAGS_test_flag_10, -3.54f);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_10), -3.54f, 1e-6f);
 
-        abel::SetFlag(&FLAGS_test_flag_11, "asdf");
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_11), "asdf");
+        abel::set_flag(&FLAGS_test_flag_11, "asdf");
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_11), "asdf");
     }
 
 // --------------------------------------------------------------------
@@ -276,8 +276,8 @@ ABEL_FLAG(std::string, test_flag_13, abel::string_cat("AAA", "BBB"),
 namespace {
 
     TEST_F(FlagTest, TestNonConstexprDefault) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_12), 1);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_13), "AAABBB");
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_12), 1);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_13), "AAABBB");
     }
 
 // --------------------------------------------------------------------
@@ -306,24 +306,24 @@ namespace {
 ABEL_FLAG(int, test_flag_with_cb, 100, "").OnUpdate(TestFlagCB);
 
 ABEL_FLAG(int, test_flag_with_lambda_cb, 200, "").OnUpdate([]() {
-    cb_test_value = abel::GetFlag(FLAGS_test_flag_with_lambda_cb) +
-                    abel::GetFlag(FLAGS_test_flag_with_cb);
+    cb_test_value = abel::get_flag(FLAGS_test_flag_with_lambda_cb) +
+                    abel::get_flag(FLAGS_test_flag_with_cb);
 });
 
 namespace {
 
-    void TestFlagCB() { cb_test_value = abel::GetFlag(FLAGS_test_flag_with_cb); }
+    void TestFlagCB() { cb_test_value = abel::get_flag(FLAGS_test_flag_with_cb); }
 
 // Tests side-effects of callback invocation.
     TEST_F(FlagTest, CallbackInvocation) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_with_cb), 100);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_with_lambda_cb), 200);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_with_cb), 100);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_with_lambda_cb), 200);
         EXPECT_EQ(cb_test_value, 300);
 
-        abel::SetFlag(&FLAGS_test_flag_with_cb, 1);
+        abel::set_flag(&FLAGS_test_flag_with_cb, 1);
         EXPECT_EQ(cb_test_value, 1);
 
-        abel::SetFlag(&FLAGS_test_flag_with_lambda_cb, 3);
+        abel::set_flag(&FLAGS_test_flag_with_lambda_cb, 3);
         EXPECT_EQ(cb_test_value, 4);
     }
 
@@ -366,9 +366,9 @@ ABEL_FLAG(CustomUDT, test_flag_15, CustomUDT(), "test flag 15");
 namespace {
 
     TEST_F(FlagTest, TestCustomUDT) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_15), CustomUDT(1, 1));
-        abel::SetFlag(&FLAGS_test_flag_15, CustomUDT(2, 3));
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_15), CustomUDT(2, 3));
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_15), CustomUDT(1, 1));
+        abel::set_flag(&FLAGS_test_flag_15, CustomUDT(2, 3));
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_15), CustomUDT(2, 3));
     }
 
 // MSVC produces link error on the type mismatch.
@@ -376,20 +376,20 @@ namespace {
 #if 0  // !defined(_WIN32) && GTEST_HAS_DEATH_TEST
 
     TEST(Flagtest, TestTypeMismatchValidations) {
-      // For builtin types, GetFlag() only does validation in debug mode.
+      // For builtin types, get_flag() only does validation in debug mode.
       EXPECT_DEBUG_DEATH(
-          abel::GetFlag(FLAGS_mistyped_int_flag),
+          abel::get_flag(FLAGS_mistyped_int_flag),
           "Flag 'mistyped_int_flag' is defined as one type and declared "
           "as another");
-      EXPECT_DEATH(abel::SetFlag(&FLAGS_mistyped_int_flag, 0),
+      EXPECT_DEATH(abel::set_flag(&FLAGS_mistyped_int_flag, 0),
                    "Flag 'mistyped_int_flag' is defined as one type and declared "
                    "as another");
 
-      EXPECT_DEATH(abel::GetFlag(FLAGS_mistyped_string_flag),
+      EXPECT_DEATH(abel::get_flag(FLAGS_mistyped_string_flag),
                    "Flag 'mistyped_string_flag' is defined as one type and "
                    "declared as another");
       EXPECT_DEATH(
-          abel::SetFlag(&FLAGS_mistyped_string_flag, std::vector<std::string>{}),
+          abel::set_flag(&FLAGS_mistyped_string_flag, std::vector<std::string>{}),
           "Flag 'mistyped_string_flag' is defined as one type and declared as "
           "another");
     }
@@ -437,10 +437,10 @@ ABEL_FLAG(ConversionTestVal, test_flag_16,
 namespace {
 
     TEST_F(FlagTest, CanSetViaImplicitConversion) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_16).a, 10);
-        abel::SetFlag(&FLAGS_test_flag_16,
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_16).a, 10);
+        abel::set_flag(&FLAGS_test_flag_16,
                       ConversionTestVal::ViaImplicitConv::kEleven);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_16).a, 11);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_16).a, 11);
     }
 
 // --------------------------------------------------------------------
@@ -476,14 +476,14 @@ ABEL_FLAG(NonDfltConstructible, ndc_flag2, 0,
 namespace {
 
     TEST_F(FlagTest, TestNonDefaultConstructibleType) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag1).value, '1' + 100);
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag2).value, 0);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag1).value, '1' + 100);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag2).value, 0);
 
-        abel::SetFlag(&FLAGS_ndc_flag1, NonDfltConstructible('A'));
-        abel::SetFlag(&FLAGS_ndc_flag2, 25);
+        abel::set_flag(&FLAGS_ndc_flag1, NonDfltConstructible('A'));
+        abel::set_flag(&FLAGS_ndc_flag2, 25);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag1).value, 'A' + 100);
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag2).value, 25);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag1).value, 'A' + 100);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag2).value, 25);
     }
 
 // --------------------------------------------------------------------

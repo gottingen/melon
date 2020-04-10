@@ -333,35 +333,35 @@ namespace abel {
 // If so, handles them appropriately.
         int HandleUsageFlags(std::ostream &out,
                              abel::string_view program_usage_message) {
-            if (abel::GetFlag(FLAGS_helpshort)) {
+            if (abel::get_flag(FLAGS_helpshort)) {
                 flags_internal::FlagsHelpImpl(
                         out, flags_internal::get_usage_config().contains_helpshort_flags,
                         HelpFormat::kHumanReadable, program_usage_message);
                 return 1;
             }
 
-            if (abel::GetFlag(FLAGS_helpfull)) {
+            if (abel::get_flag(FLAGS_helpfull)) {
                 // show all options
                 flags_internal::FlagsHelp(out, "", HelpFormat::kHumanReadable,
                                           program_usage_message);
                 return 1;
             }
 
-            if (!abel::GetFlag(FLAGS_helpon).empty()) {
+            if (!abel::get_flag(FLAGS_helpon).empty()) {
                 flags_internal::FlagsHelp(
-                        out, abel::string_cat("/", abel::GetFlag(FLAGS_helpon), "."),
+                        out, abel::string_cat("/", abel::get_flag(FLAGS_helpon), "."),
                         HelpFormat::kHumanReadable, program_usage_message);
                 return 1;
             }
 
-            if (!abel::GetFlag(FLAGS_helpmatch).empty()) {
-                flags_internal::FlagsHelp(out, abel::GetFlag(FLAGS_helpmatch),
+            if (!abel::get_flag(FLAGS_helpmatch).empty()) {
+                flags_internal::FlagsHelp(out, abel::get_flag(FLAGS_helpmatch),
                                           HelpFormat::kHumanReadable,
                                           program_usage_message);
                 return 1;
             }
 
-            if (abel::GetFlag(FLAGS_help)) {
+            if (abel::get_flag(FLAGS_help)) {
                 flags_internal::FlagsHelpImpl(
                         out, flags_internal::get_usage_config().contains_help_flags,
                         HelpFormat::kHumanReadable, program_usage_message);
@@ -371,7 +371,7 @@ namespace abel {
                 return 1;
             }
 
-            if (abel::GetFlag(FLAGS_helppackage)) {
+            if (abel::get_flag(FLAGS_helppackage)) {
                 flags_internal::FlagsHelpImpl(
                         out, flags_internal::get_usage_config().contains_helppackage_flags,
                         HelpFormat::kHumanReadable, program_usage_message);
@@ -381,14 +381,14 @@ namespace abel {
                 return 1;
             }
 
-            if (abel::GetFlag(FLAGS_version)) {
+            if (abel::get_flag(FLAGS_version)) {
                 if (flags_internal::get_usage_config().version_string)
                     out << flags_internal::get_usage_config().version_string();
                 // Unlike help, we may be asking for version in a script, so return 0
                 return 0;
             }
 
-            if (abel::GetFlag(FLAGS_only_check_args)) {
+            if (abel::get_flag(FLAGS_only_check_args)) {
                 return 0;
             }
 

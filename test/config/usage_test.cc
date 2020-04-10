@@ -230,7 +230,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestUsageFlag_helpshort) {
-        abel::SetFlag(&FLAGS_helpshort, true);
+        abel::set_flag(&FLAGS_helpshort, true);
 
         std::stringstream test_buf;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 1);
@@ -259,7 +259,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestUsageFlag_help) {
-        abel::SetFlag(&FLAGS_help, true);
+        abel::set_flag(&FLAGS_help, true);
 
         std::stringstream test_buf;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 1);
@@ -290,7 +290,7 @@ Try --helpfull to get a list of all flags.
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestUsageFlag_helppackage) {
-        abel::SetFlag(&FLAGS_helppackage, true);
+        abel::set_flag(&FLAGS_helppackage, true);
 
         std::stringstream test_buf;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 1);
@@ -321,7 +321,7 @@ Try --helpfull to get a list of all flags.
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestUsageFlag_version) {
-        abel::SetFlag(&FLAGS_version, true);
+        abel::set_flag(&FLAGS_version, true);
 
         std::stringstream test_buf;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 0);
@@ -335,7 +335,7 @@ Try --helpfull to get a list of all flags.
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestUsageFlag_only_check_args) {
-        abel::SetFlag(&FLAGS_only_check_args, true);
+        abel::set_flag(&FLAGS_only_check_args, true);
 
         std::stringstream test_buf;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 0);
@@ -345,7 +345,7 @@ Try --helpfull to get a list of all flags.
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestUsageFlag_helpon) {
-        abel::SetFlag(&FLAGS_helpon, "bla-bla");
+        abel::set_flag(&FLAGS_helpon, "bla-bla");
 
         std::stringstream test_buf_01;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf_01, kTestUsageMessage), 1);
@@ -355,7 +355,7 @@ Try --helpfull to get a list of all flags.
   No modules matched: use -helpfull
 )");
 
-        abel::SetFlag(&FLAGS_helpon, "usage_test");
+        abel::set_flag(&FLAGS_helpon, "usage_test");
 
         std::stringstream test_buf_02;
         EXPECT_EQ(flags::HandleUsageFlags(test_buf_02, kTestUsageMessage), 1);
@@ -386,7 +386,7 @@ Try --helpfull to get a list of all flags.
 }  // namespace
 
 int main(int argc, char *argv[]) {
-    (void) abel::GetFlag(FLAGS_undefok);  // Force linking of parse.cc
+    (void) abel::get_flag(FLAGS_undefok);  // Force linking of parse.cc
     flags::SetProgramInvocationName("usage_test");
     abel::set_program_usage_message(kTestUsageMessage);
     ::testing::InitGoogleTest(&argc, argv);
