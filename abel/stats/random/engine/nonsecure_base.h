@@ -113,7 +113,7 @@ namespace abel {
                 void generate_impl(std::integral_constant<bool, false>,
                                    RandomAccessIterator begin, RandomAccessIterator end) {
                     const size_t n = std::distance(begin, end);
-                    abel::InlinedVector<uint32_t, 8> data(n, 0);
+                    abel::inline_vector<uint32_t, 8> data(n, 0);
                     randen_pool<uint32_t>::fill(abel::make_span(data.begin(), data.end()));
                     std::copy(std::begin(data), std::end(data), begin);
                 }

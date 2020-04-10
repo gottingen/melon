@@ -8,16 +8,16 @@
 // that storage for small sequences of the vector are provided inline without
 // requiring any heap allocation.
 //
-// An `abel::InlinedVector<T, N>` specifies the default capacity `N` as one of
+// An `abel::inline_vector<T, N>` specifies the default capacity `N` as one of
 // its template parameters. Instances where `size() <= N` hold contained
 // elements in inline space. Typically `N` is very small so that sequences that
 // are expected to be short do not require allocations.
 //
-// An `abel::InlinedVector` does not usually require a specific allocator. If
+// An `abel::inline_vector` does not usually require a specific allocator. If
 // the inlined vector grows beyond its initial constraints, it will need to
 // allocate (as any normal `std::vector` would). This is usually performed with
 // the default allocator (defined as `std::allocator<T>`). Optionally, a custom
-// allocator type may be specified as `A` in `abel::InlinedVector<T, N, A>`.
+// allocator type may be specified as `A` in `abel::inline_vector<T, N, A>`.
 
 #ifndef ABEL_ASL_INLINED_VECTOR_H_
 #define ABEL_ASL_INLINED_VECTOR_H_
@@ -42,18 +42,18 @@
 namespace abel {
 
 // -----------------------------------------------------------------------------
-// InlinedVector
+// inline_vector
 // -----------------------------------------------------------------------------
 //
-// An `abel::InlinedVector` is designed to be a drop-in replacement for
+// An `abel::inline_vector` is designed to be a drop-in replacement for
 // `std::vector` for use cases where the vector's size is sufficiently small
 // that it can be inlined. If the inlined vector does grow beyond its estimated
 // capacity, it will trigger an initial allocation on the heap, and will behave
-// as a `std:vector`. The API of the `abel::InlinedVector` within this file is
+// as a `std:vector`. The API of the `abel::inline_vector` within this file is
 // designed to cover the same API footprint as covered by `std::vector`.
     template<typename T, size_t N, typename A = std::allocator<T>>
-    class InlinedVector {
-        static_assert(N > 0, "`abel::InlinedVector` requires an inlined capacity.");
+    class inline_vector {
+        static_assert(N > 0, "`abel::inline_vector` requires an inlined capacity.");
 
         using Storage = inlined_vector_internal::Storage<T, N, A>;
 
@@ -90,44 +90,44 @@ namespace abel {
         using const_reverse_iterator = typename Storage::const_reverse_iterator;
 
         // ---------------------------------------------------------------------------
-        // InlinedVector Constructors and Destructor
+        // inline_vector Constructors and Destructor
         // ---------------------------------------------------------------------------
 
         // Creates an empty inlined vector with a value-initialized allocator.
-        InlinedVector() noexcept(noexcept(allocator_type())) : storage_() {}
+        inline_vector() noexcept(noexcept(allocator_type())) : storage_() {}
 
         // Creates an empty inlined vector with a copy of `alloc`.
-        explicit InlinedVector(const allocator_type &alloc) noexcept
+        explicit inline_vector(const allocator_type &alloc) noexcept
                 : storage_(alloc) {}
 
         // Creates an inlined vector with `n` copies of `value_type()`.
-        explicit InlinedVector(size_type n,
+        explicit inline_vector(size_type n,
                                const allocator_type &alloc = allocator_type())
                 : storage_(alloc) {
             storage_.Initialize(DefaultValueAdapter(), n);
         }
 
         // Creates an inlined vector with `n` copies of `v`.
-        InlinedVector(size_type n, const_reference v,
+        inline_vector(size_type n, const_reference v,
                       const allocator_type &alloc = allocator_type())
                 : storage_(alloc) {
             storage_.Initialize(CopyValueAdapter(v), n);
         }
 
         // Creates an inlined vector with copies of the elements of `list`.
-        InlinedVector(std::initializer_list<value_type> list,
+        inline_vector(std::initializer_list<value_type> list,
                       const allocator_type &alloc = allocator_type())
-                : InlinedVector(list.begin(), list.end(), alloc) {}
+                : inline_vector(list.begin(), list.end(), alloc) {}
 
         // Creates an inlined vector with elements constructed from the provided
         // forward iterator range [`first`, `last`).
         //
         // NOTE: the `enable_if` prevents ambiguous interpretation between a call to
         // this constructor with two integral arguments and a call to the above
-        // `InlinedVector(size_type, const_reference)` constructor.
+        // `inline_vector(size_type, const_reference)` constructor.
         template<typename ForwardIterator,
                 EnableIfAtLeastForwardIterator<ForwardIterator> * = nullptr>
-        InlinedVector(ForwardIterator first, ForwardIterator last,
+        inline_vector(ForwardIterator first, ForwardIterator last,
                       const allocator_type &alloc = allocator_type())
                 : storage_(alloc) {
             storage_.Initialize(IteratorValueAdapter<ForwardIterator>(first),
@@ -138,7 +138,7 @@ namespace abel {
         // iterator range [`first`, `last`).
         template<typename InputIterator,
                 DisableIfAtLeastForwardIterator<InputIterator> * = nullptr>
-        InlinedVector(InputIterator first, InputIterator last,
+        inline_vector(InputIterator first, InputIterator last,
                       const allocator_type &alloc = allocator_type())
                 : storage_(alloc) {
             std::copy(first, last, std::back_inserter(*this));
@@ -146,11 +146,11 @@ namespace abel {
 
         // Creates an inlined vector by copying the contents of `other` using
         // `other`'s allocator.
-        InlinedVector(const InlinedVector &other)
-                : InlinedVector(other, *other.storage_.GetAllocPtr()) {}
+        inline_vector(const inline_vector &other)
+                : inline_vector(other, *other.storage_.GetAllocPtr()) {}
 
         // Creates an inlined vector by copying the contents of `other` using `alloc`.
-        InlinedVector(const InlinedVector &other, const allocator_type &alloc)
+        inline_vector(const inline_vector &other, const allocator_type &alloc)
                 : storage_(alloc) {
             if (IsMemcpyOk::value && !other.storage_.GetIsAllocated()) {
                 storage_.MemcpyFrom(other.storage_);
@@ -174,7 +174,7 @@ namespace abel {
         //     allocation function as the inlined vector's allocator.
         // Thus, the move constructor is non-throwing if the allocator is non-throwing
         // or `value_type`'s move constructor is specified as `noexcept`.
-        InlinedVector(InlinedVector &&other) noexcept(
+        inline_vector(inline_vector &&other) noexcept(
         abel::allocator_is_nothrow<allocator_type>::value ||
         std::is_nothrow_move_constructible<value_type>::value)
                 : storage_(*other.storage_.GetAllocPtr()) {
@@ -207,7 +207,7 @@ namespace abel {
         // contains allocated memory, this move constructor will still allocate. Since
         // allocation is performed, this constructor can only be `noexcept` if the
         // specified allocator is also `noexcept`.
-        InlinedVector(InlinedVector &&other, const allocator_type &alloc) noexcept(
+        inline_vector(inline_vector &&other, const allocator_type &alloc) noexcept(
         abel::allocator_is_nothrow<allocator_type>::value)
                 : storage_(alloc) {
             if (IsMemcpyOk::value) {
@@ -228,23 +228,23 @@ namespace abel {
             }
         }
 
-        ~InlinedVector() {}
+        ~inline_vector() {}
 
         // ---------------------------------------------------------------------------
-        // InlinedVector Member Accessors
+        // inline_vector Member Accessors
         // ---------------------------------------------------------------------------
 
-        // `InlinedVector::empty()`
+        // `inline_vector::empty()`
         //
         // Returns whether the inlined vector contains no elements.
         bool empty() const noexcept { return !size(); }
 
-        // `InlinedVector::size()`
+        // `inline_vector::size()`
         //
         // Returns the number of elements in the inlined vector.
         size_type size() const noexcept { return storage_.GetSize(); }
 
-        // `InlinedVector::max_size()`
+        // `inline_vector::max_size()`
         //
         // Returns the maximum number of elements the inlined vector can hold.
         size_type max_size() const noexcept {
@@ -254,7 +254,7 @@ namespace abel {
             return (std::numeric_limits<size_type>::max)() / 2;
         }
 
-        // `InlinedVector::capacity()`
+        // `inline_vector::capacity()`
         //
         // Returns the number of elements that could be stored in the inlined vector
         // without requiring a reallocation.
@@ -268,7 +268,7 @@ namespace abel {
                                              : storage_.GetInlinedCapacity();
         }
 
-        // `InlinedVector::data()`
+        // `inline_vector::data()`
         //
         // Returns a `pointer` to the elements of the inlined vector. This pointer
         // can be used to access and modify the contained elements.
@@ -279,7 +279,7 @@ namespace abel {
                                              : storage_.GetInlinedData();
         }
 
-        // Overload of `InlinedVector::data()` that returns a `const_pointer` to the
+        // Overload of `inline_vector::data()` that returns a `const_pointer` to the
         // elements of the inlined vector. This pointer can be used to access but not
         // modify the contained elements.
         //
@@ -289,7 +289,7 @@ namespace abel {
                                              : storage_.GetInlinedData();
         }
 
-        // `InlinedVector::operator[](...)`
+        // `inline_vector::operator[](...)`
         //
         // Returns a `reference` to the `i`th element of the inlined vector.
         reference operator[](size_type i) {
@@ -298,7 +298,7 @@ namespace abel {
             return data()[i];
         }
 
-        // Overload of `InlinedVector::operator[](...)` that returns a
+        // Overload of `inline_vector::operator[](...)` that returns a
         // `const_reference` to the `i`th element of the inlined vector.
         const_reference operator[](size_type i) const {
             assert(i < size());
@@ -306,36 +306,36 @@ namespace abel {
             return data()[i];
         }
 
-        // `InlinedVector::at(...)`
+        // `inline_vector::at(...)`
         //
         // Returns a `reference` to the `i`th element of the inlined vector.
         //
-        // NOTE: if `i` is not within the required range of `InlinedVector::at(...)`,
+        // NOTE: if `i` is not within the required range of `inline_vector::at(...)`,
         // in both debug and non-debug builds, `std::out_of_range` will be thrown.
         reference at(size_type i) {
             if (ABEL_UNLIKELY(i >= size())) {
                 throw_std_out_of_range(
-                        "`InlinedVector::at(size_type)` failed bounds check");
+                        "`inline_vector::at(size_type)` failed bounds check");
             }
 
             return data()[i];
         }
 
-        // Overload of `InlinedVector::at(...)` that returns a `const_reference` to
+        // Overload of `inline_vector::at(...)` that returns a `const_reference` to
         // the `i`th element of the inlined vector.
         //
-        // NOTE: if `i` is not within the required range of `InlinedVector::at(...)`,
+        // NOTE: if `i` is not within the required range of `inline_vector::at(...)`,
         // in both debug and non-debug builds, `std::out_of_range` will be thrown.
         const_reference at(size_type i) const {
             if (ABEL_UNLIKELY(i >= size())) {
                 throw_std_out_of_range(
-                        "`InlinedVector::at(size_type) const` failed bounds check");
+                        "`inline_vector::at(size_type) const` failed bounds check");
             }
 
             return data()[i];
         }
 
-        // `InlinedVector::front()`
+        // `inline_vector::front()`
         //
         // Returns a `reference` to the first element of the inlined vector.
         reference front() {
@@ -344,7 +344,7 @@ namespace abel {
             return at(0);
         }
 
-        // Overload of `InlinedVector::front()` that returns a `const_reference` to
+        // Overload of `inline_vector::front()` that returns a `const_reference` to
         // the first element of the inlined vector.
         const_reference front() const {
             assert(!empty());
@@ -352,7 +352,7 @@ namespace abel {
             return at(0);
         }
 
-        // `InlinedVector::back()`
+        // `inline_vector::back()`
         //
         // Returns a `reference` to the last element of the inlined vector.
         reference back() {
@@ -361,7 +361,7 @@ namespace abel {
             return at(size() - 1);
         }
 
-        // Overload of `InlinedVector::back()` that returns a `const_reference` to the
+        // Overload of `inline_vector::back()` that returns a `const_reference` to the
         // last element of the inlined vector.
         const_reference back() const {
             assert(!empty());
@@ -369,89 +369,89 @@ namespace abel {
             return at(size() - 1);
         }
 
-        // `InlinedVector::begin()`
+        // `inline_vector::begin()`
         //
         // Returns an `iterator` to the beginning of the inlined vector.
         iterator begin() noexcept { return data(); }
 
-        // Overload of `InlinedVector::begin()` that returns a `const_iterator` to
+        // Overload of `inline_vector::begin()` that returns a `const_iterator` to
         // the beginning of the inlined vector.
         const_iterator begin() const noexcept { return data(); }
 
-        // `InlinedVector::end()`
+        // `inline_vector::end()`
         //
         // Returns an `iterator` to the end of the inlined vector.
         iterator end() noexcept { return data() + size(); }
 
-        // Overload of `InlinedVector::end()` that returns a `const_iterator` to the
+        // Overload of `inline_vector::end()` that returns a `const_iterator` to the
         // end of the inlined vector.
         const_iterator end() const noexcept { return data() + size(); }
 
-        // `InlinedVector::cbegin()`
+        // `inline_vector::cbegin()`
         //
         // Returns a `const_iterator` to the beginning of the inlined vector.
         const_iterator cbegin() const noexcept { return begin(); }
 
-        // `InlinedVector::cend()`
+        // `inline_vector::cend()`
         //
         // Returns a `const_iterator` to the end of the inlined vector.
         const_iterator cend() const noexcept { return end(); }
 
-        // `InlinedVector::rbegin()`
+        // `inline_vector::rbegin()`
         //
         // Returns a `reverse_iterator` from the end of the inlined vector.
         reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
 
-        // Overload of `InlinedVector::rbegin()` that returns a
+        // Overload of `inline_vector::rbegin()` that returns a
         // `const_reverse_iterator` from the end of the inlined vector.
         const_reverse_iterator rbegin() const noexcept {
             return const_reverse_iterator(end());
         }
 
-        // `InlinedVector::rend()`
+        // `inline_vector::rend()`
         //
         // Returns a `reverse_iterator` from the beginning of the inlined vector.
         reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
 
-        // Overload of `InlinedVector::rend()` that returns a `const_reverse_iterator`
+        // Overload of `inline_vector::rend()` that returns a `const_reverse_iterator`
         // from the beginning of the inlined vector.
         const_reverse_iterator rend() const noexcept {
             return const_reverse_iterator(begin());
         }
 
-        // `InlinedVector::crbegin()`
+        // `inline_vector::crbegin()`
         //
         // Returns a `const_reverse_iterator` from the end of the inlined vector.
         const_reverse_iterator crbegin() const noexcept { return rbegin(); }
 
-        // `InlinedVector::crend()`
+        // `inline_vector::crend()`
         //
         // Returns a `const_reverse_iterator` from the beginning of the inlined
         // vector.
         const_reverse_iterator crend() const noexcept { return rend(); }
 
-        // `InlinedVector::get_allocator()`
+        // `inline_vector::get_allocator()`
         //
         // Returns a copy of the inlined vector's allocator.
         allocator_type get_allocator() const { return *storage_.GetAllocPtr(); }
 
         // ---------------------------------------------------------------------------
-        // InlinedVector Member Mutators
+        // inline_vector Member Mutators
         // ---------------------------------------------------------------------------
 
-        // `InlinedVector::operator=(...)`
+        // `inline_vector::operator=(...)`
         //
         // Replaces the elements of the inlined vector with copies of the elements of
         // `list`.
-        InlinedVector &operator=(std::initializer_list<value_type> list) {
+        inline_vector &operator=(std::initializer_list<value_type> list) {
             assign(list.begin(), list.end());
 
             return *this;
         }
 
-        // Overload of `InlinedVector::operator=(...)` that replaces the elements of
+        // Overload of `inline_vector::operator=(...)` that replaces the elements of
         // the inlined vector with copies of the elements of `other`.
-        InlinedVector &operator=(const InlinedVector &other) {
+        inline_vector &operator=(const inline_vector &other) {
             if (ABEL_LIKELY(this != std::addressof(other))) {
                 const_pointer other_data = other.data();
                 assign(other_data, other_data + other.size());
@@ -460,12 +460,12 @@ namespace abel {
             return *this;
         }
 
-        // Overload of `InlinedVector::operator=(...)` that moves the elements of
+        // Overload of `inline_vector::operator=(...)` that moves the elements of
         // `other` into the inlined vector.
         //
         // NOTE: as a result of calling this overload, `other` is left in a valid but
         // unspecified state.
-        InlinedVector &operator=(InlinedVector &&other) {
+        inline_vector &operator=(inline_vector &&other) {
             if (ABEL_LIKELY(this != std::addressof(other))) {
                 if (IsMemcpyOk::value || other.storage_.GetIsAllocated()) {
                     inlined_vector_internal::DestroyElements(storage_.GetAllocPtr(), data(),
@@ -484,20 +484,20 @@ namespace abel {
             return *this;
         }
 
-        // `InlinedVector::assign(...)`
+        // `inline_vector::assign(...)`
         //
         // Replaces the contents of the inlined vector with `n` copies of `v`.
         void assign(size_type n, const_reference v) {
             storage_.Assign(CopyValueAdapter(v), n);
         }
 
-        // Overload of `InlinedVector::assign(...)` that replaces the contents of the
+        // Overload of `inline_vector::assign(...)` that replaces the contents of the
         // inlined vector with copies of the elements of `list`.
         void assign(std::initializer_list<value_type> list) {
             assign(list.begin(), list.end());
         }
 
-        // Overload of `InlinedVector::assign(...)` to replace the contents of the
+        // Overload of `inline_vector::assign(...)` to replace the contents of the
         // inlined vector with the range [`first`, `last`).
         //
         // NOTE: this overload is for iterators that are "forward" category or better.
@@ -508,7 +508,7 @@ namespace abel {
                             std::distance(first, last));
         }
 
-        // Overload of `InlinedVector::assign(...)` to replace the contents of the
+        // Overload of `inline_vector::assign(...)` to replace the contents of the
         // inlined vector with the range [`first`, `last`).
         //
         // NOTE: this overload is for iterators that are "input" category.
@@ -524,7 +524,7 @@ namespace abel {
             std::copy(first, last, std::back_inserter(*this));
         }
 
-        // `InlinedVector::resize(...)`
+        // `inline_vector::resize(...)`
         //
         // Resizes the inlined vector to contain `n` elements.
         //
@@ -532,7 +532,7 @@ namespace abel {
         // is larger than `size()`, new elements are value-initialized.
         void resize(size_type n) { storage_.Resize(DefaultValueAdapter(), n); }
 
-        // Overload of `InlinedVector::resize(...)` that resizes the inlined vector to
+        // Overload of `inline_vector::resize(...)` that resizes the inlined vector to
         // contain `n` elements.
         //
         // NOTE: if `n` is smaller than `size()`, extra elements are destroyed. If `n`
@@ -541,7 +541,7 @@ namespace abel {
             storage_.Resize(CopyValueAdapter(v), n);
         }
 
-        // `InlinedVector::insert(...)`
+        // `inline_vector::insert(...)`
         //
         // Inserts a copy of `v` at `pos`, returning an `iterator` to the newly
         // inserted element.
@@ -549,13 +549,13 @@ namespace abel {
             return emplace(pos, v);
         }
 
-        // Overload of `InlinedVector::insert(...)` that inserts `v` at `pos` using
+        // Overload of `inline_vector::insert(...)` that inserts `v` at `pos` using
         // move semantics, returning an `iterator` to the newly inserted element.
         iterator insert(const_iterator pos, RValueReference v) {
             return emplace(pos, std::move(v));
         }
 
-        // Overload of `InlinedVector::insert(...)` that inserts `n` contiguous copies
+        // Overload of `inline_vector::insert(...)` that inserts `n` contiguous copies
         // of `v` starting at `pos`, returning an `iterator` pointing to the first of
         // the newly inserted elements.
         iterator insert(const_iterator pos, size_type n, const_reference v) {
@@ -570,14 +570,14 @@ namespace abel {
             }
         }
 
-        // Overload of `InlinedVector::insert(...)` that inserts copies of the
+        // Overload of `inline_vector::insert(...)` that inserts copies of the
         // elements of `list` starting at `pos`, returning an `iterator` pointing to
         // the first of the newly inserted elements.
         iterator insert(const_iterator pos, std::initializer_list<value_type> list) {
             return insert(pos, list.begin(), list.end());
         }
 
-        // Overload of `InlinedVector::insert(...)` that inserts the range [`first`,
+        // Overload of `inline_vector::insert(...)` that inserts the range [`first`,
         // `last`) starting at `pos`, returning an `iterator` pointing to the first
         // of the newly inserted elements.
         //
@@ -597,7 +597,7 @@ namespace abel {
             }
         }
 
-        // Overload of `InlinedVector::insert(...)` that inserts the range [`first`,
+        // Overload of `inline_vector::insert(...)` that inserts the range [`first`,
         // `last`) starting at `pos`, returning an `iterator` pointing to the first
         // of the newly inserted elements.
         //
@@ -616,7 +616,7 @@ namespace abel {
             return iterator(data() + index);
         }
 
-        // `InlinedVector::emplace(...)`
+        // `inline_vector::emplace(...)`
         //
         // Constructs and inserts an element using `args...` in the inlined vector at
         // `pos`, returning an `iterator` pointing to the newly emplaced element.
@@ -632,7 +632,7 @@ namespace abel {
                                    1);
         }
 
-        // `InlinedVector::emplace_back(...)`
+        // `inline_vector::emplace_back(...)`
         //
         // Constructs and inserts an element using `args...` in the inlined vector at
         // `end()`, returning a `reference` to the newly emplaced element.
@@ -641,18 +641,18 @@ namespace abel {
             return storage_.EmplaceBack(std::forward<Args>(args)...);
         }
 
-        // `InlinedVector::push_back(...)`
+        // `inline_vector::push_back(...)`
         //
         // Inserts a copy of `v` in the inlined vector at `end()`.
         void push_back(const_reference v) { static_cast<void>(emplace_back(v)); }
 
-        // Overload of `InlinedVector::push_back(...)` for inserting `v` at `end()`
+        // Overload of `inline_vector::push_back(...)` for inserting `v` at `end()`
         // using move semantics.
         void push_back(RValueReference v) {
             static_cast<void>(emplace_back(std::move(v)));
         }
 
-        // `InlinedVector::pop_back()`
+        // `inline_vector::pop_back()`
         //
         // Destroys the element at `back()`, reducing the size by `1`.
         void pop_back() noexcept {
@@ -662,7 +662,7 @@ namespace abel {
             storage_.SubtractSize(1);
         }
 
-        // `InlinedVector::erase(...)`
+        // `inline_vector::erase(...)`
         //
         // Erases the element at `pos`, returning an `iterator` pointing to where the
         // erased element was located.
@@ -675,7 +675,7 @@ namespace abel {
             return storage_.Erase(pos, pos + 1);
         }
 
-        // Overload of `InlinedVector::erase(...)` that erases every element in the
+        // Overload of `inline_vector::erase(...)` that erases every element in the
         // range [`from`, `to`), returning an `iterator` pointing to where the first
         // erased element was located.
         //
@@ -692,7 +692,7 @@ namespace abel {
             }
         }
 
-        // `InlinedVector::clear()`
+        // `inline_vector::clear()`
         //
         // Destroys all elements in the inlined vector, setting the size to `0` and
         // deallocating any held memory.
@@ -704,12 +704,12 @@ namespace abel {
             storage_.SetInlinedSize(0);
         }
 
-        // `InlinedVector::reserve(...)`
+        // `inline_vector::reserve(...)`
         //
         // Ensures that there is enough room for at least `n` elements.
         void reserve(size_type n) { storage_.Reserve(n); }
 
-        // `InlinedVector::shrink_to_fit()`
+        // `inline_vector::shrink_to_fit()`
         //
         // Reduces memory usage by freeing unused memory. After being called, calls to
         // `capacity()` will be equal to `max(N, size())`.
@@ -726,10 +726,10 @@ namespace abel {
             }
         }
 
-        // `InlinedVector::swap(...)`
+        // `inline_vector::swap(...)`
         //
         // Swaps the contents of the inlined vector with `other`.
-        void swap(InlinedVector &other) {
+        void swap(inline_vector &other) {
             if (ABEL_LIKELY(this != std::addressof(other))) {
                 storage_.Swap(std::addressof(other.storage_));
             }
@@ -737,21 +737,21 @@ namespace abel {
 
     private:
         template<typename H, typename TheT, size_t TheN, typename TheA>
-        friend H abel_hash_value(H h, const abel::InlinedVector<TheT, TheN, TheA> &a);
+        friend H abel_hash_value(H h, const abel::inline_vector<TheT, TheN, TheA> &a);
 
         Storage storage_;
     };
 
 // -----------------------------------------------------------------------------
-// InlinedVector Non-Member Functions
+// inline_vector Non-Member Functions
 // -----------------------------------------------------------------------------
 
 // `swap(...)`
 //
 // Swaps the contents of two inlined vectors.
     template<typename T, size_t N, typename A>
-    void swap(abel::InlinedVector<T, N, A> &a,
-              abel::InlinedVector<T, N, A> &b) noexcept(noexcept(a.swap(b))) {
+    void swap(abel::inline_vector<T, N, A> &a,
+              abel::inline_vector<T, N, A> &b) noexcept(noexcept(a.swap(b))) {
         a.swap(b);
     }
 
@@ -759,8 +759,8 @@ namespace abel {
 //
 // Tests for value-equality of two inlined vectors.
     template<typename T, size_t N, typename A>
-    bool operator==(const abel::InlinedVector<T, N, A> &a,
-                    const abel::InlinedVector<T, N, A> &b) {
+    bool operator==(const abel::inline_vector<T, N, A> &a,
+                    const abel::inline_vector<T, N, A> &b) {
         auto a_data = a.data();
         auto b_data = b.data();
         return abel::equal(a_data, a_data + a.size(), b_data, b_data + b.size());
@@ -770,8 +770,8 @@ namespace abel {
 //
 // Tests for value-inequality of two inlined vectors.
     template<typename T, size_t N, typename A>
-    bool operator!=(const abel::InlinedVector<T, N, A> &a,
-                    const abel::InlinedVector<T, N, A> &b) {
+    bool operator!=(const abel::inline_vector<T, N, A> &a,
+                    const abel::inline_vector<T, N, A> &b) {
         return !(a == b);
     }
 
@@ -780,8 +780,8 @@ namespace abel {
 // Tests whether the value of an inlined vector is less than the value of
 // another inlined vector using a lexicographical comparison algorithm.
     template<typename T, size_t N, typename A>
-    bool operator<(const abel::InlinedVector<T, N, A> &a,
-                   const abel::InlinedVector<T, N, A> &b) {
+    bool operator<(const abel::inline_vector<T, N, A> &a,
+                   const abel::inline_vector<T, N, A> &b) {
         auto a_data = a.data();
         auto b_data = b.data();
         return std::lexicographical_compare(a_data, a_data + a.size(), b_data,
@@ -793,8 +793,8 @@ namespace abel {
 // Tests whether the value of an inlined vector is greater than the value of
 // another inlined vector using a lexicographical comparison algorithm.
     template<typename T, size_t N, typename A>
-    bool operator>(const abel::InlinedVector<T, N, A> &a,
-                   const abel::InlinedVector<T, N, A> &b) {
+    bool operator>(const abel::inline_vector<T, N, A> &a,
+                   const abel::inline_vector<T, N, A> &b) {
         return b < a;
     }
 
@@ -803,8 +803,8 @@ namespace abel {
 // Tests whether the value of an inlined vector is less than or equal to the
 // value of another inlined vector using a lexicographical comparison algorithm.
     template<typename T, size_t N, typename A>
-    bool operator<=(const abel::InlinedVector<T, N, A> &a,
-                    const abel::InlinedVector<T, N, A> &b) {
+    bool operator<=(const abel::inline_vector<T, N, A> &a,
+                    const abel::inline_vector<T, N, A> &b) {
         return !(b < a);
     }
 
@@ -813,17 +813,17 @@ namespace abel {
 // Tests whether the value of an inlined vector is greater than or equal to the
 // value of another inlined vector using a lexicographical comparison algorithm.
     template<typename T, size_t N, typename A>
-    bool operator>=(const abel::InlinedVector<T, N, A> &a,
-                    const abel::InlinedVector<T, N, A> &b) {
+    bool operator>=(const abel::inline_vector<T, N, A> &a,
+                    const abel::inline_vector<T, N, A> &b) {
         return !(a < b);
     }
 
 // `abel_hash_value(...)`
 //
-// Provides `abel::hash` support for `abel::InlinedVector`. It is uncommon to
+// Provides `abel::hash` support for `abel::inline_vector`. It is uncommon to
 // call this directly.
     template<typename H, typename T, size_t N, typename A>
-    H abel_hash_value(H h, const abel::InlinedVector<T, N, A> &a) {
+    H abel_hash_value(H h, const abel::inline_vector<T, N, A> &a) {
         auto size = a.size();
         return H::combine(H::combine_contiguous(std::move(h), a.data(), size), size);
     }

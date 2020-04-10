@@ -473,7 +473,7 @@ namespace abel {
 
             pointer construct_data;
             if (new_size > GetInlinedCapacity()) {
-                // Because this is only called from the `InlinedVector` constructors, it's
+                // Because this is only called from the `inline_vector` constructors, it's
                 // safe to take on the allocation with size `0`. If `ConstructElements(...)`
                 // throws, deallocation will be automatically handled by `~Storage()`.
                 size_type new_capacity = ComputeCapacity(GetInlinedCapacity(), new_size);

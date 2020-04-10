@@ -25,13 +25,13 @@ namespace {
     using MovableThrower = testing::ThrowingValue<testing::TypeSpec::kNoThrowMove>;
     using ThrowAlloc = testing::ThrowingAllocator<Thrower>;
 
-    using ThrowerVec = abel::InlinedVector<Thrower, kInlinedCapacity>;
-    using MovableThrowerVec = abel::InlinedVector<MovableThrower, kInlinedCapacity>;
+    using ThrowerVec = abel::inline_vector<Thrower, kInlinedCapacity>;
+    using MovableThrowerVec = abel::inline_vector<MovableThrower, kInlinedCapacity>;
 
     using ThrowAllocThrowerVec =
-    abel::InlinedVector<Thrower, kInlinedCapacity, ThrowAlloc>;
+    abel::inline_vector<Thrower, kInlinedCapacity, ThrowAlloc>;
     using ThrowAllocMovableThrowerVec =
-    abel::InlinedVector<MovableThrower, kInlinedCapacity, ThrowAlloc>;
+    abel::inline_vector<MovableThrower, kInlinedCapacity, ThrowAlloc>;
 
 // In GCC, if an element of a `std::initializer_list` throws during construction
 // the elements that were constructed before it are not destroyed. This causes
@@ -113,7 +113,7 @@ namespace {
     TYPED_TEST_SUITE(TwoSizeTest, TwoSizeTestParams);
 
     template<typename VecT>
-    bool InlinedVectorInvariants(VecT *vec) {
+    bool inline_vectorInvariants(VecT *vec) {
         if (*vec != *vec)
             return false;
         if (vec->size() > vec->capacity())
@@ -235,7 +235,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{from_size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
             *vec = ABEL_INTERNAL_MAKE_INIT_LIST(value_type, to_size);
@@ -274,7 +274,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{from_size})
-                .WithContracts(InlinedVectorInvariants<VecT>,
+                .WithContracts(inline_vectorInvariants<VecT>,
                                testing::strong_guarantee);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
@@ -293,7 +293,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{from_size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
             auto it = vec->begin();
@@ -317,7 +317,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{from_size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
             auto it = vec->begin();
@@ -375,7 +375,7 @@ namespace {
         nonfull_vec.reserve(size + 1);
 
         auto tester = testing::MakeExceptionSafetyTester().WithContracts(
-                InlinedVectorInvariants<VecT>);
+                inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.WithInitialValue(nonfull_vec).Test([](VecT *vec) {
             vec->emplace_back();
@@ -404,7 +404,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
             auto it = vec->begin();
@@ -466,7 +466,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{from_size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) { vec->reserve(to_capacity); }));
     }
@@ -477,7 +477,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
             vec->shrink_to_fit();  //
@@ -491,7 +491,7 @@ namespace {
 
         auto tester = testing::MakeExceptionSafetyTester()
                 .WithInitialValue(VecT{from_size})
-                .WithContracts(InlinedVectorInvariants<VecT>);
+                .WithContracts(inline_vectorInvariants<VecT>);
 
         EXPECT_TRUE(tester.Test([](VecT *vec) {
             VecT other_vec{to_size};
