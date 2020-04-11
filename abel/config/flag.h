@@ -82,7 +82,7 @@ namespace abel {
       // constexpr initializable.
 #if _MSC_VER <= 1900
       constexpr Flag(const char* name, const char* filename,
-                     const flags_internal::FlagMarshallingOpFn marshalling_op,
+                     const flags_internal::flag_marshalling_op_fn marshalling_op,
                      const flags_internal::HelpGenFunc help_gen,
                      const flags_internal::FlagDfltGenFunc default_value_gen)
           : name_(name),
@@ -142,7 +142,7 @@ namespace abel {
       // this to be an aggregate type.
       const char* name_;
       const char* filename_;
-      const flags_internal::FlagMarshallingOpFn marshalling_op_;
+      const flags_internal::flag_marshalling_op_fn marshalling_op_;
       const flags_internal::HelpGenFunc help_gen_;
       const flags_internal::FlagDfltGenFunc default_value_gen_;
 
@@ -331,7 +331,7 @@ namespace abel {
   ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, help);                  \
   ABEL_CONST_INIT abel::Flag<Type> FLAGS_##name{                    \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),    \
-      &abel::flags_internal::FlagMarshallingOps<Type>,              \
+      &abel::flags_internal::flag_marshalling_ops<Type>,              \
       abel::flags_internal::HelpArg<AbelFlagHelpGenFor##name>(0),   \
       &AbelFlagsInitFlag##name};                                    \
   extern bool FLAGS_no##name;                                       \
@@ -345,7 +345,7 @@ namespace abel {
   ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, help);                    \
   ABEL_CONST_INIT abel::Flag<Type> FLAGS_##name{                      \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),      \
-      &abel::flags_internal::FlagMarshallingOps<Type>,                \
+      &abel::flags_internal::flag_marshalling_ops<Type>,                \
       &AbelFlagHelpGenFor##name::NonConst, &AbelFlagsInitFlag##name}; \
   extern bool FLAGS_no##name;                                         \
   bool FLAGS_no##name = ABEL_FLAG_IMPL_REGISTRAR(Type, FLAGS_##name)

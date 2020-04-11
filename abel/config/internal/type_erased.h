@@ -29,7 +29,7 @@ namespace abel {
 
         bool SetCommandLineOptionWithMode(abel::string_view name,
                                           abel::string_view value,
-                                          FlagSettingMode set_mode);
+                                          flag_setting_mode set_mode);
 
 //-----------------------------------------------------------------------------
 

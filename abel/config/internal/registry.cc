@@ -306,8 +306,8 @@ namespace abel {
                     return nullptr;
                 }
 
-                bool SetFromString(abel::string_view, flags_internal::FlagSettingMode,
-                                   flags_internal::ValueSource, std::string *) override {
+                bool SetFromString(abel::string_view, flags_internal::flag_setting_mode,
+                                   flags_internal::value_source, std::string *) override {
                     return false;
                 }
 

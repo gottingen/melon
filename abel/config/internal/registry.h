@@ -72,7 +72,7 @@ namespace abel {
 // Registered a retired flag with name 'flag_name' and type 'T'.
         template<typename T>
         ABEL_FORCE_INLINE bool retired_flag(const char *flag_name) {
-            return flags_internal::Retire(flag_name, flags_internal::FlagOps<T>);
+            return flags_internal::Retire(flag_name, flags_internal::flag_ops<T>);
         }
 
 // If the flag is retired, returns true and indicates in |*type_is_bool|

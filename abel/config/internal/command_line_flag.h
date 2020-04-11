@@ -16,7 +16,7 @@ namespace abel {
 
 // Type-specific operations, eg., parsing, copying, etc. are provided
 // by function specific to that type with a signature matching flag_op_fn.
-        enum FlagOp {
+        enum flag_op {
             kDelete,
             kClone,
             kCopy,
@@ -25,11 +25,11 @@ namespace abel {
             kParse,
             kUnparse
         };
-        using flag_op_fn = void *(*)(FlagOp, const void *, void *);
-        using FlagMarshallingOpFn = void *(*)(FlagOp, const void *, void *, void *);
+        using flag_op_fn = void *(*)(flag_op, const void *, void *);
+        using flag_marshalling_op_fn = void *(*)(flag_op, const void *, void *, void *);
 
 // Options that control SetCommandLineOptionWithMode.
-        enum FlagSettingMode {
+        enum flag_setting_mode {
             // update the flag's value unconditionally (can call this multiple times).
             SET_FLAGS_VALUE,
             // update the flag's value, but *only if* it has not yet been updated
@@ -42,7 +42,7 @@ namespace abel {
         };
 
 // Options that control SetFromString: Source of a value.
-        enum ValueSource {
+        enum value_source {
             // Flag is being set by value specified on a command line.
             kCommandLine,
             // Flag is being set by value specified in the code.
@@ -51,7 +51,7 @@ namespace abel {
 
 // The per-type function
         template<typename T>
-        void *FlagOps(FlagOp op, const void *v1, void *v2) {
+        void *flag_ops(flag_op op, const void *v1, void *v2) {
             switch (op) {
                 case kDelete:
                     delete static_cast<const T *>(v1);
@@ -72,7 +72,7 @@ namespace abel {
         }
 
         template<typename T>
-        void *FlagMarshallingOps(FlagOp op, const void *v1, void *v2, void *v3) {
+        void *flag_marshalling_ops(flag_op op, const void *v1, void *v2, void *v3) {
             switch (op) {
                 case kParse: {
                     // initialize the temporary instance of type T based on current value in
@@ -111,19 +111,19 @@ namespace abel {
             op(flags_internal::kCopyConstruct, src, dst);
         }
 
-        ABEL_FORCE_INLINE bool Parse(FlagMarshallingOpFn op, abel::string_view text, void *dst,
+        ABEL_FORCE_INLINE bool Parse(flag_marshalling_op_fn op, abel::string_view text, void *dst,
                                      std::string *error) {
             return op(flags_internal::kParse, &text, dst, error) != nullptr;
         }
 
-        ABEL_FORCE_INLINE std::string unparse(FlagMarshallingOpFn op, const void *val) {
+        ABEL_FORCE_INLINE std::string unparse(flag_marshalling_op_fn op, const void *val) {
             std::string result;
             op(flags_internal::kUnparse, val, &result, nullptr);
             return result;
         }
 
         ABEL_FORCE_INLINE size_t Sizeof(flag_op_fn op) {
-            // This sequence of casts reverses the sequence from base::internal::FlagOps()
+            // This sequence of casts reverses the sequence from base::internal::flag_ops()
             return static_cast<size_t>(reinterpret_cast<intptr_t>(
                     op(flags_internal::kSizeof, nullptr, nullptr)));
         }
@@ -156,7 +156,7 @@ namespace abel {
             // Return true iff flag has type T.
             template<typename T>
             ABEL_FORCE_INLINE bool IsOfType() const {
-                return TypeId() == &flags_internal::FlagOps<T>;
+                return TypeId() == &flags_internal::flag_ops<T>;
             }
 
             // Attempts to retrieve the flag value. Returns value on success,
@@ -243,8 +243,8 @@ namespace abel {
             //  * Update the current flag value if it was never set before
             // The mode is selected based on `set_mode` parameter.
             virtual bool SetFromString(abel::string_view value,
-                                       flags_internal::FlagSettingMode set_mode,
-                                       flags_internal::ValueSource source,
+                                       flags_internal::flag_setting_mode set_mode,
+                                       flags_internal::value_source source,
                                        std::string *error) = 0;
 
             // Checks that flags default value can be converted to std::string and back to the

@@ -29,14 +29,14 @@ namespace {
     bool TestConstructionFor() {
         constexpr flags::HelpInitArg help_arg{flags::FlagHelpSrc("literal help"),
                                               flags::FlagHelpSrcKind::kLiteral};
-        constexpr flags::Flag<T> f1("f1", "file", &flags::FlagMarshallingOps<T>,
+        constexpr flags::Flag<T> f1("f1", "file", &flags::flag_marshalling_ops<T>,
                                     help_arg, &TestMakeDflt<T>);
         EXPECT_EQ(f1.Name(), "f1");
         EXPECT_EQ(f1.Help(), "literal help");
         EXPECT_EQ(f1.Filename(), "file");
 
         ABEL_CONST_INIT static flags::Flag<T> f2(
-                "f2", "file", &flags::FlagMarshallingOps<T>,
+                "f2", "file", &flags::flag_marshalling_ops<T>,
                 {flags::FlagHelpSrc(&TestHelpMsg), flags::FlagHelpSrcKind::kGenFunc},
                 &TestMakeDflt<T>);
         flags::FlagRegistrar<T, false>(&f2).OnUpdate(TestCallback);

@@ -32,7 +32,7 @@ namespace abel {
 
         bool SetCommandLineOptionWithMode(abel::string_view name,
                                           abel::string_view value,
-                                          FlagSettingMode set_mode) {
+                                          flag_setting_mode set_mode) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
 
             if (!flag || flag->IsRetired()) return false;

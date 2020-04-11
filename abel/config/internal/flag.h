@@ -147,7 +147,7 @@ namespace abel {
         public:
             constexpr FlagImpl(const char *name, const char *filename,
                                const flags_internal::flag_op_fn op,
-                               const flags_internal::FlagMarshallingOpFn marshalling_op,
+                               const flags_internal::flag_marshalling_op_fn marshalling_op,
                                const HelpInitArg help,
                                const flags_internal::FlagDfltGenFunc default_value_gen)
                     : name_(name),
@@ -201,8 +201,8 @@ namespace abel {
             void Write(const void *src, const flags_internal::flag_op_fn src_op)
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
-            bool SetFromString(abel::string_view value, FlagSettingMode set_mode,
-                               ValueSource source, std::string *err)
+            bool SetFromString(abel::string_view value, flag_setting_mode set_mode,
+                               value_source source, std::string *err)
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
             // If possible, updates copy of the Flag's value that is stored in an
@@ -253,7 +253,7 @@ namespace abel {
             const char *const name_;      // Flags name passed to ABEL_FLAG as second arg.
             const char *const filename_;  // The file name where ABEL_FLAG resides.
             const flag_op_fn op_;           // Type-specific handler.
-            const FlagMarshallingOpFn marshalling_op_;  // Marshalling ops handler.
+            const flag_marshalling_op_fn marshalling_op_;  // Marshalling ops handler.
             const FlagHelpSrc help_;  // Help message literal or function to generate it.
             // Indicates if help message was supplied as literal or generator func.
             const FlagHelpSrcKind help_source_kind_;
@@ -304,10 +304,10 @@ namespace abel {
         class Flag final : public flags_internal::command_line_flag {
         public:
             constexpr Flag(const char *name, const char *filename,
-                           const flags_internal::FlagMarshallingOpFn marshalling_op,
+                           const flags_internal::flag_marshalling_op_fn marshalling_op,
                            const flags_internal::HelpInitArg help,
                            const flags_internal::FlagDfltGenFunc default_value_gen)
-                    : impl_(name, filename, &flags_internal::FlagOps<T>, marshalling_op, help,
+                    : impl_(name, filename, &flags_internal::flag_ops<T>, marshalling_op, help,
                             default_value_gen) {}
 
             T Get() const {
@@ -321,13 +321,13 @@ namespace abel {
                 };
                 U u;
 
-                impl_.Read(&u.value, &flags_internal::FlagOps<T>);
+                impl_.Read(&u.value, &flags_internal::flag_ops<T>);
                 return std::move(u.value);
             }
 
             bool AtomicGet(T *v) const { return impl_.AtomicGet(v); }
 
-            void Set(const T &v) { impl_.Write(&v, &flags_internal::FlagOps<T>); }
+            void Set(const T &v) { impl_.Write(&v, &flags_internal::flag_ops<T>); }
 
             void SetCallback(const flags_internal::FlagCallback mutation_callback) {
                 impl_.SetCallback(mutation_callback);
@@ -371,8 +371,8 @@ namespace abel {
             }
 
             bool SetFromString(abel::string_view value,
-                               flags_internal::FlagSettingMode set_mode,
-                               flags_internal::ValueSource source,
+                               flags_internal::flag_setting_mode set_mode,
+                               flags_internal::value_source source,
                                std::string *error) override {
                 return impl_.SetFromString(value, set_mode, source, error);
             }
@@ -387,11 +387,11 @@ namespace abel {
             void Destroy() override { impl_.Destroy(); }
 
             void Read(void *dst) const override {
-                impl_.Read(dst, &flags_internal::FlagOps<T>);
+                impl_.Read(dst, &flags_internal::flag_ops<T>);
             }
 
             flags_internal::flag_op_fn TypeId() const override {
-                return &flags_internal::FlagOps<T>;
+                return &flags_internal::flag_ops<T>;
             }
 
             // Flag's data

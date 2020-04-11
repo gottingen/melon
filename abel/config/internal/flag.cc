@@ -22,7 +22,7 @@ namespace abel {
 // Currently we only validate flag values for user-defined flag types.
             bool ShouldValidateFlagValue(flag_op_fn flag_type_id) {
 #define DONT_VALIDATE(T) \
-  if (flag_type_id == &flags_internal::FlagOps<T>) return false;
+  if (flag_type_id == &flags_internal::flag_ops<T>) return false;
                 ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(DONT_VALIDATE)
                 DONT_VALIDATE(std::string)
                 DONT_VALIDATE(std::vector<std::string>)
@@ -298,8 +298,8 @@ namespace abel {
 //  * Update the flag's default value
 //  * Update the current flag value if it was never set before
 // The mode is selected based on 'set_mode' parameter.
-        bool FlagImpl::SetFromString(abel::string_view value, FlagSettingMode set_mode,
-                                     ValueSource source, std::string *err) {
+        bool FlagImpl::SetFromString(abel::string_view value, flag_setting_mode set_mode,
+                                     value_source source, std::string *err) {
             abel::mutex_lock l(DataGuard());
 
             switch (set_mode) {
