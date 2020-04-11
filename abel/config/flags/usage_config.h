@@ -13,7 +13,6 @@
 
 #include <functional>
 #include <string>
-
 #include <abel/asl/string_view.h>
 
 // -----------------------------------------------------------------------------

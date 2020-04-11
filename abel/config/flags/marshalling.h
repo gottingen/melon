@@ -180,7 +180,7 @@ namespace abel {
         bool abel_parse_flag(abel::string_view, std::vector<std::string> *, std::string *);
 
         template<typename T>
-        bool InvokeParseFlag(abel::string_view input, T *dst, std::string *err) {
+        bool invoke_parse_flag(abel::string_view input, T *dst, std::string *err) {
             // Comment on next line provides a good compiler error message if T
             // does not have abel_parse_flag(abel::string_view, T*, std::string*).
             return abel_parse_flag(input, dst, err);  // Is T missing abel_parse_flag?
@@ -228,7 +228,7 @@ namespace abel {
 // `abel::parse_flag()` on those consituent string values. (See above.)
     template<typename T>
     ABEL_FORCE_INLINE bool parse_flag(abel::string_view input, T *dst, std::string *error) {
-        return flags_internal::InvokeParseFlag(input, dst, error);
+        return flags_internal::invoke_parse_flag(input, dst, error);
     }
 
 // unparse_flag()
