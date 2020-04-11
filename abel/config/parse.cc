@@ -47,8 +47,7 @@ namespace abel {
 }  // namespace abel
 
 ABEL_FLAG(std::vector<std::string>, flagfile, {},
-          "comma-separated list of files to load flags from")
-.on_update([]() {
+          "comma-separated list of files to load flags from").on_update([]() {
     if (abel::get_flag(FLAGS_flagfile).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);
@@ -106,32 +105,32 @@ namespace abel {
 
         namespace {
 
-            class ArgsList {
+            class args_list {
             public:
-                ArgsList() : next_arg_(0) {}
+                args_list() : next_arg_(0) {}
 
-                ArgsList(int argc, char *argv[]) : args_(argv, argv + argc), next_arg_(0) {}
+                args_list(int argc, char *argv[]) : args_(argv, argv + argc), next_arg_(0) {}
 
-                explicit ArgsList(const std::vector<std::string> &args)
+                explicit args_list(const std::vector<std::string> &args)
                         : args_(args), next_arg_(0) {}
 
                 // Returns success status: true if parsing successful, false otherwise.
-                bool ReadFromFlagfile(const std::string &flag_file_name);
+                bool read_from_flagfile(const std::string &flag_file_name);
 
-                int Size() const { return args_.size() - next_arg_; }
+                int size() const { return args_.size() - next_arg_; }
 
-                int FrontIndex() const { return next_arg_; }
+                int front_index() const { return next_arg_; }
 
-                abel::string_view Front() const { return args_[next_arg_]; }
+                abel::string_view front() const { return args_[next_arg_]; }
 
-                void PopFront() { next_arg_++; }
+                void pop_front() { next_arg_++; }
 
             private:
                 std::vector<std::string> args_;
                 int next_arg_;
             };
 
-            bool ArgsList::ReadFromFlagfile(const std::string &flag_file_name) {
+            bool args_list::read_from_flagfile(const std::string &flag_file_name) {
                 std::ifstream flag_file(flag_file_name);
 
                 if (!flag_file) {
@@ -185,7 +184,7 @@ namespace abel {
 // Reads the environment variable with name `name` and stores results in
 // `value`. If variable is not present in environment returns false, otherwise
 // returns true.
-            bool GetEnvVar(const char *var_name, std::string *var_value) {
+            bool get_env_var(const char *var_name, std::string *var_value) {
 #ifdef _WIN32
                 char buf[1024];
                 auto get_res = GetEnvironmentVariableA(var_name, buf, sizeof(buf));
@@ -222,7 +221,7 @@ namespace abel {
 //   "--foo=bar" -> {"foo", "bar", false}.
 //   "--foo"     -> {"foo", "", false}.
 //   "--foo="    -> {"foo", "", true}.
-            std::tuple<abel::string_view, abel::string_view, bool> SplitNameAndValue(
+            std::tuple<abel::string_view, abel::string_view, bool> split_name_and_value(
                     abel::string_view arg) {
                 // Allow -foo and --foo
                 abel::consume_prefix(&arg, "-");
@@ -251,7 +250,7 @@ namespace abel {
 // Returns:
 //  found flag or nullptr
 //  is negative in case of --nofoo
-            std::tuple<command_line_flag *, bool> LocateFlag(abel::string_view flag_name) {
+            std::tuple<command_line_flag *, bool> locate_flag(abel::string_view flag_name) {
                 command_line_flag *flag = flags_internal::find_command_line_flag(flag_name);
                 bool is_negative = false;
 
@@ -267,7 +266,7 @@ namespace abel {
 
 // Verify that default values of typed flags must be convertible to string and
 // back.
-            void CheckDefaultValuesParsingRoundtrip() {
+            void check_default_values_parsing_roundtrip() {
 #ifndef NDEBUG
                 flags_internal::for_each_flag([&](command_line_flag *flag) {
                     if (flag->is_retired()) return;
@@ -292,13 +291,13 @@ namespace abel {
 // of file names in the input flagfiles list. This order ensures that flags from
 // the first flagfile in the input list are processed before the second flagfile
 // etc.
-            bool ReadFlagfiles(const std::vector<std::string> &flagfiles,
-                               std::vector<ArgsList> *input_args) {
+            bool read_flagfiles(const std::vector<std::string> &flagfiles,
+                                std::vector<args_list> *input_args) {
                 bool success = true;
                 for (auto it = flagfiles.rbegin(); it != flagfiles.rend(); ++it) {
-                    ArgsList al;
+                    args_list al;
 
-                    if (al.ReadFromFlagfile(*it)) {
+                    if (al.read_from_flagfile(*it)) {
                         input_args->push_back(al);
                     } else {
                         success = false;
@@ -313,9 +312,9 @@ namespace abel {
 // variable names are expected to be of the form `FLAGS_<flag_name>`, where
 // `flag_name` is a string from the input flag_names list. If successful we
 // append a single ArgList at the end of the input_args.
-            bool ReadFlagsFromEnv(const std::vector<std::string> &flag_names,
-                                  std::vector<ArgsList> *input_args,
-                                  bool fail_on_absent_in_env) {
+            bool read_flags_from_env(const std::vector<std::string> &flag_names,
+                                     std::vector<args_list> *input_args,
+                                     bool fail_on_absent_in_env) {
                 bool success = true;
                 std::vector<std::string> args;
 
@@ -335,7 +334,7 @@ namespace abel {
 
                     const std::string envname = abel::string_cat("FLAGS_", flag_name);
                     std::string envval;
-                    if (!GetEnvVar(envname.c_str(), &envval)) {
+                    if (!get_env_var(envname.c_str(), &envval)) {
                         if (fail_on_absent_in_env) {
                             flags_internal::report_usage_error(
                                     abel::string_cat(envname, " not found in environment"), true);
@@ -360,8 +359,8 @@ namespace abel {
 
 // Returns success status, which is true if were able to handle all generator
 // flags (flagfile, fromenv, tryfromemv) successfully.
-            bool HandleGeneratorFlags(std::vector<ArgsList> *input_args,
-                                      std::vector<std::string> *flagfile_value) {
+            bool handle_generator_flags(std::vector<args_list> *input_args,
+                                        std::vector<std::string> *flagfile_value) {
                 bool success = true;
 
                 abel::mutex_lock l(&flags_internal::processing_checks_guard);
@@ -391,7 +390,7 @@ namespace abel {
                                                flagfiles.end());
                     }
 
-                    success &= ReadFlagfiles(flagfiles, input_args);
+                    success &= read_flagfiles(flagfiles, input_args);
 
                     flags_internal::flagfile_needs_processing = false;
                 }
@@ -402,7 +401,7 @@ namespace abel {
                 if (flags_internal::fromenv_needs_processing) {
                     auto flags_list = abel::get_flag(FLAGS_fromenv);
 
-                    success &= ReadFlagsFromEnv(flags_list, input_args, true);
+                    success &= read_flags_from_env(flags_list, input_args, true);
 
                     flags_internal::fromenv_needs_processing = false;
                 }
@@ -410,7 +409,7 @@ namespace abel {
                 if (flags_internal::tryfromenv_needs_processing) {
                     auto flags_list = abel::get_flag(FLAGS_tryfromenv);
 
-                    success &= ReadFlagsFromEnv(flags_list, input_args, false);
+                    success &= read_flags_from_env(flags_list, input_args, false);
 
                     flags_internal::tryfromenv_needs_processing = false;
                 }
@@ -451,11 +450,11 @@ namespace abel {
 //  deduced value
 // We are also mutating curr_list in case if we need to get a hold of next
 // argument in the input.
-            std::tuple<bool, abel::string_view> DeduceFlagValue(const command_line_flag &flag,
-                                                                abel::string_view value,
-                                                                bool is_negative,
-                                                                bool is_empty_value,
-                                                                ArgsList *curr_list) {
+            std::tuple<bool, abel::string_view> deduce_flag_value(const command_line_flag &flag,
+                                                                  abel::string_view value,
+                                                                  bool is_negative,
+                                                                  bool is_empty_value,
+                                                                  args_list *curr_list) {
                 // Value is either an argument suffix after `=` in "--foo=<value>"
                 // or separate argument in case of "--foo" "<value>".
 
@@ -503,7 +502,7 @@ namespace abel {
                             true);
                     return std::make_tuple(false, "");
                 } else if (value.empty() && (!is_empty_value)) {
-                    if (curr_list->Size() == 1) {
+                    if (curr_list->size() == 1) {
                         // "--int_flag" case
                         flags_internal::report_usage_error(
                                 abel::string_cat("Missing the value for the flag '", flag.name(), "'"),
@@ -512,8 +511,8 @@ namespace abel {
                     }
 
                     // "--int_flag" "10" case
-                    curr_list->PopFront();
-                    value = curr_list->Front();
+                    curr_list->pop_front();
+                    value = curr_list->front();
 
                     // Heuristic to detect the case where someone treats a std::string arg
                     // like a bool or just forgets to pass a value:
@@ -521,10 +520,10 @@ namespace abel {
                     // We look for a flag of std::string type, whose value begins with a
                     // dash and corresponds to known flag or standalone --.
                     if (!value.empty() && value[0] == '-' && flag.is_of_type<std::string>()) {
-                        auto maybe_flag_name = std::get<0>(SplitNameAndValue(value.substr(1)));
+                        auto maybe_flag_name = std::get<0>(split_name_and_value(value.substr(1)));
 
                         if (maybe_flag_name.empty() ||
-                            std::get<0>(LocateFlag(maybe_flag_name)) != nullptr) {
+                            std::get<0>(locate_flag(maybe_flag_name)) != nullptr) {
                             // "--string_flag" "--known_flag" case
                             ABEL_INTERNAL_LOG(
                                     WARNING,
@@ -539,7 +538,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-            bool CanIgnoreUndefinedFlag(abel::string_view flag_name) {
+            bool can_ignore_undefined_flag(abel::string_view flag_name) {
                 auto undefok = abel::get_flag(FLAGS_undefok);
                 if (std::find(undefok.begin(), undefok.end(), flag_name) != undefok.end()) {
                     return true;
@@ -558,18 +557,18 @@ namespace abel {
 // --------------------------------------------------------------------
 
         std::vector<char *> parse_command_line_impl(int argc, char *argv[],
-                                                 argv_list_action arg_list_act,
-                                                 usage_flags_action usage_flag_act,
-                                                 on_undefined_flag on_undef_flag) {
+                                                    argv_list_action arg_list_act,
+                                                    usage_flags_action usage_flag_act,
+                                                    on_undefined_flag on_undef_flag) {
             ABEL_INTERNAL_CHECK(argc > 0, "Missing argv[0]");
 
             // This routine does not return anything since we abort on failure.
-            CheckDefaultValuesParsingRoundtrip();
+            check_default_values_parsing_roundtrip();
 
             std::vector<std::string> flagfile_value;
 
-            std::vector<ArgsList> input_args;
-            input_args.push_back(ArgsList(argc, argv));
+            std::vector<args_list> input_args;
+            input_args.push_back(args_list(argc, argv));
 
             std::vector<char *> output_args;
             std::vector<char *> positional_args;
@@ -593,15 +592,15 @@ namespace abel {
             bool success = true;
             while (!input_args.empty()) {
                 // 10. First we process the built-in generator flags.
-                success &= HandleGeneratorFlags(&input_args, &flagfile_value);
+                success &= handle_generator_flags(&input_args, &flagfile_value);
 
                 // 30. Select top-most (most recent) arguments list. If it is empty drop it
                 // and re-try.
-                ArgsList &curr_list = input_args.back();
+                args_list &curr_list = input_args.back();
 
-                curr_list.PopFront();
+                curr_list.pop_front();
 
-                if (curr_list.Size() == 0) {
+                if (curr_list.size() == 0) {
                     input_args.pop_back();
                     continue;
                 }
@@ -609,7 +608,7 @@ namespace abel {
                 // 40. Pick up the front remaining argument in the current list. If current
                 // stack of argument lists contains only one element - we are processing an
                 // argument from the original argv.
-                abel::string_view arg(curr_list.Front());
+                abel::string_view arg(curr_list.front());
                 bool arg_from_argv = input_args.size() == 1;
 
                 // 50. If argument does not start with - or is just "-" - this is
@@ -618,12 +617,12 @@ namespace abel {
                     ABEL_INTERNAL_CHECK(arg_from_argv,
                                         "Flagfile cannot contain positional argument");
 
-                    positional_args.push_back(argv[curr_list.FrontIndex()]);
+                    positional_args.push_back(argv[curr_list.front_index()]);
                     continue;
                 }
 
                 if (arg_from_argv && (arg_list_act == argv_list_action::kKeepParsedArgs)) {
-                    output_args.push_back(argv[curr_list.FrontIndex()]);
+                    output_args.push_back(argv[curr_list.front_index()]);
                 }
 
                 // 60. Split the current argument on '=' to figure out the argument
@@ -635,7 +634,7 @@ namespace abel {
                 abel::string_view value;
                 bool is_empty_value = false;
 
-                std::tie(flag_name, value, is_empty_value) = SplitNameAndValue(arg);
+                std::tie(flag_name, value, is_empty_value) = split_name_and_value(arg);
 
                 // 70. "--" alone means what it does for GNU: stop flags parsing. We do
                 // not support positional arguments in flagfiles, so we just drop them.
@@ -643,14 +642,14 @@ namespace abel {
                     ABEL_INTERNAL_CHECK(arg_from_argv,
                                         "Flagfile cannot contain positional argument");
 
-                    curr_list.PopFront();
+                    curr_list.pop_front();
                     break;
                 }
 
                 // 80. Locate the flag based on flag name. Handle both --foo and --nofoo
                 command_line_flag *flag = nullptr;
                 bool is_negative = false;
-                std::tie(flag, is_negative) = LocateFlag(flag_name);
+                std::tie(flag, is_negative) = locate_flag(flag_name);
 
                 if (flag == nullptr) {
                     if (on_undef_flag != on_undefined_flag::kIgnoreUndefined) {
@@ -661,16 +660,16 @@ namespace abel {
                 }
 
                 // 90. Deduce flag's value (from this or next argument)
-                auto curr_index = curr_list.FrontIndex();
+                auto curr_index = curr_list.front_index();
                 bool value_success = true;
                 std::tie(value_success, value) =
-                        DeduceFlagValue(*flag, value, is_negative, is_empty_value, &curr_list);
+                        deduce_flag_value(*flag, value, is_negative, is_empty_value, &curr_list);
                 success &= value_success;
 
                 // If above call consumed an argument, it was a standalone value
                 if (arg_from_argv && (arg_list_act == argv_list_action::kKeepParsedArgs) &&
-                    (curr_index != curr_list.FrontIndex())) {
-                    output_args.push_back(argv[curr_list.FrontIndex()]);
+                    (curr_index != curr_list.front_index())) {
+                    output_args.push_back(argv[curr_list.front_index()]);
                 }
 
                 // 100. Set the located flag to a new new value, unless it is retired.
@@ -685,7 +684,7 @@ namespace abel {
             }
 
             for (const auto &flag_name : undefined_flag_names) {
-                if (CanIgnoreUndefinedFlag(flag_name.second)) continue;
+                if (can_ignore_undefined_flag(flag_name.second)) continue;
 
                 flags_internal::report_usage_error(
                         abel::string_cat("Unknown command line flag '", flag_name.second, "'"),
@@ -703,7 +702,7 @@ namespace abel {
 
             if (!success) {
                 flags_internal::handle_usage_flags(std::cout,
-                                                 program_usage_message());
+                                                   program_usage_message());
                 std::exit(1);
             }
 
@@ -726,7 +725,7 @@ namespace abel {
 
             // All the remaining arguments are positional.
             if (!input_args.empty()) {
-                for (int arg_index = input_args.back().FrontIndex(); arg_index < argc;
+                for (int arg_index = input_args.back().front_index(); arg_index < argc;
                      ++arg_index) {
                     output_args.push_back(argv[arg_index]);
                 }

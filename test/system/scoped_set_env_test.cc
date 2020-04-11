@@ -11,7 +11,7 @@ namespace {
 
     using abel::scoped_set_env;
 
-    std::string GetEnvVar(const char *name) {
+    std::string get_env_var(const char *name) {
 #ifdef _WIN32
         char buf[1024];
         auto get_res = GetEnvironmentVariableA(name, buf, sizeof(buf));
@@ -35,53 +35,53 @@ namespace {
     }
 
     TEST(ScopedSetEnvTest, SetNonExistingVarToString) {
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
 
         {
             scoped_set_env scoped_set("SCOPED_SET_ENV_TEST_VAR", "value");
 
-            EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "value");
+            EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "value");
         }
 
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
     }
 
     TEST(ScopedSetEnvTest, SetNonExistingVarToNull) {
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
 
         {
             scoped_set_env scoped_set("SCOPED_SET_ENV_TEST_VAR", nullptr);
 
-            EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
+            EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
         }
 
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
     }
 
     TEST(ScopedSetEnvTest, SetExistingVarToString) {
         scoped_set_env scoped_set("SCOPED_SET_ENV_TEST_VAR", "value");
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "value");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "value");
 
         {
             scoped_set_env scoped_set_env("SCOPED_SET_ENV_TEST_VAR", "new_value");
 
-            EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "new_value");
+            EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "new_value");
         }
 
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "value");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "value");
     }
 
     TEST(ScopedSetEnvTest, SetExistingVarToNull) {
         scoped_set_env scoped_set("SCOPED_SET_ENV_TEST_VAR", "value");
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "value");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "value");
 
         {
             scoped_set_env scoped_set_env("SCOPED_SET_ENV_TEST_VAR", nullptr);
 
-            EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
+            EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "UNSET");
         }
 
-        EXPECT_EQ(GetEnvVar("SCOPED_SET_ENV_TEST_VAR"), "value");
+        EXPECT_EQ(get_env_var("SCOPED_SET_ENV_TEST_VAR"), "value");
     }
 
 }  // namespace
