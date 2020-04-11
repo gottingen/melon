@@ -12,11 +12,11 @@
 
 namespace abel {
 
-    inline void create_log_ptr();
+    void create_log_ptr();
 
     class log_singleton {
     public:
-        friend inline void create_log_ptr();
+        friend void create_log_ptr();
 
         static void set_logger(std::shared_ptr<abel::log::logger> &log_ptr) {
             _log_ptr = log_ptr;
@@ -35,11 +35,6 @@ namespace abel {
 
     };
 
-    std::shared_ptr<abel::log::logger> log_singleton::_log_ptr;
-
-    inline void create_log_ptr() {
-        log_singleton::_log_ptr = abel::log::stdout_color_mt("abel");
-    }
 } //namespace abel
 
 #define ABEL_RAW_TRACE(...)                                   \
