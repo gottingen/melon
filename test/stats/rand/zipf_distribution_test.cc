@@ -13,7 +13,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <test/testing/chi_square.h>
 #include <abel/stats/random/engine/sequence_urbg.h>
 #include <abel/stats/random/random.h>

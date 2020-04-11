@@ -9,7 +9,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/stats/random/seed/explicit_seed_seq.h>
 #include <abel/strings/str_cat.h>
 #include <abel/chrono/clock.h>

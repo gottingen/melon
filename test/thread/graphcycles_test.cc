@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/base/profile.h>
 
 namespace abel {

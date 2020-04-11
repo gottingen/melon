@@ -7,7 +7,7 @@
 #include <random>
 
 #include <benchmark/benchmark.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <test/testing/escaping_test_common.h>
 
 namespace {

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/string_view.h>
 
 namespace {

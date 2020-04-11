@@ -4,7 +4,7 @@
 // Raw logging testing is covered by logging_unittest.cc, which is not as
 // portable as this test.
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <tuple>
 #include <gtest/gtest.h>
 #include <abel/strings/str_cat.h>

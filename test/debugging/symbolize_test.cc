@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/math/bit_cast.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/debugging/internal/stack_consumption.h>
 #include <abel/memory/memory.h>
 

@@ -3,7 +3,7 @@
 // See also //abel/synchronization:mutex_benchmark for a comparison of SpinLock
 // and mutex performance under varying levels of contention.
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/internal/scheduling_mode.h>
 #include <abel/thread/internal/spinlock.h>
 #include <abel/thread/internal/create_thread_identity.h>

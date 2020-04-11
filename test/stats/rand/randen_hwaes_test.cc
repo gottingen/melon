@@ -4,7 +4,7 @@
 #include <abel/base/profile.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/hardware/aes_detect.h>
 #include <abel/stats/random/engine/randen_traits.h>
 #include <abel/asl/format/printf.h>

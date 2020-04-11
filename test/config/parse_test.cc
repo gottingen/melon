@@ -7,7 +7,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/system/scoped_set_env.h>
 #include <abel/config/flag.h>
 #include <abel/strings/str_cat.h>

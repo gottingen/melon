@@ -3,7 +3,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/debugging/leak_check.h>
 
 namespace {
