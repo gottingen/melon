@@ -188,32 +188,32 @@ namespace abel {
 
 // Strings and std:: containers do not have the same overload resolution
 // considerations as fundamental types. Naming these 'abel_unparse_flag' means we
-// can avoid the need for additional specializations of Unparse (below).
+// can avoid the need for additional specializations of unparse (below).
         std::string abel_unparse_flag(abel::string_view v);
 
         std::string abel_unparse_flag(const std::vector<std::string> &);
 
         template<typename T>
-        std::string Unparse(const T &v) {
+        std::string unparse(const T &v) {
             // Comment on next line provides a good compiler error message if T does not
             // have unparse_flag.
             return abel_unparse_flag(v);  // Is T missing abel_unparse_flag?
         }
 
 // Overloads for builtin types.
-        std::string Unparse(bool v);
+        std::string unparse(bool v);
 
-        std::string Unparse(short v);               // NOLINT
-        std::string Unparse(unsigned short v);      // NOLINT
-        std::string Unparse(int v);                 // NOLINT
-        std::string Unparse(unsigned int v);        // NOLINT
-        std::string Unparse(long v);                // NOLINT
-        std::string Unparse(unsigned long v);       // NOLINT
-        std::string Unparse(long long v);           // NOLINT
-        std::string Unparse(unsigned long long v);  // NOLINT
-        std::string Unparse(float v);
+        std::string unparse(short v);               // NOLINT
+        std::string unparse(unsigned short v);      // NOLINT
+        std::string unparse(int v);                 // NOLINT
+        std::string unparse(unsigned int v);        // NOLINT
+        std::string unparse(long v);                // NOLINT
+        std::string unparse(unsigned long v);       // NOLINT
+        std::string unparse(long long v);           // NOLINT
+        std::string unparse(unsigned long long v);  // NOLINT
+        std::string unparse(float v);
 
-        std::string Unparse(double v);
+        std::string unparse(double v);
 
     }  // namespace flags_internal
 
@@ -242,7 +242,7 @@ namespace abel {
 // `abel::unparse_flag()` on those constituent types. (See above.)
     template<typename T>
     ABEL_FORCE_INLINE std::string unparse_flag(const T &v) {
-        return flags_internal::Unparse(v);
+        return flags_internal::unparse(v);
     }
 
 // Overloads for `abel::LogSeverity` can't (easily) appear alongside that type's

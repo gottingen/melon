@@ -44,7 +44,7 @@ namespace abel {
 
 
     namespace flags_internal {
-        using FlagKindFilter = std::function<bool(abel::string_view)>;
+        using flag_kind_filter = std::function<bool(abel::string_view)>;
     }  // namespace flags_internal
 
 // flags_usage_config
@@ -58,7 +58,7 @@ namespace abel {
         // contains_helpshort_flags("path/to/my/code.cc") returns true, invoking the
         // program with --helpshort will include information about --my_flag in the
         // program output.
-        flags_internal::FlagKindFilter contains_helpshort_flags;
+        flags_internal::flag_kind_filter contains_helpshort_flags;
 
         // Returns true if flags defined in the filename should be reported with
         // --help flag. For example, if the file
@@ -66,7 +66,7 @@ namespace abel {
         // contains_help_flags("path/to/my/code.cc") returns true, invoking the
         // program with --help will include information about --my_flag in the
         // program output.
-        flags_internal::FlagKindFilter contains_help_flags;
+        flags_internal::flag_kind_filter contains_help_flags;
 
         // Returns true if flags defined in the filename should be reported with
         // --helppackage flag. For example, if the file
@@ -74,7 +74,7 @@ namespace abel {
         // contains_helppackage_flags("path/to/my/code.cc") returns true, invoking the
         // program with --helppackage will include information about --my_flag in the
         // program output.
-        flags_internal::FlagKindFilter contains_helppackage_flags;
+        flags_internal::flag_kind_filter contains_helppackage_flags;
 
         // Generates std::string containing program version. This is the std::string reported
         // when user specifies --version in a command line.
@@ -113,7 +113,7 @@ extern "C" {
 
 // Additional report of fatal usage error message before we std::exit. Error is
 // fatal if is_fatal argument to report_usage_error is true.
-void AbelInternalReportFatalUsageError(abel::string_view);
+void abel_report_fatal_usage_error(abel::string_view);
 
 }  // extern "C"
 

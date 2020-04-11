@@ -206,7 +206,7 @@ namespace abel {
             }
 
         private:
-            std::vector<std::unique_ptr<flags_internal::FlagStateInterface>>
+            std::vector<std::unique_ptr<flags_internal::flag_state_interface>>
                     backup_registry_;
         };
 
@@ -302,7 +302,7 @@ namespace abel {
                 // Any input is valid
                 bool ValidateInputValue(abel::string_view) const override { return true; }
 
-                std::unique_ptr<flags_internal::FlagStateInterface> SaveState() override {
+                std::unique_ptr<flags_internal::flag_state_interface> SaveState() override {
                     return nullptr;
                 }
 

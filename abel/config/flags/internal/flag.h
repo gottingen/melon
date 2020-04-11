@@ -18,13 +18,13 @@ namespace abel {
 
     namespace flags_internal {
 
-        constexpr int64_t AtomicInit() { return 0xababababababababll; }
+        constexpr int64_t atomic_init() { return 0xababababababababll; }
 
         template<typename T>
         class Flag;
 
         template<typename T>
-        class flag_state : public flags_internal::FlagStateInterface {
+        class flag_state : public flags_internal::flag_state_interface {
         public:
             flag_state(Flag<T> *flag, T &&cur, bool modified, bool on_command_line,
                       int64_t counter)
@@ -189,7 +189,7 @@ namespace abel {
             template<typename T>
             bool AtomicGet(T *v) const {
                 const int64_t r = atomic_.load(std::memory_order_acquire);
-                if (r != flags_internal::AtomicInit()) {
+                if (r != flags_internal::atomic_init()) {
                     std::memcpy(v, &r, sizeof(T));
                     return true;
                 }
@@ -217,7 +217,7 @@ namespace abel {
 
             // Interfaces to save/restore mutable flag data
             template<typename T>
-            std::unique_ptr<flags_internal::FlagStateInterface> SaveState(
+            std::unique_ptr<flags_internal::flag_state_interface> SaveState(
                     Flag<T> *flag) const ABEL_LOCKS_EXCLUDED(*DataGuard()) {
                 T &&cur_value = flag->Get();
                 abel::mutex_lock l(DataGuard());
@@ -282,7 +282,7 @@ namespace abel {
             int64_t counter_ ABEL_GUARDED_BY(*DataGuard()) = 0;
             // For some types, a copy of the current value is kept in an atomically
             // accessible field.
-            std::atomic<int64_t> atomic_{flags_internal::AtomicInit()};
+            std::atomic<int64_t> atomic_{flags_internal::atomic_init()};
 
             struct CallbackData {
                 FlagCallback func;
@@ -359,7 +359,7 @@ namespace abel {
             // Interfaces to save and restore flags to/from persistent state.
             // Returns current flag state or nullptr if flag does not support
             // saving and restoring a state.
-            std::unique_ptr<flags_internal::FlagStateInterface> SaveState() override {
+            std::unique_ptr<flags_internal::flag_state_interface> SaveState() override {
                 return impl_.SaveState(this);
             }
 

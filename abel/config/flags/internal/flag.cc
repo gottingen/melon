@@ -146,13 +146,13 @@ namespace abel {
             abel::mutex_lock l(DataGuard());
 
             auto obj = MakeInitValue();
-            return Unparse(marshalling_op_, obj.get());
+            return unparse(marshalling_op_, obj.get());
         }
 
         std::string FlagImpl::CurrentValue() const {
             abel::mutex_lock l(DataGuard());
 
-            return Unparse(marshalling_op_, cur_);
+            return unparse(marshalling_op_, cur_);
         }
 
         void FlagImpl::SetCallback(
@@ -274,7 +274,7 @@ namespace abel {
             if (ShouldValidateFlagValue(op_)) {
                 void *obj = Clone(op_, src);
                 std::string ignored_error;
-                std::string src_as_str = Unparse(marshalling_op_, src);
+                std::string src_as_str = unparse(marshalling_op_, src);
                 if (!Parse(marshalling_op_, src_as_str, obj, &ignored_error)) {
                     ABEL_INTERNAL_LOG(ERROR, abel::string_cat("Attempt to set flag '", Name(),
                                                               "' to invalid value ", src_as_str));

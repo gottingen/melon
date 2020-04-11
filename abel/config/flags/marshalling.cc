@@ -141,23 +141,23 @@ namespace abel {
 // --------------------------------------------------------------------
 // abel_unparse_flag specializations for various builtin flag types.
 
-        std::string Unparse(bool v) { return v ? "true" : "false"; }
+        std::string unparse(bool v) { return v ? "true" : "false"; }
 
-        std::string Unparse(short v) { return abel::string_cat(v); }
+        std::string unparse(short v) { return abel::string_cat(v); }
 
-        std::string Unparse(unsigned short v) { return abel::string_cat(v); }
+        std::string unparse(unsigned short v) { return abel::string_cat(v); }
 
-        std::string Unparse(int v) { return abel::string_cat(v); }
+        std::string unparse(int v) { return abel::string_cat(v); }
 
-        std::string Unparse(unsigned int v) { return abel::string_cat(v); }
+        std::string unparse(unsigned int v) { return abel::string_cat(v); }
 
-        std::string Unparse(long v) { return abel::string_cat(v); }
+        std::string unparse(long v) { return abel::string_cat(v); }
 
-        std::string Unparse(unsigned long v) { return abel::string_cat(v); }
+        std::string unparse(unsigned long v) { return abel::string_cat(v); }
 
-        std::string Unparse(long long v) { return abel::string_cat(v); }
+        std::string unparse(long long v) { return abel::string_cat(v); }
 
-        std::string Unparse(unsigned long long v) { return abel::string_cat(v); }
+        std::string unparse(unsigned long long v) { return abel::string_cat(v); }
 
         template<typename T>
         std::string UnparseFloatingPointVal(T v) {
@@ -179,9 +179,9 @@ namespace abel {
             return fmt::sprintf("%.*g", std::numeric_limits<T>::max_digits10, v);
         }
 
-        std::string Unparse(float v) { return UnparseFloatingPointVal(v); }
+        std::string unparse(float v) { return UnparseFloatingPointVal(v); }
 
-        std::string Unparse(double v) { return UnparseFloatingPointVal(v); }
+        std::string unparse(double v) { return UnparseFloatingPointVal(v); }
 
         std::string abel_unparse_flag(abel::string_view v) { return std::string(v); }
 

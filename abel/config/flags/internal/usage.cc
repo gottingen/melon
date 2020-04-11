@@ -228,7 +228,7 @@ namespace abel {
 // If a flag's help message has been stripped (e.g. by adding '#define
 // STRIP_FLAG_HELP 1' then this flag will not be displayed by '--help'
 // and its variants.
-            void FlagsHelpImpl(std::ostream &out, flags_internal::FlagKindFilter filter_cb,
+            void FlagsHelpImpl(std::ostream &out, flags_internal::flag_kind_filter filter_cb,
                                HelpFormat format, abel::string_view program_usage_message) {
                 if (format == HelpFormat::kHumanReadable) {
                     out << flags_internal::ShortProgramInvocationName() << ": "
@@ -322,7 +322,7 @@ namespace abel {
 // If filter is empty produces help messages for all flags.
         void FlagsHelp(std::ostream &out, abel::string_view filter, HelpFormat format,
                        abel::string_view program_usage_message) {
-            flags_internal::FlagKindFilter filter_cb = [&](abel::string_view filename) {
+            flags_internal::flag_kind_filter filter_cb = [&](abel::string_view filename) {
                 return filter.empty() || filename.find(filter) != abel::string_view::npos;
             };
             flags_internal::FlagsHelpImpl(out, filter_cb, format, program_usage_message);

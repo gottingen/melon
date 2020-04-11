@@ -116,7 +116,7 @@ namespace abel {
             return op(flags_internal::kParse, &text, dst, error) != nullptr;
         }
 
-        ABEL_FORCE_INLINE std::string Unparse(FlagMarshallingOpFn op, const void *val) {
+        ABEL_FORCE_INLINE std::string unparse(FlagMarshallingOpFn op, const void *val) {
             std::string result;
             op(flags_internal::kUnparse, val, &result, nullptr);
             return result;
@@ -130,9 +130,9 @@ namespace abel {
 
 // Handle to flag_state objects. Specific flag state objects will restore state
 // of a flag produced this flag state from method command_line_flag::SaveState().
-        class FlagStateInterface {
+        class flag_state_interface {
         public:
-            virtual ~FlagStateInterface() {}
+            virtual ~flag_state_interface() {}
 
             // Restores the flag originated this object to the saved state.
             virtual void Restore() const = 0;
@@ -232,7 +232,7 @@ namespace abel {
 
             // Interface to save flag to some persistent state. Returns current flag state
             // or nullptr if flag does not support saving and restoring a state.
-            virtual std::unique_ptr<FlagStateInterface> SaveState() = 0;
+            virtual std::unique_ptr<flag_state_interface> SaveState() = 0;
 
             // Sets the value of the flag based on specified std::string `value`. If the flag
             // was successfully set to new value, it returns true. Otherwise, sets `error`
