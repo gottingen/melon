@@ -1,6 +1,8 @@
 
 #include <iostream>
+#include <abel/log/abel_logging.h>
 
+void abel_log();
 void stdout_example();
 
 void basic_example();
@@ -24,6 +26,7 @@ void syslog_example();
 int main(int, char *[]) {
 
     try {
+        abel_log();
         // console logging example
         stdout_example();
 
@@ -140,4 +143,14 @@ void multi_sink_example() {
     logger.set_level(abel::log::debug);
     logger.warn("this should appear in both console and file");
     logger.info("this message should not appear in the console, only in the file");
+}
+
+void abel_log() {
+    abel::log_singleton::get_logger()->set_level(abel::log::level_enum::trace);
+    ABEL_RAW_TRACE("this is trace");
+    ABEL_RAW_DEBUG("this is debug");
+    ABEL_RAW_INFO("this is info");
+    ABEL_RAW_WARN("this is warn");
+    ABEL_RAW_ERROR("this is error");
+    ABEL_CHECK(false,"abc");
 }

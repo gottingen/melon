@@ -9,7 +9,7 @@
 #include <abel/asl/type_traits.h>
 #include <functional>
 #include <abel/asl/utility.h>
-
+/*
 namespace abel {
 
     template<typename Signature>
@@ -231,5 +231,5 @@ namespace abel {
             = noncopyable_function<Ret(Args...)>::indirect_vtable_for<Func>::make_vtable();
 
 } //namespace abel
-
+*/
 #endif //ABEL_UTILITY_NON_COPYABLE_H_
