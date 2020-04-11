@@ -34,7 +34,7 @@ namespace abel {
                 // By default we only want flags in binary's main. We expect the main
                 // routine to reside in <program>.cc or <program>-main.cc or
                 // <program>_main.cc, where the <program> is the name of the binary.
-                auto suffix = flags_internal::Basename(filename);
+                auto suffix = flags_internal::base_name(filename);
                 if (!abel::consume_prefix(&suffix,
                                           flags_internal::ShortProgramInvocationName()))
                     return false;

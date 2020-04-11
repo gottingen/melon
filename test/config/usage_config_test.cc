@@ -23,15 +23,15 @@ namespace {
     namespace flags = abel::flags_internal;
 
     bool TstContainsHelpshortFlags(abel::string_view f) {
-        return abel::starts_with(flags::Basename(f), "progname.");
+        return abel::starts_with(flags::base_name(f), "progname.");
     }
 
     bool TstContainsHelppackageFlags(abel::string_view f) {
-        return abel::ends_with(flags::Package(f), "aaa/");
+        return abel::ends_with(flags::package(f), "aaa/");
     }
 
     bool TstContainsHelpFlags(abel::string_view f) {
-        return abel::ends_with(flags::Package(f), "zzz/");
+        return abel::ends_with(flags::package(f), "zzz/");
     }
 
     std::string TstVersionString() { return "program 1.0.0"; }

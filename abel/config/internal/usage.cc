@@ -269,7 +269,7 @@ namespace abel {
                     // Make sure flag satisfies the filter
                     if (!filter_cb || !filter_cb(flag_filename)) return;
 
-                    matching_flags[std::string(flags_internal::Package(flag_filename))]
+                    matching_flags[std::string(flags_internal::package(flag_filename))]
                     [flag_filename]
                             .push_back(flag);
                 });

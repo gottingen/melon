@@ -28,7 +28,7 @@
 #define ABEL_RAW_LOG(severity, ...)                                            \
   do {                                                                         \
     constexpr const char* abel_raw_logging_internal_basename =                 \
-        ::abel::raw_logging_internal::Basename(__FILE__,                       \
+        ::abel::raw_logging_internal::base_name(__FILE__,                       \
                                                sizeof(__FILE__) - 1);          \
     ::abel::raw_logging_internal::RawLog(ABEL_RAW_LOGGING_INTERNAL_##severity, \
                                          abel_raw_logging_internal_basename,   \
@@ -99,10 +99,10 @@ namespace abel {
 // compile-time function to get the "base" filename, that is, the part of
 // a filename after the last "/" or "\" path separator.  The search starts at
 // the end of the string; the second parameter is the length of the string.
-        constexpr const char *Basename(const char *fname, int offset) {
+        constexpr const char *base_name(const char *fname, int offset) {
             return offset == 0 || fname[offset - 1] == '/' || fname[offset - 1] == '\\'
                    ? fname + offset
-                   : Basename(fname, offset - 1);
+                   : base_name(fname, offset - 1);
         }
 
 // For testing only.

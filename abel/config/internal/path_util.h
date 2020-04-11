@@ -13,11 +13,11 @@ namespace abel {
 // argument. It is similar to basename(3)
 // <https://linux.die.net/man/3/basename>.
 // For example:
-//     flags_internal::Basename("a/b/prog/file.cc")
+//     flags_internal::base_name("a/b/prog/file.cc")
 // returns "file.cc"
-//     flags_internal::Basename("file.cc")
+//     flags_internal::base_name("file.cc")
 // returns "file.cc"
-        ABEL_FORCE_INLINE abel::string_view Basename(abel::string_view filename) {
+        ABEL_FORCE_INLINE abel::string_view base_name(abel::string_view filename) {
             auto last_slash_pos = filename.find_last_of("/\\");
 
             return last_slash_pos == abel::string_view::npos
@@ -29,11 +29,11 @@ namespace abel {
 // passed as an argument, including the trailing slash.
 // Returns the empty string if a slash is not found in the input file name.
 // For example:
-//      flags_internal::Package("a/b/prog/file.cc")
+//      flags_internal::package("a/b/prog/file.cc")
 // returns "a/b/prog/"
-//      flags_internal::Package("file.cc")
+//      flags_internal::package("file.cc")
 // returns ""
-        ABEL_FORCE_INLINE abel::string_view Package(abel::string_view filename) {
+        ABEL_FORCE_INLINE abel::string_view package(abel::string_view filename) {
             auto last_slash_pos = filename.find_last_of("/\\");
 
             return last_slash_pos == abel::string_view::npos

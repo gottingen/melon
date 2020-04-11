@@ -22,7 +22,7 @@ namespace abel {
         std::string ShortProgramInvocationName() {
             abel::mutex_lock l(&program_name_guard);
 
-            return program_name ? std::string(flags_internal::Basename(*program_name))
+            return program_name ? std::string(flags_internal::base_name(*program_name))
                                 : "UNKNOWN";
         }
 
