@@ -6,7 +6,7 @@
 #include <string>
 
 #include <benchmark/benchmark.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace {
 

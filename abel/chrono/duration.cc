@@ -917,11 +917,11 @@ namespace abel {
 
     std::string abel_unparse_flag(duration d) { return format_duration(d); }
 
-    bool ParseFlag(const std::string &text, duration *dst, std::string *) {
+    bool parse_flag(const std::string &text, duration *dst, std::string *) {
         return parse_duration(text, dst);
     }
 
-    std::string UnparseFlag(duration d) { return format_duration(d); }
+    std::string unparse_flag(duration d) { return format_duration(d); }
 
 
 }  // namespace abel

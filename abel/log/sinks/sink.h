@@ -15,11 +15,11 @@ namespace abel {
             class sink {
             public:
                 sink()
-                        : level_(level::trace), formatter_(new pattern_formatter("%+")) {
+                        : level_(trace), formatter_(new pattern_formatter("%+")) {
                 }
 
                 sink(std::unique_ptr<abel::log::pattern_formatter> formatter)
-                        : level_(level::trace), formatter_(std::move(formatter)) {};
+                        : level_(trace), formatter_(std::move(formatter)) {};
 
                 virtual ~sink() = default;
 
@@ -31,16 +31,16 @@ namespace abel {
 
                 virtual void set_formatter(std::unique_ptr<abel::log::formatter> sink_formatter) = 0;
 
-                bool should_log(level::level_enum msg_level) const {
+                bool should_log(level_enum msg_level) const {
                     return msg_level >= level_.load(std::memory_order_relaxed);
                 }
 
-                void set_level(level::level_enum log_level) {
+                void set_level(abel::log::level_enum log_level) {
                     level_.store(log_level);
                 }
 
-                level::level_enum level() const {
-                    return static_cast<abel::log::level::level_enum>(level_.load(std::memory_order_relaxed));
+                log::level_enum level() const {
+                    return static_cast<abel::log::level_enum>(level_.load(std::memory_order_relaxed));
                 }
 
             protected:

@@ -1,15 +1,15 @@
 //
 //
 
-#include <abel/config/flags/parse.h>
+#include <abel/config/parse.h>
 
 #include <fstream>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/system/scoped_set_env.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/substitute.h>
 #include <abel/asl/span.h>
@@ -101,8 +101,7 @@ namespace {
             }
 
             if (res->empty()) {
-                ABEL_INTERNAL_LOG(FATAL,
-                                  "Failed to make temporary directory for data files");
+                ABEL_RAW_CRITICAL("Failed to make temporary directory for data files");
             }
 
 #ifdef _WIN32
@@ -191,14 +190,14 @@ namespace {
 
     class ParseTest : public testing::Test {
     private:
-        flags::FlagSaver flag_saver_;
+        flags::flag_saver flag_saver_;
     };
 
 // --------------------------------------------------------------------
 
     template<int N>
     std::vector<char *> InvokeParse(const char *(&in_argv)[N]) {
-        return abel::ParseCommandLine(N, const_cast<char **>(in_argv));
+        return abel::parse_command_line(N, const_cast<char **>(in_argv));
     }
 
 // --------------------------------------------------------------------
@@ -212,10 +211,10 @@ namespace {
         EXPECT_EQ(out_args.size(), 1 + exp_position_args);
         EXPECT_STREQ(out_args[0], "testbin");
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), int_flag_value);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_double_flag), double_flag_val, 0.0001);
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), string_flag_val);
-        EXPECT_EQ(abel::GetFlag(FLAGS_bool_flag), bool_flag_val);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), int_flag_value);
+        EXPECT_NEAR(abel::get_flag(FLAGS_double_flag), double_flag_val, 0.0001);
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), string_flag_val);
+        EXPECT_EQ(abel::get_flag(FLAGS_bool_flag), bool_flag_val);
     }
 
 // --------------------------------------------------------------------
@@ -363,12 +362,12 @@ namespace {
         };
         InvokeParse(in_args1);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_udt_flag).value, 1);
+        EXPECT_EQ(abel::get_flag(FLAGS_udt_flag).value, 1);
 
         const char *in_args2[] = {"testbin", "--udt_flag", "AAA"};
         InvokeParse(in_args2);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_udt_flag).value, 10);
+        EXPECT_EQ(abel::get_flag(FLAGS_udt_flag).value, 10);
     }
 
 // --------------------------------------------------------------------
@@ -767,10 +766,10 @@ namespace {
                                   abel::string_view("arg2"), abel::string_view("arg3"),
                                   abel::string_view("arg4")}));
 
-        auto out_args2 = flags::ParseCommandLineImpl(
-                11, const_cast<char **>(in_args1), flags::ArgvListAction::kKeepParsedArgs,
-                flags::UsageFlagsAction::kHandleUsage,
-                flags::OnUndefinedFlag::kAbortIfUndefined);
+        auto out_args2 = flags::parse_command_line_impl(
+                11, const_cast<char **>(in_args1), flags::argv_list_action::kKeepParsedArgs,
+                flags::usage_flags_action::kHandleUsage,
+                flags::on_undefined_flag::kAbortIfUndefined);
 
         EXPECT_THAT(
                 out_args2,
@@ -794,15 +793,15 @@ namespace {
                 "--int_flag=21",
         };
 
-        auto out_args1 = flags::ParseCommandLineImpl(
-                4, const_cast<char **>(in_args1), flags::ArgvListAction::kRemoveParsedArgs,
-                flags::UsageFlagsAction::kHandleUsage,
-                flags::OnUndefinedFlag::kIgnoreUndefined);
+        auto out_args1 = flags::parse_command_line_impl(
+                4, const_cast<char **>(in_args1), flags::argv_list_action::kRemoveParsedArgs,
+                flags::usage_flags_action::kHandleUsage,
+                flags::on_undefined_flag::kIgnoreUndefined);
 
         EXPECT_THAT(out_args1, ElementsAreArray({abel::string_view("testbin"),
                                                  abel::string_view("arg1")}));
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 21);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 21);
 
         const char *in_args2[] = {
                 "testbin",
@@ -811,10 +810,10 @@ namespace {
                 "--string_flag=AA",
         };
 
-        auto out_args2 = flags::ParseCommandLineImpl(
-                4, const_cast<char **>(in_args2), flags::ArgvListAction::kKeepParsedArgs,
-                flags::UsageFlagsAction::kHandleUsage,
-                flags::OnUndefinedFlag::kIgnoreUndefined);
+        auto out_args2 = flags::parse_command_line_impl(
+                4, const_cast<char **>(in_args2), flags::argv_list_action::kKeepParsedArgs,
+                flags::usage_flags_action::kHandleUsage,
+                flags::on_undefined_flag::kIgnoreUndefined);
 
         EXPECT_THAT(
                 out_args2,
@@ -822,7 +821,7 @@ namespace {
                         {abel::string_view("testbin"), abel::string_view("--undef_flag=aa"),
                          abel::string_view("--string_flag=AA"), abel::string_view("arg1")}));
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_string_flag), "AA");
+        EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "AA");
     }
 
 // --------------------------------------------------------------------
@@ -841,12 +840,12 @@ namespace {
                 "--int_flag=3",
         };
 
-        auto out_args2 = flags::ParseCommandLineImpl(
-                3, const_cast<char **>(in_args2), flags::ArgvListAction::kRemoveParsedArgs,
-                flags::UsageFlagsAction::kIgnoreUsage,
-                flags::OnUndefinedFlag::kAbortIfUndefined);
+        auto out_args2 = flags::parse_command_line_impl(
+                3, const_cast<char **>(in_args2), flags::argv_list_action::kRemoveParsedArgs,
+                flags::usage_flags_action::kIgnoreUsage,
+                flags::on_undefined_flag::kAbortIfUndefined);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_int_flag), 3);
+        EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 3);
     }
 
 }  // namespace

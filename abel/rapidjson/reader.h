@@ -128,13 +128,13 @@ RAPIDJSON_DIAG_OFF(effc++)
 RAPIDJSON_NAMESPACE_BEGIN
 
 ///////////////////////////////////////////////////////////////////////////////
-// ParseFlag
+// parse_flag
 
 /*! \def RAPIDJSON_PARSE_DEFAULT_FLAGS
     \ingroup RAPIDJSON_CONFIG
     \brief User-defined kParseDefaultFlags definition.
 
-    User can define this as any \c ParseFlag combinations.
+    User can define this as any \c parse_flag combinations.
 */
 #ifndef RAPIDJSON_PARSE_DEFAULT_FLAGS
 #define RAPIDJSON_PARSE_DEFAULT_FLAGS kParseNoFlags
@@ -143,7 +143,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 //! Combination of parseFlags
 /*! \see Reader::Parse, Document::Parse, Document::ParseInsitu, Document::ParseStream
  */
-    enum ParseFlag {
+    enum parse_flag {
         kParseNoFlags = 0,              //!< No flags are set.
         kParseInsituFlag = 1,           //!< In-situ(destructive) parsing.
         kParseValidateEncodingFlag = 2, //!< Validate encoding of JSON strings.
@@ -495,7 +495,7 @@ concept Handler {
                 stackAllocator, stackCapacity), parseResult_() {}
 
         //! Parse JSON text.
-        /*! \tparam parseFlags Combination of \ref ParseFlag.
+        /*! \tparam parseFlags Combination of \ref parse_flag.
             \tparam InputStream Type of input stream, implementing Stream concept.
             \tparam Handler Type of handler, implementing Handler concept.
             \param is Input stream to be parsed.
@@ -803,6 +803,12 @@ concept Handler {
                 ++length_;
             }
 
+            RAPIDJSON_FORCEINLINE void Puts(Ch* str, SizeType length) {
+                Ch* pos = stack_.template Push<Ch>(length);
+                memcpy(pos, str, length);
+                length_ += length;
+            }
+
             RAPIDJSON_FORCEINLINE void *Push(SizeType count) {
                 length_ += count;
                 return stack_.template Push<Ch>(count);
@@ -852,6 +858,15 @@ concept Handler {
             }
             if (RAPIDJSON_UNLIKELY(!success))
                 RAPIDJSON_PARSE_ERROR(kParseErrorTermination, s.Tell());
+        }
+
+        template<typename OutputStream>
+        inline void PushContentToStream(OutputStream& os, Ch*& start, size_t& length) {
+            if (length > 0) {
+                os.Puts(start, length);
+                start = NULL;
+                length = 0;
+            }
         }
 
         // Parse string to an output is

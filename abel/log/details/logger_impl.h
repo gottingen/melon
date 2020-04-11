@@ -15,7 +15,7 @@ namespace abel {
 
         template<typename It>
         inline logger::logger(std::string logger_name, const It &begin, const It &end)
-                : name_(std::move(logger_name)), sinks_(begin, end), level_(level::info), flush_level_(level::off),
+                : name_(std::move(logger_name)), sinks_(begin, end), level_(level_enum::info), flush_level_(level_enum::off),
                   last_err_time_(0), msg_counter_(1) // message counter will start from 1. 0-message id will be
 // reserved for controll messages
         {
@@ -45,7 +45,7 @@ namespace abel {
         }
 
         template<typename... Args>
-        inline void logger::log(level::level_enum lvl, const char *fmt, const Args &... args) {
+        inline void logger::log(level_enum lvl, const char *fmt, const Args &... args) {
             if (!should_log(lvl)) {
                 return;
             }
@@ -59,7 +59,7 @@ namespace abel {
         }
 
         template<typename... Args>
-        inline void logger::log(level::level_enum lvl, const char *msg) {
+        inline void logger::log(level_enum lvl, const char *msg) {
             if (!should_log(lvl)) {
                 return;
             }
@@ -72,7 +72,7 @@ namespace abel {
         }
 
         template<typename T>
-        inline void logger::log(level::level_enum lvl, const T &msg) {
+        inline void logger::log(level_enum lvl, const T &msg) {
             if (!should_log(lvl)) {
                 return;
             }
@@ -86,67 +86,67 @@ namespace abel {
 
         template<typename... Args>
         inline void logger::trace(const char *fmt, const Args &... args) {
-            log(level::trace, fmt, args...);
+            log(level_enum::trace, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::debug(const char *fmt, const Args &... args) {
-            log(level::debug, fmt, args...);
+            log(level_enum::debug, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::info(const char *fmt, const Args &... args) {
-            log(level::info, fmt, args...);
+            log(level_enum::info, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::warn(const char *fmt, const Args &... args) {
-            log(level::warn, fmt, args...);
+            log(level_enum::warn, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::error(const char *fmt, const Args &... args) {
-            log(level::err, fmt, args...);
+            log(err, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::critical(const char *fmt, const Args &... args) {
-            log(level::critical, fmt, args...);
+            log(level_enum::critical, fmt, args...);
         }
 
         template<typename T>
         inline void logger::trace(const T &msg) {
-            log(level::trace, msg);
+            log(level_enum::trace, msg);
         }
 
         template<typename T>
         inline void logger::debug(const T &msg) {
-            log(level::debug, msg);
+            log(level_enum::debug, msg);
         }
 
         template<typename T>
         inline void logger::info(const T &msg) {
-            log(level::info, msg);
+            log(level_enum::info, msg);
         }
 
         template<typename T>
         inline void logger::warn(const T &msg) {
-            log(level::warn, msg);
+            log(level_enum::warn, msg);
         }
 
         template<typename T>
         inline void logger::error(const T &msg) {
-            log(level::err, msg);
+            log(err, msg);
         }
 
         template<typename T>
         inline void logger::critical(const T &msg) {
-            log(level::critical, msg);
+            log(level_enum::critical, msg);
         }
 
 #if !defined(ABEL_WCHAR_T_NON_NATIVE) && defined(_WIN32)
         template<typename... Args>
-        inline void logger::log(level::level_enum lvl, const wchar_t *fmt, const Args &... args)
+        inline void logger::log(level_enum lvl, const wchar_t *fmt, const Args &... args)
         {
             if (!should_log(lvl))
             {
@@ -169,37 +169,37 @@ namespace abel {
         template<typename... Args>
         inline void logger::trace(const wchar_t *fmt, const Args &... args)
         {
-            log(level::trace, fmt, args...);
+            log(trace, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::debug(const wchar_t *fmt, const Args &... args)
         {
-            log(level::debug, fmt, args...);
+            log(debug, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::info(const wchar_t *fmt, const Args &... args)
         {
-            log(level::info, fmt, args...);
+            log(info, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::warn(const wchar_t *fmt, const Args &... args)
         {
-            log(level::warn, fmt, args...);
+            log(warn, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::error(const wchar_t *fmt, const Args &... args)
         {
-            log(level::err, fmt, args...);
+            log(err, fmt, args...);
         }
 
         template<typename... Args>
         inline void logger::critical(const wchar_t *fmt, const Args &... args)
         {
-            log(level::critical, fmt, args...);
+            log(critical, fmt, args...);
         }
 
 #endif // ABEL_WCHAR_T_NON_NATIVE
@@ -211,7 +211,7 @@ namespace abel {
             return name_;
         }
 
-        inline void logger::set_level(level::level_enum log_level) {
+        inline void logger::set_level(level_enum log_level) {
             level_.store(log_level);
         }
 
@@ -230,20 +230,20 @@ namespace abel {
             ABEL_LOG_CATCH_AND_HANDLE
         }
 
-        inline void logger::flush_on(level::level_enum log_level) {
+        inline void logger::flush_on(level_enum log_level) {
             flush_level_.store(log_level);
         }
 
         inline bool logger::should_flush_(const details::log_msg &msg) {
             auto flush_level = flush_level_.load(std::memory_order_relaxed);
-            return (msg.level >= flush_level) && (msg.level != level::off);
+            return (msg.level >= flush_level) && (msg.level != off);
         }
 
-        inline level::level_enum logger::level() const {
-            return static_cast<level::level_enum>(level_.load(std::memory_order_relaxed));
+        inline level_enum logger::level() const {
+            return static_cast<level_enum>(level_.load(std::memory_order_relaxed));
         }
 
-        inline bool logger::should_log(level::level_enum msg_level) const {
+        inline bool logger::should_log(level_enum msg_level) const {
             return msg_level >= level_.load(std::memory_order_relaxed);
         }
 

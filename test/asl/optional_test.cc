@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/type_traits.h>
 #include <abel/asl/string_view.h>
 
@@ -1613,7 +1613,7 @@ namespace {
         MoveMeNoThrow() : x(0) {}
 
         [[noreturn]] MoveMeNoThrow(const MoveMeNoThrow &other) : x(other.x) {
-            ABEL_RAW_LOG(FATAL, "Should not be called.");
+            ABEL_RAW_CRITICAL("Should not be called.");
             abort();
         }
 

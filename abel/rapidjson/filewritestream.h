@@ -62,6 +62,23 @@ RAPIDJSON_NAMESPACE_BEGIN
             }
         }
 
+        void Puts(const char * str, size_t n) {
+            size_t avail = static_cast<size_t>(bufferEnd_ - current_);
+            while (n > avail) {
+                std::memcpy(current_, str, avail);
+                current_ += avail;
+                str += avail;
+                Flush();
+                n -= avail;
+                avail = static_cast<size_t>(bufferEnd_ - current_);
+            }
+
+            if (n > 0) {
+                std::memcpy(current_, str, n);
+                current_ += n;
+            }
+        }
+
         void Flush() {
             if (current_ != buffer_) {
                 size_t result = fwrite(buffer_, 1, static_cast<size_t>(current_ - buffer_), fp_);

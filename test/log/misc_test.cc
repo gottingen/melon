@@ -2,7 +2,7 @@
 #include "sink_test.h"
 
 template<class T>
-std::string log_info(const T &what, abel::log::level::level_enum logger_level = abel::log::level::info) {
+std::string log_info(const T &what, abel::log::level_enum logger_level = abel::log::info) {
 
     std::ostringstream oss;
     auto oss_sink = std::make_shared<abel::log::sinks::ostream_sink_mt>(oss);
@@ -33,42 +33,42 @@ TEST(basic_logging, basic_logging) {
 }
 
 TEST(log_levels, log_levels) {
-    EXPECT_TRUE(log_info("Hello", abel::log::level::err) == "");
-    EXPECT_TRUE(log_info("Hello", abel::log::level::critical) == "");
-    EXPECT_TRUE(log_info("Hello", abel::log::level::info) == "Hello");
-    EXPECT_TRUE(log_info("Hello", abel::log::level::debug) == "Hello");
-    EXPECT_TRUE(log_info("Hello", abel::log::level::trace) == "Hello");
+    EXPECT_TRUE(log_info("Hello", abel::log::err) == "");
+    EXPECT_TRUE(log_info("Hello", abel::log::critical) == "");
+    EXPECT_TRUE(log_info("Hello", abel::log::info) == "Hello");
+    EXPECT_TRUE(log_info("Hello", abel::log::debug) == "Hello");
+    EXPECT_TRUE(log_info("Hello", abel::log::trace) == "Hello");
 }
 
 TEST(log_levels, convert_to_c_str) {
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::trace)) == "trace");
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::debug)) == "debug");
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::info)) == "info");
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::warn)) == "warning");
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::err)) == "error");
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::critical)) == "critical");
-    EXPECT_TRUE(std::string(abel::log::level::to_c_str(abel::log::level::off)) == "off");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::trace)) == "trace");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::debug)) == "debug");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::info)) == "info");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::warn)) == "warning");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::err)) == "error");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::critical)) == "critical");
+    EXPECT_TRUE(std::string(abel::log::to_c_str(abel::log::off)) == "off");
 }
 
 TEST(log_levels, convert_to_short_c_str) {
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::trace)) == "T");
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::debug)) == "D");
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::info)) == "I");
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::warn)) == "W");
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::err)) == "E");
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::critical)) == "C");
-    EXPECT_TRUE(std::string(abel::log::level::to_short_c_str(abel::log::level::off)) == "O");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::trace)) == "T");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::debug)) == "D");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::info)) == "I");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::warn)) == "W");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::err)) == "E");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::critical)) == "C");
+    EXPECT_TRUE(std::string(abel::log::to_short_c_str(abel::log::off)) == "O");
 }
 
 TEST(log_levels, convert_to_level_enum) {
-    EXPECT_TRUE(abel::log::level::from_str("trace") == abel::log::level::trace);
-    EXPECT_TRUE(abel::log::level::from_str("debug") == abel::log::level::debug);
-    EXPECT_TRUE(abel::log::level::from_str("info") == abel::log::level::info);
-    EXPECT_TRUE(abel::log::level::from_str("warning") == abel::log::level::warn);
-    EXPECT_TRUE(abel::log::level::from_str("error") == abel::log::level::err);
-    EXPECT_TRUE(abel::log::level::from_str("critical") == abel::log::level::critical);
-    EXPECT_TRUE(abel::log::level::from_str("off") == abel::log::level::off);
-    EXPECT_TRUE(abel::log::level::from_str("null") == abel::log::level::off);
+    EXPECT_TRUE(abel::log::from_str("trace") == abel::log::trace);
+    EXPECT_TRUE(abel::log::from_str("debug") == abel::log::debug);
+    EXPECT_TRUE(abel::log::from_str("info") == abel::log::info);
+    EXPECT_TRUE(abel::log::from_str("warning") == abel::log::warn);
+    EXPECT_TRUE(abel::log::from_str("error") == abel::log::err);
+    EXPECT_TRUE(abel::log::from_str("critical") == abel::log::critical);
+    EXPECT_TRUE(abel::log::from_str("off") == abel::log::off);
+    EXPECT_TRUE(abel::log::from_str("null") == abel::log::off);
 }
 
 TEST(log_levels, periodic_flush) {

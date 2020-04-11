@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -29,7 +29,7 @@ namespace abel {
 #ifdef ABEL_HAVE_EXCEPTIONS
             throw bad_variant_access();
 #else
-            ABEL_RAW_LOG(FATAL, "Bad variant access");
+            ABEL_RAW_CRITICAL("Bad variant access");
             abort();  // TODO(calabrese) Remove once RAW_LOG FATAL is noreturn.
 #endif
         }
@@ -38,7 +38,7 @@ namespace abel {
 #ifdef ABEL_HAVE_EXCEPTIONS
             throw;
 #else
-            ABEL_RAW_LOG(FATAL,
+            ABEL_RAW_CRITICAL(
                          "Internal error in abel::variant implementation. Attempted to "
                          "rethrow an exception when building with exceptions disabled.");
             abort();  // TODO(calabrese) Remove once RAW_LOG FATAL is noreturn.

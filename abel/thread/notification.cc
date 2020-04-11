@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/mutex.h>
 #include <abel/chrono/time.h>
 
@@ -17,9 +17,7 @@ namespace abel {
 
 #ifndef NDEBUG
         if (ABEL_UNLIKELY(notified_yet_.load(std::memory_order_relaxed))) {
-            ABEL_RAW_LOG(
-                    FATAL,
-                    "Notify() method called more than once for notification object %p",
+            ABEL_RAW_CRITICAL("Notify() method called more than once for notification object {:p}",
                     static_cast<void *>(this));
         }
 #endif

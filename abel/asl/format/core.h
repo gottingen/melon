@@ -8,6 +8,7 @@
 #include <iterator>
 #include <string>
 #include <type_traits>
+#include <abel/asl/string_view.h>
 
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -85,20 +86,6 @@
     Type(const Type &) FMT_DELETED; \
     void operator=(const Type &) FMT_DELETED
 
-// libc++ supports string_view in pre-c++17.
-#if (ABEL_COMPILER_HAS_INCLUDE(<string_view>) && \
-      (__cplusplus > 201402L || defined(_LIBCPP_VERSION))) || \
-    (defined(_MSVC_LANG) && _MSVC_LANG > 201402L && _MSC_VER >= 1910)
-
-# include <string_view>
-
-# define FMT_USE_STD_STRING_VIEW
-#elif (ABEL_COMPILER_HAS_INCLUDE(<experimental/string_view>) && \
-       __cplusplus >= 201402L)
-# include <experimental/string_view>
-# define FMT_USE_EXPERIMENTAL_STRING_VIEW
-#endif
-
 
 FMT_BEGIN_NAMESPACE
 
@@ -134,17 +121,7 @@ FMT_BEGIN_NAMESPACE
             typedef Char char_type;
             typedef const Char *iterator;
 
-            // Standard basic_string_view type.
-#if defined(FMT_USE_STD_STRING_VIEW)
-            typedef std::basic_string_view<Char> type;
-#elif defined(FMT_USE_EXPERIMENTAL_STRING_VIEW)
-            typedef std::experimental::basic_string_view<Char> type;
-#else
-            struct type {
-              const char *data() const { return ABEL_NULL; }
-              size_t size() const { return 0; }
-            };
-#endif
+            typedef abel::basic_string_view<Char> type;
 
             FMT_CONSTEXPR basic_string_view() ABEL_NOEXCEPT : data_(ABEL_NULL), size_(0) {}
 

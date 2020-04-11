@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/chrono/clock.h>
 #include <abel/chrono/time.h>
 
@@ -76,9 +76,7 @@ namespace abel {
                 int64_t n = ns_;
                 static const int64_t kNanosPerSecond = 1000 * 1000 * 1000;
                 if (n == 0) {
-                    ABEL_RAW_LOG(
-                            ERROR,
-                            "Tried to create a timespec from a non-timeout; never do this.");
+                    ABEL_RAW_ERROR("Tried to create a timespec from a non-timeout; never do this.");
                     // But we'll try to continue sanely.  no-timeout ~= saturated timeout.
                     n = (std::numeric_limits<int64_t>::max)();
                 }

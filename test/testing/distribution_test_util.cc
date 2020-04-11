@@ -1,6 +1,6 @@
 
 #include <test/testing/distribution_test_util.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/base/profile.h>
 #include <abel/strings/str_cat.h>
 #include <abel/asl/format/printf.h>
@@ -77,7 +77,7 @@ namespace abel {
 
             std::string formatted = abel::string_cat(
                     msg, " actual=", actual, " expected=", expected, " err=", delta / bound);
-            ABEL_RAW_LOG(INFO, "%s", formatted.c_str());
+            ABEL_RAW_INFO("{}", formatted.c_str());
             return false;
         }
 

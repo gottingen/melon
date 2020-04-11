@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/chrono/internal/zone_info_source.h>
 
 namespace abel {
@@ -97,7 +97,7 @@ std::unique_ptr<abel::chrono_internal::zone_info_source> TestFactory(
                     new TestZoneInfoSource(zoneinfo.data, zoneinfo.length));
         }
     }
-    ABEL_RAW_LOG(FATAL, "Unexpected time zone \"%s\" in test", name.c_str());
+    ABEL_RAW_CRITICAL("Unexpected time zone \"{}\" in test", name.c_str());
     return nullptr;
 }
 

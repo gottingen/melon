@@ -33,17 +33,15 @@ namespace abel {
         using log_err_handler = std::function<void(const std::string &err_msg)>;
         using level_t = std::atomic<int>;
 
-// Log level enum
-        namespace level {
-            enum level_enum {
-                trace = 0,
-                debug = 1,
-                info = 2,
-                warn = 3,
-                err = 4,
-                critical = 5,
-                off = 6
-            };
+        enum level_enum : int{
+            trace = 0,
+            debug = 1,
+            info = 2,
+            warn = 3,
+            err = 4,
+            critical = 5,
+            off = 6
+        };
 
 #if !defined(ABEL_LOG_LEVEL_NAMES)
 #define ABEL_LOG_LEVEL_NAMES                                                                                                                 \
@@ -51,34 +49,33 @@ namespace abel {
         "trace", "debug", "info", "warning", "error", "critical", "off"                                                                    \
     }
 #endif
-            static const char *level_names[]ABEL_LOG_LEVEL_NAMES;
+        static const char *level_names[]ABEL_LOG_LEVEL_NAMES;
 
-            static const char *short_level_names[]{"T", "D", "I", "W", "E", "C", "O"};
+        static const char *short_level_names[]{"T", "D", "I", "W", "E", "C", "O"};
 
-            inline const char *to_c_str(abel::log::level::level_enum l) {
-                return level_names[l];
-            }
+        inline const char *to_c_str(abel::log::level_enum l) {
+            return level_names[l];
+        }
 
-            inline const char *to_short_c_str(abel::log::level::level_enum l) {
-                return short_level_names[l];
-            }
+        inline const char *to_short_c_str(abel::log::level_enum l) {
+            return short_level_names[l];
+        }
 
-            inline abel::log::level::level_enum from_str(const std::string &name) {
-                static std::unordered_map<std::string, level_enum> name_to_level = // map string->level
-                        {{level_names[0], level::trace},                               // trace
-                         {level_names[1], level::debug},                            // debug
-                         {level_names[2], level::info},                             // info
-                         {level_names[3], level::warn},                             // warn
-                         {level_names[4], level::err},                              // err
-                         {level_names[5], level::critical},                         // critical
-                         {level_names[6], level::off}};                             // off
+        inline abel::log::level_enum from_str(const std::string &name) {
+            static std::unordered_map<std::string, level_enum> name_to_level = // map string->level
+                    {{level_names[0], trace},                               // trace
+                     {level_names[1], debug},                            // debug
+                     {level_names[2], info},                             // info
+                     {level_names[3], warn},                             // warn
+                     {level_names[4], err},                              // err
+                     {level_names[5], critical},                         // critical
+                     {level_names[6], off}};                             // off
 
-                auto lvl_it = name_to_level.find(name);
-                return lvl_it != name_to_level.end() ? lvl_it->second : level::off;
-            }
+            auto lvl_it = name_to_level.find(name);
+            return lvl_it != name_to_level.end() ? lvl_it->second : off;
+        }
 
-            using level_hasher = std::hash<int>;
-        } // namespace level
+        using level_hasher = std::hash<int>;
 
 //
 // Pattern time - specific time getting to use for pattern_formatter.

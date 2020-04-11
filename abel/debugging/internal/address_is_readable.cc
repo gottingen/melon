@@ -27,7 +27,7 @@ namespace abel {
 #include <cerrno>
 #include <cstdint>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -78,7 +78,7 @@ bool address_is_readable(const void *addr) {
       int p[2];
       // new pipe
       if (pipe(p) != 0) {
-        ABEL_RAW_LOG(FATAL, "Failed to create pipe, errno=%d", errno);
+        ABEL_RAW_CRITICAL("Failed to create pipe, errno={}", errno);
       }
       fcntl(p[0], F_SETFD, FD_CLOEXEC);
       fcntl(p[1], F_SETFD, FD_CLOEXEC);

@@ -58,7 +58,7 @@ def SetEnvVar(env_var, value):
         del environ[env_var]
 
 
-def GetFlag(flag):
+def get_flag(flag):
     """Runs googletest-env-var-test_ and returns its output."""
 
     args = [COMMAND]
@@ -72,9 +72,9 @@ def TestFlag(flag, test_val, default_val):
 
     env_var = 'GTEST_' + flag.upper()
     SetEnvVar(env_var, test_val)
-    AssertEq(test_val, GetFlag(flag))
+    AssertEq(test_val, get_flag(flag))
     SetEnvVar(env_var, None)
-    AssertEq(default_val, GetFlag(flag))
+    AssertEq(default_val, get_flag(flag))
 
 
 class GTestEnvVarTest(gtest_test_utils.TestCase):
@@ -102,14 +102,14 @@ class GTestEnvVarTest(gtest_test_utils.TestCase):
 
         SetEnvVar('GTEST_OUTPUT', None)
         SetEnvVar('XML_OUTPUT_FILE', 'tmp/bar.xml')
-        AssertEq('xml:tmp/bar.xml', GetFlag('output'))
+        AssertEq('xml:tmp/bar.xml', get_flag('output'))
 
     def testXmlOutputFileOverride(self):
         """Tests that $XML_OUTPUT_FILE is overridden by $GTEST_OUTPUT."""
 
         SetEnvVar('GTEST_OUTPUT', 'xml:tmp/foo.xml')
         SetEnvVar('XML_OUTPUT_FILE', 'tmp/bar.xml')
-        AssertEq('xml:tmp/foo.xml', GetFlag('output'))
+        AssertEq('xml:tmp/foo.xml', get_flag('output'))
 
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@
 #include <abel/debugging/internal/vdso_support.h>  // a no-op on non-elf or non-glibc systems
 #include <abel/debugging/stacktrace.h>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 using abel::debugging_internal::address_is_readable;
 

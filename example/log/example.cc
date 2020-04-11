@@ -1,6 +1,8 @@
 
 #include <iostream>
+#include <abel/log/abel_logging.h>
 
+void abel_log();
 void stdout_example();
 
 void basic_example();
@@ -24,6 +26,7 @@ void syslog_example();
 int main(int, char *[]) {
 
     try {
+        abel_log();
         // console logging example
         stdout_example();
 
@@ -75,9 +78,9 @@ void stdout_example() {
     abel::log::get("console")->info("loggers can be retrieved from a global registry using the abel::get(logger_name)");
 
     // Runtime log levels
-    abel::log::set_level(abel::log::level::info); // Set global log level to info
+    abel::log::set_level(abel::log::info); // Set global log level to info
     console->debug("This message should not be displayed!");
-    console->set_level(abel::log::level::trace); // Set specific logger's log level
+    console->set_level(abel::log::trace); // Set specific logger's log level
     console->debug("This message should be displayed..");
 
     // Customize msg format for all loggers
@@ -130,14 +133,24 @@ void async_example() {
 
 void multi_sink_example() {
     auto console_sink = std::make_shared<abel::log::sinks::stdout_color_sink_mt>();
-    console_sink->set_level(abel::log::level::warn);
+    console_sink->set_level(abel::log::warn);
     console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
 
     auto file_sink = std::make_shared<abel::log::sinks::basic_file_sink_mt>("logs/multisink.txt", true);
-    file_sink->set_level(abel::log::level::trace);
+    file_sink->set_level(abel::log::trace);
 
     abel::log::logger logger("multi_sink", {console_sink, file_sink});
-    logger.set_level(abel::log::level::debug);
+    logger.set_level(abel::log::debug);
     logger.warn("this should appear in both console and file");
     logger.info("this message should not appear in the console, only in the file");
+}
+
+void abel_log() {
+    abel::log_singleton::get_logger()->set_level(abel::log::level_enum::trace);
+    ABEL_RAW_TRACE("this is trace");
+    ABEL_RAW_DEBUG("this is debug");
+    ABEL_RAW_INFO("this is info");
+    ABEL_RAW_WARN("this is warn");
+    ABEL_RAW_ERROR("this is error");
+    //ABEL_RAW_CHECK(false,"abc");
 }

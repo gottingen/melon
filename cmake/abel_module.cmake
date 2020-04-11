@@ -3,6 +3,8 @@ include(abel_error)
 include(abel_debug)
 include(abel_cxx_flags)
 include(abel_outof_source)
+include(abel_platform)
+
 ABEL_ENSURE_OUT_OF_SOURCE_BUILD("must out of source dir")
 
 include(CheckCXXCompilerFlag)
@@ -25,7 +27,7 @@ else ()
     abel_error("compiler must support c++11")
 endif ()
 
-if (COMPILER_SUPPORTS_CXX14)
+if (COMPILER_SUPPORTS_ABEL_STD)
     abel_print("compiler is check ok, you have enable ${ABEL_STD}")
 else ()
     abel_error("compiler must support ${ABEL_STD}")

@@ -7,7 +7,7 @@ TEST(macros, debug) {
 
     auto logger = abel::log::create<abel::log::sinks::basic_file_sink_mt>("logger", filename);
     logger->set_pattern("%v");
-    logger->set_level(abel::log::level::trace);
+    logger->set_level(abel::log::trace);
 
     ABEL_LOG_TRACE(logger, "Test message 1");
     ABEL_LOG_DEBUG(logger, "Test message 2");
@@ -23,7 +23,7 @@ TEST(macros, debugstring) {
 
     auto logger = abel::log::create<abel::log::sinks::basic_file_sink_mt>("logger", filename);
     logger->set_pattern("%v");
-    logger->set_level(abel::log::level::trace);
+    logger->set_level(abel::log::trace);
 
     ABEL_LOG_TRACE(logger, "Test message {}", 1);
     // ABEL_LOG_DEBUG(logger, "Test message 2");

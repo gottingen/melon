@@ -28,7 +28,7 @@
 #include <ctime>
 
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/system/sysinfo.h>
 #include <abel/debugging/internal/examine_stack.h>
 #include <abel/debugging/stacktrace.h>
@@ -137,17 +137,17 @@ namespace abel {
         sigstk.ss_sp = mmap(nullptr, sigstk.ss_size, PROT_READ | PROT_WRITE,
                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
         if (sigstk.ss_sp == MAP_FAILED) {
-            ABEL_RAW_LOG(FATAL, "mmap() for alternate signal stack failed");
+            ABEL_RAW_CRITICAL("mmap() for alternate signal stack failed");
         }
 #else
         sigstk.ss_sp = malloc(sigstk.ss_size);
         if (sigstk.ss_sp == nullptr) {
-          ABEL_RAW_LOG(FATAL, "malloc() for alternate signal stack failed");
+          ABEL_RAW_CRITICAL("malloc() for alternate signal stack failed");
         }
 #endif
 
         if (sigaltstack(&sigstk, nullptr) != 0) {
-            ABEL_RAW_LOG(FATAL, "sigaltstack() failed with errno=%d", errno);
+            ABEL_RAW_CRITICAL("sigaltstack() failed with errno={}", errno);
         }
         return true;
     }
@@ -195,9 +195,23 @@ namespace abel {
 
 #endif
 
+    static void SafeWriteToStderr(const char *s, size_t len) {
+#if defined(ABEL_HAVE_SYSCALL_WRITE)
+        syscall(SYS_write, STDERR_FILENO, s, len);
+#elif defined(ABEL_HAVE_POSIX_WRITE)
+        write(STDERR_FILENO, s, len);
+#elif defined(ABEL_HAVE_RAW_IO)
+        _write(/* stderr */ 2, s, len);
+#else
+        // stderr logging unsupported on this platform
+        (void) s;
+        (void) len;
+#endif
+    }
+
     static void WriteToStderr(const char *data) {
         int old_errno = errno;
-        abel::raw_logging_internal::SafeWriteToStderr(data, strlen(data));
+        SafeWriteToStderr(data, strlen(data));
         errno = old_errno;
     }
 
@@ -304,10 +318,10 @@ namespace abel {
         if (!failed_tid.compare_exchange_strong(
                 previous_failed_tid, static_cast<intptr_t>(this_tid),
                 std::memory_order_acq_rel, std::memory_order_relaxed)) {
-            ABEL_RAW_LOG(
-                    ERROR,
-                    "signal %d raised at PC=%p while already in AbelFailureSignalHandler()",
+            ABEL_RAW_ERROR(
+                    "signal {} raised at PC={:p} while already in AbelFailureSignalHandler()",
                     signo, abel::debugging_internal::GetProgramCounter(ucontext));
+
             if (this_tid != previous_failed_tid) {
                 // Another thread is already in AbelFailureSignalHandler(), so wait
                 // a bit for it to finish. If the other thread doesn't kill us,

@@ -4,7 +4,7 @@
 #include <abel/base/profile.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/hardware/aes_detect.h>
 #include <abel/stats/random/engine/randen_traits.h>
 #include <abel/asl/format/printf.h>
@@ -57,32 +57,32 @@ namespace {
 int main(int argc, char *argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
-    ABEL_RAW_LOG(INFO, "ABEL_HAVE_ACCELERATED_AES=%d", ABEL_HAVE_ACCELERATED_AES);
-    ABEL_RAW_LOG(INFO, "ABEL_AES_DISPATCH=%d",
+    ABEL_RAW_INFO("ABEL_HAVE_ACCELERATED_AES={}", ABEL_HAVE_ACCELERATED_AES);
+    ABEL_RAW_INFO("ABEL_AES_DISPATCH={}",
                  ABEL_AES_DISPATCH);
 
 #if defined(ABEL_ARCH_X86_64)
-    ABEL_RAW_LOG(INFO, "ABEL_ARCH_X86_64");
+    ABEL_RAW_INFO("ABEL_ARCH_X86_64");
 #elif defined(ABEL_ARCH_X86_32)
-    ABEL_RAW_LOG(INFO, "ABEL_ARCH_X86_32");
+    ABEL_RAW_INFO("ABEL_ARCH_X86_32");
 #elif defined(ABEL_ARCH_AARCH64)
-    ABEL_RAW_LOG(INFO, "ABEL_ARCH_AARCH64");
+    ABEL_RAW_INFO("ABEL_ARCH_AARCH64");
 #elif defined(ABEL_ARCH_ARM)
-    ABEL_RAW_LOG(INFO, "ABEL_ARCH_ARM");
+    ABEL_RAW_INFO("ABEL_ARCH_ARM");
 #elif defined(ABEL_ARCH_PPC)
-    ABEL_RAW_LOG(INFO, "ABEL_ARCH_PPC");
+    ABEL_RAW_INFO("ABEL_ARCH_PPC");
 #else
-    ABEL_RAW_LOG(INFO, "ARCH Unknown");
+    ABEL_RAW_INFO("ARCH Unknown");
 #endif
 
     int x = abel::random_internal::has_randen_hw_aes_implementation();
-    ABEL_RAW_LOG(INFO, "has_randen_hw_aes_implementation = %d", x);
+    ABEL_RAW_INFO("has_randen_hw_aes_implementation = {}", x);
 
     int y = abel::is_supports_aes();
-    ABEL_RAW_LOG(INFO, "cpu_supports_randen_hw_aes = %d", x);
+    ABEL_RAW_INFO("cpu_supports_randen_hw_aes = {}", x);
 
     if (!x || !y) {
-        ABEL_RAW_LOG(INFO, "Skipping randen HWAES tests.");
+        ABEL_RAW_INFO("Skipping randen HWAES tests.");
         return 0;
     }
     return RUN_ALL_TESTS();

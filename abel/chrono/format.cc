@@ -128,11 +128,11 @@ namespace abel {
         return abel::format_time(RFC3339_full, t, abel::utc_time_zone());
     }
 
-    bool ParseFlag(const std::string &text, abel::abel_time *t, std::string *error) {
+    bool parse_flag(const std::string &text, abel::abel_time *t, std::string *error) {
         return abel::parse_time(RFC3339_full, text, abel::utc_time_zone(), t, error);
     }
 
-    std::string UnparseFlag(abel::abel_time t) {
+    std::string unparse_flag(abel::abel_time t) {
         return abel::format_time(RFC3339_full, t, abel::utc_time_zone());
     }
 

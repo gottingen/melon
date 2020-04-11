@@ -5,19 +5,19 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/base/profile.h>
 #include <abel/asl/inlined_vector.h>
 #include <abel/strings/str_cat.h>
 
 namespace {
 
-    void BM_InlinedVectorFill(benchmark::State &state) {
+    void BM_inline_vectorFill(benchmark::State &state) {
         const int len = state.range(0);
-        abel::InlinedVector<int, 8> v;
+        abel::inline_vector<int, 8> v;
         v.reserve(len);
         for (auto _ : state) {
-            v.resize(0);  // Use resize(0) as InlinedVector releases storage on clear().
+            v.resize(0);  // Use resize(0) as inline_vector releases storage on clear().
             for (int i = 0; i < len; ++i) {
                 v.push_back(i);
             }
@@ -25,13 +25,13 @@ namespace {
         }
     }
 
-    BENCHMARK(BM_InlinedVectorFill)
+    BENCHMARK(BM_inline_vectorFill)
     ->Range(1, 256);
 
-    void BM_InlinedVectorFillRange(benchmark::State &state) {
+    void BM_inline_vectorFillRange(benchmark::State &state) {
         const int len = state.range(0);
         const std::vector<int> src(len, len);
-        abel::InlinedVector<int, 8> v;
+        abel::inline_vector<int, 8> v;
         v.reserve(len);
         for (auto _ : state) {
             benchmark::DoNotOptimize(src);
@@ -40,7 +40,7 @@ namespace {
         }
     }
 
-    BENCHMARK(BM_InlinedVectorFillRange)
+    BENCHMARK(BM_inline_vectorFillRange)
     ->Range(1, 256);
 
     void BM_StdVectorFill(benchmark::State &state) {
@@ -60,7 +60,7 @@ namespace {
     ->Range(1, 256);
 
 // The purpose of the next two benchmarks is to verify that
-// abel::InlinedVector is efficient when moving is more efficent than
+// abel::inline_vector is efficient when moving is more efficent than
 // copying. To do so, we use strings that are larger than the short
 // string optimization.
     bool StringRepresentedInline(std::string s) {
@@ -75,20 +75,18 @@ namespace {
                 return i;
             }
         }
-        ABEL_RAW_LOG(
-                FATAL,
-                "Failed to find a std::string larger than the short std::string optimization");
+        ABEL_RAW_CRITICAL("Failed to find a std::string larger than the short std::string optimization");
         return -1;
     }
 
-    void BM_InlinedVectorFillString(benchmark::State &state) {
+    void BM_inline_vectorFillString(benchmark::State &state) {
         const int len = state.range(0);
         const int no_sso = GetNonShortStringOptimizationSize();
         std::string strings[4] = {std::string(no_sso, 'A'), std::string(no_sso, 'B'),
                                   std::string(no_sso, 'C'), std::string(no_sso, 'D')};
 
         for (auto _ : state) {
-            abel::InlinedVector<std::string, 8> v;
+            abel::inline_vector<std::string, 8> v;
             for (int i = 0; i < len; i++) {
                 v.push_back(strings[i & 3]);
             }
@@ -96,7 +94,7 @@ namespace {
         state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * len);
     }
 
-    BENCHMARK(BM_InlinedVectorFillString)
+    BENCHMARK(BM_inline_vectorFillString)
     ->Range(0, 1024);
 
     void BM_StdVectorFillString(benchmark::State &state) {
@@ -124,9 +122,9 @@ namespace {
         void *user_data;
     };
 
-    void BM_InlinedVectorAssignments(benchmark::State &state) {
+    void BM_inline_vectorAssignments(benchmark::State &state) {
         const int len = state.range(0);
-        using BufferVec = abel::InlinedVector<Buffer, 2>;
+        using BufferVec = abel::inline_vector<Buffer, 2>;
 
         BufferVec src;
         src.resize(len);
@@ -139,7 +137,7 @@ namespace {
         }
     }
 
-    BENCHMARK(BM_InlinedVectorAssignments)
+    BENCHMARK(BM_inline_vectorAssignments)
     ->Arg(0)
     ->Arg(1)
     ->Arg(2)
@@ -149,9 +147,9 @@ namespace {
 
     void BM_CreateFromContainer(benchmark::State &state) {
         for (auto _ : state) {
-            abel::InlinedVector<int, 4> src{1, 2, 3};
+            abel::inline_vector<int, 4> src{1, 2, 3};
             benchmark::DoNotOptimize(src);
-            abel::InlinedVector<int, 4> dst(std::move(src));
+            abel::inline_vector<int, 4> dst(std::move(src));
             benchmark::DoNotOptimize(dst);
         }
     }
@@ -223,7 +221,7 @@ namespace {
     template<typename ElementType>
     void BM_SwapElements(benchmark::State &state) {
         const int len = state.range(0);
-        using Vec = abel::InlinedVector<ElementType, 32>;
+        using Vec = abel::inline_vector<ElementType, 32>;
         Vec a(len);
         Vec b;
         for (auto _ : state) {
@@ -258,61 +256,61 @@ namespace {
         state.SetLabel(abel::string_cat("sz=", size));
     }
 
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<char, 1>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<char, 1>
     );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<char, 4>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<char, 4>
     );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<char, 7>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<char, 7>
     );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<char, 8>
-    );
-
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<int, 1>
-    );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<int, 4>
-    );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<int, 7>
-    );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<int, 8>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<char, 8>
     );
 
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<void *, 1>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<int, 1>
     );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<void *, 4>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<int, 4>
     );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<void *, 7>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<int, 7>
     );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<void *, 8>
-    );
-
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<std::string, 1>
-    );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<std::string, 4>
-    );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<std::string, 7>
-    );
-    BENCHMARK_TEMPLATE(BM_Sizeof, abel::InlinedVector<std::string, 8>
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<int, 8>
     );
 
-    void BM_InlinedVectorIndexInlined(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<void *, 1>
+    );
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<void *, 4>
+    );
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<void *, 7>
+    );
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<void *, 8>
+    );
+
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<std::string, 1>
+    );
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<std::string, 4>
+    );
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<std::string, 7>
+    );
+    BENCHMARK_TEMPLATE(BM_Sizeof, abel::inline_vector<std::string, 8>
+    );
+
+    void BM_inline_vectorIndexInlined(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v[4]);
         }
     }
 
-    BENCHMARK(BM_InlinedVectorIndexInlined);
+    BENCHMARK(BM_inline_vectorIndexInlined);
 
-    void BM_InlinedVectorIndexExternal(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    void BM_inline_vectorIndexExternal(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v[4]);
         }
     }
 
-    BENCHMARK(BM_InlinedVectorIndexExternal);
+    BENCHMARK(BM_inline_vectorIndexExternal);
 
     void BM_StdVectorIndex(benchmark::State &state) {
         std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -324,18 +322,18 @@ namespace {
 
     BENCHMARK(BM_StdVectorIndex);
 
-    void BM_InlinedVectorDataInlined(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
+    void BM_inline_vectorDataInlined(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v.data());
         }
     }
 
-    BENCHMARK(BM_InlinedVectorDataInlined);
+    BENCHMARK(BM_inline_vectorDataInlined);
 
-    void BM_InlinedVectorDataExternal(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    void BM_inline_vectorDataExternal(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v.data());
@@ -343,7 +341,7 @@ namespace {
         state.SetItemsProcessed(16 * static_cast<int64_t>(state.iterations()));
     }
 
-    BENCHMARK(BM_InlinedVectorDataExternal);
+    BENCHMARK(BM_inline_vectorDataExternal);
 
     void BM_StdVectorData(benchmark::State &state) {
         std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -356,25 +354,25 @@ namespace {
 
     BENCHMARK(BM_StdVectorData);
 
-    void BM_InlinedVectorSizeInlined(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
+    void BM_inline_vectorSizeInlined(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v.size());
         }
     }
 
-    BENCHMARK(BM_InlinedVectorSizeInlined);
+    BENCHMARK(BM_inline_vectorSizeInlined);
 
-    void BM_InlinedVectorSizeExternal(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    void BM_inline_vectorSizeExternal(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v.size());
         }
     }
 
-    BENCHMARK(BM_InlinedVectorSizeExternal);
+    BENCHMARK(BM_inline_vectorSizeExternal);
 
     void BM_StdVectorSize(benchmark::State &state) {
         std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -386,25 +384,25 @@ namespace {
 
     BENCHMARK(BM_StdVectorSize);
 
-    void BM_InlinedVectorEmptyInlined(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
+    void BM_inline_vectorEmptyInlined(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v.empty());
         }
     }
 
-    BENCHMARK(BM_InlinedVectorEmptyInlined);
+    BENCHMARK(BM_inline_vectorEmptyInlined);
 
-    void BM_InlinedVectorEmptyExternal(benchmark::State &state) {
-        abel::InlinedVector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    void BM_inline_vectorEmptyExternal(benchmark::State &state) {
+        abel::inline_vector<int, 8> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         for (auto _ : state) {
             benchmark::DoNotOptimize(v);
             benchmark::DoNotOptimize(v.empty());
         }
     }
 
-    BENCHMARK(BM_InlinedVectorEmptyExternal);
+    BENCHMARK(BM_inline_vectorEmptyExternal);
 
     void BM_StdVectorEmpty(benchmark::State &state) {
         std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -432,7 +430,7 @@ namespace {
   BENCHMARK_TEMPLATE(BM_FunctionTemplate, T, kSmallSize, kSmallSize)
 
     template<typename T>
-    using InlVec = abel::InlinedVector<T, kInlinedCapacity>;
+    using InlVec = abel::inline_vector<T, kInlinedCapacity>;
 
     struct TrivialType {
         size_t val;

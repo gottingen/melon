@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/debugging/symbolize.h>
 #include <abel/strings/str_cat.h>
@@ -21,7 +21,7 @@ namespace {
     using testing::StartsWith;
 
 #if GTEST_HAS_DEATH_TEST
-
+/*
 // For the parameterized death tests. GetParam() returns the signal number.
     using FailureSignalHandlerDeathTest = ::testing::TestWithParam<int>;
 
@@ -133,7 +133,7 @@ namespace {
     INSTANTIATE_TEST_SUITE_P(AbelDeathTest, FailureSignalHandlerDeathTest,
                              ::testing::ValuesIn(kFailureSignals),
                              SignalParamToString);
-
+*/
 #endif  // GTEST_HAS_DEATH_TEST
 
 }  // namespace

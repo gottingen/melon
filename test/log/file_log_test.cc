@@ -22,8 +22,8 @@ TEST(FileLog, flush_on) {
 
     auto logger = abel::log::create<abel::log::sinks::basic_file_sink_mt>("logger", filename);
     logger->set_pattern("%v");
-    logger->set_level(abel::log::level::trace);
-    logger->flush_on(abel::log::level::info);
+    logger->set_level(abel::log::trace);
+    logger->flush_on(abel::log::info);
     logger->trace("Should not be flushed");
     EXPECT_TRUE(count_lines(filename) == 0);
 

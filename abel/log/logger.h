@@ -45,10 +45,10 @@ namespace abel {
             logger &operator=(const logger &) = delete;
 
             template<typename... Args>
-            void log(level::level_enum lvl, const char *fmt, const Args &... args);
+            void log(level_enum lvl, const char *fmt, const Args &... args);
 
             template<typename... Args>
-            void log(level::level_enum lvl, const char *msg);
+            void log(level_enum lvl, const char *msg);
 
             template<typename... Args>
             void trace(const char *fmt, const Args &... args);
@@ -70,7 +70,7 @@ namespace abel {
 
 #if !defined (ABEL_WCHAR_T_NON_NATIVE) && defined(_WIN32)
             template<typename... Args>
-            void log(level::level_enum lvl, const wchar_t *fmt, const Args &... args);
+            void log(level_enum lvl, const wchar_t *fmt, const Args &... args);
 
             template<typename... Args>
             void trace(const wchar_t *fmt, const Args &... args);
@@ -92,7 +92,7 @@ namespace abel {
 #endif // ABEL_WCHAR_T_NON_NATIVE
 
             template<typename T>
-            void log(level::level_enum lvl, const T &);
+            void log(level_enum lvl, const T &);
 
             template<typename T>
             void trace(const T &msg);
@@ -112,11 +112,11 @@ namespace abel {
             template<typename T>
             void critical(const T &msg);
 
-            bool should_log(level::level_enum msg_level) const;
+            bool should_log(level_enum msg_level) const;
 
-            void set_level(level::level_enum log_level);
+            void set_level(level_enum log_level);
 
-            level::level_enum level() const;
+            level_enum level() const;
 
             const std::string &name() const;
 
@@ -128,7 +128,7 @@ namespace abel {
 
             void flush();
 
-            void flush_on(level::level_enum log_level);
+            void flush_on(level_enum log_level);
 
             const std::vector<sink_ptr> &sinks() const;
 

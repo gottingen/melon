@@ -17,7 +17,7 @@ namespace abel {
             struct log_msg {
                 log_msg() = default;
 
-                log_msg(const std::string *loggers_name, level::level_enum lvl)
+                log_msg(const std::string *loggers_name, level_enum lvl)
                         : logger_name(loggers_name), level(lvl) {
                     time = abel::now();
                     thread_id = abel::thread_id();
@@ -30,7 +30,7 @@ namespace abel {
                 log_msg &operator=(log_msg &&other) = delete;
 
                 const std::string *logger_name{nullptr};
-                level::level_enum level;
+                level_enum level;
                 abel::abel_time time;
                 size_t thread_id;
                 fmt::memory_buffer raw;

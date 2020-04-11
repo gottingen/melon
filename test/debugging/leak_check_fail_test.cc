@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/debugging/leak_check.h>
 
 namespace {
@@ -13,7 +13,7 @@ namespace {
         // failed exit code.
 
         char *foo = strdup("lsan should complain about this leaked string");
-        ABEL_RAW_LOG(INFO, "Should detect leaked std::string %s", foo);
+        ABEL_RAW_INFO("Should detect leaked std::string {}", foo);
     }
 
     TEST(LeakCheckTest, LeakMemoryAfterDisablerScope) {
@@ -22,7 +22,7 @@ namespace {
         // failed exit code.
         { abel::LeakCheckDisabler disabler; }
         char *foo = strdup("lsan should also complain about this leaked string");
-        ABEL_RAW_LOG(INFO, "Re-enabled leak detection.Should detect leaked std::string %s",
+        ABEL_RAW_INFO("Re-enabled leak detection.Should detect leaked std::string {}",
                      foo);
     }
 

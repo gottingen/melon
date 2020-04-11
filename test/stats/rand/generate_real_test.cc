@@ -8,7 +8,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 
 ABEL_FLAG(int64_t, abel_random_test_trials, 50000,
           "Number of trials for the probability tests.");
@@ -436,7 +436,7 @@ namespace {
             }
         };
 
-        size_t limit = abel::GetFlag(FLAGS_abel_random_test_trials);
+        size_t limit = abel::get_flag(FLAGS_abel_random_test_trials);
 
         // Generate all uint64_t which have unique floating point values.
         // Counting down from 0xFFFFFFFFFFFFFFFFu ... 0x0u

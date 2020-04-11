@@ -564,9 +564,9 @@ namespace abel {
     std::string abel_unparse_flag(duration d);
 /*
 ABEL_DEPRECATED_MESSAGE("Use abel_parse_flag() instead.")
-bool ParseFlag(const std::string& text, duration* dst, std::string* error);
+bool parse_flag(const std::string& text, duration* dst, std::string* error);
 ABEL_DEPRECATED_MESSAGE("Use abel_unparse_flag() instead.")
-std::string UnparseFlag(duration d);
+std::string unparse_flag(duration d);
 */
 // abel_time
 //
@@ -881,9 +881,9 @@ std::string UnparseFlag(duration d);
     std::string abel_unparse_flag(abel_time t);
 /*
 ABEL_DEPRECATED_MESSAGE("Use abel_parse_flag() instead.")
-bool ParseFlag(const std::string& text, abel_time* t, std::string* error);
+bool parse_flag(const std::string& text, abel_time* t, std::string* error);
 ABEL_DEPRECATED_MESSAGE("Use abel_unparse_flag() instead.")
-std::string UnparseFlag(abel_time t);
+std::string unparse_flag(abel_time t);
 */
 // time_zone
 //

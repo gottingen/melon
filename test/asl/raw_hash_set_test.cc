@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <abel/chrono/internal/cycle_clock.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/container/container_memory.h>
 #include <abel/asl/container/hash_function_defaults.h>
 #include <test/asl/hash_policy_testing.h>
@@ -1139,7 +1139,7 @@ namespace abel {
                                     {{0.95, 0}, {0.99, 1}, {0.999, 4}, {0.9999, 10}}};
                         }
                 }
-                ABEL_RAW_LOG(FATAL, "%s", "Unknown Group width");
+                ABEL_RAW_CRITICAL("Unknown Group width");
                 return {};
             }
 
@@ -1233,7 +1233,7 @@ namespace abel {
                                     {{0.95, 0}, {0.99, 1}, {0.999, 6}, {0.9999, 10}}};
                         }
                 }
-                ABEL_RAW_LOG(FATAL, "%s", "Unknown Group width");
+                ABEL_RAW_CRITICAL("Unknown Group width");
                 return {};
             }
 

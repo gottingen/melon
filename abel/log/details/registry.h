@@ -83,7 +83,7 @@ namespace abel {
                     }
                 }
 
-                void set_level(level::level_enum log_level) {
+                void set_level(level_enum log_level) {
                     std::lock_guard<std::mutex> lock(logger_map_mutex_);
                     for (auto &l : loggers_) {
                         l.second->set_level(log_level);
@@ -91,7 +91,7 @@ namespace abel {
                     level_ = log_level;
                 }
 
-                void flush_on(level::level_enum log_level) {
+                void flush_on(level_enum log_level) {
                     std::lock_guard<std::mutex> lock(logger_map_mutex_);
                     for (auto &l : loggers_) {
                         l.second->flush_on(log_level);
@@ -181,8 +181,8 @@ namespace abel {
                 std::recursive_mutex tp_mutex_;
                 std::unordered_map<std::string, std::shared_ptr<logger>> loggers_;
                 std::unique_ptr<formatter> formatter_;
-                level::level_enum level_ = level::info;
-                level::level_enum flush_level_ = level::off;
+                level_enum level_ = info;
+                level_enum flush_level_ = off;
                 log_err_handler err_handler_;
                 std::shared_ptr<thread_pool> tp_;
                 std::unique_ptr<periodic_worker> periodic_flusher_;

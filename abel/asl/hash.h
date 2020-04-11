@@ -93,7 +93,7 @@ namespace abel {
 //    hashable)
 //  * abel types such as the following:
 //    * abel::string_view
-//    * abel::InlinedVector
+//    * abel::inline_vector
 //    * abel::fixed_array
 //    * abel::uint128
 //    * abel::abel_time, abel::duration, and abel::time_zone

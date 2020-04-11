@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <abel/config/flags/config.h>
+#include <abel/config/config.h>
 
 #ifdef __APPLE__
 

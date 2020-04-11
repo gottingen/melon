@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -85,7 +85,7 @@ int GetStackConsumption(const void* const altstack) {
     begin += increment;
   }
 
-  ABEL_RAW_LOG(FATAL, "Unreachable code");
+  ABEL_RAW_CRITICAL("Unreachable code");
   return -1;
 }
 

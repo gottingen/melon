@@ -74,7 +74,7 @@ namespace abel {
 //
 // Spans may also be constructed from containers holding contiguous sequences.
 // Such containers must supply `data()` and `size() const` methods (e.g
-// `std::vector<T>`, `abel::InlinedVector<T, N>`). All implicit conversions to
+// `std::vector<T>`, `abel::inline_vector<T, N>`). All implicit conversions to
 // `abel::span` from such containers will create spans of type `const T`;
 // spans which can mutate their values (of type `T`) must use explicit
 // constructors.
@@ -114,7 +114,7 @@ namespace abel {
 // (such as resizing) or invalidate iterators into the container.
 //
 // One common use for a `span` is when passing arguments to a routine that can
-// accept a variety of array types (e.g. a `std::vector`, `abel::InlinedVector`,
+// accept a variety of array types (e.g. a `std::vector`, `abel::inline_vector`,
 // a C-style array, etc.). Instead of creating overloads for each case, you
 // can simply specify a `span` as the argument to such a routine.
 //
@@ -127,7 +127,7 @@ namespace abel {
 //   std::vector v = {1,2,3,4,5};
 //   MyRoutine(v);
 //
-//   abel::InlinedVector<int, 4> my_inline_vector;
+//   abel::inline_vector<int, 4> my_inline_vector;
 //   MyRoutine(my_inline_vector);
 //
 //   // Explicit constructor from pointer,size

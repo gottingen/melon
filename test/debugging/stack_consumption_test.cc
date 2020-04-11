@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -21,7 +21,7 @@ static void SimpleSignalHandler(int signo) {
 
   // Never true, but prevents compiler from optimizing buf out.
   if (signo == 0) {
-    ABEL_RAW_LOG(INFO, "%p", static_cast<void*>(buf));
+      ABEL_RAW_INFO("{}", static_cast<void*>(buf));
   }
 }
 

@@ -1,7 +1,7 @@
 //
 
 #include <abel/thread/blocking_counter.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -15,9 +15,8 @@ namespace abel {
         mutex_lock l(&lock_);
         count_--;
         if (count_ < 0) {
-            ABEL_RAW_LOG(
-                    FATAL,
-                    "blocking_counter::decrement_count() called too many times.  count=%d",
+            ABEL_RAW_CRITICAL(
+                    "blocking_counter::decrement_count() called too many times.  count={}",
                     count_);
         }
         return count_ == 0;

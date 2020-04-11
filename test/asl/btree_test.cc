@@ -12,13 +12,12 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 #include <abel/asl/btree_map.h>
 #include <abel/asl/btree_set.h>
 #include <abel/asl/container/counting_allocator.h>
 #include <testing/test_instance_tracker.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <testing/hash_testing.h>
 #include <abel/memory/memory.h>
 #include <abel/asl/type_traits.h>
@@ -44,7 +43,7 @@ namespace abel {
 
             template<typename T, typename U>
             void CheckPairEquals(const T &x, const U &y) {
-                ABEL_INTERNAL_CHECK(x == y, "Values are unequal.");
+                ABEL_RAW_CHECK(x == y, "Values are unequal.");
             }
 
             template<typename T, typename U, typename V, typename W>
@@ -104,7 +103,7 @@ namespace abel {
             template<typename IterType, typename CheckerIterType>
             IterType iter_check(IterType tree_iter, CheckerIterType checker_iter) const {
                 if (tree_iter == tree_.end()) {
-                    ABEL_INTERNAL_CHECK(checker_iter == checker_.end(),
+                    ABEL_RAW_CHECK(checker_iter == checker_.end(),
                                         "Checker iterator not at end.");
                 } else {
                     CheckPairEquals(*tree_iter, *checker_iter);
@@ -115,7 +114,7 @@ namespace abel {
             template<typename IterType, typename CheckerIterType>
             IterType riter_check(IterType tree_iter, CheckerIterType checker_iter) const {
                 if (tree_iter == tree_.rend()) {
-                    ABEL_INTERNAL_CHECK(checker_iter == checker_.rend(),
+                    ABEL_RAW_CHECK(checker_iter == checker_.rend(),
                                         "Checker iterator not at rend.");
                 } else {
                     CheckPairEquals(*tree_iter, *checker_iter);
@@ -618,7 +617,7 @@ namespace abel {
 
                 using V = typename remove_pair_const<typename T::value_type>::type;
                 const std::vector<V> random_values = GenerateValuesWithSeed<V>(
-                        abel::GetFlag(FLAGS_test_values), 4 * abel::GetFlag(FLAGS_test_values),
+                        abel::get_flag(FLAGS_test_values), 4 * abel::get_flag(FLAGS_test_values),
                         testing::GTEST_FLAG(random_seed));
 
                 unique_checker<T, C> container;
@@ -642,7 +641,7 @@ namespace abel {
 
                 using V = typename remove_pair_const<typename T::value_type>::type;
                 const std::vector<V> random_values = GenerateValuesWithSeed<V>(
-                        abel::GetFlag(FLAGS_test_values), 4 * abel::GetFlag(FLAGS_test_values),
+                        abel::get_flag(FLAGS_test_values), 4 * abel::get_flag(FLAGS_test_values),
                         testing::GTEST_FLAG(random_seed));
 
                 multi_checker<T, C> container;

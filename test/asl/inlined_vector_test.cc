@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
 #include <testing/exception_testing.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/container/counting_allocator.h>
 #include <testing/test_instance_tracker.h>
 #include <testing/hash_testing.h>
@@ -37,7 +37,7 @@ namespace {
     using testing::Gt;
     using testing::PrintToString;
 
-    using IntVec = abel::InlinedVector<int, 8>;
+    using IntVec = abel::inline_vector<int, 8>;
 
     MATCHER_P(SizeIs, n, "") {
         return testing::ExplainMatchResult(n, arg.size(), result_listener);
@@ -102,7 +102,7 @@ namespace {
         int *count_;
     };
 
-    using RefCountedVec = abel::InlinedVector<RefCounted, 8>;
+    using RefCountedVec = abel::inline_vector<RefCounted, 8>;
 
 // A class with a vtable pointer
     class Dynamic {
@@ -110,7 +110,7 @@ namespace {
         virtual ~Dynamic() {}
     };
 
-    using DynamicVec = abel::InlinedVector<Dynamic, 8>;
+    using DynamicVec = abel::inline_vector<Dynamic, 8>;
 
 // Append 0..len-1 to *v
     template<typename Container>
@@ -308,23 +308,23 @@ namespace {
         MoveOnly &operator=(MoveOnly &&) = default;
     };
 
-    TEST(InlinedVectorTest, NoDefaultCtor) {
-        abel::InlinedVector<NoDefaultCtor, 1> v(10, NoDefaultCtor(2));
+    TEST(inline_vectorTest, NoDefaultCtor) {
+        abel::inline_vector<NoDefaultCtor, 1> v(10, NoDefaultCtor(2));
         (void) v;
     }
 
-    TEST(InlinedVectorTest, NoCopy) {
-        abel::InlinedVector<NoCopy, 1> v(10);
+    TEST(inline_vectorTest, NoCopy) {
+        abel::inline_vector<NoCopy, 1> v(10);
         (void) v;
     }
 
-    TEST(InlinedVectorTest, NoAssign) {
-        abel::InlinedVector<NoAssign, 1> v(10);
+    TEST(inline_vectorTest, NoAssign) {
+        abel::inline_vector<NoAssign, 1> v(10);
         (void) v;
     }
 
-    TEST(InlinedVectorTest, MoveOnly) {
-        abel::InlinedVector<MoveOnly, 2> v;
+    TEST(inline_vectorTest, MoveOnly) {
+        abel::inline_vector<MoveOnly, 2> v;
         v.push_back(MoveOnly{});
         v.push_back(MoveOnly{});
         v.push_back(MoveOnly{});
@@ -336,21 +336,21 @@ namespace {
         v.emplace(v.begin(), MoveOnly{});
     }
 
-    TEST(InlinedVectorTest, Noexcept) {
+    TEST(inline_vectorTest, Noexcept) {
         EXPECT_TRUE(std::is_nothrow_move_constructible<IntVec>::value);
         EXPECT_TRUE((std::is_nothrow_move_constructible<
-                abel::InlinedVector<MoveOnly, 2>>::value));
+                abel::inline_vector<MoveOnly, 2>>::value));
 
         struct MoveCanThrow {
             MoveCanThrow(MoveCanThrow &&) {}
         };
         EXPECT_EQ(abel::default_allocator_is_nothrow::value,
                   (std::is_nothrow_move_constructible<
-                          abel::InlinedVector<MoveCanThrow, 2>>::value));
+                          abel::inline_vector<MoveCanThrow, 2>>::value));
     }
 
-    TEST(InlinedVectorTest, EmplaceBack) {
-        abel::InlinedVector<std::pair<std::string, int>, 1> v;
+    TEST(inline_vectorTest, EmplaceBack) {
+        abel::inline_vector<std::pair<std::string, int>, 1> v;
 
         auto &inlined_element = v.emplace_back("answer", 42);
         EXPECT_EQ(&inlined_element, &v[0]);
@@ -363,8 +363,8 @@ namespace {
         EXPECT_EQ(allocated_element.second, 1729);
     }
 
-    TEST(InlinedVectorTest, ShrinkToFitGrowingVector) {
-        abel::InlinedVector<std::pair<std::string, int>, 1> v;
+    TEST(inline_vectorTest, ShrinkToFitGrowingVector) {
+        abel::inline_vector<std::pair<std::string, int>, 1> v;
 
         v.shrink_to_fit();
         EXPECT_EQ(v.capacity(), 1);
@@ -384,9 +384,9 @@ namespace {
         EXPECT_EQ(v.capacity(), 2);
     }
 
-    TEST(InlinedVectorTest, ShrinkToFitEdgeCases) {
+    TEST(inline_vectorTest, ShrinkToFitEdgeCases) {
         {
-            abel::InlinedVector<std::pair<std::string, int>, 1> v;
+            abel::inline_vector<std::pair<std::string, int>, 1> v;
             v.emplace_back("answer", 42);
             v.emplace_back("taxicab", 1729);
             EXPECT_GE(v.capacity(), 2);
@@ -398,28 +398,28 @@ namespace {
         }
 
         {
-            abel::InlinedVector<std::string, 2> v(100);
+            abel::inline_vector<std::string, 2> v(100);
             v.resize(0);
             v.shrink_to_fit();
             EXPECT_EQ(v.capacity(), 2);  // inlined capacity
         }
 
         {
-            abel::InlinedVector<std::string, 2> v(100);
+            abel::inline_vector<std::string, 2> v(100);
             v.resize(1);
             v.shrink_to_fit();
             EXPECT_EQ(v.capacity(), 2);  // inlined capacity
         }
 
         {
-            abel::InlinedVector<std::string, 2> v(100);
+            abel::inline_vector<std::string, 2> v(100);
             v.resize(2);
             v.shrink_to_fit();
             EXPECT_EQ(v.capacity(), 2);
         }
 
         {
-            abel::InlinedVector<std::string, 2> v(100);
+            abel::inline_vector<std::string, 2> v(100);
             v.resize(3);
             v.shrink_to_fit();
             EXPECT_EQ(v.capacity(), 3);
@@ -673,7 +673,7 @@ namespace {
 
     TEST(AliasingTest, Emplace) {
         for (int i = 2; i < 20; ++i) {
-            abel::InlinedVector<NotTriviallyDestructible, 10> vec;
+            abel::inline_vector<NotTriviallyDestructible, 10> vec;
             for (int j = 0; j < i; ++j) {
                 vec.push_back(NotTriviallyDestructible(j));
             }
@@ -688,7 +688,7 @@ namespace {
 
     TEST(AliasingTest, InsertWithCount) {
         for (int i = 1; i < 20; ++i) {
-            abel::InlinedVector<NotTriviallyDestructible, 10> vec;
+            abel::inline_vector<NotTriviallyDestructible, 10> vec;
             for (int j = 0; j < i; ++j) {
                 vec.push_back(NotTriviallyDestructible(j));
             }
@@ -728,21 +728,21 @@ namespace {
         // The union should be absorbing some of the allocation bookkeeping overhead
         // in the larger vectors, leaving only the size_ field as overhead.
         EXPECT_EQ(2 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 1>) - 1 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 1>) - 1 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 2>) - 2 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 2>) - 2 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 3>) - 3 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 3>) - 3 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 4>) - 4 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 4>) - 4 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 5>) - 5 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 5>) - 5 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 6>) - 6 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 6>) - 6 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 7>) - 7 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 7>) - 7 * sizeof(int *));
         EXPECT_EQ(1 * sizeof(int *),
-                  sizeof(abel::InlinedVector<int *, 8>) - 8 * sizeof(int *));
+                  sizeof(abel::inline_vector<int *, 8>) - 8 * sizeof(int *));
     }
 
     TEST(IntVec, Clear) {
@@ -781,7 +781,7 @@ namespace {
 
     TEST(StringVec, SelfRefPushBack) {
         std::vector<std::string> std_v;
-        abel::InlinedVector<std::string, 4> v;
+        abel::inline_vector<std::string, 4> v;
         const std::string s = "A quite long std::string to ensure heap.";
         std_v.push_back(s);
         v.push_back(s);
@@ -796,7 +796,7 @@ namespace {
 
     TEST(StringVec, SelfRefPushBackWithMove) {
         std::vector<std::string> std_v;
-        abel::InlinedVector<std::string, 4> v;
+        abel::inline_vector<std::string, 4> v;
         const std::string s = "A quite long std::string to ensure heap.";
         std_v.push_back(s);
         v.push_back(s);
@@ -813,7 +813,7 @@ namespace {
         const std::string s = "A quite long std::string to ensure heap.";
         for (int len = 0; len < 20; len++) {
             SCOPED_TRACE(len);
-            abel::InlinedVector<std::string, 8> v;
+            abel::inline_vector<std::string, 8> v;
             for (int i = 0; i < len; ++i) {
                 SCOPED_TRACE(i);
                 v.push_back(s);
@@ -854,7 +854,7 @@ namespace {
 
     TYPED_TEST_P(InstanceTest, Swap) {
         using Instance = TypeParam;
-        using InstanceVec = abel::InlinedVector<Instance, 8>;
+        using InstanceVec = abel::inline_vector<Instance, 8>;
         for (int l1 = 0; l1 < 20; l1++) {
             SCOPED_TRACE(l1);
             for (int l2 = 0; l2 < 20; l2++) {
@@ -964,7 +964,7 @@ namespace {
 
     TYPED_TEST_P(InstanceTest, CountConstructorsDestructors) {
         using Instance = TypeParam;
-        using InstanceVec = abel::InlinedVector<Instance, 8>;
+        using InstanceVec = abel::inline_vector<Instance, 8>;
         InstanceTracker tracker;
         for (int len = 0; len < 20; len++) {
             SCOPED_TRACE(len);
@@ -1032,7 +1032,7 @@ namespace {
 
     TYPED_TEST_P(InstanceTest, CountConstructorsDestructorsOnCopyConstruction) {
         using Instance = TypeParam;
-        using InstanceVec = abel::InlinedVector<Instance, 8>;
+        using InstanceVec = abel::inline_vector<Instance, 8>;
         InstanceTracker tracker;
         for (int len = 0; len < 20; len++) {
             SCOPED_TRACE(len);
@@ -1058,7 +1058,7 @@ namespace {
 
     TYPED_TEST_P(InstanceTest, CountConstructorsDestructorsOnMoveConstruction) {
         using Instance = TypeParam;
-        using InstanceVec = abel::InlinedVector<Instance, 8>;
+        using InstanceVec = abel::inline_vector<Instance, 8>;
         InstanceTracker tracker;
         for (int len = 0; len < 20; len++) {
             SCOPED_TRACE(len);
@@ -1102,7 +1102,7 @@ namespace {
 
     TYPED_TEST_P(InstanceTest, CountConstructorsDestructorsOnAssignment) {
         using Instance = TypeParam;
-        using InstanceVec = abel::InlinedVector<Instance, 8>;
+        using InstanceVec = abel::inline_vector<Instance, 8>;
         InstanceTracker tracker;
         for (int len = 0; len < 20; len++) {
             SCOPED_TRACE(len);
@@ -1137,7 +1137,7 @@ namespace {
 
     TYPED_TEST_P(InstanceTest, CountConstructorsDestructorsOnMoveAssignment) {
         using Instance = TypeParam;
-        using InstanceVec = abel::InlinedVector<Instance, 8>;
+        using InstanceVec = abel::inline_vector<Instance, 8>;
         InstanceTracker tracker;
         for (int len = 0; len < 20; len++) {
             SCOPED_TRACE(len);
@@ -1195,7 +1195,7 @@ namespace {
             // Original contents are [12345, 12345, ...]
             std::vector<int> original_contents(original_size, 12345);
 
-            abel::InlinedVector<int, 2> v(original_contents.begin(),
+            abel::inline_vector<int, 2> v(original_contents.begin(),
                                           original_contents.end());
             v.assign(2, 123);
             EXPECT_THAT(v, AllOf(SizeIs(2), ElementsAre(123, 123)));
@@ -1212,7 +1212,7 @@ namespace {
             // Original contents are [12345, 12345, ...]
             std::vector<int> original_contents(original_size, 12345);
 
-            abel::InlinedVector<int, 2> v(original_contents.begin(),
+            abel::inline_vector<int, 2> v(original_contents.begin(),
                                           original_contents.end());
             v.assign(3, 123);
             EXPECT_THAT(v, AllOf(SizeIs(3), ElementsAre(123, 123, 123)));
@@ -1227,7 +1227,7 @@ namespace {
             // Original contents are [12345, 12345, ...]
             std::vector<Instance> original_contents(original_size, Instance(12345));
 
-            abel::InlinedVector<Instance, 2> v(original_contents.begin(),
+            abel::inline_vector<Instance, 2> v(original_contents.begin(),
                                                original_contents.end());
             v.assign(2, Instance(123));
             EXPECT_THAT(v, AllOf(SizeIs(2), ElementsAre(ValueIs(123), ValueIs(123))));
@@ -1245,7 +1245,7 @@ namespace {
             // Original contents are [12345, 12345, ...]
             std::vector<Instance> original_contents(original_size, Instance(12345));
 
-            abel::InlinedVector<Instance, 2> v(original_contents.begin(),
+            abel::inline_vector<Instance, 2> v(original_contents.begin(),
                                                original_contents.end());
             v.assign(3, Instance(123));
             EXPECT_THAT(v, AllOf(SizeIs(3), ElementsAre(ValueIs(123), ValueIs(123),
@@ -1265,7 +1265,7 @@ namespace {
     TEST(RangedConstructor, SimpleType) {
         std::vector<int> source_v = {4, 5, 6};
         // First try to fit in inline backing
-        abel::InlinedVector<int, 4> v(source_v.begin(), source_v.end());
+        abel::inline_vector<int, 4> v(source_v.begin(), source_v.end());
         EXPECT_EQ(3, v.size());
         EXPECT_EQ(4, v.capacity());  // Indication that we're still on inlined storage
         EXPECT_EQ(4, v[0]);
@@ -1273,7 +1273,7 @@ namespace {
         EXPECT_EQ(6, v[2]);
 
         // Now, force a re-allocate
-        abel::InlinedVector<int, 2> realloc_v(source_v.begin(), source_v.end());
+        abel::inline_vector<int, 2> realloc_v(source_v.begin(), source_v.end());
         EXPECT_EQ(3, realloc_v.size());
         EXPECT_LT(2, realloc_v.capacity());
         EXPECT_EQ(4, realloc_v[0]);
@@ -1288,7 +1288,7 @@ namespace {
         InstanceTracker tracker;
         SourceContainer source_v = {Instance(0), Instance(1)};
         tracker.ResetCopiesMovesSwaps();
-        abel::InlinedVector<Instance, inlined_capacity> v(source_v.begin(),
+        abel::inline_vector<Instance, inlined_capacity> v(source_v.begin(),
                                                           source_v.end());
         EXPECT_EQ(2, v.size());
         EXPECT_LT(1, v.capacity());
@@ -1337,7 +1337,7 @@ namespace {
 
         // Force expansion and re-allocation of v.  Ensures that when the vector is
         // expanded that new elements are constructed.
-        abel::InlinedVector<std::string, 1> v(source_v.begin(), source_v.end());
+        abel::inline_vector<std::string, 1> v(source_v.begin(), source_v.end());
         EXPECT_EQ("cat", v[0]);
         EXPECT_EQ("dog", v[1]);
     }
@@ -1359,7 +1359,7 @@ namespace {
                     new_contents.push_back(i + 3);
                 }
 
-                abel::InlinedVector<int, 3> v(original_contents.begin(),
+                abel::inline_vector<int, 3> v(original_contents.begin(),
                                               original_contents.end());
                 v.assign(new_contents.begin(), new_contents.end());
 
@@ -1405,7 +1405,7 @@ namespace {
                 SourceContainer new_contents(new_contents_in.begin(),
                                              new_contents_in.end());
 
-                abel::InlinedVector<Instance, 3> v(original_contents.begin(),
+                abel::inline_vector<Instance, 3> v(original_contents.begin(),
                                                    original_contents.end());
                 v.assign(new_contents.begin(), new_contents.end());
 
@@ -1436,31 +1436,31 @@ namespace {
     }
 
     TEST(InitializerListConstructor, SimpleTypeWithInlineBacking) {
-        EXPECT_THAT((abel::InlinedVector<int, 4>{4, 5, 6}),
+        EXPECT_THAT((abel::inline_vector<int, 4>{4, 5, 6}),
                     AllOf(SizeIs(3), CapacityIs(4), ElementsAre(4, 5, 6)));
     }
 
     TEST(InitializerListConstructor, SimpleTypeWithReallocationRequired) {
-        EXPECT_THAT((abel::InlinedVector<int, 2>{4, 5, 6}),
+        EXPECT_THAT((abel::inline_vector<int, 2>{4, 5, 6}),
                     AllOf(SizeIs(3), CapacityIs(Gt(2)), ElementsAre(4, 5, 6)));
     }
 
     TEST(InitializerListConstructor, DisparateTypesInList) {
-        EXPECT_THAT((abel::InlinedVector<int, 2>{-7, 8ULL}), ElementsAre(-7, 8));
+        EXPECT_THAT((abel::inline_vector<int, 2>{-7, 8ULL}), ElementsAre(-7, 8));
 
-        EXPECT_THAT((abel::InlinedVector<std::string, 2>{"foo", std::string("bar")}),
+        EXPECT_THAT((abel::inline_vector<std::string, 2>{"foo", std::string("bar")}),
                     ElementsAre("foo", "bar"));
     }
 
     TEST(InitializerListConstructor, ComplexTypeWithInlineBacking) {
-        EXPECT_THAT((abel::InlinedVector<CopyableMovableInstance, 1>{
+        EXPECT_THAT((abel::inline_vector<CopyableMovableInstance, 1>{
                 CopyableMovableInstance(0)}),
                     AllOf(SizeIs(1), CapacityIs(1), ElementsAre(ValueIs(0))));
     }
 
     TEST(InitializerListConstructor, ComplexTypeWithReallocationRequired) {
         EXPECT_THAT(
-                (abel::InlinedVector<CopyableMovableInstance, 1>{
+                (abel::inline_vector<CopyableMovableInstance, 1>{
                         CopyableMovableInstance(0), CopyableMovableInstance(1)}),
                 AllOf(SizeIs(2), CapacityIs(Gt(1)), ElementsAre(ValueIs(0), ValueIs(1))));
     }
@@ -1469,13 +1469,13 @@ namespace {
         for (size_t original_size = 0; original_size <= 4; ++original_size) {
             SCOPED_TRACE(original_size);
 
-            abel::InlinedVector<int, 2> v1(original_size, 12345);
+            abel::inline_vector<int, 2> v1(original_size, 12345);
             const size_t original_capacity_v1 = v1.capacity();
             v1.assign({3});
             EXPECT_THAT(
                     v1, AllOf(SizeIs(1), CapacityIs(original_capacity_v1), ElementsAre(3)));
 
-            abel::InlinedVector<int, 2> v2(original_size, 12345);
+            abel::inline_vector<int, 2> v2(original_size, 12345);
             const size_t original_capacity_v2 = v2.capacity();
             v2 = {3};
             EXPECT_THAT(
@@ -1486,12 +1486,12 @@ namespace {
     TEST(InitializerListAssign, SimpleTypeDoesNotFitInlineBacking) {
         for (size_t original_size = 0; original_size <= 4; ++original_size) {
             SCOPED_TRACE(original_size);
-            abel::InlinedVector<int, 2> v1(original_size, 12345);
+            abel::inline_vector<int, 2> v1(original_size, 12345);
             v1.assign({3, 4, 5});
             EXPECT_THAT(v1, AllOf(SizeIs(3), ElementsAre(3, 4, 5)));
             EXPECT_LE(3, v1.capacity());
 
-            abel::InlinedVector<int, 2> v2(original_size, 12345);
+            abel::inline_vector<int, 2> v2(original_size, 12345);
             v2 = {3, 4, 5};
             EXPECT_THAT(v2, AllOf(SizeIs(3), ElementsAre(3, 4, 5)));
             EXPECT_LE(3, v2.capacity());
@@ -1499,19 +1499,19 @@ namespace {
     }
 
     TEST(InitializerListAssign, DisparateTypesInList) {
-        abel::InlinedVector<int, 2> v_int1;
+        abel::inline_vector<int, 2> v_int1;
         v_int1.assign({-7, 8ULL});
         EXPECT_THAT(v_int1, ElementsAre(-7, 8));
 
-        abel::InlinedVector<int, 2> v_int2;
+        abel::inline_vector<int, 2> v_int2;
         v_int2 = {-7, 8ULL};
         EXPECT_THAT(v_int2, ElementsAre(-7, 8));
 
-        abel::InlinedVector<std::string, 2> v_string1;
+        abel::inline_vector<std::string, 2> v_string1;
         v_string1.assign({"foo", std::string("bar")});
         EXPECT_THAT(v_string1, ElementsAre("foo", "bar"));
 
-        abel::InlinedVector<std::string, 2> v_string2;
+        abel::inline_vector<std::string, 2> v_string2;
         v_string2 = {"foo", std::string("bar")};
         EXPECT_THAT(v_string2, ElementsAre("foo", "bar"));
     }
@@ -1520,7 +1520,7 @@ namespace {
         using Instance = TypeParam;
         for (size_t original_size = 0; original_size <= 4; ++original_size) {
             SCOPED_TRACE(original_size);
-            abel::InlinedVector<Instance, 2> v(original_size, Instance(12345));
+            abel::inline_vector<Instance, 2> v(original_size, Instance(12345));
             const size_t original_capacity = v.capacity();
             v.assign({Instance(3)});
             EXPECT_THAT(v, AllOf(SizeIs(1), CapacityIs(original_capacity),
@@ -1528,7 +1528,7 @@ namespace {
         }
         for (size_t original_size = 0; original_size <= 4; ++original_size) {
             SCOPED_TRACE(original_size);
-            abel::InlinedVector<Instance, 2> v(original_size, Instance(12345));
+            abel::inline_vector<Instance, 2> v(original_size, Instance(12345));
             v.assign({Instance(3), Instance(4), Instance(5)});
             EXPECT_THAT(
                     v, AllOf(SizeIs(3), ElementsAre(ValueIs(3), ValueIs(4), ValueIs(5))));
@@ -1555,7 +1555,7 @@ namespace {
 
     TEST(AllocatorSupportTest, Constructors) {
         using MyAlloc = CountingAllocator<int>;
-        using AllocVec = abel::InlinedVector<int, 4, MyAlloc>;
+        using AllocVec = abel::inline_vector<int, 4, MyAlloc>;
         const int ia[] = {0, 1, 2, 3, 4, 5, 6, 7};
         int64_t allocated = 0;
         MyAlloc alloc(&allocated);
@@ -1571,7 +1571,7 @@ namespace {
 
     TEST(AllocatorSupportTest, CountAllocations) {
         using MyAlloc = CountingAllocator<int>;
-        using AllocVec = abel::InlinedVector<int, 4, MyAlloc>;
+        using AllocVec = abel::inline_vector<int, 4, MyAlloc>;
         const int ia[] = {0, 1, 2, 3, 4, 5, 6, 7};
         int64_t allocated = 0;
         MyAlloc alloc(&allocated);
@@ -1632,7 +1632,7 @@ namespace {
 
     TEST(AllocatorSupportTest, SwapBothAllocated) {
         using MyAlloc = CountingAllocator<int>;
-        using AllocVec = abel::InlinedVector<int, 4, MyAlloc>;
+        using AllocVec = abel::inline_vector<int, 4, MyAlloc>;
         int64_t allocated1 = 0;
         int64_t allocated2 = 0;
         {
@@ -1657,7 +1657,7 @@ namespace {
 
     TEST(AllocatorSupportTest, SwapOneAllocated) {
         using MyAlloc = CountingAllocator<int>;
-        using AllocVec = abel::InlinedVector<int, 4, MyAlloc>;
+        using AllocVec = abel::inline_vector<int, 4, MyAlloc>;
         int64_t allocated1 = 0;
         int64_t allocated2 = 0;
         {
@@ -1685,7 +1685,7 @@ namespace {
         using StdVector = std::vector<int, CountingAllocator<int>>;
         using Alloc = CountingAllocator<StdVector>;
         using ScopedAlloc = std::scoped_allocator_adaptor<Alloc>;
-        using AllocVec = abel::InlinedVector<StdVector, 1, ScopedAlloc>;
+        using AllocVec = abel::inline_vector<StdVector, 1, ScopedAlloc>;
 
         int64_t total_allocated_byte_count = 0;
 
@@ -1713,7 +1713,7 @@ namespace {
         using StdVector = std::vector<int, CountingAllocator<int>>;
         using Alloc = CountingAllocator<StdVector>;
         using ScopedAlloc = std::scoped_allocator_adaptor<Alloc>;
-        using AllocVec = abel::InlinedVector<StdVector, 1, ScopedAlloc>;
+        using AllocVec = abel::inline_vector<StdVector, 1, ScopedAlloc>;
 
         int64_t total_allocated_byte_count = 0;
 
@@ -1737,7 +1737,7 @@ namespace {
     TEST(AllocatorSupportTest, SizeAllocConstructor) {
         constexpr int inlined_size = 4;
         using Alloc = CountingAllocator<int>;
-        using AllocVec = abel::InlinedVector<int, inlined_size, Alloc>;
+        using AllocVec = abel::inline_vector<int, inlined_size, Alloc>;
 
         {
             auto len = inlined_size / 2;
@@ -1760,7 +1760,7 @@ namespace {
         }
     }
 
-    TEST(InlinedVectorTest, MinimumAllocatorCompilesUsingTraits) {
+    TEST(inline_vectorTest, MinimumAllocatorCompilesUsingTraits) {
         using T = int;
         using A = std::allocator<T>;
         using ATraits = abel::allocator_traits<A>;
@@ -1779,13 +1779,13 @@ namespace {
             }
         };
 
-        abel::InlinedVector<T, 1, MinimumAllocator> vec;
+        abel::inline_vector<T, 1, MinimumAllocator> vec;
         vec.emplace_back();
         vec.resize(0);
     }
 
-    TEST(InlinedVectorTest, AbelHashValueWorks) {
-        using V = abel::InlinedVector<int, 4>;
+    TEST(inline_vectorTest, AbelHashValueWorks) {
+        using V = abel::inline_vector<int, 4>;
         std::vector<V> cases;
 
         // Generate a variety of vectors some of these are small enough for the inline

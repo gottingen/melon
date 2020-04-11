@@ -108,7 +108,7 @@ namespace abel {
             template<typename Iterator>
             void generate_and_copy(size_t n, Iterator out) {
                 // Allocate a temporary buffer, generate, and then copy.
-                abel::InlinedVector<uint32_t, 8> data(n, 0);
+                abel::inline_vector<uint32_t, 8> data(n, 0);
                 generate_contiguous(abel::make_span(data.data(), data.size()));
                 std::copy(data.begin(), data.end(), out);
             }
@@ -149,7 +149,7 @@ namespace abel {
             using sseq_type = typename std::decay<SSeq>::type;
             using result_type = typename sseq_type::result_type;
 
-            abel::InlinedVector<result_type, 8> data;
+            abel::inline_vector<result_type, 8> data;
             seq.param(std::back_inserter(data));
             return salted_seed_seq<sseq_type>(data.begin(), data.end());
         }

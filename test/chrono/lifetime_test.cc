@@ -6,7 +6,7 @@
 
 #include <abel/base/profile.h>
 #include <abel/base/const_init.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/thread_annotations.h>
 #include <abel/thread/mutex.h>
 #include <abel/thread/notification.h>

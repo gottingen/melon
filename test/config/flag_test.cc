@@ -1,10 +1,10 @@
 //
 
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <algorithm>
 #include <string>
 #include <gtest/gtest.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/usage_config.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>
@@ -27,23 +27,23 @@ namespace {
 
     template<typename T>
     bool TestConstructionFor() {
-        constexpr flags::HelpInitArg help_arg{flags::FlagHelpSrc("literal help"),
-                                              flags::FlagHelpSrcKind::kLiteral};
-        constexpr flags::Flag<T> f1("f1", "file", &flags::FlagMarshallingOps<T>,
+        constexpr flags::help_init_arg help_arg{flags::flag_help_src("literal help"),
+                                              flags::flag_help_src_kind::kLiteral};
+        constexpr flags::abel_flag<T> f1("f1", "file", &flags::flag_marshalling_ops<T>,
                                     help_arg, &TestMakeDflt<T>);
-        EXPECT_EQ(f1.Name(), "f1");
-        EXPECT_EQ(f1.Help(), "literal help");
-        EXPECT_EQ(f1.Filename(), "file");
+        EXPECT_EQ(f1.name(), "f1");
+        EXPECT_EQ(f1.help(), "literal help");
+        EXPECT_EQ(f1.file_name(), "file");
 
-        ABEL_CONST_INIT static flags::Flag<T> f2(
-                "f2", "file", &flags::FlagMarshallingOps<T>,
-                {flags::FlagHelpSrc(&TestHelpMsg), flags::FlagHelpSrcKind::kGenFunc},
+        ABEL_CONST_INIT static flags::abel_flag<T> f2(
+                "f2", "file", &flags::flag_marshalling_ops<T>,
+                {flags::flag_help_src(&TestHelpMsg), flags::flag_help_src_kind::kGenFunc},
                 &TestMakeDflt<T>);
-        flags::FlagRegistrar<T, false>(&f2).OnUpdate(TestCallback);
+        flags::flag_registrar<T, false>(&f2).on_update(TestCallback);
 
-        EXPECT_EQ(f2.Name(), "f2");
-        EXPECT_EQ(f2.Help(), "dynamic help");
-        EXPECT_EQ(f2.Filename(), "file");
+        EXPECT_EQ(f2.name(), "f2");
+        EXPECT_EQ(f2.help(), "dynamic help");
+        EXPECT_EQ(f2.file_name(), "file");
 
         return true;
     }
@@ -62,9 +62,9 @@ namespace {
     protected:
         static void SetUpTestSuite() {
             // Install a function to normalize filenames before this test is run.
-            abel::FlagsUsageConfig default_config;
+            abel::flags_usage_config default_config;
             default_config.normalize_filename = &FlagTest::NormalizeFileName;
-            abel::SetFlagsUsageConfig(default_config);
+            abel::set_flags_usage_config(default_config);
         }
 
     private:
@@ -115,17 +115,17 @@ namespace {
 
     TEST_F(FlagTest, TestFlagDeclaration) {
         // test that we can access flag objects.
-        EXPECT_EQ(FLAGS_test_flag_01.Name(), "test_flag_01");
-        EXPECT_EQ(FLAGS_test_flag_02.Name(), "test_flag_02");
-        EXPECT_EQ(FLAGS_test_flag_03.Name(), "test_flag_03");
-        EXPECT_EQ(FLAGS_test_flag_04.Name(), "test_flag_04");
-        EXPECT_EQ(FLAGS_test_flag_05.Name(), "test_flag_05");
-        EXPECT_EQ(FLAGS_test_flag_06.Name(), "test_flag_06");
-        EXPECT_EQ(FLAGS_test_flag_07.Name(), "test_flag_07");
-        EXPECT_EQ(FLAGS_test_flag_08.Name(), "test_flag_08");
-        EXPECT_EQ(FLAGS_test_flag_09.Name(), "test_flag_09");
-        EXPECT_EQ(FLAGS_test_flag_10.Name(), "test_flag_10");
-        EXPECT_EQ(FLAGS_test_flag_11.Name(), "test_flag_11");
+        EXPECT_EQ(FLAGS_test_flag_01.name(), "test_flag_01");
+        EXPECT_EQ(FLAGS_test_flag_02.name(), "test_flag_02");
+        EXPECT_EQ(FLAGS_test_flag_03.name(), "test_flag_03");
+        EXPECT_EQ(FLAGS_test_flag_04.name(), "test_flag_04");
+        EXPECT_EQ(FLAGS_test_flag_05.name(), "test_flag_05");
+        EXPECT_EQ(FLAGS_test_flag_06.name(), "test_flag_06");
+        EXPECT_EQ(FLAGS_test_flag_07.name(), "test_flag_07");
+        EXPECT_EQ(FLAGS_test_flag_08.name(), "test_flag_08");
+        EXPECT_EQ(FLAGS_test_flag_09.name(), "test_flag_09");
+        EXPECT_EQ(FLAGS_test_flag_10.name(), "test_flag_10");
+        EXPECT_EQ(FLAGS_test_flag_11.name(), "test_flag_11");
     }
 
 #endif  // !ABEL_FLAGS_STRIP_NAMES
@@ -152,60 +152,60 @@ namespace {
     TEST_F(FlagTest, TestFlagDefinition) {
         abel::string_view expected_file_name = "config/flag_test.cc";
 
-        EXPECT_EQ(FLAGS_test_flag_01.Name(), "test_flag_01");
-        EXPECT_EQ(FLAGS_test_flag_01.Help(), "test flag 01");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_01.Filename(), expected_file_name))
-                            << FLAGS_test_flag_01.Filename();
+        EXPECT_EQ(FLAGS_test_flag_01.name(), "test_flag_01");
+        EXPECT_EQ(FLAGS_test_flag_01.help(), "test flag 01");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_01.file_name(), expected_file_name))
+                            << FLAGS_test_flag_01.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_02.Name(), "test_flag_02");
-        EXPECT_EQ(FLAGS_test_flag_02.Help(), "test flag 02");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_02.Filename(), expected_file_name))
-                            << FLAGS_test_flag_02.Filename();
+        EXPECT_EQ(FLAGS_test_flag_02.name(), "test_flag_02");
+        EXPECT_EQ(FLAGS_test_flag_02.help(), "test flag 02");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_02.file_name(), expected_file_name))
+                            << FLAGS_test_flag_02.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_03.Name(), "test_flag_03");
-        EXPECT_EQ(FLAGS_test_flag_03.Help(), "test flag 03");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_03.Filename(), expected_file_name))
-                            << FLAGS_test_flag_03.Filename();
+        EXPECT_EQ(FLAGS_test_flag_03.name(), "test_flag_03");
+        EXPECT_EQ(FLAGS_test_flag_03.help(), "test flag 03");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_03.file_name(), expected_file_name))
+                            << FLAGS_test_flag_03.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_04.Name(), "test_flag_04");
-        EXPECT_EQ(FLAGS_test_flag_04.Help(), "test flag 04");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_04.Filename(), expected_file_name))
-                            << FLAGS_test_flag_04.Filename();
+        EXPECT_EQ(FLAGS_test_flag_04.name(), "test_flag_04");
+        EXPECT_EQ(FLAGS_test_flag_04.help(), "test flag 04");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_04.file_name(), expected_file_name))
+                            << FLAGS_test_flag_04.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_05.Name(), "test_flag_05");
-        EXPECT_EQ(FLAGS_test_flag_05.Help(), "test flag 05");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_05.Filename(), expected_file_name))
-                            << FLAGS_test_flag_05.Filename();
+        EXPECT_EQ(FLAGS_test_flag_05.name(), "test_flag_05");
+        EXPECT_EQ(FLAGS_test_flag_05.help(), "test flag 05");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_05.file_name(), expected_file_name))
+                            << FLAGS_test_flag_05.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_06.Name(), "test_flag_06");
-        EXPECT_EQ(FLAGS_test_flag_06.Help(), "test flag 06");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_06.Filename(), expected_file_name))
-                            << FLAGS_test_flag_06.Filename();
+        EXPECT_EQ(FLAGS_test_flag_06.name(), "test_flag_06");
+        EXPECT_EQ(FLAGS_test_flag_06.help(), "test flag 06");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_06.file_name(), expected_file_name))
+                            << FLAGS_test_flag_06.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_07.Name(), "test_flag_07");
-        EXPECT_EQ(FLAGS_test_flag_07.Help(), "test flag 07");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_07.Filename(), expected_file_name))
-                            << FLAGS_test_flag_07.Filename();
+        EXPECT_EQ(FLAGS_test_flag_07.name(), "test_flag_07");
+        EXPECT_EQ(FLAGS_test_flag_07.help(), "test flag 07");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_07.file_name(), expected_file_name))
+                            << FLAGS_test_flag_07.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_08.Name(), "test_flag_08");
-        EXPECT_EQ(FLAGS_test_flag_08.Help(), "test flag 08");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_08.Filename(), expected_file_name))
-                            << FLAGS_test_flag_08.Filename();
+        EXPECT_EQ(FLAGS_test_flag_08.name(), "test_flag_08");
+        EXPECT_EQ(FLAGS_test_flag_08.help(), "test flag 08");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_08.file_name(), expected_file_name))
+                            << FLAGS_test_flag_08.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_09.Name(), "test_flag_09");
-        EXPECT_EQ(FLAGS_test_flag_09.Help(), "test flag 09");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_09.Filename(), expected_file_name))
-                            << FLAGS_test_flag_09.Filename();
+        EXPECT_EQ(FLAGS_test_flag_09.name(), "test_flag_09");
+        EXPECT_EQ(FLAGS_test_flag_09.help(), "test flag 09");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_09.file_name(), expected_file_name))
+                            << FLAGS_test_flag_09.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_10.Name(), "test_flag_10");
-        EXPECT_EQ(FLAGS_test_flag_10.Help(), "test flag 10");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_10.Filename(), expected_file_name))
-                            << FLAGS_test_flag_10.Filename();
+        EXPECT_EQ(FLAGS_test_flag_10.name(), "test_flag_10");
+        EXPECT_EQ(FLAGS_test_flag_10.help(), "test flag 10");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_10.file_name(), expected_file_name))
+                            << FLAGS_test_flag_10.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_11.Name(), "test_flag_11");
-        EXPECT_EQ(FLAGS_test_flag_11.Help(), "test flag 11");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_11.Filename(), expected_file_name))
-                            << FLAGS_test_flag_11.Filename();
+        EXPECT_EQ(FLAGS_test_flag_11.name(), "test_flag_11");
+        EXPECT_EQ(FLAGS_test_flag_11.help(), "test flag 11");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_11.file_name(), expected_file_name))
+                            << FLAGS_test_flag_11.file_name();
     }
 
 #endif  // !ABEL_FLAGS_STRIP_NAMES
@@ -213,54 +213,54 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(FlagTest, TestDefault) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_01), true);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_02), 1234);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_03), -34);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_04), 189);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_05), 10765);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_06), 40000);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_07), -1234567);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_08), 9876543);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_09), -9.876e-50, 1e-55);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_10), 1.234e12f, 1e5f);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_11), "");
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_01), true);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_02), 1234);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_03), -34);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_04), 189);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_05), 10765);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_06), 40000);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_07), -1234567);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_08), 9876543);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_09), -9.876e-50, 1e-55);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_10), 1.234e12f, 1e5f);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_11), "");
     }
 
 // --------------------------------------------------------------------
 
     TEST_F(FlagTest, TestGetSet) {
-        abel::SetFlag(&FLAGS_test_flag_01, false);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_01), false);
+        abel::set_flag(&FLAGS_test_flag_01, false);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_01), false);
 
-        abel::SetFlag(&FLAGS_test_flag_02, 321);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_02), 321);
+        abel::set_flag(&FLAGS_test_flag_02, 321);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_02), 321);
 
-        abel::SetFlag(&FLAGS_test_flag_03, 67);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_03), 67);
+        abel::set_flag(&FLAGS_test_flag_03, 67);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_03), 67);
 
-        abel::SetFlag(&FLAGS_test_flag_04, 1);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_04), 1);
+        abel::set_flag(&FLAGS_test_flag_04, 1);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_04), 1);
 
-        abel::SetFlag(&FLAGS_test_flag_05, -908);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_05), -908);
+        abel::set_flag(&FLAGS_test_flag_05, -908);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_05), -908);
 
-        abel::SetFlag(&FLAGS_test_flag_06, 4001);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_06), 4001);
+        abel::set_flag(&FLAGS_test_flag_06, 4001);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_06), 4001);
 
-        abel::SetFlag(&FLAGS_test_flag_07, -23456);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_07), -23456);
+        abel::set_flag(&FLAGS_test_flag_07, -23456);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_07), -23456);
 
-        abel::SetFlag(&FLAGS_test_flag_08, 975310);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_08), 975310);
+        abel::set_flag(&FLAGS_test_flag_08, 975310);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_08), 975310);
 
-        abel::SetFlag(&FLAGS_test_flag_09, 1.00001);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_09), 1.00001, 1e-10);
+        abel::set_flag(&FLAGS_test_flag_09, 1.00001);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_09), 1.00001, 1e-10);
 
-        abel::SetFlag(&FLAGS_test_flag_10, -3.54f);
-        EXPECT_NEAR(abel::GetFlag(FLAGS_test_flag_10), -3.54f, 1e-6f);
+        abel::set_flag(&FLAGS_test_flag_10, -3.54f);
+        EXPECT_NEAR(abel::get_flag(FLAGS_test_flag_10), -3.54f, 1e-6f);
 
-        abel::SetFlag(&FLAGS_test_flag_11, "asdf");
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_11), "asdf");
+        abel::set_flag(&FLAGS_test_flag_11, "asdf");
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_11), "asdf");
     }
 
 // --------------------------------------------------------------------
@@ -276,8 +276,8 @@ ABEL_FLAG(std::string, test_flag_13, abel::string_cat("AAA", "BBB"),
 namespace {
 
     TEST_F(FlagTest, TestNonConstexprDefault) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_12), 1);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_13), "AAABBB");
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_12), 1);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_13), "AAABBB");
     }
 
 // --------------------------------------------------------------------
@@ -290,7 +290,7 @@ namespace {
 
 #if !ABEL_FLAGS_STRIP_HELP
     TEST_F(FlagTest, TestNonConstexprHelp) {
-        EXPECT_EQ(FLAGS_test_flag_14.Help(), "test flag 14");
+        EXPECT_EQ(FLAGS_test_flag_14.help(), "test flag 14");
     }
 
 #endif  //! ABEL_FLAGS_STRIP_HELP
@@ -303,27 +303,27 @@ namespace {
 
 }  // namespace
 
-ABEL_FLAG(int, test_flag_with_cb, 100, "").OnUpdate(TestFlagCB);
+ABEL_FLAG(int, test_flag_with_cb, 100, "").on_update(TestFlagCB);
 
-ABEL_FLAG(int, test_flag_with_lambda_cb, 200, "").OnUpdate([]() {
-    cb_test_value = abel::GetFlag(FLAGS_test_flag_with_lambda_cb) +
-                    abel::GetFlag(FLAGS_test_flag_with_cb);
+ABEL_FLAG(int, test_flag_with_lambda_cb, 200, "").on_update([]() {
+    cb_test_value = abel::get_flag(FLAGS_test_flag_with_lambda_cb) +
+                    abel::get_flag(FLAGS_test_flag_with_cb);
 });
 
 namespace {
 
-    void TestFlagCB() { cb_test_value = abel::GetFlag(FLAGS_test_flag_with_cb); }
+    void TestFlagCB() { cb_test_value = abel::get_flag(FLAGS_test_flag_with_cb); }
 
 // Tests side-effects of callback invocation.
     TEST_F(FlagTest, CallbackInvocation) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_with_cb), 100);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_with_lambda_cb), 200);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_with_cb), 100);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_with_lambda_cb), 200);
         EXPECT_EQ(cb_test_value, 300);
 
-        abel::SetFlag(&FLAGS_test_flag_with_cb, 1);
+        abel::set_flag(&FLAGS_test_flag_with_cb, 1);
         EXPECT_EQ(cb_test_value, 1);
 
-        abel::SetFlag(&FLAGS_test_flag_with_lambda_cb, 3);
+        abel::set_flag(&FLAGS_test_flag_with_lambda_cb, 3);
         EXPECT_EQ(cb_test_value, 4);
     }
 
@@ -366,9 +366,9 @@ ABEL_FLAG(CustomUDT, test_flag_15, CustomUDT(), "test flag 15");
 namespace {
 
     TEST_F(FlagTest, TestCustomUDT) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_15), CustomUDT(1, 1));
-        abel::SetFlag(&FLAGS_test_flag_15, CustomUDT(2, 3));
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_15), CustomUDT(2, 3));
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_15), CustomUDT(1, 1));
+        abel::set_flag(&FLAGS_test_flag_15, CustomUDT(2, 3));
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_15), CustomUDT(2, 3));
     }
 
 // MSVC produces link error on the type mismatch.
@@ -376,21 +376,21 @@ namespace {
 #if 0  // !defined(_WIN32) && GTEST_HAS_DEATH_TEST
 
     TEST(Flagtest, TestTypeMismatchValidations) {
-      // For builtin types, GetFlag() only does validation in debug mode.
+      // For builtin types, get_flag() only does validation in debug mode.
       EXPECT_DEBUG_DEATH(
-          abel::GetFlag(FLAGS_mistyped_int_flag),
-          "Flag 'mistyped_int_flag' is defined as one type and declared "
+          abel::get_flag(FLAGS_mistyped_int_flag),
+          "abel_flag 'mistyped_int_flag' is defined as one type and declared "
           "as another");
-      EXPECT_DEATH(abel::SetFlag(&FLAGS_mistyped_int_flag, 0),
-                   "Flag 'mistyped_int_flag' is defined as one type and declared "
+      EXPECT_DEATH(abel::set_flag(&FLAGS_mistyped_int_flag, 0),
+                   "abel_flag 'mistyped_int_flag' is defined as one type and declared "
                    "as another");
 
-      EXPECT_DEATH(abel::GetFlag(FLAGS_mistyped_string_flag),
-                   "Flag 'mistyped_string_flag' is defined as one type and "
+      EXPECT_DEATH(abel::get_flag(FLAGS_mistyped_string_flag),
+                   "abel_flag 'mistyped_string_flag' is defined as one type and "
                    "declared as another");
       EXPECT_DEATH(
-          abel::SetFlag(&FLAGS_mistyped_string_flag, std::vector<std::string>{}),
-          "Flag 'mistyped_string_flag' is defined as one type and declared as "
+          abel::set_flag(&FLAGS_mistyped_string_flag, std::vector<std::string>{}),
+          "abel_flag 'mistyped_string_flag' is defined as one type and declared as "
           "another");
     }
 
@@ -429,7 +429,7 @@ namespace {
 
 }  // namespace
 
-// Flag default values can be specified with a value that converts to the flag
+// abel_flag default values can be specified with a value that converts to the flag
 // value type implicitly.
 ABEL_FLAG(ConversionTestVal, test_flag_16,
           ConversionTestVal::ViaImplicitConv::kTen, "test flag 16");
@@ -437,10 +437,10 @@ ABEL_FLAG(ConversionTestVal, test_flag_16,
 namespace {
 
     TEST_F(FlagTest, CanSetViaImplicitConversion) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_16).a, 10);
-        abel::SetFlag(&FLAGS_test_flag_16,
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_16).a, 10);
+        abel::set_flag(&FLAGS_test_flag_16,
                       ConversionTestVal::ViaImplicitConv::kEleven);
-        EXPECT_EQ(abel::GetFlag(FLAGS_test_flag_16).a, 11);
+        EXPECT_EQ(abel::get_flag(FLAGS_test_flag_16).a, 11);
     }
 
 // --------------------------------------------------------------------
@@ -469,21 +469,21 @@ namespace {
 }  // namespace
 
 ABEL_FLAG(NonDfltConstructible, ndc_flag1, NonDfltConstructible('1'),
-          "Flag with non default constructible type");
+          "abel_flag with non default constructible type");
 ABEL_FLAG(NonDfltConstructible, ndc_flag2, 0,
-          "Flag with non default constructible type");
+          "abel_flag with non default constructible type");
 
 namespace {
 
     TEST_F(FlagTest, TestNonDefaultConstructibleType) {
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag1).value, '1' + 100);
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag2).value, 0);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag1).value, '1' + 100);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag2).value, 0);
 
-        abel::SetFlag(&FLAGS_ndc_flag1, NonDfltConstructible('A'));
-        abel::SetFlag(&FLAGS_ndc_flag2, 25);
+        abel::set_flag(&FLAGS_ndc_flag1, NonDfltConstructible('A'));
+        abel::set_flag(&FLAGS_ndc_flag2, 25);
 
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag1).value, 'A' + 100);
-        EXPECT_EQ(abel::GetFlag(FLAGS_ndc_flag2).value, 25);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag1).value, 'A' + 100);
+        EXPECT_EQ(abel::get_flag(FLAGS_ndc_flag2).value, 25);
     }
 
 // --------------------------------------------------------------------
@@ -498,13 +498,13 @@ namespace {
 
     TEST_F(FlagTest, TestRetiredFlagRegistration) {
         bool is_bool = false;
-        EXPECT_TRUE(flags::IsRetiredFlag("old_bool_flag", &is_bool));
+        EXPECT_TRUE(flags::is_retired_flag("old_bool_flag", &is_bool));
         EXPECT_TRUE(is_bool);
-        EXPECT_TRUE(flags::IsRetiredFlag("old_int_flag", &is_bool));
+        EXPECT_TRUE(flags::is_retired_flag("old_int_flag", &is_bool));
         EXPECT_FALSE(is_bool);
-        EXPECT_TRUE(flags::IsRetiredFlag("old_str_flag", &is_bool));
+        EXPECT_TRUE(flags::is_retired_flag("old_str_flag", &is_bool));
         EXPECT_FALSE(is_bool);
-        EXPECT_FALSE(flags::IsRetiredFlag("some_other_flag", &is_bool));
+        EXPECT_FALSE(flags::is_retired_flag("some_other_flag", &is_bool));
     }
 
 }  // namespace

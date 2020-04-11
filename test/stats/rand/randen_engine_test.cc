@@ -9,7 +9,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/stats/random/seed/explicit_seed_seq.h>
 #include <abel/strings/str_cat.h>
 #include <abel/chrono/clock.h>
@@ -634,7 +634,7 @@ namespace {
         }
         auto duration = abel::get_current_time_nanos() - start;
 
-        ABEL_INTERNAL_LOG(INFO, abel::string_cat(static_cast<double>(duration) /
+        ABEL_RAW_INFO(abel::string_cat(static_cast<double>(duration) /
                                                  static_cast<double>(kCount),
                                                  "ns"));
 

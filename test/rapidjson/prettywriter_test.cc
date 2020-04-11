@@ -17,6 +17,7 @@
 #include <abel/rapidjson/prettywriter.h>
 #include <abel/rapidjson/stringbuffer.h>
 #include <abel/rapidjson/filewritestream.h>
+#include <abel/asl/string_view.h>
 
 using namespace rapidjson;
 
@@ -146,6 +147,10 @@ public:
     void Put(Ch c) { os_.put(c); }
 
     void Flush() { os_.flush(); }
+
+    void Puts(const Ch* c, size_t length) {
+        os_<<abel::basic_string_view<Ch>(c, length);
+    }
 
     size_t PutEnd(Ch *) {
         assert(false);

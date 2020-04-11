@@ -2,7 +2,7 @@
 
 #include <abel/stats/random/engine/randen.h>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/hardware/aes_detect.h>
 
 // RANDen = RANDom generator or beetroots in Swiss German.

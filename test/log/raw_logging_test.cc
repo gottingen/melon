@@ -4,7 +4,7 @@
 // Raw logging testing is covered by logging_unittest.cc, which is not as
 // portable as this test.
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <tuple>
 #include <gtest/gtest.h>
 #include <abel/strings/str_cat.h>
@@ -12,13 +12,13 @@
 namespace {
 
     TEST(RawLoggingCompilationTest, Log) {
-        ABEL_RAW_LOG(INFO, "RAW INFO: %d", 1);
-        ABEL_RAW_LOG(INFO, "RAW INFO: %d %d", 1, 2);
-        ABEL_RAW_LOG(INFO, "RAW INFO: %d %d %d", 1, 2, 3);
-        ABEL_RAW_LOG(INFO, "RAW INFO: %d %d %d %d", 1, 2, 3, 4);
-        ABEL_RAW_LOG(INFO, "RAW INFO: %d %d %d %d %d", 1, 2, 3, 4, 5);
-        ABEL_RAW_LOG(WARNING, "RAW WARNING: %d", 1);
-        ABEL_RAW_LOG(ERROR, "RAW ERROR: %d", 1);
+        ABEL_RAW_INFO( "RAW INFO: {}", 1);
+        ABEL_RAW_INFO("RAW INFO: {} {}", 1, 2);
+        ABEL_RAW_INFO("RAW INFO: {} {} {}", 1, 2, 3);
+        ABEL_RAW_INFO("RAW INFO: {} {} {} {}", 1, 2, 3, 4);
+        ABEL_RAW_INFO("RAW INFO:{} {} {} {} {}", 1, 2, 3, 4, 5);
+        ABEL_RAW_WARN("RAW WARNING: {}", 1);
+        ABEL_RAW_ERROR("RAW ERROR: {}", 1);
     }
 
     TEST(RawLoggingCompilationTest, PassingCheck) {
@@ -37,28 +37,28 @@ namespace {
     }
 
     TEST(RawLoggingDeathTest, LogFatal) {
-        EXPECT_DEATH_IF_SUPPORTED(ABEL_RAW_LOG(FATAL, "my dog has fleas"),
+        EXPECT_DEATH_IF_SUPPORTED(ABEL_RAW_CRITICAL("my dog has fleas"),
                                   kExpectedDeathOutput);
     }
 
     TEST(InternalLog, CompilationTest) {
-        ABEL_INTERNAL_LOG(INFO, "Internal Log");
+        ABEL_RAW_INFO("Internal Log");
         std::string log_msg = "Internal Log";
-        ABEL_INTERNAL_LOG(INFO, log_msg);
+        ABEL_RAW_INFO(log_msg);
 
-        ABEL_INTERNAL_LOG(INFO, log_msg + " 2");
+        ABEL_RAW_INFO(log_msg + " 2");
 
         float d = 1.1f;
-        ABEL_INTERNAL_LOG(INFO, abel::string_cat("Internal log ", 3, " + ", d));
+        ABEL_RAW_INFO(abel::string_cat("Internal log ", 3, " + ", d));
     }
 
     TEST(InternalLogDeathTest, FailingCheck) {
-        EXPECT_DEATH_IF_SUPPORTED(ABEL_INTERNAL_CHECK(1 == 0, "explanation"),
+        EXPECT_DEATH_IF_SUPPORTED(ABEL_RAW_CHECK(1 == 0, "explanation"),
                                   kExpectedDeathOutput);
     }
 
     TEST(InternalLogDeathTest, LogFatal) {
-        EXPECT_DEATH_IF_SUPPORTED(ABEL_INTERNAL_LOG(FATAL, "my dog has fleas"),
+        EXPECT_DEATH_IF_SUPPORTED(ABEL_RAW_CRITICAL("my dog has fleas"),
                                   kExpectedDeathOutput);
     }
 

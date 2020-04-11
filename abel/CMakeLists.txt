@@ -5,14 +5,15 @@ FILE(GLOB ASL_NUMERIC_SRC "asl/numeric/*.cc")
 FILE(GLOB ASL_FORMAT_SRC "asl/format/*.cc")
 FILE(GLOB ASL_HASH_SRC "asl/hash/*.cc")
 FILE(GLOB BASE_SRC "base/*.cc")
+FILE(GLOB LOG_SRC "log/*.cc")
 
 
 
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
 FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
 
-FILE(GLOB CONFIG_FLAGS_SRC "config/flags/*.cc")
-FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/flags/internal/*.cc")
+FILE(GLOB CONFIG_FLAGS_SRC "config/*.cc")
+FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/internal/*.cc")
 
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
 
@@ -50,6 +51,7 @@ SET(ABEL_SRC
         ${ASL_FORMAT_SRC}
         ${ASL_HASH_SRC}
         ${BASE_SRC}
+        ${LOG_SRC}
         ${CHRONO_SRC}
         ${CHRONO_INTERNAL_SRC}
         ${DEBUG_INTERNAL_SRC}

@@ -16,10 +16,8 @@
 #include <cstdint>
 #include <type_traits>
 #include <utility>
-
 #include <abel/asl/functional/invoke.h>
 #include <abel/thread/internal/low_level_scheduling.h>
-#include <abel/log/raw_logging.h>
 #include <abel/thread/internal/scheduling_mode.h>
 #include <abel/thread/internal/spinlock_wait.h>
 #include <abel/base/profile.h>
@@ -141,8 +139,7 @@ namespace abel {
                     old_control != kOnceRunning &&
                     old_control != kOnceWaiter &&
                     old_control != kOnceDone) {
-                    ABEL_RAW_LOG(FATAL, "Unexpected value for control word: 0x%lx",
-                                 static_cast<unsigned long>(old_control));  // NOLINT
+                    ABEL_ASSERT(false);
                 }
             }
 #endif  // NDEBUG

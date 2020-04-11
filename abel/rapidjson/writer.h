@@ -137,6 +137,13 @@ RAPIDJSON_NAMESPACE_BEGIN
             return hasRoot_ && level_stack_.Empty();
         }
 
+        bool AddNull()                 { Prefix(kNullType);   return WriteNull(); }
+        bool AddBool(bool b)           { Prefix(b ? kTrueType : kFalseType); return WriteBool(b); }
+        bool AddInt(int i)             { Prefix(kNumberType); return WriteInt(i); }
+        bool AddUint(unsigned u)       { Prefix(kNumberType); return WriteUint(u); }
+        bool AddInt64(int64_t i64)     { Prefix(kNumberType); return WriteInt64(i64); }
+        bool AddUint64(uint64_t u64)   { Prefix(kNumberType); return WriteUint64(u64); }
+
         int GetMaxDecimalPlaces() const {
             return maxDecimalPlaces_;
         }

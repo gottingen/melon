@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <test/testing/nanobenchmark.h>
 #include <abel/stats/random/engine/randen_engine.h>
 #include <abel/stats/random/engine/randen_hwaes.h>
@@ -80,8 +80,7 @@ namespace {
     void Print(const char *name, const size_t n, const Result (&results)[N],
                const size_t bytes) {
         if (n == 0) {
-            ABEL_RAW_LOG(
-                    WARNING,
+            ABEL_RAW_WARN(
                     "WARNING: Measurement failed, should not happen when using "
                     "pin_thread_to_cpu unless the region to measure takes > 1 second.\n");
             return;
@@ -126,7 +125,7 @@ namespace {
         if (argc == 2) {
             int cpu = -1;
             if (!abel::simple_atoi(argv[1], &cpu)) {
-                ABEL_RAW_LOG(FATAL, "The optional argument must be a CPU number >= 0.\n");
+                ABEL_RAW_CRITICAL("The optional argument must be a CPU number >= 0.");
             }
             pin_thread_to_cpu(cpu);
         }

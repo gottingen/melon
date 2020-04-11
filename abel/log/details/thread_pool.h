@@ -23,7 +23,7 @@ namespace abel {
 // Movable only. should never be copied
             struct async_msg {
                 async_msg_type msg_type;
-                level::level_enum level;
+                level_enum level;
                 abel::abel_time time;
                 size_t thread_id;
                 fmt::basic_memory_buffer<char, 176> raw;
