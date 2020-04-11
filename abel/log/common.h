@@ -33,7 +33,7 @@ namespace abel {
         using log_err_handler = std::function<void(const std::string &err_msg)>;
         using level_t = std::atomic<int>;
 
-        enum level_enum {
+        enum level_enum : int{
             trace = 0,
             debug = 1,
             info = 2,

@@ -151,7 +151,7 @@
 
 #include <string>
 #include <vector>
-
+#include <abel/log/log.h>
 #include <abel/asl/string_view.h>
 
 namespace abel {
@@ -244,15 +244,6 @@ namespace abel {
     ABEL_FORCE_INLINE std::string unparse_flag(const T &v) {
         return flags_internal::unparse(v);
     }
-
-// Overloads for `abel::LogSeverity` can't (easily) appear alongside that type's
-// definition because it is layered below flags.  See proper documentation in
-// base/log_severity.h.
-    enum class LogSeverity : int;
-
-    bool abel_parse_flag(abel::string_view, abel::LogSeverity *, std::string *);
-
-    std::string abel_unparse_flag(abel::LogSeverity);
 
 
 }  // namespace abel
