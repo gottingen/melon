@@ -375,6 +375,6 @@ namespace abel {
 #define ABEL_RETIRED_FLAG(type, flagname, default_value, explanation) \
   ABEL_ATTRIBUTE_UNUSED static const bool ignored_##flagname =        \
       ([] { return type(default_value); },                            \
-       abel::flags_internal::RetiredFlag<type>(#flagname))
+       abel::flags_internal::retired_flag<type>(#flagname))
 
 #endif  // ABEL_FLAGS_FLAG_H_

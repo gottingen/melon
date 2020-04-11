@@ -269,7 +269,7 @@ namespace abel {
 // back.
             void CheckDefaultValuesParsingRoundtrip() {
 #ifndef NDEBUG
-                flags_internal::ForEachFlag([&](command_line_flag *flag) {
+                flags_internal::for_each_flag([&](command_line_flag *flag) {
                     if (flag->IsRetired()) return;
 
 #define IGNORE_TYPE(T) \
@@ -420,7 +420,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-            void ResetGeneratorFlags(const std::vector<std::string> &flagfile_value) {
+            void reset_generator_flags(const std::vector<std::string> &flagfile_value) {
                 // Setting flagfile to the value which collates all the values set on a
                 // command line and programmatically. So if command line looked like
                 // --flagfile=f1 --flagfile=f2 the final value of the FLAGS_flagfile flag is
@@ -702,13 +702,13 @@ namespace abel {
 #endif
 
             if (!success) {
-                flags_internal::HandleUsageFlags(std::cout,
+                flags_internal::handle_usage_flags(std::cout,
                                                  program_usage_message());
                 std::exit(1);
             }
 
             if (usage_flag_act == UsageFlagsAction::kHandleUsage) {
-                int exit_code = flags_internal::HandleUsageFlags(
+                int exit_code = flags_internal::handle_usage_flags(
                         std::cout, program_usage_message());
 
                 if (exit_code != -1) {
@@ -716,7 +716,7 @@ namespace abel {
                 }
             }
 
-            ResetGeneratorFlags(flagfile_value);
+            reset_generator_flags(flagfile_value);
 
             // Reinstate positional args which were intermixed with flags in the arguments
             // list.

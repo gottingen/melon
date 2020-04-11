@@ -99,7 +99,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_01");
         std::stringstream test_buf;
 
-        flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
@@ -111,7 +111,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_02");
         std::stringstream test_buf;
 
-        flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
@@ -123,7 +123,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_03");
         std::stringstream test_buf;
 
-        flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_03 (usage_reporting_test_flag_03 help message);
@@ -135,7 +135,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_04");
         std::stringstream test_buf;
 
-        flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_04 (usage_reporting_test_flag_04 help message);
@@ -147,7 +147,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_05");
         std::stringstream test_buf;
 
-        flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_05 (usage_reporting_test_flag_05 help message);
@@ -180,22 +180,22 @@ namespace {
 )";
 
         std::stringstream test_buf_01;
-        flags::FlagsHelp(test_buf_01, "usage_test.cc",
+        flags::flags_help(test_buf_01, "usage_test.cc",
                          flags::HelpFormat::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_01.str(), usage_test_flags_out);
 
         std::stringstream test_buf_02;
-        flags::FlagsHelp(test_buf_02, "config/usage_test.cc",
+        flags::flags_help(test_buf_02, "config/usage_test.cc",
                          flags::HelpFormat::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_02.str(), usage_test_flags_out);
 
         std::stringstream test_buf_03;
-        flags::FlagsHelp(test_buf_03, "usage_test", flags::HelpFormat::kHumanReadable,
+        flags::flags_help(test_buf_03, "usage_test", flags::HelpFormat::kHumanReadable,
                          kTestUsageMessage);
         EXPECT_EQ(test_buf_03.str(), usage_test_flags_out);
 
         std::stringstream test_buf_04;
-        flags::FlagsHelp(test_buf_04, "config/invalid_file_name.cc",
+        flags::flags_help(test_buf_04, "config/invalid_file_name.cc",
                          flags::HelpFormat::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_04.str(),
                   R"(usage_test: Custom usage message
@@ -204,7 +204,7 @@ namespace {
 )");
 
         std::stringstream test_buf_05;
-        flags::FlagsHelp(test_buf_05, "", flags::HelpFormat::kHumanReadable,
+        flags::flags_help(test_buf_05, "", flags::HelpFormat::kHumanReadable,
                          kTestUsageMessage);
         std::string test_out = test_buf_05.str();
         abel::string_view test_out_str(test_out);
@@ -224,7 +224,7 @@ namespace {
 
     TEST_F(UsageReportingTest, TestNoUsageFlags) {
         std::stringstream test_buf;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), -1);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf, kTestUsageMessage), -1);
     }
 
 // --------------------------------------------------------------------
@@ -233,7 +233,7 @@ namespace {
         abel::set_flag(&FLAGS_helpshort, true);
 
         std::stringstream test_buf;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 1);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf, kTestUsageMessage), 1);
         EXPECT_EQ(test_buf.str(),
                   R"(usage_test: Custom usage message
 
@@ -262,7 +262,7 @@ namespace {
         abel::set_flag(&FLAGS_help, true);
 
         std::stringstream test_buf;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 1);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf, kTestUsageMessage), 1);
         EXPECT_EQ(test_buf.str(),
                   R"(usage_test: Custom usage message
 
@@ -293,7 +293,7 @@ Try --helpfull to get a list of all flags.
         abel::set_flag(&FLAGS_helppackage, true);
 
         std::stringstream test_buf;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 1);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf, kTestUsageMessage), 1);
         EXPECT_EQ(test_buf.str(),
                   R"(usage_test: Custom usage message
 
@@ -324,7 +324,7 @@ Try --helpfull to get a list of all flags.
         abel::set_flag(&FLAGS_version, true);
 
         std::stringstream test_buf;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 0);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf, kTestUsageMessage), 0);
 #ifndef NDEBUG
         EXPECT_EQ(test_buf.str(), "usage_test\nDebug build (NDEBUG not #defined)\n");
 #else
@@ -338,7 +338,7 @@ Try --helpfull to get a list of all flags.
         abel::set_flag(&FLAGS_only_check_args, true);
 
         std::stringstream test_buf;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf, kTestUsageMessage), 0);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf, kTestUsageMessage), 0);
         EXPECT_EQ(test_buf.str(), "");
     }
 
@@ -348,7 +348,7 @@ Try --helpfull to get a list of all flags.
         abel::set_flag(&FLAGS_helpon, "bla-bla");
 
         std::stringstream test_buf_01;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf_01, kTestUsageMessage), 1);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf_01, kTestUsageMessage), 1);
         EXPECT_EQ(test_buf_01.str(),
                   R"(usage_test: Custom usage message
 
@@ -358,7 +358,7 @@ Try --helpfull to get a list of all flags.
         abel::set_flag(&FLAGS_helpon, "usage_test");
 
         std::stringstream test_buf_02;
-        EXPECT_EQ(flags::HandleUsageFlags(test_buf_02, kTestUsageMessage), 1);
+        EXPECT_EQ(flags::handle_usage_flags(test_buf_02, kTestUsageMessage), 1);
         EXPECT_EQ(test_buf_02.str(),
                   R"(usage_test: Custom usage message
 

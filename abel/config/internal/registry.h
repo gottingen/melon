@@ -24,15 +24,15 @@ namespace abel {
 
 // Executes specified visitor for each non-retired flag in the registry.
 // Requires the caller hold the registry lock.
-        void ForEachFlagUnlocked(std::function<void(command_line_flag *)> visitor);
+        void for_each_flag_unlocked(std::function<void(command_line_flag *)> visitor);
 
 // Executes specified visitor for each non-retired flag in the registry. While
 // callback are executed, the registry is locked and can't be changed.
-        void ForEachFlag(std::function<void(command_line_flag *)> visitor);
+        void for_each_flag(std::function<void(command_line_flag *)> visitor);
 
 //-----------------------------------------------------------------------------
 
-        bool RegisterCommandLineFlag(command_line_flag *);
+        bool register_command_line_flag(command_line_flag *);
 
 //-----------------------------------------------------------------------------
 // Retired registrations:
@@ -71,7 +71,7 @@ namespace abel {
 
 // Registered a retired flag with name 'flag_name' and type 'T'.
         template<typename T>
-        ABEL_FORCE_INLINE bool RetiredFlag(const char *flag_name) {
+        ABEL_FORCE_INLINE bool retired_flag(const char *flag_name) {
             return flags_internal::Retire(flag_name, flags_internal::FlagOps<T>);
         }
 
@@ -101,7 +101,7 @@ namespace abel {
             void operator=(const flag_saver &) = delete;
 
             // Prevents saver from restoring the saved state of flags.
-            void Ignore();
+            void ignore();
 
         private:
             class flag_saver_impl *impl_;  // we use pimpl here to keep API steady

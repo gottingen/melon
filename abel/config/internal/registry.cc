@@ -60,7 +60,7 @@ namespace abel {
 
         private:
             friend class flag_saver_impl;  // reads all the flags in order to copy thems
-            friend void ForEachFlagUnlocked(
+            friend void for_each_flag_unlocked(
                     std::function<void(command_line_flag *)> visitor);
 
             // The map from name to flag, for find_flag_locked().
@@ -191,7 +191,7 @@ namespace abel {
             // It's an error to call this more than once.
             void SaveFromRegistry() {
                 assert(backup_registry_.empty());  // call only once!
-                flags_internal::ForEachFlag([&](flags_internal::command_line_flag *flag) {
+                flags_internal::for_each_flag([&](flags_internal::command_line_flag *flag) {
                     if (auto flag_state = flag->SaveState()) {
                         backup_registry_.emplace_back(std::move(flag_state));
                     }
@@ -212,7 +212,7 @@ namespace abel {
 
         flag_saver::flag_saver() : impl_(new flag_saver_impl) { impl_->SaveFromRegistry(); }
 
-        void flag_saver::Ignore() {
+        void flag_saver::ignore() {
             delete impl_;
             impl_ = nullptr;
         }
@@ -243,7 +243,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-        void ForEachFlagUnlocked(std::function<void(command_line_flag *)> visitor) {
+        void for_each_flag_unlocked(std::function<void(command_line_flag *)> visitor) {
             flag_registry *const registry = flag_registry::global_registry();
             for (flag_registry::FlagConstIterator i = registry->flags_.begin();
                  i != registry->flags_.end(); ++i) {
@@ -251,15 +251,15 @@ namespace abel {
             }
         }
 
-        void ForEachFlag(std::function<void(command_line_flag *)> visitor) {
+        void for_each_flag(std::function<void(command_line_flag *)> visitor) {
             flag_registry *const registry = flag_registry::global_registry();
             flag_registry_lock frl(registry);
-            ForEachFlagUnlocked(visitor);
+            for_each_flag_unlocked(visitor);
         }
 
 // --------------------------------------------------------------------
 
-        bool RegisterCommandLineFlag(command_line_flag *flag) {
+        bool register_command_line_flag(command_line_flag *flag) {
             flag_registry::global_registry()->register_flag(flag);
             return true;
         }

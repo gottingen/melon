@@ -106,11 +106,11 @@ namespace abel {
 // --------------------------------------------------------------------
 // Helper class to pretty-print info about a flag.
 
-            class FlagHelpPrettyPrinter {
+            class flag_help_pretty_printer {
             public:
                 // Pretty printer holds on to the std::ostream& reference to direct an output
                 // to that stream.
-                FlagHelpPrettyPrinter(int max_line_len, std::ostream *out)
+                flag_help_pretty_printer(int max_line_len, std::ostream *out)
                         : out_(*out),
                           max_line_len_(max_line_len),
                           line_len_(0),
@@ -189,7 +189,7 @@ namespace abel {
 
             void FlagHelpHumanReadable(const flags_internal::command_line_flag &flag,
                                        std::ostream *out) {
-                FlagHelpPrettyPrinter printer(80, out);  // Max line length is 80.
+                flag_help_pretty_printer printer(80, out);  // Max line length is 80.
 
                 // Flag name.
                 printer.Write(abel::string_cat("--", flag.Name()));
@@ -257,7 +257,7 @@ namespace abel {
                                 std::vector<const flags_internal::command_line_flag *>>>
                         matching_flags;
 
-                flags_internal::ForEachFlag([&](flags_internal::command_line_flag *flag) {
+                flags_internal::for_each_flag([&](flags_internal::command_line_flag *flag) {
                     std::string flag_filename = flag->Filename();
 
                     // Ignore retired flags.
@@ -292,7 +292,7 @@ namespace abel {
                         }
 
                         for (const auto *flag : flags_in_file.second) {
-                            flags_internal::FlagHelp(out, *flag, format);
+                            flags_internal::flag_help(out, *flag, format);
                         }
                     }
                 }
@@ -311,7 +311,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 // Produces the help message describing specific flag.
-        void FlagHelp(std::ostream &out, const flags_internal::command_line_flag &flag,
+        void flag_help(std::ostream &out, const flags_internal::command_line_flag &flag,
                       HelpFormat format) {
             if (format == HelpFormat::kHumanReadable)
                 flags_internal::FlagHelpHumanReadable(flag, &out);
@@ -320,7 +320,7 @@ namespace abel {
 // --------------------------------------------------------------------
 // Produces the help messages for all flags matching the filter.
 // If filter is empty produces help messages for all flags.
-        void FlagsHelp(std::ostream &out, abel::string_view filter, HelpFormat format,
+        void flags_help(std::ostream &out, abel::string_view filter, HelpFormat format,
                        abel::string_view program_usage_message) {
             flags_internal::flag_kind_filter filter_cb = [&](abel::string_view filename) {
                 return filter.empty() || filename.find(filter) != abel::string_view::npos;
@@ -331,7 +331,7 @@ namespace abel {
 // --------------------------------------------------------------------
 // Checks all the 'usage' command line flags to see if any have been set.
 // If so, handles them appropriately.
-        int HandleUsageFlags(std::ostream &out,
+        int handle_usage_flags(std::ostream &out,
                              abel::string_view program_usage_message) {
             if (abel::get_flag(FLAGS_helpshort)) {
                 flags_internal::FlagsHelpImpl(
@@ -342,20 +342,20 @@ namespace abel {
 
             if (abel::get_flag(FLAGS_helpfull)) {
                 // show all options
-                flags_internal::FlagsHelp(out, "", HelpFormat::kHumanReadable,
+                flags_internal::flags_help(out, "", HelpFormat::kHumanReadable,
                                           program_usage_message);
                 return 1;
             }
 
             if (!abel::get_flag(FLAGS_helpon).empty()) {
-                flags_internal::FlagsHelp(
+                flags_internal::flags_help(
                         out, abel::string_cat("/", abel::get_flag(FLAGS_helpon), "."),
                         HelpFormat::kHumanReadable, program_usage_message);
                 return 1;
             }
 
             if (!abel::get_flag(FLAGS_helpmatch).empty()) {
-                flags_internal::FlagsHelp(out, abel::get_flag(FLAGS_helpmatch),
+                flags_internal::flags_help(out, abel::get_flag(FLAGS_helpmatch),
                                           HelpFormat::kHumanReadable,
                                           program_usage_message);
                 return 1;

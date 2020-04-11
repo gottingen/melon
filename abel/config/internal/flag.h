@@ -414,7 +414,7 @@ namespace abel {
         class FlagRegistrar {
         public:
             explicit FlagRegistrar(Flag<T> *flag) : flag_(flag) {
-                if (do_register) flags_internal::RegisterCommandLineFlag(flag_);
+                if (do_register) flags_internal::register_command_line_flag(flag_);
             }
 
             FlagRegistrar &OnUpdate(flags_internal::FlagCallback cb) &&{
