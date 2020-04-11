@@ -12,7 +12,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/log/raw_logging.h>
 #include <abel/base/profile.h>
 #include <abel/asl/btree_map.h>
 #include <abel/asl/btree_set.h>

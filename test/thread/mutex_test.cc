@@ -18,7 +18,7 @@
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/system/sysinfo.h>
 #include <abel/memory/memory.h>
 #include <abel/thread/internal/thread_pool.h>
