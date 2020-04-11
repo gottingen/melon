@@ -83,8 +83,8 @@ namespace abel {
 #if _MSC_VER <= 1900
       constexpr Flag(const char* name, const char* filename,
                      const flags_internal::flag_marshalling_op_fn marshalling_op,
-                     const flags_internal::HelpGenFunc help_gen,
-                     const flags_internal::FlagDfltGenFunc default_value_gen)
+                     const flags_internal::help_gen_func help_gen,
+                     const flags_internal::flag_dflt_gen_func default_value_gen)
           : name_(name),
             filename_(filename),
             marshalling_op_(marshalling_op),
@@ -104,8 +104,8 @@ namespace abel {
 
           impl_ = new flags_internal::Flag<T>(
               name_, filename_, marshalling_op_,
-              {flags_internal::FlagHelpSrc(help_gen_),
-               flags_internal::FlagHelpSrcKind::kGenFunc},
+              {flags_internal::flag_help_src(help_gen_),
+               flags_internal::flag_help_src_kind::kGenFunc},
               default_value_gen_);
           inited_.store(true, std::memory_order_release);
         }
@@ -143,8 +143,8 @@ namespace abel {
       const char* name_;
       const char* filename_;
       const flags_internal::flag_marshalling_op_fn marshalling_op_;
-      const flags_internal::HelpGenFunc help_gen_;
-      const flags_internal::FlagDfltGenFunc default_value_gen_;
+      const flags_internal::help_gen_func help_gen_;
+      const flags_internal::flag_dflt_gen_func default_value_gen_;
 
       mutable std::atomic<bool> inited_;
       mutable flags_internal::Flag<T>* impl_;
@@ -301,14 +301,14 @@ namespace abel {
 
 // AbelFlagHelpGenFor##name is used to encapsulate both immediate (method Const)
 // and lazy (method NonConst) evaluation of help message expression. We choose
-// between the two via the call to HelpArg in abel::Flag instantiation below.
+// between the two via the call to help_arg in abel::Flag instantiation below.
 // If help message expression is constexpr evaluable compiler will optimize
 // away this whole struct.
 #define ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, txt)                     \
   struct AbelFlagHelpGenFor##name {                                        \
     template <typename T = void>                                           \
     static constexpr const char* Const() {                                 \
-      return abel::flags_internal::HelpConstexprWrap(                      \
+      return abel::flags_internal::help_constexpr_wrap(                      \
           ABEL_FLAG_IMPL_FLAGHELP(txt));                                   \
     }                                                                      \
     static std::string NonConst() { return ABEL_FLAG_IMPL_FLAGHELP(txt); } \
@@ -332,7 +332,7 @@ namespace abel {
   ABEL_CONST_INIT abel::Flag<Type> FLAGS_##name{                    \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),    \
       &abel::flags_internal::flag_marshalling_ops<Type>,              \
-      abel::flags_internal::HelpArg<AbelFlagHelpGenFor##name>(0),   \
+      abel::flags_internal::help_arg<AbelFlagHelpGenFor##name>(0),   \
       &AbelFlagsInitFlag##name};                                    \
   extern bool FLAGS_no##name;                                       \
   bool FLAGS_no##name = ABEL_FLAG_IMPL_REGISTRAR(Type, FLAGS_##name)

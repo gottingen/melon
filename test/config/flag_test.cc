@@ -27,8 +27,8 @@ namespace {
 
     template<typename T>
     bool TestConstructionFor() {
-        constexpr flags::HelpInitArg help_arg{flags::FlagHelpSrc("literal help"),
-                                              flags::FlagHelpSrcKind::kLiteral};
+        constexpr flags::help_init_arg help_arg{flags::flag_help_src("literal help"),
+                                              flags::flag_help_src_kind::kLiteral};
         constexpr flags::Flag<T> f1("f1", "file", &flags::flag_marshalling_ops<T>,
                                     help_arg, &TestMakeDflt<T>);
         EXPECT_EQ(f1.name(), "f1");
@@ -37,7 +37,7 @@ namespace {
 
         ABEL_CONST_INIT static flags::Flag<T> f2(
                 "f2", "file", &flags::flag_marshalling_ops<T>,
-                {flags::FlagHelpSrc(&TestHelpMsg), flags::FlagHelpSrcKind::kGenFunc},
+                {flags::flag_help_src(&TestHelpMsg), flags::flag_help_src_kind::kGenFunc},
                 &TestMakeDflt<T>);
         flags::flag_registrar<T, false>(&f2).on_update(TestCallback);
 

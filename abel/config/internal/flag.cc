@@ -55,7 +55,7 @@ namespace abel {
 
         }  // namespace
 
-        void FlagImpl::Init() {
+        void flag_impl::init() {
             {
                 abel::mutex_lock lock(&flag_mutex_lifetime_guard);
 
@@ -72,33 +72,33 @@ namespace abel {
                 inited_.store(true, std::memory_order_release);
             } else {
                 // Need to initialize cur field.
-                cur_ = MakeInitValue().release();
-                StoreAtomic();
+                cur_ = make_init_value().release();
+                store_atomic();
                 inited_.store(true, std::memory_order_release);
-                InvokeCallback();
+                invoke_callback();
             }
         }
 
 // Ensures that the lazily initialized data is initialized,
 // and returns pointer to the mutex guarding flags data.
-        abel::mutex *FlagImpl::DataGuard() const {
+        abel::mutex *flag_impl::data_guard() const {
             if (ABEL_UNLIKELY(!inited_.load(std::memory_order_acquire))) {
-                const_cast<FlagImpl *>(this)->Init();
+                const_cast<flag_impl *>(this)->init();
             }
 
             // data_guard_ is initialized.
             return reinterpret_cast<abel::mutex *>(&data_guard_);
         }
 
-        void FlagImpl::Destroy() {
+        void flag_impl::destroy() {
             {
-                abel::mutex_lock l(DataGuard());
+                abel::mutex_lock l(data_guard());
 
                 // Values are heap allocated for abel Flags.
                 if (cur_) remove(op_, cur_);
 
                 // Release the dynamically allocated default value if any.
-                if (def_kind_ == FlagDefaultSrcKind::kDynamicValue) {
+                if (def_kind_ == flag_dfault_src_kind::kDynamicValue) {
                     remove(op_, default_src_.dynamic_value);
                 }
 
@@ -107,67 +107,67 @@ namespace abel {
             }
 
             abel::mutex_lock l(&flag_mutex_lifetime_guard);
-            DataGuard()->~mutex();
+            data_guard()->~mutex();
             is_data_guard_inited_ = false;
         }
 
-        std::unique_ptr<void, DynValueDeleter> FlagImpl::MakeInitValue() const {
+        std::unique_ptr<void, dyn_value_deleter> flag_impl::make_init_value() const {
             void *res = nullptr;
-            if (def_kind_ == FlagDefaultSrcKind::kDynamicValue) {
+            if (def_kind_ == flag_dfault_src_kind::kDynamicValue) {
                 res = clone(op_, default_src_.dynamic_value);
             } else {
                 res = (*default_src_.gen_func)();
             }
-            return {res, DynValueDeleter{op_}};
+            return {res, dyn_value_deleter{op_}};
         }
 
-        abel::string_view FlagImpl::Name() const { return name_; }
+        abel::string_view flag_impl::name() const { return name_; }
 
-        std::string FlagImpl::Filename() const {
+        std::string flag_impl::file_name() const {
             return flags_internal::get_usage_config().normalize_filename(filename_);
         }
 
-        std::string FlagImpl::Help() const {
-            return help_source_kind_ == FlagHelpSrcKind::kLiteral ? help_.literal
+        std::string flag_impl::help() const {
+            return help_source_kind_ == flag_help_src_kind::kLiteral ? help_.literal
                                                                   : help_.gen_func();
         }
 
-        bool FlagImpl::is_modified() const {
-            abel::mutex_lock l(DataGuard());
+        bool flag_impl::is_modified() const {
+            abel::mutex_lock l(data_guard());
             return modified_;
         }
 
-        bool FlagImpl::is_specified_on_command_line() const {
-            abel::mutex_lock l(DataGuard());
+        bool flag_impl::is_specified_on_command_line() const {
+            abel::mutex_lock l(data_guard());
             return on_command_line_;
         }
 
-        std::string FlagImpl::DefaultValue() const {
-            abel::mutex_lock l(DataGuard());
+        std::string flag_impl::default_value() const {
+            abel::mutex_lock l(data_guard());
 
-            auto obj = MakeInitValue();
+            auto obj = make_init_value();
             return unparse(marshalling_op_, obj.get());
         }
 
-        std::string FlagImpl::CurrentValue() const {
-            abel::mutex_lock l(DataGuard());
+        std::string flag_impl::current_value() const {
+            abel::mutex_lock l(data_guard());
 
             return unparse(marshalling_op_, cur_);
         }
 
-        void FlagImpl::SetCallback(
+        void flag_impl::set_callback(
                 const flags_internal::flag_callback mutation_callback) {
-            abel::mutex_lock l(DataGuard());
+            abel::mutex_lock l(data_guard());
 
             if (callback_data_ == nullptr) {
                 callback_data_ = new callback_data;
             }
             callback_data_->func = mutation_callback;
 
-            InvokeCallback();
+            invoke_callback();
         }
 
-        void FlagImpl::InvokeCallback() const {
+        void flag_impl::invoke_callback() const {
             if (!callback_data_) return;
 
             // Make a copy of the C-style function pointer that we are about to invoke
@@ -185,23 +185,23 @@ namespace abel {
             // and it also can be different by the time the callback invocation is
             // completed. Requires that *primary_lock be held in exclusive mode; it may be
             // released and reacquired by the implementation.
-            MutexRelock relock(DataGuard());
+            MutexRelock relock(data_guard());
             abel::mutex_lock lock(&callback_data_->guard);
             cb();
         }
 
-        bool FlagImpl::restore_state(const void *value, bool modified,
+        bool flag_impl::restore_state(const void *value, bool modified,
                                     bool on_command_line, int64_t counter) {
             {
-                abel::mutex_lock l(DataGuard());
+                abel::mutex_lock l(data_guard());
 
                 if (counter_ == counter) return false;
             }
 
-            Write(value, op_);
+            write(value, op_);
 
             {
-                abel::mutex_lock l(DataGuard());
+                abel::mutex_lock l(data_guard());
 
                 modified_ = modified;
                 on_command_line_ = on_command_line;
@@ -214,15 +214,15 @@ namespace abel {
 // argument. If parsing successful, this function replaces the dst with newly
 // parsed value. In case if any error is encountered in either step, the error
 // message is stored in 'err'
-        bool FlagImpl::TryParse(void **dst, abel::string_view value,
+        bool flag_impl::try_parse(void **dst, abel::string_view value,
                                 std::string *err) const {
-            auto tentative_value = MakeInitValue();
+            auto tentative_value = make_init_value();
 
             std::string parse_err;
             if (!parse(marshalling_op_, value, tentative_value.get(), &parse_err)) {
                 abel::string_view err_sep = parse_err.empty() ? "" : "; ";
                 *err = abel::string_cat("Illegal value '", value, "' specified for flag '",
-                                        Name(), "'", err_sep, parse_err);
+                                        name(), "'", err_sep, parse_err);
                 return false;
             }
 
@@ -233,8 +233,8 @@ namespace abel {
             return true;
         }
 
-        void FlagImpl::Read(void *dst, const flags_internal::flag_op_fn dst_op) const {
-            abel::reader_mutex_lock l(DataGuard());
+        void flag_impl::read(void *dst, const flags_internal::flag_op_fn dst_op) const {
+            abel::reader_mutex_lock l(data_guard());
 
             // `dst_op` is the unmarshaling operation corresponding to the declaration
             // visibile at the call site. `op` is the Flag's defined unmarshalling
@@ -242,13 +242,13 @@ namespace abel {
             if (ABEL_UNLIKELY(dst_op != op_)) {
                 ABEL_INTERNAL_LOG(
                         ERROR,
-                        abel::string_cat("Flag '", Name(),
+                        abel::string_cat("Flag '", name(),
                                          "' is defined as one type and declared as another"));
             }
             copy_construct(op_, cur_, dst);
         }
 
-        void FlagImpl::StoreAtomic() {
+        void flag_impl::store_atomic() {
             size_t data_size = size_of(op_);
 
             if (data_size <= sizeof(int64_t)) {
@@ -258,8 +258,8 @@ namespace abel {
             }
         }
 
-        void FlagImpl::Write(const void *src, const flags_internal::flag_op_fn src_op) {
-            abel::mutex_lock l(DataGuard());
+        void flag_impl::write(const void *src, const flags_internal::flag_op_fn src_op) {
+            abel::mutex_lock l(data_guard());
 
             // `src_op` is the marshalling operation corresponding to the declaration
             // visible at the call site. `op` is the Flag's defined marshalling operation.
@@ -267,7 +267,7 @@ namespace abel {
             if (ABEL_UNLIKELY(src_op != op_)) {
                 ABEL_INTERNAL_LOG(
                         ERROR,
-                        abel::string_cat("Flag '", Name(),
+                        abel::string_cat("Flag '", name(),
                                          "' is defined as one type and declared as another"));
             }
 
@@ -276,7 +276,7 @@ namespace abel {
                 std::string ignored_error;
                 std::string src_as_str = unparse(marshalling_op_, src);
                 if (!parse(marshalling_op_, src_as_str, obj, &ignored_error)) {
-                    ABEL_INTERNAL_LOG(ERROR, abel::string_cat("Attempt to set flag '", Name(),
+                    ABEL_INTERNAL_LOG(ERROR, abel::string_cat("Attempt to set flag '", name(),
                                                               "' to invalid value ", src_as_str));
                 }
                 remove(op_, obj);
@@ -286,8 +286,8 @@ namespace abel {
             counter_++;
             copy(op_, src, cur_);
 
-            StoreAtomic();
-            InvokeCallback();
+            store_atomic();
+            invoke_callback();
         }
 
 // Sets the value of the flag based on specified string `value`. If the flag
@@ -298,18 +298,18 @@ namespace abel {
 //  * Update the flag's default value
 //  * Update the current flag value if it was never set before
 // The mode is selected based on 'set_mode' parameter.
-        bool FlagImpl::set_from_string(abel::string_view value, flag_setting_mode set_mode,
+        bool flag_impl::set_from_string(abel::string_view value, flag_setting_mode set_mode,
                                      value_source source, std::string *err) {
-            abel::mutex_lock l(DataGuard());
+            abel::mutex_lock l(data_guard());
 
             switch (set_mode) {
                 case SET_FLAGS_VALUE: {
                     // set or modify the flag's value
-                    if (!TryParse(&cur_, value, err)) return false;
+                    if (!try_parse(&cur_, value, err)) return false;
                     modified_ = true;
                     counter_++;
-                    StoreAtomic();
-                    InvokeCallback();
+                    store_atomic();
+                    invoke_callback();
 
                     if (source == kCommandLine) {
                         on_command_line_ = true;
@@ -319,11 +319,11 @@ namespace abel {
                 case SET_FLAG_IF_DEFAULT: {
                     // set the flag's value, but only if it hasn't been set by someone else
                     if (!modified_) {
-                        if (!TryParse(&cur_, value, err)) return false;
+                        if (!try_parse(&cur_, value, err)) return false;
                         modified_ = true;
                         counter_++;
-                        StoreAtomic();
-                        InvokeCallback();
+                        store_atomic();
+                        invoke_callback();
                     } else {
                         // TODO(rogeeff): review and fix this semantic. Currently we do not fail
                         // in this case if flag is modified. This is misleading since the flag's
@@ -336,25 +336,25 @@ namespace abel {
                     break;
                 }
                 case SET_FLAGS_DEFAULT: {
-                    if (def_kind_ == FlagDefaultSrcKind::kDynamicValue) {
-                        if (!TryParse(&default_src_.dynamic_value, value, err)) {
+                    if (def_kind_ == flag_dfault_src_kind::kDynamicValue) {
+                        if (!try_parse(&default_src_.dynamic_value, value, err)) {
                             return false;
                         }
                     } else {
                         void *new_default_val = nullptr;
-                        if (!TryParse(&new_default_val, value, err)) {
+                        if (!try_parse(&new_default_val, value, err)) {
                             return false;
                         }
 
                         default_src_.dynamic_value = new_default_val;
-                        def_kind_ = FlagDefaultSrcKind::kDynamicValue;
+                        def_kind_ = flag_dfault_src_kind::kDynamicValue;
                     }
 
                     if (!modified_) {
                         // Need to set both default value *and* current, in this case
                         copy(op_, default_src_.dynamic_value, cur_);
-                        StoreAtomic();
-                        InvokeCallback();
+                        store_atomic();
+                        invoke_callback();
                     }
                     break;
                 }
@@ -363,17 +363,17 @@ namespace abel {
             return true;
         }
 
-        void FlagImpl::check_default_value_parsing_roundtrip() const {
-            std::string v = DefaultValue();
+        void flag_impl::check_default_value_parsing_roundtrip() const {
+            std::string v = default_value();
 
-            abel::mutex_lock lock(DataGuard());
+            abel::mutex_lock lock(data_guard());
 
-            auto dst = MakeInitValue();
+            auto dst = make_init_value();
             std::string error;
             if (!flags_internal::parse(marshalling_op_, v, dst.get(), &error)) {
                 ABEL_INTERNAL_LOG(
                         FATAL,
-                        abel::string_cat("Flag ", Name(), " (from ", Filename(),
+                        abel::string_cat("Flag ", name(), " (from ", file_name(),
                                          "): std::string form of default value '", v,
                                          "' could not be parsed; error=", error));
             }
@@ -382,10 +382,10 @@ namespace abel {
             // small changes, e.g., precision loss for floating point types.
         }
 
-        bool FlagImpl::validate_input_value(abel::string_view value) const {
-            abel::mutex_lock l(DataGuard());
+        bool flag_impl::validate_input_value(abel::string_view value) const {
+            abel::mutex_lock l(data_guard());
 
-            auto obj = MakeInitValue();
+            auto obj = make_init_value();
             std::string ignored_error;
             return flags_internal::parse(marshalling_op_, value, obj.get(),
                                          &ignored_error);
