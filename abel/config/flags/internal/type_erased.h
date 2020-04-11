@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include <abel/config/flags/internal/commandlineflag.h>
+#include <abel/config/flags/internal/command_line_flag.h>
 #include <abel/config/flags/internal/registry.h>
 
 // --------------------------------------------------------------------

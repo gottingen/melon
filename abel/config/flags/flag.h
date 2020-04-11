@@ -20,7 +20,7 @@
 #include <abel/math/bit_cast.h>
 #include <abel/config/flags/config.h>
 #include <abel/config/flags/declare.h>
-#include <abel/config/flags/internal/commandlineflag.h>
+#include <abel/config/flags/internal/command_line_flag.h>
 #include <abel/config/flags/internal/flag.h>
 #include <abel/config/flags/marshalling.h>
 

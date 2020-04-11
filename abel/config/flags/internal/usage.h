@@ -7,7 +7,7 @@
 #include <string>
 
 #include <abel/config/flags/declare.h>
-#include <abel/config/flags/internal/commandlineflag.h>
+#include <abel/config/flags/internal/command_line_flag.h>
 #include <abel/asl/string_view.h>
 
 // --------------------------------------------------------------------

@@ -9,7 +9,7 @@
 #include <string>
 
 #include <abel/base/profile.h>
-#include <abel/config/flags/internal/commandlineflag.h>
+#include <abel/config/flags/internal/command_line_flag.h>
 
 // --------------------------------------------------------------------
 // Global flags registry API.
