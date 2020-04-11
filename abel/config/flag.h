@@ -40,6 +40,7 @@ namespace abel {
 
     void visit_flags(const flag_visitor &fv);
 
+
 // abel_flag
 //
 // An `abel::abel_flag` holds a command-line flag value, providing a runtime
