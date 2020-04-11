@@ -1,11 +1,11 @@
 //
 //
 
-#include <abel/config/flags/internal/type_erased.h>
+#include <abel/config/internal/type_erased.h>
 
 #include <abel/log/raw_logging.h>
-#include <abel/config/flags/config.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/config.h>
+#include <abel/config/usage_config.h>
 #include <abel/strings/str_cat.h>
 
 namespace abel {

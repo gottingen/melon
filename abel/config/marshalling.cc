@@ -1,6 +1,6 @@
 //
 
-#include <abel/config/flags/marshalling.h>
+#include <abel/config/marshalling.h>
 
 #include <limits>
 #include <type_traits>

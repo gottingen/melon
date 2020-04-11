@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <abel/config/flags/declare.h>
+#include <abel/config/declare.h>
 
 ABEL_DECLARE_FLAG(std::vector<std::string>, flagfile);
 ABEL_DECLARE_FLAG(std::vector<std::string>, fromenv);

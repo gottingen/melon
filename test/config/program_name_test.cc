@@ -1,6 +1,6 @@
 //
 
-#include <abel/config/flags/internal/program_name.h>
+#include <abel/config/internal/program_name.h>
 #include <abel/strings/ends_with.h>
 #include <gtest/gtest.h>
 

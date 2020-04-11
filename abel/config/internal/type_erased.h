@@ -6,8 +6,8 @@
 
 #include <string>
 
-#include <abel/config/flags/internal/command_line_flag.h>
-#include <abel/config/flags/internal/registry.h>
+#include <abel/config/internal/command_line_flag.h>
+#include <abel/config/internal/registry.h>
 
 // --------------------------------------------------------------------
 // Registry interfaces operating on type erased handles.

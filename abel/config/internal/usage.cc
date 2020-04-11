@@ -1,15 +1,15 @@
 //
 //
 
-#include <abel/config/flags/internal/usage.h>
+#include <abel/config/internal/usage.h>
 
 #include <map>
 #include <string>
 
-#include <abel/config/flags/flag.h>
-#include <abel/config/flags/internal/path_util.h>
-#include <abel/config/flags/internal/program_name.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/flag.h>
+#include <abel/config/internal/path_util.h>
+#include <abel/config/internal/program_name.h>
+#include <abel/config/usage_config.h>
 #include <abel/asl/ascii.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>

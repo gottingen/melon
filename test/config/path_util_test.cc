@@ -1,6 +1,6 @@
 //
 
-#include <abel/config/flags/internal/path_util.h>
+#include <abel/config/internal/path_util.h>
 
 #include <gtest/gtest.h>
 

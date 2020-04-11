@@ -8,8 +8,8 @@
 #include <cstring>
 
 #include <abel/thread/thread_annotations.h>
-#include <abel/config/flags/internal/command_line_flag.h>
-#include <abel/config/flags/internal/registry.h>
+#include <abel/config/internal/command_line_flag.h>
+#include <abel/config/internal/registry.h>
 #include <abel/memory/memory.h>
 #include <abel/strings/str_cat.h>
 #include <abel/thread/mutex.h>

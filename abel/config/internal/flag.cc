@@ -1,10 +1,10 @@
 //
 //
 
-#include <abel/config/flags/internal/flag.h>
+#include <abel/config/internal/flag.h>
 
 #include <abel/base/profile.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/usage_config.h>
 #include <abel/thread/mutex.h>
 
 namespace abel {

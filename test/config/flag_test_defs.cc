@@ -3,8 +3,8 @@
 // This file is used to test the mismatch of the flag type between definition
 // and declaration. These are definitions. flag_test.cc contains declarations.
 #include <string>
-#include <abel/config/flags/flag.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
+#include <abel/config/flag.h>
 
 ABEL_FLAG(int, mistyped_int_flag, 0, "");
 ABEL_FLAG(std::string, mistyped_string_flag, "", "");

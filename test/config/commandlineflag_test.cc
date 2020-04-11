@@ -1,12 +1,12 @@
 //
 
-#include <abel/config/flags/internal/command_line_flag.h>
+#include <abel/config/internal/command_line_flag.h>
 #include <algorithm>
 #include <string>
 #include <gtest/gtest.h>
-#include <abel/config/flags/flag.h>
-#include <abel/config/flags/internal/registry.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/flag.h>
+#include <abel/config/internal/registry.h>
+#include <abel/config/usage_config.h>
 #include <abel/memory/memory.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/ends_with.h>

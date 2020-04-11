@@ -18,11 +18,11 @@
 
 #include <abel/base/profile.h>
 #include <abel/math/bit_cast.h>
-#include <abel/config/flags/config.h>
-#include <abel/config/flags/declare.h>
-#include <abel/config/flags/internal/command_line_flag.h>
-#include <abel/config/flags/internal/flag.h>
-#include <abel/config/flags/marshalling.h>
+#include <abel/config/config.h>
+#include <abel/config/declare.h>
+#include <abel/config/internal/command_line_flag.h>
+#include <abel/config/internal/flag.h>
+#include <abel/config/marshalling.h>
 
 namespace abel {
 

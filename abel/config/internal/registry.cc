@@ -1,12 +1,12 @@
 //
 //
 
-#include <abel/config/flags/internal/registry.h>
+#include <abel/config/internal/registry.h>
 
 #include <abel/thread/dynamic_annotations.h>
 #include <abel/log/raw_logging.h>
-#include <abel/config/flags/config.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/config.h>
+#include <abel/config/usage_config.h>
 #include <abel/strings/str_cat.h>
 #include <abel/asl/string_view.h>
 #include <abel/thread/mutex.h>

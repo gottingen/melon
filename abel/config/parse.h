@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include <abel/config/flags/internal/parse.h>
+#include <abel/config/internal/parse.h>
 
 namespace abel {
 

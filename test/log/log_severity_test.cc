@@ -11,7 +11,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <abel/config/flags/marshalling.h>
+#include <abel/config/marshalling.h>
 #include <abel/strings/str_cat.h>
 
 namespace {

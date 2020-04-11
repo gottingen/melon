@@ -1,10 +1,10 @@
 //
 //
-#include <abel/config/flags/usage.h>
+#include <abel/config/usage.h>
 
 #include <string>
 
-#include <abel/config/flags/internal/usage.h>
+#include <abel/config/internal/usage.h>
 #include <abel/thread/mutex.h>
 
 

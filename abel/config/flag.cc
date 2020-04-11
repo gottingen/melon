@@ -1,6 +1,6 @@
 //
 
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 
 #include <cstring>
 

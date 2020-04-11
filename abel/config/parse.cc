@@ -1,7 +1,7 @@
 //
 //
 
-#include <abel/config/flags/parse.h>
+#include <abel/config/parse.h>
 
 #include <stdlib.h>
 
@@ -13,12 +13,12 @@
 #include <windows.h>
 #endif
 
-#include <abel/config/flags/flag.h>
-#include <abel/config/flags/internal/program_name.h>
-#include <abel/config/flags/internal/registry.h>
-#include <abel/config/flags/internal/usage.h>
-#include <abel/config/flags/usage.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/flag.h>
+#include <abel/config/internal/program_name.h>
+#include <abel/config/internal/registry.h>
+#include <abel/config/internal/usage.h>
+#include <abel/config/usage.h>
+#include <abel/config/usage_config.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/strip.h>
 #include <abel/strings/trim.h>

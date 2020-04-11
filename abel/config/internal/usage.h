@@ -6,8 +6,8 @@
 #include <iosfwd>
 #include <string>
 
-#include <abel/config/flags/declare.h>
-#include <abel/config/flags/internal/command_line_flag.h>
+#include <abel/config/declare.h>
+#include <abel/config/internal/command_line_flag.h>
 #include <abel/asl/string_view.h>
 
 // --------------------------------------------------------------------

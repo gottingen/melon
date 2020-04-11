@@ -7,7 +7,7 @@
 #include <memory>
 
 #include <abel/base/profile.h>
-#include <abel/config/flags/marshalling.h>
+#include <abel/config/marshalling.h>
 #include <abel/asl/optional.h>
 
 namespace abel {

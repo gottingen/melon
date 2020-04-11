@@ -1,10 +1,10 @@
 //
 
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/usage_config.h>
 
 #include <gtest/gtest.h>
-#include <abel/config/flags/internal/path_util.h>
-#include <abel/config/flags/internal/program_name.h>
+#include <abel/config/internal/path_util.h>
+#include <abel/config/internal/program_name.h>
 #include <abel/strings/starts_with.h>
 #include <abel/strings/ends_with.h>
 

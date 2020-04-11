@@ -1,11 +1,11 @@
 //
 
-#include <abel/config/flags/internal/type_erased.h>
+#include <abel/config/internal/type_erased.h>
 
 #include <cmath>
 
 #include <gtest/gtest.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <abel/memory/memory.h>
 #include <abel/strings/str_cat.h>
 

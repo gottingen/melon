@@ -1,7 +1,7 @@
 //
 //
 
-#include <abel/config/flags/parse.h>
+#include <abel/config/parse.h>
 
 #include <fstream>
 
@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 #include <abel/log/raw_logging.h>
 #include <abel/system/scoped_set_env.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/substitute.h>
 #include <abel/asl/span.h>

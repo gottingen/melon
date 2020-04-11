@@ -1,10 +1,10 @@
 //
 
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <algorithm>
 #include <string>
 #include <gtest/gtest.h>
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/usage_config.h>
 #include <abel/strings/numbers.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/str_split.h>

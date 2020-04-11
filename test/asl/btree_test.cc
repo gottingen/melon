@@ -18,7 +18,7 @@
 #include <abel/asl/btree_set.h>
 #include <abel/asl/container/counting_allocator.h>
 #include <testing/test_instance_tracker.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 #include <testing/hash_testing.h>
 #include <abel/memory/memory.h>
 #include <abel/asl/type_traits.h>

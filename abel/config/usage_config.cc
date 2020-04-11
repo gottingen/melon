@@ -1,13 +1,13 @@
 //
 
-#include <abel/config/flags/usage_config.h>
+#include <abel/config/usage_config.h>
 
 #include <iostream>
 #include <memory>
 
 #include <abel/base/profile.h>
-#include <abel/config/flags/internal/path_util.h>
-#include <abel/config/flags/internal/program_name.h>
+#include <abel/config/internal/path_util.h>
+#include <abel/config/internal/program_name.h>
 #include <abel/strings/str_cat.h>
 #include <abel/strings/strip.h>
 #include <abel/thread/mutex.h>

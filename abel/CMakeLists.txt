@@ -11,8 +11,8 @@ FILE(GLOB BASE_SRC "base/*.cc")
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
 FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
 
-FILE(GLOB CONFIG_FLAGS_SRC "config/flags/*.cc")
-FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/flags/internal/*.cc")
+FILE(GLOB CONFIG_FLAGS_SRC "config/*.cc")
+FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/internal/*.cc")
 
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
 

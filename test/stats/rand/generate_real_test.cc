@@ -8,7 +8,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <abel/config/flags/flag.h>
+#include <abel/config/flag.h>
 
 ABEL_FLAG(int64_t, abel_random_test_trials, 50000,
           "Number of trials for the probability tests.");
