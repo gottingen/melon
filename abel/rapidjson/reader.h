@@ -803,6 +803,12 @@ concept Handler {
                 ++length_;
             }
 
+            RAPIDJSON_FORCEINLINE void Puts(Ch* str, SizeType length) {
+                Ch* pos = stack_.template Push<Ch>(length);
+                memcpy(pos, str, length);
+                length_ += length;
+            }
+
             RAPIDJSON_FORCEINLINE void *Push(SizeType count) {
                 length_ += count;
                 return stack_.template Push<Ch>(count);
@@ -852,6 +858,15 @@ concept Handler {
             }
             if (RAPIDJSON_UNLIKELY(!success))
                 RAPIDJSON_PARSE_ERROR(kParseErrorTermination, s.Tell());
+        }
+
+        template<typename OutputStream>
+        inline void PushContentToStream(OutputStream& os, Ch*& start, size_t& length) {
+            if (length > 0) {
+                os.Puts(start, length);
+                start = NULL;
+                length = 0;
+            }
         }
 
         // Parse string to an output is

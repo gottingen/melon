@@ -1,5 +1,7 @@
 # abel - c++ base library
 
+[中文版](/README-cn.md)
+
 abel is an open-source collection of c++ library code. it designed to use c++ smartly.
 
 ![abel](https://github.com/gottingen/abel/blob/master/docs/images/abel.png)
@@ -9,8 +11,12 @@ abel is an open-source collection of c++ library code. it designed to use c++ sm
 [![Build Status](https://www.travis-ci.org/gottingen/abel.svg?branch=master)](https://travis-ci.org/gottingen/abel)
 [![Coverage Status](https://coveralls.io/repos/github/gottingen/abel/badge.svg?branch=master)](https://coveralls.io/github/gottingen/abel?branch=master)
 
-* centos7 gcc-4.8+ ok
-* macos   llvm     ok
+platform|compiler | status
+:--- | :---| :---
+centos6 | gcc-4.8.5 | ok
+centos6 | gcc-5.3 | ok
+centos7 | gcc-4.8.5 | ok
+mac os  | llvm    | ok
 
 ## content index
 

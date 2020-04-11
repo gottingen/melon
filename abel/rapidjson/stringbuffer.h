@@ -62,6 +62,11 @@ RAPIDJSON_NAMESPACE_BEGIN
 
         void Put(Ch c) { *stack_.template Push<Ch>() = c; }
 
+        void Puts(const Ch *c, size_t length) {
+            Ch *pos = stack_.template Push<Ch>(length);
+            memcpy(pos, c, length * sizeof(Ch));
+        }
+
         void PutUnsafe(Ch c) { *stack_.template PushUnsafe<Ch>() = c; }
 
         void Flush() {}
