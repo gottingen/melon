@@ -219,7 +219,7 @@ namespace abel {
             template<typename T>
             std::unique_ptr<flags_internal::flag_state_interface> save_state(
                     Flag<T> *flag) const ABEL_LOCKS_EXCLUDED(*data_guard()) {
-                T &&cur_value = flag->Get();
+                T &&cur_value = flag->get();
                 abel::mutex_lock l(data_guard());
 
                 return abel::make_unique<flags_internal::flag_state<T>>(
@@ -310,7 +310,7 @@ namespace abel {
                     : impl_(name, filename, &flags_internal::flag_ops<T>, marshalling_op, help,
                             default_value_gen) {}
 
-            T Get() const {
+            T get() const {
                 // See implementation notes in command_line_flag::Get().
                 union U {
                     T value;
@@ -325,11 +325,11 @@ namespace abel {
                 return std::move(u.value);
             }
 
-            bool AtomicGet(T *v) const { return impl_.atomic_get(v); }
+            bool atomic_get(T *v) const { return impl_.atomic_get(v); }
 
-            void Set(const T &v) { impl_.write(&v, &flags_internal::flag_ops<T>); }
+            void set(const T &v) { impl_.write(&v, &flags_internal::flag_ops<T>); }
 
-            void SetCallback(const flags_internal::flag_callback mutation_callback) {
+            void set_callback(const flags_internal::flag_callback mutation_callback) {
                 impl_.set_callback(mutation_callback);
             }
 
@@ -418,7 +418,7 @@ namespace abel {
             }
 
             flag_registrar &on_update(flags_internal::flag_callback cb) &&{
-                flag_->SetCallback(cb);
+                flag_->set_callback(cb);
                 return *this;
             }
 

@@ -176,7 +176,7 @@ namespace abel {
         ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE)
 #undef ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE
 
-        return flag.Get();
+        return flag.get();
     }
 
 // Overload for `get_flag()` for types that support lock-free reads.
@@ -196,7 +196,7 @@ namespace abel {
 // but especially within performance-critical code.
     template<typename T>
     void set_flag(abel::Flag<T> *flag, const T &v) {
-        flag->Set(v);
+        flag->set(v);
     }
 
 // Overload of `set_flag()` to allow callers to pass in a value that is
@@ -205,7 +205,7 @@ namespace abel {
     template<typename T, typename V>
     void set_flag(abel::Flag<T> *flag, const V &v) {
         T value(v);
-        flag->Set(value);
+        flag->set(value);
     }
 
 
