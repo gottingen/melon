@@ -137,7 +137,7 @@ namespace abel {
         using FlagCallback = void (*)();
 
         struct DynValueDeleter {
-            void operator()(void *ptr) const { Delete(op, ptr); }
+            void operator()(void *ptr) const { remove(op, ptr); }
 
             const flag_op_fn op;
         };

@@ -95,11 +95,11 @@ namespace abel {
                 abel::mutex_lock l(DataGuard());
 
                 // Values are heap allocated for abel Flags.
-                if (cur_) Delete(op_, cur_);
+                if (cur_) remove(op_, cur_);
 
                 // Release the dynamically allocated default value if any.
                 if (def_kind_ == FlagDefaultSrcKind::kDynamicValue) {
-                    Delete(op_, default_src_.dynamic_value);
+                    remove(op_, default_src_.dynamic_value);
                 }
 
                 // If this flag has an assigned callback, release callback data.
@@ -114,7 +114,7 @@ namespace abel {
         std::unique_ptr<void, DynValueDeleter> FlagImpl::MakeInitValue() const {
             void *res = nullptr;
             if (def_kind_ == FlagDefaultSrcKind::kDynamicValue) {
-                res = Clone(op_, default_src_.dynamic_value);
+                res = clone(op_, default_src_.dynamic_value);
             } else {
                 res = (*default_src_.gen_func)();
             }
@@ -245,11 +245,11 @@ namespace abel {
                         abel::string_cat("Flag '", Name(),
                                          "' is defined as one type and declared as another"));
             }
-            CopyConstruct(op_, cur_, dst);
+            copy_construct(op_, cur_, dst);
         }
 
         void FlagImpl::StoreAtomic() {
-            size_t data_size = Sizeof(op_);
+            size_t data_size = size_of(op_);
 
             if (data_size <= sizeof(int64_t)) {
                 int64_t t = 0;
@@ -272,19 +272,19 @@ namespace abel {
             }
 
             if (ShouldValidateFlagValue(op_)) {
-                void *obj = Clone(op_, src);
+                void *obj = clone(op_, src);
                 std::string ignored_error;
                 std::string src_as_str = unparse(marshalling_op_, src);
                 if (!parse(marshalling_op_, src_as_str, obj, &ignored_error)) {
                     ABEL_INTERNAL_LOG(ERROR, abel::string_cat("Attempt to set flag '", Name(),
                                                               "' to invalid value ", src_as_str));
                 }
-                Delete(op_, obj);
+                remove(op_, obj);
             }
 
             modified_ = true;
             counter_++;
-            Copy(op_, src, cur_);
+            copy(op_, src, cur_);
 
             StoreAtomic();
             InvokeCallback();
@@ -352,7 +352,7 @@ namespace abel {
 
                     if (!modified_) {
                         // Need to set both default value *and* current, in this case
-                        Copy(op_, default_src_.dynamic_value, cur_);
+                        copy(op_, default_src_.dynamic_value, cur_);
                         StoreAtomic();
                         InvokeCallback();
                     }

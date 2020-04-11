@@ -95,19 +95,19 @@ namespace abel {
         }
 
 // Functions that invoke flag-type-specific operations.
-        ABEL_FORCE_INLINE void Delete(flag_op_fn op, const void *obj) {
+        ABEL_FORCE_INLINE void remove(flag_op_fn op, const void *obj) {
             op(flags_internal::kDelete, obj, nullptr);
         }
 
-        ABEL_FORCE_INLINE void *Clone(flag_op_fn op, const void *obj) {
+        ABEL_FORCE_INLINE void *clone(flag_op_fn op, const void *obj) {
             return op(flags_internal::kClone, obj, nullptr);
         }
 
-        ABEL_FORCE_INLINE void Copy(flag_op_fn op, const void *src, void *dst) {
+        ABEL_FORCE_INLINE void copy(flag_op_fn op, const void *src, void *dst) {
             op(flags_internal::kCopy, src, dst);
         }
 
-        ABEL_FORCE_INLINE void CopyConstruct(flag_op_fn op, const void *src, void *dst) {
+        ABEL_FORCE_INLINE void copy_construct(flag_op_fn op, const void *src, void *dst) {
             op(flags_internal::kCopyConstruct, src, dst);
         }
 
@@ -122,7 +122,7 @@ namespace abel {
             return result;
         }
 
-        ABEL_FORCE_INLINE size_t Sizeof(flag_op_fn op) {
+        ABEL_FORCE_INLINE size_t size_of(flag_op_fn op) {
             // This sequence of casts reverses the sequence from base::internal::flag_ops()
             return static_cast<size_t>(reinterpret_cast<intptr_t>(
                     op(flags_internal::kSizeof, nullptr, nullptr)));
