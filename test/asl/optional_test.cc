@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/type_traits.h>
 #include <abel/asl/string_view.h>
 

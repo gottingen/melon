@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/debugging/stacktrace.h>
 #include <abel/debugging/symbolize.h>
 #include <abel/strings/str_cat.h>
