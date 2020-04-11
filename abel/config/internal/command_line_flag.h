@@ -111,7 +111,7 @@ namespace abel {
             op(flags_internal::kCopyConstruct, src, dst);
         }
 
-        ABEL_FORCE_INLINE bool Parse(flag_marshalling_op_fn op, abel::string_view text, void *dst,
+        ABEL_FORCE_INLINE bool parse(flag_marshalling_op_fn op, abel::string_view text, void *dst,
                                      std::string *error) {
             return op(flags_internal::kParse, &text, dst, error) != nullptr;
         }
@@ -135,7 +135,7 @@ namespace abel {
             virtual ~flag_state_interface() {}
 
             // Restores the flag originated this object to the saved state.
-            virtual void Restore() const = 0;
+            virtual void restore() const = 0;
         };
 
 // Holds all information for a flag.

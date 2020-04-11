@@ -219,7 +219,7 @@ namespace abel {
             auto tentative_value = MakeInitValue();
 
             std::string parse_err;
-            if (!Parse(marshalling_op_, value, tentative_value.get(), &parse_err)) {
+            if (!parse(marshalling_op_, value, tentative_value.get(), &parse_err)) {
                 abel::string_view err_sep = parse_err.empty() ? "" : "; ";
                 *err = abel::string_cat("Illegal value '", value, "' specified for flag '",
                                         Name(), "'", err_sep, parse_err);
@@ -275,7 +275,7 @@ namespace abel {
                 void *obj = Clone(op_, src);
                 std::string ignored_error;
                 std::string src_as_str = unparse(marshalling_op_, src);
-                if (!Parse(marshalling_op_, src_as_str, obj, &ignored_error)) {
+                if (!parse(marshalling_op_, src_as_str, obj, &ignored_error)) {
                     ABEL_INTERNAL_LOG(ERROR, abel::string_cat("Attempt to set flag '", Name(),
                                                               "' to invalid value ", src_as_str));
                 }
@@ -370,7 +370,7 @@ namespace abel {
 
             auto dst = MakeInitValue();
             std::string error;
-            if (!flags_internal::Parse(marshalling_op_, v, dst.get(), &error)) {
+            if (!flags_internal::parse(marshalling_op_, v, dst.get(), &error)) {
                 ABEL_INTERNAL_LOG(
                         FATAL,
                         abel::string_cat("Flag ", Name(), " (from ", Filename(),
@@ -387,7 +387,7 @@ namespace abel {
 
             auto obj = MakeInitValue();
             std::string ignored_error;
-            return flags_internal::Parse(marshalling_op_, value, obj.get(),
+            return flags_internal::parse(marshalling_op_, value, obj.get(),
                                          &ignored_error);
         }
 

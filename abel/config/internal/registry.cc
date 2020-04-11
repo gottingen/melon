@@ -201,7 +201,7 @@ namespace abel {
             // Restores the saved flag states into the flag registry.
             void restore_to_registry() {
                 for (const auto &flag_state : backup_registry_) {
-                    flag_state->Restore();
+                    flag_state->restore();
                 }
             }
 

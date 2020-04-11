@@ -40,7 +40,7 @@ namespace abel {
             friend class Flag<T>;
 
             // Restores the flag to the saved state.
-            void Restore() const override;
+            void restore() const override;
 
             // Flag and saved flag data.
             Flag<T> *flag_;
@@ -399,7 +399,7 @@ namespace abel {
         };
 
         template<typename T>
-        ABEL_FORCE_INLINE void flag_state<T>::Restore() const {
+        ABEL_FORCE_INLINE void flag_state<T>::restore() const {
             if (flag_->RestoreState(*this)) {
                 ABEL_INTERNAL_LOG(INFO,
                                   abel::string_cat("Restore saved value of ", flag_->Name(),
