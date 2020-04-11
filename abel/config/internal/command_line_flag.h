@@ -190,7 +190,7 @@ namespace abel {
                 };
                 U u;
 
-                Read(&u.value);
+                read(&u.value);
                 return std::move(u.value);
             }
 

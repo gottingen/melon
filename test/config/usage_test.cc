@@ -1,9 +1,7 @@
 //
 
 #include <abel/config/internal/usage.h>
-
 #include <sstream>
-
 #include <gtest/gtest.h>
 #include <abel/config/flag.h>
 #include <abel/config/internal/path_util.h>

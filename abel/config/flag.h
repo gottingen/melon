@@ -23,9 +23,22 @@
 #include <abel/config/internal/command_line_flag.h>
 #include <abel/config/internal/flag.h>
 #include <abel/config/marshalling.h>
+#include <vector>
+#include <functional>
 
 namespace abel {
 
+    using command_line_flag = flags_internal::command_line_flag;
+
+    std::vector<command_line_flag *> get_all_flags();
+
+    std::vector<command_line_flag *> get_all_flags_unlock();
+
+    using flag_visitor = std::function<void(command_line_flag *)>;
+
+    void visit_flags_unlock(const flag_visitor &fv);
+
+    void visit_flags(const flag_visitor &fv);
 
 // abel_flag
 //
