@@ -103,7 +103,7 @@ namespace abel {
 
         flags_usage_config get_usage_config();
 
-        void ReportUsageError(abel::string_view msg, bool is_fatal);
+        void report_usage_error(abel::string_view msg, bool is_fatal);
 
     }  // namespace flags_internal
 
@@ -112,7 +112,7 @@ namespace abel {
 extern "C" {
 
 // Additional report of fatal usage error message before we std::exit. Error is
-// fatal if is_fatal argument to ReportUsageError is true.
+// fatal if is_fatal argument to report_usage_error is true.
 void AbelInternalReportFatalUsageError(abel::string_view);
 
 }  // extern "C"

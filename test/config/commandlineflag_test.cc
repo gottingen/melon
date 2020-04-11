@@ -29,7 +29,7 @@ namespace {
             abel::set_flags_usage_config(default_config);
         }
 
-        void SetUp() override { flag_saver_ = abel::make_unique<flags::FlagSaver>(); }
+        void SetUp() override { flag_saver_ = abel::make_unique<flags::flag_saver>(); }
 
         void TearDown() override { flag_saver_.reset(); }
 
@@ -43,11 +43,11 @@ namespace {
             return std::string(fname);
         }
 
-        std::unique_ptr<flags::FlagSaver> flag_saver_;
+        std::unique_ptr<flags::flag_saver> flag_saver_;
     };
 
     TEST_F(CommandLineFlagTest, TestAttributesAccessMethods) {
-        auto *flag_01 = flags::FindCommandLineFlag("int_flag");
+        auto *flag_01 = flags::find_command_line_flag("int_flag");
 
         ASSERT_TRUE(flag_01);
         EXPECT_EQ(flag_01->Name(), "int_flag");
@@ -60,7 +60,7 @@ namespace {
                                 "commandlineflag_test.cc"))
                             << flag_01->Filename();
 
-        auto *flag_02 = flags::FindCommandLineFlag("string_flag");
+        auto *flag_02 = flags::find_command_line_flag("string_flag");
 
         ASSERT_TRUE(flag_02);
         EXPECT_EQ(flag_02->Name(), "string_flag");
@@ -73,7 +73,7 @@ namespace {
                                 "commandlineflag_test.cc"))
                             << flag_02->Filename();
 
-        auto *flag_03 = flags::FindRetiredFlag("bool_retired_flag");
+        auto *flag_03 = flags::find_retired_flag("bool_retired_flag");
 
         ASSERT_TRUE(flag_03);
         EXPECT_EQ(flag_03->Name(), "bool_retired_flag");
@@ -88,14 +88,14 @@ namespace {
 
     TEST_F(CommandLineFlagTest, TestValueAccessMethods) {
         abel::set_flag(&FLAGS_int_flag, 301);
-        auto *flag_01 = flags::FindCommandLineFlag("int_flag");
+        auto *flag_01 = flags::find_command_line_flag("int_flag");
 
         ASSERT_TRUE(flag_01);
         EXPECT_EQ(flag_01->CurrentValue(), "301");
         EXPECT_EQ(flag_01->DefaultValue(), "201");
 
         abel::set_flag(&FLAGS_string_flag, "new_str_value");
-        auto *flag_02 = flags::FindCommandLineFlag("string_flag");
+        auto *flag_02 = flags::find_command_line_flag("string_flag");
 
         ASSERT_TRUE(flag_02);
         EXPECT_EQ(flag_02->CurrentValue(), "new_str_value");
@@ -107,7 +107,7 @@ namespace {
     TEST_F(CommandLineFlagTest, TestSetFromStringCurrentValue) {
         std::string err;
 
-        auto *flag_01 = flags::FindCommandLineFlag("int_flag");
+        auto *flag_01 = flags::find_command_line_flag("int_flag");
         EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
 
         EXPECT_TRUE(flag_01->SetFromString("11", flags::SET_FLAGS_VALUE,
@@ -146,7 +146,7 @@ namespace {
                                             flags::kProgrammaticChange, &err));
         EXPECT_EQ(err, "Illegal value '' specified for flag 'int_flag'");
 
-        auto *flag_02 = flags::FindCommandLineFlag("string_flag");
+        auto *flag_02 = flags::find_command_line_flag("string_flag");
         EXPECT_TRUE(flag_02->SetFromString("xyz", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "xyz");
@@ -161,13 +161,13 @@ namespace {
     TEST_F(CommandLineFlagTest, TestSetFromStringDefaultValue) {
         std::string err;
 
-        auto *flag_01 = flags::FindCommandLineFlag("int_flag");
+        auto *flag_01 = flags::find_command_line_flag("int_flag");
 
         EXPECT_TRUE(flag_01->SetFromString("111", flags::SET_FLAGS_DEFAULT,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(flag_01->DefaultValue(), "111");
 
-        auto *flag_02 = flags::FindCommandLineFlag("string_flag");
+        auto *flag_02 = flags::find_command_line_flag("string_flag");
 
         EXPECT_TRUE(flag_02->SetFromString("abc", flags::SET_FLAGS_DEFAULT,
                                            flags::kProgrammaticChange, &err));
@@ -179,7 +179,7 @@ namespace {
     TEST_F(CommandLineFlagTest, TestSetFromStringIfDefault) {
         std::string err;
 
-        auto *flag_01 = flags::FindCommandLineFlag("int_flag");
+        auto *flag_01 = flags::find_command_line_flag("int_flag");
 
         EXPECT_TRUE(flag_01->SetFromString("22", flags::SET_FLAG_IF_DEFAULT,
                                            flags::kProgrammaticChange, &err))

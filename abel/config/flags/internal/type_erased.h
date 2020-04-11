@@ -58,7 +58,7 @@ namespace abel {
 // types passed to DEFINE_FLAG.
         template<typename T>
         ABEL_FORCE_INLINE bool GetByName(abel::string_view name, T *dst) {
-            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::find_command_line_flag(name);
             if (!flag) return false;
 
             if (auto val = flag->Get<T>()) {

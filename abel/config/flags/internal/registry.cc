@@ -12,8 +12,8 @@
 #include <abel/thread/mutex.h>
 
 // --------------------------------------------------------------------
-// FlagRegistry implementation
-//    A FlagRegistry holds all flag objects indexed
+// flag_registry implementation
+//    A flag_registry holds all flag objects indexed
 //    by their names so that if you know a flag's name you can access or
 //    set it.
 
@@ -22,8 +22,8 @@ namespace abel {
     namespace flags_internal {
 
 // --------------------------------------------------------------------
-// FlagRegistry
-//    A FlagRegistry singleton object holds all flag objects indexed
+// flag_registry
+//    A flag_registry singleton object holds all flag objects indexed
 //    by their names so that if you know a flag's name (as a C
 //    string), you can access or set it.  If the function is named
 //    FooLocked(), you must own the registry lock before calling
@@ -31,18 +31,18 @@ namespace abel {
 //    the function will acquire it itself if needed.
 // --------------------------------------------------------------------
 
-        class FlagRegistry {
+        class flag_registry {
         public:
-            FlagRegistry() = default;
+            flag_registry() = default;
 
-            ~FlagRegistry() {
+            ~flag_registry() {
                 for (auto &p : flags_) {
                     p.second->Destroy();
                 }
             }
 
             // Store a flag in this registry.  Takes ownership of *flag.
-            void RegisterFlag(command_line_flag *flag);
+            void register_flag(command_line_flag *flag);
 
             void lock() ABEL_EXCLUSIVE_LOCK_FUNCTION(lock_) { lock_.lock(); }
 
@@ -50,20 +50,20 @@ namespace abel {
 
             // Returns the flag object for the specified name, or nullptr if not found.
             // Will emit a warning if a 'retired' flag is specified.
-            command_line_flag *FindFlagLocked(abel::string_view name);
+            command_line_flag *find_flag_locked(abel::string_view name);
 
             // Returns the retired flag object for the specified name, or nullptr if not
             // found or not retired.  Does not emit a warning.
-            command_line_flag *FindRetiredFlagLocked(abel::string_view name);
+            command_line_flag *find_retired_flag_locked(abel::string_view name);
 
-            static FlagRegistry *GlobalRegistry();  // returns a singleton registry
+            static flag_registry *global_registry();  // returns a singleton registry
 
         private:
-            friend class FlagSaverImpl;  // reads all the flags in order to copy them
+            friend class flag_saver_impl;  // reads all the flags in order to copy thems
             friend void ForEachFlagUnlocked(
                     std::function<void(command_line_flag *)> visitor);
 
-            // The map from name to flag, for FindFlagLocked().
+            // The map from name to flag, for find_flag_locked().
             using FlagMap = std::map<abel::string_view, command_line_flag *>;
             using FlagIterator = FlagMap::iterator;
             using FlagConstIterator = FlagMap::const_iterator;
@@ -72,39 +72,39 @@ namespace abel {
             abel::mutex lock_;
 
             // Disallow
-            FlagRegistry(const FlagRegistry &);
+            flag_registry(const flag_registry &);
 
-            FlagRegistry &operator=(const FlagRegistry &);
+            flag_registry &operator=(const flag_registry &);
         };
 
-        FlagRegistry *FlagRegistry::GlobalRegistry() {
-            static FlagRegistry *global_registry = new FlagRegistry;
+        flag_registry *flag_registry::global_registry() {
+            static flag_registry *global_registry = new flag_registry;
             return global_registry;
         }
 
         namespace {
 
-            class FlagRegistryLock {
+            class flag_registry_lock {
             public:
-                explicit FlagRegistryLock(FlagRegistry *fr) : fr_(fr) { fr_->lock(); }
+                explicit flag_registry_lock(flag_registry *fr) : fr_(fr) { fr_->lock(); }
 
-                ~FlagRegistryLock() { fr_->unlock(); }
+                ~flag_registry_lock() { fr_->unlock(); }
 
             private:
-                FlagRegistry *const fr_;
+                flag_registry *const fr_;
             };
 
         }  // namespace
 
-        void FlagRegistry::RegisterFlag(command_line_flag *flag) {
-            FlagRegistryLock registry_lock(this);
+        void flag_registry::register_flag(command_line_flag *flag) {
+            flag_registry_lock registry_lock(this);
             std::pair<FlagIterator, bool> ins =
                     flags_.insert(FlagMap::value_type(flag->Name(), flag));
             if (ins.second == false) {  // means the name was already in the map
                 command_line_flag *old_flag = ins.first->second;
                 if (flag->IsRetired() != old_flag->IsRetired()) {
                     // All registrations must agree on the 'retired' flag.
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat(
                                     "Retired flag '", flag->Name(),
                                     "' was defined normally in file '",
@@ -112,7 +112,7 @@ namespace abel {
                                     "'."),
                             true);
                 } else if (flag->TypeId() != old_flag->TypeId()) {
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat("Flag '", flag->Name(),
                                              "' was defined more than once but with "
                                              "differing types. Defined in files '",
@@ -125,14 +125,14 @@ namespace abel {
                     flag->Destroy();
                     return;
                 } else if (old_flag->Filename() != flag->Filename()) {
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat("Flag '", flag->Name(),
                                              "' was defined more than once (in files '",
                                              old_flag->Filename(), "' and '", flag->Filename(),
                                              "')."),
                             true);
                 } else {
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat(
                                     "Something wrong with flag '", flag->Name(), "' in file '",
                                     flag->Filename(), "'. One possibility: file '", flag->Filename(),
@@ -146,21 +146,21 @@ namespace abel {
             }
         }
 
-        command_line_flag *FlagRegistry::FindFlagLocked(abel::string_view name) {
+        command_line_flag *flag_registry::find_flag_locked(abel::string_view name) {
             FlagConstIterator i = flags_.find(name);
             if (i == flags_.end()) {
                 return nullptr;
             }
 
             if (i->second->IsRetired()) {
-                flags_internal::ReportUsageError(
+                flags_internal::report_usage_error(
                         abel::string_cat("Accessing retired flag '", name, "'"), false);
             }
 
             return i->second;
         }
 
-        command_line_flag *FlagRegistry::FindRetiredFlagLocked(abel::string_view name) {
+        command_line_flag *flag_registry::find_retired_flag_locked(abel::string_view name) {
             FlagConstIterator i = flags_.find(name);
             if (i == flags_.end() || !i->second->IsRetired()) {
                 return nullptr;
@@ -170,8 +170,8 @@ namespace abel {
         }
 
 // --------------------------------------------------------------------
-// FlagSaver
-// FlagSaverImpl
+// flag_saver
+// flag_saver_impl
 //    This class stores the states of all flags at construct time,
 //    and restores all flags to that state at destruct time.
 //    Its major implementation challenge is that it never modifies
@@ -179,13 +179,13 @@ namespace abel {
 //    point to the right place.
 // --------------------------------------------------------------------
 
-        class FlagSaverImpl {
+        class flag_saver_impl {
         public:
-            FlagSaverImpl() = default;
+            flag_saver_impl() = default;
 
-            FlagSaverImpl(const FlagSaverImpl &) = delete;
+            flag_saver_impl(const flag_saver_impl &) = delete;
 
-            void operator=(const FlagSaverImpl &) = delete;
+            void operator=(const flag_saver_impl &) = delete;
 
             // Saves the flag states from the flag registry into this object.
             // It's an error to call this more than once.
@@ -199,7 +199,7 @@ namespace abel {
             }
 
             // Restores the saved flag states into the flag registry.
-            void RestoreToRegistry() {
+            void restore_to_registry() {
                 for (const auto &flag_state : backup_registry_) {
                     flag_state->Restore();
                 }
@@ -210,57 +210,57 @@ namespace abel {
                     backup_registry_;
         };
 
-        FlagSaver::FlagSaver() : impl_(new FlagSaverImpl) { impl_->SaveFromRegistry(); }
+        flag_saver::flag_saver() : impl_(new flag_saver_impl) { impl_->SaveFromRegistry(); }
 
-        void FlagSaver::Ignore() {
+        void flag_saver::Ignore() {
             delete impl_;
             impl_ = nullptr;
         }
 
-        FlagSaver::~FlagSaver() {
+        flag_saver::~flag_saver() {
             if (!impl_) return;
 
-            impl_->RestoreToRegistry();
+            impl_->restore_to_registry();
             delete impl_;
         }
 
 // --------------------------------------------------------------------
 
-        command_line_flag *FindCommandLineFlag(abel::string_view name) {
+        command_line_flag *find_command_line_flag(abel::string_view name) {
             if (name.empty()) return nullptr;
-            FlagRegistry *const registry = FlagRegistry::GlobalRegistry();
-            FlagRegistryLock frl(registry);
+            flag_registry *const registry = flag_registry::global_registry();
+            flag_registry_lock frl(registry);
 
-            return registry->FindFlagLocked(name);
+            return registry->find_flag_locked(name);
         }
 
-        command_line_flag *FindRetiredFlag(abel::string_view name) {
-            FlagRegistry *const registry = FlagRegistry::GlobalRegistry();
-            FlagRegistryLock frl(registry);
+        command_line_flag *find_retired_flag(abel::string_view name) {
+            flag_registry *const registry = flag_registry::global_registry();
+            flag_registry_lock frl(registry);
 
-            return registry->FindRetiredFlagLocked(name);
+            return registry->find_retired_flag_locked(name);
         }
 
 // --------------------------------------------------------------------
 
         void ForEachFlagUnlocked(std::function<void(command_line_flag *)> visitor) {
-            FlagRegistry *const registry = FlagRegistry::GlobalRegistry();
-            for (FlagRegistry::FlagConstIterator i = registry->flags_.begin();
+            flag_registry *const registry = flag_registry::global_registry();
+            for (flag_registry::FlagConstIterator i = registry->flags_.begin();
                  i != registry->flags_.end(); ++i) {
                 visitor(i->second);
             }
         }
 
         void ForEachFlag(std::function<void(command_line_flag *)> visitor) {
-            FlagRegistry *const registry = FlagRegistry::GlobalRegistry();
-            FlagRegistryLock frl(registry);
+            flag_registry *const registry = flag_registry::global_registry();
+            flag_registry_lock frl(registry);
             ForEachFlagUnlocked(visitor);
         }
 
 // --------------------------------------------------------------------
 
         bool RegisterCommandLineFlag(command_line_flag *flag) {
-            FlagRegistry::GlobalRegistry()->RegisterFlag(flag);
+            flag_registry::global_registry()->register_flag(flag);
             return true;
         }
 
@@ -268,9 +268,9 @@ namespace abel {
 
         namespace {
 
-            class RetiredFlagObj final : public flags_internal::command_line_flag {
+            class retired_flag_obj final : public flags_internal::command_line_flag {
             public:
-                constexpr RetiredFlagObj(const char *name, FlagOpFn ops)
+                constexpr retired_flag_obj(const char *name, flag_op_fn ops)
                         : name_(name), op_(ops) {}
 
             private:
@@ -285,7 +285,7 @@ namespace abel {
 
                 abel::string_view Typename() const override { return ""; }
 
-                flags_internal::FlagOpFn TypeId() const override { return op_; }
+                flags_internal::flag_op_fn TypeId() const override { return op_; }
 
                 std::string Help() const override { return ""; }
 
@@ -317,22 +317,22 @@ namespace abel {
 
                 // Data members
                 const char *const name_;
-                const FlagOpFn op_;
+                const flag_op_fn op_;
             };
 
         }  // namespace
 
-        bool Retire(const char *name, FlagOpFn ops) {
-            auto *flag = new flags_internal::RetiredFlagObj(name, ops);
-            FlagRegistry::GlobalRegistry()->RegisterFlag(flag);
+        bool Retire(const char *name, flag_op_fn ops) {
+            auto *flag = new flags_internal::retired_flag_obj(name, ops);
+            flag_registry::global_registry()->register_flag(flag);
             return true;
         }
 
 // --------------------------------------------------------------------
 
-        bool IsRetiredFlag(abel::string_view name, bool *type_is_bool) {
+        bool is_retired_flag(abel::string_view name, bool *type_is_bool) {
             assert(!name.empty());
-            command_line_flag *flag = flags_internal::FindRetiredFlag(name);
+            command_line_flag *flag = flags_internal::find_retired_flag(name);
             if (flag == nullptr) {
                 return false;
             }

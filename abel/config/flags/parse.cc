@@ -135,7 +135,7 @@ namespace abel {
                 std::ifstream flag_file(flag_file_name);
 
                 if (!flag_file) {
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat("Can't open flagfile ", flag_file_name), true);
 
                     return false;
@@ -158,7 +158,7 @@ namespace abel {
 
                     if (stripped[0] == '-') {
                         if (stripped == "--") {
-                            flags_internal::ReportUsageError(
+                            flags_internal::report_usage_error(
                                     "Flagfile can't contain position arguments or --", true);
 
                             success = false;
@@ -169,7 +169,7 @@ namespace abel {
                         continue;
                     }
 
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat("Unexpected line in the flagfile ", flag_file_name, ": ",
                                              line),
                             true);
@@ -252,11 +252,11 @@ namespace abel {
 //  found flag or nullptr
 //  is negative in case of --nofoo
             std::tuple<command_line_flag *, bool> LocateFlag(abel::string_view flag_name) {
-                command_line_flag *flag = flags_internal::FindCommandLineFlag(flag_name);
+                command_line_flag *flag = flags_internal::find_command_line_flag(flag_name);
                 bool is_negative = false;
 
                 if (!flag && abel::consume_prefix(&flag_name, "no")) {
-                    flag = flags_internal::FindCommandLineFlag(flag_name);
+                    flag = flags_internal::find_command_line_flag(flag_name);
                     is_negative = true;
                 }
 
@@ -326,7 +326,7 @@ namespace abel {
                 for (const auto &flag_name : flag_names) {
                     // Avoid infinite recursion.
                     if (flag_name == "fromenv" || flag_name == "tryfromenv") {
-                        flags_internal::ReportUsageError(
+                        flags_internal::report_usage_error(
                                 abel::string_cat("Infinite recursion on flag ", flag_name), true);
 
                         success = false;
@@ -337,7 +337,7 @@ namespace abel {
                     std::string envval;
                     if (!GetEnvVar(envname.c_str(), &envval)) {
                         if (fail_on_absent_in_env) {
-                            flags_internal::ReportUsageError(
+                            flags_internal::report_usage_error(
                                     abel::string_cat(envname, " not found in environment"), true);
 
                             success = false;
@@ -476,7 +476,7 @@ namespace abel {
                     if (value.empty()) {
                         if (is_empty_value) {
                             // "--bool_flag=" case
-                            flags_internal::ReportUsageError(
+                            flags_internal::report_usage_error(
                                     abel::string_cat(
                                             "Missing the value after assignment for the boolean flag '",
                                             flag.Name(), "'"),
@@ -488,7 +488,7 @@ namespace abel {
                         value = is_negative ? "0" : "1";
                     } else if (is_negative) {
                         // "--nobool_flag=Y" case
-                        flags_internal::ReportUsageError(
+                        flags_internal::report_usage_error(
                                 abel::string_cat("Negative form with assignment is not valid for the "
                                                  "boolean flag '",
                                                  flag.Name(), "'"),
@@ -497,7 +497,7 @@ namespace abel {
                     }
                 } else if (is_negative) {
                     // "--noint_flag=1" case
-                    flags_internal::ReportUsageError(
+                    flags_internal::report_usage_error(
                             abel::string_cat("Negative form is not valid for the flag '", flag.Name(),
                                              "'"),
                             true);
@@ -505,7 +505,7 @@ namespace abel {
                 } else if (value.empty() && (!is_empty_value)) {
                     if (curr_list->Size() == 1) {
                         // "--int_flag" case
-                        flags_internal::ReportUsageError(
+                        flags_internal::report_usage_error(
                                 abel::string_cat("Missing the value for the flag '", flag.Name(), "'"),
                                 true);
                         return std::make_tuple(false, "");
@@ -679,7 +679,7 @@ namespace abel {
 
                 std::string error;
                 if (!flag->SetFromString(value, SET_FLAGS_VALUE, kCommandLine, &error)) {
-                    flags_internal::ReportUsageError(error, true);
+                    flags_internal::report_usage_error(error, true);
                     success = false;
                 }
             }
@@ -687,7 +687,7 @@ namespace abel {
             for (const auto &flag_name : undefined_flag_names) {
                 if (CanIgnoreUndefinedFlag(flag_name.second)) continue;
 
-                flags_internal::ReportUsageError(
+                flags_internal::report_usage_error(
                         abel::string_cat("Unknown command line flag '", flag_name.second, "'"),
                         true);
 
@@ -696,7 +696,7 @@ namespace abel {
 
 #if ABEL_FLAGS_STRIP_NAMES
             if (!success) {
-              flags_internal::ReportUsageError(
+              flags_internal::report_usage_error(
                   "NOTE: command line flags are disabled in this build", true);
             }
 #endif

@@ -498,13 +498,13 @@ namespace {
 
     TEST_F(FlagTest, TestRetiredFlagRegistration) {
         bool is_bool = false;
-        EXPECT_TRUE(flags::IsRetiredFlag("old_bool_flag", &is_bool));
+        EXPECT_TRUE(flags::is_retired_flag("old_bool_flag", &is_bool));
         EXPECT_TRUE(is_bool);
-        EXPECT_TRUE(flags::IsRetiredFlag("old_int_flag", &is_bool));
+        EXPECT_TRUE(flags::is_retired_flag("old_int_flag", &is_bool));
         EXPECT_FALSE(is_bool);
-        EXPECT_TRUE(flags::IsRetiredFlag("old_str_flag", &is_bool));
+        EXPECT_TRUE(flags::is_retired_flag("old_str_flag", &is_bool));
         EXPECT_FALSE(is_bool);
-        EXPECT_FALSE(flags::IsRetiredFlag("some_other_flag", &is_bool));
+        EXPECT_FALSE(flags::is_retired_flag("some_other_flag", &is_bool));
     }
 
 }  // namespace

@@ -191,7 +191,7 @@ namespace {
 
     class ParseTest : public testing::Test {
     private:
-        flags::FlagSaver flag_saver_;
+        flags::flag_saver flag_saver_;
     };
 
 // --------------------------------------------------------------------

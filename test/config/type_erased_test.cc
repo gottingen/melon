@@ -19,12 +19,12 @@ namespace {
 
     class TypeErasedTest : public testing::Test {
     protected:
-        void SetUp() override { flag_saver_ = abel::make_unique<flags::FlagSaver>(); }
+        void SetUp() override { flag_saver_ = abel::make_unique<flags::flag_saver>(); }
 
         void TearDown() override { flag_saver_.reset(); }
 
     private:
-        std::unique_ptr<flags::FlagSaver> flag_saver_;
+        std::unique_ptr<flags::flag_saver> flag_saver_;
     };
 
 // --------------------------------------------------------------------

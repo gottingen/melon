@@ -20,7 +20,7 @@ namespace abel {
         namespace {
 
 // Currently we only validate flag values for user-defined flag types.
-            bool ShouldValidateFlagValue(FlagOpFn flag_type_id) {
+            bool ShouldValidateFlagValue(flag_op_fn flag_type_id) {
 #define DONT_VALIDATE(T) \
   if (flag_type_id == &flags_internal::FlagOps<T>) return false;
                 ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(DONT_VALIDATE)
@@ -233,7 +233,7 @@ namespace abel {
             return true;
         }
 
-        void FlagImpl::Read(void *dst, const flags_internal::FlagOpFn dst_op) const {
+        void FlagImpl::Read(void *dst, const flags_internal::flag_op_fn dst_op) const {
             abel::reader_mutex_lock l(DataGuard());
 
             // `dst_op` is the unmarshaling operation corresponding to the declaration
@@ -258,7 +258,7 @@ namespace abel {
             }
         }
 
-        void FlagImpl::Write(const void *src, const flags_internal::FlagOpFn src_op) {
+        void FlagImpl::Write(const void *src, const flags_internal::flag_op_fn src_op) {
             abel::mutex_lock l(DataGuard());
 
             // `src_op` is the marshalling operation corresponding to the declaration

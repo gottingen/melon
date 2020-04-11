@@ -139,14 +139,14 @@ namespace abel {
         struct DynValueDeleter {
             void operator()(void *ptr) const { Delete(op, ptr); }
 
-            const FlagOpFn op;
+            const flag_op_fn op;
         };
 
 // The class encapsulates the Flag's data and safe access to it.
         class FlagImpl {
         public:
             constexpr FlagImpl(const char *name, const char *filename,
-                               const flags_internal::FlagOpFn op,
+                               const flags_internal::flag_op_fn op,
                                const flags_internal::FlagMarshallingOpFn marshalling_op,
                                const HelpInitArg help,
                                const flags_internal::FlagDfltGenFunc default_value_gen)
@@ -178,7 +178,7 @@ namespace abel {
 
             std::string CurrentValue() const ABEL_LOCKS_EXCLUDED(*DataGuard());
 
-            void Read(void *dst, const flags_internal::FlagOpFn dst_op) const
+            void Read(void *dst, const flags_internal::flag_op_fn dst_op) const
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
             // Attempts to parse supplied `value` std::string. If parsing is successful, then
@@ -198,7 +198,7 @@ namespace abel {
             }
 
             // Mutating access methods
-            void Write(const void *src, const flags_internal::FlagOpFn src_op)
+            void Write(const void *src, const flags_internal::flag_op_fn src_op)
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
             bool SetFromString(abel::string_view value, FlagSettingMode set_mode,
@@ -252,7 +252,7 @@ namespace abel {
             // Constant configuration for a particular flag.
             const char *const name_;      // Flags name passed to ABEL_FLAG as second arg.
             const char *const filename_;  // The file name where ABEL_FLAG resides.
-            const FlagOpFn op_;           // Type-specific handler.
+            const flag_op_fn op_;           // Type-specific handler.
             const FlagMarshallingOpFn marshalling_op_;  // Marshalling ops handler.
             const FlagHelpSrc help_;  // Help message literal or function to generate it.
             // Indicates if help message was supplied as literal or generator func.
@@ -390,7 +390,7 @@ namespace abel {
                 impl_.Read(dst, &flags_internal::FlagOps<T>);
             }
 
-            flags_internal::FlagOpFn TypeId() const override {
+            flags_internal::flag_op_fn TypeId() const override {
                 return &flags_internal::FlagOps<T>;
             }
 

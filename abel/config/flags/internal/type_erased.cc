@@ -16,7 +16,7 @@ namespace abel {
             if (name.empty()) return false;
             assert(value);
 
-            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::find_command_line_flag(name);
             if (flag == nullptr || flag->IsRetired()) {
                 return false;
             }
@@ -33,7 +33,7 @@ namespace abel {
         bool SetCommandLineOptionWithMode(abel::string_view name,
                                           abel::string_view value,
                                           FlagSettingMode set_mode) {
-            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::find_command_line_flag(name);
 
             if (!flag || flag->IsRetired()) return false;
 
@@ -41,7 +41,7 @@ namespace abel {
             if (!flag->SetFromString(value, set_mode, kProgrammaticChange, &error)) {
                 // Errors here are all of the form: the provided name was a recognized
                 // flag, but the value was invalid (bad type, or validation failed).
-                flags_internal::ReportUsageError(error, false);
+                flags_internal::report_usage_error(error, false);
                 return false;
             }
 
@@ -51,7 +51,7 @@ namespace abel {
 // --------------------------------------------------------------------
 
         bool IsValidFlagValue(abel::string_view name, abel::string_view value) {
-            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::find_command_line_flag(name);
 
             return flag != nullptr &&
                    (flag->IsRetired() || flag->ValidateInputValue(value));
@@ -60,7 +60,7 @@ namespace abel {
 // --------------------------------------------------------------------
 
         bool SpecifiedOnCommandLine(abel::string_view name) {
-            command_line_flag *flag = flags_internal::FindCommandLineFlag(name);
+            command_line_flag *flag = flags_internal::find_command_line_flag(name);
             if (flag != nullptr && !flag->IsRetired()) {
                 return flag->IsSpecifiedOnCommandLine();
             }

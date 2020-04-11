@@ -18,9 +18,9 @@ namespace abel {
 
     namespace flags_internal {
 
-        command_line_flag *FindCommandLineFlag(abel::string_view name);
+        command_line_flag *find_command_line_flag(abel::string_view name);
 
-        command_line_flag *FindRetiredFlag(abel::string_view name);
+        command_line_flag *find_retired_flag(abel::string_view name);
 
 // Executes specified visitor for each non-retired flag in the registry.
 // Requires the caller hold the registry lock.
@@ -67,7 +67,7 @@ namespace abel {
 //
 
 // Retire flag with name "name" and type indicated by ops.
-        bool Retire(const char *name, FlagOpFn ops);
+        bool Retire(const char *name, flag_op_fn ops);
 
 // Registered a retired flag with name 'flag_name' and type 'T'.
         template<typename T>
@@ -78,33 +78,33 @@ namespace abel {
 // If the flag is retired, returns true and indicates in |*type_is_bool|
 // whether the type of the retired flag is a bool.
 // Only to be called by code that needs to explicitly ignore retired flags.
-        bool IsRetiredFlag(abel::string_view name, bool *type_is_bool);
+        bool is_retired_flag(abel::string_view name, bool *type_is_bool);
 
 //-----------------------------------------------------------------------------
 // Saves the states (value, default value, whether the user has set
 // the flag, registered validators, etc) of all flags, and restores
-// them when the FlagSaver is destroyed.
+// them when the flag_saver is destroyed.
 //
 // This class is thread-safe.  However, its destructor writes to
 // exactly the set of flags that have changed value during its
 // lifetime, so concurrent _direct_ access to those flags
 // (i.e. FLAGS_foo instead of {Get,Set}CommandLineOption()) is unsafe.
 
-        class FlagSaver {
+        class flag_saver {
         public:
-            FlagSaver();
+            flag_saver();
 
-            ~FlagSaver();
+            ~flag_saver();
 
-            FlagSaver(const FlagSaver &) = delete;
+            flag_saver(const flag_saver &) = delete;
 
-            void operator=(const FlagSaver &) = delete;
+            void operator=(const flag_saver &) = delete;
 
             // Prevents saver from restoring the saved state of flags.
             void Ignore();
 
         private:
-            class FlagSaverImpl *impl_;  // we use pimpl here to keep API steady
+            class flag_saver_impl *impl_;  // we use pimpl here to keep API steady
         };
 
     }  // namespace flags_internal

@@ -15,7 +15,7 @@ namespace abel {
     namespace flags_internal {
 
 // Type-specific operations, eg., parsing, copying, etc. are provided
-// by function specific to that type with a signature matching FlagOpFn.
+// by function specific to that type with a signature matching flag_op_fn.
         enum FlagOp {
             kDelete,
             kClone,
@@ -25,7 +25,7 @@ namespace abel {
             kParse,
             kUnparse
         };
-        using FlagOpFn = void *(*)(FlagOp, const void *, void *);
+        using flag_op_fn = void *(*)(FlagOp, const void *, void *);
         using FlagMarshallingOpFn = void *(*)(FlagOp, const void *, void *, void *);
 
 // Options that control SetCommandLineOptionWithMode.
@@ -95,19 +95,19 @@ namespace abel {
         }
 
 // Functions that invoke flag-type-specific operations.
-        ABEL_FORCE_INLINE void Delete(FlagOpFn op, const void *obj) {
+        ABEL_FORCE_INLINE void Delete(flag_op_fn op, const void *obj) {
             op(flags_internal::kDelete, obj, nullptr);
         }
 
-        ABEL_FORCE_INLINE void *Clone(FlagOpFn op, const void *obj) {
+        ABEL_FORCE_INLINE void *Clone(flag_op_fn op, const void *obj) {
             return op(flags_internal::kClone, obj, nullptr);
         }
 
-        ABEL_FORCE_INLINE void Copy(FlagOpFn op, const void *src, void *dst) {
+        ABEL_FORCE_INLINE void Copy(flag_op_fn op, const void *src, void *dst) {
             op(flags_internal::kCopy, src, dst);
         }
 
-        ABEL_FORCE_INLINE void CopyConstruct(FlagOpFn op, const void *src, void *dst) {
+        ABEL_FORCE_INLINE void CopyConstruct(flag_op_fn op, const void *src, void *dst) {
             op(flags_internal::kCopyConstruct, src, dst);
         }
 
@@ -122,7 +122,7 @@ namespace abel {
             return result;
         }
 
-        ABEL_FORCE_INLINE size_t Sizeof(FlagOpFn op) {
+        ABEL_FORCE_INLINE size_t Sizeof(flag_op_fn op) {
             // This sequence of casts reverses the sequence from base::internal::FlagOps()
             return static_cast<size_t>(reinterpret_cast<intptr_t>(
                     op(flags_internal::kSizeof, nullptr, nullptr)));
@@ -217,7 +217,7 @@ namespace abel {
             virtual bool IsAbelFlag() const { return true; }
 
             // Returns id of the flag's value type.
-            virtual flags_internal::FlagOpFn TypeId() const = 0;
+            virtual flags_internal::flag_op_fn TypeId() const = 0;
 
             virtual bool IsModified() const = 0;
 

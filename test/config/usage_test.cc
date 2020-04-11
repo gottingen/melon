@@ -76,7 +76,7 @@ namespace {
         }
 
     private:
-        flags::FlagSaver flag_saver_;
+        flags::flag_saver flag_saver_;
     };
 
 // --------------------------------------------------------------------
@@ -96,7 +96,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(UsageReportingTest, TestFlagHelpHRF_on_flag_01) {
-        const auto *flag = flags::FindCommandLineFlag("usage_reporting_test_flag_01");
+        const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_01");
         std::stringstream test_buf;
 
         flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
@@ -108,7 +108,7 @@ namespace {
     }
 
     TEST_F(UsageReportingTest, TestFlagHelpHRF_on_flag_02) {
-        const auto *flag = flags::FindCommandLineFlag("usage_reporting_test_flag_02");
+        const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_02");
         std::stringstream test_buf;
 
         flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
@@ -120,7 +120,7 @@ namespace {
     }
 
     TEST_F(UsageReportingTest, TestFlagHelpHRF_on_flag_03) {
-        const auto *flag = flags::FindCommandLineFlag("usage_reporting_test_flag_03");
+        const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_03");
         std::stringstream test_buf;
 
         flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
@@ -132,7 +132,7 @@ namespace {
     }
 
     TEST_F(UsageReportingTest, TestFlagHelpHRF_on_flag_04) {
-        const auto *flag = flags::FindCommandLineFlag("usage_reporting_test_flag_04");
+        const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_04");
         std::stringstream test_buf;
 
         flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
@@ -144,7 +144,7 @@ namespace {
     }
 
     TEST_F(UsageReportingTest, TestFlagHelpHRF_on_flag_05) {
-        const auto *flag = flags::FindCommandLineFlag("usage_reporting_test_flag_05");
+        const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_05");
         std::stringstream test_buf;
 
         flags::FlagHelp(test_buf, *flag, flags::HelpFormat::kHumanReadable);
