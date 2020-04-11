@@ -12,7 +12,6 @@
 
 #include <string>
 #include <vector>
-
 #include <abel/config/internal/parse.h>
 
 namespace abel {

@@ -299,13 +299,13 @@ namespace abel {
 #define ABEL_FLAG_IMPL_FLAGHELP(txt) txt
 #endif
 
-// AbelFlagHelpGenFor##name is used to encapsulate both immediate (method Const)
+// abel_flag_help_gen_for_##name is used to encapsulate both immediate (method Const)
 // and lazy (method NonConst) evaluation of help message expression. We choose
 // between the two via the call to help_arg in abel::abel_flag instantiation below.
 // If help message expression is constexpr evaluable compiler will optimize
 // away this whole struct.
 #define ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, txt)                     \
-  struct AbelFlagHelpGenFor##name {                                        \
+  struct abel_flag_help_gen_for_##name {                                        \
     template <typename T = void>                                           \
     static constexpr const char* Const() {                                 \
       return abel::flags_internal::help_constexpr_wrap(                      \
@@ -315,7 +315,7 @@ namespace abel {
   }
 
 #define ABEL_FLAG_IMPL_DECLARE_DEF_VAL_WRAPPER(name, Type, default_value)   \
-  static void* AbelFlagsInitFlag##name() {                                  \
+  static void* abel_flags_init_flag_##name() {                                  \
     return abel::flags_internal::make_from_default_value<Type>(default_value); \
   }
 
@@ -332,8 +332,8 @@ namespace abel {
   ABEL_CONST_INIT abel::abel_flag<Type> FLAGS_##name{                    \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),    \
       &abel::flags_internal::flag_marshalling_ops<Type>,              \
-      abel::flags_internal::help_arg<AbelFlagHelpGenFor##name>(0),   \
-      &AbelFlagsInitFlag##name};                                    \
+      abel::flags_internal::help_arg<abel_flag_help_gen_for_##name>(0),   \
+      &abel_flags_init_flag_##name};                                    \
   extern bool FLAGS_no##name;                                       \
   bool FLAGS_no##name = ABEL_FLAG_IMPL_REGISTRAR(Type, FLAGS_##name)
 #else
@@ -346,7 +346,7 @@ namespace abel {
   ABEL_CONST_INIT abel::abel_flag<Type> FLAGS_##name{                      \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),      \
       &abel::flags_internal::flag_marshalling_ops<Type>,                \
-      &AbelFlagHelpGenFor##name::NonConst, &AbelFlagsInitFlag##name}; \
+      &abel_flag_help_gen_for_##name::NonConst, &abel_flags_init_flag_##name}; \
   extern bool FLAGS_no##name;                                         \
   bool FLAGS_no##name = ABEL_FLAG_IMPL_REGISTRAR(Type, FLAGS_##name)
 #endif

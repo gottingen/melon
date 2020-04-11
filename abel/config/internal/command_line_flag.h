@@ -5,7 +5,6 @@
 #define ABEL_CONFIG_INTERNAL_COMMANDLINEFLAG_H_
 
 #include <memory>
-
 #include <abel/base/profile.h>
 #include <abel/config/marshalling.h>
 #include <abel/asl/optional.h>
