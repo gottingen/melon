@@ -31,9 +31,9 @@ namespace {
                                               flags::FlagHelpSrcKind::kLiteral};
         constexpr flags::Flag<T> f1("f1", "file", &flags::flag_marshalling_ops<T>,
                                     help_arg, &TestMakeDflt<T>);
-        EXPECT_EQ(f1.Name(), "f1");
-        EXPECT_EQ(f1.Help(), "literal help");
-        EXPECT_EQ(f1.Filename(), "file");
+        EXPECT_EQ(f1.name(), "f1");
+        EXPECT_EQ(f1.help(), "literal help");
+        EXPECT_EQ(f1.file_name(), "file");
 
         ABEL_CONST_INIT static flags::Flag<T> f2(
                 "f2", "file", &flags::flag_marshalling_ops<T>,
@@ -41,9 +41,9 @@ namespace {
                 &TestMakeDflt<T>);
         flags::FlagRegistrar<T, false>(&f2).OnUpdate(TestCallback);
 
-        EXPECT_EQ(f2.Name(), "f2");
-        EXPECT_EQ(f2.Help(), "dynamic help");
-        EXPECT_EQ(f2.Filename(), "file");
+        EXPECT_EQ(f2.name(), "f2");
+        EXPECT_EQ(f2.help(), "dynamic help");
+        EXPECT_EQ(f2.file_name(), "file");
 
         return true;
     }
@@ -115,17 +115,17 @@ namespace {
 
     TEST_F(FlagTest, TestFlagDeclaration) {
         // test that we can access flag objects.
-        EXPECT_EQ(FLAGS_test_flag_01.Name(), "test_flag_01");
-        EXPECT_EQ(FLAGS_test_flag_02.Name(), "test_flag_02");
-        EXPECT_EQ(FLAGS_test_flag_03.Name(), "test_flag_03");
-        EXPECT_EQ(FLAGS_test_flag_04.Name(), "test_flag_04");
-        EXPECT_EQ(FLAGS_test_flag_05.Name(), "test_flag_05");
-        EXPECT_EQ(FLAGS_test_flag_06.Name(), "test_flag_06");
-        EXPECT_EQ(FLAGS_test_flag_07.Name(), "test_flag_07");
-        EXPECT_EQ(FLAGS_test_flag_08.Name(), "test_flag_08");
-        EXPECT_EQ(FLAGS_test_flag_09.Name(), "test_flag_09");
-        EXPECT_EQ(FLAGS_test_flag_10.Name(), "test_flag_10");
-        EXPECT_EQ(FLAGS_test_flag_11.Name(), "test_flag_11");
+        EXPECT_EQ(FLAGS_test_flag_01.name(), "test_flag_01");
+        EXPECT_EQ(FLAGS_test_flag_02.name(), "test_flag_02");
+        EXPECT_EQ(FLAGS_test_flag_03.name(), "test_flag_03");
+        EXPECT_EQ(FLAGS_test_flag_04.name(), "test_flag_04");
+        EXPECT_EQ(FLAGS_test_flag_05.name(), "test_flag_05");
+        EXPECT_EQ(FLAGS_test_flag_06.name(), "test_flag_06");
+        EXPECT_EQ(FLAGS_test_flag_07.name(), "test_flag_07");
+        EXPECT_EQ(FLAGS_test_flag_08.name(), "test_flag_08");
+        EXPECT_EQ(FLAGS_test_flag_09.name(), "test_flag_09");
+        EXPECT_EQ(FLAGS_test_flag_10.name(), "test_flag_10");
+        EXPECT_EQ(FLAGS_test_flag_11.name(), "test_flag_11");
     }
 
 #endif  // !ABEL_FLAGS_STRIP_NAMES
@@ -152,60 +152,60 @@ namespace {
     TEST_F(FlagTest, TestFlagDefinition) {
         abel::string_view expected_file_name = "config/flag_test.cc";
 
-        EXPECT_EQ(FLAGS_test_flag_01.Name(), "test_flag_01");
-        EXPECT_EQ(FLAGS_test_flag_01.Help(), "test flag 01");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_01.Filename(), expected_file_name))
-                            << FLAGS_test_flag_01.Filename();
+        EXPECT_EQ(FLAGS_test_flag_01.name(), "test_flag_01");
+        EXPECT_EQ(FLAGS_test_flag_01.help(), "test flag 01");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_01.file_name(), expected_file_name))
+                            << FLAGS_test_flag_01.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_02.Name(), "test_flag_02");
-        EXPECT_EQ(FLAGS_test_flag_02.Help(), "test flag 02");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_02.Filename(), expected_file_name))
-                            << FLAGS_test_flag_02.Filename();
+        EXPECT_EQ(FLAGS_test_flag_02.name(), "test_flag_02");
+        EXPECT_EQ(FLAGS_test_flag_02.help(), "test flag 02");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_02.file_name(), expected_file_name))
+                            << FLAGS_test_flag_02.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_03.Name(), "test_flag_03");
-        EXPECT_EQ(FLAGS_test_flag_03.Help(), "test flag 03");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_03.Filename(), expected_file_name))
-                            << FLAGS_test_flag_03.Filename();
+        EXPECT_EQ(FLAGS_test_flag_03.name(), "test_flag_03");
+        EXPECT_EQ(FLAGS_test_flag_03.help(), "test flag 03");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_03.file_name(), expected_file_name))
+                            << FLAGS_test_flag_03.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_04.Name(), "test_flag_04");
-        EXPECT_EQ(FLAGS_test_flag_04.Help(), "test flag 04");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_04.Filename(), expected_file_name))
-                            << FLAGS_test_flag_04.Filename();
+        EXPECT_EQ(FLAGS_test_flag_04.name(), "test_flag_04");
+        EXPECT_EQ(FLAGS_test_flag_04.help(), "test flag 04");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_04.file_name(), expected_file_name))
+                            << FLAGS_test_flag_04.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_05.Name(), "test_flag_05");
-        EXPECT_EQ(FLAGS_test_flag_05.Help(), "test flag 05");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_05.Filename(), expected_file_name))
-                            << FLAGS_test_flag_05.Filename();
+        EXPECT_EQ(FLAGS_test_flag_05.name(), "test_flag_05");
+        EXPECT_EQ(FLAGS_test_flag_05.help(), "test flag 05");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_05.file_name(), expected_file_name))
+                            << FLAGS_test_flag_05.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_06.Name(), "test_flag_06");
-        EXPECT_EQ(FLAGS_test_flag_06.Help(), "test flag 06");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_06.Filename(), expected_file_name))
-                            << FLAGS_test_flag_06.Filename();
+        EXPECT_EQ(FLAGS_test_flag_06.name(), "test_flag_06");
+        EXPECT_EQ(FLAGS_test_flag_06.help(), "test flag 06");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_06.file_name(), expected_file_name))
+                            << FLAGS_test_flag_06.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_07.Name(), "test_flag_07");
-        EXPECT_EQ(FLAGS_test_flag_07.Help(), "test flag 07");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_07.Filename(), expected_file_name))
-                            << FLAGS_test_flag_07.Filename();
+        EXPECT_EQ(FLAGS_test_flag_07.name(), "test_flag_07");
+        EXPECT_EQ(FLAGS_test_flag_07.help(), "test flag 07");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_07.file_name(), expected_file_name))
+                            << FLAGS_test_flag_07.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_08.Name(), "test_flag_08");
-        EXPECT_EQ(FLAGS_test_flag_08.Help(), "test flag 08");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_08.Filename(), expected_file_name))
-                            << FLAGS_test_flag_08.Filename();
+        EXPECT_EQ(FLAGS_test_flag_08.name(), "test_flag_08");
+        EXPECT_EQ(FLAGS_test_flag_08.help(), "test flag 08");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_08.file_name(), expected_file_name))
+                            << FLAGS_test_flag_08.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_09.Name(), "test_flag_09");
-        EXPECT_EQ(FLAGS_test_flag_09.Help(), "test flag 09");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_09.Filename(), expected_file_name))
-                            << FLAGS_test_flag_09.Filename();
+        EXPECT_EQ(FLAGS_test_flag_09.name(), "test_flag_09");
+        EXPECT_EQ(FLAGS_test_flag_09.help(), "test flag 09");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_09.file_name(), expected_file_name))
+                            << FLAGS_test_flag_09.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_10.Name(), "test_flag_10");
-        EXPECT_EQ(FLAGS_test_flag_10.Help(), "test flag 10");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_10.Filename(), expected_file_name))
-                            << FLAGS_test_flag_10.Filename();
+        EXPECT_EQ(FLAGS_test_flag_10.name(), "test_flag_10");
+        EXPECT_EQ(FLAGS_test_flag_10.help(), "test flag 10");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_10.file_name(), expected_file_name))
+                            << FLAGS_test_flag_10.file_name();
 
-        EXPECT_EQ(FLAGS_test_flag_11.Name(), "test_flag_11");
-        EXPECT_EQ(FLAGS_test_flag_11.Help(), "test flag 11");
-        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_11.Filename(), expected_file_name))
-                            << FLAGS_test_flag_11.Filename();
+        EXPECT_EQ(FLAGS_test_flag_11.name(), "test_flag_11");
+        EXPECT_EQ(FLAGS_test_flag_11.help(), "test flag 11");
+        EXPECT_TRUE(abel::ends_with(FLAGS_test_flag_11.file_name(), expected_file_name))
+                            << FLAGS_test_flag_11.file_name();
     }
 
 #endif  // !ABEL_FLAGS_STRIP_NAMES
@@ -290,7 +290,7 @@ namespace {
 
 #if !ABEL_FLAGS_STRIP_HELP
     TEST_F(FlagTest, TestNonConstexprHelp) {
-        EXPECT_EQ(FLAGS_test_flag_14.Help(), "test flag 14");
+        EXPECT_EQ(FLAGS_test_flag_14.help(), "test flag 14");
     }
 
 #endif  //! ABEL_FLAGS_STRIP_HELP

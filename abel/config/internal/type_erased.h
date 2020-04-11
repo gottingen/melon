@@ -61,7 +61,7 @@ namespace abel {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
             if (!flag) return false;
 
-            if (auto val = flag->Get<T>()) {
+            if (auto val = flag->get<T>()) {
                 *dst = *val;
                 return true;
             }

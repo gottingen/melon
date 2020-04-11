@@ -40,7 +40,7 @@ namespace abel {
             abel::string_view TypenameForHelp(const flags_internal::command_line_flag &flag) {
                 // Only report names of v1 built-in types
 #define HANDLE_V1_BUILTIN_TYPE(t) \
-  if (flag.IsOfType<t>()) {       \
+  if (flag.is_of_type<t>()) {       \
     return #t;                    \
   }
 
@@ -51,7 +51,7 @@ namespace abel {
                 HANDLE_V1_BUILTIN_TYPE(double);
 #undef HANDLE_V1_BUILTIN_TYPE
 
-                if (flag.IsOfType<std::string>()) {
+                if (flag.is_of_type<std::string>()) {
                     return "string";
                 }
 
@@ -192,13 +192,13 @@ namespace abel {
                 flag_help_pretty_printer printer(80, out);  // Max line length is 80.
 
                 // Flag name.
-                printer.Write(abel::string_cat("--", flag.Name()));
+                printer.Write(abel::string_cat("--", flag.name()));
 
                 // Flag help.
-                printer.Write(abel::string_cat("(", flag.Help(), ");"), /*wrap_line=*/true);
+                printer.Write(abel::string_cat("(", flag.help(), ");"), /*wrap_line=*/true);
 
                 // Flag data type (for V1 flags only).
-                if (!flag.IsAbelFlag() && !flag.IsRetired()) {
+                if (!flag.is_abel_flag() && !flag.is_retired()) {
                     printer.Write(abel::string_cat("type: ", TypenameForHelp(flag), ";"));
                 }
 
@@ -206,15 +206,15 @@ namespace abel {
                 // definition in the originating source file, unless the value has
                 // subsequently been modified using SetCommandLineOption() with mode
                 // SET_FLAGS_DEFAULT.
-                std::string dflt_val = flag.DefaultValue();
-                if (flag.IsOfType<std::string>()) {
+                std::string dflt_val = flag.default_value();
+                if (flag.is_of_type<std::string>()) {
                     dflt_val = abel::string_cat("\"", dflt_val, "\"");
                 }
                 printer.Write(abel::string_cat("default: ", dflt_val, ";"));
 
-                if (flag.IsModified()) {
-                    std::string curr_val = flag.CurrentValue();
-                    if (flag.IsOfType<std::string>()) {
+                if (flag.is_modified()) {
+                    std::string curr_val = flag.current_value();
+                    if (flag.is_of_type<std::string>()) {
                         curr_val = abel::string_cat("\"", curr_val, "\"");
                     }
                     printer.Write(abel::string_cat("currently: ", curr_val, ";"));
@@ -258,13 +258,13 @@ namespace abel {
                         matching_flags;
 
                 flags_internal::for_each_flag([&](flags_internal::command_line_flag *flag) {
-                    std::string flag_filename = flag->Filename();
+                    std::string flag_filename = flag->file_name();
 
                     // Ignore retired flags.
-                    if (flag->IsRetired()) return;
+                    if (flag->is_retired()) return;
 
                     // If the flag has been stripped, pretend that it doesn't exist.
-                    if (flag->Help() == flags_internal::kStrippedFlagHelp) return;
+                    if (flag->help() == flags_internal::kStrippedFlagHelp) return;
 
                     // Make sure flag satisfies the filter
                     if (!filter_cb || !filter_cb(flag_filename)) return;

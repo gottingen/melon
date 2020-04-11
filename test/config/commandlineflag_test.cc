@@ -50,38 +50,38 @@ namespace {
         auto *flag_01 = flags::find_command_line_flag("int_flag");
 
         ASSERT_TRUE(flag_01);
-        EXPECT_EQ(flag_01->Name(), "int_flag");
-        EXPECT_EQ(flag_01->Help(), "int_flag help");
-        EXPECT_EQ(flag_01->Typename(), "");
-        EXPECT_TRUE(!flag_01->IsRetired());
-        EXPECT_TRUE(flag_01->IsOfType<int>());
+        EXPECT_EQ(flag_01->name(), "int_flag");
+        EXPECT_EQ(flag_01->help(), "int_flag help");
+        EXPECT_EQ(flag_01->type_name(), "");
+        EXPECT_TRUE(!flag_01->is_retired());
+        EXPECT_TRUE(flag_01->is_of_type<int>());
         EXPECT_TRUE(
-                abel::ends_with(flag_01->Filename(),
+                abel::ends_with(flag_01->file_name(),
                                 "commandlineflag_test.cc"))
-                            << flag_01->Filename();
+                            << flag_01->file_name();
 
         auto *flag_02 = flags::find_command_line_flag("string_flag");
 
         ASSERT_TRUE(flag_02);
-        EXPECT_EQ(flag_02->Name(), "string_flag");
-        EXPECT_EQ(flag_02->Help(), "string_flag help");
-        EXPECT_EQ(flag_02->Typename(), "");
-        EXPECT_TRUE(!flag_02->IsRetired());
-        EXPECT_TRUE(flag_02->IsOfType<std::string>());
+        EXPECT_EQ(flag_02->name(), "string_flag");
+        EXPECT_EQ(flag_02->help(), "string_flag help");
+        EXPECT_EQ(flag_02->type_name(), "");
+        EXPECT_TRUE(!flag_02->is_retired());
+        EXPECT_TRUE(flag_02->is_of_type<std::string>());
         EXPECT_TRUE(
-                abel::ends_with(flag_02->Filename(),
+                abel::ends_with(flag_02->file_name(),
                                 "commandlineflag_test.cc"))
-                            << flag_02->Filename();
+                            << flag_02->file_name();
 
         auto *flag_03 = flags::find_retired_flag("bool_retired_flag");
 
         ASSERT_TRUE(flag_03);
-        EXPECT_EQ(flag_03->Name(), "bool_retired_flag");
-        EXPECT_EQ(flag_03->Help(), "");
-        EXPECT_EQ(flag_03->Typename(), "");
-        EXPECT_TRUE(flag_03->IsRetired());
-        EXPECT_TRUE(flag_03->IsOfType<bool>());
-        EXPECT_EQ(flag_03->Filename(), "RETIRED");
+        EXPECT_EQ(flag_03->name(), "bool_retired_flag");
+        EXPECT_EQ(flag_03->help(), "");
+        EXPECT_EQ(flag_03->type_name(), "");
+        EXPECT_TRUE(flag_03->is_retired());
+        EXPECT_TRUE(flag_03->is_of_type<bool>());
+        EXPECT_EQ(flag_03->file_name(), "RETIRED");
     }
 
 // --------------------------------------------------------------------
@@ -91,15 +91,15 @@ namespace {
         auto *flag_01 = flags::find_command_line_flag("int_flag");
 
         ASSERT_TRUE(flag_01);
-        EXPECT_EQ(flag_01->CurrentValue(), "301");
-        EXPECT_EQ(flag_01->DefaultValue(), "201");
+        EXPECT_EQ(flag_01->current_value(), "301");
+        EXPECT_EQ(flag_01->default_value(), "201");
 
         abel::set_flag(&FLAGS_string_flag, "new_str_value");
         auto *flag_02 = flags::find_command_line_flag("string_flag");
 
         ASSERT_TRUE(flag_02);
-        EXPECT_EQ(flag_02->CurrentValue(), "new_str_value");
-        EXPECT_EQ(flag_02->DefaultValue(), "dflt");
+        EXPECT_EQ(flag_02->current_value(), "new_str_value");
+        EXPECT_EQ(flag_02->default_value(), "dflt");
     }
 
 // --------------------------------------------------------------------
@@ -108,50 +108,50 @@ namespace {
         std::string err;
 
         auto *flag_01 = flags::find_command_line_flag("int_flag");
-        EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_FALSE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(flag_01->SetFromString("11", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_01->set_from_string("11", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 11);
-        EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_FALSE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(flag_01->SetFromString("-123", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_01->set_from_string("-123", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), -123);
-        EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_FALSE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(!flag_01->SetFromString("xyz", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(!flag_01->set_from_string("xyz", flags::SET_FLAGS_VALUE,
                                             flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), -123);
         EXPECT_EQ(err, "Illegal value 'xyz' specified for flag 'int_flag'");
-        EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_FALSE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(!flag_01->SetFromString("A1", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(!flag_01->set_from_string("A1", flags::SET_FLAGS_VALUE,
                                             flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), -123);
         EXPECT_EQ(err, "Illegal value 'A1' specified for flag 'int_flag'");
-        EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_FALSE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(flag_01->SetFromString("0x10", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_01->set_from_string("0x10", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 16);
-        EXPECT_FALSE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_FALSE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(flag_01->SetFromString("011", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_01->set_from_string("011", flags::SET_FLAGS_VALUE,
                                            flags::kCommandLine, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 11);
-        EXPECT_TRUE(flag_01->IsSpecifiedOnCommandLine());
+        EXPECT_TRUE(flag_01->is_specified_on_command_line());
 
-        EXPECT_TRUE(!flag_01->SetFromString("", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(!flag_01->set_from_string("", flags::SET_FLAGS_VALUE,
                                             flags::kProgrammaticChange, &err));
         EXPECT_EQ(err, "Illegal value '' specified for flag 'int_flag'");
 
         auto *flag_02 = flags::find_command_line_flag("string_flag");
-        EXPECT_TRUE(flag_02->SetFromString("xyz", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_02->set_from_string("xyz", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "xyz");
 
-        EXPECT_TRUE(flag_02->SetFromString("", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_02->set_from_string("", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_string_flag), "");
     }
@@ -163,15 +163,15 @@ namespace {
 
         auto *flag_01 = flags::find_command_line_flag("int_flag");
 
-        EXPECT_TRUE(flag_01->SetFromString("111", flags::SET_FLAGS_DEFAULT,
+        EXPECT_TRUE(flag_01->set_from_string("111", flags::SET_FLAGS_DEFAULT,
                                            flags::kProgrammaticChange, &err));
-        EXPECT_EQ(flag_01->DefaultValue(), "111");
+        EXPECT_EQ(flag_01->default_value(), "111");
 
         auto *flag_02 = flags::find_command_line_flag("string_flag");
 
-        EXPECT_TRUE(flag_02->SetFromString("abc", flags::SET_FLAGS_DEFAULT,
+        EXPECT_TRUE(flag_02->set_from_string("abc", flags::SET_FLAGS_DEFAULT,
                                            flags::kProgrammaticChange, &err));
-        EXPECT_EQ(flag_02->DefaultValue(), "abc");
+        EXPECT_EQ(flag_02->default_value(), "abc");
     }
 
 // --------------------------------------------------------------------
@@ -181,21 +181,21 @@ namespace {
 
         auto *flag_01 = flags::find_command_line_flag("int_flag");
 
-        EXPECT_TRUE(flag_01->SetFromString("22", flags::SET_FLAG_IF_DEFAULT,
+        EXPECT_TRUE(flag_01->set_from_string("22", flags::SET_FLAG_IF_DEFAULT,
                                            flags::kProgrammaticChange, &err))
                             << err;
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 22);
 
-        EXPECT_TRUE(flag_01->SetFromString("33", flags::SET_FLAG_IF_DEFAULT,
+        EXPECT_TRUE(flag_01->set_from_string("33", flags::SET_FLAG_IF_DEFAULT,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 22);
         // EXPECT_EQ(err, "ERROR: int_flag is already set to 22");
 
         // Reset back to default value
-        EXPECT_TRUE(flag_01->SetFromString("201", flags::SET_FLAGS_VALUE,
+        EXPECT_TRUE(flag_01->set_from_string("201", flags::SET_FLAGS_VALUE,
                                            flags::kProgrammaticChange, &err));
 
-        EXPECT_TRUE(flag_01->SetFromString("33", flags::SET_FLAG_IF_DEFAULT,
+        EXPECT_TRUE(flag_01->set_from_string("33", flags::SET_FLAG_IF_DEFAULT,
                                            flags::kProgrammaticChange, &err));
         EXPECT_EQ(abel::get_flag(FLAGS_int_flag), 201);
         // EXPECT_EQ(err, "ERROR: int_flag is already set to 201");

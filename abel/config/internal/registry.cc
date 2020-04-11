@@ -37,7 +37,7 @@ namespace abel {
 
             ~flag_registry() {
                 for (auto &p : flags_) {
-                    p.second->Destroy();
+                    p.second->destroy();
                 }
             }
 
@@ -99,43 +99,43 @@ namespace abel {
         void flag_registry::register_flag(command_line_flag *flag) {
             flag_registry_lock registry_lock(this);
             std::pair<FlagIterator, bool> ins =
-                    flags_.insert(FlagMap::value_type(flag->Name(), flag));
+                    flags_.insert(FlagMap::value_type(flag->name(), flag));
             if (ins.second == false) {  // means the name was already in the map
                 command_line_flag *old_flag = ins.first->second;
-                if (flag->IsRetired() != old_flag->IsRetired()) {
+                if (flag->is_retired() != old_flag->is_retired()) {
                     // All registrations must agree on the 'retired' flag.
                     flags_internal::report_usage_error(
                             abel::string_cat(
-                                    "Retired flag '", flag->Name(),
+                                    "Retired flag '", flag->name(),
                                     "' was defined normally in file '",
-                                    (flag->IsRetired() ? old_flag->Filename() : flag->Filename()),
+                                    (flag->is_retired() ? old_flag->file_name() : flag->file_name()),
                                     "'."),
                             true);
-                } else if (flag->TypeId() != old_flag->TypeId()) {
+                } else if (flag->type_id() != old_flag->type_id()) {
                     flags_internal::report_usage_error(
-                            abel::string_cat("Flag '", flag->Name(),
+                            abel::string_cat("Flag '", flag->name(),
                                              "' was defined more than once but with "
                                              "differing types. Defined in files '",
-                                             old_flag->Filename(), "' and '", flag->Filename(),
-                                             "' with types '", old_flag->Typename(), "' and '",
-                                             flag->Typename(), "', respectively."),
+                                             old_flag->file_name(), "' and '", flag->file_name(),
+                                             "' with types '", old_flag->type_name(), "' and '",
+                                             flag->type_name(), "', respectively."),
                             true);
-                } else if (old_flag->IsRetired()) {
+                } else if (old_flag->is_retired()) {
                     // Retired definitions are idempotent. Just keep the old one.
-                    flag->Destroy();
+                    flag->destroy();
                     return;
-                } else if (old_flag->Filename() != flag->Filename()) {
+                } else if (old_flag->file_name() != flag->file_name()) {
                     flags_internal::report_usage_error(
-                            abel::string_cat("Flag '", flag->Name(),
+                            abel::string_cat("Flag '", flag->name(),
                                              "' was defined more than once (in files '",
-                                             old_flag->Filename(), "' and '", flag->Filename(),
+                                             old_flag->file_name(), "' and '", flag->file_name(),
                                              "')."),
                             true);
                 } else {
                     flags_internal::report_usage_error(
                             abel::string_cat(
-                                    "Something wrong with flag '", flag->Name(), "' in file '",
-                                    flag->Filename(), "'. One possibility: file '", flag->Filename(),
+                                    "Something wrong with flag '", flag->name(), "' in file '",
+                                    flag->file_name(), "'. One possibility: file '", flag->file_name(),
                                     "' is being linked both statically and dynamically into this "
                                     "executable. e.g. some files listed as srcs to a test and also "
                                     "listed as srcs of some shared lib deps of the same test."),
@@ -152,7 +152,7 @@ namespace abel {
                 return nullptr;
             }
 
-            if (i->second->IsRetired()) {
+            if (i->second->is_retired()) {
                 flags_internal::report_usage_error(
                         abel::string_cat("Accessing retired flag '", name, "'"), false);
             }
@@ -162,7 +162,7 @@ namespace abel {
 
         command_line_flag *flag_registry::find_retired_flag_locked(abel::string_view name) {
             FlagConstIterator i = flags_.find(name);
-            if (i == flags_.end() || !i->second->IsRetired()) {
+            if (i == flags_.end() || !i->second->is_retired()) {
                 return nullptr;
             }
 
@@ -192,7 +192,7 @@ namespace abel {
             void SaveFromRegistry() {
                 assert(backup_registry_.empty());  // call only once!
                 flags_internal::for_each_flag([&](flags_internal::command_line_flag *flag) {
-                    if (auto flag_state = flag->SaveState()) {
+                    if (auto flag_state = flag->save_state()) {
                         backup_registry_.emplace_back(std::move(flag_state));
                     }
                 });
@@ -274,46 +274,46 @@ namespace abel {
                         : name_(name), op_(ops) {}
 
             private:
-                void Destroy() override {
+                void destroy() override {
                     // Values are heap allocated for Retired Flags.
                     delete this;
                 }
 
-                abel::string_view Name() const override { return name_; }
+                abel::string_view name() const override { return name_; }
 
-                std::string Filename() const override { return "RETIRED"; }
+                std::string file_name() const override { return "RETIRED"; }
 
-                abel::string_view Typename() const override { return ""; }
+                abel::string_view type_name() const override { return ""; }
 
-                flags_internal::flag_op_fn TypeId() const override { return op_; }
+                flags_internal::flag_op_fn type_id() const override { return op_; }
 
-                std::string Help() const override { return ""; }
+                std::string help() const override { return ""; }
 
-                bool IsRetired() const override { return true; }
+                bool is_retired() const override { return true; }
 
-                bool IsModified() const override { return false; }
+                bool is_modified() const override { return false; }
 
-                bool IsSpecifiedOnCommandLine() const override { return false; }
+                bool is_specified_on_command_line() const override { return false; }
 
-                std::string DefaultValue() const override { return ""; }
+                std::string default_value() const override { return ""; }
 
-                std::string CurrentValue() const override { return ""; }
+                std::string current_value() const override { return ""; }
 
                 // Any input is valid
-                bool ValidateInputValue(abel::string_view) const override { return true; }
+                bool validate_input_value(abel::string_view) const override { return true; }
 
-                std::unique_ptr<flags_internal::flag_state_interface> SaveState() override {
+                std::unique_ptr<flags_internal::flag_state_interface> save_state() override {
                     return nullptr;
                 }
 
-                bool SetFromString(abel::string_view, flags_internal::flag_setting_mode,
-                                   flags_internal::value_source, std::string *) override {
+                bool set_from_string(abel::string_view, flags_internal::flag_setting_mode,
+                                     flags_internal::value_source, std::string *) override {
                     return false;
                 }
 
-                void CheckDefaultValueParsingRoundtrip() const override {}
+                void check_default_value_parsing_roundtrip() const override {}
 
-                void Read(void *) const override {}
+                void read(void *) const override {}
 
                 // Data members
                 const char *const name_;
@@ -337,7 +337,7 @@ namespace abel {
                 return false;
             }
             assert(type_is_bool);
-            *type_is_bool = flag->IsOfType<bool>();
+            *type_is_bool = flag->is_of_type<bool>();
             return true;
         }
 

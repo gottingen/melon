@@ -41,7 +41,7 @@ namespace abel {
             SET_FLAGS_DEFAULT
         };
 
-// Options that control SetFromString: Source of a value.
+// Options that control set_from_string: Source of a value.
         enum value_source {
             // Flag is being set by value specified on a command line.
             kCommandLine,
@@ -129,7 +129,7 @@ namespace abel {
         }
 
 // Handle to flag_state objects. Specific flag state objects will restore state
-// of a flag produced this flag state from method command_line_flag::SaveState().
+// of a flag produced this flag state from method command_line_flag::save_state().
         class flag_state_interface {
         public:
             virtual ~flag_state_interface() {}
@@ -144,7 +144,7 @@ namespace abel {
             constexpr command_line_flag() = default;
 
             // Virtual destructor
-            virtual void Destroy() = 0;
+            virtual void destroy() = 0;
 
             // Not copyable/assignable.
             command_line_flag(const command_line_flag &) = delete;
@@ -155,15 +155,15 @@ namespace abel {
 
             // Return true iff flag has type T.
             template<typename T>
-            ABEL_FORCE_INLINE bool IsOfType() const {
-                return TypeId() == &flags_internal::flag_ops<T>;
+            ABEL_FORCE_INLINE bool is_of_type() const {
+                return type_id() == &flags_internal::flag_ops<T>;
             }
 
             // Attempts to retrieve the flag value. Returns value on success,
             // abel::nullopt otherwise.
             template<typename T>
-            abel::optional<T> Get() const {
-                if (IsRetired() || !IsOfType<T>()) {
+            abel::optional<T> get() const {
+                if (is_retired() || !is_of_type<T>()) {
                     return abel::nullopt;
                 }
 
@@ -198,41 +198,41 @@ namespace abel {
             // Polymorphic access methods
 
             // Returns name of this flag.
-            virtual abel::string_view Name() const = 0;
+            virtual abel::string_view name() const = 0;
 
             // Returns name of the file where this flag is defined.
-            virtual std::string Filename() const = 0;
+            virtual std::string file_name() const = 0;
 
             // Returns name of the flag's value type for some built-in types or empty
             // std::string.
-            virtual abel::string_view Typename() const = 0;
+            virtual abel::string_view type_name() const = 0;
 
             // Returns help message associated with this flag.
-            virtual std::string Help() const = 0;
+            virtual std::string help() const = 0;
 
             // Returns true iff this object corresponds to retired flag.
-            virtual bool IsRetired() const { return false; }
+            virtual bool is_retired() const { return false; }
 
             // Returns true iff this is a handle to an abel Flag.
-            virtual bool IsAbelFlag() const { return true; }
+            virtual bool is_abel_flag() const { return true; }
 
             // Returns id of the flag's value type.
-            virtual flags_internal::flag_op_fn TypeId() const = 0;
+            virtual flags_internal::flag_op_fn type_id() const = 0;
 
-            virtual bool IsModified() const = 0;
+            virtual bool is_modified() const = 0;
 
-            virtual bool IsSpecifiedOnCommandLine() const = 0;
+            virtual bool is_specified_on_command_line() const = 0;
 
-            virtual std::string DefaultValue() const = 0;
+            virtual std::string default_value() const = 0;
 
-            virtual std::string CurrentValue() const = 0;
+            virtual std::string current_value() const = 0;
 
             // Interfaces to operate on validators.
-            virtual bool ValidateInputValue(abel::string_view value) const = 0;
+            virtual bool validate_input_value(abel::string_view value) const = 0;
 
             // Interface to save flag to some persistent state. Returns current flag state
             // or nullptr if flag does not support saving and restoring a state.
-            virtual std::unique_ptr<flag_state_interface> SaveState() = 0;
+            virtual std::unique_ptr<flag_state_interface> save_state() = 0;
 
             // Sets the value of the flag based on specified std::string `value`. If the flag
             // was successfully set to new value, it returns true. Otherwise, sets `error`
@@ -242,14 +242,14 @@ namespace abel {
             //  * Update the flag's default value
             //  * Update the current flag value if it was never set before
             // The mode is selected based on `set_mode` parameter.
-            virtual bool SetFromString(abel::string_view value,
+            virtual bool set_from_string(abel::string_view value,
                                        flags_internal::flag_setting_mode set_mode,
                                        flags_internal::value_source source,
                                        std::string *error) = 0;
 
             // Checks that flags default value can be converted to std::string and back to the
             // flag's value type.
-            virtual void CheckDefaultValueParsingRoundtrip() const = 0;
+            virtual void check_default_value_parsing_roundtrip() const = 0;
 
         protected:
             ~command_line_flag() = default;
@@ -257,7 +257,7 @@ namespace abel {
         private:
             // Copy-construct a new value of the flag's type in a memory referenced by
             // the dst based on the current flag's value.
-            virtual void Read(void *dst) const = 0;
+            virtual void read(void *dst) const = 0;
         };
 
 // This macro is the "source of truth" for the list of supported flag types we

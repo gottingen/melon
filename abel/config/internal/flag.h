@@ -170,9 +170,9 @@ namespace abel {
 
             std::string Help() const;
 
-            bool IsModified() const ABEL_LOCKS_EXCLUDED(*DataGuard());
+            bool is_modified() const ABEL_LOCKS_EXCLUDED(*DataGuard());
 
-            bool IsSpecifiedOnCommandLine() const ABEL_LOCKS_EXCLUDED(*DataGuard());
+            bool is_specified_on_command_line() const ABEL_LOCKS_EXCLUDED(*DataGuard());
 
             std::string DefaultValue() const ABEL_LOCKS_EXCLUDED(*DataGuard());
 
@@ -201,7 +201,7 @@ namespace abel {
             void Write(const void *src, const flags_internal::flag_op_fn src_op)
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
-            bool SetFromString(abel::string_view value, flag_setting_mode set_mode,
+            bool set_from_string(abel::string_view value, flag_setting_mode set_mode,
                                value_source source, std::string *err)
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
@@ -217,7 +217,7 @@ namespace abel {
 
             // Interfaces to save/restore mutable flag data
             template<typename T>
-            std::unique_ptr<flags_internal::flag_state_interface> SaveState(
+            std::unique_ptr<flags_internal::flag_state_interface> save_state(
                     Flag<T> *flag) const ABEL_LOCKS_EXCLUDED(*DataGuard()) {
                 T &&cur_value = flag->Get();
                 abel::mutex_lock l(DataGuard());
@@ -226,14 +226,14 @@ namespace abel {
                         flag, std::move(cur_value), modified_, on_command_line_, counter_);
             }
 
-            bool RestoreState(const void *value, bool modified, bool on_command_line,
+            bool restore_state(const void *value, bool modified, bool on_command_line,
                               int64_t counter) ABEL_LOCKS_EXCLUDED(*DataGuard());
 
             // Value validation interfaces.
-            void CheckDefaultValueParsingRoundtrip() const
+            void check_default_value_parsing_roundtrip() const
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
-            bool ValidateInputValue(abel::string_view value) const
+            bool validate_input_value(abel::string_view value) const
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
         private:
@@ -334,63 +334,63 @@ namespace abel {
             }
 
             // command_line_flag interface
-            abel::string_view Name() const override { return impl_.Name(); }
+            abel::string_view name() const override { return impl_.Name(); }
 
-            std::string Filename() const override { return impl_.Filename(); }
+            std::string file_name() const override { return impl_.Filename(); }
 
-            abel::string_view Typename() const override { return abel::string_view(""); }
+            abel::string_view type_name() const override { return abel::string_view(""); }
 
-            std::string Help() const override { return impl_.Help(); }
+            std::string help() const override { return impl_.Help(); }
 
-            bool IsModified() const override { return impl_.IsModified(); }
+            bool is_modified() const override { return impl_.is_modified(); }
 
-            bool IsSpecifiedOnCommandLine() const override {
-                return impl_.IsSpecifiedOnCommandLine();
+            bool is_specified_on_command_line() const override {
+                return impl_.is_specified_on_command_line();
             }
 
-            std::string DefaultValue() const override { return impl_.DefaultValue(); }
+            std::string default_value() const override { return impl_.DefaultValue(); }
 
-            std::string CurrentValue() const override { return impl_.CurrentValue(); }
+            std::string current_value() const override { return impl_.CurrentValue(); }
 
-            bool ValidateInputValue(abel::string_view value) const override {
-                return impl_.ValidateInputValue(value);
+            bool validate_input_value(abel::string_view value) const override {
+                return impl_.validate_input_value(value);
             }
 
             // Interfaces to save and restore flags to/from persistent state.
             // Returns current flag state or nullptr if flag does not support
             // saving and restoring a state.
-            std::unique_ptr<flags_internal::flag_state_interface> SaveState() override {
-                return impl_.SaveState(this);
+            std::unique_ptr<flags_internal::flag_state_interface> save_state() override {
+                return impl_.save_state(this);
             }
 
             // Restores the flag state to the supplied state object. If there is
             // nothing to restore returns false. Otherwise returns true.
-            bool RestoreState(const flags_internal::flag_state<T> &flag_state) {
-                return impl_.RestoreState(&flag_state.cur_value_, flag_state.modified_,
+            bool restore_state(const flags_internal::flag_state<T> &flag_state) {
+                return impl_.restore_state(&flag_state.cur_value_, flag_state.modified_,
                                           flag_state.on_command_line_, flag_state.counter_);
             }
 
-            bool SetFromString(abel::string_view value,
+            bool set_from_string(abel::string_view value,
                                flags_internal::flag_setting_mode set_mode,
                                flags_internal::value_source source,
                                std::string *error) override {
-                return impl_.SetFromString(value, set_mode, source, error);
+                return impl_.set_from_string(value, set_mode, source, error);
             }
 
-            void CheckDefaultValueParsingRoundtrip() const override {
-                impl_.CheckDefaultValueParsingRoundtrip();
+            void check_default_value_parsing_roundtrip() const override {
+                impl_.check_default_value_parsing_roundtrip();
             }
 
         private:
             friend class flag_state<T>;
 
-            void Destroy() override { impl_.Destroy(); }
+            void destroy() override { impl_.Destroy(); }
 
-            void Read(void *dst) const override {
+            void read(void *dst) const override {
                 impl_.Read(dst, &flags_internal::flag_ops<T>);
             }
 
-            flags_internal::flag_op_fn TypeId() const override {
+            flags_internal::flag_op_fn type_id() const override {
                 return &flags_internal::flag_ops<T>;
             }
 
@@ -400,10 +400,10 @@ namespace abel {
 
         template<typename T>
         ABEL_FORCE_INLINE void flag_state<T>::restore() const {
-            if (flag_->RestoreState(*this)) {
+            if (flag_->restore_state(*this)) {
                 ABEL_INTERNAL_LOG(INFO,
-                                  abel::string_cat("Restore saved value of ", flag_->Name(),
-                                                   " to: ", flag_->CurrentValue()));
+                                  abel::string_cat("Restore saved value of ", flag_->name(),
+                                                   " to: ", flag_->current_value()));
             }
         }
 

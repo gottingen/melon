@@ -114,21 +114,21 @@ namespace abel {
       }
 
       // Public methods of `abel::Flag<T>` are NOT part of the abel Flags API.
-      bool IsRetired() const { return GetImpl()->IsRetired(); }
+      bool is_retired() const { return GetImpl()->is_retired(); }
       bool IsAbelFlag() const { return GetImpl()->IsAbelFlag(); }
       abel::string_view Name() const { return GetImpl()->Name(); }
       std::string Help() const { return GetImpl()->Help(); }
-      bool IsModified() const { return GetImpl()->IsModified(); }
-      bool IsSpecifiedOnCommandLine() const {
-        return GetImpl()->IsSpecifiedOnCommandLine();
+      bool is_modified() const { return GetImpl()->is_modified(); }
+      bool is_specified_on_command_line() const {
+        return GetImpl()->is_specified_on_command_line();
       }
       abel::string_view Typename() const { return GetImpl()->Typename(); }
       std::string Filename() const { return GetImpl()->Filename(); }
       std::string DefaultValue() const { return GetImpl()->DefaultValue(); }
       std::string CurrentValue() const { return GetImpl()->CurrentValue(); }
       template <typename U>
-      ABEL_FORCE_INLINE bool IsOfType() const {
-        return GetImpl()->template IsOfType<U>();
+      ABEL_FORCE_INLINE bool is_of_type() const {
+        return GetImpl()->template is_of_type<U>();
       }
       T Get() const { return GetImpl()->Get(); }
       bool AtomicGet(T* v) const { return GetImpl()->AtomicGet(v); }

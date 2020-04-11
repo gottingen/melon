@@ -132,12 +132,12 @@ namespace abel {
                                                                   : help_.gen_func();
         }
 
-        bool FlagImpl::IsModified() const {
+        bool FlagImpl::is_modified() const {
             abel::mutex_lock l(DataGuard());
             return modified_;
         }
 
-        bool FlagImpl::IsSpecifiedOnCommandLine() const {
+        bool FlagImpl::is_specified_on_command_line() const {
             abel::mutex_lock l(DataGuard());
             return on_command_line_;
         }
@@ -190,7 +190,7 @@ namespace abel {
             cb();
         }
 
-        bool FlagImpl::RestoreState(const void *value, bool modified,
+        bool FlagImpl::restore_state(const void *value, bool modified,
                                     bool on_command_line, int64_t counter) {
             {
                 abel::mutex_lock l(DataGuard());
@@ -298,7 +298,7 @@ namespace abel {
 //  * Update the flag's default value
 //  * Update the current flag value if it was never set before
 // The mode is selected based on 'set_mode' parameter.
-        bool FlagImpl::SetFromString(abel::string_view value, flag_setting_mode set_mode,
+        bool FlagImpl::set_from_string(abel::string_view value, flag_setting_mode set_mode,
                                      value_source source, std::string *err) {
             abel::mutex_lock l(DataGuard());
 
@@ -363,7 +363,7 @@ namespace abel {
             return true;
         }
 
-        void FlagImpl::CheckDefaultValueParsingRoundtrip() const {
+        void FlagImpl::check_default_value_parsing_roundtrip() const {
             std::string v = DefaultValue();
 
             abel::mutex_lock lock(DataGuard());
@@ -382,7 +382,7 @@ namespace abel {
             // small changes, e.g., precision loss for floating point types.
         }
 
-        bool FlagImpl::ValidateInputValue(abel::string_view value) const {
+        bool FlagImpl::validate_input_value(abel::string_view value) const {
             abel::mutex_lock l(DataGuard());
 
             auto obj = MakeInitValue();

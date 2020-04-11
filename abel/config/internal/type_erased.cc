@@ -17,11 +17,11 @@ namespace abel {
             assert(value);
 
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
-            if (flag == nullptr || flag->IsRetired()) {
+            if (flag == nullptr || flag->is_retired()) {
                 return false;
             }
 
-            *value = flag->CurrentValue();
+            *value = flag->current_value();
             return true;
         }
 
@@ -35,10 +35,10 @@ namespace abel {
                                           flag_setting_mode set_mode) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
 
-            if (!flag || flag->IsRetired()) return false;
+            if (!flag || flag->is_retired()) return false;
 
             std::string error;
-            if (!flag->SetFromString(value, set_mode, kProgrammaticChange, &error)) {
+            if (!flag->set_from_string(value, set_mode, kProgrammaticChange, &error)) {
                 // Errors here are all of the form: the provided name was a recognized
                 // flag, but the value was invalid (bad type, or validation failed).
                 flags_internal::report_usage_error(error, false);
@@ -54,15 +54,15 @@ namespace abel {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
 
             return flag != nullptr &&
-                   (flag->IsRetired() || flag->ValidateInputValue(value));
+                   (flag->is_retired() || flag->validate_input_value(value));
         }
 
 // --------------------------------------------------------------------
 
         bool SpecifiedOnCommandLine(abel::string_view name) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
-            if (flag != nullptr && !flag->IsRetired()) {
-                return flag->IsSpecifiedOnCommandLine();
+            if (flag != nullptr && !flag->is_retired()) {
+                return flag->is_specified_on_command_line();
             }
             return false;
         }

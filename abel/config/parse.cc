@@ -270,17 +270,17 @@ namespace abel {
             void CheckDefaultValuesParsingRoundtrip() {
 #ifndef NDEBUG
                 flags_internal::for_each_flag([&](command_line_flag *flag) {
-                    if (flag->IsRetired()) return;
+                    if (flag->is_retired()) return;
 
 #define IGNORE_TYPE(T) \
-  if (flag->IsOfType<T>()) return;
+  if (flag->is_of_type<T>()) return;
 
                     ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(IGNORE_TYPE)
                     IGNORE_TYPE(std::string)
                     IGNORE_TYPE(std::vector<std::string>)
 #undef IGNORE_TYPE
 
-                    flag->CheckDefaultValueParsingRoundtrip();
+                    flag->check_default_value_parsing_roundtrip();
                 });
 #endif
             }
@@ -472,14 +472,14 @@ namespace abel {
                 // --foo <value>
                 // --nofoo is not supported
 
-                if (flag.IsOfType<bool>()) {
+                if (flag.is_of_type<bool>()) {
                     if (value.empty()) {
                         if (is_empty_value) {
                             // "--bool_flag=" case
                             flags_internal::report_usage_error(
                                     abel::string_cat(
                                             "Missing the value after assignment for the boolean flag '",
-                                            flag.Name(), "'"),
+                                            flag.name(), "'"),
                                     true);
                             return std::make_tuple(false, "");
                         }
@@ -491,14 +491,14 @@ namespace abel {
                         flags_internal::report_usage_error(
                                 abel::string_cat("Negative form with assignment is not valid for the "
                                                  "boolean flag '",
-                                                 flag.Name(), "'"),
+                                                 flag.name(), "'"),
                                 true);
                         return std::make_tuple(false, "");
                     }
                 } else if (is_negative) {
                     // "--noint_flag=1" case
                     flags_internal::report_usage_error(
-                            abel::string_cat("Negative form is not valid for the flag '", flag.Name(),
+                            abel::string_cat("Negative form is not valid for the flag '", flag.name(),
                                              "'"),
                             true);
                     return std::make_tuple(false, "");
@@ -506,7 +506,7 @@ namespace abel {
                     if (curr_list->Size() == 1) {
                         // "--int_flag" case
                         flags_internal::report_usage_error(
-                                abel::string_cat("Missing the value for the flag '", flag.Name(), "'"),
+                                abel::string_cat("Missing the value for the flag '", flag.name(), "'"),
                                 true);
                         return std::make_tuple(false, "");
                     }
@@ -520,7 +520,7 @@ namespace abel {
                     // --my_string_var --foo=bar
                     // We look for a flag of std::string type, whose value begins with a
                     // dash and corresponds to known flag or standalone --.
-                    if (!value.empty() && value[0] == '-' && flag.IsOfType<std::string>()) {
+                    if (!value.empty() && value[0] == '-' && flag.is_of_type<std::string>()) {
                         auto maybe_flag_name = std::get<0>(SplitNameAndValue(value.substr(1)));
 
                         if (maybe_flag_name.empty() ||
@@ -528,7 +528,7 @@ namespace abel {
                             // "--string_flag" "--known_flag" case
                             ABEL_INTERNAL_LOG(
                                     WARNING,
-                                    abel::string_cat("Did you really mean to set flag '", flag.Name(),
+                                    abel::string_cat("Did you really mean to set flag '", flag.name(),
                                                      "' to the value '", value, "'?"));
                         }
                     }
@@ -675,10 +675,10 @@ namespace abel {
 
                 // 100. Set the located flag to a new new value, unless it is retired.
                 // Setting retired flag fails, but we ignoring it here.
-                if (flag->IsRetired()) continue;
+                if (flag->is_retired()) continue;
 
                 std::string error;
-                if (!flag->SetFromString(value, SET_FLAGS_VALUE, kCommandLine, &error)) {
+                if (!flag->set_from_string(value, SET_FLAGS_VALUE, kCommandLine, &error)) {
                     flags_internal::report_usage_error(error, true);
                     success = false;
                 }
