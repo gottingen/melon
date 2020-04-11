@@ -133,7 +133,7 @@ namespace abel {
       T Get() const { return GetImpl()->Get(); }
       bool AtomicGet(T* v) const { return GetImpl()->AtomicGet(v); }
       void Set(const T& v) { GetImpl()->Set(v); }
-      void SetCallback(const flags_internal::FlagCallback mutation_callback) {
+      void SetCallback(const flags_internal::flag_callback mutation_callback) {
         GetImpl()->SetCallback(mutation_callback);
       }
       void InvokeCallback() { GetImpl()->InvokeCallback(); }
@@ -242,11 +242,11 @@ namespace abel {
 #define ABEL_FLAG(Type, name, default_value, help) \
   ABEL_FLAG_IMPL(Type, name, default_value, help)
 
-// ABEL_FLAG().OnUpdate()
+// ABEL_FLAG().on_update()
 //
 // Defines a flag of type `T` with a callback attached:
 //
-//   ABEL_FLAG(T, name, default_value, help).OnUpdate(callback);
+//   ABEL_FLAG(T, name, default_value, help).on_update(callback);
 //
 // After any setting of the flag value, the callback will be called at least
 // once. A rapid sequence of changes may be merged together into the same
@@ -259,7 +259,7 @@ namespace abel {
 // that eventually the flag value and the derived data structure will be
 // consistent.
 //
-// Note: ABEL_FLAG.OnUpdate() does not have a public definition. Hence, this
+// Note: ABEL_FLAG.on_update() does not have a public definition. Hence, this
 // comment serves as its API documentation.
 
 
@@ -274,20 +274,20 @@ namespace abel {
 #define ABEL_FLAG_IMPL_FILENAME() ""
 #if !defined(_MSC_VER) || defined(__clang__)
 #define ABEL_FLAG_IMPL_REGISTRAR(T, flag) \
-  abel::flags_internal::FlagRegistrar<T, false>(&flag)
+  abel::flags_internal::flag_registrar<T, false>(&flag)
 #else
 #define ABEL_FLAG_IMPL_REGISTRAR(T, flag) \
-  abel::flags_internal::FlagRegistrar<T, false>(flag.GetImpl())
+  abel::flags_internal::flag_registrar<T, false>(flag.GetImpl())
 #endif
 #else
 #define ABEL_FLAG_IMPL_FLAGNAME(txt) txt
 #define ABEL_FLAG_IMPL_FILENAME() __FILE__
 #if !defined(_MSC_VER) || defined(__clang__)
 #define ABEL_FLAG_IMPL_REGISTRAR(T, flag) \
-  abel::flags_internal::FlagRegistrar<T, true>(&flag)
+  abel::flags_internal::flag_registrar<T, true>(&flag)
 #else
 #define ABEL_FLAG_IMPL_REGISTRAR(T, flag) \
-  abel::flags_internal::FlagRegistrar<T, true>(flag.GetImpl())
+  abel::flags_internal::flag_registrar<T, true>(flag.GetImpl())
 #endif
 #endif
 
@@ -316,7 +316,7 @@ namespace abel {
 
 #define ABEL_FLAG_IMPL_DECLARE_DEF_VAL_WRAPPER(name, Type, default_value)   \
   static void* AbelFlagsInitFlag##name() {                                  \
-    return abel::flags_internal::MakeFromDefaultValue<Type>(default_value); \
+    return abel::flags_internal::make_from_default_value<Type>(default_value); \
   }
 
 // ABEL_FLAG_IMPL

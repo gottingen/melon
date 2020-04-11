@@ -134,7 +134,7 @@ namespace abel {
 // Signature for the mutation callback used by watched Flags
 // The callback is noexcept.
 // TODO(rogeeff): add noexcept after C++17 support is added.
-        using FlagCallback = void (*)();
+        using flag_callback = void (*)();
 
         struct DynValueDeleter {
             void operator()(void *ptr) const { remove(op, ptr); }
@@ -210,7 +210,7 @@ namespace abel {
             void StoreAtomic() ABEL_EXCLUSIVE_LOCKS_REQUIRED(*DataGuard());
 
             // Interfaces to operate on callbacks.
-            void SetCallback(const flags_internal::FlagCallback mutation_callback)
+            void SetCallback(const flags_internal::flag_callback mutation_callback)
             ABEL_LOCKS_EXCLUDED(*DataGuard());
 
             void InvokeCallback() const ABEL_EXCLUSIVE_LOCKS_REQUIRED(*DataGuard());
@@ -284,11 +284,11 @@ namespace abel {
             // accessible field.
             std::atomic<int64_t> atomic_{flags_internal::atomic_init()};
 
-            struct CallbackData {
-                FlagCallback func;
+            struct callback_data {
+                flag_callback func;
                 abel::mutex guard;  // Guard for concurrent callback invocations.
             };
-            CallbackData *callback_data_ ABEL_GUARDED_BY(*DataGuard()) = nullptr;
+            callback_data *callback_data_ ABEL_GUARDED_BY(*DataGuard()) = nullptr;
             // This is reserved space for an abel::mutex to guard flag data. It will be
             // initialized in FlagImpl::Init via placement new.
             // We can't use "abel::mutex data_guard_", since this class is not literal.
@@ -329,7 +329,7 @@ namespace abel {
 
             void Set(const T &v) { impl_.Write(&v, &flags_internal::flag_ops<T>); }
 
-            void SetCallback(const flags_internal::FlagCallback mutation_callback) {
+            void SetCallback(const flags_internal::flag_callback mutation_callback) {
                 impl_.SetCallback(mutation_callback);
             }
 
@@ -409,15 +409,15 @@ namespace abel {
 
 // This class facilitates Flag object registration and tail expression-based
 // flag definition, for example:
-// ABEL_FLAG(int, foo, 42, "Foo help").OnUpdate(NotifyFooWatcher);
+// ABEL_FLAG(int, foo, 42, "Foo help").on_update(NotifyFooWatcher);
         template<typename T, bool do_register>
-        class FlagRegistrar {
+        class flag_registrar {
         public:
-            explicit FlagRegistrar(Flag<T> *flag) : flag_(flag) {
+            explicit flag_registrar(Flag<T> *flag) : flag_(flag) {
                 if (do_register) flags_internal::register_command_line_flag(flag_);
             }
 
-            FlagRegistrar &OnUpdate(flags_internal::FlagCallback cb) &&{
+            flag_registrar &on_update(flags_internal::flag_callback cb) &&{
                 flag_->SetCallback(cb);
                 return *this;
             }
@@ -432,16 +432,16 @@ namespace abel {
 
 // This struct and corresponding overload to MakeDefaultValue are used to
 // facilitate usage of {} as default value in ABEL_FLAG macro.
-        struct EmptyBraces {
+        struct empty_braces {
         };
 
         template<typename T>
-        T *MakeFromDefaultValue(T t) {
+        T *make_from_default_value(T t) {
             return new T(std::move(t));
         }
 
         template<typename T>
-        T *MakeFromDefaultValue(EmptyBraces) {
+        T *make_from_default_value(empty_braces) {
             return new T;
         }
 

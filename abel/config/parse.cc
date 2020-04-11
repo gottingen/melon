@@ -48,7 +48,7 @@ namespace abel {
 
 ABEL_FLAG(std::vector<std::string>, flagfile, {},
           "comma-separated list of files to load flags from")
-.OnUpdate([]() {
+.on_update([]() {
     if (abel::get_flag(FLAGS_flagfile).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);
@@ -64,7 +64,7 @@ ABEL_FLAG(std::vector<std::string>, flagfile, {},
 ABEL_FLAG(std::vector<std::string>, fromenv, {},
           "comma-separated list of flags to set from the environment"
           " [use 'export FLAGS_flag1=value']")
-.OnUpdate([]() {
+.on_update([]() {
     if (abel::get_flag(FLAGS_fromenv).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);
@@ -80,7 +80,7 @@ ABEL_FLAG(std::vector<std::string>, fromenv, {},
 ABEL_FLAG(std::vector<std::string>, tryfromenv, {},
           "comma-separated list of flags to try to set from the environment if "
           "present")
-.OnUpdate([]() {
+.on_update([]() {
     if (abel::get_flag(FLAGS_tryfromenv).empty()) return;
 
     abel::mutex_lock l(&abel::flags_internal::processing_checks_guard);

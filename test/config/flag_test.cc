@@ -39,7 +39,7 @@ namespace {
                 "f2", "file", &flags::flag_marshalling_ops<T>,
                 {flags::FlagHelpSrc(&TestHelpMsg), flags::FlagHelpSrcKind::kGenFunc},
                 &TestMakeDflt<T>);
-        flags::FlagRegistrar<T, false>(&f2).OnUpdate(TestCallback);
+        flags::flag_registrar<T, false>(&f2).on_update(TestCallback);
 
         EXPECT_EQ(f2.name(), "f2");
         EXPECT_EQ(f2.help(), "dynamic help");
@@ -303,9 +303,9 @@ namespace {
 
 }  // namespace
 
-ABEL_FLAG(int, test_flag_with_cb, 100, "").OnUpdate(TestFlagCB);
+ABEL_FLAG(int, test_flag_with_cb, 100, "").on_update(TestFlagCB);
 
-ABEL_FLAG(int, test_flag_with_lambda_cb, 200, "").OnUpdate([]() {
+ABEL_FLAG(int, test_flag_with_lambda_cb, 200, "").on_update([]() {
     cb_test_value = abel::get_flag(FLAGS_test_flag_with_lambda_cb) +
                     abel::get_flag(FLAGS_test_flag_with_cb);
 });

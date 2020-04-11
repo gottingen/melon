@@ -322,7 +322,7 @@ namespace abel {
 
         }  // namespace
 
-        bool Retire(const char *name, flag_op_fn ops) {
+        bool retire(const char *name, flag_op_fn ops) {
             auto *flag = new flags_internal::retired_flag_obj(name, ops);
             flag_registry::global_registry()->register_flag(flag);
             return true;

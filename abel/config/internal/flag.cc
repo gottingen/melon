@@ -156,11 +156,11 @@ namespace abel {
         }
 
         void FlagImpl::SetCallback(
-                const flags_internal::FlagCallback mutation_callback) {
+                const flags_internal::flag_callback mutation_callback) {
             abel::mutex_lock l(DataGuard());
 
             if (callback_data_ == nullptr) {
-                callback_data_ = new CallbackData;
+                callback_data_ = new callback_data;
             }
             callback_data_->func = mutation_callback;
 
@@ -172,7 +172,7 @@ namespace abel {
 
             // Make a copy of the C-style function pointer that we are about to invoke
             // before we release the lock guarding it.
-            FlagCallback cb = callback_data_->func;
+            flag_callback cb = callback_data_->func;
 
             // If the flag has a mutation callback this function invokes it. While the
             // callback is being invoked the primary flag's mutex is unlocked and it is
