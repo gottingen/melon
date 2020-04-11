@@ -29,13 +29,13 @@ namespace {
     bool TestConstructionFor() {
         constexpr flags::help_init_arg help_arg{flags::flag_help_src("literal help"),
                                               flags::flag_help_src_kind::kLiteral};
-        constexpr flags::Flag<T> f1("f1", "file", &flags::flag_marshalling_ops<T>,
+        constexpr flags::abel_flag<T> f1("f1", "file", &flags::flag_marshalling_ops<T>,
                                     help_arg, &TestMakeDflt<T>);
         EXPECT_EQ(f1.name(), "f1");
         EXPECT_EQ(f1.help(), "literal help");
         EXPECT_EQ(f1.file_name(), "file");
 
-        ABEL_CONST_INIT static flags::Flag<T> f2(
+        ABEL_CONST_INIT static flags::abel_flag<T> f2(
                 "f2", "file", &flags::flag_marshalling_ops<T>,
                 {flags::flag_help_src(&TestHelpMsg), flags::flag_help_src_kind::kGenFunc},
                 &TestMakeDflt<T>);
@@ -379,18 +379,18 @@ namespace {
       // For builtin types, get_flag() only does validation in debug mode.
       EXPECT_DEBUG_DEATH(
           abel::get_flag(FLAGS_mistyped_int_flag),
-          "Flag 'mistyped_int_flag' is defined as one type and declared "
+          "abel_flag 'mistyped_int_flag' is defined as one type and declared "
           "as another");
       EXPECT_DEATH(abel::set_flag(&FLAGS_mistyped_int_flag, 0),
-                   "Flag 'mistyped_int_flag' is defined as one type and declared "
+                   "abel_flag 'mistyped_int_flag' is defined as one type and declared "
                    "as another");
 
       EXPECT_DEATH(abel::get_flag(FLAGS_mistyped_string_flag),
-                   "Flag 'mistyped_string_flag' is defined as one type and "
+                   "abel_flag 'mistyped_string_flag' is defined as one type and "
                    "declared as another");
       EXPECT_DEATH(
           abel::set_flag(&FLAGS_mistyped_string_flag, std::vector<std::string>{}),
-          "Flag 'mistyped_string_flag' is defined as one type and declared as "
+          "abel_flag 'mistyped_string_flag' is defined as one type and declared as "
           "another");
     }
 
@@ -429,7 +429,7 @@ namespace {
 
 }  // namespace
 
-// Flag default values can be specified with a value that converts to the flag
+// abel_flag default values can be specified with a value that converts to the flag
 // value type implicitly.
 ABEL_FLAG(ConversionTestVal, test_flag_16,
           ConversionTestVal::ViaImplicitConv::kTen, "test flag 16");
@@ -469,9 +469,9 @@ namespace {
 }  // namespace
 
 ABEL_FLAG(NonDfltConstructible, ndc_flag1, NonDfltConstructible('1'),
-          "Flag with non default constructible type");
+          "abel_flag with non default constructible type");
 ABEL_FLAG(NonDfltConstructible, ndc_flag2, 0,
-          "Flag with non default constructible type");
+          "abel_flag with non default constructible type");
 
 namespace {
 

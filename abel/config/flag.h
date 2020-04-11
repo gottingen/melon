@@ -4,11 +4,11 @@
 // File: flag.h
 // -----------------------------------------------------------------------------
 //
-// This header file defines the `abel::Flag<T>` type for holding command-line
+// This header file defines the `abel::abel_flag<T>` type for holding command-line
 // flag data, and abstractions to create, get and set such flag data.
 //
 // It is important to note that this type is **unspecified** (an implementation
-// detail) and you do not construct or manipulate actual `abel::Flag<T>`
+// detail) and you do not construct or manipulate actual `abel::abel_flag<T>`
 // instances. Instead, you define and declare flags using the
 // `ABEL_FLAG()` and `ABEL_DECLARE_FLAG()` macros, and get and set flag values
 // using the `abel::get_flag()` and `abel::set_flag()` functions.
@@ -27,13 +27,13 @@
 namespace abel {
 
 
-// Flag
+// abel_flag
 //
-// An `abel::Flag` holds a command-line flag value, providing a runtime
+// An `abel::abel_flag` holds a command-line flag value, providing a runtime
 // parameter to a binary. Such flags should be defined in the global namespace
 // and (preferably) in the module containing the binary's `main()` function.
 //
-// You should not construct and cannot use the `abel::Flag` type directly;
+// You should not construct and cannot use the `abel::abel_flag` type directly;
 // instead, you should declare flags using the `ABEL_DECLARE_FLAG()` macro
 // within a header file, and define your flag using `ABEL_FLAG()` within your
 // header's associated `.cc` file. Such flags will be named `FLAGS_name`.
@@ -50,17 +50,17 @@ namespace abel {
 //      // Defines a flag named "FLAGS_count" with a default `int` value of 0.
 //      ABEL_FLAG(int, count, 0, "Count of items to process");
 //
-// No public methods of `abel::Flag<T>` are part of the abel Flags API.
+// No public methods of `abel::abel_flag<T>` are part of the abel Flags API.
 #if !defined(_MSC_VER) || defined(__clang__)
     template<typename T>
-    using Flag = flags_internal::Flag<T>;
+    using abel_flag = flags_internal::abel_flag<T>;
 #else
     // MSVC debug builds do not implement initialization with constexpr constructors
     // correctly. To work around this we add a level of indirection, so that the
-    // class `abel::Flag` contains an `internal::Flag*` (instead of being an alias
+    // class `abel::abel_flag` contains an `internal::abel_flag*` (instead of being an alias
     // to that class) and dynamically allocates an instance when necessary. We also
-    // forward all calls to internal::Flag methods via trampoline methods. In this
-    // setup the `abel::Flag` class does not have constructor and virtual methods,
+    // forward all calls to internal::abel_flag methods via trampoline methods. In this
+    // setup the `abel::abel_flag` class does not have constructor and virtual methods,
     // all the data members are public and thus MSVC is able to initialize it at
     // link time. To deal with multiple threads accessing the flag for the first
     // time concurrently we use an atomic boolean indicating if flag object is
@@ -75,13 +75,13 @@ namespace abel {
     }  // namespace flags_internal
 
     template <typename T>
-    class Flag {
+    class abel_flag {
      public:
       // No constructor and destructor to ensure this is an aggregate type.
       // Visual Studio 2015 still requires the constructor for class to be
       // constexpr initializable.
 #if _MSC_VER <= 1900
-      constexpr Flag(const char* name, const char* filename,
+      constexpr abel_flag(const char* name, const char* filename,
                      const flags_internal::flag_marshalling_op_fn marshalling_op,
                      const flags_internal::help_gen_func help_gen,
                      const flags_internal::flag_dflt_gen_func default_value_gen)
@@ -94,7 +94,7 @@ namespace abel {
             impl_(nullptr) {}
 #endif
 
-      flags_internal::Flag<T>* GetImpl() const {
+      flags_internal::abel_flag<T>* GetImpl() const {
         if (!inited_.load(std::memory_order_acquire)) {
           abel::mutex_lock l(flags_internal::GetGlobalConstructionGuard());
 
@@ -102,7 +102,7 @@ namespace abel {
             return impl_;
           }
 
-          impl_ = new flags_internal::Flag<T>(
+          impl_ = new flags_internal::abel_flag<T>(
               name_, filename_, marshalling_op_,
               {flags_internal::flag_help_src(help_gen_),
                flags_internal::flag_help_src_kind::kGenFunc},
@@ -113,7 +113,7 @@ namespace abel {
         return impl_;
       }
 
-      // Public methods of `abel::Flag<T>` are NOT part of the abel Flags API.
+      // Public methods of `abel::abel_flag<T>` are NOT part of the abel Flags API.
       bool is_retired() const { return GetImpl()->is_retired(); }
       bool IsAbelFlag() const { return GetImpl()->IsAbelFlag(); }
       abel::string_view Name() const { return GetImpl()->Name(); }
@@ -147,14 +147,14 @@ namespace abel {
       const flags_internal::flag_dflt_gen_func default_value_gen_;
 
       mutable std::atomic<bool> inited_;
-      mutable flags_internal::Flag<T>* impl_;
+      mutable flags_internal::abel_flag<T>* impl_;
     };
 #endif
 
 // get_flag()
 //
-// Returns the value (of type `T`) of an `abel::Flag<T>` instance, by value. Do
-// not construct an `abel::Flag<T>` directly and call `abel::get_flag()`;
+// Returns the value (of type `T`) of an `abel::abel_flag<T>` instance, by value. Do
+// not construct an `abel::abel_flag<T>` directly and call `abel::get_flag()`;
 // instead, refer to flag's constructed variable name (e.g. `FLAGS_name`).
 // Because this function returns by value and not by reference, it is
 // thread-safe, but note that the operation may be expensive; as a result, avoid
@@ -162,13 +162,13 @@ namespace abel {
 //
 // Example:
 //
-//   // FLAGS_count is a Flag of type `int`
+//   // FLAGS_count is a abel_flag of type `int`
 //   int my_count = abel::get_flag(FLAGS_count);
 //
-//   // FLAGS_firstname is a Flag of type `std::string`
+//   // FLAGS_firstname is a abel_flag of type `std::string`
 //   std::string first_name = abel::get_flag(FLAGS_firstname);
     template<typename T>
-    ABEL_MUST_USE_RESULT T get_flag(const abel::Flag<T> &flag) {
+    ABEL_MUST_USE_RESULT T get_flag(const abel::abel_flag<T> &flag) {
 #define ABEL_FLAGS_INTERNAL_LOCK_FREE_VALIDATE(BIT) \
   static_assert(                                    \
       !std::is_same<T, BIT>::value,                 \
@@ -181,7 +181,7 @@ namespace abel {
 
 // Overload for `get_flag()` for types that support lock-free reads.
 #define ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT(T) \
-  ABEL_MUST_USE_RESULT T get_flag(const abel::Flag<T>& flag);
+  ABEL_MUST_USE_RESULT T get_flag(const abel::abel_flag<T>& flag);
 
     ABEL_FLAGS_INTERNAL_FOR_EACH_LOCK_FREE(ABEL_FLAGS_INTERNAL_LOCK_FREE_EXPORT)
 
@@ -189,13 +189,13 @@ namespace abel {
 
 // set_flag()
 //
-// Sets the value of an `abel::Flag` to the value `v`. Do not construct an
-// `abel::Flag<T>` directly and call `abel::set_flag()`; instead, use the
+// Sets the value of an `abel::abel_flag` to the value `v`. Do not construct an
+// `abel::abel_flag<T>` directly and call `abel::set_flag()`; instead, use the
 // flag's variable name (e.g. `FLAGS_name`). This function is
 // thread-safe, but is potentially expensive. Avoid setting flags in general,
 // but especially within performance-critical code.
     template<typename T>
-    void set_flag(abel::Flag<T> *flag, const T &v) {
+    void set_flag(abel::abel_flag<T> *flag, const T &v) {
         flag->set(v);
     }
 
@@ -203,7 +203,7 @@ namespace abel {
 // convertible to `T`. E.g., use this overload to pass a "const char*" when `T`
 // is `std::string`.
     template<typename T, typename V>
-    void set_flag(abel::Flag<T> *flag, const V &v) {
+    void set_flag(abel::abel_flag<T> *flag, const V &v) {
         T value(v);
         flag->set(value);
     }
@@ -214,7 +214,7 @@ namespace abel {
 
 // ABEL_FLAG()
 //
-// This macro defines an `abel::Flag<T>` instance of a specified type `T`:
+// This macro defines an `abel::abel_flag<T>` instance of a specified type `T`:
 //
 //   ABEL_FLAG(T, name, default_value, help);
 //
@@ -229,7 +229,7 @@ namespace abel {
 //
 // This macro expands to a flag named 'FLAGS_name' of type 'T':
 //
-//   abel::Flag<T> FLAGS_name = ...;
+//   abel::abel_flag<T> FLAGS_name = ...;
 //
 // Note that all such instances are created as global variables.
 //
@@ -237,7 +237,7 @@ namespace abel {
 // it is recommended to define those flags within the `.cc` file associated with
 // the header where the flag is declared.
 //
-// Note: do not construct objects of type `abel::Flag<T>` directly. Only use the
+// Note: do not construct objects of type `abel::abel_flag<T>` directly. Only use the
 // `ABEL_FLAG()` macro for such construction.
 #define ABEL_FLAG(Type, name, default_value, help) \
   ABEL_FLAG_IMPL(Type, name, default_value, help)
@@ -301,7 +301,7 @@ namespace abel {
 
 // AbelFlagHelpGenFor##name is used to encapsulate both immediate (method Const)
 // and lazy (method NonConst) evaluation of help message expression. We choose
-// between the two via the call to help_arg in abel::Flag instantiation below.
+// between the two via the call to help_arg in abel::abel_flag instantiation below.
 // If help message expression is constexpr evaluable compiler will optimize
 // away this whole struct.
 #define ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, txt)                     \
@@ -329,7 +329,7 @@ namespace abel {
   namespace abel /* block flags in namespaces */ {}                 \
   ABEL_FLAG_IMPL_DECLARE_DEF_VAL_WRAPPER(name, Type, default_value) \
   ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, help);                  \
-  ABEL_CONST_INIT abel::Flag<Type> FLAGS_##name{                    \
+  ABEL_CONST_INIT abel::abel_flag<Type> FLAGS_##name{                    \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),    \
       &abel::flags_internal::flag_marshalling_ops<Type>,              \
       abel::flags_internal::help_arg<AbelFlagHelpGenFor##name>(0),   \
@@ -343,7 +343,7 @@ namespace abel {
   namespace abel /* block flags in namespaces */ {}                   \
   ABEL_FLAG_IMPL_DECLARE_DEF_VAL_WRAPPER(name, Type, default_value)   \
   ABEL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, help);                    \
-  ABEL_CONST_INIT abel::Flag<Type> FLAGS_##name{                      \
+  ABEL_CONST_INIT abel::abel_flag<Type> FLAGS_##name{                      \
       ABEL_FLAG_IMPL_FLAGNAME(#name), ABEL_FLAG_IMPL_FILENAME(),      \
       &abel::flags_internal::flag_marshalling_ops<Type>,                \
       &AbelFlagHelpGenFor##name::NonConst, &AbelFlagsInitFlag##name}; \

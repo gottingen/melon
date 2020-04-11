@@ -13,10 +13,10 @@ namespace abel {
 // validates the type.
 #ifndef NDEBUG
 #define ABEL_FLAGS_ATOMIC_GET(T) \
-  T get_flag(const abel::Flag<T>& flag) { return flag.get(); }
+  T get_flag(const abel::abel_flag<T>& flag) { return flag.get(); }
 #else
 #define ABEL_FLAGS_ATOMIC_GET(T)         \
-  T get_flag(const abel::Flag<T>& flag) { \
+  T get_flag(const abel::abel_flag<T>& flag) { \
     T result;                            \
     if (flag.AtomicGet(&result)) {       \
       return result;                     \

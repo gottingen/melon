@@ -20,7 +20,7 @@ namespace abel {
 
 // abel::Flag<T> represents a flag of type 'T' created by ABEL_FLAG.
         template<typename T>
-        class Flag;
+        class abel_flag;
 
     }  // namespace flags_internal
 
@@ -29,10 +29,10 @@ namespace abel {
 // Forward declaration of the `abel::Flag` type for use in defining the macro.
 #if defined(_MSC_VER) && !defined(__clang__)
     template <typename T>
-    class Flag;
+    class abel_flag;
 #else
     template<typename T>
-    using Flag = flags_internal::Flag<T>;
+    using abel_flag = flags_internal::abel_flag<T>;
 #endif
 
 
@@ -47,6 +47,6 @@ namespace abel {
 // The ABEL_DECLARE_FLAG(type, name) macro expands to:
 //
 //   extern abel::Flag<type> FLAGS_name;
-#define ABEL_DECLARE_FLAG(type, name) extern ::abel::Flag<type> FLAGS_##name
+#define ABEL_DECLARE_FLAG(type, name) extern ::abel::abel_flag<type> FLAGS_##name
 
 #endif  // ABEL_FLAGS_DECLARE_H_
