@@ -33,7 +33,7 @@
 #include <abel/chrono/internal/cycle_clock.h>
 #include <abel/memory/hide_ptr.h>
 #include <abel/memory/internal/low_level_alloc.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
 #include <abel/thread/internal/thread_identity.h>
@@ -409,7 +409,7 @@ namespace abel {
             for (int i = 0; i != n; i++) {
                 pos += snprintf(&buffer[pos], sizeof(buffer) - pos, " %p", pcs[i]);
             }
-            ABEL_RAW_LOG(INFO, "%s%p %s %s", event_properties[ev].msg, obj,
+            ABEL_RAW_INFO("{}{} {} {}", event_properties[ev].msg, obj,
                          (e == nullptr ? "" : e->name), buffer);
         }
         const int flags = event_properties[ev].flags;
@@ -897,7 +897,7 @@ namespace abel {
                 struct sched_param param;
                 const int err = pthread_getschedparam(pthread_self(), &policy, &param);
                 if (err != 0) {
-                    ABEL_RAW_LOG(ERROR, "pthread_getschedparam failed: %d", err);
+                    ABEL_RAW_ERROR("pthread_getschedparam failed: {}", err);
                 } else {
                     s->priority = param.sched_priority;
                     s->next_priority_read_cycles =
@@ -1198,10 +1198,10 @@ namespace abel {
                 }
                 if (i == n) {  // mu missing means releasing unheld lock
                     SynchEvent *mu_events = GetSynchEvent(mu);
-                    ABEL_RAW_LOG(FATAL,
-                                 "thread releasing lock it does not hold: %p %s; ",
-                                 static_cast<void *>(mu),
-                                 mu_events == nullptr ? "" : mu_events->name);
+                    ABEL_RAW_CRITICAL(
+                            "thread releasing lock it does not hold: {:p} {}; ",
+                            static_cast<void *>(mu),
+                            mu_events == nullptr ? "" : mu_events->name);
                 }
             }
         } else if (held_locks->locks[i].count == 1) {
@@ -1347,7 +1347,7 @@ namespace abel {
                 number_of_reported_deadlocks++;
                 // Symbolize only 2 first deadlock report to avoid huge slowdowns.
                 bool symbolize = number_of_reported_deadlocks <= 2;
-                ABEL_RAW_LOG(ERROR, "Potential mutex deadlock: %s",
+                ABEL_RAW_ERROR("Potential mutex deadlock: {}",
                              CurrentStackString(b->buf, sizeof(b->buf), symbolize));
                 int len = 0;
                 for (int j = 0; j != all_locks->n; j++) {
@@ -1357,9 +1357,9 @@ namespace abel {
                         len += static_cast<int>(strlen(&b->buf[len]));
                     }
                 }
-                ABEL_RAW_LOG(ERROR, "Acquiring %p    Mutexes held: %s",
-                             static_cast<void *>(mu), b->buf);
-                ABEL_RAW_LOG(ERROR, "Cycle: ");
+                ABEL_RAW_ERROR("Acquiring {}    Mutexes held: {}",
+                               static_cast<void *>(mu), b->buf);
+                ABEL_RAW_ERROR("Cycle: ");
                 int path_len = deadlock_graph->FindPath(
                         mu_id, other_node_id, ABEL_ARRAYSIZE(b->path), b->path);
                 for (int j = 0; j != path_len; j++) {
@@ -1374,12 +1374,12 @@ namespace abel {
                     StackString(stack, depth, b->buf + strlen(b->buf),
                                 static_cast<int>(sizeof(b->buf) - strlen(b->buf)),
                                 symbolize);
-                    ABEL_RAW_LOG(ERROR, "%s", b->buf);
+                    ABEL_RAW_ERROR("{}", b->buf);
                 }
                 if (synch_deadlock_detection.load(std::memory_order_acquire) ==
                     on_deadlock_cycle::kAbort) {
                     deadlock_graph_mu.unlock();  // avoid deadlock in fatal sighandler
-                    ABEL_RAW_LOG(FATAL, "dying due to potential deadlock");
+                    ABEL_RAW_CRITICAL("dying due to potential deadlock");
                     return mu_id;
                 }
                 break;   // report at most one potential deadlock per acquisition
@@ -1423,7 +1423,7 @@ namespace abel {
             for (int i = 0; i != locks->n; i++) {
                 if (locks->locks[i].id == id) {
                     SynchEvent *mu_events = GetSynchEvent(this);
-                    ABEL_RAW_LOG(FATAL, "thread should not hold mutex %p %s",
+                    ABEL_RAW_CRITICAL("thread should not hold mutex {:p} {}",
                                  static_cast<const void *>(this),
                                  (mu_events == nullptr ? "" : mu_events->name));
                 }
@@ -1673,8 +1673,8 @@ namespace abel {
         intptr_t v = mu_.load(std::memory_order_relaxed);
 
         if (kDebugMode && ((v & (kMuWriter | kMuReader)) != kMuWriter)) {
-            ABEL_RAW_LOG(FATAL, "mutex unlocked when destroyed or not locked: v=0x%x",
-                         static_cast<unsigned>(v));
+            ABEL_RAW_CRITICAL("mutex unlocked when destroyed or not locked: v=0x{}",
+                              static_cast<unsigned>(v));
         }
 
         // should_try_cas is whether we'll try a compare-and-swap immediately.
@@ -1693,9 +1693,9 @@ namespace abel {
         if (kDebugMode && should_try_cas != (x < y)) {
             // We would usually use PRIdPTR here, but is not correctly implemented
             // within the android toolchain.
-            ABEL_RAW_LOG(FATAL, "internal logic error %llx %llx %llx\n",
-                         static_cast<long long>(v), static_cast<long long>(x),
-                         static_cast<long long>(y));
+            ABEL_RAW_CRITICAL("internal logic error {:p} {:p} {:p}\n",
+                              static_cast<long long>(v), static_cast<long long>(x),
+                              static_cast<long long>(y));
         }
         if (x < y &&
             mu_.compare_exchange_strong(v, v & ~(kMuWrWait | kMuWriter),
@@ -1873,15 +1873,6 @@ namespace abel {
                EvalConditionAnnotated(cond, this, true, false, how == kShared);
     }
 
-// RAW_CHECK_FMT() takes a condition, a printf-style format string, and
-// the printf-style argument list.   The format string must be a literal.
-// Arguments after the first are not evaluated unless the condition is true.
-#define RAW_CHECK_FMT(cond, ...)                                   \
-  do {                                                             \
-    if (ABEL_UNLIKELY(!(cond))) {                             \
-      ABEL_RAW_LOG(FATAL, "Check " #cond " failed: " __VA_ARGS__); \
-    }                                                              \
-  } while (0)
 
     static void CheckForMutexCorruption(intptr_t v, const char *label) {
         // Test for either of two situations that should not occur in v:
@@ -1898,12 +1889,12 @@ namespace abel {
         static_assert(kMuWait << 3 == kMuWrWait, "must match");
         if (ABEL_LIKELY((w & (w << 3) & (kMuWriter | kMuWrWait)) == 0))
             return;
-        RAW_CHECK_FMT((v & (kMuWriter | kMuReader)) != (kMuWriter | kMuReader),
-                      "%s: mutex corrupt: both reader and writer lock held: %p",
-                      label, reinterpret_cast<void *>(v));
-        RAW_CHECK_FMT((v & (kMuWait | kMuWrWait)) != kMuWrWait,
-                      "%s: mutex corrupt: waiting writer with no waiters: %p",
-                      label, reinterpret_cast<void *>(v));
+        ABEL_RAW_CRITICAL_IF((v & (kMuWriter | kMuReader)) != (kMuWriter | kMuReader),
+                             "%s: mutex corrupt: both reader and writer lock held: %p",
+                             label, reinterpret_cast<void *>(v));
+        ABEL_RAW_CRITICAL_IF((v & (kMuWait | kMuWrWait)) != kMuWrWait,
+                             "%s: mutex corrupt: waiting writer with no waiters: %p",
+                             label, reinterpret_cast<void *>(v));
         assert(false);
     }
 
@@ -2398,18 +2389,17 @@ namespace abel {
     void mutex::assert_held() const {
         if ((mu_.load(std::memory_order_relaxed) & kMuWriter) == 0) {
             SynchEvent *e = GetSynchEvent(this);
-            ABEL_RAW_LOG(FATAL, "thread should hold write lock on mutex %p %s",
-                         static_cast<const void *>(this),
-                         (e == nullptr ? "" : e->name));
+            ABEL_RAW_CRITICAL("thread should hold write lock on mutex {} {}",
+                              static_cast<const void *>(this),
+                              (e == nullptr ? "" : e->name));
         }
     }
 
     void mutex::assert_reader_held() const {
         if ((mu_.load(std::memory_order_relaxed) & (kMuReader | kMuWriter)) == 0) {
             SynchEvent *e = GetSynchEvent(this);
-            ABEL_RAW_LOG(
-                    FATAL, "thread should hold at least a read lock on mutex %p %s",
-                    static_cast<const void *>(this), (e == nullptr ? "" : e->name));
+            ABEL_RAW_CRITICAL("thread should hold at least a read lock on mutex {} {}",
+                              static_cast<const void *>(this), (e == nullptr ? "" : e->name));
         }
     }
 

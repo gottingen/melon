@@ -28,7 +28,7 @@ namespace abel {
             ABEL_CONST_INIT std::atomic<int32_t> g_hashtablez_max_samples{1 << 20};
 
             ABEL_THREAD_LOCAL abel::exponential_biased
-                g_exponential_biased_generator;
+                    g_exponential_biased_generator;
 
         }  // namespace
 
@@ -179,7 +179,7 @@ namespace abel {
 
             bool first = *next_sample < 0;
             *next_sample = g_exponential_biased_generator.get_stride(
-                g_hashtablez_sample_parameter.load(std::memory_order_relaxed));
+                    g_hashtablez_sample_parameter.load(std::memory_order_relaxed));
             // Small values of interval are equivalent to just sampling next time.
             ABEL_ASSERT(*next_sample >= 1);
 
@@ -191,8 +191,8 @@ namespace abel {
             // We will only be negative on our first count, so we should just retry in
             // that case.
             if (first) {
-              if (ABEL_LIKELY(--*next_sample > 0)) return nullptr;
-              return SampleSlow(next_sample);
+                if (ABEL_LIKELY(--*next_sample > 0)) return nullptr;
+                return SampleSlow(next_sample);
             }
 
             return HashtablezSampler::Global().Register();
@@ -231,8 +231,8 @@ namespace abel {
             if (rate > 0) {
                 g_hashtablez_sample_parameter.store(rate, std::memory_order_release);
             } else {
-                ABEL_RAW_LOG(ERROR, "Invalid hashtablez sample rate: %lld",
-                             static_cast<long long>(rate));  // NOLINT(runtime/int)
+                ABEL_RAW_ERROR("Invalid hashtablez sample rate: {}",
+                               static_cast<long long>(rate));  // NOLINT(runtime/int)
             }
         }
 
@@ -240,8 +240,8 @@ namespace abel {
             if (max > 0) {
                 g_hashtablez_max_samples.store(max, std::memory_order_release);
             } else {
-                ABEL_RAW_LOG(ERROR, "Invalid hashtablez max samples: %lld",
-                             static_cast<long long>(max));  // NOLINT(runtime/int)
+                ABEL_RAW_ERROR("Invalid hashtablez max samples: {}",
+                               static_cast<long long>(max));  // NOLINT(runtime/int)
             }
         }
 

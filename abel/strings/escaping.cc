@@ -11,7 +11,7 @@
 #include <string>
 
 #include <abel/system/endian.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/atomic/unaligned_access.h>
 #include <abel/strings/internal/char_map.h>
 #include <abel/strings/internal/utf8.h>
@@ -660,8 +660,8 @@ namespace abel {
 
                 default:
                     // state should have no other values at this point.
-                    ABEL_RAW_LOG(FATAL, "This can't happen; base64 decoder state = %d",
-                                 state);
+                    ABEL_RAW_CRITICAL("This can't happen; base64 decoder state = {}",
+                                      state);
             }
 
             // The remainder of the std::string should be all whitespace, mixed with
@@ -931,7 +931,7 @@ namespace abel {
                 default:
                     // Should not be reached: blocks of 4 bytes are handled
                     // in the while loop before this switch statement.
-                    ABEL_RAW_LOG(FATAL, "Logic problem? szsrc = %zu", szsrc);
+                    ABEL_RAW_CRITICAL("Logic problem? szsrc = {}", szsrc);
                     break;
             }
             return (cur_dest - dest);

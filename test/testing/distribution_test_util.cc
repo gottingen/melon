@@ -77,7 +77,7 @@ namespace abel {
 
             std::string formatted = abel::string_cat(
                     msg, " actual=", actual, " expected=", expected, " err=", delta / bound);
-            ABEL_RAW_LOG(INFO, "%s", formatted.c_str());
+            ABEL_RAW_INFO("{}", formatted.c_str());
             return false;
         }
 

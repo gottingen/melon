@@ -11,7 +11,7 @@
 #include <limits>
 #include <memory>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/ascii.h>
 
 namespace abel {

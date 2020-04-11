@@ -173,7 +173,7 @@ namespace {
     }
 
 #ifdef GTEST_HAS_DEATH_TEST
-
+/*
     TEST(SubstituteDeathTest, SubstituteDeath) {
         EXPECT_DEBUG_DEATH(
                 static_cast<void>(abel::Substitute(abel::string_view("-$2"), "a", "b")),
@@ -186,7 +186,7 @@ namespace {
                 static_cast<void>(abel::Substitute(abel::string_view("-$"))),
                 "Invalid abel::Substitute\\(\\) format std::string: \"-\\$\"");
     }
-
+*/
 #endif  // GTEST_HAS_DEATH_TEST
 
 }  // namespace

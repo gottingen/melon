@@ -1139,7 +1139,7 @@ namespace abel {
                                     {{0.95, 0}, {0.99, 1}, {0.999, 4}, {0.9999, 10}}};
                         }
                 }
-                ABEL_RAW_LOG(FATAL, "%s", "Unknown Group width");
+                ABEL_RAW_CRITICAL("Unknown Group width");
                 return {};
             }
 
@@ -1233,7 +1233,7 @@ namespace abel {
                                     {{0.95, 0}, {0.99, 1}, {0.999, 6}, {0.9999, 10}}};
                         }
                 }
-                ABEL_RAW_LOG(FATAL, "%s", "Unknown Group width");
+                ABEL_RAW_CRITICAL("Unknown Group width");
                 return {};
             }
 

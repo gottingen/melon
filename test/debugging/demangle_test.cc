@@ -93,7 +93,7 @@ static const char *DemangleIt(const char * const mangled) {
                                                         int *stack_consumed) {
               g_mangled = mangled;
               *stack_consumed = GetSignalHandlerStackConsumption(DemangleSignalHandler);
-              ABEL_RAW_LOG(INFO, "Stack consumption of Demangle: %d", *stack_consumed);
+              ABEL_RAW_INFO("Stack consumption of Demangle: {}", *stack_consumed);
               return g_demangle_result;
             }
 

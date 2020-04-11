@@ -40,7 +40,7 @@
 #include <new>                   // for placement-new
 
 #include <abel/thread/dynamic_annotations.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/internal/spinlock.h>
 
 // MAP_ANONYMOUS
@@ -293,7 +293,7 @@ namespace abel {
                     if (mask_valid_) {
                         const int err = pthread_sigmask(SIG_SETMASK, &mask_, nullptr);
                         if (err != 0) {
-                            ABEL_RAW_LOG(FATAL, "pthread_sigmask failed: %d", err);
+                            ABEL_RAW_CRITICAL("pthread_sigmask failed: {}", err);
                         }
                     }
 #endif
@@ -415,7 +415,7 @@ namespace abel {
                 munmap_result = munmap(region, size);
 #endif  // ABEL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING
                 if (munmap_result != 0) {
-                    ABEL_RAW_LOG(FATAL, "LowLevelAlloc::DeleteArena: munmap failed: %d",
+                    ABEL_RAW_CRITICAL( "LowLevelAlloc::DeleteArena: munmap failed: {}",
                                  errno);
                 }
 #endif  // _WIN32
@@ -565,7 +565,7 @@ namespace abel {
                                      MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 #endif  // ABEL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING
                     if (new_pages == MAP_FAILED) {
-                        ABEL_RAW_LOG(FATAL, "mmap error: %d", errno);
+                        ABEL_RAW_CRITICAL("mmap error: {}", errno);
                     }
 
 #endif  // _WIN32

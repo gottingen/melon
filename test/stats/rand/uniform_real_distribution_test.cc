@@ -145,7 +145,7 @@ namespace {
                 // static_cast<double>(long double) can overflow.
                 std::string msg = abel::string_cat("Range: ", static_cast<double>(sample_min),
                                                    ", ", static_cast<double>(sample_max));
-                ABEL_RAW_LOG(INFO, "%s", msg.c_str());
+                ABEL_RAW_INFO("{}", msg.c_str());
             }
         }
     }
@@ -257,7 +257,7 @@ namespace {
                 abel::string_append(&msg, kChiSquared, " p-value ", p_value, "\n");
                 abel::string_append(&msg, "High ", kChiSquared, " value: ", chi_square, " > ",
                                     kThreshold);
-                ABEL_RAW_LOG(INFO, "%s", msg.c_str());
+                ABEL_RAW_INFO("{}", msg.c_str());
                 FAIL() << msg;
             }
         }

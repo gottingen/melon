@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/ascii.h>
 #include <abel/strings/escaping.h>
 #include <abel/asl/string_view.h>
@@ -22,20 +22,16 @@ namespace abel {
                 if (format[i] == '$') {
                     if (i + 1 >= format.size()) {
 #ifndef NDEBUG
-                        ABEL_RAW_LOG(FATAL,
-                                     "Invalid abel::Substitute() format std::string: \"%s\".",
-                                     abel::escape(format).c_str());
+                        ABEL_RAW_CRITICAL("Invalid abel::Substitute() format std::string: \"{}\".",abel::escape(format).c_str());
 #endif
                         return;
                     } else if (abel::ascii::is_digit(format[i + 1])) {
                         int index = format[i + 1] - '0';
                         if (static_cast<size_t>(index) >= num_args) {
 #ifndef NDEBUG
-                            ABEL_RAW_LOG(
-                                    FATAL,
-                                    "Invalid abel::Substitute() format std::string: asked for \"$"
-                                    "%d\", but only %d args were given.  Full format std::string was: "
-                                    "\"%s\".",
+                            ABEL_RAW_CRITICAL("Invalid abel::Substitute() format std::string: asked for \"$"
+                                    "{}\", but only {} args were given.  Full format std::string was: "
+                                    "\"{}\".",
                                     index, static_cast<int>(num_args), abel::escape(format).c_str());
 #endif
                             return;
@@ -47,8 +43,8 @@ namespace abel {
                         ++i;  // Skip next char.
                     } else {
 #ifndef NDEBUG
-                        ABEL_RAW_LOG(FATAL,
-                                     "Invalid abel::Substitute() format std::string: \"%s\".",
+                        ABEL_RAW_CRITICAL(
+                                     "Invalid abel::Substitute() format std::string: \"{}\".",
                                      abel::escape(format).c_str());
 #endif
                         return;

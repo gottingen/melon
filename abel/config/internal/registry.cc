@@ -4,7 +4,7 @@
 #include <abel/config/internal/registry.h>
 
 #include <abel/thread/dynamic_annotations.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/config/config.h>
 #include <abel/config/usage_config.h>
 #include <abel/strings/str_cat.h>

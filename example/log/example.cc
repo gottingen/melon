@@ -152,5 +152,5 @@ void abel_log() {
     ABEL_RAW_INFO("this is info");
     ABEL_RAW_WARN("this is warn");
     ABEL_RAW_ERROR("this is error");
-    ABEL_CHECK(false,"abc");
+    //ABEL_RAW_CHECK(false,"abc");
 }

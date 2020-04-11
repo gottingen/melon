@@ -68,7 +68,15 @@ namespace abel {
     ::exit(1);                                               \
     }while(0)
 
-#define ABEL_CHECK(condition, message)                             \
+#define ABEL_RAW_CRITICAL_IF(condition, ...)                                   \
+    do {                                                     \
+    if(ABEL_UNLIKELY(!(condition))) {                                             \
+    abel::log_singleton::get_logger()->critical("Check " #condition " failed: " __VA_ARGS__);   \
+    ::exit(1);                                               \
+    }                                                          \
+    }while(0)
+
+#define ABEL_RAW_CHECK(condition, message)                             \
   do {                                                                 \
     if (ABEL_UNLIKELY(!(condition))) {                            \
       ABEL_RAW_CRITICAL("Check {} failed: {}", #condition, message); \

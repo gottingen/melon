@@ -525,8 +525,7 @@ namespace abel {
 
                     if (*rel_mad <= max_rel_mad || abs_mad <= max_abs_mad) {
                         if (p.verbose) {
-                            ABEL_RAW_LOG(INFO,
-                                         "%6zu samples => %5u (abs_mad=%4u, rel_mad=%4.2f%%)\n",
+                            ABEL_RAW_INFO("{} samples => {} (abs_mad={}, rel_mad={}%%)\n",
                                          samples.size(), est, abs_mad, *rel_mad * 100.0);
                         }
                         return est;
@@ -534,8 +533,7 @@ namespace abel {
                 }
 
                 if (p.verbose) {
-                    ABEL_RAW_LOG(WARNING,
-                                 "rel_mad=%4.2f%% still exceeds %4.2f%% after %6zu samples.\n",
+                    ABEL_RAW_WARN("rel_mad={}%% still exceeds {}%% after {} samples.\n",
                                  *rel_mad * 100.0, max_rel_mad * 100.0, samples.size());
                 }
                 return est;
@@ -565,8 +563,7 @@ namespace abel {
                     const uint64_t t1 = timer::Stop64();
                     const uint64_t elapsed = t1 - t0;
                     if (elapsed >= (1ULL << 30)) {
-                        ABEL_RAW_LOG(WARNING,
-                                     "Measurement failed: need 64-bit timer for input=%zu\n",
+                        ABEL_RAW_WARN("Measurement failed: need 64-bit timer for input={}\n",
                                      static_cast<size_t>(input));
                         return 0;
                     }
@@ -584,7 +581,7 @@ namespace abel {
                 const size_t num_skip =
                         min_duration == 0 ? 0 : (max_skip + min_duration - 1) / min_duration;
                 if (p.verbose) {
-                    ABEL_RAW_LOG(INFO, "res=%u max_skip=%zu min_dur=%u num_skip=%zu\n",
+                    ABEL_RAW_INFO("res=%u max_skip={} min_dur={} num_skip={}\n",
                                  timer_resolution, max_skip, min_duration, num_skip);
                 }
                 return num_skip;
@@ -697,12 +694,12 @@ namespace abel {
                 // NOTE: On wine, at least, GetCurrentProcessorNumber() sometimes returns
                 // a value > 64, which is out of range. When this happens, log a message
                 // and don't set a cpu affinity.
-                ABEL_RAW_LOG(ERROR, "Invalid CPU number: %d", cpu);
+                ABEL_RAW_ERROR("Invalid CPU number: {}", cpu);
                 return;
               }
             } else if (cpu >= 64) {
               // User specified an explicit CPU affinity > the valid range.
-              ABEL_RAW_LOG(FATAL, "Invalid CPU number: %d", cpu);
+              ABEL_RAW_CRITICAL("Invalid CPU number: {}", cpu);
             }
             const DWORD_PTR prev = SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu);
             ABEL_RAW_CHECK(prev != 0, "SetAffinity failed");
@@ -743,13 +740,13 @@ namespace abel {
             const Ticks overhead = Overhead(arg, &full, p);
             const Ticks overhead_skip = Overhead(arg, &subset, p);
             if (overhead < overhead_skip) {
-                ABEL_RAW_LOG(WARNING, "Measurement failed: overhead %u < %u\n", overhead,
+                ABEL_RAW_WARN("Measurement failed: overhead {} < {}\n", overhead,
                              overhead_skip);
                 return 0;
             }
 
             if (p.verbose) {
-                ABEL_RAW_LOG(INFO, "#inputs=%5zu,%5zu overhead=%5u,%5u\n", full.size(),
+                ABEL_RAW_INFO("#inputs=%5zu,%5zu overhead={},{}\n", full.size(),
                              subset.size(), overhead, overhead_skip);
             }
 
@@ -761,7 +758,7 @@ namespace abel {
                 const Ticks total_skip = TotalDuration(func, arg, &subset, p, &max_rel_mad);
 
                 if (total < total_skip) {
-                    ABEL_RAW_LOG(WARNING, "Measurement failed: total %u < %u\n", total,
+                    ABEL_RAW_WARN("Measurement failed: total {} < {}\n", total,
                                  total_skip);
                     return 0;
                 }

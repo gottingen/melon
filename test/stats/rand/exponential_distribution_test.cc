@@ -98,8 +98,7 @@ namespace {
                 if (sample < sample_min) sample_min = sample;
             }
             if (!std::is_same<TypeParam, long double>::value) {
-                ABEL_INTERNAL_LOG(INFO,
-                                  fmt::sprintf("Range {%f}: %f, %f, lambda=%f", lambda,
+                ABEL_RAW_INFO(fmt::sprintf("Range {%f}: %f, %f, lambda=%f", lambda,
                                                sample_min, sample_max, lambda));
             }
 
@@ -220,8 +219,7 @@ namespace {
         const bool pass = abel::random_internal::Near("z", z, 0.0, max_err);
 
         if (!pass) {
-            ABEL_INTERNAL_LOG(
-                    INFO, fmt::sprintf("p=%f max_err=%f\n"
+            ABEL_RAW_INFO(fmt::sprintf("p=%f max_err=%f\n"
                                        " lambda=%f\n"
                                        " mean=%f vs. %f\n"
                                        " stddev=%f vs. %f\n"
@@ -276,11 +274,10 @@ namespace {
 
         if (chi_square > threshold) {
             for (size_t i = 0; i < cutoffs.size(); i++) {
-                ABEL_INTERNAL_LOG(
-                        INFO, fmt::sprintf("%d : (%f) = %d", i, cutoffs[i], counts[i]));
+                ABEL_RAW_INFO(fmt::sprintf("%d : (%f) = %d", i, cutoffs[i], counts[i]));
             }
 
-            ABEL_INTERNAL_LOG(INFO,
+            ABEL_RAW_INFO(
                               abel::string_cat("lambda ", lambda(), "\n",     //
                                                " expected ", expected, "\n",  //
                                                kChiSquared, " ", chi_square, " (", p, ")\n",

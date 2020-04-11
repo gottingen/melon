@@ -1613,7 +1613,7 @@ namespace {
         MoveMeNoThrow() : x(0) {}
 
         [[noreturn]] MoveMeNoThrow(const MoveMeNoThrow &other) : x(other.x) {
-            ABEL_RAW_LOG(FATAL, "Should not be called.");
+            ABEL_RAW_CRITICAL("Should not be called.");
             abort();
         }
 

@@ -97,7 +97,7 @@ namespace {
                 if (sample > sample_max) sample_max = sample;
                 if (sample < sample_min) sample_min = sample;
             }
-            ABEL_INTERNAL_LOG(INFO,
+            ABEL_RAW_INFO(
                               abel::string_cat("Range: ", +sample_min, ", ", +sample_max));
         }
     }
@@ -168,11 +168,11 @@ namespace {
         const double p = abel::random_internal::chi_square_p_value(chi_square, dof);
 
         if (chi_square > threshold) {
-            ABEL_INTERNAL_LOG(INFO, "values");
+            ABEL_RAW_INFO("values");
             for (size_t i = 0; i < buckets.size(); i++) {
-                ABEL_INTERNAL_LOG(INFO, abel::string_cat(i, ": ", buckets[i]));
+                ABEL_RAW_INFO(abel::string_cat(i, ": ", buckets[i]));
             }
-            ABEL_INTERNAL_LOG(INFO,
+            ABEL_RAW_INFO(
                               fmt::sprintf("trials=%d\n"
                                            "%s(data, %d) = %f (%f)\n"
                                            "%s @ 0.98 = %f",

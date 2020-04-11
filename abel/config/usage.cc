@@ -24,7 +24,7 @@ namespace abel {
         abel::mutex_lock l(&flags_internal::usage_message_guard);
 
         if (flags_internal::program_usage_message != nullptr) {
-            ABEL_INTERNAL_LOG(FATAL, "set_program_usage_message() called twice.");
+            ABEL_RAW_CRITICAL("set_program_usage_message() called twice.");
             std::exit(1);
         }
 

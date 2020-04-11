@@ -634,7 +634,7 @@ namespace {
         }
         auto duration = abel::get_current_time_nanos() - start;
 
-        ABEL_INTERNAL_LOG(INFO, abel::string_cat(static_cast<double>(duration) /
+        ABEL_RAW_INFO(abel::string_cat(static_cast<double>(duration) /
                                                  static_cast<double>(kCount),
                                                  "ns"));
 

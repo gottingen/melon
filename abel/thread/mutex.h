@@ -403,7 +403,7 @@ namespace abel {
         // mutex::enable_debug_log()
         //
         // Cause all subsequent uses of this `mutex` to be logged via
-        // `ABEL_RAW_LOG(INFO)`. Log entries are tagged with `name` if no previous
+        // `ABEL_RAW_INFO`. Log entries are tagged with `name` if no previous
         // call to `EnableInvariantDebugging()` or `enable_debug_log()` has been made.
         //
         // Note: This method substantially reduces `mutex` performance.
@@ -841,7 +841,7 @@ namespace abel {
         // cond_var::enable_debug_log()
         //
         // Causes all subsequent uses of this `cond_var` to be logged via
-        // `ABEL_RAW_LOG(INFO)`. Log entries are tagged with `name` if `name != 0`.
+        // `ABEL_RAW_INFO`. Log entries are tagged with `name` if `name != 0`.
         // Note: this method substantially reduces `cond_var` performance.
         void enable_debug_log(const char *name);
 

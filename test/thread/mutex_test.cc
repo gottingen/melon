@@ -1178,8 +1178,8 @@ namespace {
         // different clock than abel::now(), but these cases should be handled by the
         // the retry mechanism in each TimeoutTest.
         if (actual_delay < expected_delay) {
-            ABEL_RAW_LOG(WARNING,
-                         "Actual delay %s was too short, expected %s (difference %s)",
+            ABEL_RAW_WARN(
+                         "Actual delay {} was too short, expected {} (difference {})",
                          abel::format_duration(actual_delay).c_str(),
                          abel::format_duration(expected_delay).c_str(),
                          abel::format_duration(actual_delay - expected_delay).c_str());
@@ -1193,8 +1193,8 @@ namespace {
                                    ? abel::milliseconds(10)
                                    : TimeoutTestAllowedSchedulingDelay();
         if (actual_delay > expected_delay + tolerance) {
-            ABEL_RAW_LOG(WARNING,
-                         "Actual delay %s was too long, expected %s (difference %s)",
+            ABEL_RAW_WARN(
+                         "Actual delay {} was too long, expected {} (difference {})",
                          abel::format_duration(actual_delay).c_str(),
                          abel::format_duration(expected_delay).c_str(),
                          abel::format_duration(actual_delay - expected_delay).c_str());
@@ -1383,13 +1383,13 @@ namespace {
 
     TEST_P(TimeoutTest, Await) {
         const TimeoutTestParam params = GetParam();
-        ABEL_RAW_LOG(INFO, "Params: %s", FormatString(params).c_str());
+        ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
         // Because this test asserts bounds on scheduling delays it is flaky.  To
         // compensate it loops forever until it passes.  Failures express as test
         // timeouts, in which case the test log can be used to diagnose the issue.
         for (int attempt = 1;; ++attempt) {
-            ABEL_RAW_LOG(INFO, "Attempt %d", attempt);
+            ABEL_RAW_INFO("Attempt {}", attempt);
 
             abel::mutex mu;
             bool value = false;  // condition value (under mu)
@@ -1417,13 +1417,13 @@ namespace {
 
     TEST_P(TimeoutTest, LockWhen) {
         const TimeoutTestParam params = GetParam();
-        ABEL_RAW_LOG(INFO, "Params: %s", FormatString(params).c_str());
+        ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
         // Because this test asserts bounds on scheduling delays it is flaky.  To
         // compensate it loops forever until it passes.  Failures express as test
         // timeouts, in which case the test log can be used to diagnose the issue.
         for (int attempt = 1;; ++attempt) {
-            ABEL_RAW_LOG(INFO, "Attempt %d", attempt);
+            ABEL_RAW_INFO("Attempt {}", attempt);
 
             abel::mutex mu;
             bool value = false;  // condition value (under mu)
@@ -1452,13 +1452,13 @@ namespace {
 
     TEST_P(TimeoutTest, ReaderLockWhen) {
         const TimeoutTestParam params = GetParam();
-        ABEL_RAW_LOG(INFO, "Params: %s", FormatString(params).c_str());
+        ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
         // Because this test asserts bounds on scheduling delays it is flaky.  To
         // compensate it loops forever until it passes.  Failures express as test
         // timeouts, in which case the test log can be used to diagnose the issue.
         for (int attempt = 0;; ++attempt) {
-            ABEL_RAW_LOG(INFO, "Attempt %d", attempt);
+            ABEL_RAW_INFO("Attempt {}", attempt);
 
             abel::mutex mu;
             bool value = false;  // condition value (under mu)
@@ -1488,13 +1488,13 @@ namespace {
 
     TEST_P(TimeoutTest, wait) {
         const TimeoutTestParam params = GetParam();
-        ABEL_RAW_LOG(INFO, "Params: %s", FormatString(params).c_str());
+        ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
         // Because this test asserts bounds on scheduling delays it is flaky.  To
         // compensate it loops forever until it passes.  Failures express as test
         // timeouts, in which case the test log can be used to diagnose the issue.
         for (int attempt = 0;; ++attempt) {
-            ABEL_RAW_LOG(INFO, "Attempt %d", attempt);
+            ABEL_RAW_INFO("Attempt {}", attempt);
 
             abel::mutex mu;
             bool value = false;  // condition value (under mu)

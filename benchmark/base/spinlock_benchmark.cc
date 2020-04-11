@@ -14,7 +14,7 @@ namespace {
     template<abel::thread_internal::SchedulingMode scheduling_mode>
     static void BM_SpinLock(benchmark::State &state) {
         // Ensure a ThreadIdentity is installed.
-        ABEL_INTERNAL_CHECK(
+        ABEL_RAW_CHECK(
                 abel::thread_internal::GetOrCreateCurrentThreadIdentity() !=
                 nullptr,
                 "GetOrCreateCurrentThreadIdentity() failed");

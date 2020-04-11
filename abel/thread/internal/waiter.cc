@@ -35,7 +35,7 @@
 #include <new>
 #include <type_traits>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/internal/thread_identity.h>
 #include <abel/base/profile.h>
 #include <abel/thread/internal/kernel_timeout.h>
@@ -147,7 +147,7 @@ namespace abel {
               } else if (err == -ETIMEDOUT) {
                 return false;
               } else {
-                ABEL_RAW_LOG(FATAL, "Futex operation failed with error %d\n", err);
+                ABEL_RAW_CRITICAL("Futex operation failed with error {}\n", err);
               }
             }
             first_pass = false;
@@ -165,7 +165,7 @@ namespace abel {
           // Wake one thread waiting on the futex.
           const int err = Futex::Wake(&futex_, 1);
           if (ABEL_UNLIKELY(err < 0)) {
-            ABEL_RAW_LOG(FATAL, "Futex operation failed with error %d\n", err);
+            ABEL_RAW_CRITICAL("Futex operation failed with error {}\n", err);
           }
         }
 
@@ -176,7 +176,7 @@ namespace abel {
             explicit PthreadMutexHolder(pthread_mutex_t *mu) : mu_(mu) {
                 const int err = pthread_mutex_lock(mu_);
                 if (err != 0) {
-                    ABEL_RAW_LOG(FATAL, "pthread_mutex_lock failed: %d", err);
+                    ABEL_RAW_CRITICAL("pthread_mutex_lock failed: {}", err);
                 }
             }
 
@@ -187,7 +187,7 @@ namespace abel {
             ~PthreadMutexHolder() {
                 const int err = pthread_mutex_unlock(mu_);
                 if (err != 0) {
-                    ABEL_RAW_LOG(FATAL, "pthread_mutex_unlock failed: %d", err);
+                    ABEL_RAW_CRITICAL("pthread_mutex_unlock failed: {}", err);
                 }
             }
 
@@ -198,12 +198,12 @@ namespace abel {
         Waiter::Waiter() {
             const int err = pthread_mutex_init(&mu_, 0);
             if (err != 0) {
-                ABEL_RAW_LOG(FATAL, "pthread_mutex_init failed: %d", err);
+                ABEL_RAW_CRITICAL("pthread_mutex_init failed: {}", err);
             }
 
             const int err2 = pthread_cond_init(&cv_, 0);
             if (err2 != 0) {
-                ABEL_RAW_LOG(FATAL, "pthread_cond_init failed: %d", err2);
+                ABEL_RAW_CRITICAL("pthread_cond_init failed: {}", err2);
             }
 
             waiter_count_ = 0;
@@ -213,12 +213,12 @@ namespace abel {
         Waiter::~Waiter() {
             const int err = pthread_mutex_destroy(&mu_);
             if (err != 0) {
-                ABEL_RAW_LOG(FATAL, "pthread_mutex_destroy failed: %d", err);
+                ABEL_RAW_CRITICAL("pthread_mutex_destroy failed: {}", err);
             }
 
             const int err2 = pthread_cond_destroy(&cv_);
             if (err2 != 0) {
-                ABEL_RAW_LOG(FATAL, "pthread_cond_destroy failed: %d", err2);
+                ABEL_RAW_CRITICAL("pthread_cond_destroy failed: {}", err2);
             }
         }
 
@@ -241,7 +241,7 @@ namespace abel {
                 if (!t.has_timeout()) {
                     const int err = pthread_cond_wait(&cv_, &mu_);
                     if (err != 0) {
-                        ABEL_RAW_LOG(FATAL, "pthread_cond_wait failed: %d", err);
+                        ABEL_RAW_CRITICAL("pthread_cond_wait failed: {}", err);
                     }
                 } else {
                     const int err = pthread_cond_timedwait(&cv_, &mu_, &abs_timeout);
@@ -250,7 +250,7 @@ namespace abel {
                         return false;
                     }
                     if (err != 0) {
-                        ABEL_RAW_LOG(FATAL, "pthread_cond_timedwait failed: %d", err);
+                        ABEL_RAW_CRITICAL("pthread_cond_timedwait failed: {}", err);
                     }
                 }
                 first_pass = false;
@@ -276,7 +276,7 @@ namespace abel {
             if (waiter_count_ != 0) {
                 const int err = pthread_cond_signal(&cv_);
                 if (ABEL_UNLIKELY(err != 0)) {
-                    ABEL_RAW_LOG(FATAL, "pthread_cond_signal failed: %d", err);
+                    ABEL_RAW_CRITICAL("pthread_cond_signal failed: {}", err);
                 }
             }
         }
@@ -285,14 +285,14 @@ namespace abel {
 
         Waiter::Waiter () {
             if (sem_init(&sem_, 0, 0) != 0) {
-                ABEL_RAW_LOG(FATAL, "sem_init failed with errno %d\n", errno);
+               ABEL_RAW_CRITICAL("sem_init failed with errno {}\n", errno);
             }
             wakeups_.store(0, std::memory_order_relaxed);
         }
 
         Waiter::~Waiter () {
             if (sem_destroy(&sem_) != 0) {
-                ABEL_RAW_LOG(FATAL, "sem_destroy failed with errno %d\n", errno);
+                ABEL_RAW_CRITICAL("sem_destroy failed with errno {}\n", errno);
             }
         }
 
@@ -327,7 +327,7 @@ namespace abel {
                             break;
                         if (errno == EINTR)
                             continue;
-                        ABEL_RAW_LOG(FATAL, "sem_wait failed: %d", errno);
+                        ABEL_RAW_CRITICAL("sem_wait failed: {}", errno);
                     } else {
                         if (sem_timedwait(&sem_, &abs_timeout) == 0)
                             break;
@@ -335,7 +335,7 @@ namespace abel {
                             continue;
                         if (errno == ETIMEDOUT)
                             return false;
-                        ABEL_RAW_LOG(FATAL, "sem_timedwait failed: %d", errno);
+                        ABEL_RAW_CRITICAL("sem_timedwait failed: {}", errno);
                     }
                 }
                 first_pass = false;
@@ -352,7 +352,7 @@ namespace abel {
 
         void Waiter::Poke () {
             if (sem_post(&sem_) != 0) {  // Wake any semaphore waiter.
-                ABEL_RAW_LOG(FATAL, "sem_post failed with errno %d\n", errno);
+                ABEL_RAW_CRITICAL("sem_post failed with errno {}\n", errno);
             }
         }
 
@@ -449,7 +449,7 @@ namespace abel {
                 --waiter_count_;
                 return false;
               } else {
-                ABEL_RAW_LOG(FATAL, "SleepConditionVariableSRW failed: %lu", err);
+                ABEL_RAW_CRITICAL("SleepConditionVariableSRW failed: {}", err);
               }
             }
             first_pass = false;

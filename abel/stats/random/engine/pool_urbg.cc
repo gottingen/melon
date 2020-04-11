@@ -11,7 +11,7 @@
 #include <abel/base/profile.h>
 #include <abel/asl/functional/call_once.h>
 #include <abel/system/endian.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/internal/spinlock.h>
 #include <abel/system/sysinfo.h>
 #include <abel/atomic/unaligned_access.h>

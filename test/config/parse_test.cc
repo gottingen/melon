@@ -101,8 +101,7 @@ namespace {
             }
 
             if (res->empty()) {
-                ABEL_INTERNAL_LOG(FATAL,
-                                  "Failed to make temporary directory for data files");
+                ABEL_RAW_CRITICAL("Failed to make temporary directory for data files");
             }
 
 #ifdef _WIN32

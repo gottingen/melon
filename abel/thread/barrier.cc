@@ -2,7 +2,7 @@
 
 #include <abel/thread/barrier.h>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/thread/mutex.h>
 
 namespace abel {
@@ -18,9 +18,8 @@ namespace abel {
 
         this->num_to_block_--;
         if (this->num_to_block_ < 0) {
-            ABEL_RAW_LOG(
-                    FATAL,
-                    "Block() called too many times.  num_to_block_=%d out of total=%d",
+            ABEL_RAW_CRITICAL(
+                    "Block() called too many times.  num_to_block_={} out of total={}",
                     this->num_to_block_, this->num_to_exit_);
         }
 

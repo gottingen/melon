@@ -129,7 +129,7 @@ namespace abel {
 
         std::string flag_impl::help() const {
             return help_source_kind_ == flag_help_src_kind::kLiteral ? help_.literal
-                                                                  : help_.gen_func();
+                                                                     : help_.gen_func();
         }
 
         bool flag_impl::is_modified() const {
@@ -191,7 +191,7 @@ namespace abel {
         }
 
         bool flag_impl::restore_state(const void *value, bool modified,
-                                    bool on_command_line, int64_t counter) {
+                                      bool on_command_line, int64_t counter) {
             {
                 abel::mutex_lock l(data_guard());
 
@@ -215,7 +215,7 @@ namespace abel {
 // parsed value. In case if any error is encountered in either step, the error
 // message is stored in 'err'
         bool flag_impl::try_parse(void **dst, abel::string_view value,
-                                std::string *err) const {
+                                  std::string *err) const {
             auto tentative_value = make_init_value();
 
             std::string parse_err;
@@ -240,10 +240,7 @@ namespace abel {
             // visibile at the call site. `op` is the Flag's defined unmarshalling
             // operation. They must match for this operation to be well-defined.
             if (ABEL_UNLIKELY(dst_op != op_)) {
-                ABEL_INTERNAL_LOG(
-                        ERROR,
-                        abel::string_cat("Flag '", name(),
-                                         "' is defined as one type and declared as another"));
+                ABEL_RAW_ERROR("Flag '{}' is defined as one type and declared as another", name());
             }
             copy_construct(op_, cur_, dst);
         }
@@ -265,10 +262,7 @@ namespace abel {
             // visible at the call site. `op` is the Flag's defined marshalling operation.
             // They must match for this operation to be well-defined.
             if (ABEL_UNLIKELY(src_op != op_)) {
-                ABEL_INTERNAL_LOG(
-                        ERROR,
-                        abel::string_cat("Flag '", name(),
-                                         "' is defined as one type and declared as another"));
+                ABEL_RAW_ERROR("Flag '{}' is defined as one type and declared as another", name());
             }
 
             if (ShouldValidateFlagValue(op_)) {
@@ -276,8 +270,7 @@ namespace abel {
                 std::string ignored_error;
                 std::string src_as_str = unparse(marshalling_op_, src);
                 if (!parse(marshalling_op_, src_as_str, obj, &ignored_error)) {
-                    ABEL_INTERNAL_LOG(ERROR, abel::string_cat("Attempt to set flag '", name(),
-                                                              "' to invalid value ", src_as_str));
+                    ABEL_RAW_ERROR("Attempt to set flag '{}' to invalid value {}", name(), src_as_str);
                 }
                 remove(op_, obj);
             }
@@ -299,7 +292,7 @@ namespace abel {
 //  * Update the current flag value if it was never set before
 // The mode is selected based on 'set_mode' parameter.
         bool flag_impl::set_from_string(abel::string_view value, flag_setting_mode set_mode,
-                                     value_source source, std::string *err) {
+                                        value_source source, std::string *err) {
             abel::mutex_lock l(data_guard());
 
             switch (set_mode) {
@@ -371,11 +364,7 @@ namespace abel {
             auto dst = make_init_value();
             std::string error;
             if (!flags_internal::parse(marshalling_op_, v, dst.get(), &error)) {
-                ABEL_INTERNAL_LOG(
-                        FATAL,
-                        abel::string_cat("Flag ", name(), " (from ", file_name(),
-                                         "): std::string form of default value '", v,
-                                         "' could not be parsed; error=", error));
+                ABEL_RAW_CRITICAL("Flag {} (from {} ): std::string form of default value '{}' could not be parsed; error= {} ", name(), file_name(), v, error);
             }
 
             // We do not compare dst to def since parsing/unparsing may make

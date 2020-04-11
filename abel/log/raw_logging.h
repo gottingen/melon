@@ -21,7 +21,7 @@
 // * it uses an explicit printf-format and arguments list
 // * it will silently chop off really long message strings
 // Usage example:
-//   ABEL_RAW_LOG(ERROR, "Failed foo with %i: %s", status, error);
+//   ABEL_RAW_WARN( "Failed foo with {}: {}", status, error);
 // This will print an almost standard log line like this to stderr only:
 //   E0821 211317 file.cc:123] RAW: Failed foo with 22: bad_file
 
@@ -38,12 +38,12 @@
 // Similar to CHECK(condition) << message, but for low-level modules:
 // we use only ABEL_RAW_LOG that does not allocate memory.
 // We do not want to provide args list here to encourage this usage:
-//   if (!cond)  ABEL_RAW_LOG(FATAL, "foo ...", hard_to_compute_args);
+//   if (!cond)  ABEL_RAW_CRITICAL( "foo ...", hard_to_compute_args);
 // so that the args are not computed when not needed.
 #define ABEL_RAW_CHECK(condition, message)                             \
   do {                                                                 \
     if (ABEL_UNLIKELY(!(condition))) {                            \
-      ABEL_RAW_LOG(FATAL, "Check %s failed: %s", #condition, message); \
+      ABEL_RAW_CRITICAL("Check %s failed: {}", #condition, message); \
     }                                                                  \
   } while (0)
 

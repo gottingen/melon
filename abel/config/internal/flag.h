@@ -27,7 +27,7 @@ namespace abel {
         class flag_state : public flags_internal::flag_state_interface {
         public:
             flag_state(abel_flag<T> *flag, T &&cur, bool modified, bool on_command_line,
-                      int64_t counter)
+                       int64_t counter)
                     : flag_(flag),
                       cur_value_(std::move(cur)),
                       modified_(modified),
@@ -146,10 +146,10 @@ namespace abel {
         class flag_impl {
         public:
             constexpr flag_impl(const char *name, const char *filename,
-                               const flags_internal::flag_op_fn op,
-                               const flags_internal::flag_marshalling_op_fn marshalling_op,
-                               const help_init_arg help,
-                               const flags_internal::flag_dflt_gen_func default_value_gen)
+                                const flags_internal::flag_op_fn op,
+                                const flags_internal::flag_marshalling_op_fn marshalling_op,
+                                const help_init_arg help,
+                                const flags_internal::flag_dflt_gen_func default_value_gen)
                     : name_(name),
                       filename_(filename),
                       op_(op),
@@ -202,7 +202,7 @@ namespace abel {
             ABEL_LOCKS_EXCLUDED(*data_guard());
 
             bool set_from_string(abel::string_view value, flag_setting_mode set_mode,
-                               value_source source, std::string *err)
+                                 value_source source, std::string *err)
             ABEL_LOCKS_EXCLUDED(*data_guard());
 
             // If possible, updates copy of the abel_flag's value that is stored in an
@@ -227,7 +227,7 @@ namespace abel {
             }
 
             bool restore_state(const void *value, bool modified, bool on_command_line,
-                              int64_t counter) ABEL_LOCKS_EXCLUDED(*data_guard());
+                               int64_t counter) ABEL_LOCKS_EXCLUDED(*data_guard());
 
             // Value validation interfaces.
             void check_default_value_parsing_roundtrip() const
@@ -304,9 +304,9 @@ namespace abel {
         class abel_flag final : public flags_internal::command_line_flag {
         public:
             constexpr abel_flag(const char *name, const char *filename,
-                           const flags_internal::flag_marshalling_op_fn marshalling_op,
-                           const flags_internal::help_init_arg help,
-                           const flags_internal::flag_dflt_gen_func default_value_gen)
+                                const flags_internal::flag_marshalling_op_fn marshalling_op,
+                                const flags_internal::help_init_arg help,
+                                const flags_internal::flag_dflt_gen_func default_value_gen)
                     : impl_(name, filename, &flags_internal::flag_ops<T>, marshalling_op, help,
                             default_value_gen) {}
 
@@ -367,13 +367,13 @@ namespace abel {
             // nothing to restore returns false. Otherwise returns true.
             bool restore_state(const flags_internal::flag_state<T> &flag_state) {
                 return impl_.restore_state(&flag_state.cur_value_, flag_state.modified_,
-                                          flag_state.on_command_line_, flag_state.counter_);
+                                           flag_state.on_command_line_, flag_state.counter_);
             }
 
             bool set_from_string(abel::string_view value,
-                               flags_internal::flag_setting_mode set_mode,
-                               flags_internal::value_source source,
-                               std::string *error) override {
+                                 flags_internal::flag_setting_mode set_mode,
+                                 flags_internal::value_source source,
+                                 std::string *error) override {
                 return impl_.set_from_string(value, set_mode, source, error);
             }
 
@@ -401,9 +401,7 @@ namespace abel {
         template<typename T>
         ABEL_FORCE_INLINE void flag_state<T>::restore() const {
             if (flag_->restore_state(*this)) {
-                ABEL_INTERNAL_LOG(INFO,
-                                  abel::string_cat("Restore saved value of ", flag_->name(),
-                                                   " to: ", flag_->current_value()));
+                ABEL_RAW_INFO("Restore saved value of {} to: {}", flag_->name(), flag_->current_value());
             }
         }
 

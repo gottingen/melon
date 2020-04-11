@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/ascii.h>
 #include <abel/strings/escaping.h>
 #include <abel/asl/string_view.h>
@@ -68,7 +68,7 @@ namespace abel {
               ret = BCryptOpenAlgorithmProvider(&hProvider, BCRYPT_RNG_ALGORITHM,
                                                 MS_PRIMITIVE_PROVIDER, 0);
               if (!(BCRYPT_SUCCESS(ret))) {
-                ABEL_RAW_LOG(ERROR, "Failed to open crypto provider.");
+                ABEL_RAW_ERROR("Failed to open crypto provider.");
                 return false;
               }
               ret = BCryptGenRandom(
@@ -92,7 +92,7 @@ namespace abel {
                 size_t nread = 0;
                 const int error = nacl_secure_random(output_ptr, buffer_size, &nread);
                 if (error != 0 || nread > buffer_size) {
-                  ABEL_RAW_LOG(ERROR, "Failed to read secure_random seed data: %d", error);
+                  ABEL_RAW_ERROR"Failed to read secure_random seed data: {}", error);
                   return false;
                 }
                 output_ptr += nread;

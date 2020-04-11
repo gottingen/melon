@@ -10,7 +10,7 @@
 #include <string.h>
 #include <cassert>
 #include <cstddef>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 // From binutils/include/elf/common.h (this doesn't appear to be documented
 // anywhere else).
@@ -42,11 +42,11 @@ int ElfType(const ElfW(Sym) *symbol) { return ELF64_ST_TYPE(symbol->st_info); }
 #else
 const int kElfClass = -1;
 int ElfBind(const ElfW(Sym) *) {
-  ABEL_RAW_LOG(FATAL, "Unexpected word size");
+  ABEL_RAW_CRITICAL("Unexpected word size");
   return 0;
 }
 int ElfType(const ElfW(Sym) *) {
-  ABEL_RAW_LOG(FATAL, "Unexpected word size");
+  ABEL_RAW_CRITICAL("Unexpected word size");
   return 0;
 }
 #endif

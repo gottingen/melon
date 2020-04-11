@@ -18,7 +18,7 @@
 #include <memory>
 #include <utility>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 #include <abel/asl/ascii.h>
 #include <abel/strings/char_conv.h>
 #include <abel/strings/escaping.h>

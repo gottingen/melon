@@ -55,7 +55,7 @@ ABEL_FLAG(std::vector<std::string>, flagfile, {},
     // Setting this flag twice before it is handled most likely an internal
     // error and should be reviewed by developers.
     if (abel::flags_internal::flagfile_needs_processing) {
-        ABEL_INTERNAL_LOG(WARNING, "flagfile set twice before it is handled");
+        ABEL_RAW_WARN("flagfile set twice before it is handled");
     }
 
     abel::flags_internal::flagfile_needs_processing = true;
@@ -71,7 +71,7 @@ ABEL_FLAG(std::vector<std::string>, fromenv, {},
     // Setting this flag twice before it is handled most likely an internal
     // error and should be reviewed by developers.
     if (abel::flags_internal::fromenv_needs_processing) {
-        ABEL_INTERNAL_LOG(WARNING, "fromenv set twice before it is handled.");
+        ABEL_RAW_WARN("fromenv set twice before it is handled.");
     }
 
     abel::flags_internal::fromenv_needs_processing = true;
@@ -87,8 +87,7 @@ ABEL_FLAG(std::vector<std::string>, tryfromenv, {},
     // Setting this flag twice before it is handled most likely an internal
     // error and should be reviewed by developers.
     if (abel::flags_internal::tryfromenv_needs_processing) {
-        ABEL_INTERNAL_LOG(WARNING,
-                          "tryfromenv set twice before it is handled.");
+        ABEL_RAW_WARN("tryfromenv set twice before it is handled.");
     }
 
     abel::flags_internal::tryfromenv_needs_processing = true;
@@ -525,10 +524,8 @@ namespace abel {
                         if (maybe_flag_name.empty() ||
                             std::get<0>(locate_flag(maybe_flag_name)) != nullptr) {
                             // "--string_flag" "--known_flag" case
-                            ABEL_INTERNAL_LOG(
-                                    WARNING,
-                                    abel::string_cat("Did you really mean to set flag '", flag.name(),
-                                                     "' to the value '", value, "'?"));
+                            ABEL_RAW_WARN("Did you really mean to set flag '{}' to the value '{}'?", flag.name(),
+                                          value);
                         }
                     }
                 }
@@ -560,7 +557,7 @@ namespace abel {
                                                     argv_list_action arg_list_act,
                                                     usage_flags_action usage_flag_act,
                                                     on_undefined_flag on_undef_flag) {
-            ABEL_INTERNAL_CHECK(argc > 0, "Missing argv[0]");
+            ABEL_RAW_CHECK(argc > 0, "Missing argv[0]");
 
             // This routine does not return anything since we abort on failure.
             check_default_values_parsing_roundtrip();
@@ -614,8 +611,8 @@ namespace abel {
                 // 50. If argument does not start with - or is just "-" - this is
                 // positional argument.
                 if (!abel::consume_prefix(&arg, "-") || arg.empty()) {
-                    ABEL_INTERNAL_CHECK(arg_from_argv,
-                                        "Flagfile cannot contain positional argument");
+                    ABEL_RAW_CHECK(arg_from_argv,
+                                   "Flagfile cannot contain positional argument");
 
                     positional_args.push_back(argv[curr_list.front_index()]);
                     continue;
@@ -639,8 +636,8 @@ namespace abel {
                 // 70. "--" alone means what it does for GNU: stop flags parsing. We do
                 // not support positional arguments in flagfiles, so we just drop them.
                 if (flag_name.empty()) {
-                    ABEL_INTERNAL_CHECK(arg_from_argv,
-                                        "Flagfile cannot contain positional argument");
+                    ABEL_RAW_CHECK(arg_from_argv,
+                                   "Flagfile cannot contain positional argument");
 
                     curr_list.pop_front();
                     break;

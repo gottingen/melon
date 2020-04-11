@@ -83,12 +83,6 @@ namespace {
 
     TEST_F(UsageReportingDeathTest, TestSetProgramUsageMessage) {
         EXPECT_EQ(abel::program_usage_message(), kTestUsageMessage);
-
-#ifndef _WIN32
-        // TODO(rogeeff): figure out why this does not work on Windows.
-        EXPECT_DEATH(abel::set_program_usage_message("custom usage message"),
-                     ".*set_program_usage_message\\(\\) called twice.*");
-#endif
     }
 
 // --------------------------------------------------------------------

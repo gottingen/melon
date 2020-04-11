@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <cstring>
 
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -40,7 +40,7 @@ namespace abel {
             // unsigned long long to simplify the ABEL_RAW_LOG case below.  The uniform
             // initialization guarantees this is not a narrowing conversion.
             const unsigned long long error{GetLastError()};  // NOLINT(runtime/int)
-            ABEL_RAW_LOG(FATAL, "SymInitialize() failed: %llu", error);
+            ABEL_RAW_CRITICAL("SymInitialize() failed: {}", error);
         }
     }
 

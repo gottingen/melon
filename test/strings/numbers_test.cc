@@ -894,7 +894,7 @@ namespace {
             if (strcmp(sixdigitsbuf, snprintfbuf) != 0) {
                 mismatches.push_back(d);
                 if (mismatches.size() < 10) {
-                    ABEL_RAW_LOG(ERROR, "%s",
+                    ABEL_RAW_ERROR("{}",
                                  abel::string_cat("Six-digit failure with double.  ", "d=", d,
                                                   "=", d, " sixdigits=", sixdigitsbuf,
                                                   " printf(%g)=", snprintfbuf)
@@ -946,8 +946,7 @@ namespace {
                 if (kFloatNumCases >= 1e9) {
                     // The exhaustive test takes a very long time, so log progress.
                     char buf[kSixDigitsToBufferSize];
-                    ABEL_RAW_LOG(
-                            INFO, "%s",
+                    ABEL_RAW_INFO("{}",
                             abel::string_cat("Exp ", exponent, " powten=", powten, "(", powten,
                                              ") (",
                                              std::string(buf, six_digits_to_buffer(powten, buf)), ")")
@@ -976,8 +975,7 @@ namespace {
                 double before = nextafter(d, 0.0);
                 double after = nextafter(d, 1.7976931348623157e308);
                 char b1[32], b2[kSixDigitsToBufferSize];
-                ABEL_RAW_LOG(
-                        ERROR, "%s",
+                ABEL_RAW_ERROR("{}",
                         abel::string_cat(
                                 "Mismatch #", i, "  d=", d, " (", ToNineDigits(d), ")",
                                 " sixdigits='", sixdigitsbuf, "'", " snprintf='", snprintfbuf,

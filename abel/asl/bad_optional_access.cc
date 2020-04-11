@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 #include <abel/base/profile.h>
-#include <abel/log/raw_logging.h>
+#include <abel/log/abel_logging.h>
 
 namespace abel {
 
@@ -24,7 +24,7 @@ namespace abel {
 #ifdef ABEL_HAVE_EXCEPTIONS
             throw bad_optional_access();
 #else
-            ABEL_RAW_LOG(FATAL, "Bad optional access");
+            ABEL_RAW_CRITICAL("Bad optional access");
             abort();
 #endif
         }

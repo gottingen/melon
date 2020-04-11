@@ -75,9 +75,7 @@ namespace {
                 return i;
             }
         }
-        ABEL_RAW_LOG(
-                FATAL,
-                "Failed to find a std::string larger than the short std::string optimization");
+        ABEL_RAW_CRITICAL("Failed to find a std::string larger than the short std::string optimization");
         return -1;
     }
 

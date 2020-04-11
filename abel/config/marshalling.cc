@@ -191,43 +191,4 @@ namespace abel {
 
     }  // namespace flags_internal
 
-    bool abel_parse_flag(abel::string_view text, abel::LogSeverity *dst,
-                         std::string *err) {
-        text = abel::trim_all(text);
-        if (text.empty()) {
-            *err = "no value provided";
-            return false;
-        }
-        if (text.front() == 'k' || text.front() == 'K') text.remove_prefix(1);
-        if (abel::equal_case(text, "info")) {
-            *dst = abel::LogSeverity::kInfo;
-            return true;
-        }
-        if (abel::equal_case(text, "warning")) {
-            *dst = abel::LogSeverity::kWarning;
-            return true;
-        }
-        if (abel::equal_case(text, "error")) {
-            *dst = abel::LogSeverity::kError;
-            return true;
-        }
-        if (abel::equal_case(text, "fatal")) {
-            *dst = abel::LogSeverity::kFatal;
-            return true;
-        }
-        std::underlying_type<abel::LogSeverity>::type numeric_value;
-        if (abel::parse_flag(text, &numeric_value, err)) {
-            *dst = static_cast<abel::LogSeverity>(numeric_value);
-            return true;
-        }
-        *err = "only integers and abel::LogSeverity enumerators are accepted";
-        return false;
-    }
-
-    std::string abel_unparse_flag(abel::LogSeverity v) {
-        if (v == abel::NormalizeLogSeverity(v)) return abel::LogSeverityName(v);
-        return abel::unparse_flag(static_cast<int>(v));
-    }
-
-
 }  // namespace abel

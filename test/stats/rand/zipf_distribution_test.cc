@@ -91,7 +91,7 @@ namespace {
                 if (sample > sample_max) sample_max = sample;
                 if (sample < sample_min) sample_min = sample;
             }
-            ABEL_INTERNAL_LOG(INFO,
+            ABEL_RAW_INFO(
                               abel::string_cat("Range: ", +sample_min, ", ", +sample_max));
         }
     }
@@ -289,17 +289,17 @@ namespace {
 
         // Log if the chi_squared value is above the threshold.
         if (chi_square > threshold) {
-            ABEL_INTERNAL_LOG(INFO, "values");
+            ABEL_RAW_INFO( "values");
             for (size_t i = 0; i < expected.size(); i++) {
-                ABEL_INTERNAL_LOG(INFO, abel::string_cat(points[i], ": ", buckets[i],
+                ABEL_RAW_INFO( abel::string_cat(points[i], ": ", buckets[i],
                                                          " vs. E=", expected[i]));
             }
-            ABEL_INTERNAL_LOG(INFO, abel::string_cat("trials ", trials));
-            ABEL_INTERNAL_LOG(INFO,
+            ABEL_RAW_INFO(abel::string_cat("trials ", trials));
+            ABEL_RAW_INFO(
                               abel::string_cat("mean ", avg, " vs. expected ", mean()));
-            ABEL_INTERNAL_LOG(INFO, abel::string_cat(kChiSquared, "(data, ", dof, ") = ",
+            ABEL_RAW_INFO( abel::string_cat(kChiSquared, "(data, ", dof, ") = ",
                                                      chi_square, " (", p_actual, ")"));
-            ABEL_INTERNAL_LOG(INFO,
+            ABEL_RAW_INFO(
                               abel::string_cat(kChiSquared, " @ 0.9995 = ", threshold));
             FAIL() << kChiSquared << " value of " << chi_square
                    << " is above the threshold.";
