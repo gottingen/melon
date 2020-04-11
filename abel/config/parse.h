@@ -7,8 +7,8 @@
 // This file defines the main parsing function for abel flags:
 // `abel::parse_command_line()`.
 
-#ifndef ABEL_FLAGS_PARSE_H_
-#define ABEL_FLAGS_PARSE_H_
+#ifndef ABEL_CONFIG_PARSE_H_
+#define ABEL_CONFIG_PARSE_H_
 
 #include <string>
 #include <vector>
@@ -44,4 +44,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_FLAGS_PARSE_H_
+#endif  // ABEL_CONFIG_PARSE_H_

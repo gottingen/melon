@@ -8,8 +8,8 @@
 // documents abel's supported built-in usage flags. If these flags are found
 // when parsing a command-line, abel will exit the program and display
 // appropriate help messages.
-#ifndef ABEL_FLAGS_USAGE_CONFIG_H_
-#define ABEL_FLAGS_USAGE_CONFIG_H_
+#ifndef ABEL_CONFIG_USAGE_CONFIG_H_
+#define ABEL_CONFIG_USAGE_CONFIG_H_
 
 #include <functional>
 #include <string>
@@ -116,4 +116,4 @@ void abel_report_fatal_usage_error(abel::string_view);
 
 }  // extern "C"
 
-#endif  // ABEL_FLAGS_USAGE_CONFIG_H_
+#endif  // ABEL_CONFIG_USAGE_CONFIG_H_

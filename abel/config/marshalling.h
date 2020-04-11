@@ -146,8 +146,8 @@
 //                         ",",
 //                         abel::unparse_flag(flag.my_flag_data.second));
 //   }
-#ifndef ABEL_FLAGS_MARSHALLING_H_
-#define ABEL_FLAGS_MARSHALLING_H_
+#ifndef ABEL_CONFIG_MARSHALLING_H_
+#define ABEL_CONFIG_MARSHALLING_H_
 
 #include <string>
 #include <vector>
@@ -257,4 +257,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_FLAGS_MARSHALLING_H_
+#endif  // ABEL_CONFIG_MARSHALLING_H_

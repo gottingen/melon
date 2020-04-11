@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_FLAGS_CONFIG_H_
-#define ABEL_FLAGS_CONFIG_H_
+#ifndef ABEL_CONFIG_CONFIG_H_
+#define ABEL_CONFIG_CONFIG_H_
 
 // Determine if we should strip string literals from the Flag objects.
 // By default we strip string literals on mobile platforms.

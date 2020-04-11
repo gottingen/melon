@@ -13,8 +13,8 @@
 // `ABEL_FLAG()` and `ABEL_DECLARE_FLAG()` macros, and get and set flag values
 // using the `abel::get_flag()` and `abel::set_flag()` functions.
 
-#ifndef ABEL_FLAGS_FLAG_H_
-#define ABEL_FLAGS_FLAG_H_
+#ifndef ABEL_CONFIG_FLAG_H_
+#define ABEL_CONFIG_FLAG_H_
 
 #include <abel/base/profile.h>
 #include <abel/math/bit_cast.h>
@@ -377,4 +377,4 @@ namespace abel {
       ([] { return type(default_value); },                            \
        abel::flags_internal::retired_flag<type>(#flagname))
 
-#endif  // ABEL_FLAGS_FLAG_H_
+#endif  // ABEL_CONFIG_FLAG_H_

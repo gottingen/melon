@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_FLAGS_INTERNAL_USAGE_H_
-#define ABEL_FLAGS_INTERNAL_USAGE_H_
+#ifndef ABEL_CONFIG_INTERNAL_USAGE_H_
+#define ABEL_CONFIG_INTERNAL_USAGE_H_
 
 #include <iosfwd>
 #include <string>
@@ -64,4 +64,4 @@ ABEL_DECLARE_FLAG(bool, only_check_args);
 ABEL_DECLARE_FLAG(std::string, helpon);
 ABEL_DECLARE_FLAG(std::string, helpmatch);
 
-#endif  // ABEL_FLAGS_INTERNAL_USAGE_H_
+#endif  // ABEL_CONFIG_INTERNAL_USAGE_H_

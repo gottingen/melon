@@ -9,8 +9,8 @@
 // declaration within the header file associated with the .cc file that defines
 // and owns the `Flag`.
 
-#ifndef ABEL_FLAGS_DECLARE_H_
-#define ABEL_FLAGS_DECLARE_H_
+#ifndef ABEL_CONFIG_DECLARE_H_
+#define ABEL_CONFIG_DECLARE_H_
 
 #include <abel/asl/string_view.h>
 
@@ -49,4 +49,4 @@ namespace abel {
 //   extern abel::Flag<type> FLAGS_name;
 #define ABEL_DECLARE_FLAG(type, name) extern ::abel::abel_flag<type> FLAGS_##name
 
-#endif  // ABEL_FLAGS_DECLARE_H_
+#endif  // ABEL_CONFIG_DECLARE_H_

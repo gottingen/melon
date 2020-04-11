@@ -1,8 +1,8 @@
 //
 //
 
-#ifndef ABEL_FLAGS_INTERNAL_FLAG_H_
-#define ABEL_FLAGS_INTERNAL_FLAG_H_
+#ifndef ABEL_CONFIG_INTERNAL_FLAG_H_
+#define ABEL_CONFIG_INTERNAL_FLAG_H_
 
 #include <atomic>
 #include <cstring>
@@ -449,4 +449,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_FLAGS_INTERNAL_FLAG_H_
+#endif  // ABEL_CONFIG_INTERNAL_FLAG_H_

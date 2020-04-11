@@ -1,8 +1,8 @@
 //
 //
 
-#ifndef ABEL_FLAGS_INTERNAL_REGISTRY_H_
-#define ABEL_FLAGS_INTERNAL_REGISTRY_H_
+#ifndef ABEL_CONFIG_INTERNAL_REGISTRY_H_
+#define ABEL_CONFIG_INTERNAL_REGISTRY_H_
 
 #include <functional>
 #include <map>
@@ -111,4 +111,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_FLAGS_INTERNAL_REGISTRY_H_
+#endif  // ABEL_CONFIG_INTERNAL_REGISTRY_H_

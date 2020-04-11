@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_FLAGS_USAGE_H_
-#define ABEL_FLAGS_USAGE_H_
+#ifndef ABEL_CONFIG_USAGE_H_
+#define ABEL_CONFIG_USAGE_H_
 
 #include <abel/asl/string_view.h>
 
@@ -26,4 +26,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_FLAGS_USAGE_H_
+#endif  // ABEL_CONFIG_USAGE_H_

@@ -1,7 +1,7 @@
 //
 
-#ifndef ABEL_FLAGS_INTERNAL_PROGRAM_NAME_H_
-#define ABEL_FLAGS_INTERNAL_PROGRAM_NAME_H_
+#ifndef ABEL_CONFIG_INTERNAL_PROGRAM_NAME_H_
+#define ABEL_CONFIG_INTERNAL_PROGRAM_NAME_H_
 
 #include <string>
 
@@ -33,4 +33,4 @@ namespace abel {
 
 }  // namespace abel
 
-#endif  // ABEL_FLAGS_INTERNAL_PROGRAM_NAME_H_
+#endif  // ABEL_CONFIG_INTERNAL_PROGRAM_NAME_H_
