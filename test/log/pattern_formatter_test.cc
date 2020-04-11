@@ -7,7 +7,7 @@ static std::string log_to_str(const std::string &msg, const Args &... args) {
     std::ostringstream oss;
     auto oss_sink = std::make_shared<abel::log::sinks::ostream_sink_mt>(oss);
     abel::log::logger oss_logger("pattern_tester", oss_sink);
-    oss_logger.set_level(abel::log::level::info);
+    oss_logger.set_level(abel::log::info);
 
     oss_logger.set_formatter(std::unique_ptr<abel::log::formatter>(new abel::log::pattern_formatter(args...)));
 

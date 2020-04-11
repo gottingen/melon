@@ -26,13 +26,13 @@ namespace abel {
                 //
                 syslog_sink(const std::string &ident = "", int syslog_option = 0, int syslog_facility = LOG_USER)
                         : ident_(ident) {
-                    priorities_[static_cast<size_t>(level::trace)] = LOG_DEBUG;
-                    priorities_[static_cast<size_t>(level::debug)] = LOG_DEBUG;
-                    priorities_[static_cast<size_t>(level::info)] = LOG_INFO;
-                    priorities_[static_cast<size_t>(level::warn)] = LOG_WARNING;
-                    priorities_[static_cast<size_t>(level::err)] = LOG_ERR;
-                    priorities_[static_cast<size_t>(level::critical)] = LOG_CRIT;
-                    priorities_[static_cast<size_t>(level::off)] = LOG_INFO;
+                    priorities_[static_cast<size_t>(trace)] = LOG_DEBUG;
+                    priorities_[static_cast<size_t>(debug)] = LOG_DEBUG;
+                    priorities_[static_cast<size_t>(info)] = LOG_INFO;
+                    priorities_[static_cast<size_t>(warn)] = LOG_WARNING;
+                    priorities_[static_cast<size_t>(err)] = LOG_ERR;
+                    priorities_[static_cast<size_t>(critical)] = LOG_CRIT;
+                    priorities_[static_cast<size_t>(off)] = LOG_INFO;
 
                     // set ident to be program name if empty
                     ::openlog(ident_.empty() ? nullptr : ident_.c_str(), syslog_option, syslog_facility);

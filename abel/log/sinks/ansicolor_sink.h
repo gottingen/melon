@@ -27,13 +27,13 @@ namespace abel {
                 ansicolor_sink()
                         : target_file_(TargetStream::stream()), mutex_(ConsoleMutex::mutex()) {
                     should_do_colors_ = abel::in_terminal(target_file_) && abel::is_color_terminal();
-                    colors_[level::trace] = white;
-                    colors_[level::debug] = cyan;
-                    colors_[level::info] = green;
-                    colors_[level::warn] = yellow + bold;
-                    colors_[level::err] = red + bold;
-                    colors_[level::critical] = bold + on_red;
-                    colors_[level::off] = reset;
+                    colors_[trace] = white;
+                    colors_[debug] = cyan;
+                    colors_[info] = green;
+                    colors_[warn] = yellow + bold;
+                    colors_[err] = red + bold;
+                    colors_[critical] = bold + on_red;
+                    colors_[off] = reset;
                 }
 
                 ~ansicolor_sink() override = default;
@@ -42,7 +42,7 @@ namespace abel {
 
                 ansicolor_sink &operator=(const ansicolor_sink &other) = delete;
 
-                void set_color(level::level_enum color_level, const std::string &color) {
+                void set_color(level_enum color_level, const std::string &color) {
                     std::lock_guard<mutex_t> lock(mutex_);
                     colors_[color_level] = color;
                 }
@@ -129,7 +129,7 @@ namespace abel {
                 mutex_t &mutex_;
 
                 bool should_do_colors_;
-                std::unordered_map<level::level_enum, std::string, level::level_hasher> colors_;
+                std::unordered_map<level_enum, std::string, level_hasher> colors_;
             };
 
             using ansicolor_stdout_sink_mt = ansicolor_sink<details::console_stdout, details::console_mutex>;

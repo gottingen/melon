@@ -43,7 +43,7 @@ TEST(errors, customerrorhandler) {
     std::string filename = "logs/simple_log.txt";
     auto logger = abel::log::create<abel::log::sinks::basic_file_sink_mt>("logger", filename, true);
     logger->
-            flush_on(abel::log::level::info);
+            flush_on(abel::log::info);
     logger->set_error_handler([=](const std::string &) {
         throw
                 custom_ex();

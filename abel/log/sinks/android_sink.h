@@ -66,19 +66,19 @@ namespace abel {
                 void flush_() override {}
 
             private:
-                static android_LogPriority convert_to_android_(abel::level::level_enum level) {
+                static android_LogPriority convert_to_android_(abel::level_enum level) {
                     switch (level) {
-                        case abel::level::trace:
+                        case abel::trace:
                             return ANDROID_LOG_VERBOSE;
-                        case abel::level::debug:
+                        case abel::debug:
                             return ANDROID_LOG_DEBUG;
-                        case abel::level::info:
+                        case abel::info:
                             return ANDROID_LOG_INFO;
-                        case abel::level::warn:
+                        case abel::warn:
                             return ANDROID_LOG_WARN;
-                        case abel::level::err:
+                        case abel::err:
                             return ANDROID_LOG_ERROR;
-                        case abel::level::critical:
+                        case abel::critical:
                             return ANDROID_LOG_FATAL;
                         default:
                             return ANDROID_LOG_DEFAULT;

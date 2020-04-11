@@ -32,13 +32,13 @@ namespace abel {
 
                 wincolor_sink()
                         : out_handle_(OutHandle::handle()), mutex_(ConsoleMutex::mutex()) {
-                    colors_[level::trace] = WHITE;
-                    colors_[level::debug] = CYAN;
-                    colors_[level::info] = GREEN;
-                    colors_[level::warn] = YELLOW | BOLD;
-                    colors_[level::err] = RED | BOLD;                         // red bold
-                    colors_[level::critical] = BACKGROUND_RED | WHITE | BOLD; // white bold on red background
-                    colors_[level::off] = 0;
+                    colors_[trace] = WHITE;
+                    colors_[debug] = CYAN;
+                    colors_[info] = GREEN;
+                    colors_[warn] = YELLOW | BOLD;
+                    colors_[err] = RED | BOLD;                         // red bold
+                    colors_[critical] = BACKGROUND_RED | WHITE | BOLD; // white bold on red background
+                    colors_[off] = 0;
                 }
 
                 ~wincolor_sink() override {
@@ -50,7 +50,7 @@ namespace abel {
                 wincolor_sink &operator=(const wincolor_sink &other) = delete;
 
                 // change the color for the given level
-                void set_color(level::level_enum level, WORD color) {
+                void set_color(level_enum level, WORD color) {
                     std::lock_guard<mutex_t> lock(mutex_);
                     colors_[level] = color;
                 }
@@ -114,7 +114,7 @@ namespace abel {
 
                 HANDLE out_handle_;
                 mutex_t &mutex_;
-                std::unordered_map<level::level_enum, WORD, level::level_hasher> colors_;
+                std::unordered_map<level_enum, WORD, level_hasher> colors_;
             };
 
             using wincolor_stdout_sink_mt = wincolor_sink<details::console_stdout, details::console_mutex>;

@@ -60,12 +60,12 @@ namespace abel {
         }
 
 // Set global logging level
-        inline void set_level(level::level_enum log_level) {
+        inline void set_level(level_enum log_level) {
             details::registry::instance().set_level(log_level);
         }
 
 // Set global flush level
-        inline void flush_on(level::level_enum log_level) {
+        inline void flush_on(level_enum log_level) {
             details::registry::instance().flush_on(log_level);
         }
 
@@ -115,7 +115,7 @@ namespace abel {
 // ABEL_LOG_TRACE(..) will also print current file and line.
 //
 // Example:
-// abel::set_level(abel::level::trace);
+// abel::set_level(abel::trace);
 // ABEL_LOG_TRACE(my_logger, "some trace message");
 // ABEL_LOG_TRACE(my_logger, "another trace message {} {}", 1, 2);
 // ABEL_LOG_DEBUG(my_logger, "some debug message {} {}", 3, 4);
