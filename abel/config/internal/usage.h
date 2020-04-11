@@ -18,13 +18,13 @@ namespace abel {
     namespace flags_internal {
 
 // The format to report the help messages in.
-        enum class HelpFormat {
+        enum class help_format {
             kHumanReadable,
         };
 
 // Outputs the help message describing specific flag.
         void flag_help(std::ostream &out, const flags_internal::command_line_flag &flag,
-                      HelpFormat format = HelpFormat::kHumanReadable);
+                      help_format format = help_format::kHumanReadable);
 
 // Produces the help messages for all flags matching the filter. A flag matches
 // the filter if it is defined in a file with a filename which includes
@@ -36,7 +36,7 @@ namespace abel {
 // for any extension 'ext'. If the filter is empty this function produces help
 // messages for all flags.
         void flags_help(std::ostream &out, abel::string_view filter,
-                       HelpFormat format, abel::string_view program_usage_message);
+                       help_format format, abel::string_view program_usage_message);
 
 // --------------------------------------------------------------------
 

@@ -19,15 +19,15 @@ namespace abel {
 // If a flag named "name" exists, store its current value in *OUTPUT
 // and return true.  Else return false without changing *OUTPUT.
 // Thread-safe.
-        bool GetCommandLineOption(abel::string_view name, std::string *value);
+        bool get_command_line_option(abel::string_view name, std::string *value);
 
 // Set the value of the flag named "name" to value.  If successful,
 // returns true.  If not successful (e.g., the flag was not found or
 // the value is not a valid value), returns false.
 // Thread-safe.
-        bool SetCommandLineOption(abel::string_view name, abel::string_view value);
+        bool set_command_line_option(abel::string_view name, abel::string_view value);
 
-        bool SetCommandLineOptionWithMode(abel::string_view name,
+        bool set_command_line_option_with_mode(abel::string_view name,
                                           abel::string_view value,
                                           flag_setting_mode set_mode);
 
@@ -37,7 +37,7 @@ namespace abel {
 // (a) "name" names a registered flag
 // (b) "value" can be parsed succesfully according to the type of the flag
 // (c) parsed value passes any validator associated with the flag
-        bool IsValidFlagValue(abel::string_view name, abel::string_view value);
+        bool is_valid_flag_value(abel::string_view name, abel::string_view value);
 
 //-----------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ namespace abel {
 // result of this function.  So for example, if a flag was passed on
 // the command line but then reset via SET_FLAGS_DEFAULT, this
 // function will still return true.
-        bool SpecifiedOnCommandLine(abel::string_view name);
+        bool specified_on_command_line(abel::string_view name);
 
 //-----------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ namespace abel {
 // without touching *dst.  T must obey all of the requirements for
 // types passed to DEFINE_FLAG.
         template<typename T>
-        ABEL_FORCE_INLINE bool GetByName(abel::string_view name, T *dst) {
+        ABEL_FORCE_INLINE bool get_by_name(abel::string_view name, T *dst) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
             if (!flag) return false;
 

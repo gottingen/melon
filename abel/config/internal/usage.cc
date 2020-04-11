@@ -204,7 +204,7 @@ namespace abel {
 
                 // The listed default value will be the actual default from the flag
                 // definition in the originating source file, unless the value has
-                // subsequently been modified using SetCommandLineOption() with mode
+                // subsequently been modified using set_command_line_option() with mode
                 // SET_FLAGS_DEFAULT.
                 std::string dflt_val = flag.default_value();
                 if (flag.is_of_type<std::string>()) {
@@ -229,9 +229,9 @@ namespace abel {
 // STRIP_FLAG_HELP 1' then this flag will not be displayed by '--help'
 // and its variants.
             void FlagsHelpImpl(std::ostream &out, flags_internal::flag_kind_filter filter_cb,
-                               HelpFormat format, abel::string_view program_usage_message) {
-                if (format == HelpFormat::kHumanReadable) {
-                    out << flags_internal::ShortProgramInvocationName() << ": "
+                               help_format format, abel::string_view program_usage_message) {
+                if (format == help_format::kHumanReadable) {
+                    out << flags_internal::short_program_invocation_name() << ": "
                         << program_usage_message << "\n\n";
                 } else {
                     // XML schema is not a part of our public API for now.
@@ -242,7 +242,7 @@ namespace abel {
                         // The document.
                         << "<AllFlags>\n"
                         // The program name and usage.
-                        << XMLElement("program", flags_internal::ShortProgramInvocationName())
+                        << XMLElement("program", flags_internal::short_program_invocation_name())
                         << '\n'
                         << XMLElement("usage", program_usage_message) << '\n';
                 }
@@ -278,14 +278,14 @@ namespace abel {
                         package_separator;             // controls blank lines between packages.
                 abel::string_view file_separator;  // controls blank lines between files.
                 for (const auto &package : matching_flags) {
-                    if (format == HelpFormat::kHumanReadable) {
+                    if (format == help_format::kHumanReadable) {
                         out << package_separator;
                         package_separator = "\n\n";
                     }
 
                     file_separator = "";
                     for (const auto &flags_in_file : package.second) {
-                        if (format == HelpFormat::kHumanReadable) {
+                        if (format == help_format::kHumanReadable) {
                             out << file_separator << "  Flags from " << flags_in_file.first
                                 << ":\n";
                             file_separator = "\n";
@@ -297,7 +297,7 @@ namespace abel {
                     }
                 }
 
-                if (format == HelpFormat::kHumanReadable) {
+                if (format == help_format::kHumanReadable) {
                     if (filter_cb && matching_flags.empty()) {
                         out << "  No modules matched: use -helpfull\n";
                     }
@@ -312,15 +312,15 @@ namespace abel {
 // --------------------------------------------------------------------
 // Produces the help message describing specific flag.
         void flag_help(std::ostream &out, const flags_internal::command_line_flag &flag,
-                      HelpFormat format) {
-            if (format == HelpFormat::kHumanReadable)
+                      help_format format) {
+            if (format == help_format::kHumanReadable)
                 flags_internal::FlagHelpHumanReadable(flag, &out);
         }
 
 // --------------------------------------------------------------------
 // Produces the help messages for all flags matching the filter.
 // If filter is empty produces help messages for all flags.
-        void flags_help(std::ostream &out, abel::string_view filter, HelpFormat format,
+        void flags_help(std::ostream &out, abel::string_view filter, help_format format,
                        abel::string_view program_usage_message) {
             flags_internal::flag_kind_filter filter_cb = [&](abel::string_view filename) {
                 return filter.empty() || filename.find(filter) != abel::string_view::npos;
@@ -336,13 +336,13 @@ namespace abel {
             if (abel::get_flag(FLAGS_helpshort)) {
                 flags_internal::FlagsHelpImpl(
                         out, flags_internal::get_usage_config().contains_helpshort_flags,
-                        HelpFormat::kHumanReadable, program_usage_message);
+                        help_format::kHumanReadable, program_usage_message);
                 return 1;
             }
 
             if (abel::get_flag(FLAGS_helpfull)) {
                 // show all options
-                flags_internal::flags_help(out, "", HelpFormat::kHumanReadable,
+                flags_internal::flags_help(out, "", help_format::kHumanReadable,
                                           program_usage_message);
                 return 1;
             }
@@ -350,13 +350,13 @@ namespace abel {
             if (!abel::get_flag(FLAGS_helpon).empty()) {
                 flags_internal::flags_help(
                         out, abel::string_cat("/", abel::get_flag(FLAGS_helpon), "."),
-                        HelpFormat::kHumanReadable, program_usage_message);
+                        help_format::kHumanReadable, program_usage_message);
                 return 1;
             }
 
             if (!abel::get_flag(FLAGS_helpmatch).empty()) {
                 flags_internal::flags_help(out, abel::get_flag(FLAGS_helpmatch),
-                                          HelpFormat::kHumanReadable,
+                                          help_format::kHumanReadable,
                                           program_usage_message);
                 return 1;
             }
@@ -364,7 +364,7 @@ namespace abel {
             if (abel::get_flag(FLAGS_help)) {
                 flags_internal::FlagsHelpImpl(
                         out, flags_internal::get_usage_config().contains_help_flags,
-                        HelpFormat::kHumanReadable, program_usage_message);
+                        help_format::kHumanReadable, program_usage_message);
 
                 out << "\nTry --helpfull to get a list of all flags.\n";
 
@@ -374,7 +374,7 @@ namespace abel {
             if (abel::get_flag(FLAGS_helppackage)) {
                 flags_internal::FlagsHelpImpl(
                         out, flags_internal::get_usage_config().contains_helppackage_flags,
-                        HelpFormat::kHumanReadable, program_usage_message);
+                        help_format::kHumanReadable, program_usage_message);
 
                 out << "\nTry --helpfull to get a list of all flags.\n";
 

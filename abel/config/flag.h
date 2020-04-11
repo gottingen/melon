@@ -71,7 +71,7 @@ namespace abel {
     // https://developercommunity.visualstudio.com/content/problem/336946/class-with-constexpr-constructor-not-using-static.html?childToView=648454#comment-648454
 
     namespace flags_internal {
-    abel::mutex* GetGlobalConstructionGuard();
+    abel::mutex* get_global_construction_guard();
     }  // namespace flags_internal
 
     template <typename T>
@@ -96,7 +96,7 @@ namespace abel {
 
       flags_internal::abel_flag<T>* GetImpl() const {
         if (!inited_.load(std::memory_order_acquire)) {
-          abel::mutex_lock l(flags_internal::GetGlobalConstructionGuard());
+          abel::mutex_lock l(flags_internal::get_global_construction_guard());
 
           if (inited_.load(std::memory_order_acquire)) {
             return impl_;
@@ -115,28 +115,28 @@ namespace abel {
 
       // Public methods of `abel::abel_flag<T>` are NOT part of the abel Flags API.
       bool is_retired() const { return GetImpl()->is_retired(); }
-      bool IsAbelFlag() const { return GetImpl()->IsAbelFlag(); }
-      abel::string_view Name() const { return GetImpl()->Name(); }
-      std::string Help() const { return GetImpl()->Help(); }
+      bool is_abel_flag() const { return GetImpl()->is_abel_flag(); }
+      abel::string_view name() const { return GetImpl()->name(); }
+      std::string help() const { return GetImpl()->help(); }
       bool is_modified() const { return GetImpl()->is_modified(); }
       bool is_specified_on_command_line() const {
         return GetImpl()->is_specified_on_command_line();
       }
-      abel::string_view Typename() const { return GetImpl()->Typename(); }
-      std::string Filename() const { return GetImpl()->Filename(); }
-      std::string DefaultValue() const { return GetImpl()->DefaultValue(); }
-      std::string CurrentValue() const { return GetImpl()->CurrentValue(); }
+      abel::string_view type_name() const { return GetImpl()->type_name(); }
+      std::string file_name() const { return GetImpl()->file_name(); }
+      std::string default_value() const { return GetImpl()->default_value(); }
+      std::string current_value() const { return GetImpl()->current_value(); }
       template <typename U>
       ABEL_FORCE_INLINE bool is_of_type() const {
         return GetImpl()->template is_of_type<U>();
       }
-      T Get() const { return GetImpl()->Get(); }
-      bool AtomicGet(T* v) const { return GetImpl()->AtomicGet(v); }
-      void Set(const T& v) { GetImpl()->Set(v); }
-      void SetCallback(const flags_internal::flag_callback mutation_callback) {
-        GetImpl()->SetCallback(mutation_callback);
+      T get() const { return GetImpl()->get(); }
+      bool atomic_get(T* v) const { return GetImpl()->atomic_get(v); }
+      void set(const T& v) { GetImpl()->set(v); }
+      void set_callback(const flags_internal::flag_callback mutation_callback) {
+        GetImpl()->set_callback(mutation_callback);
       }
-      void InvokeCallback() { GetImpl()->InvokeCallback(); }
+      void invoke_callback() { GetImpl()->invoke_callback(); }
 
       // The data members are logically private, but they need to be public for
       // this to be an aggregate type.

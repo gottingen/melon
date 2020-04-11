@@ -36,7 +36,7 @@ namespace abel {
                 // <program>_main.cc, where the <program> is the name of the binary.
                 auto suffix = flags_internal::base_name(filename);
                 if (!abel::consume_prefix(&suffix,
-                                          flags_internal::ShortProgramInvocationName()))
+                                          flags_internal::short_program_invocation_name()))
                     return false;
                 return abel::starts_with(suffix, ".") || abel::starts_with(suffix, "-main.") ||
                        abel::starts_with(suffix, "_main.");
@@ -55,7 +55,7 @@ namespace abel {
 // Generates program version information into supplied output.
 
             std::string VersionString() {
-                std::string version_str(flags_internal::ShortProgramInvocationName());
+                std::string version_str(flags_internal::short_program_invocation_name());
 
                 version_str += "\n";
 

@@ -557,10 +557,10 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-        std::vector<char *> ParseCommandLineImpl(int argc, char *argv[],
-                                                 ArgvListAction arg_list_act,
-                                                 UsageFlagsAction usage_flag_act,
-                                                 OnUndefinedFlag on_undef_flag) {
+        std::vector<char *> parse_command_line_impl(int argc, char *argv[],
+                                                 argv_list_action arg_list_act,
+                                                 usage_flags_action usage_flag_act,
+                                                 on_undefined_flag on_undef_flag) {
             ABEL_INTERNAL_CHECK(argc > 0, "Missing argv[0]");
 
             // This routine does not return anything since we abort on failure.
@@ -582,8 +582,8 @@ namespace abel {
             std::vector<std::pair<bool, std::string>> undefined_flag_names;
 
             // Set program invocation name if it is not set before.
-            if (ProgramInvocationName() == "UNKNOWN") {
-                flags_internal::SetProgramInvocationName(argv[0]);
+            if (program_invocation_name() == "UNKNOWN") {
+                flags_internal::set_program_invocation_name(argv[0]);
             }
             output_args.push_back(argv[0]);
 
@@ -622,7 +622,7 @@ namespace abel {
                     continue;
                 }
 
-                if (arg_from_argv && (arg_list_act == ArgvListAction::kKeepParsedArgs)) {
+                if (arg_from_argv && (arg_list_act == argv_list_action::kKeepParsedArgs)) {
                     output_args.push_back(argv[curr_list.FrontIndex()]);
                 }
 
@@ -653,7 +653,7 @@ namespace abel {
                 std::tie(flag, is_negative) = LocateFlag(flag_name);
 
                 if (flag == nullptr) {
-                    if (on_undef_flag != OnUndefinedFlag::kIgnoreUndefined) {
+                    if (on_undef_flag != on_undefined_flag::kIgnoreUndefined) {
                         undefined_flag_names.emplace_back(arg_from_argv,
                                                           std::string(flag_name));
                     }
@@ -668,7 +668,7 @@ namespace abel {
                 success &= value_success;
 
                 // If above call consumed an argument, it was a standalone value
-                if (arg_from_argv && (arg_list_act == ArgvListAction::kKeepParsedArgs) &&
+                if (arg_from_argv && (arg_list_act == argv_list_action::kKeepParsedArgs) &&
                     (curr_index != curr_list.FrontIndex())) {
                     output_args.push_back(argv[curr_list.FrontIndex()]);
                 }
@@ -707,7 +707,7 @@ namespace abel {
                 std::exit(1);
             }
 
-            if (usage_flag_act == UsageFlagsAction::kHandleUsage) {
+            if (usage_flag_act == usage_flags_action::kHandleUsage) {
                 int exit_code = flags_internal::handle_usage_flags(
                         std::cout, program_usage_message());
 
@@ -740,10 +740,10 @@ namespace abel {
 // --------------------------------------------------------------------
 
     std::vector<char *> parse_command_line(int argc, char *argv[]) {
-        return flags_internal::ParseCommandLineImpl(
-                argc, argv, flags_internal::ArgvListAction::kRemoveParsedArgs,
-                flags_internal::UsageFlagsAction::kHandleUsage,
-                flags_internal::OnUndefinedFlag::kAbortIfUndefined);
+        return flags_internal::parse_command_line_impl(
+                argc, argv, flags_internal::argv_list_action::kRemoveParsedArgs,
+                flags_internal::usage_flags_action::kHandleUsage,
+                flags_internal::on_undefined_flag::kAbortIfUndefined);
     }
 
 

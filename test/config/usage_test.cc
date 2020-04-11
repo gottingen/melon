@@ -99,7 +99,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_01");
         std::stringstream test_buf;
 
-        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::help_format::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_01 (usage_reporting_test_flag_01 help message);
@@ -111,7 +111,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_02");
         std::stringstream test_buf;
 
-        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::help_format::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_02 (usage_reporting_test_flag_02 help message);
@@ -123,7 +123,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_03");
         std::stringstream test_buf;
 
-        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::help_format::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_03 (usage_reporting_test_flag_03 help message);
@@ -135,7 +135,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_04");
         std::stringstream test_buf;
 
-        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::help_format::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_04 (usage_reporting_test_flag_04 help message);
@@ -147,7 +147,7 @@ namespace {
         const auto *flag = flags::find_command_line_flag("usage_reporting_test_flag_05");
         std::stringstream test_buf;
 
-        flags::flag_help(test_buf, *flag, flags::HelpFormat::kHumanReadable);
+        flags::flag_help(test_buf, *flag, flags::help_format::kHumanReadable);
         EXPECT_EQ(
                 test_buf.str(),
                 R"(    --usage_reporting_test_flag_05 (usage_reporting_test_flag_05 help message);
@@ -181,22 +181,22 @@ namespace {
 
         std::stringstream test_buf_01;
         flags::flags_help(test_buf_01, "usage_test.cc",
-                         flags::HelpFormat::kHumanReadable, kTestUsageMessage);
+                         flags::help_format::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_01.str(), usage_test_flags_out);
 
         std::stringstream test_buf_02;
         flags::flags_help(test_buf_02, "config/usage_test.cc",
-                         flags::HelpFormat::kHumanReadable, kTestUsageMessage);
+                         flags::help_format::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_02.str(), usage_test_flags_out);
 
         std::stringstream test_buf_03;
-        flags::flags_help(test_buf_03, "usage_test", flags::HelpFormat::kHumanReadable,
+        flags::flags_help(test_buf_03, "usage_test", flags::help_format::kHumanReadable,
                          kTestUsageMessage);
         EXPECT_EQ(test_buf_03.str(), usage_test_flags_out);
 
         std::stringstream test_buf_04;
         flags::flags_help(test_buf_04, "config/invalid_file_name.cc",
-                         flags::HelpFormat::kHumanReadable, kTestUsageMessage);
+                         flags::help_format::kHumanReadable, kTestUsageMessage);
         EXPECT_EQ(test_buf_04.str(),
                   R"(usage_test: Custom usage message
 
@@ -204,7 +204,7 @@ namespace {
 )");
 
         std::stringstream test_buf_05;
-        flags::flags_help(test_buf_05, "", flags::HelpFormat::kHumanReadable,
+        flags::flags_help(test_buf_05, "", flags::help_format::kHumanReadable,
                          kTestUsageMessage);
         std::string test_out = test_buf_05.str();
         abel::string_view test_out_str(test_out);
@@ -387,7 +387,7 @@ Try --helpfull to get a list of all flags.
 
 int main(int argc, char *argv[]) {
     (void) abel::get_flag(FLAGS_undefok);  // Force linking of parse.cc
-    flags::SetProgramInvocationName("usage_test");
+    flags::set_program_invocation_name("usage_test");
     abel::set_program_usage_message(kTestUsageMessage);
     ::testing::InitGoogleTest(&argc, argv);
 

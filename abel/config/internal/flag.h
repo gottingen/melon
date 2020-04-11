@@ -273,7 +273,7 @@ namespace abel {
             flag_dfault_src_kind def_kind_ ABEL_GUARDED_BY(*data_guard());
             // Either a pointer to the function generating the default value based on the
             // value specified in ABEL_FLAG or pointer to the dynamically set default
-            // value via SetCommandLineOptionWithMode. def_kind_ is used to distinguish
+            // value via set_command_line_option_with_mode. def_kind_ is used to distinguish
             // these two cases.
             flag_default_src default_src_ ABEL_GUARDED_BY(*data_guard());
             // Lazily initialized pointer to current value
@@ -311,7 +311,7 @@ namespace abel {
                             default_value_gen) {}
 
             T get() const {
-                // See implementation notes in command_line_flag::Get().
+                // See implementation notes in command_line_flag::get().
                 union U {
                     T value;
 

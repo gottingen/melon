@@ -69,7 +69,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(FlagsUsageConfigTest, TestContainsHelpshortFlags) {
-        flags::SetProgramInvocationName("usage_config_test");
+        flags::set_program_invocation_name("usage_config_test");
 
         auto config = flags::get_usage_config();
         EXPECT_TRUE(config.contains_helpshort_flags("adir/cd/usage_config_test.cc"));
@@ -91,7 +91,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(FlagsUsageConfigTest, TestContainsHelpFlags) {
-        flags::SetProgramInvocationName("usage_config_test");
+        flags::set_program_invocation_name("usage_config_test");
 
         auto config = flags::get_usage_config();
         EXPECT_TRUE(config.contains_help_flags("zzz/usage_config_test.cc"));
@@ -113,7 +113,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(FlagsUsageConfigTest, TestContainsHelppackageFlags) {
-        flags::SetProgramInvocationName("usage_config_test");
+        flags::set_program_invocation_name("usage_config_test");
 
         auto config = flags::get_usage_config();
         EXPECT_TRUE(config.contains_helppackage_flags("aaa/usage_config_test.cc"));
@@ -136,7 +136,7 @@ namespace {
 // --------------------------------------------------------------------
 
     TEST_F(FlagsUsageConfigTest, TestVersionString) {
-        flags::SetProgramInvocationName("usage_config_test");
+        flags::set_program_invocation_name("usage_config_test");
 
 #ifdef NDEBUG
         std::string expected_output = "usage_config_test\n";

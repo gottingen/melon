@@ -13,20 +13,20 @@ namespace abel {
         ABEL_CONST_INIT static std::string *program_name
                 ABEL_GUARDED_BY(program_name_guard) = nullptr;
 
-        std::string ProgramInvocationName() {
+        std::string program_invocation_name() {
             abel::mutex_lock l(&program_name_guard);
 
             return program_name ? *program_name : "UNKNOWN";
         }
 
-        std::string ShortProgramInvocationName() {
+        std::string short_program_invocation_name() {
             abel::mutex_lock l(&program_name_guard);
 
             return program_name ? std::string(flags_internal::base_name(*program_name))
                                 : "UNKNOWN";
         }
 
-        void SetProgramInvocationName(abel::string_view prog_name_str) {
+        void set_program_invocation_name(abel::string_view prog_name_str) {
             abel::mutex_lock l(&program_name_guard);
 
             if (!program_name)

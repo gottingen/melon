@@ -12,7 +12,7 @@ namespace abel {
 
     namespace flags_internal {
 
-        bool GetCommandLineOption(abel::string_view name, std::string *value) {
+        bool get_command_line_option(abel::string_view name, std::string *value) {
             if (name.empty()) return false;
             assert(value);
 
@@ -25,12 +25,12 @@ namespace abel {
             return true;
         }
 
-        bool SetCommandLineOption(abel::string_view name, abel::string_view value) {
-            return SetCommandLineOptionWithMode(name, value,
+        bool set_command_line_option(abel::string_view name, abel::string_view value) {
+            return set_command_line_option_with_mode(name, value,
                                                 flags_internal::SET_FLAGS_VALUE);
         }
 
-        bool SetCommandLineOptionWithMode(abel::string_view name,
+        bool set_command_line_option_with_mode(abel::string_view name,
                                           abel::string_view value,
                                           flag_setting_mode set_mode) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
@@ -50,7 +50,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-        bool IsValidFlagValue(abel::string_view name, abel::string_view value) {
+        bool is_valid_flag_value(abel::string_view name, abel::string_view value) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
 
             return flag != nullptr &&
@@ -59,7 +59,7 @@ namespace abel {
 
 // --------------------------------------------------------------------
 
-        bool SpecifiedOnCommandLine(abel::string_view name) {
+        bool specified_on_command_line(abel::string_view name) {
             command_line_flag *flag = flags_internal::find_command_line_flag(name);
             if (flag != nullptr && !flag->is_retired()) {
                 return flag->is_specified_on_command_line();

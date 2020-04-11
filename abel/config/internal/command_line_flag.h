@@ -28,7 +28,7 @@ namespace abel {
         using flag_op_fn = void *(*)(flag_op, const void *, void *);
         using flag_marshalling_op_fn = void *(*)(flag_op, const void *, void *, void *);
 
-// Options that control SetCommandLineOptionWithMode.
+// Options that control set_command_line_option_with_mode.
         enum flag_setting_mode {
             // update the flag's value unconditionally (can call this multiple times).
             SET_FLAGS_VALUE,

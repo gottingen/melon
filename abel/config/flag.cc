@@ -18,10 +18,10 @@ namespace abel {
 #define ABEL_FLAGS_ATOMIC_GET(T)         \
   T get_flag(const abel::abel_flag<T>& flag) { \
     T result;                            \
-    if (flag.AtomicGet(&result)) {       \
+    if (flag.atomic_get(&result)) {       \
       return result;                     \
     }                                    \
-    return flag.Get();                   \
+    return flag.get();                   \
   }
 #endif
 
@@ -37,7 +37,7 @@ namespace abel {
 
     ABEL_CONST_INIT static abel::mutex construction_guard(abel::kConstInit);
 
-    abel::mutex* GetGlobalConstructionGuard() { return &construction_guard; }
+    abel::mutex* get_global_construction_guard() { return &construction_guard; }
 
     }  // namespace flags_internal
 

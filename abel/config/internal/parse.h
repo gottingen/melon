@@ -18,22 +18,22 @@ namespace abel {
 
     namespace flags_internal {
 
-        enum class ArgvListAction {
+        enum class argv_list_action {
             kRemoveParsedArgs, kKeepParsedArgs
         };
-        enum class UsageFlagsAction {
+        enum class usage_flags_action {
             kHandleUsage, kIgnoreUsage
         };
-        enum class OnUndefinedFlag {
+        enum class on_undefined_flag {
             kIgnoreUndefined,
             kReportUndefined,
             kAbortIfUndefined
         };
 
-        std::vector<char *> ParseCommandLineImpl(int argc, char *argv[],
-                                                 ArgvListAction arg_list_act,
-                                                 UsageFlagsAction usage_flag_act,
-                                                 OnUndefinedFlag on_undef_flag);
+        std::vector<char *> parse_command_line_impl(int argc, char *argv[],
+                                                 argv_list_action arg_list_act,
+                                                 usage_flags_action usage_flag_act,
+                                                 on_undefined_flag on_undef_flag);
 
     }  // namespace flags_internal
 
