@@ -47,7 +47,7 @@ carbin-clean: ## Run clean up dependencies
 .pre_build: .clean-build
 	@echo "start build type check"
 	@ cd $(build_path); \
-	if [ $(build_type)  == "Debug" ]; then \
+	@if [ $(build_type)  == "Debug" ]; then \
 		cmake .. -DCMAKE_BUILD_TYPE=Debug; \
 	elif [ $(build_type) == "Release" ]; then \
 		cmake .. -DCMAKE_BUILD_TYPE=Release; \
