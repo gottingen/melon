@@ -8,7 +8,9 @@ set(ABEL_GNUC_CXX_FLAGS
         -Wno-unused-parameter
         -Wno-unused-function
         -Wno-missing-field-initializers
+        -Wno-sign-compare
         -Woverloaded-virtual
+        -Wno-deprecated-declarations
         -Wpointer-arith
         -Wwrite-strings
         -Wno-maybe-uninitialized

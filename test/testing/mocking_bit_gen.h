@@ -90,7 +90,7 @@ namespace abel {
         // The returned MockFunction<...> type can be used to setup additional
         // distribution parameters of the expectation.
         template<typename DistrT, typename... Args, typename... Ms>
-        decltype(std::declval<MockFnType<DistrT, Args...>>().gmock_call(
+        decltype(std::declval<MockFnType<DistrT, Args...>>().gmock_Call(
                 std::declval<Ms>()...))
         Register(Ms &&... matchers) {
             auto &mock =
@@ -104,7 +104,7 @@ namespace abel {
             }
 
             return static_cast<MockFnType<DistrT, Args...> *>(mock.mock_fn)
-                    ->gmock_call(std::forward<Ms>(matchers)...);
+                    ->gmock_Call(std::forward<Ms>(matchers)...);
         }
 
         mutable std::vector<std::function<void()>> deleters_;
@@ -124,7 +124,7 @@ namespace abel {
             *static_cast<result_type *>(result) = abel::apply(
                     [mock_fn](Args... args) -> result_type {
                         return (*static_cast<MockFnType<DistrT, Args...> *>(mock_fn))
-                                .call(std::move(args)...);
+                                .Call(std::move(args)...);
                     },
                     *static_cast<std::tuple<Args...> *>(dist_args));
         }

@@ -35,3 +35,5 @@
 .idea/
 build/
 cmake-build-debug/
+carbin/
+carbin/*
