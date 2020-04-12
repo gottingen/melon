@@ -19,14 +19,14 @@ namespace abel {
 
     namespace {
 
-// This GenericFind() template function encapsulates the finding algorithm
-// shared between the by_string and by_any_char delimiters. The FindPolicy
-// template parameter allows each delimiter to customize the actual find
-// function to use and the length of the found delimiter. For example, the
-// Literal delimiter will ultimately use abel::string_view::find(), and the
-// AnyOf delimiter will use abel::string_view::find_first_of().
+        // This generic_find() template function encapsulates the finding algorithm
+        // shared between the by_string and by_any_char delimiters. The FindPolicy
+        // template parameter allows each delimiter to customize the actual find
+        // function to use and the length of the found delimiter. For example, the
+        // Literal delimiter will ultimately use abel::string_view::find(), and the
+        // AnyOf delimiter will use abel::string_view::find_first_of().
         template<typename FindPolicy>
-        abel::string_view GenericFind(abel::string_view text,
+        abel::string_view generic_find(abel::string_view text,
                                       abel::string_view delimiter, size_t pos,
                                       FindPolicy find_policy) {
             if (delimiter.empty() && text.length() > 0) {
@@ -37,7 +37,7 @@ namespace abel {
             size_t found_pos = abel::string_view::npos;
             abel::string_view found(text.data() + text.size(),
                                     0);  // By default, not found
-            found_pos = find_policy.Find(text, delimiter, pos);
+            found_pos = find_policy.find(text, delimiter, pos);
             if (found_pos != abel::string_view::npos) {
                 found = abel::string_view(text.data() + found_pos,
                                           find_policy.Length(delimiter));
@@ -47,8 +47,8 @@ namespace abel {
 
 // Finds using abel::string_view::find(), therefore the length of the found
 // delimiter is delimiter.length().
-        struct LiteralPolicy {
-            size_t Find(abel::string_view text, abel::string_view delimiter, size_t pos) {
+        struct literal_policy {
+            size_t find(abel::string_view text, abel::string_view delimiter, size_t pos) {
                 return text.find(delimiter, pos);
             }
 
@@ -57,8 +57,8 @@ namespace abel {
 
 // Finds using abel::string_view::find_first_of(), therefore the length of the
 // found delimiter is 1.
-        struct AnyOfPolicy {
-            size_t Find(abel::string_view text, abel::string_view delimiter, size_t pos) {
+        struct any_of_policy {
+            size_t find(abel::string_view text, abel::string_view delimiter, size_t pos) {
                 return text.find_first_of(delimiter, pos);
             }
 
@@ -71,25 +71,25 @@ namespace abel {
 // by_string
 //
 
-    by_string::by_string(abel::string_view sp) : delimiter_(sp) {}
+    by_string::by_string(abel::string_view sp) : _delimiter(sp) {}
 
-    abel::string_view by_string::Find(abel::string_view text, size_t pos) const {
-        if (delimiter_.length() == 1) {
+    abel::string_view by_string::find(abel::string_view text, size_t pos) const {
+        if (_delimiter.length() == 1) {
             // Much faster to call find on a single character than on an
             // abel::string_view.
-            size_t found_pos = text.find(delimiter_[0], pos);
+            size_t found_pos = text.find(_delimiter[0], pos);
             if (found_pos == abel::string_view::npos)
                 return abel::string_view(text.data() + text.size(), 0);
             return text.substr(found_pos, 1);
         }
-        return GenericFind(text, delimiter_, pos, LiteralPolicy());
+        return generic_find(text, _delimiter, pos, literal_policy());
     }
 
 //
-// ByChar
+// by_char
 //
 
-    abel::string_view ByChar::Find(abel::string_view text, size_t pos) const {
+    abel::string_view by_char::find(abel::string_view text, size_t pos) const {
         size_t found_pos = text.find(c_, pos);
         if (found_pos == abel::string_view::npos)
             return abel::string_view(text.data() + text.size(), 0);
@@ -100,29 +100,29 @@ namespace abel {
 // by_any_char
 //
 
-    by_any_char::by_any_char(abel::string_view sp) : delimiters_(sp) {}
+    by_any_char::by_any_char(abel::string_view sp) : _delimiters(sp) {}
 
-    abel::string_view by_any_char::Find(abel::string_view text, size_t pos) const {
-        return GenericFind(text, delimiters_, pos, AnyOfPolicy());
+    abel::string_view by_any_char::find(abel::string_view text, size_t pos) const {
+        return generic_find(text, _delimiters, pos, any_of_policy());
     }
 
 //
 //  by_length
 //
-    by_length::by_length(ptrdiff_t length) : length_(length) {
+    by_length::by_length(ptrdiff_t length) : _length(length) {
         ABEL_RAW_CHECK(length > 0, "");
     }
 
-    abel::string_view by_length::Find(abel::string_view text,
+    abel::string_view by_length::find(abel::string_view text,
                                       size_t pos) const {
         pos = std::min(pos, text.size());  // truncate `pos`
         abel::string_view substr = text.substr(pos);
         // If the std::string is shorter than the chunk size we say we
         // "can't find the delimiter" so this will be the last chunk.
-        if (substr.length() <= static_cast<size_t>(length_))
+        if (substr.length() <= static_cast<size_t>(_length))
             return abel::string_view(text.data() + text.size(), 0);
 
-        return abel::string_view(substr.data() + length_, 0);
+        return abel::string_view(substr.data() + _length, 0);
     }
 
 

@@ -1086,12 +1086,12 @@ TEST(FormatterTest, FormatStdStringView) {
 
 #endif
 
-struct ConvertibleToStringView {
+struct convertible_to_string_view {
     operator fmt::string_view() const { return "foo"; }
 };
 
 TEST(FormatterTest, FormatConvertibleToStringView) {
-    EXPECT_EQ("foo", format("{}", ConvertibleToStringView()));
+    EXPECT_EQ("foo", format("{}", convertible_to_string_view()));
 }
 
 FMT_BEGIN_NAMESPACE
