@@ -47,7 +47,7 @@ namespace abel {
             }
 
 // Use to indicate to the malloc hooks that
-// this calls is from LowLevelAlloc.
+// this calls is from low_level_alloc.
             static bool using_low_level_alloc = false;
 
 // n times, toss a coin, and based on the outcome
@@ -68,10 +68,10 @@ namespace abel {
                 AllocMap::iterator it;
                 BlockDesc block_desc;
                 int rnd;
-                LowLevelAlloc::Arena *arena = 0;
+                low_level_alloc::arena *arena = 0;
                 if (use_new_arena) {
-                    int32_t flags = call_malloc_hook ? LowLevelAlloc::kCallMallocHook : 0;
-                    arena = LowLevelAlloc::NewArena(flags);
+                    int32_t flags = call_malloc_hook ? low_level_alloc::kCallMallocHook : 0;
+                    arena = low_level_alloc::new_arena(flags);
                 }
                 for (int i = 0; i != n; i++) {
                     if (i != 0 && i % 10000 == 0) {
@@ -86,8 +86,8 @@ namespace abel {
                             block_desc.ptr =
                                     reinterpret_cast<char *>(
                                             arena == 0
-                                            ? LowLevelAlloc::Alloc(block_desc.len)
-                                            : LowLevelAlloc::AllocWithArena(block_desc.len, arena));
+                                            ? low_level_alloc::alloc(block_desc.len)
+                                            : low_level_alloc::alloc_with_arena(block_desc.len, arena));
                             using_low_level_alloc = false;
                             RandomizeBlockDesc(&block_desc);
                             rnd = rand();
@@ -95,7 +95,7 @@ namespace abel {
                             if (it != allocated.end()) {
                                 CheckBlockDesc(it->second);
                                 using_low_level_alloc = true;
-                                LowLevelAlloc::Free(it->second.ptr);
+                                low_level_alloc::free(it->second.ptr);
                                 using_low_level_alloc = false;
                                 it->second = block_desc;
                             } else {
@@ -107,7 +107,7 @@ namespace abel {
                             if (it != allocated.end()) {
                                 CheckBlockDesc(it->second);
                                 using_low_level_alloc = true;
-                                LowLevelAlloc::Free(it->second.ptr);
+                                low_level_alloc::free(it->second.ptr);
                                 using_low_level_alloc = false;
                                 allocated.erase(it);
                             }
@@ -118,16 +118,16 @@ namespace abel {
                 while ((it = allocated.begin()) != allocated.end()) {
                     CheckBlockDesc(it->second);
                     using_low_level_alloc = true;
-                    memory_internal::LowLevelAlloc::Free(it->second.ptr);
+                    memory_internal::low_level_alloc::free(it->second.ptr);
                     using_low_level_alloc = false;
                     allocated.erase(it);
                 }
                 if (use_new_arena) {
-                    TEST_ASSERT(memory_internal::LowLevelAlloc::DeleteArena(arena));
+                    TEST_ASSERT(memory_internal::low_level_alloc::delete_arena(arena));
                 }
             }
 
-// LowLevelAlloc is designed to be safe to call before main().
+// low_level_alloc is designed to be safe to call before main().
             static struct BeforeMain {
                 BeforeMain() {
                     Test(false, false, 50000);

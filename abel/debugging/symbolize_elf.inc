@@ -194,24 +194,24 @@ namespace abel {
             };
 
 // ---------------------------------------------------------------
-// An async-signal-safe arena for LowLevelAlloc
-            static std::atomic<memory_internal::LowLevelAlloc::Arena *> g_sig_safe_arena;
+// An async-signal-safe arena for low_level_alloc
+            static std::atomic<memory_internal::low_level_alloc::Arena *> g_sig_safe_arena;
 
-            static memory_internal::LowLevelAlloc::Arena *SigSafeArena() {
+            static memory_internal::low_level_alloc::Arena *SigSafeArena() {
                 return g_sig_safe_arena.load(std::memory_order_acquire);
             }
 
             static void InitSigSafeArena() {
                 if (SigSafeArena() == nullptr) {
-                    memory_internal::LowLevelAlloc::Arena *new_arena =
-                            memory_internal::LowLevelAlloc::NewArena(
-                                    memory_internal::LowLevelAlloc::kAsyncSignalSafe);
-                    memory_internal::LowLevelAlloc::Arena *old_value = nullptr;
+                    memory_internal::low_level_alloc::Arena *new_arena =
+                            memory_internal::low_level_alloc::NewArena(
+                                    memory_internal::low_level_alloc::kAsyncSignalSafe);
+                    memory_internal::low_level_alloc::Arena *old_value = nullptr;
                     if (!g_sig_safe_arena.compare_exchange_strong(old_value, new_arena,
                                                                   std::memory_order_release,
                                                                   std::memory_order_relaxed)) {
                         // We lost a race to allocate an arena; deallocate.
-                        memory_internal::LowLevelAlloc::DeleteArena(new_arena);
+                        memory_internal::low_level_alloc::DeleteArena(new_arena);
                     }
                 }
             }
@@ -223,7 +223,7 @@ namespace abel {
             public:
                 AddrMap() : size_(0), allocated_(0), obj_(nullptr) {}
 
-                ~AddrMap() { memory_internal::LowLevelAlloc::Free(obj_); }
+                ~AddrMap() { memory_internal::low_level_alloc::Free(obj_); }
 
                 int Size() const { return size_; }
 
@@ -253,11 +253,11 @@ namespace abel {
                 if (size_ == allocated_) {
                     int new_allocated = allocated_ * 2 + 50;
                     ObjFile *new_obj_ =
-                            static_cast<ObjFile *>(memory_internal::LowLevelAlloc::AllocWithArena(
+                            static_cast<ObjFile *>(memory_internal::low_level_alloc::AllocWithArena(
                                     new_allocated * sizeof(*new_obj_), SigSafeArena()));
                     if (obj_) {
                         memcpy(new_obj_, obj_, allocated_ * sizeof(*new_obj_));
-                        memory_internal::LowLevelAlloc::Free(obj_);
+                        memory_internal::low_level_alloc::Free(obj_);
                     }
                     obj_ = new_obj_;
                     allocated_ = new_allocated;
@@ -283,7 +283,7 @@ namespace abel {
                 char *CopyString(const char *s) {
                     int len = strlen(s);
                     char *dst = static_cast<char *>(
-                            memory_internal::LowLevelAlloc::AllocWithArena(len + 1, SigSafeArena()));
+                            memory_internal::low_level_alloc::AllocWithArena(len + 1, SigSafeArena()));
                     ABEL_RAW_CHECK(dst != nullptr, "out of memory");
                     memcpy(dst, s, len + 1);
                     return dst;
@@ -359,7 +359,7 @@ namespace abel {
             if (symbolizer != nullptr) {
                 return symbolizer;
             }
-            return new(memory_internal::LowLevelAlloc::AllocWithArena(
+            return new(memory_internal::low_level_alloc::AllocWithArena(
                     SymbolizerSize(), SigSafeArena())) Symbolizer();
         }
 
@@ -371,7 +371,7 @@ namespace abel {
                                                              std::memory_order_release,
                                                              std::memory_order_relaxed)) {
                 s->~Symbolizer();
-                memory_internal::LowLevelAlloc::Free(s);
+                memory_internal::low_level_alloc::Free(s);
             }
         }
 
@@ -388,7 +388,7 @@ namespace abel {
         Symbolizer::~Symbolizer() {
             for (SymbolCacheLine &symbol_cache_line : symbol_cache_) {
                 for (char *s : symbol_cache_line.name) {
-                    memory_internal::LowLevelAlloc::Free(s);
+                    memory_internal::low_level_alloc::Free(s);
                 }
             }
             ClearAddrMap();
@@ -1196,7 +1196,7 @@ ObjFile *Symbolizer::FindObjFile(const void *const addr, size_t len) {
 void Symbolizer::ClearAddrMap() {
     for (int i = 0; i != addr_map_.Size(); i++) {
         ObjFile *o = addr_map_.At(i);
-        memory_internal::LowLevelAlloc::Free(o->filename);
+        memory_internal::low_level_alloc::Free(o->filename);
         if (o->fd >= 0) {
             NO_INTR(close(o->fd));
         }
@@ -1315,7 +1315,7 @@ const char *Symbolizer::InsertSymbolInCache(const void *const pc,
 
     AgeSymbols(line);
     ABEL_RAW_CHECK(oldest_index >= 0, "Corrupt cache");
-    memory_internal::LowLevelAlloc::Free(line->name[oldest_index]);
+    memory_internal::low_level_alloc::Free(line->name[oldest_index]);
     line->pc[oldest_index] = pc;
     line->name[oldest_index] = CopyString(name);
     line->age[oldest_index] = 0;
@@ -1522,7 +1522,7 @@ bool RegisterFileMappingHint(const void *start, const void *end, uint64_t offset
         // TODO(ckennelly): Move this into a std::string copy routine.
         int len = strlen(filename);
         char *dst = static_cast<char *>(
-                memory_internal::LowLevelAlloc::AllocWithArena(len + 1, SigSafeArena()));
+                memory_internal::low_level_alloc::AllocWithArena(len + 1, SigSafeArena()));
         ABEL_RAW_CHECK(dst != nullptr, "out of memory");
         memcpy(dst, filename, len + 1);
 
