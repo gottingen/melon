@@ -10,6 +10,7 @@ set(ABEL_GNUC_CXX_FLAGS
         -Wno-missing-field-initializers
         -Wno-sign-compare
         -Woverloaded-virtual
+        -Wno-deprecated-declarations
         -Wpointer-arith
         -Wwrite-strings
         -Wno-maybe-uninitialized
