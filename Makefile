@@ -41,7 +41,7 @@ carbin: ## Run carbin install
 	@echo "dependencies have been installed to carbin"
 
 carbin-clean: ## Run clean up dependencies
-	@echo "stsrt to isntall dependencies"
+	@echo "start to isntall dependencies"
 	@carbin clean -y
 
 .pre_build: .clean-build

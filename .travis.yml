@@ -12,9 +12,6 @@ before_script:
   - pip install carbin --user
   - $CMAKE_CXX --version
   - cmake --version
-  - mkdir build
-  - cd build
-  - cmake ..
 script:
-  - make -j2
+  - make build
   - make test
