@@ -1618,7 +1618,7 @@ RAPIDJSON_MULTILINEMACRO_END
             return 0;
         }
 
-        PointerType GetPointer(const SchemaType *schema) const {
+        PointerType get_pointer(const SchemaType *schema) const {
             for (const SchemaEntry *target = schemaMap_.template Bottom<SchemaEntry>();
                  target != schemaMap_.template End<SchemaEntry>(); ++target)
                 if (schema == target->schema)
@@ -1745,7 +1745,7 @@ RAPIDJSON_MULTILINEMACRO_END
 
         //! Gets the JSON pointer pointed to the invalid schema.
         PointerType GetInvalidSchemaPointer() const {
-            return schemaStack_.Empty() ? PointerType() : schemaDocument_->GetPointer(&CurrentSchema());
+            return schemaStack_.Empty() ? PointerType() : schemaDocument_->get_pointer(&CurrentSchema());
         }
 
         //! Gets the keyword of invalid schema.
@@ -1969,7 +1969,7 @@ RAPIDJSON_MULTILINEMACRO_END
 
 #if RAPIDJSON_SCHEMA_VERBOSE
             GenericStringBuffer<EncodingType> sb;
-            schemaDocument_->GetPointer(&CurrentSchema()).Stringify(sb);
+            schemaDocument_->get_pointer(&CurrentSchema()).Stringify(sb);
 
             *documentStack_.template Push<Ch>() = '\0';
             documentStack_.template Pop<Ch>(1);

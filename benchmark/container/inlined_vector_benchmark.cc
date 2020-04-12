@@ -218,10 +218,10 @@ namespace {
         std::vector<int> d;
     };
 
-    template<typename ElementType>
+    template<typename element_type>
     void BM_SwapElements(benchmark::State &state) {
         const int len = state.range(0);
-        using Vec = abel::inline_vector<ElementType, 32>;
+        using Vec = abel::inline_vector<element_type, 32>;
         Vec a(len);
         Vec b;
         for (auto _ : state) {
