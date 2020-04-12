@@ -12,7 +12,10 @@ before_script:
   - pip install carbin --user
   - $CMAKE_CXX --version
   - cmake --version
-  - export sh=/bin/bash
+  - carbin install
+  - mkdir build
+  - cd build
+  - cmake ..
 script:
-  - make build
+  - make
   - make test
