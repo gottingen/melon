@@ -4,8 +4,8 @@
 #define ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MEMBERS_TEST_H_
 
 #include <type_traits>
-#include <deps/googletest-1.10.x/googlemock/include/gmock/gmock.h>
-#include <deps/googletest-1.10.x/googletest/include/gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <abel/asl/type_traits.h>
 
 namespace abel {

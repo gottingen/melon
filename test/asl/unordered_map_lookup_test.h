@@ -3,8 +3,8 @@
 #ifndef ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_LOOKUP_TEST_H_
 #define ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_LOOKUP_TEST_H_
 
-#include <deps/googletest-1.10.x/googlemock/include/gmock/gmock.h>
-#include <deps/googletest-1.10.x/googletest/include/gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <test/testing/hash_generator_testing.h>
 #include <test/asl/hash_policy_testing.h>
 

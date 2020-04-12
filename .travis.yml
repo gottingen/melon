@@ -9,6 +9,7 @@ matrix:
 
 before_script:
   # print out some version numbers
+  - pip install carbin
   - $CMAKE_CXX --version
   - cmake --version
   - mkdir build

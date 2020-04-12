@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include <deps/googletest-1.10.x/googlemock/include/gmock/gmock.h>
-#include <deps/googletest-1.10.x/googletest/include/gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <test/testing/hash_generator_testing.h>
 #include <test/asl/hash_policy_testing.h>
 

@@ -19,7 +19,7 @@ namespace abel {
 //
 // MockSingleOverload hooks in to gMock's `ON_CALL` and `EXPECT_CALL` macros.
 // EXPECT_CALL(mock_single_overload, Call(...))` will expand to a call to
-// `mock_single_overload.gmock_call(...)`. Because expectations are stored on
+// `mock_single_overload.gmock_Call(...)`. Because expectations are stored on
 // the MockingBitGen (an argument passed inside `Call(...)`), this forwards to
 // arguments to Mocking::Register.
         template<typename DistrT, typename Ret, typename... Args>
@@ -28,7 +28,7 @@ namespace abel {
                           "Overload signature must have return type matching the "
                           "distributions result type.");
 
-            auto gmock_call(
+            auto gmock_Call(
                     abel::MockingBitGen &gen,  // NOLINT(google-runtime-references)
                     const ::testing::Matcher<Args> &... args)
             -> decltype(gen.Register<DistrT, Args...>(args...)) {
@@ -42,7 +42,7 @@ namespace abel {
                           "Overload signature must have return type matching the "
                           "distributions result type.");
 
-            auto gmock_call(
+            auto gmock_Call(
                     const ::testing::Matcher<Arg> &arg,
                     abel::MockingBitGen &gen,  // NOLINT(google-runtime-references)
                     const ::testing::Matcher<Args> &... args)
@@ -62,15 +62,15 @@ namespace abel {
 
         template<typename DistrT, typename Sig>
         struct MockOverloadSet<DistrT, Sig> : public MockSingleOverload<DistrT, Sig> {
-            using MockSingleOverload<DistrT, Sig>::gmock_call;
+            using MockSingleOverload<DistrT, Sig>::gmock_Call;
         };
 
         template<typename DistrT, typename FirstSig, typename... Rest>
         struct MockOverloadSet<DistrT, FirstSig, Rest...>
                 : public MockSingleOverload<DistrT, FirstSig>,
                   public MockOverloadSet<DistrT, Rest...> {
-            using MockSingleOverload<DistrT, FirstSig>::gmock_call;
-            using MockOverloadSet<DistrT, Rest...>::gmock_call;
+            using MockSingleOverload<DistrT, FirstSig>::gmock_Call;
+            using MockOverloadSet<DistrT, Rest...>::gmock_Call;
         };
 
     }  // namespace random_internal

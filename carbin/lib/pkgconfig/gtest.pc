@@ -1,0 +1,1 @@
+../../carbin/pkg/google__googletest/install/lib/pkgconfig/gtest.pc
