@@ -6,7 +6,7 @@ build_folder = build
 current_folder = $(shell pwd)
 build_path = $(current_folder)/$(build_folder)
 #platform_version := $(shell uname -r| awk -F 'el' '{printf("el%d", substr($2,1,1))}')
-build_type = Debug
+build_type = Release
 
 test: .pre_build ## Run tests
 	@echo "start testing ..."
@@ -47,14 +47,7 @@ carbin-clean: ## Run clean up dependencies
 .pre_build: .clean-build
 	@echo "start build type check"
 	@ cd $(build_path); \
-	@if [ $(build_type)  == "Debug" ]; then \
-		cmake .. -DCMAKE_BUILD_TYPE=Debug; \
-	elif [ $(build_type) == "Release" ]; then \
-		cmake .. -DCMAKE_BUILD_TYPE=Release; \
-	else \
-		echo "build type not found"; \
-		exit 1; \
-	fi
+	@cmake .. -DCMAKE_BUILD_TYPE=$(build_type);
 
 .clean-build: carbin
 	@echo "clean building env ..."
