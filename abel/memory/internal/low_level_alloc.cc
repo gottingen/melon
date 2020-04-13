@@ -199,7 +199,7 @@ namespace abel {
             alloc_list freelist ABEL_GUARDED_BY(mu);
             // Count of allocated blocks
             int32_t allocation_count ABEL_GUARDED_BY(mu);
-            // flags passed to NewArena
+            // flags passed to new_arena
             const uint32_t flags;
             // Result of sysconf(_SC_PAGESIZE)
             const size_t pagesize;
@@ -238,7 +238,7 @@ namespace abel {
 #endif
             }
 
-// Returns a global arena that does not call into hooks.  Used by NewArena()
+// Returns a global arena that does not call into hooks.  Used by new_arena()
 // when kCallMallocHook is not set.
             low_level_alloc::arena *UnhookedArena() {
                 base_internal::LowLevelCallOnce(&create_globals_once, CreateGlobalArenas);
@@ -247,9 +247,9 @@ namespace abel {
 
 #ifndef ABEL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING
 
-// Returns a global arena that is async-signal safe.  Used by NewArena() when
+// Returns a global arena that is async-signal safe.  Used by new_arena() when
 // kAsyncSignalSafe is set.
-            low_level_alloc::arena *UnhookedAsyncSigSafeArena() {
+            low_level_alloc::arena *unhooked_async_sig_safe_arena() {
                 base_internal::LowLevelCallOnce(&create_globals_once, CreateGlobalArenas);
                 return reinterpret_cast<low_level_alloc::arena *>(
                         &unhooked_async_sig_safe_arena_storage);
@@ -365,7 +365,7 @@ namespace abel {
             arena *meta_data_arena = default_arena();
 #ifndef ABEL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING
             if ((flags & low_level_alloc::kAsyncSignalSafe) != 0) {
-                meta_data_arena = UnhookedAsyncSigSafeArena();
+                meta_data_arena = unhooked_async_sig_safe_arena();
             } else  // NOLINT(readability/braces)
 #endif
             if ((flags & low_level_alloc::kCallMallocHook) == 0) {

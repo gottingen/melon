@@ -195,23 +195,23 @@ namespace abel {
 
 // ---------------------------------------------------------------
 // An async-signal-safe arena for low_level_alloc
-            static std::atomic<memory_internal::low_level_alloc::Arena *> g_sig_safe_arena;
+            static std::atomic<memory_internal::low_level_alloc::arena *> g_sig_safe_arena;
 
-            static memory_internal::low_level_alloc::Arena *SigSafeArena() {
+            static memory_internal::low_level_alloc::arena *SigSafeArena() {
                 return g_sig_safe_arena.load(std::memory_order_acquire);
             }
 
             static void InitSigSafeArena() {
                 if (SigSafeArena() == nullptr) {
-                    memory_internal::low_level_alloc::Arena *new_arena =
-                            memory_internal::low_level_alloc::NewArena(
+                    memory_internal::low_level_alloc::arena *new_arena =
+                            memory_internal::low_level_alloc::new_arena(
                                     memory_internal::low_level_alloc::kAsyncSignalSafe);
                     memory_internal::low_level_alloc::Arena *old_value = nullptr;
                     if (!g_sig_safe_arena.compare_exchange_strong(old_value, new_arena,
                                                                   std::memory_order_release,
                                                                   std::memory_order_relaxed)) {
                         // We lost a race to allocate an arena; deallocate.
-                        memory_internal::low_level_alloc::DeleteArena(new_arena);
+                        memory_internal::low_level_alloc::delete_arena(new_arena);
                     }
                 }
             }
@@ -223,7 +223,7 @@ namespace abel {
             public:
                 AddrMap() : size_(0), allocated_(0), obj_(nullptr) {}
 
-                ~AddrMap() { memory_internal::low_level_alloc::Free(obj_); }
+                ~AddrMap() { memory_internal::low_level_alloc::free(obj_); }
 
                 int Size() const { return size_; }
 
@@ -257,7 +257,7 @@ namespace abel {
                                     new_allocated * sizeof(*new_obj_), SigSafeArena()));
                     if (obj_) {
                         memcpy(new_obj_, obj_, allocated_ * sizeof(*new_obj_));
-                        memory_internal::low_level_alloc::Free(obj_);
+                        memory_internal::low_level_alloc::free(obj_);
                     }
                     obj_ = new_obj_;
                     allocated_ = new_allocated;
@@ -371,7 +371,7 @@ namespace abel {
                                                              std::memory_order_release,
                                                              std::memory_order_relaxed)) {
                 s->~Symbolizer();
-                memory_internal::low_level_alloc::Free(s);
+                memory_internal::low_level_alloc::free(s);
             }
         }
 
@@ -388,7 +388,7 @@ namespace abel {
         Symbolizer::~Symbolizer() {
             for (SymbolCacheLine &symbol_cache_line : symbol_cache_) {
                 for (char *s : symbol_cache_line.name) {
-                    memory_internal::low_level_alloc::Free(s);
+                    memory_internal::low_level_alloc::free(s);
                 }
             }
             ClearAddrMap();
@@ -1196,7 +1196,7 @@ ObjFile *Symbolizer::FindObjFile(const void *const addr, size_t len) {
 void Symbolizer::ClearAddrMap() {
     for (int i = 0; i != addr_map_.Size(); i++) {
         ObjFile *o = addr_map_.At(i);
-        memory_internal::low_level_alloc::Free(o->filename);
+        memory_internal::low_level_alloc::free(o->filename);
         if (o->fd >= 0) {
             NO_INTR(close(o->fd));
         }
@@ -1315,7 +1315,7 @@ const char *Symbolizer::InsertSymbolInCache(const void *const pc,
 
     AgeSymbols(line);
     ABEL_RAW_CHECK(oldest_index >= 0, "Corrupt cache");
-    memory_internal::low_level_alloc::Free(line->name[oldest_index]);
+    memory_internal::low_level_alloc::free(line->name[oldest_index]);
     line->pc[oldest_index] = pc;
     line->name[oldest_index] = CopyString(name);
     line->age[oldest_index] = 0;

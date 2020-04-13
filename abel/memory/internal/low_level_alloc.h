@@ -84,12 +84,12 @@ namespace abel {
             };
 
             // Construct a new arena.  The allocation of the underlying metadata honors
-            // the provided flags.  For example, the call NewArena(kAsyncSignalSafe)
+            // the provided flags.  For example, the call new_arena(kAsyncSignalSafe)
             // is itself async-signal-safe, as well as generatating an arena that provides
             // async-signal-safe Alloc/Free.
             static arena *new_arena(int32_t flags);
 
-            // Destroys an arena allocated by NewArena and returns true,
+            // Destroys an arena allocated by new_arena and returns true,
             // provided no allocated blocks remain in the arena.
             // If allocated blocks remain in the arena, does nothing and
             // returns false.
