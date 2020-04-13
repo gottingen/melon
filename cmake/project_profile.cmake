@@ -2,6 +2,7 @@
 include(carbin_debug)
 
 set(CMAKE_PROJECT_DESCRIPTION "abel c++ lib")
+set(AUTHOR_MAIL lijippy@163.com)
 set(CMAKE_PROJECT_VERSION_MAJOR 1)
 set(CMAKE_PROJECT_VERSION_MINOR 2)
 set(CMAKE_PROJECT_VERSION_PATCH 0)
