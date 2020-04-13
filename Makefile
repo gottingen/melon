@@ -1,5 +1,5 @@
 
-.PHONY: test build cache-build install package help clean carbin carbin-clean .pre_build .clean-build
+.PHONY: test build cache-build install package help clean carbin carbin-clean .pre_build .only_lib .clean-build
 .DEFAULT_GOAL := help
 
 build_folder = build
@@ -25,10 +25,10 @@ cache-build: ## Run build on build stack, not clean the old build
 	@cd $(build_path); \
 	make -j
 
-install: .pre_build ## Install project
+install: .only_lib ## Install project
 	@echo "install project now ..."
 	@cd $(build_path); \
-	make -j install
+	make  install
 
 package: .pre_build ## Generate package
 	@echo "generate package for project"
@@ -51,7 +51,18 @@ carbin-clean: ## Run clean up dependencies
 .pre_build: .clean-build
 	@echo "start build type check"
 	@ cd $(build_path); \
-	cmake .. -DCMAKE_BUILD_TYPE=$(build_type);
+	cmake .. \
+        -DCMAKE_BUILD_TYPE=$(build_type);
+
+.only_lib: .clean-build
+	@echo "start build type check"
+	@ cd $(build_path); \
+	cmake .. \
+        -DCMAKE_BUILD_TYPE=$(build_type) \
+        -DENABLE_TESTING=OFF \
+        -DCARBIN_PACKAGE_GEN=OFF \
+        -DENABLE_BENCHMARK=OFF \
+        -DENABLE_EXAMPLE=OFF;
 
 .clean-build: carbin
 	@echo "clean building env ..."
