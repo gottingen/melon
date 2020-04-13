@@ -253,7 +253,7 @@ namespace abel {
                 if (size_ == allocated_) {
                     int new_allocated = allocated_ * 2 + 50;
                     ObjFile *new_obj_ =
-                            static_cast<ObjFile *>(memory_internal::low_level_alloc::AllocWithArena(
+                            static_cast<ObjFile *>(memory_internal::low_level_alloc::alloc_with_arena(
                                     new_allocated * sizeof(*new_obj_), SigSafeArena()));
                     if (obj_) {
                         memcpy(new_obj_, obj_, allocated_ * sizeof(*new_obj_));
@@ -283,7 +283,7 @@ namespace abel {
                 char *CopyString(const char *s) {
                     int len = strlen(s);
                     char *dst = static_cast<char *>(
-                            memory_internal::low_level_alloc::AllocWithArena(len + 1, SigSafeArena()));
+                            memory_internal::low_level_alloc::alloc_with_arena(len + 1, SigSafeArena()));
                     ABEL_RAW_CHECK(dst != nullptr, "out of memory");
                     memcpy(dst, s, len + 1);
                     return dst;
@@ -359,7 +359,7 @@ namespace abel {
             if (symbolizer != nullptr) {
                 return symbolizer;
             }
-            return new(memory_internal::low_level_alloc::AllocWithArena(
+            return new(memory_internal::low_level_alloc::alloc_with_arena(
                     SymbolizerSize(), SigSafeArena())) Symbolizer();
         }
 
@@ -1522,7 +1522,7 @@ bool RegisterFileMappingHint(const void *start, const void *end, uint64_t offset
         // TODO(ckennelly): Move this into a std::string copy routine.
         int len = strlen(filename);
         char *dst = static_cast<char *>(
-                memory_internal::low_level_alloc::AllocWithArena(len + 1, SigSafeArena()));
+                memory_internal::low_level_alloc::alloc_with_arena(len + 1, SigSafeArena()));
         ABEL_RAW_CHECK(dst != nullptr, "out of memory");
         memcpy(dst, filename, len + 1);
 
