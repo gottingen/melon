@@ -1,2 +1,2 @@
-gottingen/googletest@v1.10.x
-gottingen/benchmark@v1.5.0 -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DBENCHMARK_ENABLE_TESTING=OFF
+gottingen/googletest@dev
+gottingen/benchmark@dev -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DBENCHMARK_ENABLE_TESTING=OFF
