@@ -52,17 +52,17 @@ carbin-clean: ## Run clean up dependencies
 	@echo "start build type check"
 	@ cd $(build_path); \
 	cmake .. \
-        -DCMAKE_BUILD_TYPE=$(build_type);
+        -DCMAKE_BUILD_TYPE=$(build_type) \
+        -DENABLE_TESTING=ON \
+        -DCARBIN_PACKAGE_GEN=ON \
+        -DENABLE_BENCHMARK=ON \
+        -DENABLE_EXAMPLE=ON;
 
 .only_lib: .clean-build
 	@echo "start build type check"
 	@ cd $(build_path); \
 	cmake .. \
-        -DCMAKE_BUILD_TYPE=$(build_type) \
-        -DENABLE_TESTING=OFF \
-        -DCARBIN_PACKAGE_GEN=OFF \
-        -DENABLE_BENCHMARK=OFF \
-        -DENABLE_EXAMPLE=OFF;
+	-DCMAKE_BUILD_TYPE=$(build_type);
 
 .clean-build: carbin
 	@echo "clean building env ..."

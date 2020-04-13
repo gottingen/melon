@@ -10,10 +10,10 @@ set(CMAKE_PROJECT_VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSIO
 option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
 option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 
-option(ENABLE_TESTING "enable unit test" ON)
-option(CARBIN_PACKAGE_GEN "enable package gen" ON)
-option(ENABLE_BENCHMARK "enable benchmark" ON)
-option(ENABLE_EXAMPLE "enable benchmark" ON)
+option(ENABLE_TESTING "enable unit test" OFF)
+option(CARBIN_PACKAGE_GEN "enable package gen" OFF)
+option(ENABLE_BENCHMARK "enable benchmark" OFF)
+option(ENABLE_EXAMPLE "enable benchmark" OFF)
 
 set(CARBIN_STD -std=c++11)
 
