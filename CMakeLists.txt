@@ -10,13 +10,20 @@ list(APPEND CMAKE_MODULE_PATH
 include(carbin_module)
 #include(compiler)
 
-if(${PROJECT_NAME} MATCHES "carbin")
+if (${PROJECT_NAME} MATCHES "carbin")
     carbin_error("project name must be set")
-endif()
+endif ()
 
 include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/carbin/include)
-link_directories(${PROJECT_SOURCE_DIR}/carbin/lib)
+if ($ENV{CARBIN_LIB_PATH} MATCHES "")
+    set(ENV{CARBIN_LIB_PATH}/${PROJECT_SOURCE_DIR}/carbin/lib)
+endif ()
+link_directories($ENV{CARBIN_LIB_PATH})
+
+if ($ENV{CARBIN_INCLUDE_PATH} MATCHES "")
+    set(ENV{CARBIN_INCLUDE_PATH} ${PROJECT_SOURCE_DIR}/carbin/include)
+endif ()
+include_directories($ENV{CARBIN_INCLUDE_PATH})
 
 
 add_subdirectory(abel)
