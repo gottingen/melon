@@ -15,7 +15,7 @@ before_script:
   - carbin install
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DCARBIN_PACKAGE_GEN=ON -DENABLE_BENCHMARK=ON -DENABLE_EXAMPLE=ON
 script:
   - make
   - make test
