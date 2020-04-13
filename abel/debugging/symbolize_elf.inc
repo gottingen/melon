@@ -206,7 +206,7 @@ namespace abel {
                     memory_internal::low_level_alloc::arena *new_arena =
                             memory_internal::low_level_alloc::new_arena(
                                     memory_internal::low_level_alloc::kAsyncSignalSafe);
-                    memory_internal::low_level_alloc::Arena *old_value = nullptr;
+                    memory_internal::low_level_alloc::arena *old_value = nullptr;
                     if (!g_sig_safe_arena.compare_exchange_strong(old_value, new_arena,
                                                                   std::memory_order_release,
                                                                   std::memory_order_relaxed)) {
