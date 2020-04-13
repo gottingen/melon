@@ -7,22 +7,32 @@ list(APPEND CMAKE_MODULE_PATH
         ${PROJECT_SOURCE_DIR}/cmake
         ${PROJECT_SOURCE_DIR}/cmake/modules)
 
-include(carbin_module)
-#include(compiler)
+include(carbin_debug)
 
 if (${PROJECT_NAME} MATCHES "carbin")
     carbin_error("project name must be set")
 endif ()
 
-include_directories(${PROJECT_SOURCE_DIR})
-if ($ENV{CARBIN_LIB_PATH} MATCHES "")
-    set(ENV{CARBIN_LIB_PATH}/${PROJECT_SOURCE_DIR}/carbin/lib)
-endif ()
-link_directories($ENV{CARBIN_LIB_PATH})
 
-if ($ENV{CARBIN_INCLUDE_PATH} MATCHES "")
-    set(ENV{CARBIN_INCLUDE_PATH} ${PROJECT_SOURCE_DIR}/carbin/include)
+if (NOT DEFINED ENV{CARBIN_ROOT})
+    set(ENV{CARBIN_ROOT} ${PROJECT_SOURCE_DIR}/carbin)
+    carbin_print("env CARBIN_ROOT not set, set to $ENV{CARBIN_ROOT}")
 endif ()
+
+if (NOT DEFINED ENV{CARBIN_LIB_PATH})
+    set(ENV{CARBIN_LIB_PATH} ${PROJECT_SOURCE_DIR}/carbin/lib)
+    carbin_print("env CARBIN_LIB_PATH not set, set to $ENV{CARBIN_LIB_PATH}")
+endif ()
+
+if (NOT DEFINED ENV{CARBIN_INCLUDE_PATH})
+    set(ENV{CARBIN_INCLUDE_PATH} ${PROJECT_SOURCE_DIR}/carbin/include)
+    carbin_print("env CARBIN_INCLUDE_PATH not set, set to $ENV{CARBIN_INCLUDE_PATH}")
+endif ()
+
+include(carbin_module)
+
+include_directories(${PROJECT_SOURCE_DIR})
+link_directories($ENV{CARBIN_LIB_PATH})
 include_directories($ENV{CARBIN_INCLUDE_PATH})
 
 
