@@ -1,6 +1,5 @@
 include(InstallRequiredSystemLibraries)
 include(carbin_debug)
-include(carbin_pkg_dump)
 
 set(PROJECT_PACKAGE_DESCRIPTION_SUMMARY ${CMAKE_PROJECT_DESCRIPTION})
 
