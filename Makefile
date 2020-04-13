@@ -8,7 +8,7 @@ build_path = $(current_folder)/$(build_folder)
 #platform_version := $(shell uname -r| awk -F 'el' '{printf("el%d", substr($2,1,1))}')
 build_type = Release
 
-export CARBIN_ROOT=$(current_folder)
+export CARBIN_ROOT=$(current_folder)/carbin
 export CARBIN_LIB_PATH=$(current_folder)/carbin/lib
 export CARBIN_INCLUDE_PATH=$(current_folder)/carbin/include
 
