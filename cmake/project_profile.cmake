@@ -1,19 +1,19 @@
 
-set(CMAKE_PROJECT_DESCRIPTION "abel c++ lib")
+set(CMAKE_PROJECT_DESCRIPTION "carbin c++ lib")
 set(CMAKE_PROJECT_VERSION_MAJOR 1)
-set(CMAKE_PROJECT_VERSION_MINOR 0)
-set(CMAKE_PROJECT_VERSION_PATCH 5)
+set(CMAKE_PROJECT_VERSION_MINOR 2)
+set(CMAKE_PROJECT_VERSION_PATCH 0)
 set(CMAKE_PROJECT_VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}.${CMAKE_PROJECT_VERSION_PATCH}")
 
-option(ABEL_STATUS_PRINT "cmake toolchain print" ON)
-option(ABEL_STATUS_DEBUG "cmake toolchain debug info" ON)
+option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
+option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 
 option(ENABLE_TESTING "enable unit test" ON)
-option(ABEL_PACKAGE_GEN "enable package gen" OFF)
-option(ENABLE_BENCHMARK "enable benchmark" OFF)
-option(ENABLE_EXAMPLE "enable benchmark" OFF)
+option(CARBIN_PACKAGE_GEN "enable package gen" ON)
+option(ENABLE_BENCHMARK "enable benchmark" ON)
+option(ENABLE_EXAMPLE "enable benchmark" ON)
 
-set(ABEL_STD -std=c++11)
+set(CARBIN_STD -std=c++11)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 

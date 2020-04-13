@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <new>
 
-// This file is a no-op if the required LowLevelAlloc support is missing.
+// This file is a no-op if the required low_level_alloc support is missing.
 #include <abel/memory/internal/low_level_alloc.h>
 
 #ifndef ABEL_LOW_LEVEL_ALLOC_MISSING
@@ -34,7 +34,7 @@ namespace abel {
             // all_locks might have been allocated by the mutex implementation.
             // We free it here when we are notified that our thread is dying.
             if (identity->per_thread_synch.all_locks != nullptr) {
-                memory_internal::LowLevelAlloc::Free(identity->per_thread_synch.all_locks);
+                memory_internal::low_level_alloc::free(identity->per_thread_synch.all_locks);
             }
 
             PerThreadSem::Destroy(identity);
@@ -99,7 +99,7 @@ namespace abel {
                 // Allocate enough space to align ThreadIdentity to a multiple of
                 // PerThreadSynch::kAlignment. This space is never released (it is
                 // added to a freelist by ReclaimThreadIdentity instead).
-                void *allocation = memory_internal::LowLevelAlloc::Alloc(
+                void *allocation = memory_internal::low_level_alloc::alloc(
                         sizeof(*identity) + thread_internal::PerThreadSynch::kAlignment - 1);
                 // Round up the address to the required alignment.
                 identity = reinterpret_cast<thread_internal::ThreadIdentity *>(

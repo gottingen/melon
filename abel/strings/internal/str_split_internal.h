@@ -4,8 +4,8 @@
 // or otherwise need to be available at compile time. The main abstractions
 // defined in here are
 //
-//   - ConvertibleToStringView
-//   - SplitIterator<>
+//   - convertible_to_string_view
+//   - split_iterator<>
 //   - Splitter<>
 //
 // DO NOT INCLUDE THIS FILE DIRECTLY. Use this file by including
@@ -22,7 +22,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
 #include <abel/base/profile.h>
 #include <abel/asl/type_traits.h>
 #include <abel/asl/string_view.h>
@@ -38,33 +37,33 @@ namespace abel {
 // This class is implicitly constructible from everything that abel::string_view
 // is implicitly constructible from. If it's constructed from a temporary
 // string, the data is moved into a data member so its lifetime matches that of
-// the ConvertibleToStringView instance.
-        class ConvertibleToStringView {
+// the convertible_to_string_view instance.
+        class convertible_to_string_view {
         public:
-            ConvertibleToStringView(const char *s)  // NOLINT(runtime/explicit)
+            convertible_to_string_view(const char *s)  // NOLINT(runtime/explicit)
                     : value_(s) {}
 
-            ConvertibleToStringView(char *s) : value_(s) {}  // NOLINT(runtime/explicit)
-            ConvertibleToStringView(abel::string_view s)     // NOLINT(runtime/explicit)
+            convertible_to_string_view(char *s) : value_(s) {}  // NOLINT(runtime/explicit)
+            convertible_to_string_view(abel::string_view s)     // NOLINT(runtime/explicit)
                     : value_(s) {}
 
-            ConvertibleToStringView(const std::string &s)  // NOLINT(runtime/explicit)
+            convertible_to_string_view(const std::string &s)  // NOLINT(runtime/explicit)
                     : value_(s) {}
 
             // Matches rvalue strings and moves their data to a member.
-            ConvertibleToStringView(std::string &&s)  // NOLINT(runtime/explicit)
+            convertible_to_string_view(std::string &&s)  // NOLINT(runtime/explicit)
                     : copy_(std::move(s)), value_(copy_) {}
 
-            ConvertibleToStringView(const ConvertibleToStringView &other)
+            convertible_to_string_view(const convertible_to_string_view &other)
                     : copy_(other.copy_),
-                      value_(other.IsSelfReferential() ? copy_ : other.value_) {}
+                      value_(other.is_self_referential() ? copy_ : other.value_) {}
 
-            ConvertibleToStringView(ConvertibleToStringView &&other) {
-                StealMembers(std::move(other));
+            convertible_to_string_view(convertible_to_string_view &&other) {
+                steal_members(std::move(other));
             }
 
-            ConvertibleToStringView &operator=(ConvertibleToStringView other) {
-                StealMembers(std::move(other));
+            convertible_to_string_view &operator=(convertible_to_string_view other) {
+                steal_members(std::move(other));
                 return *this;
             }
 
@@ -72,10 +71,10 @@ namespace abel {
 
         private:
             // Returns true if ctsp's value refers to its internal copy_ member.
-            bool IsSelfReferential() const { return value_.data() == copy_.data(); }
+            bool is_self_referential() const { return value_.data() == copy_.data(); }
 
-            void StealMembers(ConvertibleToStringView &&other) {
-                if (other.IsSelfReferential()) {
+            void steal_members(convertible_to_string_view &&other) {
+                if (other.is_self_referential()) {
                     copy_ = std::move(other.copy_);
                     value_ = copy_;
                     other.value_ = other.copy_;
@@ -97,7 +96,7 @@ namespace abel {
 //
 // This class is NOT part of the public splitting API.
         template<typename Splitter>
-        class SplitIterator {
+        class split_iterator {
         public:
             using iterator_category = std::input_iterator_tag;
             using value_type = abel::string_view;
@@ -109,7 +108,7 @@ namespace abel {
                 kInitState, kLastState, kEndState
             };
 
-            SplitIterator(State state, const Splitter *splitter)
+            split_iterator(State state, const Splitter *splitter)
                     : pos_(0),
                       state_(state),
                       splitter_(splitter),
@@ -143,14 +142,14 @@ namespace abel {
 
             pointer operator->() const { return &curr_; }
 
-            SplitIterator &operator++() {
+            split_iterator &operator++() {
                 do {
                     if (state_ == kLastState) {
                         state_ = kEndState;
                         return *this;
                     }
                     const abel::string_view text = splitter_->text();
-                    const abel::string_view d = delimiter_.Find(text, pos_);
+                    const abel::string_view d = delimiter_.find(text, pos_);
                     if (d.data() == text.data() + text.size()) state_ = kLastState;
                     curr_ = text.substr(pos_, d.data() - (text.data() + pos_));
                     pos_ += curr_.size() + d.size();
@@ -158,17 +157,17 @@ namespace abel {
                 return *this;
             }
 
-            SplitIterator operator++(int) {
-                SplitIterator old(*this);
+            split_iterator operator++(int) {
+                split_iterator old(*this);
                 ++(*this);
                 return old;
             }
 
-            friend bool operator==(const SplitIterator &a, const SplitIterator &b) {
+            friend bool operator==(const split_iterator &a, const split_iterator &b) {
                 return a.state_ == b.state_ && a.pos_ == b.pos_;
             }
 
-            friend bool operator!=(const SplitIterator &a, const SplitIterator &b) {
+            friend bool operator!=(const split_iterator &a, const split_iterator &b) {
                 return !(a == b);
             }
 
@@ -181,80 +180,80 @@ namespace abel {
             typename Splitter::PredicateType predicate_;
         };
 
-// HasMappedType<T>::value is true iff there exists a type T::mapped_type.
+// has_mapped_type<T>::value is true iff there exists a type T::mapped_type.
         template<typename T, typename = void>
-        struct HasMappedType : std::false_type {
+        struct has_mapped_type : std::false_type {
         };
         template<typename T>
-        struct HasMappedType<T, abel::void_t<typename T::mapped_type>>
+        struct has_mapped_type<T, abel::void_t<typename T::mapped_type>>
                 : std::true_type {
         };
 
-// HasValueType<T>::value is true iff there exists a type T::value_type.
+// has_value_type<T>::value is true iff there exists a type T::value_type.
         template<typename T, typename = void>
-        struct HasValueType : std::false_type {
+        struct has_value_type : std::false_type {
         };
         template<typename T>
-        struct HasValueType<T, abel::void_t<typename T::value_type>> : std::true_type {
+        struct has_value_type<T, abel::void_t<typename T::value_type>> : std::true_type {
         };
 
-// HasConstIterator<T>::value is true iff there exists a type T::const_iterator.
+// has_const_iterator<T>::value is true iff there exists a type T::const_iterator.
         template<typename T, typename = void>
-        struct HasConstIterator : std::false_type {
+        struct has_const_iterator : std::false_type {
         };
         template<typename T>
-        struct HasConstIterator<T, abel::void_t<typename T::const_iterator>>
+        struct has_const_iterator<T, abel::void_t<typename T::const_iterator>>
                 : std::true_type {
         };
 
-// IsInitializerList<T>::value is true iff T is an std::initializer_list. More
+// is_initializer_list<T>::value is true iff T is an std::initializer_list. More
 // details below in Splitter<> where this is used.
-        std::false_type IsInitializerListDispatch(...);  // default: No
+        std::false_type is_initializer_list_dispatch(...);  // default: No
         template<typename T>
-        std::true_type IsInitializerListDispatch(std::initializer_list<T> *);
+        std::true_type is_initializer_list_dispatch(std::initializer_list<T> *);
 
         template<typename T>
-        struct IsInitializerList
-                : decltype(IsInitializerListDispatch(static_cast<T *>(nullptr))) {
+        struct is_initializer_list
+                : decltype(is_initializer_list_dispatch(static_cast<T *>(nullptr))) {
         };
 
-// A SplitterIsConvertibleTo<C>::type alias exists iff the specified condition
-// is true for type 'C'.
-//
-// Restricts conversion to container-like types (by testing for the presence of
-// a const_iterator member type) and also to disable conversion to an
-// std::initializer_list (which also has a const_iterator). Otherwise, code
-// compiled in C++11 will get an error due to ambiguous conversion paths (in
-// C++11 std::vector<T>::operator= is overloaded to take either a std::vector<T>
-// or an std::initializer_list<T>).
+        // A splitterIs_convertible_to<C>::type alias exists iff the specified condition
+        // is true for type 'C'.
+        //
+        // Restricts conversion to container-like types (by testing for the presence of
+        // a const_iterator member type) and also to disable conversion to an
+        // std::initializer_list (which also has a const_iterator). Otherwise, code
+        // compiled in C++11 will get an error due to ambiguous conversion paths (in
+        // C++11 std::vector<T>::operator= is overloaded to take either a std::vector<T>
+        // or an std::initializer_list<T>).
 
         template<typename C, bool has_value_type, bool has_mapped_type>
-        struct SplitterIsConvertibleToImpl : std::false_type {
+        struct splitter_is_convertible_to_impl : std::false_type {
         };
 
         template<typename C>
-        struct SplitterIsConvertibleToImpl<C, true, false>
+        struct splitter_is_convertible_to_impl<C, true, false>
                 : std::is_constructible<typename C::value_type, abel::string_view> {
         };
 
         template<typename C>
-        struct SplitterIsConvertibleToImpl<C, true, true>
+        struct splitter_is_convertible_to_impl<C, true, true>
                 : abel::conjunction<
                         std::is_constructible<typename C::key_type, abel::string_view>,
                         std::is_constructible<typename C::mapped_type, abel::string_view>> {
         };
 
         template<typename C>
-        struct SplitterIsConvertibleTo
-                : SplitterIsConvertibleToImpl<
+        struct splitterIs_convertible_to
+                : splitter_is_convertible_to_impl<
                         C,
 #ifdef _GLIBCXX_DEBUG
 !IsStrictlyBaseOfAndConvertibleToSTLContainer<C>::value &&
 #endif  // _GLIBCXX_DEBUG
-!IsInitializerList<
+!is_initializer_list<
         typename std::remove_reference<C>::type>::value &&
-HasValueType<C>::value && HasConstIterator<C>::value,
-                        HasMappedType<C>::value> {
+has_value_type<C>::value && has_const_iterator<C>::value,
+                        has_mapped_type<C>::value> {
         };
 
 // This class implements the range that is returned by abel:: string_split(). This
@@ -275,14 +274,14 @@ HasValueType<C>::value && HasConstIterator<C>::value,
 // kept. A Predicate object is any unary functor that takes an abel::string_view
 // and returns bool.
         template<typename Delimiter, typename Predicate>
-        class Splitter {
+        class splitter {
         public:
             using DelimiterType = Delimiter;
             using PredicateType = Predicate;
-            using const_iterator = strings_internal::SplitIterator<Splitter>;
+            using const_iterator = strings_internal::split_iterator<splitter>;
             using value_type = typename std::iterator_traits<const_iterator>::value_type;
 
-            Splitter(ConvertibleToStringView input_text, Delimiter d, Predicate p)
+            splitter(convertible_to_string_view input_text, Delimiter d, Predicate p)
                     : text_(std::move(input_text)),
                       delimiter_(std::move(d)),
                       predicate_(std::move(p)) {}
@@ -304,10 +303,10 @@ HasValueType<C>::value && HasConstIterator<C>::value,
             // that the splitter is convertible to.
             template<typename Container,
                     typename = typename std::enable_if<
-                            SplitterIsConvertibleTo<Container>::value>::type>
+                            splitterIs_convertible_to<Container>::value>::type>
             operator Container() const {  // NOLINT(runtime/explicit)
-                return ConvertToContainer<Container, typename Container::value_type,
-                        HasMappedType<Container>::value>()(*this);
+                return convert_to_container<Container, typename Container::value_type,
+                        has_mapped_type<Container>::value>()(*this);
             }
 
             // Returns a pair with its .first and .second members set to the first two
@@ -328,7 +327,7 @@ HasValueType<C>::value && HasConstIterator<C>::value,
             }
 
         private:
-            // ConvertToContainer is a functor converting a Splitter to the requested
+            // convert_to_container is a functor converting a Splitter to the requested
             // Container of ValueType. It is specialized below to optimize splitting to
             // certain combinations of Container and ValueType.
             //
@@ -336,8 +335,8 @@ HasValueType<C>::value && HasConstIterator<C>::value,
             // the requested non-map-like container and converting the split substrings to
             // the requested type.
             template<typename Container, typename ValueType, bool is_map = false>
-            struct ConvertToContainer {
-                Container operator()(const Splitter &splitter) const {
+            struct convert_to_container {
+                Container operator()(const splitter &splitter) const {
                     Container c;
                     auto it = std::inserter(c, c.end());
                     for (const auto sp : splitter) {
@@ -353,10 +352,10 @@ HasValueType<C>::value && HasConstIterator<C>::value,
             // std::vector<abel::string_view>. In this case we first split the results to
             // a small array of abel::string_view on the stack, to reduce reallocations.
             template<typename A>
-            struct ConvertToContainer<std::vector<abel::string_view, A>,
+            struct convert_to_container<std::vector<abel::string_view, A>,
                     abel::string_view, false> {
                 std::vector<abel::string_view, A> operator()(
-                        const Splitter &splitter) const {
+                        const splitter &splitter) const {
                     struct raw_view {
                         const char *data;
                         size_t size;
@@ -387,8 +386,8 @@ HasValueType<C>::value && HasConstIterator<C>::value,
             // so the returned std::vector<std::string> can have space reserved to avoid
             // std::string moves.
             template<typename A>
-            struct ConvertToContainer<std::vector<std::string, A>, std::string, false> {
-                std::vector<std::string, A> operator()(const Splitter &splitter) const {
+            struct convert_to_container<std::vector<std::string, A>, std::string, false> {
+                std::vector<std::string, A> operator()(const splitter &splitter) const {
                     const std::vector<abel::string_view> v = splitter;
                     return std::vector<std::string, A>(v.begin(), v.end());
                 }
@@ -401,14 +400,14 @@ HasValueType<C>::value && HasConstIterator<C>::value,
             // value. Each odd-numbered item will then be assigned to the last pair's
             // value.
             template<typename Container, typename First, typename Second>
-            struct ConvertToContainer<Container, std::pair<const First, Second>, true> {
-                Container operator()(const Splitter &splitter) const {
+            struct convert_to_container<Container, std::pair<const First, Second>, true> {
+                Container operator()(const splitter &splitter) const {
                     Container m;
                     typename Container::iterator it;
                     bool insert = true;
                     for (const auto sp : splitter) {
                         if (insert) {
-                            it = Inserter<Container>::Insert(&m, First(sp), Second());
+                            it = inserter<Container>::Insert(&m, First(sp), Second());
                         } else {
                             it->second = Second(sp);
                         }
@@ -421,7 +420,7 @@ HasValueType<C>::value && HasConstIterator<C>::value,
                 // the inserted item. Specialized for std::map and std::multimap to use
                 // emplace() and adapt emplace()'s return value.
                 template<typename Map>
-                struct Inserter {
+                struct inserter {
                     using M = Map;
 
                     template<typename... Args>
@@ -431,7 +430,7 @@ HasValueType<C>::value && HasConstIterator<C>::value,
                 };
 
                 template<typename... Ts>
-                struct Inserter<std::map<Ts...>> {
+                struct inserter<std::map<Ts...>> {
                     using M = std::map<Ts...>;
 
                     template<typename... Args>
@@ -441,7 +440,7 @@ HasValueType<C>::value && HasConstIterator<C>::value,
                 };
 
                 template<typename... Ts>
-                struct Inserter<std::multimap<Ts...>> {
+                struct inserter<std::multimap<Ts...>> {
                     using M = std::multimap<Ts...>;
 
                     template<typename... Args>
@@ -451,7 +450,7 @@ HasValueType<C>::value && HasConstIterator<C>::value,
                 };
             };
 
-            ConvertibleToStringView text_;
+            convertible_to_string_view text_;
             Delimiter delimiter_;
             Predicate predicate_;
         };

@@ -56,17 +56,17 @@ namespace abel {
 
 // Extracts value type from a Container
         template<typename C>
-        struct ElementType {
+        struct element_type {
             using type = typename abel::remove_reference_t<C>::value_type;
         };
 
         template<typename T, size_t N>
-        struct ElementType<T (&)[N]> {
+        struct element_type<T (&)[N]> {
             using type = T;
         };
 
         template<typename C>
-        using ElementT = typename ElementType<C>::type;
+        using ElementT = typename element_type<C>::type;
 
         template<typename T>
         using EnableIfMutable =

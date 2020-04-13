@@ -316,7 +316,7 @@ namespace abel {
             }
             size_t l = strlen(name);
             e = reinterpret_cast<SynchEvent *>(
-                    memory_internal::LowLevelAlloc::Alloc(sizeof(*e) + l));
+                    memory_internal::low_level_alloc::alloc(sizeof(*e) + l));
             e->refcount = 2;    // one for return value, one for linked list
             e->masked_addr = hide_ptr(addr);
             e->invariant = nullptr;
@@ -335,7 +335,7 @@ namespace abel {
 
 // Deallocate the SynchEvent *e, whose refcount has fallen to zero.
     static void DeleteSynchEvent(SynchEvent *e) {
-        memory_internal::LowLevelAlloc::Free(e);
+        memory_internal::low_level_alloc::free(e);
     }
 
 // Decrement the reference count of *e, or do nothing if e==null.
@@ -504,7 +504,7 @@ namespace abel {
 
     static SynchLocksHeld *LocksHeldAlloc() {
         SynchLocksHeld *ret = reinterpret_cast<SynchLocksHeld *>(
-                memory_internal::LowLevelAlloc::Alloc(sizeof(SynchLocksHeld)));
+                memory_internal::low_level_alloc::alloc(sizeof(SynchLocksHeld)));
         ret->n = 0;
         ret->overflow = false;
         return ret;
@@ -1142,7 +1142,7 @@ namespace abel {
     ABEL_EXCLUSIVE_LOCKS_REQUIRED(deadlock_graph_mu) {
         if (!deadlock_graph) {  // (re)create the deadlock graph.
             deadlock_graph =
-                    new(memory_internal::LowLevelAlloc::Alloc(sizeof(*deadlock_graph)))
+                    new(memory_internal::low_level_alloc::alloc(sizeof(*deadlock_graph)))
                             GraphCycles;
         }
         return deadlock_graph->GetId(mu);
@@ -1288,10 +1288,10 @@ namespace abel {
         struct ScopedDeadlockReportBuffers {
             ScopedDeadlockReportBuffers() {
                 b = reinterpret_cast<DeadlockReportBuffers *>(
-                        memory_internal::LowLevelAlloc::Alloc(sizeof(*b)));
+                        memory_internal::low_level_alloc::alloc(sizeof(*b)));
             }
 
-            ~ScopedDeadlockReportBuffers() { memory_internal::LowLevelAlloc::Free(b); }
+            ~ScopedDeadlockReportBuffers() { memory_internal::low_level_alloc::free(b); }
 
             DeadlockReportBuffers *b;
         };

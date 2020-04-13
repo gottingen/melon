@@ -24,19 +24,19 @@ namespace abel {
 
 
 // -----------------------------------------------------------------------------
-// Function Template: WrapUnique()
+// Function Template: wrap_unique()
 // -----------------------------------------------------------------------------
 //
 // Adopts ownership from a raw pointer and transfers it to the returned
 // `std::unique_ptr`, whose type is deduced. Because of this deduction, *do not*
-// specify the template type `T` when calling `WrapUnique`.
+// specify the template type `T` when calling `wrap_unique`.
 //
 // Example:
 //   X* NewX(int, int);
-//   auto x = WrapUnique(NewX(1, 2));  // 'x' is std::unique_ptr<X>.
+//   auto x = wrap_unique(NewX(1, 2));  // 'x' is std::unique_ptr<X>.
 //
-// Do not call WrapUnique with an explicit type, as in
-// `WrapUnique<X>(NewX(1, 2))`.  The purpose of WrapUnique is to automatically
+// Do not call wrap_unique with an explicit type, as in
+// `wrap_unique<X>(NewX(1, 2))`.  The purpose of wrap_unique is to automatically
 // deduce the pointer type. If you wish to make the type explicit, just use
 // `std::unique_ptr` directly.
 //
@@ -44,19 +44,19 @@ namespace abel {
 //                  - or -
 //   std::unique_ptr<X> x(NewX(1, 2));
 //
-// While `abel::WrapUnique` is useful for capturing the output of a raw
+// While `abel::wrap_unique` is useful for capturing the output of a raw
 // pointer factory, prefer 'abel::make_unique<T>(args...)' over
-// 'abel::WrapUnique(new T(args...))'.
+// 'abel::wrap_unique(new T(args...))'.
 //
-//   auto x = WrapUnique(new X(1, 2));  // works, but nonideal.
+//   auto x = wrap_unique(new X(1, 2));  // works, but nonideal.
 //   auto x = make_unique<X>(1, 2);     // safer, standard, avoids raw 'new'.
 //
-// Note that `abel::WrapUnique(p)` is valid only if `delete p` is a valid
-// expression. In particular, `abel::WrapUnique()` cannot wrap pointers to
+// Note that `abel::wrap_unique(p)` is valid only if `delete p` is a valid
+// expression. In particular, `abel::wrap_unique()` cannot wrap pointers to
 // arrays, functions or void, and it must not be used to capture pointers
 // obtained from array-new expressions (even though that would compile!).
     template<typename T>
-    std::unique_ptr<T> WrapUnique(T *ptr) {
+    std::unique_ptr<T> wrap_unique(T *ptr) {
         static_assert(!std::is_array<T>::value, "array types are unsupported");
         static_assert(std::is_object<T>::value, "non-object types are unsupported");
         return std::unique_ptr<T>(ptr);
@@ -66,15 +66,15 @@ namespace abel {
 
 // Traits to select proper overload and return type for `abel::make_unique<>`.
         template<typename T>
-        struct MakeUniqueResult {
+        struct make_unique_result {
             using scalar = std::unique_ptr<T>;
         };
         template<typename T>
-        struct MakeUniqueResult<T[]> {
+        struct make_unique_result<T[]> {
             using array = std::unique_ptr<T[]>;
         };
         template<typename T, size_t N>
-        struct MakeUniqueResult<T[N]> {
+        struct make_unique_result<T[N]> {
             using invalid = void;
         };
 
@@ -152,7 +152,7 @@ namespace abel {
 
 // `abel::make_unique` overload for non-array types.
     template<typename T, typename... Args>
-    typename memory_internal::MakeUniqueResult<T>::scalar make_unique(
+    typename memory_internal::make_unique_result<T>::scalar make_unique(
             Args &&... args) {
         return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
     }
@@ -162,14 +162,14 @@ namespace abel {
 // element constructor arguments. The `std::unique_ptr` will manage destructing
 // these array elements.
     template<typename T>
-    typename memory_internal::MakeUniqueResult<T>::array make_unique(size_t n) {
+    typename memory_internal::make_unique_result<T>::array make_unique(size_t n) {
         return std::unique_ptr<T>(new typename abel::remove_extent_t<T>[n]());
     }
 
 // `abel::make_unique` overload for an array T[N] of known bounds.
 // This construction will be rejected.
     template<typename T, typename... Args>
-    typename memory_internal::MakeUniqueResult<T>::invalid make_unique(
+    typename memory_internal::make_unique_result<T>::invalid make_unique(
             Args &&... /* args */) = delete;
 
 #endif
@@ -190,7 +190,7 @@ namespace abel {
     ABEL_FORCE_INLINE std::nullptr_t RawPtr(std::nullptr_t) { return nullptr; }
 
 // -----------------------------------------------------------------------------
-// Function Template: ShareUniquePtr()
+// Function Template: share_unique_ptr()
 // -----------------------------------------------------------------------------
 //
 // Adopts a `std::unique_ptr` rvalue and returns a `std::shared_ptr` of deduced
@@ -200,7 +200,7 @@ namespace abel {
 // Example:
 //
 //     auto up = abel::make_unique<int>(10);
-//     auto sp = abel::ShareUniquePtr(std::move(up));  // shared_ptr<int>
+//     auto sp = abel::share_unique_ptr(std::move(up));  // shared_ptr<int>
 //     CHECK_EQ(*sp, 10);
 //     CHECK(up == nullptr);
 //
@@ -213,12 +213,12 @@ namespace abel {
 // Implements the resolution of [LWG 2415](http://wg21.link/lwg2415), by which a
 // null shared pointer does not attempt to call the deleter.
     template<typename T, typename D>
-    std::shared_ptr<T> ShareUniquePtr(std::unique_ptr<T, D> &&ptr) {
+    std::shared_ptr<T> share_unique_ptr(std::unique_ptr<T, D> &&ptr) {
         return ptr ? std::shared_ptr<T>(std::move(ptr)) : std::shared_ptr<T>();
     }
 
 // -----------------------------------------------------------------------------
-// Function Template: WeakenPtr()
+// Function Template: weaken_ptr()
 // -----------------------------------------------------------------------------
 //
 // Creates a weak pointer associated with a given shared pointer. The returned
@@ -227,13 +227,13 @@ namespace abel {
 // Example:
 //
 //    auto sp = std::make_shared<int>(10);
-//    auto wp = abel::WeakenPtr(sp);
+//    auto wp = abel::weaken_ptr(sp);
 //    CHECK_EQ(sp.get(), wp.lock().get());
 //    sp.reset();
 //    CHECK(wp.lock() == nullptr);
 //
     template<typename T>
-    std::weak_ptr<T> WeakenPtr(const std::shared_ptr<T> &ptr) {
+    std::weak_ptr<T> weaken_ptr(const std::shared_ptr<T> &ptr) {
         return std::weak_ptr<T>(ptr);
     }
 
@@ -256,91 +256,91 @@ namespace abel {
 
 // Extractors for the features of allocators.
     template<typename T>
-    using GetPointer = typename T::pointer;
+    using get_pointer = typename T::pointer;
 
     template<typename T>
-    using GetConstPointer = typename T::const_pointer;
+    using get_const_pointer = typename T::const_pointer;
 
     template<typename T>
-    using GetVoidPointer = typename T::void_pointer;
+    using get_void_pointer = typename T::void_pointer;
 
     template<typename T>
-    using GetConstVoidPointer = typename T::const_void_pointer;
+    using get_const_void_pointer = typename T::const_void_pointer;
 
     template<typename T>
-    using GetDifferenceType = typename T::difference_type;
+    using get_difference_type = typename T::difference_type;
 
     template<typename T>
-    using GetSizeType = typename T::size_type;
+    using get_size_type = typename T::size_type;
 
     template<typename T>
-    using GetPropagateOnContainerCopyAssignment =
+    using get_propagate_on_container_copy_assignment =
     typename T::propagate_on_container_copy_assignment;
 
     template<typename T>
-    using GetPropagateOnContainerMoveAssignment =
+    using get_propagate_on_container_move_assignment =
     typename T::propagate_on_container_move_assignment;
 
     template<typename T>
-    using GetPropagateOnContainerSwap = typename T::propagate_on_container_swap;
+    using get_propagate_on_container_swap = typename T::propagate_on_container_swap;
 
     template<typename T>
-    using GetIsAlwaysEqual = typename T::is_always_equal;
+    using getIs_always_equal = typename T::is_always_equal;
 
     template<typename T>
-    struct GetFirstArg;
+    struct get_first_arg;
 
     template<template<typename...> class Class, typename T, typename... Args>
-    struct GetFirstArg<Class<T, Args...>> {
+    struct get_first_arg<Class<T, Args...>> {
         using type = T;
     };
 
     template<typename Ptr, typename = void>
-    struct ElementType {
-        using type = typename GetFirstArg<Ptr>::type;
+    struct element_type {
+        using type = typename get_first_arg<Ptr>::type;
     };
 
     template<typename T>
-    struct ElementType<T, void_t < typename T::element_type>> {
+    struct element_type<T, void_t < typename T::element_type>> {
     using type = typename T::element_type;
 };
 
 template<typename T, typename U>
-struct RebindFirstArg;
+struct rebind_first_arg;
 
 template<template<typename...> class Class, typename T, typename... Args,
         typename U>
-struct RebindFirstArg<Class<T, Args...>, U> {
+struct rebind_first_arg<Class<T, Args...>, U> {
     using type = Class<U, Args...>;
 };
 
 template<typename T, typename U, typename = void>
-struct RebindPtr {
-    using type = typename RebindFirstArg<T, U>::type;
+struct rebind_ptr {
+    using type = typename rebind_first_arg<T, U>::type;
 };
 
 template<typename T, typename U>
-struct RebindPtr<T, U, void_t < typename T::template rebind<U>>> {
+struct rebind_ptr<T, U, void_t < typename T::template rebind<U>>> {
 using type = typename T::template rebind<U>;
 };
 
 template<typename T, typename U>
-constexpr bool HasRebindAlloc(...) {
+constexpr bool has_rebind_alloc(...) {
     return false;
 }
 
 template<typename T, typename U>
-constexpr bool HasRebindAlloc(typename T::template rebind<U>::other *) {
+constexpr bool has_rebind_alloc(typename T::template rebind<U>::other *) {
     return true;
 }
 
-template<typename T, typename U, bool = HasRebindAlloc<T, U>(nullptr)>
-struct RebindAlloc {
-    using type = typename RebindFirstArg<T, U>::type;
+template<typename T, typename U, bool = has_rebind_alloc<T, U>(nullptr)>
+struct rebind_alloc {
+    using type = typename rebind_first_arg<T, U>::type;
 };
 
 template<typename T, typename U>
-struct RebindAlloc<T, U, true> {
+struct rebind_alloc<T, U, true> {
     using type = typename T::template rebind<U>::other;
 };
 
@@ -364,19 +364,19 @@ struct pointer_traits {
     // element_type:
     // Ptr::element_type if present. Otherwise T if Ptr is a template
     // instantiation Template<T, Args...>
-    using element_type = typename memory_internal::ElementType<Ptr>::type;
+    using element_type = typename memory_internal::element_type<Ptr>::type;
 
     // difference_type:
     // Ptr::difference_type if present, otherwise std::ptrdiff_t
     using difference_type =
-    memory_internal::ExtractOrT<memory_internal::GetDifferenceType, Ptr,
+    memory_internal::ExtractOrT<memory_internal::get_difference_type, Ptr,
             std::ptrdiff_t>;
 
     // rebind:
     // Ptr::rebind<U> if exists, otherwise Template<U, Args...> if Ptr is a
     // template instantiation Template<T, Args...>
     template<typename U>
-    using rebind = typename memory_internal::RebindPtr<Ptr, U>::type;
+    using rebind = typename memory_internal::rebind_ptr<Ptr, U>::type;
 
     // pointer_to:
     // Calls Ptr::pointer_to(r)
@@ -419,14 +419,14 @@ struct allocator_traits {
 
     // pointer:
     // Alloc::pointer if present, otherwise value_type*
-    using pointer = memory_internal::ExtractOrT<memory_internal::GetPointer,
+    using pointer = memory_internal::ExtractOrT<memory_internal::get_pointer,
             Alloc, value_type *>;
 
     // const_pointer:
     // Alloc::const_pointer if present, otherwise
     // abel::pointer_traits<pointer>::rebind<const value_type>
     using const_pointer =
-    memory_internal::ExtractOrT<memory_internal::GetConstPointer, Alloc,
+    memory_internal::ExtractOrT<memory_internal::get_const_pointer, Alloc,
             typename abel::pointer_traits<pointer>::
             template rebind<const value_type>>;
 
@@ -434,61 +434,61 @@ struct allocator_traits {
     // Alloc::void_pointer if present, otherwise
     // abel::pointer_traits<pointer>::rebind<void>
     using void_pointer = memory_internal::ExtractOrT<
-            memory_internal::GetVoidPointer, Alloc,
+            memory_internal::get_void_pointer, Alloc,
             typename abel::pointer_traits<pointer>::template rebind<void>>;
 
     // const_void_pointer:
     // Alloc::const_void_pointer if present, otherwise
     // abel::pointer_traits<pointer>::rebind<const void>
     using const_void_pointer = memory_internal::ExtractOrT<
-            memory_internal::GetConstVoidPointer, Alloc,
+            memory_internal::get_const_void_pointer, Alloc,
             typename abel::pointer_traits<pointer>::template rebind<const void>>;
 
     // difference_type:
     // Alloc::difference_type if present, otherwise
     // abel::pointer_traits<pointer>::difference_type
     using difference_type = memory_internal::ExtractOrT<
-            memory_internal::GetDifferenceType, Alloc,
+            memory_internal::get_difference_type, Alloc,
             typename abel::pointer_traits<pointer>::difference_type>;
 
     // size_type:
     // Alloc::size_type if present, otherwise
     // std::make_unsigned<difference_type>::type
     using size_type = memory_internal::ExtractOrT<
-            memory_internal::GetSizeType, Alloc,
+            memory_internal::get_size_type, Alloc,
             typename std::make_unsigned<difference_type>::type>;
 
     // propagate_on_container_copy_assignment:
     // Alloc::propagate_on_container_copy_assignment if present, otherwise
     // std::false_type
     using propagate_on_container_copy_assignment = memory_internal::ExtractOrT<
-            memory_internal::GetPropagateOnContainerCopyAssignment, Alloc,
+            memory_internal::get_propagate_on_container_copy_assignment, Alloc,
             std::false_type>;
 
     // propagate_on_container_move_assignment:
     // Alloc::propagate_on_container_move_assignment if present, otherwise
     // std::false_type
     using propagate_on_container_move_assignment = memory_internal::ExtractOrT<
-            memory_internal::GetPropagateOnContainerMoveAssignment, Alloc,
+            memory_internal::get_propagate_on_container_move_assignment, Alloc,
             std::false_type>;
 
     // propagate_on_container_swap:
     // Alloc::propagate_on_container_swap if present, otherwise std::false_type
     using propagate_on_container_swap =
-    memory_internal::ExtractOrT<memory_internal::GetPropagateOnContainerSwap,
+    memory_internal::ExtractOrT<memory_internal::get_propagate_on_container_swap,
             Alloc, std::false_type>;
 
     // is_always_equal:
     // Alloc::is_always_equal if present, otherwise std::is_empty<Alloc>::type
     using is_always_equal =
-    memory_internal::ExtractOrT<memory_internal::GetIsAlwaysEqual, Alloc,
+    memory_internal::ExtractOrT<memory_internal::getIs_always_equal, Alloc,
             typename std::is_empty<Alloc>::type>;
 
     // rebind_alloc:
     // Alloc::rebind<T>::other if present, otherwise Alloc<T, Args> if this Alloc
     // is Alloc<U, Args>
     template<typename T>
-    using rebind_alloc = typename memory_internal::RebindAlloc<Alloc, T>::type;
+    using rebind_alloc = typename memory_internal::rebind_alloc<Alloc, T>::type;
 
     // rebind_traits:
     // abel::allocator_traits<rebind_alloc<T>>

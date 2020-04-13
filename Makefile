@@ -13,7 +13,7 @@ test: .pre_build ## Run tests
 	@cd $(build_path); \
     		make test;
 
-build: .pre_build ## Build abel build_type=[Debug|Release|ReleaseWithDebugInfo]
+build: .pre_build ## Build project build_type=[Debug|Release|ReleaseWithDebugInfo]
 	@cd $(build_path); \
 	make -j
 
@@ -21,13 +21,13 @@ cache-build: ## Run build on build stack, not clean the old build
 	@cd $(build_path); \
 	make -j
 
-install: .pre_build ## Install abel
-	@echo "install abel now ..."
+install: .pre_build ## Install project
+	@echo "install project now ..."
 	@cd $(build_path); \
 	make -j install
 
 package: .pre_build ## Generate package
-	@echo "generate package for abel"
+	@echo "generate package for project"
 	@cd $(build_path); \
 	make -j package
 

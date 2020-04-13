@@ -1,8 +1,0 @@
-function(abel_error)
-    message("")
-    foreach (print_message ${ARGV})
-        message(SEND_ERROR "[abel ** INTERNAL **] ${print_message}")
-    endforeach ()
-    message(FATAL_ERROR "[abel ** INTERNAL **] [Directory:${CMAKE_CURRENT_LIST_DIR}]")
-    message("")
-endfunction(abel_error)

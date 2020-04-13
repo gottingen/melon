@@ -2266,7 +2266,7 @@ namespace abel {
             typedef variant<std::unique_ptr<int>, std::unique_ptr<std::string>> Variant;
 
             // Construct a variant by moving from an element value.
-            Variant v(abel::WrapUnique(new int(10)));
+            Variant v(abel::wrap_unique(new int(10)));
             EXPECT_TRUE(abel::holds_alternative<std::unique_ptr<int>>(v));
 
             // Construct a variant by moving from another variant.

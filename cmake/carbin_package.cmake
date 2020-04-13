@@ -1,6 +1,6 @@
 include(InstallRequiredSystemLibraries)
-include(abel_debug)
-include(abel_pkg_dump)
+include(carbin_debug)
+include(carbin_pkg_dump)
 
 set(PROJECT_PACKAGE_DESCRIPTION_SUMMARY ${CMAKE_PROJECT_DESCRIPTION})
 
@@ -17,15 +17,15 @@ set(CPACK_PACKAGE_VERSION_PATCH "${CMAKE_PROJECT_VERSION_PATCH}")
 set(CPACK_OUTPUT_FILE_PREFIX ${PROJECT_BINARY_DIR}/package)
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
 
-include(abel_package_generator)
+include(carbin_package_generator)
 
-set(CPACK_GENERATOR ${ABEL_GENERATOR})
+set(CPACK_GENERATOR ${CARBIN_GENERATOR})
 
-abel_print(${ABEL_GENERATOR})
+carbin_print(${CARBIN_GENERATOR})
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_STRING)
 
 set(CPACK_PACKAGE_FILE_NAME
         ${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-${HOST_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${BUILD_STRING})
-abel_print("abel_package.cmake name ${CPACK_PACKAGE_FILE_NAME}")
+carbin_print("carbin_package.cmake name ${CPACK_PACKAGE_FILE_NAME}")
 include(CPack)

@@ -73,42 +73,42 @@ namespace abel {
                 static_assert(std::is_same<Expected, Actual>(), "");
             }
 
-            TEST(Layout, ElementType) {
+            TEST(Layout, element_type) {
                 {
                     using L = Layout<int32_t>;
-                    SameType<int32_t, L::ElementType < 0>>
+                    SameType<int32_t, L::element_type < 0>>
                     ();
-                    SameType<int32_t, decltype(L::Partial())::ElementType<0>>();
-                    SameType<int32_t, decltype(L::Partial(0))::ElementType<0>>();
+                    SameType<int32_t, decltype(L::Partial())::element_type<0>>();
+                    SameType<int32_t, decltype(L::Partial(0))::element_type<0>>();
                 }
                 {
                     using L = Layout<int32_t, int32_t>;
-                    SameType<int32_t, L::ElementType < 0>>
+                    SameType<int32_t, L::element_type < 0>>
                     ();
-                    SameType<int32_t, L::ElementType < 1>>
+                    SameType<int32_t, L::element_type < 1>>
                     ();
-                    SameType<int32_t, decltype(L::Partial())::ElementType<0>>();
-                    SameType<int32_t, decltype(L::Partial())::ElementType<1>>();
-                    SameType<int32_t, decltype(L::Partial(0))::ElementType<0>>();
-                    SameType<int32_t, decltype(L::Partial(0))::ElementType<1>>();
+                    SameType<int32_t, decltype(L::Partial())::element_type<0>>();
+                    SameType<int32_t, decltype(L::Partial())::element_type<1>>();
+                    SameType<int32_t, decltype(L::Partial(0))::element_type<0>>();
+                    SameType<int32_t, decltype(L::Partial(0))::element_type<1>>();
                 }
                 {
                     using L = Layout<int8_t, int32_t, Int128>;
-                    SameType<int8_t, L::ElementType < 0>>
+                    SameType<int8_t, L::element_type < 0>>
                     ();
-                    SameType<int32_t, L::ElementType < 1>>
+                    SameType<int32_t, L::element_type < 1>>
                     ();
-                    SameType<Int128, L::ElementType < 2>>
+                    SameType<Int128, L::element_type < 2>>
                     ();
-                    SameType<int8_t, decltype(L::Partial())::ElementType<0>>();
-                    SameType<int8_t, decltype(L::Partial(0))::ElementType<0>>();
-                    SameType<int32_t, decltype(L::Partial(0))::ElementType<1>>();
-                    SameType<int8_t, decltype(L::Partial(0, 0))::ElementType<0>>();
-                    SameType<int32_t, decltype(L::Partial(0, 0))::ElementType<1>>();
-                    SameType<Int128, decltype(L::Partial(0, 0))::ElementType<2>>();
-                    SameType<int8_t, decltype(L::Partial(0, 0, 0))::ElementType<0>>();
-                    SameType<int32_t, decltype(L::Partial(0, 0, 0))::ElementType<1>>();
-                    SameType<Int128, decltype(L::Partial(0, 0, 0))::ElementType<2>>();
+                    SameType<int8_t, decltype(L::Partial())::element_type<0>>();
+                    SameType<int8_t, decltype(L::Partial(0))::element_type<0>>();
+                    SameType<int32_t, decltype(L::Partial(0))::element_type<1>>();
+                    SameType<int8_t, decltype(L::Partial(0, 0))::element_type<0>>();
+                    SameType<int32_t, decltype(L::Partial(0, 0))::element_type<1>>();
+                    SameType<Int128, decltype(L::Partial(0, 0))::element_type<2>>();
+                    SameType<int8_t, decltype(L::Partial(0, 0, 0))::element_type<0>>();
+                    SameType<int32_t, decltype(L::Partial(0, 0, 0))::element_type<1>>();
+                    SameType<Int128, decltype(L::Partial(0, 0, 0))::element_type<2>>();
                 }
             }
 

@@ -1,4 +1,4 @@
-set(ABEL_CLANG_CXX_FLAGS
+set(CARBIN_CLANG_CXX_FLAGS
         "-W3"
         "-Wno-c++98-compat-pedantic"
         "-Wno-conversion"

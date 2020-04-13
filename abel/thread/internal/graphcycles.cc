@@ -17,7 +17,7 @@
 // (3) Otherwise: adjust ranks in the neighborhood of x and y.
 
 #include <abel/base/profile.h>
-// This file is a no-op if the required LowLevelAlloc support is missing.
+// This file is a no-op if the required low_level_alloc support is missing.
 #include <abel/memory/internal/low_level_alloc.h>
 
 #ifndef ABEL_LOW_LEVEL_ALLOC_MISSING
@@ -38,16 +38,16 @@ namespace abel {
 
         namespace {
 
-// Avoid LowLevelAlloc's default arena since it calls malloc hooks in
+// Avoid low_level_alloc's default arena since it calls malloc hooks in
 // which people are doing things like acquiring Mutexes.
             static abel::thread_internal::SpinLock arena_mu(
                     abel::base_internal::kLinkerInitialized);
-            static memory_internal::LowLevelAlloc::Arena *arena;
+            static memory_internal::low_level_alloc::arena *arena;
 
             static void InitArenaIfNecessary() {
                 arena_mu.lock();
                 if (arena == nullptr) {
-                    arena = memory_internal::LowLevelAlloc::NewArena(0);
+                    arena = memory_internal::low_level_alloc::new_arena(0);
                 }
                 arena_mu.unlock();
             }
@@ -56,7 +56,7 @@ namespace abel {
 // relies on this being a power of two.
             static const uint32_t kInline = 8;
 
-// A simple LowLevelAlloc based resizable vector with inlined storage
+// A simple low_level_alloc based resizable vector with inlined storage
 // for a few elements.  T must be a plain type since constructor
 // and destructor are not run on elements of type T managed by Vec.
             template<typename T>
@@ -134,7 +134,7 @@ namespace abel {
                 }
 
                 void Discard() {
-                    if (ptr_ != space_) memory_internal::LowLevelAlloc::Free(ptr_);
+                    if (ptr_ != space_) memory_internal::low_level_alloc::free(ptr_);
                 }
 
                 void Grow(uint32_t n) {
@@ -143,7 +143,7 @@ namespace abel {
                     }
                     size_t request = static_cast<size_t>(capacity_) * sizeof(T);
                     T *copy = static_cast<T *>(
-                            memory_internal::LowLevelAlloc::AllocWithArena(request, arena));
+                            memory_internal::low_level_alloc::alloc_with_arena(request, arena));
                     std::copy(ptr_, ptr_ + size_, copy);
                     Discard();
                     ptr_ = copy;
@@ -366,17 +366,17 @@ namespace abel {
 
         GraphCycles::GraphCycles() {
             InitArenaIfNecessary();
-            rep_ = new(memory_internal::LowLevelAlloc::AllocWithArena(sizeof(Rep), arena))
+            rep_ = new(memory_internal::low_level_alloc::alloc_with_arena(sizeof(Rep), arena))
                     Rep;
         }
 
         GraphCycles::~GraphCycles() {
             for (auto *node : rep_->nodes_) {
                 node->Node::~Node();
-                memory_internal::LowLevelAlloc::Free(node);
+                memory_internal::low_level_alloc::free(node);
             }
             rep_->Rep::~Rep();
-            memory_internal::LowLevelAlloc::Free(rep_);
+            memory_internal::low_level_alloc::free(rep_);
         }
 
         bool GraphCycles::CheckInvariants() const {
@@ -411,7 +411,7 @@ namespace abel {
                 return MakeId(i, rep_->nodes_[i]->version);
             } else if (rep_->free_nodes_.empty()) {
                 Node *n =
-                        new(memory_internal::LowLevelAlloc::AllocWithArena(sizeof(Node), arena))
+                        new(memory_internal::low_level_alloc::alloc_with_arena(sizeof(Node), arena))
                                 Node;
                 n->version = 1;  // Avoid 0 since it is used by InvalidGraphId()
                 n->visited = false;

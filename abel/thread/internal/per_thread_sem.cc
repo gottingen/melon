@@ -1,6 +1,6 @@
 //
 
-// This file is a no-op if the required LowLevelAlloc support is missing.
+// This file is a no-op if the required low_level_alloc support is missing.
 #include <abel/memory/internal/low_level_alloc.h>
 
 #ifndef ABEL_LOW_LEVEL_ALLOC_MISSING

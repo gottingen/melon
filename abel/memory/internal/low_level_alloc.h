@@ -9,23 +9,21 @@
 // dependency, such as inside the heap-checker, or the mutex
 // implementation.
 
-// IWYU pragma: private, include "base/low_level_alloc.h"
-
 #include <sys/types.h>
 
 #include <cstdint>
 #include <abel/base/profile.h>
 
-// LowLevelAlloc requires that the platform support low-level
+// low_level_alloc requires that the platform support low-level
 // allocation of virtual memory. Platforms lacking this cannot use
-// LowLevelAlloc.
+// low_level_alloc.
 #ifdef ABEL_LOW_LEVEL_ALLOC_MISSING
 #error ABEL_LOW_LEVEL_ALLOC_MISSING cannot be directly set
 #elif !defined(ABEL_HAVE_MMAP) && !defined(_WIN32)
 #define ABEL_LOW_LEVEL_ALLOC_MISSING 1
 #endif
 
-// Using LowLevelAlloc with kAsyncSignalSafe isn't supported on Windows or
+// Using low_level_alloc with kAsyncSignalSafe isn't supported on Windows or
 // asm.js / WebAssembly.
 // See https://kripken.github.io/emscripten-site/docs/porting/pthreads.html
 // for more information.
@@ -36,26 +34,25 @@
 #endif
 
 #include <cstddef>
-
 #include <abel/base/profile.h>
 
 namespace abel {
 
     namespace memory_internal {
 
-        class LowLevelAlloc {
+        class low_level_alloc {
         public:
-            struct Arena;       // an arena from which memory may be allocated
+            struct arena;       // an arena from which memory may be allocated
 
             // Returns a pointer to a block of at least "request" bytes
             // that have been newly allocated from the specific arena.
-            // for Alloc() call the DefaultArena() is used.
+            // for alloc() call the default_arena() is used.
             // Returns 0 if passed request==0.
             // Does not return 0 under other circumstances; it crashes if memory
             // is not available.
-            static void *Alloc(size_t request) ABEL_ATTRIBUTE_SECTION(malloc_hook);
+            static void *alloc(size_t request) ABEL_ATTRIBUTE_SECTION(malloc_hook);
 
-            static void *AllocWithArena(size_t request, Arena *arena)
+            static void *alloc_with_arena(size_t request, arena *arena)
             ABEL_ATTRIBUTE_SECTION(malloc_hook);
 
             // Deallocates a region of memory that was previously allocated with
@@ -63,7 +60,7 @@ namespace abel {
             // or must have been returned from a call to Alloc() and not yet passed to
             // Free() since that call to Alloc().  The space is returned to the arena
             // from which it was allocated.
-            static void Free(void *s) ABEL_ATTRIBUTE_SECTION(malloc_hook);
+            static void free(void *s) ABEL_ATTRIBUTE_SECTION(malloc_hook);
 
             // ABEL_ATTRIBUTE_SECTION(malloc_hook) for Alloc* and Free
             // are to put all callers of MallocHook::Invoke* in this module
@@ -87,23 +84,23 @@ namespace abel {
             };
 
             // Construct a new arena.  The allocation of the underlying metadata honors
-            // the provided flags.  For example, the call NewArena(kAsyncSignalSafe)
+            // the provided flags.  For example, the call new_arena(kAsyncSignalSafe)
             // is itself async-signal-safe, as well as generatating an arena that provides
             // async-signal-safe Alloc/Free.
-            static Arena *NewArena(int32_t flags);
+            static arena *new_arena(int32_t flags);
 
-            // Destroys an arena allocated by NewArena and returns true,
+            // Destroys an arena allocated by new_arena and returns true,
             // provided no allocated blocks remain in the arena.
             // If allocated blocks remain in the arena, does nothing and
             // returns false.
             // It is illegal to attempt to destroy the DefaultArena().
-            static bool DeleteArena(Arena *arena);
+            static bool delete_arena(arena *arena);
 
             // The default arena that always exists.
-            static Arena *DefaultArena();
+            static arena *default_arena();
 
         private:
-            LowLevelAlloc();      // no instances
+            low_level_alloc();      // no instances
         };
 
     }  // namespace memory_internal

@@ -42,13 +42,13 @@ namespace {
 
     int DestructorVerifier::instance_count_ = 0;
 
-    TEST(WrapUniqueTest, WrapUnique) {
+    TEST(WrapUniqueTest, wrap_unique) {
         // Test that the unique_ptr is constructed properly by verifying that the
         // destructor for its payload gets called at the proper time.
         {
             auto dv = new DestructorVerifier;
             EXPECT_EQ(1, DestructorVerifier::instance_count());
-            std::unique_ptr<DestructorVerifier> ptr = abel::WrapUnique(dv);
+            std::unique_ptr<DestructorVerifier> ptr = abel::wrap_unique(dv);
             EXPECT_EQ(1, DestructorVerifier::instance_count());
         }
         EXPECT_EQ(0, DestructorVerifier::instance_count());
@@ -258,7 +258,7 @@ namespace {
     TEST(ShareUniquePtrTest, Share) {
         auto up = abel::make_unique<int>();
         int *rp = up.get();
-        auto sp = abel::ShareUniquePtr(std::move(up));
+        auto sp = abel::share_unique_ptr(std::move(up));
         EXPECT_EQ(sp.get(), rp);
     }
 
@@ -272,12 +272,12 @@ namespace {
         };
 
         std::unique_ptr<void, NeverDie> up;
-        auto sp = abel::ShareUniquePtr(std::move(up));
+        auto sp = abel::share_unique_ptr(std::move(up));
     }
 
     TEST(WeakenPtrTest, Weak) {
         auto sp = std::make_shared<int>();
-        auto wp = abel::WeakenPtr(sp);
+        auto wp = abel::weaken_ptr(sp);
         EXPECT_EQ(sp.get(), wp.lock().get());
         sp.reset();
         EXPECT_TRUE(wp.expired());

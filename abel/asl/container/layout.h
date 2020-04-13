@@ -366,7 +366,7 @@ namespace abel {
 
                 // Element type of the Nth array.
                 template<size_t N>
-                using ElementType = typename std::tuple_element<N, ElementTypes>::type;
+                using element_type = typename std::tuple_element<N, ElementTypes>::type;
 
                 constexpr explicit LayoutImpl(IntToSize<SizeSeq>... sizes)
                         : size_{sizes...} {}
@@ -394,7 +394,7 @@ namespace abel {
                 constexpr size_t Offset() const {
                     static_assert(N < NumOffsets, "Index out of bounds");
                     return adl_barrier::Align(
-                            Offset<N - 1>() + SizeOf<ElementType<N - 1>>() * size_[N - 1],
+                            Offset<N - 1>() + SizeOf<element_type<N - 1>>() * size_[N - 1],
                             ElementAlignment<N>::value);
                 }
 
@@ -462,7 +462,7 @@ namespace abel {
                 // Requires: `N <= NumSizes && N < sizeof...(Ts)`.
                 // Requires: `p` is aligned to `Alignment()`.
                 template<size_t N, class Char>
-                CopyConst<Char, ElementType<N>> *Pointer(Char *p) const {
+                CopyConst<Char, element_type<N>> *Pointer(Char *p) const {
                     using C = typename std::remove_const<Char>::type;
                     static_assert(
                             std::is_same<C, char>() || std::is_same<C, unsigned char>() ||
@@ -471,7 +471,7 @@ namespace abel {
                     constexpr size_t alignment = Alignment();
                     (void) alignment;
                     assert(reinterpret_cast<uintptr_t>(p) % alignment == 0);
-                    return reinterpret_cast<CopyConst<Char, ElementType<N>> *>(p + Offset<N>());
+                    return reinterpret_cast<CopyConst<Char, element_type<N>> *>(p + Offset<N>());
                 }
 
                 // Pointer to the beginning of the array with the specified element type.
@@ -506,13 +506,13 @@ namespace abel {
                 //
                 // Requires: `p` is aligned to `Alignment()`.
                 //
-                // Note: We're not using ElementType alias here because it does not compile
+                // Note: We're not using element_type alias here because it does not compile
                 // under MSVC.
                 template<class Char>
                 std::tuple<CopyConst<
                         Char, typename std::tuple_element<OffsetSeq, ElementTypes>::type> *...>
                 Pointers(Char *p) const {
-                    return std::tuple<CopyConst<Char, ElementType<OffsetSeq>> *...>(
+                    return std::tuple<CopyConst<Char, element_type<OffsetSeq>> *...>(
                             Pointer<OffsetSeq>(p)...);
                 }
 
@@ -529,8 +529,8 @@ namespace abel {
                 // Requires: `N < NumSizes`.
                 // Requires: `p` is aligned to `Alignment()`.
                 template<size_t N, class Char>
-                SliceType<CopyConst<Char, ElementType<N>>> Slice(Char *p) const {
-                    return SliceType<CopyConst<Char, ElementType<N>>>(Pointer<N>(p), Size<N>());
+                SliceType<CopyConst<Char, element_type<N>>> Slice(Char *p) const {
+                    return SliceType<CopyConst<Char, element_type<N>>>(Pointer<N>(p), Size<N>());
                 }
 
                 // The array with the specified element type. There must be exactly one
@@ -564,7 +564,7 @@ namespace abel {
                 //
                 // Requires: `p` is aligned to `Alignment()`.
                 //
-                // Note: We're not using ElementType alias here because it does not compile
+                // Note: We're not using element_type alias here because it does not compile
                 // under MSVC.
                 template<class Char>
                 std::tuple<SliceType<CopyConst<
@@ -573,7 +573,7 @@ namespace abel {
                     // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63875 (fixed
                     // in 6.1).
                     (void) p;
-                    return std::tuple<SliceType<CopyConst<Char, ElementType<SizeSeq>>>...>(
+                    return std::tuple<SliceType<CopyConst<Char, element_type<SizeSeq>>>...>(
                             Slice<SizeSeq>(p)...);
                 }
 
@@ -587,7 +587,7 @@ namespace abel {
                 constexpr size_t AllocSize() const {
                     static_assert(NumTypes == NumSizes, "You must specify sizes of all fields");
                     return Offset<NumTypes - 1>() +
-                           SizeOf<ElementType<NumTypes - 1>>() * size_[NumTypes - 1];
+                           SizeOf<element_type<NumTypes - 1>>() * size_[NumTypes - 1];
                 }
 
                 // If built with --config=asan, poisons padding bytes (if any) in the
@@ -611,7 +611,7 @@ namespace abel {
                     // The `if` is an optimization. It doesn't affect the observable behaviour.
                     if (ElementAlignment<N - 1>::value % ElementAlignment<N>::value) {
                       size_t start =
-                          Offset<N - 1>() + SizeOf<ElementType<N - 1>>() * size_[N - 1];
+                          Offset<N - 1>() + SizeOf<element_type<N - 1>>() * size_[N - 1];
                       ASAN_POISON_MEMORY_REGION(p + start, Offset<N>() - start);
                     }
 #endif
@@ -635,9 +635,9 @@ namespace abel {
                 // produce "unsigned*" where another produces "unsigned int *".
                 std::string DebugString() const {
                     const auto offsets = Offsets();
-                    const size_t sizes[] = {SizeOf<ElementType<OffsetSeq>>()...};
+                    const size_t sizes[] = {SizeOf<element_type<OffsetSeq>>()...};
                     const std::string types[] = {
-                            adl_barrier::TypeName<ElementType<OffsetSeq>>()...};
+                            adl_barrier::TypeName<element_type<OffsetSeq>>()...};
                     std::string res = abel::string_cat("@0", types[0], "(", sizes[0], ")");
                     for (size_t i = 0; i != NumOffsets - 1; ++i) {
                         abel::string_append(&res, "[", size_[i], "]; @", offsets[i + 1], types[i + 1],

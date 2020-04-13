@@ -26,29 +26,29 @@ namespace {
     using ::testing::UnorderedElementsAre;
 
     TEST(Split, TraitsTest) {
-        static_assert(!abel::strings_internal::SplitterIsConvertibleTo<int>::value,
+        static_assert(!abel::strings_internal::splitterIs_convertible_to<int>::value,
                       "");
         static_assert(
-                !abel::strings_internal::SplitterIsConvertibleTo<std::string>::value, "");
-        static_assert(abel::strings_internal::SplitterIsConvertibleTo<
+                !abel::strings_internal::splitterIs_convertible_to<std::string>::value, "");
+        static_assert(abel::strings_internal::splitterIs_convertible_to<
                               std::vector<std::string>>::value,
                       "");
         static_assert(
-                !abel::strings_internal::SplitterIsConvertibleTo<std::vector<int>>::value,
+                !abel::strings_internal::splitterIs_convertible_to<std::vector<int>>::value,
                 "");
-        static_assert(abel::strings_internal::SplitterIsConvertibleTo<
+        static_assert(abel::strings_internal::splitterIs_convertible_to<
                               std::vector<abel::string_view>>::value,
                       "");
-        static_assert(abel::strings_internal::SplitterIsConvertibleTo<
+        static_assert(abel::strings_internal::splitterIs_convertible_to<
                               std::map<std::string, std::string>>::value,
                       "");
-        static_assert(abel::strings_internal::SplitterIsConvertibleTo<
+        static_assert(abel::strings_internal::splitterIs_convertible_to<
                               std::map<abel::string_view, abel::string_view>>::value,
                       "");
-        static_assert(!abel::strings_internal::SplitterIsConvertibleTo<
+        static_assert(!abel::strings_internal::splitterIs_convertible_to<
                               std::map<int, std::string>>::value,
                       "");
-        static_assert(!abel::strings_internal::SplitterIsConvertibleTo<
+        static_assert(!abel::strings_internal::splitterIs_convertible_to<
                               std::map<std::string, int>>::value,
                       "");
     }
@@ -79,8 +79,8 @@ namespace {
             EXPECT_THAT(v, ElementsAre("a", "b", "c"));
 
             // Equivalent to...
-            using abel::ByChar;
-            v = abel::string_split("a,b,c", ByChar(','));
+            using abel::by_char;
+            v = abel::string_split("a,b,c", by_char(','));
             EXPECT_THAT(v, ElementsAre("a", "b", "c"));
         }
 
@@ -238,10 +238,10 @@ namespace {
     }
 
 //
-// Tests for SplitIterator
+// Tests for split_iterator
 //
 
-    TEST(SplitIterator, Basics) {
+    TEST(split_iterator, Basics) {
         auto splitter = abel::string_split("a,b", ',');
         auto it = splitter.begin();
         auto end = splitter.end();
@@ -267,7 +267,7 @@ namespace {
         std::string s_;
     };
 
-    TEST(SplitIterator, Predicate) {
+    TEST(split_iterator, Predicate) {
         auto splitter = abel::string_split("a,b,c", ',', Skip("b"));
         auto it = splitter.begin();
         auto end = splitter.end();
@@ -282,7 +282,7 @@ namespace {
         EXPECT_EQ(it, end);
     }
 
-    TEST(SplitIterator, EdgeCases) {
+    TEST(split_iterator, EdgeCases) {
         // Expected input and output, assuming a delimiter of ','
         struct {
             std::string in;
@@ -326,7 +326,7 @@ namespace {
         EXPECT_THAT(abel::string_split(abel::string_view(), '-'), ElementsAre());
     }
 
-    TEST(SplitIterator, EqualityAsEndCondition) {
+    TEST(split_iterator, EqualityAsEndCondition) {
         auto splitter = abel::string_split("a,b,c", ',');
         auto it = splitter.begin();
         auto it2 = it;
@@ -336,8 +336,8 @@ namespace {
         ++it2;
         EXPECT_EQ("c", *it2);
 
-        // This test uses a non-end SplitIterator as the terminating condition in a
-        // for loop. This relies on SplitIterator equality for non-end SplitIterators
+        // This test uses a non-end split_iterator as the terminating condition in a
+        // for loop. This relies on split_iterator equality for non-end SplitIterators
         // working correctly. At this point it2 points to "c", and we use that as the
         // "end" condition in this test.
         std::vector<abel::string_view> v;
@@ -758,7 +758,7 @@ namespace {
     template<typename Delimiter>
     static bool IsFoundAtStartingPos(abel::string_view text, Delimiter d,
                                      size_t starting_pos, int expected_pos) {
-        abel::string_view found = d.Find(text, starting_pos);
+        abel::string_view found = d.find(text, starting_pos);
         return found.data() != text.data() + text.size() &&
                expected_pos == found.data() - text.data();
     }
@@ -809,7 +809,7 @@ namespace {
         // The first occurrence of empty std::string ("") in a std::string is at position 0.
         // There is a test below that demonstrates this for abel::string_view::find().
         // If the by_string delimiter returned position 0 for this, there would
-        // be an infinite loop in the SplitIterator code. To avoid this, empty std::string
+        // be an infinite loop in the split_iterator code. To avoid this, empty std::string
         // is a special case in that it always returns the item at position 1.
         abel::string_view abc("abc");
         EXPECT_EQ(0, abc.find(""));  // "" is found at position 0
@@ -820,12 +820,12 @@ namespace {
         EXPECT_TRUE(IsFoundAt("abc", empty, 1));
     }
 
-    TEST(Split, ByChar) {
-        using abel::ByChar;
-        TestComma(ByChar(','));
+    TEST(Split, by_char) {
+        using abel::by_char;
+        TestComma(by_char(','));
 
         // Works as named variable.
-        ByChar comma_char(',');
+        by_char comma_char(',');
         TestComma(comma_char);
     }
 
@@ -914,17 +914,17 @@ namespace {
     }
 
     TEST(SplitInternalTest, TypeTraits) {
-        EXPECT_FALSE(abel::strings_internal::HasMappedType<int>::value);
+        EXPECT_FALSE(abel::strings_internal::has_mapped_type<int>::value);
         EXPECT_TRUE(
-                (abel::strings_internal::HasMappedType<std::map<int, int>>::value));
-        EXPECT_FALSE(abel::strings_internal::HasValueType<int>::value);
+                (abel::strings_internal::has_mapped_type<std::map<int, int>>::value));
+        EXPECT_FALSE(abel::strings_internal::has_value_type<int>::value);
         EXPECT_TRUE(
-                (abel::strings_internal::HasValueType<std::map<int, int>>::value));
-        EXPECT_FALSE(abel::strings_internal::HasConstIterator<int>::value);
+                (abel::strings_internal::has_value_type<std::map<int, int>>::value));
+        EXPECT_FALSE(abel::strings_internal::has_const_iterator<int>::value);
         EXPECT_TRUE(
-                (abel::strings_internal::HasConstIterator<std::map<int, int>>::value));
-        EXPECT_FALSE(abel::strings_internal::IsInitializerList<int>::value);
-        EXPECT_TRUE((abel::strings_internal::IsInitializerList<
+                (abel::strings_internal::has_const_iterator<std::map<int, int>>::value));
+        EXPECT_FALSE(abel::strings_internal::is_initializer_list<int>::value);
+        EXPECT_TRUE((abel::strings_internal::is_initializer_list<
                 std::initializer_list<int>>::value));
     }
 

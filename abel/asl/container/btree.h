@@ -517,16 +517,16 @@ namespace abel {
             }
 
             // N is the index of the type in the Layout definition.
-            // ElementType<N> is the Nth type in the Layout definition.
+            // element_type<N> is the Nth type in the Layout definition.
             template<size_type N>
-            ABEL_FORCE_INLINE typename layout_type::template ElementType<N> *GetField() {
+            ABEL_FORCE_INLINE typename layout_type::template element_type<N> *GetField() {
                 // We assert that we don't read from values that aren't there.
                 assert(N < 3 || !leaf());
                 return InternalLayout().template Pointer<N>(reinterpret_cast<char *>(this));
             }
 
             template<size_type N>
-            ABEL_FORCE_INLINE const typename layout_type::template ElementType<N> *GetField() const {
+            ABEL_FORCE_INLINE const typename layout_type::template element_type<N> *GetField() const {
                 assert(N < 3 || !leaf());
                 return InternalLayout().template Pointer<N>(
                         reinterpret_cast<const char *>(this));
