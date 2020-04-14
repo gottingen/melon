@@ -4,7 +4,6 @@ include(carbin_debug)
 include(carbin_cxx_flags)
 include(carbin_outof_source)
 include(carbin_platform)
-include(carbin_pkg_dump)
 
 CARBIN_ENSURE_OUT_OF_SOURCE_BUILD("must out of source dir")
 
@@ -41,3 +40,4 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 carbin_print("end set up compiler flags")
+include(carbin_pkg_dump)
