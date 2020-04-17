@@ -294,14 +294,14 @@ namespace abel {
         ABEL_INTERNAL_INLINE_CONSTEXPR(std::size_t, MaxUnrolledVisitCases, 33);
 
 // Note: The default-definition is for unreachable cases.
-        template<bool IsReachable>
+        template<bool is_reachable>
         struct PickCaseImpl {
             template<class Op, std::size_t I>
             using Apply = UnreachableSwitchCase;
         };
 
         template<>
-        struct PickCaseImpl</*IsReachable =*/true> {
+        struct PickCaseImpl</*is_reachable =*/true> {
             template<class Op, std::size_t I>
             using Apply = ReachableSwitchCase<Op, I>;
         };

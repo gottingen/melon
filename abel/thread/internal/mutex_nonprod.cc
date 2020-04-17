@@ -162,7 +162,7 @@ bool cond_var_impl::wait_with_deadline(mutex_impl* mu, abel::abel_time deadline)
 
 #endif  // ! _WIN32
 
-void mutex_impl::Await(const condition& cond) {
+void mutex_impl::await(const condition& cond) {
   if (cond.Eval()) return;
   released_.signal_all();
   do {
@@ -170,7 +170,7 @@ void mutex_impl::Await(const condition& cond) {
   } while (!cond.Eval());
 }
 
-bool mutex_impl::AwaitWithDeadline(const condition& cond, abel::abel_time deadline) {
+bool mutex_impl::await_with_deadline(const condition& cond, abel::abel_time deadline) {
   if (cond.Eval()) return true;
   released_.signal_all();
   while (true) {
@@ -195,50 +195,50 @@ void mutex::reader_lock() { lock(); }
 
 void mutex::reader_unlock() { unlock(); }
 
-void mutex::Await(const condition& cond) { impl()->Await(cond); }
+void mutex::await(const condition& cond) { impl()->await(cond); }
 
-void mutex::LockWhen(const condition& cond) {
+void mutex::lock_when(const condition& cond) {
   lock();
-  Await(cond);
+  await(cond);
 }
 
-bool mutex::AwaitWithDeadline(const condition& cond, abel::abel_time deadline) {
-  return impl()->AwaitWithDeadline(
+bool mutex::await_with_deadline(const condition& cond, abel::abel_time deadline) {
+  return impl()->await_with_deadline(
       cond, thread_internal::LimitedDeadline(deadline));
 }
 
-bool mutex::AwaitWithTimeout(const condition& cond, abel::duration timeout) {
-  return AwaitWithDeadline(
+bool mutex::await_with_timeout(const condition& cond, abel::duration timeout) {
+  return await_with_deadline(
       cond, thread_internal::DeadlineFromTimeout(timeout));
 }
 
-bool mutex::LockWhenWithDeadline(const condition& cond, abel::abel_time deadline) {
+bool mutex::lock_when_with_deadline(const condition& cond, abel::abel_time deadline) {
   lock();
-  return AwaitWithDeadline(cond, deadline);
+  return await_with_deadline(cond, deadline);
 }
 
-bool mutex::LockWhenWithTimeout(const condition& cond, abel::duration timeout) {
-  return LockWhenWithDeadline(
+bool mutex::lock_when_with_timeout(const condition& cond, abel::duration timeout) {
+  return lock_when_with_deadline(
       cond, thread_internal::DeadlineFromTimeout(timeout));
 }
 
-void mutex::ReaderLockWhen(const condition& cond) {
+void mutex::reader_lock_when(const condition& cond) {
   reader_lock();
-  Await(cond);
+  await(cond);
 }
 
-bool mutex::ReaderLockWhenWithTimeout(const condition& cond,
+bool mutex::reader_lock_when_with_timeout(const condition& cond,
                                       abel::duration timeout) {
-  return LockWhenWithTimeout(cond, timeout);
+  return lock_when_with_timeout(cond, timeout);
 }
-bool mutex::ReaderLockWhenWithDeadline(const condition& cond,
+bool mutex::reader_lock_when_with_deadline(const condition& cond,
                                        abel::abel_time deadline) {
-  return LockWhenWithDeadline(cond, deadline);
+  return lock_when_with_deadline(cond, deadline);
 }
 
 void mutex::enable_debug_log(const char*) {}
-void mutex::EnableInvariantDebugging(void (*)(void*), void*) {}
-void mutex::ForgetDeadlockInfo() {}
+void mutex::enable_invariant_debugging(void (*)(void*), void*) {}
+void mutex::forget_dead_lock_info() {}
 void mutex::assert_held() const {}
 void mutex::assert_reader_held() const {}
 void mutex::assert_not_held() const {}

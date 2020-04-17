@@ -29,7 +29,7 @@ namespace abel {
         void WaitUntilGreaterOrEqual(int n) {
             mutex_lock lock(&mutex_);
             auto cond = [this, n]() { return count_ >= n; };
-            mutex_.Await(condition(&cond));
+            mutex_.await(condition(&cond));
         }
 
     private:
@@ -76,7 +76,7 @@ namespace abel {
         ThreadSafeCounter done_counter;
 
         if (notify_before_waiting) {
-            notification->Notify();
+            notification->notify();
         }
 
         // Create a bunch of threads that increment the |done_counter| after being
@@ -95,7 +95,7 @@ namespace abel {
             // unmodified.
             EXPECT_EQ(0, done_counter.Get());
 
-            notification->Notify();
+            notification->notify();
         }
 
         // After notifying and then joining the workers, both counters should be

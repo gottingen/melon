@@ -29,7 +29,7 @@
 #define ABEL_MUTEX_READER_LOCK_IS_EXCLUSIVE 1
 #endif
 
-// Declare that Mutex::EnableInvariantDebugging is not implemented.
+// Declare that Mutex::enable_invariant_debugging is not implemented.
 // Intended primarily for tests, and even then as a last resort.
 #ifdef ABEL_MUTEX_ENABLE_INVARIANT_DEBUGGING_NOT_IMPLEMENTED
 #error ABEL_MUTEX_ENABLE_INVARIANT_DEBUGGING_NOT_IMPLEMENTED cannot be directly set
@@ -116,7 +116,7 @@ namespace abel {
             // pthread_mutex_t and std::mutex.
             bool locked_ = false;
 
-            // Signaled before releasing the lock, in support of Await.
+            // Signaled before releasing the lock, in support of await.
             cond_var_impl released_;
         };
 

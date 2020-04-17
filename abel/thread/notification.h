@@ -12,24 +12,24 @@
 //   * `has_been_notified() `to query its state
 //   * `wait_for_notification*()` to have threads wait until the "notified" state
 //      is `true`.
-//   * `Notify()` to set the notification's "notified" state to `true` and
+//   * `notify()` to set the notification's "notified" state to `true` and
 //     notify all waiting threads that the event has occurred.
 //     This method may only be called once.
 //
-// Note that while `Notify()` may only be called once, it is perfectly valid to
+// Note that while `notify()` may only be called once, it is perfectly valid to
 // call any of the `wait_for_notification*()` methods multiple times, from
 // multiple threads -- even after the notification's "notified" state has been
 // set -- in which case those methods will immediately return.
 //
 // Note that the lifetime of a `notification` requires careful consideration;
-// it might not be safe to destroy a notification after calling `Notify()` since
+// it might not be safe to destroy a notification after calling `notify()` since
 // it is still legal for other threads to call `wait_for_notification*()` methods
 // on the notification. However, observers responding to a "notified" state of
 // `true` can safely delete the notification without interfering with the call
-// to `Notify()` in the other thread.
+// to `notify()` in the other thread.
 //
-// Memory ordering: For any threads X and Y, if X calls `Notify()`, then any
-// action taken by X before it calls `Notify()` is visible to thread Y after:
+// Memory ordering: For any threads X and Y, if X calls `notify()`, then any
+// action taken by X before it calls `notify()` is visible to thread Y after:
 //  * Y returns from `wait_for_notification()`, or
 //  * Y receives a `true` return value from either `has_been_notified()` or
 //    `wait_for_notification_with_timeout()`.
@@ -71,7 +71,7 @@ namespace abel {
         // notification::wait_for_notification()
         //
         // Blocks the calling thread until the notification's "notified" state is
-        // `true`. Note that if `Notify()` has been previously called on this
+        // `true`. Note that if `notify()` has been previously called on this
         // notification, this function will immediately return.
         void wait_for_notification() const;
 
@@ -89,13 +89,13 @@ namespace abel {
         // its "notified" state in either case.
         bool wait_for_notification_with_deadline(abel::abel_time deadline) const;
 
-        // notification::Notify()
+        // notification::notify()
         //
         // Sets the "notified" state of this notification to `true` and wakes waiting
-        // threads. Note: do not call `Notify()` multiple times on the same
-        // `notification`; calling `Notify()` more than once on the same notification
+        // threads. Note: do not call `notify()` multiple times on the same
+        // `notification`; calling `notify()` more than once on the same notification
         // results in undefined behavior.
-        void Notify();
+        void notify();
 
     private:
         static ABEL_FORCE_INLINE bool has_been_notified_internal(

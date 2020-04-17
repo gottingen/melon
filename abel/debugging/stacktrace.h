@@ -93,7 +93,7 @@ namespace abel {
                                          int skip_count, const void *uc,
                                          int *min_dropped_frames);
 
-// GetStackTrace()
+// get_stack_trace()
 //
 // Records program counter values for up to `max_depth` frames, skipping the
 // most recent `skip_count` stack frames, stores their corresponding values
@@ -107,7 +107,7 @@ namespace abel {
 //      foo() { bar(); }
 //      bar() {
 //        void* result[10];
-//        int depth = abel::GetStackTrace(result, 10, 1);
+//        int depth = abel::get_stack_trace(result, 10, 1);
 //      }
 //
 // This produces:
@@ -117,7 +117,7 @@ namespace abel {
 //           ....       ...
 //
 // `result` must not be null.
-    extern int GetStackTrace(void **result, int max_depth, int skip_count);
+    extern int get_stack_trace(void **result, int max_depth, int skip_count);
 
 // GetStackTraceWithContext()
 //
@@ -198,7 +198,7 @@ namespace abel {
 //
 //                       null sizes         |        non-nullptr sizes
 //             |==========================================================|
-//     null uc | GetStackTrace()            | GetStackFrames()            |
+//     null uc | get_stack_trace()            | GetStackFrames()            |
 // non-null uc | GetStackTraceWithContext() | GetStackFramesWithContext() |
 //             |==========================================================|
     extern int DefaultStackUnwinder(void **pcs, int *sizes, int max_depth,

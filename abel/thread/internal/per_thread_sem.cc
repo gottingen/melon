@@ -18,36 +18,36 @@ namespace abel {
     namespace thread_internal {
 
         void PerThreadSem::SetThreadBlockedCounter(std::atomic<int> *counter) {
-            thread_internal::ThreadIdentity *identity;
-            identity = GetOrCreateCurrentThreadIdentity();
+            thread_internal::thread_identity *identity;
+            identity = get_or_create_current_thread_identity();
             identity->blocked_count_ptr = counter;
         }
 
         std::atomic<int> *PerThreadSem::GetThreadBlockedCounter() {
-            thread_internal::ThreadIdentity *identity;
-            identity = GetOrCreateCurrentThreadIdentity();
+            thread_internal::thread_identity *identity;
+            identity = get_or_create_current_thread_identity();
             return identity->blocked_count_ptr;
         }
 
-        void PerThreadSem::Init(thread_internal::ThreadIdentity *identity) {
-            new(Waiter::GetWaiter(identity)) Waiter();
+        void PerThreadSem::Init(thread_internal::thread_identity *identity) {
+            new(waiter::get_waiter(identity)) waiter();
             identity->ticker.store(0, std::memory_order_relaxed);
             identity->wait_start.store(0, std::memory_order_relaxed);
             identity->is_idle.store(false, std::memory_order_relaxed);
         }
 
-        void PerThreadSem::Destroy(thread_internal::ThreadIdentity *identity) {
-            Waiter::GetWaiter(identity)->~Waiter();
+        void PerThreadSem::Destroy(thread_internal::thread_identity *identity) {
+            waiter::get_waiter(identity)->~waiter();
         }
 
-        void PerThreadSem::Tick(thread_internal::ThreadIdentity *identity) {
+        void PerThreadSem::Tick(thread_internal::thread_identity *identity) {
             const int ticker =
                     identity->ticker.fetch_add(1, std::memory_order_relaxed) + 1;
             const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
             const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
-            if (wait_start && (ticker - wait_start > Waiter::kIdlePeriods) && !is_idle) {
-                // Wakeup the waiting thread since it is time for it to become idle.
-                Waiter::GetWaiter(identity)->Poke();
+            if (wait_start && (ticker - wait_start > waiter::kIdlePeriods) && !is_idle) {
+                // wakeup the waiting thread since it is time for it to become idle.
+                waiter::get_waiter(identity)->poke();
             }
         }
 
@@ -58,15 +58,15 @@ namespace abel {
 extern "C" {
 
 ABEL_WEAK void AbelInternalPerThreadSemPost(
-        abel::thread_internal::ThreadIdentity *identity) {
-    abel::thread_internal::Waiter::GetWaiter(identity)->Post();
+        abel::thread_internal::thread_identity *identity) {
+    abel::thread_internal::waiter::get_waiter(identity)->post();
 }
 
 ABEL_WEAK bool AbelInternalPerThreadSemWait(
-        abel::thread_internal::KernelTimeout t) {
+        abel::thread_internal::kernel_timeout t) {
     bool timeout = false;
-    abel::thread_internal::ThreadIdentity *identity;
-    identity = abel::thread_internal::GetOrCreateCurrentThreadIdentity();
+    abel::thread_internal::thread_identity *identity;
+    identity = abel::thread_internal::get_or_create_current_thread_identity();
 
     // Ensure wait_start != 0.
     int ticker = identity->ticker.load(std::memory_order_relaxed);
@@ -79,7 +79,7 @@ ABEL_WEAK bool AbelInternalPerThreadSemWait(
     }
 
     timeout =
-            !abel::thread_internal::Waiter::GetWaiter(identity)->wait(t);
+            !abel::thread_internal::waiter::get_waiter(identity)->wait(t);
 
     if (identity->blocked_count_ptr != nullptr) {
         identity->blocked_count_ptr->fetch_sub(1, std::memory_order_relaxed);

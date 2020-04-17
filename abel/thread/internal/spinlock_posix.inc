@@ -11,7 +11,7 @@
 
 extern "C" {
 
-ABEL_WEAK void AbelInternalSpinLockDelay(
+ABEL_WEAK void abel_internal_spin_lock_delay(
         std::atomic<uint32_t> * /* lock_word */, uint32_t /* value */, int loop,
         abel::thread_internal::SchedulingMode /* mode */) {
     int save_errno = errno;
@@ -21,13 +21,13 @@ ABEL_WEAK void AbelInternalSpinLockDelay(
     } else {
         struct timespec tm;
         tm.tv_sec = 0;
-        tm.tv_nsec = abel::thread_internal::SpinLockSuggestedDelayNS(loop);
+        tm.tv_nsec = abel::thread_internal::spin_lock_suggested_delay_ns(loop);
         nanosleep(&tm, nullptr);
     }
     errno = save_errno;
 }
 
-ABEL_WEAK void AbelInternalSpinLockWake(
+ABEL_WEAK void abel_internal_spin_lock_wake(
         std::atomic<uint32_t> * /* lock_word */, bool /* all */) {}
 
 }  // extern "C"

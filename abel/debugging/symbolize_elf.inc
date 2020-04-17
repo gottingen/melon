@@ -132,19 +132,19 @@ namespace abel {
             };
 
 // Protects g_decorators.
-// We are using SpinLock and not a Mutex here, because we may be called
+// We are using spin_lock and not a Mutex here, because we may be called
 // from inside Mutex::lock itself, and it prohibits recursive calls.
 // This happens in e.g. base/stacktrace_syscall_unittest.
 // Moreover, we are using only try_lock(), if the decorator list
 // is being modified (is busy), we skip all decorators, and possibly
 // loose some info. Sorry, that's the best we could do.
-            thread_internal::SpinLock g_decorators_mu(base_internal::kLinkerInitialized);
+            thread_internal::spin_lock g_decorators_mu(base_internal::kLinkerInitialized);
 
             const int kMaxFileMappingHints = 8;
             int g_num_file_mapping_hints;
             FileMappingHint g_file_mapping_hints[kMaxFileMappingHints];
 // Protects g_file_mapping_hints.
-            thread_internal::SpinLock g_file_mapping_mu(base_internal::kLinkerInitialized);
+            thread_internal::spin_lock g_file_mapping_mu(base_internal::kLinkerInitialized);
 
 // Async-signal-safe function to zero a buffer.
 // memset() is not guaranteed to be async-signal-safe.

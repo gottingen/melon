@@ -35,7 +35,7 @@ namespace {
         {
             abel::mutex_lock lock(mutex);
 
-            notification->Notify();
+            notification->notify();
             ABEL_RAW_CHECK(notification->has_been_notified(), "invalid notification");
 
             while (*state == false) {

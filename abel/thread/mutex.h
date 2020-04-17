@@ -285,38 +285,38 @@ namespace abel {
         // provided it releases all those that it acquires.  (This exception was
         // required to allow logging.)
 
-        // mutex::Await()
+        // mutex::await()
         //
         // Unlocks this `mutex` and blocks until simultaneously both `cond` is `true`
         // and this `mutex` can be reacquired, then reacquires this `mutex` in the
         // same mode in which it was previously held. If the condition is initially
-        // `true`, `Await()` *may* skip the release/re-acquire step.
+        // `true`, `await()` *may* skip the release/re-acquire step.
         //
-        // `Await()` requires that this thread holds this `mutex` in some mode.
-        void Await(const condition &cond);
+        // `await()` requires that this thread holds this `mutex` in some mode.
+        void await(const condition &cond);
 
-        // mutex::LockWhen()
-        // mutex::ReaderLockWhen()
-        // mutex::WriterLockWhen()
+        // mutex::lock_when()
+        // mutex::reader_lock_when()
+        // mutex::writer_lock_when()
         //
         // Blocks until simultaneously both `cond` is `true` and this `mutex` can
-        // be acquired, then atomically acquires this `mutex`. `LockWhen()` is
-        // logically equivalent to `*lock(); Await();` though they may have different
+        // be acquired, then atomically acquires this `mutex`. `lock_when()` is
+        // logically equivalent to `*lock(); await();` though they may have different
         // performance characteristics.
-        void LockWhen(const condition &cond) ABEL_EXCLUSIVE_LOCK_FUNCTION();
+        void lock_when(const condition &cond) ABEL_EXCLUSIVE_LOCK_FUNCTION();
 
-        void ReaderLockWhen(const condition &cond) ABEL_SHARED_LOCK_FUNCTION();
+        void reader_lock_when(const condition &cond) ABEL_SHARED_LOCK_FUNCTION();
 
-        void WriterLockWhen(const condition &cond) ABEL_EXCLUSIVE_LOCK_FUNCTION() {
-            this->LockWhen(cond);
+        void writer_lock_when(const condition &cond) ABEL_EXCLUSIVE_LOCK_FUNCTION() {
+            this->lock_when(cond);
         }
 
         // ---------------------------------------------------------------------------
         // mutex Variants with Timeouts/Deadlines
         // ---------------------------------------------------------------------------
 
-        // mutex::AwaitWithTimeout()
-        // mutex::AwaitWithDeadline()
+        // mutex::await_with_timeout()
+        // mutex::await_with_deadline()
         //
         // If `cond` is initially true, do nothing, or act as though `cond` is
         // initially false.
@@ -333,13 +333,13 @@ namespace abel {
         // Negative timeouts are equivalent to a zero timeout.
         //
         // This method requires that this thread holds this `mutex` in some mode.
-        bool AwaitWithTimeout(const condition &cond, abel::duration timeout);
+        bool await_with_timeout(const condition &cond, abel::duration timeout);
 
-        bool AwaitWithDeadline(const condition &cond, abel::abel_time deadline);
+        bool await_with_deadline(const condition &cond, abel::abel_time deadline);
 
-        // mutex::LockWhenWithTimeout()
-        // mutex::ReaderLockWhenWithTimeout()
-        // mutex::WriterLockWhenWithTimeout()
+        // mutex::lock_when_with_timeout()
+        // mutex::reader_lock_when_with_timeout()
+        // mutex::writer_lock_when_with_timeout()
         //
         // Blocks until simultaneously both:
         //   - either `cond` is `true` or the timeout has expired, and
@@ -348,20 +348,20 @@ namespace abel {
         // `true` on return.
         //
         // Negative timeouts are equivalent to a zero timeout.
-        bool LockWhenWithTimeout(const condition &cond, abel::duration timeout)
+        bool lock_when_with_timeout(const condition &cond, abel::duration timeout)
         ABEL_EXCLUSIVE_LOCK_FUNCTION();
 
-        bool ReaderLockWhenWithTimeout(const condition &cond, abel::duration timeout)
+        bool reader_lock_when_with_timeout(const condition &cond, abel::duration timeout)
         ABEL_SHARED_LOCK_FUNCTION();
 
-        bool WriterLockWhenWithTimeout(const condition &cond, abel::duration timeout)
+        bool writer_lock_when_with_timeout(const condition &cond, abel::duration timeout)
         ABEL_EXCLUSIVE_LOCK_FUNCTION() {
-            return this->LockWhenWithTimeout(cond, timeout);
+            return this->lock_when_with_timeout(cond, timeout);
         }
 
-        // mutex::LockWhenWithDeadline()
-        // mutex::ReaderLockWhenWithDeadline()
-        // mutex::WriterLockWhenWithDeadline()
+        // mutex::lock_when_with_deadline()
+        // mutex::reader_lock_when_with_deadline()
+        // mutex::writer_lock_when_with_deadline()
         //
         // Blocks until simultaneously both:
         //   - either `cond` is `true` or the deadline has been passed, and
@@ -370,22 +370,22 @@ namespace abel {
         // on return.
         //
         // Deadlines in the past are equivalent to an immediate deadline.
-        bool LockWhenWithDeadline(const condition &cond, abel::abel_time deadline)
+        bool lock_when_with_deadline(const condition &cond, abel::abel_time deadline)
         ABEL_EXCLUSIVE_LOCK_FUNCTION();
 
-        bool ReaderLockWhenWithDeadline(const condition &cond, abel::abel_time deadline)
+        bool reader_lock_when_with_deadline(const condition &cond, abel::abel_time deadline)
         ABEL_SHARED_LOCK_FUNCTION();
 
-        bool WriterLockWhenWithDeadline(const condition &cond, abel::abel_time deadline)
+        bool writer_lock_when_with_deadline(const condition &cond, abel::abel_time deadline)
         ABEL_EXCLUSIVE_LOCK_FUNCTION() {
-            return this->LockWhenWithDeadline(cond, deadline);
+            return this->lock_when_with_deadline(cond, deadline);
         }
 
         // ---------------------------------------------------------------------------
         // Debug Support: Invariant Checking, Deadlock Detection, Logging.
         // ---------------------------------------------------------------------------
 
-        // mutex::EnableInvariantDebugging()
+        // mutex::enable_invariant_debugging()
         //
         // If `invariant`!=null and if invariant debugging has been enabled globally,
         // cause `(*invariant)(arg)` to be called at moments when the invariant for
@@ -398,25 +398,25 @@ namespace abel {
         // substantially reduce `mutex` performance; it should be set only for
         // non-production runs.  Optimization options may also disable invariant
         // checks.
-        void EnableInvariantDebugging(void (*invariant)(void *), void *arg);
+        void enable_invariant_debugging(void (*invariant)(void *), void *arg);
 
         // mutex::enable_debug_log()
         //
         // Cause all subsequent uses of this `mutex` to be logged via
         // `ABEL_RAW_INFO`. Log entries are tagged with `name` if no previous
-        // call to `EnableInvariantDebugging()` or `enable_debug_log()` has been made.
+        // call to `enable_invariant_debugging()` or `enable_debug_log()` has been made.
         //
         // Note: This method substantially reduces `mutex` performance.
         void enable_debug_log(const char *name);
 
         // Deadlock detection
 
-        // mutex::ForgetDeadlockInfo()
+        // mutex::forget_dead_lock_info()
         //
         // Forget any deadlock-detection information previously gathered
         // about this `mutex`. Call this method in debug mode when the lock ordering
         // of a `mutex` changes.
-        void ForgetDeadlockInfo();
+        void forget_dead_lock_info();
 
         // mutex::assert_not_held()
         //
@@ -433,11 +433,11 @@ namespace abel {
 
         // Special cases.
 
-        // A `MuHow` is a constant that indicates how a lock should be acquired.
+        // A `mu_how` is a constant that indicates how a lock should be acquired.
         // Internal implementation detail.  Clients should ignore.
-        typedef const struct MuHowS *MuHow;
+        typedef const struct mu_how_s *mu_how;
 
-        // mutex::InternalAttemptToUseMutexInFatalSignalHandler()
+        // mutex::internal_attempt_to_use_mutex_in_fatal_signal_handler()
         //
         // Causes the `mutex` implementation to prepare itself for re-entry caused by
         // future use of `mutex` within a fatal signal handler. This method is
@@ -450,7 +450,7 @@ namespace abel {
         // Attempts to return from (or `longjmp` out of) the signal handler once this
         // call has been made may cause arbitrary program behaviour including
         // crashes and deadlocks.
-        static void InternalAttemptToUseMutexInFatalSignalHandler();
+        static void internal_attempt_to_use_mutex_in_fatal_signal_handler();
 
     private:
 #ifdef ABEL_INTERNAL_USE_NONPROD_MUTEX
@@ -464,46 +464,46 @@ namespace abel {
 #else
         std::atomic<intptr_t> mu_;  // The mutex state.
 
-        // Post()/wait() versus associated PerThreadSem; in class for required
+        // post()/wait() versus associated PerThreadSem; in class for required
         // friendship with PerThreadSem.
-        static ABEL_FORCE_INLINE void IncrementSynchSem(mutex *mu,
-                                                        thread_internal::PerThreadSynch *w);
+        static ABEL_FORCE_INLINE void increment_synch_sem(mutex *mu,
+                                                        thread_internal::per_thread_synch *w);
 
-        static ABEL_FORCE_INLINE bool DecrementSynchSem(
-                mutex *mu, thread_internal::PerThreadSynch *w,
-                thread_internal::KernelTimeout t);
+        static ABEL_FORCE_INLINE bool decrement_synch_sem(
+                mutex *mu, thread_internal::per_thread_synch *w,
+                thread_internal::kernel_timeout t);
 
         // slow path acquire
-        void LockSlowLoop(synch_wait_params *waitp, int flags);
+        void lock_slow_loop(synch_wait_params *waitp, int flags);
 
-        // wrappers around LockSlowLoop()
-        bool LockSlowWithDeadline(MuHow how, const condition *cond,
-                                  thread_internal::KernelTimeout t,
+        // wrappers around lock_slow_loop()
+        bool lock_slow_with_deadline(mu_how how, const condition *cond,
+                                  thread_internal::kernel_timeout t,
                                   int flags);
 
-        void LockSlow(MuHow how, const condition *cond,
+        void lock_slow(mu_how how, const condition *cond,
                       int flags) ABEL_COLD;
 
         // slow path release
-        void UnlockSlow(synch_wait_params *waitp) ABEL_COLD;
+        void unlock_slow(synch_wait_params *waitp) ABEL_COLD;
 
-        // Common code between Await() and AwaitWithTimeout/Deadline()
-        bool AwaitCommon(const condition &cond,
-                         thread_internal::KernelTimeout t);
+        // Common code between await() and await_with_timeout/Deadline()
+        bool await_common(const condition &cond,
+                         thread_internal::kernel_timeout t);
 
         // Attempt to remove thread s from queue.
-        void TryRemove(thread_internal::PerThreadSynch *s);
+        void try_remove(thread_internal::per_thread_synch *s);
 
-        // Block a thread on mutex.
-        void Block(thread_internal::PerThreadSynch *s);
+        // block a thread on mutex.
+        void block(thread_internal::per_thread_synch *s);
 
         // Wake a thread; return successor.
-        thread_internal::PerThreadSynch *Wakeup(thread_internal::PerThreadSynch *w);
+        thread_internal::per_thread_synch *wakeup(thread_internal::per_thread_synch *w);
 
-        friend class cond_var;   // for access to Trans()/Fer().
-        void Trans(MuHow how);  // used for cond_var->mutex transfer
-        void Fer(
-                thread_internal::PerThreadSynch *w);  // used for cond_var->mutex transfer
+        friend class cond_var;   // for access to trans()/fer().
+        void trans(mu_how how);  // used for cond_var->mutex transfer
+        void fer(
+                thread_internal::per_thread_synch *w);  // used for cond_var->mutex transfer
 #endif
 
         // Catch the error of writing mutex when intending mutex_lock.
@@ -631,14 +631,14 @@ namespace abel {
 // type system.)
 //
 // Note: to use a `condition`, you need only construct it and pass it within the
-// appropriate `mutex' member function, such as `mutex::Await()`.
+// appropriate `mutex' member function, such as `mutex::await()`.
 //
 // Example:
 //
 //   // assume count_ is not internal reference count
 //   int count_ ABEL_GUARDED_BY(mu_);
 //
-//   mu_.LockWhen(condition(+[](int* count) { return *count == 0; },
+//   mu_.lock_when(condition(+[](int* count) { return *count == 0; },
 //         &count_));
 //
 // When multiple threads are waiting on exactly the same condition, make sure
@@ -692,7 +692,7 @@ namespace abel {
         //     mu_.assert_reader_held();                // For annotalysis.
         //     return processed_ >= current;
         //   };
-        //   mu_.Await(condition(&reached));
+        //   mu_.await(condition(&reached));
 
         // See class comment for performance advice. In particular, if there
         // might be more than one waiter for the same condition, make sure
@@ -753,7 +753,7 @@ namespace abel {
 // A condition variable, reflecting state evaluated separately outside of the
 // `mutex` object, which can be signaled to wake callers.
 // This class is not normally needed; use `mutex` member functions such as
-// `mutex::Await()` and intrinsic `condition` abstractions. In rare cases
+// `mutex::await()` and intrinsic `condition` abstractions. In rare cases
 // with many threads and many conditions, `cond_var` may be faster.
 //
 // The implementation may deliver signals to any condition variable at
@@ -853,11 +853,11 @@ namespace abel {
             impl_;
 #else
 
-        bool WaitCommon(mutex *mutex, thread_internal::KernelTimeout t);
+        bool WaitCommon(mutex *mutex, thread_internal::kernel_timeout t);
 
-        void Remove(thread_internal::PerThreadSynch *s);
+        void Remove(thread_internal::per_thread_synch *s);
 
-        void Wakeup(thread_internal::PerThreadSynch *w);
+        void wakeup(thread_internal::per_thread_synch *w);
 
         std::atomic<intptr_t> cv_;  // condition variable state.
 #endif
@@ -1049,7 +1049,7 @@ namespace abel {
 //
 // Enable or disable global support for mutex invariant debugging.  If enabled,
 // then invariant predicates can be registered per-mutex for debug checking.
-// See mutex::EnableInvariantDebugging().
+// See mutex::enable_invariant_debugging().
     void enable_mutex_invariant_debugging(bool enabled);
 
 // When in debug mode, and when the feature has been enabled globally, the

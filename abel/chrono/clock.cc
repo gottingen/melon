@@ -165,7 +165,7 @@ namespace abel {
 // read if the reads of the high words yields different answers, or an odd
 // value (either case suggests possible interference from a writer).
 // Here we use a spinlock to ensure only one writer at a time, rather than
-// spinning on the bottom bit of the word to benefit from SpinLock
+// spinning on the bottom bit of the word to benefit from spin_lock
 // spin-delay tuning.
 
 // Acquire seqlock (*seq) and return the value to be written to unlock.
@@ -211,7 +211,7 @@ namespace abel {
 
 // A reader-writer lock protecting the static locations below.
 // See SeqAcquire() and SeqRelease() above.
-    static abel::thread_internal::SpinLock lock(
+    static abel::thread_internal::spin_lock lock(
             abel::base_internal::kLinkerInitialized);
     static std::atomic<uint64_t> seq(0);
 

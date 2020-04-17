@@ -19,11 +19,11 @@ namespace abel {
         this->num_to_block_--;
         if (this->num_to_block_ < 0) {
             ABEL_RAW_CRITICAL(
-                    "Block() called too many times.  num_to_block_={} out of total={}",
+                    "block() called too many times.  num_to_block_={} out of total={}",
                     this->num_to_block_, this->num_to_exit_);
         }
 
-        this->lock_.Await(condition(IsZero, &this->num_to_block_));
+        this->lock_.await(condition(IsZero, &this->num_to_block_));
 
         // Determine which thread can safely delete this barrier object
         this->num_to_exit_--;

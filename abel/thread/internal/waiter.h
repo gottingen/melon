@@ -56,39 +56,39 @@ namespace abel {
 
     namespace thread_internal {
 
-// Waiter is an OS-specific semaphore.
-        class Waiter {
+// waiter is an OS-specific semaphore.
+        class waiter {
         public:
             // Prepare any data to track waits.
-            Waiter();
+            waiter();
 
             // Not copyable or movable
-            Waiter(const Waiter &) = delete;
+            waiter(const waiter &) = delete;
 
-            Waiter &operator=(const Waiter &) = delete;
+            waiter &operator=(const waiter &) = delete;
 
             // Destroy any data to track waits.
-            ~Waiter();
+            ~waiter();
 
-            // Blocks the calling thread until a matching call to `Post()` or
-            // `t` has passed. Returns `true` if woken (`Post()` called),
+            // Blocks the calling thread until a matching call to `post()` or
+            // `t` has passed. Returns `true` if woken (`post()` called),
             // `false` on timeout.
-            bool wait(KernelTimeout t);
+            bool wait(kernel_timeout t);
 
             // Restart the caller of `wait()` as with a normal semaphore.
-            void Post();
+            void post();
 
             // If anyone is waiting, wake them up temporarily and cause them to
             // call `MaybeBecomeIdle()`. They will then return to waiting for a
-            // `Post()` or timeout.
-            void Poke();
+            // `post()` or timeout.
+            void poke();
 
-            // Returns the Waiter associated with the identity.
-            static Waiter *GetWaiter(thread_internal::ThreadIdentity *identity) {
+            // Returns the waiter associated with the identity.
+            static waiter *get_waiter(thread_internal::thread_identity *identity) {
                 static_assert(
-                        sizeof(Waiter) <= sizeof(thread_internal::ThreadIdentity::WaiterState),
-                        "Insufficient space for Waiter");
-                return reinterpret_cast<Waiter *>(identity->waiter_state.data);
+                        sizeof(waiter) <= sizeof(thread_internal::thread_identity::WaiterState),
+                        "Insufficient space for waiter");
+                return reinterpret_cast<waiter *>(identity->waiter_state.data);
             }
 
             // How many periods to remain idle before releasing resources
@@ -111,7 +111,7 @@ namespace abel {
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_CONDVAR
 
             // REQUIRES: mu_ must be held.
-            void InternalCondVarPoke();
+            void internal_cond_var_poke();
 
             pthread_mutex_t mu_;
             pthread_cond_t cv_;
@@ -120,7 +120,7 @@ namespace abel {
 
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_SEM
             sem_t sem_;
-            // This seems superfluous, but for Poke() we need to cause spurious
+            // This seems superfluous, but for poke() we need to cause spurious
             // wakeups on the semaphore. Hence we can't actually use the
             // semaphore's count.
             std::atomic<int> wakeups_;
@@ -138,7 +138,7 @@ namespace abel {
             class WinHelper;
 
             // REQUIRES: WinHelper::GetLock(this) must be held.
-            void InternalCondVarPoke();
+            void internal_cond_var_poke();
 
             SRWLockStorage mu_storage_;
             ConditionVariableStorage cv_storage_;

@@ -44,7 +44,7 @@ namespace abel {
             // consequently becomes greater than zero, then another thread
             // blocked wait() call will be woken up and proceed to lock the
             // semaphore.
-            void Post() {
+            void post() {
                 std::lock_guard<std::mutex> lock(mu_);
                 ++count_;
                 cv_.notify_one();
@@ -59,20 +59,20 @@ namespace abel {
         struct ThreadData {
             int num_iterations;                 // Number of replies to send.
             SimpleSemaphore identity2_written;  // Posted by thread writing identity2.
-            thread_internal::ThreadIdentity *identity1;  // First Post()-er.
-            thread_internal::ThreadIdentity *identity2;  // First wait()-er.
-            KernelTimeout timeout;
+            thread_internal::thread_identity *identity1;  // First post()-er.
+            thread_internal::thread_identity *identity2;  // First wait()-er.
+            kernel_timeout timeout;
         };
 
 // Need friendship with PerThreadSem.
         class PerThreadSemTest : public testing::Test {
         public:
             static void TimingThread(ThreadData *t) {
-                t->identity2 = GetOrCreateCurrentThreadIdentity();
-                t->identity2_written.Post();
+                t->identity2 = get_or_create_current_thread_identity();
+                t->identity2_written.post();
                 while (t->num_iterations--) {
                     wait(t->timeout);
-                    Post(t->identity1);
+                    post(t->identity1);
                 }
             }
 
@@ -81,9 +81,9 @@ namespace abel {
                 ThreadData t;
                 t.num_iterations = kNumIterations;
                 t.timeout = timeout ?
-                            KernelTimeout(abel::now() + abel::seconds(10000))  // far in the future
-                                    : KernelTimeout::Never();
-                t.identity1 = GetOrCreateCurrentThreadIdentity();
+                            kernel_timeout(abel::now() + abel::seconds(10000))  // far in the future
+                                    : kernel_timeout::never();
+                t.identity1 = get_or_create_current_thread_identity();
 
                 // We can't use the Thread class here because it uses the mutex
                 // class which will invoke PerThreadSem, so we use std::thread instead.
@@ -97,7 +97,7 @@ namespace abel {
                 for (int i = 0; i < kNumIterations; ++i) {
                     abel::sleep_for(abel::milliseconds(20));
                     int64_t cycles = abel::chrono_internal::cycle_clock::now();
-                    Post(t.identity2);
+                    post(t.identity2);
                     wait(t.timeout);
                     cycles = chrono_internal::cycle_clock::now() - cycles;
                     min_cycles = std::min(min_cycles, cycles);
@@ -112,20 +112,20 @@ namespace abel {
             }
 
         protected:
-            static void Post(thread_internal::ThreadIdentity *id) {
-                PerThreadSem::Post(id);
+            static void post(thread_internal::thread_identity *id) {
+                PerThreadSem::post(id);
             }
 
-            static bool wait(KernelTimeout t) {
+            static bool wait(kernel_timeout t) {
                 return PerThreadSem::wait(t);
             }
 
             // convenience overload
             static bool wait(abel::abel_time t) {
-                return wait(KernelTimeout(t));
+                return wait(kernel_timeout(t));
             }
 
-            static void Tick(thread_internal::ThreadIdentity *identity) {
+            static void Tick(thread_internal::thread_identity *identity) {
                 PerThreadSem::Tick(identity);
             }
         };
@@ -156,7 +156,7 @@ namespace abel {
                 EXPECT_FALSE(wait(negative_timeout));
                 EXPECT_LE(negative_timeout, abel::now() + slop);  // trivially true :)
 
-                Post(GetOrCreateCurrentThreadIdentity());
+                post(get_or_create_current_thread_identity());
                 // The wait here has an expired timeout, but we have a wake to consume,
                 // so this should succeed
                 EXPECT_TRUE(wait(negative_timeout));

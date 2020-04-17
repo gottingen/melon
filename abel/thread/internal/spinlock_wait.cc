@@ -1,7 +1,7 @@
 //
 
 // The OS-specific header included below must provide two calls:
-// AbelInternalSpinLockDelay() and AbelInternalSpinLockWake().
+// abel_internal_spin_lock_delay() and abel_internal_spin_lock_wake().
 // See spinlock_wait.h for the specs.
 
 #include <atomic>
@@ -26,8 +26,8 @@ namespace abel {
     namespace thread_internal {
 
 // See spinlock_wait.h for spec.
-        uint32_t SpinLockWait(std::atomic<uint32_t> *w, int n,
-                              const SpinLockWaitTransition trans[],
+        uint32_t spin_lock_wait(std::atomic<uint32_t> *w, int n,
+                              const spin_lock_wait_transition trans[],
                               thread_internal::SchedulingMode scheduling_mode) {
             int loop = 0;
             for (;;) {
@@ -36,7 +36,7 @@ namespace abel {
                 for (i = 0; i != n && v != trans[i].from; i++) {
                 }
                 if (i == n) {
-                    SpinLockDelay(w, v, ++loop, scheduling_mode);  // no matching transition
+                    spin_lock_delay(w, v, ++loop, scheduling_mode);  // no matching transition
                 } else if (trans[i].to == v ||                   // null transition
                            w->compare_exchange_strong(v, trans[i].to,
                                                       std::memory_order_acquire,
@@ -49,7 +49,7 @@ namespace abel {
         static std::atomic<uint64_t> delay_rand;
 
 // Return a suggested delay in nanoseconds for iteration number "loop"
-        int SpinLockSuggestedDelayNS(int loop) {
+        int spin_lock_suggested_delay_ns(int loop) {
             // Weak pseudo-random number generator to get some spread between threads
             // when many are spinning.
             uint64_t r = delay_rand.load(std::memory_order_relaxed);

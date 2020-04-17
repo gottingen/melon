@@ -19,7 +19,7 @@
 //    trying to use the unwinder to instrument malloc().
 //
 // Note: if you add a new implementation here, make sure it works
-// correctly when abel::GetStackTrace() is called with max_depth == 0.
+// correctly when abel::get_stack_trace() is called with max_depth == 0.
 // Some code may do that.
 
 #include <abel/debugging/stacktrace.h>
@@ -85,7 +85,7 @@ namespace abel {
                                   min_dropped_frames);
     }
 
-    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int GetStackTrace(
+    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int get_stack_trace(
             void **result, int max_depth, int skip_count) {
         return Unwind<false, false>(result, nullptr, max_depth, skip_count, nullptr,
                                     nullptr);

@@ -91,11 +91,6 @@ endif ()
 set_target_properties(abel_shared PROPERTIES
         OUTPUT_NAME abel
         VERSION ${CMAKE_PROJECT_VERSION}
-
-
-
-
-
         SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
         )
 

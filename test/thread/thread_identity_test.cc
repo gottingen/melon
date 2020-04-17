@@ -18,14 +18,14 @@ namespace abel {
         namespace {
 
 // protects num_identities_reused
-            static abel::thread_internal::SpinLock map_lock(
+            static abel::thread_internal::spin_lock map_lock(
                     abel::base_internal::kLinkerInitialized);
             static int num_identities_reused;
 
             static const void *const kCheckNoIdentity = reinterpret_cast<void *>(1);
 
             static void TestThreadIdentityCurrent(const void *assert_no_identity) {
-                ThreadIdentity *identity;
+                thread_identity *identity;
 
                 // We have to test this conditionally, because if the test framework relies
                 // on abel, then some previous action may have already allocated an
@@ -35,15 +35,15 @@ namespace abel {
                     EXPECT_TRUE(identity == nullptr);
                 }
 
-                identity = thread_internal::GetOrCreateCurrentThreadIdentity();
+                identity = thread_internal::get_or_create_current_thread_identity();
                 EXPECT_TRUE(identity != nullptr);
-                ThreadIdentity *identity_no_init;
+                thread_identity *identity_no_init;
                 identity_no_init = CurrentThreadIdentityIfPresent();
                 EXPECT_TRUE(identity == identity_no_init);
 
                 // Check that per_thread_synch is correctly aligned.
                 EXPECT_EQ(0, reinterpret_cast<intptr_t>(&identity->per_thread_synch) %
-                             PerThreadSynch::kAlignment);
+                             per_thread_synch::kAlignment);
                 EXPECT_EQ(identity, identity->per_thread_synch.thread_identity());
 
                 abel::thread_internal::SpinLockHolder l(&map_lock);
@@ -58,8 +58,8 @@ namespace abel {
             TEST(ThreadIdentityTest, BasicIdentityWorksThreaded) {
                 // Now try the same basic test with multiple threads being created and
                 // destroyed.  This makes sure that:
-                // - New threads are created without a ThreadIdentity.
-                // - We re-allocate ThreadIdentity objects from the free-list.
+                // - New threads are created without a thread_identity.
+                // - We re-allocate thread_identity objects from the free-list.
                 // - If a thread implementation chooses to recycle threads, that
                 //   correct re-initialization occurs.
                 static const int kNumLoops = 3;
@@ -75,7 +75,7 @@ namespace abel {
                     }
                 }
 
-                // We should have recycled ThreadIdentity objects above; while (external)
+                // We should have recycled thread_identity objects above; while (external)
                 // library threads allocating their own identities may preclude some
                 // reuse, we should have sufficient repetitions to exclude this.
                 EXPECT_LT(kNumThreads, num_identities_reused);
@@ -85,7 +85,7 @@ namespace abel {
                 // This test repeatly creates and joins a series of threads, each of
                 // which acquires and releases shared mutex locks. This verifies
                 // mutex operations work correctly under a reused
-                // ThreadIdentity. Note that the most likely failure mode of this
+                // thread_identity. Note that the most likely failure mode of this
                 // test is a crash or deadlock.
                 static const int kNumLoops = 10;
                 static const int kNumThreads = 12;

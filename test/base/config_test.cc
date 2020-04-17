@@ -33,8 +33,8 @@ namespace {
         static thread_local int mine_mine_mine = 16;
         EXPECT_EQ(16, mine_mine_mine);
         {
-            abel::thread_internal::ThreadPool pool(1);
-            pool.Schedule([&] {
+            abel::thread_internal::thread_pool pool(1);
+            pool.schedule([&] {
                 EXPECT_EQ(16, mine_mine_mine);
                 mine_mine_mine = 32;
                 EXPECT_EQ(32, mine_mine_mine);

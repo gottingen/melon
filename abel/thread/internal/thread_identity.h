@@ -1,7 +1,7 @@
 //
-// Each active thread has an ThreadIdentity that may represent the thread in
-// various level interfaces.  ThreadIdentity objects are never deallocated.
-// When a thread terminates, its ThreadIdentity object may be reused for a
+// Each active thread has an thread_identity that may represent the thread in
+// various level interfaces.  thread_identity objects are never deallocated.
+// When a thread terminates, its thread_identity object may be reused for a
 // thread created later.
 
 #ifndef ABEL_BASE_INTERNAL_THREAD_IDENTITY_H_
@@ -23,38 +23,38 @@
 namespace abel {
 
 
-    struct SynchLocksHeld;
+    struct synch_locks_held;
     struct synch_wait_params;
 
     namespace thread_internal {
 
-        class SpinLock;
+        class spin_lock;
 
-        struct ThreadIdentity;
+        struct thread_identity;
 
 // Used by the implementation of abel::mutex and abel::cond_var.
-        struct PerThreadSynch {
+        struct per_thread_synch {
             // The internal representation of abel::mutex and abel::cond_var rely
-            // on the alignment of PerThreadSynch. Both store the address of the
-            // PerThreadSynch in the high-order bits of their internal state,
-            // which means the low kLowZeroBits of the address of PerThreadSynch
+            // on the alignment of per_thread_synch. Both store the address of the
+            // per_thread_synch in the high-order bits of their internal state,
+            // which means the low kLowZeroBits of the address of per_thread_synch
             // must be zero.
             static constexpr int kLowZeroBits = 8;
             static constexpr int kAlignment = 1 << kLowZeroBits;
 
-            // Returns the associated ThreadIdentity.
+            // Returns the associated thread_identity.
             // This can be implemented as a cast because we guarantee
-            // PerThreadSynch is the first element of ThreadIdentity.
-            ThreadIdentity *thread_identity() {
-                return reinterpret_cast<ThreadIdentity *>(this);
+            // per_thread_synch is the first element of thread_identity.
+            thread_identity *thread_identity() {
+                return reinterpret_cast<struct thread_identity *>(this);
             }
 
-            PerThreadSynch *next;  // Circular waiter queue; initialized to 0.
-            PerThreadSynch *skip;  // If non-zero, all entries in mutex queue
+            per_thread_synch *next;  // Circular waiter queue; initialized to 0.
+            per_thread_synch *skip;  // If non-zero, all entries in mutex queue
             // up to and including "skip" have same
             // condition as this, and will be woken later
             bool may_skip;         // if false while on mutex queue, a mutex unlocker
-            // is using this PerThreadSynch as a terminator.  Its
+            // is using this per_thread_synch as a terminator.  Its
             // skip field must not be filled in because the loop
             // might then skip over the terminator.
 
@@ -63,9 +63,9 @@ namespace abel {
             // occur before the enqueue commit point (state = kQueued in
             // Enqueue() and CondVarEnqueue()). Transitions from non-null to
             // null must occur after the wait is finished (state = kAvailable in
-            // mutex::Block() and cond_var::WaitCommon()). This field may be
-            // changed only by the thread that describes this PerThreadSynch.  A
-            // special case is Fer(), which calls Enqueue() on another thread,
+            // mutex::block() and cond_var::WaitCommon()). This field may be
+            // changed only by the thread that describes this per_thread_synch.  A
+            // special case is fer(), which calls Enqueue() on another thread,
             // but with an identical synch_wait_params pointer, thus leaving the
             // pointer unchanged.
             synch_wait_params *waitp;
@@ -83,8 +83,8 @@ namespace abel {
             int64_t next_priority_read_cycles;
 
             // State values:
-            //   kAvailable: This PerThreadSynch is available.
-            //   kQueued: This PerThreadSynch is unavailable, it's currently queued on a
+            //   kAvailable: This per_thread_synch is available.
+            //   kQueued: This per_thread_synch is unavailable, it's currently queued on a
             //            mutex or cond_var waistlist.
             //
             // Transitions from kQueued to kAvailable require a release
@@ -100,7 +100,7 @@ namespace abel {
             std::atomic<State> state;
 
             bool maybe_unlocking;  // Valid at head of mutex waiter queue;
-            // true if UnlockSlow could be searching
+            // true if unlock_slow could be searching
             // for a waiter to wake.  Used for an optimization
             // in Enqueue().  true is always a valid value.
             // Can be reset to false when the unlocker or any
@@ -112,25 +112,25 @@ namespace abel {
             bool wake;  // This thread is to be woken from a mutex.
 
             // If "x" is on a waiter list for a mutex, "x->cond_waiter" is true iff the
-            // waiter is waiting on the mutex as part of a CV wait or mutex Await.
+            // waiter is waiting on the mutex as part of a CV wait or mutex await.
             //
             // The value of "x->cond_waiter" is meaningless if "x" is not on a
             // mutex waiter list.
             bool cond_waiter;
 
             // Locks held; used during deadlock detection.
-            // Allocated in Synch_GetAllLocks() and freed in ReclaimThreadIdentity().
-            SynchLocksHeld *all_locks;
+            // Allocated in Synch_GetAllLocks() and freed in reclaim_thread_identity().
+            synch_locks_held *all_locks;
         };
 
-        struct ThreadIdentity {
+        struct thread_identity {
             // Must be the first member.  The mutex implementation requires that
-            // the PerThreadSynch object associated with each thread is
-            // PerThreadSynch::kAlignment aligned.  We provide this alignment on
-            // ThreadIdentity itself.
-            PerThreadSynch per_thread_synch;
+            // the per_thread_synch object associated with each thread is
+            // per_thread_synch::kAlignment aligned.  We provide this alignment on
+            // thread_identity itself.
+            per_thread_synch per_thread_synch;
 
-            // Private: Reserved for abel::thread_internal::Waiter.
+            // Private: Reserved for abel::thread_internal::waiter.
             struct WaiterState {
                 char data[128];
             } waiter_state;
@@ -145,10 +145,10 @@ namespace abel {
             std::atomic<int> wait_start;  // Ticker value when thread started waiting.
             std::atomic<bool> is_idle;    // Has thread become idle yet?
 
-            ThreadIdentity *next;
+            thread_identity *next;
         };
 
-// Returns the ThreadIdentity object representing the calling thread; guaranteed
+// Returns the thread_identity object representing the calling thread; guaranteed
 // to be unique for its lifetime.  The returned object will remain valid for the
 // program's lifetime; although it may be re-assigned to a subsequent thread.
 // If one does not exist, return nullptr instead.
@@ -157,28 +157,28 @@ namespace abel {
 // [*] Technically pthread_setspecific() does malloc on first use; however this
 // is handled internally within tcmalloc's initialization already.
 //
-// New ThreadIdentity objects can be constructed and associated with a thread
-// by calling GetOrCreateCurrentThreadIdentity() in per-thread-sem.h.
-        ThreadIdentity *CurrentThreadIdentityIfPresent();
+// New thread_identity objects can be constructed and associated with a thread
+// by calling get_or_create_current_thread_identity() in per-thread-sem.h.
+        thread_identity *CurrentThreadIdentityIfPresent();
 
         using ThreadIdentityReclaimerFunction = void (*)(void *);
 
 // Sets the current thread identity to the given value.  'reclaimer' is a
 // pointer to the global function for cleaning up instances on thread
 // destruction.
-        void SetCurrentThreadIdentity(ThreadIdentity *identity,
+        void SetCurrentThreadIdentity(thread_identity *identity,
                                       ThreadIdentityReclaimerFunction reclaimer);
 
-// Removes the currently associated ThreadIdentity from the running thread.
+// Removes the currently associated thread_identity from the running thread.
 // This must be called from inside the ThreadIdentityReclaimerFunction, and only
 // from that function.
         void ClearCurrentThreadIdentity();
 
 
-        ABEL_CONST_INIT extern ABEL_THREAD_LOCAL ThreadIdentity*
+        ABEL_CONST_INIT extern ABEL_THREAD_LOCAL thread_identity*
             thread_identity_ptr;
 
-        ABEL_FORCE_INLINE ThreadIdentity* CurrentThreadIdentityIfPresent() {
+        ABEL_FORCE_INLINE thread_identity* CurrentThreadIdentityIfPresent() {
           return thread_identity_ptr;
         }
 

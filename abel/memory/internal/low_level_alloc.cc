@@ -194,7 +194,7 @@ namespace abel {
             // Constructs an arena with the given low_level_alloc flags.
             explicit arena(uint32_t flags_value);
 
-            thread_internal::SpinLock mu;
+            thread_internal::spin_lock mu;
             // Head of free list, sorted by address
             alloc_list freelist ABEL_GUARDED_BY(mu);
             // Count of allocated blocks

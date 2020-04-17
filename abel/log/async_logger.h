@@ -31,7 +31,7 @@ namespace abel {
 
 // Async overflow policy - block by default.
         enum class async_overflow_policy {
-            block,         // Block until message can be enqueued
+            block,         // block until message can be enqueued
             overrun_oldest // Discard oldest message in the queue if full when trying to
             // add new item.
         };

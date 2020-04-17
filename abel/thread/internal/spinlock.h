@@ -14,14 +14,14 @@
 // limitations under the License.
 
 //  Most users requiring mutual exclusion should use mutex.
-//  SpinLock is provided for use in three situations:
+//  spin_lock is provided for use in three situations:
 //   - for use in code that mutex itself depends on
 //   - to get a faster fast-path release under low contention (without an
-//     atomic read-modify-write) In return, SpinLock has worse behaviour under
+//     atomic read-modify-write) In return, spin_lock has worse behaviour under
 //     contention, which is why mutex is preferred in most situations.
 //   - for async signal safety (see below)
 
-// SpinLock is async signal safe.  If a spinlock is used within a signal
+// spin_lock is async signal safe.  If a spinlock is used within a signal
 // handler, all code that acquires the lock must ensure that the signal cannot
 // arrive while they are holding the lock.  Typically, this is done by blocking
 // the signal.
@@ -47,38 +47,38 @@ namespace abel {
 
     namespace thread_internal {
 
-        class ABEL_LOCKABLE SpinLock {
+        class ABEL_LOCKABLE spin_lock {
         public:
-            SpinLock() : lockword_(kSpinLockCooperative) {
+            spin_lock() : lockword_(kSpinLockCooperative) {
                 ABEL_TSAN_MUTEX_CREATE(this, __tsan_mutex_not_static);
             }
 
-            // Special constructor for use with static SpinLock objects.  E.g.,
+            // Special constructor for use with static spin_lock objects.  E.g.,
             //
-            //    static SpinLock lock(base_internal::kLinkerInitialized);
+            //    static spin_lock lock(base_internal::kLinkerInitialized);
             //
             // When initialized using this constructor, we depend on the fact
             // that the linker has already initialized the memory appropriately. The lock
             // is initialized in non-cooperative mode.
             //
-            // A SpinLock constructed like this can be freely used from global
+            // A spin_lock constructed like this can be freely used from global
             // initializers without worrying about the order in which global
             // initializers run.
-            explicit SpinLock(base_internal::LinkerInitialized) {
+            explicit spin_lock(base_internal::LinkerInitialized) {
                 // Does nothing; lockword_ is already initialized
                 ABEL_TSAN_MUTEX_CREATE(this, 0);
             }
 
             // Constructors that allow non-cooperative spinlocks to be created for use
             // inside thread schedulers.  Normal clients should not use these.
-            explicit SpinLock(thread_internal::SchedulingMode mode);
+            explicit spin_lock(thread_internal::SchedulingMode mode);
 
-            SpinLock(base_internal::LinkerInitialized,
+            spin_lock(base_internal::LinkerInitialized,
                      thread_internal::SchedulingMode mode);
 
-            ~SpinLock() { ABEL_TSAN_MUTEX_DESTROY(this, __tsan_mutex_not_static); }
+            ~spin_lock() { ABEL_TSAN_MUTEX_DESTROY(this, __tsan_mutex_not_static); }
 
-            // Acquire this SpinLock.
+            // Acquire this spin_lock.
             ABEL_FORCE_INLINE void lock() ABEL_EXCLUSIVE_LOCK_FUNCTION() {
                 ABEL_TSAN_MUTEX_PRE_LOCK(this, 0);
                 if (!TryLockImpl()) {
@@ -87,9 +87,9 @@ namespace abel {
                 ABEL_TSAN_MUTEX_POST_LOCK(this, 0, 0);
             }
 
-            // Try to acquire this SpinLock without blocking and return true if the
+            // Try to acquire this spin_lock without blocking and return true if the
             // acquisition was successful.  If the lock was not acquired, false is
-            // returned.  If this SpinLock is free at the time of the call, try_lock
+            // returned.  If this spin_lock is free at the time of the call, try_lock
             // will return true with high probability.
             ABEL_FORCE_INLINE bool try_lock() ABEL_EXCLUSIVE_TRYLOCK_FUNCTION(true) {
                 ABEL_TSAN_MUTEX_PRE_LOCK(this, __tsan_mutex_try_lock);
@@ -100,7 +100,7 @@ namespace abel {
                 return res;
             }
 
-            // Release this SpinLock, which must be held by the calling thread.
+            // Release this spin_lock, which must be held by the calling thread.
             ABEL_FORCE_INLINE void unlock() ABEL_UNLOCK_FUNCTION() {
                 ABEL_TSAN_MUTEX_PRE_UNLOCK(this, 0);
                 uint32_t lock_value = lockword_.load(std::memory_order_relaxed);
@@ -108,7 +108,7 @@ namespace abel {
                                                 std::memory_order_release);
 
                 if ((lock_value & kSpinLockDisabledScheduling) != 0) {
-                    thread_internal::SchedulingGuard::EnableRescheduling(true);
+                    thread_internal::scheduling_guard::enable_rescheduling(true);
                 }
                 if ((lock_value & kWaitTimeMask) != 0) {
                     // Collect contentionz profile info, and speed the wakeup of any waiter.
@@ -187,16 +187,16 @@ namespace abel {
 
             std::atomic<uint32_t> lockword_;
 
-            SpinLock(const SpinLock &) = delete;
+            spin_lock(const spin_lock &) = delete;
 
-            SpinLock &operator=(const SpinLock &) = delete;
+            spin_lock &operator=(const spin_lock &) = delete;
         };
 
 // Corresponding locker object that arranges to acquire a spinlock for
 // the duration of a C++ scope.
         class ABEL_SCOPED_LOCKABLE SpinLockHolder {
         public:
-            ABEL_FORCE_INLINE explicit SpinLockHolder(SpinLock *l) ABEL_EXCLUSIVE_LOCK_FUNCTION(l)
+            ABEL_FORCE_INLINE explicit SpinLockHolder(spin_lock *l) ABEL_EXCLUSIVE_LOCK_FUNCTION(l)
                     : lock_(l) {
                 l->lock();
             }
@@ -208,7 +208,7 @@ namespace abel {
             SpinLockHolder &operator=(const SpinLockHolder &) = delete;
 
         private:
-            SpinLock *lock_;
+            spin_lock *lock_;
         };
 
 // Register a hook for profiling support.
@@ -227,7 +227,7 @@ namespace abel {
 
 // If (result & kSpinLockHeld) == 0, then *this was successfully locked.
 // Otherwise, returns last observed value for lockword_.
-        ABEL_FORCE_INLINE uint32_t SpinLock::TryLockInternal(uint32_t lock_value,
+        ABEL_FORCE_INLINE uint32_t spin_lock::TryLockInternal(uint32_t lock_value,
                                                              uint32_t wait_cycles) {
             if ((lock_value & kSpinLockHeld) != 0) {
                 return lock_value;
@@ -237,7 +237,7 @@ namespace abel {
             if ((lock_value & kSpinLockCooperative) == 0) {
                 // For non-cooperative locks we must make sure we mark ourselves as
                 // non-reschedulable before we attempt to CompareAndSwap.
-                if (thread_internal::SchedulingGuard::DisableRescheduling()) {
+                if (thread_internal::scheduling_guard::disable_rescheduling()) {
                     sched_disabled_bit = kSpinLockDisabledScheduling;
                 }
             }
@@ -246,7 +246,7 @@ namespace abel {
                     lock_value,
                     kSpinLockHeld | lock_value | wait_cycles | sched_disabled_bit,
                     std::memory_order_acquire, std::memory_order_relaxed)) {
-                thread_internal::SchedulingGuard::EnableRescheduling(sched_disabled_bit != 0);
+                thread_internal::scheduling_guard::enable_rescheduling(sched_disabled_bit != 0);
             }
 
             return lock_value;

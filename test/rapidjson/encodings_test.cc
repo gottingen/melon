@@ -102,7 +102,7 @@ static const unsigned kCodepointRanges[] = {
         0x2440, 0x245F,     // Optical Character Recognition
         0x2460, 0x24FF,     // Enclosed Alphanumerics
         0x2500, 0x257F,     // Box Drawing
-        0x2580, 0x259F,     // Block Elements
+        0x2580, 0x259F,     // block Elements
         0x25A0, 0x25FF,     // Geometric Shapes
         0x2600, 0x26FF,     // Miscellaneous Symbols
         0x2700, 0x27BF,     // Dingbats

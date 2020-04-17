@@ -1,6 +1,6 @@
 //
 
-// GraphCycles provides incremental cycle detection on a dynamic
+// graph_cycles provides incremental cycle detection on a dynamic
 // graph using the following algorithm:
 //
 // A dynamic topological sort algorithm for directed acyclic graphs
@@ -40,7 +40,7 @@ namespace abel {
 
 // Avoid low_level_alloc's default arena since it calls malloc hooks in
 // which people are doing things like acquiring Mutexes.
-            static abel::thread_internal::SpinLock arena_mu(
+            static abel::thread_internal::spin_lock arena_mu(
                     abel::base_internal::kLinkerInitialized);
             static memory_internal::low_level_alloc::arena *arena;
 
@@ -258,22 +258,22 @@ namespace abel {
                 NodeSet &operator=(const NodeSet &) = delete;
             };
 
-// We encode a node index and a node version in GraphId.  The version
-// number is incremented when the GraphId is freed which automatically
-// invalidates all copies of the GraphId.
+// We encode a node index and a node version in graph_id.  The version
+// number is incremented when the graph_id is freed which automatically
+// invalidates all copies of the graph_id.
 
-            ABEL_FORCE_INLINE GraphId MakeId(int32_t index, uint32_t version) {
-                GraphId g;
+            ABEL_FORCE_INLINE graph_id MakeId(int32_t index, uint32_t version) {
+                graph_id g;
                 g.handle =
                         (static_cast<uint64_t>(version) << 32) | static_cast<uint32_t>(index);
                 return g;
             }
 
-            ABEL_FORCE_INLINE int32_t NodeIndex(GraphId id) {
+            ABEL_FORCE_INLINE int32_t NodeIndex(graph_id id) {
                 return static_cast<uint32_t>(id.handle & 0xfffffffful);
             }
 
-            ABEL_FORCE_INLINE uint32_t NodeVersion(GraphId id) {
+            ABEL_FORCE_INLINE uint32_t NodeVersion(graph_id id) {
                 return static_cast<uint32_t>(id.handle >> 32);
             }
 
@@ -344,7 +344,7 @@ namespace abel {
 
         }  // namespace
 
-        struct GraphCycles::Rep {
+        struct graph_cycles::Rep {
             Vec<Node *> nodes_;
             Vec<int32_t> free_nodes_;  // Indices for unused entries in nodes_
             PointerMap ptrmap_;
@@ -359,18 +359,18 @@ namespace abel {
             Rep() : ptrmap_(&nodes_) {}
         };
 
-        static Node *FindNode(GraphCycles::Rep *rep, GraphId id) {
+        static Node *FindNode(graph_cycles::Rep *rep, graph_id id) {
             Node *n = rep->nodes_[NodeIndex(id)];
             return (n->version == NodeVersion(id)) ? n : nullptr;
         }
 
-        GraphCycles::GraphCycles() {
+        graph_cycles::graph_cycles() {
             InitArenaIfNecessary();
             rep_ = new(memory_internal::low_level_alloc::alloc_with_arena(sizeof(Rep), arena))
                     Rep;
         }
 
-        GraphCycles::~GraphCycles() {
+        graph_cycles::~graph_cycles() {
             for (auto *node : rep_->nodes_) {
                 node->Node::~Node();
                 memory_internal::low_level_alloc::free(node);
@@ -379,7 +379,7 @@ namespace abel {
             memory_internal::low_level_alloc::free(rep_);
         }
 
-        bool GraphCycles::CheckInvariants() const {
+        bool graph_cycles::check_invariants() const {
             Rep *r = rep_;
             NodeSet ranks;  // Set of ranks seen so far.
             for (uint32_t x = 0; x < r->nodes_.size(); x++) {
@@ -405,7 +405,7 @@ namespace abel {
             return true;
         }
 
-        GraphId GraphCycles::GetId(void *ptr) {
+        graph_id graph_cycles::get_id(void *ptr) {
             int32_t i = rep_->ptrmap_.Find(ptr);
             if (i != -1) {
                 return MakeId(i, rep_->nodes_[i]->version);
@@ -413,7 +413,7 @@ namespace abel {
                 Node *n =
                         new(memory_internal::low_level_alloc::alloc_with_arena(sizeof(Node), arena))
                                 Node;
-                n->version = 1;  // Avoid 0 since it is used by InvalidGraphId()
+                n->version = 1;  // Avoid 0 since it is used by invalid_graphId()
                 n->visited = false;
                 n->rank = rep_->nodes_.size();
                 n->masked_ptr = hide_ptr(ptr);
@@ -436,7 +436,7 @@ namespace abel {
             }
         }
 
-        void GraphCycles::RemoveNode(void *ptr) {
+        void graph_cycles::remove_node(void *ptr) {
             int32_t i = rep_->ptrmap_.Remove(ptr);
             if (i == -1) {
                 return;
@@ -459,22 +459,22 @@ namespace abel {
             }
         }
 
-        void *GraphCycles::Ptr(GraphId id) {
+        void *graph_cycles::ptr(graph_id id) {
             Node *n = FindNode(rep_, id);
             return n == nullptr ? nullptr
                                 : unhide_ptr<void>(n->masked_ptr);
         }
 
-        bool GraphCycles::HasNode(GraphId node) {
+        bool graph_cycles::has_node(graph_id node) {
             return FindNode(rep_, node) != nullptr;
         }
 
-        bool GraphCycles::HasEdge(GraphId x, GraphId y) const {
+        bool graph_cycles::has_edge(graph_id x, graph_id y) const {
             Node *xn = FindNode(rep_, x);
             return xn && FindNode(rep_, y) && xn->out.contains(NodeIndex(y));
         }
 
-        void GraphCycles::RemoveEdge(GraphId x, GraphId y) {
+        void graph_cycles::remove_edge(graph_id x, graph_id y) {
             Node *xn = FindNode(rep_, x);
             Node *yn = FindNode(rep_, y);
             if (xn && yn) {
@@ -485,18 +485,18 @@ namespace abel {
             }
         }
 
-        static bool ForwardDFS(GraphCycles::Rep *r, int32_t n, int32_t upper_bound);
+        static bool ForwardDFS(graph_cycles::Rep *r, int32_t n, int32_t upper_bound);
 
-        static void BackwardDFS(GraphCycles::Rep *r, int32_t n, int32_t lower_bound);
+        static void BackwardDFS(graph_cycles::Rep *r, int32_t n, int32_t lower_bound);
 
-        static void Reorder(GraphCycles::Rep *r);
+        static void Reorder(graph_cycles::Rep *r);
 
         static void Sort(const Vec<Node *> &, Vec<int32_t> *delta);
 
         static void MoveToList(
-                GraphCycles::Rep *r, Vec<int32_t> *src, Vec<int32_t> *dst);
+                graph_cycles::Rep *r, Vec<int32_t> *src, Vec<int32_t> *dst);
 
-        bool GraphCycles::InsertEdge(GraphId idx, GraphId idy) {
+        bool graph_cycles::insert_edge(graph_id idx, graph_id idy) {
             Rep *r = rep_;
             const int32_t x = NodeIndex(idx);
             const int32_t y = NodeIndex(idy);
@@ -535,7 +535,7 @@ namespace abel {
             return true;
         }
 
-        static bool ForwardDFS(GraphCycles::Rep *r, int32_t n, int32_t upper_bound) {
+        static bool ForwardDFS(graph_cycles::Rep *r, int32_t n, int32_t upper_bound) {
             // Avoid recursion since stack space might be limited.
             // We instead keep a stack of nodes to visit.
             r->deltaf_.clear();
@@ -563,7 +563,7 @@ namespace abel {
             return true;
         }
 
-        static void BackwardDFS(GraphCycles::Rep *r, int32_t n, int32_t lower_bound) {
+        static void BackwardDFS(graph_cycles::Rep *r, int32_t n, int32_t lower_bound) {
             r->deltab_.clear();
             r->stack_.clear();
             r->stack_.push_back(n);
@@ -585,7 +585,7 @@ namespace abel {
             }
         }
 
-        static void Reorder(GraphCycles::Rep *r) {
+        static void Reorder(graph_cycles::Rep *r) {
             Sort(r->nodes_, &r->deltab_);
             Sort(r->nodes_, &r->deltaf_);
 
@@ -620,7 +620,7 @@ namespace abel {
         }
 
         static void MoveToList(
-                GraphCycles::Rep *r, Vec<int32_t> *src, Vec<int32_t> *dst) {
+                graph_cycles::Rep *r, Vec<int32_t> *src, Vec<int32_t> *dst) {
             for (auto &v : *src) {
                 int32_t w = v;
                 v = r->nodes_[w]->rank;         // Replace v entry with its rank
@@ -629,8 +629,8 @@ namespace abel {
             }
         }
 
-        int GraphCycles::FindPath(GraphId idx, GraphId idy, int max_path_len,
-                                  GraphId path[]) const {
+        int graph_cycles::find_path(graph_id idx, graph_id idy, int max_path_len,
+                                  graph_id path[]) const {
             Rep *r = rep_;
             if (FindNode(r, idx) == nullptr || FindNode(r, idy) == nullptr) return 0;
             const int32_t x = NodeIndex(idx);
@@ -673,11 +673,11 @@ namespace abel {
             return 0;
         }
 
-        bool GraphCycles::IsReachable(GraphId x, GraphId y) const {
-            return FindPath(x, y, 0, nullptr) > 0;
+        bool graph_cycles::is_reachable(graph_id x, graph_id y) const {
+            return find_path(x, y, 0, nullptr) > 0;
         }
 
-        void GraphCycles::UpdateStackTrace(GraphId id, int priority,
+        void graph_cycles::update_stack_trace(graph_id id, int priority,
                                            int (*get_stack_trace)(void **stack, int)) {
             Node *n = FindNode(rep_, id);
             if (n == nullptr || n->priority >= priority) {
@@ -687,7 +687,7 @@ namespace abel {
             n->priority = priority;
         }
 
-        int GraphCycles::GetStackTrace(GraphId id, void ***ptr) {
+        int graph_cycles::get_stack_trace(graph_id id, void ***ptr) {
             Node *n = FindNode(rep_, id);
             if (n == nullptr) {
                 *ptr = nullptr;
