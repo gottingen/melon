@@ -139,6 +139,7 @@ namespace abel {
                 case metrics_type::mt_timer:
                     out << "# TYPE " << metricsName << " histogram\n";
                     SerializeHistogram(out, metricsName, metrics);
+                    break;
                 default:
                     break;
             }

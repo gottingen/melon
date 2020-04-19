@@ -11,4 +11,4 @@ namespace abel {
     void create_log_ptr() {
         log_singleton::_log_ptr = abel::log::stdout_color_mt("abel");
     }
-}
+} //namespace abel

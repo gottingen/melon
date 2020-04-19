@@ -271,4 +271,4 @@ namespace abel {
         return MD5(str).digest_hex_uc();
     }
 
-}
+} //namespace abel

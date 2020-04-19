@@ -54,5 +54,5 @@ namespace abel {
                 std::vector<T> v_;
             };
         } // namespace details
-    } //namespace log {
+    } //namespace log
 } // namespace abel

@@ -2144,9 +2144,9 @@ private:
                                 }
                             }
                             block->atomic_queue::block::template set_many_empty<explicit_context>(firstIndexInBlock,
-                                                                                                     static_cast<size_t>(
-                                                                                                             endIndex -
-                                                                                                             firstIndexInBlock));
+                                                                                                  static_cast<size_t>(
+                                                                                                          endIndex -
+                                                                                                          firstIndexInBlock));
                             indexIndex = (indexIndex + 1) & (localBlockIndex->size - 1);
                         } while (index != firstIndex + actualCount);
 
@@ -2163,7 +2163,7 @@ private:
         private:
             struct BlockIndexEntry {
                 index_t base;
-                block *block;
+                struct block *block;
             };
 
             struct BlockIndexHeader {
@@ -3028,7 +3028,8 @@ private:
 
             recycled = false;
             return add_producer(
-                    isExplicit ? static_cast<producer_base *>(create<explicit_producer>(this)) : create<ImplicitProducer>(
+                    isExplicit ? static_cast<producer_base *>(create<explicit_producer>(this))
+                               : create<ImplicitProducer>(
                             this));
         }
 
@@ -3472,7 +3473,7 @@ private:
     consumer_token::consumer_token(blocking_atomic_queue<T, Traits> &queue)
             : itemsConsumedFromCurrent(0), currentProducer(nullptr), desiredProducer(nullptr) {
         initialOffset = reinterpret_cast<atomic_queue<T, Traits> *>(&queue)->nextExplicitConsumerId.fetch_add(1,
-                                                                                                                 std::memory_order_release);
+                                                                                                              std::memory_order_release);
         lastKnownGlobalOffset = -1;
     }
 

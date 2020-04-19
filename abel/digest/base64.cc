@@ -194,4 +194,4 @@ namespace abel {
         return base64_decode(str.data(), str.size(), strict);
     }
 
-}
+} //namespace abel

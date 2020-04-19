@@ -45,8 +45,8 @@ namespace abel {
             // Returns the associated thread_identity.
             // This can be implemented as a cast because we guarantee
             // per_thread_synch is the first element of thread_identity.
-            thread_identity *thread_identity() {
-                return reinterpret_cast<struct thread_identity *>(this);
+            struct thread_identity *thread_identity() {
+                return reinterpret_cast<struct thread_identity*>(this);
             }
 
             per_thread_synch *next;  // Circular waiter queue; initialized to 0.
@@ -128,7 +128,7 @@ namespace abel {
             // the per_thread_synch object associated with each thread is
             // per_thread_synch::kAlignment aligned.  We provide this alignment on
             // thread_identity itself.
-            per_thread_synch per_thread_synch;
+            struct per_thread_synch per_thread_synch;
 
             // Private: Reserved for abel::thread_internal::waiter.
             struct WaiterState {

@@ -5,33 +5,38 @@ foreach (fl ${META_SRC})
 
     string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" SRC_NAME ${fl})
     set(TEST_NAME debugging_${SRC_NAME})
-    add_executable(${TEST_NAME}
-            ${SRC_NAME}.cc
-            )
-
-        if(APPLE)
-        target_link_libraries(${TEST_NAME}
+    if (APPLE)
+        carbin_cc_test(
+                NAME
+                ${TEST_NAME}
+                SRCS
+                ${SRC_NAME}.cc
+                COPTS
+                ${CARBIN_TEST_COPTS}
+                DEPS
+                abel::abel
                 gtest
-                gmock
-                gtest_main
                 testing_static
-                abel_static
+                gtest_main
+                gmock
                 pthread
-                )
-    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        target_link_libraries(${TEST_NAME}
+        )
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        carbin_cc_test(
+                NAME
+                ${TEST_NAME}
+                SRCS
+                ${SRC_NAME}.cc
+                COPTS
+                ${CARBIN_TEST_COPTS}
+                DEPS
+                abel::abel
                 gtest
-                gmock
-                gtest_main
                 testing_static
-                abel_static
+                gtest_main
+                gmock
                 pthread
                 rt
-                )
-    endif()
-
-    add_test(
-            NAME ${TEST_NAME}
-            COMMAND ${TEST_NAME}
-    )
+        )
+    endif ()
 endforeach (fl ${SRC})
