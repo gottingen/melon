@@ -16,7 +16,7 @@ namespace abel {
 
     namespace thread_internal {
 
-// We emulate a GraphCycles object with a node vector and an edge vector.
+// We emulate a graph_cycles object with a node vector and an edge vector.
 // We then compare the two implementations.
 
         using Nodes = std::vector<int>;
@@ -27,16 +27,16 @@ namespace abel {
         using Edges = std::vector<Edge>;
         using RandomEngine = std::mt19937_64;
 
-// Mapping from integer index to GraphId.
-        typedef std::map<int, GraphId> IdMap;
+// Mapping from integer index to graph_id.
+        typedef std::map<int, graph_id> IdMap;
 
-        static GraphId Get(const IdMap &id, int num) {
+        static graph_id Get(const IdMap &id, int num) {
             auto iter = id.find(num);
-            return (iter == id.end()) ? InvalidGraphId() : iter->second;
+            return (iter == id.end()) ? invalid_graphId() : iter->second;
         }
 
 // Return whether "to" is reachable from "from".
-        static bool IsReachable(Edges *edges, int from, int to,
+        static bool is_reachable(Edges *edges, int from, int to,
                                 std::unordered_set<int> *seen) {
             seen->insert(from);     // we are investigating "from"; don't do it again
             if (from == to) return true;
@@ -45,7 +45,7 @@ namespace abel {
                     if (edge.to == to) {  // success via edge directly
                         return true;
                     } else if (seen->find(edge.to) == seen->end() &&  // success via edge
-                               IsReachable(edges, edge.to, to, seen)) {
+                               is_reachable(edges, edge.to, to, seen)) {
                         return true;
                     }
                 }
@@ -63,11 +63,11 @@ namespace abel {
             ABEL_RAW_INFO("---");
         }
 
-        static void PrintGCEdges(Nodes *nodes, const IdMap &id, GraphCycles *gc) {
+        static void PrintGCEdges(Nodes *nodes, const IdMap &id, graph_cycles *gc) {
             ABEL_RAW_INFO("GC EDGES");
             for (int a : *nodes) {
                 for (int b : *nodes) {
-                    if (gc->HasEdge(Get(id, a), Get(id, b))) {
+                    if (gc->has_edge(Get(id, a), Get(id, b))) {
                         ABEL_RAW_INFO("{} {}", a, b);
                     }
                 }
@@ -80,7 +80,7 @@ namespace abel {
             for (int a : *nodes) {
                 for (int b : *nodes) {
                     std::unordered_set<int> seen;
-                    if (IsReachable(edges, a, b, &seen)) {
+                    if (is_reachable(edges, a, b, &seen)) {
                         ABEL_RAW_INFO("{} {}", a, b);
                     }
                 }
@@ -89,11 +89,11 @@ namespace abel {
         }
 
         static void PrintGCTransitiveClosure(Nodes *nodes, const IdMap &id,
-                                             GraphCycles *gc) {
+                                             graph_cycles *gc) {
             ABEL_RAW_INFO("GC Transitive closure");
             for (int a : *nodes) {
                 for (int b : *nodes) {
-                    if (gc->IsReachable(Get(id, a), Get(id, b))) {
+                    if (gc->is_reachable(Get(id, a), Get(id, b))) {
                         ABEL_RAW_INFO("{} {}", a, b);
                     }
                 }
@@ -102,13 +102,13 @@ namespace abel {
         }
 
         static void CheckTransitiveClosure(Nodes *nodes, Edges *edges, const IdMap &id,
-                                           GraphCycles *gc) {
+                                           graph_cycles *gc) {
             std::unordered_set<int> seen;
             for (const auto &a : *nodes) {
                 for (const auto &b : *nodes) {
                     seen.clear();
-                    bool gc_reachable = gc->IsReachable(Get(id, a), Get(id, b));
-                    bool reachable = IsReachable(edges, a, b, &seen);
+                    bool gc_reachable = gc->is_reachable(Get(id, a), Get(id, b));
+                    bool reachable = is_reachable(edges, a, b, &seen);
                     if (gc_reachable != reachable) {
                         PrintEdges(edges);
                         PrintGCEdges(nodes, id, gc);
@@ -123,20 +123,20 @@ namespace abel {
         }
 
         static void CheckEdges(Nodes *nodes, Edges *edges, const IdMap &id,
-                               GraphCycles *gc) {
+                               graph_cycles *gc) {
             size_t count = 0;
             for (const auto &edge : *edges) {
                 int a = edge.from;
                 int b = edge.to;
-                if (!gc->HasEdge(Get(id, a), Get(id, b))) {
+                if (!gc->has_edge(Get(id, a), Get(id, b))) {
                     PrintEdges(edges);
                     PrintGCEdges(nodes, id, gc);
-                    ABEL_RAW_CRITICAL("!gc->HasEdge({}, {})", a, b);
+                    ABEL_RAW_CRITICAL("!gc->has_edge({}, {})", a, b);
                 }
             }
             for (const auto &a : *nodes) {
                 for (const auto &b : *nodes) {
-                    if (gc->HasEdge(Get(id, a), Get(id, b))) {
+                    if (gc->has_edge(Get(id, a), Get(id, b))) {
                         count++;
                     }
                 }
@@ -148,9 +148,9 @@ namespace abel {
             }
         }
 
-        static void CheckInvariants(const GraphCycles &gc) {
-            if (ABEL_UNLIKELY(!gc.CheckInvariants()))
-                ABEL_RAW_CRITICAL("CheckInvariants");
+        static void check_invariants(const graph_cycles &gc) {
+            if (ABEL_UNLIKELY(!gc.check_invariants()))
+                ABEL_RAW_CRITICAL("check_invariants");
         }
 
 // Returns the index of a randomly chosen node in *nodes.
@@ -177,12 +177,12 @@ namespace abel {
             return i == edges->size() ? -1 : i;
         }
 
-        TEST(GraphCycles, RandomizedTest) {
+        TEST(graph_cycles, RandomizedTest) {
             int next_node = 0;
             Nodes nodes;
             Edges edges;   // from, to
             IdMap id;
-            GraphCycles graph_cycles;
+            graph_cycles graph_cycles;
             static const int kMaxNodes = 7;  // use <= 7 nodes to keep test short
             static const int kDataOffset = 17;  // an offset to the node-specific data
             int n = 100000;
@@ -196,7 +196,7 @@ namespace abel {
 
             for (int iter = 0; iter != n; iter++) {
                 for (const auto &node : nodes) {
-                    ASSERT_EQ(graph_cycles.Ptr(Get(id, node)), ptr(node)) << " node " << node;
+                    ASSERT_EQ(graph_cycles.ptr(Get(id, node)), ptr(node)) << " node " << node;
                 }
                 CheckEdges(&nodes, &edges, id, &graph_cycles);
                 CheckTransitiveClosure(&nodes, &edges, id, &graph_cycles);
@@ -205,10 +205,10 @@ namespace abel {
                     case 0:     // Add a node
                         if (nodes.size() < kMaxNodes) {
                             int new_node = next_node++;
-                            GraphId new_gnode = graph_cycles.GetId(ptr(new_node));
-                            ASSERT_NE(new_gnode, InvalidGraphId());
+                            graph_id new_gnode = graph_cycles.get_id(ptr(new_node));
+                            ASSERT_NE(new_gnode, invalid_graphId());
                             id[new_node] = new_gnode;
-                            ASSERT_EQ(ptr(new_node), graph_cycles.Ptr(new_gnode));
+                            ASSERT_EQ(ptr(new_node), graph_cycles.ptr(new_gnode));
                             nodes.push_back(new_node);
                         }
                         break;
@@ -219,8 +219,8 @@ namespace abel {
                             int node = nodes[node_index];
                             nodes[node_index] = nodes.back();
                             nodes.pop_back();
-                            graph_cycles.RemoveNode(ptr(node));
-                            ASSERT_EQ(graph_cycles.Ptr(Get(id, node)), nullptr);
+                            graph_cycles.remove_node(ptr(node));
+                            ASSERT_EQ(graph_cycles.ptr(Get(id, node)), nullptr);
                             id.erase(node);
                             size_t i = 0;
                             while (i != edges.size()) {
@@ -239,14 +239,14 @@ namespace abel {
                             int from = RandomNode(&rng, &nodes);
                             int to = RandomNode(&rng, &nodes);
                             if (EdgeIndex(&edges, nodes[from], nodes[to]) == -1) {
-                                if (graph_cycles.InsertEdge(id[nodes[from]], id[nodes[to]])) {
+                                if (graph_cycles.insert_edge(id[nodes[from]], id[nodes[to]])) {
                                     Edge new_edge;
                                     new_edge.from = nodes[from];
                                     new_edge.to = nodes[to];
                                     edges.push_back(new_edge);
                                 } else {
                                     std::unordered_set<int> seen;
-                                    ASSERT_TRUE(IsReachable(&edges, nodes[to], nodes[from], &seen))
+                                    ASSERT_TRUE(is_reachable(&edges, nodes[to], nodes[from], &seen))
                                                                 << "Edge " << nodes[to] << "->" << nodes[from];
                                 }
                             }
@@ -262,7 +262,7 @@ namespace abel {
                             edges[i] = edges.back();
                             edges.pop_back();
                             ASSERT_EQ(-1, EdgeIndex(&edges, from, to));
-                            graph_cycles.RemoveEdge(id[from], id[to]);
+                            graph_cycles.remove_edge(id[from], id[to]);
                         }
                         break;
 
@@ -270,13 +270,13 @@ namespace abel {
                         if (nodes.size() > 0) {
                             int from = RandomNode(&rng, &nodes);
                             int to = RandomNode(&rng, &nodes);
-                            GraphId path[2 * kMaxNodes];
-                            int path_len = graph_cycles.FindPath(id[nodes[from]], id[nodes[to]],
+                            graph_id path[2 * kMaxNodes];
+                            int path_len = graph_cycles.find_path(id[nodes[from]], id[nodes[to]],
                                                                  ABEL_ARRAYSIZE(path), path);
                             std::unordered_set<int> seen;
-                            bool reachable = IsReachable(&edges, nodes[from], nodes[to], &seen);
+                            bool reachable = is_reachable(&edges, nodes[from], nodes[to], &seen);
                             bool gc_reachable =
-                                    graph_cycles.IsReachable(Get(id, nodes[from]), Get(id, nodes[to]));
+                                    graph_cycles.is_reachable(Get(id, nodes[from]), Get(id, nodes[to]));
                             ASSERT_EQ(path_len != 0, reachable);
                             ASSERT_EQ(path_len != 0, gc_reachable);
                             // In the following line, we add one because a node can appear
@@ -287,14 +287,14 @@ namespace abel {
                                 ASSERT_EQ(id[nodes[from]], path[0]);
                                 ASSERT_EQ(id[nodes[to]], path[path_len - 1]);
                                 for (int i = 1; i < path_len; i++) {
-                                    ASSERT_TRUE(graph_cycles.HasEdge(path[i - 1], path[i]));
+                                    ASSERT_TRUE(graph_cycles.has_edge(path[i - 1], path[i]));
                                 }
                             }
                         }
                         break;
 
                     case 5:  // Check invariants
-                        CheckInvariants(graph_cycles);
+                        check_invariants(graph_cycles);
                         break;
 
                     default:
@@ -308,10 +308,10 @@ namespace abel {
                     CheckTransitiveClosure(&nodes, &edges, id, &graph_cycles);
                     for (int i = 0; i != 256; i++) {
                         int new_node = next_node++;
-                        GraphId new_gnode = graph_cycles.GetId(ptr(new_node));
-                        ASSERT_NE(InvalidGraphId(), new_gnode);
+                        graph_id new_gnode = graph_cycles.get_id(ptr(new_node));
+                        ASSERT_NE(invalid_graphId(), new_gnode);
                         id[new_node] = new_gnode;
-                        ASSERT_EQ(ptr(new_node), graph_cycles.Ptr(new_gnode));
+                        ASSERT_EQ(ptr(new_node), graph_cycles.ptr(new_gnode));
                         for (const auto &node : nodes) {
                             ASSERT_NE(node, new_node);
                         }
@@ -323,7 +323,7 @@ namespace abel {
                         int node = nodes[node_index];
                         nodes[node_index] = nodes.back();
                         nodes.pop_back();
-                        graph_cycles.RemoveNode(ptr(node));
+                        graph_cycles.remove_node(ptr(node));
                         id.erase(node);
                         size_t j = 0;
                         while (j != edges.size()) {
@@ -335,7 +335,7 @@ namespace abel {
                             }
                         }
                     }
-                    CheckInvariants(graph_cycles);
+                    check_invariants(graph_cycles);
                 }
             }
         }
@@ -343,7 +343,7 @@ namespace abel {
         class GraphCyclesTest : public ::testing::Test {
         public:
             IdMap id_;
-            GraphCycles g_;
+            graph_cycles g_;
 
             static void *Ptr(int i) {
                 return reinterpret_cast<void *>(static_cast<uintptr_t>(i));
@@ -356,13 +356,13 @@ namespace abel {
             // Test relies on ith NewNode() call returning Node numbered i
             GraphCyclesTest() {
                 for (int i = 0; i < 100; i++) {
-                    id_[i] = g_.GetId(Ptr(i));
+                    id_[i] = g_.get_id(Ptr(i));
                 }
-                CheckInvariants(g_);
+                check_invariants(g_);
             }
 
             bool AddEdge(int x, int y) {
-                return g_.InsertEdge(Get(id_, x), Get(id_, y));
+                return g_.insert_edge(Get(id_, x), Get(id_, y));
             }
 
             void AddMultiples() {
@@ -371,12 +371,12 @@ namespace abel {
                     EXPECT_TRUE(AddEdge(x, 2 * x)) << x;
                     EXPECT_TRUE(AddEdge(x, 3 * x)) << x;
                 }
-                CheckInvariants(g_);
+                check_invariants(g_);
             }
 
             std::string Path(int x, int y) {
-                GraphId path[5];
-                int np = g_.FindPath(Get(id_, x), Get(id_, y), ABEL_ARRAYSIZE(path), path);
+                graph_id path[5];
+                int np = g_.find_path(Get(id_, x), Get(id_, y), ABEL_ARRAYSIZE(path), path);
                 std::string result;
                 for (size_t i = 0; i < static_cast<size_t>(np); i++) {
                     if (i >= ABEL_ARRAYSIZE(path)) {
@@ -385,7 +385,7 @@ namespace abel {
                     }
                     if (!result.empty()) result.push_back(' ');
                     char buf[20];
-                    snprintf(buf, sizeof(buf), "%d", Num(g_.Ptr(path[i])));
+                    snprintf(buf, sizeof(buf), "%d", Num(g_.ptr(path[i])));
                     result += buf;
                 }
                 return result;
@@ -394,23 +394,23 @@ namespace abel {
 
         TEST_F(GraphCyclesTest, NoCycle) {
             AddMultiples();
-            CheckInvariants(g_);
+            check_invariants(g_);
         }
 
         TEST_F(GraphCyclesTest, SimpleCycle) {
             AddMultiples();
             EXPECT_FALSE(AddEdge(8, 4));
             EXPECT_EQ("4 8", Path(4, 8));
-            CheckInvariants(g_);
+            check_invariants(g_);
         }
 
         TEST_F(GraphCyclesTest, IndirectCycle) {
             AddMultiples();
             EXPECT_TRUE(AddEdge(16, 9));
-            CheckInvariants(g_);
+            check_invariants(g_);
             EXPECT_FALSE(AddEdge(9, 2));
             EXPECT_EQ("2 4 8 16 9", Path(2, 9));
-            CheckInvariants(g_);
+            check_invariants(g_);
         }
 
         TEST_F(GraphCyclesTest, LongPath) {
@@ -421,15 +421,15 @@ namespace abel {
             ASSERT_TRUE(AddEdge(10, 12));
             ASSERT_FALSE(AddEdge(12, 2));
             EXPECT_EQ("2 4 6 8 10 ...", Path(2, 12));
-            CheckInvariants(g_);
+            check_invariants(g_);
         }
 
-        TEST_F(GraphCyclesTest, RemoveNode) {
+        TEST_F(GraphCyclesTest, remove_node) {
             ASSERT_TRUE(AddEdge(1, 2));
             ASSERT_TRUE(AddEdge(2, 3));
             ASSERT_TRUE(AddEdge(3, 4));
             ASSERT_TRUE(AddEdge(4, 5));
-            g_.RemoveNode(g_.Ptr(id_[3]));
+            g_.remove_node(g_.ptr(id_[3]));
             id_.erase(3);
             ASSERT_TRUE(AddEdge(5, 1));
         }
@@ -441,11 +441,11 @@ namespace abel {
                     ASSERT_TRUE(AddEdge(i, i + j));
                 }
             }
-            CheckInvariants(g_);
+            check_invariants(g_);
             ASSERT_TRUE(AddEdge(2 * N - 1, 0));
-            CheckInvariants(g_);
+            check_invariants(g_);
             ASSERT_FALSE(AddEdge(10, 9));
-            CheckInvariants(g_);
+            check_invariants(g_);
         }
 
     }  // namespace thread_internal

@@ -225,4 +225,4 @@ namespace abel {
         return SHA1(str).digest_hex_uc();
     }
 
-}
+} //namespace abel

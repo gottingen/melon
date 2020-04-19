@@ -107,7 +107,7 @@ namespace {
     ->Arg(50)
     ->Arg(200);
 
-    BENCHMARK_TEMPLATE(BM_Contended, abel::thread_internal::SpinLock
+    BENCHMARK_TEMPLATE(BM_Contended, abel::thread_internal::spin_lock
     )
     ->UseRealTime()
     // ThreadPerCpu poorly handles non-power-of-two CPU counts.
@@ -170,9 +170,9 @@ namespace {
         int num_waiters = state.range(1);
 
         struct Helper {
-            static void Waiter(abel::blocking_counter *init, abel::mutex *m, int *p) {
+            static void waiter(abel::blocking_counter *init, abel::mutex *m, int *p) {
                 init->decrement_count();
-                m->LockWhen(abel::condition(
+                m->lock_when(abel::condition(
                         static_cast<bool (*)(int *)>([](int *v) { return *v == 0; }), p));
                 m->unlock();
             }
@@ -188,13 +188,13 @@ namespace {
         std::vector<int> equivalence_classes(num_classes, 1);
 
         // Must be declared last to be destroyed first.
-        abel::thread_internal::ThreadPool pool(num_waiters);
+        abel::thread_internal::thread_pool pool(num_waiters);
 
         for (int i = 0; i < num_waiters; i++) {
             // mutex considers Conditions with the same function and argument
             // to be equivalent.
-            pool.Schedule([&, i] {
-                Helper::Waiter(&init, &mu, &equivalence_classes[i % num_classes]);
+            pool.schedule([&, i] {
+                Helper::waiter(&init, &mu, &equivalence_classes[i % num_classes]);
             });
         }
         init.wait();

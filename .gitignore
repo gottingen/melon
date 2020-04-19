@@ -37,3 +37,4 @@ build/
 cmake-build-debug/
 carbin/
 carbin/*
+project-example

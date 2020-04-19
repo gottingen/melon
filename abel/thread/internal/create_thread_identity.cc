@@ -19,17 +19,17 @@ namespace abel {
 
     namespace thread_internal {
 
-// ThreadIdentity storage is persistent, we maintain a free-list of previously
-// released ThreadIdentity objects.
-        static thread_internal::SpinLock freelist_lock(
+// thread_identity storage is persistent, we maintain a free-list of previously
+// released thread_identity objects.
+        static thread_internal::spin_lock freelist_lock(
                 base_internal::kLinkerInitialized);
-        static thread_internal::ThreadIdentity *thread_identity_freelist;
+        static thread_internal::thread_identity *thread_identity_freelist;
 
-// A per-thread destructor for reclaiming associated ThreadIdentity objects.
+// A per-thread destructor for reclaiming associated thread_identity objects.
 // Since we must preserve their storage we cache them for re-use.
-        void ReclaimThreadIdentity(void *v) {
-            thread_internal::ThreadIdentity *identity =
-                    static_cast<thread_internal::ThreadIdentity *>(v);
+        void reclaim_thread_identity(void *v) {
+            thread_internal::thread_identity *identity =
+                    static_cast<thread_internal::thread_identity *>(v);
 
             // all_locks might have been allocated by the mutex implementation.
             // We free it here when we are notified that our thread is dying.
@@ -43,7 +43,7 @@ namespace abel {
             // (a) Subsequent (unrelated) per-thread destructors may require an identity.
             //     We must guarantee a new identity is used in this case (this instructor
             //     will be reinvoked up to PTHREAD_DESTRUCTOR_ITERATIONS in this case).
-            // (b) ThreadIdentity implementations may depend on memory that is not
+            // (b) thread_identity implementations may depend on memory that is not
             //     reinitialized before reuse.  We must allow explicit clearing of the
             //     association state in this case.
             thread_internal::ClearCurrentThreadIdentity();
@@ -60,8 +60,8 @@ namespace abel {
             return (addr + align - 1) & ~(align - 1);
         }
 
-        static void ResetThreadIdentity(thread_internal::ThreadIdentity *identity) {
-            thread_internal::PerThreadSynch *pts = &identity->per_thread_synch;
+        static void ResetThreadIdentity(thread_internal::thread_identity *identity) {
+            thread_internal::per_thread_synch *pts = &identity->per_thread_synch;
             pts->next = nullptr;
             pts->skip = nullptr;
             pts->may_skip = false;
@@ -70,7 +70,7 @@ namespace abel {
             pts->readers = 0;
             pts->priority = 0;
             pts->next_priority_read_cycles = 0;
-            pts->state.store(thread_internal::PerThreadSynch::State::kAvailable,
+            pts->state.store(thread_internal::per_thread_synch::State::kAvailable,
                              std::memory_order_relaxed);
             pts->maybe_unlocking = false;
             pts->wake = false;
@@ -83,8 +83,8 @@ namespace abel {
             identity->next = nullptr;
         }
 
-        static thread_internal::ThreadIdentity *NewThreadIdentity() {
-            thread_internal::ThreadIdentity *identity = nullptr;
+        static thread_internal::thread_identity *NewThreadIdentity() {
+            thread_internal::thread_identity *identity = nullptr;
 
             {
                 // Re-use a previously released object if possible.
@@ -96,29 +96,29 @@ namespace abel {
             }
 
             if (identity == nullptr) {
-                // Allocate enough space to align ThreadIdentity to a multiple of
-                // PerThreadSynch::kAlignment. This space is never released (it is
-                // added to a freelist by ReclaimThreadIdentity instead).
+                // Allocate enough space to align thread_identity to a multiple of
+                // per_thread_synch::kAlignment. This space is never released (it is
+                // added to a freelist by reclaim_thread_identity instead).
                 void *allocation = memory_internal::low_level_alloc::alloc(
-                        sizeof(*identity) + thread_internal::PerThreadSynch::kAlignment - 1);
+                        sizeof(*identity) + thread_internal::per_thread_synch::kAlignment - 1);
                 // Round up the address to the required alignment.
-                identity = reinterpret_cast<thread_internal::ThreadIdentity *>(
+                identity = reinterpret_cast<thread_internal::thread_identity *>(
                         RoundUp(reinterpret_cast<intptr_t>(allocation),
-                                thread_internal::PerThreadSynch::kAlignment));
+                                thread_internal::per_thread_synch::kAlignment));
             }
             ResetThreadIdentity(identity);
 
             return identity;
         }
 
-// Allocates and attaches ThreadIdentity object for the calling thread.  Returns
+// Allocates and attaches thread_identity object for the calling thread.  Returns
 // the new identity.
 // REQUIRES: CurrentThreadIdentity(false) == nullptr
-        thread_internal::ThreadIdentity *CreateThreadIdentity() {
-            thread_internal::ThreadIdentity *identity = NewThreadIdentity();
+        thread_internal::thread_identity *create_thread_identity() {
+            thread_internal::thread_identity *identity = NewThreadIdentity();
             PerThreadSem::Init(identity);
             // Associate the value with the current thread, and attach our destructor.
-            thread_internal::SetCurrentThreadIdentity(identity, ReclaimThreadIdentity);
+            thread_internal::SetCurrentThreadIdentity(identity, reclaim_thread_identity);
             return identity;
         }
 

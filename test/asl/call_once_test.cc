@@ -31,7 +31,7 @@ namespace abel {
             ++call_once_invoke_count;
             counters_mu.unlock();
 
-            counters_mu.LockWhen(condition(&done_blocking));
+            counters_mu.lock_when(condition(&done_blocking));
             ++call_once_finished_count;
             counters_mu.unlock();
         }
@@ -65,7 +65,7 @@ namespace abel {
 
             // wait until all ten threads have started, and WaitAndIncrement has been
             // invoked.
-            counters_mu.LockWhen(condition(ThreadsAreSetup, nullptr));
+            counters_mu.lock_when(condition(ThreadsAreSetup, nullptr));
 
             // WaitAndIncrement should have been invoked by exactly one call_once()
             // instance.  That thread should be blocking on a notification, and all other

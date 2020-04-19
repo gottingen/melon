@@ -75,47 +75,37 @@ SET(ABEL_SRC
         ${THREAD_SRC}
         )
 
-add_library(abel_static STATIC ${ABEL_SRC})
-add_library(abel_shared SHARED ${ABEL_SRC})
 
-target_link_libraries(abel_static pthread)
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
-    target_link_libraries(abel_static ${CoreFoundation} pthread)
-    target_link_libraries(abel_shared ${CoreFoundation} pthread)
+    carbin_cc_library(
+            NAME
+            abel
+            SRCS
+            ${ABEL_SRC}
+            COPTS
+            ${CARBIN_DEFAULT_COPTS}
+            DEPS
+                ${CoreFoundation}
+                pthread
+            PUBLIC
+    )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    target_link_libraries(abel_static pthread)
-    target_link_libraries(abel_shared pthread rt)
+    carbin_cc_library(
+            NAME
+            abel
+            SRCS
+            ${ABEL_SRC}
+            COPTS
+            ${CARBIN_DEFAULT_COPTS}
+            DEPS
+            rt
+            pthread
+            PUBLIC
+    )
 endif ()
 
-set_target_properties(abel_shared PROPERTIES
-        OUTPUT_NAME abel
-        VERSION ${CMAKE_PROJECT_VERSION}
 
-
-
-
-
-        SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
-        )
-
-set_target_properties(abel_static PROPERTIES
-        OUTPUT_NAME abel
-        VERSION ${CMAKE_PROJECT_VERSION}
-        SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
-        )
-
-install(TARGETS abel_static abel_shared
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
-
-file(COPY ${PROJECT_SOURCE_DIR}/abel
-        DESTINATION ${PROJECT_BINARY_DIR}/include
-        FILES_MATCHING
-        PATTERN "*.h"
-        )
 
 install(DIRECTORY ${PROJECT_BINARY_DIR}/include/abel
         DESTINATION include

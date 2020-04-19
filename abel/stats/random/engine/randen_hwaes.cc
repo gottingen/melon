@@ -377,7 +377,7 @@ namespace {
 // Number of uint64_t lanes per 128-bit vector;
     constexpr size_t kLanes = 2;
 
-// Block shuffles applies a shuffle to the entire state between AES rounds.
+// block shuffles applies a shuffle to the entire state between AES rounds.
 // Improved odd-even shuffle from "New criterion for diffusion property".
     ABEL_FORCE_INLINE ABEL_TARGET_CRYPTO void BlockShuffle(uint64_t *state) {
         static_assert(kFeistelBlocks == 16, "Expecting 16 FeistelBlocks.");

@@ -1,20 +1,18 @@
 
 file(GLOB RAPIDJSON_SRC "*.cc")
 
-add_executable(rapidjson_test
+carbin_cc_test(
+        NAME
+        rapidjson_test
+        SRCS
         ${RAPIDJSON_SRC}
-        )
-
-target_link_libraries(rapidjson_test
+        COPTS
+        ${CARBIN_TEST_COPTS}
+        DEPS
+        abel::abel
         gtest
-        gmock
-        gtest_main
         testing_static
-        abel_static
+        gtest_main
+        gmock
         pthread
-        )
-
-add_test(
-        NAME rapidjson_test
-        COMMAND rapidjson_test
 )

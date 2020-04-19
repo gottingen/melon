@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-// Interface for getting the current ThreadIdentity, creating one if necessary.
+// Interface for getting the current thread_identity, creating one if necessary.
 // See thread_identity.h.
 //
 // This file is separate from thread_identity.h because creating a new
-// ThreadIdentity requires slightly higher level libraries (per_thread_sem
+// thread_identity requires slightly higher level libraries (per_thread_sem
 // and low_level_alloc) than accessing an existing one.  This separation allows
 // us to have a smaller //abel/base:base.
 
@@ -32,23 +32,23 @@ namespace abel {
 
     namespace thread_internal {
 
-// Allocates and attaches a ThreadIdentity object for the calling thread.
+// Allocates and attaches a thread_identity object for the calling thread.
 // For private use only.
-        thread_internal::ThreadIdentity *CreateThreadIdentity();
+        thread_internal::thread_identity *create_thread_identity();
 
-// A per-thread destructor for reclaiming associated ThreadIdentity objects.
+// A per-thread destructor for reclaiming associated thread_identity objects.
 // For private use only.
-        void ReclaimThreadIdentity(void *v);
+        void reclaim_thread_identity(void *v);
 
-// Returns the ThreadIdentity object representing the calling thread; guaranteed
+// Returns the thread_identity object representing the calling thread; guaranteed
 // to be unique for its lifetime.  The returned object will remain valid for the
 // program's lifetime; although it may be re-assigned to a subsequent thread.
 // If one does not exist for the calling thread, allocate it now.
-        ABEL_FORCE_INLINE thread_internal::ThreadIdentity *GetOrCreateCurrentThreadIdentity() {
-            thread_internal::ThreadIdentity *identity =
+        ABEL_FORCE_INLINE thread_internal::thread_identity *get_or_create_current_thread_identity() {
+            thread_internal::thread_identity *identity =
                     thread_internal::CurrentThreadIdentityIfPresent();
             if (ABEL_UNLIKELY(identity == nullptr)) {
-                return CreateThreadIdentity();
+                return create_thread_identity();
             }
             return identity;
         }

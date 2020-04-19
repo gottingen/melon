@@ -139,7 +139,7 @@ static void **NextStackFrame(void **old_sp, const void *uc) {
     return new_sp;
 }
 
-// This ensures that abel::GetStackTrace sets up the Link Register properly.
+// This ensures that abel::get_stack_trace sets up the Link Register properly.
 ABEL_NO_INLINE static void AbelStacktracePowerPCDummyFunction() {
     ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
 }

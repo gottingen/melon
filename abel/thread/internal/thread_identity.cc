@@ -33,7 +33,7 @@ namespace abel {
             }
         }  // namespace
 
-        // The actual TLS storage for a thread's currently associated ThreadIdentity.
+        // The actual TLS storage for a thread's currently associated thread_identity.
         // This is referenced by inline accessors in the header.
         // "protected" visibility ensures that if multiple instances of abel code
         // exist within a process (via dlopen() or similar), references to
@@ -44,10 +44,10 @@ namespace abel {
 #endif  // __GNUC__
 
         // Prefer __thread to thread_local as benchmarks indicate it is a bit faster.
-        ABEL_THREAD_LOCAL ThreadIdentity* thread_identity_ptr = nullptr;
+        ABEL_THREAD_LOCAL thread_identity* thread_identity_ptr = nullptr;
 
         void SetCurrentThreadIdentity(
-                ThreadIdentity *identity, ThreadIdentityReclaimerFunction reclaimer) {
+                thread_identity *identity, ThreadIdentityReclaimerFunction reclaimer) {
             assert(CurrentThreadIdentityIfPresent() == nullptr);
             // Associate our destructor.
             // NOTE: This call to pthread_setspecific is currently the only immovable

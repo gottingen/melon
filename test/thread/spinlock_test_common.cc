@@ -28,15 +28,15 @@ namespace abel {
     namespace thread_internal {
 
 // This is defined outside of anonymous namespace so that it can be
-// a friend of SpinLock to access protected methods for testing.
+// a friend of spin_lock to access protected methods for testing.
         struct SpinLockTest {
             static uint32_t EncodeWaitCycles(int64_t wait_start_time,
                                              int64_t wait_end_time) {
-                return SpinLock::EncodeWaitCycles(wait_start_time, wait_end_time);
+                return spin_lock::EncodeWaitCycles(wait_start_time, wait_end_time);
             }
 
             static uint64_t DecodeWaitCycles(uint32_t lock_value) {
-                return SpinLock::DecodeWaitCycles(lock_value);
+                return spin_lock::DecodeWaitCycles(lock_value);
             }
         };
 
@@ -45,11 +45,11 @@ namespace abel {
             static constexpr int kArrayLength = 10;
             static uint32_t values[kArrayLength];
 
-            static SpinLock static_spinlock(base_internal::kLinkerInitialized);
-            static SpinLock static_cooperative_spinlock(
+            static spin_lock static_spinlock(base_internal::kLinkerInitialized);
+            static spin_lock static_cooperative_spinlock(
                     base_internal::kLinkerInitialized,
                     thread_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
-            static SpinLock static_noncooperative_spinlock(
+            static spin_lock static_noncooperative_spinlock(
                     base_internal::kLinkerInitialized, thread_internal::SCHEDULE_KERNEL_ONLY);
 
 // Simple integer hash function based on the public domain lookup2 hash.
@@ -86,7 +86,7 @@ namespace abel {
                 return c;
             }
 
-            static void TestFunction(int thread_salt, SpinLock *spinlock) {
+            static void TestFunction(int thread_salt, spin_lock *spinlock) {
                 for (int i = 0; i < kIters; i++) {
                     SpinLockHolder h(spinlock);
                     for (int j = 0; j < kArrayLength; j++) {
@@ -97,7 +97,7 @@ namespace abel {
                 }
             }
 
-            static void ThreadedTest(SpinLock *spinlock) {
+            static void ThreadedTest(spin_lock *spinlock) {
                 std::vector<std::thread> threads;
                 for (int i = 0; i < kNumThreads; ++i) {
                     threads.push_back(std::thread(TestFunction, i, spinlock));
@@ -112,21 +112,21 @@ namespace abel {
                 }
             }
 
-            TEST(SpinLock, StackNonCooperativeDisablesScheduling) {
-                SpinLock spinlock(thread_internal::SCHEDULE_KERNEL_ONLY);
+            TEST(spin_lock, StackNonCooperativeDisablesScheduling) {
+                spin_lock spinlock(thread_internal::SCHEDULE_KERNEL_ONLY);
                 spinlock.lock();
-                EXPECT_FALSE(thread_internal::SchedulingGuard::ReschedulingIsAllowed());
+                EXPECT_FALSE(thread_internal::scheduling_guard::rescheduling_is_allowed());
                 spinlock.unlock();
             }
 
-            TEST(SpinLock, StaticNonCooperativeDisablesScheduling) {
+            TEST(spin_lock, StaticNonCooperativeDisablesScheduling) {
                 static_noncooperative_spinlock.lock();
-                EXPECT_FALSE(thread_internal::SchedulingGuard::ReschedulingIsAllowed());
+                EXPECT_FALSE(thread_internal::scheduling_guard::rescheduling_is_allowed());
                 static_noncooperative_spinlock.unlock();
             }
 
-            TEST(SpinLock, WaitCyclesEncoding) {
-                // These are implementation details not exported by SpinLock.
+            TEST(spin_lock, WaitCyclesEncoding) {
+                // These are implementation details not exported by spin_lock.
                 const int kProfileTimestampShift = 7;
                 const int kLockwordReservedShift = 3;
                 const uint32_t kSpinLockSleeper = 8;
@@ -203,17 +203,17 @@ namespace abel {
             }
 
             TEST(SpinLockWithThreads, StackSpinLock) {
-                SpinLock spinlock;
+                spin_lock spinlock;
                 ThreadedTest(&spinlock);
             }
 
             TEST(SpinLockWithThreads, StackCooperativeSpinLock) {
-                SpinLock spinlock(thread_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
+                spin_lock spinlock(thread_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
                 ThreadedTest(&spinlock);
             }
 
             TEST(SpinLockWithThreads, StackNonCooperativeSpinLock) {
-                SpinLock spinlock(thread_internal::SCHEDULE_KERNEL_ONLY);
+                spin_lock spinlock(thread_internal::SCHEDULE_KERNEL_ONLY);
                 ThreadedTest(&spinlock);
             }
 
@@ -227,21 +227,21 @@ namespace abel {
 
             TEST(SpinLockWithThreads, DoesNotDeadlock) {
                 struct Helper {
-                    static void NotifyThenLock(notification *locked, SpinLock *spinlock,
+                    static void NotifyThenLock(notification *locked, spin_lock *spinlock,
                                                blocking_counter *b) {
                         locked->wait_for_notification();  // wait for LockThenWait() to hold "s".
                         b->decrement_count();
                         SpinLockHolder l(spinlock);
                     }
 
-                    static void LockThenWait(notification *locked, SpinLock *spinlock,
+                    static void LockThenWait(notification *locked, spin_lock *spinlock,
                                              blocking_counter *b) {
                         SpinLockHolder l(spinlock);
-                        locked->Notify();
+                        locked->notify();
                         b->wait();
                     }
 
-                    static void DeadlockTest(SpinLock *spinlock, int num_spinners) {
+                    static void DeadlockTest(spin_lock *spinlock, int num_spinners) {
                         notification locked;
                         blocking_counter counter(num_spinners);
                         std::vector<std::thread> threads;
@@ -259,9 +259,9 @@ namespace abel {
                     }
                 };
 
-                SpinLock stack_cooperative_spinlock(
+                spin_lock stack_cooperative_spinlock(
                         thread_internal::SCHEDULE_COOPERATIVE_AND_KERNEL);
-                SpinLock stack_noncooperative_spinlock(thread_internal::SCHEDULE_KERNEL_ONLY);
+                spin_lock stack_noncooperative_spinlock(thread_internal::SCHEDULE_KERNEL_ONLY);
                 Helper::DeadlockTest(&stack_cooperative_spinlock,
                                      num_cpus() * 2);
                 Helper::DeadlockTest(&stack_noncooperative_spinlock,

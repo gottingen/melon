@@ -19,7 +19,7 @@
 #include <abel/stats/random/seed/seed_material.h>
 #include <abel/stats/random/seed/seed_gen_exception.h>
 
-using abel::thread_internal::SpinLock;
+using abel::thread_internal::spin_lock;
 using abel::thread_internal::SpinLockHolder;
 
 namespace abel {
@@ -62,7 +62,7 @@ namespace abel {
             private:
                 // randen URBG state.
                 uint32_t state_[kState] ABEL_GUARDED_BY(mu_);  // First to satisfy alignment.
-                SpinLock mu_;
+                spin_lock mu_;
                 const randen impl_;
                 size_t next_ ABEL_GUARDED_BY(mu_);
             };

@@ -12,7 +12,7 @@
 //   * Implicitly, through the installation of an abel failure signal handler.
 //     (See failure_signal_handler.h for more information.)
 //   * By calling `Symbolize()` directly on a program counter you obtain through
-//     `abel::GetStackTrace()` or `abel::GetStackFrames()`. (See stacktrace.h
+//     `abel::get_stack_trace()` or `abel::GetStackFrames()`. (See stacktrace.h
 //     for more information.
 //   * By calling `Symbolize()` directly on a program counter you obtain through
 //     other means (which would be platform-dependent).

@@ -7,7 +7,7 @@
 
 extern "C" {
 
-ABEL_WEAK void AbelInternalSpinLockDelay(
+ABEL_WEAK void abel_internal_spin_lock_delay(
         std::atomic<uint32_t> * /* lock_word */, uint32_t /* value */,
         int /* loop */, abel::base_internal::SchedulingMode /* mode */) {
     // In Akaros, one must take care not to call anything that could cause a
@@ -16,7 +16,7 @@ ABEL_WEAK void AbelInternalSpinLockDelay(
     // arbitrary code.
 }
 
-ABEL_WEAK void AbelInternalSpinLockWake(
+ABEL_WEAK void abel_internal_spin_lock_wake(
         std::atomic<uint32_t> * /* lock_word */, bool /* all */) {}
 
 }  // extern "C"

@@ -92,17 +92,17 @@ namespace abel {
 
 // Disables scheduling while on stack when scheduling mode is non-cooperative.
 // No effect for cooperative scheduling modes.
-        class SchedulingHelper {
+        class scheduling_helper {
         public:
-            explicit SchedulingHelper(thread_internal::SchedulingMode mode) : mode_(mode) {
+            explicit scheduling_helper(thread_internal::SchedulingMode mode) : mode_(mode) {
                 if (mode_ == thread_internal::SCHEDULE_KERNEL_ONLY) {
-                    guard_result_ = thread_internal::SchedulingGuard::DisableRescheduling();
+                    guard_result_ = thread_internal::scheduling_guard::disable_rescheduling();
                 }
             }
 
-            ~SchedulingHelper() {
+            ~scheduling_helper() {
                 if (mode_ == thread_internal::SCHEDULE_KERNEL_ONLY) {
-                    thread_internal::SchedulingGuard::EnableRescheduling(guard_result_);
+                    thread_internal::scheduling_guard::enable_rescheduling(guard_result_);
                 }
             }
 
@@ -143,26 +143,26 @@ namespace abel {
                 }
             }
 #endif  // NDEBUG
-            static const thread_internal::SpinLockWaitTransition trans[] = {
+            static const thread_internal::spin_lock_wait_transition trans[] = {
                     {kOnceInit,    kOnceRunning, true},
                     {kOnceRunning, kOnceWaiter,  false},
                     {kOnceDone,    kOnceDone,    true}};
 
             // Must do this before potentially modifying control word's state.
-            base_internal::SchedulingHelper maybe_disable_scheduling(scheduling_mode);
+            base_internal::scheduling_helper maybe_disable_scheduling(scheduling_mode);
             // Short circuit the simplest case to avoid procedure call overhead.
-            // The thread_internal::SpinLockWait() call returns either kOnceInit or
+            // The thread_internal::spin_lock_wait() call returns either kOnceInit or
             // kOnceDone. If it returns kOnceDone, it must have loaded the control word
             // with std::memory_order_acquire and seen a value of kOnceDone.
             uint32_t old_control = kOnceInit;
             if (control->compare_exchange_strong(old_control, kOnceRunning,
                                                  std::memory_order_relaxed) ||
-                thread_internal::SpinLockWait(control, ABEL_ARRAYSIZE(trans), trans,
+                thread_internal::spin_lock_wait(control, ABEL_ARRAYSIZE(trans), trans,
                                                  scheduling_mode) == kOnceInit) {
                 base_internal::Invoke(std::forward<Callable>(fn),
                                       std::forward<Args>(args)...);
-                // The call to SpinLockWake below is an optimization, because the waiter
-                // in SpinLockWait is waiting with a short timeout. The atomic load/store
+                // The call to spin_lock_wake below is an optimization, because the waiter
+                // in spin_lock_wait is waiting with a short timeout. The atomic load/store
                 // sequence is slightly faster than an atomic exchange:
                 //   old_control = control->exchange(base_internal::kOnceDone,
                 //                                   std::memory_order_release);
@@ -171,7 +171,7 @@ namespace abel {
                 old_control = control->load(std::memory_order_relaxed);
                 control->store(base_internal::kOnceDone, std::memory_order_release);
                 if (old_control == base_internal::kOnceWaiter) {
-                    thread_internal::SpinLockWake(control, true);
+                    thread_internal::spin_lock_wake(control, true);
                 }
             }  // else *control is already kOnceDone
         }

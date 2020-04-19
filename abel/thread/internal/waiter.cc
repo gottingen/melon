@@ -45,13 +45,13 @@ namespace abel {
     namespace thread_internal {
 
         static void MaybeBecomeIdle() {
-            thread_internal::ThreadIdentity *identity =
+            thread_internal::thread_identity *identity =
                     thread_internal::CurrentThreadIdentityIfPresent();
             assert(identity != nullptr);
             const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
             const int ticker = identity->ticker.load(std::memory_order_relaxed);
             const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
-            if (!is_idle && ticker - wait_start > Waiter::kIdlePeriods) {
+            if (!is_idle && ticker - wait_start > waiter::kIdlePeriods) {
                 identity->is_idle.store(true, std::memory_order_relaxed);
             }
         }
@@ -78,10 +78,10 @@ namespace abel {
 #endif
 #endif
 
-        class Futex {
+        class futex {
          public:
           static int WaitUntil(std::atomic<int32_t> *v, int32_t val,
-                               KernelTimeout t) {
+                               kernel_timeout t) {
             int err = 0;
             if (t.has_timeout()) {
               // https://locklessinc.com/articles/futex_cheat_sheet/
@@ -115,13 +115,13 @@ namespace abel {
           }
         };
 
-        Waiter::Waiter() {
+        waiter::waiter() {
           futex_.store(0, std::memory_order_relaxed);
         }
 
-        Waiter::~Waiter() = default;
+        waiter::~waiter() = default;
 
-        bool Waiter::wait(KernelTimeout t) {
+        bool waiter::wait(kernel_timeout t) {
           // Loop until we can atomically decrement futex from a positive
           // value, waiting on a futex while we believe it is zero.
           // Note that, since the thread ticker is just reset, we don't need to check
@@ -140,32 +140,32 @@ namespace abel {
 
 
             if (!first_pass) MaybeBecomeIdle();
-            const int err = Futex::WaitUntil(&futex_, 0, t);
+            const int err = futex::WaitUntil(&futex_, 0, t);
             if (err != 0) {
               if (err == -EINTR || err == -EWOULDBLOCK) {
                 // Do nothing, the loop will retry.
               } else if (err == -ETIMEDOUT) {
                 return false;
               } else {
-                ABEL_RAW_CRITICAL("Futex operation failed with error {}\n", err);
+                ABEL_RAW_CRITICAL("futex operation failed with error {}\n", err);
               }
             }
             first_pass = false;
           }
         }
 
-        void Waiter::Post() {
+        void waiter::post() {
           if (futex_.fetch_add(1, std::memory_order_release) == 0) {
             // We incremented from 0, need to wake a potential waiter.
-            Poke();
+            poke();
           }
         }
 
-        void Waiter::Poke() {
+        void waiter::poke() {
           // Wake one thread waiting on the futex.
-          const int err = Futex::Wake(&futex_, 1);
+          const int err = futex::Wake(&futex_, 1);
           if (ABEL_UNLIKELY(err < 0)) {
-            ABEL_RAW_CRITICAL("Futex operation failed with error {}\n", err);
+            ABEL_RAW_CRITICAL("futex operation failed with error {}\n", err);
           }
         }
 
@@ -195,7 +195,7 @@ namespace abel {
             pthread_mutex_t *mu_;
         };
 
-        Waiter::Waiter() {
+        waiter::waiter() {
             const int err = pthread_mutex_init(&mu_, 0);
             if (err != 0) {
                 ABEL_RAW_CRITICAL("pthread_mutex_init failed: {}", err);
@@ -210,7 +210,7 @@ namespace abel {
             wakeup_count_ = 0;
         }
 
-        Waiter::~Waiter() {
+        waiter::~waiter() {
             const int err = pthread_mutex_destroy(&mu_);
             if (err != 0) {
                 ABEL_RAW_CRITICAL("pthread_mutex_destroy failed: {}", err);
@@ -222,7 +222,7 @@ namespace abel {
             }
         }
 
-        bool Waiter::wait(KernelTimeout t) {
+        bool waiter::wait(kernel_timeout t) {
             struct timespec abs_timeout;
             if (t.has_timeout()) {
                 abs_timeout = t.MakeAbsTimespec();
@@ -261,18 +261,18 @@ namespace abel {
             return true;
         }
 
-        void Waiter::Post() {
+        void waiter::post() {
             PthreadMutexHolder h(&mu_);
             ++wakeup_count_;
-            InternalCondVarPoke();
+            internal_cond_var_poke();
         }
 
-        void Waiter::Poke() {
+        void waiter::poke() {
             PthreadMutexHolder h(&mu_);
-            InternalCondVarPoke();
+            internal_cond_var_poke();
         }
 
-        void Waiter::InternalCondVarPoke() {
+        void waiter::internal_cond_var_poke() {
             if (waiter_count_ != 0) {
                 const int err = pthread_cond_signal(&cv_);
                 if (ABEL_UNLIKELY(err != 0)) {
@@ -283,20 +283,20 @@ namespace abel {
 
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_SEM
 
-        Waiter::Waiter () {
+        waiter::waiter () {
             if (sem_init(&sem_, 0, 0) != 0) {
                ABEL_RAW_CRITICAL("sem_init failed with errno {}\n", errno);
             }
             wakeups_.store(0, std::memory_order_relaxed);
         }
 
-        Waiter::~Waiter () {
+        waiter::~waiter () {
             if (sem_destroy(&sem_) != 0) {
                 ABEL_RAW_CRITICAL("sem_destroy failed with errno {}\n", errno);
             }
         }
 
-        bool Waiter::wait (KernelTimeout t) {
+        bool waiter::wait (kernel_timeout t) {
             struct timespec abs_timeout;
             if (t.has_timeout()) {
                 abs_timeout = t.MakeAbsTimespec();
@@ -342,15 +342,15 @@ namespace abel {
             }
         }
 
-        void Waiter::Post () {
-            // Post a wakeup.
+        void waiter::post () {
+            // post a wakeup.
             if (wakeups_.fetch_add(1, std::memory_order_release) == 0) {
                 // We incremented from 0, need to wake a potential waiter.
-                Poke();
+                poke();
             }
         }
 
-        void Waiter::Poke () {
+        void waiter::poke () {
             if (sem_post(&sem_) != 0) {  // Wake any semaphore waiter.
                 ABEL_RAW_CRITICAL("sem_post failed with errno {}\n", errno);
             }
@@ -358,28 +358,28 @@ namespace abel {
 
 #elif ABEL_WAITER_MODE == ABEL_WAITER_MODE_WIN32
 
-        class Waiter::WinHelper {
+        class waiter::WinHelper {
          public:
-          static SRWLOCK *GetLock(Waiter *w) {
+          static SRWLOCK *GetLock(waiter *w) {
             return reinterpret_cast<SRWLOCK *>(&w->mu_storage_);
           }
 
-          static CONDITION_VARIABLE *GetCond(Waiter *w) {
+          static CONDITION_VARIABLE *GetCond(waiter *w) {
             return reinterpret_cast<CONDITION_VARIABLE *>(&w->cv_storage_);
           }
 
-          static_assert(sizeof(SRWLOCK) == sizeof(Waiter::SRWLockStorage),
+          static_assert(sizeof(SRWLOCK) == sizeof(waiter::SRWLockStorage),
                         "SRWLockStorage does not have the same size as SRWLOCK");
           static_assert(
-              alignof(SRWLOCK) == alignof(Waiter::SRWLockStorage),
+              alignof(SRWLOCK) == alignof(waiter::SRWLockStorage),
               "SRWLockStorage does not have the same alignment as SRWLOCK");
 
           static_assert(sizeof(CONDITION_VARIABLE) ==
-                            sizeof(Waiter::ConditionVariableStorage),
+                            sizeof(waiter::ConditionVariableStorage),
                         "ABEL_CONDITION_VARIABLE_STORAGE does not have the same size "
                         "as CONDITION_VARIABLE");
           static_assert(alignof(CONDITION_VARIABLE) ==
-                            alignof(Waiter::ConditionVariableStorage),
+                            alignof(waiter::ConditionVariableStorage),
                         "ConditionVariableStorage does not have the same "
                         "alignment as CONDITION_VARIABLE");
 
@@ -412,7 +412,7 @@ namespace abel {
           SRWLOCK* mu_;
         };
 
-        Waiter::Waiter() {
+        waiter::waiter() {
           auto *mu = ::new (static_cast<void *>(&mu_storage_)) SRWLOCK;
           auto *cv = ::new (static_cast<void *>(&cv_storage_)) CONDITION_VARIABLE;
           InitializeSRWLock(mu);
@@ -424,9 +424,9 @@ namespace abel {
         // SRW locks and condition variables do not need to be explicitly destroyed.
         // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-initializesrwlock
         // https://stackoverflow.com/questions/28975958/why-does-windows-have-no-deleteconditionvariable-function-to-go-together-with
-        Waiter::~Waiter() = default;
+        waiter::~waiter() = default;
 
-        bool Waiter::wait(KernelTimeout t) {
+        bool waiter::wait(kernel_timeout t) {
           SRWLOCK *mu = WinHelper::GetLock(this);
           CONDITION_VARIABLE *cv = WinHelper::GetCond(this);
 
@@ -460,18 +460,18 @@ namespace abel {
           return true;
         }
 
-        void Waiter::Post() {
+        void waiter::post() {
           LockHolder h(WinHelper::GetLock(this));
           ++wakeup_count_;
-          InternalCondVarPoke();
+          internal_cond_var_poke();
         }
 
-        void Waiter::Poke() {
+        void waiter::poke() {
           LockHolder h(WinHelper::GetLock(this));
-          InternalCondVarPoke();
+          internal_cond_var_poke();
         }
 
-        void Waiter::InternalCondVarPoke() {
+        void waiter::internal_cond_var_poke() {
           if (waiter_count_ != 0) {
             WakeConditionVariable(WinHelper::GetCond(this));
           }

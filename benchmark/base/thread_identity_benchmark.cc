@@ -10,7 +10,7 @@ namespace {
     void BM_SafeCurrentThreadIdentity(benchmark::State &state) {
         for (auto _ : state) {
             benchmark::DoNotOptimize(
-                    abel::thread_internal::GetOrCreateCurrentThreadIdentity());
+                    abel::thread_internal::get_or_create_current_thread_identity());
         }
     }
 

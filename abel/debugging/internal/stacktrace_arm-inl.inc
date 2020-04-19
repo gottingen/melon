@@ -50,7 +50,7 @@ static void **NextStackFrame(void **old_sp) {
     return new_sp;
 }
 
-// This ensures that abel::GetStackTrace sets up the Link Register properly.
+// This ensures that abel::get_stack_trace sets up the Link Register properly.
 #ifdef __GNUC__
 
 void StacktraceArmDummyFunction() __attribute__((noinline));

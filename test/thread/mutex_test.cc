@@ -30,22 +30,22 @@ namespace {
 // TODO(dmauro): Replace with a commandline flag.
     static constexpr bool kExtendedTest = false;
 
-    std::unique_ptr<abel::thread_internal::ThreadPool> CreatePool(
+    std::unique_ptr<abel::thread_internal::thread_pool> CreatePool(
             int threads) {
-        return abel::make_unique<abel::thread_internal::ThreadPool>(threads);
+        return abel::make_unique<abel::thread_internal::thread_pool>(threads);
     }
 
-    std::unique_ptr<abel::thread_internal::ThreadPool>
+    std::unique_ptr<abel::thread_internal::thread_pool>
     CreateDefaultPool() {
         return CreatePool(kExtendedTest ? 32 : 10);
     }
 
 // Hack to schedule a function to run on a thread pool thread after a
 // duration has elapsed.
-    static void ScheduleAfter(abel::thread_internal::ThreadPool *tp,
+    static void ScheduleAfter(abel::thread_internal::thread_pool *tp,
                               abel::duration after,
                               const std::function<void()> &func) {
-        tp->Schedule([func, after] {
+        tp->schedule([func, after] {
             abel::sleep_for(after);
             func();
         });
@@ -143,7 +143,7 @@ namespace {
         abel::mutex_lock l(&cxt->mu);
         cxt->mu.assert_held();
         while (cxt->g0 < cxt->iterations) {
-            cxt->mu.Await(abel::condition(&mc, &MyContext::MyTurn));
+            cxt->mu.await(abel::condition(&mc, &MyContext::MyTurn));
             ABEL_RAW_CHECK(mc.MyTurn(), "Error in TestAwait");
             cxt->mu.assert_held();
             if (cxt->g0 < cxt->iterations) {
@@ -221,7 +221,7 @@ namespace {
             if (use_cv) {
                 cxt->cv.wait_with_timeout(&cxt->mu, abel::seconds(1));
             } else {
-                ABEL_RAW_CHECK(!cxt->mu.AwaitWithTimeout(false_cond, abel::seconds(1)),
+                ABEL_RAW_CHECK(!cxt->mu.await_with_timeout(false_cond, abel::seconds(1)),
                                "TestTime failed");
             }
             abel::duration elapsed = abel::now() - start;
@@ -234,7 +234,7 @@ namespace {
             if (use_cv) {
                 cxt->cv.wait_with_timeout(&cxt->mu, abel::seconds(1));
             } else {
-                ABEL_RAW_CHECK(!cxt->mu.AwaitWithTimeout(false_cond, abel::seconds(1)),
+                ABEL_RAW_CHECK(!cxt->mu.await_with_timeout(false_cond, abel::seconds(1)),
                                "TestTime failed");
             }
             elapsed = abel::now() - start;
@@ -250,7 +250,7 @@ namespace {
             if (use_cv) {
                 cxt->cv.wait_with_timeout(&cxt->mu, abel::seconds(4));
             } else {
-                ABEL_RAW_CHECK(!cxt->mu.AwaitWithTimeout(false_cond, abel::seconds(4)),
+                ABEL_RAW_CHECK(!cxt->mu.await_with_timeout(false_cond, abel::seconds(4)),
                                "TestTime failed");
             }
             elapsed = abel::now() - start;
@@ -263,7 +263,7 @@ namespace {
             if (use_cv) {
                 cxt->cv.wait_with_timeout(&cxt->mu, abel::seconds(1));
             } else {
-                ABEL_RAW_CHECK(!cxt->mu.AwaitWithTimeout(false_cond, abel::seconds(1)),
+                ABEL_RAW_CHECK(!cxt->mu.await_with_timeout(false_cond, abel::seconds(1)),
                                "TestTime failed");
             }
             elapsed = abel::now() - start;
@@ -278,7 +278,7 @@ namespace {
             if (use_cv) {
                 cxt->cv.wait_with_timeout(&cxt->mu, abel::seconds(1));
             } else {
-                ABEL_RAW_CHECK(!cxt->mu.AwaitWithTimeout(false_cond, abel::seconds(1)),
+                ABEL_RAW_CHECK(!cxt->mu.await_with_timeout(false_cond, abel::seconds(1)),
                                "TestTime failed");
             }
             elapsed = abel::now() - start;
@@ -293,7 +293,7 @@ namespace {
                 cxt->cv.wait_with_timeout(&cxt->mu, abel::milliseconds(500));
             } else {
                 ABEL_RAW_CHECK(
-                        !cxt->mu.AwaitWithTimeout(false_cond, abel::milliseconds(500)),
+                        !cxt->mu.await_with_timeout(false_cond, abel::milliseconds(500)),
                         "TestTime failed");
             }
             const abel::duration elapsed = abel::now() - start;
@@ -308,7 +308,7 @@ namespace {
                     cxt->cv.wait_with_timeout(&cxt->mu, abel::seconds(100));
                 }
             } else {
-                ABEL_RAW_CHECK(cxt->mu.AwaitWithTimeout(g0ge2, abel::seconds(100)),
+                ABEL_RAW_CHECK(cxt->mu.await_with_timeout(g0ge2, abel::seconds(100)),
                                "TestTime failed");
             }
             cxt->g0++;
@@ -319,7 +319,7 @@ namespace {
                     cxt->cv.wait(&cxt->mu);
                 }
             } else {
-                cxt->mu.Await(g0ge2);
+                cxt->mu.await(g0ge2);
             }
             cxt->g0++;
         }
@@ -351,9 +351,9 @@ namespace {
         cxt->g1 = 0;
         cxt->iterations = iterations;
         cxt->threads = threads;
-        abel::thread_internal::ThreadPool tp(threads);
+        abel::thread_internal::thread_pool tp(threads);
         for (int i = 0; i != threads; i++) {
-            tp.Schedule(std::bind(&EndTest, &c0, &c1, &mu2, &cv2,
+            tp.schedule(std::bind(&EndTest, &c0, &c1, &mu2, &cv2,
                                   std::function<void(int)>(
                                           std::bind(test, cxt, std::placeholders::_1))));
         }
@@ -385,7 +385,7 @@ namespace {
         abel::enable_mutex_invariant_debugging(true);
         SetInvariantChecked(false);
         TestContext cxt;
-        cxt.mu.EnableInvariantDebugging(invariant, &cxt);
+        cxt.mu.enable_invariant_debugging(invariant, &cxt);
         int ret = RunTestCommon(&cxt, test, threads, iterations, operations);
         ABEL_RAW_CHECK(GetInvariantChecked(), "Invariant not checked");
         abel::enable_mutex_invariant_debugging(false);  // Restore.
@@ -395,7 +395,7 @@ namespace {
 #endif
 
 // --------------------------------------------------------
-// Test for fix of bug in TryRemove()
+// Test for fix of bug in try_remove()
     struct TimeoutBugStruct {
         abel::mutex mu;
         bool a;
@@ -403,14 +403,14 @@ namespace {
     };
 
     static void WaitForA(TimeoutBugStruct *x) {
-        x->mu.LockWhen(abel::condition(&x->a));
+        x->mu.lock_when(abel::condition(&x->a));
         x->a_waiter_count--;
         x->mu.unlock();
     }
 
     static bool NoAWaiters(TimeoutBugStruct *x) { return x->a_waiter_count == 0; }
 
-// Test that a cond_var.wait(&mutex) can un-block a call to mutex.Await() in
+// Test that a cond_var.wait(&mutex) can un-block a call to mutex.await() in
 // another thread.
     TEST(mutex, CondVarWaitSignalsAwait) {
         // Use a struct so the lock annotations apply.
@@ -425,24 +425,24 @@ namespace {
 
         auto pool = CreateDefaultPool();
 
-        // Thread A.  Sets barrier, waits for release using mutex::Await, then
+        // Thread A.  Sets barrier, waits for release using mutex::await, then
         // signals released_cv.
-        pool->Schedule([&state] {
+        pool->schedule([&state] {
             state.release_mu.lock();
 
             state.barrier_mu.lock();
             state.barrier = true;
             state.barrier_mu.unlock();
 
-            state.release_mu.Await(abel::condition(&state.release));
+            state.release_mu.await(abel::condition(&state.release));
             state.released_cv.signal();
             state.release_mu.unlock();
         });
 
-        state.barrier_mu.LockWhen(abel::condition(&state.barrier));
+        state.barrier_mu.lock_when(abel::condition(&state.barrier));
         state.barrier_mu.unlock();
         state.release_mu.lock();
-        // Thread A is now blocked on release by way of mutex::Await().
+        // Thread A is now blocked on release by way of mutex::await().
 
         // Set release.  Calling released_cv.wait() should un-block thread A,
         // which will signal released_cv.  If not, the test will hang.
@@ -452,7 +452,7 @@ namespace {
     }
 
 // Test that a cond_var.wait_with_timeout(&mutex) can un-block a call to
-// mutex.Await() in another thread.
+// mutex.await() in another thread.
     TEST(mutex, CondVarWaitWithTimeoutSignalsAwait) {
         // Use a struct so the lock annotations apply.
         struct {
@@ -466,24 +466,24 @@ namespace {
 
         auto pool = CreateDefaultPool();
 
-        // Thread A.  Sets barrier, waits for release using mutex::Await, then
+        // Thread A.  Sets barrier, waits for release using mutex::await, then
         // signals released_cv.
-        pool->Schedule([&state] {
+        pool->schedule([&state] {
             state.release_mu.lock();
 
             state.barrier_mu.lock();
             state.barrier = true;
             state.barrier_mu.unlock();
 
-            state.release_mu.Await(abel::condition(&state.release));
+            state.release_mu.await(abel::condition(&state.release));
             state.released_cv.signal();
             state.release_mu.unlock();
         });
 
-        state.barrier_mu.LockWhen(abel::condition(&state.barrier));
+        state.barrier_mu.lock_when(abel::condition(&state.barrier));
         state.barrier_mu.unlock();
         state.release_mu.lock();
-        // Thread A is now blocked on release by way of mutex::Await().
+        // Thread A is now blocked on release by way of mutex::await().
 
         // Set release.  Calling released_cv.wait() should un-block thread A,
         // which will signal released_cv.  If not, the test will hang.
@@ -491,20 +491,20 @@ namespace {
         EXPECT_TRUE(
                 !state.released_cv.wait_with_timeout(&state.release_mu, abel::seconds(10)))
                             << "; Unrecoverable test failure: cond_var::wait_with_timeout did not "
-                               "unblock the abel::mutex::Await call in another thread.";
+                               "unblock the abel::mutex::await call in another thread.";
 
         state.release_mu.unlock();
     }
 
-// Test for regression of a bug in loop of TryRemove()
+// Test for regression of a bug in loop of try_remove()
     TEST(mutex, MutexTimeoutBug) {
         auto tp = CreateDefaultPool();
 
         TimeoutBugStruct x;
         x.a = false;
         x.a_waiter_count = 2;
-        tp->Schedule(std::bind(&WaitForA, &x));
-        tp->Schedule(std::bind(&WaitForA, &x));
+        tp->schedule(std::bind(&WaitForA, &x));
+        tp->schedule(std::bind(&WaitForA, &x));
         abel::sleep_for(abel::seconds(1));  // Allow first two threads to hang.
         // The skip field of the second will point to the first because there are
         // only two.
@@ -512,13 +512,13 @@ namespace {
         // Now cause a thread waiting on an always-false to time out
         // This would deadlock when the bug was present.
         bool always_false = false;
-        x.mu.LockWhenWithTimeout(abel::condition(&always_false),
+        x.mu.lock_when_with_timeout(abel::condition(&always_false),
                                  abel::milliseconds(500));
 
         // if we get here, the bug is not present.   Cleanup the state.
 
         x.a = true;                                    // wakeup the two waiters on A
-        x.mu.Await(abel::condition(&NoAWaiters, &x));  // wait for them to exit
+        x.mu.await(abel::condition(&NoAWaiters, &x));  // wait for them to exit
         x.mu.unlock();
     }
 
@@ -555,29 +555,29 @@ namespace {
 
         void Waiter2() {
             if (read_lock2) {
-                mu.ReaderLockWhen(abel::condition(&cond2));
+                mu.reader_lock_when(abel::condition(&cond2));
                 mu.reader_unlock();
             } else {
-                mu.LockWhen(abel::condition(&cond2));
+                mu.lock_when(abel::condition(&cond2));
                 mu.unlock();
             }
         }
     };
 
-// Test for a deadlock bug in mutex::Fer().
+// Test for a deadlock bug in mutex::fer().
 // The sequence of events that lead to the deadlock is:
 // 1. waiter1 blocks on cv in read mode (mu bits = 0).
 // 2. waiter2 blocks on mu in either mode (mu bits = kMuWait).
 // 3. main thread locks mu, sets cond1, unlocks mu (mu bits = kMuWait).
-// 4. main thread signals on cv and this eventually calls mutex::Fer().
-// Currently Fer wakes waiter1 since mu bits = kMuWait (mutex is unlocked).
-// Before the bug fix Fer neither woke waiter1 nor queued it on mutex,
+// 4. main thread signals on cv and this eventually calls mutex::fer().
+// Currently fer wakes waiter1 since mu bits = kMuWait (mutex is unlocked).
+// Before the bug fix fer neither woke waiter1 nor queued it on mutex,
 // which resulted in deadlock.
     TEST_P(CondVarWaitDeadlock, Test) {
         auto waiter1 = CreatePool(1);
         auto waiter2 = CreatePool(1);
-        waiter1->Schedule([this] { this->Waiter1(); });
-        waiter2->Schedule([this] { this->Waiter2(); });
+        waiter1->schedule([this] { this->Waiter1(); });
+        waiter2->schedule([this] { this->Waiter2(); });
 
         // wait while threads block (best-effort is fine).
         abel::sleep_for(abel::milliseconds(100));
@@ -648,18 +648,18 @@ namespace {
         x.done2 = false;
         x.mu.lock();  // acquire mu exclusively
         // queue two thread that will block on reader locks on x.mu
-        tp->Schedule(std::bind(&AcquireAsReader, &x));
-        tp->Schedule(std::bind(&AcquireAsReader, &x));
+        tp->schedule(std::bind(&AcquireAsReader, &x));
+        tp->schedule(std::bind(&AcquireAsReader, &x));
         abel::sleep_for(abel::seconds(1));  // give time for reader threads to block
         x.mu.unlock();                     // wake them up
 
         // both readers should finish promptly
         EXPECT_TRUE(
-                x.mu2.LockWhenWithTimeout(abel::condition(&x.done1), abel::seconds(10)));
+                x.mu2.lock_when_with_timeout(abel::condition(&x.done1), abel::seconds(10)));
         x.mu2.unlock();
 
         EXPECT_TRUE(
-                x.mu2.LockWhenWithTimeout(abel::condition(&x.done2), abel::seconds(10)));
+                x.mu2.lock_when_with_timeout(abel::condition(&x.done2), abel::seconds(10)));
         x.mu2.unlock();
     }
 
@@ -679,15 +679,15 @@ namespace {
     }
 
     static void LockWhenTestWaitForIsCond(LockWhenTestStruct *s) {
-        s->mu1.LockWhen(abel::condition(&LockWhenTestIsCond, s));
+        s->mu1.lock_when(abel::condition(&LockWhenTestIsCond, s));
         s->mu1.unlock();
     }
 
-    TEST(mutex, LockWhen) {
+    TEST(mutex, lock_when) {
         LockWhenTestStruct s;
 
         std::thread t(LockWhenTestWaitForIsCond, &s);
-        s.mu2.LockWhen(abel::condition(&s.waiting));
+        s.mu2.lock_when(abel::condition(&s.waiting));
         s.mu2.unlock();
 
         s.mu1.lock();
@@ -702,7 +702,7 @@ namespace {
 // lock, which is not the case in all builds.
 #if !defined(ABEL_MUTEX_READER_LOCK_IS_EXCLUSIVE)
 
-// Test for fix of bug in UnlockSlow() that incorrectly decremented the reader
+// Test for fix of bug in unlock_slow() that incorrectly decremented the reader
 // count when putting a thread to sleep waiting for a false condition when the
 // lock was not held.
 
@@ -741,7 +741,7 @@ namespace {
     static void WaitForCond(ReaderDecrementBugStruct *x) {
         abel::mutex dummy;
         abel::mutex_lock l(&dummy);
-        x->mu.LockWhen(abel::condition(&IsCond, x));
+        x->mu.lock_when(abel::condition(&IsCond, x));
         x->done--;
         x->mu.unlock();
     }
@@ -751,7 +751,7 @@ namespace {
         x->mu.reader_lock();
         x->mu2.lock();
         x->have_reader_lock = true;
-        x->mu2.Await(abel::condition(&x->complete));
+        x->mu2.await(abel::condition(&x->complete));
         x->mu2.unlock();
         x->mu.reader_unlock();
         x->mu.lock();
@@ -771,12 +771,12 @@ namespace {
 
         // Run WaitForCond() and wait for it to sleep
         std::thread thread1(WaitForCond, &x);
-        x.mu2.LockWhen(abel::condition(&x.waiting_on_cond));
+        x.mu2.lock_when(abel::condition(&x.waiting_on_cond));
         x.mu2.unlock();
 
         // Run GetReadLock(), and wait for it to get the read lock
         std::thread thread2(GetReadLock, &x);
-        x.mu2.LockWhen(abel::condition(&x.have_reader_lock));
+        x.mu2.lock_when(abel::condition(&x.have_reader_lock));
         x.mu2.unlock();
 
         // Get the reader lock ourselves, and release it.
@@ -796,7 +796,7 @@ namespace {
         // (This call upgrades the lock from shared to exclusive.)
         x.mu.lock();
         x.cond = true;
-        x.mu.Await(abel::condition(&AllDone, &x));
+        x.mu.await(abel::condition(&AllDone, &x));
         x.mu.unlock();
 
         thread1.join();
@@ -912,12 +912,12 @@ namespace {
         abel::mutex mu;
         abel::cond_var cv;
         int running = 3;
-        tp->Schedule(std::bind(&ReaderForReaderOnCondVar, &mu, &cv, &running));
-        tp->Schedule(std::bind(&ReaderForReaderOnCondVar, &mu, &cv, &running));
+        tp->schedule(std::bind(&ReaderForReaderOnCondVar, &mu, &cv, &running));
+        tp->schedule(std::bind(&ReaderForReaderOnCondVar, &mu, &cv, &running));
         abel::sleep_for(abel::seconds(2));
         mu.lock();
         running--;
-        mu.Await(abel::condition(&IntIsZero, &running));
+        mu.await(abel::condition(&IntIsZero, &running));
         mu.unlock();
     }
 
@@ -940,7 +940,7 @@ namespace {
             // than one for which this is a condition.  The spec now explicitly allows
             // this side effect; previously it did not.  it was illegal.
             bool always_false = false;
-            x->mu1.LockWhenWithTimeout(abel::condition(&always_false),
+            x->mu1.lock_when_with_timeout(abel::condition(&always_false),
                                        abel::milliseconds(100));
             x->mu1.unlock();
         }
@@ -952,7 +952,7 @@ namespace {
 
     static void WaitForCond2(AcquireFromConditionStruct *x) {
         // wait for cond0 to become true
-        x->mu0.LockWhen(abel::condition(&ConditionWithAcquire, x));
+        x->mu0.lock_when(abel::condition(&ConditionWithAcquire, x));
         x->done = true;
         x->mu0.unlock();
     }
@@ -964,7 +964,7 @@ namespace {
         AcquireFromConditionStruct x;
         x.value = 0;
         x.done = false;
-        tp->Schedule(
+        tp->schedule(
                 std::bind(&WaitForCond2, &x));  // run WaitForCond2() in a thread T
         // T will hang because the first invocation of ConditionWithAcquire() will
         // return false.
@@ -981,7 +981,7 @@ namespace {
         // It will find the condition true, as this is the third invocation,
         // but the use of another mutex by the calling function will
         // cause the old mutex implementation to think that the outer
-        // LockWhen() has timed out because the inner LockWhenWithTimeout() did.
+        // lock_when() has timed out because the inner lock_when_with_timeout() did.
         // T will then check the condition a fourth time because it finds a
         // timeout occurred.  This should not happen in the new
         // implementation that allows the condition function to use Mutexes.
@@ -990,7 +990,7 @@ namespace {
         // is being invoked from cond_var::wait, and thus this thread
         // is conceptually waiting both on the condition variable, and on mu2.
 
-        x.mu0.LockWhen(abel::condition(&x.done));
+        x.mu0.lock_when(abel::condition(&x.done));
         x.mu0.unlock();
     }
 
@@ -1000,7 +1000,7 @@ namespace {
     TEST(mutex, DeadlockDetector) {
         abel::set_mutex_deadlock_detection_mode(abel::on_deadlock_cycle::kAbort);
 
-        // check that we can call ForgetDeadlockInfo() on a lock with the lock held
+        // check that we can call forget_dead_lock_info() on a lock with the lock held
         abel::mutex m1;
         abel::mutex m2;
         abel::mutex m3;
@@ -1012,7 +1012,7 @@ namespace {
         m3.unlock();
         m2.unlock();
         // m1 still held
-        m1.ForgetDeadlockInfo();  // m1 loses ID
+        m1.forget_dead_lock_info();  // m1 loses ID
         m2.lock();                // m2 gets ID2
         m3.lock();                // m3 gets ID3
         m4.lock();                // m4 gets ID4
@@ -1214,7 +1214,7 @@ namespace {
         bool use_absolute_deadline;
 
         // The deadline/timeout used when calling the API being tested
-        // (e.g. mutex::LockWhenWithDeadline).
+        // (e.g. mutex::lock_when_with_deadline).
         abel::duration wait_timeout;
 
         // The delay before the condition will be set true by the test code.  If zero
@@ -1258,7 +1258,7 @@ namespace {
 // b) Infinite delays are never scheduled.
 // c) Calls this test's `ScheduleAt` helper instead of using `pool` directly.
     static void RunAfterDelay(abel::duration delay,
-                              abel::thread_internal::ThreadPool *pool,
+                              abel::thread_internal::thread_pool *pool,
                               const std::function<void()> &callback) {
         if (delay <= abel::zero_duration()) {
             callback();  // immediate
@@ -1381,7 +1381,7 @@ namespace {
     INSTANTIATE_TEST_SUITE_P(All, TimeoutTest,
                              testing::ValuesIn(MakeTimeoutTestParamValues()));
 
-    TEST_P(TimeoutTest, Await) {
+    TEST_P(TimeoutTest, await) {
         const TimeoutTestParam params = GetParam();
         ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
@@ -1394,7 +1394,7 @@ namespace {
             abel::mutex mu;
             bool value = false;  // condition value (under mu)
 
-            std::unique_ptr<abel::thread_internal::ThreadPool> pool =
+            std::unique_ptr<abel::thread_internal::thread_pool> pool =
                     CreateDefaultPool();
             RunAfterDelay(params.satisfy_condition_delay, pool.get(), [&] {
                 abel::mutex_lock l(&mu);
@@ -1406,8 +1406,8 @@ namespace {
             abel::condition cond(&value);
             bool result =
                     params.use_absolute_deadline
-                    ? mu.AwaitWithDeadline(cond, start_time + params.wait_timeout)
-                    : mu.AwaitWithTimeout(cond, params.wait_timeout);
+                    ? mu.await_with_deadline(cond, start_time + params.wait_timeout)
+                    : mu.await_with_timeout(cond, params.wait_timeout);
             if (DelayIsWithinBounds(params.expected_delay, abel::now() - start_time)) {
                 EXPECT_EQ(params.expected_result, result);
                 break;
@@ -1415,7 +1415,7 @@ namespace {
         }
     }
 
-    TEST_P(TimeoutTest, LockWhen) {
+    TEST_P(TimeoutTest, lock_when) {
         const TimeoutTestParam params = GetParam();
         ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
@@ -1428,7 +1428,7 @@ namespace {
             abel::mutex mu;
             bool value = false;  // condition value (under mu)
 
-            std::unique_ptr<abel::thread_internal::ThreadPool> pool =
+            std::unique_ptr<abel::thread_internal::thread_pool> pool =
                     CreateDefaultPool();
             RunAfterDelay(params.satisfy_condition_delay, pool.get(), [&] {
                 abel::mutex_lock l(&mu);
@@ -1439,8 +1439,8 @@ namespace {
             abel::condition cond(&value);
             bool result =
                     params.use_absolute_deadline
-                    ? mu.LockWhenWithDeadline(cond, start_time + params.wait_timeout)
-                    : mu.LockWhenWithTimeout(cond, params.wait_timeout);
+                    ? mu.lock_when_with_deadline(cond, start_time + params.wait_timeout)
+                    : mu.lock_when_with_timeout(cond, params.wait_timeout);
             mu.unlock();
 
             if (DelayIsWithinBounds(params.expected_delay, abel::now() - start_time)) {
@@ -1450,7 +1450,7 @@ namespace {
         }
     }
 
-    TEST_P(TimeoutTest, ReaderLockWhen) {
+    TEST_P(TimeoutTest, reader_lock_when) {
         const TimeoutTestParam params = GetParam();
         ABEL_RAW_INFO("Params: {}", FormatString(params).c_str());
 
@@ -1463,7 +1463,7 @@ namespace {
             abel::mutex mu;
             bool value = false;  // condition value (under mu)
 
-            std::unique_ptr<abel::thread_internal::ThreadPool> pool =
+            std::unique_ptr<abel::thread_internal::thread_pool> pool =
                     CreateDefaultPool();
             RunAfterDelay(params.satisfy_condition_delay, pool.get(), [&] {
                 abel::mutex_lock l(&mu);
@@ -1473,9 +1473,9 @@ namespace {
             abel::abel_time start_time = abel::now();
             bool result =
                     params.use_absolute_deadline
-                    ? mu.ReaderLockWhenWithDeadline(abel::condition(&value),
+                    ? mu.reader_lock_when_with_deadline(abel::condition(&value),
                                                     start_time + params.wait_timeout)
-                    : mu.ReaderLockWhenWithTimeout(abel::condition(&value),
+                    : mu.reader_lock_when_with_timeout(abel::condition(&value),
                                                    params.wait_timeout);
             mu.reader_unlock();
 
@@ -1500,7 +1500,7 @@ namespace {
             bool value = false;  // condition value (under mu)
             abel::cond_var cv;    // signals a change of `value`
 
-            std::unique_ptr<abel::thread_internal::ThreadPool> pool =
+            std::unique_ptr<abel::thread_internal::thread_pool> pool =
                     CreateDefaultPool();
             RunAfterDelay(params.satisfy_condition_delay, pool.get(), [&] {
                 abel::mutex_lock l(&mu);
@@ -1626,7 +1626,7 @@ namespace {
 #endif
     }
 
-    TEST_P(MutexVariableThreadCountTest, Await) {
+    TEST_P(MutexVariableThreadCountTest, await) {
         int threads = GetParam();
         int iterations = ScaleIterations(500000);
         int operations = iterations;

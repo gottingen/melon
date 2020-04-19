@@ -1,6 +1,6 @@
 //
 // Core interfaces and definitions used by by low-level interfaces such as
-// SpinLock.
+// spin_lock.
 
 #ifndef ABEL_THREADING_INTERNAL_LOW_LEVEL_SCHEDULING_H_
 #define ABEL_THREADING_INTERNAL_LOW_LEVEL_SCHEDULING_H_
@@ -8,7 +8,7 @@
 #include <abel/thread/internal/scheduling_mode.h>
 #include <abel/base/profile.h>
 
-// The following two declarations exist so SchedulingGuard may friend them with
+// The following two declarations exist so scheduling_guard may friend them with
 // the appropriate language linkage.  These callbacks allow libc internals, such
 // as function level statics, to schedule cooperatively when locking.
 extern "C" bool __google_disable_rescheduling(void);
@@ -17,15 +17,15 @@ extern "C" void __google_enable_rescheduling(bool disable_result);
 namespace abel {
 
     namespace base_internal {
-        class SchedulingHelper;  // To allow use of SchedulingGuard.
+        class scheduling_helper;  // To allow use of scheduling_guard.
 
     }
 
     namespace thread_internal {
 
-        class SpinLock;          // To allow use of SchedulingGuard.
+        class spin_lock;          // To allow use of scheduling_guard.
 
-// SchedulingGuard
+// scheduling_guard
 // Provides guard semantics that may be used to disable cooperative rescheduling
 // of the calling thread within specific program blocks.  This is used to
 // protect resources (e.g. low-level SpinLocks or Domain code) that cooperative
@@ -40,10 +40,10 @@ namespace abel {
 // mutex) within a rescheduling-disabled region.
 //
 // All methods are async-signal safe.
-        class SchedulingGuard {
+        class scheduling_guard {
         public:
             // Returns true iff the calling thread may be cooperatively rescheduled.
-            static bool ReschedulingIsAllowed();
+            static bool rescheduling_is_allowed();
 
         private:
             // Disable cooperative rescheduling of the calling thread.  It may still
@@ -51,46 +51,46 @@ namespace abel {
             // reschedule.  Nestable.  The returned result is opaque, clients should not
             // attempt to interpret it.
             // REQUIRES: Result must be passed to a pairing EnableScheduling().
-            static bool DisableRescheduling();
+            static bool disable_rescheduling();
 
             // Marks the end of a rescheduling disabled region, previously started by
-            // DisableRescheduling().
-            // REQUIRES: Pairs with innermost call (and result) of DisableRescheduling().
-            static void EnableRescheduling(bool disable_result);
+            // disable_rescheduling().
+            // REQUIRES: Pairs with innermost call (and result) of disable_rescheduling().
+            static void enable_rescheduling(bool disable_result);
 
             // A scoped helper for {Disable, Enable}Rescheduling().
             // REQUIRES: destructor must run in same thread as constructor.
-            struct ScopedDisable {
-                ScopedDisable() { disabled = SchedulingGuard::DisableRescheduling(); }
+            struct scoped_disable {
+                scoped_disable() { disabled = scheduling_guard::disable_rescheduling(); }
 
-                ~ScopedDisable() { SchedulingGuard::EnableRescheduling(disabled); }
+                ~scoped_disable() { scheduling_guard::enable_rescheduling(disabled); }
 
                 bool disabled;
             };
 
-            // Access to SchedulingGuard is explicitly white-listed.
-            friend class abel::base_internal::SchedulingHelper;
+            // Access to scheduling_guard is explicitly white-listed.
+            friend class abel::base_internal::scheduling_helper;
 
-            friend class SpinLock;
+            friend class spin_lock;
 
-            SchedulingGuard(const SchedulingGuard &) = delete;
+            scheduling_guard(const scheduling_guard &) = delete;
 
-            SchedulingGuard &operator=(const SchedulingGuard &) = delete;
+            scheduling_guard &operator=(const scheduling_guard &) = delete;
         };
 
 //------------------------------------------------------------------------------
 // End of public interfaces.
 //------------------------------------------------------------------------------
 
-        ABEL_FORCE_INLINE bool SchedulingGuard::ReschedulingIsAllowed() {
+        ABEL_FORCE_INLINE bool scheduling_guard::rescheduling_is_allowed() {
             return false;
         }
 
-        ABEL_FORCE_INLINE bool SchedulingGuard::DisableRescheduling() {
+        ABEL_FORCE_INLINE bool scheduling_guard::disable_rescheduling() {
             return false;
         }
 
-        ABEL_FORCE_INLINE void SchedulingGuard::EnableRescheduling(bool /* disable_result */) {
+        ABEL_FORCE_INLINE void scheduling_guard::enable_rescheduling(bool /* disable_result */) {
             return;
         }
 

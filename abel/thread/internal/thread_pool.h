@@ -17,20 +17,20 @@ namespace abel {
 
     namespace thread_internal {
 
-// A simple ThreadPool implementation for tests.
-        class ThreadPool {
+// A simple thread_pool implementation for tests.
+        class thread_pool {
         public:
-            explicit ThreadPool(int num_threads) {
+            explicit thread_pool(int num_threads) {
                 for (int i = 0; i < num_threads; ++i) {
-                    threads_.push_back(std::thread(&ThreadPool::WorkLoop, this));
+                    threads_.push_back(std::thread(&thread_pool::work_loop, this));
                 }
             }
 
-            ThreadPool(const ThreadPool &) = delete;
+            thread_pool(const thread_pool &) = delete;
 
-            ThreadPool &operator=(const ThreadPool &) = delete;
+            thread_pool &operator=(const thread_pool &) = delete;
 
-            ~ThreadPool() {
+            ~thread_pool() {
                 {
                     abel::mutex_lock l(&mu_);
                     for (size_t i = 0; i < threads_.size(); i++) {
@@ -42,24 +42,24 @@ namespace abel {
                 }
             }
 
-            // Schedule a function to be run on a ThreadPool thread immediately.
-            void Schedule(std::function<void()> func) {
+            // schedule a function to be run on a thread_pool thread immediately.
+            void schedule(std::function<void()> func) {
                 assert(func != nullptr);
                 abel::mutex_lock l(&mu_);
                 queue_.push(std::move(func));
             }
 
         private:
-            bool WorkAvailable() const ABEL_EXCLUSIVE_LOCKS_REQUIRED(mu_) {
+            bool work_available() const ABEL_EXCLUSIVE_LOCKS_REQUIRED(mu_) {
                 return !queue_.empty();
             }
 
-            void WorkLoop() {
+            void work_loop() {
                 while (true) {
                     std::function<void()> func;
                     {
                         abel::mutex_lock l(&mu_);
-                        mu_.Await(abel::condition(this, &ThreadPool::WorkAvailable));
+                        mu_.await(abel::condition(this, &thread_pool::work_available));
                         func = std::move(queue_.front());
                         queue_.pop();
                     }

@@ -1,6 +1,6 @@
 //
 // Core interfaces and definitions used by by low-level interfaces such as
-// SpinLock.
+// spin_lock.
 
 #ifndef ABEL_THREADING_INTERNAL_SCHEDULING_MODE_H_
 #define ABEL_THREADING_INTERNAL_SCHEDULING_MODE_H_

@@ -23,22 +23,22 @@ namespace abel {
 
     namespace thread_internal {
 
-        class Futex;
+        class futex;
 
-        class Waiter;
+        class waiter;
 
-        class KernelTimeout {
+        class kernel_timeout {
         public:
             // A timeout that should expire at <t>.  Any value, in the full
             // infinite_past() to infinite_future() range, is valid here and will be
             // respected.
-            explicit KernelTimeout(abel::abel_time t) : ns_(MakeNs(t)) {}
+            explicit kernel_timeout(abel::abel_time t) : ns_(make_ns(t)) {}
 
             // No timeout.
-            KernelTimeout() : ns_(0) {}
+            kernel_timeout() : ns_(0) {}
 
             // A more explicit factory for those who prefer it.  Equivalent to {}.
-            static KernelTimeout Never() { return {}; }
+            static kernel_timeout never() { return {}; }
 
             // We explicitly do not support other custom formats: timespec, int64_t nanos.
             // Unify on this and abel::abel_time, please.
@@ -52,7 +52,7 @@ namespace abel {
             // timeout.
             int64_t ns_;
 
-            static int64_t MakeNs(abel::abel_time t) {
+            static int64_t make_ns(abel::abel_time t) {
                 // optimization--infinite_future is common "no timeout" value
                 // and cheaper to compare than convert.
                 if (t == abel::infinite_future()) return 0;
@@ -113,7 +113,7 @@ namespace abel {
               }
               // The use of abel::now() to convert from absolute time to
               // relative time means that abel::now() cannot use anything that
-              // depends on KernelTimeout (for example, mutex) on Windows.
+              // depends on kernel_timeout (for example, mutex) on Windows.
               int64_t now = to_unix_nanos(abel::now());
               if (ns_ >= now) {
                 // Round up so that now() + ms_from_now >= ns_.
@@ -130,9 +130,9 @@ namespace abel {
             }
 #endif
 
-            friend class Futex;
+            friend class futex;
 
-            friend class Waiter;
+            friend class waiter;
         };
 
     }  // namespace thread_internal

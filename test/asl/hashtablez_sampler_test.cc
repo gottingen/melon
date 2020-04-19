@@ -36,7 +36,7 @@ namespace abel {
         };
 
         namespace {
-            using ::abel::thread_internal::ThreadPool;
+            using ::abel::thread_internal::thread_pool;
             using ::testing::IsEmpty;
             using ::testing::UnorderedElementsAre;
 
@@ -272,10 +272,10 @@ namespace abel {
             TEST(HashtablezSamplerTest, MultiThreaded) {
                 HashtablezSampler sampler;
                 notification stop;
-                ThreadPool pool(10);
+                thread_pool pool(10);
 
                 for (int i = 0; i < 10; ++i) {
-                    pool.Schedule([&sampler, &stop]() {
+                    pool.schedule([&sampler, &stop]() {
                         std::random_device rd;
                         std::mt19937 gen(rd());
 
@@ -313,7 +313,7 @@ namespace abel {
                 // The threads will hammer away.  Give it a little bit of time for tsan to
                 // spot errors.
                 abel::sleep_for(abel::seconds(3));
-                stop.Notify();
+                stop.notify();
             }
 
             TEST(HashtablezSamplerTest, Callback) {

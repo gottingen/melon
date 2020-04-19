@@ -35,7 +35,7 @@ namespace abel {
 
             // Routine invoked periodically (once a second) by a background thread.
             // Has no effect on user-visible state.
-            static void Tick(thread_internal::ThreadIdentity *identity);
+            static void Tick(thread_internal::thread_identity *identity);
 
             // ---------------------------------------------------------------------------
             // Routines used by autosizing threadpools to detect when threads are
@@ -53,29 +53,29 @@ namespace abel {
 
         private:
             // Create the PerThreadSem associated with "identity".  Initializes count=0.
-            // REQUIRES: May only be called by ThreadIdentity.
-            static void Init(thread_internal::ThreadIdentity *identity);
+            // REQUIRES: May only be called by thread_identity.
+            static void Init(thread_internal::thread_identity *identity);
 
             // Destroy the PerThreadSem associated with "identity".
-            // REQUIRES: May only be called by ThreadIdentity.
-            static void Destroy(thread_internal::ThreadIdentity *identity);
+            // REQUIRES: May only be called by thread_identity.
+            static void Destroy(thread_internal::thread_identity *identity);
 
             // Increments "identity"'s count.
-            static ABEL_FORCE_INLINE void Post(thread_internal::ThreadIdentity *identity);
+            static ABEL_FORCE_INLINE void post(thread_internal::thread_identity *identity);
 
             // Waits until either our count > 0 or t has expired.
             // If count > 0, decrements count and returns true.  Otherwise returns false.
             // !t.has_timeout() => wait(t) will return true.
-            static ABEL_FORCE_INLINE bool wait(KernelTimeout t);
+            static ABEL_FORCE_INLINE bool wait(kernel_timeout t);
 
             // White-listed callers.
             friend class PerThreadSemTest;
 
             friend class abel::mutex;
 
-            friend abel::thread_internal::ThreadIdentity *CreateThreadIdentity();
+            friend abel::thread_internal::thread_identity *create_thread_identity();
 
-            friend void ReclaimThreadIdentity(void *v);
+            friend void reclaim_thread_identity(void *v);
         };
 
     }  // namespace thread_internal
@@ -90,18 +90,18 @@ namespace abel {
 // check.
 extern "C" {
 void AbelInternalPerThreadSemPost(
-        abel::thread_internal::ThreadIdentity *identity);
+        abel::thread_internal::thread_identity *identity);
 bool AbelInternalPerThreadSemWait(
-        abel::thread_internal::KernelTimeout t);
+        abel::thread_internal::kernel_timeout t);
 }  // extern "C"
 
-void abel::thread_internal::PerThreadSem::Post(
-        abel::thread_internal::ThreadIdentity *identity) {
+void abel::thread_internal::PerThreadSem::post(
+        abel::thread_internal::thread_identity *identity) {
     AbelInternalPerThreadSemPost(identity);
 }
 
 bool abel::thread_internal::PerThreadSem::wait(
-        abel::thread_internal::KernelTimeout t) {
+        abel::thread_internal::kernel_timeout t) {
     return AbelInternalPerThreadSemWait(t);
 }
 

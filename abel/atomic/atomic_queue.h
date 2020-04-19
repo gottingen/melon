@@ -1334,15 +1334,15 @@ namespace abel {
 
 
         ///////////////////////////
-        // Block
+        // block
         ///////////////////////////
 
         enum InnerQueueContext {
             implicit_context = 0, explicit_context = 1
         };
 
-        struct Block {
-            Block()
+        struct block {
+            block()
                     : next(nullptr), elementsCompletelyDequeued(0), freeListRefs(0), freeListNext(nullptr),
                       shouldBeOnFreeList(false), dynamicallyAllocated(true) {
 #ifdef MCDBGQ_TRACKMEM
@@ -1461,12 +1461,12 @@ namespace abel {
                           "The queue does not support types with an alignment greater than their size at this time");
             ABEL_ALIGN(ABEL_ALIGN_OF(T)) char elements[sizeof(T) * BLOCK_SIZE];
         public:
-            Block *next;
+            block *next;
             std::atomic<size_t> elementsCompletelyDequeued;
             std::atomic<bool> emptyFlags[BLOCK_SIZE <= EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD ? BLOCK_SIZE : 1];
         public:
             std::atomic<std::uint32_t> freeListRefs;
-            std::atomic<Block *> freeListNext;
+            std::atomic<block *> freeListNext;
             std::atomic<bool> shouldBeOnFreeList;
             bool dynamicallyAllocated;        // Perhaps a better name for this would be 'isNotPartOfInitialBlockPool'
 
@@ -1475,7 +1475,7 @@ namespace abel {
 #endif
         };
 
-        static_assert(std::alignment_of<Block>::value >= std::alignment_of<T>::value,
+        static_assert(std::alignment_of<block>::value >= std::alignment_of<T>::value,
                       "Internal error: Blocks must be at least as aligned as the type they are wrapping");
 
 
@@ -1537,7 +1537,7 @@ private:
             std::atomic<index_t> dequeueOptimisticCount;
             std::atomic<index_t> dequeueOvercommit;
 
-            Block *tailBlock;
+            block *tailBlock;
 
         public:
             bool isExplicit;
@@ -1578,7 +1578,7 @@ private:
                 // are either completely dequeued or completely not (no halfways).
                 if (this->tailBlock != nullptr) {        // Note this means there must be a block index too
                     // First find the block that's partially dequeued, if any
-                    Block *halfDequeuedBlock = nullptr;
+                    block *halfDequeuedBlock = nullptr;
                     if ((this->headIndex.load(std::memory_order_relaxed) & static_cast<index_t>(BLOCK_SIZE - 1)) != 0) {
                         // The head's not on a block boundary, meaning a block somewhere is partially dequeued
                         // (or the head block is the tail block and was fully dequeued, but the head/tail are still not on a boundary)
@@ -1598,7 +1598,7 @@ private:
                     auto block = this->tailBlock;
                     do {
                         block = block->next;
-                        if (block->atomic_queue::Block::template is_empty<explicit_context>()) {
+                        if (block->atomic_queue::block::template is_empty<explicit_context>()) {
                             continue;
                         }
 
@@ -1653,10 +1653,10 @@ private:
                     auto startBlock = this->tailBlock;
                     auto originalBlockIndexSlotsUsed = pr_blockIndexSlotsUsed;
                     if (this->tailBlock != nullptr &&
-                        this->tailBlock->next->atomic_queue::Block::template is_empty<explicit_context>()) {
+                        this->tailBlock->next->atomic_queue::block::template is_empty<explicit_context>()) {
                         // We can re-use the block ahead of us, it's empty!
                         this->tailBlock = this->tailBlock->next;
-                        this->tailBlock->atomic_queue::Block::template reset_empty<explicit_context>();
+                        this->tailBlock->atomic_queue::block::template reset_empty<explicit_context>();
 
                         // We'll put the block on the block index (guaranteed to be room since we're conceptually removing the
                         // last block from it first -- except instead of removing then adding, we can just overwrite).
@@ -1698,7 +1698,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                         newBlock->owner = this;
 #endif
-                        newBlock->atomic_queue::Block::template reset_empty<explicit_context>();
+                        newBlock->atomic_queue::block::template reset_empty<explicit_context>();
                         if (this->tailBlock == nullptr) {
                             newBlock->next = newBlock;
                         } else {
@@ -1821,12 +1821,12 @@ private:
                             // Make sure the element is still fully dequeued and destroyed even if the assignment
                             // throws
                             struct Guard {
-                                Block *block;
+                                struct block *block;
                                 index_t index;
 
                                 ~Guard() {
                                     (*block)[index]->~T();
-                                    block->atomic_queue::Block::template set_empty<explicit_context>(index);
+                                    block->atomic_queue::block::template set_empty<explicit_context>(index);
                                 }
                             } guard = {block, index};
 
@@ -1834,7 +1834,7 @@ private:
                         } else {
                             element = std::move(el); // NOLINT
                             el.~T(); // NOLINT
-                            block->atomic_queue::Block::template set_empty<explicit_context>(index);
+                            block->atomic_queue::block::template set_empty<explicit_context>(index);
                         }
 
                         return true;
@@ -1858,7 +1858,7 @@ private:
                 auto originalBlockIndexFront = pr_blockIndexFront;
                 auto originalBlockIndexSlotsUsed = pr_blockIndexSlotsUsed;
 
-                Block *firstAllocatedBlock = nullptr;
+                block *firstAllocatedBlock = nullptr;
 
                 // Figure out how many blocks we'll need to allocate, and do so
                 size_t blockBaseDiff = ((startTailIndex + count - 1) & ~static_cast<index_t>(BLOCK_SIZE - 1)) -
@@ -1868,7 +1868,7 @@ private:
                     // Allocate as many blocks as possible from ahead
                     while (blockBaseDiff > 0 && this->tailBlock != nullptr &&
                            this->tailBlock->next != firstAllocatedBlock &&
-                           this->tailBlock->next->atomic_queue::Block::template is_empty<explicit_context>()) {
+                           this->tailBlock->next->atomic_queue::block::template is_empty<explicit_context>()) {
                         blockBaseDiff -= static_cast<index_t>(BLOCK_SIZE);
                         currentTailIndex += static_cast<index_t>(BLOCK_SIZE);
 
@@ -1926,7 +1926,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                         newBlock->owner = this;
 #endif
-                        newBlock->atomic_queue::Block::template set_all_empty<explicit_context>();
+                        newBlock->atomic_queue::block::template set_all_empty<explicit_context>();
                         if (this->tailBlock == nullptr) {
                             newBlock->next = newBlock;
                         } else {
@@ -1948,7 +1948,7 @@ private:
                     // publish the new block index front
                     auto block = firstAllocatedBlock;
                     while (true) {
-                        block->atomic_queue::Block::template reset_empty<explicit_context>();
+                        block->atomic_queue::block::template reset_empty<explicit_context>();
                         if (block == this->tailBlock) {
                             break;
                         }
@@ -2127,7 +2127,7 @@ private:
                                         while (index != endIndex) {
                                             (*block)[index++]->~T();
                                         }
-                                        block->atomic_queue::Block::template set_many_empty<explicit_context>(
+                                        block->atomic_queue::block::template set_many_empty<explicit_context>(
                                                 firstIndexInBlock, static_cast<size_t>(endIndex - firstIndexInBlock));
                                         indexIndex = (indexIndex + 1) & (localBlockIndex->size - 1);
 
@@ -2143,10 +2143,10 @@ private:
                                     ABEL_RETHROW;
                                 }
                             }
-                            block->atomic_queue::Block::template set_many_empty<explicit_context>(firstIndexInBlock,
-                                                                                                     static_cast<size_t>(
-                                                                                                             endIndex -
-                                                                                                             firstIndexInBlock));
+                            block->atomic_queue::block::template set_many_empty<explicit_context>(firstIndexInBlock,
+                                                                                                  static_cast<size_t>(
+                                                                                                          endIndex -
+                                                                                                          firstIndexInBlock));
                             indexIndex = (indexIndex + 1) & (localBlockIndex->size - 1);
                         } while (index != firstIndex + actualCount);
 
@@ -2163,7 +2163,7 @@ private:
         private:
             struct BlockIndexEntry {
                 index_t base;
-                Block *block;
+                struct block *block;
             };
 
             struct BlockIndexHeader {
@@ -2258,7 +2258,7 @@ private:
                 // Destroy all remaining elements!
                 auto tail = this->tailIndex.load(std::memory_order_relaxed);
                 auto index = this->headIndex.load(std::memory_order_relaxed);
-                Block *block = nullptr;
+                block *block = nullptr;
                 assert(index == tail || atomic_internal::circular_less_than(index, tail));
                 bool forceFreeLastBlock =
                         index != tail;        // If we enter the loop, then the last (tail) block will not be freed
@@ -2327,7 +2327,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                     newBlock->owner = this;
 #endif
-                    newBlock->atomic_queue::Block::template reset_empty<implicit_context>();
+                    newBlock->atomic_queue::block::template reset_empty<implicit_context>();
 
                     if (!ABEL_NOEXCEPT_EXPR(new((T *) nullptr) T(std::forward<U>(element)))) {
                         // May throw, try to insert now before we publish the fact that we have this new block
@@ -2377,34 +2377,34 @@ private:
                         auto entry = get_block_index_entry_for_index(index);
 
                         // Dequeue
-                        auto block = entry->value.load(std::memory_order_relaxed);
-                        auto &el = *((*block)[index]);
+                        auto bk = entry->value.load(std::memory_order_relaxed);
+                        auto &el = *((*bk)[index]);
 
                         if (!ABEL_NOEXCEPT_EXPR(element = std::move(el))) {
                             struct Guard {
-                                Block *block;
+                                struct block *bk;
                                 index_t index;
                                 BlockIndexEntry *entry;
                                 atomic_queue *parent;
 
                                 ~Guard() {
-                                    (*block)[index]->~T();
-                                    if (block->atomic_queue::Block::template set_empty<implicit_context>(index)) {
+                                    (*bk)[index]->~T();
+                                    if (bk->atomic_queue::block::template set_empty<implicit_context>(index)) {
                                         entry->value.store(nullptr, std::memory_order_relaxed);
-                                        parent->add_block_to_free_list(block);
+                                        parent->add_block_to_free_list(bk);
                                     }
                                 }
-                            } guard = {block, index, entry, this->parent};
+                            } guard = {bk, index, entry, this->parent};
 
                             element = std::move(el); // NOLINT
                         } else {
                             element = std::move(el); // NOLINT
                             el.~T(); // NOLINT
 
-                            if (block->atomic_queue::Block::template set_empty<implicit_context>(index)) {
+                            if (bk->atomic_queue::block::template set_empty<implicit_context>(index)) {
                                 // Add the block back into the global free pool (and remove from block index)
                                 entry->value.store(nullptr, std::memory_order_relaxed);
-                                this->parent->add_block_to_free_list(block);        // releases the above store
+                                this->parent->add_block_to_free_list(bk);        // releases the above store
                             }
                         }
 
@@ -2430,7 +2430,7 @@ private:
 
                 index_t startTailIndex = this->tailIndex.load(std::memory_order_relaxed);
                 auto startBlock = this->tailBlock;
-                Block *firstAllocatedBlock = nullptr;
+                block *firstAllocatedBlock = nullptr;
                 auto endBlock = this->tailBlock;
 
                 // Figure out how many blocks we'll need to allocate, and do so
@@ -2444,7 +2444,7 @@ private:
 
                         // Find out where we'll be inserting this block in the block index
                         BlockIndexEntry *idxEntry = nullptr;  // initialization here unnecessary but compiler can't always tell
-                        Block *newBlock;
+                        block *newBlock;
                         bool indexInserted = false;
                         auto head = this->headIndex.load(std::memory_order_relaxed);
                         assert(!atomic_internal::circular_less_than<index_t>(currentTailIndex, head));
@@ -2479,7 +2479,7 @@ private:
 #ifdef MCDBGQ_TRACKMEM
                         newBlock->owner = this;
 #endif
-                        newBlock->atomic_queue::Block::template reset_empty<implicit_context>();
+                        newBlock->atomic_queue::block::template reset_empty<implicit_context>();
                         newBlock->next = nullptr;
 
                         // Insert the new block into the index
@@ -2644,7 +2644,7 @@ private:
                                             (*block)[index++]->~T();
                                         }
 
-                                        if (block->atomic_queue::Block::template set_many_empty<implicit_context>(
+                                        if (block->atomic_queue::block::template set_many_empty<implicit_context>(
                                                 blockStartIndex, static_cast<size_t>(endIndex - blockStartIndex))) {
                                             entry->value.store(nullptr, std::memory_order_relaxed);
                                             this->parent->add_block_to_free_list(block);
@@ -2663,7 +2663,7 @@ private:
                                     ABEL_RETHROW;
                                 }
                             }
-                            if (block->atomic_queue::Block::template set_many_empty<implicit_context>(
+                            if (block->atomic_queue::block::template set_many_empty<implicit_context>(
                                     blockStartIndex, static_cast<size_t>(endIndex - blockStartIndex))) {
 
                                 // Note that the set_many_empty above did a release, meaning that anybody who acquires the block
@@ -2690,7 +2690,7 @@ private:
 
             struct BlockIndexEntry {
                 std::atomic<index_t> key;
-                std::atomic<Block *> value;
+                std::atomic<block *> value;
             };
 
             struct BlockIndexHeader {
@@ -2825,7 +2825,7 @@ private:
 
 
         //////////////////////////////////
-        // Block pool manipulation
+        // block pool manipulation
         //////////////////////////////////
 
         void populate_initial_block_list(size_t blockCount) {
@@ -2835,7 +2835,7 @@ private:
                 return;
             }
 
-            initialBlockPool = create_array<Block>(blockCount);
+            initialBlockPool = create_array<block>(blockCount);
             if (initialBlockPool == nullptr) {
                 initialBlockPoolSize = 0;
             }
@@ -2844,7 +2844,7 @@ private:
             }
         }
 
-        inline Block *try_get_block_from_initial_pool() {
+        inline block *try_get_block_from_initial_pool() {
             if (initialBlockPoolIndex.load(std::memory_order_relaxed) >= initialBlockPoolSize) {
                 return nullptr;
             }
@@ -2854,14 +2854,14 @@ private:
             return index < initialBlockPoolSize ? (initialBlockPool + index) : nullptr;
         }
 
-        inline void add_block_to_free_list(Block *block) {
+        inline void add_block_to_free_list(block *block) {
 #ifdef MCDBGQ_TRACKMEM
             block->owner = nullptr;
 #endif
             freeList.add(block);
         }
 
-        inline void add_blocks_to_free_list(Block *block) {
+        inline void add_blocks_to_free_list(block *block) {
             while (block != nullptr) {
                 auto next = block->next;
                 add_block_to_free_list(block);
@@ -2869,13 +2869,13 @@ private:
             }
         }
 
-        inline Block *try_get_block_from_free_list() {
+        inline block *try_get_block_from_free_list() {
             return freeList.try_get();
         }
 
         // Gets a free block from one of the memory pools, or allocates a new one (if applicable)
         template<AllocationMode canAlloc>
-        Block *requisition_block() {
+        block *requisition_block() {
             auto block = try_get_block_from_initial_pool();
             if (block != nullptr) {
                 return block;
@@ -2887,7 +2887,7 @@ private:
             }
 
             ABEL_CONSTEXPR_IF (canAlloc == CanAlloc) {
-                return create<Block>();
+                return create<block>();
             } else {
                 return nullptr;
             }
@@ -2963,7 +2963,7 @@ private:
                             auto block = tailBlock;
                             do {
                                 ++stats.allocatedBlocks;
-                                if (!block->atomic_queue::Block::template is_empty<explicit_context>() || wasNonEmpty) {
+                                if (!block->atomic_queue::block::template is_empty<explicit_context>() || wasNonEmpty) {
                                     ++stats.usedBlocks;
                                     wasNonEmpty = wasNonEmpty || block != tailBlock;
                                 }
@@ -2983,7 +2983,7 @@ private:
                 stats.allocatedBlocks += freeOnInitialPool;
                 stats.freeBlocks += freeOnInitialPool;
 
-                stats.blockClassBytes = sizeof(Block) * stats.allocatedBlocks;
+                stats.blockClassBytes = sizeof(block) * stats.allocatedBlocks;
                 stats.queueClassBytes += sizeof(atomic_queue);
 
                 return stats;
@@ -3028,7 +3028,8 @@ private:
 
             recycled = false;
             return add_producer(
-                    isExplicit ? static_cast<producer_base *>(create<explicit_producer>(this)) : create<ImplicitProducer>(
+                    isExplicit ? static_cast<producer_base *>(create<explicit_producer>(this))
+                               : create<ImplicitProducer>(
                             this));
         }
 
@@ -3420,13 +3421,13 @@ private:
         std::atomic<std::uint32_t> producerCount;
 
         std::atomic<size_t> initialBlockPoolIndex;
-        Block *initialBlockPool;
+        block *initialBlockPool;
         size_t initialBlockPoolSize;
 
 #ifndef MCDBGQ_USEDEBUGFREELIST
-        FreeList<Block> freeList;
+        FreeList<block> freeList;
 #else
-        debug::DebugFreeList<Block> freeList;
+        debug::DebugFreeList<block> freeList;
 #endif
 
         std::atomic<ImplicitProducerHash *> implicitProducerHash;
@@ -3472,7 +3473,7 @@ private:
     consumer_token::consumer_token(blocking_atomic_queue<T, Traits> &queue)
             : itemsConsumedFromCurrent(0), currentProducer(nullptr), desiredProducer(nullptr) {
         initialOffset = reinterpret_cast<atomic_queue<T, Traits> *>(&queue)->nextExplicitConsumerId.fetch_add(1,
-                                                                                                                 std::memory_order_release);
+                                                                                                              std::memory_order_release);
         lastKnownGlobalOffset = -1;
     }
 

@@ -72,8 +72,8 @@ namespace abel {
 //    public:
 //     void ReadFileAsync(const std::string& filename, std::string* content,
 //                        const std::function<void()>& done) {
-//       // Calls Executor::Schedule(std::function<void()>).
-//       Executor::DefaultExecutor()->Schedule(
+//       // Calls Executor::schedule(std::function<void()>).
+//       Executor::DefaultExecutor()->schedule(
 //           abel::bind_front(&FileReader::BlockingRead, this,
 //                            filename, content, done));
 //     }
@@ -100,10 +100,10 @@ namespace abel {
 //   abel::string_view sv = s;
 //
 //   // abel::bind_front(LogStringView, arg) makes a copy of arg and stores it.
-//   e->Schedule(abel::bind_front(LogStringView, sv)); // ERROR: dangling
+//   e->schedule(abel::bind_front(LogStringView, sv)); // ERROR: dangling
 //                                                     // string_view.
 //
-//   e->Schedule(abel::bind_front(LogStringView, s));  // OK: stores a copy of
+//   e->schedule(abel::bind_front(LogStringView, s));  // OK: stores a copy of
 //                                                     // s.
 //
 // To store some of the arguments passed to `abel::bind_front()` by reference,
@@ -116,7 +116,7 @@ namespace abel {
 //     void Serve(const Request& req, std::function<void()>* done) {
 //       // The request protocol buffer won't be deleted until done is called.
 //       // It's safe to store a reference to it inside the functor.
-//       Executor::DefaultExecutor()->Schedule(
+//       Executor::DefaultExecutor()->schedule(
 //           abel::bind_front(&Service::BlockingServe, this, std::cref(req),
 //           done));
 //     }

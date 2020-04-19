@@ -1,4 +1,10 @@
-include_directories(${PROJECT_SOURCE_DIR}/benchmark)
+
+find_package(benchmark REQUIRED)
+
+carbin_check_target(benchmark::benchmark)
+carbin_check_target(benchmark::benchmark_main)
+
+include_directories(${benchmark_INCLUDE_DIRS})
 
 add_subdirectory(algorithm)
 add_subdirectory(base)

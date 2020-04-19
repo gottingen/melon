@@ -326,7 +326,7 @@ namespace abel {
 // Fallback implementation of get_tid using pthread_getspecific.
     static once_flag tid_once;
     static pthread_key_t tid_key;
-    static abel::thread_internal::SpinLock tid_lock(
+    static abel::thread_internal::spin_lock tid_lock(
             abel::base_internal::kLinkerInitialized);
 
 // We set a bit per thread in this array to indicate that an ID is in

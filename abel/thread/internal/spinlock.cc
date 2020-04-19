@@ -32,7 +32,7 @@
 // Bit [2]: This bit is exclusive from bit [1].  It is used only by a
 //          non-cooperative lock.  When set, indicates that scheduling was
 //          successfully disabled when the lock was acquired.  May be unset,
-//          even if non-cooperative, if a ThreadIdentity did not yet exist at
+//          even if non-cooperative, if a thread_identity did not yet exist at
 //          time of acquisition.
 //
 // Bit [3]: If this is the only upper bit ([31..3]) set then this lock was
@@ -55,12 +55,12 @@ namespace abel {
         }
 
 // Uncommon constructors.
-        SpinLock::SpinLock(thread_internal::SchedulingMode mode)
+        spin_lock::spin_lock(thread_internal::SchedulingMode mode)
                 : lockword_(IsCooperative(mode) ? kSpinLockCooperative : 0) {
             ABEL_TSAN_MUTEX_CREATE(this, __tsan_mutex_not_static);
         }
 
-        SpinLock::SpinLock(base_internal::LinkerInitialized,
+        spin_lock::spin_lock(base_internal::LinkerInitialized,
                            thread_internal::SchedulingMode mode) {
             ABEL_TSAN_MUTEX_CREATE(this, 0);
             if (IsCooperative(mode)) {
@@ -77,7 +77,7 @@ namespace abel {
 //
 // SlowLock() must be careful to re-test for this bit so that any outstanding
 // waiters may be upgraded to cooperative status.
-        void SpinLock::InitLinkerInitializedAndCooperative() {
+        void spin_lock::InitLinkerInitializedAndCooperative() {
             lock();
             lockword_.fetch_or(kSpinLockCooperative, std::memory_order_relaxed);
             unlock();
@@ -86,8 +86,8 @@ namespace abel {
 // Monitor the lock to see if its value changes within some time period
 // (adaptive_spin_count loop iterations). The last value read from the lock
 // is returned from the method.
-        uint32_t SpinLock::SpinLoop() {
-            // We are already in the slow path of SpinLock, initialize the
+        uint32_t spin_lock::SpinLoop() {
+            // We are already in the slow path of spin_lock, initialize the
             // adaptive_spin_count here.
             ABEL_CONST_INIT static abel::once_flag init_adaptive_spin_count;
             ABEL_CONST_INIT static int adaptive_spin_count = 0;
@@ -103,7 +103,7 @@ namespace abel {
             return lock_value;
         }
 
-        void SpinLock::SlowLock() {
+        void spin_lock::SlowLock() {
             uint32_t lock_value = SpinLoop();
             lock_value = TryLockInternal(lock_value, 0);
             if ((lock_value & kSpinLockHeld) == 0) {
@@ -127,7 +127,7 @@ namespace abel {
                             lock_value, lock_value | kSpinLockSleeper,
                             std::memory_order_relaxed, std::memory_order_relaxed)) {
                         // Successfully transitioned to kSpinLockSleeper.  Pass
-                        // kSpinLockSleeper to the SpinLockWait routine to properly indicate
+                        // kSpinLockSleeper to the spin_lock_wait routine to properly indicate
                         // the last lock_value observed.
                         lock_value |= kSpinLockSleeper;
                     } else if ((lock_value & kSpinLockHeld) == 0) {
@@ -145,11 +145,11 @@ namespace abel {
                 } else {
                     scheduling_mode = thread_internal::SCHEDULE_KERNEL_ONLY;
                 }
-                // SpinLockDelay() calls into fiber scheduler, we need to see
+                // spin_lock_delay() calls into fiber scheduler, we need to see
                 // synchronization there to avoid false positives.
                 ABEL_TSAN_MUTEX_PRE_DIVERT(this, 0);
                 // wait for an OS specific delay.
-                thread_internal::SpinLockDelay(&lockword_, lock_value, ++lock_wait_call_count,
+                thread_internal::spin_lock_delay(&lockword_, lock_value, ++lock_wait_call_count,
                                                   scheduling_mode);
                 ABEL_TSAN_MUTEX_POST_DIVERT(this, 0);
                 // Spin again after returning from the wait routine to give this thread
@@ -160,8 +160,8 @@ namespace abel {
             }
         }
 
-        void SpinLock::SlowUnlock(uint32_t lock_value) {
-            thread_internal::SpinLockWake(&lockword_,
+        void spin_lock::SlowUnlock(uint32_t lock_value) {
+            thread_internal::spin_lock_wake(&lockword_,
                                              false);  // wake waiter if necessary
 
             // If our acquisition was contended, collect contentionz profile info.  We
@@ -188,7 +188,7 @@ namespace abel {
             LOCKWORD_RESERVED_SHIFT = 3
         };  // We currently reserve the lower 3 bits.
 
-        uint32_t SpinLock::EncodeWaitCycles(int64_t wait_start_time,
+        uint32_t spin_lock::EncodeWaitCycles(int64_t wait_start_time,
                                             int64_t wait_end_time) {
             static const int64_t kMaxWaitTime =
                     std::numeric_limits<uint32_t>::max() >> LOCKWORD_RESERVED_SHIFT;
@@ -212,7 +212,7 @@ namespace abel {
             return clamped;
         }
 
-        uint64_t SpinLock::DecodeWaitCycles(uint32_t lock_value) {
+        uint64_t spin_lock::DecodeWaitCycles(uint32_t lock_value) {
             // Cast to uint32_t first to ensure bits [63:32] are cleared.
             const uint64_t scaled_wait_time =
                     static_cast<uint32_t>(lock_value & kWaitTimeMask);

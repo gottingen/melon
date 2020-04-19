@@ -238,4 +238,4 @@ namespace abel {
         return SHA256(str).digest_hex_uc();
     }
 
-}
+} //namespace abel

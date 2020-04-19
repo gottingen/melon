@@ -7,18 +7,18 @@
 
 extern "C" {
 
-void AbelInternalSpinLockDelay(std::atomic<uint32_t> * /* lock_word */,
+void abel_internal_spin_lock_delay(std::atomic<uint32_t> * /* lock_word */,
                                uint32_t /* value */, int loop,
                                abel::base_internal::SchedulingMode /* mode */) {
     if (loop == 0) {
     } else if (loop == 1) {
         Sleep(0);
     } else {
-        Sleep(abel::thread_internal::SpinLockSuggestedDelayNS(loop) / 1000000);
+        Sleep(abel::thread_internal::spin_lock_suggested_delay_ns(loop) / 1000000);
     }
 }
 
-void AbelInternalSpinLockWake(std::atomic<uint32_t> * /* lock_word */,
+void abel_internal_spin_lock_wake(std::atomic<uint32_t> * /* lock_word */,
                               bool /* all */) {}
 
 }  // extern "C"

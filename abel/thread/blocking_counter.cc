@@ -31,7 +31,7 @@ namespace abel {
         ABEL_RAW_CHECK(num_waiting_ == 0, "multiple threads called wait()");
         num_waiting_++;
 
-        this->lock_.Await(condition(IsZero, &this->count_));
+        this->lock_.await(condition(IsZero, &this->count_));
 
         // At this point, We know that all threads executing decrement_count have
         // released the lock, and so will not touch this object again.

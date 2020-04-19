@@ -14,4 +14,4 @@ namespace abel {
             return ss.str();
         }
     } //namespace metrics
-} //namespace abel
+} //namespace
