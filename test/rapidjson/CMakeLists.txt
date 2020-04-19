@@ -8,11 +8,6 @@ carbin_cc_test(
         ${RAPIDJSON_SRC}
         COPTS
         ${CARBIN_TEST_COPTS}
-        DEPS
-        abel::abel
-        gtest
-        testing_static
-        gtest_main
-        gmock
-        pthread
+        DEPS ${TEST_DEPS}
 )
+

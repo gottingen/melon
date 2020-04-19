@@ -17,7 +17,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 list(APPEND CMAKE_MODULE_PATH
         ${PROJECT_SOURCE_DIR}/cmake
-        ${PROJECT_SOURCE_DIR}/cmake/modules)
+        ${PROJECT_SOURCE_DIR}/cmake/modules
+        ${PROJECT_SOURCE_DIR}/cmake/find)
 
 include(carbin_module)
 include(CMakePackageConfigHelpers)
