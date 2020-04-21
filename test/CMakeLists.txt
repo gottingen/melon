@@ -1,6 +1,34 @@
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
+find_package(GTest REQUIRED)
+find_package(GMock REQUIRED)
 
+
+carbin_check_target(GTest::Main)
+carbin_check_target(GTest::GTest)
+carbin_print(${GTEST_LIBRARY})
+carbin_print(${GTEST_MAIN_LIBRARY})
+
+if (APPLE)
+    set(TEST_DEPS
+            "${GMOCK_LIBRARY}"
+            "${GTEST_LIBRARY}"
+            "${GTEST_MAIN_LIBRARY}"
+            "abel::abel"
+            "pthread"
+            "testing_static"
+            )
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(TEST_DEPS
+            "${GMOCK_LIBRARY}"
+            "${GTEST_LIBRARY}"
+            "${GTEST_MAIN_LIBRARY}"
+            "abel::abel"
+            "pthread"
+            "testing_static"
+            "rt"
+            )
+endif ()
 add_subdirectory(testing)
 add_subdirectory(asl)
 add_subdirectory(atomic)

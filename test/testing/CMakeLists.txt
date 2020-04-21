@@ -8,8 +8,8 @@ carbin_cc_library(
         SRCS
         ${TESTING_SRC}
         DEPS
-        gtest
-        gmock
+        "${GMOCK_LIBRARY}"
+        "${GTEST_LIBRARY}"
         abel::abel
         pthread
 )
