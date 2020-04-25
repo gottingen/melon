@@ -8,9 +8,10 @@
 #include <stdlib.h>                                    // EXIT_FAILURE
 #include <stdio.h>                                     // snprintf
 #include <pthread.h>                                   // pthread_mutex_t
-#include <unistd.h>                                    // _exit
+#include <unistd.h>// _exit
 #include <abel/thread/mutex.h>
 #include <abel/base/profile.h>
+#include <abel/system/error_code.h>
 
 namespace abel {
 
