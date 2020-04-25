@@ -6,6 +6,7 @@ FILE(GLOB ASL_FORMAT_SRC "asl/format/*.cc")
 FILE(GLOB ASL_HASH_SRC "asl/hash/*.cc")
 FILE(GLOB BASE_SRC "base/*.cc")
 FILE(GLOB LOG_SRC "log/*.cc")
+FILE(GLOB IO_SRC "io/*.cc")
 
 
 
@@ -52,6 +53,7 @@ SET(ABEL_SRC
         ${ASL_HASH_SRC}
         ${BASE_SRC}
         ${LOG_SRC}
+        ${IO_SRC}
         ${CHRONO_SRC}
         ${CHRONO_INTERNAL_SRC}
         ${DEBUG_INTERNAL_SRC}
