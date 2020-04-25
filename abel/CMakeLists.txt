@@ -8,7 +8,7 @@ FILE(GLOB BASE_SRC "base/*.cc")
 FILE(GLOB LOG_SRC "log/*.cc")
 FILE(GLOB IO_SRC "io/*.cc")
 
-FILE(GLOB MEM_SRC "io/*.cc")
+FILE(GLOB MEM_SRC "memory/*.cc")
 
 
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
