@@ -8,6 +8,7 @@ FILE(GLOB BASE_SRC "base/*.cc")
 FILE(GLOB LOG_SRC "log/*.cc")
 FILE(GLOB IO_SRC "io/*.cc")
 
+FILE(GLOB MEM_SRC "io/*.cc")
 
 
 FILE(GLOB DEBUG_SRC "debugging/*.cc")
@@ -54,6 +55,7 @@ SET(ABEL_SRC
         ${BASE_SRC}
         ${LOG_SRC}
         ${IO_SRC}
+        ${MEM_SRC}
         ${CHRONO_SRC}
         ${CHRONO_INTERNAL_SRC}
         ${DEBUG_INTERNAL_SRC}
