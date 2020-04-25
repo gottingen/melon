@@ -493,6 +493,39 @@ namespace abel {
         // that is not `c` within the `basic_string_view`.
         size_type find_last_not_of(value_type c, size_type pos = npos) const noexcept;
 
+        // starts_with
+        ABEL_CONSTEXPR bool starts_with(basic_string_view x) const noexcept
+        {
+            return (size() >= x.size()) && (compare(0, x.size(), x) == 0);
+        }
+
+        ABEL_CONSTEXPR bool starts_with(T x) const noexcept
+        {
+            return starts_with(basic_string_view(&x, 1));
+        }
+
+        ABEL_CONSTEXPR bool starts_with(const T* s) const
+        {
+            return starts_with(basic_string_view(s));
+        }
+
+        ABEL_CONSTEXPR bool ends_with(basic_string_view x) const noexcept {
+            return (size() >= x.size()) && (compare(size() - x.size(), npos, x) == 0);
+        }
+
+        ABEL_CONSTEXPR bool ends_with(T x) const noexcept {
+            return ends_with(basic_string_view(&x, 1));
+        }
+
+        ABEL_CONSTEXPR bool ends_with(const T *s) const noexcept {
+            return ends_with(basic_string_view(s));
+        }
+
+        void clear() noexcept {
+            ptr_ = nullptr;
+            length_ = 0;
+        }
+
     private:
         static constexpr size_type kMaxSize =
                 (std::numeric_limits<difference_type>::max)();
