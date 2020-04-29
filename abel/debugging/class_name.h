@@ -5,7 +5,7 @@
 #include <typeinfo>
 #include <string>                                // std::string
 
-namespace qrpc {
+namespace abel {
 
 std::string demangle(const char* name);
 
