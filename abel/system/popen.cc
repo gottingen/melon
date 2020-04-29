@@ -212,7 +212,7 @@ namespace abel {
     }
 
 
-    ssize_t ReadCommandLine(char *buf, size_t len, bool with_args) {
+    ssize_t read_command_line(char *buf, size_t len, bool with_args) {
 #if defined(ABEL_PLATFORM_LINUX)
         abel::scoped_fd fd(open("/proc/self/cmdline", O_RDONLY));
     if (fd < 0) {
