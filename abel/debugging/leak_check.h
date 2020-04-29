@@ -24,19 +24,19 @@
 namespace abel {
 
 
-// HaveLeakSanitizer()
+// have_leak_sanitizer()
 //
 // Returns true if a leak-checking sanitizer (either ASan or standalone LSan) is
 // currently built into this target.
-    bool HaveLeakSanitizer();
+    bool have_leak_sanitizer();
 
-// DoIgnoreLeak()
+// do_ignore_leak()
 //
-// Implements `IgnoreLeak()` below. This function should usually
-// not be called directly; calling `IgnoreLeak()` is preferred.
-    void DoIgnoreLeak(const void *ptr);
+// Implements `ignore_leak()` below. This function should usually
+// not be called directly; calling `ignore_leak()` is preferred.
+    void do_ignore_leak(const void *ptr);
 
-// IgnoreLeak()
+// ignore_leak()
 //
 // Instruct the leak sanitizer to ignore leak warnings on the object referenced
 // by the passed pointer, as well as all heap objects transitively referenced
@@ -45,19 +45,19 @@ namespace abel {
 //
 // Example:
 //
-//   static T* obj = IgnoreLeak(new T(...));
+//   static T* obj = ignore_leak(new T(...));
 //
 // If the passed `ptr` does not point to an actively allocated object at the
-// time `IgnoreLeak()` is called, the call is a no-op; if it is actively
+// time `ignore_leak()` is called, the call is a no-op; if it is actively
 // allocated, the object must not get deallocated later.
 //
     template<typename T>
-    T *IgnoreLeak(T *ptr) {
-        DoIgnoreLeak(ptr);
+    T *ignore_leak(T *ptr) {
+        do_ignore_leak(ptr);
         return ptr;
     }
 
-// LeakCheckDisabler
+// leak_check_disabler
 //
 // This helper class indicates that any heap allocations done in the code block
 // covered by the scoped object, which should be allocated on the stack, will
@@ -67,35 +67,35 @@ namespace abel {
 // Example:
 //
 //   void Foo() {
-//     LeakCheckDisabler disabler;
+//     leak_check_disabler disabler;
 //     ... code that allocates objects whose leaks should be ignored ...
 //   }
 //
 // REQUIRES: Destructor runs in same thread as constructor
-    class LeakCheckDisabler {
+    class leak_check_disabler {
     public:
-        LeakCheckDisabler();
+        leak_check_disabler();
 
-        LeakCheckDisabler(const LeakCheckDisabler &) = delete;
+        leak_check_disabler(const leak_check_disabler &) = delete;
 
-        LeakCheckDisabler &operator=(const LeakCheckDisabler &) = delete;
+        leak_check_disabler &operator=(const leak_check_disabler &) = delete;
 
-        ~LeakCheckDisabler();
+        ~leak_check_disabler();
     };
 
-// RegisterLivePointers()
+// register_live_pointers()
 //
 // Registers `ptr[0,size-1]` as pointers to memory that is still actively being
 // referenced and for which leak checking should be ignored. This function is
 // useful if you store pointers in mapped memory, for memory ranges that we know
 // are correct but for which normal analysis would flag as leaked code.
-    void RegisterLivePointers(const void *ptr, size_t size);
+    void register_live_pointers(const void *ptr, size_t size);
 
-// UnRegisterLivePointers()
+// unregister_live_pointers()
 //
 // Deregisters the pointers previously marked as active in
-// `RegisterLivePointers()`, enabling leak checking of those pointers.
-    void UnRegisterLivePointers(const void *ptr, size_t size);
+// `register_live_pointers()`, enabling leak checking of those pointers.
+    void unregister_live_pointers(const void *ptr, size_t size);
 
 
 }  // namespace abel

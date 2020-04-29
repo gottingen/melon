@@ -18,7 +18,7 @@ namespace abel {
     }
 
 // Hide a pointer from the leak checker. For internal use only.
-// Differs from abel::IgnoreLeak(ptr) in that abel::IgnoreLeak(ptr) causes ptr
+// Differs from abel::ignore_leak(ptr) in that abel::ignore_leak(ptr) causes ptr
 // and all objects reachable from ptr to be ignored by the leak checker.
     template<class T>
     ABEL_FORCE_INLINE uintptr_t hide_ptr(T *ptr) {

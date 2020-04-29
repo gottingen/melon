@@ -1038,7 +1038,7 @@ namespace abel {
 //
 // This has the same memory ordering concerns as register_mutex_profiler() above.
 //
-// DEPRECATED: The default symbolizer function is abel::Symbolize() and the
+// DEPRECATED: The default symbolizer function is abel::symbolize() and the
 // ability to register a different hook for symbolizing stack traces will be
 // removed on or after 2023-05-01.
     ABEL_DEPRECATED_MESSAGE("abel::register_symbolizer() is deprecated and will be removed "

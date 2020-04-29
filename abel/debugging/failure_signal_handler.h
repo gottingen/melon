@@ -6,15 +6,15 @@
 // This file configures the abel *failure signal handler* to capture and dump
 // useful debugging information (such as a stacktrace) upon program failure.
 //
-// To use the failure signal handler, call `abel::InstallFailureSignalHandler()`
+// To use the failure signal handler, call `abel::install_failure_signal_handler()`
 // very early in your program, usually in the first few lines of main():
 //
 // int main(int argc, char** argv) {
 //   // Initialize the symbolizer to get a human-readable stack trace
-//   abel::InitializeSymbolizer(argv[0]);
+//   abel::initialize_symbolizer(argv[0]);
 //
-//   abel::FailureSignalHandlerOptions options;
-//   abel::InstallFailureSignalHandler(options);
+//   abel::failure_signal_handler_options options;
+//   abel::install_failure_signal_handler(options);
 //   DoSomethingInteresting();
 //   return 0;
 // }
@@ -36,11 +36,11 @@
 namespace abel {
 
 
-// FailureSignalHandlerOptions
+// failure_signal_handler_options
 //
-// Struct for holding `abel::InstallFailureSignalHandler()` configuration
+// Struct for holding `abel::install_failure_signal_handler()` configuration
 // options.
-    struct FailureSignalHandlerOptions {
+    struct failure_signal_handler_options {
         // If true, try to symbolize the stacktrace emitted on failure, provided that
         // you have initialized a symbolizer for that purpose. (See symbolize.h for
         // more information.)
@@ -87,7 +87,7 @@ namespace abel {
         void (*writerfn)(const char *) = nullptr;
     };
 
-// InstallFailureSignalHandler()
+// install_failure_signal_handler()
 //
 // Installs a signal handler for the common failure signals `SIGSEGV`, `SIGILL`,
 // `SIGFPE`, `SIGABRT`, `SIGTERM`, `SIGBUG`, and `SIGTRAP` (provided they exist
@@ -96,10 +96,10 @@ namespace abel {
 // include the program counter, a stacktrace, and register information on some
 // systems; do not rely on an exact format for the output, as it is subject to
 // change.
-    void InstallFailureSignalHandler(const FailureSignalHandlerOptions &options);
+    void install_failure_signal_handler(const failure_signal_handler_options &options);
 
     namespace debugging_internal {
-        const char *FailureSignalToString(int signo);
+        const char *failure_signal_to_string(int signo);
     }  // namespace debugging_internal
 
 

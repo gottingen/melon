@@ -10,19 +10,19 @@ namespace {
 
     TEST(LeakCheckTest, DetectLeakSanitizer) {
 #ifdef ABEL_EXPECT_LEAK_SANITIZER
-        EXPECT_TRUE(abel::HaveLeakSanitizer());
+        EXPECT_TRUE(abel::have_leak_sanitizer());
 #else
-        EXPECT_FALSE(abel::HaveLeakSanitizer());
+        EXPECT_FALSE(abel::have_leak_sanitizer());
 #endif
     }
 
     TEST(LeakCheckTest, IgnoreLeakSuppressesLeakedMemoryErrors) {
-        auto foo = abel::IgnoreLeak(new std::string("some ignored leaked string"));
+        auto foo = abel::ignore_leak(new std::string("some ignored leaked string"));
         ABEL_RAW_INFO("Ignoring leaked std::string {}", foo->c_str());
     }
 
     TEST(LeakCheckTest, LeakCheckDisablerIgnoresLeak) {
-        abel::LeakCheckDisabler disabler;
+        abel::leak_check_disabler disabler;
         auto foo = new std::string("some std::string leaked while checks are disabled");
         ABEL_RAW_INFO("Ignoring leaked std::string {}", foo->c_str());
     }

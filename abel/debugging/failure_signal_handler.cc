@@ -40,7 +40,7 @@
 namespace abel {
 
 
-    ABEL_CONST_INIT static FailureSignalHandlerOptions fsh_options;
+    ABEL_CONST_INIT static failure_signal_handler_options fsh_options;
 
 // Resets the signal handler for signo to the default action for that
 // signal, then raises the signal.
@@ -97,7 +97,7 @@ namespace abel {
 
     namespace debugging_internal {
 
-        const char *FailureSignalToString(int signo) {
+        const char *failure_signal_to_string(int signo) {
             for (const auto &it : failure_signal_data) {
                 if (it.signo == signo) {
                     return it.as_string;
@@ -218,7 +218,7 @@ namespace abel {
     static void WriteSignalMessage(int signo, void (*writerfn)(const char *)) {
         char buf[64];
         const char *const signal_string =
-                debugging_internal::FailureSignalToString(signo);
+                debugging_internal::failure_signal_to_string(signo);
         if (signal_string != nullptr && signal_string[0] != '\0') {
             snprintf(buf, sizeof(buf), "*** %s received at time=%ld ***\n",
                      signal_string,
@@ -244,7 +244,7 @@ namespace abel {
     }
 
 // Convenient wrapper around DumpPCAndFrameSizesAndStackTrace() for signal
-// handlers. "noinline" so that GetStackFrames() skips the top-most stack
+// handlers. "noinline" so that get_stack_frames() skips the top-most stack
 // frame for this function.
     ABEL_NO_INLINE static void WriteStackTrace(
             void *ucontext, bool symbolize_stacktrace,
@@ -253,7 +253,7 @@ namespace abel {
         void *stack[kNumStackFrames];
         int frame_sizes[kNumStackFrames];
         int min_dropped_frames;
-        int depth = abel::GetStackFramesWithContext(
+        int depth = abel::get_stack_frames_with_context(
                 stack, frame_sizes, kNumStackFrames,
                 1,  // Do not include this function in stack trace.
                 ucontext, &min_dropped_frames);
@@ -358,7 +358,7 @@ namespace abel {
         }
     }
 
-    void InstallFailureSignalHandler(const FailureSignalHandlerOptions &options) {
+    void install_failure_signal_handler(const failure_signal_handler_options &options) {
         fsh_options = options;
         for (auto &it : failure_signal_data) {
             InstallOneFailureHandler(&it, AbelFailureSignalHandler);

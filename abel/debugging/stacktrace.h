@@ -23,12 +23,12 @@
 namespace abel {
 
 
-// GetStackFrames()
+// get_stack_frames()
 //
 // Records program counter values for up to `max_depth` frames, skipping the
 // most recent `skip_count` stack frames, stores their corresponding values
 // and sizes in `results` and `sizes` buffers, and returns the number of frames
-// stored. (Note that the frame generated for the `abel::GetStackFrames()`
+// stored. (Note that the frame generated for the `abel::get_stack_frames()`
 // routine itself is also skipped.)
 //
 // Example:
@@ -38,11 +38,11 @@ namespace abel {
 //      bar() {
 //        void* result[10];
 //        int sizes[10];
-//        int depth = abel::GetStackFrames(result, sizes, 10, 1);
+//        int depth = abel::get_stack_frames(result, sizes, 10, 1);
 //      }
 //
 // The current stack frame would consist of three function calls: `bar()`,
-// `foo()`, and then `main()`; however, since the `GetStackFrames()` call sets
+// `foo()`, and then `main()`; however, since the `get_stack_frames()` call sets
 // `skip_count` to `1`, it will skip the frame for `bar()`, the most recently
 // invoked function call. It will therefore return 2 and fill `result` with
 // program counters within the following functions:
@@ -65,16 +65,16 @@ namespace abel {
 //
 // This routine may return fewer stack frame entries than are
 // available. Also note that `result` and `sizes` must both be non-null.
-    extern int GetStackFrames(void **result, int *sizes, int max_depth,
+    extern int get_stack_frames(void **result, int *sizes, int max_depth,
                               int skip_count);
 
-// GetStackFramesWithContext()
+// get_stack_frames_with_context()
 //
 // Records program counter values obtained from a signal handler. Records
 // program counter values for up to `max_depth` frames, skipping the most recent
 // `skip_count` stack frames, stores their corresponding values and sizes in
 // `results` and `sizes` buffers, and returns the number of frames stored. (Note
-// that the frame generated for the `abel::GetStackFramesWithContext()` routine
+// that the frame generated for the `abel::get_stack_frames_with_context()` routine
 // itself is also skipped.)
 //
 // The `uc` parameter, if non-null, should be a pointer to a `ucontext_t` value
@@ -89,7 +89,7 @@ namespace abel {
 // or other reasons. (This value will be set to `0` if no frames were dropped.)
 // The number of total stack frames is guaranteed to be >= skip_count +
 // max_depth + *min_dropped_frames.
-    extern int GetStackFramesWithContext(void **result, int *sizes, int max_depth,
+    extern int get_stack_frames_with_context(void **result, int *sizes, int max_depth,
                                          int skip_count, const void *uc,
                                          int *min_dropped_frames);
 
@@ -98,7 +98,7 @@ namespace abel {
 // Records program counter values for up to `max_depth` frames, skipping the
 // most recent `skip_count` stack frames, stores their corresponding values
 // in `results`, and returns the number of frames
-// stored. Note that this function is similar to `abel::GetStackFrames()`
+// stored. Note that this function is similar to `abel::get_stack_frames()`
 // except that it returns the stack trace only, and not stack frame sizes.
 //
 // Example:
@@ -119,13 +119,13 @@ namespace abel {
 // `result` must not be null.
     extern int get_stack_trace(void **result, int max_depth, int skip_count);
 
-// GetStackTraceWithContext()
+// get_stack_trace_with_context()
 //
 // Records program counter values obtained from a signal handler. Records
 // program counter values for up to `max_depth` frames, skipping the most recent
 // `skip_count` stack frames, stores their corresponding values in `results`,
 // and returns the number of frames stored. (Note that the frame generated for
-// the `abel::GetStackFramesWithContext()` routine itself is also skipped.)
+// the `abel::get_stack_frames_with_context()` routine itself is also skipped.)
 //
 // The `uc` parameter, if non-null, should be a pointer to a `ucontext_t` value
 // passed to a signal handler registered via the `sa_sigaction` field of a
@@ -139,18 +139,18 @@ namespace abel {
 // or other reasons. (This value will be set to `0` if no frames were dropped.)
 // The number of total stack frames is guaranteed to be >= skip_count +
 // max_depth + *min_dropped_frames.
-    extern int GetStackTraceWithContext(void **result, int max_depth,
+    extern int get_stack_trace_with_context(void **result, int max_depth,
                                         int skip_count, const void *uc,
                                         int *min_dropped_frames);
 
-// SetStackUnwinder()
+// set_stack_unwinder()
 //
 // Provides a custom function for unwinding stack frames that will be used in
 // place of the default stack unwinder when invoking the static
 // GetStack{Frames,Trace}{,WithContext}() functions above.
 //
 // The arguments passed to the unwinder function will match the
-// arguments passed to `abel::GetStackFramesWithContext()` except that sizes
+// arguments passed to `abel::get_stack_frames_with_context()` except that sizes
 // will be non-null iff the caller is interested in frame sizes.
 //
 // If unwinder is set to null, we revert to the default stack-tracing behavior.
@@ -159,9 +159,9 @@ namespace abel {
 // WARNING
 // *****************************************************************************
 //
-// abel::SetStackUnwinder is not suitable for general purpose use.  It is
+// abel::set_stack_unwinder is not suitable for general purpose use.  It is
 // provided for custom runtimes.
-// Some things to watch out for when calling `abel::SetStackUnwinder()`:
+// Some things to watch out for when calling `abel::set_stack_unwinder()`:
 //
 // (a) The unwinder may be called from within signal handlers and
 // therefore must be async-signal-safe.
@@ -171,12 +171,12 @@ namespace abel {
 // Therefore do not clean up any state that may be needed by an old
 // unwinder.
 // *****************************************************************************
-    extern void SetStackUnwinder(int (*unwinder)(void **pcs, int *sizes,
+    extern void set_stack_unwinder(int (*unwinder)(void **pcs, int *sizes,
                                                  int max_depth, int skip_count,
                                                  const void *uc,
                                                  int *min_dropped_frames));
 
-// DefaultStackUnwinder()
+// default_stack_unwinder()
 //
 // Records program counter values of up to `max_depth` frames, skipping the most
 // recent `skip_count` stack frames, and stores their corresponding values in
@@ -184,9 +184,9 @@ namespace abel {
 // This function acts as a generic stack-unwinder; prefer usage of the more
 // specific `GetStack{Trace,Frames}{,WithContext}()` functions above.
 //
-// If you have set your own stack unwinder (with the `SetStackUnwinder()`
+// If you have set your own stack unwinder (with the `set_stack_unwinder()`
 // function above, you can still get the default stack unwinder by calling
-// `DefaultStackUnwinder()`, which will ignore any previously set stack unwinder
+// `default_stack_unwinder()`, which will ignore any previously set stack unwinder
 // and use the default one instead.
 //
 // Because this function is generic, only `pcs` is guaranteed to be non-null
@@ -194,14 +194,14 @@ namespace abel {
 // be null when called.
 //
 // The semantics are the same as the corresponding `GetStack*()` function in the
-// case where `abel::SetStackUnwinder()` was never called. Equivalents are:
+// case where `abel::set_stack_unwinder()` was never called. Equivalents are:
 //
 //                       null sizes         |        non-nullptr sizes
 //             |==========================================================|
-//     null uc | get_stack_trace()            | GetStackFrames()            |
-// non-null uc | GetStackTraceWithContext() | GetStackFramesWithContext() |
+//     null uc | get_stack_trace()            | get_stack_frames()            |
+// non-null uc | get_stack_trace_with_context() | get_stack_frames_with_context() |
 //             |==========================================================|
-    extern int DefaultStackUnwinder(void **pcs, int *sizes, int max_depth,
+    extern int default_stack_unwinder(void **pcs, int *sizes, int max_depth,
                                     int skip_count, const void *uc,
                                     int *min_dropped_frames);
 

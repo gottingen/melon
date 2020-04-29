@@ -9,7 +9,6 @@
 // are available to the program at runtime.
 #include <abel/debugging/symbolize_win32.inc>
 #else
-
 #include <abel/debugging/symbolize_unimplemented.inc>
 
 #endif

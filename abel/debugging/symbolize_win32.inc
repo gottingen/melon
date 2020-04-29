@@ -25,7 +25,7 @@ namespace abel {
 
     static HANDLE process = NULL;
 
-    void InitializeSymbolizer(const char *) {
+    void initialize_symbolizer(const char *) {
         if (process != nullptr) {
             return;
         }
@@ -44,7 +44,7 @@ namespace abel {
         }
     }
 
-    bool Symbolize(const void *pc, char *out, int out_size) {
+    bool symbolize(const void *pc, char *out, int out_size) {
         if (out_size <= 0) {
             return false;
         }

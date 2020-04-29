@@ -105,7 +105,7 @@ namespace abel {
                 void (*)(const char *msg, const void *cv)> cond_var_tracer;
         ABEL_CONST_INIT abel::atomic_hook<
                 bool (*)(const void *pc, char *out, int out_size)>
-                symbolizer(abel::Symbolize);
+                symbolizer(abel::symbolize);
 
     }  // namespace
 
@@ -1345,7 +1345,7 @@ namespace abel {
                 DeadlockReportBuffers *b = scoped_buffers.b;
                 static int number_of_reported_deadlocks = 0;
                 number_of_reported_deadlocks++;
-                // Symbolize only 2 first deadlock report to avoid huge slowdowns.
+                // symbolize only 2 first deadlock report to avoid huge slowdowns.
                 bool symbolize = number_of_reported_deadlocks <= 2;
                 ABEL_RAW_ERROR("Potential mutex deadlock: {}",
                              CurrentStackString(b->buf, sizeof(b->buf), symbolize));

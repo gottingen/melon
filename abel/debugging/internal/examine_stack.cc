@@ -75,7 +75,7 @@ namespace abel {
                                                 const char *const prefix) {
             char tmp[1024];
             const char *symbol = "(unknown)";
-            if (abel::Symbolize(symbolize_pc, tmp, sizeof(tmp))) {
+            if (abel::symbolize(symbolize_pc, tmp, sizeof(tmp))) {
                 symbol = tmp;
             }
             char buf[1024];

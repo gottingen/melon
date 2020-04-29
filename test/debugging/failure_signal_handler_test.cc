@@ -27,14 +27,14 @@ namespace {
 
 // This function runs in a fork()ed process on most systems.
     void InstallHandlerAndRaise(int signo) {
-        abel::InstallFailureSignalHandler(abel::FailureSignalHandlerOptions());
+        abel::install_failure_signal_handler(abel::failure_signal_handler_options());
         raise(signo);
     }
 
     TEST_P(FailureSignalHandlerDeathTest, AbelFailureSignal) {
         const int signo = GetParam();
         std::string exit_regex = abel::string_cat(
-                "\\*\\*\\* ", abel::debugging_internal::FailureSignalToString(signo),
+                "\\*\\*\\* ", abel::debugging_internal::failure_signal_to_string(signo),
                 " received at time=");
 #ifndef _WIN32
         EXPECT_EXIT(InstallHandlerAndRaise(signo), testing::KilledBySignal(signo),
@@ -74,9 +74,9 @@ namespace {
     void InstallHandlerWithWriteToFileAndRaise(const char *file, int signo) {
         error_file = fopen(file, "w");
         ABEL_RAW_CHECK(error_file != nullptr, "Failed create error_file");
-        abel::FailureSignalHandlerOptions options;
+        abel::failure_signal_handler_options options;
         options.writerfn = WriteToErrorFile;
-        abel::InstallFailureSignalHandler(options);
+        abel::install_failure_signal_handler(options);
         raise(signo);
     }
 
@@ -86,7 +86,7 @@ namespace {
         std::string file = abel::string_cat(tmp_dir, "/signo_", signo);
 
         std::string exit_regex = abel::string_cat(
-                "\\*\\*\\* ", abel::debugging_internal::FailureSignalToString(signo),
+                "\\*\\*\\* ", abel::debugging_internal::failure_signal_to_string(signo),
                 " received at time=");
 #ifndef _WIN32
         EXPECT_EXIT(InstallHandlerWithWriteToFileAndRaise(file.c_str(), signo),
@@ -105,7 +105,7 @@ namespace {
         EXPECT_THAT(
                 error_line,
                 StartsWith(abel::string_cat(
-                        "*** ", abel::debugging_internal::FailureSignalToString(signo),
+                        "*** ", abel::debugging_internal::failure_signal_to_string(signo),
                         " received at ")));
 
         if (abel::debugging_internal::StackTraceWorksForTest()) {
@@ -123,7 +123,7 @@ namespace {
 
     std::string SignalParamToString(const ::testing::TestParamInfo<int> &info) {
         std::string result =
-                abel::debugging_internal::FailureSignalToString(info.param);
+                abel::debugging_internal::failure_signal_to_string(info.param);
         if (result.empty()) {
             result = abel::string_cat(info.param);
         }
@@ -139,7 +139,7 @@ namespace {
 }  // namespace
 
 int main(int argc, char **argv) {
-    abel::InitializeSymbolizer(argv[0]);
+    abel::initialize_symbolizer(argv[0]);
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
