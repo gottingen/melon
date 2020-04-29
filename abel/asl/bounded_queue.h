@@ -3,7 +3,7 @@
 //
 
 #ifndef ABEL_ASL_BOUNDED_QUEUE_H_
-#define ABEL_BOUNDED_QUEUE_H
+#define ABEL_ASL_BOUNDED_QUEUE_H_
 
 #include <abel/log/abel_logging.h>
 #include <abel/base/profile.h>
@@ -277,4 +277,4 @@ namespace abel {
     };
 }
 
-#endif //ABEL_BOUNDED_QUEUE_H
+#endif //ABEL_ASL_BOUNDED_QUEUE_H_
