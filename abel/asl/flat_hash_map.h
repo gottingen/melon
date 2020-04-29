@@ -529,6 +529,9 @@ namespace abel {
         container_internal::EraseIf(pred, &c);
     }
 
+    typedef flat_hash_map<std::string, std::string, abel::container_internal::case_string_hash,
+            abel::container_internal::case_string_equal> ignore_case_flat_hash_map;
+
     namespace container_internal {
 
         template<class K, class V>

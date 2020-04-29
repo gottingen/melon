@@ -37,7 +37,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
-
+#include <abel/strings/case_conv.h>
 #include <abel/base/profile.h>
 #include <abel/asl/hash.h>
 #include <abel/asl/string_view.h>
@@ -58,6 +58,25 @@ namespace abel {
 
             size_t operator()(abel::string_view v) const {
                 return abel::hash<abel::string_view>{}(v);
+            }
+        };
+
+        struct case_string_hash {
+            using is_transparent = void;
+
+            size_t operator()(abel::string_view v) const {
+                auto r = abel::string_to_lower(v);
+                return abel::hash<abel::string_view>{}(r);
+            }
+        };
+
+        struct case_string_equal {
+            using is_transparent = void;
+
+            bool operator()(abel::string_view lhs, abel::string_view rhs) const {
+                auto r = abel::string_to_lower(rhs);
+                auto l = abel::string_to_lower(lhs);
+                return l == r;
             }
         };
 

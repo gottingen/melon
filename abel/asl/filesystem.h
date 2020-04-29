@@ -3699,11 +3699,11 @@ ABEL_INLINE file_status status_from_INFO(const path& p, const INFO* info, std::e
         return false;
     }
     BY_HANDLE_FILE_INFORMATION inf1, inf2;
-    if (!::GetFileInformationByHandle(file1.get(), &inf1)) {
+    if (!::Getenumerator_informationByHandle(file1.get(), &inf1)) {
         ec = detail::make_system_error();
         return false;
     }
-    if (!::GetFileInformationByHandle(file2.get(), &inf2)) {
+    if (!::Getenumerator_informationByHandle(file2.get(), &inf2)) {
         ec = detail::make_system_error();
         return false;
     }
@@ -3776,7 +3776,7 @@ ABEL_INLINE file_status status_from_INFO(const path& p, const INFO* info, std::e
         ec = detail::make_system_error();
     }
     else {
-        if (!::GetFileInformationByHandle(file.get(), &inf)) {
+        if (!::Getenumerator_informationByHandle(file.get(), &inf)) {
             ec = detail::make_system_error();
         }
         else {
