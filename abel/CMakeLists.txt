@@ -111,7 +111,7 @@ endif ()
 
 
 
-install(DIRECTORY ${PROJECT_BINARY_DIR}/include/abel
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/abel
         DESTINATION include
         FILES_MATCHING
         PATTERN "*.h"
