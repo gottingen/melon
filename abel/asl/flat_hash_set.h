@@ -426,7 +426,7 @@ namespace abel {
         using Base::key_eq;
     };
 
-    typedef flat_hash_set<std::string, std::string, abel::container_internal::case_string_hash,
+    typedef flat_hash_set<std::string, abel::container_internal::case_string_hash,
             abel::container_internal::case_string_equal> ignore_case_flat_hash_set;
 
 // erase_if(flat_hash_set<>, Pred)
