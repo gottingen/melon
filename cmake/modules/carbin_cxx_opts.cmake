@@ -89,6 +89,7 @@ list(APPEND CARBIN_GCC_FLAGS
         "-Wvarargs"
         "-Wvla"
         "-maes"
+        "-fPIC"
         "-mpclmul"
         "-DCHECK_PTHREAD_RETURN_VALUE"
         "-D_FILE_OFFSET_BITS=64"
