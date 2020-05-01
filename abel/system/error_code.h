@@ -20,6 +20,6 @@ namespace abel {
 #define ABEL_REGISTER_ERRNO(error_code, description)                   \
     const int ABEL_ALLOW_UNUSED ABEL_CONCAT(abel_errno_dummy_, __LINE__) =              \
         ::abel::describe_customized_errno((error_code), #error_code, (description)); \
-    template <> class ::abel::abel_errno_helper<(int)(error_code)> {};
+    template <> class ::abel::abel_errno_helper<error_code> {};
 
 #endif //ABEL_SYSTEM_ERROR_CODE_H_
