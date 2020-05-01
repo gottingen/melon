@@ -205,7 +205,7 @@ namespace abel {
 #if !defined(ABEL_PLATFORM_LINUX)
         return read_command_output_through_popen(os, cmd);
 #else
-        return FLAGS_run_command_through_clone.Get()
+        return FLAGS_run_command_through_clone.get()
             ? read_command_output_through_clone(os, cmd)
             : read_command_output_through_popen(os, cmd);
 #endif
