@@ -52,7 +52,7 @@
 #endif
 
 #include <abel/asl/format/core.h>
-//#define FMT_HEADER_ONLY 1
+#define FMT_HEADER_ONLY 1
 #if FMT_GCC_VERSION >= 406 || FMT_CLANG_VERSION
 # pragma GCC diagnostic push
 
