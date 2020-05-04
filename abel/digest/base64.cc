@@ -16,6 +16,7 @@ namespace abel {
 
 // Base64 Encoding and Decoding
 
+    static bool base64_decode(const void* data, size_t size, std::string *out, bool strict);
 
     static bool base64_encode(const void* data, size_t size, std::string *out, size_t line_break) {
         const uint8_t* in = reinterpret_cast<const uint8_t*>(data);

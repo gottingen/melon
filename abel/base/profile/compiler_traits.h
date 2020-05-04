@@ -1053,11 +1053,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 #endif
 
 #ifndef ABEL_NULL
-    #if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
-        #define ABEL_NULL NULL
-    #else
-        #define ABEL_NULL nullptr
-    #endif
+#if defined(ABEL_COMPILER_NO_NULLPTR) && ABEL_COMPILER_NO_NULLPTR == 1
+#define ABEL_NULL NULL
+#else
+#define ABEL_NULL nullptr
+#endif
 #endif
 
 // ------------------------------------------------------------------------
@@ -1705,11 +1705,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //        struct D : B { void f(int) ABEL_OVERRIDE; };
 //
 #ifndef ABEL_OVERRIDE
-    #if defined(ABEL_COMPILER_NO_OVERRIDE)
-        #define ABEL_OVERRIDE
-    #else
-        #define ABEL_OVERRIDE override
-    #endif
+#if defined(ABEL_COMPILER_NO_OVERRIDE)
+#define ABEL_OVERRIDE
+#else
+#define ABEL_OVERRIDE override
+#endif
 #endif
 
 
@@ -1812,7 +1812,7 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 
 
 #ifndef ABEL_CONSTEXPR_MEMBER
-#if ABEL_COMPILER_CPP14_ENABLED
+#if defined(ABEL_COMPILER_CPP14_ENABLED)
 #define ABEL_CONSTEXPR_MEMBER constexpr
 #else
 #define ABEL_CONSTEXPR_MEMBER
@@ -1820,7 +1820,7 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 #endif
 
 #ifndef ABEL_CONSTEXPR_VARIABLE
-#if ABEL_COMPILER_CPP14_ENABLED
+#if defined(ABEL_COMPILER_CPP14_ENABLED)
 #define ABEL_CONSTEXPR_VARIABLE constexpr
 #else
 #define ABEL_CONSTEXPR_VARIABLE const
@@ -1828,7 +1828,7 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 #endif
 
 #ifndef ABEL_CONSTEXPR_FUNCTION
-#if ABEL_COMPILER_CPP14_ENABLED
+#if defined(ABEL_COMPILER_CPP14_ENABLED)
 #define ABEL_CONSTEXPR_FUNCTION constexpr
 #else
 #define ABEL_CONSTEXPR_FUNCTION inline
@@ -1924,13 +1924,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //         { throw "error"; }
 //
 #if !defined(ABEL_NORETURN)
-    #if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
-        #define ABEL_NORETURN __declspec(noreturn)
-    #elif defined(ABEL_COMPILER_NO_NORETURN)
-        #define ABEL_NORETURN
-    #else
-        #define ABEL_NORETURN [[noreturn]]
-    #endif
+#if defined(ABEL_COMPILER_MSVC) && (ABEL_COMPILER_VERSION >= 1300) // VS2003 (VC7) and later
+#define ABEL_NORETURN __declspec(noreturn)
+#elif defined(ABEL_COMPILER_NO_NORETURN)
+#define ABEL_NORETURN
+#else
+#define ABEL_NORETURN [[noreturn]]
+#endif
 #endif
 
 
@@ -2076,11 +2076,11 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 //     ABEL_NO_ASAN int SomeFunction() { ... }
 //
 #ifndef ABEL_NO_ASAN
-    #if defined(ABEL_COMPILER_CLANG)
-        #define ABEL_NO_ASAN __attribute__((no_sanitize("address")))
-    #else
-        #define ABEL_NO_ASAN
-    #endif
+#if defined(ABEL_COMPILER_CLANG)
+#define ABEL_NO_ASAN __attribute__((no_sanitize("address")))
+#else
+#define ABEL_NO_ASAN
+#endif
 #endif
 
 
@@ -2091,13 +2091,13 @@ inline void CBBaseUnused(T const volatile & x) { (void)x; }
 // Specifies whether the code is being built with Clang's Address Sanitizer.
 //
 #if defined(__has_feature)
-    #if __has_feature(address_sanitizer)
-        #define ABEL_ASAN_ENABLED 1
-    #else
-        #define ABEL_ASAN_ENABLED 0
-    #endif
+#if __has_feature(address_sanitizer)
+#define ABEL_ASAN_ENABLED 1
 #else
-    #define ABEL_ASAN_ENABLED 0
+#define ABEL_ASAN_ENABLED 0
+#endif
+#else
+#define ABEL_ASAN_ENABLED 0
 #endif
 
 
@@ -2939,15 +2939,15 @@ struct CBNonCopyable {
 
 #ifndef ABEL_THREAD_LOCAL
 
-    #if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_CLANG)
-        #define ABEL_THREAD_LOCAL __thread
-    #elif defined(ABEL_COMPILER_MSVC)
-        #define ABEL_THREAD_LOCAL __declspec(thread)
-    #else
-        #define ABEL_THREAD_LOCAL thread_local
-    #endif
+#if defined(ABEL_COMPILER_GNUC) || defined(ABEL_COMPILER_INTEL) || defined(ABEL_COMPILER_CLANG)
+#define ABEL_THREAD_LOCAL __thread
+#elif defined(ABEL_COMPILER_MSVC)
+#define ABEL_THREAD_LOCAL __declspec(thread)
+#else
+#define ABEL_THREAD_LOCAL thread_local
+#endif
 
-    #define ABEL_THREAD_STACK_LOCAL thread_local
+#define ABEL_THREAD_STACK_LOCAL thread_local
 
 #endif //ABEL_THREAD_LOCAL
 

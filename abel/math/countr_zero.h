@@ -12,9 +12,9 @@ namespace abel {
 
 /**
  * @brief generic implementation
- * @tparam Integral
- * @param x
- * @return
+ * @tparam Integral todo
+ * @param x todo
+ * @return todo
  */
     template<typename Integral>
     static ABEL_FORCE_INLINE unsigned countr_zero_template(Integral x) {

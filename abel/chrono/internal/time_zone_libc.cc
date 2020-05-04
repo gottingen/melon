@@ -182,11 +182,11 @@ namespace abel {
             const std::int_fast64_t s = to_unix_seconds(tp);
 
             // If std::time_t cannot hold the input we saturate the output.
-            if (s < std::numeric_limits<std::time_t>::min()) {
+            if (s <= std::numeric_limits<std::time_t>::min()) {
                 al.cs = civil_second::min();
                 return al;
             }
-            if (s > std::numeric_limits<std::time_t>::max()) {
+            if (s >= std::numeric_limits<std::time_t>::max()) {
                 al.cs = civil_second::max();
                 return al;
             }

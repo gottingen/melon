@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>              // setsockopt
 #include <netinet/tcp.h>             // TCP_NODELAY
+#include <abel/io/fd_utility.h>
 
 namespace abel {
 

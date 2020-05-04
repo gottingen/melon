@@ -1,5 +1,5 @@
 include(InstallRequiredSystemLibraries)
-include(carbin_debug)
+include(carbin_print)
 
 set(PROJECT_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_DESCRIPTION})
 
@@ -30,5 +30,5 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_STRING)
 
 set(CPACK_PACKAGE_FILE_NAME
         ${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${HOST_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${BUILD_STRING})
-carbin_print("carbin_package.cmake name ${CPACK_PACKAGE_FILE_NAME}")
+set(CARBIN_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME})
 include(CPack)

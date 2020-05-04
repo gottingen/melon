@@ -1,4 +1,4 @@
-#include <test/testing/log_includes.h>
+#include <testing/log_includes.h>
 
 void prepare_logdir() {
     abel::log::drop_all();

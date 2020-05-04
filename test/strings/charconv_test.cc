@@ -7,7 +7,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <test/testing/pow10_helper.h>
+#include <testing/pow10_helper.h>
 #include <abel/strings/str_cat.h>
 #include <abel/asl/format/printf.h>
 

@@ -11,8 +11,8 @@
 
 #include <abel/asl/format/core.h>
 #include <abel/asl/format/printf.h>
-#include <test/testing/gtest_extra.h>
-#include <test/testing/util.h>
+#include <testing/gtest_extra.h>
+#include <testing/util.h>
 
 using fmt::format;
 using fmt::format_error;

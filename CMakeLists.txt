@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
+# TODO modify this for you project
+project(abel CXX)
 
 # Compiler id for Apple Clang is now AppleClang.
 cmake_policy(SET CMP0025 NEW)
@@ -10,92 +12,169 @@ cmake_policy(SET CMP0057 NEW)
 # Project version variables are the empty string if version is unspecified
 cmake_policy(SET CMP0048 NEW)
 
-# TODO modify this for you project
-project(abel CXX)
+set(CMAKE_MACOSX_RPATH 1)
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
+
+include(carbin_print)
+
 # TODO modyify this for "-std=c++[x]"
 set(CMAKE_CXX_STANDARD 11)
 
-list(APPEND CMAKE_MODULE_PATH
-        ${PROJECT_SOURCE_DIR}/cmake
-        ${PROJECT_SOURCE_DIR}/cmake/modules
-        ${PROJECT_SOURCE_DIR}/cmake/find)
+set(PROJECT_DESCRIPTION "carbin c++ lib")
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 3)
+set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+
+option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
+option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
+
+option(ENABLE_TESTING "enable unit test" ON)
+option(CARBIN_PACKAGE_GEN "enable package gen" ON)
+option(ENABLE_BENCHMARK "enable benchmark" ON)
+option(ENABLE_EXAMPLE "enable benchmark" ON)
+option(ENABLE_SUMMARY "enable summary output" ON)
+# it is too many
+option(ENABLE_SUMMARY_CXX_FLAG "enable cxx flags" OFF)
+
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(PACKAGE_INSTALL_PREFIX "/usr/local")
+
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 include(carbin_module)
 include(CMakePackageConfigHelpers)
 
 if (NOT DEV_MODE AND ${PROJECT_NAME} MATCHES "carbin")
-    carbin_error("project name must be set")
+    carbin_error("project name must be set to your project name \
+                  or define -DDEV_MODE=true set to develop modeeg: \n\
+                   cmake .. -DDEV_MODE=true")
+endif ()
+
+#########################
+# default pavkage
+
+
+find_package(gtest REQUIRED)
+find_package(gmock REQUIRED)
+
+carbin_check_target(gtest::gtest)
+carbin_check_target(gtest::gtest_main)
+carbin_check_target(gmock::gmock)
+carbin_check_target(gmock::gmock_main)
+
+set(ABEL_DYLINK)
+if (APPLE)
+    find_library(CoreFoundation CoreFoundation)
+    list(APPEND ABEL_DYLINK ${CoreFoundation} pthread)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    list(APPEND ABEL_DYLINK rt pthread)
 endif ()
 
 
+#TODO do add you own subdirs
+add_subdirectory(abel)
+# TODO end
 
-
-
-add_subdirectory(${PROJECT_NAME})
-
+if (ENABLE_BENCHMARK OR ENABLE_TESTING)
+    add_subdirectory(testing)
+endif()
 if (ENABLE_EXAMPLE)
     add_subdirectory(example)
 endif (ENABLE_EXAMPLE)
 
-
-if (ENABLE_TESTING)
-    enable_testing()
-    add_subdirectory(test)
-endif (ENABLE_TESTING)
 
 if (ENABLE_BENCHMARK)
     add_subdirectory(benchmark)
 endif (ENABLE_BENCHMARK)
 
 
+if (ENABLE_TESTING)
+    set(CARBIN_RUN_TESTS true)
+    enable_testing()
+    add_subdirectory(test)
+endif (ENABLE_TESTING)
 
+################################################################################
+# Installation of the library and all it's sub components. No need to edit this.
+################################################################################
+# Get the Default installation folders:
+# * CMAKE_INSTALL_LIBDIR
+# * CMAKE_INSTALL_BINDIR
+# * CMAKE_INSTALL_INCLUDEDIR
+include(GNUInstallDirs)
 
+# Layout. This works for all platforms:
+#   * <prefix>/lib*/cmake/<PROJECT-NAME>
+#   * <prefix>/lib*/
+#   * <prefix>/include/
+set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
-list(APPEND SYSTEM_INSTALL_DIRS "/usr/local" "/usr" "/opt/" "/opt/local" "c:/Program Files/${PROJECT_NAME}")
-if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX IN_LIST SYSTEM_INSTALL_DIRS)
-    message(WARNING " \
-    The default and system-level install directories are unsupported except in LTS \
-  releases of Abseil.  Please set CMAKE_INSTALL_PREFIX to install Abseil in your \
-  source or build tree directly.\
-    ")
-endif()
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
-# install as a subdirectory only
-install(EXPORT ${PROJECT_NAME}Targets
-        NAMESPACE ${PROJECT_NAME}::
-        DESTINATION "${CARBIN_INSTALL_CONFIGDIR}"
-        )
+# Configuration
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
 
-configure_package_config_file(
-        cmake/package/carbin_config.cmake.in
-        "${PROJECT_BINARY_DIR}/package/${PROJECT_NAME}Config.cmake"
-        INSTALL_DESTINATION "${CARBIN_INSTALL_CONFIGDIR}"
+# Include module with fuction 'write_basic_package_version_file'
+include(CMakePackageConfigHelpers)
+
+# Configure '<PROJECT-NAME>ConfigVersion.cmake'
+# Use:
+#   * PROJECT_VERSION
+write_basic_package_version_file(
+        "${version_config}" COMPATIBILITY SameMajorVersion
 )
-install(FILES "${PROJECT_BINARY_DIR}/package/${PROJECT_NAME}Config.cmake"
-        DESTINATION "${CARBIN_INSTALL_CONFIGDIR}"
-        )
 
-# Abseil only has a version in LTS releases.  This mechanism is accomplished
-# Abseil's internal Copybara (https://github.com/google/copybara) workflows and
-# isn't visible in the CMake buildsystem itself.
-#if(${PROJECT_NAME}_VERSION)
-    write_basic_package_version_file(
-            "${PROJECT_BINARY_DIR}/package/${PROJECT_NAME}ConfigVersion.cmake"
-            COMPATIBILITY ExactVersion
-    )
+# Configure '<PROJECT-NAME>Config.cmake'
+# Use variables:
+#   * TARGETS_EXPORT_NAME
+#   * PROJECT_NAME
+configure_package_config_file(
+        "cmake/package/carbin_config.cmake.in"
+        "${project_config}"
+        INSTALL_DESTINATION "${config_install_dir}"
+)
 
-    install(FILES "${PROJECT_BINARY_DIR}/package/${PROJECT_NAME}ConfigVersion.cmake"
-            DESTINATION ${CARBIN_INSTALL_CONFIGDIR}
-            )
-#endif()  # ${PROJECT_NAME}_VERSION
+#Targets:
+#  * <prefix>/lib/libbar.a
+#  * <prefix>/lib/libbaz.a
+#  * header location after install: <prefix>/include/foo/Bar.hpp
+#  * headers can be included by C++ code `#include <foo/Bar.hpp>`
 
-install(DIRECTORY ${PROJECT_NAME}
-        DESTINATION ${CARBIN_INSTALL_INCLUDEDIR}
-        FILES_MATCHING
-        PATTERN "*.inc"
-        PATTERN "*.h"
-        )
+
+# Config
+#   * <prefix>/lib/cmake/Foo/FooConfig.cmake
+#   * <prefix>/lib/cmake/Foo/FooConfigVersion.cmake
+install(
+        FILES
+        "${project_config}" "${version_config}"
+        DESTINATION
+        "${config_install_dir}"
+)
+
+# Config
+#   * <prefix>/lib/cmake/Foo/FooTargets.cmake
+install(
+        EXPORT
+        "${TARGETS_EXPORT_NAME}"
+        NAMESPACE
+        "${namespace}"
+        DESTINATION
+        "${config_install_dir}"
+)
+
 
 if (CARBIN_PACKAGE_GEN)
     include(carbin_package)
+endif ()
+if (ENABLE_SUMMARY)
+    include(carbin_summary)
 endif ()

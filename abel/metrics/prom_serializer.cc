@@ -14,7 +14,18 @@
 namespace abel {
     namespace metrics {
 
-// Write a double as a string, with proper formatting for infinity and NaN
+        static void WriteTail(std::ostream &out, const cache_metrics &metrics);
+        static void SerializeCounter(std::ostream &out, const std::string &name, const cache_metrics &metric);
+        static std::string MakeName(const cache_metrics &metrics);
+        static void SerializeMetrics(std::ostream &out, const cache_metrics &metrics);
+        static void SerializeHistogram(std::ostream &out, const std::string &name,
+                                const cache_metrics &metric);
+        static void SerializeGauge(std::ostream &out, const std::string &name,
+                           const cache_metrics &metric);
+        static void WriteValue(std::ostream &out, const std::string &value);
+        static void WriteValue(std::ostream &out, double value);
+
+        // Write a double as a string, with proper formatting for infinity and NaN
         void WriteValue(std::ostream &out, double value) {
             if (std::isnan(value)) {
                 out << "Nan";

@@ -13,7 +13,7 @@
 
 #include <cstddef>
 #include <string>
-#include <test/testing/time_util.h>
+#include <testing/time_util.h>
 #include <abel/chrono/time.h>
 #include <benchmark/benchmark.h>
 

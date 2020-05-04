@@ -129,12 +129,7 @@ FMT_BEGIN_NAMESPACE
             FMT_CONSTEXPR basic_string_view(const Char *s, size_t count) ABEL_NOEXCEPT
                     : data_(s), size_(count) {}
 
-            /**
-              \rst
-              Constructs a string reference object from a C string computing
-              the size with ``std::char_traits<Char>::length``.
-              \endrst
-             */
+
             basic_string_view(const Char *s)
                     : data_(s), size_(std::char_traits<Char>::length(s)) {}
 
@@ -311,7 +306,7 @@ FMT_BEGIN_NAMESPACE
                 FMT_CONSTEXPR error_handler(const error_handler &) {}
 
                 // This function is intentionally not constexpr to give a compile-time error.
-                FMT_API void on_error(const char *message);
+                FMT_API ABEL_NORETURN void on_error(const char *message);
             };
 
 // Formatting of wide characters and strings into a narrow output is disallowed:
@@ -913,13 +908,6 @@ FMT_BEGIN_NAMESPACE
             }
         }
 
-/**
-  \rst
-  An array of references to arguments. It can be implicitly converted into
-  `~fmt::basic_format_args` for passing into type-erased formatting functions
-  such as `~fmt::vformat`.
-  \endrst
- */
         template<typename Context, typename ...Args>
         class format_arg_store {
         private:
@@ -961,13 +949,7 @@ FMT_BEGIN_NAMESPACE
         const long long format_arg_store<Context, Args...>::TYPES = get_types();
 #endif
 
-/**
-  \rst
-  Constructs an `~fmt::format_arg_store` object that contains references to
-  arguments and can be implicitly converted to `~fmt::format_args`. `Context` can
-  be omitted in which case it defaults to `~fmt::context`.
-  \endrst
- */
+
         template<typename Context, typename ...Args>
         inline format_arg_store<Context, Args...>
         make_format_args(const Args &... args) {
@@ -1034,11 +1016,6 @@ FMT_BEGIN_NAMESPACE
         public:
             basic_format_args() : types_(0) {}
 
-            /**
-             \rst
-             Constructs a `basic_format_args` object from `~fmt::format_arg_store`.
-             \endrst
-             */
             template<typename... Args>
             basic_format_args(const format_arg_store<Context, Args...> &store)
                     : types_(static_cast<unsigned long long>(store.TYPES)) {
@@ -1101,15 +1078,7 @@ FMT_BEGIN_NAMESPACE
             };
         }
 
-/**
-  \rst
-  Returns a named argument to be used in a formatting function.
 
-  **Example**::
-
-    fmt::print("Elapsed time: {s:.2f} seconds", fmt::arg("s", 1.23));
-  \endrst
- */
         template<typename T>
         inline internal::named_arg<T, char> arg(string_view name, const T &arg) {
             return internal::named_arg<T, char>(name, arg);
@@ -1193,16 +1162,7 @@ FMT_BEGIN_NAMESPACE
 
         std::wstring vformat(wstring_view format_str, wformat_args args);
 
-/**
-  \rst
-  Formats arguments and returns the result as a string.
 
-  **Example**::
-
-    #include <fmt/core.h>
-    std::string message = fmt::format("The answer is {}", 42);
-  \endrst
-*/
         template<typename... Args>
         inline std::string format(string_view format_str, const Args &... args) {
             // This should be just
@@ -1222,25 +1182,14 @@ FMT_BEGIN_NAMESPACE
 
         FMT_API void vprint(std::FILE *f, wstring_view format_str, wformat_args args);
 
-/**
-  \rst
-  Prints formatted data to the file *f*.
 
-  **Example**::
-
-    fmt::print(stderr, "Don't {}!", "panic");
-  \endrst
- */
         template<typename... Args>
         inline void print(std::FILE *f, string_view format_str, const Args &... args) {
             format_arg_store < format_context, Args...> as(args...);
             vprint(f, format_str, as);
         }
 
-/**
-  Prints formatted data to the file *f* which should be in wide-oriented mode set
-  via ``fwide(f, 1)`` or ``_setmode(_fileno(f), _O_U8TEXT)`` on Windows.
- */
+
         template<typename... Args>
         inline void print(std::FILE *f, wstring_view format_str, const Args &... args) {
             format_arg_store < wformat_context, Args...> as(args...);
@@ -1251,15 +1200,7 @@ FMT_BEGIN_NAMESPACE
 
         FMT_API void vprint(wstring_view format_str, wformat_args args);
 
-/**
-  \rst
-  Prints formatted data to ``stdout``.
 
-  **Example**::
-
-    fmt::print("Elapsed time: {0:.2f} seconds", 1.23);
-  \endrst
- */
         template<typename... Args>
         inline void print(string_view format_str, const Args &... args) {
             format_arg_store < format_context, Args...> as{args...};

@@ -22,7 +22,7 @@ namespace abel {
     static abel::mutex modify_desc_mutex(abel::kConstInit);
 
     const size_t ERROR_BUFSIZE = 64;
-    ABEL_THREAD_LOCAL char tls_error_buf[ERROR_BUFSIZE];
+    static ABEL_THREAD_LOCAL char tls_error_buf[ERROR_BUFSIZE];
 
     int describe_customized_errno(
             int error_code, const char *error_name, const char *description) {

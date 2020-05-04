@@ -36,7 +36,7 @@ namespace abel {
             string_map_thread_local_temp *temp = (string_map_thread_local_temp *) buf;
             if (temp->initialized) {
                 temp->initialized = false;
-                std::string *temp_string = (std::string *) temp->buf;
+                std::string *temp_string = reinterpret_cast<std::string*>(temp->buf);
                 temp_string->~basic_string();
             }
         }
@@ -48,7 +48,7 @@ namespace abel {
                 abel::thread_atexit(delete_tls, this);
                 return tmp;
             } else {
-                std::string *tmp = (std::string *) buf;
+                std::string *tmp = reinterpret_cast<std::string *>(buf);
                 tmp->assign(key);
                 return tmp;
             }
@@ -61,7 +61,7 @@ namespace abel {
                 abel::thread_atexit(delete_tls, this);
                 return tmp;
             } else {
-                std::string *tmp = (std::string *) buf;
+                std::string *tmp = reinterpret_cast<std::string *>(buf);
                 tmp->assign(key, length);
                 return tmp;
             }

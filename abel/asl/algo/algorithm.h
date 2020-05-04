@@ -78,11 +78,11 @@ namespace abel {
  * @tparam InputIter1 paired iterator template
  * @tparam InputIter2 paired iterator template
  * @tparam Pred factor to compare two inputs
- * @param first1
- * @param last1
- * @param first2
- * @param last2
- * @param pred
+ * @param first1 star
+ * @param last1 todo
+ * @param first2 todo
+ * @param last2 todo
+ * @param pred todo
  * @return true iff for each corresponding iterator i1
  * and i2 in the first and second range respectively, pred(*i1, *i2) == true
  */
@@ -97,13 +97,13 @@ namespace abel {
 
 /**
  * @brief overload equal, using "==" operator for pred
- * @tparam InputIter1
- * @tparam InputIter2
- * @param first1
- * @param last1
- * @param first2
- * @param last2
- * @return
+ * @tparam InputIter1 todo
+ * @tparam InputIter2 todo
+ * @param first1 todo
+ * @param last1 todo
+ * @param first2 todo
+ * @param last2 todo
+ * @return todo
  */
     template<typename InputIter1, typename InputIter2>
     bool equal(InputIter1 first1, InputIter1 last1, InputIter2 first2,
@@ -118,12 +118,12 @@ namespace abel {
  * but not including `last`, returning true if [`first`, `last`) contains an
  * element equal to `value`. complexity o(n), it may fast than binary search over
  * short containers
- * @tparam InputIterator
- * @tparam EqualityComparable
- * @param first
- * @param last
- * @param value
- * @return
+ * @tparam InputIterator todo
+ * @tparam EqualityComparable todo
+ * @param first todo
+ * @param last todo
+ * @param value todo
+ * @return todo
  */
     template<typename InputIterator, typename EqualityComparable>
     bool linear_search(InputIterator first, InputIterator last,
@@ -132,12 +132,12 @@ namespace abel {
     }
 
 /**
- * @brief
- * @tparam ForwardIterator
- * @param first
- * @param middle
- * @param last
- * @return
+ * @brief todo
+ * @tparam ForwardIterator todo
+ * @param first todo
+ * @param middle todo
+ * @param last todo
+ * @return todo
  */
     template<typename ForwardIterator>
     ForwardIterator rotate(ForwardIterator first, ForwardIterator middle,

@@ -1,17 +1,19 @@
 
-file(GLOB META_SRC "*.cc")
+file(GLOB SRC "*.cc")
 
-foreach (fl ${META_SRC})
+foreach (fl ${SRC})
 
-    string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" SRC_NAME ${fl})
-    set(TEST_NAME memory_${SRC_NAME})
+    string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" TEST_NAME ${fl})
+    get_filename_component(DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    string(REPLACE " " "_" DIR_NAME ${DIR_NAME})
+
+    set(EXE_NAME ${DIR_NAME}_${TEST_NAME})
     carbin_cc_test(
-            NAME
-            ${TEST_NAME}
-            SRCS
-            ${SRC_NAME}.cc
-            COPTS
-            ${CARBIN_TEST_COPTS}
-            DEPS ${TEST_DEPS}
+            NAME ${EXE_NAME}
+            SOURCES ${fl}
+            PUBLIC_LINKED_TARGETS
+            ${TEST_LINKS}
+            PRIVATE_COMPILE_OPTIONS ${CARBIN_TEST_COPTS}
+            VERBOSE
     )
 endforeach (fl ${SRC})

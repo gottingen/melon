@@ -20,7 +20,6 @@ FILE(GLOB CONFIG_FLAGS_INTERNAL_SRC "config/internal/*.cc")
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
 
 
-
 FILE(GLOB MEMORY_INTERNAL_SRC "memory/internal/*.cc")
 
 
@@ -79,36 +78,70 @@ SET(ABEL_SRC
         ${THREAD_SRC}
         )
 
+#
+#if (APPLE)
+#    find_library(CoreFoundation CoreFoundation)
+#    carbin_cc_library(
+#            NAME
+#            abel
+#            SRCS
+#            ${ABEL_SRC}
+#            COPTS
+#            ${CARBIN_DEFAULT_COPTS}
+#            DEPS
+#                ${CoreFoundation}
+#                pthread
+#            PUBLIC
+#    )
+#elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+#    carbin_cc_library(
+#            NAME
+#            abel
+#            SRCS
+#            ${ABEL_SRC}
+#            COPTS
+#            ${CARBIN_DEFAULT_COPTS}
+#            DEPS
+#            rt
+#            pthread
+#            PUBLIC
+#    )
+#endif ()
+#
 
-if (APPLE)
-    find_library(CoreFoundation CoreFoundation)
-    carbin_cc_library(
-            NAME
-            abel
-            SRCS
-            ${ABEL_SRC}
-            COPTS
-            ${CARBIN_DEFAULT_COPTS}
-            DEPS
-                ${CoreFoundation}
-                pthread
-            PUBLIC
-    )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    carbin_cc_library(
-            NAME
-            abel
-            SRCS
-            ${ABEL_SRC}
-            COPTS
-            ${CARBIN_DEFAULT_COPTS}
-            DEPS
-            rt
-            pthread
-            PUBLIC
-    )
-endif ()
+# carbin_cc_library(  NAME myLibrary
+#                  NAMESPACE myNamespace
+#                  SOURCES
+#                       myLib.cpp
+#                       myLib_functions.cpp
+#                  HEADERS
+#                        mylib.h
+#                  PUBLIC_DEFINITIONS
+#                     USE_DOUBLE_PRECISION=1
+#                  PRIVATE_DEFINITIONS
+#                     DEBUG_VERBOSE
+#                  PUBLIC_INCLUDE_PATHS
+#                     ${CMAKE_SOURCE_DIR}/mylib/include
+#                  PRIVATE_INCLUDE_PATHS
+#                     ${CMAKE_SOURCE_DIR}/include
+#                  PRIVATE_LINKED_TARGETS
+#                     Threads::Threads
+#                  PUBLIC_LINKED_TARGETS
+#                     Threads::Threads
+#                  LINKED_TARGETS
+#                     Threads::Threads
+#                  PUBLIC
+#                  SHARED
 
+
+carbin_cc_library(
+        NAMESPACE abel
+        NAME abel
+        SOURCES ${ABEL_SRC}
+        PUBLIC_LINKED_TARGETS ${ABEL_DYLINK}
+        PRIVATE_COMPILE_OPTIONS ${CARBIN_DEFAULT_COPTS}
+        PUBLIC
+)
 
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/abel

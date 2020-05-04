@@ -103,7 +103,7 @@ namespace abel {
     static ssize_t temp_file_write_all(int fd, const void *buf, size_t count) {
         size_t off = 0;
         for (;;) {
-            ssize_t nw = write(fd, (char *) buf + off, count - off);
+            ssize_t nw = write(fd, static_cast<const char*>(buf) + off, count - off);
             if (nw == (ssize_t) (count - off)) {  // including count==0
                 return count;
             }

@@ -1,7 +1,7 @@
 #ifndef TEST_TESTING_LOG_INCLUDES_H_
 #define TEST_TESTING_LOG_INCLUDES_H_
 
-#include <test/testing/log_utils.h>
+#include <testing/log_utils.h>
 #include <cstdio>
 #include <exception>
 #include <fstream>

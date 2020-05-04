@@ -738,11 +738,11 @@ namespace abel {
 
             // Find and use a zone_info_source to load the named zone.
             auto zip = zone_info_source_factory(
-                    name, [](const std::string &name) -> std::unique_ptr<zone_info_source> {
-                        if (auto zip = FileZoneInfoSource::Open(name))
-                            return zip;
-                        if (auto zip = AndroidZoneInfoSource::Open(name))
-                            return zip;
+                    name, [](const std::string &sname) -> std::unique_ptr<zone_info_source> {
+                        if (auto tzip = FileZoneInfoSource::Open(sname))
+                            return tzip;
+                        if (auto tzip = AndroidZoneInfoSource::Open(sname))
+                            return tzip;
                         return nullptr;
                     });
             return zip != nullptr && load(name, zip.get());

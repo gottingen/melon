@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <abel/base/profile.h>
 
+ABEL_DISABLE_CLANG_WARNING(-Wzero-length-array)
 namespace abel {
 
     struct arena_options {
@@ -33,7 +34,8 @@ namespace abel {
         void *allocate_aligned(size_t n);  // not implemented.
         void clear();
 
-    private:ABEL_NON_COPYABLE(arena);
+    private:
+        ABEL_NON_COPYABLE(arena);
 
         struct block {
             uint32_t left_space() const { return size - alloc_size; }
@@ -70,5 +72,5 @@ namespace abel {
     }
 
 }  // namespace abel
-
+ABEL_RESTORE_CLANG_WARNING()
 #endif //ABEL_MEMORY_ARENA_H_

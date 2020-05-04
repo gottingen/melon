@@ -163,6 +163,8 @@ namespace abel {
 
 #include <stdio.h>
 
+    static int read_command_output_through_popen(std::ostream &os, const char *cmd);
+
     int read_command_output_through_popen(std::ostream &os, const char *cmd) {
         FILE *pipe = popen(cmd, "r");
         if (pipe == NULL) {

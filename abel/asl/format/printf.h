@@ -211,9 +211,9 @@ FMT_BEGIN_NAMESPACE
         class basic_printf_context;
 
 /**
-  \rst
+
   The ``printf`` argument formatter.
-  \endrst
+
  */
         template<typename Range>
         class printf_arg_formatter :
@@ -242,11 +242,11 @@ FMT_BEGIN_NAMESPACE
             typedef typename base::format_specs format_specs;
 
             /**
-              \rst
+
               Constructs an argument formatter object.
               *buffer* is a reference to the output buffer and *spec* contains format
               specifier information for standard argument types.
-              \endrst
+
              */
             printf_arg_formatter(internal::basic_buffer<char_type> &buffer,
                                  format_specs &spec, context_type &ctx)
@@ -374,11 +374,11 @@ FMT_BEGIN_NAMESPACE
 
         public:
             /**
-             \rst
+
              Constructs a ``printf_context`` object. References to the arguments and
              the writer are stored in the context object so make sure they have
              appropriate lifetimes.
-             \endrst
+
              */
             basic_printf_context(OutputIt out, basic_string_view<char_type> format_str,
                                  basic_format_args<basic_printf_context> args)
@@ -601,13 +601,13 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
-  \rst
+
   Formats arguments and returns the result as a string.
 
   **Example**::
 
     std::string message = fmt::sprintf("The answer is %d", 42);
-  \endrst
+
 */
         template<typename... Args>
         inline std::string sprintf(string_view format_str, const Args &... args) {
@@ -639,13 +639,13 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
-  \rst
+
   Prints formatted data to the file *f*.
 
   **Example**::
 
     fmt::fprintf(stderr, "Don't %s!", "panic");
-  \endrst
+
  */
         template<typename... Args>
         inline int fprintf(std::FILE *f, string_view format_str, const Args &... args) {
@@ -670,13 +670,13 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
-  \rst
+
   Prints formatted data to ``stdout``.
 
   **Example**::
 
     fmt::printf("Elapsed time: %.2f seconds", 1.23);
-  \endrst
+
  */
         template<typename... Args>
         inline int printf(string_view format_str, const Args &... args) {
@@ -707,13 +707,13 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
-  \rst
+
   Prints formatted data to the stream *os*.
 
   **Example**::
 
     fmt::fprintf(cerr, "Don't %s!", "panic");
-  \endrst
+
  */
         template<typename... Args>
         inline int fprintf(std::ostream &os, string_view format_str,

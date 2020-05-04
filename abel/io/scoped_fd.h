@@ -31,10 +31,6 @@ namespace abel {
             _fd = fd;
         }
 
-        /**
-         * set fd to -1
-         * @return
-         */
         int release() {
             const int prev_fd = _fd;
             _fd = -1;

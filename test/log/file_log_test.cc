@@ -1,5 +1,5 @@
 
-#include <test/testing/log_includes.h>
+#include <testing/log_includes.h>
 
 TEST(FileLog, simplefilelogger) {
     prepare_logdir();

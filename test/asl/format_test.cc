@@ -16,9 +16,9 @@
 
 #include <abel/asl/format.h>
 #include <gmock/gmock.h>
-#include <test/testing/gtest_extra.h>
-#include <test/testing/mock-allocator.h>
-#include <test/testing/util.h>
+#include <testing/gtest_extra.h>
+#include <testing/mock-allocator.h>
+#include <testing/util.h>
 
 #undef min
 #undef max

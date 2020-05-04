@@ -1,6 +1,6 @@
 //
 
-#include <test/testing/distribution_test_util.h>
+#include <testing/distribution_test_util.h>
 
 #include <gtest/gtest.h>
 

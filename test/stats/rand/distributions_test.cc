@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <test/testing/distribution_test_util.h>
+#include <testing/distribution_test_util.h>
 #include <abel/stats/random/random.h>
 
 namespace {

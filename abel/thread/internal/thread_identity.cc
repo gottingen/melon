@@ -40,7 +40,7 @@ namespace abel {
         // thread_identity_ptr from each instance of the code will refer to
         // *different* instances of this ptr.
 #ifdef __GNUC__
-        __attribute__((visibility("protected")))
+        __attribute__((visibility("default")))
 #endif  // __GNUC__
 
         // Prefer __thread to thread_local as benchmarks indicate it is a bit faster.

@@ -79,7 +79,6 @@ function(_gmock_find_library _name)
     mark_as_advanced(${_name})
 endfunction()
 
-
 if(NOT DEFINED GMOCK_MSVC_SEARCH)
     set(GMOCK_MSVC_SEARCH MD)
 endif()
@@ -126,4 +125,60 @@ if(GMOCK_FOUND)
     _gmock_append_debugs(GMOCK_LIBRARIES      GMOCK_LIBRARY)
     _gmock_append_debugs(GMOCK_MAIN_LIBRARIES GMOCK_MAIN_LIBRARY)
     set(GMOCK_BOTH_LIBRARIES ${GMOCK_LIBRARIES} ${GMOCK_MAIN_LIBRARIES})
+
+    include(CMakeFindDependencyMacro)
+    find_dependency(Threads)
+
+    if(NOT TARGET gmock::gmock)
+        add_library(gmock::gmock UNKNOWN IMPORTED)
+        set_target_properties(gmock::gmock PROPERTIES
+                INTERFACE_LINK_LIBRARIES "Threads::Threads")
+        if(GMOCK_INCLUDE_DIRS)
+            set_target_properties(gmock::gmock PROPERTIES
+                    INTERFACE_INCLUDE_DIRECTORIES "${GMOCK_INCLUDE_DIRS}")
+        endif()
+        if(EXISTS "${GMOCK_LIBRARY}")
+            set_target_properties(gmock::gmock PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+                    IMPORTED_LOCATION "${GMOCK_LIBRARY}")
+        endif()
+        if(EXISTS "${GMOCK_LIBRARY_RELEASE}")
+            set_property(TARGET gmock::gmock APPEND PROPERTY
+                    IMPORTED_CONFIGURATIONS RELEASE)
+            set_target_properties(gmock::gmock PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "CXX"
+                    IMPORTED_LOCATION_RELEASE "${GMOCK_LIBRARY_RELEASE}")
+        endif()
+        if(EXISTS "${GMOCK_LIBRARY_DEBUG}")
+            set_property(TARGET gmock::gmock APPEND PROPERTY
+                    IMPORTED_CONFIGURATIONS DEBUG)
+            set_target_properties(gmock::gmock PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
+                    IMPORTED_LOCATION_DEBUG "${GMOCK_LIBRARY_DEBUG}")
+        endif()
+    endif()
+    if(NOT TARGET gmock::gmock_main)
+        add_library(gmock::gmock_main UNKNOWN IMPORTED)
+        set_target_properties(gmock::gmock_main PROPERTIES
+                INTERFACE_LINK_LIBRARIES "gmock::gmock_main")
+        if(EXISTS "${GMOCK_MAIN_LIBRARY}")
+            set_target_properties(gmock::gmock_main PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+                    IMPORTED_LOCATION "${GMOCK_MAIN_LIBRARY}")
+        endif()
+        if(EXISTS "${GMOCK_MAIN_LIBRARY_RELEASE}")
+            set_property(TARGET gmock::gmock_main APPEND PROPERTY
+                    IMPORTED_CONFIGURATIONS RELEASE)
+            set_target_properties(gmock::gmock_main PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "CXX"
+                    IMPORTED_LOCATION_RELEASE "${GMOCK_MAIN_LIBRARY_RELEASE}")
+        endif()
+        if(EXISTS "${GMOCK_MAIN_LIBRARY_DEBUG}")
+            set_property(TARGET gmock::gmock_main APPEND PROPERTY
+                    IMPORTED_CONFIGURATIONS DEBUG)
+            set_target_properties(gmock::gmock_main PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
+                    IMPORTED_LOCATION_DEBUG "${GMOCK_MAIN_LIBRARY_DEBUG}")
+        endif()
+    endif()
 endif()

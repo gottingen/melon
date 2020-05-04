@@ -8,7 +8,7 @@
 
 #include <benchmark/benchmark.h>
 #include <abel/log/abel_logging.h>
-#include <test/testing/escaping_test_common.h>
+#include <testing/escaping_test_common.h>
 
 namespace {
 

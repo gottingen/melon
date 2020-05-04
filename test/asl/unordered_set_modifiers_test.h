@@ -5,7 +5,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <test/testing/hash_generator_testing.h>
+#include <testing/hash_generator_testing.h>
 #include <test/asl/hash_policy_testing.h>
 
 namespace abel {

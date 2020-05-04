@@ -18,7 +18,7 @@ public:
 #define ABEL_ASSERT_MSG(condition, message) \
   if (!(condition)) throw AssertionFailure(message);
 
-#include <test/testing/gtest_extra.h>
+#include <testing/gtest_extra.h>
 
 // Expects an assertion failure.
 #define EXPECT_ASSERT(stmt, message) \

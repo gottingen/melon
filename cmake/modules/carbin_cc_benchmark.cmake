@@ -1,83 +1,92 @@
 
-# carbin_cc_benchmark()
-#
-# CMake function to imitate Bazel's cc_test rule.
-#
-# Parameters:
-# NAME: name of target (see Usage below)
-# SRCS: List of source files for the binary
-# DEPS: List of other libraries to be linked in to the binary targets
-# COPTS: List of private compile options
-# DEFINES: List of public defines
-# LINKOPTS: List of link options
-#
-# Note:
-# By default, carbin_cc_benchmark will always create a binary named ${PROJECT_NAME}_${NAME}.
-# This will also add it to ctest list as ${PROJECT_NAME}_${NAME}.
-#
-# Usage:
-# carbin_cc_library(
-#   NAME
-#     awesome
-#   HDRS
-#     "a.h"
-#   SRCS
-#     "a.cc"
-#   PUBLIC
-# )
-#
-# carbin_cc_benchmark(
-#   NAME
-#     awesome_test
-#   SRCS
-#     "awesome_test.cc"
-#   DEPS
-#     ${PROJECT_NAME}::awesome
-#     gmock
-#     gtest_main
-# )
 
 include(CMakeParseArguments)
 include(carbin_config_cxx_opts)
 include(carbin_install_dirs)
+include(carbin_print_list)
 
 function(carbin_cc_benchmark)
-    if (NOT CARBIN_RUN_TESTS)
-        return()
+    set(options
+            VERBOSE
+            )
+    set(args NAME
+            WORKING_DIRECTORY
+            )
+
+    set(list_args
+            PUBLIC_LINKED_TARGETS
+            PRIVATE_LINKED_TARGETS
+            SOURCES
+            COMMAND
+            PUBLIC_DEFINITIONS
+            PRIVATE_DEFINITIONS
+            PUBLIC_INCLUDE_PATHS
+            PRIVATE_INCLUDE_PATHS
+            PUBLIC_COMPILE_FEATURES
+            PRIVATE_COMPILE_FEATURES
+            PRIVATE_COMPILE_OPTIONS
+            PUBLIC_COMPILE_OPTIONS
+            )
+
+    cmake_parse_arguments(
+            PARSE_ARGV 0
+            CARBIN_CC_BENCHMARK
+            "${options}"
+            "${args}"
+            "${list_args}"
+    )
+
+    if (CARBIN_CC_BENCHMARK_VERBOSE)
+        carbin_raw("-----------------------------------")
+        carbin_print_label("Building Test" "${CARBIN_CC_BENCHMARK_NAME}")
+        carbin_raw("-----------------------------------")
+        carbin_print_label("Command to Execute" "${CARBIN_CC_BENCHMARK_COMMAND}")
+        carbin_print_label("Working Directory" "${CARBIN_CC_BENCHMARK_WORKING_DIRECTORY}")
+        carbin_print_list_label("Sources" CARBIN_CC_BENCHMARK_SOURCES)
+        carbin_print_list_label("Public Linked Targest" CARBIN_CC_BENCHMARK_PUBLIC_LINKED_TARGETS)
+        carbin_print_list_label("Private Linked Targest" CARBIN_CC_BENCHMARK_PRIVATE_LINKED_TARGETS)
+        carbin_print_list_label("Public Include Paths" CARBIN_CC_BENCHMARK_PUBLIC_INCLUDE_PATHS)
+        carbin_print_list_label("Private Include Paths" CARBIN_CC_BENCHMARK_PRIVATE_INCLUDE_PATHS)
+        carbin_print_list_label("Public Compile Features" CARBIN_CC_BENCHMARK_PUBLIC_COMPILE_FEATURES)
+        carbin_print_list_label("Private Compile Features" CARBIN_CC_BENCHMARK_PRIVATE_COMPILE_FEATURES)
+        carbin_print_list_label("Public Definitions" CARBIN_CC_BENCHMARK_PUBLIC_DEFINITIONS)
+        carbin_print_list_label("Private Definitions" CARBIN_CC_BENCHMARK_PRIVATE_DEFINITIONS)
+        carbin_raw("-----------------------------------")
     endif ()
 
-    cmake_parse_arguments(CARBIN_CC_TEST
-            ""
-            "NAME"
-            "SRCS;COPTS;DEFINES;LINKOPTS;DEPS"
-            ${ARGN}
+    set(testcase ${CARBIN_CC_BENCHMARK_NAME})
+
+    add_executable(${testcase} ${CARBIN_CC_BENCHMARK_SOURCES})
+    target_compile_definitions(${testcase} PRIVATE
+            #CATCH_CONFIG_FAST_COMPILE
+            $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>
+            ${CARBIN_CC_BENCHMARK_PRIVATE_DEFINITIONS}
+            ${CARBIN_CC_BENCHMARK_PUBLIC_DEFINITIONS}
+            )
+    target_compile_options(${testcase} PRIVATE
+            $<$<CXX_COMPILER_ID:MSVC>:/EHsc;$<$<CONFIG:Release>:/Od>>
+            # $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-deprecated;-Wno-float-equal>
+            $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
+            ${CARBIN_CC_BENCHMARK_PUBLIC_COMPILE_FEATURES}
+            ${CARBIN_CC_BENCHMARK_PRIVATE_COMPILE_FEATURES}
+            )
+    target_include_directories(${testcase} PRIVATE
+            ${CARBIN_CC_BENCHMARK_PUBLIC_INCLUDE_PATHS}
+            ${CARBIN_CC_BENCHMARK_PRIVATE_INCLUDE_PATHS}
             )
 
-    set(_NAME "${PROJECT_NAME}_${CARBIN_CC_TEST_NAME}")
+    target_compile_options(${CARBIN_CC_BENCHMARK_NAME} PUBLIC ${CARBIN_CC_BENCHMARK_PUBLIC_COMPILE_OPTIONS} )
+    target_compile_options(${CARBIN_CC_BENCHMARK_NAME} PRIVATE ${CARBIN_CC_BENCHMARK_PRIVATE_COMPILE_OPTIONS} )
 
-    add_executable(${_NAME} "")
-    target_sources(${_NAME} PRIVATE ${CARBIN_CC_TEST_SRCS})
-    target_include_directories(${_NAME}
-            PUBLIC ${CARBIN_COMMON_INCLUDE_DIRS}
-            PRIVATE ${GMOCK_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS}
-            )
 
-    target_compile_definitions(${_NAME}
-            PUBLIC
-            ${CARBIN_CC_TEST_DEFINES}
-            )
-    target_compile_options(${_NAME}
-            PRIVATE ${CARBIN_CC_TEST_COPTS}
-            )
+    target_link_libraries(${testcase} ${CARBIN_CC_BENCHMARK_PUBLIC_LINKED_TARGETS} ${CARBIN_CC_BENCHMARK_PRIVATE_LINKED_TARGETS})
+    #target_link_libraries(${testcase} --coverage -g -O0 -fprofile-arcs -ftest-coverage)
+    #target_compile_options(${testcase} PRIVATE --coverage -g -O0 -fprofile-arcs -ftest-coverage)
 
-    target_link_libraries(${_NAME}
-            PUBLIC ${CARBIN_CC_TEST_DEPS}
-            PRIVATE ${CARBIN_CC_TEST_LINKOPTS}
-            )
-    # Add all Abseil targets to a folder in the IDE for organization.
-    set_property(TARGET ${_NAME} PROPERTY FOLDER ${CARBIN_IDE_FOLDER}/test)
+    #MESSAGE("         Adding link libraries for ${testcase}: ${GNL_LIBS}  ${GNL_COVERAGE_FLAGS} ")
 
-    set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD ${CARBIN_CXX_STANDARD})
-    set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+    #add_test( NAME ${testcase}
+    #       COMMAND ${CARBIN_CC_BENCHMARK_COMMAND}
+    #      WORKING_DIRECTORY ${CARBIN_CC_BENCHMARK_WORKING_DIRECTORY})
 
 endfunction()

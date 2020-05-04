@@ -42,9 +42,10 @@
 #include <unistd.h>
 
 #ifdef __linux__
+
 #include <sys/syscall.h> //Use gettid() syscall under linux to get thread id
 
-#elif __FreeBSD__
+#elif defined(__FreeBSD__)
 #include <sys/thr.h> //Use thr_self() syscall under FreeBSD to get thread id
 #endif
 

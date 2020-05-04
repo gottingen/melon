@@ -5,7 +5,7 @@
 //
 // For the license information refer to format.h.
 
-#include <test/testing/gtest_extra.h>
+#include <testing/gtest_extra.h>
 
 #include <cstring>
 #include <algorithm>
@@ -16,7 +16,7 @@
 # include <crtdbg.h>  // for _CrtSetReportMode
 #endif  // _WIN32
 
-#include <test/testing/util.h>
+#include <testing/util.h>
 #include <memory>
 
 namespace {

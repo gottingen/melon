@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <test/testing/nanobenchmark.h>
+#include <testing/nanobenchmark.h>
 #include <sys/types.h>
 #include <algorithm>  // sort
 #include <atomic>

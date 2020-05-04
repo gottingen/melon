@@ -4,6 +4,9 @@
 
 #include <ostream>
 #include <sys/types.h>
+#include <abel/config/flag.h>
+
+ABEL_DECLARE_FLAG(bool, run_command_through_clone);
 
 namespace abel {
 

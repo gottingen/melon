@@ -27,16 +27,16 @@ namespace abel {
     static void cache_thread_id() {
 #ifdef _WIN32
         this_thread::sys_thread_id = static_cast<size_t>(::GetCurrentThreadId());
-#elif __linux__
+#elif defined(__linux__)
 #if defined(__ANDROID__) && defined(__ANDROID_API__) && (__ANDROID_API__ < 21)
 #define SYS_gettid __NR_gettid
 #endif
         this_thread::sys_thread_id = static_cast<size_t>(syscall(SYS_gettid));
-#elif __FreeBSD__
+#elif  defined(__FreeBSD__)
         long tid;
         thr_self(&tid);
         this_thread::sys_thread_id = static_cast<size_t>(tid);
-#elif __APPLE__
+#elif  defined(__APPLE__)
         uint64_t tid;
         pthread_threadid_np(nullptr, &tid);
         this_thread::sys_thread_id = static_cast<size_t>(tid);
@@ -123,6 +123,9 @@ namespace abel {
             // We have to rely on atexit().
             atexit(helper_exit_global);
         }
+
+        static detail::thread_exit_helper *get_or_new_thread_exit_helper();
+        static detail::thread_exit_helper *get_thread_exit_helper();
 
         detail::thread_exit_helper *get_or_new_thread_exit_helper() {
             pthread_once(&detail::thread_atexit_once, detail::make_thread_atexit_key);
