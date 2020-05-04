@@ -1,86 +1,128 @@
 
 
-
-# carbin_cc_binary()
+################################################################################
+# Create an executable.
 #
-# CMake function to imitate Bazel's cc_test rule.
+# Example usage:
 #
-# Parameters:
-# NAME: name of target (see Usage below)
-# SRCS: List of source files for the binary
-# DEPS: List of other libraries to be linked in to the binary targets
-# COPTS: List of private compile options
-# DEFINES: List of public defines
-# LINKOPTS: List of link options
-#
-# Note:
-# By default, carbin_cc_binary will always create a binary named ${PROJECT_NAME}_${NAME}.
-# This will also add it to ctest list as ${PROJECT_NAME}_${NAME}.
-#
-# Usage:
-# carbin_cc_library(
-#   NAME
-#     awesome
-#   HDRS
-#     "a.h"
-#   SRCS
-#     "a.cc"
-#   PUBLIC
+# carbin_cc_binary(  NAME myExe
+#                  SOURCES
+#                       main.cpp
+#                  PUBLIC_DEFINITIONS
+#                     USE_DOUBLE_PRECISION=1
+#                  PRIVATE_DEFINITIONS
+#                     DEBUG_VERBOSE
+#                  PUBLIC_INCLUDE_PATHS
+#                     ${CMAKE_SOURCE_DIR}/mylib/include
+#                  PRIVATE_INCLUDE_PATHS
+#                     ${CMAKE_SOURCE_DIR}/include
+#                  PRIVATE_LINKED_TARGETS
+#                     Threads::Threads
+#                  PUBLIC_LINKED_TARGETS
+#                     Threads::Threads
+#                  LINKED_TARGETS
+#                     Threads::Threads
+#                     myNamespace::myLib
 # )
 #
-# carbin_cc_binary(
-#   NAME
-#     awesome_test
-#   SRCS
-#     "awesome_test.cc"
-#   DEPS
-#     ${PROJECT_NAME}::awesome
-#     gmock
-#     gtest_main
-# )
-
-include(CMakeParseArguments)
-include(carbin_config_cxx_opts)
-include(carbin_install_dirs)
+# The above example creates an alias target, myNamespace::myLibrary which can be
+# linked to by other tar gets.
+# PUBLIC_DEFINITIONS -  preprocessor defines which are inherated by targets which
+#                       link to this library
+#
+# PRIVATE_DEFINITIONS - preprocessor defines which are private and only seen by
+#                       myLibrary
+#
+# PUBLIC_INCLUDE_PATHS - include paths which are public, therefore inherted by
+#                        targest which link to this library.
+#
+# PRIVATE_INCLUDE_PATHS - private include paths which are only visible by MyExe
+#
+# LINKED_TARGETS        - targets to link to.
+################################################################################
 
 function(carbin_cc_binary)
-
-    cmake_parse_arguments(CARBIN_CC_BINARY
-            ""
-            "NAME"
-            "SRCS;COPTS;DEFINES;LINKOPTS;DEPS"
-            ${ARGN}
+    set(options
+            VERBOSE)
+    set(args NAME
             )
 
-    set(_NAME "${CARBIN_CC_BINARY_NAME}")
-
-    add_executable(${_NAME} "")
-    target_sources(${_NAME} PRIVATE ${CARBIN_CC_BINARY_SRCS})
-    target_include_directories(${_NAME}
-            PUBLIC ${CARBIN_COMMON_INCLUDE_DIRS}
-            PRIVATE ${GMOCK_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS}
+    set(list_args
+            PUBLIC_LINKED_TARGETS
+            PRIVATE_LINKED_TARGETS
+            SOURCES
+            PUBLIC_DEFINITIONS
+            PRIVATE_DEFINITIONS
+            PUBLIC_INCLUDE_PATHS
+            PRIVATE_INCLUDE_PATHS
+            PUBLIC_COMPILE_FEATURES
+            PRIVATE_COMPILE_FEATURES
+            PUBLIC_COMPILE_OPTIONS
+            PRIVATE_COMPILE_OPTIONS
             )
 
-    target_compile_definitions(${_NAME}
+    cmake_parse_arguments(
+            PARSE_ARGV 0
+            CARBIN_CC_BINARY
+            "${options}"
+            "${args}"
+            "${list_args}"
+    )
+    carbin_raw("-----------------------------------")
+    carbin_print_label("Building Binary" "${CARBIN_CC_BINARY_NAME}")
+    carbin_raw("-----------------------------------")
+    if(CARBIN_CC_BINARY_VERBOSE)
+        carbin_print_list_label("Sources" CARBIN_CC_BINARY_SOURCES)
+        carbin_print_list_label("Public Linked Targest"  CARBIN_CC_BINARY_PUBLIC_LINKED_TARGETS)
+        carbin_print_list_label("Private Linked Targest"  CARBIN_CC_BINARY_PRIVATE_LINKED_TARGETS)
+        carbin_print_list_label("Public Include Paths"  CARBIN_CC_BINARY_PUBLIC_INCLUDE_PATHS)
+        carbin_print_list_label("Private Include Paths" CARBIN_CC_BINARY_PRIVATE_INCLUDE_PATHS)
+        carbin_print_list_label("Public Compile Features" CARBIN_CC_BINARY_PUBLIC_COMPILE_FEATURES)
+        carbin_print_list_label("Private Compile Features" CARBIN_CC_BINARY_PRIVATE_COMPILE_FEATURES)
+        carbin_print_list_label("Public Definitions" CARBIN_CC_BINARY_PUBLIC_DEFINITIONS)
+        carbin_print_list_label("Private Definitions" CARBIN_CC_BINARY_PRIVATE_DEFINITIONS)
+        carbin_raw("-----------------------------------")
+    endif()
+    add_executable( ${CARBIN_CC_BINARY_NAME} ${CARBIN_CC_BINARY_SOURCES} )
+    target_link_libraries(${CARBIN_CC_BINARY_NAME}
+            PUBLIC ${CARBIN_CC_BINARY_PUBLIC_LINKED_TARGETS}
+            PRIVATE ${CARBIN_CC_BINARY_PRIVATE_LINKED_TARGETS})
+
+
+
+    target_include_directories( ${CARBIN_CC_BINARY_NAME}
             PUBLIC
-            ${CARBIN_CC_BINARY_DEFINES}
-            )
-    target_compile_options(${_NAME}
-            PRIVATE ${CARBIN_CC_BINARY_COPTS}
-            )
-
-    target_link_libraries(${_NAME}
-            PUBLIC ${CARBIN_CC_BINARY_DEPS}
-            PRIVATE ${CARBIN_CC_BINARY_LINKOPTS}
+            ${CARBIN_CC_BINARY_PUBLIC_INCLUDE_PATHS}
+            PRIVATE
+            ${CARBIN_CC_BINARY_PRIVATE_INCLUDE_PATHS}
             )
 
-    set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD ${CARBIN_CXX_STANDARD})
-    set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+    target_compile_definitions( ${CARBIN_CC_BINARY_NAME}
+            PUBLIC
+            ${CARBIN_CC_BINARY_PUBLIC_DEFINITIONS}
+            PRIVATE
+            ${CARBIN_CC_BINARY_PRIVATE_DEFINITIONS}
+            )
+    target_compile_features(${CARBIN_CC_BINARY_NAME} PUBLIC ${CARBIN_CC_BINARY_PUBLIC_COMPILE_FEATURES} )
+    target_compile_features(${CARBIN_CC_BINARY_NAME} PRIVATE ${CARBIN_CC_BINARY_PRIVATE_COMPILE_FEATURES} )
 
-    install(TARGETS ${_NAME} EXPORT ${PROJECT_NAME}Targets
+    target_compile_options(${CARBIN_CC_BINARY_NAME} PUBLIC ${CARBIN_CC_BINARY_PUBLIC_COMPILE_OPTIONS} )
+    target_compile_options(${CARBIN_CC_BINARY_NAME} PRIVATE ${CARBIN_CC_BINARY_PRIVATE_COMPILE_OPTIONS} )
+
+
+    set_property(TARGET ${CARBIN_CC_BINARY_NAME} PROPERTY CXX_STANDARD ${CARBIN_CXX_STANDARD})
+    set_property(TARGET ${CARBIN_CC_BINARY_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
+    install(TARGETS ${CARBIN_CC_BINARY_NAME} EXPORT ${PROJECT_NAME}Targets
             RUNTIME DESTINATION ${CARBIN_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CARBIN_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CARBIN_INSTALL_LIBDIR}
             )
 
-endfunction()
+    ################################################################################
+
+    foreach(arg IN LISTS CARBIN_CC_BINARY_UNPARSED_ARGUMENTS)
+        carbin_warn( "Unparsed argument: ${arg}")
+    endforeach()
+
+endfunction(carbin_cc_binary)

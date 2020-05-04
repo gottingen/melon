@@ -12,9 +12,9 @@ namespace abel {
 
     /**
      * @brief Checks if the given suffix string is located at the end of this string.
-     * @param text
-     * @param suffix
-     * @return
+     * @param text todo
+     * @param suffix todo
+     * @return todo
      */
     ABEL_FORCE_INLINE bool ends_with(abel::string_view text, abel::string_view suffix) {
         return suffix.empty() ||
@@ -27,9 +27,9 @@ namespace abel {
     /**
      * @brief Checks if the given suffix string is located at the end of this
      * string. Compares the characters case-insensitively.
-     * @param text
-     * @param suffix
-     * @return
+     * @param text todo
+     * @param suffix todo
+     * @return todo
      */
     bool ends_with_case(abel::string_view text, abel::string_view suffix);
 

@@ -41,9 +41,9 @@ namespace abel {
     abel::string_view trim_right(abel::string_view str, abel::string_view drop);
 
 /**
- * @brief
- * @param str
- * @return
+ * @brief todo
+ * @param str todo
+ * @return todo
  */
 
 
@@ -84,9 +84,9 @@ namespace abel {
     abel::string_view trim_left(abel::string_view str, abel::string_view drop);
 
 /**
- * @brief
- * @param str
- * @return
+ * @brief todo
+ * @param str todo
+ * @return todo
  */
     ABEL_MUST_USE_RESULT ABEL_FORCE_INLINE abel::string_view trim_left(
             abel::string_view str) {

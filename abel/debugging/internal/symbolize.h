@@ -8,7 +8,6 @@
 
 #include <cstddef>
 #include <cstdint>
-
 #include <abel/base/profile.h>
 
 #ifdef ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE

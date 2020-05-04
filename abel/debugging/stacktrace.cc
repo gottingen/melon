@@ -71,14 +71,14 @@ namespace abel {
 
     }  // anonymous namespace
 
-    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int GetStackFrames(
+    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int get_stack_frames(
             void **result, int *sizes, int max_depth, int skip_count) {
         return Unwind<true, false>(result, sizes, max_depth, skip_count, nullptr,
                                    nullptr);
     }
 
     ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int
-    GetStackFramesWithContext(void **result, int *sizes, int max_depth,
+    get_stack_frames_with_context(void **result, int *sizes, int max_depth,
                               int skip_count, const void *uc,
                               int *min_dropped_frames) {
         return Unwind<true, true>(result, sizes, max_depth, skip_count, uc,
@@ -92,17 +92,17 @@ namespace abel {
     }
 
     ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int
-    GetStackTraceWithContext(void **result, int max_depth, int skip_count,
+    get_stack_trace_with_context(void **result, int max_depth, int skip_count,
                              const void *uc, int *min_dropped_frames) {
         return Unwind<false, true>(result, nullptr, max_depth, skip_count, uc,
                                    min_dropped_frames);
     }
 
-    void SetStackUnwinder(Unwinder w) {
+    void set_stack_unwinder(Unwinder w) {
         custom.store(w, std::memory_order_release);
     }
 
-    int DefaultStackUnwinder(void **pcs, int *sizes, int depth, int skip,
+    int default_stack_unwinder(void **pcs, int *sizes, int depth, int skip,
                              const void *uc, int *min_dropped_frames) {
         skip++;  // For this function
         Unwinder f = nullptr;

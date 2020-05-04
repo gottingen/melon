@@ -4,18 +4,16 @@ file(GLOB SRC "*.cc")
 foreach (fl ${SRC})
 
     string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" TEST_NAME ${fl})
-    set(EXE_NAME time_${TEST_NAME})
+    get_filename_component(DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    string(REPLACE " " "_" DIR_NAME ${DIR_NAME})
+
+    set(EXE_NAME ${DIR_NAME}_${TEST_NAME})
     carbin_cc_benchmark(
-            NAME
-            ${EXE_NAME}
-            SRCS
-            ${TEST_NAME}.cc
-            COPTS
-            ${CARBIN_TEST_COPTS}
-            DEPS
-            abel::abel
-            benchmark::benchmark
-            benchmark::benchmark_main
-            testing_static
+            NAME ${EXE_NAME}
+            SOURCES ${fl}
+            PUBLIC_LINKED_TARGETS
+            ${BENCHMARK_LINKS}
+            PRIVATE_COMPILE_OPTIONS ${CARBIN_TEST_COPTS}
+            VERBOSE
     )
 endforeach (fl ${SRC})

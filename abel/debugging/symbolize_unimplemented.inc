@@ -1,7 +1,6 @@
 //
 
 #include <cstdint>
-
 #include <abel/log/abel_logging.h>
 
 namespace abel {
@@ -25,9 +24,9 @@ namespace abel {
 
     }  // namespace debugging_internal
 
-    void InitializeSymbolizer(const char *) {}
+    void initialize_symbolizer(const char *) {}
 
-    bool Symbolize(const void *, char *, int) { return false; }
+    bool symbolize(const void *, char *, int) { return false; }
 
 
 }  // namespace abel

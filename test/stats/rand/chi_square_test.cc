@@ -1,6 +1,6 @@
 //
 
-#include <test/testing/chi_square.h>
+#include <testing/chi_square.h>
 
 #include <algorithm>
 #include <cstddef>

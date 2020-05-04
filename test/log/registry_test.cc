@@ -1,4 +1,4 @@
-#include <test/testing/log_includes.h>
+#include <testing/log_includes.h>
 
 static const char *tested_logger_name = "null_logger";
 static const char *tested_logger_name2 = "null_logger2";

@@ -9,7 +9,6 @@
 #include <queue>
 #include <thread>  // NOLINT(build/c++11)
 #include <vector>
-
 #include <abel/thread/thread_annotations.h>
 #include <abel/thread/mutex.h>
 

@@ -3,6 +3,7 @@
 //
 
 #include <abel/digest/base64.h>
+#include <abel/base/profile.h>
 #include <stdexcept>
 
 namespace abel {
@@ -15,17 +16,23 @@ namespace abel {
 
 // Base64 Encoding and Decoding
 
-    std::string base64_encode(const void *data, size_t size, size_t line_break) {
-        const uint8_t *in = reinterpret_cast<const uint8_t *>(data);
-        const uint8_t *in_end = in + size;
-        std::string out;
+    static bool base64_decode(const void* data, size_t size, std::string *out, bool strict);
 
-        if (size == 0) return out;
+    static bool base64_encode(const void* data, size_t size, std::string *out, size_t line_break) {
+        const uint8_t* in = reinterpret_cast<const uint8_t*>(data);
+        const uint8_t* in_end = in + size;
+
+        if (size == 0) {
+            return true;
+        }
 
         // calculate output string's size in advance
         size_t outsize = (((size - 1) / 3) + 1) * 4;
-        if (line_break > 0) outsize += outsize / line_break;
-        out.reserve(outsize);
+        if (line_break > 0) {
+            outsize += outsize / line_break;
+        }
+
+        out->reserve(outsize);
 
         static const char encoding64[64] = {
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -41,69 +48,69 @@ namespace abel {
         while (true) {
             // step 0: if the string is finished here, no padding is needed
             if (in == in_end) {
-                return out;
+                return true;
             }
 
             // step 0: process first byte, write first letter
             uint8_t fragment = *in++;
             result = (fragment & 0xFC) >> 2;
-            out += encoding64[result];
+            *out += encoding64[result];
             result = static_cast<uint8_t>((fragment & 0x03) << 4);
 
             // step 1: if string finished here, add two padding '='s
             if (in == in_end) {
-                out += encoding64[result];
-                out += '=';
-                out += '=';
-                return out;
+                *out += encoding64[result];
+                *out += '=';
+                *out += '=';
+                return true;
             }
 
             // step 1: process second byte together with first, write second
             // letter
             fragment = *in++;
             result |= (fragment & 0xF0) >> 4;
-            out += encoding64[result];
+            *out += encoding64[result];
             result = static_cast<uint8_t>((fragment & 0x0F) << 2);
 
             // step 2: if string finished here, add one padding '='
             if (in == in_end) {
-                out += encoding64[result];
-                out += '=';
-                return out;
+                *out += encoding64[result];
+                *out += '=';
+                return true;
             }
 
             // step 2: process third byte and write third and fourth letters.
             fragment = *in++;
 
             result |= (fragment & 0xC0) >> 6;
-            out += encoding64[result];
+            *out += encoding64[result];
 
             result = (fragment & 0x3F) >> 0;
-            out += encoding64[result];
+            *out += encoding64[result];
 
             // wrap base64 encoding into lines if desired, but only after whole
             // blocks of 4 letters.
-            if (line_break > 0 && out.size() - line_begin >= line_break) {
-                out += '\n';
-                line_begin = out.size();
+            if (line_break > 0 && out->size() - line_begin >= line_break) {
+                *out += '\n';
+                line_begin = out->size();
             }
         }
     }
 
-    std::string base64_encode(const std::string &str, size_t line_break) {
-        return base64_encode(str.data(), str.size(), line_break);
+
+    bool base64_encode(abel::string_view str, std::string *out, size_t line_break) {
+        return base64_encode(str.data(), str.size(), out, line_break);
     }
 
 /******************************************************************************/
 
-    std::string base64_decode(const void *data, size_t size, bool strict) {
-        const uint8_t *in = reinterpret_cast<const uint8_t *>(data);
-        const uint8_t *in_end = in + size;
-        std::string out;
-
+    bool base64_decode(const void* data, size_t size, std::string *out, bool strict) {
+        const uint8_t* in = reinterpret_cast<const uint8_t*>(data);
+        const uint8_t* in_end = in + size;
+        ABEL_ASSERT(out);
         // estimate the output size, assume that the whole input string is
         // base64 encoded.
-        out.reserve(size * 3 / 4);
+        out->reserve(size * 3 / 4);
 
         static constexpr uint8_t ex = 255;
         static constexpr uint8_t ws = 254;
@@ -129,69 +136,75 @@ namespace abel {
 
         uint8_t outchar, fragment;
 
-        static const char *ex_message =
-                "Invalid character encountered during base64 decoding.";
 
         while (true) {
             // step 0: save first valid letter. do not output a byte, yet.
             do {
-                if (in == in_end) return out;
+                if (in == in_end) return true;
 
                 fragment = decoding64[*in++];
 
                 if (fragment == ex && strict)
-                    throw std::runtime_error(ex_message);
+                    return false;
             } while (fragment >= ws);
 
             outchar = static_cast<uint8_t>((fragment & 0x3F) << 2);
 
             // step 1: get second valid letter. output the first byte.
             do {
-                if (in == in_end) return out;
+                if (in == in_end) {
+                    return true;
+                }
 
                 fragment = decoding64[*in++];
 
-                if (fragment == ex && strict)
-                    throw std::runtime_error(ex_message);
+                if (fragment == ex && strict) {
+                    return false;
+                }
             } while (fragment >= ws);
 
             outchar = static_cast<uint8_t>(outchar | ((fragment & 0x30) >> 4));
-            out += static_cast<char>(outchar);
+            *out += static_cast<char>(outchar);
 
             outchar = static_cast<uint8_t>((fragment & 0x0F) << 4);
 
             // step 2: get third valid letter. output the second byte.
             do {
-                if (in == in_end) return out;
+                if (in == in_end) {
+                    return true;
+                }
 
                 fragment = decoding64[*in++];
 
-                if (fragment == ex && strict)
-                    throw std::runtime_error(ex_message);
+                if (fragment == ex && strict) {
+                    return false;
+                }
             } while (fragment >= ws);
 
             outchar = static_cast<uint8_t>(outchar | ((fragment & 0x3C) >> 2));
-            out += static_cast<char>(outchar);
+            *out += static_cast<char>(outchar);
 
             outchar = static_cast<uint8_t>((fragment & 0x03) << 6);
 
             // step 3: get fourth valid letter. output the third byte.
             do {
-                if (in == in_end) return out;
+                if (in == in_end) {
+                    return true;
+                }
 
                 fragment = decoding64[*in++];
 
-                if (fragment == ex && strict)
-                    throw std::runtime_error(ex_message);
+                if (fragment == ex && strict) {
+                    return false;
+                }
             } while (fragment >= ws);
 
             outchar = static_cast<uint8_t>(outchar | ((fragment & 0x3F) >> 0));
-            out += static_cast<char>(outchar);
+            *out += static_cast<char>(outchar);
         }
     }
 
-    std::string base64_decode(const std::string &str, bool strict) {
-        return base64_decode(str.data(), str.size(), strict);
+    bool base64_decode(abel::string_view str, std::string *out, bool strict) {
+        return base64_decode(str.data(), str.size(), out, strict);
     }
-
-} //namespace abel
+}

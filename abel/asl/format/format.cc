@@ -7,12 +7,15 @@
 
 #include <abel/asl/format/format_inl.h>
 
+
 FMT_BEGIN_NAMESPACE
         namespace internal {
-// Force linking of inline functions into the library.
+            // Force linking of inline functions into the library.
+            /*
             std::string (*vformat_ref)(string_view, format_args) = vformat;
 
             std::wstring (*vformat_wref)(wstring_view, wformat_args) = vformat;
+            */
         }
 
         template

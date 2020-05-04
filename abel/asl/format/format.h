@@ -52,7 +52,7 @@
 #endif
 
 #include <abel/asl/format/core.h>
-
+#define FMT_HEADER_ONLY 1
 #if FMT_GCC_VERSION >= 406 || FMT_CLANG_VERSION
 # pragma GCC diagnostic push
 
@@ -526,7 +526,6 @@ FMT_BEGIN_NAMESPACE
         };
 
 /**
-  \rst
   A dynamically growing memory buffer for trivially copyable/constructible types
   with the first ``SIZE`` elements stored in the object itself.
 
@@ -552,7 +551,6 @@ FMT_BEGIN_NAMESPACE
      The answer is 42.
 
   The output can be converted to an ``std::string`` with ``to_string(out)``.
-  \endrst
  */
         template<typename T, std::size_t SIZE = inline_buffer_size,
                 typename Allocator = std::allocator<T> >
@@ -575,7 +573,7 @@ FMT_BEGIN_NAMESPACE
                 this->set(store_, SIZE);
             }
 
-            ~basic_memory_buffer() { deallocate(); }
+            ~basic_memory_buffer() ABEL_OVERRIDE{ deallocate(); }
 
         private:
             // Move data from other to this buffer.
@@ -599,19 +597,18 @@ FMT_BEGIN_NAMESPACE
 
         public:
             /**
-              \rst
               Constructs a :class:`fmt::basic_memory_buffer` object moving the content
               of the other object to it.
-              \endrst
+              
              */
             basic_memory_buffer(basic_memory_buffer &&other) {
                 move(other);
             }
 
             /**
-              \rst
+              
               Moves the content of the other ``basic_memory_buffer`` object to this one.
-              \endrst
+              
              */
             basic_memory_buffer &operator=(basic_memory_buffer &&other) {
                 assert(this != &other);
@@ -647,32 +644,32 @@ FMT_BEGIN_NAMESPACE
         typedef basic_memory_buffer<wchar_t> wmemory_buffer;
 
 /**
-  \rst
+  
   A fixed-size memory buffer. For a dynamically growing buffer use
   :class:`fmt::basic_memory_buffer`.
 
   Trying to increase the buffer size past the initial capacity will throw
   ``std::runtime_error``.
-  \endrst
+  
  */
         template<typename Char>
         class basic_fixed_buffer : public internal::basic_buffer<Char> {
         public:
             /**
-             \rst
+             
              Constructs a :class:`fmt::basic_fixed_buffer` object for *array* of the
              given size.
-             \endrst
+             
              */
             basic_fixed_buffer(Char *array, std::size_t size) {
                 this->set(array, size);
             }
 
             /**
-             \rst
+             
              Constructs a :class:`fmt::basic_fixed_buffer` object for *array* of the
              size known at compile time.
-             \endrst
+             
              */
             template<std::size_t SIZE>
             explicit basic_fixed_buffer(Char (&array)[SIZE]) {
@@ -1226,11 +1223,11 @@ FMT_BEGIN_NAMESPACE
         };
 
 /**
-  \rst
+  
   Visits an argument dispatching to the appropriate visit method based on
   the argument type. For example, if the argument type is ``double`` then
   ``vis(value)`` will be called with the value of type ``double``.
-  \endrst
+  
  */
         template<typename Visitor, typename Context>
         FMT_CONSTEXPR typename internal::result_of<Visitor(int)>::type
@@ -2392,11 +2389,11 @@ FMT_BEGIN_NAMESPACE
             typedef typename base::format_specs format_specs;
 
             /**
-              \rst
+              
               Constructs an argument formatter object.
               *ctx* is a reference to the formatting context,
               *spec* contains format specifier information for standard argument types.
-              \endrst
+              
              */
             arg_formatter(context_type &ctx, format_specs &spec)
                     : base(Range(ctx.out()), spec), ctx_(ctx) {}
@@ -2425,7 +2422,7 @@ FMT_BEGIN_NAMESPACE
 
         public:
             /**
-             \rst
+             
              Constructs a :class:`fmt::system_error` object with a description
              formatted with `fmt::format_system_error`. *message* and additional
              arguments passed into the constructor are formatted similarly to
@@ -2440,7 +2437,7 @@ FMT_BEGIN_NAMESPACE
                std::FILE *file = std::fopen(filename, "r");
                if (!file)
                  throw fmt::system_error(errno, "cannot open file '{}'", filename);
-             \endrst
+             
             */
             template<typename... Args>
             system_error(int error_code, string_view message, const Args &... args)
@@ -2452,7 +2449,7 @@ FMT_BEGIN_NAMESPACE
         };
 
 /**
-  \rst
+  
   Formats an error returned by an operating system or a language runtime,
   for example a file opening error, and writes it to *out* in the following
   form:
@@ -2465,7 +2462,7 @@ FMT_BEGIN_NAMESPACE
   *error_code* is a system error code as given by ``errno``.
   If *error_code* is not a valid error code such as -1, the system message
   may look like "Unknown error -1" and is platform-dependent.
-  \endrst
+  
  */
         FMT_API void format_system_error(internal::buffer &out, int error_code,
                                          fmt::string_view message) ABEL_NOEXCEPT;
@@ -2792,9 +2789,9 @@ FMT_BEGIN_NAMESPACE
             void write(unsigned long long value) { write_decimal(value); }
 
             /**
-              \rst
+              
               Formats *value* and writes it to the buffer.
-              \endrst
+              
              */
             template<typename T, typename FormatSpec, typename... FormatSpecs>
             typename std::enable_if<std::is_integral<T>::value, void>::type
@@ -2809,10 +2806,10 @@ FMT_BEGIN_NAMESPACE
             }
 
             /**
-              \rst
+              
               Formats *value* using the general format for floating-point numbers
               (``'g'``) and writes it to the buffer.
-              \endrst
+              
              */
             void write(long double value) {
                 write_double(value, format_specs());
@@ -2829,9 +2826,9 @@ FMT_BEGIN_NAMESPACE
             }
 
             /**
-              \rst
+              
               Writes *value* to the buffer.
-              \endrst
+              
              */
             void write(string_view value) {
                 auto &&it = reserve(value.size());
@@ -3083,7 +3080,7 @@ FMT_BEGIN_NAMESPACE
 
          public:
           /**
-           \rst
+           
            Constructs a :class:`fmt::windows_error` object with the description
            of the form
 
@@ -3108,7 +3105,7 @@ FMT_BEGIN_NAMESPACE
                throw fmt::windows_error(GetLastError(),
                                         "cannot open file '{}'", filename);
              }
-           \endrst
+           
           */
           template <typename... Args>
           windows_error(int error_code, string_view message, const Args & ... args) {
@@ -3200,9 +3197,9 @@ FMT_BEGIN_NAMESPACE
             }
 
             /**
-              \rst
+              
               Returns the content of the output buffer as an ``std::string``.
-              \endrst
+              
              */
             std::string str() const { return std::string(str_, size()); }
         };
@@ -3538,7 +3535,7 @@ FMT_BEGIN_NAMESPACE
 #endif
 
 /**
-  \rst
+  
   Converts *value* to ``std::string`` using the default format for type *T*.
 
   **Example**::
@@ -3546,7 +3543,7 @@ FMT_BEGIN_NAMESPACE
     #include <fmt/format.h>
 
     std::string answer = fmt::to_string(42);
-  \endrst
+  
  */
         template<typename T>
         std::string to_string(const T &value) {
@@ -3631,7 +3628,7 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
- \rst
+ 
  Formats arguments, writes the result to the output iterator ``out`` and returns
  the iterator past the end of the output range.
 
@@ -3639,7 +3636,7 @@ FMT_BEGIN_NAMESPACE
 
    std::vector<char> out;
    fmt::format_to(std::back_inserter(out), "{}", 42);
- \endrst
+ 
  */
         template<typename OutputIt, typename... Args>
         inline OutputIt format_to(OutputIt out, string_view format_str,
@@ -3695,11 +3692,11 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
- \rst
+ 
  Formats arguments, writes up to ``n`` characters of the result to the output
  iterator ``out`` and returns the total output size and the iterator past the end
  of the output range.
- \endrst
+ 
  */
         template<typename OutputIt, typename... Args>
         inline format_to_n_result<OutputIt> format_to_n(
@@ -3998,14 +3995,14 @@ FMT_BEGIN_NAMESPACE
 # else
 
 /**
-  \rst
+  
   User-defined literal equivalent of :func:`fmt::format`.
 
   **Example**::
 
     using namespace fmt::literals;
     std::string message = "The answer is {}"_format(42);
-  \endrst
+  
  */
             inline internal::udl_formatter<char>
             operator "" _format(const char *s, std::size_t) { return {s}; }
@@ -4016,14 +4013,14 @@ FMT_BEGIN_NAMESPACE
 # endif // FMT_UDL_TEMPLATE
 
 /**
-  \rst
+  
   User-defined literal equivalent of :func:`fmt::arg`.
 
   **Example**::
 
     using namespace fmt::literals;
     fmt::print("Elapsed time: {s:.2f} seconds", "s"_a=1.23);
-  \endrst
+  
  */
             inline internal::udl_arg<char>
             operator "" _a(const char *s, std::size_t) { return {s}; }
@@ -4044,7 +4041,7 @@ FMT_END_NAMESPACE
 
 #ifndef FMT_NO_FMT_STRING_ALIAS
 /**
-  \rst
+  
   Constructs a compile-time format string.
 
   **Example**::
@@ -4052,14 +4049,14 @@ FMT_END_NAMESPACE
     #include <fmt/format.h>
     // A compile-time error because 'd' is an invalid specifier for strings.
     std::string s = format(fmt("{:d}"), "foo");
-  \endrst
+  
  */
 # define abel_fmt(s) FMT_STRING(s)
 #endif
 
 #ifdef FMT_HEADER_ONLY
 # define FMT_FUNC inline
-# include "format-inl.h"
+# include <abel/asl/format/format_inl.h>
 #else
 # define FMT_FUNC
 #endif

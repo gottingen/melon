@@ -10,17 +10,17 @@
 
 namespace abel {
 
-    bool HaveLeakSanitizer() { return false; }
+    bool have_leak_sanitizer() { return false; }
 
-    void DoIgnoreLeak(const void *) {}
+    void do_ignore_leak(const void *) {}
 
-    void RegisterLivePointers(const void *, size_t) {}
+    void register_live_pointers(const void *, size_t) {}
 
-    void UnRegisterLivePointers(const void *, size_t) {}
+    void unregister_live_pointers(const void *, size_t) {}
 
-    LeakCheckDisabler::LeakCheckDisabler() {}
+    leak_check_disabler::leak_check_disabler() {}
 
-    LeakCheckDisabler::~LeakCheckDisabler() {}
+    leak_check_disabler::~leak_check_disabler() {}
 
 }  // namespace abel
 
@@ -30,16 +30,16 @@ namespace abel {
 
 namespace abel {
 
-bool HaveLeakSanitizer() { return true; }
-void DoIgnoreLeak(const void* ptr) { __lsan_ignore_object(ptr); }
-void RegisterLivePointers(const void* ptr, size_t size) {
+bool have_leak_sanitizer() { return true; }
+void do_ignore_leak(const void* ptr) { __lsan_ignore_object(ptr); }
+void register_live_pointers(const void* ptr, size_t size) {
   __lsan_register_root_region(ptr, size);
 }
-void UnRegisterLivePointers(const void* ptr, size_t size) {
+void unregister_live_pointers(const void* ptr, size_t size) {
   __lsan_unregister_root_region(ptr, size);
 }
-LeakCheckDisabler::LeakCheckDisabler() { __lsan_disable(); }
-LeakCheckDisabler::~LeakCheckDisabler() { __lsan_enable(); }
+leak_check_disabler::leak_check_disabler() { __lsan_disable(); }
+leak_check_disabler::~leak_check_disabler() { __lsan_enable(); }
 
 }  // namespace abel
 

@@ -105,10 +105,10 @@ const char kHpageTextPadding[kHpageSize * 4] ABEL_ATTRIBUTE_SECTION_VARIABLE(
 
 static char try_symbolize_buffer[4096];
 
-// A wrapper function for abel::Symbolize() to make the unit test simple.  The
+// A wrapper function for abel::symbolize() to make the unit test simple.  The
 // limit must be < sizeof(try_symbolize_buffer).  Returns null if
-// abel::Symbolize() returns false, otherwise returns try_symbolize_buffer with
-// the result of abel::Symbolize().
+// abel::symbolize() returns false, otherwise returns try_symbolize_buffer with
+// the result of abel::symbolize().
 
 static const char *TrySymbolizeWithLimit(void *pc, int limit) {
     ABEL_RAW_CHECK(static_cast<size_t>(limit) <= sizeof(try_symbolize_buffer),
@@ -116,10 +116,10 @@ static const char *TrySymbolizeWithLimit(void *pc, int limit) {
 
     // Use the heap to facilitate heap and buffer sanitizer tools.
     auto heap_buffer = abel::make_unique<char[]>(sizeof(try_symbolize_buffer));
-    bool found = abel::Symbolize(pc, heap_buffer.get(), limit);
+    bool found = abel::symbolize(pc, heap_buffer.get(), limit);
     if (found) {
         ABEL_RAW_CHECK(strnlen(heap_buffer.get(), static_cast<size_t>(limit)) < static_cast<size_t>(limit),
-                       "abel::Symbolize() did not properly terminate the string");
+                       "abel::symbolize() did not properly terminate the string");
         strncpy(try_symbolize_buffer, heap_buffer.get(),
                 sizeof(try_symbolize_buffer) - 1);
         try_symbolize_buffer[sizeof(try_symbolize_buffer) - 1] = '\0';
@@ -134,7 +134,7 @@ static const char *TrySymbolize(void *pc) {
 
 #ifdef ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE
 
-TEST(Symbolize, Cached) {
+TEST(symbolize, Cached) {
   // Compilers should give us pointers to them.
   EXPECT_STREQ("nonstatic_func", TrySymbolize((void *)(&nonstatic_func)));
 
@@ -147,7 +147,7 @@ TEST(Symbolize, Cached) {
   EXPECT_TRUE(nullptr == TrySymbolize(nullptr));
 }
 
-TEST(Symbolize, Truncation) {
+TEST(symbolize, Truncation) {
   constexpr char kNonStaticFunc[] = "nonstatic_func";
   EXPECT_STREQ("nonstatic_func",
                TrySymbolizeWithLimit((void *)(&nonstatic_func),
@@ -166,12 +166,12 @@ TEST(Symbolize, Truncation) {
   EXPECT_EQ(nullptr, TrySymbolizeWithLimit((void *)(&nonstatic_func), 0));
 }
 
-TEST(Symbolize, SymbolizeWithDemangling) {
+TEST(symbolize, SymbolizeWithDemangling) {
   Foo::func(100);
   EXPECT_STREQ("Foo::func()", TrySymbolize((void *)(&Foo::func)));
 }
 
-TEST(Symbolize, SymbolizeSplitTextSections) {
+TEST(symbolize, SymbolizeSplitTextSections) {
   EXPECT_STREQ("unlikely_func()", TrySymbolize((void *)(&unlikely_func)));
   EXPECT_STREQ("hot_func()", TrySymbolize((void *)(&hot_func)));
   EXPECT_STREQ("startup_func()", TrySymbolize((void *)(&startup_func)));
@@ -179,7 +179,7 @@ TEST(Symbolize, SymbolizeSplitTextSections) {
   EXPECT_STREQ("regular_func()", TrySymbolize((void *)(&regular_func)));
 }
 
-// Tests that verify that Symbolize stack footprint is within some limit.
+// Tests that verify that symbolize stack footprint is within some limit.
 #ifdef ABEL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION
 
 static void *g_pc_to_symbolize;
@@ -187,7 +187,7 @@ static char g_symbolize_buffer[4096];
 static char *g_symbolize_result;
 
 static void SymbolizeSignalHandler(int signo) {
-  if (abel::Symbolize(g_pc_to_symbolize, g_symbolize_buffer,
+  if (abel::symbolize(g_pc_to_symbolize, g_symbolize_buffer,
                       sizeof(g_symbolize_buffer))) {
     g_symbolize_result = g_symbolize_buffer;
   } else {
@@ -195,7 +195,7 @@ static void SymbolizeSignalHandler(int signo) {
   }
 }
 
-// Call Symbolize and figure out the stack footprint of this call.
+// Call symbolize and figure out the stack footprint of this call.
 static const char *SymbolizeStackConsumption(void *pc, int *stack_consumed) {
   g_pc_to_symbolize = pc;
   *stack_consumed = abel::debugging_internal::GetSignalHandlerStackConsumption(
@@ -204,7 +204,7 @@ static const char *SymbolizeStackConsumption(void *pc, int *stack_consumed) {
 }
 
 static int GetStackConsumptionUpperLimit() {
-  // Symbolize stack consumption should be within 2kB.
+  // symbolize stack consumption should be within 2kB.
   int stack_consumption_upper_limit = 2048;
 #if defined(ADDRESS_SANITIZER) || defined(MEMORY_SANITIZER) || \
     defined(THREAD_SANITIZER)
@@ -214,7 +214,7 @@ static int GetStackConsumptionUpperLimit() {
   return stack_consumption_upper_limit;
 }
 
-TEST(Symbolize, SymbolizeStackConsumption) {
+TEST(symbolize, SymbolizeStackConsumption) {
   int stack_consumed = 0;
 
   const char *symbol =
@@ -232,7 +232,7 @@ TEST(Symbolize, SymbolizeStackConsumption) {
   EXPECT_LT(stack_consumed, GetStackConsumptionUpperLimit());
 }
 
-TEST(Symbolize, SymbolizeWithDemanglingStackConsumption) {
+TEST(symbolize, SymbolizeWithDemanglingStackConsumption) {
   Foo::func(100);
   int stack_consumed = 0;
 
@@ -281,7 +281,7 @@ static int FilterElfHeader(struct dl_phdr_info *info, size_t size, void *data) {
   return 1;
 }
 
-TEST(Symbolize, SymbolizeWithMultipleMaps) {
+TEST(symbolize, SymbolizeWithMultipleMaps) {
   // Force kPadding0 and kPadding1 to be linked in.
   if (volatile_bool) {
     ABEL_RAW_INFO("{}", kPadding0);
@@ -291,11 +291,11 @@ TEST(Symbolize, SymbolizeWithMultipleMaps) {
   // Verify we can symbolize everything.
   char buf[512];
   memset(buf, 0, sizeof(buf));
-  abel::Symbolize(kPadding0, buf, sizeof(buf));
+  abel::symbolize(kPadding0, buf, sizeof(buf));
   EXPECT_STREQ("kPadding0", buf);
 
   memset(buf, 0, sizeof(buf));
-  abel::Symbolize(kPadding1, buf, sizeof(buf));
+  abel::symbolize(kPadding1, buf, sizeof(buf));
   EXPECT_STREQ("kPadding1", buf);
 
   // Specify a hint for the executable segment.
@@ -320,7 +320,7 @@ TEST(Symbolize, SymbolizeWithMultipleMaps) {
   }
 
   // Invalidate the symbolization cache so we are forced to rely on the hint.
-  abel::Symbolize(nullptr, buf, sizeof(buf));
+  abel::symbolize(nullptr, buf, sizeof(buf));
 
   // Verify we can still symbolize.
   const char *expected[] = {"kPadding0", "kPadding1"};
@@ -329,7 +329,7 @@ TEST(Symbolize, SymbolizeWithMultipleMaps) {
   for (int i = 0; i < 2; i++) {
     for (size_t offset : offsets) {
       memset(buf, 0, sizeof(buf));
-      abel::Symbolize(ptrs[i] + offset, buf, sizeof(buf));
+      abel::symbolize(ptrs[i] + offset, buf, sizeof(buf));
       EXPECT_STREQ(expected[i], buf);
     }
   }
@@ -343,7 +343,7 @@ static void DummySymbolDecorator(
           args->symbol_buf_size - strlen(args->symbol_buf) - 1);
 }
 
-TEST(Symbolize, InstallAndRemoveSymbolDecorators) {
+TEST(symbolize, InstallAndRemoveSymbolDecorators) {
   int ticket_a;
   std::string a_message("a");
   EXPECT_GE(ticket_a = abel::debugging_internal::InstallSymbolDecorator(
@@ -381,7 +381,7 @@ TEST(Symbolize, InstallAndRemoveSymbolDecorators) {
 // the test below checks for the existence of a .data section.
 static int in_data_section = 1;
 
-TEST(Symbolize, ForEachSection) {
+TEST(symbolize, ForEachSection) {
   int fd = TEMP_FAILURE_RETRY(open("/proc/self/exe", O_RDONLY));
   ASSERT_NE(fd, -1);
 
@@ -462,7 +462,7 @@ void ABEL_NO_INLINE TestWithReturnAddress() {
 
 #elif defined(_WIN32)
 
-TEST(Symbolize, Basics) {
+TEST(symbolize, Basics) {
   EXPECT_STREQ("nonstatic_func", TrySymbolize((void *)(&nonstatic_func)));
 
   // The name of an internal linkage symbol is not specified; allow either a
@@ -474,7 +474,7 @@ TEST(Symbolize, Basics) {
   EXPECT_TRUE(nullptr == TrySymbolize(nullptr));
 }
 
-TEST(Symbolize, Truncation) {
+TEST(symbolize, Truncation) {
   constexpr char kNonStaticFunc[] = "nonstatic_func";
   EXPECT_STREQ("nonstatic_func",
                TrySymbolizeWithLimit((void *)(&nonstatic_func),
@@ -493,7 +493,7 @@ TEST(Symbolize, Truncation) {
   EXPECT_EQ(nullptr, TrySymbolizeWithLimit((void *)(&nonstatic_func), 0));
 }
 
-TEST(Symbolize, SymbolizeWithDemangling) {
+TEST(symbolize, SymbolizeWithDemangling) {
   const char *result = TrySymbolize((void *)(&Foo::func));
   ASSERT_TRUE(result != nullptr);
   EXPECT_TRUE(strstr(result, "Foo::func") != nullptr) << result;
@@ -501,11 +501,11 @@ TEST(Symbolize, SymbolizeWithDemangling) {
 
 #else  // Symbolizer unimplemented
 
-TEST(Symbolize, Unimplemented) {
+TEST(symbolize, Unimplemented) {
     char buf[64];
-    EXPECT_FALSE(abel::Symbolize((void *) (&nonstatic_func), buf, sizeof(buf)));
-    EXPECT_FALSE(abel::Symbolize((void *) (&static_func), buf, sizeof(buf)));
-    EXPECT_FALSE(abel::Symbolize((void *) (&Foo::func), buf, sizeof(buf)));
+    EXPECT_FALSE(abel::symbolize((void *) (&nonstatic_func), buf, sizeof(buf)));
+    EXPECT_FALSE(abel::symbolize((void *) (&static_func), buf, sizeof(buf)));
+    EXPECT_FALSE(abel::symbolize((void *) (&Foo::func), buf, sizeof(buf)));
 }
 
 #endif
@@ -524,7 +524,7 @@ int main(int argc, char **argv) {
     symbolize_test_thread_big[0] = 0;
 #endif
 
-    abel::InitializeSymbolizer(argv[0]);
+    abel::initialize_symbolizer(argv[0]);
     testing::InitGoogleTest(&argc, argv);
 
 #ifdef ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE

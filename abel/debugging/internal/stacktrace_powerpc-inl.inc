@@ -183,7 +183,7 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
     // The outermost frame is set up by runtimes and it does not have a
     // caller frame, so it is skipped.
 
-    // The abel::GetStackFrames routine is called when we are in some
+    // The abel::get_stack_frames routine is called when we are in some
     // informational context (the failure signal handler for example).
     // Use the non-strict unwinding rules to produce a stack trace
     // that is as complete as possible (even if it contains a few

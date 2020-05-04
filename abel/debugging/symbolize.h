@@ -11,10 +11,10 @@
 //
 //   * Implicitly, through the installation of an abel failure signal handler.
 //     (See failure_signal_handler.h for more information.)
-//   * By calling `Symbolize()` directly on a program counter you obtain through
-//     `abel::get_stack_trace()` or `abel::GetStackFrames()`. (See stacktrace.h
+//   * By calling `symbolize()` directly on a program counter you obtain through
+//     `abel::get_stack_trace()` or `abel::get_stack_frames()`. (See stacktrace.h
 //     for more information.
-//   * By calling `Symbolize()` directly on a program counter you obtain through
+//   * By calling `symbolize()` directly on a program counter you obtain through
 //     other means (which would be platform-dependent).
 //
 // In all of the above cases, the symbolizer must first be initialized before
@@ -25,11 +25,11 @@
 //
 //   int main(int argc, char** argv) {
 //     // Initialize the Symbolizer before installing the failure signal handler
-//     abel::InitializeSymbolizer(argv[0]);
+//     abel::initialize_symbolizer(argv[0]);
 //
 //     // Now you may install the failure signal handler
-//     abel::FailureSignalHandlerOptions options;
-//     abel::InstallFailureSignalHandler(options);
+//     abel::failure_signal_handler_options options;
+//     abel::install_failure_signal_handler(options);
 //
 //     // Start running your main program
 //     ...
@@ -44,7 +44,7 @@
 namespace abel {
 
 
-// InitializeSymbolizer()
+// initialize_symbolizer()
 //
 // Initializes the program counter symbolizer, given the path of the program
 // (typically obtained through `main()`s `argv[0]`). The abel symbolizer
@@ -54,12 +54,12 @@ namespace abel {
 // Example:
 //
 // int main(int argc, char *argv[]) {
-//   abel::InitializeSymbolizer(argv[0]);
+//   abel::initialize_symbolizer(argv[0]);
 //   // Now you can use the symbolizer
 // }
-    void InitializeSymbolizer(const char *argv0);
+    void initialize_symbolizer(const char *argv0);
 
-// Symbolize()
+// symbolize()
 //
 // Symbolizes a program counter (instruction pointer value) `pc` and, on
 // success, writes the name to `out`. The symbol name is demangled, if possible.
@@ -73,12 +73,12 @@ namespace abel {
 //   static void DumpPCAndSymbol(void *pc) {
 //     char tmp[1024];
 //     const char *symbol = "(unknown)";
-//     if (abel::Symbolize(pc, tmp, sizeof(tmp))) {
+//     if (abel::symbolize(pc, tmp, sizeof(tmp))) {
 //       symbol = tmp;
 //     }
 //     abel::printf("%*p  %s\n", pc, symbol);
 //  }
-    bool Symbolize(const void *pc, char *out, int out_size);
+    bool symbolize(const void *pc, char *out, int out_size);
 
 
 }  // namespace abel

@@ -67,7 +67,7 @@
 FMT_BEGIN_NAMESPACE
 
 /**
-  \rst
+
   A reference to a null-terminated string. It can be constructed from a C
   string or ``std::string``.
 
@@ -89,7 +89,7 @@ FMT_BEGIN_NAMESPACE
 
     format("{}", 42);
     format(std::string("{}"), 42);
-  \endrst
+
  */
         template<typename Char>
         class basic_cstring_view {
@@ -101,9 +101,9 @@ FMT_BEGIN_NAMESPACE
             basic_cstring_view(const Char *s) : data_(s) {}
 
             /**
-              \rst
+
               Constructs a string reference from an ``std::string`` object.
-              \endrst
+
              */
             basic_cstring_view(const std::basic_string<Char> &s) : data_(s.c_str()) {}
 

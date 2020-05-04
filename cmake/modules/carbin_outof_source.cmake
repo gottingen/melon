@@ -1,5 +1,5 @@
 
-include(carbin_error)
+include(carbin_print)
 macro(CARBIN_ENSURE_OUT_OF_SOURCE_BUILD errorMessage)
 
     string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" is_insource)

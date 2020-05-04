@@ -1,6 +1,6 @@
 
 
-include(carbin_debug)
+include(carbin_print)
 include(carbin_platform)
 
 set(CARBIN_GENERATOR "TGZ")

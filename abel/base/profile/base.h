@@ -972,11 +972,11 @@ typedef uint32_t char32_t;
             (type *)( (char *)__mptr - offsetof(type,member) );})
 #endif
 
-namespace qrpc {
+namespace abel {
     template<typename T>
     ABEL_FORCE_INLINE void ignore_result(const T &) {
     }
-} // namespace qrpc
+} // namespace abel
 
 
 

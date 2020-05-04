@@ -141,13 +141,13 @@ FMT_BEGIN_NAMESPACE
         }
 
 /**
-  \rst
+
   Prints formatted data to the stream *os*.
 
   **Example**::
 
     fmt::print(cerr, "Don't {}!", "panic");
-  \endrst
+
  */
         template<typename... Args>
         inline void print(std::ostream &os, string_view format_str,

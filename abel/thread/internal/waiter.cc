@@ -80,7 +80,7 @@ namespace abel {
 
         class futex {
          public:
-          static int WaitUntil(std::atomic<int32_t> *v, int32_t val,
+          static int wait_until(std::atomic<int32_t> *v, int32_t val,
                                kernel_timeout t) {
             int err = 0;
             if (t.has_timeout()) {
@@ -140,7 +140,7 @@ namespace abel {
 
 
             if (!first_pass) MaybeBecomeIdle();
-            const int err = futex::WaitUntil(&futex_, 0, t);
+            const int err = futex::wait_until(&futex_, 0, t);
             if (err != 0) {
               if (err == -EINTR || err == -EWOULDBLOCK) {
                 // Do nothing, the loop will retry.

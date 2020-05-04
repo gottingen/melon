@@ -1,5 +1,6 @@
 
-include(carbin_cxx_opts)
+include(carbin_generated_copts)
+include(carbin_print_list)
 
 set(CARBIN_LSAN_LINKOPTS "")
 set(CARBIN_HAVE_LSAN OFF)
@@ -65,3 +66,4 @@ else()
 endif()
 
 set(CARBIN_CXX_STANDARD "${CMAKE_CXX_STANDARD}")
+

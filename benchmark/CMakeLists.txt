@@ -1,10 +1,12 @@
 
+
 find_package(benchmark REQUIRED)
-
-carbin_check_target(benchmark::benchmark)
 carbin_check_target(benchmark::benchmark_main)
+carbin_check_target(benchmark::benchmark)
+include_directories(${BENCHMARK_INCLUDE_DIRS})
 
-include_directories(${benchmark_INCLUDE_DIRS})
+set(BENCHMARK_LINKS)
+set(BENCHMARK_LINKS "benchmark::benchmark" "benchmark::benchmark_main" "abel::testing" "abel::abel")
 
 add_subdirectory(algorithm)
 add_subdirectory(base)

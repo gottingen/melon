@@ -9,8 +9,8 @@
 #include <cstring>
 
 #include <abel/asl/format/posix.h>
-#include <test/testing/gtest_extra.h>
-#include <test/testing/util.h>
+#include <testing/gtest_extra.h>
+#include <testing/util.h>
 
 #ifdef fileno
 # undef fileno

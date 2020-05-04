@@ -13,7 +13,7 @@
 #include <abel/asl/fixed_array.h>
 #include <abel/strings/str_cat.h>
 
-#include <test/testing/escaping_test_common.h>
+#include <testing/escaping_test_common.h>
 
 namespace {
 

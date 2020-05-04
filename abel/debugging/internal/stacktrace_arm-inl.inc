@@ -9,7 +9,6 @@
 #define ABEL_DEBUGGING_INTERNAL_STACKTRACE_ARM_INL_H_
 
 #include <cstdint>
-
 #include <abel/debugging/stacktrace.h>
 
 // WARNING:
@@ -79,7 +78,7 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
 
     int n = 0;
     while (sp && n < max_depth) {
-        // The abel::GetStackFrames routine is called when we are in some
+        // The abel::get_stack_frames routine is called when we are in some
         // informational context (the failure signal handler for example).
         // Use the non-strict unwinding rules to produce a stack trace
         // that is as complete as possible (even if it contains a few bogus

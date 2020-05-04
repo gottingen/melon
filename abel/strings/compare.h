@@ -10,9 +10,9 @@
 namespace abel {
 /**
  * @brief returns +1/0/-1 like strcmp(a, b) but without regard for letter case
- * @param a
- * @param b
- * @return
+ * @param a todo
+ * @param b todo
+ * @return todo
  */
     int compare_case(abel::string_view a, abel::string_view b);
 

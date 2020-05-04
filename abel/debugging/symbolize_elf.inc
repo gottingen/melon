@@ -1,11 +1,11 @@
 //
 
-// This library provides Symbolize() function that symbolizes program
+// This library provides symbolize() function that symbolizes program
 // counters to their corresponding symbol names on linux platforms.
 // This library has a minimal implementation of an ELF symbol table
 // reader (i.e. it doesn't depend on libelf, etc.).
 //
-// The algorithm used in Symbolize() is as follows.
+// The algorithm used in symbolize() is as follows.
 //
 //   1. Go through a list of maps in /proc/self/maps and find the map
 //   containing the program counter.
@@ -17,7 +17,7 @@
 //   If the symbol isn't found in the regular symbol table (binary is
 //   stripped), try the same thing with a dynamic symbol table.
 //
-// Note that Symbolize() is originally implemented to be used in
+// Note that symbolize() is originally implemented to be used in
 // signal handlers, hence it doesn't use malloc() and other unsafe
 // operations.  It should be both thread-safe and async-signal-safe.
 //
@@ -68,7 +68,7 @@ namespace abel {
 // Value of argv[0]. Used by MaybeInitializeObjFile().
     static char *argv0_value = nullptr;
 
-    void InitializeSymbolizer(const char *argv0) {
+    void initialize_symbolizer(const char *argv0) {
         if (argv0_value != nullptr) {
             free(argv0_value);
             argv0_value = nullptr;
@@ -1568,7 +1568,7 @@ bool GetFileMappingHint(const void **start, const void **end, uint64_t *offset,
 
 }  // namespace debugging_internal
 
-bool Symbolize(const void *pc, char *out, int out_size) {
+bool symbolize(const void *pc, char *out, int out_size) {
     // Symbolization is very slow under tsan.
     ANNOTATE_IGNORE_READS_AND_WRITES_BEGIN();
     SAFE_ASSERT(out_size >= 0);

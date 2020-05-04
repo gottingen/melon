@@ -27,8 +27,8 @@
 #include <abel/log/abel_logging.h>
 #include <abel/stats/random/distributions.h>
 #include <abel/stats/random/random.h>
-#include <test/testing/numbers_test_common.h>
-#include <test/testing/pow10_helper.h>
+#include <testing/numbers_test_common.h>
+#include <testing/pow10_helper.h>
 #include <abel/strings/str_cat.h>
 
 namespace {

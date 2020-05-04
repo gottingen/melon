@@ -142,6 +142,18 @@ namespace abel {
     template<typename T>
     using result_of_t = typename std::result_of<T>::type;
 
+    template <typename T>
+    struct add_cr_non_integral {
+        typedef typename std::conditional<std::is_integral<T>::value, T,
+                typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>::type type;
+    };
+
+    template <typename T>
+    using add_cr_non_integral_t = typename add_cr_non_integral<T>::type;
+
+    template <typename T>
+    using add_const_reference_t = typename std::add_lvalue_reference<typename std::add_const<T>::type>::type;
+
 ////////////////////////////////
 // Library Fundamentals V2 TS //
 ////////////////////////////////

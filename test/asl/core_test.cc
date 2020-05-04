@@ -5,7 +5,7 @@
 //
 // For the license information refer to format.h.
 
-#include <test/testing/test_assert.h>
+#include <testing/test_assert.h>
 #include <cfloat>
 #include <climits>
 #include <cstring>
@@ -17,9 +17,9 @@
 #endif
 
 #include <gmock/gmock.h>
-#include <test/testing/gtest_extra.h>
-#include <test/testing/mock-allocator.h>
-#include <test/testing/util.h>
+#include <testing/gtest_extra.h>
+#include <testing/mock-allocator.h>
+#include <testing/util.h>
 
 // Check if format.h compiles with windows.h included.
 #ifdef _WIN32

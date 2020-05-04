@@ -13,11 +13,11 @@
 namespace abel {
 
     /**
-     * @brief
-     * @tparam T
-     * @param a
-     * @param b
-     * @return
+     * @brief todo
+     * @tparam T todo
+     * @param a todo
+     * @param b todo
+     * @return todo
      */
     template<typename T>
     ABEL_FORCE_INLINE T abs_diff(const T &a, const T &b) {

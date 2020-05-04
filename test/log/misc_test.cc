@@ -1,4 +1,4 @@
-#include <test/testing/log_includes.h>
+#include <testing/log_includes.h>
 #include "sink_test.h"
 
 template<class T>
