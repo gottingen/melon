@@ -126,6 +126,8 @@ COPT_VARS = {
     "CARBIN_GCC_FLAGS": [
         "-Wall",
         "-Wextra",
+        "-maes",
+        "-mpclmul",
         "-Wcast-qual",
         "-Wconversion-null",
         "-Wmissing-declarations",

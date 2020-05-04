@@ -79,6 +79,8 @@ list(APPEND CARBIN_CLANG_CL_TEST_FLAGS
 list(APPEND CARBIN_GCC_FLAGS
     "-Wall"
     "-Wextra"
+    "-maes"
+    "-mpclmul"
     "-Wcast-qual"
     "-Wconversion-null"
     "-Wmissing-declarations"
