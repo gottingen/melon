@@ -2,11 +2,12 @@ include_directories(${PROJECT_SOURCE_DIR}/test)
 
 set(TEST_LINKS)
 list(APPEND TEST_LINKS
-        "gtest::gtest"
         "gtest::gtest_main"
+        "abel::testing"
+        "gtest::gtest"
         "gmock::gmock"
         "abel::abel"
-        "abel::testing")
+        )
 list(APPEND TEST_LINKS ${ABEL_DYLINKS})
 
 add_subdirectory(asl)
