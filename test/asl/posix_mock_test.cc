@@ -206,7 +206,7 @@ static void write_file(fmt::cstring_view filename, fmt::string_view content) {
     f.print("{}", content);
 }
 
-TEST(UtilTest, GetPageSize) {
+TEST(UtilTest, get_page_size) {
 #ifdef _WIN32
     SYSTEM_INFO si = {};
     GetSystemInfo(&si);

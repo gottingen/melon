@@ -1,7 +1,6 @@
 //
 
 #include <abel/stats/random/uniform_int_distribution.h>
-
 #include <cmath>
 #include <cstdint>
 #include <iterator>

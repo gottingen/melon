@@ -56,7 +56,7 @@ namespace abel {
 
 // Return value rounded up to next multiple of align.
 // Align must be a power of two.
-        static intptr_t RoundUp(intptr_t addr, intptr_t align) {
+        static intptr_t round_up(intptr_t addr, intptr_t align) {
             return (addr + align - 1) & ~(align - 1);
         }
 
@@ -103,7 +103,7 @@ namespace abel {
                         sizeof(*identity) + thread_internal::per_thread_synch::kAlignment - 1);
                 // Round up the address to the required alignment.
                 identity = reinterpret_cast<thread_internal::thread_identity *>(
-                        RoundUp(reinterpret_cast<intptr_t>(allocation),
+                        round_up(reinterpret_cast<intptr_t>(allocation),
                                 thread_internal::per_thread_synch::kAlignment));
             }
             ResetThreadIdentity(identity);

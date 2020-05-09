@@ -10,7 +10,6 @@
 // implementation.
 
 #include <sys/types.h>
-
 #include <cstdint>
 #include <abel/base/profile.h>
 
@@ -34,7 +33,6 @@
 #endif
 
 #include <cstddef>
-#include <abel/base/profile.h>
 
 namespace abel {
 
