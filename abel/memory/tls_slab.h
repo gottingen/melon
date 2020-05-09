@@ -32,28 +32,28 @@ namespace abel {
 namespace abel {
 
     template<typename T>
-    inline T *get_resource(item_id <T> *id) {
+    inline T *get_resource(item_id<T> *id) {
         return tls_slab<T>::singleton()->get_resource(id);
     }
 
     template<typename T, typename A1>
-    inline T *get_resource(item_id <T> *id, const A1 &arg1) {
+    inline T *get_resource(item_id<T> *id, const A1 &arg1) {
         return tls_slab<T>::singleton()->get_resource(id, arg1);
     }
 
     template<typename T, typename A1, typename A2>
-    inline T *get_resource(item_id <T> *id, const A1 &arg1, const A2 &arg2) {
+    inline T *get_resource(item_id<T> *id, const A1 &arg1, const A2 &arg2) {
         return tls_slab<T>::singleton()->get_resource(id, arg1, arg2);
     }
 
 
     template<typename T>
-    inline int return_resource(item_id <T> id) {
+    inline int return_resource(item_id<T> id) {
         return tls_slab<T>::singleton()->return_resource(id);
     }
 
     template<typename T>
-    inline T *address_resource(item_id <T> id) {
+    inline T *address_resource(item_id<T> id) {
         return tls_slab<T>::address_resource(id);
     }
 
