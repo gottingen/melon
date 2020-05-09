@@ -350,7 +350,6 @@ namespace abel {
             }
 
             ~tls_slab() {
-                pthread_mutex_destroy(&_free_chunks_mutex);
             }
 
             // Create a Block and append it to right-most block_group.
