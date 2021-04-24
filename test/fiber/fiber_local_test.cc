@@ -21,7 +21,7 @@ namespace abel {
 
     TEST(fiber_local, All) {
         for (int k = 0; k != 10; ++k) {
-            testing::RunAsFiber([] {
+            testing::run_as_fiber([] {
                 static fiber_local<int> fls;
                 static fiber_local<int> fls2;
                 static fiber_local<double> fls3;

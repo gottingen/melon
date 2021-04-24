@@ -19,7 +19,7 @@ namespace abel {
     auto one_mill = abel::duration::milliseconds(1);
 
     TEST(Timer, SetTimer) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<bool> done{};
             auto timer_id = SetTimer(start + 100 *one_mill, [&](auto) {
@@ -34,7 +34,7 @@ namespace abel {
     }
 
     TEST(Timer, SetPeriodicTimer) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<std::size_t> called{};
             auto timer_id = SetTimer(start + 100* one_mill, 10 *one_mill, [&](auto) {
@@ -54,7 +54,7 @@ namespace abel {
     }
 
     TEST(Timer, TimerKiller) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<bool> done{};
             TimerKiller killer(SetTimer(start + 100 * one_mill, [&](auto) {
@@ -69,7 +69,7 @@ namespace abel {
     }
 
     TEST(Timer, SetDetachedTimer) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<bool> called{};
             SetDetachedTimer(start + 100 * one_mill, [&]() {

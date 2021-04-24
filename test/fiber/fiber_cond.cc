@@ -21,7 +21,7 @@
 namespace abel {
 
     TEST(ConditionVariable, All) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             for (int k = 0; k != 10; ++k) {
                 constexpr auto N = 600;
 

@@ -22,7 +22,7 @@ using namespace std::literals;
 namespace abel {
 
     TEST(Future, BlockingGet) {
-        testing::RunAsFiber([&] {
+        testing::run_as_fiber([&] {
             for (int i = 0; i != 200; ++i) {
                 fiber fbs[100];
                 for (auto &&f : fbs) {
@@ -48,7 +48,7 @@ namespace abel {
     }
 
     TEST(Future, BlockingTryGetOk) {
-        testing::RunAsFiber([&] {
+        testing::run_as_fiber([&] {
             std::atomic<bool> f{};
             auto future = fiber_async([&] {
                 fiber_sleep_for(abel::duration::seconds(1));
@@ -62,7 +62,7 @@ namespace abel {
     }
 
     TEST(Future, BlockingTryGetTimeout) {
-        testing::RunAsFiber([&] {
+        testing::run_as_fiber([&] {
             auto future = fiber_async([] {
                 fiber_sleep_for(abel::duration::seconds(1));
                 return 10;

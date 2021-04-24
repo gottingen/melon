@@ -13,25 +13,25 @@
 namespace abel {
 
     work_queue::work_queue() {
-        worker_ = fiber([this] { WorkerProc(); });
+        worker_ = fiber([this] { worker_proc(); });
     }
 
-    void work_queue::Push(abel::function<void()>&& cb) {
+    void work_queue::push(abel::function<void()>&& cb) {
         std::scoped_lock _(lock_);
         DCHECK_MSG(!stopped_, "The work queue is leaving.");
         jobs_.push(std::move(cb));
         cv_.notify_one();
     }
 
-    void work_queue::Stop() {
+    void work_queue::stop() {
         std::scoped_lock _(lock_);
         stopped_ = true;
         cv_.notify_one();
     }
 
-    void work_queue::Join() { worker_.join(); }
+    void work_queue::join() { worker_.join(); }
 
-    void work_queue::WorkerProc() {
+    void work_queue::worker_proc() {
         while (true) {
             std::unique_lock lk(lock_);
             cv_.wait(lk, [&] { return stopped_ || !jobs_.empty(); });

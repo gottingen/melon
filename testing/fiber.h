@@ -18,7 +18,7 @@
 namespace testing {
 
     template <class F>
-    void RunAsFiber(F&& f) {
+    void run_as_fiber(F&& f) {
         abel::start_runtime();
         std::atomic<bool> done{};
         abel::fiber([&, f = std::forward<F>(f)] {

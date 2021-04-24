@@ -17,7 +17,7 @@ using namespace std::literals;
 namespace abel {
 
     TEST(Async, Execute) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             for (int i = 0; i != 10000; ++i) {
                 int rc = 0;
                 auto tid = std::this_thread::get_id();

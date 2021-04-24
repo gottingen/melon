@@ -16,27 +16,27 @@
 namespace abel {
 
     TEST(work_queue, All) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             int x = 0;  // Not `atomic`.
             auto s = abel::time_now();
             work_queue wq;
 
             for (int i = 0; i != 10; ++i) {
-                wq.Push([&] {
+                wq.push([&] {
                     ++x;
                     fiber_sleep_for(abel::duration::milliseconds(100));
                 });
             }
             EXPECT_LE(abel::time_now() - s, abel::duration::milliseconds(50));
-            wq.Stop();
-            wq.Join();
+            wq.stop();
+            wq.join();
             EXPECT_GE(abel::time_now() - s, abel::duration::milliseconds(950));
             EXPECT_EQ(10, x);
         });
     }
 
     TEST(work_queue, RaceOnExit) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             std::atomic<std::size_t> finished = 0;
             constexpr auto kWorkers = 100;
             for (int i = 0; i != kWorkers; ++i) {
@@ -46,10 +46,10 @@ namespace abel {
                         work_queue wq;
 
                         for (int k = 0; k != 10; ++k) {
-                            wq.Push([&] { fiber_blocking_get(fiber_async([&] { ++x; })); });
+                            wq.push([&] { fiber_blocking_get(fiber_async([&] { ++x; })); });
                         }
-                        wq.Stop();
-                        wq.Join();
+                        wq.stop();
+                        wq.join();
                         ASSERT_EQ(10, x);
                     }
                     ++finished;

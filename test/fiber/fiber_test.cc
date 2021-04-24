@@ -30,7 +30,7 @@ namespace abel {
     namespace {
 
         template<class F>
-        void RunAsFiber(F &&f) {
+        void run_as_fiber(F &&f) {
             start_runtime();
             std::atomic<bool> done{};
             fiber([&, f = std::forward<F>(f)] {
@@ -49,7 +49,7 @@ namespace abel {
         FLAGS_fiber_stack_enable_guard_page = false;
         FLAGS_fiber_run_queue_size = 1048576;
 
-        RunAsFiber([] {
+        run_as_fiber([] {
             for (int k = 0; k != 10; ++k) {
                 constexpr auto N = 10000;
 
@@ -84,7 +84,7 @@ namespace abel {
         FLAGS_fiber_stack_enable_guard_page = false;
         FLAGS_fiber_run_queue_size = 1048576;
 
-        RunAsFiber([] {
+        run_as_fiber([] {
             constexpr auto N = 10000;
 
             std::atomic<std::size_t> run{};
@@ -138,7 +138,7 @@ namespace abel {
         FLAGS_fiber_stack_enable_guard_page = false;
         FLAGS_cross_numa_work_stealing_ratio = 1;
 
-        RunAsFiber([] {
+        run_as_fiber([] {
             std::atomic<bool> stealing_happened{};
             constexpr auto N = 10000;
 
@@ -184,7 +184,7 @@ namespace abel {
     }
 
     TEST(fiber, BatchStart) {
-        RunAsFiber([&] {
+        run_as_fiber([&] {
             static constexpr auto N = 10;
             static constexpr auto B = 10000;
             std::atomic<std::size_t> started{};
@@ -210,7 +210,7 @@ namespace abel {
     }
 
     TEST(fiber, start_fiber_from_pthread) {
-        RunAsFiber([&] {
+        run_as_fiber([&] {
             std::atomic<bool> called{};
             std::thread([&] {
                 start_fiber_from_pthread([&] {

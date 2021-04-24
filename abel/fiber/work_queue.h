@@ -23,16 +23,16 @@ namespace abel {
         work_queue();
 
         // Scheduling `cb` for execution.
-        void Push(abel::function<void()>&& cb);
+        void push(abel::function<void()>&& cb);
 
         // Stop the queue.
-        void Stop();
+        void stop();
 
         // Wait until all pending works has run.
-        void Join();
+        void join();
 
     private:
-        void WorkerProc();
+        void worker_proc();
 
     private:
         fiber worker_;

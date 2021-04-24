@@ -26,7 +26,7 @@ namespace abel {
     TEST(ThisFiber, fiber_yield) {
         FLAGS_fiber_stack_enable_guard_page = false;
 
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             for (int k = 0; k != 10; ++k) {
                 constexpr auto N = 10000;
 
@@ -58,7 +58,7 @@ namespace abel {
     }
 
     TEST(ThisFiber, sleep_x) {
-        testing::RunAsFiber([] {
+        testing::run_as_fiber([] {
             for (int k = 0; k != 10; ++k) {
                 // Don't run too many fibers here, waking pthread worker up is costly and
                 // incurs delay. With too many fibers, that delay fails the UT (we're
