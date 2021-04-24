@@ -16,80 +16,80 @@
 #include "abel/fiber/internal/scheduling_group.h"
 
 namespace abel {
-namespace fiber_internal {
-    namespace {
+    namespace fiber_internal {
+        namespace {
 
-        // Utility for waking up a fiber sleeping on a `waitable` asynchronously.
-        class async_waker {
-        public:
-            // Initialize an `async_waker`.
-            async_waker(scheduling_group *sg, fiber_entity *self, wait_block *wb)
-                    : sg_(sg), self_(self), wb_(wb) {}
+            // Utility for waking up a fiber sleeping on a `waitable` asynchronously.
+            class async_waker {
+            public:
+                // Initialize an `async_waker`.
+                async_waker(scheduling_group *sg, fiber_entity *self, wait_block *wb)
+                        : sg_(sg), self_(self), wb_(wb) {}
 
-            // The destructor does some sanity checks.
-            ~async_waker() { DCHECK_MSG(timer_ ==  0, "Have you called `Cleanup()`?"); }
+                // The destructor does some sanity checks.
+                ~async_waker() { DCHECK_MSG(timer_ == 0, "Have you called `Cleanup()`?"); }
 
-            // Set a timer to awake `self` once `expires_at` is reached.
-            void SetTimer(abel::time_point expires_at) {
-                wait_cb_ = make_ref_counted<WaitCb>();
-                wait_cb_->waiter = self_;
+                // Set a timer to awake `self` once `expires_at` is reached.
+                void SetTimer(abel::time_point expires_at) {
+                    wait_cb_ = make_ref_counted<WaitCb>();
+                    wait_cb_->waiter = self_;
 
-                // This callback wakes us up if we times out.
-                auto timer_cb = [wait_cb = wait_cb_ /* ref-counted */, wb = wb_](auto) {
-                    std::scoped_lock lk(wait_cb->lock);
-                    if (!wait_cb->awake) {  // It's (possibly) timed out.
-                        // We're holding the lock, and `wait_cb->awake` has not been set yet, so
-                        // `Cleanup()` cannot possibly finished yet. Therefore, we can be sure
-                        // `wb` is still alive.
-                        if (wb->satisfied.exchange(true, std::memory_order_relaxed)) {
-                            // Someone else satisfied the wait earlier.
-                            return;
+                    // This callback wakes us up if we times out.
+                    auto timer_cb = [wait_cb = wait_cb_ /* ref-counted */, wb = wb_](auto) {
+                        std::scoped_lock lk(wait_cb->lock);
+                        if (!wait_cb->awake) {  // It's (possibly) timed out.
+                            // We're holding the lock, and `wait_cb->awake` has not been set yet, so
+                            // `Cleanup()` cannot possibly finished yet. Therefore, we can be sure
+                            // `wb` is still alive.
+                            if (wb->satisfied.exchange(true, std::memory_order_relaxed)) {
+                                // Someone else satisfied the wait earlier.
+                                return;
+                            }
+                            wait_cb->waiter->own_scheduling_group->ready_fiber(
+                                    wait_cb->waiter, std::unique_lock(wait_cb->waiter->scheduler_lock));
                         }
-                        wait_cb->waiter->own_scheduling_group->ready_fiber(
-                                wait_cb->waiter, std::unique_lock(wait_cb->waiter->scheduler_lock));
-                    }
+                    };
+
+                    // Set the timeout timer.
+                    timer_ = sg_->create_timer(expires_at, timer_cb);
+                    sg_->enable_timer(timer_);
+                }
+
+                // Prevent the timer set by this class from waking up `self` again.
+                void cleanup() {
+                    // If `timer_cb` has returned, nothing special; if `timer_cb` has never
+                    // started, nothing special. But if `timer_cb` is running, we need to
+                    // prevent it from `ready_fiber` us again (when we immediately sleep on
+                    // another unrelated thing.).
+                    sg_->remove_timer(std::exchange(timer_, 0));
+                    {
+                        // Here is the trick.
+                        //
+                        // We're running now, therefore our `wait_block::satisfied` has been set.
+                        // Our `timer_cb` will check the flag, and bail out without waking us
+                        // again.
+                        std::scoped_lock _(wait_cb_->lock);
+                        wait_cb_->awake = true;
+                    }  // `wait_cb_->awake` has been set, so other fields of us won't be touched
+                    // by `timer_cb`. we're safe to destruct from now on.
+                }
+
+            private:
+                // Ref counted as it's used both by us and an asynchronous timer.
+                struct WaitCb : ref_counted<WaitCb> {
+                    abel::fiber_internal::spinlock lock;
+                    fiber_entity *waiter;
+                    bool awake = false;
                 };
 
-                // Set the timeout timer.
-                timer_ = sg_->create_timer(expires_at, timer_cb);
-                sg_->enable_timer(timer_);
-            }
-
-            // Prevent the timer set by this class from waking up `self` again.
-            void cleanup() {
-                // If `timer_cb` has returned, nothing special; if `timer_cb` has never
-                // started, nothing special. But if `timer_cb` is running, we need to
-                // prevent it from `ready_fiber` us again (when we immediately sleep on
-                // another unrelated thing.).
-                sg_->remove_timer(std::exchange(timer_, 0));
-                {
-                    // Here is the trick.
-                    //
-                    // We're running now, therefore our `wait_block::satisfied` has been set.
-                    // Our `timer_cb` will check the flag, and bail out without waking us
-                    // again.
-                    std::scoped_lock _(wait_cb_->lock);
-                    wait_cb_->awake = true;
-                }  // `wait_cb_->awake` has been set, so other fields of us won't be touched
-                // by `timer_cb`. we're safe to destruct from now on.
-            }
-
-        private:
-            // Ref counted as it's used both by us and an asynchronous timer.
-            struct WaitCb : ref_counted<WaitCb> {
-                abel::fiber_internal::spinlock lock;
-                fiber_entity *waiter;
-                bool awake = false;
+                scheduling_group *sg_;
+                fiber_entity *self_;
+                wait_block *wb_;
+                ref_ptr<WaitCb> wait_cb_;
+                std::uint64_t timer_ = 0;
             };
 
-            scheduling_group *sg_;
-            fiber_entity *self_;
-            wait_block *wb_;
-            ref_ptr <WaitCb> wait_cb_;
-            std::uint64_t timer_ = 0;
-        };
-
-    }  // namespace
+        }  // namespace
 
         // Implementation of `waitable` goes below.
 
@@ -172,7 +172,7 @@ namespace fiber_internal {
             }
         }
 
-        void waitable_timer::on_timer_expired(ref_ptr <waitable_ref_counted> ref) {
+        void waitable_timer::on_timer_expired(ref_ptr<waitable_ref_counted> ref) {
             auto fibers = ref->SetPersistentAwakened();
             for (auto f : fibers) {
                 f->own_scheduling_group->ready_fiber(f, std::unique_lock(f->scheduler_lock));
@@ -188,7 +188,7 @@ namespace fiber_internal {
                 //
                 // Nothing to do.
             } else {
-               DCHECK_GT(was, 1);
+                DCHECK_GT(was, 1);
 
                 // We need this lock so as to see a consistent state between `count_` and
                 // `impl_` ('s internal wait queue).
@@ -262,7 +262,7 @@ namespace fiber_internal {
             auto current = get_current_fiber_entity();
             auto sg = current->own_scheduling_group;
             bool use_timeout = expires_at.to_chrono_time() != std::chrono::system_clock::time_point::max();
-            lazy_init <async_waker> awaker;
+            lazy_init<async_waker> awaker;
 
             // Add us to the wait queue.
             std::unique_lock slk(current->scheduler_lock);
@@ -301,7 +301,7 @@ namespace fiber_internal {
                 return;
             }
             fiber->own_scheduling_group->ready_fiber(fiber,
-                                                std::unique_lock(fiber->scheduler_lock));
+                                                     std::unique_lock(fiber->scheduler_lock));
         }
 
         void fiber_cond::notify_all() noexcept {
@@ -422,7 +422,7 @@ namespace fiber_internal {
             }
         }
 
-        void oneshot_timed_event::on_timer_expired(ref_ptr <Impl> ref) {
+        void oneshot_timed_event::on_timer_expired(ref_ptr<Impl> ref) {
             ref->IdempotentSet();
         }
     }  // namespace fiber_internal

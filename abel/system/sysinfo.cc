@@ -42,15 +42,15 @@
 #include <thread>  // NOLINT(build/c++11)
 #include <utility>
 #include <vector>
+#include <mutex>
 
-#include "abel/thread/call_once.h"
 #include "abel/log/logging.h"
-#include "abel/thread/spin_lock.h"
+#include "abel/fiber/internal/spin_lock.h"
 #include "abel/chrono/internal/unscaled_cycle_clock.h"
 
 namespace abel {
 
-static once_flag init_system_info_once;
+static std::once_flag init_system_info_once;
 static int g_num_cpus = 0;
 static double g_nominal_cpu_frequency = 1.0;  // 0.0 might be dangerous.
 
@@ -266,12 +266,12 @@ static void InitializeSystemInfo() {
 }
 
 int num_cpus() {
-    base_internal::low_level_call_once(&init_system_info_once, InitializeSystemInfo);
+    std::call_once(init_system_info_once, InitializeSystemInfo);
     return g_num_cpus;
 }
 
 double nominal_cpu_frequency() {
-    base_internal::low_level_call_once(&init_system_info_once, InitializeSystemInfo);
+    std::call_once(init_system_info_once, InitializeSystemInfo);
     return g_nominal_cpu_frequency;
 }
 
@@ -326,10 +326,9 @@ pid_t get_tid() {
 #else
 
 // Fallback implementation of get_tid using pthread_getspecific.
-static once_flag tid_once;
+static std::once_flag tid_once;
 static pthread_key_t tid_key;
-static abel::spin_lock tid_lock(
-        abel::base_internal::kLinkerInitialized);
+static abel::fiber_internal::spinlock tid_lock;
 
 // We set a bit per thread in this array to indicate that an ID is in
 // use. ID 0 is unused because it is the default value returned by
@@ -342,7 +341,7 @@ static void FreeTID(void *v) {
     intptr_t tid = reinterpret_cast<intptr_t>(v);
     int word = tid / kBitsPerWord;
     uint32_t mask = ~(1u << (tid % kBitsPerWord));
-    abel::spin_lock_holder lock(&tid_lock);
+    std::unique_lock lock(tid_lock);
     assert(0 <= word && static_cast<size_t>(word) < tid_array->size());
     (*tid_array)[word] &= mask;
 }
@@ -355,14 +354,14 @@ static void InitGetTID() {
     }
 
     // Initialize tid_array.
-    abel::spin_lock_holder lock(&tid_lock);
+    std::unique_lock lock(tid_lock);
     tid_array = new std::vector<uint32_t>(1);
     (*tid_array)[0] = 1;  // ID 0 is never-allocated.
 }
 
 // Return a per-thread small integer ID from pthread's thread-specific data.
 pid_t get_tid() {
-    abel::call_once(tid_once, InitGetTID);
+    std::call_once(tid_once, InitGetTID);
 
     intptr_t tid = reinterpret_cast<intptr_t>(pthread_getspecific(tid_key));
     if (tid != 0) {
@@ -373,7 +372,7 @@ pid_t get_tid() {
     size_t word;
     {
         // Search for the first unused ID.
-        abel::spin_lock_holder lock(&tid_lock);
+        std::unique_lock lock(tid_lock);
         // First search for a word in the array that is not all ones.
         word = 0;
         while (word < tid_array->size() && ~(*tid_array)[word] == 0) {

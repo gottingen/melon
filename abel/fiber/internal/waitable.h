@@ -114,7 +114,7 @@ namespace abel {
             // This callback is implemented as a static method since the `waitable_timer`
             // object can be destroyed (especially if the timer is allocated on waiter's
             // stack) before this method returns.
-            static void on_timer_expired(ref_ptr <waitable_ref_counted> ref);
+            static void on_timer_expired(ref_ptr<waitable_ref_counted> ref);
 
         private:
             scheduling_group *sg_;
@@ -131,7 +131,7 @@ namespace abel {
             // - The `waitable` is allocated from user's stack.
             //
             // We'll be in trouble.
-            ref_ptr <waitable_ref_counted> impl_;
+            ref_ptr<waitable_ref_counted> impl_;
         };
 
         // fiber_mutex for fiber.
@@ -299,13 +299,13 @@ namespace abel {
             };
 
             // Implemented as static method for the same reason as `waitable_timer`.
-            static void on_timer_expired(ref_ptr <Impl> ref);
+            static void on_timer_expired(ref_ptr<Impl> ref);
 
         private:
             scheduling_group *sg_;
             std::uint64_t timer_id_;
 
-            ref_ptr <Impl> impl_;
+            ref_ptr<Impl> impl_;
         };
     }  // namespace fiber_internal
 

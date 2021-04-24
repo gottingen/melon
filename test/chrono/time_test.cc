@@ -585,7 +585,7 @@ namespace {
         //
         // Note: We should use std::chrono::floor() instead of time_point_cast(),
         // but floor() is only available since c++17.
-        for (const auto tp : {std::chrono::system_clock::time_point::min(),
+        for (const auto& tp : {std::chrono::system_clock::time_point::min(),
                               std::chrono::system_clock::time_point::max()}) {
             EXPECT_EQ(tp, abel::time_point::from_chrono(tp).to_chrono_time());
             EXPECT_EQ(tp, std::chrono::time_point_cast<
@@ -896,7 +896,7 @@ namespace {
 
         // Arithmetic and comparison still works at +/-range around base values.
         abel::time_point bases[2] = {abel::time_point::unix_epoch(), abel::time_now()};
-        for (const auto base : bases) {
+        for (const auto& base : bases) {
             abel::time_point bottom = base - range;
             EXPECT_GT(bottom, bottom - abel::duration::nanoseconds(1));
             EXPECT_LT(bottom, bottom + abel::duration::nanoseconds(1));

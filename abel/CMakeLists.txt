@@ -12,10 +12,6 @@ FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 FILE(GLOB MEM_SRC "memory/*.cc")
 
 
-FILE(GLOB DEBUG_SRC "debugging/*.cc")
-FILE(GLOB DEBUG_INTERNAL_SRC "debugging/internal/*.cc")
-
-
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
 
 FILE(GLOB FIBER_SRC "fiber/*.cc")
@@ -62,8 +58,6 @@ SET(ABEL_SRC
         ${MEM_SRC}
         ${CHRONO_SRC}
         ${CHRONO_INTERNAL_SRC}
-        ${DEBUG_INTERNAL_SRC}
-        ${DEBUG_SRC}
         ${HARDWARE_SRC}
         ${METRICS_SRC}
         ${RND_ENGINE_SRC}

@@ -10,7 +10,7 @@
 #include "abel/chrono/clock.h"
 #include "abel/memory/erased_ptr.h"
 #include "abel/memory/internal/type_descriptor.h"
-#include "abel/debugging/class_name.h"
+#include "abel/base/class_name.h"
 #include "abel/log/logging.h"
 
 namespace abel {
@@ -30,10 +30,10 @@ namespace abel {
 
             // Objects in primary cache is washed out to `secondary_cache` if there's
             // still room.
-            std::deque<timestamped_object> primary_cache;
+            std::deque<timestamped_object> primary_cache{};
 
             // Objects here are not subject to washing out.
-            std::deque<timestamped_object> secondary_cache;
+            std::deque<timestamped_object> secondary_cache{};
         };
 
         // `template <class T> inline thread_local pool_descriptor pool` does not work:

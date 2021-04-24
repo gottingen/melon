@@ -16,8 +16,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "abel/thread/barrier.h"
-#include "abel/thread/mutex.h"
+#include "abel/thread/latch.h"
 
 namespace abel {
 
@@ -53,24 +52,24 @@ namespace abel {
                 // Uses a few loops to exercise implementations that reallocate IDs.
                 for (int i = 0; i < 32; ++i) {
                     constexpr int kNumThreads = 64;
-                    barrier all_threads_done(kNumThreads);
+                    abel::latch all_threads_done(kNumThreads);
                     std::vector<std::thread> threads;
 
-                    mutex mutex;
+                    std::mutex mutex;
                     std::unordered_set<pid_t> tids;
 
                     for (int j = 0; j < kNumThreads; ++j) {
                         threads.push_back(std::thread([&]() {
                             pid_t id = get_tid();
                             {
-                                mutex_lock lock(&mutex);
+                                std::unique_lock lock(mutex);
                                 ASSERT_TRUE(tids.find(id) == tids.end());
                                 tids.insert(id);
                             }
                             // We can't simply join the threads here. The threads need to
                             // be alive otherwise the TID might have been reallocated to
                             // another live thread.
-                            all_threads_done.block();
+                            all_threads_done.arrive_and_wait();
                         }));
                     }
                     for (auto &thread : threads) {

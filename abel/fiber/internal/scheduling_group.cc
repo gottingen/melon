@@ -61,14 +61,14 @@ namespace abel {
 //                "fiber_latency_ready_to_run", 1us);
 
         namespace {
-
+        /*
             std::string WriteBitMask(std::uint64_t x) {
                 std::string s(64, 0);
                 for (int i = 0; i != 64; ++i) {
                     s[i] = ((x & (1ULL << i)) ? '1' : '0');
                 }
                 return s;
-            }
+            }*/
 
         }  // namespace
 

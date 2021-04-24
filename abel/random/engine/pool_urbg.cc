@@ -9,18 +9,17 @@
 #include <iterator>
 
 #include "abel/base/profile.h"
-#include "abel/thread/call_once.h"
 #include "abel/system/endian.h"
 #include "abel/log/logging.h"
-#include "abel/thread/spin_lock.h"
+#include "abel/fiber/internal/spin_lock.h"
 #include "abel/system/sysinfo.h"
 #include "abel/atomic/unaligned_access.h"
 #include "abel/random/engine/randen.h"
 #include "abel/random/seed/seed_material.h"
 #include "abel/random/seed/seed_gen_exception.h"
+#include "abel/thread/thread_annotations.h"
 
-using abel::spin_lock;
-using abel::spin_lock_holder;
+using abel::fiber_internal::spinlock;
 
 namespace abel {
 
@@ -40,7 +39,7 @@ class RandenPoolEntry {
             randen_traits::kCapacityBytes / sizeof(uint32_t);
 
     void Init(abel::span<const uint32_t> data) {
-        spin_lock_holder l(&mu_);  // Always uncontested.
+        std::unique_lock l(mu_);  // Always uncontested.
         std::copy(data.begin(), data.end(), std::begin(state_));
         next_ = kState;
     }
@@ -62,35 +61,35 @@ class RandenPoolEntry {
   private:
     // randen URBG state.
     uint32_t state_[kState] ABEL_GUARDED_BY(mu_);  // First to satisfy alignment.
-    spin_lock mu_;
+    spinlock mu_;
     const randen impl_;
     size_t next_ ABEL_GUARDED_BY(mu_);
 };
 
 template<>
 ABEL_FORCE_INLINE uint8_t RandenPoolEntry::Generate<uint8_t>() {
-    spin_lock_holder l(&mu_);
+    std::unique_lock l(mu_);
     MaybeRefill();
     return static_cast<uint8_t>(state_[next_++]);
 }
 
 template<>
 ABEL_FORCE_INLINE uint16_t RandenPoolEntry::Generate<uint16_t>() {
-    spin_lock_holder l(&mu_);
+    std::unique_lock l(mu_);
     MaybeRefill();
     return static_cast<uint16_t>(state_[next_++]);
 }
 
 template<>
 ABEL_FORCE_INLINE uint32_t RandenPoolEntry::Generate<uint32_t>() {
-    spin_lock_holder l(&mu_);
+    std::unique_lock l(mu_);
     MaybeRefill();
     return state_[next_++];
 }
 
 template<>
 ABEL_FORCE_INLINE uint64_t RandenPoolEntry::Generate<uint64_t>() {
-    spin_lock_holder l(&mu_);
+    std::unique_lock l(mu_);
     if (next_ >= kState - 1) {
         next_ = kCapacity;
         impl_.Generate(state_);
@@ -104,7 +103,7 @@ ABEL_FORCE_INLINE uint64_t RandenPoolEntry::Generate<uint64_t>() {
 }
 
 void RandenPoolEntry::Fill(uint8_t *out, size_t bytes) {
-    spin_lock_holder l(&mu_);
+    std::unique_lock l(mu_);
     while (bytes > 0) {
         MaybeRefill();
         size_t remaining = (kState - next_) * sizeof(state_[0]);
@@ -120,7 +119,7 @@ void RandenPoolEntry::Fill(uint8_t *out, size_t bytes) {
 static constexpr int kPoolSize = 8;
 
 // Shared pool entries.
-static abel::once_flag pool_once;
+static std::once_flag pool_once;
 ABEL_CACHE_LINE_ALIGNED static RandenPoolEntry *shared_pools[kPoolSize];
 
 // Returns an id in the range [0 ... kPoolSize), which indexes into the
@@ -187,7 +186,7 @@ void InitPoolURBG() {
 
 // Returns the pool entry for the current thread.
 RandenPoolEntry *GetPoolForCurrentThread() {
-    abel::call_once(pool_once, InitPoolURBG);
+    std::call_once(pool_once, InitPoolURBG);
     return shared_pools[GetPoolID()];
 }
 

@@ -5,7 +5,7 @@
 #include <cxxabi.h>                              // __cxa_demangle
 #include <string>                                // std::string
 #include <stdlib.h>                              // free()
-#include "abel/debugging/class_name.h"
+#include "class_name.h"
 
 namespace abel {
 
