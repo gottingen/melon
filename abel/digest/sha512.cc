@@ -4,7 +4,7 @@
 
 #include "abel/digest/sha512.h"
 #include "abel/strings/hex_dump.h"
-#include "abel/math/rotr.h"
+#include "abel/base/math.h"
 #include "abel/base/profile.h"
 
 namespace abel {

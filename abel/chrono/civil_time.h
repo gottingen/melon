@@ -22,11 +22,11 @@
 // Because a civil time is what most people think of as "time," it is common to
 // map absolute times to civil times to present to users.
 //
-// abel_time zones define the relationship between absolute and civil times. Given an
+// time_point zones define the relationship between absolute and civil times. Given an
 // absolute or civil time and a time zone, you can compute the other time:
 //
-//   Civil abel_time = F(Absolute abel_time, abel_time Zone)
-//   Absolute abel_time = G(Civil abel_time, abel_time Zone)
+//   Civil time_point = F(Absolute time_point, time_point Zone)
+//   Absolute time_point = G(Civil time_point, time_point Zone)
 //
 // The abel time library allows you to construct such civil times from
 // absolute times; consult time.h for such functionality.

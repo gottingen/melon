@@ -26,7 +26,7 @@ namespace abel {
 
         struct Desc {
             std::uint64_t id;
-            abel::abel_time next_fires_at;
+            abel::time_point next_fires_at;
             abel::duration interval;
             CallbackPtr callback;
         };
@@ -112,7 +112,7 @@ namespace abel {
         std::scoped_lock _(queue->lock);
         queue->callbacks.push_back(Desc{
                 .id = id,
-                .next_fires_at = abel::now() + min_interval,
+                .next_fires_at = abel::time_now() + min_interval,
                 .interval = min_interval,
                 .callback = std::make_shared<abel::function<void()>>(std::move(callback))});
         queue->version.fetch_add(1, std::memory_order_relaxed);
@@ -155,7 +155,7 @@ namespace abel {
     }
 
     void notify_thread_lazy_task() {
-        auto now = abel::now();
+        auto now = abel::time_now();
         auto&& tls_queue = tls_queues.get();
         auto&& global_queue = GetGlobalQueue();
 

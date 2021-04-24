@@ -90,7 +90,7 @@ class notification {
     // Blocks until either the notification's "notified" state is `true` (which
     // may occur immediately) or the deadline has expired, returning the value of
     // its "notified" state in either case.
-    bool wait_for_notification_with_deadline(abel::abel_time deadline) const;
+    bool wait_for_notification_with_deadline(abel::time_point deadline) const;
 
     // notification::notify()
     //

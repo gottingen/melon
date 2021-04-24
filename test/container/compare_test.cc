@@ -5,7 +5,7 @@
 #include "abel/container/compare.h"
 
 #include "gtest/gtest.h"
-#include "abel/math/bit_cast.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

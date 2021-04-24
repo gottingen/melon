@@ -47,12 +47,12 @@ struct posix_transition {
         };
     };
 
-    struct abel_time {
+    struct time_point {
         std::int_fast32_t offset;  // seconds before/after 00:00:00
     };
 
     date date;
-    abel_time time;
+    time_point time;
 };
 
 // The entirety of a POSIX-string specified time-zone rule. The standard

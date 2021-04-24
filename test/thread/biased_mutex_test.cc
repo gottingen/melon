@@ -35,8 +35,8 @@ namespace abel {
         }
     });
     std::thread really_slow([&] {
-        auto start = abel::now();
-        while (abel::now() - start < abel::duration::seconds(10)) {
+        auto start = abel::time_now();
+        while (abel::time_now() - start < abel::duration::seconds(10)) {
             ++separated_counters[1].v;
             std::scoped_lock _(*biased_mutex.get_really_slow_side());
             ++v;
@@ -44,8 +44,8 @@ namespace abel {
         }
     });
     std::thread really_slow2([&] {
-        auto start = abel::now();
-        while (abel::now() - start < abel::duration::seconds(10)) {
+        auto start = abel::time_now();
+        while (abel::time_now() - start < abel::duration::seconds(10)) {
             ++separated_counters[2].v;
             std::scoped_lock _(*biased_mutex.get_really_slow_side());
             ++v;

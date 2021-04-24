@@ -218,27 +218,27 @@ static void TestTime(TestContext *cxt, int c, bool use_cv) {
     if (c == 0) {
         abel::mutex_lock l(&cxt->mu);
 
-        abel::abel_time start = abel::now();
+        abel::time_point start = abel::time_now();
         if (use_cv) {
             cxt->cv.wait_with_timeout(&cxt->mu, abel::duration::seconds(1));
         } else {
             DCHECK_MSG(!cxt->mu.await_with_timeout(false_cond, abel::duration::seconds(1)),
                        "TestTime failed");
         }
-        abel::duration elapsed = abel::now() - start;
+        abel::duration elapsed = abel::time_now() - start;
         DCHECK_MSG(
                 abel::duration::seconds(0.9) <= elapsed && elapsed <= abel::duration::seconds(2.0),
                 "TestTime failed");
         DCHECK_MSG(cxt->g0 == 1, "TestTime failed");
 
-        start = abel::now();
+        start = abel::time_now();
         if (use_cv) {
             cxt->cv.wait_with_timeout(&cxt->mu, abel::duration::seconds(1));
         } else {
             DCHECK_MSG(!cxt->mu.await_with_timeout(false_cond, abel::duration::seconds(1)),
                        "TestTime failed");
         }
-        elapsed = abel::now() - start;
+        elapsed = abel::time_now() - start;
         DCHECK_MSG(
                 abel::duration::seconds(0.9) <= elapsed && elapsed <= abel::duration::seconds(2.0),
                 "TestTime failed");
@@ -247,27 +247,27 @@ static void TestTime(TestContext *cxt, int c, bool use_cv) {
             cxt->cv.signal();
         }
 
-        start = abel::now();
+        start = abel::time_now();
         if (use_cv) {
             cxt->cv.wait_with_timeout(&cxt->mu, abel::duration::seconds(4));
         } else {
             DCHECK_MSG(!cxt->mu.await_with_timeout(false_cond, abel::duration::seconds(4)),
                        "TestTime failed");
         }
-        elapsed = abel::now() - start;
+        elapsed = abel::time_now() - start;
         DCHECK_MSG(
                 abel::duration::seconds(3.9) <= elapsed && elapsed <= abel::duration::seconds(6.0),
                 "TestTime failed");
         DCHECK_MSG(cxt->g0 >= 3, "TestTime failed");
 
-        start = abel::now();
+        start = abel::time_now();
         if (use_cv) {
             cxt->cv.wait_with_timeout(&cxt->mu, abel::duration::seconds(1));
         } else {
             DCHECK_MSG(!cxt->mu.await_with_timeout(false_cond, abel::duration::seconds(1)),
                        "TestTime failed");
         }
-        elapsed = abel::now() - start;
+        elapsed = abel::time_now() - start;
         DCHECK_MSG(
                 abel::duration::seconds(0.9) <= elapsed && elapsed <= abel::duration::seconds(2.0),
                 "TestTime failed");
@@ -275,21 +275,21 @@ static void TestTime(TestContext *cxt, int c, bool use_cv) {
             cxt->cv.signal_all();
         }
 
-        start = abel::now();
+        start = abel::time_now();
         if (use_cv) {
             cxt->cv.wait_with_timeout(&cxt->mu, abel::duration::seconds(1));
         } else {
             DCHECK_MSG(!cxt->mu.await_with_timeout(false_cond, abel::duration::seconds(1)),
                        "TestTime failed");
         }
-        elapsed = abel::now() - start;
+        elapsed = abel::time_now() - start;
         DCHECK_MSG(abel::duration::seconds(0.9) <= elapsed &&
                    elapsed <= abel::duration::seconds(2.0), "TestTime failed");
         DCHECK_MSG(cxt->g0 == cxt->threads, "TestTime failed");
 
     } else if (c == 1) {
         abel::mutex_lock l(&cxt->mu);
-        const abel::abel_time start = abel::now();
+        const abel::time_point start = abel::time_now();
         if (use_cv) {
             cxt->cv.wait_with_timeout(&cxt->mu, abel::duration::milliseconds(500));
         } else {
@@ -297,7 +297,7 @@ static void TestTime(TestContext *cxt, int c, bool use_cv) {
                     !cxt->mu.await_with_timeout(false_cond, abel::duration::milliseconds(500)),
                     "TestTime failed");
         }
-        const abel::duration elapsed = abel::now() - start;
+        const abel::duration elapsed = abel::time_now() - start;
         DCHECK_MSG(
                 abel::duration::seconds(0.4) <= elapsed && elapsed <= abel::duration::seconds(0.9),
                 "TestTime failed");
@@ -1157,7 +1157,7 @@ TEST(mutex, DeadlockIdBug) ABEL_NO_THREAD_SAFETY_ANALYSIS {
 
 // --------------------------------------------------------
 // Test for timeouts/deadlines on condition waits that are specified using
-// abel::duration and abel::abel_time.  For each waiting function we test with
+// abel::duration and abel::time_point.  For each waiting function we test with
 // a timeout/deadline that has already expired/passed, one that is infinite
 // and so never expires/passes, and one that will expire/pass in the near
 // future.
@@ -1176,7 +1176,7 @@ static bool DelayIsWithinBounds(abel::duration expected_delay,
     bool pass = true;
     // Do not allow the observed delay to be less than expected.  This may occur
     // in practice due to clock skew or when the synchronization primitives use a
-    // different clock than abel::now(), but these cases should be handled by the
+    // different clock than abel::time_now(), but these cases should be handled by the
     // the retry mechanism in each TimeoutTest.
     if (actual_delay < expected_delay) {
         DLOG_WARN(
@@ -1210,7 +1210,7 @@ struct TimeoutTestParam {
     const char *from_file;
     int from_line;
 
-    // Should the absolute deadline API based on abel::abel_time be tested?  If false,
+    // Should the absolute deadline API based on abel::time_point be tested?  If false,
     // the relative deadline API based on abel::duration is tested.
     bool use_absolute_deadline;
 
@@ -1403,13 +1403,13 @@ TEST_P(TimeoutTest, await) {
         });
 
         abel::mutex_lock lock(&mu);
-        abel::abel_time start_time = abel::now();
+        abel::time_point start_time = abel::time_now();
         abel::condition cond(&value);
         bool result =
                 params.use_absolute_deadline
                 ? mu.await_with_deadline(cond, start_time + params.wait_timeout)
                 : mu.await_with_timeout(cond, params.wait_timeout);
-        if (DelayIsWithinBounds(params.expected_delay, abel::now() - start_time)) {
+        if (DelayIsWithinBounds(params.expected_delay, abel::time_now() - start_time)) {
             EXPECT_EQ(params.expected_result, result);
             break;
         }
@@ -1436,7 +1436,7 @@ TEST_P(TimeoutTest, lock_when) {
             value = true;
         });
 
-        abel::abel_time start_time = abel::now();
+        abel::time_point start_time = abel::time_now();
         abel::condition cond(&value);
         bool result =
                 params.use_absolute_deadline
@@ -1444,7 +1444,7 @@ TEST_P(TimeoutTest, lock_when) {
                 : mu.lock_when_with_timeout(cond, params.wait_timeout);
         mu.unlock();
 
-        if (DelayIsWithinBounds(params.expected_delay, abel::now() - start_time)) {
+        if (DelayIsWithinBounds(params.expected_delay, abel::time_now() - start_time)) {
             EXPECT_EQ(params.expected_result, result);
             break;
         }
@@ -1471,7 +1471,7 @@ TEST_P(TimeoutTest, reader_lock_when) {
             value = true;
         });
 
-        abel::abel_time start_time = abel::now();
+        abel::time_point start_time = abel::time_now();
         bool result =
                 params.use_absolute_deadline
                 ? mu.reader_lock_when_with_deadline(abel::condition(&value),
@@ -1480,7 +1480,7 @@ TEST_P(TimeoutTest, reader_lock_when) {
                                                    params.wait_timeout);
         mu.reader_unlock();
 
-        if (DelayIsWithinBounds(params.expected_delay, abel::now() - start_time)) {
+        if (DelayIsWithinBounds(params.expected_delay, abel::time_now() - start_time)) {
             EXPECT_EQ(params.expected_result, result);
             break;
         }
@@ -1510,19 +1510,19 @@ TEST_P(TimeoutTest, wait) {
         });
 
         abel::mutex_lock lock(&mu);
-        abel::abel_time start_time = abel::now();
+        abel::time_point start_time = abel::time_now();
         abel::duration timeout = params.wait_timeout;
-        abel::abel_time deadline = start_time + timeout;
+        abel::time_point deadline = start_time + timeout;
         while (!value) {
             if (params.use_absolute_deadline ? cv.wait_with_deadline(&mu, deadline)
                                              : cv.wait_with_timeout(&mu, timeout)) {
                 break;  // deadline/timeout exceeded
             }
-            timeout = deadline - abel::now();  // recompute
+            timeout = deadline - abel::time_now();  // recompute
         }
         bool result = value;  // note: `mu` is still held
 
-        if (DelayIsWithinBounds(params.expected_delay, abel::now() - start_time)) {
+        if (DelayIsWithinBounds(params.expected_delay, abel::time_now() - start_time)) {
             EXPECT_EQ(params.expected_result, result);
             break;
         }

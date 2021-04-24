@@ -57,8 +57,7 @@
 #include "abel/chrono/duration.h"
 #include "abel/numeric/int128.h"
 #include "abel/chrono/time.h"
-#include "abel/math/infinity.h"
-#include "abel/math/round.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

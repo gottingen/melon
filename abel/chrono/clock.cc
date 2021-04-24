@@ -21,14 +21,14 @@
 
 namespace abel {
 
-abel_time now() {
+time_point time_now() {
     // TODO(bww): Get a timespec instead so we don't have to divide.
     int64_t n = abel::get_current_time_nanos();
     if (n >= 0) {
-        return abel_time::from_unix_duration(
+        return time_point::from_unix_duration(
                 duration::make_duration(n / 1000000000, n % 1000000000 * 4));
     }
-    return abel_time::from_unix_duration(abel::duration::nanoseconds(n));
+    return time_point::from_unix_duration(abel::duration::nanoseconds(n));
 }
 
 }  // namespace abel

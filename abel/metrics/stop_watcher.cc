@@ -8,7 +8,7 @@
 
 namespace abel {
 namespace metrics {
-stop_watcher::stop_watcher(abel::abel_time start,
+stop_watcher::stop_watcher(abel::time_point start,
                            std::shared_ptr<timer> recorder)
         : _start(start), _recorder(std::move(recorder)) {
 

@@ -51,7 +51,7 @@ bool notification::wait_for_notification_with_timeout(
     return notified;
 }
 
-bool notification::wait_for_notification_with_deadline(abel::abel_time deadline) const {
+bool notification::wait_for_notification_with_deadline(abel::time_point deadline) const {
     bool notified = has_been_notified_internal(&this->notified_yet_);
     if (!notified) {
         notified = this->mutex_.lock_when_with_deadline(

@@ -27,7 +27,7 @@
 */
 
 #ifndef TZDIR
-#define TZDIR "/usr/share/zoneinfo" /* abel_time zone object file directory */
+#define TZDIR "/usr/share/zoneinfo" /* time_point zone object file directory */
 #endif                              /* !defined TZDIR */
 
 #ifndef TZDEFAULT

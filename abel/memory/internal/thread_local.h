@@ -19,14 +19,14 @@ namespace abel {
 
         struct timestamped_object {
             abel::erased_ptr ptr;
-            abel::abel_time last_used;
+            abel::time_point last_used;
         };
 
         struct pool_descriptor {
             const std::size_t low_water_mark;
             const std::size_t high_water_mark;
             const abel::duration max_idle;
-            abel_time last_wash{abel::now()};
+            time_point last_wash{abel::time_now()};
 
             // Objects in primary cache is washed out to `secondary_cache` if there's
             // still room.

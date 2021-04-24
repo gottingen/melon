@@ -11,7 +11,7 @@
 #include <limits>
 #include <type_traits>
 #include "abel/meta/type_traits.h"
-#include "abel/math/countl_zero.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

@@ -9,11 +9,10 @@
 #include <cmath>
 #include <cstring>
 
-#include "abel/math/bit_cast.h"
+#include "abel/base/math.h"
 #include "abel/numeric/int128.h"
 #include "abel/strings/internal/charconv_bigint.h"
 #include "abel/strings/internal/charconv_parse.h"
-#include "abel/math/countl_zero.h"
 
 #ifdef ABEL_BIT_PACK_FLOATS
 #error ABEL_BIT_PACK_FLOATS cannot be directly set

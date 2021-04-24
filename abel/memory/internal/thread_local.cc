@@ -19,7 +19,7 @@ namespace abel {
             }
 
             void wash_out_cache(pool_descriptor *pool) {
-                auto ts = abel::now();
+                auto ts = abel::time_now();
                 if (ts < pool->last_wash + kMinimumWashInterval) {
                     return;  // We're called too frequently.
                 } else {
@@ -77,7 +77,7 @@ namespace abel {
                     // Reset the timestamp, otherwise they'll likely be moved to secondary
                     // cache immediately.
                     for (auto &&e : pool->primary_cache) {
-                        e.last_used = abel::now();
+                        e.last_used = abel::time_now();
                     }
                 } else {
                     // We could just return the object just created instead of temporarily
@@ -86,7 +86,7 @@ namespace abel {
                     // hurt much.
                     pool->primary_cache.push_back(
                             timestamped_object{.ptr = {desc.create(), desc.destroy},
-                                    .last_used = abel::now()});
+                                    .last_used = abel::time_now()});
                 }
             }
             auto rc = std::move(pool->primary_cache.back());
@@ -97,7 +97,7 @@ namespace abel {
         void tls_put(const type_descriptor &desc, pool_descriptor *pool, void *ptr) {
             abel::scoped_deferred _([&] { wash_out_cache(pool); });
             pool->primary_cache.push_back(timestamped_object{
-                    .ptr = {ptr, desc.destroy}, .last_used = abel::now()});
+                    .ptr = {ptr, desc.destroy}, .last_used = abel::time_now()});
         }
     }  // namespace memory_internal
 }  // namespace abel

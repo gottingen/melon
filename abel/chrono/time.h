@@ -45,21 +45,21 @@ bool parse_flag(const std::string& text, duration* dst, std::string* error);
 ABEL_DEPRECATED_MESSAGE("Use abel_unparse_flag() instead.")
 std::string unparse_flag(duration d);
 */
-// abel_time
+// time_point
 //
-// An `abel::abel_time` represents a specific instant in time. Arithmetic operators
+// An `abel::time_point` represents a specific instant in time. Arithmetic operators
 // are provided for naturally expressing time calculations. Instances are
-// created using `abel::now()` and the `abel::From*()` factory functions that
+// created using `abel::time_now()` and the `abel::From*()` factory functions that
 // accept the gamut of other time representations. Formatting and parsing
-// functions are provided for conversion to and from strings.  `abel::abel_time`
+// functions are provided for conversion to and from strings.  `abel::time_point`
 // should be passed by value rather than const reference.
 //
-// `abel::abel_time` assumes there are 60 seconds in a minute, which means the
+// `abel::time_point` assumes there are 60 seconds in a minute, which means the
 // underlying time scales must be "smeared" to eliminate leap seconds.
 // See https://developers.google.com/time/smear.
 //
-// Even though `abel::abel_time` supports a wide range of timestamps, exercise
-// caution when using values in the distant past. `abel::abel_time` uses the
+// Even though `abel::time_point` supports a wide range of timestamps, exercise
+// caution when using values in the distant past. `abel::time_point` uses the
 // Proleptic Gregorian calendar, which extends the Gregorian calendar backward
 // to dates before its introduction in 1582.
 // See https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar
@@ -72,10 +72,10 @@ std::string unparse_flag(duration d);
 // breakdown of future timestamps is subject to the whim of regional
 // governments.
 //
-// The `abel::abel_time` class represents an instant in time as a count of clock
+// The `abel::time_point` class represents an instant in time as a count of clock
 // ticks of some granularity (resolution) from some starting point (epoch).
 //
-// `abel::abel_time` uses a resolution that is high enough to avoid loss in
+// `abel::time_point` uses a resolution that is high enough to avoid loss in
 // precision, and a range that is wide enough to avoid overflow, when
 // converting between tick counts in most Google time scales (i.e., resolution
 // of at least one nanosecond, and range +/-100 billion years).  Conversions
@@ -84,11 +84,11 @@ std::string unparse_flag(duration d);
 //
 // Examples:
 //
-//   abel::abel_time t1 = ...;
-//   abel::abel_time t2 = t1 + abel::minutes(2);
+//   abel::time_point t1 = ...;
+//   abel::time_point t2 = t1 + abel::minutes(2);
 //   abel::duration d = t2 - t1;  // == abel::minutes(2)
 //
-class abel_time {
+class time_point {
   public:
     // Value semantics.
 
@@ -97,34 +97,34 @@ class abel_time {
     // readable by explicitly initializing all instances before use.
     //
     // Example:
-    //   abel::abel_time t = abel::unix_epoch();
-    //   abel::abel_time t = abel::now();
-    //   abel::abel_time t = abel::time_from_timeval(tv);
-    //   abel::abel_time t = abel::infinite_past();
-    constexpr abel_time() = default;
+    //   abel::time_point t = abel::unix_epoch();
+    //   abel::time_point t = abel::time_now();
+    //   abel::time_point t = abel::time_from_timeval(tv);
+    //   abel::time_point t = abel::infinite_past();
+    constexpr time_point() = default;
 
     // Copyable.
-    constexpr abel_time(const abel_time &t) = default;
+    constexpr time_point(const time_point &t) = default;
 
-    abel_time &operator=(const abel_time &t) = default;
+    time_point &operator=(const time_point &t) = default;
 
     // Assignment operators.
-    abel_time &operator+=(duration d) {
+    time_point &operator+=(duration d) {
         rep_ += d;
         return *this;
     }
 
-    abel_time &operator-=(duration d) {
+    time_point &operator-=(duration d) {
         rep_ -= d;
         return *this;
     }
 
-    // abel_time::breakdown
+    // time_point::breakdown
     //
     // The calendar and wall-clock (aka "civil time") components of an
-    // `abel::abel_time` in a certain `abel::time_zone`. This struct is not
+    // `abel::time_point` in a certain `abel::time_zone`. This struct is not
     // intended to represent an instant in time. So, rather than passing
-    // a `abel_time::breakdown` to a function, pass an `abel::abel_time` and an
+    // a `time_point::breakdown` to a function, pass an `abel::time_point` and an
     // `abel::time_zone`.
     //
     // Deprecated. Use `abel::time_zone::chrono_info`.
@@ -149,15 +149,15 @@ class abel_time {
         const char *zone_abbr;  // time-zone abbreviation (e.g., "PST")
     };
 
-    // abel_time::in()
+    // time_point::in()
     //
     // Returns the breakdown of this instant in the given time_zone.
     //
-    // Deprecated. Use `abel::time_zone::At(abel_time)`.
+    // Deprecated. Use `abel::time_zone::At(time_point)`.
     breakdown in(time_zone tz) const;
 
     template<typename H>
-    friend H abel_hash_value(H h, abel_time t) {
+    friend H abel_hash_value(H h, time_point t) {
         return H::combine(std::move(h), t.rep_);
     }
 
@@ -170,7 +170,7 @@ class abel_time {
     // to_date()
     // to_universal()
     //
-    // Converts an `abel::abel_time` to a variety of other representations.  Note that
+    // Converts an `abel::time_point` to a variety of other representations.  Note that
     // these operations round down toward negative infinity where necessary to
     // adjust to the resolution of the result type.  Beware of possible time_t
     // over/underflow in ToTime{T,val,spec}() on 32-bit platforms.
@@ -196,13 +196,13 @@ class abel_time {
 
     // to_chrono_time()
     //
-    // Converts an abel::abel_time to a std::chrono::system_clock::time_point. If
+    // Converts an abel::time_point to a std::chrono::system_clock::time_point. If
     // overflow would occur, the returned value will saturate at the min/max time
     // point value instead.
     //
     // Example:
     //
-    //   abel::abel_time t = abel::from_time_t(123);
+    //   abel::time_point t = abel::from_time_t(123);
     //   auto tp = abel::to_chrono_time(t);
     //   // tp == std::chrono::system_clock::from_time_t(123);
     std::chrono::system_clock::time_point to_chrono_time() const;
@@ -212,24 +212,24 @@ class abel_time {
 
     // unix_epoch()
     //
-    // Returns the `abel::abel_time` representing "1970-01-01 00:00:00.0 +0000".
-    static constexpr abel_time unix_epoch();
+    // Returns the `abel::time_point` representing "1970-01-01 00:00:00.0 +0000".
+    static constexpr time_point unix_epoch();
 
     // universal_epoch()
     //
-    // Returns the `abel::abel_time` representing "0001-01-01 00:00:00.0 +0000", the
-    // epoch of the ICU Universal abel_time Scale.
-    static constexpr abel_time universal_epoch();
+    // Returns the `abel::time_point` representing "0001-01-01 00:00:00.0 +0000", the
+    // epoch of the ICU Universal time_point Scale.
+    static constexpr time_point universal_epoch();
 
     // infinite_future()
     //
-    // Returns an `abel::abel_time` that is infinitely far in the future.
-    static constexpr abel_time infinite_future();
+    // Returns an `abel::time_point` that is infinitely far in the future.
+    static constexpr time_point infinite_future();
 
     // infinite_past()
     //
-    // Returns an `abel::abel_time` that is infinitely far in the past.
-    static constexpr abel_time infinite_past();
+    // Returns an `abel::time_point` that is infinitely far in the past.
+    static constexpr time_point infinite_past();
 
     // from_unix_nanos()
     // from_unix_micros()
@@ -239,113 +239,113 @@ class abel_time {
     // from_date()
     // from_universal()
     //
-    // Creates an `abel::abel_time` from a variety of other representations.
-    static constexpr abel_time from_unix_nanos(int64_t ns);
+    // Creates an `abel::time_point` from a variety of other representations.
+    static constexpr time_point from_unix_nanos(int64_t ns);
 
-    static constexpr abel_time from_unix_micros(int64_t us);
+    static constexpr time_point from_unix_micros(int64_t us);
 
-    static constexpr abel_time from_unix_millis(int64_t ms);
+    static constexpr time_point from_unix_millis(int64_t ms);
 
-    static constexpr abel_time from_unix_seconds(int64_t s);
+    static constexpr time_point from_unix_seconds(int64_t s);
 
-    static constexpr abel_time from_time_t(time_t t);
+    static constexpr time_point from_time_t(time_t t);
 
-    static abel_time from_date(double udate);
+    static time_point from_date(double udate);
 
-    static abel_time from_universal(int64_t universal);
+    static time_point from_universal(int64_t universal);
 
-    static abel_time from_timespec(timespec ts);
+    static time_point from_timespec(timespec ts);
 
-    static abel_time from_timeval(timeval tv);
+    static time_point from_timeval(timeval tv);
 
     // from_chrono()
     //
-    // Converts a std::chrono::system_clock::time_point to an abel::abel_time.
+    // Converts a std::chrono::system_clock::time_point to an abel::time_point.
     //
     // Example:
     //
     //   auto tp = std::chrono::system_clock::from_time_t(123);
-    //   abel::abel_time t = abel::from_chrono(tp);
+    //   abel::time_point t = abel::from_chrono(tp);
     //   // t == abel::from_time_t(123)
-    static abel_time from_chrono(const std::chrono::system_clock::time_point &tp);
+    static time_point from_chrono(const std::chrono::system_clock::time_point &tp);
 
-    // Map between a abel_time and a duration since the Unix epoch.  Note that these
+    // Map between a time_point and a duration since the Unix epoch.  Note that these
     // functions depend on the above mentioned choice of the Unix epoch for the
-    // abel_time representation (and both need to be abel_time friends).  Without this
+    // time_point representation (and both need to be time_point friends).  Without this
     // knowledge, we would need to add-in/subtract-out unix_epoch() respectively.
-    static constexpr abel_time from_unix_duration(duration d) { return abel_time(d); }
+    static constexpr time_point from_unix_duration(duration d) { return time_point(d); }
 
-    static constexpr duration to_unix_duration(abel_time t) { return t.rep_; }
+    static constexpr duration to_unix_duration(time_point t) { return t.rep_; }
 
 
   private:
 
-    friend constexpr bool operator<(abel_time lhs, abel_time rhs);
+    friend constexpr bool operator<(time_point lhs, time_point rhs);
 
-    friend constexpr bool operator==(abel_time lhs, abel_time rhs);
+    friend constexpr bool operator==(time_point lhs, time_point rhs);
 
-    friend duration operator-(abel_time lhs, abel_time rhs);
+    friend duration operator-(time_point lhs, time_point rhs);
 
-    friend constexpr abel_time universal_epoch();
+    friend constexpr time_point universal_epoch();
 
-    friend constexpr abel_time infinite_future();
+    friend constexpr time_point infinite_future();
 
-    friend constexpr abel_time infinite_past();
+    friend constexpr time_point infinite_past();
 
-    constexpr explicit abel_time(duration rep) : rep_(rep) {}
+    constexpr explicit time_point(duration rep) : rep_(rep) {}
 
     duration rep_;
 };
 
 // Relational Operators
-constexpr bool operator<(abel_time lhs, abel_time rhs) { return lhs.rep_ < rhs.rep_; }
+constexpr bool operator<(time_point lhs, time_point rhs) { return lhs.rep_ < rhs.rep_; }
 
-constexpr bool operator>(abel_time lhs, abel_time rhs) { return rhs < lhs; }
+constexpr bool operator>(time_point lhs, time_point rhs) { return rhs < lhs; }
 
-constexpr bool operator>=(abel_time lhs, abel_time rhs) { return !(lhs < rhs); }
+constexpr bool operator>=(time_point lhs, time_point rhs) { return !(lhs < rhs); }
 
-constexpr bool operator<=(abel_time lhs, abel_time rhs) { return !(rhs < lhs); }
+constexpr bool operator<=(time_point lhs, time_point rhs) { return !(rhs < lhs); }
 
-constexpr bool operator==(abel_time lhs, abel_time rhs) { return lhs.rep_ == rhs.rep_; }
+constexpr bool operator==(time_point lhs, time_point rhs) { return lhs.rep_ == rhs.rep_; }
 
-constexpr bool operator!=(abel_time lhs, abel_time rhs) { return !(lhs == rhs); }
+constexpr bool operator!=(time_point lhs, time_point rhs) { return !(lhs == rhs); }
 
 // Additive Operators
-ABEL_FORCE_INLINE abel_time operator+(abel_time lhs, duration rhs) { return lhs += rhs; }
+ABEL_FORCE_INLINE time_point operator+(time_point lhs, duration rhs) { return lhs += rhs; }
 
-ABEL_FORCE_INLINE abel_time operator+(duration lhs, abel_time rhs) { return rhs += lhs; }
+ABEL_FORCE_INLINE time_point operator+(duration lhs, time_point rhs) { return rhs += lhs; }
 
-ABEL_FORCE_INLINE abel_time operator-(abel_time lhs, duration rhs) { return lhs -= rhs; }
+ABEL_FORCE_INLINE time_point operator-(time_point lhs, duration rhs) { return lhs -= rhs; }
 
-ABEL_FORCE_INLINE duration operator-(abel_time lhs, abel_time rhs) { return lhs.rep_ - rhs.rep_; }
-
-
-constexpr abel_time abel_time::unix_epoch() { return abel_time(); }
+ABEL_FORCE_INLINE duration operator-(time_point lhs, time_point rhs) { return lhs.rep_ - rhs.rep_; }
 
 
-constexpr abel_time abel_time::universal_epoch() {
+constexpr time_point time_point::unix_epoch() { return time_point(); }
+
+
+constexpr time_point time_point::universal_epoch() {
     // 719162 is the number of days from 0001-01-01 to 1970-01-01,
     // assuming the Gregorian calendar.
-    return abel_time(duration::universal_duration());
+    return time_point(duration::universal_duration());
 }
 
-constexpr abel_time abel_time::infinite_future() {
-    return abel_time(duration::infinite_future());
+constexpr time_point time_point::infinite_future() {
+    return time_point(duration::infinite_future());
 }
 
-constexpr abel_time abel_time::infinite_past() {
-    return abel_time(duration::infinite_pass());
+constexpr time_point time_point::infinite_past() {
+    return time_point(duration::infinite_pass());
 }
 
 
-ABEL_FORCE_INLINE duration abel_time::to_duration() const {
+ABEL_FORCE_INLINE duration time_point::to_duration() const {
     return duration::nanoseconds(to_unix_nanos());
 }
 
 
 
 
-// Support for flag values of type abel_time. abel_time flags must be specified in a
+// Support for flag values of type time_point. time_point flags must be specified in a
 // format that matches abel::RFC3339_full. For example:
 //
 //   --start_time=2016-01-02T03:04:05.678+08:00
@@ -354,22 +354,22 @@ ABEL_FORCE_INLINE duration abel_time::to_duration() const {
 //
 // Additionally, if you'd like to specify a time as a count of
 // seconds/milliseconds/etc from the Unix epoch, use an abel::duration flag
-// and add that duration to abel::unix_epoch() to get an abel::abel_time.
-bool abel_parse_flag(std::string_view text, abel_time *t, std::string *error);
+// and add that duration to abel::unix_epoch() to get an abel::time_point.
+bool abel_parse_flag(std::string_view text, time_point *t, std::string *error);
 
-std::string abel_unparse_flag(abel_time t);
+std::string abel_unparse_flag(time_point t);
 /*
 ABEL_DEPRECATED_MESSAGE("Use abel_parse_flag() instead.")
-bool parse_flag(const std::string& text, abel_time* t, std::string* error);
+bool parse_flag(const std::string& text, time_point* t, std::string* error);
 ABEL_DEPRECATED_MESSAGE("Use abel_unparse_flag() instead.")
-std::string unparse_flag(abel_time t);
+std::string unparse_flag(time_point t);
 */
 // time_zone
 //
 // The `abel::time_zone` is an opaque, small, value-type class representing a
 // geo-political region within which particular rules are used for converting
 // between absolute and civil times (see https://git.io/v59Ly). `abel::time_zone`
-// values are named using the TZ identifiers from the IANA abel_time Zone Database,
+// values are named using the TZ identifiers from the IANA time_point Zone Database,
 // such as "America/Los_Angeles" or "Australia/Sydney". `abel::time_zone` values
 // are created from factory functions such as `abel::load_time_zone()`. Note:
 // strings like "PST" and "EDT" are not valid TZ identifiers. Prefer to pass by
@@ -405,7 +405,7 @@ class time_zone {
     //
     // Information about the civil time corresponding to an absolute time.
     // This struct is not intended to represent an instant in time. So, rather
-    // than passing a `time_zone::chrono_info` to a function, pass an `abel::abel_time`
+    // than passing a `time_zone::chrono_info` to a function, pass an `abel::time_point`
     // and an `abel::time_zone`.
     struct chrono_info {
         chrono_second cs;
@@ -421,9 +421,9 @@ class time_zone {
         const char *zone_abbr;  // time-zone abbreviation (e.g., "PST")
     };
 
-    // time_zone::At(abel_time)
+    // time_zone::At(time_point)
     //
-    // Returns the civil time for this time_zone at a certain `abel::abel_time`.
+    // Returns the civil time for this time_zone at a certain `abel::time_point`.
     // If the input time is infinite, the output civil second will be set to
     // chrono_second::max() or min(), and the subsecond will be infinite.
     //
@@ -435,7 +435,7 @@ class time_zone {
     //   // epoch.offset == -28800
     //   // epoch.is_dst == false
     //   // epoch.abbr == "PST"
-    chrono_info at(abel_time t) const;
+    chrono_info at(time_point t) const;
 
     // time_zone::time_info
     //
@@ -450,16 +450,16 @@ class time_zone {
     // March 13, 2011 02:15 never occurred, while November 6, 2011 01:15
     // occurred twice---so requests for such times are not well-defined.
     // To account for these possibilities, `abel::time_zone::time_info` is
-    // richer than just a single `abel::abel_time`.
+    // richer than just a single `abel::time_point`.
     struct time_info {
         enum chrono_kind {
             UNIQUE,    // the civil time was singular (pre == trans == post)
             SKIPPED,   // the civil time did not exist (pre >= trans > post)
             REPEATED,  // the civil time was ambiguous (pre < trans <= post)
         } kind;
-        abel_time pre;    // time calculated using the pre-transition offset
-        abel_time trans;  // when the civil-time discontinuity occurred
-        abel_time post;   // time calculated using the post-transition offset
+        time_point pre;    // time calculated using the pre-transition offset
+        time_point trans;  // when the civil-time discontinuity occurred
+        time_point post;   // time calculated using the post-transition offset
     };
 
     // time_zone::At(chrono_second)
@@ -517,7 +517,7 @@ class time_zone {
     // Example:
     //   abel::time_zone nyc;
     //   if (!abel::load_time_zone("America/New_York", &nyc)) { ... }
-    //   const auto now = abel::now();
+    //   const auto now = abel::time_now();
     //   auto t = abel::infinite_past();
     //   abel::time_zone::chrono_transition trans;
     //   while (t <= now && nyc.next_transition(t, &trans)) {
@@ -529,9 +529,9 @@ class time_zone {
         chrono_second to;    // the civil time we jump to
     };
 
-    bool next_transition(abel_time t, chrono_transition *trans) const;
+    bool next_transition(time_point t, chrono_transition *trans) const;
 
-    bool prev_transition(abel_time t, chrono_transition *trans) const;
+    bool prev_transition(time_point t, chrono_transition *trans) const;
 
     template<typename H>
     friend H abel_hash_value(H h, time_zone tz) {
@@ -600,34 +600,34 @@ ABEL_FORCE_INLINE time_zone local_time_zone() {
 // to_chrono_month()
 // to_chrono_year()
 //
-// Helpers for time_zone::At(abel_time) to return particularly aligned civil times.
+// Helpers for time_zone::At(time_point) to return particularly aligned civil times.
 //
 // Example:
 //
-//   abel::abel_time t = ...;
+//   abel::time_point t = ...;
 //   abel::time_zone tz = ...;
 //   const auto cd = abel::to_chrono_day(t, tz);
-ABEL_FORCE_INLINE chrono_second to_chrono_second(abel_time t, time_zone tz) {
+ABEL_FORCE_INLINE chrono_second to_chrono_second(time_point t, time_zone tz) {
     return tz.at(t).cs;  // already a chrono_second
 }
 
-ABEL_FORCE_INLINE chrono_minute to_chrono_minute(abel_time t, time_zone tz) {
+ABEL_FORCE_INLINE chrono_minute to_chrono_minute(time_point t, time_zone tz) {
     return chrono_minute(tz.at(t).cs);
 }
 
-ABEL_FORCE_INLINE chrono_hour to_chrono_hour(abel_time t, time_zone tz) {
+ABEL_FORCE_INLINE chrono_hour to_chrono_hour(time_point t, time_zone tz) {
     return chrono_hour(tz.at(t).cs);
 }
 
-ABEL_FORCE_INLINE chrono_day to_chrono_day(abel_time t, time_zone tz) {
+ABEL_FORCE_INLINE chrono_day to_chrono_day(time_point t, time_zone tz) {
     return chrono_day(tz.at(t).cs);
 }
 
-ABEL_FORCE_INLINE chrono_month to_chrono_month(abel_time t, time_zone tz) {
+ABEL_FORCE_INLINE chrono_month to_chrono_month(time_point t, time_zone tz) {
     return chrono_month(tz.at(t).cs);
 }
 
-ABEL_FORCE_INLINE chrono_year to_chrono_year(abel_time t, time_zone tz) {
+ABEL_FORCE_INLINE chrono_year to_chrono_year(time_point t, time_zone tz) {
     return chrono_year(tz.at(t).cs);
 }
 
@@ -643,7 +643,7 @@ ABEL_FORCE_INLINE chrono_year to_chrono_year(abel_time t, time_zone tz) {
 // being when two non-existent civil times map to the same transition time.
 //
 // Note: Accepts civil times of any alignment.
-ABEL_FORCE_INLINE abel_time from_chrono(chrono_second ct, time_zone tz) {
+ABEL_FORCE_INLINE time_point from_chrono(chrono_second ct, time_zone tz) {
     const auto ti = tz.at(ct);
     if (ti.kind == time_zone::time_info::SKIPPED)
         return ti.trans;
@@ -660,9 +660,9 @@ ABEL_FORCE_INLINE abel_time from_chrono(chrono_second ct, time_zone tz) {
 // Deprecated. Use `abel::time_zone::time_info`.
 struct
 time_conversion {
-    abel_time pre;    // time calculated using the pre-transition offset
-    abel_time trans;  // when the civil-time discontinuity occurred
-    abel_time post;   // time calculated using the post-transition offset
+    time_point pre;    // time calculated using the pre-transition offset
+    time_point trans;  // when the civil-time discontinuity occurred
+    time_point post;   // time calculated using the post-transition offset
 
     enum Kind {
         UNIQUE,    // the civil time was singular (pre == trans == post)
@@ -699,19 +699,19 @@ time_conversion convert_date_time(int64_t year, int mon, int day, int hour,
 // format_date_time()
 //
 // A convenience wrapper for `abel::convert_date_time()` that simply returns
-// the "pre" `abel::abel_time`.  That is, the unique result, or the instant that
+// the "pre" `abel::time_point`.  That is, the unique result, or the instant that
 // is correct using the pre-transition offset (as if the transition never
 // happened).
 //
 // Example:
 //
-//   abel::abel_time t = abel::format_date_time(2017, 9, 26, 9, 30, 0, lax);
+//   abel::time_point t = abel::format_date_time(2017, 9, 26, 9, 30, 0, lax);
 //   // t = 2017-09-26 09:30:00 -0700
 //
 // Deprecated. Use `abel::from_chrono(chrono_second, time_zone)`. Note that the
 // behavior of `from_chrono()` differs from `format_date_time()` for skipped civil
 // times. If you care about that see `abel::time_zone::At(abel::chrono_second)`.
-ABEL_FORCE_INLINE abel_time format_date_time(int64_t year, int mon, int day, int hour,
+ABEL_FORCE_INLINE time_point format_date_time(int64_t year, int mon, int day, int hour,
                                              int min, int sec, time_zone tz) {
     return convert_date_time(year, mon, day, hour, min, sec, tz).pre;
 }
@@ -719,25 +719,25 @@ ABEL_FORCE_INLINE abel_time format_date_time(int64_t year, int mon, int day, int
 // from_tm()
 //
 // Converts the `tm_year`, `tm_mon`, `tm_mday`, `tm_hour`, `tm_min`, and
-// `tm_sec` fields to an `abel::abel_time` using the given time zone. See ctime(3)
+// `tm_sec` fields to an `abel::time_point` using the given time zone. See ctime(3)
 // for a description of the expected values of the tm fields. If the indicated
 // time instant is not unique (see `abel::time_zone::at(abel::chrono_second)`
 // above), the `tm_isdst` field is consulted to select the desired instant
 // (`tm_isdst` > 0 means DST, `tm_isdst` == 0 means no DST, `tm_isdst` < 0
 // means use the post-transition offset).
-abel_time from_tm(const struct tm &tm, time_zone tz);
+time_point from_tm(const struct tm &tm, time_zone tz);
 
 // to_tm()
 //
-// Converts the given `abel::abel_time` to a struct tm using the given time zone.
+// Converts the given `abel::time_point` to a struct tm using the given time zone.
 // See ctime(3) for a description of the values of the tm fields.
-struct tm to_tm(abel_time t, time_zone tz);
+struct tm to_tm(time_point t, time_zone tz);
 
-inline struct tm local_tm(abel_time t) {
+inline struct tm local_tm(time_point t) {
     return to_tm(t, abel::local_time_zone());
 }
 
-inline struct tm utc_tm(abel_time t) {
+inline struct tm utc_tm(time_point t) {
     return to_tm(t, abel::utc_time_zone());
 }
 
@@ -773,7 +773,7 @@ extern const char RFC1123_no_wday[];  // %d %b %E4Y %H:%M:%S %z
 
 // format_time()
 //
-// Formats the given `abel::abel_time` in the `abel::time_zone` according to the
+// Formats the given `abel::time_point` in the `abel::time_zone` according to the
 // provided format string. Uses strftime()-like formatting options, with
 // the following extensions:
 //
@@ -798,33 +798,33 @@ extern const char RFC1123_no_wday[];  // %d %b %E4Y %H:%M:%S %z
 // Example:
 //
 //   abel::chrono_second cs(2013, 1, 2, 3, 4, 5);
-//   abel::abel_time t = abel::from_chrono(cs, lax);
+//   abel::time_point t = abel::from_chrono(cs, lax);
 //   std::string f = abel::format_time("%H:%M:%S", t, lax);  // "03:04:05"
 //   f = abel::format_time("%H:%M:%E3S", t, lax);  // "03:04:05.000"
 //
-// Note: If the given `abel::abel_time` is `abel::infinite_future()`, the returned
-// string will be exactly "infinite-future". If the given `abel::abel_time` is
+// Note: If the given `abel::time_point` is `abel::infinite_future()`, the returned
+// string will be exactly "infinite-future". If the given `abel::time_point` is
 // `abel::infinite_past()`, the returned string will be exactly "infinite-past".
 // In both cases the given format string and `abel::time_zone` are ignored.
 //
-std::string format_time(const std::string &format, abel_time t, time_zone tz);
+std::string format_time(const std::string &format, time_point t, time_zone tz);
 
 // Convenience functions that format the given time using the RFC3339_full
 // format.  The first overload uses the provided time_zone, while the second
 // uses local_time_zone().
-std::string format_time(abel_time t, time_zone tz);
+std::string format_time(time_point t, time_zone tz);
 
-std::string format_time(abel_time t);
+std::string format_time(time_point t);
 
 // Output stream operator.
-ABEL_FORCE_INLINE std::ostream &operator<<(std::ostream &os, abel_time t) {
+ABEL_FORCE_INLINE std::ostream &operator<<(std::ostream &os, time_point t) {
     return os << format_time(t);
 }
 
 // parse_time()
 //
 // Parses an input string according to the provided format string and
-// returns the corresponding `abel::abel_time`. Uses strftime()-like formatting
+// returns the corresponding `abel::time_point`. Uses strftime()-like formatting
 // options, with the same extensions as format_time(), but with the
 // exceptions that %E#S is interpreted as %E*S, and %E#f as %E*f.  %Ez
 // and %E*z also accept the same inputs.
@@ -837,7 +837,7 @@ ABEL_FORCE_INLINE std::ostream &operator<<(std::ostream &os, abel_time t) {
 //
 //   "1970-01-01 00:00:00.0 +0000"
 //
-// For example, parsing a string of "15:45" (%H:%M) will return an abel::abel_time
+// For example, parsing a string of "15:45" (%H:%M) will return an abel::time_point
 // that represents "1970-01-01 15:45:00.0 +0000".
 //
 // Note that since parse_time() returns time instants, it makes the most sense
@@ -865,11 +865,11 @@ ABEL_FORCE_INLINE std::ostream &operator<<(std::ostream &os, abel_time t) {
 // to the "err" out param if it is non-null.
 //
 // Note: If the input string is exactly "infinite-future", the returned
-// `abel::abel_time` will be `abel::infinite_future()` and `true` will be returned.
-// If the input string is "infinite-past", the returned `abel::abel_time` will be
+// `abel::time_point` will be `abel::infinite_future()` and `true` will be returned.
+// If the input string is "infinite-past", the returned `abel::time_point` will be
 // `abel::infinite_past()` and `true` will be returned.
 //
-bool parse_time(const std::string &format, const std::string &input, abel_time *time,
+bool parse_time(const std::string &format, const std::string &input, time_point *time,
                 std::string *err);
 
 // Like parse_time() above, but if the format string does not contain a UTC
@@ -880,27 +880,27 @@ bool parse_time(const std::string &format, const std::string &input, abel_time *
 // by time_zone::time_info) is returned.  For these reasons we recommend that
 // all date/time strings include a UTC offset so they're context independent.
 bool parse_time(const std::string &format, const std::string &input, time_zone tz,
-                abel_time *time, std::string *err);
+                time_point *time, std::string *err);
 
 
-constexpr abel_time abel_time::from_unix_nanos(int64_t ns) {
-    return abel_time::from_unix_duration(duration::nanoseconds(ns));
+constexpr time_point time_point::from_unix_nanos(int64_t ns) {
+    return time_point::from_unix_duration(duration::nanoseconds(ns));
 }
 
-constexpr abel_time abel_time::from_unix_micros(int64_t us) {
-    return abel_time::from_unix_duration(duration::microseconds(us));
+constexpr time_point time_point::from_unix_micros(int64_t us) {
+    return time_point::from_unix_duration(duration::microseconds(us));
 }
 
-constexpr abel_time abel_time::from_unix_millis(int64_t ms) {
-    return abel_time::from_unix_duration(duration::milliseconds(ms));
+constexpr time_point time_point::from_unix_millis(int64_t ms) {
+    return time_point::from_unix_duration(duration::milliseconds(ms));
 }
 
-constexpr abel_time abel_time::from_unix_seconds(int64_t s) {
-    return abel_time::from_unix_duration(duration::seconds(s));
+constexpr time_point time_point::from_unix_seconds(int64_t s) {
+    return time_point::from_unix_duration(duration::seconds(s));
 }
 
-constexpr abel_time abel_time::from_time_t(time_t t) {
-    return abel_time::from_unix_duration(duration::seconds(t));
+constexpr time_point time_point::from_time_t(time_t t) {
+    return time_point::from_unix_duration(duration::seconds(t));
 }
 
 inline int utc_minutes_offset(const std::tm &tm) {

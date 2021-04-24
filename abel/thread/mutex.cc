@@ -480,7 +480,7 @@ struct synch_wait_params {
     // word is cv_word instead of queueing normally on the mutex.
     std::atomic<intptr_t> *cv_word;
 
-    int64_t contention_start_cycles;  // abel_time (in cycles) when this thread started
+    int64_t contention_start_cycles;  // time_point (in cycles) when this thread started
     // to contend for the mutex.
 };
 
@@ -583,13 +583,13 @@ void mutex::internal_attempt_to_use_mutex_in_fatal_signal_handler() {
 // Return the current time plus the timeout.  Use the same clock as
 // per_thread_sem::wait() for consistency.  Unfortunately, we don't have
 // such a choice when a deadline is given directly.
-static abel::abel_time DeadlineFromTimeout(abel::duration timeout) {
+static abel::time_point DeadlineFromTimeout(abel::duration timeout) {
 #ifndef _WIN32
     struct timeval tv;
     gettimeofday(&tv, nullptr);
-    return abel::abel_time::from_timeval(tv) + timeout;
+    return abel::time_point::from_timeval(tv) + timeout;
 #else
-    return abel::now() + timeout;
+    return abel::time_now() + timeout;
 #endif
 }
 
@@ -1501,7 +1501,7 @@ bool mutex::lock_when_with_timeout(const condition &cond, abel::duration timeout
     return lock_when_with_deadline(cond, DeadlineFromTimeout(timeout));
 }
 
-bool mutex::lock_when_with_deadline(const condition &cond, abel::abel_time deadline) {
+bool mutex::lock_when_with_deadline(const condition &cond, abel::time_point deadline) {
     ABEL_TSAN_MUTEX_PRE_LOCK(this, 0);
     graph_id id = DebugOnlyDeadlockCheck(this);
     bool res = lock_slow_with_deadline(kExclusive, &cond,
@@ -1525,7 +1525,7 @@ bool mutex::reader_lock_when_with_timeout(const condition &cond,
 }
 
 bool mutex::reader_lock_when_with_deadline(const condition &cond,
-                                           abel::abel_time deadline) {
+                                           abel::time_point deadline) {
     ABEL_TSAN_MUTEX_PRE_LOCK(this, __tsan_mutex_read_lock);
     graph_id id = DebugOnlyDeadlockCheck(this);
     bool res = lock_slow_with_deadline(kShared, &cond, kernel_timeout(deadline), 0);
@@ -1549,7 +1549,7 @@ bool mutex::await_with_timeout(const condition &cond, abel::duration timeout) {
     return await_with_deadline(cond, DeadlineFromTimeout(timeout));
 }
 
-bool mutex::await_with_deadline(const condition &cond, abel::abel_time deadline) {
+bool mutex::await_with_deadline(const condition &cond, abel::time_point deadline) {
     if (cond.eval()) {      // condition already true; nothing to do
         if (kDebugMode) {
             this->assert_reader_held();
@@ -2566,7 +2566,7 @@ bool cond_var::wait_with_timeout(mutex *mu, abel::duration timeout) {
     return wait_with_deadline(mu, DeadlineFromTimeout(timeout));
 }
 
-bool cond_var::wait_with_deadline(mutex *mu, abel::abel_time deadline) {
+bool cond_var::wait_with_deadline(mutex *mu, abel::time_point deadline) {
     return WaitCommon(mu, kernel_timeout(deadline));
 }
 

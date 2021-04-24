@@ -13,10 +13,10 @@ namespace abel {
 
 namespace {
 
-// Since a civil time has a larger year range than abel::abel_time (64-bit years vs
+// Since a civil time has a larger year range than abel::time_point (64-bit years vs
 // 64-bit seconds, respectively) we normalize years to roughly +/- 400 years
 // around the year 2400, which will produce an equivalent year in a range that
-// abel::abel_time can handle.
+// abel::time_point can handle.
 ABEL_FORCE_INLINE chrono_year_t NormalizeYear(chrono_year_t year) {
     return 2400 + year % 400;
 }
@@ -33,7 +33,7 @@ std::string FormatYearAnd(std::string_view fmt, chrono_second cs) {
 
 template<typename CivilT>
 bool ParseYearAnd(std::string_view fmt, std::string_view s, CivilT *c) {
-    // Civil times support a larger year range than abel::abel_time, so we need to
+    // Civil times support a larger year range than abel::time_point, so we need to
     // parse the year separately, normalize it, then use abel::parse_time on the
     // normalized std::string.
     const std::string ss = std::string(s);  // TODO(abel-team): Avoid conversion.
@@ -46,7 +46,7 @@ bool ParseYearAnd(std::string_view fmt, std::string_view s, CivilT *c) {
     const std::string norm = string_cat(NormalizeYear(y), endp);
 
     const time_zone utc = utc_time_zone();
-    abel_time t;
+    time_point t;
     if (parse_time(string_cat("%Y", fmt), norm, utc, &t, nullptr)) {
         const auto cs = to_chrono_second(t, utc);
         *c = CivilT(y, cs.month(), cs.day(), cs.hour(), cs.minute(), cs.second());

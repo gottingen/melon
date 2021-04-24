@@ -25,6 +25,8 @@ include(carbin_print)
 # TODO modyify this for "-std=c++[x]"
 set(CMAKE_CXX_STANDARD 17)
 
+
+
 set(PROJECT_DESCRIPTION "carbin c++ lib")
 set(PROJECT_VERSION_MAJOR 1)
 set(PROJECT_VERSION_MINOR 0)
@@ -60,6 +62,9 @@ endif ()
 #########################
 # default pavkage
 
+find_package(gflags REQUIRED)
+
+carbin_check_target(gflags::gflags)
 
 set(ABEL_DYLINK)
 if (APPLE)

@@ -329,7 +329,7 @@ class ABEL_LOCKABLE mutex {
     // This method requires that this thread holds this `mutex` in some mode.
     bool await_with_timeout(const condition &cond, abel::duration timeout);
 
-    bool await_with_deadline(const condition &cond, abel::abel_time deadline);
+    bool await_with_deadline(const condition &cond, abel::time_point deadline);
 
     // mutex::lock_when_with_timeout()
     // mutex::reader_lock_when_with_timeout()
@@ -364,13 +364,13 @@ class ABEL_LOCKABLE mutex {
     // on return.
     //
     // Deadlines in the past are equivalent to an immediate deadline.
-    bool lock_when_with_deadline(const condition &cond, abel::abel_time deadline)
+    bool lock_when_with_deadline(const condition &cond, abel::time_point deadline)
     ABEL_EXCLUSIVE_LOCK_FUNCTION();
 
-    bool reader_lock_when_with_deadline(const condition &cond, abel::abel_time deadline)
+    bool reader_lock_when_with_deadline(const condition &cond, abel::time_point deadline)
     ABEL_SHARED_LOCK_FUNCTION();
 
-    bool writer_lock_when_with_deadline(const condition &cond, abel::abel_time deadline)
+    bool writer_lock_when_with_deadline(const condition &cond, abel::time_point deadline)
     ABEL_EXCLUSIVE_LOCK_FUNCTION() {
         return this->lock_when_with_deadline(cond, deadline);
     }
@@ -809,7 +809,7 @@ class cond_var {
     // to return `true` or `false`.
     //
     // Requires and ensures that the current thread holds the `mutex`.
-    bool wait_with_deadline(mutex *mu, abel::abel_time deadline);
+    bool wait_with_deadline(mutex *mu, abel::time_point deadline);
 
     // cond_var::signal()
     //

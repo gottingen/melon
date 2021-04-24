@@ -13,13 +13,13 @@ namespace abel {
 
 // now()
 //
-// Returns the current time, expressed as an `abel::abel_time` absolute time value.
-abel::abel_time now();
+// Returns the current time, expressed as an `abel::time_point` absolute time value.
+abel::time_point time_now();
 
 // get_current_time_nanos()
 //
 // Returns the current time, expressed as a count of nanoseconds since the Unix
-// Epoch (https://en.wikipedia.org/wiki/Unix_time). Prefer `abel::now()` instead
+// Epoch (https://en.wikipedia.org/wiki/Unix_time). Prefer `abel::time_now()` instead
 // for all but the most performance-sensitive cases (i.e. when you are calling
 // this function hundreds of thousands of times per second).
 int64_t get_current_time_nanos();

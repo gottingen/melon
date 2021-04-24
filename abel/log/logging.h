@@ -33,7 +33,7 @@ struct every_second {
     }
 
     bool feed() {
-        int64_t sec = abel::now().to_unix_seconds();
+        int64_t sec = abel::time_now().to_unix_seconds();
         return sec > epoch_second ? epoch_second.compare_exchange_weak(sec, std::memory_order_relaxed) : false;
     }
 

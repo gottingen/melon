@@ -5,7 +5,7 @@
 
 #include "abel/digest/md5.h"
 #include "abel/strings/hex_dump.h"
-#include "abel/math/rotl.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

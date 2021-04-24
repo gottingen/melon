@@ -8,7 +8,7 @@
 #include <limits>
 #include <type_traits>
 #include "abel/base/profile.h"
-#include "abel/math/all.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

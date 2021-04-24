@@ -6,7 +6,7 @@
 #include "abel/base/profile.h"
 #include "abel/digest/sha256.h"
 #include "abel/strings/hex_dump.h"
-#include "abel/math/rotr.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

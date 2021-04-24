@@ -4,13 +4,13 @@
 // Created by liyinbin lijippy@163.com
 //
 // An optional absolute timeout, with nanosecond granularity,
-// compatible with abel::abel_time. Suitable for in-register
+// compatible with abel::time_point. Suitable for in-register
 // parameter-passing (e.g. syscalls.)
-// Constructible from a abel::abel_time (for a timeout to be respected) or {}
+// Constructible from a abel::time_point (for a timeout to be respected) or {}
 // (for "no timeout".)
 // This is a private low-level API for use by a handful of low-level
 // components that are friends of this class. Higher-level components
-// should build APIs based on abel::abel_time and abel::duration.
+// should build APIs based on abel::time_point and abel::duration.
 
 #ifndef ABEL_SYNCHRONIZATION_INTERNAL_KERNEL_TIMEOUT_H_
 #define ABEL_SYNCHRONIZATION_INTERNAL_KERNEL_TIMEOUT_H_
@@ -36,7 +36,7 @@ class kernel_timeout {
     // A timeout that should expire at <t>.  Any value, in the full
     // infinite_past() to infinite_future() range, is valid here and will be
     // respected.
-    explicit kernel_timeout(abel::abel_time t) : ns_(make_ns(t)) {}
+    explicit kernel_timeout(abel::time_point t) : ns_(make_ns(t)) {}
 
     // No timeout.
     kernel_timeout() : ns_(0) {}
@@ -45,7 +45,7 @@ class kernel_timeout {
     static kernel_timeout never() { return {}; }
 
     // We explicitly do not support other custom formats: timespec, int64_t nanos.
-    // Unify on this and abel::abel_time, please.
+    // Unify on this and abel::time_point, please.
 
     bool has_timeout() const { return ns_ != 0; }
 
@@ -56,10 +56,10 @@ class kernel_timeout {
     // timeout.
     int64_t ns_;
 
-    static int64_t make_ns(abel::abel_time t) {
+    static int64_t make_ns(abel::time_point t) {
         // optimization--infinite_future is common "no timeout" value
         // and cheaper to compare than convert.
-        if (t == abel::abel_time::infinite_future()) return 0;
+        if (t == abel::time_point::infinite_future()) return 0;
         int64_t x = t.to_unix_nanos();
 
         // A timeout that lands exactly on the epoch (x=0) needs to be respected,
@@ -115,8 +115,8 @@ class kernel_timeout {
       if (!has_timeout()) {
         return kInfinite;
       }
-      // The use of abel::now() to convert from absolute time to
-      // relative time means that abel::now() cannot use anything that
+      // The use of abel::time_now() to convert from absolute time to
+      // relative time means that abel::time_now() cannot use anything that
       // depends on kernel_timeout (for example, mutex) on Windows.
       int64_t now = to_unix_nanos(abel::now());
       if (ns_ >= now) {

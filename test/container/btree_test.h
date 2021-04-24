@@ -76,12 +76,12 @@ namespace abel {
         };
 
         template<>
-        struct Generator<abel::abel_time> {
+        struct Generator<abel::time_point> {
             int maxval;
 
             explicit Generator(int m) : maxval(m) {}
 
-            abel::abel_time operator()(int i) const { return abel::abel_time::from_unix_millis(i); }
+            abel::time_point operator()(int i) const { return abel::time_point::from_unix_millis(i); }
         };
 
         template<>

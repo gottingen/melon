@@ -18,7 +18,7 @@ class timer {
     // A timeout that should expire at <t>.  Any value, in the full
     // infinite_past() to infinite_future() range, is valid here and will be
     // respected.
-    explicit timer(abel::abel_time t) : _ns(make_ns(t)) {}
+    explicit timer(abel::time_point t) : _ns(make_ns(t)) {}
 
     // No timeout.
     timer() : _ns(0) {}
@@ -27,7 +27,7 @@ class timer {
     static timer never() { return {}; }
 
     // We explicitly do not support other custom formats: timespec, int64_t nanos.
-    // Unify on this and abel::abel_time, please.
+    // Unify on this and abel::time_point, please.
 
     bool has_timeout() const { return _ns != 0; }
 
@@ -64,10 +64,10 @@ class timer {
     // timeout.
     int64_t _ns;
 
-    static int64_t make_ns(abel::abel_time t) {
+    static int64_t make_ns(abel::time_point t) {
         // optimization--infinite_future is common "no timeout" value
         // and cheaper to compare than convert.
-        if (t == abel::abel_time::infinite_future()) return 0;
+        if (t == abel::time_point::infinite_future()) return 0;
         int64_t x = t.to_unix_nanos();
 
         // A timeout that lands exactly on the epoch (x=0) needs to be respected,

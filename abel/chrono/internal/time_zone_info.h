@@ -52,7 +52,7 @@ struct transition_type {
     std::uint_least8_t abbr_index;  // index of the new abbreviation
 };
 
-// A time zone backed by the IANA abel_time Zone Database (zoneinfo).
+// A time zone backed by the IANA time_point Zone Database (zoneinfo).
 class time_zone_info : public time_zone_if {
 public:
     time_zone_info() = default;

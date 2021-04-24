@@ -18,7 +18,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "abel/base/profile.h"
-#include "abel/math/bit_cast.h"
+#include "abel/base/math.h"
 #include "abel/log/logging.h"
 #include "abel/debugging/internal/stack_consumption.h"
 #include "abel/memory/memory.h"

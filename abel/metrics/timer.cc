@@ -41,11 +41,11 @@ void timer::observe(int64_t tick) {
 }
 
 stop_watcher timer::start() {
-    return stop_watcher(abel::now(), shared_from_this());
+    return stop_watcher(abel::time_now(), shared_from_this());
 }
 
-void timer::record(abel::abel_time start) {
-    auto const duration = abel::now() - start;
+void timer::record(abel::time_point start) {
+    auto const duration = abel::time_now() - start;
     observe(duration);
 }
 

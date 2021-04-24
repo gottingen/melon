@@ -9,8 +9,7 @@
 #include <chrono>
 #include "abel/base/profile.h"
 #include "abel/numeric/int128.h"
-#include "abel/math/bit_cast.h"
-#include "abel/math/round.h"
+#include "abel/base/math.h"
 
 namespace abel {
 
@@ -66,7 +65,7 @@ constexpr duration operator-(duration d);
 //
 // The `abel::duration` class represents a signed, fixed-length span of time.
 // A `duration` is generated using a unit-specific factory function, or is
-// the result of subtracting one `abel::abel_time` from another. Durations behave
+// the result of subtracting one `abel::time_point` from another. Durations behave
 // like unit-safe integers and they support all the natural integer-like
 // arithmetic operations. Arithmetic overflows and saturates at +/- infinity.
 // `duration` should be passed by value rather than const reference.

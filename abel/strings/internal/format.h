@@ -13,7 +13,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "abel/math/countl_zero.h"
+#include "abel/base/math.h"
 #include "abel/strings/internal/core.h"
 
 

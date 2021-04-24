@@ -4,10 +4,10 @@
 
 //
 
-// The implementation of the abel::abel_time class, which is declared in
+// The implementation of the abel::time_point class, which is declared in
 // //abel/time.h.
 //
-// The representation for an abel::abel_time is an abel::duration offset from the
+// The representation for an abel::time_point is an abel::duration offset from the
 // epoch.  We use the traditional Unix epoch (1970-01-01 00:00:00 +0000)
 // for convenience, but this is not exposed in the API and could be changed.
 //
@@ -19,7 +19,7 @@
 // ti: An abel::time_zone::time_info
 // cd: An abel::chrono_day or a abel::chrono_internal::civil_day
 // cs: An abel::chrono_second or a abel::chrono_internal::civil_second
-// bd: An abel::abel_time::breakdown
+// bd: An abel::time_point::breakdown
 // cl: A abel::chrono_internal::time_zone::civil_lookup
 // al: A abel::chrono_internal::time_zone::absolute_lookup
 
@@ -52,8 +52,8 @@ ABEL_FORCE_INLINE int64_t FloorToUnit(abel::duration d, abel::duration unit) {
             q == std::numeric_limits<int64_t>::min()) ? q : q - 1;
 }
 
-ABEL_FORCE_INLINE abel::abel_time::breakdown InfiniteFutureBreakdown() {
-    abel::abel_time::breakdown bd;
+ABEL_FORCE_INLINE abel::time_point::breakdown InfiniteFutureBreakdown() {
+    abel::time_point::breakdown bd;
     bd.year = std::numeric_limits<int64_t>::max();
     bd.month = 12;
     bd.day = 31;
@@ -69,8 +69,8 @@ ABEL_FORCE_INLINE abel::abel_time::breakdown InfiniteFutureBreakdown() {
     return bd;
 }
 
-ABEL_FORCE_INLINE abel::abel_time::breakdown InfinitePastBreakdown() {
-    abel_time::breakdown bd;
+ABEL_FORCE_INLINE abel::time_point::breakdown InfinitePastBreakdown() {
+    time_point::breakdown bd;
     bd.year = std::numeric_limits<int64_t>::min();
     bd.month = 1;
     bd.day = 1;
@@ -108,7 +108,7 @@ ABEL_FORCE_INLINE abel::time_zone::chrono_info InfinitePastCivilInfo() {
 
 ABEL_FORCE_INLINE abel::time_conversion InfiniteFutureTimeConversion() {
     abel::time_conversion tc;
-    tc.pre = tc.trans = tc.post = abel::abel_time::infinite_future();
+    tc.pre = tc.trans = tc.post = abel::time_point::infinite_future();
     tc.kind = abel::time_conversion::UNIQUE;
     tc.normalized = true;
     return tc;
@@ -116,15 +116,15 @@ ABEL_FORCE_INLINE abel::time_conversion InfiniteFutureTimeConversion() {
 
 ABEL_FORCE_INLINE time_conversion InfinitePastTimeConversion() {
     abel::time_conversion tc;
-    tc.pre = tc.trans = tc.post = abel::abel_time::infinite_past();
+    tc.pre = tc.trans = tc.post = abel::time_point::infinite_past();
     tc.kind = abel::time_conversion::UNIQUE;
     tc.normalized = true;
     return tc;
 }
 
-// Makes a abel_time from sec, overflowing to infinite_future/infinite_past as
+// Makes a time_point from sec, overflowing to infinite_future/infinite_past as
 // necessary. If sec is min/max, then consult cs+tz to check for overlow.
-abel_time MakeTimeWithOverflow(const abel::chrono_internal::time_point<abel::chrono_internal::seconds> &sec,
+time_point MakeTimeWithOverflow(const abel::chrono_internal::time_point<abel::chrono_internal::seconds> &sec,
                                const abel::chrono_internal::civil_second &cs,
                                const abel::chrono_internal::time_zone &tz,
                                bool *normalized = nullptr) {
@@ -135,7 +135,7 @@ abel_time MakeTimeWithOverflow(const abel::chrono_internal::time_point<abel::chr
         if (cs > al.cs) {
             if (normalized)
                 *normalized = true;
-            return abel::abel_time::infinite_future();
+            return abel::time_point::infinite_future();
         }
     }
     if (sec == min) {
@@ -143,11 +143,11 @@ abel_time MakeTimeWithOverflow(const abel::chrono_internal::time_point<abel::chr
         if (cs < al.cs) {
             if (normalized)
                 *normalized = true;
-            return abel::abel_time::infinite_past();
+            return abel::time_point::infinite_past();
         }
     }
     const auto hi = (sec - internal_unix_epoch()).count();
-    return abel_time::from_unix_duration(duration::make_duration(hi));
+    return time_point::from_unix_duration(duration::make_duration(hi));
 }
 
 // Returns Mon=1..Sun=7.
@@ -175,7 +175,7 @@ bool FindTransition(const abel::chrono_internal::time_zone &tz,
                     bool (abel::chrono_internal::time_zone::*find_transition)(
                             const abel::chrono_internal::time_point<abel::chrono_internal::seconds> &tp,
                             abel::chrono_internal::time_zone::civil_transition *trans) const,
-                    abel_time t, time_zone::chrono_transition *trans) {
+                    time_point t, time_zone::chrono_transition *trans) {
     // Transitions are second-aligned, so we can discard any fractional part.
     const auto tp = internal_unix_epoch() + abel::chrono_internal::seconds(t.to_unix_seconds());
     abel::chrono_internal::time_zone::civil_transition tr;
@@ -189,13 +189,13 @@ bool FindTransition(const abel::chrono_internal::time_zone &tz,
 }  // namespace
 
 //
-// abel_time
+// time_point
 //
 
-abel::abel_time::breakdown abel_time::in(abel::time_zone tz) const {
-    if (*this == abel::abel_time::infinite_future())
+abel::time_point::breakdown time_point::in(abel::time_zone tz) const {
+    if (*this == abel::time_point::infinite_future())
         return InfiniteFutureBreakdown();
-    if (*this == abel::abel_time::infinite_past())
+    if (*this == abel::time_point::infinite_past())
         return InfinitePastBreakdown();
 
     const auto tp = internal_unix_epoch() + abel::chrono_internal::seconds(duration::get_rep_hi(rep_));
@@ -203,7 +203,7 @@ abel::abel_time::breakdown abel_time::in(abel::time_zone tz) const {
     const auto cs = al.cs;
     const auto cd = abel::chrono_internal::civil_day(cs);
 
-    abel::abel_time::breakdown bd;
+    abel::time_point::breakdown bd;
     bd.year = cs.year();
     bd.month = cs.month();
     bd.day = cs.day();
@@ -223,67 +223,67 @@ abel::abel_time::breakdown abel_time::in(abel::time_zone tz) const {
 // Conversions from/to other time types.
 //
 
-abel::abel_time abel_time::from_date(double udate) {
-    return abel_time::from_unix_duration(duration::milliseconds(udate));
+abel::time_point time_point::from_date(double udate) {
+    return time_point::from_unix_duration(duration::milliseconds(udate));
 }
 
-abel::abel_time abel_time::from_universal(int64_t universal) {
-    return abel::abel_time::universal_epoch() + 100 * duration::nanoseconds(universal);
+abel::time_point time_point::from_universal(int64_t universal) {
+    return abel::time_point::universal_epoch() + 100 * duration::nanoseconds(universal);
 }
 
-int64_t abel_time::to_unix_nanos() const {
-    if (duration::get_rep_hi(abel_time::to_unix_duration(*this)) >= 0 &&
-        duration::get_rep_hi(abel_time::to_unix_duration(*this)) >> 33 == 0) {
-        return (duration::get_rep_hi(abel_time::to_unix_duration(*this)) *
+int64_t time_point::to_unix_nanos() const {
+    if (duration::get_rep_hi(time_point::to_unix_duration(*this)) >= 0 &&
+        duration::get_rep_hi(time_point::to_unix_duration(*this)) >> 33 == 0) {
+        return (duration::get_rep_hi(time_point::to_unix_duration(*this)) *
                 1000 * 1000 * 1000) +
-               (duration::get_rep_lo(abel_time::to_unix_duration(*this)) / 4);
+               (duration::get_rep_lo(time_point::to_unix_duration(*this)) / 4);
     }
-    return FloorToUnit(abel_time::to_unix_duration(*this), duration::nanoseconds(1));
+    return FloorToUnit(time_point::to_unix_duration(*this), duration::nanoseconds(1));
 }
 
-int64_t abel_time::to_unix_micros() const {
-    if (duration::get_rep_hi(abel_time::to_unix_duration(*this)) >= 0 &&
-        duration::get_rep_hi(abel_time::to_unix_duration(*this)) >> 43 == 0) {
-        return (duration::get_rep_hi(abel_time::to_unix_duration(*this)) *
+int64_t time_point::to_unix_micros() const {
+    if (duration::get_rep_hi(time_point::to_unix_duration(*this)) >= 0 &&
+        duration::get_rep_hi(time_point::to_unix_duration(*this)) >> 43 == 0) {
+        return (duration::get_rep_hi(time_point::to_unix_duration(*this)) *
                 1000 * 1000) +
-               (duration::get_rep_lo(abel_time::to_unix_duration(*this)) / 4000);
+               (duration::get_rep_lo(time_point::to_unix_duration(*this)) / 4000);
     }
-    return FloorToUnit(abel_time::to_unix_duration(*this), duration::microseconds(1));
+    return FloorToUnit(time_point::to_unix_duration(*this), duration::microseconds(1));
 }
 
-int64_t abel_time::to_unix_millis() const {
-    if (duration::get_rep_hi(abel_time::to_unix_duration(*this)) >= 0 &&
-        duration::get_rep_hi(abel_time::to_unix_duration(*this)) >> 53 == 0) {
-        return (duration::get_rep_hi(abel_time::to_unix_duration(*this)) * 1000) +
-               (duration::get_rep_lo(abel_time::to_unix_duration(*this)) /
+int64_t time_point::to_unix_millis() const {
+    if (duration::get_rep_hi(time_point::to_unix_duration(*this)) >= 0 &&
+        duration::get_rep_hi(time_point::to_unix_duration(*this)) >> 53 == 0) {
+        return (duration::get_rep_hi(time_point::to_unix_duration(*this)) * 1000) +
+               (duration::get_rep_lo(time_point::to_unix_duration(*this)) /
                 (4000 * 1000));
     }
-    return FloorToUnit(abel_time::to_unix_duration(*this), duration::milliseconds(1));
+    return FloorToUnit(time_point::to_unix_duration(*this), duration::milliseconds(1));
 }
 
-int64_t abel_time::to_unix_seconds() const {
-    return duration::get_rep_hi(abel_time::to_unix_duration(*this));
+int64_t time_point::to_unix_seconds() const {
+    return duration::get_rep_hi(time_point::to_unix_duration(*this));
 }
 
-time_t abel_time::to_time_t() const { return to_timespec().tv_sec; }
+time_t time_point::to_time_t() const { return to_timespec().tv_sec; }
 
-double abel_time::to_date() const {
+double time_point::to_date() const {
     return rep_.float_div_duration(duration::milliseconds(1));
 }
 
-int64_t abel_time::to_universal() const {
-    return abel::FloorToUnit(*this - abel::abel_time::universal_epoch(), duration::nanoseconds(100));
+int64_t time_point::to_universal() const {
+    return abel::FloorToUnit(*this - abel::time_point::universal_epoch(), duration::nanoseconds(100));
 }
 
-abel::abel_time abel_time::from_timespec(timespec ts) {
+abel::time_point time_point::from_timespec(timespec ts) {
     return from_unix_duration(duration::from_timespec(ts));
 }
 
-abel::abel_time abel_time::from_timeval(timeval tv) {
+abel::time_point time_point::from_timeval(timeval tv) {
     return from_unix_duration(duration::from_timeval(tv));
 }
 
-timespec abel_time::to_timespec() const {
+timespec time_point::to_timespec() const {
     timespec ts;
     abel::duration d = to_unix_duration(*this);
     if (!d.is_infinite_duration()) {
@@ -303,7 +303,7 @@ timespec abel_time::to_timespec() const {
     return ts;
 }
 
-timeval abel_time::to_timeval() const {
+timeval time_point::to_timeval() const {
     timeval tv;
     timespec ts = to_timespec();
     tv.tv_sec = ts.tv_sec;
@@ -321,13 +321,13 @@ timeval abel_time::to_timeval() const {
     return tv;
 }
 
-abel_time abel_time::from_chrono(const std::chrono::system_clock::time_point &tp) {
-    return abel_time::from_unix_duration(duration::from_chrono(tp - std::chrono::system_clock::from_time_t(0)));
+time_point time_point::from_chrono(const std::chrono::system_clock::time_point &tp) {
+    return time_point::from_unix_duration(duration::from_chrono(tp - std::chrono::system_clock::from_time_t(0)));
 }
 
-std::chrono::system_clock::time_point abel_time::to_chrono_time() const {
+std::chrono::system_clock::time_point time_point::to_chrono_time() const {
     using D = std::chrono::system_clock::duration;
-    auto d = abel_time::to_unix_duration(*this);
+    auto d = time_point::to_unix_duration(*this);
     if (d < zero_duration())
         d = d.floor(duration::from_chrono(D{1}));
     return std::chrono::system_clock::from_time_t(0) +
@@ -338,13 +338,13 @@ std::chrono::system_clock::time_point abel_time::to_chrono_time() const {
 // time_zone
 //
 
-abel::time_zone::chrono_info time_zone::at(abel_time t) const {
-    if (t == abel::abel_time::infinite_future())
+abel::time_zone::chrono_info time_zone::at(time_point t) const {
+    if (t == abel::time_point::infinite_future())
         return InfiniteFutureCivilInfo();
-    if (t == abel::abel_time::infinite_past())
+    if (t == abel::time_point::infinite_past())
         return InfinitePastCivilInfo();
 
-    const auto ud = abel_time::to_unix_duration(t);
+    const auto ud = time_point::to_unix_duration(t);
     const auto tp = internal_unix_epoch() + abel::chrono_internal::seconds(duration::get_rep_hi(ud));
     const auto al = cz_.lookup(tp);
 
@@ -379,11 +379,11 @@ abel::time_zone::time_info time_zone::at(chrono_second ct) const {
     return ti;
 }
 
-bool time_zone::next_transition(abel_time t, chrono_transition *trans) const {
+bool time_zone::next_transition(time_point t, chrono_transition *trans) const {
     return FindTransition(cz_, &abel::chrono_internal::time_zone::next_transition, t, trans);
 }
 
-bool time_zone::prev_transition(abel_time t, chrono_transition *trans) const {
+bool time_zone::prev_transition(time_point t, chrono_transition *trans) const {
     return FindTransition(cz_, &abel::chrono_internal::time_zone::prev_transition, t, trans);
 }
 
@@ -425,13 +425,13 @@ abel::time_conversion convert_date_time(int64_t year, int mon, int day, int hour
     return tc;
 }
 
-abel::abel_time from_tm(const struct tm &tm, abel::time_zone tz) {
+abel::time_point from_tm(const struct tm &tm, abel::time_zone tz) {
     chrono_year_t tm_year = tm.tm_year;
     // Avoids years that are too extreme for chrono_second to normalize.
     if (tm_year > 300000000000ll)
-        return abel_time::infinite_future();
+        return time_point::infinite_future();
     if (tm_year < -300000000000ll)
-        return abel_time::infinite_past();
+        return time_point::infinite_past();
     int tm_mon = tm.tm_mon;
     if (tm_mon == std::numeric_limits<int>::max()) {
         tm_mon -= 12;
@@ -442,7 +442,7 @@ abel::abel_time from_tm(const struct tm &tm, abel::time_zone tz) {
     return tm.tm_isdst == 0 ? ti.post : ti.pre;
 }
 
-struct tm to_tm(abel::abel_time t, abel::time_zone tz) {
+struct tm to_tm(abel::time_point t, abel::time_zone tz) {
     struct tm tm = {};
 
     const auto ci = tz.at(t);

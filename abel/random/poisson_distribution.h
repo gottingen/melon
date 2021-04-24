@@ -12,7 +12,7 @@
 #include "abel/random/internal/fast_uniform_bits.h"
 #include "abel/random/internal/generate_real.h"
 #include "abel/random/internal/iostream_state_saver.h"
-#include "abel/math/log.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

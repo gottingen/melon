@@ -28,7 +28,7 @@ class timer : public std::enable_shared_from_this<timer> {
 
     static std::shared_ptr<timer> new_timer(const bucket &buckets);
 
-    void record(abel::abel_time start);
+    void record(abel::time_point start);
 
   private:
     timer(const bucket &buckets);

@@ -273,7 +273,7 @@ const std::int_fast64_t kExp10[kDigits10_64 + 1] = {
 
 }  // namespace
 
-// Uses strftime(3) to format the given abel_time.  The following extended format
+// Uses strftime(3) to format the given time_point.  The following extended format
 // specifiers are also supported:
 //
 //   - %Ez  - RFC3339-compatible numeric UTC offset (+hh:mm or -hh:mm)

@@ -8,7 +8,7 @@
 #include "abel/meta/type_traits.h"
 #include "abel/numeric/int128.h"
 #include "abel/random/internal/iostream_state_saver.h"
-#include "abel/math/rotr.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

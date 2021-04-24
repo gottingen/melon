@@ -19,10 +19,10 @@
 
 namespace {
 
-    TEST(abel_time, Now) {
-        const abel::abel_time before = abel::abel_time::from_unix_nanos(abel::get_current_time_nanos());
-        const abel::abel_time now = abel::now();
-        const abel::abel_time after = abel::abel_time::from_unix_nanos(abel::get_current_time_nanos());
+    TEST(time_point, Now) {
+        const abel::time_point before = abel::time_point::from_unix_nanos(abel::get_current_time_nanos());
+        const abel::time_point now = abel::time_now();
+        const abel::time_point after = abel::time_point::from_unix_nanos(abel::get_current_time_nanos());
         EXPECT_GE(now, before);
         EXPECT_GE(after, now);
     }
@@ -47,8 +47,8 @@ namespace {
     bool SleepForBounded(abel::duration d, abel::duration lower_bound,
                          abel::duration upper_bound, abel::duration timeout,
                          AlarmPolicy alarm_policy, int *attempts) {
-        const abel::abel_time deadline = abel::now() + timeout;
-        while (abel::now() < deadline) {
+        const abel::time_point deadline = abel::time_now() + timeout;
+        while (abel::time_now() < deadline) {
 #if defined(ABEL_HAVE_ALARM)
             sig_t old_alarm = SIG_DFL;
             if (alarm_policy == AlarmPolicy::kWithAlarm) {
@@ -60,9 +60,9 @@ namespace {
             EXPECT_EQ(alarm_policy, AlarmPolicy::kWithoutAlarm);
 #endif
             ++*attempts;
-            abel::abel_time start = abel::now();
+            abel::time_point start = abel::time_now();
             abel::sleep_for(d);
-            abel::duration actual = abel::now() - start;
+            abel::duration actual = abel::time_now() - start;
 #if defined(ABEL_HAVE_ALARM)
             if (alarm_policy == AlarmPolicy::kWithAlarm) {
                 signal(SIGALRM, old_alarm);

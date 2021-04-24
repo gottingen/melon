@@ -41,9 +41,9 @@ ABEL_FORCE_INLINE std::pair<time_point<seconds>, seconds> split_seconds(const ti
 
 // abel::chrono_internal::time_zone is an opaque, small, value-type class representing a
 // geo-political region within which particular rules are used for mapping
-// between absolute and civil times. abel_time zones are named using the TZ
-// identifiers from the IANA abel_time Zone Database, such as "America/Los_Angeles"
-// or "Australia/Sydney". abel_time zones are created from factory functions such
+// between absolute and civil times. time_point zones are named using the TZ
+// identifiers from the IANA time_point Zone Database, such as "America/Los_Angeles"
+// or "Australia/Sydney". time_point zones are created from factory functions such
 // as load_time_zone(). Note: strings like "PST" and "EDT" are not valid TZ
 // identifiers.
 //
@@ -198,7 +198,7 @@ public:
 
     // version() and description() provide additional information about the
     // time zone. The content of each of the returned strings is unspecified,
-    // however, when the IANA abel_time Zone Database is the underlying data source
+    // however, when the IANA time_point Zone Database is the underlying data source
     // the version() std::string will be in the familar form (e.g, "2018e") or
     // empty when unavailable.
     //

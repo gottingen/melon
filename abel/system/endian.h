@@ -18,7 +18,7 @@
 #include "abel/base/profile.h"
 #include "abel/atomic/unaligned_access.h"
 #include "abel/base/profile.h"
-#include "abel/math/bit_swap.h"
+#include "abel/base/math.h"
 
 namespace abel {
 

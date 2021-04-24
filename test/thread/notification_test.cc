@@ -58,12 +58,12 @@ static void BasicTests(bool notify_before_waiting, notification *notification) {
     EXPECT_FALSE(notification->has_been_notified());
     EXPECT_FALSE(
             notification->wait_for_notification_with_timeout(abel::duration::milliseconds(0)));
-    EXPECT_FALSE(notification->wait_for_notification_with_deadline(abel::now()));
+    EXPECT_FALSE(notification->wait_for_notification_with_deadline(abel::time_now()));
 
     const abel::duration delay = abel::duration::milliseconds(50);
-    const abel::abel_time start = abel::now();
+    const abel::time_point start = abel::time_now();
     EXPECT_FALSE(notification->wait_for_notification_with_timeout(delay));
-    const abel::duration elapsed = abel::now() - start;
+    const abel::duration elapsed = abel::time_now() - start;
 
     // Allow for a slight early return, to account for quality of implementation
     // issues on various platforms.
@@ -103,7 +103,7 @@ static void BasicTests(bool notify_before_waiting, notification *notification) {
     notification->wait_for_notification();  // should exit immediately
     EXPECT_TRUE(notification->has_been_notified());
     EXPECT_TRUE(notification->wait_for_notification_with_timeout(abel::duration::seconds(0)));
-    EXPECT_TRUE(notification->wait_for_notification_with_deadline(abel::now()));
+    EXPECT_TRUE(notification->wait_for_notification_with_deadline(abel::time_now()));
     for (std::thread &worker : workers) {
         worker.join();
     }

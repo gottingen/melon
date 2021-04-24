@@ -83,7 +83,7 @@ class PerThreadSemTest : public testing::Test {
         ThreadData t;
         t.num_iterations = kNumIterations;
         t.timeout = timeout ?
-                    kernel_timeout(abel::now() + abel::duration::seconds(10000))  // far in the future
+                    kernel_timeout(abel::time_now() + abel::duration::seconds(10000))  // far in the future
                             : kernel_timeout::never();
         t.identity1 = get_or_create_current_thread_identity();
 
@@ -123,7 +123,7 @@ class PerThreadSemTest : public testing::Test {
     }
 
     // convenience overload
-    static bool wait(abel::abel_time t) {
+    static bool wait(abel::time_point t) {
         return wait(kernel_timeout(t));
     }
 
@@ -144,9 +144,9 @@ TEST_F(PerThreadSemTest, WithTimeout) {
 
 TEST_F(PerThreadSemTest, Timeouts) {
     const abel::duration delay = abel::duration::milliseconds(50);
-    const abel::abel_time start = abel::now();
+    const abel::time_point start = abel::time_now();
     EXPECT_FALSE(wait(start + delay));
-    const abel::duration elapsed = abel::now() - start;
+    const abel::duration elapsed = abel::time_now() - start;
     // Allow for a slight early return, to account for quality of implementation
     // issues on various platforms.
     const abel::duration slop = abel::duration::microseconds(200);
@@ -154,9 +154,9 @@ TEST_F(PerThreadSemTest, Timeouts) {
                         << "wait returned " << delay - elapsed
                         << " early (with " << slop << " slop), start time was " << start;
 
-    abel::abel_time negative_timeout = abel::abel_time::unix_epoch() - abel::duration::milliseconds(100);
+    abel::time_point negative_timeout = abel::time_point::unix_epoch() - abel::duration::milliseconds(100);
     EXPECT_FALSE(wait(negative_timeout));
-    EXPECT_LE(negative_timeout, abel::now() + slop);  // trivially true :)
+    EXPECT_LE(negative_timeout, abel::time_now() + slop);  // trivially true :)
 
     post(get_or_create_current_thread_identity());
     // The wait here has an expired timeout, but we have a wake to consume,

@@ -24,7 +24,13 @@
 #include "abel/container/flat_hash_set.h"
 #include "abel/strings/numbers.h"
 #include "abel/base/profile.h"
+#include "gflags/gflags.h"
 
+DEFINE_bool(ignore_inaccessible_cpus, true,
+          "During enumerating CPUs, in case there are CPU(s) to which we "
+          "cannot bind our pthread workers, this flag controls the action we "
+          "take. [DEPRECATED: This flag is no longer respected, and abel "
+          "will always behaves as if the flag is set.].");
 
 namespace abel {
 
@@ -187,12 +193,12 @@ namespace abel {
 
         }  // namespace
 
-        std::vector<numa_node> GetAvailableNodes() {
+        std::vector<numa_node> get_available_nodes() {
             static const auto rc = GetAvailableNodesImpl();
             return rc;
         }
 
-        int GetCurrentNode() {
+        int get_current_node() {
             unsigned cpu, node;
 
             // Another approach: https://stackoverflow.com/a/27450168
@@ -200,22 +206,22 @@ namespace abel {
             return node;
         }
 
-        std::size_t GetCurrentNodeIndex() { return GetNodeIndex(GetCurrentNode()); }
+        std::size_t get_current_node_index() { return get_node_index(get_current_node()); }
 
-        int GetNodeId(std::size_t index) {
+        int get_node_id(std::size_t index) {
             DCHECK_LT(index, nodes_present.size());
             return nodes_present[index];
         }
 
-        std::size_t GetNodeIndex(int node_id) {
+        std::size_t get_node_index(int node_id) {
             DCHECK_LT(node_id, node_index.size());
             DCHECK_LT(node_index[node_id], nodes_present.size());
             return node_index[node_id];
         }
 
-        std::size_t GetNumberOfNodesAvailable() { return nodes_present.size(); }
+        std::size_t get_number_of_nodes_available() { return nodes_present.size(); }
 
-        int GetNodeOfProcessor(int cpu) {
+        int get_node_of_processor(int cpu) {
             DCHECK_LE(cpu, node_of_cpus.size());
             auto node = node_of_cpus[cpu];
             DCHECK_MSG(node != -1, "Processor #{} is not accessible.", cpu);
@@ -224,7 +230,7 @@ namespace abel {
 
     }  // namespace numa
 
-    int GetCurrentProcessorId() {
+    int get_current_processor_id() {
         unsigned cpu, node;
         DCHECK_MSG(0 == GetCpu(&cpu, &node, nullptr), "Cannot get current CPU ID.");
         return cpu;
@@ -305,6 +311,7 @@ namespace abel {
         }
         return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
 #else
+        ABEL_UNUSED(affinity);
         return 0;
 #endif
 
@@ -321,7 +328,7 @@ namespace abel {
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
         auto rc = pthread_getaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-        FLARE_CHECK(rc == 0, "Cannot get thread affinity of thread [{}]: [{}] {}.",
+        ABEL_CHECK(rc == 0, "Cannot get thread affinity of thread [{}]: [{}] {}.",
                     reinterpret_cast<const void*>(pthread_self()), rc, strerror(rc));
 
         std::vector<int> result;
@@ -337,16 +344,17 @@ namespace abel {
     }
 
     void SetCurrentThreadName(const std::string &name) {
+
 #if defined(ABEL_PLATFORM_LINUX)
         auto rc = pthread_setname_np(pthread_self(), name.c_str());
         if (rc != 0) {
-            FLARE_LOG_WARNING("Cannot set name for thread [{}]: [{}] {}",
+            ABEL_LOG_WARNING("Cannot set name for thread [{}]: [{}] {}",
                               reinterpret_cast<const void*>(pthread_self()), rc,
                               strerror(rc));
             // Silently ignored.
         }
 #else
-
+    ABEL_UNUSED(name);
 #endif
     }
 }  // namespace abel

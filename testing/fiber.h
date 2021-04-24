@@ -2,8 +2,8 @@
 // Created by liyinbin on 2021/4/5.
 //
 
-#ifndef ABEL_FIBER_H
-#define ABEL_FIBER_H
+#ifndef TESTING_FIBER_H_
+#define TESTING_FIBER_H_
 
 
 #include <atomic>
@@ -19,16 +19,16 @@ namespace testing {
 
     template <class F>
     void RunAsFiber(F&& f) {
-        abel::StartRuntime();
+        abel::start_runtime();
         std::atomic<bool> done{};
-        Fiber([&, f = std::forward<F>(f)] {
+        abel::fiber([&, f = std::forward<F>(f)] {
             f();
             done = true;
         }).detach();
         while (!done) {
             std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
-        abel::TerminateRuntime();
+        abel::terminate_runtime();
     }
 
     template <class F>
@@ -41,4 +41,4 @@ namespace testing {
 
 }  // namespace testing
 
-#endif //ABEL_FIBER_H
+#endif  // TESTING_FIBER_H_

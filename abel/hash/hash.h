@@ -100,7 +100,7 @@ namespace abel {
 //    * abel::inlined_vector
 //    * abel::fixed_array
 //    * abel::uint128
-//    * abel::abel_time, abel::duration, and abel::time_zone
+//    * abel::time_point, abel::duration, and abel::time_zone
 //
 // Note: the list above is not meant to be exhaustive. Additional type support
 // may be added, in which case the above list will be updated.

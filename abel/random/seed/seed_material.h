@@ -68,7 +68,7 @@ ABEL_MUST_USE_RESULT bool read_seed_material_from_urbg(
 }
 
 // Mixes given sequence of values with into given sequence of seed material.
-// abel_time complexity of this function is O(sequence.size() *
+// time_point complexity of this function is O(sequence.size() *
 // seed_material.size()).
 //
 // Algorithm is based on code available at

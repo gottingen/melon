@@ -16,12 +16,12 @@ class timer;
 
 class stop_watcher {
   public:
-    stop_watcher(abel::abel_time, std::shared_ptr<timer> recorder);
+    stop_watcher(abel::time_point, std::shared_ptr<timer> recorder);
 
     void stop();
 
   private:
-    const abel::abel_time _start;
+    const abel::time_point _start;
     std::shared_ptr<timer> _recorder;
 };
 }  // namespace metrics

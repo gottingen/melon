@@ -47,8 +47,8 @@ namespace abel {
         std::vector<std::thread> ts;
 
         for (int i = 0; i != 100; ++i) {
-            ts.push_back(std::thread([&, s = abel::now()] {
-                while (abel::now() + abel::duration::seconds(10) < s) {
+            ts.push_back(std::thread([&, s = abel::time_now()] {
+                while (abel::time_now() + abel::duration::seconds(10) < s) {
                     if (Random() % 1000 == 0) {
                         str.emplace(std::to_string(Random() % 33333));
                     } else {

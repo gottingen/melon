@@ -23,12 +23,12 @@ class stop_watcher {
     }
 
     void start() {
-        _start = abel::now();
+        _start = abel::time_now();
         _stop = _start;
     }
 
     void stop() {
-        _stop = abel::now();
+        _stop = abel::time_now();
     }
 
     abel::duration elapsed() {
@@ -36,8 +36,8 @@ class stop_watcher {
     }
 
   private:
-    abel::abel_time _start;
-    abel::abel_time _stop;
+    abel::time_point _start;
+    abel::time_point _stop;
 };
 }  // namespace abel
 

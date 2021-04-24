@@ -38,7 +38,7 @@
 #include "abel/base/profile.h"
 #include "abel/numeric/int128.h"
 #include <string_view>
-#include "abel/math/countl_zero.h"
+#include "abel/base/math.h"
 
 namespace abel {
 
