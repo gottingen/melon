@@ -32,7 +32,7 @@ namespace testing {
     }
 
     template <class F>
-    void StartFiberEntityInGroup(abel::fiber_internal::scheduling_group* sg, bool system_fiber,
+    void start_fiber_entity_in_group(abel::fiber_internal::scheduling_group* sg, bool system_fiber,
                                  F&& f) {
         auto fiber = abel::fiber_internal::create_fiber_entity(sg, system_fiber, std::forward<F>(f));
         fiber->scheduling_group_local = false;

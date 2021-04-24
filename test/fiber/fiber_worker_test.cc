@@ -35,7 +35,7 @@ namespace abel {
                 for (int i = 0; i != 16; ++i) {
                     workers.emplace_back(sg.get(), i).start(false);
                 }
-                testing::StartFiberEntityInGroup(sg.get(), GetParam(), [&] {
+                testing::start_fiber_entity_in_group(sg.get(), GetParam(), [&] {
                     auto cpu = abel::get_current_processor_id();
                     ASSERT_TRUE(1 <= cpu && cpu <= 3)<<cpu;
                 });
@@ -56,7 +56,7 @@ namespace abel {
             for (int i = 0; i != 16; ++i) {
                 workers.emplace_back(sg.get(), i).start(false);
             }
-            testing::StartFiberEntityInGroup(sg.get(), GetParam(), [&] {
+            testing::start_fiber_entity_in_group(sg.get(), GetParam(), [&] {
 #if defined(ABEL_PLATFORM_LINUX)
                 auto cpu = abel::get_current_processor_id();
                 ASSERT_TRUE(1 <= cpu && cpu <= 3);
@@ -79,7 +79,7 @@ namespace abel {
             sg->set_timer_worker(&dummy);
             std::deque<fiber_worker> workers;
 
-            testing::StartFiberEntityInGroup(sg2.get(), GetParam(), [&] { ++executed; });
+            testing::start_fiber_entity_in_group(sg2.get(), GetParam(), [&] { ++executed; });
             for (int i = 0; i != 16; ++i) {
                 auto &&w = workers.emplace_back(sg.get(), i);
                 w.add_foreign_scheduling_group(sg2.get(), 1);
@@ -87,7 +87,7 @@ namespace abel {
             }
             while (!executed) {
                 // To wake worker up.
-                testing::StartFiberEntityInGroup(sg.get(), GetParam(), [] {});
+                testing::start_fiber_entity_in_group(sg.get(), GetParam(), [] {});
                 abel::sleep_for(abel::duration::milliseconds(1));
             }
             sg->stop();
@@ -124,11 +124,11 @@ namespace abel {
                         constexpr auto kChildren = 32;
                         static_assert(N % P == 0 && (N / P) % kChildren == 0);
                         for (int i = 0; i != N / P / kChildren; ++i) {
-                            testing::StartFiberEntityInGroup(
+                            testing::start_fiber_entity_in_group(
                                     sg.get(), Random() % 2 == 0 /* system_fiber */, [&] {
                                         ++executed;
                                         for (auto j = 0; j != kChildren - 1 /* minus itself */; ++j) {
-                                            testing::StartFiberEntityInGroup(
+                                            testing::start_fiber_entity_in_group(
                                                     sg.get(), Random() % 2 == 0 /* system_fiber */,
                                                     [&] { ++executed; });
                                         }

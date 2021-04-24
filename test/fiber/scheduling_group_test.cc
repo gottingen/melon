@@ -124,7 +124,7 @@ namespace fiber_internal {
         for (int i = 0; i != N; ++i) {
             // Even if we never call `FreeFiberEntity`, no leak should be reported (it's
             // implicitly recycled when `FiberProc` returns).
-            testing::StartFiberEntityInGroup(sg.get(), GetParam(),
+            testing::start_fiber_entity_in_group(sg.get(), GetParam(),
                                              [&] { FiberProc(&context); });
         }
         while (context.executed_fibers != N) {
@@ -167,7 +167,7 @@ namespace fiber_internal {
             workers[i] = std::thread(WorkerTest, sg.get(), i);
         }
 
-        testing::StartFiberEntityInGroup(sg.get(), GetParam(), [&] {
+        testing::start_fiber_entity_in_group(sg.get(), GetParam(), [&] {
             SwitchToNewFiber(sg.get(), GetParam(), N);
         });
         while (switched != N) {
@@ -265,7 +265,7 @@ namespace fiber_internal {
 
         constexpr auto N = 30000;
         for (int i = 0; i != N; ++i) {
-            testing::StartFiberEntityInGroup(sg.get(), GetParam(),
+            testing::start_fiber_entity_in_group(sg.get(), GetParam(),
                                              [&] { SleepyFiberProc(&leaving); });
         }
         while (leaving != N) {
@@ -291,7 +291,7 @@ namespace fiber_internal {
         auto start = abel::time_now();
         std::atomic<std::size_t> called{};
         std::atomic<std::uint64_t> timer_id;
-        testing::StartFiberEntityInGroup(sg.get(), GetParam(), [&] {
+        testing::start_fiber_entity_in_group(sg.get(), GetParam(), [&] {
             auto cb = [&](auto) {
                 if (called < 10) {
                     ++called;

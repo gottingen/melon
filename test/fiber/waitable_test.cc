@@ -58,7 +58,7 @@ namespace abel {
             }
             timer_worker.start();
             for (int i = 0; i != times; ++i) {
-                testing::StartFiberEntityInGroup(sg.get(), system_fiber, [&, i] {
+                testing::start_fiber_entity_in_group(sg.get(), system_fiber, [&, i] {
                     cb(i);
                     ++called;
                 });
