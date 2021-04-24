@@ -1,15 +1,17 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #include <cstdlib>
 #include <thread>  // NOLINT(build/c++11), abel test
 #include <type_traits>
 
-#include <abel/base/profile.h>
-#include <abel/base/const_init.h>
-#include <abel/log/abel_logging.h>
-#include <abel/thread/thread_annotations.h>
-#include <abel/thread/mutex.h>
-#include <abel/thread/notification.h>
+#include "abel/base/profile.h"
+#include "abel/base/const_init.h"
+#include "abel/log/logging.h"
+#include "abel/thread/thread_annotations.h"
+#include "abel/thread/mutex.h"
+#include "abel/thread/notification.h"
 
 namespace {
 
@@ -20,23 +22,24 @@ namespace {
 // Thread one acquires a lock on 'mutex', wakes thread two via 'notification',
 // then waits for 'state' to be set, as signalled by 'condvar'.
 //
+
 // Thread two waits on 'notification', then sets 'state' inside the 'mutex',
 // signalling the change via 'condvar'.
 //
-// These tests use ABEL_RAW_CHECK to validate invariants, rather than EXPECT or
+// These tests use DCHECK to validate invariants, rather than EXPECT or
 // ASSERT from gUnit, because we need to invoke them during global destructors,
 // when gUnit teardown would have already begun.
     void ThreadOne(abel::mutex *mutex, abel::cond_var *condvar,
                    abel::notification *notification, bool *state) {
         // Test that the notification is in a valid initial state.
-        ABEL_RAW_CHECK(!notification->has_been_notified(), "invalid notification");
-        ABEL_RAW_CHECK(*state == false, "*state not initialized");
+        DCHECK_MSG(!notification->has_been_notified(), "invalid notification");
+        DCHECK_MSG(*state == false, "*state not initialized");
 
         {
             abel::mutex_lock lock(mutex);
 
             notification->notify();
-            ABEL_RAW_CHECK(notification->has_been_notified(), "invalid notification");
+            DCHECK_MSG(notification->has_been_notified(), "invalid notification");
 
             while (*state == false) {
                 condvar->wait(mutex);
@@ -46,11 +49,11 @@ namespace {
 
     void ThreadTwo(abel::mutex *mutex, abel::cond_var *condvar,
                    abel::notification *notification, bool *state) {
-        ABEL_RAW_CHECK(*state == false, "*state not initialized");
+        DCHECK_MSG(*state == false, "*state not initialized");
 
         // Wake thread one
         notification->wait_for_notification();
-        ABEL_RAW_CHECK(notification->has_been_notified(), "invalid notification");
+        DCHECK_MSG(notification->has_been_notified(), "invalid notification");
         {
             abel::mutex_lock lock(mutex);
             *state = true;

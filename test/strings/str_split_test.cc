@@ -1,6 +1,8 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/str_split.h>
+#include "abel/strings/str_split.h"
 
 #include <deque>
 #include <initializer_list>
@@ -13,11 +15,11 @@
 #include <unordered_set>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/thread/dynamic_annotations.h>  // for RunningOnValgrind
-#include <abel/base/profile.h>
-#include <abel/strings/numbers.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/thread/dynamic_annotations.h"  // for RunningOnValgrind
+#include "abel/base/profile.h"
+#include "abel/strings/numbers.h"
 
 namespace {
 
@@ -37,13 +39,13 @@ namespace {
                 !abel::strings_internal::splitterIs_convertible_to<std::vector<int>>::value,
                 "");
         static_assert(abel::strings_internal::splitterIs_convertible_to<
-                              std::vector<abel::string_view>>::value,
+                              std::vector<std::string_view>>::value,
                       "");
         static_assert(abel::strings_internal::splitterIs_convertible_to<
                               std::map<std::string, std::string>>::value,
                       "");
         static_assert(abel::strings_internal::splitterIs_convertible_to<
-                              std::map<abel::string_view, abel::string_view>>::value,
+                              std::map<std::string_view, std::string_view>>::value,
                       "");
         static_assert(!abel::strings_internal::splitterIs_convertible_to<
                               std::map<int, std::string>>::value,
@@ -92,7 +94,7 @@ namespace {
 
         {
             // The substrings are returned as string_views, eliminating copying.
-            std::vector<abel::string_view> v = abel::string_split("a,b,c", ',');
+            std::vector<std::string_view> v = abel::string_split("a,b,c", ',');
             EXPECT_THAT(v, ElementsAre("a", "b", "c"));
         }
 
@@ -118,7 +120,7 @@ namespace {
         {
             // Splits std::string data with embedded NUL characters, using NUL as the
             // delimiter. A simple delimiter of "\0" doesn't work because strlen() will
-            // say that's the empty std::string when constructing the abel::string_view
+            // say that's the empty std::string when constructing the std::string_view
             // delimiter. Instead, a non-empty std::string containing NUL can be used as the
             // delimiter.
             std::string embedded_nulls("a\0b\0c", 5);
@@ -207,7 +209,7 @@ namespace {
         {
             // Demonstrates use in a range-based for loop in C++11.
             std::string s = "x,x,x,x,x,x,x";
-            for (abel::string_view sp : abel::string_split(s, ',')) {
+            for (std::string_view sp : abel::string_split(s, ',')) {
                 EXPECT_EQ("x", sp);
             }
         }
@@ -216,7 +218,7 @@ namespace {
             // Demonstrates use with a Predicate in a range-based for loop.
             using abel::skip_whitespace;
             std::string s = " ,x,,x,,x,x,x,,";
-            for (abel::string_view sp : abel::string_split(s, ',', skip_whitespace())) {
+            for (std::string_view sp : abel::string_split(s, ',', skip_whitespace())) {
                 EXPECT_EQ("x", sp);
             }
         }
@@ -227,7 +229,7 @@ namespace {
             // the keys and values. This also uses the Limit delimiter so that the
             // std::string "a=b=c" will split to "a" -> "b=c".
             std::map<std::string, std::string> m;
-            for (abel::string_view sp : abel::string_split("a=b=c,d=e,f=,g", ',')) {
+            for (std::string_view sp : abel::string_split("a=b=c,d=e,f=,g", ',')) {
                 m.insert(abel::string_split(sp, abel::max_splits('=', 1)));
             }
             EXPECT_EQ("b=c", m.find("a")->second);
@@ -261,7 +263,7 @@ namespace {
     public:
         explicit Skip(const std::string &s) : s_(s) {}
 
-        bool operator()(abel::string_view sp) { return sp != s_; }
+        bool operator()(std::string_view sp) { return sp != s_; }
 
     private:
         std::string s_;
@@ -316,14 +318,14 @@ namespace {
     }
 
     TEST(Split, EmptyAndNull) {
-        // Attention: Splitting a null abel::string_view is different than splitting
-        // an empty abel::string_view even though both string_views are considered
+        // Attention: Splitting a null std::string_view is different than splitting
+        // an empty std::string_view even though both string_views are considered
         // equal. This behavior is likely surprising and undesirable. However, to
         // maintain backward compatibility, there is a small "hack" in
         // str_split_internal.h that preserves this behavior. If that behavior is ever
         // changed/fixed, this test will need to be updated.
-        EXPECT_THAT(abel::string_split(abel::string_view(""), '-'), ElementsAre(""));
-        EXPECT_THAT(abel::string_split(abel::string_view(), '-'), ElementsAre());
+        EXPECT_THAT(abel::string_split(std::string_view(""), '-'), ElementsAre(""));
+        EXPECT_THAT(abel::string_split(std::string_view(), '-'), ElementsAre());
     }
 
     TEST(split_iterator, EqualityAsEndCondition) {
@@ -340,7 +342,7 @@ namespace {
         // for loop. This relies on split_iterator equality for non-end SplitIterators
         // working correctly. At this point it2 points to "c", and we use that as the
         // "end" condition in this test.
-        std::vector<abel::string_view> v;
+        std::vector<std::string_view> v;
         for (; it != it2; ++it) {
             v.push_back(*it);
         }
@@ -353,8 +355,8 @@ namespace {
 
     TEST(Splitter, RangeIterators) {
         auto splitter = abel::string_split("a,b,c", ',');
-        std::vector<abel::string_view> output;
-        for (const abel::string_view p : splitter) {
+        std::vector<std::string_view> output;
+        for (const std::string_view & p : splitter) {
             output.push_back(p);
         }
         EXPECT_THAT(output, ElementsAre("a", "b", "c"));
@@ -382,30 +384,30 @@ namespace {
     TEST(Splitter, ConversionOperator) {
         auto splitter = abel::string_split("a,b,c,d", ',');
 
-        TestConversionOperator<std::vector<abel::string_view>>(splitter);
+        TestConversionOperator<std::vector<std::string_view>>(splitter);
         TestConversionOperator<std::vector<std::string>>(splitter);
-        TestConversionOperator<std::list<abel::string_view>>(splitter);
+        TestConversionOperator<std::list<std::string_view>>(splitter);
         TestConversionOperator<std::list<std::string>>(splitter);
-        TestConversionOperator<std::deque<abel::string_view>>(splitter);
+        TestConversionOperator<std::deque<std::string_view>>(splitter);
         TestConversionOperator<std::deque<std::string>>(splitter);
-        TestConversionOperator<std::set<abel::string_view>>(splitter);
+        TestConversionOperator<std::set<std::string_view>>(splitter);
         TestConversionOperator<std::set<std::string>>(splitter);
-        TestConversionOperator<std::multiset<abel::string_view>>(splitter);
+        TestConversionOperator<std::multiset<std::string_view>>(splitter);
         TestConversionOperator<std::multiset<std::string>>(splitter);
         TestConversionOperator<std::unordered_set<std::string>>(splitter);
 
         // Tests conversion to map-like objects.
 
-        TestMapConversionOperator<std::map<abel::string_view, abel::string_view>>(
+        TestMapConversionOperator<std::map<std::string_view, std::string_view>>(
                 splitter);
-        TestMapConversionOperator<std::map<abel::string_view, std::string>>(splitter);
-        TestMapConversionOperator<std::map<std::string, abel::string_view>>(splitter);
+        TestMapConversionOperator<std::map<std::string_view, std::string>>(splitter);
+        TestMapConversionOperator<std::map<std::string, std::string_view>>(splitter);
         TestMapConversionOperator<std::map<std::string, std::string>>(splitter);
         TestMapConversionOperator<
-                std::multimap<abel::string_view, abel::string_view>>(splitter);
-        TestMapConversionOperator<std::multimap<abel::string_view, std::string>>(
+                std::multimap<std::string_view, std::string_view>>(splitter);
+        TestMapConversionOperator<std::multimap<std::string_view, std::string>>(
                 splitter);
-        TestMapConversionOperator<std::multimap<std::string, abel::string_view>>(
+        TestMapConversionOperator<std::multimap<std::string, std::string_view>>(
                 splitter);
         TestMapConversionOperator<std::multimap<std::string, std::string>>(splitter);
         TestMapConversionOperator<std::unordered_map<std::string, std::string>>(
@@ -413,9 +415,9 @@ namespace {
 
         // Tests conversion to std::pair
 
-        TestPairConversionOperator<abel::string_view, abel::string_view>(splitter);
-        TestPairConversionOperator<abel::string_view, std::string>(splitter);
-        TestPairConversionOperator<std::string, abel::string_view>(splitter);
+        TestPairConversionOperator<std::string_view, std::string_view>(splitter);
+        TestPairConversionOperator<std::string_view, std::string>(splitter);
+        TestPairConversionOperator<std::string, std::string_view>(splitter);
         TestPairConversionOperator<std::string, std::string>(splitter);
     }
 
@@ -513,7 +515,7 @@ namespace {
         }
 
         {
-            std::vector<abel::string_view> v = abel::string_split("a,b,c", ',');
+            std::vector<std::string_view> v = abel::string_split("a,b,c", ',');
             EXPECT_THAT(v, ElementsAre("a", "b", "c"));
         }
 
@@ -538,7 +540,7 @@ namespace {
         }
     }
 
-    abel::string_view ReturnStringView() { return "Hello World"; }
+    std::string_view ReturnStringView() { return "Hello World"; }
 
     const char *ReturnConstCharP() { return "Hello World"; }
 
@@ -559,13 +561,13 @@ namespace {
         // destroyed, if the splitter keeps a reference to the std::string's contents,
         // it'll reference freed memory instead of just dead on-stack memory.
         const char input[] = "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u";
-        EXPECT_LT(sizeof(std::string), ABEL_ARRAYSIZE(input))
+        EXPECT_LT(sizeof(std::string), ABEL_ARRAY_SIZE(input))
                             << "Input should be larger than fits on the stack.";
 
         // This happens more often in C++11 as part of a range-based for loop.
         auto splitter = abel::string_split(std::string(input), ',');
         std::string expected = "a";
-        for (abel::string_view letter : splitter) {
+        for (std::string_view letter : splitter) {
             EXPECT_EQ(expected, letter);
             ++expected[0];
         }
@@ -574,7 +576,7 @@ namespace {
         // This happens more often in C++11 as part of a range-based for loop.
         auto std_splitter = abel::string_split(std::string(input), ',');
         expected = "a";
-        for (abel::string_view letter : std_splitter) {
+        for (std::string_view letter : std_splitter) {
             EXPECT_EQ(expected, letter);
             ++expected[0];
         }
@@ -617,18 +619,18 @@ namespace {
 
     TEST(Split, StringDelimiter) {
         {
-            std::vector<abel::string_view> v = abel::string_split("a,b", ',');
+            std::vector<std::string_view> v = abel::string_split("a,b", ',');
             EXPECT_THAT(v, ElementsAre("a", "b"));
         }
 
         {
-            std::vector<abel::string_view> v = abel::string_split("a,b", std::string(","));
+            std::vector<std::string_view> v = abel::string_split("a,b", std::string(","));
             EXPECT_THAT(v, ElementsAre("a", "b"));
         }
 
         {
-            std::vector<abel::string_view> v =
-                    abel::string_split("a,b", abel::string_view(","));
+            std::vector<std::string_view> v =
+                    abel::string_split("a,b", std::string_view(","));
             EXPECT_THAT(v, ElementsAre("a", "b"));
         }
     }
@@ -644,7 +646,7 @@ namespace {
         {
             // A utf8 input std::string with an ascii delimiter.
             std::string to_split = "a," + utf8_string;
-            std::vector<abel::string_view> v = abel::string_split(to_split, ',');
+            std::vector<std::string_view> v = abel::string_split(to_split, ',');
             EXPECT_THAT(v, ElementsAre("a", utf8_string));
         }
 
@@ -652,14 +654,14 @@ namespace {
             // A utf8 input std::string and a utf8 delimiter.
             std::string to_split = "a," + utf8_string + ",b";
             std::string unicode_delimiter = "," + utf8_string + ",";
-            std::vector<abel::string_view> v =
+            std::vector<std::string_view> v =
                     abel::string_split(to_split, unicode_delimiter);
             EXPECT_THAT(v, ElementsAre("a", "b"));
         }
 
         {
             // A utf8 input std::string and by_any_char with ascii chars.
-            std::vector<abel::string_view> v =
+            std::vector<std::string_view> v =
                     abel::string_split(u8"Foo h\u00E4llo th\u4E1Ere", abel::by_any_char(" \t"));
             EXPECT_THAT(v, ElementsAre("Foo", u8"h\u00E4llo", u8"th\u4E1Ere"));
         }
@@ -693,8 +695,8 @@ namespace {
     }
 
     TEST(Split, SubstrDelimiter) {
-        std::vector<abel::string_view> results;
-        abel::string_view delim("//");
+        std::vector<std::string_view> results;
+        std::string_view delim("//");
 
         results = abel::string_split("", delim);
         EXPECT_THAT(results, ElementsAre(""));
@@ -725,7 +727,7 @@ namespace {
     }
 
     TEST(Split, EmptyResults) {
-        std::vector<abel::string_view> results;
+        std::vector<std::string_view> results;
 
         results = abel::string_split("", '#');
         EXPECT_THAT(results, ElementsAre(""));
@@ -756,9 +758,9 @@ namespace {
     }
 
     template<typename Delimiter>
-    static bool IsFoundAtStartingPos(abel::string_view text, Delimiter d,
+    static bool IsFoundAtStartingPos(std::string_view text, Delimiter d,
                                      size_t starting_pos, int expected_pos) {
-        abel::string_view found = d.find(text, starting_pos);
+        std::string_view found = d.find(text, starting_pos);
         return found.data() != text.data() + text.size() &&
                expected_pos == found.data() - text.data();
     }
@@ -769,7 +771,7 @@ namespace {
 //   1. The actual text given, staring at position 0
 //   2. The text given with leading padding that should be ignored
     template<typename Delimiter>
-    static bool IsFoundAt(abel::string_view text, Delimiter d, int expected_pos) {
+    static bool IsFoundAt(std::string_view text, Delimiter d, int expected_pos) {
         const std::string leading_text = ",x,y,z,";
         return IsFoundAtStartingPos(text, d, 0, expected_pos) &&
                IsFoundAtStartingPos(leading_text + std::string(text), d,
@@ -807,11 +809,11 @@ namespace {
         TestComma(comma_string);
 
         // The first occurrence of empty std::string ("") in a std::string is at position 0.
-        // There is a test below that demonstrates this for abel::string_view::find().
+        // There is a test below that demonstrates this for std::string_view::find().
         // If the by_string delimiter returned position 0 for this, there would
         // be an infinite loop in the split_iterator code. To avoid this, empty std::string
         // is a special case in that it always returns the item at position 1.
-        abel::string_view abc("abc");
+        std::string_view abc("abc");
         EXPECT_EQ(0, abc.find(""));  // "" is found at position 0
         by_string empty("");
         EXPECT_FALSE(IsFoundAt("", empty, 0));
@@ -868,7 +870,7 @@ namespace {
         EXPECT_FALSE(IsFoundAt("=", two_delims, -1));
 
         // by_any_char behaves just like by_string when given a delimiter of empty
-        // std::string. That is, it always returns a zero-length abel::string_view
+        // std::string. That is, it always returns a zero-length std::string_view
         // referring to the item at position 1, not position 0.
         by_any_char empty("");
         EXPECT_FALSE(IsFoundAt("", empty, 0));
@@ -902,7 +904,7 @@ namespace {
         if (sizeof(size_t) > 4) {
             std::string s((uint32_t{1} << 31) + 1, 'x');  // 2G + 1 byte
             s.back() = '-';
-            std::vector<abel::string_view> v = abel::string_split(s, '-');
+            std::vector<std::string_view> v = abel::string_split(s, '-');
             EXPECT_EQ(2, v.size());
             // The first element will contain 2G of 'x's.
             // testing::starts_with is too slow with a 2G std::string.

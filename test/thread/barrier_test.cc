@@ -1,13 +1,13 @@
-//
-
-#include <abel/thread/barrier.h>
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #include <thread>  // NOLINT(build/c++11)
 #include <vector>
-
-#include <gtest/gtest.h>
-#include <abel/thread/mutex.h>
-#include <abel/chrono/clock.h>
+#include "abel/thread/barrier.h"
+#include "gtest/gtest.h"
+#include "abel/thread/mutex.h"
+#include "abel/chrono/clock.h"
 
 
 TEST(barrier, SanityTest) {
@@ -40,7 +40,7 @@ TEST(barrier, SanityTest) {
     // sleep has elapsed. Sleeping in a test is usually bad form, but we
     // need to make sure that we are testing the barrier instead of some
     // other synchronization method.
-    abel::sleep_for(abel::seconds(1));
+    abel::sleep_for( abel::duration::seconds(1));
 
     // The counter should still be zero since no thread should have
     // been able to pass the barrier yet.

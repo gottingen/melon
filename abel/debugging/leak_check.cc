@@ -1,26 +1,29 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 
 // Wrappers around lsan_interface functions.
 // When lsan is not linked in, these functions are not available,
 // therefore abel code which depends on these functions is conditioned on the
 // definition of LEAK_SANITIZER.
-#include <abel/debugging/leak_check.h>
+#include "abel/debugging/leak_check.h"
 
 #ifndef LEAK_SANITIZER
 
 namespace abel {
 
-    bool have_leak_sanitizer() { return false; }
+bool have_leak_sanitizer() { return false; }
 
-    void do_ignore_leak(const void *) {}
+void do_ignore_leak(const void *) {}
 
-    void register_live_pointers(const void *, size_t) {}
+void register_live_pointers(const void *, size_t) {}
 
-    void unregister_live_pointers(const void *, size_t) {}
+void unregister_live_pointers(const void *, size_t) {}
 
-    leak_check_disabler::leak_check_disabler() {}
+leak_check_disabler::leak_check_disabler() {}
 
-    leak_check_disabler::~leak_check_disabler() {}
+leak_check_disabler::~leak_check_disabler() {}
 
 }  // namespace abel
 

@@ -1,11 +1,11 @@
-//
-// Created by liyinbin on 2020/3/10.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/atomic/atomic_queue.h>
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/base/profile.h>
+#include "abel/atomic/atomic_queue.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/base/profile.h"
 
 namespace abel {
 
@@ -60,4 +60,4 @@ TEST(atomic_queue, ctor) {
     EXPECT_EQ(q.size_approx(), 0);
 }
 
-} //namespace abel
+}  // namespace abel

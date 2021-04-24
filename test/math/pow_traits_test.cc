@@ -1,11 +1,10 @@
-//
-// Created by liyinbin on 2020/3/4.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-
-#include "math_test.h"
 #include <limits>
-#include <abel/math/pow_traits.h>
+#include "math_test.h"
+#include "abel/math/pow_traits.h"
 
 TEST(is_power_of_two, all) {
 

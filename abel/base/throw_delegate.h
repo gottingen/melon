@@ -1,11 +1,12 @@
-//
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_BASE_THROW_DELEGATE_H_
 #define ABEL_BASE_THROW_DELEGATE_H_
 
 #include <string>
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
@@ -24,45 +25,45 @@ namespace abel {
 // both with and without exceptions and you need to conform to an interface
 // that uses exceptions.
 
-        [[noreturn]] void throw_std_logic_error(const std::string &what_arg);
+[[noreturn]] void throw_std_logic_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_logic_error(const char *what_arg);
+[[noreturn]] void throw_std_logic_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_invalid_argument(const std::string &what_arg);
+[[noreturn]] void throw_std_invalid_argument(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_invalid_argument(const char *what_arg);
+[[noreturn]] void throw_std_invalid_argument(const char *what_arg);
 
-        [[noreturn]] void throw_std_domain_error(const std::string &what_arg);
+[[noreturn]] void throw_std_domain_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_domain_error(const char *what_arg);
+[[noreturn]] void throw_std_domain_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_length_error(const std::string &what_arg);
+[[noreturn]] void throw_std_length_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_length_error(const char *what_arg);
+[[noreturn]] void throw_std_length_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_out_of_range(const std::string &what_arg);
+[[noreturn]] void throw_std_out_of_range(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_out_of_range(const char *what_arg);
+[[noreturn]] void throw_std_out_of_range(const char *what_arg);
 
-        [[noreturn]] void throw_std_runtime_error(const std::string &what_arg);
+[[noreturn]] void throw_std_runtime_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_runtime_error(const char *what_arg);
+[[noreturn]] void throw_std_runtime_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_range_error(const std::string &what_arg);
+[[noreturn]] void throw_std_range_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_range_error(const char *what_arg);
+[[noreturn]] void throw_std_range_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_overflow_error(const std::string &what_arg);
+[[noreturn]] void throw_std_overflow_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_overflow_error(const char *what_arg);
+[[noreturn]] void throw_std_overflow_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_underflow_error(const std::string &what_arg);
+[[noreturn]] void throw_std_underflow_error(const std::string &what_arg);
 
-        [[noreturn]] void throw_std_underflow_error(const char *what_arg);
+[[noreturn]] void throw_std_underflow_error(const char *what_arg);
 
-        [[noreturn]] void throw_std_bad_function_call();
+[[noreturn]] void throw_std_bad_function_call();
 
-        [[noreturn]] void throw_std_bad_alloc();
+[[noreturn]] void throw_std_bad_alloc();
 
 // ThrowStdBadArrayNewLength() cannot be consistently supported because
 // std::bad_array_new_length is missing in libstdc++ until 4.9.0.

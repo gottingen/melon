@@ -1,23 +1,23 @@
-//
-// Created by liyinbin on 2020/1/28.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_CHRONO_INTERNAL_CHRONO_TIME_INTERNAL_H_
 #define ABEL_CHRONO_INTERNAL_CHRONO_TIME_INTERNAL_H_
 
-#include <abel/base/profile.h>
-#include <abel/chrono/internal/chrono_time_detail.h>
+#include "abel/base/profile.h"
+#include "abel/chrono/internal/chrono_time_detail.h"
 
 namespace abel {
-    namespace chrono_internal {
+namespace chrono_internal {
 
 
-        using civil_year = detail::civil_year;
-        using civil_month = detail::civil_month;
-        using civil_day = detail::civil_day;
-        using civil_hour = detail::civil_hour;
-        using civil_minute = detail::civil_minute;
-        using civil_second = detail::civil_second;
+using civil_year = detail::civil_year;
+using civil_month = detail::civil_month;
+using civil_day = detail::civil_day;
+using civil_hour = detail::civil_hour;
+using civil_minute = detail::civil_minute;
+using civil_second = detail::civil_second;
 
 // An enum class with members monday, tuesday, wednesday, thursday, friday,
 // saturday, and sunday. These enum values may be sent to an output stream
@@ -27,14 +27,14 @@ namespace abel {
 //   weekday wd = weekday::thursday;
 //   std::cout << wd << "\n";  // Outputs: Thursday
 //
-        using detail::weekday;
+using detail::weekday;
 
 // Returns the weekday for the given civil-time value.
 //
 //   civil_day a(2015, 8, 13);
 //   weekday wd = get_weekday(a);  // wd == weekday::thursday
 //
-        using detail::get_weekday;
+using detail::get_weekday;
 
 // Returns the civil_day that strictly follows or precedes the given
 // civil_day, and that falls on the given weekday.
@@ -60,8 +60,8 @@ namespace abel {
 //   // Gets the previous Thursday if d is not already Thursday
 //   civil_day thurs2 = prev_weekday(d + 1, weekday::thursday);
 //
-        using detail::next_weekday;
-        using detail::prev_weekday;
+using detail::next_weekday;
+using detail::prev_weekday;
 
 // Returns the day-of-year for the given civil-time value.
 //
@@ -70,9 +70,9 @@ namespace abel {
 //   civil_day b(2015, 12, 31);
 //   int yd_dec_31 = get_yearday(b);  // yd_dec_31 = 365
 //
-        using detail::get_yearday;
+using detail::get_yearday;
 
-    } //chrono_internal
-} //abel
+}  // chrono_internal
+}  // abel
 
-#endif //ABEL_CHRONO_INTERNAL_CHRONO_TIME_INTERNAL_H_
+#endif  // ABEL_CHRONO_INTERNAL_CHRONO_TIME_INTERNAL_H_

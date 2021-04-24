@@ -1,3 +1,6 @@
+# Copyright (c) 2021, gottingen group.
+# All rights reserved.
+# Created by liyinbin lijippy@163.com
 
 file(GLOB SRC "*.cc")
 

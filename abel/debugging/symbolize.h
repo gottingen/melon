@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // -----------------------------------------------------------------------------
 // File: symbolize.h
@@ -39,7 +42,7 @@
 #ifndef ABEL_DEBUGGING_SYMBOLIZE_H_
 #define ABEL_DEBUGGING_SYMBOLIZE_H_
 
-#include <abel/debugging/internal/symbolize.h>
+#include "abel/debugging/internal/symbolize.h"
 
 namespace abel {
 
@@ -57,7 +60,7 @@ namespace abel {
 //   abel::initialize_symbolizer(argv[0]);
 //   // Now you can use the symbolizer
 // }
-    void initialize_symbolizer(const char *argv0);
+void initialize_symbolizer(const char *argv0);
 
 // symbolize()
 //
@@ -78,7 +81,7 @@ namespace abel {
 //     }
 //     abel::printf("%*p  %s\n", pc, symbol);
 //  }
-    bool symbolize(const void *pc, char *out, int out_size);
+bool symbolize(const void *pc, char *out, int out_size);
 
 
 }  // namespace abel

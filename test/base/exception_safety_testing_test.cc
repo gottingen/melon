@@ -1,6 +1,8 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <testing/exception_safety_testing.h>
+#include "testing/exception_safety_testing.h"
 
 #ifdef ABEL_HAVE_EXCEPTIONS
 
@@ -12,8 +14,8 @@
 #include <vector>
 
 #include "gtest/gtest-spi.h"
-#include <gtest/gtest.h>
-#include <abel/memory/memory.h>
+#include "gtest/gtest.h"
+#include "abel/memory/memory.h"
 
 namespace testing {
 

@@ -1,66 +1,68 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <testing/exception_safety_testing.h>
+#include "testing/exception_safety_testing.h"
+#include "gtest/gtest.h"
+#include "abel/meta/type_traits.h"
 
 #ifdef ABEL_HAVE_EXCEPTIONS
 
-#include <gtest/gtest.h>
-#include <abel/asl/type_traits.h>
-
 namespace testing {
 
-    exceptions_internal::NoThrowTag nothrow_ctor;
+exceptions_internal::NoThrowTag nothrow_ctor;
 
-    exceptions_internal::StrongGuaranteeTagType strong_guarantee;
+exceptions_internal::StrongGuaranteeTagType strong_guarantee;
 
-    exceptions_internal::ExceptionSafetyTestBuilder<> MakeExceptionSafetyTester() {
-        return {};
+exceptions_internal::ExceptionSafetyTestBuilder<> MakeExceptionSafetyTester() {
+    return {};
+}
+
+namespace exceptions_internal {
+
+int countdown = -1;
+
+ConstructorTracker *ConstructorTracker::current_tracker_instance_ = nullptr;
+
+void MaybeThrow(std::string_view msg, bool throw_bad_alloc) {
+    if (countdown-- == 0) {
+        if (throw_bad_alloc)
+            throw TestBadAllocException(msg);
+        throw TestException(msg);
     }
+}
 
-    namespace exceptions_internal {
+testing::AssertionResult FailureMessage(const TestException &e,
+                                        int countDown) noexcept {
+    return testing::AssertionFailure() << "Exception thrown from " << e.what();
+}
 
-        int countdown = -1;
+std::string GetSpecString(TypeSpec spec) {
+    std::string out;
+    std::string_view sep;
+    const auto append = [&](std::string_view s) {
+        abel::string_append(&out, sep, s);
+        sep = " | ";
+    };
+    if (static_cast<bool>(TypeSpec::kNoThrowCopy & spec)) {
+        append("kNoThrowCopy");
+    }
+    if (static_cast<bool>(TypeSpec::kNoThrowMove & spec)) {
+        append("kNoThrowMove");
+    }
+    if (static_cast<bool>(TypeSpec::kNoThrowNew & spec)) {
+        append("kNoThrowNew");
+    }
+    return out;
+}
 
-        ConstructorTracker *ConstructorTracker::current_tracker_instance_ = nullptr;
+std::string GetSpecString(AllocSpec spec) {
+    return static_cast<bool>(AllocSpec::kNoThrowAllocate & spec)
+           ? "kNoThrowAllocate"
+           : "";
+}
 
-        void MaybeThrow(abel::string_view msg, bool throw_bad_alloc) {
-            if (countdown-- == 0) {
-                if (throw_bad_alloc)
-                    throw TestBadAllocException(msg);
-                throw TestException(msg);
-            }
-        }
-
-        testing::AssertionResult FailureMessage(const TestException &e,
-                                                int countDown) noexcept {
-            return testing::AssertionFailure() << "Exception thrown from " << e.what();
-        }
-
-        std::string GetSpecString(TypeSpec spec) {
-            std::string out;
-            abel::string_view sep;
-            const auto append = [&](abel::string_view s) {
-                abel::string_append(&out, sep, s);
-                sep = " | ";
-            };
-            if (static_cast<bool>(TypeSpec::kNoThrowCopy & spec)) {
-                append("kNoThrowCopy");
-            }
-            if (static_cast<bool>(TypeSpec::kNoThrowMove & spec)) {
-                append("kNoThrowMove");
-            }
-            if (static_cast<bool>(TypeSpec::kNoThrowNew & spec)) {
-                append("kNoThrowNew");
-            }
-            return out;
-        }
-
-        std::string GetSpecString(AllocSpec spec) {
-            return static_cast<bool>(AllocSpec::kNoThrowAllocate & spec)
-                   ? "kNoThrowAllocate"
-                   : "";
-        }
-
-    }  // namespace exceptions_internal
+}  // namespace exceptions_internal
 
 }  // namespace testing
 

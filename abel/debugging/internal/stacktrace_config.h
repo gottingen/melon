@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_DEBUGGING_INTERNAL_STACKTRACE_CONFIG_H_
 #define ABEL_DEBUGGING_INTERNAL_STACKTRACE_CONFIG_H_

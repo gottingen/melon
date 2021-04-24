@@ -1,20 +1,23 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 
 // base::address_is_readable() probes an address to see whether it is readable,
 // without faulting.
 
-#include <abel/debugging/internal/address_is_readable.h>
+#include "abel/debugging/internal/address_is_readable.h"
 
 #if !defined(__linux__) || defined(__ANDROID__)
 
 namespace abel {
 
-    namespace debugging_internal {
+namespace debugging_internal {
 
 // On platforms other than Linux, just return true.
-        bool address_is_readable(const void * /* addr */) { return true; }
+bool address_is_readable(const void * /* addr */) { return true; }
 
-    }  // namespace debugging_internal
+}  // namespace debugging_internal
 
 }  // namespace abel
 
@@ -27,7 +30,7 @@ namespace abel {
 #include <cerrno>
 #include <cstdint>
 
-#include <abel/log/abel_logging.h>
+#include "abel/log/logging.h"
 
 namespace abel {
 
@@ -36,7 +39,7 @@ namespace debugging_internal {
 // Pack a pid and two file descriptors into a 64-bit word,
 // using 16, 24, and 24 bits for each respectively.
 static uint64_t Pack(uint64_t pid, uint64_t read_fd, uint64_t write_fd) {
-  ABEL_RAW_CHECK((read_fd >> 24) == 0 && (write_fd >> 24) == 0,
+  DCHECK_MSG((read_fd >> 24) == 0 && (write_fd >> 24) == 0,
                  "fd out of range");
   return (pid << 48) | ((read_fd & 0xffffff) << 24) | (write_fd & 0xffffff);
 }
@@ -78,7 +81,7 @@ bool address_is_readable(const void *addr) {
       int p[2];
       // new pipe
       if (pipe(p) != 0) {
-        ABEL_RAW_CRITICAL("Failed to create pipe, errno={}", errno);
+        DLOG_CRITICAL("Failed to create pipe, errno={}", errno);
       }
       fcntl(p[0], F_SETFD, FD_CLOEXEC);
       fcntl(p[1], F_SETFD, FD_CLOEXEC);

@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef TEST_TESTING_MOCKING_BIT_GEN_H_
 #define TEST_TESTING_MOCKING_BIT_GEN_H_
@@ -10,28 +13,28 @@
 #include <typeindex>
 #include <typeinfo>
 #include <utility>
+#include <variant>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/asl/flat_hash_map.h>
-#include <abel/asl/type_traits.h>
-#include <abel/stats/random/distributions.h>
-#include <abel/stats/random/internal/distribution_caller.h>
-#include <testing/mocking_bit_gen_base.h>
-#include <abel/strings/str_cat.h>
-#include <abel/strings/str_join.h>
-#include <abel/asl/span.h>
-#include <abel/asl/variant.h>
-#include <abel/asl/utility.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/container/flat_hash_map.h"
+#include "abel/meta/type_traits.h"
+#include "abel/random/distributions.h"
+#include "abel/random/internal/distribution_caller.h"
+#include "testing/mocking_bit_gen_base.h"
+#include "abel/strings/str_cat.h"
+#include "abel/strings/str_join.h"
+#include "abel/utility/span.h"
+#include "abel/utility/utility.h"
 
 namespace abel {
 
-    namespace random_internal {
+namespace random_internal {
 
-        template<typename, typename>
-        struct MockSingleOverload;
+template<typename, typename>
+struct MockSingleOverload;
 
-    }  // namespace random_internal
+}  // namespace random_internal
 
 // MockingBitGen
 //
@@ -69,102 +72,102 @@ namespace abel {
 // At this time, only mock distributions supplied within the abel random
 // library are officially supported.
 //
-    class MockingBitGen : public abel::random_internal::MockingBitGenBase {
-    public:
-        MockingBitGen() {}
+class MockingBitGen : public abel::random_internal::MockingBitGenBase {
+  public:
+    MockingBitGen() {}
 
-        ~MockingBitGen() override;
+    ~MockingBitGen() override;
 
-    private:
-        template<typename DistrT, typename... Args>
-        using MockFnType =
-        ::testing::MockFunction<typename DistrT::result_type(Args...)>;
+  private:
+    template<typename DistrT, typename... Args>
+    using MockFnType =
+    ::testing::MockFunction<typename DistrT::result_type(Args...)>;
 
-        // MockingBitGen::Register
-        //
-        // Register<DistrT, FormatT, ArgTupleT> is the main extension point for
-        // extending the MockingBitGen framework. It provides a mechanism to install a
-        // mock expectation for the distribution `distr_t` onto the MockingBitGen
-        // context.
-        //
-        // The returned MockFunction<...> type can be used to setup additional
-        // distribution parameters of the expectation.
-        template<typename DistrT, typename... Args, typename... Ms>
-        decltype(std::declval<MockFnType<DistrT, Args...>>().gmock_Call(
-                std::declval<Ms>()...))
-        Register(Ms &&... matchers) {
-            auto &mock =
-                    mocks_[std::type_index(GetTypeId<DistrT, std::tuple<Args...>>())];
+    // MockingBitGen::Register
+    //
+    // Register<DistrT, FormatT, ArgTupleT> is the main extension point for
+    // extending the MockingBitGen framework. It provides a mechanism to install a
+    // mock expectation for the distribution `distr_t` onto the MockingBitGen
+    // context.
+    //
+    // The returned MockFunction<...> type can be used to setup additional
+    // distribution parameters of the expectation.
+    template<typename DistrT, typename... Args, typename... Ms>
+    decltype(std::declval<MockFnType<DistrT, Args...>>().gmock_Call(
+            std::declval<Ms>()...))
+    Register(Ms &&... matchers) {
+        auto &mock =
+                mocks_[std::type_index(GetTypeId<DistrT, std::tuple<Args...>>())];
 
-            if (!mock.mock_fn) {
-                auto *mock_fn = new MockFnType<DistrT, Args...>;
-                mock.mock_fn = mock_fn;
-                mock.match_impl = &MatchImpl<DistrT, Args...>;
-                deleters_.emplace_back([mock_fn] { delete mock_fn; });
-            }
-
-            return static_cast<MockFnType<DistrT, Args...> *>(mock.mock_fn)
-                    ->gmock_Call(std::forward<Ms>(matchers)...);
+        if (!mock.mock_fn) {
+            auto *mock_fn = new MockFnType<DistrT, Args...>;
+            mock.mock_fn = mock_fn;
+            mock.match_impl = &MatchImpl<DistrT, Args...>;
+            deleters_.emplace_back([mock_fn] { delete mock_fn; });
         }
 
-        mutable std::vector<std::function<void()>> deleters_;
+        return static_cast<MockFnType<DistrT, Args...> *>(mock.mock_fn)
+                ->gmock_Call(std::forward<Ms>(matchers)...);
+    }
 
-        using match_impl_fn = void (*)(void *mock_fn, void *t_erased_dist_args,
-                                       void *t_erased_result);
-        struct MockData {
-            void *mock_fn = nullptr;
-            match_impl_fn match_impl = nullptr;
-        };
+    mutable std::vector<std::function<void()>> deleters_;
 
-        mutable abel::flat_hash_map<std::type_index, MockData> mocks_;
-
-        template<typename DistrT, typename... Args>
-        static void MatchImpl(void *mock_fn, void *dist_args, void *result) {
-            using result_type = typename DistrT::result_type;
-            *static_cast<result_type *>(result) = abel::apply(
-                    [mock_fn](Args... args) -> result_type {
-                        return (*static_cast<MockFnType<DistrT, Args...> *>(mock_fn))
-                                .Call(std::move(args)...);
-                    },
-                    *static_cast<std::tuple<Args...> *>(dist_args));
-        }
-
-        // Looks for an appropriate mock - Returns the mocked result if one is found.
-        // Otherwise, returns a random value generated by the underlying URBG.
-        bool CallImpl(const std::type_info &key_type, void *dist_args,
-                      void *result) override {
-            // Trigger a mock, if there exists one that matches `param`.
-            auto it = mocks_.find(std::type_index(key_type));
-            if (it == mocks_.end())
-                return false;
-            auto *mock_data = static_cast<MockData *>(&it->second);
-            mock_data->match_impl(mock_data->mock_fn, dist_args, result);
-            return true;
-        }
-
-        template<typename, typename>
-        friend
-        struct ::abel::random_internal::MockSingleOverload;
-        friend struct ::abel::random_internal::distribution_caller<
-                abel::MockingBitGen>;
+    using match_impl_fn = void (*)(void *mock_fn, void *t_erased_dist_args,
+                                   void *t_erased_result);
+    struct MockData {
+        void *mock_fn = nullptr;
+        match_impl_fn match_impl = nullptr;
     };
+
+    mutable abel::flat_hash_map<std::type_index, MockData> mocks_;
+
+    template<typename DistrT, typename... Args>
+    static void MatchImpl(void *mock_fn, void *dist_args, void *result) {
+        using result_type = typename DistrT::result_type;
+        *static_cast<result_type *>(result) = abel::apply(
+                [mock_fn](Args... args) -> result_type {
+                    return (*static_cast<MockFnType<DistrT, Args...> *>(mock_fn))
+                            .Call(std::move(args)...);
+                },
+                *static_cast<std::tuple<Args...> *>(dist_args));
+    }
+
+    // Looks for an appropriate mock - Returns the mocked result if one is found.
+    // Otherwise, returns a random value generated by the underlying URBG.
+    bool CallImpl(const std::type_info &key_type, void *dist_args,
+                  void *result) override {
+        // Trigger a mock, if there exists one that matches `param`.
+        auto it = mocks_.find(std::type_index(key_type));
+        if (it == mocks_.end())
+            return false;
+        auto *mock_data = static_cast<MockData *>(&it->second);
+        mock_data->match_impl(mock_data->mock_fn, dist_args, result);
+        return true;
+    }
+
+    template<typename, typename>
+    friend
+    struct ::abel::random_internal::MockSingleOverload;
+    friend struct ::abel::random_internal::distribution_caller<
+            abel::MockingBitGen>;
+};
 
 // -----------------------------------------------------------------------------
 // Implementation Details Only Below
 // -----------------------------------------------------------------------------
 
-    namespace random_internal {
+namespace random_internal {
 
-        template<>
-        struct distribution_caller<abel::MockingBitGen> {
-            template<typename DistrT, typename FormatT, typename... Args>
-            static typename DistrT::result_type call(abel::MockingBitGen *gen,
-                                                     Args &&... args) {
-                return gen->template call<DistrT, FormatT>(std::forward<Args>(args)...);
-            }
-        };
+template<>
+struct distribution_caller<abel::MockingBitGen> {
+    template<typename DistrT, typename FormatT, typename... Args>
+    static typename DistrT::result_type call(abel::MockingBitGen *gen,
+                                             Args &&... args) {
+        return gen->template call<DistrT, FormatT>(std::forward<Args>(args)...);
+    }
+};
 
-    }  // namespace random_internal
+}  // namespace random_internal
 
 }  // namespace abel
 

@@ -1,13 +1,15 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/memory/memory.h>
+#include "abel/memory/memory.h"
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 #ifdef ABEL_HAVE_EXCEPTIONS
 
-#include <gtest/gtest.h>
-#include <testing/exception_safety_testing.h>
+#include "gtest/gtest.h"
+#include "testing/exception_safety_testing.h"
 
 namespace abel {
 

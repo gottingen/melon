@@ -1,8 +1,10 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 // This file tests string processing functions related to numeric values.
 
-#include <abel/strings/numbers.h>
+#include "abel/strings/numbers.h"
 
 #include <sys/types.h>
 
@@ -22,14 +24,14 @@
 #include <string>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/log/abel_logging.h>
-#include <abel/stats/random/distributions.h>
-#include <abel/stats/random/random.h>
-#include <testing/numbers_test_common.h>
-#include <testing/pow10_helper.h>
-#include <abel/strings/str_cat.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/log/logging.h"
+#include "abel/random/distributions.h"
+#include "abel/random/random.h"
+#include "testing/numbers_test_common.h"
+#include "testing/pow10_helper.h"
+#include "abel/strings/str_cat.h"
 
 namespace {
 
@@ -268,7 +270,7 @@ namespace {
     }
 
     TEST(NumbersTest, Atoi) {
-        // simple_atoi(abel::string_view, int32_t)
+        // simple_atoi(std::string_view, int32_t)
         VerifySimpleAtoiGood<int32_t>(0, 0);
         VerifySimpleAtoiGood<int32_t>(42, 42);
         VerifySimpleAtoiGood<int32_t>(-42, -42);
@@ -278,7 +280,7 @@ namespace {
         VerifySimpleAtoiGood<int32_t>(std::numeric_limits<int32_t>::max(),
                                       std::numeric_limits<int32_t>::max());
 
-        // simple_atoi(abel::string_view, uint32_t)
+        // simple_atoi(std::string_view, uint32_t)
         VerifySimpleAtoiGood<uint32_t>(0, 0);
         VerifySimpleAtoiGood<uint32_t>(42, 42);
         VerifySimpleAtoiBad<uint32_t>(-42);
@@ -292,7 +294,7 @@ namespace {
         VerifySimpleAtoiBad<uint32_t>(std::numeric_limits<int64_t>::max());
         VerifySimpleAtoiBad<uint32_t>(std::numeric_limits<uint64_t>::max());
 
-        // simple_atoi(abel::string_view, int64_t)
+        // simple_atoi(std::string_view, int64_t)
         VerifySimpleAtoiGood<int64_t>(0, 0);
         VerifySimpleAtoiGood<int64_t>(42, 42);
         VerifySimpleAtoiGood<int64_t>(-42, -42);
@@ -309,7 +311,7 @@ namespace {
                                       std::numeric_limits<int64_t>::max());
         VerifySimpleAtoiBad<int64_t>(std::numeric_limits<uint64_t>::max());
 
-        // simple_atoi(abel::string_view, uint64_t)
+        // simple_atoi(std::string_view, uint64_t)
         VerifySimpleAtoiGood<uint64_t>(0, 0);
         VerifySimpleAtoiGood<uint64_t>(42, 42);
         VerifySimpleAtoiBad<uint64_t>(-42);
@@ -325,7 +327,7 @@ namespace {
         VerifySimpleAtoiGood<uint64_t>(std::numeric_limits<uint64_t>::max(),
                                        std::numeric_limits<uint64_t>::max());
 
-        // simple_atoi(abel::string_view, abel::uint128)
+        // simple_atoi(std::string_view, abel::uint128)
         VerifySimpleAtoiGood<abel::uint128>(0, 0);
         VerifySimpleAtoiGood<abel::uint128>(42, 42);
         VerifySimpleAtoiBad<abel::uint128>(-42);
@@ -628,7 +630,7 @@ namespace {
     const size_t kNumRandomTests = 10000;
 
     template<typename IntType>
-    void test_random_integer_parse_base(bool (*parse_func)(abel::string_view,
+    void test_random_integer_parse_base(bool (*parse_func)(std::string_view,
                                                            IntType *value,
                                                            int base)) {
         using RandomEngine = std::minstd_rand0;
@@ -742,7 +744,7 @@ namespace {
 
             uint32_t value;
             EXPECT_EQ(e.expect_ok,
-                      safe_strtou32_base(abel::string_view(tmp.data(), strlen(e.str)),
+                      safe_strtou32_base(std::string_view(tmp.data(), strlen(e.str)),
                                          &value, e.base))
                                 << "str=\"" << e.str << "\" base=" << e.base;
             if (e.expect_ok) {
@@ -772,7 +774,7 @@ namespace {
 
             uint64_t value;
             EXPECT_EQ(e.expect_ok,
-                      safe_strtou64_base(abel::string_view(tmp.data(), strlen(e.str)),
+                      safe_strtou64_base(std::string_view(tmp.data(), strlen(e.str)),
                                          &value, e.base))
                                 << "str=\"" << e.str << "\" base=" << e.base;
             if (e.expect_ok) {
@@ -894,7 +896,7 @@ namespace {
             if (strcmp(sixdigitsbuf, snprintfbuf) != 0) {
                 mismatches.push_back(d);
                 if (mismatches.size() < 10) {
-                    ABEL_RAW_ERROR("{}",
+                    DLOG_ERROR("{}",
                                  abel::string_cat("Six-digit failure with double.  ", "d=", d,
                                                   "=", d, " sixdigits=", sixdigitsbuf,
                                                   " printf(%g)=", snprintfbuf)
@@ -946,7 +948,7 @@ namespace {
                 if (kFloatNumCases >= 1e9) {
                     // The exhaustive test takes a very long time, so log progress.
                     char buf[kSixDigitsToBufferSize];
-                    ABEL_RAW_INFO("{}",
+                    DLOG_INFO("{}",
                             abel::string_cat("Exp ", exponent, " powten=", powten, "(", powten,
                                              ") (",
                                              std::string(buf, six_digits_to_buffer(powten, buf)), ")")
@@ -975,7 +977,7 @@ namespace {
                 double before = nextafter(d, 0.0);
                 double after = nextafter(d, 1.7976931348623157e308);
                 char b1[32], b2[kSixDigitsToBufferSize];
-                ABEL_RAW_ERROR("{}",
+                DLOG_ERROR("{}",
                         abel::string_cat(
                                 "Mismatch #", i, "  d=", d, " (", ToNineDigits(d), ")",
                                 " sixdigits='", sixdigitsbuf, "'", " snprintf='", snprintfbuf,
@@ -1019,7 +1021,7 @@ namespace {
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
             value = -2;
-            status = safe_strto32_base(abel::string_view(test_line.input), &value, 10);
+            status = safe_strto32_base(std::string_view(test_line.input), &value, 10);
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
         }
@@ -1050,7 +1052,7 @@ namespace {
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
             value = 2;
-            status = safe_strtou32_base(abel::string_view(test_line.input), &value, 10);
+            status = safe_strtou32_base(std::string_view(test_line.input), &value, 10);
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
         }
@@ -1083,7 +1085,7 @@ namespace {
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
             value = -2;
-            status = safe_strto64_base(abel::string_view(test_line.input), &value, 10);
+            status = safe_strto64_base(std::string_view(test_line.input), &value, 10);
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
         }
@@ -1114,7 +1116,7 @@ namespace {
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
             value = 2;
-            status = safe_strtou64_base(abel::string_view(test_line.input), &value, 10);
+            status = safe_strtou64_base(std::string_view(test_line.input), &value, 10);
             EXPECT_EQ(test_line.status, status) << test_line.input;
             EXPECT_EQ(test_line.value, value) << test_line.input;
         }
@@ -1147,7 +1149,7 @@ namespace {
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
                 value = 2;
-                status = safe_strto32_base(abel::string_view(line.input), &value, base);
+                status = safe_strto32_base(std::string_view(line.input), &value, base);
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
             }
@@ -1178,7 +1180,7 @@ namespace {
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
                 value = 2;
-                status = safe_strtou32_base(abel::string_view(line.input), &value, base);
+                status = safe_strtou32_base(std::string_view(line.input), &value, base);
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
             }
@@ -1212,7 +1214,7 @@ namespace {
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
                 value = 2;
-                status = safe_strto64_base(abel::string_view(line.input), &value, base);
+                status = safe_strto64_base(std::string_view(line.input), &value, base);
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
             }
@@ -1243,7 +1245,7 @@ namespace {
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
                 value = 2;
-                status = safe_strtou64_base(abel::string_view(line.input), &value, base);
+                status = safe_strtou64_base(std::string_view(line.input), &value, base);
                 EXPECT_EQ(line.status, status) << line.input << " " << base;
                 EXPECT_EQ(line.value, value) << line.input << " " << base;
             }
@@ -1253,7 +1255,7 @@ namespace {
     void TestFastHexToBufferZeroPad16(uint64_t v) {
         char buf[16];
         auto digits = abel::numbers_internal::fast_hex_to_buffer_zero_pad16(v, buf);
-        abel::string_view res(buf, 16);
+        std::string_view res(buf, 16);
         char buf2[17];
         snprintf(buf2, sizeof(buf2), "%016" PRIx64, v);
         EXPECT_EQ(res, buf2) << v;

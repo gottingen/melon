@@ -1,20 +1,20 @@
-//
-
-#include <abel/thread/blocking_counter.h>
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #include <thread>  // NOLINT(build/c++11)
 #include <vector>
-
-#include <gtest/gtest.h>
-#include <abel/chrono/clock.h>
-#include <abel/chrono/time.h>
+#include "abel/thread/blocking_counter.h"
+#include "gtest/gtest.h"
+#include "abel/chrono/clock.h"
+#include "abel/chrono/time.h"
 
 namespace abel {
 
     namespace {
 
         void PauseAndDecreaseCounter(blocking_counter *counter, int *done) {
-            abel::sleep_for(abel::seconds(1));
+            abel::sleep_for( abel::duration::seconds(1));
             *done = 1;
             counter->decrement_count();
         }

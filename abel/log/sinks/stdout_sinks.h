@@ -1,93 +1,82 @@
-//
-// Copyright(c) 2015 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
 
-#include <abel/log/details/console_globals.h>
-#include <abel/log/details/null_mutex.h>
-#include <abel/log/log.h>
-
 #include <cstdio>
-#include <memory>
-#include <mutex>
-#include <abel/log/details/console_globals.h>
+#include "abel/log/details/console_globals.h"
+#include "abel/log/details/synchronous_factory.h"
+#include "abel/log/sinks/sink.h"
+
 
 namespace abel {
-    namespace log {
-        namespace sinks {
 
-            template<typename TargetStream, typename ConsoleMutex>
-            class stdout_sink : public sink {
-            public:
-                using mutex_t = typename ConsoleMutex::mutex_t;
+namespace sinks {
 
-                stdout_sink()
-                        : mutex_(ConsoleMutex::mutex()), file_(TargetStream::stream()) {
-                }
+template<typename ConsoleMutex>
+class stdout_sink_base : public sink {
+  public:
+    using mutex_t = typename ConsoleMutex::mutex_t;
 
-                ~stdout_sink() = default;
+    explicit stdout_sink_base(FILE *file);
 
-                stdout_sink(const stdout_sink &other) = delete;
+    ~stdout_sink_base() override = default;
 
-                stdout_sink &operator=(const stdout_sink &other) = delete;
+    stdout_sink_base(const stdout_sink_base &other) = delete;
 
-                void log(const details::log_msg &msg) override {
-                    std::lock_guard<mutex_t> lock(mutex_);
-                    fmt::memory_buffer formatted;
-                    formatter_->format(msg, formatted);
-                    fwrite(formatted.data(), sizeof(char), formatted.size(), file_);
-                    fflush(TargetStream::stream());
-                }
+    stdout_sink_base(stdout_sink_base &&other) = delete;
 
-                void flush() override {
-                    std::lock_guard<mutex_t> lock(mutex_);
-                    fflush(file_);
-                }
+    stdout_sink_base &operator=(const stdout_sink_base &other) = delete;
 
-                void set_pattern(const std::string &pattern) override ABEL_INHERITANCE_FINAL {
-                    std::lock_guard<mutex_t> lock(mutex_);
-                    formatter_ = std::unique_ptr<abel::formatter>(new pattern_formatter(pattern));
-                }
+    stdout_sink_base &operator=(stdout_sink_base &&other) = delete;
 
-                void set_formatter(std::unique_ptr<abel::formatter> sink_formatter) override ABEL_INHERITANCE_FINAL {
-                    std::lock_guard<mutex_t> lock(mutex_);
-                    formatter_ = std::move(sink_formatter);
-                }
+    void log(const details::log_msg &msg) override;
 
-            private:
-                mutex_t &mutex_;
-                FILE *file_;
-            };
+    void flush() override;
 
-            using stdout_sink_mt = stdout_sink<details::console_stdout, details::console_mutex>;
-            using stdout_sink_st = stdout_sink<details::console_stdout, details::console_nullmutex>;
+    void set_pattern(const std::string &pattern) override;
 
-            using stderr_sink_mt = stdout_sink<details::console_stderr, details::console_mutex>;
-            using stderr_sink_st = stdout_sink<details::console_stderr, details::console_nullmutex>;
+    void set_formatter(std::unique_ptr<abel::log_formatter> sink_formatter) override;
 
-        } // namespace sinks
+  protected:
+    mutex_t &mutex_;
+    FILE *file_;
+    std::unique_ptr<abel::log_formatter> formatter_;
+};
+
+template<typename ConsoleMutex>
+class stdout_sink : public stdout_sink_base<ConsoleMutex> {
+  public:
+    stdout_sink();
+};
+
+template<typename ConsoleMutex>
+class stderr_sink : public stdout_sink_base<ConsoleMutex> {
+  public:
+    stderr_sink();
+};
+
+using stdout_sink_mt = stdout_sink<details::console_mutex>;
+using stdout_sink_st = stdout_sink<details::console_nullmutex>;
+
+using stderr_sink_mt = stderr_sink<details::console_mutex>;
+using stderr_sink_st = stderr_sink<details::console_nullmutex>;
+
+} // namespace sinks
 
 // factory methods
-        template<typename Factory = default_factory>
-        inline std::shared_ptr<logger> stdout_logger_mt(const std::string &logger_name) {
-            return Factory::template create<sinks::stdout_sink_mt>(logger_name);
-        }
+template<typename Factory = abel::synchronous_factory>
+std::shared_ptr<logger> stdout_logger_mt(const std::string &logger_name);
 
-        template<typename Factory = default_factory>
-        inline std::shared_ptr<logger> stdout_logger_st(const std::string &logger_name) {
-            return Factory::template create<sinks::stdout_sink_st>(logger_name);
-        }
+template<typename Factory = abel::synchronous_factory>
+std::shared_ptr<logger> stdout_logger_st(const std::string &logger_name);
 
-        template<typename Factory = default_factory>
-        inline std::shared_ptr<logger> stderr_logger_mt(const std::string &logger_name) {
-            return Factory::template create<sinks::stderr_sink_mt>(logger_name);
-        }
+template<typename Factory = abel::synchronous_factory>
+std::shared_ptr<logger> stderr_logger_mt(const std::string &logger_name);
 
-        template<typename Factory = default_factory>
-        inline std::shared_ptr<logger> stderr_logger_st(const std::string &logger_name) {
-            return Factory::template create<sinks::stderr_sink_st>(logger_name);
-        }
-    } //namespace log
-} // namespace abel
+template<typename Factory = abel::synchronous_factory>
+std::shared_ptr<logger> stderr_logger_st(const std::string &logger_name);
+
+}  // namespace abel
+
+#include "abel/log/sinks/stdout_sinks_inl.h"

@@ -1,10 +1,12 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/atomic/atomic_hook.h>
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/base/profile.h>
-#include <testing/atomic_hook_test_helper.h>
+#include "abel/atomic/atomic_hook.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/base/profile.h"
+#include "testing/atomic_hook_test_helper.h"
 
 namespace {
 

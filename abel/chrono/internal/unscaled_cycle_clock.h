@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // unscaled_cycle_clock
 //    An unscaled_cycle_clock yields the value and frequency of a cycle counter
@@ -31,7 +34,7 @@
 
 #endif
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 // The following platforms have an implementation of a hardware counter.
 #if defined(__i386__) || defined(__x86_64__) || defined(__aarch64__) || \
@@ -76,37 +79,37 @@
 
 namespace abel {
 
-    class unscaled_cycle_clock_wrapper_for_get_current_time;
+class unscaled_cycle_clock_wrapper_for_get_current_time;
 
-    class unscaled_cycle_clock_wrapper_for_initialize_frequency;
-    namespace chrono_internal {
+class unscaled_cycle_clock_wrapper_for_initialize_frequency;
+namespace chrono_internal {
 
 
-        class cycle_clock;
+class cycle_clock;
 
-        class unscaled_cycle_clock {
-        private:
-            unscaled_cycle_clock() = delete;
+class unscaled_cycle_clock {
+private:
+    unscaled_cycle_clock() = delete;
 
-            // Return the value of a cycle counter that counts at a rate that is
-            // approximately constant.
-            static int64_t now();
+    // Return the value of a cycle counter that counts at a rate that is
+    // approximately constant.
+    static int64_t now();
 
-            // Return the how much unscaled_cycle_clock::now() increases per second.
-            // This is not necessarily the core CPU clock frequency.
-            // It may be the nominal value report by the kernel, rather than a measured
-            // value.
-            static double frequency();
+    // Return the how much unscaled_cycle_clock::now() increases per second.
+    // This is not necessarily the core CPU clock frequency.
+    // It may be the nominal value report by the kernel, rather than a measured
+    // value.
+    static double frequency();
 
-            // Whitelisted friends.
-            friend class cycle_clock;
+    // Whitelisted friends.
+    friend class cycle_clock;
 
-            friend class abel::unscaled_cycle_clock_wrapper_for_get_current_time;
+    friend class abel::unscaled_cycle_clock_wrapper_for_get_current_time;
 
-            friend class abel::unscaled_cycle_clock_wrapper_for_initialize_frequency;
-        };
+    friend class abel::unscaled_cycle_clock_wrapper_for_initialize_frequency;
+};
 
-    } //namespace chrono_internal
+}  // namespace chrono_internal
 }  // namespace abel
 
 #endif  // ABEL_USE_UNSCALED_CYCLECLOCK

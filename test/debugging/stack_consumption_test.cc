@@ -1,14 +1,15 @@
-//
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/debugging/internal/stack_consumption.h>
+#include "abel/debugging/internal/stack_consumption.h"
 
 #ifdef ABEL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION
 
 #include <string.h>
 
-#include <gtest/gtest.h>
-#include <abel/log/abel_logging.h>
+#include "gtest/gtest.h"
+#include "abel/log/logging.h"
 
 namespace abel {
 
@@ -21,7 +22,7 @@ static void SimpleSignalHandler(int signo) {
 
   // Never true, but prevents compiler from optimizing buf out.
   if (signo == 0) {
-      ABEL_RAW_INFO("{}", static_cast<void*>(buf));
+      DLOG_INFO("{}", static_cast<void*>(buf));
   }
 }
 

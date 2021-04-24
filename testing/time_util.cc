@@ -1,36 +1,39 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <testing/time_util.h>
+#include "testing/time_util.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <abel/log/abel_logging.h>
-#include <abel/chrono/internal/zone_info_source.h>
+#include "abel/log/logging.h"
+#include "abel/chrono/internal/zone_info_source.h"
 
 namespace abel {
 
-    namespace chrono_internal {
+namespace chrono_internal {
 
-        abel::time_zone load_time_zone(const std::string &name) {
-            abel::time_zone tz;
-            ABEL_RAW_CHECK(load_time_zone(name, &tz), name.c_str());
-            return tz;
-        }
+abel::time_zone load_time_zone(const std::string &name) {
+    abel::time_zone tz;
+    DCHECK_MSG(load_time_zone(name, &tz), name.c_str());
+    return tz;
+}
 
-    }  // namespace chrono_internal
+}  // namespace chrono_internal
 
 }  // namespace abel
 
 namespace abel {
 
-    namespace chrono_internal {
-        namespace {
+namespace chrono_internal {
+namespace {
 
 // Embed the zoneinfo data for time zones used during tests and benchmarks.
 // The data was generated using "xxd -i zoneinfo-file".  There is no need
 // to update the data as long as the tests do not depend on recent changes
 // (and the past rules remain the same).
 
-#include <abel/chrono/internal/zoneinfo.inc>
+#include "abel/chrono/internal/zoneinfo.inc"
 
 const struct ZoneInfo {
     const char *name;
@@ -55,8 +58,8 @@ const struct ZoneInfo {
 
         // Allows use of the local time zone from a system-specific location.
 #ifdef _MSC_VER
-{"localtime",  //
- reinterpret_cast<char*>(America_Los_Angeles), America_Los_Angeles_len},
+        {"localtime",  //
+         reinterpret_cast<char*>(America_Los_Angeles), America_Los_Angeles_len},
 #else
         {"/etc/localtime",  //
          reinterpret_cast<char *>(America_Los_Angeles), America_Los_Angeles_len},
@@ -64,7 +67,7 @@ const struct ZoneInfo {
 };
 
 class TestZoneInfoSource : public abel::chrono_internal::zone_info_source {
-public:
+  public:
     TestZoneInfoSource(const char *data, std::size_t size)
             : data_(data), end_(data + size) {}
 
@@ -80,7 +83,7 @@ public:
         return 0;
     }
 
-private:
+  private:
     const char *data_;
     const char *const end_;
 };
@@ -97,7 +100,7 @@ std::unique_ptr<abel::chrono_internal::zone_info_source> TestFactory(
                     new TestZoneInfoSource(zoneinfo.data, zoneinfo.length));
         }
     }
-    ABEL_RAW_CRITICAL("Unexpected time zone \"{}\" in test", name.c_str());
+    DLOG_CRITICAL("Unexpected time zone \"{}\" in test", name.c_str());
     return nullptr;
 }
 
@@ -137,12 +140,12 @@ std::string get_system_error(int error_code) {
 
 const char *const FILE_CONTENT = "Don't panic!";
 
-fmt::buffered_file open_buffered_file(FILE **fp) {
-    fmt::file read_end, write_end;
-    fmt::file::pipe(read_end, write_end);
+abel::buffered_file open_buffered_file(FILE **fp) {
+    abel::file read_end, write_end;
+    abel::file::pipe(read_end, write_end);
     write_end.write(FILE_CONTENT, std::strlen(FILE_CONTENT));
     write_end.close();
-    fmt::buffered_file f = read_end.fdopen("r");
+    abel::buffered_file f = read_end.fdopen("r");
     if (fp)
         *fp = f.get();
     return f;

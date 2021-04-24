@@ -1,8 +1,10 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 // Unit tests for all join.h functions
 
-#include <abel/strings/str_join.h>
+#include "abel/strings/str_join.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -16,11 +18,11 @@
 #include <type_traits>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <abel/base/profile.h>
-#include <abel/memory/memory.h>
-#include <abel/strings/str_cat.h>
-#include <abel/strings/str_split.h>
+#include "gtest/gtest.h"
+#include "abel/base/profile.h"
+#include "abel/memory/memory.h"
+#include "abel/strings/str_cat.h"
+#include "abel/strings/str_split.h"
 
 namespace {
 
@@ -32,8 +34,8 @@ namespace {
         }
 
         {
-            // Collection of abel::string_view
-            std::vector<abel::string_view> v = {"foo", "bar", "baz"};
+            // Collection of std::string_view
+            std::vector<std::string_view> v = {"foo", "bar", "baz"};
             EXPECT_EQ("foo-bar-baz", abel::string_join(v, "-"));
         }
 
@@ -79,7 +81,7 @@ namespace {
         {
             // Array of ints
             const int a[] = {1, 2, 3, -4};
-            EXPECT_EQ("1-2-3--4", abel::string_join(a, a + ABEL_ARRAYSIZE(a), "-"));
+            EXPECT_EQ("1-2-3--4", abel::string_join(a, a + ABEL_ARRAY_SIZE(a), "-"));
         }
 
         {
@@ -217,7 +219,7 @@ namespace {
         f(&s, static_cast<double>(5));
         f(&s, static_cast<unsigned>(6));
         f(&s, static_cast<size_t>(7));
-        f(&s, abel::string_view(" OK"));
+        f(&s, std::string_view(" OK"));
         EXPECT_EQ("Testing: 1234567 OK", s);
     }
 
@@ -260,7 +262,7 @@ namespace {
         f(&s, static_cast<double>(5));
         f(&s, static_cast<unsigned>(6));
         f(&s, static_cast<size_t>(7));
-        f(&s, abel::string_view(" OK "));
+        f(&s, std::string_view(" OK "));
         StreamableType streamable = {"object"};
         f(&s, streamable);
         EXPECT_EQ("Testing: 1234567 OK Streamable:object", s);
@@ -372,7 +374,7 @@ namespace {
     }
 
     TEST(string_join, Array) {
-        const abel::string_view a[] = {"a", "b", "c"};
+        const std::string_view a[] = {"a", "b", "c"};
         EXPECT_EQ("a-b-c", abel::string_join(a, "-"));
     }
 
@@ -395,7 +397,7 @@ namespace {
         }
 
         {
-            std::initializer_list<abel::string_view> a = {"a", "b", "c"};
+            std::initializer_list<std::string_view> a = {"a", "b", "c"};
             EXPECT_EQ("a-b-c", abel::string_join(a, "-"));
         }
 

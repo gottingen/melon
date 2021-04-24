@@ -1,59 +1,31 @@
-#pragma once
-//
-// Copyright(c) 2018 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
-#include <abel/log/details/null_mutex.h>
-#include <cstdio>
+#pragma once
+
 #include <mutex>
+#include "abel/log/details/null_mutex.h"
+
 
 namespace abel {
-    namespace log {
-        namespace details {
-            struct console_stdout {
-                static FILE *stream() {
-                    return stdout;
-                }
+namespace details {
 
-#ifdef _WIN32
-                static HANDLE handle()
-                {
-                    return ::GetStdHandle(STD_OUTPUT_HANDLE);
-                }
-#endif
-            };
+struct console_mutex {
+    using mutex_t = std::mutex;
 
-            struct console_stderr {
-                static FILE *stream() {
-                    return stderr;
-                }
+    static mutex_t &mutex() {
+        static mutex_t s_mutex;
+        return s_mutex;
+    }
+};
 
-#ifdef _WIN32
-                static HANDLE handle()
-                {
-                    return ::GetStdHandle(STD_ERROR_HANDLE);
-                }
-#endif
-            };
+struct console_nullmutex {
+    using mutex_t = null_mutex;
 
-            struct console_mutex {
-                using mutex_t = std::mutex;
-
-                static mutex_t &mutex() {
-                    static mutex_t s_mutex;
-                    return s_mutex;
-                }
-            };
-
-            struct console_nullmutex {
-                using mutex_t = null_mutex;
-
-                static mutex_t &mutex() {
-                    static mutex_t s_mutex;
-                    return s_mutex;
-                }
-            };
-        } // namespace details
-    } //namespace log
-} // namespace abel
+    static mutex_t &mutex() {
+        static mutex_t s_mutex;
+        return s_mutex;
+    }
+};
+} // namespace details
+}  // namespace abel

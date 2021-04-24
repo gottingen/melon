@@ -1,4 +1,7 @@
 
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_THREADING_DYNAMIC_ANNOTATIONS_H_
 #define ABEL_THREADING_DYNAMIC_ANNOTATIONS_H_

@@ -1,15 +1,17 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 // Unit tests for all str_cat.h functions
 
-#include <abel/strings/str_cat.h>
+#include "abel/strings/str_cat.h"
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <abel/strings/substitute.h>
+#include "gtest/gtest.h"
+#include "abel/strings/format.h"
 
 #ifdef __ANDROID__
 // Android assert messages only go to system log, so death tests cannot inspect
@@ -107,7 +109,7 @@ namespace {
                 "std::World"
         };
 
-        abel::string_view pieces[] = {"Hello", "Cruel", "World"};
+        std::string_view pieces[] = {"Hello", "Cruel", "World"};
 
         const char *c_strs[] = {
                 "Hello",
@@ -325,7 +327,7 @@ namespace {
                 "std::World"
         };
 
-        abel::string_view pieces[] = {"Hello", "Cruel", "World"};
+        std::string_view pieces[] = {"Hello", "Cruel", "World"};
 
         const char *c_strs[] = {
                 "Hello",
@@ -424,14 +426,14 @@ namespace {
 // Passing nullptr to memcpy is undefined behavior and this test
 // provides coverage of codepaths that handle empty strings with nullptrs.
     TEST(string_cat, AvoidsMemcpyWithNullptr) {
-        EXPECT_EQ(abel::string_cat(42, abel::string_view{}), "42");
+        EXPECT_EQ(abel::string_cat(42, std::string_view{}), "42");
 
         // Cover CatPieces code.
-        EXPECT_EQ(abel::string_cat(1, 2, 3, 4, 5, abel::string_view{}), "12345");
+        EXPECT_EQ(abel::string_cat(1, 2, 3, 4, 5, std::string_view{}), "12345");
 
         // Cover append_pieces.
         std::string result;
-        abel::string_append(&result, 1, 2, 3, 4, 5, abel::string_view{});
+        abel::string_append(&result, 1, 2, 3, 4, 5, std::string_view{});
         EXPECT_EQ(result, "12345");
     }
 

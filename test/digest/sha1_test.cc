@@ -1,8 +1,9 @@
-//
-// Created by liyinbin on 2020/1/25.
-//
-#include <abel/digest/sha1.h>
-#include <gtest/gtest.h>
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
+#include "abel/digest/sha1.h"
+#include "gtest/gtest.h"
 
 TEST(Sha1, all) {
     EXPECT_EQ(

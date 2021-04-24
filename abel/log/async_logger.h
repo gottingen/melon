@@ -1,76 +1,65 @@
-//
-// Copyright(c) 2015 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
-#ifndef ABEL_LOG_ASYNC_LOGGER_H_
-#define ABEL_LOG_ASYNC_LOGGER_H_
 
-// Very fast asynchronous logger (millions of logs per second on an average
-// desktop)
-// Uses pre allocated lockfree queue for maximum throughput even under large
-// number of threads.
+#pragma once
+
+// Fast asynchronous logger.
+// Uses pre allocated queue.
 // Creates a single back thread to pop messages from the queue and log them.
 //
 // Upon each log write the logger:
 //    1. Checks if its log level is enough to log the message
 //    2. Push a new copy of the message to a queue (or block the caller until
 //    space is available in the queue)
-//    3. will throw log_ex upon log exceptions
 // Upon destruction, logs all remaining messages in the queue before
 // destructing..
 
-#include <abel/log/common.h>
-#include <abel/log/logger.h>
-
-#include <chrono>
-#include <memory>
-#include <string>
+#include "abel/log/logger.h"
 
 namespace abel {
-    namespace log {
 
 // Async overflow policy - block by default.
-        enum class async_overflow_policy {
-            block,         // block until message can be enqueued
-            overrun_oldest // Discard oldest message in the queue if full when trying to
-            // add new item.
-        };
+enum class async_overflow_policy {
+    block,         // Block until message can be enqueued
+    overrun_oldest // Discard oldest message in the queue if full when trying to
+    // add new item.
+};
 
-        namespace details {
-            class thread_pool;
-        }
+namespace details {
+class thread_pool;
+}
 
-        class async_logger ABEL_INHERITANCE_FINAL : public std::enable_shared_from_this<async_logger>, public logger {
-            friend class details::thread_pool;
+class ABEL_API async_logger final : public std::enable_shared_from_this<async_logger>, public logger {
+    friend class details::thread_pool;
 
-        public:
-            template<typename It>
-            async_logger(std::string logger_name, const It &begin, const It &end,
-                         std::weak_ptr<details::thread_pool> tp,
-                         async_overflow_policy overflow_policy = async_overflow_policy::block);
+  public:
+    template<typename It>
+    async_logger(std::string logger_name, It begin, It end, std::weak_ptr<details::thread_pool> tp,
+                 async_overflow_policy overflow_policy = async_overflow_policy::block)
+            : logger(std::move(logger_name), begin, end), thread_pool_(std::move(tp)),
+              overflow_policy_(overflow_policy) {}
 
-            async_logger(std::string logger_name, sinks_init_list sinks, std::weak_ptr<details::thread_pool> tp,
-                         async_overflow_policy overflow_policy = async_overflow_policy::block);
+    async_logger(std::string logger_name, sinks_init_list sinks_list, std::weak_ptr<details::thread_pool> tp,
+                 async_overflow_policy overflow_policy = async_overflow_policy::block);
 
-            async_logger(std::string logger_name, sink_ptr single_sink, std::weak_ptr<details::thread_pool> tp,
-                         async_overflow_policy overflow_policy = async_overflow_policy::block);
+    async_logger(std::string logger_name, sink_ptr single_sink, std::weak_ptr<details::thread_pool> tp,
+                 async_overflow_policy overflow_policy = async_overflow_policy::block);
 
-        protected:
-            void sink_it_(details::log_msg &msg) override;
+    std::shared_ptr<logger> clone(std::string new_name) override;
 
-            void flush_() override;
+  protected:
+    void sink_it_(const details::log_msg &msg) override;
 
-            void backend_log_(details::log_msg &incoming_log_msg);
+    void flush_() override;
 
-            void backend_flush_();
+    void backend_sink_it_(const details::log_msg &incoming_log_msg);
 
-        private:
-            std::weak_ptr<details::thread_pool> thread_pool_;
-            async_overflow_policy overflow_policy_;
-        };
-    } //namespace log
-} // namespace abel
+    void backend_flush_();
 
-#include "details/async_logger_impl.h"
+  private:
+    std::weak_ptr<details::thread_pool> thread_pool_;
+    async_overflow_policy overflow_policy_;
+};
+}  // namespace abel
 
-#endif //ABEL_LOG_ASYNC_LOGGER_H_
+#include "abel/log/async_logger_inl.h"

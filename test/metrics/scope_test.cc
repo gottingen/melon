@@ -1,13 +1,14 @@
-//
-// Created by liyinbin on 2020/2/8.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 
 //
 // Created by liyinbin on 2019/10/31.
 //
-#include <abel/metrics/scope.h>
-#include <abel/metrics/prom_serializer.h>
-#include <gtest/gtest.h>
+#include "abel/metrics/scope.h"
+#include "abel/metrics/prom_serializer.h"
+#include "gtest/gtest.h"
 #include <limits>
 #include <iostream>
 #include <thread>
@@ -26,12 +27,12 @@ TEST(ScopeTest, scope) {
     h->observe(0.4);
 
     abel::metrics::bucket
-            durationBucket = abel::metrics::bucket_builder::exponential_duration(abel::nanoseconds(100000000), 2, 20);
+            durationBucket = abel::metrics::bucket_builder::exponential_duration( abel::duration::nanoseconds(100000000), 2, 20);
     auto h1 = scopePtr->get_histogram("duration_histogram", durationBucket);
     h1->observe(0.4);
 
     abel::metrics::bucket
-            durationBucket1 = abel::metrics::bucket_builder::exponential_duration(abel::nanoseconds(100000000), 3, 20);
+            durationBucket1 = abel::metrics::bucket_builder::exponential_duration( abel::duration::nanoseconds(100000000), 3, 20);
     auto t1 = scopePtr->get_timer("duration_timer", durationBucket1);
     t1->observe(400000000);
     auto sw = t1->start();

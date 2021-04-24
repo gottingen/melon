@@ -1,2 +1,1 @@
-gottingen/googletest@v1.10.x
-gottingen/benchmark@dev -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DBENCHMARK_ENABLE_TESTING=OFF
+git.code.oa.com:cpp_infra/googletest@v1.10.x

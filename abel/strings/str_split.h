@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 //
 // -----------------------------------------------------------------------------
@@ -29,11 +32,12 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <abel/log/abel_logging.h>
-#include <abel/strings/internal/str_split_internal.h>
-#include <abel/asl/string_view.h>
-#include <abel/strings/strip.h>
-#include <abel/strings/trim.h>
+#include <string_view>
+
+#include "abel/log/logging.h"
+#include "abel/strings/internal/str_split_internal.h"
+#include "abel/strings/strip.h"
+#include "abel/strings/trim.h"
 
 namespace abel {
 
@@ -44,33 +48,33 @@ namespace abel {
 //
 // ` string_split()` uses delimiters to define the boundaries between elements in the
 // provided input. Several `Delimiter` types are defined below. If a string
-// (`const char*`, `std::string`, or `abel::string_view`) is passed in place of
+// (`const char*`, `std::string`, or `std::string_view`) is passed in place of
 // an explicit `Delimiter` object, ` string_split()` treats it the same way as if it
 // were passed a `by_string` delimiter.
 //
 // A `Delimiter` is an object with a `find()` function that knows how to find
-// the first occurrence of itself in a given `abel::string_view`.
+// the first occurrence of itself in a given `std::string_view`.
 //
 // The following `Delimiter` types are available for use within ` string_split()`:
 //
 //   - `by_string` (default for string arguments)
 //   - `by_char` (default for a char argument)
 //   - `by_any_char`
-//   - ` by_length`
-//   - ` max_splits`
+//   - `by_length`
+//   - `max_splits`
 //
 // A Delimiter's `find()` member function will be passed an input `text` that is
 // to be split and a position (`pos`) to begin searching for the next delimiter
-// in `text`. The returned abel::string_view should refer to the next occurrence
-// (after `pos`) of the represented delimiter; this returned abel::string_view
+// in `text`. The returned std::string_view should refer to the next occurrence
+// (after `pos`) of the represented delimiter; this returned std::string_view
 // represents the next location where the input `text` should be broken.
 //
-// The returned abel::string_view may be zero-length if the Delimiter does not
+// The returned std::string_view may be zero-length if the Delimiter does not
 // represent a part of the string (e.g., a fixed-length delimiter). If no
-// delimiter is found in the input `text`, a zero-length abel::string_view
+// delimiter is found in the input `text`, a zero-length std::string_view
 // referring to `text.end()` should be returned (e.g.,
 // `text.substr(text.size())`). It is important that the returned
-// abel::string_view always be within the bounds of the input `text` given as an
+// std::string_view always be within the bounds of the input `text` given as an
 // argument--it must not refer to a string that is physically located outside of
 // the given string.
 //
@@ -81,9 +85,9 @@ namespace abel {
 //   struct SimpleDelimiter {
 //     const char c_;
 //     explicit SimpleDelimiter(char c) : c_(c) {}
-//     abel::string_view find(abel::string_view text, size_t pos) {
+//     std::string_view find(std::string_view text, size_t pos) {
 //       auto found = text.find(c_, pos);
-//       if (found == abel::string_view::npos)
+//       if (found == std::string_view::npos)
 //         return text.substr(text.size());
 //
 //       return text.substr(found, 1);
@@ -107,15 +111,15 @@ namespace abel {
 //   std::vector<std::string> v2 = abel:: string_split("a, b, c",
 //                                                by_string(", "));
 //   // v[0] == "a", v[1] == "b", v[2] == "c"
-    class by_string {
-    public:
-        explicit by_string(abel::string_view sp);
+class by_string {
+  public:
+    explicit by_string(std::string_view sp);
 
-        abel::string_view find(abel::string_view text, size_t pos) const;
+    std::string_view find(std::string_view text, size_t pos) const;
 
-    private:
-        const std::string _delimiter;
-    };
+  private:
+    const std::string _delimiter;
+};
 
 // by_char
 //
@@ -140,15 +144,15 @@ namespace abel {
 //   using abel::by_char;
 //   std::vector<std::string> v = abel:: string_split("a-b", by_char('-'));
 //
-    class by_char {
-    public:
-        explicit by_char(char c) : c_(c) {}
+class by_char {
+  public:
+    explicit by_char(char c) : c_(c) {}
 
-        abel::string_view find(abel::string_view text, size_t pos) const;
+    std::string_view find(std::string_view text, size_t pos) const;
 
-    private:
-        char c_;
-    };
+  private:
+    char c_;
+};
 
 // by_any_char
 //
@@ -167,15 +171,15 @@ namespace abel {
 // If `by_any_char` is given the empty string, it behaves exactly like
 // `by_string` and matches each individual character in the input string.
 //
-    class by_any_char {
-    public:
-        explicit by_any_char(abel::string_view sp);
+class by_any_char {
+  public:
+    explicit by_any_char(std::string_view sp);
 
-        abel::string_view find(abel::string_view text, size_t pos) const;
+    std::string_view find(std::string_view text, size_t pos) const;
 
-    private:
-        const std::string _delimiters;
-    };
+  private:
+    const std::string _delimiters;
+};
 
 //  by_length
 //
@@ -199,17 +203,17 @@ namespace abel {
 //   std::vector<std::string> v = abel:: string_split("12345",  by_length(2));
 //
 //   // v[0] == "12", v[1] == "34", v[2] == "5"
-    class by_length {
-    public:
-        explicit by_length(ptrdiff_t length);
+class by_length {
+  public:
+    explicit by_length(ptrdiff_t length);
 
-        abel::string_view find(abel::string_view text, size_t pos) const;
+    std::string_view find(std::string_view text, size_t pos) const;
 
-    private:
-        const ptrdiff_t _length;
-    };
+  private:
+    const ptrdiff_t _length;
+};
 
-    namespace strings_internal {
+namespace strings_internal {
 
 // A traits-like metafunction for selecting the default Delimiter object type
 // for a particular Delimiter type. The base case simply exposes type Delimiter
@@ -218,54 +222,54 @@ namespace abel {
 // This allows functions like abel:: string_split() and abel:: max_splits() to accept
 // string-like objects (e.g., ',') as delimiter arguments but they will be
 // treated as if a by_string delimiter was given.
-        template<typename Delimiter>
-        struct select_delimiter {
-            using type = Delimiter;
-        };
+template<typename Delimiter>
+struct select_delimiter {
+    using type = Delimiter;
+};
 
-        template<>
-        struct select_delimiter<char> {
-            using type = by_char;
-        };
-        template<>
-        struct select_delimiter<char *> {
-            using type = by_string;
-        };
-        template<>
-        struct select_delimiter<const char *> {
-            using type = by_string;
-        };
-        template<>
-        struct select_delimiter<abel::string_view> {
-            using type = by_string;
-        };
-        template<>
-        struct select_delimiter<std::string> {
-            using type = by_string;
-        };
+template<>
+struct select_delimiter<char> {
+    using type = by_char;
+};
+template<>
+struct select_delimiter<char *> {
+    using type = by_string;
+};
+template<>
+struct select_delimiter<const char *> {
+    using type = by_string;
+};
+template<>
+struct select_delimiter<std::string_view> {
+    using type = by_string;
+};
+template<>
+struct select_delimiter<std::string> {
+    using type = by_string;
+};
 
 // Wraps another delimiter and sets a max number of matches for that delimiter.
-        template<typename Delimiter>
-        class max_splits_impl {
-        public:
-            max_splits_impl(Delimiter delimiter, int limit)
-                    : _delimiter(delimiter), _limit(limit), _count(0) {}
+template<typename Delimiter>
+class max_splits_impl {
+  public:
+    max_splits_impl(Delimiter delimiter, int limit)
+            : _delimiter(delimiter), _limit(limit), _count(0) {}
 
-            abel::string_view find(abel::string_view text, size_t pos) {
-                if (_count++ == _limit) {
-                    return abel::string_view(text.data() + text.size(),
-                                             0);  // No more matches.
-                }
-                return _delimiter.find(text, pos);
-            }
+    std::string_view find(std::string_view text, size_t pos) {
+        if (_count++ == _limit) {
+            return std::string_view(text.data() + text.size(),
+                                    0);  // No more matches.
+        }
+        return _delimiter.find(text, pos);
+    }
 
-        private:
-            Delimiter _delimiter;
-            const int _limit;
-            int _count;
-        };
+  private:
+    Delimiter _delimiter;
+    const int _limit;
+    int _count;
+};
 
-    }  // namespace strings_internal
+}  // namespace strings_internal
 
 //  max_splits()
 //
@@ -279,15 +283,15 @@ namespace abel {
 //   std::vector<std::string> v = abel:: string_split("a,b,c",  max_splits(',', 1));
 //
 //   // v[0] == "a", v[1] == "b,c"
-    template<typename Delimiter>
-    ABEL_FORCE_INLINE strings_internal::max_splits_impl<
-            typename strings_internal::select_delimiter<Delimiter>::type>
-    max_splits(Delimiter delimiter, int limit) {
-        typedef
-        typename strings_internal::select_delimiter<Delimiter>::type DelimiterType;
-        return strings_internal::max_splits_impl<DelimiterType>(
-                DelimiterType(delimiter), limit);
-    }
+template<typename Delimiter>
+ABEL_FORCE_INLINE strings_internal::max_splits_impl<
+        typename strings_internal::select_delimiter<Delimiter>::type>
+max_splits(Delimiter delimiter, int limit) {
+    typedef
+    typename strings_internal::select_delimiter<Delimiter>::type DelimiterType;
+    return strings_internal::max_splits_impl<DelimiterType>(
+            DelimiterType(delimiter), limit);
+}
 
 //------------------------------------------------------------------------------
 // Predicates
@@ -298,7 +302,7 @@ namespace abel {
 // as an optional third argument to the ` string_split()` function.
 //
 // Predicates are unary functions (or functors) that take a single
-// `abel::string_view` argument and return a bool indicating whether the
+// `std::string_view` argument and return a bool indicating whether the
 // argument should be included (`true`) or excluded (`false`).
 //
 // Predicates are useful when filtering out empty substrings. By default, empty
@@ -317,13 +321,13 @@ namespace abel {
 //  std::vector<std::string> v = abel:: string_split(" a , ,,b,", ',',  allow_empty());
 //
 //  // v[0] == " a ", v[1] == " ", v[2] == "", v[3] = "b", v[4] == ""
-    struct allow_empty {
-        bool operator()(abel::string_view) const { return true; }
-    };
+struct allow_empty {
+    bool operator()(std::string_view) const { return true; }
+};
 
 //  skip_empty()
 //
-// Returns `false` if the given `abel::string_view` is empty, indicating that
+// Returns `false` if the given `std::string_view` is empty, indicating that
 // ` string_split()` should omit the empty string.
 //
 // Example:
@@ -335,13 +339,13 @@ namespace abel {
 // Note: ` skip_empty()` does not consider a string containing only whitespace
 // to be empty. To skip such whitespace as well, use the ` skip_whitespace()`
 // predicate.
-    struct skip_empty {
-        bool operator()(abel::string_view sp) const { return !sp.empty(); }
-    };
+struct skip_empty {
+    bool operator()(std::string_view sp) const { return !sp.empty(); }
+};
 
 //  skip_whitespace()
 //
-// Returns `false` if the given `abel::string_view` is empty *or* contains only
+// Returns `false` if the given `std::string_view` is empty *or* contains only
 // whitespace, indicating that ` string_split()` should omit the string.
 //
 // Example:
@@ -353,12 +357,12 @@ namespace abel {
 //   //  skip_empty() would return whitespace elements
 //   std::vector<std::string> v = abel:: string_split(" a , ,,b,", ',',  skip_empty());
 //   // v[0] == " a ", v[1] == " ", v[2] == "b"
-    struct skip_whitespace {
-        bool operator()(abel::string_view sp) const {
-            sp = abel::trim_all(sp);
-            return !sp.empty();
-        }
-    };
+struct skip_whitespace {
+    bool operator()(std::string_view sp) const {
+        sp = abel::trim_all(sp);
+        return !sp.empty();
+    }
+};
 
 //------------------------------------------------------------------------------
 //                                   string_split()
@@ -405,9 +409,9 @@ namespace abel {
 //
 // The ` string_split()` function adapts the returned collection to the collection
 // specified by the caller (e.g. `std::vector` above). The returned collections
-// may contain `std::string`, `abel::string_view` (in which case the original
+// may contain `std::string`, `std::string_view` (in which case the original
 // string being split must ensure that it outlives the collection), or any
-// object that can be explicitly created from an `abel::string_view`. This
+// object that can be explicitly created from an `std::string_view`. This
 // behavior works for:
 //
 // 1) All standard STL containers including `std::vector`, `std::list`,
@@ -416,9 +420,9 @@ namespace abel {
 //
 // Example:
 //
-//   // The results are returned as `abel::string_view` objects. Note that we
+//   // The results are returned as `std::string_view` objects. Note that we
 //   // have to ensure that the input string outlives any results.
-//   std::vector<abel::string_view> v = abel:: string_split("a,b,c", ',');
+//   std::vector<std::string_view> v = abel:: string_split("a,b,c", ',');
 //
 //   // Stores results in a std::set<std::string>, which also performs
 //   // de-duplication and orders the elements in ascending order.
@@ -426,7 +430,7 @@ namespace abel {
 //   // v[0] == "a", v[1] == "b", v[2] = "c"
 //
 //   // ` string_split()` can be used within a range-based for loop, in which case
-//   // each element will be of type `abel::string_view`.
+//   // each element will be of type `std::string_view`.
 //   std::vector<std::string> v;
 //   for (const auto sv : abel:: string_split("a,b,c", ',')) {
 //     if (sv != "b") v.emplace_back(sv);
@@ -463,7 +467,7 @@ namespace abel {
 //   // The input string "a=b=c,d=e,f=,g" becomes
 //   // { "a" => "b=c", "d" => "e", "f" => "", "g" => "" }
 //   std::map<std::string, std::string> m;
-//   for (abel::string_view sp : abel:: string_split("a=b=c,d=e,f=,g", ',')) {
+//   for (std::string_view sp : abel:: string_split("a=b=c,d=e,f=,g", ',')) {
 //     m.insert(abel:: string_split(sp, abel:: max_splits('=', 1)));
 //   }
 //   EXPECT_EQ("b=c", m.find("a")->second);
@@ -474,30 +478,30 @@ namespace abel {
 // WARNING: Due to a legacy bug that is maintained for backward compatibility,
 // splitting the following empty string_views produces different results:
 //
-//   abel:: string_split(abel::string_view(""), '-');  // {""}
-//   abel:: string_split(abel::string_view(), '-');    // {}, but should be {""}
+//   abel:: string_split(std::string_view(""), '-');  // {""}
+//   abel:: string_split(std::string_view(), '-');    // {}, but should be {""}
 //
 // Try not to depend on this distinction because the bug may one day be fixed.
-    template<typename Delimiter>
-    strings_internal::splitter<
-            typename strings_internal::select_delimiter<Delimiter>::type, allow_empty>
-    string_split(strings_internal::convertible_to_string_view text, Delimiter d) {
-        using DelimiterType =
-        typename strings_internal::select_delimiter<Delimiter>::type;
-        return strings_internal::splitter<DelimiterType, allow_empty>(
-                std::move(text), DelimiterType(d), allow_empty());
-    }
+template<typename Delimiter>
+strings_internal::splitter<
+        typename strings_internal::select_delimiter<Delimiter>::type, allow_empty>
+string_split(strings_internal::convertible_to_string_view text, Delimiter d) {
+    using DelimiterType =
+    typename strings_internal::select_delimiter<Delimiter>::type;
+    return strings_internal::splitter<DelimiterType, allow_empty>(
+            std::move(text), DelimiterType(d), allow_empty());
+}
 
-    template<typename Delimiter, typename Predicate>
-    strings_internal::splitter<
-            typename strings_internal::select_delimiter<Delimiter>::type, Predicate>
-    string_split(strings_internal::convertible_to_string_view text, Delimiter d,
-                 Predicate p) {
-        using DelimiterType =
-        typename strings_internal::select_delimiter<Delimiter>::type;
-        return strings_internal::splitter<DelimiterType, Predicate>(
-                std::move(text), DelimiterType(d), std::move(p));
-    }
+template<typename Delimiter, typename Predicate>
+strings_internal::splitter<
+        typename strings_internal::select_delimiter<Delimiter>::type, Predicate>
+string_split(strings_internal::convertible_to_string_view text, Delimiter d,
+             Predicate p) {
+    using DelimiterType =
+    typename strings_internal::select_delimiter<Delimiter>::type;
+    return strings_internal::splitter<DelimiterType, Predicate>(
+            std::move(text), DelimiterType(d), std::move(p));
+}
 
 
 }  // namespace abel

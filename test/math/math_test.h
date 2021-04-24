@@ -1,19 +1,18 @@
-//
-// Created by liyinbin on 2020/2/29.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_MATH_TEST_H
 #define ABEL_MATH_TEST_H
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <cmath>
 #include <ios>
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <functional>
-
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #ifndef TEST_VAL_TYPES
 #define TEST_VAL_TYPES long double
@@ -84,4 +83,4 @@
     EXPECT_TRUE(test_success);                                                                      \
     }
 
-#endif //ABEL_MATH_TEST_H
+#endif  // ABEL_MATH_TEST_H

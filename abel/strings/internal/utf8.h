@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // UTF8 utilities, implemented to reduce dependencies.
 
@@ -6,11 +9,11 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
-    namespace strings_internal {
+namespace strings_internal {
 
 // For Unicode code points 0 through 0x10FFFF, EncodeUTF8Char writes
 // out the UTF-8 encoding into buffer, and returns the number of chars
@@ -26,13 +29,13 @@ namespace abel {
 // Values greater than 0x10FFFF are not supported and may or may not write
 // characters into buffer, however never will more than kMaxEncodedUTF8Size
 // bytes be written, regardless of the value of utf8_char.
-        enum {
-            kMaxEncodedUTF8Size = 4
-        };
+enum {
+    kMaxEncodedUTF8Size = 4
+};
 
-        size_t EncodeUTF8Char(char *buffer, char32_t utf8_char);
+size_t EncodeUTF8Char(char *buffer, char32_t utf8_char);
 
-    }  // namespace strings_internal
+}  // namespace strings_internal
 
 }  // namespace abel
 

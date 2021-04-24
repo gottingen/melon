@@ -1,6 +1,8 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/escaping.h>
+#include "abel/strings/escaping.h"
 
 #include <array>
 #include <cstdio>
@@ -8,12 +10,12 @@
 #include <memory>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/asl/fixed_array.h>
-#include <abel/strings/str_cat.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/container/fixed_array.h"
+#include "abel/strings/str_cat.h"
 
-#include <testing/escaping_test_common.h>
+#include "testing/escaping_test_common.h"
 
 namespace {
 
@@ -285,8 +287,8 @@ namespace {
     }
 
     static struct {
-        abel::string_view plaintext;
-        abel::string_view cyphertext;
+        std::string_view plaintext;
+        std::string_view cyphertext;
     } const base64_tests[] = {
             // Empty std::string.
             {{"",             0},          {"", 0}},
@@ -590,9 +592,9 @@ namespace {
 
         // Verify the behavior when decoding bad data
         {
-            abel::string_view data_set[] = {"ab-/", abel::string_view("\0bcd", 4),
-                                            abel::string_view("abc.\0", 5)};
-            for (abel::string_view bad_data : data_set) {
+            std::string_view data_set[] = {"ab-/", std::string_view("\0bcd", 4),
+                                            std::string_view("abc.\0", 5)};
+            for (std::string_view bad_data : data_set) {
                 StringType buf;
                 EXPECT_FALSE(abel::base64_unescape(bad_data, &buf));
                 EXPECT_FALSE(abel::web_safe_base64_unescape(bad_data, &buf));
@@ -637,12 +639,12 @@ namespace {
 
         std::string prefix_valid = hex_mixed + "?";
         std::string prefix_valid_result = abel::hex_string_to_bytes(
-                abel::string_view(prefix_valid.data(), prefix_valid.size() - 1));
+                std::string_view(prefix_valid.data(), prefix_valid.size() - 1));
         EXPECT_EQ(bytes_expected, prefix_valid_result);
 
         std::string infix_valid = "?" + hex_mixed + "???";
         std::string infix_valid_result = abel::hex_string_to_bytes(
-                abel::string_view(infix_valid.data() + 1, hex_mixed.size()));
+                std::string_view(infix_valid.data() + 1, hex_mixed.size()));
         EXPECT_EQ(bytes_expected, infix_valid_result);
 
         std::string hex_result = abel::bytes_to_hex_string(bytes_expected);

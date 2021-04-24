@@ -1,3 +1,7 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 #ifndef ABEL_DEBUGGING_INTERNAL_STACKTRACE_UNIMPLEMENTED_INL_H_
 #define ABEL_DEBUGGING_INTERNAL_STACKTRACE_UNIMPLEMENTED_INL_H_
 
@@ -13,11 +17,11 @@ static int UnwindImpl(void ** /* result */, int * /* sizes */,
 
 namespace abel {
 
-    namespace debugging_internal {
-        bool StackTraceWorksForTest() {
-            return false;
-        }
-    }  // namespace debugging_internal
+namespace debugging_internal {
+bool stack_trace_works_for_test() {
+    return false;
+}
+}  // namespace debugging_internal
 
 }  // namespace abel
 

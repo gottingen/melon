@@ -1,11 +1,12 @@
-//
-// Created by liyinbin on 2018/10/24.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_STRINGS_COMPARE_H_
 #define ABEL_STRINGS_COMPARE_H_
 
-#include <abel/asl/string_view.h>
+#include <string_view>
+#include "abel/base/profile.h"
 
 namespace abel {
 /**
@@ -14,12 +15,12 @@ namespace abel {
  * @param b todo
  * @return todo
  */
-    int compare_case(abel::string_view a, abel::string_view b);
+int compare_case(std::string_view a, std::string_view b);
 
-    ABEL_FORCE_INLINE bool equal_case(abel::string_view a, abel::string_view b) {
-        return compare_case(a, b) == 0;
-    }
+ABEL_FORCE_INLINE bool equal_case(std::string_view a, std::string_view b) {
+    return compare_case(a, b) == 0;
+}
 
-} //namespace abel
+}  // namespace abel
 
-#endif //ABEL_STRINGS_COMPARE_H_
+#endif  // ABEL_STRINGS_COMPARE_H_

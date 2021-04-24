@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 //
 // -----------------------------------------------------------------------------
@@ -14,10 +17,10 @@
 #include <string>
 #include <vector>
 
-#include <abel/base/profile.h>
-#include <abel/asl/ascii.h>
-#include <abel/strings/str_join.h>
-#include <abel/asl/string_view.h>
+#include "abel/base/profile.h"
+#include "abel/strings/ascii.h"
+#include "abel/strings/str_join.h"
+#include <string_view>
 
 namespace abel {
 
@@ -56,12 +59,12 @@ namespace abel {
 //     ...
 //   }
 //   EXPECT_EQ(unescaped_s, "foo\rbar\nbaz\t");
-    bool unescape(abel::string_view source, std::string *dest, std::string *error);
+bool unescape(std::string_view source, std::string *dest, std::string *error);
 
 // Overload of `unescape()` with no error reporting.
-    ABEL_FORCE_INLINE bool unescape(abel::string_view source, std::string *dest) {
-        return unescape(source, dest, nullptr);
-    }
+ABEL_FORCE_INLINE bool unescape(std::string_view source, std::string *dest) {
+    return unescape(source, dest, nullptr);
+}
 
 // escape()
 //
@@ -74,7 +77,7 @@ namespace abel {
 //   std::string s = "foo\rbar\tbaz\010\011\012\013\014\x0d\n";
 //   std::string escaped_s = abel::escape(s);
 //   EXPECT_EQ(escaped_s, "foo\\rbar\\tbaz\\010\\t\\n\\013\\014\\r\\n");
-    std::string escape(abel::string_view src);
+std::string escape(std::string_view src);
 
 // hex_escape()
 //
@@ -87,7 +90,7 @@ namespace abel {
 //   std::string s = "foo\rbar\tbaz\010\011\012\013\014\x0d\n";
 //   std::string escaped_s = abel::hex_escape(s);
 //   EXPECT_EQ(escaped_s, "foo\\rbar\\tbaz\\x08\\t\\n\\x0b\\x0c\\r\\n");
-    std::string hex_escape(abel::string_view src);
+std::string hex_escape(std::string_view src);
 
 // utf8_safe_escape()
 //
@@ -95,57 +98,57 @@ namespace abel {
 // octal sequences, and passing through UTF-8 characters without conversion.
 // I.e., when encountering any bytes with their high bit set, this function
 // will not escape those values, whether or not they are valid UTF-8.
-    std::string utf8_safe_escape(abel::string_view src);
+std::string utf8_safe_escape(std::string_view src);
 
 // utf8_safe_hex_escape()
 //
 // Escapes a 'src' string using C-style escape sequences, escaping bytes as
 // hexadecimal sequences, and passing through UTF-8 characters without
 // conversion.
-    std::string utf8_safe_hex_escape(abel::string_view src);
+std::string utf8_safe_hex_escape(std::string_view src);
 
 // base64_unescape()
 //
 // Converts a `src` string encoded in Base64 to its binary equivalent, writing
 // it to a `dest` buffer, returning `true` on success. If `src` contains invalid
 // characters, `dest` is cleared and returns `false`.
-    bool base64_unescape(abel::string_view src, std::string *dest);
+bool base64_unescape(std::string_view src, std::string *dest);
 
 // web_safe_base64_unescape()
 //
 // Converts a `src` string encoded in Base64 to its binary equivalent, writing
 // it to a `dest` buffer, but using '-' instead of '+', and '_' instead of '/'.
 // If `src` contains invalid characters, `dest` is cleared and returns `false`.
-    bool web_safe_base64_unescape(abel::string_view src, std::string *dest);
+bool web_safe_base64_unescape(std::string_view src, std::string *dest);
 
 // base64_escape()
 //
 // Encodes a `src` string into a base64-encoded string, with padding characters.
 // This function conforms with RFC 4648 section 4 (base64).
-    void base64_escape(abel::string_view src, std::string *dest);
+void base64_escape(std::string_view src, std::string *dest);
 
-    std::string base64_escape(abel::string_view src);
+std::string base64_escape(std::string_view src);
 
 // web_safe_base64_escape()
 //
 // Encodes a `src` string into a base64-like string, using '-' instead of '+'
 // and '_' instead of '/', and without padding. This function conforms with RFC
 // 4648 section 5 (base64url).
-    void web_safe_base64_escape(abel::string_view src, std::string *dest);
+void web_safe_base64_escape(std::string_view src, std::string *dest);
 
-    std::string web_safe_base64_escape(abel::string_view src);
+std::string web_safe_base64_escape(std::string_view src);
 
 // hex_string_to_bytes()
 //
 // Converts an ASCII hex string into bytes, returning binary data of length
 // `from.size()/2`.
-    std::string hex_string_to_bytes(abel::string_view from);
+std::string hex_string_to_bytes(std::string_view from);
 
 // bytes_to_hex_string()
 //
 // Converts binary data into an ASCII text string, returning a string of size
 // `2*from.size()`.
-    std::string bytes_to_hex_string(abel::string_view from);
+std::string bytes_to_hex_string(std::string_view from);
 
 
 }  // namespace abel

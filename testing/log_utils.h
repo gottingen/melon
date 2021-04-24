@@ -1,3 +1,7 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 #ifndef TEST_TESTING_LOG_UTIL_H_
 #define TEST_TESTING_LOG_UTIL_H_
 

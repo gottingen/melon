@@ -1,6 +1,7 @@
-//
-// Created by liyinbin on 2019/12/8.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 
 #ifndef ABEL_STRINGS_HEX_DUMP_H_
 #define ABEL_STRINGS_HEX_DUMP_H_
@@ -21,7 +22,7 @@ namespace abel {
  * \param size  length of binary data
  * \return      string of hexadecimal pairs
  */
-    std::string hex_dump(const void *const data, size_t size);
+std::string hex_dump(const void *const data, size_t size);
 
 /*!
  * Dump a (binary) string as a sequence of uppercase hexadecimal pairs.
@@ -29,7 +30,7 @@ namespace abel {
  * \param str  binary data to output in hex
  * \return     string of hexadecimal pairs
  */
-    std::string hex_dump(const std::string &str);
+std::string hex_dump(const std::string &str);
 
 /*!
  * Dump a (binary) item as a sequence of uppercase hexadecimal pairs.
@@ -37,10 +38,10 @@ namespace abel {
  * \param t  binary data to output in hex
  * \return   string of hexadecimal pairs
  */
-    template<typename Type>
-    std::string hex_dump_type(const Type &t) {
-        return hex_dump(&t, sizeof(t));
-    }
+template<typename Type>
+std::string hex_dump_type(const Type &t) {
+    return hex_dump(&t, sizeof(t));
+}
 
 /*!
  * Dump a char vector as a sequence of uppercase hexadecimal pairs.
@@ -48,7 +49,7 @@ namespace abel {
  * \param data  binary data to output in hex
  * \return      string of hexadecimal pairs
  */
-    std::string hex_dump(const std::vector<char> &data);
+std::string hex_dump(const std::vector<char> &data);
 
 /*!
  * Dump a uint8_t vector as a sequence of uppercase hexadecimal pairs.
@@ -56,7 +57,7 @@ namespace abel {
  * \param data  binary data to output in hex
  * \return      string of hexadecimal pairs
  */
-    std::string hex_dump(const std::vector<uint8_t> &data);
+std::string hex_dump(const std::vector<uint8_t> &data);
 
 /*!
  * Dump a (binary) string into a C source code snippet. The snippet defines an
@@ -66,8 +67,8 @@ namespace abel {
  * \param var_name  name of the array variable in the outputted code snippet
  * \return          string holding C source snippet
  */
-    std::string hex_dump_sourcecode(
-            const std::string &str, const std::string &var_name = "name");
+std::string hex_dump_sourcecode(
+        const std::string &str, const std::string &var_name = "name");
 
 /******************************************************************************/
 // Lowercase hex_dump Methods
@@ -79,7 +80,7 @@ namespace abel {
  * \param size  length of binary data
  * \return      string of hexadecimal pairs
  */
-    std::string hex_dump_lc(const void *const data, size_t size);
+std::string hex_dump_lc(const void *const data, size_t size);
 
 /*!
  * Dump a (binary) string as a sequence of lowercase hexadecimal pairs.
@@ -87,7 +88,7 @@ namespace abel {
  * \param str  binary data to output in hex
  * \return     string of hexadecimal pairs
  */
-    std::string hex_dump_lc(const std::string &str);
+std::string hex_dump_lc(const std::string &str);
 
 /*!
  * Dump a (binary) item as a sequence of lowercase hexadecimal pairs.
@@ -95,10 +96,10 @@ namespace abel {
  * \param t  binary data to output in hex
  * \return   string of hexadecimal pairs
  */
-    template<typename Type>
-    std::string hex_dump_lc_type(const Type &t) {
-        return hex_dump_lc(&t, sizeof(t));
-    }
+template<typename Type>
+std::string hex_dump_lc_type(const Type &t) {
+    return hex_dump_lc(&t, sizeof(t));
+}
 
 /*!
  * Dump a char vector as a sequence of lowercase hexadecimal pairs.
@@ -106,7 +107,7 @@ namespace abel {
  * \param data  binary data to output in hex
  * \return      string of hexadecimal pairs
  */
-    std::string hex_dump_lc(const std::vector<char> &data);
+std::string hex_dump_lc(const std::vector<char> &data);
 
 /*!
  * Dump a uint8_t vector as a sequence of lowercase hexadecimal pairs.
@@ -114,7 +115,7 @@ namespace abel {
  * \param data  binary data to output in hex
  * \return      string of hexadecimal pairs
  */
-    std::string hex_dump_lc(const std::vector<uint8_t> &data);
+std::string hex_dump_lc(const std::vector<uint8_t> &data);
 
 /******************************************************************************/
 // Parser for Hex Digit Sequence
@@ -127,7 +128,7 @@ namespace abel {
  * \param str  string to parse as hex digits
  * \return     string of read bytes
  */
-    std::string parse_hex_dump(const std::string &str);
+std::string parse_hex_dump(const std::string &str);
 
-} //namespace abel
-#endif //ABEL_STRINGS_HEX_DUMP_H_
+}  // namespace abel
+#endif  // ABEL_STRINGS_HEX_DUMP_H_

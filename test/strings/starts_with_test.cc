@@ -1,15 +1,18 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/starts_with.h>
-#include <gtest/gtest.h>
+#include "abel/strings/starts_with.h"
+#include "gtest/gtest.h"
 
 namespace {
 
 
     TEST(MatchTest, starts_with) {
         const std::string s1("123\0abc", 7);
-        const abel::string_view a("foobar");
-        const abel::string_view b(s1);
-        const abel::string_view e;
+        const std::string_view a("foobar");
+        const std::string_view b(s1);
+        const std::string_view e;
         EXPECT_TRUE(abel::starts_with(a, a));
         EXPECT_TRUE(abel::starts_with(a, "foo"));
         EXPECT_TRUE(abel::starts_with(a, e));

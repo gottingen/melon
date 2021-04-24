@@ -1,47 +1,48 @@
-//
-// Created by liyinbin on 2020/2/8.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 
 #ifndef ABEL_METRICS_GAUGE_H_
 #define ABEL_METRICS_GAUGE_H_
 
-#include <abel/metrics/cache_metrics.h>
 #include <atomic>
 #include <memory>
+#include "abel/metrics/cache_metrics.h"
 
 namespace abel {
-    namespace metrics {
+namespace metrics {
 
-        class gauge {
-        public:
-            gauge() = default;
+class gauge {
+  public:
+    gauge() = default;
 
-            explicit gauge(const double value);
+    explicit gauge(const double value);
 
-            void update(const double value) noexcept;
+    void update(const double value) noexcept;
 
-            void inc() noexcept;
+    void inc() noexcept;
 
-            void inc(const double v) noexcept;
+    void inc(const double v) noexcept;
 
-            void dec() noexcept;
+    void dec() noexcept;
 
-            void dec(const double v) noexcept;
+    void dec(const double v) noexcept;
 
-            double value() const noexcept;
+    double value() const noexcept;
 
-            cache_metrics collect() const noexcept;
+    cache_metrics collect() const noexcept;
 
-        private:
-            void change(double value) noexcept;
+  private:
+    void change(double value) noexcept;
 
-        private:
-            std::atomic<double> _value{0.0};
-        };
+  private:
+    std::atomic<double> _value{0.0};
+};
 
-        typedef std::shared_ptr<gauge> gauge_ptr;
+typedef std::shared_ptr<gauge> gauge_ptr;
 
-    } //namespace metrics
-} //namespace abel
+}  // namespace metrics
+}  // namespace abel
 
-#endif //ABEL_METRICS_GAUGE_H_
+#endif  // ABEL_METRICS_GAUGE_H_

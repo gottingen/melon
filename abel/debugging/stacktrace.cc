@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 
 // Produce stack trace.
@@ -22,11 +25,11 @@
 // correctly when abel::get_stack_trace() is called with max_depth == 0.
 // Some code may do that.
 
-#include <abel/debugging/stacktrace.h>
+#include "abel/debugging/stacktrace.h"
 
 #include <atomic>
-#include <abel/base/profile.h>
-#include <abel/debugging/internal/stacktrace_config.h>
+#include "abel/base/profile.h"
+#include "abel/debugging/internal/stacktrace_config.h"
 
 #if defined(ABEL_STACKTRACE_INL_HEADER)
 
@@ -35,96 +38,96 @@
 #else
 # error Cannot calculate stack trace: will need to write for your environment
 
-# include <abel/debugging/internal/stacktrace_aarch64-inl.inc>
-# include <abel/debugging/internal/stacktrace_arm-inl.inc>
-# include <abel/debugging/internal/stacktrace_generic-inl.inc>
-# include <abel/debugging/internal/stacktrace_powerpc-inl.inc>
-# include <abel/debugging/internal/stacktrace_unimplemented-inl.inc>
-# include <abel/debugging/internal/stacktrace_win32-inl.inc>
-# include <abel/debugging/internal/stacktrace_x86-inl.inc>
+# include "abel/debugging/internal/stacktrace_aarch64-inl.inc"
+# include "abel/debugging/internal/stacktrace_arm-inl.inc"
+# include "abel/debugging/internal/stacktrace_generic-inl.inc"
+# include "abel/debugging/internal/stacktrace_powerpc-inl.inc"
+# include "abel/debugging/internal/stacktrace_unimplemented-inl.inc"
+# include "abel/debugging/internal/stacktrace_win32-inl.inc"
+# include "abel/debugging/internal/stacktrace_x86-inl.inc"
 #endif
 
 namespace abel {
 
-    namespace {
+namespace {
 
-        typedef int (*Unwinder)(void **, int *, int, int, const void *, int *);
+typedef int (*Unwinder)(void **, int *, int, int, const void *, int *);
 
-        std::atomic<Unwinder> custom;
+std::atomic<Unwinder> custom;
 
-        template<bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
-        ABEL_FORCE_INLINE int Unwind(void **result, int *sizes,
-                                     int max_depth, int skip_count,
-                                     const void *uc,
-                                     int *min_dropped_frames) {
-            Unwinder f = &UnwindImpl<IS_STACK_FRAMES, IS_WITH_CONTEXT>;
-            Unwinder g = custom.load(std::memory_order_acquire);
-            if (g != nullptr) f = g;
+template<bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
+ABEL_FORCE_INLINE int Unwind(void **result, int *sizes,
+                             int max_depth, int skip_count,
+                             const void *uc,
+                             int *min_dropped_frames) {
+    Unwinder f = &UnwindImpl<IS_STACK_FRAMES, IS_WITH_CONTEXT>;
+    Unwinder g = custom.load(std::memory_order_acquire);
+    if (g != nullptr) f = g;
 
-            // Add 1 to skip count for the unwinder function itself
-            int size = (*f)(result, sizes, max_depth, skip_count + 1, uc,
-                            min_dropped_frames);
-            // To disable tail call to (*f)(...)
-            ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
-            return size;
-        }
+    // Add 1 to skip count for the unwinder function itself
+    int size = (*f)(result, sizes, max_depth, skip_count + 1, uc,
+                    min_dropped_frames);
+    // To disable tail call to (*f)(...)
+    ABEL_BLOCK_TAIL_CALL_OPTIMIZATION();
+    return size;
+}
 
-    }  // anonymous namespace
+}  // anonymous namespace
 
-    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int get_stack_frames(
-            void **result, int *sizes, int max_depth, int skip_count) {
-        return Unwind<true, false>(result, sizes, max_depth, skip_count, nullptr,
-                                   nullptr);
-    }
+ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int get_stack_frames(
+        void **result, int *sizes, int max_depth, int skip_count) {
+    return Unwind<true, false>(result, sizes, max_depth, skip_count, nullptr,
+                               nullptr);
+}
 
-    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int
-    get_stack_frames_with_context(void **result, int *sizes, int max_depth,
+ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int
+get_stack_frames_with_context(void **result, int *sizes, int max_depth,
                               int skip_count, const void *uc,
                               int *min_dropped_frames) {
-        return Unwind<true, true>(result, sizes, max_depth, skip_count, uc,
-                                  min_dropped_frames);
-    }
+    return Unwind<true, true>(result, sizes, max_depth, skip_count, uc,
+                              min_dropped_frames);
+}
 
-    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int get_stack_trace(
-            void **result, int max_depth, int skip_count) {
-        return Unwind<false, false>(result, nullptr, max_depth, skip_count, nullptr,
-                                    nullptr);
-    }
+ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int get_stack_trace(
+        void **result, int max_depth, int skip_count) {
+    return Unwind<false, false>(result, nullptr, max_depth, skip_count, nullptr,
+                                nullptr);
+}
 
-    ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int
-    get_stack_trace_with_context(void **result, int max_depth, int skip_count,
+ABEL_NO_INLINE ABEL_COMPILER_NO_TAIL_CALL int
+get_stack_trace_with_context(void **result, int max_depth, int skip_count,
                              const void *uc, int *min_dropped_frames) {
-        return Unwind<false, true>(result, nullptr, max_depth, skip_count, uc,
-                                   min_dropped_frames);
-    }
+    return Unwind<false, true>(result, nullptr, max_depth, skip_count, uc,
+                               min_dropped_frames);
+}
 
-    void set_stack_unwinder(Unwinder w) {
-        custom.store(w, std::memory_order_release);
-    }
+void set_stack_unwinder(Unwinder w) {
+    custom.store(w, std::memory_order_release);
+}
 
-    int default_stack_unwinder(void **pcs, int *sizes, int depth, int skip,
-                             const void *uc, int *min_dropped_frames) {
-        skip++;  // For this function
-        Unwinder f = nullptr;
-        if (sizes == nullptr) {
-            if (uc == nullptr) {
-                f = &UnwindImpl<false, false>;
-            } else {
-                f = &UnwindImpl<false, true>;
-            }
+int default_stack_unwinder(void **pcs, int *sizes, int depth, int skip,
+                           const void *uc, int *min_dropped_frames) {
+    skip++;  // For this function
+    Unwinder f = nullptr;
+    if (sizes == nullptr) {
+        if (uc == nullptr) {
+            f = &UnwindImpl<false, false>;
         } else {
-            if (uc == nullptr) {
-                f = &UnwindImpl<true, false>;
-            } else {
-                f = &UnwindImpl<true, true>;
-            }
+            f = &UnwindImpl<false, true>;
         }
-        volatile int x = 0;
-        int n = (*f)(pcs, sizes, depth, skip, uc, min_dropped_frames);
-        x = 1;
-        (void) x;  // To disable tail call to (*f)(...)
-        return n;
+    } else {
+        if (uc == nullptr) {
+            f = &UnwindImpl<true, false>;
+        } else {
+            f = &UnwindImpl<true, true>;
+        }
     }
+    volatile int x = 0;
+    int n = (*f)(pcs, sizes, depth, skip, uc, min_dropped_frames);
+    x = 1;
+    (void) x;  // To disable tail call to (*f)(...)
+    return n;
+}
 
 
 }  // namespace abel

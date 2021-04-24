@@ -1,23 +1,23 @@
-//
-// Created by liyinbin on 2020/1/23.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/case_conv.h>
-#include <abel/asl/ascii.h>
-#include <abel/asl/string_view.h>
+#include "abel/strings/case_conv.h"
+#include "abel/strings/ascii.h"
+#include <string_view>
 #include <cctype>
 #include <clocale>
 #include <cstring>
 #include <string>
-#include <gtest/gtest.h>
-#include <abel/base/profile.h>
+#include "gtest/gtest.h"
+#include "abel/base/profile.h"
 
 
 TEST(AsciiStrTo, Lower) {
     const char buf[] = "ABCDEF";
     const std::string str("GHIJKL");
     const std::string str2("MNOPQR");
-    const abel::string_view sp(str2);
+    const std::string_view sp(str2);
 
     EXPECT_EQ("abcdef", abel::string_to_lower(buf));
     EXPECT_EQ("ghijkl", abel::string_to_lower(str));
@@ -33,7 +33,7 @@ TEST(AsciiStrTo, Upper) {
     const char buf[] = "abcdef";
     const std::string str("ghijkl");
     const std::string str2("mnopqr");
-    const abel::string_view sp(str2);
+    const std::string_view sp(str2);
 
     EXPECT_EQ("ABCDEF", abel::string_to_upper(buf));
     EXPECT_EQ("GHIJKL", abel::string_to_upper(str));

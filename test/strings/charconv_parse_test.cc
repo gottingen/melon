@@ -1,14 +1,16 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/internal/charconv_parse.h>
+#include "abel/strings/internal/charconv_parse.h"
 
 #include <string>
 #include <utility>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/log/abel_logging.h>
-#include <abel/strings/str_cat.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/log/logging.h"
+#include "abel/strings/str_cat.h"
 
 using abel::chars_format;
 using abel::strings_internal::FloatType;
@@ -44,13 +46,13 @@ namespace {
             begin_subrange = static_cast<int>(open_bracket_pos);
             s.replace(open_bracket_pos, 1, "");
             std::string::size_type close_bracket_pos = s.find(']');
-            ABEL_RAW_CHECK(close_bracket_pos != abel::string_view::npos,
+            DCHECK_MSG(close_bracket_pos != std::string_view::npos,
                            "Test input contains [ without matching ]");
             end_subrange = static_cast<int>(close_bracket_pos);
             s.replace(close_bracket_pos, 1, "");
         }
         const std::string::size_type expected_characters_matched = s.find('$');
-        ABEL_RAW_CHECK(expected_characters_matched != std::string::npos,
+        DCHECK_MSG(expected_characters_matched != std::string::npos,
                        "Input std::string must contain $");
         s.replace(expected_characters_matched, 1, "");
 
@@ -106,7 +108,7 @@ namespace {
 
 // Check that a given input string is not matched by Float.
     template<int base>
-    void ExpectFailedParse(abel::string_view s, abel::chars_format format_flags) {
+    void ExpectFailedParse(std::string_view s, abel::chars_format format_flags) {
         ParsedFloat parsed =
                 ParseFloat<base>(s.data(), s.data() + s.size(), format_flags);
         EXPECT_EQ(parsed.end, nullptr);

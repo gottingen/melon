@@ -1,15 +1,11 @@
-//
-// -----------------------------------------------------------------------------
-// kConstInit
-// -----------------------------------------------------------------------------
-//
-// A constructor tag used to mark an object as safe for use as a global
-// variable, avoiding the usual lifetime issues that can affect globals.
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_BASE_PROFILE_CONST_INIT_H_
-#define ABEL_BASE_PROFILE_CONST_INIT_H_
+#ifndef ABEL_BASE_CONST_INIT_H_
+#define ABEL_BASE_CONST_INIT_H_
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 // In general, objects with static storage duration (such as global variables)
 // can trigger tricky object lifetime situations.  Attempting to access them
@@ -52,10 +48,10 @@
 
 namespace abel {
 
-    enum const_init_type {
-        kConstInit,
-    };
+enum const_init_type {
+    kConstInit,
+};
 
 }  // namespace abel
 
-#endif  // ABEL_BASE_PROFILE_CONST_INIT_H_
+#endif  // ABEL_BASE_INTERNAL_CONST_INIT_H_

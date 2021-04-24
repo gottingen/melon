@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // This file is a Posix-specific part of spinlock_wait.cc
 
@@ -6,8 +9,8 @@
 #include <ctime>
 #include <cerrno>
 
-#include <abel/thread/internal/scheduling_mode.h>
-#include <abel/base/profile.h>
+#include "abel/thread/internal/scheduling_mode.h"
+#include "abel/base/profile.h"
 
 extern "C" {
 

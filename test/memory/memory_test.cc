@@ -1,8 +1,10 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 // Tests for pointer utilities.
 
-#include <abel/memory/memory.h>
+#include "abel/memory/memory.h"
 
 #include <sys/types.h>
 #include <cstddef>
@@ -12,8 +14,8 @@
 #include <utility>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 namespace {
 

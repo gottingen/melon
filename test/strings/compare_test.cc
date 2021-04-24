@@ -1,15 +1,15 @@
-//
-// Created by liyinbin on 2020/1/24.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/compare.h>
-#include <gtest/gtest.h>
+#include "abel/strings/compare.h"
+#include "gtest/gtest.h"
 
 namespace {
 
     TEST(MatchTest, EqualsIgnoreCase) {
         std::string text = "the";
-        abel::string_view data(text);
+        std::string_view data(text);
 
         EXPECT_TRUE(abel::equal_case(data, "The"));
         EXPECT_TRUE(abel::equal_case(data, "THE"));

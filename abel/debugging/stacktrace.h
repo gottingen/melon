@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // -----------------------------------------------------------------------------
 // File: stacktrace.h
@@ -18,7 +21,7 @@
 #ifndef ABEL_DEBUGGING_STACKTRACE_H_
 #define ABEL_DEBUGGING_STACKTRACE_H_
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
@@ -65,8 +68,8 @@ namespace abel {
 //
 // This routine may return fewer stack frame entries than are
 // available. Also note that `result` and `sizes` must both be non-null.
-    extern int get_stack_frames(void **result, int *sizes, int max_depth,
-                              int skip_count);
+extern int get_stack_frames(void **result, int *sizes, int max_depth,
+                            int skip_count);
 
 // get_stack_frames_with_context()
 //
@@ -89,7 +92,7 @@ namespace abel {
 // or other reasons. (This value will be set to `0` if no frames were dropped.)
 // The number of total stack frames is guaranteed to be >= skip_count +
 // max_depth + *min_dropped_frames.
-    extern int get_stack_frames_with_context(void **result, int *sizes, int max_depth,
+extern int get_stack_frames_with_context(void **result, int *sizes, int max_depth,
                                          int skip_count, const void *uc,
                                          int *min_dropped_frames);
 
@@ -117,7 +120,7 @@ namespace abel {
 //           ....       ...
 //
 // `result` must not be null.
-    extern int get_stack_trace(void **result, int max_depth, int skip_count);
+extern int get_stack_trace(void **result, int max_depth, int skip_count);
 
 // get_stack_trace_with_context()
 //
@@ -139,7 +142,7 @@ namespace abel {
 // or other reasons. (This value will be set to `0` if no frames were dropped.)
 // The number of total stack frames is guaranteed to be >= skip_count +
 // max_depth + *min_dropped_frames.
-    extern int get_stack_trace_with_context(void **result, int max_depth,
+extern int get_stack_trace_with_context(void **result, int max_depth,
                                         int skip_count, const void *uc,
                                         int *min_dropped_frames);
 
@@ -171,10 +174,10 @@ namespace abel {
 // Therefore do not clean up any state that may be needed by an old
 // unwinder.
 // *****************************************************************************
-    extern void set_stack_unwinder(int (*unwinder)(void **pcs, int *sizes,
-                                                 int max_depth, int skip_count,
-                                                 const void *uc,
-                                                 int *min_dropped_frames));
+extern void set_stack_unwinder(int (*unwinder)(void **pcs, int *sizes,
+                                               int max_depth, int skip_count,
+                                               const void *uc,
+                                               int *min_dropped_frames));
 
 // default_stack_unwinder()
 //
@@ -201,17 +204,17 @@ namespace abel {
 //     null uc | get_stack_trace()            | get_stack_frames()            |
 // non-null uc | get_stack_trace_with_context() | get_stack_frames_with_context() |
 //             |==========================================================|
-    extern int default_stack_unwinder(void **pcs, int *sizes, int max_depth,
-                                    int skip_count, const void *uc,
-                                    int *min_dropped_frames);
+extern int default_stack_unwinder(void **pcs, int *sizes, int max_depth,
+                                  int skip_count, const void *uc,
+                                  int *min_dropped_frames);
 
-    namespace debugging_internal {
+namespace debugging_internal {
 // Returns true for platforms which are expected to have functioning stack trace
 // implementations. Intended to be used for tests which want to exclude
 // verification of logic known to be broken because stack traces are not
 // working.
-        extern bool StackTraceWorksForTest();
-    }  // namespace debugging_internal
+extern bool stack_trace_works_for_test();
+}  // namespace debugging_internal
 
 }  // namespace abel
 

@@ -1,15 +1,12 @@
-// Copyright 2011 and onwards Google Inc.
+// Copyright (c) 2021, gottingen group.
 // All rights reserved.
-//
-// Author: Doug Kwan
-// This is inspired by Craig Silverstein's PowerPC stacktrace code.
-//
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_DEBUGGING_INTERNAL_STACKTRACE_ARM_INL_H_
 #define ABEL_DEBUGGING_INTERNAL_STACKTRACE_ARM_INL_H_
 
 #include <cstdint>
-#include <abel/debugging/stacktrace.h>
+#include "abel/debugging/stacktrace.h"
 
 // WARNING:
 // This only works if all your code is in either ARM or THUMB mode.  With
@@ -117,11 +114,11 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
 
 namespace abel {
 
-    namespace debugging_internal {
-        bool StackTraceWorksForTest() {
-            return false;
-        }
-    }  // namespace debugging_internal
+namespace debugging_internal {
+bool stack_trace_works_for_test() {
+    return false;
+}
+}  // namespace debugging_internal
 
 }  // namespace abel
 

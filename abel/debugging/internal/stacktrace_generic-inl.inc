@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 // Copyright 2000 - 2007 Google Inc.
 // All rights reserved.
 //
@@ -15,8 +18,8 @@
 #include <atomic>
 #include <cstring>
 
-#include <abel/debugging/stacktrace.h>
-#include <abel/base/profile.h>
+#include "abel/debugging/stacktrace.h"
+#include "abel/base/profile.h"
 
 // Sometimes, we can try to get a stack trace from within a stack
 // trace, because we don't block signals inside this code (which would be too
@@ -88,11 +91,11 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
 
 namespace abel {
 
-    namespace debugging_internal {
-        bool StackTraceWorksForTest() {
-            return true;
-        }
-    }  // namespace debugging_internal
+namespace debugging_internal {
+bool stack_trace_works_for_test() {
+    return true;
+}
+}  // namespace debugging_internal
 
 }  // namespace abel
 

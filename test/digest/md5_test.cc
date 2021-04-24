@@ -1,9 +1,9 @@
-//
-// Created by liyinbin on 2020/1/25.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/digest/md5.h>
-#include <gtest/gtest.h>
+#include "abel/digest/md5.h"
+#include "gtest/gtest.h"
 
 TEST (md5, all) {
     EXPECT_EQ(abel::md5_hex(""),

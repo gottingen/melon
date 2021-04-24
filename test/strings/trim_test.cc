@@ -1,23 +1,23 @@
-//
-// Created by liyinbin on 2020/1/23.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/trim.h>
+#include "abel/strings/trim.h"
 #include <cctype>
 #include <clocale>
 #include <cstring>
 #include <string>
-#include <gtest/gtest.h>
-#include <abel/base/profile.h>
+#include "gtest/gtest.h"
+#include "abel/base/profile.h"
 
 TEST(trim_left, FromStringView) {
-    EXPECT_EQ(abel::string_view{},
-              abel::trim_left(abel::string_view{}));
+    EXPECT_EQ(std::string_view{},
+              abel::trim_left(std::string_view{}));
     EXPECT_EQ("foo", abel::trim_left({"foo"}));
     EXPECT_EQ("foo", abel::trim_left({"\t  \n\f\r\n\vfoo"}));
     EXPECT_EQ("foo foo\n ",
               abel::trim_left({"\t  \n\f\r\n\vfoo foo\n "}));
-    EXPECT_EQ(abel::string_view{}, abel::trim_left(
+    EXPECT_EQ(std::string_view{}, abel::trim_left(
             {"\t  \n\f\r\v\n\t  \n\f\r\v\n"}));
 }
 
@@ -41,17 +41,17 @@ TEST(trim_left, InPlace) {
 
     str = "\t  \n\f\r\v\n\t  \n\f\r\v\n";
     abel::trim_left(&str);
-    EXPECT_EQ(abel::string_view{}, str);
+    EXPECT_EQ(std::string_view{}, str);
 }
 
 TEST(trim_right, FromStringView) {
-    EXPECT_EQ(abel::string_view{},
-              abel::trim_right(abel::string_view{}));
+    EXPECT_EQ(std::string_view{},
+              abel::trim_right(std::string_view{}));
     EXPECT_EQ("foo", abel::trim_right({"foo"}));
     EXPECT_EQ("foo", abel::trim_right({"foo\t  \n\f\r\n\v"}));
     EXPECT_EQ(" \nfoo foo",
               abel::trim_right({" \nfoo foo\t  \n\f\r\n\v"}));
-    EXPECT_EQ(abel::string_view{}, abel::trim_right(
+    EXPECT_EQ(std::string_view{}, abel::trim_right(
             {"\t  \n\f\r\v\n\t  \n\f\r\v\n"}));
 }
 
@@ -75,18 +75,18 @@ TEST(trim_right, InPlace) {
 
     str = "\t  \n\f\r\v\n\t  \n\f\r\v\n";
     abel::trim_right(&str);
-    EXPECT_EQ(abel::string_view{}, str);
+    EXPECT_EQ(std::string_view{}, str);
 }
 
 TEST(trim_all, FromStringView) {
-    EXPECT_EQ(abel::string_view{},
-              abel::trim_all(abel::string_view{}));
+    EXPECT_EQ(std::string_view{},
+              abel::trim_all(std::string_view{}));
     EXPECT_EQ("foo", abel::trim_all({"foo"}));
     EXPECT_EQ("foo",
               abel::trim_all({"\t  \n\f\r\n\vfoo\t  \n\f\r\n\v"}));
     EXPECT_EQ("foo foo", abel::trim_all(
             {"\t  \n\f\r\n\vfoo foo\t  \n\f\r\n\v"}));
-    EXPECT_EQ(abel::string_view{},
+    EXPECT_EQ(std::string_view{},
               abel::trim_all({"\t  \n\f\r\v\n\t  \n\f\r\v\n"}));
 }
 
@@ -110,7 +110,7 @@ TEST(trim_all, InPlace) {
 
     str = "\t  \n\f\r\v\n\t  \n\f\r\v\n";
     abel::trim_all(&str);
-    EXPECT_EQ(abel::string_view{}, str);
+    EXPECT_EQ(std::string_view{}, str);
 }
 
 TEST(trim_complete, InPlace) {
@@ -135,7 +135,7 @@ TEST(trim_complete, InPlace) {
             "",
             "a\nb",
     };
-    const int NUM_TESTS = ABEL_ARRAYSIZE(inputs);
+    const int NUM_TESTS = ABEL_ARRAY_SIZE(inputs);
 
     for (int i = 0; i < NUM_TESTS; i++) {
         std::string s(inputs[i]);

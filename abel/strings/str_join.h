@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 //
 // -----------------------------------------------------------------------------
@@ -16,7 +19,7 @@
 // Ranges are specified by passing a container with `std::begin()` and
 // `std::end()` iterators, container-specific `begin()` and `end()` iterators, a
 // brace-initialized `std::initializer_list`, or a `std::tuple` of heterogeneous
-// objects. The separator string is specified as an `abel::string_view`.
+// objects. The separator string is specified as an `std::string_view`.
 //
 // Because the default formatter uses the `abel::alpha_num` class,
 // `abel::string_join()`, like `abel::string_cat()`, will work out-of-the-box on
@@ -42,9 +45,9 @@
 #include <type_traits>
 #include <utility>
 
-#include <abel/base/profile.h>
-#include <abel/strings/internal/str_join_internal.h>
-#include <abel/asl/string_view.h>
+#include "abel/base/profile.h"
+#include "abel/strings/internal/str_join_internal.h"
+#include <string_view>
 
 namespace abel {
 
@@ -86,37 +89,37 @@ namespace abel {
 //
 // Default formatter used if none is specified. Uses `abel::alpha_num` to convert
 // numeric arguments to strings.
-    ABEL_FORCE_INLINE strings_internal::alpha_num_formatter_impl alpha_num_formatter() {
-        return strings_internal::alpha_num_formatter_impl();
-    }
+ABEL_FORCE_INLINE strings_internal::alpha_num_formatter_impl alpha_num_formatter() {
+    return strings_internal::alpha_num_formatter_impl();
+}
 
 // stream_formatter()
 //
 // Formats its argument using the << operator.
-    ABEL_FORCE_INLINE strings_internal::stream_formatter_impl stream_formatter() {
-        return strings_internal::stream_formatter_impl();
-    }
+ABEL_FORCE_INLINE strings_internal::stream_formatter_impl stream_formatter() {
+    return strings_internal::stream_formatter_impl();
+}
 
-// Function Template: pair_formatter(Formatter, abel::string_view, Formatter)
+// Function Template: pair_formatter(Formatter, std::string_view, Formatter)
 //
 // Formats a `std::pair` by putting a given separator between the pair's
 // `.first` and `.second` members. This formatter allows you to specify
 // custom Formatters for both the first and second member of each pair.
-    template<typename FirstFormatter, typename SecondFormatter>
-    ABEL_FORCE_INLINE strings_internal::pair_formatter_impl<FirstFormatter, SecondFormatter>
-    pair_formatter(FirstFormatter f1, abel::string_view sep, SecondFormatter f2) {
-        return strings_internal::pair_formatter_impl<FirstFormatter, SecondFormatter>(
-                std::move(f1), sep, std::move(f2));
-    }
+template<typename FirstFormatter, typename SecondFormatter>
+ABEL_FORCE_INLINE strings_internal::pair_formatter_impl<FirstFormatter, SecondFormatter>
+pair_formatter(FirstFormatter f1, std::string_view sep, SecondFormatter f2) {
+    return strings_internal::pair_formatter_impl<FirstFormatter, SecondFormatter>(
+            std::move(f1), sep, std::move(f2));
+}
 
 // Function overload of pair_formatter() for using a default
 // `alpha_num_formatter()` for each Formatter in the pair.
-    ABEL_FORCE_INLINE strings_internal::pair_formatter_impl<
-            strings_internal::alpha_num_formatter_impl,
-            strings_internal::alpha_num_formatter_impl>
-    pair_formatter(abel::string_view sep) {
-        return pair_formatter(alpha_num_formatter(), sep, alpha_num_formatter());
-    }
+ABEL_FORCE_INLINE strings_internal::pair_formatter_impl<
+        strings_internal::alpha_num_formatter_impl,
+        strings_internal::alpha_num_formatter_impl>
+pair_formatter(std::string_view sep) {
+    return pair_formatter(alpha_num_formatter(), sep, alpha_num_formatter());
+}
 
 // Function Template: dereference_formatter(Formatter)
 //
@@ -124,21 +127,21 @@ namespace abel {
 // formatter. This formatter is useful for formatting a container of
 // pointer-to-T. This pattern often shows up when joining repeated fields in
 // protocol buffers.
-    template<typename Formatter>
-    strings_internal::dereference_formatter_impl<Formatter> dereference_formatter(
-            Formatter &&f) {
-        return strings_internal::dereference_formatter_impl<Formatter>(
-                std::forward<Formatter>(f));
-    }
+template<typename Formatter>
+strings_internal::dereference_formatter_impl<Formatter> dereference_formatter(
+        Formatter &&f) {
+    return strings_internal::dereference_formatter_impl<Formatter>(
+            std::forward<Formatter>(f));
+}
 
 // Function overload of `DererefenceFormatter()` for using a default
 // `alpha_num_formatter()`.
-    ABEL_FORCE_INLINE strings_internal::dereference_formatter_impl<
-            strings_internal::alpha_num_formatter_impl>
-    dereference_formatter() {
-        return strings_internal::dereference_formatter_impl<
-                strings_internal::alpha_num_formatter_impl>(alpha_num_formatter());
-    }
+ABEL_FORCE_INLINE strings_internal::dereference_formatter_impl<
+        strings_internal::alpha_num_formatter_impl>
+dereference_formatter() {
+    return strings_internal::dereference_formatter_impl<
+            strings_internal::alpha_num_formatter_impl>(alpha_num_formatter());
+}
 
 // -----------------------------------------------------------------------------
 // string_join()
@@ -154,7 +157,7 @@ namespace abel {
 //
 // Example 1:
 //   // Joins a collection of strings. This pattern also works with a collection
-//   // of `abel::string_view` or even `const char*`.
+//   // of `std::string_view` or even `const char*`.
 //   std::vector<std::string> v = {"foo", "bar", "baz"};
 //   std::string s = abel::string_join(v, "-");
 //   EXPECT_EQ("foo-bar-baz", s);
@@ -162,7 +165,7 @@ namespace abel {
 // Example 2:
 //   // Joins the values in the given `std::initializer_list<>` specified using
 //   // brace initialization. This pattern also works with an initializer_list
-//   // of ints or `abel::string_view` -- any `alpha_num`-compatible type.
+//   // of ints or `std::string_view` -- any `alpha_num`-compatible type.
 //   std::string s = abel::string_join({"foo", "bar", "baz"}, "-");
 //   EXPECT_EQ("foo-bar-baz", s);
 //
@@ -228,51 +231,51 @@ namespace abel {
 //   std::string s = abel::string_join(std::make_tuple(123, "abc", 0.456), "-");
 //   EXPECT_EQ("123-abc-0.456", s);
 
-    template<typename Iterator, typename Formatter>
-    std::string string_join(Iterator start, Iterator end, abel::string_view sep,
-                            Formatter &&fmt) {
-        return strings_internal::join_algorithm(start, end, sep, fmt);
-    }
+template<typename Iterator, typename Formatter>
+std::string string_join(Iterator start, Iterator end, std::string_view sep,
+                        Formatter &&fmt) {
+    return strings_internal::join_algorithm(start, end, sep, fmt);
+}
 
-    template<typename Range, typename Formatter>
-    std::string string_join(const Range &range, abel::string_view separator,
-                            Formatter &&fmt) {
-        return strings_internal::join_range(range, separator, fmt);
-    }
+template<typename Range, typename Formatter>
+std::string string_join(const Range &range, std::string_view separator,
+                        Formatter &&fmt) {
+    return strings_internal::join_range(range, separator, fmt);
+}
 
-    template<typename T, typename Formatter>
-    std::string string_join(std::initializer_list<T> il, abel::string_view separator,
-                            Formatter &&fmt) {
-        return strings_internal::join_range(il, separator, fmt);
-    }
+template<typename T, typename Formatter>
+std::string string_join(std::initializer_list<T> il, std::string_view separator,
+                        Formatter &&fmt) {
+    return strings_internal::join_range(il, separator, fmt);
+}
 
-    template<typename... T, typename Formatter>
-    std::string string_join(const std::tuple<T...> &value, abel::string_view separator,
-                            Formatter &&fmt) {
-        return strings_internal::join_algorithm(value, separator, fmt);
-    }
+template<typename... T, typename Formatter>
+std::string string_join(const std::tuple<T...> &value, std::string_view separator,
+                        Formatter &&fmt) {
+    return strings_internal::join_algorithm(value, separator, fmt);
+}
 
-    template<typename Iterator>
-    std::string string_join(Iterator start, Iterator end, abel::string_view separator) {
-        return strings_internal::join_range(start, end, separator);
-    }
+template<typename Iterator>
+std::string string_join(Iterator start, Iterator end, std::string_view separator) {
+    return strings_internal::join_range(start, end, separator);
+}
 
-    template<typename Range>
-    std::string string_join(const Range &range, abel::string_view separator) {
-        return strings_internal::join_range(range, separator);
-    }
+template<typename Range>
+std::string string_join(const Range &range, std::string_view separator) {
+    return strings_internal::join_range(range, separator);
+}
 
-    template<typename T>
-    std::string string_join(std::initializer_list<T> il,
-                            abel::string_view separator) {
-        return strings_internal::join_range(il, separator);
-    }
+template<typename T>
+std::string string_join(std::initializer_list<T> il,
+                        std::string_view separator) {
+    return strings_internal::join_range(il, separator);
+}
 
-    template<typename... T>
-    std::string string_join(const std::tuple<T...> &value,
-                            abel::string_view separator) {
-        return strings_internal::join_algorithm(value, separator, alpha_num_formatter());
-    }
+template<typename... T>
+std::string string_join(const std::tuple<T...> &value,
+                        std::string_view separator) {
+    return strings_internal::join_algorithm(value, separator, alpha_num_formatter());
+}
 
 
 }  // namespace abel

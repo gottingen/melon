@@ -6,7 +6,7 @@
 #define ABEL_SYSTEM_PLATFORM_HEADERS_H_
 
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -52,4 +52,4 @@
 #endif // unix
 
 
-#endif //ABEL_SYSTEM_PLATFORM_HEADERS_H_
+#endif  // ABEL_SYSTEM_PLATFORM_HEADERS_H_

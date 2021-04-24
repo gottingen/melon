@@ -1,3 +1,7 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 #ifndef ABEL_SYSTEM_SYSINFO_H_
 #define ABEL_SYSTEM_SYSINFO_H_
 
@@ -8,17 +12,17 @@
 #endif
 
 #include <cstdint>
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
 // Nominal core processor cycles per second of each processor.   This is _not_
 // necessarily the frequency of the cycle_clock counter (see cycleclock.h)
 // Thread-safe.
-    double nominal_cpu_frequency();
+double nominal_cpu_frequency();
 
 // Number of logical processors (hyperthreads) in system. Thread-safe.
-    int num_cpus();
+int num_cpus();
 
 // Return the thread id of the current thread, as told by the system.
 // No two currently-live threads implemented by the OS shall have the same ID.
@@ -28,13 +32,13 @@ namespace abel {
 // On Linux, you may send a signal to the resulting ID with kill().  However,
 // it is recommended for portability that you use pthread_kill() instead.
 #ifdef _WIN32
-    // On Windows, process id and thread id are of the same type according to the
-    // return types of GetProcessId() and GetThreadId() are both DWORD, an unsigned
-    // 32-bit type.
-    using pid_t = uint32_t;
+// On Windows, process id and thread id are of the same type according to the
+// return types of GetProcessId() and GetThreadId() are both DWORD, an unsigned
+// 32-bit type.
+using pid_t = uint32_t;
 #endif
 
-    pid_t get_tid();
+pid_t get_tid();
 
 }  // namespace abel
 

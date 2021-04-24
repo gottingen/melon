@@ -1,25 +1,25 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef TEST_TESTING_INTERNAL_TIME_UTIL_H_
 #define TEST_TESTING_INTERNAL_TIME_UTIL_H_
 
 #include <string>
-
-#include <abel/chrono/time.h>
-
 #include <cstdarg>
 #include <cstdio>
 #include <string>
-#include <abel/asl/format/posix.h>
+#include "abel/chrono/time.h"
+#include "abel/strings/internal/os.h"
 
 namespace abel {
 
-    namespace chrono_internal {
+namespace chrono_internal {
 
 // Loads the named timezone, but dies on any failure.
-        abel::time_zone load_time_zone(const std::string &name);
+abel::time_zone load_time_zone(const std::string &name);
 
-    }  // namespace chrono_internal
+}  // namespace chrono_internal
 
 }  // namespace abel
 
@@ -50,7 +50,7 @@ std::string get_system_error(int error_code);
 extern const char *const FILE_CONTENT;
 
 // Opens a buffered file for reading.
-fmt::buffered_file open_buffered_file(FILE **fp = 0);
+abel::buffered_file open_buffered_file(FILE **fp = 0);
 
 inline FILE *safe_fopen(const char *filename, const char *mode) {
 #if defined(_WIN32) && !defined(__MINGW32__)
@@ -65,12 +65,12 @@ inline FILE *safe_fopen(const char *filename, const char *mode) {
 
 template<typename Char>
 class BasicTestString {
-private:
+  private:
     std::basic_string<Char> value_;
 
     static const Char EMPTY[];
 
-public:
+  public:
     explicit BasicTestString(const Char *value = EMPTY) : value_(value) {}
 
     const std::basic_string<Char> &value() const { return value_; }
@@ -91,7 +91,7 @@ std::basic_ostream<Char> &operator<<(
 
 class Date {
     int year_, month_, day_;
-public:
+  public:
     Date(int year, int month, int day) : year_(year), month_(month), day_(day) {}
 
     int year() const { return year_; }

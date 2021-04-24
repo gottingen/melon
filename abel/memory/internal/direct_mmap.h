@@ -1,10 +1,11 @@
-// Functions for directly invoking mmap() via syscall, avoiding the case where
-// mmap() has been locally overridden.
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_MEMORY_INTERNAL_DIRECT_MMAP_H_
 #define ABEL_MEMORY_INTERNAL_DIRECT_MMAP_H_
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 #if ABEL_HAVE_MMAP
 
@@ -125,18 +126,18 @@ ABEL_FORCE_INLINE int DirectMunmap(void* start, size_t length) {
 
 namespace abel {
 
-    namespace base_internal {
+namespace base_internal {
 
-        ABEL_FORCE_INLINE void *DirectMmap(void *start, size_t length, int prot, int flags, int fd,
-                                           off_t offset) {
-            return mmap(start, length, prot, flags, fd, offset);
-        }
+ABEL_FORCE_INLINE void *DirectMmap(void *start, size_t length, int prot, int flags, int fd,
+                                   off_t offset) {
+    return mmap(start, length, prot, flags, fd, offset);
+}
 
-        ABEL_FORCE_INLINE int DirectMunmap(void *start, size_t length) {
-            return munmap(start, length);
-        }
+ABEL_FORCE_INLINE int DirectMunmap(void *start, size_t length) {
+    return munmap(start, length);
+}
 
-    }  // namespace base_internal
+}  // namespace base_internal
 
 }  // namespace abel
 

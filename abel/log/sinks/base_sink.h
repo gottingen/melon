@@ -1,7 +1,5 @@
-//
-// Copyright(c) 2015 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
 //
@@ -11,53 +9,51 @@
 // implementers..
 //
 
-#include <abel/log/common.h>
-#include <abel/log/details/log_msg.h>
-#include <abel/log/formatter.h>
-#include <abel/log/sinks/sink.h>
+#include "abel/log/common.h"
+#include "abel/log/details/log_msg.h"
+#include "abel/log/sinks/sink.h"
 
 namespace abel {
-    namespace log {
-        namespace sinks {
-            template<typename Mutex>
-            class base_sink : public sink {
-            public:
-                base_sink()
-                        : sink() {
-                }
+namespace sinks {
+template<typename Mutex>
+class base_sink : public sink {
+  public:
+    base_sink();
 
-                base_sink(const base_sink &) = delete;
+    explicit base_sink(std::unique_ptr<abel::log_formatter> log_formatter);
 
-                base_sink &operator=(const base_sink &) = delete;
+    ~base_sink() override = default;
 
-                void log(const details::log_msg &msg) ABEL_INHERITANCE_FINAL override {
-                    std::lock_guard<Mutex> lock(mutex_);
-                    sink_it_(msg);
-                }
+    base_sink(const base_sink &) = delete;
 
-                void flush() ABEL_INHERITANCE_FINAL override {
-                    std::lock_guard<Mutex> lock(mutex_);
-                    flush_();
-                }
+    base_sink(base_sink &&) = delete;
 
-                void set_pattern(const std::string &pattern) ABEL_INHERITANCE_FINAL override {
-                    std::lock_guard<Mutex> lock(mutex_);
-                    formatter_ = std::unique_ptr<abel::log::formatter>(new pattern_formatter(pattern));
-                }
+    base_sink &operator=(const base_sink &) = delete;
 
-                void
-                set_formatter(std::unique_ptr<abel::log::formatter> sink_formatter) ABEL_INHERITANCE_FINAL override {
-                    std::lock_guard<Mutex> lock(mutex_);
-                    formatter_ = std::move(sink_formatter);
-                }
+    base_sink &operator=(base_sink &&) = delete;
 
-            protected:
-                virtual void sink_it_(const details::log_msg &msg) = 0;
+    void log(const details::log_msg &msg) final;
 
-                virtual void flush_() = 0;
+    void flush() final;
 
-                Mutex mutex_;
-            };
-        } // namespace sinks
-    } //namespace log
-} // namespace abel
+    void set_pattern(const std::string &pattern) final;
+
+    void set_formatter(std::unique_ptr<abel::log_formatter> sink_formatter) final;
+
+  protected:
+    // sink formatter
+    std::unique_ptr<abel::log_formatter> formatter_;
+    Mutex mutex_;
+
+    virtual void sink_it_(const details::log_msg &msg) = 0;
+
+    virtual void flush_() = 0;
+
+    virtual void set_pattern_(const std::string &pattern);
+
+    virtual void set_formatter_(std::unique_ptr<abel::log_formatter> sink_formatter);
+};
+} // namespace sinks
+}  // namespace abel
+
+#include "abel/log/sinks/base_sink_inl.h"

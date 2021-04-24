@@ -1,12 +1,12 @@
-//
-// Created by liyinbin on 2019/12/8.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef ABEL_DIGEST_BASE64_H_
 #define ABEL_DIGEST_BASE64_H_
 
 #include <string>
-#include <abel/asl//string_view.h>
+#include <string_view>
 
 namespace abel {
 // Base64 Encoding and Decoding
@@ -20,7 +20,7 @@ namespace abel {
  * @param line_break break the output string every n characters
  * @return base64 encoded string
  */
-    bool base64_encode(abel::string_view str, std::string *out, size_t line_break = 0);
+bool base64_encode(std::string_view str, std::string *out, size_t line_break = 0);
 
 
 /**
@@ -33,7 +33,8 @@ namespace abel {
  * @param strict throw exception on invalid character
  * @return decoded binary data
  */
-    bool base64_decode(abel::string_view str, std::string *out, bool strict = true);
+bool base64_decode(std::string_view str, std::string *out, bool strict = true);
 
-}
-#endif //ABEL_DIGEST_BASE64_H_
+}  //  namespace abel
+
+#endif  // ABEL_DIGEST_BASE64_H_

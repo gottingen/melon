@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.15)
 
 # TODO modify this for you project
-project(abel CXX)
+project(abel CXX C ASM)
 
 # Compiler id for Apple Clang is now AppleClang.
 cmake_policy(SET CMP0025 NEW)
@@ -15,6 +15,7 @@ cmake_policy(SET CMP0048 NEW)
 set(CMAKE_MACOSX_RPATH 1)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/copts)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
@@ -22,20 +23,20 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
 include(carbin_print)
 
 # TODO modyify this for "-std=c++[x]"
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 set(PROJECT_DESCRIPTION "carbin c++ lib")
 set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 3)
-set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_PATCH 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
 option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 
 option(ENABLE_TESTING "enable unit test" ON)
-option(CARBIN_PACKAGE_GEN "enable package gen" ON)
-option(ENABLE_BENCHMARK "enable benchmark" ON)
+option(CARBIN_PACKAGE_GEN "enable package gen" OFF)
+option(ENABLE_BENCHMARK "enable benchmark" OFF)
 option(ENABLE_EXAMPLE "enable benchmark" ON)
 option(ENABLE_SUMMARY "enable summary output" ON)
 # it is too many
@@ -59,14 +60,6 @@ endif ()
 #########################
 # default pavkage
 
-
-find_package(gtest REQUIRED)
-find_package(gmock REQUIRED)
-
-carbin_check_target(gtest::gtest)
-carbin_check_target(gtest::gtest_main)
-carbin_check_target(gmock::gmock)
-carbin_check_target(gmock::gmock_main)
 
 set(ABEL_DYLINK)
 if (APPLE)
@@ -95,6 +88,14 @@ endif (ENABLE_BENCHMARK)
 
 
 if (ENABLE_TESTING)
+    find_package(gtest REQUIRED)
+    find_package(gmock REQUIRED)
+
+    carbin_check_target(gtest::gtest)
+    carbin_check_target(gtest::gtest_main)
+    carbin_check_target(gmock::gmock)
+    carbin_check_target(gmock::gmock_main)
+
     set(CARBIN_RUN_TESTS true)
     enable_testing()
     add_subdirectory(test)

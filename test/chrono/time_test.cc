@@ -1,6 +1,8 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/chrono/time.h>
+#include "abel/chrono/time.h"
 
 #if defined(_MSC_VER)
 #include <winsock2.h>  // for timeval
@@ -13,11 +15,11 @@
 #include <limits>
 #include <string>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/asl/numeric.h>
-#include <abel/chrono/clock.h>
-#include <testing/time_util.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/numeric/int128.h"
+#include "abel/chrono/clock.h"
+#include "testing/time_util.h"
 
 namespace {
 
@@ -65,21 +67,21 @@ namespace {
     }
 
     TEST(abel_time, ConstExpr) {
-        constexpr abel::abel_time t0 = abel::unix_epoch();
+        constexpr abel::abel_time t0 = abel::abel_time::unix_epoch();
         static_assert(t0 == abel::abel_time(), "unix_epoch");
-        constexpr abel::abel_time t1 = abel::infinite_future();
+        constexpr abel::abel_time t1 = abel::abel_time::infinite_future();
         static_assert(t1 != abel::abel_time(), "infinite_future");
-        constexpr abel::abel_time t2 = abel::infinite_past();
+        constexpr abel::abel_time t2 = abel::abel_time::infinite_past();
         static_assert(t2 != abel::abel_time(), "infinite_past");
-        constexpr abel::abel_time t3 = abel::from_unix_nanos(0);
+        constexpr abel::abel_time t3 = abel::abel_time::from_unix_nanos(0);
         static_assert(t3 == abel::abel_time(), "from_unix_nanos");
-        constexpr abel::abel_time t4 = abel::from_unix_micros(0);
+        constexpr abel::abel_time t4 = abel::abel_time::from_unix_micros(0);
         static_assert(t4 == abel::abel_time(), "from_unix_micros");
-        constexpr abel::abel_time t5 = abel::from_unix_millis(0);
+        constexpr abel::abel_time t5 = abel::abel_time::from_unix_millis(0);
         static_assert(t5 == abel::abel_time(), "from_unix_millis");
-        constexpr abel::abel_time t6 = abel::from_unix_seconds(0);
+        constexpr abel::abel_time t6 = abel::abel_time::from_unix_seconds(0);
         static_assert(t6 == abel::abel_time(), "from_unix_seconds");
-        constexpr abel::abel_time t7 = abel::from_time_t(0);
+        constexpr abel::abel_time t7 = abel::abel_time::from_time_t(0);
         static_assert(t7 == abel::abel_time(), "from_time_t");
     }
 
@@ -98,7 +100,7 @@ namespace {
     }
 
     TEST(abel_time, unix_epoch) {
-        const auto ci = abel::utc_time_zone().at(abel::unix_epoch());
+        const auto ci = abel::utc_time_zone().at(abel::abel_time::unix_epoch());
         EXPECT_EQ(abel::chrono_second(1970, 1, 1, 0, 0, 0), ci.cs);
         EXPECT_EQ(abel::zero_duration(), ci.subsecond);
         EXPECT_EQ(abel::chrono_weekday::thursday, abel::GetWeekday(ci.cs));
@@ -106,7 +108,7 @@ namespace {
 
     TEST(abel_time, breakdown) {
         abel::time_zone tz = abel::chrono_internal::load_time_zone("America/New_York");
-        abel::abel_time t = abel::unix_epoch();
+        abel::abel_time t = abel::abel_time::unix_epoch();
 
         // The Unix epoch as seen in NYC.
         auto ci = tz.at(t);
@@ -115,24 +117,24 @@ namespace {
         EXPECT_EQ(abel::chrono_weekday::wednesday, abel::GetWeekday(ci.cs));
 
         // Just before the epoch.
-        t -= abel::nanoseconds(1);
+        t -= abel::duration::nanoseconds(1);
         ci = tz.at(t);
         EXPECT_CIVIL_INFO(ci, 1969, 12, 31, 18, 59, 59, -18000, false);
-        EXPECT_EQ(abel::nanoseconds(999999999), ci.subsecond);
+        EXPECT_EQ(abel::duration::nanoseconds(999999999), ci.subsecond);
         EXPECT_EQ(abel::chrono_weekday::wednesday, abel::GetWeekday(ci.cs));
 
         // Some time later.
-        t += abel::hours(24) * 2735;
-        t += abel::hours(18) + abel::minutes(30) + abel::seconds(15) +
-             abel::nanoseconds(9);
+        t += abel::duration::hours(24) * 2735;
+        t += abel::duration::hours(18) + abel::duration::minutes(30) + abel::duration::seconds(15) +
+             abel::duration::nanoseconds(9);
         ci = tz.at(t);
         EXPECT_CIVIL_INFO(ci, 1977, 6, 28, 14, 30, 15, -14400, true);
-        EXPECT_EQ(8, ci.subsecond / abel::nanoseconds(1));
+        EXPECT_EQ(8, ci.subsecond / abel::duration::nanoseconds(1));
         EXPECT_EQ(abel::chrono_weekday::tuesday, abel::GetWeekday(ci.cs));
     }
 
     TEST(abel_time, AdditiveOperators) {
-        const abel::duration d = abel::nanoseconds(1);
+        const abel::duration d = abel::duration::nanoseconds(1);
         const abel::abel_time t0;
         const abel::abel_time t1 = t0 + d;
 
@@ -149,21 +151,21 @@ namespace {
         EXPECT_EQ(t0, t);
 
         // Tests overflow between subseconds and seconds.
-        t = abel::unix_epoch();
-        t += abel::milliseconds(500);
-        EXPECT_EQ(abel::unix_epoch() + abel::milliseconds(500), t);
-        t += abel::milliseconds(600);
-        EXPECT_EQ(abel::unix_epoch() + abel::milliseconds(1100), t);
-        t -= abel::milliseconds(600);
-        EXPECT_EQ(abel::unix_epoch() + abel::milliseconds(500), t);
-        t -= abel::milliseconds(500);
-        EXPECT_EQ(abel::unix_epoch(), t);
+        t = abel::abel_time::unix_epoch();
+        t += abel::duration::milliseconds(500);
+        EXPECT_EQ(abel::abel_time::unix_epoch() + abel::duration::milliseconds(500), t);
+        t += abel::duration::milliseconds(600);
+        EXPECT_EQ(abel::abel_time::unix_epoch() + abel::duration::milliseconds(1100), t);
+        t -= abel::duration::milliseconds(600);
+        EXPECT_EQ(abel::abel_time::unix_epoch() + abel::duration::milliseconds(500), t);
+        t -= abel::duration::milliseconds(500);
+        EXPECT_EQ(abel::abel_time::unix_epoch(), t);
     }
 
     TEST(abel_time, RelationalOperators) {
-        constexpr abel::abel_time t1 = abel::from_unix_nanos(0);
-        constexpr abel::abel_time t2 = abel::from_unix_nanos(1);
-        constexpr abel::abel_time t3 = abel::from_unix_nanos(2);
+        constexpr abel::abel_time t1 = abel::abel_time::from_unix_nanos(0);
+        constexpr abel::abel_time t2 = abel::abel_time::from_unix_nanos(1);
+        constexpr abel::abel_time t3 = abel::abel_time::from_unix_nanos(2);
 
         static_assert(abel::abel_time() == t1, "");
         static_assert(t1 == t1, "");
@@ -194,8 +196,8 @@ namespace {
     }
 
     TEST(abel_time, Infinity) {
-        constexpr abel::abel_time ifuture = abel::infinite_future();
-        constexpr abel::abel_time ipast = abel::infinite_past();
+        constexpr abel::abel_time ifuture = abel::abel_time::infinite_future();
+        constexpr abel::abel_time ipast = abel::abel_time::infinite_past();
 
         static_assert(ifuture == ifuture, "");
         static_assert(ipast == ipast, "");
@@ -203,106 +205,106 @@ namespace {
         static_assert(ifuture > ipast, "");
 
         // Arithmetic saturates
-        EXPECT_EQ(ifuture, ifuture + abel::seconds(1));
-        EXPECT_EQ(ifuture, ifuture - abel::seconds(1));
-        EXPECT_EQ(ipast, ipast + abel::seconds(1));
-        EXPECT_EQ(ipast, ipast - abel::seconds(1));
+        EXPECT_EQ(ifuture, ifuture + abel::duration::seconds(1));
+        EXPECT_EQ(ifuture, ifuture - abel::duration::seconds(1));
+        EXPECT_EQ(ipast, ipast + abel::duration::seconds(1));
+        EXPECT_EQ(ipast, ipast - abel::duration::seconds(1));
 
         EXPECT_EQ(abel::infinite_duration(), ifuture - ifuture);
         EXPECT_EQ(abel::infinite_duration(), ifuture - ipast);
         EXPECT_EQ(-abel::infinite_duration(), ipast - ifuture);
         EXPECT_EQ(-abel::infinite_duration(), ipast - ipast);
 
-        constexpr abel::abel_time t = abel::unix_epoch();  // Any finite time.
+        constexpr abel::abel_time t = abel::abel_time::unix_epoch();  // Any finite time.
         static_assert(t < ifuture, "");
         static_assert(t > ipast, "");
     }
 
     TEST(abel_time, FloorConversion) {
 #define TEST_FLOOR_CONVERSION(TO, FROM) \
-  EXPECT_EQ(1, TO(FROM(1001)));         \
-  EXPECT_EQ(1, TO(FROM(1000)));         \
-  EXPECT_EQ(0, TO(FROM(999)));          \
-  EXPECT_EQ(0, TO(FROM(1)));            \
-  EXPECT_EQ(0, TO(FROM(0)));            \
-  EXPECT_EQ(-1, TO(FROM(-1)));          \
-  EXPECT_EQ(-1, TO(FROM(-999)));        \
-  EXPECT_EQ(-1, TO(FROM(-1000)));       \
-  EXPECT_EQ(-2, TO(FROM(-1001)));
+  EXPECT_EQ(1, FROM(1001).TO());         \
+  EXPECT_EQ(1, FROM(1000).TO());         \
+  EXPECT_EQ(0, FROM(999).TO());          \
+  EXPECT_EQ(0, FROM(1).TO());            \
+  EXPECT_EQ(0, FROM(0).TO());            \
+  EXPECT_EQ(-1, FROM(-1).TO());          \
+  EXPECT_EQ(-1, FROM(-999).TO());        \
+  EXPECT_EQ(-1, FROM(-1000).TO());       \
+  EXPECT_EQ(-2, FROM(-1001).TO());
 
-        TEST_FLOOR_CONVERSION(abel::to_unix_micros, abel::from_unix_nanos);
-        TEST_FLOOR_CONVERSION(abel::to_unix_millis, abel::from_unix_micros);
-        TEST_FLOOR_CONVERSION(abel::to_unix_seconds, abel::from_unix_millis);
-        TEST_FLOOR_CONVERSION(abel::to_time_t, abel::from_unix_millis);
+        TEST_FLOOR_CONVERSION(to_unix_micros, abel::abel_time::from_unix_nanos);
+        TEST_FLOOR_CONVERSION(to_unix_millis, abel::abel_time::from_unix_micros);
+        TEST_FLOOR_CONVERSION(to_unix_seconds, abel::abel_time::from_unix_millis);
+        TEST_FLOOR_CONVERSION(to_time_t, abel::abel_time::from_unix_millis);
 
 #undef TEST_FLOOR_CONVERSION
 
         // Tests to_unix_nanos.
-        EXPECT_EQ(1, abel::to_unix_nanos(abel::unix_epoch() + abel::nanoseconds(3) / 2));
-        EXPECT_EQ(1, abel::to_unix_nanos(abel::unix_epoch() + abel::nanoseconds(1)));
-        EXPECT_EQ(0, abel::to_unix_nanos(abel::unix_epoch() + abel::nanoseconds(1) / 2));
-        EXPECT_EQ(0, abel::to_unix_nanos(abel::unix_epoch() + abel::nanoseconds(0)));
+        EXPECT_EQ(1, (abel::abel_time::unix_epoch() + abel::duration::nanoseconds(3) / 2).to_unix_nanos());
+        EXPECT_EQ(1, (abel::abel_time::unix_epoch() + abel::duration::nanoseconds(1)).to_unix_nanos());
+        EXPECT_EQ(0, (abel::abel_time::unix_epoch() + abel::duration::nanoseconds(1) / 2).to_unix_nanos());
+        EXPECT_EQ(0, (abel::abel_time::unix_epoch() + abel::duration::nanoseconds(0)).to_unix_nanos());
         EXPECT_EQ(-1,
-                  abel::to_unix_nanos(abel::unix_epoch() - abel::nanoseconds(1) / 2));
-        EXPECT_EQ(-1, abel::to_unix_nanos(abel::unix_epoch() - abel::nanoseconds(1)));
+                  (abel::abel_time::unix_epoch() - abel::duration::nanoseconds(1) / 2).to_unix_nanos());
+        EXPECT_EQ(-1, (abel::abel_time::unix_epoch() - abel::duration::nanoseconds(1)).to_unix_nanos());
         EXPECT_EQ(-2,
-                  abel::to_unix_nanos(abel::unix_epoch() - abel::nanoseconds(3) / 2));
+                  (abel::abel_time::unix_epoch() - abel::duration::nanoseconds(3) / 2).to_unix_nanos());
 
         // Tests to_universal, which uses a different epoch than the tests above.
         EXPECT_EQ(1,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(101)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(101)).to_universal());
         EXPECT_EQ(1,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(100)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(100)).to_universal());
         EXPECT_EQ(0,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(99)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(99)).to_universal());
         EXPECT_EQ(0,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(1)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(1)).to_universal());
         EXPECT_EQ(0,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(0)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(0)).to_universal());
         EXPECT_EQ(-1,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(-1)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(-1)).to_universal());
         EXPECT_EQ(-1,
-                  abel::to_universal(abel::universal_epoch() + abel::nanoseconds(-99)));
+                  (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(-99)).to_universal());
         EXPECT_EQ(
-                -1, abel::to_universal(abel::universal_epoch() + abel::nanoseconds(-100)));
+                -1, (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(-100)).to_universal());
         EXPECT_EQ(
-                -2, abel::to_universal(abel::universal_epoch() + abel::nanoseconds(-101)));
+                -2, (abel::abel_time::universal_epoch() + abel::duration::nanoseconds(-101)).to_universal());
 
         // Tests to_timespec()/time_from_timespec()
         const struct {
             abel::abel_time t;
             timespec ts;
         } to_ts[] = {
-                {abel::from_unix_seconds(1) + abel::nanoseconds(1),      {1,  1}},
-                {abel::from_unix_seconds(1) + abel::nanoseconds(1) / 2,  {1,  0}},
-                {abel::from_unix_seconds(1) + abel::nanoseconds(0),      {1,  0}},
-                {abel::from_unix_seconds(0) + abel::nanoseconds(0),      {0,  0}},
-                {abel::from_unix_seconds(0) - abel::nanoseconds(1) / 2,  {-1, 999999999}},
-                {abel::from_unix_seconds(0) - abel::nanoseconds(1),      {-1, 999999999}},
-                {abel::from_unix_seconds(-1) + abel::nanoseconds(1),     {-1, 1}},
-                {abel::from_unix_seconds(-1) + abel::nanoseconds(1) / 2, {-1, 0}},
-                {abel::from_unix_seconds(-1) + abel::nanoseconds(0),     {-1, 0}},
-                {abel::from_unix_seconds(-1) - abel::nanoseconds(1) / 2, {-2, 999999999}},
+                {abel::abel_time::from_unix_seconds(1) + abel::duration::nanoseconds(1),      {1,  1}},
+                {abel::abel_time::from_unix_seconds(1) + abel::duration::nanoseconds(1) / 2,  {1,  0}},
+                {abel::abel_time::from_unix_seconds(1) + abel::duration::nanoseconds(0),      {1,  0}},
+                {abel::abel_time::from_unix_seconds(0) + abel::duration::nanoseconds(0),      {0,  0}},
+                {abel::abel_time::from_unix_seconds(0) - abel::duration::nanoseconds(1) / 2,  {-1, 999999999}},
+                {abel::abel_time::from_unix_seconds(0) - abel::duration::nanoseconds(1),      {-1, 999999999}},
+                {abel::abel_time::from_unix_seconds(-1) + abel::duration::nanoseconds(1),     {-1, 1}},
+                {abel::abel_time::from_unix_seconds(-1) + abel::duration::nanoseconds(1) / 2, {-1, 0}},
+                {abel::abel_time::from_unix_seconds(-1) + abel::duration::nanoseconds(0),     {-1, 0}},
+                {abel::abel_time::from_unix_seconds(-1) - abel::duration::nanoseconds(1) / 2, {-2, 999999999}},
         };
         for (const auto &test : to_ts) {
-            EXPECT_THAT(abel::to_timespec(test.t), TimespecMatcher(test.ts));
+            EXPECT_THAT(test.t.to_timespec(), TimespecMatcher(test.ts));
         }
         const struct {
             timespec ts;
             abel::abel_time t;
         } from_ts[] = {
-                {{1,  1},         abel::from_unix_seconds(1) + abel::nanoseconds(1)},
-                {{1,  0},         abel::from_unix_seconds(1) + abel::nanoseconds(0)},
-                {{0,  0},         abel::from_unix_seconds(0) + abel::nanoseconds(0)},
-                {{0,  -1},        abel::from_unix_seconds(0) - abel::nanoseconds(1)},
-                {{-1, 999999999}, abel::from_unix_seconds(0) - abel::nanoseconds(1)},
-                {{-1, 1},         abel::from_unix_seconds(-1) + abel::nanoseconds(1)},
-                {{-1, 0},         abel::from_unix_seconds(-1) + abel::nanoseconds(0)},
-                {{-1, -1},        abel::from_unix_seconds(-1) - abel::nanoseconds(1)},
-                {{-2, 999999999}, abel::from_unix_seconds(-1) - abel::nanoseconds(1)},
+                {{1,  1},         abel::abel_time::from_unix_seconds(1) + abel::duration::nanoseconds(1)},
+                {{1,  0},         abel::abel_time::from_unix_seconds(1) + abel::duration::nanoseconds(0)},
+                {{0,  0},         abel::abel_time::from_unix_seconds(0) + abel::duration::nanoseconds(0)},
+                {{0,  -1},        abel::abel_time::from_unix_seconds(0) - abel::duration::nanoseconds(1)},
+                {{-1, 999999999}, abel::abel_time::from_unix_seconds(0) - abel::duration::nanoseconds(1)},
+                {{-1, 1},         abel::abel_time::from_unix_seconds(-1) + abel::duration::nanoseconds(1)},
+                {{-1, 0},         abel::abel_time::from_unix_seconds(-1) + abel::duration::nanoseconds(0)},
+                {{-1, -1},        abel::abel_time::from_unix_seconds(-1) - abel::duration::nanoseconds(1)},
+                {{-2, 999999999}, abel::abel_time::from_unix_seconds(-1) - abel::duration::nanoseconds(1)},
         };
         for (const auto &test : from_ts) {
-            EXPECT_EQ(test.t, abel::time_from_timespec(test.ts));
+            EXPECT_EQ(test.t, abel::abel_time::from_timespec(test.ts));
         }
 
         // Tests to_timeval()/time_from_timeval() (same as timespec above)
@@ -310,115 +312,113 @@ namespace {
             abel::abel_time t;
             timeval tv;
         } to_tv[] = {
-                {abel::from_unix_seconds(1) + abel::microseconds(1),      {1,  1}},
-                {abel::from_unix_seconds(1) + abel::microseconds(1) / 2,  {1,  0}},
-                {abel::from_unix_seconds(1) + abel::microseconds(0),      {1,  0}},
-                {abel::from_unix_seconds(0) + abel::microseconds(0),      {0,  0}},
-                {abel::from_unix_seconds(0) - abel::microseconds(1) / 2,  {-1, 999999}},
-                {abel::from_unix_seconds(0) - abel::microseconds(1),      {-1, 999999}},
-                {abel::from_unix_seconds(-1) + abel::microseconds(1),     {-1, 1}},
-                {abel::from_unix_seconds(-1) + abel::microseconds(1) / 2, {-1, 0}},
-                {abel::from_unix_seconds(-1) + abel::microseconds(0),     {-1, 0}},
-                {abel::from_unix_seconds(-1) - abel::microseconds(1) / 2, {-2, 999999}},
+                {abel::abel_time::from_unix_seconds(1) + abel::duration::microseconds(1),      {1,  1}},
+                {abel::abel_time::from_unix_seconds(1) + abel::duration::microseconds(1) / 2,  {1,  0}},
+                {abel::abel_time::from_unix_seconds(1) + abel::duration::microseconds(0),      {1,  0}},
+                {abel::abel_time::from_unix_seconds(0) + abel::duration::microseconds(0),      {0,  0}},
+                {abel::abel_time::from_unix_seconds(0) - abel::duration::microseconds(1) / 2,  {-1, 999999}},
+                {abel::abel_time::from_unix_seconds(0) - abel::duration::microseconds(1),      {-1, 999999}},
+                {abel::abel_time::from_unix_seconds(-1) + abel::duration::microseconds(1),     {-1, 1}},
+                {abel::abel_time::from_unix_seconds(-1) + abel::duration::microseconds(1) / 2, {-1, 0}},
+                {abel::abel_time::from_unix_seconds(-1) + abel::duration::microseconds(0),     {-1, 0}},
+                {abel::abel_time::from_unix_seconds(-1) - abel::duration::microseconds(1) / 2, {-2, 999999}},
         };
         for (const auto &test : to_tv) {
-            EXPECT_THAT(to_timeval(test.t), TimevalMatcher(test.tv));
+            EXPECT_THAT(test.t.to_timeval(), TimevalMatcher(test.tv));
         }
         const struct {
             timeval tv;
             abel::abel_time t;
         } from_tv[] = {
-                {{1,  1},      abel::from_unix_seconds(1) + abel::microseconds(1)},
-                {{1,  0},      abel::from_unix_seconds(1) + abel::microseconds(0)},
-                {{0,  0},      abel::from_unix_seconds(0) + abel::microseconds(0)},
-                {{0,  -1},     abel::from_unix_seconds(0) - abel::microseconds(1)},
-                {{-1, 999999}, abel::from_unix_seconds(0) - abel::microseconds(1)},
-                {{-1, 1},      abel::from_unix_seconds(-1) + abel::microseconds(1)},
-                {{-1, 0},      abel::from_unix_seconds(-1) + abel::microseconds(0)},
-                {{-1, -1},     abel::from_unix_seconds(-1) - abel::microseconds(1)},
-                {{-2, 999999}, abel::from_unix_seconds(-1) - abel::microseconds(1)},
+                {{1,  1},      abel::abel_time::from_unix_seconds(1) + abel::duration::microseconds(1)},
+                {{1,  0},      abel::abel_time::from_unix_seconds(1) + abel::duration::microseconds(0)},
+                {{0,  0},      abel::abel_time::from_unix_seconds(0) + abel::duration::microseconds(0)},
+                {{0,  -1},     abel::abel_time::from_unix_seconds(0) - abel::duration::microseconds(1)},
+                {{-1, 999999}, abel::abel_time::from_unix_seconds(0) - abel::duration::microseconds(1)},
+                {{-1, 1},      abel::abel_time::from_unix_seconds(-1) + abel::duration::microseconds(1)},
+                {{-1, 0},      abel::abel_time::from_unix_seconds(-1) + abel::duration::microseconds(0)},
+                {{-1, -1},     abel::abel_time::from_unix_seconds(-1) - abel::duration::microseconds(1)},
+                {{-2, 999999}, abel::abel_time::from_unix_seconds(-1) - abel::duration::microseconds(1)},
         };
         for (const auto &test : from_tv) {
-            EXPECT_EQ(test.t, abel::time_from_timeval(test.tv));
+            EXPECT_EQ(test.t, abel::abel_time::from_timeval(test.tv));
         }
 
         // Tests flooring near negative infinity.
         const int64_t min_plus_1 = std::numeric_limits<int64_t>::min() + 1;
-        EXPECT_EQ(min_plus_1, abel::to_unix_seconds(abel::from_unix_seconds(min_plus_1)));
+        EXPECT_EQ(min_plus_1, abel::abel_time::from_unix_seconds(min_plus_1).to_unix_seconds());
         EXPECT_EQ(std::numeric_limits<int64_t>::min(),
-                  abel::to_unix_seconds(
-                          abel::from_unix_seconds(min_plus_1) - abel::nanoseconds(1) / 2));
+                  (abel::abel_time::from_unix_seconds(min_plus_1) - abel::duration::nanoseconds(1) / 2).to_unix_seconds());
 
         // Tests flooring near positive infinity.
         EXPECT_EQ(std::numeric_limits<int64_t>::max(),
-                  abel::to_unix_seconds(abel::from_unix_seconds(
-                          std::numeric_limits<int64_t>::max()) + abel::nanoseconds(1) / 2));
+                  (abel::abel_time::from_unix_seconds(
+                          std::numeric_limits<int64_t>::max()) + abel::duration::nanoseconds(1) / 2).to_unix_seconds());
         EXPECT_EQ(std::numeric_limits<int64_t>::max(),
-                  abel::to_unix_seconds(
-                          abel::from_unix_seconds(std::numeric_limits<int64_t>::max())));
+                  (abel::abel_time::from_unix_seconds(std::numeric_limits<int64_t>::max())).to_unix_seconds());
         EXPECT_EQ(std::numeric_limits<int64_t>::max() - 1,
-                  abel::to_unix_seconds(abel::from_unix_seconds(
-                          std::numeric_limits<int64_t>::max()) - abel::nanoseconds(1) / 2));
+                  (abel::abel_time::from_unix_seconds(
+                          std::numeric_limits<int64_t>::max()) - abel::duration::nanoseconds(1) / 2).to_unix_seconds());
     }
 
     TEST(abel_time, RoundtripConversion) {
 #define TEST_CONVERSION_ROUND_TRIP(SOURCE, FROM, TO, MATCHER) \
-  EXPECT_THAT(TO(FROM(SOURCE)), MATCHER(SOURCE))
+  EXPECT_THAT(FROM(SOURCE).TO(), MATCHER(SOURCE))
 
         // from_unix_nanos() and to_unix_nanos()
         int64_t now_ns = abel::get_current_time_nanos();
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_unix_nanos, abel::to_unix_nanos,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_unix_nanos, to_unix_nanos,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_unix_nanos, abel::to_unix_nanos,
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_unix_nanos, to_unix_nanos,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_unix_nanos, abel::to_unix_nanos,
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_unix_nanos, to_unix_nanos,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(now_ns, abel::from_unix_nanos, abel::to_unix_nanos,
+        TEST_CONVERSION_ROUND_TRIP(now_ns, abel::abel_time::from_unix_nanos, to_unix_nanos,
                                    testing::Eq)
                             << now_ns;
 
         // from_unix_micros() and to_unix_micros()
         int64_t now_us = abel::get_current_time_nanos() / 1000;
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_unix_micros, abel::to_unix_micros,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_unix_micros, to_unix_micros,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_unix_micros, abel::to_unix_micros,
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_unix_micros, to_unix_micros,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_unix_micros, abel::to_unix_micros,
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_unix_micros, to_unix_micros,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(now_us, abel::from_unix_micros, abel::to_unix_micros,
+        TEST_CONVERSION_ROUND_TRIP(now_us, abel::abel_time::from_unix_micros, to_unix_micros,
                                    testing::Eq)
                             << now_us;
 
         // from_unix_millis() and to_unix_millis()
         int64_t now_ms = abel::get_current_time_nanos() / 1000000;
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_unix_millis, abel::to_unix_millis,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_unix_millis, to_unix_millis,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_unix_millis, abel::to_unix_millis,
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_unix_millis, to_unix_millis,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_unix_millis, abel::to_unix_millis,
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_unix_millis, to_unix_millis,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(now_ms, abel::from_unix_millis, abel::to_unix_millis,
+        TEST_CONVERSION_ROUND_TRIP(now_ms, abel::abel_time::from_unix_millis, to_unix_millis,
                                    testing::Eq)
                             << now_ms;
 
         // from_unix_seconds() and to_unix_seconds()
         int64_t now_s = std::time(nullptr);
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_unix_seconds, abel::to_unix_seconds,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_unix_seconds, to_unix_seconds,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_unix_seconds, abel::to_unix_seconds,
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_unix_seconds, to_unix_seconds,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_unix_seconds, abel::to_unix_seconds,
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_unix_seconds, to_unix_seconds,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(now_s, abel::from_unix_seconds, abel::to_unix_seconds,
+        TEST_CONVERSION_ROUND_TRIP(now_s, abel::abel_time::from_unix_seconds, to_unix_seconds,
                                    testing::Eq)
                             << now_s;
 
         // from_time_t() and to_time_t()
         time_t now_time_t = std::time(nullptr);
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_time_t, abel::to_time_t, testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_time_t, abel::to_time_t, testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_time_t, abel::to_time_t, testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(now_time_t, abel::from_time_t, abel::to_time_t,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_time_t, to_time_t, testing::Eq);
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_time_t, to_time_t, testing::Eq);
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_time_t, to_time_t, testing::Eq);
+        TEST_CONVERSION_ROUND_TRIP(now_time_t, abel::abel_time::from_time_t, to_time_t,
                                    testing::Eq)
                             << now_time_t;
 
@@ -426,78 +426,78 @@ namespace {
         timeval tv;
         tv.tv_sec = -1;
         tv.tv_usec = 0;
-        TEST_CONVERSION_ROUND_TRIP(tv, abel::time_from_timeval, abel::to_timeval,
+        TEST_CONVERSION_ROUND_TRIP(tv, abel::abel_time::from_timeval, to_timeval,
                                    TimevalMatcher);
         tv.tv_sec = -1;
         tv.tv_usec = 999999;
-        TEST_CONVERSION_ROUND_TRIP(tv, abel::time_from_timeval, abel::to_timeval,
+        TEST_CONVERSION_ROUND_TRIP(tv, abel::abel_time::from_timeval, to_timeval,
                                    TimevalMatcher);
         tv.tv_sec = 0;
         tv.tv_usec = 0;
-        TEST_CONVERSION_ROUND_TRIP(tv, abel::time_from_timeval, abel::to_timeval,
+        TEST_CONVERSION_ROUND_TRIP(tv, abel::abel_time::from_timeval, to_timeval,
                                    TimevalMatcher);
         tv.tv_sec = 0;
         tv.tv_usec = 1;
-        TEST_CONVERSION_ROUND_TRIP(tv, abel::time_from_timeval, abel::to_timeval,
+        TEST_CONVERSION_ROUND_TRIP(tv, abel::abel_time::from_timeval, to_timeval,
                                    TimevalMatcher);
         tv.tv_sec = 1;
         tv.tv_usec = 0;
-        TEST_CONVERSION_ROUND_TRIP(tv, abel::time_from_timeval, abel::to_timeval,
+        TEST_CONVERSION_ROUND_TRIP(tv, abel::abel_time::from_timeval, to_timeval,
                                    TimevalMatcher);
 
         // time_from_timespec() and to_timespec()
         timespec ts;
         ts.tv_sec = -1;
         ts.tv_nsec = 0;
-        TEST_CONVERSION_ROUND_TRIP(ts, abel::time_from_timespec, abel::to_timespec,
+        TEST_CONVERSION_ROUND_TRIP(ts, abel::abel_time::from_timespec, to_timespec,
                                    TimespecMatcher);
         ts.tv_sec = -1;
         ts.tv_nsec = 999999999;
-        TEST_CONVERSION_ROUND_TRIP(ts, abel::time_from_timespec, abel::to_timespec,
+        TEST_CONVERSION_ROUND_TRIP(ts, abel::abel_time::from_timespec, to_timespec,
                                    TimespecMatcher);
         ts.tv_sec = 0;
         ts.tv_nsec = 0;
-        TEST_CONVERSION_ROUND_TRIP(ts, abel::time_from_timespec, abel::to_timespec,
+        TEST_CONVERSION_ROUND_TRIP(ts, abel::abel_time::from_timespec, to_timespec,
                                    TimespecMatcher);
         ts.tv_sec = 0;
         ts.tv_nsec = 1;
-        TEST_CONVERSION_ROUND_TRIP(ts, abel::time_from_timespec, abel::to_timespec,
+        TEST_CONVERSION_ROUND_TRIP(ts, abel::abel_time::from_timespec, to_timespec,
                                    TimespecMatcher);
         ts.tv_sec = 1;
         ts.tv_nsec = 0;
-        TEST_CONVERSION_ROUND_TRIP(ts, abel::time_from_timespec, abel::to_timespec,
+        TEST_CONVERSION_ROUND_TRIP(ts, abel::abel_time::from_timespec, to_timespec,
                                    TimespecMatcher);
 
         // from_date() and to_date()
         double now_ud = abel::get_current_time_nanos() / 1000000;
-        TEST_CONVERSION_ROUND_TRIP(-1.5, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(-1.5, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(-0.5, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(-0.5, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(0.5, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(0.5, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(1.5, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(1.5, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq);
-        TEST_CONVERSION_ROUND_TRIP(now_ud, abel::from_date, abel::to_date,
+        TEST_CONVERSION_ROUND_TRIP(now_ud, abel::abel_time::from_date, to_date,
                                    testing::DoubleEq)
                             << std::fixed << std::setprecision(17) << now_ud;
 
         // from_universal() and to_universal()
         int64_t now_uni = ((719162LL * (24 * 60 * 60)) * (1000 * 1000 * 10)) +
                           (abel::get_current_time_nanos() / 100);
-        TEST_CONVERSION_ROUND_TRIP(-1, abel::from_universal, abel::to_universal,
+        TEST_CONVERSION_ROUND_TRIP(-1, abel::abel_time::from_universal, to_universal,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(0, abel::from_universal, abel::to_universal,
+        TEST_CONVERSION_ROUND_TRIP(0, abel::abel_time::from_universal, to_universal,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(1, abel::from_universal, abel::to_universal,
+        TEST_CONVERSION_ROUND_TRIP(1, abel::abel_time::from_universal, to_universal,
                                    testing::Eq);
-        TEST_CONVERSION_ROUND_TRIP(now_uni, abel::from_universal, abel::to_universal,
+        TEST_CONVERSION_ROUND_TRIP(now_uni, abel::abel_time::from_universal, to_universal,
                                    testing::Eq)
                             << now_uni;
 
@@ -510,58 +510,60 @@ namespace {
     }
 
     TEST(abel_time, from_chrono) {
-        EXPECT_EQ(abel::from_time_t(-1),
-                  abel::from_chrono(std::chrono::system_clock::from_time_t(-1)));
-        EXPECT_EQ(abel::from_time_t(0),
-                  abel::from_chrono(std::chrono::system_clock::from_time_t(0)));
-        EXPECT_EQ(abel::from_time_t(1),
-                  abel::from_chrono(std::chrono::system_clock::from_time_t(1)));
+        std::cout<<__LINE__<<std::endl;
+        EXPECT_EQ(abel::abel_time::from_time_t(-1),
+                  abel::abel_time::from_chrono(std::chrono::system_clock::from_time_t(-1)));
+        std::cout<<__LINE__<<std::endl;
+        EXPECT_EQ(abel::abel_time::from_time_t(0),
+                  abel::abel_time::from_chrono(std::chrono::system_clock::from_time_t(0)));
+        EXPECT_EQ(abel::abel_time::from_time_t(1),
+                  abel::abel_time::from_chrono(std::chrono::system_clock::from_time_t(1)));
 
         EXPECT_EQ(
-                abel::from_unix_millis(-1),
-                abel::from_chrono(MakeChronoUnixTime(std::chrono::milliseconds(-1))));
-        EXPECT_EQ(abel::from_unix_millis(0),
-                  abel::from_chrono(MakeChronoUnixTime(std::chrono::milliseconds(0))));
-        EXPECT_EQ(abel::from_unix_millis(1),
-                  abel::from_chrono(MakeChronoUnixTime(std::chrono::milliseconds(1))));
-
+                abel::abel_time::from_unix_millis(-1),
+                abel::abel_time::from_chrono(MakeChronoUnixTime(std::chrono::milliseconds(-1))));
+        EXPECT_EQ(abel::abel_time::from_unix_millis(0),
+                  abel::abel_time::from_chrono(MakeChronoUnixTime(std::chrono::milliseconds(0))));
+        EXPECT_EQ(abel::abel_time::from_unix_millis(1),
+                  abel::abel_time::from_chrono(MakeChronoUnixTime(std::chrono::milliseconds(1))));
+        std::cout<<__LINE__<<std::endl;
         // Chrono doesn't define exactly its range and precision (neither does
         // abel::abel_time), so let's simply test +/- ~100 years to make sure things work.
         const auto century_sec = 60 * 60 * 24 * 365 * int64_t{100};
         const auto century = std::chrono::seconds(century_sec);
         const auto chrono_future = MakeChronoUnixTime(century);
         const auto chrono_past = MakeChronoUnixTime(-century);
-        EXPECT_EQ(abel::from_unix_seconds(century_sec),
-                  abel::from_chrono(chrono_future));
-        EXPECT_EQ(abel::from_unix_seconds(-century_sec), abel::from_chrono(chrono_past));
+        EXPECT_EQ(abel::abel_time::from_unix_seconds(century_sec),
+                  abel::abel_time::from_chrono(chrono_future));
+        EXPECT_EQ(abel::abel_time::from_unix_seconds(-century_sec), abel::abel_time::from_chrono(chrono_past));
 
         // Roundtrip them both back to chrono.
         EXPECT_EQ(chrono_future,
-                  abel::to_chrono_time(abel::from_unix_seconds(century_sec)));
+                  abel::abel_time::from_unix_seconds(century_sec).to_chrono_time());
         EXPECT_EQ(chrono_past,
-                  abel::to_chrono_time(abel::from_unix_seconds(-century_sec)));
+                  abel::abel_time::from_unix_seconds(-century_sec).to_chrono_time());
     }
 
     TEST(abel_time, to_chrono_time) {
         EXPECT_EQ(std::chrono::system_clock::from_time_t(-1),
-                  abel::to_chrono_time(abel::from_time_t(-1)));
+                  abel::abel_time::from_time_t(-1).to_chrono_time());
         EXPECT_EQ(std::chrono::system_clock::from_time_t(0),
-                  abel::to_chrono_time(abel::from_time_t(0)));
+                  abel::abel_time::from_time_t(0).to_chrono_time());
         EXPECT_EQ(std::chrono::system_clock::from_time_t(1),
-                  abel::to_chrono_time(abel::from_time_t(1)));
+                  abel::abel_time::from_time_t(1).to_chrono_time());
 
         EXPECT_EQ(MakeChronoUnixTime(std::chrono::milliseconds(-1)),
-                  abel::to_chrono_time(abel::from_unix_millis(-1)));
+                  abel::abel_time::from_unix_millis(-1).to_chrono_time());
         EXPECT_EQ(MakeChronoUnixTime(std::chrono::milliseconds(0)),
-                  abel::to_chrono_time(abel::from_unix_millis(0)));
+                  abel::abel_time::from_unix_millis(0).to_chrono_time());
         EXPECT_EQ(MakeChronoUnixTime(std::chrono::milliseconds(1)),
-                  abel::to_chrono_time(abel::from_unix_millis(1)));
+                  abel::abel_time::from_unix_millis(1).to_chrono_time());
 
         // abel_time before the Unix epoch should floor, not trunc.
-        const auto tick = abel::nanoseconds(1) / 4;
+        const auto tick = abel::duration::nanoseconds(1) / 4;
         EXPECT_EQ(std::chrono::system_clock::from_time_t(0) -
                   std::chrono::system_clock::duration(1),
-                  abel::to_chrono_time(abel::unix_epoch() - tick));
+                  (abel::abel_time::unix_epoch() - tick).to_chrono_time());
     }
 
 // Check that abel::int128 works as a std::chrono::duration representation.
@@ -585,7 +587,7 @@ namespace {
         // but floor() is only available since c++17.
         for (const auto tp : {std::chrono::system_clock::time_point::min(),
                               std::chrono::system_clock::time_point::max()}) {
-            EXPECT_EQ(tp, abel::to_chrono_time(abel::from_chrono(tp)));
+            EXPECT_EQ(tp, abel::abel_time::from_chrono(tp).to_chrono_time());
             EXPECT_EQ(tp, std::chrono::time_point_cast<
                     std::chrono::system_clock::time_point::duration>(
                     std::chrono::time_point_cast<Timestamp::duration>(tp)));
@@ -609,20 +611,22 @@ namespace {
     }
 
     TEST(abel_time, TimeZoneAt) {
+      std::cout<<__LINE__<<std::endl;
         const abel::time_zone nyc =
                 abel::chrono_internal::load_time_zone("America/New_York");
         const std::string fmt = "%a, %e %b %Y %H:%M:%S %z (%Z)";
 
+        std::cout<<__LINE__<<std::endl;
         // A non-transition where the civil time is unique.
         abel::chrono_second nov01(2013, 11, 1, 8, 30, 0);
         const auto nov01_ci = nyc.at(nov01);
-        EXPECT_EQ(abel::time_zone::time_info::UNIQUE, nov01_ci.kind);
+        EXPECT_EQ(abel::time_zone::time_info::UNIQUE, nov01_ci.kind)<<__LINE__;
         EXPECT_EQ("Fri,  1 Nov 2013 08:30:00 -0400 (EDT)",
                   abel::format_time(fmt, nov01_ci.pre, nyc));
         EXPECT_EQ(nov01_ci.pre, nov01_ci.trans);
         EXPECT_EQ(nov01_ci.pre, nov01_ci.post);
         EXPECT_EQ(nov01_ci.pre, abel::from_chrono(nov01, nyc));
-
+        std::cout<<__LINE__<<std::endl;
         // A Spring DST transition, when there is a gap in civil time
         // and we prefer the later of the possible interpretations of a
         // non-existent time.
@@ -655,7 +659,7 @@ namespace {
         abel::chrono_second minus1(1969, 12, 31, 18, 59, 59);
         const auto minus1_cl = nyc.at(minus1);
         EXPECT_EQ(abel::time_zone::time_info::UNIQUE, minus1_cl.kind);
-        EXPECT_EQ(-1, abel::to_time_t(minus1_cl.pre));
+        EXPECT_EQ(-1, minus1_cl.pre.to_time_t());
         EXPECT_EQ("Wed, 31 Dec 1969 18:59:59 -0500 (EST)",
                   abel::format_time(fmt, minus1_cl.pre, nyc));
         EXPECT_EQ("Wed, 31 Dec 1969 23:59:59 +0000 (UTC)",
@@ -713,9 +717,9 @@ namespace {
                 abel::from_chrono(abel::chrono_second(2014, 1, 2, 3, 4, 5), utc);
         const abel::abel_time end =
                 abel::from_chrono(abel::chrono_second(2014, 1, 5, 3, 4, 5), utc);
-        for (abel::abel_time t = start; t < end; t += abel::seconds(30)) {
+        for (abel::abel_time t = start; t < end; t += abel::duration::seconds(30)) {
             const struct tm tm_bt = to_tm(t, utc);
-            const time_t tt = abel::to_time_t(t);
+            const time_t tt = t.to_time_t();
             struct tm tm_lc;
 #ifdef _WIN32
             gmtime_s(&tm_lc, &tt);
@@ -748,7 +752,7 @@ namespace {
         EXPECT_TRUE(tm.tm_isdst);
 
         // Checks overflow.
-        tm = to_tm(abel::infinite_future(), nyc);
+        tm = to_tm(abel::abel_time::infinite_future(), nyc);
         EXPECT_EQ(std::numeric_limits<int>::max() - 1900, tm.tm_year);
         EXPECT_EQ(11, tm.tm_mon);
         EXPECT_EQ(31, tm.tm_mday);
@@ -760,7 +764,7 @@ namespace {
         EXPECT_FALSE(tm.tm_isdst);
 
         // Checks underflow.
-        tm = to_tm(abel::infinite_past(), nyc);
+        tm = to_tm(abel::abel_time::infinite_past(), nyc);
         EXPECT_EQ(std::numeric_limits<int>::min(), tm.tm_year);
         EXPECT_EQ(0, tm.tm_mon);
         EXPECT_EQ(1, tm.tm_mday);
@@ -861,7 +865,7 @@ namespace {
         // Test round-tripping across a skipped transition
         abel::abel_time start = abel::from_chrono(abel::chrono_hour(2014, 3, 9, 0), nyc);
         abel::abel_time end = abel::from_chrono(abel::chrono_hour(2014, 3, 9, 4), nyc);
-        for (abel::abel_time t = start; t < end; t += abel::minutes(1)) {
+        for (abel::abel_time t = start; t < end; t += abel::duration::minutes(1)) {
             struct tm tm = to_tm(t, nyc);
             abel::abel_time rt = from_tm(tm, nyc);
             EXPECT_EQ(rt, t);
@@ -870,7 +874,7 @@ namespace {
         // Test round-tripping across an ambiguous transition
         start = abel::from_chrono(abel::chrono_hour(2014, 11, 2, 0), nyc);
         end = abel::from_chrono(abel::chrono_hour(2014, 11, 2, 4), nyc);
-        for (abel::abel_time t = start; t < end; t += abel::minutes(1)) {
+        for (abel::abel_time t = start; t < end; t += abel::duration::minutes(1)) {
             struct tm tm = to_tm(t, nyc);
             abel::abel_time rt = from_tm(tm, nyc);
             EXPECT_EQ(rt, t);
@@ -879,7 +883,7 @@ namespace {
         // Test round-tripping of unique instants crossing a day boundary
         start = abel::from_chrono(abel::chrono_hour(2014, 6, 27, 22), nyc);
         end = abel::from_chrono(abel::chrono_hour(2014, 6, 28, 4), nyc);
-        for (abel::abel_time t = start; t < end; t += abel::minutes(1)) {
+        for (abel::abel_time t = start; t < end; t += abel::duration::minutes(1)) {
             struct tm tm = to_tm(t, nyc);
             abel::abel_time rt = from_tm(tm, nyc);
             EXPECT_EQ(rt, t);
@@ -888,17 +892,17 @@ namespace {
 
     TEST(abel_time, Range) {
         // The API's documented range is +/- 100 billion years.
-        const abel::duration range = abel::hours(24) * 365.2425 * 100000000000;
+        const abel::duration range = abel::duration::hours(24) * 365.2425 * 100000000000;
 
         // Arithmetic and comparison still works at +/-range around base values.
-        abel::abel_time bases[2] = {abel::unix_epoch(), abel::now()};
+        abel::abel_time bases[2] = {abel::abel_time::unix_epoch(), abel::now()};
         for (const auto base : bases) {
             abel::abel_time bottom = base - range;
-            EXPECT_GT(bottom, bottom - abel::nanoseconds(1));
-            EXPECT_LT(bottom, bottom + abel::nanoseconds(1));
+            EXPECT_GT(bottom, bottom - abel::duration::nanoseconds(1));
+            EXPECT_LT(bottom, bottom + abel::duration::nanoseconds(1));
             abel::abel_time top = base + range;
-            EXPECT_GT(top, top - abel::nanoseconds(1));
-            EXPECT_LT(top, top + abel::nanoseconds(1));
+            EXPECT_GT(top, top - abel::duration::nanoseconds(1));
+            EXPECT_LT(top, top + abel::duration::nanoseconds(1));
             abel::duration full_range = 2 * range;
             EXPECT_EQ(full_range, top - bottom);
             EXPECT_EQ(-full_range, bottom - top);
@@ -910,27 +914,27 @@ namespace {
         // and that the resolution of a duration is 1/4 of a nanosecond.
         const abel::abel_time zero;
         const abel::abel_time max =
-                zero + abel::seconds(std::numeric_limits<int64_t>::max()) +
-                abel::nanoseconds(999999999) + abel::nanoseconds(3) / 4;
+                zero + abel::duration::seconds(std::numeric_limits<int64_t>::max()) +
+                abel::duration::nanoseconds(999999999) + abel::duration::nanoseconds(3) / 4;
         const abel::abel_time min =
-                zero + abel::seconds(std::numeric_limits<int64_t>::min());
+                zero + abel::duration::seconds(std::numeric_limits<int64_t>::min());
 
         // Some simple max/min bounds checks.
-        EXPECT_LT(max, abel::infinite_future());
-        EXPECT_GT(min, abel::infinite_past());
+        EXPECT_LT(max, abel::abel_time::infinite_future());
+        EXPECT_GT(min, abel::abel_time::infinite_past());
         EXPECT_LT(zero, max);
         EXPECT_GT(zero, min);
-        EXPECT_GE(abel::unix_epoch(), min);
-        EXPECT_LT(abel::unix_epoch(), max);
+        EXPECT_GE(abel::abel_time::unix_epoch(), min);
+        EXPECT_LT(abel::abel_time::unix_epoch(), max);
 
         // Check sign of abel_time differences.
         EXPECT_LT(abel::zero_duration(), max - zero);
         EXPECT_LT(abel::zero_duration(),
-                  zero - abel::nanoseconds(1) / 4 - min);  // avoid zero - min
+                  zero - abel::duration::nanoseconds(1) / 4 - min);  // avoid zero - min
 
         // Arithmetic works at max - 0.25ns and min + 0.25ns.
-        EXPECT_GT(max, max - abel::nanoseconds(1) / 4);
-        EXPECT_LT(min, min + abel::nanoseconds(1) / 4);
+        EXPECT_GT(max, max - abel::duration::nanoseconds(1) / 4);
+        EXPECT_LT(min, min + abel::duration::nanoseconds(1) / 4);
     }
 
     TEST(abel_time, ConversionSaturation) {
@@ -940,25 +944,25 @@ namespace {
         const auto max_time_t = std::numeric_limits<time_t>::max();
         const auto min_time_t = std::numeric_limits<time_t>::min();
         time_t tt = max_time_t - 1;
-        t = abel::from_time_t(tt);
-        tt = abel::to_time_t(t);
+        t = abel::abel_time::from_time_t(tt);
+        tt = t.to_time_t();
         EXPECT_EQ(max_time_t - 1, tt);
-        t += abel::seconds(1);
-        tt = abel::to_time_t(t);
+        t += abel::duration::seconds(1);
+        tt = t.to_time_t();
         EXPECT_EQ(max_time_t, tt);
-        t += abel::seconds(1);  // no effect
-        tt = abel::to_time_t(t);
+        t += abel::duration::seconds(1);  // no effect
+        tt = t.to_time_t();
         EXPECT_EQ(max_time_t, tt);
 
         tt = min_time_t + 1;
-        t = abel::from_time_t(tt);
-        tt = abel::to_time_t(t);
+        t = abel::abel_time::from_time_t(tt);
+        tt = t.to_time_t();
         EXPECT_EQ(min_time_t + 1, tt);
-        t -= abel::seconds(1);
-        tt = abel::to_time_t(t);
+        t -= abel::duration::seconds(1);
+        tt = t.to_time_t();
         EXPECT_EQ(min_time_t, tt);
-        t -= abel::seconds(1);  // no effect
-        tt = abel::to_time_t(t);
+        t -= abel::duration::seconds(1);  // no effect
+        tt = t.to_time_t();
         EXPECT_EQ(min_time_t, tt);
 
         const auto max_timeval_sec =
@@ -968,31 +972,31 @@ namespace {
         timeval tv;
         tv.tv_sec = max_timeval_sec;
         tv.tv_usec = 999998;
-        t = abel::time_from_timeval(tv);
-        tv = to_timeval(t);
+        t = abel::abel_time::from_timeval(tv);
+        tv = t.to_timeval();
         EXPECT_EQ(max_timeval_sec, tv.tv_sec);
         EXPECT_EQ(999998, tv.tv_usec);
-        t += abel::microseconds(1);
-        tv = to_timeval(t);
+        t += abel::duration::microseconds(1);
+        tv = t.to_timeval();
         EXPECT_EQ(max_timeval_sec, tv.tv_sec);
         EXPECT_EQ(999999, tv.tv_usec);
-        t += abel::microseconds(1);  // no effect
-        tv = to_timeval(t);
+        t += abel::duration::microseconds(1);  // no effect
+        tv = t.to_timeval();
         EXPECT_EQ(max_timeval_sec, tv.tv_sec);
         EXPECT_EQ(999999, tv.tv_usec);
 
         tv.tv_sec = min_timeval_sec;
         tv.tv_usec = 1;
-        t = abel::time_from_timeval(tv);
-        tv = to_timeval(t);
+        t = abel::abel_time::from_timeval(tv);
+        tv = t.to_timeval();
         EXPECT_EQ(min_timeval_sec, tv.tv_sec);
         EXPECT_EQ(1, tv.tv_usec);
-        t -= abel::microseconds(1);
-        tv = to_timeval(t);
+        t -= abel::duration::microseconds(1);
+        tv = t.to_timeval();
         EXPECT_EQ(min_timeval_sec, tv.tv_sec);
         EXPECT_EQ(0, tv.tv_usec);
-        t -= abel::microseconds(1);  // no effect
-        tv = to_timeval(t);
+        t -= abel::duration::microseconds(1);  // no effect
+        tv = t.to_timeval();
         EXPECT_EQ(min_timeval_sec, tv.tv_sec);
         EXPECT_EQ(0, tv.tv_usec);
 
@@ -1003,43 +1007,43 @@ namespace {
         timespec ts;
         ts.tv_sec = max_timespec_sec;
         ts.tv_nsec = 999999998;
-        t = abel::time_from_timespec(ts);
-        ts = abel::to_timespec(t);
+        t = abel::abel_time::from_timespec(ts);
+        ts = t.to_timespec();
         EXPECT_EQ(max_timespec_sec, ts.tv_sec);
         EXPECT_EQ(999999998, ts.tv_nsec);
-        t += abel::nanoseconds(1);
-        ts = abel::to_timespec(t);
+        t += abel::duration::nanoseconds(1);
+        ts = t.to_timespec();
         EXPECT_EQ(max_timespec_sec, ts.tv_sec);
         EXPECT_EQ(999999999, ts.tv_nsec);
-        t += abel::nanoseconds(1);  // no effect
-        ts = abel::to_timespec(t);
+        t += abel::duration::nanoseconds(1);  // no effect
+        ts = t.to_timespec();
         EXPECT_EQ(max_timespec_sec, ts.tv_sec);
         EXPECT_EQ(999999999, ts.tv_nsec);
 
         ts.tv_sec = min_timespec_sec;
         ts.tv_nsec = 1;
-        t = abel::time_from_timespec(ts);
-        ts = abel::to_timespec(t);
+        t = abel::abel_time::from_timespec(ts);
+        ts = t.to_timespec();
         EXPECT_EQ(min_timespec_sec, ts.tv_sec);
         EXPECT_EQ(1, ts.tv_nsec);
-        t -= abel::nanoseconds(1);
-        ts = abel::to_timespec(t);
+        t -= abel::duration::nanoseconds(1);
+        ts = t.to_timespec();
         EXPECT_EQ(min_timespec_sec, ts.tv_sec);
         EXPECT_EQ(0, ts.tv_nsec);
-        t -= abel::nanoseconds(1);  // no effect
-        ts = abel::to_timespec(t);
+        t -= abel::duration::nanoseconds(1);  // no effect
+        ts = t.to_timespec();
         EXPECT_EQ(min_timespec_sec, ts.tv_sec);
         EXPECT_EQ(0, ts.tv_nsec);
 
         // Checks how time_zone::At() saturates on infinities.
-        auto ci = utc.at(abel::infinite_future());
+        auto ci = utc.at(abel::abel_time::infinite_future());
         EXPECT_CIVIL_INFO(ci, std::numeric_limits<int64_t>::max(), 12, 31, 23,
                           59, 59, 0, false);
         EXPECT_EQ(abel::infinite_duration(), ci.subsecond);
         EXPECT_EQ(abel::chrono_weekday::thursday, abel::GetWeekday(ci.cs));
         EXPECT_EQ(365, abel::get_yearday(ci.cs));
         EXPECT_STREQ("-00", ci.zone_abbr);  // artifact of time_zone::At()
-        ci = utc.at(abel::infinite_past());
+        ci = utc.at(abel::abel_time::infinite_past());
         EXPECT_CIVIL_INFO(ci, std::numeric_limits<int64_t>::min(), 1, 1, 0, 0,
                           0, 0, false);
         EXPECT_EQ(-abel::infinite_duration(), ci.subsecond);
@@ -1055,7 +1059,7 @@ namespace {
         EXPECT_EQ("292277026596-12-04T15:30:07+00:00",
                   abel::format_time(abel::RFC3339_full, t, utc));
         EXPECT_EQ(
-                abel::unix_epoch() + abel::seconds(std::numeric_limits<int64_t>::max()), t);
+                abel::abel_time::unix_epoch() + abel::duration::seconds(std::numeric_limits<int64_t>::max()), t);
 
         // Checks that we can also get the maximal abel_time value for a far-east zone.
         const abel::time_zone plus14 = abel::fixed_time_zone(14 * 60 * 60);
@@ -1063,7 +1067,7 @@ namespace {
         EXPECT_EQ("292277026596-12-05T05:30:07+14:00",
                   abel::format_time(abel::RFC3339_full, t, plus14));
         EXPECT_EQ(
-                abel::unix_epoch() + abel::seconds(std::numeric_limits<int64_t>::max()), t);
+                abel::abel_time::unix_epoch() + abel::duration::seconds(std::numeric_limits<int64_t>::max()), t);
 
         // One second later should push us to infinity.
         t = abel::from_chrono(abel::chrono_second(292277026596, 12, 4, 15, 30, 8), utc);
@@ -1077,7 +1081,7 @@ namespace {
         EXPECT_EQ("-292277022657-01-27T08:29:52+00:00",
                   abel::format_time(abel::RFC3339_full, t, utc));
         EXPECT_EQ(
-                abel::unix_epoch() + abel::seconds(std::numeric_limits<int64_t>::min()), t);
+                abel::abel_time::unix_epoch() + abel::duration::seconds(std::numeric_limits<int64_t>::min()), t);
 
         // Checks that we can also get the minimal abel_time value for a far-west zone.
         const abel::time_zone minus12 = abel::fixed_time_zone(-12 * 60 * 60);
@@ -1086,7 +1090,7 @@ namespace {
         EXPECT_EQ("-292277022657-01-26T20:29:52-12:00",
                   abel::format_time(abel::RFC3339_full, t, minus12));
         EXPECT_EQ(
-                abel::unix_epoch() + abel::seconds(std::numeric_limits<int64_t>::min()), t);
+                abel::abel_time::unix_epoch() + abel::duration::seconds(std::numeric_limits<int64_t>::min()), t);
 
         // One second before should push us to -infinity.
         t = abel::from_chrono(abel::chrono_second(-292277022657, 1, 27, 8, 29, 51), utc);
@@ -1102,7 +1106,7 @@ namespace {
         const abel::time_zone nyc =
                 abel::chrono_internal::load_time_zone("America/New_York");
         const abel::abel_time max =
-                abel::from_unix_seconds(std::numeric_limits<int64_t>::max());
+                abel::abel_time::from_unix_seconds(std::numeric_limits<int64_t>::max());
         abel::time_zone::chrono_info ci;
         abel::abel_time t;
 
@@ -1118,21 +1122,21 @@ namespace {
 
         // One second later should push us to infinity.
         t = abel::from_chrono(abel::chrono_second(292277026596, 12, 5, 2, 30, 8), syd);
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
         t = abel::from_chrono(abel::chrono_second(292277026596, 12, 4, 10, 30, 8), nyc);
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
 
         // And we should stick there.
         t = abel::from_chrono(abel::chrono_second(292277026596, 12, 5, 2, 30, 9), syd);
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
         t = abel::from_chrono(abel::chrono_second(292277026596, 12, 4, 10, 30, 9), nyc);
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
 
         // All the way up to a saturated date/time, without overflow.
         t = abel::from_chrono(abel::chrono_second::max(), syd);
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
         t = abel::from_chrono(abel::chrono_second::max(), nyc);
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
     }
 
     TEST(abel_time, FromCivilAlignment) {
@@ -1200,10 +1204,10 @@ namespace {
         const auto tz = abel::utc_time_zone();
         abel::time_zone::chrono_transition trans;
 
-        auto t = abel::infinite_past();
+        auto t = abel::abel_time::infinite_past();
         EXPECT_FALSE(tz.next_transition(t, &trans));
 
-        t = abel::infinite_future();
+        t = abel::abel_time::infinite_future();
         EXPECT_FALSE(tz.next_transition(t, &trans));
     }
 
@@ -1211,10 +1215,10 @@ namespace {
         const auto tz = abel::utc_time_zone();
         abel::time_zone::chrono_transition trans;
 
-        auto t = abel::infinite_future();
+        auto t = abel::abel_time::infinite_future();
         EXPECT_FALSE(tz.prev_transition(t, &trans));
 
-        t = abel::infinite_past();
+        t = abel::abel_time::infinite_past();
         EXPECT_FALSE(tz.prev_transition(t, &trans));
     }
 
@@ -1227,10 +1231,10 @@ namespace {
         EXPECT_EQ(abel::chrono_second(2018, 11, 4, 2, 0, 0), trans.from);
         EXPECT_EQ(abel::chrono_second(2018, 11, 4, 1, 0, 0), trans.to);
 
-        t = abel::infinite_future();
+        t = abel::abel_time::infinite_future();
         EXPECT_FALSE(tz.next_transition(t, &trans));
 
-        t = abel::infinite_past();
+        t = abel::abel_time::infinite_past();
         EXPECT_TRUE(tz.next_transition(t, &trans));
         if (trans.from == abel::chrono_second(1918, 03, 31, 2, 0, 0)) {
             // It looks like the tzdata is only 32 bit (probably macOS),
@@ -1251,10 +1255,10 @@ namespace {
         EXPECT_EQ(abel::chrono_second(2018, 3, 11, 2, 0, 0), trans.from);
         EXPECT_EQ(abel::chrono_second(2018, 3, 11, 3, 0, 0), trans.to);
 
-        t = abel::infinite_past();
+        t = abel::abel_time::infinite_past();
         EXPECT_FALSE(tz.prev_transition(t, &trans));
 
-        t = abel::infinite_future();
+        t = abel::abel_time::infinite_future();
         EXPECT_TRUE(tz.prev_transition(t, &trans));
         // We have a transition but we don't know which one.
     }

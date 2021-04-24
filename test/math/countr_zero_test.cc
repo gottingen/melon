@@ -1,9 +1,9 @@
-//
-// Created by liyinbin on 2020/3/1.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/math/countr_zero.h>
-#include <gtest/gtest.h>
+#include "abel/math/countr_zero.h"
+#include "gtest/gtest.h"
 
 int CTZ64(uint64_t n) {
     auto fast = abel::countr_zero(n);

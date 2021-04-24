@@ -1,13 +1,15 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #include <cstdint>
 #include <limits>
 #include <string>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <testing/time_util.h>
-#include <abel/chrono/time.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "testing/time_util.h"
+#include "abel/chrono/time.h"
 
 using testing::HasSubstr;
 
@@ -30,7 +32,7 @@ namespace {
 
     TEST(format_time, Basics) {
         abel::time_zone tz = abel::utc_time_zone();
-        abel::abel_time t = abel::from_time_t(0);
+        abel::abel_time t = abel::abel_time::from_time_t(0);
 
         // Starts with a couple basic edge cases.
         EXPECT_EQ("", abel::format_time("", t, tz));
@@ -43,8 +45,8 @@ namespace {
         std::string bigger(100000, 'x');
         EXPECT_EQ(bigger, abel::format_time(bigger, t, tz));
 
-        t += abel::hours(13) + abel::minutes(4) + abel::seconds(5);
-        t += abel::milliseconds(6) + abel::microseconds(7) + abel::nanoseconds(8);
+        t += abel::duration::hours(13) + abel::duration::minutes(4) + abel::duration::seconds(5);
+        t += abel::duration::milliseconds(6) + abel::duration::microseconds(7) + abel::duration::nanoseconds(8);
         EXPECT_EQ("1970-01-01", abel::format_time("%Y-%m-%d", t, tz));
         EXPECT_EQ("13:04:05", abel::format_time("%H:%M:%S", t, tz));
         EXPECT_EQ("13:04:05.006", abel::format_time("%H:%M:%E3S", t, tz));
@@ -54,7 +56,7 @@ namespace {
 
     TEST(format_time, LocaleSpecific) {
         const abel::time_zone tz = abel::utc_time_zone();
-        abel::abel_time t = abel::from_time_t(0);
+        abel::abel_time t = abel::abel_time::from_time_t(0);
 
         TestFormatSpecifier(t, tz, "%a", "Thu");
         TestFormatSpecifier(t, tz, "%A", "Thursday");
@@ -63,7 +65,7 @@ namespace {
 
         // %c should at least produce the numeric year and time-of-day.
         const std::string s =
-                abel::format_time("%c", abel::from_time_t(0), abel::utc_time_zone());
+                abel::format_time("%c", abel::abel_time::from_time_t(0), abel::utc_time_zone());
         EXPECT_THAT(s, HasSubstr("1970"));
         EXPECT_THAT(s, HasSubstr("00:00:00"));
 
@@ -76,28 +78,28 @@ namespace {
         const abel::time_zone tz = abel::utc_time_zone();
 
         // No subseconds.
-        abel::abel_time t = abel::from_time_t(0) + abel::seconds(5);
+        abel::abel_time t = abel::abel_time::from_time_t(0) + abel::duration::seconds(5);
         EXPECT_EQ("05", abel::format_time("%E*S", t, tz));
         EXPECT_EQ("05.000000000000000", abel::format_time("%E15S", t, tz));
 
         // With subseconds.
-        t += abel::milliseconds(6) + abel::microseconds(7) + abel::nanoseconds(8);
+        t += abel::duration::milliseconds(6) + abel::duration::microseconds(7) + abel::duration::nanoseconds(8);
         EXPECT_EQ("05.006007008", abel::format_time("%E*S", t, tz));
         EXPECT_EQ("05", abel::format_time("%E0S", t, tz));
         EXPECT_EQ("05.006007008000000", abel::format_time("%E15S", t, tz));
 
         // Times before the Unix epoch.
-        t = abel::from_unix_micros(-1);
+        t = abel::abel_time::from_unix_micros(-1);
         EXPECT_EQ("1969-12-31 23:59:59.999999",
                   abel::format_time("%Y-%m-%d %H:%M:%E*S", t, tz));
 
         // Here is a "%E*S" case we got wrong for a while.  While the first
         // instant below is correctly rendered as "...:07.333304", the second
         // one used to appear as "...:07.33330499999999999".
-        t = abel::from_unix_micros(1395024427333304);
+        t = abel::abel_time::from_unix_micros(1395024427333304);
         EXPECT_EQ("2014-03-17 02:47:07.333304",
                   abel::format_time("%Y-%m-%d %H:%M:%E*S", t, tz));
-        t += abel::microseconds(1);
+        t += abel::duration::microseconds(1);
         EXPECT_EQ("2014-03-17 02:47:07.333305",
                   abel::format_time("%Y-%m-%d %H:%M:%E*S", t, tz));
     }
@@ -118,9 +120,9 @@ namespace {
 
         // The format and timezone are ignored.
         EXPECT_EQ("infinite-future",
-                  abel::format_time("%H:%M blah", abel::infinite_future(), tz));
+                  abel::format_time("%H:%M blah", abel::abel_time::infinite_future(), tz));
         EXPECT_EQ("infinite-past",
-                  abel::format_time("%H:%M blah", abel::infinite_past(), tz));
+                  abel::format_time("%H:%M blah", abel::abel_time::infinite_past(), tz));
     }
 
 //
@@ -128,12 +130,12 @@ namespace {
 //
 
     TEST(parse_time, Basics) {
-        abel::abel_time t = abel::from_time_t(1234567890);
+        abel::abel_time t = abel::abel_time::from_time_t(1234567890);
         std::string err;
 
         // Simple edge cases.
         EXPECT_TRUE(abel::parse_time("", "", &t, &err)) << err;
-        EXPECT_EQ(abel::unix_epoch(), t);  // everything defaulted
+        EXPECT_EQ(abel::abel_time::unix_epoch(), t);  // everything defaulted
         EXPECT_TRUE(abel::parse_time(" ", " ", &t, &err)) << err;
         EXPECT_TRUE(abel::parse_time("  ", "  ", &t, &err)) << err;
         EXPECT_TRUE(abel::parse_time("x", "x", &t, &err)) << err;
@@ -179,7 +181,7 @@ namespace {
     }
 
     TEST(parse_time, ErrorCases) {
-        abel::abel_time t = abel::from_time_t(0);
+        abel::abel_time t = abel::abel_time::from_time_t(0);
         std::string err;
 
         EXPECT_FALSE(abel::parse_time("%S", "123", &t, &err)) << err;
@@ -242,26 +244,26 @@ namespace {
         // Here is a "%E*S" case we got wrong for a while.  The fractional
         // part of the first instant is less than 2^31 and was correctly
         // parsed, while the second (and any subsecond field >=2^31) failed.
-        t = abel::unix_epoch();
+        t = abel::abel_time::unix_epoch();
         EXPECT_TRUE(abel::parse_time("%E*S", "0.2147483647", &t, &err)) << err;
-        EXPECT_EQ(abel::unix_epoch() + abel::nanoseconds(214748364) +
-                  abel::nanoseconds(1) / 2,
+        EXPECT_EQ(abel::abel_time::unix_epoch() + abel::duration::nanoseconds(214748364) +
+                  abel::duration::nanoseconds(1) / 2,
                   t);
-        t = abel::unix_epoch();
+        t = abel::abel_time::unix_epoch();
         EXPECT_TRUE(abel::parse_time("%E*S", "0.2147483648", &t, &err)) << err;
-        EXPECT_EQ(abel::unix_epoch() + abel::nanoseconds(214748364) +
-                  abel::nanoseconds(3) / 4,
+        EXPECT_EQ(abel::abel_time::unix_epoch() + abel::duration::nanoseconds(214748364) +
+                  abel::duration::nanoseconds(3) / 4,
                   t);
 
         // We should also be able to specify long strings of digits far
         // beyond the current resolution and have them convert the same way.
-        t = abel::unix_epoch();
+        t = abel::abel_time::unix_epoch();
         EXPECT_TRUE(abel::parse_time(
                 "%E*S", "0.214748364801234567890123456789012345678901234567890123456789",
                 &t, &err))
                             << err;
-        EXPECT_EQ(abel::unix_epoch() + abel::nanoseconds(214748364) +
-                  abel::nanoseconds(3) / 4,
+        EXPECT_EQ(abel::abel_time::unix_epoch() + abel::duration::nanoseconds(214748364) +
+                  abel::duration::nanoseconds(3) / 4,
                   t);
     }
 
@@ -294,39 +296,39 @@ namespace {
         abel::abel_time t;
         std::string err;
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "infinite-future", &t, &err));
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
 
         // Surrounding whitespace.
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "  infinite-future", &t, &err));
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "infinite-future  ", &t, &err));
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "  infinite-future  ", &t, &err));
-        EXPECT_EQ(abel::infinite_future(), t);
+        EXPECT_EQ(abel::abel_time::infinite_future(), t);
 
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "infinite-past", &t, &err));
-        EXPECT_EQ(abel::infinite_past(), t);
+        EXPECT_EQ(abel::abel_time::infinite_past(), t);
 
         // Surrounding whitespace.
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "  infinite-past", &t, &err));
-        EXPECT_EQ(abel::infinite_past(), t);
+        EXPECT_EQ(abel::abel_time::infinite_past(), t);
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "infinite-past  ", &t, &err));
-        EXPECT_EQ(abel::infinite_past(), t);
+        EXPECT_EQ(abel::abel_time::infinite_past(), t);
         EXPECT_TRUE(abel::parse_time("%H:%M blah", "  infinite-past  ", &t, &err));
-        EXPECT_EQ(abel::infinite_past(), t);
+        EXPECT_EQ(abel::abel_time::infinite_past(), t);
 
         // "infinite-future" as literal std::string
         abel::time_zone tz = abel::utc_time_zone();
         EXPECT_TRUE(abel::parse_time("infinite-future %H:%M", "infinite-future 03:04",
                                      &t, &err));
-        EXPECT_NE(abel::infinite_future(), t);
+        EXPECT_NE(abel::abel_time::infinite_future(), t);
         EXPECT_EQ(3, tz.at(t).cs.hour());
         EXPECT_EQ(4, tz.at(t).cs.minute());
 
         // "infinite-past" as literal std::string
         EXPECT_TRUE(
                 abel::parse_time("infinite-past %H:%M", "infinite-past 03:04", &t, &err));
-        EXPECT_NE(abel::infinite_past(), t);
+        EXPECT_NE(abel::abel_time::infinite_past(), t);
         EXPECT_EQ(3, tz.at(t).cs.hour());
         EXPECT_EQ(4, tz.at(t).cs.minute());
 
@@ -357,7 +359,7 @@ namespace {
                 abel::chrono_internal::load_time_zone("America/Los_Angeles");
         const abel::abel_time in =
                 abel::from_chrono(abel::chrono_second(1977, 6, 28, 9, 8, 7), lax);
-        const abel::duration subseconds = abel::nanoseconds(654321);
+        const abel::duration subseconds = abel::duration::nanoseconds(654321);
         std::string err;
 
         // RFC3339, which renders subseconds.
@@ -403,7 +405,7 @@ namespace {
     TEST(FormatParse, RoundTripDistantFuture) {
         const abel::time_zone tz = abel::utc_time_zone();
         const abel::abel_time in =
-                abel::from_unix_seconds(std::numeric_limits<int64_t>::max());
+                abel::abel_time::from_unix_seconds(std::numeric_limits<int64_t>::max());
         std::string err;
 
         abel::abel_time out;
@@ -416,7 +418,7 @@ namespace {
     TEST(FormatParse, RoundTripDistantPast) {
         const abel::time_zone tz = abel::utc_time_zone();
         const abel::abel_time in =
-                abel::from_unix_seconds(std::numeric_limits<int64_t>::min());
+                abel::abel_time::from_unix_seconds(std::numeric_limits<int64_t>::min());
         std::string err;
 
         abel::abel_time out;

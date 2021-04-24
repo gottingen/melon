@@ -1,23 +1,26 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 
 // This file contains functions that remove a defined part from the string,
 // i.e., strip the string.
 
-#include <abel/strings/strip.h>
+#include "abel/strings/strip.h"
 
 #include <cassert>
 #include <cstdio>
 #include <cstring>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/asl/string_view.h>
-#include <abel/strings/trim.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include <string_view>
+#include "abel/strings/trim.h"
 
 namespace {
 
     TEST(Strip, ConsumePrefixOneChar) {
-        abel::string_view input("abc");
+        std::string_view input("abc");
         EXPECT_TRUE(abel::consume_prefix(&input, "a"));
         EXPECT_EQ(input, "bc");
 
@@ -35,7 +38,7 @@ namespace {
     }
 
     TEST(Strip, consume_prefix) {
-        abel::string_view input("abcdef");
+        std::string_view input("abcdef");
         EXPECT_FALSE(abel::consume_prefix(&input, "abcdefg"));
         EXPECT_EQ(input, "abcdef");
 
@@ -57,7 +60,7 @@ namespace {
     }
 
     TEST(Strip, consume_suffix) {
-        abel::string_view input("abcdef");
+        std::string_view input("abcdef");
         EXPECT_FALSE(abel::consume_suffix(&input, "abcdefg"));
         EXPECT_EQ(input, "abcdef");
 
@@ -79,7 +82,7 @@ namespace {
     }
 
     TEST(Strip, strip_prefix) {
-        const abel::string_view null_str;
+        const std::string_view null_str;
 
         EXPECT_EQ(abel::strip_prefix("foobar", "foo"), "bar");
         EXPECT_EQ(abel::strip_prefix("foobar", ""), "foobar");
@@ -91,7 +94,7 @@ namespace {
     }
 
     TEST(Strip, strip_suffix) {
-        const abel::string_view null_str;
+        const std::string_view null_str;
 
         EXPECT_EQ(abel::strip_suffix("foobar", "bar"), "foo");
         EXPECT_EQ(abel::strip_suffix("foobar", ""), "foobar");
@@ -158,10 +161,10 @@ namespace {
     }
 
     TEST(String, trim_left) {
-        abel::string_view orig = "\t  \n\f\r\n\vfoo";
+        std::string_view orig = "\t  \n\f\r\n\vfoo";
         EXPECT_EQ("foo", abel::trim_left(orig));
         orig = "\t  \n\f\r\v\n\t  \n\f\r\v\n";
-        EXPECT_EQ(abel::string_view(), abel::trim_left(orig));
+        EXPECT_EQ(std::string_view(), abel::trim_left(orig));
     }
 
     TEST(Strip, trim_all) {
@@ -177,7 +180,7 @@ namespace {
         std::string test5 = "foo \t\f\r\v\n";
         abel::trim_all(&test5);
         EXPECT_EQ(test5, "foo");
-        abel::string_view test6("\t  \f\r\n\vfoo \t\f\r\v\n");
+        std::string_view test6("\t  \f\r\n\vfoo \t\f\r\v\n");
         test6 = abel::trim_all(test6);
         EXPECT_EQ(test6, "foo");
         test6 = abel::trim_all(test6);

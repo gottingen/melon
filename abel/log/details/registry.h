@@ -1,194 +1,118 @@
-//
-// Copyright(c) 2015 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
 
-#ifndef ABEL_LOG_DETAIL_REGISTRY_H_
-#define ABEL_LOG_DETAIL_REGISTRY_H_
-
-// Loggers registy of unique name->logger pointer
-// An attempt to create a logger with an already existing name will be ignored
+// Loggers registry of unique name->logger pointer
+// An attempt to create a logger with an already existing name will result with log_ex exception.
 // If user requests a non existing logger, nullptr will be returned
 // This class is thread safe
-
-#include <abel/log/common.h>
-#include <abel/log/details/periodic_worker.h>
-#include <abel/log/logger.h>
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <mutex>
+#include "abel/log/common.h"
+#include "abel/log/cfg/log_levels.h"
+
 
 namespace abel {
-    namespace log {
-        namespace details {
-            class thread_pool;
+class logger;
 
-            class registry {
-            public:
-                registry(const registry &) = delete;
+namespace details {
+class thread_pool;
 
-                registry &operator=(const registry &) = delete;
+class periodic_worker;
 
-                void register_logger(std::shared_ptr<logger> new_logger) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    auto logger_name = new_logger->name();
-                    throw_if_exists_(logger_name);
-                    loggers_[logger_name] = new_logger;
-                }
+class ABEL_API registry {
+  public:
+    registry(const registry &) = delete;
 
-                void register_and_init(std::shared_ptr<logger> new_logger) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    auto logger_name = new_logger->name();
-                    throw_if_exists_(logger_name);
+    registry &operator=(const registry &) = delete;
 
-                    // set the global formatter pattern
-                    new_logger->set_formatter(formatter_->clone());
+    void register_logger(std::shared_ptr<logger> new_logger);
 
-                    if (err_handler_) {
-                        new_logger->set_error_handler(err_handler_);
-                    }
+    void initialize_logger(std::shared_ptr<logger> new_logger);
 
-                    new_logger->set_level(level_);
-                    new_logger->flush_on(flush_level_);
+    std::shared_ptr<logger> get(const std::string &logger_name);
 
-                    // add to registry
-                    loggers_[logger_name] = new_logger;
-                }
+    std::shared_ptr<logger> default_logger();
 
-                std::shared_ptr<logger> get(const std::string &logger_name) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    auto found = loggers_.find(logger_name);
-                    return found == loggers_.end() ? nullptr : found->second;
-                }
+    // Return raw ptr to the default logger.
+    // To be used directly by the spdlog default api (e.g. abel::info)
+    // This make the default API faster, but cannot be used concurrently with set_default_logger().
+    // e.g do not call set_default_logger() from one thread while calling abel::info() from another.
+    logger *get_default_raw();
 
-                void set_tp(std::shared_ptr<thread_pool> tp) {
-                    std::lock_guard<std::recursive_mutex> lock(tp_mutex_);
-                    tp_ = std::move(tp);
-                }
+    // set default logger.
+    // default logger is stored in default_logger_ (for faster retrieval) and in the loggers_ map.
+    void set_default_logger(std::shared_ptr<logger> new_default_logger);
 
-                std::shared_ptr<thread_pool> get_tp() {
-                    std::lock_guard<std::recursive_mutex> lock(tp_mutex_);
-                    return tp_;
-                }
+    void set_tp(std::shared_ptr<thread_pool> tp);
 
-                // Set global formatter. Each sink in each logger will get a clone of this object
-                void set_formatter(std::unique_ptr<formatter> formatter) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    formatter_ = std::move(formatter);
-                    for (auto &l : loggers_) {
-                        l.second->set_formatter(formatter_->clone());
-                    }
-                }
+    std::shared_ptr<thread_pool> get_tp();
 
-                void set_level(level_enum log_level) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    for (auto &l : loggers_) {
-                        l.second->set_level(log_level);
-                    }
-                    level_ = log_level;
-                }
+    // Set global log_formatter. Each sink in each logger will get a clone of this object
+    void set_formatter(std::unique_ptr<log_formatter> formatter);
 
-                void flush_on(level_enum log_level) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    for (auto &l : loggers_) {
-                        l.second->flush_on(log_level);
-                    }
-                    flush_level_ = log_level;
-                }
+    void enable_backtrace(size_t n_messages);
 
-                void flush_every(std::chrono::seconds interval) {
-                    std::lock_guard<std::mutex> lock(flusher_mutex_);
-                    std::function<void()> clbk(std::bind(&registry::flush_all, this));
-                    periodic_flusher_.reset(new periodic_worker(clbk, interval));
-                }
+    void disable_backtrace();
 
-                void set_error_handler(log_err_handler handler) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    for (auto &l : loggers_) {
-                        l.second->set_error_handler(handler);
-                    }
-                    err_handler_ = handler;
-                }
+    void set_level(level::level_enum log_level);
 
-                void apply_all(std::function<void(std::shared_ptr<logger>)> fun) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    for (auto &l : loggers_) {
-                        fun(l.second);
-                    }
-                }
+    void flush_on(level::level_enum log_level);
 
-                void flush_all() {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    for (auto &l : loggers_) {
-                        l.second->flush();
-                    }
-                }
+    void flush_every(std::chrono::seconds interval);
 
-                void drop(const std::string &logger_name) {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    loggers_.erase(logger_name);
-                }
+    void set_error_handler(void (*handler)(const std::string &msg));
 
-                void drop_all() {
-                    std::lock_guard<std::mutex> lock(logger_map_mutex_);
-                    loggers_.clear();
-                }
+    void apply_all(const std::function<void(const std::shared_ptr<logger>)> &fun);
 
-                // clean all reasources and threads started by the registry
-                void shutdown() {
-                    {
-                        std::lock_guard<std::mutex> lock(flusher_mutex_);
-                        periodic_flusher_.reset();
-                    }
+    void flush_all();
 
-                    drop_all();
+    void drop(const std::string &logger_name);
 
-                    {
-                        std::lock_guard<std::recursive_mutex> lock(tp_mutex_);
-                        tp_.reset();
-                    }
-                }
+    void drop_all();
 
-                std::recursive_mutex &tp_mutex() {
-                    return tp_mutex_;
-                }
+    // clean all resources and threads started by the registry
+    void shutdown();
 
-                static registry &instance() {
-                    static registry s_instance;
-                    return s_instance;
-                }
+    std::recursive_mutex &tp_mutex();
 
-            private:
-                registry()
-                        : formatter_(new pattern_formatter("%+")) {
-                }
+    void set_automatic_registration(bool automatic_registration);
 
-                ~registry() {
-                    /*std::lock_guard<std::mutex> lock(flusher_mutex_);
-                    periodic_flusher_.reset();*/
-                }
+    void update_levels(cfg::log_levels levels);
 
-                void throw_if_exists_(const std::string &logger_name) {
-                    if (loggers_.find(logger_name) != loggers_.end()) {
-                        throw log_ex("logger with name '" + logger_name + "' already exists");
-                    }
-                }
+    static registry &instance();
 
-                std::mutex logger_map_mutex_, flusher_mutex_;
-                std::recursive_mutex tp_mutex_;
-                std::unordered_map<std::string, std::shared_ptr<logger>> loggers_;
-                std::unique_ptr<formatter> formatter_;
-                level_enum level_ = info;
-                level_enum flush_level_ = off;
-                log_err_handler err_handler_;
-                std::shared_ptr<thread_pool> tp_;
-                std::unique_ptr<periodic_worker> periodic_flusher_;
-            };
+  private:
+    registry();
 
-        } // namespace details
-    } //namespace log
-} // namespace abel
-#endif //ABEL_LOG_DETAIL_REGISTRY_H_
+    ~registry();
+
+    void throw_if_exists_(const std::string &logger_name);
+
+    void register_logger_(std::shared_ptr<logger> new_logger);
+
+    std::mutex logger_map_mutex_, flusher_mutex_;
+    std::recursive_mutex tp_mutex_;
+    std::unordered_map<std::string, std::shared_ptr<logger>> loggers_;
+    cfg::log_levels levels_;
+    std::unique_ptr<log_formatter> formatter_;
+    level::level_enum flush_level_ = level::off;
+
+    void (*err_handler_)(const std::string &msg);
+
+    std::shared_ptr<thread_pool> tp_;
+    std::unique_ptr<periodic_worker> periodic_flusher_;
+    std::shared_ptr<logger> default_logger_;
+    bool automatic_registration_ = true;
+    size_t backtrace_n_messages_ = 0;
+};
+
+} // namespace details
+}  // namespace abel
+
+#include "abel/log/details/registry-inl.h"

@@ -1,92 +1,103 @@
-//
-// Copyright(c) 2015 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
-
-#include <abel/log/sinks/base_sink.h>
-#include <abel/log/log.h>
 
 #include <array>
 #include <string>
 #include <syslog.h>
+#include "abel/log/sinks/base_sink.h"
+#include "abel/log/details/null_mutex.h"
+#include "abel/log/details/synchronous_factory.h"
+
 
 namespace abel {
-    namespace log {
-        namespace sinks {
+namespace sinks {
 /**
  * Sink that write to syslog using the `syscall()` library call.
- *
- * Locking is not needed, as `syslog()` itself is thread-safe.
  */
-            template<typename Mutex>
-            class syslog_sink : public base_sink<Mutex> {
-            public:
-                //
-                syslog_sink(const std::string &ident = "", int syslog_option = 0, int syslog_facility = LOG_USER)
-                        : ident_(ident) {
-                    priorities_[static_cast<size_t>(trace)] = LOG_DEBUG;
-                    priorities_[static_cast<size_t>(debug)] = LOG_DEBUG;
-                    priorities_[static_cast<size_t>(info)] = LOG_INFO;
-                    priorities_[static_cast<size_t>(warn)] = LOG_WARNING;
-                    priorities_[static_cast<size_t>(err)] = LOG_ERR;
-                    priorities_[static_cast<size_t>(critical)] = LOG_CRIT;
-                    priorities_[static_cast<size_t>(off)] = LOG_INFO;
+template<typename Mutex>
+class syslog_sink : public base_sink<Mutex> {
 
-                    // set ident to be program name if empty
-                    ::openlog(ident_.empty() ? nullptr : ident_.c_str(), syslog_option, syslog_facility);
-                }
+  public:
+    syslog_sink(std::string ident, int syslog_option, int syslog_facility, bool enable_formatting)
+            : enable_formatting_{enable_formatting}, syslog_levels_{{/* abel::level::trace      */ LOG_DEBUG,
+                                                                            /* abel::level::debug      */ LOG_DEBUG,
+                                                                            /* abel::level::info       */ LOG_INFO,
+                                                                            /* abel::level::warn       */ LOG_WARNING,
+                                                                            /* abel::level::err        */ LOG_ERR,
+                                                                            /* abel::level::critical   */ LOG_CRIT,
+                                                                            /* abel::level::off        */ LOG_INFO}},
+              ident_{std::move(ident)} {
+        // set ident to be program name if empty
+        ::openlog(ident_.empty() ? nullptr : ident_.c_str(), syslog_option, syslog_facility);
+    }
 
-                ~syslog_sink() override {
-                    ::closelog();
-                }
+    ~syslog_sink() override {
+        ::closelog();
+    }
 
-                syslog_sink(const syslog_sink &) = delete;
+    syslog_sink(const syslog_sink &) = delete;
 
-                syslog_sink &operator=(const syslog_sink &) = delete;
+    syslog_sink &operator=(const syslog_sink &) = delete;
 
-            protected:
-                void sink_it_(const details::log_msg &msg) override {
-                    ::syslog(syslog_prio_from_level(msg), "%s", fmt::to_string(msg.raw).c_str());
-                }
+  protected:
+    void sink_it_(const details::log_msg &msg) override {
+        std::string_view payload;
+        memory_buf_t formatted;
+        if (enable_formatting_) {
+            base_sink<Mutex>::formatter_->format(msg, formatted);
+            payload = std::string_view(formatted.data(), formatted.size());
+        } else {
+            payload = msg.payload;
+        }
 
-                void flush_() override {}
+        size_t length = payload.size();
+        // limit to max int
+        if (length > static_cast<size_t>(std::numeric_limits<int>::max())) {
+            length = static_cast<size_t>(std::numeric_limits<int>::max());
+        }
 
-            private:
-                std::array<int, 7> priorities_;
-                // must store the ident because the man says openlog might use the pointer as
-                // is and not a string copy
-                const std::string ident_;
+        ::syslog(syslog_prio_from_level(msg), "%.*s", static_cast<int>(length), payload.data());
+    }
 
-                int syslog_prio_from_level(const details::log_msg &msg) const {
-                    return priorities_[static_cast<size_t>(msg.level)];
-                }
-            };
+    void flush_() override {}
 
-            using syslog_sink_mt = syslog_sink<std::mutex>;
-            using syslog_sink_st = syslog_sink<details::null_mutex>;
-        } // namespace sinks
+    bool enable_formatting_ = false;
+
+  private:
+    using levels_array = std::array<int, 7>;
+    levels_array syslog_levels_;
+    // must store the ident because the man says openlog might use the pointer as
+    // is and not a string copy
+    const std::string ident_;
+
+    //
+    // Simply maps spdlog's log level to syslog priority level.
+    //
+    int syslog_prio_from_level(const details::log_msg &msg) const {
+        return syslog_levels_.at(static_cast<levels_array::size_type>(msg.level));
+    }
+};
+
+using syslog_sink_mt = syslog_sink<std::mutex>;
+using syslog_sink_st = syslog_sink<details::null_mutex>;
+} // namespace sinks
 
 // Create and register a syslog logger
-        template<typename Factory = default_factory>
-        inline std::shared_ptr<logger> syslog_logger_mt(
-                const std::string &logger_name,
-                const std::string &syslog_ident = "",
-                int syslog_option = 0,
-                int syslog_facility = (1 << 3)) {
-            return Factory::template create<sinks::syslog_sink_mt>(logger_name, syslog_ident, syslog_option,
-                                                                   syslog_facility);
-        }
+template<typename Factory = abel::synchronous_factory>
+inline std::shared_ptr<logger>
+syslog_logger_mt(const std::string &logger_name, const std::string &syslog_ident = "", int syslog_option = 0,
+                 int syslog_facility = LOG_USER, bool enable_formatting = false) {
+    return Factory::template create<sinks::syslog_sink_mt>(logger_name, syslog_ident, syslog_option,
+                                                           syslog_facility, enable_formatting);
+}
 
-        template<typename Factory = default_factory>
-        inline std::shared_ptr<logger> syslog_logger_st(
-                const std::string &logger_name,
-                const std::string &syslog_ident = "",
-                int syslog_option = 0,
-                int syslog_facility = (1 << 3)) {
-            return Factory::template create<sinks::syslog_sink_st>(logger_name, syslog_ident, syslog_option,
-                                                                   syslog_facility);
-        }
-    } //namespace log
-} // namespace abel
+template<typename Factory = abel::synchronous_factory>
+inline std::shared_ptr<logger>
+syslog_logger_st(const std::string &logger_name, const std::string &syslog_ident = "", int syslog_option = 0,
+                 int syslog_facility = LOG_USER, bool enable_formatting = false) {
+    return Factory::template create<sinks::syslog_sink_st>(logger_name, syslog_ident, syslog_option,
+                                                           syslog_facility, enable_formatting);
+}
+}  // namespace abel

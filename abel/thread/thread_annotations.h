@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // -----------------------------------------------------------------------------
 // File: thread_annotations.h
@@ -21,9 +24,9 @@
 #ifndef ABEL_BASE_THREAD_ANNOTATIONS_H_
 #define ABEL_BASE_THREAD_ANNOTATIONS_H_
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 // TODO(mbonadei): Remove after the backward compatibility period.
-#include <abel/base/profile/thread.h>  // IWYU pragma: export
+#include "abel/base/internal/thread.h"  // IWYU pragma: export
 
 #if defined(__clang__)
 #define ABEL_INTERNAL_THREAD_ANNOTATION_ATTRIBUTE(x) __attribute__((x))
@@ -244,22 +247,22 @@
 
 namespace abel {
 
-    namespace thread_internal {
+namespace thread_internal {
 
 // Takes a reference to a guarded data member, and returns an unguarded
 // reference.
 // Do not used this function directly, use ABEL_TS_UNCHECKED_READ instead.
-        template<typename T>
-        ABEL_FORCE_INLINE const T &ts_unchecked_read(const T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
-            return v;
-        }
+template<typename T>
+ABEL_FORCE_INLINE const T &ts_unchecked_read(const T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
+    return v;
+}
 
-        template<typename T>
-        ABEL_FORCE_INLINE T &ts_unchecked_read(T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
-            return v;
-        }
+template<typename T>
+ABEL_FORCE_INLINE T &ts_unchecked_read(T &v) ABEL_NO_THREAD_SAFETY_ANALYSIS {
+    return v;
+}
 
-    }  // namespace thread_internal
+}  // namespace thread_internal
 
 }  // namespace abel
 

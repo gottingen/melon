@@ -1,20 +1,19 @@
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
-#ifndef ABEL_LOG_FORMATTERR_H_
-#define ABEL_LOG_FORMATTERR_H_
+#pragma once
 
-#include <abel/asl/format/format.h>
-#include <abel/log/details/log_msg.h>
+#include "abel/strings/format.h"
+#include "abel/log/details/log_msg.h"
 
 namespace abel {
-    namespace log {
-        class formatter {
-        public:
-            virtual ~formatter() = default;
 
-            virtual void format(const details::log_msg &msg, fmt::memory_buffer &dest) = 0;
+class log_formatter {
+  public:
+    virtual ~log_formatter() = default;
 
-            virtual std::unique_ptr<formatter> clone() const = 0;
-        };
-    } //namespace log
-} // namespace abel
-#endif //ABEL_LOG_FORMATTERR_H_
+    virtual void format(const details::log_msg &msg, memory_buf_t &dest) = 0;
+
+    virtual std::unique_ptr<log_formatter> clone() const = 0;
+};
+}  // namespace abel

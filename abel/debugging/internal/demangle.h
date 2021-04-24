@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 
 // An async-signal-safe and thread-safe demangler for Itanium C++ ABI
@@ -41,18 +44,18 @@
 #ifndef ABEL_DEBUGGING_INTERNAL_DEMANGLE_H_
 #define ABEL_DEBUGGING_INTERNAL_DEMANGLE_H_
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
-    namespace debugging_internal {
+namespace debugging_internal {
 
 // Demangle `mangled`.  On success, return true and write the
 // demangled symbol name to `out`.  Otherwise, return false.
 // `out` is modified even if demangling is unsuccessful.
-        bool Demangle(const char *mangled, char *out, int out_size);
+bool Demangle(const char *mangled, char *out, int out_size);
 
-    }  // namespace debugging_internal
+}  // namespace debugging_internal
 
 }  // namespace abel
 

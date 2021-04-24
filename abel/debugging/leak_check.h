@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // -----------------------------------------------------------------------------
 // File: leak_check.h
@@ -19,7 +22,7 @@
 
 #include <cstddef>
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
@@ -28,13 +31,13 @@ namespace abel {
 //
 // Returns true if a leak-checking sanitizer (either ASan or standalone LSan) is
 // currently built into this target.
-    bool have_leak_sanitizer();
+bool have_leak_sanitizer();
 
 // do_ignore_leak()
 //
 // Implements `ignore_leak()` below. This function should usually
 // not be called directly; calling `ignore_leak()` is preferred.
-    void do_ignore_leak(const void *ptr);
+void do_ignore_leak(const void *ptr);
 
 // ignore_leak()
 //
@@ -51,11 +54,11 @@ namespace abel {
 // time `ignore_leak()` is called, the call is a no-op; if it is actively
 // allocated, the object must not get deallocated later.
 //
-    template<typename T>
-    T *ignore_leak(T *ptr) {
-        do_ignore_leak(ptr);
-        return ptr;
-    }
+template<typename T>
+T *ignore_leak(T *ptr) {
+    do_ignore_leak(ptr);
+    return ptr;
+}
 
 // leak_check_disabler
 //
@@ -72,16 +75,16 @@ namespace abel {
 //   }
 //
 // REQUIRES: Destructor runs in same thread as constructor
-    class leak_check_disabler {
-    public:
-        leak_check_disabler();
+class leak_check_disabler {
+  public:
+    leak_check_disabler();
 
-        leak_check_disabler(const leak_check_disabler &) = delete;
+    leak_check_disabler(const leak_check_disabler &) = delete;
 
-        leak_check_disabler &operator=(const leak_check_disabler &) = delete;
+    leak_check_disabler &operator=(const leak_check_disabler &) = delete;
 
-        ~leak_check_disabler();
-    };
+    ~leak_check_disabler();
+};
 
 // register_live_pointers()
 //
@@ -89,13 +92,13 @@ namespace abel {
 // referenced and for which leak checking should be ignored. This function is
 // useful if you store pointers in mapped memory, for memory ranges that we know
 // are correct but for which normal analysis would flag as leaked code.
-    void register_live_pointers(const void *ptr, size_t size);
+void register_live_pointers(const void *ptr, size_t size);
 
 // unregister_live_pointers()
 //
 // Deregisters the pointers previously marked as active in
 // `register_live_pointers()`, enabling leak checking of those pointers.
-    void unregister_live_pointers(const void *ptr, size_t size);
+void unregister_live_pointers(const void *ptr, size_t size);
 
 
 }  // namespace abel

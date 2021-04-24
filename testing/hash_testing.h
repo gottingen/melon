@@ -1,4 +1,6 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #ifndef TEST_TESTING_HASH_TESTING_H_
 #define TEST_TESTING_HASH_TESTING_H_
@@ -7,13 +9,14 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
+#include <variant>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/asl/hash/spy_hash_state.h>
-#include <abel/asl/type_traits.h>
-#include <abel/strings/str_cat.h>
-#include <abel/asl/variant.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "testing/spy_hash_state.h"
+#include "abel/meta/type_traits.h"
+#include "abel/strings/str_cat.h"
+
 
 namespace abel {
 
@@ -127,245 +130,245 @@ namespace abel {
 //       H::combine_contiguous(std::move(state), x.p, x.p + x.size), x.size);
 // }
 //
-    template<int &... ExplicitBarrier, typename Container>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(const Container &values);
+template<int &... ExplicitBarrier, typename Container>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(const Container &values);
 
-    template<int &... ExplicitBarrier, typename Container, typename Eq>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(const Container &values, Eq equals);
+template<int &... ExplicitBarrier, typename Container, typename Eq>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(const Container &values, Eq equals);
 
-    template<int &..., typename T>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values);
+template<int &..., typename T>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values);
 
-    template<int &..., typename T, typename Eq>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values,
-                                          Eq equals);
+template<int &..., typename T, typename Eq>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values,
+                                      Eq equals);
 
-    namespace hash_internal {
+namespace hash_internal {
 
-        struct PrintVisitor {
-            size_t index;
+struct PrintVisitor {
+    size_t index;
 
-            template<typename T>
-            std::string operator()(const T *value) const {
-                return abel::string_cat("#", index, "(", testing::PrintToString(*value), ")");
-            }
-        };
+    template<typename T>
+    std::string operator()(const T *value) const {
+        return abel::string_cat("#", index, "(", testing::PrintToString(*value), ")");
+    }
+};
 
-        template<typename Eq>
-        struct EqVisitor {
-            Eq eq;
+template<typename Eq>
+struct EqVisitor {
+    Eq eq;
 
-            template<typename T, typename U>
-            bool operator()(const T *t, const U *u) const {
-                return eq(*t, *u);
-            }
-        };
+    template<typename T, typename U>
+    bool operator()(const T *t, const U *u) const {
+        return eq(*t, *u);
+    }
+};
 
-        struct ExpandVisitor {
-            template<typename T>
-            spy_hash_state operator()(const T *value) const {
-                return spy_hash_state::combine(spy_hash_state(), *value);
-            }
-        };
+struct ExpandVisitor {
+    template<typename T>
+    spy_hash_state operator()(const T *value) const {
+        return spy_hash_state::combine(spy_hash_state(), *value);
+    }
+};
 
-        template<typename Container, typename Eq>
-        ABEL_MUST_USE_RESULT testing::AssertionResult
-        VerifyTypeImplementsAbelHashCorrectly(const Container &values, Eq equals) {
-            using V = typename Container::value_type;
+template<typename Container, typename Eq>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(const Container &values, Eq equals) {
+    using V = typename Container::value_type;
 
-            struct Info {
-                const V &value;
-                size_t index;
+    struct Info {
+        const V &value;
+        size_t index;
 
-                std::string ToString() const {
-                    return abel::visit(PrintVisitor{index}, value);
-                }
-
-                spy_hash_state expand() const { return abel::visit(ExpandVisitor{}, value); }
-            };
-
-            using EqClass = std::vector<Info>;
-            std::vector<EqClass> classes;
-
-            // Gather the values in equivalence classes.
-            size_t i = 0;
-            for (const auto &value : values) {
-                EqClass *c = nullptr;
-                for (auto &eqclass : classes) {
-                    if (abel::visit(EqVisitor<Eq>{equals}, value, eqclass[0].value)) {
-                        c = &eqclass;
-                        break;
-                    }
-                }
-                if (c == nullptr) {
-                    classes.emplace_back();
-                    c = &classes.back();
-                }
-                c->push_back({value, i});
-                ++i;
-
-                // Verify potential errors captured by spy_hash_state.
-                if (auto error = c->back().expand().error()) {
-                    return testing::AssertionFailure() << *error;
-                }
-            }
-
-            if (classes.size() < 2) {
-                return testing::AssertionFailure()
-                        << "At least two equivalence classes are expected.";
-            }
-
-            // We assume that equality is correctly implemented.
-            // Now we verify that abel_hash_value is also correctly implemented.
-
-            for (const auto &c : classes) {
-                // All elements of the equivalence class must have the same hash
-                // expansion.
-                const spy_hash_state expected = c[0].expand();
-                for (const Info &v : c) {
-                    if (v.expand() != v.expand()) {
-                        return testing::AssertionFailure()
-                                << "Hash expansion for " << v.ToString()
-                                << " is non-deterministic.";
-                    }
-                    if (v.expand() != expected) {
-                        return testing::AssertionFailure()
-                                << "Values " << c[0].ToString() << " and " << v.ToString()
-                                << " evaluate as equal but have an unequal hash expansion.";
-                    }
-                }
-
-                // Elements from other classes must have different hash expansion.
-                for (const auto &c2 : classes) {
-                    if (&c == &c2)
-                        continue;
-                    const spy_hash_state c2_hash = c2[0].expand();
-                    switch (spy_hash_state::Compare(expected, c2_hash)) {
-                        case spy_hash_state::CompareResult::kEqual:
-                            return testing::AssertionFailure()
-                                    << "Values " << c[0].ToString() << " and " << c2[0].ToString()
-                                    << " evaluate as unequal but have an equal hash expansion.";
-                        case spy_hash_state::CompareResult::kBSuffixA:
-                            return testing::AssertionFailure()
-                                    << "Hash expansion of " << c2[0].ToString()
-                                    << " is a suffix of the hash expansion of " << c[0].ToString()
-                                    << ".";
-                        case spy_hash_state::CompareResult::kASuffixB:
-                            return testing::AssertionFailure()
-                                    << "Hash expansion of " << c[0].ToString()
-                                    << " is a suffix of the hash expansion of " << c2[0].ToString()
-                                    << ".";
-                        case spy_hash_state::CompareResult::kUnequal:
-                            break;
-                    }
-                }
-            }
-            return testing::AssertionSuccess();
+        std::string ToString() const {
+            return std::visit(PrintVisitor{index}, value);
         }
 
-        template<typename... T>
-        struct TypeSet {
-            template<typename U, bool = disjunction<std::is_same<T, U>...>::value>
-            struct Insert {
-                using type = TypeSet<U, T...>;
-            };
-            template<typename U>
-            struct Insert<U, true> {
-                using type = TypeSet;
-            };
+        spy_hash_state expand() const { return std::visit(ExpandVisitor{}, value); }
+    };
 
-            template<template<typename...> class C>
-            using apply = C<T...>;
-        };
+    using EqClass = std::vector<Info>;
+    std::vector<EqClass> classes;
 
-        template<typename... T>
-        struct MakeTypeSet : TypeSet<> {
-        };
-        template<typename T, typename... Ts>
-        struct MakeTypeSet<T, Ts...> : MakeTypeSet<Ts...>::template Insert<T>::type {
-        };
-
-        template<typename... T>
-        using VariantForTypes = typename MakeTypeSet<
-                const typename std::decay<T>::type *...>::template apply<abel::variant>;
-
-        template<typename Container>
-        struct ContainerAsVector {
-            using V = abel::variant<const typename Container::value_type *>;
-            using Out = std::vector<V>;
-
-            static Out Do(const Container &values) {
-                Out out;
-                for (const auto &v : values)
-                    out.push_back(&v);
-                return out;
+    // Gather the values in equivalence classes.
+    size_t i = 0;
+    for (const auto &value : values) {
+        EqClass *c = nullptr;
+        for (auto &eqclass : classes) {
+            if (std::visit(EqVisitor<Eq>{equals}, value, eqclass[0].value)) {
+                c = &eqclass;
+                break;
             }
-        };
+        }
+        if (c == nullptr) {
+            classes.emplace_back();
+            c = &classes.back();
+        }
+        c->push_back({value, i});
+        ++i;
 
-        template<typename... T>
-        struct ContainerAsVector<std::tuple<T...>> {
-            using V = VariantForTypes<T...>;
-            using Out = std::vector<V>;
-
-            template<size_t... I>
-            static Out DoImpl(const std::tuple<T...> &tuple, abel::index_sequence<I...>) {
-                return Out{&std::get<I>(tuple)...};
-            }
-
-            static Out Do(const std::tuple<T...> &values) {
-                return DoImpl(values, abel::index_sequence_for<T...>());
-            }
-        };
-
-        template<>
-        struct ContainerAsVector<std::tuple<>> {
-            static std::vector<VariantForTypes<int>> Do(std::tuple<>) { return {}; }
-        };
-
-        struct DefaultEquals {
-            template<typename T, typename U>
-            bool operator()(const T &t, const U &u) const {
-                return t == u;
-            }
-        };
-
-    }  // namespace hash_internal
-
-    template<int &..., typename Container>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(const Container &values) {
-        return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
-                hash_internal::ContainerAsVector<Container>::Do(values),
-                hash_internal::DefaultEquals{});
+        // Verify potential errors captured by spy_hash_state.
+        if (auto error = c->back().expand().error()) {
+            return testing::AssertionFailure() << *error;
+        }
     }
 
-    template<int &..., typename Container, typename Eq>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(const Container &values, Eq equals) {
-        return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
-                hash_internal::ContainerAsVector<Container>::Do(values), equals);
+    if (classes.size() < 2) {
+        return testing::AssertionFailure()
+                << "At least two equivalence classes are expected.";
     }
 
-    template<int &..., typename T>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values) {
-        return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
-                hash_internal::ContainerAsVector<std::initializer_list<T>>::Do(values),
-                hash_internal::DefaultEquals{});
+    // We assume that equality is correctly implemented.
+    // Now we verify that abel_hash_value is also correctly implemented.
+
+    for (const auto &c : classes) {
+        // All elements of the equivalence class must have the same hash
+        // expansion.
+        const spy_hash_state expected = c[0].expand();
+        for (const Info &v : c) {
+            if (v.expand() != v.expand()) {
+                return testing::AssertionFailure()
+                        << "Hash expansion for " << v.ToString()
+                        << " is non-deterministic.";
+            }
+            if (v.expand() != expected) {
+                return testing::AssertionFailure()
+                        << "Values " << c[0].ToString() << " and " << v.ToString()
+                        << " evaluate as equal but have an unequal hash expansion.";
+            }
+        }
+
+        // Elements from other classes must have different hash expansion.
+        for (const auto &c2 : classes) {
+            if (&c == &c2)
+                continue;
+            const spy_hash_state c2_hash = c2[0].expand();
+            switch (spy_hash_state::Compare(expected, c2_hash)) {
+                case spy_hash_state::CompareResult::kEqual:
+                    return testing::AssertionFailure()
+                            << "Values " << c[0].ToString() << " and " << c2[0].ToString()
+                            << " evaluate as unequal but have an equal hash expansion.";
+                case spy_hash_state::CompareResult::kBSuffixA:
+                    return testing::AssertionFailure()
+                            << "Hash expansion of " << c2[0].ToString()
+                            << " is a suffix of the hash expansion of " << c[0].ToString()
+                            << ".";
+                case spy_hash_state::CompareResult::kASuffixB:
+                    return testing::AssertionFailure()
+                            << "Hash expansion of " << c[0].ToString()
+                            << " is a suffix of the hash expansion of " << c2[0].ToString()
+                            << ".";
+                case spy_hash_state::CompareResult::kUnequal:
+                    break;
+            }
+        }
+    }
+    return testing::AssertionSuccess();
+}
+
+template<typename... T>
+struct TypeSet {
+    template<typename U, bool = disjunction<std::is_same<T, U>...>::value>
+    struct Insert {
+        using type = TypeSet<U, T...>;
+    };
+    template<typename U>
+    struct Insert<U, true> {
+        using type = TypeSet;
+    };
+
+    template<template<typename...> class C>
+    using apply = C<T...>;
+};
+
+template<typename... T>
+struct MakeTypeSet : TypeSet<> {
+};
+template<typename T, typename... Ts>
+struct MakeTypeSet<T, Ts...> : MakeTypeSet<Ts...>::template Insert<T>::type {
+};
+
+template<typename... T>
+using VariantForTypes = typename MakeTypeSet<
+        const typename std::decay<T>::type *...>::template apply<std::variant>;
+
+template<typename Container>
+struct ContainerAsVector {
+    using V = std::variant<const typename Container::value_type *>;
+    using Out = std::vector<V>;
+
+    static Out Do(const Container &values) {
+        Out out;
+        for (const auto &v : values)
+            out.push_back(&v);
+        return out;
+    }
+};
+
+template<typename... T>
+struct ContainerAsVector<std::tuple<T...>> {
+    using V = VariantForTypes<T...>;
+    using Out = std::vector<V>;
+
+    template<size_t... I>
+    static Out DoImpl(const std::tuple<T...> &tuple, abel::index_sequence<I...>) {
+        return Out{&std::get<I>(tuple)...};
     }
 
-    template<int &..., typename T, typename Eq>
-    ABEL_MUST_USE_RESULT testing::AssertionResult
-    VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values,
-                                          Eq equals) {
-        return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
-                hash_internal::ContainerAsVector<std::initializer_list<T>>::Do(values),
-                equals);
+    static Out Do(const std::tuple<T...> &values) {
+        return DoImpl(values, abel::index_sequence_for<T...>());
     }
+};
+
+template<>
+struct ContainerAsVector<std::tuple<>> {
+    static std::vector<VariantForTypes<int>> Do(std::tuple<>) { return {}; }
+};
+
+struct DefaultEquals {
+    template<typename T, typename U>
+    bool operator()(const T &t, const U &u) const {
+        return t == u;
+    }
+};
+
+}  // namespace hash_internal
+
+template<int &..., typename Container>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(const Container &values) {
+    return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
+            hash_internal::ContainerAsVector<Container>::Do(values),
+            hash_internal::DefaultEquals{});
+}
+
+template<int &..., typename Container, typename Eq>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(const Container &values, Eq equals) {
+    return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
+            hash_internal::ContainerAsVector<Container>::Do(values), equals);
+}
+
+template<int &..., typename T>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values) {
+    return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
+            hash_internal::ContainerAsVector<std::initializer_list<T>>::Do(values),
+            hash_internal::DefaultEquals{});
+}
+
+template<int &..., typename T, typename Eq>
+ABEL_MUST_USE_RESULT testing::AssertionResult
+VerifyTypeImplementsAbelHashCorrectly(std::initializer_list<T> values,
+                                      Eq equals) {
+    return hash_internal::VerifyTypeImplementsAbelHashCorrectly(
+            hash_internal::ContainerAsVector<std::initializer_list<T>>::Do(values),
+            equals);
+}
 
 }  // namespace abel
 

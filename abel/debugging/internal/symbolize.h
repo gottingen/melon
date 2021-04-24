@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 
 // This file contains internal parts of the abel symbolizer.
@@ -8,7 +11,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 #ifdef ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE
 #error ABEL_INTERNAL_HAVE_ELF_SYMBOLIZE cannot be directly set
@@ -48,46 +51,46 @@ bool GetSectionHeaderByName(int fd, const char *name, size_t name_len,
 
 namespace abel {
 
-    namespace debugging_internal {
+namespace debugging_internal {
 
-        struct SymbolDecoratorArgs {
-            // The program counter we are getting symbolic name for.
-            const void *pc;
-            // 0 for main executable, load address for shared libraries.
-            ptrdiff_t relocation;
-            // Read-only file descriptor for ELF image covering "pc",
-            // or -1 if no such ELF image exists in /proc/self/maps.
-            int fd;
-            // Output buffer, size.
-            // Note: the buffer may not be empty -- default symbolizer may have already
-            // produced some output, and earlier decorators may have adorned it in
-            // some way. You are free to replace or augment the contents (within the
-            // symbol_buf_size limit).
-            char *const symbol_buf;
-            size_t symbol_buf_size;
-            // Temporary scratch space, size.
-            // Use that space in preference to allocating your own stack buffer to
-            // conserve stack.
-            char *const tmp_buf;
-            size_t tmp_buf_size;
-            // User-provided argument
-            void *arg;
-        };
-        using SymbolDecorator = void (*)(const SymbolDecoratorArgs *);
+struct SymbolDecoratorArgs {
+    // The program counter we are getting symbolic name for.
+    const void *pc;
+    // 0 for main executable, load address for shared libraries.
+    ptrdiff_t relocation;
+    // Read-only file descriptor for ELF image covering "pc",
+    // or -1 if no such ELF image exists in /proc/self/maps.
+    int fd;
+    // Output buffer, size.
+    // Note: the buffer may not be empty -- default symbolizer may have already
+    // produced some output, and earlier decorators may have adorned it in
+    // some way. You are free to replace or augment the contents (within the
+    // symbol_buf_size limit).
+    char *const symbol_buf;
+    size_t symbol_buf_size;
+    // Temporary scratch space, size.
+    // Use that space in preference to allocating your own stack buffer to
+    // conserve stack.
+    char *const tmp_buf;
+    size_t tmp_buf_size;
+    // User-provided argument
+    void *arg;
+};
+using SymbolDecorator = void (*)(const SymbolDecoratorArgs *);
 
 // Installs a function-pointer as a decorator. Returns a value less than zero
 // if the system cannot install the decorator. Otherwise, returns a unique
 // identifier corresponding to the decorator. This identifier can be used to
 // uninstall the decorator - See RemoveSymbolDecorator() below.
-        int InstallSymbolDecorator(SymbolDecorator decorator, void *arg);
+int InstallSymbolDecorator(SymbolDecorator decorator, void *arg);
 
 // Removes a previously installed function-pointer decorator. Parameter "ticket"
 // is the return-value from calling InstallSymbolDecorator().
-        bool RemoveSymbolDecorator(int ticket);
+bool RemoveSymbolDecorator(int ticket);
 
 // Remove all installed decorators.  Returns true if successful, false if
 // symbolization is currently in progress.
-        bool RemoveAllSymbolDecorators(void);
+bool RemoveAllSymbolDecorators(void);
 
 // Registers an address range to a file mapping.
 //
@@ -96,19 +99,19 @@ namespace abel {
 //   filename != nullptr
 //
 // Returns true if the file was successfully registered.
-        bool RegisterFileMappingHint(
-                const void *start, const void *end, uint64_t offset, const char *filename);
+bool RegisterFileMappingHint(
+        const void *start, const void *end, uint64_t offset, const char *filename);
 
 // Looks up the file mapping registered by RegisterFileMappingHint for an
 // address range. If there is one, the file name is stored in *filename and
 // *start and *end are modified to reflect the registered mapping. Returns
 // whether any hint was found.
-        bool GetFileMappingHint(const void **start,
-                                const void **end,
-                                uint64_t *offset,
-                                const char **filename);
+bool GetFileMappingHint(const void **start,
+                        const void **end,
+                        uint64_t *offset,
+                        const char **filename);
 
-    }  // namespace debugging_internal
+}  // namespace debugging_internal
 
 }  // namespace abel
 

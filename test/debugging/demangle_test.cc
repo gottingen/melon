@@ -1,14 +1,16 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/debugging/internal/demangle.h>
+#include "abel/debugging/internal/demangle.h"
 
 #include <cstdlib>
 #include <string>
 
-#include <gtest/gtest.h>
-#include <abel/log/abel_logging.h>
-#include <abel/debugging/internal/stack_consumption.h>
-#include <abel/memory/memory.h>
+#include "gtest/gtest.h"
+#include "abel/log/logging.h"
+#include "abel/debugging/internal/stack_consumption.h"
+#include "abel/memory/memory.h"
 
 namespace abel {
 
@@ -93,7 +95,7 @@ static const char *DemangleIt(const char * const mangled) {
                                                         int *stack_consumed) {
               g_mangled = mangled;
               *stack_consumed = GetSignalHandlerStackConsumption(DemangleSignalHandler);
-              ABEL_RAW_INFO("Stack consumption of Demangle: {}", *stack_consumed);
+              DLOG_INFO("Stack consumption of Demangle: {}", *stack_consumed);
               return g_demangle_result;
             }
 

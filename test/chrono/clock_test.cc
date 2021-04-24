@@ -1,8 +1,9 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/chrono/clock.h>
-
-#include <abel/base/profile.h>
+#include "abel/chrono/clock.h"
+#include "abel/base/profile.h"
 
 #if defined(ABEL_HAVE_ALARM)
 
@@ -13,15 +14,15 @@
 #error all known Linux and Apple targets have alarm
 #endif
 
-#include <gtest/gtest.h>
-#include <abel/chrono/time.h>
+#include "gtest/gtest.h"
+#include "abel/chrono/time.h"
 
 namespace {
 
     TEST(abel_time, Now) {
-        const abel::abel_time before = abel::from_unix_nanos(abel::get_current_time_nanos());
+        const abel::abel_time before = abel::abel_time::from_unix_nanos(abel::get_current_time_nanos());
         const abel::abel_time now = abel::now();
-        const abel::abel_time after = abel::from_unix_nanos(abel::get_current_time_nanos());
+        const abel::abel_time after = abel::abel_time::from_unix_nanos(abel::get_current_time_nanos());
         EXPECT_GE(now, before);
         EXPECT_GE(after, now);
     }
@@ -53,7 +54,7 @@ namespace {
             if (alarm_policy == AlarmPolicy::kWithAlarm) {
                 alarm_handler_invoked = false;
                 old_alarm = signal(SIGALRM, AlarmHandler);
-                alarm(abel::to_int64_seconds(d / 2));
+                alarm((d / 2).to_int64_seconds());
             }
 #else
             EXPECT_EQ(alarm_policy, AlarmPolicy::kWithoutAlarm);
@@ -98,9 +99,9 @@ namespace {
 
 // Tests that sleep_for() returns neither too early nor too late.
     TEST(sleep_for, Bounded) {
-        const abel::duration d = abel::milliseconds(2500);
-        const abel::duration early = abel::milliseconds(100);
-        const abel::duration late = abel::milliseconds(300);
+        const abel::duration d = abel::duration::milliseconds(2500);
+        const abel::duration early = abel::duration::milliseconds(100);
+        const abel::duration late = abel::duration::milliseconds(300);
         const abel::duration timeout = 48 * d;
         EXPECT_TRUE(AssertSleepForBounded(d, early, late, timeout,
                                           AlarmPolicy::kWithoutAlarm));

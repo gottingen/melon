@@ -4,15 +4,13 @@
 //
 // $ blaze run :gaussian_distribution_gentables > gaussian_distribution.cc
 //
-#include <abel/stats/random/gaussian_distribution.h>
-
+#include "abel/random/gaussian_distribution.h"
 #include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <limits>
 #include <string>
-
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 namespace abel {
 
@@ -69,10 +67,10 @@ namespace abel {
             // The constants here should match the values in gaussian_distribution.h
             static constexpr int kC = kMask + 1;
 
-            static_assert((ABEL_ARRAYSIZE(tables_.x) == kC + 1),
+            static_assert((ABEL_ARRAY_SIZE(tables_.x) == kC + 1),
                           "xArray must be length kMask + 2");
 
-            static_assert((ABEL_ARRAYSIZE(tables_.x) == ABEL_ARRAYSIZE(tables_.f)),
+            static_assert((ABEL_ARRAY_SIZE(tables_.x) == ABEL_ARRAY_SIZE(tables_.f)),
                           "fx and x arrays must be identical length");
 
             auto f = [](double x) { return std::exp(-0.5 * x * x); };

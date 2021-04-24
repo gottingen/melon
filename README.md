@@ -1,21 +1,15 @@
 # abel - c++ base library
 
-[中文版](/README-cn.md)
-
-abel is an open-source collection of c++ library code. it designed to use c++ smartly.
+abel is an Oteam collection of c++ library code. it designed to use c++ smartly.
 
 ![abel](https://github.com/gottingen/abel/blob/master/docs/images/abel.png)
 
 ## status
 
-[![Build Status](https://www.travis-ci.org/gottingen/abel.svg?branch=master)](https://travis-ci.org/gottingen/abel)
-[![Coverage Status](https://coveralls.io/repos/github/gottingen/abel/badge.svg?branch=master)](https://coveralls.io/github/gottingen/abel?branch=master)
-
 platform|compiler | status
 :--- | :---| :---
-centos6 | gcc-4.8.5 | ok
 centos6 | gcc-5.3 | ok
-centos7 | gcc-4.8.5 | ok
+centos7 | gcc-5.3 | ok
 mac os  | llvm    | ok
 
 ## content index
@@ -31,12 +25,6 @@ mac os  | llvm    | ok
 <a name="about"> </a>
 
 ## about abel
-
-For several years, I have planned to establish a repository to de-duplicate code from the projects either I have been 
-involved in or I have paid close attention to (e.g.,open source) so that I would develop iteratively based upon the 
-repository. I have tried the codes on many private projects and the applicability is verified. The  repository , named 
-after a mathematician as 'Abel', fortunately came out on Jan 1st 2020.
-
 
 Since the inception, it's aimed to <font size=16> **`consolidate algorithms, data structures, system operations and 
 make sure it's under control.`**</font>
@@ -64,18 +52,24 @@ abel use cmake as build system. sample to build abel
 
 compiler requirement
 
-    - clang version > 3.3
-    - gcc version > 4.8
-    - cmake version > 3.5(if you build benchmark) otherwise 2.8 is enough
+  - clang version > 3.3
+  - gcc version > 4.8
+  - cmake version > 3.5(if you build benchmark) otherwise 2.8 is enough
+
 build step
 
-    $ git clone https://github.com/gottingen/abel.git
+abel dependency managed by carbin flow, first need install carbin to install 
+depends by [carbin](https://git.code.oa.com/cpp_infra/carbin) 
+```shell
+    $ git git@git.code.oa.com:cpp_infra/abel.git
     $ cd abel
+    $ carbin install
     $ mkdir build
     $ cd build
     $ cmake ..
     $ make
     $ make test
+```
     
 <a name="modules"> </a>
 

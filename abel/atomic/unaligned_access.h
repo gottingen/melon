@@ -1,12 +1,14 @@
-//
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 
 #ifndef ABEL_ATOMIC_UNALIGNED_ACCESS_H_
 #define ABEL_ATOMIC_UNALIGNED_ACCESS_H_
 
 #include <string.h>
 #include <cstdint>
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 // unaligned APIs
 
@@ -89,29 +91,29 @@ ABEL_FORCE_INLINE void unaligned_store64(void *p, uint64_t v) {
 namespace abel {
 
 
-    ABEL_FORCE_INLINE uint16_t unaligned_load16(const void *p) {
-        uint16_t t;
-        memcpy(&t, p, sizeof t);
-        return t;
-    }
+ABEL_FORCE_INLINE uint16_t unaligned_load16(const void *p) {
+    uint16_t t;
+    memcpy(&t, p, sizeof t);
+    return t;
+}
 
-    ABEL_FORCE_INLINE uint32_t unaligned_load32(const void *p) {
-        uint32_t t;
-        memcpy(&t, p, sizeof t);
-        return t;
-    }
+ABEL_FORCE_INLINE uint32_t unaligned_load32(const void *p) {
+    uint32_t t;
+    memcpy(&t, p, sizeof t);
+    return t;
+}
 
-    ABEL_FORCE_INLINE uint64_t unaligned_load64(const void *p) {
-        uint64_t t;
-        memcpy(&t, p, sizeof t);
-        return t;
-    }
+ABEL_FORCE_INLINE uint64_t unaligned_load64(const void *p) {
+    uint64_t t;
+    memcpy(&t, p, sizeof t);
+    return t;
+}
 
-    ABEL_FORCE_INLINE void unaligned_store16(void *p, uint16_t v) { memcpy(p, &v, sizeof v); }
+ABEL_FORCE_INLINE void unaligned_store16(void *p, uint16_t v) { memcpy(p, &v, sizeof v); }
 
-    ABEL_FORCE_INLINE void unaligned_store32(void *p, uint32_t v) { memcpy(p, &v, sizeof v); }
+ABEL_FORCE_INLINE void unaligned_store32(void *p, uint32_t v) { memcpy(p, &v, sizeof v); }
 
-    ABEL_FORCE_INLINE void unaligned_store64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
+ABEL_FORCE_INLINE void unaligned_store64(void *p, uint64_t v) { memcpy(p, &v, sizeof v); }
 
 
 }  // namespace abel

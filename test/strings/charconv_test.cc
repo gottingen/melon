@@ -1,15 +1,17 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/char_conv.h>
+#include "abel/strings/char_conv.h"
 
 #include <cstdlib>
 #include <string>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <testing/pow10_helper.h>
-#include <abel/strings/str_cat.h>
-#include <abel/asl/format/printf.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "testing/pow10_helper.h"
+#include "abel/strings/str_cat.h"
+#include "abel/strings/format.h"
 
 #ifdef _MSC_FULL_VER
 #define ABEL_COMPILER_DOES_EXACT_ROUNDING 0
@@ -27,7 +29,7 @@ namespace {
 
 // Tests that the given string is accepted by abel::from_chars, and that it
 // converts exactly equal to the given number.
-    void TestDoubleParse(abel::string_view str, double expected_number) {
+    void TestDoubleParse(std::string_view str, double expected_number) {
         SCOPED_TRACE(str);
         double actual_number = 0.0;
         abel::from_chars_result result =
@@ -37,7 +39,7 @@ namespace {
         EXPECT_EQ(actual_number, expected_number);
     }
 
-    void TestFloatParse(abel::string_view str, float expected_number) {
+    void TestFloatParse(std::string_view str, float expected_number) {
         SCOPED_TRACE(str);
         float actual_number = 0.0;
         abel::from_chars_result result =
@@ -146,13 +148,13 @@ namespace {
 #undef FROM_CHARS_TEST_FLOAT
 #endif
 
-    float ToFloat(abel::string_view s) {
+    float ToFloat(std::string_view s) {
         float f;
         abel::from_chars(s.data(), s.data() + s.size(), f);
         return f;
     }
 
-    double ToDouble(abel::string_view s) {
+    double ToDouble(std::string_view s) {
         double d;
         abel::from_chars(s.data(), s.data() + s.size(), d);
         return d;
@@ -499,7 +501,7 @@ namespace {
     }
 
     TEST(FromChars, RegressionTestsFromFuzzer) {
-        abel::string_view src = "0x21900000p00000000099";
+        std::string_view src = "0x21900000p00000000099";
         float f;
         auto result = abel::from_chars(src.data(), src.data() + src.size(), f);
         EXPECT_EQ(result.ec, std::errc::result_out_of_range);
@@ -680,7 +682,7 @@ namespace {
                     abel::from_chars(input.data(), input.data() + input.size(), actual);
             EXPECT_EQ(result.ec, std::errc());
             EXPECT_EQ(expected, actual)
-                                << fmt::sprintf("%a vs %a", expected, actual);
+                                << abel::sprintf("%a vs %a", expected, actual);
         }
         // test legal values near upper_bound
         for (index = upper_bound, step = 1; index > lower_bound;
@@ -693,7 +695,7 @@ namespace {
                     abel::from_chars(input.data(), input.data() + input.size(), actual);
             EXPECT_EQ(result.ec, std::errc());
             EXPECT_EQ(expected, actual)
-                                << fmt::sprintf("%a vs %a", expected, actual);
+                                << abel::sprintf("%a vs %a", expected, actual);
         }
         // Test underflow values below lower_bound
         for (index = lower_bound - 1, step = 1; index > -1000000;

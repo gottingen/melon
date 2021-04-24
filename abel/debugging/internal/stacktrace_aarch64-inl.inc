@@ -1,3 +1,7 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
 #ifndef ABEL_DEBUGGING_INTERNAL_STACKTRACE_AARCH64_INL_H_
 #define ABEL_DEBUGGING_INTERNAL_STACKTRACE_AARCH64_INL_H_
 
@@ -14,10 +18,10 @@
 #include <cstdint>
 #include <iostream>
 
-#include <abel/base/profile.h>
-#include <abel/debugging/internal/address_is_readable.h>
-#include <abel/debugging/internal/vdso_support.h>  // a no-op on non-elf or non-glibc systems
-#include <abel/debugging/stacktrace.h>
+#include "abel/base/profile.h"
+#include "abel/debugging/internal/address_is_readable.h"
+#include "abel/debugging/internal/vdso_support.h"  // a no-op on non-elf or non-glibc systems
+#include "abel/debugging/stacktrace.h"
 
 static const uintptr_t kUnknownFrameSize = 0;
 
@@ -181,11 +185,11 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
 
 namespace abel {
 
-    namespace debugging_internal {
-        bool StackTraceWorksForTest() {
-            return true;
-        }
-    }  // namespace debugging_internal
+namespace debugging_internal {
+bool stack_trace_works_for_test() {
+    return true;
+}
+}  // namespace debugging_internal
 
 }  // namespace abel
 

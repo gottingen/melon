@@ -1,10 +1,13 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 
 // Allow dynamic symbol lookup in the kernel VDSO page.
 //
 // VDSOSupport -- a class representing kernel VDSO (if present).
 
-#include <abel/debugging/internal/vdso_support.h>
+#include "abel/debugging/internal/vdso_support.h"
 
 #ifdef ABEL_HAVE_VDSO_SUPPORT     // defined in vdso_support.h
 
@@ -17,9 +20,9 @@
 #include <sys/auxv.h>
 #endif
 
-#include <abel/thread/dynamic_annotations.h>
-#include <abel/log/abel_logging.h>
-#include <abel/base/profile.h>
+#include "abel/thread/dynamic_annotations.h"
+#include "abel/log/logging.h"
+#include "abel/base/profile.h"
 
 #ifndef AT_SYSINFO_EHDR
 #define AT_SYSINFO_EHDR 33  // for crosstoolv10
@@ -109,7 +112,7 @@ const void *VDSOSupport::Init() {
 }
 
 const void *VDSOSupport::SetBase(const void *base) {
-  ABEL_RAW_CHECK(base != debugging_internal::ElfMemImage::kInvalidBase,
+  DCHECK_MSG(base != debugging_internal::ElfMemImage::kInvalidBase,
                  "internal error");
   const void *old_base = vdso_base_.load(std::memory_order_relaxed);
   vdso_base_.store(base, std::memory_order_relaxed);
@@ -149,7 +152,7 @@ long VDSOSupport::InitAndGetCPU(unsigned *cpu,  // NOLINT(runtime/int)
                                 void *x, void *y) {
   Init();
   GetCpuFn fn = getcpu_fn_.load(std::memory_order_relaxed);
-  ABEL_RAW_CHECK(fn != &InitAndGetCPU, "Init() did not set getcpu_fn_");
+  DCHECK_MSG(fn != &InitAndGetCPU, "Init() did not set getcpu_fn_");
   return (*fn)(cpu, x, y);
 }
 

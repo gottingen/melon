@@ -1,4 +1,6 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #if defined(_MSC_VER)
 #include <winsock2.h>  // for timeval
@@ -13,9 +15,9 @@
 #include <random>
 #include <string>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <abel/chrono/time.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "abel/chrono/time.h"
 
 namespace {
 
@@ -24,7 +26,7 @@ namespace {
 
 // Approximates the given number of years. This is only used to make some test
 // code more readable.
-    abel::duration ApproxYears(int64_t n) { return abel::hours(n) * 365 * 24; }
+    abel::duration ApproxYears(int64_t n) { return abel::duration::hours(n) * 365 * 24; }
 
 // A gMock matcher to match timespec values. Use this matcher like:
 // timespec ts1, ts2;
@@ -51,8 +53,8 @@ namespace {
     TEST(duration, ConstExpr) {
         constexpr abel::duration d0 = abel::zero_duration();
         static_assert(d0 == abel::zero_duration(), "zero_duration()");
-        constexpr abel::duration d1 = abel::seconds(1);
-        static_assert(d1 == abel::seconds(1), "seconds(1)");
+        constexpr abel::duration d1 = abel::duration::seconds(1);
+        static_assert(d1 == abel::duration::seconds(1), "seconds(1)");
         static_assert(d1 != abel::zero_duration(), "seconds(1)");
         constexpr abel::duration d2 = abel::infinite_duration();
         static_assert(d2 == abel::infinite_duration(), "infinite_duration()");
@@ -71,61 +73,63 @@ namespace {
 
     TEST(duration, Factories) {
         constexpr abel::duration zero = abel::zero_duration();
-        constexpr abel::duration nano = abel::nanoseconds(1);
-        constexpr abel::duration micro = abel::microseconds(1);
-        constexpr abel::duration milli = abel::milliseconds(1);
-        constexpr abel::duration sec = abel::seconds(1);
-        constexpr abel::duration min = abel::minutes(1);
-        constexpr abel::duration hour = abel::hours(1);
+        constexpr abel::duration nano = abel::duration::nanoseconds(1);
+        constexpr abel::duration micro = abel::duration::microseconds(1);
+        constexpr abel::duration milli = abel::duration::milliseconds(1);
+        constexpr abel::duration sec = abel::duration::seconds(1);
+        constexpr abel::duration min = abel::duration::minutes(1);
+        constexpr abel::duration hour = abel::duration::hours(1);
 
         EXPECT_EQ(zero, abel::duration());
-        EXPECT_EQ(zero, abel::seconds(0));
-        EXPECT_EQ(nano, abel::nanoseconds(1));
-        EXPECT_EQ(micro, abel::nanoseconds(1000));
-        EXPECT_EQ(milli, abel::microseconds(1000));
-        EXPECT_EQ(sec, abel::milliseconds(1000));
-        EXPECT_EQ(min, abel::seconds(60));
-        EXPECT_EQ(hour, abel::minutes(60));
+        EXPECT_EQ(zero, abel::duration::seconds(0));
+        EXPECT_EQ(nano, abel::duration::nanoseconds(1));
+        EXPECT_EQ(micro, abel::duration::nanoseconds(1000));
+        EXPECT_EQ(milli, abel::duration::microseconds(1000));
+        EXPECT_EQ(sec, abel::duration::milliseconds(1000));
+        EXPECT_EQ(min, abel::duration::seconds(60));
+        EXPECT_EQ(hour, abel::duration::minutes(60));
 
         // Tests factory limits
         const abel::duration inf = abel::infinite_duration();
 
-        EXPECT_GT(inf, abel::seconds(kint64max));
-        EXPECT_LT(-inf, abel::seconds(kint64min));
-        EXPECT_LT(-inf, abel::seconds(-kint64max));
+        EXPECT_GT(inf, abel::duration::seconds(kint64max));
+        EXPECT_LT(-inf, abel::duration::seconds(kint64min));
+        EXPECT_LT(-inf, abel::duration::seconds(-kint64max));
 
-        EXPECT_EQ(inf, abel::minutes(kint64max));
-        EXPECT_EQ(-inf, abel::minutes(kint64min));
-        EXPECT_EQ(-inf, abel::minutes(-kint64max));
-        EXPECT_GT(inf, abel::minutes(kint64max / 60));
-        EXPECT_LT(-inf, abel::minutes(kint64min / 60));
-        EXPECT_LT(-inf, abel::minutes(-kint64max / 60));
+        EXPECT_EQ(inf, abel::duration::minutes(kint64max));
+        EXPECT_EQ(-inf, abel::duration::minutes(kint64min));
+        EXPECT_EQ(-inf, abel::duration::minutes(-kint64max));
+        EXPECT_GT(inf, abel::duration::minutes(kint64max / 60));
+        EXPECT_LT(-inf, abel::duration::minutes(kint64min / 60));
+        EXPECT_LT(-inf, abel::duration::minutes(-kint64max / 60));
 
-        EXPECT_EQ(inf, abel::hours(kint64max));
-        EXPECT_EQ(-inf, abel::hours(kint64min));
-        EXPECT_EQ(-inf, abel::hours(-kint64max));
-        EXPECT_GT(inf, abel::hours(kint64max / 3600));
-        EXPECT_LT(-inf, abel::hours(kint64min / 3600));
-        EXPECT_LT(-inf, abel::hours(-kint64max / 3600));
+        EXPECT_EQ(inf, abel::duration::hours(kint64max));
+        EXPECT_EQ(-inf, abel::duration::hours(kint64min));
+        EXPECT_EQ(-inf, abel::duration::hours(-kint64max));
+        EXPECT_GT(inf, abel::duration::hours(kint64max / 3600));
+        EXPECT_LT(-inf, abel::duration::hours(kint64min / 3600));
+        EXPECT_LT(-inf, abel::duration::hours(-kint64max / 3600));
     }
 
     TEST(duration, ToConversion) {
 #define TEST_DURATION_CONVERSION(UNIT)                                  \
   do {                                                                  \
-    const abel::duration d = abel::UNIT(1.5);                           \
+    const abel::duration d = abel::duration::UNIT(1.5);                           \
+    const abel::duration nd = -d;                                      \
     constexpr abel::duration z = abel::zero_duration();                  \
     constexpr abel::duration inf = abel::infinite_duration();            \
+    constexpr abel::duration ninf = -inf;                                \
     constexpr double dbl_inf = std::numeric_limits<double>::infinity(); \
-    EXPECT_EQ(kint64min, abel::to_int64_##UNIT(-inf));                    \
-    EXPECT_EQ(-1, abel::to_int64_##UNIT(-d));                             \
-    EXPECT_EQ(0, abel::to_int64_##UNIT(z));                               \
-    EXPECT_EQ(1, abel::to_int64_##UNIT(d));                               \
-    EXPECT_EQ(kint64max, abel::to_int64_##UNIT(inf));                     \
-    EXPECT_EQ(-dbl_inf, abel::to_double_##UNIT(-inf));                    \
-    EXPECT_EQ(-1.5, abel::to_double_##UNIT(-d));                          \
-    EXPECT_EQ(0, abel::to_double_##UNIT(z));                              \
-    EXPECT_EQ(1.5, abel::to_double_##UNIT(d));                            \
-    EXPECT_EQ(dbl_inf, abel::to_double_##UNIT(inf));                      \
+    EXPECT_EQ(kint64min, ninf.to_int64_##UNIT());                    \
+    EXPECT_EQ(-1, nd.to_int64_##UNIT());                             \
+    EXPECT_EQ(0, z.to_int64_##UNIT());                               \
+    EXPECT_EQ(1, d.to_int64_##UNIT());                               \
+    EXPECT_EQ(kint64max, inf.to_int64_##UNIT());                     \
+    EXPECT_EQ(-dbl_inf, ninf.to_double_##UNIT());                    \
+    EXPECT_EQ(-1.5, nd.to_double_##UNIT());                          \
+    EXPECT_EQ(0, z.to_double_##UNIT());                              \
+    EXPECT_EQ(1.5, d.to_double_##UNIT());                            \
+    EXPECT_EQ(dbl_inf, inf.to_double_##UNIT());                      \
   } while (0)
 
         TEST_DURATION_CONVERSION(nanoseconds);
@@ -140,48 +144,48 @@ namespace {
 
     template<int64_t N>
     void TestToConversion() {
-        constexpr abel::duration nano = abel::nanoseconds(N);
-        EXPECT_EQ(N, abel::to_int64_nanoseconds(nano));
-        EXPECT_EQ(0, abel::to_int64_microseconds(nano));
-        EXPECT_EQ(0, abel::to_int64_milliseconds(nano));
-        EXPECT_EQ(0, abel::to_int64_seconds(nano));
-        EXPECT_EQ(0, abel::to_int64_minutes(nano));
-        EXPECT_EQ(0, abel::to_int64_hours(nano));
-        const abel::duration micro = abel::microseconds(N);
-        EXPECT_EQ(N * 1000, abel::to_int64_nanoseconds(micro));
-        EXPECT_EQ(N, abel::to_int64_microseconds(micro));
-        EXPECT_EQ(0, abel::to_int64_milliseconds(micro));
-        EXPECT_EQ(0, abel::to_int64_seconds(micro));
-        EXPECT_EQ(0, abel::to_int64_minutes(micro));
-        EXPECT_EQ(0, abel::to_int64_hours(micro));
-        const abel::duration milli = abel::milliseconds(N);
-        EXPECT_EQ(N * 1000 * 1000, abel::to_int64_nanoseconds(milli));
-        EXPECT_EQ(N * 1000, abel::to_int64_microseconds(milli));
-        EXPECT_EQ(N, abel::to_int64_milliseconds(milli));
-        EXPECT_EQ(0, abel::to_int64_seconds(milli));
-        EXPECT_EQ(0, abel::to_int64_minutes(milli));
-        EXPECT_EQ(0, abel::to_int64_hours(milli));
-        const abel::duration sec = abel::seconds(N);
-        EXPECT_EQ(N * 1000 * 1000 * 1000, abel::to_int64_nanoseconds(sec));
-        EXPECT_EQ(N * 1000 * 1000, abel::to_int64_microseconds(sec));
-        EXPECT_EQ(N * 1000, abel::to_int64_milliseconds(sec));
-        EXPECT_EQ(N, abel::to_int64_seconds(sec));
-        EXPECT_EQ(0, abel::to_int64_minutes(sec));
-        EXPECT_EQ(0, abel::to_int64_hours(sec));
-        const abel::duration min = abel::minutes(N);
-        EXPECT_EQ(N * 60 * 1000 * 1000 * 1000, abel::to_int64_nanoseconds(min));
-        EXPECT_EQ(N * 60 * 1000 * 1000, abel::to_int64_microseconds(min));
-        EXPECT_EQ(N * 60 * 1000, abel::to_int64_milliseconds(min));
-        EXPECT_EQ(N * 60, abel::to_int64_seconds(min));
-        EXPECT_EQ(N, abel::to_int64_minutes(min));
-        EXPECT_EQ(0, abel::to_int64_hours(min));
-        const abel::duration hour = abel::hours(N);
-        EXPECT_EQ(N * 60 * 60 * 1000 * 1000 * 1000, abel::to_int64_nanoseconds(hour));
-        EXPECT_EQ(N * 60 * 60 * 1000 * 1000, abel::to_int64_microseconds(hour));
-        EXPECT_EQ(N * 60 * 60 * 1000, abel::to_int64_milliseconds(hour));
-        EXPECT_EQ(N * 60 * 60, abel::to_int64_seconds(hour));
-        EXPECT_EQ(N * 60, abel::to_int64_minutes(hour));
-        EXPECT_EQ(N, abel::to_int64_hours(hour));
+        constexpr abel::duration nano = abel::duration::nanoseconds(N);
+        EXPECT_EQ(N, nano.to_int64_nanoseconds());
+        EXPECT_EQ(0, nano.to_int64_microseconds());
+        EXPECT_EQ(0, nano.to_int64_milliseconds());
+        EXPECT_EQ(0, nano.to_int64_seconds());
+        EXPECT_EQ(0, nano.to_int64_minutes());
+        EXPECT_EQ(0, nano.to_int64_hours());
+        const abel::duration micro = abel::duration::microseconds(N);
+        EXPECT_EQ(N * 1000, micro.to_int64_nanoseconds());
+        EXPECT_EQ(N, micro.to_int64_microseconds());
+        EXPECT_EQ(0, micro.to_int64_milliseconds());
+        EXPECT_EQ(0, micro.to_int64_seconds());
+        EXPECT_EQ(0, micro.to_int64_minutes());
+        EXPECT_EQ(0, micro.to_int64_hours());
+        const abel::duration milli = abel::duration::milliseconds(N);
+        EXPECT_EQ(N * 1000 * 1000, milli.to_int64_nanoseconds());
+        EXPECT_EQ(N * 1000, milli.to_int64_microseconds());
+        EXPECT_EQ(N, milli.to_int64_milliseconds());
+        EXPECT_EQ(0, milli.to_int64_seconds());
+        EXPECT_EQ(0, milli.to_int64_minutes());
+        EXPECT_EQ(0, milli.to_int64_hours());
+        const abel::duration sec = abel::duration::seconds(N);
+        EXPECT_EQ(N * 1000 * 1000 * 1000, sec.to_int64_nanoseconds());
+        EXPECT_EQ(N * 1000 * 1000, sec.to_int64_microseconds());
+        EXPECT_EQ(N * 1000, sec.to_int64_milliseconds());
+        EXPECT_EQ(N, sec.to_int64_seconds());
+        EXPECT_EQ(0, sec.to_int64_minutes());
+        EXPECT_EQ(0, sec.to_int64_hours());
+        const abel::duration min = abel::duration::minutes(N);
+        EXPECT_EQ(N * 60 * 1000 * 1000 * 1000, min.to_int64_nanoseconds());
+        EXPECT_EQ(N * 60 * 1000 * 1000, min.to_int64_microseconds());
+        EXPECT_EQ(N * 60 * 1000, min.to_int64_milliseconds());
+        EXPECT_EQ(N * 60, min.to_int64_seconds());
+        EXPECT_EQ(N, min.to_int64_minutes());
+        EXPECT_EQ(0, min.to_int64_hours());
+        const abel::duration hour = abel::duration::hours(N);
+        EXPECT_EQ(N * 60 * 60 * 1000 * 1000 * 1000, hour.to_int64_nanoseconds());
+        EXPECT_EQ(N * 60 * 60 * 1000 * 1000, hour.to_int64_microseconds());
+        EXPECT_EQ(N * 60 * 60 * 1000, hour.to_int64_milliseconds());
+        EXPECT_EQ(N * 60 * 60, hour.to_int64_seconds());
+        EXPECT_EQ(N * 60, hour.to_int64_minutes());
+        EXPECT_EQ(N, hour.to_int64_hours());
     }
 
     TEST(duration, ToConversionDeprecated) {
@@ -201,12 +205,12 @@ namespace {
         using std::chrono::minutes;
         using std::chrono::hours;
 
-        static_assert(abel::nanoseconds(N) == abel::from_chrono(nanoseconds(N)), "");
-        static_assert(abel::microseconds(N) == abel::from_chrono(microseconds(N)), "");
-        static_assert(abel::milliseconds(N) == abel::from_chrono(milliseconds(N)), "");
-        static_assert(abel::seconds(N) == abel::from_chrono(seconds(N)), "");
-        static_assert(abel::minutes(N) == abel::from_chrono(minutes(N)), "");
-        static_assert(abel::hours(N) == abel::from_chrono(hours(N)), "");
+        static_assert(abel::duration::nanoseconds(N) == abel::duration::from_chrono(nanoseconds(N)), "");
+        static_assert(abel::duration::microseconds(N) == abel::duration::from_chrono(microseconds(N)), "");
+        static_assert(abel::duration::milliseconds(N) == abel::duration::from_chrono(milliseconds(N)), "");
+        static_assert(abel::duration::seconds(N) == abel::duration::from_chrono(seconds(N)), "");
+        static_assert(abel::duration::minutes(N) == abel::duration::from_chrono(minutes(N)), "");
+        static_assert(abel::duration::hours(N) == abel::duration::from_chrono(hours(N)), "");
     }
 
     TEST(duration, from_chrono) {
@@ -218,42 +222,42 @@ namespace {
 
         // minutes (might, depending on the platform) saturate at +inf.
         const auto chrono_minutes_max = std::chrono::minutes::max();
-        const auto minutes_max = abel::from_chrono(chrono_minutes_max);
+        const auto minutes_max = abel::duration::from_chrono(chrono_minutes_max);
         const int64_t minutes_max_count = chrono_minutes_max.count();
         if (minutes_max_count > kint64max / 60) {
             EXPECT_EQ(abel::infinite_duration(), minutes_max);
         } else {
-            EXPECT_EQ(abel::minutes(minutes_max_count), minutes_max);
+            EXPECT_EQ(abel::duration::minutes(minutes_max_count), minutes_max);
         }
 
         // minutes (might, depending on the platform) saturate at -inf.
         const auto chrono_minutes_min = std::chrono::minutes::min();
-        const auto minutes_min = abel::from_chrono(chrono_minutes_min);
+        const auto minutes_min = abel::duration::from_chrono(chrono_minutes_min);
         const int64_t minutes_min_count = chrono_minutes_min.count();
         if (minutes_min_count < kint64min / 60) {
             EXPECT_EQ(-abel::infinite_duration(), minutes_min);
         } else {
-            EXPECT_EQ(abel::minutes(minutes_min_count), minutes_min);
+            EXPECT_EQ(abel::duration::minutes(minutes_min_count), minutes_min);
         }
 
         // hours (might, depending on the platform) saturate at +inf.
         const auto chrono_hours_max = std::chrono::hours::max();
-        const auto hours_max = abel::from_chrono(chrono_hours_max);
+        const auto hours_max = abel::duration::from_chrono(chrono_hours_max);
         const int64_t hours_max_count = chrono_hours_max.count();
         if (hours_max_count > kint64max / 3600) {
             EXPECT_EQ(abel::infinite_duration(), hours_max);
         } else {
-            EXPECT_EQ(abel::hours(hours_max_count), hours_max);
+            EXPECT_EQ(abel::duration::hours(hours_max_count), hours_max);
         }
 
         // hours (might, depending on the platform) saturate at -inf.
         const auto chrono_hours_min = std::chrono::hours::min();
-        const auto hours_min = abel::from_chrono(chrono_hours_min);
+        const auto hours_min = abel::duration::from_chrono(chrono_hours_min);
         const int64_t hours_min_count = chrono_hours_min.count();
         if (hours_min_count < kint64min / 3600) {
             EXPECT_EQ(-abel::infinite_duration(), hours_min);
         } else {
-            EXPECT_EQ(abel::hours(hours_min_count), hours_min);
+            EXPECT_EQ(abel::duration::hours(hours_min_count), hours_min);
         }
     }
 
@@ -266,28 +270,28 @@ namespace {
         using std::chrono::minutes;
         using std::chrono::hours;
 
-        EXPECT_EQ(nanoseconds(N), abel::to_chrono_nanoseconds(abel::nanoseconds(N)));
-        EXPECT_EQ(microseconds(N), abel::to_chrono_microseconds(abel::microseconds(N)));
-        EXPECT_EQ(milliseconds(N), abel::to_chrono_milliseconds(abel::milliseconds(N)));
-        EXPECT_EQ(seconds(N), abel::to_chrono_seconds(abel::seconds(N)));
+        EXPECT_EQ(nanoseconds(N), abel::duration::nanoseconds(N).to_chrono_nanoseconds());
+        EXPECT_EQ(microseconds(N), abel::duration::microseconds(N).to_chrono_microseconds());
+        EXPECT_EQ(milliseconds(N), abel::duration::milliseconds(N).to_chrono_milliseconds());
+        EXPECT_EQ(seconds(N), abel::duration::seconds(N).to_chrono_seconds());
 
-        constexpr auto abel_minutes = abel::minutes(N);
+        constexpr auto abel_minutes = abel::duration::minutes(N);
         auto chrono_minutes = minutes(N);
         if (abel_minutes == -abel::infinite_duration()) {
             chrono_minutes = minutes::min();
         } else if (abel_minutes == abel::infinite_duration()) {
             chrono_minutes = minutes::max();
         }
-        EXPECT_EQ(chrono_minutes, abel::to_chrono_minutes(abel_minutes));
+        EXPECT_EQ(chrono_minutes, abel_minutes.to_chrono_minutes());
 
-        constexpr auto abel_hours = abel::hours(N);
+        constexpr auto abel_hours = abel::duration::hours(N);
         auto chrono_hours = hours(N);
         if (abel_hours == -abel::infinite_duration()) {
             chrono_hours = hours::min();
         } else if (abel_hours == abel::infinite_duration()) {
             chrono_hours = hours::max();
         }
-        EXPECT_EQ(chrono_hours, abel::to_chrono_hours(abel_hours));
+        EXPECT_EQ(chrono_hours, abel_hours.to_chrono_hours());
     }
 
     TEST(duration, ToChrono) {
@@ -305,34 +309,34 @@ namespace {
         TestToChrono<kint64max>();
 
         // Verify truncation toward zero.
-        const auto tick = abel::nanoseconds(1) / 4;
-        EXPECT_EQ(nanoseconds(0), abel::to_chrono_nanoseconds(tick));
-        EXPECT_EQ(nanoseconds(0), abel::to_chrono_nanoseconds(-tick));
-        EXPECT_EQ(microseconds(0), abel::to_chrono_microseconds(tick));
-        EXPECT_EQ(microseconds(0), abel::to_chrono_microseconds(-tick));
-        EXPECT_EQ(milliseconds(0), abel::to_chrono_milliseconds(tick));
-        EXPECT_EQ(milliseconds(0), abel::to_chrono_milliseconds(-tick));
-        EXPECT_EQ(seconds(0), abel::to_chrono_seconds(tick));
-        EXPECT_EQ(seconds(0), abel::to_chrono_seconds(-tick));
-        EXPECT_EQ(minutes(0), abel::to_chrono_minutes(tick));
-        EXPECT_EQ(minutes(0), abel::to_chrono_minutes(-tick));
-        EXPECT_EQ(hours(0), abel::to_chrono_hours(tick));
-        EXPECT_EQ(hours(0), abel::to_chrono_hours(-tick));
+        const auto tick = abel::duration::nanoseconds(1) / 4;
+        EXPECT_EQ(nanoseconds(0), tick.to_chrono_nanoseconds());
+        EXPECT_EQ(nanoseconds(0), (-tick).to_chrono_nanoseconds());
+        EXPECT_EQ(microseconds(0), tick.to_chrono_microseconds());
+        EXPECT_EQ(microseconds(0), (-tick).to_chrono_microseconds());
+        EXPECT_EQ(milliseconds(0), tick.to_chrono_milliseconds());
+        EXPECT_EQ(milliseconds(0), (-tick).to_chrono_milliseconds());
+        EXPECT_EQ(seconds(0), tick.to_chrono_seconds());
+        EXPECT_EQ(seconds(0), (-tick).to_chrono_seconds());
+        EXPECT_EQ(minutes(0), tick.to_chrono_minutes());
+        EXPECT_EQ(minutes(0), (-tick).to_chrono_minutes());
+        EXPECT_EQ(hours(0), tick.to_chrono_hours());
+        EXPECT_EQ(hours(0), (-tick).to_chrono_hours());
 
         // Verifies +/- infinity saturation at max/min.
         constexpr auto inf = abel::infinite_duration();
-        EXPECT_EQ(nanoseconds::min(), abel::to_chrono_nanoseconds(-inf));
-        EXPECT_EQ(nanoseconds::max(), abel::to_chrono_nanoseconds(inf));
-        EXPECT_EQ(microseconds::min(), abel::to_chrono_microseconds(-inf));
-        EXPECT_EQ(microseconds::max(), abel::to_chrono_microseconds(inf));
-        EXPECT_EQ(milliseconds::min(), abel::to_chrono_milliseconds(-inf));
-        EXPECT_EQ(milliseconds::max(), abel::to_chrono_milliseconds(inf));
-        EXPECT_EQ(seconds::min(), abel::to_chrono_seconds(-inf));
-        EXPECT_EQ(seconds::max(), abel::to_chrono_seconds(inf));
-        EXPECT_EQ(minutes::min(), abel::to_chrono_minutes(-inf));
-        EXPECT_EQ(minutes::max(), abel::to_chrono_minutes(inf));
-        EXPECT_EQ(hours::min(), abel::to_chrono_hours(-inf));
-        EXPECT_EQ(hours::max(), abel::to_chrono_hours(inf));
+        EXPECT_EQ(nanoseconds::min(), (-inf).to_chrono_nanoseconds());
+        EXPECT_EQ(nanoseconds::max(), inf.to_chrono_nanoseconds());
+        EXPECT_EQ(microseconds::min(), (-inf).to_chrono_microseconds());
+        EXPECT_EQ(microseconds::max(), inf.to_chrono_microseconds());
+        EXPECT_EQ(milliseconds::min(), (-inf).to_chrono_milliseconds());
+        EXPECT_EQ(milliseconds::max(), inf.to_chrono_milliseconds());
+        EXPECT_EQ(seconds::min(), (-inf).to_chrono_seconds());
+        EXPECT_EQ(seconds::max(), inf.to_chrono_seconds());
+        EXPECT_EQ(minutes::min(), (-inf).to_chrono_minutes());
+        EXPECT_EQ(minutes::max(), inf.to_chrono_minutes());
+        EXPECT_EQ(hours::min(), (-inf).to_chrono_hours());
+        EXPECT_EQ(hours::max(), inf.to_chrono_hours());
     }
 
     TEST(duration, FactoryOverloads) {
@@ -351,35 +355,35 @@ namespace {
   EXPECT_EQ(1, NAME(static_cast<uint64_t>(1)) / NAME(1));                     \
   EXPECT_EQ(NAME(1) / 2, NAME(static_cast<float>(0.5)));                      \
   EXPECT_EQ(NAME(1) / 2, NAME(static_cast<double>(0.5)));                     \
-  EXPECT_EQ(1.5, abel::float_div_duration(NAME(static_cast<float>(1.5)), NAME(1))); \
-  EXPECT_EQ(1.5, abel::float_div_duration(NAME(static_cast<double>(1.5)), NAME(1)));
+  EXPECT_EQ(1.5, NAME(static_cast<float>(1.5)).float_div_duration(NAME(1))); \
+  EXPECT_EQ(1.5, NAME(static_cast<double>(1.5)).float_div_duration(NAME(1)));
 
-        TEST_FACTORY_OVERLOADS(abel::nanoseconds);
-        TEST_FACTORY_OVERLOADS(abel::microseconds);
-        TEST_FACTORY_OVERLOADS(abel::milliseconds);
-        TEST_FACTORY_OVERLOADS(abel::seconds);
-        TEST_FACTORY_OVERLOADS(abel::minutes);
-        TEST_FACTORY_OVERLOADS(abel::hours);
+        TEST_FACTORY_OVERLOADS(abel::duration::nanoseconds);
+        TEST_FACTORY_OVERLOADS(abel::duration::microseconds);
+        TEST_FACTORY_OVERLOADS(abel::duration::milliseconds);
+        TEST_FACTORY_OVERLOADS(abel::duration::seconds);
+        TEST_FACTORY_OVERLOADS(abel::duration::minutes);
+        TEST_FACTORY_OVERLOADS(abel::duration::hours);
 
 #undef TEST_FACTORY_OVERLOADS
 
-        EXPECT_EQ(abel::milliseconds(1500), abel::seconds(1.5));
-        EXPECT_LT(abel::nanoseconds(1), abel::nanoseconds(1.5));
-        EXPECT_GT(abel::nanoseconds(2), abel::nanoseconds(1.5));
+        EXPECT_EQ(abel::duration::milliseconds(1500), abel::duration::seconds(1.5));
+        EXPECT_LT(abel::duration::nanoseconds(1), abel::duration::nanoseconds(1.5));
+        EXPECT_GT(abel::duration::nanoseconds(2), abel::duration::nanoseconds(1.5));
 
         const double dbl_inf = std::numeric_limits<double>::infinity();
-        EXPECT_EQ(abel::infinite_duration(), abel::nanoseconds(dbl_inf));
-        EXPECT_EQ(abel::infinite_duration(), abel::microseconds(dbl_inf));
-        EXPECT_EQ(abel::infinite_duration(), abel::milliseconds(dbl_inf));
-        EXPECT_EQ(abel::infinite_duration(), abel::seconds(dbl_inf));
-        EXPECT_EQ(abel::infinite_duration(), abel::minutes(dbl_inf));
-        EXPECT_EQ(abel::infinite_duration(), abel::hours(dbl_inf));
-        EXPECT_EQ(-abel::infinite_duration(), abel::nanoseconds(-dbl_inf));
-        EXPECT_EQ(-abel::infinite_duration(), abel::microseconds(-dbl_inf));
-        EXPECT_EQ(-abel::infinite_duration(), abel::milliseconds(-dbl_inf));
-        EXPECT_EQ(-abel::infinite_duration(), abel::seconds(-dbl_inf));
-        EXPECT_EQ(-abel::infinite_duration(), abel::minutes(-dbl_inf));
-        EXPECT_EQ(-abel::infinite_duration(), abel::hours(-dbl_inf));
+        EXPECT_EQ(abel::infinite_duration(), abel::duration::nanoseconds(dbl_inf));
+        EXPECT_EQ(abel::infinite_duration(), abel::duration::microseconds(dbl_inf));
+        EXPECT_EQ(abel::infinite_duration(), abel::duration::milliseconds(dbl_inf));
+        EXPECT_EQ(abel::infinite_duration(), abel::duration::seconds(dbl_inf));
+        EXPECT_EQ(abel::infinite_duration(), abel::duration::minutes(dbl_inf));
+        EXPECT_EQ(abel::infinite_duration(), abel::duration::hours(dbl_inf));
+        EXPECT_EQ(-abel::infinite_duration(), abel::duration::nanoseconds(-dbl_inf));
+        EXPECT_EQ(-abel::infinite_duration(), abel::duration::microseconds(-dbl_inf));
+        EXPECT_EQ(-abel::infinite_duration(), abel::duration::milliseconds(-dbl_inf));
+        EXPECT_EQ(-abel::infinite_duration(), abel::duration::seconds(-dbl_inf));
+        EXPECT_EQ(-abel::infinite_duration(), abel::duration::minutes(-dbl_inf));
+        EXPECT_EQ(-abel::infinite_duration(), abel::duration::hours(-dbl_inf));
     }
 
     TEST(duration, InfinityExamples) {
@@ -387,7 +391,7 @@ namespace {
         // written so that they can be copy-n-pasted easily.
 
         constexpr abel::duration inf = abel::infinite_duration();
-        constexpr abel::duration d = abel::seconds(1);  // Any finite duration
+        constexpr abel::duration d = abel::duration::seconds(1);  // Any finite duration
 
         EXPECT_TRUE(inf == inf + inf);
         EXPECT_TRUE(inf == inf + d);
@@ -404,7 +408,7 @@ namespace {
 
     TEST(duration, InfinityComparison) {
         const abel::duration inf = abel::infinite_duration();
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration any_dur = abel::duration::seconds(1);
 
         // Equality
         EXPECT_EQ(inf, inf);
@@ -421,9 +425,9 @@ namespace {
     }
 
     TEST(duration, InfinityAddition) {
-        const abel::duration sec_max = abel::seconds(kint64max);
-        const abel::duration sec_min = abel::seconds(kint64min);
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration sec_max = abel::duration::seconds(kint64max);
+        const abel::duration sec_min = abel::duration::seconds(kint64min);
+        const abel::duration any_dur = abel::duration::seconds(1);
         const abel::duration inf = abel::infinite_duration();
 
         // Addition
@@ -438,15 +442,15 @@ namespace {
         EXPECT_EQ(-inf, any_dur + -inf);
 
         // Interesting case
-        abel::duration almost_inf = sec_max + abel::nanoseconds(999999999);
+        abel::duration almost_inf = sec_max + abel::duration::nanoseconds(999999999);
         EXPECT_GT(inf, almost_inf);
-        almost_inf += -abel::nanoseconds(999999999);
+        almost_inf += -abel::duration::nanoseconds(999999999);
         EXPECT_GT(inf, almost_inf);
 
         // Addition overflow/underflow
-        EXPECT_EQ(inf, sec_max + abel::seconds(1));
+        EXPECT_EQ(inf, sec_max + abel::duration::seconds(1));
         EXPECT_EQ(inf, sec_max + sec_max);
-        EXPECT_EQ(-inf, sec_min + -abel::seconds(1));
+        EXPECT_EQ(-inf, sec_min + -abel::duration::seconds(1));
         EXPECT_EQ(-inf, sec_min + -sec_max);
 
         // For reference: IEEE 754 behavior
@@ -458,9 +462,9 @@ namespace {
     }
 
     TEST(duration, InfinitySubtraction) {
-        const abel::duration sec_max = abel::seconds(kint64max);
-        const abel::duration sec_min = abel::seconds(kint64min);
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration sec_max = abel::duration::seconds(kint64max);
+        const abel::duration sec_min = abel::duration::seconds(kint64min);
+        const abel::duration any_dur = abel::duration::seconds(1);
         const abel::duration inf = abel::infinite_duration();
 
         // Subtraction
@@ -475,15 +479,15 @@ namespace {
         EXPECT_EQ(inf, any_dur - -inf);
 
         // Subtraction overflow/underflow
-        EXPECT_EQ(inf, sec_max - -abel::seconds(1));
+        EXPECT_EQ(inf, sec_max - -abel::duration::seconds(1));
         EXPECT_EQ(inf, sec_max - -sec_max);
-        EXPECT_EQ(-inf, sec_min - abel::seconds(1));
+        EXPECT_EQ(-inf, sec_min - abel::duration::seconds(1));
         EXPECT_EQ(-inf, sec_min - sec_max);
 
         // Interesting case
         abel::duration almost_neg_inf = sec_min;
         EXPECT_LT(-inf, almost_neg_inf);
-        almost_neg_inf -= -abel::nanoseconds(1);
+        almost_neg_inf -= -abel::duration::nanoseconds(1);
         EXPECT_LT(-inf, almost_neg_inf);
 
         // For reference: IEEE 754 behavior
@@ -495,8 +499,8 @@ namespace {
     }
 
     TEST(duration, InfinityMultiplication) {
-        const abel::duration sec_max = abel::seconds(kint64max);
-        const abel::duration sec_min = abel::seconds(kint64min);
+        const abel::duration sec_max = abel::duration::seconds(kint64max);
+        const abel::duration sec_min = abel::duration::seconds(kint64min);
         const abel::duration inf = abel::infinite_duration();
 
 #define TEST_INF_MUL_WITH_TYPE(T)                                     \
@@ -524,7 +528,7 @@ namespace {
         EXPECT_EQ(-inf, inf * -dbl_inf);
         EXPECT_EQ(inf, -inf * -dbl_inf);
 
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration any_dur = abel::duration::seconds(1);
         EXPECT_EQ(inf, any_dur * dbl_inf);
         EXPECT_EQ(-inf, -any_dur * dbl_inf);
         EXPECT_EQ(-inf, any_dur * -dbl_inf);
@@ -532,10 +536,10 @@ namespace {
 
         // Fixed-point multiplication will produce a finite value, whereas floating
         // point fuzziness will overflow to inf.
-        EXPECT_NE(abel::infinite_duration(), abel::seconds(1) * kint64max);
-        EXPECT_EQ(inf, abel::seconds(1) * static_cast<double>(kint64max));
-        EXPECT_NE(-abel::infinite_duration(), abel::seconds(1) * kint64min);
-        EXPECT_EQ(-inf, abel::seconds(1) * static_cast<double>(kint64min));
+        EXPECT_NE(abel::infinite_duration(), abel::duration::seconds(1) * kint64max);
+        EXPECT_EQ(inf, abel::duration::seconds(1) * static_cast<double>(kint64max));
+        EXPECT_NE(-abel::infinite_duration(), abel::duration::seconds(1) * kint64min);
+        EXPECT_EQ(-inf, abel::duration::seconds(1) * static_cast<double>(kint64min));
 
         // Note that sec_max * or / by 1.0 overflows to inf due to the 53-bit
         // limitations of double.
@@ -547,8 +551,8 @@ namespace {
     }
 
     TEST(duration, InfinityDivision) {
-        const abel::duration sec_max = abel::seconds(kint64max);
-        const abel::duration sec_min = abel::seconds(kint64min);
+        const abel::duration sec_max = abel::duration::seconds(kint64max);
+        const abel::duration sec_min = abel::duration::seconds(kint64min);
         const abel::duration inf = abel::infinite_duration();
 
         // Division of duration by a double
@@ -566,10 +570,10 @@ namespace {
         // Division of duration by a double overflow/underflow
         EXPECT_EQ(inf, sec_max / 0.5);
         EXPECT_EQ(inf, sec_min / -0.5);
-        EXPECT_EQ(inf, ((sec_max / 0.5) + abel::seconds(1)) / 0.5);
+        EXPECT_EQ(inf, ((sec_max / 0.5) + abel::duration::seconds(1)) / 0.5);
         EXPECT_EQ(-inf, sec_max / -0.5);
         EXPECT_EQ(-inf, sec_min / 0.5);
-        EXPECT_EQ(-inf, ((sec_min / 0.5) - abel::seconds(1)) / 0.5);
+        EXPECT_EQ(-inf, ((sec_min / 0.5) - abel::duration::seconds(1)) / 0.5);
 
         const double dbl_inf = std::numeric_limits<double>::infinity();
         EXPECT_EQ(inf, inf / dbl_inf);
@@ -577,7 +581,7 @@ namespace {
         EXPECT_EQ(-inf, -inf / dbl_inf);
         EXPECT_EQ(inf, -inf / -dbl_inf);
 
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration any_dur = abel::duration::seconds(1);
         EXPECT_EQ(abel::zero_duration(), any_dur / dbl_inf);
         EXPECT_EQ(abel::zero_duration(), any_dur / -dbl_inf);
         EXPECT_EQ(abel::zero_duration(), -any_dur / dbl_inf);
@@ -585,8 +589,8 @@ namespace {
     }
 
     TEST(duration, InfinityModulus) {
-        const abel::duration sec_max = abel::seconds(kint64max);
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration sec_max = abel::duration::seconds(kint64max);
+        const abel::duration any_dur = abel::duration::seconds(1);
         const abel::duration inf = abel::infinite_duration();
 
         EXPECT_EQ(inf, inf % inf);
@@ -605,93 +609,93 @@ namespace {
         EXPECT_EQ(-inf, -inf % any_dur);
 
         // Remainder isn't affected by overflow.
-        EXPECT_EQ(abel::zero_duration(), sec_max % abel::seconds(1));
-        EXPECT_EQ(abel::zero_duration(), sec_max % abel::milliseconds(1));
-        EXPECT_EQ(abel::zero_duration(), sec_max % abel::microseconds(1));
-        EXPECT_EQ(abel::zero_duration(), sec_max % abel::nanoseconds(1));
-        EXPECT_EQ(abel::zero_duration(), sec_max % abel::nanoseconds(1) / 4);
+        EXPECT_EQ(abel::zero_duration(), sec_max % abel::duration::seconds(1));
+        EXPECT_EQ(abel::zero_duration(), sec_max % abel::duration::milliseconds(1));
+        EXPECT_EQ(abel::zero_duration(), sec_max % abel::duration::microseconds(1));
+        EXPECT_EQ(abel::zero_duration(), sec_max % abel::duration::nanoseconds(1));
+        EXPECT_EQ(abel::zero_duration(), sec_max % abel::duration::nanoseconds(1) / 4);
     }
 
     TEST(duration, InfinityIDiv) {
-        const abel::duration sec_max = abel::seconds(kint64max);
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration sec_max = abel::duration::seconds(kint64max);
+        const abel::duration any_dur = abel::duration::seconds(1);
         const abel::duration inf = abel::infinite_duration();
         const double dbl_inf = std::numeric_limits<double>::infinity();
 
         // integer_div_duration (int64_t return value + a remainer)
         abel::duration rem = abel::zero_duration();
-        EXPECT_EQ(kint64max, abel::integer_div_duration(inf, inf, &rem));
+        EXPECT_EQ(kint64max, abel::duration::integer_div_duration(inf, inf, &rem));
         EXPECT_EQ(inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64max, abel::integer_div_duration(-inf, -inf, &rem));
+        EXPECT_EQ(kint64max, abel::duration::integer_div_duration(-inf, -inf, &rem));
         EXPECT_EQ(-inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64max, abel::integer_div_duration(inf, any_dur, &rem));
+        EXPECT_EQ(kint64max, abel::duration::integer_div_duration(inf, any_dur, &rem));
         EXPECT_EQ(inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(0, abel::integer_div_duration(any_dur, inf, &rem));
+        EXPECT_EQ(0, abel::duration::integer_div_duration(any_dur, inf, &rem));
         EXPECT_EQ(any_dur, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64max, abel::integer_div_duration(-inf, -any_dur, &rem));
+        EXPECT_EQ(kint64max, abel::duration::integer_div_duration(-inf, -any_dur, &rem));
         EXPECT_EQ(-inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(0, abel::integer_div_duration(-any_dur, -inf, &rem));
+        EXPECT_EQ(0, abel::duration::integer_div_duration(-any_dur, -inf, &rem));
         EXPECT_EQ(-any_dur, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64min, abel::integer_div_duration(-inf, inf, &rem));
+        EXPECT_EQ(kint64min, abel::duration::integer_div_duration(-inf, inf, &rem));
         EXPECT_EQ(-inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64min, abel::integer_div_duration(inf, -inf, &rem));
+        EXPECT_EQ(kint64min, abel::duration::integer_div_duration(inf, -inf, &rem));
         EXPECT_EQ(inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64min, abel::integer_div_duration(-inf, any_dur, &rem));
+        EXPECT_EQ(kint64min, abel::duration::integer_div_duration(-inf, any_dur, &rem));
         EXPECT_EQ(-inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(0, abel::integer_div_duration(-any_dur, inf, &rem));
+        EXPECT_EQ(0, abel::duration::integer_div_duration(-any_dur, inf, &rem));
         EXPECT_EQ(-any_dur, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(kint64min, abel::integer_div_duration(inf, -any_dur, &rem));
+        EXPECT_EQ(kint64min, abel::duration::integer_div_duration(inf, -any_dur, &rem));
         EXPECT_EQ(inf, rem);
 
         rem = abel::zero_duration();
-        EXPECT_EQ(0, abel::integer_div_duration(any_dur, -inf, &rem));
+        EXPECT_EQ(0, abel::duration::integer_div_duration(any_dur, -inf, &rem));
         EXPECT_EQ(any_dur, rem);
 
         // integer_div_duration overflow/underflow
         rem = any_dur;
         EXPECT_EQ(kint64max,
-                  abel::integer_div_duration(sec_max, abel::nanoseconds(1) / 4, &rem));
-        EXPECT_EQ(sec_max - abel::nanoseconds(kint64max) / 4, rem);
+                  abel::duration::integer_div_duration(sec_max, abel::duration::nanoseconds(1) / 4, &rem));
+        EXPECT_EQ(sec_max - abel::duration::nanoseconds(kint64max) / 4, rem);
 
         rem = any_dur;
         EXPECT_EQ(kint64max,
-                  abel::integer_div_duration(sec_max, abel::milliseconds(1), &rem));
-        EXPECT_EQ(sec_max - abel::milliseconds(kint64max), rem);
+                  abel::duration::integer_div_duration(sec_max, abel::duration::milliseconds(1), &rem));
+        EXPECT_EQ(sec_max - abel::duration::milliseconds(kint64max), rem);
 
         rem = any_dur;
         EXPECT_EQ(kint64max,
-                  abel::integer_div_duration(-sec_max, -abel::milliseconds(1), &rem));
-        EXPECT_EQ(-sec_max + abel::milliseconds(kint64max), rem);
+                  abel::duration::integer_div_duration(-sec_max, -abel::duration::milliseconds(1), &rem));
+        EXPECT_EQ(-sec_max + abel::duration::milliseconds(kint64max), rem);
 
         rem = any_dur;
         EXPECT_EQ(kint64min,
-                  abel::integer_div_duration(-sec_max, abel::milliseconds(1), &rem));
-        EXPECT_EQ(-sec_max - abel::milliseconds(kint64min), rem);
+                  abel::duration::integer_div_duration(-sec_max, abel::duration::milliseconds(1), &rem));
+        EXPECT_EQ(-sec_max - abel::duration::milliseconds(kint64min), rem);
 
         rem = any_dur;
         EXPECT_EQ(kint64min,
-                  abel::integer_div_duration(sec_max, -abel::milliseconds(1), &rem));
-        EXPECT_EQ(sec_max + abel::milliseconds(kint64min), rem);
+                  abel::duration::integer_div_duration(sec_max, -abel::duration::milliseconds(1), &rem));
+        EXPECT_EQ(sec_max + abel::duration::milliseconds(kint64min), rem);
 
         //
         // operator/(duration, duration) is a wrapper for integer_div_duration().
@@ -719,36 +723,36 @@ namespace {
         EXPECT_EQ(0, abel::zero_duration() / inf);
 
         // Division of duration by a duration overflow/underflow
-        EXPECT_EQ(kint64max, sec_max / abel::milliseconds(1));
-        EXPECT_EQ(kint64max, -sec_max / -abel::milliseconds(1));
-        EXPECT_EQ(kint64min, -sec_max / abel::milliseconds(1));
-        EXPECT_EQ(kint64min, sec_max / -abel::milliseconds(1));
+        EXPECT_EQ(kint64max, sec_max / abel::duration::milliseconds(1));
+        EXPECT_EQ(kint64max, -sec_max / -abel::duration::milliseconds(1));
+        EXPECT_EQ(kint64min, -sec_max / abel::duration::milliseconds(1));
+        EXPECT_EQ(kint64min, sec_max / -abel::duration::milliseconds(1));
     }
 
     TEST(duration, InfinityFDiv) {
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration any_dur = abel::duration::seconds(1);
         const abel::duration inf = abel::infinite_duration();
         const double dbl_inf = std::numeric_limits<double>::infinity();
 
-        EXPECT_EQ(dbl_inf, abel::float_div_duration(inf, inf));
-        EXPECT_EQ(dbl_inf, abel::float_div_duration(-inf, -inf));
-        EXPECT_EQ(dbl_inf, abel::float_div_duration(inf, any_dur));
-        EXPECT_EQ(0.0, abel::float_div_duration(any_dur, inf));
-        EXPECT_EQ(dbl_inf, abel::float_div_duration(-inf, -any_dur));
-        EXPECT_EQ(0.0, abel::float_div_duration(-any_dur, -inf));
+        EXPECT_EQ(dbl_inf, inf.float_div_duration(inf));
+        EXPECT_EQ(dbl_inf, (-inf).float_div_duration(-inf));
+        EXPECT_EQ(dbl_inf, inf.float_div_duration(any_dur));
+        EXPECT_EQ(0.0, any_dur.float_div_duration(inf));
+        EXPECT_EQ(dbl_inf, (-inf).float_div_duration(-any_dur));
+        EXPECT_EQ(0.0, (-any_dur).float_div_duration(-inf));
 
-        EXPECT_EQ(-dbl_inf, abel::float_div_duration(-inf, inf));
-        EXPECT_EQ(-dbl_inf, abel::float_div_duration(inf, -inf));
-        EXPECT_EQ(-dbl_inf, abel::float_div_duration(-inf, any_dur));
-        EXPECT_EQ(0.0, abel::float_div_duration(-any_dur, inf));
-        EXPECT_EQ(-dbl_inf, abel::float_div_duration(inf, -any_dur));
-        EXPECT_EQ(0.0, abel::float_div_duration(any_dur, -inf));
+        EXPECT_EQ(-dbl_inf, (-inf).float_div_duration(inf));
+        EXPECT_EQ(-dbl_inf, inf.float_div_duration(-inf));
+        EXPECT_EQ(-dbl_inf, (-inf).float_div_duration(any_dur));
+        EXPECT_EQ(0.0, (-any_dur).float_div_duration(inf));
+        EXPECT_EQ(-dbl_inf, inf.float_div_duration(-any_dur));
+        EXPECT_EQ(0.0, any_dur.float_div_duration(-inf));
     }
 
     TEST(duration, DivisionByZero) {
         const abel::duration zero = abel::zero_duration();
         const abel::duration inf = abel::infinite_duration();
-        const abel::duration any_dur = abel::seconds(1);
+        const abel::duration any_dur = abel::duration::seconds(1);
         const double dbl_inf = std::numeric_limits<double>::infinity();
         const double dbl_denorm = std::numeric_limits<double>::denorm_min();
 
@@ -770,15 +774,15 @@ namespace {
 
         // IDiv
         abel::duration rem = zero;
-        EXPECT_EQ(kint64max, abel::integer_div_duration(zero, zero, &rem));
+        EXPECT_EQ(kint64max, abel::duration::integer_div_duration(zero, zero, &rem));
         EXPECT_EQ(inf, rem);
 
         rem = zero;
-        EXPECT_EQ(kint64max, abel::integer_div_duration(any_dur, zero, &rem));
+        EXPECT_EQ(kint64max, abel::duration::integer_div_duration(any_dur, zero, &rem));
         EXPECT_EQ(inf, rem);
 
         rem = zero;
-        EXPECT_EQ(kint64min, abel::integer_div_duration(-any_dur, zero, &rem));
+        EXPECT_EQ(kint64min, abel::duration::integer_div_duration(-any_dur, zero, &rem));
         EXPECT_EQ(-inf, rem);
 
         // Operator/(duration, duration)
@@ -787,9 +791,9 @@ namespace {
         EXPECT_EQ(kint64min, -any_dur / zero);
 
         // FDiv
-        EXPECT_EQ(dbl_inf, abel::float_div_duration(zero, zero));
-        EXPECT_EQ(dbl_inf, abel::float_div_duration(any_dur, zero));
-        EXPECT_EQ(-dbl_inf, abel::float_div_duration(-any_dur, zero));
+        EXPECT_EQ(dbl_inf, zero.float_div_duration( zero));
+        EXPECT_EQ(dbl_inf, any_dur.float_div_duration( zero));
+        EXPECT_EQ(-dbl_inf, (-any_dur).float_div_duration(zero));
     }
 
     TEST(duration, NaN) {
@@ -809,19 +813,19 @@ namespace {
   } while (0)
 
         const double nan = std::numeric_limits<double>::quiet_NaN();
-        TEST_NAN_HANDLING(abel::nanoseconds, nan);
-        TEST_NAN_HANDLING(abel::microseconds, nan);
-        TEST_NAN_HANDLING(abel::milliseconds, nan);
-        TEST_NAN_HANDLING(abel::seconds, nan);
-        TEST_NAN_HANDLING(abel::minutes, nan);
-        TEST_NAN_HANDLING(abel::hours, nan);
+        TEST_NAN_HANDLING(abel::duration::nanoseconds, nan);
+        TEST_NAN_HANDLING(abel::duration::microseconds, nan);
+        TEST_NAN_HANDLING(abel::duration::milliseconds, nan);
+        TEST_NAN_HANDLING(abel::duration::seconds, nan);
+        TEST_NAN_HANDLING(abel::duration::minutes, nan);
+        TEST_NAN_HANDLING(abel::duration::hours, nan);
 
-        TEST_NAN_HANDLING(abel::nanoseconds, -nan);
-        TEST_NAN_HANDLING(abel::microseconds, -nan);
-        TEST_NAN_HANDLING(abel::milliseconds, -nan);
-        TEST_NAN_HANDLING(abel::seconds, -nan);
-        TEST_NAN_HANDLING(abel::minutes, -nan);
-        TEST_NAN_HANDLING(abel::hours, -nan);
+        TEST_NAN_HANDLING(abel::duration::nanoseconds, -nan);
+        TEST_NAN_HANDLING(abel::duration::microseconds, -nan);
+        TEST_NAN_HANDLING(abel::duration::milliseconds, -nan);
+        TEST_NAN_HANDLING(abel::duration::seconds, -nan);
+        TEST_NAN_HANDLING(abel::duration::minutes, -nan);
+        TEST_NAN_HANDLING(abel::duration::hours, -nan);
 
 #undef TEST_NAN_HANDLING
     }
@@ -857,12 +861,12 @@ namespace {
   static_assert(UNIT(3) >= UNIT(2), ""); \
   static_assert(UNIT(2) >= UNIT(2), "");
 
-        TEST_REL_OPS(abel::nanoseconds);
-        TEST_REL_OPS(abel::microseconds);
-        TEST_REL_OPS(abel::milliseconds);
-        TEST_REL_OPS(abel::seconds);
-        TEST_REL_OPS(abel::minutes);
-        TEST_REL_OPS(abel::hours);
+        TEST_REL_OPS(abel::duration::nanoseconds);
+        TEST_REL_OPS(abel::duration::microseconds);
+        TEST_REL_OPS(abel::duration::milliseconds);
+        TEST_REL_OPS(abel::duration::seconds);
+        TEST_REL_OPS(abel::duration::minutes);
+        TEST_REL_OPS(abel::duration::hours);
 
 #undef TEST_REL_OPS
     }
@@ -883,42 +887,42 @@ namespace {
     EXPECT_EQ(UNIT(1), a);                  \
   } while (0)
 
-        TEST_ADD_OPS(abel::nanoseconds);
-        TEST_ADD_OPS(abel::microseconds);
-        TEST_ADD_OPS(abel::milliseconds);
-        TEST_ADD_OPS(abel::seconds);
-        TEST_ADD_OPS(abel::minutes);
-        TEST_ADD_OPS(abel::hours);
+        TEST_ADD_OPS(abel::duration::nanoseconds);
+        TEST_ADD_OPS(abel::duration::microseconds);
+        TEST_ADD_OPS(abel::duration::milliseconds);
+        TEST_ADD_OPS(abel::duration::seconds);
+        TEST_ADD_OPS(abel::duration::minutes);
+        TEST_ADD_OPS(abel::duration::hours);
 
 #undef TEST_ADD_OPS
 
-        EXPECT_EQ(abel::seconds(2), abel::seconds(3) - 2 * abel::milliseconds(500));
-        EXPECT_EQ(abel::seconds(2) + abel::milliseconds(500),
-                  abel::seconds(3) - abel::milliseconds(500));
+        EXPECT_EQ(abel::duration::seconds(2), abel::duration::seconds(3) - 2 * abel::duration::milliseconds(500));
+        EXPECT_EQ(abel::duration::seconds(2) + abel::duration::milliseconds(500),
+                  abel::duration::seconds(3) - abel::duration::milliseconds(500));
 
-        EXPECT_EQ(abel::seconds(1) + abel::milliseconds(998),
-                  abel::milliseconds(999) + abel::milliseconds(999));
+        EXPECT_EQ(abel::duration::seconds(1) + abel::duration::milliseconds(998),
+                  abel::duration::milliseconds(999) + abel::duration::milliseconds(999));
 
-        EXPECT_EQ(abel::milliseconds(-1),
-                  abel::milliseconds(998) - abel::milliseconds(999));
+        EXPECT_EQ(abel::duration::milliseconds(-1),
+                  abel::duration::milliseconds(998) - abel::duration::milliseconds(999));
 
         // Tests fractions of a nanoseconds. These are implementation details only.
-        EXPECT_GT(abel::nanoseconds(1), abel::nanoseconds(1) / 2);
-        EXPECT_EQ(abel::nanoseconds(1),
-                  abel::nanoseconds(1) / 2 + abel::nanoseconds(1) / 2);
-        EXPECT_GT(abel::nanoseconds(1) / 4, abel::nanoseconds(0));
-        EXPECT_EQ(abel::nanoseconds(1) / 8, abel::nanoseconds(0));
+        EXPECT_GT(abel::duration::nanoseconds(1), abel::duration::nanoseconds(1) / 2);
+        EXPECT_EQ(abel::duration::nanoseconds(1),
+                  abel::duration::nanoseconds(1) / 2 + abel::duration::nanoseconds(1) / 2);
+        EXPECT_GT(abel::duration::nanoseconds(1) / 4, abel::duration::nanoseconds(0));
+        EXPECT_EQ(abel::duration::nanoseconds(1) / 8, abel::duration::nanoseconds(0));
 
         // Tests subtraction that will cause wrap around of the rep_lo_ bits.
-        abel::duration d_7_5 = abel::seconds(7) + abel::milliseconds(500);
-        abel::duration d_3_7 = abel::seconds(3) + abel::milliseconds(700);
-        abel::duration ans_3_8 = abel::seconds(3) + abel::milliseconds(800);
+        abel::duration d_7_5 = abel::duration::seconds(7) + abel::duration::milliseconds(500);
+        abel::duration d_3_7 = abel::duration::seconds(3) + abel::duration::milliseconds(700);
+        abel::duration ans_3_8 = abel::duration::seconds(3) + abel::duration::milliseconds(800);
         EXPECT_EQ(ans_3_8, d_7_5 - d_3_7);
 
         // Subtracting min_duration
-        abel::duration min_dur = abel::seconds(kint64min);
-        EXPECT_EQ(abel::seconds(0), min_dur - min_dur);
-        EXPECT_EQ(abel::seconds(kint64max), abel::seconds(-1) - min_dur);
+        abel::duration min_dur = abel::duration::seconds(kint64min);
+        EXPECT_EQ(abel::duration::seconds(0), min_dur - min_dur);
+        EXPECT_EQ(abel::duration::seconds(kint64max), abel::duration::seconds(-1) - min_dur);
     }
 
     TEST(duration, Negation) {
@@ -936,18 +940,18 @@ namespace {
         // -infinite_duration(), but we're trying to test operator- here, so we
         // need to use the lower-level internal query is_infinite_duration.
         EXPECT_TRUE(
-                abel::chrono_internal::is_infinite_duration(negated_infinite_duration));
+                negated_infinite_duration.is_infinite_duration());
 
         // The largest duration is kint64max seconds and kTicksPerSecond - 1 ticks.
         // Using the abel::chrono_internal::make_duration API is the cleanest way to
         // construct that duration.
-        constexpr abel::duration max_duration = abel::chrono_internal::make_duration(
+        constexpr abel::duration max_duration = abel::duration::make_duration(
                 kint64max, abel::chrono_internal::kTicksPerSecond - 1);
         constexpr abel::duration negated_max_duration = -max_duration;
         // The largest negatable value is one tick above the minimum representable;
         // it's the negation of max_duration.
         constexpr abel::duration nearly_min_duration =
-                abel::chrono_internal::make_duration(kint64min, int64_t{1});
+                abel::duration::make_duration(kint64min, int64_t{1});
         constexpr abel::duration negated_nearly_min_duration = -nearly_min_duration;
 
         EXPECT_EQ(negated_max_duration, nearly_min_duration);
@@ -955,26 +959,26 @@ namespace {
         EXPECT_EQ(-(-max_duration), max_duration);
 
         constexpr abel::duration min_duration =
-                abel::chrono_internal::make_duration(kint64min);
+                abel::duration::make_duration(kint64min);
         constexpr abel::duration negated_min_duration = -min_duration;
         EXPECT_EQ(negated_min_duration, abel::infinite_duration());
     }
 
     TEST(duration, AbsoluteValue) {
         EXPECT_EQ(abel::zero_duration(), abs_duration(abel::zero_duration()));
-        EXPECT_EQ(abel::seconds(1), abs_duration(abel::seconds(1)));
-        EXPECT_EQ(abel::seconds(1), abs_duration(abel::seconds(-1)));
+        EXPECT_EQ(abel::duration::seconds(1), abs_duration(abel::duration::seconds(1)));
+        EXPECT_EQ(abel::duration::seconds(1), abs_duration(abel::duration::seconds(-1)));
 
         EXPECT_EQ(abel::infinite_duration(), abs_duration(abel::infinite_duration()));
         EXPECT_EQ(abel::infinite_duration(), abs_duration(-abel::infinite_duration()));
 
         abel::duration max_dur =
-                abel::seconds(kint64max) + (abel::seconds(1) - abel::nanoseconds(1) / 4);
+                abel::duration::seconds(kint64max) + (abel::duration::seconds(1) - abel::duration::nanoseconds(1) / 4);
         EXPECT_EQ(max_dur, abs_duration(max_dur));
 
-        abel::duration min_dur = abel::seconds(kint64min);
+        abel::duration min_dur = abel::duration::seconds(kint64min);
         EXPECT_EQ(abel::infinite_duration(), abs_duration(min_dur));
-        EXPECT_EQ(max_dur, abs_duration(min_dur + abel::nanoseconds(1) / 4));
+        EXPECT_EQ(max_dur, abs_duration(min_dur + abel::duration::nanoseconds(1) / 4));
     }
 
     TEST(duration, Multiplication) {
@@ -1006,24 +1010,24 @@ namespace {
     EXPECT_EQ(-UNIT(-2), UNIT(2));                            \
     EXPECT_EQ(2, UNIT(2) / UNIT(1));                          \
     abel::duration rem;                                       \
-    EXPECT_EQ(2, abel::integer_div_duration(UNIT(2), UNIT(1), &rem)); \
-    EXPECT_EQ(2.0, abel::float_div_duration(UNIT(2), UNIT(1)));     \
+    EXPECT_EQ(2, abel::duration::integer_div_duration(UNIT(2), UNIT(1), &rem)); \
+    EXPECT_EQ(2.0, UNIT(2).float_div_duration(UNIT(1)));     \
   } while (0)
 
-        TEST_MUL_OPS(abel::nanoseconds);
-        TEST_MUL_OPS(abel::microseconds);
-        TEST_MUL_OPS(abel::milliseconds);
-        TEST_MUL_OPS(abel::seconds);
-        TEST_MUL_OPS(abel::minutes);
-        TEST_MUL_OPS(abel::hours);
+        TEST_MUL_OPS(abel::duration::nanoseconds);
+        TEST_MUL_OPS(abel::duration::microseconds);
+        TEST_MUL_OPS(abel::duration::milliseconds);
+        TEST_MUL_OPS(abel::duration::seconds);
+        TEST_MUL_OPS(abel::duration::minutes);
+        TEST_MUL_OPS(abel::duration::hours);
 
 #undef TEST_MUL_OPS
 
         // Ensures that multiplication and division by 1 with a maxed-out durations
         // doesn't lose precision.
         abel::duration max_dur =
-                abel::seconds(kint64max) + (abel::seconds(1) - abel::nanoseconds(1) / 4);
-        abel::duration min_dur = abel::seconds(kint64min);
+                abel::duration::seconds(kint64max) + (abel::duration::seconds(1) - abel::duration::nanoseconds(1) / 4);
+        abel::duration min_dur = abel::duration::seconds(kint64min);
         EXPECT_EQ(max_dur, max_dur * 1);
         EXPECT_EQ(max_dur, max_dur / 1);
         EXPECT_EQ(min_dur, min_dur * 1);
@@ -1031,78 +1035,78 @@ namespace {
 
         // Tests division on a duration with a large number of significant digits.
         // Tests when the digits span hi and lo as well as only in hi.
-        abel::duration sigfigs = abel::seconds(2000000000) + abel::nanoseconds(3);
-        EXPECT_EQ(abel::seconds(666666666) + abel::nanoseconds(666666667) +
-                  abel::nanoseconds(1) / 2,
+        abel::duration sigfigs = abel::duration::seconds(2000000000) + abel::duration::nanoseconds(3);
+        EXPECT_EQ(abel::duration::seconds(666666666) + abel::duration::nanoseconds(666666667) +
+                  abel::duration::nanoseconds(1) / 2,
                   sigfigs / 3);
-        sigfigs = abel::seconds(7000000000LL);
-        EXPECT_EQ(abel::seconds(2333333333) + abel::nanoseconds(333333333) +
-                  abel::nanoseconds(1) / 4,
+        sigfigs = abel::duration::seconds(7000000000LL);
+        EXPECT_EQ(abel::duration::seconds(2333333333) + abel::duration::nanoseconds(333333333) +
+                  abel::duration::nanoseconds(1) / 4,
                   sigfigs / 3);
 
-        EXPECT_EQ(abel::seconds(7) + abel::milliseconds(500), abel::seconds(3) * 2.5);
-        EXPECT_EQ(abel::seconds(8) * -1 + abel::milliseconds(300),
-                  (abel::seconds(2) + abel::milliseconds(200)) * -3.5);
-        EXPECT_EQ(-abel::seconds(8) + abel::milliseconds(300),
-                  (abel::seconds(2) + abel::milliseconds(200)) * -3.5);
-        EXPECT_EQ(abel::seconds(1) + abel::milliseconds(875),
-                  (abel::seconds(7) + abel::milliseconds(500)) / 4);
-        EXPECT_EQ(abel::seconds(30),
-                  (abel::seconds(7) + abel::milliseconds(500)) / 0.25);
-        EXPECT_EQ(abel::seconds(3),
-                  (abel::seconds(7) + abel::milliseconds(500)) / 2.5);
+        EXPECT_EQ(abel::duration::seconds(7) + abel::duration::milliseconds(500), abel::duration::seconds(3) * 2.5);
+        EXPECT_EQ(abel::duration::seconds(8) * -1 + abel::duration::milliseconds(300),
+                  (abel::duration::seconds(2) + abel::duration::milliseconds(200)) * -3.5);
+        EXPECT_EQ(-abel::duration::seconds(8) + abel::duration::milliseconds(300),
+                  (abel::duration::seconds(2) + abel::duration::milliseconds(200)) * -3.5);
+        EXPECT_EQ(abel::duration::seconds(1) + abel::duration::milliseconds(875),
+                  (abel::duration::seconds(7) + abel::duration::milliseconds(500)) / 4);
+        EXPECT_EQ(abel::duration::seconds(30),
+                  (abel::duration::seconds(7) + abel::duration::milliseconds(500)) / 0.25);
+        EXPECT_EQ(abel::duration::seconds(3),
+                  (abel::duration::seconds(7) + abel::duration::milliseconds(500)) / 2.5);
 
         // Tests division remainder.
-        EXPECT_EQ(abel::nanoseconds(0), abel::nanoseconds(7) % abel::nanoseconds(1));
-        EXPECT_EQ(abel::nanoseconds(0), abel::nanoseconds(0) % abel::nanoseconds(10));
-        EXPECT_EQ(abel::nanoseconds(2), abel::nanoseconds(7) % abel::nanoseconds(5));
-        EXPECT_EQ(abel::nanoseconds(2), abel::nanoseconds(2) % abel::nanoseconds(5));
+        EXPECT_EQ(abel::duration::nanoseconds(0), abel::duration::nanoseconds(7) % abel::duration::nanoseconds(1));
+        EXPECT_EQ(abel::duration::nanoseconds(0), abel::duration::nanoseconds(0) % abel::duration::nanoseconds(10));
+        EXPECT_EQ(abel::duration::nanoseconds(2), abel::duration::nanoseconds(7) % abel::duration::nanoseconds(5));
+        EXPECT_EQ(abel::duration::nanoseconds(2), abel::duration::nanoseconds(2) % abel::duration::nanoseconds(5));
 
-        EXPECT_EQ(abel::nanoseconds(1), abel::nanoseconds(10) % abel::nanoseconds(3));
-        EXPECT_EQ(abel::nanoseconds(1),
-                  abel::nanoseconds(10) % abel::nanoseconds(-3));
-        EXPECT_EQ(abel::nanoseconds(-1),
-                  abel::nanoseconds(-10) % abel::nanoseconds(3));
-        EXPECT_EQ(abel::nanoseconds(-1),
-                  abel::nanoseconds(-10) % abel::nanoseconds(-3));
+        EXPECT_EQ(abel::duration::nanoseconds(1), abel::duration::nanoseconds(10) % abel::duration::nanoseconds(3));
+        EXPECT_EQ(abel::duration::nanoseconds(1),
+                  abel::duration::nanoseconds(10) % abel::duration::nanoseconds(-3));
+        EXPECT_EQ(abel::duration::nanoseconds(-1),
+                  abel::duration::nanoseconds(-10) % abel::duration::nanoseconds(3));
+        EXPECT_EQ(abel::duration::nanoseconds(-1),
+                  abel::duration::nanoseconds(-10) % abel::duration::nanoseconds(-3));
 
-        EXPECT_EQ(abel::milliseconds(100),
-                  abel::seconds(1) % abel::milliseconds(300));
+        EXPECT_EQ(abel::duration::milliseconds(100),
+                  abel::duration::seconds(1) % abel::duration::milliseconds(300));
         EXPECT_EQ(
-                abel::milliseconds(300),
-                (abel::seconds(3) + abel::milliseconds(800)) % abel::milliseconds(500));
+                abel::duration::milliseconds(300),
+                (abel::duration::seconds(3) + abel::duration::milliseconds(800)) % abel::duration::milliseconds(500));
 
-        EXPECT_EQ(abel::nanoseconds(1), abel::nanoseconds(1) % abel::seconds(1));
-        EXPECT_EQ(abel::nanoseconds(-1), abel::nanoseconds(-1) % abel::seconds(1));
-        EXPECT_EQ(0, abel::nanoseconds(-1) / abel::seconds(1));  // Actual -1e-9
+        EXPECT_EQ(abel::duration::nanoseconds(1), abel::duration::nanoseconds(1) % abel::duration::seconds(1));
+        EXPECT_EQ(abel::duration::nanoseconds(-1), abel::duration::nanoseconds(-1) % abel::duration::seconds(1));
+        EXPECT_EQ(0, abel::duration::nanoseconds(-1) / abel::duration::seconds(1));  // Actual -1e-9
 
         // Tests identity a = (a/b)*b + a%b
 #define TEST_MOD_IDENTITY(a, b) \
   EXPECT_EQ((a), ((a) / (b))*(b) + ((a)%(b)))
 
-        TEST_MOD_IDENTITY(abel::seconds(0), abel::seconds(2));
-        TEST_MOD_IDENTITY(abel::seconds(1), abel::seconds(1));
-        TEST_MOD_IDENTITY(abel::seconds(1), abel::seconds(2));
-        TEST_MOD_IDENTITY(abel::seconds(2), abel::seconds(1));
+        TEST_MOD_IDENTITY(abel::duration::seconds(0), abel::duration::seconds(2));
+        TEST_MOD_IDENTITY(abel::duration::seconds(1), abel::duration::seconds(1));
+        TEST_MOD_IDENTITY(abel::duration::seconds(1), abel::duration::seconds(2));
+        TEST_MOD_IDENTITY(abel::duration::seconds(2), abel::duration::seconds(1));
 
-        TEST_MOD_IDENTITY(abel::seconds(-2), abel::seconds(1));
-        TEST_MOD_IDENTITY(abel::seconds(2), abel::seconds(-1));
-        TEST_MOD_IDENTITY(abel::seconds(-2), abel::seconds(-1));
+        TEST_MOD_IDENTITY(abel::duration::seconds(-2), abel::duration::seconds(1));
+        TEST_MOD_IDENTITY(abel::duration::seconds(2), abel::duration::seconds(-1));
+        TEST_MOD_IDENTITY(abel::duration::seconds(-2), abel::duration::seconds(-1));
 
-        TEST_MOD_IDENTITY(abel::nanoseconds(0), abel::nanoseconds(2));
-        TEST_MOD_IDENTITY(abel::nanoseconds(1), abel::nanoseconds(1));
-        TEST_MOD_IDENTITY(abel::nanoseconds(1), abel::nanoseconds(2));
-        TEST_MOD_IDENTITY(abel::nanoseconds(2), abel::nanoseconds(1));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(0), abel::duration::nanoseconds(2));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(1), abel::duration::nanoseconds(1));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(1), abel::duration::nanoseconds(2));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(2), abel::duration::nanoseconds(1));
 
-        TEST_MOD_IDENTITY(abel::nanoseconds(-2), abel::nanoseconds(1));
-        TEST_MOD_IDENTITY(abel::nanoseconds(2), abel::nanoseconds(-1));
-        TEST_MOD_IDENTITY(abel::nanoseconds(-2), abel::nanoseconds(-1));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(-2), abel::duration::nanoseconds(1));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(2), abel::duration::nanoseconds(-1));
+        TEST_MOD_IDENTITY(abel::duration::nanoseconds(-2), abel::duration::nanoseconds(-1));
 
         // Mixed seconds + subseconds
-        abel::duration mixed_a = abel::seconds(1) + abel::nanoseconds(2);
-        abel::duration mixed_b = abel::seconds(1) + abel::nanoseconds(3);
+        abel::duration mixed_a = abel::duration::seconds(1) + abel::duration::nanoseconds(2);
+        abel::duration mixed_b = abel::duration::seconds(1) + abel::duration::nanoseconds(3);
 
-        TEST_MOD_IDENTITY(abel::seconds(0), mixed_a);
+        TEST_MOD_IDENTITY(abel::duration::seconds(0), mixed_a);
         TEST_MOD_IDENTITY(mixed_a, mixed_a);
         TEST_MOD_IDENTITY(mixed_a, mixed_b);
         TEST_MOD_IDENTITY(mixed_b, mixed_a);
@@ -1115,74 +1119,74 @@ namespace {
     }
 
     TEST(duration, Truncation) {
-        const abel::duration d = abel::nanoseconds(1234567890);
+        const abel::duration d = abel::duration::nanoseconds(1234567890);
         const abel::duration inf = abel::infinite_duration();
         for (int unit_sign : {1, -1}) {  // sign shouldn't matter
-            EXPECT_EQ(abel::nanoseconds(1234567890),
-                      trunc(d, unit_sign * abel::nanoseconds(1)));
-            EXPECT_EQ(abel::microseconds(1234567),
-                      trunc(d, unit_sign * abel::microseconds(1)));
-            EXPECT_EQ(abel::milliseconds(1234),
-                      trunc(d, unit_sign * abel::milliseconds(1)));
-            EXPECT_EQ(abel::seconds(1), trunc(d, unit_sign * abel::seconds(1)));
-            EXPECT_EQ(inf, trunc(inf, unit_sign * abel::seconds(1)));
+            EXPECT_EQ(abel::duration::nanoseconds(1234567890),
+                      d.trunc(unit_sign * abel::duration::nanoseconds(1)));
+            EXPECT_EQ(abel::duration::microseconds(1234567),
+                      d.trunc(unit_sign * abel::duration::microseconds(1)));
+            EXPECT_EQ(abel::duration::milliseconds(1234),
+                      d.trunc(unit_sign * abel::duration::milliseconds(1)));
+            EXPECT_EQ(abel::duration::seconds(1), d.trunc( unit_sign * abel::duration::seconds(1)));
+            EXPECT_EQ(inf, inf.trunc(unit_sign * abel::duration::seconds(1)));
 
-            EXPECT_EQ(abel::nanoseconds(-1234567890),
-                      trunc(-d, unit_sign * abel::nanoseconds(1)));
-            EXPECT_EQ(abel::microseconds(-1234567),
-                      trunc(-d, unit_sign * abel::microseconds(1)));
-            EXPECT_EQ(abel::milliseconds(-1234),
-                      trunc(-d, unit_sign * abel::milliseconds(1)));
-            EXPECT_EQ(abel::seconds(-1), trunc(-d, unit_sign * abel::seconds(1)));
-            EXPECT_EQ(-inf, trunc(-inf, unit_sign * abel::seconds(1)));
+            EXPECT_EQ(abel::duration::nanoseconds(-1234567890),
+                      (-d).trunc(unit_sign * abel::duration::nanoseconds(1)));
+            EXPECT_EQ(abel::duration::microseconds(-1234567),
+                      (-d).trunc(unit_sign * abel::duration::microseconds(1)));
+            EXPECT_EQ(abel::duration::milliseconds(-1234),
+                      (-d).trunc(unit_sign * abel::duration::milliseconds(1)));
+            EXPECT_EQ(abel::duration::seconds(-1), (-d).trunc(unit_sign * abel::duration::seconds(1)));
+            EXPECT_EQ(-inf, (-inf).trunc(unit_sign * abel::duration::seconds(1)));
         }
     }
 
     TEST(duration, Flooring) {
-        const abel::duration d = abel::nanoseconds(1234567890);
+        const abel::duration d = abel::duration::nanoseconds(1234567890);
         const abel::duration inf = abel::infinite_duration();
         for (int unit_sign : {1, -1}) {  // sign shouldn't matter
-            EXPECT_EQ(abel::nanoseconds(1234567890),
-                      abel::floor(d, unit_sign * abel::nanoseconds(1)));
-            EXPECT_EQ(abel::microseconds(1234567),
-                      abel::floor(d, unit_sign * abel::microseconds(1)));
-            EXPECT_EQ(abel::milliseconds(1234),
-                      abel::floor(d, unit_sign * abel::milliseconds(1)));
-            EXPECT_EQ(abel::seconds(1), abel::floor(d, unit_sign * abel::seconds(1)));
-            EXPECT_EQ(inf, abel::floor(inf, unit_sign * abel::seconds(1)));
+            EXPECT_EQ(abel::duration::nanoseconds(1234567890),
+                      d.floor(unit_sign * abel::duration::nanoseconds(1)));
+            EXPECT_EQ(abel::duration::microseconds(1234567),
+                      d.floor(unit_sign * abel::duration::microseconds(1)));
+            EXPECT_EQ(abel::duration::milliseconds(1234),
+                      d.floor(unit_sign * abel::duration::milliseconds(1)));
+            EXPECT_EQ(abel::duration::seconds(1), d.floor(unit_sign * abel::duration::seconds(1)));
+            EXPECT_EQ(inf, inf.floor(unit_sign * abel::duration::seconds(1)));
 
-            EXPECT_EQ(abel::nanoseconds(-1234567890),
-                      abel::floor(-d, unit_sign * abel::nanoseconds(1)));
-            EXPECT_EQ(abel::microseconds(-1234568),
-                      abel::floor(-d, unit_sign * abel::microseconds(1)));
-            EXPECT_EQ(abel::milliseconds(-1235),
-                      abel::floor(-d, unit_sign * abel::milliseconds(1)));
-            EXPECT_EQ(abel::seconds(-2), abel::floor(-d, unit_sign * abel::seconds(1)));
-            EXPECT_EQ(-inf, abel::floor(-inf, unit_sign * abel::seconds(1)));
+            EXPECT_EQ(abel::duration::nanoseconds(-1234567890),
+                      (-d).floor(unit_sign * abel::duration::nanoseconds(1)));
+            EXPECT_EQ(abel::duration::microseconds(-1234568),
+                      (-d).floor(unit_sign * abel::duration::microseconds(1)));
+            EXPECT_EQ(abel::duration::milliseconds(-1235),
+                      (-d).floor(unit_sign * abel::duration::milliseconds(1)));
+            EXPECT_EQ(abel::duration::seconds(-2), (-d).floor(unit_sign * abel::duration::seconds(1)));
+            EXPECT_EQ(-inf, (-inf).floor(unit_sign * abel::duration::seconds(1)));
         }
     }
 
     TEST(duration, Ceiling) {
-        const abel::duration d = abel::nanoseconds(1234567890);
+        const abel::duration d = abel::duration::nanoseconds(1234567890);
         const abel::duration inf = abel::infinite_duration();
         for (int unit_sign : {1, -1}) {  // // sign shouldn't matter
-            EXPECT_EQ(abel::nanoseconds(1234567890),
-                      abel::ceil(d, unit_sign * abel::nanoseconds(1)));
-            EXPECT_EQ(abel::microseconds(1234568),
-                      abel::ceil(d, unit_sign * abel::microseconds(1)));
-            EXPECT_EQ(abel::milliseconds(1235),
-                      abel::ceil(d, unit_sign * abel::milliseconds(1)));
-            EXPECT_EQ(abel::seconds(2), abel::ceil(d, unit_sign * abel::seconds(1)));
-            EXPECT_EQ(inf, abel::ceil(inf, unit_sign * abel::seconds(1)));
+            EXPECT_EQ(abel::duration::nanoseconds(1234567890),
+                      d.ceil(unit_sign * abel::duration::nanoseconds(1)));
+            EXPECT_EQ(abel::duration::microseconds(1234568),
+                      d.ceil(unit_sign * abel::duration::microseconds(1)));
+            EXPECT_EQ(abel::duration::milliseconds(1235),
+                      d.ceil(unit_sign * abel::duration::milliseconds(1)));
+            EXPECT_EQ(abel::duration::seconds(2), d.ceil( unit_sign * abel::duration::seconds(1)));
+            EXPECT_EQ(inf, inf.ceil(unit_sign * abel::duration::seconds(1)));
 
-            EXPECT_EQ(abel::nanoseconds(-1234567890),
-                      abel::ceil(-d, unit_sign * abel::nanoseconds(1)));
-            EXPECT_EQ(abel::microseconds(-1234567),
-                      abel::ceil(-d, unit_sign * abel::microseconds(1)));
-            EXPECT_EQ(abel::milliseconds(-1234),
-                      abel::ceil(-d, unit_sign * abel::milliseconds(1)));
-            EXPECT_EQ(abel::seconds(-1), abel::ceil(-d, unit_sign * abel::seconds(1)));
-            EXPECT_EQ(-inf, abel::ceil(-inf, unit_sign * abel::seconds(1)));
+            EXPECT_EQ(abel::duration::nanoseconds(-1234567890),
+                      (-d).ceil(unit_sign * abel::duration::nanoseconds(1)));
+            EXPECT_EQ(abel::duration::microseconds(-1234567),
+                      (-d).ceil(unit_sign * abel::duration::microseconds(1)));
+            EXPECT_EQ(abel::duration::milliseconds(-1234),
+                      (-d).ceil(unit_sign * abel::duration::milliseconds(1)));
+            EXPECT_EQ(abel::duration::seconds(-1), (-d).ceil(unit_sign * abel::duration::seconds(1)));
+            EXPECT_EQ(-inf, (-inf).ceil(unit_sign * abel::duration::seconds(1)));
         }
     }
 
@@ -1192,13 +1196,13 @@ namespace {
 #define ROUND_TRIP_UNIT(U, LOW, HIGH)          \
   do {                                         \
     for (int64_t i = LOW; i < HIGH; ++i) {     \
-      abel::duration d = abel::U(i);           \
+      abel::duration d = abel::duration::U(i);           \
       if (d == abel::infinite_duration())       \
-        EXPECT_EQ(kint64max, d / abel::U(1));  \
+        EXPECT_EQ(kint64max, d / abel::duration::U(1));  \
       else if (d == -abel::infinite_duration()) \
-        EXPECT_EQ(kint64min, d / abel::U(1));  \
+        EXPECT_EQ(kint64min, d / abel::duration::U(1));  \
       else                                     \
-        EXPECT_EQ(i, abel::U(i) / abel::U(1)); \
+        EXPECT_EQ(i, abel::duration::U(i) / abel::duration::U(1)); \
     }                                          \
   } while (0)
 
@@ -1235,36 +1239,36 @@ namespace {
             abel::duration d;
             timespec ts;
         } to_ts[] = {
-                {abel::seconds(1) + abel::nanoseconds(1),      {1,  1}},
-                {abel::seconds(1) + abel::nanoseconds(1) / 2,  {1,  0}},
-                {abel::seconds(1) + abel::nanoseconds(0),      {1,  0}},
-                {abel::seconds(0) + abel::nanoseconds(0),      {0,  0}},
-                {abel::seconds(0) - abel::nanoseconds(1) / 2,  {0,  0}},
-                {abel::seconds(0) - abel::nanoseconds(1),      {-1, 999999999}},
-                {abel::seconds(-1) + abel::nanoseconds(1),     {-1, 1}},
-                {abel::seconds(-1) + abel::nanoseconds(1) / 2, {-1, 1}},
-                {abel::seconds(-1) + abel::nanoseconds(0),     {-1, 0}},
-                {abel::seconds(-1) - abel::nanoseconds(1) / 2, {-1, 0}},
+                {abel::duration::seconds(1) + abel::duration::nanoseconds(1),      {1,  1}},
+                {abel::duration::seconds(1) + abel::duration::nanoseconds(1) / 2,  {1,  0}},
+                {abel::duration::seconds(1) + abel::duration::nanoseconds(0),      {1,  0}},
+                {abel::duration::seconds(0) + abel::duration::nanoseconds(0),      {0,  0}},
+                {abel::duration::seconds(0) - abel::duration::nanoseconds(1) / 2,  {0,  0}},
+                {abel::duration::seconds(0) - abel::duration::nanoseconds(1),      {-1, 999999999}},
+                {abel::duration::seconds(-1) + abel::duration::nanoseconds(1),     {-1, 1}},
+                {abel::duration::seconds(-1) + abel::duration::nanoseconds(1) / 2, {-1, 1}},
+                {abel::duration::seconds(-1) + abel::duration::nanoseconds(0),     {-1, 0}},
+                {abel::duration::seconds(-1) - abel::duration::nanoseconds(1) / 2, {-1, 0}},
         };
         for (const auto &test : to_ts) {
-            EXPECT_THAT(abel::to_timespec(test.d), TimespecMatcher(test.ts));
+            EXPECT_THAT(test.d.to_timespec(), TimespecMatcher(test.ts));
         }
         const struct {
             timespec ts;
             abel::duration d;
         } from_ts[] = {
-                {{1,  1},         abel::seconds(1) + abel::nanoseconds(1)},
-                {{1,  0},         abel::seconds(1) + abel::nanoseconds(0)},
-                {{0,  0},         abel::seconds(0) + abel::nanoseconds(0)},
-                {{0,  -1},        abel::seconds(0) - abel::nanoseconds(1)},
-                {{-1, 999999999}, abel::seconds(0) - abel::nanoseconds(1)},
-                {{-1, 1},         abel::seconds(-1) + abel::nanoseconds(1)},
-                {{-1, 0},         abel::seconds(-1) + abel::nanoseconds(0)},
-                {{-1, -1},        abel::seconds(-1) - abel::nanoseconds(1)},
-                {{-2, 999999999}, abel::seconds(-1) - abel::nanoseconds(1)},
+                {{1,  1},         abel::duration::seconds(1) + abel::duration::nanoseconds(1)},
+                {{1,  0},         abel::duration::seconds(1) + abel::duration::nanoseconds(0)},
+                {{0,  0},         abel::duration::seconds(0) + abel::duration::nanoseconds(0)},
+                {{0,  -1},        abel::duration::seconds(0) - abel::duration::nanoseconds(1)},
+                {{-1, 999999999}, abel::duration::seconds(0) - abel::duration::nanoseconds(1)},
+                {{-1, 1},         abel::duration::seconds(-1) + abel::duration::nanoseconds(1)},
+                {{-1, 0},         abel::duration::seconds(-1) + abel::duration::nanoseconds(0)},
+                {{-1, -1},        abel::duration::seconds(-1) - abel::duration::nanoseconds(1)},
+                {{-2, 999999999}, abel::duration::seconds(-1) - abel::duration::nanoseconds(1)},
         };
         for (const auto &test : from_ts) {
-            EXPECT_EQ(test.d, abel::duration_from_timespec(test.ts));
+            EXPECT_EQ(test.d, abel::duration::from_timespec(test.ts));
         }
 
         // Tests to_timeval()/duration_from_timeval() (same as timespec above)
@@ -1272,96 +1276,96 @@ namespace {
             abel::duration d;
             timeval tv;
         } to_tv[] = {
-                {abel::seconds(1) + abel::microseconds(1),      {1,  1}},
-                {abel::seconds(1) + abel::microseconds(1) / 2,  {1,  0}},
-                {abel::seconds(1) + abel::microseconds(0),      {1,  0}},
-                {abel::seconds(0) + abel::microseconds(0),      {0,  0}},
-                {abel::seconds(0) - abel::microseconds(1) / 2,  {0,  0}},
-                {abel::seconds(0) - abel::microseconds(1),      {-1, 999999}},
-                {abel::seconds(-1) + abel::microseconds(1),     {-1, 1}},
-                {abel::seconds(-1) + abel::microseconds(1) / 2, {-1, 1}},
-                {abel::seconds(-1) + abel::microseconds(0),     {-1, 0}},
-                {abel::seconds(-1) - abel::microseconds(1) / 2, {-1, 0}},
+                {abel::duration::seconds(1) + abel::duration::microseconds(1),      {1,  1}},
+                {abel::duration::seconds(1) + abel::duration::microseconds(1) / 2,  {1,  0}},
+                {abel::duration::seconds(1) + abel::duration::microseconds(0),      {1,  0}},
+                {abel::duration::seconds(0) + abel::duration::microseconds(0),      {0,  0}},
+                {abel::duration::seconds(0) - abel::duration::microseconds(1) / 2,  {0,  0}},
+                {abel::duration::seconds(0) - abel::duration::microseconds(1),      {-1, 999999}},
+                {abel::duration::seconds(-1) + abel::duration::microseconds(1),     {-1, 1}},
+                {abel::duration::seconds(-1) + abel::duration::microseconds(1) / 2, {-1, 1}},
+                {abel::duration::seconds(-1) + abel::duration::microseconds(0),     {-1, 0}},
+                {abel::duration::seconds(-1) - abel::duration::microseconds(1) / 2, {-1, 0}},
         };
         for (const auto &test : to_tv) {
-            EXPECT_THAT(abel::to_timeval(test.d), TimevalMatcher(test.tv));
+            EXPECT_THAT(test.d.to_timeval(), TimevalMatcher(test.tv));
         }
         const struct {
             timeval tv;
             abel::duration d;
         } from_tv[] = {
-                {{1,  1},      abel::seconds(1) + abel::microseconds(1)},
-                {{1,  0},      abel::seconds(1) + abel::microseconds(0)},
-                {{0,  0},      abel::seconds(0) + abel::microseconds(0)},
-                {{0,  -1},     abel::seconds(0) - abel::microseconds(1)},
-                {{-1, 999999}, abel::seconds(0) - abel::microseconds(1)},
-                {{-1, 1},      abel::seconds(-1) + abel::microseconds(1)},
-                {{-1, 0},      abel::seconds(-1) + abel::microseconds(0)},
-                {{-1, -1},     abel::seconds(-1) - abel::microseconds(1)},
-                {{-2, 999999}, abel::seconds(-1) - abel::microseconds(1)},
+                {{1,  1},      abel::duration::seconds(1) + abel::duration::microseconds(1)},
+                {{1,  0},      abel::duration::seconds(1) + abel::duration::microseconds(0)},
+                {{0,  0},      abel::duration::seconds(0) + abel::duration::microseconds(0)},
+                {{0,  -1},     abel::duration::seconds(0) - abel::duration::microseconds(1)},
+                {{-1, 999999}, abel::duration::seconds(0) - abel::duration::microseconds(1)},
+                {{-1, 1},      abel::duration::seconds(-1) + abel::duration::microseconds(1)},
+                {{-1, 0},      abel::duration::seconds(-1) + abel::duration::microseconds(0)},
+                {{-1, -1},     abel::duration::seconds(-1) - abel::duration::microseconds(1)},
+                {{-2, 999999}, abel::duration::seconds(-1) - abel::duration::microseconds(1)},
         };
         for (const auto &test : from_tv) {
-            EXPECT_EQ(test.d, abel::duration_from_timeval(test.tv));
+            EXPECT_EQ(test.d, abel::duration::from_timeval(test.tv));
         }
     }
 
     TEST(duration, SmallConversions) {
         // Special tests for conversions of small durations.
 
-        EXPECT_EQ(abel::zero_duration(), abel::seconds(0));
+        EXPECT_EQ(abel::zero_duration(), abel::duration::seconds(0));
         // TODO(bww): Is the next one OK?
-        EXPECT_EQ(abel::zero_duration(), abel::seconds(0.124999999e-9));
-        EXPECT_EQ(abel::nanoseconds(1) / 4, abel::seconds(0.125e-9));
-        EXPECT_EQ(abel::nanoseconds(1) / 4, abel::seconds(0.250e-9));
-        EXPECT_EQ(abel::nanoseconds(1) / 2, abel::seconds(0.375e-9));
-        EXPECT_EQ(abel::nanoseconds(1) / 2, abel::seconds(0.500e-9));
-        EXPECT_EQ(abel::nanoseconds(3) / 4, abel::seconds(0.625e-9));
-        EXPECT_EQ(abel::nanoseconds(3) / 4, abel::seconds(0.750e-9));
-        EXPECT_EQ(abel::nanoseconds(1), abel::seconds(0.875e-9));
-        EXPECT_EQ(abel::nanoseconds(1), abel::seconds(1.000e-9));
+        EXPECT_EQ(abel::zero_duration(), abel::duration::seconds(0.124999999e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(1) / 4, abel::duration::seconds(0.125e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(1) / 4, abel::duration::seconds(0.250e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(1) / 2, abel::duration::seconds(0.375e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(1) / 2, abel::duration::seconds(0.500e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(3) / 4, abel::duration::seconds(0.625e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(3) / 4, abel::duration::seconds(0.750e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(1), abel::duration::seconds(0.875e-9));
+        EXPECT_EQ(abel::duration::nanoseconds(1), abel::duration::seconds(1.000e-9));
 
-        EXPECT_EQ(abel::zero_duration(), abel::seconds(-0.124999999e-9));
-        EXPECT_EQ(-abel::nanoseconds(1) / 4, abel::seconds(-0.125e-9));
-        EXPECT_EQ(-abel::nanoseconds(1) / 4, abel::seconds(-0.250e-9));
-        EXPECT_EQ(-abel::nanoseconds(1) / 2, abel::seconds(-0.375e-9));
-        EXPECT_EQ(-abel::nanoseconds(1) / 2, abel::seconds(-0.500e-9));
-        EXPECT_EQ(-abel::nanoseconds(3) / 4, abel::seconds(-0.625e-9));
-        EXPECT_EQ(-abel::nanoseconds(3) / 4, abel::seconds(-0.750e-9));
-        EXPECT_EQ(-abel::nanoseconds(1), abel::seconds(-0.875e-9));
-        EXPECT_EQ(-abel::nanoseconds(1), abel::seconds(-1.000e-9));
+        EXPECT_EQ(abel::zero_duration(), abel::duration::seconds(-0.124999999e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(1) / 4, abel::duration::seconds(-0.125e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(1) / 4, abel::duration::seconds(-0.250e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(1) / 2, abel::duration::seconds(-0.375e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(1) / 2, abel::duration::seconds(-0.500e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(3) / 4, abel::duration::seconds(-0.625e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(3) / 4, abel::duration::seconds(-0.750e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(1), abel::duration::seconds(-0.875e-9));
+        EXPECT_EQ(-abel::duration::nanoseconds(1), abel::duration::seconds(-1.000e-9));
 
         timespec ts;
         ts.tv_sec = 0;
         ts.tv_nsec = 0;
-        EXPECT_THAT(to_timespec(abel::nanoseconds(0)), TimespecMatcher(ts));
+        EXPECT_THAT(abel::duration::nanoseconds(0).to_timespec(), TimespecMatcher(ts));
         // TODO(bww): Are the next three OK?
-        EXPECT_THAT(to_timespec(abel::nanoseconds(1) / 4), TimespecMatcher(ts));
-        EXPECT_THAT(to_timespec(abel::nanoseconds(2) / 4), TimespecMatcher(ts));
-        EXPECT_THAT(to_timespec(abel::nanoseconds(3) / 4), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(1) / 4).to_timespec(), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(2) / 4).to_timespec(), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(3) / 4).to_timespec(), TimespecMatcher(ts));
         ts.tv_nsec = 1;
-        EXPECT_THAT(to_timespec(abel::nanoseconds(4) / 4), TimespecMatcher(ts));
-        EXPECT_THAT(to_timespec(abel::nanoseconds(5) / 4), TimespecMatcher(ts));
-        EXPECT_THAT(to_timespec(abel::nanoseconds(6) / 4), TimespecMatcher(ts));
-        EXPECT_THAT(to_timespec(abel::nanoseconds(7) / 4), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(4) / 4).to_timespec(), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(5) / 4).to_timespec(), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(6) / 4).to_timespec(), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(7) / 4).to_timespec(), TimespecMatcher(ts));
         ts.tv_nsec = 2;
-        EXPECT_THAT(to_timespec(abel::nanoseconds(8) / 4), TimespecMatcher(ts));
+        EXPECT_THAT((abel::duration::nanoseconds(8) / 4).to_timespec(), TimespecMatcher(ts));
 
         timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 0;
-        EXPECT_THAT(to_timeval(abel::nanoseconds(0)), TimevalMatcher(tv));
+        EXPECT_THAT((abel::duration::nanoseconds(0)).to_timeval(), TimevalMatcher(tv));
         // TODO(bww): Is the next one OK?
-        EXPECT_THAT(to_timeval(abel::nanoseconds(999)), TimevalMatcher(tv));
+        EXPECT_THAT((abel::duration::nanoseconds(999)).to_timeval(), TimevalMatcher(tv));
         tv.tv_usec = 1;
-        EXPECT_THAT(to_timeval(abel::nanoseconds(1000)), TimevalMatcher(tv));
-        EXPECT_THAT(to_timeval(abel::nanoseconds(1999)), TimevalMatcher(tv));
+        EXPECT_THAT((abel::duration::nanoseconds(1000)).to_timeval(), TimevalMatcher(tv));
+        EXPECT_THAT((abel::duration::nanoseconds(1999)).to_timeval(), TimevalMatcher(tv));
         tv.tv_usec = 2;
-        EXPECT_THAT(to_timeval(abel::nanoseconds(2000)), TimevalMatcher(tv));
+        EXPECT_THAT((abel::duration::nanoseconds(2000)).to_timeval(), TimevalMatcher(tv));
     }
 
     void VerifySameAsMul(double time_as_seconds, int *const misses) {
-        auto direct_seconds = abel::seconds(time_as_seconds);
-        auto mul_by_one_second = time_as_seconds * abel::seconds(1);
+        auto direct_seconds = abel::duration::seconds(time_as_seconds);
+        auto mul_by_one_second = time_as_seconds * abel::duration::seconds(1);
         if (direct_seconds != mul_by_one_second) {
             if (*misses > 10)
                 return;
@@ -1378,7 +1382,7 @@ namespace {
 // seconds(point) returns the same duration as point * seconds(1.0)
     TEST(duration, ToDoubleSecondsCheckEdgeCases) {
         constexpr uint32_t kTicksPerSecond = abel::chrono_internal::kTicksPerSecond;
-        constexpr auto duration_tick = abel::chrono_internal::make_duration(0, 1u);
+        constexpr auto duration_tick = abel::duration::make_duration(0, 1u);
         int misses = 0;
         for (int64_t seconds = 0; seconds < 99; ++seconds) {
             uint32_t tick_vals[] = {0, +999, +999999, +999999999, kTicksPerSecond - 1,
@@ -1389,23 +1393,23 @@ namespace {
                                     4, 1004, 1000004, 1000000004, kTicksPerSecond + 4,
                                     5, 6, 7, 8, 9};
             for (uint32_t ticks : tick_vals) {
-                abel::duration s_plus_t = abel::seconds(seconds) + ticks * duration_tick;
+                abel::duration s_plus_t = abel::duration::seconds(seconds) + ticks * duration_tick;
                 for (abel::duration d : {s_plus_t, -s_plus_t}) {
                     abel::duration after_d = d + duration_tick;
                     EXPECT_NE(d, after_d);
                     EXPECT_EQ(after_d - d, duration_tick);
 
-                    double low_edge = to_double_seconds(d);
-                    EXPECT_EQ(d, abel::seconds(low_edge));
+                    double low_edge = d.to_double_seconds();
+                    EXPECT_EQ(d, abel::duration::seconds(low_edge));
 
-                    double high_edge = to_double_seconds(after_d);
-                    EXPECT_EQ(after_d, abel::seconds(high_edge));
+                    double high_edge = after_d.to_double_seconds();
+                    EXPECT_EQ(after_d, abel::duration::seconds(high_edge));
 
                     for (;;) {
                         double midpoint = low_edge + (high_edge - low_edge) / 2;
                         if (midpoint == low_edge || midpoint == high_edge)
                             break;
-                        abel::duration mid_duration = abel::seconds(midpoint);
+                        abel::duration mid_duration = abel::duration::seconds(midpoint);
                         if (mid_duration == d) {
                             low_edge = midpoint;
                         } else {
@@ -1451,31 +1455,31 @@ namespace {
         timeval tv;
         tv.tv_sec = max_timeval_sec;
         tv.tv_usec = 999998;
-        d = abel::duration_from_timeval(tv);
-        tv = to_timeval(d);
+        d = abel::duration::from_timeval(tv);
+        tv = d.to_timeval();
         EXPECT_EQ(max_timeval_sec, tv.tv_sec);
         EXPECT_EQ(999998, tv.tv_usec);
-        d += abel::microseconds(1);
-        tv = to_timeval(d);
+        d += abel::duration::microseconds(1);
+        tv = d.to_timeval();
         EXPECT_EQ(max_timeval_sec, tv.tv_sec);
         EXPECT_EQ(999999, tv.tv_usec);
-        d += abel::microseconds(1);  // no effect
-        tv = to_timeval(d);
+        d += abel::duration::microseconds(1);  // no effect
+        tv = d.to_timeval();
         EXPECT_EQ(max_timeval_sec, tv.tv_sec);
         EXPECT_EQ(999999, tv.tv_usec);
 
         tv.tv_sec = min_timeval_sec;
         tv.tv_usec = 1;
-        d = abel::duration_from_timeval(tv);
-        tv = to_timeval(d);
+        d = abel::duration::from_timeval(tv);
+        tv = d.to_timeval();
         EXPECT_EQ(min_timeval_sec, tv.tv_sec);
         EXPECT_EQ(1, tv.tv_usec);
-        d -= abel::microseconds(1);
-        tv = to_timeval(d);
+        d -= abel::duration::microseconds(1);
+        tv = d.to_timeval();
         EXPECT_EQ(min_timeval_sec, tv.tv_sec);
         EXPECT_EQ(0, tv.tv_usec);
-        d -= abel::microseconds(1);  // no effect
-        tv = to_timeval(d);
+        d -= abel::duration::microseconds(1);  // no effect
+        tv = d.to_timeval();
         EXPECT_EQ(min_timeval_sec, tv.tv_sec);
         EXPECT_EQ(0, tv.tv_usec);
 
@@ -1486,31 +1490,31 @@ namespace {
         timespec ts;
         ts.tv_sec = max_timespec_sec;
         ts.tv_nsec = 999999998;
-        d = abel::duration_from_timespec(ts);
-        ts = abel::to_timespec(d);
+        d = abel::duration::from_timespec(ts);
+        ts = d.to_timespec();
         EXPECT_EQ(max_timespec_sec, ts.tv_sec);
         EXPECT_EQ(999999998, ts.tv_nsec);
-        d += abel::nanoseconds(1);
-        ts = abel::to_timespec(d);
+        d += abel::duration::nanoseconds(1);
+        ts = d.to_timespec();
         EXPECT_EQ(max_timespec_sec, ts.tv_sec);
         EXPECT_EQ(999999999, ts.tv_nsec);
-        d += abel::nanoseconds(1);  // no effect
-        ts = abel::to_timespec(d);
+        d += abel::duration::nanoseconds(1);  // no effect
+        ts = d.to_timespec();
         EXPECT_EQ(max_timespec_sec, ts.tv_sec);
         EXPECT_EQ(999999999, ts.tv_nsec);
 
         ts.tv_sec = min_timespec_sec;
         ts.tv_nsec = 1;
-        d = abel::duration_from_timespec(ts);
-        ts = abel::to_timespec(d);
+        d = abel::duration::from_timespec(ts);
+        ts =d.to_timespec();
         EXPECT_EQ(min_timespec_sec, ts.tv_sec);
         EXPECT_EQ(1, ts.tv_nsec);
-        d -= abel::nanoseconds(1);
-        ts = abel::to_timespec(d);
+        d -= abel::duration::nanoseconds(1);
+        ts = d.to_timespec();
         EXPECT_EQ(min_timespec_sec, ts.tv_sec);
         EXPECT_EQ(0, ts.tv_nsec);
-        d -= abel::nanoseconds(1);  // no effect
-        ts = abel::to_timespec(d);
+        d -= abel::duration::nanoseconds(1);  // no effect
+        ts = d.to_timespec();
         EXPECT_EQ(min_timespec_sec, ts.tv_sec);
         EXPECT_EQ(0, ts.tv_nsec);
     }
@@ -1518,135 +1522,129 @@ namespace {
     TEST(duration, format_duration) {
         // Example from Go's docs.
         EXPECT_EQ("72h3m0.5s",
-                  abel::format_duration(abel::hours(72) + abel::minutes(3) +
-                                        abel::milliseconds(500)));
+                  (abel::duration::hours(72) + abel::duration::minutes(3) +
+                   abel::duration::milliseconds(500)).format_duration());
         // Go's largest time: 2540400h10m10.000000000s
         EXPECT_EQ("2540400h10m10s",
-                  abel::format_duration(abel::hours(2540400) + abel::minutes(10) +
-                                        abel::seconds(10)));
+                  (abel::duration::hours(2540400) + abel::duration::minutes(10) +
+                   abel::duration::seconds(10)).format_duration());
 
-        EXPECT_EQ("0", abel::format_duration(abel::zero_duration()));
-        EXPECT_EQ("0", abel::format_duration(abel::seconds(0)));
-        EXPECT_EQ("0", abel::format_duration(abel::nanoseconds(0)));
+        EXPECT_EQ("0", abel::zero_duration().format_duration());
+        EXPECT_EQ("0", abel::duration::seconds(0).format_duration());
+        EXPECT_EQ("0", abel::duration::nanoseconds(0).format_duration());
 
-        EXPECT_EQ("1ns", abel::format_duration(abel::nanoseconds(1)));
-        EXPECT_EQ("1us", abel::format_duration(abel::microseconds(1)));
-        EXPECT_EQ("1ms", abel::format_duration(abel::milliseconds(1)));
-        EXPECT_EQ("1s", abel::format_duration(abel::seconds(1)));
-        EXPECT_EQ("1m", abel::format_duration(abel::minutes(1)));
-        EXPECT_EQ("1h", abel::format_duration(abel::hours(1)));
+        EXPECT_EQ("1ns", abel::duration::nanoseconds(1).format_duration());
+        EXPECT_EQ("1us", abel::duration::microseconds(1).format_duration());
+        EXPECT_EQ("1ms", abel::duration::milliseconds(1).format_duration());
+        EXPECT_EQ("1s", abel::duration::seconds(1).format_duration());
+        EXPECT_EQ("1m", abel::duration::minutes(1).format_duration());
+        EXPECT_EQ("1h", abel::duration::hours(1).format_duration());
 
-        EXPECT_EQ("1h1m", abel::format_duration(abel::hours(1) + abel::minutes(1)));
-        EXPECT_EQ("1h1s", abel::format_duration(abel::hours(1) + abel::seconds(1)));
-        EXPECT_EQ("1m1s", abel::format_duration(abel::minutes(1) + abel::seconds(1)));
+        EXPECT_EQ("1h1m", (abel::duration::hours(1) + abel::duration::minutes(1)).format_duration());
+        EXPECT_EQ("1h1s", (abel::duration::hours(1) + abel::duration::seconds(1)).format_duration());
+        EXPECT_EQ("1m1s", (abel::duration::minutes(1) + abel::duration::seconds(1)).format_duration());
 
         EXPECT_EQ("1h0.25s",
-                  abel::format_duration(abel::hours(1) + abel::milliseconds(250)));
+                  (abel::duration::hours(1) + abel::duration::milliseconds(250)).format_duration());
         EXPECT_EQ("1m0.25s",
-                  abel::format_duration(abel::minutes(1) + abel::milliseconds(250)));
+                  (abel::duration::minutes(1) + abel::duration::milliseconds(250)).format_duration());
         EXPECT_EQ("1h1m0.25s",
-                  abel::format_duration(abel::hours(1) + abel::minutes(1) +
-                                        abel::milliseconds(250)));
+                  (abel::duration::hours(1) + abel::duration::minutes(1) +
+                  abel::duration::milliseconds(250)).format_duration());
         EXPECT_EQ("1h0.0005s",
-                  abel::format_duration(abel::hours(1) + abel::microseconds(500)));
+                  (abel::duration::hours(1) + abel::duration::microseconds(500)).format_duration());
         EXPECT_EQ("1h0.0000005s",
-                  abel::format_duration(abel::hours(1) + abel::nanoseconds(500)));
+                  (abel::duration::hours(1) + abel::duration::nanoseconds(500)).format_duration());
 
         // Subsecond special case.
-        EXPECT_EQ("1.5ns", abel::format_duration(abel::nanoseconds(1) +
-                                                 abel::nanoseconds(1) / 2));
-        EXPECT_EQ("1.25ns", abel::format_duration(abel::nanoseconds(1) +
-                                                  abel::nanoseconds(1) / 4));
-        EXPECT_EQ("1ns", abel::format_duration(abel::nanoseconds(1) +
-                                               abel::nanoseconds(1) / 9));
-        EXPECT_EQ("1.2us", abel::format_duration(abel::microseconds(1) +
-                                                 abel::nanoseconds(200)));
-        EXPECT_EQ("1.2ms", abel::format_duration(abel::milliseconds(1) +
-                                                 abel::microseconds(200)));
-        EXPECT_EQ("1.0002ms", abel::format_duration(abel::milliseconds(1) +
-                                                    abel::nanoseconds(200)));
-        EXPECT_EQ("1.00001ms", abel::format_duration(abel::milliseconds(1) +
-                                                     abel::nanoseconds(10)));
+        EXPECT_EQ("1.5ns", (abel::duration::nanoseconds(1) +
+                            abel::duration::nanoseconds(1) / 2).format_duration());
+        EXPECT_EQ("1.25ns", (abel::duration::nanoseconds(1) +
+                             abel::duration::nanoseconds(1) / 4).format_duration());
+        EXPECT_EQ("1ns", (abel::duration::nanoseconds(1) +
+                          abel::duration::nanoseconds(1) / 9).format_duration());
+        EXPECT_EQ("1.2us", (abel::duration::microseconds(1) +
+                           abel::duration::nanoseconds(200)).format_duration());
+        EXPECT_EQ("1.2ms", (abel::duration::milliseconds(1) +
+                            abel::duration::microseconds(200)).format_duration());
+        EXPECT_EQ("1.0002ms", (abel::duration::milliseconds(1) +
+                               abel::duration::nanoseconds(200)).format_duration());
+        EXPECT_EQ("1.00001ms", (abel::duration::milliseconds(1) +
+                               abel::duration::nanoseconds(10)).format_duration());
         EXPECT_EQ("1.000001ms",
-                  abel::format_duration(abel::milliseconds(1) + abel::nanoseconds(1)));
+                  (abel::duration::milliseconds(1) + abel::duration::nanoseconds(1)).format_duration());
 
         // Negative durations.
-        EXPECT_EQ("-1ns", abel::format_duration(abel::nanoseconds(-1)));
-        EXPECT_EQ("-1us", abel::format_duration(abel::microseconds(-1)));
-        EXPECT_EQ("-1ms", abel::format_duration(abel::milliseconds(-1)));
-        EXPECT_EQ("-1s", abel::format_duration(abel::seconds(-1)));
-        EXPECT_EQ("-1m", abel::format_duration(abel::minutes(-1)));
-        EXPECT_EQ("-1h", abel::format_duration(abel::hours(-1)));
+        EXPECT_EQ("-1ns", (abel::duration::nanoseconds(-1)).format_duration());
+        EXPECT_EQ("-1us", (abel::duration::microseconds(-1)).format_duration());
+        EXPECT_EQ("-1ms", (abel::duration::milliseconds(-1)).format_duration());
+        EXPECT_EQ("-1s", (abel::duration::seconds(-1)).format_duration());
+        EXPECT_EQ("-1m", (abel::duration::minutes(-1)).format_duration());
+        EXPECT_EQ("-1h", (abel::duration::hours(-1)).format_duration());
 
         EXPECT_EQ("-1h1m",
-                  abel::format_duration(-(abel::hours(1) + abel::minutes(1))));
+                  (-(abel::duration::hours(1) + abel::duration::minutes(1))).format_duration());
         EXPECT_EQ("-1h1s",
-                  abel::format_duration(-(abel::hours(1) + abel::seconds(1))));
+                  (-(abel::duration::hours(1) + abel::duration::seconds(1))).format_duration());
         EXPECT_EQ("-1m1s",
-                  abel::format_duration(-(abel::minutes(1) + abel::seconds(1))));
+                  (-(abel::duration::minutes(1) + abel::duration::seconds(1))).format_duration());
 
-        EXPECT_EQ("-1ns", abel::format_duration(abel::nanoseconds(-1)));
-        EXPECT_EQ("-1.2us", abel::format_duration(
-                -(abel::microseconds(1) + abel::nanoseconds(200))));
-        EXPECT_EQ("-1.2ms", abel::format_duration(
-                -(abel::milliseconds(1) + abel::microseconds(200))));
-        EXPECT_EQ("-1.0002ms", abel::format_duration(-(abel::milliseconds(1) +
-                                                       abel::nanoseconds(200))));
-        EXPECT_EQ("-1.00001ms", abel::format_duration(-(abel::milliseconds(1) +
-                                                        abel::nanoseconds(10))));
-        EXPECT_EQ("-1.000001ms", abel::format_duration(-(abel::milliseconds(1) +
-                                                         abel::nanoseconds(1))));
+        EXPECT_EQ("-1ns", (abel::duration::nanoseconds(-1)).format_duration());
+        EXPECT_EQ("-1.2us", (-(abel::duration::microseconds(1) + abel::duration::nanoseconds(200))).format_duration());
+        EXPECT_EQ("-1.2ms", (-(abel::duration::milliseconds(1) + abel::duration::microseconds(200))).format_duration());
+        EXPECT_EQ("-1.0002ms", (-(abel::duration::milliseconds(1) +
+                                  abel::duration::nanoseconds(200))).format_duration());
+        EXPECT_EQ("-1.00001ms", (-(abel::duration::milliseconds(1) +
+                                   abel::duration::nanoseconds(10))).format_duration());
+        EXPECT_EQ("-1.000001ms", (-(abel::duration::milliseconds(1) +
+                                    abel::duration::nanoseconds(1))).format_duration());
 
         //
         // Interesting corner cases.
         //
 
-        const abel::duration qns = abel::nanoseconds(1) / 4;
+        const abel::duration qns = abel::duration::nanoseconds(1) / 4;
         const abel::duration max_dur =
-                abel::seconds(kint64max) + (abel::seconds(1) - qns);
-        const abel::duration min_dur = abel::seconds(kint64min);
+                abel::duration::seconds(kint64max) + (abel::duration::seconds(1) - qns);
+        const abel::duration min_dur = abel::duration::seconds(kint64min);
 
-        EXPECT_EQ("0.25ns", abel::format_duration(qns));
-        EXPECT_EQ("-0.25ns", abel::format_duration(-qns));
+        EXPECT_EQ("0.25ns", qns.format_duration());
+        EXPECT_EQ("-0.25ns", (-qns).format_duration());
         EXPECT_EQ("2562047788015215h30m7.99999999975s",
-                  abel::format_duration(max_dur));
-        EXPECT_EQ("-2562047788015215h30m8s", abel::format_duration(min_dur));
+                  max_dur.format_duration());
+        EXPECT_EQ("-2562047788015215h30m8s", min_dur.format_duration());
 
         // Tests printing full precision from units that print using float_div_duration
-        EXPECT_EQ("55.00000000025s", abel::format_duration(abel::seconds(55) + qns));
+        EXPECT_EQ("55.00000000025s", (abel::duration::seconds(55) + qns).format_duration());
         EXPECT_EQ("55.00000025ms",
-                  abel::format_duration(abel::milliseconds(55) + qns));
-        EXPECT_EQ("55.00025us", abel::format_duration(abel::microseconds(55) + qns));
-        EXPECT_EQ("55.25ns", abel::format_duration(abel::nanoseconds(55) + qns));
+                  (abel::duration::milliseconds(55) + qns).format_duration());
+        EXPECT_EQ("55.00025us", (abel::duration::microseconds(55) + qns).format_duration());
+        EXPECT_EQ("55.25ns", (abel::duration::nanoseconds(55) + qns).format_duration());
 
         // Formatting infinity
-        EXPECT_EQ("inf", abel::format_duration(abel::infinite_duration()));
-        EXPECT_EQ("-inf", abel::format_duration(-abel::infinite_duration()));
+        EXPECT_EQ("inf", abel::infinite_duration().format_duration());
+        EXPECT_EQ("-inf", (-abel::infinite_duration()).format_duration());
 
         // Formatting approximately +/- 100 billion years
         const abel::duration huge_range = ApproxYears(100000000000);
-        EXPECT_EQ("876000000000000h", abel::format_duration(huge_range));
-        EXPECT_EQ("-876000000000000h", abel::format_duration(-huge_range));
+        EXPECT_EQ("876000000000000h", huge_range.format_duration());
+        EXPECT_EQ("-876000000000000h", (-huge_range).format_duration());
 
         EXPECT_EQ("876000000000000h0.999999999s",
-                  abel::format_duration(huge_range +
-                                        (abel::seconds(1) - abel::nanoseconds(1))));
+                  (huge_range +
+                   (abel::duration::seconds(1) - abel::duration::nanoseconds(1))).format_duration());
         EXPECT_EQ("876000000000000h0.9999999995s",
-                  abel::format_duration(
-                          huge_range + (abel::seconds(1) - abel::nanoseconds(1) / 2)));
+                  (huge_range + (abel::duration::seconds(1) - abel::duration::nanoseconds(1) / 2)).format_duration());
         EXPECT_EQ("876000000000000h0.99999999975s",
-                  abel::format_duration(
-                          huge_range + (abel::seconds(1) - abel::nanoseconds(1) / 4)));
+                  (huge_range + (abel::duration::seconds(1) - abel::duration::nanoseconds(1) / 4)).format_duration());
 
         EXPECT_EQ("-876000000000000h0.999999999s",
-                  abel::format_duration(-huge_range -
-                                        (abel::seconds(1) - abel::nanoseconds(1))));
+                  (-huge_range -
+                   (abel::duration::seconds(1) - abel::duration::nanoseconds(1))).format_duration());
         EXPECT_EQ("-876000000000000h0.9999999995s",
-                  abel::format_duration(
-                          -huge_range - (abel::seconds(1) - abel::nanoseconds(1) / 2)));
+                  (-huge_range - (abel::duration::seconds(1) - abel::duration::nanoseconds(1) / 2)).format_duration());
         EXPECT_EQ("-876000000000000h0.99999999975s",
-                  abel::format_duration(
-                          -huge_range - (abel::seconds(1) - abel::nanoseconds(1) / 4)));
+                  ( -huge_range - (abel::duration::seconds(1) - abel::duration::nanoseconds(1) / 4)).format_duration());
     }
 
     TEST(duration, parse_duration) {
@@ -1689,71 +1687,71 @@ namespace {
 
         // One unit type.
         EXPECT_TRUE(abel::parse_duration("1ns", &d));
-        EXPECT_EQ(abel::nanoseconds(1), d);
+        EXPECT_EQ(abel::duration::nanoseconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1us", &d));
-        EXPECT_EQ(abel::microseconds(1), d);
+        EXPECT_EQ(abel::duration::microseconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1ms", &d));
-        EXPECT_EQ(abel::milliseconds(1), d);
+        EXPECT_EQ(abel::duration::milliseconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1s", &d));
-        EXPECT_EQ(abel::seconds(1), d);
+        EXPECT_EQ(abel::duration::seconds(1), d);
         EXPECT_TRUE(abel::parse_duration("2m", &d));
-        EXPECT_EQ(abel::minutes(2), d);
+        EXPECT_EQ(abel::duration::minutes(2), d);
         EXPECT_TRUE(abel::parse_duration("2h", &d));
-        EXPECT_EQ(abel::hours(2), d);
+        EXPECT_EQ(abel::duration::hours(2), d);
 
         // Huge counts of a unit.
         EXPECT_TRUE(abel::parse_duration("9223372036854775807us", &d));
-        EXPECT_EQ(abel::microseconds(9223372036854775807), d);
+        EXPECT_EQ(abel::duration::microseconds(9223372036854775807), d);
         EXPECT_TRUE(abel::parse_duration("-9223372036854775807us", &d));
-        EXPECT_EQ(abel::microseconds(-9223372036854775807), d);
+        EXPECT_EQ(abel::duration::microseconds(-9223372036854775807), d);
 
         // Multiple units.
         EXPECT_TRUE(abel::parse_duration("2h3m4s", &d));
-        EXPECT_EQ(abel::hours(2) + abel::minutes(3) + abel::seconds(4), d);
+        EXPECT_EQ(abel::duration::hours(2) + abel::duration::minutes(3) + abel::duration::seconds(4), d);
         EXPECT_TRUE(abel::parse_duration("3m4s5us", &d));
-        EXPECT_EQ(abel::minutes(3) + abel::seconds(4) + abel::microseconds(5), d);
+        EXPECT_EQ(abel::duration::minutes(3) + abel::duration::seconds(4) + abel::duration::microseconds(5), d);
         EXPECT_TRUE(abel::parse_duration("2h3m4s5ms6us7ns", &d));
-        EXPECT_EQ(abel::hours(2) + abel::minutes(3) + abel::seconds(4) +
-                  abel::milliseconds(5) + abel::microseconds(6) +
-                  abel::nanoseconds(7),
+        EXPECT_EQ(abel::duration::hours(2) + abel::duration::minutes(3) + abel::duration::seconds(4) +
+                  abel::duration::milliseconds(5) + abel::duration::microseconds(6) +
+                  abel::duration::nanoseconds(7),
                   d);
 
         // Multiple units out of order.
         EXPECT_TRUE(abel::parse_duration("2us3m4s5h", &d));
-        EXPECT_EQ(abel::hours(5) + abel::minutes(3) + abel::seconds(4) +
-                  abel::microseconds(2),
+        EXPECT_EQ(abel::duration::hours(5) + abel::duration::minutes(3) + abel::duration::seconds(4) +
+                  abel::duration::microseconds(2),
                   d);
 
         // Fractional values of units.
         EXPECT_TRUE(abel::parse_duration("1.5ns", &d));
-        EXPECT_EQ(1.5 * abel::nanoseconds(1), d);
+        EXPECT_EQ(1.5 * abel::duration::nanoseconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1.5us", &d));
-        EXPECT_EQ(1.5 * abel::microseconds(1), d);
+        EXPECT_EQ(1.5 * abel::duration::microseconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1.5ms", &d));
-        EXPECT_EQ(1.5 * abel::milliseconds(1), d);
+        EXPECT_EQ(1.5 * abel::duration::milliseconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1.5s", &d));
-        EXPECT_EQ(1.5 * abel::seconds(1), d);
+        EXPECT_EQ(1.5 * abel::duration::seconds(1), d);
         EXPECT_TRUE(abel::parse_duration("1.5m", &d));
-        EXPECT_EQ(1.5 * abel::minutes(1), d);
+        EXPECT_EQ(1.5 * abel::duration::minutes(1), d);
         EXPECT_TRUE(abel::parse_duration("1.5h", &d));
-        EXPECT_EQ(1.5 * abel::hours(1), d);
+        EXPECT_EQ(1.5 * abel::duration::hours(1), d);
 
         // Huge fractional counts of a unit.
         EXPECT_TRUE(abel::parse_duration("0.4294967295s", &d));
-        EXPECT_EQ(abel::nanoseconds(429496729) + abel::nanoseconds(1) / 2, d);
+        EXPECT_EQ(abel::duration::nanoseconds(429496729) + abel::duration::nanoseconds(1) / 2, d);
         EXPECT_TRUE(abel::parse_duration("0.429496729501234567890123456789s", &d));
-        EXPECT_EQ(abel::nanoseconds(429496729) + abel::nanoseconds(1) / 2, d);
+        EXPECT_EQ(abel::duration::nanoseconds(429496729) + abel::duration::nanoseconds(1) / 2, d);
 
         // Negative durations.
         EXPECT_TRUE(abel::parse_duration("-1s", &d));
-        EXPECT_EQ(abel::seconds(-1), d);
+        EXPECT_EQ(abel::duration::seconds(-1), d);
         EXPECT_TRUE(abel::parse_duration("-1m", &d));
-        EXPECT_EQ(abel::minutes(-1), d);
+        EXPECT_EQ(abel::duration::minutes(-1), d);
         EXPECT_TRUE(abel::parse_duration("-1h", &d));
-        EXPECT_EQ(abel::hours(-1), d);
+        EXPECT_EQ(abel::duration::hours(-1), d);
 
         EXPECT_TRUE(abel::parse_duration("-1h2s", &d));
-        EXPECT_EQ(-(abel::hours(1) + abel::seconds(2)), d);
+        EXPECT_EQ(-(abel::duration::hours(1) + abel::duration::seconds(2)), d);
         EXPECT_FALSE(abel::parse_duration("1h-2s", &d));
         EXPECT_FALSE(abel::parse_duration("-1h-2s", &d));
         EXPECT_FALSE(abel::parse_duration("-1h -2s", &d));
@@ -1762,39 +1760,40 @@ namespace {
     TEST(duration, FormatParseRoundTrip) {
 #define TEST_PARSE_ROUNDTRIP(d)                \
   do {                                         \
-    std::string s = abel::format_duration(d);   \
+    std::string s = (d).format_duration();   \
     abel::duration dur;                        \
     EXPECT_TRUE(abel::parse_duration(s, &dur)); \
     EXPECT_EQ(d, dur);                         \
   } while (0)
 
-        TEST_PARSE_ROUNDTRIP(abel::nanoseconds(1));
-        TEST_PARSE_ROUNDTRIP(abel::microseconds(1));
-        TEST_PARSE_ROUNDTRIP(abel::milliseconds(1));
-        TEST_PARSE_ROUNDTRIP(abel::seconds(1));
-        TEST_PARSE_ROUNDTRIP(abel::minutes(1));
-        TEST_PARSE_ROUNDTRIP(abel::hours(1));
-        TEST_PARSE_ROUNDTRIP(abel::hours(1) + abel::nanoseconds(2));
+        TEST_PARSE_ROUNDTRIP(abel::duration::nanoseconds(1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::microseconds(1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::milliseconds(1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::seconds(1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::minutes(1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::hours(1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::hours(1) + abel::duration::nanoseconds(2));
 
-        TEST_PARSE_ROUNDTRIP(abel::nanoseconds(-1));
-        TEST_PARSE_ROUNDTRIP(abel::microseconds(-1));
-        TEST_PARSE_ROUNDTRIP(abel::milliseconds(-1));
-        TEST_PARSE_ROUNDTRIP(abel::seconds(-1));
-        TEST_PARSE_ROUNDTRIP(abel::minutes(-1));
-        TEST_PARSE_ROUNDTRIP(abel::hours(-1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::nanoseconds(-1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::microseconds(-1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::milliseconds(-1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::seconds(-1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::minutes(-1));
+        TEST_PARSE_ROUNDTRIP(abel::duration::hours(-1));
 
-        TEST_PARSE_ROUNDTRIP(abel::hours(-1) + abel::nanoseconds(2));
-        TEST_PARSE_ROUNDTRIP(abel::hours(1) + abel::nanoseconds(-2));
-        TEST_PARSE_ROUNDTRIP(abel::hours(-1) + abel::nanoseconds(-2));
+        TEST_PARSE_ROUNDTRIP(abel::duration::hours(-1) + abel::duration::nanoseconds(2));
+        TEST_PARSE_ROUNDTRIP(abel::duration::hours(1) + abel::duration::nanoseconds(-2));
+        TEST_PARSE_ROUNDTRIP(abel::duration::hours(-1) + abel::duration::nanoseconds(-2));
 
-        TEST_PARSE_ROUNDTRIP(abel::nanoseconds(1) +
-                             abel::nanoseconds(1) / 4);  // 1.25ns
+        TEST_PARSE_ROUNDTRIP(abel::duration::nanoseconds(1) +
+                             abel::duration::nanoseconds(1) / 4);  // 1.25ns
 
         const abel::duration huge_range = ApproxYears(100000000000);
         TEST_PARSE_ROUNDTRIP(huge_range);
-        TEST_PARSE_ROUNDTRIP(huge_range + (abel::seconds(1) - abel::nanoseconds(1)));
+        TEST_PARSE_ROUNDTRIP(huge_range + (abel::duration::seconds(1) - abel::duration::nanoseconds(1)));
 
 #undef TEST_PARSE_ROUNDTRIP
     }
 
 }  // namespace
+

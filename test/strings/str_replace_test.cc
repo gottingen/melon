@@ -1,14 +1,16 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/strings/str_replace.h>
+#include "abel/strings/str_replace.h"
 
 #include <list>
 #include <map>
 #include <tuple>
 
-#include <gtest/gtest.h>
-#include <abel/strings/str_cat.h>
-#include <abel/strings/str_split.h>
+#include "gtest/gtest.h"
+#include "abel/strings/str_cat.h"
+#include "abel/strings/str_split.h"
 
 TEST(string_replace_all, OneReplacement) {
     std::string s;
@@ -174,7 +176,7 @@ TEST(string_replace_all, ReplacementsInPlace) {
 
 TEST(string_replace_all, ReplacementsInPlaceInMap) {
     std::string s = std::string("$who bought $count #Noun. Thanks $who!");
-    std::map<abel::string_view, abel::string_view> replacements;
+    std::map<std::string_view, std::string_view> replacements;
     replacements["$who"] = "Bob";
     replacements["$count"] = "5";
     replacements["#Noun"] = "Apples";
@@ -187,13 +189,13 @@ TEST(string_replace_all, ReplacementsInPlaceInMap) {
 struct Cont {
     Cont() {}
 
-    explicit Cont(abel::string_view src) : data(src) {}
+    explicit Cont(std::string_view src) : data(src) {}
 
-    abel::string_view data;
+    std::string_view data;
 };
 
 template<int index>
-abel::string_view get(const Cont &c) {
+std::string_view get(const Cont &c) {
     auto splitter = abel::string_split(c.data, ':');
     auto it = splitter.begin();
     for (int i = 0; i < index; ++i) ++it;
@@ -240,7 +242,7 @@ TEST(string_replace_all, VariableNumber) {
     }
 
     {
-        std::list<std::pair<abel::string_view, abel::string_view>> replacements = {
+        std::list<std::pair<std::string_view, std::string_view>> replacements = {
                 {"a", "x"},
                 {"b", "y"},
                 {"c", "z"}};
@@ -250,7 +252,7 @@ TEST(string_replace_all, VariableNumber) {
     }
 
     {
-        using X = std::tuple<abel::string_view, std::string, int>;
+        using X = std::tuple<std::string_view, std::string, int>;
         std::vector<X> replacements(3);
         replacements[0] = X{"a", "x", 1};
         replacements[1] = X{"b", "y", 0};

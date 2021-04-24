@@ -1,9 +1,10 @@
-//
-// Created by liyinbin on 2020/1/25.
-//
-#include <abel/digest/sha512.h>
-#include <abel/strings/hex_dump.h>
-#include <gtest/gtest.h>
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
+#include "abel/digest/sha512.h"
+#include "abel/strings/hex_dump.h"
+#include "gtest/gtest.h"
 
 TEST(Sha512, all) {
     EXPECT_EQ(

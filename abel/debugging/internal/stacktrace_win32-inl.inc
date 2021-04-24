@@ -1,3 +1,6 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // Produces a stack trace for Windows.  Normally, one could use
 // stacktrace_x86-inl.h or stacktrace_x86_64-inl.h -- and indeed, that
@@ -67,11 +70,11 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
 
 namespace abel {
 
-    namespace debugging_internal {
-        bool StackTraceWorksForTest() {
-            return false;
-        }
-    }  // namespace debugging_internal
+namespace debugging_internal {
+bool stack_trace_works_for_test() {
+    return false;
+}
+}  // namespace debugging_internal
 
 }  // namespace abel
 

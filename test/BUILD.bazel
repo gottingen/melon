@@ -1,0 +1,421 @@
+#
+# Copyright (c) 2021, gottingen group.
+# All rights reserved.
+# Created by liyinbin lijippy@163.com
+#
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
+config_setting(
+    name = "clang_compiler",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "clang",
+    },
+    visibility = [":__subpackages__"],
+)
+
+config_setting(
+    name = "osx",
+    constraint_values = [
+        "@bazel_tools//platforms:osx",
+    ],
+)
+
+config_setting(
+    name = "ios",
+    constraint_values = [
+        "@bazel_tools//platforms:ios",
+    ],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = [
+        "@bazel_tools//platforms:x86_64",
+        "@bazel_tools//platforms:windows",
+    ],
+    visibility = [":__subpackages__"],
+)
+
+config_setting(
+    name = "ppc",
+    values = {
+        "cpu": "ppc",
+    },
+    visibility = [":__subpackages__"],
+)
+
+config_setting(
+    name = "wasm",
+    values = {
+        "cpu": "wasm32",
+    },
+    visibility = [":__subpackages__"],
+)
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load(
+    "//:copts/configure_copts.bzl",
+    "CARBIN_DEFAULT_COPTS",
+    "CARBIN_DEFAULT_LINKOPTS",
+    "CARBIN_TEST_COPTS",
+)
+
+CARBIN_TEST_COPTS = CARBIN_TEST_COPTS + ["-std=c++17",]
+
+cc_test(
+        name = "algorithm_test",
+        size = "small",
+        srcs = ["algorithm/algorithm_test.cc",],
+        copts = CARBIN_TEST_COPTS,
+        linkopts = CARBIN_DEFAULT_LINKOPTS,
+        deps = [
+            "//abel:abel-debug",
+            "//testing:testing",
+            "@com_google_googletest//:gtest_main",
+            "@com_google_googletest//:gtest",
+        ],
+    )
+
+cc_test(
+            name = "atomic_test",
+            size = "small",
+            srcs = glob(["atomic/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "base_test",
+            size = "small",
+            srcs = glob(["base/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "chrono_test",
+            size = "small",
+            srcs = glob(["chrono/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "config_config_test",
+            size = "small",
+            srcs = glob(["config/config.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "config_flag_test",
+            size = "small",
+            srcs = glob(["config/flag_test.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "config_flag_def_test",
+            size = "small",
+            srcs = glob(["config/flag_test_def.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "config_flag_visitor_test",
+            size = "small",
+            srcs = glob(["config/flag_vistor_test.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "config_marshalling_test",
+            size = "small",
+            srcs = glob(["config/marshalling_test.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "container_test",
+            size = "small",
+            srcs = glob(["container/*.cc","container/*.h",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+
+cc_test(
+            name = "debugging_test",
+            size = "small",
+            srcs = glob(["debugging/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "digest_test",
+            size = "small",
+            srcs = glob(["digest/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "functional_test",
+            size = "small",
+            srcs = glob(["functional/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "hash_test",
+            size = "small",
+            srcs = glob(["hash/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "math_test",
+            size = "small",
+            srcs = glob(["math/*.cc","math/*.h",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "memory_test",
+            size = "small",
+            srcs = glob(["memory/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "meta_test",
+            size = "small",
+            srcs = glob(["meta/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "metrics_test",
+            size = "small",
+            srcs = glob(["metrics/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "numeric_test",
+            size = "small",
+            srcs = glob(["numeric/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "random_test",
+            size = "small",
+            srcs = glob(["random/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "status_test",
+            size = "small",
+            srcs = glob(["status/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "strings_test",
+            size = "small",
+            srcs = glob(["strings/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "system_test",
+            size = "small",
+            srcs = glob(["system/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "thread_test",
+            size = "small",
+            srcs = glob(["thread/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "trie_test",
+            size = "small",
+            srcs = glob(["trie/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+cc_test(
+            name = "utility_test",
+            size = "small",
+            srcs = glob(["utility/*.cc",]),
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel-debug",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )

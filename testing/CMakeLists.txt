@@ -5,6 +5,6 @@ carbin_cc_library(
         NAMESPACE abel
         NAME testing
         SOURCES ${TESTING_SRC}
-        PUBLIC_LINKED_TARGETS ${ABEL_DYLINK} abel::abel
+        PUBLIC_LINKED_TARGETS ${ABEL_DYLINK} abel::abel gtest
         PRIVATE_COMPILE_OPTIONS ${CARBIN_DEFAULT_COPTS}
 )

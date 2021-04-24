@@ -1,9 +1,12 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_TIME_CLOCK_H_
-#define ABEL_TIME_CLOCK_H_
+#ifndef ABEL_CHRONO_CLOCK_H_
+#define ABEL_CHRONO_CLOCK_H_
 
-#include <abel/base/profile.h>
-#include <abel/chrono/time.h>
+#include "abel/base/profile.h"
+#include "abel/chrono/time.h"
 
 namespace abel {
 
@@ -11,7 +14,7 @@ namespace abel {
 // now()
 //
 // Returns the current time, expressed as an `abel::abel_time` absolute time value.
-    abel::abel_time now();
+abel::abel_time now();
 
 // get_current_time_nanos()
 //
@@ -19,7 +22,7 @@ namespace abel {
 // Epoch (https://en.wikipedia.org/wiki/Unix_time). Prefer `abel::now()` instead
 // for all but the most performance-sensitive cases (i.e. when you are calling
 // this function hundreds of thousands of times per second).
-    int64_t get_current_time_nanos();
+int64_t get_current_time_nanos();
 
 // sleep_for()
 //
@@ -28,7 +31,7 @@ namespace abel {
 // Notes:
 // * signal interruptions will not reduce the sleep duration.
 // * Returns immediately when passed a nonpositive duration.
-    void sleep_for(abel::duration duration);
+void sleep_for(abel::duration duration);
 
 
 }  // namespace abel
@@ -51,4 +54,4 @@ ABEL_FORCE_INLINE void abel::sleep_for(abel::duration duration) {
     abel_internal_sleep_for(duration);
 }
 
-#endif  // ABEL_TIME_CLOCK_H_
+#endif  // ABEL_CHRONO_CLOCK_H_

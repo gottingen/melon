@@ -1,7 +1,11 @@
-#include <testing/log_includes.h>
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
+
+#include "testing/log_includes.h"
 
 void prepare_logdir() {
-    abel::log::drop_all();
+    abel::drop_all();
 #ifdef _WIN32
     system("if not exist logs mkdir logs");
     system("del /F /Q logs\\*");

@@ -1,11 +1,13 @@
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/base/throw_delegate.h>
+#include "abel/base/throw_delegate.h"
 #include <functional>
 #include <new>
 #include <stdexcept>
-#include <abel/base/profile.h>
-#include <gtest/gtest.h>
+#include "abel/base/profile.h"
+#include "gtest/gtest.h"
 
 namespace {
 

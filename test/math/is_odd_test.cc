@@ -1,10 +1,10 @@
-//
-// Created by liyinbin on 2020/2/29.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
 #include "math_test.h"
-#include <abel/math/is_odd.h>
-#include <abel/math/is_even.h>
+#include "abel/math/is_odd.h"
+#include "abel/math/is_even.h"
 
 TEST(is_odd, all) {
 

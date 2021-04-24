@@ -1,12 +1,13 @@
-//
-// Created by liyinbin on 2020/2/28.
-//
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 
-#include <abel/math/log.h>
-#include <gtest/gtest.h>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include "abel/math/log.h"
+#include "gtest/gtest.h"
+
 
 #if defined(__native_client__) || defined(__EMSCRIPTEN__)
 // NACL has a less accurate implementation of std::log2 than most of

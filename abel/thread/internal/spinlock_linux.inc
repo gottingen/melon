@@ -1,5 +1,9 @@
+// Copyright (c) 2021, gottingen group.
+// All rights reserved.
+// Created by liyinbin lijippy@163.com
 //
 // This file is a Linux-specific part of spinlock_wait.cc
+#if defined(__linux__)
 
 #include <linux/futex.h>
 #include <sys/syscall.h>
@@ -11,7 +15,7 @@
 #include <cstdint>
 #include <ctime>
 
-#include <abel/base/profile.h>
+#include "abel/base/profile.h"
 
 // The spin_lock lockword is `std::atomic<uint32_t>`. Here we assert that
 // `std::atomic<uint32_t>` is bitwise equivalent of the `int` expected
@@ -52,3 +56,4 @@ ABEL_WEAK void abel_internal_spin_lock_wake(std::atomic<uint32_t> *w,
 }
 
 }  // extern "C"
+#endif  // __linux__

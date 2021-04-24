@@ -1,56 +1,39 @@
-//
-// Copyright(c) 2015 Gabi Melman.
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
 
 #pragma once
 
-#include <abel/log/details/log_msg.h>
-#include <abel/log/details/pattern_formatter.h>
-#include <abel/log/formatter.h>
+#include "abel/log/details/log_msg.h"
+#include "abel/log/formatter.h"
 
 namespace abel {
-    namespace log {
-        namespace sinks {
-            class sink {
-            public:
-                sink()
-                        : level_(trace), formatter_(new pattern_formatter("%+")) {
-                }
 
-                sink(std::unique_ptr<abel::log::pattern_formatter> formatter)
-                        : level_(trace), formatter_(std::move(formatter)) {};
+namespace sinks {
+class ABEL_API sink {
+  public:
+    virtual ~sink() = default;
 
-                virtual ~sink() = default;
+    virtual void log(const details::log_msg &msg) = 0;
 
-                virtual void log(const details::log_msg &msg) = 0;
+    virtual void flush() = 0;
 
-                virtual void flush() = 0;
+    virtual void set_pattern(const std::string &pattern) = 0;
 
-                virtual void set_pattern(const std::string &pattern) = 0;
+    virtual void set_formatter(std::unique_ptr<abel::log_formatter> sink_formatter) = 0;
 
-                virtual void set_formatter(std::unique_ptr<abel::log::formatter> sink_formatter) = 0;
+    void set_level(level::level_enum log_level);
 
-                bool should_log(level_enum msg_level) const {
-                    return msg_level >= level_.load(std::memory_order_relaxed);
-                }
+    level::level_enum level() const;
 
-                void set_level(abel::log::level_enum log_level) {
-                    level_.store(log_level);
-                }
+    bool should_log(level::level_enum msg_level) const;
 
-                log::level_enum level() const {
-                    return static_cast<abel::log::level_enum>(level_.load(std::memory_order_relaxed));
-                }
+  protected:
+    // sink log level - default is all
+    level_t level_{level::trace};
+};
 
-            protected:
-                // sink log level - default is all
-                level_t level_;
+} // namespace sinks
+}  // namespace abel
 
-                // sink formatter - default is full format
-                std::unique_ptr<abel::log::formatter> formatter_;
-            };
+#include "abel/log/sinks/sink_inl.h"
 
-        } // namespace sinks
-    } //namespace log
-} // namespace abel
