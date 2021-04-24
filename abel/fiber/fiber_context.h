@@ -130,9 +130,9 @@ namespace abel {
         // INTERNAL USE ONLY.
         void UnsafeInit(T *ptr, void (*deleter)(T *)) {
             auto &&entry = fiber_context::current()->GetElsEntry(slot_index_);
-            ABEL_CHECK(entry,
+            DCHECK_MSG(entry,
                         "Initializing ELS must be done inside execution context.");
-            ABEL_CHECK(entry->ptr.load(std::memory_order_relaxed) == nullptr,
+            DCHECK_MSG(entry->ptr.load(std::memory_order_relaxed) == nullptr,
                         "Initializeing an already-initialized ELS?");
             entry->ptr.store(ptr, std::memory_order_release);
             // FIXME: U.B. here?

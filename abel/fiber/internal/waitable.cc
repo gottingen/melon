@@ -45,7 +45,7 @@ namespace fiber_internal {
                             // Someone else satisfied the wait earlier.
                             return;
                         }
-                        wait_cb->waiter->scheduling_group->ready_fiber(
+                        wait_cb->waiter->own_scheduling_group->ready_fiber(
                                 wait_cb->waiter, std::unique_lock(wait_cb->waiter->scheduler_lock));
                     }
                 };
@@ -165,7 +165,7 @@ namespace fiber_internal {
             std::unique_lock lk(current->scheduler_lock);
 
             if (impl_->add_waiter(&wb)) {
-                current->scheduling_group->halt(current, std::move(lk));
+                current->own_scheduling_group->halt(current, std::move(lk));
                 // We'll be awakened by `on_timer_expired()`.
             } else {
                 // The timer has fired before, return immediately then.
@@ -175,7 +175,7 @@ namespace fiber_internal {
         void waitable_timer::on_timer_expired(ref_ptr <waitable_ref_counted> ref) {
             auto fibers = ref->SetPersistentAwakened();
             for (auto f : fibers) {
-                f->scheduling_group->ready_fiber(f, std::unique_lock(f->scheduler_lock));
+                f->own_scheduling_group->ready_fiber(f, std::unique_lock(f->scheduler_lock));
             }
         }
 
@@ -196,7 +196,7 @@ namespace fiber_internal {
                 auto fiber = impl_.wake_one();
                 DCHECK(fiber);  // Otherwise `was` must be 1 (as there's no waiter).
                 splk.unlock();
-                fiber->scheduling_group->ready_fiber(
+                fiber->own_scheduling_group->ready_fiber(
                         fiber, std::unique_lock(fiber->scheduler_lock));
             }
         }
@@ -238,7 +238,7 @@ namespace fiber_internal {
             // Given that `scheduler_lock` is held by us, anyone else who concurrently
             // tries to wake us up is blocking on it until `halt()` has completed.
             // Hence no race here.
-            current->scheduling_group->halt(current, std::move(slk));
+            current->own_scheduling_group->halt(current, std::move(slk));
 
             // Lock's owner has awakened us up, the lock is in our hand then.
             DCHECK(!impl_.try_remove_waiter(&wb));
@@ -260,7 +260,7 @@ namespace fiber_internal {
             DCHECK(is_fiber_context_present());
 
             auto current = get_current_fiber_entity();
-            auto sg = current->scheduling_group;
+            auto sg = current->own_scheduling_group;
             bool use_timeout = expires_at.to_chrono_time() != std::chrono::system_clock::time_point::max();
             lazy_init <async_waker> awaker;
 
@@ -300,7 +300,7 @@ namespace fiber_internal {
             if (!fiber) {
                 return;
             }
-            fiber->scheduling_group->ready_fiber(fiber,
+            fiber->own_scheduling_group->ready_fiber(fiber,
                                                 std::unique_lock(fiber->scheduler_lock));
         }
 
@@ -337,10 +337,10 @@ namespace fiber_internal {
             // Schedule the waiters.
             for (std::size_t index = 0; index != array_usage; ++index) {
                 auto &&e = fibers_quick[index];
-                e->scheduling_group->ready_fiber(e, std::unique_lock(e->scheduler_lock));
+                e->own_scheduling_group->ready_fiber(e, std::unique_lock(e->scheduler_lock));
             }
             for (auto &&e : fibers_slow) {
-                e->scheduling_group->ready_fiber(e, std::unique_lock(e->scheduler_lock));
+                e->own_scheduling_group->ready_fiber(e, std::unique_lock(e->scheduler_lock));
             }
         }
 
@@ -384,7 +384,7 @@ namespace fiber_internal {
             wait_block wb = {.waiter = current};
             std::unique_lock lk(current->scheduler_lock);
             if (impl_.add_waiter(&wb)) {
-                current->scheduling_group->halt(current, std::move(lk));
+                current->own_scheduling_group->halt(current, std::move(lk));
             } else {
                 // The event is set already, return immediately.
             }
@@ -398,7 +398,7 @@ namespace fiber_internal {
             // Fiber wake-up must be delayed until we're done with `impl_`, otherwise
             // `impl_` can be destroyed after its emptied but before we touch it again.
             for (auto &&f : fibers) {
-                f->scheduling_group->ready_fiber(f, std::unique_lock(f->scheduler_lock));
+                f->own_scheduling_group->ready_fiber(f, std::unique_lock(f->scheduler_lock));
             }
         }
 

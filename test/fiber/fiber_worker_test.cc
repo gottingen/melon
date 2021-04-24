@@ -13,6 +13,7 @@
 #include "gtest/gtest.h"
 #include "abel/chrono/clock.h"
 #include "abel/base/random.h"
+#include "abel/thread/numa.h"
 #include "abel/fiber/internal/fiber_entity.h"
 #include "abel/fiber/internal/scheduling_group.h"
 #include "testing/fiber.h"
@@ -26,7 +27,7 @@ namespace abel {
 #if defined(ABEL_PLATFORM_LINUX)
         TEST_P(SystemFiberOrNot, Affinity) {
             for (int k = 0; k != 1000; ++k) {
-                auto sg = std::make_unique<scheduling_group>(std::vector<int>{1, 2, 3}, 16);
+                auto sg = std::make_unique<scheduling_group>(core_affinity(), 16);
                 timer_worker dummy(sg.get());
                 sg->set_timer_worker(&dummy);
                 std::deque<fiber_worker> workers;
@@ -38,7 +39,7 @@ namespace abel {
                     auto cpu = abel::get_current_processor_id();
                     ASSERT_TRUE(1 <= cpu && cpu <= 3)<<cpu;
                 });
-                sg->Stop();
+                sg->stop();
                 for (auto &&w : workers) {
                     w.join();
                 }

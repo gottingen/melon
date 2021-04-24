@@ -346,14 +346,14 @@ namespace abel {
 
         const std::vector<numa::numa_node>& GetFiberWorkerAccessibleNodes() {
 #ifdef ABEL_PLATFORM_LINUX
-            static std::vector<internal::numa::Node> result = [] {
+            static std::vector<numa::numa_node> result = [] {
                 std::map<int, std::vector<int>> node_to_processor;
                 for (auto&& e : GetFiberWorkerAccessibleCPUs()) {
-                    auto n = internal::numa::get_node_of_processor(e);
+                    auto n = numa::get_node_of_processor(e);
                     node_to_processor[n].push_back(e);
                 }
 
-                std::vector<internal::numa::Node> result;
+                std::vector<numa::numa_node> result;
                 for (auto&& [k, v] : node_to_processor) {
                     result.push_back({k, v});
                 }

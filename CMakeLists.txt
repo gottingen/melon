@@ -71,7 +71,7 @@ if (APPLE)
     find_library(CoreFoundation CoreFoundation)
     list(APPEND ABEL_DYLINK ${CoreFoundation} pthread)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    list(APPEND ABEL_DYLINK rt pthread)
+    list(APPEND ABEL_DYLINK rt dl pthread)
 endif ()
 
 

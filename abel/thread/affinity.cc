@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <thread>
+#include <algorithm>
 
 #if defined(__APPLE__)
 

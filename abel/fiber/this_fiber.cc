@@ -14,7 +14,7 @@ namespace abel {
         auto self = fiber_internal::get_current_fiber_entity();
         DCHECK_MSG(self,
                     "this_fiber::yield may only be called in fiber environment.");
-        self->scheduling_group->yield(self);
+        self->own_scheduling_group->yield(self);
     }
 
     void fiber_sleep_until(const abel::time_point& expires_at) {

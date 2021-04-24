@@ -57,7 +57,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "abel/math/bit_cast.h"
+#include "abel/base/math.h"
 #include "abel/thread/dynamic_annotations.h"
 #include "abel/memory/internal/low_level_alloc.h"
 #include "abel/log/logging.h"

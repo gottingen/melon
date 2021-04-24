@@ -66,9 +66,9 @@ namespace abel {
         fiber->scheduling_group_local = attr.scheduling_group_local;
 
         // If `join()` is called, we'll sleep on this.
-        fiber->exit_barrier =
+        fiber->ref_exit_barrier =
                 get_ref_counted<fiber_internal::exit_barrier>();
-        join_impl_ = fiber->exit_barrier;
+        join_impl_ = fiber->ref_exit_barrier;
 
         // Schedule the fiber.
         if (attr.launch_policy == fiber_internal::Launch::Post) {

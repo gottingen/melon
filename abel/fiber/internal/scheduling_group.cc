@@ -5,7 +5,9 @@
 
 #include "abel/fiber/internal/scheduling_group.h"
 
-//#include <linux/futex.h>
+#if defined(ABEL_PLATFORM_LINUX)
+#include <linux/futex.h>
+#endif
 #include <sys/mman.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
@@ -101,7 +103,7 @@ namespace abel {
                         // We need further investigation here.
                         auto rc =
                                 syscall(SYS_futex, &wakeup_count_, FUTEX_WAIT_PRIVATE, 0, 0, 0, 0);
-                        ABEL_PCHECK(rc == 0 || errno == EAGAIN);
+                        DCHECK(rc == 0 || errno == EAGAIN);
                     } while (wakeup_count_.load(std::memory_order_relaxed) == 0);
                 }
                 DCHECK_GT(wakeup_count_.load(std::memory_order_relaxed), 0);
@@ -350,7 +352,7 @@ namespace abel {
                 //ready_to_run_latency->Report(TscElapsed(rc->last_ready_tsc, ReadTsc()));
 
                 // It now belongs to the caller's scheduling group.
-                rc->scheduling_group = current();
+                rc->own_scheduling_group = current();
                 return rc;
             }
             return nullptr;
@@ -368,7 +370,7 @@ namespace abel {
 
             for (auto iter = start; iter != end; ++iter) {
                 (*iter)->state = fiber_state::Ready;
-                (*iter)->scheduling_group = this;
+                (*iter)->own_scheduling_group = this;
                 (*iter)->last_ready_tsc = tsc;
             }
             if (ABEL_UNLIKELY(!run_queue_.batch_push(start, end, false))) {
@@ -396,7 +398,7 @@ namespace abel {
                        "Master fiber should not be added to run queue.");
 
             fiber->state = fiber_state::Ready;
-            fiber->scheduling_group = this;
+            fiber->own_scheduling_group = this;
             fiber->last_ready_tsc = abel::time_now();
             if (scheduler_lock) {
                 scheduler_lock.unlock();

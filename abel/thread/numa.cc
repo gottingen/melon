@@ -10,6 +10,7 @@
 #if defined(ABEL_PLATFORM_LINUX)
 #include <sys/sysinfo.h>
 #include <syscall.h>
+#include <dlfcn.h>
 #endif
 
 #include <atomic>
@@ -328,7 +329,7 @@ namespace abel {
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
         auto rc = pthread_getaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-        ABEL_CHECK(rc == 0, "Cannot get thread affinity of thread [{}]: [{}] {}.",
+        DCHECK_MSG(rc == 0, "Cannot get thread affinity of thread [{}]: [{}] {}.",
                     reinterpret_cast<const void*>(pthread_self()), rc, strerror(rc));
 
         std::vector<int> result;
@@ -348,7 +349,7 @@ namespace abel {
 #if defined(ABEL_PLATFORM_LINUX)
         auto rc = pthread_setname_np(pthread_self(), name.c_str());
         if (rc != 0) {
-            ABEL_LOG_WARNING("Cannot set name for thread [{}]: [{}] {}",
+            DLOG_WARN("Cannot set name for thread [{}]: [{}] {}",
                               reinterpret_cast<const void*>(pthread_self()), rc,
                               strerror(rc));
             // Silently ignored.

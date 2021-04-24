@@ -204,9 +204,9 @@ namespace fiber_internal {
                             waitable_timer wt(abel::time_now() + Random(10) * abel::duration::milliseconds(1));
                             wt.wait();
                         });
-                f1->exit_barrier = get_ref_counted<exit_barrier>();
+                f1->ref_exit_barrier = get_ref_counted<exit_barrier>();
                 auto f2 = create_fiber_entity(sg.get(), GetParam(),
-                                            [&, wc = f1->exit_barrier] {
+                                            [&, wc = f1->ref_exit_barrier] {
                                                 wc->wait();
                                                 ++waited;
                                             });
@@ -234,13 +234,13 @@ namespace fiber_internal {
 
     void SleepyFiberProc(std::atomic<std::size_t> *leaving) {
         auto self = get_current_fiber_entity();
-        auto sg = self->scheduling_group;
+        auto sg = self->own_scheduling_group;
         std::unique_lock lk(self->scheduler_lock);
 
         auto timer_cb = [self](auto) {
             std::unique_lock lk(self->scheduler_lock);
             self->state = fiber_state::Ready;
-            self->scheduling_group->ready_fiber(self, std::move(lk));
+            self->own_scheduling_group->ready_fiber(self, std::move(lk));
         };
         auto timer_id =
                 SetTimerAt(sg, abel::time_now() + abel::duration::seconds(1) + Random(1000000) * abel::duration::microseconds(1), timer_cb);

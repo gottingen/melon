@@ -441,12 +441,12 @@ namespace abel {
                           "There's no point in waiting on an empty future pack..");
 
             struct Context {
-                promise<as_boxed_t<Ts>...> promise;
-                std::tuple<as_boxed_t<Ts>...> receivers{
+                promise<as_boxed_t<Ts>...> m_promise;
+                std::tuple<as_boxed_t<Ts>...> m_receivers{
                         abel::future_internal::detail::retrieve_boxed<as_boxed_t<Ts >>
                                 ()...
                 };
-                std::atomic<std::size_t> left{sizeof...(Ts)};
+                std::atomic<std::size_t> m_left{sizeof...(Ts)};
             };
             auto context = std::make_shared<Context>();
 
@@ -456,16 +456,16 @@ namespace abel {
                 std::move(future).then(
                         [context](
                                 as_boxed_t<std::remove_reference_t<decltype(future)>> boxed) {
-                            std::get<decltype(index)::value>(context->receivers) =
+                            std::get<decltype(index)::value>(context->m_receivers) =
                                     std::move(boxed);
-                            if (!--context->left) {
-                                context->promise.set_value(std::move(context->receivers)
+                            if (!--context->m_left) {
+                                context->m_promise.set_value(std::move(context->m_receivers)
                                 );
                             }
                         });
             }, futures...);
 
-            return context->promise.get_future();
+            return context->m_promise.get_future();
 
         }
 
@@ -476,32 +476,32 @@ namespace abel {
         }
 
         struct Context {
-            promise <C<boxed < Ts...>>> promise;
-            C <boxed<Ts...>> values;
-            std::atomic<std::size_t> left;
+            promise <C<boxed < Ts...>>> m_promise;
+            C <boxed<Ts...>> m_values;
+            std::atomic<std::size_t> m_left;
         };
         auto context = std::make_shared<Context>();
 
         // We cannot inline the initialization in `Context` as `futures.size()`
         // is not constant.
-        context->values.reserve(futures.size());
-        context->left = futures.size();
+        context->m_values.reserve(futures.size());
+        context->m_left = futures.size();
         for (std::size_t index = 0;index != futures.size();++index) {
-            context->values.emplace_back (abel::future_internal::detail::retrieve_boxed<boxed < Ts...>>());
+            context->m_values.emplace_back (abel::future_internal::detail::retrieve_boxed<boxed < Ts...>>());
 
         }
 
         for (std::size_t index = 0;index != futures.size();++index) {
             std::move(futures[index]).then([index, context](boxed<Ts...> boxed) mutable {
-                context->values[index] = std::move(boxed);
+                context->m_values[index] = std::move(boxed);
 
-            if (!--context->left) {
-                context->promise.set_value(std::move(context->values));
+            if (!--context->m_left) {
+                context->m_promise.set_value(std::move(context->m_values));
             }
             });
         }
 
-        return context->promise.get_future();
+        return context->m_promise.get_future();
     }
 
     template<template<class...> class C, class... Ts, class R>
@@ -528,21 +528,21 @@ namespace abel {
                "define what does 'wait for a single object in an "
                "empty collection' mean.");
         struct Context {
-            promise <std::size_t, boxed<Ts...>> promise;
-            std::atomic<bool> ever_satisfied{};
+            promise <std::size_t, boxed<Ts...>> m_promise;
+            std::atomic<bool> m_ever_satisfied{};
         };
         auto context = std::make_shared<Context>();
 
         for (std::size_t index = 0; index != futures.size(); ++index) {
             std::move(futures[index]).then([index, context](boxed<Ts...> boxed) {
-                if (!context->ever_satisfied.exchange(true)) {
+                if (!context->m_ever_satisfied.exchange(true)) {
                     // We're the first `future` satisfied.
-                    context->promise.set_value(index, std::move(boxed));
+                    context->m_promise.set_value(index, std::move(boxed));
                 }
             });
         }
 
-        return context->promise.get_future();
+        return context->m_promise.get_future();
 
     }
 
