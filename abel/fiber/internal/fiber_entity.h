@@ -134,7 +134,7 @@ namespace abel {
             //
             // `waitable`s always schedule fibers that should be woken to the scheduling
             // group specified here.
-            scheduling_group *scheduling_group;
+            scheduling_group *own_scheduling_group;
 
             // When swapped out, fiber's context is saved here (top of the stack).
             void *state_save_area;
@@ -158,7 +158,7 @@ namespace abel {
             // Note that for perf. reasons, this one need to be filled by the fiber
             // creator (out of `create_fiber_entity`) before adding the fiber into run
             // queue, if the caller indeed wants to join on the fiber.
-            ref_ptr<exit_barrier> exit_barrier;
+            ref_ptr<exit_barrier> ref_exit_barrier;
 
             // Fiber local variables stored inline.
             erased_ptr inline_fls[kInlineLocalStorageSlots];

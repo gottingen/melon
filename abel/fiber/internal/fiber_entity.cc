@@ -103,7 +103,7 @@ namespace abel {
             // programming mistake.
 
             // Let's see if there will be someone who will be waiting on us.
-            if (!self->exit_barrier) {
+            if (!self->ref_exit_barrier) {
                 // Mark the fiber as dead. This prevent our GDB plugin from listing this
                 // fiber out.
                 self->state = fiber_state::Dead;
@@ -123,7 +123,7 @@ namespace abel {
                 // callback passed to `ResumeOn()`) run on master fiber.
                 //
                 // CAUTION: WE CAN TRIGGER RESCHEDULING HERE.
-                auto ebl = self->exit_barrier->GrabLock();
+                auto ebl = self->ref_exit_barrier->GrabLock();
 
                 // Must be done after `GrabLock()`, as `GrabLock()` is self may trigger
                 // rescheduling.
@@ -138,7 +138,7 @@ namespace abel {
                 get_master_fiber_entity()->resume_on([self, lk = std::move(ebl)]() mutable {
                     // The `exit_barrier` is move out so as to free `self` (the stack)
                     // earlier. Stack resource is precious.
-                    auto eb = std::move(self->exit_barrier);
+                    auto eb = std::move(self->ref_exit_barrier);
 
                     // Because no one else if referring `self` (see comments above), we're
                     // safe to free it here.
@@ -193,7 +193,7 @@ namespace abel {
             master_fiber_impl.state = fiber_state::Running;
             master_fiber_impl.stack_size = 0;
 
-            master_fiber_impl.scheduling_group = scheduling_group::current();
+            master_fiber_impl.own_scheduling_group = scheduling_group::current();
 
 #ifdef ABEL_INTERNAL_USE_ASAN
             std::tie(master_fiber_impl.asan_stack_bottom,
@@ -240,7 +240,7 @@ namespace abel {
                     fiber_make_context(fiber->get_stack_top(), fiber->get_stack_limit(), reinterpret_cast<void(*)(intptr_t)>(fiber_proc));
 
             //abel_fiber_set_target(&fiber->context, stack,  fiber->get_stack_limit() - kFiberStackReservedSize, fiber_proc, fiber);
-            fiber->scheduling_group = sg;
+            fiber->own_scheduling_group = sg;
             fiber->start_proc = std::move(start_proc);
             fiber->state = fiber_state::Ready;
 
