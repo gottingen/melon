@@ -27,7 +27,7 @@
 #include <type_traits>
 
 #ifdef __SSE4_2__
-// TODO(jorg): Remove this when we figure out the right way
+// TODO(yinbinli): Remove this when we figure out the right way
 // to swap bytes on SSE 4.2 that works with the compilers
 // we claim to support.  Also, add tests for the compiler
 // that doesn't support the Intel _bswap64 intrinsic but
@@ -151,7 +151,7 @@ template<typename int_type>
 char *fast_int_to_buffer(int_type i, char *buffer) {
     static_assert(sizeof(i) <= 64 / 8,
                   "fast_int_to_buffer works only with 64-bit-or-less integers.");
-    // TODO(jorg): This signed-ness check is used because it works correctly
+    // TODO(yinbinli): This signed-ness check is used because it works correctly
     // with enums, and it also serves to check that int_type is not a pointer.
     // If one day something like std::is_signed<enum E> works, switch to it.
     if (static_cast<int_type>(1) - 2 < 0) {  // Signed
@@ -179,7 +179,7 @@ ABEL_MUST_USE_RESULT bool safe_strtoi_base(std::string_view s, int_type *out,
     static_assert(!std::is_floating_point<int_type>::value,
                   "Use simple_atof or simple_atod instead.");
     bool parsed;
-    // TODO(jorg): This signed-ness check is used because it works correctly
+    // TODO(yinbinli): This signed-ness check is used because it works correctly
     // with enums, and it also serves to check that int_type is not a pointer.
     // If one day something like std::is_signed<enum E> works, switch to it.
     if (static_cast<int_type>(1) - 2 < 0) {  // Signed
