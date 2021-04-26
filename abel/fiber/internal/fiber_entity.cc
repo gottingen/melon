@@ -22,10 +22,7 @@
 #include "abel/fiber/internal/scheduling_group.h"
 #include "abel/fiber/internal/stack_allocator.h"
 #include "abel/fiber/internal/waitable.h"
-#include "gflags/gflags.h"
-
-
-DECLARE_int32(fiber_stack_size);
+#include "abel/fiber/fiber_config.h"
 
 
 namespace abel {
@@ -223,7 +220,7 @@ namespace abel {
                                        abel::function<void()> &&start_proc) noexcept {
             auto stack = system_fiber ? create_system_stack() : create_user_stack();
             auto stack_size =
-                    system_fiber ? kSystemStackSize : FLAGS_fiber_stack_size;
+                    system_fiber ? kSystemStackSize : fiber_config::get_global_fiber_config().fiber_stack_size;
             auto bottom = reinterpret_cast<char *>(stack) + stack_size;
             // `fiber_entity` (and magic) is stored at the stack bottom.
             auto ptr = bottom - kFiberStackReservedSize;
@@ -286,7 +283,7 @@ namespace abel {
             fiber->~fiber_entity();
 
             auto p = reinterpret_cast<char *>(fiber) + kFiberStackReservedSize -
-                     (system_fiber ? kSystemStackSize : FLAGS_fiber_stack_size);
+                     (system_fiber ? kSystemStackSize : fiber_config::get_global_fiber_config().fiber_stack_size);
             if (system_fiber) {
                 free_system_stack(p);
             } else {

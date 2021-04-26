@@ -6,15 +6,43 @@
 #define ABEL_FIBER_FIBER_CONFIG_H_
 
 #include <memory>
+#include <string>
+
 #include "abel/functional/function.h"
 #include "abel/thread/thread.h"
 
 namespace abel {
     struct fiber_config {
 
-        uint32_t workers_per_group;
+        uint32_t scheduling_group_size{16};
 
-        uint32_t groups;
+        uint32_t groups{2};
+
+        bool numa_aware{false};
+
+        int32_t work_stealing_ratio{16};
+
+        int32_t concurrency_hint{0};
+
+        int32_t fiber_stack_size{131072};
+
+        bool fiber_stack_enable_guard_page{true};
+
+        std::string fiber_worker_accessible_cpus{""};
+
+        std::string fiber_worker_inaccessible_cpus{""};
+
+        bool fiber_worker_disallow_cpu_migration{false};
+
+        bool ignore_inaccessible_cpus{true};
+
+        int32_t cross_numa_work_stealing_ratio{0};
+
+        std::string fiber_scheduling_optimize_for{""};
+
+        int32_t fiber_run_queue_size{65536};
+
+        static fiber_config& get_global_fiber_config();
 
         std::shared_ptr<abel::core_affinity::affinity_policy> policy;
 

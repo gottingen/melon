@@ -9,7 +9,6 @@
 #include <thread>
 #include <vector>
 
-#include "gflags/gflags.h"
 #include "gtest/gtest.h"
 #include "abel/chrono/clock.h"
 #include "abel/base/random.h"

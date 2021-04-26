@@ -9,22 +9,21 @@
 #include <thread>
 #include <vector>
 
-#include "gflags/gflags.h"
 #include "gtest/gtest.h"
 
 #include "abel/base/random.h"
 #include "testing/fiber.h"
 #include "abel/fiber/fiber.h"
 #include "abel/fiber/this_fiber.h"
+#include "abel/fiber/fiber_config.h"
 
 using namespace std::literals;
 
-DECLARE_bool(fiber_stack_enable_guard_page);
 
 namespace abel {
 
     TEST(ThisFiber, fiber_yield) {
-        FLAGS_fiber_stack_enable_guard_page = false;
+        fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page = false;
 
         testing::run_as_fiber([] {
             for (int k = 0; k != 10; ++k) {

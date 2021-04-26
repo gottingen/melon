@@ -9,7 +9,6 @@
 #include <thread>
 #include <vector>
 
-#include "gflags/gflags.h"
 #include "gtest/gtest.h"
 
 #include "abel/thread/numa.h"
@@ -18,10 +17,7 @@
 #include "abel/fiber/fiber_latch.h"
 #include "abel/fiber/runtime.h"
 #include "abel/fiber/this_fiber.h"
-
-DECLARE_bool(fiber_stack_enable_guard_page);
-DECLARE_int32(cross_numa_work_stealing_ratio);
-DECLARE_int32(fiber_run_queue_size);
+#include "abel/fiber/fiber_config.h"
 
 using namespace std::literals;
 
@@ -46,8 +42,8 @@ namespace abel {
     }  // namespace
 
     TEST(fiber, StartWithDispatch) {
-        FLAGS_fiber_stack_enable_guard_page = false;
-        FLAGS_fiber_run_queue_size = 1048576;
+        fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page = false;
+        fiber_config::get_global_fiber_config().fiber_run_queue_size = 1048576;
 
         run_as_fiber([] {
             for (int k = 0; k != 10; ++k) {
@@ -81,8 +77,8 @@ namespace abel {
     }
 
     TEST(fiber, SchedulingGroupLocal) {
-        FLAGS_fiber_stack_enable_guard_page = false;
-        FLAGS_fiber_run_queue_size = 1048576;
+        fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page = false;
+        fiber_config::get_global_fiber_config().fiber_run_queue_size = 1048576;
 
         run_as_fiber([] {
             constexpr auto N = 10000;
@@ -135,8 +131,8 @@ namespace abel {
             DLOG_INFO("Non-NUMA system, ignored.");
             return;
         }
-        FLAGS_fiber_stack_enable_guard_page = false;
-        FLAGS_cross_numa_work_stealing_ratio = 1;
+        fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page = false;
+        fiber_config::get_global_fiber_config().cross_numa_work_stealing_ratio = 1;
 
         run_as_fiber([] {
             std::atomic<bool> stealing_happened{};

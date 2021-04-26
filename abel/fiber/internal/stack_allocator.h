@@ -9,18 +9,17 @@
 #include <limits>
 #include <utility>
 
-#include "gflags/gflags.h"
 #include "abel/memory/object_pool.h"
 #include "abel/log/logging.h"
+#include "abel/fiber/fiber_config.h"
 
-DECLARE_int32(fiber_stack_size);
 
 namespace abel {
 namespace fiber_internal {
     // Here we define two types of stacks:
     //
     // - User stack: Where user's code will be running on. Its size can be
-    //   controlled by `FLAGS_fiber_stack_size`. It's also possible to enable
+    //   controlled by `fiber_config::fiber_stack_size`. It's also possible to enable
     //   guard page (as by default) for this type of stacks.
     //
     //   However, creating such a stack does incur some overhead:
@@ -89,7 +88,7 @@ namespace abel {
 #ifdef ABEL_INTERNAL_USE_ASAN
             // Poisoned immediately. It's un-poisoned prior to use.
     abel::asan::poison_memory_region(ptr,
-                                              FLAGS_fiber_stack_size);
+                                              fiber_config::get_global_fiber_config().fiber_stack_size);
 #endif
 
             return ptr;
@@ -100,7 +99,7 @@ namespace abel {
             // Un-poisoned prior to free so as not to interference with other
     // allocations.
     abel::asan::UnpoisonMemoryRegion(ptr,
-                                                FLAGS_fiber_stack_size);
+                                                fiber_config::get_global_fiber_config().fiber_stack_size);
 #endif
 
             destroy_user_stack_impl(ptr);
@@ -114,12 +113,12 @@ namespace abel {
         // The stack is not "unpoison"-ed (if ASAN is in use) on get and re-poisoned
   // on put. This helps us to detect use-after-free of the stack as well.
   static void OnGet(user_stack* ptr) {
-    abel::asan::UnpoisonMemoryRegion(ptr, FLAGS_fiber_stack_size.get());
+    abel::asan::UnpoisonMemoryRegion(ptr, fiber_config::get_global_fiber_config().fiber_stack_size.get());
   }
 
   static void OnPut(user_stack* ptr) {
     abel::asan::poison_memory_region(ptr,
-                                              FLAGS_fiber_stack_size.get());
+                                              fiber_config::get_global_fiber_config().fiber_stack_size.get());
   }
 
 #endif
@@ -239,7 +238,7 @@ namespace abel {
 namespace abel {
     namespace fiber_internal {
 
-        // Allocate a memory block of size `FLAGS_fiber_stack_size`.
+        // Allocate a memory block of size `fiber_config::fiber_stack_size`.
         //
         // The result points to the top of the stack (lowest address).
         inline void* create_user_stack() { return object_pool::get<abel::fiber_internal::user_stack>().leak(); }

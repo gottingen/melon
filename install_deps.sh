@@ -17,10 +17,3 @@ unzip gtest.zip
 cd googletest-1.10.x
 cmake . -DCMAKE_INSTALL_PREFIX=${install_root}
 make install
-
-
-cd ${download_root}
-unzip gflags.zip
-cd gflags-master
-cmake .  -DCMAKE_INSTALL_PREFIX=${install_root}
-make install

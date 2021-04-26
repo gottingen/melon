@@ -25,14 +25,14 @@
 #include "abel/container/flat_hash_set.h"
 #include "abel/strings/numbers.h"
 #include "abel/base/profile.h"
-#include "gflags/gflags.h"
 
+/*
 DEFINE_bool(ignore_inaccessible_cpus, true,
           "During enumerating CPUs, in case there are CPU(s) to which we "
           "cannot bind our pthread workers, this flag controls the action we "
           "take. [DEPRECATED: This flag is no longer respected, and abel "
           "will always behaves as if the flag is set.].");
-
+*/
 namespace abel {
 
 

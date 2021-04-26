@@ -7,7 +7,6 @@ list(APPEND TEST_LINKS
         "gtest::gtest"
         "gmock::gmock"
         "abel::abel"
-        "gflags"
         )
 list(APPEND TEST_LINKS ${ABEL_DYLINKS})
 

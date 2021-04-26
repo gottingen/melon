@@ -7,7 +7,7 @@
 namespace abel {
 
     fiber_config & fiber_config::set_worker_num(uint32_t n) {
-        workers_per_group = n;
+        scheduling_group_size = n;
         return *this;
     }
 
@@ -18,9 +18,14 @@ namespace abel {
 
     fiber_config fiber_config::all_cores() {
         fiber_config cfg;
-        cfg.workers_per_group = core_affinity::num_logical_cores()/2;
+        cfg.scheduling_group_size = core_affinity::num_logical_cores()/2;
         cfg.groups = 2;
         cfg.policy = abel::core_affinity::affinity_policy::any_of(abel::core_affinity::all());
         return cfg;
+    }
+
+    fiber_config& fiber_config::get_global_fiber_config() {
+        static fiber_config conf;
+        return conf;
     }
 }  // namespace abel

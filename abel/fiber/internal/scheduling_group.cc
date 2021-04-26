@@ -17,8 +17,6 @@
 #include <string>
 #include <thread>
 
-#include "gflags/gflags.h"
-
 #include "abel/base/profile.h"
 #include "abel/functional/function.h"
 #include "abel/base/annotation.h"
@@ -29,6 +27,7 @@
 #include "abel/fiber/internal/fiber_entity.h"
 #include "abel/fiber/internal/timer_worker.h"
 #include "abel/fiber/internal/waitable.h"
+#include "abel/fiber/fiber_config.h"
 
 using namespace std::literals;
 
@@ -36,10 +35,11 @@ using namespace std::literals;
 // a limit on maximum alive (not only runnable) fibers in the process.
 //
 // @sa: `StackAllocator` for more details.
+/*
 DEFINE_int32( fiber_run_queue_size, 65536,
           "Maximum runnable fibers per scheduling group. This value must be "
           "a power of 2.");
-
+*/
 namespace abel {
     namespace fiber_internal {
 //
@@ -176,7 +176,7 @@ namespace abel {
                                            std::size_t size)
                 : group_size_(size),
                   affinity_(affinity),
-                  run_queue_(FLAGS_fiber_run_queue_size) {
+                  run_queue_(fiber_config::get_global_fiber_config().fiber_run_queue_size) {
             // We use bitmask (a `std::uint64_t`) to save workers' state. That puts an
             // upper limit on how many workers can be in a given scheduling group.
             DCHECK_MSG(group_size_ <= 64,

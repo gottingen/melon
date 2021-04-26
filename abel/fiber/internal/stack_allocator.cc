@@ -17,10 +17,9 @@
 #include "abel/functional/function.h"
 #include "abel/memory/non_destroy.h"
 #include "abel/memory/object_pool.h"
-#include "gflags/gflags.h"
 
 using namespace std::literals;
-
+/*
 // Both of the following flag affect user stack only.
 DEFINE_int32(fiber_stack_size,
 131072,
@@ -35,7 +34,7 @@ true,
 "crash the program. The aforementioned limit can be increased via "
 "`vm.max_map_count`. For the moment this flag cannot be changed "
 "dynamically, or you'll mess up with the virtual space.");
-
+*/
 namespace abel {
     namespace fiber_internal {
 
@@ -150,16 +149,16 @@ namespace abel {
         // variable easy in GDB plugin.
 
         inline std::size_t GetBias() {
-            return FLAGS_fiber_stack_enable_guard_page ? kPageSize : 0;
+            return fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page ? kPageSize : 0;
         }
 
         inline std::size_t GetAllocationSize() {
             // `DEFINE_validator` is not supported by our gflags, unfortunately.
-            DCHECK_MSG(FLAGS_fiber_stack_size % kPageSize == 0,
+            DCHECK_MSG(fiber_config::get_global_fiber_config().fiber_stack_size % kPageSize == 0,
                         "user_stack size ({}) must be a multiple of page size ({}).",
-                        FLAGS_fiber_stack_size, kPageSize);
+                       fiber_config::get_global_fiber_config().fiber_stack_size, kPageSize);
 
-            return FLAGS_fiber_stack_size + GetBias();
+            return fiber_config::get_global_fiber_config().fiber_stack_size + GetBias();
         }
 
         user_stack *create_user_stack_impl() {
@@ -167,7 +166,7 @@ namespace abel {
                           MAP_PRIVATE | MAP_ANONYMOUS /*| MAP_STACK*/, 0, 0);
             DLOG_IF_CRITICAL(p == nullptr, "{}", kOutOfMemoryError);
             DCHECK_EQ(reinterpret_cast<std::uintptr_t>(p) % kPageSize, 0);
-            if (FLAGS_fiber_stack_enable_guard_page) {
+            if (fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page) {
                 DLOG_IF_CRITICAL(mprotect(p, kPageSize, PROT_NONE) != 0, "{}",
                                    kOutOfMemoryError);
             }
@@ -175,7 +174,7 @@ namespace abel {
             // Actual start (lowest address) of the stack.
             auto stack = reinterpret_cast<char *>(p) + GetBias();
             // One byte past the stack region.
-            auto stack_bottom = stack + FLAGS_fiber_stack_size;
+            auto stack_bottom = stack + fiber_config::get_global_fiber_config().fiber_stack_size;
 
             // Register the stack.
             stack_registry.RegisterStack(stack_bottom);
@@ -189,7 +188,7 @@ namespace abel {
 
             // Remove the stack from our registry.
             auto stack_bottom =
-                    reinterpret_cast<char *>(ptr) + FLAGS_fiber_stack_size;
+                    reinterpret_cast<char *>(ptr) + fiber_config::get_global_fiber_config().fiber_stack_size;
             stack_registry.DeregisterStack(stack_bottom);
 
             //ABEL_PCHECK(munmap(reinterpret_cast<char *>(ptr) - GetBias(),

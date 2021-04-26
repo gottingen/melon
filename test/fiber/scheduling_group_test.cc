@@ -7,7 +7,6 @@
 #include <string>
 #include <thread>
 
-#include "gflags/gflags.h"
 #include "gtest/gtest.h"
 
 #include "abel/base/random.h"
@@ -15,8 +14,8 @@
 #include "testing/fiber.h"
 #include "abel/fiber/internal/timer_worker.h"
 #include "abel/fiber/internal/waitable.h"
+#include "abel/fiber/fiber_config.h"
 
-DECLARE_int32(fiber_run_queue_size);
 
 using namespace std::literals;
 
@@ -106,7 +105,7 @@ namespace fiber_internal {
         context.executed_fibers = 0;
         context.yields = 0;
 
-        FLAGS_fiber_run_queue_size = 262144 ;
+        fiber_config::get_global_fiber_config().fiber_run_queue_size = 262144 ;
 
         static const auto N = GetMaxFibers();
         DLOG_INFO("Starting {} fibers.", N);
@@ -182,7 +181,7 @@ namespace fiber_internal {
 
     TEST_P(SystemFiberOrNot, WaitForFiberExit) {
 
-        FLAGS_fiber_run_queue_size = 262144;
+        fiber_config::get_global_fiber_config().fiber_run_queue_size = 262144;
 
         auto sg =
                 std::make_unique<scheduling_group>(core_affinity(), 16);

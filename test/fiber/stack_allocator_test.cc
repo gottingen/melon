@@ -7,12 +7,9 @@
 
 #include <unistd.h>
 #include "gtest/gtest.h"
-#include "gflags/gflags.h"
 #include "abel/base/annotation.h"
 #include "abel/log/logging.h"
 
-
-DECLARE_int32(fiber_stack_size);
 
 namespace abel {
     namespace fiber_internal {
@@ -37,7 +34,7 @@ namespace abel {
             auto stack = create_user_stack();
             ASSERT_TRUE(stack);
             memset(stack,
-                   0, FLAGS_fiber_stack_size);
+                   0, fiber_config::get_global_fiber_config().fiber_stack_size);
             free_user_stack(stack);
         }
 
