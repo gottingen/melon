@@ -203,7 +203,7 @@ namespace abel {
 // only be extended by adding `abel_hash_value()` overloads.
 //
 template<typename T>
-using hash = abel::hash_internal::hash<T>;
+using hash = abel::hash_internal::city_hash<T>;
 
 // hash_state
 //
