@@ -24,74 +24,7 @@
 #include "abel/strings/case_conv.h"
 #include "abel/fiber/fiber_config.h"
 
-/*
 
-DEFINE_int32(
-        concurrency_hint, 0,
-        "Hint to how many threads should be started to run fibers. abel may "
-        "adjust this value when it deems fit. The default is `nproc()`.");
-DEFINE_int32(scheduling_group_size, 16,
-             "Internally abel divides worker threads into groups, and tries "
-             "to avoid sharing between them. This option controls group size "
-             "of workers. Setting it too small may result in unbalanced "
-             "workload, setting it too large can hurt overall scalability.");
-DEFINE_bool(numa_aware, false,
-            "If set, abel allocates (binds) worker threads (in group) to CPU "
-            "nodes. Otherwise it's up to OS's scheduler to determine which "
-            "worker thread should run on which CPU (/node).");
-DEFINE_string(fiber_worker_accessible_cpus, "",
-              "If set, fiber workers only use CPUs given. CPUs are specified "
-              "in range or CPU IDs, e.g.: 0-10,11,12. Negative CPU IDs can be "
-              "used to specify CPU IDs in opposite order (e.g., -1 means the "
-              "last CPU.). Negative IDs can only be specified individually due "
-              "to difficulty in parse. This option may not be used in "
-              "conjuction with `fiber_worker_inaccessible_cpus`.");
-DEFINE_string(
-        fiber_worker_inaccessible_cpus, "",
-        "If set, fiber workers use CPUs that are NOT listed here. Both CPU ID "
-        "ranges or individual IDs are recognized. This option may not be used in "
-        "conjuction with `fiber_worker_accessible_cpus`. CPUs that are not "
-        "accessible to us due to thread affinity or other resource contraints are "
-        "also respected when this option is used, you don't have to (yet, not "
-        "prohibited to) specify them in the list. ");
-DEFINE_bool(
-        fiber_worker_disallow_cpu_migration, false,
-        "If set, each fiber worker is bound to exactly one CPU core, and each core "
-        "is dedicated to exactly one fiber worker. `concurrency_hint` (if "
-        "set) must be equal to the number of CPUs in the system (or in case "
-        "`fiber_worker_accessible_cpus` is set as well, the number of CPUs "
-        "accessible to fiber worker.). Incorrect use of this option can actually "
-        "hurt performance.");
-DEFINE_int32(work_stealing_ratio, 16,
-             "Reciprocal of ratio for stealing job from other scheduling "
-             "groups in same NUMA domain. Note that if multiple \"foreign\" "
-             "scheduling groups present, the actual work stealing ratio is "
-             "multiplied by foreign scheduling group count.");
-DEFINE_string(
-        fiber_scheduling_optimize_for, "neutral",
-        "This option controls for which use case should fiber scheduling parameter "
-        "optimized for. The valid choices are 'compute-heavy', 'compute', "
-        "'neutral', 'io', 'io-heavy', 'customized'. Optimize for computation if "
-        "your workloads tend to run long (without triggering fiber scheduling), "
-        "optimize for I/O if your workloads run quickly or triggers fiber "
-        "scheduling often. If none of the predefine optimization profile suits "
-        "your needs, use `customized` and specify "
-        "`scheduling_parameters.workers_per_group` "
-        "and `numa_aware` with your own choice.");
-
-// In our test, cross-NUMA work stealing hurts performance.
-//
-// The performance hurt comes from multiple aspects, notably the imbalance in
-// shared pool of `MemoryNodeShared` object pool.
-//
-// Therefore, by default, we disables cross-NUMA work stealing completely.
-DEFINE_int32(cross_numa_work_stealing_ratio, 0,
-             "Same as `work_stealing_ratio`, but applied to stealing "
-             "work from scheduling groups belonging to different NUMA domain. "
-             "Setting it to 0 disables stealing job cross NUMA domain. Blindly "
-             "enabling this options can actually hurt performance. You should "
-             "do thorough test before changing this option.");
-*/
 namespace abel {
 
     namespace {

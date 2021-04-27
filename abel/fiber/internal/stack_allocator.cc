@@ -19,22 +19,7 @@
 #include "abel/memory/object_pool.h"
 
 using namespace std::literals;
-/*
-// Both of the following flag affect user stack only.
-DEFINE_int32(fiber_stack_size,
-131072,
-"Fiber stack size, in bytes. For the moment this flag cannot be "
-"changed dynamically, or you'll mess up with the virtual space.");
-DEFINE_bool( fiber_stack_enable_guard_page,
-true,
-"Place a guard page below each fiber stack. This reduce stack size "
-"by a page. Note that by default Linux expose a 64K limit on the "
-"number of total memory regions, therefore in case there are too "
-"many active fibers, enabling this option may reach that limit and "
-"crash the program. The aforementioned limit can be increased via "
-"`vm.max_map_count`. For the moment this flag cannot be changed "
-"dynamically, or you'll mess up with the virtual space.");
-*/
+
 namespace abel {
     namespace fiber_internal {
 
