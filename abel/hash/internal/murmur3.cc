@@ -31,7 +31,7 @@
 #include <stddef.h>  // size_t
 #include <string.h>  // memcpy
 #include <algorithm> // std::min
-#include "abel/hash/murmur3.h"
+#include "abel/hash/internal/murmur3.h"
 
 // Too many fallthroughs in this file to mark, just ignore the warning.
 #if defined(__GNUC__) && __GNUC__ >= 7

@@ -2,7 +2,7 @@
 // Created by liyinbin on 2021/4/15.
 //
 
-#include "abel/hash/spooky_hash_v2.h"
+#include "abel/hash/internal/spooky_hash_v2.h"
 #include "abel/base/profile.h"
 #include <cstring>
 
