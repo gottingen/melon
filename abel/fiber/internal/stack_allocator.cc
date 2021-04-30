@@ -138,7 +138,6 @@ namespace abel {
         }
 
         inline std::size_t GetAllocationSize() {
-            // `DEFINE_validator` is not supported by our gflags, unfortunately.
             DCHECK_MSG(fiber_config::get_global_fiber_config().fiber_stack_size % kPageSize == 0,
                         "user_stack size ({}) must be a multiple of page size ({}).",
                        fiber_config::get_global_fiber_config().fiber_stack_size, kPageSize);

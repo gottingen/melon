@@ -44,6 +44,15 @@ namespace abel {
                 EXPECT_THAT(hs, UnorderedElementsAreArray(v));
             }
 
+
+            TEST(FlatHashSet, ignore_case) {
+                std::vector<std::string> v = {"a", "B"};
+                abel::ignore_case_flat_hash_set hs(v.begin(), v.end());
+                EXPECT_EQ(hs.contains("a"), true);
+                EXPECT_EQ(hs.contains("A"), true);
+                EXPECT_EQ(hs.contains("B"), true);
+            }
+
             TEST(FlatHashSet, BitfieldArgument) {
                 union {
                     int n : 1;

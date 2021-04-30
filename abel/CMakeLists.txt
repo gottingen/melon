@@ -7,9 +7,12 @@ FILE(GLOB UTILITY_SRC "utility/*.cc")
 FILE(GLOB BASE_SRC "base/*.cc")
 FILE(GLOB LOG_SRC "log/*.cc")
 FILE(GLOB IO_SRC "io/*.cc")
+FILE(GLOB IO_INTERNAL_SRC "io/internal/*.cc")
 
 FILE(GLOB NUMERIC_SRC "numeric/*.cc")
 FILE(GLOB MEM_SRC "memory/*.cc")
+
+FILE(GLOB NET_SRC "net/*.cc")
 
 
 FILE(GLOB HARDWARE_SRC "hardware/*.cc")
@@ -50,8 +53,10 @@ SET(ABEL_SRC
         ${NUMERIC_SRC}
         ${HASH_SRC}
         ${BASE_SRC}
+        ${NET_SRC}
         ${LOG_SRC}
         ${IO_SRC}
+        ${IO_INTERNAL_SRC}
         ${FIBER_INTERNAL_SRC}
         ${FIBER_SRC}
         ${UTILITY_SRC}
