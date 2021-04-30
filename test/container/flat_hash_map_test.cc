@@ -201,7 +201,13 @@ namespace abel {
                 m.at(n);
                 m[n];
             }
-
+            TEST(FlatHashMap, ignore_case) {
+                abel::ignore_case_flat_hash_map<int> fm;
+                fm["Abc"] = 1;
+                EXPECT_EQ(fm["abc"] , 1);
+                EXPECT_EQ(fm["aBc"] , 1);
+                EXPECT_EQ(fm["ABC"] , 1);
+            }
             TEST(FlatHashMap, MergeExtractInsert) {
                 // We can't test mutable keys, or non-copyable keys with flat_hash_map.
                 // Test that the nodes have the proper API.
