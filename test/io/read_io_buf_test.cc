@@ -129,4 +129,4 @@ namespace abel {
 #endif
     }
 
-}  // namespace flare::io::detail
+}  // namespace abel
