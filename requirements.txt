@@ -1,1 +1,1 @@
-git.code.oa.com:cpp_infra/googletest@v1.10.x
+gottingen/googletest@v1.10.x

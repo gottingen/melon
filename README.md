@@ -59,9 +59,9 @@ compiler requirement
 build step
 
 abel dependency managed by carbin flow, first need install carbin to install 
-depends by [carbin](https://git.code.oa.com/cpp_infra/carbin) 
+depends by [carbin](https://github/gottingen/carbin) 
 ```shell
-    $ git git@git.code.oa.com:cpp_infra/abel.git
+    $ git github.com/gottingen/abel.git
     $ cd abel
     $ carbin install
     $ mkdir build
