@@ -123,7 +123,7 @@ namespace abel {
                     result.resize(result.find('\x00'));
                     return result;
                 }
-                    /*
+#if defined(ABEL_PLATFORM_LINUX)
                     case AF_UNIX: {
                         auto p = reinterpret_cast<const sockaddr_un*>(addr);
                         if (p->sun_path[0] == '\0' && p->sun_path[1] != '\0') {
@@ -132,9 +132,10 @@ namespace abel {
                             return p->sun_path;
                         }
                     }
-                     */
+#endif
+
                 default: {
-                    return abel::format("TODO: Endpoint::ToString() for AF #{}.", af);
+                    return abel::format("TODO: end_point::to_string() for AF #{}.", af);
                 }
             }
         }
