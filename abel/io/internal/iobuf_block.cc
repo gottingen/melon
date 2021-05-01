@@ -39,8 +39,6 @@ namespace abel {
                                  abel::object_pool::get<FixedNativeBufferBlock<kSize>>().leak());
         }
 
-        // We initialize this function with a default value so that UTs will always
-        // work, even without touching FLARE_TEST_MAIN.
         abel::ref_ptr<native_iobuf_block> (*make_native_buffer_block)() =
         MakeNativeBufferBlockOfBytes<4096>;
 
