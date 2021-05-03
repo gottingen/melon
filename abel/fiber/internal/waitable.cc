@@ -30,7 +30,7 @@ namespace abel {
                 ~async_waker() { DCHECK_MSG(timer_ == 0, "Have you called `Cleanup()`?"); }
 
                 // Set a timer to awake `self` once `expires_at` is reached.
-                void SetTimer(abel::time_point expires_at) {
+                void set_timer(abel::time_point expires_at) {
                     wait_cb_ = make_ref_counted<WaitCb>();
                     wait_cb_->waiter = self_;
 
@@ -270,7 +270,7 @@ namespace abel {
             DCHECK(impl_.add_waiter(&wb));
             if (use_timeout) {  // Set a timeout if needed.
                 awaker.init(sg, current, &wb);
-                awaker->SetTimer(expires_at);
+                awaker->set_timer(expires_at);
             }
 
             // Release user's lock.

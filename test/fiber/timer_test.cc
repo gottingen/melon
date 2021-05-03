@@ -18,18 +18,18 @@ namespace abel {
 
     auto one_mill = abel::duration::milliseconds(1);
 
-    TEST(Timer, SetTimer) {
+    TEST(Timer, set_timer) {
         testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<bool> done{};
-            auto timer_id = SetTimer(start + 100 *one_mill, [&](auto) {
+            auto timer_id = set_timer(start + 100 *one_mill, [&](auto) {
                 ASSERT_NEAR((abel::time_now() - start) / one_mill, 100 * one_mill / one_mill, 10);
                 done = true;
             });
             while (!done) {
                 abel::sleep_for(one_mill);
             }
-            KillTimer(timer_id);
+            stop_timer(timer_id);
         });
     }
 
@@ -37,7 +37,7 @@ namespace abel {
         testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<std::size_t> called{};
-            auto timer_id = SetTimer(start + 100* one_mill, 10 *one_mill, [&](auto) {
+            auto timer_id = set_timer(start + 100* one_mill, 10 *one_mill, [&](auto) {
                 ASSERT_NEAR((abel::time_now() - start) / one_mill,
                             (100 *one_mill + called.load() * 10 * one_mill) / one_mill, 10);
                 ++called;
@@ -45,19 +45,19 @@ namespace abel {
             while (called != 10) {
                 abel::sleep_for(one_mill);
             }
-            KillTimer(timer_id);
+            stop_timer(timer_id);
 
-            // It's possible that the timer callback is running when `KillTimer` is
+            // It's possible that the timer callback is running when `stop_timer` is
             // called, so wait for it to complete.
             abel::sleep_for(500 * one_mill);
         });
     }
 
-    TEST(Timer, TimerKiller) {
+    TEST(Timer, timer_killer) {
         testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<bool> done{};
-            TimerKiller killer(SetTimer(start + 100 * one_mill, [&](auto) {
+            timer_killer killer(set_timer(start + 100 * one_mill, [&](auto) {
                 ASSERT_NEAR((abel::time_now() - start) / one_mill, 100 * one_mill / one_mill, 10);
                 done = true;
             }));
@@ -68,11 +68,11 @@ namespace abel {
         });
     }
 
-    TEST(Timer, SetDetachedTimer) {
+    TEST(Timer, set_detached_timer) {
         testing::run_as_fiber([] {
             auto start = abel::time_now();
             std::atomic<bool> called{};
-            SetDetachedTimer(start + 100 * one_mill, [&]() {
+            set_detached_timer(start + 100 * one_mill, [&]() {
                 ASSERT_NEAR((abel::time_now() - start) / one_mill, 100 * one_mill / one_mill, 10);
                 called = true;
             });

@@ -17,19 +17,19 @@
 
 namespace abel {
 
-    std::uint64_t SetTimer(abel::time_point at,
-                           abel::function<void()>&& cb) {
-        return SetTimer(at, [cb = std::move(cb)](auto) { cb(); });
+    std::uint64_t set_timer(abel::time_point at,
+                            abel::function<void()> &&cb) {
+        return set_timer(at, [cb = std::move(cb)](auto) { cb(); });
     }
 
-    std::uint64_t SetTimer(abel::time_point at,
-                           abel::function<void(std::uint64_t)>&& cb) {
+    std::uint64_t set_timer(abel::time_point at,
+                            abel::function<void(std::uint64_t)> &&cb) {
         auto ec = ref_ptr(ref_ptr_v, fiber_context::current());
         auto mcb = [cb = std::move(cb), ec = std::move(ec)](auto timer_id) mutable {
             // Note that we're called in timer's worker thread, not in fiber
             // context. So fire a fiber to run user's code.
             fiber_internal::start_fiber_detached(
-                    fiber::attributes{.execution_context = ec.Get()},
+                    fiber::attributes{.execution_context = ec.get()},
                     [cb = std::move(cb), timer_id] { cb(timer_id); });
         };
 
@@ -39,15 +39,15 @@ namespace abel {
         return timer_id;
     }
 
-    std::uint64_t SetTimer(abel::time_point at,
-                           abel::duration interval,
-                           abel::function<void()>&& cb) {
-        return SetTimer(at, interval, [cb = std::move(cb)](auto) { cb(); });
+    std::uint64_t set_timer(abel::time_point at,
+                            abel::duration interval,
+                            abel::function<void()> &&cb) {
+        return set_timer(at, interval, [cb = std::move(cb)](auto) { cb(); });
     }
 
-    std::uint64_t SetTimer(abel::time_point at,
-                           abel::duration interval,
-                           abel::function<void(std::uint64_t)>&& cb) {
+    std::uint64_t set_timer(abel::time_point at,
+                            abel::duration interval,
+                            abel::function<void(std::uint64_t)> &&cb) {
         // This is ugly. But since we have to start a fiber each time user's `cb` is
         // called, we must share it.
         //
@@ -62,6 +62,7 @@ namespace abel {
                 // Otherwise this call is lost. This can happen if user's code runs too
                 // slowly. For the moment we left the behavior as unspecified.
             }
+
             abel::function<void(std::uint64_t)> cb;
             std::atomic<bool> running{};
         };
@@ -72,7 +73,7 @@ namespace abel {
 
         auto mcb = [ucb, ec = std::move(ec)](auto tid) mutable {
             fiber_internal::start_fiber_detached(
-                    fiber::attributes{.execution_context = ec.Get()},
+                    fiber::attributes{.execution_context = ec.get()},
                     [ucb, tid] { ucb->cb(tid); });
         };
 
@@ -82,14 +83,14 @@ namespace abel {
         return timer_id;
     }
 
-    std::uint64_t SetTimer(abel::duration interval,
-                           abel::function<void()>&& cb) {
-        return SetTimer(abel::time_now() + interval, interval, std::move(cb));
+    std::uint64_t set_timer(abel::duration interval,
+                            abel::function<void()> &&cb) {
+        return set_timer(abel::time_now() + interval, interval, std::move(cb));
     }
 
-    std::uint64_t SetTimer(abel::duration interval,
-                           abel::function<void(std::uint64_t)>&& cb) {
-        return SetTimer(abel::time_now() + interval, interval, std::move(cb));
+    std::uint64_t set_timer(abel::duration interval,
+                            abel::function<void(std::uint64_t)> &&cb) {
+        return set_timer(abel::time_now() + interval, interval, std::move(cb));
     }
 
     void detach_timer(std::uint64_t timer_id) {
@@ -97,69 +98,66 @@ namespace abel {
                 timer_id);
     }
 
-    void SetDetachedTimer(abel::time_point at,
-                          abel::function<void()>&& cb) {
-        detach_timer(SetTimer(at, std::move(cb)));
+    void set_detached_timer(abel::time_point at,
+                            abel::function<void()> &&cb) {
+        detach_timer(set_timer(at, std::move(cb)));
     }
 
-    void SetDetachedTimer(abel::time_point at,
-                          abel::duration interval,
-                          abel::function<void()>&& cb) {
-        detach_timer(SetTimer(at, interval, std::move(cb)));
+    void set_detached_timer(abel::time_point at,
+                            abel::duration interval,
+                            abel::function<void()> &&cb) {
+        detach_timer(set_timer(at, interval, std::move(cb)));
     }
 
-    void KillTimer(std::uint64_t timer_id) {
+    void stop_timer(std::uint64_t timer_id) {
         return fiber_internal::scheduling_group::get_timer_owner(timer_id)->remove_timer(
                 timer_id);
     }
 
-    TimerKiller::TimerKiller() = default;
+    timer_killer::timer_killer() = default;
 
-    TimerKiller::TimerKiller(std::uint64_t timer_id) : timer_id_(timer_id) {}
+    timer_killer::timer_killer(std::uint64_t timer_id) : timer_id_(timer_id) {}
 
-    TimerKiller::TimerKiller(TimerKiller&& tk) noexcept : timer_id_(tk.timer_id_) {
+    timer_killer::timer_killer(timer_killer &&tk) noexcept : timer_id_(tk.timer_id_) {
         tk.timer_id_ = 0;
     }
 
-    TimerKiller& TimerKiller::operator=(TimerKiller&& tk) noexcept {
-        Reset();
+    timer_killer &timer_killer::operator=(timer_killer &&tk) noexcept {
+        reset();
         timer_id_ = std::exchange(tk.timer_id_, 0);
         return *this;
     }
 
-    TimerKiller::~TimerKiller() { Reset(); }
+    timer_killer::~timer_killer() { reset(); }
 
-    void TimerKiller::Reset(std::uint64_t timer_id) {
+    void timer_killer::reset(std::uint64_t timer_id) {
         if (auto tid = std::exchange(timer_id_, 0)) {
-            KillTimer(tid);
+            stop_timer(tid);
         }
         timer_id_ = timer_id;
     }
 
-    namespace fiber_internal {
 
-        [[nodiscard]] std::uint64_t create_timer(
-                abel::time_point at,
-                abel::function<void(std::uint64_t)>&& cb) {
-            return fiber_internal::nearest_scheduling_group()->create_timer(at, std::move(cb));
-        }
+    [[nodiscard]] std::uint64_t create_worker_timer(
+            abel::time_point at,
+            abel::function<void(std::uint64_t)> &&cb) {
+        return fiber_internal::nearest_scheduling_group()->create_timer(at, std::move(cb));
+    }
 
-        [[nodiscard]] std::uint64_t create_timer(
-                abel::time_point at, abel::duration interval,
-                abel::function<void(std::uint64_t)>&& cb) {
-            return fiber_internal::nearest_scheduling_group()->create_timer(at, interval,
-                                                                 std::move(cb));
-        }
+    [[nodiscard]] std::uint64_t create_worker_timer(
+            abel::time_point at, abel::duration interval,
+            abel::function<void(std::uint64_t)> &&cb) {
+        return fiber_internal::nearest_scheduling_group()->create_timer(at, interval,
+                                                                        std::move(cb));
+    }
 
-        void enable_timer(std::uint64_t timer_id) {
-            scheduling_group::get_timer_owner(timer_id)->enable_timer(timer_id);
-        }
+    void enable_worker_timer(std::uint64_t timer_id) {
+        fiber_internal::scheduling_group::get_timer_owner(timer_id)->enable_timer(timer_id);
+    }
 
-        void KillTimer(std::uint64_t timer_id) {
-            return scheduling_group::get_timer_owner(timer_id)->remove_timer(
-                    timer_id);
-        }
-
-    }  // namespace fiber_internal
+    void kill_worker_timer(std::uint64_t timer_id) {
+        return fiber_internal::scheduling_group::get_timer_owner(timer_id)->remove_timer(
+                timer_id);
+    }
 
 }  // namespace abel

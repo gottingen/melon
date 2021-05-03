@@ -220,11 +220,11 @@ namespace abel {
         // ref_ptr(T*) = delete;
 
         // Accessors.
-        constexpr T *operator->() const noexcept { return Get(); }
+        constexpr T *operator->() const noexcept { return get(); }
 
-        constexpr T &operator*() const noexcept { return *Get(); }
+        constexpr T &operator*() const noexcept { return *get(); }
 
-        constexpr T *Get() const noexcept { return ptr_; }
+        constexpr T *get() const noexcept { return ptr_; }
 
         // Test if *this holds a pointer.
         constexpr explicit operator bool() const noexcept { return ptr_; }
@@ -365,12 +365,12 @@ namespace abel {
 
     template<class T>
     constexpr bool operator==(const ref_ptr<T> &ptr, std::nullptr_t) noexcept {
-        return ptr.Get() == nullptr;
+        return ptr.get() == nullptr;
     }
 
     template<class T>
     constexpr bool operator==(std::nullptr_t, const ref_ptr<T> &ptr) noexcept {
-        return ptr.Get() == nullptr;
+        return ptr.get() == nullptr;
     }
 
 }  // namespace abel
@@ -494,8 +494,8 @@ namespace std {
         template<class F, class... Orders>
         bool compare_exchange_impl(F &&f, abel::ref_ptr<T> &expected,
                                    abel::ref_ptr<T> desired, Orders... orders) {
-            auto current = expected.Get();
-            if (std::forward<F>(f)(current, desired.Get(), orders...)) {
+            auto current = expected.get();
+            if (std::forward<F>(f)(current, desired.get(), orders...)) {
                 (void) desired.leak();  // Ownership transfer to `ptr_`.
                 // Ownership of the old pointer is transferred to us, release it.
                 abel::ref_ptr(abel::adopt_ptr_v, current);

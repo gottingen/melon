@@ -249,7 +249,7 @@ namespace fiber_internal {
         ++*leaving;
     }
 
-    TEST_P(SystemFiberOrNot, SetTimer) {
+    TEST_P(SystemFiberOrNot, set_timer) {
         auto sg =
                 std::make_unique<scheduling_group>(core_affinity(), 16);
         std::thread workers[16];

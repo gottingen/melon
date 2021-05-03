@@ -188,7 +188,7 @@ namespace abel {
                 return timer_worker_->detach_timer(timer_id);
             }
 
-            // Cancel a timer set by `SetTimer`.
+            // Cancel a timer set by `set_timer`.
             //
             // Callable in any thread belonging to the same scheduling group.
             //
@@ -219,7 +219,7 @@ namespace abel {
             // Set timer worker. This method must be called before registering pthread
             // workers.
             //
-            // This worker is later used by `SetTimer` for setting timers.
+            // This worker is later used by `set_timer` for setting timers.
             //
             // `scheduling_group` itself guarantees if it calls methods on `worker`, the
             // caller pthread is one of the pthread worker in this scheduling group.
@@ -231,7 +231,7 @@ namespace abel {
 
             // Shutdown the scheduling group.
             //
-            // All further calls to `SetTimer` / `DispatchFiber` leads to abort.
+            // All further calls to `set_timer` / `DispatchFiber` leads to abort.
             //
             // Wake up all workers blocking on `wait_for_fiber`, once all ready fiber has
             // terminated, all further calls to `acquire_fiber` returns

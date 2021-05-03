@@ -296,7 +296,7 @@ namespace abel {
                 lk.unlock();
                 if (cb) {
                     // `timer_id` is, actually, pointer to `Entry`.
-                    cb(reinterpret_cast<std::uint64_t>(e.Get()));
+                    cb(reinterpret_cast<std::uint64_t>(e.get()));
                 }  // The timer is cancel between we were testing `e->cancelled` and
                 // grabbing `e->lock`.
 

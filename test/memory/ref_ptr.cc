@@ -154,10 +154,10 @@ namespace abel {
         auto p1 = make_ref_counted<RefCounted1>();
         EXPECT_EQ(1, RefCounted1::instances);
         atomic.store(p1);
-        EXPECT_EQ(p1.Get(), atomic.load().Get());
+        EXPECT_EQ(p1.get(), atomic.load().get());
         auto p2 = make_ref_counted<RefCounted1>();
         EXPECT_EQ(2, RefCounted1::instances);
-        EXPECT_EQ(p1.Get(), atomic.exchange(p2).Get());
+        EXPECT_EQ(p1.get(), atomic.exchange(p2).get());
         EXPECT_EQ(2, RefCounted1::instances);
         p1.reset();
         EXPECT_EQ(1, RefCounted1::instances);
