@@ -22,7 +22,7 @@ namespace abel {
 
         // If `from` is malformed, the program crashes.
         //
-        // To parse URI from untrusted source, use `TryParse<uri>(...)` instead.
+        // To parse URI from untrusted source, use `pa<uri>(...)` instead.
         explicit uri(const std::string_view& from);
 
         // Accessors.

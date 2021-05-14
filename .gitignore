@@ -38,3 +38,9 @@ cmake-build-debug/
 carbin/
 carbin/*
 project-example
+
+
+bazel-abel
+bazel-bin
+bazel-out
+bazel-testlogs

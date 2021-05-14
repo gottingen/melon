@@ -1,0 +1,17 @@
+
+
+
+package(default_visibility = ["//visibility:public"])
+
+
+ABEL_SRC = glob(["**/*.cc",
+                 "**/**/*.cc",
+                 ]
+                 )
+
+cc_library(
+    name = "abel",
+    srcs = ABEL_SRC,
+    hdrs = glob(["**/*.h", "**/*.inc"]),
+    copts =  ["-std=c++17"]
+             )

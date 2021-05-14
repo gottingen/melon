@@ -76,7 +76,7 @@ cc_library(
     hdrs = TESTING_HDRS,
     copts = CARBIN_DEFAULT_COPTS + ["-std=c++17", "-O0"],
     deps = [
-        "//abel:abel-debug",
+        "//abel:abel",
         "@com_google_googletest//:gtest",
     ],
     visibility = ["//test:__subpackages__"],
