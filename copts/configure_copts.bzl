@@ -33,28 +33,7 @@ CARBIN_TEST_COPTS = CARBIN_DEFAULT_COPTS + select({
     "//conditions:default": CARBIN_GCC_TEST_FLAGS,
 })
 
-LINKOPTS = [
-    "-lpthread",
-    "-ldl",
-] + select({
-    ":osx": [
-        "-framework CoreFoundation",
-        "-framework CoreGraphics",
-        "-framework CoreData",
-        "-framework CoreText",
-        "-framework Security",
-        "-framework Foundation",
-        "-Wl,-U,_MallocExtension_ReleaseFreeMemory",
-        "-Wl,-U,_ProfilerStart",
-        "-Wl,-U,_ProfilerStop",
-        "-Wl,-U,_RegisterThriftProtocol",
-    ],
-    "//conditions:default": [
-      "-lrt",
-    ],
-})
-
-CARBIN_DEFAULT_LINKOPTS = LINKOPTS + select({
+CARBIN_DEFAULT_LINKOPTS =  select({
     "//:windows": CARBIN_MSVC_LINKOPTS,
     "//conditions:default": [],
 })
