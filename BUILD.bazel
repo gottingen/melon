@@ -63,6 +63,13 @@ config_setting(
     visibility = ["//visibility:public"],
 )
 
+config_setting(
+    name = "linux",
+    values = {"cpu": "linux"},
+    visibility = ["//visibility:public"],
+)
+
+
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load(
     "//:copts/configure_copts.bzl",
@@ -70,5 +77,6 @@ load(
     "CARBIN_DEFAULT_LINKOPTS",
     "CARBIN_TEST_COPTS",
 )
+
 
 
