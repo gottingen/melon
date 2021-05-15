@@ -150,10 +150,10 @@ namespace abel {
 
         void fiber_entity::resume_on(abel::function<void()> &&cb) noexcept {
             auto caller = get_current_fiber_entity();
-            DCHECK_MSG(!resume_proc,
+            DCHECK(!resume_proc,
                         "You may not call `ResumeOn` on a fiber twice (before the first "
                         "one has executed).");
-            DCHECK_MSG(caller != this, "Calling `resume()` on self is undefined.");
+            DCHECK(caller != this, "Calling `resume()` on self is undefined.");
 
             // This pending call will be performed and cleared immediately when we
             // switched to `*this` fiber (before calling user's continuation).

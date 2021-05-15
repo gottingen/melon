@@ -109,13 +109,13 @@ namespace abel {
             std::atomic<int> rc;
             std::thread([&] {
                 if (auto err = TrySetCurrentThreadAffinity({proc_id}); err != 0) {
-                    DCHECK_MSG(err == EINVAL, "Unexpected error #{}: {}", err,
+                    DCHECK(err == EINVAL, "Unexpected error #{}: {}", err,
                                strerror(err));
                     rc = -1;
                     return;
                 }
                 unsigned cpu, node;
-                DCHECK_MSG(GetCpu(&cpu, &node, nullptr) == 0, "`GetCpu` failed.");
+                DCHECK(GetCpu(&cpu, &node, nullptr) == 0, "`GetCpu` failed.");
                 rc = node;
             }).join();
             return rc.load();
@@ -196,7 +196,7 @@ namespace abel {
             unsigned cpu, node;
 
             // Another approach: https://stackoverflow.com/a/27450168
-            DCHECK_MSG(0 == GetCpu(&cpu, &node, nullptr), "Cannot get NUMA ID.");
+            DCHECK(0 == GetCpu(&cpu, &node, nullptr), "Cannot get NUMA ID.");
             return node;
         }
 
@@ -218,7 +218,7 @@ namespace abel {
         int get_node_of_processor(int cpu) {
             DCHECK_LE(cpu, node_of_cpus.size());
             auto node = node_of_cpus[cpu];
-            DCHECK_MSG(node != -1, "Processor #{} is not accessible.", cpu);
+            DCHECK(node != -1, "Processor #{} is not accessible.", cpu);
             return node;
         }
 
@@ -226,7 +226,7 @@ namespace abel {
 
     int get_current_processor_id() {
         unsigned cpu, node;
-        DCHECK_MSG(0 == GetCpu(&cpu, &node, nullptr), "Cannot get current CPU ID.");
+        DCHECK(0 == GetCpu(&cpu, &node, nullptr), "Cannot get current CPU ID.");
         return cpu;
     }
 
@@ -313,7 +313,7 @@ namespace abel {
 
     void SetCurrentThreadAffinity(const std::vector<int> &affinity) {
         auto rc = TrySetCurrentThreadAffinity(affinity);
-        DCHECK_MSG(rc == 0, "Cannot set thread affinity for thread [{}]: [{}] {}.",
+        DCHECK(rc == 0, "Cannot set thread affinity for thread [{}]: [{}] {}.",
                    reinterpret_cast<const void *>(pthread_self()), rc, strerror(rc));
     }
 
@@ -322,7 +322,7 @@ namespace abel {
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
         auto rc = pthread_getaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-        DCHECK_MSG(rc == 0, "Cannot get thread affinity of thread [{}]: [{}] {}.",
+        DCHECK(rc == 0, "Cannot get thread affinity of thread [{}]: [{}] {}.",
                     reinterpret_cast<const void*>(pthread_self()), rc, strerror(rc));
 
         std::vector<int> result;

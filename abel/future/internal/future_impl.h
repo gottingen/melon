@@ -56,7 +56,7 @@ namespace abel {
         template<class... Ts>
         template<class F, class R>
         R future<Ts...>::then(F &&continuation) &&{
-           DCHECK_MSG(core_ != nullptr,
+           DCHECK(core_ != nullptr,
                         "Calling `then` on uninitialized `future` is undefined.");
 
             // Evaluates to `true` if `F` can be called with `Ts...`.

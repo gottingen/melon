@@ -352,7 +352,7 @@ void CountingSort(T *values, size_t num_values) {
         std::fill(p, p + value_count.second, value_count.first);
         p += value_count.second;
     }
-    DCHECK_MSG(p == values + num_values, "Did not produce enough output");
+    DCHECK(p == values + num_values, "Did not produce enough output");
 }
 
 // @return i in [idx_begin, idx_begin + half_count) that minimizes
@@ -364,7 +364,7 @@ size_t MinRange(const T *const ABEL_RESTRICT sorted,
     size_t min_idx = 0;
 
     for (size_t idx = idx_begin; idx < idx_begin + half_count; ++idx) {
-        DCHECK_MSG(sorted[idx] <= sorted[idx + half_count], "Not sorted");
+        DCHECK(sorted[idx] <= sorted[idx + half_count], "Not sorted");
         const T range = sorted[idx + half_count] - sorted[idx];
         if (range < min_range) {
             min_range = range;
@@ -395,7 +395,7 @@ T ModeOfSorted(const T *const ABEL_RESTRICT sorted,
     if (half_count == 0) {
         return x;
     }
-    DCHECK_MSG(half_count == 1, "Should stop at half_count=1");
+    DCHECK(half_count == 1, "Should stop at half_count=1");
     const T average = (x + sorted[idx_begin + 1] + 1) / 2;
     return average;
 }
@@ -415,7 +415,7 @@ T Mode(T (&values)[N]) {
 // Returns the median value. Side effect: sorts "values".
 template<typename T>
 T Median(T *values, const size_t num_values) {
-    DCHECK_MSG(num_values != 0, "Empty input");
+    DCHECK(num_values != 0, "Empty input");
     std::sort(values, values + num_values);
     const size_t half = num_values / 2;
     // Odd count: return middle
@@ -430,7 +430,7 @@ T Median(T *values, const size_t num_values) {
 template<typename T>
 T MedianAbsoluteDeviation(const T *values, const size_t num_values,
                           const T median) {
-    DCHECK_MSG(num_values != 0, "Empty input");
+    DCHECK(num_values != 0, "Empty input");
     std::vector<T> abs_deviations;
     abs_deviations.reserve(num_values);
     for (size_t i = 0; i < num_values; ++i) {
@@ -506,7 +506,7 @@ Ticks SampleUntilStable(const double max_rel_mad, double *rel_mad,
             // For "few" (depends also on the variance) samples, Median is safer.
             est = robust_statistics::Median(samples.data(), samples.size());
         }
-        DCHECK_MSG(est != 0, "Estimator returned zero duration");
+        DCHECK(est != 0, "Estimator returned zero duration");
 
         // Median absolute deviation (mad) is a robust measure of 'variability'.
         const Ticks abs_mad = robust_statistics::MedianAbsoluteDeviation(
@@ -634,9 +634,9 @@ void FillSubset(const InputVec &full, const FuncInput input_to_skip,
             (*subset)[idx_subset++] = next;
         }
     }
-    DCHECK_MSG(idx_subset == subset->size(), "idx_subset not at end");
-    DCHECK_MSG(idx_omit == omit.size(), "idx_omit not at end");
-    DCHECK_MSG(occurrence == count - 1, "occurrence not at end");
+    DCHECK(idx_subset == subset->size(), "idx_subset not at end");
+    DCHECK(idx_omit == omit.size(), "idx_omit not at end");
+    DCHECK(occurrence == count - 1, "occurrence not at end");
 }
 
 // Returns total ticks elapsed for all inputs.
@@ -679,7 +679,7 @@ void pin_thread_to_cpu(int cpu) {
 #if defined(ABEL_OS_WIN)
     if (cpu < 0) {
       cpu = static_cast<int>(GetCurrentProcessorNumber());
-      DCHECK_MSG(cpu >= 0, "pin_thread_to_cpu detect failed");
+      DCHECK(cpu >= 0, "pin_thread_to_cpu detect failed");
       if (cpu >= 64) {
         // NOTE: On wine, at least, GetCurrentProcessorNumber() sometimes returns
         // a value > 64, which is out of range. When this happens, log a message
@@ -692,18 +692,18 @@ void pin_thread_to_cpu(int cpu) {
       DLOG_CRITICAL("Invalid CPU number: {}", cpu);
     }
     const DWORD_PTR prev = SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu);
-    DCHECK_MSG(prev != 0, "SetAffinity failed");
+    DCHECK(prev != 0, "SetAffinity failed");
 #elif defined(ABEL_OS_LINUX) && !defined(ABEL_OS_ANDROID)
     if (cpu < 0) {
       cpu = sched_getcpu();
-      DCHECK_MSG(cpu >= 0, "pin_thread_to_cpu detect failed");
+      DCHECK(cpu >= 0, "pin_thread_to_cpu detect failed");
     }
     const pid_t pid = 0;  // current thread
     cpu_set_t set;
     CPU_ZERO(&set);
     CPU_SET(cpu, &set);
     const int err = sched_setaffinity(pid, sizeof(set), &set);
-    DCHECK_MSG(err == 0, "SetAffinity failed");
+    DCHECK(err == 0, "SetAffinity failed");
 #endif
 }
 
@@ -764,7 +764,7 @@ size_t MeasureImpl(const Func func, const void *arg, const size_t num_skip,
 
 size_t measure(const Func func, const void *arg, const FuncInput *inputs,
                const size_t num_inputs, Result *results, const Params &p) {
-    DCHECK_MSG(num_inputs != 0, "No inputs");
+    DCHECK(num_inputs != 0, "No inputs");
 
     const InputVec unique = UniqueInputs(inputs, num_inputs);
     const size_t num_skip = NumSkip(func, arg, unique, p);  // never 0

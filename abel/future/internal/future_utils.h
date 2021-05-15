@@ -521,7 +521,7 @@ namespace abel {
         // I do want to return a ready future on empty `futures`, but this
         // additionally requires `Ts...` to be DefaultConstructible, which
         // IMO is an overkill.
-        DCHECK_MSG(!futures.empty(),
+        DCHECK(!futures.empty(),
 
                "Calling `when_any(PreservingErrors)` on an empty "
                "collection is undefined. We simply couldn't "

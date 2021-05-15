@@ -98,7 +98,7 @@ namespace abel {
         std::uint64_t timer_worker::create_timer(
                 abel::time_point expires_at,
                 abel::function<void(std::uint64_t)> &&cb) {
-            DCHECK_MSG(cb, "No callback for the timer?");
+            DCHECK(cb, "No callback for the timer?");
 
             auto ptr = abel::get_ref_counted<Entry>();
             ptr->owner = this;
@@ -114,8 +114,8 @@ namespace abel {
         std::uint64_t timer_worker::create_timer(
                 abel::time_point initial_expires_at,
                 abel::duration interval, abel::function<void(std::uint64_t)> &&cb) {
-            DCHECK_MSG(cb, "No callback for the timer?");
-            DCHECK_MSG(interval > abel::duration::nanoseconds(0),
+            DCHECK(cb, "No callback for the timer?");
+            DCHECK(interval > abel::duration::nanoseconds(0),
                        "`interval` must be greater than 0 for periodic timers.");
             if (ABEL_UNLIKELY(abel::time_now() > initial_expires_at + abel::duration::seconds(10))) {
 //                ABEL_LOG_ERROR_ONCE(
@@ -142,7 +142,7 @@ namespace abel {
 
         void timer_worker::remove_timer(std::uint64_t timer_id) {
             ref_ptr ptr(adopt_ptr_v, reinterpret_cast<Entry *>(timer_id));
-            DCHECK_MSG(ptr->owner == this,
+            DCHECK(ptr->owner == this,
                        "The timer you're trying to detach does not belong to this "
                        "scheduling group.");
             abel::function<void(std::uint64_t)> cb;
@@ -157,7 +157,7 @@ namespace abel {
 
         void timer_worker::detach_timer(std::uint64_t timer_id) {
             ref_ptr timer(abel::adopt_ptr_v, reinterpret_cast<Entry *>(timer_id));
-            DCHECK_MSG(timer->owner == this,
+            DCHECK(timer->owner == this,
                        "The timer you're trying to detach does not belong to this "
                        "scheduling group.");
             // Ref-count on `timer` is released.
@@ -170,7 +170,7 @@ namespace abel {
                 worker_index = sg_->group_size();
             }
             DCHECK_LT(worker_index, sg_->group_size() + 1);
-            DCHECK_MSG(producers_[worker_index] == nullptr,
+            DCHECK(producers_[worker_index] == nullptr,
                        "Someone else has registered itself as worker #{}.",
                        worker_index);
             producers_[worker_index] = get_thread_local_queue();
@@ -242,7 +242,7 @@ namespace abel {
         }
 
         void timer_worker::add_timer(EntryPtr timer) {
-            DCHECK_MSG(tls_queue_initialized,
+            DCHECK(tls_queue_initialized,
                        "You must initialize your thread-local queue (done as part of "
                        "`scheduling_group::enter_group()` before calling `AddTimer`.");
             DCHECK_EQ(timer->unsafe_ref_count(), 2);  // One is caller, one is us.

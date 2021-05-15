@@ -145,7 +145,7 @@ namespace abel {
                     "system is treated as UMA.",
                     scheduling_parameters.workers_per_group,
                     scheduling_parameters.scheduling_groups);
-            DLOG_IF_WARN(
+            DLOG_WARN_IF(
                     fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration &&
                     GetFiberWorkerAccessibleNodes().size() > 1,
                     "CPU migration of fiber worker is disallowed, and we're trying to start "
@@ -180,7 +180,7 @@ namespace abel {
 
         void StartWorkersNuma() {
             auto topo = GetFiberWorkerAccessibleNodes();
-            DCHECK_MSG(topo.size() < std::size(scheduling_groups),
+            DCHECK(topo.size() < std::size(scheduling_groups),
                        "Far more nodes that abel can support present on this "
                        "machine. Bail out.");
 
@@ -232,7 +232,7 @@ namespace abel {
         }
 
         std::vector<int> GetFiberWorkerAccessibleCPUsImpl() {
-            DCHECK_MSG(fiber_config::get_global_fiber_config().fiber_worker_accessible_cpus.empty() ||
+            DCHECK(fiber_config::get_global_fiber_config().fiber_worker_accessible_cpus.empty() ||
                                fiber_config::get_global_fiber_config().fiber_worker_inaccessible_cpus.empty(),
                        "At most one of `fiber_worker_accessible_cpus` or "
                        "`fiber_worker_inaccessible_cpus` may be specified.");
@@ -243,7 +243,7 @@ namespace abel {
             if (!fiber_config::get_global_fiber_config().fiber_worker_accessible_cpus.empty()) {
                 auto procs = TryParseProcesserList(
                         fiber_config::get_global_fiber_config().fiber_worker_accessible_cpus);
-                DCHECK_MSG(procs, "Failed to parse `fiber_worker_accessible_cpus`.");
+                DCHECK(procs, "Failed to parse `fiber_worker_accessible_cpus`.");
                 return *procs;
             }
 
@@ -259,7 +259,7 @@ namespace abel {
             if (!fiber_config::get_global_fiber_config().fiber_worker_inaccessible_cpus.empty()) {
                 auto option = TryParseProcesserList(
                         fiber_config::get_global_fiber_config().fiber_worker_inaccessible_cpus);
-                DCHECK_MSG(option,
+                DCHECK(option,
                            "Failed to parse `fiber_worker_inaccessible_cpus`.");
                 std::set<int> inaccessible(option->begin(), option->end());
 
@@ -311,7 +311,7 @@ namespace abel {
                     DivideRoundUp(fiber_concurrency_in_effect,
                                   scheduling_parameters.workers_per_group) *
                     scheduling_parameters.workers_per_group;
-            DLOG_IF_CRITICAL(
+            DLOG_CRITICAL_IF(
                     expected_concurrency > GetFiberWorkerAccessibleCPUs().size() &&
                             fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration,
                     "CPU migration of fiber workers is explicitly disallowed, but there "
@@ -326,7 +326,7 @@ namespace abel {
 
         std::size_t get_current_scheduling_groupIndex_slow() {
             auto rc = fiber_internal::nearest_scheduling_group_index();
-            DCHECK_MSG(rc != -1,
+            DCHECK(rc != -1,
                        "Calling `get_current_scheduling_group_index` outside of any "
                        "scheduling group is undefined.");
             return rc;

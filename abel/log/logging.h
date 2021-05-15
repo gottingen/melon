@@ -8,6 +8,7 @@
 #include "abel/log/log.h"
 #include "abel/utility/every.h"
 #include "abel/chrono/clock.h"
+#include "abel/log/common.h"
 
 //Introduction
 //
@@ -58,265 +59,344 @@ struct every_second {
 
 #if LOG_ACTIVE_LEVEL <= LOG_LEVEL_TRACE
 #define LOG_TRACE(logger, ...) LOG_CALL(logger, abel::level::trace, __VA_ARGS__)
-#define LOG_IF_TRACE(logger, condition, ...) LOG_CALL_IF(logger, abel::level::trace, condition, __VA_ARGS__)
-#define LOG_EVERY_N_TRACE(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::trace, true, N, __VA_ARGS__)
-#define LOG_IF_EVERY_N_TRACE(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::trace, condition, N, __VA_ARGS__)
-#define LOG_FIRST_N_TRACE(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::trace, true, __VA_ARGS__)
-#define LOG_IF_FIRST_N_TRACE(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::trace, true, __VA_ARGS__)
-#define LOG_EVERY_SECOND_TRACE(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::trace, true, __VA_ARGS__)
-#define LOG_IF_EVERY_SECOND_TRACE(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::trace, condition, __VA_ARGS__)
+#define LOG_TRACE_IF(logger, condition, ...) LOG_CALL_IF(logger, abel::level::trace, condition, __VA_ARGS__)
+#define LOG_TRACE_EVERY_N(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::trace, true, N, __VA_ARGS__)
+#define LOG_TRACE_EVERY_N_IF(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::trace, condition, N, __VA_ARGS__)
+#define LOG_TRACE_FIRST_N(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::trace, true, __VA_ARGS__)
+#define LOG_TRACE_FIRST_N_IF(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::trace, true, __VA_ARGS__)
+#define LOG_TRACE_EVERY_SECOND(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::trace, true, __VA_ARGS__)
+#define LOG_TRACE_EVERY_SECOND_IF(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::trace, condition, __VA_ARGS__)
 // default log
 #define DLOG_TRACE(...) LOG_TRACE(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_TRACE(condition, ...) LOG_IF_TRACE(abel::default_logger_raw(), condition, __VA_ARGS__)
-#define DLOG_EVERY_N_TRACE(N, ...) LOG_EVERY_N_TRACE(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_EVERY_N_TRACE(condition, N, ...) LOG_IF_EVERY_N_TRACE(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_FIRST_N_TRACE(N, ...) LOG_FIRST_N_TRACE(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_FIRST_N_TRACE(condition, N, ...) LOG_IF_FIRST_N_TRACE(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_EVERY_SECOND_TRACE(...) LOG_EVERY_SECOND_TRACE(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_EVERY_SECOND_TRACE(condition, ...) LOG_IF_EVERY_SECOND_TRACE(abel::default_logger_raw(),condition, __VA_ARGS__)
+#define DLOG_TRACE_IF(condition, ...) LOG_TRACE_IF(abel::default_logger_raw(), condition, __VA_ARGS__)
+#define DLOG_TRACE_EVERY_N(N, ...) LOG_TRACE_EVERY_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_TRACE_EVERY_N_IF(condition, N, ...) LOG_TRACE_EVERY_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_TRACE_FIRST_N(N, ...) LOG_TRACE_FIRST_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_TRACE_FIRST_N_IF(condition, N, ...) LOG_TRACE_FIRST_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_TRACE_EVERY_SECOND(...) LOG_TRACE_EVERY_SECOND(abel::default_logger_raw(), __VA_ARGS__)
+#define DLOG_TRACE_EVERY_SECOND_IF(condition, ...) LOG_TRACE_EVERY_SECOND_IF(abel::default_logger_raw(),condition, __VA_ARGS__)
 
 #else
 #define LOG_TRACE(logger, ...) (void)0
-#define LOG_IF_TRACE(logger, condition, ...) (void)0
-#define LOG_EVERY_N_TRACE(logger, N, ...)  (void)0
-#define LOG_IF_EVERY_N_TRACE(logger, condition, N, ...)  (void)0
-#define LOG_FIRST_N_TRACE(logger, N, ...) (void)0
-#define LOG_IF_FIRST_N_TRACE(logger, condition, N, ...) (void)0
-#define LOG_EVERY_SECOND_TRACE(logger, ...) (void)0
-#define LOG_IF_EVERY_SECOND_TRACE(logger, condition, ...) (void)0
+#define LOG_TRACE_IF(logger, condition, ...) (void)0
+#define LOG_TRACE_EVERY_N(logger, N, ...)  (void)0
+#define LOG_TRACE_EVERY_N_IF(logger, condition, N, ...)  (void)0
+#define LOG_TRACE_FIRST_N(logger, N, ...) (void)0
+#define LOG_TRACE_FIRST_N_IF(logger, condition, N, ...) (void)0
+#define LOG_TRACE_EVERY_SECOND(logger, ...) (void)0
+#define LOG_TRACE_EVERY_SECOND_IF(logger, condition, ...) (void)0
 // default log
 #define DLOG_TRACE(...) (void)0
-#define DLOG_IF_TRACE(condition, ...) (void)0
-#define DLOG_EVERY_N_TRACE(N, ...) (void)0
-#define DLOG_IF_EVERY_N_TRACE(condition, N, ...) (void)0
-#define DLOG_FIRST_N_TRACE(N, ...) (void)0
-#define DLOG_IF_FIRST_N_TRACE(condition, N, ...)(void)0
-#define DLOG_EVERY_SECOND_TRACE(...) (void)0
-#define DLOG_IF_EVERY_SECOND_TRACE(condition, ...) (void)0
+#define DLOG_TRACE_IF(condition, ...) (void)0
+#define DLOG_TRACE_EVERY_N(N, ...) (void)0
+#define DLOG_TRACE_EVERY_N_IF(condition, N, ...) (void)0
+#define DLOG_TRACE_FIRST_N(N, ...) (void)0
+#define DLOG_TRACE_FIRST_N_IF(condition, N, ...) (void)0
+#define DLOG_TRACE_EVERY_SECOND(...) (void)0
+#define DLOG_TRACE_EVERY_SECOND_IF(condition, ...) (void)0
+
 
 #endif
 
 #if LOG_ACTIVE_LEVEL <= LOG_LEVEL_DEBUG
 #define LOG_DEBUG(logger, ...) LOG_CALL(logger, abel::level::debug, __VA_ARGS__)
-#define LOG_IF_DEBUG(logger, condition, ...) LOG_CALL_IF(logger, abel::level::debug, condition, __VA_ARGS__)
-#define LOG_EVERY_N_DEBUG(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::debug, true, N, __VA_ARGS__)
-#define LOG_IF_EVERY_N_DEBUG(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::debug, condition, N, __VA_ARGS__)
-#define LOG_FIRST_N_DEBUG(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::debug, true, __VA_ARGS__)
-#define LOG_IF_FIRST_N_DEBUG(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::debug, true, __VA_ARGS__)
-#define LOG_EVERY_SECOND_DEBUG(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::debug, true, __VA_ARGS__)
-#define LOG_IF_EVERY_SECOND_DEBUG(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::debug, condition, __VA_ARGS__)
+#define LOG_DEBUG_IF(logger, condition, ...) LOG_CALL_IF(logger, abel::level::debug, condition, __VA_ARGS__)
+#define LOG_DEBUG_EVERY_N(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::debug, true, N, __VA_ARGS__)
+#define LOG_DEBUG_EVERY_N_IF(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::debug, condition, N, __VA_ARGS__)
+#define LOG_DEBUG_FIRST_N(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::debug, true, __VA_ARGS__)
+#define LOG_DEBUG_FIRST_N_IF(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::debug, true, __VA_ARGS__)
+#define LOG_DEBUG_EVERY_SECOND(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::debug, true, __VA_ARGS__)
+#define LOG_DEBUG_EVERY_SECOND_IF(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::debug, condition, __VA_ARGS__)
 // default log
 #define DLOG_DEBUG(...) LOG_DEBUG(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_DEBUG(condition, ...) LOG_IF_DEBUG(abel::default_logger_raw(), condition, __VA_ARGS__)
-#define DLOG_EVERY_N_DEBUG(N, ...) LOG_EVERY_N_DEBUG(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_EVERY_N_DEBUG(condition, N, ...) LOG_IF_EVERY_N_DEBUG(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_FIRST_N_DEBUG(N, ...) LOG_FIRST_N_DEBUG(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_FIRST_N_DEBUG(condition, N, ...) LOG_IF_FIRST_N_TRACE(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_EVERY_SECOND_DEBUG(...) LOG_EVERY_SECOND_DEBUG(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_EVERY_SECOND_DEBUG(condition, ...) LOG_IF_EVERY_SECOND_DEBUG(abel::default_logger_raw(),condition, __VA_ARGS__)
+#define DLOG_DEBUG_IF(condition, ...) LOG_DEBUG_IF(abel::default_logger_raw(), condition, __VA_ARGS__)
+#define DLOG_DEBUG_EVERY_N(N, ...) LOG_DEBUG_EVERY_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_DEBUG_EVERY_N_IF(condition, N, ...) LOG_DEBUG_EVERY_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_DEBUG_FIRST_N(N, ...) LOG_DEBUG_FIRST_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_DEBUG_FIRST_N_IF(condition, N, ...) LOG_DEBUG_FIRST_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_DEBUG_EVERY_SECOND(...) LOG_DEBUG_EVERY_SECOND(abel::default_logger_raw(), __VA_ARGS__)
+#define DLOG_DEBUG_EVERY_SECOND_IF(condition, ...) LOG_DEBUG_EVERY_SECOND_IF(abel::default_logger_raw(),condition, __VA_ARGS__)
 
 #else
 #define LOG_DEBUG(logger, ...) (void)0
-#define LOG_IF_DEBUG(logger, condition, ...) (void)0
-#define LOG_EVERY_N_DEBUG(logger, N, ...)  (void)0
-#define LOG_IF_EVERY_N_DEBUG(logger, condition, N, ...)  (void)0
-#define LOG_FIRST_N_DEBUG(logger, N, ...) (void)0
-#define LOG_IF_FIRST_N_DEBUG(logger, condition, N, ...) (void)0
-#define LOG_EVERY_SECOND_DEBUG(logger, ...)(void)0
-#define LOG_IF_EVERY_SECOND_DEBUG(logger, condition, ...)(void)0
+#define LOG_DEBUG_IF(logger, condition, ...) (void)0
+#define LOG_DEBUG_EVERY_N(logger, N, ...)  (void)0
+#define LOG_DEBUG_EVERY_N_IF(logger, condition, N, ...)  (void)0
+#define LOG_DEBUG_FIRST_N(logger, N, ...) (void)0
+#define LOG_DEBUG_FIRST_N_IF(logger, condition, N, ...) (void)0
+#define LOG_DEBUG_EVERY_SECOND(logger, ...) (void)0
+#define LOG_DEBUG_EVERY_SECOND_IF(logger, condition, ...) (void)0
 // default log
 #define DLOG_DEBUG(...) (void)0
-#define DLOG_IF_DEBUG(condition, ...) (void)0
-#define DLOG_EVERY_N_DEBUG(N, ...) (void)0
-#define DLOG_IF_EVERY_N_DEBUG(condition, N, ...) (void)0
-#define DLOG_FIRST_N_DEBUG(N, ...) (void)0
-#define DLOG_IF_FIRST_N_DEBUG(condition, N, ...) (void)0
-#define DLOG_EVERY_SECOND_DEBUG(...) (void)0
-#define DLOG_IF_EVERY_SECOND_DEBUG(condition, ...) (void)0
+#define DLOG_DEBUG_IF(condition, ...) (void)0
+#define DLOG_DEBUG_EVERY_N(N, ...) (void)0
+#define DLOG_DEBUG_EVERY_N_IF(condition, N, ...) (void)0
+#define DLOG_DEBUG_FIRST_N(N, ...) (void)0
+#define DLOG_DEBUG_FIRST_N_IF(condition, N, ...) (void)0
+#define DLOG_DEBUG_EVERY_SECOND(...) (void)0
+#define DLOG_DEBUG_EVERY_SECOND_IF(condition, ...) (void)0
+
+
 #endif
 
 #if LOG_ACTIVE_LEVEL <= LOG_LEVEL_INFO
 #define LOG_INFO(logger, ...) LOG_CALL(logger, abel::level::info, __VA_ARGS__)
-#define LOG_IF_INFO(logger, condition, ...) LOG_CALL_IF(logger, abel::level::info, condition, __VA_ARGS__)
-#define LOG_EVERY_N_INFO(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::info, true, N, __VA_ARGS__)
-#define LOG_IF_EVERY_N_INFO(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::info, condition, N, __VA_ARGS__)
-#define LOG_FIRST_N_INFO(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::info, true, __VA_ARGS__)
-#define LOG_IF_FIRST_N_INFO(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::info, true, __VA_ARGS__)
-#define LOG_EVERY_SECOND_INFO(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::info, true, __VA_ARGS__)
-#define LOG_IF_EVERY_SECOND_INFO(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::info, condition, __VA_ARGS__)
+#define LOG_INFO_IF(logger, condition, ...) LOG_CALL_IF(logger, abel::level::info, condition, __VA_ARGS__)
+#define LOG_INFO_EVERY_N(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::info, true, N, __VA_ARGS__)
+#define LOG_INFO_EVERY_N_IF(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::info, condition, N, __VA_ARGS__)
+#define LOG_INFO_FIRST_N(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::info, true, __VA_ARGS__)
+#define LOG_INFO_FIRST_N_IF(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::info, true, __VA_ARGS__)
+#define LOG_INFO_EVERY_SECOND(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::info, true, __VA_ARGS__)
+#define LOG_INO_EVERY_SECOND_IF(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::info, condition, __VA_ARGS__)
 // default log
 #define DLOG_INFO(...) LOG_INFO(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_INFO(condition, ...) LOG_IF_INFO(abel::default_logger_raw(), condition, __VA_ARGS__)
-#define DLOG_EVERY_N_INFO(N, ...) LOG_EVERY_N_INFO(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_EVERY_N_INFO(condition, N, ...) LOG_IF_EVERY_N_INFO(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_FIRST_N_INFO(N, ...) LOG_FIRST_N_INFO(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_FIRST_N_INFO(condition, N, ...) LOG_IF_FIRST_N_INFO(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_EVERY_SECOND_INFO(...) LOG_EVERY_SECOND_INFO(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_EVERY_SECOND_INFO(condition, ...) LOG_IF_EVERY_SECOND_INFO(abel::default_logger_raw(),condition, __VA_ARGS__)
+#define DLOG_INFO_IF(condition, ...) LOG_INFO_IF(abel::default_logger_raw(), condition, __VA_ARGS__)
+#define DLOG_INFO_EVERY_N(N, ...) LOG_INFO_EVERY_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_INFO_EVERY_N_IF(condition, N, ...) LOG_INFO_EVERY_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_INFO_FIRST_N(N, ...) LOG_INFO_FIRST_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_INFO_FIRST_N_IF(condition, N, ...) LOG_INFO_FIRST_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_INFO_EVERY_SECOND(...) LOG_INFO_EVERY_SECOND(abel::default_logger_raw(), __VA_ARGS__)
+#define DLOG_INO_EVERY_SECOND_IF(condition, ...) LOG_INO_EVERY_SECOND_IF(abel::default_logger_raw(),condition, __VA_ARGS__)
 
 #else
 #define LOG_INFO(logger, ...) (void)0
-#define LOG_IF_INFO(logger, condition, ...) (void)0
-#define LOG_EVERY_N_INFO(logger, N, ...) (void)0
-#define LOG_IF_EVERY_N_INFO(logger, condition, N, ...)  (void)0
-#define LOG_FIRST_N_INFO(logger, N, ...) (void)0
-#define LOG_IF_FIRST_N_INFO(logger, condition, N, ...) (void)0
-#define LOG_EVERY_SECOND_INFO(logger, ...) (void)0
-#define LOG_IF_EVERY_SECOND_INFO(logger, condition, ...) (void)0
+#define LOG_INFO_IF(logger, condition, ...) (void)0
+#define LOG_INFO_EVERY_N(logger, N, ...) (void)0
+#define LOG_INFO_EVERY_N_IF(logger, condition, N, ...)  (void)0
+#define LOG_INFO_FIRST_N(logger, N, ...) (void)0
+#define LOG_INFO_FIRST_N_IF(logger, condition, N, ...) (void)0
+#define LOG_INFO_EVERY_SECOND(logger, ...) (void)0
+#define LOG_INO_EVERY_SECOND_IF(logger, condition, ...) (void)0
 // default log
 #define DLOG_INFO(...) (void)0
-#define DLOG_IF_INFO(condition, ...) (void)0
-#define DLOG_EVERY_N_INFO(N, ...) (void)0
-#define DLOG_IF_EVERY_N_INFO(condition, N, ...) (void)0
-#define DLOG_FIRST_N_INFO(N, ...) (void)0
-#define DLOG_IF_FIRST_N_INFO(condition, N, ...) (void)0
-#define DLOG_EVERY_SECOND_INFO(...) (void)0
-#define DLOG_IF_EVERY_SECOND_INFO(condition, ...) (void)0
+#define DLOG_INFO_IF(condition, ...) (void)0
+#define DLOG_INFO_EVERY_N(N, ...) (void)0
+#define DLOG_INFO_EVERY_N_IF(condition, N, ...) (void)0
+#define DLOG_INFO_FIRST_N(N, ...) (void)0
+#define DLOG_INFO_FIRST_N_IF(condition, N, ...) (void)0
+#define DLOG_INFO_EVERY_SECOND(...) (void)0
+#define DLOG_INO_EVERY_SECOND_IF(condition, ...) (void)0
 #endif
 
 #if LOG_ACTIVE_LEVEL <= LOG_LEVEL_WARN
 #define LOG_WARN(logger, ...) LOG_CALL(logger, abel::level::warn, __VA_ARGS__)
-#define LOG_IF_WARN(logger, condition, ...) LOG_CALL_IF(logger, abel::level::warn, condition, __VA_ARGS__)
-#define LOG_EVERY_N_WARN(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::warn, true, N, __VA_ARGS__)
-#define LOG_IF_EVERY_N_WARN(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::warn, condition, N, __VA_ARGS__)
-#define LOG_FIRST_N_WARN(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::warn, true, __VA_ARGS__)
-#define LOG_IF_FIRST_N_WARN(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::warn, true, __VA_ARGS__)
-#define LOG_EVERY_SECOND_WARN(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::warn, true, __VA_ARGS__)
-#define LOG_IF_EVERY_SECOND_WARN(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::warn, condition, __VA_ARGS__)
+#define LOG_WARN_IF(logger, condition, ...) LOG_CALL_IF(logger, abel::level::warn, condition, __VA_ARGS__)
+#define LOG_WARN_EVERY_N(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::warn, true, N, __VA_ARGS__)
+#define LOG_WARN_EVERY_N_IF(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::warn, condition, N, __VA_ARGS__)
+#define LOG_WARN_FIRST_N(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::warn, true, __VA_ARGS__)
+#define LOG_WARN_FIRST_N_IF(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::warn, true, __VA_ARGS__)
+#define LOG_WARN_EVERY_SECOND(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::warn, true, __VA_ARGS__)
+#define LOG_WARN_EVERY_SECOND_IF(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::warn, condition, __VA_ARGS__)
 // default log
 #define DLOG_WARN(...) LOG_WARN(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_WARN(condition, ...) LOG_IF_WARN(abel::default_logger_raw(), condition, __VA_ARGS__)
-#define DLOG_EVERY_N_WARN(N, ...) LOG_EVERY_N_WARN(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_EVERY_N_WARN(condition, N, ...) LOG_IF_EVERY_N_WARN(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_FIRST_N_WARN(N, ...) LOG_FIRST_N_WARN(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_FIRST_N_WARN(condition, N, ...) LOG_IF_FIRST_N_WARN(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_EVERY_SECOND_WARN(...) LOG_EVERY_SECOND_WARN(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_EVERY_SECOND_WARN(condition, ...) LOG_IF_EVERY_SECOND_WARN(abel::default_logger_raw(),condition, __VA_ARGS__)
+#define DLOG_WARN_IF(condition, ...) LOG_WARN_IF(abel::default_logger_raw(), condition, __VA_ARGS__)
+#define DLOG_WARN_EVERY_N(N, ...) LOG_WARN_EVERY_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_WARN_EVERY_N_IF(condition, N, ...) LOG_WARN_EVERY_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_WARN_FIRST_N(N, ...) LOG_WARN_FIRST_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_WARN_FIRST_N_IF(condition, N, ...) LOG_WARN_FIRST_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_WARN_EVERY_SECOND(...) LOG_WARN_EVERY_SECOND(abel::default_logger_raw(), __VA_ARGS__)
+#define DLOG_WARN_EVERY_SECOND_IF(condition, ...) LOG_WARN_EVERY_SECOND_IF(abel::default_logger_raw(),condition, __VA_ARGS__)
 
 #else
 #define LOG_WARN(logger, ...) (void)0
-#define LOG_IF_WARN(logger, condition, ...) (void)0
-#define LOG_EVERY_N_WARN(logger, N, ...)  (void)0
-#define LOG_IF_EVERY_N_WARN(logger, condition, N, ...)  (void)0
-#define LOG_FIRST_N_WARN(logger, N, ...) (void)0
-#define LOG_IF_FIRST_N_WARN(logger, condition, N, ...) (void)0
-#define LOG_EVERY_SECOND_WARN(logger, ...) (void)0
-#define LOG_IF_EVERY_SECOND_WARN(logger, condition, ...) (void)0
+#define LOG_WARN_IF(logger, condition, ...) (void)0
+#define LOG_WARN_EVERY_N(logger, N, ...)  (void)0
+#define LOG_WARN_EVERY_N_IF(logger, condition, N, ...)  (void)0
+#define LOG_WARN_FIRST_N(logger, N, ...) (void)0
+#define LOG_WARN_FIRST_N_IF(logger, condition, N, ...) (void)0
+#define LOG_WARN_EVERY_SECOND(logger, ...) (void)0
+#define LOG_WARN_EVERY_SECOND_IF(logger, condition, ...) (void)0
 // default log
 #define DLOG_WARN(...) (void)0
-#define DLOG_IF_WARN(condition, ...) (void)0
-#define DLOG_EVERY_N_WARN(N, ...) (void)0
-#define DLOG_IF_EVERY_N_WARN(condition, N, ...) (void)0
-#define DLOG_FIRST_N_WARN(N, ...) (void)0
-#define DLOG_IF_FIRST_N_WARN(condition, N, ...) (void)0
-#define DLOG_EVERY_SECOND_WARN(...) (void)0
-#define DLOG_IF_EVERY_SECOND_WARN(condition, ...) (void)0
+#define DLOG_WARN_IF(condition, ...) (void)0
+#define DLOG_WARN_EVERY_N(N, ...) (void)0
+#define DLOG_WARN_EVERY_N_IF(condition, N, ...) (void)0
+#define DLOG_WARN_FIRST_N(N, ...) (void)0
+#define DLOG_WARN_FIRST_N_IF(condition, N, ...) (void)0
+#define DLOG_WARN_EVERY_SECOND(...) (void)0
+#define DLOG_WARN_EVERY_SECOND_IF(condition, ...) (void)0
 #endif
 
 #if LOG_ACTIVE_LEVEL <= LOG_LEVEL_ERROR
 
 #define LOG_ERROR(logger, ...) LOG_CALL(logger, abel::level::err, __VA_ARGS__)
-#define LOG_IF_ERROR(logger, condition, ...) LOG_CALL_IF(logger, abel::level::err, condition, __VA_ARGS__)
-#define LOG_EVERY_N_ERROR(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::err, true, N, __VA_ARGS__)
-#define LOG_IF_EVERY_N_ERROR(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::err, condition, N, __VA_ARGS__)
-#define LOG_FIRST_N_ERROR(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::err, true, __VA_ARGS__)
-#define LOG_IF_FIRST_N_ERROR(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::err, true, __VA_ARGS__)
-#define LOG_EVERY_SECOND_ERROR(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::err, true, __VA_ARGS__)
-#define LOG_IF_EVERY_SECOND_ERROR(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::err, condition, __VA_ARGS__)
+#define LOG_ERROR_IF(logger, condition, ...) LOG_CALL_IF(logger, abel::level::err, condition, __VA_ARGS__)
+#define LOG_ERROR_EVERY_N(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::err, true, N, __VA_ARGS__)
+#define LOG_ERROR_EVERY_N_IF(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::err, condition, N, __VA_ARGS__)
+#define LOG_ERROR_FIRST_N(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::err, true, __VA_ARGS__)
+#define LOG_ERROR_FIRST_N_IF(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::err, true, __VA_ARGS__)
+#define LOG_ERROR_EVERY_SECOND(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::err, true, __VA_ARGS__)
+#define LOG_ERROR_EVERY_SECOND_IF(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::err, condition, __VA_ARGS__)
 // default log
 #define DLOG_ERROR(...) LOG_ERROR(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_ERROR(condition, ...) LOG_IF_ERROR(abel::default_logger_raw(), condition, __VA_ARGS__)
-#define DLOG_EVERY_N_ERROR(N, ...) LOG_EVERY_N_ERROR(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_EVERY_N_ERROR(condition, N, ...) LOG_IF_EVERY_N_ERROR(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_FIRST_N_ERROR(N, ...) LOG_FIRST_N_ERROR(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_FIRST_N_ERROR(condition, N, ...) LOG_IF_FIRST_N_ERROR(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_EVERY_SECOND_ERROR(...) LOG_EVERY_SECOND_ERROR(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_EVERY_SECOND_ERROR(condition, ...) LOG_IF_EVERY_SECOND_ERROR(abel::default_logger_raw(),condition, __VA_ARGS__)
+#define DLOG_ERROR_IF(condition, ...) LOG_ERROR_IF(abel::default_logger_raw(), condition, __VA_ARGS__)
+#define DLOG_ERROR_EVERY_N(N, ...) LOG_ERROR_EVERY_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_ERROR_EVERY_N_IF(condition, N, ...) LOG_ERROR_EVERY_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_ERROR_FIRST_N(N, ...) LOG_ERROR_FIRST_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_ERROR_FIRST_N_IF(condition, N, ...) LOG_ERROR_FIRST_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_ERROR_EVERY_SECOND(...) LOG_ERROR_EVERY_SECOND(abel::default_logger_raw(), __VA_ARGS__)
+#define DLOG_ERROR_EVERY_SECOND_IF(condition, ...) LOG_ERROR_EVERY_SECOND_IF(abel::default_logger_raw(),condition, __VA_ARGS__)
 
 #else
 #define LOG_ERROR(logger, ...) (void)0
-#define LOG_IF_ERROR(logger, condition, ...) (void)0
-#define LOG_EVERY_N_ERROR(logger, N, ...)  (void)0
-#define LOG_IF_EVERY_N_ERROR(logger, condition, N, ...)  (void)0
-#define LOG_FIRST_N_ERROR(logger, N, ...) (void)0
-#define LOG_IF_FIRST_N_ERROR(logger, condition, N, ...) (void)0
-#define LOG_EVERY_SECOND_ERROR(logger, ...) (void)0
-#define LOG_IF_EVERY_SECOND_ERROR(logger, condition, ...) (void)0
+#define LOG_ERROR_IF(logger, condition, ...) (void)0
+#define LOG_ERROR_EVERY_N(logger, N, ...)  (void)0
+#define LOG_ERROR_EVERY_N_IF(logger, condition, N, ...)  (void)0
+#define LOG_ERROR_FIRST_N(logger, N, ...) (void)0
+#define LOG_ERROR_FIRST_N_IF(logger, condition, N, ...) (void)0
+#define LOG_ERROR_EVERY_SECOND(logger, ...) (void)0
+#define LOG_ERROR_EVERY_SECOND_IF(logger, condition, ...) (void)0
 // default log
 #define DLOG_ERROR(...) (void)0
-#define DLOG_IF_ERROR(condition, ...) (void)0
-#define DLOG_EVERY_N_ERROR(N, ...) (void)0
-#define DLOG_IF_EVERY_N_ERROR(condition, N, ...) (void)0
-#define DLOG_FIRST_N_ERROR(N, ...) (void)0
-#define DLOG_IF_FIRST_N_ERROR(condition, N, ...) (void)0
-#define DLOG_EVERY_SECOND_ERROR(...) (void)0
-#define DLOG_IF_EVERY_SECOND_ERROR(condition, ...) (void)0
+#define DLOG_ERROR_IF(condition, ...) (void)0
+#define DLOG_ERROR_EVERY_N(N, ...) (void)0
+#define DLOG_ERROR_EVERY_N_IF(condition, N, ...) (void)0
+#define DLOG_ERROR_FIRST_N(N, ...) (void)0
+#define DLOG_ERROR_FIRST_N_IF(condition, N, ...) (void)0
+#define DLOG_ERROR_EVERY_SECOND(...) (void)0
+#define DLOG_ERROR_EVERY_SECOND_IF(condition, ...) (void)0
 
 #endif
 
 #if LOG_ACTIVE_LEVEL <= LOG_LEVEL_CRITICAL
 #define LOG_CRITICAL(logger, ...) LOG_CALL(logger, abel::level::critical, __VA_ARGS__)
-#define LOG_IF_CRITICAL(logger, condition, ...) LOG_CALL_IF(logger, abel::level::critical, condition, __VA_ARGS__)
-#define LOG_EVERY_N_CRITICAL(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::critical, true, N, __VA_ARGS__)
-#define LOG_IF_EVERY_N_CRITICAL(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::critical, condition, N, __VA_ARGS__)
-#define LOG_FIRST_N_CRITICAL(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::critical, true, __VA_ARGS__)
-#define LOG_IF_FIRST_N_CRITICAL(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::critical, true, __VA_ARGS__)
-#define LOG_EVERY_SECOND_CRITICAL(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::critical, true, __VA_ARGS__)
-#define LOG_IF_EVERY_SECOND_CRITICAL(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::critical, condition, __VA_ARGS__)
+#define LOG_CRITICAL_IF(logger, condition, ...) LOG_CALL_IF(logger, abel::level::critical, condition, __VA_ARGS__)
+#define LOG_CRITICAL_EVERY_N(logger, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::critical, true, N, __VA_ARGS__)
+#define LOG__CRITICAL_EVERY_N_IF(logger, condition, N, ...)  LOG_CALL_IF_EVERY_N(logger, abel::level::critical, condition, N, __VA_ARGS__)
+#define LOG_CRITICAL_FIRST_N(logger, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::critical, true, __VA_ARGS__)
+#define LOG_CRITICAL_FIRST_N_IF(logger, condition, N, ...) LOG_CALL_IF_FIRST_N(logger, abel::level::critical, true, __VA_ARGS__)
+#define LOG_CRITICAL_EVERY_SECOND(logger, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::critical, true, __VA_ARGS__)
+#define LOG_CRITICAL_EVERY_SECOND_IF(logger, condition, ...) LOG_CALL_IF_EVERY_SECOND(logger, abel::level::critical, condition, __VA_ARGS__)
 // default log
 #define DLOG_CRITICAL(...) LOG_CRITICAL(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_CRITICAL(condition, ...) LOG_IF_CRITICAL(abel::default_logger_raw(), condition, __VA_ARGS__)
-#define DLOG_EVERY_N_CRITICAL(N, ...) LOG_EVERY_N_CRITICAL(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_EVERY_N_CRITICAL(condition, N, ...) LOG_IF_EVERY_N_CRITICAL(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_FIRST_N_CRITICAL(N, ...) LOG_FIRST_N_CRITICAL(abel::default_logger_raw(), N, __VA_ARGS__)
-#define DLOG_IF_FIRST_N_CRITICAL(condition, N, ...) LOG_IF_FIRST_N_CRITICAL(abel::default_logger_raw(), condition, N, __VA_ARGS__)
-#define DLOG_EVERY_SECOND_CRITICAL(...) LOG_EVERY_SECOND_CRITICAL(abel::default_logger_raw(), __VA_ARGS__)
-#define DLOG_IF_EVERY_SECOND_CRITICAL(condition, ...) LOG_IF_EVERY_SECOND_CRITICAL(abel::default_logger_raw(),condition, __VA_ARGS__)
+#define DLOG_CRITICAL_IF(condition, ...) LOG_CRITICAL_IF(abel::default_logger_raw(), condition, __VA_ARGS__)
+#define DLOG_CRITICAL_EVERY_N(N, ...) LOG_CRITICAL_EVERY_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG__CRITICAL_EVERY_N_IF(condition, N, ...) LOG__CRITICAL_EVERY_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_CRITICAL_FIRST_N(N, ...) LOG_CRITICAL_FIRST_N(abel::default_logger_raw(), N, __VA_ARGS__)
+#define DLOG_CRITICAL_FIRST_N_IF(condition, N, ...) LOG_CRITICAL_FIRST_N_IF(abel::default_logger_raw(), condition, N, __VA_ARGS__)
+#define DLOG_CRITICAL_EVERY_SECOND(...) LOG_CRITICAL_EVERY_SECOND(abel::default_logger_raw(), __VA_ARGS__)
+#define DLOG_CRITICAL_EVERY_SECOND_IF(condition, ...) LOG_CRITICAL_EVERY_SECOND_IF(abel::default_logger_raw(),condition, __VA_ARGS__)
 
 #else
 #define LOG_CRITICAL(logger, ...) (void)0
-#define LOG_IF_CRITICAL(logger, condition, ...) (void)0
-#define LOG_EVERY_N_CRITICAL(logger, N, ...)  (void)0
-#define LOG_IF_EVERY_N_CRITICAL(logger, condition, N, ...)  (void)0
-#define LOG_FIRST_N_CRITICAL(logger, N, ...) (void)0
-#define LOG_IF_FIRST_N_CRITICAL(logger, condition, N, ...) (void)0
-#define LOG_EVERY_SECOND_CRITICAL(logger, ...) (void)0
-#define LOG_IF_EVERY_SECOND_CRITICAL(logger, condition, ...) (void)0
+#define LOG_CRITICAL_IF(logger, condition, ...) (void)0
+#define LOG_CRITICAL_EVERY_N(logger, N, ...)  (void)0
+#define LOG__CRITICAL_EVERY_N_IF(logger, condition, N, ...)  (void)0
+#define LOG_CRITICAL_FIRST_N(logger, N, ...) (void)0
+#define LOG_CRITICAL_FIRST_N_IF(logger, condition, N, ...) (void)0
+#define LOG_CRITICAL_EVERY_SECOND(logger, ...) (void)0
+#define LOG_CRITICAL_EVERY_SECOND_IF(logger, condition, ...) (void)0
 // default log
 #define DLOG_CRITICAL(...) (void)0
-#define DLOG_IF_CRITICAL(condition, ...) (void)0
-#define DLOG_EVERY_N_CRITICAL(N, ...) (void)0
-#define DLOG_IF_EVERY_N_CRITICAL(condition, N, ...) (void)0
-#define DLOG_FIRST_N_CRITICAL(N, ...) (void)0
-#define DLOG_IF_FIRST_N_CRITICAL(condition, N, ...) (void)0
-#define DLOG_EVERY_SECOND_CRITICAL(...) (void)0
-#define DLOG_IF_EVERY_SECOND_CRITICAL(condition, ...) (void)0
+#define DLOG_CRITICAL_IF(condition, ...) (void)0
+#define DLOG_CRITICAL_EVERY_N(N, ...) (void)0
+#define DLOG__CRITICAL_EVERY_N_IF(condition, N, ...) (void)0
+#define DLOG_CRITICAL_FIRST_N(N, ...) (void)0
+#define DLOG_CRITICAL_FIRST_N_IF(condition, N, ...) (void)0
+#define DLOG_CRITICAL_EVERY_SECOND(...) (void)0
+#define DLOG_CRITICAL_EVERY_SECOND_IF(condition, ...) (void)0
 
 #endif
 
+/// stream log apis
 
-#define CHECK(logger, condition, ...) \
-    do {                       \
-        if (ABEL_UNLIKELY(!(condition))) { \
-            LOG_CRITICAL(logger, __VA_ARGS__); \
-            ::abort();                          \
-        }                                       \
-    } while(0)
 
-#define DCHECK_MSG(condition, ...) \
-    do {                        \
-        if (ABEL_UNLIKELY(!(condition))) {       \
-            DLOG_CRITICAL(__VA_ARGS__);          \
-            ::abort();                           \
-        }                                        \
-    } while(0)
+namespace log_internal {
+    template<class... Ts>
+    std::string format_log_msg(const Ts &... args) noexcept {
+        std::string result;
 
-#define DCHECK(condition) assert(condition)
-#define DCHECK_EQ(val1, val2) assert((val1) == (val2))
-#define DCHECK_NE(val1, val2) assert((val1) != (val2))
-#define DCHECK_LE(val1, val2) assert((val1) <= (val2))
-#define DCHECK_LT(val1, val2) assert((val1) < (val2))
-#define DCHECK_GE(val1, val2) assert((val1) >= (val2))
-#define DCHECK_GT(val1, val2) assert((val1) > (val2))
+        if constexpr (sizeof...(Ts) != 0) {
+            result += abel::format(args...);
+        }
+        return result;
+    }
+} // namespace log_internal
+
+#define ABEL_INTERNAL_LOGGING_CHECK(logger, expr, ...)                        \
+    do {                                                                        \
+        if (ABEL_UNLIKELY(!(expr))) {                                            \
+            logger->critical_stream(abel::source_loc(__FILE__, __LINE__, __FUNCTION__))      \
+                << "Check failed: " #expr " "                                       \
+                <<log_internal::format_log_msg(__VA_ARGS__);            \
+                abort();                                                    \
+        }                                                                         \
+    } while (0)
+
+#define ABEL_INTERNAL_LOGGING_CHECK_OP(logger, name, op, val1, val2, ...)      \
+    do {                                                                         \
+            auto&& abel_anonymous_x = (val1);                                         \
+            auto&& abel_anonymous_y = (val2);                                         \
+            if (ABEL_UNLIKELY(!(abel_anonymous_x op abel_anonymous_y))) {           \
+                logger->stream(abel::level::critical, abel::source_loc(__FILE__, __LINE__, __FUNCTION__))      \
+                << log_internal::format_log_msg(__VA_ARGS__);             \
+                abort();                                                     \
+            }                                                                          \
+    } while (0)
+
+#define CHECK(expr, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK(abel::default_logger_raw(), expr, __VA_ARGS__)
+
+#define CHECK_EQ(val1, val2, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK_OP(abel::default_logger_raw(), EQ_, ==, val1, val2, __VA_ARGS__)
+
+#define CHECK_NE(val1, val2, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK_OP(abel::default_logger_raw(), NE_, !=, val1, val2, __VA_ARGS__)
+
+#define CHECK_LE(val1, val2, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK_OP(abel::default_logger_raw(), LE_, <=, val1, val2, __VA_ARGS__)
+
+#define CHECK_LT(val1, val2, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK_OP(abel::default_logger_raw(), LT_, <, val1, val2, __VA_ARGS__)
+
+#define CHECK_GE(val1, val2, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK_OP(abel::default_logger_raw(), GE_, >=, val1, val2, __VA_ARGS__)
+
+#define CHECK_GT(val1, val2, ...) \
+    ABEL_INTERNAL_LOGGING_CHECK_OP(abel::default_logger_raw(), EQ_, >, val1, val2, __VA_ARGS__)
+
+#define CHECK_NEAR(val1, val2, margin, ...) \
+    do {                                          \
+            ABEL_CHECK_LE((val1), (val2) + (margin), __VA_ARGS__); \
+            ABEL_CHECK_GE((val1), (val2) - (margin), __VA_ARGS__); \
+    }while(0)
+
+#if !defined(NDEBUG)
+
+#define DCHECK(expr, ...) CHECK(expr, __VA_ARGS__)
+#define DCHECK_EQ(expr1, expr2, ...) \
+    CHECK_EQ(expr1, expr2, __VA_ARGS__)
+#define DCHECK_NE(expr1, expr2, ...) \
+    CHECK_NE(expr1, expr2, __VA_ARGS__)
+#define DCHECK_LE(expr1, expr2, ...) \
+    CHECK_LE(expr1, expr2, __VA_ARGS__)
+#define DCHECK_GE(expr1, expr2, ...) \
+    CHECK_GE(expr1, expr2, __VA_ARGS__)
+#define DCHECK_LT(expr1, expr2, ...) \
+    CHECK_LT(expr1, expr2, __VA_ARGS__)
+#define DCHECK_GT(expr1, expr2, ...) \
+    CHECK_GT(expr1, expr2, __VA_ARGS__)
+#define DCHECK_NEAR(expr1, expr2, margin, ...) \
+    CHECK_NEAR(expr1, expr2, __VA_ARGS__)
+#else
+
+#define ABEL_DCHECK(expr, ...) \
+    while (0) ABEL_CHECK(expr, __VA_ARGS__)
+#define ABEL_DCHECK_EQ(expr1, expr2, ...) \
+    while (0) ABEL_CHECK_EQ(expr1, expr2, __VA_ARGS__)
+#define ABEL_DCHECK_NE(expr1, expr2, ...) \
+    while (0) ABEL_CHECK_NE(expr1, expr2, __VA_ARGS__)
+#define ABEL_DCHECK_LE(expr1, expr2, ...) \
+    while (0) ABEL_CHECK_LE(expr1, expr2, __VA_ARGS__)
+#define ABEL_DCHECK_GE(expr1, expr2, ...) \
+    while (0) ABEL_CHECK_GE(expr1, expr2, __VA_ARGS__)
+#define ABEL_DCHECK_LT(expr1, expr2, ...) \
+    while (0) ABEL_CHECK_LT(expr1, expr2, __VA_ARGS__)
+#define ABEL_DCHECK_GT(expr1, expr2, ...) \
+    while (0) ABEL_CHECK_GT(expr1, expr2, __VA_ARGS__)
+#define ABEL_DCHECK_NEAR(expr1, expr2, margin, ...) \
+    while (0) ABEL_CHECK_NEAR(expr1, expr2, __VA_ARGS__)
+#endif
+
 
 #endif  // ABEL_LOG_LOGGING_H_

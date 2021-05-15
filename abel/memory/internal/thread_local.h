@@ -55,7 +55,7 @@ namespace abel {
                     .low_water_mark = pool_traits<T>::kLowWaterMark,
                     .high_water_mark = kEffectiveHighWaterMark,
                     .max_idle = pool_traits<T>::kMaxIdle};
-            DCHECK_MSG((pool.low_water_mark == pool_traits<T>::kLowWaterMark) &&
+            DCHECK((pool.low_water_mark == pool_traits<T>::kLowWaterMark) &&
                        (pool.high_water_mark == kEffectiveHighWaterMark) &&
                        (pool.max_idle == pool_traits<T>::kMaxIdle),
                        "You likely had an ODR-violation when customizing type [{}].",

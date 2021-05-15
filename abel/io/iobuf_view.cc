@@ -28,7 +28,7 @@ namespace abel {
     std::pair<std::size_t, iobuf::const_iterator>
     iobuf_view::find_segment_must_succeed(
             std::size_t offset) const noexcept {
-        DCHECK_MSG(offset <= size(),
+        DCHECK(offset <= size(),
                    "Invalid offset [{}]. The buffer is only {} bytes long.",
                    offset, size());
         auto iter = std::upper_bound(

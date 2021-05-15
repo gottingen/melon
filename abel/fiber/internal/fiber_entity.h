@@ -319,7 +319,7 @@ namespace abel {
             // our stack. This should be easy to see, since we're actually running in
             // caller's context (including its stack).
             auto caller = get_current_fiber_entity();
-            DCHECK_MSG(caller != this, "Calling `resume()` on self is undefined.");
+            DCHECK(caller != this, "Calling `resume()` on self is undefined.");
 
 #ifdef ABEL_INTERNAL_USE_ASAN
             // Here we're running on our caller's stack, not ours (the one associated with

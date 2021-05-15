@@ -64,7 +64,7 @@ using level_t = std::atomic<int>;
 #define LOG_LEVEL_OFF 6
 
 #if !defined(LOG_ACTIVE_LEVEL)
-#define LOG_ACTIVE_LEVEL LOG_LEVEL_INFO
+#define LOG_ACTIVE_LEVEL LOG_LEVEL_TRACE
 #endif
 
 // Log level enum

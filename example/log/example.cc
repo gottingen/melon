@@ -3,6 +3,7 @@
 #include "abel/log/logging.h"
 
 void abel_log();
+
 void stdout_example();
 
 void basic_example();
@@ -74,6 +75,10 @@ void stdout_example() {
     console->info("Support for floats {:03.2f}", 1.23456);
     console->info("Positional args are {1} {0}..", "too", "supported");
     console->info("{:<30}", "left aligned");
+    console->info_stream() << "ths is info stream: " << 42;
+    console->warn_stream() << "ths is warn stream: " << 32;
+
+
 
     abel::get("console")->info("loggers can be retrieved from a global registry using the abel::get(logger_name)");
 
@@ -82,6 +87,7 @@ void stdout_example() {
     console->debug("This message should not be displayed!");
     console->set_level(abel::level::trace); // Set specific logger's log level
     console->debug("This message should be displayed..");
+    console->debug_stream(abel::source_loc{__FILE__, __LINE__, __FUNCTION__}) << "ths is debug stream: " << 3.3;
 
     // Customize msg format for all loggers
     abel::set_pattern("[%H:%M:%S %z] [%n] [%^---%L---%$] [thread %t] %v");
@@ -90,11 +96,11 @@ void stdout_example() {
     // Compile time log levels
     // define LOG_DEBUG_ON or LOG_TRACE_ON
     LOG_INFO(console, "this should display {} ,{}", 1, 3.23);
-    LOG_IF_INFO(console, false, "this should not diplay {} ,{}", 1, 3.23);
-    LOG_IF_INFO(console, true, "this should diplay LOG_IF_INFO {} ,{}", 1, 3.23);
+    LOG_INFO_IF(console, false, "this should not diplay {} ,{}", 1, 3.23);
+    LOG_INFO_IF(console, true, "this should diplay LOG_INFO_IF {} ,{}", 1, 3.23);
 
-    for(int i=0; i < 200; i++) {
-        LOG_CALL_IF_EVERY_N(console, abel::level::info, true, 100,  "this should display twice {} ,{}", 1, 3.23);
+    for (int i = 0; i < 200; i++) {
+        LOG_CALL_IF_EVERY_N(console, abel::level::info, true, 100, "this should display twice {} ,{}", 1, 3.23);
     }
 }
 
@@ -156,5 +162,5 @@ void abel_log() {
     DLOG_INFO("this is info");
     DLOG_WARN("this is warn");
     DLOG_ERROR("this is error");
-    DCHECK_MSG(true,"abc");
+    DCHECK(true, "abc");
 }

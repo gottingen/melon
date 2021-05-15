@@ -16,7 +16,7 @@ namespace abel {
 
         run_queue::run_queue(std::size_t capacity)
                 : capacity_(capacity), mask_(capacity_ - 1) {
-            DCHECK_MSG((capacity & (capacity - 1)) == 0,
+            DCHECK((capacity & (capacity - 1)) == 0,
                         "Capacity must be a power of 2.");
             head_seq_.store(0, std::memory_order_relaxed);
             tail_seq_.store(0, std::memory_order_relaxed);

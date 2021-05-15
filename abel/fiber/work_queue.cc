@@ -18,7 +18,7 @@ namespace abel {
 
     void work_queue::push(abel::function<void()>&& cb) {
         std::scoped_lock _(lock_);
-        DCHECK_MSG(!stopped_, "The work queue is leaving.");
+        DCHECK(!stopped_, "The work queue is leaving.");
         jobs_.push(std::move(cb));
         cv_.notify_one();
     }

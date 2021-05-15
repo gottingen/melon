@@ -124,7 +124,7 @@ namespace abel {
                 return global_get(*get_type_desc<T>());
             } else {
                 static_assert(sizeof(T) == 0, "Unexpected pool type.");
-                DCHECK_MSG(0, "");
+                DCHECK(0, "");
             }
         }
 
@@ -143,7 +143,7 @@ namespace abel {
                 global_put(*get_type_desc<T>(), ptr);
             } else {
                 static_assert(sizeof(T) == 0, "Unexpected pool type.");
-                DCHECK_MSG(0, "");
+                DCHECK(0, "");
             }
         }
 
@@ -158,7 +158,7 @@ namespace abel {
         // Put an object to the corresponding backend.
         template<class T>
         inline void put(void *ptr) {
-            DCHECK_MSG(ptr,
+            DCHECK(ptr,
                        "I'm pretty sure null pointer is not what you got when you "
                        "called `get`.");
             OnPutHook<T>(ptr);

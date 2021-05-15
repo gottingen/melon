@@ -15,7 +15,7 @@ namespace chrono_internal {
 
 abel::time_zone load_time_zone(const std::string &name) {
     abel::time_zone tz;
-    DCHECK_MSG(load_time_zone(name, &tz), name.c_str());
+    DCHECK(load_time_zone(name, &tz), name.c_str());
     return tz;
 }
 

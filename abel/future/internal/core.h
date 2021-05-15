@@ -114,7 +114,7 @@ namespace abel {
                 DCHECK_EQ(state_.index(), 1);
                 auto &&s = std::get<satisfied>(state_);
 
-                DCHECK_MSG(!s.ever_called_continuation,
+                DCHECK(!s.ever_called_continuation,
                             "Action may not be chained for multiple times.");
 
                 s.ever_called_continuation = true;

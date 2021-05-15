@@ -66,7 +66,7 @@ namespace abel {
         auto current = head;
         DCHECK(current);  // It can't be. `Append` should have already updated
         // it.
-        DCHECK_MSG(_tail.load(std::memory_order_relaxed), "The buffer is empty.");
+        DCHECK(_tail.load(std::memory_order_relaxed), "The buffer is empty.");
         while (current) {
             for (auto iter = current->buffer.begin();
                  iter != current->buffer.end() && nv != std::size(iov) &&

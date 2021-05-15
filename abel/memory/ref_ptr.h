@@ -532,7 +532,7 @@ namespace abel {
     // simplify the use of pooled `RefCounted`, we provide this method.
     template<class T,
             class = std::enable_if_t<std::is_base_of_v<pool_ref_counted<T>, T>>>
-    ref_ptr <T> get_ref_counted() {
+    ref_ptr<T> get_ref_counted() {
 #ifndef NDEBUG
         auto ptr = ref_ptr(adopt_ptr_v, object_pool::get<T>().leak());
         DCHECK_EQ(1, ptr->unsafe_ref_count());

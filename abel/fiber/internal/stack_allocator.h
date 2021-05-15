@@ -215,10 +215,10 @@ namespace abel {
 
         static void verify_canary_value(system_stack* ptr) {
             auto canaries = reinterpret_cast<std::uint64_t*>(ptr);  // U.B.?
-            DCHECK_MSG(
+            DCHECK(
                     kStackCanary0 == canaries[0],
                     "The first canary value was overwritten. The stack is corrupted.");
-            DCHECK_MSG(
+            DCHECK(
                     kStackCanary1 == canaries[1],
                     "The second canary value was overwritten. The stack is corrupted.");
         }

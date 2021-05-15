@@ -85,7 +85,7 @@ bool simple_atod(std::string_view str, double *out) {
 }
 
 bool simple_atob(std::string_view str, bool *out) {
-    DCHECK_MSG(out != nullptr, "Output pointer must not be nullptr.");
+    DCHECK(out != nullptr, "Output pointer must not be nullptr.");
     if (equal_case(str, "true") || equal_case(str, "t") ||
         equal_case(str, "yes") || equal_case(str, "y") ||
         equal_case(str, "1")) {

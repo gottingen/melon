@@ -35,7 +35,7 @@ namespace abel {
 
         void flatten_to_slow_slow(const iobuf &nb, void *buffer,
                                   std::size_t size) {
-            DCHECK_MSG(nb.byte_size() >= size, "No enough data.");
+            DCHECK(nb.byte_size() >= size, "No enough data.");
             std::size_t copied = 0;
             for (auto iter = nb.begin(); iter != nb.end() && copied != size; ++iter) {
                 auto len = std::min(size - copied, iter->size());

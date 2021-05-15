@@ -25,7 +25,7 @@ namespace abel {
             using ::testing::ElementsAre;
 
             size_t Distance(const void *from, const void *to) {
-                DCHECK_MSG(from <= to, "Distance must be non-negative");
+                DCHECK(from <= to, "Distance must be non-negative");
                 return static_cast<const char *>(to) - static_cast<const char *>(from);
             }
 

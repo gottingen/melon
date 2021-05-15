@@ -47,7 +47,7 @@ namespace abel {
         public:
             waitable() = default;
 
-            ~waitable() { DCHECK_MSG(waiters_.empty(), "{}", waiters_.size()); }
+            ~waitable() { DCHECK(waiters_.empty(), "{}", waiters_.size()); }
 
             // Add a waiter to the tail.
             //

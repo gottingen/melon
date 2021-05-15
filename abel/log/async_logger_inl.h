@@ -20,7 +20,7 @@ ABEL_FORCE_INLINE abel::async_logger::async_logger(
         : async_logger(std::move(logger_name), {std::move(single_sink)}, std::move(tp), overflow_policy) {}
 
 // send the log message to the thread pool
-ABEL_FORCE_INLINE void abel::async_logger::sink_it_(const details::log_msg &msg) {
+ABEL_FORCE_INLINE void abel::async_logger::sink_it_impl(const details::log_msg &msg) {
     if (auto pool_ptr = thread_pool_.lock()) {
         pool_ptr->post_log(shared_from_this(), msg, overflow_policy_);
     } else {
@@ -29,7 +29,7 @@ ABEL_FORCE_INLINE void abel::async_logger::sink_it_(const details::log_msg &msg)
 }
 
 // send flush request to the thread pool
-ABEL_FORCE_INLINE void abel::async_logger::flush_() {
+ABEL_FORCE_INLINE void abel::async_logger::flush_impl() {
     if (auto pool_ptr = thread_pool_.lock()) {
         pool_ptr->post_flush(shared_from_this(), overflow_policy_);
     } else {

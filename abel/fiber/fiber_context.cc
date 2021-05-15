@@ -12,7 +12,7 @@ namespace abel {
     fiber_local<fiber_context*> fiber_context::current_;
 
     void fiber_context::clear() {
-        DCHECK_MSG(unsafe_ref_count() == 1,
+        DCHECK(unsafe_ref_count() == 1,
                 "Unexpected: `fiber_context` is using by others when `Clear()`-ed.");
 
         for (auto&& e : inline_els_) {

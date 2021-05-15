@@ -46,7 +46,7 @@ namespace abel {
 
             template<typename T, typename U>
             void CheckPairEquals(const T &x, const U &y) {
-                DCHECK_MSG(x == y, "Values are unequal.");
+                DCHECK(x == y, "Values are unequal.");
             }
 
             template<typename T, typename U, typename V, typename W>
@@ -106,7 +106,7 @@ namespace abel {
             template<typename IterType, typename CheckerIterType>
             IterType iter_check(IterType tree_iter, CheckerIterType checker_iter) const {
                 if (tree_iter == tree_.end()) {
-                    DCHECK_MSG(checker_iter == checker_.end(),
+                    DCHECK(checker_iter == checker_.end(),
                                         "Checker iterator not at end.");
                 } else {
                     CheckPairEquals(*tree_iter, *checker_iter);
@@ -117,7 +117,7 @@ namespace abel {
             template<typename IterType, typename CheckerIterType>
             IterType riter_check(IterType tree_iter, CheckerIterType checker_iter) const {
                 if (tree_iter == tree_.rend()) {
-                    DCHECK_MSG(checker_iter == checker_.rend(),
+                    DCHECK(checker_iter == checker_.rend(),
                                         "Checker iterator not at rend.");
                 } else {
                     CheckPairEquals(*tree_iter, *checker_iter);

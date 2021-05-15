@@ -130,9 +130,9 @@ namespace abel {
         // INTERNAL USE ONLY.
         void UnsafeInit(T *ptr, void (*deleter)(T *)) {
             auto &&entry = fiber_context::current()->GetElsEntry(slot_index_);
-            DCHECK_MSG(entry,
+            DCHECK(entry,
                         "Initializing ELS must be done inside execution context.");
-            DCHECK_MSG(entry->ptr.load(std::memory_order_relaxed) == nullptr,
+            DCHECK(entry->ptr.load(std::memory_order_relaxed) == nullptr,
                         "Initializeing an already-initialized ELS?");
             entry->ptr.store(ptr, std::memory_order_release);
             // FIXME: U.B. here?
@@ -142,7 +142,7 @@ namespace abel {
     private:
         T *Get() const noexcept {
             auto &&current = fiber_context::current();
-            DCHECK_MSG(current,
+            DCHECK(current,
                          "Getting ELS is only meaningful inside execution context.");
 
             auto &&entry = current->GetElsEntry(slot_index_);

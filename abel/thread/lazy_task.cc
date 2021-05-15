@@ -105,7 +105,7 @@ namespace abel {
 
     std::uint64_t set_thread_lazy_task(
             abel::function<void()> callback, abel::duration min_interval) {
-        DCHECK_MSG(min_interval > abel::duration::seconds(0), "Hang will occur.");
+        DCHECK(min_interval > abel::duration::seconds(0), "Hang will occur.");
 
         auto id = next_callback_id++;
         auto&& queue = GetGlobalQueue();

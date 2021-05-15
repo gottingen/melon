@@ -203,7 +203,7 @@ namespace abel {
 
         template<class T, single_linked_list_entry T::*kEntry>
         constexpr T &single_linked_list<T, kEntry>::front() noexcept {
-            DCHECK_MSG(!empty(), "Calling `front()` on empty list is undefined.");
+            DCHECK(!empty(), "Calling `front()` on empty list is undefined.");
             return *object_cast(next_);
         }
 
@@ -214,7 +214,7 @@ namespace abel {
 
         template<class T, single_linked_list_entry T::*kEntry>
         constexpr T &single_linked_list<T, kEntry>::back() noexcept {
-            DCHECK_MSG(!empty(), "Calling `back()` on empty list is undefined.");
+            DCHECK(!empty(), "Calling `back()` on empty list is undefined.");
             return *object_cast(tail_);
         }
 
@@ -225,7 +225,7 @@ namespace abel {
 
         template<class T, single_linked_list_entry T::*kEntry>
         constexpr T *single_linked_list<T, kEntry>::pop_front() noexcept {
-            DCHECK_MSG(!empty(), "Calling `pop_front()` on empty list is undefined.");
+            DCHECK(!empty(), "Calling `pop_front()` on empty list is undefined.");
             auto rc = next_;
             next_ = next_->next;
             if (!--size_) {
@@ -325,7 +325,7 @@ namespace abel {
         template<class T, single_linked_list_entry T::*kEntry>
         single_linked_list<T, kEntry> &single_linked_list<T, kEntry>::operator=(
                 single_linked_list &&other) noexcept {
-            DCHECK_MSG(empty(), "Moving into non-empty list will likely leak.");
+            DCHECK(empty(), "Moving into non-empty list will likely leak.");
             swap(other);
             return *this;
         }

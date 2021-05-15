@@ -18,7 +18,7 @@ namespace abel {
 
             void *create_one_byte_dummy_page() {
                 auto ptr = mmap(nullptr, 1, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-                DCHECK_MSG(ptr, "Cannot create dummy page for asymmetric memory barrier.");
+                DCHECK(ptr, "Cannot create dummy page for asymmetric memory barrier.");
                 (void) mlock(ptr, 1);
                 return ptr;
             }

@@ -138,7 +138,7 @@ namespace abel {
         }
 
         inline std::size_t GetAllocationSize() {
-            DCHECK_MSG(fiber_config::get_global_fiber_config().fiber_stack_size % kPageSize == 0,
+            DCHECK(fiber_config::get_global_fiber_config().fiber_stack_size % kPageSize == 0,
                         "user_stack size ({}) must be a multiple of page size ({}).",
                        fiber_config::get_global_fiber_config().fiber_stack_size, kPageSize);
 
@@ -148,10 +148,10 @@ namespace abel {
         user_stack *create_user_stack_impl() {
             auto p = mmap(nullptr, GetAllocationSize(), PROT_READ | PROT_WRITE,
                           MAP_PRIVATE | MAP_ANONYMOUS /*| MAP_STACK*/, 0, 0);
-            DLOG_IF_CRITICAL(p == nullptr, "{}", kOutOfMemoryError);
-            DCHECK_EQ(reinterpret_cast<std::uintptr_t>(p) % kPageSize, 0);
+            DLOG_CRITICAL_IF(p == nullptr, "{}", kOutOfMemoryError);
+            DCHECK_EQ(reinterpret_cast<std::uintptr_t>(p) % kPageSize, 0ul);
             if (fiber_config::get_global_fiber_config().fiber_stack_enable_guard_page) {
-                DLOG_IF_CRITICAL(mprotect(p, kPageSize, PROT_NONE) != 0, "{}",
+                DLOG_CRITICAL_IF(mprotect(p, kPageSize, PROT_NONE) != 0, "{}",
                                    kOutOfMemoryError);
             }
 

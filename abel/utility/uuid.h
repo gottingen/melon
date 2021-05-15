@@ -107,7 +107,7 @@ namespace abel {
         } else if (x >= 'A' && x <= 'F') {
             return x - 'A' + 10;
         } else {
-            DCHECK_MSG(0, "Invalid hex digit [{}].", x);
+            DCHECK(0, "Invalid hex digit [{}].", x);
         }
     }
 

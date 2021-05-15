@@ -27,7 +27,7 @@ namespace abel {
                         : sg_(sg), self_(self), wb_(wb) {}
 
                 // The destructor does some sanity checks.
-                ~async_waker() { DCHECK_MSG(timer_ == 0, "Have you called `Cleanup()`?"); }
+                ~async_waker() { DCHECK(timer_ == 0, "Have you called `Cleanup()`?"); }
 
                 // Set a timer to awake `self` once `expires_at` is reached.
                 void set_timer(abel::time_point expires_at) {

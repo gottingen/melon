@@ -162,7 +162,7 @@ namespace abel {
         auto addr = er.addr();
         auto p = reinterpret_cast<sockaddr_in *>(addr);
         memset(p, 0, sizeof(sockaddr_in));
-        DCHECK_MSG(inet_pton(AF_INET, ip.c_str(), &p->sin_addr),
+        DCHECK(inet_pton(AF_INET, ip.c_str(), &p->sin_addr),
                    "Cannot parse [{}].", ip);
         p->sin_port = htons(port);
         p->sin_family = AF_INET;
@@ -175,7 +175,7 @@ namespace abel {
         auto addr = er.addr();
         auto p = reinterpret_cast<sockaddr_in6 *>(addr);
         memset(p, 0, sizeof(sockaddr_in6));
-        DCHECK_MSG(inet_pton(AF_INET6, ip.c_str(), &p->sin6_addr),
+        DCHECK(inet_pton(AF_INET6, ip.c_str(), &p->sin6_addr),
                    "Cannot parse [{}].", ip);
         p->sin6_port = htons(port);
         p->sin6_family = AF_INET6;
@@ -196,7 +196,7 @@ namespace abel {
                              &unsafe_get<sockaddr_in6>()->sin6_addr,
                              result.data(), result.size()));
         } else {
-            DCHECK_MSG(
+            DCHECK(
                     0, "Unexpected: Address family #{} is not a valid IP address family.",
                     family());
         }
@@ -204,7 +204,7 @@ namespace abel {
     }
 
     std::uint16_t end_point::get_port() const {
-        DCHECK_MSG(family() == AF_INET || family() == AF_INET6,
+        DCHECK(family() == AF_INET || family() == AF_INET6,
                    "Unexpected: Address family #{} is not a valid IP address family.",
                    family());
         if (family() == AF_INET) {

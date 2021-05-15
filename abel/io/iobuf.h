@@ -212,7 +212,7 @@ namespace abel {
         // New internal buffer is allocated if the current one is saturated (i.e,
         // `bytes` == `size()`.).
         void mark_written(std::size_t bytes) {
-            DCHECK_MSG(bytes <= size_available(), "You're overflowing the buffer.");
+            DCHECK(bytes <= size_available(), "You're overflowing the buffer.");
             used_ += bytes;
             if (ABEL_UNLIKELY(!size_available())) {
                 flush_current_block();
@@ -231,7 +231,7 @@ namespace abel {
         char *reserve(std::size_t bytes) {
             static const auto kMaxBytes = 1024;
 
-            DCHECK_MSG(bytes <= kMaxBytes,
+            DCHECK(bytes <= kMaxBytes,
                        "At most [{}] bytes may be reserved in a single call.",
                        kMaxBytes);
             if (size_available() < bytes) {  // No enough contiguous buffer space,

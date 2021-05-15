@@ -36,7 +36,7 @@ namespace abel {
     fiber::fiber() = default;
 
     fiber::~fiber() {
-        DCHECK_MSG(!joinable(),
+        DCHECK(!joinable(),
                    "You need to call either `join()` or `detach()` prior to destroy "
                    "a fiber.");
     }
@@ -44,7 +44,7 @@ namespace abel {
     fiber::fiber(const attributes &attr, abel::function<void()> &&start) {
         // Choose a scheduling group for running this fiber.
         auto sg = get_scheduling_group(attr.scheduling_group);
-        DCHECK_MSG(sg, "No scheduling group is available?");
+        DCHECK(sg, "No scheduling group is available?");
 
         if (attr.execution_context) {
             // Caller specified an execution context, so we should wrap `start` to run
@@ -79,12 +79,12 @@ namespace abel {
     }
 
     void fiber::detach() {
-        DCHECK_MSG(joinable(), "The fiber is in detached state.");
+        DCHECK(joinable(), "The fiber is in detached state.");
         join_impl_ = nullptr;
     }
 
     void fiber::join() {
-        DCHECK_MSG(joinable(), "The fiber is in detached state.");
+        DCHECK(joinable(), "The fiber is in detached state.");
         join_impl_->wait();
         join_impl_.reset();
     }

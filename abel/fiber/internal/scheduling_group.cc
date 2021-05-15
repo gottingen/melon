@@ -179,7 +179,7 @@ namespace abel {
                   run_queue_(fiber_config::get_global_fiber_config().fiber_run_queue_size) {
             // We use bitmask (a `std::uint64_t`) to save workers' state. That puts an
             // upper limit on how many workers can be in a given scheduling group.
-            DCHECK_MSG(group_size_ <= 64,
+            DCHECK(group_size_ <= 64,
                        "groups: {}, We only support up to 64 workers in each scheduling group. "
                        "Use more scheduling groups if you want more concurrency.", group_size_);
 
@@ -235,7 +235,7 @@ namespace abel {
             // spin, as it there's a time windows between we test `spinning` and set our
             // bit in it.
             while (count_non_zeros(spinning) < kMaximumSpinners) {
-                DCHECK_EQ(spinning & mask, 0);
+                DCHECK_EQ(spinning & mask, 0ul);
                 if (spinning_workers_.compare_exchange_weak(spinning, spinning | mask,
                                                             std::memory_order_relaxed)) {
                     need_spin = true;
@@ -310,7 +310,7 @@ namespace abel {
                     sleeping_workers_.fetch_and(~mask, std::memory_order_relaxed);
                 });
                 DCHECK_EQ(
-                        sleeping_workers_.fetch_or(mask, std::memory_order_relaxed) & mask, 0);
+                        sleeping_workers_.fetch_or(mask, std::memory_order_relaxed) & mask, 0ul);
 
                 // We should test if the queue is indeed empty, otherwise if a new fiber is
                 // put into the ready queue concurrently, and whoever makes the fiber ready
@@ -392,9 +392,9 @@ namespace abel {
 
         void scheduling_group::ready_fiber(
                 fiber_entity *fiber, std::unique_lock<abel::fiber_internal::spinlock> &&scheduler_lock) noexcept {
-            DCHECK_MSG(!stopped_.load(std::memory_order_relaxed),
+            DCHECK(!stopped_.load(std::memory_order_relaxed),
                        "The scheduling group has been stopped.");
-            DCHECK_MSG(fiber != get_master_fiber_entity(),
+            DCHECK(fiber != get_master_fiber_entity(),
                        "Master fiber should not be added to run queue.");
 
             fiber->state = fiber_state::Ready;
@@ -410,10 +410,10 @@ namespace abel {
                 auto since = abel::time_now();
 
                 while (!run_queue_.push(fiber, fiber->scheduling_group_local)) {
-                    DLOG_EVERY_N_WARN(1000,
+                    DLOG_WARN_EVERY_N(1000,
                                       "Run queue overflow. Too many ready fibers to run. If you're still "
                                       "not overloaded, consider increasing `fiber_run_queue_size`.");
-                    DLOG_IF_CRITICAL(abel::time_now() - since > abel::duration::seconds(5),
+                    DLOG_CRITICAL_IF(abel::time_now() - since > abel::duration::seconds(5),
                                      "Failed to push fiber into ready queue after retrying "
                                      "for 5s. Gave up.");
                     std::this_thread::sleep_for(100us);
@@ -427,12 +427,12 @@ namespace abel {
 
         void scheduling_group::halt(
                 fiber_entity *self, std::unique_lock<abel::fiber_internal::spinlock> &&scheduler_lock) noexcept {
-            DCHECK_MSG(self == get_current_fiber_entity(),
+            DCHECK(self == get_current_fiber_entity(),
                        "`self` must be pointer to caller's `fiber_entity`.");
-            DCHECK_MSG(
+            DCHECK(
                     scheduler_lock.owns_lock(),
                     "Scheduler lock must be held by caller prior to call to this method.");
-            DCHECK_MSG(
+            DCHECK(
                     self->state == fiber_state::Running,
                     "`halt()` is only for running fiber's use. If you want to `ready_fiber()` "
                     "yourself and `halt()`, what you really need is `yield()`.");
@@ -480,9 +480,9 @@ namespace abel {
 
             // We need scheduler lock here actually (at least to comfort TSan). But so
             // long as this check does not fiber, we're safe without the lock I think.
-            DCHECK_MSG(to->state == fiber_state::Ready,
+            DCHECK(to->state == fiber_state::Ready,
                        "Fiber `to` is not in ready state.");
-            DCHECK_MSG(self != to, "Switch to yourself results in U.B.");
+            DCHECK(self != to, "Switch to yourself results in U.B.");
 
             // TODO(yinbinli): Ensure neither `self->scheduler_lock` nor
             // `to->scheduler_lock` is currrently held (by someone else).
@@ -502,9 +502,9 @@ namespace abel {
         }
 
         void scheduling_group::enter_group(std::size_t index) {
-            DCHECK_MSG(current_ == nullptr,
+            DCHECK(current_ == nullptr,
                        "This pthread worker has already joined a scheduling group.");
-            DCHECK_MSG(timer_worker_ != nullptr,
+            DCHECK(timer_worker_ != nullptr,
                        "The timer worker is not available yet.");
 
             // Initialize TLSes as much as possible. Initializing them need an adequate
@@ -523,7 +523,7 @@ namespace abel {
         }
 
         void scheduling_group::leave_group() {
-            DCHECK_MSG(current_ == this,
+            DCHECK(current_ == this,
                        "This pthread worker does not belong to this scheduling group.");
             current_ = nullptr;
             worker_index_ = kUninitializedWorkerIndex;

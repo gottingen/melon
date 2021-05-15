@@ -130,7 +130,7 @@ namespace abel {
 // anyway? Noticing the user about the compiler version would be easier for he /
 // she to fix (as some user might not have a notion of runtime's version).
 #define ABEL_INTERNAL_ASAN_CHECK(fp) \
-  DCHECK_MSG(fp, "Your compiler is too old to use ASan with fibers.");
+  DCHECK(fp, "Your compiler is too old to use ASan with fibers.");
 
 // You need to call this method before swapping runtime stack.
 //
@@ -207,7 +207,7 @@ inline void UnpoisonMemoryRegion(const void* ptr, std::size_t size) {
 // For users: If you go here to check why your program crashes, you're likely
 // out of luck. The compiler version requirement is relatively high, admittedly.
 #define ABEL_INTERNAL_TSAN_CHECK(fp) \
-  DCHECK_MSG(fp, "Your compiler is too old to use TSan with fibers.");
+  DCHECK(fp, "Your compiler is too old to use TSan with fibers.");
 
 // Internally TSan maintains a context (a shadow stack, actually) for each
 // thread. In case of fibers, the context is required for each fiber.

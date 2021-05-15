@@ -106,7 +106,7 @@ namespace abel {
         const_iterator() = default;  // `end()`.
 
         char operator*() const noexcept {
-            DCHECK_MSG(current_ != end_, "Dereferencing an invalid iterator.");
+            DCHECK(current_ != end_, "Dereferencing an invalid iterator.");
             DCHECK_LT(byte_offset_, current_->size());
             return *(current_->data() + byte_offset_);
         }
@@ -163,7 +163,7 @@ namespace abel {
         const_iterator() = default;  // `end()`.
 
         char operator*() const noexcept {
-            DCHECK_MSG(current_ != end_, "Dereferencing an invalid iterator.");
+            DCHECK(current_ != end_, "Dereferencing an invalid iterator.");
             DCHECK_LT(seg_offset_, current_->size());
             return *(current_->data() + seg_offset_);
         }
