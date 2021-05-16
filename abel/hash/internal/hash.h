@@ -31,7 +31,7 @@
 #include "abel/base/profile.h"
 #include "abel/container/fixed_array.h"
 #include "abel/meta/type_traits.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 #include "abel/utility/utility.h"
 #include "abel/hash/internal/city.h"
 #include "abel/hash/internal/murmur3.h"

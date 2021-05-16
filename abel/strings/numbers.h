@@ -36,7 +36,7 @@
 #endif
 
 #include "abel/base/profile.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 #include <string_view>
 #include "abel/base/math.h"
 

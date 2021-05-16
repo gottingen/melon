@@ -5,7 +5,7 @@
 #include "abel/random/internal/wide_multiply.h"
 
 #include "gtest/gtest.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 
 using abel::random_internal::MultiplyU64ToU128;
 

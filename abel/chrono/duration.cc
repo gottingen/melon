@@ -55,7 +55,7 @@
 #include <limits>
 #include <string>
 #include "abel/chrono/duration.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 #include "abel/chrono/time.h"
 #include "abel/base/math.h"
 

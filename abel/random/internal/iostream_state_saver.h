@@ -7,7 +7,7 @@
 #include <iostream>
 #include <limits>
 #include "abel/meta/type_traits.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 
 namespace abel {
 

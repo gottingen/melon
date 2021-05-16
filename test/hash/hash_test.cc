@@ -31,7 +31,7 @@
 #include "testing/hash_testing.h"
 #include "testing/spy_hash_state.h"
 #include "abel/meta/type_traits.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 
 namespace {
 

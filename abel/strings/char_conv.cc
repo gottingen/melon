@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "abel/base/math.h"
-#include "abel/numeric/int128.h"
+#include "abel/base/int128.h"
 #include "abel/strings/internal/charconv_bigint.h"
 #include "abel/strings/internal/charconv_parse.h"
 
