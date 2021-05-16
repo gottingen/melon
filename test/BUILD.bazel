@@ -107,6 +107,63 @@ cc_test(
         )
 
 cc_test(
+            name = "base_bit_cast_test",
+            size = "small",
+            srcs = ["base/bit_cast_test.cc"],
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "base_config_test",
+            size = "small",
+            srcs = ["base/config_test.cc"],
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "base_countl_zero_test",
+            size = "small",
+            srcs = ["base/countl_zero_test.cc"],
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+cc_test(
+            name = "base_countr_zero_test",
+            size = "small",
+            srcs = ["base/countr_zero_test.cc"],
+            copts = CARBIN_TEST_COPTS,
+            linkopts = CARBIN_DEFAULT_LINKOPTS,
+            deps = [
+                "//abel:abel",
+                "//testing:testing",
+                "@com_google_googletest//:gtest_main",
+                "@com_google_googletest//:gtest",
+            ],
+        )
+
+
+cc_test(
             name = "chrono_test",
             size = "small",
             srcs = glob(["chrono/*.cc",]),
@@ -406,6 +463,7 @@ cc_test(
                 "@com_google_googletest//:gtest",
             ],
         )
+
 cc_test(
             name = "utility_test",
             size = "small",

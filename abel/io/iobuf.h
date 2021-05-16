@@ -232,8 +232,8 @@ namespace abel {
             static const auto kMaxBytes = 1024;
 
             DCHECK(bytes <= kMaxBytes,
-                       "At most [{}] bytes may be reserved in a single call.",
-                       kMaxBytes);
+                   "At most [{}] bytes may be reserved in a single call.",
+                   kMaxBytes);
             if (size_available() < bytes) {  // No enough contiguous buffer space,
                 // allocated a new one then.
                 flush_current_block();
@@ -371,7 +371,7 @@ namespace abel {
 
         template<class T, class... Ts>
         [[gnu::always_inline]] void unchecked_append(char *ptr, const T &sv,
-                                                    const Ts &... svs) {
+                                                     const Ts &... svs) {
             memcpy(ptr, data(sv), io_internal::size(sv));
             unchecked_append(ptr + io_internal::size(sv), svs...);
         }
@@ -387,7 +387,7 @@ namespace abel {
     namespace io_internal {
 
         void flatten_to_slow_slow(const iobuf &nb, void *buffer,
-                               std::size_t size);
+                                  std::size_t size);
 
     }  // namespace io_internal
 
@@ -406,7 +406,7 @@ namespace abel {
 
     // Caller is responsible for ensuring `nb.byte_size()` is no less than `size`.
     inline void flatten_to_slow(const iobuf &nb, void *buffer,
-                              std::size_t size) {
+                                std::size_t size) {
         if (ABEL_LIKELY(size <= nb.first_slice().size())) {
             memcpy(buffer, nb.first_slice().data(), size);
         }
@@ -423,7 +423,7 @@ namespace abel {
     // creator to be notified when the framework finished using the buffer.
     template<class F>
     iobuf_slice make_ref_slice(const void *ptr, std::size_t size,
-                                      F &&completion_cb) {
+                               F &&completion_cb) {
         using BufferBlock = ref_iobuf_block<std::remove_reference_t<F>>;
         return iobuf_slice(
                 abel::make_ref_counted<BufferBlock>(ptr, size, std::forward<F>(completion_cb)), 0, size);
