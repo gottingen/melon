@@ -28,7 +28,10 @@ namespace abel {
         EXPECT_EQ("tn=monline_dg&bs=DVLOG&f=8&wd=glog+DVLOG", parsed->query());
 
         ASSERT_EQ("fragment", parsed->fragment());
-        ASSERT_TRUE(parse_uri("http://l5(826753,65536)/monitro/es/dimeagg/"));
+        ASSERT_TRUE(parse_uri("http://q5(826753,65536)/monitro/es/dimeagg/"));
+
+        ASSERT_EQ("monline_dg", parsed->get_query("tn"));
+        ASSERT_EQ("DVLOG", parsed->get_query("bs"));
     }
 
     TEST(Uri, ParseAuthority) {
@@ -57,6 +60,18 @@ namespace abel {
         ASSERT_FALSE(parse_uri("http://^www.lianjiew.com/"));  // leading -
         ASSERT_FALSE(parse_uri("http://platform`info.py/"));  // domain contains _
         ASSERT_FALSE(parse_uri(" http://platform%info.py/"));  // leading space
+    }
+
+    TEST(Uri_builder, builder) {
+        std::string uri_str = "http://username:password@127.0.0.1:8080/s?tn=monline_dg&bs=DVLOG";
+
+        http_uri_builder builder;
+        builder.set_http_url(uri_str);
+
+        ASSERT_TRUE(builder.build(true));
+        builder.remove_query("tn");
+        builder.remove_query("bs");
+        ASSERT_EQ(builder.to_string(true), "http://username:password@127.0.0.1:8080/s");
     }
 
 }  // namespace abel

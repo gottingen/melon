@@ -4,7 +4,6 @@
 
 #include "abel/net/uri.h"
 
-
 #include <algorithm>
 #include <limits>
 #include <optional>
@@ -18,38 +17,38 @@
 namespace abel {
 
     struct uri_parser_byte_sets {
-        const byte_set& alpha;
-        const byte_set& upper;
-        const byte_set& lower;
-        const byte_set& digit;
-        const byte_set& alphanum;
-        const byte_set& print;
-        const byte_set& hex;
+        const abel::byte_set &alpha;
+        const abel::byte_set &upper;
+        const abel::byte_set &lower;
+        const abel::byte_set &digit;
+        const abel::byte_set &alphanum;
+        const abel::byte_set &print;
+        const abel::byte_set &hex;
 
-        const byte_set gen_delims;
-        const byte_set sub_delims;
-        const byte_set reserved;
-        const byte_set mark;
-        const byte_set unreserved;
-        const byte_set userinfo;
-        const byte_set uric_no_slash;
-        const byte_set rel_segment;
-        const byte_set scheme;
-        const byte_set reg_name;
-        const byte_set expansion;
-        const byte_set pchar;
-        const byte_set query;
-        const byte_set fragment;
+        const abel::byte_set gen_delims;
+        const abel::byte_set sub_delims;
+        const abel::byte_set reserved;
+        const abel::byte_set mark;
+        const abel::byte_set unreserved;
+        const abel::byte_set userinfo;
+        const abel::byte_set uric_no_slash;
+        const abel::byte_set rel_segment;
+        const abel::byte_set scheme;
+        const abel::byte_set reg_name;
+        const abel::byte_set expansion;
+        const abel::byte_set pchar;
+        const abel::byte_set query;
+        const abel::byte_set fragment;
 
     private:
         uri_parser_byte_sets()
-                : alpha(byte_set::alphas()),
-                  upper(byte_set::uppercase()),
-                  lower(byte_set::lowercase()),
-                  digit(byte_set::digits()),
-                  alphanum(byte_set::alpha_nums()),
-                  print(byte_set::printables()),
-                  hex(byte_set::hex()),
+                : alpha(abel::byte_set::alphas()),
+                  upper(abel::byte_set::uppercase()),
+                  lower(abel::byte_set::lowercase()),
+                  digit(abel::byte_set::digits()),
+                  alphanum(abel::byte_set::alpha_nums()),
+                  print(abel::byte_set::printables()),
+                  hex(abel::byte_set::hex()),
                   gen_delims(":/?#[]@"),
                   sub_delims("!$&'()*+,;="),
                   reserved(gen_delims | sub_delims),
@@ -58,46 +57,52 @@ namespace abel {
                   userinfo(unreserved | ",:&=+$,"),
                   uric_no_slash(unreserved | ",?:@&=+$,"),
                   rel_segment(unreserved | ",@&=+$,"),
-                  scheme(byte_set::alpha_nums() | "+-."),
+                  scheme(abel::byte_set::alpha_nums() | "+-."),
                   reg_name(unreserved | sub_delims),
-                    // `expansion` was used to hold non-conformant chars (per RFC3986) that
-                    // was allowed in `common/uri`. Here we strip that behavior by default.
+                // `expansion` was used to hold non-conformant chars (per RFC3986) that
+                // was allowed in `common/uri`. Here we strip that behavior by default.
                   expansion("|{}[]^\""),
                   pchar(unreserved | sub_delims | ":@" | expansion),
                   query(pchar | "/?"),
-                    // We allowed `#` in `common/uri`, this is not conformant per RFC3986,
-                    // so we strip that behavior here.
-                  fragment(pchar | "/?" |"#") {}
+                // We allowed `#` in `common/uri`, this is not conformant per RFC3986,
+                // so we strip that behavior here.
+                  fragment(pchar | "/?" | "#") {}
 
     public:
-        static const uri_parser_byte_sets& instance() {
+        static const uri_parser_byte_sets &instance() {
             static uri_parser_byte_sets sinstance;
             return sinstance;
         }
     };
 
     struct uri_parse_result_receiver {
-        explicit uri_parse_result_receiver(const char* base) : base_(base) {}
+        explicit uri_parse_result_receiver(const char *base) : base_(base) {}
 
-        void SetScheme(const char* value, size_t length) {
+        void SetScheme(const char *value, size_t length) {
             scheme = {value - base_, length};
         }
-        void SetUserInfo(const char* value, size_t length) {
+
+        void SetUserInfo(const char *value, size_t length) {
             userinfo = {value - base_, length};
         }
-        void SetHost(const char* value, size_t length) {
+
+        void SetHost(const char *value, size_t length) {
             host = {value - base_, length};
         }
-        void SetPort(const char* value, size_t length) {
+
+        void SetPort(const char *value, size_t length) {
             port = {value - base_, length};
         }
-        void SetPath(const char* value, size_t length) {
+
+        void SetPath(const char *value, size_t length) {
             path = {value - base_, length};
         }
-        void SetQuery(const char* value, size_t length) {
+
+        void SetQuery(const char *value, size_t length) {
             query = {value - base_, length};
         }
-        void SetFragment(const char* value, size_t length) {
+
+        void SetFragment(const char *value, size_t length) {
             fragment = {value - base_, length};
         }
 
@@ -105,7 +110,7 @@ namespace abel {
                 query, fragment;
 
     private:
-        const char* base_;
+        const char *base_;
     };
 
     class uri_parser {
@@ -115,7 +120,7 @@ namespace abel {
         class parse_result {
         public:
             // remember current reading pointer
-            explicit parse_result(uri_parser* parser)
+            explicit parse_result(uri_parser *parser)
                     : m_parser(parser), m_begin(parser->m_current), m_result(false) {}
 
             ~parse_result() {
@@ -124,26 +129,32 @@ namespace abel {
             }
 
             operator bool() const { return m_result; }
-            parse_result& operator=(bool value) {
+
+            parse_result &operator=(bool value) {
                 m_result = value;
                 if (!value) m_parser->m_current = m_begin;
                 return *this;
             }
-            const char* begin() const { return m_begin; }
-            const char* end() const { return m_parser->m_current; }
+
+            const char *begin() const { return m_begin; }
+
+            const char *end() const { return m_parser->m_current; }
+
             size_t length() const { return m_parser->m_current - m_begin; }
+
             void Reset() {
                 m_begin = m_parser->m_current;
                 m_result = false;
             }
 
         private:
-            parse_result(const parse_result&);
-            parse_result& operator=(const parse_result&);
+            parse_result(const parse_result &);
+
+            parse_result &operator=(const parse_result &);
 
         private:
-            uri_parser* m_parser;
-            const char* m_begin;
+            uri_parser *m_parser;
+            const char *m_begin;
             bool m_result;
         };
 
@@ -155,8 +166,8 @@ namespace abel {
                   m_current(nullptr),
                   m_result(nullptr) {}
 
-        size_t Parse(const char* uri, size_t uri_length,
-                     uri_parse_result_receiver* result) {
+        size_t Parse(const char *uri, size_t uri_length,
+                     uri_parse_result_receiver *result) {
             m_begin = uri;
             m_current = uri;
             m_end = uri + uri_length;
@@ -256,7 +267,7 @@ namespace abel {
         }
 
         bool maybe_contains_userinfo() const {
-            for (const char* p = m_current; p < m_end; ++p) {
+            for (const char *p = m_current; p < m_end; ++p) {
                 switch (*p) {
                     case '@':
                         return true;
@@ -294,7 +305,7 @@ namespace abel {
 
         // host          = IP-literal / IPv4address / reg-name
         bool match_host() {
-            const char* begin = m_current;
+            const char *begin = m_current;
             if (match_IPv4address() || match_ip_literal() || match_reg_name()) {
                 m_result->SetHost(begin, m_current - begin);
                 return true;
@@ -357,7 +368,7 @@ namespace abel {
 
         // path-abempty  = *( "/" segment )
         bool match_path_abempty() {
-            const char* begin = m_current;
+            const char *begin = m_current;
             for (;;) {
                 parse_result r1(this);
                 r1 = match_literal('/') && match_segment();
@@ -369,7 +380,7 @@ namespace abel {
 
         // path-absolute = "/" [ segment-nz *( "/" segment ) ]
         bool match_path_absolute() {
-            const char* begin = m_current;
+            const char *begin = m_current;
             if (!match_literal('/')) return false;
             if (match_segment_nz()) {
                 for (;;) {
@@ -384,7 +395,7 @@ namespace abel {
 
         // path-noscheme = segment-nz-nc *( "/" segment )
         bool match_path_noscheme() {
-            const char* begin = m_current;
+            const char *begin = m_current;
             if (!match_segment_nz_nc()) return false;
             for (;;) {
                 parse_result r(this);
@@ -397,7 +408,7 @@ namespace abel {
 
         // path-rootless = segment-nz *( "/" segment )
         bool match_path_rootless() {
-            const char* begin = m_current;
+            const char *begin = m_current;
             if (!match_segment_nz()) return false;
             for (;;) {
                 parse_result r(this);
@@ -577,7 +588,7 @@ namespace abel {
             return false;
         }
 
-        template <size_t N>
+        template<size_t N>
         bool match_literal(const char (&l)[N]) {
             const ptrdiff_t w = N - 1;
             if (m_end - m_current >= w && !memcmp(m_current, l, w)) {
@@ -587,8 +598,8 @@ namespace abel {
             return false;
         }
 
-        template <typename Pred>
-        bool match_byteset(const Pred& cs) {
+        template<typename Pred>
+        bool match_byteset(const Pred &cs) {
             if (m_current < m_end && cs.contains(*m_current)) {
                 ++m_current;
                 return true;
@@ -597,21 +608,21 @@ namespace abel {
         }
 
     private:
-        const uri_parser_byte_sets& m_byte_sets;
-        const char* m_begin;
-        const char* m_end;
-        const char* m_current;
-        uri_parse_result_receiver* m_result;
+        const uri_parser_byte_sets &m_byte_sets;
+        const char *m_begin;
+        const char *m_end;
+        const char *m_current;
+        uri_parse_result_receiver *m_result;
     };
 
-    std::optional<uri> parse_uri(const std::string_view& s) {
+    std::optional<http_uri> parse_uri(const std::string_view &s) {
         if (s.size() > std::numeric_limits<std::uint16_t>::max()) {
             DLOG_ERROR("Unexpected: URI is too long.");
             return std::nullopt;
         }
 
         std::string uri_copy(s);
-        uri::uri_components  components;
+        http_uri::uri_components components;
         std::uint16_t port = 0;
 
         uri_parse_result_receiver receiver(s.data());
@@ -621,13 +632,13 @@ namespace abel {
             return std::nullopt;
         }
 
-        components[uri::kScheme] = receiver.scheme;
-        components[uri::kUserInfo] = receiver.userinfo;
-        components[uri::kHost] = receiver.host;
-        components[uri::kPort] = receiver.port;
-        components[uri::kPath] = receiver.path;
-        components[uri::kQuery] = receiver.query;
-        components[uri::kFragment] = receiver.fragment;
+        components[http_uri::kScheme] = receiver.scheme;
+        components[http_uri::kUserInfo] = receiver.userinfo;
+        components[http_uri::kHost] = receiver.host;
+        components[http_uri::kPort] = receiver.port;
+        components[http_uri::kPath] = receiver.path;
+        components[http_uri::kQuery] = receiver.query;
+        components[http_uri::kFragment] = receiver.fragment;
 
         std::string_view possible_port(s.data() + receiver.port.first,
                                        receiver.port.second);
@@ -644,10 +655,80 @@ namespace abel {
         //
         // > Although schemes are case-insensitive, the canonical form is lowercase
         // > and documents that specify schemes must do so with lowercase letters.
-        auto scheme_since = uri_copy.begin() + components[uri::kScheme].first;
-        auto scheme_upto = scheme_since + components[uri::kScheme].second;
+        auto scheme_since = uri_copy.begin() + components[http_uri::kScheme].first;
+        auto scheme_upto = scheme_since + components[http_uri::kScheme].second;
         std::transform(scheme_since, scheme_upto, scheme_since, ::tolower);
-        return uri(std::move(uri_copy), components, port);
+        return http_uri(std::move(uri_copy), components, port);
+    }
+
+    std::string http_uri_builder::to_string(bool with_user_info) const {
+        std::string ret;
+        if (!_host.empty()) {
+            if (!_scheme.empty()) {
+                ret += _scheme;
+                ret += "://";
+            } else {
+                ret += "http://";
+            }
+            if(with_user_info && !_userinfo.empty()) {
+                ret += _userinfo;
+                ret += "@";
+            }
+            ret += _host;
+            if (_port != 0) {
+                ret += ":";
+                ret += std::to_string(_port);
+            }
+        }
+
+
+        if (_path.empty()) {
+            ret += "/";
+        } else {
+            ret += _path;
+        }
+
+        if (!_query_map.empty()) {
+            bool first = true;
+            for (auto it = _query_map.begin(); it != _query_map.end(); ++it) {
+                if (!first) {
+                    ret += "&";
+                } else {
+                    ret += "?";
+                    first = false;
+                }
+                ret += it->first;
+                ret += "=";
+                ret += it->second;
+            }
+        }
+
+        if (!_fragment.empty()) {
+            ret += "#";
+            ret += _fragment;
+        }
+        return ret;
+    }
+
+    std::optional<http_uri> http_uri_builder::build(bool with_user_info) const {
+        auto str = to_string(with_user_info);
+        auto ret = parse_uri(str);
+        return ret;
+    }
+
+    void http_uri_builder::set_host_and_port(std::string_view hp) {
+        std::vector<std::string_view> segment = abel::string_split(hp, abel::by_char(':'));
+        if(segment.size() == 1) {
+            _host = hp;
+        }
+        if(segment.size() == 2) {
+            _host = segment[0];
+            int64_t p;
+            auto r = abel::simple_atoi(segment[1], &p);
+            if(r) {
+                _port = p;
+            }
+        }
     }
 
 }  // namespace abel
