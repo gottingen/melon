@@ -17,7 +17,7 @@ namespace abel {
     namespace {
 
         template<std::size_t kSize>
-        struct alignas(abel::hardware_destructive_interference_size) FixedNativeBufferBlock
+        struct alignas(abel::hardware_destructive_interference_size) fixed_buffer_block
                 : native_iobuf_block {
             char *mutable_data() noexcept override { return buffer.data(); }
 
@@ -26,7 +26,7 @@ namespace abel {
             std::size_t size() const noexcept override { return buffer.size(); }
 
             void destroy() noexcept override {
-                abel::object_pool::put<FixedNativeBufferBlock>(this);
+                abel::object_pool::put<fixed_buffer_block>(this);
             }
 
             static constexpr auto kBufferSize = kSize - sizeof(native_iobuf_block);
@@ -34,13 +34,13 @@ namespace abel {
         };
 
         template<std::size_t kSize>
-        abel::ref_ptr<native_iobuf_block> MakeNativeBufferBlockOfBytes() {
+        abel::ref_ptr<native_iobuf_block> make_buffer_block_of_bytes() {
             return abel::ref_ptr(abel::adopt_ptr_v,
-                                 abel::object_pool::get<FixedNativeBufferBlock<kSize>>().leak());
+                                 abel::object_pool::get<fixed_buffer_block<kSize>>().leak());
         }
 
         abel::ref_ptr<native_iobuf_block> (*make_native_buffer_block)() =
-        MakeNativeBufferBlockOfBytes<4096>;
+        make_buffer_block_of_bytes<4096>;
 
     }  // namespace
 
@@ -53,7 +53,7 @@ namespace abel {
 namespace abel {
 
     template<>
-    struct pool_traits<abel::FixedNativeBufferBlock<4096>> {
+    struct pool_traits<abel::fixed_buffer_block<4096>> {
         static constexpr auto kType = pool_type::ThreadLocal;
         static constexpr auto kLowWaterMark = 16384;  // 64M per node.
         static constexpr auto kHighWaterMark =
@@ -64,7 +64,7 @@ namespace abel {
     };
 
     template<>
-    struct pool_traits<abel::FixedNativeBufferBlock<65536>> {
+    struct pool_traits<abel::fixed_buffer_block<65536>> {
         static constexpr auto kType = pool_type::ThreadLocal;
         static constexpr auto kLowWaterMark = 1024;  // 64M per node.
         static constexpr auto kHighWaterMark =
@@ -75,7 +75,7 @@ namespace abel {
     };
 
     template<>
-    struct pool_traits<abel::FixedNativeBufferBlock<1048576>> {
+    struct pool_traits<abel::fixed_buffer_block<1048576>> {
         static constexpr auto kType = pool_type::ThreadLocal;
         static constexpr auto kLowWaterMark = 128;  // 128M per node.
         static constexpr auto kHighWaterMark =

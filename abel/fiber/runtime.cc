@@ -19,7 +19,6 @@
 #include "abel/thread/numa.h"
 #include "abel/fiber/internal/fiber_worker.h"
 #include "abel/fiber/internal/scheduling_group.h"
-#include "abel/fiber/internal/scheduling_parameters.h"
 #include "abel/fiber/internal/timer_worker.h"
 #include "abel/strings/case_conv.h"
 #include "abel/fiber/fiber_config.h"
@@ -36,19 +35,19 @@ namespace abel {
             std::vector<std::unique_ptr<fiber_internal::fiber_worker>> fiber_workers;
             std::unique_ptr<fiber_internal::timer_worker> timer_worker;
 
-            void Start(bool no_cpu_migration) {
+            void start(bool no_cpu_migration) {
                 timer_worker->start();
                 for (auto &&e : fiber_workers) {
                     e->start(no_cpu_migration);
                 }
             }
 
-            void Stop() {
+            void stop() {
                 timer_worker->stop();
                 scheduling_group->stop();
             }
 
-            void Join() {
+            void join() {
                 timer_worker->join();
                 for (auto &&e : fiber_workers) {
                     e->join();
@@ -56,13 +55,9 @@ namespace abel {
             }
         };
 
-        // Final decision of scheduling parameters.
-        std::size_t fiber_concurrency_in_effect = 0;
-        fiber_internal::SchedulingParameters scheduling_parameters;
-
         // Index by node ID. i.e., `scheduling_group[node][sg_index]`
         //
-        // If `numa_aware` is not set, `node` should always be 0.
+        // If `enable_numa_aware` is not set, `node` should always be 0.
         //
         // 64 nodes should be enough.
         std::vector<std::unique_ptr<scheduling_worker>> scheduling_groups[64];
@@ -75,10 +70,6 @@ namespace abel {
         const std::vector<int> &GetFiberWorkerAccessibleCPUs();
 
         const std::vector<numa::numa_node> &GetFiberWorkerAccessibleNodes();
-
-        std::uint64_t DivideRoundUp(std::uint64_t divisor, std::uint64_t dividend) {
-            return divisor / dividend + (divisor % dividend != 0);
-        }
 
         // Call `f` in a thread with the specified affinity.
         //
@@ -143,34 +134,34 @@ namespace abel {
             DLOG_INFO(
                     "Starting {} worker threads per group, for a total of {} groups. The "
                     "system is treated as UMA.",
-                    scheduling_parameters.workers_per_group,
-                    scheduling_parameters.scheduling_groups);
+                    fiber_config::get_global_fiber_config().workers_per_group,
+                    fiber_config::get_global_fiber_config().scheduling_groups);
             DLOG_WARN_IF(
                     fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration &&
                     GetFiberWorkerAccessibleNodes().size() > 1,
                     "CPU migration of fiber worker is disallowed, and we're trying to start "
                     "in UMA way on NUMA architecture. Performance will likely degrade.");
 
-            for (std::size_t index = 0; index != scheduling_parameters.scheduling_groups;
+            for (std::size_t index = 0; index != fiber_config::get_global_fiber_config().scheduling_groups;
                  ++index) {
                 if (!fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration) {
                     scheduling_groups[0].push_back(CreateFullyFledgedSchedulingGroup(
                             0 /* Not sigfinicant */, GetFiberWorkerAccessibleCPUs(),
-                            scheduling_parameters.workers_per_group));
+                            fiber_config::get_global_fiber_config().workers_per_group));
                 } else {
                     // Each group of processors is dedicated to a scheduling group.
                     //
                     // Later when we start the fiber workers, we'll instruct them to set their
                     // affinity to their dedicated processors.
                     auto &&cpus = GetFiberWorkerAccessibleCPUs();
-                    DCHECK_LE((index + 1) * scheduling_parameters.workers_per_group,
+                    DCHECK_LE((index + 1) * fiber_config::get_global_fiber_config().workers_per_group,
                               cpus.size());
                     scheduling_groups[0].push_back(CreateFullyFledgedSchedulingGroup(
                             0,
-                            {cpus.begin() + index * scheduling_parameters.workers_per_group,
+                            {cpus.begin() + index * fiber_config::get_global_fiber_config().workers_per_group,
                              cpus.begin() +
-                             (index + 1) * scheduling_parameters.workers_per_group},
-                            scheduling_parameters.workers_per_group));
+                             (index + 1) * fiber_config::get_global_fiber_config().workers_per_group},
+                            fiber_config::get_global_fiber_config().workers_per_group));
                 }
             }
 
@@ -184,11 +175,11 @@ namespace abel {
                        "Far more nodes that abel can support present on this "
                        "machine. Bail out.");
 
-            auto groups_per_node = scheduling_parameters.scheduling_groups / topo.size();
+            auto groups_per_node = fiber_config::get_global_fiber_config().scheduling_groups / topo.size();
             DLOG_INFO(
                     "Starting {} worker threads per group, {} group per node, for a total of "
                     "{} nodes.",
-                    scheduling_parameters.workers_per_group, groups_per_node, topo.size());
+                    fiber_config::get_global_fiber_config().workers_per_group, groups_per_node, topo.size());
 
             for (size_t i = 0; i != topo.size(); ++i) {
                 for (size_t j = 0; j != groups_per_node; ++j) {
@@ -196,7 +187,7 @@ namespace abel {
                         auto &&affinity = topo[i].logical_cpus;
                         ExecuteWithAffinity(affinity, [&] {
                             scheduling_groups[i].push_back(CreateFullyFledgedSchedulingGroup(
-                                    i, affinity, scheduling_parameters.workers_per_group));
+                                    i, affinity, fiber_config::get_global_fiber_config().workers_per_group));
                         });
                     } else {
                         // Same as `StartWorkersUma()`, fiber worker's affinity is set upon
@@ -204,11 +195,11 @@ namespace abel {
                         auto &&cpus = topo[i].logical_cpus;
                         DCHECK_LE((j + 1) * groups_per_node, cpus.size());
                         std::vector<int> affinity = {
-                                cpus.begin() + j * scheduling_parameters.workers_per_group,
-                                cpus.begin() + (j + 1) * scheduling_parameters.workers_per_group};
+                                cpus.begin() + j * fiber_config::get_global_fiber_config().workers_per_group,
+                                cpus.begin() + (j + 1) * fiber_config::get_global_fiber_config().workers_per_group};
                         ExecuteWithAffinity(affinity, [&] {
                             scheduling_groups[i].push_back(CreateFullyFledgedSchedulingGroup(
-                                    i, affinity, scheduling_parameters.workers_per_group));
+                                    i, affinity, fiber_config::get_global_fiber_config().workers_per_group));
                         });
                     }
                 }
@@ -305,21 +296,6 @@ namespace abel {
             return result;
         }
 
-
-        void DisallowProcessorMigrationPreconditionCheck() {
-            auto expected_concurrency =
-                    DivideRoundUp(fiber_concurrency_in_effect,
-                                  scheduling_parameters.workers_per_group) *
-                    scheduling_parameters.workers_per_group;
-            DLOG_CRITICAL_IF(
-                    expected_concurrency > GetFiberWorkerAccessibleCPUs().size() &&
-                            fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration,
-                    "CPU migration of fiber workers is explicitly disallowed, but there "
-                    "isn't enough CPU to dedicate one for each fiber worker. {} CPUs got, at "
-                    "least {} CPUs required.",
-                    GetFiberWorkerAccessibleCPUs().size(), expected_concurrency);
-        }
-
     }  // namespace
 
     namespace fiber_internal {
@@ -332,72 +308,16 @@ namespace abel {
             return rc;
         }
 
-        std::optional<SchedulingProfile> GetSchedulingProfile() {
-
-            if (fiber_config::get_global_fiber_config().fiber_scheduling_optimize_for != "customized") {
-
-                DLOG_ERROR(
-                        "Flag `scheduling_group_size` and `numa_aware` are only "
-                        "respected if `customized` scheduling optimization strategy is used. "
-                        "We're still respecting your parameters to keep the old behavior. Try "
-                        "set `fiber_scheduling_optimize_for` to `customized` to suppress "
-                        "this error.");
-                return std::nullopt;
-            }
-
-            static const std::unordered_map<std::string, SchedulingProfile> kProfiles = {
-                    {"compute-heavy", SchedulingProfile::ComputeHeavy},
-                    {"compute",       SchedulingProfile::Compute},
-                    {"neutral",       SchedulingProfile::Neutral},
-                    {"io",            SchedulingProfile::Io},
-                    {"io-heavy",      SchedulingProfile::IoHeavy}};
-            auto key = abel::string_to_lower(fiber_config::get_global_fiber_config().fiber_scheduling_optimize_for);
-            DLOG_INFO("Using fiber scheduling profile [{}].", key);
-
-            if (auto iter = kProfiles.find(key); iter != kProfiles.end()) {
-                return iter->second;
-            }
-            if (key == "customized") {
-                return std::nullopt;
-            }
-            DLOG_CRITICAL(
-                    "Unrecognized value for `--fiber_scheduling_optimize_for`: [{}]",
-                    fiber_config::get_global_fiber_config().fiber_scheduling_optimize_for);
-            return std::nullopt;
-        }
-
-        void InitializeSchedulingParametersFromFlags() {
-
-            auto profile = GetSchedulingProfile();
-            fiber_concurrency_in_effect =
-                    fiber_config::get_global_fiber_config().concurrency_hint ? fiber_config::get_global_fiber_config().concurrency_hint
-                                           : 4;
-            if (profile) {
-                scheduling_parameters = GetSchedulingParameters(
-                        *profile, numa::get_number_of_nodes_available(),
-                        GetNumberOfProcessorsAvailable(),
-                        fiber_concurrency_in_effect);
-                return;
-            }
-            std::size_t groups =
-                    (fiber_concurrency_in_effect + fiber_config::get_global_fiber_config().scheduling_group_size - 1) /
-                            fiber_config::get_global_fiber_config().scheduling_group_size;
-            scheduling_parameters = SchedulingParameters{
-                    .scheduling_groups = groups,
-                    .workers_per_group = (fiber_concurrency_in_effect + groups - 1) / groups,
-                    .enable_numa_affinity = fiber_config::get_global_fiber_config().numa_aware};
-        }
-
     }  // namespace fiber_internal
 
     void start_runtime() {
         // Get our final decision for scheduling parameters.
-        fiber_internal::InitializeSchedulingParametersFromFlags();
+        //fiber_internal::InitializeSchedulingParametersFromFlags();
         // If CPU migration is explicit disallowed, we need to make sure there are
         // enough CPUs for us.
         //DisallowProcessorMigrationPreconditionCheck();
-        DLOG_INFO("enable_numa_affinity: {}", scheduling_parameters.enable_numa_affinity);
-        if (scheduling_parameters.enable_numa_affinity) {
+        DLOG_INFO("enable_numa_affinity: {}", fiber_config::get_global_fiber_config().enable_numa_aware);
+        if (fiber_config::get_global_fiber_config().enable_numa_aware) {
             StartWorkersNuma();
         } else {
             StartWorkersUma();
@@ -414,7 +334,7 @@ namespace abel {
         // Start the workers.
         for (auto &&e : scheduling_groups) {
             for (auto &&ee : e) {
-                ee->Start(fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration);
+                ee->start(fiber_config::get_global_fiber_config().fiber_worker_disallow_cpu_migration);
             }
         }
 
@@ -423,12 +343,12 @@ namespace abel {
     void terminate_runtime() {
         for (auto &&e : scheduling_groups) {
             for (auto &&ee : e) {
-                ee->Stop();
+                ee->stop();
             }
         }
         for (auto &&e : scheduling_groups) {
             for (auto &&ee : e) {
-                ee->Join();
+                ee->join();
             }
         }
         for (auto &&e : scheduling_groups) {
@@ -442,7 +362,7 @@ namespace abel {
     }
 
     std::size_t get_scheduling_group_size() {
-        return scheduling_parameters.workers_per_group;
+        return fiber_config::get_global_fiber_config().workers_per_group;
     }
 
     int get_scheduling_group_assigned_node(std::size_t sg_index) {
@@ -470,7 +390,7 @@ namespace abel {
             ABEL_INTERNAL_TLS_MODEL thread_local std::size_t next = Random();
 
             auto &&current_node =
-                    scheduling_groups[scheduling_parameters.enable_numa_affinity
+                    scheduling_groups[fiber_config::get_global_fiber_config().enable_numa_aware
                                       ? numa::get_current_node()
                                       : 0];
             if (!current_node.empty()) {

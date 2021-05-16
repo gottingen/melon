@@ -36,8 +36,8 @@ namespace abel {
             tc_str.emplace("123");
         }
 
-// Were `thread_local` keyword used internally, the assertion below would
-// fail.
+        // Were `thread_local` keyword used internally, the assertion below would
+        // fail.
         thread_cache<std::string> tc_str2("777");
         std::thread([&] { ASSERT_EQ("777", tc_str2.non_idempotent_get()); }).join();
     }
