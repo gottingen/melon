@@ -36,7 +36,7 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
 option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 
-option(ENABLE_TESTING "enable unit test" ON)
+option(ENABLE_TESTING "enable unit test" OFF)
 option(CARBIN_PACKAGE_GEN "enable package gen" OFF)
 option(ENABLE_BENCHMARK "enable benchmark" OFF)
 option(ENABLE_EXAMPLE "enable benchmark" ON)
