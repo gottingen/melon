@@ -45,47 +45,47 @@
 namespace melon {
 
 
-// simple_atoi()
-//
-// Converts the given string (optionally followed or preceded by ASCII
-// whitespace) into an integer value, returning `true` if successful. The string
-// must reflect a base-10 integer whose value falls within the range of the
-// integer type (optionally preceded by a `+` or `-`). If any errors are
-// encountered, this function returns `false`, leaving `out` in an unspecified
-// state.
+    // simple_atoi()
+    //
+    // Converts the given string (optionally followed or preceded by ASCII
+    // whitespace) into an integer value, returning `true` if successful. The string
+    // must reflect a base-10 integer whose value falls within the range of the
+    // integer type (optionally preceded by a `+` or `-`). If any errors are
+    // encountered, this function returns `false`, leaving `out` in an unspecified
+    // state.
     template<typename int_type>
     MELON_MUST_USE_RESULT bool simple_atoi(std::string_view str, int_type *out);
 
-// simple_atof()
-//
-// Converts the given string (optionally followed or preceded by ASCII
-// whitespace) into a float, which may be rounded on overflow or underflow,
-// returning `true` if successful.
-// See https://en.cppreference.com/w/c/string/byte/strtof for details about the
-// allowed formats for `str`, except simple_atof() is locale-independent and will
-// always use the "C" locale. If any errors are encountered, this function
-// returns `false`, leaving `out` in an unspecified state.
+    // simple_atof()
+    //
+    // Converts the given string (optionally followed or preceded by ASCII
+    // whitespace) into a float, which may be rounded on overflow or underflow,
+    // returning `true` if successful.
+    // See https://en.cppreference.com/w/c/string/byte/strtof for details about the
+    // allowed formats for `str`, except simple_atof() is locale-independent and will
+    // always use the "C" locale. If any errors are encountered, this function
+    // returns `false`, leaving `out` in an unspecified state.
     MELON_MUST_USE_RESULT bool simple_atof(std::string_view str, float *out);
 
-// simple_atod()
-//
-// Converts the given string (optionally followed or preceded by ASCII
-// whitespace) into a double, which may be rounded on overflow or underflow,
-// returning `true` if successful.
-// See https://en.cppreference.com/w/c/string/byte/strtof for details about the
-// allowed formats for `str`, except simple_atod is locale-independent and will
-// always use the "C" locale. If any errors are encountered, this function
-// returns `false`, leaving `out` in an unspecified state.
+    // simple_atod()
+    //
+    // Converts the given string (optionally followed or preceded by ASCII
+    // whitespace) into a double, which may be rounded on overflow or underflow,
+    // returning `true` if successful.
+    // See https://en.cppreference.com/w/c/string/byte/strtof for details about the
+    // allowed formats for `str`, except simple_atod is locale-independent and will
+    // always use the "C" locale. If any errors are encountered, this function
+    // returns `false`, leaving `out` in an unspecified state.
     MELON_MUST_USE_RESULT bool simple_atod(std::string_view str, double *out);
 
-// simple_atob()
-//
-// Converts the given string into a boolean, returning `true` if successful.
-// The following case-insensitive strings are interpreted as boolean `true`:
-// "true", "t", "yes", "y", "1". The following case-insensitive strings
-// are interpreted as boolean `false`: "false", "f", "no", "n", "0". If any
-// errors are encountered, this function returns `false`, leaving `out` in an
-// unspecified state.
+    // simple_atob()
+    //
+    // Converts the given string into a boolean, returning `true` if successful.
+    // The following case-insensitive strings are interpreted as boolean `true`:
+    // "true", "t", "yes", "y", "1". The following case-insensitive strings
+    // are interpreted as boolean `false`: "false", "f", "no", "n", "0". If any
+    // errors are encountered, this function returns `false`, leaving `out` in an
+    // unspecified state.
     MELON_MUST_USE_RESULT bool simple_atob(std::string_view str, bool *out);
 
 
@@ -97,23 +97,23 @@ namespace melon {
 
     namespace numbers_internal {
 
-// Digit conversion.
+        // Digit conversion.
         extern const char kHexChar[17];    // 0123456789abcdef
         extern const char kHexTable[513];  // 000102030405060708090a0b0c0d0e0f1011...
         extern const char two_ASCII_digits[100][2];  // 00, 01, 02, 03...
 
-// Writes a two-character representation of 'i' to 'buf'. 'i' must be in the
-// range 0 <= i < 100, and buf must have space for two characters. Example:
-//   char buf[2];
-//   put_two_digits(42, buf);
-//   // buf[0] == '4'
-//   // buf[1] == '2'
+        // Writes a two-character representation of 'i' to 'buf'. 'i' must be in the
+        // range 0 <= i < 100, and buf must have space for two characters. Example:
+        //   char buf[2];
+        //   put_two_digits(42, buf);
+        //   // buf[0] == '4'
+        //   // buf[1] == '2'
         MELON_FORCE_INLINE void put_two_digits(size_t i, char *buf) {
             assert(i < 100);
             memcpy(buf, two_ASCII_digits[i], 2);
         }
 
-// safe_strto?() functions for implementing simple_atoi()
+        // safe_strto?() functions for implementing simple_atoi()
         bool safe_strto32_base(std::string_view text, int32_t *value, int base);
 
         bool safe_strto64_base(std::string_view text, int64_t *value, int base);
@@ -128,17 +128,17 @@ namespace melon {
         static const int kFastToBufferSize = 32;
         static const int kSixDigitsToBufferSize = 16;
 
-// Helper function for fast formatting of floating-point values.
-// The result is the same as printf's "%g", a.k.a. "%.6g"; that is, six
-// significant digits are returned, trailing zeros are removed, and numbers
-// outside the range 0.0001-999999 are output using scientific notation
-// (1.23456e+06). This routine is heavily optimized.
-// Required buffer size is `kSixDigitsToBufferSize`.
+        // Helper function for fast formatting of floating-point values.
+        // The result is the same as printf's "%g", a.k.a. "%.6g"; that is, six
+        // significant digits are returned, trailing zeros are removed, and numbers
+        // outside the range 0.0001-999999 are output using scientific notation
+        // (1.23456e+06). This routine is heavily optimized.
+        // Required buffer size is `kSixDigitsToBufferSize`.
         size_t six_digits_to_buffer(double d, char *buffer);
 
-// These functions are intended for speed. All functions take an output buffer
-// as an argument and return a pointer to the last byte they wrote, which is the
-// terminating '\0'. At most `kFastToBufferSize` bytes are written.
+        // These functions are intended for speed. All functions take an output buffer
+        // as an argument and return a pointer to the last byte they wrote, which is the
+        // terminating '\0'. At most `kFastToBufferSize` bytes are written.
         char *fast_int_to_buffer(int32_t, char *);
 
         char *fast_int_to_buffer(uint32_t, char *);
@@ -147,8 +147,8 @@ namespace melon {
 
         char *fast_int_to_buffer(uint64_t, char *);
 
-// For enums and integer types that are not an exact match for the types above,
-// use templates to call the appropriate one of the four overloads above.
+        // For enums and integer types that are not an exact match for the types above,
+        // use templates to call the appropriate one of the four overloads above.
         template<typename int_type>
         char *fast_int_to_buffer(int_type i, char *buffer) {
             static_assert(sizeof(i) <= 64 / 8,
@@ -171,8 +171,8 @@ namespace melon {
             }
         }
 
-// Implementation of simple_atoi, generalized to support arbitrary base (used
-// with base different from 10 elsewhere in melon implementation).
+        // Implementation of simple_atoi, generalized to support arbitrary base (used
+        // with base different from 10 elsewhere in melon implementation).
         template<typename int_type>
         MELON_MUST_USE_RESULT bool safe_strtoi_base(std::string_view s, int_type *out,
                                                    int base) {
@@ -208,19 +208,19 @@ namespace melon {
             return parsed;
         }
 
-// fast_hex_to_buffer_zero_pad16()
-//
-// Outputs `val` into `out` as if by `snprintf(out, 17, "%016x", val)` but
-// without the terminating null character. Thus `out` must be of length >= 16.
-// Returns the number of non-pad digits of the output (it can never be zero
-// since 0 has one digit).
+        // fast_hex_to_buffer_zero_pad16()
+        //
+        // Outputs `val` into `out` as if by `snprintf(out, 17, "%016x", val)` but
+        // without the terminating null character. Thus `out` must be of length >= 16.
+        // Returns the number of non-pad digits of the output (it can never be zero
+        // since 0 has one digit).
         MELON_FORCE_INLINE size_t
         fast_hex_to_buffer_zero_pad16(uint64_t
         val,
         char *out
         ) {
 #ifdef __SSE4_2__
-        uint64_t be = melon::base::big_endian::from_host64(val);
+        uint64_t be = melon::big_endian::from_host64(val);
         const auto kNibbleMask = _mm_set1_epi8(0xf);
         const auto kHexDigits = _mm_setr_epi8('0', '1', '2', '3', '4', '5', '6', '7',
                                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f');
