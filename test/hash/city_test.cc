@@ -1,14 +1,16 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/hash/internal/city.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+#include "melon/hash/internal/city.h"
 #include <string.h>
 #include <cstdio>
 #include <iostream>
-#include "gtest/gtest.h"
+#include "testing/gtest_wrap.h"
 
-namespace abel {
+namespace melon {
 
     namespace hash_internal {
 
@@ -20,7 +22,7 @@ namespace abel {
 
         static char data[kDataSize];
 
-// Initialize data to pseudorandom values.
+        // Initialize data to pseudorandom values.
         void setup() {
             uint64_t a = 9;
             uint64_t b = 777;
@@ -581,4 +583,4 @@ namespace abel {
 
     }  // namespace hash_internal
 
-}  // namespace abel
+}  // namespace melon

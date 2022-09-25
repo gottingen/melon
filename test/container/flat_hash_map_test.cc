@@ -1,32 +1,50 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/container/flat_hash_map.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-#include <memory>
-#include <any>
-#include "testing/hash_generator_testing.h"
+
+#ifndef THIS_HASH_MAP
+#define THIS_HASH_MAP   flat_hash_map
+#define THIS_TEST_NAME  FlatHashMap
+#define ORIG_FLAT_HASH_MAP 1
+#endif
+
+#ifndef THIS_EXTRA_TPL_PARAMS
+#define THIS_EXTRA_TPL_PARAMS
+#endif
+
+#include "melon/container/flat_hash_map.h"
+#include "melon/container/parallel_node_hash_map.h"
+#include "melon/container/parallel_flat_hash_map.h"
+#include "hash_generator_testing.h"
 #include "unordered_map_constructor_test.h"
 #include "unordered_map_lookup_test.h"
 #include "unordered_map_members_test.h"
 #include "unordered_map_modifiers_test.h"
 
 
-namespace abel {
-
-    namespace container_internal {
+namespace melon {
+    namespace priv {
         namespace {
-            using ::abel::container_internal::hash_internal::Enum;
-            using ::abel::container_internal::hash_internal::EnumClass;
+            using ::melon::priv::hash_internal::Enum;
+            using ::melon::priv::hash_internal::EnumClass;
             using ::testing::_;
-            using ::testing::IsEmpty;
             using ::testing::Pair;
             using ::testing::UnorderedElementsAre;
 
             template<class K, class V>
-            using Map = flat_hash_map<K, V, StatefulTestingHash, StatefulTestingEqual,
-                    Alloc<std::pair<const K, V>>>;
+            using Map = THIS_HASH_MAP<K, V, StatefulTestingHash, StatefulTestingEqual,
+                    Alloc<std::pair<const K, V>> THIS_EXTRA_TPL_PARAMS>;
+
+
+            template<class K, class V, class H = melon::priv::hash_default_hash<K>,
+                    class Eq = melon::priv::hash_default_eq<K>,
+                    class Alloc =  melon::priv::Allocator<
+                            melon::priv::Pair<const K, V>>>
+            using ThisMap = THIS_HASH_MAP<K, V, H, Eq, Alloc THIS_EXTRA_TPL_PARAMS>;
 
             static_assert(!std::is_standard_layout<NonStandardLayout>(), "");
 
@@ -35,19 +53,15 @@ namespace abel {
                     Map<Enum, std::string>, Map<EnumClass, int>,
                     Map<int, NonStandardLayout>, Map<NonStandardLayout, int>>;
 
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashMap, ConstructorTest, MapTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashMap, LookupTest, MapTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashMap, MembersTest, MapTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashMap, ModifiersTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, ConstructorTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, LookupTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, MembersTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, ModifiersTest, MapTypes);
 
-            using UniquePtrMapTypes = ::testing::Types<Map<int, std::unique_ptr<int>>>;
 
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashMap, UniquePtrModifiersTest,
-                                           UniquePtrMapTypes);
-
-            TEST(FlatHashMap, StandardLayout) {
+            TEST(THIS_TEST_NAME, StandardLayout) {
                 struct Int {
-                    explicit Int(size_t value) : value(value) {}
+                    explicit Int(size_t val) : value(val) {}
 
                     Int() : value(0) { ADD_FAILURE(); }
 
@@ -61,21 +75,21 @@ namespace abel {
                 };
                 static_assert(std::is_standard_layout<Int>(), "");
 
-                struct Hash {
+                struct hash {
                     size_t operator()(const Int &obj) const { return obj.value; }
                 };
 
                 // Verify that neither the key nor the value get default-constructed or
                 // copy-constructed.
                 {
-                    flat_hash_map<Int, Int, Hash> m;
+                    ThisMap<Int, Int, hash> m;
                     m.try_emplace(Int(1), Int(2));
                     m.try_emplace(Int(3), Int(4));
                     m.erase(Int(1));
                     m.rehash(2 * m.bucket_count());
                 }
                 {
-                    flat_hash_map<Int, Int, Hash> m;
+                    ThisMap<Int, Int, hash> m;
                     m.try_emplace(Int(1), Int(2));
                     m.try_emplace(Int(3), Int(4));
                     m.erase(Int(1));
@@ -83,31 +97,30 @@ namespace abel {
                 }
             }
 
-// gcc becomes unhappy if this is inside the method, so pull it out here.
+            // gcc becomes unhappy if this is inside the method, so pull it out here.
             struct balast {
             };
 
-            TEST(FlatHashMap, IteratesMsan) {
+            TEST(THIS_TEST_NAME, IteratesMsan) {
                 // Because SwissTable randomizes on pointer addresses, we keep old tables
                 // around to ensure we don't reuse old memory.
-                std::vector<abel::flat_hash_map<int, balast>> garbage;
+                std::vector<ThisMap<int, balast>> garbage;
                 for (int i = 0; i < 100; ++i) {
-                    abel::flat_hash_map<int, balast> t;
+                    ThisMap<int, balast> t;
                     for (int j = 0; j < 100; ++j) {
                         t[j];
-                        for (const auto &p : t)
-                            EXPECT_THAT(p, Pair(_, _));
+                        for (const auto &p : t) EXPECT_THAT(p, Pair(_, _));
                     }
                     garbage.push_back(std::move(t));
                 }
             }
 
-// Demonstration of the "Lazy Key" pattern.  This uses heterogeneous insert to
-// avoid creating expensive key elements when the item is already present in the
-// map.
+            // Demonstration of the "Lazy Key" pattern.  This uses heterogeneous insert to
+            // avoid creating expensive key elements when the item is already present in the
+            // map.
             struct LazyInt {
-                explicit LazyInt(size_t value, int *tracker)
-                        : value(value), tracker(tracker) {}
+                explicit LazyInt(size_t val, int *tracker_)
+                        : value(val), tracker(tracker_) {}
 
                 explicit operator size_t() const {
                     ++*tracker;
@@ -118,7 +131,7 @@ namespace abel {
                 int *tracker;
             };
 
-            struct Hash {
+            struct hash {
                 using is_transparent = void;
                 int *tracker;
 
@@ -145,12 +158,20 @@ namespace abel {
                 }
             };
 
-            TEST(FlatHashMap, LazyKeyPattern) {
+            TEST(THIS_TEST_NAME, PtrKet) {
+                using H = ThisMap<void *, bool>;
+                H hash;
+                int a, b;
+                hash.insert(H::value_type(&a, true));
+                hash.insert(H::value_type(&b, false));
+            }
+
+            TEST(THIS_TEST_NAME, LazyKeyPattern) {
                 // hashes are only guaranteed in opt mode, we use assertions to track internal
                 // state that can cause extra calls to hash.
                 int conversions = 0;
                 int hashes = 0;
-                flat_hash_map<size_t, size_t, Hash, Eq> m(0, Hash{&hashes});
+                ThisMap<size_t, size_t, hash, Eq> m(0, hash{&hashes});
                 m.reserve(3);
 
                 m[LazyInt(1, &conversions)] = 1;
@@ -170,24 +191,26 @@ namespace abel {
                 m.try_emplace(LazyInt(2, &conversions), 3);
                 EXPECT_THAT(m, UnorderedElementsAre(Pair(1, 2), Pair(2, 3)));
                 EXPECT_EQ(conversions, 2);
-#ifdef NDEBUG
+#if defined(NDEBUG) && ORIG_FLAT_HASH_MAP
+                // for parallel maps, the reserve(3) above is not sufficient to guarantee that a submap will not resize and therefore rehash
                 EXPECT_EQ(hashes, 3);
 #endif
 
                 m.try_emplace(LazyInt(2, &conversions), 4);
                 EXPECT_THAT(m, UnorderedElementsAre(Pair(1, 2), Pair(2, 3)));
                 EXPECT_EQ(conversions, 2);
-#ifdef NDEBUG
+#if defined(NDEBUG) && ORIG_FLAT_HASH_MAP
+                // for parallel maps, the reserve(3) above is not sufficient to guarantee that a submap will not resize and therefore rehash
                 EXPECT_EQ(hashes, 4);
 #endif
             }
 
-            TEST(FlatHashMap, BitfieldArgument) {
+            TEST(THIS_TEST_NAME, BitfieldArgument) {
                 union {
-                    int n : 1;
+                    int n: 1;
                 };
                 n = 0;
-                flat_hash_map<int, int> m;
+                ThisMap<int, int> m;
                 m.erase(n);
                 m.count(n);
                 m.prefetch(n);
@@ -201,18 +224,12 @@ namespace abel {
                 m.at(n);
                 m[n];
             }
-            TEST(FlatHashMap, ignore_case) {
-                abel::ignore_case_flat_hash_map<int> fm;
-                fm["Abc"] = 1;
-                EXPECT_EQ(fm["abc"] , 1);
-                EXPECT_EQ(fm["aBc"] , 1);
-                EXPECT_EQ(fm["ABC"] , 1);
-            }
-            TEST(FlatHashMap, MergeExtractInsert) {
-                // We can't test mutable keys, or non-copyable keys with flat_hash_map.
+
+            TEST(THIS_TEST_NAME, MergeExtractInsert) {
+                // We can't test mutable keys, or non-copyable keys with ThisMap.
                 // Test that the nodes have the proper API.
-                abel::flat_hash_map<int, int> m = {{1, 7},
-                                                   {2, 9}};
+                ThisMap<int, int> m = {{1, 7},
+                                       {2, 9}};
                 auto node = m.extract(1);
                 EXPECT_TRUE(node);
                 EXPECT_EQ(node.key(), 1);
@@ -224,64 +241,6 @@ namespace abel {
                 EXPECT_THAT(m, UnorderedElementsAre(Pair(1, 17), Pair(2, 9)));
             }
 
-            bool FirstIsEven(std::pair<const int, int> p) { return p.first % 2 == 0; }
-
-            TEST(FlatHashMap, erase_if) {
-                // Erase all elements.
-                {
-                    flat_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, [](std::pair<const int, int>) { return true; });
-                    EXPECT_THAT(s, IsEmpty());
-                }
-                // Erase no elements.
-                {
-                    flat_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, [](std::pair<const int, int>) { return false; });
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(1, 1), Pair(2, 2), Pair(3, 3),
-                                                        Pair(4, 4), Pair(5, 5)));
-                }
-                // Erase specific elements.
-                {
-                    flat_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s,
-                             [](std::pair<const int, int> kvp) { return kvp.first % 2 == 1; });
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(2, 2), Pair(4, 4)));
-                }
-                // Predicate is function reference.
-                {
-                    flat_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, FirstIsEven);
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(1, 1), Pair(3, 3), Pair(5, 5)));
-                }
-                // Predicate is function pointer.
-                {
-                    flat_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, &FirstIsEven);
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(1, 1), Pair(3, 3), Pair(5, 5)));
-                }
-            }
-
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

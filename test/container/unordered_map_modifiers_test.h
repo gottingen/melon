@@ -1,20 +1,22 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MODIFIERS_TEST_H_
-#define ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MODIFIERS_TEST_H_
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-#include <memory>
+#ifndef UNORDERED_MAP_MODIFIERS_TEST_H_
+#define UNORDERED_MAP_MODIFIERS_TEST_H_
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "testing/hash_generator_testing.h"
-#include "testing/hash_policy_testing.h"
 
-namespace abel {
 
-    namespace container_internal {
+#include "testing/gtest_wrap.h"
+#include "hash_generator_testing.h"
+#include "hash_policy_testing.h"
+
+
+namespace melon {
+    namespace priv {
 
         template<class UnordMap>
         class ModifiersTest : public ::testing::Test {
@@ -206,8 +208,7 @@ namespace abel {
             auto &first = *m.begin();
             std::vector<T> values2;
             for (const auto &val : values)
-                if (get<0>(val) != get<0>(first))
-                    values2.push_back(val);
+                if (get<0>(val) != get<0>(first)) values2.push_back(val);
             auto it = EraseFirst()(&m, 0);
             ASSERT_TRUE(it != m.end());
             EXPECT_EQ(1, std::count(values2.begin(), values2.end(), *it));
@@ -263,49 +264,7 @@ namespace abel {
                                     Emplace, EmplaceHint, TryEmplace, TryEmplaceHint,
                                     Erase, EraseRange, EraseKey, Swap);
 
-        template<typename Type>
-        struct is_unique_ptr : std::false_type {
-        };
+    }  // namespace priv
+}  // namespace melon
 
-        template<typename Type>
-        struct is_unique_ptr<std::unique_ptr<Type>> : std::true_type {
-        };
-
-        template<class UnordMap>
-        class UniquePtrModifiersTest : public ::testing::Test {
-        protected:
-            UniquePtrModifiersTest() {
-                static_assert(is_unique_ptr<typename UnordMap::mapped_type>::value,
-                              "UniquePtrModifiersTyest may only be called with a "
-                              "std::unique_ptr value type.");
-            }
-        };
-
-        TYPED_TEST_SUITE_P(UniquePtrModifiersTest);
-
-// Test that we do not move from rvalue arguments if an insertion does not
-// happen.
-        TYPED_TEST_P(UniquePtrModifiersTest, TryEmplace) {
-#ifdef UNORDERED_MAP_CXX17
-            using T = hash_internal::GeneratedType<TypeParam>;
-            using V = typename TypeParam::mapped_type;
-            T val = hash_internal::Generator<T>()();
-            TypeParam m;
-            auto p = m.try_emplace(val.first, std::move(val.second));
-            EXPECT_TRUE(p.second);
-            // A moved from std::unique_ptr is guaranteed to be nullptr.
-            EXPECT_EQ(val.second, nullptr);
-            T val2 = {val.first, hash_internal::Generator<V>()()};
-            p = m.try_emplace(val2.first, std::move(val2.second));
-            EXPECT_FALSE(p.second);
-            EXPECT_NE(val2.second, nullptr);
-#endif
-        }
-
-        REGISTER_TYPED_TEST_SUITE_P(UniquePtrModifiersTest, TryEmplace);
-
-    }  // namespace container_internal
-
-}  // namespace abel
-
-#endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MODIFIERS_TEST_H_
+#endif  // UNORDERED_MAP_MODIFIERS_TEST_H_

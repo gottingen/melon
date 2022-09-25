@@ -1,18 +1,19 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/container/internal/node_hash_policy.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
 
 #include <memory>
+#include "melon/container/flat_hash_map.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "abel/container/internal/hash_policy_traits.h"
 
-namespace abel {
+#include "testing/gtest_wrap.h"
 
-    namespace container_internal {
+namespace melon {
+    namespace priv {
         namespace {
 
             using ::testing::Pointee;
@@ -22,12 +23,12 @@ namespace abel {
                 using init_type = int;
 
                 template<class Alloc>
-                static int *new_element(Alloc *alloc, int value) {
+                static int *new_element(Alloc *, int value) {
                     return new int(value);
                 }
 
                 template<class Alloc>
-                static void delete_element(Alloc *alloc, int *elem) {
+                static void delete_element(Alloc *, int *elem) {
                     delete elem;
                 }
             };
@@ -54,6 +55,5 @@ namespace abel {
             }
 
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

@@ -33,7 +33,7 @@ foreach (fl ${META_SRC})
     carbin_cc_binary(
             NAME ${BINARY_NAME}
             SOURCES ${fl}
-            PUBLIC_LINKED_TARGETS abel::abel
+            PUBLIC_LINKED_TARGETS melon::melon
             PRIVATE_COMPILE_OPTIONS ${CARBIN_DEFAULT_COPTS}
             VERBOSE
     )

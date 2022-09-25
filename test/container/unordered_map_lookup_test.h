@@ -1,18 +1,21 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_LOOKUP_TEST_H_
-#define ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_LOOKUP_TEST_H_
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "testing/hash_generator_testing.h"
-#include "testing/hash_policy_testing.h"
+#ifndef UNORDERED_MAP_LOOKUP_TEST_H_
+#define UNORDERED_MAP_LOOKUP_TEST_H_
 
-namespace abel {
 
-    namespace container_internal {
+#include "testing/gtest_wrap.h"
+#include "hash_generator_testing.h"
+#include "hash_policy_testing.h"
+
+
+namespace melon {
+    namespace priv {
 
         template<class UnordMap>
         class LookupTest : public ::testing::Test {
@@ -101,8 +104,7 @@ namespace abel {
         REGISTER_TYPED_TEST_SUITE_P(LookupTest, At, OperatorBracket, Count, Find,
                                     EqualRange);
 
-    }  // namespace container_internal
+    }  // namespace priv
+}  // namespace melon
 
-}  // namespace abel
-
-#endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_LOOKUP_TEST_H_
+#endif  // UNORDERED_MAP_LOOKUP_TEST_H_

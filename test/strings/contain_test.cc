@@ -1,11 +1,13 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/strings/contain.h"
-#include "abel/strings/starts_with.h"
-#include "abel/strings/ends_with.h"
-#include "gtest/gtest.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+#include "melon/strings/contain.h"
+#include "melon/strings/starts_with.h"
+#include "melon/strings/ends_with.h"
+#include "testing/gtest_wrap.h"
 
 namespace {
 
@@ -15,13 +17,13 @@ namespace {
         std::string_view b("abcd");
         std::string_view c("efg");
         std::string_view d("gh");
-        EXPECT_TRUE(abel::string_contains(a, a));
-        EXPECT_TRUE(abel::string_contains(a, b));
-        EXPECT_TRUE(abel::string_contains(a, c));
-        EXPECT_FALSE(abel::string_contains(a, d));
-        EXPECT_TRUE(abel::string_contains("", ""));
-        EXPECT_TRUE(abel::string_contains("abc", ""));
-        EXPECT_FALSE(abel::string_contains("", "a"));
+        EXPECT_TRUE(melon::string_contains(a, a));
+        EXPECT_TRUE(melon::string_contains(a, b));
+        EXPECT_TRUE(melon::string_contains(a, c));
+        EXPECT_FALSE(melon::string_contains(a, d));
+        EXPECT_TRUE(melon::string_contains("", ""));
+        EXPECT_TRUE(melon::string_contains("abc", ""));
+        EXPECT_FALSE(melon::string_contains("", "a"));
     }
 
     TEST(MatchTest, ContainsNull) {
@@ -32,9 +34,9 @@ namespace {
         EXPECT_EQ(s, "foo");
         EXPECT_EQ(sv, "foo");
         EXPECT_NE(sv2, "foo");
-        EXPECT_TRUE(abel::ends_with(s, sv));
-        EXPECT_TRUE(abel::starts_with(cs, sv));
-        EXPECT_TRUE(abel::string_contains(cs, sv));
-        EXPECT_FALSE(abel::string_contains(cs, sv2));
+        EXPECT_TRUE(melon::ends_with(s, sv));
+        EXPECT_TRUE(melon::starts_with(cs, sv));
+        EXPECT_TRUE(melon::string_contains(cs, sv));
+        EXPECT_FALSE(melon::string_contains(cs, sv2));
     }
 }

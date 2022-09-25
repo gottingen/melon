@@ -1,14 +1,16 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/strings/internal/utf8.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+#include "melon/strings/internal/utf8.h"
 
 #include <cstdint>
 #include <utility>
 
-#include "gtest/gtest.h"
-#include "abel/base/profile.h"
+#include "testing/gtest_wrap.h"
+#include "melon/base/profile.h"
 
 namespace {
 
@@ -27,9 +29,9 @@ namespace {
             char buf0[7] = {'\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00'};
             char buf1[7] = {'\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF'};
             char *buf0_written =
-                    &buf0[abel::strings_internal::EncodeUTF8Char(buf0, test.first)];
+                    &buf0[melon::strings_internal::EncodeUTF8Char(buf0, test.first)];
             char *buf1_written =
-                    &buf1[abel::strings_internal::EncodeUTF8Char(buf1, test.first)];
+                    &buf1[melon::strings_internal::EncodeUTF8Char(buf1, test.first)];
             int apparent_length = 7;
             while (buf0[apparent_length - 1] == '\x00' &&
                    buf1[apparent_length - 1] == '\xFF') {
@@ -42,11 +44,11 @@ namespace {
             EXPECT_EQ(std::string(buf1, apparent_length), test.second);
         }
         char buf[32] = "Don't Tread On Me";
-        EXPECT_LE(abel::strings_internal::EncodeUTF8Char(buf, 0x00110000),
-                  abel::strings_internal::kMaxEncodedUTF8Size);
+        EXPECT_LE(melon::strings_internal::EncodeUTF8Char(buf, 0x00110000),
+                  melon::strings_internal::kMaxEncodedUTF8Size);
         char buf2[32] = "Negative is invalid but sane";
-        EXPECT_LE(abel::strings_internal::EncodeUTF8Char(buf2, -1),
-                  abel::strings_internal::kMaxEncodedUTF8Size);
+        EXPECT_LE(melon::strings_internal::EncodeUTF8Char(buf2, -1),
+                  melon::strings_internal::kMaxEncodedUTF8Size);
     }
 
 #if defined(__clang__)

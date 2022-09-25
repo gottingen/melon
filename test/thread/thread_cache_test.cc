@@ -1,23 +1,25 @@
-//
-// Created by liyinbin on 2021/4/5.
-//
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-#include "abel/thread/thread_cache.h"
+#include "melon/thread/thread_cache.h"
 
 #include <string>
 #include <thread>
 #include <vector>
 
-#include "gtest/gtest.h"
-#include "abel/strings/numbers.h"
-#include "abel/chrono/clock.h"
-#include "abel/thread/latch.h"
-#include "abel/base/random.h"
+#include "testing/gtest_wrap.h"
+#include "melon/strings/numbers.h"
+#include "melon/times/time.h"
+#include "melon/thread/latch.h"
+#include "melon/base/fast_rand.h"
 
 using namespace std::literals;
 
-namespace abel {
+namespace melon {
 
     TEST(thread_cache, Basic) {
         thread_cache<std::string> tc_str("123");
@@ -47,13 +49,13 @@ namespace abel {
         std::vector<std::thread> ts;
 
         for (int i = 0; i != 100; ++i) {
-            ts.push_back(std::thread([&, s = abel::time_now()] {
-                while (abel::time_now() + abel::duration::seconds(10) < s) {
-                    if (Random() % 1000 == 0) {
-                        str.emplace(std::to_string(Random() % 33333));
+            ts.push_back(std::thread([&, s = melon::time_now()] {
+                while (melon::time_now() + melon::duration::seconds(10) < s) {
+                    if (melon::base::fast_rand() % 1000 == 0) {
+                        str.emplace(std::to_string(melon::base::fast_rand() % 33333));
                     } else {
                         int64_t opt;
-                        auto r = abel::simple_atoi(str.non_idempotent_get(), &opt);
+                        auto r = melon::simple_atoi(str.non_idempotent_get(), &opt);
                         ASSERT_TRUE(r);
                         ASSERT_LT(opt, 33333);
                     }
@@ -65,4 +67,4 @@ namespace abel {
         }
     }
 
-}  // namespace abel
+}  // namespace melon

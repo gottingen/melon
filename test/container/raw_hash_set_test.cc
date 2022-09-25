@@ -1,8 +1,15 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/container/internal/raw_hash_set.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+#define MELON_MAP_NON_DETERMINISTIC 1
+
+#include "melon/container/flat_hash_map.h"
+#include "hash_policy_testing.h"
+#include "hashtable_debug.h"
 
 #include <cmath>
 #include <cstdint>
@@ -13,20 +20,16 @@
 #include <random>
 #include <string>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "abel/base/profile.h"
-#include "abel/chrono/internal/cycle_clock.h"
-#include "abel/log/logging.h"
-#include "abel/container/internal/container_memory.h"
-#include "abel/container/internal/hash_function_defaults.h"
-#include "testing/hash_policy_testing.h"
-#include "abel/container/internal/hashtable_debug.h"
+#ifdef _MSC_VER
+#pragma warning(disable : 4018 4244 4702)
+#endif  // _MSC_VER
+
 #include <string_view>
 
-namespace abel {
+#include "testing/gtest_wrap.h"
 
-    namespace container_internal {
+namespace melon {
+    namespace priv {
 
         struct RawHashSetTestOnlyAccess {
             template<typename C>
@@ -45,17 +48,17 @@ namespace abel {
             using ::testing::Pair;
             using ::testing::UnorderedElementsAre;
 
-            TEST(Util, normalize_capacity) {
-                EXPECT_EQ(1, normalize_capacity(0));
-                EXPECT_EQ(1, normalize_capacity(1));
-                EXPECT_EQ(3, normalize_capacity(2));
-                EXPECT_EQ(3, normalize_capacity(3));
-                EXPECT_EQ(7, normalize_capacity(4));
-                EXPECT_EQ(7, normalize_capacity(7));
-                EXPECT_EQ(15, normalize_capacity(8));
-                EXPECT_EQ(15, normalize_capacity(15));
-                EXPECT_EQ(15 * 2 + 1, normalize_capacity(15 + 1));
-                EXPECT_EQ(15 * 2 + 1, normalize_capacity(15 + 2));
+            TEST(Util, NormalizeCapacity) {
+                EXPECT_EQ(1, NormalizeCapacity(0));
+                EXPECT_EQ(1, NormalizeCapacity(1));
+                EXPECT_EQ(3, NormalizeCapacity(2));
+                EXPECT_EQ(3, NormalizeCapacity(3));
+                EXPECT_EQ(7, NormalizeCapacity(4));
+                EXPECT_EQ(7, NormalizeCapacity(7));
+                EXPECT_EQ(15, NormalizeCapacity(8));
+                EXPECT_EQ(15, NormalizeCapacity(15));
+                EXPECT_EQ(15 * 2 + 1, NormalizeCapacity(15 + 1));
+                EXPECT_EQ(15 * 2 + 1, NormalizeCapacity(15 + 2));
             }
 
             TEST(Util, GrowthAndCapacity) {
@@ -63,22 +66,22 @@ namespace abel {
                 // growth.
                 for (size_t growth = 0; growth < 10000; ++growth) {
                     SCOPED_TRACE(growth);
-                    size_t capacity = normalize_capacity(GrowthToLowerboundCapacity(growth));
+                    size_t capacity = NormalizeCapacity(GrowthToLowerboundCapacity(growth));
                     // The capacity is large enough for `growth`
-                    EXPECT_THAT(capacity_to_growth(capacity), Ge(growth));
+                    EXPECT_THAT(CapacityToGrowth(capacity), Ge(growth));
                     if (growth != 0 && capacity > 1) {
                         // There is no smaller capacity that works.
-                        EXPECT_THAT(capacity_to_growth(capacity / 2), Lt(growth));
+                        EXPECT_THAT(CapacityToGrowth(capacity / 2), Lt(growth));
                     }
                 }
 
                 for (size_t capacity = Group::kWidth - 1; capacity < 10000;
                      capacity = 2 * capacity + 1) {
                     SCOPED_TRACE(capacity);
-                    size_t growth = capacity_to_growth(capacity);
+                    size_t growth = CapacityToGrowth(capacity);
                     EXPECT_THAT(growth, Lt(capacity));
                     EXPECT_LE(GrowthToLowerboundCapacity(growth), capacity);
-                    EXPECT_EQ(normalize_capacity(GrowthToLowerboundCapacity(growth)), capacity);
+                    EXPECT_EQ(NormalizeCapacity(GrowthToLowerboundCapacity(growth)), capacity);
                 }
             }
 
@@ -117,7 +120,7 @@ namespace abel {
                 uint64_t hash = 0x12;
                 constexpr uint64_t msbs = 0x8080808080808080ULL;
                 constexpr uint64_t lsbs = 0x0101010101010101ULL;
-                auto x = ctrl ^(lsbs * hash);
+                auto x = ctrl ^ (lsbs * hash);
                 uint64_t mask = (x - lsbs) & ~x & msbs;
                 EXPECT_EQ(0x0000000080800000, mask);
 
@@ -126,32 +129,31 @@ namespace abel {
             }
 
             TEST(bit_mask, LeadingTrailing) {
-                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00001a40).LeadingZeros()), 3);
-                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00001a40).TrailingZeros()), 6);
+                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00001a40).leading_zeros()), 3);
+                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00001a40).trailing_zeros()), 6);
 
-                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00000001).LeadingZeros()), 15);
-                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00000001).TrailingZeros()), 0);
+                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00000001).leading_zeros()), 15);
+                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00000001).trailing_zeros()), 0);
 
-                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00008000).LeadingZeros()), 0);
-                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00008000).TrailingZeros()), 15);
+                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00008000).leading_zeros()), 0);
+                EXPECT_EQ((bit_mask<uint32_t, 16>(0x00008000).trailing_zeros()), 15);
 
-                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000008080808000).LeadingZeros()), 3);
-                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000008080808000).TrailingZeros()), 1);
+                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000008080808000).leading_zeros()), 3);
+                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000008080808000).trailing_zeros()), 1);
 
-                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000000000000080).LeadingZeros()), 7);
-                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000000000000080).TrailingZeros()), 0);
+                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000000000000080).leading_zeros()), 7);
+                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x0000000000000080).trailing_zeros()), 0);
 
-                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x8000000000000000).LeadingZeros()), 0);
-                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x8000000000000000).TrailingZeros()), 7);
+                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x8000000000000000).leading_zeros()), 0);
+                EXPECT_EQ((bit_mask<uint64_t, 8, 3>(0x8000000000000000).trailing_zeros()), 7);
             }
 
-            TEST(Group, empty_group) {
-                for (h2_t h = 0; h != 128; ++h)
-                    EXPECT_FALSE(Group{empty_group()}.match(h));
+            TEST(Group, EmptyGroup) {
+                for (h2_t h = 0; h != 128; ++h) EXPECT_FALSE(Group{EmptyGroup()}.match(h));
             }
 
             TEST(Group, match) {
-                if (Group::kWidth == 16) {
+                if constexpr (Group::kWidth == 16) {
                     ctrl_t group[] = {kEmpty, 1, kDeleted, 3, kEmpty, 5, kSentinel, 7,
                                       7, 5, 3, 1, 1, 1, 1, 1};
                     EXPECT_THAT(Group{group}.match(0), ElementsAre());
@@ -159,7 +161,7 @@ namespace abel {
                     EXPECT_THAT(Group{group}.match(3), ElementsAre(3, 10));
                     EXPECT_THAT(Group{group}.match(5), ElementsAre(5, 9));
                     EXPECT_THAT(Group{group}.match(7), ElementsAre(7, 8));
-                } else if (Group::kWidth == 8) {
+                } else if constexpr (Group::kWidth == 8) {
                     ctrl_t group[] = {kEmpty, 1, 2, kDeleted, 2, 1, kSentinel, 1};
                     EXPECT_THAT(Group{group}.match(0), ElementsAre());
                     EXPECT_THAT(Group{group}.match(1), ElementsAre(1, 5, 7));
@@ -170,11 +172,11 @@ namespace abel {
             }
 
             TEST(Group, match_empty) {
-                if (Group::kWidth == 16) {
+                if constexpr (Group::kWidth == 16) {
                     ctrl_t group[] = {kEmpty, 1, kDeleted, 3, kEmpty, 5, kSentinel, 7,
                                       7, 5, 3, 1, 1, 1, 1, 1};
                     EXPECT_THAT(Group{group}.match_empty(), ElementsAre(0, 4));
-                } else if (Group::kWidth == 8) {
+                } else if constexpr (Group::kWidth == 8) {
                     ctrl_t group[] = {kEmpty, 1, 2, kDeleted, 2, 1, kSentinel, 1};
                     EXPECT_THAT(Group{group}.match_empty(), ElementsAre(0));
                 } else {
@@ -183,11 +185,11 @@ namespace abel {
             }
 
             TEST(Group, match_empty_or_deleted) {
-                if (Group::kWidth == 16) {
+                if constexpr (Group::kWidth == 16) {
                     ctrl_t group[] = {kEmpty, 1, kDeleted, 3, kEmpty, 5, kSentinel, 7,
                                       7, 5, 3, 1, 1, 1, 1, 1};
                     EXPECT_THAT(Group{group}.match_empty_or_deleted(), ElementsAre(0, 2, 4));
-                } else if (Group::kWidth == 8) {
+                } else if constexpr (Group::kWidth == 8) {
                     ctrl_t group[] = {kEmpty, 1, 2, kDeleted, 2, 1, kSentinel, 1};
                     EXPECT_THAT(Group{group}.match_empty_or_deleted(), ElementsAre(0, 3));
                 } else {
@@ -197,7 +199,7 @@ namespace abel {
 
             TEST(Batch, DropDeletes) {
                 constexpr size_t kCapacity = 63;
-                constexpr size_t kGroupWidth = container_internal::Group::kWidth;
+                constexpr size_t kGroupWidth = priv::Group::kWidth;
                 std::vector<ctrl_t> ctrl(kCapacity + 1 + kGroupWidth);
                 ctrl[kCapacity] = kSentinel;
                 std::vector<ctrl_t> pattern = {kEmpty, 2, kDeleted, 2, kEmpty, 1, kDeleted};
@@ -210,12 +212,9 @@ namespace abel {
                 ASSERT_EQ(ctrl[kCapacity], kSentinel);
                 for (size_t i = 0; i < kCapacity + 1 + kGroupWidth; ++i) {
                     ctrl_t expected = pattern[i % (kCapacity + 1) % pattern.size()];
-                    if (i == kCapacity)
-                        expected = kSentinel;
-                    if (expected == kDeleted)
-                        expected = kEmpty;
-                    if (is_full(expected))
-                        expected = kDeleted;
+                    if (i == kCapacity) expected = kSentinel;
+                    if (expected == kDeleted) expected = kEmpty;
+                    if (IsFull(expected)) expected = kDeleted;
                     EXPECT_EQ(ctrl[i], expected)
                                         << i << " " << int{pattern[i % pattern.size()]};
                 }
@@ -227,7 +226,7 @@ namespace abel {
 
                 for (ctrl_t empty : empty_examples) {
                     std::vector<ctrl_t> e(Group::kWidth, empty);
-                    EXPECT_EQ(Group::kWidth, Group{e.data()}.count_leading_empty_or_deleted());
+                    EXPECT_EQ(Group::kWidth, (int) Group{e.data()}.count_leading_empty_or_deleted());
                     for (ctrl_t full : full_examples) {
                         for (size_t i = 0; i != Group::kWidth; ++i) {
                             std::vector<ctrl_t> f(Group::kWidth, empty);
@@ -238,7 +237,7 @@ namespace abel {
                         f[Group::kWidth * 2 / 3] = full;
                         f[Group::kWidth / 2] = full;
                         EXPECT_EQ(
-                                Group::kWidth / 2, Group{f.data()}.count_leading_empty_or_deleted());
+                                Group::kWidth / 2, (int) Group{f.data()}.count_leading_empty_or_deleted());
                     }
                 }
             }
@@ -323,7 +322,7 @@ namespace abel {
                 }
             };
 
-            struct string_hash : abel::hash<std::string_view> {
+            struct StringHash : melon::hash<std::string_view> {
                 using is_transparent = void;
             };
             struct StringEq : std::equal_to<std::string_view> {
@@ -331,7 +330,7 @@ namespace abel {
             };
 
             struct StringTable
-                    : raw_hash_set<StringPolicy, string_hash, StringEq, std::allocator<int>> {
+                    : raw_hash_set<StringPolicy, StringHash, StringEq, std::allocator<int>> {
                 using Base = typename StringTable::raw_hash_set;
 
                 StringTable() {}
@@ -340,9 +339,12 @@ namespace abel {
             };
 
             struct IntTable
-                    : raw_hash_set<IntPolicy, container_internal::hash_default_hash<int64_t>,
+                    : raw_hash_set<IntPolicy, priv::hash_default_hash<int64_t>,
                             std::equal_to<int64_t>, std::allocator<int64_t>> {
                 using Base = typename IntTable::raw_hash_set;
+
+                IntTable() {}
+
                 using Base::Base;
             };
 
@@ -351,7 +353,7 @@ namespace abel {
                 CustomAlloc() {}
 
                 template<typename U>
-                CustomAlloc(const CustomAlloc<U> &other) {}
+                CustomAlloc(const CustomAlloc<U> &) {}
 
                 template<class U>
                 struct rebind {
@@ -360,7 +362,7 @@ namespace abel {
             };
 
             struct CustomAllocIntTable
-                    : raw_hash_set<IntPolicy, container_internal::hash_default_hash<int64_t>,
+                    : raw_hash_set<IntPolicy, priv::hash_default_hash<int64_t>,
                             std::equal_to<int64_t>, CustomAlloc<int64_t>> {
                 using Base = typename CustomAllocIntTable::raw_hash_set;
                 using Base::Base;
@@ -392,6 +394,7 @@ namespace abel {
                     size_t size;
                     size_t capacity;
                     size_t growth_left;
+                    void *infoz;
                 };
                 struct StatelessHash {
                     size_t operator()(std::string_view) const { return 0; }
@@ -413,6 +416,7 @@ namespace abel {
                                         std::equal_to<std::string_view>, std::allocator<int>>));
             }
 
+
             TEST(Table, Empty) {
                 IntTable t;
                 EXPECT_EQ(0, t.size());
@@ -422,7 +426,7 @@ namespace abel {
 #ifdef __GNUC__
 
             template<class T>
-            ABEL_FORCE_INLINE void DoNotOptimize(const T &v) {
+            MELON_FORCE_INLINE void DoNotOptimize(const T &v) {
                 asm volatile("" : : "r,m"(v) : "memory");
             }
 
@@ -436,12 +440,12 @@ namespace abel {
                 t.prefetch(2);
 
                 // Do not run in debug mode, when prefetch is not implemented, or when
-                // sanitizers are enabled, or on WebAssembly.
-#if defined(NDEBUG) && defined(__GNUC__) && defined(__x86_64__) && \
+                // sanitizers are enabled.
+#if 0 && defined(NDEBUG) && defined(__GNUC__) && defined(__x86_64__) && \
     !defined(ADDRESS_SANITIZER) && !defined(MEMORY_SANITIZER) && \
     !defined(THREAD_SANITIZER) && !defined(UNDEFINED_BEHAVIOR_SANITIZER) && \
     !defined(__EMSCRIPTEN__)
-                const auto now = [] { return abel::cycle_clock::now(); };
+                const auto now = [] { return melon::base_internal::CycleClock::Now(); };
 
                 // Make size enough to not fit in L2 cache (16.7 Mb)
                 static constexpr int size = 1 << 22;
@@ -518,8 +522,8 @@ namespace abel {
                 EXPECT_THAT(*t.find(2), 2);
             }
 
-// Test that we do not add existent element in case we need to search through
-// many groups with deleted elements
+            // Test that we do not add existent element in case we need to search through
+            // many groups with deleted elements
             TEST(Table, InsertCollisionAndFindAfterDelete) {
                 BadTable t;  // all elements go to the same group.
                 // Have at least 2 groups with Group::kWidth collisions
@@ -565,6 +569,7 @@ namespace abel {
                 EXPECT_THAT(*it, Pair("abc", "ABC"));
             }
 
+
             TEST(Table, ContainsEmpty) {
                 IntTable t;
 
@@ -596,7 +601,7 @@ namespace abel {
             int decompose_constructed;
 
             struct DecomposeType {
-                DecomposeType(int i) : i(i) {  // NOLINT
+                DecomposeType(int i_) : i(i_) {  // NOLINT
                     ++decompose_constructed;
                 }
 
@@ -737,72 +742,71 @@ namespace abel {
             size_t MaxDensitySize(size_t n) {
                 IntTable t;
                 t.reserve(n);
-                for (size_t i = 0; i != n; ++i)
-                    t.emplace(i);
+                for (size_t i = 0; i != n; ++i) t.emplace(i);
                 const size_t c = t.bucket_count();
-                while (c == t.bucket_count())
-                    t.emplace(n++);
+                while (c == t.bucket_count()) t.emplace(n++);
                 return t.size() - 1;
             }
 
+#if 0
             struct Modulo1000Hash {
-                size_t operator()(int x) const { return x % 1000; }
+              size_t operator()(int x) const { return x % 1000; }
             };
 
             struct Modulo1000HashTable
-                    : public raw_hash_set<IntPolicy, Modulo1000Hash, std::equal_to<int>,
-                            std::allocator<int>> {
-            };
+                : public raw_hash_set<IntPolicy, Modulo1000Hash, std::equal_to<int>,
+                                      std::allocator<int>> {};
 
-// Test that rehash with no resize happen in case of many deleted slots.
+            // Test that rehash with no resize happen in case of many deleted slots.
             TEST(Table, RehashWithNoResize) {
-                Modulo1000HashTable t;
-                // Adding the same length (and the same hash) strings
-                // to have at least kMinFullGroups groups
-                // with Group::kWidth collisions. Then fill up to MaxDensitySize;
-                const size_t kMinFullGroups = 7;
-                std::vector<int> keys;
-                for (size_t i = 0; i < MaxDensitySize(Group::kWidth * kMinFullGroups); ++i) {
-                    int k = i * 1000;
-                    t.emplace(k);
-                    keys.push_back(k);
+              Modulo1000HashTable t;
+              // Adding the same length (and the same hash) strings
+              // to have at least kMinFullGroups groups
+              // with Group::kWidth collisions. Then fill up to MaxDensitySize;
+              const size_t kMinFullGroups = 7;
+              std::vector<int> keys;
+              for (size_t i = 0; i < MaxDensitySize(Group::kWidth * kMinFullGroups); ++i) {
+                  int k = (int)i * 1000;
+                t.emplace(k);
+                keys.push_back(k);
+              }
+              const size_t capacity = t.capacity();
+
+              // Remove elements from all groups except the first and the last one.
+              // All elements removed from full groups will be marked as kDeleted.
+              const size_t erase_begin = Group::kWidth / 2;
+              const size_t erase_end = (t.size() / Group::kWidth - 1) * Group::kWidth;
+              for (size_t i = erase_begin; i < erase_end; ++i) {
+                EXPECT_EQ(1, t.erase(keys[i])) << i;
+              }
+              keys.erase(keys.begin() + erase_begin, keys.begin() + erase_end);
+
+              auto last_key = keys.back();
+              size_t last_key_num_probes = GetHashtableDebugNumProbes(t, last_key);
+
+              // Make sure that we have to make a lot of probes for last key.
+              ASSERT_GT(last_key_num_probes, kMinFullGroups);
+
+              int x = 1;
+              // Insert and erase one element, before inplace rehash happen.
+              while (last_key_num_probes == GetHashtableDebugNumProbes(t, last_key)) {
+                t.emplace(x);
+                ASSERT_EQ(capacity, t.capacity());
+                // All elements should be there.
+                ASSERT_TRUE(t.find(x) != t.end()) << x;
+                for (const auto& k : keys) {
+                  ASSERT_TRUE(t.find(k) != t.end()) << k;
                 }
-                const size_t capacity = t.capacity();
-
-                // Remove elements from all groups except the first and the last one.
-                // All elements removed from full groups will be marked as kDeleted.
-                const size_t erase_begin = Group::kWidth / 2;
-                const size_t erase_end = (t.size() / Group::kWidth - 1) * Group::kWidth;
-                for (size_t i = erase_begin; i < erase_end; ++i) {
-                    EXPECT_EQ(1, t.erase(keys[i])) << i;
-                }
-                keys.erase(keys.begin() + erase_begin, keys.begin() + erase_end);
-
-                auto last_key = keys.back();
-                size_t last_key_num_probes = get_hashtable_debug_num_probes(t, last_key);
-
-                // Make sure that we have to make a lot of probes for last key.
-                ASSERT_GT(last_key_num_probes, kMinFullGroups);
-
-                int x = 1;
-                // Insert and erase one element, before inplace rehash happen.
-                while (last_key_num_probes == get_hashtable_debug_num_probes(t, last_key)) {
-                    t.emplace(x);
-                    ASSERT_EQ(capacity, t.capacity());
-                    // All elements should be there.
-                    ASSERT_TRUE(t.find(x) != t.end()) << x;
-                    for (const auto &k : keys) {
-                        ASSERT_TRUE(t.find(k) != t.end()) << k;
-                    }
-                    t.erase(x);
-                    ++x;
-                }
+                t.erase(x);
+                ++x;
+              }
             }
+#endif
 
             TEST(Table, InsertEraseStressTest) {
                 IntTable t;
                 const size_t kMinElementCount = 250;
-                std::deque<int> keys;
+                std::deque<size_t> keys;
                 size_t i = 0;
                 for (; i < MaxDensitySize(kMinElementCount); ++i) {
                     t.emplace(i);
@@ -829,12 +833,11 @@ namespace abel {
                                                     Pair("DEF", "!!!")));
             }
 
+
             TEST(Table, LargeTable) {
                 IntTable t;
-                for (int64_t i = 0; i != 100000; ++i)
-                    t.emplace(i << 40);
-                for (int64_t i = 0; i != 100000; ++i)
-                    ASSERT_EQ(i << 40, *t.find(i << 40));
+                for (int64_t i = 0; i != 100000; ++i) t.emplace(i << 40);
+                for (int64_t i = 0; i != 100000; ++i) ASSERT_EQ(i << 40, *t.find(i << 40));
             }
 
 // Timeout if copy is quadratic as it was in Rust.
@@ -848,13 +851,12 @@ namespace abel {
 
                 // If this is quadratic, the test will timeout.
                 IntTable t2;
-                for (const auto &entry : t)
-                    t2.insert(entry);
+                for (const auto &entry : t) t2.insert(entry);
             }
 
             TEST(Table, ClearBug) {
                 IntTable t;
-                constexpr size_t capacity = container_internal::Group::kWidth - 1;
+                constexpr size_t capacity = priv::Group::kWidth - 1;
                 constexpr size_t max_size = capacity / 2 + 1;
                 for (size_t i = 0; i < max_size; ++i) {
                     t.insert(i);
@@ -905,12 +907,12 @@ namespace abel {
                 EXPECT_EQ(num_erase_calls, kNumElements);
             }
 
-// Collect N bad keys by following algorithm:
-// 1. Create an empty table and reserve it to 2 * N.
-// 2. Insert N random elements.
-// 3. Take first Group::kWidth - 1 to bad_keys array.
-// 4. Clear the table without resize.
-// 5. Go to point 2 while N keys not collected
+            // Collect N bad keys by following algorithm:
+            // 1. Create an empty table and reserve it to 2 * N.
+            // 2. Insert N random elements.
+            // 3. Take first Group::kWidth - 1 to bad_keys array.
+            // 4. Clear the table without resize.
+            // 5. Go to point 2 while N keys not collected
             std::vector<int64_t> CollectBadMergeKeys(size_t N) {
                 static constexpr int kGroupSize = Group::kWidth - 1;
 
@@ -947,20 +949,19 @@ namespace abel {
                 // Ratios total_probe_length/size for every tested table.
                 std::vector<double> single_table_ratios;
 
-/*
-  friend ProbeStats operator+(const ProbeStats& a, const ProbeStats& b) {
-    ProbeStats res = a;
-    res.all_probes_histogram.resize(std::max(res.all_probes_histogram.size(),
-                                             b.all_probes_histogram.size()));
-    std::transform(b.all_probes_histogram.begin(), b.all_probes_histogram.end(),
-                   res.all_probes_histogram.begin(),
-                   res.all_probes_histogram.begin(), std::plus<size_t>());
-    res.single_table_ratios.insert(res.single_table_ratios.end(),
-                                   b.single_table_ratios.begin(),
-                                   b.single_table_ratios.end());
-    return res;
-  }
-*/
+                friend ProbeStats operator+(const ProbeStats &a, const ProbeStats &b) {
+                    ProbeStats res = a;
+                    res.all_probes_histogram.resize(std::max(res.all_probes_histogram.size(),
+                                                             b.all_probes_histogram.size()));
+                    std::transform(b.all_probes_histogram.begin(), b.all_probes_histogram.end(),
+                                   res.all_probes_histogram.begin(),
+                                   res.all_probes_histogram.begin(), std::plus<size_t>());
+                    res.single_table_ratios.insert(res.single_table_ratios.end(),
+                                                   b.single_table_ratios.begin(),
+                                                   b.single_table_ratios.end());
+                    return res;
+                }
+
                 // Average ratio total_probe_length/size over tables.
                 double AvgRatio() const {
                     return std::accumulate(single_table_ratios.begin(),
@@ -974,10 +975,10 @@ namespace abel {
                                              single_table_ratios.end());
                 }
 
-                // Percentile ratio total_probe_length/size over tables.
-                double PercentileRatio(double Percentile = 0.95) const {
+                // percentile ratio total_probe_length/size over tables.
+                double PercentileRatio(double percentile = 0.95) const {
                     auto r = single_table_ratios;
-                    auto mid = r.begin() + static_cast<size_t>(r.size() * Percentile);
+                    auto mid = r.begin() + static_cast<size_t>(r.size() * percentile);
                     if (mid != r.end()) {
                         std::nth_element(r.begin(), mid, r.end());
                         return *mid;
@@ -991,8 +992,8 @@ namespace abel {
 
                 // Fraction of elements with specified probe length.
                 std::vector<double> ProbeNormalizedHistogram() const {
-                    double total_elements = std::accumulate(all_probes_histogram.begin(),
-                                                            all_probes_histogram.end(), 0ull);
+                    double total_elements = (double) std::accumulate(all_probes_histogram.begin(),
+                                                                     all_probes_histogram.end(), 0ull);
                     std::vector<double> res;
                     for (size_t p : all_probes_histogram) {
                         res.push_back(p / total_elements);
@@ -1000,11 +1001,11 @@ namespace abel {
                     return res;
                 }
 
-                size_t PercentileProbe(double Percentile = 0.99) const {
+                size_t PercentileProbe(double percentile = 0.99) const {
                     size_t idx = 0;
                     for (double p : ProbeNormalizedHistogram()) {
-                        if (Percentile > p) {
-                            Percentile -= p;
+                        if (percentile > p) {
+                            percentile -= p;
                             ++idx;
                         } else {
                             return idx;
@@ -1032,22 +1033,20 @@ namespace abel {
                 std::vector<std::pair<double, double>> pecentile_ratios;
                 std::vector<std::pair<double, double>> pecentile_probes;
 
-/*
-  friend std::ostream& operator<<(std::ostream& out, const ExpectedStats& s) {
-    out << "{AvgRatio:" << s.avg_ratio << ", MaxRatio:" << s.max_ratio
-        << ", PercentileRatios: [";
-    for (auto el : s.pecentile_ratios) {
-      out << el.first << ":" << el.second << ", ";
-    }
-    out << "], PercentileProbes: [";
-    for (auto el : s.pecentile_probes) {
-      out << el.first << ":" << el.second << ", ";
-    }
-    out << "]}";
+                friend std::ostream &operator<<(std::ostream &out, const ExpectedStats &s) {
+                    out << "{AvgRatio:" << s.avg_ratio << ", MaxRatio:" << s.max_ratio
+                        << ", PercentileRatios: [";
+                    for (auto el : s.pecentile_ratios) {
+                        out << el.first << ":" << el.second << ", ";
+                    }
+                    out << "], PercentileProbes: [";
+                    for (auto el : s.pecentile_probes) {
+                        out << el.first << ":" << el.second << ", ";
+                    }
+                    out << "]}";
 
-    return out;
-  }
-  */
+                    return out;
+                }
             };
 
             void VerifyStats(size_t size, const ExpectedStats &exp,
@@ -1067,10 +1066,10 @@ namespace abel {
 
             using ProbeStatsPerSize = std::map<size_t, ProbeStats>;
 
-// Collect total ProbeStats on num_iters iterations of the following algorithm:
-// 1. Create new table and reserve it to keys.size() * 2
-// 2. Insert all keys xored with seed
-// 3. Collect ProbeStats from final table.
+            // Collect total ProbeStats on num_iters iterations of the following algorithm:
+            // 1. Create new table and reserve it to keys.size() * 2
+            // 2. Insert all keys xored with seed
+            // 3. Collect ProbeStats from final table.
             ProbeStats CollectProbeStatsOnKeysXoredWithSeed(const std::vector<int64_t> &keys,
                                                             size_t num_iters) {
                 const size_t reserve_size = keys.size() * 2;
@@ -1086,7 +1085,7 @@ namespace abel {
                         t1.emplace(key ^ seed);
                     }
 
-                    auto probe_histogram = get_hashtable_debug_num_probes_histogram(t1);
+                    auto probe_histogram = GetHashtableDebugNumProbesHistogram(t1);
                     stats.all_probes_histogram.resize(
                             std::max(stats.all_probes_histogram.size(), probe_histogram.size()));
                     std::transform(probe_histogram.begin(), probe_histogram.end(),
@@ -1104,6 +1103,11 @@ namespace abel {
                 return stats;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+#endif
+
             ExpectedStats XorSeedExpectedStats() {
                 constexpr bool kRandomizesInserts =
 #ifdef NDEBUG
@@ -1114,35 +1118,38 @@ namespace abel {
 
                 // The effective load factor is larger in non-opt mode because we insert
                 // elements out of order.
-                switch (container_internal::Group::kWidth) {
-                    case 8:
-                        if (kRandomizesInserts) {
-                            return {0.05,
-                                    1.0,
-                                    {{0.95, 0.5}},
-                                    {{0.95, 0}, {0.99, 2}, {0.999, 4}, {0.9999, 10}}};
-                        } else {
-                            return {0.05,
-                                    2.0,
-                                    {{0.95, 0.1}},
-                                    {{0.95, 0}, {0.99, 2}, {0.999, 4}, {0.9999, 10}}};
-                        }
-                    case 16:
-                        if (kRandomizesInserts) {
-                            return {0.1,
-                                    1.0,
-                                    {{0.95, 0.1}},
-                                    {{0.95, 0}, {0.99, 1}, {0.999, 8}, {0.9999, 15}}};
-                        } else {
-                            return {0.05,
-                                    1.0,
-                                    {{0.95, 0.05}},
-                                    {{0.95, 0}, {0.99, 1}, {0.999, 4}, {0.9999, 10}}};
-                        }
+                if constexpr (priv::Group::kWidth == 8) {
+                    if (kRandomizesInserts) {
+                        return {0.05,
+                                1.0,
+                                {{0.95, 0.5}},
+                                {{0.95, 0}, {0.99, 2}, {0.999, 4}, {0.9999, 10}}};
+                    } else {
+                        return {0.05,
+                                2.0,
+                                {{0.95, 0.1}},
+                                {{0.95, 0}, {0.99, 2}, {0.999, 4}, {0.9999, 10}}};
+                    }
+                } else {
+                    if (kRandomizesInserts) {
+                        return {0.1,
+                                1.0,
+                                {{0.95, 0.1}},
+                                {{0.95, 0}, {0.99, 1}, {0.999, 8}, {0.9999, 15}}};
+                    } else {
+                        return {0.05,
+                                1.0,
+                                {{0.95, 0.05}},
+                                {{0.95, 0}, {0.99, 1}, {0.999, 4}, {0.9999, 10}}};
+                    }
                 }
-                DLOG_CRITICAL("Unknown Group width");
                 return {};
             }
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 
             TEST(Table, DISABLED_EnsureNonQuadraticTopNXorSeedByProbeSeqLength) {
                 ProbeStatsPerSize stats;
@@ -1180,7 +1187,7 @@ namespace abel {
                         }
                     }
 
-                    auto probe_histogram = get_hashtable_debug_num_probes_histogram(t1);
+                    auto probe_histogram = GetHashtableDebugNumProbesHistogram(t1);
                     stats.all_probes_histogram.resize(
                             std::max(stats.all_probes_histogram.size(), probe_histogram.size()));
                     std::transform(probe_histogram.begin(), probe_histogram.end(),
@@ -1198,6 +1205,11 @@ namespace abel {
                 return stats;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+#endif
+
             ExpectedStats LinearTransformExpectedStats() {
                 constexpr bool kRandomizesInserts =
 #ifdef NDEBUG
@@ -1208,35 +1220,37 @@ namespace abel {
 
                 // The effective load factor is larger in non-opt mode because we insert
                 // elements out of order.
-                switch (container_internal::Group::kWidth) {
-                    case 8:
-                        if (kRandomizesInserts) {
-                            return {0.1,
-                                    0.5,
-                                    {{0.95, 0.3}},
-                                    {{0.95, 0}, {0.99, 1}, {0.999, 8}, {0.9999, 15}}};
-                        } else {
-                            return {0.15,
-                                    0.5,
-                                    {{0.95, 0.3}},
-                                    {{0.95, 0}, {0.99, 3}, {0.999, 15}, {0.9999, 25}}};
-                        }
-                    case 16:
-                        if (kRandomizesInserts) {
-                            return {0.1,
-                                    0.4,
-                                    {{0.95, 0.3}},
-                                    {{0.95, 0}, {0.99, 1}, {0.999, 8}, {0.9999, 15}}};
-                        } else {
-                            return {0.05,
-                                    0.2,
-                                    {{0.95, 0.1}},
-                                    {{0.95, 0}, {0.99, 1}, {0.999, 6}, {0.9999, 10}}};
-                        }
+                if constexpr (priv::Group::kWidth == 8) {
+                    if (kRandomizesInserts) {
+                        return {0.1,
+                                0.5,
+                                {{0.95, 0.3}},
+                                {{0.95, 0}, {0.99, 1}, {0.999, 8}, {0.9999, 15}}};
+                    } else {
+                        return {0.15,
+                                0.5,
+                                {{0.95, 0.3}},
+                                {{0.95, 0}, {0.99, 3}, {0.999, 15}, {0.9999, 25}}};
+                    }
+                } else {
+                    if (kRandomizesInserts) {
+                        return {0.1,
+                                0.4,
+                                {{0.95, 0.3}},
+                                {{0.95, 0}, {0.99, 1}, {0.999, 8}, {0.9999, 15}}};
+                    } else {
+                        return {0.05,
+                                0.2,
+                                {{0.95, 0.1}},
+                                {{0.95, 0}, {0.99, 1}, {0.999, 6}, {0.9999, 10}}};
+                    }
                 }
-                DLOG_CRITICAL("Unknown Group width");
                 return {};
             }
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
             TEST(Table, DISABLED_EnsureNonQuadraticTopNLinearTransformByProbeSeqLength) {
                 ProbeStatsPerSize stats;
@@ -1388,6 +1402,7 @@ namespace abel {
                 StringTable t = {P(), Q(), {}, {{}, {}}};
             }
 
+
             TEST(Table, CopyConstruct) {
                 IntTable t;
                 t.emplace(0);
@@ -1419,7 +1434,7 @@ namespace abel {
             }
 
             struct ExplicitAllocIntTable
-                    : raw_hash_set<IntPolicy, container_internal::hash_default_hash<int64_t>,
+                    : raw_hash_set<IntPolicy, priv::hash_default_hash<int64_t>,
                             std::equal_to<int64_t>, Alloc<int64_t>> {
                 ExplicitAllocIntTable() {}
             };
@@ -1530,6 +1545,7 @@ namespace abel {
                 EXPECT_NE(u, t);
             }
 
+
             TEST(Table, NumDeletedRegression) {
                 IntTable t;
                 t.emplace(0);
@@ -1555,15 +1571,13 @@ namespace abel {
                     IntTable t;
                     t.emplace(0);
                     size_t c = t.bucket_count();
-                    for (n = 1; c == t.bucket_count(); ++n)
-                        t.emplace(n);
+                    for (n = 1; c == t.bucket_count(); ++n) t.emplace(n);
                     --n;
                 }
                 IntTable t;
                 t.rehash(n);
                 const size_t c = t.bucket_count();
-                for (size_t i = 0; i != n; ++i)
-                    t.emplace(i);
+                for (size_t i = 0; i != n; ++i) t.emplace(i);
                 EXPECT_EQ(c, t.bucket_count()) << "rehashing threshold = " << n;
                 t.erase(0);
                 t.emplace(0);
@@ -1572,42 +1586,41 @@ namespace abel {
 
             TEST(Table, NoThrowMoveConstruct) {
                 ASSERT_TRUE(
-                        std::is_nothrow_copy_constructible<abel::hash<std::string_view>>::value);
+                        std::is_nothrow_copy_constructible<melon::hash<std::string_view>>::value);
                 ASSERT_TRUE(std::is_nothrow_copy_constructible<
-                        std::equal_to<std::string_view>>
-                                    ::value);
+                                    std::equal_to<std::string_view>>::value);
                 ASSERT_TRUE(std::is_nothrow_copy_constructible<std::allocator<int>>::value);
                 EXPECT_TRUE(std::is_nothrow_move_constructible<StringTable>::value);
             }
 
             TEST(Table, NoThrowMoveAssign) {
                 ASSERT_TRUE(
-                        std::is_nothrow_move_assignable<abel::hash<std::string_view>>::value);
+                        std::is_nothrow_move_assignable<melon::hash<std::string_view>>::value);
                 ASSERT_TRUE(
                         std::is_nothrow_move_assignable<std::equal_to<std::string_view>>::value);
                 ASSERT_TRUE(std::is_nothrow_move_assignable<std::allocator<int>>::value);
                 ASSERT_TRUE(
-                        abel::allocator_traits<std::allocator<int>>::is_always_equal::value);
+                        melon::allocator_traits<std::allocator<int>>::is_always_equal::value);
                 EXPECT_TRUE(std::is_nothrow_move_assignable<StringTable>::value);
             }
 
             TEST(Table, NoThrowSwappable) {
                 ASSERT_TRUE(
-                        container_internal::IsNoThrowSwappable<abel::hash<std::string_view>>());
-                ASSERT_TRUE(container_internal::IsNoThrowSwappable<
-                        std::equal_to<std::string_view>>
-                                    ());
-                ASSERT_TRUE(container_internal::IsNoThrowSwappable<std::allocator<int>>());
-                EXPECT_TRUE(container_internal::IsNoThrowSwappable<StringTable>());
+                        priv::IsNoThrowSwappable<melon::hash<std::string_view>>());
+                ASSERT_TRUE(priv::IsNoThrowSwappable<
+                                    std::equal_to<std::string_view>>());
+                ASSERT_TRUE(priv::IsNoThrowSwappable<std::allocator<int>>());
+                EXPECT_TRUE(priv::IsNoThrowSwappable<StringTable>());
             }
 
+
             TEST(Table, HeterogeneousLookup) {
-                struct Hash {
+                struct hash {
                     size_t operator()(int64_t i) const { return i; }
 
                     size_t operator()(double i) const {
                         ADD_FAILURE();
-                        return i;
+                        return (size_t) i;
                     }
                 };
                 struct Eq {
@@ -1634,7 +1647,7 @@ namespace abel {
 
                     size_t operator()(int64_t i) const { return i; }
 
-                    size_t operator()(double i) const { return i; }
+                    size_t operator()(double i) const { return (size_t) i; }
                 };
                 struct TEq {
                     using is_transparent = void;
@@ -1648,9 +1661,9 @@ namespace abel {
                     bool operator()(double a, double b) const { return a == b; }
                 };
 
-                raw_hash_set<IntPolicy, Hash, Eq, Alloc<int64_t>> s{0, 1, 2};
+                raw_hash_set<IntPolicy, hash, Eq, Alloc<int64_t>> s{0, 1, 2};
                 // It will convert to int64_t before the query.
-                EXPECT_EQ(1, *s.find(double{1.1}));
+                EXPECT_EQ(1, *s.find((int) double{1.1}));
 
                 raw_hash_set<IntPolicy, THash, TEq, Alloc<int64_t>> ts{0, 1, 2};
                 // It will try to use the double, and fail to find the object.
@@ -1677,12 +1690,12 @@ namespace abel {
             };
 
             template<template<typename> class C, class Table>
-            struct VerifyResultOf<C, Table, abel::void_t<C<Table>>> : std::true_type {
+            struct VerifyResultOf<C, Table, melon::void_t<C<Table>>> : std::true_type {
             };
 
             TEST(Table, HeterogeneousLookupOverloads) {
                 using NonTransparentTable =
-                raw_hash_set<StringPolicy, abel::hash<std::string_view>,
+                raw_hash_set<StringPolicy, melon::hash<std::string_view>,
                         std::equal_to<std::string_view>, std::allocator<int>>;
 
                 EXPECT_FALSE((VerifyResultOf<CallFind, NonTransparentTable>()));
@@ -1693,8 +1706,8 @@ namespace abel {
 
                 using TransparentTable = raw_hash_set<
                         StringPolicy,
-                        abel::container_internal::hash_default_hash<std::string_view>,
-                        abel::container_internal::hash_default_eq<std::string_view>,
+                        melon::priv::hash_default_hash<std::string_view>,
+                        melon::priv::hash_default_eq<std::string_view>,
                         std::allocator<int>>;
 
                 EXPECT_TRUE((VerifyResultOf<CallFind, TransparentTable>()));
@@ -1704,7 +1717,7 @@ namespace abel {
                 EXPECT_TRUE((VerifyResultOf<CallCount, TransparentTable>()));
             }
 
-// TODO(alkis): Expand iterator tests.
+            // TODO: Expand iterator tests.
             TEST(Iterator, IsDefaultConstructible) {
                 StringTable::iterator i;
                 EXPECT_TRUE(i == StringTable::iterator());
@@ -1722,8 +1735,7 @@ namespace abel {
 
             TEST(Iterator, Iterates) {
                 IntTable t;
-                for (size_t i = 3; i != 6; ++i)
-                    EXPECT_TRUE(t.emplace(i).second);
+                for (size_t i = 3; i != 6; ++i) EXPECT_TRUE(t.emplace(i).second);
                 EXPECT_THAT(t, UnorderedElementsAre(3, 4, 5));
             }
 
@@ -1801,8 +1813,7 @@ namespace abel {
 
             IntTable MakeSimpleTable(size_t size) {
                 IntTable t;
-                while (t.size() < size)
-                    t.insert(t.size());
+                while (t.size() < size) t.insert(t.size());
                 return t;
             }
 
@@ -1810,12 +1821,13 @@ namespace abel {
                 return {t.begin(), t.end()};
             }
 
-// These IterationOrderChanges tests depend on non-deterministic behavior.
-// We are injecting non-determinism from the pointer of the table, but do so in
-// a way that only the page matters. We have to retry enough times to make sure
-// we are touching different memory pages to cause the ordering to change.
-// We also need to keep the old tables around to avoid getting the same memory
-// blocks over and over.
+            // These IterationOrderChanges tests depend on non-deterministic behavior.
+            // We are injecting non-determinism from the pointer of the table, but do so in
+            // a way that only the page matters. We have to retry enough times to make sure
+            // we are touching different memory pages to cause the ordering to change.
+            // We also need to keep the old tables around to avoid getting the same memory
+            // blocks over and over.
+            // not randomizing in flat_hash_map
             TEST(Table, IterationOrderChangesByInstance) {
                 for (size_t size : {2, 6, 12, 20}) {
                     const auto reference_table = MakeSimpleTable(size);
@@ -1835,6 +1847,7 @@ namespace abel {
                 }
             }
 
+            // not randomizing in flat_hash_map
             TEST(Table, IterationOrderChangesOnRehash) {
                 std::vector<IntTable> garbage;
                 for (int i = 0; i < 5000; ++i) {
@@ -1852,8 +1865,8 @@ namespace abel {
                 FAIL() << "Iteration order remained the same across many attempts.";
             }
 
-// Verify that pointers are invalidated as soon as a second element is inserted.
-// This prevents dependency on pointer stability on small tables.
+            // Verify that pointers are invalidated as soon as a second element is inserted.
+            // This prevents dependency on pointer stability on small tables.
             TEST(Table, UnstablePointers) {
                 IntTable table;
 
@@ -1870,7 +1883,7 @@ namespace abel {
                 EXPECT_NE(old_ptr, addr(0));
             }
 
-// Confirm that we assert if we try to erase() end().
+            // Confirm that we assert if we try to erase() end().
             TEST(TableDeathTest, EraseOfEndAsserts) {
                 // Use an assert with side-effects to figure out if they are actually enabled.
                 bool assert_enabled = false;
@@ -1878,15 +1891,56 @@ namespace abel {
                     assert_enabled = true;
                     return true;
                 }());
-                if (!assert_enabled)
-                    return;
+                if (!assert_enabled) return;
 
                 IntTable t;
                 // Extra simple "regexp" as regexp support is highly varied across platforms.
-                constexpr char kDeathMsg[] = "is_full";
+                constexpr char kDeathMsg[] = "it != end";
                 EXPECT_DEATH_IF_SUPPORTED(t.erase(t.end()), kDeathMsg);
             }
 
+            // [greg] did not implement HashtablezSampler in header only flat_hash_map.h
+            TEST(RawHashSamplerTest, DISABLED_Sample) {
+                // Enable the feature even if the prod default is off.
+                SetHashtablezEnabled(true);
+                SetHashtablezSampleParameter(100);
+
+                auto &sampler = HashtablezSampler::Global();
+                size_t start_size = 0;
+                start_size += sampler.Iterate([&](const HashtablezInfo &) { ++start_size; });
+
+                std::vector<IntTable> tables;
+                for (int i = 0; i < 1000000; ++i) {
+                    tables.emplace_back();
+                    tables.back().insert(1);
+                }
+                size_t end_size = 0;
+                end_size += sampler.Iterate([&](const HashtablezInfo &) { ++end_size; });
+
+                EXPECT_NEAR((end_size - start_size) / static_cast<double>(tables.size()),
+                            0.01, 0.005);
+            }
+
+            TEST(RawHashSamplerTest, DoNotSampleCustomAllocators) {
+                // Enable the feature even if the prod default is off.
+                SetHashtablezEnabled(true);
+                SetHashtablezSampleParameter(100);
+
+                auto &sampler = HashtablezSampler::Global();
+                size_t start_size = 0;
+                start_size += sampler.Iterate([&](const HashtablezInfo &) { ++start_size; });
+
+                std::vector<CustomAllocIntTable> tables;
+                for (int i = 0; i < 1000000; ++i) {
+                    tables.emplace_back();
+                    tables.back().insert(1);
+                }
+                size_t end_size = 0;
+                end_size += sampler.Iterate([&](const HashtablezInfo &) { ++end_size; });
+
+                EXPECT_NEAR((end_size - start_size) / static_cast<double>(tables.size()),
+                            0.00, 0.001);
+            }
 
 #ifdef ADDRESS_SANITIZER
             TEST(Sanitizer, PoisoningUnused) {
@@ -1915,6 +1969,5 @@ namespace abel {
 #endif  // ADDRESS_SANITIZER
 
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

@@ -1,9 +1,11 @@
-//
-// Created by liyinbin on 2021/4/5.
-//
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-#include "abel/thread/thread_local.h"
+#include "melon/thread/thread_local.h"
 
 #include <dlfcn.h>
 #include <sys/types.h>
@@ -20,11 +22,10 @@
 #include <thread>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "testing/gtest_wrap.h"
+#include "melon/thread/latch.h"
 
-#include "abel/thread/latch.h"
-
-namespace abel {
+namespace melon {
 
     struct Widget {
         static int total;
@@ -183,8 +184,8 @@ namespace abel {
             tls.insert(m.second.tl.get());
         }
 
-// Make sure that we have 4 different instances of *tl
-        EXPECT_EQ(4, tls.size());
+        // Make sure that we have 4 different instances of *tl
+        EXPECT_EQ(4ul, tls.size());
     }
 
     using TLPInt = thread_local_store<std::atomic<int>>;
@@ -254,4 +255,4 @@ namespace abel {
                 4);
     }
 
-}  // namespace abel
+}  // namespace melon

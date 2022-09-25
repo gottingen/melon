@@ -1,13 +1,15 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 // This file tests string processing functions related to numeric values.
 
-#include "abel/strings/numbers.h"
-
+#include "melon/strings/numbers.h"
+#include "melon/strings/internal/ostringstream.h"
 #include <sys/types.h>
-
+#include "melon/base/fast_rand.h"
 #include <cfenv>  // NOLINT(build/c++11)
 #include <cinttypes>
 #include <climits>
@@ -24,27 +26,123 @@
 #include <string>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "abel/log/logging.h"
-#include "abel/random/distributions.h"
-#include "abel/random/random.h"
-#include "testing/numbers_test_common.h"
-#include "testing/pow10_helper.h"
-#include "abel/strings/str_cat.h"
+
+#include "testing/gtest_wrap.h"
+#include "melon/log/logging.h"
+#include "numbers_test_common.h"
+#include "melon/strings/str_cat.h"
+
 
 namespace {
 
-    using abel::numbers_internal::kSixDigitsToBufferSize;
-    using abel::numbers_internal::safe_strto32_base;
-    using abel::numbers_internal::safe_strto64_base;
-    using abel::numbers_internal::safe_strtou32_base;
-    using abel::numbers_internal::safe_strtou64_base;
-    using abel::numbers_internal::six_digits_to_buffer;
-    using abel::strings_internal::Itoa;
-    using abel::strings_internal::strtouint32_test_cases;
-    using abel::strings_internal::strtouint64_test_cases;
-    using abel::simple_atoi;
+// The exact value of 1e23 falls precisely halfway between two representable
+// doubles. Furthermore, the rounding rules we prefer (break ties by rounding
+// to the nearest even) dictate in this case that the number should be rounded
+// down, but this is not completely specified for floating-point literals in
+// C++. (It just says to use the default rounding mode of the standard
+// library.) We ensure the result we want by using a number that has an
+// unambiguous correctly rounded answer.
+    constexpr double k1e23 = 9999999999999999e7;
+
+    constexpr double kPowersOfTen[] = {
+            0.0, 1e-323, 1e-322, 1e-321, 1e-320, 1e-319, 1e-318, 1e-317, 1e-316,
+            1e-315, 1e-314, 1e-313, 1e-312, 1e-311, 1e-310, 1e-309, 1e-308, 1e-307,
+            1e-306, 1e-305, 1e-304, 1e-303, 1e-302, 1e-301, 1e-300, 1e-299, 1e-298,
+            1e-297, 1e-296, 1e-295, 1e-294, 1e-293, 1e-292, 1e-291, 1e-290, 1e-289,
+            1e-288, 1e-287, 1e-286, 1e-285, 1e-284, 1e-283, 1e-282, 1e-281, 1e-280,
+            1e-279, 1e-278, 1e-277, 1e-276, 1e-275, 1e-274, 1e-273, 1e-272, 1e-271,
+            1e-270, 1e-269, 1e-268, 1e-267, 1e-266, 1e-265, 1e-264, 1e-263, 1e-262,
+            1e-261, 1e-260, 1e-259, 1e-258, 1e-257, 1e-256, 1e-255, 1e-254, 1e-253,
+            1e-252, 1e-251, 1e-250, 1e-249, 1e-248, 1e-247, 1e-246, 1e-245, 1e-244,
+            1e-243, 1e-242, 1e-241, 1e-240, 1e-239, 1e-238, 1e-237, 1e-236, 1e-235,
+            1e-234, 1e-233, 1e-232, 1e-231, 1e-230, 1e-229, 1e-228, 1e-227, 1e-226,
+            1e-225, 1e-224, 1e-223, 1e-222, 1e-221, 1e-220, 1e-219, 1e-218, 1e-217,
+            1e-216, 1e-215, 1e-214, 1e-213, 1e-212, 1e-211, 1e-210, 1e-209, 1e-208,
+            1e-207, 1e-206, 1e-205, 1e-204, 1e-203, 1e-202, 1e-201, 1e-200, 1e-199,
+            1e-198, 1e-197, 1e-196, 1e-195, 1e-194, 1e-193, 1e-192, 1e-191, 1e-190,
+            1e-189, 1e-188, 1e-187, 1e-186, 1e-185, 1e-184, 1e-183, 1e-182, 1e-181,
+            1e-180, 1e-179, 1e-178, 1e-177, 1e-176, 1e-175, 1e-174, 1e-173, 1e-172,
+            1e-171, 1e-170, 1e-169, 1e-168, 1e-167, 1e-166, 1e-165, 1e-164, 1e-163,
+            1e-162, 1e-161, 1e-160, 1e-159, 1e-158, 1e-157, 1e-156, 1e-155, 1e-154,
+            1e-153, 1e-152, 1e-151, 1e-150, 1e-149, 1e-148, 1e-147, 1e-146, 1e-145,
+            1e-144, 1e-143, 1e-142, 1e-141, 1e-140, 1e-139, 1e-138, 1e-137, 1e-136,
+            1e-135, 1e-134, 1e-133, 1e-132, 1e-131, 1e-130, 1e-129, 1e-128, 1e-127,
+            1e-126, 1e-125, 1e-124, 1e-123, 1e-122, 1e-121, 1e-120, 1e-119, 1e-118,
+            1e-117, 1e-116, 1e-115, 1e-114, 1e-113, 1e-112, 1e-111, 1e-110, 1e-109,
+            1e-108, 1e-107, 1e-106, 1e-105, 1e-104, 1e-103, 1e-102, 1e-101, 1e-100,
+            1e-99, 1e-98, 1e-97, 1e-96, 1e-95, 1e-94, 1e-93, 1e-92, 1e-91,
+            1e-90, 1e-89, 1e-88, 1e-87, 1e-86, 1e-85, 1e-84, 1e-83, 1e-82,
+            1e-81, 1e-80, 1e-79, 1e-78, 1e-77, 1e-76, 1e-75, 1e-74, 1e-73,
+            1e-72, 1e-71, 1e-70, 1e-69, 1e-68, 1e-67, 1e-66, 1e-65, 1e-64,
+            1e-63, 1e-62, 1e-61, 1e-60, 1e-59, 1e-58, 1e-57, 1e-56, 1e-55,
+            1e-54, 1e-53, 1e-52, 1e-51, 1e-50, 1e-49, 1e-48, 1e-47, 1e-46,
+            1e-45, 1e-44, 1e-43, 1e-42, 1e-41, 1e-40, 1e-39, 1e-38, 1e-37,
+            1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28,
+            1e-27, 1e-26, 1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19,
+            1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10,
+            1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1,
+            1e+0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5, 1e+6, 1e+7, 1e+8,
+            1e+9, 1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15, 1e+16, 1e+17,
+            1e+18, 1e+19, 1e+20, 1e+21, 1e+22, k1e23, 1e+24, 1e+25, 1e+26,
+            1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35,
+            1e+36, 1e+37, 1e+38, 1e+39, 1e+40, 1e+41, 1e+42, 1e+43, 1e+44,
+            1e+45, 1e+46, 1e+47, 1e+48, 1e+49, 1e+50, 1e+51, 1e+52, 1e+53,
+            1e+54, 1e+55, 1e+56, 1e+57, 1e+58, 1e+59, 1e+60, 1e+61, 1e+62,
+            1e+63, 1e+64, 1e+65, 1e+66, 1e+67, 1e+68, 1e+69, 1e+70, 1e+71,
+            1e+72, 1e+73, 1e+74, 1e+75, 1e+76, 1e+77, 1e+78, 1e+79, 1e+80,
+            1e+81, 1e+82, 1e+83, 1e+84, 1e+85, 1e+86, 1e+87, 1e+88, 1e+89,
+            1e+90, 1e+91, 1e+92, 1e+93, 1e+94, 1e+95, 1e+96, 1e+97, 1e+98,
+            1e+99, 1e+100, 1e+101, 1e+102, 1e+103, 1e+104, 1e+105, 1e+106, 1e+107,
+            1e+108, 1e+109, 1e+110, 1e+111, 1e+112, 1e+113, 1e+114, 1e+115, 1e+116,
+            1e+117, 1e+118, 1e+119, 1e+120, 1e+121, 1e+122, 1e+123, 1e+124, 1e+125,
+            1e+126, 1e+127, 1e+128, 1e+129, 1e+130, 1e+131, 1e+132, 1e+133, 1e+134,
+            1e+135, 1e+136, 1e+137, 1e+138, 1e+139, 1e+140, 1e+141, 1e+142, 1e+143,
+            1e+144, 1e+145, 1e+146, 1e+147, 1e+148, 1e+149, 1e+150, 1e+151, 1e+152,
+            1e+153, 1e+154, 1e+155, 1e+156, 1e+157, 1e+158, 1e+159, 1e+160, 1e+161,
+            1e+162, 1e+163, 1e+164, 1e+165, 1e+166, 1e+167, 1e+168, 1e+169, 1e+170,
+            1e+171, 1e+172, 1e+173, 1e+174, 1e+175, 1e+176, 1e+177, 1e+178, 1e+179,
+            1e+180, 1e+181, 1e+182, 1e+183, 1e+184, 1e+185, 1e+186, 1e+187, 1e+188,
+            1e+189, 1e+190, 1e+191, 1e+192, 1e+193, 1e+194, 1e+195, 1e+196, 1e+197,
+            1e+198, 1e+199, 1e+200, 1e+201, 1e+202, 1e+203, 1e+204, 1e+205, 1e+206,
+            1e+207, 1e+208, 1e+209, 1e+210, 1e+211, 1e+212, 1e+213, 1e+214, 1e+215,
+            1e+216, 1e+217, 1e+218, 1e+219, 1e+220, 1e+221, 1e+222, 1e+223, 1e+224,
+            1e+225, 1e+226, 1e+227, 1e+228, 1e+229, 1e+230, 1e+231, 1e+232, 1e+233,
+            1e+234, 1e+235, 1e+236, 1e+237, 1e+238, 1e+239, 1e+240, 1e+241, 1e+242,
+            1e+243, 1e+244, 1e+245, 1e+246, 1e+247, 1e+248, 1e+249, 1e+250, 1e+251,
+            1e+252, 1e+253, 1e+254, 1e+255, 1e+256, 1e+257, 1e+258, 1e+259, 1e+260,
+            1e+261, 1e+262, 1e+263, 1e+264, 1e+265, 1e+266, 1e+267, 1e+268, 1e+269,
+            1e+270, 1e+271, 1e+272, 1e+273, 1e+274, 1e+275, 1e+276, 1e+277, 1e+278,
+            1e+279, 1e+280, 1e+281, 1e+282, 1e+283, 1e+284, 1e+285, 1e+286, 1e+287,
+            1e+288, 1e+289, 1e+290, 1e+291, 1e+292, 1e+293, 1e+294, 1e+295, 1e+296,
+            1e+297, 1e+298, 1e+299, 1e+300, 1e+301, 1e+302, 1e+303, 1e+304, 1e+305,
+            1e+306, 1e+307, 1e+308,
+    };
+
+}  // namespace
+
+double Pow10(int exp) {
+    if (exp < -324) {
+        return 0.0;
+    } else if (exp > 308) {
+        return INFINITY;
+    } else {
+        return kPowersOfTen[exp + 324];
+    }
+}
+
+
+namespace {
+
+    using melon::numbers_internal::kSixDigitsToBufferSize;
+    using melon::numbers_internal::safe_strto32_base;
+    using melon::numbers_internal::safe_strto64_base;
+    using melon::numbers_internal::safe_strtou32_base;
+    using melon::numbers_internal::safe_strtou64_base;
+    using melon::numbers_internal::six_digits_to_buffer;
+    using melon::strings_internal::Itoa;
+    using melon::strings_internal::strtouint32_test_cases;
+    using melon::strings_internal::strtouint64_test_cases;
+    using melon::simple_atoi;
     using testing::Eq;
     using testing::MatchesRegex;
 
@@ -150,21 +248,21 @@ namespace {
     typedef MyInteger<uint64_t> MyUInt64;
 
     void CheckInt32(int32_t x) {
-        char buffer[abel::numbers_internal::kFastToBufferSize];
-        char *actual = abel::numbers_internal::fast_int_to_buffer(x, buffer);
+        char buffer[melon::numbers_internal::kFastToBufferSize];
+        char *actual = melon::numbers_internal::fast_int_to_buffer(x, buffer);
         std::string expected = std::to_string(x);
         EXPECT_EQ(expected, std::string(buffer, actual)) << " Input " << x;
 
-        char *generic_actual = abel::numbers_internal::fast_int_to_buffer(x, buffer);
+        char *generic_actual = melon::numbers_internal::fast_int_to_buffer(x, buffer);
         EXPECT_EQ(expected, std::string(buffer, generic_actual)) << " Input " << x;
     }
 
     void CheckInt64(int64_t x) {
-        char buffer[abel::numbers_internal::kFastToBufferSize + 3];
+        char buffer[melon::numbers_internal::kFastToBufferSize + 3];
         buffer[0] = '*';
         buffer[23] = '*';
         buffer[24] = '*';
-        char *actual = abel::numbers_internal::fast_int_to_buffer(x, &buffer[1]);
+        char *actual = melon::numbers_internal::fast_int_to_buffer(x, &buffer[1]);
         std::string expected = std::to_string(x);
         EXPECT_EQ(expected, std::string(&buffer[1], actual)) << " Input " << x;
         EXPECT_EQ(buffer[0], '*');
@@ -172,41 +270,41 @@ namespace {
         EXPECT_EQ(buffer[24], '*');
 
         char *my_actual =
-                abel::numbers_internal::fast_int_to_buffer(MyInt64(x), &buffer[1]);
+                melon::numbers_internal::fast_int_to_buffer(MyInt64(x), &buffer[1]);
         EXPECT_EQ(expected, std::string(&buffer[1], my_actual)) << " Input " << x;
     }
 
     void CheckUInt32(uint32_t x) {
-        char buffer[abel::numbers_internal::kFastToBufferSize];
-        char *actual = abel::numbers_internal::fast_int_to_buffer(x, buffer);
+        char buffer[melon::numbers_internal::kFastToBufferSize];
+        char *actual = melon::numbers_internal::fast_int_to_buffer(x, buffer);
         std::string expected = std::to_string(x);
         EXPECT_EQ(expected, std::string(buffer, actual)) << " Input " << x;
 
-        char *generic_actual = abel::numbers_internal::fast_int_to_buffer(x, buffer);
+        char *generic_actual = melon::numbers_internal::fast_int_to_buffer(x, buffer);
         EXPECT_EQ(expected, std::string(buffer, generic_actual)) << " Input " << x;
     }
 
     void CheckUInt64(uint64_t x) {
-        char buffer[abel::numbers_internal::kFastToBufferSize + 1];
-        char *actual = abel::numbers_internal::fast_int_to_buffer(x, &buffer[1]);
+        char buffer[melon::numbers_internal::kFastToBufferSize + 1];
+        char *actual = melon::numbers_internal::fast_int_to_buffer(x, &buffer[1]);
         std::string expected = std::to_string(x);
         EXPECT_EQ(expected, std::string(&buffer[1], actual)) << " Input " << x;
 
-        char *generic_actual = abel::numbers_internal::fast_int_to_buffer(x, &buffer[1]);
+        char *generic_actual = melon::numbers_internal::fast_int_to_buffer(x, &buffer[1]);
         EXPECT_EQ(expected, std::string(&buffer[1], generic_actual))
                             << " Input " << x;
 
         char *my_actual =
-                abel::numbers_internal::fast_int_to_buffer(MyUInt64(x), &buffer[1]);
+                melon::numbers_internal::fast_int_to_buffer(MyUInt64(x), &buffer[1]);
         EXPECT_EQ(expected, std::string(&buffer[1], my_actual)) << " Input " << x;
     }
 
     void CheckHex64(uint64_t v) {
         char expected[16 + 1];
-        std::string actual = abel::string_cat(abel::hex(v, abel::kZeroPad16));
+        std::string actual = melon::string_cat(melon::hex(v, melon::kZeroPad16));
         snprintf(expected, sizeof(expected), "%016" PRIx64, static_cast<uint64_t>(v));
         EXPECT_EQ(expected, actual) << " Input " << v;
-        actual = abel::string_cat(abel::hex(v, abel::kSpacePad16));
+        actual = melon::string_cat(melon::hex(v, melon::kSpacePad16));
         snprintf(expected, sizeof(expected), "%16" PRIx64, static_cast<uint64_t>(v));
         EXPECT_EQ(expected, actual) << " Input " << v;
     }
@@ -251,7 +349,7 @@ namespace {
     void VerifySimpleAtoiGood(in_val_type in_value, int_type exp_value) {
         std::string s;
         // uint128 can be streamed but not string_cat'd
-        abel::strings_internal::OStringStream(&s) << in_value;
+        melon::strings_internal::string_output_stream(&s) << in_value;
         int_type x = static_cast<int_type>(~exp_value);
         EXPECT_TRUE(simple_atoi(s, &x))
                             << "in_value=" << in_value << " s=" << s << " x=" << x;
@@ -263,7 +361,7 @@ namespace {
 
     template<typename int_type, typename in_val_type>
     void VerifySimpleAtoiBad(in_val_type in_value) {
-        std::string s = abel::string_cat(in_value);
+        std::string s = melon::string_cat(in_value);
         int_type x;
         EXPECT_FALSE(simple_atoi(s, &x));
         EXPECT_FALSE(simple_atoi(s.c_str(), &x));
@@ -327,24 +425,24 @@ namespace {
         VerifySimpleAtoiGood<uint64_t>(std::numeric_limits<uint64_t>::max(),
                                        std::numeric_limits<uint64_t>::max());
 
-        // simple_atoi(std::string_view, abel::uint128)
-        VerifySimpleAtoiGood<abel::uint128>(0, 0);
-        VerifySimpleAtoiGood<abel::uint128>(42, 42);
-        VerifySimpleAtoiBad<abel::uint128>(-42);
+        // simple_atoi(std::string_view, melon::uint128)
+        VerifySimpleAtoiGood<melon::uint128>(0, 0);
+        VerifySimpleAtoiGood<melon::uint128>(42, 42);
+        VerifySimpleAtoiBad<melon::uint128>(-42);
 
-        VerifySimpleAtoiBad<abel::uint128>(std::numeric_limits<int32_t>::min());
-        VerifySimpleAtoiGood<abel::uint128>(std::numeric_limits<int32_t>::max(),
-                                            std::numeric_limits<int32_t>::max());
-        VerifySimpleAtoiGood<abel::uint128>(std::numeric_limits<uint32_t>::max(),
-                                            std::numeric_limits<uint32_t>::max());
-        VerifySimpleAtoiBad<abel::uint128>(std::numeric_limits<int64_t>::min());
-        VerifySimpleAtoiGood<abel::uint128>(std::numeric_limits<int64_t>::max(),
-                                            std::numeric_limits<int64_t>::max());
-        VerifySimpleAtoiGood<abel::uint128>(std::numeric_limits<uint64_t>::max(),
-                                            std::numeric_limits<uint64_t>::max());
-        VerifySimpleAtoiGood<abel::uint128>(
-                std::numeric_limits<abel::uint128>::max(),
-                std::numeric_limits<abel::uint128>::max());
+        VerifySimpleAtoiBad<melon::uint128>(std::numeric_limits<int32_t>::min());
+        VerifySimpleAtoiGood<melon::uint128>(std::numeric_limits<int32_t>::max(),
+                                                   std::numeric_limits<int32_t>::max());
+        VerifySimpleAtoiGood<melon::uint128>(std::numeric_limits<uint32_t>::max(),
+                                                   std::numeric_limits<uint32_t>::max());
+        VerifySimpleAtoiBad<melon::uint128>(std::numeric_limits<int64_t>::min());
+        VerifySimpleAtoiGood<melon::uint128>(std::numeric_limits<int64_t>::max(),
+                                                   std::numeric_limits<int64_t>::max());
+        VerifySimpleAtoiGood<melon::uint128>(std::numeric_limits<uint64_t>::max(),
+                                                   std::numeric_limits<uint64_t>::max());
+        VerifySimpleAtoiGood<melon::uint128>(
+                std::numeric_limits<melon::uint128>::max(),
+                std::numeric_limits<melon::uint128>::max());
 
         // Some other types
         VerifySimpleAtoiGood<int>(-42, -42);
@@ -652,16 +750,16 @@ namespace {
 
             // Test overflow
             EXPECT_FALSE(
-                    parse_func(abel::string_cat(std::numeric_limits<IntType>::max(), value),
+                    parse_func(melon::string_cat(std::numeric_limits<IntType>::max(), value),
                                &parsed_value, base));
 
             // Test underflow
             if (std::numeric_limits<IntType>::min() < 0) {
                 EXPECT_FALSE(
-                        parse_func(abel::string_cat(std::numeric_limits<IntType>::min(), value),
+                        parse_func(melon::string_cat(std::numeric_limits<IntType>::min(), value),
                                    &parsed_value, base));
             } else {
-                EXPECT_FALSE(parse_func(abel::string_cat("-", value), &parsed_value, base));
+                EXPECT_FALSE(parse_func(melon::string_cat("-", value), &parsed_value, base));
             }
         }
     }
@@ -686,11 +784,11 @@ namespace {
         // random number generators don't work for uint128, and
         // uint128 can be streamed but not string_cat'd, so this code must be custom
         // implemented for uint128, but is generally the same as what's above.
-        // test_random_integer_parse_base<abel::uint128>(
-        //     &abel::numbers_internal::safe_strtou128_base);
+        // test_random_integer_parse_base<melon::uint128>(
+        //     &melon::numbers_internal::safe_strtou128_base);
         using RandomEngine = std::minstd_rand0;
-        using IntType = abel::uint128;
-        constexpr auto parse_func = &abel::numbers_internal::safe_strtou128_base;
+        using IntType = melon::uint128;
+        constexpr auto parse_func = &melon::numbers_internal::safe_strtou128_base;
 
         std::random_device rd;
         RandomEngine rng(rd());
@@ -712,13 +810,13 @@ namespace {
 
             // Test overflow
             std::string s;
-            abel::strings_internal::OStringStream(&s)
+            melon::strings_internal::string_output_stream(&s)
                     << std::numeric_limits<IntType>::max() << value;
             EXPECT_FALSE(parse_func(s, &parsed_value, base));
 
             // Test underflow
             s.clear();
-            abel::strings_internal::OStringStream(&s) << "-" << value;
+            melon::strings_internal::string_output_stream(&s) << "-" << value;
             EXPECT_FALSE(parse_func(s, &parsed_value, base));
         }
     }
@@ -786,8 +884,8 @@ namespace {
 // feenableexcept() and fedisableexcept() are extensions supported by some libc
 // implementations.
 #if defined(__GLIBC__) || defined(__BIONIC__)
-#define ABEL_HAVE_FEENABLEEXCEPT 1
-#define ABEL_HAVE_FEDISABLEEXCEPT 1
+#define MELON_HAVE_FEENABLEEXCEPT 1
+#define MELON_HAVE_FEDISABLEEXCEPT 1
 #endif
 
     class SimpleDtoaTest : public testing::Test {
@@ -795,7 +893,7 @@ namespace {
         void SetUp() override {
             // Store the current floating point env & clear away any pending exceptions.
             feholdexcept(&fp_env_);
-#ifdef ABEL_HAVE_FEENABLEEXCEPT
+#ifdef MELON_HAVE_FEENABLEEXCEPT
             // Turn on floating point exceptions.
             feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
@@ -805,7 +903,7 @@ namespace {
             // Restore the floating point environment to the original state.
             // In theory fedisableexcept is unnecessary; fesetenv will also do it.
             // In practice, our toolchains have subtle bugs.
-#ifdef ABEL_HAVE_FEDISABLEEXCEPT
+#ifdef MELON_HAVE_FEDISABLEEXCEPT
             fedisableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
             fesetenv(&fp_env_);
@@ -896,11 +994,10 @@ namespace {
             if (strcmp(sixdigitsbuf, snprintfbuf) != 0) {
                 mismatches.push_back(d);
                 if (mismatches.size() < 10) {
-                    DLOG_ERROR("{}",
-                                 abel::string_cat("Six-digit failure with double.  ", "d=", d,
-                                                  "=", d, " sixdigits=", sixdigitsbuf,
-                                                  " printf(%g)=", snprintfbuf)
-                                         .c_str());
+                    MELON_LOG(ERROR) <<
+                               melon::string_cat("Six-digit failure with double.  ", "d=", d,
+                                                          "=", d, " sixdigits=", sixdigitsbuf,
+                                                          " printf(%g)=", snprintfbuf).c_str();
                 }
             }
         };
@@ -943,16 +1040,16 @@ namespace {
             }
 
             for (int exponent = -324; exponent <= 308; ++exponent) {
-                double powten = abel::strings_internal::Pow10(exponent);
+                double powten = Pow10(exponent);
                 if (powten == 0) powten = 5e-324;
                 if (kFloatNumCases >= 1e9) {
                     // The exhaustive test takes a very long time, so log progress.
                     char buf[kSixDigitsToBufferSize];
-                    DLOG_INFO("{}",
-                            abel::string_cat("Exp ", exponent, " powten=", powten, "(", powten,
-                                             ") (",
-                                             std::string(buf, six_digits_to_buffer(powten, buf)), ")")
-                                    .c_str());
+                    MELON_LOG(INFO) <<
+                              melon::string_cat("Exp ", exponent, " powten=", powten, "(", powten,
+                                                         ") (",
+                                                         std::string(buf, six_digits_to_buffer(powten, buf)), ")")
+                                      .c_str();
                 }
                 for (int digits : digit_testcases) {
                     if (exponent == 308 && digits >= 179769) break;  // don't overflow!
@@ -966,7 +1063,7 @@ namespace {
                 }
             }
         } else {
-            EXPECT_EQ(mismatches.size(), 0);
+            EXPECT_EQ(mismatches.size(), 0UL);
             for (size_t i = 0; i < mismatches.size(); ++i) {
                 if (i > 100) i = mismatches.size() - 1;
                 double d = mismatches[i];
@@ -977,19 +1074,19 @@ namespace {
                 double before = nextafter(d, 0.0);
                 double after = nextafter(d, 1.7976931348623157e308);
                 char b1[32], b2[kSixDigitsToBufferSize];
-                DLOG_ERROR("{}",
-                        abel::string_cat(
-                                "Mismatch #", i, "  d=", d, " (", ToNineDigits(d), ")",
-                                " sixdigits='", sixdigitsbuf, "'", " snprintf='", snprintfbuf,
-                                "'", " Before.=", PerfectDtoa(before), " ",
-                                (six_digits_to_buffer(before, b2), b2),
-                                " vs snprintf=", (snprintf(b1, sizeof(b1), "%g", before), b1),
-                                " Perfect=", PerfectDtoa(d), " ", (six_digits_to_buffer(d, b2), b2),
-                                " vs snprintf=", (snprintf(b1, sizeof(b1), "%g", d), b1),
-                                " After.=.", PerfectDtoa(after), " ",
-                                (six_digits_to_buffer(after, b2), b2),
-                                " vs snprintf=", (snprintf(b1, sizeof(b1), "%g", after), b1))
-                                .c_str());
+                MELON_LOG(ERROR) <<
+                           melon::string_cat(
+                                   "Mismatch #", i, "  d=", d, " (", ToNineDigits(d), ")",
+                                   " sixdigits='", sixdigitsbuf, "'", " snprintf='", snprintfbuf,
+                                   "'", " Before.=", PerfectDtoa(before), " ",
+                                   (six_digits_to_buffer(before, b2), b2),
+                                   " vs snprintf=", (snprintf(b1, sizeof(b1), "%g", before), b1),
+                                   " Perfect=", PerfectDtoa(d), " ", (six_digits_to_buffer(d, b2), b2),
+                                   " vs snprintf=", (snprintf(b1, sizeof(b1), "%g", d), b1),
+                                   " After.=.", PerfectDtoa(after), " ",
+                                   (six_digits_to_buffer(after, b2), b2),
+                                   " vs snprintf=", (snprintf(b1, sizeof(b1), "%g", after), b1))
+                                   .c_str();
             }
         }
     }
@@ -1003,12 +1100,12 @@ namespace {
         const int32_t int32_min = std::numeric_limits<int32_t>::min();
         const int32_t int32_max = std::numeric_limits<int32_t>::max();
         Int32TestLine int32_test_line[] = {
-                {"",                                     false, 0},
-                {" ",                                    false, 0},
-                {"-",                                    false, 0},
-                {"123@@@",                               false, 123},
-                {abel::string_cat(int32_min, int32_max), false, int32_min},
-                {abel::string_cat(int32_max, int32_max), false, int32_max},
+                {"",                                               false, 0},
+                {" ",                                              false, 0},
+                {"-",                                              false, 0},
+                {"123@@@",                                         false, 123},
+                {melon::string_cat(int32_min, int32_max), false, int32_min},
+                {melon::string_cat(int32_max, int32_max), false, int32_max},
         };
 
         for (const Int32TestLine &test_line : int32_test_line) {
@@ -1035,11 +1132,11 @@ namespace {
         };
         const uint32_t uint32_max = std::numeric_limits<uint32_t>::max();
         Uint32TestLine uint32_test_line[] = {
-                {"",                                       false, 0},
-                {" ",                                      false, 0},
-                {"-",                                      false, 0},
-                {"123@@@",                                 false, 123},
-                {abel::string_cat(uint32_max, uint32_max), false, uint32_max},
+                {"",                                                 false, 0},
+                {" ",                                                false, 0},
+                {"-",                                                false, 0},
+                {"123@@@",                                           false, 123},
+                {melon::string_cat(uint32_max, uint32_max), false, uint32_max},
         };
 
         for (const Uint32TestLine &test_line : uint32_test_line) {
@@ -1067,12 +1164,12 @@ namespace {
         const int64_t int64_min = std::numeric_limits<int64_t>::min();
         const int64_t int64_max = std::numeric_limits<int64_t>::max();
         Int64TestLine int64_test_line[] = {
-                {"",                                     false, 0},
-                {" ",                                    false, 0},
-                {"-",                                    false, 0},
-                {"123@@@",                               false, 123},
-                {abel::string_cat(int64_min, int64_max), false, int64_min},
-                {abel::string_cat(int64_max, int64_max), false, int64_max},
+                {"",                                               false, 0},
+                {" ",                                              false, 0},
+                {"-",                                              false, 0},
+                {"123@@@",                                         false, 123},
+                {melon::string_cat(int64_min, int64_max), false, int64_min},
+                {melon::string_cat(int64_max, int64_max), false, int64_max},
         };
 
         for (const Int64TestLine &test_line : int64_test_line) {
@@ -1099,11 +1196,11 @@ namespace {
         };
         const uint64_t uint64_max = std::numeric_limits<uint64_t>::max();
         Uint64TestLine uint64_test_line[] = {
-                {"",                                       false, 0},
-                {" ",                                      false, 0},
-                {"-",                                      false, 0},
-                {"123@@@",                                 false, 123},
-                {abel::string_cat(uint64_max, uint64_max), false, uint64_max},
+                {"",                                                 false, 0},
+                {" ",                                                false, 0},
+                {"-",                                                false, 0},
+                {"123@@@",                                           false, 123},
+                {melon::string_cat(uint64_max, uint64_max), false, uint64_max},
         };
 
         for (const Uint64TestLine &test_line : uint64_test_line) {
@@ -1254,7 +1351,7 @@ namespace {
 
     void TestFastHexToBufferZeroPad16(uint64_t v) {
         char buf[16];
-        auto digits = abel::numbers_internal::fast_hex_to_buffer_zero_pad16(v, buf);
+        auto digits = melon::numbers_internal::fast_hex_to_buffer_zero_pad16(v, buf);
         std::string_view res(buf, 16);
         char buf2[17];
         snprintf(buf2, sizeof(buf2), "%016" PRIx64, v);
@@ -1268,11 +1365,10 @@ namespace {
         TestFastHexToBufferZeroPad16(std::numeric_limits<uint64_t>::max());
         TestFastHexToBufferZeroPad16(std::numeric_limits<int64_t>::min());
         TestFastHexToBufferZeroPad16(std::numeric_limits<int64_t>::max());
-        abel::bit_gen rng;
         for (int i = 0; i < 100000; ++i) {
             TestFastHexToBufferZeroPad16(
-                    abel::LogUniform(rng, std::numeric_limits<uint64_t>::min(),
-                                     std::numeric_limits<uint64_t>::max()));
+                    melon::base::fast_rand_in(std::numeric_limits<uint64_t>::min(),
+                                              std::numeric_limits<uint64_t>::max()));
         }
     }
 

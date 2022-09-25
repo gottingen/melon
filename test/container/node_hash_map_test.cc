@@ -1,39 +1,46 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/container/node_hash_map.h"
-#include "abel/container/internal/tracked.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+#ifndef THIS_HASH_MAP
+#define THIS_HASH_MAP   node_hash_map
+#define THIS_TEST_NAME  NodeHashMap
+#endif
+
+#include "melon/container/node_hash_map.h"
+#include "melon/container/parallel_node_hash_map.h"
+#include "tracked.h"
 #include "unordered_map_constructor_test.h"
 #include "unordered_map_lookup_test.h"
 #include "unordered_map_members_test.h"
 #include "unordered_map_modifiers_test.h"
 
-namespace abel {
-
-    namespace container_internal {
+namespace melon {
+    namespace priv {
         namespace {
 
             using ::testing::Field;
-            using ::testing::IsEmpty;
             using ::testing::Pair;
             using ::testing::UnorderedElementsAre;
 
             using MapTypes = ::testing::Types<
-                    abel::node_hash_map<int, int, StatefulTestingHash, StatefulTestingEqual,
+                    melon::THIS_HASH_MAP<int, int, StatefulTestingHash, StatefulTestingEqual,
                             Alloc<std::pair<const int, int>>>,
-                    abel::node_hash_map<std::string, std::string, StatefulTestingHash,
+                    melon::THIS_HASH_MAP<std::string, std::string, StatefulTestingHash,
                             StatefulTestingEqual,
                             Alloc<std::pair<const std::string, std::string>>>>;
 
-            INSTANTIATE_TYPED_TEST_SUITE_P(NodeHashMap, ConstructorTest, MapTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(NodeHashMap, LookupTest, MapTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(NodeHashMap, MembersTest, MapTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(NodeHashMap, ModifiersTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, ConstructorTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, LookupTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, MembersTest, MapTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, ModifiersTest, MapTypes);
 
-            using M = abel::node_hash_map<std::string, Tracked<int>>;
+            using M = melon::THIS_HASH_MAP<std::string, Tracked<int>>;
 
-            TEST(NodeHashMap, Emplace) {
+            TEST(THIS_TEST_NAME, Emplace) {
                 M m;
                 Tracked<int> t(53);
                 m.emplace("a", t);
@@ -101,10 +108,10 @@ namespace abel {
                 ASSERT_EQ(7, t.num_copies());
             }
 
-            TEST(NodeHashMap, AssignRecursive) {
+            TEST(THIS_TEST_NAME, AssignRecursive) {
                 struct Tree {
                     // Verify that unordered_map<K, IncompleteType> can be instantiated.
-                    abel::node_hash_map<int, Tree> children;
+                    melon::THIS_HASH_MAP<int, Tree> children;
                 };
                 Tree root;
                 const Tree &child = root.children.emplace().first->second;
@@ -123,15 +130,15 @@ namespace abel {
                 struct Eq {
                     bool operator()(const Key &, const Key &) const { return true; }
                 };
-                struct Hash {
+                struct hash {
                     size_t operator()(const Key &) const { return 0; }
                 };
-                abel::node_hash_map<Key, int, Hash, Eq> m;
+                melon::THIS_HASH_MAP<Key, int, hash, Eq> m;
                 m[Key()];
             }
 
             struct NonMovableKey {
-                explicit NonMovableKey(int i) : i(i) {}
+                explicit NonMovableKey(int i_) : i(i_) {}
 
                 NonMovableKey(NonMovableKey &&) = delete;
 
@@ -156,8 +163,8 @@ namespace abel {
                 bool operator()(const NonMovableKey &a, int b) const { return a.i == b; }
             };
 
-            TEST(NodeHashMap, MergeExtractInsert) {
-                abel::node_hash_map<NonMovableKey, int, NonMovableKeyHash, NonMovableKeyEq>
+            TEST(THIS_TEST_NAME, MergeExtractInsert) {
+                melon::THIS_HASH_MAP<NonMovableKey, int, NonMovableKeyHash, NonMovableKeyEq>
                         set1, set2;
                 set1.emplace(std::piecewise_construct, std::make_tuple(7),
                              std::make_tuple(-7));
@@ -216,64 +223,6 @@ namespace abel {
                 EXPECT_THAT(set2, UnorderedElementsAre(Elem(7, -70), Elem(17, 23)));
             }
 
-            bool FirstIsEven(std::pair<const int, int> p) { return p.first % 2 == 0; }
-
-            TEST(NodeHashMap, erase_if) {
-                // Erase all elements.
-                {
-                    node_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, [](std::pair<const int, int>) { return true; });
-                    EXPECT_THAT(s, IsEmpty());
-                }
-                // Erase no elements.
-                {
-                    node_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, [](std::pair<const int, int>) { return false; });
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(1, 1), Pair(2, 2), Pair(3, 3),
-                                                        Pair(4, 4), Pair(5, 5)));
-                }
-                // Erase specific elements.
-                {
-                    node_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s,
-                             [](std::pair<const int, int> kvp) { return kvp.first % 2 == 1; });
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(2, 2), Pair(4, 4)));
-                }
-                // Predicate is function reference.
-                {
-                    node_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, FirstIsEven);
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(1, 1), Pair(3, 3), Pair(5, 5)));
-                }
-                // Predicate is function pointer.
-                {
-                    node_hash_map<int, int> s = {{1, 1},
-                                                 {2, 2},
-                                                 {3, 3},
-                                                 {4, 4},
-                                                 {5, 5}};
-                    erase_if(s, &FirstIsEven);
-                    EXPECT_THAT(s, UnorderedElementsAre(Pair(1, 1), Pair(3, 3), Pair(5, 5)));
-                }
-            }
-
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

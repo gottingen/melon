@@ -1,0 +1,55 @@
+
+
+file(GLOB_RECURSE MELON_BASE_SRC "${PROJECT_SOURCE_DIR}/melon/base/*.cc")
+file(GLOB_RECURSE MELON_BASE_C_SRC "${PROJECT_SOURCE_DIR}/melon/base/*.c")
+file(GLOB_RECURSE MELON_CONTAINER_SRC "${PROJECT_SOURCE_DIR}/melon/container/*.cc")
+file(GLOB_RECURSE MELON_HASH_SRC "${PROJECT_SOURCE_DIR}/melon/hash/*.cc")
+file(GLOB_RECURSE MELON_MEMORY_SRC "${PROJECT_SOURCE_DIR}/melon/memory/*.cc")
+file(GLOB_RECURSE MELON_STRINGS_SRC "${PROJECT_SOURCE_DIR}/melon/strings/*.cc")
+file(GLOB_RECURSE MELON_DEBUG_SRC "${PROJECT_SOURCE_DIR}/melon/debugging/*.cc")
+file(GLOB_RECURSE MELON_LOG_SRC "${PROJECT_SOURCE_DIR}/melon/log/*.cc")
+file(GLOB_RECURSE MELON_BOOTSTRAP_SRC "${PROJECT_SOURCE_DIR}/melon/bootstrap/*.cc")
+file(GLOB_RECURSE MELON_TIMES_SRC "${PROJECT_SOURCE_DIR}/melon/times/*.cc")
+file(GLOB_RECURSE MELON_FILES_SRC "${PROJECT_SOURCE_DIR}/melon/files/*.cc")
+file(GLOB_RECURSE MELON_THREAD_SRC "${PROJECT_SOURCE_DIR}/melon/thread/*.cc")
+file(GLOB_RECURSE MELON_IO_SRC "${PROJECT_SOURCE_DIR}/melon/io/*.cc")
+file(GLOB_RECURSE MELON_SYSTEM_SRC "${PROJECT_SOURCE_DIR}/melon/system/*.cc")
+file(GLOB_RECURSE MELON_FIBER_SRC "${PROJECT_SOURCE_DIR}/melon/fiber/*.cc")
+file(GLOB_RECURSE MELON_METRICS_SRC "${PROJECT_SOURCE_DIR}/melon/metrics/*.cc")
+
+set(MELON_SRC
+        ${MELON_BASE_SRC}
+        ${MELON_BASE_C_SRC}
+        ${MELON_CONTAINER_SRC}
+        ${MELON_HASH_SRC}
+        ${MELON_MEMORY_SRC}
+        ${MELON_STRINGS_SRC}
+        ${MELON_DEBUG_SRC}
+        ${MELON_LOG_SRC}
+        ${MELON_BOOTSTRAP_SRC}
+        ${MELON_HASH_SRC}
+        ${MELON_TIMES_SRC}
+        ${MELON_FILES_SRC}
+        ${MELON_THREAD_SRC}
+        ${MELON_IO_SRC}
+        ${MELON_SYSTEM_SRC}
+        ${MELON_FIBER_SRC}
+        ${MELON_METRICS_SRC}
+        )
+
+
+carbin_cc_library(
+        NAMESPACE melon
+        NAME melon
+        SOURCES ${MELON_SRC}
+        PUBLIC_LINKED_TARGETS ${CARBIN_SYS_DYLINK} ${DYNAMIC_LIB}
+        PRIVATE_COMPILE_OPTIONS ${CARBIN_DEFAULT_COPTS}
+        PUBLIC
+)
+
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/melon
+        DESTINATION include
+        FILES_MATCHING
+        PATTERN "*.h"
+        )

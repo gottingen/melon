@@ -1,18 +1,20 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_CONTAINER_INTERNAL_UNORDERED_SET_MODIFIERS_TEST_H_
-#define ABEL_CONTAINER_INTERNAL_UNORDERED_SET_MODIFIERS_TEST_H_
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "testing/hash_generator_testing.h"
-#include "testing/hash_policy_testing.h"
+#ifndef UNORDERED_SET_MODIFIERS_TEST_H_
+#define UNORDERED_SET_MODIFIERS_TEST_H_
 
-namespace abel {
 
-    namespace container_internal {
+#include "testing/gtest_wrap.h"
+#include "hash_generator_testing.h"
+#include "hash_policy_testing.h"
+
+namespace melon {
+    namespace priv {
 
         template<class UnordSet>
         class ModifiersTest : public ::testing::Test {
@@ -69,7 +71,7 @@ namespace abel {
             using T = hash_internal::GeneratedType<TypeParam>;
             T val = hash_internal::Generator<T>()();
             TypeParam m;
-            // TODO(alkis): We need a way to run emplace in a more meaningful way. Perhaps
+            // TODO: We need a way to run emplace in a more meaningful way. Perhaps
             // with test traits/policy.
             auto p = m.emplace(val);
             EXPECT_TRUE(p.second);
@@ -120,8 +122,7 @@ namespace abel {
             ASSERT_THAT(keys(m), ::testing::UnorderedElementsAreArray(values));
             std::vector<T> values2;
             for (const auto &val : values)
-                if (val != *m.begin())
-                    values2.push_back(val);
+                if (val != *m.begin()) values2.push_back(val);
             auto it = EraseFirst()(&m, 0);
             ASSERT_TRUE(it != m.end());
             EXPECT_EQ(1, std::count(values2.begin(), values2.end(), *it));
@@ -176,8 +177,7 @@ namespace abel {
                                     InsertRange, Emplace, EmplaceHint, Erase, EraseRange,
                                     EraseKey, Swap);
 
-    }  // namespace container_internal
+    }  // namespace priv
+}  // namespace melon
 
-}  // namespace abel
-
-#endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_SET_MODIFIERS_TEST_H_
+#endif  // UNORDERED_SET_MODIFIERS_TEST_H_

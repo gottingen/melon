@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 # TODO modify this for you project
-project(abel CXX C ASM)
+project(melon CXX C ASM)
 
 # Compiler id for Apple Clang is now AppleClang.
 cmake_policy(SET CMP0025 NEW)
@@ -19,7 +19,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/copts)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
-
+list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
 include(carbin_print)
 
 # TODO modyify this for "-std=c++[x]"
@@ -36,15 +36,15 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
 option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 
-option(ENABLE_TESTING "enable unit test" OFF)
+option(ENABLE_TESTING "enable unit test" ON)
 option(CARBIN_PACKAGE_GEN "enable package gen" OFF)
 option(ENABLE_BENCHMARK "enable benchmark" OFF)
-option(ENABLE_EXAMPLE "enable benchmark" ON)
+option(ENABLE_EXAMPLE "enable benchmark" OFF)
 option(ENABLE_SUMMARY "enable summary output" ON)
 # it is too many
 option(ENABLE_SUMMARY_CXX_FLAG "enable cxx flags" OFF)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(PACKAGE_INSTALL_PREFIX "/usr/local")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -59,26 +59,45 @@ if (NOT DEV_MODE AND ${PROJECT_NAME} MATCHES "carbin")
                    cmake .. -DDEV_MODE=true")
 endif ()
 
+#############
+## process dependencies
+#############
+include(require_gflags)
 #########################
 # default pavkage
 
 
-set(ABEL_DYLINK)
+set(CARBIN_SYS_DYLINK)
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
-    list(APPEND ABEL_DYLINK ${CoreFoundation} pthread)
+    list(APPEND CARBIN_SYS_DYLINK ${CoreFoundation} pthread)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    list(APPEND ABEL_DYLINK rt dl pthread)
+    list(APPEND CARBIN_SYS_DYLINK rt dl pthread)
 endif ()
 
+find_package(Protobuf REQUIRED)
+find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED)
+set(DYNAMIC_LIB
+        ${GFLAGS_LIBRARY}
+        ${PROTOBUF_LIBRARIES}
+        ${Protobuf_LITE_LIBRARIES}
+        ${PROTOC_LIB}
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${OPENSSL_SSL_LIBRARY}
+        ${OPENSSL_CRYPTO_LIBRARY}
+        dl
+        z)
 
+if (ENABLE_TESTING)
+    add_definitions(
+            -DUNIT_TEST
+    )
+endif()
 #TODO do add you own subdirs
-add_subdirectory(abel)
+add_subdirectory(melon)
 # TODO end
 
-if (ENABLE_BENCHMARK OR ENABLE_TESTING)
-    add_subdirectory(testing)
-endif()
 if (ENABLE_EXAMPLE)
     add_subdirectory(example)
 endif (ENABLE_EXAMPLE)
@@ -90,14 +109,6 @@ endif (ENABLE_BENCHMARK)
 
 
 if (ENABLE_TESTING)
-    find_package(gtest REQUIRED)
-    find_package(gmock REQUIRED)
-
-    carbin_check_target(gtest::gtest)
-    carbin_check_target(gtest::gtest_main)
-    carbin_check_target(gmock::gmock)
-    carbin_check_target(gmock::gmock_main)
-
     set(CARBIN_RUN_TESTS true)
     enable_testing()
     add_subdirectory(test)

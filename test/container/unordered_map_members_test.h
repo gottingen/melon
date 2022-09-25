@@ -1,18 +1,31 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MEMBERS_TEST_H_
-#define ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MEMBERS_TEST_H_
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+
+#ifndef UNORDERED_MAP_MEMBERS_TEST_H_
+#define UNORDERED_MAP_MEMBERS_TEST_H_
 
 #include <type_traits>
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "abel/meta/type_traits.h"
 
-namespace abel {
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 
-    namespace container_internal {
+
+#include "testing/gtest_wrap.h"
+#include "hash_generator_testing.h"
+#include "hash_policy_testing.h"
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+namespace melon {
+    namespace priv {
 
         template<class UnordMap>
         class MembersTest : public ::testing::Test {
@@ -27,10 +40,10 @@ namespace abel {
             EXPECT_TRUE((std::is_same<std::pair<const typename TypeParam::key_type,
                     typename TypeParam::mapped_type>,
                     typename TypeParam::value_type>()));
-            EXPECT_TRUE((abel::conjunction<
-                    abel::negation<std::is_signed<typename TypeParam::size_type>>,
+            EXPECT_TRUE((melon::conjunction<
+                    melon::negation<std::is_signed<typename TypeParam::size_type>>,
                     std::is_integral<typename TypeParam::size_type>>()));
-            EXPECT_TRUE((abel::conjunction<
+            EXPECT_TRUE((melon::conjunction<
                     std::is_signed<typename TypeParam::difference_type>,
                     std::is_integral<typename TypeParam::difference_type>>()));
             EXPECT_TRUE((std::is_convertible<
@@ -71,8 +84,7 @@ namespace abel {
 
         REGISTER_TYPED_TEST_SUITE_P(MembersTest, Typedefs, SimpleFunctions, BeginEnd);
 
-    }  // namespace container_internal
+    }  // namespace priv
+}  // namespace melon
 
-}  // namespace abel
-
-#endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_MEMBERS_TEST_H_
+#endif  // UNORDERED_MAP_MEMBERS_TEST_H_

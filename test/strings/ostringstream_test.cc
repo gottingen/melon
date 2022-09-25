@@ -1,48 +1,50 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/strings/internal/ostringstream.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+#include "melon/strings/internal/ostringstream.h"
 
 #include <memory>
 #include <ostream>
 #include <string>
 #include <type_traits>
 
-#include "gtest/gtest.h"
+#include "testing/gtest_wrap.h"
 
 namespace {
 
-    TEST(OStringStream, IsOStream) {
+    TEST(string_output_stream, IsOStream) {
         static_assert(
-                std::is_base_of<std::ostream, abel::strings_internal::OStringStream>(),
+                std::is_base_of<std::ostream, melon::strings_internal::string_output_stream>(),
                 "");
     }
 
-    TEST(OStringStream, ConstructDestroy) {
+    TEST(string_output_stream, ConstructDestroy) {
         {
-            abel::strings_internal::OStringStream strm(nullptr);
+            melon::strings_internal::string_output_stream strm(nullptr);
             EXPECT_EQ(nullptr, strm.str());
         }
         {
             std::string s = "abc";
             {
-                abel::strings_internal::OStringStream strm(&s);
+                melon::strings_internal::string_output_stream strm(&s);
                 EXPECT_EQ(&s, strm.str());
             }
             EXPECT_EQ("abc", s);
         }
         {
             std::unique_ptr<std::string> s(new std::string);
-            abel::strings_internal::OStringStream strm(s.get());
+            melon::strings_internal::string_output_stream strm(s.get());
             s.reset();
         }
     }
 
-    TEST(OStringStream, Str) {
+    TEST(string_output_stream, Str) {
         std::string s1;
-        abel::strings_internal::OStringStream strm(&s1);
-        const abel::strings_internal::OStringStream &c_strm(strm);
+        melon::strings_internal::string_output_stream strm(&s1);
+        const melon::strings_internal::string_output_stream &c_strm(strm);
 
         static_assert(std::is_same<decltype(strm.str()), std::string *>(), "");
         static_assert(std::is_same<decltype(c_strm.str()), const std::string *>(), "");
@@ -67,7 +69,7 @@ namespace {
     TEST(OStreamStream, WriteToLValue) {
         std::string s = "abc";
         {
-            abel::strings_internal::OStringStream strm(&s);
+            melon::strings_internal::string_output_stream strm(&s);
             EXPECT_EQ("abc", s);
             strm << "";
             EXPECT_EQ("abc", s);
@@ -81,11 +83,11 @@ namespace {
 
     TEST(OStreamStream, WriteToRValue) {
         std::string s = "abc";
-        abel::strings_internal::OStringStream(&s) << "";
+        melon::strings_internal::string_output_stream(&s) << "";
         EXPECT_EQ("abc", s);
-        abel::strings_internal::OStringStream(&s) << 42;
+        melon::strings_internal::string_output_stream(&s) << 42;
         EXPECT_EQ("abc42", s);
-        abel::strings_internal::OStringStream(&s) << 'x' << 'y';
+        melon::strings_internal::string_output_stream(&s) << 'x' << 'y';
         EXPECT_EQ("abc42xy", s);
     }
 

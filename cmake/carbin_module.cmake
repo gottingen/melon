@@ -9,16 +9,6 @@ include(carbin_check)
 include(carbin_variable)
 include(carbin_include)
 
-if (NOT CARBIN_PREFIX)
-    set(CARBIN_PREFIX ${PROJECT_SOURCE_DIR}/carbin)
-    carbin_print("CARBIN_PREFIX not set, set to ${CARBIN_PREFIX}")
-endif ()
-
-link_directories(${CARBIN_PREFIX}/${CARBIN_INSTALL_LIBDIR})
-
-list(APPEND CMAKE_PREFIX_PATH ${CARBIN_PREFIX})
-
-carbin_include("${CARBIN_PREFIX}/${CARBIN_INSTALL_INCLUDEDIR}")
 carbin_include("${PROJECT_BINARY_DIR}")
 carbin_include("${PROJECT_SOURCE_DIR}")
 

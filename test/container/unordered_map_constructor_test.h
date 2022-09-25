@@ -1,21 +1,24 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_CONSTRUCTOR_TEST_H_
-#define ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_CONSTRUCTOR_TEST_H_
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+#ifndef UNORDERED_MAP_CONSTRUCTOR_TEST_H_
+#define UNORDERED_MAP_CONSTRUCTOR_TEST_H_
 
 #include <algorithm>
 #include <vector>
+#include <unordered_map>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "testing/hash_generator_testing.h"
-#include "testing/hash_policy_testing.h"
+#include "testing/gtest_wrap.h"
+#include "hash_generator_testing.h"
+#include "hash_policy_testing.h"
 
-namespace abel {
 
-    namespace container_internal {
+namespace melon {
+    namespace priv {
 
         template<class UnordMap>
         class ConstructorTest : public ::testing::Test {
@@ -91,7 +94,7 @@ namespace abel {
 
         template<typename T>
         using expect_cxx14_apis =
-        abel::disjunction<abel::negation<is_std_unordered_map<T>>,
+        melon::disjunction<melon::negation<is_std_unordered_map<T>>,
                 has_cxx14_std_apis>;
 
         template<typename TypeParam>
@@ -133,7 +136,7 @@ namespace abel {
             BucketCountHashAllocTest<TypeParam>(expect_cxx14_apis<TypeParam>());
         }
 
-#if ABEL_UNORDERED_SUPPORTS_ALLOC_CTORS
+#if MELON_MAP_UNORDERED_SUPPORTS_ALLOC_CTORS
         using has_alloc_std_constructors = std::true_type;
 #else
         using has_alloc_std_constructors = std::false_type;
@@ -141,7 +144,7 @@ namespace abel {
 
         template<typename T>
         using expect_alloc_constructors =
-        abel::disjunction<abel::negation<is_std_unordered_map<T>>,
+        melon::disjunction<melon::negation<is_std_unordered_map<T>>,
                 has_alloc_std_constructors>;
 
         template<typename TypeParam>
@@ -234,8 +237,7 @@ namespace abel {
             E equal;
             A alloc(0);
             TypeParam m(123, hasher, equal, alloc);
-            for (size_t i = 0; i != 10; ++i)
-                m.insert(hash_internal::Generator<T>()());
+            for (size_t i = 0; i != 10; ++i) m.insert(hash_internal::Generator<T>()());
             TypeParam n(m);
             EXPECT_EQ(m.hash_function(), n.hash_function());
             EXPECT_EQ(m.key_eq(), n.key_eq());
@@ -256,8 +258,7 @@ namespace abel {
             E equal;
             A alloc(0);
             TypeParam m(123, hasher, equal, alloc);
-            for (size_t i = 0; i != 10; ++i)
-                m.insert(hash_internal::Generator<T>()());
+            for (size_t i = 0; i != 10; ++i) m.insert(hash_internal::Generator<T>()());
             TypeParam n(m, A(11));
             EXPECT_EQ(m.hash_function(), n.hash_function());
             EXPECT_EQ(m.key_eq(), n.key_eq());
@@ -280,8 +281,7 @@ namespace abel {
             E equal;
             A alloc(0);
             TypeParam m(123, hasher, equal, alloc);
-            for (size_t i = 0; i != 10; ++i)
-                m.insert(hash_internal::Generator<T>()());
+            for (size_t i = 0; i != 10; ++i) m.insert(hash_internal::Generator<T>()());
             TypeParam t(m);
             TypeParam n(std::move(t));
             EXPECT_EQ(m.hash_function(), n.hash_function());
@@ -303,8 +303,7 @@ namespace abel {
             E equal;
             A alloc(0);
             TypeParam m(123, hasher, equal, alloc);
-            for (size_t i = 0; i != 10; ++i)
-                m.insert(hash_internal::Generator<T>()());
+            for (size_t i = 0; i != 10; ++i) m.insert(hash_internal::Generator<T>()());
             TypeParam t(m);
             TypeParam n(std::move(t), A(1));
             EXPECT_EQ(m.hash_function(), n.hash_function());
@@ -479,8 +478,7 @@ namespace abel {
                 MoveAssignmentOverwritesExisting,
                 AssignmentFromInitializerListOverwritesExisting, AssignmentOnSelf);
 
-    }  // namespace container_internal
+    }  // namespace priv
+}  // namespace melon
 
-}  // namespace abel
-
-#endif  // ABEL_CONTAINER_INTERNAL_UNORDERED_MAP_CONSTRUCTOR_TEST_H_
+#endif  // UNORDERED_MAP_CONSTRUCTOR_TEST_H_

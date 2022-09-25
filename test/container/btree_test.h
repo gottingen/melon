@@ -1,9 +1,13 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#ifndef ABEL_CONTAINER_BTREE_TEST_H_
-#define ABEL_CONTAINER_BTREE_TEST_H_
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+
+#ifndef CONTAINER_BTREE_TEST_H_
+#define CONTAINER_BTREE_TEST_H_
 
 #include <algorithm>
 #include <cassert>
@@ -11,17 +15,290 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <cstdlib>
+#include <ostream>
 
-#include "abel/container/btree_map.h"
-#include "abel/container/btree_set.h"
-#include "abel/container/flat_hash_set.h"
-#include "abel/chrono/time.h"
 
-namespace abel {
+#include "testing/gtest_wrap.h"
 
-    namespace container_internal {
+#include "melon/container/btree.h"
+#include "melon/container/flat_hash_map.h"
+#include "melon/container/flat_hash_set.h"
 
-// Like remove_const but propagates the removal through std::pair.
+namespace melon {
+
+    namespace test_internal {
+
+        // A type that counts number of occurrences of the type, the live occurrences of
+        // the type, as well as the number of copies, moves, swaps, and comparisons that
+        // have occurred on the type. This is used as a base class for the copyable,
+        // copyable+movable, and movable types below that are used in actual tests. Use
+        // InstanceTracker in tests to track the number of instances.
+        class BaseCountedInstance {
+        public:
+            explicit BaseCountedInstance(size_t x) : value_(x) {
+                ++num_instances_;
+                ++num_live_instances_;
+            }
+
+            BaseCountedInstance(const BaseCountedInstance &x)
+                    : value_(x.value_), is_live_(x.is_live_) {
+                ++num_instances_;
+                if (is_live_) ++num_live_instances_;
+                ++num_copies_;
+            }
+
+            BaseCountedInstance(BaseCountedInstance &&x)
+                    : value_(x.value_), is_live_(x.is_live_) {
+                x.is_live_ = false;
+                ++num_instances_;
+                ++num_moves_;
+            }
+
+            ~BaseCountedInstance() {
+                --num_instances_;
+                if (is_live_) --num_live_instances_;
+            }
+
+            BaseCountedInstance &operator=(const BaseCountedInstance &x) {
+                value_ = x.value_;
+                if (is_live_) --num_live_instances_;
+                is_live_ = x.is_live_;
+                if (is_live_) ++num_live_instances_;
+                ++num_copies_;
+                return *this;
+            }
+
+            BaseCountedInstance &operator=(BaseCountedInstance &&x) {
+                value_ = x.value_;
+                if (is_live_) --num_live_instances_;
+                is_live_ = x.is_live_;
+                x.is_live_ = false;
+                ++num_moves_;
+                return *this;
+            }
+
+            bool operator==(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ == x.value_;
+            }
+
+            bool operator!=(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ != x.value_;
+            }
+
+            bool operator<(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ < x.value_;
+            }
+
+            bool operator>(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ > x.value_;
+            }
+
+            bool operator<=(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ <= x.value_;
+            }
+
+            bool operator>=(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ >= x.value_;
+            }
+
+            melon::weak_ordering compare(const BaseCountedInstance &x) const {
+                ++num_comparisons_;
+                return value_ < x.value_
+                       ? melon::weak_ordering::less
+                       : value_ == x.value_ ? melon::weak_ordering::equivalent
+                                            : melon::weak_ordering::greater;
+            }
+
+            size_t value() const {
+                if (!is_live_) std::abort();
+                return value_;
+            }
+
+            friend std::ostream &operator<<(std::ostream &o,
+                                            const BaseCountedInstance &v) {
+                return o << "[value:" << v.value() << "]";
+            }
+
+            // Implementation of efficient swap() that counts swaps.
+            static void SwapImpl(
+                    BaseCountedInstance &lhs,    // NOLINT(runtime/references)
+                    BaseCountedInstance &rhs) {  // NOLINT(runtime/references)
+                using std::swap;
+                swap(lhs.value_, rhs.value_);
+                swap(lhs.is_live_, rhs.is_live_);
+                ++BaseCountedInstance::num_swaps_;
+            }
+
+        private:
+
+            friend class InstanceTracker;
+
+            size_t value_;
+
+            // Indicates if the value is live, ie it hasn't been moved away from.
+            bool is_live_ = true;
+
+            // Number of instances.
+            static size_t num_instances_;
+
+            // Number of live instances (those that have not been moved away from.)
+            static size_t num_live_instances_;
+
+            // Number of times that BaseCountedInstance objects were moved.
+            static size_t num_moves_;
+
+            // Number of times that BaseCountedInstance objects were copied.
+            static size_t num_copies_;
+
+            // Number of times that BaseCountedInstance objects were swapped.
+            static size_t num_swaps_;
+
+            // Number of times that BaseCountedInstance objects were compared.
+            static size_t num_comparisons_;
+        };
+
+        // Helper to track the BaseCountedInstance instance counters. Expects that the
+        // number of instances and live_instances are the same when it is constructed
+        // and when it is destructed.
+        class InstanceTracker {
+        public:
+            InstanceTracker()
+                    : start_instances_(BaseCountedInstance::num_instances_),
+                      start_live_instances_(BaseCountedInstance::num_live_instances_) {
+                ResetCopiesMovesSwaps();
+            }
+
+            ~InstanceTracker() {
+                if (instances() != 0) std::abort();
+                if (live_instances() != 0) std::abort();
+            }
+
+            // Returns the number of BaseCountedInstance instances both containing valid
+            // values and those moved away from compared to when the InstanceTracker was
+            // constructed
+            size_t instances() const {
+                return BaseCountedInstance::num_instances_ - start_instances_;
+            }
+
+            // Returns the number of live BaseCountedInstance instances compared to when
+            // the InstanceTracker was constructed
+            size_t live_instances() const {
+                return BaseCountedInstance::num_live_instances_ - start_live_instances_;
+            }
+
+            // Returns the number of moves on BaseCountedInstance objects since
+            // construction or since the last call to ResetCopiesMovesSwaps().
+            size_t moves() const { return BaseCountedInstance::num_moves_ - start_moves_; }
+
+            // Returns the number of copies on BaseCountedInstance objects since
+            // construction or the last call to ResetCopiesMovesSwaps().
+            size_t copies() const {
+                return BaseCountedInstance::num_copies_ - start_copies_;
+            }
+
+            // Returns the number of swaps on BaseCountedInstance objects since
+            // construction or the last call to ResetCopiesMovesSwaps().
+            size_t swaps() const { return BaseCountedInstance::num_swaps_ - start_swaps_; }
+
+            // Returns the number of comparisons on BaseCountedInstance objects since
+            // construction or the last call to ResetCopiesMovesSwaps().
+            size_t comparisons() const {
+                return BaseCountedInstance::num_comparisons_ - start_comparisons_;
+            }
+
+            // Resets the base values for moves, copies, comparisons, and swaps to the
+            // current values, so that subsequent Get*() calls for moves, copies,
+            // comparisons, and swaps will compare to the situation at the point of this
+            // call.
+            void ResetCopiesMovesSwaps() {
+                start_moves_ = BaseCountedInstance::num_moves_;
+                start_copies_ = BaseCountedInstance::num_copies_;
+                start_swaps_ = BaseCountedInstance::num_swaps_;
+                start_comparisons_ = BaseCountedInstance::num_comparisons_;
+            }
+
+        private:
+            size_t start_instances_;
+            size_t start_live_instances_;
+            size_t start_moves_;
+            size_t start_copies_;
+            size_t start_swaps_;
+            size_t start_comparisons_;
+        };
+
+        // Copyable, not movable.
+        class CopyableOnlyInstance : public BaseCountedInstance {
+        public:
+            explicit CopyableOnlyInstance(size_t x) : BaseCountedInstance(x) {}
+
+            CopyableOnlyInstance(const CopyableOnlyInstance &rhs) = default;
+
+            CopyableOnlyInstance &operator=(const CopyableOnlyInstance &rhs) = default;
+
+            friend void swap(CopyableOnlyInstance &lhs, CopyableOnlyInstance &rhs) {
+                BaseCountedInstance::SwapImpl(lhs, rhs);
+            }
+
+            static bool supports_move() { return false; }
+        };
+
+        // Copyable and movable.
+        class CopyableMovableInstance : public BaseCountedInstance {
+        public:
+            explicit CopyableMovableInstance(size_t x) : BaseCountedInstance(x) {}
+
+            CopyableMovableInstance(const CopyableMovableInstance &rhs) = default;
+
+            CopyableMovableInstance(CopyableMovableInstance &&rhs) = default;
+
+            CopyableMovableInstance &operator=(const CopyableMovableInstance &rhs) =
+            default;
+
+            CopyableMovableInstance &operator=(CopyableMovableInstance &&rhs) = default;
+
+            friend void swap(CopyableMovableInstance &lhs, CopyableMovableInstance &rhs) {
+                BaseCountedInstance::SwapImpl(lhs, rhs);
+            }
+
+            static bool supports_move() { return true; }
+        };
+
+        // Only movable, not default-constructible.
+        class MovableOnlyInstance : public BaseCountedInstance {
+        public:
+            explicit MovableOnlyInstance(size_t x) : BaseCountedInstance(x) {}
+
+            MovableOnlyInstance(MovableOnlyInstance &&other) = default;
+
+            MovableOnlyInstance &operator=(MovableOnlyInstance &&other) = default;
+
+            friend void swap(MovableOnlyInstance &lhs, MovableOnlyInstance &rhs) {
+                BaseCountedInstance::SwapImpl(lhs, rhs);
+            }
+
+            static bool supports_move() { return true; }
+        };
+
+    }  // namespace test_internal
+
+
+    namespace priv {
+
+        // Like remove_const but propagates the removal through std::pair.
         template<typename T>
         struct remove_pair_const {
             using type = typename std::remove_const<T>::type;
@@ -32,8 +309,8 @@ namespace abel {
                     typename remove_pair_const<U>::type>;
         };
 
-// Utility class to provide an accessor for a key given a value. The default
-// behavior is to treat the value as a pair and return the first element.
+        // Utility class to provide an accessor for a key given a value. The default
+        // behavior is to treat the value as a pair and return the first element.
         template<typename K, typename V>
         struct KeyOfValue {
             struct type {
@@ -41,8 +318,8 @@ namespace abel {
             };
         };
 
-// Partial specialization of KeyOfValue class for when the key and value are
-// the same type such as in set<> and btree_set<>.
+        // Partial specialization of KeyOfValue class for when the key and value are
+        // the same type such as in set<> and btree_set<>.
         template<typename K>
         struct KeyOfValue<K, K> {
             struct type {
@@ -75,14 +352,14 @@ namespace abel {
             }
         };
 
-        template<>
-        struct Generator<abel::time_point> {
+#if 0
+        template <>
+        struct Generator<melon::Time> {
             int maxval;
-
             explicit Generator(int m) : maxval(m) {}
-
-            abel::time_point operator()(int i) const { return abel::time_point::from_unix_millis(i); }
+            melon::Time operator()(int i) const { return melon::FromUnixMillis(i); }
         };
+#endif
 
         template<>
         struct Generator<std::string> {
@@ -108,7 +385,7 @@ namespace abel {
             }
         };
 
-// Generate n values for our tests and benchmarks. Value range is [0, maxval].
+        // Generate n values for our tests and benchmarks. Value range is [0, maxval].
         inline std::vector<int> GenerateNumbersWithSeed(int n, int maxval, int seed) {
             // NOTE: Some tests rely on generated numbers not changing between test runs.
             // We use std::minstd_rand0 because it is well-defined, but don't use
@@ -116,9 +393,9 @@ namespace abel {
             std::minstd_rand0 rng(seed);
 
             std::vector<int> values;
-            abel::flat_hash_set<int> unique_values;
+            melon::flat_hash_set<int> unique_values;
             if (values.size() < static_cast<size_t>(n)) {
-                for (int i = values.size(); i < n; i++) {
+                for (size_t i = values.size(); i < (size_t) n; i++) {
                     int value;
                     do {
                         value = static_cast<int>(rng()) % (maxval + 1);
@@ -130,7 +407,7 @@ namespace abel {
             return values;
         }
 
-// Generates n values in the range [0, maxval].
+        // Generates n values in the range [0, maxval].
         template<typename V>
         std::vector<V> GenerateValuesWithSeed(int n, int maxval, int seed) {
             const std::vector<int> nums = GenerateNumbersWithSeed(n, maxval, seed);
@@ -145,8 +422,65 @@ namespace abel {
             return vec;
         }
 
-    }  // namespace container_internal
+    }  // namespace priv
 
-}  // namespace abel
+    namespace priv {
 
-#endif  // ABEL_CONTAINER_BTREE_TEST_H_
+        // This is a stateful allocator, but the state lives outside of the
+        // allocator (in whatever test is using the allocator). This is odd
+        // but helps in tests where the allocator is propagated into nested
+        // containers - that chain of allocators uses the same state and is
+        // thus easier to query for aggregate allocation information.
+        template<typename T>
+        class CountingAllocator : public std::allocator<T> {
+        public:
+            using Alloc = std::allocator<T>;
+            using AllocTraits = typename std::allocator_traits<Alloc>;
+            using pointer = typename AllocTraits::pointer;
+            using size_type = typename AllocTraits::size_type;
+
+            CountingAllocator() : bytes_used_(nullptr) {}
+
+            explicit CountingAllocator(int64_t *b) : bytes_used_(b) {}
+
+            template<typename U>
+            CountingAllocator(const CountingAllocator<U> &x)
+                    : Alloc(x), bytes_used_(x.bytes_used_) {}
+
+            pointer allocate(size_type n,
+                             std::allocator_traits<std::allocator<void>>::const_pointer hint = nullptr) {
+                assert(bytes_used_ != nullptr);
+                *bytes_used_ += n * sizeof(T);
+                return AllocTraits::allocate(*this, n, hint);
+            }
+
+            void deallocate(pointer p, size_type n) {
+                AllocTraits::deallocate(*this, p, n);
+                assert(bytes_used_ != nullptr);
+                *bytes_used_ -= n * sizeof(T);
+            }
+
+            template<typename U>
+            class rebind {
+            public:
+                using other = CountingAllocator<U>;
+            };
+
+            friend bool operator==(const CountingAllocator &a,
+                                   const CountingAllocator &b) {
+                return a.bytes_used_ == b.bytes_used_;
+            }
+
+            friend bool operator!=(const CountingAllocator &a,
+                                   const CountingAllocator &b) {
+                return !(a == b);
+            }
+
+            int64_t *bytes_used_;
+        };
+
+    }  // namespace priv
+
+}  // namespace melon
+
+#endif  // CONTAINER_BTREE_TEST_H_

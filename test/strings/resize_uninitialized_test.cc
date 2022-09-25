@@ -1,9 +1,11 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/utility/uninitialized.h"
-#include "gtest/gtest.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+#include "melon/base/uninitialized.h"
+#include "testing/gtest_wrap.h"
 
 namespace {
 
@@ -30,10 +32,10 @@ namespace {
             EXPECT_EQ(resize_call_count, 0);
             EXPECT_EQ(resize_default_init_call_count, 0);
             EXPECT_FALSE(
-                    abel::string_supports_uninitialized_resize(&rs));
+                    melon::base::string_supports_uninitialized_resize(&rs));
             EXPECT_EQ(resize_call_count, 0);
             EXPECT_EQ(resize_default_init_call_count, 0);
-            abel::string_resize_uninitialized(&rs, 237);
+            melon::base::string_resize_uninitialized(&rs, 237);
             EXPECT_EQ(resize_call_count, 1);
             EXPECT_EQ(resize_default_init_call_count, 0);
         }
@@ -46,10 +48,10 @@ namespace {
             EXPECT_EQ(resize_call_count, 0);
             EXPECT_EQ(resize_default_init_call_count, 0);
             EXPECT_TRUE(
-                    abel::string_supports_uninitialized_resize(&rus));
+                    melon::base::string_supports_uninitialized_resize(&rus));
             EXPECT_EQ(resize_call_count, 0);
             EXPECT_EQ(resize_default_init_call_count, 0);
-            abel::string_resize_uninitialized(&rus, 237);
+            melon::base::string_resize_uninitialized(&rus, 237);
             EXPECT_EQ(resize_call_count, 0);
             EXPECT_EQ(resize_default_init_call_count, 1);
         }

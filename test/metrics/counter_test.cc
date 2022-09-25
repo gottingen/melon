@@ -1,48 +1,30 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-//
-// Created by liyinbin on 2019/10/27.
-//
+#include "melon/metrics/counter.h"
+#include "melon/metrics/prometheus_dumper.h"
+#include <thread>
+#include <atomic>
+#include <vector>
+#include <sstream>
+#include "testing/gtest_wrap.h"
 
-#include "abel/metrics/counter.h"
-#include "gtest/gtest.h"
-
-using abel::metrics::counter;
-
-TEST(CounterTest, initialize_with_zero) {
-    counter ctr;
-    EXPECT_EQ(ctr.value(), 0);
+TEST(metrics, counter) {
+    melon::counter<int64_t> c1("c1","", {{"a","search"}, {"q","qruu"}});
+    c1<<1;
+    c1<<5;
+    EXPECT_EQ(c1.get_value(), 6);
+    melon::cache_metrics cm;
+    c1.collect_metrics(cm);
+    auto t = melon::time_now();
+    auto str = melon::prometheus_dumper::dump_to_string(cm,&t);
+    std::string c1_s = "# HELP c1\n"
+                       "# TYPE c1 counter\n"
+                       "c1{a=\"search\",q=\"qruu\"} 6.000000\n";
+    std::cout<<c1_s<<std::endl;
+    std::cout<<str<<std::endl;
 }
-
-TEST(CounterTest, inc) {
-    counter ctr;
-    ctr.inc();
-    EXPECT_EQ(ctr.value(), 1.0);
-}
-
-TEST(CounterTest, inc_number) {
-    counter ctr;
-    ctr.inc(4);
-    EXPECT_EQ(ctr.value(), 4.0);
-}
-
-TEST(CounterTest, inc_multiple) {
-    counter ctr;
-    ctr.inc();
-    ctr.inc();
-    ctr.inc(5);
-    EXPECT_EQ(ctr.value(), 7.0);
-}
-
-TEST(CounterTest, inc_negative_value
-) {
-    counter ctr;
-    ctr.inc(5.0);
-    ctr.inc(-5.0);
-    EXPECT_EQ(ctr.value(), 5.0);
-}
-
-

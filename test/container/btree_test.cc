@@ -1,52 +1,46 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+#include <numeric>
 #include "btree_test.h"
-
-#include <cstdint>
-#include <map>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
-#include <utility>
-
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "abel/base/profile.h"
-#include "abel/container/btree_map.h"
-#include "abel/container/btree_set.h"
-#include "abel/container/internal/counting_allocator.h"
-#include "testing/test_instance_tracker.h"
-#include "testing/hash_testing.h"
-#include "abel/memory/memory.h"
-#include "abel/meta/type_traits.h"
-#include "abel/strings/str_cat.h"
-#include "abel/strings/str_split.h"
-#include <string_view>
-#include "abel/container/compare.h"
+#include "melon/log/logging.h"
 
 
+namespace melon {
+    namespace test_internal {
+        size_t BaseCountedInstance::num_instances_ = 0;
+        size_t BaseCountedInstance::num_live_instances_ = 0;
+        size_t BaseCountedInstance::num_moves_ = 0;
+        size_t BaseCountedInstance::num_copies_ = 0;
+        size_t BaseCountedInstance::num_swaps_ = 0;
+        size_t BaseCountedInstance::num_comparisons_ = 0;
 
-namespace abel {
+    }  // namespace test_internal
+}  // namespace melon
 
-    static int test_values = 10000;
 
-    namespace container_internal {
+static const size_t test_values = 10000;
+
+namespace melon {
+    namespace priv {
         namespace {
 
-            using ::abel::test_internal::CopyableMovableInstance;
-            using ::abel::test_internal::InstanceTracker;
-            using ::abel::test_internal::MovableOnlyInstance;
+            using ::melon::test_internal::CopyableMovableInstance;
+            using ::melon::test_internal::InstanceTracker;
+            using ::melon::test_internal::MovableOnlyInstance;
             using ::testing::ElementsAre;
             using ::testing::ElementsAreArray;
             using ::testing::IsEmpty;
             using ::testing::Pair;
 
+
             template<typename T, typename U>
             void CheckPairEquals(const T &x, const U &y) {
-                DCHECK(x == y, "Values are unequal.");
+                MELON_CHECK(x == y) << "Values are unequal.";
             }
 
             template<typename T, typename U, typename V, typename W>
@@ -56,10 +50,10 @@ namespace abel {
             }
         }  // namespace
 
-// The base class for a sorted associative container checker. TreeType is the
-// container type to check and CheckerType is the container type to check
-// against. TreeType is expected to be btree_{set,map,multiset,multimap} and
-// CheckerType is expected to be {set,map,multiset,multimap}.
+        // The base class for a sorted associative container checker. TreeType is the
+        // container type to check and CheckerType is the container type to check
+        // against. TreeType is expected to be btree_{set,map,multiset,multimap} and
+        // CheckerType is expected to be {set,map,multiset,multimap}.
         template<typename TreeType, typename CheckerType>
         class base_checker {
         public:
@@ -106,8 +100,7 @@ namespace abel {
             template<typename IterType, typename CheckerIterType>
             IterType iter_check(IterType tree_iter, CheckerIterType checker_iter) const {
                 if (tree_iter == tree_.end()) {
-                    DCHECK(checker_iter == checker_.end(),
-                                        "Checker iterator not at end.");
+                    MELON_CHECK(checker_iter == checker_.end()) << "Checker iterator not at end.";
                 } else {
                     CheckPairEquals(*tree_iter, *checker_iter);
                 }
@@ -117,8 +110,7 @@ namespace abel {
             template<typename IterType, typename CheckerIterType>
             IterType riter_check(IterType tree_iter, CheckerIterType checker_iter) const {
                 if (tree_iter == tree_.rend()) {
-                    DCHECK(checker_iter == checker_.rend(),
-                                        "Checker iterator not at rend.");
+                    MELON_CHECK(checker_iter == checker_.rend()) << "Checker iterator not at rend.";
                 } else {
                     CheckPairEquals(*tree_iter, *checker_iter);
                 }
@@ -207,8 +199,8 @@ namespace abel {
             }
 
             int erase(const key_type &key) {
-                int size = tree_.size();
-                int res = checker_.erase(key);
+                size_t size = tree_.size();
+                int res = (int) checker_.erase(key);
                 EXPECT_EQ(res, tree_.count(key));
                 EXPECT_EQ(res, tree_.erase(key));
                 EXPECT_EQ(tree_.count(key), 0);
@@ -219,8 +211,8 @@ namespace abel {
 
             iterator erase(iterator iter) {
                 key_type key = iter.key();
-                int size = tree_.size();
-                int count = tree_.count(key);
+                size_t size = tree_.size();
+                size_t count = tree_.count(key);
                 auto checker_iter = checker_.lower_bound(key);
                 for (iterator tmp(tree_.lower_bound(key)); tmp != iter; ++tmp) {
                     ++checker_iter;
@@ -229,7 +221,7 @@ namespace abel {
                 ++checker_next;
                 checker_.erase(checker_iter);
                 iter = tree_.erase(iter);
-                EXPECT_EQ(tree_.size(), checker_.size());
+                EXPECT_EQ(tree_.size(), (size_t) checker_.size());
                 EXPECT_EQ(tree_.size(), size - 1);
                 EXPECT_EQ(tree_.count(key), count - 1);
                 if (count == 1) {
@@ -239,7 +231,7 @@ namespace abel {
             }
 
             void erase(iterator begin, iterator end) {
-                int size = tree_.size();
+                size_t size = tree_.size();
                 int count = std::distance(begin, end);
                 auto checker_begin = checker_.lower_bound(begin.key());
                 for (iterator tmp(tree_.lower_bound(begin.key())); tmp != begin; ++tmp) {
@@ -280,7 +272,7 @@ namespace abel {
                 }
 
                 // Move through the forward iterators using decrement.
-                for (int n = tree_.size() - 1; n >= 0; --n) {
+                for (int n = (int) tree_.size() - 1; n >= 0; --n) {
                     iter_check(tree_iter, checker_iter);
                     --tree_iter;
                     --checker_iter;
@@ -296,7 +288,7 @@ namespace abel {
                 }
 
                 // Move through the reverse iterators using decrement.
-                for (int n = tree_.size() - 1; n >= 0; --n) {
+                for (int n = (int) tree_.size() - 1; n >= 0; --n) {
                     riter_check(tree_riter, checker_riter);
                     --tree_riter;
                     --checker_riter;
@@ -326,8 +318,8 @@ namespace abel {
         };
 
         namespace {
-// A checker for unique sorted associative containers. TreeType is expected to
-// be btree_{set,map} and CheckerType is expected to be {set,map}.
+            // A checker for unique sorted associative containers. TreeType is expected to
+            // be btree_{set,map} and CheckerType is expected to be {set,map}.
             template<typename TreeType, typename CheckerType>
             class unique_checker : public base_checker<TreeType, CheckerType> {
                 using super_type = base_checker<TreeType, CheckerType>;
@@ -348,7 +340,7 @@ namespace abel {
 
                 // Insertion routines.
                 std::pair<iterator, bool> insert(const value_type &x) {
-                    int size = this->tree_.size();
+                    size_t size = this->tree_.size();
                     std::pair<typename CheckerType::iterator, bool> checker_res =
                             this->checker_.insert(x);
                     std::pair<iterator, bool> tree_res = this->tree_.insert(x);
@@ -360,7 +352,7 @@ namespace abel {
                 }
 
                 iterator insert(iterator position, const value_type &x) {
-                    int size = this->tree_.size();
+                    size_t size = this->tree_.size();
                     std::pair<typename CheckerType::iterator, bool> checker_res =
                             this->checker_.insert(x);
                     iterator tree_res = this->tree_.insert(position, x);
@@ -378,9 +370,9 @@ namespace abel {
                 }
             };
 
-// A checker for multiple sorted associative containers. TreeType is expected
-// to be btree_{multiset,multimap} and CheckerType is expected to be
-// {multiset,multimap}.
+            // A checker for multiple sorted associative containers. TreeType is expected
+            // to be btree_{multiset,multimap} and CheckerType is expected to be
+            // {multiset,multimap}.
             template<typename TreeType, typename CheckerType>
             class multi_checker : public base_checker<TreeType, CheckerType> {
                 using super_type = base_checker<TreeType, CheckerType>;
@@ -401,7 +393,7 @@ namespace abel {
 
                 // Insertion routines.
                 iterator insert(const value_type &x) {
-                    int size = this->tree_.size();
+                    size_t size = this->tree_.size();
                     auto checker_res = this->checker_.insert(x);
                     iterator tree_res = this->tree_.insert(x);
                     CheckPairEquals(*tree_res, *checker_res);
@@ -411,7 +403,7 @@ namespace abel {
                 }
 
                 iterator insert(iterator position, const value_type &x) {
-                    int size = this->tree_.size();
+                    size_t size = this->tree_.size();
                     auto checker_res = this->checker_.insert(x);
                     iterator tree_res = this->tree_.insert(position, x);
                     CheckPairEquals(*tree_res, *checker_res);
@@ -532,8 +524,7 @@ namespace abel {
                 // First half.
                 mutable_b = b_copy;
                 typename T::iterator mutable_iter_end = mutable_b.begin();
-                for (size_t i = 0; i < values.size() / 2; ++i)
-                    ++mutable_iter_end;
+                for (size_t i = 0; i < values.size() / 2; ++i) ++mutable_iter_end;
                 mutable_b.erase(mutable_b.begin(), mutable_iter_end);
                 EXPECT_EQ(mutable_b.size(), values.size() - values.size() / 2);
                 const_b.verify();
@@ -541,8 +532,7 @@ namespace abel {
                 // Second half.
                 mutable_b = b_copy;
                 typename T::iterator mutable_iter_begin = mutable_b.begin();
-                for (size_t i = 0; i < values.size() / 2; ++i)
-                    ++mutable_iter_begin;
+                for (size_t i = 0; i < values.size() / 2; ++i) ++mutable_iter_begin;
                 mutable_b.erase(mutable_iter_begin, mutable_b.end());
                 EXPECT_EQ(mutable_b.size(), values.size() / 2);
                 const_b.verify();
@@ -550,11 +540,9 @@ namespace abel {
                 // Second quarter.
                 mutable_b = b_copy;
                 mutable_iter_begin = mutable_b.begin();
-                for (size_t i = 0; i < values.size() / 4; ++i)
-                    ++mutable_iter_begin;
+                for (size_t i = 0; i < values.size() / 4; ++i) ++mutable_iter_begin;
                 mutable_iter_end = mutable_iter_begin;
-                for (size_t i = 0; i < values.size() / 4; ++i)
-                    ++mutable_iter_end;
+                for (size_t i = 0; i < values.size() / 4; ++i) ++mutable_iter_end;
                 mutable_b.erase(mutable_iter_begin, mutable_iter_end);
                 EXPECT_EQ(mutable_b.size(), values.size() - values.size() / 4);
                 const_b.verify();
@@ -620,7 +608,7 @@ namespace abel {
 
                 using V = typename remove_pair_const<typename T::value_type>::type;
                 const std::vector<V> random_values = GenerateValuesWithSeed<V>(
-                       test_values, 4 * test_values,
+                        test_values, 4 * test_values,
                         testing::GTEST_FLAG(random_seed));
 
                 unique_checker<T, C> container;
@@ -722,7 +710,7 @@ namespace abel {
                     EXPECT_EQ(b2.size(), 0);
                     EXPECT_EQ(bytes1, original_bytes1);
 
-                    for (int i = 1; i < 1000; i++) {
+                    for (size_t i = 1; i < 1000; i++) {
                         b1.insert(generator(i));
                     }
 
@@ -744,7 +732,7 @@ namespace abel {
                     EXPECT_EQ(b1.size(), 0);
                     EXPECT_EQ(bytes1, original_bytes1);
 
-                    for (int i = 1; i < 1000; i++) {
+                    for (size_t i = 1; i < 1000; i++) {
                         b1.insert(generator(i));
                     }
 
@@ -767,7 +755,7 @@ namespace abel {
                     EXPECT_EQ(b2.size(), 1);
                     EXPECT_GT(bytes1, original_bytes1);
 
-                    for (int i = 1; i < 1000; i++) {
+                    for (size_t i = 1; i < 1000; i++) {
                         b1.insert(generator(i));
                     }
 
@@ -790,7 +778,7 @@ namespace abel {
                 T b;
 
                 // Verify we can insert using operator[].
-                for (int i = 0; i < 1000; i++) {
+                for (size_t i = 0; i < 1000; i++) {
                     value_type v = Generator<value_type>(1000)(i);
                     b[v.first] = v.second;
                 }
@@ -815,11 +803,11 @@ namespace abel {
             template<typename K, int N = 256>
             void SetTest() {
                 EXPECT_EQ(
-                        sizeof(abel::btree_set<K>),
-                        2 * sizeof(void *) + sizeof(typename abel::btree_set<K>::size_type));
-                using BtreeSet = abel::btree_set<K>;
+                        sizeof(melon::btree_set<K>),
+                        2 * sizeof(void *) + sizeof(typename melon::btree_set<K>::size_type));
+                using BtreeSet = melon::btree_set<K>;
                 using CountingBtreeSet =
-                abel::btree_set<K, std::less<K>, PropagatingCountingAlloc<K>>;
+                melon::btree_set<K, std::less<K>, PropagatingCountingAlloc<K>>;
                 BtreeTest<BtreeSet, std::set<K>>();
                 BtreeAllocatorTest<CountingBtreeSet>();
             }
@@ -827,11 +815,11 @@ namespace abel {
             template<typename K, int N = 256>
             void MapTest() {
                 EXPECT_EQ(
-                        sizeof(abel::btree_map<K, K>),
-                        2 * sizeof(void *) + sizeof(typename abel::btree_map<K, K>::size_type));
-                using BtreeMap = abel::btree_map<K, K>;
+                        sizeof(melon::btree_map<K, K>),
+                        2 * sizeof(void *) + sizeof(typename melon::btree_map<K, K>::size_type));
+                using BtreeMap = melon::btree_map<K, K>;
                 using CountingBtreeMap =
-                abel::btree_map<K, K, std::less<K>,
+                melon::btree_map<K, K, std::less<K>,
                         PropagatingCountingAlloc<std::pair<const K, K>>>;
                 BtreeTest<BtreeMap, std::map<K, K>>();
                 BtreeAllocatorTest<CountingBtreeMap>();
@@ -857,23 +845,23 @@ namespace abel {
             template<typename K, int N = 256>
             void MultiSetTest() {
                 EXPECT_EQ(
-                        sizeof(abel::btree_multiset<K>),
-                        2 * sizeof(void *) + sizeof(typename abel::btree_multiset<K>::size_type));
-                using BtreeMSet = abel::btree_multiset<K>;
+                        sizeof(melon::btree_multiset<K>),
+                        2 * sizeof(void *) + sizeof(typename melon::btree_multiset<K>::size_type));
+                using BtreeMSet = melon::btree_multiset<K>;
                 using CountingBtreeMSet =
-                abel::btree_multiset<K, std::less<K>, PropagatingCountingAlloc<K>>;
+                melon::btree_multiset<K, std::less<K>, PropagatingCountingAlloc<K>>;
                 BtreeMultiTest<BtreeMSet, std::multiset<K>>();
                 BtreeAllocatorTest<CountingBtreeMSet>();
             }
 
             template<typename K, int N = 256>
             void MultiMapTest() {
-                EXPECT_EQ(sizeof(abel::btree_multimap<K, K>),
+                EXPECT_EQ(sizeof(melon::btree_multimap<K, K>),
                           2 * sizeof(void *) +
-                          sizeof(typename abel::btree_multimap<K, K>::size_type));
-                using BtreeMMap = abel::btree_multimap<K, K>;
+                          sizeof(typename melon::btree_multimap<K, K>::size_type));
+                using BtreeMMap = melon::btree_multimap<K, K>;
                 using CountingBtreeMMap =
-                abel::btree_multimap<K, K, std::less<K>,
+                melon::btree_multimap<K, K, std::less<K>,
                         PropagatingCountingAlloc<std::pair<const K, K>>>;
                 BtreeMultiTest<BtreeMMap, std::multimap<K, K>>();
                 BtreeMultiMapTest<BtreeMMap>();
@@ -902,11 +890,11 @@ namespace abel {
                 }
 
                 bool operator()(const std::string &a, int b) const {
-                    return a < abel::string_cat(b);
+                    return a < std::to_string(b);
                 }
 
                 bool operator()(int a, const std::string &b) const {
-                    return abel::string_cat(a) < b;
+                    return std::to_string(a) < b;
                 }
 
                 using is_transparent = void;
@@ -980,7 +968,8 @@ namespace abel {
 
                 // Also run it with const T&.
                 if (std::is_class<T>())
-                    TestHeterogeneous<const T &>(table);
+                    TestHeterogeneous<
+                            const T &>(table);
             }
 
             TEST(Btree, HeterogeneousLookup) {
@@ -1012,7 +1001,7 @@ namespace abel {
             }
 
             TEST(Btree, NoHeterogeneousLookupWithoutAlias) {
-                using StringSet = abel::btree_set<std::string, NonTransparentCompare>;
+                using StringSet = melon::btree_set<std::string, NonTransparentCompare>;
                 StringSet s;
                 ASSERT_TRUE(s.insert("hello").second);
                 ASSERT_TRUE(s.insert("world").second);
@@ -1024,7 +1013,7 @@ namespace abel {
                 EXPECT_FALSE(s.contains("blah"));
 
                 using StringMultiSet =
-                abel::btree_multiset<std::string, NonTransparentCompare>;
+                melon::btree_multiset<std::string, NonTransparentCompare>;
                 StringMultiSet ms;
                 ms.insert("hello");
                 ms.insert("world");
@@ -1083,10 +1072,10 @@ namespace abel {
             int StringLike::constructor_calls_ = 0;
 
             TEST(Btree, HeterogeneousLookupDoesntDegradePerformance) {
-                using StringSet = abel::btree_set<StringLike>;
+                using StringSet = melon::btree_set<StringLike>;
                 StringSet s;
-                for (int i = 0; i < 100; ++i) {
-                    ASSERT_TRUE(s.insert(abel::string_cat(i).c_str()).second);
+                for (size_t i = 0; i < 100; ++i) {
+                    ASSERT_TRUE(s.insert(std::to_string(i).c_str()).second);
                 }
                 StringLike::clear_constructor_call_count();
                 s.find("50");
@@ -1117,8 +1106,8 @@ namespace abel {
                 ASSERT_EQ(1, StringLike::constructor_calls());
             }
 
-// Verify that swapping btrees swaps the key comparison functors and that we can
-// use non-default constructible comparators.
+            // Verify that swapping btrees swaps the key comparison functors and that we can
+            // use non-default constructible comparators.
             struct SubstringLess {
                 SubstringLess() = delete;
 
@@ -1127,13 +1116,14 @@ namespace abel {
                 bool operator()(const std::string &a, const std::string &b) const {
                     return std::string_view(a).substr(0, n) <
                            std::string_view(b).substr(0, n);
+
                 }
 
                 int n;
             };
 
             TEST(Btree, SwapKeyCompare) {
-                using SubstringSet = abel::btree_set<std::string, SubstringLess>;
+                using SubstringSet = melon::btree_set<std::string, SubstringLess>;
                 SubstringSet s1(SubstringLess(1), SubstringSet::allocator_type());
                 SubstringSet s2(SubstringLess(2), SubstringSet::allocator_type());
 
@@ -1157,7 +1147,7 @@ namespace abel {
             TEST(Btree, UpperBoundRegression) {
                 // Regress a bug where upper_bound would default-construct a new key_compare
                 // instead of copying the existing one.
-                using SubstringSet = abel::btree_set<std::string, SubstringLess>;
+                using SubstringSet = melon::btree_set<std::string, SubstringLess>;
                 SubstringSet my_set(SubstringLess(3));
                 my_set.insert("aab");
                 my_set.insert("abb");
@@ -1172,11 +1162,11 @@ namespace abel {
 
             TEST(Btree, Comparison) {
                 const int kSetSize = 1201;
-                abel::btree_set<int64_t> my_set;
-                for (int i = 0; i < kSetSize; ++i) {
+                melon::btree_set<int64_t> my_set;
+                for (size_t i = 0; i < kSetSize; ++i) {
                     my_set.insert(i);
                 }
-                abel::btree_set<int64_t> my_set_copy(my_set);
+                melon::btree_set<int64_t> my_set_copy(my_set);
                 EXPECT_TRUE(my_set_copy == my_set);
                 EXPECT_TRUE(my_set == my_set_copy);
                 EXPECT_FALSE(my_set_copy != my_set);
@@ -1194,11 +1184,11 @@ namespace abel {
                 EXPECT_TRUE(my_set_copy != my_set);
                 EXPECT_TRUE(my_set != my_set_copy);
 
-                abel::btree_map<std::string, int64_t> my_map;
-                for (int i = 0; i < kSetSize; ++i) {
+                melon::btree_map<std::string, int64_t> my_map;
+                for (size_t i = 0; i < kSetSize; ++i) {
                     my_map[std::string(i, 'a')] = i;
                 }
-                abel::btree_map<std::string, int64_t> my_map_copy(my_map);
+                melon::btree_map<std::string, int64_t> my_map_copy(my_map);
                 EXPECT_TRUE(my_map_copy == my_map);
                 EXPECT_TRUE(my_map == my_map_copy);
                 EXPECT_FALSE(my_map_copy != my_map);
@@ -1229,10 +1219,10 @@ namespace abel {
                 ivec.push_back(1);
                 std::map<int, int> imap;
                 imap.insert(std::make_pair(1, 2));
-                abel::btree_multiset<int> tmset(ivec.begin(), ivec.end());
-                abel::btree_multimap<int, int> tmmap(imap.begin(), imap.end());
-                abel::btree_set<int> tset(ivec.begin(), ivec.end());
-                abel::btree_map<int, int> tmap(imap.begin(), imap.end());
+                melon::btree_multiset<int> tmset(ivec.begin(), ivec.end());
+                melon::btree_multimap<int, int> tmmap(imap.begin(), imap.end());
+                melon::btree_set<int> tset(ivec.begin(), ivec.end());
+                melon::btree_map<int, int> tmap(imap.begin(), imap.end());
                 EXPECT_EQ(1, tmset.size());
                 EXPECT_EQ(1, tmmap.size());
                 EXPECT_EQ(1, tset.size());
@@ -1240,7 +1230,7 @@ namespace abel {
             }
 
             TEST(Btree, BtreeMapCanHoldMoveOnlyTypes) {
-                abel::btree_map<std::string, std::unique_ptr<std::string>> m;
+                melon::btree_map<std::string, std::unique_ptr<std::string>> m;
 
                 std::unique_ptr<std::string> &v = m["A"];
                 EXPECT_TRUE(v == nullptr);
@@ -1251,21 +1241,21 @@ namespace abel {
             }
 
             TEST(Btree, InitializerListConstructor) {
-                abel::btree_set<std::string> set({"a", "b"});
+                melon::btree_set<std::string> set({"a", "b"});
                 EXPECT_EQ(set.count("a"), 1);
                 EXPECT_EQ(set.count("b"), 1);
 
-                abel::btree_multiset<int> mset({1, 1, 4});
+                melon::btree_multiset<int> mset({1, 1, 4});
                 EXPECT_EQ(mset.count(1), 2);
                 EXPECT_EQ(mset.count(4), 1);
 
-                abel::btree_map<int, int> map({{1, 5},
-                                               {2, 10}});
+                melon::btree_map<int, int> map({{1, 5},
+                                                {2, 10}});
                 EXPECT_EQ(map[1], 5);
                 EXPECT_EQ(map[2], 10);
 
-                abel::btree_multimap<int, int> mmap({{1, 5},
-                                                     {1, 10}});
+                melon::btree_multimap<int, int> mmap({{1, 5},
+                                                      {1, 10}});
                 auto range = mmap.equal_range(1);
                 auto it = range.first;
                 ASSERT_NE(it, range.second);
@@ -1276,17 +1266,17 @@ namespace abel {
             }
 
             TEST(Btree, InitializerListInsert) {
-                abel::btree_set<std::string> set;
+                melon::btree_set<std::string> set;
                 set.insert({"a", "b"});
                 EXPECT_EQ(set.count("a"), 1);
                 EXPECT_EQ(set.count("b"), 1);
 
-                abel::btree_multiset<int> mset;
+                melon::btree_multiset<int> mset;
                 mset.insert({1, 1, 4});
                 EXPECT_EQ(mset.count(1), 2);
                 EXPECT_EQ(mset.count(4), 1);
 
-                abel::btree_map<int, int> map;
+                melon::btree_map<int, int> map;
                 map.insert({{1, 5},
                             {2, 10}});
                 // Test that inserting one element using an initializer list also works.
@@ -1295,7 +1285,7 @@ namespace abel {
                 EXPECT_EQ(map[2], 10);
                 EXPECT_EQ(map[3], 15);
 
-                abel::btree_multimap<int, int> mmap;
+                melon::btree_multimap<int, int> mmap;
                 mmap.insert({{1, 5},
                              {1, 10}});
                 auto range = mmap.equal_range(1);
@@ -1313,8 +1303,8 @@ namespace abel {
                 static_assert(!std::is_same<Adapted, Compare>::value,
                               "key_compare_to_adapter should have adapted this comparator.");
                 static_assert(
-                        std::is_same<abel::weak_ordering,
-                                abel::result_of_t<Adapted(const K &, const K &)>>::value,
+                        std::is_same<melon::weak_ordering,
+                                melon::invoke_result_t<Adapted, const K &, const K &>>::value,
                         "Adapted comparator should be a key-compare-to comparator.");
             }
 
@@ -1326,7 +1316,7 @@ namespace abel {
                         "key_compare_to_adapter shouldn't have adapted this comparator.");
                 static_assert(
                         std::is_same<bool,
-                                abel::result_of_t<Unadapted(const K &, const K &)>>::value,
+                                melon::invoke_result_t<Unadapted, const K &, const K &>>::value,
                         "Un-adapted comparator should return bool.");
             }
 
@@ -1343,7 +1333,7 @@ namespace abel {
             TEST(Btree, RValueInsert) {
                 InstanceTracker tracker;
 
-                abel::btree_set<MovableOnlyInstance> set;
+                melon::btree_set<MovableOnlyInstance> set;
                 set.insert(MovableOnlyInstance(1));
                 set.insert(MovableOnlyInstance(3));
                 MovableOnlyInstance two(2);
@@ -1353,14 +1343,14 @@ namespace abel {
                 ASSERT_NE(++it, set.end());
                 EXPECT_EQ(it->value(), 3);
 
-                abel::btree_multiset<MovableOnlyInstance> mset;
+                melon::btree_multiset<MovableOnlyInstance> mset;
                 MovableOnlyInstance zero(0);
                 MovableOnlyInstance zero2(0);
                 mset.insert(std::move(zero));
                 mset.insert(mset.find(MovableOnlyInstance(0)), std::move(zero2));
                 EXPECT_EQ(mset.count(MovableOnlyInstance(0)), 2);
 
-                abel::btree_map<int, MovableOnlyInstance> map;
+                melon::btree_map<int, MovableOnlyInstance> map;
                 std::pair<const int, MovableOnlyInstance> p1 = {1, MovableOnlyInstance(5)};
                 std::pair<const int, MovableOnlyInstance> p2 = {2, MovableOnlyInstance(10)};
                 std::pair<const int, MovableOnlyInstance> p3 = {3, MovableOnlyInstance(15)};
@@ -1370,7 +1360,7 @@ namespace abel {
                 ASSERT_NE(map.find(2), map.end());
                 EXPECT_EQ(map.find(2)->second.value(), 10);
 
-                abel::btree_multimap<int, MovableOnlyInstance> mmap;
+                melon::btree_multimap<int, MovableOnlyInstance> mmap;
                 std::pair<const int, MovableOnlyInstance> p4 = {1, MovableOnlyInstance(5)};
                 std::pair<const int, MovableOnlyInstance> p5 = {1, MovableOnlyInstance(10)};
                 mmap.insert(std::move(p4));
@@ -1409,7 +1399,7 @@ namespace abel {
 
         namespace {
 
-// A btree set with a specific number of values per node.
+            // A btree set with a specific number of values per node.
             template<typename Key, int TargetValuesPerNode, typename Cmp = std::less<Key>>
             class SizedBtreeSet
                     : public btree_set_container<btree<
@@ -1429,8 +1419,7 @@ namespace abel {
                                        const int expected_comparisons,
                                        const std::vector<int> &values,
                                        InstanceTracker *tracker, Set *set) {
-                for (const int v : values)
-                    set->insert(MovableOnlyInstance(v));
+                for (const int v : values) set->insert(MovableOnlyInstance(v));
                 set->clear();
                 EXPECT_EQ(tracker->moves(), expected_moves);
                 EXPECT_EQ(tracker->comparisons(), expected_comparisons);
@@ -1439,8 +1428,8 @@ namespace abel {
                 tracker->ResetCopiesMovesSwaps();
             }
 
-// Note: when the values in this test change, it is expected to have an impact
-// on performance.
+            // Note: when the values in this test change, it is expected to have an impact
+            // on performance.
             TEST(Btree, MovesComparisonsCopiesSwapsTracking) {
                 InstanceTracker tracker;
                 // Note: this is minimum number of values per node.
@@ -1458,8 +1447,8 @@ namespace abel {
                 EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<decltype(set3)>(), 3);
                 EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<decltype(set61)>(), 61);
                 EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<decltype(set100)>(), 100);
-                if (sizeof(void *) == 8) {
-                    EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<abel::btree_set<int32_t>>(),
+                if constexpr (sizeof(void *) == 8) {
+                    EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<melon::btree_set<int32_t>>(),
                               BtreeNodePeer::GetNumValuesPerNode<decltype(set61)>());
                 }
 
@@ -1482,14 +1471,14 @@ namespace abel {
             }
 
             struct MovableOnlyInstanceThreeWayCompare {
-                abel::weak_ordering operator()(const MovableOnlyInstance &a,
-                                               const MovableOnlyInstance &b) const {
+                melon::weak_ordering operator()(const MovableOnlyInstance &a,
+                                                const MovableOnlyInstance &b) const {
                     return a.compare(b);
                 }
             };
 
-// Note: when the values in this test change, it is expected to have an impact
-// on performance.
+            // Note: when the values in this test change, it is expected to have an impact
+            // on performance.
             TEST(Btree, MovesComparisonsCopiesSwapsTrackingThreeWayCompare) {
                 InstanceTracker tracker;
                 // Note: this is minimum number of values per node.
@@ -1513,8 +1502,8 @@ namespace abel {
                 EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<decltype(set3)>(), 3);
                 EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<decltype(set61)>(), 61);
                 EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<decltype(set100)>(), 100);
-                if (sizeof(void *) == 8) {
-                    EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<abel::btree_set<int32_t>>(),
+                if constexpr (sizeof(void *) == 8) {
+                    EXPECT_EQ(BtreeNodePeer::GetNumValuesPerNode<melon::btree_set<int32_t>>(),
                               BtreeNodePeer::GetNumValuesPerNode<decltype(set61)>());
                 }
 
@@ -1539,7 +1528,7 @@ namespace abel {
             struct NoDefaultCtor {
                 int num;
 
-                explicit NoDefaultCtor(int i) : num(i) {}
+                explicit NoDefaultCtor(size_t i) : num(i) {}
 
                 friend bool operator<(const NoDefaultCtor &a, const NoDefaultCtor &b) {
                     return a.num < b.num;
@@ -1547,9 +1536,9 @@ namespace abel {
             };
 
             TEST(Btree, BtreeMapCanHoldNoDefaultCtorTypes) {
-                abel::btree_map<NoDefaultCtor, NoDefaultCtor> m;
+                melon::btree_map<NoDefaultCtor, NoDefaultCtor> m;
 
-                for (int i = 1; i <= 99; ++i) {
+                for (size_t i = 1; i <= 99; ++i) {
                     SCOPED_TRACE(i);
                     EXPECT_TRUE(m.emplace(NoDefaultCtor(i), NoDefaultCtor(100 - i)).second);
                 }
@@ -1573,9 +1562,9 @@ namespace abel {
             }
 
             TEST(Btree, BtreeMultimapCanHoldNoDefaultCtorTypes) {
-                abel::btree_multimap<NoDefaultCtor, NoDefaultCtor> m;
+                melon::btree_multimap<NoDefaultCtor, NoDefaultCtor> m;
 
-                for (int i = 1; i <= 99; ++i) {
+                for (size_t i = 1; i <= 99; ++i) {
                     SCOPED_TRACE(i);
                     m.emplace(NoDefaultCtor(i), NoDefaultCtor(100 - i));
                 }
@@ -1598,24 +1587,24 @@ namespace abel {
             }
 
             TEST(Btree, MapAt) {
-                abel::btree_map<int, int> map = {{1, 2},
-                                                 {2, 4}};
+                melon::btree_map<int, int> map = {{1, 2},
+                                                  {2, 4}};
                 EXPECT_EQ(map.at(1), 2);
                 EXPECT_EQ(map.at(2), 4);
                 map.at(2) = 8;
-                const abel::btree_map<int, int> &const_map = map;
+                const melon::btree_map<int, int> &const_map = map;
                 EXPECT_EQ(const_map.at(1), 2);
                 EXPECT_EQ(const_map.at(2), 8);
-#ifdef ABEL_HAVE_EXCEPTIONS
+#ifdef MELON_HAVE_EXCEPTIONS
                 EXPECT_THROW(map.at(3), std::out_of_range);
 #else
-                EXPECT_DEATH(map.at(3), "abel::btree_map::at");
+                EXPECT_DEATH(map.at(3), "melon::btree_map::at");
 #endif
             }
 
             TEST(Btree, BtreeMultisetEmplace) {
                 const int value_to_insert = 123456;
-                abel::btree_multiset<int> s;
+                melon::btree_multiset<int> s;
                 auto iter = s.emplace(value_to_insert);
                 ASSERT_NE(iter, s.end());
                 EXPECT_EQ(*iter, value_to_insert);
@@ -1629,7 +1618,7 @@ namespace abel {
 
             TEST(Btree, BtreeMultisetEmplaceHint) {
                 const int value_to_insert = 123456;
-                abel::btree_multiset<int> s;
+                melon::btree_multiset<int> s;
                 auto iter = s.emplace(value_to_insert);
                 ASSERT_NE(iter, s.end());
                 EXPECT_EQ(*iter, value_to_insert);
@@ -1642,7 +1631,7 @@ namespace abel {
             TEST(Btree, BtreeMultimapEmplace) {
                 const int key_to_insert = 123456;
                 const char value0[] = "a";
-                abel::btree_multimap<int, std::string> s;
+                melon::btree_multimap<int, std::string> s;
                 auto iter = s.emplace(key_to_insert, value0);
                 ASSERT_NE(iter, s.end());
                 EXPECT_EQ(iter->first, key_to_insert);
@@ -1660,7 +1649,7 @@ namespace abel {
             TEST(Btree, BtreeMultimapEmplaceHint) {
                 const int key_to_insert = 123456;
                 const char value0[] = "a";
-                abel::btree_multimap<int, std::string> s;
+                melon::btree_multimap<int, std::string> s;
                 auto iter = s.emplace(key_to_insert, value0);
                 ASSERT_NE(iter, s.end());
                 EXPECT_EQ(iter->first, key_to_insert);
@@ -1674,14 +1663,14 @@ namespace abel {
             }
 
             TEST(Btree, ConstIteratorAccessors) {
-                abel::btree_set<int> set;
-                for (int i = 0; i < 100; ++i) {
+                melon::btree_set<int> set;
+                for (size_t i = 0; i < 100; ++i) {
                     set.insert(i);
                 }
 
                 auto it = set.cbegin();
                 auto r_it = set.crbegin();
-                for (int i = 0; i < 100; ++i, ++it, ++r_it) {
+                for (size_t i = 0; i < 100; ++i, ++it, ++r_it) {
                     ASSERT_EQ(*it, i);
                     ASSERT_EQ(*r_it, 99 - i);
                 }
@@ -1689,30 +1678,32 @@ namespace abel {
                 EXPECT_EQ(r_it, set.crend());
             }
 
+#if 0
             TEST(Btree, StrSplitCompatible) {
-                const abel::btree_set<std::string> split_set = abel::string_split("a,b,c", ',');
-                const abel::btree_set<std::string> expected_set = {"a", "b", "c"};
+                const melon::btree_set<std::string> split_set = melon::StrSplit("a,b,c", ',');
+                const melon::btree_set<std::string> expected_set = {"a", "b", "c"};
 
                 EXPECT_EQ(split_set, expected_set);
             }
+#endif
 
-// We can't use EXPECT_EQ/etc. to compare abel::weak_ordering because they
-// convert literal 0 to int and abel::weak_ordering can only be compared with
-// literal 0. Defining this function allows for avoiding ClangTidy warnings.
+            // We can't use EXPECT_EQ/etc. to compare melon::weak_ordering because they
+            // convert literal 0 to int and melon::weak_ordering can only be compared with
+            // literal 0. Defining this function allows for avoiding ClangTidy warnings.
             bool Identity(const bool b) { return b; }
 
             TEST(Btree, ValueComp) {
-                abel::btree_set<int> s;
+                melon::btree_set<int> s;
                 EXPECT_TRUE(s.value_comp()(1, 2));
                 EXPECT_FALSE(s.value_comp()(2, 2));
                 EXPECT_FALSE(s.value_comp()(2, 1));
 
-                abel::btree_map<int, int> m1;
+                melon::btree_map<int, int> m1;
                 EXPECT_TRUE(m1.value_comp()(std::make_pair(1, 0), std::make_pair(2, 0)));
                 EXPECT_FALSE(m1.value_comp()(std::make_pair(2, 0), std::make_pair(2, 0)));
                 EXPECT_FALSE(m1.value_comp()(std::make_pair(2, 0), std::make_pair(1, 0)));
 
-                abel::btree_map<std::string, int> m2;
+                melon::btree_map<std::string, int> m2;
                 EXPECT_TRUE(Identity(
                         m2.value_comp()(std::make_pair("a", 0), std::make_pair("b", 0)) < 0));
                 EXPECT_TRUE(Identity(
@@ -1722,10 +1713,10 @@ namespace abel {
             }
 
             TEST(Btree, DefaultConstruction) {
-                abel::btree_set<int> s;
-                abel::btree_map<int, int> m;
-                abel::btree_multiset<int> ms;
-                abel::btree_multimap<int, int> mm;
+                melon::btree_set<int> s;
+                melon::btree_map<int, int> m;
+                melon::btree_multiset<int> ms;
+                melon::btree_multimap<int, int> mm;
 
                 EXPECT_TRUE(s.empty());
                 EXPECT_TRUE(m.empty());
@@ -1733,78 +1724,71 @@ namespace abel {
                 EXPECT_TRUE(mm.empty());
             }
 
+#if 0
             TEST(Btree, SwissTableHashable) {
                 static constexpr int kValues = 10000;
                 std::vector<int> values(kValues);
                 std::iota(values.begin(), values.end(), 0);
                 std::vector<std::pair<int, int>> map_values;
-                for (int v : values)
-                    map_values.emplace_back(v, -v);
+                for (int v : values) map_values.emplace_back(v, -v);
 
-                using set = abel::btree_set<int>;
-                EXPECT_TRUE(abel::VerifyTypeImplementsAbelHashCorrectly({
-                                                                                set{},
-                                                                                set{1},
-                                                                                set{2},
-                                                                                set{1, 2},
-                                                                                set{2, 1},
-                                                                                set(values.begin(), values.end()),
-                                                                                set(values.rbegin(), values.rend()),
-                                                                        }));
+                using set = melon::btree_set<int>;
+                EXPECT_TRUE(melon::VerifyTypeImplementsMapHashCorrectly({
+                            set{},
+                                set{1},
+                                    set{2},
+                                        set{1, 2},
+                                            set{2, 1},
+                                                set(values.begin(), values.end()),
+                                                    set(values.rbegin(), values.rend()),
+                                                    }));
 
-                using mset = abel::btree_multiset<int>;
-                EXPECT_TRUE(abel::VerifyTypeImplementsAbelHashCorrectly({
-                                                                                mset{},
-                                                                                mset{1},
-                                                                                mset{1, 1},
-                                                                                mset{2},
-                                                                                mset{2, 2},
-                                                                                mset{1, 2},
-                                                                                mset{1, 1, 2},
-                                                                                mset{1, 2, 2},
-                                                                                mset{1, 1, 2, 2},
-                                                                                mset(values.begin(), values.end()),
-                                                                                mset(values.rbegin(), values.rend()),
-                                                                        }));
+                using mset = melon::btree_multiset<int>;
+                EXPECT_TRUE(melon::VerifyTypeImplementsMapHashCorrectly({
+                            mset{},
+                                mset{1},
+                                    mset{1, 1},
+                                        mset{2},
+                                            mset{2, 2},
+                                                mset{1, 2},
+                                                    mset{1, 1, 2},
+                                                        mset{1, 2, 2},
+                                                            mset{1, 1, 2, 2},
+                                                                mset(values.begin(), values.end()),
+                                                                    mset(values.rbegin(), values.rend()),
+                                                                    }));
 
-                using map = abel::btree_map<int, int>;
-                EXPECT_TRUE(abel::VerifyTypeImplementsAbelHashCorrectly({
-                                                                                map{},
-                                                                                map{{1, 0}},
-                                                                                map{{1, 1}},
-                                                                                map{{2, 0}},
-                                                                                map{{2, 2}},
-                                                                                map{{1, 0},
-                                                                                    {2, 1}},
-                                                                                map(map_values.begin(),
-                                                                                    map_values.end()),
-                                                                                map(map_values.rbegin(),
-                                                                                    map_values.rend()),
-                                                                        }));
+                using map = melon::btree_map<int, int>;
+                EXPECT_TRUE(melon::VerifyTypeImplementsMapHashCorrectly({
+                            map{},
+                                map{{1, 0}},
+                                    map{{1, 1}},
+                                        map{{2, 0}},
+                                            map{{2, 2}},
+                                                map{{1, 0}, {2, 1}},
+                                                    map(map_values.begin(), map_values.end()),
+                                                        map(map_values.rbegin(), map_values.rend()),
+                                                        }));
 
-                using mmap = abel::btree_multimap<int, int>;
-                EXPECT_TRUE(abel::VerifyTypeImplementsAbelHashCorrectly({
-                                                                                mmap{},
-                                                                                mmap{{1, 0}},
-                                                                                mmap{{1, 1}},
-                                                                                mmap{{1, 0},
-                                                                                     {1, 1}},
-                                                                                mmap{{1, 1},
-                                                                                     {1, 0}},
-                                                                                mmap{{2, 0}},
-                                                                                mmap{{2, 2}},
-                                                                                mmap{{1, 0},
-                                                                                     {2, 1}},
-                                                                                mmap(map_values.begin(),
-                                                                                     map_values.end()),
-                                                                                mmap(map_values.rbegin(),
-                                                                                     map_values.rend()),
-                                                                        }));
+                using mmap = melon::btree_multimap<int, int>;
+                EXPECT_TRUE(melon::VerifyTypeImplementsMapHashCorrectly({
+                            mmap{},
+                                mmap{{1, 0}},
+                                    mmap{{1, 1}},
+                                        mmap{{1, 0}, {1, 1}},
+                                            mmap{{1, 1}, {1, 0}},
+                                                mmap{{2, 0}},
+                                                    mmap{{2, 2}},
+                                                        mmap{{1, 0}, {2, 1}},
+                                                            mmap(map_values.begin(), map_values.end()),
+                                                                mmap(map_values.rbegin(), map_values.rend()),
+                                                                }));
             }
+#endif
 
             TEST(Btree, ComparableSet) {
-                abel::btree_set<int> s1 = {1, 2};
-                abel::btree_set<int> s2 = {2, 3};
+                melon::btree_set<int> s1 = {1, 2};
+                melon::btree_set<int> s2 = {2, 3};
                 EXPECT_LT(s1, s2);
                 EXPECT_LE(s1, s2);
                 EXPECT_LE(s1, s1);
@@ -1814,8 +1798,8 @@ namespace abel {
             }
 
             TEST(Btree, ComparableSetsDifferentLength) {
-                abel::btree_set<int> s1 = {1, 2};
-                abel::btree_set<int> s2 = {1, 2, 3};
+                melon::btree_set<int> s1 = {1, 2};
+                melon::btree_set<int> s2 = {1, 2, 3};
                 EXPECT_LT(s1, s2);
                 EXPECT_LE(s1, s2);
                 EXPECT_GT(s2, s1);
@@ -1823,8 +1807,8 @@ namespace abel {
             }
 
             TEST(Btree, ComparableMultiset) {
-                abel::btree_multiset<int> s1 = {1, 2};
-                abel::btree_multiset<int> s2 = {2, 3};
+                melon::btree_multiset<int> s1 = {1, 2};
+                melon::btree_multiset<int> s2 = {2, 3};
                 EXPECT_LT(s1, s2);
                 EXPECT_LE(s1, s2);
                 EXPECT_LE(s1, s1);
@@ -1834,8 +1818,8 @@ namespace abel {
             }
 
             TEST(Btree, ComparableMap) {
-                abel::btree_map<int, int> s1 = {{1, 2}};
-                abel::btree_map<int, int> s2 = {{2, 3}};
+                melon::btree_map<int, int> s1 = {{1, 2}};
+                melon::btree_map<int, int> s2 = {{2, 3}};
                 EXPECT_LT(s1, s2);
                 EXPECT_LE(s1, s2);
                 EXPECT_LE(s1, s1);
@@ -1845,8 +1829,8 @@ namespace abel {
             }
 
             TEST(Btree, ComparableMultimap) {
-                abel::btree_multimap<int, int> s1 = {{1, 2}};
-                abel::btree_multimap<int, int> s2 = {{2, 3}};
+                melon::btree_multimap<int, int> s1 = {{1, 2}};
+                melon::btree_multimap<int, int> s2 = {{2, 3}};
                 EXPECT_LT(s1, s2);
                 EXPECT_LE(s1, s2);
                 EXPECT_LE(s1, s1);
@@ -1861,8 +1845,8 @@ namespace abel {
                 // [container.requirements.general].12, ordering associative containers always
                 // uses default '<' operator
                 // - even if otherwise the container uses custom functor.
-                abel::btree_set<int, std::greater<int>> s1 = {1, 2};
-                abel::btree_set<int, std::greater<int>> s2 = {2, 3};
+                melon::btree_set<int, std::greater<int>> s1 = {1, 2};
+                melon::btree_set<int, std::greater<int>> s2 = {2, 3};
                 EXPECT_LT(s1, s2);
                 EXPECT_LE(s1, s2);
                 EXPECT_LE(s1, s1);
@@ -1872,7 +1856,7 @@ namespace abel {
             }
 
             TEST(Btree, EraseReturnsIterator) {
-                abel::btree_set<int> set = {1, 2, 3, 4, 5};
+                melon::btree_set<int> set = {1, 2, 3, 4, 5};
                 auto result_it = set.erase(set.begin(), set.find(3));
                 EXPECT_EQ(result_it, set.find(3));
                 result_it = set.erase(set.find(5));
@@ -1880,17 +1864,17 @@ namespace abel {
             }
 
             TEST(Btree, ExtractAndInsertNodeHandleSet) {
-                abel::btree_set<int> src1 = {1, 2, 3, 4, 5};
+                melon::btree_set<int> src1 = {1, 2, 3, 4, 5};
                 auto nh = src1.extract(src1.find(3));
                 EXPECT_THAT(src1, ElementsAre(1, 2, 4, 5));
-                abel::btree_set<int> other;
-                abel::btree_set<int>::insert_return_type res = other.insert(std::move(nh));
+                melon::btree_set<int> other;
+                melon::btree_set<int>::insert_return_type res = other.insert(std::move(nh));
                 EXPECT_THAT(other, ElementsAre(3));
                 EXPECT_EQ(res.position, other.find(3));
                 EXPECT_TRUE(res.inserted);
                 EXPECT_TRUE(res.node.empty());
 
-                abel::btree_set<int> src2 = {3, 4};
+                melon::btree_set<int> src2 = {3, 4};
                 nh = src2.extract(src2.find(3));
                 EXPECT_THAT(src2, ElementsAre(4));
                 res = other.insert(std::move(nh));
@@ -1908,7 +1892,7 @@ namespace abel {
                     Set s;
                     // Add enough elements to make sure we test internal nodes too.
                     const size_t kSize = 1000;
-                    while (static_cast<size_t>(s.size()) < kSize) {
+                    while (s.size() < kSize) {
                         s.insert(MovableOnlyInstance(s.size()));
                     }
                     for (size_t i = 0; i < kSize; ++i) {
@@ -1940,7 +1924,7 @@ namespace abel {
                     Map m;
                     // Add enough elements to make sure we test internal nodes too.
                     const size_t kSize = 1000;
-                    while (static_cast<size_t>(m.size()) < kSize) {
+                    while (m.size() < kSize) {
                         m.insert(
                                 {CopyableMovableInstance(m.size()), MovableOnlyInstance(m.size())});
                     }
@@ -1969,24 +1953,24 @@ namespace abel {
             }
 
             TEST(Btree, ExtractTracking) {
-                TestExtractWithTrackingForSet<abel::btree_set<MovableOnlyInstance>>();
-                TestExtractWithTrackingForSet<abel::btree_multiset<MovableOnlyInstance>>();
+                TestExtractWithTrackingForSet<melon::btree_set<MovableOnlyInstance>>();
+                TestExtractWithTrackingForSet<melon::btree_multiset<MovableOnlyInstance>>();
                 TestExtractWithTrackingForMap<
-                        abel::btree_map<CopyableMovableInstance, MovableOnlyInstance>>();
+                        melon::btree_map<CopyableMovableInstance, MovableOnlyInstance>>();
                 TestExtractWithTrackingForMap<
-                        abel::btree_multimap<CopyableMovableInstance, MovableOnlyInstance>>();
+                        melon::btree_multimap<CopyableMovableInstance, MovableOnlyInstance>>();
             }
 
             TEST(Btree, ExtractAndInsertNodeHandleMultiSet) {
-                abel::btree_multiset<int> src1 = {1, 2, 3, 3, 4, 5};
+                melon::btree_multiset<int> src1 = {1, 2, 3, 3, 4, 5};
                 auto nh = src1.extract(src1.find(3));
                 EXPECT_THAT(src1, ElementsAre(1, 2, 3, 4, 5));
-                abel::btree_multiset<int> other;
+                melon::btree_multiset<int> other;
                 auto res = other.insert(std::move(nh));
                 EXPECT_THAT(other, ElementsAre(3));
                 EXPECT_EQ(res, other.find(3));
 
-                abel::btree_multiset<int> src2 = {3, 4};
+                melon::btree_multiset<int> src2 = {3, 4};
                 nh = src2.extract(src2.find(3));
                 EXPECT_THAT(src2, ElementsAre(4));
                 res = other.insert(std::move(nh));
@@ -1995,20 +1979,20 @@ namespace abel {
             }
 
             TEST(Btree, ExtractAndInsertNodeHandleMap) {
-                abel::btree_map<int, int> src1 = {{1, 2},
-                                                  {3, 4},
-                                                  {5, 6}};
+                melon::btree_map<int, int> src1 = {{1, 2},
+                                                   {3, 4},
+                                                   {5, 6}};
                 auto nh = src1.extract(src1.find(3));
                 EXPECT_THAT(src1, ElementsAre(Pair(1, 2), Pair(5, 6)));
-                abel::btree_map<int, int> other;
-                abel::btree_map<int, int>::insert_return_type res =
+                melon::btree_map<int, int> other;
+                melon::btree_map<int, int>::insert_return_type res =
                         other.insert(std::move(nh));
                 EXPECT_THAT(other, ElementsAre(Pair(3, 4)));
                 EXPECT_EQ(res.position, other.find(3));
                 EXPECT_TRUE(res.inserted);
                 EXPECT_TRUE(res.node.empty());
 
-                abel::btree_map<int, int> src2 = {{3, 6}};
+                melon::btree_map<int, int> src2 = {{3, 6}};
                 nh = src2.extract(src2.find(3));
                 EXPECT_TRUE(src2.empty());
                 res = other.insert(std::move(nh));
@@ -2021,17 +2005,17 @@ namespace abel {
             }
 
             TEST(Btree, ExtractAndInsertNodeHandleMultiMap) {
-                abel::btree_multimap<int, int> src1 = {{1, 2},
-                                                       {3, 4},
-                                                       {5, 6}};
+                melon::btree_multimap<int, int> src1 = {{1, 2},
+                                                        {3, 4},
+                                                        {5, 6}};
                 auto nh = src1.extract(src1.find(3));
                 EXPECT_THAT(src1, ElementsAre(Pair(1, 2), Pair(5, 6)));
-                abel::btree_multimap<int, int> other;
+                melon::btree_multimap<int, int> other;
                 auto res = other.insert(std::move(nh));
                 EXPECT_THAT(other, ElementsAre(Pair(3, 4)));
                 EXPECT_EQ(res, other.find(3));
 
-                abel::btree_multimap<int, int> src2 = {{3, 6}};
+                melon::btree_multimap<int, int> src2 = {{3, 6}};
                 nh = src2.extract(src2.find(3));
                 EXPECT_TRUE(src2.empty());
                 res = other.insert(std::move(nh));
@@ -2039,8 +2023,8 @@ namespace abel {
                 EXPECT_EQ(res, ++other.begin());
             }
 
-// For multisets, insert with hint also affects correctness because we need to
-// insert immediately before the hint if possible.
+            // For multisets, insert with hint also affects correctness because we need to
+            // insert immediately before the hsize_t if possible.
             struct InsertMultiHintData {
                 int key;
                 int not_key;
@@ -2068,13 +2052,13 @@ namespace abel {
             };
 
             TEST(Btree, InsertHintNodeHandle) {
-                // For unique sets, insert with hint is just a performance optimization.
-                // Test that insert works correctly when the hint is right or wrong.
+                // For unique sets, insert with hsize_t is just a performance optimization.
+                // Test that insert works correctly when the hsize_t is right or wrong.
                 {
-                    abel::btree_set<int> src = {1, 2, 3, 4, 5};
+                    melon::btree_set<int> src = {1, 2, 3, 4, 5};
                     auto nh = src.extract(src.find(3));
                     EXPECT_THAT(src, ElementsAre(1, 2, 4, 5));
-                    abel::btree_set<int> other = {0, 100};
+                    melon::btree_set<int> other = {0, 100};
                     // Test a correct hint.
                     auto it = other.insert(other.lower_bound(3), std::move(nh));
                     EXPECT_THAT(other, ElementsAre(0, 3, 100));
@@ -2087,13 +2071,13 @@ namespace abel {
                     EXPECT_EQ(it, other.find(5));
                 }
 
-                abel::btree_multiset<InsertMultiHintData, InsertMultiHintDataKeyCompare> src =
+                melon::btree_multiset<InsertMultiHintData, InsertMultiHintDataKeyCompare> src =
                         {{1, 2},
                          {3, 4},
                          {3, 5}};
                 auto nh = src.extract(src.lower_bound(3));
                 EXPECT_EQ(nh.value(), (InsertMultiHintData{3, 4}));
-                abel::btree_multiset<InsertMultiHintData, InsertMultiHintDataKeyCompare>
+                melon::btree_multiset<InsertMultiHintData, InsertMultiHintDataKeyCompare>
                         other = {{3, 1},
                                  {3, 2},
                                  {3, 3}};
@@ -2114,19 +2098,17 @@ namespace abel {
             }
 
             struct IntCompareToCmp {
-                abel::weak_ordering operator()(int a, int b) const {
-                    if (a < b)
-                        return abel::weak_ordering::less;
-                    if (a > b)
-                        return abel::weak_ordering::greater;
-                    return abel::weak_ordering::equivalent;
+                melon::weak_ordering operator()(int a, int b) const {
+                    if (a < b) return melon::weak_ordering::less;
+                    if (a > b) return melon::weak_ordering::greater;
+                    return melon::weak_ordering::equivalent;
                 }
             };
 
             TEST(Btree, MergeIntoUniqueContainers) {
-                abel::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
-                abel::btree_multiset<int> src2 = {3, 4, 4, 5};
-                abel::btree_set<int> dst;
+                melon::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
+                melon::btree_multiset<int> src2 = {3, 4, 4, 5};
+                melon::btree_set<int> dst;
 
                 dst.merge(src1);
                 EXPECT_TRUE(src1.empty());
@@ -2137,9 +2119,9 @@ namespace abel {
             }
 
             TEST(Btree, MergeIntoUniqueContainersWithCompareTo) {
-                abel::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
-                abel::btree_multiset<int> src2 = {3, 4, 4, 5};
-                abel::btree_set<int, IntCompareToCmp> dst;
+                melon::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
+                melon::btree_multiset<int> src2 = {3, 4, 4, 5};
+                melon::btree_set<int, IntCompareToCmp> dst;
 
                 dst.merge(src1);
                 EXPECT_TRUE(src1.empty());
@@ -2150,9 +2132,9 @@ namespace abel {
             }
 
             TEST(Btree, MergeIntoMultiContainers) {
-                abel::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
-                abel::btree_multiset<int> src2 = {3, 4, 4, 5};
-                abel::btree_multiset<int> dst;
+                melon::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
+                melon::btree_multiset<int> src2 = {3, 4, 4, 5};
+                melon::btree_multiset<int> dst;
 
                 dst.merge(src1);
                 EXPECT_TRUE(src1.empty());
@@ -2163,9 +2145,9 @@ namespace abel {
             }
 
             TEST(Btree, MergeIntoMultiContainersWithCompareTo) {
-                abel::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
-                abel::btree_multiset<int> src2 = {3, 4, 4, 5};
-                abel::btree_multiset<int, IntCompareToCmp> dst;
+                melon::btree_set<int, IntCompareToCmp> src1 = {1, 2, 3};
+                melon::btree_multiset<int> src2 = {3, 4, 4, 5};
+                melon::btree_multiset<int, IntCompareToCmp> dst;
 
                 dst.merge(src1);
                 EXPECT_TRUE(src1.empty());
@@ -2176,15 +2158,15 @@ namespace abel {
             }
 
             TEST(Btree, MergeIntoMultiMapsWithDifferentComparators) {
-                abel::btree_map<int, int, IntCompareToCmp> src1 = {{1, 1},
-                                                                   {2, 2},
-                                                                   {3, 3}};
-                abel::btree_multimap<int, int, std::greater<int>> src2 = {
+                melon::btree_map<int, int, IntCompareToCmp> src1 = {{1, 1},
+                                                                    {2, 2},
+                                                                    {3, 3}};
+                melon::btree_multimap<int, int, std::greater<int>> src2 = {
                         {5, 5},
                         {4, 1},
                         {4, 4},
                         {3, 2}};
-                abel::btree_multimap<int, int> dst;
+                melon::btree_multimap<int, int> dst;
 
                 dst.merge(src1);
                 EXPECT_TRUE(src1.empty());
@@ -2197,34 +2179,34 @@ namespace abel {
 
             struct KeyCompareToWeakOrdering {
                 template<typename T>
-                abel::weak_ordering operator()(const T &a, const T &b) const {
-                    return a < b ? abel::weak_ordering::less
-                                 : a == b ? abel::weak_ordering::equivalent
-                                          : abel::weak_ordering::greater;
+                melon::weak_ordering operator()(const T &a, const T &b) const {
+                    return a < b ? melon::weak_ordering::less
+                                 : a == b ? melon::weak_ordering::equivalent
+                                          : melon::weak_ordering::greater;
                 }
             };
 
             struct KeyCompareToStrongOrdering {
                 template<typename T>
-                abel::strong_ordering operator()(const T &a, const T &b) const {
-                    return a < b ? abel::strong_ordering::less
-                                 : a == b ? abel::strong_ordering::equal
-                                          : abel::strong_ordering::greater;
+                melon::strong_ordering operator()(const T &a, const T &b) const {
+                    return a < b ? melon::strong_ordering::less
+                                 : a == b ? melon::strong_ordering::equal
+                                          : melon::strong_ordering::greater;
                 }
             };
 
             TEST(Btree, UserProvidedKeyCompareToComparators) {
-                abel::btree_set<int, KeyCompareToWeakOrdering> weak_set = {1, 2, 3};
+                melon::btree_set<int, KeyCompareToWeakOrdering> weak_set = {1, 2, 3};
                 EXPECT_TRUE(weak_set.contains(2));
                 EXPECT_FALSE(weak_set.contains(4));
 
-                abel::btree_set<int, KeyCompareToStrongOrdering> strong_set = {1, 2, 3};
+                melon::btree_set<int, KeyCompareToStrongOrdering> strong_set = {1, 2, 3};
                 EXPECT_TRUE(strong_set.contains(2));
                 EXPECT_FALSE(strong_set.contains(4));
             }
 
             TEST(Btree, TryEmplaceBasicTest) {
-                abel::btree_map<int, std::string> m;
+                melon::btree_map<int, std::string> m;
 
                 // Should construct a std::string from the literal.
                 m.try_emplace(1, "one");
@@ -2243,7 +2225,7 @@ namespace abel {
             }
 
             TEST(Btree, TryEmplaceWithHintWorks) {
-                // Use a counting comparator here to verify that hint is used.
+                // Use a counting comparator here to verify that hsize_t is used.
                 int calls = 0;
                 auto cmp = [&calls](int x, int y) {
                     ++calls;
@@ -2251,8 +2233,8 @@ namespace abel {
                 };
                 using Cmp = decltype(cmp);
 
-                abel::btree_map<int, int, Cmp> m(cmp);
-                for (int i = 0; i < 128; ++i) {
+                melon::btree_map<int, int, Cmp> m(cmp);
+                for (size_t i = 0; i < 128; ++i) {
                     m.emplace(i, i);
                 }
 
@@ -2303,8 +2285,8 @@ namespace abel {
             }
 
             TEST(Btree, TryEmplaceWithBadHint) {
-                abel::btree_map<int, int> m = {{1, 1},
-                                               {9, 9}};
+                melon::btree_map<int, int> m = {{1, 1},
+                                                {9, 9}};
 
                 // Bad hint (too small), should still emplace:
                 auto it = m.try_emplace(m.begin(), 2, 2);
@@ -2325,7 +2307,7 @@ namespace abel {
             }
 
             TEST(Btree, TryEmplaceMaintainsSortedOrder) {
-                abel::btree_map<int, std::string> m;
+                melon::btree_map<int, std::string> m;
                 std::pair<int, std::string> pair5 = {5, "five"};
 
                 // Test both lvalue & rvalue emplace.
@@ -2334,7 +2316,7 @@ namespace abel {
                 EXPECT_EQ(2, m.size());
                 EXPECT_TRUE(std::is_sorted(m.begin(), m.end()));
 
-                int int100{100};
+                size_t int100{100};
                 m.try_emplace(int100, "hundred");
                 m.try_emplace(1, "one");
                 EXPECT_EQ(4, m.size());
@@ -2342,13 +2324,13 @@ namespace abel {
             }
 
             TEST(Btree, TryEmplaceWithHintAndNoValueArgsWorks) {
-                abel::btree_map<int, int> m;
+                melon::btree_map<int, int> m;
                 m.try_emplace(m.end(), 1);
                 EXPECT_EQ(0, m[1]);
             }
 
             TEST(Btree, TryEmplaceWithHintAndMultipleValueArgsWorks) {
-                abel::btree_map<int, std::string> m;
+                melon::btree_map<int, std::string> m;
                 m.try_emplace(m.end(), 1, 10, 'a');
                 EXPECT_EQ(std::string(10, 'a'), m[1]);
             }
@@ -2363,12 +2345,11 @@ namespace abel {
 
                 // Test propagating allocator_type.
                 {
-                    abel::btree_set<MovableOnlyInstance, std::less<MovableOnlyInstance>,
+                    melon::btree_set<MovableOnlyInstance, std::less<MovableOnlyInstance>,
                             PropagatingCountingAlloc<MovableOnlyInstance>>
                             set1(cmp, allocator1), set2(cmp, allocator2);
 
-                    for (int i = 0; i < 100; ++i)
-                        set1.insert(MovableOnlyInstance(i));
+                    for (size_t i = 0; i < 100; ++i) set1.insert(MovableOnlyInstance(i));
 
                     tracker.ResetCopiesMovesSwaps();
                     set2 = std::move(set1);
@@ -2376,12 +2357,11 @@ namespace abel {
                 }
                 // Test non-propagating allocator_type with equal allocators.
                 {
-                    abel::btree_set<MovableOnlyInstance, std::less<MovableOnlyInstance>,
+                    melon::btree_set<MovableOnlyInstance, std::less<MovableOnlyInstance>,
                             CountingAllocator<MovableOnlyInstance>>
                             set1(cmp, allocator1), set2(cmp, allocator1);
 
-                    for (int i = 0; i < 100; ++i)
-                        set1.insert(MovableOnlyInstance(i));
+                    for (size_t i = 0; i < 100; ++i) set1.insert(MovableOnlyInstance(i));
 
                     tracker.ResetCopiesMovesSwaps();
                     set2 = std::move(set1);
@@ -2389,12 +2369,11 @@ namespace abel {
                 }
                 // Test non-propagating allocator_type with different allocators.
                 {
-                    abel::btree_set<MovableOnlyInstance, std::less<MovableOnlyInstance>,
+                    melon::btree_set<MovableOnlyInstance, std::less<MovableOnlyInstance>,
                             CountingAllocator<MovableOnlyInstance>>
                             set1(cmp, allocator1), set2(cmp, allocator2);
 
-                    for (int i = 0; i < 100; ++i)
-                        set1.insert(MovableOnlyInstance(i));
+                    for (size_t i = 0; i < 100; ++i) set1.insert(MovableOnlyInstance(i));
 
                     tracker.ResetCopiesMovesSwaps();
                     set2 = std::move(set1);
@@ -2403,7 +2382,7 @@ namespace abel {
             }
 
             TEST(Btree, EmptyTree) {
-                abel::btree_set<int> s;
+                melon::btree_set<int> s;
                 EXPECT_TRUE(s.empty());
                 EXPECT_EQ(s.size(), 0);
                 EXPECT_GT(s.max_size(), 0);
@@ -2411,54 +2390,52 @@ namespace abel {
 
             bool IsEven(int k) { return k % 2 == 0; }
 
-            TEST(Btree, erase_if) {
+            TEST(Btree, EraseIf) {
                 // Test that erase_if works with all the container types and supports lambdas.
                 {
-                    abel::btree_set<int> s = {1, 3, 5, 6, 100};
+                    melon::btree_set<int> s = {1, 3, 5, 6, 100};
                     erase_if(s, [](int k) { return k > 3; });
                     EXPECT_THAT(s, ElementsAre(1, 3));
                 }
                 {
-                    abel::btree_multiset<int> s = {1, 3, 3, 5, 6, 6, 100};
+                    melon::btree_multiset<int> s = {1, 3, 3, 5, 6, 6, 100};
                     erase_if(s, [](int k) { return k <= 3; });
                     EXPECT_THAT(s, ElementsAre(5, 6, 6, 100));
                 }
                 {
-                    abel::btree_map<int, int> m = {{1,   1},
-                                                   {3,   3},
-                                                   {6,   6},
-                                                   {100, 100}};
+                    melon::btree_map<int, int> m = {{1,   1},
+                                                    {3,   3},
+                                                    {6,   6},
+                                                    {100, 100}};
                     erase_if(m, [](std::pair<const int, int> kv) { return kv.first > 3; });
                     EXPECT_THAT(m, ElementsAre(Pair(1, 1), Pair(3, 3)));
                 }
                 {
-                    abel::btree_multimap<int, int> m = {{1,   1},
-                                                        {3,   3},
-                                                        {3,   6},
-                                                        {6,   6},
-                                                        {6,   7},
-                                                        {100, 6}};
+                    melon::btree_multimap<int, int> m = {{1,   1},
+                                                         {3,   3},
+                                                         {3,   6},
+                                                         {6,   6},
+                                                         {6,   7},
+                                                         {100, 6}};
                     erase_if(m, [](std::pair<const int, int> kv) { return kv.second == 6; });
                     EXPECT_THAT(m, ElementsAre(Pair(1, 1), Pair(3, 3), Pair(6, 7)));
                 }
                 // Test that erasing all elements from a large set works and test support for
                 // function pointers.
                 {
-                    abel::btree_set<int> s;
-                    for (int i = 0; i < 1000; ++i)
-                        s.insert(2 * i);
+                    melon::btree_set<int> s;
+                    for (size_t i = 0; i < 1000; ++i) s.insert(2 * i);
                     erase_if(s, IsEven);
                     EXPECT_THAT(s, IsEmpty());
                 }
                 // Test that erase_if supports other format of function pointers.
                 {
-                    abel::btree_set<int> s = {1, 3, 5, 6, 100};
+                    melon::btree_set<int> s = {1, 3, 5, 6, 100};
                     erase_if(s, &IsEven);
                     EXPECT_THAT(s, ElementsAre(1, 3, 5));
                 }
             }
 
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

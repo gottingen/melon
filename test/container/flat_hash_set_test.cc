@@ -1,64 +1,62 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/container/flat_hash_set.h"
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+
+#ifndef THIS_HASH_SET
+#define THIS_HASH_SET   flat_hash_set
+#define THIS_TEST_NAME  FlatHashSet
+#endif
+
+#include "melon/container/flat_hash_set.h"
+#include "melon/container/parallel_flat_hash_set.h"
+#include "melon/container/parallel_node_hash_set.h"
 #include <vector>
 
-#include "testing/hash_generator_testing.h"
+#include "hash_generator_testing.h"
 #include "unordered_set_constructor_test.h"
 #include "unordered_set_lookup_test.h"
 #include "unordered_set_members_test.h"
 #include "unordered_set_modifiers_test.h"
-#include "abel/memory/memory.h"
-#include <string_view>
 
-namespace abel {
-
-    namespace container_internal {
+namespace melon {
+    namespace priv {
         namespace {
 
-            using ::abel::container_internal::hash_internal::Enum;
-            using ::abel::container_internal::hash_internal::EnumClass;
-            using ::testing::IsEmpty;
+            using ::melon::priv::hash_internal::Enum;
+            using ::melon::priv::hash_internal::EnumClass;
             using ::testing::Pointee;
             using ::testing::UnorderedElementsAre;
             using ::testing::UnorderedElementsAreArray;
 
             template<class T>
             using Set =
-            abel::flat_hash_set<T, StatefulTestingHash, StatefulTestingEqual, Alloc<T>>;
+            melon::THIS_HASH_SET<T, StatefulTestingHash, StatefulTestingEqual, Alloc<T>>;
 
             using SetTypes =
             ::testing::Types<Set<int>, Set<std::string>, Set<Enum>, Set<EnumClass>>;
 
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashSet, ConstructorTest, SetTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashSet, LookupTest, SetTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashSet, MembersTest, SetTypes);
-            INSTANTIATE_TYPED_TEST_SUITE_P(FlatHashSet, ModifiersTest, SetTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, ConstructorTest, SetTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, LookupTest, SetTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, MembersTest, SetTypes);
+            INSTANTIATE_TYPED_TEST_SUITE_P(THIS_TEST_NAME, ModifiersTest, SetTypes);
 
-            TEST(FlatHashSet, EmplaceString) {
+            TEST(THIS_TEST_NAME, EmplaceString) {
                 std::vector<std::string> v = {"a", "b"};
-                abel::flat_hash_set<std::string_view> hs(v.begin(), v.end());
-                EXPECT_THAT(hs, UnorderedElementsAreArray(v));
+                melon::THIS_HASH_SET<std::string_view> hs(v.begin(), v.end());
+                //EXPECT_THAT(hs, UnorderedElementsAreArray(v));
             }
 
-
-            TEST(FlatHashSet, ignore_case) {
-                std::vector<std::string> v = {"a", "B"};
-                abel::ignore_case_flat_hash_set hs(v.begin(), v.end());
-                EXPECT_EQ(hs.contains("a"), true);
-                EXPECT_EQ(hs.contains("A"), true);
-                EXPECT_EQ(hs.contains("B"), true);
-            }
-
-            TEST(FlatHashSet, BitfieldArgument) {
+            TEST(THIS_TEST_NAME, BitfieldArgument) {
                 union {
-                    int n : 1;
+                    int n: 1;
                 };
                 n = 0;
-                abel::flat_hash_set<int> s = {n};
+                melon::THIS_HASH_SET<int> s = {n};
                 s.insert(n);
                 s.insert(s.end(), n);
                 s.insert({n});
@@ -70,8 +68,8 @@ namespace abel {
                 s.equal_range(n);
             }
 
-            TEST(FlatHashSet, MergeExtractInsert) {
-                struct Hash {
+            TEST(THIS_TEST_NAME, MergeExtractInsert) {
+                struct hash {
                     size_t operator()(const std::unique_ptr<int> &p) const { return *p; }
                 };
                 struct Eq {
@@ -80,12 +78,12 @@ namespace abel {
                         return *a == *b;
                     }
                 };
-                abel::flat_hash_set<std::unique_ptr<int>, Hash, Eq> set1, set2;
-                set1.insert(abel::make_unique<int>(7));
-                set1.insert(abel::make_unique<int>(17));
+                melon::THIS_HASH_SET<std::unique_ptr<int>, hash, Eq> set1, set2;
+                set1.insert(melon::make_unique<int>(7));
+                set1.insert(melon::make_unique<int>(17));
 
-                set2.insert(abel::make_unique<int>(7));
-                set2.insert(abel::make_unique<int>(19));
+                set2.insert(melon::make_unique<int>(7));
+                set2.insert(melon::make_unique<int>(19));
 
                 EXPECT_THAT(set1, UnorderedElementsAre(Pointee(7), Pointee(17)));
                 EXPECT_THAT(set2, UnorderedElementsAre(Pointee(7), Pointee(19)));
@@ -95,7 +93,7 @@ namespace abel {
                 EXPECT_THAT(set1, UnorderedElementsAre(Pointee(7), Pointee(17), Pointee(19)));
                 EXPECT_THAT(set2, UnorderedElementsAre(Pointee(7)));
 
-                auto node = set1.extract(abel::make_unique<int>(7));
+                auto node = set1.extract(melon::make_unique<int>(7));
                 EXPECT_TRUE(node);
                 EXPECT_THAT(node.value(), Pointee(7));
                 EXPECT_THAT(set1, UnorderedElementsAre(Pointee(17), Pointee(19)));
@@ -109,12 +107,12 @@ namespace abel {
                 EXPECT_NE(insert_result.position->get(), insert_result.node.value().get());
                 EXPECT_THAT(set2, UnorderedElementsAre(Pointee(7)));
 
-                node = set1.extract(abel::make_unique<int>(17));
+                node = set1.extract(melon::make_unique<int>(17));
                 EXPECT_TRUE(node);
                 EXPECT_THAT(node.value(), Pointee(17));
                 EXPECT_THAT(set1, UnorderedElementsAre(Pointee(19)));
 
-                node.value() = abel::make_unique<int>(23);
+                node.value() = melon::make_unique<int>(23);
 
                 insert_result = set2.insert(std::move(node));
                 EXPECT_FALSE(node);
@@ -124,42 +122,6 @@ namespace abel {
                 EXPECT_THAT(set2, UnorderedElementsAre(Pointee(7), Pointee(23)));
             }
 
-            bool IsEven(int k) { return k % 2 == 0; }
-
-            TEST(FlatHashSet, erase_if) {
-                // Erase all elements.
-                {
-                    flat_hash_set<int> s = {1, 2, 3, 4, 5};
-                    erase_if(s, [](int) { return true; });
-                    EXPECT_THAT(s, IsEmpty());
-                }
-                // Erase no elements.
-                {
-                    flat_hash_set<int> s = {1, 2, 3, 4, 5};
-                    erase_if(s, [](int) { return false; });
-                    EXPECT_THAT(s, UnorderedElementsAre(1, 2, 3, 4, 5));
-                }
-                // Erase specific elements.
-                {
-                    flat_hash_set<int> s = {1, 2, 3, 4, 5};
-                    erase_if(s, [](int k) { return k % 2 == 1; });
-                    EXPECT_THAT(s, UnorderedElementsAre(2, 4));
-                }
-                // Predicate is function reference.
-                {
-                    flat_hash_set<int> s = {1, 2, 3, 4, 5};
-                    erase_if(s, IsEven);
-                    EXPECT_THAT(s, UnorderedElementsAre(1, 3, 5));
-                }
-                // Predicate is function pointer.
-                {
-                    flat_hash_set<int> s = {1, 2, 3, 4, 5};
-                    erase_if(s, &IsEven);
-                    EXPECT_THAT(s, UnorderedElementsAre(1, 3, 5));
-                }
-            }
-
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

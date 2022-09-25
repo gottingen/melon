@@ -1,20 +1,22 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/container/internal/container_memory.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
+#include "melon/container/flat_hash_map.h"
 
 #include <cstdint>
 #include <tuple>
 #include <utility>
-
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include <string_view>
 
-namespace abel {
 
-    namespace container_internal {
+#include "testing/gtest_wrap.h"
+
+namespace melon {
+    namespace priv {
         namespace {
 
             using ::testing::Pair;
@@ -100,6 +102,7 @@ namespace abel {
                         [](std::string_view str) { return str.size(); }));
             }
 
+
             template<class F, class Arg>
             decltype(DecomposeValue(std::declval<F>(), std::declval<Arg>()))
             DecomposeValueImpl(int, F &&f, Arg &&arg) {
@@ -107,7 +110,7 @@ namespace abel {
             }
 
             template<class F, class Arg>
-            const char *DecomposeValueImpl(char, F &&f, Arg &&arg) {
+            const char *DecomposeValueImpl(char, F &&, Arg &&) {
                 return "not decomposable";
             }
 
@@ -141,7 +144,7 @@ namespace abel {
             }
 
             template<class F, class... Args>
-            const char *DecomposePairImpl(char, F &&f, Args &&... args) {
+            const char *DecomposePairImpl(char, F &&, Args &&...) {
                 return "not decomposable";
             }
 
@@ -178,6 +181,5 @@ namespace abel {
             }
 
         }  // namespace
-    }  // namespace container_internal
-
-}  // namespace abel
+    }  // namespace priv
+}  // namespace melon

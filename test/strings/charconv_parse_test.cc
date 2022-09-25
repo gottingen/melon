@@ -1,21 +1,23 @@
-// Copyright (c) 2021, gottingen group.
-// All rights reserved.
-// Created by liyinbin lijippy@163.com
 
-#include "abel/strings/internal/charconv_parse.h"
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+#include "melon/strings/internal/charconv_parse.h"
 
 #include <string>
 #include <utility>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "abel/log/logging.h"
-#include "abel/strings/str_cat.h"
 
-using abel::chars_format;
-using abel::strings_internal::FloatType;
-using abel::strings_internal::ParsedFloat;
-using abel::strings_internal::ParseFloat;
+#include "testing/gtest_wrap.h"
+#include "melon/log/logging.h"
+#include "melon/strings/str_cat.h"
+
+using melon::chars_format;
+using melon::strings_internal::FloatType;
+using melon::strings_internal::ParsedFloat;
+using melon::strings_internal::ParseFloat;
 
 namespace {
 
@@ -31,7 +33,7 @@ namespace {
 // the location of the extended NaN string.  For numbers, this is the location
 // of the full, over-large mantissa.
     template<int base>
-    void ExpectParsedFloat(std::string s, abel::chars_format format_flags,
+    void ExpectParsedFloat(std::string s, melon::chars_format format_flags,
                            FloatType expected_type, uint64_t expected_mantissa,
                            int expected_exponent,
                            int expected_literal_exponent = -999) {
@@ -46,14 +48,14 @@ namespace {
             begin_subrange = static_cast<int>(open_bracket_pos);
             s.replace(open_bracket_pos, 1, "");
             std::string::size_type close_bracket_pos = s.find(']');
-            DCHECK(close_bracket_pos != std::string_view::npos,
-                           "Test input contains [ without matching ]");
+            MELON_CHECK(close_bracket_pos != std::string_view::npos)<<
+                           "Test input contains [ without matching ]";
             end_subrange = static_cast<int>(close_bracket_pos);
             s.replace(close_bracket_pos, 1, "");
         }
         const std::string::size_type expected_characters_matched = s.find('$');
-        DCHECK(expected_characters_matched != std::string::npos,
-                       "Input std::string must contain $");
+        MELON_CHECK(expected_characters_matched != std::string::npos)<<
+                       "Input std::string must contain $";
         s.replace(expected_characters_matched, 1, "");
 
         ParsedFloat parsed =
@@ -88,7 +90,7 @@ namespace {
 // Input string `s` must contain a '$' character.  It marks the end of the
 // characters that were consumed by the match.
     template<int base>
-    void ExpectNumber(std::string s, abel::chars_format format_flags,
+    void ExpectNumber(std::string s, melon::chars_format format_flags,
                       uint64_t expected_mantissa, int expected_exponent,
                       int expected_literal_exponent = -999) {
         ExpectParsedFloat<base>(std::move(s), format_flags, FloatType::kNumber,
@@ -100,7 +102,7 @@ namespace {
 //
 // This tests against both number bases, since infinities and NaNs have
 // identical representations in both modes.
-    void ExpectSpecial(const std::string &s, abel::chars_format format_flags,
+    void ExpectSpecial(const std::string &s, melon::chars_format format_flags,
                        FloatType type) {
         ExpectParsedFloat<10>(s, format_flags, type, 0, 0);
         ExpectParsedFloat<16>(s, format_flags, type, 0, 0);
@@ -108,7 +110,7 @@ namespace {
 
 // Check that a given input string is not matched by Float.
     template<int base>
-    void ExpectFailedParse(std::string_view s, abel::chars_format format_flags) {
+    void ExpectFailedParse(std::string_view s, melon::chars_format format_flags) {
         ParsedFloat parsed =
                 ParseFloat<base>(s.data(), s.data() + s.size(), format_flags);
         EXPECT_EQ(parsed.end, nullptr);
