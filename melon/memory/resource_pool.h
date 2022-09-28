@@ -30,16 +30,16 @@
 
 namespace melon {
 
-// Specialize following classes to override default parameters for type T.
-//   namespace melon {
-//     template <> struct ResourcePoolBlockMaxSize<Foo> {
-//       static const size_t value = 1024;
-//     };
-//   }
+    // Specialize following classes to override default parameters for type T.
+    //   namespace melon {
+    //     template <> struct ResourcePoolBlockMaxSize<Foo> {
+    //       static const size_t value = 1024;
+    //     };
+    //   }
 
-// Memory is allocated in blocks, memory size of a block will not exceed:
-//   min(ResourcePoolBlockMaxSize<T>::value,
-//       ResourcePoolBlockMaxItem<T>::value * sizeof(T))
+    // Memory is allocated in blocks, memory size of a block will not exceed:
+    //   min(ResourcePoolBlockMaxSize<T>::value,
+    //       ResourcePoolBlockMaxItem<T>::value * sizeof(T))
     template<typename T>
     struct ResourcePoolBlockMaxSize {
         static const size_t value = 64 * 1024; // bytes
@@ -49,20 +49,20 @@ namespace melon {
         static const size_t value = 256;
     };
 
-// Free objects of each thread are grouped into a chunk before they are merged
-// to the global list. Memory size of objects in one free chunk will not exceed:
-//   min(ResourcePoolFreeChunkMaxItem<T>::value(),
-//       ResourcePoolBlockMaxSize<T>::value,
-//       ResourcePoolBlockMaxItem<T>::value * sizeof(T))
+    // Free objects of each thread are grouped into a chunk before they are merged
+    // to the global list. Memory size of objects in one free chunk will not exceed:
+    //   min(ResourcePoolFreeChunkMaxItem<T>::value(),
+    //       ResourcePoolBlockMaxSize<T>::value,
+    //       ResourcePoolBlockMaxItem<T>::value * sizeof(T))
     template<typename T>
     struct ResourcePoolFreeChunkMaxItem {
         static size_t value() { return 256; }
     };
 
-// ResourcePool calls this function on newly constructed objects. If this
-// function returns false, the object is destructed immediately and
-// get_resource() shall return NULL. This is useful when the constructor
-// failed internally(namely ENOMEM).
+    // ResourcePool calls this function on newly constructed objects. If this
+    // function returns false, the object is destructed immediately and
+    // get_resource() shall return NULL. This is useful when the constructor
+    // failed internally(namely ENOMEM).
     template<typename T>
     struct ResourcePoolValidator {
         static bool validate(const T *) { return true; }
