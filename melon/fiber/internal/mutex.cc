@@ -1,26 +1,13 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 
-// fiber - A M:N threading library to make applications more concurrent.
-
-// Date: Sun Aug  3 12:46:15 CST 2014
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
 #include <pthread.h>
 #include <execinfo.h>
+#include <sstream>
 #include "melon/files/filesystem.h"
 #include <dlfcn.h>                               // dlsym
 #include <fcntl.h>                               // O_RDONLY
@@ -175,7 +162,7 @@ namespace melon::fiber_internal {
         // Serialize contentions in _dedup_map into _disk_buf.
         if (!_dedup_map.empty()) {
             BT_VLOG << "dedup_map=" << _dedup_map.size();
-            melon::cord_buf_builder os;
+            std::ostringstream os;
             for (ContentionMap::const_iterator
                          it = _dedup_map.begin(); it != _dedup_map.end(); ++it) {
                 SampledContention *c = it->second;
@@ -187,7 +174,7 @@ namespace melon::fiber_internal {
                 c->destroy();
             }
             _dedup_map.clear();
-            _disk_buf.append(os.buf());
+            _disk_buf.append(os.str());
         }
 
         // Append /proc/self/maps to the end of the contention file, required by

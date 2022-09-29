@@ -1,4 +1,10 @@
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
 #include "melon/base/static_atomic.h"
 #include "melon/fiber/internal/waitable_event.h"
 #include "melon/fiber/internal/types.h"                       // fiber_cond_t

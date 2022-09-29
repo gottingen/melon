@@ -1,23 +1,9 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 
-// fiber - A M:N threading library to make applications more concurrent.
-
-// Date: Sun Sep  7 22:37:39 CST 2014
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
 #include <unistd.h>                               // getpagesize
 #include <sys/mman.h>                             // mmap, munmap, mprotect
@@ -52,7 +38,7 @@ namespace melon::fiber_internal {
     }
 
     static melon::status_gauge<int64_t> variable_stack_count(
-            "fiber_stack_count", get_stack_count, NULL);
+            "fiber_stack_count", get_stack_count, nullptr);
 
     int allocate_stack_storage(fiber_stack_storage *s, int stacksize_in, int guardsize_in) {
         const static int PAGESIZE = getpagesize();
@@ -67,9 +53,9 @@ namespace melon::fiber_internal {
 
         if (guardsize_in <= 0) {
             void *mem = malloc(stacksize);
-            if (NULL == mem) {
+            if (nullptr == mem) {
                 MELON_PLOG_EVERY_SECOND(ERROR) << "Fail to malloc (size="
-                                         << stacksize << ")";
+                                               << stacksize << ")";
                 return -1;
             }
             s_stack_count.fetch_add(1, std::memory_order_relaxed);
@@ -90,7 +76,7 @@ namespace melon::fiber_internal {
                     ~PAGESIZE_M1;
 
             const int memsize = stacksize + guardsize;
-            void *const mem = mmap(NULL, memsize, (PROT_READ | PROT_WRITE),
+            void *const mem = mmap(nullptr, memsize, (PROT_READ | PROT_WRITE),
                                    (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
 
             if (MAP_FAILED == mem) {
@@ -105,7 +91,7 @@ namespace melon::fiber_internal {
             void *aligned_mem = (void *) (((intptr_t) mem + PAGESIZE_M1) & ~PAGESIZE_M1);
             if (aligned_mem != mem) {
                 MELON_LOG_ONCE(ERROR) << "addr=" << mem << " returned by mmap is not "
-                                                     "aligned by pagesize=" << PAGESIZE;
+                                                           "aligned by pagesize=" << PAGESIZE;
             }
             const int offset = (char *) aligned_mem - (char *) mem;
             if (guardsize <= offset ||

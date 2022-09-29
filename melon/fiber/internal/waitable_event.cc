@@ -1,4 +1,10 @@
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
 #include "melon/base/static_atomic.h"                // std::atomic
 #include "melon/base/scoped_lock.h"              // MELON_SCOPED_LOCK
 #include "melon/base/profile.h"

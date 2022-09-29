@@ -1,4 +1,10 @@
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
 
 #ifndef MELON_FIBER_INTERNAL_SCHEDULE_GROUP_H_
 #define MELON_FIBER_INTERNAL_SCHEDULE_GROUP_H_
@@ -21,7 +27,7 @@ namespace melon::fiber_internal {
 
     class fiber_worker;
 
-// Control all task groups
+    // Control all task groups
     class schedule_group {
         friend class fiber_worker;
 

@@ -1,25 +1,10 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 
-// iobuf - A non-continuous zero-copied buffer
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-// Date: Thu Nov 22 13:57:56 CST 2012
-
-// Inlined implementations of some methods defined in iobuf.h
 
 #ifndef MELON_IO_CORD_BUF_INL_H_
 #define MELON_IO_CORD_BUF_INL_H_
@@ -256,81 +241,6 @@ namespace melon {
         const size_t old_size = out->size();
         out->resize(out->size() + n);
         return cutn(&(*out)[old_size], n);
-    }
-
-/////////////// cord_buf_appender /////////////////
-    inline int cord_buf_appender::append(const void *src, size_t n) {
-        do {
-            const size_t size = (char *) _data_end - (char *) _data;
-            if (n <= size) {
-                memcpy(_data, src, n);
-                _data = (char *) _data + n;
-                return 0;
-            }
-            if (size != 0) {
-                memcpy(_data, src, size);
-                src = (const char *) src + size;
-                n -= size;
-            }
-            if (add_block() != 0) {
-                return -1;
-            }
-        } while (true);
-    }
-
-    inline int cord_buf_appender::append(const std::string_view &str) {
-        return append(str.data(), str.size());
-    }
-
-    inline int cord_buf_appender::append_decimal(long d) {
-        char buf[24];  // enough for decimal 64-bit integers
-        size_t n = sizeof(buf);
-        bool negative = false;
-        if (d < 0) {
-            negative = true;
-            d = -d;
-        }
-        do {
-            const long q = d / 10;
-            buf[--n] = d - q * 10 + '0';
-            d = q;
-        } while (d);
-        if (negative) {
-            buf[--n] = '-';
-        }
-        return append(buf + n, sizeof(buf) - n);
-    }
-
-    inline int cord_buf_appender::push_back(char c) {
-        if (_data == _data_end) {
-            if (add_block() != 0) {
-                return -1;
-            }
-        }
-        char *const p = (char *) _data;
-        *p = c;
-        _data = p + 1;
-        return 0;
-    }
-
-    inline int cord_buf_appender::add_block() {
-        int size = 0;
-        if (_zc_stream.Next(&_data, &size)) {
-            _data_end = (char *) _data + size;
-            return 0;
-        }
-        _data = NULL;
-        _data_end = NULL;
-        return -1;
-    }
-
-    inline void cord_buf_appender::shrink() {
-        const size_t size = (char *) _data_end - (char *) _data;
-        if (size != 0) {
-            _zc_stream.BackUp(size);
-            _data = NULL;
-            _data_end = NULL;
-        }
     }
 
     inline cord_buf_bytes_iterator::cord_buf_bytes_iterator(const melon::cord_buf &buf)

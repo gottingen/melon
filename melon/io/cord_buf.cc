@@ -1,25 +1,11 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 
-// iobuf - A non-continuous zero-copied buffer
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-// Date: Thu Nov 22 13:57:56 CST 2012
 
-#include <openssl/ssl.h>                   // SSL_*
 #include <sys/syscall.h>                   // syscall
 #include <fcntl.h>                         // O_RDONLY
 #include <errno.h>                         // errno
@@ -34,12 +20,12 @@
 
 namespace melon {
 
-    namespace iobuf {
+    namespace io_internal {
 
         typedef ssize_t (*iov_function)(int fd, const struct iovec *vector,
                                         int count, off_t offset);
 
-// Userpsace preadv
+        // Userpsace preadv
         static ssize_t user_preadv(int fd, const struct iovec *vector,
                                    int count, off_t offset) {
             ssize_t total_read = 0;
@@ -84,7 +70,7 @@ namespace melon {
 #define SYS_pwritev 296
 #endif // SYS_pwritev
 
-// SYS_preadv/SYS_pwritev is available since Linux 2.6.30
+        // SYS_preadv/SYS_pwritev is available since Linux 2.6.30
         static ssize_t sys_preadv(int fd, const struct iovec *vector,
                                   int count, off_t offset) {
             return syscall(SYS_preadv, fd, vector, count, offset);
@@ -109,7 +95,7 @@ namespace melon {
             const int rc = syscall(SYS_preadv, (int) fd, &vec, 1, 0);
             if (rc < 0) {
                 MELON_PLOG(WARNING) << "The kernel doesn't support SYS_preadv, "
-                                 " use user_preadv instead";
+                                       " use user_preadv instead";
                 return user_preadv;
             }
             return sys_preadv;
@@ -129,7 +115,7 @@ namespace melon {
             const int rc = syscall(SYS_pwritev, (int) fd, &vec, 1, 0);
             if (rc < 0) {
                 MELON_PLOG(WARNING) << "The kernel doesn't support SYS_pwritev, "
-                                 " use user_pwritev instead";
+                                       " use user_pwritev instead";
                 return user_pwritev;
             }
             return sys_pwritev;
@@ -170,18 +156,18 @@ namespace melon {
         melon::static_atomic<size_t> g_blockmem = MELON_STATIC_ATOMIC_INIT(0);
         melon::static_atomic<size_t> g_newbigview = MELON_STATIC_ATOMIC_INIT(0);
 
-    }  // namespace iobuf
+    }  // namespace io_internal
 
     size_t cord_buf::block_count() {
-        return iobuf::g_nblock.load(std::memory_order_relaxed);
+        return io_internal::g_nblock.load(std::memory_order_relaxed);
     }
 
     size_t cord_buf::block_memory() {
-        return iobuf::g_blockmem.load(std::memory_order_relaxed);
+        return io_internal::g_blockmem.load(std::memory_order_relaxed);
     }
 
     size_t cord_buf::new_bigview_count() {
-        return iobuf::g_newbigview.load(std::memory_order_relaxed);
+        return io_internal::g_newbigview.load(std::memory_order_relaxed);
     }
 
     const uint16_t CORD_BUF_BLOCK_FLAGS_USER_DATA = 0x1;
@@ -192,42 +178,42 @@ namespace melon {
         UserDataDeleter deleter;
     };
 
-    struct cord_buf::Block {
+    struct cord_buf::buf_block {
         std::atomic<int> nshared;
         uint16_t flags;
         uint16_t abi_check;  // original cap, never be zero.
         uint32_t size;
         uint32_t cap;
-        Block *portal_next;
+        buf_block *portal_next;
         // When flag is 0, data points to `size` bytes starting at `(char*)this+sizeof(Block)'
         // When flag & CORD_BUF_BLOCK_FLAGS_USER_DATA is non-0, data points to the user data and
         // the deleter is put in UserDataExtension at `(char*)this+sizeof(Block)'
         char *data;
 
-        Block(char *data_in, uint32_t data_size)
-                : nshared(1), flags(0), abi_check(0), size(0), cap(data_size), portal_next(NULL), data(data_in) {
-            iobuf::g_nblock.fetch_add(1, std::memory_order_relaxed);
-            iobuf::g_blockmem.fetch_add(data_size + sizeof(Block),
+        buf_block(char *data_in, uint32_t data_size)
+                : nshared(1), flags(0), abi_check(0), size(0), cap(data_size), portal_next(nullptr), data(data_in) {
+            io_internal::g_nblock.fetch_add(1, std::memory_order_relaxed);
+            io_internal::g_blockmem.fetch_add(data_size + sizeof(buf_block),
                                         std::memory_order_relaxed);
         }
 
-        Block(char *data_in, uint32_t data_size, UserDataDeleter deleter)
+        buf_block(char *data_in, uint32_t data_size, UserDataDeleter deleter)
                 : nshared(1), flags(CORD_BUF_BLOCK_FLAGS_USER_DATA), abi_check(0), size(data_size), cap(data_size),
-                  portal_next(NULL), data(data_in) {
+                  portal_next(nullptr), data(data_in) {
             get_user_data_extension()->deleter = deleter;
         }
 
         // Undefined behavior when (flags & CORD_BUF_BLOCK_FLAGS_USER_DATA) is 0.
         UserDataExtension *get_user_data_extension() {
             char *p = (char *) this;
-            return (UserDataExtension *) (p + sizeof(Block));
+            return (UserDataExtension *) (p + sizeof(buf_block));
         }
 
         inline void check_abi() {
 #ifndef NDEBUG
             if (abi_check != 0) {
                 MELON_LOG(FATAL) << "Your program seems to wrongly contain two "
-                    "ABI-incompatible implementations of cord_buf";
+                                    "ABI-incompatible implementations of cord_buf";
             }
 #endif
         }
@@ -242,14 +228,14 @@ namespace melon {
             if (nshared.fetch_sub(1, std::memory_order_release) == 1) {
                 std::atomic_thread_fence(std::memory_order_acquire);
                 if (!flags) {
-                    iobuf::g_nblock.fetch_sub(1, std::memory_order_relaxed);
-                    iobuf::g_blockmem.fetch_sub(cap + sizeof(Block),
+                    io_internal::g_nblock.fetch_sub(1, std::memory_order_relaxed);
+                    io_internal::g_blockmem.fetch_sub(cap + sizeof(buf_block),
                                                 std::memory_order_relaxed);
-                    this->~Block();
-                    iobuf::blockmem_deallocate(this);
+                    this->~buf_block();
+                    io_internal::blockmem_deallocate(this);
                 } else if (flags & CORD_BUF_BLOCK_FLAGS_USER_DATA) {
                     get_user_data_extension()->deleter(data);
-                    this->~Block();
+                    this->~buf_block();
                     free(this);
                 }
             }
@@ -264,37 +250,37 @@ namespace melon {
         size_t left_space() const { return cap - size; }
     };
 
-    namespace iobuf {
+    namespace io_internal {
 
         // for unit test
-        int block_shared_count(cord_buf::Block const *b) { return b->ref_count(); }
+        int block_shared_count(cord_buf::buf_block const *b) { return b->ref_count(); }
 
-        cord_buf::Block *get_portal_next(cord_buf::Block const *b) {
+        cord_buf::buf_block *get_portal_next(cord_buf::buf_block const *b) {
             return b->portal_next;
         }
 
-        uint32_t block_cap(cord_buf::Block const *b) {
+        uint32_t block_cap(cord_buf::buf_block const *b) {
             return b->cap;
         }
 
-        uint32_t block_size(cord_buf::Block const *b) {
+        uint32_t block_size(cord_buf::buf_block const *b) {
             return b->size;
         }
 
-        inline cord_buf::Block *create_block(const size_t block_size) {
+        inline cord_buf::buf_block *create_block(const size_t block_size) {
             if (block_size > 0xFFFFFFFFULL) {
                 MELON_LOG(FATAL) << "block_size=" << block_size << " is too large";
-                return NULL;
+                return nullptr;
             }
-            char *mem = (char *) iobuf::blockmem_allocate(block_size);
-            if (mem == NULL) {
-                return NULL;
+            char *mem = (char *) io_internal::blockmem_allocate(block_size);
+            if (mem == nullptr) {
+                return nullptr;
             }
-            return new(mem) cord_buf::Block(mem + sizeof(cord_buf::Block),
-                                         block_size - sizeof(cord_buf::Block));
+            return new(mem) cord_buf::buf_block(mem + sizeof(cord_buf::buf_block),
+                                            block_size - sizeof(cord_buf::buf_block));
         }
 
-        inline cord_buf::Block *create_block() {
+        inline cord_buf::buf_block *create_block() {
             return create_block(cord_buf::DEFAULT_BLOCK_SIZE);
         }
 
@@ -305,7 +291,7 @@ namespace melon {
 
         struct TLSData {
             // Head of the TLS block chain.
-            cord_buf::Block *block_head;
+            cord_buf::buf_block *block_head;
 
             // Number of TLS blocks
             int num_blocks;
@@ -314,10 +300,10 @@ namespace melon {
             bool registered;
         };
 
-        static __thread TLSData g_tls_data = {NULL, 0, false};
+        static __thread TLSData g_tls_data = {nullptr, 0, false};
 
         // Used in UT
-        cord_buf::Block *get_tls_block_head() { return g_tls_data.block_head; }
+        cord_buf::buf_block *get_tls_block_head() { return g_tls_data.block_head; }
 
         int get_tls_block_count() { return g_tls_data.num_blocks; }
 
@@ -329,14 +315,14 @@ namespace melon {
         // Called in UT.
         void remove_tls_block_chain() {
             TLSData &tls_data = g_tls_data;
-            cord_buf::Block *b = tls_data.block_head;
+            cord_buf::buf_block *b = tls_data.block_head;
             if (!b) {
                 return;
             }
-            tls_data.block_head = NULL;
+            tls_data.block_head = nullptr;
             int n = 0;
             do {
-                cord_buf::Block *const saved_next = b->portal_next;
+                cord_buf::buf_block *const saved_next = b->portal_next;
                 b->dec_ref();
                 b = saved_next;
                 ++n;
@@ -347,17 +333,17 @@ namespace melon {
 
 // Get a (non-full) block from TLS.
 // Notice that the block is not removed from TLS.
-        cord_buf::Block *share_tls_block() {
+        cord_buf::buf_block *share_tls_block() {
             TLSData &tls_data = g_tls_data;
-            cord_buf::Block *const b = tls_data.block_head;
-            if (b != NULL && !b->full()) {
+            cord_buf::buf_block *const b = tls_data.block_head;
+            if (b != nullptr && !b->full()) {
                 return b;
             }
-            cord_buf::Block *new_block = NULL;
+            cord_buf::buf_block *new_block = nullptr;
             if (b) {
                 new_block = b;
                 while (new_block && new_block->full()) {
-                    cord_buf::Block *const saved_next = new_block->portal_next;
+                    cord_buf::buf_block *const saved_next = new_block->portal_next;
                     new_block->dec_ref();
                     --tls_data.num_blocks;
                     new_block = saved_next;
@@ -368,7 +354,7 @@ namespace melon {
                 melon::thread::atexit(remove_tls_block_chain);
             }
             if (!new_block) {
-                new_block = create_block(); // may be NULL
+                new_block = create_block(); // may be nullptr
                 if (new_block) {
                     ++tls_data.num_blocks;
                 }
@@ -378,7 +364,7 @@ namespace melon {
         }
 
         // Return one block to TLS.
-        inline void release_tls_block(cord_buf::Block *b) {
+        inline void release_tls_block(cord_buf::buf_block *b) {
             if (!b) {
                 return;
             }
@@ -399,27 +385,27 @@ namespace melon {
             }
         }
 
-// Return chained blocks to TLS.
-// NOTE: b MUST be non-NULL and all blocks linked SHOULD not be full.
-        void release_tls_block_chain(cord_buf::Block *b) {
+        // Return chained blocks to TLS.
+        // NOTE: b MUST be non-nullptr and all blocks linked SHOULD not be full.
+        void release_tls_block_chain(cord_buf::buf_block *b) {
             TLSData &tls_data = g_tls_data;
             size_t n = 0;
             if (tls_data.num_blocks >= MAX_BLOCKS_PER_THREAD) {
                 do {
                     ++n;
-                    cord_buf::Block *const saved_next = b->portal_next;
+                    cord_buf::buf_block *const saved_next = b->portal_next;
                     b->dec_ref();
                     b = saved_next;
                 } while (b);
                 g_num_hit_tls_threshold.fetch_add(n, std::memory_order_relaxed);
                 return;
             }
-            cord_buf::Block *first_b = b;
-            cord_buf::Block *last_b = NULL;
+            cord_buf::buf_block *first_b = b;
+            cord_buf::buf_block *last_b = nullptr;
             do {
                 ++n;
                 MELON_CHECK(!b->full());
-                if (b->portal_next == NULL) {
+                if (b->portal_next == nullptr) {
                     last_b = b;
                     break;
                 }
@@ -435,14 +421,14 @@ namespace melon {
         }
 
 // Get and remove one (non-full) block from TLS. If TLS is empty, create one.
-        cord_buf::Block *acquire_tls_block() {
+        cord_buf::buf_block *acquire_tls_block() {
             TLSData &tls_data = g_tls_data;
-            cord_buf::Block *b = tls_data.block_head;
+            cord_buf::buf_block *b = tls_data.block_head;
             if (!b) {
                 return create_block();
             }
             while (b->full()) {
-                cord_buf::Block *const saved_next = b->portal_next;
+                cord_buf::buf_block *const saved_next = b->portal_next;
                 b->dec_ref();
                 tls_data.block_head = saved_next;
                 --tls_data.num_blocks;
@@ -453,12 +439,12 @@ namespace melon {
             }
             tls_data.block_head = b->portal_next;
             --tls_data.num_blocks;
-            b->portal_next = NULL;
+            b->portal_next = nullptr;
             return b;
         }
 
         inline cord_buf::BlockRef *acquire_blockref_array(size_t cap) {
-            iobuf::g_newbigview.fetch_add(1, std::memory_order_relaxed);
+            io_internal::g_newbigview.fetch_add(1, std::memory_order_relaxed);
             return new cord_buf::BlockRef[cap];
         }
 
@@ -470,10 +456,10 @@ namespace melon {
             delete[] refs;
         }
 
-    }  // namespace iobuf
+    }  // namespace io_internal
 
     size_t cord_buf::block_count_hit_tls_threshold() {
-        return iobuf::g_num_hit_tls_threshold.load(std::memory_order_relaxed);
+        return io_internal::g_num_hit_tls_threshold.load(std::memory_order_relaxed);
     }
 
     static_assert(sizeof(cord_buf::SmallView) == sizeof(cord_buf::BigView),
@@ -499,7 +485,7 @@ namespace melon {
             _bv.nref = rhs._bv.nref;
             _bv.cap_mask = rhs._bv.cap_mask;
             _bv.nbytes = rhs._bv.nbytes;
-            _bv.refs = iobuf::acquire_blockref_array(_bv.capacity());
+            _bv.refs = io_internal::acquire_blockref_array(_bv.capacity());
             for (size_t i = 0; i < _bv.nref; ++i) {
                 _bv.refs[i] = rhs._bv.ref_at(i);
                 _bv.refs[i].block->inc_ref();
@@ -534,14 +520,14 @@ namespace melon {
     template<bool MOVE>
     void cord_buf::_push_or_move_back_ref_to_smallview(const BlockRef &r) {
         BlockRef *const refs = _sv.refs;
-        if (NULL == refs[0].block) {
+        if (nullptr == refs[0].block) {
             refs[0] = r;
             if (!MOVE) {
                 r.block->inc_ref();
             }
             return;
         }
-        if (NULL == refs[1].block) {
+        if (nullptr == refs[1].block) {
             if (refs[0].block == r.block &&
                 refs[0].offset + refs[0].length == r.offset) { // Merge ref
                 refs[0].length += r.length;
@@ -565,7 +551,7 @@ namespace melon {
             return;
         }
         // Convert to BigView
-        BlockRef *new_refs = iobuf::acquire_blockref_array();
+        BlockRef *new_refs = io_internal::acquire_blockref_array();
         new_refs[0] = refs[0];
         new_refs[1] = refs[1];
         new_refs[2] = r;
@@ -609,7 +595,7 @@ namespace melon {
         }
         // resize, don't modify bv until new_refs is fully assigned
         const uint32_t new_cap = _bv.capacity() * 2;
-        BlockRef *new_refs = iobuf::acquire_blockref_array(new_cap);
+        BlockRef *new_refs = io_internal::acquire_blockref_array(new_cap);
         for (uint32_t i = 0; i < _bv.nref; ++i) {
             new_refs[i] = _bv.ref_at(i);
         }
@@ -617,7 +603,7 @@ namespace melon {
 
         // Change other variables
         _bv.start = 0;
-        iobuf::release_blockref_array(_bv.refs, _bv.capacity());
+        io_internal::release_blockref_array(_bv.refs, _bv.capacity());
         _bv.refs = new_refs;
         _bv.cap_mask = new_cap - 1;
         _bv.nbytes += r.length;
@@ -634,7 +620,7 @@ namespace melon {
     template<bool MOVEOUT>
     int cord_buf::_pop_or_moveout_front_ref() {
         if (_small()) {
-            if (_sv.refs[0].block != NULL) {
+            if (_sv.refs[0].block != nullptr) {
                 if (!MOVEOUT) {
                     _sv.refs[0].block->dec_ref();
                 }
@@ -657,7 +643,7 @@ namespace melon {
                 const uint32_t saved_cap_mask = _bv.cap_mask;
                 _sv.refs[0] = saved_refs[(start + 1) & saved_cap_mask];
                 _sv.refs[1] = saved_refs[(start + 2) & saved_cap_mask];
-                iobuf::release_blockref_array(saved_refs, saved_cap_mask + 1);
+                io_internal::release_blockref_array(saved_refs, saved_cap_mask + 1);
             }
             return 0;
         }
@@ -670,11 +656,11 @@ namespace melon {
 
     int cord_buf::_pop_back_ref() {
         if (_small()) {
-            if (_sv.refs[1].block != NULL) {
+            if (_sv.refs[1].block != nullptr) {
                 _sv.refs[1].block->dec_ref();
                 reset_block_ref(_sv.refs[1]);
                 return 0;
-            } else if (_sv.refs[0].block != NULL) {
+            } else if (_sv.refs[0].block != nullptr) {
                 _sv.refs[0].block->dec_ref();
                 reset_block_ref(_sv.refs[0]);
                 return 0;
@@ -692,7 +678,7 @@ namespace melon {
                 const uint32_t saved_cap_mask = _bv.cap_mask;
                 _sv.refs[0] = saved_refs[start];
                 _sv.refs[1] = saved_refs[(start + 1) & saved_cap_mask];
-                iobuf::release_blockref_array(saved_refs, saved_cap_mask + 1);
+                io_internal::release_blockref_array(saved_refs, saved_cap_mask + 1);
             }
             return 0;
         }
@@ -700,11 +686,11 @@ namespace melon {
 
     void cord_buf::clear() {
         if (_small()) {
-            if (_sv.refs[0].block != NULL) {
+            if (_sv.refs[0].block != nullptr) {
                 _sv.refs[0].block->dec_ref();
                 reset_block_ref(_sv.refs[0]);
 
-                if (_sv.refs[1].block != NULL) {
+                if (_sv.refs[1].block != nullptr) {
                     _sv.refs[1].block->dec_ref();
                     reset_block_ref(_sv.refs[1]);
                 }
@@ -713,7 +699,7 @@ namespace melon {
             for (uint32_t i = 0; i < _bv.nref; ++i) {
                 _bv.ref_at(i).block->dec_ref();
             }
-            iobuf::release_blockref_array(_bv.refs, _bv.capacity());
+            io_internal::release_blockref_array(_bv.refs, _bv.capacity());
             new(this) cord_buf;
         }
     }
@@ -817,12 +803,12 @@ namespace melon {
         while (n) {   // length() == 0 does not enter
             cord_buf::BlockRef &r = _front_ref();
             if (r.length <= n) {
-                iobuf::cp(out, r.block->data + r.offset, r.length);
+                io_internal::cp(out, r.block->data + r.offset, r.length);
                 out = (char *) out + r.length;
                 n -= r.length;
                 _pop_front_ref();
             } else {
-                iobuf::cp(out, r.block->data + r.offset, n);
+                io_internal::cp(out, r.block->data + r.offset, n);
                 out = (char *) out + n;
                 r.offset += n;
                 r.length -= n;
@@ -931,7 +917,7 @@ namespace melon {
         ssize_t nw = 0;
 
         if (offset >= 0) {
-            static iobuf::iov_function pwritev_func = iobuf::get_pwritev_func();
+            static io_internal::iov_function pwritev_func = io_internal::get_pwritev_func();
             nw = pwritev_func(fd, vec, nvec, offset);
         } else {
             nw = ::writev(fd, vec, nvec);
@@ -966,67 +952,6 @@ namespace melon {
         return nw;
     }
 
-    ssize_t cord_buf::cut_into_SSL_channel(SSL *ssl, int *ssl_error) {
-        *ssl_error = SSL_ERROR_NONE;
-        if (empty()) {
-            return 0;
-        }
-
-        cord_buf::BlockRef const &r = _ref_at(0);
-        const int nw = SSL_write(ssl, r.block->data + r.offset, r.length);
-        if (nw > 0) {
-            pop_front(nw);
-        }
-        *ssl_error = SSL_get_error(ssl, nw);
-        return nw;
-    }
-
-    ssize_t cord_buf::cut_multiple_into_SSL_channel(SSL *ssl, cord_buf *const *pieces,
-                                                 size_t count, int *ssl_error) {
-        ssize_t nw = 0;
-        *ssl_error = SSL_ERROR_NONE;
-        for (size_t i = 0; i < count;) {
-            if (pieces[i]->empty()) {
-                ++i;
-                continue;
-            }
-
-            ssize_t rc = pieces[i]->cut_into_SSL_channel(ssl, ssl_error);
-            if (rc > 0) {
-                nw += rc;
-            } else {
-                if (rc < 0) {
-                    if (*ssl_error == SSL_ERROR_WANT_WRITE
-                        || (*ssl_error == SSL_ERROR_SYSCALL
-                            && BIO_fd_non_fatal_error(errno) == 1)) {
-                        // Non fatal error, tell caller to write again
-                        *ssl_error = SSL_ERROR_WANT_WRITE;
-                    } else {
-                        // Other errors are fatal
-                        return rc;
-                    }
-                }
-                if (nw == 0) {
-                    nw = rc;    // Nothing written yet, overwrite nw
-                }
-                break;
-            }
-        }
-
-        // Flush remaining data inside the BIO buffer layer
-        BIO *wbio = SSL_get_wbio(ssl);
-        if (BIO_wpending(wbio) > 0) {
-            int rc = BIO_flush(wbio);
-            if (rc <= 0 && BIO_fd_non_fatal_error(errno) == 0) {
-                // Fatal error during BIO_flush
-                *ssl_error = SSL_ERROR_SYSCALL;
-                return rc;
-            }
-        }
-
-        return nw;
-    }
-
     ssize_t cord_buf::pcut_multiple_into_file_descriptor(
             int fd, off_t offset, cord_buf *const *pieces, size_t count) {
         if (MELON_UNLIKELY(count == 0)) {
@@ -1049,7 +974,7 @@ namespace melon {
 
         ssize_t nw = 0;
         if (offset >= 0) {
-            static iobuf::iov_function pwritev_func = iobuf::get_pwritev_func();
+            static io_internal::iov_function pwritev_func = io_internal::get_pwritev_func();
             nw = pwritev_func(fd, vec, nvec, offset);
         } else {
             nw = ::writev(fd, vec, nvec);
@@ -1119,14 +1044,14 @@ namespace melon {
                 _move_back_ref(other._ref_at(i));
             }
             if (!other._small()) {
-                iobuf::release_blockref_array(other._bv.refs, other._bv.capacity());
+                io_internal::release_blockref_array(other._bv.refs, other._bv.capacity());
             }
             new(&other) cord_buf;
         }
     }
 
     int cord_buf::push_back(char c) {
-        cord_buf::Block *b = iobuf::share_tls_block();
+        cord_buf::buf_block *b = io_internal::share_tls_block();
         if (MELON_UNLIKELY(!b)) {
             return -1;
         }
@@ -1138,7 +1063,7 @@ namespace melon {
     }
 
     int cord_buf::append(char const *s) {
-        if (MELON_LIKELY(s != NULL)) {
+        if (MELON_LIKELY(s != nullptr)) {
             return append(s, strlen(s));
         }
         return -1;
@@ -1153,12 +1078,12 @@ namespace melon {
         }
         size_t total_nc = 0;
         while (total_nc < count) {  // excluded count == 0
-            cord_buf::Block *b = iobuf::share_tls_block();
+            cord_buf::buf_block *b = io_internal::share_tls_block();
             if (MELON_UNLIKELY(!b)) {
                 return -1;
             }
             const size_t nc = std::min(count - total_nc, b->left_space());
-            iobuf::cp(b->data + b->size, (char *) data + total_nc, nc);
+            io_internal::cp(b->data + b->size, (char *) data + total_nc, nc);
 
             const cord_buf::BlockRef r = {(uint32_t) b->size, (uint32_t) nc, b};
             _push_back_ref(r);
@@ -1171,7 +1096,7 @@ namespace melon {
     int cord_buf::appendv(const const_iovec *vec, size_t n) {
         size_t offset = 0;
         for (size_t i = 0; i < n;) {
-            cord_buf::Block *b = iobuf::share_tls_block();
+            cord_buf::buf_block *b = io_internal::share_tls_block();
             if (MELON_UNLIKELY(!b)) {
                 return -1;
             }
@@ -1179,7 +1104,7 @@ namespace melon {
             for (; i < n; ++i, offset = 0) {
                 const const_iovec &vec_i = vec[i];
                 const size_t nc = std::min(vec_i.iov_len - offset, b->left_space() - total_cp);
-                iobuf::cp(b->data + b->size + total_cp, (char *) vec_i.iov_base + offset, nc);
+                io_internal::cp(b->data + b->size + total_cp, (char *) vec_i.iov_base + offset, nc);
                 total_cp += nc;
                 offset += nc;
                 if (offset != vec_i.iov_len) {
@@ -1199,14 +1124,14 @@ namespace melon {
             MELON_LOG(FATAL) << "data_size=" << size << " is too large";
             return -1;
         }
-        char *mem = (char *) malloc(sizeof(cord_buf::Block) + sizeof(UserDataExtension));
-        if (mem == NULL) {
+        char *mem = (char *) malloc(sizeof(cord_buf::buf_block) + sizeof(UserDataExtension));
+        if (mem == nullptr) {
             return -1;
         }
-        if (deleter == NULL) {
+        if (deleter == nullptr) {
             deleter = ::free;
         }
-        cord_buf::Block *b = new(mem) cord_buf::Block((char *) data, size, deleter);
+        cord_buf::buf_block *b = new(mem) cord_buf::buf_block((char *) data, size, deleter);
         const cord_buf::BlockRef r = {0, b->cap, b};
         _move_back_ref(r);
         return 0;
@@ -1221,7 +1146,7 @@ namespace melon {
         const size_t count = n - saved_len;
         size_t total_nc = 0;
         while (total_nc < count) {  // excluded count == 0
-            cord_buf::Block *b = iobuf::share_tls_block();
+            cord_buf::buf_block *b = io_internal::share_tls_block();
             if (MELON_UNLIKELY(!b)) {
                 return -1;
             }
@@ -1236,7 +1161,7 @@ namespace melon {
         return 0;
     }
 
-// NOTE: We don't use C++ bitwise fields which make copying slower.
+    // NOTE: We don't use C++ bitwise fields which make copying slower.
     static const int REF_INDEX_BITS = 19;
     static const int REF_OFFSET_BITS = 15;
     static const int AREA_SIZE_BITS = 30;
@@ -1245,7 +1170,7 @@ namespace melon {
     static const uint32_t MAX_AREA_SIZE = (((uint32_t) 1) << AREA_SIZE_BITS) - 1;
 
     inline cord_buf::Area make_area(uint32_t ref_index, uint32_t ref_offset,
-                                 uint32_t size) {
+                                    uint32_t size) {
         if (ref_index > MAX_REF_INDEX ||
             ref_offset > MAX_REF_OFFSET ||
             size > MAX_AREA_SIZE) {
@@ -1273,7 +1198,7 @@ namespace melon {
         cord_buf::Area result = INVALID_AREA;
         size_t total_nc = 0;
         while (total_nc < count) {  // excluded count == 0
-            cord_buf::Block *b = iobuf::share_tls_block();
+            cord_buf::buf_block *b = io_internal::share_tls_block();
             if (MELON_UNLIKELY(!b)) {
                 return INVALID_AREA;
             }
@@ -1292,7 +1217,7 @@ namespace melon {
     }
 
     int cord_buf::unsafe_assign(Area area, const void *data) {
-        if (area == INVALID_AREA || data == NULL) {
+        if (area == INVALID_AREA || data == nullptr) {
             MELON_LOG(ERROR) << "Invalid parameters";
             return -1;
         }
@@ -1307,7 +1232,7 @@ namespace melon {
             // (by different BlockRef-s)
 
             const size_t nc = std::min(length, r.length - ref_offset);
-            iobuf::cp(r.block->data + r.offset + ref_offset, data, nc);
+            io_internal::cp(r.block->data + r.offset + ref_offset, data, nc);
             if (length == nc) {
                 return 0;
             }
@@ -1318,11 +1243,11 @@ namespace melon {
 
         // Use check because we need to see the stack here.
         MELON_CHECK(false) << "cord_buf(" << size() << ", nref=" << _ref_num()
-                     << ") is shorter than what we reserved("
-                     << "ref=" << get_area_ref_index(area)
-                     << " off=" << get_area_ref_offset(area)
-                     << " size=" << get_area_size(area)
-                     << "), this assignment probably corrupted something...";
+                           << ") is shorter than what we reserved("
+                           << "ref=" << get_area_ref_index(area)
+                           << " off=" << get_area_ref_offset(area)
+                           << " size=" << get_area_size(area)
+                           << "), this assignment probably corrupted something...";
         return -1;
     }
 
@@ -1343,7 +1268,7 @@ namespace melon {
             cord_buf::BlockRef const &r = _ref_at(i);
             const size_t nc = std::min(m, (size_t) r.length - offset);
             const cord_buf::BlockRef r2 = {(uint32_t) (r.offset + offset),
-                                        (uint32_t) nc, r.block};
+                                           (uint32_t) nc, r.block};
             buf->_push_back_ref(r2);
             offset = 0;
             m -= nc;
@@ -1368,7 +1293,7 @@ namespace melon {
         for (; m != 0 && i < nref; ++i) {
             cord_buf::BlockRef const &r = _ref_at(i);
             const size_t nc = std::min(m, (size_t) r.length - offset);
-            iobuf::cp(d, r.block->data + r.offset + offset, nc);
+            io_internal::cp(d, r.block->data + r.offset + offset, nc);
             offset = 0;
             d = (char *) d + nc;
             m -= nc;
@@ -1416,21 +1341,21 @@ namespace melon {
                 return r0.block->data + r0.offset;
             }
 
-            iobuf::cp(d, r0.block->data + r0.offset, r0.length);
+            io_internal::cp(d, r0.block->data + r0.offset, r0.length);
             size_t total_nc = r0.length;
             const size_t nref = _ref_num();
             for (size_t i = 1; i < nref; ++i) {
                 cord_buf::BlockRef const &r = _ref_at(i);
                 if (n <= r.length + total_nc) {
-                    iobuf::cp((char *) d + total_nc,
+                    io_internal::cp((char *) d + total_nc,
                               r.block->data + r.offset, n - total_nc);
                     return d;
                 }
-                iobuf::cp((char *) d + total_nc, r.block->data + r.offset, r.length);
+                io_internal::cp((char *) d + total_nc, r.block->data + r.offset, r.length);
                 total_nc += r.length;
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     const void *cord_buf::fetch1() const {
@@ -1438,7 +1363,7 @@ namespace melon {
             const cord_buf::BlockRef &r0 = _front_ref();
             return r0.block->data + r0.offset;
         }
-        return NULL;
+        return nullptr;
     }
 
     std::ostream &operator<<(std::ostream &os, const cord_buf &buf) {
@@ -1543,17 +1468,17 @@ namespace melon {
         iovec vec[MAX_APPEND_IOVEC];
         int nvec = 0;
         size_t space = 0;
-        Block *prev_p = NULL;
-        Block *p = _block;
+        buf_block *prev_p = nullptr;
+        buf_block *p = _block;
         // Prepare at most MAX_APPEND_IOVEC blocks or space of blocks >= max_count
         do {
-            if (p == NULL) {
-                p = iobuf::acquire_tls_block();
+            if (p == nullptr) {
+                p = io_internal::acquire_tls_block();
                 if (MELON_UNLIKELY(!p)) {
                     errno = ENOMEM;
                     return -1;
                 }
-                if (prev_p != NULL) {
+                if (prev_p != nullptr) {
                     prev_p->portal_next = p;
                 } else {
                     _block = p;
@@ -1574,7 +1499,7 @@ namespace melon {
         if (offset < 0) {
             nr = readv(fd, vec, nvec);
         } else {
-            static iobuf::iov_function preadv_func = iobuf::get_preadv_func();
+            static io_internal::iov_function preadv_func = io_internal::get_preadv_func();
             nr = preadv_func(fd, vec, nvec, offset);
         }
         if (nr <= 0) {  // -1 or 0
@@ -1592,7 +1517,7 @@ namespace melon {
             _push_back_ref(r);
             _block->size += len;
             if (_block->full()) {
-                Block *const saved_next = _block->portal_next;
+                buf_block *const saved_next = _block->portal_next;
                 _block->dec_ref();  // _block may be deleted
                 _block = saved_next;
             }
@@ -1604,17 +1529,17 @@ namespace melon {
         iovec vec[MAX_APPEND_IOVEC];
         int nvec = 0;
         size_t space = 0;
-        Block *prev_p = NULL;
-        Block *p = _block;
+        buf_block *prev_p = nullptr;
+        buf_block *p = _block;
         // Prepare at most MAX_APPEND_IOVEC blocks or space of blocks >= max_count
         do {
-            if (p == NULL) {
-                p = iobuf::acquire_tls_block();
+            if (p == nullptr) {
+                p = io_internal::acquire_tls_block();
                 if (MELON_UNLIKELY(!p)) {
                     errno = ENOMEM;
                     return -1;
                 }
-                if (prev_p != NULL) {
+                if (prev_p != nullptr) {
                     prev_p->portal_next = p;
                 } else {
                     _block = p;
@@ -1647,67 +1572,22 @@ namespace melon {
             _push_back_ref(r);
             _block->size += len;
             if (_block->full()) {
-                Block *const saved_next = _block->portal_next;
+                buf_block *const saved_next = _block->portal_next;
                 _block->dec_ref();  // _block may be deleted
                 _block = saved_next;
             }
         } while (total_len);
         return nr;
     }
-
-
-    ssize_t IOPortal::append_from_SSL_channel(
-            SSL *ssl, int *ssl_error, size_t max_count) {
-        size_t nr = 0;
-        do {
-            if (!_block) {
-                _block = iobuf::acquire_tls_block();
-                if (MELON_UNLIKELY(!_block)) {
-                    errno = ENOMEM;
-                    *ssl_error = SSL_ERROR_SYSCALL;
-                    return -1;
-                }
-            }
-
-            const size_t read_len = std::min(_block->left_space(), max_count - nr);
-            const int rc = SSL_read(ssl, _block->data + _block->size, read_len);
-            *ssl_error = SSL_get_error(ssl, rc);
-            if (rc > 0) {
-                const cord_buf::BlockRef r = {(uint32_t) _block->size, (uint32_t) rc, _block};
-                _push_back_ref(r);
-                _block->size += rc;
-                if (_block->full()) {
-                    Block *const saved_next = _block->portal_next;
-                    _block->dec_ref();  // _block may be deleted
-                    _block = saved_next;
-                }
-                nr += rc;
-            } else {
-                if (rc < 0) {
-                    if (*ssl_error == SSL_ERROR_WANT_READ
-                        || (*ssl_error == SSL_ERROR_SYSCALL
-                            && BIO_fd_non_fatal_error(errno) == 1)) {
-                        // Non fatal error, tell caller to read again
-                        *ssl_error = SSL_ERROR_WANT_READ;
-                    } else {
-                        // Other errors are fatal
-                        return rc;
-                    }
-                }
-                return (nr > 0 ? nr : rc);
-            }
-        } while (nr < max_count);
-        return nr;
-    }
-
-    void IOPortal::return_cached_blocks_impl(Block *b) {
-        iobuf::release_tls_block_chain(b);
+    
+    void IOPortal::return_cached_blocks_impl(buf_block *b) {
+        io_internal::release_tls_block_chain(b);
     }
 
 //////////////// cord_buf_cutter ////////////////
 
     cord_buf_cutter::cord_buf_cutter(melon::cord_buf *buf)
-            : _data(NULL), _data_end(NULL), _block(NULL), _buf(buf) {
+            : _data(nullptr), _data_end(nullptr), _block(nullptr), _buf(buf) {
     }
 
     cord_buf_cutter::~cord_buf_cutter() {
@@ -1728,9 +1608,9 @@ namespace melon {
             _buf->_pop_front_ref();
         }
         if (!_buf->_ref_num()) {
-            _data = NULL;
-            _data_end = NULL;
-            _block = NULL;
+            _data = nullptr;
+            _data_end = nullptr;
+            _block = nullptr;
             return false;
         } else {
             const cord_buf::BlockRef &r = _buf->_front_ref();
@@ -1778,26 +1658,26 @@ namespace melon {
         const size_t size = (char *) _data_end - (char *) _data;
         if (n <= size) {
             const cord_buf::BlockRef r = {(uint32_t) ((char *) _data - _block->data),
-                                       (uint32_t) n,
-                                       _block};
+                                          (uint32_t) n,
+                                          _block};
             out->_push_back_ref(r);
             _data = (char *) _data + n;
             return n;
         } else if (size != 0) {
             const cord_buf::BlockRef r = {(uint32_t) ((char *) _data - _block->data),
-                                       (uint32_t) size,
-                                       _block};
+                                          (uint32_t) size,
+                                          _block};
             out->_push_back_ref(r);
             _buf->_pop_front_ref();
-            _data = NULL;
-            _data_end = NULL;
-            _block = NULL;
+            _data = nullptr;
+            _data_end = nullptr;
+            _block = nullptr;
             return _buf->cutn(out, n - size) + size;
         } else {
             if (_block) {
-                _data = NULL;
-                _data_end = NULL;
-                _block = NULL;
+                _data = nullptr;
+                _data_end = nullptr;
+                _block = nullptr;
                 _buf->_pop_front_ref();
             }
             return _buf->cutn(out, n);
@@ -1816,263 +1696,21 @@ namespace melon {
         } else if (size != 0) {
             memcpy(out, _data, size);
             _buf->_pop_front_ref();
-            _data = NULL;
-            _data_end = NULL;
-            _block = NULL;
+            _data = nullptr;
+            _data_end = nullptr;
+            _block = nullptr;
             return _buf->cutn((char *) out + size, n - size) + size;
         } else {
             if (_block) {
-                _data = NULL;
-                _data_end = NULL;
-                _block = NULL;
+                _data = nullptr;
+                _data_end = nullptr;
+                _block = nullptr;
                 _buf->_pop_front_ref();
             }
             return _buf->cutn(out, n);
         }
     }
 
-    cord_buf_as_zero_copy_input_stream::cord_buf_as_zero_copy_input_stream(const cord_buf &buf)
-            : _ref_index(0), _add_offset(0), _byte_count(0), _buf(&buf) {
-    }
-
-    bool cord_buf_as_zero_copy_input_stream::Next(const void **data, int *size) {
-        const cord_buf::BlockRef *cur_ref = _buf->_pref_at(_ref_index);
-        if (cur_ref == NULL) {
-            return false;
-        }
-        *data = cur_ref->block->data + cur_ref->offset + _add_offset;
-        // Impl. of Backup/Skip guarantees that _add_offset < cur_ref->length.
-        *size = cur_ref->length - _add_offset;
-        _byte_count += cur_ref->length - _add_offset;
-        _add_offset = 0;
-        ++_ref_index;
-        return true;
-    }
-
-    void cord_buf_as_zero_copy_input_stream::BackUp(int count) {
-        if (_ref_index > 0) {
-            const cord_buf::BlockRef *cur_ref = _buf->_pref_at(--_ref_index);
-            MELON_CHECK(_add_offset == 0 && cur_ref->length >= (uint32_t) count)
-                            << "BackUp() is not after a Next()";
-            _add_offset = cur_ref->length - count;
-            _byte_count -= count;
-        } else {
-            MELON_LOG(FATAL) << "BackUp an empty ZeroCopyInputStream";
-        }
-    }
-
-// Skips a number of bytes.  Returns false if the end of the stream is
-// reached or some input error occurred.  In the end-of-stream case, the
-// stream is advanced to the end of the stream (so ByteCount() will return
-// the total size of the stream).
-    bool cord_buf_as_zero_copy_input_stream::Skip(int count) {
-        const cord_buf::BlockRef *cur_ref = _buf->_pref_at(_ref_index);
-        while (cur_ref) {
-            const int left_bytes = cur_ref->length - _add_offset;
-            if (count < left_bytes) {
-                _add_offset += count;
-                _byte_count += count;
-                return true;
-            }
-            count -= left_bytes;
-            _add_offset = 0;
-            _byte_count += left_bytes;
-            cur_ref = _buf->_pref_at(++_ref_index);
-        }
-        return false;
-    }
-
-    google::protobuf::int64 cord_buf_as_zero_copy_input_stream::ByteCount() const {
-        return _byte_count;
-    }
-
-    cord_buf_as_zero_copy_output_stream::cord_buf_as_zero_copy_output_stream(cord_buf *buf)
-            : _buf(buf), _block_size(0), _cur_block(NULL), _byte_count(0) {
-    }
-
-    cord_buf_as_zero_copy_output_stream::cord_buf_as_zero_copy_output_stream(
-            cord_buf *buf, uint32_t block_size)
-            : _buf(buf), _block_size(block_size), _cur_block(NULL), _byte_count(0) {
-
-        if (_block_size <= offsetof(cord_buf::Block, data)) {
-            throw std::invalid_argument("block_size is too small");
-        }
-    }
-
-    cord_buf_as_zero_copy_output_stream::~cord_buf_as_zero_copy_output_stream() {
-        _release_block();
-    }
-
-    bool cord_buf_as_zero_copy_output_stream::Next(void **data, int *size) {
-        if (_cur_block == NULL || _cur_block->full()) {
-            _release_block();
-            if (_block_size > 0) {
-                _cur_block = iobuf::create_block(_block_size);
-            } else {
-                _cur_block = iobuf::acquire_tls_block();
-            }
-            if (_cur_block == NULL) {
-                return false;
-            }
-        }
-        const cord_buf::BlockRef r = {_cur_block->size,
-                                   (uint32_t) _cur_block->left_space(),
-                                   _cur_block};
-        *data = _cur_block->data + r.offset;
-        *size = r.length;
-        _cur_block->size = _cur_block->cap;
-        _buf->_push_back_ref(r);
-        _byte_count += r.length;
-        return true;
-    }
-
-    void cord_buf_as_zero_copy_output_stream::BackUp(int count) {
-        while (!_buf->empty()) {
-            cord_buf::BlockRef &r = _buf->_back_ref();
-            if (_cur_block) {
-                // A ordinary BackUp that should be supported by all ZeroCopyOutputStream
-                // _cur_block must match end of the cord_buf
-                if (r.block != _cur_block) {
-                    MELON_LOG(FATAL) << "r.block=" << r.block
-                               << " does not match _cur_block=" << _cur_block;
-                    return;
-                }
-                if (r.offset + r.length != _cur_block->size) {
-                    MELON_LOG(FATAL) << "r.offset(" << r.offset << ") + r.length("
-                               << r.length << ") != _cur_block->size("
-                               << _cur_block->size << ")";
-                    return;
-                }
-            } else {
-                // An extended BackUp which is undefined in regular
-                // ZeroCopyOutputStream. The `count' given by user is larger than
-                // size of last _cur_block (already released in last iteration).
-                if (r.block->ref_count() == 1) {
-                    // A special case: the block is only referenced by last
-                    // BlockRef of _buf. Safe to allocate more on the block.
-                    if (r.offset + r.length != r.block->size) {
-                        MELON_LOG(FATAL) << "r.offset(" << r.offset << ") + r.length("
-                                   << r.length << ") != r.block->size("
-                                   << r.block->size << ")";
-                        return;
-                    }
-                } else if (r.offset + r.length != r.block->size) {
-                    // Last BlockRef does not match end of the block (which is
-                    // used by other cord_buf already). Unsafe to re-reference
-                    // the block and allocate more, just pop the bytes.
-                    _byte_count -= _buf->pop_back(count);
-                    return;
-                } // else Last BlockRef matches end of the block. Even if the
-                // block is shared by other cord_buf, it's safe to allocate bytes
-                // after block->size.
-                _cur_block = r.block;
-                _cur_block->inc_ref();
-            }
-            if (MELON_LIKELY(r.length > (uint32_t) count)) {
-                r.length -= count;
-                if (!_buf->_small()) {
-                    _buf->_bv.nbytes -= count;
-                }
-                _cur_block->size -= count;
-                _byte_count -= count;
-                // Release block for TLS before quiting BackUp() for other
-                // code to reuse the block even if this wrapper object is
-                // not destructed. Example:
-                //    cord_buf_as_zero_copy_output_stream wrapper(...);
-                //    ParseFromZeroCopyStream(&wrapper, ...); // Calls BackUp
-                //    cord_buf buf;
-                //    buf.append("foobar");  // can reuse the TLS block.
-                if (_block_size == 0) {
-                    iobuf::release_tls_block(_cur_block);
-                    _cur_block = NULL;
-                }
-                return;
-            }
-            _cur_block->size -= r.length;
-            _byte_count -= r.length;
-            count -= r.length;
-            _buf->_pop_back_ref();
-            _release_block();
-            if (count == 0) {
-                return;
-            }
-        }
-        MELON_LOG_IF(FATAL, count != 0) << "BackUp an empty cord_buf";
-    }
-
-    google::protobuf::int64 cord_buf_as_zero_copy_output_stream::ByteCount() const {
-        return _byte_count;
-    }
-
-    void cord_buf_as_zero_copy_output_stream::_release_block() {
-        if (_block_size > 0) {
-            if (_cur_block) {
-                _cur_block->dec_ref();
-            }
-        } else {
-            iobuf::release_tls_block(_cur_block);
-        }
-        _cur_block = NULL;
-    }
-
-    cord_buf_as_snappy_sink::cord_buf_as_snappy_sink(melon::cord_buf &buf)
-            : _cur_buf(NULL), _cur_len(0), _buf(&buf), _buf_stream(&buf) {
-    }
-
-    void cord_buf_as_snappy_sink::Append(const char *bytes, size_t n) {
-        if (_cur_len > 0) {
-            MELON_CHECK(bytes == _cur_buf && static_cast<int>(n) <= _cur_len)
-                            << "bytes must be _cur_buf";
-            _buf_stream.BackUp(_cur_len - n);
-            _cur_len = 0;
-        } else {
-            _buf->append(bytes, n);
-        }
-    }
-
-    char *cord_buf_as_snappy_sink::GetAppendBuffer(size_t length, char *scratch) {
-        // TODO: melon::cord_buf supports dynamic sized blocks.
-        if (length <= 8000/*just a hint*/) {
-            if (_buf_stream.Next(reinterpret_cast<void **>(&_cur_buf), &_cur_len)) {
-                if (_cur_len >= static_cast<int>(length)) {
-                    return _cur_buf;
-                } else {
-                    _buf_stream.BackUp(_cur_len);
-                }
-            } else {
-                MELON_LOG(FATAL) << "Fail to alloc buffer";
-            }
-        } // else no need to try.
-        _cur_buf = NULL;
-        _cur_len = 0;
-        return scratch;
-    }
-
-    size_t cord_buf_as_snappy_source::Available() const {
-        return _buf->length() - _stream.ByteCount();
-    }
-
-    void cord_buf_as_snappy_source::Skip(size_t n) {
-        _stream.Skip(n);
-    }
-
-    const char *cord_buf_as_snappy_source::Peek(size_t *len) {
-        const char *buffer = NULL;
-        int res = 0;
-        if (_stream.Next((const void **) &buffer, &res)) {
-            *len = res;
-            // Source::Peek requires no reposition.
-            _stream.BackUp(*len);
-            return buffer;
-        } else {
-            *len = 0;
-            return NULL;
-        }
-    }
-
-    cord_buf_appender::cord_buf_appender()
-            : _data(NULL), _data_end(NULL), _zc_stream(&_buf) {
-    }
 
     size_t cord_buf_bytes_iterator::append_and_forward(melon::cord_buf *buf, size_t n) {
         size_t nc = 0;
@@ -2081,7 +1719,7 @@ namespace melon {
             const size_t block_size = _block_end - _block_begin;
             const size_t to_copy = std::min(block_size, n - nc);
             cord_buf::BlockRef r2 = {(uint32_t) (_block_begin - r.block->data),
-                                  (uint32_t) to_copy, r.block};
+                                     (uint32_t) to_copy, r.block};
             buf->_push_back_ref(r2);
             _block_begin += to_copy;
             _bytes_left -= to_copy;
@@ -2108,5 +1746,5 @@ namespace melon {
 }  // namespace melon
 
 void *fast_memcpy(void *__restrict dest, const void *__restrict src, size_t n) {
-    return melon::iobuf::cp(dest, src, n);
+    return melon::io_internal::cp(dest, src, n);
 }

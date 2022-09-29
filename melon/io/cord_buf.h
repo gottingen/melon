@@ -1,23 +1,10 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 
-// iobuf - A non-continuous zero-copied buffer
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
 
-// Date: Thu Nov 22 13:57:56 CST 2012
 
 #ifndef MELON_IO_CORD_BUF_H_
 #define MELON_IO_CORD_BUF_H_
@@ -28,9 +15,6 @@
 #include <ostream>                               // std::ostream
 #include <string_view>
 #include <utility>
-#include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyInputStream
-#include "melon/io/snappy/snappy-sinksource.h"
-#include "melon/io/zero_copy_stream_as_streambuf.h"
 #include "melon/io/reader_writer.h"
 #include "melon/io/binary_printer.h"
 
@@ -67,7 +51,7 @@ namespace melon {
         static const size_t DEFAULT_BLOCK_SIZE = 8192;
         static const size_t INITIAL_CAP = 32; // must be power of 2
 
-        struct Block;
+        struct buf_block;
 
         // can't directly use `struct iovec' here because we also need to access the
         // reference counter(nshared) in Block*
@@ -75,7 +59,7 @@ namespace melon {
             // NOTICE: first bit of `offset' is shared with BigView::start
             uint32_t offset;
             uint32_t length;
-            Block *block;
+            buf_block *block;
         };
 
         // cord_buf is essentially a tiny queue of BlockRefs.
@@ -181,10 +165,6 @@ namespace melon {
         ssize_t pcut_into_file_descriptor(int fd, off_t offset /*NOTE*/,
                                           size_t size_hint = 1024 * 1024);
 
-        // Cut into SSL channel `ssl'. Returns what `SSL_write' returns
-        // and the ssl error code will be filled into `ssl_error'
-        ssize_t cut_into_SSL_channel(struct ssl_st *ssl, int *ssl_error);
-
         // Cut `count' number of `pieces' into the writer.
         // Returns bytes cut on success, -1 otherwise and errno is set.
         static ssize_t cut_multiple_into_writer(
@@ -204,10 +184,6 @@ namespace melon {
         static ssize_t pcut_multiple_into_file_descriptor(
                 int fd, off_t offset, cord_buf *const *pieces, size_t count);
 
-        // Cut `count' number of `pieces' into SSL channel `ssl'.
-        // Returns bytes cut on success, -1 otherwise and errno is set.
-        static ssize_t cut_multiple_into_SSL_channel(
-                struct ssl_st *ssl, cord_buf *const *pieces, size_t count, int *ssl_error);
 
         // Append another cord_buf to back side, payload of the cord_buf is shared
         // rather than copied.
@@ -482,10 +458,6 @@ namespace melon {
         // If `offset' is negative, does exactly what append_from_file_descriptor does.
         ssize_t pappend_from_file_descriptor(int fd, off_t offset, size_t max_count);
 
-        // Read as many bytes as possible from SSL channel `ssl', and stop until `max_count'.
-        // Returns total bytes read and the ssl error code will be filled into `ssl_error'
-        ssize_t append_from_SSL_channel(struct ssl_st *ssl, int *ssl_error,
-                                        size_t max_count = 1024 * 1024);
 
         // Remove all data inside and return cached blocks.
         void clear();
@@ -498,13 +470,13 @@ namespace melon {
         void return_cached_blocks();
 
     private:
-        static void return_cached_blocks_impl(Block *);
+        static void return_cached_blocks_impl(buf_block *);
 
         // Cached blocks for appending. Notice that the blocks are released
         // until return_cached_blocks()/clear()/dtor() are called, rather than
         // released after each append_xxx(), which makes messages read from one
         // file descriptor more likely to share blocks and have less BlockRefs.
-        Block *_block;
+        buf_block *_block;
     };
 
     // Specialized utility to cut from cord_buf faster than using corresponding
@@ -552,198 +524,13 @@ namespace melon {
     private:
         void *_data;
         void *_data_end;
-        cord_buf::Block *_block;
+        cord_buf::buf_block *_block;
         cord_buf *_buf;
     };
 
-    // Parse protobuf message from cord_buf. Notice that this wrapper does not change
-    // source cord_buf, which also should not change during lifetime of the wrapper.
-    // Even if a cord_buf_as_zero_copy_input_stream is created but parsed, the source
-    // cord_buf should not be changed as well becuase constructor of the stream
-    // saves internal information of the source cord_buf which is assumed to be
-    // unchanged.
-    // Example:
-    //     cord_buf_as_zero_copy_input_stream wrapper(the_iobuf_with_protobuf_format_data);
-    //     some_pb_message.ParseFromZeroCopyStream(&wrapper);
-    class cord_buf_as_zero_copy_input_stream
-            : public google::protobuf::io::ZeroCopyInputStream {
-    public:
-        explicit cord_buf_as_zero_copy_input_stream(const cord_buf &);
 
-        bool Next(const void **data, int *size) override;
-
-        void BackUp(int count) override;
-
-        bool Skip(int count) override;
-
-        google::protobuf::int64 ByteCount() const override;
-
-    private:
-        int _ref_index;
-        int _add_offset;
-        google::protobuf::int64 _byte_count;
-        const cord_buf *_buf;
-    };
-
-    // Serialize protobuf message into cord_buf. This wrapper does not clear source
-    // cord_buf before appending. You can change the source cord_buf when stream is
-    // not used(append sth. to the cord_buf, serialize a protobuf message, append
-    // sth. again, serialize messages again...). This is different from
-    // cord_buf_as_zero_copy_input_stream which needs the source cord_buf to be unchanged.
-    // Example:
-    //     cord_buf_as_zero_copy_output_stream wrapper(&the_iobuf_to_put_data_in);
-    //     some_pb_message.SerializeToZeroCopyStream(&wrapper);
-    //
-    // NOTE: Blocks are by default shared among all the ZeroCopyOutputStream in one
-    // thread. If there are many manuplated streams at one time, there may be many
-    // fragments. You can create a ZeroCopyOutputStream which has its own block by
-    // passing a positive `block_size' argument to avoid this problem.
-    class cord_buf_as_zero_copy_output_stream
-            : public google::protobuf::io::ZeroCopyOutputStream {
-    public:
-        explicit cord_buf_as_zero_copy_output_stream(cord_buf *);
-
-        cord_buf_as_zero_copy_output_stream(cord_buf *, uint32_t block_size);
-
-        ~cord_buf_as_zero_copy_output_stream();
-
-        bool Next(void **data, int *size) override;
-
-        void BackUp(int count) override; // `count' can be as long as ByteCount()
-        google::protobuf::int64 ByteCount() const override;
-
-    private:
-        void _release_block();
-
-        cord_buf *_buf;
-        uint32_t _block_size;
-        cord_buf::Block *_cur_block;
-        google::protobuf::int64 _byte_count;
-    };
-
-    // Wrap cord_buf into input of snappy compresson.
-    class cord_buf_as_snappy_source : public melon::snappy::Source {
-    public:
-        explicit cord_buf_as_snappy_source(const melon::cord_buf &buf)
-                : _buf(&buf), _stream(buf) {}
-
-        virtual ~cord_buf_as_snappy_source() {}
-
-        // Return the number of bytes left to read from the source
-        size_t Available() const override;
-
-        // Peek at the next flat region of the source.
-        const char *Peek(size_t *len) override;
-
-        // Skip the next n bytes.  Invalidates any buffer returned by
-        // a previous call to Peek().
-        void Skip(size_t n) override;
-
-    private:
-        const melon::cord_buf *_buf;
-        melon::cord_buf_as_zero_copy_input_stream _stream;
-    };
-
-// Wrap cord_buf into output of snappy compression.
-    class cord_buf_as_snappy_sink : public melon::snappy::Sink {
-    public:
-        explicit cord_buf_as_snappy_sink(melon::cord_buf &buf);
-
-        virtual ~cord_buf_as_snappy_sink() {}
-
-        // Append "bytes[0,n-1]" to this.
-        void Append(const char *bytes, size_t n) override;
-
-        // Returns a writable buffer of the specified length for appending.
-        char *GetAppendBuffer(size_t length, char *scratch) override;
-
-    private:
-        char *_cur_buf;
-        int _cur_len;
-        melon::cord_buf *_buf;
-        melon::cord_buf_as_zero_copy_output_stream _buf_stream;
-    };
-
-    // A std::ostream to build cord_buf.
-    // Example:
-    //   cord_buf_builder builder;
-    //   builder << "Anything that can be sent to std::ostream";
-    //   // You have several methods to fetch the cord_buf.
-    //   target_iobuf.append(builder.buf()); // builder.buf() was not changed
-    //   OR
-    //   builder.move_to(target_iobuf);      // builder.buf() was clear()-ed.
-    class cord_buf_builder :
-            // Have to use private inheritance to arrange initialization order.
-            virtual private cord_buf,
-            virtual private cord_buf_as_zero_copy_output_stream,
-            virtual private zero_copy_stream_as_stream_buf,
-            public std::ostream {
-    public:
-        explicit cord_buf_builder()
-                : cord_buf_as_zero_copy_output_stream(this), zero_copy_stream_as_stream_buf(this), std::ostream(this) {}
-
-        cord_buf &buf() {
-            this->shrink();
-            return *this;
-        }
-
-        void buf(const cord_buf &buf) {
-            *static_cast<cord_buf *>(this) = buf;
-        }
-
-        void move_to(cord_buf &target) {
-            target = Movable(buf());
-        }
-    };
-
-    // Create cord_buf by appending data *faster*
-    class cord_buf_appender {
-    public:
-        cord_buf_appender();
-
-        // Append `n' bytes starting from `data' to back side of the internal buffer
-        // Costs 2/3 time of cord_buf.append for short data/strings on Intel(R) Xeon(R)
-        // CPU E5-2620 @ 2.00GHz. Longer data/strings make differences smaller.
-        // Returns 0 on success, -1 otherwise.
-        int append(const void *data, size_t n);
-
-        int append(const std::string_view &str);
-
-        // Format integer |d| to back side of the internal buffer, which is much faster
-        // than snprintf(..., "%lu", d).
-        // Returns 0 on success, -1 otherwise.
-        int append_decimal(long d);
-
-        // Push the character to back side of the internal buffer.
-        // Costs ~3ns while cord_buf.push_back costs ~13ns on Intel(R) Xeon(R) CPU
-        // E5-2620 @ 2.00GHz
-        // Returns 0 on success, -1 otherwise.
-        int push_back(char c);
-
-        cord_buf &buf() {
-            shrink();
-            return _buf;
-        }
-
-        void move_to(cord_buf &target) {
-            target = cord_buf::Movable(buf());
-        }
-
-    private:
-        void shrink();
-
-        int add_block();
-
-        void *_data;
-        // Saving _data_end instead of _size avoid modifying _data and _size
-        // in each push_back() which is probably a hotspot.
-        void *_data_end;
-        cord_buf _buf;
-        cord_buf_as_zero_copy_output_stream _zc_stream;
-    };
-
-// Iterate bytes of a cord_buf.
-// During iteration, the iobuf should NOT be changed.
+    // Iterate bytes of a cord_buf.
+    // During iteration, the iobuf should NOT be changed.
     class cord_buf_bytes_iterator {
     public:
         explicit cord_buf_bytes_iterator(const melon::cord_buf &buf);

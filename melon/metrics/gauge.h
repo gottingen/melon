@@ -36,7 +36,7 @@ namespace melon {
 
         template<typename T>
         struct place_holder_collect {
-            void operator()(const T *, cache_metrics &metric) const {}
+            void operator()(const T *, cache_metrics &) const {}
         };
 
         template<typename T>

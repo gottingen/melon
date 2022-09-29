@@ -276,9 +276,9 @@ namespace melon {
                 }
                 MELON_LOG(INFO) << it->first << ": " << it->second.filter;
                 if (it->second.filter & DISPLAY_ON_METRICS) {
-                    cache_metrics m;
-                    it->second.var->collect_metrics(m);
-                    metrics->push_back(std::move(m));
+                    cache_metrics cm;
+                    it->second.var->collect_metrics(cm);
+                    metrics->push_back(std::move(cm));
                 }
             }
         }

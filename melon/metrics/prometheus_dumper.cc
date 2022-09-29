@@ -5,13 +5,14 @@
  * Author by liyinbin (jeff.li) lijippy@163.com
  *****************************************************************/
 
+#include <sstream>
 #include "melon/metrics/prometheus_dumper.h"
 
 namespace melon {
 
     namespace metrics_detail {
         // Write a double as a string, with proper formatting for infinity and NaN
-        void write_value(cord_buf_builder *out, double value) {
+        void write_value(std::ostream *out, double value) {
             if (std::isnan(value)) {
                 *out << "Nan";
             } else if (std::isinf(value)) {
@@ -23,7 +24,7 @@ namespace melon {
             }
         }
 
-        void write_value(cord_buf_builder *out, const std::string &value) {
+        void write_value(std::ostream *out, const std::string &value) {
             for (auto c : value) {
                 if (c == '\\' || c == '"' || c == '\n') {
                     *out << "\\";
@@ -35,7 +36,7 @@ namespace melon {
 
         // Write a line header: metric name and labels
         template<typename T = std::string>
-        void write_head(cord_buf_builder *out, const cache_metrics &metric,
+        void write_head(std::ostream *out, const cache_metrics &metric,
                         const std::string &suffix = "",
                         const std::string &extraLabelName = "",
                         const T &extraLabelValue = T()) {
@@ -61,27 +62,27 @@ namespace melon {
         }
 
         // Write a line trailer: timestamp
-        void write_tail(cord_buf_builder *out, const cache_metrics &metrics, const melon::time_point *tp) {
+        void write_tail(std::ostream *out, const cache_metrics &metrics, const melon::time_point *tp) {
             if (tp) {
                 *out << " " << tp->to_unix_millis();
             }
             *out << "\n";
         }
 
-        void serialize_counter(cord_buf_builder *out, const cache_metrics &metric, const melon::time_point *tp) {
+        void serialize_counter(std::ostream *out, const cache_metrics &metric, const melon::time_point *tp) {
             write_head(out, metric);
             write_value(out, metric.counter.value);
             write_tail(out, metric, tp);
         }
 
-        void serialize_gauge(cord_buf_builder *out,
+        void serialize_gauge(std::ostream *out,
                              const cache_metrics &metric, const melon::time_point *tp) {
             write_head(out, metric);
             write_value(out, metric.gauge.value);
             write_tail(out, metric, tp);
         }
 
-        void serialize_histogram(cord_buf_builder *out,
+        void serialize_histogram(std::ostream *out,
                                  const cache_metrics &metric, const melon::time_point *tp) {
             auto &hist = metric.histogram;
             write_head(out, metric, "_count");
@@ -136,9 +137,9 @@ namespace melon {
     }
 
     std::string prometheus_dumper::dump_to_string(const cache_metrics &metric, const melon::time_point *tp) {
-        melon::cord_buf_builder out;
+        std::ostringstream out;
         prometheus_dumper dumper(&out);
         dumper.dump(metric, tp);
-        return out.buf().to_string();
+        return out.str();
     }
 }  // namespace melon

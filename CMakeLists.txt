@@ -36,7 +36,7 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 option(CARBIN_STATUS_PRINT "cmake toolchain print" ON)
 option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 
-option(ENABLE_TESTING "enable unit test" OFF)
+option(ENABLE_TESTING "enable unit test" ON)
 option(CARBIN_PACKAGE_GEN "enable package gen" OFF)
 option(ENABLE_BENCHMARK "enable benchmark" OFF)
 option(ENABLE_EXAMPLE "enable benchmark" ON)
@@ -80,12 +80,7 @@ find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 set(DYNAMIC_LIB
         ${GFLAGS_LIBRARY}
-        ${PROTOBUF_LIBRARIES}
-        ${Protobuf_LITE_LIBRARIES}
-        ${PROTOC_LIB}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${OPENSSL_SSL_LIBRARY}
-        ${OPENSSL_CRYPTO_LIBRARY}
         dl
         z)
 

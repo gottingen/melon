@@ -1,4 +1,10 @@
 
+/****************************************************************
+ * Copyright (c) 2022, liyinbin
+ * All rights reserved.
+ * Author by liyinbin (jeff.li) lijippy@163.com
+ *****************************************************************/
+
 #ifndef MELON_FIBER_INTERNAL_WAITABLE_EVENT_H_
 #define MELON_FIBER_INTERNAL_WAITABLE_EVENT_H_
 
