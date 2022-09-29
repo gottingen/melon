@@ -4,6 +4,8 @@
  * All rights reserved.
  * Author by liyinbin (jeff.li) lijippy@163.com
  *****************************************************************/
+
+
 #ifndef MELON_STERINGS_ASCII_H_
 #define MELON_STERINGS_ASCII_H_
 

@@ -12,6 +12,7 @@
 #include <utility>
 #include <memory>
 #include "melon/log/logging.h"
+#include "melon/base/profile.h"
 
 namespace melon {
 
@@ -29,6 +30,7 @@ namespace melon {
     struct ref_traits {
         // Increment reference counter on `ptr` with `std::memory_order_relaxed`.
         static void reference(T *ptr) noexcept {
+            MELON_UNUSED(ptr);
             static_assert(
                     sizeof(T) == 0,
                     "To use `ref_ptr<T>`, you need either inherit from `ref_counted<T>` "
@@ -40,6 +42,7 @@ namespace melon {
         // If the counter after decrement reaches zero, resource allocated for `ptr`
         // should be released.
         static void dereference(T *ptr) noexcept {
+            MELON_UNUSED(ptr);
             static_assert(
                     sizeof(T) == 0,
                     "To use `ref_ptr<T>`, you need either inherit from `ref_counted<T>` "

@@ -39,7 +39,7 @@ option(CARBIN_STATUS_DEBUG "cmake toolchain debug info" ON)
 option(ENABLE_TESTING "enable unit test" ON)
 option(CARBIN_PACKAGE_GEN "enable package gen" OFF)
 option(ENABLE_BENCHMARK "enable benchmark" OFF)
-option(ENABLE_EXAMPLE "enable benchmark" OFF)
+option(ENABLE_EXAMPLE "enable benchmark" ON)
 option(ENABLE_SUMMARY "enable summary output" ON)
 # it is too many
 option(ENABLE_SUMMARY_CXX_FLAG "enable cxx flags" OFF)
@@ -80,12 +80,7 @@ find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 set(DYNAMIC_LIB
         ${GFLAGS_LIBRARY}
-        ${PROTOBUF_LIBRARIES}
-        ${Protobuf_LITE_LIBRARIES}
-        ${PROTOC_LIB}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${OPENSSL_SSL_LIBRARY}
-        ${OPENSSL_CRYPTO_LIBRARY}
         dl
         z)
 
