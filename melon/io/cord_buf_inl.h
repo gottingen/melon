@@ -21,8 +21,8 @@
 
 // Inlined implementations of some methods defined in iobuf.h
 
-#ifndef MELON_IO_IOBUF_INL_H_
-#define MELON_IO_IOBUF_INL_H_
+#ifndef MELON_IO_CORD_BUF_INL_H_
+#define MELON_IO_CORD_BUF_INL_H_
 
 void *fast_memcpy(void *__restrict dest, const void *__restrict src, size_t n);
 
@@ -417,4 +417,4 @@ namespace melon {
 
 }  // namespace melon
 
-#endif  // MELON_IO_IOBUF_INL_H_
+#endif  // MELON_IO_CORD_BUF_INL_H_

@@ -19,8 +19,8 @@
 
 // Date: Thu Nov 22 13:57:56 CST 2012
 
-#ifndef MELON_IO_IOBUF_H_
-#define MELON_IO_IOBUF_H_
+#ifndef MELON_IO_CORD_BUF_H_
+#define MELON_IO_CORD_BUF_H_
 
 #include <sys/uio.h>                             // iovec
 #include <stdint.h>                              // uint32_t
@@ -47,13 +47,13 @@ struct ssl_st;
 
 namespace melon {
 
-// cord_buf is a non-continuous buffer that can be cut and combined w/o copying
-// payload. It can be read from or flushed into file descriptors as well.
-// cord_buf is [thread-compatible]. Namely using different cord_buf in different
-// threads simultaneously is safe, and reading a static cord_buf from different
-// threads is safe as well.
-// cord_buf is [NOT thread-safe]. Modifying a same cord_buf from different threads
-// simultaneously is unsafe and likely to crash.
+    // cord_buf is a non-continuous buffer that can be cut and combined w/o copying
+    // payload. It can be read from or flushed into file descriptors as well.
+    // cord_buf is [thread-compatible]. Namely using different cord_buf in different
+    // threads simultaneously is safe, and reading a static cord_buf from different
+    // threads is safe as well.
+    // cord_buf is [NOT thread-safe]. Modifying a same cord_buf from different threads
+    // simultaneously is unsafe and likely to crash.
     class cord_buf {
         friend class cord_buf_as_zero_copy_input_stream;
 
@@ -802,4 +802,4 @@ namespace std {
 
 #include "melon/io/cord_buf_inl.h"
 
-#endif  // MELON_IO_IOBUF_H_
+#endif  // MELON_IO_CORD_BUF_H_
