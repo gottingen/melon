@@ -1,9 +1,0 @@
-FILE(GLOB TESTING_SRC "*.cc")
-
-carbin_cc_library(
-        NAMESPACE melon
-        NAME testing
-        SOURCES ${TESTING_SRC}
-        PUBLIC_LINKED_TARGETS ${CARBIN_SYS_DYLINK} melon::melon  ${GTEST_LIB}  ${GMOCK_LIB}  ${GPERFTOOLS_LIBRARIES}
-        PRIVATE_COMPILE_OPTIONS ${CARBIN_DEFAULT_COPTS}
-)

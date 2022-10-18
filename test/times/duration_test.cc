@@ -278,14 +278,14 @@ namespace {
         EXPECT_EQ(milliseconds(N), melon::duration::milliseconds(N).to_chrono_milliseconds());
         EXPECT_EQ(seconds(N), melon::duration::seconds(N).to_chrono_seconds());
 
-        constexpr auto melon_minutes = melon::duration::minutes(N);
+        constexpr auto melon__minutes = melon::duration::minutes(N);
         auto chrono_minutes = minutes(N);
-        if (melon_minutes == -melon::infinite_duration()) {
+        if (melon__minutes == -melon::infinite_duration()) {
             chrono_minutes = minutes::min();
-        } else if (melon_minutes == melon::infinite_duration()) {
+        } else if (melon__minutes == melon::infinite_duration()) {
             chrono_minutes = minutes::max();
         }
-        EXPECT_EQ(chrono_minutes, melon_minutes.to_chrono_minutes());
+        EXPECT_EQ(chrono_minutes, melon__minutes.to_chrono_minutes());
 
         constexpr auto melon__hours = melon::duration::hours(N);
         auto chrono_hours = hours(N);

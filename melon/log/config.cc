@@ -96,7 +96,7 @@ MELON_LOG_DEFINE_int32(melon_max_log_size, 1800,
 MELON_LOG_DEFINE_bool(melon_stop_logging_if_full_disk, false,
                       "Stop attempting to log to disk if the disk is full.");
 
-MELON_LOG_DEFINE_string(melonlog_backtrace_at, "",
+MELON_LOG_DEFINE_string(melon_log_backtrace_at, "",
                         "Emit a backtrace when logging at file:linenum.");
 
 MELON_LOG_DEFINE_bool(melon_log_utc_time, false,

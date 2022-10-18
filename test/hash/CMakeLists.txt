@@ -1,20 +1,11 @@
-
-
-file(GLOB SRC "*.cc")
-
-foreach (fl ${SRC})
-
-    string(REGEX REPLACE ".+/(.+)\\.cc$" "\\1" TEST_NAME ${fl})
-    get_filename_component(DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    string(REPLACE " " "_" DIR_NAME ${DIR_NAME})
-
-    set(EXE_NAME ${DIR_NAME}_${TEST_NAME})
-    carbin_cc_test(
-            NAME ${EXE_NAME}
-            SOURCES ${fl}
-            PUBLIC_LINKED_TARGETS
-            ${TEST_LINKS}
-            PRIVATE_COMPILE_OPTIONS ${CARBIN_TEST_COPTS}
-            VERBOSE
-    )
-endforeach (fl ${SRC})
+file(GLOB BASE_UNITTESTS "*test.cc")
+foreach(BASE_UT ${BASE_UNITTESTS})
+    get_filename_component(BASE_UT_WE ${BASE_UT} NAME_WE)
+    add_executable(${BASE_UT_WE} ${BASE_UT} $<TARGET_OBJECTS:TEST_PROTO_LIB>)
+    target_link_libraries(${BASE_UT_WE} melon-shared-debug
+            ${GTEST_MAIN_LIB}
+            ${GTEST_LIB}
+            ${GMOCK_LIB}
+            ${GPERFTOOLS_LIBRARIES})
+    add_test(NAME ${BASE_UT_WE} COMMAND ${BASE_UT_WE})
+endforeach()
