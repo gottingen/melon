@@ -21,13 +21,13 @@ namespace melon {
                 melon::flat_hash_set<uint32_t> st1 = {1991, 1202};
 
                 {
-                    melon::binary_output_archive ar_out("./dump.data");
+                    melon::BinaryOutputArchive ar_out("./dump.data");
                     EXPECT_TRUE(st1.melon_map_dump(ar_out));
                 }
 
                 melon::flat_hash_set<uint32_t> st2;
                 {
-                    melon::binary_input_archive ar_in("./dump.data");
+                    melon::BinaryInputArchive ar_in("./dump.data");
                     EXPECT_TRUE(st2.melon_map_load(ar_in));
                 }
                 EXPECT_TRUE(st1 == st2);
@@ -40,13 +40,13 @@ namespace melon {
                         {2651,  101}};
 
                 {
-                    melon::binary_output_archive ar_out("./dump.data");
+                    melon::BinaryOutputArchive ar_out("./dump.data");
                     EXPECT_TRUE(mp1.melon_map_dump(ar_out));
                 }
 
                 melon::flat_hash_map<uint64_t, uint32_t> mp2;
                 {
-                    melon::binary_input_archive ar_in("./dump.data");
+                    melon::BinaryInputArchive ar_in("./dump.data");
                     EXPECT_TRUE(mp2.melon_map_load(ar_in));
                 }
 
@@ -60,13 +60,13 @@ namespace melon {
                         {299, 1299}};
 
                 {
-                    melon::binary_output_archive ar_out("./dump.data");
+                    melon::BinaryOutputArchive ar_out("./dump.data");
                     EXPECT_TRUE(mp1.melon_map_dump(ar_out));
                 }
 
                 melon::parallel_flat_hash_map<uint64_t, uint32_t> mp2;
                 {
-                    melon::binary_input_archive ar_in("./dump.data");
+                    melon::BinaryInputArchive ar_in("./dump.data");
                     EXPECT_TRUE(mp2.melon_map_load(ar_in));
                 }
                 EXPECT_TRUE(mp1 == mp2);

@@ -9,8 +9,10 @@ include(carbin_check)
 include(carbin_variable)
 include(carbin_include)
 
+
 carbin_include("${PROJECT_BINARY_DIR}")
 carbin_include("${PROJECT_SOURCE_DIR}")
+carbin_include("${CMAKE_CURRENT_BINARY_DIR}")
 
 MACRO(directory_list result curdir)
     FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -22,14 +24,6 @@ MACRO(directory_list result curdir)
     ENDFOREACH()
     SET(${result} ${dirlist})
 ENDMACRO()
-
-directory_list(install_libs "${CARBIN_PREFIX}/${CARBIN_INSTALL_LIBDIR}/cmake")
-
-FOREACH(installed_lib  ${install_libs})
-    list(APPEND CMAKE_MODULE_PATH
-            ${CARBIN_PREFIX}/${CARBIN_INSTALL_LIBDIR}/cmake/${installed_lib})
-
-ENDFOREACH()
 
 include(carbin_outof_source)
 include(carbin_platform)

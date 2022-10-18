@@ -1,0 +1,10 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=~/miniconda3/envs/melon-dev -G "CodeBlocks - Unix Makefiles" /Users/liyinbin/github/gottingen/melon
+CMake Warning at CMakeLists.txt:64 (message):
+  You are using an unsupported compiler! Compilation has only been tested
+  with Clang and GCC.
+
+
+bash: /Users/liyinbin/github/gottingen/melon/tools/get_melon_revision.sh: No such file or directory
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/liyinbin/github/gottingen/melon/-DCMAKE_PREFIX_PATH=~/miniconda3/envs/melon-dev

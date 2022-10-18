@@ -29,8 +29,8 @@ namespace {
 
 #if MELON_COMPILER_DOES_EXACT_ROUNDING
 
-    // Tests that the given string is accepted by melon::from_chars, and that it
-    // converts exactly equal to the given number.
+// Tests that the given string is accepted by melon::from_chars, and that it
+// converts exactly equal to the given number.
     void TestDoubleParse(std::string_view str, double expected_number) {
         SCOPED_TRACE(str);
         double actual_number = 0.0;
@@ -162,10 +162,10 @@ namespace {
         return d;
     }
 
-    // A duplication of the test cases in "NearRoundingCases" above, but with
-    // expected values expressed with integers, using ldexp/ldexpf.  These test
-    // cases will work even on compilers that do not accurately round floating point
-    // literals.
+// A duplication of the test cases in "NearRoundingCases" above, but with
+// expected values expressed with integers, using ldexp/ldexpf.  These test
+// cases will work even on compilers that do not accurately round floating point
+// literals.
     TEST(FromChars, NearRoundingCasesExplicit) {
         EXPECT_EQ(ToDouble("5.e125"), ldexp(6653062250012735, 365));
         EXPECT_EQ(ToDouble("69.e267"), ldexp(4705683757438170, 841));
@@ -245,19 +245,19 @@ namespace {
         EXPECT_EQ(ToFloat("459926601011.e15"), ldexpf(12466336, 65));
     }
 
-    // Common test logic for converting a string which lies exactly halfway between
-    // two target floats.
-    //
-    // mantissa and exponent represent the precise value between two floating point
-    // numbers, `expected_low` and `expected_high`.  The floating point
-    // representation to parse in `string_cat(mantissa, "e", exponent)`.
-    //
-    // This function checks that an input just slightly less than the exact value
-    // is rounded down to `expected_low`, and an input just slightly greater than
-    // the exact value is rounded up to `expected_high`.
-    //
-    // The exact value should round to `expected_half`, which must be either
-    // `expected_low` or `expected_high`.
+// Common test logic for converting a string which lies exactly halfway between
+// two target floats.
+//
+// mantissa and exponent represent the precise value between two floating point
+// numbers, `expected_low` and `expected_high`.  The floating point
+// representation to parse in `string_cat(mantissa, "e", exponent)`.
+//
+// This function checks that an input just slightly less than the exact value
+// is rounded down to `expected_low`, and an input just slightly greater than
+// the exact value is rounded up to `expected_high`.
+//
+// The exact value should round to `expected_half`, which must be either
+// `expected_low` or `expected_high`.
     template<typename FloatType>
     void TestHalfwayValue(const std::string &mantissa, int exponent,
                           FloatType expected_low, FloatType expected_high,
@@ -533,56 +533,56 @@ namespace {
         EXPECT_EQ(result.ptr - garbage.data(), 0);
     }
 
-    // Check for a wide range of inputs that strtod() and melon::from_chars() exactly
-    // agree on the conversion amount.
-    //
-    // This test assumes the platform's strtod() uses perfect round_to_nearest
-    // rounding.
+// Check for a wide range of inputs that strtod() and melon::from_chars() exactly
+// agree on the conversion amount.
+//
+// This test assumes the platform's strtod() uses perfect round_to_nearest
+// rounding.
     TEST(FromChars, TestVersusStrtod) {
         for (int mantissa = 1000000; mantissa <= 9999999; mantissa += 501) {
             for (int exponent = -300; exponent < 300; ++exponent) {
                 std::string candidate = melon::string_cat(mantissa, "e", exponent);
                 double strtod_value = strtod(candidate.c_str(), nullptr);
-                double my_value = 0;
+                double melon_value = 0;
                 melon::from_chars(candidate.data(), candidate.data() + candidate.size(),
-                                 my_value);
-                ASSERT_EQ(strtod_value, my_value) << candidate;
+                                 melon_value);
+                ASSERT_EQ(strtod_value, melon_value) << candidate;
             }
         }
     }
 
-    // Check for a wide range of inputs that strtof() and melon::from_chars() exactly
-    // agree on the conversion amount.
-    //
-    // This test assumes the platform's strtof() uses perfect round_to_nearest
-    // rounding.
+// Check for a wide range of inputs that strtof() and melon::from_chars() exactly
+// agree on the conversion amount.
+//
+// This test assumes the platform's strtof() uses perfect round_to_nearest
+// rounding.
     TEST(FromChars, TestVersusStrtof) {
         for (int mantissa = 1000000; mantissa <= 9999999; mantissa += 501) {
             for (int exponent = -43; exponent < 32; ++exponent) {
                 std::string candidate = melon::string_cat(mantissa, "e", exponent);
                 float strtod_value = strtof(candidate.c_str(), nullptr);
-                float my_value = 0;
+                float melon_value = 0;
                 melon::from_chars(candidate.data(), candidate.data() + candidate.size(),
-                                 my_value);
-                ASSERT_EQ(strtod_value, my_value) << candidate;
+                                 melon_value);
+                ASSERT_EQ(strtod_value, melon_value) << candidate;
             }
         }
     }
 
-    // Tests if two floating point values have identical bit layouts.  (EXPECT_EQ
-    // is not suitable for NaN testing, since NaNs are never equal.)
+// Tests if two floating point values have identical bit layouts.  (EXPECT_EQ
+// is not suitable for NaN testing, since NaNs are never equal.)
     template<typename Float>
     bool Identical(Float a, Float b) {
         return 0 == memcmp(&a, &b, sizeof(Float));
     }
 
-    // Check that NaNs are parsed correctly.  The spec requires that
-    // std::from_chars on "NaN(123abc)" return the same value as std::nan("123abc").
-    // How such an n-char-sequence affects the generated NaN is unspecified, so we
-    // just test for symmetry with std::nan and strtod here.
-    //
-    // (In Linux, this parses the value as a number and stuffs that number into the
-    // free bits of a quiet NaN.)
+// Check that NaNs are parsed correctly.  The spec requires that
+// std::from_chars on "NaN(123abc)" return the same value as std::nan("123abc").
+// How such an n-char-sequence affects the generated NaN is unspecified, so we
+// just test for symmetry with std::nan and strtod here.
+//
+// (In Linux, this parses the value as a number and stuffs that number into the
+// free bits of a quiet NaN.)
     TEST(FromChars, NaNDoubles) {
         for (std::string n_char_sequence :
                 {"", "1", "2", "3", "fff", "FFF", "200000", "400000", "4000000000000",
@@ -723,12 +723,12 @@ namespace {
         }
     }
 
-    // Check that overflow and underflow are caught correctly for hex doubles.
-    //
-    // The largest representable double is 0x1.fffffffffffffp+1023, and the
-    // smallest representable subnormal is 0x0.0000000000001p-1022, which equals
-    // 0x1p-1074.  Therefore 1023 and -1074 are the limits of acceptable exponents
-    // in this test.
+// Check that overflow and underflow are caught correctly for hex doubles.
+//
+// The largest representable double is 0x1.fffffffffffffp+1023, and the
+// smallest representable subnormal is 0x0.0000000000001p-1022, which equals
+// 0x1p-1074.  Therefore 1023 and -1074 are the limits of acceptable exponents
+// in this test.
     TEST(FromChars, HexdecimalDoubleLimits) {
         auto input_gen = [](int index) { return melon::string_cat("0x1.0p", index); };
         auto expected_gen = [](int index) { return std::ldexp(1.0, index); };
@@ -746,24 +746,24 @@ namespace {
         TestOverflowAndUnderflow<float>(input_gen, expected_gen, -149, 127);
     }
 
-    // Check that overflow and underflow are caught correctly for decimal doubles.
-    //
-    // The largest representable double is about 1.8e308, and the smallest
-    // representable subnormal is about 5e-324.  '1e-324' therefore rounds away from
-    // the smallest representable positive value.  -323 and 308 are the limits of
-    // acceptable exponents in this test.
+// Check that overflow and underflow are caught correctly for decimal doubles.
+//
+// The largest representable double is about 1.8e308, and the smallest
+// representable subnormal is about 5e-324.  '1e-324' therefore rounds away from
+// the smallest representable positive value.  -323 and 308 are the limits of
+// acceptable exponents in this test.
     TEST(FromChars, DecimalDoubleLimits) {
         auto input_gen = [](int index) { return melon::string_cat("1.0e", index); };
         auto expected_gen = [](int index) { return Pow10(index); };
         TestOverflowAndUnderflow<double>(input_gen, expected_gen, -323, 308);
     }
 
-    // Check that overflow and underflow are caught correctly for decimal floats.
-    //
-    // The largest representable float is about 3.4e38, and the smallest
-    // representable subnormal is about 1.45e-45.  '1e-45' therefore rounds towards
-    // the smallest representable positive value.  -45 and 38 are the limits of
-    // acceptable exponents in this test.
+// Check that overflow and underflow are caught correctly for decimal floats.
+//
+// The largest representable float is about 3.4e38, and the smallest
+// representable subnormal is about 1.45e-45.  '1e-45' therefore rounds towards
+// the smallest representable positive value.  -45 and 38 are the limits of
+// acceptable exponents in this test.
     TEST(FromChars, DecimalFloatLimits) {
         auto input_gen = [](int index) { return melon::string_cat("1.0e", index); };
         auto expected_gen = [](int index) { return Pow10(index); };

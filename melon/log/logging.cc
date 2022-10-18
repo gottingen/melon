@@ -1382,11 +1382,11 @@ namespace melon::log {
         }
         data_->num_prefix_chars_ = data_->stream_.pcount();
 
-        if (!FLAGS_melonlog_backtrace_at.empty()) {
+        if (!FLAGS_melon_log_backtrace_at.empty()) {
             char fileline[128];
             snprintf(fileline, sizeof(fileline), "%s:%d", data_->basename_, line);
 #ifdef HAVE_STACKTRACE
-            if (!strcmp(FLAGS_melonlog_backtrace_at.c_str(), fileline)) {
+            if (!strcmp(FLAGS_melon_log_backtrace_at.c_str(), fileline)) {
                 string stacktrace;
                 dump_stack_trace_to_string(&stacktrace);
                 stream() << " (stacktrace:\n" << stacktrace << ") ";

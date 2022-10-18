@@ -46,16 +46,15 @@ namespace melon::log {
 
         static bool kFailureSignalHandlerInstalled = false;
 
-        // Returns the program counter from signal context, NULL if unknown.
+// Returns the program counter from signal context, NULL if unknown.
         void *GetPC(void *ucontext_in_void) {
 #if (defined(HAVE_UCONTEXT_H) || defined(HAVE_SYS_UCONTEXT_H)) && defined(PC_FROM_UCONTEXT)
-            if (ucontext_in_void != nullptr) {
-                ucontext_t *context = reinterpret_cast<ucontext_t *>(ucontext_in_void);
-                return (void*)context->PC_FROM_UCONTEXT;
-            }
+            if (ucontext_in_void != NULL) {
+        ucontext_t *context = reinterpret_cast<ucontext_t *>(ucontext_in_void);
+        return (void*)context->PC_FROM_UCONTEXT;
+      }
 #endif
-            MELON_UNUSED(ucontext_in_void);
-            return nullptr;
+            return NULL;
         }
 
 // The class is used for formatting error messages.  We don't use printf()

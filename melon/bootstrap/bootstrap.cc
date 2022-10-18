@@ -23,8 +23,7 @@ namespace melon {
 
     namespace {
 
-        void log_config_init(char *argv0);
-
+        void log_config_init(char* argv0);
         // The below two registries are filled by `prepare_for_running_callbacks()` (by
         // moving callbacks from the registry above.)
         std::vector<std::function<void()>> initializer_registry;
@@ -40,10 +39,10 @@ namespace melon {
             return registry.get();
         }
 
-        void log_config_init(char *argv0) {
+        void log_config_init(char* argv0) {
             melon::log::init_logging(argv0);
             //distable info level single file
-            if (!FLAGS_melon_logtostderr) {
+            if(!FLAGS_melon_logtostderr) {
                 melon::log::set_log_destination(melon::log::MELON_INFO, "");
                 //distable debug level single file
                 melon::log::set_log_destination(melon::log::MELON_DEBUG, "");
@@ -128,7 +127,7 @@ namespace melon {
     void register_bootstrap_callback(std::int32_t priority, const std::function<void()> &init,
                                      const std::function<void()> &fini) {
         MELON_CHECK(!registry_prepared.load(std::memory_order_relaxed)) <<
-                                                                        "Callbacks may only be registered before `melon::Start` is called.";
+                                                                  "Callbacks may only be registered before `melon::Start` is called.";
 
         auto &&registry = *get_staging_registry();
         registry[priority].emplace_back(init, fini);
@@ -137,7 +136,7 @@ namespace melon {
     void register_bootstrap_callback(std::int32_t priority, std::function<void()> &&init,
                                      std::function<void()> &&fini) {
         MELON_CHECK(!registry_prepared.load(std::memory_order_relaxed)) <<
-                                                                        "Callbacks may only be registered before `melon::Start` is called.";
+                                                                  "Callbacks may only be registered before `melon::Start` is called.";
 
         auto &&registry = *get_staging_registry();
         registry[priority].emplace_back(std::move(init), std::move(fini));

@@ -21,4 +21,7 @@ TEST(base, type_traits) {
     EXPECT_FALSE(melon::has_const_iterator<int>::value);
     EXPECT_TRUE(
             (melon::has_const_iterator<std::map<int, int>>::value));
+    EXPECT_FALSE(melon::is_initializer_list<int>::value);
+    EXPECT_TRUE((melon::is_initializer_list<
+            std::initializer_list<int>>::value));
 }

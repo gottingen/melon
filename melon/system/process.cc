@@ -158,7 +158,7 @@ namespace melon {
             }
         }
 
-        int wstatus = pclose(pipe);
+        const int wstatus = pclose(pipe);
 
         if (wstatus < 0) {
             return wstatus;
