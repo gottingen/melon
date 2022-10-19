@@ -33,7 +33,7 @@ option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
 option(BUILD_BENCHMARK "Whether to build benchmarks" ON)
 option(INSTALL_STATIC_LIBS "Whether to install static libraries" OFF)
 option(BUILD_IN_CONDA "build in conda environemnt" ON)
-option(BUILD_EXAMPLES "build in conda environemnt" ON)
+option(BUILD_EXAMPLES "build in conda environemnt" OFF)
 
 if (BUILD_IN_CONDA)
     list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
