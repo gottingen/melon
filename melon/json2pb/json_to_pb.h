@@ -35,27 +35,27 @@ struct Json2PbOptions {
 };
 
 // Convert `json' to protobuf `message'.
-// Returns true on success. `error' (if not NULL) will be set with error
+// Returns true on success. `error' (if not nullptr) will be set with error
 // message on failure.
 bool JsonToProtoMessage(const std::string& json,
                         google::protobuf::Message* message,
                         const Json2PbOptions& options,
-                        std::string* error = NULL);
+                        std::string* error = nullptr);
 
 // send output to ZeroCopyOutputStream instead of std::string.
 bool JsonToProtoMessage(google::protobuf::io::ZeroCopyInputStream *json,
                         google::protobuf::Message* message,
                         const Json2PbOptions& options,
-                        std::string* error = NULL);
+                        std::string* error = nullptr);
 
 // Using default Json2PbOptions.
 bool JsonToProtoMessage(const std::string& json,
                         google::protobuf::Message* message,
-                        std::string* error = NULL);
+                        std::string* error = nullptr);
 
 bool JsonToProtoMessage(google::protobuf::io::ZeroCopyInputStream* stream,
                         google::protobuf::Message* message,
-                        std::string* error = NULL);
+                        std::string* error = nullptr);
 } // namespace json2pb
 
 #endif // MELON_RPC_JSON2PB_JSON_TO_PB_H_

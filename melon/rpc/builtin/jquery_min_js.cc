@@ -25,14 +25,14 @@
 namespace melon::rpc {
 
     static pthread_once_t s_jquery_min_buf_once = PTHREAD_ONCE_INIT;
-    static melon::cord_buf *s_jquery_min_buf = NULL;
-    static melon::cord_buf *s_jquery_min_buf_gzip = NULL;
+    static melon::cord_buf *s_jquery_min_buf = nullptr;
+    static melon::cord_buf *s_jquery_min_buf_gzip = nullptr;
 
     static void InitJQueryMinBuf() {
         s_jquery_min_buf = new melon::cord_buf;
         s_jquery_min_buf->append(jquery_min_js());
         s_jquery_min_buf_gzip = new melon::cord_buf;
-        MELON_CHECK(policy::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, NULL));
+        MELON_CHECK(policy::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, nullptr));
     }
 
     const melon::cord_buf &jquery_min_js_iobuf() {

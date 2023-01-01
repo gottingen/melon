@@ -38,7 +38,7 @@ namespace melon::snappy {
 
         class WorkingMemory {
         public:
-            WorkingMemory() : large_table_(NULL) {}
+            WorkingMemory() : large_table_(nullptr) {}
 
             ~WorkingMemory() { delete[] large_table_; }
 

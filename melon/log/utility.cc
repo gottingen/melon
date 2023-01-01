@@ -91,7 +91,7 @@ namespace melon::log {
     }
 
     static void DumpStackTraceAndExit() {
-        DumpStackTrace(1, DebugWriteToStderr, NULL);
+        DumpStackTrace(1, DebugWriteToStderr, nullptr);
 
         // TODO(hamaji): Use signal instead of sigaction?
         if (IsFailureSignalHandlerInstalled()) {
@@ -102,7 +102,7 @@ namespace melon::log {
         memset(&sig_action, 0, sizeof(sig_action));
         sigemptyset(&sig_action.sa_mask);
         sig_action.sa_handler = SIG_DFL;
-        sigaction(SIGABRT, &sig_action, NULL);
+        sigaction(SIGABRT, &sig_action, nullptr);
 #endif  // HAVE_SIGACTION
         }
 
@@ -123,10 +123,10 @@ namespace melon::log {
         }
 
 #endif
-        static const char *g_program_invocation_short_name = NULL;
+        static const char *g_program_invocation_short_name = nullptr;
 
         const char *program_invocation_short_name() {
-            if (g_program_invocation_short_name != NULL) {
+            if (g_program_invocation_short_name != nullptr) {
                 return g_program_invocation_short_name;
             } else {
                 // TODO(hamaji): Use /proc/self/cmdline and so?
@@ -135,7 +135,7 @@ namespace melon::log {
         }
 
         bool is_logging_initialized() {
-            return g_program_invocation_short_name != NULL;
+            return g_program_invocation_short_name != nullptr;
         }
 
         void init_logging_utilities(const char *argv0) {
@@ -152,7 +152,7 @@ namespace melon::log {
         void shutdown_logging_utilities() {
             MELON_CHECK(is_logging_initialized())
                             << "You called shutdown_logging() without calling init_logging() first!";
-            g_program_invocation_short_name = NULL;
+            g_program_invocation_short_name = nullptr;
             closelog();
         }
 

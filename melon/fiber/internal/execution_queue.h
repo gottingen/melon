@@ -162,13 +162,13 @@ namespace melon::fiber_internal {
         // default: FIBER_ATTR_NORMAL
         fiber_attribute fiber_attr;
 
-        // Executor that tasks run on. fiber will be used when executor = NULL.
+        // Executor that tasks run on. fiber will be used when executor = nullptr.
         // Note that TaskOptions.in_place_if_possible = false will not work, if implementation of
         // Executor is in-place(synchronous).
         Executor *executor;
     };
 
-    // Start a ExecutionQueue. If |options| is NULL, the queue will be created with
+    // Start a ExecutionQueue. If |options| is nullptr, the queue will be created with
     // the default options.
     // Returns 0 on success, errno otherwise
     // NOTE: type |T| can be non-POD but must be copy-constructible
@@ -203,8 +203,8 @@ namespace melon::fiber_internal {
     // Thread-safe and Wait-free.
     // Execute a task with options. e.g
     // fiber::execution_queue_execute(queue, task, &melon::fiber_internal::TASK_OPTIONS_URGENT)
-    // If |options| is NULL, we will use default options (normal task)
-    // If |handle| is not NULL, we will assign it with the hanlder of this task.
+    // If |options| is nullptr, we will use default options (normal task)
+    // If |handle| is not nullptr, we will assign it with the hanlder of this task.
     template<typename T>
     int execution_queue_execute(ExecutionQueueId<T> id,
                                 typename melon::add_const_reference<T>::type task,

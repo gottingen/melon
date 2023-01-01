@@ -170,12 +170,12 @@ namespace melon::rpc {
             // if this field is non-zero.
             uint32_t new_chunk_size;
             melon::cord_buf body;
-            // If next is not NULL, next->AppendAndDestroySelf() will be called
+            // If next is not nullptr, next->AppendAndDestroySelf() will be called
             // recursively. For implementing batched messages.
             SocketMessagePtr<RtmpUnsentMessage> next;
         public:
             RtmpUnsentMessage()
-                    : chunk_stream_id(0), new_chunk_size(0), next(NULL) {}
+                    : chunk_stream_id(0), new_chunk_size(0), next(nullptr) {}
 
             // @SocketMessage
             melon::result_status AppendAndDestroySelf(melon::cord_buf *out, Socket *);
@@ -271,7 +271,7 @@ namespace melon::rpc {
             // Get literal form of the state.
             static const char *state2str(State);
 
-            // One of copt/service must be NULL, indicating this context belongs
+            // One of copt/service must be nullptr, indicating this context belongs
             // to a server-side or client-side socket.
             RtmpContext(const RtmpClientOptions *copt, const Server *server);
 
@@ -291,9 +291,9 @@ namespace melon::rpc {
 
             RtmpService *service() const { return _service; }
 
-            bool is_server_side() const { return service() != NULL; }
+            bool is_server_side() const { return service() != nullptr; }
 
-            bool is_client_side() const { return service() == NULL; }
+            bool is_client_side() const { return service() == nullptr; }
 
             // XXXMessageStream may be called from multiple threads(currently not),
             // so they're protected by _stream_mutex
@@ -351,7 +351,7 @@ namespace melon::rpc {
             // Called when the RTMP connection is established.
             void OnConnected(int error_code);
 
-            bool unconnected() const { return _on_connect != NULL; }
+            bool unconnected() const { return _on_connect != nullptr; }
 
             void only_check_simple_s0s1() { _only_check_simple_s0s1 = true; }
 

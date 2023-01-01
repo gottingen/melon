@@ -49,7 +49,7 @@ public:
 // NOTE(gejun): g_default_policy can't be deleted on process's exit because
 // client-side may still retry and use the policy at exit
 static pthread_once_t g_default_policy_once = PTHREAD_ONCE_INIT;
-static RpcRetryPolicy* g_default_policy = NULL;
+static RpcRetryPolicy* g_default_policy = nullptr;
 static void init_default_policy() {
     g_default_policy = new RpcRetryPolicy;
 }

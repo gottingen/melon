@@ -36,7 +36,7 @@ TEST(H2UnsentMessage, request_throughput) {
     melon::rpc::Controller cntl;
     melon::cord_buf request_buf;
     cntl.http_request().uri() = "0.0.0.0:8010/HttpService/Echo";
-    melon::rpc::policy::SerializeHttpRequest(&request_buf, &cntl, NULL);
+    melon::rpc::policy::SerializeHttpRequest(&request_buf, &cntl, nullptr);
 
     melon::rpc::SocketId id;
     melon::rpc::SocketUniquePtr h2_client_sock;
@@ -46,7 +46,7 @@ TEST(H2UnsentMessage, request_throughput) {
     EXPECT_EQ(0, melon::rpc::Socket::Address(id, &h2_client_sock));
 
     melon::rpc::policy::H2Context* ctx =
-        new melon::rpc::policy::H2Context(h2_client_sock.get(), NULL);
+        new melon::rpc::policy::H2Context(h2_client_sock.get(), nullptr);
     MELON_CHECK_EQ(ctx->Init(), 0);
     h2_client_sock->initialize_parsing_context(&ctx);
     ctx->_last_sent_stream_id = 0;

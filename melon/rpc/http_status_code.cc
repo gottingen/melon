@@ -104,7 +104,7 @@ namespace melon::rpc {
 
     const char *HttpReasonPhrase(int status_code) {
         pthread_once(&init_reason_phrases_once, InitReasonPhrases);
-        const char *desc = NULL;
+        const char *desc = nullptr;
         if (status_code >= 0 &&
             status_code < (int) MELON_ARRAY_SIZE(phrases) &&
             (desc = phrases[status_code])) {

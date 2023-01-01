@@ -154,7 +154,7 @@ namespace melon::rpc {
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
 
-        if (value_str != NULL) {
+        if (value_str != nullptr) {
             // reload value if ?setvalue=VALUE is present.
             if (constraint.empty()) {
                 cntl->SetFailed(ENOMETHOD, "Require gflag name");
@@ -197,7 +197,7 @@ namespace melon::rpc {
         std::vector<std::string> wildcards;
         std::set<std::string> exact;
         if (!constraint.empty()) {
-            for (melon::StringMultiSplitter sp(constraint.c_str(), ",;"); sp != NULL; ++sp) {
+            for (melon::StringMultiSplitter sp(constraint.c_str(), ",;"); sp != nullptr; ++sp) {
                 std::string name(sp.field(), sp.length());
                 if (name.find_first_of("$*") != std::string::npos) {
                     wildcards.push_back(name);

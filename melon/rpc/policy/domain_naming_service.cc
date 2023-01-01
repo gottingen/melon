@@ -35,7 +35,7 @@ namespace melon::rpc {
                                             std::vector<ServerNode> *servers) {
             servers->clear();
             if (!dns_name) {
-                MELON_LOG(ERROR) << "dns_name is NULL";
+                MELON_LOG(ERROR) << "dns_name is nullptr";
                 return -1;
             }
 
@@ -55,7 +55,7 @@ namespace melon::rpc {
             int port = _default_port;
             if (dns_name[i] == ':') {
                 ++i;
-                char *end = NULL;
+                char *end = nullptr;
                 port = strtol(dns_name + i, &end, 10);
                 if (end == dns_name + i) {
                     MELON_LOG(ERROR) << "No port after colon in `" << dns_name << '\'';
@@ -83,21 +83,21 @@ namespace melon::rpc {
             // returned hostent is TLS. Check following link for the ref:
             // https://lists.apple.com/archives/darwin-dev/2006/May/msg00008.html
             struct hostent *result = gethostbyname(buf);
-            if (result == NULL) {
-                MELON_LOG(WARNING) << "result of gethostbyname is NULL";
+            if (result == nullptr) {
+                MELON_LOG(WARNING) << "result of gethostbyname is nullptr";
                 return -1;
             }
 #else
-            if (_aux_buf == NULL) {
+            if (_aux_buf == nullptr) {
                 _aux_buf_len = 1024;
                 _aux_buf.reset(new char[_aux_buf_len]);
             }
             int ret = 0;
             int error = 0;
             struct hostent ent;
-            struct hostent* result = NULL;
+            struct hostent* result = nullptr;
             do {
-                result = NULL;
+                result = nullptr;
                 error = 0;
                 ret = gethostbyname_r(buf, &ent, _aux_buf.get(), _aux_buf_len,
                                       &result, &error);
@@ -115,15 +115,15 @@ namespace melon::rpc {
                              << "' herror=`" << hstrerror(error) << '\'';
                 return -1;
             }
-            if (result == NULL) {
-                MELON_LOG(WARNING) << "result of gethostbyname_r is NULL";
+            if (result == nullptr) {
+                MELON_LOG(WARNING) << "result of gethostbyname_r is nullptr";
                 return -1;
             }
 #endif
 
             melon::base::end_point point;
             point.port = port;
-            for (int i = 0; result->h_addr_list[i] != NULL; ++i) {
+            for (int i = 0; result->h_addr_list[i] != nullptr; ++i) {
                 if (result->h_addrtype == AF_INET) {
                     // Only fetch IPv4 addresses
                     bcopy(result->h_addr_list[i], &point.ip, result->h_length);

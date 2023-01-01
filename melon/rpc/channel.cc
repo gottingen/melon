@@ -42,8 +42,8 @@ namespace melon::rpc {
     ChannelOptions::ChannelOptions()
             : connect_timeout_ms(200), timeout_ms(500), backup_request_ms(-1), max_retry(3),
               enable_circuit_breaker(false), protocol(PROTOCOL_BAIDU_STD), connection_type(CONNECTION_TYPE_UNKNOWN),
-              succeed_without_server(true), log_succeed_without_server(true), auth(NULL), retry_policy(NULL),
-              ns_filter(NULL) {}
+              succeed_without_server(true), log_succeed_without_server(true), auth(nullptr), retry_policy(nullptr),
+              ns_filter(nullptr) {}
 
     ChannelSSLOptions *ChannelOptions::mutable_ssl_options() {
         if (!_ssl_options) {
@@ -53,7 +53,7 @@ namespace melon::rpc {
     }
 
     static ChannelSignature ComputeChannelSignature(const ChannelOptions &opt) {
-        if (opt.auth == NULL &&
+        if (opt.auth == nullptr &&
             !opt.has_ssl_options() &&
             opt.connection_group.empty()) {
             // Returning zeroized result by default is more intuitive for users.
@@ -117,7 +117,7 @@ namespace melon::rpc {
     }
 
     Channel::Channel(ProfilerLinker)
-            : _server_id(INVALID_SOCKET_ID), _serialize_request(NULL), _pack_request(NULL), _get_method_name(NULL),
+            : _server_id(INVALID_SOCKET_ID), _serialize_request(nullptr), _pack_request(nullptr), _get_method_name(nullptr),
               _preferred_index(-1) {
     }
 
@@ -133,7 +133,7 @@ namespace melon::rpc {
             _options = *options;
         }
         const Protocol *protocol = FindProtocol(_options.protocol);
-        if (NULL == protocol || !protocol->support_client()) {
+        if (nullptr == protocol || !protocol->support_client()) {
             MELON_LOG(ERROR) << "Channel does not support the protocol";
             return -1;
         }
@@ -175,7 +175,7 @@ namespace melon::rpc {
         }
 
         if (_options.protocol == PROTOCOL_ESP) {
-            if (_options.auth == NULL) {
+            if (_options.auth == nullptr) {
                 _options.auth = policy::global_esp_authenticator();
             }
         }
@@ -194,11 +194,11 @@ namespace melon::rpc {
         melon::base::end_point point;
         const AdaptiveProtocolType &ptype = (options ? options->protocol : _options.protocol);
         const Protocol *protocol = FindProtocol(ptype);
-        if (protocol == NULL || !protocol->support_client()) {
+        if (protocol == nullptr || !protocol->support_client()) {
             MELON_LOG(ERROR) << "Channel does not support the protocol";
             return -1;
         }
-        if (protocol->parse_server_address != NULL) {
+        if (protocol->parse_server_address != nullptr) {
             if (!protocol->parse_server_address(&point, server_addr_and_port)) {
                 MELON_LOG(ERROR) << "Fail to parse address=`" << server_addr_and_port << '\'';
                 return -1;
@@ -227,11 +227,11 @@ namespace melon::rpc {
         melon::base::end_point point;
         const AdaptiveProtocolType &ptype = (options ? options->protocol : _options.protocol);
         const Protocol *protocol = FindProtocol(ptype);
-        if (protocol == NULL || !protocol->support_client()) {
+        if (protocol == nullptr || !protocol->support_client()) {
             MELON_LOG(ERROR) << "Channel does not support the protocol";
             return -1;
         }
-        if (protocol->parse_server_address != NULL) {
+        if (protocol->parse_server_address != nullptr) {
             if (!protocol->parse_server_address(&point, server_addr)) {
                 MELON_LOG(ERROR) << "Fail to parse address=`" << server_addr << '\'';
                 return -1;
@@ -259,7 +259,7 @@ namespace melon::rpc {
             (*ssl_ctx)->raw_ctx = raw_ctx;
             (*ssl_ctx)->sni_name = options.ssl_options().sni_name;
         } else {
-            (*ssl_ctx) = NULL;
+            (*ssl_ctx) = nullptr;
         }
         return 0;
     }
@@ -278,7 +278,7 @@ namespace melon::rpc {
             return -1;
         }
         std::string scheme;
-        int *port_out = raw_port == -1 ? &raw_port : NULL;
+        int *port_out = raw_port == -1 ? &raw_port : nullptr;
         ParseURL(raw_server_address, &scheme, &_service_name, port_out);
         if (raw_port != -1) {
             _service_name.append(":").append(std::to_string(raw_port));
@@ -310,7 +310,7 @@ namespace melon::rpc {
     int Channel::Init(const char *ns_url,
                       const char *lb_name,
                       const ChannelOptions *options) {
-        if (lb_name == NULL || *lb_name == '\0') {
+        if (lb_name == nullptr || *lb_name == '\0') {
             // Treat ns_url as server_addr_and_port
             return Init(ns_url, options);
         }
@@ -330,7 +330,7 @@ namespace melon::rpc {
             }
         }
         LoadBalancerWithNaming *lb = new(std::nothrow) LoadBalancerWithNaming;
-        if (NULL == lb) {
+        if (nullptr == lb) {
             MELON_LOG(FATAL) << "Fail to new LoadBalancerWithNaming";
             return -1;
         }
@@ -396,7 +396,7 @@ namespace melon::rpc {
         }
         const CallId correlation_id = cntl->call_id();
         const int rc = fiber_token_lock_and_reset_range(
-                correlation_id, NULL, 2 + cntl->max_retry());
+                correlation_id, nullptr, 2 + cntl->max_retry());
         if (rc != 0) {
             MELON_CHECK_EQ(EINVAL, rc);
             if (!cntl->FailedInline()) {
@@ -420,9 +420,9 @@ namespace melon::rpc {
         }
         cntl->set_used_by_rpc();
 
-        if (cntl->_sender == NULL && IsTraceable(Span::tls_parent())) {
+        if (cntl->_sender == nullptr && IsTraceable(Span::tls_parent())) {
             const int64_t start_send_us = melon::get_current_time_micros();
-            const std::string *method_name = NULL;
+            const std::string *method_name = nullptr;
             if (_get_method_name) {
                 method_name = &_get_method_name(method, cntl);
             } else if (method) {
@@ -477,7 +477,7 @@ namespace melon::rpc {
             return cntl->HandleSendFailed();
         }
         if (FLAGS_usercode_in_pthread &&
-            done != NULL &&
+            done != nullptr &&
             TooManyUserCode()) {
             cntl->SetFailed(ELIMIT, "Too many user code to run when "
                                     "-usercode_in_pthread is on");
@@ -530,7 +530,7 @@ namespace melon::rpc {
         }
 
         cntl->IssueRPC(start_send_real_us);
-        if (done == NULL) {
+        if (done == nullptr) {
             // MUST wait for response when sending synchronous RPC. It will
             // be woken up by callback when RPC finishes (succeeds or still
             // fails after retry)
@@ -557,7 +557,7 @@ namespace melon::rpc {
     }
 
     int Channel::CheckHealth() {
-        if (_lb == NULL) {
+        if (_lb == nullptr) {
             SocketUniquePtr ptr;
             if (Socket::Address(_server_id, &ptr) == 0 && ptr->IsAvailable()) {
                 return 0;
@@ -565,7 +565,7 @@ namespace melon::rpc {
             return -1;
         } else {
             SocketUniquePtr tmp_sock;
-            LoadBalancer::SelectIn sel_in = {0, false, false, 0, NULL};
+            LoadBalancer::SelectIn sel_in = {0, false, false, 0, nullptr};
             LoadBalancer::SelectOut sel_out(&tmp_sock);
             return _lb->SelectServer(sel_in, &sel_out);
         }

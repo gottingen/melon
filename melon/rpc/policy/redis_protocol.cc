@@ -85,7 +85,7 @@ namespace melon::rpc {
             if (ctx->transaction_handler) {
                 result = ctx->transaction_handler->Run(args, &output, flush_batched);
                 if (result == REDIS_CMD_HANDLED) {
-                    ctx->transaction_handler.reset(NULL);
+                    ctx->transaction_handler.reset(nullptr);
                 } else if (result == REDIS_CMD_BATCHED) {
                     MELON_LOG(ERROR) << "BATCHED should not be returned by a transaction handler.";
                     return -1;
@@ -156,7 +156,7 @@ namespace melon::rpc {
                     return MakeParseError(PARSE_ERROR_TRY_OTHERS);
                 }
                 RedisConnContext *ctx = static_cast<RedisConnContext *>(socket->parsing_context());
-                if (ctx == NULL) {
+                if (ctx == nullptr) {
                     ctx = new RedisConnContext(rs);
                     socket->reset_parsing_context(ctx);
                 }
@@ -210,7 +210,7 @@ namespace melon::rpc {
 
                 do {
                     InputResponse *msg = static_cast<InputResponse *>(socket->parsing_context());
-                    if (msg == NULL) {
+                    if (msg == nullptr) {
                         msg = new InputResponse;
                         socket->reset_parsing_context(msg);
                     }
@@ -253,7 +253,7 @@ namespace melon::rpc {
             DestroyingPtr<InputResponse> msg(static_cast<InputResponse *>(msg_base));
 
             const fiber_token_t cid = msg->id_wait;
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -270,7 +270,7 @@ namespace melon::rpc {
                 span->set_start_parse_us(start_parse_us);
             }
             const int saved_error = cntl->ErrorCode();
-            if (cntl->response() != NULL) {
+            if (cntl->response() != nullptr) {
                 if (cntl->response()->GetDescriptor() != RedisResponse::descriptor()) {
                     cntl->SetFailed(ERESPONSE, "Must be RedisResponse");
                 } else {
@@ -299,8 +299,8 @@ namespace melon::rpc {
         void SerializeRedisRequest(melon::cord_buf *buf,
                                    Controller *cntl,
                                    const google::protobuf::Message *request) {
-            if (request == NULL) {
-                return cntl->SetFailed(EREQUEST, "request is NULL");
+            if (request == nullptr) {
+                return cntl->SetFailed(EREQUEST, "request is nullptr");
             }
             if (request->GetDescriptor() != RedisRequest::descriptor()) {
                 return cntl->SetFailed(EREQUEST, "The request is not a RedisRequest");

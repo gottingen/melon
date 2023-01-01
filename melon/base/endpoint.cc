@@ -37,8 +37,8 @@ __END_DECLS
 namespace melon::base {
 
     int str2ip(const char *ip_str, ip_t *ip) {
-        // ip_str can be NULL when called by end_point(0, ...)
-        if (ip_str != NULL) {
+        // ip_str can be nullptr when called by end_point(0, ...)
+        if (ip_str != nullptr) {
             for (; isspace(*ip_str); ++ip_str);
             int rc = inet_pton(AF_INET, ip_str, ip);
             if (rc > 0) {
@@ -50,14 +50,14 @@ namespace melon::base {
 
     IPStr ip2str(ip_t ip) {
         IPStr str;
-        if (inet_ntop(AF_INET, &ip, str._buf, INET_ADDRSTRLEN) == NULL) {
+        if (inet_ntop(AF_INET, &ip, str._buf, INET_ADDRSTRLEN) == nullptr) {
             return ip2str(IP_NONE);
         }
         return str;
     }
 
     int ip2hostname(ip_t ip, char *host, size_t host_len) {
-        if (host == NULL || host_len == 0) {
+        if (host == nullptr || host_len == 0) {
             errno = EINVAL;
             return -1;
         }
@@ -67,7 +67,7 @@ namespace melon::base {
         sa.sin_port = 0;    // useless since we don't need server_name
         sa.sin_addr = ip;
         if (getnameinfo((const sockaddr *) &sa, sizeof(sa),
-                        host, host_len, NULL, 0, NI_NAMEREQD) != 0) {
+                        host, host_len, nullptr, 0, NI_NAMEREQD) != 0) {
             return -1;
         }
         // remove baidu-specific domain name (that every name has)
@@ -89,7 +89,7 @@ namespace melon::base {
 
     end_point_str endpoint2str(const end_point &point) {
         end_point_str str;
-        if (inet_ntop(AF_INET, &point.ip, str._buf, INET_ADDRSTRLEN) == NULL) {
+        if (inet_ntop(AF_INET, &point.ip, str._buf, INET_ADDRSTRLEN) == nullptr) {
             return endpoint2str(end_point(IP_NONE, 0));
         }
         char *buf = str._buf + strlen(str._buf);
@@ -100,7 +100,7 @@ namespace melon::base {
 
     int hostname2ip(const char *hostname, ip_t *ip) {
         char buf[256];
-        if (NULL == hostname) {
+        if (nullptr == hostname) {
             if (gethostname(buf, sizeof(buf)) < 0) {
                 return -1;
             }
@@ -115,16 +115,16 @@ namespace melon::base {
         // returned hostent is TLS. Check following link for the ref:
         // https://lists.apple.com/archives/darwin-dev/2006/May/msg00008.html
         struct hostent *result = gethostbyname(hostname);
-        if (result == NULL) {
+        if (result == nullptr) {
             return -1;
         }
 #else
         char aux_buf[1024];
         int error = 0;
         struct hostent ent;
-        struct hostent* result = NULL;
+        struct hostent* result = nullptr;
         if (gethostbyname_r(hostname, &ent, aux_buf, sizeof(aux_buf),
-                            &result, &error) != 0 || result == NULL) {
+                            &result, &error) != 0 || result == nullptr) {
             return -1;
         }
 #endif // defined(MELON_PLATFORM_APPLE)
@@ -176,7 +176,7 @@ namespace melon::base {
             return -1;
         }
         ++i;
-        char *end = NULL;
+        char *end = nullptr;
         point->port = strtol(str + i, &end, 10);
         if (end == str + i) {
             return -1;
@@ -221,7 +221,7 @@ namespace melon::base {
         if (str[i] == ':') {
             ++i;
         }
-        char *end = NULL;
+        char *end = nullptr;
         point->port = strtol(str + i, &end, 10);
         if (end == str + i) {
             return -1;
@@ -279,7 +279,7 @@ namespace melon::base {
         serv_addr.sin_addr = point.ip;
         serv_addr.sin_port = htons(point.port);
         int rc = 0;
-        if (fiber_connect != NULL) {
+        if (fiber_connect != nullptr) {
             rc = fiber_connect(sockfd, (struct sockaddr *) &serv_addr,
                                  sizeof(serv_addr));
         } else {
@@ -288,7 +288,7 @@ namespace melon::base {
         if (rc < 0) {
             return -1;
         }
-        if (self_port != NULL) {
+        if (self_port != nullptr) {
             end_point pt;
             if (get_local_side(sockfd, &pt) == 0) {
                 *self_port = pt.port;

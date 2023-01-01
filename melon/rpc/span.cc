@@ -102,8 +102,8 @@ namespace melon::rpc {
     Span *Span::CreateClientSpan(const std::string &full_method_name,
                                  int64_t base_real_us) {
         Span *span = melon::get_object<Span>(Forbidden());
-        if (__builtin_expect(span == NULL, 0)) {
-            return NULL;
+        if (__builtin_expect(span == nullptr, 0)) {
+            return nullptr;
         }
         span->_log_id = 0;
         span->_base_cid = INVALID_FIBER_TOKEN;
@@ -120,8 +120,8 @@ namespace melon::rpc {
         span->_start_callback_real_us = 0;
         span->_start_send_real_us = 0;
         span->_sent_real_us = 0;
-        span->_next_client = NULL;
-        span->_tls_next = NULL;
+        span->_next_client = nullptr;
+        span->_tls_next = nullptr;
         span->_full_method_name = full_method_name;
         span->_info.clear();
         Span *parent = (Span *) melon::fiber_internal::tls_bls.rpcz_parent_span;
@@ -134,7 +134,7 @@ namespace melon::rpc {
         } else {
             span->_trace_id = GenerateTraceId();
             span->_parent_span_id = 0;
-            span->_local_parent = NULL;
+            span->_local_parent = nullptr;
         }
         span->_span_id = GenerateSpanId();
         return span;
@@ -151,8 +151,8 @@ namespace melon::rpc {
             uint64_t trace_id, uint64_t span_id, uint64_t parent_span_id,
             int64_t base_real_us) {
         Span *span = melon::get_object<Span>(Forbidden());
-        if (__builtin_expect(span == NULL, 0)) {
-            return NULL;
+        if (__builtin_expect(span == nullptr, 0)) {
+            return nullptr;
         }
         span->_trace_id = (trace_id ? trace_id : GenerateTraceId());
         span->_span_id = (span_id ? span_id : GenerateSpanId());
@@ -172,12 +172,12 @@ namespace melon::rpc {
         span->_start_callback_real_us = 0;
         span->_start_send_real_us = 0;
         span->_sent_real_us = 0;
-        span->_next_client = NULL;
-        span->_tls_next = NULL;
+        span->_next_client = nullptr;
+        span->_tls_next = nullptr;
         span->_full_method_name = (!full_method_name.empty() ?
                                    full_method_name : unknown_span_name());
         span->_info.clear();
-        span->_local_parent = NULL;
+        span->_local_parent = nullptr;
         return span;
     }
 
@@ -267,7 +267,7 @@ namespace melon::rpc {
 
     bool SpanInfoExtractor::PopAnnotation(
             int64_t before_this_time, int64_t *time, std::string *annotation) {
-        for (; _sp != NULL; ++_sp) {
+        for (; _sp != nullptr; ++_sp) {
             melon::StringSplitter sp_time(_sp.field(), _sp.field() + _sp.length(), ' ');
             if (sp_time) {
                 char *endptr;
@@ -310,7 +310,7 @@ namespace melon::rpc {
         std::string id_db_name;
         std::string time_db_name;
 
-        SpanDB() : id_db(NULL), time_db(NULL) {}
+        SpanDB() : id_db(nullptr), time_db(nullptr) {}
 
         static SpanDB *Open();
 
@@ -327,7 +327,7 @@ namespace melon::rpc {
         }
 
         ~SpanDB() {
-            if (id_db == NULL && time_db == NULL) {
+            if (id_db == nullptr && time_db == nullptr) {
                 return;
             }
             delete id_db;
@@ -350,7 +350,7 @@ namespace melon::rpc {
     static pthread_mutex_t g_span_db_mutex = PTHREAD_MUTEX_INITIALIZER;
     static bool g_span_ending = false;  // don't open span again if this var is true.
 // Can't use intrusive_ptr which has ctor/dtor issues.
-    static SpanDB *g_span_db = NULL;
+    static SpanDB *g_span_db = nullptr;
 
     bool has_span_db() { return !!g_span_db; }
 
@@ -373,7 +373,7 @@ namespace melon::rpc {
         }
     };
 
-    static SpanPreprocessor *g_span_prep = NULL;
+    static SpanPreprocessor *g_span_prep = nullptr;
 
     melon::CollectorSpeedLimit *Span::speed_limit() {
         return &g_span_sl;
@@ -384,7 +384,7 @@ namespace melon::rpc {
     }
 
     static void ResetSpanDB(SpanDB *db) {
-        SpanDB *old_db = NULL;
+        SpanDB *old_db = nullptr;
         {
             MELON_SCOPED_LOCK(g_span_db_mutex);
             old_db = g_span_db;
@@ -400,7 +400,7 @@ namespace melon::rpc {
 
     static void RemoveSpanDB() {
         g_span_ending = true;
-        ResetSpanDB(NULL);
+        ResetSpanDB(nullptr);
     }
 
     static void StartSpanIndexing() {
@@ -418,7 +418,7 @@ namespace melon::rpc {
 
     inline int GetSpanDB(melon::container::intrusive_ptr<SpanDB> *db) {
         MELON_SCOPED_LOCK(g_span_db_mutex);
-        if (g_span_db != NULL) {
+        if (g_span_db != nullptr) {
             *db = g_span_db;
             return 0;
         }
@@ -426,7 +426,7 @@ namespace melon::rpc {
     }
 
     void Span::Submit(Span *span, int64_t cpuwide_time_us) {
-        if (span->local_parent() == NULL) {
+        if (span->local_parent() == nullptr) {
             span->submit(cpuwide_time_us);
         }
     }
@@ -488,14 +488,14 @@ namespace melon::rpc {
         if (!melon::create_directories(dir, ec)) {
             MELON_LOG(ERROR) << "Fail to create directory=`" << dir.c_str() << ", "
                              << ec.message();
-            return NULL;
+            return nullptr;
         }
 
         local.id_db_name.append("/id.db");
         st = leveldb::DB::Open(options, local.id_db_name.c_str(), &local.id_db);
         if (!st.ok()) {
             MELON_LOG(ERROR) << "Fail to open id_db: " << st.ToString();
-            return NULL;
+            return nullptr;
         }
 
         local.time_db_name.append(FLAGS_rpcz_database_dir);
@@ -504,11 +504,11 @@ namespace melon::rpc {
         st = leveldb::DB::Open(options, local.time_db_name.c_str(), &local.time_db);
         if (!st.ok()) {
             MELON_LOG(ERROR) << "Fail to open time_db: " << st.ToString();
-            return NULL;
+            return nullptr;
         }
         SpanDB *db = new(std::nothrow) SpanDB;
-        if (NULL == db) {
-            return NULL;
+        if (nullptr == db) {
+            return nullptr;
         }
         MELON_LOG(INFO) << "Opened " << local.id_db_name << " and "
                         << local.time_db_name;
@@ -598,8 +598,8 @@ namespace melon::rpc {
 
 // NOTE: may take more than 100ms
     leveldb::Status SpanDB::RemoveSpansBefore(int64_t tm) {
-        if (id_db == NULL || time_db == NULL) {
-            return leveldb::Status::InvalidArgument(leveldb::Slice("NULL param"));
+        if (id_db == nullptr || time_db == nullptr) {
+            return leveldb::Status::InvalidArgument(leveldb::Slice("nullptr param"));
         }
         leveldb::Status rc;
         leveldb::WriteOptions options;
@@ -652,7 +652,7 @@ namespace melon::rpc {
                 return;
             }
             SpanDB *db2 = SpanDB::Open();
-            if (db2 == NULL) {
+            if (db2 == nullptr) {
                 MELON_LOG(WARNING) << "Fail to open SpanDB";
                 destroy();
                 return;
@@ -666,7 +666,7 @@ namespace melon::rpc {
         if (!st.ok()) {
             MELON_LOG(WARNING) << st.ToString();
             if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
-                ResetSpanDB(NULL);
+                ResetSpanDB(nullptr);
                 return;
             }
         }
@@ -680,7 +680,7 @@ namespace melon::rpc {
             if (!st.ok()) {
                 MELON_LOG(ERROR) << st.ToString();
                 if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
-                    ResetSpanDB(NULL);
+                    ResetSpanDB(nullptr);
                     return;
                 }
             }
@@ -765,7 +765,7 @@ namespace melon::rpc {
             }
             brief.Clear();
             if (brief.ParseFromArray(it->value().data(), it->value().size())) {
-                if (NULL == filter || filter->Keep(brief)) {
+                if (nullptr == filter || filter->Keep(brief)) {
                     out->push_back(brief);
                 }
                 // We increase the count no matter filter passed or not to avoid
@@ -784,7 +784,7 @@ namespace melon::rpc {
             return;
         }
 
-        if (db->id_db != NULL) {
+        if (db->id_db != nullptr) {
             std::string val;
             if (db->id_db->GetProperty(leveldb::Slice("leveldb.stats"), &val)) {
                 os << "[ " << db->id_db_name << " ]\n" << val;
@@ -794,7 +794,7 @@ namespace melon::rpc {
             }
         }
         os << '\n';
-        if (db->time_db != NULL) {
+        if (db->time_db != nullptr) {
             std::string val;
             if (db->time_db->GetProperty(leveldb::Slice("leveldb.stats"), &val)) {
                 os << "[ " << db->time_db_name << " ]\n" << val;

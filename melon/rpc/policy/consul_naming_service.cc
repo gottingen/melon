@@ -103,7 +103,7 @@ namespace melon::rpc {
 
             Controller cntl;
             cntl.http_request().uri() = consul_url;
-            _channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            _channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(ERROR) << "Fail to access " << consul_url << ": "
                                  << cntl.ErrorText();

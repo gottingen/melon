@@ -52,9 +52,9 @@ static void* sender(void* void_args) {
         melon::rpc::RedisResponse response;
         melon::rpc::Controller cntl;
 
-        // Because `done'(last parameter) is NULL, this function waits until
+        // Because `done'(last parameter) is nullptr, this function waits until
         // the response comes back or error occurs(including timedout).
-        args->redis_channel->CallMethod(NULL, &cntl, &request, &response, NULL);
+        args->redis_channel->CallMethod(nullptr, &cntl, &request, &response, nullptr);
         const int64_t elp = cntl.latency_us();
         if (!cntl.Failed()) {
             g_latency_recorder << elp;
@@ -74,7 +74,7 @@ static void* sender(void* void_args) {
             melon::fiber_sleep_for(50000);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 int main(int argc, char* argv[]) {
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::rpc::Channel channel;
     
-    // Initialize the channel, NULL means using default options. 
+    // Initialize the channel, nullptr means using default options.
     melon::rpc::ChannelOptions options;
     options.protocol = melon::rpc::PROTOCOL_REDIS;
     options.connection_type = FLAGS_connection_type;
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
             return -1;
         }
     }
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     if (cntl.Failed()) {
         MELON_LOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
         return -1;
@@ -138,13 +138,13 @@ int main(int argc, char* argv[]) {
         args[i].base_index = i * FLAGS_batch;
         args[i].redis_channel = &channel;
         if (!FLAGS_use_fiber) {
-            if (pthread_create(&pids[i], NULL, sender, &args[i]) != 0) {
+            if (pthread_create(&pids[i], nullptr, sender, &args[i]) != 0) {
                 MELON_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         } else {
             if (fiber_start_background(
-                    &bids[i], NULL, sender, &args[i]) != 0) {
+                    &bids[i], nullptr, sender, &args[i]) != 0) {
                 MELON_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
@@ -161,9 +161,9 @@ int main(int argc, char* argv[]) {
     MELON_LOG(INFO) << "redis_client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
-            pthread_join(pids[i], NULL);
+            pthread_join(pids[i], nullptr);
         } else {
-            fiber_join(bids[i], NULL);
+            fiber_join(bids[i], nullptr);
         }
     }
     return 0;

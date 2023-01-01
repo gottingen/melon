@@ -109,7 +109,7 @@ namespace melon::rpc {
         }
         if (FLAGS_http_verbose) {
             melon::cord_buf_builder *vs = http_message->_vmsgbuilder;
-            if (vs == NULL) {
+            if (vs == nullptr) {
                 vs = new melon::cord_buf_builder;
                 http_message->_vmsgbuilder = vs;
                 if (parser->type == HTTP_REQUEST) {
@@ -174,7 +174,7 @@ namespace melon::rpc {
         URI &uri = http_message->header().uri();
         if (uri._host.empty()) {
             const std::string *host_header = http_message->header().GetHeader("host");
-            if (host_header != NULL) {
+            if (host_header != nullptr) {
                 uri.SetHostAndPort(*host_header);
             }
         }
@@ -194,7 +194,7 @@ namespace melon::rpc {
             melon::result_status st = r->OnReadOnePart(blk.data(), blk.size());
             if (!st.is_ok()) {
                 mu.lock();
-                _body_reader = NULL;
+                _body_reader = nullptr;
                 mu.unlock();
                 r->OnEndOfMessage(st);
                 return -1;
@@ -225,7 +225,7 @@ namespace melon::rpc {
                 header().status_code() == HTTP_STATUS_OK) {
                 MELON_LOG(INFO) << '\n' << _vmsgbuilder->buf();
                 delete _vmsgbuilder;
-                _vmsgbuilder = NULL;
+                _vmsgbuilder = nullptr;
             } else {
                 if (_vbodylen < (size_t) FLAGS_http_verbose_max_body_length) {
                     int plen = std::min(length, (size_t) FLAGS_http_verbose_max_body_length
@@ -250,7 +250,7 @@ namespace melon::rpc {
         // Progressive read.
         std::unique_lock<std::mutex> mu(_body_mutex);
         ProgressiveReader *r = _body_reader;
-        while (r == NULL) {
+        while (r == nullptr) {
             // When _body is full, the sleep-waiting may block parse handler
             // of the protocol. A more efficient solution is to remove the
             // socket from epoll and add it back when the _body is not full,
@@ -276,7 +276,7 @@ namespace melon::rpc {
             return 0;
         }
         mu.lock();
-        _body_reader = NULL;
+        _body_reader = nullptr;
         mu.unlock();
         r->OnEndOfMessage(st);
         return -1;
@@ -290,10 +290,10 @@ namespace melon::rpc {
             }
             MELON_LOG(INFO) << '\n' << _vmsgbuilder->buf();
             delete _vmsgbuilder;
-            _vmsgbuilder = NULL;
+            _vmsgbuilder = nullptr;
         }
         _cur_header.clear();
-        _cur_value = NULL;
+        _cur_value = nullptr;
         if (!_read_body_progressively) {
             // Normal read.
             _stage = HTTP_ON_MESSAGE_COMPLETE;
@@ -302,7 +302,7 @@ namespace melon::rpc {
         // Progressive read.
         std::unique_lock<std::mutex> mu(_body_mutex);
         _stage = HTTP_ON_MESSAGE_COMPLETE;
-        if (_body_reader != NULL) {
+        if (_body_reader != nullptr) {
             // Solve the case: SetBodyReader quit at ntry=MAX_TRY with non-empty
             // _body and the remaining _body is just the last part.
             // Make sure _body is emptied.
@@ -311,7 +311,7 @@ namespace melon::rpc {
             }
             mu.lock();
             ProgressiveReader *r = _body_reader;
-            _body_reader = NULL;
+            _body_reader = nullptr;
             mu.unlock();
             r->OnEndOfMessage(melon::result_status());
         }
@@ -329,7 +329,7 @@ namespace melon::rpc {
         void OnEndOfMessage(const melon::result_status &) {}
     };
 
-    static FailAllRead *s_fail_all_read = NULL;
+    static FailAllRead *s_fail_all_read = nullptr;
     static pthread_once_t s_fail_all_read_once = PTHREAD_ONCE_INIT;
 
     static void CreateFailAllRead() { s_fail_all_read = new FailAllRead; }
@@ -344,7 +344,7 @@ namespace melon::rpc {
         int ntry = 0;
         do {
             std::unique_lock<std::mutex> mu(_body_mutex);
-            if (_body_reader != NULL) {
+            if (_body_reader != nullptr) {
                 mu.unlock();
                 return r->OnEndOfMessage(
                         melon::result_status(EPERM, "SetBodyReader is called more than once"));
@@ -397,7 +397,7 @@ namespace melon::rpc {
 
     HttpMessage::HttpMessage(bool read_body_progressively)
             : _parsed_length(0), _stage(HTTP_ON_MESSAGE_BEGIN), _read_body_progressively(read_body_progressively),
-              _body_reader(NULL), _cur_value(NULL), _vmsgbuilder(NULL), _vbodylen(0) {
+              _body_reader(nullptr), _cur_value(nullptr), _vmsgbuilder(nullptr), _vbodylen(0) {
         http_parser_init(&_parser, HTTP_BOTH);
         _parser.data = this;
     }
@@ -405,7 +405,7 @@ namespace melon::rpc {
     HttpMessage::~HttpMessage() {
         if (_body_reader) {
             ProgressiveReader *saved_body_reader = _body_reader;
-            _body_reader = NULL;
+            _body_reader = nullptr;
             // Successfully ended message is ended in OnMessageComplete() or
             // SetBodyReader() and _body_reader should be null-ed. Non-null
             // _body_reader here just means the socket is broken before completion
@@ -559,7 +559,7 @@ namespace melon::rpc {
         //the request-target consists of only the host name and port number of
         //the tunnel destination, seperated by a colon. For example,
         //Host: server.example.com:80
-        if (h->GetHeader("host") == NULL) {
+        if (h->GetHeader("host") == nullptr) {
             os << "Host: ";
             if (!uri.host().empty()) {
                 os << uri.host();
@@ -579,15 +579,15 @@ namespace melon::rpc {
              it != h->HeaderEnd(); ++it) {
             os << it->first << ": " << it->second << MELON_RPC_CRLF;
         }
-        if (h->GetHeader("Accept") == NULL) {
+        if (h->GetHeader("Accept") == nullptr) {
             os << "Accept: */*" MELON_RPC_CRLF;
         }
         // The fake "curl" user-agent may let servers return plain-text results.
-        if (h->GetHeader("User-Agent") == NULL) {
+        if (h->GetHeader("User-Agent") == nullptr) {
             os << "User-Agent: melon/1.0 curl/7.0" MELON_RPC_CRLF;
         }
         const std::string &user_info = h->uri().user_info();
-        if (!user_info.empty() && h->GetHeader("Authorization") == NULL) {
+        if (!user_info.empty() && h->GetHeader("Authorization") == nullptr) {
             // NOTE: just assume user_info is well formatted, namely
             // "<user_name>:<password>". Users are very unlikely to add extra
             // characters in this part and even if users did, most of them are

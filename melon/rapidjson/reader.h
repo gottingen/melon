@@ -863,7 +863,7 @@ concept Handler {
         inline void PushContentToStream(OutputStream& os, Ch*& start, size_t& length) {
             if (length > 0) {
                 os.Puts(start, length);
-                start = NULL;
+                start = nullptr;
                 length = 0;
             }
         }

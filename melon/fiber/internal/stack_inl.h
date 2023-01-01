@@ -35,7 +35,7 @@ namespace melon::fiber_internal {
                 if (allocate_stack_storage(&storage, *StackClass::stack_size_flag,
                                            FLAGS_guard_page_size) != 0) {
                     storage.zeroize();
-                    context = NULL;
+                    context = nullptr;
                     return;
                 }
                 context = melon_fiber_make_context(storage.bottom, storage.stacksize, entry);
@@ -44,7 +44,7 @@ namespace melon::fiber_internal {
 
             ~Wrapper() {
                 if (context) {
-                    context = NULL;
+                    context = nullptr;
                     deallocate_stack_storage(&storage);
                     storage.zeroize();
                 }
@@ -64,10 +64,10 @@ namespace melon::fiber_internal {
     struct StackFactory<MainStackClass> {
         static fiber_contextual_stack *get_stack(void (*)(intptr_t)) {
             fiber_contextual_stack *s = new(std::nothrow) fiber_contextual_stack;
-            if (NULL == s) {
-                return NULL;
+            if (nullptr == s) {
+                return nullptr;
             }
-            s->context = NULL;
+            s->context = nullptr;
             s->stacktype = STACK_TYPE_MAIN;
             s->storage.zeroize();
             return s;
@@ -81,7 +81,7 @@ namespace melon::fiber_internal {
     inline fiber_contextual_stack *get_stack(fiber_stack_type type, void (*entry)(intptr_t)) {
         switch (type) {
             case STACK_TYPE_PTHREAD:
-                return NULL;
+                return nullptr;
             case STACK_TYPE_SMALL:
                 return StackFactory<SmallStackClass>::get_stack(entry);
             case STACK_TYPE_NORMAL:
@@ -91,11 +91,11 @@ namespace melon::fiber_internal {
             case STACK_TYPE_MAIN:
                 return StackFactory<MainStackClass>::get_stack(entry);
         }
-        return NULL;
+        return nullptr;
     }
 
     inline void return_stack(fiber_contextual_stack *s) {
-        if (NULL == s) {
+        if (nullptr == s) {
             return;
         }
         switch (s->stacktype) {
@@ -165,7 +165,7 @@ namespace melon {
             melon::fiber_internal::StackFactory<melon::fiber_internal::LargeStackClass>::Wrapper> {
         inline static bool validate(
                 const melon::fiber_internal::StackFactory<melon::fiber_internal::LargeStackClass>::Wrapper *w) {
-            return w->context != NULL;
+            return w->context != nullptr;
         }
     };
 
@@ -174,7 +174,7 @@ namespace melon {
             melon::fiber_internal::StackFactory<melon::fiber_internal::NormalStackClass>::Wrapper> {
         inline static bool validate(
                 const melon::fiber_internal::StackFactory<melon::fiber_internal::NormalStackClass>::Wrapper *w) {
-            return w->context != NULL;
+            return w->context != nullptr;
         }
     };
 
@@ -183,7 +183,7 @@ namespace melon {
             melon::fiber_internal::StackFactory<melon::fiber_internal::SmallStackClass>::Wrapper> {
         inline static bool validate(
                 const melon::fiber_internal::StackFactory<melon::fiber_internal::SmallStackClass>::Wrapper *w) {
-            return w->context != NULL;
+            return w->context != nullptr;
         }
     };
 

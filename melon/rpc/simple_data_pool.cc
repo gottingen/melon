@@ -21,17 +21,17 @@
 namespace melon::rpc {
 
     SimpleDataPool::SimpleDataPool(const DataFactory *factory)
-            : _capacity(0), _size(0), _ncreated(0), _pool(NULL), _factory(factory) {
+            : _capacity(0), _size(0), _ncreated(0), _pool(nullptr), _factory(factory) {
     }
 
     SimpleDataPool::~SimpleDataPool() {
-        Reset(NULL);
+        Reset(nullptr);
     }
 
     void SimpleDataPool::Reset(const DataFactory *factory) {
         unsigned saved_size = 0;
-        void **saved_pool = NULL;
-        const DataFactory *saved_factory = NULL;
+        void **saved_pool = nullptr;
+        const DataFactory *saved_factory = nullptr;
         {
             MELON_SCOPED_LOCK(_mutex);
             saved_size = _size;
@@ -40,7 +40,7 @@ namespace melon::rpc {
             _capacity = 0;
             _size = 0;
             _ncreated.store(0, std::memory_order_relaxed);
-            _pool = NULL;
+            _pool = nullptr;
             _factory = factory;
         }
         if (saved_pool) {
@@ -64,7 +64,7 @@ namespace melon::rpc {
         // Resize.
         const unsigned new_cap = std::max(_capacity * 3 / 2, n);
         void **new_pool = (void **) malloc(new_cap * sizeof(void *));
-        if (NULL == new_pool) {
+        if (nullptr == new_pool) {
             return;
         }
         if (_pool) {
@@ -77,7 +77,7 @@ namespace melon::rpc {
 
         for (; i < n; ++i) {
             void *data = _factory->CreateData();
-            if (data == NULL) {
+            if (data == nullptr) {
                 break;
             }
             _ncreated.fetch_add(1, std::memory_order_relaxed);
@@ -100,7 +100,7 @@ namespace melon::rpc {
     }
 
     void SimpleDataPool::Return(void *data) {
-        if (data == NULL) {
+        if (data == nullptr) {
             return;
         }
         if (!_factory->ResetData(data)) {
@@ -110,7 +110,7 @@ namespace melon::rpc {
         if (_capacity == _size) {
             const unsigned new_cap = (_capacity <= 1 ? 128 : (_capacity * 3 / 2));
             void **new_pool = (void **) malloc(new_cap * sizeof(void *));
-            if (NULL == new_pool) {
+            if (nullptr == new_pool) {
                 mu.unlock();
                 return _factory->DestroyData(data);
             }

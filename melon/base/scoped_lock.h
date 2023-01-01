@@ -36,7 +36,7 @@ namespace std {
             const int rc = pthread_mutex_lock(_pmutex);
             if (rc) {
                 MELON_LOG(FATAL) << "Fail to lock pthread_mutex_t=" << _pmutex << ", " << melon_error(rc);
-                _pmutex = NULL;
+                _pmutex = nullptr;
             }
 #else
             pthread_mutex_lock(_pmutex);
@@ -65,7 +65,7 @@ namespace std {
             const int rc = pthread_spin_lock(_pspin);
             if (rc) {
                 MELON_LOG(FATAL) << "Fail to lock pthread_spinlock_t=" << _pspin << ", " << melon_error(rc);
-                _pspin = NULL;
+                _pspin = nullptr;
             }
 #else
             pthread_spin_lock(_pspin);
@@ -91,7 +91,7 @@ namespace std {
         MELON_DISALLOW_COPY_AND_ASSIGN(unique_lock);
     public:
         typedef pthread_mutex_t         mutex_type;
-        unique_lock() : _mutex(NULL), _owns_lock(false) {}
+        unique_lock() : _mutex(nullptr), _owns_lock(false) {}
         explicit unique_lock(mutex_type& mutex)
             : _mutex(&mutex), _owns_lock(true) {
             pthread_mutex_lock(_mutex);
@@ -155,7 +155,7 @@ namespace std {
 
         mutex_type* release() {
             mutex_type* saved_mutex = _mutex;
-            _mutex = NULL;
+            _mutex = nullptr;
             _owns_lock = false;
             return saved_mutex;
         }
@@ -173,7 +173,7 @@ namespace std {
         MELON_DISALLOW_COPY_AND_ASSIGN(unique_lock);
     public:
         typedef pthread_spinlock_t  mutex_type;
-        unique_lock() : _mutex(NULL), _owns_lock(false) {}
+        unique_lock() : _mutex(nullptr), _owns_lock(false) {}
         explicit unique_lock(mutex_type& mutex)
             : _mutex(&mutex), _owns_lock(true) {
             pthread_spin_lock(_mutex);
@@ -237,7 +237,7 @@ namespace std {
 
         mutex_type* release() {
             mutex_type* saved_mutex = _mutex;
-            _mutex = NULL;
+            _mutex = nullptr;
             _owns_lock = false;
             return saved_mutex;
         }

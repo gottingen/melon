@@ -254,7 +254,7 @@ namespace melon {
             detail::thread_exit_helper *h =
                     (detail::thread_exit_helper *) pthread_getspecific(detail::thread_atexit_key);
             if (h) {
-                pthread_setspecific(detail::thread_atexit_key, NULL);
+                pthread_setspecific(detail::thread_atexit_key, nullptr);
                 delete h;
             }
         }
@@ -274,10 +274,10 @@ namespace melon {
 
             detail::thread_exit_helper *h =
                     (detail::thread_exit_helper *) pthread_getspecific(detail::thread_atexit_key);
-            if (NULL == h) {
+            if (nullptr == h) {
                 h = new(std::nothrow)
                 detail::thread_exit_helper;
-                if (NULL != h) {
+                if (nullptr != h) {
                     pthread_setspecific(detail::thread_atexit_key, h);
                 }
             }
@@ -304,7 +304,7 @@ namespace melon {
     }
 
     int thread::atexit(void (*fn)()) {
-        if (NULL == fn) {
+        if (nullptr == fn) {
             errno = EINVAL;
             return -1;
         }
@@ -313,7 +313,7 @@ namespace melon {
 
 
     int thread::atexit(void (*fn)(void *), void *arg) {
-        if (NULL == fn) {
+        if (nullptr == fn) {
             errno = EINVAL;
             return -1;
         }
@@ -326,13 +326,13 @@ namespace melon {
     }
 
     void thread::atexit_cancel(void (*fn)()) {
-        if (NULL != fn) {
+        if (nullptr != fn) {
             atexit_cancel(detail::call_single_arg_fn, (void *) fn);
         }
     }
 
     void thread::atexit_cancel(void (*fn)(void *), void *arg) {
-        if (fn != NULL) {
+        if (fn != nullptr) {
             detail::thread_exit_helper *h = detail::get_thread_exit_helper();
             if (h) {
                 h->remove(fn, arg);

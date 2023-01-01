@@ -192,14 +192,14 @@ namespace melon::log {
 
     class log_sink;  // defined below
 
-    // If a non-NULL sink pointer is given, we push this message to that sink.
+    // If a non-nullptr sink pointer is given, we push this message to that sink.
     // For MELON_LOG_TO_SINK we then do normal MELON_LOG(severity) logging as well.
     // This is useful for capturing messages and passing/storing them
     // somewhere more specific than the global log of the process.
     // Argument types:
     //   log_sink* sink;
     //   log_severity severity;
-    // The cast is to disambiguate NULL arguments.
+    // The cast is to disambiguate nullptr arguments.
 #define MELON_LOG_TO_SINK(sink, severity) \
   melon::log::log_message(                                    \
       __FILE__, __LINE__,                                               \
@@ -211,27 +211,27 @@ namespace melon::log {
       melon::log::MELON_ ## severity,                         \
       static_cast<melon::log::log_sink*>(sink), false).stream()
 
-// If a non-NULL string pointer is given, we write this message to that string.
+// If a non-nullptr string pointer is given, we write this message to that string.
 // We then do normal MELON_LOG(severity) logging as well.
 // This is useful for capturing messages and storing them somewhere more
 // specific than the global log of the process.
 // Argument types:
 //   string* message;
 //   log_severity severity;
-// The cast is to disambiguate NULL arguments.
+// The cast is to disambiguate nullptr arguments.
 // NOTE: MELON_LOG(severity) expands to log_message().stream() for the specified
 // severity.
 #define MELON_LOG_TO_STRING(severity, message) \
   MELON_LOG_TO_STRING_##severity(static_cast<std::string*>(message)).stream()
 
-// If a non-NULL pointer is given, we push the message onto the end
+// If a non-nullptr pointer is given, we push the message onto the end
 // of a vector of strings; otherwise, we report it with MELON_LOG(severity).
 // This is handy for capturing messages and perhaps passing them back
 // to the caller, rather than reporting them immediately.
 // Argument types:
 //   log_severity severity;
 //   vector<string> *outvec;
-// The cast is to disambiguate NULL arguments.
+// The cast is to disambiguate nullptr arguments.
 #define MELON_LOG_STRING(severity, outvec) \
   MELON_LOG_TO_STRING_##severity(static_cast<std::vector<std::string>*>(outvec)).stream()
 
@@ -256,14 +256,14 @@ namespace melon::log {
              << "Check failed: " #condition " "
 
     // A container for a string pointer which can be evaluated to a bool -
-    // true iff the pointer is NULL.
+    // true iff the pointer is nullptr.
     struct CheckOpString {
         CheckOpString(std::string *str) : str_(str) {}
 
-        // No destructor: if str_ is non-NULL, we're about to MELON_LOG(FATAL),
+        // No destructor: if str_ is non-nullptr, we're about to MELON_LOG(FATAL),
         // so there's no point in cleaning up str_.
         operator bool() const {
-            return MELON_UNLIKELY(str_ != NULL);
+            return MELON_UNLIKELY(str_ != nullptr);
         }
 
         std::string *str_;
@@ -402,7 +402,7 @@ namespace melon::log {
   template <typename T1, typename T2> \
   inline std::string* name##Impl(const T1& v1, const T2& v2,    \
                             const char* exprtext) { \
-    if (MELON_LIKELY(v1 op v2)) return NULL; \
+    if (MELON_LIKELY(v1 op v2)) return nullptr; \
     else return MakeCheckOpString(v1, v2, exprtext); \
   } \
   inline std::string* name##Impl(int v1, int v2, const char* exprtext) { \
@@ -413,8 +413,8 @@ namespace melon::log {
     // base/logging.h provides its own #defines for the simpler names EQ, NE, etc.
     // This happens if, for example, those are used as token names in a
     // yacc grammar.
-    MELON_DEFINE_CHECK_OP_IMPL(Check_EQ, ==)  // Compilation error with MELON_CHECK_EQ(NULL, x)?
-    MELON_DEFINE_CHECK_OP_IMPL(Check_NE, !=)  // Use MELON_CHECK(x == NULL) instead.
+    MELON_DEFINE_CHECK_OP_IMPL(Check_EQ, ==)  // Compilation error with MELON_CHECK_EQ(nullptr, x)?
+    MELON_DEFINE_CHECK_OP_IMPL(Check_NE, !=)  // Use MELON_CHECK(x == nullptr) instead.
     MELON_DEFINE_CHECK_OP_IMPL(Check_LE, <=)
 
     MELON_DEFINE_CHECK_OP_IMPL(Check_LT, <)
@@ -485,7 +485,7 @@ namespace melon::log {
 //   MELON_CHECK_EQ(string("abc")[1], 'b');
 //
 // WARNING: These don't compile correctly if one of the arguments is a pointer
-// and the other is NULL. To work around this, simply static_cast NULL to the
+// and the other is nullptr. To work around this, simply static_cast nullptr to the
 // type of the desired pointer.
 
 #define MELON_CHECK_EQ(val1, val2) MELON_CHECK_OP(_EQ, ==, val1, val2)
@@ -495,11 +495,11 @@ namespace melon::log {
 #define MELON_CHECK_GE(val1, val2) MELON_CHECK_OP(_GE, >=, val1, val2)
 #define MELON_CHECK_GT(val1, val2) MELON_CHECK_OP(_GT, > , val1, val2)
 
-// Check that the input is non NULL.  This very useful in constructor
+// Check that the input is non nullptr.  This very useful in constructor
 // initializer lists.
 
 #define MELON_CHECK_NOTNULL(val) \
-  melon::log::check_not_null(__FILE__, __LINE__, "'" #val "' Must be non NULL", (val))
+  melon::log::check_not_null(__FILE__, __LINE__, "'" #val "' Must be non nullptr", (val))
 
 // Helper functions for string comparisons.
 // To avoid bloat, the definitions are in logging.cc.
@@ -884,7 +884,7 @@ MELON_PLOG_IF(FATAL, MELON_UNLIKELY((invocation) == -1))    \
         class MELON_EXPORT log_stream : public std::ostream {
         public:
             log_stream(char *buf, int len, uint64_t ctr)
-                    : std::ostream(NULL),
+                    : std::ostream(nullptr),
                       streambuf_(buf, len),
                       ctr_(ctr),
                       self_(this) {
@@ -939,20 +939,20 @@ MELON_PLOG_IF(FATAL, MELON_UNLIKELY((invocation) == -1))    \
         // saves 17 bytes per call site.
         log_message(const char *file, int line, log_severity severity);
 
-        // Constructor to log this message to a specified sink (if not NULL).
+        // Constructor to log this message to a specified sink (if not nullptr).
         // Implied are: ctr = 0, send_method = &log_message::send_to_sink_and_log if
         // also_send_to_log is true, send_method = &log_message::send_to_sink otherwise.
         log_message(const char *file, int line, log_severity severity, log_sink *sink,
                     bool also_send_to_log);
 
         // Constructor where we also give a vector<string> pointer
-        // for storing the messages (if the pointer is not NULL).
+        // for storing the messages (if the pointer is not nullptr).
         // Implied are: ctr = 0, send_method = &log_message::save_or_send_to_log.
         log_message(const char *file, int line, log_severity severity,
                     std::vector<std::string> *outvec);
 
         // Constructor where we also give a string pointer for storing the
-        // message (if the pointer is not NULL).  Implied are: ctr = 0,
+        // message (if the pointer is not nullptr).  Implied are: ctr = 0,
         // send_method = &log_message::write_to_string_and_log.
         log_message(const char *file, int line, log_severity severity,
                     std::string *message);

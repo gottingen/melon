@@ -27,20 +27,20 @@ namespace melon::rpc {
 
     NsheadService::NsheadService() : _additional_space(0) {
         _status = new(std::nothrow) MethodStatus;
-        MELON_LOG_IF(FATAL, _status == NULL) << "Fail to new MethodStatus";
+        MELON_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
     }
 
     NsheadService::NsheadService(const NsheadServiceOptions &options)
-            : _status(NULL), _additional_space(options.additional_space) {
+            : _status(nullptr), _additional_space(options.additional_space) {
         if (options.generate_status) {
             _status = new(std::nothrow) MethodStatus;
-            MELON_LOG_IF(FATAL, _status == NULL) << "Fail to new MethodStatus";
+            MELON_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
         }
     }
 
     NsheadService::~NsheadService() {
         delete _status;
-        _status = NULL;
+        _status = nullptr;
     }
 
     void NsheadService::Describe(std::ostream &os, const DescribeOptions &) const {
@@ -49,7 +49,7 @@ namespace melon::rpc {
 
     void NsheadService::Expose(const std::string_view &prefix) {
         _cached_name = melon::base::class_name_str(*this);
-        if (_status == NULL) {
+        if (_status == nullptr) {
             return;
         }
         std::string s;

@@ -147,7 +147,7 @@ inline bool isWow64Proc()
     typedef BOOL(WINAPI * IsWow64Process_t)(HANDLE, PBOOL);
     BOOL bIsWow64 = FALSE;
     auto fnIsWow64Process = (IsWow64Process_t)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
-    if (NULL != fnIsWow64Process) {
+    if (nullptr != fnIsWow64Process) {
         if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64)) {
             bIsWow64 = FALSE;
         }
@@ -176,7 +176,7 @@ static bool is_symlink_creation_supported()
         auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock", 0, flags, &key);
         if (err == ERROR_SUCCESS) {
             DWORD val = 0, size = sizeof(DWORD);
-            err = RegQueryValueExW(key, L"AllowDevelopmentWithoutDevLicense", 0, NULL, reinterpret_cast<LPBYTE>(&val), &size);
+            err = RegQueryValueExW(key, L"AllowDevelopmentWithoutDevLicense", 0, nullptr, reinterpret_cast<LPBYTE>(&val), &size);
             RegCloseKey(key);
             if (err != ERROR_SUCCESS) {
                 result = false;

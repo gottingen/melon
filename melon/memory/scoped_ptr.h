@@ -58,7 +58,7 @@
 //     TakesOwnership(ptr.Pass());           // ptr no longer owns Foo("yay").
 //     scoped_ptr<Foo> ptr2 = CreateFoo();   // ptr2 owns the return Foo.
 //     scoped_ptr<Foo> ptr3 =                // ptr3 now owns what was in ptr2.
-//         PassThru(ptr2.Pass());            // ptr2 is correspondingly NULL.
+//         PassThru(ptr2.Pass());            // ptr2 is correspondingly nullptr.
 //   }
 //
 // Notice that if you do not call Pass() when returning from PassThru(), or
@@ -227,7 +227,7 @@ namespace melon {
             }
 
             ~scoped_ptr_impl() {
-                if (data_.ptr != NULL) {
+                if (data_.ptr != nullptr) {
                     // Not using get_deleter() saves one function call in non-optimized
                     // builds.
                     static_cast<D &>(data_)(data_.ptr);
@@ -236,7 +236,7 @@ namespace melon {
 
             void reset(T *p) {
                 // This is a self-reset, which is no longer allowed: http://crbug.com/162971
-                if (p != NULL && p == data_.ptr)
+                if (p != nullptr && p == data_.ptr)
                     abort();
 
                 // Note that running data_.ptr = p can lead to undefined behavior if
@@ -249,13 +249,13 @@ namespace melon {
                 // then it will incorrectly dispatch calls to |p| rather than the original
                 // value of |data_.ptr|.
                 //
-                // During the transition period, set the stored pointer to NULL while
+                // During the transition period, set the stored pointer to nullptr while
                 // deleting the object. Eventually, this safety check will be removed to
                 // prevent the scenario initially described from occuring and
                 // http://crbug.com/176091 can be closed.
                 T *old = data_.ptr;
-                data_.ptr = NULL;
-                if (old != NULL)
+                data_.ptr = nullptr;
+                if (old != nullptr)
                     static_cast<D &>(data_)(old);
                 data_.ptr = p;
             }
@@ -277,7 +277,7 @@ namespace melon {
 
             T *release() {
                 T *old_ptr = data_.ptr;
-                data_.ptr = NULL;
+                data_.ptr = nullptr;
                 return old_ptr;
             }
 
@@ -310,7 +310,7 @@ namespace melon {
 // A scoped_ptr<T> is like a T*, except that the destructor of scoped_ptr<T>
 // automatically deletes the pointer it holds (if any).
 // That is, scoped_ptr<T> owns the T object that it points to.
-// Like a T*, a scoped_ptr<T> may hold either NULL or a pointer to a T object.
+// Like a T*, a scoped_ptr<T> may hold either nullptr or a pointer to a T object.
 // Also like T*, scoped_ptr<T> is thread-compatible, and once you
 // dereference it, you get the thread safety guarantees of T.
 //
@@ -335,8 +335,8 @@ public:
     typedef T element_type;
     typedef D deleter_type;
 
-    // Constructor.  Defaults to initializing with NULL.
-    scoped_ptr() : impl_(NULL) {}
+    // Constructor.  Defaults to initializing with nullptr.
+    scoped_ptr() : impl_(nullptr) {}
 
     // Constructor.  Takes ownership of p.
     explicit scoped_ptr(element_type *p) : impl_(p) {}
@@ -381,17 +381,17 @@ public:
 
     // Reset.  Deletes the currently owned object, if any.
     // Then takes ownership of a new object, if given.
-    void reset(element_type *p = NULL) { impl_.reset(p); }
+    void reset(element_type *p = nullptr) { impl_.reset(p); }
 
     // Accessors to get the owned object.
     // operator* and operator-> will assert() if there is no current object.
     element_type &operator*() const {
-        assert(impl_.get() != NULL);
+        assert(impl_.get() != nullptr);
         return *impl_.get();
     }
 
     element_type *operator->() const {
-        assert(impl_.get() != NULL);
+        assert(impl_.get() != nullptr);
         return impl_.get();
     }
 
@@ -414,7 +414,7 @@ private:
             scoped_ptr::*Testable;
 
 public:
-    operator Testable() const { return impl_.get() ? &scoped_ptr::impl_ : NULL; }
+    operator Testable() const { return impl_.get() ? &scoped_ptr::impl_ : nullptr; }
 
     // Comparison operators.
     // These return whether two scoped_ptr refer to the same object, not just to
@@ -430,8 +430,8 @@ public:
 
     // Release a pointer.
     // The return value is the current pointer held by this object.
-    // If this object holds a NULL pointer, the return value is NULL.
-    // After this operation, this object will hold a NULL pointer,
+    // If this object holds a nullptr pointer, the return value is nullptr.
+    // After this operation, this object will hold a nullptr pointer,
     // and will not own the object any more.
     element_type *release()
 
@@ -480,8 +480,8 @@ public:
     typedef T element_type;
     typedef D deleter_type;
 
-    // Constructor.  Defaults to initializing with NULL.
-    scoped_ptr() : impl_(NULL) {}
+    // Constructor.  Defaults to initializing with nullptr.
+    scoped_ptr() : impl_(nullptr) {}
 
     // Constructor. Stores the given array. Note that the argument's type
     // must exactly match T*. In particular:
@@ -491,9 +491,9 @@ public:
     //   T and the derived types had different sizes access would be
     //   incorrectly calculated). Deletion is also always undefined
     //   (C++98 [expr.delete]p3). If you're doing this, fix your code.
-    // - it cannot be NULL, because NULL is an integral expression, not a
+    // - it cannot be nullptr, because nullptr is an integral expression, not a
     //   pointer to T. Use the no-argument version instead of explicitly
-    //   passing NULL.
+    //   passing nullptr.
     // - it cannot be const-qualified differently from T per unique_ptr spec
     //   (http://cplusplus.github.com/LWG/lwg-active.html#2118). Users wanting
     //   to work around this may use implicit_cast<const T*>().
@@ -512,11 +512,11 @@ public:
 
     // Reset.  Deletes the currently owned array, if any.
     // Then takes ownership of a new object, if given.
-    void reset(element_type *array = NULL) { impl_.reset(array); }
+    void reset(element_type *array = nullptr) { impl_.reset(array); }
 
     // Accessors to get the owned array.
     element_type &operator[](size_t i) const {
-        assert(impl_.get() != NULL);
+        assert(impl_.get() != nullptr);
         return impl_.get()[i];
     }
 
@@ -534,7 +534,7 @@ private:
             scoped_ptr::*Testable;
 
 public:
-    operator Testable() const { return impl_.get() ? &scoped_ptr::impl_ : NULL; }
+    operator Testable() const { return impl_.get() ? &scoped_ptr::impl_ : nullptr; }
 
     // Comparison operators.
     // These return whether two scoped_ptr refer to the same object, not just to
@@ -550,8 +550,8 @@ public:
 
     // Release a pointer.
     // The return value is the current pointer held by this object.
-    // If this object holds a NULL pointer, the return value is NULL.
-    // After this operation, this object will hold a NULL pointer,
+    // If this object holds a nullptr pointer, the return value is nullptr.
+    // After this operation, this object will hold a nullptr pointer,
     // and will not own the object any more.
     element_type *release()
 

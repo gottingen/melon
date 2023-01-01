@@ -71,7 +71,7 @@ namespace {
     void *RunClosure(void *arg) {
         google::protobuf::Closure *done = (google::protobuf::Closure *) arg;
         done->Run();
-        return NULL;
+        return nullptr;
     }
 
     class DeleteOnlyOnceChannel : public melon::rpc::Channel {
@@ -128,7 +128,7 @@ namespace {
 
         if (meta.has_authentication_data()) {
             // Credential MUST only appear in the first packet
-            EXPECT_TRUE(NULL == ptr->auth_context());
+            EXPECT_TRUE(nullptr == ptr->auth_context());
             EXPECT_EQ(meta.authentication_data(), MOCK_CREDENTIAL);
             MyAuthenticator authenticator;
             return authenticator.VerifyCredential(
@@ -199,8 +199,8 @@ namespace {
                     {melon::rpc::policy::ParseRpcMessage,
                      melon::rpc::SerializeRequestDefault,
                      melon::rpc::policy::PackRpcRequest,
-                     NULL, ProcessRpcRequest,
-                     VerifyMyRequest, NULL, NULL,
+                     nullptr, ProcessRpcRequest,
+                     VerifyMyRequest, nullptr, nullptr,
                      melon::rpc::CONNECTION_TYPE_ALL, "baidu_std"};
             ASSERT_EQ(0, RegisterProtocol((melon::rpc::ProtocolType) 30, dummy_protocol));
         }
@@ -257,8 +257,8 @@ namespace {
                             const melon::rpc::Server *,
                             melon::rpc::MethodStatus *, int64_t>(
                             &melon::rpc::policy::SendRpcResponse,
-                            meta.correlation_id(), cntl, NULL, res,
-                            &ts->_dummy, NULL, -1);
+                            meta.correlation_id(), cntl, nullptr, res,
+                            &ts->_dummy, nullptr, -1);
             ts->_svc.CallMethod(method, cntl, req, res, done);
         }
 
@@ -271,7 +271,7 @@ namespace {
                     return -1;
                 }
             }
-            if (_messenger.StartAccept(listening_fd, -1, NULL) != 0) {
+            if (_messenger.StartAccept(listening_fd, -1, nullptr) != 0) {
                 return -1;
             }
             return 0;
@@ -285,7 +285,7 @@ namespace {
         void SetUpChannel(melon::rpc::Channel *channel,
                           bool single_server,
                           bool short_connection,
-                          const melon::rpc::Authenticator *auth = NULL,
+                          const melon::rpc::Authenticator *auth = nullptr,
                           std::string connection_group = std::string()) {
             melon::rpc::ChannelOptions opt;
             if (short_connection) {
@@ -305,7 +305,7 @@ namespace {
                         melon::rpc::Controller *cntl,
                         test::EchoRequest *req, test::EchoResponse *res,
                         bool async, bool destroy = false) {
-            google::protobuf::Closure *done = NULL;
+            google::protobuf::Closure *done = nullptr;
             melon::rpc::CallId sync_id = {0};
             if (async) {
                 sync_id = cntl->call_id();
@@ -325,7 +325,7 @@ namespace {
                         melon::rpc::Controller *cntl,
                         test::ComboRequest *req, test::ComboResponse *res,
                         bool async, bool destroy = false) {
-            google::protobuf::Closure *done = NULL;
+            google::protobuf::Closure *done = nullptr;
             melon::rpc::CallId sync_id = {0};
             if (async) {
                 sync_id = cntl->call_id();
@@ -372,7 +372,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -400,7 +400,7 @@ namespace {
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -435,9 +435,9 @@ namespace {
                                 << single_server << ", " << async << ", " << short_connection;
             const uint64_t receiving_socket_id = res.receiving_socket_id();
             EXPECT_EQ(0, cntl.sub_count());
-            EXPECT_TRUE(NULL == cntl.sub(-1));
-            EXPECT_TRUE(NULL == cntl.sub(0));
-            EXPECT_TRUE(NULL == cntl.sub(1));
+            EXPECT_TRUE(nullptr == cntl.sub(-1));
+            EXPECT_TRUE(nullptr == cntl.sub(0));
+            EXPECT_TRUE(nullptr == cntl.sub(1));
             EXPECT_EQ("received " + std::string(__FUNCTION__), res.message());
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
@@ -465,7 +465,7 @@ namespace {
                 // A different connection_group does not reuse the connection
                 melon::rpc::Channel channel3;
                 SetUpChannel(&channel3, single_server, short_connection,
-                             NULL, "another_group");
+                             nullptr, "another_group");
                 cntl.Reset();
                 req.Clear();
                 res.Clear();
@@ -480,7 +480,7 @@ namespace {
                 // note that the leading/trailing spaces should be trimed.
                 melon::rpc::Channel channel4;
                 SetUpChannel(&channel4, single_server, short_connection,
-                             NULL, " another_group ");
+                             nullptr, " another_group ");
                 cntl.Reset();
                 req.Clear();
                 res.Clear();
@@ -532,7 +532,7 @@ namespace {
                         dynamic_cast<const test::ComboRequest *>(req_base);
                 test::ComboResponse *res = dynamic_cast<test::ComboResponse *>(res_base);
                 if (method->name() != "ComboEcho" ||
-                    res == NULL || req == NULL ||
+                    res == nullptr || req == nullptr ||
                     req->requests_size() <= channel_index) {
                     return melon::rpc::SubCall::Bad();
                 }
@@ -562,7 +562,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        new SetCode, NULL));
+                        new SetCode, nullptr));
             }
             melon::rpc::Controller cntl;
             test::EchoRequest req;
@@ -613,7 +613,7 @@ namespace {
                         subchan,
                         // subchan should be deleted (for only once)
                         ((i % 2) ? melon::rpc::DOESNT_OWN_CHANNEL : melon::rpc::OWNS_CHANNEL),
-                        set_code, NULL));
+                        set_code, nullptr));
             }
             ASSERT_EQ((int) NCHANS, set_code->ref_count());
             melon::rpc::Controller cntl;
@@ -660,7 +660,7 @@ namespace {
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
             melon::rpc::Controller cntl;
             test::EchoRequest req;
@@ -703,7 +703,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        new SetCodeOnEven, NULL));
+                        new SetCodeOnEven, nullptr));
             }
             melon::rpc::Controller cntl;
             test::EchoRequest req;
@@ -717,7 +717,7 @@ namespace {
             EXPECT_EQ(NCHANS, (size_t) cntl.sub_count());
             for (int i = 0; i < cntl.sub_count(); ++i) {
                 if (i % 2) {
-                    EXPECT_TRUE(NULL == cntl.sub(i)) << "i=" << i;
+                    EXPECT_TRUE(nullptr == cntl.sub(i)) << "i=" << i;
                 } else {
                     EXPECT_TRUE(cntl.sub(i) && !cntl.sub(i)->Failed()) << "i=" << i;
                 }
@@ -812,7 +812,7 @@ namespace {
             }
             MELON_LOG(INFO) << "Start to cancel cid=" << arg->cid.value;
             melon::rpc::StartCancel(arg->cid);
-            return NULL;
+            return nullptr;
         }
 
 
@@ -853,7 +853,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -866,8 +866,8 @@ namespace {
             CallMethod(&channel, &cntl, &req, &res, async);
             EXPECT_EQ(ECANCELED, cntl.ErrorCode()) << cntl.ErrorText();
             EXPECT_EQ(NCHANS, (size_t) cntl.sub_count());
-            EXPECT_TRUE(NULL == cntl.sub(1));
-            EXPECT_TRUE(NULL == cntl.sub(0));
+            EXPECT_TRUE(nullptr == cntl.sub(1));
+            EXPECT_TRUE(nullptr == cntl.sub(0));
             StopAndJoin();
         }
 
@@ -881,11 +881,11 @@ namespace {
 
             const size_t NCHANS = 8;
             melon::rpc::SelectiveChannel channel;
-            ASSERT_EQ(0, channel.Init("rr", NULL));
+            ASSERT_EQ(0, channel.Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -918,18 +918,18 @@ namespace {
             ASSERT_TRUE(cid.value != 0);
             pthread_t th;
             CancelerArg carg = {10000, cid};
-            ASSERT_EQ(0, pthread_create(&th, NULL, Canceler, &carg));
+            ASSERT_EQ(0, pthread_create(&th, nullptr, Canceler, &carg));
             req.set_sleep_us(carg.sleep_before_cancel_us * 2);
             melon::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
             EXPECT_LT(labs(tm.u_elapsed() - carg.sleep_before_cancel_us), 10000);
-            ASSERT_EQ(0, pthread_join(th, NULL));
+            ASSERT_EQ(0, pthread_join(th, nullptr));
             EXPECT_EQ(ECANCELED, cntl.ErrorCode());
             EXPECT_EQ(0, cntl.sub_count());
-            EXPECT_TRUE(NULL == cntl.sub(1));
-            EXPECT_TRUE(NULL == cntl.sub(0));
+            EXPECT_TRUE(nullptr == cntl.sub(1));
+            EXPECT_TRUE(nullptr == cntl.sub(0));
             StopAndJoin();
         }
 
@@ -948,7 +948,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -959,14 +959,14 @@ namespace {
             ASSERT_TRUE(cid.value != 0);
             pthread_t th;
             CancelerArg carg = {10000, cid};
-            ASSERT_EQ(0, pthread_create(&th, NULL, Canceler, &carg));
+            ASSERT_EQ(0, pthread_create(&th, nullptr, Canceler, &carg));
             req.set_sleep_us(carg.sleep_before_cancel_us * 2);
             melon::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
             EXPECT_LT(labs(tm.u_elapsed() - carg.sleep_before_cancel_us), 10000);
-            ASSERT_EQ(0, pthread_join(th, NULL));
+            ASSERT_EQ(0, pthread_join(th, nullptr));
             EXPECT_EQ(ECANCELED, cntl.ErrorCode());
             EXPECT_EQ(NCHANS, (size_t) cntl.sub_count());
             for (int i = 0; i < cntl.sub_count(); ++i) {
@@ -986,11 +986,11 @@ namespace {
 
             const size_t NCHANS = 8;
             melon::rpc::SelectiveChannel channel;
-            ASSERT_EQ(0, channel.Init("rr", NULL));
+            ASSERT_EQ(0, channel.Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -1001,14 +1001,14 @@ namespace {
             ASSERT_TRUE(cid.value != 0);
             pthread_t th;
             CancelerArg carg = {10000, cid};
-            ASSERT_EQ(0, pthread_create(&th, NULL, Canceler, &carg));
+            ASSERT_EQ(0, pthread_create(&th, nullptr, Canceler, &carg));
             req.set_sleep_us(carg.sleep_before_cancel_us * 2);
             melon::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
             EXPECT_LT(labs(tm.u_elapsed() - carg.sleep_before_cancel_us), 10000);
-            ASSERT_EQ(0, pthread_join(th, NULL));
+            ASSERT_EQ(0, pthread_join(th, nullptr));
             EXPECT_EQ(ECANCELED, cntl.ErrorCode());
             EXPECT_EQ(1, cntl.sub_count());
             EXPECT_EQ(ECANCELED, cntl.sub(0)->ErrorCode());
@@ -1053,7 +1053,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1132,7 +1132,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1153,11 +1153,11 @@ namespace {
 
             const size_t NCHANS = 8;
             melon::rpc::SelectiveChannel channel;
-            ASSERT_EQ(0, channel.Init("rr", NULL));
+            ASSERT_EQ(0, channel.Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -1208,7 +1208,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1258,7 +1258,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        ((i % 2) ? new MakeTheRequestTimeout : NULL), NULL));
+                        ((i % 2) ? new MakeTheRequestTimeout : nullptr), nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1292,11 +1292,11 @@ namespace {
 
             const size_t NCHANS = 8;
             melon::rpc::SelectiveChannel channel;
-            ASSERT_EQ(0, channel.Init("rr", NULL));
+            ASSERT_EQ(0, channel.Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -1350,7 +1350,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1381,7 +1381,7 @@ namespace {
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -1432,7 +1432,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1456,11 +1456,11 @@ namespace {
 
             const size_t NCHANS = 5;
             melon::rpc::SelectiveChannel channel;
-            ASSERT_EQ(0, channel.Init("rr", NULL));
+            ASSERT_EQ(0, channel.Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             melon::rpc::Controller cntl;
@@ -1516,7 +1516,7 @@ namespace {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel();
                 SetUpChannel(subchan, single_server, short_connection);
                 ASSERT_EQ(0, channel->AddChannel(
-                        subchan, melon::rpc::OWNS_CHANNEL, NULL, NULL));
+                        subchan, melon::rpc::OWNS_CHANNEL, nullptr, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1544,11 +1544,11 @@ namespace {
             const size_t NCHANS = 5;
             ASSERT_EQ(0, StartAccept(_ep));
             melon::rpc::SelectiveChannel *channel = new melon::rpc::SelectiveChannel;
-            ASSERT_EQ(0, channel->Init("rr", NULL));
+            ASSERT_EQ(0, channel->Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel();
                 SetUpChannel(subchan, single_server, short_connection);
-                ASSERT_EQ(0, channel->AddChannel(subchan, NULL));
+                ASSERT_EQ(0, channel->AddChannel(subchan, nullptr));
             }
 
             melon::rpc::Controller cntl;
@@ -1632,11 +1632,11 @@ namespace {
                 google::protobuf::Closure *thrd_func =
                         melon::rpc::NewCallback(
                                 this, &ChannelTest::RPCThread, (melon::rpc::ChannelBase *) &channel, async);
-                EXPECT_EQ(0, pthread_create(&tids[i], NULL,
+                EXPECT_EQ(0, pthread_create(&tids[i], nullptr,
                                             RunClosure, thrd_func));
             }
             for (int i = 0; i < NUM; ++i) {
-                pthread_join(tids[i], NULL);
+                pthread_join(tids[i], nullptr);
             }
 
             if (short_connection) {
@@ -1663,7 +1663,7 @@ namespace {
                 SetUpChannel(&subchans[i], single_server, short_connection, &auth);
                 ASSERT_EQ(0, channel.AddChannel(
                         &subchans[i], melon::rpc::DOESNT_OWN_CHANNEL,
-                        NULL, NULL));
+                        nullptr, nullptr));
             }
 
             const int NUM = 10;
@@ -1672,11 +1672,11 @@ namespace {
                 google::protobuf::Closure *thrd_func =
                         melon::rpc::NewCallback(
                                 this, &ChannelTest::RPCThread, (melon::rpc::ChannelBase *) &channel, async);
-                EXPECT_EQ(0, pthread_create(&tids[i], NULL,
+                EXPECT_EQ(0, pthread_create(&tids[i], nullptr,
                                             RunClosure, thrd_func));
             }
             for (int i = 0; i < NUM; ++i) {
-                pthread_join(tids[i], NULL);
+                pthread_join(tids[i], nullptr);
             }
 
             if (short_connection) {
@@ -1698,11 +1698,11 @@ namespace {
 
             const size_t NCHANS = 5;
             melon::rpc::SelectiveChannel channel;
-            ASSERT_EQ(0, channel.Init("rr", NULL));
+            ASSERT_EQ(0, channel.Init("rr", nullptr));
             for (size_t i = 0; i < NCHANS; ++i) {
                 melon::rpc::Channel *subchan = new melon::rpc::Channel;
                 SetUpChannel(subchan, single_server, short_connection, &auth);
-                ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
+                ASSERT_EQ(0, channel.AddChannel(subchan, nullptr)) << "i=" << i;
             }
 
             const int NUM = 10;
@@ -1711,11 +1711,11 @@ namespace {
                 google::protobuf::Closure *thrd_func =
                         melon::rpc::NewCallback(
                                 this, &ChannelTest::RPCThread, (melon::rpc::ChannelBase *) &channel, async);
-                EXPECT_EQ(0, pthread_create(&tids[i], NULL,
+                EXPECT_EQ(0, pthread_create(&tids[i], nullptr,
                                             RunClosure, thrd_func));
             }
             for (int i = 0; i < NUM; ++i) {
-                pthread_join(tids[i], NULL);
+                pthread_join(tids[i], nullptr);
             }
 
             if (short_connection) {
@@ -1867,21 +1867,21 @@ namespace {
     TEST_F(ChannelTest, init_as_single_server) {
         {
             melon::rpc::Channel channel;
-            ASSERT_EQ(-1, channel.Init("127.0.0.1:12345:asdf", NULL));
-            ASSERT_EQ(-1, channel.Init("127.0.0.1:99999", NULL));
-            ASSERT_EQ(0, channel.Init("127.0.0.1:8888", NULL));
+            ASSERT_EQ(-1, channel.Init("127.0.0.1:12345:asdf", nullptr));
+            ASSERT_EQ(-1, channel.Init("127.0.0.1:99999", nullptr));
+            ASSERT_EQ(0, channel.Init("127.0.0.1:8888", nullptr));
         }
         {
             melon::rpc::Channel channel;
-            ASSERT_EQ(-1, channel.Init("127.0.0.1asdf", 12345, NULL));
-            ASSERT_EQ(-1, channel.Init("127.0.0.1", 99999, NULL));
-            ASSERT_EQ(0, channel.Init("127.0.0.1", 8888, NULL));
+            ASSERT_EQ(-1, channel.Init("127.0.0.1asdf", 12345, nullptr));
+            ASSERT_EQ(-1, channel.Init("127.0.0.1", 99999, nullptr));
+            ASSERT_EQ(0, channel.Init("127.0.0.1", 8888, nullptr));
         }
 
         melon::base::end_point ep;
         melon::rpc::Channel channel;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:8888", &ep));
-        ASSERT_EQ(0, channel.Init(ep, NULL));
+        ASSERT_EQ(0, channel.Init(ep, nullptr));
         ASSERT_TRUE(channel.SingleServer());
         ASSERT_EQ(ep, channel._server_address);
 
@@ -1892,7 +1892,7 @@ namespace {
         const int NUM = 10;
         melon::rpc::Channel channels[NUM];
         for (int i = 0; i < 10; ++i) {
-            ASSERT_EQ(0, channels[i].Init(ep, NULL));
+            ASSERT_EQ(0, channels[i].Init(ep, nullptr));
             // Share the same server socket
             ASSERT_EQ(id, channels[i]._server_id);
         }
@@ -1900,12 +1900,12 @@ namespace {
 
     TEST_F(ChannelTest, init_using_unknown_naming_service) {
         melon::rpc::Channel channel;
-        ASSERT_EQ(-1, channel.Init("unknown://unknown", "unknown", NULL));
+        ASSERT_EQ(-1, channel.Init("unknown://unknown", "unknown", nullptr));
     }
 
     TEST_F(ChannelTest, init_using_unexist_fns) {
         melon::rpc::Channel channel;
-        ASSERT_EQ(-1, channel.Init("fiLe://no_such_file", "rr", NULL));
+        ASSERT_EQ(-1, channel.Init("fiLe://no_such_file", "rr", nullptr));
     }
 
     TEST_F(ChannelTest, init_using_empty_fns) {
@@ -1920,7 +1920,7 @@ namespace {
 
         ASSERT_EQ(0, server_list.save("blahblah"));
         // No valid address.
-        ASSERT_EQ(-1, channel.Init(naming_url.c_str(), "rr", NULL));
+        ASSERT_EQ(-1, channel.Init(naming_url.c_str(), "rr", nullptr));
     }
 
     TEST_F(ChannelTest, init_using_empty_lns) {
@@ -1938,12 +1938,12 @@ namespace {
         ASSERT_EQ(0, server_list.save("127.0.0.1:8888"));
         std::string naming_url = std::string("filE://") + server_list.fname();
         // Rr are intended to test case-insensitivity.
-        ASSERT_EQ(0, channel->Init(naming_url.c_str(), "Rr", NULL));
+        ASSERT_EQ(0, channel->Init(naming_url.c_str(), "Rr", nullptr));
         ASSERT_FALSE(channel->SingleServer());
 
         melon::rpc::LoadBalancerWithNaming *lb =
                 dynamic_cast<melon::rpc::LoadBalancerWithNaming *>(channel->_lb.get());
-        ASSERT_TRUE(lb != NULL);
+        ASSERT_TRUE(lb != nullptr);
         melon::rpc::NamingServiceThread *ns = lb->_nsthread_ptr.get();
 
         {
@@ -1951,10 +1951,10 @@ namespace {
             melon::rpc::Channel channels[NUM];
             for (int i = 0; i < NUM; ++i) {
                 // Share the same naming thread
-                ASSERT_EQ(0, channels[i].Init(naming_url.c_str(), "rr", NULL));
+                ASSERT_EQ(0, channels[i].Init(naming_url.c_str(), "rr", nullptr));
                 melon::rpc::LoadBalancerWithNaming *lb2 =
                         dynamic_cast<melon::rpc::LoadBalancerWithNaming *>(channels[i]._lb.get());
-                ASSERT_TRUE(lb2 != NULL);
+                ASSERT_TRUE(lb2 != nullptr);
                 ASSERT_EQ(ns, lb2->_nsthread_ptr.get());
             }
         }
@@ -2068,7 +2068,7 @@ namespace {
 
     TEST_F(ChannelTest, empty_selective_channel) {
         melon::rpc::SelectiveChannel channel;
-        ASSERT_EQ(0, channel.Init("rr", NULL));
+        ASSERT_EQ(0, channel.Init("rr", nullptr));
 
         melon::rpc::Controller cntl;
         test::EchoRequest req;
@@ -2094,7 +2094,7 @@ namespace {
             melon::rpc::Channel *subchan = new melon::rpc::Channel();
             SetUpChannel(subchan, true, false);
             ASSERT_EQ(0, channel.AddChannel(
-                    subchan, melon::rpc::OWNS_CHANNEL, new BadCall, NULL));
+                    subchan, melon::rpc::OWNS_CHANNEL, new BadCall, nullptr));
         }
 
         melon::rpc::Controller cntl;
@@ -2121,7 +2121,7 @@ namespace {
             melon::rpc::Channel *subchan = new melon::rpc::Channel();
             SetUpChannel(subchan, true, false);
             ASSERT_EQ(0, channel.AddChannel(
-                    subchan, melon::rpc::OWNS_CHANNEL, new SkipCall, NULL));
+                    subchan, melon::rpc::OWNS_CHANNEL, new SkipCall, nullptr));
         }
 
         melon::rpc::Controller cntl;
@@ -2133,7 +2133,7 @@ namespace {
         EXPECT_EQ(ECANCELED, cntl.ErrorCode()) << cntl.ErrorText();
         EXPECT_EQ((int) NCHANS, cntl.sub_count());
         for (int i = 0; i < cntl.sub_count(); ++i) {
-            EXPECT_TRUE(NULL == cntl.sub(i)) << "i=" << i;
+            EXPECT_TRUE(nullptr == cntl.sub(i)) << "i=" << i;
         }
     }
 
@@ -2476,7 +2476,7 @@ namespace {
     }
 
     TEST_F(ChannelTest, multiple_threads_single_channel) {
-        srand(time(NULL));
+        srand(time(nullptr));
         ASSERT_EQ(0, StartAccept(_ep));
         MyAuthenticator auth;
         const int NUM = 10;
@@ -2494,18 +2494,18 @@ namespace {
                               << " async=" << async << std::endl;
                     melon::rpc::Channel channel;
                     SetUpChannel(&channel, single_server,
-                                 short_connection, (need_auth ? &auth : NULL));
+                                 short_connection, (need_auth ? &auth : nullptr));
                     for (int i = 0; i < NUM; ++i) {
                         google::protobuf::Closure *thrd_func =
                                 melon::rpc::NewCallback(
                                         this, &ChannelTest::RPCThread,
                                         (melon::rpc::ChannelBase *) &channel,
                                         (bool) async, COUNT);
-                        EXPECT_EQ(0, pthread_create(&tids[i], NULL,
+                        EXPECT_EQ(0, pthread_create(&tids[i], nullptr,
                                                     RunClosure, thrd_func));
                     }
                     for (int i = 0; i < NUM; ++i) {
-                        pthread_join(tids[i], NULL);
+                        pthread_join(tids[i], nullptr);
                     }
                 }
             }
@@ -2513,7 +2513,7 @@ namespace {
     }
 
     TEST_F(ChannelTest, multiple_threads_multiple_channels) {
-        srand(time(NULL));
+        srand(time(nullptr));
         ASSERT_EQ(0, StartAccept(_ep));
         MyAuthenticator auth;
         const int NUM = 10;
@@ -2536,12 +2536,12 @@ namespace {
                                         ChannelTest, ChannelTest *,
                                         bool, bool, bool, const melon::rpc::Authenticator *, int>
                                         (this, &ChannelTest::RPCThread, single_server,
-                                         async, short_connection, (need_auth ? &auth : NULL), COUNT);
-                        EXPECT_EQ(0, pthread_create(&tids[i], NULL,
+                                         async, short_connection, (need_auth ? &auth : nullptr), COUNT);
+                        EXPECT_EQ(0, pthread_create(&tids[i], nullptr,
                                                     RunClosure, thrd_func));
                     }
                     for (int i = 0; i < NUM; ++i) {
-                        pthread_join(tids[i], NULL);
+                        pthread_join(tids[i], nullptr);
                     }
                 }
             }
@@ -2590,7 +2590,7 @@ namespace {
     melon::rpc::Channel g_chan;
 
     TEST_F(ChannelTest, global_channel_should_quit_successfully) {
-        g_chan.Init("bns://qa-pbrpc.SAT.tjyx", "rr", NULL);
+        g_chan.Init("bns://qa-pbrpc.SAT.tjyx", "rr", nullptr);
     }
 
     TEST_F(ChannelTest, unused_call_id) {

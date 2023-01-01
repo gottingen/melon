@@ -36,7 +36,7 @@ public:
     virtual ~EventDispatcher();
 
     // Start this dispatcher in a fiber.
-    // Use |*consumer_thread_attr| (if it's not NULL) as the attribute to
+    // Use |*consumer_thread_attr| (if it's not nullptr) as the attribute to
     // create fibers running user callbacks.
     // Returns 0 on success, -1 otherwise.
     virtual int Start(const fiber_attribute* consumer_thread_attr);

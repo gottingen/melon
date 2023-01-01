@@ -34,7 +34,7 @@ namespace melon {
     }
 
     temp_file::temp_file(const char *ext) {
-        if (NULL == ext || '\0' == *ext) {
+        if (nullptr == ext || '\0' == *ext) {
             new(this) temp_file();
             return;
         }

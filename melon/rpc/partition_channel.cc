@@ -48,7 +48,7 @@ namespace melon::rpc {
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
 
     private:
-        bool initialized() const { return _parser != NULL; }
+        bool initialized() const { return _parser != nullptr; }
 
         void PartitionServersIntoTemps(const std::vector<ServerId> &servers);
 
@@ -67,12 +67,12 @@ namespace melon::rpc {
     };
 
     PartitionChannelBase::PartitionChannelBase()
-            : _subs(NULL), _parser(NULL) {
+            : _subs(nullptr), _parser(nullptr) {
     }
 
     PartitionChannelBase::~PartitionChannelBase() {
         delete[] _subs;
-        _subs = NULL;
+        _subs = nullptr;
     }
 
     int PartitionChannelBase::Init(int num_partition_kinds,
@@ -83,8 +83,8 @@ namespace melon::rpc {
             MELON_LOG(ERROR) << "Parameter[num_partition_kinds] must be positive";
             return -1;
         }
-        if (NULL == partition_parser) {
-            MELON_LOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
+        if (nullptr == partition_parser) {
+            MELON_LOG(ERROR) << "Parameter[partition_parser] must be non-nullptr";
             return -1;
         }
         PartitionChannelOptions options;
@@ -94,7 +94,7 @@ namespace melon::rpc {
         options.succeed_without_server = true;
         options.log_succeed_without_server = false;
         _subs = new(std::nothrow) SubChannel[num_partition_kinds];
-        if (NULL == _subs) {
+        if (nullptr == _subs) {
             MELON_LOG(ERROR) << "Fail to new Channels[" << num_partition_kinds << "]";
             return -1;
         }
@@ -196,7 +196,7 @@ namespace melon::rpc {
     }
 
     PartitionChannel::PartitionChannel()
-            : _pchan(NULL), _parser(NULL) {
+            : _pchan(nullptr), _parser(nullptr) {
     }
 
     PartitionChannel::~PartitionChannel() {
@@ -207,9 +207,9 @@ namespace melon::rpc {
             _nsthread_ptr.reset();
         }
         delete _pchan;
-        _pchan = NULL;
+        _pchan = nullptr;
         delete _parser;
-        _parser = NULL;
+        _parser = nullptr;
     }
 
     int PartitionChannel::Init(int num_partition_kinds,
@@ -223,8 +223,8 @@ namespace melon::rpc {
             MELON_LOG(ERROR) << "Parameter[num_partition_kinds] must be positive";
             return -1;
         }
-        if (NULL == partition_parser) {
-            MELON_LOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
+        if (nullptr == partition_parser) {
+            MELON_LOG(ERROR) << "Parameter[partition_parser] must be non-nullptr";
             return -1;
         }
         GetNamingServiceThreadOptions ns_opt;
@@ -236,7 +236,7 @@ namespace melon::rpc {
             return -1;
         }
         _pchan = new(std::nothrow) PartitionChannelBase;
-        if (NULL == _pchan) {
+        if (nullptr == _pchan) {
             MELON_LOG(ERROR) << "Fail to new PartitionChannelBase";
             return -1;
         }
@@ -246,7 +246,7 @@ namespace melon::rpc {
             return -1;
         }
         if (_nsthread_ptr->AddWatcher(
-                _pchan, (options_in ? options_in->ns_filter : NULL)) != 0) {
+                _pchan, (options_in ? options_in->ns_filter : nullptr)) != 0) {
             MELON_LOG(ERROR) << "Fail to add PartitionChannelBase as watcher";
             return -1;
         }
@@ -261,7 +261,7 @@ namespace melon::rpc {
             const google::protobuf::Message *request,
             google::protobuf::Message *response,
             google::protobuf::Closure *done) {
-        if (_pchan != NULL) {
+        if (_pchan != nullptr) {
             _pchan->CallMethod(method, controller, request, response, done);
         } else {
             Controller *cntl = static_cast<Controller *>(controller);
@@ -280,7 +280,7 @@ namespace melon::rpc {
     }
 
     int PartitionChannel::CheckHealth() {
-        if (_pchan == NULL) {
+        if (_pchan == nullptr) {
             return -1;
         }
         return static_cast<ChannelBase *>(_pchan)->CheckHealth();
@@ -312,10 +312,10 @@ namespace melon::rpc {
                     continue;
                 }
                 SubPartitionChannel **ppchan = _part_chan_map.seek(part.num_partition_kinds);
-                SubPartitionChannel *pchan = NULL;
-                if (ppchan == NULL) {
+                SubPartitionChannel *pchan = nullptr;
+                if (ppchan == nullptr) {
                     pchan = new(std::nothrow) SubPartitionChannel;
-                    if (pchan == NULL) {
+                    if (pchan == nullptr) {
                         MELON_LOG(ERROR) << "Fail to new SubPartitionChannel";
                         continue;
                     }
@@ -386,7 +386,7 @@ namespace melon::rpc {
         }
 
         Partitioner()
-                : _schan(NULL), _parser(NULL) {}
+                : _schan(nullptr), _parser(nullptr) {}
 
         ~Partitioner() {
             // Do nothing. _schan deletes all sub channels.
@@ -428,7 +428,7 @@ namespace melon::rpc {
     };
 
     DynamicPartitionChannel::DynamicPartitionChannel()
-            : _partitioner(NULL), _parser(NULL) {
+            : _partitioner(nullptr), _parser(nullptr) {
     }
 
     DynamicPartitionChannel::~DynamicPartitionChannel() {
@@ -439,9 +439,9 @@ namespace melon::rpc {
             _nsthread_ptr.reset();
         }
         delete _partitioner;
-        _partitioner = NULL;
+        _partitioner = nullptr;
         delete _parser;
-        _parser = NULL;
+        _parser = nullptr;
     }
 
     int DynamicPartitionChannel::Init(
@@ -450,8 +450,8 @@ namespace melon::rpc {
             const char *load_balancer_name,
             const PartitionChannelOptions *options_in) {
         GlobalInitializeOrDie();
-        if (NULL == partition_parser) {
-            MELON_LOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
+        if (nullptr == partition_parser) {
+            MELON_LOG(ERROR) << "Parameter[partition_parser] must be non-nullptr";
             return -1;
         }
         GetNamingServiceThreadOptions ns_opt;
@@ -467,7 +467,7 @@ namespace melon::rpc {
             return -1;
         }
         _partitioner = new(std::nothrow) Partitioner;
-        if (NULL == _partitioner) {
+        if (nullptr == _partitioner) {
             MELON_LOG(ERROR) << "Fail to new Partitioner";
             return -1;
         }
@@ -477,7 +477,7 @@ namespace melon::rpc {
             return -1;
         }
         if (_nsthread_ptr->AddWatcher(
-                _partitioner, (options_in ? options_in->ns_filter : NULL)) != 0) {
+                _partitioner, (options_in ? options_in->ns_filter : nullptr)) != 0) {
             MELON_LOG(ERROR) << "Fail to add Partitioner as watcher";
             return -1;
         }

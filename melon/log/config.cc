@@ -15,7 +15,7 @@ static bool BoolFromEnv(const char *varname, bool defval) {
     if (!valstr) {
         return defval;
     }
-    return memchr("tTyY1\0", valstr[0], 6) != NULL;
+    return memchr("tTyY1\0", valstr[0], 6) != nullptr;
 }
 
 MELON_LOG_DEFINE_bool(melon_timestamp_in_logfile_name,
@@ -69,11 +69,11 @@ MELON_LOG_DEFINE_string(melon_log_mailer, "",
 static const char *DefaultLogDir() {
     const char *env;
     env = getenv("GOOGLE_LOG_DIR");
-    if (env != NULL && env[0] != '\0') {
+    if (env != nullptr && env[0] != '\0') {
         return env;
     }
     env = getenv("TEST_TMPDIR");
-    if (env != NULL && env[0] != '\0') {
+    if (env != nullptr && env[0] != '\0') {
         return env;
     }
     return "";

@@ -75,7 +75,7 @@ bool JsonLoader::Reader::read_some() {
 // Ignore json only with spaces and newline
 static bool possibly_valid_json(const melon::cord_buf& json) {
     melon::cord_buf_as_zero_copy_input_stream it(json);
-    const void* data = NULL;
+    const void* data = nullptr;
     int size = 0;
     int total_size = 0;
     for (; it.Next(&data, &size); total_size += size) {
@@ -99,7 +99,7 @@ bool JsonLoader::Reader::get_next_json(melon::cord_buf* json1) {
     json1->clear();
     while (1) {
         melon::cord_buf_as_zero_copy_input_stream it(_file_buf);
-        const void* data = NULL;
+        const void* data = nullptr;
         int size = 0;
         int total_size = 0;
         int skipped = 0;

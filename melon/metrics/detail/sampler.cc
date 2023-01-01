@@ -14,10 +14,10 @@ namespace melon {
         // Combine two circular linked list into one.
         struct CombineSampler {
             void operator()(variable_sampler *&s1, variable_sampler *s2) const {
-                if (s2 == NULL) {
+                if (s2 == nullptr) {
                     return;
                 }
-                if (s1 == NULL) {
+                if (s1 == nullptr) {
                     s1 = s2;
                     return;
                 }
@@ -50,7 +50,7 @@ namespace melon {
             ~sampler_collector() {
                 if (_created) {
                     _stop = true;
-                    pthread_join(_tid, NULL);
+                    pthread_join(_tid, nullptr);
                     _created = false;
                 }
             }
@@ -68,14 +68,14 @@ namespace melon {
             }
 
             void create_sampling_thread() {
-                const int rc = pthread_create(&_tid, NULL, sampling_thread, this);
+                const int rc = pthread_create(&_tid, nullptr, sampling_thread, this);
                 if (rc != 0) {
                     MELON_LOG(FATAL) << "Fail to create sampling_thread, " << melon_error(rc);
                 } else {
                     _created = true;
                     if (!registered_atfork) {
                         registered_atfork = true;
-                        pthread_atfork(NULL, NULL, child_callback_atfork);
+                        pthread_atfork(nullptr, nullptr, child_callback_atfork);
                     }
                 }
             }
@@ -89,7 +89,7 @@ namespace melon {
 
             static void *sampling_thread(void *arg) {
                 static_cast<sampler_collector *>(arg)->run();
-                return NULL;
+                return nullptr;
             }
 
             static double get_cumulated_time(void *arg) {
@@ -104,8 +104,8 @@ namespace melon {
         };
 
 #ifndef UNIT_TEST
-        static status_gauge<double>* s_cumulated_time_var = NULL;
-        static melon::per_second<melon::status_gauge<double> >* s_sampling_thread_usage_variable = NULL;
+        static status_gauge<double>* s_cumulated_time_var = nullptr;
+        static melon::per_second<melon::status_gauge<double> >* s_sampling_thread_usage_variable = nullptr;
 #endif
 
         void sampler_collector::run() {
@@ -115,11 +115,11 @@ namespace melon {
             //   may be abandoned at any time after forking.
             // * They can't created inside the constructor of sampler_collector as well,
             //   which results in deadlock.
-            if (s_cumulated_time_var == NULL) {
+            if (s_cumulated_time_var == nullptr) {
                 s_cumulated_time_var =
                     new status_gauge<double>(get_cumulated_time, this);
             }
-            if (s_sampling_thread_usage_variable == NULL) {
+            if (s_sampling_thread_usage_variable == nullptr) {
                 s_sampling_thread_usage_variable =
                     new melon::per_second<melon::status_gauge<double> >(
                             "variable_sampler_collector_usage", s_cumulated_time_var, 10);

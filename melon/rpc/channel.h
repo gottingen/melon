@@ -98,23 +98,23 @@ namespace melon::rpc {
         bool log_succeed_without_server;
 
         // SSL related options. Refer to `ChannelSSLOptions' for details
-        bool has_ssl_options() const { return _ssl_options != NULL; }
+        bool has_ssl_options() const { return _ssl_options != nullptr; }
 
         const ChannelSSLOptions &ssl_options() const { return *_ssl_options.get(); }
 
         ChannelSSLOptions *mutable_ssl_options();
 
-        // Turn on authentication for this channel if `auth' is not NULL.
+        // Turn on authentication for this channel if `auth' is not nullptr.
         // Note `auth' will not be deleted by channel and must remain valid when
         // the channel is being used.
-        // Default: NULL
+        // Default: nullptr
         const Authenticator *auth;
 
         // Customize the error code that should be retried. The interface is
         // defined in melon/rpc/retry_policy.h
         // This object is NOT owned by channel and should remain valid when
         // channel is used.
-        // Default: NULL
+        // Default: nullptr
         const RetryPolicy *retry_policy;
 
         // Filter ServerNodes (i.e. based on `tag' field of `ServerNode')
@@ -122,7 +122,7 @@ namespace melon::rpc {
         // in melon/rpc/naming_service_filter.h
         // This object is NOT owned by channel and should remain valid when
         // channel is used.
-        // Default: NULL
+        // Default: nullptr
         const NamingServiceFilter *ns_filter;
 
         // Channels with same connection_group share connections.
@@ -143,9 +143,9 @@ namespace melon::rpc {
     // instead construct a stub Service wrapping it.
     // Example:
     //   melon::rpc::Channel channel;
-    //   channel.Init("bns://rdev.matrix.all", "rr", NULL/*default options*/);
+    //   channel.Init("bns://rdev.matrix.all", "rr", nullptr/*default options*/);
     //   MyService_Stub stub(&channel);
-    //   stub.MyMethod(&controller, &request, &response, NULL);
+    //   stub.MyMethod(&controller, &request, &response, nullptr);
     class Channel : public ChannelBase {
         friend class Controller;
 
@@ -157,7 +157,7 @@ namespace melon::rpc {
         ~Channel();
 
         // Connect this channel to a single server whose address is given by the
-        // first parameter. Use default options if `options' is NULL.
+        // first parameter. Use default options if `options' is nullptr.
         int Init(melon::base::end_point server_addr_and_port, const ChannelOptions *options);
 
         int Init(const char *server_addr_and_port, const ChannelOptions *options);
@@ -167,7 +167,7 @@ namespace melon::rpc {
         // Connect this channel to a group of servers whose addresses can be
         // accessed via `naming_service_url' according to its protocol. Use the
         // method specified by `load_balancer_name' to distribute traffic to
-        // servers. Use default options if `options' is NULL.
+        // servers. Use default options if `options' is nullptr.
         // Supported naming service("protocol://service_name"):
         //   bns://<node-name>            # Baidu Naming Service
         //   file://<file-path>           # load addresses from the file
@@ -178,8 +178,8 @@ namespace melon::rpc {
         //   random                       # randomly choose a server
         //   la                           # locality aware
         //   c_murmurhash/c_md5           # consistent hashing with murmurhash3/md5
-        //   "" or NULL                   # treat `naming_service_url' as `server_addr_and_port'
-        //                                # Init(xxx, "", options) and Init(xxx, NULL, options)
+        //   "" or nullptr                   # treat `naming_service_url' as `server_addr_and_port'
+        //                                # Init(xxx, "", options) and Init(xxx, nullptr, options)
         //                                # are exactly same with Init(xxx, options)
         int Init(const char *naming_service_url,
                  const char *load_balancer_name,
@@ -187,7 +187,7 @@ namespace melon::rpc {
 
         // Call `method' of the remote service with `request' as input, and
         // `response' as output. `controller' contains options and extra data.
-        // If `done' is not NULL, this method returns after request was sent
+        // If `done' is not nullptr, this method returns after request was sent
         // and `done->Run()' will be called when the call finishes, otherwise
         // caller blocks until the call finishes.
         void CallMethod(const google::protobuf::MethodDescriptor *method,
@@ -207,12 +207,12 @@ namespace melon::rpc {
     protected:
         int CheckHealth();
 
-        bool SingleServer() const { return _lb.get() == NULL; }
+        bool SingleServer() const { return _lb.get() == nullptr; }
 
         // Pick a server using `lb' and then send RPC. Wait for response when
         // sending synchronous RPC.
         // NOTE: DO NOT directly use `controller' after this call when
-        // sending asynchronous RPC (controller->_done != NULL) since
+        // sending asynchronous RPC (controller->_done != nullptr) since
         // user callback `done' could be called when it returns and
         // therefore destroy the `controller' inside `done'
         static void CallMethodImpl(Controller *controller, SharedLoadBalancer *lb);

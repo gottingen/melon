@@ -147,12 +147,12 @@ namespace melon {
             friend class GlobalValue<self_type>;
 
             struct Agent : public melon::container::link_node<Agent> {
-                Agent() : combiner(NULL) {}
+                Agent() : combiner(nullptr) {}
 
                 ~Agent() {
                     if (combiner) {
                         combiner->commit_and_erase(this);
-                        combiner = NULL;
+                        combiner = nullptr;
                     }
                 }
 
@@ -250,7 +250,7 @@ namespace melon {
 
             // Always called from the thread owning the agent.
             void commit_and_erase(Agent *agent) {
-                if (NULL == agent) {
+                if (nullptr == agent) {
                     return;
                 }
                 ElementTp local;
@@ -264,7 +264,7 @@ namespace melon {
 
             // Always called from the thread owning the agent
             void commit_and_clear(Agent *agent) {
-                if (NULL == agent) {
+                if (nullptr == agent) {
                     return;
                 }
                 ElementTp prev;
@@ -279,9 +279,9 @@ namespace melon {
                 if (!agent) {
                     // Create the agent
                     agent = agent_group::get_or_create_tls_agent(_id);
-                    if (NULL == agent) {
+                    if (nullptr == agent) {
                         MELON_LOG(FATAL) << "Fail to create agent";
-                        return NULL;
+                        return nullptr;
                     }
                 }
                 if (agent->combiner) {
@@ -303,7 +303,7 @@ namespace melon {
                 // internal allocations should be released.
                 for (melon::container::link_node<Agent> *
                         node = _agents.head(); node != _agents.end();) {
-                    node->value()->reset(ElementTp(), NULL);
+                    node->value()->reset(ElementTp(), nullptr);
                     melon::container::link_node<Agent> *const saved_next = node->next();
                     node->remove_from_list();
                     node = saved_next;

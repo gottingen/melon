@@ -28,7 +28,7 @@ namespace melon::rpc {
         // Diffie-Hellman key exchange
         class DHWrapper {
         public:
-            DHWrapper() : _pdh(NULL) {}
+            DHWrapper() : _pdh(nullptr) {}
 
             ~DHWrapper() { clear(); }
 

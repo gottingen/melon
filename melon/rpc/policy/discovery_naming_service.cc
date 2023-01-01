@@ -48,7 +48,7 @@ namespace melon::rpc {
                                                         " which Register would be called again");
 
         static pthread_once_t s_init_discovery_channel_once = PTHREAD_ONCE_INIT;
-        static Channel *s_discovery_channel = NULL;
+        static Channel *s_discovery_channel = nullptr;
 
         static int ListDiscoveryNodes(const char *discovery_api_addr, std::string *servers) {
             Channel api_channel;
@@ -62,7 +62,7 @@ namespace melon::rpc {
             }
             Controller cntl;
             cntl.http_request().uri() = discovery_api_addr;
-            api_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            api_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(FATAL) << "Fail to access " << cntl.http_request().uri()
                                  << ": " << cntl.ErrorText();
@@ -143,7 +143,7 @@ namespace melon::rpc {
         DiscoveryClient::~DiscoveryClient() {
             if (_registered.load(std::memory_order_acquire)) {
                 fiber_stop(_th);
-                fiber_join(_th, NULL);
+                fiber_join(_th, nullptr);
                 DoCancel();
             }
         }
@@ -193,7 +193,7 @@ namespace melon::rpc {
                << "&region=" << _params.region
                << "&zone=" << _params.zone;
             os.move_to(cntl.request_attachment());
-            chan.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            chan.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(ERROR) << "Fail to post /discovery/renew: " << cntl.ErrorText();
                 return -1;
@@ -214,7 +214,7 @@ namespace melon::rpc {
                                    melon::base::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
             if (melon::fiber_sleep_for(init_sleep_s * 1000000) != 0) {
                 if (errno == ESTOP) {
-                    return NULL;
+                    return nullptr;
                 }
             }
 
@@ -237,7 +237,7 @@ namespace melon::rpc {
                 consecutive_renew_error = 0;
                 melon::fiber_sleep_for(FLAGS_discovery_renew_interval_s * 1000000);
             }
-            return NULL;
+            return nullptr;
         }
 
         int DiscoveryClient::Register(const DiscoveryRegisterParam &params) {
@@ -253,7 +253,7 @@ namespace melon::rpc {
             if (DoRegister() != 0) {
                 return -1;
             }
-            if (fiber_start_background(&_th, NULL, PeriodicRenew, this) != 0) {
+            if (fiber_start_background(&_th, nullptr, PeriodicRenew, this) != 0) {
                 MELON_LOG(ERROR) << "Fail to start background PeriodicRenew";
                 return -1;
             }
@@ -262,7 +262,7 @@ namespace melon::rpc {
 
         int DiscoveryClient::DoRegister() {
             Channel *chan = GetOrNewDiscoveryChannel();
-            if (NULL == chan) {
+            if (nullptr == chan) {
                 MELON_LOG(ERROR) << "Fail to create discovery channel";
                 return -1;
             }
@@ -288,7 +288,7 @@ namespace melon::rpc {
                << "&version=" << _params.version
                << "&metadata=" << _params.metadata;
             os.move_to(cntl.request_attachment());
-            chan->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            chan->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(ERROR) << "Fail to register " << _params.appid << ": " << cntl.ErrorText();
                 return -1;
@@ -326,7 +326,7 @@ namespace melon::rpc {
                << "&region=" << _params.region
                << "&zone=" << _params.zone;
             os.move_to(cntl.request_attachment());
-            chan.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            chan.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(ERROR) << "Fail to post /discovery/cancel: " << cntl.ErrorText();
                 return -1;
@@ -344,14 +344,14 @@ namespace melon::rpc {
 
         int DiscoveryNamingService::GetServers(const char *service_name,
                                                std::vector<ServerNode> *servers) {
-            if (service_name == NULL || *service_name == '\0' ||
+            if (service_name == nullptr || *service_name == '\0' ||
                 FLAGS_discovery_env.empty() ||
                 FLAGS_discovery_status.empty()) {
                 MELON_LOG_ONCE(ERROR) << "Invalid parameters";
                 return -1;
             }
             Channel *chan = GetOrNewDiscoveryChannel();
-            if (NULL == chan) {
+            if (nullptr == chan) {
                 MELON_LOG(ERROR) << "Fail to create discovery channel";
             }
             servers->clear();
@@ -364,7 +364,7 @@ namespace melon::rpc {
                 uri_str.append(FLAGS_discovery_zone);
             }
             cntl.http_request().uri() = uri_str;
-            chan->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            chan->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(ERROR) << "Fail to get /discovery/fetchs: " << cntl.ErrorText();
                 return -1;

@@ -10,7 +10,7 @@ namespace melon::fiber_internal {
 
     // Create a waitable_event which is a futex-like 32-bit primitive for synchronizing
     // fiber/pthreads.
-    // Returns a pointer to 32-bit data, NULL on failure.
+    // Returns a pointer to 32-bit data, nullptr on failure.
     // NOTE: all waitable_events are private(not inter-process).
     void *waitable_event_create();
 
@@ -44,7 +44,7 @@ namespace melon::fiber_internal {
 
     // Atomically wait on |event| if *event equals |expected_value|, until the
     // event is woken up by waitable_event_wake*, or CLOCK_REALTIME reached |abstime| if
-    // abstime is not NULL.
+    // abstime is not nullptr.
     // About |abstime|:
     //   Different from FUTEX_WAIT, waitable_event_wait uses absolute time.
     // Returns 0 on success, -1 otherwise and errno is set.

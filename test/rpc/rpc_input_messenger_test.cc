@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
              melon::rpc::SerializeRequestDefault,
              melon::rpc::policy::PackHuluRequest,
              EmptyProcessHuluRequest, EmptyProcessHuluRequest,
-             NULL, NULL, NULL,
+             nullptr, nullptr, nullptr,
              melon::rpc::CONNECTION_TYPE_ALL, "dummy_hulu"};
     EXPECT_EQ(0, RegisterProtocol((melon::rpc::ProtocolType) 30, dummy_protocol));
     return RUN_ALL_TESTS();
@@ -108,14 +108,14 @@ void *client_thread(void *arg) {
     melon::base::fd_guard fd(melon::base::unix_socket_connect(socket_name));
     if (fd < 0) {
         MELON_PLOG(FATAL) << "Fail to connect to " << socket_name;
-        return NULL;
+        return nullptr;
     }
 #else
     melon::base::end_point point(melon::base::IP_ANY, 7878);
-    melon::base::fd_guard fd(melon::base::tcp_connect(point, NULL));
+    melon::base::fd_guard fd(melon::base::tcp_connect(point, nullptr));
     if (fd < 0) {
         MELON_PLOG(FATAL) << "Fail to connect to " << point;
-        return NULL;
+        return nullptr;
     }
 #endif
 
@@ -134,7 +134,7 @@ void *client_thread(void *arg) {
         if (n < 0) {
             if (errno != EINTR) {
                 MELON_PLOG(FATAL) << "Fail to write fd=" << fd;
-                return NULL;
+                return nullptr;
             }
         } else {
             ++m->times;
@@ -145,7 +145,7 @@ void *client_thread(void *arg) {
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 TEST_F(MessengerTest, dispatch_tasks) {
@@ -157,7 +157,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
 
     const melon::rpc::InputMessageHandler pairs[] = {
             {melon::rpc::policy::ParseHuluMessage,
-                    EmptyProcessHuluRequest, NULL, NULL, "dummy_hulu"}
+                    EmptyProcessHuluRequest, nullptr, nullptr, "dummy_hulu"}
     };
 
     for (size_t i = 0; i < NEPOLL; ++i) {
@@ -171,14 +171,14 @@ TEST_F(MessengerTest, dispatch_tasks) {
         ASSERT_TRUE(listening_fd > 0);
         melon::base::make_non_blocking(listening_fd);
         ASSERT_EQ(0, messenger[i].AddHandler(pairs[0]));
-        ASSERT_EQ(0, messenger[i].StartAccept(listening_fd, -1, NULL));
+        ASSERT_EQ(0, messenger[i].StartAccept(listening_fd, -1, nullptr));
     }
 
     for (size_t i = 0; i < NCLIENT; ++i) {
         cm[i] = new ClientMeta;
         cm[i]->times = 0;
         cm[i]->bytes = 0;
-        ASSERT_EQ(0, pthread_create(&cth[i], NULL, client_thread, cm[i]));
+        ASSERT_EQ(0, pthread_create(&cth[i], nullptr, client_thread, cm[i]));
     }
 
     sleep(1);
@@ -211,7 +211,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
               << "/s";
 
     for (size_t i = 0; i < NCLIENT; ++i) {
-        pthread_join(cth[i], NULL);
+        pthread_join(cth[i], nullptr);
         printf("joined client %lu\n", i);
     }
     for (size_t i = 0; i < NEPOLL; ++i) {

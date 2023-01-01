@@ -272,8 +272,8 @@ namespace melon::rpc {
             // Default: INVALID_FIBER_TOKEN
             fiber_token_t id_wait;
             // If no connection exists, a connection will be established to
-            // remote_side() regarding deadline `abstime'. NULL means no timeout.
-            // Default: NULL
+            // remote_side() regarding deadline `abstime'. nullptr means no timeout.
+            // Default: nullptr
             const timespec *abstime;
 
             // Will be queued to implement positional correspondence with responses
@@ -291,15 +291,15 @@ namespace melon::rpc {
             bool ignore_eovercrowded;
 
             WriteOptions()
-                    : id_wait(INVALID_FIBER_TOKEN), abstime(NULL), pipelined_count(0), with_auth(false),
+                    : id_wait(INVALID_FIBER_TOKEN), abstime(nullptr), pipelined_count(0), with_auth(false),
                       ignore_eovercrowded(false) {}
         };
 
-        int Write(melon::cord_buf *msg, const WriteOptions *options = NULL);
+        int Write(melon::cord_buf *msg, const WriteOptions *options = nullptr);
 
         // Write an user-defined message. `msg' is released when Write() is
         // successful and *may* remain unchanged otherwise.
-        int Write(SocketMessagePtr<> &msg, const WriteOptions *options = NULL);
+        int Write(SocketMessagePtr<> &msg, const WriteOptions *options = nullptr);
 
         // The file descriptor
         int fd() const { return _fd.load(std::memory_order_relaxed); }
@@ -333,8 +333,8 @@ namespace melon::rpc {
 
         Destroyable *parsing_context() const { return _parsing_context.load(std::memory_order_consume); }
 
-        // Try to set _parsing_context to *ctx when _parsing_context is NULL.
-        // If _parsing_context is NULL, the set is successful and true is returned.
+        // Try to set _parsing_context to *ctx when _parsing_context is nullptr.
+        // If _parsing_context is nullptr, the set is successful and true is returned.
         // Otherwise, *ctx is Destroy()-ed and replaced with the value of
         // _parsing_context, and false is returned. This process is thread-safe.
         template<typename T>
@@ -365,7 +365,7 @@ namespace melon::rpc {
         static int AddressFailedAsWell(SocketId id, SocketUniquePtr *ptr);
 
         // Mark this Socket or the Socket associated with `id' as failed.
-        // Any later Address() of the identifier shall return NULL unless the
+        // Any later Address() of the identifier shall return nullptr unless the
         // Socket was revivied by HealthCheckThread. The Socket is NOT recycled
         // after calling this function, instead it will be recycled when no one
         // references it. Internal fields of the Socket are still accessible
@@ -515,7 +515,7 @@ namespace melon::rpc {
         // Get and persist a socket connecting to the same place as this socket.
         // If an agent socket was already created and persisted, it's returned
         // directly (provided other constraints are satisfied)
-        // If `checkfn' is not NULL, and the checking result on the socket that
+        // If `checkfn' is not nullptr, and the checking result on the socket that
         // would be returned is false, the socket is abandoned and the getting
         // process is restarted.
         // For example, http2 connections may run out of stream_id after long time
@@ -581,7 +581,7 @@ namespace melon::rpc {
 
         friend void DereferenceSocket(Socket *);
 
-        static int Status(SocketId, int32_t *nref = NULL);  // for unit-test.
+        static int Status(SocketId, int32_t *nref = nullptr);  // for unit-test.
 
         // Perform SSL handshake after TCP connection has been established.
         // Create SSL session inside and block (in fiber) until handshake
@@ -612,7 +612,7 @@ namespace melon::rpc {
         int WaitEpollOut(int fd, bool pollin, const timespec *abstime);
 
         // [Not thread-safe] Establish a tcp connection to `remote_side()'
-        // If `on_connect' is NULL, this function blocks current thread
+        // If `on_connect' is nullptr, this function blocks current thread
         // until connected/timeout. Otherwise, it returns immediately after
         // starting a connection request and `on_connect' will be called
         // when connecting completes (whether it succeeds or not)

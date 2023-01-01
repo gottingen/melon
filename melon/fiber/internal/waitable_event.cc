@@ -141,7 +141,7 @@ namespace melon::fiber_internal {
                     // Another thread is erasing `pw' as well, wait for the signal.
                     // Acquire fence makes this thread sees changes before wakeup.
                     if (pw.sig.load(std::memory_order_acquire) == PTHREAD_NOT_SIGNALLED) {
-                        ptimeout = NULL; // already timedout, ptimeout is expired.
+                        ptimeout = nullptr; // already timedout, ptimeout is expired.
                         continue;
                     }
                 }
@@ -229,7 +229,7 @@ namespace melon::fiber_internal {
         if (b) {
             return &b->value;
         }
-        return NULL;
+        return nullptr;
     }
 
     void waitable_event_destroy(void *event) {
@@ -248,7 +248,7 @@ namespace melon::fiber_internal {
 
     int waitable_event_wake(void *arg) {
         waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
-        fiber_mutex_waiter *front = NULL;
+        fiber_mutex_waiter *front = nullptr;
         {
             MELON_SCOPED_LOCK(b->waiter_lock);
             if (b->waiters.empty()) {
@@ -256,7 +256,7 @@ namespace melon::fiber_internal {
             }
             front = b->waiters.head()->value();
             front->remove_from_list();
-            front->container.store(NULL, std::memory_order_relaxed);
+            front->container.store(nullptr, std::memory_order_relaxed);
         }
         if (front->tid == 0) {
             wakeup_pthread(static_cast<event_pthread_waiter *>(front));
@@ -283,7 +283,7 @@ namespace melon::fiber_internal {
             while (!b->waiters.empty()) {
                 fiber_mutex_waiter *bw = b->waiters.head()->value();
                 bw->remove_from_list();
-                bw->container.store(NULL, std::memory_order_relaxed);
+                bw->container.store(nullptr, std::memory_order_relaxed);
                 if (bw->tid) {
                     fiber_waiters.append(bw);
                 } else {
@@ -337,7 +337,7 @@ namespace melon::fiber_internal {
         event_waiter_list fiber_waiters;
         event_waiter_list pthread_waiters;
         {
-            fiber_mutex_waiter *excluded_waiter = NULL;
+            fiber_mutex_waiter *excluded_waiter = nullptr;
             MELON_SCOPED_LOCK(b->waiter_lock);
             while (!b->waiters.empty()) {
                 fiber_mutex_waiter *bw = b->waiters.head()->value();
@@ -346,12 +346,12 @@ namespace melon::fiber_internal {
                 if (bw->tid) {
                     if (bw->tid != excluded_fiber) {
                         fiber_waiters.append(bw);
-                        bw->container.store(NULL, std::memory_order_relaxed);
+                        bw->container.store(nullptr, std::memory_order_relaxed);
                     } else {
                         excluded_waiter = bw;
                     }
                 } else {
-                    bw->container.store(NULL, std::memory_order_relaxed);
+                    bw->container.store(nullptr, std::memory_order_relaxed);
                     pthread_waiters.append(bw);
                 }
             }
@@ -397,7 +397,7 @@ namespace melon::fiber_internal {
         waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
         waitable_event *m = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg2), waitable_event, value);
 
-        fiber_mutex_waiter *front = NULL;
+        fiber_mutex_waiter *front = nullptr;
         {
             std::unique_lock<internal::FastPthreadMutex> lck1(b->waiter_lock, std::defer_lock);
             std::unique_lock<internal::FastPthreadMutex> lck2(m->waiter_lock, std::defer_lock);
@@ -408,7 +408,7 @@ namespace melon::fiber_internal {
 
             front = b->waiters.head()->value();
             front->remove_from_list();
-            front->container.store(NULL, std::memory_order_relaxed);
+            front->container.store(nullptr, std::memory_order_relaxed);
 
             while (!b->waiters.empty()) {
                 fiber_mutex_waiter *bw = b->waiters.head()->value();
@@ -446,16 +446,16 @@ namespace melon::fiber_internal {
     inline bool erase_from_event(fiber_mutex_waiter *bw, bool wakeup, WaiterState state) {
         // `bw' is guaranteed to be valid inside this function because waiter
         // will wait until this function being cancelled or finished.
-        // NOTE: This function must be no-op when bw->container is NULL.
+        // NOTE: This function must be no-op when bw->container is nullptr.
         bool erased = false;
         waitable_event *b;
         int saved_errno = errno;
         while ((b = bw->container.load(std::memory_order_acquire))) {
-            // b can be NULL when the waiter is scheduled but queued.
+            // b can be nullptr when the waiter is scheduled but queued.
             MELON_SCOPED_LOCK(b->waiter_lock);
             if (b == bw->container.load(std::memory_order_relaxed)) {
                 bw->remove_from_list();
-                bw->container.store(NULL, std::memory_order_relaxed);
+                bw->container.store(nullptr, std::memory_order_relaxed);
                 if (bw->tid) {
                     static_cast<event_fiber_waiter *>(bw)->waiter_state = state;
                 }
@@ -505,7 +505,7 @@ namespace melon::fiber_internal {
             }
         }
 
-        // b->container is NULL which makes erase_from_event_and_wakeup() and
+        // b->container is nullptr which makes erase_from_event_and_wakeup() and
         // fiber_worker::interrupt() no-op, there's no race between following code and
         // the two functions. The on-stack event_fiber_waiter is safe to use and
         // bw->waiter_state will not change again.
@@ -527,9 +527,9 @@ namespace melon::fiber_internal {
                                        const timespec *abstime) {
         // sys futex needs relative timeout.
         // Compute diff between abstime and now.
-        timespec *ptimeout = NULL;
+        timespec *ptimeout = nullptr;
         timespec timeout;
-        if (abstime != NULL) {
+        if (abstime != nullptr) {
             const int64_t timeout_us =  melon::time_point::from_timespec(*abstime).to_unix_micros() -
                                        melon::get_current_time_micros();
             if (timeout_us < MIN_SLEEP_US) {
@@ -540,7 +540,7 @@ namespace melon::fiber_internal {
             ptimeout = &timeout;
         }
 
-        fiber_entity *task = NULL;
+        fiber_entity *task = nullptr;
         event_pthread_waiter pw;
         pw.tid = 0;
         pw.sig.store(PTHREAD_NOT_SIGNALLED, std::memory_order_relaxed);
@@ -555,7 +555,7 @@ namespace melon::fiber_internal {
             b->waiter_lock.unlock();
             errno = EWOULDBLOCK;
             rc = -1;
-        } else if (task != NULL && task->interrupted) {
+        } else if (task != nullptr && task->interrupted) {
             b->waiter_lock.unlock();
             // Race with set and may consume multiple interruptions, which are OK.
             task->interrupted = false;
@@ -576,10 +576,10 @@ namespace melon::fiber_internal {
 #endif
         }
         if (task) {
-            // If current_waiter is NULL, fiber_worker::interrupt() is running and
-            // using pw, spin until current_waiter != NULL.
+            // If current_waiter is nullptr, fiber_worker::interrupt() is running and
+            // using pw, spin until current_waiter != nullptr.
             BT_LOOP_WHEN(task->current_waiter.exchange(
-                    NULL, std::memory_order_acquire) == NULL,
+                    nullptr, std::memory_order_acquire) == nullptr,
                          30/*nops before sched_yield*/);
             if (task->interrupted) {
                 task->interrupted = false;
@@ -602,13 +602,13 @@ namespace melon::fiber_internal {
             return -1;
         }
         fiber_worker *g = tls_task_group;
-        if (NULL == g || g->is_current_pthread_task()) {
+        if (nullptr == g || g->is_current_pthread_task()) {
             return event_wait_from_pthread(g, b, expected_value, abstime);
         }
         event_fiber_waiter bbw;
         // tid is 0 iff the thread is non-fiber
         bbw.tid = g->current_fid();
-        bbw.container.store(NULL, std::memory_order_relaxed);
+        bbw.container.store(nullptr, std::memory_order_relaxed);
         bbw.task_meta = g->current_task();
         bbw.sleep_id = 0;
         bbw.waiter_state = WAITER_STATE_READY;
@@ -616,7 +616,7 @@ namespace melon::fiber_internal {
         bbw.initial_event = b;
         bbw.control = g->control();
 
-        if (abstime != NULL) {
+        if (abstime != nullptr) {
             // Schedule timer before queueing. If the timer is triggered before
             // queueing, cancel queueing. This is a kind of optimistic locking.
             if ( melon::time_point::from_timespec(*abstime).to_unix_micros() <
@@ -648,10 +648,10 @@ namespace melon::fiber_internal {
         BT_LOOP_WHEN(unsleep_if_necessary(&bbw, get_global_timer_thread()) < 0,
                      30/*nops before sched_yield*/);
 
-        // If current_waiter is NULL, fiber_worker::interrupt() is running and using bbw.
-        // Spin until current_waiter != NULL.
+        // If current_waiter is nullptr, fiber_worker::interrupt() is running and using bbw.
+        // Spin until current_waiter != nullptr.
         BT_LOOP_WHEN(bbw.task_meta->current_waiter.exchange(
-                NULL, std::memory_order_acquire) == NULL,
+                nullptr, std::memory_order_acquire) == nullptr,
                      30/*nops before sched_yield*/);
 #ifdef SHOW_FIBER_EVENT_WAITER_COUNT_IN_VARS
         num_waiters << -1;

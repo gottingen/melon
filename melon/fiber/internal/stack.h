@@ -22,7 +22,7 @@ namespace melon::fiber_internal {
         void zeroize() {
             stacksize = 0;
             guardsize = 0;
-            bottom = NULL;
+            bottom = nullptr;
             valgrind_stack_id = 0;
         }
     };
@@ -52,7 +52,7 @@ namespace melon::fiber_internal {
     // stack is jumped.
     fiber_contextual_stack *get_stack(fiber_stack_type type, void (*entry)(intptr_t));
 
-    // Recycle a stack. NULL does nothing.
+    // Recycle a stack. nullptr does nothing.
     void return_stack(fiber_contextual_stack *);
 
     // Jump from stack `from' to stack `to'. `from' must be the stack of callsite

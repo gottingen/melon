@@ -41,7 +41,7 @@ void fiber_assign_data(void *data);
 namespace melon::rpc {
 
     NsheadClosure::NsheadClosure(void *additional_space)
-            : _server(NULL), _received_us(0), _do_respond(true), _additional_space(additional_space) {
+            : _server(nullptr), _received_us(0), _do_respond(true), _additional_space(additional_space) {
     }
 
     NsheadClosure::~NsheadClosure() {
@@ -212,7 +212,7 @@ namespace melon::rpc {
             const nshead_t *req_head = (const nshead_t *) p;
 
             NsheadService *service = server->options().nshead_service;
-            if (service == NULL) {
+            if (service == nullptr) {
                 MELON_LOG_EVERY_SECOND(WARNING)
                                 << "Received nshead request however the server does not set"
                                    " ServerOptions.nshead_service, close the connection.";
@@ -233,7 +233,7 @@ namespace melon::rpc {
                 MELON_CHECK(method_status->OnRequested());
             }
 
-            void *sub_space = NULL;
+            void *sub_space = nullptr;
             if (service->_additional_space) {
                 sub_space = (char *) space + sizeof(NsheadClosure);
             }
@@ -269,7 +269,7 @@ namespace melon::rpc {
                 fiber_assign_data((void *) &server->thread_local_options());
             }
 
-            Span *span = NULL;
+            Span *span = nullptr;
             if (IsTraceable(false)) {
                 span = Span::CreateServerSpan(0, 0, 0, msg->base_real_us());
                 accessor.set_span(span);
@@ -328,7 +328,7 @@ namespace melon::rpc {
 
             // Fetch correlation id that we saved before in `PackNsheadRequest'
             const CallId cid = {static_cast<uint64_t>(msg->socket()->correlation_id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -347,7 +347,7 @@ namespace melon::rpc {
             // MUST be NsheadMessage (checked in SerializeNsheadRequest)
             NsheadMessage *response = (NsheadMessage *) cntl->response();
             const int saved_error = cntl->ErrorCode();
-            if (response != NULL) {
+            if (response != nullptr) {
                 msg->meta.copy_to(&response->head, sizeof(nshead_t));
                 msg->payload.swap(response->body);
             } // else just ignore the response.
@@ -369,13 +369,13 @@ namespace melon::rpc {
 
         void SerializeNsheadRequest(melon::cord_buf *request_buf, Controller *cntl,
                                     const google::protobuf::Message *req_base) {
-            if (req_base == NULL) {
-                return cntl->SetFailed(EREQUEST, "request is NULL");
+            if (req_base == nullptr) {
+                return cntl->SetFailed(EREQUEST, "request is nullptr");
             }
             if (req_base->GetDescriptor() != NsheadMessage::descriptor()) {
                 return cntl->SetFailed(EINVAL, "Type of request must be NsheadMessage");
             }
-            if (cntl->response() != NULL &&
+            if (cntl->response() != nullptr &&
                 cntl->response()->GetDescriptor() != NsheadMessage::descriptor()) {
                 return cntl->SetFailed(EINVAL, "Type of response must be NsheadMessage");
             }

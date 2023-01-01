@@ -66,12 +66,12 @@ namespace melon::container {
             linked_list<Node> list;
             EXPECT_EQ(list.end(), list.head());
             EXPECT_EQ(list.end(), list.tail());
-            ExpectListContents(list, 0, NULL);
+            ExpectListContents(list, 0, nullptr);
         }
 
         TEST(linked_list, append) {
             linked_list<Node> list;
-            ExpectListContents(list, 0, NULL);
+            ExpectListContents(list, 0, nullptr);
 
             Node n1(1);
             list.append(&n1);
@@ -160,7 +160,7 @@ namespace melon::container {
             n2.remove_from_list();
             n4.remove_from_list();
 
-            ExpectListContents(list, 0, NULL);
+            ExpectListContents(list, 0, nullptr);
             EXPECT_EQ(list.end(), list.head());
             EXPECT_EQ(list.end(), list.tail());
 

@@ -39,7 +39,7 @@ namespace melon::rpc {
         class H2ParseResult {
         public:
             explicit H2ParseResult(H2Error err, int stream_id)
-                    : _msg(NULL), _err(err), _stream_id(stream_id) {}
+                    : _msg(nullptr), _err(err), _stream_id(stream_id) {}
 
             explicit H2ParseResult(H2StreamContext *msg)
                     : _msg(msg), _err(H2_NO_ERROR), _stream_id(0) {}
@@ -53,7 +53,7 @@ namespace melon::rpc {
 
             int stream_id() const { return _stream_id; }
 
-            // definitely NULL when result is failed.
+            // definitely nullptr when result is failed.
             H2StreamContext *message() const { return _msg; }
 
         private:
@@ -343,7 +343,7 @@ namespace melon::rpc {
                     melon::cord_buf_bytes_iterator &, const H2FrameHead &);
 
             // main_socket: the socket owns this object as parsing_context
-            // server: NULL means client-side
+            // server: nullptr means client-side
             H2Context(Socket *main_socket, const Server *server);
 
             ~H2Context();

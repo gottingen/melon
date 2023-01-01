@@ -112,13 +112,13 @@ namespace melon {
 
         mib[1] = HW_PAGESIZE;
         len = sizeof(pagesize);
-        if (sysctl(mib, NMIB(mib), &pagesize, &len, NULL, 0) < 0) {
+        if (sysctl(mib, NMIB(mib), &pagesize, &len, nullptr, 0) < 0) {
             return result_status::from_melon_error(errno);
         }
 
         mib[1] = HW_MEMSIZE;
         len = sizeof(mem_total);
-        if (sysctl(mib, NMIB(mib), &mem_total, &len, NULL, 0) < 0) {
+        if (sysctl(mib, NMIB(mib), &mem_total, &len, nullptr, 0) < 0) {
             return result_status::from_melon_error(errno);
         }
 
@@ -148,7 +148,7 @@ namespace melon {
         size_t size = sizeof(sw_usage);
         int mib[] = {CTL_VM, VM_SWAPUSAGE};
 
-        if (sysctl(mib, NMIB(mib), &sw_usage, &size, NULL, 0) != 0) {
+        if (sysctl(mib, NMIB(mib), &sw_usage, &size, nullptr, 0) != 0) {
             return result_status::from_melon_error(errno);
         }
 
@@ -312,7 +312,7 @@ namespace melon {
         kinfo_proc pinfo = {};
         size_t len = sizeof(pinfo);
 
-        if (sysctl(mib, NMIB(mib), &pinfo, &len, NULL, 0) < 0) {
+        if (sysctl(mib, NMIB(mib), &pinfo, &len, nullptr, 0) < 0) {
             return {errno, {}};
         }
 
@@ -446,7 +446,7 @@ namespace melon {
 
         mib[miblen] = pid;
         len = sizeof(*type);
-        return sysctl(mib, miblen + 1, type, &len, NULL, 0);
+        return sysctl(mib, miblen + 1, type, &len, nullptr, 0);
     }
 
 

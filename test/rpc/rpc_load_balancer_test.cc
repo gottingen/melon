@@ -178,7 +178,7 @@ namespace {
             for (size_t R = 0; R < 2; ++R) {
                 ASSERT_EQ((int64_t *) d[R].weight_tree[i].left, &lalb._left_weights[i]);
                 size_t * pindex = d[R].server_map.seek(d[R].weight_tree[i].server_id);
-                ASSERT_TRUE(pindex != NULL && *pindex == i);
+                ASSERT_TRUE(pindex != nullptr && *pindex == i);
             }
             total += d[0].weight_tree[i].weight->volatile_value();
         }
@@ -245,7 +245,7 @@ namespace {
         melon::rpc::LoadBalancer *c = sa->lb;
         melon::rpc::SocketUniquePtr ptr;
         CountMap *selected_count = new CountMap;
-        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
         uint32_t rand_seed = rand();
         if (sa->hash) {
@@ -279,8 +279,8 @@ namespace {
 
     TEST_F(LoadBalancerTest, update_while_selection) {
         for (size_t round = 0; round < 5; ++round) {
-            melon::rpc::LoadBalancer *lb = NULL;
-            SelectArg sa = {NULL, NULL};
+            melon::rpc::LoadBalancer *lb = nullptr;
+            SelectArg sa = {nullptr, nullptr};
             bool is_lalb = false;
             if (round == 0) {
                 lb = new melon::rpc::policy::RoundRobinLoadBalancer;
@@ -299,7 +299,7 @@ namespace {
 
             // Accessing empty lb should result in error.
             melon::rpc::SocketUniquePtr ptr;
-            melon::rpc::LoadBalancer::SelectIn in = {0, false, true, 0, NULL};
+            melon::rpc::LoadBalancer::SelectIn in = {0, false, true, 0, nullptr};
             melon::rpc::LoadBalancer::SelectOut out(&ptr);
             ASSERT_EQ(ENODATA, lb->SelectServer(in, &out));
 
@@ -339,7 +339,7 @@ namespace {
             melon::stop_watcher tm;
             tm.start();
             for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
-                ASSERT_EQ(0, pthread_create(&th[i], NULL, select_server, &sa));
+                ASSERT_EQ(0, pthread_create(&th[i], nullptr, select_server, &sa));
             }
             std::vector<melon::rpc::ServerId> removed;
             const size_t REP = 200;
@@ -424,8 +424,8 @@ namespace {
 
     TEST_F(LoadBalancerTest, fairness) {
         for (size_t round = 0; round < 6; ++round) {
-            melon::rpc::LoadBalancer *lb = NULL;
-            SelectArg sa = {NULL, NULL};
+            melon::rpc::LoadBalancer *lb = nullptr;
+            SelectArg sa = {nullptr, nullptr};
             if (round == 0) {
                 lb = new melon::rpc::policy::RoundRobinLoadBalancer;
             } else if (round == 1) {
@@ -475,7 +475,7 @@ namespace {
             }
 
             for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
-                ASSERT_EQ(0, pthread_create(&th[i], NULL, select_server, &sa));
+                ASSERT_EQ(0, pthread_create(&th[i], nullptr, select_server, &sa));
             }
             melon::fiber_sleep_for(10000);
             ProfilerStart((lb_name + ".prof").c_str());
@@ -606,7 +606,7 @@ namespace {
             const size_t SELECT_TIMES = 1000000;
             std::map < melon::base::end_point, size_t > times;
             melon::rpc::SocketUniquePtr ptr;
-            melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+            melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
             ::melon::rpc::LoadBalancer::SelectOut out(&ptr);
             for (size_t i = 0; i < SELECT_TIMES; ++i) {
                 in.has_request_code = true;
@@ -683,7 +683,7 @@ namespace {
         // consistent with weight configured.
         std::map < melon::base::end_point, size_t > select_result;
         melon::rpc::SocketUniquePtr ptr;
-        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
         int total_weight = 12;
         std::vector<melon::base::end_point> select_servers;
@@ -791,7 +791,7 @@ namespace {
         // weight randomized with weight configured.
         std::map < melon::base::end_point, size_t > select_result;
         melon::rpc::SocketUniquePtr ptr;
-        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
         int run_times = configed_weight_sum * 10;
         std::vector<melon::base::end_point> select_servers;
@@ -852,7 +852,7 @@ namespace {
             // Without setting anything, the lb should work fine
             for (int i = 0; i < 4; ++i) {
                 melon::rpc::SocketUniquePtr ptr;
-                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
                 melon::rpc::LoadBalancer::SelectOut out(&ptr);
                 ASSERT_EQ(0, lb->SelectServer(in, &out));
             }
@@ -862,7 +862,7 @@ namespace {
             ptr->_ninflight_app_health_check.store(1, std::memory_order_relaxed);
             for (int i = 0; i < 4; ++i) {
                 melon::rpc::SocketUniquePtr ptr;
-                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
                 melon::rpc::LoadBalancer::SelectOut out(&ptr);
                 ASSERT_EQ(0, lb->SelectServer(in, &out));
                 // After putting server[0] into health check state, the only choice is servers[1]
@@ -873,7 +873,7 @@ namespace {
             ptr->_ninflight_app_health_check.store(1, std::memory_order_relaxed);
             for (int i = 0; i < 4; ++i) {
                 melon::rpc::SocketUniquePtr ptr;
-                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
                 melon::rpc::LoadBalancer::SelectOut out(&ptr);
                 // There is no server available
                 ASSERT_EQ(EHOSTDOWN, lb->SelectServer(in, &out));
@@ -888,7 +888,7 @@ namespace {
             bool get_server2 = false;
             for (int i = 0; i < 20; ++i) {
                 melon::rpc::SocketUniquePtr ptr;
-                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, NULL};
+                melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
                 melon::rpc::LoadBalancer::SelectOut out(&ptr);
                 ASSERT_EQ(0, lb->SelectServer(in, &out));
                 if (ptr->remote_side().port == 8832) {
@@ -907,7 +907,7 @@ namespace {
                 "10.92.115.19:8832",
                 "10.42.122.201:8833",
         };
-        melon::rpc::LoadBalancer *lb = NULL;
+        melon::rpc::LoadBalancer *lb = nullptr;
         int rand = melon::base::fast_rand_less_than(2);
         if (rand == 0) {
             melon::rpc::policy::RandomizedLoadBalancer rlb;
@@ -929,7 +929,7 @@ namespace {
             lb->AddServer(id);
         }
         melon::rpc::SocketUniquePtr sptr;
-        melon::rpc::LoadBalancer::SelectIn in = {0, false, true, 0u, NULL};
+        melon::rpc::LoadBalancer::SelectIn in = {0, false, true, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&sptr);
         ASSERT_EQ(0, lb->SelectServer(in, &out));
 
@@ -1055,7 +1055,7 @@ namespace {
         {
             // trigger one server to health check
             melon::rpc::Controller cntl;
-            stub.Echo(&cntl, &req, &res, NULL);
+            stub.Echo(&cntl, &req, &res, nullptr);
         }
         // This sleep make one server revived 700ms earlier than the other server, which
         // can make the server down again if no request limit policy are applied here.
@@ -1063,20 +1063,20 @@ namespace {
         {
             // trigger the other server to health check
             melon::rpc::Controller cntl;
-            stub.Echo(&cntl, &req, &res, NULL);
+            stub.Echo(&cntl, &req, &res, nullptr);
         }
 
         melon::base::end_point point(melon::base::IP_ANY, 7777);
         melon::rpc::Server server;
         EchoServiceImpl service;
         ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        ASSERT_EQ(0, server.Start(point, NULL));
+        ASSERT_EQ(0, server.Start(point, nullptr));
 
         melon::base::end_point point2(melon::base::IP_ANY, 7778);
         melon::rpc::Server server2;
         EchoServiceImpl service2;
         ASSERT_EQ(0, server2.AddService(&service2, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        ASSERT_EQ(0, server2.Start(point2, NULL));
+        ASSERT_EQ(0, server2.Start(point2, nullptr));
 
         int64_t start_ms = melon::time_now().to_unix_millis();
         while ((melon::time_now().to_unix_millis() - start_ms) < 3500) {

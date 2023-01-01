@@ -44,7 +44,7 @@ namespace melon::rpc {
         };
 
     public:
-        explicit Acceptor(fiber_keytable_pool_t *pool = NULL);
+        explicit Acceptor(fiber_keytable_pool_t *pool = nullptr);
 
         ~Acceptor();
 

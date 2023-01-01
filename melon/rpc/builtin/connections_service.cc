@@ -224,7 +224,7 @@ namespace melon::rpc {
                     // Special treatment for nshead services. Notice that
                     // pref_index is comparable to ProtocolType after r31951
                     if (pref_index == (int) PROTOCOL_NSHEAD &&
-                        server->options().nshead_service != NULL) {
+                        server->options().nshead_service != nullptr) {
                         if (nshead_service_name.empty()) {
                             nshead_service_name = BriefName(melon::base::class_name_str(
                                     *server->options().nshead_service));
@@ -245,7 +245,7 @@ namespace melon::rpc {
                 ptr->GetStat(&stat);
                 PrintRealDateTime(os, ptr->_reset_fd_real_us);
                 int rttfd = ptr->fd();
-                if (rttfd < 0 && first_sub != NULL) {
+                if (rttfd < 0 && first_sub != nullptr) {
                     rttfd = first_sub->fd();
                 }
 

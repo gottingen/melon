@@ -62,7 +62,7 @@ namespace melon::rpc {
                                                 std::vector<ServerNode> *servers) {
             servers->clear();
 
-            if (_channel == NULL) {
+            if (_channel == nullptr) {
                 std::string_view tmpname(service_name_cstr);
                 size_t pos = tmpname.find("://");
                 std::string_view proto;
@@ -106,7 +106,7 @@ namespace melon::rpc {
 
             Controller cntl;
             cntl.http_request().uri() = _path;
-            _channel->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            _channel->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
                 MELON_LOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
                                    << cntl.ErrorText();

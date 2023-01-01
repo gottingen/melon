@@ -93,7 +93,7 @@ namespace melon::rpc {
     void EspMessage::MergeFrom(const ::google::protobuf::Message &from) {
         GOOGLE_CHECK_NE(&from, this);
         const EspMessage *source = dynamic_cast<const EspMessage *>(&from);
-        if (source == NULL) {
+        if (source == nullptr) {
             ::google::protobuf::internal::ReflectionOps::Merge(from, this);
         } else {
             MergeFrom(*source);
@@ -140,7 +140,7 @@ namespace melon::rpc {
     ::google::protobuf::Metadata EspMessage::GetMetadata() const {
         ::google::protobuf::Metadata metadata;
         metadata.descriptor = EspMessage::descriptor();
-        metadata.reflection = NULL;
+        metadata.reflection = nullptr;
         return metadata;
     }
 

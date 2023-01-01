@@ -81,7 +81,7 @@ namespace std {
             const int rc = fiber_mutex_lock(_pmutex);
             if (rc) {
                 MELON_LOG(FATAL) << "Fail to lock fiber_mutex_t=" << _pmutex << ", " << melon_error(rc);
-                _pmutex = NULL;
+                _pmutex = nullptr;
             }
 #else
             fiber_mutex_lock(_pmutex);
@@ -111,7 +111,7 @@ namespace std {
     public:
         typedef fiber_mutex_t mutex_type;
 
-        unique_lock() : _mutex(NULL), _owns_lock(false) {}
+        unique_lock() : _mutex(nullptr), _owns_lock(false) {}
 
         explicit unique_lock(mutex_type &mutex)
                 : _mutex(&mutex), _owns_lock(false) {
@@ -177,7 +177,7 @@ namespace std {
 
         mutex_type *release() {
             mutex_type *saved_mutex = _mutex;
-            _mutex = NULL;
+            _mutex = nullptr;
             _owns_lock = false;
             return saved_mutex;
         }
@@ -200,7 +200,7 @@ namespace melon {
     template<>
     struct MutexConstructor<fiber_mutex_t> {
         bool operator()(fiber_mutex_t *mutex) const {
-            return fiber_mutex_init(mutex, NULL) == 0;
+            return fiber_mutex_init(mutex, nullptr) == 0;
         }
     };
 

@@ -352,7 +352,7 @@ private:
     MELON_DISALLOW_COPY_AND_ASSIGN(AVCNaluIterator);
     bool next_as_annexb();
     bool next_as_ibmf();
-    void set_end() { _data = NULL; }
+    void set_end() { _data = nullptr; }
     melon::cord_buf* _data;
     melon::cord_buf _cur_nalu;
     AVCNaluFormat* _format;
@@ -569,9 +569,9 @@ public:
     virtual int SendStopMessage(const std::string_view& error_description);
 
     // // Call user's procedure at server-side.
-    // // request == NULL  : send AMF null as the parameter.
-    // // response == NULL : response is not needed.
-    // // done == NULL     : synchronous call, asynchronous otherwise.
+    // // request == nullptr  : send AMF null as the parameter.
+    // // response == nullptr : response is not needed.
+    // // done == nullptr     : synchronous call, asynchronous otherwise.
     // void Call(Controller* cntl,
     //           const std::string_view& procedure_name,
     //           const google::protobuf::Message* request,

@@ -28,7 +28,7 @@
 namespace melon::debugging {
 
 
-static HANDLE process = NULL;
+static HANDLE process = nullptr;
 
 void initialize_symbolizer(const char *) {
     if (process != nullptr) {

@@ -44,7 +44,7 @@ static bool access_redis(melon::rpc::Channel &channel, const char *command) {
     }
     melon::rpc::RedisResponse response;
     melon::rpc::Controller cntl;
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     if (cntl.Failed()) {
         MELON_LOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
         return false;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::rpc::Channel channel;
 
-    // Initialize the channel, NULL means using default options.
+    // Initialize the channel, nullptr means using default options.
     melon::rpc::ChannelOptions options;
     options.protocol = melon::rpc::PROTOCOL_REDIS;
     options.connection_type = FLAGS_connection_type;
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
             char prompt[64];
             snprintf(prompt, sizeof(prompt), "redis %s> ", FLAGS_server.c_str());
             std::unique_ptr<char, Freer> command(readline(prompt));
-            if (command == NULL || *command == '\0') {
+            if (command == nullptr || *command == '\0') {
                 if (g_canceled) {
                     // No input after the prompt and user pressed Ctrl-C,
                     // quit the CLI.

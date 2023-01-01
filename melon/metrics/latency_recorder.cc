@@ -39,7 +39,7 @@ namespace melon {
 
         int CDF::describe_series(
                 std::ostream &os, const variable_series_options &options) const {
-            if (_w == NULL) {
+            if (_w == nullptr) {
                 return 1;
             }
             if (options.test_only) {

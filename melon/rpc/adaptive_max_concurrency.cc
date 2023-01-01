@@ -42,7 +42,7 @@ namespace melon::rpc {
 
     inline bool CompareStringPieceWithoutCase(
             const std::string_view &s1, const char *s2) {
-        MELON_DCHECK(s2 != NULL);
+        MELON_DCHECK(s2 != nullptr);
         if (std::strlen(s2) != s1.size()) {
             return false;
         }

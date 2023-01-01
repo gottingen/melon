@@ -62,7 +62,7 @@ namespace melon::fiber_internal {
     // Referenced in rpc, needs to be extern.
     // Notice that we can't declare the variable as atomic<schedule_group*> which
     // are not constructed before main().
-    schedule_group *g_task_control = NULL;
+    schedule_group *g_task_control = nullptr;
 
     extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
 
@@ -75,17 +75,17 @@ namespace melon::fiber_internal {
     inline schedule_group *get_or_new_task_control() {
         std::atomic<schedule_group *> *p = (std::atomic<schedule_group *> *) &g_task_control;
         schedule_group *c = p->load(std::memory_order_consume);
-        if (c != NULL) {
+        if (c != nullptr) {
             return c;
         }
         MELON_SCOPED_LOCK(g_task_control_mutex);
         c = p->load(std::memory_order_consume);
-        if (c != NULL) {
+        if (c != nullptr) {
             return c;
         }
         c = new(std::nothrow) schedule_group;
-        if (NULL == c) {
-            return NULL;
+        if (nullptr == c) {
+            return nullptr;
         }
         int concurrency = FLAGS_fiber_min_concurrency > 0 ?
                           FLAGS_fiber_min_concurrency :
@@ -93,7 +93,7 @@ namespace melon::fiber_internal {
         if (c->init(concurrency) != 0) {
             MELON_LOG(ERROR) << "Fail to init g_task_control";
             delete c;
-            return NULL;
+            return nullptr;
         }
         p->store(c, std::memory_order_release);
         return c;
@@ -120,7 +120,7 @@ namespace melon::fiber_internal {
         }
     }
 
-    __thread fiber_worker *tls_task_group_nosignal = NULL;
+    __thread fiber_worker *tls_task_group_nosignal = nullptr;
 
     MELON_FORCE_INLINE int
     start_from_non_worker(fiber_id_t *__restrict tid,
@@ -128,16 +128,16 @@ namespace melon::fiber_internal {
                           std::function<void *(void *)> &&fn,
                           void *__restrict arg) {
         schedule_group *c = get_or_new_task_control();
-        if (NULL == c) {
+        if (nullptr == c) {
             return ENOMEM;
         }
-        if (attr != NULL && (attr->flags & FIBER_NOSIGNAL)) {
+        if (attr != nullptr && (attr->flags & FIBER_NOSIGNAL)) {
             // Remember the fiber_worker to insert NOSIGNAL tasks for 2 reasons:
             // 1. NOSIGNAL is often for creating many fibers in batch,
             //    inserting into the same fiber_worker maximizes the batch.
             // 2. fiber_flush() needs to know which fiber_worker to flush.
             fiber_worker *g = tls_task_group_nosignal;
-            if (NULL == g) {
+            if (nullptr == g) {
                 g = c->choose_one_group();
                 tls_task_group_nosignal = g;
             }
@@ -165,7 +165,7 @@ namespace melon::fiber_internal {
 
     struct TidJoiner {
         void operator()(fiber_id_t &id) const {
-            fiber_join(id, NULL);
+            fiber_join(id, nullptr);
             id = INVALID_FIBER_ID;
         }
     };
@@ -206,7 +206,7 @@ void fiber_flush() {
     g = melon::fiber_internal::tls_task_group_nosignal;
     if (g) {
         // NOSIGNAL tasks were created in this non-worker.
-        melon::fiber_internal::tls_task_group_nosignal = NULL;
+        melon::fiber_internal::tls_task_group_nosignal = nullptr;
         return g->flush_nosignal_tasks_remote();
     }
 }
@@ -229,7 +229,7 @@ fiber_id_t fiber_self(void) {
     // note: return 0 for main tasks now, which include main thread and
     // all work threads. So that we can identify main tasks from logs
     // more easily. This is probably questionable in future.
-    if (g != NULL && !g->is_current_main_task()/*note*/) {
+    if (g != nullptr && !g->is_current_main_task()/*note*/) {
         return g->current_fid();
     }
     return INVALID_FIBER_ID;
@@ -241,7 +241,7 @@ int fiber_equal(fiber_id_t t1, fiber_id_t t2) {
 
 void fiber_exit(void *retval) {
     melon::fiber_internal::fiber_worker *g = melon::fiber_internal::tls_task_group;
-    if (g != NULL && !g->is_current_main_task()) {
+    if (g != nullptr && !g->is_current_main_task()) {
         throw melon::fiber_internal::ExitException(retval);
     } else {
         pthread_exit(retval);
@@ -285,7 +285,7 @@ int fiber_setconcurrency(int num) {
         return 0;
     }
     melon::fiber_internal::schedule_group *c = melon::fiber_internal::get_task_control();
-    if (c != NULL) {
+    if (c != nullptr) {
         if (num < c->concurrency()) {
             return EPERM;
         } else if (num == c->concurrency()) {
@@ -294,7 +294,7 @@ int fiber_setconcurrency(int num) {
     }
     MELON_SCOPED_LOCK(melon::fiber_internal::g_task_control_mutex);
     c = melon::fiber_internal::get_task_control();
-    if (c == NULL) {
+    if (c == nullptr) {
         if (melon::fiber_internal::never_set_fiber_concurrency) {
             melon::fiber_internal::never_set_fiber_concurrency = false;
             melon::fiber_internal::FLAGS_fiber_concurrency = num;
@@ -320,7 +320,7 @@ int fiber_setconcurrency(int num) {
 
 int fiber_about_to_quit() {
     melon::fiber_internal::fiber_worker *g = melon::fiber_internal::tls_task_group;
-    if (g != NULL) {
+    if (g != nullptr) {
         melon::fiber_internal::fiber_entity *current_task = g->current_task();
         if (!(current_task->attr.flags & FIBER_NEVER_QUIT)) {
             current_task->about_to_quit = true;
@@ -333,11 +333,11 @@ int fiber_about_to_quit() {
 int fiber_timer_add(fiber_timer_id *id, timespec abstime,
                     void (*on_timer)(void *), void *arg) {
     melon::fiber_internal::schedule_group *c = melon::fiber_internal::get_or_new_task_control();
-    if (c == NULL) {
+    if (c == nullptr) {
         return ENOMEM;
     }
     melon::fiber_internal::TimerThread *tt = melon::fiber_internal::get_or_create_global_timer_thread();
-    if (tt == NULL) {
+    if (tt == nullptr) {
         return ENOMEM;
     }
     fiber_timer_id tmp = tt->schedule(on_timer, arg, abstime);
@@ -350,9 +350,9 @@ int fiber_timer_add(fiber_timer_id *id, timespec abstime,
 
 int fiber_timer_del(fiber_timer_id id) {
     melon::fiber_internal::schedule_group *c = melon::fiber_internal::get_task_control();
-    if (c != NULL) {
+    if (c != nullptr) {
         melon::fiber_internal::TimerThread *tt = melon::fiber_internal::get_global_timer_thread();
-        if (tt == NULL) {
+        if (tt == nullptr) {
             return EINVAL;
         }
         const int state = tt->unschedule(id);
@@ -364,7 +364,7 @@ int fiber_timer_del(fiber_timer_id id) {
 }
 
 int fiber_set_worker_startfn(void (*start_fn)()) {
-    if (start_fn == NULL) {
+    if (start_fn == nullptr) {
         return EINVAL;
     }
     melon::fiber_internal::g_worker_startfn = start_fn;
@@ -373,7 +373,7 @@ int fiber_set_worker_startfn(void (*start_fn)()) {
 
 void fiber_stop_world() {
     melon::fiber_internal::schedule_group *c = melon::fiber_internal::get_task_control();
-    if (c != NULL) {
+    if (c != nullptr) {
         c->stop_and_join();
     }
 }
@@ -382,7 +382,7 @@ int fiber_list_init(fiber_list_t *list,
                     unsigned /*size*/,
                     unsigned /*conflict_size*/) {
     list->impl = new(std::nothrow) melon::fiber_internal::TidList;
-    if (NULL == list->impl) {
+    if (nullptr == list->impl) {
         return ENOMEM;
     }
     // Set unused fields to zero as well.
@@ -395,18 +395,18 @@ int fiber_list_init(fiber_list_t *list,
 
 void fiber_list_destroy(fiber_list_t *list) {
     delete static_cast<melon::fiber_internal::TidList *>(list->impl);
-    list->impl = NULL;
+    list->impl = nullptr;
 }
 
 int fiber_list_add(fiber_list_t *list, fiber_id_t id) {
-    if (list->impl == NULL) {
+    if (list->impl == nullptr) {
         return EINVAL;
     }
     return static_cast<melon::fiber_internal::TidList *>(list->impl)->add(id);
 }
 
 int fiber_list_stop(fiber_list_t *list) {
-    if (list->impl == NULL) {
+    if (list->impl == nullptr) {
         return EINVAL;
     }
     static_cast<melon::fiber_internal::TidList *>(list->impl)->apply(melon::fiber_internal::TidStopper());
@@ -414,7 +414,7 @@ int fiber_list_stop(fiber_list_t *list) {
 }
 
 int fiber_list_join(fiber_list_t *list) {
-    if (list->impl == NULL) {
+    if (list->impl == nullptr) {
         return EINVAL;
     }
     static_cast<melon::fiber_internal::TidList *>(list->impl)->apply(melon::fiber_internal::TidJoiner());

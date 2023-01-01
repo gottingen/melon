@@ -25,7 +25,7 @@
 namespace melon::rpc {
 
 static pthread_once_t s_viz_min_buf_once = PTHREAD_ONCE_INIT;
-static melon::cord_buf* s_viz_min_buf = NULL;
+static melon::cord_buf* s_viz_min_buf = nullptr;
 static void InitVizMinBuf() {
     s_viz_min_buf = new melon::cord_buf;
     s_viz_min_buf->append(viz_min_js());
@@ -38,12 +38,12 @@ const melon::cord_buf& viz_min_js_iobuf() {
 // viz.js is huge. We separate the creation of gzip version from uncompress
 // version so that at most time we only keep gzip version in memory.
 static pthread_once_t s_viz_min_buf_gzip_once = PTHREAD_ONCE_INIT;
-static melon::cord_buf* s_viz_min_buf_gzip = NULL;
+static melon::cord_buf* s_viz_min_buf_gzip = nullptr;
 static void InitVizMinBufGzip() {
     melon::cord_buf viz_min;
     viz_min.append(viz_min_js());
     s_viz_min_buf_gzip = new melon::cord_buf;
-    MELON_CHECK(policy::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
+    MELON_CHECK(policy::GzipCompress(viz_min, s_viz_min_buf_gzip, nullptr));
 }
 const melon::cord_buf& viz_min_js_iobuf_gzip() {
     pthread_once(&s_viz_min_buf_gzip_once, InitVizMinBufGzip);

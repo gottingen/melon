@@ -20,10 +20,10 @@ namespace melon::fiber_internal {
 
     inline fiber_entity *fiber_worker::address_meta(fiber_id_t tid) {
         // fiber_entity * m = address_resource<fiber_entity>(get_slot(tid));
-        // if (m != NULL && m->version == get_version(tid)) {
+        // if (m != nullptr && m->version == get_version(tid)) {
         //     return m;
         // }
-        // return NULL;
+        // return nullptr;
         return address_resource(get_slot(tid));
     }
 
@@ -42,7 +42,7 @@ namespace melon::fiber_internal {
 
     inline void fiber_worker::sched_to(fiber_worker **pg, fiber_id_t next_tid) {
         fiber_entity *next_meta = address_meta(next_tid);
-        if (next_meta->stack == NULL) {
+        if (next_meta->stack == nullptr) {
             fiber_contextual_stack *stk = get_stack(next_meta->stack_type(), task_runner);
             if (stk) {
                 next_meta->set_stack(stk);

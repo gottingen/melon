@@ -64,7 +64,7 @@ static void RunMemcached() {
         puts("[Starting memcached]");
         char* const argv[] = { (char*)MEMCACHED_BIN,
                                (char*)"-p", (char*)MEMCACHED_PORT,
-                               NULL };
+                               nullptr };
         if (execvp(MEMCACHED_BIN, argv) < 0) {
             puts("Fail to run " MEMCACHED_BIN);
             exit(1);
@@ -100,14 +100,14 @@ TEST_F(MemcacheTest, sanity) {
     // Clear all contents in MC which is still holding older data after
     // restarting in Ubuntu 18.04 (mc=1.5.6)
     request.Flush(0);
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_TRUE(response.PopFlush());
 
     cntl.Reset();
     request.Clear();
     request.Get("hello");
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     std::string value;
     uint32_t flags = 0;
@@ -118,7 +118,7 @@ TEST_F(MemcacheTest, sanity) {
     cntl.Reset();
     request.Clear();
     request.Set("hello", "world", 0xdeadbeef, 10, 0);
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_TRUE(response.PopSet(&cas_value)) << response.LastError();
     ASSERT_EQ("", response.LastError());
@@ -126,7 +126,7 @@ TEST_F(MemcacheTest, sanity) {
     cntl.Reset();
     request.Clear();
     request.Get("hello");
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed());
     ASSERT_TRUE(response.PopGet(&value, &flags, &cas_value));
     ASSERT_EQ("", response.LastError());
@@ -138,7 +138,7 @@ TEST_F(MemcacheTest, sanity) {
     request.Clear();
     request.Set("hello", "world2", 0xdeadbeef, 10,
                 cas_value/*intended match*/);
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     uint64_t cas_value2 = 0;
     ASSERT_TRUE(response.PopSet(&cas_value2)) << response.LastError();
@@ -147,7 +147,7 @@ TEST_F(MemcacheTest, sanity) {
     request.Clear();
     request.Set("hello", "world3", 0xdeadbeef, 10,
                 cas_value2 + 1/*intended unmatch*/);
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     uint64_t cas_value3 = ~0;
     ASSERT_FALSE(response.PopSet(&cas_value3));
@@ -170,7 +170,7 @@ TEST_F(MemcacheTest, incr_and_decr) {
     request.Increment("counter1", 2, 10, 10);
     request.Decrement("counter1", 1, 10, 10);
     request.Increment("counter1", 3, 10, 10);
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     uint64_t new_value1 = 0;
     uint64_t cas_value1 = 0;
@@ -203,7 +203,7 @@ TEST_F(MemcacheTest, version) {
     melon::rpc::MemcacheResponse response;
     melon::rpc::Controller cntl;
     request.Version();
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     std::string version;
     ASSERT_TRUE(response.PopVersion(&version)) << response.LastError();

@@ -244,11 +244,11 @@ namespace melon::rpc {
 
             bool append_body = false;
             melon::cord_buf res_body_buf;
-            // `res' can be NULL here, in which case we don't serialize it
+            // `res' can be nullptr here, in which case we don't serialize it
             // If user calls `SetFailed' on Controller, we don't serialize
             // response either
             CompressType type = cntl->response_compress_type();
-            if (res != NULL && !cntl->Failed()) {
+            if (res != nullptr && !cntl->Failed()) {
                 if (!res->IsInitialized()) {
                     cntl->SetFailed(
                             ERESPONSE, "Missing required fields in response: %s",
@@ -361,7 +361,7 @@ namespace melon::rpc {
             }
 
             std::unique_ptr<HuluController> cntl(new(std::nothrow) HuluController());
-            if (NULL == cntl.get()) {
+            if (nullptr == cntl.get()) {
                 MELON_LOG(WARNING) << "Fail to new Controller";
                 return;
             }
@@ -401,7 +401,7 @@ namespace melon::rpc {
                 fiber_assign_data((void *) &server->thread_local_options());
             }
 
-            Span *span = NULL;
+            Span *span = nullptr;
             if (IsTraceable(meta.has_trace_id())) {
                 span = Span::CreateServerSpan(
                         meta.trace_id(), meta.span_id(), meta.parent_span_id(),
@@ -415,7 +415,7 @@ namespace melon::rpc {
                 span->set_request_size(msg->payload.size() + msg->meta.size() + 12);
             }
 
-            MethodStatus *method_status = NULL;
+            MethodStatus *method_status = nullptr;
             do {
                 if (!server->IsRunning()) {
                     cntl->SetFailed(ELOGOFF, "Server is stopping");
@@ -442,7 +442,7 @@ namespace melon::rpc {
                 const Server::MethodProperty *sp =
                         server_accessor.FindMethodPropertyByNameAndIndex(
                                 meta.service_name(), meta.method_index());
-                if (NULL == sp) {
+                if (nullptr == sp) {
                     cntl->SetFailed(ENOMETHOD, "Fail to find method=%d of service=%s",
                                     meta.method_index(), meta.service_name().c_str());
                     break;
@@ -451,7 +451,7 @@ namespace melon::rpc {
                     BadMethodRequest breq;
                     BadMethodResponse bres;
                     breq.set_service_name(meta.service_name());
-                    sp->service->CallMethod(sp->method, cntl.get(), &breq, &bres, NULL);
+                    sp->service->CallMethod(sp->method, cntl.get(), &breq, &bres, nullptr);
                     break;
                 }
                 // Switch to service-specific error.
@@ -541,7 +541,7 @@ namespace melon::rpc {
                 return false;
             }
             const Authenticator *auth = server->options().auth;
-            if (NULL == auth) {
+            if (nullptr == auth) {
                 // Fast pass (no authentication)
                 return true;
             }
@@ -563,7 +563,7 @@ namespace melon::rpc {
             }
 
             const fiber_token_t cid = {static_cast<uint64_t>(meta.correlation_id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -631,7 +631,7 @@ namespace melon::rpc {
                              const melon::cord_buf &req_body,
                              const Authenticator *auth) {
             HuluRpcRequestMeta meta;
-            if (auth != NULL && auth->GenerateCredential(
+            if (auth != nullptr && auth->GenerateCredential(
                     meta.mutable_credential_data()) != 0) {
                 return cntl->SetFailed(EREQUEST, "Fail to generate credential");
             }
@@ -648,11 +648,11 @@ namespace melon::rpc {
                         CompressType2Hulu(cntl->sampled_request()->meta.compress_type()));
                 meta.set_user_data(cntl->sampled_request()->meta.user_data());
             } else {
-                return cntl->SetFailed(ENOMETHOD, "method is NULL");
+                return cntl->SetFailed(ENOMETHOD, "method is nullptr");
             }
 
             HuluController *hulu_controller = dynamic_cast<HuluController *>(cntl);
-            if (hulu_controller != NULL) {
+            if (hulu_controller != nullptr) {
                 if (hulu_controller->request_source_addr() != 0) {
                     meta.set_user_defined_source_addr(
                             hulu_controller->request_source_addr());

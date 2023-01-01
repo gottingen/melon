@@ -102,7 +102,7 @@ namespace melon::rpc {
         // [Required by client]
         // The callback to pack `request_buf' into `iobuf_out' or `user_message_out'
         // Called before sending each request (including retries).
-        // Remember to pack authentication information when `auth' is not NULL.
+        // Remember to pack authentication information when `auth' is not nullptr.
         // Call cntl->SetFailed() on error.
         typedef void (*PackRequest)(
                 melon::cord_buf *iobuf_out,
@@ -137,7 +137,7 @@ namespace melon::rpc {
 
         // [Required by authenticating server]
         // The callback to verify authentication of this socket. Only called
-        // on the first message that a socket receives. Can be NULL when
+        // on the first message that a socket receives. Can be nullptr when
         // authentication is not needed or this is the client side.
         // Returns true on successful authentication.
         typedef bool (*Verify)(const InputMessageBase *msg);
@@ -189,7 +189,7 @@ namespace melon::rpc {
 
     // [thread-safe]
     // Find the protocol registered with key=`type'.
-    // Returns NULL on not found.
+    // Returns nullptr on not found.
     const Protocol *FindProtocol(ProtocolType type);
 
     // [thread-safe]

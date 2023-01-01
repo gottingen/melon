@@ -58,7 +58,7 @@ namespace melon::rpc {
         }
 
         void move_in_server_receiving_sock(SocketUniquePtr &ptr) {
-            MELON_CHECK(_cntl->_current_call.sending_sock == NULL);
+            MELON_CHECK(_cntl->_current_call.sending_sock == nullptr);
             _cntl->_current_call.sending_sock.reset(ptr.release());
         }
 

@@ -307,7 +307,7 @@ namespace melon::rpc {
     static void PrintClientSpan(std::ostream &os, const RpczSpan &span,
                                 bool use_html) {
         int64_t last_time = span.start_send_real_us();
-        PrintClientSpan(os, span, &last_time, NULL, use_html);
+        PrintClientSpan(os, span, &last_time, nullptr, use_html);
     }
 
 
@@ -425,14 +425,14 @@ namespace melon::rpc {
         struct tm timeinfo;
         int64_t microseconds = 999999;
         char *endptr = strptime(time_str.c_str(), "%Y/%m/%d-%H:%M:%S", &timeinfo);
-        if (endptr == NULL) {
+        if (endptr == nullptr) {
             time_t now;
             time(&now);
-            if (localtime_r(&now, &timeinfo) == NULL) {
+            if (localtime_r(&now, &timeinfo) == nullptr) {
                 return -1;
             }
             endptr = strptime(time_str.c_str(), "%H:%M:%S", &timeinfo);
-            if (endptr == NULL) {
+            if (endptr == nullptr) {
                 return -1;
             }
         }
@@ -447,11 +447,11 @@ namespace melon::rpc {
     }
 
     static bool ParseUint64(const std::string *str, uint64_t *val) {
-        if (NULL == str) {
+        if (nullptr == str) {
             return false;
         }
         const char *p = str->c_str();
-        char *endptr = NULL;
+        char *endptr = nullptr;
         if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
             *val = strtoull(p + 2, &endptr, 16);
             return (*endptr == '\0');
@@ -561,7 +561,7 @@ namespace melon::rpc {
             const std::string *time_str =
                     cntl->http_request().uri().GetQuery(TIME_STR);
             int64_t start_tm;
-            if (time_str == NULL) {
+            if (time_str == nullptr) {
                 start_tm = melon::get_current_time_micros();
             } else {
                 start_tm = ParseDateTime(*time_str);

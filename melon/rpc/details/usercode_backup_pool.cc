@@ -67,7 +67,7 @@ namespace melon::rpc {
     static pthread_once_t s_usercode_init = PTHREAD_ONCE_INIT;
     melon::static_atomic<int> g_usercode_inplace = MELON_STATIC_ATOMIC_INIT(0);
     bool g_too_many_usercode = false;
-    static UserCodeBackupPool *s_usercode_pool = NULL;
+    static UserCodeBackupPool *s_usercode_pool = nullptr;
 
     static int GetUserCodeInPlace(void *) {
         return g_usercode_inplace.load(std::memory_order_relaxed);
@@ -75,7 +75,7 @@ namespace melon::rpc {
 
     static size_t GetUserCodeQueueSize(void *) {
         MELON_SCOPED_LOCK(s_usercode_mutex);
-        return (s_usercode_pool != NULL ? s_usercode_pool->queue.size() : 0);
+        return (s_usercode_pool != nullptr ? s_usercode_pool->queue.size() : 0);
     }
 
     static double GetInPoolElapseInSecond(void *arg) {
@@ -83,8 +83,8 @@ namespace melon::rpc {
     }
 
     UserCodeBackupPool::UserCodeBackupPool()
-            : inplace_var("rpc_usercode_inplace", GetUserCodeInPlace, NULL),
-              queue_size_var("rpc_usercode_queue_size", GetUserCodeQueueSize, NULL),
+            : inplace_var("rpc_usercode_inplace", GetUserCodeInPlace, nullptr),
+              queue_size_var("rpc_usercode_queue_size", GetUserCodeQueueSize, nullptr),
               inpool_count("rpc_usercode_backup_count"), inpool_per_second("rpc_usercode_backup_second", &inpool_count),
               inpool_elapse_s(GetInPoolElapseInSecond, &inpool_elapse_us),
               pool_usage("rpc_usercode_backup_usage", &inpool_elapse_s, 1) {
@@ -92,7 +92,7 @@ namespace melon::rpc {
 
     static void *UserCodeRunner(void *args) {
         static_cast<UserCodeBackupPool *>(args)->UserCodeRunningLoop();
-        return NULL;
+        return nullptr;
     }
 
     int UserCodeBackupPool::Init() {
@@ -100,7 +100,7 @@ namespace melon::rpc {
         // during termination of program).
         for (int i = 0; i < FLAGS_usercode_backup_threads; ++i) {
             pthread_t th;
-            if (pthread_create(&th, NULL, UserCodeRunner, this) != 0) {
+            if (pthread_create(&th, nullptr, UserCodeRunner, this) != 0) {
                 MELON_LOG(ERROR) << "Fail to create UserCodeRunner";
                 return -1;
             }
@@ -114,7 +114,7 @@ namespace melon::rpc {
         int64_t last_time = melon::get_current_time_micros();
         while (true) {
             bool blocked = false;
-            UserCode usercode = {NULL, NULL};
+            UserCode usercode = {nullptr, nullptr};
             {
                 MELON_SCOPED_LOCK(s_usercode_mutex);
                 while (queue.empty()) {

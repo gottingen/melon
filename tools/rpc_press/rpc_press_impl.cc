@@ -66,7 +66,7 @@ namespace pbrpcframework {
         }
         _method_descriptor = find_method_by_name(
                 _options->service, _options->method, _importer);
-        if (NULL == _method_descriptor) {
+        if (nullptr == _method_descriptor) {
             MELON_LOG(ERROR) << "Fail to find method=" << _options->service << '.'
                        << _options->method;
             return -1;
@@ -85,20 +85,20 @@ namespace pbrpcframework {
     }
 
     RpcPress::RpcPress()
-            : _pbrpc_client(NULL), _started(false), _stop(false), _output_json(NULL) {
+            : _pbrpc_client(nullptr), _started(false), _stop(false), _output_json(nullptr) {
     }
 
     RpcPress::~RpcPress() {
         if (_output_json) {
             fclose(_output_json);
-            _output_json = NULL;
+            _output_json = nullptr;
         }
         delete _importer;
     }
 
     int RpcPress::init(const PressOptions *options) {
-        if (NULL == options) {
-            MELON_LOG(ERROR) << "Param[options] is NULL";
+        if (nullptr == options) {
+            MELON_LOG(ERROR) << "Param[options] is nullptr";
             return -1;
         }
         _options = *options;
@@ -123,7 +123,7 @@ namespace pbrpcframework {
         }
         ImportErrorPrinter error_printer;
         _importer = new google::protobuf::compiler::Importer(&sourceTree, &error_printer);
-        if (_importer->Import(proto_file.c_str()) == NULL) {
+        if (_importer->Import(proto_file.c_str()) == nullptr) {
             MELON_LOG(ERROR) << "Fail to import " << proto_file;
             return -1;
         }
@@ -178,7 +178,7 @@ namespace pbrpcframework {
 
     void *RpcPress::sync_call_thread(void *arg) {
         ((RpcPress *) arg)->sync_client();
-        return NULL;
+        return nullptr;
     }
 
     void RpcPress::handle_response(melon::rpc::Controller *cntl,
@@ -268,7 +268,7 @@ namespace pbrpcframework {
         _ttid.resize(_options.test_thread_num);
         int ret = 0;
         for (int i = 0; i < _options.test_thread_num; i++) {
-            if ((ret = pthread_create(&_ttid[i], NULL, sync_call_thread, this)) != 0) {
+            if ((ret = pthread_create(&_ttid[i], nullptr, sync_call_thread, this)) != 0) {
                 MELON_LOG(ERROR) << "Fail to create sending threads";
                 return -1;
             }
@@ -291,7 +291,7 @@ namespace pbrpcframework {
         }
         _stop = true;
         for (size_t i = 0; i < _ttid.size(); i++) {
-            pthread_join(_ttid[i], NULL);
+            pthread_join(_ttid[i], nullptr);
         }
         _info_thr.stop();
         return 0;

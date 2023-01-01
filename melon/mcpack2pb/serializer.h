@@ -39,7 +39,7 @@ namespace mcpack2pb {
     public:
         class Area {
         public:
-            Area() : _addr1(NULL), _addr2(NULL), _size1(0), _size2(0), _addional_area(NULL) {}
+            Area() : _addr1(nullptr), _addr2(nullptr), _size1(0), _size2(0), _addional_area(nullptr) {}
 
             Area(const melon::base::LinkerInitialized &) {}
 
@@ -65,7 +65,7 @@ namespace mcpack2pb {
         // to support reserve(). E.g. StringOutputStream can't be used because
         // the string inside invalidates previous memory blocks after resizing.
         OutputStream(google::protobuf::io::ZeroCopyOutputStream *stream)
-                : _good(true), _fullsize(0), _size(0), _data(NULL), _zc_stream(stream), _pushed_bytes(0) {}
+                : _good(true), _fullsize(0), _size(0), _data(nullptr), _zc_stream(stream), _pushed_bytes(0) {}
 
         ~OutputStream() { done(); }
 
@@ -83,7 +83,7 @@ namespace mcpack2pb {
         void push_back(char c);
 
         // If next n bytes in the zero-copy stream is continuous, consume it
-        // and return the begining address. NULL otherwise.
+        // and return the begining address. nullptr otherwise.
         void *skip_continuous(int n);
 
         // Consume n bytes from the stream and return an object representing the

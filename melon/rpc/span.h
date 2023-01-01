@@ -186,7 +186,7 @@ namespace melon::rpc {
 
         void EndAsParent() {
             if (this == (Span *) melon::fiber_internal::tls_bls.rpcz_parent_span) {
-                melon::fiber_internal::tls_bls.rpcz_parent_span = NULL;
+                melon::fiber_internal::tls_bls.rpcz_parent_span = nullptr;
             }
         }
 
@@ -254,7 +254,7 @@ namespace melon::rpc {
     void FindSpans(uint64_t trace_id, std::deque<RpczSpan> *out);
 
 // Put at most `max_scan' spans before `before_this_time' into `out'.
-// If filter is not NULL, only push spans that make SpanFilter::Keep()
+// If filter is not nullptr, only push spans that make SpanFilter::Keep()
 // true.
     void ListSpans(int64_t before_this_time, size_t max_scan,
                    std::deque<BriefSpan> *out, SpanFilter *filter);

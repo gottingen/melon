@@ -106,7 +106,7 @@ typedef struct fiber_attribute {
     void operator=(unsigned stacktype_and_flags) {
         stack_type = (stacktype_and_flags & 7);
         flags = (stacktype_and_flags & ~(unsigned) 7u);
-        keytable_pool = NULL;
+        keytable_pool = nullptr;
     }
 
     fiber_attribute operator|(unsigned other_flags) const {
@@ -126,23 +126,23 @@ typedef struct fiber_attribute {
 // obvious drawback is that you need more worker pthreads when you have a lot
 // of such fibers.
 static const fiber_attribute FIBER_ATTR_PTHREAD =
-        {FIBER_STACKTYPE_PTHREAD, 0, NULL};
+        {FIBER_STACKTYPE_PTHREAD, 0, nullptr};
 
 // fibers created with following attributes will have different size of
 // stacks. Default is FIBER_ATTR_NORMAL.
 static const fiber_attribute FIBER_ATTR_SMALL =
-        {FIBER_STACKTYPE_SMALL, 0, NULL};
+        {FIBER_STACKTYPE_SMALL, 0, nullptr};
 static const fiber_attribute FIBER_ATTR_NORMAL =
-        {FIBER_STACKTYPE_NORMAL, 0, NULL};
+        {FIBER_STACKTYPE_NORMAL, 0, nullptr};
 static const fiber_attribute FIBER_ATTR_LARGE =
-        {FIBER_STACKTYPE_LARGE, 0, NULL};
+        {FIBER_STACKTYPE_LARGE, 0, nullptr};
 
 // fibers created with this attribute will print log when it's started,
 // context-switched, finished.
 static const fiber_attribute FIBER_ATTR_DEBUG = {
         FIBER_STACKTYPE_NORMAL,
         FIBER_LOG_START_AND_FINISH | FIBER_LOG_CONTEXT_SWITCH,
-        NULL
+        nullptr
 };
 
 static const size_t FIBER_EPOLL_THREAD_NUM = 1;

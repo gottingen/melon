@@ -94,7 +94,7 @@ namespace melon {
                             std::max(_q.capacity() * 2, (size_t) _window_size + 1);
                     const size_t memsize = sizeof(variable_sample<T>) * new_cap;
                     void *mem = malloc(memsize);
-                    if (NULL == mem) {
+                    if (nullptr == mem) {
                         return;
                     }
                     melon::container::bounded_queue<variable_sample<T> > new_q(
@@ -137,7 +137,7 @@ namespace melon {
                     return false;
                 }
                 variable_sample<T> *oldest = _q.bottom(window_size);
-                if (NULL == oldest) {
+                if (nullptr == oldest) {
                     oldest = _q.top();
                 }
                 variable_sample<T> *latest = _q.bottom();
@@ -185,7 +185,7 @@ namespace melon {
                     return;
                 }
                 variable_sample<T> *oldest = _q.bottom(window_size);
-                if (NULL == oldest) {
+                if (nullptr == oldest) {
                     oldest = _q.top();
                 }
                 for (int i = 1; true; ++i) {

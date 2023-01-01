@@ -21,7 +21,7 @@ namespace melon::fiber_internal {
         int init(size_t cap) {
             const size_t memsize = sizeof(fiber_id_t) * cap;
             void *q_mem = malloc(memsize);
-            if (q_mem == NULL) {
+            if (q_mem == nullptr) {
                 return -1;
             }
             melon::container::bounded_queue<fiber_id_t> q(q_mem, memsize, melon::container::OWNS_STORAGE);

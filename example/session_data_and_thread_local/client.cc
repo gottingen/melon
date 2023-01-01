@@ -63,10 +63,10 @@ static void* sender(void* arg) {
             cntl.request_attachment().append(g_attachment);
         }
 
-        // Because `done'(last parameter) is NULL, this function waits until
+        // Because `done'(last parameter) is nullptr, this function waits until
         // the response comes back or error occurs(including timedout).
         const int64_t start_time = melon::get_current_time_micros();
-        stub.Echo(&cntl, &request, &response, NULL);
+        stub.Echo(&cntl, &request, &response, nullptr);
         const int64_t end_time = melon::get_current_time_micros();
         const int64_t elp = end_time - start_time;
         if (!cntl.Failed()) {
@@ -81,7 +81,7 @@ static void* sender(void* arg) {
             melon::fiber_sleep_for(50000);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 int main(int argc, char* argv[]) {
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::rpc::Channel channel;
     
-    // Initialize the channel, NULL means using default options. 
+    // Initialize the channel, nullptr means using default options.
     melon::rpc::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.connection_type = FLAGS_connection_type;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
+            if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
                 MELON_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
-                    &bids[i], NULL, sender, &channel) != 0) {
+                    &bids[i], nullptr, sender, &channel) != 0) {
                 MELON_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
@@ -142,9 +142,9 @@ int main(int argc, char* argv[]) {
     MELON_LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
-            pthread_join(pids[i], NULL);
+            pthread_join(pids[i], nullptr);
         } else {
-            fiber_join(bids[i], NULL);
+            fiber_join(bids[i], nullptr);
         }
     }
 

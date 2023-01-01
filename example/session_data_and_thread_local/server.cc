@@ -98,7 +98,7 @@ struct AsyncJob {
 static void* process_thread(void* args) {
     AsyncJob* job = static_cast<AsyncJob*>(args);
     job->run_and_delete();
-    return NULL;
+    return nullptr;
 }
 
 // Your implementation of example::EchoService
@@ -122,7 +122,7 @@ public:
         // and reused between different RPC. All session-local data are
         // destroyed upon server destruction.
         MySessionLocalData* sd = static_cast<MySessionLocalData*>(cntl->session_local_data());
-        if (sd == NULL) {
+        if (sd == nullptr) {
             cntl->SetFailed("Require ServerOptions.session_local_data_factory to be"
                             " set with a correctly implemented instance");
             MELON_LOG(ERROR) << cntl->ErrorText();
@@ -137,7 +137,7 @@ public:
         // "tls" is short for "thread local storage".
         MyThreadLocalData* tls =
             static_cast<MyThreadLocalData*>(melon::rpc::thread_local_data());
-        if (tls == NULL) {
+        if (tls == nullptr) {
             cntl->SetFailed("Require ServerOptions.thread_local_data_factory "
                             "to be set with a correctly implemented instance");
             MELON_LOG(ERROR) << cntl->ErrorText();
@@ -153,7 +153,7 @@ public:
         //   pthread_setspecific -> fiber_setspecific
         MyThreadLocalData* tls2 = 
             static_cast<MyThreadLocalData*>(fiber_getspecific(_tls2_key));
-        if (tls2 == NULL) {
+        if (tls2 == nullptr) {
             tls2 = new MyThreadLocalData;
             MELON_CHECK_EQ(0, fiber_setspecific(_tls2_key, tls2));
         }
@@ -178,7 +178,7 @@ public:
         job->response = response;
         job->done = done;
         fiber_id_t th;
-        MELON_CHECK_EQ(0, fiber_start_background(&th, NULL, process_thread, job));
+        MELON_CHECK_EQ(0, fiber_start_background(&th, nullptr, process_thread, job));
 
         // We don't want to call done->Run() here, release the guard.
         done_guard.release();

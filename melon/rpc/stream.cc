@@ -39,16 +39,16 @@ namespace melon::rpc {
     const static melon::cord_buf *TIMEOUT_TASK = (melon::cord_buf *) -1L;
 
     Stream::Stream()
-            : _host_socket(NULL), _fake_socket_weak_ref(NULL), _connected(false), _closed(false), _produced(0),
-              _remote_consumed(0), _local_consumed(0), _parse_rpc_response(false), _pending_buf(NULL),
+            : _host_socket(nullptr), _fake_socket_weak_ref(nullptr), _connected(false), _closed(false), _produced(0),
+              _remote_consumed(0), _local_consumed(0), _parse_rpc_response(false), _pending_buf(nullptr),
               _start_idle_timer_us(0), _idle_timer(0) {
-        _connect_meta.on_connect = NULL;
-        MELON_CHECK_EQ(0, fiber_mutex_init(&_connect_mutex, NULL));
-        MELON_CHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, NULL));
+        _connect_meta.on_connect = nullptr;
+        MELON_CHECK_EQ(0, fiber_mutex_init(&_connect_mutex, nullptr));
+        MELON_CHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, nullptr));
     }
 
     Stream::~Stream() {
-        MELON_CHECK(_host_socket == NULL);
+        MELON_CHECK(_host_socket == nullptr);
         fiber_mutex_destroy(&_connect_mutex);
         fiber_mutex_destroy(&_congestion_control_mutex);
         fiber_token_list_destroy(&_writable_wait_list);
@@ -58,12 +58,12 @@ namespace melon::rpc {
                        const StreamSettings *remote_settings,
                        StreamId *id) {
         Stream *s = new Stream();
-        s->_host_socket = NULL;
-        s->_fake_socket_weak_ref = NULL;
+        s->_host_socket = nullptr;
+        s->_fake_socket_weak_ref = nullptr;
         s->_connected = false;
         s->_options = options;
         s->_closed = false;
-        if (remote_settings != NULL) {
+        if (remote_settings != nullptr) {
             s->_remote_settings.MergeFrom(*remote_settings);
             s->_parse_rpc_response = false;
         } else {
@@ -85,7 +85,7 @@ namespace melon::rpc {
         sock_opt.conn = s;
         SocketId fake_sock_id;
         if (Socket::Create(sock_opt, &fake_sock_id) != 0) {
-            s->BeforeRecycle(NULL);
+            s->BeforeRecycle(nullptr);
             return -1;
         }
         SocketUniquePtr ptr;
@@ -102,7 +102,7 @@ namespace melon::rpc {
         if (_connected) {
             // Send CLOSE frame
             RPC_VLOG << "Send close frame";
-            MELON_CHECK(_host_socket != NULL);
+            MELON_CHECK(_host_socket != nullptr);
             policy::SendStreamClose(_host_socket,
                                     _remote_settings.stream_id(), id());
         }
@@ -118,7 +118,7 @@ namespace melon::rpc {
     ssize_t Stream::CutMessageIntoFileDescriptor(int /*fd*/,
                                                  melon::cord_buf **data_list,
                                                  size_t size) {
-        if (_host_socket == NULL) {
+        if (_host_socket == nullptr) {
             MELON_CHECK(false) << "Not connected";
             errno = EBADF;
             return -1;
@@ -166,14 +166,14 @@ namespace melon::rpc {
             meta->on_connect(-1, meta->ec, meta->arg);
         }
         delete meta;
-        return NULL;
+        return nullptr;
     }
 
     int Stream::Connect(Socket *ptr, const timespec *,
                         int (*on_connect)(int, int, void *), void *data) {
         MELON_CHECK_EQ(ptr->id(), _id);
         fiber_mutex_lock(&_connect_mutex);
-        if (_connect_meta.on_connect != NULL) {
+        if (_connect_meta.on_connect != nullptr) {
             MELON_CHECK(false) << "Connect is supposed to be called once";
             fiber_mutex_unlock(&_connect_mutex);
             return -1;
@@ -198,7 +198,7 @@ namespace melon::rpc {
     }
 
     void Stream::SetConnected() {
-        return SetConnected(NULL);
+        return SetConnected(nullptr);
     }
 
     void Stream::SetConnected(const StreamSettings *remote_settings) {
@@ -212,20 +212,20 @@ namespace melon::rpc {
             fiber_mutex_unlock(&_connect_mutex);
             return;
         }
-        MELON_CHECK(_host_socket != NULL);
-        if (remote_settings != NULL) {
+        MELON_CHECK(_host_socket != nullptr);
+        if (remote_settings != nullptr) {
             MELON_CHECK(!_remote_settings.IsInitialized());
             _remote_settings.MergeFrom(*remote_settings);
         } else {
             MELON_CHECK(_remote_settings.IsInitialized());
         }
-        MELON_CHECK(_host_socket != NULL);
+        MELON_CHECK(_host_socket != nullptr);
         RPC_VLOG << "stream=" << id() << " is connected to stream_id="
                  << _remote_settings.stream_id() << " at host_socket=" << *_host_socket;
         _connected = true;
         _connect_meta.ec = 0;
         TriggerOnConnectIfNeed();
-        if (remote_settings == NULL) {
+        if (remote_settings == nullptr) {
             // Start the timer at server-side
             // Client-side timer would triggered in Consume after received the first
             // message which is the very RPC response
@@ -234,7 +234,7 @@ namespace melon::rpc {
     }
 
     void Stream::TriggerOnConnectIfNeed() {
-        if (_connect_meta.on_connect != NULL) {
+        if (_connect_meta.on_connect != nullptr) {
             ConnectMeta *meta = new ConnectMeta;
             meta->on_connect = _connect_meta.on_connect;
             meta->arg = _connect_meta.arg;
@@ -304,7 +304,7 @@ namespace melon::rpc {
         WritableMeta *wm = (WritableMeta *) arg;
         wm->on_writable(wm->id, wm->arg, wm->error_code);
         delete wm;
-        return NULL;
+        return nullptr;
     }
 
     int Stream::TriggerOnWritable(fiber_token_t id, void *data, int error_code) {
@@ -353,8 +353,8 @@ namespace melon::rpc {
         if (join_id) {
             *join_id = wait_id;
         }
-        MELON_CHECK_EQ(0, fiber_token_lock(wait_id, NULL));
-        if (due_time != NULL) {
+        MELON_CHECK_EQ(0, fiber_token_lock(wait_id, nullptr));
+        if (due_time != nullptr) {
             wm->has_timer = true;
             const int rc = fiber_timer_add(&wm->timer, *due_time,
                                            OnTimedOut,
@@ -379,7 +379,7 @@ namespace melon::rpc {
 
     void Stream::Wait(void (*on_writable)(StreamId, void *, int), void *arg,
                       const timespec *due_time) {
-        return Wait(on_writable, arg, due_time, true, NULL);
+        return Wait(on_writable, arg, due_time, true, nullptr);
     }
 
     void OnWritable(StreamId, void *arg, int error_code) {
@@ -397,7 +397,7 @@ namespace melon::rpc {
     }
 
     int Stream::OnReceived(const StreamFrameMeta &fm, melon::cord_buf *buf, Socket *sock) {
-        if (_host_socket == NULL) {
+        if (_host_socket == nullptr) {
             if (SetHostSocket(sock) != 0) {
                 return -1;
             }
@@ -408,7 +408,7 @@ namespace melon::rpc {
                 MELON_CHECK(buf->empty());
                 break;
             case FRAME_TYPE_DATA:
-                if (_pending_buf != NULL) {
+                if (_pending_buf != nullptr) {
                     _pending_buf->append(*buf);
                     buf->clear();
                 } else {
@@ -417,7 +417,7 @@ namespace melon::rpc {
                 }
                 if (!fm.has_continuation()) {
                     melon::cord_buf *tmp = _pending_buf;
-                    _pending_buf = NULL;
+                    _pending_buf = nullptr;
                     if (melon::fiber_internal::execution_queue_execute(_consumer_queue, tmp) != 0) {
                         MELON_CHECK(false) << "Fail to push into channel";
                         delete tmp;
@@ -449,7 +449,7 @@ namespace melon::rpc {
         ~MessageBatcher() { flush(); }
 
         void flush() {
-            if (_size > 0 && _s->_options.handler != NULL) {
+            if (_size > 0 && _s->_options.handler != nullptr) {
                 _s->_options.handler->on_received_messages(
                         _s->id(), _storage, _size);
             }
@@ -485,9 +485,9 @@ namespace melon::rpc {
             // indicating the queue was closed
             if (s->_host_socket) {
                 DereferenceSocket(s->_host_socket);
-                s->_host_socket = NULL;
+                s->_host_socket = nullptr;
             }
-            if (s->_options.handler != NULL) {
+            if (s->_options.handler != nullptr) {
                 s->_options.handler->on_closed(s->id());
             }
             delete s;
@@ -509,7 +509,7 @@ namespace melon::rpc {
                 }
             }
         }
-        if (s->_options.handler != NULL) {
+        if (s->_options.handler != nullptr) {
             if (has_timeout_task && mb.total_length() == 0) {
                 s->_options.handler->on_idle_timeout(s->id());
             }
@@ -530,12 +530,12 @@ namespace melon::rpc {
         fm.set_source_stream_id(id());
         fm.mutable_feedback()->set_consumed_size(_local_consumed);
         melon::cord_buf out;
-        policy::PackStreamMessage(&out, fm, NULL);
+        policy::PackStreamMessage(&out, fm, nullptr);
         WriteToHostSocket(&out);
     }
 
     int Stream::SetHostSocket(Socket *host_socket) {
-        if (_host_socket != NULL) {
+        if (_host_socket != nullptr) {
             MELON_CHECK(false) << "SetHostSocket has already been called";
             return -1;
         }
@@ -552,7 +552,7 @@ namespace melon::rpc {
     void Stream::FillSettings(StreamSettings *settings) {
         settings->set_stream_id(id());
         settings->set_need_feedback(_options.max_buf_size > 0);
-        settings->set_writable(_options.handler != NULL);
+        settings->set_writable(_options.handler != nullptr);
     }
 
     void OnIdleTimeout(void *arg) {
@@ -611,16 +611,16 @@ namespace melon::rpc {
 
     void Stream::HandleRpcResponse(melon::cord_buf *response_buffer) {
         MELON_CHECK(!_remote_settings.IsInitialized());
-        MELON_CHECK(_host_socket != NULL);
+        MELON_CHECK(_host_socket != nullptr);
         std::unique_ptr<melon::cord_buf> buf_guard(response_buffer);
-        ParseResult pr = policy::ParseRpcMessage(response_buffer, NULL, true, NULL);
+        ParseResult pr = policy::ParseRpcMessage(response_buffer, nullptr, true, nullptr);
         if (!pr.is_ok()) {
             MELON_CHECK(false);
             Close();
             return;
         }
         InputMessageBase *msg = pr.message();
-        if (msg == NULL) {
+        if (msg == nullptr) {
             MELON_CHECK(false);
             Close();
             return;
@@ -629,7 +629,7 @@ namespace melon::rpc {
         _host_socket->ReAddress(&msg->_socket);
         msg->_received_us = melon::get_current_time_micros();
         msg->_base_real_us = melon::get_current_time_micros();
-        msg->_arg = NULL; // ProcessRpcResponse() don't need arg
+        msg->_arg = nullptr; // ProcessRpcResponse() don't need arg
         policy::ProcessRpcResponse(msg);
     }
 
@@ -689,16 +689,16 @@ namespace melon::rpc {
             MELON_LOG(ERROR) << "Can't create request stream more than once";
             return -1;
         }
-        if (request_stream == NULL) {
-            MELON_LOG(ERROR) << "request_stream is NULL";
+        if (request_stream == nullptr) {
+            MELON_LOG(ERROR) << "request_stream is nullptr";
             return -1;
         }
         StreamId stream_id;
         StreamOptions opt;
-        if (options != NULL) {
+        if (options != nullptr) {
             opt = *options;
         }
-        if (Stream::Create(opt, NULL, &stream_id) != 0) {
+        if (Stream::Create(opt, nullptr, &stream_id) != 0) {
             MELON_LOG(ERROR) << "Fail to create stream";
             return -1;
         }
@@ -714,8 +714,8 @@ namespace melon::rpc {
             MELON_LOG(ERROR) << "Can't create reponse stream more than once";
             return -1;
         }
-        if (response_stream == NULL) {
-            MELON_LOG(ERROR) << "response_stream is NULL";
+        if (response_stream == nullptr) {
+            MELON_LOG(ERROR) << "response_stream is nullptr";
             return -1;
         }
         if (!cntl.has_remote_stream()) {
@@ -723,7 +723,7 @@ namespace melon::rpc {
             return -1;
         }
         StreamOptions opt;
-        if (options != NULL) {
+        if (options != nullptr) {
             opt = *options;
         }
         StreamId stream_id;

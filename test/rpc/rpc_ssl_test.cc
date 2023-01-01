@@ -90,7 +90,7 @@ protected:
 void *RunClosure(void *arg) {
     google::protobuf::Closure *done = (google::protobuf::Closure *) arg;
     done->Run();
-    return NULL;
+    return nullptr;
 }
 
 void SendMultipleRPC(melon::rpc::Channel *channel, int count) {
@@ -100,7 +100,7 @@ void SendMultipleRPC(melon::rpc::Channel *channel, int count) {
         test::EchoResponse res;
         req.set_message(EXP_REQUEST);
         test::EchoService_Stub stub(channel);
-        stub.Echo(&cntl, &req, &res, NULL);
+        stub.Echo(&cntl, &req, &res, nullptr);
 
         EXPECT_EQ(EXP_RESPONSE, res.message()) << cntl.ErrorText();
     }
@@ -134,7 +134,7 @@ TEST_F(SSLTest, sanity) {
 
         melon::rpc::Controller cntl;
         test::EchoService_Stub stub(&channel);
-        stub.Echo(&cntl, &req, &res, NULL);
+        stub.Echo(&cntl, &req, &res, nullptr);
         EXPECT_EQ(EXP_RESPONSE, res.message()) << cntl.ErrorText();
     }
 
@@ -151,10 +151,10 @@ TEST_F(SSLTest, sanity) {
         for (int i = 0; i < NUM; ++i) {
             google::protobuf::Closure *thrd_func =
                     melon::rpc::NewCallback(SendMultipleRPC, &channel, COUNT);
-            EXPECT_EQ(0, pthread_create(&tids[i], NULL, RunClosure, thrd_func));
+            EXPECT_EQ(0, pthread_create(&tids[i], nullptr, RunClosure, thrd_func));
         }
         for (int i = 0; i < NUM; ++i) {
-            pthread_join(tids[i], NULL);
+            pthread_join(tids[i], nullptr);
         }
     }
     {
@@ -168,10 +168,10 @@ TEST_F(SSLTest, sanity) {
         for (int i = 0; i < NUM; ++i) {
             google::protobuf::Closure *thrd_func =
                     melon::rpc::NewCallback(SendMultipleRPC, &channel, COUNT);
-            EXPECT_EQ(0, pthread_create(&tids[i], NULL, RunClosure, thrd_func));
+            EXPECT_EQ(0, pthread_create(&tids[i], nullptr, RunClosure, thrd_func));
         }
         for (int i = 0; i < NUM; ++i) {
-            pthread_join(tids[i], NULL);
+            pthread_join(tids[i], nullptr);
         }
     }
 
@@ -195,7 +195,7 @@ void CheckCert(const char *cname, const char *cert) {
     ASSERT_EQ(0, melon::rpc::Socket::Address(ids[0], &sock));
 
     X509 *x509 = sock->GetPeerCertificate();
-    ASSERT_TRUE(x509 != NULL);
+    ASSERT_TRUE(x509 != nullptr);
     std::vector<std::string> cnames;
     melon::rpc::ExtractHostnames(x509, &cnames);
     ASSERT_EQ(cert, cnames[0]) << x509;
@@ -313,7 +313,7 @@ void *ssl_perf_client(void *arg) {
                   << size * REP / tm.u_elapsed() << "M/s"
                   << ", latency=" << tm.u_elapsed() / REP << "us";
     }
-    return NULL;
+    return nullptr;
 }
 
 void *ssl_perf_server(void *arg) {
@@ -326,23 +326,23 @@ void *ssl_perf_server(void *arg) {
             SSL_read(ssl, buf, size);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 TEST_F(SSLTest, ssl_perf) {
     const melon::base::end_point ep(melon::base::IP_ANY, 5961);
     melon::base::fd_guard listenfd(melon::base::tcp_listen(ep));
     ASSERT_GT(listenfd, 0);
-    int clifd = tcp_connect(ep, NULL);
+    int clifd = tcp_connect(ep, nullptr);
     ASSERT_GT(clifd, 0);
-    int servfd = accept(listenfd, NULL, NULL);
+    int servfd = accept(listenfd, nullptr, nullptr);
     ASSERT_GT(servfd, 0);
 
     melon::rpc::ChannelSSLOptions opt;
     SSL_CTX *cli_ctx = melon::rpc::CreateClientSSLContext(opt);
     SSL_CTX *serv_ctx =
             melon::rpc::CreateServerSSLContext("cert1.crt", "cert1.key",
-                                               melon::rpc::SSLOptions(), NULL);
+                                               melon::rpc::SSLOptions(), nullptr);
     SSL *cli_ssl = melon::rpc::CreateSSLSession(cli_ctx, 0, clifd, false);
 #if defined(SSL_CTRL_SET_TLSEXT_HOSTNAME)
     SSL_set_tlsext_host_name(cli_ssl, "localhost");
@@ -350,10 +350,10 @@ TEST_F(SSLTest, ssl_perf) {
     SSL *serv_ssl = melon::rpc::CreateSSLSession(serv_ctx, 0, servfd, true);
     pthread_t cpid;
     pthread_t spid;
-    ASSERT_EQ(0, pthread_create(&cpid, NULL, ssl_perf_client, cli_ssl));
-    ASSERT_EQ(0, pthread_create(&spid, NULL, ssl_perf_server, serv_ssl));
-    ASSERT_EQ(0, pthread_join(cpid, NULL));
-    ASSERT_EQ(0, pthread_join(spid, NULL));
+    ASSERT_EQ(0, pthread_create(&cpid, nullptr, ssl_perf_client, cli_ssl));
+    ASSERT_EQ(0, pthread_create(&spid, nullptr, ssl_perf_server, serv_ssl));
+    ASSERT_EQ(0, pthread_join(cpid, nullptr));
+    ASSERT_EQ(0, pthread_join(spid, nullptr));
     close(clifd);
     close(servfd);
 }

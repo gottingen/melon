@@ -149,7 +149,7 @@ namespace melon::rpc {
     }
 
     int ProgressiveAttachment::Write(const void *data, size_t n) {
-        if (data == NULL || n == 0) {
+        if (data == nullptr || n == 0) {
             MELON_LOG_EVERY_SECOND(WARNING)
                             << "Write an empty chunk. To suppress this warning, check emptiness"
                                " of the chunk before calling ProgressiveAttachment.Write()";
@@ -238,15 +238,15 @@ namespace melon::rpc {
     }
 
     void ProgressiveAttachment::NotifyOnStopped(google::protobuf::Closure *done) {
-        if (done == NULL) {
-            MELON_LOG(ERROR) << "Param[done] is NULL";
+        if (done == nullptr) {
+            MELON_LOG(ERROR) << "Param[done] is nullptr";
             return;
         }
         if (_notify_id != INVALID_FIBER_TOKEN) {
             MELON_LOG(ERROR) << "NotifyOnStopped() can only be called once";
             return done->Run();
         }
-        if (_httpsock == NULL) {
+        if (_httpsock == nullptr) {
             return done->Run();
         }
         const int rc = fiber_token_create(&_notify_id, done, RunOnFailed);

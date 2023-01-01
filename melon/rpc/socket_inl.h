@@ -53,8 +53,8 @@ namespace melon::rpc {
     }
 
     inline SocketOptions::SocketOptions()
-            : fd(-1), user(NULL), on_edge_triggered_events(NULL), health_check_interval_s(-1), keytable_pool(NULL),
-              conn(NULL), app_connect(NULL), initial_parsing_context(NULL) {}
+            : fd(-1), user(nullptr), on_edge_triggered_events(nullptr), health_check_interval_s(-1), keytable_pool(nullptr),
+              conn(nullptr), app_connect(nullptr), initial_parsing_context(nullptr) {}
 
     inline int Socket::Dereference() {
         const SocketId id = _this_id;
@@ -117,7 +117,7 @@ namespace melon::rpc {
     inline int Socket::Address(SocketId id, SocketUniquePtr *ptr) {
         const melon::ResourceId<Socket> slot = SlotOfSocketId(id);
         Socket *const m = address_resource(slot);
-        if (__builtin_expect(m != NULL, 1)) {
+        if (__builtin_expect(m != nullptr, 1)) {
             // acquire fence makes sure this thread sees latest changes before
             // Dereference() or Revive().
             const uint64_t vref1 = m->_versioned_ref.fetch_add(
@@ -168,7 +168,7 @@ namespace melon::rpc {
     inline int Socket::AddressFailedAsWell(SocketId id, SocketUniquePtr *ptr) {
         const melon::ResourceId<Socket> slot = SlotOfSocketId(id);
         Socket *const m = address_resource(slot);
-        if (__builtin_expect(m != NULL, 1)) {
+        if (__builtin_expect(m != nullptr, 1)) {
             const uint64_t vref1 = m->_versioned_ref.fetch_add(
                     1, std::memory_order_acquire);
             const uint32_t ver1 = VersionOfVRef(vref1);
@@ -282,12 +282,12 @@ namespace melon::rpc {
     }
 
     inline Destroyable *Socket::release_parsing_context() {
-        return _parsing_context.exchange(NULL, std::memory_order_acquire);
+        return _parsing_context.exchange(nullptr, std::memory_order_acquire);
     }
 
     template<typename T>
     bool Socket::initialize_parsing_context(T **ctx) {
-        Destroyable *expected = NULL;
+        Destroyable *expected = nullptr;
         if (_parsing_context.compare_exchange_strong(
                 expected, *ctx, std::memory_order_acq_rel,
                 std::memory_order_acquire)) {
@@ -302,7 +302,7 @@ namespace melon::rpc {
 // NOTE: Push/Pop may be called from different threads simultaneously.
     inline void Socket::PushPipelinedInfo(const PipelinedInfo &pi) {
         MELON_SCOPED_LOCK(_pipeline_mutex);
-        if (_pipeline_q == NULL) {
+        if (_pipeline_q == nullptr) {
             _pipeline_q = new std::deque<PipelinedInfo>;
         }
         _pipeline_q->push_back(pi);
@@ -310,7 +310,7 @@ namespace melon::rpc {
 
     inline bool Socket::PopPipelinedInfo(PipelinedInfo *info) {
         MELON_SCOPED_LOCK(_pipeline_mutex);
-        if (_pipeline_q != NULL && !_pipeline_q->empty()) {
+        if (_pipeline_q != nullptr && !_pipeline_q->empty()) {
             *info = _pipeline_q->front();
             _pipeline_q->pop_front();
             return true;
@@ -320,7 +320,7 @@ namespace melon::rpc {
 
     inline void Socket::GivebackPipelinedInfo(const PipelinedInfo &pi) {
         MELON_SCOPED_LOCK(_pipeline_mutex);
-        if (_pipeline_q != NULL) {
+        if (_pipeline_q != nullptr) {
             _pipeline_q->push_front(pi);
         }
     }
@@ -335,7 +335,7 @@ namespace melon::rpc {
 
     inline Socket::SharedPart *Socket::GetOrNewSharedPart() {
         SharedPart *shared_part = GetSharedPart();
-        if (shared_part != NULL) { // most cases
+        if (shared_part != nullptr) { // most cases
             return shared_part;
         }
         return GetOrNewSharedPartSlower();

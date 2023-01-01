@@ -77,7 +77,7 @@ protected:
         melon::rpc::policy::SerializeEspRequest(&req_buf, &cntl, &req);
     
         melon::cord_buf packet_buf;
-        melon::rpc::policy::PackEspRequest(&packet_buf, NULL, cntl.call_id().value, NULL, &cntl, req_buf, NULL);
+        melon::rpc::policy::PackEspRequest(&packet_buf, nullptr, cntl.call_id().value, nullptr, &cntl, req_buf, nullptr);
     
         packet_buf.cut_into_file_descriptor(_pipe_fds[1], packet_buf.size());
     }
@@ -106,7 +106,7 @@ TEST_F(EspTest, complete_flow) {
 
     const melon::rpc::Authenticator* auth = melon::rpc::policy::global_esp_authenticator();
     melon::cord_buf packet_buf;
-    melon::rpc::policy::PackEspRequest(&packet_buf, NULL, cntl.call_id().value, NULL, &cntl, req_buf, auth);
+    melon::rpc::policy::PackEspRequest(&packet_buf, nullptr, cntl.call_id().value, nullptr, &cntl, req_buf, auth);
 
     std::string auth_str;
     auth->GenerateCredential(&auth_str);
@@ -120,7 +120,7 @@ TEST_F(EspTest, complete_flow) {
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
 
     melon::rpc::ParseResult res_pr =
-            melon::rpc::policy::ParseEspMessage(&response_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseEspMessage(&response_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, res_pr.error());
 
     melon::rpc::InputMessageBase* res_msg = res_pr.message();
@@ -144,7 +144,7 @@ TEST_F(EspTest, wrong_response_head) {
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
 
     melon::rpc::ParseResult res_pr =
-            melon::rpc::policy::ParseEspMessage(&response_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseEspMessage(&response_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, res_pr.error());
 
     melon::rpc::InputMessageBase* res_msg = res_pr.message();

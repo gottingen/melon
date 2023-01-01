@@ -52,8 +52,8 @@ namespace melon::base {
                 GetLeakySingleton<T>::g_leaky_singleton_untyped.load(std::memory_order_acquire));
     }
 
-    // True(non-NULL) if the singleton is created.
-    // The returned object (if not NULL) can be used directly.
+    // True(non-nullptr) if the singleton is created.
+    // The returned object (if not nullptr) can be used directly.
     template<typename T>
     inline T *has_leaky_singleton() {
         return reinterpret_cast<T *>(GetLeakySingleton<T>::g_leaky_singleton_untyped.load(std::memory_order_acquire));

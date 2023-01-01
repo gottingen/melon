@@ -103,7 +103,7 @@ protected:
     virtual void TearDown() {};
 
     void VerifyMessage(melon::rpc::InputMessageBase* msg) {
-        if (msg->_socket == NULL) {
+        if (msg->_socket == nullptr) {
             _socket->ReAddress(&msg->_socket);
         }
         msg->_arg = &_server;
@@ -112,7 +112,7 @@ protected:
 
     void ProcessMessage(void (*process)(melon::rpc::InputMessageBase*),
                         melon::rpc::InputMessageBase* msg, bool set_eof) {
-        if (msg->_socket == NULL) {
+        if (msg->_socket == nullptr) {
             _socket->ReAddress(&msg->_socket);
         }
         msg->_arg = &_server;
@@ -221,13 +221,13 @@ TEST_F(NovaTest, complete_flow) {
     melon::rpc::SerializeRequestDefault(&request_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
     melon::rpc::policy::PackNovaRequest(
-        &total_buf, NULL, cntl.call_id().value,
+        &total_buf, nullptr, cntl.call_id().value,
         test::EchoService::descriptor()->method(0), &cntl, request_buf, &_auth);
     ASSERT_FALSE(cntl.Failed());
 
     // Verify and handle request
     melon::rpc::ParseResult req_pr =
-            melon::rpc::policy::ParseNsheadMessage(&total_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseNsheadMessage(&total_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, req_pr.error());
     melon::rpc::InputMessageBase* req_msg = req_pr.message();
     VerifyMessage(req_msg);
@@ -237,7 +237,7 @@ TEST_F(NovaTest, complete_flow) {
     melon::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::rpc::ParseResult res_pr =
-            melon::rpc::policy::ParseNsheadMessage(&response_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseNsheadMessage(&response_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, res_pr.error());
     melon::rpc::InputMessageBase* res_msg = res_pr.message();
     ProcessMessage(melon::rpc::policy::ProcessNovaResponse, res_msg, false);
@@ -260,13 +260,13 @@ TEST_F(NovaTest, close_in_callback) {
     melon::rpc::SerializeRequestDefault(&request_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
     melon::rpc::policy::PackNovaRequest(
-        &total_buf, NULL, cntl.call_id().value,
+        &total_buf, nullptr, cntl.call_id().value,
         test::EchoService::descriptor()->method(0), &cntl, request_buf, &_auth);
     ASSERT_FALSE(cntl.Failed());
 
     // Handle request
     melon::rpc::ParseResult req_pr =
-            melon::rpc::policy::ParseNsheadMessage(&total_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseNsheadMessage(&total_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, req_pr.error());
     melon::rpc::InputMessageBase* req_msg = req_pr.message();
     ProcessMessage(melon::rpc::policy::ProcessNsheadRequest, req_msg, false);

@@ -104,20 +104,20 @@ namespace melon {
                         }
                     }
                 }
-                return NULL;
+                return nullptr;
             }
 
             // Note: May return non-null for unexist id, see notes on ThreadBlock
             inline static Agent *get_or_create_tls_agent(agent_id id) {
                 if (__builtin_expect(id < 0, 0)) {
                     MELON_CHECK(false) << "Invalid id=" << id;
-                    return NULL;
+                    return nullptr;
                 }
-                if (_s_tls_blocks == NULL) {
+                if (_s_tls_blocks == nullptr) {
                     _s_tls_blocks = new(std::nothrow) std::vector<ThreadBlock *>;
-                    if (__builtin_expect(_s_tls_blocks == NULL, 0)) {
+                    if (__builtin_expect(_s_tls_blocks == nullptr, 0)) {
                         MELON_LOG(FATAL) << "Fail to create vector, " << melon_error();
-                        return NULL;
+                        return nullptr;
                     }
                     melon::thread::atexit(_destroy_tls_blocks);
                 }
@@ -127,10 +127,10 @@ namespace melon {
                     _s_tls_blocks->resize(std::max(block_id + 1, 32ul));
                 }
                 ThreadBlock *tb = (*_s_tls_blocks)[block_id];
-                if (tb == NULL) {
+                if (tb == nullptr) {
                     ThreadBlock *new_block = new(std::nothrow) ThreadBlock;
-                    if (__builtin_expect(new_block == NULL, 0)) {
-                        return NULL;
+                    if (__builtin_expect(new_block == nullptr, 0)) {
+                        return nullptr;
                     }
                     tb = new_block;
                     (*_s_tls_blocks)[block_id] = new_block;
@@ -148,7 +148,7 @@ namespace melon {
                     delete (*_s_tls_blocks)[i];
                 }
                 delete _s_tls_blocks;
-                _s_tls_blocks = NULL;
+                _s_tls_blocks = nullptr;
             }
 
             inline static std::deque<agent_id> &_get_free_ids() {
@@ -171,14 +171,14 @@ namespace melon {
         pthread_mutex_t agent_group<Agent>::_s_mutex = PTHREAD_MUTEX_INITIALIZER;
 
         template<typename Agent>
-        std::deque<agent_id> *agent_group<Agent>::_s_free_ids = NULL;
+        std::deque<agent_id> *agent_group<Agent>::_s_free_ids = nullptr;
 
         template<typename Agent>
         agent_id agent_group<Agent>::_s_agent_kinds = 0;
 
         template<typename Agent>
         __thread std::vector<typename agent_group<Agent>::ThreadBlock *>
-                *agent_group<Agent>::_s_tls_blocks = NULL;
+                *agent_group<Agent>::_s_tls_blocks = nullptr;
 
     }  // namespace metrics_detail
 }  // namespace melon

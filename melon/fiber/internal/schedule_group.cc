@@ -47,7 +47,7 @@ namespace melon::fiber_internal {
     extern pthread_mutex_t g_task_control_mutex;
     extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
 
-    void (*g_worker_startfn)() = NULL;
+    void (*g_worker_startfn)() = nullptr;
 
     // May be called in other modules to run startfn in non-worker pthreads.
     void run_worker_startfn() {
@@ -62,9 +62,9 @@ namespace melon::fiber_internal {
         schedule_group *c = static_cast<schedule_group *>(arg);
         fiber_worker *g = c->create_group();
         fiber_statistics stat;
-        if (NULL == g) {
+        if (nullptr == g) {
             MELON_LOG(ERROR) << "Fail to create fiber_worker in pthread=" << pthread_self();
-            return NULL;
+            return nullptr;
         }
         BT_VLOG << "Created worker=" << pthread_self()
                 << " fiber=" << g->main_tid();
@@ -77,26 +77,26 @@ namespace melon::fiber_internal {
         BT_VLOG << "Destroying worker=" << pthread_self() << " fiber="
                 << g->main_tid() << " idle=" << stat.cputime_ns / 1000000.0
                 << "ms uptime=" << g->current_uptime_ns() / 1000000.0 << "ms";
-        tls_task_group = NULL;
+        tls_task_group = nullptr;
         g->destroy_self();
         c->_nworkers << -1;
-        return NULL;
+        return nullptr;
     }
 
     fiber_worker *schedule_group::create_group() {
         fiber_worker *g = new(std::nothrow) fiber_worker(this);
-        if (NULL == g) {
+        if (nullptr == g) {
             MELON_LOG(FATAL) << "Fail to new fiber_worker";
-            return NULL;
+            return nullptr;
         }
         if (g->init(FLAGS_task_group_runqueue_capacity) != 0) {
             MELON_LOG(ERROR) << "Fail to init fiber_worker";
             delete g;
-            return NULL;
+            return nullptr;
         }
         if (_add_group(g) != 0) {
             delete g;
-            return NULL;
+            return nullptr;
         }
         return g;
     }
@@ -121,7 +121,7 @@ namespace melon::fiber_internal {
     schedule_group::schedule_group()
     // NOTE: all fileds must be initialized before the vars.
             : _ngroup(0), _groups((fiber_worker **) calloc(FIBER_MAX_CONCURRENCY, sizeof(fiber_worker *))),
-              _stop(false), _concurrency(0), _nworkers("fiber_worker_count"), _pending_time(NULL)
+              _stop(false), _concurrency(0), _nworkers("fiber_worker_count"), _pending_time(nullptr)
             // Delay exposure of following two vars because they rely on TC which
             // is not initialized yet.
             , _cumulated_worker_time(get_cumulated_worker_time_from_this, this),
@@ -147,14 +147,14 @@ namespace melon::fiber_internal {
         _concurrency = concurrency;
 
         // Make sure TimerThread is ready.
-        if (get_or_create_global_timer_thread() == NULL) {
+        if (get_or_create_global_timer_thread() == nullptr) {
             MELON_LOG(ERROR) << "Fail to get global_timer_thread";
             return -1;
         }
 
         _workers.resize(_concurrency);
         for (int i = 0; i < _concurrency; ++i) {
-            const int rc = pthread_create(&_workers[i], NULL, worker_thread, this);
+            const int rc = pthread_create(&_workers[i], nullptr, worker_thread, this);
             if (rc) {
                 MELON_LOG(ERROR) << "Fail to create _workers[" << i << "], " << melon_error(rc);
                 return -1;
@@ -166,7 +166,7 @@ namespace melon::fiber_internal {
         _status.expose("fiber_group_status", "");
 
         // Wait for at least one group is added so that choose_one_group()
-        // never returns NULL.
+        // never returns nullptr.
         // TODO: Handle the case that worker quits before add_group
         while (_ngroup == 0) {
             usleep(100);  // TODO: Elaborate
@@ -189,7 +189,7 @@ namespace melon::fiber_internal {
             // _concurrency before create a worker.
             _concurrency.fetch_add(1);
             const int rc = pthread_create(
-                    &_workers[i + old_concurency], NULL, worker_thread, this);
+                    &_workers[i + old_concurency], nullptr, worker_thread, this);
             if (rc) {
                 MELON_LOG(WARNING) << "Fail to create _workers[" << i + old_concurency
                              << "], " << melon_error(rc);
@@ -208,7 +208,7 @@ namespace melon::fiber_internal {
             return _groups[melon::base::fast_rand_less_than(ngroup)];
         }
         MELON_CHECK(false) << "Impossible: ngroup is 0";
-        return NULL;
+        return nullptr;
     }
 
     extern int stop_and_join_epoll_threads();
@@ -233,14 +233,14 @@ namespace melon::fiber_internal {
         }
         // Join workers
         for (size_t i = 0; i < _workers.size(); ++i) {
-            pthread_join(_workers[i], NULL);
+            pthread_join(_workers[i], nullptr);
         }
     }
 
     schedule_group::~schedule_group() {
         // NOTE: g_task_control is not destructed now because the situation
         //       is extremely racy.
-        delete _pending_time.exchange(NULL, std::memory_order_relaxed);
+        delete _pending_time.exchange(nullptr, std::memory_order_relaxed);
         _worker_usage_second.hide();
         _switch_per_second.hide();
         _signal_per_second.hide();
@@ -249,11 +249,11 @@ namespace melon::fiber_internal {
         stop_and_join();
 
         free(_groups);
-        _groups = NULL;
+        _groups = nullptr;
     }
 
     int schedule_group::_add_group(fiber_worker *g) {
-        if (__builtin_expect(NULL == g, 0)) {
+        if (__builtin_expect(nullptr == g, 0)) {
             return -1;
         }
         std::unique_lock<std::mutex> mu(_modify_group_mutex);
@@ -277,8 +277,8 @@ namespace melon::fiber_internal {
     }
 
     int schedule_group::_destroy_group(fiber_worker *g) {
-        if (NULL == g) {
-            MELON_LOG(ERROR) << "Param[g] is NULL";
+        if (nullptr == g) {
+            MELON_LOG(ERROR) << "Param[g] is nullptr";
             return -1;
         }
         if (g->_control != this) {
@@ -304,7 +304,7 @@ namespace melon::fiber_internal {
                     //    we think the pending tasks of _groups[ngroup - 1] would
                     //    not miss.
                     _ngroup.store(ngroup - 1, std::memory_order_release);
-                    //_groups[ngroup - 1] = NULL;
+                    //_groups[ngroup - 1] = nullptr;
                     erased = true;
                     break;
                 }
@@ -337,7 +337,7 @@ namespace melon::fiber_internal {
         size_t s = *seed;
         for (size_t i = 0; i < ngroup; ++i, s += offset) {
             fiber_worker *g = _groups[s % ngroup];
-            // g is possibly NULL because of concurrent _destroy_group
+            // g is possibly nullptr because of concurrent _destroy_group
             if (g) {
                 if (g->_rq.steal(tid)) {
                     stolen = true;

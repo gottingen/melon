@@ -148,7 +148,7 @@ namespace melon::rpc {
             RandomizedLoadBalancer *lb = new(std::nothrow) RandomizedLoadBalancer;
             if (lb && !lb->SetParameters(params)) {
                 delete lb;
-                lb = NULL;
+                lb = nullptr;
             }
             return lb;
         }

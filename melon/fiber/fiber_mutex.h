@@ -19,7 +19,7 @@ namespace melon {
         typedef fiber_mutex_t *native_handler_type;
 
         fiber_mutex() {
-            int ec = fiber_mutex_init(&_mutex, NULL);
+            int ec = fiber_mutex_init(&_mutex, nullptr);
             if (ec != 0) {
                 throw std::system_error(std::error_code(ec, std::system_category()), "fiber_mutex constructor failed");
             }

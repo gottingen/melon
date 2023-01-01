@@ -108,7 +108,7 @@ protected:
     virtual void TearDown() {};
 
     void VerifyMessage(melon::rpc::InputMessageBase* msg) {
-        if (msg->_socket == NULL) {
+        if (msg->_socket == nullptr) {
             _socket->ReAddress(&msg->_socket);
         }
         msg->_arg = &_server;
@@ -117,7 +117,7 @@ protected:
 
     void ProcessMessage(void (*process)(melon::rpc::InputMessageBase*),
                         melon::rpc::InputMessageBase* msg, bool set_eof) {
-        if (msg->_socket == NULL) {
+        if (msg->_socket == nullptr) {
             _socket->ReAddress(&msg->_socket);
         }
         msg->_arg = &_server;
@@ -176,7 +176,7 @@ protected:
         melon::IOPortal buf;
         EXPECT_EQ((ssize_t)bytes_in_pipe,
                   buf.append_from_file_descriptor(_pipe_fds[0], 1024));
-        melon::rpc::ParseResult pr = melon::rpc::policy::ParseNsheadMessage(&buf, NULL, false, NULL);
+        melon::rpc::ParseResult pr = melon::rpc::policy::ParseNsheadMessage(&buf, nullptr, false, nullptr);
         EXPECT_EQ(melon::rpc::PARSE_OK, pr.error());
         melon::rpc::policy::MostCommonMessage* msg =
             static_cast<melon::rpc::policy::MostCommonMessage*>(pr.message());
@@ -273,13 +273,13 @@ TEST_F(PublicPbrpcTest, complete_flow) {
     melon::rpc::policy::SerializePublicPbrpcRequest(&request_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
     melon::rpc::policy::PackPublicPbrpcRequest(
-        &total_buf, NULL, cntl.call_id().value,
+        &total_buf, nullptr, cntl.call_id().value,
         test::EchoService::descriptor()->method(0), &cntl, request_buf, &_auth);
     ASSERT_FALSE(cntl.Failed());
 
     // Verify and handle request
     melon::rpc::ParseResult req_pr =
-            melon::rpc::policy::ParseNsheadMessage(&total_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseNsheadMessage(&total_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, req_pr.error());
     melon::rpc::InputMessageBase* req_msg = req_pr.message();
     VerifyMessage(req_msg);
@@ -289,7 +289,7 @@ TEST_F(PublicPbrpcTest, complete_flow) {
     melon::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::rpc::ParseResult res_pr =
-            melon::rpc::policy::ParseNsheadMessage(&response_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseNsheadMessage(&response_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, res_pr.error());
     melon::rpc::InputMessageBase* res_msg = res_pr.message();
     ProcessMessage(melon::rpc::policy::ProcessPublicPbrpcResponse, res_msg, false);
@@ -310,13 +310,13 @@ TEST_F(PublicPbrpcTest, close_in_callback) {
     melon::rpc::policy::SerializePublicPbrpcRequest(&request_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
     melon::rpc::policy::PackPublicPbrpcRequest(
-        &total_buf, NULL, cntl.call_id().value,
+        &total_buf, nullptr, cntl.call_id().value,
         test::EchoService::descriptor()->method(0), &cntl, request_buf, &_auth);
     ASSERT_FALSE(cntl.Failed());
 
     // Handle request
     melon::rpc::ParseResult req_pr =
-            melon::rpc::policy::ParseNsheadMessage(&total_buf, NULL, false, NULL);
+            melon::rpc::policy::ParseNsheadMessage(&total_buf, nullptr, false, nullptr);
     ASSERT_EQ(melon::rpc::PARSE_OK, req_pr.error());
     melon::rpc::InputMessageBase* req_msg = req_pr.message();
     ProcessMessage(melon::rpc::policy::ProcessNsheadRequest, req_msg, false);

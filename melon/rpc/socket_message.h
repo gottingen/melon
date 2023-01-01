@@ -39,7 +39,7 @@ namespace melon::rpc {
         // Params:
         //   out  - The buffer to be generated, being empty initially, could
         //          remain empty after being called.
-        //   sock - the socket to write. NULL when the message is abandoned,
+        //   sock - the socket to write. nullptr when the message is abandoned,
         //          namely the socket is broken or AppendAndDestroySelf() is
         //          called by SocketMessagePtr<T>
         // If the status returned is an error, WriteOptions.id_wait (if absent)
@@ -55,7 +55,7 @@ namespace melon::rpc {
             void operator()(SocketMessage *msg) const {
                 melon::cord_buf dummy_buf;
                 // We don't care about the return value since the message is abandoned
-                (void) msg->AppendAndDestroySelf(&dummy_buf, NULL);
+                (void) msg->AppendAndDestroySelf(&dummy_buf, nullptr);
             }
         };
     }

@@ -194,7 +194,7 @@ namespace melon::rpc {
             // { 'F', 'L', 'V', 0x01, 0x05, 0, 0, 0, 0x09 }.
             char header_buf[9 + 4/* PreviousTagSize0 */];
             const char *p = (const char *) _buf->fetch(header_buf, sizeof(header_buf));
-            if (p == NULL) {
+            if (p == nullptr) {
                 return melon::result_status(EAGAIN, "Fail to read, not enough data");
             }
             const char flv_header_signature[3] = {'F', 'L', 'V'};
@@ -214,7 +214,7 @@ namespace melon::rpc {
             return st;
         }
         const char *p = (const char *) _buf->fetch1();
-        if (p == NULL) {
+        if (p == nullptr) {
             return melon::result_status(EAGAIN, "Fail to read, not enough data");
         }
         FlvTagType type = (FlvTagType) *p;
@@ -231,7 +231,7 @@ namespace melon::rpc {
     melon::result_status FlvReader::Read(RtmpVideoMessage *msg) {
         char tags[11];
         const unsigned char *p = (const unsigned char *) _buf->fetch(tags, sizeof(tags));
-        if (p == NULL) {
+        if (p == nullptr) {
             return melon::result_status(EAGAIN, "Fail to read, not enough data");
         }
         if (*p != FLV_TAG_VIDEO) {
@@ -259,7 +259,7 @@ namespace melon::rpc {
     melon::result_status FlvReader::Read(RtmpAudioMessage *msg) {
         char tags[11];
         const unsigned char *p = (const unsigned char *) _buf->fetch(tags, sizeof(tags));
-        if (p == NULL) {
+        if (p == nullptr) {
             return melon::result_status(EAGAIN, "Fail to read, not enough data");
         }
         if (*p != FLV_TAG_AUDIO) {
@@ -288,7 +288,7 @@ namespace melon::rpc {
     melon::result_status FlvReader::Read(RtmpMetaData *msg, std::string *name) {
         char tags[11];
         const unsigned char *p = (const unsigned char *) _buf->fetch(tags, sizeof(tags));
-        if (p == NULL) {
+        if (p == nullptr) {
             return melon::result_status(EAGAIN, "Fail to read, not enough data");
         }
         if (*p != FLV_TAG_SCRIPT_DATA) {
@@ -446,7 +446,7 @@ namespace melon::rpc {
                                              FlvAudioCodec2Str(msg.codec));
         }
         const uint8_t *p = (const uint8_t *) msg.data.fetch1();
-        if (p == NULL) {
+        if (p == nullptr) {
             return melon::result_status(EINVAL, "Not enough data in AudioMessage");
         }
         if (*p > FLV_AAC_PACKET_RAW) {
@@ -495,7 +495,7 @@ namespace melon::rpc {
             return false;
         }
         const uint8_t *p = (const uint8_t *) data.fetch1();
-        if (p == NULL) {
+        if (p == nullptr) {
             return false;
         }
         return *p == FLV_AAC_PACKET_SEQUENCE_HEADER;
@@ -508,7 +508,7 @@ namespace melon::rpc {
         }
         uint8_t buf[4];
         const uint8_t *p = (const uint8_t *) msg.data.fetch(buf, sizeof(buf));
-        if (p == NULL) {
+        if (p == nullptr) {
             return melon::result_status(EINVAL, "Not enough data in VideoMessage");
         }
         if (*p > FLV_AVC_PACKET_END_OF_SEQUENCE) {
@@ -527,7 +527,7 @@ namespace melon::rpc {
             return false;
         }
         const uint8_t *p = (const uint8_t *) data.fetch1();
-        if (p == NULL) {
+        if (p == nullptr) {
             return false;
         }
         return *p == FLV_AVC_PACKET_SEQUENCE_HEADER;
@@ -538,7 +538,7 @@ namespace melon::rpc {
             return false;
         }
         const uint8_t *p = (const uint8_t *) data.fetch1();
-        if (p == NULL) {
+        if (p == nullptr) {
             return false;
         }
         return *p == FLV_AVC_PACKET_SEQUENCE_HEADER;
@@ -850,7 +850,7 @@ namespace melon::rpc {
     static bool find_avc_annexb_nalu_start_code(const melon::cord_buf &buf,
                                                 size_t *start_code_length) {
         size_t consecutive_zero_count = 0;
-        for (melon::cord_buf_bytes_iterator it(buf); it != NULL; ++it) {
+        for (melon::cord_buf_bytes_iterator it(buf); it != nullptr; ++it) {
             char c = *it;
             if (c == 0) {
                 ++consecutive_zero_count;
@@ -874,7 +874,7 @@ namespace melon::rpc {
                                                size_t *stop_code_length) {
         size_t nalu_length = 0;
         size_t consecutive_zero_count = 0;
-        for (melon::cord_buf_bytes_iterator it(buf); it != NULL; ++it) {
+        for (melon::cord_buf_bytes_iterator it(buf); it != nullptr; ++it) {
             unsigned char c = (unsigned char) *it;
             if (c > 1) { // most frequent
                 ++nalu_length;
@@ -1074,8 +1074,8 @@ namespace melon::rpc {
         RPC_VLOG << "Establish rtmp-level connection on " << *s;
         policy::RtmpContext *ctx =
                 static_cast<policy::RtmpContext *>(s->parsing_context());
-        if (ctx == NULL) {
-            MELON_LOG(FATAL) << "RtmpContext of " << *s << " is NULL";
+        if (ctx == nullptr) {
+            MELON_LOG(FATAL) << "RtmpContext of " << *s << " is nullptr";
             return done(EINVAL, data);
         }
 
@@ -1108,8 +1108,8 @@ namespace melon::rpc {
     void RtmpConnect::StopConnect(Socket *s) {
         policy::RtmpContext *ctx =
                 static_cast<policy::RtmpContext *>(s->parsing_context());
-        if (ctx == NULL) {
-            MELON_LOG(FATAL) << "RtmpContext of " << *s << " is NULL";
+        if (ctx == nullptr) {
+            MELON_LOG(FATAL) << "RtmpContext of " << *s << " is nullptr";
         } else {
             ctx->OnConnected(EFAILEDSOCKET);
         }
@@ -1124,7 +1124,7 @@ namespace melon::rpc {
         int CreateSocket(const SocketOptions &opt, SocketId *id) {
             SocketOptions sock_opt = opt;
             sock_opt.app_connect = std::make_shared<RtmpConnect>();
-            sock_opt.initial_parsing_context = new policy::RtmpContext(&_connect_options, NULL);
+            sock_opt.initial_parsing_context = new policy::RtmpContext(&_connect_options, nullptr);
             return get_client_side_messenger()->Create(sock_opt, id);
         }
 
@@ -1136,7 +1136,7 @@ namespace melon::rpc {
         SocketOptions sock_opt;
         sock_opt.remote_side = pt;
         sock_opt.app_connect = std::make_shared<RtmpConnect>();
-        sock_opt.initial_parsing_context = new policy::RtmpContext(&_connect_options, NULL);
+        sock_opt.initial_parsing_context = new policy::RtmpContext(&_connect_options, nullptr);
         return get_client_side_messenger()->Create(sock_opt, id);
     }
 
@@ -1223,7 +1223,7 @@ namespace melon::rpc {
     int RtmpClient::Init(melon::base::end_point server_addr_and_port,
                          const RtmpClientOptions &options) {
         melon::container::intrusive_ptr<RtmpClientImpl> tmp(new(std::nothrow) RtmpClientImpl);
-        if (tmp == NULL) {
+        if (tmp == nullptr) {
             MELON_LOG(FATAL) << "Fail to new RtmpClientImpl";
             return -1;
         }
@@ -1237,7 +1237,7 @@ namespace melon::rpc {
     int RtmpClient::Init(const char *server_addr_and_port,
                          const RtmpClientOptions &options) {
         melon::container::intrusive_ptr<RtmpClientImpl> tmp(new(std::nothrow) RtmpClientImpl);
-        if (tmp == NULL) {
+        if (tmp == nullptr) {
             MELON_LOG(FATAL) << "Fail to new RtmpClientImpl";
             return -1;
         }
@@ -1251,7 +1251,7 @@ namespace melon::rpc {
     int RtmpClient::Init(const char *server_addr, int port,
                          const RtmpClientOptions &options) {
         melon::container::intrusive_ptr<RtmpClientImpl> tmp(new(std::nothrow) RtmpClientImpl);
-        if (tmp == NULL) {
+        if (tmp == nullptr) {
             MELON_LOG(FATAL) << "Fail to new RtmpClientImpl";
             return -1;
         }
@@ -1266,7 +1266,7 @@ namespace melon::rpc {
                          const char *load_balancer_name,
                          const RtmpClientOptions &options) {
         melon::container::intrusive_ptr<RtmpClientImpl> tmp(new(std::nothrow) RtmpClientImpl);
-        if (tmp == NULL) {
+        if (tmp == nullptr) {
             MELON_LOG(FATAL) << "Fail to new RtmpClientImpl";
             return -1;
         }
@@ -1277,7 +1277,7 @@ namespace melon::rpc {
         return 0;
     }
 
-    bool RtmpClient::initialized() const { return _impl != NULL; }
+    bool RtmpClient::initialized() const { return _impl != nullptr; }
 
     RtmpStreamBase::RtmpStreamBase(bool is_client)
             : _is_client(is_client), _paused(false), _stopped(false), _processing_msg(false), _has_data_ever(false),
@@ -1295,7 +1295,7 @@ namespace melon::rpc {
     int RtmpStreamBase::SendMessage(uint32_t timestamp,
                                     uint8_t message_type,
                                     const melon::cord_buf &body) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1316,7 +1316,7 @@ namespace melon::rpc {
 
     int RtmpStreamBase::SendControlMessage(
             uint8_t message_type, const void *body, size_t size) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1363,7 +1363,7 @@ namespace melon::rpc {
     }
 
     int RtmpStreamBase::SendAudioMessage(const RtmpAudioMessage &msg) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1394,7 +1394,7 @@ namespace melon::rpc {
     }
 
     int RtmpStreamBase::SendAACMessage(const RtmpAACMessage &msg) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1431,7 +1431,7 @@ namespace melon::rpc {
     }
 
     int RtmpStreamBase::SendVideoMessage(const RtmpVideoMessage &msg) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1464,7 +1464,7 @@ namespace melon::rpc {
     }
 
     int RtmpStreamBase::SendAVCMessage(const RtmpAVCMessage &msg) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1729,20 +1729,20 @@ namespace melon::rpc {
             std::unique_lock<std::mutex> mu(_state_mutex);
             if (_state == STATE_ERROR || _state == STATE_DESTROYING) {
                 cntl->SetFailed(EINVAL, "Fail to replace socket for stream, _state is error or destroying");
-                return NULL;
+                return nullptr;
             }
         }
         SocketId esid;
         if (cntl->connection_type() == CONNECTION_TYPE_SHORT) {
             if (_client_impl->CreateSocket((*inout)->remote_side(), &esid) != 0) {
                 cntl->SetFailed(EINVAL, "Fail to create RTMP socket");
-                return NULL;
+                return nullptr;
             }
         } else {
             if (_client_impl->socket_map().Insert(
                     SocketMapKey((*inout)->remote_side()), &esid) != 0) {
                 cntl->SetFailed(EINVAL, "Fail to get the RTMP socket");
-                return NULL;
+                return nullptr;
             }
         }
         SocketUniquePtr tmp_ptr;
@@ -1750,7 +1750,7 @@ namespace melon::rpc {
             cntl->SetFailed(EFAILEDSOCKET, "Fail to address RTMP SocketId=%" PRIu64
                                            " from SocketMap of RtmpClient=%p",
                             esid, _client_impl.get());
-            return NULL;
+            return nullptr;
         }
         RPC_VLOG << "Replace Socket For Stream, RTMP socketId=" << esid
                  << ", main socketId=" << (*inout)->id();
@@ -1817,8 +1817,8 @@ namespace melon::rpc {
 
     void RtmpClientStream::DestroyStreamCreator(Controller *cntl) {
         if (cntl->Failed()) {
-            if (_rtmpsock != NULL &&
-                // ^ If sending_sock is NULL, the RPC fails before _pack_request
+            if (_rtmpsock != nullptr &&
+                // ^ If sending_sock is nullptr, the RPC fails before _pack_request
                 // which calls AddTransaction, in another word, RemoveTransaction
                 // is not needed.
                 cntl->ErrorCode() != ERTMPCREATESTREAM) {
@@ -1828,7 +1828,7 @@ namespace melon::rpc {
                 const uint32_t transaction_id = cntl->log_id();
                 policy::RtmpContext *rtmp_ctx =
                         static_cast<policy::RtmpContext *>(_rtmpsock->parsing_context());
-                if (rtmp_ctx == NULL) {
+                if (rtmp_ctx == nullptr) {
                     MELON_LOG(FATAL) << "RtmpContext must be created";
                 } else {
                     policy::RtmpTransactionHandler *handler =
@@ -1877,7 +1877,7 @@ namespace melon::rpc {
     }
 
     void RtmpClientStream::OnStopInternal() {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             return CallOnStop();
         }
 
@@ -1928,13 +1928,13 @@ namespace melon::rpc {
         }
         policy::RtmpContext *ctx =
                 static_cast<policy::RtmpContext *>(_rtmpsock->parsing_context());
-        if (ctx != NULL) {
+        if (ctx != nullptr) {
             if (!ctx->RemoveMessageStream(this)) {
                 // The stream is not registered yet. Is this normal?
                 MELON_LOG(ERROR) << "Fail to remove stream_id=" << _message_stream_id;
             }
         } else {
-            MELON_LOG(FATAL) << "RtmpContext of " << *_rtmpsock << " is NULL";
+            MELON_LOG(FATAL) << "RtmpContext of " << *_rtmpsock << " is nullptr";
         }
         if (_from_socketmap) {
             _client_impl->socket_map().Remove(SocketMapKey(_rtmpsock->remote_side()),
@@ -1950,7 +1950,7 @@ namespace melon::rpc {
     }
 
     int RtmpClientStream::Play(const RtmpPlayOptions &opt) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EPERM;
             return -1;
         }
@@ -1959,7 +1959,7 @@ namespace melon::rpc {
             errno = EINVAL;
             return -1;
         }
-        if (_client_impl == NULL) {
+        if (_client_impl == nullptr) {
             MELON_LOG(ERROR) << "The client stream is not created yet";
             errno = EPERM;
             return -1;
@@ -2165,7 +2165,7 @@ namespace melon::rpc {
 
     void RtmpClientStream::Init(const RtmpClient *client,
                                 const RtmpClientStreamOptions &options) {
-        if (client->_impl == NULL) {
+        if (client->_impl == nullptr) {
             MELON_LOG(FATAL) << "RtmpClient is not initialized";
             return OnStopInternal();
         }
@@ -2215,14 +2215,14 @@ namespace melon::rpc {
                     return done->CancelBeforeCallMethod();
             }
         }
-        _client_impl->_chan.CallMethod(NULL, &done->cntl, NULL, res, done);
+        _client_impl->_chan.CallMethod(nullptr, &done->cntl, nullptr, res, done);
         if (options.wait_until_play_or_publish_is_sent) {
             Join(call_id);
         }
     }
 
     std::string RtmpClientStream::rtmp_url() const {
-        if (_client_impl == NULL) {
+        if (_client_impl == nullptr) {
             return std::string();
         }
         std::string_view tcurl = _client_impl->options().tcUrl;
@@ -2244,14 +2244,14 @@ namespace melon::rpc {
     RtmpRetryingClientStream::RtmpRetryingClientStream()
             : RtmpStreamBase(true), _destroying(false), _called_on_stop(false), _changed_stream(false),
               _has_timer_ever(false), _is_server_accepted_ever(false), _num_fast_retries(0), _last_creation_time_us(0),
-              _last_retry_start_time_us(0), _create_timer_id(0), _sub_stream_creator(NULL) {
+              _last_retry_start_time_us(0), _create_timer_id(0), _sub_stream_creator(nullptr) {
         get_rtmp_variables()->retrying_client_stream_count << 1;
         _self_ref.reset(this);
     }
 
     RtmpRetryingClientStream::~RtmpRetryingClientStream() {
         delete _sub_stream_creator;
-        _sub_stream_creator = NULL;
+        _sub_stream_creator = nullptr;
         get_rtmp_variables()->retrying_client_stream_count << -1;
     }
 
@@ -2271,7 +2271,7 @@ namespace melon::rpc {
         }
 
         // Make sure _self_ref is released before quiting this function.
-        // Notice that _self_ref.reset(NULL) is wrong because it may destructs
+        // Notice that _self_ref.reset(nullptr) is wrong because it may destructs
         // this object immediately.
         melon::container::intrusive_ptr<RtmpRetryingClientStream> self_ref;
         _self_ref.swap(self_ref);
@@ -2279,7 +2279,7 @@ namespace melon::rpc {
         melon::container::intrusive_ptr<RtmpStreamBase> old_sub_stream;
         {
             MELON_SCOPED_LOCK(_stream_mutex);
-            // swap instead of reset(NULL) to make the stream destructed
+            // swap instead of reset(nullptr) to make the stream destructed
             // outside _stream_mutex.
             _using_sub_stream.swap(old_sub_stream);
         }
@@ -2300,8 +2300,8 @@ namespace melon::rpc {
     void RtmpRetryingClientStream::Init(
             SubStreamCreator *sub_stream_creator,
             const RtmpRetryingClientStreamOptions &options) {
-        if (sub_stream_creator == NULL) {
-            MELON_LOG(ERROR) << "sub_stream_creator is NULL";
+        if (sub_stream_creator == nullptr) {
+            MELON_LOG(ERROR) << "sub_stream_creator is nullptr";
             return CallOnStopIfNeeded();
         }
         _sub_stream_creator = sub_stream_creator;
@@ -2404,7 +2404,7 @@ namespace melon::rpc {
                 _using_sub_stream.swap(removed_sub_stream);
             }
         }
-        if (removed_sub_stream == NULL ||
+        if (removed_sub_stream == nullptr ||
             _destroying.load(std::memory_order_relaxed) ||
             _called_on_stop.load(std::memory_order_relaxed)) {
             return;
@@ -2642,7 +2642,7 @@ namespace melon::rpc {
     void RtmpServerStream::OnSetBufferLength(uint32_t /*buffer_length_ms*/) {}
 
     int RtmpServerStream::SendStopMessage(const std::string_view &error_desc) {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             errno = EINVAL;
             return -1;
         }
@@ -2722,14 +2722,14 @@ namespace melon::rpc {
     }
 
     void RtmpServerStream::OnStopInternal() {
-        if (_rtmpsock == NULL) {
+        if (_rtmpsock == nullptr) {
             return CallOnStop();
         }
         policy::RtmpContext *ctx =
                 static_cast<policy::RtmpContext *>(_rtmpsock->parsing_context());
-        if (ctx == NULL) {
+        if (ctx == nullptr) {
             MELON_LOG(FATAL) << _rtmpsock->remote_side() << ": RtmpContext of "
-                       << *_rtmpsock << " is NULL";
+                       << *_rtmpsock << " is nullptr";
             return CallOnStop();
         }
         if (ctx->RemoveMessageStream(this)) {
@@ -2866,7 +2866,7 @@ namespace melon::rpc {
             return SplitVHostFromApp(rtmp_url, app, vhost);
         }
         SplitVHostFromApp(rtmp_url.substr(0, slash2_pos), app, vhost);
-        if (stream_name != NULL) {
+        if (stream_name != nullptr) {
             // Remove duplicated slashes.
             for (++slash2_pos; slash2_pos < rtmp_url.size() &&
                                rtmp_url[slash2_pos] == '/'; ++slash2_pos);

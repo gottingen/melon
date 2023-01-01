@@ -67,7 +67,7 @@ namespace {
 void* RunClosure(void* arg) {
     google::protobuf::Closure* done = (google::protobuf::Closure*)arg;
     done->Run();
-    return NULL;
+    return nullptr;
 }
 
 class MyAuthenticator : public melon::rpc::Authenticator {
@@ -167,26 +167,26 @@ protected:
 TEST_F(ServerTest, sanity) {
     {
         melon::rpc::Server server;
-        ASSERT_EQ(-1, server.Start("127.0.0.1:12345:asdf", NULL));
-        ASSERT_EQ(-1, server.Start("127.0.0.1:99999", NULL)); 
-        ASSERT_EQ(0, server.Start("127.0.0.1:8613", NULL));
+        ASSERT_EQ(-1, server.Start("127.0.0.1:12345:asdf", nullptr));
+        ASSERT_EQ(-1, server.Start("127.0.0.1:99999", nullptr));
+        ASSERT_EQ(0, server.Start("127.0.0.1:8613", nullptr));
     }
     {
         melon::rpc::Server server;
         // accept hostname as well.
-        ASSERT_EQ(0, server.Start("localhost:8613", NULL));
+        ASSERT_EQ(0, server.Start("localhost:8613", nullptr));
     }
     {
         melon::rpc::Server server;
-        ASSERT_EQ(0, server.Start("localhost:0", NULL));
+        ASSERT_EQ(0, server.Start("localhost:0", nullptr));
         // port should be replaced with the actually used one.
         ASSERT_NE(0, server.listen_address().port);
     }
 
     {
         melon::rpc::Server server;
-        ASSERT_EQ(-1, server.Start(99999, NULL));
-        ASSERT_EQ(0, server.Start(8613, NULL));
+        ASSERT_EQ(-1, server.Start(99999, nullptr));
+        ASSERT_EQ(0, server.Start(8613, nullptr));
     }
     {
         melon::rpc::Server server;
@@ -195,7 +195,7 @@ TEST_F(ServerTest, sanity) {
         ASSERT_EQ(-1, server.Start("127.0.0.1:8613", &options));
         ASSERT_FALSE(server.IsRunning());      // Revert server's status
         // And release the listen port
-        ASSERT_EQ(0, server.Start("127.0.0.1:8613", NULL));
+        ASSERT_EQ(0, server.Start("127.0.0.1:8613", nullptr));
     }
 
     melon::base::end_point ep;
@@ -208,7 +208,7 @@ TEST_F(ServerTest, sanity) {
     ASSERT_TRUE(server.IsRunning());
     ASSERT_EQ(&auth, server.options().auth);
     ASSERT_EQ(0ul, server.service_count());
-    ASSERT_TRUE(NULL == server.first_service());
+    ASSERT_TRUE(nullptr == server.first_service());
 
     std::vector<google::protobuf::Service*> services;
     server.ListServices(&services);
@@ -331,7 +331,7 @@ TEST_F(ServerTest, empty_enabled_protocols) {
     test::EchoResponse res;
     req.set_message(EXP_REQUEST);
     test::EchoService_Stub stub(&chan);
-    stub.Echo(&cntl, &req, &res, NULL);
+    stub.Echo(&cntl, &req, &res, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
 
     ASSERT_EQ(0, server.Stop(0));
@@ -357,7 +357,7 @@ TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
     copt.protocol = "http";
     ASSERT_EQ(0, http_channel.Init(ep, &copt));
     cntl.Reset();
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
 
     // Unmatched protocols are not allowed.
@@ -369,7 +369,7 @@ TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
     cntl.Reset();
     req.set_message(EXP_REQUEST);
     test::EchoService_Stub stub(&chan);
-    stub.Echo(&cntl, &req, &res, NULL);
+    stub.Echo(&cntl, &req, &res, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_TRUE(cntl.ErrorText().find("Got EOF of ") != std::string::npos);
     
@@ -382,7 +382,7 @@ TEST_F(ServerTest, services_in_different_ns) {
     melon::rpc::Server server1;
     EchoServiceV1 service_v1;
     ASSERT_EQ(0, server1.AddService(&service_v1, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
     chan_options.protocol = "http";
@@ -391,14 +391,14 @@ TEST_F(ServerTest, services_in_different_ns) {
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(1, service_v1.ncalled.load());
     cntl.Reset();
     cntl.http_request().uri() = "/v1.EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(2, service_v1.ncalled.load());
     //Stop the server to add another service.
@@ -412,20 +412,20 @@ TEST_F(ServerTest, services_in_different_ns) {
     ASSERT_EQ(-1, server1.AddService(&service_v2, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
 #else
     ASSERT_EQ(0, server1.AddService(&service_v2, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     //sleep(3); // wait for HC
     cntl.Reset();
     cntl.http_request().uri() = "/v2.EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"value\":33}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(1, service_v2.ncalled.load());
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"value\":33}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(2, service_v2.ncalled.load());
     server1.Stop(0);
@@ -438,7 +438,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     melon::rpc::Server server1;
     EchoServiceV1 service_v1;
     ASSERT_EQ(0, server1.AddService(&service_v1, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
     chan_options.protocol = "http";
@@ -447,7 +447,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(1, service_v1.ncalled.load());
     
@@ -455,7 +455,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     cntl.http_request().uri() = "/EchoService///Echo//";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(2, service_v1.ncalled.load());
 
@@ -463,7 +463,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     cntl.http_request().uri() = "/EchoService /Echo/";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EREQUEST, cntl.ErrorCode());
     MELON_LOG(INFO) << "Expected error: " << cntl.ErrorText();
@@ -474,7 +474,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     cntl.http_request().uri() = "/EchoService/Echo/Foo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(3, service_v1.ncalled.load());
     
@@ -488,14 +488,14 @@ TEST_F(ServerTest, missing_required_fields) {
     melon::rpc::Server server1;
     EchoServiceV1 service_v1;
     ASSERT_EQ(0, server1.AddService(&service_v1, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
     melon::rpc::Controller cntl;
     cntl.http_request().uri() = "/EchoService/Echo";
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
     MELON_LOG(INFO) << cntl.ErrorText();
@@ -505,7 +505,7 @@ TEST_F(ServerTest, missing_required_fields) {
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
     ASSERT_EQ(melon::rpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
@@ -515,7 +515,7 @@ TEST_F(ServerTest, missing_required_fields) {
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message2\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
     ASSERT_EQ(melon::rpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
@@ -530,14 +530,14 @@ TEST_F(ServerTest, disallow_http_body_to_pb) {
     svc_opt.allow_http_body_to_pb = false;
     svc_opt.restful_mappings = "/access_echo1=>Echo";
     ASSERT_EQ(0, server1.AddService(&service_v1, svc_opt));
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
     melon::rpc::Controller cntl;
     cntl.http_request().uri() = "/access_echo1";
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
     ASSERT_EQ(melon::rpc::HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -548,7 +548,7 @@ TEST_F(ServerTest, disallow_http_body_to_pb) {
     cntl.http_request().uri() = "/access_echo1";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("heheda");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ("heheda", cntl.response_attachment());
     ASSERT_EQ(2, service_v1.ncalled.load());
@@ -677,7 +677,7 @@ TEST_F(ServerTest, restful_mapping) {
     ASSERT_FALSE(server10._global_restful_map);
 
     // Access services
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
     chan_options.protocol = "http";
@@ -688,7 +688,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(0, service_v1.ncalled.load());
 
@@ -697,7 +697,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v1/echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"foo_v1\"}", cntl.response_attachment());
@@ -707,7 +707,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v3/echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"bar\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(2, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"bar_v1\"}", cntl.response_attachment());
@@ -717,7 +717,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = " //v1///echo////  ";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"hello\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(3, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"hello_v1\"}", cntl.response_attachment());
@@ -727,7 +727,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v3/echo/anything";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
     MELON_LOG(INFO) << "Expected error: " << cntl.ErrorText();
@@ -738,7 +738,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v2/echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"hehe\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(4, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"hehe_v1\"}", cntl.response_attachment());
@@ -748,7 +748,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v2/echo/anything";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"good\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(5, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"good_v1\"}", cntl.response_attachment());
@@ -757,7 +757,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v4_echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"hoho\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(6, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"hoho_v1\"}", cntl.response_attachment());
@@ -766,7 +766,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v5/echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(7, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"xyz_v1\"}", cntl.response_attachment());
@@ -775,7 +775,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(8, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"xyz_v1\"}", cntl.response_attachment());
@@ -784,7 +784,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/echo/test";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, service_v1.ncalled_echo2.load());
     ASSERT_EQ("{\"message\":\"xyz_v1_Echo2\"}", cntl.response_attachment());
@@ -793,7 +793,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/abc/heheda/def";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"abc_heheda\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, service_v1.ncalled_echo3.load());
     ASSERT_EQ("{\"message\":\"abc_heheda_v1_Echo3\"}", cntl.response_attachment());
@@ -802,7 +802,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/abc/def";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"abc\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(2, service_v1.ncalled_echo3.load());
     ASSERT_EQ("{\"message\":\"abc_v1_Echo3\"}", cntl.response_attachment());
@@ -812,7 +812,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/abc/heheda/def2";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(2, service_v1.ncalled_echo3.load());
     
@@ -820,7 +820,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/echo/1.flv";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"1.flv\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ("{\"message\":\"1.flv_v1_Echo4\"}", cntl.response_attachment());
     ASSERT_EQ(1, service_v1.ncalled_echo4.load());
@@ -829,7 +829,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "//v6//d.flv//";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"d.flv\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ("{\"message\":\"d.flv_v1_Echo5\"}", cntl.response_attachment());
     ASSERT_EQ(1, service_v1.ncalled_echo5.load());
@@ -839,7 +839,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "//d.flv//";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"d.flv\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ("{\"message\":\"d.flv_v1\"}", cntl.response_attachment());
     ASSERT_EQ(9, service_v1.ncalled.load());
@@ -848,7 +848,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v7/e.flv";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"e.flv\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ("{\"message\":\"e.flv_v1\"}", cntl.response_attachment());
     ASSERT_EQ(10, service_v1.ncalled.load());
@@ -857,7 +857,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v0/f.flv";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"f.flv\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ("{\"message\":\"f.flv_v1\"}", cntl.response_attachment());
     ASSERT_EQ(11, service_v1.ncalled.load());
@@ -867,21 +867,21 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/v6/ech/1.ts";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"1.ts\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
 
     //Stop the server.
     server1.Stop(0);
     server1.Join();
 
-    ASSERT_EQ(0, server10.Start(port, NULL));
+    ASSERT_EQ(0, server10.Start(port, nullptr));
 
     // access v1.Echo via /v1/echo.
     cntl.Reset();
     cntl.http_request().uri() = "/v1/echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(12, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"foo_v1\"}", cntl.response_attachment());
@@ -891,7 +891,7 @@ TEST_F(ServerTest, restful_mapping) {
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(13, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"foo_v1\"}", cntl.response_attachment());
@@ -917,9 +917,9 @@ TEST_F(ServerTest, conflict_name_between_restful_mapping_and_builtin) {
                   melon::rpc::SERVER_DOESNT_OWN_SERVICE,
                   "/status/hello => Echo"));
     ASSERT_EQ(1u, server1.service_count());
-    ASSERT_TRUE(server1._global_restful_map == NULL);
+    ASSERT_TRUE(server1._global_restful_map == nullptr);
 
-    ASSERT_EQ(-1, server1.Start(port, NULL));
+    ASSERT_EQ(-1, server1.Start(port, nullptr));
 }
 
 TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
@@ -936,7 +936,7 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     ASSERT_TRUE(server1._global_restful_map);
     ASSERT_EQ(1UL, server1._global_restful_map->size());
 
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
@@ -946,7 +946,7 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     // accessing /status should be OK.
     melon::rpc::Controller cntl;
     cntl.http_request().uri() = "/status";
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_TRUE(cntl.response_attachment().to_string().find(
                   service_v1.GetDescriptor()->full_name()) != std::string::npos)
@@ -957,7 +957,7 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     cntl.http_request().uri() = "/EchoService/Echo";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(0, service_v1.ncalled.load());
 
@@ -966,7 +966,7 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     cntl.http_request().uri() = "/non_exist";
     cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
-    http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, service_v1.ncalled.load());
     ASSERT_EQ("{\"message\":\"foo_v1\"}", cntl.response_attachment());
@@ -995,12 +995,12 @@ TEST_F(ServerTest, add_remove_service) {
         test::EchoService::descriptor()->name()) == &echo_svc);
     ASSERT_TRUE(server.FindServiceByFullName(
         test::EchoService::descriptor()->full_name()) == &echo_svc);
-    ASSERT_TRUE(NULL == server.FindServiceByFullName(
+    ASSERT_TRUE(nullptr == server.FindServiceByFullName(
         test::EchoService::descriptor()->name()));
 
     melon::base::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
-    ASSERT_EQ(0, server.Start(ep, NULL));
+    ASSERT_EQ(0, server.Start(ep, nullptr));
 
     ASSERT_EQ(1ul, server.service_count());
     ASSERT_TRUE(server.first_service() == &echo_svc);
@@ -1028,7 +1028,7 @@ TEST_F(ServerTest, add_remove_service) {
 
 void SendSleepRPC(melon::base::end_point ep, int sleep_ms, bool succ) {
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init(ep, NULL));
+    ASSERT_EQ(0, channel.Init(ep, nullptr));
 
     melon::rpc::Controller cntl;
     test::EchoRequest req;
@@ -1038,7 +1038,7 @@ void SendSleepRPC(melon::base::end_point ep, int sleep_ms, bool succ) {
         req.set_sleep_us(sleep_ms * 1000);
     }
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &req, &res, NULL);
+    stub.Echo(&cntl, &req, &res, nullptr);
     if (succ) {
         EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText()
                                     << " latency=" << cntl.latency_us();
@@ -1055,7 +1055,7 @@ TEST_F(ServerTest, close_idle_connections) {
     ASSERT_EQ(0, str2endpoint("127.0.0.1:9776", &ep));
     ASSERT_EQ(0, server.Start(ep, &opt));
 
-    const int cfd = tcp_connect(ep, NULL);
+    const int cfd = tcp_connect(ep, nullptr);
     ASSERT_GT(cfd, 0);
     usleep(10000);
     melon::rpc::ServerStatistics stat;
@@ -1078,12 +1078,12 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
     
     // Server::Stop(-1)
     {
-        ASSERT_EQ(0, server.Start(ep, NULL));
+        ASSERT_EQ(0, server.Start(ep, nullptr));
         fiber_id_t tid;
         const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::rpc::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        EXPECT_EQ(0, fiber_start_background(&tid, nullptr, RunClosure, thrd_func));
         while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             melon::fiber_sleep_for(1000);
         }
@@ -1092,18 +1092,18 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         ASSERT_EQ(0, server.Join());
         timer.stop();
         EXPECT_TRUE(labs(timer.m_elapsed() - 100) < 15) << timer.m_elapsed();
-        fiber_join(tid, NULL);
+        fiber_join(tid, nullptr);
     }
 
     // Server::Stop(0)
     {
         ++ep.port;
-        ASSERT_EQ(0, server.Start(ep, NULL));
+        ASSERT_EQ(0, server.Start(ep, nullptr));
         fiber_id_t tid;
         const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::rpc::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        EXPECT_EQ(0, fiber_start_background(&tid, nullptr, RunClosure, thrd_func));
         while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             melon::fiber_sleep_for(1000);
         }
@@ -1115,18 +1115,18 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         // Assertion will fail since EchoServiceImpl::Echo is holding
         // additional reference to the `Socket'
         // EXPECT_TRUE(timer.m_elapsed() < 15) << timer.m_elapsed();
-        fiber_join(tid, NULL);
+        fiber_join(tid, nullptr);
     }
 
     // Server::Stop(timeout) where timeout < g_sleep_ms
     {
         ++ep.port;
-        ASSERT_EQ(0, server.Start(ep, NULL));
+        ASSERT_EQ(0, server.Start(ep, nullptr));
         fiber_id_t tid;
         const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::rpc::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        EXPECT_EQ(0, fiber_start_background(&tid, nullptr, RunClosure, thrd_func));
         while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             melon::fiber_sleep_for(1000);
         }
@@ -1138,18 +1138,18 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         // Assertion will fail since EchoServiceImpl::Echo is holding
         // additional reference to the `Socket'
         // EXPECT_TRUE(labs(timer.m_elapsed() - 50) < 15) << timer.m_elapsed();
-        fiber_join(tid, NULL);
+        fiber_join(tid, nullptr);
     }
     
     // Server::Stop(timeout) where timeout > g_sleep_ms
     {
         ++ep.port;
-        ASSERT_EQ(0, server.Start(ep, NULL));
+        ASSERT_EQ(0, server.Start(ep, nullptr));
         fiber_id_t tid;
         const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::rpc::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        EXPECT_EQ(0, fiber_start_background(&tid, nullptr, RunClosure, thrd_func));
         while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             melon::fiber_sleep_for(1000);
         }
@@ -1158,13 +1158,13 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         ASSERT_EQ(0, server.Join());
         timer.stop();
         EXPECT_TRUE(labs(timer.m_elapsed() - 100) < 15) << timer.m_elapsed();
-        fiber_join(tid, NULL);
+        fiber_join(tid, nullptr);
     }
 }
 
 void SendMultipleRPC(melon::base::end_point ep, int count) {
     melon::rpc::Channel channel;
-    EXPECT_EQ(0, channel.Init(ep, NULL));
+    EXPECT_EQ(0, channel.Init(ep, nullptr));
 
     for (int i = 0; i < count; ++i) {
         melon::rpc::Controller cntl;
@@ -1172,7 +1172,7 @@ void SendMultipleRPC(melon::base::end_point ep, int count) {
         test::EchoResponse res;
         req.set_message(EXP_REQUEST);
         test::EchoService_Stub stub(&channel);
-        stub.Echo(&cntl, &req, &res, NULL);
+        stub.Echo(&cntl, &req, &res, nullptr);
  
         EXPECT_EQ(EXP_RESPONSE, res.message()) << cntl.ErrorText();
     }
@@ -1185,7 +1185,7 @@ TEST_F(ServerTest, serving_requests) {
                                    melon::rpc::SERVER_DOESNT_OWN_SERVICE));
     melon::base::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
-    ASSERT_EQ(0, server.Start(ep, NULL));
+    ASSERT_EQ(0, server.Start(ep, nullptr));
 
     const int NUM = 1;
     const int COUNT = 1;
@@ -1193,10 +1193,10 @@ TEST_F(ServerTest, serving_requests) {
     for (int i = 0; i < NUM; ++i) {
         google::protobuf::Closure* thrd_func = 
                 melon::rpc::NewCallback(SendMultipleRPC, ep, COUNT);
-        EXPECT_EQ(0, pthread_create(&tids[i], NULL, RunClosure, thrd_func));
+        EXPECT_EQ(0, pthread_create(&tids[i], nullptr, RunClosure, thrd_func));
     }
     for (int i = 0; i < NUM; ++i) {
-        pthread_join(tids[i], NULL);
+        pthread_join(tids[i], nullptr);
     }
     ASSERT_EQ(NUM * COUNT, echo_svc.count.load());
     ASSERT_EQ(0, server.Stop(0));
@@ -1230,10 +1230,10 @@ TEST_F(ServerTest, range_start) {
     }
 
     melon::rpc::Server server;
-    EXPECT_EQ(-1, server.Start("0.0.0.0", melon::rpc::PortRange(START_PORT, END_PORT - 1), NULL));
+    EXPECT_EQ(-1, server.Start("0.0.0.0", melon::rpc::PortRange(START_PORT, END_PORT - 1), nullptr));
     // note: add an extra port after END_PORT to detect the bug that the 
     // probing does not stop at the first valid port(END_PORT).
-    EXPECT_EQ(0, server.Start("0.0.0.0", melon::rpc::PortRange(START_PORT, END_PORT + 1/*note*/), NULL));
+    EXPECT_EQ(0, server.Start("0.0.0.0", melon::rpc::PortRange(START_PORT, END_PORT + 1/*note*/), nullptr));
     EXPECT_EQ(END_PORT, server.listen_address().port);
 }
 
@@ -1271,7 +1271,7 @@ TEST_F(ServerTest, base64_to_string) {
         service_opt.pb_bytes_to_base64 = (i == 0);
         ASSERT_EQ(0, server.AddService(&echo_svc,
                                        service_opt));
-        ASSERT_EQ(0, server.Start(8613, NULL));
+        ASSERT_EQ(0, server.Start(8613, nullptr));
 
         melon::rpc::Channel chan;
         melon::rpc::ChannelOptions opt;
@@ -1286,7 +1286,7 @@ TEST_F(ServerTest, base64_to_string) {
         test::BytesRequest req;
         test::BytesResponse res;
         req.set_databytes(EXP_REQUEST);
-        chan.CallMethod(NULL, &cntl, &req, &res, NULL);
+        chan.CallMethod(nullptr, &cntl, &req, &res, nullptr);
         EXPECT_FALSE(cntl.Failed());
         EXPECT_EQ(EXP_REQUEST, res.databytes());
         server.Stop(0);
@@ -1299,17 +1299,17 @@ TEST_F(ServerTest, too_big_message) {
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
                                    melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(8613, NULL));
+    ASSERT_EQ(0, server.Start(8613, nullptr));
 
 
     melon::rpc::Channel chan;
-    ASSERT_EQ(0, chan.Init("localhost:8613", NULL));
+    ASSERT_EQ(0, chan.Init("localhost:8613", nullptr));
     melon::rpc::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.mutable_message()->resize(melon::rpc::FLAGS_max_body_size + 1);
     test::EchoService_Stub stub(&chan);
-    stub.Echo(&cntl, &req, &res, NULL);
+    stub.Echo(&cntl, &req, &res, nullptr);
     EXPECT_TRUE(cntl.Failed());
 
 
@@ -1327,21 +1327,21 @@ TEST_F(ServerTest, max_concurrency) {
     server1.MaxConcurrencyOf(&service1, "Echo") = 2;
     ASSERT_EQ(2, server1.MaxConcurrencyOf(&service1, "Echo")); 
 
-    ASSERT_EQ(0, server1.Start(port, NULL));
+    ASSERT_EQ(0, server1.Start(port, nullptr));
     melon::rpc::Channel http_channel;
     melon::rpc::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
     
     melon::rpc::Channel normal_channel;
-    ASSERT_EQ(0, normal_channel.Init("0.0.0.0", port, NULL));
+    ASSERT_EQ(0, normal_channel.Init("0.0.0.0", port, nullptr));
     test::EchoService_Stub stub(&normal_channel);
 
     melon::rpc::Controller cntl1;
     cntl1.http_request().uri() = "/EchoService/Echo";
     cntl1.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl1.request_attachment().append("{\"message\":\"hello\",\"sleep_us\":100000}");
-    http_channel.CallMethod(NULL, &cntl1, NULL, NULL, melon::rpc::DoNothing());
+    http_channel.CallMethod(nullptr, &cntl1, nullptr, nullptr, melon::rpc::DoNothing());
 
     melon::rpc::Controller cntl2;
     test::EchoRequest req;
@@ -1357,14 +1357,14 @@ TEST_F(ServerTest, max_concurrency) {
     cntl3.http_request().uri() = "/EchoService/Echo";
     cntl3.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl3.request_attachment().append("{\"message\":\"hello\"}");
-    http_channel.CallMethod(NULL, &cntl3, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl3, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl3.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl3.ErrorCode());
     ASSERT_EQ(melon::rpc::HTTP_STATUS_SERVICE_UNAVAILABLE, cntl3.http_response().status_code());
 
     melon::rpc::Controller cntl4;
     req.clear_sleep_us();
-    stub.Echo(&cntl4, &req, NULL, NULL);
+    stub.Echo(&cntl4, &req, nullptr, nullptr);
     ASSERT_TRUE(cntl4.Failed());
     ASSERT_EQ(melon::rpc::ELIMIT, cntl4.ErrorCode());
     
@@ -1377,11 +1377,11 @@ TEST_F(ServerTest, max_concurrency) {
     cntl3.http_request().uri() = "/EchoService/Echo";
     cntl3.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
     cntl3.request_attachment().append("{\"message\":\"hello\"}");
-    http_channel.CallMethod(NULL, &cntl3, NULL, NULL, NULL);
+    http_channel.CallMethod(nullptr, &cntl3, nullptr, nullptr, nullptr);
     ASSERT_FALSE(cntl3.Failed()) << cntl3.ErrorText();
 
     cntl4.Reset();
-    stub.Echo(&cntl4, &req, NULL, NULL);
+    stub.Echo(&cntl4, &req, nullptr, nullptr);
     ASSERT_FALSE(cntl4.Failed()) << cntl4.ErrorText();
 }
 } //namespace

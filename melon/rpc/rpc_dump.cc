@@ -110,7 +110,7 @@ namespace melon::rpc {
     };
 
     melon::CollectorSpeedLimit g_rpc_dump_sl = VARIABLE_COLLECTOR_SPEED_LIMIT_INITIALIZER;
-    static RpcDumpContext *g_rpc_dump_ctx = NULL;
+    static RpcDumpContext *g_rpc_dump_ctx = nullptr;
 
     void SampledRequest::dump_and_destroy(size_t round) {
         static melon::DisplaySamplingRatio sampling_ratio_var(
@@ -118,7 +118,7 @@ namespace melon::rpc {
 
         // Safe to modify g_rpc_dump_ctx w/o locking.
         RpcDumpContext *rpc_dump_ctx = g_rpc_dump_ctx;
-        if (rpc_dump_ctx == NULL) {
+        if (rpc_dump_ctx == nullptr) {
             rpc_dump_ctx = new RpcDumpContext;
             g_rpc_dump_ctx = rpc_dump_ctx;
         }
@@ -305,12 +305,12 @@ namespace melon::rpc {
                 ++_enum;
             }
             if (_enum == melon::directory_iterator()) {
-                return NULL;
+                return nullptr;
             }
 
             auto filename = _enum->file_path();
             if (filename.empty()) {
-                return NULL;
+                return nullptr;
             }
             _cur_fd = open(filename.c_str(), O_RDONLY);
         }
@@ -319,13 +319,13 @@ namespace melon::rpc {
     SampledRequest *SampleIterator::Pop(melon::cord_buf &buf, bool *format_error) {
         char backing_buf[12];
         const char *p = (const char *) buf.fetch(backing_buf, sizeof(backing_buf));
-        if (NULL == p) {  // buf.length() < sizeof(backing_buf)
-            return NULL;
+        if (nullptr == p) {  // buf.length() < sizeof(backing_buf)
+            return nullptr;
         }
         if (*(const uint32_t *) p != *(const uint32_t *) "PRPC") {
             MELON_LOG(ERROR) << "Unmatched magic string";
             *format_error = true;
-            return NULL;
+            return nullptr;
         }
         uint32_t body_size;
         uint32_t meta_size;
@@ -333,15 +333,15 @@ namespace melon::rpc {
         if (body_size > FLAGS_max_body_size) {
             MELON_LOG(ERROR) << "Too big body=" << body_size;
             *format_error = true;
-            return NULL;
+            return nullptr;
         } else if (buf.length() < sizeof(backing_buf) + body_size) {
-            return NULL;
+            return nullptr;
         }
         if (meta_size > body_size) {
             MELON_LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                        << body_size;
             *format_error = true;
-            return NULL;
+            return nullptr;
         }
         buf.pop_front(sizeof(backing_buf));
         melon::cord_buf meta_buf;
@@ -350,7 +350,7 @@ namespace melon::rpc {
         if (!ParsePbFromCordBuf(&req->meta, meta_buf)) {
             MELON_LOG(ERROR) << "Fail to parse RpcDumpMeta";
             *format_error = true;
-            return NULL;
+            return nullptr;
         }
         buf.cutn(&req->request, body_size - meta_size);
         return req.release();

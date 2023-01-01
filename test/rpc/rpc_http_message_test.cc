@@ -140,7 +140,7 @@ TEST(HttpMessageTest, request_sanity) {
 
     ASSERT_TRUE(header.GetHeader("log-id"));
     ASSERT_EQ("456", *header.GetHeader("log-id"));
-    ASSERT_TRUE(NULL != header.GetHeader("Authorization"));
+    ASSERT_TRUE(nullptr != header.GetHeader("Authorization"));
     ASSERT_EQ("test", *header.GetHeader("Authorization"));
 }
 
@@ -230,19 +230,19 @@ TEST(HttpMessageTest, find_method_property_by_uri) {
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(new test::EchoService(),
                                    melon::rpc::SERVER_OWNS_SERVICE));
-    ASSERT_EQ(0, server.Start(9237, NULL));
+    ASSERT_EQ(0, server.Start(9237, nullptr));
     std::string unknown_method;
-    melon::rpc::Server::MethodProperty* mp = NULL;
+    melon::rpc::Server::MethodProperty* mp = nullptr;
               
-    mp = FindMethodPropertyByURI("", &server, NULL);
+    mp = FindMethodPropertyByURI("", &server, nullptr);
     ASSERT_TRUE(mp);
     ASSERT_EQ("index", mp->method->service()->name());
 
-    mp = FindMethodPropertyByURI("/", &server, NULL);
+    mp = FindMethodPropertyByURI("/", &server, nullptr);
     ASSERT_TRUE(mp);
     ASSERT_EQ("index", mp->method->service()->name());
 
-    mp = FindMethodPropertyByURI("//", &server, NULL);
+    mp = FindMethodPropertyByURI("//", &server, nullptr);
     ASSERT_TRUE(mp);
     ASSERT_EQ("index", mp->method->service()->name());
 
@@ -400,7 +400,7 @@ TEST(HttpMessageTest, serialize_http_response) {
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nFoo: Bar\r\n\r\ndata2", response);
 
     // null content
-    MakeRawHttpResponse(&response, &header, NULL);
+    MakeRawHttpResponse(&response, &header, nullptr);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nFoo: Bar\r\n\r\n", response);
 }
 

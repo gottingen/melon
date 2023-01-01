@@ -205,7 +205,7 @@ namespace melon {
         char *data;
 
         Block(char *data_in, uint32_t data_size)
-                : nshared(1), flags(0), abi_check(0), size(0), cap(data_size), portal_next(NULL), data(data_in) {
+                : nshared(1), flags(0), abi_check(0), size(0), cap(data_size), portal_next(nullptr), data(data_in) {
             iobuf::g_nblock.fetch_add(1, std::memory_order_relaxed);
             iobuf::g_blockmem.fetch_add(data_size + sizeof(Block),
                                         std::memory_order_relaxed);
@@ -213,7 +213,7 @@ namespace melon {
 
         Block(char *data_in, uint32_t data_size, UserDataDeleter deleter)
                 : nshared(1), flags(CORD_BUF_BLOCK_FLAGS_USER_DATA), abi_check(0), size(data_size), cap(data_size),
-                  portal_next(NULL), data(data_in) {
+                  portal_next(nullptr), data(data_in) {
             get_user_data_extension()->deleter = deleter;
         }
 
@@ -284,11 +284,11 @@ namespace melon {
         inline cord_buf::Block *create_block(const size_t block_size) {
             if (block_size > 0xFFFFFFFFULL) {
                 MELON_LOG(FATAL) << "block_size=" << block_size << " is too large";
-                return NULL;
+                return nullptr;
             }
             char *mem = (char *) iobuf::blockmem_allocate(block_size);
-            if (mem == NULL) {
-                return NULL;
+            if (mem == nullptr) {
+                return nullptr;
             }
             return new(mem) cord_buf::Block(mem + sizeof(cord_buf::Block),
                                          block_size - sizeof(cord_buf::Block));
@@ -314,7 +314,7 @@ namespace melon {
             bool registered;
         };
 
-        static __thread TLSData g_tls_data = {NULL, 0, false};
+        static __thread TLSData g_tls_data = {nullptr, 0, false};
 
         // Used in UT
         cord_buf::Block *get_tls_block_head() { return g_tls_data.block_head; }
@@ -333,7 +333,7 @@ namespace melon {
             if (!b) {
                 return;
             }
-            tls_data.block_head = NULL;
+            tls_data.block_head = nullptr;
             int n = 0;
             do {
                 cord_buf::Block *const saved_next = b->portal_next;
@@ -350,10 +350,10 @@ namespace melon {
         cord_buf::Block *share_tls_block() {
             TLSData &tls_data = g_tls_data;
             cord_buf::Block *const b = tls_data.block_head;
-            if (b != NULL && !b->full()) {
+            if (b != nullptr && !b->full()) {
                 return b;
             }
-            cord_buf::Block *new_block = NULL;
+            cord_buf::Block *new_block = nullptr;
             if (b) {
                 new_block = b;
                 while (new_block && new_block->full()) {
@@ -368,7 +368,7 @@ namespace melon {
                 melon::thread::atexit(remove_tls_block_chain);
             }
             if (!new_block) {
-                new_block = create_block(); // may be NULL
+                new_block = create_block(); // may be nullptr
                 if (new_block) {
                     ++tls_data.num_blocks;
                 }
@@ -400,7 +400,7 @@ namespace melon {
         }
 
 // Return chained blocks to TLS.
-// NOTE: b MUST be non-NULL and all blocks linked SHOULD not be full.
+// NOTE: b MUST be non-nullptr and all blocks linked SHOULD not be full.
         void release_tls_block_chain(cord_buf::Block *b) {
             TLSData &tls_data = g_tls_data;
             size_t n = 0;
@@ -415,11 +415,11 @@ namespace melon {
                 return;
             }
             cord_buf::Block *first_b = b;
-            cord_buf::Block *last_b = NULL;
+            cord_buf::Block *last_b = nullptr;
             do {
                 ++n;
                 MELON_CHECK(!b->full());
-                if (b->portal_next == NULL) {
+                if (b->portal_next == nullptr) {
                     last_b = b;
                     break;
                 }
@@ -453,7 +453,7 @@ namespace melon {
             }
             tls_data.block_head = b->portal_next;
             --tls_data.num_blocks;
-            b->portal_next = NULL;
+            b->portal_next = nullptr;
             return b;
         }
 
@@ -534,14 +534,14 @@ namespace melon {
     template<bool MOVE>
     void cord_buf::_push_or_move_back_ref_to_smallview(const BlockRef &r) {
         BlockRef *const refs = _sv.refs;
-        if (NULL == refs[0].block) {
+        if (nullptr == refs[0].block) {
             refs[0] = r;
             if (!MOVE) {
                 r.block->inc_ref();
             }
             return;
         }
-        if (NULL == refs[1].block) {
+        if (nullptr == refs[1].block) {
             if (refs[0].block == r.block &&
                 refs[0].offset + refs[0].length == r.offset) { // Merge ref
                 refs[0].length += r.length;
@@ -634,7 +634,7 @@ namespace melon {
     template<bool MOVEOUT>
     int cord_buf::_pop_or_moveout_front_ref() {
         if (_small()) {
-            if (_sv.refs[0].block != NULL) {
+            if (_sv.refs[0].block != nullptr) {
                 if (!MOVEOUT) {
                     _sv.refs[0].block->dec_ref();
                 }
@@ -670,11 +670,11 @@ namespace melon {
 
     int cord_buf::_pop_back_ref() {
         if (_small()) {
-            if (_sv.refs[1].block != NULL) {
+            if (_sv.refs[1].block != nullptr) {
                 _sv.refs[1].block->dec_ref();
                 reset_block_ref(_sv.refs[1]);
                 return 0;
-            } else if (_sv.refs[0].block != NULL) {
+            } else if (_sv.refs[0].block != nullptr) {
                 _sv.refs[0].block->dec_ref();
                 reset_block_ref(_sv.refs[0]);
                 return 0;
@@ -700,11 +700,11 @@ namespace melon {
 
     void cord_buf::clear() {
         if (_small()) {
-            if (_sv.refs[0].block != NULL) {
+            if (_sv.refs[0].block != nullptr) {
                 _sv.refs[0].block->dec_ref();
                 reset_block_ref(_sv.refs[0]);
 
-                if (_sv.refs[1].block != NULL) {
+                if (_sv.refs[1].block != nullptr) {
                     _sv.refs[1].block->dec_ref();
                     reset_block_ref(_sv.refs[1]);
                 }
@@ -1138,7 +1138,7 @@ namespace melon {
     }
 
     int cord_buf::append(char const *s) {
-        if (MELON_LIKELY(s != NULL)) {
+        if (MELON_LIKELY(s != nullptr)) {
             return append(s, strlen(s));
         }
         return -1;
@@ -1200,10 +1200,10 @@ namespace melon {
             return -1;
         }
         char *mem = (char *) malloc(sizeof(cord_buf::Block) + sizeof(UserDataExtension));
-        if (mem == NULL) {
+        if (mem == nullptr) {
             return -1;
         }
-        if (deleter == NULL) {
+        if (deleter == nullptr) {
             deleter = ::free;
         }
         cord_buf::Block *b = new(mem) cord_buf::Block((char *) data, size, deleter);
@@ -1292,7 +1292,7 @@ namespace melon {
     }
 
     int cord_buf::unsafe_assign(Area area, const void *data) {
-        if (area == INVALID_AREA || data == NULL) {
+        if (area == INVALID_AREA || data == nullptr) {
             MELON_LOG(ERROR) << "Invalid parameters";
             return -1;
         }
@@ -1430,7 +1430,7 @@ namespace melon {
                 total_nc += r.length;
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     const void *cord_buf::fetch1() const {
@@ -1438,7 +1438,7 @@ namespace melon {
             const cord_buf::BlockRef &r0 = _front_ref();
             return r0.block->data + r0.offset;
         }
-        return NULL;
+        return nullptr;
     }
 
     std::ostream &operator<<(std::ostream &os, const cord_buf &buf) {
@@ -1543,17 +1543,17 @@ namespace melon {
         iovec vec[MAX_APPEND_IOVEC];
         int nvec = 0;
         size_t space = 0;
-        Block *prev_p = NULL;
+        Block *prev_p = nullptr;
         Block *p = _block;
         // Prepare at most MAX_APPEND_IOVEC blocks or space of blocks >= max_count
         do {
-            if (p == NULL) {
+            if (p == nullptr) {
                 p = iobuf::acquire_tls_block();
                 if (MELON_UNLIKELY(!p)) {
                     errno = ENOMEM;
                     return -1;
                 }
-                if (prev_p != NULL) {
+                if (prev_p != nullptr) {
                     prev_p->portal_next = p;
                 } else {
                     _block = p;
@@ -1604,17 +1604,17 @@ namespace melon {
         iovec vec[MAX_APPEND_IOVEC];
         int nvec = 0;
         size_t space = 0;
-        Block *prev_p = NULL;
+        Block *prev_p = nullptr;
         Block *p = _block;
         // Prepare at most MAX_APPEND_IOVEC blocks or space of blocks >= max_count
         do {
-            if (p == NULL) {
+            if (p == nullptr) {
                 p = iobuf::acquire_tls_block();
                 if (MELON_UNLIKELY(!p)) {
                     errno = ENOMEM;
                     return -1;
                 }
-                if (prev_p != NULL) {
+                if (prev_p != nullptr) {
                     prev_p->portal_next = p;
                 } else {
                     _block = p;
@@ -1707,7 +1707,7 @@ namespace melon {
 //////////////// cord_buf_cutter ////////////////
 
     cord_buf_cutter::cord_buf_cutter(melon::cord_buf *buf)
-            : _data(NULL), _data_end(NULL), _block(NULL), _buf(buf) {
+            : _data(nullptr), _data_end(nullptr), _block(nullptr), _buf(buf) {
     }
 
     cord_buf_cutter::~cord_buf_cutter() {
@@ -1728,9 +1728,9 @@ namespace melon {
             _buf->_pop_front_ref();
         }
         if (!_buf->_ref_num()) {
-            _data = NULL;
-            _data_end = NULL;
-            _block = NULL;
+            _data = nullptr;
+            _data_end = nullptr;
+            _block = nullptr;
             return false;
         } else {
             const cord_buf::BlockRef &r = _buf->_front_ref();
@@ -1789,15 +1789,15 @@ namespace melon {
                                        _block};
             out->_push_back_ref(r);
             _buf->_pop_front_ref();
-            _data = NULL;
-            _data_end = NULL;
-            _block = NULL;
+            _data = nullptr;
+            _data_end = nullptr;
+            _block = nullptr;
             return _buf->cutn(out, n - size) + size;
         } else {
             if (_block) {
-                _data = NULL;
-                _data_end = NULL;
-                _block = NULL;
+                _data = nullptr;
+                _data_end = nullptr;
+                _block = nullptr;
                 _buf->_pop_front_ref();
             }
             return _buf->cutn(out, n);
@@ -1816,15 +1816,15 @@ namespace melon {
         } else if (size != 0) {
             memcpy(out, _data, size);
             _buf->_pop_front_ref();
-            _data = NULL;
-            _data_end = NULL;
-            _block = NULL;
+            _data = nullptr;
+            _data_end = nullptr;
+            _block = nullptr;
             return _buf->cutn((char *) out + size, n - size) + size;
         } else {
             if (_block) {
-                _data = NULL;
-                _data_end = NULL;
-                _block = NULL;
+                _data = nullptr;
+                _data_end = nullptr;
+                _block = nullptr;
                 _buf->_pop_front_ref();
             }
             return _buf->cutn(out, n);
@@ -1837,7 +1837,7 @@ namespace melon {
 
     bool cord_buf_as_zero_copy_input_stream::Next(const void **data, int *size) {
         const cord_buf::BlockRef *cur_ref = _buf->_pref_at(_ref_index);
-        if (cur_ref == NULL) {
+        if (cur_ref == nullptr) {
             return false;
         }
         *data = cur_ref->block->data + cur_ref->offset + _add_offset;
@@ -1887,12 +1887,12 @@ namespace melon {
     }
 
     cord_buf_as_zero_copy_output_stream::cord_buf_as_zero_copy_output_stream(cord_buf *buf)
-            : _buf(buf), _block_size(0), _cur_block(NULL), _byte_count(0) {
+            : _buf(buf), _block_size(0), _cur_block(nullptr), _byte_count(0) {
     }
 
     cord_buf_as_zero_copy_output_stream::cord_buf_as_zero_copy_output_stream(
             cord_buf *buf, uint32_t block_size)
-            : _buf(buf), _block_size(block_size), _cur_block(NULL), _byte_count(0) {
+            : _buf(buf), _block_size(block_size), _cur_block(nullptr), _byte_count(0) {
 
         if (_block_size <= offsetof(cord_buf::Block, data)) {
             throw std::invalid_argument("block_size is too small");
@@ -1904,14 +1904,14 @@ namespace melon {
     }
 
     bool cord_buf_as_zero_copy_output_stream::Next(void **data, int *size) {
-        if (_cur_block == NULL || _cur_block->full()) {
+        if (_cur_block == nullptr || _cur_block->full()) {
             _release_block();
             if (_block_size > 0) {
                 _cur_block = iobuf::create_block(_block_size);
             } else {
                 _cur_block = iobuf::acquire_tls_block();
             }
-            if (_cur_block == NULL) {
+            if (_cur_block == nullptr) {
                 return false;
             }
         }
@@ -1984,7 +1984,7 @@ namespace melon {
                 //    buf.append("foobar");  // can reuse the TLS block.
                 if (_block_size == 0) {
                     iobuf::release_tls_block(_cur_block);
-                    _cur_block = NULL;
+                    _cur_block = nullptr;
                 }
                 return;
             }
@@ -2012,11 +2012,11 @@ namespace melon {
         } else {
             iobuf::release_tls_block(_cur_block);
         }
-        _cur_block = NULL;
+        _cur_block = nullptr;
     }
 
     cord_buf_as_snappy_sink::cord_buf_as_snappy_sink(melon::cord_buf &buf)
-            : _cur_buf(NULL), _cur_len(0), _buf(&buf), _buf_stream(&buf) {
+            : _cur_buf(nullptr), _cur_len(0), _buf(&buf), _buf_stream(&buf) {
     }
 
     void cord_buf_as_snappy_sink::Append(const char *bytes, size_t n) {
@@ -2043,7 +2043,7 @@ namespace melon {
                 MELON_LOG(FATAL) << "Fail to alloc buffer";
             }
         } // else no need to try.
-        _cur_buf = NULL;
+        _cur_buf = nullptr;
         _cur_len = 0;
         return scratch;
     }
@@ -2057,7 +2057,7 @@ namespace melon {
     }
 
     const char *cord_buf_as_snappy_source::Peek(size_t *len) {
-        const char *buffer = NULL;
+        const char *buffer = nullptr;
         int res = 0;
         if (_stream.Next((const void **) &buffer, &res)) {
             *len = res;
@@ -2066,12 +2066,12 @@ namespace melon {
             return buffer;
         } else {
             *len = 0;
-            return NULL;
+            return nullptr;
         }
     }
 
     cord_buf_appender::cord_buf_appender()
-            : _data(NULL), _data_end(NULL), _zc_stream(&_buf) {
+            : _data(nullptr), _data_end(nullptr), _zc_stream(&_buf) {
     }
 
     size_t cord_buf_bytes_iterator::append_and_forward(melon::cord_buf *buf, size_t n) {

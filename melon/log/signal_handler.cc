@@ -46,15 +46,15 @@ namespace melon::log {
 
         static bool kFailureSignalHandlerInstalled = false;
 
-// Returns the program counter from signal context, NULL if unknown.
+// Returns the program counter from signal context, nullptr if unknown.
         void *GetPC(void *ucontext_in_void) {
 #if (defined(HAVE_UCONTEXT_H) || defined(HAVE_SYS_UCONTEXT_H)) && defined(PC_FROM_UCONTEXT)
-            if (ucontext_in_void != NULL) {
+            if (ucontext_in_void != nullptr) {
         ucontext_t *context = reinterpret_cast<ucontext_t *>(ucontext_in_void);
         return (void*)context->PC_FROM_UCONTEXT;
       }
 #endif
-            return NULL;
+            return nullptr;
         }
 
 // The class is used for formatting error messages.  We don't use printf()
@@ -132,7 +132,7 @@ namespace melon::log {
 // Dumps time information.  We don't dump human-readable time information
 // as localtime() is not guaranteed to be async signal safe.
         void DumpTimeInfo() {
-            time_t time_in_sec = time(NULL);
+            time_t time_in_sec = time(nullptr);
             char buf[256];  // Big enough for time info.
             MinimalFormatter formatter(buf, sizeof(buf));
             formatter.AppendString("*** Aborted at ");
@@ -150,7 +150,7 @@ namespace melon::log {
         // Dumps information about the signal to STDERR.
         void DumpSignalInfo(int signal_number, siginfo_t *siginfo) {
             // Get the signal name.
-            const char *signal_name = NULL;
+            const char *signal_name = nullptr;
             for (size_t i = 0; i < MELON_ARRAY_SIZE(kFailureSignals); ++i) {
                 if (signal_number == kFailureSignals[i].number) {
                     signal_name = kFailureSignals[i].name;
@@ -226,7 +226,7 @@ namespace melon::log {
             memset(&sig_action, 0, sizeof(sig_action));
             sigemptyset(&sig_action.sa_mask);
             sig_action.sa_handler = SIG_DFL;
-            sigaction(signal_number, &sig_action, NULL);
+            sigaction(signal_number, &sig_action, nullptr);
             kill(getpid(), signal_number);
 #endif
         }
@@ -254,7 +254,7 @@ namespace melon::log {
             // if pthread_self() is guaranteed to return non-zero value for thread
             // ids, but there is no such guarantee.  We need to distinguish if the
             // old value (value returned from __sync_val_compare_and_swap) is
-            // different from the original value (in this case NULL).
+            // different from the original value (in this case nullptr).
             pthread_t *old_thread_id_pointer = nullptr;
 
             g_entered_thread_id_pointer.compare_exchange_weak(old_thread_id_pointer, &my_thread_id);
@@ -325,7 +325,7 @@ namespace melon::log {
             struct sigaction sig_action;
             memset(&sig_action, 0, sizeof(sig_action));
             sigemptyset(&sig_action.sa_mask);
-            sigaction(SIGABRT, NULL, &sig_action);
+            sigaction(SIGABRT, nullptr, &sig_action);
             if (sig_action.sa_sigaction == &FailureSignalHandler)
                 return true;
 #endif  // HAVE_SIGACTION
@@ -344,7 +344,7 @@ namespace melon::log {
         sig_action.sa_sigaction = &FailureSignalHandler;
 
         for (size_t i = 0; i < MELON_ARRAY_SIZE(kFailureSignals); ++i) {
-            MELON_CHECK_ERR(sigaction(kFailureSignals[i].number, &sig_action, NULL));
+            MELON_CHECK_ERR(sigaction(kFailureSignals[i].number, &sig_action, nullptr));
         }
         kFailureSignalHandlerInstalled = true;
 #endif  // HAVE_SIGACTION

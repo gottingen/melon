@@ -112,7 +112,7 @@ namespace melon::rpc {
 
             // Fetch correlation id that we saved before in `PackNovaRequest'
             const fiber_token_t cid = {static_cast<uint64_t>(socket->correlation_id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -132,7 +132,7 @@ namespace melon::rpc {
             // Fetch compress flag from nshead
             char buf[sizeof(nshead_t)];
             const char *p = (const char *) msg->meta.fetch(buf, sizeof(buf));
-            if (NULL == p) {
+            if (nullptr == p) {
                 MELON_LOG(WARNING) << "Fail to fetch nshead from client="
                                    << socket->remote_side();
                 return;

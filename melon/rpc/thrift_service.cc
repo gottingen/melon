@@ -24,12 +24,12 @@ namespace melon::rpc {
 
     ThriftService::ThriftService() {
         _status = new(std::nothrow) MethodStatus;
-        MELON_LOG_IF(FATAL, _status == NULL) << "Fail to new MethodStatus";
+        MELON_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
     }
 
     ThriftService::~ThriftService() {
         delete _status;
-        _status = NULL;
+        _status = nullptr;
     }
 
     void ThriftService::Describe(std::ostream &os, const DescribeOptions &) const {
@@ -37,7 +37,7 @@ namespace melon::rpc {
     }
 
     void ThriftService::Expose(const std::string_view &prefix) {
-        if (_status == NULL) {
+        if (_status == nullptr) {
             return;
         }
         std::string s;

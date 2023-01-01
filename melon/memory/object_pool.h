@@ -40,7 +40,7 @@ namespace melon {
 
     // ObjectPool calls this function on newly constructed objects. If this
     // function returns false, the object is destructed immediately and
-    // get_object() shall return NULL. This is useful when the constructor
+    // get_object() shall return nullptr. This is useful when the constructor
     // failed internally(namely ENOMEM).
     template<typename T>
     struct ObjectPoolValidator {

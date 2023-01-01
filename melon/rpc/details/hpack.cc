@@ -38,7 +38,7 @@ namespace melon::rpc {
         bool need_indexes;
 
         IndexTableOptions()
-                : max_size(0), start_index(0), static_table(NULL), static_table_size(0), need_indexes(false) {}
+                : max_size(0), start_index(0), static_table(nullptr), static_table_size(0), need_indexes(false) {}
     };
 
     struct HeaderAndHashCode {
@@ -82,7 +82,7 @@ namespace melon::rpc {
 
         const Header *HeaderAt(int index) const {
             if (MELON_UNLIKELY(index < _start_index)) {
-                return NULL;
+                return nullptr;
             }
             return _header_queue.bottom(index - _start_index);
         };
@@ -323,10 +323,10 @@ namespace melon::rpc {
 
         const HuffmanNode *node(NodeId id) const {
             if (id == 0u) {
-                return NULL;
+                return nullptr;
             }
             if (id > _node_memory.size()) {
-                return NULL;
+                return nullptr;
             }
             return &_node_memory[id - 1];
         }
@@ -387,7 +387,7 @@ namespace melon::rpc {
             _out->push_back(_partial_byte);
             _partial_byte = 0;
             _remain_bit = 0;
-            _out = NULL;
+            _out = nullptr;
             ++_out_bytes;
         }
 
@@ -499,8 +499,8 @@ namespace melon::rpc {
     }
 
 // Static variables
-    static HuffmanTree *s_huffman_tree = NULL;
-    static IndexTable *s_static_table = NULL;
+    static HuffmanTree *s_huffman_tree = nullptr;
+    static IndexTable *s_static_table = nullptr;
     static pthread_once_t s_create_once = PTHREAD_ONCE_INIT;
 
     static void CreateStaticTableOrDie() {
@@ -533,7 +533,7 @@ namespace melon::rpc {
 
     inline ssize_t DecodeInteger(melon::cord_buf_bytes_iterator &iter,
                                  uint8_t prefix_size, uint32_t *value) {
-        if (iter == NULL) {
+        if (iter == nullptr) {
             return 0; // No enough data
         }
         uint8_t first_byte = *iter;
@@ -608,7 +608,7 @@ namespace melon::rpc {
     }
 
     inline ssize_t DecodeString(melon::cord_buf_bytes_iterator &iter, std::string *out) {
-        if (iter == NULL) {
+        if (iter == nullptr) {
             return 0;
         }
         const bool huffman = *iter & 0x80;
@@ -627,7 +627,7 @@ namespace melon::rpc {
             return in_bytes;
         }
         HuffmanDecoder d(out, s_huffman_tree);
-        for (; iter != NULL && length; ++iter, --length) {
+        for (; iter != nullptr && length; ++iter, --length) {
             if (d.Decode(*iter) != 0) {
                 return -1;
             }
@@ -639,18 +639,18 @@ namespace melon::rpc {
     }
 
     HPacker::HPacker()
-            : _encode_table(NULL), _decode_table(NULL) {
+            : _encode_table(nullptr), _decode_table(nullptr) {
         CreateStaticTableOnceOrDie();
     }
 
     HPacker::~HPacker() {
         if (_encode_table) {
             delete _encode_table;
-            _encode_table = NULL;
+            _encode_table = nullptr;
         }
         if (_decode_table) {
             delete _decode_table;
-            _decode_table = NULL;
+            _decode_table = nullptr;
         }
     }
 
@@ -744,7 +744,7 @@ namespace melon::rpc {
         }
         if (index != 0) {
             const Header *indexed_header = HeaderAt(index);
-            if (indexed_header == NULL) {
+            if (indexed_header == nullptr) {
                 MELON_LOG(ERROR) << "No header at index=" << index;
                 return -1;
             }
@@ -766,7 +766,7 @@ namespace melon::rpc {
     }
 
     ssize_t HPacker::Decode(melon::cord_buf_bytes_iterator &iter, Header *h) {
-        if (iter == NULL) {
+        if (iter == nullptr) {
             return 0;
         }
         const uint8_t first_byte = *iter;
@@ -789,7 +789,7 @@ namespace melon::rpc {
                     return index_bytes;
                 }
                 const Header *indexed_header = HeaderAt(index);
-                if (indexed_header == NULL) {
+                if (indexed_header == nullptr) {
                     MELON_LOG(ERROR) << "No header at index=" << index;
                     return -1;
                 }

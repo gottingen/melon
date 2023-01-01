@@ -109,7 +109,7 @@ public:
         BlockGroup() : nblock(0) {
             // We fetch_add nblock in add_block() before setting the entry,
             // thus address_resource() may sees the unset entry. Initialize
-            // all entries to NULL makes such address_resource() return NULL.
+            // all entries to nullptr makes such address_resource() return nullptr.
             memset(static_cast<void*>(blocks), 0, sizeof(std::atomic<Block*>) * RP_GROUP_NBLOCK);
         }
     };
@@ -120,7 +120,7 @@ public:
     public:
         explicit LocalPool(ResourcePool* pool)
             : _pool(pool)
-            , _cur_block(NULL)
+            , _cur_block(nullptr)
             , _cur_block_index(0) {
             _cur_free.nfree = 0;
         }
@@ -166,24 +166,24 @@ public:
             T* p = new ((T*)_cur_block->items + _cur_block->nitem) T CTOR_ARGS; \
             if (!ResourcePoolValidator<T>::validate(p)) {               \
                 p->~T();                                                \
-                return NULL;                                            \
+                return nullptr;                                            \
             }                                                           \
             ++_cur_block->nitem;                                        \
             return p;                                                   \
         }                                                               \
         /* Fetch a Block from global */                                 \
         _cur_block = add_block(&_cur_block_index);                      \
-        if (_cur_block != NULL) {                                       \
+        if (_cur_block != nullptr) {                                       \
             id->value = _cur_block_index * BLOCK_NITEM + _cur_block->nitem; \
             T* p = new ((T*)_cur_block->items + _cur_block->nitem) T CTOR_ARGS; \
             if (!ResourcePoolValidator<T>::validate(p)) {               \
                 p->~T();                                                \
-                return NULL;                                            \
+                return nullptr;                                            \
             }                                                           \
             ++_cur_block->nitem;                                        \
             return p;                                                   \
         }                                                               \
-        return NULL;                                                    \
+        return nullptr;                                                    \
  
 
         inline T* get(ResourceId<T>* id) {
@@ -242,10 +242,10 @@ public:
         if (__builtin_expect(group_index < RP_MAX_BLOCK_NGROUP, 1)) {
             BlockGroup* bg =
                 _block_groups[group_index].load(std::memory_order_consume);
-            if (__builtin_expect(bg != NULL, 1)) {
+            if (__builtin_expect(bg != nullptr, 1)) {
                 Block* b = bg->blocks[block_index & (RP_GROUP_NBLOCK - 1)]
                            .load(std::memory_order_consume);
-                if (__builtin_expect(b != NULL, 1)) {
+                if (__builtin_expect(b != nullptr, 1)) {
                     const size_t offset = id.value - block_index * BLOCK_NITEM;
                     if (__builtin_expect(offset < b->nitem, 1)) {
                         return (T*)b->items + offset;
@@ -254,38 +254,38 @@ public:
             }
         }
 
-        return NULL;
+        return nullptr;
     }
 
     inline T* get_resource(ResourceId<T>* id) {
         LocalPool* lp = get_or_new_local_pool();
-        if (__builtin_expect(lp != NULL, 1)) {
+        if (__builtin_expect(lp != nullptr, 1)) {
             return lp->get(id);
         }
-        return NULL;
+        return nullptr;
     }
 
     template <typename A1>
     inline T* get_resource(ResourceId<T>* id, const A1& arg1) {
         LocalPool* lp = get_or_new_local_pool();
-        if (__builtin_expect(lp != NULL, 1)) {
+        if (__builtin_expect(lp != nullptr, 1)) {
             return lp->get(id, arg1);
         }
-        return NULL;
+        return nullptr;
     }
 
     template <typename A1, typename A2>
     inline T* get_resource(ResourceId<T>* id, const A1& arg1, const A2& arg2) {
         LocalPool* lp = get_or_new_local_pool();
-        if (__builtin_expect(lp != NULL, 1)) {
+        if (__builtin_expect(lp != nullptr, 1)) {
             return lp->get(id, arg1, arg2);
         }
-        return NULL;
+        return nullptr;
     }
 
     inline int return_resource(ResourceId<T> id) {
         LocalPool* lp = get_or_new_local_pool();
-        if (__builtin_expect(lp != NULL, 1)) {
+        if (__builtin_expect(lp != nullptr, 1)) {
             return lp->return_resource(id);
         }
         return -1;
@@ -294,7 +294,7 @@ public:
     void clear_resources() {
         LocalPool* lp = _local_pool;
         if (lp) {
-            _local_pool = NULL;
+            _local_pool = nullptr;
             melon::thread::atexit_cancel(LocalPool::delete_local_pool, lp);
             delete lp;
         }
@@ -320,7 +320,7 @@ public:
 
         for (size_t i = 0; i < info.block_group_num; ++i) {
             BlockGroup* bg = _block_groups[i].load(std::memory_order_consume);
-            if (NULL == bg) {
+            if (nullptr == bg) {
                 break;
             }
             size_t nblock = std::min(bg->nblock.load(std::memory_order_relaxed),
@@ -328,7 +328,7 @@ public:
             info.block_num += nblock;
             for (size_t j = 0; j < nblock; ++j) {
                 Block* b = bg->blocks[j].load(std::memory_order_consume);
-                if (NULL != b) {
+                if (nullptr != b) {
                     info.item_num += b->nitem;
                 }
             }
@@ -355,7 +355,7 @@ public:
 private:
     ResourcePool() {
         _free_chunks.reserve(RP_INITIAL_FREE_LIST_SIZE);
-        pthread_mutex_init(&_free_chunks_mutex, NULL);
+        pthread_mutex_init(&_free_chunks_mutex, nullptr);
     }
 
     ~ResourcePool() {
@@ -365,8 +365,8 @@ private:
     // Create a Block and append it to right-most BlockGroup.
     static Block* add_block(size_t* index) {
         Block* const new_block = new(std::nothrow) Block;
-        if (NULL == new_block) {
-            return NULL;
+        if (nullptr == new_block) {
+            return nullptr;
         }
 
         size_t ngroup;
@@ -389,13 +389,13 @@ private:
 
         // Fail to add_block_group.
         delete new_block;
-        return NULL;
+        return nullptr;
     }
 
     // Create a BlockGroup and append it to _block_groups.
     // Shall be called infrequently because a BlockGroup is pretty big.
     static bool add_block_group(size_t old_ngroup) {
-        BlockGroup* bg = NULL;
+        BlockGroup* bg = nullptr;
         MELON_SCOPED_LOCK(_block_group_mutex);
         const size_t ngroup = _ngroup.load(std::memory_order_acquire);
         if (ngroup != old_ngroup) {
@@ -404,7 +404,7 @@ private:
         }
         if (ngroup < RP_MAX_BLOCK_NGROUP) {
             bg = new(std::nothrow) BlockGroup;
-            if (NULL != bg) {
+            if (nullptr != bg) {
                 // Release fence is paired with consume fence in address() and
                 // add_block() to avoid un-constructed bg to be seen by other
                 // threads.
@@ -412,17 +412,17 @@ private:
                 _ngroup.store(ngroup + 1, std::memory_order_release);
             }
         }
-        return bg != NULL;
+        return bg != nullptr;
     }
 
     inline LocalPool* get_or_new_local_pool() {
         LocalPool* lp = _local_pool;
-        if (lp != NULL) {
+        if (lp != nullptr) {
             return lp;
         }
         lp = new(std::nothrow) LocalPool(this);
-        if (NULL == lp) {
-            return NULL;
+        if (nullptr == lp) {
+            return nullptr;
         }
         MELON_SCOPED_LOCK(_change_thread_mutex); //avoid race with clear()
         _local_pool = lp;
@@ -433,7 +433,7 @@ private:
 
     void clear_from_destructor_of_local_pool() {
         // Remove tls
-        _local_pool = NULL;
+        _local_pool = nullptr;
 
         if (_nlocal.fetch_sub(1, std::memory_order_relaxed) != 1) {
             return;
@@ -461,14 +461,14 @@ private:
         const size_t ngroup = _ngroup.exchange(0, std::memory_order_relaxed);
         for (size_t i = 0; i < ngroup; ++i) {
             BlockGroup* bg = _block_groups[i].load(std::memory_order_relaxed);
-            if (NULL == bg) {
+            if (nullptr == bg) {
                 break;
             }
             size_t nblock = std::min(bg->nblock.load(std::memory_order_relaxed),
                                      RP_GROUP_NBLOCK);
             for (size_t j = 0; j < nblock; ++j) {
                 Block* b = bg->blocks[j].load(std::memory_order_relaxed);
-                if (NULL == b) {
+                if (nullptr == b) {
                     continue;
                 }
                 for (size_t k = 0; k < b->nitem; ++k) {
@@ -543,11 +543,11 @@ const size_t ResourcePool<T>::FREE_CHUNK_NITEM;
 
 template <typename T>
 MELON_THREAD_LOCAL typename ResourcePool<T>::LocalPool*
-ResourcePool<T>::_local_pool = NULL;
+ResourcePool<T>::_local_pool = nullptr;
 
 template <typename T>
 melon::static_atomic<ResourcePool<T>*> ResourcePool<T>::_singleton =
-    MELON_STATIC_ATOMIC_INIT(NULL);
+    MELON_STATIC_ATOMIC_INIT(nullptr);
 
 template <typename T>
 pthread_mutex_t ResourcePool<T>::_singleton_mutex = PTHREAD_MUTEX_INITIALIZER;

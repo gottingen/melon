@@ -78,12 +78,12 @@ namespace melon::rpc {
 
         // Process requests in format of nshead_t + blob.
         // Owned by Server and deleted in server's destructor.
-        // Default: NULL
+        // Default: nullptr
         NsheadService *nshead_service;
 
         // Process requests in format of thrift_binary_head_t + blob.
         // Owned by Server and deleted in server's destructor.
-        // Default: NULL
+        // Default: nullptr
         ThriftService *thrift_service;
 
         // Adaptor for Mongo protocol, check melon/rpc/mongo_service_adaptor.h for details
@@ -91,8 +91,8 @@ namespace melon::rpc {
         // and must remain valid when server is running.
         const MongoServiceAdaptor *mongo_service_adaptor;
 
-        // Turn on authentication for all services if `auth' is not NULL.
-        // Default: NULL
+        // Turn on authentication for all services if `auth' is not nullptr.
+        // Default: nullptr
         const Authenticator *auth;
 
         // false: `auth' is not owned by server and must be valid when server is running.
@@ -153,9 +153,9 @@ namespace melon::rpc {
         //   session-local data or thread-local data is definitely not a good design.
 
         // The factory to create/destroy data attached to each RPC session.
-        // If this option is NULL, Controller::session_local_data() is always NULL.
+        // If this option is nullptr, Controller::session_local_data() is always nullptr.
         // NOT owned by Server and must be valid when Server is running.
-        // Default: NULL
+        // Default: nullptr
         const DataFactory *session_local_data_factory;
 
         // Prepare so many session-local data before server starts, so that calls
@@ -168,9 +168,9 @@ namespace melon::rpc {
 
         // The factory to create/destroy data attached to each searching thread
         // in server.
-        // If this option is NULL, melon::rpc::thread_local_data() is always NULL.
+        // If this option is nullptr, melon::rpc::thread_local_data() is always nullptr.
         // NOT owned by Server and must be valid when Server is running.
-        // Default: NULL
+        // Default: nullptr
         const DataFactory *thread_local_data_factory;
 
         // Prepare so many thread-local data before server starts, so that calls
@@ -185,8 +185,8 @@ namespace melon::rpc {
         // fibers before server runs, mainly for initializing fiber locals.
         // You have to set both `fiber_init_fn' and `fiber_init_count' to
         // enable the feature.
-        bool (*fiber_init_fn)(void *args); // default: NULL (do nothing)
-        void *fiber_init_args;             // default: NULL
+        bool (*fiber_init_fn)(void *args); // default: nullptr (do nothing)
+        void *fiber_init_args;             // default: nullptr
         size_t fiber_init_count;           // default: 0
 
         // Provide builtin services at this port rather than the port to Start().
@@ -212,7 +212,7 @@ namespace melon::rpc {
         bool security_mode() const { return internal_port >= 0 || !has_builtin_services; }
 
         // SSL related options. Refer to `ServerSSLOptions' for details
-        bool has_ssl_options() const { return _ssl_options != NULL; }
+        bool has_ssl_options() const { return _ssl_options != nullptr; }
 
         const ServerSSLOptions &ssl_options() const { return *_ssl_options.get(); }
 
@@ -236,7 +236,7 @@ namespace melon::rpc {
         HealthReporter *health_reporter;
 
         // For processing RTMP connections. Read melon/rpc/rtmp.h for details.
-        // Default: NULL (rtmp support disabled)
+        // Default: nullptr (rtmp support disabled)
         RtmpService *rtmp_service;
 
         // Only enable these protocols, separated by spaces.
@@ -249,7 +249,7 @@ namespace melon::rpc {
 
         // For processing Redis connections. Read melon/rpc/redis.h for details.
         // Owned by Server and deleted in server's destructor.
-        // Default: NULL (disabled)
+        // Default: nullptr (disabled)
         RedisService *redis_service;
 
     private:
@@ -335,7 +335,7 @@ namespace melon::rpc {
             bool is_builtin_service;
             ServiceOwnership ownership;
             // `service' and `restful_map' are mutual exclusive, they can't be
-            // both non-NULL. If `restful_map' is not NULL, the URL should be
+            // both non-nullptr. If `restful_map' is not nullptr, the URL should be
             // further matched by it.
             google::protobuf::Service *service;
             RestfulMap *restful_map;
@@ -365,7 +365,7 @@ namespace melon::rpc {
             };
 
             OpaqueParams params;
-            // NULL if service of the method was never added as restful.
+            // nullptr if service of the method was never added as restful.
             // "@path1 @path2 ..." if the method was mapped from paths.
             std::string *http_url;
             google::protobuf::Service *service;
@@ -383,7 +383,7 @@ namespace melon::rpc {
             const DataFactory *thread_local_data_factory;
 
             ThreadLocalOptions()
-                    : tls_key(INVALID_FIBER_KEY), thread_local_data_factory(NULL) {}
+                    : tls_key(INVALID_FIBER_KEY), thread_local_data_factory(nullptr) {}
         };
 
     public:
@@ -394,7 +394,7 @@ namespace melon::rpc {
         // A set of functions to start this server.
         // Returns 0 on success, -1 otherwise and errno is set appropriately.
         // Notes:
-        // * Default options are taken if `opt' is NULL.
+        // * Default options are taken if `opt' is nullptr.
         // * A server can be started more than once if the server is completely
         //   stopped by Stop() and Join().
         // * port can be 0, which makes kernel to choose a port dynamically.
@@ -472,14 +472,14 @@ namespace melon::rpc {
         int ResetCertificates(const std::vector<CertInfo> &certs);
 
         // Find a service by its ServiceDescriptor::full_name().
-        // Returns the registered service pointer, NULL on not found.
+        // Returns the registered service pointer, nullptr on not found.
         // Notice that for performance concerns, this function does not lock service
         // list internally thus races with AddService()/RemoveService().
         google::protobuf::Service *
         FindServiceByFullName(const std::string_view &full_name) const;
 
         // Find a service by its ServiceDescriptor::name().
-        // Returns the registered service pointer, NULL on not found.
+        // Returns the registered service pointer, nullptr on not found.
         // Notice that for performance concerns, this function does not lock service
         // list internally thus races with AddService()/RemoveService().
         google::protobuf::Service *
@@ -502,7 +502,7 @@ namespace melon::rpc {
 
         // Return the first service added to this server. If a service was once
         // returned by first_service() and then removed, first_service() will
-        // always be NULL.
+        // always be nullptr.
         // This is useful for some production lines whose protocol does not
         // contain a service name, in which case this service works as the
         // default service.
@@ -688,7 +688,7 @@ namespace melon::rpc {
         // uses service->name() to designate an RPC service
         ServiceMap _service_map;
 
-        // The only non-builtin service in _service_map, otherwise NULL.
+        // The only non-builtin service in _service_map, otherwise nullptr.
         google::protobuf::Service *_first_service;
 
         // Store TabInfo of services inheriting Tabbed.
@@ -725,8 +725,8 @@ namespace melon::rpc {
 
     // Get the data attached to current searching thread. The data is created by
     // ServerOptions.thread_local_data_factory and reused between different threads.
-    // If ServerOptions.thread_local_data_factory is NULL, return NULL.
-    // If this function is not called inside a server thread, return NULL.
+    // If ServerOptions.thread_local_data_factory is nullptr, return nullptr.
+    // If this function is not called inside a server thread, return nullptr.
     void *thread_local_data();
 
     // Test if a dummy server was already started.

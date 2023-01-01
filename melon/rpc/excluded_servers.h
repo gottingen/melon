@@ -43,7 +43,7 @@ namespace melon::rpc {
         bool IsExcluded(SocketId id) const;
 
         static bool IsExcluded(const ExcludedServers *s, SocketId id) {
-            return s != NULL && s->IsExcluded(id);
+            return s != nullptr && s->IsExcluded(id);
         }
 
         // #servers inside.
@@ -69,8 +69,8 @@ namespace melon::rpc {
     inline ExcludedServers *ExcludedServers::Create(int cap) {
         void *space = malloc(
                 offsetof(ExcludedServers, _space) + sizeof(SocketId) * cap);
-        if (NULL == space) {
-            return NULL;
+        if (nullptr == space) {
+            return nullptr;
         }
         return new(space) ExcludedServers(cap);
     }
@@ -85,7 +85,7 @@ namespace melon::rpc {
     inline void ExcludedServers::Add(SocketId id) {
         MELON_SCOPED_LOCK(_mutex);
         const SocketId *last_id = _l.bottom();
-        if (last_id == NULL || *last_id != id) {
+        if (last_id == nullptr || *last_id != id) {
             _l.elim_push(id);
         }
     }

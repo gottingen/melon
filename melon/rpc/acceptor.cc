@@ -31,7 +31,7 @@ namespace melon::rpc {
 
     Acceptor::Acceptor(fiber_keytable_pool_t *pool)
             : InputMessenger(), _keytable_pool(pool), _status(UNINITIALIZED), _idle_timeout_sec(-1),
-              _close_idle_tid(INVALID_FIBER_ID), _listened_fd(-1), _acception_id(0), _empty_cond(), _ssl_ctx(NULL) {
+              _close_idle_tid(INVALID_FIBER_ID), _listened_fd(-1), _acception_id(0), _empty_cond(), _ssl_ctx(nullptr) {
     }
 
     Acceptor::~Acceptor() {
@@ -59,7 +59,7 @@ namespace melon::rpc {
             return -1;
         }
         if (idle_timeout_sec > 0) {
-            if (fiber_start_background(&_close_idle_tid, NULL,
+            if (fiber_start_background(&_close_idle_tid, nullptr,
                                        CloseIdleConnections, this) != 0) {
                 MELON_LOG(FATAL) << "Fail to start fiber";
                 return -1;
@@ -99,7 +99,7 @@ namespace melon::rpc {
                 }
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     void Acceptor::StopAccept(int /*closewait_ms*/) {
@@ -170,7 +170,7 @@ namespace melon::rpc {
         // Join the fiber outside lock.
         if (saved_idle_timeout_sec > 0) {
             fiber_stop(saved_close_idle_tid);
-            fiber_join(saved_close_idle_tid, NULL);
+            fiber_join(saved_close_idle_tid, nullptr);
         }
 
         {
@@ -187,8 +187,8 @@ namespace melon::rpc {
 
     void Acceptor::ListConnections(std::vector<SocketId> *conn_list,
                                    size_t max_copied) {
-        if (conn_list == NULL) {
-            MELON_LOG(FATAL) << "Param[conn_list] is NULL";
+        if (conn_list == nullptr) {
+            MELON_LOG(FATAL) << "Param[conn_list] is nullptr";
             return;
         }
         conn_list->clear();
@@ -253,7 +253,7 @@ namespace melon::rpc {
             }
 
             Acceptor *am = dynamic_cast<Acceptor *>(acception->user());
-            if (NULL == am) {
+            if (nullptr == am) {
                 MELON_LOG(FATAL) << "Impossible! acception->user() MUST be Acceptor";
                 acception->SetFailed(EINVAL, "Impossible! acception->user() MUST be Acceptor");
                 return;

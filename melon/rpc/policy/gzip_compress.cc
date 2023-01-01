@@ -73,9 +73,9 @@ namespace melon::rpc {
             }
             google::protobuf::io::GzipOutputStream out(&wrapper, gzip_opt);
             melon::cord_buf_as_zero_copy_input_stream in(msg);
-            const void *data_in = NULL;
+            const void *data_in = nullptr;
             int size_in = 0;
-            void *data_out = NULL;
+            void *data_out = nullptr;
             int size_out = 0;
             while (1) {
                 if (size_out == 0 && !out.Next(&data_out, &size_out)) {
@@ -108,9 +108,9 @@ namespace melon::rpc {
             melon::cord_buf_as_zero_copy_input_stream wrapper(data);
             google::protobuf::io::GzipInputStream in(&wrapper, format);
             melon::cord_buf_as_zero_copy_output_stream out(msg);
-            const void *data_in = NULL;
+            const void *data_in = nullptr;
             int size_in = 0;
-            void *data_out = NULL;
+            void *data_out = nullptr;
             int size_out = 0;
             while (1) {
                 if (size_out == 0 && !out.Next(&data_out, &size_out)) {

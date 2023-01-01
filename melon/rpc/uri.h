@@ -122,7 +122,7 @@ namespace melon::rpc {
         void SetH2Path(const std::string &path) { SetH2Path(path.c_str()); }
 
         // Get the value of a CASE-SENSITIVE key.
-        // Returns pointer to the value, NULL when the key does not exist.
+        // Returns pointer to the value, nullptr when the key does not exist.
         const std::string *GetQuery(const char *key) const { return get_query_map().seek(key); }
 
         const std::string *GetQuery(const std::string &key) const { return get_query_map().seek(key); }
@@ -179,7 +179,7 @@ namespace melon::rpc {
         mutable QueryMap _query_map;
     };
 
-// Parse host/port/scheme from `url' if the corresponding parameter is not NULL.
+// Parse host/port/scheme from `url' if the corresponding parameter is not nullptr.
 // Returns 0 on success, -1 otherwise.
     int ParseURL(const char *url, std::string *scheme, std::string *host, int *port);
 

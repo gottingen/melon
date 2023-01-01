@@ -90,7 +90,7 @@ static bool TerminalSupportsColor() {
     bool term_supports_color = false;
     // On non-Windows platforms, we rely on the TERM variable.
     const char *const term = getenv("TERM");
-    if (term != NULL && term[0] != '\0') {
+    if (term != nullptr && term[0] != '\0') {
         term_supports_color =
                 !strcmp(term, "xterm") ||
                 !strcmp(term, "xterm-color") ||
@@ -149,7 +149,7 @@ namespace melon::log {
             case COLOR_DEFAULT:
                 return "";
         };
-        return NULL; // stop warning about return type.
+        return nullptr; // stop warning about return type.
     }
 
 
@@ -173,9 +173,9 @@ namespace melon::log {
         int line_;                 // line number where logging call is.
         void (log_message::*send_method_)();  // Call this in destructor to send
         union {  // At most one of these is used: union to keep the size low.
-            log_sink *sink_;             // NULL or sink to send message to
-            std::vector<std::string> *outvec_; // NULL or vector to push message onto
-            std::string *message_;             // NULL or string to write message into
+            log_sink *sink_;             // nullptr or sink to send message to
+            std::vector<std::string> *outvec_; // nullptr or vector to push message onto
+            std::string *message_;             // nullptr or string to write message into
         };
         time_t timestamp_;            // Time of creation of log_message
         struct ::tm tm_time_;         // Time of creation of log_message
@@ -438,7 +438,7 @@ namespace melon::log {
     string log_destination::addresses_;
     string log_destination::hostname_;
 
-    vector<log_sink *> *log_destination::sinks_ = NULL;
+    vector<log_sink *> *log_destination::sinks_ = nullptr;
     std::mutex log_destination::sink_mutex_;
     bool log_destination::terminal_supports_color_ = TerminalSupportsColor();
 
@@ -471,7 +471,7 @@ namespace melon::log {
         // about it
         for (int i = min_severity; i < NUM_SEVERITIES; i++) {
             log_destination *log = log_destinations_[i];
-            if (log != NULL) {
+            if (log != nullptr) {
                 // Flush the base fileobject_ logger directly instead of going
                 // through any wrappers to reduce chance of deadlock.
                 log->fileobject_.flush_unlocked();
@@ -485,7 +485,7 @@ namespace melon::log {
         std::unique_lock<std::mutex> l(log_mutex);
         for (int i = min_severity; i < NUM_SEVERITIES; i++) {
             log_destination *log = get_log_destination(i);
-            if (log != NULL) {
+            if (log != nullptr) {
                 log->logger_->flush();
             }
         }
@@ -674,7 +674,7 @@ namespace melon::log {
         const bool send_to_sink =
                 (data->send_method_ == &log_message::send_to_sink) ||
                 (data->send_method_ == &log_message::send_to_sink_and_log);
-        if (send_to_sink && data->sink_ != NULL) {
+        if (send_to_sink && data->sink_ != nullptr) {
             data->sink_->WaitTillSent();
         }
     }
@@ -684,7 +684,7 @@ namespace melon::log {
     inline log_destination *log_destination::get_log_destination(log_severity severity) {
         assert(severity >= 0 && severity < NUM_SEVERITIES);
         if (!log_destinations_[severity]) {
-            log_destinations_[severity] = new log_destination(severity, NULL);
+            log_destinations_[severity] = new log_destination(severity, nullptr);
         }
         return log_destinations_[severity];
     }
@@ -692,11 +692,11 @@ namespace melon::log {
     void log_destination::delete_log_destinations() {
         for (int severity = 0; severity < NUM_SEVERITIES; ++severity) {
             delete log_destinations_[severity];
-            log_destinations_[severity] = NULL;
+            log_destinations_[severity] = nullptr;
         }
         std::unique_lock<std::mutex> l(sink_mutex_);
         delete sinks_;
-        sinks_ = NULL;
+        sinks_ = nullptr;
     }
 
     namespace {
@@ -718,11 +718,11 @@ namespace melon::log {
 
         log_file_object::log_file_object(log_severity severity,
                                          const char *base_filename)
-                : base_filename_selected_(base_filename != NULL),
-                  base_filename_((base_filename != NULL) ? base_filename : ""),
+                : base_filename_selected_(base_filename != nullptr),
+                  base_filename_((base_filename != nullptr) ? base_filename : ""),
                   symlink_basename_(log_internal::program_invocation_short_name()),
                   filename_extension_(),
-                  file_(NULL),
+                  file_(nullptr),
                   severity_(severity),
                   bytes_since_flush_(0),
                   dropped_mem_length_(0),
@@ -736,9 +736,9 @@ namespace melon::log {
 
         log_file_object::~log_file_object() {
             std::unique_lock<std::mutex> l(lock_);
-            if (file_ != NULL) {
+            if (file_ != nullptr) {
                 fclose(file_);
-                file_ = NULL;
+                file_ = nullptr;
             }
         }
 
@@ -747,9 +747,9 @@ namespace melon::log {
             base_filename_selected_ = true;
             if (base_filename_ != basename) {
                 // Get rid of old log file since we are changing names
-                if (file_ != NULL) {
+                if (file_ != nullptr) {
                     fclose(file_);
-                    file_ = NULL;
+                    file_ = nullptr;
                     rollover_attempt_ = kRolloverAttemptFrequency - 1;
                 }
                 base_filename_ = basename;
@@ -760,9 +760,9 @@ namespace melon::log {
             std::unique_lock<std::mutex> l(lock_);
             if (filename_extension_ != ext) {
                 // Get rid of old log file since we are changing names
-                if (file_ != NULL) {
+                if (file_ != nullptr) {
                     fclose(file_);
-                    file_ = NULL;
+                    file_ = nullptr;
                     rollover_attempt_ = kRolloverAttemptFrequency - 1;
                 }
                 filename_extension_ = ext;
@@ -780,7 +780,7 @@ namespace melon::log {
         }
 
         void log_file_object::flush_unlocked() {
-            if (file_ != NULL) {
+            if (file_ != nullptr) {
                 fflush(file_);
                 bytes_since_flush_ = 0;
             }
@@ -833,7 +833,7 @@ namespace melon::log {
 
             //fdopen in append mode so if the file exists it will fseek to the end
             file_ = fdopen(fd, "a");  // Make a FILE*.
-            if (file_ == NULL) {  // Man, we're screwed!
+            if (file_ == nullptr) {  // Man, we're screwed!
                 close(fd);
                 if (FLAGS_melon_timestamp_in_logfile_name) {
                     unlink(filename);  // Erase the half-baked evidence: an unusable log file, only if we just created it.
@@ -891,14 +891,14 @@ namespace melon::log {
 
             if (static_cast<int>(file_length_ >> 20) >= MaxLogSize() ||
                 melon::sysinfo::pid_has_changed()) {
-                if (file_ != NULL) fclose(file_);
-                file_ = NULL;
+                if (file_ != nullptr) fclose(file_);
+                file_ = nullptr;
                 file_length_ = bytes_since_flush_ = dropped_mem_length_ = 0;
                 rollover_attempt_ = kRolloverAttemptFrequency - 1;
             }
 
             // If there's no destination file, make one before outputting
-            if (file_ == NULL) {
+            if (file_ == nullptr) {
                 // Try to rollover the log file every 32 log messages.  The only time
                 // this could matter would be when we have trouble creating the log
                 // file.  If that happens, we'll lose lots of log messages, of course!
@@ -1231,7 +1231,7 @@ namespace melon::log {
             if (stat(filepath.c_str(), &file_stat) == 0) {
                 // A day is 86400 seconds, so 7 days is 86400 * 7 = 604800 seconds.
                 time_t last_modified_time = file_stat.st_mtime;
-                time_t current_time = time(NULL);
+                time_t current_time = time(nullptr);
                 return difftime(current_time, last_modified_time) > days * 86400;
             }
 
@@ -1268,55 +1268,55 @@ namespace melon::log {
 
     log_message::log_message(const char *file, int line, log_severity severity,
                              uint64_t ctr, void (log_message::*send_method)())
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, severity, send_method);
         data_->stream_.set_ctr(ctr);
     }
 
     log_message::log_message(const char *file, int line,
                              const CheckOpString &result)
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, MELON_FATAL, &log_message::send_to_log);
         stream() << "Check failed: " << (*result.str_) << " ";
     }
 
     log_message::log_message(const char *file, int line)
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, MELON_INFO, &log_message::send_to_log);
     }
 
     log_message::log_message(const char *file, int line, log_severity severity)
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, severity, &log_message::send_to_log);
     }
 
     log_message::log_message(const char *file, int line, log_severity severity,
                              log_sink *sink, bool also_send_to_log)
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, severity, also_send_to_log ? &log_message::send_to_sink_and_log :
                                    &log_message::send_to_sink);
-        data_->sink_ = sink;  // override Init()'s setting to NULL
+        data_->sink_ = sink;  // override Init()'s setting to nullptr
     }
 
     log_message::log_message(const char *file, int line, log_severity severity,
                              vector<string> *outvec)
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, severity, &log_message::save_or_send_to_log);
-        data_->outvec_ = outvec; // override Init()'s setting to NULL
+        data_->outvec_ = outvec; // override Init()'s setting to nullptr
     }
 
     log_message::log_message(const char *file, int line, log_severity severity,
                              string *message)
-            : allocated_(NULL) {
+            : allocated_(nullptr) {
         init(file, line, severity, &log_message::write_to_string_and_log);
-        data_->message_ = message;  // override Init()'s setting to NULL
+        data_->message_ = message;  // override Init()'s setting to nullptr
     }
 
     void log_message::init(const char *file,
                            int line,
                            log_severity severity,
                            void (log_message::*send_method)()) {
-        allocated_ = NULL;
+        allocated_ = nullptr;
         if (severity != MELON_FATAL || !FLAGS_melon_crash_on_fatal_log) {
             // No need for locking, because this is thread local.
             if (thread_data_available) {
@@ -1344,8 +1344,8 @@ namespace melon::log {
         data_->severity_ = severity;
         data_->line_ = line;
         data_->send_method_ = send_method;
-        data_->sink_ = NULL;
-        data_->outvec_ = NULL;
+        data_->sink_ = nullptr;
+        data_->outvec_ = nullptr;
         auto tv = melon::time_now().to_timeval();
         data_->timestamp_ = static_cast<time_t>(tv.tv_sec);
         if (FLAGS_melon_log_utc_time)
@@ -1645,7 +1645,7 @@ namespace melon::log {
 
 // L >= log_mutex (callers must hold the log_mutex).
     void log_message::send_to_sink() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
-        if (data_->sink_ != NULL) {
+        if (data_->sink_ != nullptr) {
             MELON_RAW_DCHECK(data_->num_chars_to_log_ > 0 &&
                        data_->message_text_[data_->num_chars_to_log_ - 1] == '\n', "");
             data_->sink_->send(data_->severity_, data_->fullname_, data_->basename_,
@@ -1665,7 +1665,7 @@ namespace melon::log {
 
 // L >= log_mutex (callers must hold the log_mutex).
     void log_message::save_or_send_to_log() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
-        if (data_->outvec_ != NULL) {
+        if (data_->outvec_ != nullptr) {
             MELON_RAW_DCHECK(data_->num_chars_to_log_ > 0 &&
                        data_->message_text_[data_->num_chars_to_log_ - 1] == '\n', "");
             // Omit prefix of message and trailing newline when recording in outvec_.
@@ -1678,7 +1678,7 @@ namespace melon::log {
     }
 
     void log_message::write_to_string_and_log() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
-        if (data_->message_ != NULL) {
+        if (data_->message_ != nullptr) {
             MELON_RAW_DCHECK(data_->num_chars_to_log_ > 0 &&
                        data_->message_text_[data_->num_chars_to_log_ - 1] == '\n', "");
             // Omit prefix of message and trailing newline when writing to message_.
@@ -1882,7 +1882,7 @@ namespace melon::log {
             MELON_VLOG(4) << "Mailing command: " << cmd;
 
             FILE *pipe = popen(cmd.c_str(), "w");
-            if (pipe != NULL) {
+            if (pipe != nullptr) {
                 // Add the body if we have one
                 if (body)
                     fwrite(body, sizeof(char), strlen(body), pipe);
@@ -1950,7 +1950,7 @@ namespace melon::log {
 
     const vector<string> &GetLoggingDirectories() {
         // Not strictly thread-safe but we're called early in InitGoogle().
-        if (logging_directories_list == NULL) {
+        if (logging_directories_list == nullptr) {
             logging_directories_list = new vector<string>;
 
             if (!FLAGS_melon_log_dir.empty()) {
@@ -1968,7 +1968,7 @@ namespace melon::log {
         fprintf(stderr, "TestOnly_ClearLoggingDirectoriesList should only be "
                         "called from test code.\n");
         delete logging_directories_list;
-        logging_directories_list = NULL;
+        logging_directories_list = nullptr;
     }
 
     void GetExistingTempDirectories(vector<string> *list) {
@@ -2073,7 +2073,7 @@ namespace melon::log {
   string* Check##func##expected##Impl(const char* s1, const char* s2,   \
                                       const char* names) {              \
     bool equal = s1 == s2 || (s1 && s2 && !func(s1, s2));               \
-    if (equal == expected) return NULL;                                 \
+    if (equal == expected) return nullptr;                                 \
     else {                                                              \
       ostringstream ss;                                                 \
       if (!s1) s1 = "";                                                 \
@@ -2095,7 +2095,7 @@ namespace melon::log {
 
     int posix_strerror_r(int err, char *buf, size_t len) {
         // Sanity check input parameters
-        if (buf == NULL || len <= 0) {
+        if (buf == nullptr || len <= 0) {
             errno = EINVAL;
             return -1;
         }
@@ -2227,7 +2227,7 @@ namespace melon::log {
         log_internal::shutdown_logging_utilities();
         log_destination::delete_log_destinations();
         delete logging_directories_list;
-        logging_directories_list = NULL;
+        logging_directories_list = nullptr;
     }
 
     void enable_log_cleaner(int overdue_days) {

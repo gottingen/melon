@@ -77,7 +77,7 @@ namespace melon::rpc {
         static const melon::base::end_point *LOCAL;
 
         Path(const char *uri2, const melon::base::end_point *html_addr2)
-                : uri(uri2), html_addr(html_addr2), text(NULL) {}
+                : uri(uri2), html_addr(html_addr2), text(nullptr) {}
 
         Path(const char *uri2, const melon::base::end_point *html_addr2, const char *text2)
                 : uri(uri2), html_addr(html_addr2), text(text2) {}

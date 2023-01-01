@@ -45,7 +45,7 @@ std::string g_request;
 std::string g_attachment;
 melon::LatencyRecorder g_latency_recorder("client");
 melon::counter<int> g_error_count("client_error_count");
-melon::LatencyRecorder *g_sub_channel_latency = NULL;
+melon::LatencyRecorder *g_sub_channel_latency = nullptr;
 
 static void *sender(void *arg) {
     // Normally, you should not call a Channel directly, but instead construct
@@ -67,9 +67,9 @@ static void *sender(void *arg) {
             cntl.request_attachment().append(g_attachment);
         }
 
-        // Because `done'(last parameter) is NULL, this function waits until
+        // Because `done'(last parameter) is nullptr, this function waits until
         // the response comes back or error occurs(including timedout).
-        stub.Echo(&cntl, &request, &response, NULL);
+        stub.Echo(&cntl, &request, &response, nullptr);
         if (!cntl.Failed()) {
             g_latency_recorder << cntl.latency_us();
             for (int i = 0; i < cntl.sub_count(); ++i) {
@@ -88,7 +88,7 @@ static void *sender(void *arg) {
             melon::fiber_sleep_for(50000);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 int main(int argc, char *argv[]) {
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 
     if (FLAGS_same_channel) {
         melon::rpc::Channel *sub_channel = new melon::rpc::Channel;
-        // Initialize the channel, NULL means using default options. 
+        // Initialize the channel, nullptr means using default options.
         // options, see `melon/rpc/channel.h'.
         if (sub_channel->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &sub_options) != 0) {
             MELON_LOG(ERROR) << "Fail to initialize sub_channel";
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
         }
         for (int i = 0; i < FLAGS_channel_num; ++i) {
             if (channel.AddChannel(sub_channel, melon::rpc::OWNS_CHANNEL,
-                                   NULL, NULL) != 0) {
+                                   nullptr, nullptr) != 0) {
                 MELON_LOG(ERROR) << "Fail to AddChannel, i=" << i;
                 return -1;
             }
@@ -130,14 +130,14 @@ int main(int argc, char *argv[]) {
     } else {
         for (int i = 0; i < FLAGS_channel_num; ++i) {
             melon::rpc::Channel *sub_channel = new melon::rpc::Channel;
-            // Initialize the channel, NULL means using default options. 
+            // Initialize the channel, nullptr means using default options.
             // options, see `melon/rpc/channel.h'.
             if (sub_channel->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &sub_options) != 0) {
                 MELON_LOG(ERROR) << "Fail to initialize sub_channel[" << i << "]";
                 return -1;
             }
             if (channel.AddChannel(sub_channel, melon::rpc::OWNS_CHANNEL,
-                                   NULL, NULL) != 0) {
+                                   nullptr, nullptr) != 0) {
                 MELON_LOG(ERROR) << "Fail to AddChannel, i=" << i;
                 return -1;
             }
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
     if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
+            if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
                 MELON_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
-                    &bids[i], NULL, sender, &channel) != 0) {
+                    &bids[i], nullptr, sender, &channel) != 0) {
                 MELON_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
@@ -200,9 +200,9 @@ int main(int argc, char *argv[]) {
     MELON_LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
-            pthread_join(pids[i], NULL);
+            pthread_join(pids[i], nullptr);
         } else {
-            fiber_join(bids[i], NULL);
+            fiber_join(bids[i], nullptr);
         }
     }
 

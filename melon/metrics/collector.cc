@@ -25,10 +25,10 @@ namespace melon {
 // Combine two circular linked list into one.
     struct CombineCollected {
         void operator()(Collected *&s1, Collected *s2) const {
-            if (s2 == NULL) {
+            if (s2 == nullptr) {
                 return;
             }
-            if (s1 == NULL) {
+            if (s1 == nullptr) {
                 s1 = s2;
                 return;
             }
@@ -61,12 +61,12 @@ namespace melon {
 
         static void *run_grab_thread(void *arg) {
             static_cast<Collector *>(arg)->grab_thread();
-            return NULL;
+            return nullptr;
         }
 
         static void *run_dump_thread(void *arg) {
             static_cast<Collector *>(arg)->dump_thread();
-            return NULL;
+            return nullptr;
         }
 
         static int64_t get_pending_count(void *arg) {
@@ -96,11 +96,11 @@ namespace melon {
     Collector::Collector()
             : _last_active_cpuwide_us(melon::get_current_time_micros()), _created(false), _stop(false), _grab_thread(0),
               _dump_thread(0), _ngrab(0), _ndrop(0), _ndump(0) {
-        pthread_mutex_init(&_dump_thread_mutex, NULL);
-        pthread_cond_init(&_dump_thread_cond, NULL);
-        pthread_mutex_init(&_sleep_mutex, NULL);
-        pthread_cond_init(&_sleep_cond, NULL);
-        int rc = pthread_create(&_grab_thread, NULL, run_grab_thread, this);
+        pthread_mutex_init(&_dump_thread_mutex, nullptr);
+        pthread_cond_init(&_dump_thread_cond, nullptr);
+        pthread_mutex_init(&_sleep_mutex, nullptr);
+        pthread_cond_init(&_sleep_cond, nullptr);
+        int rc = pthread_create(&_grab_thread, nullptr, run_grab_thread, this);
         if (rc != 0) {
             MELON_LOG(ERROR) << "Fail to create Collector, " << melon_error(rc);
         } else {
@@ -111,7 +111,7 @@ namespace melon {
     Collector::~Collector() {
         if (_created) {
             _stop = true;
-            pthread_join(_grab_thread, NULL);
+            pthread_join(_grab_thread, nullptr);
             _created = false;
         }
         pthread_mutex_destroy(&_dump_thread_mutex);
@@ -125,7 +125,7 @@ namespace melon {
         return *(T *) arg;
     }
 
-    // for limiting samples returning NULL in speed_limit()
+    // for limiting samples returning nullptr in speed_limit()
     static CollectorSpeedLimit g_null_speed_limit = VARIABLE_COLLECTOR_SPEED_LIMIT_INITIALIZER;
 
     void Collector::grab_thread() {
@@ -136,7 +136,7 @@ namespace melon {
         // called inside the separate _dump_thread to prevent a slow callback
         // (caused by busy disk generally) from blocking collecting code too long
         // that pending requests may explode memory.
-        MELON_CHECK_EQ(0, pthread_create(&_dump_thread, NULL, run_dump_thread, this));
+        MELON_CHECK_EQ(0, pthread_create(&_dump_thread, nullptr, run_dump_thread, this));
 
         // vars
         melon::status_gauge<int64_t> pending_sampled_data(
@@ -174,7 +174,7 @@ namespace melon {
             if (head) {
                 melon::container::link_node<Collected> tmp_root;
                 head->insert_before_as_list(&tmp_root);
-                head = NULL;
+                head = nullptr;
 
                 // Group samples by preprocessors.
                 for (melon::container::link_node<Collected> *p = tmp_root.next(); p != &tmp_root;) {
@@ -193,13 +193,13 @@ namespace melon {
                         // don't call preprocessor when there's no samples.
                         continue;
                     }
-                    if (it->first != NULL) {
+                    if (it->first != nullptr) {
                         it->first->process(list);
                     }
                     for (size_t i = 0; i < list.size(); ++i) {
                         Collected *p = list[i];
                         CollectorSpeedLimit *speed_limit = p->speed_limit();
-                        if (speed_limit == NULL) {
+                        if (speed_limit == nullptr) {
                             ++ngrab_map[&g_null_speed_limit];
                         } else {
                             // Add up the samples of certain type.
@@ -255,7 +255,7 @@ namespace melon {
             _stop = true;
             pthread_cond_signal(&_dump_thread_cond);
         }
-        MELON_CHECK_EQ(0, pthread_join(_dump_thread, NULL));
+        MELON_CHECK_EQ(0, pthread_join(_dump_thread, nullptr));
     }
 
     void Collector::wakeup_grab_thread() {
@@ -354,7 +354,7 @@ namespace melon {
         while (!_stop) {
             ++round;
             // Get new samples set by grab_thread.
-            melon::container::link_node<Collected> *newhead = NULL;
+            melon::container::link_node<Collected> *newhead = nullptr;
             {
                 MELON_SCOPED_LOCK(_dump_thread_mutex);
                 while (!_stop && _dump_root.next() == &_dump_root) {

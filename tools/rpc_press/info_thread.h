@@ -29,7 +29,7 @@ namespace melon::rpc {
         melon::gauge<int64_t> *error_count;
 
         InfoThreadOptions()
-                : latency_recorder(NULL), sent_count(NULL), error_count(NULL) {}
+                : latency_recorder(nullptr), sent_count(nullptr), error_count(nullptr) {}
     };
 
     class InfoThread {

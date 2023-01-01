@@ -45,7 +45,7 @@ namespace melon::base {
     // Example: printf("ip=%s\n", ip2str(some_ip).c_str());
     IPStr ip2str(ip_t ip);
 
-    // Convert `hostname' to ip_t *ip. If `hostname' is NULL, use hostname
+    // Convert `hostname' to ip_t *ip. If `hostname' is nullptr, use hostname
     // of this machine.
     // `hostname' is typically in this form: `tc-cm-et21.tc' `db-cos-dev.db01' ...
     // Returns 0 on success, -1 otherwise.
@@ -112,7 +112,7 @@ namespace melon::base {
     int endpoint2hostname(const end_point &point, std::string *host);
 
     // Create a TCP socket and connect it to `server'. Write port of this side
-    // into `self_port' if it's not NULL.
+    // into `self_port' if it's not nullptr.
     // Returns the socket descriptor, -1 otherwise and errno is set.
     int tcp_connect(end_point server, int *self_port);
 

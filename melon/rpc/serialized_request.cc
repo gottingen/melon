@@ -94,7 +94,7 @@ namespace melon::rpc {
     void SerializedRequest::CopyFrom(const ::google::protobuf::Message &from) {
         if (&from == this) return;
         const SerializedRequest *source = dynamic_cast<const SerializedRequest *>(&from);
-        if (source == NULL) {
+        if (source == nullptr) {
             MELON_CHECK(false) << "SerializedRequest can only CopyFrom SerializedRequest";
         } else {
             _serialized = source->_serialized;
@@ -120,7 +120,7 @@ namespace melon::rpc {
     ::google::protobuf::Metadata SerializedRequest::GetMetadata() const {
         ::google::protobuf::Metadata metadata;
         metadata.descriptor = SerializedRequest::descriptor();
-        metadata.reflection = NULL;
+        metadata.reflection = nullptr;
         return metadata;
     }
 
