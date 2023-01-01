@@ -341,6 +341,10 @@ namespace melon::rpc {
                     if (++ntry >= n) {
                         break;
                     }
+                } else {
+                    if (++ntry >= n) {
+                        break;
+                    }
                 }
                 total = _total.load(std::memory_order_relaxed);
                 dice = melon::base::fast_rand_less_than(total);

@@ -32,6 +32,9 @@
 #include "melon/container/doubly_buffered_data.h"
 #include "melon/rpc/describable.h"
 #include "melon/rpc/socket.h"
+#include "melon/rpc/socket_map.h"
+#include "melon/rpc/global.h"
+#include "melon/rpc/details/load_balancer_with_naming.h"
 #include "melon/strings/numbers.h"
 #include "melon/rpc/excluded_servers.h"
 #include "melon/rpc/policy/weighted_round_robin_load_balancer.h"
@@ -66,6 +69,7 @@ namespace {
 
     class LoadBalancerTest : public ::testing::Test {
     protected:
+
         LoadBalancerTest() {
             pthread_once(&initialize_random_control, initialize_random);
         };
@@ -177,7 +181,7 @@ namespace {
             ASSERT_EQ(d[0].weight_tree[i].weight, d[1].weight_tree[i].weight);
             for (size_t R = 0; R < 2; ++R) {
                 ASSERT_EQ((int64_t *) d[R].weight_tree[i].left, &lalb._left_weights[i]);
-                size_t * pindex = d[R].server_map.seek(d[R].weight_tree[i].server_id);
+                size_t *pindex = d[R].server_map.seek(d[R].weight_tree[i].server_id);
                 ASSERT_TRUE(pindex != nullptr && *pindex == i);
             }
             total += d[0].weight_tree[i].weight->volatile_value();
@@ -263,7 +267,7 @@ namespace {
             ++(*selected_count)[ptr->id()];
         }
         MELON_LOG_IF(INFO, ret != 0) << "select_server[" << pthread_self()
-                               << "] quits before of " << melon_error(ret);
+                                     << "] quits before of " << melon_error(ret);
         return selected_count;
     }
 
@@ -604,7 +608,7 @@ namespace {
                 std::cout << chlb;
             }
             const size_t SELECT_TIMES = 1000000;
-            std::map < melon::base::end_point, size_t > times;
+            std::map<melon::base::end_point, size_t> times;
             melon::rpc::SocketUniquePtr ptr;
             melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
             ::melon::rpc::LoadBalancer::SelectOut out(&ptr);
@@ -681,7 +685,7 @@ namespace {
         // There are 3 valid servers with weight 3, 2 and 7 respectively.
         // We run SelectServer for 12 times. The result number of each server seleted should be
         // consistent with weight configured.
-        std::map < melon::base::end_point, size_t > select_result;
+        std::map<melon::base::end_point, size_t> select_result;
         melon::rpc::SocketUniquePtr ptr;
         melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
@@ -789,7 +793,7 @@ namespace {
         // There are 4 valid servers with weight 3, 2, 5 and 10 respectively.
         // We run SelectServer for multiple times. The result number of each server seleted should be
         // weight randomized with weight configured.
-        std::map < melon::base::end_point, size_t > select_result;
+        std::map<melon::base::end_point, size_t> select_result;
         melon::rpc::SocketUniquePtr ptr;
         melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
@@ -1104,4 +1108,19 @@ namespace {
         ASSERT_EQ(0, num_failed.load(std::memory_order_relaxed));
     }
 
+    TEST_F(LoadBalancerTest, la_selection_too_long) {
+        melon::rpc::GlobalInitializeOrDie();
+        melon::rpc::LoadBalancerWithNaming lb;
+        MELON_CHECK_EQ(0, lb.Init("list://127.0.0.1:8888", "la", nullptr, nullptr));
+        char addr[] = "127.0.0.1:8888";
+        melon::base::end_point ep;
+        ASSERT_EQ(0, str2endpoint(addr, &ep));
+        melon::rpc::SocketId id;
+        ASSERT_EQ(0, melon::rpc::SocketMapFind(melon::rpc::SocketMapKey(ep), &id));
+        ASSERT_EQ(0, melon::rpc::Socket::SetFailed(id));
+        melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
+        melon::rpc::SocketUniquePtr ptr;
+        melon::rpc::LoadBalancer::SelectOut out(&ptr);
+        ASSERT_EQ(EHOSTDOWN, lb.SelectServer(in, &out));
+    }
 } //namespace
