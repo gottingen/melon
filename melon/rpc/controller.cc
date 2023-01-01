@@ -247,6 +247,7 @@ namespace melon::rpc {
         _timeout_ms = UNSET_MAGIC_NUM;
         _backup_request_ms = UNSET_MAGIC_NUM;
         _connect_timeout_ms = UNSET_MAGIC_NUM;
+        _real_timeout_ms = UNSET_MAGIC_NUM;
         _deadline_us = -1;
         _timeout_id = 0;
         _begin_time_us = 0;
@@ -309,6 +310,7 @@ namespace melon::rpc {
     void Controller::set_timeout_ms(int64_t timeout_ms) {
         if (timeout_ms <= 0x7fffffff) {
             _timeout_ms = timeout_ms;
+            _real_timeout_ms = timeout_ms;
         } else {
             _timeout_ms = 0x7fffffff;
             MELON_LOG(WARNING) << "timeout_ms is limited to 0x7fffffff (roughly 24 days)";
@@ -980,6 +982,10 @@ namespace melon::rpc {
 
     void Controller::IssueRPC(int64_t start_realtime_us) {
         _current_call.begin_time_us = start_realtime_us;
+        // If has retry/backup request，we will recalculate the timeout,
+        if (_real_timeout_ms > 0) {
+            _real_timeout_ms -= (start_realtime_us - _begin_time_us) / 1000;
+        }
         // Clear last error, Don't clear _error_text because we append to it.
         _error_code = 0;
 
