@@ -10,3 +10,4 @@ change log
 * Fix HttpResponse error
 * Fix client side retry policy
 * Support parse proto-text format http request body
+* Support dump and replay for HTTP protocol
