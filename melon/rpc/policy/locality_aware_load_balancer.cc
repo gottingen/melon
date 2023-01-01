@@ -37,7 +37,7 @@ namespace melon::rpc {
 
         static const int64_t DEFAULT_QPS = 1;
         static const size_t INITIAL_WEIGHT_TREE_SIZE = 128;
-// 1008680231
+        // 1008680231
         static const int64_t WEIGHT_SCALE =
                 std::numeric_limits<int64_t>::max() / 72000000 / (INITIAL_WEIGHT_TREE_SIZE - 1);
 
