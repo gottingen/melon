@@ -1135,13 +1135,14 @@ namespace melon::rpc {
                         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                     }
                     // Send 400 back.
-                    melon::cord_buf bad_req;
+                    melon::cord_buf resp;
                     HttpHeader header;
                     header.set_status_code(HTTP_STATUS_BAD_REQUEST);
-                    MakeRawHttpRequest(&bad_req, &header, socket->remote_side(), nullptr);
+                    MakeRawHttpResponse(&resp, &header, nullptr);
+
                     Socket::WriteOptions wopt;
                     wopt.ignore_eovercrowded = true;
-                    socket->Write(&bad_req, &wopt);
+                    socket->Write(&resp, &wopt);
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 } else {
                     return MakeParseError(PARSE_ERROR_TRY_OTHERS);
