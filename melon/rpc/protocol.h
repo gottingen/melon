@@ -174,13 +174,13 @@ namespace melon::rpc {
     };
 
     const ConnectionType CONNECTION_TYPE_POOLED_AND_SHORT =
-            (ConnectionType)((int) CONNECTION_TYPE_POOLED |
-                             (int) CONNECTION_TYPE_SHORT);
+            (ConnectionType) ((int) CONNECTION_TYPE_POOLED |
+                              (int) CONNECTION_TYPE_SHORT);
 
     const ConnectionType CONNECTION_TYPE_ALL =
-            (ConnectionType)((int) CONNECTION_TYPE_SINGLE |
-                             (int) CONNECTION_TYPE_POOLED |
-                             (int) CONNECTION_TYPE_SHORT);
+            (ConnectionType) ((int) CONNECTION_TYPE_SINGLE |
+                              (int) CONNECTION_TYPE_POOLED |
+                              (int) CONNECTION_TYPE_SHORT);
 
     // [thread-safe]
     // Register `protocol' using key=`type'.
@@ -209,6 +209,8 @@ namespace melon::rpc {
                                    google::protobuf::io::ZeroCopyInputStream *input);
 
     bool ParsePbFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf);
+
+    bool ParsePbTextFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf);
 
     bool ParsePbFromArray(google::protobuf::Message *msg, const void *data, size_t size);
 

@@ -17,6 +17,7 @@
 
 #include <inttypes.h>
 #include <google/protobuf/descriptor.h>             // MethodDescriptor
+#include <google/protobuf/text_format.h>
 #include <gflags/gflags.h>
 #include <melon/json2pb/pb_to_json.h>                    // ProtoMessageToJson
 #include <melon/json2pb/json_to_pb.h>                    // JsonToProtoMessage
@@ -173,6 +174,9 @@ namespace melon::rpc {
             if (melon::starts_with(ct, "json")) {
                 type = HTTP_CONTENT_JSON;
                 ct.remove_prefix(4);
+            } else if (melon::starts_with(ct, "proto-text")) {
+                type = HTTP_CONTENT_PROTO_TEXT;
+                ct.remove_prefix(10);
             } else if (melon::starts_with(ct, "proto")) {
                 type = HTTP_CONTENT_PROTO;
                 ct.remove_prefix(5);
@@ -416,6 +420,11 @@ namespace melon::rpc {
                         cntl->SetFailed(ERESPONSE, "Fail to parse content");
                         break;
                     }
+                } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                    if (!ParsePbTextFromCordBuf(cntl->response(), res_body)) {
+                        cntl->SetFailed(ERESPONSE, "Fail to parse proto-text content");
+                        break;
+                    }
                 } else if (content_type == HTTP_CONTENT_JSON) {
                     // message body is json
                     melon::cord_buf_as_zero_copy_input_stream wrapper(res_body);
@@ -493,6 +502,12 @@ namespace melon::rpc {
                     if (!pbreq->SerializeToZeroCopyStream(&wrapper)) {
                         cntl->request_attachment().clear();
                         return cntl->SetFailed(EREQUEST, "Fail to serialize %s",
+                                               pbreq->GetTypeName().c_str());
+                    }
+                } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                    if (!google::protobuf::TextFormat::Print(*pbreq, &wrapper)) {
+                        cntl->request_attachment().clear();
+                        return cntl->SetFailed(EREQUEST, "Fail to print %s as proto-text",
                                                pbreq->GetTypeName().c_str());
                     }
                 } else if (content_type == HTTP_CONTENT_JSON) {
@@ -745,6 +760,10 @@ namespace melon::rpc {
                 if (content_type == HTTP_CONTENT_PROTO) {
                     if (!res->SerializeToZeroCopyStream(&wrapper)) {
                         cntl->SetFailed(ERESPONSE, "Fail to serialize %s", res->GetTypeName().c_str());
+                    }
+                } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                    if (!google::protobuf::TextFormat::Print(*res, &wrapper)) {
+                        cntl->SetFailed(ERESPONSE, "Fail to print %s as proto-text", res->GetTypeName().c_str());
                     }
                 } else {
                     std::string err;
@@ -1457,6 +1476,12 @@ namespace melon::rpc {
                     if (content_type == HTTP_CONTENT_PROTO) {
                         if (!ParsePbFromCordBuf(req, req_body)) {
                             cntl->SetFailed(EREQUEST, "Fail to parse http body as %s",
+                                            req->GetDescriptor()->full_name().c_str());
+                            return;
+                        }
+                    } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                        if (!ParsePbTextFromCordBuf(req, req_body)) {
+                            cntl->SetFailed(EREQUEST, "Fail to parse http proto-text body as %s",
                                             req->GetDescriptor()->full_name().c_str());
                             return;
                         }

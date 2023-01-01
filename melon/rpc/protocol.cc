@@ -29,6 +29,7 @@ const uint64_t PB_TOTAL_BYETS_LIMITS =
 #undef private
 
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/text_format.h>
 #include <gflags/gflags.h>
 #include "melon/log/logging.h"
 #include "melon/base/singleton_on_pthread_once.h"
@@ -214,10 +215,21 @@ namespace melon::rpc {
         return msg->ParseFromCodedStream(&decoder) && decoder.ConsumedEntireMessage();
     }
 
+    MELON_FORCE_INLINE bool ParsePbTextFromZeroCopyStreamInlined(
+            google::protobuf::Message *msg,
+            google::protobuf::io::ZeroCopyInputStream *input) {
+        return google::protobuf::TextFormat::Parse(input, msg);
+    }
+
     bool ParsePbFromZeroCopyStream(
             google::protobuf::Message *msg,
             google::protobuf::io::ZeroCopyInputStream *input) {
         return ParsePbFromZeroCopyStreamInlined(msg, input);
+    }
+
+    bool ParsePbTextFromCordBuf(google::protobuf::Message* msg, const melon::cord_buf& buf) {
+        melon::cord_buf_as_zero_copy_input_stream stream(buf);
+        return ParsePbTextFromZeroCopyStreamInlined(msg, &stream);
     }
 
     bool ParsePbFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf) {

@@ -9,3 +9,4 @@ change log
 * Fix LA selection runs too long
 * Fix HttpResponse error
 * Fix client side retry policy
+* Support parse proto-text format http request body

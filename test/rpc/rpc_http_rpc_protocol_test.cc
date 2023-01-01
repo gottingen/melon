@@ -25,6 +25,7 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
+#include <google/protobuf/text_format.h>
 #include "melon/times/time.h"
 #include "melon/files/sequential_read_file.h"
 #include "melon/base/fd_guard.h"
@@ -168,6 +169,20 @@ namespace {
             return msg;
         }
 
+        melon::rpc::policy::HttpContext* MakePostProtoTextRequestMessage(
+                const std::string& path) {
+            melon::rpc::policy::HttpContext* msg = new melon::rpc::policy::HttpContext(false);
+            msg->header().uri().set_path(path);
+            msg->header().set_content_type("application/proto-text");
+            msg->header().set_method(melon::rpc::HTTP_METHOD_POST);
+
+            test::EchoRequest req;
+            req.set_message(EXP_REQUEST);
+            melon::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
+            EXPECT_TRUE(google::protobuf::TextFormat::Print(req, &req_stream));
+            return msg;
+        }
+
         melon::rpc::policy::HttpContext *MakeGetRequestMessage(const std::string &path) {
             melon::rpc::policy::HttpContext *msg = new melon::rpc::policy::HttpContext(false);
             msg->header().uri().set_path(path);
@@ -302,6 +317,12 @@ namespace {
         {
             melon::rpc::policy::HttpContext *msg =
                     MakePostRequestMessage("/EchoService/Echo");
+            VerifyMessage(msg, false);
+            msg->Destroy();
+        }
+        {
+            melon::rpc::policy::HttpContext *msg =
+                    MakePostProtoTextRequestMessage("/EchoService/Echo");
             VerifyMessage(msg, false);
             msg->Destroy();
         }
@@ -1494,6 +1515,33 @@ namespace {
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(EXP_RESPONSE, res.message());
         ASSERT_EQ("application/x-protobuf", cntl.http_response().content_type());
+    }
+
+    TEST_F(HttpTest, spring_protobuf_text_content_type) {
+        const int port = 8923;
+        melon::rpc::Server server;
+        EXPECT_EQ(0, server.AddService(&_svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
+        EXPECT_EQ(0, server.Start(port, nullptr));
+
+        melon::rpc::Channel channel;
+        melon::rpc::ChannelOptions options;
+        options.protocol = "http";
+        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+
+        melon::rpc::Controller cntl;
+        test::EchoRequest req;
+        test::EchoResponse res;
+        req.set_message(EXP_REQUEST);
+        cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
+        cntl.http_request().uri() = "/EchoService/Echo";
+        cntl.http_request().set_content_type("application/proto-text");
+        cntl.request_attachment().append(req.Utf8DebugString());
+        channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
+        ASSERT_FALSE(cntl.Failed());
+        ASSERT_EQ("application/proto-text", cntl.http_response().content_type());
+        ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(
+                cntl.response_attachment().to_string(), &res));
+        ASSERT_EQ(EXP_RESPONSE, res.message());
     }
 
 } //namespace

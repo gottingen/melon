@@ -144,6 +144,7 @@ namespace melon::rpc {
             HTTP_CONTENT_OTHERS = 0,
             HTTP_CONTENT_JSON = 1,
             HTTP_CONTENT_PROTO = 2,
+            HTTP_CONTENT_PROTO_TEXT = 3,
         };
 
         // Parse from the textual content type. One type may have more than one literals.
