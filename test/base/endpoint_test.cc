@@ -368,7 +368,11 @@ namespace {
 
         in6_addr expect_in6_addr;
         bzero(&expect_in6_addr, sizeof(expect_in6_addr));
+#if defined(MELON_PLATFORM_OSX)
         expect_in6_addr.__u6_addr.__u6_addr8[15] = 1;
+#elif defined(MELON_PLATFORM_LINUX)
+        expect_in6_addr.__in6_u.__u6_addr8[15] = 1;
+#endif
 
         sockaddr_storage ss;
         const sockaddr_in6 *sa6 = (sockaddr_in6 *) &ss;
