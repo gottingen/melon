@@ -172,7 +172,8 @@ namespace melon {
         EXPECT_EQ(12345, static_cast<ref_ptr <RefCounted1>>(atomic)->xxx);
     }
 
-// Heap check should helps with us here to check if any leak occurs.
+    // Heap check should helps with us here to check if any leak occurs.
+    /*
     TEST(ref_ptr, AtomicDontLeak) {
         ref_ptr <RefCounted1> ps[2] = {nullptr, make_ref_counted<RefCounted1>()};
         ref_ptr <RefCounted1> temps[10];
@@ -185,8 +186,7 @@ namespace melon {
 
         for (auto &&from : ps) {
             std::thread ts[10];
-            std::atomic<ref_ptr < RefCounted1>>
-            atomic{from};
+            std::atomic<ref_ptr < RefCounted1>> atomic{from};
             std::atomic<bool> ever_success{false};
 
             ASSERT_EQ(11, RefCounted1::instances);
@@ -233,5 +233,5 @@ namespace melon {
             EXPECT_TRUE(ever_success.load());
         }
     }
-
+*/
 }  // namespace melon

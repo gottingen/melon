@@ -13,7 +13,7 @@
 #include "melon/times/time.h"
 #include "melon/base/fast_rand.h"
 
-#define BAIDU_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
+#define MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
 
 #include "melon/memory/resource_pool.h"
 

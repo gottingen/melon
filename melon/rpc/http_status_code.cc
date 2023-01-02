@@ -18,7 +18,7 @@
 
 #include <stdio.h>                                  // snprintf
 
-#include "melon/log/logging.h"                           // BAIDU_*
+#include "melon/log/logging.h"
 #include "melon/base/profile.h"                            // MELON_ARRAY_SIZE
 #include "melon/thread/thread.h"                      // thread_local
 #include "melon/rpc/errno.pb.h"

@@ -143,7 +143,7 @@ namespace melon {
             // which may include parenthesis because when T is POD, "new T()"
             // and "new T" are different: former one sets all fields to 0 which
             // we don't want.
-#define BAIDU_OBJECT_POOL_GET(CTOR_ARGS)                                \
+#define MELON_OBJECT_POOL_GET(CTOR_ARGS)                                \
         /* Fetch local free ptr */                                      \
         if (_cur_free.nfree) {                                          \
             MELON_OBJECT_POOL_FREE_ITEM_NUM_SUB1;                       \
@@ -181,20 +181,20 @@ namespace melon {
 
 
             inline T *get() {
-                BAIDU_OBJECT_POOL_GET();
+                MELON_OBJECT_POOL_GET();
             }
 
             template<typename A1>
             inline T *get(const A1 &a1) {
-                BAIDU_OBJECT_POOL_GET((a1));
+                MELON_OBJECT_POOL_GET((a1));
             }
 
             template<typename A1, typename A2>
             inline T *get(const A1 &a1, const A2 &a2) {
-                BAIDU_OBJECT_POOL_GET((a1, a2));
+                MELON_OBJECT_POOL_GET((a1, a2));
             }
 
-#undef BAIDU_OBJECT_POOL_GET
+#undef MELON_OBJECT_POOL_GET
 
             inline int return_object(T *ptr) {
                 // Return to local free list
@@ -407,7 +407,7 @@ namespace melon {
             // other threads. But we need to validate that all memory can
             // be deallocated correctly in tests, so wrap the function with
             // a macro which is only defined in unittests.
-#ifdef BAIDU_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
+#ifdef MELON_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
             MELON_SCOPED_LOCK(_change_thread_mutex);  // including acquire fence.
             // Do nothing if there're active threads.
             if (_nlocal.load(std::memory_order_relaxed) != 0) {

@@ -11,7 +11,7 @@
 #include "melon/base/profile.h"
 #include <random>
 
-#define BAIDU_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
+#define MELON_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
 
 #include "melon/memory/object_pool.h"
 

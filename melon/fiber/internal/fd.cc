@@ -233,16 +233,6 @@ namespace melon::fiber_internal {
             const int expected_val = butex->load(std::memory_order_relaxed);
 
 #if defined(MELON_PLATFORM_LINUX)
-# ifdef BAIDU_KERNEL_FIXED_EPOLLONESHOT_BUG
-            epoll_event evt = { events | EPOLLONESHOT, { butex } };
-            if (epoll_ctl(_epfd, EPOLL_CTL_MOD, fd, &evt) < 0) {
-                if (epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &evt) < 0 &&
-                        errno != EEXIST) {
-                    MELON_PLOG(FATAL) << "Fail to add fd=" << fd << " into epfd=" << _epfd;
-                    return -1;
-                }
-            }
-# else
             epoll_event evt;
             evt.events = events;
             evt.data.fd = fd;
@@ -251,7 +241,6 @@ namespace melon::fiber_internal {
                 MELON_PLOG(FATAL) << "Fail to add fd=" << fd << " into epfd=" << _epfd;
                 return -1;
             }
-# endif
 #elif defined(MELON_PLATFORM_OSX)
             struct kevent kqueue_event;
             EV_SET(&kqueue_event, fd, events, EV_ADD | EV_ENABLE | EV_ONESHOT,
@@ -328,9 +317,7 @@ namespace melon::fiber_internal {
             }
 
 #if defined(MELON_PLATFORM_LINUX)
-# ifndef BAIDU_KERNEL_FIXED_EPOLLONESHOT_BUG
             MELON_DLOG(INFO) << "Use DEL+ADD instead of EPOLLONESHOT+MOD due to kernel bug. Performance will be much lower.";
-# endif
 #endif
             while (!_stop) {
                 const int epfd = _epfd;
@@ -361,21 +348,15 @@ namespace melon::fiber_internal {
                 }
 
 #if defined(MELON_PLATFORM_LINUX)
-# ifndef BAIDU_KERNEL_FIXED_EPOLLONESHOT_BUG
                 for (int i = 0; i < n; ++i) {
                     epoll_ctl(epfd, EPOLL_CTL_DEL, e[i].data.fd, nullptr);
                 }
-# endif
 #endif
                 for (int i = 0; i < n; ++i) {
 #if defined(MELON_PLATFORM_LINUX)
-# ifdef BAIDU_KERNEL_FIXED_EPOLLONESHOT_BUG
-                    EpollButex* butex = static_cast<EpollButex*>(e[i].data.ptr);
-# else
                     std::atomic<EpollButex*>* pbutex = fd_butexes.get(e[i].data.fd);
                     EpollButex* butex = pbutex ?
                         pbutex->load(std::memory_order_consume) : nullptr;
-# endif
 #elif defined(MELON_PLATFORM_OSX)
                     EpollButex *butex = static_cast<EpollButex *>(e[i].udata);
 #endif

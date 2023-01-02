@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
-#define BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
+#ifndef MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
+#define MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
 
 #include <mutex>
 #include "melon/rpc/policy/http_rpc_protocol.h"   // HttpContext
@@ -476,4 +476,4 @@ namespace melon::rpc {
     } // namespace policy
 } // namespace melon::rpc
 
-#endif // BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
+#endif // MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_

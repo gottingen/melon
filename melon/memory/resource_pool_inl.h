@@ -12,13 +12,13 @@
 #include "melon/base/profile.h"
 
 #ifdef MELON_RESOURCE_POOL_NEED_FREE_ITEM_NUM
-#define BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_ADD1                \
+#define MELON_RESOURCE_POOL_FREE_ITEM_NUM_ADD1                \
     (_global_nfree.fetch_add(1, std::memory_order_relaxed))
-#define BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_SUB1                \
+#define MELON_RESOURCE_POOL_FREE_ITEM_NUM_SUB1                \
     (_global_nfree.fetch_sub(1, std::memory_order_relaxed))
 #else
-#define BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_ADD1
-#define BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_SUB1
+#define MELON_RESOURCE_POOL_FREE_ITEM_NUM_ADD1
+#define MELON_RESOURCE_POOL_FREE_ITEM_NUM_SUB1
 #endif
 
 namespace melon {
@@ -142,12 +142,12 @@ public:
         // which may include parenthesis because when T is POD, "new T()"
         // and "new T" are different: former one sets all fields to 0 which
         // we don't want.
-#define BAIDU_RESOURCE_POOL_GET(CTOR_ARGS)                              \
+#define MELON_RESOURCE_POOL_GET(CTOR_ARGS)                              \
         /* Fetch local free id */                                       \
         if (_cur_free.nfree) {                                          \
             const ResourceId<T> free_id = _cur_free.ids[--_cur_free.nfree]; \
             *id = free_id;                                              \
-            BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_SUB1;                   \
+            MELON_RESOURCE_POOL_FREE_ITEM_NUM_SUB1;                   \
             return unsafe_address_resource(free_id);                    \
         }                                                               \
         /* Fetch a FreeChunk from global.                               \
@@ -157,7 +157,7 @@ public:
             --_cur_free.nfree;                                          \
             const ResourceId<T> free_id =  _cur_free.ids[_cur_free.nfree]; \
             *id = free_id;                                              \
-            BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_SUB1;                   \
+            MELON_RESOURCE_POOL_FREE_ITEM_NUM_SUB1;                   \
             return unsafe_address_resource(free_id);                    \
         }                                                               \
         /* Fetch memory from local block */                             \
@@ -187,26 +187,26 @@ public:
  
 
         inline T* get(ResourceId<T>* id) {
-            BAIDU_RESOURCE_POOL_GET();
+            MELON_RESOURCE_POOL_GET();
         }
 
         template <typename A1>
         inline T* get(ResourceId<T>* id, const A1& a1) {
-            BAIDU_RESOURCE_POOL_GET((a1));
+            MELON_RESOURCE_POOL_GET((a1));
         }
 
         template <typename A1, typename A2>
         inline T* get(ResourceId<T>* id, const A1& a1, const A2& a2) {
-            BAIDU_RESOURCE_POOL_GET((a1, a2));
+            MELON_RESOURCE_POOL_GET((a1, a2));
         }
 
-#undef BAIDU_RESOURCE_POOL_GET
+#undef MELON_RESOURCE_POOL_GET
 
         inline int return_resource(ResourceId<T> id) {
             // Return to local free list
             if (_cur_free.nfree < ResourcePool::free_chunk_nitem()) {
                 _cur_free.ids[_cur_free.nfree++] = id;
-                BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_ADD1;
+                MELON_RESOURCE_POOL_FREE_ITEM_NUM_ADD1;
                 return 0;
             }
             // Local free list is full, return it to global.
@@ -214,7 +214,7 @@ public:
             if (_pool->push_free_chunk(_cur_free)) {
                 _cur_free.nfree = 1;
                 _cur_free.ids[0] = id;
-                BAIDU_RESOURCE_POOL_FREE_ITEM_NUM_ADD1;
+                MELON_RESOURCE_POOL_FREE_ITEM_NUM_ADD1;
                 return 0;
             }
             return -1;
@@ -444,7 +444,7 @@ private:
         // other threads. But we need to validate that all memory can
         // be deallocated correctly in tests, so wrap the function with 
         // a macro which is only defined in unittests.
-#ifdef BAIDU_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
+#ifdef MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
         MELON_SCOPED_LOCK(_change_thread_mutex);  // including acquire fence.
         // Do nothing if there're active threads.
         if (_nlocal.load(std::memory_order_relaxed) != 0) {
