@@ -13,3 +13,4 @@ change log
 * Support dump and replay for HTTP protocol
 * Fix rpc_press can't send request equably
 * Fix discovery naming service core
+* Fix the first fiber keytable
