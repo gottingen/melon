@@ -14,3 +14,4 @@ change log
 * Fix rpc_press can't send request equably
 * Fix discovery naming service core
 * Fix the first fiber keytable
+* Fix coredump cause by bad growth_non_responsive http request
