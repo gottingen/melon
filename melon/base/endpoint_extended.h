@@ -9,9 +9,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/un.h>
 #include <mutex>
 #include <unordered_set>
