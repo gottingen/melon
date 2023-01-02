@@ -133,20 +133,20 @@ namespace melon::rpc {
 
         if (_epfd >= 0) {
 #if defined(MELON_PLATFORM_LINUX)
-            epoll_event evt = { EPOLLOUT,  { NULL } };
+            epoll_event evt = { EPOLLOUT,  { nullptr } };
             epoll_ctl(_epfd, EPOLL_CTL_ADD, _wakeup_fds[1], &evt);
 #elif defined(MELON_PLATFORM_OSX)
             struct kevent kqueue_event;
             EV_SET(&kqueue_event, _wakeup_fds[1], EVFILT_WRITE, EV_ADD | EV_ENABLE,
-                   0, 0, NULL);
-            kevent(_epfd, &kqueue_event, 1, NULL, 0, NULL);
+                   0, 0, nullptr);
+            kevent(_epfd, &kqueue_event, 1, nullptr, 0, nullptr);
 #endif
         }
     }
 
     void EventDispatcher::Join() {
         if (_tid) {
-            fiber_join(_tid, NULL);
+            fiber_join(_tid, nullptr);
             _tid = 0;
         }
     }
@@ -181,13 +181,13 @@ namespace melon::rpc {
         //TODO(zhujiashun): add EV_EOF
         EV_SET(&evt, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_CLEAR,
                0, 0, (void *) socket_id);
-        if (kevent(_epfd, &evt, 1, NULL, 0, NULL) < 0) {
+        if (kevent(_epfd, &evt, 1, nullptr, 0, nullptr) < 0) {
             return -1;
         }
         if (pollin) {
             EV_SET(&evt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR,
                    0, 0, (void *) socket_id);
-            if (kevent(_epfd, &evt, 1, NULL, 0, NULL) < 0) {
+            if (kevent(_epfd, &evt, 1, nullptr, 0, nullptr) < 0) {
                 return -1;
             }
         }
@@ -207,18 +207,18 @@ namespace melon::rpc {
 #endif
             return epoll_ctl(_epfd, EPOLL_CTL_MOD, fd, &evt);
         } else {
-            return epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL);
+            return epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr);
         }
 #elif defined(MELON_PLATFORM_OSX)
         struct kevent evt;
-        EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-        if (kevent(_epfd, &evt, 1, NULL, 0, NULL) < 0) {
+        EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
+        if (kevent(_epfd, &evt, 1, nullptr, 0, nullptr) < 0) {
             return -1;
         }
         if (pollin) {
             EV_SET(&evt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR,
                    0, 0, (void *) socket_id);
-            return kevent(_epfd, &evt, 1, NULL, 0, NULL);
+            return kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
         }
         return 0;
 #endif
@@ -242,7 +242,7 @@ namespace melon::rpc {
         struct kevent evt;
         EV_SET(&evt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR,
                0, 0, (void *) socket_id);
-        return kevent(_epfd, &evt, 1, NULL, 0, NULL);
+        return kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
 #endif
         return -1;
     }
@@ -259,23 +259,23 @@ namespace melon::rpc {
         // epoll_wait will keep returning events of the fd continuously, making
         // program abnormal.
 #if defined(MELON_PLATFORM_LINUX)
-        if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) < 0) {
+        if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr) < 0) {
             MELON_PLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
             return -1;
         }
 #elif defined(MELON_PLATFORM_OSX)
         struct kevent evt;
-        EV_SET(&evt, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-        kevent(_epfd, &evt, 1, NULL, 0, NULL);
-        EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-        kevent(_epfd, &evt, 1, NULL, 0, NULL);
+        EV_SET(&evt, fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+        kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
+        EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
+        kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
 #endif
         return 0;
     }
 
     void *EventDispatcher::RunThis(void *arg) {
         ((EventDispatcher *) arg)->Run();
-        return NULL;
+        return nullptr;
     }
 
     void EventDispatcher::Run() {
@@ -293,7 +293,7 @@ namespace melon::rpc {
 #endif
 #elif defined(MELON_PLATFORM_OSX)
             struct kevent e[32];
-            int n = kevent(_epfd, NULL, 0, e, MELON_ARRAY_SIZE(e), NULL);
+            int n = kevent(_epfd, nullptr, 0, e, MELON_ARRAY_SIZE(e), nullptr);
 #endif
             if (_stop) {
                 // epoll_ctl/epoll_wait should have some sort of memory fencing
@@ -348,7 +348,7 @@ namespace melon::rpc {
         }
     }
 
-    static EventDispatcher *g_edisp = NULL;
+    static EventDispatcher *g_edisp = nullptr;
     static pthread_once_t g_edisp_once = PTHREAD_ONCE_INIT;
 
     static void StopAndJoinGlobalDispatchers() {

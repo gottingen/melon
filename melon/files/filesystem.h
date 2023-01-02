@@ -2211,7 +2211,7 @@ inline std::wstring toWChar(const charT* unicodeString)
 #if defined(GHC_OS_WINDOWS)
                                                                                                                                         LPVOID msgBuf;
     DWORD dw = code ? static_cast<DWORD>(code) : ::GetLastError();
-    FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&msgBuf, 0, NULL);
+    FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&msgBuf, 0, nullptr);
     std::string msg = toUtf8(std::wstring((LPWSTR)msgBuf));
     LocalFree(msgBuf);
     return msg;
@@ -2266,7 +2266,7 @@ GHC_INLINE void create_hardlink(const file_path& target_name, const file_path& n
 #pragma GCC diagnostic pop
 #endif
     if (api_call) {
-        if (api_call(GHC_NATIVEWP(new_hardlink), GHC_NATIVEWP(target_name), NULL) == 0) {
+        if (api_call(GHC_NATIVEWP(new_hardlink), GHC_NATIVEWP(target_name), nullptr) == 0) {
             ec = detail::make_system_error();
         }
     }
@@ -4264,12 +4264,12 @@ GHC_INLINE bool has_executable_extension(const file_path& p)
 #endif
 #ifdef GHC_OS_WINDOWS
                                                                                                                                     if (!attributes.empty()) {
-        if (!::CreateDirectoryExW(GHC_NATIVEWP(attributes), GHC_NATIVEWP(p), NULL)) {
+        if (!::CreateDirectoryExW(GHC_NATIVEWP(attributes), GHC_NATIVEWP(p), nullptr)) {
             ec = detail::make_system_error();
             return false;
         }
     }
-    else if (!::CreateDirectoryW(GHC_NATIVEWP(p), NULL)) {
+    else if (!::CreateDirectoryW(GHC_NATIVEWP(p), nullptr)) {
         ec = detail::make_system_error();
         return false;
     }
@@ -4756,7 +4756,7 @@ GHC_INLINE bool has_executable_extension(const file_path& p)
             ec.clear();
             auto d = new_time.time_since_epoch();
 #ifdef GHC_OS_WINDOWS
-                                                                                                                                    detail::unique_handle file(::CreateFileW(GHC_NATIVEWP(p), FILE_WRITE_ATTRIBUTES, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL));
+                                                                                                                                    detail::unique_handle file(::CreateFileW(GHC_NATIVEWP(p), FILE_WRITE_ATTRIBUTES, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr));
     FILETIME ft;
     auto tt = std::chrono::duration_cast<std::chrono::microseconds>(d).count() * 10 + 116444736000000000;
     ft.dwLowDateTime = static_cast<DWORD>(tt);
@@ -5107,11 +5107,11 @@ GHC_INLINE bool has_executable_extension(const file_path& p)
 #endif
         return;
     }
-    detail::unique_handle file(CreateFileW(GHC_NATIVEWP(p), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL));
+    detail::unique_handle file(CreateFileW(GHC_NATIVEWP(p), GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr));
     if (!file) {
         ec = detail::make_system_error();
     }
-    else if (SetFilePointerEx(file.get(), lisize, NULL, FILE_BEGIN) == 0 || SetEndOfFile(file.get()) == 0) {
+    else if (SetFilePointerEx(file.get(), lisize, nullptr, FILE_BEGIN) == 0 || SetEndOfFile(file.get()) == 0) {
         ec = detail::make_system_error();
     }
 #else

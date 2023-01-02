@@ -17,6 +17,7 @@
 
 #include <inttypes.h>
 #include <google/protobuf/descriptor.h>             // MethodDescriptor
+#include <google/protobuf/text_format.h>
 #include <gflags/gflags.h>
 #include <melon/json2pb/pb_to_json.h>                    // ProtoMessageToJson
 #include <melon/json2pb/json_to_pb.h>                    // JsonToProtoMessage
@@ -34,6 +35,7 @@
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/span.h"
 #include "melon/rpc/socket.h"                       // Socket
+#include "melon/rpc/rpc_dump.h"
 #include "melon/rpc/http_status_code.h"             // HTTP_STATUS_*
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/builtin/index_service.h"        // IndexService
@@ -69,7 +71,8 @@ namespace melon::rpc {
         DEFINE_string(http_header_of_user_ip, "", "http requests sent by proxies may "
                                                   "set the client ip in http headers. When this flag is non-empty, "
                                                   "melon will read ip:port from the specified header for "
-                                                  "authorization and set Controller::remote_side()");
+                                                  "authorization and set Controller::remote_side(). Currently, "
+                                                  "support IPv4 address only.");
 
         DEFINE_bool(pb_enum_as_number, false,
                     "[Not recommended] Convert enums in "
@@ -80,20 +83,21 @@ namespace melon::rpc {
 
         // Read user address from the header specified by -http_header_of_user_ip
         static bool GetUserAddressFromHeaderImpl(const HttpHeader &headers,
-                                                 melon::base::end_point *user_addr) {
+                                                 melon::end_point *user_addr) {
             const std::string *user_addr_str =
                     headers.GetHeader(FLAGS_http_header_of_user_ip);
-            if (user_addr_str == NULL) {
+            if (user_addr_str == nullptr) {
                 return false;
             }
+            //TODO add protocols other than IPv4 supports
             if (user_addr_str->find(':') == std::string::npos) {
-                if (melon::base::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
+                if (melon::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
                     MELON_LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
                     return false;
                 }
                 user_addr->port = 0;
             } else {
-                if (melon::base::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
+                if (melon::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
                     MELON_LOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
                     return false;
                 }
@@ -102,7 +106,7 @@ namespace melon::rpc {
         }
 
         inline bool GetUserAddressFromHeader(const HttpHeader &headers,
-                                             melon::base::end_point *user_addr) {
+                                             melon::end_point *user_addr) {
             if (FLAGS_http_header_of_user_ip.empty()) {
                 return false;
             }
@@ -124,7 +128,7 @@ namespace melon::rpc {
                   GRPC_ACCEPT_ENCODING_VALUE("identity,gzip"), GRPC_STATUS("grpc-status"), GRPC_MESSAGE("grpc-message"),
                   GRPC_TIMEOUT("grpc-timeout") {}
 
-        static CommonStrings *common = NULL;
+        static CommonStrings *common = nullptr;
         static pthread_once_t g_common_strings_once = PTHREAD_ONCE_INIT;
 
         static void CreateCommonStrings() {
@@ -173,6 +177,9 @@ namespace melon::rpc {
             if (melon::starts_with(ct, "json")) {
                 type = HTTP_CONTENT_JSON;
                 ct.remove_prefix(4);
+            } else if (melon::starts_with(ct, "proto-text")) {
+                type = HTTP_CONTENT_PROTO_TEXT;
+                ct.remove_prefix(10);
             } else if (melon::starts_with(ct, "proto")) {
                 type = HTTP_CONTENT_PROTO;
                 ct.remove_prefix(5);
@@ -192,9 +199,9 @@ namespace melon::rpc {
             melon::cord_buf buf2;
             char str[48];
             if (request_or_response) {
-                snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", melon::base::my_ip_cstr());
+                snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", melon::my_ip_cstr());
             } else {
-                snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", melon::base::my_ip_cstr());
+                snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", melon::my_ip_cstr());
             }
             buf2.append(str);
             size_t last_size;
@@ -255,7 +262,7 @@ namespace melon::rpc {
                 return;
             }
             const fiber_token_t cid = {cid_value};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -290,7 +297,7 @@ namespace melon::rpc {
                 if (!is_http2) {
                     // If header has "Connection: close", close the connection.
                     const std::string *conn_cmd = res_header->GetHeader(common->CONNECTION);
-                    if (conn_cmd != NULL && 0 == strcasecmp(conn_cmd->c_str(), "close")) {
+                    if (conn_cmd != nullptr && 0 == strcasecmp(conn_cmd->c_str(), "close")) {
                         // Server asked to close the connection.
                         if (imsg_guard->read_body_progressively()) {
                             // Close the socket when reading completes.
@@ -307,7 +314,7 @@ namespace melon::rpc {
                     const std::string *grpc_status = res_header->GetHeader(common->GRPC_STATUS);
                     if (grpc_status) {
                         // TODO: More strict parsing
-                        GrpcStatus status = (GrpcStatus) strtol(grpc_status->data(), NULL, 10);
+                        GrpcStatus status = (GrpcStatus) strtol(grpc_status->data(), nullptr, 10);
                         if (status != GRPC_OK) {
                             const std::string *grpc_message =
                                     res_header->GetHeader(common->GRPC_MESSAGE);
@@ -344,7 +351,7 @@ namespace melon::rpc {
                                         static_cast<int>(res_header->status_code()),
                                         res_header->reason_phrase(),
                                         (int) body_str.size(), body_str.c_str());
-                    } else if (cntl->response() != NULL &&
+                    } else if (cntl->response() != nullptr &&
                                cntl->response()->GetDescriptor()->field_count() != 0) {
                         cntl->SetFailed(ERESPONSE, "A protobuf response can't be parsed"
                                                    " from progressively-read HTTP body");
@@ -371,7 +378,7 @@ namespace melon::rpc {
                                                FLAGS_http_max_error_length));
                     }
                     cntl->SetFailed(EHTTP, "%s", err.c_str());
-                    if (cntl->response() == NULL ||
+                    if (cntl->response() == nullptr ||
                         cntl->response()->GetDescriptor()->field_count() == 0) {
                         // A http call. Http users may need the body(containing a html,
                         // json etc) even if the http call was failed. This is different
@@ -381,18 +388,18 @@ namespace melon::rpc {
                     }
                     break;
                 }
-                if (cntl->response() == NULL ||
+                if (cntl->response() == nullptr ||
                     cntl->response()->GetDescriptor()->field_count() == 0) {
                     // a http call, content is the "real response".
                     cntl->response_attachment().swap(res_body);
                     break;
                 }
 
-                const std::string *encoding = NULL;
+                const std::string *encoding = nullptr;
                 if (is_grpc) {
                     if (grpc_compressed) {
                         encoding = res_header->GetHeader(common->GRPC_ENCODING);
-                        if (encoding == NULL) {
+                        if (encoding == nullptr) {
                             cntl->SetFailed(ERESPONSE, "Fail to find header `grpc-encoding'"
                                                        " in compressed gRPC response");
                             break;
@@ -401,7 +408,7 @@ namespace melon::rpc {
                 } else {
                     encoding = res_header->GetHeader(common->CONTENT_ENCODING);
                 }
-                if (encoding != NULL && *encoding == common->GZIP) {
+                if (encoding != nullptr && *encoding == common->GZIP) {
                     TRACEPRINTF("Decompressing response=%lu",
                                 (unsigned long) res_body.size());
                     melon::cord_buf uncompressed;
@@ -416,6 +423,11 @@ namespace melon::rpc {
                         cntl->SetFailed(ERESPONSE, "Fail to parse content");
                         break;
                     }
+                } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                    if (!ParsePbTextFromCordBuf(cntl->response(), res_body)) {
+                        cntl->SetFailed(ERESPONSE, "Fail to parse proto-text content");
+                        break;
+                    }
                 } else if (content_type == HTTP_CONTENT_JSON) {
                     // message body is json
                     melon::cord_buf_as_zero_copy_input_stream wrapper(res_body);
@@ -428,7 +440,7 @@ namespace melon::rpc {
                     }
                 } else {
                     cntl->SetFailed(ERESPONSE,
-                                    "Unknown content-type=%s when response is not NULL",
+                                    "Unknown content-type=%s when response is not nullptr",
                                     res_header->content_type().c_str());
                     break;
                 }
@@ -458,8 +470,8 @@ namespace melon::rpc {
                     hreq.set_content_type(param);
                 }
             }
-            if (pbreq != NULL) {
-                // If request is not NULL, message body will be serialized proto/json,
+            if (pbreq != nullptr) {
+                // If request is not nullptr, message body will be serialized proto/json,
                 if (!pbreq->IsInitialized()) {
                     return cntl->SetFailed(
                             EREQUEST, "Missing required fields in request: %s",
@@ -467,7 +479,7 @@ namespace melon::rpc {
                 }
                 if (!cntl->request_attachment().empty()) {
                     return cntl->SetFailed(EREQUEST, "request_attachment must be empty "
-                                                     "when request is not NULL");
+                                                     "when request is not nullptr");
                 }
                 HttpContentType content_type = HTTP_CONTENT_OTHERS;
                 if (hreq.content_type().empty()) {
@@ -493,6 +505,12 @@ namespace melon::rpc {
                     if (!pbreq->SerializeToZeroCopyStream(&wrapper)) {
                         cntl->request_attachment().clear();
                         return cntl->SetFailed(EREQUEST, "Fail to serialize %s",
+                                               pbreq->GetTypeName().c_str());
+                    }
+                } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                    if (!google::protobuf::TextFormat::Print(*pbreq, &wrapper)) {
+                        cntl->request_attachment().clear();
+                        return cntl->SetFailed(EREQUEST, "Fail to print %s as proto-text",
                                                pbreq->GetTypeName().c_str());
                     }
                 } else if (content_type == HTTP_CONTENT_JSON) {
@@ -534,7 +552,7 @@ namespace melon::rpc {
                 if (request_size >= (size_t) FLAGS_http_body_compress_threshold) {
                     TRACEPRINTF("Compressing request=%lu", (unsigned long) request_size);
                     melon::cord_buf compressed;
-                    if (GzipCompress(cntl->request_attachment(), &compressed, NULL)) {
+                    if (GzipCompress(cntl->request_attachment(), &compressed, nullptr)) {
                         cntl->request_attachment().swap(compressed);
                         if (is_grpc) {
                             grpc_compressed = true;
@@ -561,7 +579,7 @@ namespace melon::rpc {
                 // HTTP before 1.1 needs to set keep-alive explicitly.
                 if (hreq.before_http_1_1() &&
                     cntl->connection_type() != CONNECTION_TYPE_SHORT &&
-                    hreq.GetHeader(common->CONNECTION) == NULL) {
+                    hreq.GetHeader(common->CONNECTION) == nullptr) {
                     hreq.SetHeader(common->CONNECTION, common->KEEP_ALIVE);
                 }
             } else {
@@ -583,9 +601,9 @@ namespace melon::rpc {
             }
 
             // Set url to /ServiceName/MethodName when we're about to call protobuf
-            // services (indicated by non-NULL method).
+            // services (indicated by non-nullptr method).
             const google::protobuf::MethodDescriptor *method = cntl->method();
-            if (method != NULL) {
+            if (method != nullptr) {
                 hreq.set_method(HTTP_METHOD_POST);
                 std::string path;
                 path.reserve(2 + method->service()->full_name().size()
@@ -620,7 +638,7 @@ namespace melon::rpc {
             }
             ControllerPrivateAccessor accessor(cntl);
             HttpHeader *header = &cntl->http_request();
-            if (auth != NULL && header->GetHeader(common->AUTHORIZATION) == NULL) {
+            if (auth != nullptr && header->GetHeader(common->AUTHORIZATION) == nullptr) {
                 std::string auth_data;
                 if (auth->GenerateCredential(&auth_data) != 0) {
                     return cntl->SetFailed(EREQUEST, "Fail to GenerateCredential");
@@ -650,10 +668,10 @@ namespace melon::rpc {
 
         public:
             HttpResponseSender()
-                    : _method_status(NULL), _received_us(0), _h2_stream_id(-1) {}
+                    : _method_status(nullptr), _received_us(0), _h2_stream_id(-1) {}
 
             HttpResponseSender(Controller *cntl/*own*/)
-                    : _cntl(cntl), _method_status(NULL), _received_us(0), _h2_stream_id(-1) {}
+                    : _cntl(cntl), _method_status(nullptr), _received_us(0), _h2_stream_id(-1) {}
 
             HttpResponseSender(HttpResponseSender &&s)
                     : _cntl(std::move(s._cntl)), _req(std::move(s._req)), _res(std::move(s._res)),
@@ -694,7 +712,7 @@ namespace melon::rpc {
 
         HttpResponseSender::~HttpResponseSender() {
             Controller *cntl = _cntl.get();
-            if (cntl == NULL) {
+            if (cntl == nullptr) {
                 return;
             }
             ControllerPrivateAccessor accessor(cntl);
@@ -733,7 +751,7 @@ namespace melon::rpc {
             // Convert response to json/proto if needed.
             // Notice: Not check res->IsInitialized() which should be checked in the
             // conversion function.
-            if (res != NULL &&
+            if (res != nullptr &&
                 cntl->response_attachment().empty() &&
                 // ^ user did not fill the body yet.
                 res->GetDescriptor()->field_count() > 0 &&
@@ -745,6 +763,10 @@ namespace melon::rpc {
                 if (content_type == HTTP_CONTENT_PROTO) {
                     if (!res->SerializeToZeroCopyStream(&wrapper)) {
                         cntl->SetFailed(ERESPONSE, "Fail to serialize %s", res->GetTypeName().c_str());
+                    }
+                } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                    if (!google::protobuf::TextFormat::Print(*res, &wrapper)) {
+                        cntl->SetFailed(ERESPONSE, "Fail to print %s as proto-text", res->GetTypeName().c_str());
                     }
                 } else {
                     std::string err;
@@ -776,16 +798,16 @@ namespace melon::rpc {
             // after receiving the response.
             if (!is_http2) {
                 const std::string *res_conn = res_header->GetHeader(common->CONNECTION);
-                if (res_conn == NULL || strcasecmp(res_conn->c_str(), "close") != 0) {
+                if (res_conn == nullptr || strcasecmp(res_conn->c_str(), "close") != 0) {
                     const std::string *req_conn =
                             req_header->GetHeader(common->CONNECTION);
                     if (req_header->before_http_1_1()) {
-                        if (req_conn != NULL &&
+                        if (req_conn != nullptr &&
                             strcasecmp(req_conn->c_str(), "keep-alive") == 0) {
                             res_header->SetHeader(common->CONNECTION, common->KEEP_ALIVE);
                         }
                     } else {
-                        if (req_conn != NULL &&
+                        if (req_conn != nullptr &&
                             strcasecmp(req_conn->c_str(), "close") == 0) {
                             res_header->SetHeader(common->CONNECTION, common->CLOSE);
                         }
@@ -834,7 +856,7 @@ namespace melon::rpc {
                     && (is_http2 || SupportGzip(cntl))) {
                     TRACEPRINTF("Compressing response=%lu", (unsigned long) response_size);
                     melon::cord_buf tmpbuf;
-                    if (GzipCompress(cntl->response_attachment(), &tmpbuf, NULL)) {
+                    if (GzipCompress(cntl->response_attachment(), &tmpbuf, nullptr)) {
                         cntl->response_attachment().swap(tmpbuf);
                         if (is_grpc) {
                             grpc_compressed = true;
@@ -865,7 +887,7 @@ namespace melon::rpc {
                 }
                 SocketMessagePtr<H2UnsentResponse> h2_response(
                         H2UnsentResponse::New(cntl, _h2_stream_id, is_grpc));
-                if (h2_response == NULL) {
+                if (h2_response == nullptr) {
                     MELON_LOG(ERROR) << "Fail to make http2 response";
                     errno = EINVAL;
                     rc = -1;
@@ -879,7 +901,7 @@ namespace melon::rpc {
                     rc = socket->Write(h2_response, &wopt);
                 }
             } else {
-                melon::cord_buf *content = NULL;
+                melon::cord_buf *content = nullptr;
                 if (cntl->Failed() || !cntl->has_progressive_writer()) {
                     content = &cntl->response_attachment();
                 }
@@ -912,7 +934,7 @@ namespace melon::rpc {
         static void FillUnresolvedPath(std::string *unresolved_path,
                                        const std::string &uri_path,
                                        melon::StringSplitter &splitter) {
-            if (unresolved_path == NULL) {
+            if (unresolved_path == nullptr) {
                 return;
             }
             if (!splitter) {
@@ -926,7 +948,7 @@ namespace melon::rpc {
             unresolved_path->clear();
             for (melon::StringSplitter slash_sp(
                     splitter.field(), splitter.field() + path_len, '/');
-                 slash_sp != NULL; ++slash_sp) {
+                 slash_sp != nullptr; ++slash_sp) {
                 if (!unresolved_path->empty()) {
                     unresolved_path->push_back('/');
                 }
@@ -940,7 +962,7 @@ namespace melon::rpc {
             ServerPrivateAccessor wrapper(server);
             melon::StringSplitter splitter(uri_path.c_str(), '/');
             // Show index page for empty URI
-            if (NULL == splitter) {
+            if (nullptr == splitter) {
                 return wrapper.FindMethodPropertyByFullName(
                         IndexService::descriptor()->full_name(), common->DEFAULT_METHOD);
             }
@@ -951,9 +973,9 @@ namespace melon::rpc {
                     (full_service_name ?
                      wrapper.FindServicePropertyByFullName(service_name) :
                      wrapper.FindServicePropertyByName(service_name));
-            if (NULL == sp) {
+            if (nullptr == sp) {
                 // normal for urls matching _global_restful_map
-                return NULL;
+                return nullptr;
             }
             // Find restful methods by uri.
             if (sp->restful_map) {
@@ -972,9 +994,9 @@ namespace melon::rpc {
             }
 
             // Regard URI as [service_name]/[method_name]
-            const Server::MethodProperty *mp = NULL;
+            const Server::MethodProperty *mp = nullptr;
             std::string_view method_name;
-            if (++splitter != NULL) {
+            if (++splitter != nullptr) {
                 method_name = std::string_view(splitter.field(), splitter.length());
                 // Copy splitter rather than modifying it directly since it's used
                 // in later branches.
@@ -1000,7 +1022,7 @@ namespace melon::rpc {
             }
 
             // Called an existing service w/o default_method with an unknown method.
-            return NULL;
+            return nullptr;
         }
 
         // Used in UT, don't be static
@@ -1009,11 +1031,11 @@ namespace melon::rpc {
                                 std::string *unresolved_path) {
             const Server::MethodProperty *mp =
                     FindMethodPropertyByURIImpl(uri_path, server, unresolved_path);
-            if (mp != NULL) {
-                if (mp->http_url != NULL && !mp->params.allow_default_url) {
+            if (mp != nullptr) {
+                if (mp->http_url != nullptr && !mp->params.allow_default_url) {
                     // the restful method is accessed from its
                     // default url (SERVICE/METHOD) which should be rejected.
-                    return NULL;
+                    return nullptr;
                 }
                 return mp;
             }
@@ -1025,14 +1047,14 @@ namespace melon::rpc {
                 return accessor.global_restful_map()->FindMethodProperty(
                         uri_path, unresolved_path);
             }
-            return NULL;
+            return nullptr;
         }
 
         ParseResult ParseHttpMessage(melon::cord_buf *source, Socket *socket,
                                      bool read_eof, const void * /*arg*/) {
             HttpContext *http_imsg =
                     static_cast<HttpContext *>(socket->parsing_context());
-            if (http_imsg == NULL) {
+            if (http_imsg == nullptr) {
                 if (read_eof || source->empty()) {
                     // 1. read_eof: Read EOF after intact HTTP messages, a common case.
                     //    Notice that errors except NOT_ENOUGH_DATA can't be returned
@@ -1044,7 +1066,7 @@ namespace melon::rpc {
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 }
                 http_imsg = new(std::nothrow) HttpContext(socket->is_read_progressive());
-                if (http_imsg == NULL) {
+                if (http_imsg == nullptr) {
                     MELON_LOG(FATAL) << "Fail to new HttpContext";
                     return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                 }
@@ -1058,7 +1080,7 @@ namespace melon::rpc {
             ssize_t rc = 0;
             if (read_eof) {
                 // Send EOF to HttpContext, check comments in http_message.h
-                rc = http_imsg->ParseFromArray(NULL, 0);
+                rc = http_imsg->ParseFromArray(nullptr, 0);
             } else {
                 // Empty `source' is sliently ignored and 0 is returned, check
                 // comments in http_message.h
@@ -1076,7 +1098,7 @@ namespace melon::rpc {
                         // be called from ProcessHttpXXX
                         http_imsg->RemoveOneRefForStage2();
                         socket->OnProgressiveReadCompleted();
-                        return MakeMessage(NULL);
+                        return MakeMessage(nullptr);
                     } else {
                         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                     }
@@ -1120,7 +1142,7 @@ namespace melon::rpc {
                 // internal fd from epoll thus we can still get EPOLLIN and read
                 // in more data. If the second read happens, parsing_context()
                 // should return the same InputMessage that we see now because we
-                // don't reset_parsing_context(NULL) in this branch, and following
+                // don't reset_parsing_context(nullptr) in this branch, and following
                 // ParseFromXXX should return -1 immediately because of the non-zero
                 // parser.http_errno, and ReleaseAdditionalReference() here should
                 // return -1 to prevent us from sending another 400.
@@ -1135,13 +1157,14 @@ namespace melon::rpc {
                         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                     }
                     // Send 400 back.
-                    melon::cord_buf bad_req;
+                    melon::cord_buf resp;
                     HttpHeader header;
                     header.set_status_code(HTTP_STATUS_BAD_REQUEST);
-                    MakeRawHttpRequest(&bad_req, &header, socket->remote_side(), NULL);
+                    MakeRawHttpResponse(&resp, &header, nullptr);
+
                     Socket::WriteOptions wopt;
                     wopt.ignore_eovercrowded = true;
-                    socket->Write(&bad_req, &wopt);
+                    socket->Write(&resp, &wopt);
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 } else {
                     return MakeParseError(PARSE_ERROR_TRY_OTHERS);
@@ -1161,13 +1184,13 @@ namespace melon::rpc {
 
             HttpContext *http_request = (HttpContext *) msg;
             const Authenticator *auth = server->options().auth;
-            if (NULL == auth) {
+            if (nullptr == auth) {
                 // Fast pass
                 return true;
             }
             const Server::MethodProperty *mp = FindMethodPropertyByURI(
-                    http_request->header().uri().path(), server, NULL);
-            if (mp != NULL &&
+                    http_request->header().uri().path(), server, nullptr);
+            if (mp != nullptr &&
                 mp->is_builtin_service &&
                 mp->service->GetDescriptor() != BadMethodService::descriptor()) {
                 // BuiltinService doesn't need authentication
@@ -1178,10 +1201,10 @@ namespace melon::rpc {
 
             const std::string *authorization
                     = http_request->header().GetHeader("Authorization");
-            if (authorization == NULL) {
+            if (authorization == nullptr) {
                 return false;
             }
-            melon::base::end_point user_addr;
+            melon::end_point user_addr;
             if (!GetUserAddressFromHeader(http_request->header(), &user_addr)) {
                 user_addr = socket->remote_side();
             }
@@ -1208,7 +1231,7 @@ namespace melon::rpc {
             ScopedNonServiceError non_service_error(server);
 
             Controller *cntl = new(std::nothrow) Controller;
-            if (NULL == cntl) {
+            if (nullptr == cntl) {
                 MELON_LOG(FATAL) << "Fail to new Controller";
                 return;
             }
@@ -1226,7 +1249,7 @@ namespace melon::rpc {
             imsg_guard->header().Swap(req_header);
             melon::cord_buf &req_body = imsg_guard->body();
 
-            melon::base::end_point user_addr;
+            melon::end_point user_addr;
             if (!GetUserAddressFromHeader(req_header, &user_addr)) {
                 user_addr = socket->remote_side();
             }
@@ -1247,7 +1270,7 @@ namespace melon::rpc {
             // atoi/atol/atoll don't support 64-bit integer and can't be used.
             const std::string *log_id_str = req_header.GetHeader(common->LOG_ID);
             if (log_id_str) {
-                char *logid_end = NULL;
+                char *logid_end = nullptr;
                 errno = 0;
                 uint64_t logid = strtoull(log_id_str->c_str(), &logid_end, 10);
                 if (*logid_end || errno) {
@@ -1269,24 +1292,24 @@ namespace melon::rpc {
                 fiber_assign_data((void *) &server->thread_local_options());
             }
 
-            Span *span = NULL;
+            Span *span = nullptr;
             const std::string &path = req_header.uri().path();
             const std::string *trace_id_str = req_header.GetHeader("x-bd-trace-id");
             if (IsTraceable(trace_id_str)) {
                 uint64_t trace_id = 0;
                 if (trace_id_str) {
-                    trace_id = strtoull(trace_id_str->c_str(), NULL, 10);
+                    trace_id = strtoull(trace_id_str->c_str(), nullptr, 10);
                 }
                 uint64_t span_id = 0;
                 const std::string *span_id_str = req_header.GetHeader("x-bd-span-id");
                 if (span_id_str) {
-                    span_id = strtoull(span_id_str->c_str(), NULL, 10);
+                    span_id = strtoull(span_id_str->c_str(), nullptr, 10);
                 }
                 uint64_t parent_span_id = 0;
                 const std::string *parent_span_id_str =
                         req_header.GetHeader("x-bd-parent-span-id");
                 if (parent_span_id_str) {
-                    parent_span_id = strtoull(parent_span_id_str->c_str(), NULL, 10);
+                    parent_span_id = strtoull(parent_span_id_str->c_str(), nullptr, 10);
                 }
                 span = Span::CreateServerSpan(
                         path, trace_id, span_id, parent_span_id, msg->base_real_us());
@@ -1309,7 +1332,7 @@ namespace melon::rpc {
                 google::protobuf::Service *svc = server->options().http_master_service;
                 const google::protobuf::MethodDescriptor *md =
                         svc->GetDescriptor()->FindMethodByName(common->DEFAULT_METHOD);
-                if (md == NULL) {
+                if (md == nullptr) {
                     cntl->SetFailed(ENOMETHOD, "No default_method in http_master_service");
                     return;
                 }
@@ -1322,12 +1345,12 @@ namespace melon::rpc {
                     span->AsParent();
                 }
                 // `cntl', `req' and `res' will be deleted inside `done'
-                return svc->CallMethod(md, cntl, NULL, NULL, done);
+                return svc->CallMethod(md, cntl, nullptr, nullptr, done);
             }
 
             const Server::MethodProperty *const sp =
                     FindMethodPropertyByURI(path, server, &req_header._unresolved_path);
-            if (NULL == sp) {
+            if (nullptr == sp) {
                 if (security_mode) {
                     std::string escape_path;
                     WebEscape(path, &escape_path);
@@ -1341,7 +1364,7 @@ namespace melon::rpc {
                 BadMethodResponse bres;
                 melon::StringSplitter split(path.c_str(), '/');
                 breq.set_service_name(std::string(split.field(), split.length()));
-                sp->service->CallMethod(sp->method, cntl, &breq, &bres, NULL);
+                sp->service->CallMethod(sp->method, cntl, &breq, &bres, nullptr);
                 return;
             }
             // Switch to service-specific error.
@@ -1365,7 +1388,7 @@ namespace melon::rpc {
             if (!sp->is_builtin_service && !sp->params.is_tabbed) {
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::base::endpoint2str(socket->remote_side()).c_str());
+                                    melon::endpoint2str(socket->remote_side()).c_str());
                     return;
                 }
                 if (!server_accessor.AddConcurrency(cntl)) {
@@ -1416,7 +1439,7 @@ namespace melon::rpc {
                     bool is_grpc_ct = false;
                     const HttpContentType content_type =
                             ParseContentType(req_header.content_type(), &is_grpc_ct);
-                    const std::string *encoding = NULL;
+                    const std::string *encoding = nullptr;
                     if (is_http2) {
                         if (is_grpc_ct) {
                             bool grpc_compressed = false;
@@ -1426,7 +1449,7 @@ namespace melon::rpc {
                             }
                             if (grpc_compressed) {
                                 encoding = req_header.GetHeader(common->GRPC_ENCODING);
-                                if (encoding == NULL) {
+                                if (encoding == nullptr) {
                                     cntl->SetFailed(
                                             EREQUEST, "Fail to find header `grpc-encoding'"
                                                       " in compressed gRPC request");
@@ -1443,7 +1466,7 @@ namespace melon::rpc {
                     } else {
                         encoding = req_header.GetHeader(common->CONTENT_ENCODING);
                     }
-                    if (encoding != NULL && *encoding == common->GZIP) {
+                    if (encoding != nullptr && *encoding == common->GZIP) {
                         TRACEPRINTF("Decompressing request=%lu",
                                     (unsigned long) req_body.size());
                         melon::cord_buf uncompressed;
@@ -1459,6 +1482,12 @@ namespace melon::rpc {
                                             req->GetDescriptor()->full_name().c_str());
                             return;
                         }
+                    } else if (content_type == HTTP_CONTENT_PROTO_TEXT) {
+                        if (!ParsePbTextFromCordBuf(req, req_body)) {
+                            cntl->SetFailed(EREQUEST, "Fail to parse http proto-text body as %s",
+                                            req->GetDescriptor()->full_name().c_str());
+                            return;
+                        }
                     } else {
                         melon::cord_buf_as_zero_copy_input_stream wrapper(req_body);
                         std::string err;
@@ -1471,6 +1500,16 @@ namespace melon::rpc {
                             return;
                         }
                     }
+                }
+                SampledRequest* sample = AskToBeSampled();
+                if (sample && !is_http2) {
+                    sample->meta.set_compress_type(COMPRESS_TYPE_NONE);
+                    sample->meta.set_protocol_type(PROTOCOL_HTTP);
+                    sample->meta.set_attachment_size(req_body.size());
+
+                    melon::end_point ep;
+                    MakeRawHttpRequest(&sample->request, &req_header, ep, &req_body);
+                    sample->submit(start_parse_us);
                 }
             } else {
                 // A http server, just keep content as it is.
@@ -1495,7 +1534,7 @@ namespace melon::rpc {
             }
         }
 
-        bool ParseHttpServerAddress(melon::base::end_point *point, const char *server_addr_and_port) {
+        bool ParseHttpServerAddress(melon::end_point *point, const char *server_addr_and_port) {
             std::string scheme;
             std::string host;
             int port = -1;

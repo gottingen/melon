@@ -58,12 +58,12 @@ namespace melon::rpc {
 
     typedef melon::container::FlatMap<NSKey, NamingServiceThread *, NSKeyHasher> NamingServiceMap;
 // Construct on demand to make the code work before main()
-    static NamingServiceMap *g_nsthread_map = NULL;
+    static NamingServiceMap *g_nsthread_map = nullptr;
     static pthread_mutex_t g_nsthread_map_mutex = PTHREAD_MUTEX_INITIALIZER;
 
     NamingServiceThread::Actions::Actions(NamingServiceThread *owner)
             : _owner(owner), _wait_id(INVALID_FIBER_TOKEN), _has_wait_error(false), _wait_error(0) {
-        MELON_CHECK_EQ(0, fiber_token_create(&_wait_id, NULL, NULL));
+        MELON_CHECK_EQ(0, fiber_token_create(&_wait_id, nullptr, nullptr));
     }
 
     NamingServiceThread::Actions::~Actions() {
@@ -159,7 +159,7 @@ namespace melon::rpc {
                                _sockets.end());
         }
         std::vector<ServerId> removed_ids;
-        ServerNodeWithId2ServerId(_removed_sockets, &removed_ids, NULL);
+        ServerNodeWithId2ServerId(_removed_sockets, &removed_ids, nullptr);
 
         {
             MELON_SCOPED_LOCK(_owner->_mutex);
@@ -205,7 +205,7 @@ namespace melon::rpc {
     }
 
     void NamingServiceThread::Actions::EndWait(int error_code) {
-        if (fiber_token_trylock(_wait_id, NULL) == 0) {
+        if (fiber_token_trylock(_wait_id, nullptr) == 0) {
             _wait_error = error_code;
             _has_wait_error.store(true, std::memory_order_release);
             fiber_token_unlock_and_destroy(_wait_id);
@@ -222,7 +222,7 @@ namespace melon::rpc {
     }
 
     NamingServiceThread::NamingServiceThread()
-            : _tid(0), _ns(NULL), _actions(this) {
+            : _tid(0), _ns(nullptr), _actions(this) {
     }
 
     NamingServiceThread::~NamingServiceThread() {
@@ -231,22 +231,22 @@ namespace melon::rpc {
         if (!_protocol.empty()) {
             const NSKey key(_protocol, _service_name, _options.channel_signature);
             std::unique_lock<pthread_mutex_t> mu(g_nsthread_map_mutex);
-            if (g_nsthread_map != NULL) {
+            if (g_nsthread_map != nullptr) {
                 NamingServiceThread **ptr = g_nsthread_map->seek(key);
-                if (ptr != NULL && *ptr == this) {
+                if (ptr != nullptr && *ptr == this) {
                     g_nsthread_map->erase(key);
                 }
             }
         }
         if (_tid) {
             fiber_stop(_tid);
-            fiber_join(_tid, NULL);
+            fiber_join(_tid, nullptr);
             _tid = 0;
         }
         {
             MELON_SCOPED_LOCK(_mutex);
             std::vector<ServerId> to_be_removed;
-            ServerNodeWithId2ServerId(_last_sockets, &to_be_removed, NULL);
+            ServerNodeWithId2ServerId(_last_sockets, &to_be_removed, nullptr);
             if (!_last_sockets.empty()) {
                 for (std::map<NamingServiceWatcher *,
                         const NamingServiceFilter *>::iterator
@@ -259,21 +259,21 @@ namespace melon::rpc {
 
         if (_ns) {
             _ns->Destroy();
-            _ns = NULL;
+            _ns = nullptr;
         }
     }
 
     void *NamingServiceThread::RunThis(void *arg) {
         static_cast<NamingServiceThread *>(arg)->Run();
-        return NULL;
+        return nullptr;
     }
 
     int NamingServiceThread::Start(NamingService *naming_service,
                                    const std::string &protocol,
                                    const std::string &service_name,
                                    const GetNamingServiceThreadOptions *opt_in) {
-        if (naming_service == NULL) {
-            MELON_LOG(ERROR) << "Param[naming_service] is NULL";
+        if (naming_service == nullptr) {
+            MELON_LOG(ERROR) << "Param[naming_service] is nullptr";
             return -1;
         }
         _ns = naming_service;
@@ -286,7 +286,7 @@ namespace melon::rpc {
         if (_ns->RunNamingServiceReturnsQuickly()) {
             RunThis(this);
         } else {
-            int rc = fiber_start_urgent(&_tid, NULL, RunThis, this);
+            int rc = fiber_start_urgent(&_tid, nullptr, RunThis, this);
             if (rc) {
                 MELON_LOG(ERROR) << "Fail to create fiber: " << melon_error(rc);
                 return -1;
@@ -329,8 +329,8 @@ namespace melon::rpc {
 
     int NamingServiceThread::AddWatcher(NamingServiceWatcher *watcher,
                                         const NamingServiceFilter *filter) {
-        if (watcher == NULL) {
-            MELON_LOG(ERROR) << "Param[watcher] is NULL";
+        if (watcher == nullptr) {
+            MELON_LOG(ERROR) << "Param[watcher] is nullptr";
             return -1;
         }
         MELON_SCOPED_LOCK(_mutex);
@@ -346,8 +346,8 @@ namespace melon::rpc {
     }
 
     int NamingServiceThread::RemoveWatcher(NamingServiceWatcher *watcher) {
-        if (watcher == NULL) {
-            MELON_LOG(ERROR) << "Param[watcher] is NULL";
+        if (watcher == nullptr) {
+            MELON_LOG(ERROR) << "Param[watcher] is nullptr";
             return -1;
         }
         MELON_SCOPED_LOCK(_mutex);
@@ -383,14 +383,14 @@ namespace melon::rpc {
         // Accepting "[^:]{1,MAX_PROTOCOL_LEN}://*.*"
         //            ^^^^^^^^^^^^^^^^^^^^^^^^   ^^^
         //            protocol                service_name
-        if (__builtin_expect(url != NULL, 1)) {
+        if (__builtin_expect(url != nullptr, 1)) {
             const char *p1 = url;
             while (*p1 != ':') {
                 if (p1 < url + MAX_PROTOCOL_LEN && *p1) {
                     protocol[p1 - url] = *p1;
                     ++p1;
                 } else {
-                    return NULL;
+                    return nullptr;
                 }
             }
             if (p1 <= url + MAX_PROTOCOL_LEN) {
@@ -401,7 +401,7 @@ namespace melon::rpc {
                 }
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     int GetNamingServiceThread(
@@ -410,12 +410,12 @@ namespace melon::rpc {
             const GetNamingServiceThreadOptions *options) {
         char protocol[MAX_PROTOCOL_LEN + 1];
         const char *const service_name = ParseNamingServiceUrl(url, protocol);
-        if (service_name == NULL) {
+        if (service_name == nullptr) {
             MELON_LOG(ERROR) << "Invalid naming service url=" << url;
             return -1;
         }
         const NamingService *source_ns = NamingServiceExtension()->Find(protocol);
-        if (source_ns == NULL) {
+        if (source_ns == nullptr) {
             MELON_LOG(ERROR) << "Unknown protocol=" << protocol;
             return -1;
         }
@@ -425,9 +425,9 @@ namespace melon::rpc {
         melon::container::intrusive_ptr<NamingServiceThread> nsthread;
         {
             std::unique_lock<pthread_mutex_t> mu(g_nsthread_map_mutex);
-            if (g_nsthread_map == NULL) {
+            if (g_nsthread_map == nullptr) {
                 g_nsthread_map = new(std::nothrow) NamingServiceMap;
-                if (NULL == g_nsthread_map) {
+                if (nullptr == g_nsthread_map) {
                     mu.unlock();
                     MELON_LOG(ERROR) << "Fail to new g_nsthread_map";
                     return -1;
@@ -439,7 +439,7 @@ namespace melon::rpc {
                 }
             }
             NamingServiceThread *&ptr = (*g_nsthread_map)[key];
-            if (ptr != NULL) {
+            if (ptr != nullptr) {
                 if (ptr->AddRefManually() == 0) {
                     // The ns thread's last intrusive_ptr was just destructed and
                     // the removal-from-global-map-code in ptr->~NamingServideThread()
@@ -447,14 +447,14 @@ namespace melon::rpc {
                     // thread.
                     // Notice that we don't need to remove the reference because
                     // the object is already destructing.
-                    ptr = NULL;
+                    ptr = nullptr;
                 } else {
                     nsthread.reset(ptr, false);
                 }
             }
-            if (ptr == NULL) {
+            if (ptr == nullptr) {
                 NamingServiceThread *thr = new(std::nothrow) NamingServiceThread;
-                if (thr == NULL) {
+                if (thr == nullptr) {
                     mu.unlock();
                     MELON_LOG(ERROR) << "Fail to new NamingServiceThread";
                     return -1;
@@ -482,7 +482,7 @@ namespace melon::rpc {
 
     void NamingServiceThread::Describe(std::ostream &os,
                                        const DescribeOptions &options) const {
-        if (_ns == NULL) {
+        if (_ns == nullptr) {
             os << "null";
         } else {
             _ns->Describe(os, options);

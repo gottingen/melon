@@ -190,7 +190,7 @@ namespace melon::rpc {
         if (!grpc_timeout || grpc_timeout->empty()) {
             return -1;
         }
-        char *endptr = NULL;
+        char *endptr = nullptr;
         int64_t timeout_value = (int64_t) strtol(grpc_timeout->data(), &endptr, 10);
         // Only the format that the digit number is equal to (timeout header size - 1)
         // is valid. Otherwise the format is not valid and is treated as no deadline.

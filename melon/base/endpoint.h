@@ -9,10 +9,11 @@
 #define MELON_BASE_ENDPOINT_H_
 
 #include <netinet/in.h>                          // in_addr
+#include <sys/un.h>                              // sockaddr_un
 #include <iostream>                              // std::ostream
 #include "melon/container/hash_tables.h"         // hashing functions
 
-namespace melon::base {
+namespace melon {
 
     // Type of an IP address
     typedef struct in_addr ip_t;
@@ -45,7 +46,7 @@ namespace melon::base {
     // Example: printf("ip=%s\n", ip2str(some_ip).c_str());
     IPStr ip2str(ip_t ip);
 
-    // Convert `hostname' to ip_t *ip. If `hostname' is NULL, use hostname
+    // Convert `hostname' to ip_t *ip. If `hostname' is nullptr, use hostname
     // of this machine.
     // `hostname' is typically in this form: `tc-cm-et21.tc' `db-cos-dev.db01' ...
     // Returns 0 on success, -1 otherwise.
@@ -68,14 +69,24 @@ namespace melon::base {
     // String form.
     const char *my_ip_cstr();
 
-    // ipv4 + port
+    // For IPv4 endpoint, ip and port are real things.
+    // For UDS/IPv6 endpoint, to keep ABI compatibility, ip is ResourceId, and port is a special flag.
+    // See str2endpoint implementation for details.
     struct end_point {
         end_point() : ip(IP_ANY), port(0) {}
 
-        end_point(ip_t ip2, int port2) : ip(ip2), port(port2) {}
+        end_point(ip_t ip2, int port2);
 
         explicit end_point(const sockaddr_in &in)
                 : ip(in.sin_addr), port(ntohs(in.sin_port)) {}
+
+        end_point(const end_point &);
+
+        ~end_point();
+
+        void operator=(const end_point &);
+
+        void reset();
 
         ip_t ip;
         int port;
@@ -84,7 +95,7 @@ namespace melon::base {
     struct end_point_str {
         const char *c_str() const { return _buf; }
 
-        char _buf[INET_ADDRSTRLEN + 16];
+        char _buf[sizeof("unix:") + sizeof(sockaddr_un::sun_path)];
     };
 
     // Convert end_point to c-style string. Notice that you can serialize
@@ -112,7 +123,7 @@ namespace melon::base {
     int endpoint2hostname(const end_point &point, std::string *host);
 
     // Create a TCP socket and connect it to `server'. Write port of this side
-    // into `self_port' if it's not NULL.
+    // into `self_port' if it's not nullptr.
     // Returns the socket descriptor, -1 otherwise and errno is set.
     int tcp_connect(end_point server, int *self_port);
 
@@ -128,44 +139,56 @@ namespace melon::base {
     // Get the other end of a socket connection
     int get_remote_side(int fd, end_point *out);
 
-}  // namespace melon::base
+    // Get sockaddr from endpoint, return -1 on failed
+    int endpoint2sockaddr(const end_point& point, struct sockaddr_storage* ss, socklen_t* size = NULL);
+
+    // Create endpoint from sockaddr, return -1 on failed
+    int sockaddr2endpoint(struct sockaddr_storage* ss, socklen_t size, end_point* point);
+
+    // Get end_point type (AF_INET/AF_INET6/AF_UNIX)
+    sa_family_t get_endpoint_type(const end_point& point);
+
+    // Check if endpoint is extended.
+    bool is_endpoint_extended(const end_point& point);
+
+}  // namespace melon
 
 // Since ip_t is defined from in_addr which is globally defined, due to ADL
 // we have to put overloaded operators globally as well.
-inline bool operator<(melon::base::ip_t lhs, melon::base::ip_t rhs) {
-    return melon::base::ip2int(lhs) < melon::base::ip2int(rhs);
+inline bool operator<(melon::ip_t lhs, melon::ip_t rhs) {
+    return melon::ip2int(lhs) < melon::ip2int(rhs);
 }
 
-inline bool operator>(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator>(melon::ip_t lhs, melon::ip_t rhs) {
     return rhs < lhs;
 }
 
-inline bool operator>=(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator>=(melon::ip_t lhs, melon::ip_t rhs) {
     return !(lhs < rhs);
 }
 
-inline bool operator<=(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator<=(melon::ip_t lhs, melon::ip_t rhs) {
     return !(rhs < lhs);
 }
 
-inline bool operator==(melon::base::ip_t lhs, melon::base::ip_t rhs) {
-    return melon::base::ip2int(lhs) == melon::base::ip2int(rhs);
+inline bool operator==(melon::ip_t lhs, melon::ip_t rhs) {
+    return melon::ip2int(lhs) == melon::ip2int(rhs);
 }
 
-inline bool operator!=(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator!=(melon::ip_t lhs, melon::ip_t rhs) {
     return !(lhs == rhs);
 }
 
-inline std::ostream &operator<<(std::ostream &os, const melon::base::IPStr &ip_str) {
+inline std::ostream &operator<<(std::ostream &os, const melon::IPStr &ip_str) {
     return os << ip_str.c_str();
 }
 
-inline std::ostream &operator<<(std::ostream &os, melon::base::ip_t ip) {
-    return os << melon::base::ip2str(ip);
+inline std::ostream &operator<<(std::ostream &os, melon::ip_t ip) {
+    return os << melon::ip2str(ip);
 }
 
-namespace melon::base {
-// Overload operators for end_point in the same namespace due to ADL.
+namespace melon {
+    // Overload operators for end_point in the same namespace due to ADL.
     inline bool operator<(end_point p1, end_point p2) {
         return (p1.ip != p2.ip) ? (p1.ip < p2.ip) : (p1.port < p2.port);
     }
@@ -191,14 +214,14 @@ namespace melon::base {
     }
 
     inline std::ostream &operator<<(std::ostream &os, const end_point &ep) {
-        return os << ep.ip << ':' << ep.port;
+        return os << endpoint2str(ep).c_str();
     }
 
     inline std::ostream &operator<<(std::ostream &os, const end_point_str &ep_str) {
         return os << ep_str.c_str();
     }
 
-}  // namespace melon::base
+}  // namespace melon
 
 
 namespace MELON_HASH_NAMESPACE {
@@ -208,16 +231,16 @@ namespace MELON_HASH_NAMESPACE {
 
 #if defined(MELON_COMPILER_MSVC)
 
-    inline std::size_t hash_value(const melon::base::end_point& ep) {
-        return melon::container::hash_pair(melon::base::ip2int(ep.ip), ep.port);
+    inline std::size_t hash_value(const melon::end_point& ep) {
+        return melon::container::hash_pair(melon::ip2int(ep.ip), ep.port);
     }
 
 #elif defined(MELON_COMPILER_GNUC) || defined(MELON_COMPILER_CLANG)
 
     template<>
-    struct hash<melon::base::end_point> {
-        std::size_t operator()(const melon::base::end_point &ep) const {
-            return melon::container::hash_pair(melon::base::ip2int(ep.ip), ep.port);
+    struct hash<melon::end_point> {
+        std::size_t operator()(const melon::end_point &ep) const {
+            return melon::container::hash_pair(melon::ip2int(ep.ip), ep.port);
         }
     };
 

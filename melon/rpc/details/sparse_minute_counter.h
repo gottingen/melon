@@ -45,7 +45,7 @@ namespace melon::rpc {
         };
 
     public:
-        SparseMinuteCounter() : _q(NULL) {}
+        SparseMinuteCounter() : _q(nullptr) {}
 
         ~SparseMinuteCounter() { DestroyQueue(_q); }
 
@@ -154,7 +154,7 @@ namespace melon::rpc {
     bool SparseMinuteCounter<T>::TryPop(int64_t now_ms, T *popped) {
         if (_q) {
             const Item *const oldest = _q->top();
-            if (oldest == NULL || now_ms < oldest->timestamp_ms + 60000) {
+            if (oldest == nullptr || now_ms < oldest->timestamp_ms + 60000) {
                 return false;
             }
             *popped = oldest->value;

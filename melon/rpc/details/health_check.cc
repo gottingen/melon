@@ -109,8 +109,8 @@ namespace melon::rpc {
         done->cntl.http_request().uri() = FLAGS_health_check_path;
         ControllerPrivateAccessor(&done->cntl).set_health_check_call();
         done->last_check_time_ms = melon::time_now().to_unix_millis();
-        done->channel.CallMethod(NULL, &done->cntl, NULL, NULL, done);
-        return NULL;
+        done->channel.CallMethod(nullptr, &done->cntl, nullptr, nullptr, done);
+        return nullptr;
     }
 
     void OnAppHealthCheckDone::Run() {
@@ -196,10 +196,10 @@ namespace melon::rpc {
             }
         }
 
-        // g_vars must not be NULL because it is newed at the creation of
+        // g_vars must not be nullptr because it is newed at the creation of
         // first Socket. When g_vars is used, the socket is at health-checking
         // state, which means the socket must be created and then g_vars can
-        // not be NULL.
+        // not be nullptr.
         g_vars->nhealthcheck << 1;
         int hc = 0;
         if (ptr->_user) {

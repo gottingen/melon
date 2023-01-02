@@ -52,7 +52,7 @@ namespace melon::fiber_internal {
     }
 
     static melon::status_gauge<int64_t> variable_stack_count(
-            "fiber_stack_count", get_stack_count, NULL);
+            "fiber_stack_count", get_stack_count, nullptr);
 
     int allocate_stack_storage(fiber_stack_storage *s, int stacksize_in, int guardsize_in) {
         const static int PAGESIZE = getpagesize();
@@ -67,7 +67,7 @@ namespace melon::fiber_internal {
 
         if (guardsize_in <= 0) {
             void *mem = malloc(stacksize);
-            if (NULL == mem) {
+            if (nullptr == mem) {
                 MELON_PLOG_EVERY_SECOND(ERROR) << "Fail to malloc (size="
                                          << stacksize << ")";
                 return -1;
@@ -90,7 +90,7 @@ namespace melon::fiber_internal {
                     ~PAGESIZE_M1;
 
             const int memsize = stacksize + guardsize;
-            void *const mem = mmap(NULL, memsize, (PROT_READ | PROT_WRITE),
+            void *const mem = mmap(nullptr, memsize, (PROT_READ | PROT_WRITE),
                                    (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
 
             if (MAP_FAILED == mem) {

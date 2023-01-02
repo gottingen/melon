@@ -168,7 +168,7 @@ public:
                       << " ms before responding play request";
             melon::fiber_sleep_for(_sleep_ms * 1000L);
         }
-        int rc = fiber_start_background(&_play_thread, NULL,
+        int rc = fiber_start_background(&_play_thread, nullptr,
                                           RunSendData, this);
         if (rc) {
             status->set_error(rc, "Fail to create thread");
@@ -178,7 +178,7 @@ public:
         if (!_state.compare_exchange_strong(expected, STATE_PLAYING)) {
             if (expected == STATE_STOPPED) {
                 fiber_stop(_play_thread);
-                fiber_join(_play_thread, NULL);
+                fiber_join(_play_thread, nullptr);
             } else {
                 MELON_CHECK(false) << "Impossible";
             }
@@ -189,7 +189,7 @@ public:
         MELON_LOG(INFO) << "OnStop of PlayingDummyStream=" << this;
         if (_state.exchange(STATE_STOPPED) == STATE_PLAYING) {
             fiber_stop(_play_thread);
-            fiber_join(_play_thread, NULL);
+            fiber_join(_play_thread, nullptr);
         }
     }
 
@@ -198,7 +198,7 @@ public:
 private:
     static void* RunSendData(void* arg) {
         ((PlayingDummyStream*)arg)->SendData();
-        return NULL;
+        return nullptr;
     }
 
     std::atomic<State> _state;
@@ -320,7 +320,7 @@ private:
 class PublishService : public melon::rpc::RtmpService {
 public:
     PublishService(int64_t sleep_ms = 0) : _sleep_ms(sleep_ms) {
-        pthread_mutex_init(&_mutex, NULL);
+        pthread_mutex_init(&_mutex, nullptr);
     }
     ~PublishService() {
         pthread_mutex_destroy(&_mutex);

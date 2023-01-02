@@ -53,7 +53,7 @@ namespace melon::rpc {
             out->append(head, MELON_ARRAY_SIZE(head));
             melon::cord_buf_as_zero_copy_output_stream wrapper(out);
             MELON_CHECK(fm.SerializeToZeroCopyStream(&wrapper));
-            if (data != NULL) {
+            if (data != nullptr) {
                 out->append(*data);
             }
         }
@@ -118,7 +118,7 @@ namespace melon::rpc {
             } while (0);
 
             // Hack input messenger
-            return MakeMessage(NULL);
+            return MakeMessage(nullptr);
         }
 
         void ProcessStreamingMessage(InputMessageBase * /*msg*/) {
@@ -126,24 +126,24 @@ namespace melon::rpc {
         }
 
         void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
-            MELON_CHECK(sock != NULL);
+            MELON_CHECK(sock != nullptr);
             StreamFrameMeta fm;
             fm.set_stream_id(remote_stream_id);
             fm.set_frame_type(FRAME_TYPE_RST);
             melon::cord_buf out;
-            PackStreamMessage(&out, fm, NULL);
+            PackStreamMessage(&out, fm, nullptr);
             sock->Write(&out);
         }
 
         void SendStreamClose(Socket *sock, int64_t remote_stream_id,
                              int64_t source_stream_id) {
-            MELON_CHECK(sock != NULL);
+            MELON_CHECK(sock != nullptr);
             StreamFrameMeta fm;
             fm.set_stream_id(remote_stream_id);
             fm.set_source_stream_id(source_stream_id);
             fm.set_frame_type(FRAME_TYPE_CLOSE);
             melon::cord_buf out;
-            PackStreamMessage(&out, fm, NULL);
+            PackStreamMessage(&out, fm, nullptr);
             sock->Write(&out);
         }
 

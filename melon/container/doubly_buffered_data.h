@@ -43,7 +43,7 @@ namespace melon::container {
             friend class DoublyBufferedData;
 
         public:
-            ScopedPtr() : _data(NULL), _w(NULL) {}
+            ScopedPtr() : _data(nullptr), _w(nullptr) {}
 
             ~ScopedPtr() {
                 if (_w) {
@@ -220,11 +220,11 @@ namespace melon::container {
 
     public:
         explicit Wrapper(DoublyBufferedData *c) : _control(c) {
-            pthread_mutex_init(&_mutex, NULL);
+            pthread_mutex_init(&_mutex, nullptr);
         }
 
         ~Wrapper() {
-            if (_control != NULL) {
+            if (_control != nullptr) {
                 _control->RemoveWrapper(this);
             }
             pthread_mutex_destroy(&_mutex);
@@ -255,14 +255,14 @@ namespace melon::container {
     typename DoublyBufferedData<T, TLS>::Wrapper *
     DoublyBufferedData<T, TLS>::AddWrapper() {
         std::unique_ptr<Wrapper> w(new(std::nothrow) Wrapper(this));
-        if (NULL == w) {
-            return NULL;
+        if (nullptr == w) {
+            return nullptr;
         }
         try {
             MELON_SCOPED_LOCK(_wrappers_mutex);
             _wrappers.push_back(w.get());
         } catch (std::exception &e) {
-            return NULL;
+            return nullptr;
         }
         return w.release();
     }
@@ -271,7 +271,7 @@ namespace melon::container {
     template<typename T, typename TLS>
     void DoublyBufferedData<T, TLS>::RemoveWrapper(
             typename DoublyBufferedData<T, TLS>::Wrapper *w) {
-        if (NULL == w) {
+        if (nullptr == w) {
             return;
         }
         MELON_SCOPED_LOCK(_wrappers_mutex);
@@ -295,8 +295,8 @@ namespace melon::container {
     DoublyBufferedData<T, TLS>::DoublyBufferedData()
             : _index(0), _created_key(false), _wrapper_key(0) {
         _wrappers.reserve(64);
-        pthread_mutex_init(&_modify_mutex, NULL);
-        pthread_mutex_init(&_wrappers_mutex, NULL);
+        pthread_mutex_init(&_modify_mutex, nullptr);
+        pthread_mutex_init(&_wrappers_mutex, nullptr);
         const int rc = pthread_key_create(&_wrapper_key,
                                           detail::delete_object < Wrapper > );
         if (rc != 0) {
@@ -305,7 +305,7 @@ namespace melon::container {
             _created_key = true;
         }
         // Initialize _data for some POD types. This is essential for pointer
-        // types because they should be Read() as NULL before any Modify().
+        // types because they should be Read() as nullptr before any Modify().
         if (std::is_integral<T>::value || std::is_floating_point<T>::value ||
             std::is_pointer<T>::value || std::is_member_function_pointer<T>::value) {
             _data[0] = T();
@@ -324,7 +324,7 @@ namespace melon::container {
         {
             MELON_SCOPED_LOCK(_wrappers_mutex);
             for (size_t i = 0; i < _wrappers.size(); ++i) {
-                _wrappers[i]->_control = NULL;  // hack: disable removal.
+                _wrappers[i]->_control = nullptr;  // hack: disable removal.
                 delete _wrappers[i];
             }
             _wrappers.clear();
@@ -340,14 +340,14 @@ namespace melon::container {
             return -1;
         }
         Wrapper *w = static_cast<Wrapper *>(pthread_getspecific(_wrapper_key));
-        if (MELON_LIKELY(w != NULL)) {
+        if (MELON_LIKELY(w != nullptr)) {
             w->BeginRead();
             ptr->_data = UnsafeRead();
             ptr->_w = w;
             return 0;
         }
         w = AddWrapper();
-        if (MELON_LIKELY(w != NULL)) {
+        if (MELON_LIKELY(w != nullptr)) {
             const int rc = pthread_setspecific(_wrapper_key, w);
             if (rc == 0) {
                 w->BeginRead();

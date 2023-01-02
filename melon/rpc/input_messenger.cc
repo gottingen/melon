@@ -32,7 +32,7 @@
 
 namespace melon::rpc {
 
-    InputMessenger *g_messenger = NULL;
+    InputMessenger *g_messenger = nullptr;
     static pthread_once_t g_messenger_init = PTHREAD_ONCE_INIT;
 
     static void InitClientSideMessenger() {
@@ -68,41 +68,53 @@ namespace melon::rpc {
         // Try preferred handler first. The preferred_index is set on last
         // selection or by client.
         if (preferred >= 0 && preferred <= max_index
-            && _handlers[preferred].parse != NULL) {
-            ParseResult result =
-                    _handlers[preferred].parse(&m->_read_buf, m, read_eof, _handlers[preferred].arg);
-            if (result.is_ok() ||
-                result.error() == PARSE_ERROR_NOT_ENOUGH_DATA) {
-                *index = preferred;
-                return result;
-            } else if (result.error() != PARSE_ERROR_TRY_OTHERS) {
-                // Critical error, return directly.
-                MELON_LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
-                                << "A message from " << m->remote_side()
-                                << "(protocol=" << _handlers[preferred].name
-                                << ") is bigger than " << FLAGS_max_body_size
-                                << " bytes, the connection will be closed."
-                                   " Set max_body_size to allow bigger messages";
-                return result;
-            }
-            if (m->CreatedByConnect() &&
-                // baidu_std may fall to streaming_rpc
-                (ProtocolType) preferred != PROTOCOL_BAIDU_STD) {
-                // The protocol is fixed at client-side, no need to try others.
-                MELON_LOG(ERROR) << "Fail to parse response from " << m->remote_side()
-                                 << " by " << _handlers[preferred].name
-                                 << " at client-side";
-                return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
-            }
+            && _handlers[preferred].parse != nullptr) {
+            int cur_index = preferred;
+            do {
+                ParseResult result =
+                        _handlers[cur_index].parse(&m->_read_buf, m, read_eof, _handlers[cur_index].arg);
+                if (result.is_ok() ||
+                    result.error() == PARSE_ERROR_NOT_ENOUGH_DATA) {
+                    m->set_preferred_index(cur_index);
+                    *index = cur_index;
+                    return result;
+                } else if (result.error() != PARSE_ERROR_TRY_OTHERS) {
+                    // Critical error, return directly.
+                    MELON_LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
+                                    << "A message from " << m->remote_side()
+                                    << "(protocol=" << _handlers[cur_index].name
+                                    << ") is bigger than " << FLAGS_max_body_size
+                                    << " bytes, the connection will be closed."
+                                       " Set max_body_size to allow bigger messages";
+                    return result;
+                }
+
+                if (m->CreatedByConnect()) {
+                    if ((ProtocolType) cur_index == PROTOCOL_BAIDU_STD) {
+                        // baidu_std may fall to streaming_rpc.
+                        cur_index = (int) PROTOCOL_STREAMING_RPC;
+                        continue;
+                    } else {
+                        // The protocol is fixed at client-side, no need to try others.
+                        MELON_LOG(ERROR) << "Fail to parse response from " << m->remote_side()
+                                         << " by " << _handlers[preferred].name
+                                         << " at client-side";
+                        return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
+                    }
+                } else {
+                    // Try other protocols.
+                    break;
+                }
+            } while (true);
             // Clear context before trying next protocol which probably has
             // an incompatible context with the current one.
             if (m->parsing_context()) {
-                m->reset_parsing_context(NULL);
+                m->reset_parsing_context(nullptr);
             }
             m->set_preferred_index(-1);
         }
         for (int i = 0; i <= max_index; ++i) {
-            if (i == preferred || _handlers[i].parse == NULL) {
+            if (i == preferred || _handlers[i].parse == nullptr) {
                 // Don't try preferred handler(already tried) or invalid handler
                 continue;
             }
@@ -125,7 +137,7 @@ namespace melon::rpc {
             // Clear context before trying next protocol which definitely has
             // an incompatible context with the current one.
             if (m->parsing_context()) {
-                m->reset_parsing_context(NULL);
+                m->reset_parsing_context(nullptr);
             }
             // Try other protocols.
         }
@@ -135,7 +147,7 @@ namespace melon::rpc {
     void *ProcessInputMessage(void *void_arg) {
         InputMessageBase *msg = static_cast<InputMessageBase *>(void_arg);
         msg->_process(msg);
-        return NULL;
+        return nullptr;
     }
 
     struct RunLastMessage {
@@ -277,7 +289,7 @@ namespace melon::rpc {
                 }
                 m->_last_msg_size = 0;
 
-                if (pr.message() == NULL) { // the Process() step can be skipped.
+                if (pr.message() == nullptr) { // the Process() step can be skipped.
                     continue;
                 }
                 pr.message()->_received_us = received_us;
@@ -288,8 +300,8 @@ namespace melon::rpc {
                 DestroyingPtr<InputMessageBase> msg(pr.message());
                 QueueMessage(last_msg.release(), &num_fiber_created,
                              m->_keytable_pool);
-                if (handlers[index].process == NULL) {
-                    MELON_LOG(ERROR) << "process of index=" << index << " is NULL";
+                if (handlers[index].process == nullptr) {
+                    MELON_LOG(ERROR) << "process of index=" << index << " is nullptr";
                     continue;
                 }
                 m->ReAddress(&msg->_socket);
@@ -297,7 +309,7 @@ namespace melon::rpc {
                 msg->_process = handlers[index].process;
                 msg->_arg = handlers[index].arg;
 
-                if (handlers[index].verify != NULL) {
+                if (handlers[index].verify != nullptr) {
                     int auth_error = 0;
                     if (0 == m->FightAuthentication(&auth_error)) {
                         // Get the right to authenticate
@@ -337,26 +349,26 @@ namespace melon::rpc {
     }
 
     InputMessenger::InputMessenger(size_t capacity)
-            : _handlers(NULL), _max_index(-1), _non_protocol(false), _capacity(capacity) {
+            : _handlers(nullptr), _max_index(-1), _non_protocol(false), _capacity(capacity) {
     }
 
     InputMessenger::~InputMessenger() {
         delete[] _handlers;
-        _handlers = NULL;
+        _handlers = nullptr;
         _max_index.store(-1, std::memory_order_relaxed);
         _capacity = 0;
     }
 
     int InputMessenger::AddHandler(const InputMessageHandler &handler) {
-        if (handler.parse == NULL || handler.process == NULL
-            || handler.name == NULL) {
+        if (handler.parse == nullptr || handler.process == nullptr
+            || handler.name == nullptr) {
             MELON_CHECK(false) << "Invalid argument";
             return -1;
         }
         MELON_SCOPED_LOCK(_add_handler_mutex);
-        if (NULL == _handlers) {
+        if (nullptr == _handlers) {
             _handlers = new(std::nothrow) InputMessageHandler[_capacity];
-            if (NULL == _handlers) {
+            if (nullptr == _handlers) {
                 MELON_LOG(FATAL) << "Fail to new array of InputMessageHandler";
                 return -1;
             }
@@ -377,7 +389,7 @@ namespace melon::rpc {
             MELON_LOG(FATAL) << "Can't add more handlers than " << _capacity;
             return -1;
         }
-        if (_handlers[index].parse == NULL) {
+        if (_handlers[index].parse == nullptr) {
             // The same protocol might be added more than twice
             _handlers[index] = handler;
         } else if (_handlers[index].parse != handler.parse
@@ -393,15 +405,15 @@ namespace melon::rpc {
     }
 
     int InputMessenger::AddNonProtocolHandler(const InputMessageHandler &handler) {
-        if (handler.parse == NULL || handler.process == NULL
-            || handler.name == NULL) {
+        if (handler.parse == nullptr || handler.process == nullptr
+            || handler.name == nullptr) {
             MELON_CHECK(false) << "Invalid argument";
             return -1;
         }
         MELON_SCOPED_LOCK(_add_handler_mutex);
-        if (NULL == _handlers) {
+        if (nullptr == _handlers) {
             _handlers = new(std::nothrow) InputMessageHandler[_capacity];
-            if (NULL == _handlers) {
+            if (nullptr == _handlers) {
                 MELON_LOG(FATAL) << "Fail to new array of InputMessageHandler";
                 return -1;
             }
@@ -418,7 +430,7 @@ namespace melon::rpc {
         return 0;
     }
 
-    int InputMessenger::Create(const melon::base::end_point &remote_side,
+    int InputMessenger::Create(const melon::end_point &remote_side,
                                time_t health_check_interval_s,
                                SocketId *id) {
         SocketOptions options;
@@ -437,7 +449,7 @@ namespace melon::rpc {
 
     int InputMessenger::FindProtocolIndex(const char *name) const {
         for (size_t i = 0; i < _capacity; ++i) {
-            if (_handlers[i].parse != NULL
+            if (_handlers[i].parse != nullptr
                 && strcmp(name, _handlers[i].name) == 0) {
                 return i;
             }
@@ -447,7 +459,7 @@ namespace melon::rpc {
 
     int InputMessenger::FindProtocolIndex(ProtocolType type) const {
         const Protocol *proto = FindProtocol(type);
-        if (NULL == proto) {
+        if (nullptr == proto) {
             return -1;
         }
         return FindProtocolIndex(proto->name);
@@ -455,7 +467,7 @@ namespace melon::rpc {
     }
 
     const char *InputMessenger::NameOfProtocol(int n) const {
-        if (n < 0 || (size_t) n >= _capacity || _handlers[n].parse == NULL) {
+        if (n < 0 || (size_t) n >= _capacity || _handlers[n].parse == nullptr) {
             return "unknown";  // use lowercase to be consistent with valid names.
         }
         return _handlers[n].name;

@@ -63,7 +63,7 @@ namespace melon {
 
             void take_sample() override { _series.append(_owner->get_value()); }
 
-            void describe(std::ostream &os) { _series.describe(os, NULL); }
+            void describe(std::ostream &os) { _series.describe(os, nullptr); }
 
         private:
             variable_reducer *_owner;
@@ -75,7 +75,7 @@ namespace melon {
         variable_reducer(typename melon::add_cr_non_integral<T>::type identity = T(),
                 const Op &op = Op(),
                 const InvOp &inv_op = InvOp())
-                : _combiner(identity, identity, op), _sampler(NULL), _series_sampler(NULL), _inv_op(inv_op) {
+                : _combiner(identity, identity, op), _sampler(nullptr), _series_sampler(nullptr), _inv_op(inv_op) {
         }
 
         ~variable_reducer() {
@@ -83,11 +83,11 @@ namespace melon {
             hide();
             if (_sampler) {
                 _sampler->destroy();
-                _sampler = NULL;
+                _sampler = nullptr;
             }
             if (_series_sampler) {
                 _series_sampler->destroy();
-                _series_sampler = NULL;
+                _series_sampler = nullptr;
             }
         }
 
@@ -99,7 +99,7 @@ namespace melon {
         // Notice that this function walks through threads that ever add values
         // into this reducer. You should avoid calling it frequently.
         T get_value() const {
-            MELON_CHECK(!(std::is_same<InvOp, metrics_detail::void_op>::value) || _sampler == NULL)
+            MELON_CHECK(!(std::is_same<InvOp, metrics_detail::void_op>::value) || _sampler == nullptr)
                             << "You should not call variable_reducer<" << melon::base::class_name_str<T>()
                             << ", " << melon::base::class_name_str<Op>() << ">::get_value() when a"
                             << " window<> is used because the operator does not have inverse.";
@@ -129,7 +129,7 @@ namespace melon {
         const InvOp &inv_op() const { return _inv_op; }
 
         sampler_type *get_sampler() {
-            if (NULL == _sampler) {
+            if (nullptr == _sampler) {
                 _sampler = new sampler_type(this);
                 _sampler->schedule();
             }
@@ -137,7 +137,7 @@ namespace melon {
         }
 
         int describe_series(std::ostream &os, const variable_series_options &options) const override {
-            if (_series_sampler == NULL) {
+            if (_series_sampler == nullptr) {
                 return 1;
             }
             if (!options.test_only) {
@@ -154,7 +154,7 @@ namespace melon {
                         display_filter filter) override {
             const int rc = variable_base::expose_impl(prefix, name, help, tags, filter);
             if (rc == 0 &&
-                _series_sampler == NULL &&
+                _series_sampler == nullptr &&
                 !std::is_same<InvOp, metrics_detail::void_op>::value &&
                 !std::is_same<T, std::string>::value &&
                 FLAGS_save_series) {

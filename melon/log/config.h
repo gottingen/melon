@@ -39,10 +39,10 @@
   (!getenv(envname) ? (dflt) : getenv(envname))
 
 #define MELON_ENV_TO_BOOL(envname, dflt)   \
-  (!getenv(envname) ? (dflt) : memchr("tTyY1\0", getenv(envname)[0], 6) != NULL)
+  (!getenv(envname) ? (dflt) : memchr("tTyY1\0", getenv(envname)[0], 6) != nullptr)
 
 #define MELON_ENV_TO_INT(envname, dflt)  \
-  (!getenv(envname) ? (dflt) : strtol(getenv(envname), NULL, 10))
+  (!getenv(envname) ? (dflt) : strtol(getenv(envname), nullptr, 10))
 
 
 

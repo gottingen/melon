@@ -197,8 +197,8 @@ namespace melon::rpc {
 
     bool ParseRestfulMappings(const std::string_view &mappings,
                               std::vector<RestfulMapping> *list) {
-        if (list == NULL) {
-            MELON_LOG(ERROR) << "Param[list] is NULL";
+        if (list == nullptr) {
+            MELON_LOG(ERROR) << "Param[list] is nullptr";
             return false;
         }
         list->clear();
@@ -264,13 +264,13 @@ namespace melon::rpc {
                                const Server::MethodProperty::OpaqueParams &params,
                                const std::string &method_name,
                                MethodStatus *status) {
-        if (service == NULL) {
-            MELON_LOG(ERROR) << "Param[service] is NULL";
+        if (service == nullptr) {
+            MELON_LOG(ERROR) << "Param[service] is nullptr";
             return false;
         }
         const google::protobuf::MethodDescriptor *md =
                 service->GetDescriptor()->FindMethodByName(method_name);
-        if (md == NULL) {
+        if (md == nullptr) {
             MELON_LOG(ERROR) << service->GetDescriptor()->full_name()
                        << " has no method called `" << method_name << '\'';
             return false;
@@ -414,14 +414,14 @@ namespace melon::rpc {
                                    std::string *unresolved_path) const {
         if (_sorted_paths.empty()) {
             MELON_LOG(ERROR) << "_sorted_paths is empty, method_path=" << method_path;
-            return NULL;
+            return nullptr;
         }
         const std::string full_path = NormalizeSlashes(method_path);
         std::string_view sub_path = full_path;
         PathList::const_iterator last_find_pos = _sorted_paths.end();
         do {
             if (last_find_pos == _sorted_paths.begin()) {
-                return NULL;
+                return nullptr;
             }
             // Note: stop trying places that we already visited or skipped.
             PathList::const_iterator it =
@@ -484,7 +484,7 @@ namespace melon::rpc {
                                     << "Hit beginning, sub_path=" << sub_path
                                     << " full_path=" << full_path
                                     << " candidate=" << DebugPrinter(rpath);
-                    return NULL;
+                    return nullptr;
                 }
                 // Matched with prefix but postfix or wildcard, moving forward
                 --it;
@@ -509,7 +509,7 @@ namespace melon::rpc {
         } while (RemoveLastComponent(&sub_path));
         //                            ^^^^^^^^
         // sub_path can be / to match patterns like "*.flv => M" whose prefix is /
-        return NULL;
+        return nullptr;
     }
 
 } // namespace melon::rpc

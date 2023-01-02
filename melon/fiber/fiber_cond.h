@@ -19,7 +19,7 @@ namespace melon {
         typedef fiber_cond_t *native_handler_type;
 
         fiber_cond() {
-            MELON_CHECK_EQ(0, fiber_cond_init(&_cond, NULL));
+            MELON_CHECK_EQ(0, fiber_cond_init(&_cond, nullptr));
         }
 
         ~fiber_cond() {

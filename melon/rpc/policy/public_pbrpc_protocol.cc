@@ -74,7 +74,7 @@ namespace melon::rpc {
             const RequestBody &body = pbreq.requestbody(0);
             const Server::MethodProperty *sp = ServerPrivateAccessor(&svr)
                     .FindMethodPropertyByNameAndIndex(body.service(), body.method_id());
-            if (NULL == sp) {
+            if (nullptr == sp) {
                 cntl->SetFailed(ENOMETHOD, "Fail to find method by service=%s method_id=%u",
                                 body.service().c_str(), body.method_id());
                 return;
@@ -119,7 +119,7 @@ namespace melon::rpc {
             ResponseHead *head = whole_res.mutable_responsehead();
             ResponseBody *body = whole_res.add_responsebody();
 
-            head->set_from_host(melon::base::ip2str(melon::base::my_ip()).c_str());
+            head->set_from_host(melon::ip2str(melon::my_ip()).c_str());
             body->set_version(meta.user_string());
             body->set_id(meta.correlation_id());
             if (cntl->Failed()) {
@@ -165,7 +165,7 @@ namespace melon::rpc {
             const ResponseHead &head = pbres.responsehead();
             const ResponseBody &body = pbres.responsebody(0);
             const fiber_token_t cid = {static_cast<uint64_t>(body.id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -236,13 +236,13 @@ namespace melon::rpc {
             RequestBody *body = pbreq.add_requestbody();
             melon::cord_buf_as_zero_copy_output_stream request_stream(buf);
 
-            head->set_from_host(melon::base::ip2str(melon::base::my_ip()).c_str());
+            head->set_from_host(melon::ip2str(melon::my_ip()).c_str());
             head->set_content_type(CONTENT_TYPE);
             bool short_connection = (controller->connection_type() == CONNECTION_TYPE_SHORT);
             head->set_connection(!short_connection);
             head->set_charset(CHARSET);
             char time_buf[128];
-            time_t now = time(NULL);
+            time_t now = time(nullptr);
             strftime(time_buf, sizeof(time_buf), TIME_FORMAT, localtime(&now));
             head->set_create_time(time_buf);
             if (controller->has_log_id()) {

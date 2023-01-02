@@ -52,7 +52,7 @@ namespace melon::rpc {
         void List(std::ostream &os, char separator);
 
     private:
-        friend class melon::base::GetLeakySingleton<Extension<T> >;
+        friend class melon::GetLeakySingleton<Extension<T> >;
 
         Extension();
 

@@ -188,7 +188,7 @@ namespace {
         ASSERT_TRUE(m.seek(k2));
         ASSERT_EQ(2, *m.seek(k2));
         std::string_view k3("heheda");
-        ASSERT_TRUE(m.seek(k3) == NULL);
+        ASSERT_TRUE(m.seek(k3) == nullptr);
     }
 
     TEST_F(FlatMapTest, to_lower) {
@@ -290,7 +290,7 @@ namespace {
         m1.insert(1, 100);
         ASSERT_EQ(100, m1[1]);
         ASSERT_EQ(2u, m1.size());
-        ASSERT_EQ(NULL, m1.seek(3));
+        ASSERT_EQ(nullptr, m1.seek(3));
         ASSERT_EQ(0u, m1.erase(3));
         ASSERT_EQ(2u, m1.size());
         ASSERT_EQ(1u, m1.erase(2));
@@ -317,7 +317,7 @@ namespace {
         s1.insert(1);
         ASSERT_TRUE(s1.seek(1));
         ASSERT_EQ(2u, s1.size());
-        ASSERT_EQ(NULL, s1.seek(3));
+        ASSERT_EQ(nullptr, s1.seek(3));
         ASSERT_EQ(0u, s1.erase(3));
         ASSERT_EQ(2u, s1.size());
         ASSERT_EQ(1u, s1.erase(2));
@@ -426,8 +426,8 @@ namespace {
         ASSERT_EQ(-1, m1.init(1));
         ASSERT_EQ(0, m2.init(16384));
 
-        ASSERT_EQ(NULL, m1._thumbnail);
-        ASSERT_TRUE(NULL != m2._thumbnail);
+        ASSERT_EQ(nullptr, m1._thumbnail);
+        ASSERT_TRUE(nullptr != m2._thumbnail);
 
         const size_t N = 170;
         std::vector<uint64_t> keys;
@@ -502,7 +502,7 @@ namespace {
 
     static void fill_position_hint_map(PositionHintMap *map,
                                        std::vector<uint64_t> *keys) {
-        srand(time(NULL));
+        srand(time(nullptr));
         const size_t N = 170;
         if (!map->initialized()) {
             ASSERT_EQ(0, map->init(N * 3 / 2, 80));
@@ -553,7 +553,7 @@ namespace {
     }
 
     struct RemoveInsertVisitedOnPause {
-        RemoveInsertVisitedOnPause() : keys(NULL), map(NULL) {
+        RemoveInsertVisitedOnPause() : keys(nullptr), map(nullptr) {
             removed_keys.init(32);
             inserted_keys.init(32);
         }
@@ -611,7 +611,7 @@ namespace {
     }
 
     struct RemoveHintedOnPause {
-        RemoveHintedOnPause() : map(NULL) {
+        RemoveHintedOnPause() : map(nullptr) {
             removed_keys.init(32);
         }
 
@@ -656,7 +656,7 @@ namespace {
 
     struct RemoveInsertUnvisitedOnPause {
         RemoveInsertUnvisitedOnPause()
-                : keys_out(NULL), all_keys(NULL), map(NULL) {
+                : keys_out(nullptr), all_keys(nullptr), map(nullptr) {
             removed_keys.init(32);
             inserted_keys.init(32);
         }
@@ -781,7 +781,7 @@ namespace {
         sum = 0;
         tm.start();
         for (size_t i = 0; i < r.size(); ++i) {
-            sum += (m2.seek(r[i]) != NULL);
+            sum += (m2.seek(r[i]) != nullptr);
         }
         tm.stop();
         MELON_LOG(INFO) << "FlatMap takes " << tm.n_elapsed() / r.size();
@@ -871,7 +871,7 @@ namespace {
         const Key k1 = 1;
         ASSERT_EQ(1, n_con_key);
         ASSERT_EQ(0, n_cp_con_key);
-        ASSERT_EQ(NULL, m.seek(k1));
+        ASSERT_EQ(nullptr, m.seek(k1));
         ASSERT_EQ(0u, m.erase(k1));
         ASSERT_EQ(1, n_con_key);
         ASSERT_EQ(0, n_cp_con_key);
@@ -885,7 +885,7 @@ namespace {
         for (melon::container::FlatMap<int, int>::iterator it = m.begin(); it != m.end(); ++it) {
             MELON_LOG(INFO) << "nothing";
         }
-        ASSERT_EQ(NULL, m.seek(1));
+        ASSERT_EQ(nullptr, m.seek(1));
         ASSERT_EQ(0u, m.erase(1));
         ASSERT_EQ(0u, m.size());
         ASSERT_TRUE(m.empty());
@@ -963,7 +963,7 @@ namespace {
         ASSERT_TRUE(p && *p == 10);
         ASSERT_EQ(0UL, m._pool.count_allocated());
 
-        ASSERT_EQ(NULL, m.seek(k2));
+        ASSERT_EQ(nullptr, m.seek(k2));
 
         // Override
         m[k1] = 100;
@@ -988,7 +988,7 @@ namespace {
         p = m.seek(k2);
         ASSERT_TRUE(p && *p == 30);
 
-        ASSERT_EQ(NULL, m.seek(2049));
+        ASSERT_EQ(nullptr, m.seek(2049));
 
         Map::iterator it = m.begin();
         ASSERT_EQ(k1, it->first);
@@ -1003,7 +1003,7 @@ namespace {
         ASSERT_EQ(1UL, m.erase(k1));
         ASSERT_EQ(2UL, m.size());
         ASSERT_FALSE(m.empty());
-        ASSERT_EQ(NULL, m.seek(k1));
+        ASSERT_EQ(nullptr, m.seek(k1));
         ASSERT_EQ(30, *m.seek(k2));
         ASSERT_EQ(20, *m.seek(k3));
         ASSERT_EQ(1UL, m._pool.count_allocated());
@@ -1019,9 +1019,9 @@ namespace {
         m.clear();
         ASSERT_EQ(m.size(), 0ul);
         ASSERT_TRUE(m.empty());
-        ASSERT_EQ(NULL, m.seek(k1));
-        ASSERT_EQ(NULL, m.seek(k2));
-        ASSERT_EQ(NULL, m.seek(k3));
+        ASSERT_EQ(nullptr, m.seek(k1));
+        ASSERT_EQ(nullptr, m.seek(k2));
+        ASSERT_EQ(nullptr, m.seek(k3));
     }
 
     TEST_F(FlatMapTest, random_insert_erase) {
@@ -1066,7 +1066,7 @@ namespace {
                     for (melon::container::hash_map<uint64_t, Value>::iterator it = ref[i].begin();
                          it != ref[i].end(); ++it) {
                         Value *p_value = ht[i].seek(it->first);
-                        ASSERT_TRUE (p_value != NULL);
+                        ASSERT_TRUE (p_value != nullptr);
                         ASSERT_EQ (it->second, p_value->x_);
                     }
                     ASSERT_EQ (ht[i].size(), ref[i].size());

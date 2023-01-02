@@ -43,10 +43,10 @@ namespace melon::rpc {
             std::string line;
 
             if (!service_name) {
-                MELON_LOG(FATAL) << "Param[service_name] is NULL";
+                MELON_LOG(FATAL) << "Param[service_name] is nullptr";
                 return -1;
             }
-            for (melon::StringSplitter sp(service_name, ','); sp != NULL; ++sp) {
+            for (melon::StringSplitter sp(service_name, ','); sp != nullptr; ++sp) {
                 line.assign(sp.field(), sp.length());
                 std::string_view addr;
                 std::string_view tag;
@@ -54,7 +54,7 @@ namespace melon::rpc {
                     continue;
                 }
                 const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-                melon::base::end_point point;
+                melon::end_point point;
                 if (str2endpoint(addr.data(), &point) != 0 &&
                     hostname2endpoint(addr.data(), &point) != 0) {
                     MELON_LOG(ERROR) << "Invalid address=`" << addr << '\'';

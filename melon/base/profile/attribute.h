@@ -91,7 +91,7 @@ namespace melon::base::base_internal {
 #endif
 
 #ifdef _MSC_VER
-# define MELON_CACHELINE_ALIGNMENT __declspec(align(BAIDU_CACHELINE_SIZE))
+# define MELON_CACHELINE_ALIGNMENT __declspec(align(MELON_CACHE_LINE_SIZE))
 #endif /* _MSC_VER */
 
 #ifdef __GNUC__
@@ -103,9 +103,6 @@ namespace melon::base::base_internal {
 #endif
 
 
-// Mark a branch likely or unlikely to be true.
-// We can't remove the BAIDU_ prefix because the name is likely to conflict,
-// namely kylin already has the macro.
 #if defined(MELON_COMPILER_GNUC) || defined(MELON_COMPILER_CLANG)
 #  if defined(__cplusplus)
 #    define MELON_LIKELY(expr) (__builtin_expect(!!(expr), true))

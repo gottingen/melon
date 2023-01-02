@@ -90,14 +90,14 @@ namespace melon::container {
 
         // Insert a pair of |key| and |value|. If size()*100/bucket_count() is
         // more than load_factor(), a resize() will be done.
-        // Returns address of the inserted value, NULL on error.
+        // Returns address of the inserted value, nullptr on error.
         mapped_type *insert(const key_type &key, const mapped_type &value);
 
         // Remove |key| and the associated value
         // Returns: 1 on erased, 0 otherwise.
         // Remove all items. Allocated spaces are NOT returned by system.
         template<typename K2>
-        size_t erase(const K2 &key, mapped_type *old_value = NULL);
+        size_t erase(const K2 &key, mapped_type *old_value = nullptr);
 
         void clear();
 
@@ -161,7 +161,7 @@ namespace melon::container {
         const_iterator restore_iterator(const PositionHint &) const;
 
         // True if init() was successfully called.
-        bool initialized() const { return _buckets != NULL; }
+        bool initialized() const { return _buckets != nullptr; }
 
         bool empty() const { return _size == 0; }
 
@@ -175,9 +175,9 @@ namespace melon::container {
         BucketInfo bucket_info() const;
 
         struct Bucket {
-            explicit Bucket(const _K &k) : next(NULL) { new(element_spaces) Element(k); }
+            explicit Bucket(const _K &k) : next(nullptr) { new(element_spaces) Element(k); }
 
-            Bucket(const Bucket &other) : next(NULL) { new(element_spaces) Element(other.element()); }
+            Bucket(const Bucket &other) : next(nullptr) { new(element_spaces) Element(other.element()); }
 
             bool is_valid() const { return next != (const Bucket *) -1UL; }
 
@@ -243,7 +243,7 @@ namespace melon::container {
         const void *insert(const key_type &key) { return _map.insert(key, FlatMapVoid()); }
 
         template<typename K2>
-        size_t erase(const K2 &key) { return _map.erase(key, NULL); }
+        size_t erase(const K2 &key) { return _map.erase(key, nullptr); }
 
         void clear() { return _map.clear(); }
 

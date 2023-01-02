@@ -32,12 +32,12 @@ namespace melon::fiber_internal {
     class WorkStealingQueue {
     public:
         WorkStealingQueue()
-                : _bottom(1), _capacity(0), _buffer(NULL), _top(1) {
+                : _bottom(1), _capacity(0), _buffer(nullptr), _top(1) {
         }
 
         ~WorkStealingQueue() {
             delete[] _buffer;
-            _buffer = NULL;
+            _buffer = nullptr;
         }
 
         int init(size_t capacity) {
@@ -55,7 +55,7 @@ namespace melon::fiber_internal {
                 return -1;
             }
             _buffer = new(std::nothrow) T[capacity];
-            if (NULL == _buffer) {
+            if (nullptr == _buffer) {
                 return -1;
             }
             _capacity = capacity;

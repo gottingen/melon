@@ -22,8 +22,8 @@
 #include <vector>                                   // std::vector
 #include <string>                                   // std::string
 #include <ostream>                                  // std::ostream
-#include "melon/base/endpoint.h"                         // melon::base::end_point
-#include "melon/base/profile.h"                           // BAIDU_CONCAT
+#include "melon/base/endpoint.h"                         // melon::end_point
+#include "melon/base/profile.h"
 #include "melon/rpc/describable.h"
 #include "melon/rpc/destroyable.h"
 #include "melon/rpc/extension.h"                         // Extension<T>

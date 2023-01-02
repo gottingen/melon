@@ -61,7 +61,7 @@ namespace {
     const size_t DEFAULT_PAYLOAD = melon::cord_buf::DEFAULT_BLOCK_SIZE - BLOCK_OVERHEAD;
 
     void check_tls_block() {
-        ASSERT_EQ((melon::cord_buf::Block *) NULL, melon::iobuf::get_tls_block_head());
+        ASSERT_EQ((melon::cord_buf::Block *) nullptr, melon::iobuf::get_tls_block_head());
         printf("tls_block of melon::cord_buf was deleted\n");
     }
 
@@ -240,10 +240,10 @@ namespace {
         melon::cord_buf b;
         ASSERT_EQ(0UL, b.length());
         ASSERT_TRUE(b.empty());
-        ASSERT_EQ(-1, b.append(NULL));
+        ASSERT_EQ(-1, b.append(nullptr));
         ASSERT_EQ(0, b.append(""));
         ASSERT_EQ(0, b.append(std::string()));
-        ASSERT_EQ(-1, b.append(NULL, 1));
+        ASSERT_EQ(-1, b.append(nullptr, 1));
         ASSERT_EQ(0, b.append("dummy", 0));
         ASSERT_EQ(0UL, b.length());
         ASSERT_TRUE(b.empty());
@@ -800,7 +800,7 @@ namespace {
         for (size_t j = 0; j < MELON_ARRAY_SIZE(b1); ++j) {
             ASSERT_TRUE(b1[j]->empty());
             delete (melon::IOPortal *) b1[j];
-            b1[j] = NULL;
+            b1[j] = nullptr;
         }
         ASSERT_EQ((ssize_t) ref.length(),
                   b2.append_from_file_descriptor(fds[0], LONG_MAX));
@@ -1079,13 +1079,13 @@ namespace {
         melon::cord_buf_as_zero_copy_input_stream in_wrapper(buf);
         ASSERT_EQ(0, in_wrapper.ByteCount());
         {
-            const void *dummy_blk = NULL;
+            const void *dummy_blk = nullptr;
             int dummy_size = 0;
             ASSERT_TRUE(in_wrapper.Next(&dummy_blk, &dummy_size));
             ASSERT_EQ(dummy_size, in_wrapper.ByteCount());
             in_wrapper.BackUp(1);
             ASSERT_EQ(dummy_size - 1, in_wrapper.ByteCount());
-            const void *dummy_blk2 = NULL;
+            const void *dummy_blk2 = nullptr;
             int dummy_size2 = 0;
             ASSERT_TRUE(in_wrapper.Next(&dummy_blk2, &dummy_size2));
             ASSERT_EQ(1, dummy_size2);
@@ -1129,12 +1129,12 @@ namespace {
             melon::cord_buf_as_zero_copy_output_stream out_stream2(&src);
             melon::cord_buf_as_zero_copy_output_stream &out_stream =
                     (i == 0 ? out_stream1 : out_stream2);
-            void *blk1 = NULL;
+            void *blk1 = nullptr;
             int size1 = 0;
             ASSERT_TRUE(out_stream.Next(&blk1, &size1));
             ASSERT_EQ(PLDSIZE, size1);
             ASSERT_EQ(size1, out_stream.ByteCount());
-            void *blk2 = NULL;
+            void *blk2 = nullptr;
             int size2 = 0;
             ASSERT_TRUE(out_stream.Next(&blk2, &size2));
             ASSERT_EQ(PLDSIZE, size2);
@@ -1142,7 +1142,7 @@ namespace {
             // BackUp a size that's valid for all ZeroCopyOutputStream
             out_stream.BackUp(PLDSIZE / 2);
             ASSERT_EQ(size1 + size2 - PLDSIZE / 2, out_stream.ByteCount());
-            void *blk3 = NULL;
+            void *blk3 = nullptr;
             int size3 = 0;
             ASSERT_TRUE(out_stream.Next(&blk3, &size3));
             ASSERT_EQ((char *) blk2 + PLDSIZE / 2, blk3);
@@ -1152,7 +1152,7 @@ namespace {
             // BackUp a size that's undefined in regular ZeroCopyOutputStream
             out_stream.BackUp(PLDSIZE * 2);
             ASSERT_EQ(0, out_stream.ByteCount());
-            void *blk4 = NULL;
+            void *blk4 = nullptr;
             int size4 = 0;
             ASSERT_TRUE(out_stream.Next(&blk4, &size4));
             ASSERT_EQ(PLDSIZE, size4);
@@ -1160,7 +1160,7 @@ namespace {
             if (i == 1) {
                 ASSERT_EQ(blk1, blk4);
             }
-            void *blk5 = NULL;
+            void *blk5 = nullptr;
             int size5 = 0;
             ASSERT_TRUE(out_stream.Next(&blk5, &size5));
             ASSERT_EQ(PLDSIZE, size5);
@@ -1177,7 +1177,7 @@ namespace {
             // to check.
             melon::cord_buf dummy;
             melon::cord_buf_as_zero_copy_output_stream dummy_stream(&dummy);
-            void *dummy_data = NULL;
+            void *dummy_data = nullptr;
             int dummy_size = 0;
             ASSERT_TRUE(dummy_stream.Next(&dummy_data, &dummy_size));
         }
@@ -1191,19 +1191,19 @@ namespace {
         ASSERT_EQ(-1, out_stream.ByteCount());
         ASSERT_EQ(DEFAULT_PAYLOAD * 2 - 1, src.size());
         ASSERT_EQ(2u, src.backing_block_num());
-        void *data0 = NULL;
+        void *data0 = nullptr;
         int size0 = 0;
         ASSERT_TRUE(out_stream.Next(&data0, &size0));
         ASSERT_EQ(1, size0);
         ASSERT_EQ(0, out_stream.ByteCount());
         ASSERT_EQ(2u, src.backing_block_num());
-        void *data1 = NULL;
+        void *data1 = nullptr;
         int size1 = 0;
         ASSERT_TRUE(out_stream.Next(&data1, &size1));
         ASSERT_EQ(size1, out_stream.ByteCount());
         ASSERT_EQ(3u, src.backing_block_num());
         ASSERT_EQ(N + size1, src.size());
-        void *data2 = NULL;
+        void *data2 = nullptr;
         int size2 = 0;
         ASSERT_TRUE(out_stream.Next(&data2, &size2));
         ASSERT_EQ(size1 + size2, out_stream.ByteCount());
@@ -1224,7 +1224,7 @@ namespace {
         melon::cord_buf_as_zero_copy_output_stream *wrapper =
                 (melon::cord_buf_as_zero_copy_output_stream *) arg;
         wrapper->BackUp(1024);
-        return NULL;
+        return nullptr;
     }
 
     TEST_F(CordBufTest, backup_in_another_thread) {
@@ -1244,8 +1244,8 @@ namespace {
             ASSERT_TRUE(wrapper.Next(&data, &len));
             alloc_size += len;
             pthread_t tid;
-            pthread_create(&tid, NULL, backup_thread, &wrapper);
-            pthread_join(tid, NULL);
+            pthread_create(&tid, nullptr, backup_thread, &wrapper);
+            pthread_join(tid, nullptr);
         }
         ASSERT_EQ(alloc_size - 1024 * 10, buf.length());
     }
@@ -1368,7 +1368,7 @@ namespace {
             MELON_CHECK_EQ(out.pcut_into_file_descriptor(fd, offset + sizeof(int) * i),
                      (ssize_t) sizeof(int));
         }
-        return NULL;
+        return nullptr;
     }
 
     TEST_F(CordBufTest, cut_into_fd_with_offset_multithreaded) {
@@ -1378,10 +1378,10 @@ namespace {
         long fd = open(".out.txt", O_RDWR | O_CREAT | O_TRUNC, 0644);
         ASSERT_TRUE(fd >= 0) << melon_error();
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            ASSERT_EQ(0, pthread_create(&threads[i], NULL, cut_into_fd, (void *) fd));
+            ASSERT_EQ(0, pthread_create(&threads[i], nullptr, cut_into_fd, (void *) fd));
         }
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            pthread_join(threads[i], NULL);
+            pthread_join(threads[i], nullptr);
         }
         for (int i = 0; i < number_per_thread * (int) MELON_ARRAY_SIZE(threads); ++i) {
             off_t offset = i * sizeof(int);
@@ -1444,7 +1444,7 @@ namespace {
         std::string saved_a = a.to_string();
         size_t n = 0;
         melon::cord_buf_bytes_iterator it(a);
-        for (; it != NULL; ++it, ++n) {
+        for (; it != nullptr; ++it, ++n) {
             ASSERT_EQ(saved_a[n], *it);
         }
         ASSERT_EQ(saved_a.size(), n);
@@ -1452,7 +1452,7 @@ namespace {
 
         // append more to the iobuf, iterator should still be ended.
         a.append(", this is iobuf");
-        ASSERT_TRUE(it == NULL);
+        ASSERT_TRUE(it == nullptr);
 
         // append more-than-one-block data to the iobuf
         for (int i = 0; i < 1024; ++i) {
@@ -1460,7 +1460,7 @@ namespace {
         }
         saved_a = a.to_string();
         n = 0;
-        for (melon::cord_buf_bytes_iterator it2(a); it2 != NULL; it2++/*intended post++*/, ++n) {
+        for (melon::cord_buf_bytes_iterator it2(a); it2 != nullptr; it2++/*intended post++*/, ++n) {
             ASSERT_EQ(saved_a[n], *it2);
         }
         ASSERT_EQ(saved_a.size(), n);
@@ -1594,7 +1594,7 @@ namespace {
         ASSERT_EQ(nc, b0.length());
     }
 
-    static void *my_free_params = NULL;
+    static void *my_free_params = nullptr;
 
     static void my_free(void *m) {
         free(m);
@@ -1611,7 +1611,7 @@ namespace {
                 data[i * REP + j] = (char) i;
             }
         }
-        my_free_params = NULL;
+        my_free_params = nullptr;
         ASSERT_EQ(0, b0.append_user_data(data, len, my_free));
         ASSERT_EQ(1UL, b0._ref_num());
         melon::cord_buf::BlockRef r = b0._front_ref();
@@ -1641,7 +1641,7 @@ namespace {
                 data[i * REP + j] = (char) i;
             }
         }
-        my_free_params = NULL;
+        my_free_params = nullptr;
         ASSERT_EQ(0, b0.append_user_data(data, len, my_free));
         ASSERT_EQ(1UL, b0._ref_num());
         melon::cord_buf::BlockRef r = b0._front_ref();
@@ -1662,7 +1662,7 @@ namespace {
                     ASSERT_TRUE(b0.empty());
                 }
             }
-            ASSERT_EQ(NULL, my_free_params);
+            ASSERT_EQ(nullptr, my_free_params);
             for (int i = 0; i < 256; ++i) {
                 std::string out = bufs[i].to_string();
                 ASSERT_EQ((size_t) REP, out.size());
@@ -1688,11 +1688,11 @@ namespace {
         ASSERT_NE(b, b2);
         melon::iobuf::release_tls_block_chain(b);
         ASSERT_EQ(b, melon::iobuf::share_tls_block());
-        // After releasing b, now tls block is b(not full) -> b2(full) -> NULL
+        // After releasing b, now tls block is b(not full) -> b2(full) -> nullptr
         for (size_t i = 0; i < melon::iobuf::block_cap(b); i++) {
             buf.push_back('x');
         }
-        // now tls block is b(full) -> b2(full) -> NULL
+        // now tls block is b(full) -> b2(full) -> nullptr
         melon::cord_buf::Block *head_block = melon::iobuf::share_tls_block();
         ASSERT_EQ(0u, melon::iobuf::block_size(head_block));
         ASSERT_NE(b, head_block);

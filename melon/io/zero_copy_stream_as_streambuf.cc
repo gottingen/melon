@@ -28,14 +28,14 @@ namespace melon {
         if (ch == std::streambuf::traits_type::eof()) {
             return ch;
         }
-        void *block = NULL;
+        void *block = nullptr;
         int size = 0;
         if (_zero_copy_stream->Next(&block, &size)) {
             setp((char *) block, (char *) block + size);
             // if size == 0, this function will call overflow again.
             return sputc(ch);
         } else {
-            setp(NULL, NULL);
+            setp(nullptr, nullptr);
             return std::streambuf::traits_type::eof();
         }
     }
@@ -50,9 +50,9 @@ namespace melon {
     }
 
     void zero_copy_stream_as_stream_buf::shrink() {
-        if (pbase() != NULL) {
+        if (pbase() != nullptr) {
             _zero_copy_stream->BackUp(epptr() - pptr());
-            setp(NULL, NULL);
+            setp(nullptr, nullptr);
         }
     }
 

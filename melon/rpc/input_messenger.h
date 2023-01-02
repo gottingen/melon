@@ -56,7 +56,7 @@ namespace melon::rpc {
         Process process;
 
         // The callback to verify authentication of this socket. Only called
-        // on the first message that a socket receives. Can be NULL when
+        // on the first message that a socket receives. Can be nullptr when
         // authentication is not needed or this is the client side.
         // Returns true on successful authentication.
         typedef bool (*Verify)(const InputMessageBase *msg);
@@ -85,7 +85,7 @@ namespace melon::rpc {
         int AddHandler(const InputMessageHandler &handler);
 
         // [thread-safe] Create a socket to process input messages.
-        int Create(const melon::base::end_point &remote_side,
+        int Create(const melon::end_point &remote_side,
                    time_t health_check_interval_s,
                    SocketId *id);
 

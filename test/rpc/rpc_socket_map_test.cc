@@ -32,7 +32,7 @@ DECLARE_int32(max_connection_pool_size);
 } // namespace melon::rpc
 
 namespace {
-melon::base::end_point g_endpoint;
+melon::end_point g_endpoint;
 melon::rpc::SocketMapKey g_key(g_endpoint);
 
 void* worker(void*) {
@@ -48,7 +48,7 @@ void* worker(void*) {
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 class SocketMapTest : public ::testing::Test{
@@ -65,10 +65,10 @@ TEST_F(SocketMapTest, idle_timeout) {
     melon::rpc::FLAGS_defer_close_second = TIMEOUT;
     pthread_t tids[NTHREAD];
     for (int i = 0; i < NTHREAD; ++i) {
-        ASSERT_EQ(0, pthread_create(&tids[i], NULL, worker, NULL));
+        ASSERT_EQ(0, pthread_create(&tids[i], nullptr, worker, nullptr));
     }
     for (int i = 0; i < NTHREAD; ++i) {
-        ASSERT_EQ(0, pthread_join(tids[i], NULL));
+        ASSERT_EQ(0, pthread_join(tids[i], nullptr));
     }
     melon::rpc::SocketId id;
     // Socket still exists since it has not reached timeout yet
@@ -98,7 +98,7 @@ TEST_F(SocketMapTest, idle_timeout) {
     main_ptr.reset();
     id = ptr->id();
     ptr->ReturnToPool();
-    ptr.reset(NULL);
+    ptr.reset(nullptr);
     usleep(TIMEOUT * 1000000L + 2000000L);
     // Pooled connection should be `ReleaseAdditionalReference',
     // which destroyed the Socket. As a result `GetSocketFromPool'
@@ -143,7 +143,7 @@ TEST_F(SocketMapTest, max_pool_size) {
 } //namespace
 
 int main(int argc, char* argv[]) {
-    melon::base::str2endpoint("127.0.0.1:12345", &g_key.peer.addr);
+    melon::str2endpoint("127.0.0.1:12345", &g_key.peer.addr);
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

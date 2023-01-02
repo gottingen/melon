@@ -56,15 +56,15 @@ namespace melon::rpc {
     }
 
     struct NameOfPoint {
-        explicit NameOfPoint(const melon::base::end_point &pt_) : pt(pt_) {}
+        explicit NameOfPoint(const melon::end_point &pt_) : pt(pt_) {}
 
-        melon::base::end_point pt;
+        melon::end_point pt;
     };
 
     std::ostream &operator<<(std::ostream &os, const NameOfPoint &nop) {
         char buf[128];
         if (FLAGS_show_hostname_instead_of_ip &&
-            melon::base::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
+            melon::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
             return os << buf;
         } else {
             return os << nop.pt;
@@ -224,7 +224,7 @@ namespace melon::rpc {
                     // Special treatment for nshead services. Notice that
                     // pref_index is comparable to ProtocolType after r31951
                     if (pref_index == (int) PROTOCOL_NSHEAD &&
-                        server->options().nshead_service != NULL) {
+                        server->options().nshead_service != nullptr) {
                         if (nshead_service_name.empty()) {
                             nshead_service_name = BriefName(melon::base::class_name_str(
                                     *server->options().nshead_service));
@@ -245,7 +245,7 @@ namespace melon::rpc {
                 ptr->GetStat(&stat);
                 PrintRealDateTime(os, ptr->_reset_fd_real_us);
                 int rttfd = ptr->fd();
-                if (rttfd < 0 && first_sub != NULL) {
+                if (rttfd < 0 && first_sub != nullptr) {
                     rttfd = first_sub->fd();
                 }
 

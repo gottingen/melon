@@ -78,7 +78,7 @@ namespace melon::rpc {
 
         // simple approach just making it work.
         melon::cord_buf tmp;
-        const void *data = NULL;
+        const void *data = nullptr;
         int size = 0;
         while (input->GetDirectBufferPointer(&data, &size)) {
             tmp.append(data, size);
@@ -90,7 +90,7 @@ namespace melon::rpc {
             char aux_buf[sizeof(policy::MemcacheRequestHeader)];
             const policy::MemcacheRequestHeader *header =
                     (const policy::MemcacheRequestHeader *) tmp.fetch(aux_buf, sizeof(aux_buf));
-            if (header == NULL) {
+            if (header == nullptr) {
                 return false;
             }
             if (header->magic != (uint8_t) policy::MC_MAGIC_REQUEST) {
@@ -113,7 +113,7 @@ namespace melon::rpc {
 
         // simple approach just making it work.
         melon::cord_buf_as_zero_copy_input_stream wrapper(_buf);
-        const void *data = NULL;
+        const void *data = nullptr;
         int size = 0;
         while (wrapper.Next(&data, &size)) {
             output->WriteRaw(data, size);
@@ -134,7 +134,7 @@ namespace melon::rpc {
     void MemcacheRequest::MergeFrom(const ::google::protobuf::Message &from) {
         GOOGLE_CHECK_NE(&from, this);
         const MemcacheRequest *source = dynamic_cast<const MemcacheRequest *>(&from);
-        if (source == NULL) {
+        if (source == nullptr) {
             ::google::protobuf::internal::ReflectionOps::Merge(from, this);
         } else {
             MergeFrom(*source);
@@ -174,7 +174,7 @@ namespace melon::rpc {
     ::google::protobuf::Metadata MemcacheRequest::GetMetadata() const {
         ::google::protobuf::Metadata metadata;
         metadata.descriptor = MemcacheRequest::descriptor();
-        metadata.reflection = NULL;
+        metadata.reflection = nullptr;
         return metadata;
     }
 
@@ -224,7 +224,7 @@ namespace melon::rpc {
         MELON_LOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
 
         // simple approach just making it work.
-        const void *data = NULL;
+        const void *data = nullptr;
         int size = 0;
         while (input->GetDirectBufferPointer(&data, &size)) {
             _buf.append(data, size);
@@ -239,7 +239,7 @@ namespace melon::rpc {
 
         // simple approach just making it work.
         melon::cord_buf_as_zero_copy_input_stream wrapper(_buf);
-        const void *data = NULL;
+        const void *data = nullptr;
         int size = 0;
         while (wrapper.Next(&data, &size)) {
             output->WriteRaw(data, size);
@@ -260,7 +260,7 @@ namespace melon::rpc {
     void MemcacheResponse::MergeFrom(const ::google::protobuf::Message &from) {
         GOOGLE_CHECK_NE(&from, this);
         const MemcacheResponse *source = dynamic_cast<const MemcacheResponse *>(&from);
-        if (source == NULL) {
+        if (source == nullptr) {
             ::google::protobuf::internal::ReflectionOps::Merge(from, this);
         } else {
             MergeFrom(*source);
@@ -301,7 +301,7 @@ namespace melon::rpc {
     ::google::protobuf::Metadata MemcacheResponse::GetMetadata() const {
         ::google::protobuf::Metadata metadata;
         metadata.descriptor = MemcacheResponse::descriptor();
-        metadata.reflection = NULL;
+        metadata.reflection = nullptr;
         return metadata;
     }
 
@@ -502,11 +502,11 @@ namespace melon::rpc {
 // MUST NOT have key
 // MUST NOT have value
     bool MemcacheResponse::PopDelete() {
-        return PopStore(policy::MC_BINARY_DELETE, NULL);
+        return PopStore(policy::MC_BINARY_DELETE, nullptr);
     }
 
     bool MemcacheResponse::PopFlush() {
-        return PopStore(policy::MC_BINARY_FLUSH, NULL);
+        return PopStore(policy::MC_BINARY_FLUSH, nullptr);
     }
 
     struct StoreHeaderWithExtras {

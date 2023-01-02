@@ -67,7 +67,7 @@ namespace melon::snappy {
 
         // Append "bytes[0,n-1] to the sink. Takes ownership of "bytes"
         // and calls the deleter function as (*deleter)(deleter_arg, bytes, n)
-        // to free the buffer. deleter function must be non NULL.
+        // to free the buffer. deleter function must be non nullptr.
         //
         // The default implementation just calls Append and frees "bytes".
         // Other implementations may avoid a copy while appending the buffer.

@@ -93,7 +93,7 @@ namespace melon::rpc {
     void NsheadMessage::MergeFrom(const ::google::protobuf::Message &from) {
         GOOGLE_CHECK_NE(&from, this);
         const NsheadMessage *source = dynamic_cast<const NsheadMessage *>(&from);
-        if (source == NULL) {
+        if (source == nullptr) {
             MELON_LOG(ERROR) << "Can only merge from NsheadMessage";
             return;
         } else {
@@ -136,7 +136,7 @@ namespace melon::rpc {
     ::google::protobuf::Metadata NsheadMessage::GetMetadata() const {
         ::google::protobuf::Metadata metadata;
         metadata.descriptor = NsheadMessage::descriptor();
-        metadata.reflection = NULL;
+        metadata.reflection = nullptr;
         return metadata;
     }
 

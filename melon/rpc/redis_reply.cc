@@ -115,7 +115,7 @@ namespace melon::rpc {
 
         // Notice that all branches returning PARSE_ERROR_NOT_ENOUGH_DATA must not change `buf'.
         const char *pfc = (const char *) buf.fetch1();
-        if (pfc == NULL) {
+        if (pfc == nullptr) {
             return PARSE_ERROR_NOT_ENOUGH_DATA;
         }
         const char fc = *pfc;  // first character
@@ -141,7 +141,7 @@ namespace melon::rpc {
                     return PARSE_OK;
                 }
                 char *d = (char *) _arena->allocate((len / 8 + 1) * 8);
-                if (d == NULL) {
+                if (d == nullptr) {
                     MELON_LOG(FATAL) << "Fail to allocate string[" << len << "]";
                     return PARSE_ERROR_ABSOLUTELY_WRONG;
                 }
@@ -161,7 +161,7 @@ namespace melon::rpc {
                 if (crlf_pos == std::string_view::npos) {  // not enough data
                     return PARSE_ERROR_NOT_ENOUGH_DATA;
                 }
-                char *endptr = NULL;
+                char *endptr = nullptr;
                 int64_t value = strtoll(intbuf + 1/*skip fc*/, &endptr, 10);
                 if (endptr != intbuf + crlf_pos) {
                     MELON_LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
@@ -201,7 +201,7 @@ namespace melon::rpc {
                         _data.short_str[len] = '\0';
                     } else {
                         char *d = (char *) _arena->allocate((len / 8 + 1) * 8);
-                        if (d == NULL) {
+                        if (d == nullptr) {
                             MELON_LOG(FATAL) << "Fail to allocate string[" << len << "]";
                             return PARSE_ERROR_ABSOLUTELY_WRONG;
                         }
@@ -233,7 +233,7 @@ namespace melon::rpc {
                         _type = REDIS_REPLY_ARRAY;
                         _length = 0;
                         _data.array.last_index = -1;
-                        _data.array.replies = NULL;
+                        _data.array.replies = nullptr;
                         return PARSE_OK;
                     }
                     if (count > (int64_t) std::numeric_limits<uint32_t>::max()) {
@@ -243,7 +243,7 @@ namespace melon::rpc {
                     }
                     // FIXME(gejun): Call allocate_aligned instead.
                     RedisReply *subs = (RedisReply *) _arena->allocate(sizeof(RedisReply) * count);
-                    if (subs == NULL) {
+                    if (subs == nullptr) {
                         MELON_LOG(FATAL) << "Fail to allocate RedisReply[" << count << "]";
                         return PARSE_ERROR_ABSOLUTELY_WRONG;
                     }
@@ -371,7 +371,7 @@ namespace melon::rpc {
         switch (_type) {
             case REDIS_REPLY_ARRAY: {
                 RedisReply *subs = (RedisReply *) _arena->allocate(sizeof(RedisReply) * _length);
-                if (subs == NULL) {
+                if (subs == nullptr) {
                     MELON_LOG(FATAL) << "Fail to allocate RedisReply[" << _length << "]";
                     return;
                 }
@@ -406,7 +406,7 @@ namespace melon::rpc {
                     memcpy(_data.short_str, other._data.short_str, _length + 1);
                 } else {
                     char *d = (char *) _arena->allocate((_length / 8 + 1) * 8);
-                    if (d == NULL) {
+                    if (d == nullptr) {
                         MELON_LOG(FATAL) << "Fail to allocate string[" << _length << "]";
                         return;
                     }

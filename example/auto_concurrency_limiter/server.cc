@@ -199,7 +199,7 @@ public:
                                melon::rpc::SERVER_OWNS_SERVICE) != 0) {
             MELON_LOG(FATAL) << "Fail to add service";
         }
-        g_timer_thread.start(NULL);
+        g_timer_thread.start(nullptr);
     }
 
     virtual ~ControlServiceImpl() {
@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (server.Start(FLAGS_cntl_port, NULL) != 0) {
+    if (server.Start(FLAGS_cntl_port, nullptr) != 0) {
         MELON_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }

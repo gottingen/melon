@@ -73,7 +73,7 @@ namespace {
             puts("[Starting redis-server]");
             char *const argv[] = {(char *) REDIS_SERVER_BIN,
                                   (char *) "--port", (char *) REDIS_SERVER_PORT,
-                                  NULL};
+                                  nullptr};
             unlink("dump.rdb");
             if (execvp(REDIS_SERVER_BIN, argv) < 0) {
                 puts("Fail to run " REDIS_SERVER_BIN);
@@ -158,7 +158,7 @@ namespace {
         melon::rpc::Controller cntl;
 
         ASSERT_TRUE(request.AddCommand("get hello"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(1, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_NIL, response.reply(0).type())
@@ -168,7 +168,7 @@ namespace {
         request.Clear();
         response.Clear();
         request.AddCommand("set hello world");
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(1, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STATUS, response.reply(0).type());
@@ -178,7 +178,7 @@ namespace {
         request.Clear();
         response.Clear();
         ASSERT_TRUE(request.AddCommand("get hello"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(1, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STRING, response.reply(0).type());
@@ -188,7 +188,7 @@ namespace {
         request.Clear();
         response.Clear();
         request.AddCommand("set hello world2");
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(1, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STATUS, response.reply(0).type());
@@ -198,7 +198,7 @@ namespace {
         request.Clear();
         response.Clear();
         ASSERT_TRUE(request.AddCommand("get hello"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(1, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STRING, response.reply(0).type());
@@ -208,7 +208,7 @@ namespace {
         request.Clear();
         response.Clear();
         ASSERT_TRUE(request.AddCommand("del hello"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_INTEGER, response.reply(0).type());
         ASSERT_EQ(1, response.reply(0).integer());
@@ -217,7 +217,7 @@ namespace {
         request.Clear();
         response.Clear();
         ASSERT_TRUE(request.AddCommand("get %s", "hello"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(1, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_NIL, response.reply(0).type());
@@ -247,7 +247,7 @@ namespace {
         ASSERT_TRUE(request.AddCommand("get 'hello2 world2'"));
         ASSERT_TRUE(request.AddCommand("get 'hello3 world3'"));
 
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(7, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STATUS, response.reply(0).type());
@@ -288,7 +288,7 @@ namespace {
         request.AddCommand("decr counter1");
         request.AddCommand("incrby counter1 %d", 10);
         request.AddCommand("decrby counter1 %d", 20);
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(4, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_INTEGER, response.reply(0).type());
@@ -329,7 +329,7 @@ namespace {
         request.AddCommandByComponents(comp3, MELON_ARRAY_SIZE(comp3));
         request.AddCommandByComponents(comp4, MELON_ARRAY_SIZE(comp4));
 
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(4, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_INTEGER, response.reply(0).type());
@@ -381,7 +381,7 @@ namespace {
             request.AddCommand("auth %s", passwd1.c_str());
             request.AddCommand("get mykey");
 
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_EQ(4, response.reply_size());
             ASSERT_EQ(melon::rpc::REDIS_REPLY_STATUS, response.reply(0).type());
@@ -405,7 +405,7 @@ namespace {
             melon::rpc::Controller cntl;
 
             request.AddCommand("get mykey");
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_EQ(1, response.reply_size());
             ASSERT_EQ(melon::rpc::REDIS_REPLY_ERROR, response.reply(0).type());
@@ -428,7 +428,7 @@ namespace {
             request.AddCommand("get mykey");
             request.AddCommand("config set requirepass %s", passwd2.c_str());
 
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_EQ(2, response.reply_size());
             ASSERT_EQ(melon::rpc::REDIS_REPLY_STRING, response.reply(0).type());
@@ -451,7 +451,7 @@ namespace {
             melon::rpc::Controller cntl;
 
             request.AddCommand("get mykey");
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_EQ(1, response.reply_size());
             ASSERT_EQ(melon::rpc::REDIS_REPLY_STRING, response.reply(0).type()) << response.reply(0);
@@ -974,7 +974,7 @@ namespace {
         ASSERT_TRUE(request.AddCommand("set key2 value2"));
         ASSERT_TRUE(request.AddCommand("get key2"));
         ASSERT_TRUE(request.AddCommand("xxxcommand key2"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(7, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_NIL, response.reply(0).type());
@@ -1004,7 +1004,7 @@ namespace {
         ASSERT_TRUE(request.AddCommand("set key4 \"\""));
         ASSERT_TRUE(request.AddCommand("get key3"));
         ASSERT_TRUE(request.AddCommand("get key4"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(4, response.reply_size());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STATUS, response.reply(0).type());
@@ -1027,12 +1027,12 @@ namespace {
             melon::rpc::RedisResponse response;
             melon::rpc::Controller cntl;
             EXPECT_TRUE(request.AddCommand("incr count"));
-            c->CallMethod(NULL, &cntl, &request, &response, NULL);
+            c->CallMethod(nullptr, &cntl, &request, &response, nullptr);
             EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
             EXPECT_EQ(1, response.reply_size());
             EXPECT_TRUE(response.reply(0).is_integer());
         }
-        return NULL;
+        return nullptr;
     }
 
     TEST_F(RedisTest, server_concurrency) {
@@ -1055,12 +1055,12 @@ namespace {
             channels.push_back(new melon::rpc::Channel);
             ASSERT_EQ(0, channels.back()->Init("127.0.0.1", server.listen_address().port, &options));
             fiber_id_t bth;
-            ASSERT_EQ(fiber_start_background(&bth, NULL, incr_thread, channels.back()), 0);
+            ASSERT_EQ(fiber_start_background(&bth, nullptr, incr_thread, channels.back()), 0);
             bths.push_back(bth);
         }
 
         for (int i = 0; i < N; ++i) {
-            fiber_join(bths[i], NULL);
+            fiber_join(bths[i], nullptr);
             delete channels[i];
         }
         ASSERT_EQ(int_map["count"], 10 * 5000LL);
@@ -1142,7 +1142,7 @@ namespace {
             melon::rpc::Controller cntl;
             ASSERT_TRUE(request.AddCommand("set hello world"));
             ASSERT_TRUE(request.AddCommand("get hello"));
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_EQ(2, response.reply_size());
             ASSERT_STREQ("world", response.reply(1).c_str());
@@ -1158,7 +1158,7 @@ namespace {
                 ASSERT_TRUE(request.AddCommand("incr hello 1"));
             }
             ASSERT_TRUE(request.AddCommand("exec"));
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_EQ(13, response.reply_size());
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_EQ(melon::rpc::REDIS_REPLY_STATUS, response.reply(0).type());
@@ -1183,7 +1183,7 @@ namespace {
             ASSERT_TRUE(request.AddCommand("get hello2"));
             ASSERT_TRUE(request.AddCommand("set key1 value1"));
             ASSERT_TRUE(request.AddCommand("get key1"));
-            channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+            channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_STREQ("world", response.reply(0).c_str());
             ASSERT_EQ(melon::rpc::REDIS_REPLY_NIL, response.reply(1).type());
@@ -1223,7 +1223,7 @@ namespace {
         ASSERT_TRUE(request.AddCommand("set key1 world"));
         ASSERT_TRUE(request.AddCommand("set key2 world"));
         ASSERT_TRUE(request.AddCommand("get key2"));
-        channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(8, response.reply_size());
         ASSERT_EQ(1, rsimpl->_batch_count);

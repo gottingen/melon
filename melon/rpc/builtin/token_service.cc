@@ -45,7 +45,7 @@ namespace melon::rpc {
             os << "# Use /token/<call_id>\n";
             melon::fiber_internal::token_pool_status(os);
         } else {
-            char *endptr = NULL;
+            char *endptr = nullptr;
             fiber_token_t id = {strtoull(constraint.c_str(), &endptr, 10)};
             if (*endptr == '\0' || *endptr == '/') {
                 melon::fiber_internal::token_status(id, os);

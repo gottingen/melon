@@ -109,9 +109,9 @@ namespace melon::log {
         inited_vmodule = false;
         const char *vmodule = FLAGS_melon_vmodule.c_str();
         const char *sep;
-        VModuleInfo *head = NULL;
-        VModuleInfo *tail = NULL;
-        while ((sep = strchr(vmodule, '=')) != NULL) {
+        VModuleInfo *head = nullptr;
+        VModuleInfo *tail = nullptr;
+        while ((sep = strchr(vmodule, '=')) != nullptr) {
             string pattern(vmodule, sep - vmodule);
             int module_level;
             if (sscanf(sep, "=%d", &module_level) == 1) {
@@ -124,7 +124,7 @@ namespace melon::log {
             }
             // Skip past this entry
             vmodule = strchr(sep, ',');
-            if (vmodule == NULL) break;
+            if (vmodule == nullptr) break;
             vmodule++;  // Skip past ","
         }
         if (head) {  // Put them into the list at the head:
@@ -142,7 +142,7 @@ namespace melon::log {
         {
             std::unique_lock<std::mutex> l(vmodule_lock);  // protect whole read-modify-write
             for (const VModuleInfo *info = vmodule_list;
-                 info != NULL; info = info->next) {
+                 info != nullptr; info = info->next) {
                 if (info->module_pattern == module_pattern) {
                     if (!found) {
                         result = info->vlog_level;
@@ -203,7 +203,7 @@ namespace melon::log {
         // find target in vector of modules, replace site_flag_value with
         // a module-specific verbose level, if any.
         for (const VModuleInfo *info = vmodule_list;
-             info != NULL; info = info->next) {
+             info != nullptr; info = info->next) {
             if (SafeFNMatch_(info->module_pattern.c_str(), info->module_pattern.size(),
                              base, base_length)) {
                 site_flag_value = &info->vlog_level;

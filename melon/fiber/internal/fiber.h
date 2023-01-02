@@ -154,9 +154,9 @@ extern int fiber_setconcurrency(int num);
 // ---------------------------------------------
 
 // Initialize `mutex' using attributes in `mutex_attr', or use the
-// default values if later is NULL.
+// default values if later is nullptr.
 // NOTE: mutexattr is not used in current mutex implementation. User shall
-//       always pass a NULL attribute.
+//       always pass a nullptr attribute.
 extern int fiber_mutex_init(fiber_mutex_t *__restrict mutex,
                             const fiber_mutexattr_t *__restrict mutex_attr);
 
@@ -181,9 +181,9 @@ extern int fiber_mutex_unlock(fiber_mutex_t *mutex);
 // -----------------------------------------------
 
 // Initialize condition variable `cond' using attributes `cond_attr', or use
-// the default values if later is NULL.
+// the default values if later is nullptr.
 // NOTE: cond_attr is not used in current condition implementation. User shall
-//       always pass a NULL attribute.
+//       always pass a nullptr attribute.
 extern int fiber_cond_init(fiber_cond_t *__restrict cond,
                            const fiber_condattr_t *__restrict cond_attr);
 
@@ -215,7 +215,7 @@ extern int fiber_cond_timedwait(
 // -------------------------------------------
 
 // Initialize read-write lock `rwlock' using attributes `attr', or use
-// the default values if later is NULL.
+// the default values if later is nullptr.
 extern int fiber_rwlock_init(fiber_rwlock_t *__restrict rwlock,
                              const fiber_rwlockattr_t *__restrict attr);
 
@@ -286,9 +286,9 @@ extern int fiber_barrier_wait(fiber_barrier_t *barrier);
 
 // Create a key value identifying a slot in a thread-specific data area.
 // Each thread maintains a distinct thread-specific data area.
-// `destructor', if non-NULL, is called with the value associated to that key
+// `destructor', if non-nullptr, is called with the value associated to that key
 // when the key is destroyed. `destructor' is not called if the value
-// associated is NULL when the key is destroyed.
+// associated is nullptr when the key is destroyed.
 // Returns 0 on success, error code otherwise.
 extern int fiber_key_create(fiber_local_key *key,
                             void (*destructor)(void *data));
@@ -317,8 +317,8 @@ extern int fiber_key_delete(fiber_local_key key);
 extern int fiber_setspecific(fiber_local_key key, void *data);
 
 // Return current value of the thread-specific slot identified by `key'.
-// If fiber_setspecific() had not been called in the thread, return NULL.
-// If the key is invalid or deleted, return NULL.
+// If fiber_setspecific() had not been called in the thread, return nullptr.
+// If the key is invalid or deleted, return nullptr.
 extern void *fiber_getspecific(fiber_local_key key);
 
 __END_DECLS

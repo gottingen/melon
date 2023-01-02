@@ -66,18 +66,18 @@ namespace melon::fiber_internal {
 
     static KeyInfo s_key_info[KEYS_MAX] = {};
 
-// For allocating keys.
+    // For allocating keys.
     static pthread_mutex_t s_key_mutex = PTHREAD_MUTEX_INITIALIZER;
     static size_t nfreekey = 0;
     static size_t nkey = 0;
     static uint32_t s_free_keys[KEYS_MAX];
 
-// Stats.
+    // Stats.
     static melon::static_atomic<size_t> nkeytable = MELON_STATIC_ATOMIC_INIT(0);
     static melon::static_atomic<size_t> nsubkeytable = MELON_STATIC_ATOMIC_INIT(0);
 
-// The second-level array.
-// Align with cacheline to avoid false sharing.
+    // The second-level array.
+    // Align with cacheline to avoid false sharing.
     class MELON_CACHELINE_ALIGNMENT SubKeyTable {
     public:
         SubKeyTable() {
@@ -454,10 +454,11 @@ int fiber_setspecific(fiber_local_key key, void *data) {
         melon::fiber_internal::fiber_worker *const g = melon::fiber_internal::tls_task_group;
         if (g) {
             g->current_task()->local_storage.keytable = kt;
-        }
-        if (!melon::fiber_internal::tls_ever_created_keytable) {
-            melon::fiber_internal::tls_ever_created_keytable = true;
-            MELON_CHECK_EQ(0, melon::thread::atexit(melon::fiber_internal::cleanup_pthread, kt));
+        } else {
+            if (!melon::fiber_internal::tls_ever_created_keytable) {
+                melon::fiber_internal::tls_ever_created_keytable = true;
+                MELON_CHECK_EQ(0, melon::thread::atexit(melon::fiber_internal::cleanup_pthread, kt));
+            }
         }
     }
     return kt->set_data(key, data);

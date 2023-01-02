@@ -227,8 +227,8 @@ namespace melon::rpc {
         }
     };
 
-    static melon::base::ip_t loopback_ip = melon::base::IP_ANY;
-    static int MELON_ALLOW_UNUSED init_loopback_ip_dummy = melon::base::str2ip("127.0.0.1", &loopback_ip);
+    static melon::ip_t loopback_ip = melon::IP_ANY;
+    static int MELON_ALLOW_UNUSED init_loopback_ip_dummy = melon::str2ip("127.0.0.1", &loopback_ip);
 
     static void PrintClientSpan(
             std::ostream &os, const RpczSpan &span,
@@ -245,10 +245,10 @@ namespace melon::rpc {
                                                     last_time, extr, num_extr));
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
-        const melon::base::end_point remote_side(melon::base::int2ip(span.remote_ip()), span.remote_port());
-        melon::base::end_point abs_remote_side = remote_side;
+        const melon::end_point remote_side(melon::int2ip(span.remote_ip()), span.remote_port());
+        melon::end_point abs_remote_side = remote_side;
         if (abs_remote_side.ip == loopback_ip) {
-            abs_remote_side.ip = melon::base::my_ip();
+            abs_remote_side.ip = melon::my_ip();
         }
         os << " Requesting " << span.full_method_name() << '@' << remote_side
            << ' ' << protocol_name << ' ' << LOG_ID_STR << '=';
@@ -307,7 +307,7 @@ namespace melon::rpc {
     static void PrintClientSpan(std::ostream &os, const RpczSpan &span,
                                 bool use_html) {
         int64_t last_time = span.start_send_real_us();
-        PrintClientSpan(os, span, &last_time, NULL, use_html);
+        PrintClientSpan(os, span, &last_time, nullptr, use_html);
     }
 
 
@@ -316,8 +316,8 @@ namespace melon::rpc {
         SpanInfoExtractor server_extr(span.info().c_str());
         SpanInfoExtractor *extr[1] = {&server_extr};
         int64_t last_time = span.received_real_us();
-        const melon::base::end_point remote_side(
-                melon::base::int2ip(span.remote_ip()), span.remote_port());
+        const melon::end_point remote_side(
+                melon::int2ip(span.remote_ip()), span.remote_port());
         PrintRealDateTime(os, last_time);
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
@@ -425,14 +425,14 @@ namespace melon::rpc {
         struct tm timeinfo;
         int64_t microseconds = 999999;
         char *endptr = strptime(time_str.c_str(), "%Y/%m/%d-%H:%M:%S", &timeinfo);
-        if (endptr == NULL) {
+        if (endptr == nullptr) {
             time_t now;
             time(&now);
-            if (localtime_r(&now, &timeinfo) == NULL) {
+            if (localtime_r(&now, &timeinfo) == nullptr) {
                 return -1;
             }
             endptr = strptime(time_str.c_str(), "%H:%M:%S", &timeinfo);
-            if (endptr == NULL) {
+            if (endptr == nullptr) {
                 return -1;
             }
         }
@@ -447,11 +447,11 @@ namespace melon::rpc {
     }
 
     static bool ParseUint64(const std::string *str, uint64_t *val) {
-        if (NULL == str) {
+        if (nullptr == str) {
             return false;
         }
         const char *p = str->c_str();
-        char *endptr = NULL;
+        char *endptr = nullptr;
         if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
             *val = strtoull(p + 2, &endptr, 16);
             return (*endptr == '\0');
@@ -501,7 +501,7 @@ namespace melon::rpc {
             os.move_to(cntl->response_attachment());
             return;
         }
-        melon::base::end_point my_addr(melon::base::my_ip(),
+        melon::end_point my_addr(melon::my_ip(),
                                        cntl->server()->listen_address().port);
 
         const std::string *trace_id_str =
@@ -561,7 +561,7 @@ namespace melon::rpc {
             const std::string *time_str =
                     cntl->http_request().uri().GetQuery(TIME_STR);
             int64_t start_tm;
-            if (time_str == NULL) {
+            if (time_str == nullptr) {
                 start_tm = melon::get_current_time_micros();
             } else {
                 start_tm = ParseDateTime(*time_str);

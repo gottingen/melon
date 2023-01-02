@@ -94,17 +94,17 @@ namespace {
         for (int i = 0; i < N; ++i) {
             s[i]->destroy();
         }
-        return NULL;
+        return nullptr;
     }
 
     TEST(SamplerTest, multi_threaded) {
         pthread_t th[10];
         DebugSampler::_s_ndestroy = 0;
         for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
-            ASSERT_EQ(0, pthread_create(&th[i], NULL, check, NULL));
+            ASSERT_EQ(0, pthread_create(&th[i], nullptr, check, nullptr));
         }
         for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
-            ASSERT_EQ(0, pthread_join(th[i], NULL));
+            ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
         sleep(1);
         EXPECT_EQ(100 * MELON_ARRAY_SIZE(th), (size_t) DebugSampler::_s_ndestroy);

@@ -58,7 +58,7 @@ namespace melon {
                     }
                 }
 
-                void describe(std::ostream &os) { _series.describe(os, NULL); }
+                void describe(std::ostream &os) { _series.describe(os, nullptr); }
 
             private:
                 window_base *_owner;
@@ -67,7 +67,7 @@ namespace melon {
 
             window_base(R *var, time_t window_size)
                     : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_variable_dump_interval),
-                      _sampler(var->get_sampler()), _series_sampler(NULL) {
+                      _sampler(var->get_sampler()), _series_sampler(nullptr) {
                 MELON_CHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
 
@@ -75,7 +75,7 @@ namespace melon {
                 hide();
                 if (_series_sampler) {
                     _series_sampler->destroy();
-                    _series_sampler = NULL;
+                    _series_sampler = nullptr;
                 }
             }
 
@@ -108,7 +108,7 @@ namespace melon {
             time_t window_size() const { return _window_size; }
 
             int describe_series(std::ostream &os, const variable_series_options &options) const override {
-                if (_series_sampler == NULL) {
+                if (_series_sampler == nullptr) {
                     return 1;
                 }
                 if (!options.test_only) {
@@ -132,7 +132,7 @@ namespace melon {
                             display_filter filter) override {
                 const int rc = variable_base::expose_impl(prefix, name, help, tags, filter);
                 if (rc == 0 &&
-                    _series_sampler == NULL &&
+                    _series_sampler == nullptr &&
                     FLAGS_save_series) {
                     _series_sampler = new series_sampler(this, _var);
                     _series_sampler->schedule();

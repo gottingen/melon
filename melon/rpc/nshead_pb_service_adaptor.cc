@@ -61,7 +61,7 @@ namespace melon::rpc {
             Controller *cntl2,
             NsheadMessage *ns_res2,
             NsheadClosure *done2)
-            : adaptor(adaptor2), cntl(cntl2), ns_res(ns_res2), done(done2), status(NULL) {
+            : adaptor(adaptor2), cntl(cntl2), ns_res(ns_res2), done(done2), status(nullptr) {
     }
 
     void SendNsheadPbResponse::Run() {
@@ -111,7 +111,7 @@ namespace melon::rpc {
             ServerPrivateAccessor server_accessor(&server);
             const Server::MethodProperty *sp = server_accessor
                     .FindMethodPropertyByFullName(meta->full_method_name());
-            if (NULL == sp ||
+            if (nullptr == sp ||
                 sp->service->GetDescriptor() == BadMethodService::descriptor()) {
                 controller->SetFailed(ENOMETHOD, "Fail to find method=%s",
                                       meta->full_method_name().c_str());

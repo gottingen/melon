@@ -80,9 +80,9 @@ namespace example {
 
         static void *SendLargeFile(void *raw_args) {
             std::unique_ptr<Args> args(static_cast<Args *>(raw_args));
-            if (args->pa == NULL) {
-                MELON_LOG(ERROR) << "ProgressiveAttachment is NULL";
-                return NULL;
+            if (args->pa == nullptr) {
+                MELON_LOG(ERROR) << "ProgressiveAttachment is nullptr";
+                return nullptr;
             }
             for (int i = 0; i < 100; ++i) {
                 char buf[16];
@@ -92,7 +92,7 @@ namespace example {
                 // sleep a while to send another part.
                 melon::fiber_sleep_for(10000);
             }
-            return NULL;
+            return nullptr;
         }
 
         void default_method(google::protobuf::RpcController *cntl_base,
@@ -108,7 +108,7 @@ namespace example {
                 std::unique_ptr<Args> args(new Args);
                 args->pa = cntl->CreateProgressiveAttachment();
                 fiber_id_t th;
-                fiber_start_background(&th, NULL, SendLargeFile, args.release());
+                fiber_start_background(&th, nullptr, SendLargeFile, args.release());
             } else {
                 cntl->response_attachment().append("Getting file: ");
                 cntl->response_attachment().append(filename);

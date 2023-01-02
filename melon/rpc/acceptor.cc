@@ -31,7 +31,7 @@ namespace melon::rpc {
 
     Acceptor::Acceptor(fiber_keytable_pool_t *pool)
             : InputMessenger(), _keytable_pool(pool), _status(UNINITIALIZED), _idle_timeout_sec(-1),
-              _close_idle_tid(INVALID_FIBER_ID), _listened_fd(-1), _acception_id(0), _empty_cond(), _ssl_ctx(NULL) {
+              _close_idle_tid(INVALID_FIBER_ID), _listened_fd(-1), _acception_id(0), _empty_cond(), _ssl_ctx(nullptr) {
     }
 
     Acceptor::~Acceptor() {
@@ -59,7 +59,7 @@ namespace melon::rpc {
             return -1;
         }
         if (idle_timeout_sec > 0) {
-            if (fiber_start_background(&_close_idle_tid, NULL,
+            if (fiber_start_background(&_close_idle_tid, nullptr,
                                        CloseIdleConnections, this) != 0) {
                 MELON_LOG(FATAL) << "Fail to start fiber";
                 return -1;
@@ -99,7 +99,7 @@ namespace melon::rpc {
                 }
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     void Acceptor::StopAccept(int /*closewait_ms*/) {
@@ -170,7 +170,7 @@ namespace melon::rpc {
         // Join the fiber outside lock.
         if (saved_idle_timeout_sec > 0) {
             fiber_stop(saved_close_idle_tid);
-            fiber_join(saved_close_idle_tid, NULL);
+            fiber_join(saved_close_idle_tid, nullptr);
         }
 
         {
@@ -187,8 +187,8 @@ namespace melon::rpc {
 
     void Acceptor::ListConnections(std::vector<SocketId> *conn_list,
                                    size_t max_copied) {
-        if (conn_list == NULL) {
-            MELON_LOG(FATAL) << "Param[conn_list] is NULL";
+        if (conn_list == nullptr) {
+            MELON_LOG(FATAL) << "Param[conn_list] is nullptr";
             return;
         }
         conn_list->clear();
@@ -234,9 +234,10 @@ namespace melon::rpc {
 
     void Acceptor::OnNewConnectionsUntilEAGAIN(Socket *acception) {
         while (1) {
-            struct sockaddr in_addr;
+            struct sockaddr_storage in_addr;
+            bzero(&in_addr, sizeof(in_addr));
             socklen_t in_len = sizeof(in_addr);
-            melon::base::fd_guard in_fd(accept(acception->fd(), &in_addr, &in_len));
+            melon::base::fd_guard in_fd(accept(acception->fd(), (sockaddr*)&in_addr, &in_len));
             if (in_fd < 0) {
                 // no EINTR because listened fd is non-blocking.
                 if (errno == EAGAIN) {
@@ -253,7 +254,7 @@ namespace melon::rpc {
             }
 
             Acceptor *am = dynamic_cast<Acceptor *>(acception->user());
-            if (NULL == am) {
+            if (nullptr == am) {
                 MELON_LOG(FATAL) << "Impossible! acception->user() MUST be Acceptor";
                 acception->SetFailed(EINVAL, "Impossible! acception->user() MUST be Acceptor");
                 return;
@@ -263,7 +264,7 @@ namespace melon::rpc {
             SocketOptions options;
             options.keytable_pool = am->_keytable_pool;
             options.fd = in_fd;
-            options.remote_side = melon::base::end_point(*(sockaddr_in *) &in_addr);
+            melon::sockaddr2endpoint(&in_addr, in_len, &options.remote_side);
             options.user = acception->user();
             options.on_edge_triggered_events = InputMessenger::OnNewMessages;
             options.initial_ssl_ctx = am->_ssl_ctx;

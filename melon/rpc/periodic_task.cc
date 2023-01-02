@@ -30,10 +30,10 @@ namespace melon::rpc {
         timespec abstime;
         if (!task->OnTriggeringTask(&abstime)) { // end
             task->OnDestroyingTask();
-            return NULL;
+            return nullptr;
         }
         PeriodicTaskManager::StartTaskAt(task, abstime);
-        return NULL;
+        return nullptr;
     }
 
     static void RunPeriodicTaskThread(void *arg) {
@@ -48,8 +48,8 @@ namespace melon::rpc {
     }
 
     void PeriodicTaskManager::StartTaskAt(PeriodicTask *task, const timespec &abstime) {
-        if (task == NULL) {
-            MELON_LOG(ERROR) << "Param[task] is NULL";
+        if (task == nullptr) {
+            MELON_LOG(ERROR) << "Param[task] is nullptr";
             return;
         }
         fiber_timer_id timer_id;

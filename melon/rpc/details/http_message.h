@@ -137,15 +137,15 @@ namespace melon::rpc {
 // Serialize a http request.
 // header: may be modified in some cases
 // remote_side: used when "Host" is absent
-// content: could be NULL.
+// content: could be nullptr.
     void MakeRawHttpRequest(melon::cord_buf *request,
                             HttpHeader *header,
-                            const melon::base::end_point &remote_side,
+                            const melon::end_point &remote_side,
                             const melon::cord_buf *content);
 
     // Serialize a http response.
     // header: may be modified in some cases
-    // content: cleared after usage. could be NULL.
+    // content: cleared after usage. could be nullptr.
     void MakeRawHttpResponse(melon::cord_buf *response,
                              HttpHeader *header,
                              melon::cord_buf *content);

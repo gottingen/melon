@@ -19,6 +19,7 @@
 #include "melon/log/logging.h"
 #include "melon/strings/str_format.h"
 #include "melon/strings/ends_with.h"
+#include "melon/base/endpoint_extended.h"
 #include "melon/base/singleton_on_pthread_once.h"
 #include <sys/socket.h>                        // SO_REUSEADDR SO_REUSEPORT
 
@@ -27,6 +28,8 @@ DEFINE_bool(reuse_port, false, "Enable SO_REUSEPORT for all listened sockets");
 
 DEFINE_bool(reuse_addr, true, "Enable SO_REUSEADDR for all listened sockets");
 
+DEFINE_bool(reuse_uds_path, false, "remove unix domain socket file before listen to it");
+
 __BEGIN_DECLS
 int MELON_WEAK fiber_connect(
         int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen) {
@@ -34,11 +37,61 @@ int MELON_WEAK fiber_connect(
 }
 __END_DECLS
 
-namespace melon::base {
+namespace melon {
+
+    using detail::extended_end_point;
+
+    static void set_endpoint(end_point *ep, ip_t ip, int port) {
+        ep->ip = ip;
+        ep->port = port;
+        if (extended_end_point::is_extended(*ep)) {
+            extended_end_point *eep = extended_end_point::address(*ep);
+            if (eep) {
+                eep->inc_ref();
+            } else {
+                ep->ip = IP_ANY;
+                ep->port = 0;
+            }
+        }
+    }
+
+    void end_point::reset(void) {
+        if (extended_end_point::is_extended(*this)) {
+            extended_end_point *eep = extended_end_point::address(*this);
+            if (eep) {
+                eep->dec_ref();
+            }
+        }
+        ip = IP_ANY;
+        port = 0;
+    }
+
+
+    end_point::end_point(ip_t ip2, int port2) : ip(ip2), port(port2) {
+        // Should never construct an extended endpoint by this way
+        if (extended_end_point::is_extended(*this)) {
+            MELON_CHECK(0) << "EndPoint construct with value that points to an extended EndPoint";
+            ip = IP_ANY;
+            port = 0;
+        }
+    }
+
+    end_point::end_point(const end_point &rhs) {
+        set_endpoint(this, rhs.ip, rhs.port);
+    }
+
+    end_point::~end_point() {
+        reset();
+    }
+
+    void end_point::operator=(const end_point &rhs) {
+        reset();
+        set_endpoint(this, rhs.ip, rhs.port);
+    }
 
     int str2ip(const char *ip_str, ip_t *ip) {
-        // ip_str can be NULL when called by end_point(0, ...)
-        if (ip_str != NULL) {
+        // ip_str can be nullptr when called by end_point(0, ...)
+        if (ip_str != nullptr) {
             for (; isspace(*ip_str); ++ip_str);
             int rc = inet_pton(AF_INET, ip_str, ip);
             if (rc > 0) {
@@ -50,14 +103,14 @@ namespace melon::base {
 
     IPStr ip2str(ip_t ip) {
         IPStr str;
-        if (inet_ntop(AF_INET, &ip, str._buf, INET_ADDRSTRLEN) == NULL) {
+        if (inet_ntop(AF_INET, &ip, str._buf, INET_ADDRSTRLEN) == nullptr) {
             return ip2str(IP_NONE);
         }
         return str;
     }
 
     int ip2hostname(ip_t ip, char *host, size_t host_len) {
-        if (host == NULL || host_len == 0) {
+        if (host == nullptr || host_len == 0) {
             errno = EINVAL;
             return -1;
         }
@@ -67,7 +120,7 @@ namespace melon::base {
         sa.sin_port = 0;    // useless since we don't need server_name
         sa.sin_addr = ip;
         if (getnameinfo((const sockaddr *) &sa, sizeof(sa),
-                        host, host_len, NULL, 0, NI_NAMEREQD) != 0) {
+                        host, host_len, nullptr, 0, NI_NAMEREQD) != 0) {
             return -1;
         }
         // remove baidu-specific domain name (that every name has)
@@ -89,7 +142,16 @@ namespace melon::base {
 
     end_point_str endpoint2str(const end_point &point) {
         end_point_str str;
-        if (inet_ntop(AF_INET, &point.ip, str._buf, INET_ADDRSTRLEN) == NULL) {
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point *eep = extended_end_point::address(point);
+            if (eep) {
+                eep->to(&str);
+            } else {
+                str._buf[0] = '\0';
+            }
+            return str;
+        }
+        if (inet_ntop(AF_INET, &point.ip, str._buf, INET_ADDRSTRLEN) == nullptr) {
             return endpoint2str(end_point(IP_NONE, 0));
         }
         char *buf = str._buf + strlen(str._buf);
@@ -100,7 +162,7 @@ namespace melon::base {
 
     int hostname2ip(const char *hostname, ip_t *ip) {
         char buf[256];
-        if (NULL == hostname) {
+        if (nullptr == hostname) {
             if (gethostname(buf, sizeof(buf)) < 0) {
                 return -1;
             }
@@ -115,16 +177,16 @@ namespace melon::base {
         // returned hostent is TLS. Check following link for the ref:
         // https://lists.apple.com/archives/darwin-dev/2006/May/msg00008.html
         struct hostent *result = gethostbyname(hostname);
-        if (result == NULL) {
+        if (result == nullptr) {
             return -1;
         }
 #else
         char aux_buf[1024];
         int error = 0;
         struct hostent ent;
-        struct hostent* result = NULL;
+        struct hostent* result = nullptr;
         if (gethostbyname_r(hostname, &ent, aux_buf, sizeof(aux_buf),
-                            &result, &error) != 0 || result == NULL) {
+                            &result, &error) != 0 || result == nullptr) {
             return -1;
         }
 #endif // defined(MELON_PLATFORM_APPLE)
@@ -162,6 +224,9 @@ namespace melon::base {
     }
 
     int str2endpoint(const char *str, end_point *point) {
+        if (extended_end_point::create(str, point)) {
+            return 0;
+        }
         // Should be enough to hold ip address
         char buf[64];
         size_t i = 0;
@@ -176,7 +241,7 @@ namespace melon::base {
             return -1;
         }
         ++i;
-        char *end = NULL;
+        char *end = nullptr;
         point->port = strtol(str + i, &end, 10);
         if (end == str + i) {
             return -1;
@@ -193,6 +258,9 @@ namespace melon::base {
     }
 
     int str2endpoint(const char *ip_str, int port, end_point *point) {
+        if (extended_end_point::create(ip_str, port, point)) {
+            return 0;
+        }
         if (str2ip(ip_str, &point->ip) != 0) {
             return -1;
         }
@@ -221,7 +289,7 @@ namespace melon::base {
         if (str[i] == ':') {
             ++i;
         }
-        char *end = NULL;
+        char *end = nullptr;
         point->port = strtol(str + i, &end, 10);
         if (end == str + i) {
             return -1;
@@ -249,6 +317,13 @@ namespace melon::base {
     }
 
     int endpoint2hostname(const end_point &point, char *host, size_t host_len) {
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point* eep = extended_end_point::address(point);
+            if (eep) {
+                return eep->to_hostname(host, host_len);
+            }
+            return -1;
+        }
         if (ip2hostname(point.ip, host, host_len) == 0) {
             size_t len = strlen(host);
             if (len + 1 < host_len) {
@@ -260,7 +335,7 @@ namespace melon::base {
     }
 
     int endpoint2hostname(const end_point &point, std::string *host) {
-        char buf[128];
+        char buf[256];
         if (endpoint2hostname(point, buf, sizeof(buf)) == 0) {
             host->assign(buf);
             return 0;
@@ -269,26 +344,26 @@ namespace melon::base {
     }
 
     int tcp_connect(end_point point, int *self_port) {
-        fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        struct sockaddr_storage serv_addr;
+        socklen_t serv_addr_size = 0;
+        if (endpoint2sockaddr(point, &serv_addr, &serv_addr_size) != 0) {
+            return -1;
+        }
+        melon::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
             return -1;
         }
-        struct sockaddr_in serv_addr;
-        bzero((char *) &serv_addr, sizeof(serv_addr));
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr = point.ip;
-        serv_addr.sin_port = htons(point.port);
+
         int rc = 0;
-        if (fiber_connect != NULL) {
-            rc = fiber_connect(sockfd, (struct sockaddr *) &serv_addr,
-                                 sizeof(serv_addr));
+        if (fiber_connect != nullptr) {
+            rc = fiber_connect(sockfd, (struct sockaddr*) &serv_addr, serv_addr_size);
         } else {
-            rc = ::connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+            rc = ::connect(sockfd, (struct sockaddr*) &serv_addr, serv_addr_size);
         }
         if (rc < 0) {
             return -1;
         }
-        if (self_port != NULL) {
+        if (self_port != nullptr) {
             end_point pt;
             if (get_local_side(sockfd, &pt) == 0) {
                 *self_port = pt.port;
@@ -300,7 +375,12 @@ namespace melon::base {
     }
 
     int tcp_listen(end_point point) {
-        fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        struct sockaddr_storage serv_addr;
+        socklen_t serv_addr_size = 0;
+        if (endpoint2sockaddr(point, &serv_addr, &serv_addr_size) != 0) {
+            return -1;
+        }
+        melon::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
             return -1;
         }
@@ -331,12 +411,11 @@ namespace melon::base {
 #endif
         }
 
-        struct sockaddr_in serv_addr;
-        bzero((char *) &serv_addr, sizeof(serv_addr));
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr = point.ip;
-        serv_addr.sin_port = htons(point.port);
-        if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
+        if (FLAGS_reuse_uds_path && serv_addr.ss_family == AF_UNIX) {
+            ::unlink(((sockaddr_un*) &serv_addr)->sun_path);
+        }
+
+        if (bind(sockfd, (struct sockaddr*)& serv_addr, serv_addr_size) != 0) {
             return -1;
         }
         if (listen(sockfd, 65535) != 0) {
@@ -349,29 +428,84 @@ namespace melon::base {
     }
 
     int get_local_side(int fd, end_point *out) {
-        struct sockaddr addr;
+        struct sockaddr_storage addr;
         socklen_t socklen = sizeof(addr);
-        const int rc = getsockname(fd, &addr, &socklen);
+        const int rc = getsockname(fd, (struct sockaddr*)&addr, &socklen);
         if (rc != 0) {
             return rc;
         }
         if (out) {
-            *out = melon::base::end_point(*(sockaddr_in *) &addr);
+            return sockaddr2endpoint(&addr, socklen, out);
         }
         return 0;
     }
 
     int get_remote_side(int fd, end_point *out) {
-        struct sockaddr addr;
+        struct sockaddr_storage addr;
+        bzero(&addr, sizeof(addr));
         socklen_t socklen = sizeof(addr);
-        const int rc = getpeername(fd, &addr, &socklen);
+        const int rc = getpeername(fd, (struct sockaddr*)&addr, &socklen);
         if (rc != 0) {
             return rc;
         }
         if (out) {
-            *out = melon::base::end_point(*(sockaddr_in *) &addr);
+            return sockaddr2endpoint(&addr, socklen, out);
         }
         return 0;
     }
 
-}  // namespace melon::base
+    int endpoint2sockaddr(const end_point& point, struct sockaddr_storage* ss, socklen_t* size) {
+        bzero(ss, sizeof(*ss));
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point* eep = extended_end_point::address(point);
+            if (!eep) {
+                return -1;
+            }
+            int ret = eep->to(ss);
+            if (ret < 0) {
+                return -1;
+            }
+            if (size) {
+                *size = static_cast<socklen_t>(ret);
+            }
+            return 0;
+        }
+        struct sockaddr_in* in4 = (struct sockaddr_in*) ss;
+        in4->sin_family = AF_INET;
+        in4->sin_addr = point.ip;
+        in4->sin_port = htons(point.port);
+        if (size) {
+            *size = sizeof(*in4);
+        }
+        return 0;
+    }
+
+
+    int sockaddr2endpoint(struct sockaddr_storage* ss, socklen_t size, end_point* point) {
+        if (ss->ss_family == AF_INET) {
+            *point = end_point(*(sockaddr_in*)ss);
+            return 0;
+        }
+        if (extended_end_point::create(ss, size, point)) {
+            return 0;
+        }
+        return -1;
+    }
+
+    sa_family_t get_endpoint_type(const end_point& point) {
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point* eep = extended_end_point::address(point);
+            if (eep) {
+                return eep->family();
+            }
+            return AF_UNSPEC;
+        }
+        return AF_INET;
+    }
+
+    bool is_endpoint_extended(const end_point& point) {
+        return extended_end_point::is_extended(point);
+    }
+
+
+}  // namespace melon

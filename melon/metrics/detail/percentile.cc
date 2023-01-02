@@ -68,16 +68,16 @@ namespace melon {
             int64_t _latency;
         };
 
-        percentile::percentile() : _combiner(NULL), _sampler(NULL) {
+        percentile::percentile() : _combiner(nullptr), _sampler(nullptr) {
             _combiner = new combiner_type;
         }
 
         percentile::~percentile() {
             // Have to destroy sampler first to avoid the race between destruction and
             // sampler
-            if (_sampler != NULL) {
+            if (_sampler != nullptr) {
                 _sampler->destroy();
-                _sampler = NULL;
+                _sampler = nullptr;
             }
             delete _combiner;
         }

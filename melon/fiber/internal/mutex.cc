@@ -251,8 +251,8 @@ namespace melon::fiber_internal {
     }
 
 // If contention profiler is on, this variable will be set with a valid
-// instance. NULL otherwise.
-    static ContentionProfiler *MELON_CACHELINE_ALIGNMENT g_cp = NULL;
+// instance. nullptr otherwise.
+    static ContentionProfiler *MELON_CACHELINE_ALIGNMENT g_cp = nullptr;
 // Need this version to solve an issue that non-empty entries left by
 // previous contention profilers should be detected and overwritten.
     static uint64_t g_cp_version = 0;
@@ -305,8 +305,8 @@ namespace melon::fiber_internal {
 
 // Start profiling contention.
     bool ContentionProfilerStart(const char *filename) {
-        if (filename == NULL) {
-            MELON_LOG(ERROR) << "Parameter [filename] is NULL";
+        if (filename == nullptr) {
+            MELON_LOG(ERROR) << "Parameter [filename] is nullptr";
             return false;
         }
         // g_cp is also the flag marking start/stop.
@@ -316,7 +316,7 @@ namespace melon::fiber_internal {
 
         // Create related global variable lazily.
         static melon::status_gauge<int64_t> g_nconflicthash_var
-                ("contention_profiler_conflict_hash", get_nconflicthash, NULL);
+                ("contention_profiler_conflict_hash", get_nconflicthash, nullptr);
         static melon::DisplaySamplingRatio g_sampling_ratio_var(
                 "contention_profiler_sampling_ratio", &g_cp_sl);
 
@@ -335,12 +335,12 @@ namespace melon::fiber_internal {
 
 // Stop contention profiler.
     void ContentionProfilerStop() {
-        ContentionProfiler *ctx = NULL;
+        ContentionProfiler *ctx = nullptr;
         if (g_cp) {
             std::unique_lock<pthread_mutex_t> mu(g_cp_mutex);
             if (g_cp) {
                 ctx = g_cp;
-                g_cp = NULL;
+                g_cp = nullptr;
                 mu.unlock();
 
                 // make sure it's initialiazed in case no sample was gathered,
@@ -453,7 +453,7 @@ namespace melon::fiber_internal {
             }
         }
         g_nconflicthash.fetch_add(1, std::memory_order_relaxed);
-        return NULL;
+        return nullptr;
     }
 
     inline bool remove_pthread_contention_site(
@@ -508,7 +508,7 @@ namespace melon::fiber_internal {
         // Ask melon::Collector if this (contended) locking should be sampled
         const size_t sampling_range = melon::is_collectable(&g_cp_sl);
 
-        fiber_contention_site_t *csite = NULL;
+        fiber_contention_site_t *csite = nullptr;
 #ifndef DONT_SPEEDUP_PTHREAD_CONTENTION_PROFILER_WITH_TLS
         TLSPthreadContentionSites &fast_alt = tls_csites;
         if (fast_alt.cp_version != g_cp_version) {
@@ -534,7 +534,7 @@ namespace melon::fiber_internal {
         if (!rc) { // Inside lock
             if (!csite) {
                 csite = add_pthread_contention_site(mutex);
-                if (csite == NULL) {
+                if (csite == nullptr) {
                     return rc;
                 }
             }
@@ -606,7 +606,7 @@ namespace melon::fiber_internal {
     inline int mutex_lock_contended(fiber_mutex_t *m) {
         std::atomic<unsigned> *whole = (std::atomic<unsigned> *) m->event;
         while (whole->exchange(FIBER_MUTEX_CONTENDED) & FIBER_MUTEX_LOCKED) {
-            if (melon::fiber_internal::waitable_event_wait(whole, FIBER_MUTEX_CONTENDED, NULL) < 0 &&
+            if (melon::fiber_internal::waitable_event_wait(whole, FIBER_MUTEX_CONTENDED, nullptr) < 0 &&
                 errno != EWOULDBLOCK && errno != EINTR/*note*/) {
                 // a mutex lock should ignore interrruptions in general since
                 // user code is unlikely to check the return value.
@@ -636,7 +636,7 @@ namespace melon::fiber_internal {
         int FastPthreadMutex::lock_contended() {
             std::atomic<unsigned> *whole = (std::atomic<unsigned> *) &_futex;
             while (whole->exchange(FIBER_MUTEX_CONTENDED) & FIBER_MUTEX_LOCKED) {
-                if (futex_wait_private(whole, FIBER_MUTEX_CONTENDED, NULL) < 0
+                if (futex_wait_private(whole, FIBER_MUTEX_CONTENDED, nullptr) < 0
                     && errno != EWOULDBLOCK) {
                     return errno;
                 }

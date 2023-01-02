@@ -36,7 +36,7 @@ class MyServiceWithStream : public test::EchoService {
 public:
     MyServiceWithStream(const melon::rpc::StreamOptions& options)
         : _options(options)
-        , _after_accept_stream(NULL)
+        , _after_accept_stream(nullptr)
     {}
     MyServiceWithStream(const melon::rpc::StreamOptions& options,
                         AfterAcceptStream* after_accept_stream) 
@@ -45,7 +45,7 @@ public:
     {}
     MyServiceWithStream()
         : _options()
-        , _after_accept_stream(NULL)
+        , _after_accept_stream(nullptr)
     {}
 
     void Echo(::google::protobuf::RpcController* controller,
@@ -79,15 +79,15 @@ TEST_F(StreamingRpcTest, sanity) {
     melon::rpc::Server server;
     MyServiceWithStream service;
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     melon::rpc::Controller cntl;
     melon::rpc::StreamId request_stream;
-    ASSERT_EQ(0, StreamCreate(&request_stream, cntl, NULL));
+    ASSERT_EQ(0, StreamCreate(&request_stream, cntl, nullptr));
     melon::rpc::ScopedStream stream_guard(request_stream);
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" << request_stream;
     usleep(10);
     melon::rpc::StreamClose(request_stream);
@@ -104,7 +104,7 @@ struct HandlerControl {
 
 class OrderedInputHandler : public melon::rpc::StreamInputHandler {
 public:
-    explicit OrderedInputHandler(HandlerControl *cntl = NULL)
+    explicit OrderedInputHandler(HandlerControl *cntl = nullptr)
         : _expected_next_value(0)
         , _failed(false)
         , _stopped(false)
@@ -157,9 +157,9 @@ TEST_F(StreamingRpcTest, received_in_order) {
     melon::rpc::Server server;
     MyServiceWithStream service(opt);
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     melon::rpc::Controller cntl;
     melon::rpc::StreamId request_stream;
     melon::rpc::StreamOptions request_stream_options;
@@ -167,7 +167,7 @@ TEST_F(StreamingRpcTest, received_in_order) {
     ASSERT_EQ(0, StreamCreate(&request_stream, cntl, &request_stream_options));
     melon::rpc::ScopedStream stream_guard(request_stream);
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" << request_stream;
     const int N = 10000;
     for (int i = 0; i < N; ++i) {
@@ -205,9 +205,9 @@ TEST_F(StreamingRpcTest, block) {
     melon::rpc::Server server;
     MyServiceWithStream service(opt);
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     melon::rpc::Controller cntl;
     melon::rpc::StreamId request_stream;
     melon::rpc::ScopedStream stream_guard(request_stream);
@@ -215,7 +215,7 @@ TEST_F(StreamingRpcTest, block) {
     request_stream_options.max_buf_size = sizeof(uint32_t) * N;
     ASSERT_EQ(0, StreamCreate(&request_stream, cntl, &request_stream_options));
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" 
                                 << request_stream;
     for (int i = 0; i < N; ++i) {
@@ -230,7 +230,7 @@ TEST_F(StreamingRpcTest, block) {
     out.append(&dummy, sizeof(dummy));
     ASSERT_EQ(EAGAIN, melon::rpc::StreamWrite(request_stream, out));
     hc.block = false;
-    ASSERT_EQ(0, melon::rpc::StreamWait(request_stream, NULL));
+    ASSERT_EQ(0, melon::rpc::StreamWait(request_stream, nullptr));
     // wait flushing all the pending messages
     while (handler._expected_next_value != N) {
         usleep(100);
@@ -250,7 +250,7 @@ TEST_F(StreamingRpcTest, block) {
     hc.block = false;
     std::pair<bool, int> p = std::make_pair(false, 0);
     usleep(10);
-    melon::rpc::StreamWait(request_stream, NULL, on_writable, &p);
+    melon::rpc::StreamWait(request_stream, nullptr, on_writable, &p);
     while (!p.first) {
         usleep(100);
     }
@@ -304,9 +304,9 @@ TEST_F(StreamingRpcTest, auto_close_if_host_socket_closed) {
     melon::rpc::Server server;
     MyServiceWithStream service(opt);
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     melon::rpc::Controller cntl;
     melon::rpc::StreamId request_stream;
     melon::rpc::StreamOptions request_stream_options;
@@ -314,14 +314,14 @@ TEST_F(StreamingRpcTest, auto_close_if_host_socket_closed) {
     ASSERT_EQ(0, StreamCreate(&request_stream, cntl, &request_stream_options));
     melon::rpc::ScopedStream stream_guard(request_stream);
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" << request_stream;
 
     {
         melon::rpc::SocketUniquePtr ptr;
         ASSERT_EQ(0, melon::rpc::Socket::Address(request_stream, &ptr));
         melon::rpc::Stream* s = (melon::rpc::Stream*)ptr->conn();
-        ASSERT_TRUE(s->_host_socket != NULL);
+        ASSERT_TRUE(s->_host_socket != nullptr);
         s->_host_socket->SetFailed();
     }
 
@@ -349,9 +349,9 @@ TEST_F(StreamingRpcTest, idle_timeout) {
     melon::rpc::Server server;
     MyServiceWithStream service(opt);
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     melon::rpc::Controller cntl;
     melon::rpc::StreamId request_stream;
     melon::rpc::StreamOptions request_stream_options;
@@ -359,7 +359,7 @@ TEST_F(StreamingRpcTest, idle_timeout) {
     ASSERT_EQ(0, StreamCreate(&request_stream, cntl, &request_stream_options));
     melon::rpc::ScopedStream stream_guard(request_stream);
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" << request_stream;
     usleep(10 * 1000 + 800);
     ASSERT_EQ(0, melon::rpc::StreamClose(request_stream));
@@ -434,9 +434,9 @@ TEST_F(StreamingRpcTest, ping_pong) {
     melon::rpc::Server server;
     MyServiceWithStream service(opt);
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     melon::rpc::Controller cntl;
     melon::rpc::StreamId request_stream;
     melon::rpc::StreamOptions request_stream_options;
@@ -447,7 +447,7 @@ TEST_F(StreamingRpcTest, ping_pong) {
     ASSERT_EQ(0, StreamCreate(&request_stream, cntl, &request_stream_options));
     melon::rpc::ScopedStream stream_guard(request_stream);
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" << request_stream;
     int send = 0;
     melon::cord_buf out;
@@ -488,9 +488,9 @@ TEST_F(StreamingRpcTest, server_send_data_before_run_done) {
     melon::rpc::Server server;
     MyServiceWithStream service(opt, &after_accept);
     ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    ASSERT_EQ(0, server.Start(9007, NULL));
+    ASSERT_EQ(0, server.Start(9007, nullptr));
     melon::rpc::Channel channel;
-    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", NULL));
+    ASSERT_EQ(0, channel.Init("127.0.0.1:9007", nullptr));
     OrderedInputHandler handler;
     melon::rpc::StreamOptions request_stream_options;
     melon::rpc::StreamId request_stream;
@@ -499,7 +499,7 @@ TEST_F(StreamingRpcTest, server_send_data_before_run_done) {
     ASSERT_EQ(0, StreamCreate(&request_stream, cntl, &request_stream_options));
     melon::rpc::ScopedStream stream_guard(request_stream);
     test::EchoService_Stub stub(&channel);
-    stub.Echo(&cntl, &request, &response, NULL);
+    stub.Echo(&cntl, &request, &response, nullptr);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << " request_stream=" << request_stream;
     // wait flushing all the pending messages
     while (handler._expected_next_value != N) {

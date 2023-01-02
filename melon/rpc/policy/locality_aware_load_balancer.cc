@@ -37,7 +37,7 @@ namespace melon::rpc {
 
         static const int64_t DEFAULT_QPS = 1;
         static const size_t INITIAL_WEIGHT_TREE_SIZE = 128;
-// 1008680231
+        // 1008680231
         static const int64_t WEIGHT_SCALE =
                 std::numeric_limits<int64_t>::max() / 72000000 / (INITIAL_WEIGHT_TREE_SIZE - 1);
 
@@ -55,12 +55,12 @@ namespace melon::rpc {
             if (bg.weight_tree.capacity() < INITIAL_WEIGHT_TREE_SIZE) {
                 bg.weight_tree.reserve(INITIAL_WEIGHT_TREE_SIZE);
             }
-            if (bg.server_map.seek(id) != NULL) {
+            if (bg.server_map.seek(id) != nullptr) {
                 // The id duplicates.
                 return false;
             }
             const size_t *pindex = fg.server_map.seek(id);
-            if (pindex == NULL) {
+            if (pindex == nullptr) {
                 // Both fg and bg do not have the id. We create and insert a new Weight
                 // structure. Later when we modify the other buffer(current fg), just
                 // copy the pointer.
@@ -106,7 +106,7 @@ namespace melon::rpc {
         bool LocalityAwareLoadBalancer::Remove(
                 Servers &bg, SocketId id, LocalityAwareLoadBalancer *lb) {
             size_t *pindex = bg.server_map.seek(id);
-            if (NULL == pindex) {
+            if (nullptr == pindex) {
                 // The id does not exist.
                 return false;
             }
@@ -341,6 +341,10 @@ namespace melon::rpc {
                     if (++ntry >= n) {
                         break;
                     }
+                } else {
+                    if (++ntry >= n) {
+                        break;
+                    }
                 }
                 total = _total.load(std::memory_order_relaxed);
                 dice = melon::base::fast_rand_less_than(total);
@@ -355,7 +359,7 @@ namespace melon::rpc {
                 return;
             }
             const size_t *pindex = s->server_map.seek(info.server_id);
-            if (NULL == pindex) {
+            if (nullptr == pindex) {
                 return;
             }
             const size_t index = *pindex;

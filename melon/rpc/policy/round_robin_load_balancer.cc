@@ -146,7 +146,7 @@ namespace melon::rpc {
             RoundRobinLoadBalancer *lb = new(std::nothrow) RoundRobinLoadBalancer;
             if (lb && !lb->SetParameters(params)) {
                 delete lb;
-                lb = NULL;
+                lb = nullptr;
             }
             return lb;
         }

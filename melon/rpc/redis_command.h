@@ -21,6 +21,7 @@
 
 #include <memory>           // std::unique_ptr
 #include <vector>
+#include <limits>
 #include "melon/io/cord_buf.h"
 #include "melon/base/result_status.h"
 #include "melon/memory/arena.h"

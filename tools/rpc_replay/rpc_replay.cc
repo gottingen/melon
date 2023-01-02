@@ -26,6 +26,7 @@
 #include <melon/rpc/server.h>
 #include <melon/rpc/rpc_dump.h>
 #include <melon/rpc/serialized_request.h>
+#include <melon/rpc/details/http_message.h>
 #include "info_thread.h"
 
 DEFINE_string(dir, "", "The directory of dumped requests");
@@ -40,6 +41,7 @@ DEFINE_string(load_balancer, "", "The algorithm for load balancing");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Maximum retry times");
 DEFINE_int32(dummy_port, 8899, "Port of dummy server(to monitor replaying)");
+DEFINE_string(http_host, "", "Host field for http protocol");
 
 melon::LatencyRecorder g_latency_recorder("rpc_replay");
 melon::counter<int64_t> g_error_count("rpc_replay_error_count");
@@ -57,7 +59,7 @@ public:
         if ((size_t)type < _chans.size()) {
             return _chans[(size_t)type];
         }
-        return NULL;
+        return nullptr;
     }
     
 private:
@@ -142,14 +144,14 @@ static void* replay_thread(void* arg) {
         melon::rpc::SampleIterator it(FLAGS_dir);
         int j = 0;
         for (melon::rpc::SampledRequest* sample = it.Next();
-             !melon::rpc::IsAskedToQuit() && sample != NULL; sample = it.Next(), ++j) {
+             !melon::rpc::IsAskedToQuit() && sample != nullptr; sample = it.Next(), ++j) {
             std::unique_ptr<melon::rpc::SampledRequest> sample_guard(sample);
             if ((j % FLAGS_thread_num) != thread_offset) {
                 continue;
             }
             melon::rpc::Channel* chan =
                 chan_group->channel(sample->meta.protocol_type());
-            if (chan == NULL) {
+            if (chan == nullptr) {
                 MELON_LOG(ERROR) << "No channel on protocol="
                            << sample->meta.protocol_type();
                 continue;
@@ -157,9 +159,22 @@ static void* replay_thread(void* arg) {
             
             melon::rpc::Controller* cntl = new melon::rpc::Controller;
             req.Clear();
-            
+
+            melon::rpc::SerializedRequest* req_ptr = &req;
+
             cntl->reset_sampled_request(sample_guard.release());
-            if (sample->meta.attachment_size() > 0) {
+
+            if (sample->meta.protocol_type() == melon::rpc::PROTOCOL_HTTP) {
+                melon::rpc::HttpMessage http_message;
+                http_message.ParseFromCordBuf(sample->request);
+                cntl->http_request().Swap(http_message.header());
+                if (!FLAGS_http_host.empty()) {
+                    // reset Host in header
+                    cntl->http_request().SetHeader("Host", FLAGS_http_host);
+                }
+                cntl->request_attachment() = http_message.body().movable();
+                req_ptr = NULL;
+            } else if (sample->meta.attachment_size() > 0) {
                 sample->request.cutn(
                     &req.serialized_data(),
                     sample->request.size() - sample->meta.attachment_size());
@@ -170,14 +185,14 @@ static void* replay_thread(void* arg) {
             g_sent_count << 1;
             const int64_t start_time = melon::get_current_time_micros();
             if (FLAGS_qps <= 0) {
-                chan->CallMethod(NULL/*use rpc_dump_context in cntl instead*/,
-                        cntl, &req, NULL/*ignore response*/, NULL);
+                chan->CallMethod(nullptr/*use rpc_dump_context in cntl instead*/,
+                        cntl, req_ptr, nullptr/*ignore response*/, nullptr);
                 handle_response(cntl, start_time, true);
             } else {
                 google::protobuf::Closure* done =
                     melon::rpc::NewCallback(handle_response, cntl, start_time, false);
-                chan->CallMethod(NULL/*use rpc_dump_context in cntl instead*/,
-                        cntl, &req, NULL/*ignore response*/, done);
+                chan->CallMethod(nullptr/*use rpc_dump_context in cntl instead*/,
+                        cntl, req_ptr, nullptr/*ignore response*/, done);
                 const int64_t end_time = melon::get_current_time_micros();
                 int64_t expected_elp = 0;
                 int64_t actual_elp = 0;
@@ -196,7 +211,7 @@ static void* replay_thread(void* arg) {
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 int main(int argc, char* argv[]) {
@@ -238,7 +253,7 @@ int main(int argc, char* argv[]) {
     if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (pthread_create(&pids[i], NULL, replay_thread, &chan_group) != 0) {
+            if (pthread_create(&pids[i], nullptr, replay_thread, &chan_group) != 0) {
                 MELON_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
@@ -247,7 +262,7 @@ int main(int argc, char* argv[]) {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
-                    &bids[i], NULL, replay_thread, &chan_group) != 0) {
+                    &bids[i], nullptr, replay_thread, &chan_group) != 0) {
                 MELON_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
@@ -266,9 +281,9 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
-            pthread_join(pids[i], NULL);
+            pthread_join(pids[i], nullptr);
         } else {
-            fiber_join(bids[i], NULL);
+            fiber_join(bids[i], nullptr);
         }
     }
     info_thr.stop();

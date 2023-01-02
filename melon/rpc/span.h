@@ -103,7 +103,7 @@ namespace melon::rpc {
 
         void set_ending_cid(fiber_token_t id) { _ending_cid = id; }
 
-        void set_remote_side(const melon::base::end_point &pt) { _remote_side = pt; }
+        void set_remote_side(const melon::end_point &pt) { _remote_side = pt; }
 
         void set_protocol(ProtocolType p) { _protocol = p; }
 
@@ -145,7 +145,7 @@ namespace melon::rpc {
 
         fiber_token_t ending_cid() const { return _ending_cid; }
 
-        const melon::base::end_point &remote_side() const { return _remote_side; }
+        const melon::end_point &remote_side() const { return _remote_side; }
 
         SpanType type() const { return _type; }
 
@@ -186,7 +186,7 @@ namespace melon::rpc {
 
         void EndAsParent() {
             if (this == (Span *) melon::fiber_internal::tls_bls.rpcz_parent_span) {
-                melon::fiber_internal::tls_bls.rpcz_parent_span = NULL;
+                melon::fiber_internal::tls_bls.rpcz_parent_span = nullptr;
             }
         }
 
@@ -196,7 +196,7 @@ namespace melon::rpc {
         uint64_t _log_id;
         fiber_token_t _base_cid;
         fiber_token_t _ending_cid;
-        melon::base::end_point _remote_side;
+        melon::end_point _remote_side;
         SpanType _type;
         bool _async;
         ProtocolType _protocol;
@@ -254,7 +254,7 @@ namespace melon::rpc {
     void FindSpans(uint64_t trace_id, std::deque<RpczSpan> *out);
 
 // Put at most `max_scan' spans before `before_this_time' into `out'.
-// If filter is not NULL, only push spans that make SpanFilter::Keep()
+// If filter is not nullptr, only push spans that make SpanFilter::Keep()
 // true.
     void ListSpans(int64_t before_this_time, size_t max_scan,
                    std::deque<BriefSpan> *out, SpanFilter *filter);

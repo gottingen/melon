@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <algorithm>
 #include <melon/fiber/internal/fiber.h>
 #include "melon/times/time.h"
 #include <melon/rpc/channel.h>
@@ -66,9 +67,9 @@ namespace pbrpcframework {
         }
         _method_descriptor = find_method_by_name(
                 _options->service, _options->method, _importer);
-        if (NULL == _method_descriptor) {
+        if (nullptr == _method_descriptor) {
             MELON_LOG(ERROR) << "Fail to find method=" << _options->service << '.'
-                       << _options->method;
+                             << _options->method;
             return -1;
         }
         _response_prototype = get_prototype_by_method_descriptor(
@@ -85,20 +86,20 @@ namespace pbrpcframework {
     }
 
     RpcPress::RpcPress()
-            : _pbrpc_client(NULL), _started(false), _stop(false), _output_json(NULL) {
+            : _pbrpc_client(nullptr), _started(false), _stop(false), _output_json(nullptr) {
     }
 
     RpcPress::~RpcPress() {
         if (_output_json) {
             fclose(_output_json);
-            _output_json = NULL;
+            _output_json = nullptr;
         }
         delete _importer;
     }
 
     int RpcPress::init(const PressOptions *options) {
-        if (NULL == options) {
-            MELON_LOG(ERROR) << "Param[options] is NULL";
+        if (nullptr == options) {
+            MELON_LOG(ERROR) << "Param[options] is nullptr";
             return -1;
         }
         _options = *options;
@@ -123,7 +124,7 @@ namespace pbrpcframework {
         }
         ImportErrorPrinter error_printer;
         _importer = new google::protobuf::compiler::Importer(&sourceTree, &error_printer);
-        if (_importer->Import(proto_file.c_str()) == NULL) {
+        if (_importer->Import(proto_file.c_str()) == nullptr) {
             MELON_LOG(ERROR) << "Fail to import " << proto_file;
             return -1;
         }
@@ -137,7 +138,7 @@ namespace pbrpcframework {
 
             if (!melon::create_directories(dir, ec)) {
                 MELON_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
-                           << "', " << ec.message();
+                                 << "', " << ec.message();
                 return -1;
             }
             _output_json = fopen(_options.output.c_str(), "w");
@@ -155,7 +156,7 @@ namespace pbrpcframework {
             return -1;
         }
         melon::rpc::JsonLoader json_util(_importer, &_factory,
-                                   _options.service, _options.method);
+                                         _options.service, _options.method);
         if (melon::exists(_options.input)) {
             int fd = open(_options.input.c_str(), O_RDONLY);
             if (fd < 0) {
@@ -178,7 +179,7 @@ namespace pbrpcframework {
 
     void *RpcPress::sync_call_thread(void *arg) {
         ((RpcPress *) arg)->sync_client();
-        return NULL;
+        return nullptr;
     }
 
     void RpcPress::handle_response(melon::rpc::Controller *cntl,
@@ -199,7 +200,7 @@ namespace pbrpcframework {
             }
         } else {
             MELON_LOG(WARNING) << "error_code=" << cntl->ErrorCode() << ", "
-                         << cntl->ErrorText();
+                               << cntl->ErrorText();
             _error_count << 1;
         }
         delete response;
@@ -217,14 +218,10 @@ namespace pbrpcframework {
         }
         const int thread_index = g_thread_count.fetch_add(1, std::memory_order_relaxed);
         int msg_index = thread_index;
-        std::deque<int64_t> timeq;
-        size_t MAX_QUEUE_SIZE = (size_t) req_rate;
-        if (MAX_QUEUE_SIZE < 100) {
-            MAX_QUEUE_SIZE = 100;
-        } else if (MAX_QUEUE_SIZE > 2000) {
-            MAX_QUEUE_SIZE = 2000;
-        }
-        timeq.push_back(melon::get_current_time_micros());
+        int64_t last_expected_time = melon::time_now().to_unix_nanos();
+        const int64_t interval = (int64_t) (1000000000L / req_rate);
+        // the max tolerant delay between end_time and expected_time. 10ms or 10 intervals
+        int64_t max_tolerant_delay = std::max(10000000L, static_cast<long>(10 * interval));
         while (!_stop) {
             melon::rpc::Controller *cntl = new melon::rpc::Controller;
             msg_index = (msg_index + _options.test_thread_num) % _msgs.size();
@@ -245,21 +242,15 @@ namespace pbrpcframework {
             if (_options.test_req_rate <= 0) {
                 melon::rpc::Join(cid1);
             } else {
-                int64_t end_time = melon::get_current_time_micros();
-                int64_t expected_elp = 0;
-                int64_t actual_elp = 0;
-                timeq.push_back(end_time);
-                if (timeq.size() > MAX_QUEUE_SIZE) {
-                    actual_elp = end_time - timeq.front();
-                    timeq.pop_front();
-                    expected_elp = (int64_t) (1000000 * timeq.size() / req_rate);
-                } else {
-                    actual_elp = end_time - timeq.front();
-                    expected_elp = (int64_t) (1000000 * (timeq.size() - 1) / req_rate);
+                int64_t end_time = melon::time_now().to_unix_nanos();
+                int64_t expected_time = last_expected_time + interval;
+                if (end_time < expected_time) {
+                    usleep((expected_time - end_time)/1000);
                 }
-                if (actual_elp < expected_elp) {
-                    usleep(expected_elp - actual_elp);
+                if (end_time - expected_time > max_tolerant_delay) {
+                    expected_time = end_time;
                 }
+                last_expected_time = expected_time;
             }
         }
     }
@@ -268,7 +259,7 @@ namespace pbrpcframework {
         _ttid.resize(_options.test_thread_num);
         int ret = 0;
         for (int i = 0; i < _options.test_thread_num; i++) {
-            if ((ret = pthread_create(&_ttid[i], NULL, sync_call_thread, this)) != 0) {
+            if ((ret = pthread_create(&_ttid[i], nullptr, sync_call_thread, this)) != 0) {
                 MELON_LOG(ERROR) << "Fail to create sending threads";
                 return -1;
             }
@@ -291,7 +282,7 @@ namespace pbrpcframework {
         }
         _stop = true;
         for (size_t i = 0; i < _ttid.size(); i++) {
-            pthread_join(_ttid[i], NULL);
+            pthread_join(_ttid[i], nullptr);
         }
         _info_thr.stop();
         return 0;

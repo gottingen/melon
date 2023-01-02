@@ -245,7 +245,7 @@ namespace melon {
                     if (rhs._intervals[i] && !rhs._intervals[i]->empty()) {
                         _intervals[i] = new percentile_interval<SAMPLE_SIZE>(*rhs._intervals[i]);
                     } else {
-                        _intervals[i] = NULL;
+                        _intervals[i] = nullptr;
                     }
                 }
             }
@@ -280,7 +280,7 @@ namespace melon {
                     return 0;
                 }
                 for (size_t i = 0; i < NUM_INTERVALS; ++i) {
-                    if (_intervals[i] == NULL) {
+                    if (_intervals[i] == nullptr) {
                         continue;
                     }
                     percentile_interval<SAMPLE_SIZE> &invl = *_intervals[i];
@@ -397,7 +397,7 @@ namespace melon {
 
             // Get/create interval on-demand.
             percentile_interval<SAMPLE_SIZE> &get_interval_at(size_t index) {
-                if (_intervals[index] == NULL) {
+                if (_intervals[index] == nullptr) {
                     _intervals[index] = new percentile_interval<SAMPLE_SIZE>;
                 }
                 return *_intervals[index];
@@ -459,7 +459,7 @@ namespace melon {
 
             // The sampler for windows over percentile.
             sampler_type *get_sampler() {
-                if (NULL == _sampler) {
+                if (nullptr == _sampler) {
                     _sampler = new sampler_type(this);
                     _sampler->schedule();
                 }
@@ -472,7 +472,7 @@ namespace melon {
 
             percentile &operator<<(int64_t latency);
 
-            bool valid() const { return _combiner != NULL && _combiner->valid(); }
+            bool valid() const { return _combiner != nullptr && _combiner->valid(); }
 
             // This name is useful for warning negative latencies in operator<<
             void set_debug_name(const std::string_view &name) {

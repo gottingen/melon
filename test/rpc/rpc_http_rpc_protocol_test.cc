@@ -25,6 +25,7 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
+#include <google/protobuf/text_format.h>
 #include "melon/times/time.h"
 #include "melon/files/sequential_read_file.h"
 #include "melon/base/fd_guard.h"
@@ -43,6 +44,15 @@
 #include "melon/strings/starts_with.h"
 #include "melon/strings/ends_with.h"
 #include "melon/fiber/this_fiber.h"
+#include "melon/rpc/rpc_dump.h"
+#include "melon/metrics/collector.h"
+
+namespace melon::rpc {
+    DECLARE_bool(rpc_dump);
+    DECLARE_string(rpc_dump_dir);
+    DECLARE_int32(rpc_dump_max_requests_in_one_file);
+    extern melon::CollectorSpeedLimit g_rpc_dump_sl;
+}
 
 int main(int argc, char *argv[]) {
     testing::InitGoogleTest(&argc, argv);
@@ -76,7 +86,7 @@ namespace {
         }
 
         int VerifyCredential(const std::string &auth_str,
-                             const melon::base::end_point &,
+                             const melon::end_point &,
                              melon::rpc::AuthContext *ctx) const {
             EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
             ctx->set_user(MOCK_USER);
@@ -96,7 +106,7 @@ namespace {
             const std::string *sleep_ms_str =
                     cntl->http_request().uri().GetQuery("sleep_ms");
             if (sleep_ms_str) {
-                melon::fiber_sleep_for(strtol(sleep_ms_str->data(), NULL, 10) * 1000);
+                melon::fiber_sleep_for(strtol(sleep_ms_str->data(), nullptr, 10) * 1000);
             }
             res->set_message(EXP_RESPONSE);
         }
@@ -135,7 +145,7 @@ namespace {
         virtual void TearDown() {};
 
         void VerifyMessage(melon::rpc::InputMessageBase *msg, bool expect) {
-            if (msg->_socket == NULL) {
+            if (msg->_socket == nullptr) {
                 _socket->ReAddress(&msg->_socket);
             }
             msg->_arg = &_server;
@@ -144,7 +154,7 @@ namespace {
 
         void ProcessMessage(void (*process)(melon::rpc::InputMessageBase *),
                             melon::rpc::InputMessageBase *msg, bool set_eof) {
-            if (msg->_socket == NULL) {
+            if (msg->_socket == nullptr) {
                 _socket->ReAddress(&msg->_socket);
             }
             msg->_arg = &_server;
@@ -164,7 +174,21 @@ namespace {
             test::EchoRequest req;
             req.set_message(EXP_REQUEST);
             melon::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
-            EXPECT_TRUE(json2pb::ProtoMessageToJson(req, &req_stream, NULL));
+            EXPECT_TRUE(json2pb::ProtoMessageToJson(req, &req_stream, nullptr));
+            return msg;
+        }
+
+        melon::rpc::policy::HttpContext* MakePostProtoTextRequestMessage(
+                const std::string& path) {
+            melon::rpc::policy::HttpContext* msg = new melon::rpc::policy::HttpContext(false);
+            msg->header().uri().set_path(path);
+            msg->header().set_content_type("application/proto-text");
+            msg->header().set_method(melon::rpc::HTTP_METHOD_POST);
+
+            test::EchoRequest req;
+            req.set_message(EXP_REQUEST);
+            melon::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
+            EXPECT_TRUE(google::protobuf::TextFormat::Print(req, &req_stream));
             return msg;
         }
 
@@ -184,7 +208,7 @@ namespace {
             test::EchoResponse res;
             res.set_message(EXP_RESPONSE);
             melon::cord_buf_as_zero_copy_output_stream res_stream(&msg->body());
-            EXPECT_TRUE(json2pb::ProtoMessageToJson(res, &res_stream, NULL));
+            EXPECT_TRUE(json2pb::ProtoMessageToJson(res, &res_stream, nullptr));
             return msg;
         }
 
@@ -201,7 +225,7 @@ namespace {
             EXPECT_EQ((ssize_t) bytes_in_pipe,
                       buf.append_from_file_descriptor(_pipe_fds[0], 1024));
             melon::rpc::ParseResult pr =
-                    melon::rpc::policy::ParseHttpMessage(&buf, _socket.get(), false, NULL);
+                    melon::rpc::policy::ParseHttpMessage(&buf, _socket.get(), false, nullptr);
             EXPECT_EQ(melon::rpc::PARSE_OK, pr.error());
             melon::rpc::policy::HttpContext *msg =
                     static_cast<melon::rpc::policy::HttpContext *>(pr.message());
@@ -219,9 +243,9 @@ namespace {
             ASSERT_FALSE(cntl->Failed());
             melon::rpc::policy::H2UnsentRequest *h2_req = melon::rpc::policy::H2UnsentRequest::New(cntl);
             cntl->_current_call.stream_user_data = h2_req;
-            melon::rpc::SocketMessage *socket_message = NULL;
-            melon::rpc::policy::PackH2Request(NULL, &socket_message, cntl->call_id().value,
-                                              NULL, cntl, request_buf, NULL);
+            melon::rpc::SocketMessage *socket_message = nullptr;
+            melon::rpc::policy::PackH2Request(nullptr, &socket_message, cntl->call_id().value,
+                                              nullptr, cntl, request_buf, nullptr);
             melon::result_status st = socket_message->AppendAndDestroySelf(out, _h2_client_sock.get());
             ASSERT_TRUE(st.is_ok());
             *h2_stream_id = h2_req->_stream_id;
@@ -267,32 +291,32 @@ namespace {
 
     TEST_F(HttpTest, parse_http_address) {
         const std::string EXP_HOSTNAME = "www.baidu.com:9876";
-        melon::base::end_point EXP_ENDPOINT;
+        melon::end_point EXP_ENDPOINT;
         {
             std::string url = "https://" + EXP_HOSTNAME;
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&EXP_ENDPOINT, url.c_str()));
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             std::string url = "http://" +
                               std::string(endpoint2str(EXP_ENDPOINT).c_str());
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&ep, url.c_str()));
             EXPECT_EQ(EXP_ENDPOINT, ep);
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             std::string url = "https://" +
-                              std::string(melon::base::ip2str(EXP_ENDPOINT.ip).c_str());
+                              std::string(melon::ip2str(EXP_ENDPOINT.ip).c_str());
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&ep, url.c_str()));
             EXPECT_EQ(EXP_ENDPOINT.ip, ep.ip);
             EXPECT_EQ(443, ep.port);
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             EXPECT_FALSE(melon::rpc::policy::ParseHttpServerAddress(&ep, "invalid_url"));
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             EXPECT_FALSE(melon::rpc::policy::ParseHttpServerAddress(
                     &ep, "https://no.such.machine:9090"));
         }
@@ -302,6 +326,12 @@ namespace {
         {
             melon::rpc::policy::HttpContext *msg =
                     MakePostRequestMessage("/EchoService/Echo");
+            VerifyMessage(msg, false);
+            msg->Destroy();
+        }
+        {
+            melon::rpc::policy::HttpContext *msg =
+                    MakePostProtoTextRequestMessage("/EchoService/Echo");
             VerifyMessage(msg, false);
             msg->Destroy();
         }
@@ -423,13 +453,13 @@ namespace {
         melon::rpc::policy::SerializeHttpRequest(&request_buf, &cntl, &req);
         ASSERT_FALSE(cntl.Failed());
         melon::rpc::policy::PackHttpRequest(
-                &total_buf, NULL, cntl.call_id().value,
+                &total_buf, nullptr, cntl.call_id().value,
                 cntl._method, &cntl, request_buf, &_auth);
         ASSERT_FALSE(cntl.Failed());
 
         // Verify and handle request
         melon::rpc::ParseResult req_pr =
-                melon::rpc::policy::ParseHttpMessage(&total_buf, _socket.get(), false, NULL);
+                melon::rpc::policy::ParseHttpMessage(&total_buf, _socket.get(), false, nullptr);
         ASSERT_EQ(melon::rpc::PARSE_OK, req_pr.error());
         melon::rpc::InputMessageBase *req_msg = req_pr.message();
         VerifyMessage(req_msg, true);
@@ -439,7 +469,7 @@ namespace {
         melon::IOPortal response_buf;
         response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
         melon::rpc::ParseResult res_pr =
-                melon::rpc::policy::ParseHttpMessage(&response_buf, _socket.get(), false, NULL);
+                melon::rpc::policy::ParseHttpMessage(&response_buf, _socket.get(), false, nullptr);
         ASSERT_EQ(melon::rpc::PARSE_OK, res_pr.error());
         melon::rpc::InputMessageBase *res_msg = res_pr.message();
         ProcessMessage(melon::rpc::policy::ProcessHttpResponse, res_msg, false);
@@ -452,7 +482,7 @@ namespace {
         const int port = 8923;
         melon::rpc::Server server;
         EXPECT_EQ(0, server.AddService(&_svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
 
         // Send request via curl using chunked encoding
         const std::string req = "{\"message\":\"hello\"}";
@@ -505,12 +535,12 @@ namespace {
                                                 ? melon::rpc::FORCE_STOP : melon::rpc::WAIT_FOR_STOP);
             melon::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa
                     = cntl->CreateProgressiveAttachment(stop_style);
-            if (pa == NULL) {
+            if (pa == nullptr) {
                 cntl->SetFailed("The socket was just failed");
                 return;
             }
             if (_done_place == DONE_BEFORE_CREATE_PA) {
-                done_guard.reset(NULL);
+                done_guard.reset(nullptr);
             }
             ASSERT_GT(PA_DATA_LEN, 8u);  // long enough to hold a 64-bit decimal.
             char buf[PA_DATA_LEN];
@@ -532,12 +562,12 @@ namespace {
                 ++c;
             }
             if (_done_place == DONE_AFTER_CREATE_PA_BEFORE_DESTROY_PA) {
-                done_guard.reset(NULL);
+                done_guard.reset(nullptr);
             }
             MELON_LOG(INFO) << "Destroy pa=" << pa.get();
-            pa.reset(NULL);
+            pa.reset(nullptr);
             if (_done_place == DONE_AFTER_DESTROY_PA) {
-                done_guard.reset(NULL);
+                done_guard.reset(nullptr);
             }
         }
 
@@ -553,7 +583,7 @@ namespace {
                                                 ? melon::rpc::FORCE_STOP : melon::rpc::WAIT_FOR_STOP);
             melon::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa
                     = cntl->CreateProgressiveAttachment(stop_style);
-            if (pa == NULL) {
+            if (pa == nullptr) {
                 cntl->SetFailed("The socket was just failed");
                 return;
             }
@@ -574,7 +604,7 @@ namespace {
             // The remote client will not receive the data written to the
             // progressive attachment when the controller failed.
             cntl->SetFailed("Intentionally set controller failed");
-            done_guard.reset(NULL);
+            done_guard.reset(nullptr);
 
             // Return value of Write after controller has failed should
             // be less than zero.
@@ -603,17 +633,17 @@ namespace {
         melon::rpc::Server server;
         DownloadServiceImpl svc;
         EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
 
         for (int i = 0; i < 3; ++i) {
             svc.set_done_place((DonePlace) i);
             melon::rpc::Channel channel;
             melon::rpc::ChannelOptions options;
             options.protocol = melon::rpc::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
             melon::rpc::Controller cntl;
             cntl.http_request().uri() = "/DownloadService/Download";
-            channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
 
             std::string expected(PA_DATA_LEN, 0);
@@ -627,17 +657,17 @@ namespace {
         melon::rpc::Server server;
         DownloadServiceImpl svc;
         EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
 
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         cntl.http_request().uri() = "/DownloadService/DownloadFailed";
         cntl.response_will_be_read_progressively();
-        channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         EXPECT_TRUE(cntl.response_attachment().empty());
         ASSERT_TRUE(cntl.Failed());
         ASSERT_NE(cntl.ErrorText().find("HTTP/1.1 500 Internal Server Error"),
@@ -707,17 +737,17 @@ namespace {
             DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
                                     std::numeric_limits<size_t>::max());
             EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-            EXPECT_EQ(0, server.Start(port, NULL));
+            EXPECT_EQ(0, server.Start(port, nullptr));
             {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
                     cntl.http_request().uri() = "/DownloadService/Download";
-                    channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+                    channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
                     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
                     ASSERT_TRUE(cntl.response_attachment().empty());
                     reader.reset(new ReadBody);
@@ -755,17 +785,17 @@ namespace {
         const int NREP = 10000;
         DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA, NREP);
         EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
         {
             melon::rpc::Channel channel;
             melon::rpc::ChannelOptions options;
             options.protocol = melon::rpc::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
             {
                 melon::rpc::Controller cntl;
                 cntl.response_will_be_read_progressively();
                 cntl.http_request().uri() = "/DownloadService/Download";
-                channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+                channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
                 ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
                 ASSERT_TRUE(cntl.response_attachment().empty());
                 reader.reset(new ReadBody);
@@ -794,17 +824,17 @@ namespace {
             DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
                                     std::numeric_limits<size_t>::max());
             EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-            EXPECT_EQ(0, server.Start(port, NULL));
+            EXPECT_EQ(0, server.Start(port, nullptr));
             {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
                     cntl.http_request().uri() = "/DownloadService/Download";
-                    channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+                    channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
                     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
                     ASSERT_TRUE(cntl.response_attachment().empty());
                     reader.reset(new ReadBody);
@@ -840,17 +870,17 @@ namespace {
             DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
                                     std::numeric_limits<size_t>::max());
             EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-            EXPECT_EQ(0, server.Start(port, NULL));
+            EXPECT_EQ(0, server.Start(port, nullptr));
             {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
                     cntl.http_request().uri() = "/DownloadService/Download";
-                    channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+                    channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
                     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
                     ASSERT_TRUE(cntl.response_attachment().empty());
                     MELON_LOG(INFO) << "Sleep 3 seconds to make PA at server-side full";
@@ -888,16 +918,16 @@ namespace {
         DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
                                 std::numeric_limits<size_t>::max());
         EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
             cntl.http_request().uri() = "/DownloadService/Download";
-            channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_TRUE(cntl.response_attachment().empty());
         }
@@ -930,16 +960,16 @@ namespace {
         DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
                                 std::numeric_limits<size_t>::max());
         EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
             cntl.http_request().uri() = "/DownloadService/Download";
-            channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_TRUE(cntl.response_attachment().empty());
             cntl.ReadProgressiveAttachmentBy(new AlwaysFailRead);
@@ -956,17 +986,17 @@ namespace {
         DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
                                 std::numeric_limits<size_t>::max());
         EXPECT_EQ(0, server.AddService(&svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
 
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
             cntl.http_request().uri() = "/DownloadService/Download";
-            channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
             ASSERT_TRUE(cntl.response_attachment().empty());
             reader.reset(new ReadBody);
@@ -998,12 +1028,12 @@ namespace {
         const int port = 8923;
         melon::rpc::Server server;
         EXPECT_EQ(0, server.AddService(&_svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
 
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "h2";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         // Check that the first request with size larger than the default window can
         // be sent out, when remote settings are not received.
@@ -1014,7 +1044,7 @@ namespace {
         big_req.set_message(message);
         cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
         cntl.http_request().uri() = "/EchoService/Echo";
-        channel.CallMethod(NULL, &cntl, &big_req, &res, NULL);
+        channel.CallMethod(nullptr, &cntl, &big_req, &res, nullptr);
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(EXP_RESPONSE, res.message());
 
@@ -1028,7 +1058,7 @@ namespace {
             cntl.http_request().set_content_type("application/json");
             cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
             cntl.http_request().uri() = "/EchoService/Echo";
-            channel.CallMethod(NULL, &cntl, &req, &res, NULL);
+            channel.CallMethod(nullptr, &cntl, &req, &res, nullptr);
             ASSERT_FALSE(cntl.Failed());
             ASSERT_EQ(EXP_RESPONSE, res.message());
         }
@@ -1037,7 +1067,7 @@ namespace {
         melon::rpc::SocketUniquePtr main_ptr;
         melon::rpc::SocketUniquePtr agent_ptr;
         EXPECT_EQ(melon::rpc::Socket::Address(channel._server_id, &main_ptr), 0);
-        EXPECT_EQ(main_ptr->GetAgentSocket(&agent_ptr, NULL), 0);
+        EXPECT_EQ(main_ptr->GetAgentSocket(&agent_ptr, nullptr), 0);
         melon::rpc::policy::H2Context *ctx = static_cast<melon::rpc::policy::H2Context *>(agent_ptr->parsing_context());
         ASSERT_GT(ctx->_remote_window_left.load(std::memory_order_relaxed),
                   melon::rpc::H2Settings::DEFAULT_INITIAL_WINDOW_SIZE / 2);
@@ -1062,7 +1092,7 @@ namespace {
         res_out.append(pingbuf, sizeof(pingbuf));
         // parse response
         melon::rpc::ParseResult res_pr =
-                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, NULL);
+                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, nullptr);
         ASSERT_TRUE(res_pr.is_ok());
         // process response
         ProcessMessage(melon::rpc::policy::ProcessHttpResponse, res_pr.message(), false);
@@ -1092,7 +1122,7 @@ namespace {
         MakeH2EchoResponseBuf(&res_out, h2_stream_id);
         // parse response
         melon::rpc::ParseResult res_pr =
-                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, NULL);
+                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, nullptr);
         ASSERT_TRUE(res_pr.is_ok());
         // process response
         ProcessMessage(melon::rpc::policy::ProcessHttpResponse, res_pr.message(), false);
@@ -1116,7 +1146,7 @@ namespace {
         res_out.append(rstbuf, sizeof(rstbuf));
         // parse response
         melon::rpc::ParseResult res_pr =
-                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, NULL);
+                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, nullptr);
         ASSERT_TRUE(res_pr.is_ok());
         // process response
         ProcessMessage(melon::rpc::policy::ProcessHttpResponse, res_pr.message(), false);
@@ -1141,15 +1171,15 @@ namespace {
         melon::rpc::policy::SerializeFrameHead(settingsbuf, nb, melon::rpc::policy::H2_FRAME_SETTINGS, 0, 0);
         melon::cord_buf buf;
         buf.append(settingsbuf, melon::rpc::policy::FRAME_HEAD_SIZE + nb);
-        melon::rpc::policy::ParseH2Message(&buf, _h2_client_sock.get(), false, NULL);
+        melon::rpc::policy::ParseH2Message(&buf, _h2_client_sock.get(), false, nullptr);
 
         int nsuc = melon::rpc::H2Settings::DEFAULT_INITIAL_WINDOW_SIZE / cntl.request_attachment().size();
         for (int i = 0; i <= nsuc; i++) {
             melon::rpc::policy::H2UnsentRequest *h2_req = melon::rpc::policy::H2UnsentRequest::New(&cntl);
             cntl._current_call.stream_user_data = h2_req;
-            melon::rpc::SocketMessage *socket_message = NULL;
-            melon::rpc::policy::PackH2Request(NULL, &socket_message, cntl.call_id().value,
-                                              NULL, &cntl, request_buf, NULL);
+            melon::rpc::SocketMessage *socket_message = nullptr;
+            melon::rpc::policy::PackH2Request(nullptr, &socket_message, cntl.call_id().value,
+                                              nullptr, &cntl, request_buf, nullptr);
             melon::cord_buf dummy;
             melon::result_status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
             if (i == nsuc) {
@@ -1176,12 +1206,12 @@ namespace {
         melon::cord_buf buf;
         buf.append(settingsbuf, melon::rpc::policy::FRAME_HEAD_SIZE + nb);
 
-        melon::rpc::policy::H2Context *ctx = new melon::rpc::policy::H2Context(_socket.get(), NULL);
+        melon::rpc::policy::H2Context *ctx = new melon::rpc::policy::H2Context(_socket.get(), nullptr);
         MELON_CHECK_EQ(ctx->Init(), 0);
         _socket->initialize_parsing_context(&ctx);
         ctx->_conn_state = melon::rpc::policy::H2_CONNECTION_READY;
         // parse settings
-        melon::rpc::policy::ParseH2Message(&buf, _socket.get(), false, NULL);
+        melon::rpc::policy::ParseH2Message(&buf, _socket.get(), false, nullptr);
 
         melon::IOPortal response_buf;
         MELON_CHECK_EQ(response_buf.append_from_file_descriptor(_pipe_fds[0], 1024),
@@ -1224,11 +1254,11 @@ namespace {
         const int port = 8923;
         melon::rpc::Server server;
         EXPECT_EQ(0, server.AddService(&_svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-        EXPECT_EQ(0, server.Start(port, NULL));
+        EXPECT_EQ(0, server.Start(port, nullptr));
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "h2";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         test::EchoRequest req;
         test::EchoResponse res;
@@ -1238,7 +1268,7 @@ namespace {
             melon::rpc::Controller cntl;
             cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
             cntl.http_request().uri() = "/EchoService/Echo";
-            channel.CallMethod(NULL, &cntl, &req, &res, NULL);
+            channel.CallMethod(nullptr, &cntl, &req, &res, nullptr);
             ASSERT_FALSE(cntl.Failed());
             ASSERT_EQ(EXP_RESPONSE, res.message());
         }
@@ -1252,7 +1282,7 @@ namespace {
             cntl.set_timeout_ms(50);
             cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
             cntl.http_request().uri() = "/EchoService/Echo?sleep_ms=300";
-            channel.CallMethod(NULL, &cntl, &req, &res, NULL);
+            channel.CallMethod(nullptr, &cntl, &req, &res, nullptr);
             ASSERT_TRUE(cntl.Failed());
 
             melon::rpc::SocketUniquePtr ptr;
@@ -1265,7 +1295,7 @@ namespace {
             melon::rpc::Controller cntl;
             cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
             cntl.http_request().uri() = "/EchoService/Echo";
-            channel.CallMethod(NULL, &cntl, &req, &res, NULL);
+            channel.CallMethod(nullptr, &cntl, &req, &res, nullptr);
             ASSERT_FALSE(cntl.Failed());
             ASSERT_EQ(EXP_RESPONSE, res.message());
             melon::rpc::SocketUniquePtr ptr;
@@ -1358,7 +1388,7 @@ namespace {
         }
         // parse response
         melon::rpc::ParseResult res_pr =
-                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, NULL);
+                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, nullptr);
         ASSERT_TRUE(res_pr.is_ok());
         // process response
         ProcessMessage(melon::rpc::policy::ProcessHttpResponse, res_pr.message(), false);
@@ -1390,22 +1420,22 @@ namespace {
         res_out.append(goawaybuf, sizeof(goawaybuf));
         // parse response
         melon::rpc::ParseResult res_pr =
-                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, NULL);
+                melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, nullptr);
         ASSERT_TRUE(res_pr.is_ok());
         // process response
         ProcessMessage(melon::rpc::policy::ProcessHttpResponse, res_pr.message(), false);
         ASSERT_TRUE(!cntl.Failed());
 
         // parse GOAWAY
-        res_pr = melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, NULL);
+        res_pr = melon::rpc::policy::ParseH2Message(&res_out, _h2_client_sock.get(), false, nullptr);
         ASSERT_EQ(res_pr.error(), melon::rpc::PARSE_ERROR_NOT_ENOUGH_DATA);
 
         // Since GOAWAY has been received, the next request should fail
         melon::rpc::policy::H2UnsentRequest *h2_req = melon::rpc::policy::H2UnsentRequest::New(&cntl);
         cntl._current_call.stream_user_data = h2_req;
-        melon::rpc::SocketMessage *socket_message = NULL;
-        melon::rpc::policy::PackH2Request(NULL, &socket_message, cntl.call_id().value,
-                                          NULL, &cntl, melon::cord_buf(), NULL);
+        melon::rpc::SocketMessage *socket_message = nullptr;
+        melon::rpc::policy::PackH2Request(nullptr, &socket_message, cntl.call_id().value,
+                                          nullptr, &cntl, melon::cord_buf(), nullptr);
         melon::cord_buf dummy;
         melon::result_status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
         ASSERT_EQ(st.error_code(), melon::rpc::ELOGOFF);
@@ -1423,8 +1453,8 @@ namespace {
     };
 
     TEST_F(HttpTest, http2_handle_goaway_streams) {
-        const melon::base::end_point ep(melon::base::IP_ANY, 5961);
-        melon::base::fd_guard listenfd(melon::base::tcp_listen(ep));
+        const melon::end_point ep(melon::IP_ANY, 5961);
+        melon::base::fd_guard listenfd(melon::tcp_listen(ep));
         ASSERT_GT(listenfd, 0);
 
         melon::rpc::Channel channel;
@@ -1440,10 +1470,10 @@ namespace {
             ids.push_back(cntl.call_id());
             cntl.set_timeout_ms(-1);
             cntl.http_request().uri() = "/it-doesnt-matter";
-            channel.CallMethod(NULL, &cntl, NULL, NULL, done);
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, done);
         }
 
-        int servfd = accept(listenfd, NULL, NULL);
+        int servfd = accept(listenfd, nullptr, nullptr);
         ASSERT_GT(servfd, 0);
         // Sleep for a while to make sure that server has received all data.
         melon::fiber_sleep_for(2000);
@@ -1460,6 +1490,90 @@ namespace {
         }
     }
 
+    TEST_F(HttpTest, dump_http_request) {
+        // save origin value of gflag
+        auto rpc_dump_dir = melon::rpc::FLAGS_rpc_dump_dir;
+        auto rpc_dump_max_requests_in_one_file = melon::rpc::FLAGS_rpc_dump_max_requests_in_one_file;
+
+        // set gflag and global variable in order to be sure to dump request
+        melon::rpc::FLAGS_rpc_dump = true;
+        melon::rpc::FLAGS_rpc_dump_dir = "dump_http_request";
+        melon::rpc::FLAGS_rpc_dump_max_requests_in_one_file = 1;
+        melon::rpc::g_rpc_dump_sl.ever_grabbed = true;
+        melon::rpc::g_rpc_dump_sl.sampling_range = melon::COLLECTOR_SAMPLING_BASE;
+
+        // init channel
+        const int port = 8923;
+        melon::rpc::Server server;
+        EXPECT_EQ(0, server.AddService(&_svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
+        EXPECT_EQ(0, server.Start(port, nullptr));
+
+        melon::rpc::Channel channel;
+        melon::rpc::ChannelOptions options;
+        options.protocol = "http";
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+
+        // send request and dump it to file
+        {
+            test::EchoRequest req;
+            req.set_message(EXP_REQUEST);
+            std::string req_json;
+            ASSERT_TRUE(json2pb::ProtoMessageToJson(req, &req_json));
+
+            melon::rpc::Controller cntl;
+            cntl.http_request().uri() = "/EchoService/Echo";
+            cntl.http_request().set_content_type("application/json");
+            cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
+            cntl.request_attachment() = req_json;
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
+            ASSERT_FALSE(cntl.Failed());
+
+            // sleep 1s, because rpc_dump doesn't run immediately
+            sleep(1);
+        }
+
+        // replay request from dump file
+        {
+            melon::rpc::SampleIterator it(melon::rpc::FLAGS_rpc_dump_dir);
+            melon::rpc::SampledRequest* sample = it.Next();
+            ASSERT_NE(nullptr, sample);
+
+            std::unique_ptr<melon::rpc::SampledRequest> sample_guard(sample);
+
+            // the logic of next code is same as that in rpc_replay.cpp
+            ASSERT_EQ(sample->meta.protocol_type(), melon::rpc::PROTOCOL_HTTP);
+            melon::rpc::Controller cntl;
+            cntl.reset_sampled_request(sample_guard.release());
+            melon::rpc::HttpMessage http_message;
+            http_message.ParseFromCordBuf(sample->request);
+            cntl.http_request().Swap(http_message.header());
+            // clear origin Host in header
+            cntl.http_request().RemoveHeader("Host");
+            cntl.http_request().uri().set_host("");
+            cntl.request_attachment() = http_message.body().movable();
+
+            channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
+            ASSERT_FALSE(cntl.Failed());
+            ASSERT_EQ("application/json", cntl.http_response().content_type());
+
+            std::string res_json = cntl.response_attachment().to_string();
+            test::EchoResponse res;
+            json2pb::Json2PbOptions options;
+            ASSERT_TRUE(json2pb::JsonToProtoMessage(res_json, &res, options));
+            ASSERT_EQ(EXP_RESPONSE, res.message());
+        }
+
+        // delete dump directory
+        melon::remove_all(melon::rpc::FLAGS_rpc_dump_dir);
+
+        // restore gflag and global variable
+        melon::rpc::FLAGS_rpc_dump = false;
+        melon::rpc::FLAGS_rpc_dump_dir = rpc_dump_dir;
+        melon::rpc::FLAGS_rpc_dump_max_requests_in_one_file = rpc_dump_max_requests_in_one_file;
+        melon::rpc::g_rpc_dump_sl.ever_grabbed = false;
+        melon::rpc::g_rpc_dump_sl.sampling_range = 0;
+    }
+
     TEST_F(HttpTest, spring_protobuf_content_type) {
         const int port = 8923;
         melon::rpc::Server server;
@@ -1469,7 +1583,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         test::EchoRequest req;
@@ -1494,6 +1608,33 @@ namespace {
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(EXP_RESPONSE, res.message());
         ASSERT_EQ("application/x-protobuf", cntl.http_response().content_type());
+    }
+
+    TEST_F(HttpTest, spring_protobuf_text_content_type) {
+        const int port = 8923;
+        melon::rpc::Server server;
+        EXPECT_EQ(0, server.AddService(&_svc, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
+        EXPECT_EQ(0, server.Start(port, nullptr));
+
+        melon::rpc::Channel channel;
+        melon::rpc::ChannelOptions options;
+        options.protocol = "http";
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+
+        melon::rpc::Controller cntl;
+        test::EchoRequest req;
+        test::EchoResponse res;
+        req.set_message(EXP_REQUEST);
+        cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
+        cntl.http_request().uri() = "/EchoService/Echo";
+        cntl.http_request().set_content_type("application/proto-text");
+        cntl.request_attachment().append(req.Utf8DebugString());
+        channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
+        ASSERT_FALSE(cntl.Failed());
+        ASSERT_EQ("application/proto-text", cntl.http_response().content_type());
+        ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(
+                cntl.response_attachment().to_string(), &res));
+        ASSERT_EQ(EXP_RESPONSE, res.message());
     }
 
 } //namespace

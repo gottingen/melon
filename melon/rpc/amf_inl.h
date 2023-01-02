@@ -40,7 +40,7 @@ namespace melon::rpc {
                 n -= _size;
             }
         } while (_zc_stream->Next(&_data, &_size));
-        _data = NULL;
+        _data = nullptr;
         _size = 0;
         _popped_bytes += saved_n - n;
         return saved_n - n;
@@ -127,7 +127,7 @@ namespace melon::rpc {
             data = (const char *) data + _size;
             n -= _size;
         } while (_zc_stream->Next(&_data, &_size));
-        _data = NULL;
+        _data = nullptr;
         _size = 0;
         _pushed_bytes += (saved_n - n);
         if (n) {
@@ -145,7 +145,7 @@ namespace melon::rpc {
                 return;
             }
         } while (_zc_stream->Next(&_data, &_size));
-        _data = NULL;
+        _data = nullptr;
         _size = 0;
         set_bad();
     }

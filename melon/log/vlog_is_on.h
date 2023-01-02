@@ -23,7 +23,7 @@
   __extension__  \
   ({ static int32_t* vlocal__ = nullptr;           \
      int32_t verbose_level__ = (verboselevel);                    \
-     (vlocal__ == NULL ? melon::log::init_vlog(&vlocal__, &FLAGS_melon_v, \
+     (vlocal__ == nullptr ? melon::log::init_vlog(&vlocal__, &FLAGS_melon_v, \
                         __FILE__, verbose_level__) : *vlocal__ >= verbose_level__); \
   })
 #else

@@ -42,7 +42,7 @@ extern int fiber_timer_del(fiber_timer_id id);
 extern int fiber_fd_wait(int fd, unsigned events);
 
 // Suspend caller thread until the file descriptor `fd' has `epoll_events'
-// or CLOCK_REALTIME reached `abstime' if abstime is not NULL.
+// or CLOCK_REALTIME reached `abstime' if abstime is not nullptr.
 // Returns 0 on success, -1 otherwise and errno is set.
 extern int fiber_fd_timedwait(int fd, unsigned epoll_events,
                                 const timespec *abstime);

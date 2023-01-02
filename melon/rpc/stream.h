@@ -52,7 +52,7 @@ namespace melon::rpc {
 
     struct StreamOptions {
         StreamOptions()
-                : max_buf_size(2 * 1024 * 1024), idle_timeout_ms(-1), messages_in_batch(128), handler(NULL) {}
+                : max_buf_size(2 * 1024 * 1024), idle_timeout_ms(-1), messages_in_batch(128), handler(nullptr) {}
 
         // The max size of unconsumed data allowed at remote side.
         // If |max_buf_size| <= 0, there's no limit of buf size
@@ -69,16 +69,16 @@ namespace melon::rpc {
         // default: 128
         size_t messages_in_batch;
 
-        // Handle input message, if handler is NULL, the remote side is not allowd to
+        // Handle input message, if handler is nullptr, the remote side is not allowd to
         // write any message, who will get EBADF on writting
-        // default: NULL
+        // default: nullptr
         StreamInputHandler *handler;
     };
 
     // [Called at the client side]
     // Create a stream at client-side along with the |cntl|, which will be connected
     // when receiving the response with a stream from server-side. If |options| is
-    // NULL, the stream will be created with default options
+    // nullptr, the stream will be created with default options
     // Return 0 on success, -1 otherwise
     int StreamCreate(StreamId *request_stream, Controller &cntl,
                      const StreamOptions *options);
@@ -103,7 +103,7 @@ namespace melon::rpc {
     // occurs
     // Returns 0 on success, errno otherwise
     // Errno:
-    //  - ETIMEDOUT: when |due_time| is not NULL and time expired this
+    //  - ETIMEDOUT: when |due_time| is not nullptr and time expired this
     //  - EINVAL: the stream was close during waiting
     int StreamWait(StreamId stream_id, const timespec *due_time);
 

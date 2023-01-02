@@ -47,9 +47,9 @@ protected:
     static void *thread_counter(void *arg) {
         int id = (int)((long)arg);
         agent_type *item = agent_group<agent_type>::get_or_create_tls_agent(id);
-        if (item == NULL) {
+        if (item == nullptr) {
             EXPECT_TRUE(false);
-            return NULL;
+            return nullptr;
         }
         melon::stop_watcher timer;
         timer.start();
@@ -75,7 +75,7 @@ TEST_F(AgentGroupTest, test_sanity) {
     int id = agent_group<agent_type>::create_new_agent();
     ASSERT_TRUE(id >= 0) << id;
     agent_type *element = agent_group<agent_type>::get_or_create_tls_agent(id);
-    ASSERT_TRUE(element != NULL);
+    ASSERT_TRUE(element != nullptr);
     agent_group<agent_type>::destroy_agent(id);
 }
 
@@ -105,7 +105,7 @@ TEST_F(AgentGroupTest, test_perf) {
         for (size_t j = 0; j < id_num; ++j) {
             agent_type *agent =
                 agent_group<agent_type>::get_or_create_tls_agent(ids[j]);
-            ASSERT_TRUE(agent != NULL) << ids[j];
+            ASSERT_TRUE(agent != nullptr) << ids[j];
         }
     }
     timer.stop();
@@ -122,7 +122,7 @@ TEST_F(AgentGroupTest, test_all_perf) {
     ASSERT_TRUE(id >= 0) << id;
     pthread_t threads[24];
     for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-        pthread_create(&threads[i], NULL, &thread_counter, (void *)id);
+        pthread_create(&threads[i], nullptr, &thread_counter, (void *)id);
     }
     long totol_time = 0;
     for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
@@ -135,7 +135,7 @@ TEST_F(AgentGroupTest, test_all_perf) {
     totol_time = 0;
     g_counter.store(0, std::memory_order_relaxed);
     for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-        pthread_create(&threads[i], NULL, global_add, (void *)id);
+        pthread_create(&threads[i], nullptr, global_add, (void *)id);
     }
     for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
         void *ret; 

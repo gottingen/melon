@@ -173,7 +173,7 @@ void *client_thread(void *arg) {
         }
     }
     EXPECT_EQ(0, close(m->fd));
-    return NULL;
+    return nullptr;
 }
 
 inline uint32_t fmix32(uint32_t h) {
@@ -217,7 +217,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         cm[i]->fd = fds[i * 2 + 1];
         cm[i]->times = 0;
         cm[i]->bytes = 0;
-        ASSERT_EQ(0, pthread_create(&cth[i], NULL, client_thread, cm[i]));
+        ASSERT_EQ(0, pthread_create(&cth[i], nullptr, client_thread, cm[i]));
     }
 
     MELON_LOG(INFO) << "Begin to profile... (5 seconds)";
@@ -243,7 +243,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
 
     client_stop = true;
     for (size_t i = 0; i < NCLIENT; ++i) {
-        pthread_join(cth[i], NULL);
+        pthread_join(cth[i], nullptr);
     }
     sleep(1);
 

@@ -26,7 +26,7 @@ namespace melon::rpc {
     Extension <T> *Extension<T>::instance() {
         // NOTE: We don't delete extensions because in principle they can be
         // accessed during exiting, e.g. create a channel to send rpc at exit.
-        return melon::base::get_leaky_singleton<Extension<T> >();
+        return melon::get_leaky_singleton<Extension<T> >();
     }
 
     template<typename T>
@@ -40,12 +40,12 @@ namespace melon::rpc {
 
     template<typename T>
     int Extension<T>::Register(const std::string &name, T *instance) {
-        if (NULL == instance) {
-            MELON_LOG(ERROR) << "instance to \"" << name << "\" is NULL";
+        if (nullptr == instance) {
+            MELON_LOG(ERROR) << "instance to \"" << name << "\" is nullptr";
             return -1;
         }
         MELON_SCOPED_LOCK(_map_mutex);
-        if (_instance_map.seek(name) != NULL) {
+        if (_instance_map.seek(name) != nullptr) {
             MELON_LOG(ERROR) << "\"" << name << "\" was registered";
             return -1;
         }
@@ -63,15 +63,15 @@ namespace melon::rpc {
 
     template<typename T>
     T *Extension<T>::Find(const char *name) {
-        if (NULL == name) {
-            return NULL;
+        if (nullptr == name) {
+            return nullptr;
         }
         MELON_SCOPED_LOCK(_map_mutex);
         T **p = _instance_map.seek(name);
         if (p) {
             return *p;
         }
-        return NULL;
+        return nullptr;
     }
 
     template<typename T>

@@ -42,7 +42,7 @@ namespace melon::rpc {
         if (constraint.empty()) {
             os << "Use /fibers/<fiber_id>";
         } else {
-            char *endptr = NULL;
+            char *endptr = nullptr;
             fiber_id_t tid = strtoull(constraint.c_str(), &endptr, 10);
             if (*endptr == '\0' || *endptr == '/') {
                 ::melon::fiber_internal::print_task(os, tid);

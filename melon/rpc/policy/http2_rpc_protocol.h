@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
-#define BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
+#ifndef MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
+#define MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
 
 #include <mutex>
 #include "melon/rpc/policy/http_rpc_protocol.h"   // HttpContext
@@ -39,7 +39,7 @@ namespace melon::rpc {
         class H2ParseResult {
         public:
             explicit H2ParseResult(H2Error err, int stream_id)
-                    : _msg(NULL), _err(err), _stream_id(stream_id) {}
+                    : _msg(nullptr), _err(err), _stream_id(stream_id) {}
 
             explicit H2ParseResult(H2StreamContext *msg)
                     : _msg(msg), _err(H2_NO_ERROR), _stream_id(0) {}
@@ -53,7 +53,7 @@ namespace melon::rpc {
 
             int stream_id() const { return _stream_id; }
 
-            // definitely NULL when result is failed.
+            // definitely nullptr when result is failed.
             H2StreamContext *message() const { return _msg; }
 
         private:
@@ -131,7 +131,7 @@ namespace melon::rpc {
             }
         };
         inline h2_variables* get_h2_variables() {
-            return melon::base::get_leaky_singleton<h2_variables>();
+            return melon::get_leaky_singleton<h2_variables>();
         }
 #endif
 
@@ -343,7 +343,7 @@ namespace melon::rpc {
                     melon::cord_buf_bytes_iterator &, const H2FrameHead &);
 
             // main_socket: the socket owns this object as parsing_context
-            // server: NULL means client-side
+            // server: nullptr means client-side
             H2Context(Socket *main_socket, const Server *server);
 
             ~H2Context();
@@ -476,4 +476,4 @@ namespace melon::rpc {
     } // namespace policy
 } // namespace melon::rpc
 
-#endif // BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
+#endif // MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_

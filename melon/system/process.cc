@@ -37,7 +37,7 @@ namespace melon {
         dup2(cargs->pipe_fd1, STDOUT_FILENO);
         close(cargs->pipe_fd0);
         close(cargs->pipe_fd1);
-        execl("/bin/sh", "sh", "-c", cargs->cmd, NULL);
+        execl("/bin/sh", "sh", "-c", cargs->cmd, nullptr);
         _exit(1);
     }
 
@@ -54,7 +54,7 @@ namespace melon {
         ChildArgs args = { cmd, pipe_fd[0], pipe_fd[1] };
         char buffer[1024];
 
-        char* child_stack = NULL;
+        char* child_stack = nullptr;
         char* child_stack_mem = (char*)malloc(CHILD_STACK_SIZE);
         if (!child_stack_mem) {
             MELON_LOG(ERROR) << "Fail to alloc stack for the child process";
@@ -138,7 +138,7 @@ namespace melon {
 
     int read_command_output_through_popen(std::ostream &os, const char *cmd) {
         FILE *pipe = popen(cmd, "r");
-        if (pipe == NULL) {
+        if (pipe == nullptr) {
             return -1;
         }
         char buffer[1024];

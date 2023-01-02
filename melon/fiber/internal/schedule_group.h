@@ -61,7 +61,7 @@ namespace melon::fiber_internal {
         int add_workers(int num);
 
         // Choose one fiber_worker (randomly right now).
-        // If this method is called after init(), it never returns NULL.
+        // If this method is called after init(), it never returns nullptr.
         fiber_worker *choose_one_group();
 
     private:

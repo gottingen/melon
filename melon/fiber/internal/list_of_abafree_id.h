@@ -101,20 +101,20 @@ namespace melon::fiber_internal {
         for (size_t i = 0; i < token_traits::BLOCK_SIZE; ++i) {
             _head_block.ids[i] = token_traits::TOKEN_INIT;
         }
-        _head_block.next = NULL;
+        _head_block.next = nullptr;
     }
 
     template<typename Id, typename token_traits>
     ListOfABAFreeId<Id, token_traits>::~ListOfABAFreeId() {
-        _cur_block = NULL;
+        _cur_block = nullptr;
         _cur_index = 0;
         _nblock = 0;
-        for (IdBlock *p = _head_block.next; p != NULL;) {
+        for (IdBlock *p = _head_block.next; p != nullptr;) {
             IdBlock *saved_next = p->next;
             delete p;
             p = saved_next;
         }
-        _head_block.next = NULL;
+        _head_block.next = nullptr;
     }
 
     template<typename Id, typename token_traits>
@@ -159,7 +159,7 @@ namespace melon::fiber_internal {
             return EAGAIN;
         }
         IdBlock *new_block = new(std::nothrow) IdBlock;
-        if (NULL == new_block) {
+        if (nullptr == new_block) {
             return ENOMEM;
         }
         ++_nblock;
@@ -194,7 +194,7 @@ namespace melon::fiber_internal {
     template<typename Id, typename token_traits>
     template<typename Fn>
     void ListOfABAFreeId<Id, token_traits>::apply(const Fn &fn) {
-        for (IdBlock *p = &_head_block; p != NULL; p = p->next) {
+        for (IdBlock *p = &_head_block; p != nullptr; p = p->next) {
             for (size_t i = 0; i < token_traits::BLOCK_SIZE; ++i) {
                 if (p->ids[i] != token_traits::TOKEN_INIT && token_traits::exists(p->ids[i])) {
                     fn(p->ids[i]);

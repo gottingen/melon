@@ -23,7 +23,7 @@
 #include "melon/rpc/callback.h"
 #include "melon/base/static_atomic.h"
 #include "melon/io/cord_buf.h"
-#include "melon/base/endpoint.h"       // melon::base::end_point
+#include "melon/base/endpoint.h"       // melon::end_point
 #include "melon/fiber/internal/types.h"        // fiber_token_t
 #include "melon/rpc/socket_id.h"       // SocketUniquePtr
 #include "melon/rpc/shared_object.h"   // SharedObject
@@ -43,9 +43,9 @@ namespace melon::rpc {
         int Write(const void *data, size_t n);
 
         // Get ip/port of peer/self.
-        melon::base::end_point remote_side() const;
+        melon::end_point remote_side() const;
 
-        melon::base::end_point local_side() const;
+        melon::end_point local_side() const;
 
         // [Not thread-safe and can only be called once]
         // Run the callback when the underlying connection is broken (thus

@@ -71,7 +71,7 @@ namespace melon::rpc {
             }
             replicas->clear();
             for (size_t i = 0; i < num_replicas; ++i) {
-                char host[32];
+                char host[256];
                 int len = snprintf(host, sizeof(host), "%s-%lu",
                                    endpoint2str(ptr->remote_side()).c_str(), i);
                 ConsistentHashingLoadBalancer::Node node;
@@ -182,7 +182,7 @@ namespace melon::rpc {
             bool use_set = true;
             if (id_set.init(servers.size() * 2) == 0) {
                 for (size_t i = 0; i < servers.size(); ++i) {
-                    if (id_set.insert(servers[i]) == NULL) {
+                    if (id_set.insert(servers[i]) == nullptr) {
                         use_set = false;
                         break;
                     }
@@ -194,7 +194,7 @@ namespace melon::rpc {
             bg.clear();
             for (size_t i = 0; i < fg.size(); ++i) {
                 const bool removed =
-                        use_set ? (id_set.seek(fg[i].server_sock) != NULL)
+                        use_set ? (id_set.seek(fg[i].server_sock) != nullptr)
                                 : (std::find(servers.begin(), servers.end(),
                                              fg[i].server_sock) != servers.end());
                 if (!removed) {
@@ -336,14 +336,14 @@ namespace melon::rpc {
             os << "ConsistentHashingLoadBalancer {\n"
                << "  hash function: " << GetReplicaPolicy(_type)->name() << '\n'
                << "  replica per host: " << _num_replicas << '\n';
-            std::map<melon::base::end_point, double> load_map;
+            std::map<melon::end_point, double> load_map;
             GetLoads(&load_map);
             os << "  number of hosts: " << load_map.size() << '\n';
             os << "  load of hosts: {\n";
             double expected_load_per_server = 1.0 / load_map.size();
             double load_sum = 0;
             double load_sqr_sum = 0;
-            for (std::map<melon::base::end_point, double>::iterator
+            for (std::map<melon::end_point, double>::iterator
                          it = load_map.begin(); it != load_map.end(); ++it) {
                 os << "    " << it->first << ": " << it->second << '\n';
                 double normalized_load = it->second / expected_load_per_server;
@@ -358,9 +358,9 @@ namespace melon::rpc {
         }
 
         void ConsistentHashingLoadBalancer::GetLoads(
-                std::map<melon::base::end_point, double> *load_map) {
+                std::map<melon::end_point, double> *load_map) {
             load_map->clear();
-            std::map<melon::base::end_point, uint32_t> count_map;
+            std::map<melon::end_point, uint32_t> count_map;
             do {
                 melon::container::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
                 if (_db_hash_ring.Read(&s) != 0) {
@@ -376,7 +376,7 @@ namespace melon::rpc {
                             (*s.get())[i].hash - (*s.get())[i - 1].hash;
                 }
             } while (0);
-            for (std::map<melon::base::end_point, uint32_t>::iterator
+            for (std::map<melon::end_point, uint32_t>::iterator
                          it = count_map.begin(); it != count_map.end(); ++it) {
                 (*load_map)[it->first] = (double) it->second / UINT_MAX;
             }

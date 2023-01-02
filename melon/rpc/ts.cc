@@ -234,7 +234,7 @@ namespace melon::rpc {
         // if (it != _pids.end()) {
         //     return &it->second;
         // }
-        // return NULL;
+        // return nullptr;
     }
 
     TsChannel *TsChannelGroup::set(TsPid pid) {
@@ -249,8 +249,8 @@ namespace melon::rpc {
     TsPacket::TsPacket(TsChannelGroup *g)
             : _modified(false), _transport_error_indicator(0), _payload_unit_start_indicator(0), _transport_priority(0),
               _pid(TS_PID_PAT), _transport_scrambling_control(TS_SCRAMBLED_DISABLED),
-              _adaptation_field_control(TS_AF_RESERVED), _continuity_counter(0), _adaptation_field(NULL),
-              _payload(NULL), _tschan_group(g) {
+              _adaptation_field_control(TS_AF_RESERVED), _continuity_counter(0), _adaptation_field(nullptr),
+              _payload(nullptr), _tschan_group(g) {
     }
 
     TsPacket::~TsPacket() {
@@ -260,9 +260,9 @@ namespace melon::rpc {
 
     void TsPacket::Reset() {
         delete _payload;
-        _payload = NULL;
+        _payload = nullptr;
         delete _adaptation_field;
-        _adaptation_field = NULL;
+        _adaptation_field = nullptr;
         _transport_error_indicator = 0;
         _payload_unit_start_indicator = 0;
         _transport_priority = 0;
@@ -270,13 +270,13 @@ namespace melon::rpc {
         _transport_scrambling_control = TS_SCRAMBLED_DISABLED;
         _adaptation_field_control = TS_AF_RESERVED;
         _continuity_counter = 0;
-        _payload = NULL;
+        _payload = nullptr;
         _modified = false;
     }
 
     TsAdaptationField *TsPacket::CreateAdaptationField() {
-        if (_adaptation_field != NULL) {
-            MELON_LOG(ERROR) << "_adaptation_field is not NULL";
+        if (_adaptation_field != nullptr) {
+            MELON_LOG(ERROR) << "_adaptation_field is not nullptr";
             return _adaptation_field;
         }
         _adaptation_field = new TsAdaptationField;
@@ -342,7 +342,7 @@ namespace melon::rpc {
     }
 
     void TsPacket::AddPadding(size_t num_stuffings) {
-        const bool no_af_before = (_adaptation_field == NULL);
+        const bool no_af_before = (_adaptation_field == nullptr);
         TsAdaptationField *af = mutable_adaptation_field();
         if (no_af_before) {
             const size_t sz = af->ByteSize();
@@ -474,7 +474,7 @@ namespace melon::rpc {
               PCR_flag(0), OPCR_flag(0), splicing_point_flag(0), transport_private_data_flag(0),
               adaptation_field_extension_flag(0), program_clock_reference_base(0), program_clock_reference_extension(0),
               original_program_clock_reference_base(0), original_program_clock_reference_extension(0),
-              splice_countdown(0), transport_private_data_length(0), transport_private_data(NULL),
+              splice_countdown(0), transport_private_data_length(0), transport_private_data(nullptr),
               adaptation_field_extension_length(0), ltw_flag(0), piecewise_rate_flag(0), seamless_splice_flag(0),
               ltw_valid_flag(0), ltw_offset(0), piecewise_rate(0), splice_type(0), DTS_next_AU0(0), marker_bit0(0),
               DTS_next_AU1(0), marker_bit1(0), DTS_next_AU2(0), marker_bit2(0), nb_af_ext_reserved(0),
@@ -587,9 +587,9 @@ namespace melon::rpc {
 
     TsPayloadPES::TsPayloadPES(const TsPacket *p) : TsPayload(p) {
         _PES_header_data_length = -1;
-        PES_private_data = NULL;
-        pack_field = NULL;
-        PES_extension_field = NULL;
+        PES_private_data = nullptr;
+        pack_field = nullptr;
+        PES_extension_field = nullptr;
         nb_stuffings = 0;
         nb_bytes = 0;
         nb_paddings = 0;
@@ -854,7 +854,7 @@ namespace melon::rpc {
     }
 
     TsPayloadPMTESInfo::TsPayloadPMTESInfo(TsStream st, TsPid epid)
-            : stream_type(st), elementary_PID(epid), ES_info_length(0), ES_info(NULL) {
+            : stream_type(st), elementary_PID(epid), ES_info_length(0), ES_info(nullptr) {
     }
 
     TsPayloadPMTESInfo::~TsPayloadPMTESInfo() {
@@ -886,7 +886,7 @@ namespace melon::rpc {
     }
 
     TsPayloadPMT::TsPayloadPMT(const TsPacket *p)
-            : TsPayloadPSI(p), program_info_length(0), program_info_desc(NULL) {
+            : TsPayloadPSI(p), program_info_length(0), program_info_desc(nullptr) {
     }
 
     TsPayloadPMT::~TsPayloadPMT() {
@@ -1238,7 +1238,7 @@ namespace melon::rpc {
         melon::cord_buf nalus;
         bool has_idr = false;
         for (AVCNaluIterator it(&avc_msg.data, _avc_seq_header.length_size_minus1,
-                                &_nalu_format); it != NULL; ++it) {
+                                &_nalu_format); it != nullptr; ++it) {
             // ignore SPS/PPS/AUD
             switch (it.nalu_type()) {
                 case AVC_NALU_IDR:
@@ -1371,7 +1371,7 @@ namespace melon::rpc {
         }
 
         TsChannel *channel = _tschan_group.get(pid);
-        if (channel == NULL) {
+        if (channel == nullptr) {
             return melon::result_status(EINVAL, "Fail to get channel on pid={}", (int) pid);
         }
 

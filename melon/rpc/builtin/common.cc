@@ -36,13 +36,13 @@ namespace melon::rpc {
 
     bool UseHTML(const HttpHeader &header) {
         const std::string *console = header.uri().GetQuery(CONSOLE_STR);
-        if (console != NULL) {
+        if (console != nullptr) {
             return atoi(console->c_str()) == 0;
         }
         // [curl header]
         // User-Agent: curl/7.12.1 (x86_64-redhat-linux-gnu) libcurl/7.12.1 ...
         const std::string *agent = header.GetHeader(USER_AGENT_STR);
-        if (agent == NULL) {  // use text when user-agent is absent
+        if (agent == nullptr) {  // use text when user-agent is absent
             return false;
         }
         return agent->find("curl/") == std::string::npos;
@@ -51,8 +51,8 @@ namespace melon::rpc {
     // Written by Jack Handy
     // <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
     inline bool url_wildcmp(const char *wild, const char *str) {
-        const char *cp = NULL;
-        const char *mp = NULL;
+        const char *cp = nullptr;
+        const char *mp = nullptr;
 
         while (*str && *wild != '*') {
             if (*wild != *str && *wild != '$') {
@@ -143,7 +143,7 @@ namespace melon::rpc {
         return os;
     }
 
-    const melon::base::end_point *Path::LOCAL = (melon::base::end_point *) 0x01;
+    const melon::end_point *Path::LOCAL = (melon::end_point *) 0x01;
 
     void AppendFileName(std::string *dir, const std::string &filename) {
         if (dir->empty()) {
@@ -377,7 +377,7 @@ namespace melon::rpc {
     bool SupportGzip(Controller *cntl) {
         const std::string *encodings =
                 cntl->http_request().GetHeader("Accept-Encoding");
-        if (encodings == NULL) {
+        if (encodings == nullptr) {
             return false;
         }
         return encodings->find("gzip") != std::string::npos;

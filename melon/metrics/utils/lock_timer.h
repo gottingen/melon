@@ -99,11 +99,11 @@ namespace melon {
     struct MutexConstructor<pthread_mutex_t> {
         bool operator()(pthread_mutex_t *mutex) const {
 #ifndef NDEBUG
-            const int rc = pthread_mutex_init(mutex, NULL);
+            const int rc = pthread_mutex_init(mutex, nullptr);
             MELON_CHECK_EQ(0, rc) << "Fail to init pthread_mutex, " << melon_error(rc);
             return rc == 0;
 #else
-            return pthread_mutex_init(mutex, NULL) == 0;
+            return pthread_mutex_init(mutex, nullptr) == 0;
 #endif
         }
     };
@@ -139,7 +139,7 @@ namespace melon {
                 MCtor()(&_mutex);
             }
 
-            MutexWithRecorderBase() : _recorder(NULL) {
+            MutexWithRecorderBase() : _recorder(nullptr) {
                 MCtor()(&_mutex);
             }
 
@@ -264,7 +264,7 @@ namespace melon {
                     *_mutex << _timer.u_elapsed();
                 }
                 mutex_type *saved_mutex = _mutex;
-                _mutex = NULL;
+                _mutex = nullptr;
                 _lock.release();
                 return saved_mutex;
             }

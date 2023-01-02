@@ -151,7 +151,7 @@ TEST_F(PercentileTest, combine_of) {
         melon::metrics_detail::percentile_samples<510> g;
         g.combine_of(result.begin(), result.end());
         for (size_t i = 0; i < melon::metrics_detail::NUM_INTERVALS; ++i) {
-            if (g._intervals[i] == NULL) {
+            if (g._intervals[i] == nullptr) {
                 continue;
             }
             melon::metrics_detail::percentile_interval<510> &p = *g._intervals[i];

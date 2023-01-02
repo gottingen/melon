@@ -44,3 +44,4 @@ bazel-abel
 bazel-bin
 bazel-out
 bazel-testlogs
+*.pb.h

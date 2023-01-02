@@ -75,15 +75,15 @@ namespace melon::container {
         typedef ptrdiff_t difference_type;
         typedef typename std::remove_const<Value>::type NonConstValue;
 
-        FlatMapIterator() : _node(NULL), _entry(NULL) {}
+        FlatMapIterator() : _node(nullptr), _entry(nullptr) {}
 
         FlatMapIterator(const Map *map, size_t pos) {
             if (map->initialized()) {
                 _entry = map->_buckets + pos;
                 find_and_set_valid_node();
             } else {
-                _node = NULL;
-                _entry = NULL;
+                _node = nullptr;
+                _entry = nullptr;
             }
         }
 
@@ -100,7 +100,7 @@ namespace melon::container {
 
         // ++ it
         FlatMapIterator &operator++() {
-            if (NULL == _node->next) {
+            if (nullptr == _node->next) {
                 ++_entry;
                 find_and_set_valid_node();
             } else {
@@ -153,7 +153,7 @@ namespace melon::container {
         typedef ptrdiff_t difference_type;
         typedef typename std::remove_const<Value>::type NonConstValue;
 
-        SparseFlatMapIterator() : _node(NULL), _pos(0), _map(NULL) {}
+        SparseFlatMapIterator() : _node(nullptr), _pos(0), _map(nullptr) {}
 
         SparseFlatMapIterator(const Map *map, size_t pos) {
             if (map->initialized()) {
@@ -161,8 +161,8 @@ namespace melon::container {
                 _pos = pos;
                 find_and_set_valid_node();
             } else {
-                _node = NULL;
-                _map = NULL;
+                _node = nullptr;
+                _map = nullptr;
                 _pos = 0;
             }
         }
@@ -180,7 +180,7 @@ namespace melon::container {
 
         // ++ it
         SparseFlatMapIterator &operator++() {
-            if (NULL == _node->next) {
+            if (nullptr == _node->next) {
                 ++_pos;
                 find_and_set_valid_node();
             } else {
@@ -222,22 +222,22 @@ namespace melon::container {
 
     template<typename _K, typename _T, typename _H, typename _E, bool _S>
     FlatMap<_K, _T, _H, _E, _S>::FlatMap(const hasher &hashfn, const key_equal &eql)
-            : _size(0), _nbucket(0), _buckets(NULL), _thumbnail(NULL), _load_factor(0), _hashfn(hashfn), _eql(eql) {}
+            : _size(0), _nbucket(0), _buckets(nullptr), _thumbnail(nullptr), _load_factor(0), _hashfn(hashfn), _eql(eql) {}
 
     template<typename _K, typename _T, typename _H, typename _E, bool _S>
     FlatMap<_K, _T, _H, _E, _S>::~FlatMap() {
         clear();
         free(_buckets);
-        _buckets = NULL;
+        _buckets = nullptr;
         free(_thumbnail);
-        _thumbnail = NULL;
+        _thumbnail = nullptr;
         _nbucket = 0;
         _load_factor = 0;
     }
 
     template<typename _K, typename _T, typename _H, typename _E, bool _S>
     FlatMap<_K, _T, _H, _E, _S>::FlatMap(const FlatMap &rhs)
-            : _size(0), _nbucket(0), _buckets(NULL), _thumbnail(NULL), _load_factor(rhs._load_factor),
+            : _size(0), _nbucket(0), _buckets(nullptr), _thumbnail(nullptr), _load_factor(rhs._load_factor),
               _hashfn(rhs._hashfn), _eql(rhs._eql) {
         operator=(rhs);
     }
@@ -257,19 +257,19 @@ namespace melon::container {
         if (!initialized()) {
             _load_factor = rhs._load_factor;
         }
-        if (_buckets == NULL || is_too_crowded(rhs._size)) {
+        if (_buckets == nullptr || is_too_crowded(rhs._size)) {
             free(_buckets);
             _nbucket = rhs._nbucket;
             // note: need an extra bucket to let iterator know where buckets end
             _buckets = (Bucket *) malloc(sizeof(Bucket) * (_nbucket + 1/*note*/));
-            if (NULL == _buckets) {
+            if (nullptr == _buckets) {
                 MELON_LOG(ERROR) << "Fail to new _buckets";
                 return;
             }
             if (_S) {
                 free(_thumbnail);
                 _thumbnail = bit_array_malloc(_nbucket);
-                if (NULL == _thumbnail) {
+                if (nullptr == _thumbnail) {
                     MELON_LOG(ERROR) << "Fail to new _thumbnail";
                     return;
                 }
@@ -296,7 +296,7 @@ namespace melon::container {
                     }
                 }
             }
-            _buckets[rhs._nbucket].next = NULL;
+            _buckets[rhs._nbucket].next = nullptr;
             _size = rhs._size;
         } else {
             for (const_iterator it = rhs.begin(); it != rhs.end(); ++it) {
@@ -321,18 +321,18 @@ namespace melon::container {
         _load_factor = load_factor;
 
         _buckets = (Bucket *) malloc(sizeof(Bucket) * (_nbucket + 1));
-        if (NULL == _buckets) {
+        if (nullptr == _buckets) {
             MELON_LOG(ERROR) << "Fail to new _buckets";
             return -1;
         }
         for (size_t i = 0; i < _nbucket; ++i) {
             _buckets[i].set_invalid();
         }
-        _buckets[_nbucket].next = NULL;
+        _buckets[_nbucket].next = nullptr;
 
         if (_S) {
             _thumbnail = bit_array_malloc(_nbucket);
-            if (NULL == _thumbnail) {
+            if (nullptr == _thumbnail) {
                 MELON_LOG(ERROR) << "Fail to new _thumbnail";
                 return -1;
             }
@@ -377,7 +377,7 @@ namespace melon::container {
             if (old_value) {
                 *old_value = first_node.element().second_ref();
             }
-            if (first_node.next == NULL) {
+            if (first_node.next == nullptr) {
                 first_node.element().~Element();
                 first_node.set_invalid();
                 if (_S) {
@@ -433,7 +433,7 @@ namespace melon::container {
             return;
         }
         _size = 0;
-        if (NULL != _buckets) {
+        if (nullptr != _buckets) {
             for (size_t i = 0; i < _nbucket; ++i) {
                 Bucket &first_node = _buckets[i];
                 if (first_node.is_valid()) {
@@ -449,7 +449,7 @@ namespace melon::container {
                 }
             }
         }
-        if (NULL != _thumbnail) {
+        if (nullptr != _thumbnail) {
             bit_array_clear(_thumbnail, _nbucket);
         }
     }
@@ -464,11 +464,11 @@ namespace melon::container {
     template<typename K2>
     _T *FlatMap<_K, _T, _H, _E, _S>::seek(const K2 &key) const {
         if (!initialized()) {
-            return NULL;
+            return nullptr;
         }
         Bucket &first_node = _buckets[flatmap_mod(_hashfn(key), _nbucket)];
         if (!first_node.is_valid()) {
-            return NULL;
+            return nullptr;
         }
         if (_eql(first_node.element().first_ref(), key)) {
             return &first_node.element().second_ref();
@@ -480,7 +480,7 @@ namespace melon::container {
             }
             p = p->next;
         }
-        return NULL;
+        return nullptr;
     }
 
     template<typename _K, typename _T, typename _H, typename _E, bool _S>
@@ -499,7 +499,7 @@ namespace melon::container {
             return first_node.element().second_ref();
         }
         Bucket *p = first_node.next;
-        if (NULL == p) {
+        if (nullptr == p) {
             if (is_too_crowded(_size)) {
                 if (resize(_nbucket + 1)) {
                     return operator[](key);
@@ -515,7 +515,7 @@ namespace melon::container {
             if (_eql(p->element().first_ref(), key)) {
                 return p->element().second_ref();
             }
-            if (NULL == p->next) {
+            if (nullptr == p->next) {
                 if (is_too_crowded(_size)) {
                     if (resize(_nbucket + 1)) {
                         return operator[](key);

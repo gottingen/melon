@@ -129,13 +129,13 @@ namespace melon::rpc {
                 break;
             case AMF_MARKER_STRICT_ARRAY:
                 delete _arr;
-                _arr = NULL;
+                _arr = nullptr;
                 break;
             case AMF_MARKER_STRING:
             case AMF_MARKER_LONG_STRING:
                 if (!_is_shortstr) {
                     free(_str);
-                    _str = NULL;
+                    _str = nullptr;
                 }
                 _strsize = 0;
                 _is_shortstr = false;
@@ -143,7 +143,7 @@ namespace melon::rpc {
             case AMF_MARKER_OBJECT:
             case AMF_MARKER_ECMA_ARRAY:
                 delete _obj;
-                _obj = NULL;
+                _obj = nullptr;
                 break;
         }
         _type = AMF_MARKER_UNDEFINED;
@@ -155,7 +155,7 @@ namespace melon::rpc {
         if (it != _fields.end()) {
             return &it->second;
         }
-        return NULL;
+        return nullptr;
     }
 
     void AMFField::SetString(const std::string_view &str) {
@@ -403,7 +403,7 @@ namespace melon::rpc {
     static bool ReadAMFObjectField(AMFInputStream *stream,
                                    google::protobuf::Message *message,
                                    const google::protobuf::FieldDescriptor *field) {
-        const google::protobuf::Reflection *reflection = NULL;
+        const google::protobuf::Reflection *reflection = nullptr;
         if (field) {
             reflection = message->GetReflection();
         }
@@ -541,7 +541,7 @@ namespace melon::rpc {
                 break;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VLOG_IF(field == nullptr) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -566,7 +566,7 @@ namespace melon::rpc {
                 }
                 break;
             }
-            if (!ReadAMFObjectField(stream, NULL, NULL)) {
+            if (!ReadAMFObjectField(stream, nullptr, nullptr)) {
                 return false;
             }
         }
@@ -588,7 +588,7 @@ namespace melon::rpc {
                 return false;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VLOG_IF(field == nullptr) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -612,7 +612,7 @@ namespace melon::rpc {
                 return false;
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
-            // Notice that NULL is treated as an object w/o any fields.
+            // Notice that nullptr is treated as an object w/o any fields.
             MELON_LOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
             return false;
         }
@@ -783,7 +783,7 @@ namespace melon::rpc {
                 return false;
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
-            // NOTE: NULL is treated as an object w/o any fields.
+            // NOTE: nullptr is treated as an object w/o any fields.
             MELON_LOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
             return false;
         }
@@ -907,7 +907,7 @@ namespace melon::rpc {
                 return false;
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
-            // NOTE: NULL is treated as an array w/o any items.
+            // NOTE: nullptr is treated as an array w/o any items.
             MELON_LOG(ERROR) << "Expected array/null, actually " << marker2str(marker);
             return false;
         }

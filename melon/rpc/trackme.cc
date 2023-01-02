@@ -111,7 +111,7 @@ namespace melon::rpc {
     }
 
     // Called in server.cpp
-    void SetTrackMeAddress(melon::base::end_point pt) {
+    void SetTrackMeAddress(melon::end_point pt) {
         MELON_SCOPED_LOCK(s_trackme_mutex);
         if (s_trackme_addr == nullptr) {
             // JPAAS has NAT capabilities, read its log to figure out the open port
@@ -122,7 +122,7 @@ namespace melon::rpc {
                          << " instead of jpaas_container_port=" << pt.port;
                 pt.port = jpaas_port;
             }
-            s_trackme_addr = new std::string(melon::base::endpoint2str(pt).c_str());
+            s_trackme_addr = new std::string(melon::endpoint2str(pt).c_str());
         }
     }
 

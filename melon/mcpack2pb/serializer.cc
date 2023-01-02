@@ -198,7 +198,7 @@ namespace mcpack2pb {
     }
 
     Serializer::Serializer(OutputStream *stream)
-            : _stream(stream), _ndepth(0), _group_info_more(NULL) {
+            : _stream(stream), _ndepth(0), _group_info_more(nullptr) {
         GroupInfo &info = _group_info_fast[0];
         info.item_count = 0;
         info.isomorphic = false;
@@ -221,7 +221,7 @@ namespace mcpack2pb {
             MELON_CHECK(false) << oss.str();
         }
         free(_group_info_more);
-        _group_info_more = NULL;
+        _group_info_more = nullptr;
     }
 
     void add_pending_nulls(OutputStream *stream,
@@ -717,7 +717,7 @@ namespace mcpack2pb {
             return _stream->set_bad();
         }
         GroupInfo *info = push_group_info();
-        if (info == NULL) {
+        if (info == nullptr) {
             MELON_CHECK(false) << "Fail to push object";
             return _stream->set_bad();
         }
@@ -743,7 +743,7 @@ namespace mcpack2pb {
             return _stream->set_bad();
         }
         GroupInfo *info = push_group_info();
-        if (info == NULL) {
+        if (info == nullptr) {
             MELON_CHECK(false) << "Fail to push object=" << name;
             return _stream->set_bad();
         }
@@ -806,7 +806,7 @@ namespace mcpack2pb {
             return _stream->set_bad();
         }
         GroupInfo *info = push_group_info();
-        if (info == NULL) {
+        if (info == nullptr) {
             MELON_CHECK(false) << "Fail to push array";
             return _stream->set_bad();
         }
@@ -840,7 +840,7 @@ namespace mcpack2pb {
             return _stream->set_bad();
         }
         GroupInfo *info = push_group_info();
-        if (info == NULL) {
+        if (info == nullptr) {
             MELON_CHECK(false) << "Fail to push array";
             return _stream->set_bad();
         }

@@ -30,7 +30,7 @@ namespace policy {
 Server::MethodProperty*
 FindMethodPropertyByURI(const std::string& uri_path, const Server* server,
                         std::string* unknown_method_str);
-bool ParseHttpServerAddress(melon::base::end_point *point, const char *server_addr_and_port);
+bool ParseHttpServerAddress(melon::end_point *point, const char *server_addr_and_port);
 }}
 
 namespace {
@@ -140,7 +140,7 @@ TEST(HttpMessageTest, request_sanity) {
 
     ASSERT_TRUE(header.GetHeader("log-id"));
     ASSERT_EQ("456", *header.GetHeader("log-id"));
-    ASSERT_TRUE(NULL != header.GetHeader("Authorization"));
+    ASSERT_TRUE(nullptr != header.GetHeader("Authorization"));
     ASSERT_EQ("test", *header.GetHeader("Authorization"));
 }
 
@@ -230,19 +230,19 @@ TEST(HttpMessageTest, find_method_property_by_uri) {
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(new test::EchoService(),
                                    melon::rpc::SERVER_OWNS_SERVICE));
-    ASSERT_EQ(0, server.Start(9237, NULL));
+    ASSERT_EQ(0, server.Start(9237, nullptr));
     std::string unknown_method;
-    melon::rpc::Server::MethodProperty* mp = NULL;
+    melon::rpc::Server::MethodProperty* mp = nullptr;
               
-    mp = FindMethodPropertyByURI("", &server, NULL);
+    mp = FindMethodPropertyByURI("", &server, nullptr);
     ASSERT_TRUE(mp);
     ASSERT_EQ("index", mp->method->service()->name());
 
-    mp = FindMethodPropertyByURI("/", &server, NULL);
+    mp = FindMethodPropertyByURI("/", &server, nullptr);
     ASSERT_TRUE(mp);
     ASSERT_EQ("index", mp->method->service()->name());
 
-    mp = FindMethodPropertyByURI("//", &server, NULL);
+    mp = FindMethodPropertyByURI("//", &server, nullptr);
     ASSERT_TRUE(mp);
     ASSERT_EQ("index", mp->method->service()->name());
 
@@ -332,7 +332,7 @@ TEST(HttpMessageTest, http_header) {
 }
 
 TEST(HttpMessageTest, empty_url) {
-    melon::base::end_point host;
+    melon::end_point host;
     ASSERT_FALSE(ParseHttpServerAddress(&host, ""));
 }
 
@@ -342,8 +342,8 @@ TEST(HttpMessageTest, serialize_http_request) {
     header.SetHeader("Foo", "Bar");
     ASSERT_EQ(1u, header.HeaderCount());
     header.set_method(melon::rpc::HTTP_METHOD_POST);
-    melon::base::end_point ep;
-    ASSERT_EQ(0, melon::base::str2endpoint("127.0.0.1:1234", &ep));
+    melon::end_point ep;
+    ASSERT_EQ(0, melon::str2endpoint("127.0.0.1:1234", &ep));
     melon::cord_buf request;
     melon::cord_buf content;
     content.append("data");
@@ -400,7 +400,7 @@ TEST(HttpMessageTest, serialize_http_response) {
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nFoo: Bar\r\n\r\ndata2", response);
 
     // null content
-    MakeRawHttpResponse(&response, &header, NULL);
+    MakeRawHttpResponse(&response, &header, nullptr);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nFoo: Bar\r\n\r\n", response);
 }
 

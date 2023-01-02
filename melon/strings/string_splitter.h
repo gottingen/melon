@@ -46,7 +46,7 @@ namespace melon {
                               EmptyFieldAction action = SKIP_EMPTY_FIELD);
 
         // Allows containing embedded '\0' characters and separator can be '\0',
-        // if str_end is not NULL.
+        // if str_end is not nullptr.
         inline StringSplitter(const char *str_begin, const char *str_end,
                               char separator,
                               EmptyFieldAction action = SKIP_EMPTY_FIELD);
@@ -118,7 +118,7 @@ namespace melon {
         inline StringMultiSplitter(const char *input, const char *separators,
                                    EmptyFieldAction action = SKIP_EMPTY_FIELD);
 
-        // Allows containing embedded '\0' characters if str_end is not NULL.
+        // Allows containing embedded '\0' characters if str_end is not nullptr.
         // NOTE: `separators` cannot contain embedded '\0' character.
         inline StringMultiSplitter(const char *str_begin, const char *str_end,
                                    const char *separators,
@@ -200,7 +200,7 @@ namespace melon {
         inline KeyValuePairsSplitter(const char *str_begin,
                                      char pair_delimiter,
                                      char key_value_delimiter)
-                : KeyValuePairsSplitter(str_begin, NULL,
+                : KeyValuePairsSplitter(str_begin, nullptr,
                                         pair_delimiter, key_value_delimiter) {}
 
         inline KeyValuePairsSplitter(const std::string_view &sp,

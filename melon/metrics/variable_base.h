@@ -150,7 +150,7 @@ namespace melon {
 
         // Find all exposed variables matching `white_wildcards' but
         // `black_wildcards' and send them to `dumper'.
-        // Use default options when `options' is NULL.
+        // Use default options when `options' is nullptr.
         // Return number of dumped variables, -1 on error.
         static int dump_exposed(variable_dumper *dumper, const variable_dump_options *options);
 

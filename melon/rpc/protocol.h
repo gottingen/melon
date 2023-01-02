@@ -25,7 +25,7 @@
 #include <vector>                                  // std::vector
 #include <stdint.h>                                // uint64_t
 #include <gflags/gflags_declare.h>                 // DECLARE_xxx
-#include "melon/base/endpoint.h"                         // melon::base::end_point
+#include "melon/base/endpoint.h"                         // melon::end_point
 #include "melon/io/cord_buf.h"
 #include "melon/log/logging.h"
 #include "melon/rpc/options.pb.h"                  // ProtocolType
@@ -102,7 +102,7 @@ namespace melon::rpc {
         // [Required by client]
         // The callback to pack `request_buf' into `iobuf_out' or `user_message_out'
         // Called before sending each request (including retries).
-        // Remember to pack authentication information when `auth' is not NULL.
+        // Remember to pack authentication information when `auth' is not nullptr.
         // Call cntl->SetFailed() on error.
         typedef void (*PackRequest)(
                 melon::cord_buf *iobuf_out,
@@ -137,7 +137,7 @@ namespace melon::rpc {
 
         // [Required by authenticating server]
         // The callback to verify authentication of this socket. Only called
-        // on the first message that a socket receives. Can be NULL when
+        // on the first message that a socket receives. Can be nullptr when
         // authentication is not needed or this is the client side.
         // Returns true on successful authentication.
         typedef bool (*Verify)(const InputMessageBase *msg);
@@ -145,8 +145,8 @@ namespace melon::rpc {
         Verify verify;
 
         // [Optional]
-        // Convert `server_addr_and_port'(a parameter to Channel) to melon::base::end_point.
-        typedef bool (*ParseServerAddress)(melon::base::end_point *out,
+        // Convert `server_addr_and_port'(a parameter to Channel) to melon::end_point.
+        typedef bool (*ParseServerAddress)(melon::end_point *out,
                                            const char *server_addr_and_port);
 
         ParseServerAddress parse_server_address;
@@ -174,13 +174,13 @@ namespace melon::rpc {
     };
 
     const ConnectionType CONNECTION_TYPE_POOLED_AND_SHORT =
-            (ConnectionType)((int) CONNECTION_TYPE_POOLED |
-                             (int) CONNECTION_TYPE_SHORT);
+            (ConnectionType) ((int) CONNECTION_TYPE_POOLED |
+                              (int) CONNECTION_TYPE_SHORT);
 
     const ConnectionType CONNECTION_TYPE_ALL =
-            (ConnectionType)((int) CONNECTION_TYPE_SINGLE |
-                             (int) CONNECTION_TYPE_POOLED |
-                             (int) CONNECTION_TYPE_SHORT);
+            (ConnectionType) ((int) CONNECTION_TYPE_SINGLE |
+                              (int) CONNECTION_TYPE_POOLED |
+                              (int) CONNECTION_TYPE_SHORT);
 
     // [thread-safe]
     // Register `protocol' using key=`type'.
@@ -189,7 +189,7 @@ namespace melon::rpc {
 
     // [thread-safe]
     // Find the protocol registered with key=`type'.
-    // Returns NULL on not found.
+    // Returns nullptr on not found.
     const Protocol *FindProtocol(ProtocolType type);
 
     // [thread-safe]
@@ -209,6 +209,8 @@ namespace melon::rpc {
                                    google::protobuf::io::ZeroCopyInputStream *input);
 
     bool ParsePbFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf);
+
+    bool ParsePbTextFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf);
 
     bool ParsePbFromArray(google::protobuf::Message *msg, const void *data, size_t size);
 

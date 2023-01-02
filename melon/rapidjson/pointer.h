@@ -830,7 +830,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 #endif
 
         void Parse(const Ch *source, size_t length) {
-            RAPIDJSON_ASSERT(source != NULL);
+            RAPIDJSON_ASSERT(source != nullptr);
             RAPIDJSON_ASSERT(nameBuffer_ == 0);
             RAPIDJSON_ASSERT(tokens_ == 0);
 

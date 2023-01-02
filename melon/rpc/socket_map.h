@@ -50,10 +50,10 @@ namespace melon::rpc {
     // The following fields uniquely define a Socket. In other word,
     // Socket can't be shared between 2 different SocketMapKeys
     struct SocketMapKey {
-        explicit SocketMapKey(const melon::base::end_point &pt)
+        explicit SocketMapKey(const melon::end_point &pt)
                 : peer(pt) {}
 
-        SocketMapKey(const melon::base::end_point &pt, const ChannelSignature &cs)
+        SocketMapKey(const melon::end_point &pt, const ChannelSignature &cs)
                 : peer(pt), channel_signature(cs) {}
 
         SocketMapKey(const ServerNode &sn, const ChannelSignature &cs)
@@ -69,7 +69,7 @@ namespace melon::rpc {
 
     struct SocketMapKeyHasher {
         size_t operator()(const SocketMapKey &key) const {
-            size_t h = melon::container::DefaultHasher<melon::base::end_point>()(key.peer.addr);
+            size_t h = melon::container::DefaultHasher<melon::end_point>()(key.peer.addr);
             h = h * 101 + melon::container::DefaultHasher<std::string>()(key.peer.tag);
             h = h * 101 + key.channel_signature.data[1];
             return h;
@@ -116,7 +116,7 @@ namespace melon::rpc {
         SocketMapOptions();
 
         // For creating sockets by need. Owned and deleted by SocketMap.
-        // Default: NULL (must be set by user).
+        // Default: nullptr (must be set by user).
         SocketCreator *socket_creator;
 
         // Initial size of the map (proper size reduces number of resizes)
@@ -125,7 +125,7 @@ namespace melon::rpc {
 
         // Pooled connections without data transmission for so many seconds will
         // be closed. No effect for non-positive values.
-        // If idle_timeout_second_dynamic is not NULL, use the dereferenced value
+        // If idle_timeout_second_dynamic is not nullptr, use the dereferenced value
         // each time instead of idle_timeout_second.
         // Default: 0 (disabled)
         const int *idle_timeout_second_dynamic;
@@ -133,7 +133,7 @@ namespace melon::rpc {
 
         // Defer close of connections for so many seconds even if the connection
         // is not used by anyone. Close immediately for non-positive values.
-        // If defer_close_second_dynamic is not NULL, use the dereferenced value
+        // If defer_close_second_dynamic is not nullptr, use the dereferenced value
         // each time instead of defer_close_second.
         // Default: 0 (disabled)
         const int *defer_close_second_dynamic;
@@ -163,7 +163,7 @@ namespace melon::rpc {
 
         void List(std::vector<SocketId> *ids);
 
-        void List(std::vector<melon::base::end_point> *pts);
+        void List(std::vector<melon::end_point> *pts);
 
         const SocketMapOptions &options() const { return _options; }
 

@@ -15,7 +15,7 @@ __BEGIN_DECLS
 // It's slower than mutex and not proper for general synchronizations.
 // ----------------------------------------------------------------------
 
-// Create a fiber_token_t and put it into *id. Crash when `id' is NULL.
+// Create a fiber_token_t and put it into *id. Crash when `id' is nullptr.
 // id->value will never be zero.
 // `on_error' will be called after fiber_token_error() is called.
 // -------------------------------------------------------------------------

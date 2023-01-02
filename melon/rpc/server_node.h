@@ -27,17 +27,17 @@ namespace melon::rpc {
     struct ServerNode {
         ServerNode() {}
 
-        explicit ServerNode(const melon::base::end_point &pt) : addr(pt) {}
+        explicit ServerNode(const melon::end_point &pt) : addr(pt) {}
 
-        ServerNode(melon::base::ip_t ip, int port, const std::string &tag2)
+        ServerNode(melon::ip_t ip, int port, const std::string &tag2)
                 : addr(ip, port), tag(tag2) {}
 
-        ServerNode(const melon::base::end_point &pt, const std::string &tag2)
+        ServerNode(const melon::end_point &pt, const std::string &tag2)
                 : addr(pt), tag(tag2) {}
 
-        ServerNode(melon::base::ip_t ip, int port) : addr(ip, port) {}
+        ServerNode(melon::ip_t ip, int port) : addr(ip, port) {}
 
-        melon::base::end_point addr;
+        melon::end_point addr;
         std::string tag;
     };
 

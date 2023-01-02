@@ -35,14 +35,14 @@ namespace melon::rpc {
 
         int EspAuthenticator::VerifyCredential(
                 const std::string & /*auth_str*/,
-                const melon::base::end_point & /*client_addr*/,
+                const melon::end_point & /*client_addr*/,
                 AuthContext * /*out_ctx*/) const {
             //nothing to do
             return 0;
         }
 
         const Authenticator *global_esp_authenticator() {
-            return melon::base::get_leaky_singleton<EspAuthenticator>();
+            return melon::get_leaky_singleton<EspAuthenticator>();
         }
 
     }  // namespace policy

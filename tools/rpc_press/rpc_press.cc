@@ -24,11 +24,12 @@
 #include <string.h>
 #include "rpc_press_impl.h"
 
-DEFINE_int32(dummy_port, 8888, "Port of dummy server"); 
+DEFINE_int32(dummy_port, 8888, "Port of dummy server");
 DEFINE_string(proto, "", " user's proto files with path");
 DEFINE_string(inc, "", "Include paths for proto, separated by semicolon(;)");
 DEFINE_string(method, "example.EchoService.Echo", "The full method name");
-DEFINE_string(server, "0.0.0.0:8002", "ip:port of the server when -load_balancer is empty, the naming service otherwise");
+DEFINE_string(server, "0.0.0.0:8002",
+              "ip:port of the server when -load_balancer is empty, the naming service otherwise");
 DEFINE_string(input, "", "The file containing requests in json format");
 DEFINE_string(output, "", "The file containing responses in json format");
 DEFINE_string(lb_policy, "", "The load balancer algorithm: rr, random, la, c_murmurhash, c_md5");
@@ -40,12 +41,12 @@ DEFINE_int32(connection_timeout_ms, 500, " connection timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Maximum retry times by RPC framework");
 DEFINE_int32(request_compress_type, 0, "Snappy:1 Gzip:2 Zlib:3 LZ4:4 None:0");
 DEFINE_int32(response_compress_type, 0, "Snappy:1 Gzip:2 Zlib:3 LZ4:4 None:0");
-DEFINE_int32(attachment_size, 0, "Carry so many byte attachment along with requests"); 
+DEFINE_int32(attachment_size, 0, "Carry so many byte attachment along with requests");
 DEFINE_int32(duration, 0, "how many seconds the press keep");
-DEFINE_int32(qps, 100 , "how many calls  per seconds");
+DEFINE_int32(qps, 100, "how many calls  per seconds");
 DEFINE_bool(pretty, true, "output pretty jsons");
 
-bool set_press_options(pbrpcframework::PressOptions* options){
+bool set_press_options(pbrpcframework::PressOptions *options) {
     size_t dot_pos = FLAGS_method.find_last_of('.');
     if (dot_pos == std::string::npos) {
         MELON_LOG(ERROR) << "-method must be in form of: package.service.method";
@@ -71,6 +72,13 @@ bool set_press_options(pbrpcframework::PressOptions* options){
         }
     }
 
+    const int rate_limit_per_thread = 1000000;
+    double req_rate_per_thread = options->test_req_rate / options->test_thread_num;
+    if (req_rate_per_thread > rate_limit_per_thread) {
+        MELON_LOG(ERROR) << "req_rate: " << (int64_t) req_rate_per_thread << " is too large in one thread. The rate limit is "
+                   <<  rate_limit_per_thread << " in one thread";
+        return false;
+    }
     options->input = FLAGS_input;
     options->output = FLAGS_output;
     options->connection_type = FLAGS_connection_type;
@@ -87,7 +95,7 @@ bool set_press_options(pbrpcframework::PressOptions* options){
     return true;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // Parse gflags. We recommend you to use gflags as well
     google::ParseCommandLineFlags(&argc, &argv, true);
     // set global log option
@@ -100,7 +108,7 @@ int main(int argc, char* argv[]) {
     if (!set_press_options(&options)) {
         return -1;
     }
-    pbrpcframework::RpcPress* rpc_press = new pbrpcframework::RpcPress;
+    pbrpcframework::RpcPress *rpc_press = new pbrpcframework::RpcPress;
     if (0 != rpc_press->init(&options)) {
         MELON_LOG(FATAL) << "Fail to init rpc_press";
         return -1;

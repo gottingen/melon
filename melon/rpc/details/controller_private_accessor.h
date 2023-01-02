@@ -57,8 +57,12 @@ namespace melon::rpc {
             return _cntl->_current_call.sending_sock.get();
         }
 
+        int64_t real_timeout_ms() {
+            return _cntl->_real_timeout_ms;
+        }
+
         void move_in_server_receiving_sock(SocketUniquePtr &ptr) {
-            MELON_CHECK(_cntl->_current_call.sending_sock == NULL);
+            MELON_CHECK(_cntl->_current_call.sending_sock == nullptr);
             _cntl->_current_call.sending_sock.reset(ptr.release());
         }
 
@@ -71,12 +75,12 @@ namespace melon::rpc {
             return *this;
         }
 
-        ControllerPrivateAccessor &set_remote_side(const melon::base::end_point &pt) {
+        ControllerPrivateAccessor &set_remote_side(const melon::end_point &pt) {
             _cntl->_remote_side = pt;
             return *this;
         }
 
-        ControllerPrivateAccessor &set_local_side(const melon::base::end_point &pt) {
+        ControllerPrivateAccessor &set_local_side(const melon::end_point &pt) {
             _cntl->_local_side = pt;
             return *this;
         }

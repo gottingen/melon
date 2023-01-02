@@ -138,7 +138,7 @@ namespace melon::rpc {
         int64_t end_us;
         int seconds;
         int64_t id;
-        melon::base::end_point point;
+        melon::end_point point;
     };
 
     struct ProfilingResult {
@@ -595,7 +595,6 @@ namespace melon::rpc {
             }
             break;
         }
-        MELON_CHECK(!use_html);
         // NOTE: not send prof_result to os first which does copying.
         os.move_to(resp);
         if (use_html) {

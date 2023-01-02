@@ -51,18 +51,18 @@ static void* sender(void* arg) {
         melon::rpc::MemcacheResponse response;
         melon::rpc::Controller cntl;
 
-        // Because `done'(last parameter) is NULL, this function waits until
+        // Because `done'(last parameter) is nullptr, this function waits until
         // the response comes back or error occurs(including timedout).
-        channel->CallMethod(NULL, &cntl, &request, &response, NULL);
+        channel->CallMethod(nullptr, &cntl, &request, &response, nullptr);
         const int64_t elp = cntl.latency_us();
         if (!cntl.Failed()) {
             g_latency_recorder << cntl.latency_us();
             for (int i = 0; i < FLAGS_batch; ++i) {
                 uint32_t flags;
-                if (!response.PopGet(&value, &flags, NULL)) {
+                if (!response.PopGet(&value, &flags, nullptr)) {
                     MELON_LOG(INFO) << "Fail to GET the key, " << response.LastError();
                     melon::rpc::AskToQuit();
-                    return NULL;
+                    return nullptr;
                 }
                 MELON_CHECK(flags == 0xdeadbeef + base_index + i)
                     << "flags=" << flags;
@@ -80,7 +80,7 @@ static void* sender(void* arg) {
             melon::fiber_sleep_for(50000);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 int main(int argc, char* argv[]) {
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::rpc::Channel channel;
     
-    // Initialize the channel, NULL means using default options. 
+    // Initialize the channel, nullptr means using default options.
     melon::rpc::ChannelOptions options;
     options.protocol = melon::rpc::PROTOCOL_MEMCACHE;
     options.connection_type = FLAGS_connection_type;
@@ -125,13 +125,13 @@ int main(int argc, char* argv[]) {
             return -1;
         }
     }
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     if (cntl.Failed()) {
         MELON_LOG(ERROR) << "Fail to access memcache, " << cntl.ErrorText();
         return -1;
     }
     for (int i = 0; i < FLAGS_batch * FLAGS_thread_num; ++i) {
-        if (!response.PopSet(NULL)) {
+        if (!response.PopSet(nullptr)) {
             MELON_LOG(ERROR) << "Fail to SET memcache, i=" << i
                        << ", " << response.LastError();
             return -1;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
+            if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
                 MELON_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
-                    &bids[i], NULL, sender, &channel) != 0) {
+                    &bids[i], nullptr, sender, &channel) != 0) {
                 MELON_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
@@ -175,9 +175,9 @@ int main(int argc, char* argv[]) {
     MELON_LOG(INFO) << "memcache_client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
-            pthread_join(pids[i], NULL);
+            pthread_join(pids[i], nullptr);
         } else {
-            fiber_join(bids[i], NULL);
+            fiber_join(bids[i], nullptr);
         }
     }
     if (options.auth) {

@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     melon::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
     std::vector<int64_t> sleep_list;
     for (; sp; ++sp) {
-        sleep_list.push_back(strtoll(sp.field(), NULL, 10));
+        sleep_list.push_back(strtoll(sp.field(), nullptr, 10));
     }
     if (sleep_list.empty()) {
         sleep_list.push_back(0);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
             return -1;
         }
         char buf[64];
-        int nw = snprintf(buf, sizeof(buf), "%s:%d\n", melon::base::my_ip_cstr(), port);
+        int nw = snprintf(buf, sizeof(buf), "%s:%d\n", melon::my_ip_cstr(), port);
         if (write(fd, buf, nw) != nw) {
             MELON_LOG(ERROR) << "Fail to fully write int fd=" << fd;
         }

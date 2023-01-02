@@ -51,7 +51,7 @@ namespace melon::rpc {
     };
 
     static pthread_once_t s_favicon_buf_once = PTHREAD_ONCE_INIT;
-    static melon::cord_buf *s_favicon_buf = NULL;
+    static melon::cord_buf *s_favicon_buf = nullptr;
 
     static void InitFavIcon() {
         s_favicon_buf = new melon::cord_buf;

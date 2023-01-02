@@ -67,7 +67,7 @@ namespace melon::rpc {
             fiber_id_t _th;
             std::atomic<bool> _registered;
             DiscoveryRegisterParam _params;
-            melon::base::end_point _current_discovery_server;
+            melon::end_point _current_discovery_server;
         };
 
         class DiscoveryNamingService : public PeriodicNamingService {

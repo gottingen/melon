@@ -18,7 +18,7 @@
 
 #include <stdio.h>                                  // snprintf
 
-#include "melon/log/logging.h"                           // BAIDU_*
+#include "melon/log/logging.h"
 #include "melon/base/profile.h"                            // MELON_ARRAY_SIZE
 #include "melon/thread/thread.h"                      // thread_local
 #include "melon/rpc/errno.pb.h"
@@ -104,7 +104,7 @@ namespace melon::rpc {
 
     const char *HttpReasonPhrase(int status_code) {
         pthread_once(&init_reason_phrases_once, InitReasonPhrases);
-        const char *desc = NULL;
+        const char *desc = nullptr;
         if (status_code >= 0 &&
             status_code < (int) MELON_ARRAY_SIZE(phrases) &&
             (desc = phrases[status_code])) {

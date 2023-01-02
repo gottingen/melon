@@ -39,7 +39,7 @@ namespace melon::rpc {
         int size;
         void* ptr;
     };
-    static __thread Memory tls_cached_pchan_mem = { 0, NULL };
+    static __thread Memory tls_cached_pchan_mem = { 0, nullptr };
 #endif
 
     class ParallelChannelDone : public google::protobuf::Closure {
@@ -56,7 +56,7 @@ namespace melon::rpc {
     public:
         class SubDone : public google::protobuf::Closure {
         public:
-            SubDone() : shared_data(NULL) {
+            SubDone() : shared_data(nullptr) {
             }
 
             ~SubDone() {
@@ -98,7 +98,7 @@ namespace melon::rpc {
             if (ndone != nchan) {
                 req_size += sizeof(int) * nchan;
             }
-            void *mem = NULL;
+            void *mem = nullptr;
             int memsize = 0;
 #ifdef MELON_RPC_CACHE_PCHAN_MEM
             Memory pchan_mem = tls_cached_pchan_mem;
@@ -106,20 +106,20 @@ namespace melon::rpc {
                 mem = pchan_mem.ptr;
                 memsize = pchan_mem.size;
                 pchan_mem.size = 0;
-                pchan_mem.ptr = NULL;
+                pchan_mem.ptr = nullptr;
                 tls_cached_pchan_mem = pchan_mem;
             } else {
                 mem = malloc(req_size);
                 memsize = req_size;
-                if (MELON_UNLIKELY(NULL == mem)) {
-                    return NULL;
+                if (MELON_UNLIKELY(nullptr == mem)) {
+                    return nullptr;
                 }
             }
 #else
             mem = malloc(req_size);
             memsize = req_size;
-            if (MELON_UNLIKELY(NULL == mem)) {
-                return NULL;
+            if (MELON_UNLIKELY(nullptr == mem)) {
+                return nullptr;
             }
 #endif
             ParallelChannelDone *d = new(mem) ParallelChannelDone(
@@ -152,7 +152,7 @@ namespace melon::rpc {
         }
 
         static void Destroy(ParallelChannelDone *d) {
-            if (d != NULL) {
+            if (d != nullptr) {
                 for (int i = 0; i < d->_ndone; ++i) {
                     d->sub_done(i)->~SubDone();
                 }
@@ -185,12 +185,12 @@ namespace melon::rpc {
             } else {
                 MELON_CHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
             }
-            OnSubDoneRun(NULL);
+            OnSubDoneRun(nullptr);
         }
 
         static void *RunOnComplete(void *arg) {
             static_cast<ParallelChannelDone *>(arg)->OnComplete();
-            return NULL;
+            return nullptr;
         }
 
         // For otherwhere to know if they're in the same thread.
@@ -209,7 +209,7 @@ namespace melon::rpc {
         }
 
         void OnSubDoneRun(SubDone *fin) {
-            if (fin != NULL) {
+            if (fin != nullptr) {
                 // [ called from SubDone::Run() ]
 
                 // Count failed sub calls, if fail_limit is reached, cancel others.
@@ -272,7 +272,7 @@ namespace melon::rpc {
             }
             std::atomic_thread_fence(std::memory_order_acquire);
 
-            if (fin != NULL &&
+            if (fin != nullptr &&
                 !_cntl->is_done_allowed_to_run_in_place() &&
                 IsSameThreadAsCallMethod()) {
                 // A sub channel's CallMethod calls a subdone directly, create a
@@ -306,7 +306,7 @@ namespace melon::rpc {
                     SubDone *sd = sub_done(i);
                     google::protobuf::Message *sub_res = sd->cntl._response;
                     if (!sd->cntl.FailedInline()) {  // successful calls only.
-                        if (sd->merger == NULL) {
+                        if (sd->merger == nullptr) {
                             try {
                                 _cntl->_response->MergeFrom(*sub_res);
                             } catch (const std::exception &e) {
@@ -401,7 +401,7 @@ namespace melon::rpc {
 
         int sub_channel_size() const { return _nchan; }
 
-        // Different from sub_done(), sub_channel_controller returns NULL for
+        // Different from sub_done(), sub_channel_controller returns nullptr for
         // invalid accesses and never crashes.
         const Controller *sub_channel_controller(int i) const {
             if (i >= 0 && i < _nchan) {
@@ -413,7 +413,7 @@ namespace melon::rpc {
                     return &sub_done(offset)->cntl;
                 }
             }
-            return NULL;
+            return nullptr;
         }
 
     private:
@@ -446,7 +446,7 @@ namespace melon::rpc {
     }
 
     int ParallelChannel::Init(const ParallelChannelOptions *options) {
-        if (options != NULL) {
+        if (options != nullptr) {
             _options = *options;
         }
         return 0;
@@ -456,8 +456,8 @@ namespace melon::rpc {
                                     ChannelOwnership ownership,
                                     CallMapper *call_mapper,
                                     ResponseMerger *merger) {
-        if (NULL == sub_channel) {
-            MELON_LOG(ERROR) << "Param[sub_channel] is NULL";
+        if (nullptr == sub_channel) {
+            MELON_LOG(ERROR) << "Param[sub_channel] is nullptr";
             return -1;
         }
         if (_chans.capacity() == 0) {
@@ -535,12 +535,12 @@ namespace melon::rpc {
         Controller *c = static_cast<Controller *>(arg);
         // Move done out from the controller.
         google::protobuf::Closure *done = c->_done;
-        c->_done = NULL;
+        c->_done = nullptr;
         // Save call_id from the controller which may be deleted after Run().
         const fiber_token_t cid = c->call_id();
         done->Run();
         MELON_CHECK_EQ(0, fiber_token_unlock_and_destroy(cid));
-        return NULL;
+        return nullptr;
     }
 
     void ParallelChannel::CallMethod(
@@ -556,7 +556,7 @@ namespace melon::rpc {
         cntl->_pchan_sub_count = nchan;
 
         const CallId cid = cntl->call_id();
-        const int rc = fiber_token_lock(cid, NULL);
+        const int rc = fiber_token_lock(cid, nullptr);
         if (rc != 0) {
             MELON_CHECK_EQ(EINVAL, rc);
             if (!cntl->FailedInline()) {
@@ -574,7 +574,7 @@ namespace melon::rpc {
         }
         cntl->set_used_by_rpc();
 
-        ParallelChannelDone *d = NULL;
+        ParallelChannelDone *d = nullptr;
         int ndone = nchan;
         int fail_limit = 1;
         DEFINE_SMALL_ARRAY(SubCall, aps, nchan, 64);
@@ -583,9 +583,9 @@ namespace melon::rpc {
             // The call_id is cancelled before RPC.
             goto FAIL;
         }
-        // we don't support http whose response is NULL.
-        if (response == NULL) {
-            cntl->SetFailed(EINVAL, "response must be non-NULL");
+        // we don't support http whose response is nullptr.
+        if (response == nullptr) {
+            cntl->SetFailed(EINVAL, "response must be non-nullptr");
             goto FAIL;
         }
         if (nchan == 0) {
@@ -595,7 +595,7 @@ namespace melon::rpc {
 
         for (int i = 0; i < nchan; ++i) {
             SubChan &sub_chan = _chans[i];
-            if (sub_chan.call_mapper != NULL) {
+            if (sub_chan.call_mapper != nullptr) {
                 aps[i] = sub_chan.call_mapper->Map(i, method, request, response);
                 // Test is_skip first because it implies is_bad.
                 if (aps[i].is_skip()) {
@@ -607,7 +607,7 @@ namespace melon::rpc {
                 }
             } else {
                 google::protobuf::Message *cur_res = response->New();
-                if (cur_res == NULL) {
+                if (cur_res == nullptr) {
                     cntl->SetFailed(ENOMEM, "Fail to new response");
                     goto FAIL;
                 }
@@ -633,7 +633,7 @@ namespace melon::rpc {
 
         d = ParallelChannelDone::Create(fail_limit, ndone, aps, nchan,
                                         cntl, done);
-        if (NULL == d) {
+        if (nullptr == d) {
             cntl->SetFailed(ENOMEM, "Fail to new ParallelChannelDone");
             goto FAIL;
         }
@@ -685,7 +685,7 @@ namespace melon::rpc {
             // Destroy()-ed) because we may need to check requests for debugging
             // purposes.
         }
-        if (done == NULL) {
+        if (done == nullptr) {
             Join(cid);
             cntl->OnRPCEnd(melon::get_current_time_micros());
         }
@@ -694,8 +694,8 @@ namespace melon::rpc {
         FAIL:
         // The RPC was failed after locking call_id and before calling sub channels.
         if (d) {
-            // Set the _done to NULL to make sure cntl->sub(any_index) is NULL.
-            cntl->_done = NULL;
+            // Set the _done to nullptr to make sure cntl->sub(any_index) is nullptr.
+            cntl->_done = nullptr;
             ParallelChannelDone::Destroy(d);
         }
         if (done) {
@@ -708,7 +708,7 @@ namespace melon::rpc {
                 if (fiber_start_background(&bh, &attr, RunDoneAndDestroy, cntl) == 0) {
                     return;
                 }
-                cntl->_done = NULL;
+                cntl->_done = nullptr;
                 MELON_LOG(FATAL) << "Fail to start fiber";
             }
             done->Run();

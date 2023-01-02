@@ -102,7 +102,7 @@ namespace {
             ASSERT_EQ(1u, recorder.count());
             timespec due_time = melon::time_point::future_unix_millis(10).to_timespec();
             pthread_cond_t cond;
-            ASSERT_EQ(0, pthread_cond_init(&cond, NULL));
+            ASSERT_EQ(0, pthread_cond_init(&cond, nullptr));
             pthread_cond_timedwait(&cond, &(pthread_mutex_t &) mutex, &due_time);
             pthread_cond_timedwait(&cond, &mutex.mutex(), &due_time);
             ASSERT_EQ(0, pthread_cond_destroy(&cond));
@@ -121,7 +121,7 @@ namespace {
                 usleep(10);
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     TEST_F(LockTimerTest, signal_lock_time) {
@@ -129,22 +129,22 @@ namespace {
         MutexWithRecorder<pthread_mutex_t> m0(r0);
         pthread_t threads[4];
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            ASSERT_EQ(0, pthread_create(&threads[i], NULL,
+            ASSERT_EQ(0, pthread_create(&threads[i], nullptr,
                                         signal_lock_thread<MutexWithRecorder<pthread_mutex_t> >, &m0));
         }
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            pthread_join(threads[i], NULL);
+            pthread_join(threads[i], nullptr);
         }
         MELON_LOG(INFO) << r0;
         ASSERT_EQ(OPS_PER_THREAD * MELON_ARRAY_SIZE(threads), (size_t) r0.get_value().num);
         LatencyRecorder r1;
         MutexWithLatencyRecorder<pthread_mutex_t> m1(r1);
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            ASSERT_EQ(0, pthread_create(&threads[i], NULL,
+            ASSERT_EQ(0, pthread_create(&threads[i], nullptr,
                                         signal_lock_thread<MutexWithLatencyRecorder<pthread_mutex_t> >, &m1));
         }
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            pthread_join(threads[i], NULL);
+            pthread_join(threads[i], nullptr);
         }
         MELON_LOG(INFO) << r1._latency;
         ASSERT_EQ(OPS_PER_THREAD * MELON_ARRAY_SIZE(threads), (size_t) r1.count());
@@ -165,7 +165,7 @@ namespace {
             melon::base::double_lock(lck0, lck1);
             usleep(10);
         }
-        return NULL;
+        return nullptr;
     }
 
     TEST_F(LockTimerTest, double_lock_time) {
@@ -178,11 +178,11 @@ namespace {
         arg.m1.set_recorder(r1);
         pthread_t threads[4];
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            ASSERT_EQ(0, pthread_create(&threads[i], NULL,
+            ASSERT_EQ(0, pthread_create(&threads[i], nullptr,
                                         double_lock_thread<M0, M1>, &arg));
         }
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            pthread_join(threads[i], NULL);
+            pthread_join(threads[i], nullptr);
         }
         ASSERT_EQ(OPS_PER_THREAD * MELON_ARRAY_SIZE(threads), (size_t) r0.get_value().num);
         ASSERT_EQ(OPS_PER_THREAD * MELON_ARRAY_SIZE(threads), (size_t) r1.count());
@@ -194,11 +194,11 @@ namespace {
         arg1.m0.set_recorder(r1);
         arg1.m1.set_recorder(r0);
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            ASSERT_EQ(0, pthread_create(&threads[i], NULL,
+            ASSERT_EQ(0, pthread_create(&threads[i], nullptr,
                                         double_lock_thread<M1, M0>, &arg1));
         }
         for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
-            pthread_join(threads[i], NULL);
+            pthread_join(threads[i], nullptr);
         }
         ASSERT_EQ(OPS_PER_THREAD * MELON_ARRAY_SIZE(threads), (size_t) r0.get_value().num);
         ASSERT_EQ(OPS_PER_THREAD * MELON_ARRAY_SIZE(threads), (size_t) r1.count());

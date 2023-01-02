@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BAIDU_RPC_HTTP2_H
-#define BAIDU_RPC_HTTP2_H
+#ifndef MELON_RPC_HTTP2_H_
+#define MELON_RPC_HTTP2_H_
 
 #include "melon/rpc/http_status_code.h"
 
@@ -122,4 +122,4 @@ namespace melon::rpc {
 
 } // namespace melon::rpc
 
-#endif  // BAIDU_RPC_HTTP2_H
+#endif  // MELON_RPC_HTTP2_H_

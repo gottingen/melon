@@ -51,6 +51,9 @@ namespace melon::rpc {
                     "If this flag is true, baidu_std puts service.full_name in requests"
                     ", otherwise puts service.name (required by jprotobuf).");
 
+        DEFINE_bool(baidu_std_protocol_deliver_timeout_ms, false,
+                    "If this flag is true, baidu_std puts timeout_ms in requests.");
+
         // Notes:
         // 1. 12-byte header [PRPC][body_size][meta_size]
         // 2. body_size and meta_size are in network byte order
@@ -160,11 +163,11 @@ namespace melon::rpc {
             }
             bool append_body = false;
             melon::cord_buf res_body;
-            // `res' can be NULL here, in which case we don't serialize it
+            // `res' can be nullptr here, in which case we don't serialize it
             // If user calls `SetFailed' on Controller, we don't serialize
             // response either
             CompressType type = cntl->response_compress_type();
-            if (res != NULL && !cntl->Failed()) {
+            if (res != nullptr && !cntl->Failed()) {
                 if (!res->IsInitialized()) {
                     cntl->SetFailed(
                             ERESPONSE, "Missing required fields in response: %s",
@@ -228,10 +231,12 @@ namespace melon::rpc {
             if (span) {
                 span->set_response_size(res_buf.size());
             }
-            if (stream_ptr) {
-                MELON_CHECK(accessor.remote_stream_settings() != NULL);
+            // Send rpc response over stream even if server side failed to create
+            // stream for some reasons.
+            if(cntl->has_remote_stream()){
                 // Send the response over stream to notify that this stream connection
                 // is successfully built.
+                // Response_stream can be INVALID_STREAM_ID when error occurs.
                 if (SendStreamData(sock, &res_buf,
                                    accessor.remote_stream_settings()->stream_id(),
                                    accessor.response_stream()) != 0) {
@@ -239,13 +244,17 @@ namespace melon::rpc {
                     MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
                     cntl->SetFailed(errcode, "Fail to write into %s",
                                     sock->description().c_str());
-                    ((Stream *) stream_ptr->conn())->Close();
+                    if(stream_ptr) {
+                        ((Stream*)stream_ptr->conn())->Close();
+                    }
                     return;
                 }
-                // Now it's ok the mark this server-side stream as connectted as all the
-                // written user data would follower the RPC response.
-                ((Stream *) stream_ptr->conn())->SetConnected();
-            } else {
+                if(stream_ptr) {
+                    // Now it's ok the mark this server-side stream as connectted as all the
+                    // written user data would follower the RPC response.
+                    ((Stream*)stream_ptr->conn())->SetConnected();
+                }
+            } else{
                 // Have the risk of unlimited pending responses, in which case, tell
                 // users to set max_concurrency.
                 Socket::WriteOptions wopt;
@@ -329,7 +338,7 @@ namespace melon::rpc {
             }
 
             std::unique_ptr<Controller> cntl(new(std::nothrow) Controller);
-            if (NULL == cntl.get()) {
+            if (nullptr == cntl.get()) {
                 MELON_LOG(WARNING) << "Fail to new Controller";
                 return;
             }
@@ -345,6 +354,9 @@ namespace melon::rpc {
             }
             if (request_meta.has_request_id()) {
                 cntl->set_request_id(request_meta.request_id());
+            }
+            if (request_meta.has_timeout_ms()) {
+                cntl->set_timeout_ms(request_meta.timeout_ms());
             }
             cntl->set_request_compress_type((CompressType) meta.compress_type());
             accessor.set_server(server)
@@ -366,7 +378,7 @@ namespace melon::rpc {
                 fiber_assign_data((void *) &server->thread_local_options());
             }
 
-            Span *span = NULL;
+            Span *span = nullptr;
             if (IsTraceable(request_meta.has_trace_id())) {
                 span = Span::CreateServerSpan(
                         request_meta.trace_id(), request_meta.span_id(),
@@ -380,7 +392,7 @@ namespace melon::rpc {
                 span->set_request_size(msg->payload.size() + msg->meta.size() + 12);
             }
 
-            MethodStatus *method_status = NULL;
+            MethodStatus *method_status = nullptr;
             do {
                 if (!server->IsRunning()) {
                     cntl->SetFailed(ELOGOFF, "Server is stopping");
@@ -389,7 +401,7 @@ namespace melon::rpc {
 
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::base::endpoint2str(socket->remote_side()).c_str());
+                                    melon::endpoint2str(socket->remote_side()).c_str());
                     break;
                 }
 
@@ -412,7 +424,7 @@ namespace melon::rpc {
                 if (svc_name.find('.') == std::string_view::npos) {
                     const Server::ServiceProperty *sp =
                             server_accessor.FindServicePropertyByName(svc_name);
-                    if (NULL == sp) {
+                    if (nullptr == sp) {
                         cntl->SetFailed(ENOSERVICE, "Fail to find service=%s",
                                         request_meta.service_name().c_str());
                         break;
@@ -422,7 +434,7 @@ namespace melon::rpc {
                 const Server::MethodProperty *mp =
                         server_accessor.FindMethodPropertyByFullName(
                                 svc_name, request_meta.method_name());
-                if (NULL == mp) {
+                if (nullptr == mp) {
                     cntl->SetFailed(ENOMETHOD, "Fail to find method=%s/%s",
                                     request_meta.service_name().c_str(),
                                     request_meta.method_name().c_str());
@@ -432,7 +444,7 @@ namespace melon::rpc {
                     BadMethodRequest breq;
                     BadMethodResponse bres;
                     breq.set_service_name(request_meta.service_name());
-                    mp->service->CallMethod(mp->method, cntl.get(), &breq, &bres, NULL);
+                    mp->service->CallMethod(mp->method, cntl.get(), &breq, &bres, nullptr);
                     break;
                 }
                 // Switch to service-specific error.
@@ -529,7 +541,7 @@ namespace melon::rpc {
                 return false;
             }
             const Authenticator *auth = server->options().auth;
-            if (NULL == auth) {
+            if (nullptr == auth) {
                 // Fast pass (no authentication)
                 return true;
             }
@@ -551,19 +563,20 @@ namespace melon::rpc {
             }
 
             const fiber_token_t cid = {static_cast<uint64_t>(meta.correlation_id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
+            StreamId remote_stream_id = meta.has_stream_settings() ? meta.stream_settings().stream_id(): INVALID_STREAM_ID;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
                                 << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
-                if (meta.has_stream_settings()) {
+                if (remote_stream_id != INVALID_STREAM_ID) {
                     SendStreamRst(msg->socket(), meta.stream_settings().stream_id());
                 }
                 return;
             }
 
             ControllerPrivateAccessor accessor(cntl);
-            if (meta.has_stream_settings()) {
+            if (remote_stream_id != INVALID_STREAM_ID) {
                 accessor.set_remote_stream_settings(
                         new StreamSettings(meta.stream_settings()));
             }
@@ -646,7 +659,7 @@ namespace melon::rpc {
                 request_meta->set_method_name(cntl->sampled_request()->meta.method_name());
                 meta.set_compress_type(cntl->sampled_request()->meta.compress_type());
             } else {
-                return cntl->SetFailed(ENOMETHOD, "%s.method is NULL", __FUNCTION__);
+                return cntl->SetFailed(ENOMETHOD, "%s.method is nullptr", __FUNCTION__);
             }
             if (cntl->has_log_id()) {
                 request_meta->set_log_id(cntl->log_id());
@@ -671,6 +684,11 @@ namespace melon::rpc {
             const size_t attached_size = cntl->request_attachment().length();
             if (attached_size) {
                 meta.set_attachment_size(attached_size);
+            }
+            if (FLAGS_baidu_std_protocol_deliver_timeout_ms) {
+                if (accessor.real_timeout_ms() > 0) {
+                    request_meta->set_timeout_ms(accessor.real_timeout_ms());
+                }
             }
             Span *span = accessor.span();
             if (span) {

@@ -80,7 +80,7 @@ namespace melon::rpc {
         //   https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
         // Namely, GetHeader("log-id"), GetHeader("Log-Id"), GetHeader("MELON_LOG-ID")
         // point to the same value.
-        // Return pointer to the value, NULL on not found.
+        // Return pointer to the value, nullptr on not found.
         // NOTE: Not work for "Content-Type", call content_type() instead.
         const std::string *GetHeader(const char *key) const { return _headers.seek(key); }
 

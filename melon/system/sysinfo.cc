@@ -120,11 +120,11 @@ namespace melon {
 
     void init_user_nane() {
         const char *user = getenv("USER");
-        if (user != NULL) {
+        if (user != nullptr) {
             g_cache_username = user;
         } else {
             struct passwd pwd;
-            struct passwd *result = NULL;
+            struct passwd *result = nullptr;
             char buffer[1024] = {'\0'};
             uid_t uid = geteuid();
             int pwuid_res = getpwuid_r(uid, &pwd, buffer, sizeof(buffer), &result);

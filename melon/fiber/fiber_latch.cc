@@ -41,7 +41,7 @@ namespace melon {
             if (seen_counter <= 0) {
                 return 0;
             }
-            if (melon::fiber_internal::waitable_event_wait(_event, seen_counter, NULL) < 0 &&
+            if (melon::fiber_internal::waitable_event_wait(_event, seen_counter, nullptr) < 0 &&
                 errno != EWOULDBLOCK && errno != EINTR) {
                 return errno;
             }

@@ -6,7 +6,7 @@
 #include <gflags/gflags.h>
 #include "melon/files/filesystem.h"
 #include "melon/container/flat_map.h"           // melon::container::FlatMap
-#include "melon/base/scoped_lock.h"                   // BAIDU_SCOPE_LOCK
+#include "melon/base/scoped_lock.h"                   // MELON_SCOPE_LOCK
 #include "melon/strings/string_splitter.h"               // melon::StringSplitter
 #include "melon/base/errno.h"                          // melon_error
 #include "melon/times/time.h"                          // milliseconds_from_now

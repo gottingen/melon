@@ -81,7 +81,7 @@ namespace melon::rpc {
                 type = COMPRESS_TYPE_NONE;
             }
 
-            if (pb_res == NULL) {
+            if (pb_res == nullptr) {
                 cntl->CloseConnection("response was not created yet");
                 return;
             }
@@ -102,7 +102,7 @@ namespace melon::rpc {
 
             // Fetch correlation id that we saved before in `PackNsheadMcpackRequest'
             const fiber_token_t cid = {static_cast<uint64_t>(socket->correlation_id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
                 MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
@@ -120,7 +120,7 @@ namespace melon::rpc {
             }
             const int saved_error = cntl->ErrorCode();
             google::protobuf::Message *res = cntl->response();
-            if (res == NULL) {
+            if (res == nullptr) {
                 // silently ignore response.
                 return;
             }

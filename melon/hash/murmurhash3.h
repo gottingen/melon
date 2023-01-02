@@ -76,7 +76,7 @@ namespace melon::hash {
 // ========= Iterative version ==========
 // for computing hashcode for very large inputs, say file contents. The API are
 // similar with iterative MD5 API.
-// Notice: |ctx| must be non-NULL and valid, otherwise the behavior is undefined.
+// Notice: |ctx| must be non-nullptr and valid, otherwise the behavior is undefined.
     struct MurmurHash3_x86_32_Context {
         uint32_t h1;
         int total_len;

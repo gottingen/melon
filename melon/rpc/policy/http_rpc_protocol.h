@@ -135,7 +135,7 @@ namespace melon::rpc {
                              const melon::cord_buf &request,
                              const Authenticator *auth);
 
-        bool ParseHttpServerAddress(melon::base::end_point *out, const char *server_addr_and_port);
+        bool ParseHttpServerAddress(melon::end_point *out, const char *server_addr_and_port);
 
         const std::string &GetHttpMethodName(const google::protobuf::MethodDescriptor *,
                                              const Controller *);
@@ -144,6 +144,7 @@ namespace melon::rpc {
             HTTP_CONTENT_OTHERS = 0,
             HTTP_CONTENT_JSON = 1,
             HTTP_CONTENT_PROTO = 2,
+            HTTP_CONTENT_PROTO_TEXT = 3,
         };
 
         // Parse from the textual content type. One type may have more than one literals.

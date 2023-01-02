@@ -59,7 +59,7 @@ namespace melon::rpc {
         if (_nsthread_ptr) {
             _nsthread_ptr->Describe(os, options);
         } else {
-            os << "NULL";
+            os << "nullptr";
         }
         os << " lb=";
         SharedLoadBalancer::Describe(os, options);

@@ -60,7 +60,7 @@ namespace melon::rpc {
             {HTTP_METHOD_MKCALENDAR,  "MKCALENDAR"},
     };
 
-    static const char *g_method2str_map[64] = {NULL};
+    static const char *g_method2str_map[64] = {nullptr};
     static pthread_once_t g_init_maps_once = PTHREAD_ONCE_INIT;
     static uint8_t g_first_char_index[26] = {0};
 

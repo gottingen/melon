@@ -23,7 +23,7 @@
 namespace melon::rpc {
 
     static pthread_once_t s_sorttable_buf_once = PTHREAD_ONCE_INIT;
-    static melon::cord_buf *s_sorttable_buf = NULL;
+    static melon::cord_buf *s_sorttable_buf = nullptr;
 
     static void InitSortTableBuf() {
         s_sorttable_buf = new melon::cord_buf;
