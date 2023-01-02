@@ -12,3 +12,4 @@ change log
 * Support parse proto-text format http request body
 * Support dump and replay for HTTP protocol
 * Fix rpc_press can't send request equably
+* Fix discovery naming service core

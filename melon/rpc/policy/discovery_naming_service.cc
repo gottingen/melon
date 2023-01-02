@@ -353,6 +353,7 @@ namespace melon::rpc {
             Channel *chan = GetOrNewDiscoveryChannel();
             if (nullptr == chan) {
                 MELON_LOG(ERROR) << "Fail to create discovery channel";
+                return -1;
             }
             servers->clear();
             Controller cntl;
