@@ -321,7 +321,7 @@ namespace melon::rpc {
         }
     }
 
-    void SocketMap::List(std::vector<melon::base::end_point> *pts) {
+    void SocketMap::List(std::vector<melon::end_point> *pts) {
         pts->clear();
         MELON_SCOPED_LOCK(_mutex);
         for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {

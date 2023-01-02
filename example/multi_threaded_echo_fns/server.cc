@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
             return -1;
         }
         char buf[64];
-        int nw = snprintf(buf, sizeof(buf), "%s:%d\n", melon::base::my_ip_cstr(), port);
+        int nw = snprintf(buf, sizeof(buf), "%s:%d\n", melon::my_ip_cstr(), port);
         if (write(fd, buf, nw) != nw) {
             MELON_LOG(ERROR) << "Fail to fully write int fd=" << fd;
         }

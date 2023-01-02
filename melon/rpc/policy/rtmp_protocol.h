@@ -358,14 +358,14 @@ namespace melon::rpc {
             bool can_stream_be_created_with_play_or_publish() const { return _create_stream_with_play_or_publish; }
 
             // Call this fn to change _state.
-            void SetState(const melon::base::end_point &remote_side, State new_state);
+            void SetState(const melon::end_point &remote_side, State new_state);
 
             void set_create_stream_with_play_or_publish(
                     bool create_stream_with_play_or_publish) { _create_stream_with_play_or_publish = create_stream_with_play_or_publish; }
 
             void set_simplified_rtmp(bool simplified_rtmp) { _simplified_rtmp = simplified_rtmp; }
 
-            int SendConnectRequest(const melon::base::end_point &remote_side, int fd, bool simplified_rtmp);
+            int SendConnectRequest(const melon::end_point &remote_side, int fd, bool simplified_rtmp);
 
         private:
             ParseResult WaitForC0C1orSimpleRtmp(melon::cord_buf *source, Socket *socket);

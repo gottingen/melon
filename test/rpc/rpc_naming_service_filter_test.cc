@@ -62,8 +62,8 @@ TEST_F(NamingServiceFilterTest, sanity) {
     std::string ns = std::string("file://") + tmp_file.fname();
     ASSERT_EQ(0, channel.Init(ns.c_str(), "rr", &opt));
 
-    melon::base::end_point ep;
-    ASSERT_EQ(0, melon::base::hostname2endpoint("10.128.0.1:1234", &ep));
+    melon::end_point ep;
+    ASSERT_EQ(0, melon::hostname2endpoint("10.128.0.1:1234", &ep));
     for (int i = 0; i < 10; ++i) {
         melon::rpc::SocketUniquePtr tmp_sock;
         melon::rpc::LoadBalancer::SelectIn sel_in = { 0, false, false, 0, nullptr };

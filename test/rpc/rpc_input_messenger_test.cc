@@ -111,7 +111,7 @@ void *client_thread(void *arg) {
         return nullptr;
     }
 #else
-    melon::base::end_point point(melon::base::IP_ANY, 7878);
+    melon::end_point point(melon::IP_ANY, 7878);
     melon::base::fd_guard fd(melon::base::tcp_connect(point, nullptr));
     if (fd < 0) {
         MELON_PLOG(FATAL) << "Fail to connect to " << point;
@@ -166,7 +166,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
         snprintf(buf, sizeof(buf), "input_messenger.socket%lu", i);
         int listening_fd = melon::base::unix_socket_listen(buf);
 #else
-        int listening_fd = tcp_listen(melon::base::end_point(melon::base::IP_ANY, 7878));
+        int listening_fd = tcp_listen(melon::end_point(melon::IP_ANY, 7878));
 #endif
         ASSERT_TRUE(listening_fd > 0);
         melon::base::make_non_blocking(listening_fd);

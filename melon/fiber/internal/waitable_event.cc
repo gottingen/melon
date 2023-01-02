@@ -45,7 +45,7 @@ namespace melon::fiber_internal {
         waitable_event_count() : melon::Adder<int64_t>("fiber_waitable_event_count") {}
     };
     inline melon::gauge<int64_t>& get_waitable_event_count() {
-        return *melon::base::get_leaky_singleton<waitable_event_count>();
+        return *melon::get_leaky_singleton<waitable_event_count>();
     }
 #endif
 

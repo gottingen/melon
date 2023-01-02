@@ -119,7 +119,7 @@ namespace melon::rpc {
             ResponseHead *head = whole_res.mutable_responsehead();
             ResponseBody *body = whole_res.add_responsebody();
 
-            head->set_from_host(melon::base::ip2str(melon::base::my_ip()).c_str());
+            head->set_from_host(melon::ip2str(melon::my_ip()).c_str());
             body->set_version(meta.user_string());
             body->set_id(meta.correlation_id());
             if (cntl->Failed()) {
@@ -236,7 +236,7 @@ namespace melon::rpc {
             RequestBody *body = pbreq.add_requestbody();
             melon::cord_buf_as_zero_copy_output_stream request_stream(buf);
 
-            head->set_from_host(melon::base::ip2str(melon::base::my_ip()).c_str());
+            head->set_from_host(melon::ip2str(melon::my_ip()).c_str());
             head->set_content_type(CONTENT_TYPE);
             bool short_connection = (controller->connection_type() == CONNECTION_TYPE_SHORT);
             head->set_connection(!short_connection);

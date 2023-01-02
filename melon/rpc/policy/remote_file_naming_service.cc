@@ -125,7 +125,7 @@ namespace melon::rpc {
                     continue;
                 }
                 const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-                melon::base::end_point point;
+                melon::end_point point;
                 if (str2endpoint(addr.data(), &point) != 0 &&
                     hostname2endpoint(addr.data(), &point) != 0) {
                     MELON_LOG(ERROR) << "Invalid address=`" << addr << '\'';

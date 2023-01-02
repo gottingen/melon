@@ -13,7 +13,7 @@
 #include <iostream>                              // std::ostream
 #include "melon/container/hash_tables.h"         // hashing functions
 
-namespace melon::base {
+namespace melon {
 
     // Type of an IP address
     typedef struct in_addr ip_t;
@@ -151,43 +151,43 @@ namespace melon::base {
     // Check if endpoint is extended.
     bool is_endpoint_extended(const end_point& point);
 
-}  // namespace melon::base
+}  // namespace melon
 
 // Since ip_t is defined from in_addr which is globally defined, due to ADL
 // we have to put overloaded operators globally as well.
-inline bool operator<(melon::base::ip_t lhs, melon::base::ip_t rhs) {
-    return melon::base::ip2int(lhs) < melon::base::ip2int(rhs);
+inline bool operator<(melon::ip_t lhs, melon::ip_t rhs) {
+    return melon::ip2int(lhs) < melon::ip2int(rhs);
 }
 
-inline bool operator>(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator>(melon::ip_t lhs, melon::ip_t rhs) {
     return rhs < lhs;
 }
 
-inline bool operator>=(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator>=(melon::ip_t lhs, melon::ip_t rhs) {
     return !(lhs < rhs);
 }
 
-inline bool operator<=(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator<=(melon::ip_t lhs, melon::ip_t rhs) {
     return !(rhs < lhs);
 }
 
-inline bool operator==(melon::base::ip_t lhs, melon::base::ip_t rhs) {
-    return melon::base::ip2int(lhs) == melon::base::ip2int(rhs);
+inline bool operator==(melon::ip_t lhs, melon::ip_t rhs) {
+    return melon::ip2int(lhs) == melon::ip2int(rhs);
 }
 
-inline bool operator!=(melon::base::ip_t lhs, melon::base::ip_t rhs) {
+inline bool operator!=(melon::ip_t lhs, melon::ip_t rhs) {
     return !(lhs == rhs);
 }
 
-inline std::ostream &operator<<(std::ostream &os, const melon::base::IPStr &ip_str) {
+inline std::ostream &operator<<(std::ostream &os, const melon::IPStr &ip_str) {
     return os << ip_str.c_str();
 }
 
-inline std::ostream &operator<<(std::ostream &os, melon::base::ip_t ip) {
-    return os << melon::base::ip2str(ip);
+inline std::ostream &operator<<(std::ostream &os, melon::ip_t ip) {
+    return os << melon::ip2str(ip);
 }
 
-namespace melon::base {
+namespace melon {
     // Overload operators for end_point in the same namespace due to ADL.
     inline bool operator<(end_point p1, end_point p2) {
         return (p1.ip != p2.ip) ? (p1.ip < p2.ip) : (p1.port < p2.port);
@@ -221,7 +221,7 @@ namespace melon::base {
         return os << ep_str.c_str();
     }
 
-}  // namespace melon::base
+}  // namespace melon
 
 
 namespace MELON_HASH_NAMESPACE {
@@ -231,16 +231,16 @@ namespace MELON_HASH_NAMESPACE {
 
 #if defined(MELON_COMPILER_MSVC)
 
-    inline std::size_t hash_value(const melon::base::end_point& ep) {
-        return melon::container::hash_pair(melon::base::ip2int(ep.ip), ep.port);
+    inline std::size_t hash_value(const melon::end_point& ep) {
+        return melon::container::hash_pair(melon::ip2int(ep.ip), ep.port);
     }
 
 #elif defined(MELON_COMPILER_GNUC) || defined(MELON_COMPILER_CLANG)
 
     template<>
-    struct hash<melon::base::end_point> {
-        std::size_t operator()(const melon::base::end_point &ep) const {
-            return melon::container::hash_pair(melon::base::ip2int(ep.ip), ep.port);
+    struct hash<melon::end_point> {
+        std::size_t operator()(const melon::end_point &ep) const {
+            return melon::container::hash_pair(melon::ip2int(ep.ip), ep.port);
         }
     };
 

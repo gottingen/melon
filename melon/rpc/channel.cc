@@ -191,7 +191,7 @@ namespace melon::rpc {
     int Channel::Init(const char *server_addr_and_port,
                       const ChannelOptions *options) {
         GlobalInitializeOrDie();
-        melon::base::end_point point;
+        melon::end_point point;
         const AdaptiveProtocolType &ptype = (options ? options->protocol : _options.protocol);
         const Protocol *protocol = FindProtocol(ptype);
         if (protocol == nullptr || !protocol->support_client()) {
@@ -224,7 +224,7 @@ namespace melon::rpc {
     int Channel::Init(const char *server_addr, int port,
                       const ChannelOptions *options) {
         GlobalInitializeOrDie();
-        melon::base::end_point point;
+        melon::end_point point;
         const AdaptiveProtocolType &ptype = (options ? options->protocol : _options.protocol);
         const Protocol *protocol = FindProtocol(ptype);
         if (protocol == nullptr || !protocol->support_client()) {
@@ -264,12 +264,12 @@ namespace melon::rpc {
         return 0;
     }
 
-    int Channel::Init(melon::base::end_point server_addr_and_port,
+    int Channel::Init(melon::end_point server_addr_and_port,
                       const ChannelOptions *options) {
         return InitSingle(server_addr_and_port, "", options);
     }
 
-    int Channel::InitSingle(const melon::base::end_point &server_addr_and_port,
+    int Channel::InitSingle(const melon::end_point &server_addr_and_port,
                             const char *raw_server_address,
                             const ChannelOptions *options,
                             int raw_port) {

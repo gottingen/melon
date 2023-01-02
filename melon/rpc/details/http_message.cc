@@ -113,13 +113,13 @@ namespace melon::rpc {
                 vs = new melon::cord_buf_builder;
                 http_message->_vmsgbuilder = vs;
                 if (parser->type == HTTP_REQUEST) {
-                    *vs << "[ HTTP REQUEST @" << melon::base::my_ip() << " ]\n< "
+                    *vs << "[ HTTP REQUEST @" << melon::my_ip() << " ]\n< "
                         << HttpMethod2Str((HttpMethod) parser->method) << ' '
                         << http_message->_url << " HTTP/" << parser->http_major
                         << '.' << parser->http_minor;
                 } else {
                     // NOTE: http_message->header().status_code() may not be set yet.
-                    *vs << "[ HTTP RESPONSE @" << melon::base::my_ip() << " ]\n< HTTP/"
+                    *vs << "[ HTTP RESPONSE @" << melon::my_ip() << " ]\n< HTTP/"
                         << parser->http_major
                         << '.' << parser->http_minor << ' ' << parser->status_code
                         << ' ' << HttpReasonPhrase(parser->status_code);
@@ -536,7 +536,7 @@ namespace melon::rpc {
     // extension-method = token
     void MakeRawHttpRequest(melon::cord_buf *request,
                             HttpHeader *h,
-                            const melon::base::end_point &remote_side,
+                            const melon::end_point &remote_side,
                             const melon::cord_buf *content) {
         melon::cord_buf_builder os;
         os << HttpMethod2Str(h->method()) << ' ';

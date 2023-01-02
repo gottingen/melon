@@ -20,7 +20,7 @@
 #define MELON_RPC_AUTHENTICATOR_H_
 
 #include <ostream>
-#include "melon/base/endpoint.h"                    // melon::base::end_point
+#include "melon/base/endpoint.h"                    // melon::end_point
 #include "melon/base/profile.h"
 #include "melon/rpc/extension.h"              // Extension<T>
 
@@ -77,7 +77,7 @@ namespace melon::rpc {
         // pointer from `Controller'.
         // Returns 0 on success, error code otherwise
         virtual int VerifyCredential(const std::string &auth_str,
-                                     const melon::base::end_point &client_addr,
+                                     const melon::end_point &client_addr,
                                      AuthContext *out_ctx) const = 0;
 
     };

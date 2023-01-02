@@ -81,7 +81,7 @@ namespace melon::rpc {
             cntl->http_response().set_content_type("text/plain");
         } else {
             const bool use_html = UseHTML(cntl->http_request());
-            const melon::base::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
+            const melon::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
             cntl->http_response().set_content_type(
                     use_html ? "text/html" : "text/plain");
 

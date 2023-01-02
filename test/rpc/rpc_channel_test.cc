@@ -104,7 +104,7 @@ namespace {
         }
 
         int VerifyCredential(const std::string &,
-                             const melon::base::end_point &,
+                             const melon::end_point &,
                              melon::rpc::AuthContext *ctx) const {
             ctx->set_user(MOCK_CONTEXT);
             ctx->set_group(MOCK_CONTEXT);
@@ -132,7 +132,7 @@ namespace {
             EXPECT_EQ(meta.authentication_data(), MOCK_CREDENTIAL);
             MyAuthenticator authenticator;
             return authenticator.VerifyCredential(
-                    "", melon::base::end_point(), ptr->mutable_auth_context()) == 0;
+                    "", melon::end_point(), ptr->mutable_auth_context()) == 0;
         }
         return true;
     }
@@ -173,7 +173,7 @@ namespace {
     protected:
 
         ChannelTest()
-                : _ep(melon::base::IP_ANY, 8787), _close_fd_once(false) {
+                : _ep(melon::IP_ANY, 8787), _close_fd_once(false) {
             pthread_once(&register_mock_protocol, register_protocol);
             const melon::rpc::InputMessageHandler pairs[] = {
                     {melon::rpc::policy::ParseRpcMessage,
@@ -181,7 +181,7 @@ namespace {
             };
             EXPECT_EQ(0, _messenger.AddHandler(pairs[0]));
 
-            EXPECT_EQ(0, _server_list.save(melon::base::endpoint2str(_ep).c_str()));
+            EXPECT_EQ(0, _server_list.save(melon::endpoint2str(_ep).c_str()));
             _naming_url = std::string("File://") + _server_list.fname();
         };
 
@@ -262,7 +262,7 @@ namespace {
             ts->_svc.CallMethod(method, cntl, req, res, done);
         }
 
-        int StartAccept(melon::base::end_point ep) {
+        int StartAccept(melon::end_point ep) {
             int listening_fd = -1;
             while ((listening_fd = tcp_listen(ep)) < 0) {
                 if (errno == EADDRINUSE) {
@@ -1818,7 +1818,7 @@ namespace {
             StopAndJoin();
         }
 
-        melon::base::end_point _ep;
+        melon::end_point _ep;
         melon::temp_file _server_list;
         std::string _naming_url;
 
@@ -1880,7 +1880,7 @@ namespace {
             ASSERT_EQ(0, channel.Init("127.0.0.1", 8888, nullptr));
         }
 
-        melon::base::end_point ep;
+        melon::end_point ep;
         melon::rpc::Channel channel;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:8888", &ep));
         ASSERT_EQ(0, channel.Init(ep, nullptr));

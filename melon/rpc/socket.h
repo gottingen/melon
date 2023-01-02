@@ -26,7 +26,7 @@
 #include "melon/fiber/internal/types.h"                      // fiber_token_t
 #include "melon/io/cord_buf.h"                        // melon::cord_buf, IOPortal
 #include "melon/base/profile.h"                       // MELON_DISALLOW_COPY_AND_ASSIGN
-#include "melon/base/endpoint.h"                     // melon::base::end_point
+#include "melon/base/endpoint.h"                     // melon::end_point
 #include "melon/memory/resource_pool.h"                // melon::ResourceId
 #include "melon/fiber/internal/waitable_event.h"                      // waitable_event_create_checked
 #include "melon/rpc/authenticator.h"           // Authenticator
@@ -185,7 +185,7 @@ namespace melon::rpc {
         // ownership. Socket will close the fd(if needed) and call
         // user->BeforeRecycle() before recycling.
         int fd;
-        melon::base::end_point remote_side;
+        melon::end_point remote_side;
         SocketUser *user;
 
         // When *edge-triggered* events happen on the file descriptor, callback
@@ -305,10 +305,10 @@ namespace melon::rpc {
         int fd() const { return _fd.load(std::memory_order_relaxed); }
 
         // ip/port of the local end of the connection
-        melon::base::end_point local_side() const { return _local_side; }
+        melon::end_point local_side() const { return _local_side; }
 
         // ip/port of the other end of the connection.
-        melon::base::end_point remote_side() const { return _remote_side; }
+        melon::end_point remote_side() const { return _remote_side; }
 
         // Positive value enables health checking.
         // Initialized by SocketOptions.health_check_interval_s.
@@ -751,10 +751,10 @@ namespace melon::rpc {
         int64_t _reset_fd_real_us; // When _fd was reset, in microseconds.
 
         // Address of peer. Initialized by SocketOptions.remote_side.
-        melon::base::end_point _remote_side;
+        melon::end_point _remote_side;
 
         // Address of self. Initialized in ResetFileDescriptor().
-        melon::base::end_point _local_side;
+        melon::end_point _local_side;
 
         // Called when edge-triggered events happened on `_fd'. Read comments
         // of EventDispatcher::AddConsumer (event_dispatcher.h)

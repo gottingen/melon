@@ -50,10 +50,10 @@ namespace melon::rpc {
     // The following fields uniquely define a Socket. In other word,
     // Socket can't be shared between 2 different SocketMapKeys
     struct SocketMapKey {
-        explicit SocketMapKey(const melon::base::end_point &pt)
+        explicit SocketMapKey(const melon::end_point &pt)
                 : peer(pt) {}
 
-        SocketMapKey(const melon::base::end_point &pt, const ChannelSignature &cs)
+        SocketMapKey(const melon::end_point &pt, const ChannelSignature &cs)
                 : peer(pt), channel_signature(cs) {}
 
         SocketMapKey(const ServerNode &sn, const ChannelSignature &cs)
@@ -69,7 +69,7 @@ namespace melon::rpc {
 
     struct SocketMapKeyHasher {
         size_t operator()(const SocketMapKey &key) const {
-            size_t h = melon::container::DefaultHasher<melon::base::end_point>()(key.peer.addr);
+            size_t h = melon::container::DefaultHasher<melon::end_point>()(key.peer.addr);
             h = h * 101 + melon::container::DefaultHasher<std::string>()(key.peer.tag);
             h = h * 101 + key.channel_signature.data[1];
             return h;
@@ -163,7 +163,7 @@ namespace melon::rpc {
 
         void List(std::vector<SocketId> *ids);
 
-        void List(std::vector<melon::base::end_point> *pts);
+        void List(std::vector<melon::end_point> *pts);
 
         const SocketMapOptions &options() const { return _options; }
 

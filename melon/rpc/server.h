@@ -402,7 +402,7 @@ namespace melon::rpc {
         // Start on an address in form of "0.0.0.0:8000".
         int Start(const char *ip_port_str, const ServerOptions *opt);
 
-        int Start(const melon::base::end_point &ip_port, const ServerOptions *opt);
+        int Start(const melon::end_point &ip_port, const ServerOptions *opt);
 
         // Start on IP_ANY:port.
         int Start(int port, const ServerOptions *opt);
@@ -514,7 +514,7 @@ namespace melon::rpc {
         const std::string &version() const { return _version; }
 
         // Return the address this server is listening
-        melon::base::end_point listen_address() const { return _listen_addr; }
+        melon::end_point listen_address() const { return _listen_addr; }
 
         // Last time that Start() was successfully called. 0 if Start() was
         // never called
@@ -594,7 +594,7 @@ namespace melon::rpc {
         // Create acceptor with handlers of protocols.
         Acceptor *BuildAcceptor();
 
-        int StartInternal(const melon::base::end_point &ep,
+        int StartInternal(const melon::end_point &ep,
                           const PortRange &port_range,
                           const ServerOptions *opt);
 
@@ -709,7 +709,7 @@ namespace melon::rpc {
         SSLContextMap _ssl_ctx_map;
 
         ServerOptions _options;
-        melon::base::end_point _listen_addr;
+        melon::end_point _listen_addr;
 
         std::string _version;
         time_t _last_start_time;

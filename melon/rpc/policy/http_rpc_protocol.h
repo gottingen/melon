@@ -135,7 +135,7 @@ namespace melon::rpc {
                              const melon::cord_buf &request,
                              const Authenticator *auth);
 
-        bool ParseHttpServerAddress(melon::base::end_point *out, const char *server_addr_and_port);
+        bool ParseHttpServerAddress(melon::end_point *out, const char *server_addr_and_port);
 
         const std::string &GetHttpMethodName(const google::protobuf::MethodDescriptor *,
                                              const Controller *);

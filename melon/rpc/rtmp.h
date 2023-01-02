@@ -21,7 +21,7 @@
 
 #include <mutex>
 #include <string_view>   // std::string_view
-#include "melon/base/endpoint.h"               // melon::base::end_point
+#include "melon/base/endpoint.h"               // melon::end_point
 #include "melon/rpc/shared_object.h"          // SharedObject, intrusive_ptr
 #include "melon/rpc/socket_id.h"              // SocketUniquePtr
 #include "melon/rpc/controller.h"             // Controller, cord_buf
@@ -585,8 +585,8 @@ public:
     uint32_t chunk_stream_id() const { return _chunk_stream_id; }
 
     // Get ip/port of peer/self
-    virtual melon::base::end_point remote_side() const;
-    virtual melon::base::end_point local_side() const;
+    virtual melon::end_point remote_side() const;
+    virtual melon::end_point local_side() const;
 
     bool is_client_stream() const { return _is_client; }
     bool is_server_stream() const { return !_is_client; }
@@ -729,7 +729,7 @@ public:
     RtmpClient& operator=(const RtmpClient&);
 
     // Specify the servers to connect.
-    int Init(melon::base::end_point server_addr_and_port,
+    int Init(melon::end_point server_addr_and_port,
              const RtmpClientOptions& options);
     int Init(const char* server_addr_and_port,
              const RtmpClientOptions& options);
@@ -979,8 +979,8 @@ public:
     int SendAACMessage(const RtmpAACMessage& msg);
     int SendVideoMessage(const RtmpVideoMessage& msg);
     int SendAVCMessage(const RtmpAVCMessage& msg);
-    melon::base::end_point remote_side() const;
-    melon::base::end_point local_side() const;
+    melon::end_point remote_side() const;
+    melon::end_point local_side() const;
 
     // Call this function to stop current stream. New sub stream will be
     // tried to be created later.
@@ -1059,7 +1059,7 @@ public:
     virtual ~RtmpService() {}
 
     // Called when receiving a Pong response from `remote_side'.
-    virtual void OnPingResponse(const melon::base::end_point& remote_side,
+    virtual void OnPingResponse(const melon::end_point& remote_side,
                                 uint32_t ping_timestamp);
 
     // Called to create a server-side stream.

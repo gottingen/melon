@@ -25,7 +25,7 @@
 #include <vector>                                  // std::vector
 #include <stdint.h>                                // uint64_t
 #include <gflags/gflags_declare.h>                 // DECLARE_xxx
-#include "melon/base/endpoint.h"                         // melon::base::end_point
+#include "melon/base/endpoint.h"                         // melon::end_point
 #include "melon/io/cord_buf.h"
 #include "melon/log/logging.h"
 #include "melon/rpc/options.pb.h"                  // ProtocolType
@@ -145,8 +145,8 @@ namespace melon::rpc {
         Verify verify;
 
         // [Optional]
-        // Convert `server_addr_and_port'(a parameter to Channel) to melon::base::end_point.
-        typedef bool (*ParseServerAddress)(melon::base::end_point *out,
+        // Convert `server_addr_and_port'(a parameter to Channel) to melon::end_point.
+        typedef bool (*ParseServerAddress)(melon::end_point *out,
                                            const char *server_addr_and_port);
 
         ParseServerAddress parse_server_address;

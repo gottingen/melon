@@ -56,15 +56,15 @@ namespace melon::rpc {
     }
 
     struct NameOfPoint {
-        explicit NameOfPoint(const melon::base::end_point &pt_) : pt(pt_) {}
+        explicit NameOfPoint(const melon::end_point &pt_) : pt(pt_) {}
 
-        melon::base::end_point pt;
+        melon::end_point pt;
     };
 
     std::ostream &operator<<(std::ostream &os, const NameOfPoint &nop) {
         char buf[128];
         if (FLAGS_show_hostname_instead_of_ip &&
-            melon::base::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
+            melon::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
             return os << buf;
         } else {
             return os << nop.pt;

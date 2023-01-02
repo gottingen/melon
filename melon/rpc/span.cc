@@ -438,7 +438,7 @@ namespace melon::rpc {
         out->set_log_id(span->log_id());
         out->set_base_cid(span->base_cid().value);
         out->set_ending_cid(span->ending_cid().value);
-        out->set_remote_ip(melon::base::ip2int(span->remote_side().ip));
+        out->set_remote_ip(melon::ip2int(span->remote_side().ip));
         out->set_remote_port(span->remote_side().port);
         out->set_type(span->type());
         out->set_async(span->async());

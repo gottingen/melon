@@ -119,13 +119,13 @@ namespace melon::rpc {
         }
 
         inline void SaveUint16(void *out, uint16_t v) {
-            uint8_t *p = (uint8_t *) out;
+            auto *p = (uint8_t *) out;
             p[0] = (v >> 8) & 0xFF;
             p[1] = v & 0xFF;
         }
 
         inline void SaveUint32(void *out, uint32_t v) {
-            uint8_t *p = (uint8_t *) out;
+            auto *p = (uint8_t *) out;
             p[0] = (v >> 24) & 0xFF;
             p[1] = (v >> 16) & 0xFF;
             p[2] = (v >> 8) & 0xFF;
@@ -1313,9 +1313,9 @@ namespace melon::rpc {
                         vs = new melon::cord_buf_builder;
                         this->_vmsgbuilder = vs;
                         if (_conn_ctx->is_server_side()) {
-                            *vs << "[ H2 REQUEST @" << melon::base::my_ip() << " ]";
+                            *vs << "[ H2 REQUEST @" << melon::my_ip() << " ]";
                         } else {
-                            *vs << "[ H2 RESPONSE @" << melon::base::my_ip() << " ]";
+                            *vs << "[ H2 RESPONSE @" << melon::my_ip() << " ]";
                         }
                     }
                     // print \n first to be consistent with code in http_message.cpp
@@ -1447,7 +1447,7 @@ namespace melon::rpc {
                         melon::string_printf(val, "%s:%d", uri.host().c_str(), uri.port());
                     }
                 } else if (c->remote_side().port != 0) {
-                    *val = melon::base::endpoint2str(c->remote_side()).c_str();
+                    *val = melon::endpoint2str(c->remote_side()).c_str();
                 }
             }
             if (need_content_type) {
@@ -1634,7 +1634,7 @@ namespace melon::rpc {
         }
 
         void H2UnsentRequest::Print(std::ostream &os) const {
-            os << "[ H2 REQUEST @" << melon::base::my_ip() << " ]\n";
+            os << "[ H2 REQUEST @" << melon::my_ip() << " ]\n";
             for (size_t i = 0; i < _size; ++i) {
                 os << "> " << _list[i].name << " = " << _list[i].value << '\n';
             }
@@ -1779,7 +1779,7 @@ namespace melon::rpc {
         }
 
         void H2UnsentResponse::Print(std::ostream &os) const {
-            os << "[ H2 RESPONSE @" << melon::base::my_ip() << " ]\n";
+            os << "[ H2 RESPONSE @" << melon::my_ip() << " ]\n";
             for (size_t i = 0; i < _size; ++i) {
                 os << "> " << _list[i].name << " = " << _list[i].value << '\n';
             }
@@ -1850,7 +1850,7 @@ namespace melon::rpc {
         }
 
         StreamCreator *get_h2_global_stream_creator() {
-            return melon::base::get_leaky_singleton<H2GlobalStreamCreator>();
+            return melon::get_leaky_singleton<H2GlobalStreamCreator>();
         }
 
     }  // namespace policy

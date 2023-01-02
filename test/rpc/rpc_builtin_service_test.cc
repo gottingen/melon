@@ -210,7 +210,7 @@ protected:
         melon::rpc::Controller cntl;
         ClosureChecker done;
         SetUpController(&cntl, use_html);
-        melon::base::end_point ep;
+        melon::end_point ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9798", &ep));
         ASSERT_EQ(0, _server.Start(ep, nullptr));
         int self_port = -1;
@@ -362,7 +362,7 @@ protected:
 
         ASSERT_EQ(0, _server.AddService(new EchoServiceImpl(),
                                         melon::rpc::SERVER_OWNS_SERVICE));
-        melon::base::end_point ep;
+        melon::end_point ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9748", &ep));
         ASSERT_EQ(0, _server.Start(ep, nullptr));
         melon::rpc::Channel channel;

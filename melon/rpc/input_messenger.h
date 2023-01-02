@@ -85,7 +85,7 @@ namespace melon::rpc {
         int AddHandler(const InputMessageHandler &handler);
 
         // [thread-safe] Create a socket to process input messages.
-        int Create(const melon::base::end_point &remote_side,
+        int Create(const melon::end_point &remote_side,
                    time_t health_check_interval_s,
                    SocketId *id);
 

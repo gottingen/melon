@@ -264,7 +264,7 @@ namespace melon::rpc {
             SocketOptions options;
             options.keytable_pool = am->_keytable_pool;
             options.fd = in_fd;
-            melon::base::sockaddr2endpoint(&in_addr, in_len, &options.remote_side);
+            melon::sockaddr2endpoint(&in_addr, in_len, &options.remote_side);
             options.user = acception->user();
             options.on_edge_triggered_events = InputMessenger::OnNewMessages;
             options.initial_ssl_ctx = am->_ssl_ctx;

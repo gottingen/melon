@@ -327,7 +327,7 @@ namespace melon {
             if (before_add == 0) {
                 sl->first_sample_real_us = melon::get_current_time_micros();
             } else if (before_add >= FLAGS_variable_collector_expected_per_second) {
-                melon::base::get_leaky_singleton<Collector>()->wakeup_grab_thread();
+                melon::get_leaky_singleton<Collector>()->wakeup_grab_thread();
             }
         }
         return sl->sampling_range;
@@ -386,7 +386,7 @@ namespace melon {
     }
 
     void Collected::submit(int64_t cpuwide_us) {
-        Collector *d = melon::base::get_leaky_singleton<Collector>();
+        Collector *d = melon::get_leaky_singleton<Collector>();
         // Destroy the sample in-place if the grab_thread did not run for twice
         // of the normal interval. This also applies to the situation that
         // grab_thread aborts due to severe errors.

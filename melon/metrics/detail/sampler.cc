@@ -64,7 +64,7 @@ namespace melon {
             // * A forked program can be forked again.
 
             static void child_callback_atfork() {
-                melon::base::get_leaky_singleton<sampler_collector>()->after_forked_as_child();
+                melon::get_leaky_singleton<sampler_collector>()->after_forked_as_child();
             }
 
             void create_sampling_thread() {
@@ -179,7 +179,7 @@ namespace melon {
         variable_sampler::~variable_sampler() {}
 
         void variable_sampler::schedule() {
-            *melon::base::get_leaky_singleton<sampler_collector>() << this;
+            *melon::get_leaky_singleton<sampler_collector>() << this;
         }
 
         void variable_sampler::destroy() {

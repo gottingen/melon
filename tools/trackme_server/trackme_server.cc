@@ -85,8 +85,8 @@ public:
             _bugs->find(request->rpc_version(), response);
         }
         response->set_new_interval(FLAGS_reporting_interval);
-        melon::base::end_point server_addr;
-        MELON_CHECK_EQ(0, melon::base::str2endpoint(request->server_addr().c_str(), &server_addr));
+        melon::end_point server_addr;
+        MELON_CHECK_EQ(0, melon::str2endpoint(request->server_addr().c_str(), &server_addr));
         // NOTE(gejun): The ip reported is inaccessible in many cases, use 
         // remote_side instead right now.
         server_addr.ip = cntl->remote_side().ip;

@@ -223,12 +223,12 @@ namespace melon::rpc {
         } while (true);
     }
 
-    melon::base::end_point ProgressiveAttachment::remote_side() const {
-        return _httpsock ? _httpsock->remote_side() : melon::base::end_point();
+    melon::end_point ProgressiveAttachment::remote_side() const {
+        return _httpsock ? _httpsock->remote_side() : melon::end_point();
     }
 
-    melon::base::end_point ProgressiveAttachment::local_side() const {
-        return _httpsock ? _httpsock->local_side() : melon::base::end_point();
+    melon::end_point ProgressiveAttachment::local_side() const {
+        return _httpsock ? _httpsock->local_side() : melon::end_point();
     }
 
     static int RunOnFailed(fiber_token_t id, void *data, int) {

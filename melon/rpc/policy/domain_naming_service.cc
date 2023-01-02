@@ -121,7 +121,7 @@ namespace melon::rpc {
             }
 #endif
 
-            melon::base::end_point point;
+            melon::end_point point;
             point.port = port;
             for (int i = 0; result->h_addr_list[i] != nullptr; ++i) {
                 if (result->h_addrtype == AF_INET) {

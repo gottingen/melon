@@ -180,8 +180,8 @@ namespace melon::rpc {
             Span::Submit(_span, melon::get_current_time_micros());
         }
         _error_text.clear();
-        _remote_side = melon::base::end_point();
-        _local_side = melon::base::end_point();
+        _remote_side = melon::end_point();
+        _local_side = melon::end_point();
         if (_session_local_data) {
             _server->_session_local_data_pool->Return(_session_local_data);
         }
@@ -372,7 +372,7 @@ namespace melon::rpc {
             _error_text.push_back('[');
             char ipbuf[64];
             int len = snprintf(ipbuf, sizeof(ipbuf), "%s:%d",
-                               melon::base::my_ip_cstr(), _server->listen_address().port);
+                               melon::my_ip_cstr(), _server->listen_address().port);
             unsigned char digest[MD5_DIGEST_LENGTH];
             MD5((const unsigned char *) ipbuf, len, digest);
             for (size_t i = 0; i < sizeof(digest); ++i) {
@@ -382,7 +382,7 @@ namespace melon::rpc {
             _error_text.push_back(']');
         } else {
             melon::string_appendf(&_error_text, "[%s:%d]",
-                                  melon::base::my_ip_cstr(), _server->listen_address().port);
+                                  melon::my_ip_cstr(), _server->listen_address().port);
         }
     }
 
@@ -1221,16 +1221,16 @@ namespace melon::rpc {
         if (error_code == ERPCTIMEDOUT) {
             cntl->SetFailed(error_code, "Reached timeout=%" PRId64 "ms @%s",
                             cntl->timeout_ms(),
-                            melon::base::endpoint2str(cntl->remote_side()).c_str());
+                            melon::endpoint2str(cntl->remote_side()).c_str());
         } else if (error_code == EBACKUPREQUEST) {
             cntl->SetFailed(error_code, "Reached backup timeout=%" PRId64 "ms @%s",
                             cntl->backup_request_ms(),
-                            melon::base::endpoint2str(cntl->remote_side()).c_str());
+                            melon::endpoint2str(cntl->remote_side()).c_str());
         } else if (!error_text.empty()) {
             cntl->SetFailed(error_code, "%s", error_text.c_str());
         } else {
             cntl->SetFailed(error_code, "%s @%s", melon_error(error_code),
-                            melon::base::endpoint2str(cntl->remote_side()).c_str());
+                            melon::endpoint2str(cntl->remote_side()).c_str());
         }
         CompletionInfo info = {id, false};
         cntl->OnVersionedRPCReturned(info, true, saved_error);
@@ -1526,7 +1526,7 @@ namespace melon::rpc {
     };
 
     google::protobuf::Closure *DoNothing() {
-        return melon::base::get_leaky_singleton<DoNothingClosure>();
+        return melon::get_leaky_singleton<DoNothingClosure>();
     }
 
     KVMap &Controller::SessionKV() {

@@ -32,7 +32,7 @@ DECLARE_int32(max_connection_pool_size);
 } // namespace melon::rpc
 
 namespace {
-melon::base::end_point g_endpoint;
+melon::end_point g_endpoint;
 melon::rpc::SocketMapKey g_key(g_endpoint);
 
 void* worker(void*) {
@@ -143,7 +143,7 @@ TEST_F(SocketMapTest, max_pool_size) {
 } //namespace
 
 int main(int argc, char* argv[]) {
-    melon::base::str2endpoint("127.0.0.1:12345", &g_key.peer.addr);
+    melon::str2endpoint("127.0.0.1:12345", &g_key.peer.addr);
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

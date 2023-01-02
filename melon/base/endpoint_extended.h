@@ -22,7 +22,7 @@
 #include "melon/strings/trim.h"
 #include "melon/strings/starts_with.h"
 
-namespace melon::base::detail {
+namespace melon::detail {
 
 #if __cplusplus >= 201103L
     static_assert(sizeof(end_point) == sizeof(end_point::ip) + sizeof(end_point::port),
@@ -42,48 +42,48 @@ namespace melon::base::detail {
     // If end_point.port equals to this value, we should get the extended endpoint in resource pool.
     const static int EXTENDED_ENDPOINT_PORT = 123456789;
 
-    class ExtendedEndPoint;
+    class extended_end_point;
 
-    // A global unordered set to dedup ExtendedEndPoint
+    // A global unordered set to dedup extended_end_point
     // ExtendedEndPoints which have same ipv6/unix socket address must have same id,
     // so that user can simply use the value of EndPoint for comparision.
-    class GlobalEndPointSet {
+    class global_end_point_set {
     public:
-        ExtendedEndPoint *insert(ExtendedEndPoint *p);
+        extended_end_point *insert(extended_end_point *p);
 
-        void erase(ExtendedEndPoint *p);
+        void erase(extended_end_point *p);
 
-        static GlobalEndPointSet *instance() {
-            return ::melon::base::get_leaky_singleton<GlobalEndPointSet>();
+        static global_end_point_set *instance() {
+            return get_leaky_singleton<global_end_point_set>();
         }
 
     private:
 
         struct Hash {
-            size_t operator()(ExtendedEndPoint *const &p) const;
+            size_t operator()(extended_end_point *const &p) const;
         };
 
         struct Equals {
-            bool operator()(ExtendedEndPoint *const &p1, ExtendedEndPoint *const &p2) const;
+            bool operator()(extended_end_point *const &p1, extended_end_point *const &p2) const;
         };
 
-        typedef std::unordered_set<ExtendedEndPoint *, Hash, Equals> SetType;
+        typedef std::unordered_set<extended_end_point *, Hash, Equals> SetType;
         SetType _set;
         std::mutex _mutex;
     };
 
-    class ExtendedEndPoint {
+    class extended_end_point {
     public:
-        // Construct ExtendedEndPoint.
-        // User should use create() functions to get ExtendedEndPoint instance.
-        ExtendedEndPoint(void) {
+        // Construct extended_end_point.
+        // User should use create() functions to get extended_end_point instance.
+        extended_end_point(void) {
             _ref_count.store(0, std::memory_order_relaxed);
             _u.sa.sa_family = AF_UNSPEC;
         }
 
     public:
-        // Create ExtendedEndPoint.
-        // If creation is successful, create()s will embed the ExtendedEndPoint instance in the given EndPoint*,
+        // Create extended_end_point.
+        // If creation is successful, create()s will embed the extended_end_point instance in the given EndPoint*,
         // and return it as well. Or else, the given EndPoint* won't be touched.
         //
         // The format of the parameter is inspired by nginx.
@@ -95,7 +95,7 @@ namespace melon::base::detail {
         // abslute path : unix:/path/to/file.sock
         // relative path: unix:path/to/file.sock
 
-        static ExtendedEndPoint *create(std::string_view sp, end_point *ep) {
+        static extended_end_point *create(std::string_view sp, end_point *ep) {
             sp = melon::trim_all(sp);
             if (sp.empty()) {
                 return nullptr;
@@ -128,12 +128,12 @@ namespace melon::base::detail {
             return nullptr;
         }
 
-        static ExtendedEndPoint *create(std::string_view sp, int port, end_point *ep) {
+        static extended_end_point *create(std::string_view sp, int port, end_point *ep) {
             sp = melon::trim_all(sp);
             if (sp.empty()) {
                 return nullptr;
             }
-            ExtendedEndPoint *eep = nullptr;
+            extended_end_point *eep = nullptr;
             if (sp[0] == '[' && port >= 0 && port <= 65535) {
                 if (sp.back() != ']' || sp.size() == 2 || sp.size() - 2 >= INET6_ADDRSTRLEN) {
                     return nullptr;
@@ -173,8 +173,8 @@ namespace melon::base::detail {
             return eep;
         }
 
-        static ExtendedEndPoint *create(sockaddr_storage *ss, socklen_t size, end_point *ep) {
-            ExtendedEndPoint *eep = nullptr;
+        static extended_end_point *create(sockaddr_storage *ss, socklen_t size, end_point *ep) {
+            extended_end_point *eep = nullptr;
             if (ss->ss_family == AF_INET6 || ss->ss_family == AF_UNIX) {
                 eep = new_extended_endpoint(ss->ss_family);
             }
@@ -192,38 +192,38 @@ namespace melon::base::detail {
             return eep;
         }
 
-        // Get ExtendedEndPoint instance from EndPoint
-        static ExtendedEndPoint *address(const end_point &ep) {
+        // Get extended_end_point instance from EndPoint
+        static extended_end_point *address(const end_point &ep) {
             if (!is_extended(ep)) {
                 return nullptr;
             }
-            ::melon::ResourceId <ExtendedEndPoint> id;
+            ::melon::ResourceId <extended_end_point> id;
             id.value = ep.ip.s_addr;
-            ExtendedEndPoint *eep = ::melon::address_resource<ExtendedEndPoint>(id);
-            MELON_CHECK(eep) << "fail to address ExtendedEndPoint from EndPoint";
+            extended_end_point *eep = ::melon::address_resource<extended_end_point>(id);
+            MELON_CHECK(eep) << "fail to address extended_end_point from EndPoint";
             return eep;
         }
 
-        // Check if an EndPoint has embedded ExtendedEndPoint
+        // Check if an EndPoint has embedded extended_end_point
         static bool is_extended(const end_point &ep) {
             return ep.port == EXTENDED_ENDPOINT_PORT;
         }
 
     private:
 
-        friend class GlobalEndPointSet;
+        friend class global_end_point_set;
 
-        static GlobalEndPointSet *global_set() {
-            return GlobalEndPointSet::instance();
+        static global_end_point_set *global_set() {
+            return global_end_point_set::instance();
         }
 
-        static ExtendedEndPoint *new_extended_endpoint(sa_family_t family) {
-            ::melon::ResourceId <ExtendedEndPoint> id;
-            ExtendedEndPoint *eep = ::melon::get_resource(&id);
+        static extended_end_point *new_extended_endpoint(sa_family_t family) {
+            ::melon::ResourceId <extended_end_point> id;
+            extended_end_point *eep = ::melon::get_resource(&id);
             if (eep) {
                 int64_t old_ref = eep->_ref_count.load(std::memory_order_relaxed);
-                MELON_CHECK(old_ref == 0) << "new ExtendedEndPoint has reference " << old_ref;
-                MELON_CHECK(eep->_u.sa.sa_family == AF_UNSPEC) << "new ExtendedEndPoint has family " << eep->_u.sa.sa_family
+                MELON_CHECK(old_ref == 0) << "new extended_end_point has reference " << old_ref;
+                MELON_CHECK(eep->_u.sa.sa_family == AF_UNSPEC) << "new extended_end_point has family " << eep->_u.sa.sa_family
                                                          << " set";
                 eep->_ref_count.store(1, std::memory_order_relaxed);
                 eep->_id = id;
@@ -239,10 +239,10 @@ namespace melon::base::detail {
             ep->port = EXTENDED_ENDPOINT_PORT;
         }
 
-        static ExtendedEndPoint *dedup(ExtendedEndPoint *eep) {
+        static extended_end_point *dedup(extended_end_point *eep) {
             eep->_hash = std::hash<std::string>()(std::string((const char *) &eep->_u, eep->_socklen));
 
-            ExtendedEndPoint *first_eep = global_set()->insert(eep);
+            extended_end_point *first_eep = global_set()->insert(eep);
             if (first_eep != eep) {
                 eep->_ref_count.store(0, std::memory_order_relaxed);
                 eep->_u.sa.sa_family = AF_UNSPEC;
@@ -255,7 +255,7 @@ namespace melon::base::detail {
 
         void dec_ref(void) {
             int64_t old_ref = _ref_count.fetch_sub(1, std::memory_order_relaxed);
-            MELON_CHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
+            MELON_CHECK(old_ref >= 1) << "extended_end_point has unexpected reference " << old_ref;
             if (old_ref == 1) {
                 global_set()->erase(this);
                 _u.sa.sa_family = AF_UNSPEC;
@@ -265,7 +265,7 @@ namespace melon::base::detail {
 
         void inc_ref(void) {
             int64_t old_ref = _ref_count.fetch_add(1, std::memory_order_relaxed);
-            MELON_CHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
+            MELON_CHECK(old_ref >= 1) << "extended_end_point has unexpected reference " << old_ref;
         }
 
         sa_family_t family(void) const {
@@ -314,7 +314,7 @@ namespace melon::base::detail {
         static const size_t UDS_PATH_SIZE = sizeof(sockaddr_un::sun_path);
 
         std::atomic <int64_t> _ref_count;
-        melon::ResourceId <ExtendedEndPoint> _id;
+        melon::ResourceId <extended_end_point> _id;
         size_t _hash;  // pre-compute hash code of sockaddr for saving unordered_set query time
         socklen_t _socklen; // valid data length of sockaddr
         union {
@@ -325,7 +325,7 @@ namespace melon::base::detail {
         } _u;
     };
 
-    inline ExtendedEndPoint *GlobalEndPointSet::insert(ExtendedEndPoint *p) {
+    inline extended_end_point *global_end_point_set::insert(extended_end_point *p) {
         std::unique_lock<std::mutex> lock(_mutex);
         auto it = _set.find(p);
         if (it != _set.end()) {
@@ -336,7 +336,7 @@ namespace melon::base::detail {
                 _set.insert(p);
                 return p;
             } else {
-                // the ExtendedEndPoint is valid, reuse it
+                // the extended_end_point is valid, reuse it
                 return *it;
             }
         }
@@ -344,7 +344,7 @@ namespace melon::base::detail {
         return p;
     }
 
-    inline void GlobalEndPointSet::erase(ExtendedEndPoint *p) {
+    inline void global_end_point_set::erase(extended_end_point *p) {
         std::unique_lock<std::mutex> lock(_mutex);
         auto it = _set.find(p);
         if (it == _set.end() || *it != p) {
@@ -354,16 +354,16 @@ namespace melon::base::detail {
         _set.erase(it);
     }
 
-    inline size_t GlobalEndPointSet::Hash::operator()(ExtendedEndPoint *const &p) const {
+    inline size_t global_end_point_set::Hash::operator()(extended_end_point *const &p) const {
         return p->_hash;
     }
 
-    inline bool GlobalEndPointSet::Equals::operator()(ExtendedEndPoint *const &p1, ExtendedEndPoint *const &p2) const {
+    inline bool global_end_point_set::Equals::operator()(extended_end_point *const &p1, extended_end_point *const &p2) const {
         return p1->_socklen == p2->_socklen
                && memcmp(&p1->_u, &p2->_u, p1->_socklen) == 0;
     }
 
-} // namespace melon::base::detail
+} // namespace melon::detail
 
 
 #endif // MELON_ENDPOINT_EXTENDED_H_

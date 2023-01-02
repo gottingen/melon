@@ -74,16 +74,16 @@ namespace melon::rpc {
     std::ostream &operator<<(std::ostream &os, const PrintedAsDateTime &);
 
     struct Path {
-        static const melon::base::end_point *LOCAL;
+        static const melon::end_point *LOCAL;
 
-        Path(const char *uri2, const melon::base::end_point *html_addr2)
+        Path(const char *uri2, const melon::end_point *html_addr2)
                 : uri(uri2), html_addr(html_addr2), text(nullptr) {}
 
-        Path(const char *uri2, const melon::base::end_point *html_addr2, const char *text2)
+        Path(const char *uri2, const melon::end_point *html_addr2, const char *text2)
                 : uri(uri2), html_addr(html_addr2), text(text2) {}
 
         const char *uri;
-        const melon::base::end_point *html_addr;
+        const melon::end_point *html_addr;
         const char *text;
     };
 

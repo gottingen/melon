@@ -26,7 +26,7 @@
 #include <string>
 #include "melon/container/intrusive_ptr.h"             // melon::container::intrusive_ptr
 #include "melon/fiber/internal/errno.h"                     // Redefine errno
-#include "melon/base/endpoint.h"                    // melon::base::end_point
+#include "melon/base/endpoint.h"                    // melon::end_point
 #include "melon/io/cord_buf.h"                       // melon::cord_buf
 #include "melon/fiber/internal/types.h"                     // fiber_token_t
 #include "melon/rpc/options.pb.h"                   // CompressType
@@ -486,13 +486,13 @@ namespace melon::rpc {
         // Client-side: successful or last server called. Accessible from
         // PackXXXRequest() in protocols.
         // Server-side: returns the client sending the request
-        melon::base::end_point remote_side() const { return _remote_side; }
+        melon::end_point remote_side() const { return _remote_side; }
 
         // Client-side: the local address for talking with server, undefined until
         // this RPC succeeds (because the connection may not be established
         // before RPC).
         // Server-side: the address that clients access.
-        melon::base::end_point local_side() const { return _local_side; }
+        melon::end_point local_side() const { return _local_side; }
 
         // Protocol of the request sent by client or received by server.
         ProtocolType request_protocol() const { return _request_protocol; }
@@ -775,8 +775,8 @@ namespace melon::rpc {
         uint32_t _flags; // all boolean fields inside Controller
         int32_t _error_code;
         std::string _error_text;
-        melon::base::end_point _remote_side;
-        melon::base::end_point _local_side;
+        melon::end_point _remote_side;
+        melon::end_point _local_side;
 
         void *_session_local_data;
         const Server *_server;

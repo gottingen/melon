@@ -140,7 +140,7 @@ namespace melon::rpc {
 // content: could be nullptr.
     void MakeRawHttpRequest(melon::cord_buf *request,
                             HttpHeader *header,
-                            const melon::base::end_point &remote_side,
+                            const melon::end_point &remote_side,
                             const melon::cord_buf *content);
 
     // Serialize a http response.

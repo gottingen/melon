@@ -138,7 +138,7 @@ namespace melon::rpc {
         int64_t end_us;
         int seconds;
         int64_t id;
-        melon::base::end_point point;
+        melon::end_point point;
     };
 
     struct ProfilingResult {

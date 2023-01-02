@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include "melon/base/static_atomic.h"
 
-namespace melon::base {
+namespace melon {
 
     template<typename T>
     class GetLeakySingleton {
@@ -59,6 +59,6 @@ namespace melon::base {
         return reinterpret_cast<T *>(GetLeakySingleton<T>::g_leaky_singleton_untyped.load(std::memory_order_acquire));
     }
 
-} // namespace melon::base
+} // namespace melon
 
 #endif // MELON_BASE_SINGLETON_ON_PTHREAD_ONCE_H_

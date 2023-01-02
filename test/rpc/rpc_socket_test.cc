@@ -122,7 +122,7 @@ TEST_F(SocketTest, not_recycle_until_zero_nref) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     melon::rpc::SocketId id = 8888;
-    melon::base::end_point dummy;
+    melon::end_point dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::rpc::SocketOptions options;
     options.fd = fds[1];
@@ -226,7 +226,7 @@ TEST_F(SocketTest, single_threaded_write) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     melon::rpc::SocketId id = 8888;
-    melon::base::end_point dummy;
+    melon::end_point dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::rpc::SocketOptions options;
     options.fd = fds[1];
@@ -349,7 +349,7 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
                     EchoProcessHuluRequest, nullptr, nullptr, "dummy_hulu"}
     };
 
-    melon::base::end_point point(melon::base::IP_ANY, 7878);
+    melon::end_point point(melon::IP_ANY, 7878);
     int listening_fd = tcp_listen(point);
     ASSERT_TRUE(listening_fd > 0);
     melon::base::make_non_blocking(listening_fd);
@@ -468,7 +468,7 @@ void *FailedWriter(void *void_arg) {
 
 TEST_F(SocketTest, fail_to_connect) {
     const size_t REP = 10;
-    melon::base::end_point point(melon::base::IP_ANY, 7563/*not listened*/);
+    melon::end_point point(melon::IP_ANY, 7563/*not listened*/);
     melon::rpc::SocketId id = 8888;
     melon::rpc::SocketOptions options;
     options.remote_side = point;
@@ -510,7 +510,7 @@ TEST_F(SocketTest, fail_to_connect) {
 
 TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
     melon::rpc::SocketId id = 8888;
-    melon::base::end_point point(melon::base::IP_ANY, 7584/*not listened*/);
+    melon::end_point point(melon::IP_ANY, 7584/*not listened*/);
     melon::rpc::SocketOptions options;
     options.remote_side = point;
     options.user = new CheckRecycle;
@@ -597,7 +597,7 @@ TEST_F(SocketTest, app_level_health_check) {
     google::SetCommandLineOption("health_check_path", "/HealthCheckTestService");
     google::SetCommandLineOption("health_check_interval", "1");
 
-    melon::base::end_point point(melon::base::IP_ANY, 7777);
+    melon::end_point point(melon::IP_ANY, 7777);
     melon::rpc::ChannelOptions options;
     options.protocol = "http";
     options.max_retry = 0;
@@ -658,7 +658,7 @@ TEST_F(SocketTest, health_check) {
     melon::rpc::Acceptor *messenger = new melon::rpc::Acceptor;
 
     melon::rpc::SocketId id = 8888;
-    melon::base::end_point point(melon::base::IP_ANY, 7878);
+    melon::end_point point(melon::IP_ANY, 7878);
     const int kCheckInteval = 1;
     melon::rpc::SocketOptions options;
     options.remote_side = point;
@@ -839,7 +839,7 @@ TEST_F(SocketTest, multi_threaded_write) {
         result.reserve(MELON_ARRAY_SIZE(th) * REP);
 
         melon::rpc::SocketId id = 8888;
-        melon::base::end_point dummy;
+        melon::end_point dummy;
         ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
         melon::rpc::SocketOptions options;
         options.fd = fds[1];
@@ -985,7 +985,7 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     WriterArg args[MELON_ARRAY_SIZE(th)];
 
     melon::rpc::SocketId id = 8888;
-    melon::base::end_point dummy;
+    melon::end_point dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::rpc::SocketOptions options;
     options.fd = fds[1];

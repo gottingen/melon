@@ -79,7 +79,7 @@ public:
     }
 
     int VerifyCredential(const std::string&,
-                         const melon::base::end_point&,
+                         const melon::end_point&,
                          melon::rpc::AuthContext*) const {
         return 0;
     }
@@ -198,7 +198,7 @@ TEST_F(ServerTest, sanity) {
         ASSERT_EQ(0, server.Start("127.0.0.1:8613", nullptr));
     }
 
-    melon::base::end_point ep;
+    melon::end_point ep;
     MyAuthenticator auth;
     melon::rpc::Server server;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
@@ -225,7 +225,7 @@ TEST_F(ServerTest, sanity) {
 }
 
 TEST_F(ServerTest, invalid_protocol_in_enabled_protocols) {
-    melon::base::end_point ep;
+    melon::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::rpc::Server server;
     melon::rpc::ServerOptions opt;
@@ -312,7 +312,7 @@ public:
 };
 
 TEST_F(ServerTest, empty_enabled_protocols) {
-    melon::base::end_point ep;
+    melon::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::rpc::Server server;
     EchoServiceImpl echo_svc;
@@ -339,7 +339,7 @@ TEST_F(ServerTest, empty_enabled_protocols) {
 }
 
 TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
-    melon::base::end_point ep;
+    melon::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::rpc::Server server;
     EchoServiceImpl echo_svc;
@@ -998,7 +998,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_TRUE(nullptr == server.FindServiceByFullName(
         test::EchoService::descriptor()->name()));
 
-    melon::base::end_point ep;
+    melon::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, nullptr));
 
@@ -1026,7 +1026,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_EQ(0ul, server.service_count());
 }
 
-void SendSleepRPC(melon::base::end_point ep, int sleep_ms, bool succ) {
+void SendSleepRPC(melon::end_point ep, int sleep_ms, bool succ) {
     melon::rpc::Channel channel;
     ASSERT_EQ(0, channel.Init(ep, nullptr));
 
@@ -1048,7 +1048,7 @@ void SendSleepRPC(melon::base::end_point ep, int sleep_ms, bool succ) {
 }
 
 TEST_F(ServerTest, close_idle_connections) {
-    melon::base::end_point ep;
+    melon::end_point ep;
     melon::rpc::Server server;
     melon::rpc::ServerOptions opt;
     opt.idle_timeout_sec = 1;
@@ -1069,7 +1069,7 @@ TEST_F(ServerTest, close_idle_connections) {
 
 TEST_F(ServerTest, logoff_and_multiple_start) {
     melon::stop_watcher timer;
-    melon::base::end_point ep;
+    melon::end_point ep;
     EchoServiceImpl echo_svc;
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
@@ -1162,7 +1162,7 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
     }
 }
 
-void SendMultipleRPC(melon::base::end_point ep, int count) {
+void SendMultipleRPC(melon::end_point ep, int count) {
     melon::rpc::Channel channel;
     EXPECT_EQ(0, channel.Init(ep, nullptr));
 
@@ -1183,7 +1183,7 @@ TEST_F(ServerTest, serving_requests) {
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
                                    melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    melon::base::end_point ep;
+    melon::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, nullptr));
 
@@ -1223,10 +1223,10 @@ TEST_F(ServerTest, range_start) {
     const int START_PORT = 8713;
     const int END_PORT = 8719;
     melon::base::fd_guard listen_fds[END_PORT - START_PORT];
-    melon::base::end_point point;
+    melon::end_point point;
     for (int i = START_PORT; i < END_PORT; ++i) {
         point.port = i;
-        listen_fds[i - START_PORT].reset(melon::base::tcp_listen(point));
+        listen_fds[i - START_PORT].reset(melon::tcp_listen(point));
     }
 
     melon::rpc::Server server;

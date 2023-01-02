@@ -86,7 +86,7 @@ namespace {
         }
 
         int VerifyCredential(const std::string &auth_str,
-                             const melon::base::end_point &,
+                             const melon::end_point &,
                              melon::rpc::AuthContext *ctx) const {
             EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
             ctx->set_user(MOCK_USER);
@@ -291,32 +291,32 @@ namespace {
 
     TEST_F(HttpTest, parse_http_address) {
         const std::string EXP_HOSTNAME = "www.baidu.com:9876";
-        melon::base::end_point EXP_ENDPOINT;
+        melon::end_point EXP_ENDPOINT;
         {
             std::string url = "https://" + EXP_HOSTNAME;
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&EXP_ENDPOINT, url.c_str()));
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             std::string url = "http://" +
                               std::string(endpoint2str(EXP_ENDPOINT).c_str());
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&ep, url.c_str()));
             EXPECT_EQ(EXP_ENDPOINT, ep);
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             std::string url = "https://" +
-                              std::string(melon::base::ip2str(EXP_ENDPOINT.ip).c_str());
+                              std::string(melon::ip2str(EXP_ENDPOINT.ip).c_str());
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&ep, url.c_str()));
             EXPECT_EQ(EXP_ENDPOINT.ip, ep.ip);
             EXPECT_EQ(443, ep.port);
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             EXPECT_FALSE(melon::rpc::policy::ParseHttpServerAddress(&ep, "invalid_url"));
         }
         {
-            melon::base::end_point ep;
+            melon::end_point ep;
             EXPECT_FALSE(melon::rpc::policy::ParseHttpServerAddress(
                     &ep, "https://no.such.machine:9090"));
         }
@@ -640,7 +640,7 @@ namespace {
             melon::rpc::Channel channel;
             melon::rpc::ChannelOptions options;
             options.protocol = melon::rpc::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
             melon::rpc::Controller cntl;
             cntl.http_request().uri() = "/DownloadService/Download";
             channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
@@ -662,7 +662,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         cntl.http_request().uri() = "/DownloadService/DownloadFailed";
@@ -742,7 +742,7 @@ namespace {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
@@ -790,7 +790,7 @@ namespace {
             melon::rpc::Channel channel;
             melon::rpc::ChannelOptions options;
             options.protocol = melon::rpc::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
             {
                 melon::rpc::Controller cntl;
                 cntl.response_will_be_read_progressively();
@@ -829,7 +829,7 @@ namespace {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
@@ -875,7 +875,7 @@ namespace {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
@@ -922,7 +922,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -964,7 +964,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -991,7 +991,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -1033,7 +1033,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "h2";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         // Check that the first request with size larger than the default window can
         // be sent out, when remote settings are not received.
@@ -1258,7 +1258,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "h2";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         test::EchoRequest req;
         test::EchoResponse res;
@@ -1453,8 +1453,8 @@ namespace {
     };
 
     TEST_F(HttpTest, http2_handle_goaway_streams) {
-        const melon::base::end_point ep(melon::base::IP_ANY, 5961);
-        melon::base::fd_guard listenfd(melon::base::tcp_listen(ep));
+        const melon::end_point ep(melon::IP_ANY, 5961);
+        melon::base::fd_guard listenfd(melon::tcp_listen(ep));
         ASSERT_GT(listenfd, 0);
 
         melon::rpc::Channel channel;
@@ -1511,7 +1511,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         // send request and dump it to file
         {
@@ -1583,7 +1583,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         test::EchoRequest req;
@@ -1619,7 +1619,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::base::end_point(melon::base::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         test::EchoRequest req;

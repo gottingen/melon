@@ -26,7 +26,7 @@ namespace melon::rpc {
     Extension <T> *Extension<T>::instance() {
         // NOTE: We don't delete extensions because in principle they can be
         // accessed during exiting, e.g. create a channel to send rpc at exit.
-        return melon::base::get_leaky_singleton<Extension<T> >();
+        return melon::get_leaky_singleton<Extension<T> >();
     }
 
     template<typename T>

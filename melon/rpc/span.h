@@ -103,7 +103,7 @@ namespace melon::rpc {
 
         void set_ending_cid(fiber_token_t id) { _ending_cid = id; }
 
-        void set_remote_side(const melon::base::end_point &pt) { _remote_side = pt; }
+        void set_remote_side(const melon::end_point &pt) { _remote_side = pt; }
 
         void set_protocol(ProtocolType p) { _protocol = p; }
 
@@ -145,7 +145,7 @@ namespace melon::rpc {
 
         fiber_token_t ending_cid() const { return _ending_cid; }
 
-        const melon::base::end_point &remote_side() const { return _remote_side; }
+        const melon::end_point &remote_side() const { return _remote_side; }
 
         SpanType type() const { return _type; }
 
@@ -196,7 +196,7 @@ namespace melon::rpc {
         uint64_t _log_id;
         fiber_token_t _base_cid;
         fiber_token_t _ending_cid;
-        melon::base::end_point _remote_side;
+        melon::end_point _remote_side;
         SpanType _type;
         bool _async;
         ProtocolType _protocol;

@@ -522,7 +522,7 @@ void ProcessThriftRequest(InputMessageBase* msg_base) {
     }
     if (socket->is_overcrowded()) {
         return cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                melon::base::endpoint2str(socket->remote_side()).c_str());
+                melon::endpoint2str(socket->remote_side()).c_str());
     }
     if (!server_accessor.AddConcurrency(cntl)) {
         return cntl->SetFailed(ELIMIT, "Reached server's max_concurrency=%d",

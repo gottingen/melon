@@ -53,7 +53,7 @@ namespace melon::rpc {
     };
 
     inline rtmp_variables *get_rtmp_variables() {
-        return melon::base::get_leaky_singleton<rtmp_variables>();
+        return melon::get_leaky_singleton<rtmp_variables>();
     }
 
     namespace policy {
@@ -1032,7 +1032,7 @@ namespace melon::rpc {
         }
 
         // Specify the servers to connect.
-        int Init(melon::base::end_point server_addr_and_port,
+        int Init(melon::end_point server_addr_and_port,
                  const RtmpClientOptions &options);
 
         int Init(const char *server_addr_and_port,
@@ -1049,7 +1049,7 @@ namespace melon::rpc {
 
         SocketMap &socket_map() { return _socket_map; }
 
-        int CreateSocket(const melon::base::end_point &pt, SocketId *id);
+        int CreateSocket(const melon::end_point &pt, SocketId *id);
 
     private:
         MELON_DISALLOW_COPY_AND_ASSIGN(RtmpClientImpl);
@@ -1132,7 +1132,7 @@ namespace melon::rpc {
         RtmpClientOptions _connect_options;
     };
 
-    int RtmpClientImpl::CreateSocket(const melon::base::end_point &pt, SocketId *id) {
+    int RtmpClientImpl::CreateSocket(const melon::end_point &pt, SocketId *id) {
         SocketOptions sock_opt;
         sock_opt.remote_side = pt;
         sock_opt.app_connect = std::make_shared<RtmpConnect>();
@@ -1151,7 +1151,7 @@ namespace melon::rpc {
         return 0;
     }
 
-    int RtmpClientImpl::Init(melon::base::end_point server_addr_and_port,
+    int RtmpClientImpl::Init(melon::end_point server_addr_and_port,
                              const RtmpClientOptions &options) {
         if (CommonInit(options) != 0) {
             return -1;
@@ -1220,7 +1220,7 @@ namespace melon::rpc {
         }
     }
 
-    int RtmpClient::Init(melon::base::end_point server_addr_and_port,
+    int RtmpClient::Init(melon::end_point server_addr_and_port,
                          const RtmpClientOptions &options) {
         melon::container::intrusive_ptr<RtmpClientImpl> tmp(new(std::nothrow) RtmpClientImpl);
         if (tmp == nullptr) {
@@ -1638,12 +1638,12 @@ namespace melon::rpc {
         OnStop();
     }
 
-    melon::base::end_point RtmpStreamBase::remote_side() const {
-        return _rtmpsock ? _rtmpsock->remote_side() : melon::base::end_point();
+    melon::end_point RtmpStreamBase::remote_side() const {
+        return _rtmpsock ? _rtmpsock->remote_side() : melon::end_point();
     }
 
-    melon::base::end_point RtmpStreamBase::local_side() const {
-        return _rtmpsock ? _rtmpsock->local_side() : melon::base::end_point();
+    melon::end_point RtmpStreamBase::local_side() const {
+        return _rtmpsock ? _rtmpsock->local_side() : melon::end_point();
     }
 
 // ============ RtmpClientStream =============
@@ -2561,28 +2561,28 @@ namespace melon::rpc {
 
     void RtmpRetryingClientStream::OnPlayable() {}
 
-    melon::base::end_point RtmpRetryingClientStream::remote_side() const {
+    melon::end_point RtmpRetryingClientStream::remote_side() const {
         {
             MELON_SCOPED_LOCK(_stream_mutex);
             if (_using_sub_stream) {
                 return _using_sub_stream->remote_side();
             }
         }
-        return melon::base::end_point();
+        return melon::end_point();
     }
 
-    melon::base::end_point RtmpRetryingClientStream::local_side() const {
+    melon::end_point RtmpRetryingClientStream::local_side() const {
         {
             MELON_SCOPED_LOCK(_stream_mutex);
             if (_using_sub_stream) {
                 return _using_sub_stream->local_side();
             }
         }
-        return melon::base::end_point();
+        return melon::end_point();
     }
 
 // =========== RtmpService ===============
-    void RtmpService::OnPingResponse(const melon::base::end_point &, uint32_t) {
+    void RtmpService::OnPingResponse(const melon::end_point &, uint32_t) {
         // TODO: put into some variables?
     }
 
@@ -2606,7 +2606,7 @@ namespace melon::rpc {
         ClosureGuard done_guard(done);
         status->set_error(EPERM, "{}[{}] ignored play{stream_name={} start={}"
                                  " duration={} reset={}}",
-                          melon::base::endpoint2str(remote_side()).c_str(), stream_id(),
+                          melon::endpoint2str(remote_side()).c_str(), stream_id(),
                           opt.stream_name.c_str(), opt.start, opt.duration,
                           (int) opt.reset);
     }
@@ -2622,7 +2622,7 @@ namespace melon::rpc {
                                      google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         status->set_error(EPERM, "{}[{}] ignored publish{stream_name={} type={}}",
-                          melon::base::endpoint2str(remote_side()).c_str(), stream_id(),
+                          melon::endpoint2str(remote_side()).c_str(), stream_id(),
                           name.c_str(), RtmpPublishType2Str(type));
     }
 

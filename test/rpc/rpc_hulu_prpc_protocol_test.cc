@@ -60,7 +60,7 @@ public:
     }
 
     int VerifyCredential(const std::string& auth_str,
-                         const melon::base::end_point&,
+                         const melon::end_point&,
                          melon::rpc::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);

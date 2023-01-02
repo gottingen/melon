@@ -131,7 +131,7 @@ namespace melon::rpc {
             }
         };
         inline h2_variables* get_h2_variables() {
-            return melon::base::get_leaky_singleton<h2_variables>();
+            return melon::get_leaky_singleton<h2_variables>();
         }
 #endif
 

@@ -156,7 +156,7 @@ namespace melon::rpc {
                     continue;
                 }
 
-                melon::base::end_point end_point;
+                melon::end_point end_point;
                 if (str2endpoint(service["Address"].GetString(),
                                  service["Port"].GetUint(),
                                  &end_point) != 0) {

@@ -62,7 +62,7 @@ namespace melon::rpc {
         }
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
-        const melon::base::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
+        const melon::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
         const char *const NL = (use_html ? "<br>\n" : "\n");
         const char *const SP = (use_html ? "&nbsp;" : "  ");
 
@@ -143,10 +143,10 @@ namespace melon::rpc {
                << (!IsHeapProfilerEnabled() ? " (disabled)" : "") << NL;
         }
         os << "curl -H 'Content-Type: application/json' -d 'JSON' ";
-        if (melon::base::is_endpoint_extended(server->listen_address())) {
+        if (melon::is_endpoint_extended(server->listen_address())) {
             os << "<listen_address>";
         } else {
-            const melon::base::end_point my_addr(melon::base::my_ip(), server->listen_address().port);
+            const melon::end_point my_addr(melon::my_ip(), server->listen_address().port);
             os << my_addr;
         }
         os << "/ServiceName/MethodName : Call method by http+json" << NL

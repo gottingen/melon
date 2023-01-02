@@ -126,7 +126,7 @@ namespace melon::rpc {
         SocketOptions _options;
         std::mutex _mutex;
         std::vector<SocketId> _pool;
-        melon::base::end_point _remote_side;
+        melon::end_point _remote_side;
         std::atomic<int> _numfree; // #free sockets in all sub pools.
         std::atomic<int> _numinflight; // #inflight sockets in all sub pools.
     };
@@ -499,8 +499,8 @@ namespace melon::rpc {
             return 0;
         }
         // OK to fail, non-socket fd does not support this.
-        if (melon::base::get_local_side(fd, &_local_side) != 0) {
-            _local_side = melon::base::end_point();
+        if (melon::get_local_side(fd, &_local_side) != 0) {
+            _local_side = melon::end_point();
         }
 
         // FIXME : close-on-exec should be set by new syscalls or worse: set right
@@ -668,7 +668,7 @@ namespace melon::rpc {
                 g_vars->channel_conn << -1;
             }
         }
-        _local_side = melon::base::end_point();
+        _local_side = melon::end_point();
         if (_ssl_session) {
             SSL_free(_ssl_session);
             _ssl_session = nullptr;
@@ -1088,7 +1088,7 @@ namespace melon::rpc {
         }
         struct sockaddr_storage serv_addr;
         socklen_t addr_size = 0;
-        if (melon::base::endpoint2sockaddr(remote_side(), &serv_addr, &addr_size) != 0) {
+        if (melon::endpoint2sockaddr(remote_side(), &serv_addr, &addr_size) != 0) {
             MELON_PLOG(ERROR) << "Fail to get sockaddr";
             return -1;
         }
@@ -1189,8 +1189,8 @@ namespace melon::rpc {
             return -1;
         }
 
-        melon::base::end_point local_point;
-        MELON_CHECK_EQ(0, melon::base::get_local_side(sockfd, &local_point));
+        melon::end_point local_point;
+        MELON_CHECK_EQ(0, melon::get_local_side(sockfd, &local_point));
         MELON_LOG_IF(INFO, FLAGS_log_connected)
                         << "Connected to " << remote_side()
                         << " via fd=" << (int) sockfd << " SocketId=" << id()
@@ -2601,7 +2601,7 @@ namespace melon::rpc {
             melon::string_appendf(&result, " fd=%d", saved_fd);
         }
         melon::string_appendf(&result, " addr=%s",
-                              melon::base::endpoint2str(remote_side()).c_str());
+                              melon::endpoint2str(remote_side()).c_str());
         const int local_port = local_side().port;
         if (local_port > 0) {
             melon::string_appendf(&result, ":%d", local_port);

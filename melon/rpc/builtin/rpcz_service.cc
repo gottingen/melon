@@ -227,8 +227,8 @@ namespace melon::rpc {
         }
     };
 
-    static melon::base::ip_t loopback_ip = melon::base::IP_ANY;
-    static int MELON_ALLOW_UNUSED init_loopback_ip_dummy = melon::base::str2ip("127.0.0.1", &loopback_ip);
+    static melon::ip_t loopback_ip = melon::IP_ANY;
+    static int MELON_ALLOW_UNUSED init_loopback_ip_dummy = melon::str2ip("127.0.0.1", &loopback_ip);
 
     static void PrintClientSpan(
             std::ostream &os, const RpczSpan &span,
@@ -245,10 +245,10 @@ namespace melon::rpc {
                                                     last_time, extr, num_extr));
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
-        const melon::base::end_point remote_side(melon::base::int2ip(span.remote_ip()), span.remote_port());
-        melon::base::end_point abs_remote_side = remote_side;
+        const melon::end_point remote_side(melon::int2ip(span.remote_ip()), span.remote_port());
+        melon::end_point abs_remote_side = remote_side;
         if (abs_remote_side.ip == loopback_ip) {
-            abs_remote_side.ip = melon::base::my_ip();
+            abs_remote_side.ip = melon::my_ip();
         }
         os << " Requesting " << span.full_method_name() << '@' << remote_side
            << ' ' << protocol_name << ' ' << LOG_ID_STR << '=';
@@ -316,8 +316,8 @@ namespace melon::rpc {
         SpanInfoExtractor server_extr(span.info().c_str());
         SpanInfoExtractor *extr[1] = {&server_extr};
         int64_t last_time = span.received_real_us();
-        const melon::base::end_point remote_side(
-                melon::base::int2ip(span.remote_ip()), span.remote_port());
+        const melon::end_point remote_side(
+                melon::int2ip(span.remote_ip()), span.remote_port());
         PrintRealDateTime(os, last_time);
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
@@ -501,7 +501,7 @@ namespace melon::rpc {
             os.move_to(cntl->response_attachment());
             return;
         }
-        melon::base::end_point my_addr(melon::base::my_ip(),
+        melon::end_point my_addr(melon::my_ip(),
                                        cntl->server()->listen_address().port);
 
         const std::string *trace_id_str =

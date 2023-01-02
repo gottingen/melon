@@ -59,7 +59,7 @@ namespace melon::fiber_internal {
     }
 
     inline ExecutionQueueVars *get_execq_vars() {
-        return melon::base::get_leaky_singleton<ExecutionQueueVars>();
+        return melon::get_leaky_singleton<ExecutionQueueVars>();
     }
 
     void ExecutionQueueBase::start_execute(TaskNode *node) {

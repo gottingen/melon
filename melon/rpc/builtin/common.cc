@@ -143,7 +143,7 @@ namespace melon::rpc {
         return os;
     }
 
-    const melon::base::end_point *Path::LOCAL = (melon::base::end_point *) 0x01;
+    const melon::end_point *Path::LOCAL = (melon::end_point *) 0x01;
 
     void AppendFileName(std::string *dir, const std::string &filename) {
         if (dir->empty()) {

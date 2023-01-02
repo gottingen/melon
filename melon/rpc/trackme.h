@@ -28,7 +28,7 @@ namespace melon::rpc {
 
     // Set the server address for reporting.
     // Currently only the first address will be saved.
-    void SetTrackMeAddress(melon::base::end_point pt);
+    void SetTrackMeAddress(melon::end_point pt);
 
     // Call this function every second (or every several seconds) to send
     // TrackMeRequest to -trackme_server every TRACKME_INTERVAL seconds.

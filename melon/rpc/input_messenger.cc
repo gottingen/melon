@@ -430,7 +430,7 @@ namespace melon::rpc {
         return 0;
     }
 
-    int InputMessenger::Create(const melon::base::end_point &remote_side,
+    int InputMessenger::Create(const melon::end_point &remote_side,
                                time_t health_check_interval_s,
                                SocketId *id) {
         SocketOptions options;

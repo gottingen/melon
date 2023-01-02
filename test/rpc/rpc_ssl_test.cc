@@ -330,8 +330,8 @@ void *ssl_perf_server(void *arg) {
 }
 
 TEST_F(SSLTest, ssl_perf) {
-    const melon::base::end_point ep(melon::base::IP_ANY, 5961);
-    melon::base::fd_guard listenfd(melon::base::tcp_listen(ep));
+    const melon::end_point ep(melon::IP_ANY, 5961);
+    melon::base::fd_guard listenfd(melon::tcp_listen(ep));
     ASSERT_GT(listenfd, 0);
     int clifd = tcp_connect(ep, nullptr);
     ASSERT_GT(clifd, 0);

@@ -67,7 +67,7 @@ namespace melon::rpc {
     };
 
     inline ProtocolEntry *get_protocol_map() {
-        return melon::base::get_leaky_singleton<ProtocolMap>()->entries;
+        return melon::get_leaky_singleton<ProtocolMap>()->entries;
     }
 
     static pthread_mutex_t s_protocol_map_mutex = PTHREAD_MUTEX_INITIALIZER;

@@ -720,7 +720,7 @@ namespace melon::rpc {
             return "Unknown state";
         }
 
-        void RtmpContext::SetState(const melon::base::end_point &remote_side, State new_state) {
+        void RtmpContext::SetState(const melon::end_point &remote_side, State new_state) {
             const State old_state = _state;
             _state = new_state;
             RPC_VLOG << remote_side << ": " << state2str(old_state)
@@ -1088,7 +1088,7 @@ namespace melon::rpc {
             return handler;
         }
 
-        int RtmpContext::SendConnectRequest(const melon::base::end_point &remote_side, int fd, bool simplified_rtmp) {
+        int RtmpContext::SendConnectRequest(const melon::end_point &remote_side, int fd, bool simplified_rtmp) {
             melon::cord_buf req_buf;
             {
                 melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
@@ -1112,7 +1112,7 @@ namespace melon::rpc {
                     std::string *const tcurl = req.mutable_tcurl();
                     tcurl->reserve(32 + _client_options->app.size());
                     tcurl->append("rtmp://");
-                    tcurl->append(melon::base::endpoint2str(remote_side).c_str());
+                    tcurl->append(melon::endpoint2str(remote_side).c_str());
                     tcurl->push_back('/');
                     tcurl->append(_client_options->app);
                 } else {
@@ -1459,7 +1459,7 @@ namespace melon::rpc {
         };
 
         inline void AddChunk() {
-            melon::base::get_leaky_singleton<ChunkStatus>()->count << 1;
+            melon::get_leaky_singleton<ChunkStatus>()->count << 1;
         }
 
         ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader &bh,

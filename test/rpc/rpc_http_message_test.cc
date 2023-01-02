@@ -30,7 +30,7 @@ namespace policy {
 Server::MethodProperty*
 FindMethodPropertyByURI(const std::string& uri_path, const Server* server,
                         std::string* unknown_method_str);
-bool ParseHttpServerAddress(melon::base::end_point *point, const char *server_addr_and_port);
+bool ParseHttpServerAddress(melon::end_point *point, const char *server_addr_and_port);
 }}
 
 namespace {
@@ -332,7 +332,7 @@ TEST(HttpMessageTest, http_header) {
 }
 
 TEST(HttpMessageTest, empty_url) {
-    melon::base::end_point host;
+    melon::end_point host;
     ASSERT_FALSE(ParseHttpServerAddress(&host, ""));
 }
 
@@ -342,8 +342,8 @@ TEST(HttpMessageTest, serialize_http_request) {
     header.SetHeader("Foo", "Bar");
     ASSERT_EQ(1u, header.HeaderCount());
     header.set_method(melon::rpc::HTTP_METHOD_POST);
-    melon::base::end_point ep;
-    ASSERT_EQ(0, melon::base::str2endpoint("127.0.0.1:1234", &ep));
+    melon::end_point ep;
+    ASSERT_EQ(0, melon::str2endpoint("127.0.0.1:1234", &ep));
     melon::cord_buf request;
     melon::cord_buf content;
     content.append("data");

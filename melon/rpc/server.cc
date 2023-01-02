@@ -684,7 +684,7 @@ namespace melon::rpc {
 
     static AdaptiveMaxConcurrency g_default_max_concurrency_of_method(0);
 
-    int Server::StartInternal(const melon::base::end_point &endpoint,
+    int Server::StartInternal(const melon::end_point &endpoint,
                               const PortRange &port_range,
                               const ServerOptions *opt) {
         std::unique_ptr<Server, RevertServerStatus> revert_server(this);
@@ -925,7 +925,7 @@ namespace melon::rpc {
                              << port_range.max_port << ']';
             return -1;
         }
-        if (melon::base::is_endpoint_extended(endpoint) &&
+        if (melon::is_endpoint_extended(endpoint) &&
             (port_range.min_port != endpoint.port || port_range.max_port != endpoint.port)) {
             MELON_LOG(ERROR) << "Only IPv4 address supports port range feature";
             return -1;
@@ -991,11 +991,11 @@ namespace melon::rpc {
                                     " against the purpose of \"being internal\".";
                 return -1;
             }
-            if (melon::base::is_endpoint_extended(endpoint)) {
+            if (melon::is_endpoint_extended(endpoint)) {
                 MELON_LOG(ERROR) << "internal_port is available in IPv4 address only";
                 return -1;
             }
-            melon::base::end_point internal_point = _listen_addr;
+            melon::end_point internal_point = _listen_addr;
             internal_point.port = _options.internal_port;
             melon::base::fd_guard sockfd(tcp_listen(internal_point));
             if (sockfd < 0) {
@@ -1029,7 +1029,7 @@ namespace melon::rpc {
         }
 
         // Print tips to server launcher.
-        if (melon::base::is_endpoint_extended(_listen_addr)) {
+        if (melon::is_endpoint_extended(_listen_addr)) {
             const char *builtin_msg = _options.has_builtin_services ? " with builtin service" : "";
             MELON_LOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
                             << builtin_msg << '.';
@@ -1046,26 +1046,26 @@ namespace melon::rpc {
             MELON_LOG(INFO) << server_info.str() << '.';
 
             if (_options.has_builtin_services) {
-                MELON_LOG(INFO) << "Check out http://" << melon::base::my_hostname() << ':'
+                MELON_LOG(INFO) << "Check out http://" << melon::my_hostname() << ':'
                                 << http_port << " in web browser.";
             } else {
                 MELON_LOG(WARNING) << "Builtin services are disabled according to "
                                       "ServerOptions.has_builtin_services";
             }
             // For trackme reporting
-            SetTrackMeAddress(melon::base::end_point(melon::base::my_ip(), http_port));
+            SetTrackMeAddress(melon::end_point(melon::my_ip(), http_port));
         }
         revert_server.release();
         return 0;
     }
 
-    int Server::Start(const melon::base::end_point &endpoint, const ServerOptions *opt) {
+    int Server::Start(const melon::end_point &endpoint, const ServerOptions *opt) {
         return StartInternal(
                 endpoint, PortRange(endpoint.port, endpoint.port), opt);
     }
 
     int Server::Start(const char *ip_port_str, const ServerOptions *opt) {
-        melon::base::end_point point;
+        melon::end_point point;
         if (str2endpoint(ip_port_str, &point) != 0 &&
             hostname2endpoint(ip_port_str, &point) != 0) {
             MELON_LOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
@@ -1079,18 +1079,18 @@ namespace melon::rpc {
             MELON_LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }
-        return Start(melon::base::end_point(melon::base::IP_ANY, port), opt);
+        return Start(melon::end_point(melon::IP_ANY, port), opt);
     }
 
     int Server::Start(const char *ip_str, PortRange port_range,
                       const ServerOptions *opt) {
-        melon::base::ip_t ip;
-        if (melon::base::str2ip(ip_str, &ip) != 0 &&
-            melon::base::hostname2ip(ip_str, &ip) != 0) {
+        melon::ip_t ip;
+        if (melon::str2ip(ip_str, &ip) != 0 &&
+            melon::hostname2ip(ip_str, &ip) != 0) {
             MELON_LOG(ERROR) << "Invalid address=`" << ip_str << '\'';
             return -1;
         }
-        return StartInternal(melon::base::end_point(ip,0), port_range, opt);
+        return StartInternal(melon::end_point(ip,0), port_range, opt);
     }
 
     int Server::Stop(int timeout_ms) {

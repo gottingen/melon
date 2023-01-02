@@ -31,7 +31,7 @@ namespace melon::rpc {
 
             int GenerateCredential(std::string *auth_str) const;
 
-            int VerifyCredential(const std::string &, const melon::base::end_point &,
+            int VerifyCredential(const std::string &, const melon::end_point &,
                                  melon::rpc::AuthContext *) const {
                 return 0;
             }

@@ -130,7 +130,7 @@ namespace melon {
         // and 64-bit numbers.
         template<typename ReadFn>
         static const T &get_value(const ReadFn &fn) {
-            CachedReader *p = melon::base::get_leaky_singleton<CachedReader>();
+            CachedReader *p = melon::get_leaky_singleton<CachedReader>();
             const int64_t now = melon::get_current_time_micros();
             if (now > p->_mtime_us + CACHED_INTERVAL_US) {
                 pthread_mutex_lock(&p->_mutex);
@@ -611,7 +611,7 @@ namespace melon {
     };
 
     static void get_cmdline(std::ostream &os, void *) {
-        os << melon::base::get_leaky_singleton<ReadSelfCmdline>()->content;
+        os << melon::get_leaky_singleton<ReadSelfCmdline>()->content;
     }
 
     struct ReadVersion {
@@ -628,7 +628,7 @@ namespace melon {
     };
 
     static void get_kernel_version(std::ostream &os, void *) {
-        os << melon::base::get_leaky_singleton<ReadVersion>()->content;
+        os << melon::get_leaky_singleton<ReadVersion>()->content;
     }
 
 // ======================================

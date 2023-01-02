@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     
     // Add an ordinary channel.
     melon::rpc::Channel* sub_channel1 = new melon::rpc::Channel;
-    melon::base::end_point pt;
+    melon::end_point pt;
     if (str2endpoint(FLAGS_starting_server.c_str(), &pt) != 0 &&
         hostname2endpoint(FLAGS_starting_server.c_str(), &pt) != 0) {
         MELON_LOG(ERROR) << "Invalid address=`" << FLAGS_starting_server << "'";
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     std::ostringstream os;
     os << "list://";
     for (int i = 0; i < 3; ++i) {
-        os << melon::base::end_point(pt.ip, pt.port++) << ",";
+        os << melon::end_point(pt.ip, pt.port++) << ",";
     }
     if (sub_channel1->Init(os.str().c_str(), FLAGS_load_balancer.c_str(),
                            &options) != 0) {
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         options.protocol = FLAGS_protocol;
         options.connection_type = FLAGS_connection_type;
         melon::rpc::Channel* c = new melon::rpc::Channel;
-        if (c->Init(melon::base::end_point(pt.ip, pt.port++), &options) != 0) {
+        if (c->Init(melon::end_point(pt.ip, pt.port++), &options) != 0) {
             MELON_LOG(ERROR) << "Fail to init sub channel[" << i << "] of pchan";
             return -1;
         }
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
             os.str("");
             os << "list://";
             for (int j = 0; j < 3; ++j) {
-                os << melon::base::end_point(pt.ip, pt.port++) << ",";
+                os << melon::end_point(pt.ip, pt.port++) << ",";
             }
             if (c->Init(os.str().c_str(), FLAGS_load_balancer.c_str(),
                         &options) != 0) {
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
                 return -1;
             }
         } else {
-            if (c->Init(melon::base::end_point(pt.ip, pt.port++), &options) != 0) {
+            if (c->Init(melon::end_point(pt.ip, pt.port++), &options) != 0) {
                 MELON_LOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
                 return -1;
             }

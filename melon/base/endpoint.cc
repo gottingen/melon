@@ -37,15 +37,15 @@ int MELON_WEAK fiber_connect(
 }
 __END_DECLS
 
-namespace melon::base {
+namespace melon {
 
-    using detail::ExtendedEndPoint;
+    using detail::extended_end_point;
 
     static void set_endpoint(end_point *ep, ip_t ip, int port) {
         ep->ip = ip;
         ep->port = port;
-        if (ExtendedEndPoint::is_extended(*ep)) {
-            ExtendedEndPoint *eep = ExtendedEndPoint::address(*ep);
+        if (extended_end_point::is_extended(*ep)) {
+            extended_end_point *eep = extended_end_point::address(*ep);
             if (eep) {
                 eep->inc_ref();
             } else {
@@ -56,8 +56,8 @@ namespace melon::base {
     }
 
     void end_point::reset(void) {
-        if (ExtendedEndPoint::is_extended(*this)) {
-            ExtendedEndPoint *eep = ExtendedEndPoint::address(*this);
+        if (extended_end_point::is_extended(*this)) {
+            extended_end_point *eep = extended_end_point::address(*this);
             if (eep) {
                 eep->dec_ref();
             }
@@ -69,7 +69,7 @@ namespace melon::base {
 
     end_point::end_point(ip_t ip2, int port2) : ip(ip2), port(port2) {
         // Should never construct an extended endpoint by this way
-        if (ExtendedEndPoint::is_extended(*this)) {
+        if (extended_end_point::is_extended(*this)) {
             MELON_CHECK(0) << "EndPoint construct with value that points to an extended EndPoint";
             ip = IP_ANY;
             port = 0;
@@ -142,8 +142,8 @@ namespace melon::base {
 
     end_point_str endpoint2str(const end_point &point) {
         end_point_str str;
-        if (ExtendedEndPoint::is_extended(point)) {
-            ExtendedEndPoint *eep = ExtendedEndPoint::address(point);
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point *eep = extended_end_point::address(point);
             if (eep) {
                 eep->to(&str);
             } else {
@@ -224,7 +224,7 @@ namespace melon::base {
     }
 
     int str2endpoint(const char *str, end_point *point) {
-        if (ExtendedEndPoint::create(str, point)) {
+        if (extended_end_point::create(str, point)) {
             return 0;
         }
         // Should be enough to hold ip address
@@ -258,7 +258,7 @@ namespace melon::base {
     }
 
     int str2endpoint(const char *ip_str, int port, end_point *point) {
-        if (ExtendedEndPoint::create(ip_str, port, point)) {
+        if (extended_end_point::create(ip_str, port, point)) {
             return 0;
         }
         if (str2ip(ip_str, &point->ip) != 0) {
@@ -317,8 +317,8 @@ namespace melon::base {
     }
 
     int endpoint2hostname(const end_point &point, char *host, size_t host_len) {
-        if (ExtendedEndPoint::is_extended(point)) {
-            ExtendedEndPoint* eep = ExtendedEndPoint::address(point);
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point* eep = extended_end_point::address(point);
             if (eep) {
                 return eep->to_hostname(host, host_len);
             }
@@ -349,7 +349,7 @@ namespace melon::base {
         if (endpoint2sockaddr(point, &serv_addr, &serv_addr_size) != 0) {
             return -1;
         }
-        fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
+        melon::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
             return -1;
         }
@@ -380,7 +380,7 @@ namespace melon::base {
         if (endpoint2sockaddr(point, &serv_addr, &serv_addr_size) != 0) {
             return -1;
         }
-        fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
+        melon::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
             return -1;
         }
@@ -456,8 +456,8 @@ namespace melon::base {
 
     int endpoint2sockaddr(const end_point& point, struct sockaddr_storage* ss, socklen_t* size) {
         bzero(ss, sizeof(*ss));
-        if (ExtendedEndPoint::is_extended(point)) {
-            ExtendedEndPoint* eep = ExtendedEndPoint::address(point);
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point* eep = extended_end_point::address(point);
             if (!eep) {
                 return -1;
             }
@@ -486,15 +486,15 @@ namespace melon::base {
             *point = end_point(*(sockaddr_in*)ss);
             return 0;
         }
-        if (ExtendedEndPoint::create(ss, size, point)) {
+        if (extended_end_point::create(ss, size, point)) {
             return 0;
         }
         return -1;
     }
 
     sa_family_t get_endpoint_type(const end_point& point) {
-        if (ExtendedEndPoint::is_extended(point)) {
-            ExtendedEndPoint* eep = ExtendedEndPoint::address(point);
+        if (extended_end_point::is_extended(point)) {
+            extended_end_point* eep = extended_end_point::address(point);
             if (eep) {
                 return eep->family();
             }
@@ -504,8 +504,8 @@ namespace melon::base {
     }
 
     bool is_endpoint_extended(const end_point& point) {
-        return ExtendedEndPoint::is_extended(point);
+        return extended_end_point::is_extended(point);
     }
 
 
-}  // namespace melon::base
+}  // namespace melon

@@ -83,7 +83,7 @@ namespace melon::rpc {
 
         // Read user address from the header specified by -http_header_of_user_ip
         static bool GetUserAddressFromHeaderImpl(const HttpHeader &headers,
-                                                 melon::base::end_point *user_addr) {
+                                                 melon::end_point *user_addr) {
             const std::string *user_addr_str =
                     headers.GetHeader(FLAGS_http_header_of_user_ip);
             if (user_addr_str == nullptr) {
@@ -91,13 +91,13 @@ namespace melon::rpc {
             }
             //TODO add protocols other than IPv4 supports
             if (user_addr_str->find(':') == std::string::npos) {
-                if (melon::base::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
+                if (melon::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
                     MELON_LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
                     return false;
                 }
                 user_addr->port = 0;
             } else {
-                if (melon::base::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
+                if (melon::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
                     MELON_LOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
                     return false;
                 }
@@ -106,7 +106,7 @@ namespace melon::rpc {
         }
 
         inline bool GetUserAddressFromHeader(const HttpHeader &headers,
-                                             melon::base::end_point *user_addr) {
+                                             melon::end_point *user_addr) {
             if (FLAGS_http_header_of_user_ip.empty()) {
                 return false;
             }
@@ -199,9 +199,9 @@ namespace melon::rpc {
             melon::cord_buf buf2;
             char str[48];
             if (request_or_response) {
-                snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", melon::base::my_ip_cstr());
+                snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", melon::my_ip_cstr());
             } else {
-                snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", melon::base::my_ip_cstr());
+                snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", melon::my_ip_cstr());
             }
             buf2.append(str);
             size_t last_size;
@@ -1204,7 +1204,7 @@ namespace melon::rpc {
             if (authorization == nullptr) {
                 return false;
             }
-            melon::base::end_point user_addr;
+            melon::end_point user_addr;
             if (!GetUserAddressFromHeader(http_request->header(), &user_addr)) {
                 user_addr = socket->remote_side();
             }
@@ -1249,7 +1249,7 @@ namespace melon::rpc {
             imsg_guard->header().Swap(req_header);
             melon::cord_buf &req_body = imsg_guard->body();
 
-            melon::base::end_point user_addr;
+            melon::end_point user_addr;
             if (!GetUserAddressFromHeader(req_header, &user_addr)) {
                 user_addr = socket->remote_side();
             }
@@ -1388,7 +1388,7 @@ namespace melon::rpc {
             if (!sp->is_builtin_service && !sp->params.is_tabbed) {
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::base::endpoint2str(socket->remote_side()).c_str());
+                                    melon::endpoint2str(socket->remote_side()).c_str());
                     return;
                 }
                 if (!server_accessor.AddConcurrency(cntl)) {
@@ -1507,7 +1507,7 @@ namespace melon::rpc {
                     sample->meta.set_protocol_type(PROTOCOL_HTTP);
                     sample->meta.set_attachment_size(req_body.size());
 
-                    melon::base::end_point ep;
+                    melon::end_point ep;
                     MakeRawHttpRequest(&sample->request, &req_header, ep, &req_body);
                     sample->submit(start_parse_us);
                 }
@@ -1534,7 +1534,7 @@ namespace melon::rpc {
             }
         }
 
-        bool ParseHttpServerAddress(melon::base::end_point *point, const char *server_addr_and_port) {
+        bool ParseHttpServerAddress(melon::end_point *point, const char *server_addr_and_port) {
             std::string scheme;
             std::string host;
             int port = -1;
