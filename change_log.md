@@ -11,3 +11,4 @@ change log
 * Fix client side retry policy
 * Support parse proto-text format http request body
 * Support dump and replay for HTTP protocol
+* Fix rpc_press can't send request equably
