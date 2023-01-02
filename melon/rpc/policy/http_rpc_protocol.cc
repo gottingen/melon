@@ -71,7 +71,8 @@ namespace melon::rpc {
         DEFINE_string(http_header_of_user_ip, "", "http requests sent by proxies may "
                                                   "set the client ip in http headers. When this flag is non-empty, "
                                                   "melon will read ip:port from the specified header for "
-                                                  "authorization and set Controller::remote_side()");
+                                                  "authorization and set Controller::remote_side(). Currently, "
+                                                  "support IPv4 address only.");
 
         DEFINE_bool(pb_enum_as_number, false,
                     "[Not recommended] Convert enums in "
@@ -88,6 +89,7 @@ namespace melon::rpc {
             if (user_addr_str == nullptr) {
                 return false;
             }
+            //TODO add protocols other than IPv4 supports
             if (user_addr_str->find(':') == std::string::npos) {
                 if (melon::base::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
                     MELON_LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;

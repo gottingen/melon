@@ -48,8 +48,6 @@ namespace melon::rpc {
         Controller *cntl = (Controller *) controller;
         cntl->http_response().set_content_type("text/plain");
         const Server *server = cntl->server();
-        const melon::base::end_point my_addr(melon::base::my_ip(),
-                                             server->listen_address().port);
         const bool use_html = UseHTML(cntl->http_request());
         const bool as_more = cntl->http_request().uri().GetQuery("as_more");
         if (use_html && !as_more) {
@@ -144,8 +142,14 @@ namespace melon::rpc {
                << " : Profiling growth of heap"
                << (!IsHeapProfilerEnabled() ? " (disabled)" : "") << NL;
         }
-        os << "curl -H 'Content-Type: application/json' -d 'JSON' " << my_addr
-           << "/ServiceName/MethodName : Call method by http+json" << NL
+        os << "curl -H 'Content-Type: application/json' -d 'JSON' ";
+        if (melon::base::is_endpoint_extended(server->listen_address())) {
+            os << "<listen_address>";
+        } else {
+            const melon::base::end_point my_addr(melon::base::my_ip(), server->listen_address().port);
+            os << my_addr;
+        }
+        os << "/ServiceName/MethodName : Call method by http+json" << NL
 
            << Path("/version", html_addr)
            << " : Version of this server, set by Server::set_version()" << NL

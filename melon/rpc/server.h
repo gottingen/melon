@@ -594,7 +594,7 @@ namespace melon::rpc {
         // Create acceptor with handlers of protocols.
         Acceptor *BuildAcceptor();
 
-        int StartInternal(const melon::base::ip_t &ip,
+        int StartInternal(const melon::base::end_point &ep,
                           const PortRange &port_range,
                           const ServerOptions *opt);
 

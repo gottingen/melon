@@ -580,13 +580,15 @@ namespace {
                 "10.36.150.32:8833",
                 "10.92.149.48:8833",
                 "10.42.122.201:8833",
+                "[2408:871a:2100:3:0:ff:b025:348d]:8833",
+                "unix:test.sock",
         };
         for (size_t round = 0; round < MELON_ARRAY_SIZE(hashs); ++round) {
             melon::rpc::policy::ConsistentHashingLoadBalancer chlb(hash_type[round]);
             std::vector<melon::rpc::ServerId> ids;
             std::vector<melon::base::end_point> addrs;
-            for (int j = 0; j < 5; ++j)
-                for (int i = 0; i < 5; ++i) {
+            for (int j = 0;j < 5; ++j) {
+                for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
                     const char *addr = servers[i];
                     //snprintf(addr, sizeof(addr), "192.168.1.%d:8080", i);
                     melon::base::end_point dummy;
@@ -600,6 +602,7 @@ namespace {
                     addrs.push_back(dummy);
                     chlb.AddServer(id);
                 }
+            }
             std::cout << chlb;
             for (int i = 0; i < 5; ++i) {
                 std::vector<melon::rpc::ServerId> empty;

@@ -234,9 +234,10 @@ namespace melon::rpc {
 
     void Acceptor::OnNewConnectionsUntilEAGAIN(Socket *acception) {
         while (1) {
-            struct sockaddr in_addr;
+            struct sockaddr_storage in_addr;
+            bzero(&in_addr, sizeof(in_addr));
             socklen_t in_len = sizeof(in_addr);
-            melon::base::fd_guard in_fd(accept(acception->fd(), &in_addr, &in_len));
+            melon::base::fd_guard in_fd(accept(acception->fd(), (sockaddr*)&in_addr, &in_len));
             if (in_fd < 0) {
                 // no EINTR because listened fd is non-blocking.
                 if (errno == EAGAIN) {
@@ -263,7 +264,7 @@ namespace melon::rpc {
             SocketOptions options;
             options.keytable_pool = am->_keytable_pool;
             options.fd = in_fd;
-            options.remote_side = melon::base::end_point(*(sockaddr_in *) &in_addr);
+            melon::base::sockaddr2endpoint(&in_addr, in_len, &options.remote_side);
             options.user = acception->user();
             options.on_edge_triggered_events = InputMessenger::OnNewMessages;
             options.initial_ssl_ctx = am->_ssl_ctx;

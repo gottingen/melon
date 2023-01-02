@@ -289,7 +289,7 @@ namespace melon::rpc {
             }
         }
         const int port = server_addr_and_port.port;
-        if (port < 0 || port > 65535) {
+        if (port < 0) {
             MELON_LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }

@@ -195,7 +195,8 @@ namespace melon::rpc {
     };
 
     Socket::SharedPart::SharedPart(SocketId creator_socket_id2)
-            : socket_pool(nullptr), creator_socket_id(creator_socket_id2), num_continuous_connect_timeouts(0), in_size(0),
+            : socket_pool(nullptr), creator_socket_id(creator_socket_id2), num_continuous_connect_timeouts(0),
+              in_size(0),
               in_num_messages(0), out_size(0), out_num_messages(0), extended_stat(nullptr), recent_error_count(0) {
     }
 
@@ -1085,7 +1086,13 @@ namespace melon::rpc {
         } else {
             _ssl_state = SSL_OFF;
         }
-        melon::base::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        struct sockaddr_storage serv_addr;
+        socklen_t addr_size = 0;
+        if (melon::base::endpoint2sockaddr(remote_side(), &serv_addr, &addr_size) != 0) {
+            MELON_PLOG(ERROR) << "Fail to get sockaddr";
+            return -1;
+        }
+        melon::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
             MELON_PLOG(ERROR) << "Fail to create socket";
             return -1;
@@ -1094,13 +1101,8 @@ namespace melon::rpc {
         // We need to do async connect (to manage the timeout by ourselves).
         MELON_CHECK_EQ(0, melon::base::make_non_blocking(sockfd));
 
-        struct sockaddr_in serv_addr;
-        bzero((char *) &serv_addr, sizeof(serv_addr));
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr = remote_side().ip;
-        serv_addr.sin_port = htons(remote_side().port);
         const int rc = ::connect(
-                sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+                sockfd, (struct sockaddr *) &serv_addr, addr_size);
         if (rc != 0 && errno != EINPROGRESS) {
             MELON_PLOG(WARNING) << "Fail to connect to " << remote_side();
             return -1;
@@ -1187,13 +1189,12 @@ namespace melon::rpc {
             return -1;
         }
 
-        struct sockaddr_in client;
-        socklen_t size = sizeof(client);
-        MELON_CHECK_EQ(0, getsockname(sockfd, (struct sockaddr *) &client, &size));
+        melon::base::end_point local_point;
+        MELON_CHECK_EQ(0, melon::base::get_local_side(sockfd, &local_point));
         MELON_LOG_IF(INFO, FLAGS_log_connected)
                         << "Connected to " << remote_side()
                         << " via fd=" << (int) sockfd << " SocketId=" << id()
-                        << " local_port=" << ntohs(client.sin_port);
+                        << " local_side=" << local_point;
         if (CreatedByConnect()) {
             g_vars->channel_conn << 1;
         }
@@ -2402,7 +2403,7 @@ namespace melon::rpc {
         MELON_CHECK((*pooled_socket)->parsing_context() == nullptr)
                         << "context=" << (*pooled_socket)->parsing_context()
                         << " is not nullptr when " << *(*pooled_socket) << " is got from"
-                                                                        " SocketPool, the protocol implementation is buggy";
+                                                                           " SocketPool, the protocol implementation is buggy";
         return 0;
     }
 

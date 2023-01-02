@@ -9,6 +9,7 @@
 #define MELON_BASE_ENDPOINT_H_
 
 #include <netinet/in.h>                          // in_addr
+#include <sys/un.h>                              // sockaddr_un
 #include <iostream>                              // std::ostream
 #include "melon/container/hash_tables.h"         // hashing functions
 
@@ -68,14 +69,24 @@ namespace melon::base {
     // String form.
     const char *my_ip_cstr();
 
-    // ipv4 + port
+    // For IPv4 endpoint, ip and port are real things.
+    // For UDS/IPv6 endpoint, to keep ABI compatibility, ip is ResourceId, and port is a special flag.
+    // See str2endpoint implementation for details.
     struct end_point {
         end_point() : ip(IP_ANY), port(0) {}
 
-        end_point(ip_t ip2, int port2) : ip(ip2), port(port2) {}
+        end_point(ip_t ip2, int port2);
 
         explicit end_point(const sockaddr_in &in)
                 : ip(in.sin_addr), port(ntohs(in.sin_port)) {}
+
+        end_point(const end_point &);
+
+        ~end_point();
+
+        void operator=(const end_point &);
+
+        void reset();
 
         ip_t ip;
         int port;
@@ -84,7 +95,7 @@ namespace melon::base {
     struct end_point_str {
         const char *c_str() const { return _buf; }
 
-        char _buf[INET_ADDRSTRLEN + 16];
+        char _buf[sizeof("unix:") + sizeof(sockaddr_un::sun_path)];
     };
 
     // Convert end_point to c-style string. Notice that you can serialize
@@ -128,6 +139,18 @@ namespace melon::base {
     // Get the other end of a socket connection
     int get_remote_side(int fd, end_point *out);
 
+    // Get sockaddr from endpoint, return -1 on failed
+    int endpoint2sockaddr(const end_point& point, struct sockaddr_storage* ss, socklen_t* size = NULL);
+
+    // Create endpoint from sockaddr, return -1 on failed
+    int sockaddr2endpoint(struct sockaddr_storage* ss, socklen_t size, end_point* point);
+
+    // Get end_point type (AF_INET/AF_INET6/AF_UNIX)
+    sa_family_t get_endpoint_type(const end_point& point);
+
+    // Check if endpoint is extended.
+    bool is_endpoint_extended(const end_point& point);
+
 }  // namespace melon::base
 
 // Since ip_t is defined from in_addr which is globally defined, due to ADL
@@ -165,7 +188,7 @@ inline std::ostream &operator<<(std::ostream &os, melon::base::ip_t ip) {
 }
 
 namespace melon::base {
-// Overload operators for end_point in the same namespace due to ADL.
+    // Overload operators for end_point in the same namespace due to ADL.
     inline bool operator<(end_point p1, end_point p2) {
         return (p1.ip != p2.ip) ? (p1.ip < p2.ip) : (p1.port < p2.port);
     }
@@ -191,7 +214,7 @@ namespace melon::base {
     }
 
     inline std::ostream &operator<<(std::ostream &os, const end_point &ep) {
-        return os << ep.ip << ':' << ep.port;
+        return os << endpoint2str(ep).c_str();
     }
 
     inline std::ostream &operator<<(std::ostream &os, const end_point_str &ep_str) {
