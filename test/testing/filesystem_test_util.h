@@ -43,13 +43,10 @@ using fstream = std::fstream;
 #define IS_WCHAR_PATH
 #endif
 
-#ifdef WIN32
-#define GHC_OS_WINDOWS
-#endif
-
 #else
 
 #include "melon/files/filesystem.h"
+
 #endif
 
 #if defined(WIN32) || defined(_WIN32)

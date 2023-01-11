@@ -1,5 +1,7 @@
 change log
 ====
+# 1.6.2
+* add numa memory manager
 
 # 1.6.1
 

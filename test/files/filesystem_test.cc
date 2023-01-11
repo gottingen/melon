@@ -18,7 +18,5 @@ TEST(TemporaryDirectory, fsTestTmpdir) {
         EXPECT_TRUE(melon::is_directory(t.path())
         );
     }
-    EXPECT_TRUE(!
-                        melon::exists(tempPath)
-    );
+    EXPECT_TRUE(!melon::exists(tempPath));
 }

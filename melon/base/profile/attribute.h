@@ -248,11 +248,39 @@ inline void melon_macro_unused(T const volatile & x) { (void)x; }
 //
 
 #ifndef MELON_HIDDEN
-    #if  defined(MELON_COMPILER_GNUC) || defined(MELON_COMPILER_CLANG)
-        #define MELON_HIDDEN __attribute__((visibility("hidden")))
-    #else
-        #define MELON_HIDDEN
-    #endif
+#if  defined(MELON_COMPILER_GNUC) || defined(MELON_COMPILER_CLANG)
+#define MELON_HIDDEN __attribute__((visibility("hidden")))
+#else
+#define MELON_HIDDEN
+#endif
 #endif  // MELON_HIDDEN
+
+#ifndef MELON_API
+#ifdef _WIN32
+#ifdef  MELON_EXPORTS
+#define MELON_API __declspec(dllexport)
+#else
+#define MELON_API __declspec(dllimport)
+#endif
+#else
+#define MELON_API __attribute__((visibility("default")))
+#endif
+#endif
+
+#ifndef MELON_BIG_CONSTANT
+#if defined(_MSC_VER)
+#define MELON_BIG_CONSTANT(x) (x)
+#else
+#define MELON_BIG_CONSTANT(x) (x##LLU)
+#endif
+#endif  // MELON_BIG_CONSTANT
+
+#ifndef MELON_PLATFORM_LITERAL
+#ifdef MELON_PLATFORM_WINDOWS
+    #define MELON_PLATFORM_LITERAL(str) L##str
+#else
+    #define MELON_PLATFORM_LITERAL(str) str
+#endif  // MELON_PLATFORM_WINDOWS
+#endif  // MELON_PLATFORM_LITERAL
 
 #endif // MELON_BASE_PROFILE_ATTRIBUTE_H_
