@@ -277,10 +277,19 @@ inline void melon_macro_unused(T const volatile & x) { (void)x; }
 
 #ifndef MELON_PLATFORM_LITERAL
 #ifdef MELON_PLATFORM_WINDOWS
-    #define MELON_PLATFORM_LITERAL(str) L##str
+#define MELON_PLATFORM_LITERAL(str) L##str
 #else
-    #define MELON_PLATFORM_LITERAL(str) str
+#define MELON_PLATFORM_LITERAL(str) str
 #endif  // MELON_PLATFORM_WINDOWS
 #endif  // MELON_PLATFORM_LITERAL
 
+#ifndef MELON_ALIGN_FUNCTION
+#if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+#define MELON_ALIGN_FUNCTION __attribute__((aligned(128)))
+#elif defined _MSC_VER
+#define MELON_ALIGN_FUNCTION
+#else
+#define MELON_ALIGN_FUNCTION
+#endif
+#endif
 #endif // MELON_BASE_PROFILE_ATTRIBUTE_H_
