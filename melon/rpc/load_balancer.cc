@@ -19,8 +19,8 @@
 #include <gflags/gflags.h>
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/load_balancer.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/safe_substr.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/safe_substr.h"
 
 namespace melon::rpc {
 
@@ -28,7 +28,7 @@ namespace melon::rpc {
     MELON_RPC_VALIDATE_GFLAG(show_lb_in_vars, PassValidate);
 
 // For assigning unique names for lb.
-    static melon::static_atomic<int> g_lb_counter = MELON_STATIC_ATOMIC_INIT(0);
+    static turbo::static_atomic<int> g_lb_counter = TURBO_STATIC_ATOMIC_INIT(0);
 
     void SharedLoadBalancer::DescribeLB(std::ostream &os, void *arg) {
         (static_cast<SharedLoadBalancer *>(arg))->Describe(os, DescribeOptions());
@@ -66,17 +66,17 @@ namespace melon::rpc {
         std::string lb_name;
         std::string_view lb_params;
         if (!ParseParameters(lb_protocol, &lb_name, &lb_params)) {
-            MELON_LOG(FATAL) << "Fail to parse this load balancer protocol '" << lb_protocol << '\'';
+            TURBO_LOG(FATAL) << "Fail to parse this load balancer protocol '" << lb_protocol << '\'';
             return -1;
         }
         const LoadBalancer *lb = LoadBalancerExtension()->Find(lb_name.c_str());
         if (lb == nullptr) {
-            MELON_LOG(FATAL) << "Fail to find LoadBalancer by `" << lb_name << "'";
+            TURBO_LOG(FATAL) << "Fail to find LoadBalancer by `" << lb_name << "'";
             return -1;
         }
         _lb = lb->New(lb_params);
         if (_lb == nullptr) {
-            MELON_LOG(FATAL) << "Fail to new LoadBalancer";
+            TURBO_LOG(FATAL) << "Fail to new LoadBalancer";
             return -1;
         }
         if (FLAGS_show_lb_in_vars && !_exposed) {
@@ -109,7 +109,7 @@ namespace melon::rpc {
         } else {
             lb_name->append(lb_protocol.data(), pos);
             if (pos < lb_protocol.size() - sizeof(separator)) {
-                *lb_params = melon::safe_substr(lb_protocol, pos + sizeof(separator));
+                *lb_params = turbo::safe_substr(lb_protocol, pos + sizeof(separator));
             }
         }
 

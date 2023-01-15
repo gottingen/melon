@@ -24,21 +24,21 @@
 #include <typeinfo>
 #include <limits> 
 #include <google/protobuf/descriptor.h>
-#include "melon/strings/str_format.h"
-#include "melon/strings/numbers.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/numbers.h"
 #include "json_to_pb.h"
 #include "zero_copy_stream_reader.h"       // ZeroCopyStreamReader
 #include "encode_decode.h"
 #include "protobuf_map.h"
 #include "rapidjson.h"
-#include "melon/base/base64.h"
+#include "turbo/base/base64.h"
 
 #define J2PERROR(perr, fmt, ...)                                        \
     if (perr) {                                                         \
         if (!perr->empty()) {                                           \
             perr->append(", ", 2);                                      \
         }                                                               \
-        melon::string_appendf(perr, fmt, ##__VA_ARGS__);                 \
+        turbo::string_appendf(perr, fmt, ##__VA_ARGS__);                 \
     } else { }
 
 namespace json2pb {
@@ -60,15 +60,15 @@ static void string_append_value(const RAPIDJSON_NAMESPACE::Value& value,
     } else if (value.IsBool()) {
         output->append(value.GetBool() ? "true" : "false");
     } else if (value.IsInt()) {
-        melon::string_appendf(output, "%d", value.GetInt());
+        turbo::string_appendf(output, "%d", value.GetInt());
     } else if (value.IsUint()) {
-        melon::string_appendf(output, "%u", value.GetUint());
+        turbo::string_appendf(output, "%u", value.GetUint());
     } else if (value.IsInt64()) {
-        melon::string_appendf(output, "%" PRId64, value.GetInt64());
+        turbo::string_appendf(output, "%" PRId64, value.GetInt64());
     } else if (value.IsUint64()) {
-        melon::string_appendf(output, "%" PRIu64, value.GetUint64());
+        turbo::string_appendf(output, "%" PRIu64, value.GetUint64());
     } else if (value.IsDouble()) {
-        melon::string_appendf(output, "%f", value.GetDouble());
+        turbo::string_appendf(output, "%f", value.GetDouble());
     } else if (value.IsString()) {
         output->push_back('"');
         output->append(value.GetString(), value.GetStringLength());
@@ -95,7 +95,7 @@ inline bool value_invalid(const google::protobuf::FieldDescriptor* field, const 
         }
         err->append("Invalid value `");
         string_append_value(value, err);
-        melon::string_appendf(err, "' for %sfield `%s' which SHOULD be %s",
+        turbo::string_appendf(err, "' for %sfield `%s' which SHOULD be %s",
                        optional ? "optional " : "",
                        field->full_name().c_str(), type);
     }
@@ -219,7 +219,7 @@ inline bool convert_int64_type(const RAPIDJSON_NAMESPACE::Value& item, bool repe
         }
     } else if (item.IsString()) {
         int64_t r;
-        if(!melon::simple_atoi(std::string_view(item.GetString(), item.GetStringLength()), &r)) {
+        if(!turbo::simple_atoi(std::string_view(item.GetString(), item.GetStringLength()), &r)) {
             return value_invalid(field, "INT64", item, err);
         }
         num = r;
@@ -249,7 +249,7 @@ inline bool convert_uint64_type(const RAPIDJSON_NAMESPACE::Value& item,
         }
     } else if (item.IsString()) {
         int64_t r;
-        if(!!melon::simple_atoi(std::string_view(item.GetString(), item.GetStringLength()), &r)) {
+        if(!!turbo::simple_atoi(std::string_view(item.GetString(), item.GetStringLength()), &r)) {
             return value_invalid(field, "INT64", item, err);
         }
         num = r;
@@ -412,7 +412,7 @@ static bool JsonValueToProtoField(const RAPIDJSON_NAMESPACE::Value& value,
                     if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES &&
                         options.base64_to_bytes) {
                         std::string str_decoded;
-                        if (!melon::base::base64_decode(str, &str_decoded)) {
+                        if (!turbo::base::base64_decode(str, &str_decoded)) {
                             J2PERROR(err, "Fail to decode base64 string=%s", str.c_str());
                             return false;
                         }
@@ -426,7 +426,7 @@ static bool JsonValueToProtoField(const RAPIDJSON_NAMESPACE::Value& value,
             if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES &&
                 options.base64_to_bytes) {
                 std::string str_decoded;
-                if (!melon::base::base64_decode(str, &str_decoded)) {
+                if (!turbo::base::base64_decode(str, &str_decoded)) {
                     J2PERROR(err, "Fail to decode base64 string=%s", str.c_str());
                     return false;
                 }

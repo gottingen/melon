@@ -1,8 +1,8 @@
 
 #include <vector>
 #include <gflags/gflags.h>
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
 #include <random>
 #include <chrono>
 #include <melon/rpc/server.h>
@@ -55,8 +55,8 @@ public:
                 }
             }
             if (FLAGS_spin) {
-                int64_t end_time = melon::get_current_time_micros() + (int64_t)delay;
-                while (melon::get_current_time_micros() < end_time) {}
+                int64_t end_time = turbo::get_current_time_micros() + (int64_t)delay;
+                while (turbo::get_current_time_micros() < end_time) {}
             } else {
                 melon::fiber_sleep_for((int64_t)delay);
             }
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_server_num <= 0) {
-        MELON_LOG(ERROR) << "server_num must be positive";
+        TURBO_LOG(ERROR) << "server_num must be positive";
         return -1;
     }
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     options.max_concurrency = FLAGS_max_concurrency;
 
-    melon::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
+    turbo::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
     std::vector<int64_t> sleep_list;
     for (; sp; ++sp) {
         sleep_list.push_back(strtoll(sp.field(), nullptr, 10));
@@ -112,17 +112,17 @@ int main(int argc, char* argv[]) {
         int64_t sleep_us = sleep_list[(size_t)i < sleep_list.size() ? i : (sleep_list.size() - 1)];
         echo_service_impls[i].set_index(i, sleep_us);
         // will be shown on /version page
-        servers[i].set_version(melon::string_printf(
+        servers[i].set_version(turbo::string_printf(
                     "example/dynamic_partition_echo_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            MELON_LOG(ERROR) << "Fail to add service";
+            TURBO_LOG(ERROR) << "Fail to add service";
             return -1;
         }
         // Start the server.
         int port = FLAGS_port + i;
         if (servers[i].Start(port, &options) != 0) {
-            MELON_LOG(ERROR) << "Fail to start EchoServer";
+            TURBO_LOG(ERROR) << "Fail to start EchoServer";
             return -1;
         }
     }
@@ -140,9 +140,9 @@ int main(int argc, char* argv[]) {
             size_t diff = current_num_requests - last_num_requests[i];
             cur_total += diff;
             last_num_requests[i] = current_num_requests;
-            MELON_LOG(INFO) << "S[" << i << "]=" << diff << ' ';
+            TURBO_LOG(INFO) << "S[" << i << "]=" << diff << ' ';
         }
-        MELON_LOG(INFO) << "[total=" << cur_total << ']';
+        TURBO_LOG(INFO) << "[total=" << cur_total << ']';
     }
 
     // Don't forget to stop and join the server otherwise still-running

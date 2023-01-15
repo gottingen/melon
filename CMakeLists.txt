@@ -78,6 +78,7 @@ include(GNUInstallDirs)
 
 include(require_gflags)
 include(require_leveldb)
+include(require_turbo)
 
 execute_process(
         COMMAND bash -c "${PROJECT_SOURCE_DIR}/tools/get_melon_revision.sh ${PROJECT_SOURCE_DIR} | tr -d '\n'"
@@ -150,6 +151,7 @@ set(DYNAMIC_LIB
         ${CMAKE_THREAD_LIBS_INIT}
         ${THRIFT_LIB}
         ${THRIFTNB_LIB}
+        ${TURBO_LIB}
         ${OPENSSL_SSL_LIBRARY}
         ${OPENSSL_CRYPTO_LIBRARY}
         dl
@@ -183,43 +185,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/output/lib)
 # the reason why not using file(GLOB_RECURSE...) is that we want to
 # include different files on different platforms.
 
-file(GLOB_RECURSE MELON_BASE_SRC "${PROJECT_SOURCE_DIR}/melon/base/*.cc")
-file(GLOB_RECURSE MELON_CONTAINER_SRC "${PROJECT_SOURCE_DIR}/melon/container/*.cc")
-file(GLOB_RECURSE MELON_HASH_SRC "${PROJECT_SOURCE_DIR}/melon/hash/*.cc")
-file(GLOB_RECURSE MELON_MEMORY_SRC "${PROJECT_SOURCE_DIR}/melon/memory/*.cc")
-file(GLOB_RECURSE MELON_IO_SRC "${PROJECT_SOURCE_DIR}/melon/io/*.cc")
-file(GLOB_RECURSE MELON_STRINGS_SRC "${PROJECT_SOURCE_DIR}/melon/strings/*.cc")
-file(GLOB_RECURSE MELON_DEBUG_SRC "${PROJECT_SOURCE_DIR}/melon/debugging/*.cc")
-file(GLOB_RECURSE MELON_LOG_SRC "${PROJECT_SOURCE_DIR}/melon/log/*.cc")
-file(GLOB_RECURSE MELON_BOOTSTRAP_SRC "${PROJECT_SOURCE_DIR}/melon/bootstrap/*.cc")
-file(GLOB_RECURSE MELON_TIMES_SRC "${PROJECT_SOURCE_DIR}/melon/times/*.cc")
-file(GLOB_RECURSE MELON_FILES_SRC "${PROJECT_SOURCE_DIR}/melon/files/*.cc")
-file(GLOB_RECURSE MELON_THREAD_SRC "${PROJECT_SOURCE_DIR}/melon/thread/*.cc")
-file(GLOB_RECURSE MELON_FUTURE_SRC "${PROJECT_SOURCE_DIR}/melon/future/*.cc")
-file(GLOB_RECURSE MELON_DAG_SRC "${PROJECT_SOURCE_DIR}/melon/dag/*.cc")
-file(GLOB_RECURSE MELON_SYSTEM_SRC "${PROJECT_SOURCE_DIR}/melon/system/*.cc")
-file(GLOB_RECURSE MELON_JSON_SRC "${PROJECT_SOURCE_DIR}/melon/rapidjson/*.cc")
-
-set(MELON_SRC
-        "${PROJECT_SOURCE_DIR}/melon/base/dynamic_annotations/dynamic_annotations.c"
-        ${MELON_BASE_SRC}
-        ${MELON_CONTAINER_SRC}
-        ${MELON_HASH_SRC}
-        ${MELON_MEMORY_SRC}
-        ${MELON_IO_SRC}
-        ${MELON_STRINGS_SRC}
-        ${MELON_DEBUG_SRC}
-        ${MELON_LOG_SRC}
-        ${MELON_BOOTSTRAP_SRC}
-        ${MELON_HASH_SRC}
-        ${MELON_TIMES_SRC}
-        ${MELON_FILES_SRC}
-        ${MELON_THREAD_SRC}
-        ${MELON_FUTURE_SRC}
-        ${MELON_DAG_SRC}
-        ${MELON_SYSTEM_SRC}
-        ${MELON_JSON_SRC}
-        )
 
 file(GLOB_RECURSE METRICS_SOURCES "${PROJECT_SOURCE_DIR}/melon/metrics/*.cc")
 file(GLOB_RECURSE FIBER_SOURCES "${PROJECT_SOURCE_DIR}/melon/fiber/*.cc")

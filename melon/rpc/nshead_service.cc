@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/base/class_name.h"
+#include "turbo/base/class_name.h"
 #include "melon/rpc/nshead_service.h"
 #include "melon/rpc/details/method_status.h"
 
@@ -27,14 +27,14 @@ namespace melon::rpc {
 
     NsheadService::NsheadService() : _additional_space(0) {
         _status = new(std::nothrow) MethodStatus;
-        MELON_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
+        TURBO_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
     }
 
     NsheadService::NsheadService(const NsheadServiceOptions &options)
             : _status(nullptr), _additional_space(options.additional_space) {
         if (options.generate_status) {
             _status = new(std::nothrow) MethodStatus;
-            MELON_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
+            TURBO_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
         }
     }
 
@@ -44,11 +44,11 @@ namespace melon::rpc {
     }
 
     void NsheadService::Describe(std::ostream &os, const DescribeOptions &) const {
-        os << melon::base::class_name_str(*this);
+        os << turbo::base::class_name_str(*this);
     }
 
     void NsheadService::Expose(const std::string_view &prefix) {
-        _cached_name = melon::base::class_name_str(*this);
+        _cached_name = turbo::base::class_name_str(*this);
         if (_status == nullptr) {
             return;
         }

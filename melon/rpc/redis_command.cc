@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/redis_command.h"
 
@@ -50,7 +50,7 @@ namespace melon::rpc {
         buf.append(header, len + 3);
     }
 
-    inline void AppendHeader(melon::cord_buf &buf, char fc, unsigned long value) {
+    inline void AppendHeader(turbo::cord_buf &buf, char fc, unsigned long value) {
         char header[32];
         header[0] = fc;
         size_t len = AppendDecimal(header + 1, value);
@@ -73,10 +73,10 @@ namespace melon::rpc {
     // Some code is copied or modified from redisvFormatCommand() in
     // https://github.com/redis/hiredis/blob/master/hiredis.c to keep close
     // compatibility with hiredis.
-    melon::result_status
-    RedisCommandFormatV(melon::cord_buf *outbuf, const char *fmt, va_list ap) {
+    turbo::result_status
+    RedisCommandFormatV(turbo::cord_buf *outbuf, const char *fmt, va_list ap) {
         if (outbuf == nullptr || fmt == nullptr) {
-            return melon::result_status(EINVAL, "Param[outbuf] or [fmt] is nullptr");
+            return turbo::result_status(EINVAL, "Param[outbuf] or [fmt] is nullptr");
         }
         const size_t fmt_len = strlen(fmt);
         std::string nocount_buf;
@@ -224,7 +224,7 @@ namespace melon::rpc {
 
                         fmt_invalid:
                         va_end(_cpy);
-                        return melon::result_status(EINVAL, "Invalid format");
+                        return turbo::result_status(EINVAL, "Invalid format");
 
                         fmt_valid:
                         ++nargs;
@@ -253,7 +253,7 @@ namespace melon::rpc {
                     quote_pos - std::min((size_t) (quote_pos - fmt), CTX_WIDTH);
             size_t ctx_size =
                     std::min((size_t) (fmt + fmt_len - ctx_begin), CTX_WIDTH * 2 + 1);
-            return melon::result_status(EINVAL, "Unmatched quote: ...{}... (offset={})",
+            return turbo::result_status(EINVAL, "Unmatched quote: ...{}... (offset={})",
                                         std::string_view(ctx_begin, (int) ctx_size), quote_pos - fmt);
         }
 
@@ -261,27 +261,27 @@ namespace melon::rpc {
             FlushComponent(&nocount_buf, &compbuf, &ncomponent);
         }
 
-        MELON_LOG_IF(ERROR, nargs == 0) << "You must call RedisCommandNoFormat() "
+        TURBO_LOG_IF(ERROR, nargs == 0) << "You must call RedisCommandNoFormat() "
                                            "to replace RedisCommandFormatV without any args (to avoid potential "
                                            "formatting of conversion specifiers)";
 
         AppendHeader(*outbuf, '*', ncomponent);
         outbuf->append(nocount_buf);
-        return melon::result_status::success();
+        return turbo::result_status::success();
     }
 
-    melon::result_status RedisCommandFormat(melon::cord_buf *buf, const char *fmt, ...) {
+    turbo::result_status RedisCommandFormat(turbo::cord_buf *buf, const char *fmt, ...) {
         va_list ap;
         va_start(ap, fmt);
-        const melon::result_status st = RedisCommandFormatV(buf, fmt, ap);
+        const turbo::result_status st = RedisCommandFormatV(buf, fmt, ap);
         va_end(ap);
         return st;
     }
 
-    melon::result_status
-    RedisCommandNoFormat(melon::cord_buf *outbuf, const std::string_view &cmd) {
+    turbo::result_status
+    RedisCommandNoFormat(turbo::cord_buf *outbuf, const std::string_view &cmd) {
         if (outbuf == nullptr || cmd.empty()) {
-            return melon::result_status(EINVAL, "Param[outbuf] or [cmd] is nullptr");
+            return turbo::result_status(EINVAL, "Param[outbuf] or [cmd] is nullptr");
         }
         const size_t cmd_len = cmd.size();
         std::string nocount_buf;
@@ -329,7 +329,7 @@ namespace melon::rpc {
                     quote_pos - std::min((size_t) (quote_pos - cmd.data()), CTX_WIDTH);
             size_t ctx_size =
                     std::min((size_t) (cmd.data() + cmd.size() - ctx_begin), CTX_WIDTH * 2 + 1);
-            return melon::result_status(EINVAL, "Unmatched quote: ...{}... (offset={})",
+            return turbo::result_status(EINVAL, "Unmatched quote: ...{}... (offset={})",
                                              std::string_view(ctx_begin, (int) ctx_size), quote_pos - cmd.data());
         }
 
@@ -339,14 +339,14 @@ namespace melon::rpc {
 
         AppendHeader(*outbuf, '*', ncomponent);
         outbuf->append(nocount_buf);
-        return melon::result_status::success();
+        return turbo::result_status::success();
     }
 
-    melon::result_status RedisCommandByComponents(melon::cord_buf *output,
+    turbo::result_status RedisCommandByComponents(turbo::cord_buf *output,
                                                        const std::string_view *components,
                                                        size_t ncomponents) {
         if (output == nullptr) {
-            return melon::result_status(EINVAL, "Param[output] is nullptr");
+            return turbo::result_status(EINVAL, "Param[output] is nullptr");
         }
         AppendHeader(*output, '*', ncomponents);
         for (size_t i = 0; i < ncomponents; ++i) {
@@ -354,15 +354,15 @@ namespace melon::rpc {
             output->append(components[i].data(), components[i].size());
             output->append("\r\n", 2);
         }
-        return melon::result_status::success();
+        return turbo::result_status::success();
     }
 
     RedisCommandParser::RedisCommandParser()
             : _parsing_array(false), _length(0), _index(0) {}
 
-    ParseError RedisCommandParser::Consume(melon::cord_buf &buf,
+    ParseError RedisCommandParser::Consume(turbo::cord_buf &buf,
                                            std::vector<std::string_view> *args,
-                                           melon::Arena *arena) {
+                                           turbo::Arena *arena) {
         const char *pfc = (const char *) buf.fetch1();
         if (pfc == nullptr) {
             return PARSE_ERROR_NOT_ENOUGH_DATA;
@@ -385,11 +385,11 @@ namespace melon::rpc {
         char *endptr = nullptr;
         int64_t value = strtoll(intbuf + 1/*skip fc*/, &endptr, 10);
         if (endptr != intbuf + crlf_pos) {
-            MELON_LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
+            TURBO_LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
             return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
         if (value < 0) {
-            MELON_LOG(ERROR) << "Invalid len=" << value << " in redis command";
+            TURBO_LOG(ERROR) << "Invalid len=" << value << " in redis command";
             return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
         if (!_parsing_array) {
@@ -400,15 +400,15 @@ namespace melon::rpc {
             _args.resize(value);
             return Consume(buf, args, arena);
         }
-        MELON_CHECK(_index < _length) << "a complete command has been parsed. "
+        TURBO_CHECK(_index < _length) << "a complete command has been parsed. "
                                          "impl of RedisCommandParser::Parse is buggy";
         const int64_t len = value;  // `value' is length of the string
         if (len < 0) {
-            MELON_LOG(ERROR) << "string in command is nil!";
+            TURBO_LOG(ERROR) << "string in command is nil!";
             return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
         if (len > (int64_t) std::numeric_limits<uint32_t>::max()) {
-            MELON_LOG(ERROR) << "string in command is too long! max length=2^32-1,"
+            TURBO_LOG(ERROR) << "string in command is too long! max length=2^32-1,"
                                 " actually=" << len;
             return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
@@ -429,7 +429,7 @@ namespace melon::rpc {
         char crlf[2];
         buf.cutn(crlf, sizeof(crlf));
         if (crlf[0] != '\r' || crlf[1] != '\n') {
-            MELON_LOG(ERROR) << "string in command is not ended with CRLF";
+            TURBO_LOG(ERROR) << "string in command is not ended with CRLF";
             return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
         if (++_index < _length) {

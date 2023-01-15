@@ -18,7 +18,7 @@
 #ifndef MELON_RPC_MONGO_SERVICE_ADAPTOR_H_
 #define MELON_RPC_MONGO_SERVICE_ADAPTOR_H_
 
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 #include "melon/rpc/input_message_base.h"
 #include "melon/rpc/shared_object.h"
 
@@ -43,14 +43,14 @@ namespace melon::rpc {
         MongoContext *context() { return _context.get(); }
 
     private:
-        melon::container::intrusive_ptr<MongoContext> _context;
+        turbo::container::intrusive_ptr<MongoContext> _context;
     };
 
     class MongoServiceAdaptor {
     public:
         // Make an error msg when the cntl fails. If cntl fails, we must send mongo client a msg not
         // only to indicate the error, but also to finish the round trip.
-        virtual void SerializeError(int response_to, melon::cord_buf *out_buf) const = 0;
+        virtual void SerializeError(int response_to, turbo::cord_buf *out_buf) const = 0;
 
         // Create a custom context which is attached to socket. This func is called only when the first
         // msg from the socket comes. The context will be destroyed when the socket is closed.

@@ -119,7 +119,7 @@ namespace pbrpcframework {
         const PressOptions *options() { return &_options; }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(RpcPress);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(RpcPress);
 
         bool new_pbrpc_press_client_by_client_type(int client_type);
 

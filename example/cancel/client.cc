@@ -18,8 +18,8 @@
 // A client to send 2 requests to server and accept the first returned response.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         CancelRPC done1(id2);
         CancelRPC done2(id1);
         
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         // Send 2 async calls and join them. They will cancel each other in
         // their done which is run before the RPC being Join()-ed. Canceling
@@ -106,16 +106,16 @@ int main(int argc, char* argv[]) {
         melon::rpc::Join(id2);
         tm.stop();
         if (cntl1.Failed() && cntl2.Failed()) {
-            MELON_LOG(WARNING) << "Both failed. rpc1:" << cntl1.ErrorText()
+            TURBO_LOG(WARNING) << "Both failed. rpc1:" << cntl1.ErrorText()
                          << ", rpc2: " << cntl2.ErrorText();
         } else if (!cntl1.Failed()) {
-            MELON_LOG(INFO) << "Received `" << response1.message() << "' from rpc1="
+            TURBO_LOG(INFO) << "Received `" << response1.message() << "' from rpc1="
                       << id1.value << '@' << cntl1.remote_side()
                       << " latency=" << tm.u_elapsed() << "us"
                       << " rpc1_latency=" << cntl1.latency_us() << "us"
                       << " rpc2_latency=" << cntl2.latency_us() << "us";
         } else {
-            MELON_LOG(INFO) << "Received `" << response2.message() << "' from rpc2="
+            TURBO_LOG(INFO) << "Received `" << response2.message() << "' from rpc2="
                       << id2.value << '@' << cntl2.remote_side()
                       << " latency=" << tm.u_elapsed() << "us"
                       << " rpc1_latency=" << cntl1.latency_us() << "us"
@@ -124,6 +124,6 @@ int main(int argc, char* argv[]) {
         sleep(1);
     }
 
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

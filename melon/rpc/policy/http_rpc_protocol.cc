@@ -24,10 +24,10 @@
 
 #include "melon/rpc/policy/http_rpc_protocol.h"
 #include <memory>                       // std::unique_ptr
-#include "melon/strings/string_splitter.h"                  // StringMultiSplitter
-#include "melon/strings/starts_with.h"
-#include "melon/times/time.h"
-#include "melon/base/endian.h"
+#include "turbo/strings/string_splitter.h"                  // StringMultiSplitter
+#include "turbo/strings/starts_with.h"
+#include "turbo/times/time.h"
+#include "turbo/base/endian.h"
 #include "melon/rpc/compress.h"
 #include "melon/rpc/errno.pb.h"                     // ENOSERVICE, ENOMETHOD
 #include "melon/rpc/controller.h"                   // Controller
@@ -43,7 +43,7 @@
 #include "melon/rpc/policy/http2_rpc_protocol.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
 #include "melon/rpc/grpc.h"
-#include "melon/strings/str_format.h"
+#include "turbo/strings/str_format.h"
 
 extern "C" {
 void fiber_assign_data(void *data);
@@ -83,7 +83,7 @@ namespace melon::rpc {
 
         // Read user address from the header specified by -http_header_of_user_ip
         static bool GetUserAddressFromHeaderImpl(const HttpHeader &headers,
-                                                 melon::end_point *user_addr) {
+                                                 turbo::end_point *user_addr) {
             const std::string *user_addr_str =
                     headers.GetHeader(FLAGS_http_header_of_user_ip);
             if (user_addr_str == nullptr) {
@@ -91,14 +91,14 @@ namespace melon::rpc {
             }
             //TODO add protocols other than IPv4 supports
             if (user_addr_str->find(':') == std::string::npos) {
-                if (melon::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
-                    MELON_LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
+                if (turbo::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
+                    TURBO_LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
                     return false;
                 }
                 user_addr->port = 0;
             } else {
-                if (melon::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
-                    MELON_LOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
+                if (turbo::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
+                    TURBO_LOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
                     return false;
                 }
             }
@@ -106,7 +106,7 @@ namespace melon::rpc {
         }
 
         inline bool GetUserAddressFromHeader(const HttpHeader &headers,
-                                             melon::end_point *user_addr) {
+                                             turbo::end_point *user_addr) {
             if (FLAGS_http_header_of_user_ip.empty()) {
                 return false;
             }
@@ -140,7 +140,7 @@ namespace melon::rpc {
             return pthread_once(&g_common_strings_once, CreateCommonStrings);
         }
 
-        static const int MELON_ALLOW_UNUSED force_creation_of_common = InitCommonStrings();
+        static const int TURBO_ALLOW_UNUSED force_creation_of_common = InitCommonStrings();
 
         const CommonStrings *get_common_strings() { return common; }
 
@@ -151,12 +151,12 @@ namespace melon::rpc {
             //   subtype     = token
 
             const std::string_view prefix = "application/";
-            if (!melon::starts_with(ct, prefix)) {
+            if (!turbo::starts_with(ct, prefix)) {
                 return HTTP_CONTENT_OTHERS;
             }
             ct.remove_prefix(prefix.size());
 
-            if (melon::starts_with(ct, "grpc")) {
+            if (turbo::starts_with(ct, "grpc")) {
                 if (ct.size() == (size_t) 4 || ct[4] == ';') {
                     if (is_grpc_ct) {
                         *is_grpc_ct = true;
@@ -174,16 +174,16 @@ namespace melon::rpc {
             }
 
             HttpContentType type = HTTP_CONTENT_OTHERS;
-            if (melon::starts_with(ct, "json")) {
+            if (turbo::starts_with(ct, "json")) {
                 type = HTTP_CONTENT_JSON;
                 ct.remove_prefix(4);
-            } else if (melon::starts_with(ct, "proto-text")) {
+            } else if (turbo::starts_with(ct, "proto-text")) {
                 type = HTTP_CONTENT_PROTO_TEXT;
                 ct.remove_prefix(10);
-            } else if (melon::starts_with(ct, "proto")) {
+            } else if (turbo::starts_with(ct, "proto")) {
                 type = HTTP_CONTENT_PROTO;
                 ct.remove_prefix(5);
-            } else if (melon::starts_with(ct, "x-protobuf")) {
+            } else if (turbo::starts_with(ct, "x-protobuf")) {
                 type = HTTP_CONTENT_PROTO;
                 ct.remove_prefix(10);
             } else {
@@ -192,16 +192,16 @@ namespace melon::rpc {
             return (ct.empty() || ct.front() == ';') ? type : HTTP_CONTENT_OTHERS;
         }
 
-        static void PrintMessage(const melon::cord_buf &inbuf,
+        static void PrintMessage(const turbo::cord_buf &inbuf,
                                  bool request_or_response,
                                  bool has_content) {
-            melon::cord_buf buf1 = inbuf;
-            melon::cord_buf buf2;
+            turbo::cord_buf buf1 = inbuf;
+            turbo::cord_buf buf2;
             char str[48];
             if (request_or_response) {
-                snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", melon::my_ip_cstr());
+                snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", turbo::my_ip_cstr());
             } else {
-                snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", melon::my_ip_cstr());
+                snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", turbo::my_ip_cstr());
             }
             buf2.append(str);
             size_t last_size;
@@ -213,23 +213,23 @@ namespace melon::rpc {
                 buf2.pop_back(2);  // remove "> "
             }
             if (!has_content) {
-                MELON_LOG(INFO) << '\n' << buf2 << buf1;
+                TURBO_LOG(INFO) << '\n' << buf2 << buf1;
             } else {
-                MELON_LOG(INFO) << '\n' << buf2 << melon::to_printable_string(buf1, FLAGS_http_verbose_max_body_length);
+                TURBO_LOG(INFO) << '\n' << buf2 << turbo::to_printable_string(buf1, FLAGS_http_verbose_max_body_length);
             }
         }
 
-        static void AddGrpcPrefix(melon::cord_buf *body, bool compressed) {
+        static void AddGrpcPrefix(turbo::cord_buf *body, bool compressed) {
             char buf[5];
             buf[0] = (compressed ? 1 : 0);
-            *(uint32_t *) (buf + 1) = melon::base::melon_hton32(body->size());
-            melon::cord_buf tmp_buf;
+            *(uint32_t *) (buf + 1) = turbo::base::turbo_hton32(body->size());
+            turbo::cord_buf tmp_buf;
             tmp_buf.append(buf, sizeof(buf));
-            tmp_buf.append(melon::cord_buf::Movable(*body));
+            tmp_buf.append(turbo::cord_buf::Movable(*body));
             body->swap(tmp_buf);
         }
 
-        static bool RemoveGrpcPrefix(melon::cord_buf *body, bool *compressed) {
+        static bool RemoveGrpcPrefix(turbo::cord_buf *body, bool *compressed) {
             if (body->empty()) {
                 *compressed = false;
                 return true;
@@ -241,12 +241,12 @@ namespace melon::rpc {
             char buf[5];
             body->cutn(buf, sizeof(buf));
             *compressed = buf[0];
-            const size_t message_length = melon::base::melon_ntoh32(*(uint32_t *) (buf + 1));
+            const size_t message_length = turbo::base::turbo_ntoh32(*(uint32_t *) (buf + 1));
             return (message_length + 5 == sz);
         }
 
         void ProcessHttpResponse(InputMessageBase *msg) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<HttpContext> imsg_guard(static_cast<HttpContext *>(msg));
             Socket *socket = imsg_guard->socket();
             uint64_t cid_value;
@@ -258,15 +258,15 @@ namespace melon::rpc {
                 cid_value = socket->correlation_id();
             }
             if (cid_value == 0) {
-                MELON_LOG(WARNING) << "Fail to find correlation_id from " << *socket;
+                TURBO_LOG(WARNING) << "Fail to find correlation_id from " << *socket;
                 return;
             }
             const fiber_token_t cid = {cid_value};
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -283,8 +283,8 @@ namespace melon::rpc {
 
             HttpHeader *res_header = &cntl->http_response();
             res_header->Swap(imsg_guard->header());
-            melon::cord_buf &res_body = imsg_guard->body();
-            MELON_CHECK(cntl->response_attachment().empty());
+            turbo::cord_buf &res_body = imsg_guard->body();
+            TURBO_CHECK(cntl->response_attachment().empty());
             const int saved_error = cntl->ErrorCode();
 
             bool is_grpc_ct = false;
@@ -363,7 +363,7 @@ namespace melon::rpc {
                 // ErrorCode of RPC is unified to EHTTP.
                 const int sc = res_header->status_code();
                 if (sc < 200 || sc >= 300) {
-                    std::string err = melon::string_printf(
+                    std::string err = turbo::string_printf(
                             "HTTP/%d.%d %d %s",
                             res_header->major_version(),
                             res_header->minor_version(),
@@ -411,7 +411,7 @@ namespace melon::rpc {
                 if (encoding != nullptr && *encoding == common->GZIP) {
                     TRACEPRINTF("Decompressing response=%lu",
                                 (unsigned long) res_body.size());
-                    melon::cord_buf uncompressed;
+                    turbo::cord_buf uncompressed;
                     if (!policy::GzipDecompress(res_body, &uncompressed)) {
                         cntl->SetFailed(ERESPONSE, "Fail to un-gzip response body");
                         break;
@@ -430,7 +430,7 @@ namespace melon::rpc {
                     }
                 } else if (content_type == HTTP_CONTENT_JSON) {
                     // message body is json
-                    melon::cord_buf_as_zero_copy_input_stream wrapper(res_body);
+                    turbo::cord_buf_as_zero_copy_input_stream wrapper(res_body);
                     std::string err;
                     json2pb::Json2PbOptions options;
                     options.base64_to_bytes = cntl->has_pb_bytes_to_base64();
@@ -452,7 +452,7 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void SerializeHttpRequest(melon::cord_buf * /*not used*/,
+        void SerializeHttpRequest(turbo::cord_buf * /*not used*/,
                                   Controller *cntl,
                                   const google::protobuf::Message *pbreq) {
             HttpHeader &hreq = cntl->http_request();
@@ -499,7 +499,7 @@ namespace melon::rpc {
                     is_grpc = (is_http2 && is_grpc_ct);
                 }
 
-                melon::cord_buf_as_zero_copy_output_stream wrapper(&cntl->request_attachment());
+                turbo::cord_buf_as_zero_copy_output_stream wrapper(&cntl->request_attachment());
                 if (content_type == HTTP_CONTENT_PROTO) {
                     // Serialize content as protobuf
                     if (!pbreq->SerializeToZeroCopyStream(&wrapper)) {
@@ -551,7 +551,7 @@ namespace melon::rpc {
                 const size_t request_size = cntl->request_attachment().size();
                 if (request_size >= (size_t) FLAGS_http_body_compress_threshold) {
                     TRACEPRINTF("Compressing request=%lu", (unsigned long) request_size);
-                    melon::cord_buf compressed;
+                    turbo::cord_buf compressed;
                     if (GzipCompress(cntl->request_attachment(), &compressed, nullptr)) {
                         cntl->request_attachment().swap(compressed);
                         if (is_grpc) {
@@ -569,7 +569,7 @@ namespace melon::rpc {
             // Fill log-id if user set it.
             if (cntl->has_log_id()) {
                 hreq.SetHeader(common->LOG_ID,
-                               melon::string_printf("%llu", (unsigned long long) cntl->log_id()));
+                               turbo::string_printf("%llu", (unsigned long long) cntl->log_id()));
             }
             if (!cntl->request_id().empty()) {
                 hreq.SetHeader(FLAGS_request_id_header, cntl->request_id());
@@ -593,7 +593,7 @@ namespace melon::rpc {
                     hreq.SetHeader(common->TE, common->TRAILERS);
                     if (cntl->timeout_ms() >= 0) {
                         hreq.SetHeader(common->GRPC_TIMEOUT,
-                                       melon::string_printf("%" PRId64 "m", cntl->timeout_ms()));
+                                       turbo::string_printf("%" PRId64 "m", cntl->timeout_ms()));
                     }
                     // Append compressed and length before body
                     AddGrpcPrefix(&cntl->request_attachment(), grpc_compressed);
@@ -617,21 +617,21 @@ namespace melon::rpc {
 
             Span *span = accessor.span();
             if (span) {
-                hreq.SetHeader("x-bd-trace-id", melon::string_printf(
+                hreq.SetHeader("x-bd-trace-id", turbo::string_printf(
                         "%llu", (unsigned long long) span->trace_id()));
-                hreq.SetHeader("x-bd-span-id", melon::string_printf(
+                hreq.SetHeader("x-bd-span-id", turbo::string_printf(
                         "%llu", (unsigned long long) span->span_id()));
-                hreq.SetHeader("x-bd-parent-span-id", melon::string_printf(
+                hreq.SetHeader("x-bd-parent-span-id", turbo::string_printf(
                         "%llu", (unsigned long long) span->parent_span_id()));
             }
         }
 
-        void PackHttpRequest(melon::cord_buf *buf,
+        void PackHttpRequest(turbo::cord_buf *buf,
                              SocketMessage **,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *,
                              Controller *cntl,
-                             const melon::cord_buf & /*unused*/,
+                             const turbo::cord_buf & /*unused*/,
                              const Authenticator *auth) {
             if (cntl->connection_type() == CONNECTION_TYPE_SINGLE) {
                 return cntl->SetFailed(EREQUEST, "http can't work with CONNECTION_TYPE_SINGLE");
@@ -718,7 +718,7 @@ namespace melon::rpc {
             ControllerPrivateAccessor accessor(cntl);
             Span *span = accessor.span();
             if (span) {
-                span->set_start_send_us(melon::get_current_time_micros());
+                span->set_start_send_us(turbo::get_current_time_micros());
             }
             ConcurrencyRemover concurrency_remover(_method_status, cntl, _received_us);
             Socket *socket = accessor.get_sending_socket();
@@ -759,7 +759,7 @@ namespace melon::rpc {
                 !cntl->Failed()) {
                 // ^ pb response in failed RPC is undefined, no need to convert.
 
-                melon::cord_buf_as_zero_copy_output_stream wrapper(&cntl->response_attachment());
+                turbo::cord_buf_as_zero_copy_output_stream wrapper(&cntl->response_attachment());
                 if (content_type == HTTP_CONTENT_PROTO) {
                     if (!res->SerializeToZeroCopyStream(&wrapper)) {
                         cntl->SetFailed(ERESPONSE, "Fail to serialize %s", res->GetTypeName().c_str());
@@ -830,7 +830,7 @@ namespace melon::rpc {
                     }
                     // Fill ErrorCode into header
                     res_header->SetHeader(common->ERROR_CODE,
-                                          melon::string_printf("%d", cntl->ErrorCode()));
+                                          turbo::string_printf("%d", cntl->ErrorCode()));
 
                     // Fill body with ErrorText.
                     // user may compress the output and change content-encoding. However
@@ -845,7 +845,7 @@ namespace melon::rpc {
                     res_header->SetHeader("Transfer-Encoding", "chunked");
                 }
                 if (!cntl->response_attachment().empty()) {
-                    MELON_LOG(ERROR) << "response_attachment(size="
+                    TURBO_LOG(ERROR) << "response_attachment(size="
                                      << cntl->response_attachment().size() << ") will be"
                                                                               " ignored when CreateProgressiveAttachment() was called";
                 }
@@ -855,7 +855,7 @@ namespace melon::rpc {
                 if (response_size >= (size_t) FLAGS_http_body_compress_threshold
                     && (is_http2 || SupportGzip(cntl))) {
                     TRACEPRINTF("Compressing response=%lu", (unsigned long) response_size);
-                    melon::cord_buf tmpbuf;
+                    turbo::cord_buf tmpbuf;
                     if (GzipCompress(cntl->response_attachment(), &tmpbuf, nullptr)) {
                         cntl->response_attachment().swap(tmpbuf);
                         if (is_grpc) {
@@ -865,12 +865,12 @@ namespace melon::rpc {
                             res_header->SetHeader(common->CONTENT_ENCODING, common->GZIP);
                         }
                     } else {
-                        MELON_LOG(ERROR) << "Fail to gzip the http response, skip compression.";
+                        TURBO_LOG(ERROR) << "Fail to gzip the http response, skip compression.";
                     }
                 }
             } else {
                 // TODO(gejun): Support snappy (grpc)
-                MELON_LOG_IF(ERROR, cntl->response_compress_type() != COMPRESS_TYPE_NONE)
+                TURBO_LOG_IF(ERROR, cntl->response_compress_type() != COMPRESS_TYPE_NONE)
                                 << "Unknown compress_type=" << cntl->response_compress_type()
                                 << ", skip compression.";
             }
@@ -888,12 +888,12 @@ namespace melon::rpc {
                 SocketMessagePtr<H2UnsentResponse> h2_response(
                         H2UnsentResponse::New(cntl, _h2_stream_id, is_grpc));
                 if (h2_response == nullptr) {
-                    MELON_LOG(ERROR) << "Fail to make http2 response";
+                    TURBO_LOG(ERROR) << "Fail to make http2 response";
                     errno = EINVAL;
                     rc = -1;
                 } else {
                     if (FLAGS_http_verbose) {
-                        MELON_LOG(INFO) << '\n' << *h2_response;
+                        TURBO_LOG(INFO) << '\n' << *h2_response;
                     }
                     if (span) {
                         span->set_response_size(h2_response->EstimatedByteSize());
@@ -901,11 +901,11 @@ namespace melon::rpc {
                     rc = socket->Write(h2_response, &wopt);
                 }
             } else {
-                melon::cord_buf *content = nullptr;
+                turbo::cord_buf *content = nullptr;
                 if (cntl->Failed() || !cntl->has_progressive_writer()) {
                     content = &cntl->response_attachment();
                 }
-                melon::cord_buf res_buf;
+                turbo::cord_buf res_buf;
                 MakeRawHttpResponse(&res_buf, res_header, content);
                 if (FLAGS_http_verbose) {
                     PrintMessage(res_buf, false, !!content);
@@ -919,13 +919,13 @@ namespace melon::rpc {
             if (rc != 0) {
                 // EPIPE is common in pooled connections + backup requests.
                 const int errcode = errno;
-                MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *socket;
+                TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *socket;
                 cntl->SetFailed(errcode, "Fail to write into %s", socket->description().c_str());
                 return;
             }
             if (span) {
                 // TODO: this is not sent
-                span->set_sent_us(melon::get_current_time_micros());
+                span->set_sent_us(turbo::get_current_time_micros());
             }
         }
 
@@ -933,7 +933,7 @@ namespace melon::rpc {
 // put it into `unresolved_path'
         static void FillUnresolvedPath(std::string *unresolved_path,
                                        const std::string &uri_path,
-                                       melon::StringSplitter &splitter) {
+                                       turbo::StringSplitter &splitter) {
             if (unresolved_path == nullptr) {
                 return;
             }
@@ -946,7 +946,7 @@ namespace melon::rpc {
                     uri_path.c_str() + uri_path.size() - splitter.field();
             unresolved_path->reserve(path_len);
             unresolved_path->clear();
-            for (melon::StringSplitter slash_sp(
+            for (turbo::StringSplitter slash_sp(
                     splitter.field(), splitter.field() + path_len, '/');
                  slash_sp != nullptr; ++slash_sp) {
                 if (!unresolved_path->empty()) {
@@ -960,7 +960,7 @@ namespace melon::rpc {
         FindMethodPropertyByURIImpl(const std::string &uri_path, const Server *server,
                                     std::string *unresolved_path) {
             ServerPrivateAccessor wrapper(server);
-            melon::StringSplitter splitter(uri_path.c_str(), '/');
+            turbo::StringSplitter splitter(uri_path.c_str(), '/');
             // Show index page for empty URI
             if (nullptr == splitter) {
                 return wrapper.FindMethodPropertyByFullName(
@@ -1050,7 +1050,7 @@ namespace melon::rpc {
             return nullptr;
         }
 
-        ParseResult ParseHttpMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseHttpMessage(turbo::cord_buf *source, Socket *socket,
                                      bool read_eof, const void * /*arg*/) {
             HttpContext *http_imsg =
                     static_cast<HttpContext *>(socket->parsing_context());
@@ -1067,7 +1067,7 @@ namespace melon::rpc {
                 }
                 http_imsg = new(std::nothrow) HttpContext(socket->is_read_progressive());
                 if (http_imsg == nullptr) {
-                    MELON_LOG(FATAL) << "Fail to new HttpContext";
+                    TURBO_LOG(FATAL) << "Fail to new HttpContext";
                     return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                 }
                 // Parsing http is costly, parsing an incomplete http message from the
@@ -1093,7 +1093,7 @@ namespace melon::rpc {
                     source->pop_front(rc);
                     if (http_imsg->Completed()) {
                         // Already returned the message before, don't return again.
-                        MELON_CHECK_EQ(http_imsg, socket->release_parsing_context());
+                        TURBO_CHECK_EQ(http_imsg, socket->release_parsing_context());
                         // NOTE: calling http_imsg->Destroy() is wrong which can only
                         // be called from ProcessHttpXXX
                         http_imsg->RemoveOneRefForStage2();
@@ -1113,7 +1113,7 @@ namespace melon::rpc {
                 // Normal or stage1 of progressive-read http message.
                 source->pop_front(rc);
                 if (http_imsg->Completed()) {
-                    MELON_CHECK_EQ(http_imsg, socket->release_parsing_context());
+                    TURBO_CHECK_EQ(http_imsg, socket->release_parsing_context());
                     const ParseResult result = MakeMessage(http_imsg);
                     if (socket->is_read_progressive()) {
                         socket->OnProgressiveReadCompleted();
@@ -1153,11 +1153,11 @@ namespace melon::rpc {
                         // by itself.
                         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                     } else if (rc > 0) {
-                        MELON_LOG(ERROR) << "Impossible: Recycled!";
+                        TURBO_LOG(ERROR) << "Impossible: Recycled!";
                         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                     }
                     // Send 400 back.
-                    melon::cord_buf resp;
+                    turbo::cord_buf resp;
                     HttpHeader header;
                     header.set_status_code(HTTP_STATUS_BAD_REQUEST);
                     MakeRawHttpResponse(&resp, &header, nullptr);
@@ -1204,7 +1204,7 @@ namespace melon::rpc {
             if (authorization == nullptr) {
                 return false;
             }
-            melon::end_point user_addr;
+            turbo::end_point user_addr;
             if (!GetUserAddressFromHeader(http_request->header(), &user_addr)) {
                 user_addr = socket->remote_side();
             }
@@ -1223,7 +1223,7 @@ namespace melon::rpc {
                 ::google::protobuf::Closure *done);
 
         void ProcessHttpRequest(InputMessageBase *msg) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<HttpContext> imsg_guard(static_cast<HttpContext *>(msg));
             SocketUniquePtr socket_guard(imsg_guard->ReleaseSocket());
             Socket *socket = socket_guard.get();
@@ -1232,7 +1232,7 @@ namespace melon::rpc {
 
             Controller *cntl = new(std::nothrow) Controller;
             if (nullptr == cntl) {
-                MELON_LOG(FATAL) << "Fail to new Controller";
+                TURBO_LOG(FATAL) << "Fail to new Controller";
                 return;
             }
             HttpResponseSender resp_sender(cntl);
@@ -1247,9 +1247,9 @@ namespace melon::rpc {
             ControllerPrivateAccessor accessor(cntl);
             HttpHeader &req_header = cntl->http_request();
             imsg_guard->header().Swap(req_header);
-            melon::cord_buf &req_body = imsg_guard->body();
+            turbo::cord_buf &req_body = imsg_guard->body();
 
-            melon::end_point user_addr;
+            turbo::end_point user_addr;
             if (!GetUserAddressFromHeader(req_header, &user_addr)) {
                 user_addr = socket->remote_side();
             }
@@ -1274,7 +1274,7 @@ namespace melon::rpc {
                 errno = 0;
                 uint64_t logid = strtoull(log_id_str->c_str(), &logid_end, 10);
                 if (*logid_end || errno) {
-                    MELON_LOG(ERROR) << "Invalid " << common->LOG_ID << '='
+                    TURBO_LOG(ERROR) << "Invalid " << common->LOG_ID << '='
                                      << *log_id_str << " in http request";
                 } else {
                     cntl->set_log_id(logid);
@@ -1341,7 +1341,7 @@ namespace melon::rpc {
                 google::protobuf::Closure *done = new HttpResponseSenderAsDone(&resp_sender);
                 if (span) {
                     span->ResetServerSpanName(md->full_name());
-                    span->set_start_callback_us(melon::get_current_time_micros());
+                    span->set_start_callback_us(turbo::get_current_time_micros());
                     span->AsParent();
                 }
                 // `cntl', `req' and `res' will be deleted inside `done'
@@ -1362,7 +1362,7 @@ namespace melon::rpc {
             } else if (sp->service->GetDescriptor() == BadMethodService::descriptor()) {
                 BadMethodRequest breq;
                 BadMethodResponse bres;
-                melon::StringSplitter split(path.c_str(), '/');
+                turbo::StringSplitter split(path.c_str(), '/');
                 breq.set_service_name(std::string(split.field(), split.length()));
                 sp->service->CallMethod(sp->method, cntl, &breq, &bres, nullptr);
                 return;
@@ -1388,7 +1388,7 @@ namespace melon::rpc {
             if (!sp->is_builtin_service && !sp->params.is_tabbed) {
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::endpoint2str(socket->remote_side()).c_str());
+                                    turbo::endpoint2str(socket->remote_side()).c_str());
                     return;
                 }
                 if (!server_accessor.AddConcurrency(cntl)) {
@@ -1417,7 +1417,7 @@ namespace melon::rpc {
             resp_sender.own_response(res);
 
             if (__builtin_expect(!req || !res, 0)) {
-                MELON_PLOG(FATAL) << "Fail to new req or res";
+                TURBO_PLOG(FATAL) << "Fail to new req or res";
                 cntl->SetFailed("Fail to new req or res");
                 return;
             }
@@ -1460,7 +1460,7 @@ namespace melon::rpc {
                                     ConvertGrpcTimeoutToUS(req_header.GetHeader(common->GRPC_TIMEOUT));
                             if (timeout_value_us >= 0) {
                                 accessor.set_deadline_us(
-                                        melon::get_current_time_micros() + timeout_value_us);
+                                        turbo::get_current_time_micros() + timeout_value_us);
                             }
                         }
                     } else {
@@ -1469,7 +1469,7 @@ namespace melon::rpc {
                     if (encoding != nullptr && *encoding == common->GZIP) {
                         TRACEPRINTF("Decompressing request=%lu",
                                     (unsigned long) req_body.size());
-                        melon::cord_buf uncompressed;
+                        turbo::cord_buf uncompressed;
                         if (!policy::GzipDecompress(req_body, &uncompressed)) {
                             cntl->SetFailed(EREQUEST, "Fail to un-gzip request body");
                             return;
@@ -1489,7 +1489,7 @@ namespace melon::rpc {
                             return;
                         }
                     } else {
-                        melon::cord_buf_as_zero_copy_input_stream wrapper(req_body);
+                        turbo::cord_buf_as_zero_copy_input_stream wrapper(req_body);
                         std::string err;
                         json2pb::Json2PbOptions options;
                         options.base64_to_bytes = sp->params.pb_bytes_to_base64;
@@ -1507,7 +1507,7 @@ namespace melon::rpc {
                     sample->meta.set_protocol_type(PROTOCOL_HTTP);
                     sample->meta.set_attachment_size(req_body.size());
 
-                    melon::end_point ep;
+                    turbo::end_point ep;
                     MakeRawHttpRequest(&sample->request, &req_header, ep, &req_body);
                     sample->submit(start_parse_us);
                 }
@@ -1520,7 +1520,7 @@ namespace melon::rpc {
             imsg_guard.reset();  // optional, just release resourse ASAP
 
             if (span) {
-                span->set_start_callback_us(melon::get_current_time_micros());
+                span->set_start_callback_us(turbo::get_current_time_micros());
                 span->AsParent();
             }
             if (!FLAGS_usercode_in_pthread) {
@@ -1534,12 +1534,12 @@ namespace melon::rpc {
             }
         }
 
-        bool ParseHttpServerAddress(melon::end_point *point, const char *server_addr_and_port) {
+        bool ParseHttpServerAddress(turbo::end_point *point, const char *server_addr_and_port) {
             std::string scheme;
             std::string host;
             int port = -1;
             if (ParseURL(server_addr_and_port, &scheme, &host, &port) != 0) {
-                MELON_LOG(ERROR) << "Invalid address=`" << server_addr_and_port << '\'';
+                TURBO_LOG(ERROR) << "Invalid address=`" << server_addr_and_port << '\'';
                 return false;
             }
             if (scheme.empty() || scheme == "http") {
@@ -1551,12 +1551,12 @@ namespace melon::rpc {
                     port = 443;
                 }
             } else {
-                MELON_LOG(ERROR) << "Invalid scheme=`" << scheme << '\'';
+                TURBO_LOG(ERROR) << "Invalid scheme=`" << scheme << '\'';
                 return false;
             }
             if (str2endpoint(host.c_str(), port, point) != 0 &&
                 hostname2endpoint(host.c_str(), port, point) != 0) {
-                MELON_LOG(ERROR) << "Invalid host=" << host << " port=" << port;
+                TURBO_LOG(ERROR) << "Invalid host=" << host << " port=" << port;
                 return false;
             }
             return true;

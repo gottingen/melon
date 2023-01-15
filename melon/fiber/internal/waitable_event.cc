@@ -1,15 +1,15 @@
 
-#include "melon/base/static_atomic.h"                // std::atomic
-#include "melon/base/scoped_lock.h"              // MELON_SCOPED_LOCK
-#include "melon/base/profile.h"
-#include "melon/container/linked_list.h"   // link_node
+#include "turbo/base/static_atomic.h"                // std::atomic
+#include "turbo/base/scoped_lock.h"              // TURBO_SCOPED_LOCK
+#include "turbo/base/profile.h"
+#include "turbo/container/linked_list.h"   // link_node
 
 #ifdef SHOW_FIBER_EVENT_WAITER_COUNT_IN_VARS
-#include "melon/base/singleton_on_pthread_once.h"
+#include "turbo/base/singleton_on_pthread_once.h"
 #endif
 
-#include "melon/log/logging.h"
-#include "melon/memory/object_pool.h"
+#include "turbo/log/logging.h"
+#include "turbo/memory/object_pool.h"
 #include "melon/fiber/internal/errno.h"                 // EWOULDBLOCK
 #include "melon/fiber/internal/sys_futex.h"             // futex_*
 #include "melon/fiber/internal/processor.h"             // cpu_relax
@@ -45,7 +45,7 @@ namespace melon::fiber_internal {
         waitable_event_count() : melon::Adder<int64_t>("fiber_waitable_event_count") {}
     };
     inline melon::gauge<int64_t>& get_waitable_event_count() {
-        return *melon::get_leaky_singleton<waitable_event_count>();
+        return *turbo::get_leaky_singleton<waitable_event_count>();
     }
 #endif
 
@@ -64,7 +64,7 @@ namespace melon::fiber_internal {
 
     struct waitable_event;
 
-    struct fiber_mutex_waiter : public melon::container::link_node<fiber_mutex_waiter> {
+    struct fiber_mutex_waiter : public turbo::container::link_node<fiber_mutex_waiter> {
         // tids of pthreads are 0
         fiber_id_t tid;
 
@@ -90,13 +90,13 @@ namespace melon::fiber_internal {
         std::atomic<int> sig;
     };
 
-    typedef melon::container::linked_list<fiber_mutex_waiter> event_waiter_list;
+    typedef turbo::container::linked_list<fiber_mutex_waiter> event_waiter_list;
 
     enum event_pthread_signal {
         PTHREAD_NOT_SIGNALLED, PTHREAD_SIGNALLED
     };
 
-    struct MELON_CACHELINE_ALIGNMENT waitable_event {
+    struct TURBO_CACHELINE_ALIGNMENT waitable_event {
         waitable_event() {}
 
         ~waitable_event() {}
@@ -107,7 +107,7 @@ namespace melon::fiber_internal {
     };
 
     static_assert(offsetof(waitable_event, value) == 0, "offsetof value must be 0");
-    static_assert(sizeof(waitable_event) == MELON_CACHE_LINE_SIZE, "event fits in one cacheline");
+    static_assert(sizeof(waitable_event) == TURBO_CACHE_LINE_SIZE, "event fits in one cacheline");
 
     static void wakeup_pthread(event_pthread_waiter *pw) {
         // release fence makes wait_pthread see changes before wakeup.
@@ -150,7 +150,7 @@ namespace melon::fiber_internal {
         }
     }
 
-    extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
+    extern TURBO_THREAD_LOCAL fiber_worker *tls_task_group;
 
 // Returns 0 when no need to unschedule or successfully unscheduled,
 // -1 otherwise.
@@ -225,7 +225,7 @@ namespace melon::fiber_internal {
 // infrequent, even rare. The extra spurious wakeups should be acceptable.
 
     void *waitable_event_create() {
-        waitable_event *b = melon::get_object<waitable_event>();
+        waitable_event *b = turbo::get_object<waitable_event>();
         if (b) {
             return &b->value;
         }
@@ -237,8 +237,8 @@ namespace melon::fiber_internal {
             return;
         }
         waitable_event *b = static_cast<waitable_event *>(
-                MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(event), waitable_event, value));
-        melon::return_object(b);
+                TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(event), waitable_event, value));
+        turbo::return_object(b);
     }
 
     inline fiber_worker *get_task_group(schedule_group *c) {
@@ -247,10 +247,10 @@ namespace melon::fiber_internal {
     }
 
     int waitable_event_wake(void *arg) {
-        waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
+        waitable_event *b = TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
         fiber_mutex_waiter *front = nullptr;
         {
-            MELON_SCOPED_LOCK(b->waiter_lock);
+            TURBO_SCOPED_LOCK(b->waiter_lock);
             if (b->waiters.empty()) {
                 return 0;
             }
@@ -274,12 +274,12 @@ namespace melon::fiber_internal {
     }
 
     int waitable_event_wake_all(void *arg) {
-        waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
+        waitable_event *b = TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
 
         event_waiter_list fiber_waiters;
         event_waiter_list pthread_waiters;
         {
-            MELON_SCOPED_LOCK(b->waiter_lock);
+            TURBO_SCOPED_LOCK(b->waiter_lock);
             while (!b->waiters.empty()) {
                 fiber_mutex_waiter *bw = b->waiters.head()->value();
                 bw->remove_from_list();
@@ -332,13 +332,13 @@ namespace melon::fiber_internal {
     }
 
     int waitable_event_wake_except(void *arg, fiber_id_t excluded_fiber) {
-        waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
+        waitable_event *b = TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
 
         event_waiter_list fiber_waiters;
         event_waiter_list pthread_waiters;
         {
             fiber_mutex_waiter *excluded_waiter = nullptr;
-            MELON_SCOPED_LOCK(b->waiter_lock);
+            TURBO_SCOPED_LOCK(b->waiter_lock);
             while (!b->waiters.empty()) {
                 fiber_mutex_waiter *bw = b->waiters.head()->value();
                 bw->remove_from_list();
@@ -394,14 +394,14 @@ namespace melon::fiber_internal {
     }
 
     int waitable_event_requeue(void *arg, void *arg2) {
-        waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
-        waitable_event *m = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg2), waitable_event, value);
+        waitable_event *b = TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
+        waitable_event *m = TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(arg2), waitable_event, value);
 
         fiber_mutex_waiter *front = nullptr;
         {
             std::unique_lock<internal::FastPthreadMutex> lck1(b->waiter_lock, std::defer_lock);
             std::unique_lock<internal::FastPthreadMutex> lck2(m->waiter_lock, std::defer_lock);
-            melon::base::double_lock(lck1, lck2);
+            turbo::base::double_lock(lck1, lck2);
             if (b->waiters.empty()) {
                 return 0;
             }
@@ -452,7 +452,7 @@ namespace melon::fiber_internal {
         int saved_errno = errno;
         while ((b = bw->container.load(std::memory_order_acquire))) {
             // b can be nullptr when the waiter is scheduled but queued.
-            MELON_SCOPED_LOCK(b->waiter_lock);
+            TURBO_SCOPED_LOCK(b->waiter_lock);
             if (b == bw->container.load(std::memory_order_relaxed)) {
                 bw->remove_from_list();
                 bw->container.store(nullptr, std::memory_order_relaxed);
@@ -494,7 +494,7 @@ namespace melon::fiber_internal {
         // sequenced by two locks, both threads are guaranteed to see the correct
         // value.
         {
-            MELON_SCOPED_LOCK(b->waiter_lock);
+            TURBO_SCOPED_LOCK(b->waiter_lock);
             if (b->value.load(std::memory_order_relaxed) != bw->expected_value) {
                 bw->waiter_state = WAITER_STATE_UNMATCHEDVALUE;
             } else if (bw->waiter_state == WAITER_STATE_READY/*1*/ &&
@@ -530,13 +530,13 @@ namespace melon::fiber_internal {
         timespec *ptimeout = nullptr;
         timespec timeout;
         if (abstime != nullptr) {
-            const int64_t timeout_us =  melon::time_point::from_timespec(*abstime).to_unix_micros() -
-                                       melon::get_current_time_micros();
+            const int64_t timeout_us =  turbo::time_point::from_timespec(*abstime).to_unix_micros() -
+                                       turbo::get_current_time_micros();
             if (timeout_us < MIN_SLEEP_US) {
                 errno = ETIMEDOUT;
                 return -1;
             }
-            timeout = melon::time_point::from_unix_micros(timeout_us).to_timespec();
+            timeout = turbo::time_point::from_unix_micros(timeout_us).to_timespec();
             ptimeout = &timeout;
         }
 
@@ -593,7 +593,7 @@ namespace melon::fiber_internal {
     }
 
     int waitable_event_wait(void *arg, int expected_value, const timespec *abstime) {
-        waitable_event *b = MELON_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
+        waitable_event *b = TURBO_CONTAINER_OF(static_cast<std::atomic<int> *>(arg), waitable_event, value);
         if (b->value.load(std::memory_order_relaxed) != expected_value) {
             errno = EWOULDBLOCK;
             // Sometimes we may take actions immediately after unmatched event,
@@ -619,8 +619,8 @@ namespace melon::fiber_internal {
         if (abstime != nullptr) {
             // Schedule timer before queueing. If the timer is triggered before
             // queueing, cancel queueing. This is a kind of optimistic locking.
-            if ( melon::time_point::from_timespec(*abstime).to_unix_micros() <
-                (melon::get_current_time_micros() + MIN_SLEEP_US)) {
+            if ( turbo::time_point::from_timespec(*abstime).to_unix_micros() <
+                (turbo::get_current_time_micros() + MIN_SLEEP_US)) {
                 // Already timed out.
                 errno = ETIMEDOUT;
                 return -1;
@@ -679,7 +679,7 @@ namespace melon::fiber_internal {
 
 }  // namespace melon::fiber_internal
 
-namespace melon {
+namespace turbo {
     template<>
     struct ObjectPoolBlockMaxItem<melon::fiber_internal::waitable_event> {
         static const size_t value = 128;

@@ -22,7 +22,7 @@
 #include <map>
 #include <vector>
 #include <unordered_set>
-#include "melon/container/doubly_buffered_data.h"
+#include "turbo/container/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 
 namespace melon::rpc {
@@ -98,7 +98,7 @@ namespace melon::rpc {
                                                   const std::unordered_set<SocketId> &filter,
                                                   TLS &tls);
 
-            melon::container::DoublyBufferedData<Servers, TLS> _db_servers;
+            turbo::container::DoublyBufferedData<Servers, TLS> _db_servers;
         };
 
     }  // namespace policy

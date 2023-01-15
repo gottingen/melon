@@ -18,7 +18,7 @@
 
 #include <limits.h>
 #include <openssl/md5.h>
-#include "melon/hash/murmurhash3.h"
+#include "turbo/hash/murmurhash3.h"
 #include "melon/rpc/policy/hasher.h"
 
 
@@ -58,18 +58,18 @@ namespace melon::rpc {
 
         uint32_t MurmurHash32(const void *key, size_t len) {
             uint32_t hash;
-            melon::hash::MurmurHash3_x86_32(key, (int) len, 0, &hash);
+            turbo::hash::MurmurHash3_x86_32(key, (int) len, 0, &hash);
             return hash;
         }
 
         uint32_t MurmurHash32V(const std::string_view *keys, size_t num_keys) {
-            melon::hash::MurmurHash3_x86_32_Context ctx;
-            melon::hash::MurmurHash3_x86_32_Init(&ctx, 0);
+            turbo::hash::MurmurHash3_x86_32_Context ctx;
+            turbo::hash::MurmurHash3_x86_32_Init(&ctx, 0);
             for (size_t i = 0; i < num_keys; ++i) {
-                melon::hash::MurmurHash3_x86_32_Update(&ctx, keys[i].data(), keys[i].size());
+                turbo::hash::MurmurHash3_x86_32_Update(&ctx, keys[i].data(), keys[i].size());
             }
             uint32_t hash;
-            melon::hash::MurmurHash3_x86_32_Final(&hash, &ctx);
+            turbo::hash::MurmurHash3_x86_32_Final(&hash, &ctx);
             return hash;
         }
 

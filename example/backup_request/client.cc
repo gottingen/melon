@@ -20,8 +20,8 @@
 // and ends the RPC when any response comes back.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     options.max_retry = FLAGS_max_retry;
     options.backup_request_ms = FLAGS_backup_request_ms;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -72,16 +72,16 @@ int main(int argc, char* argv[]) {
         // the response comes back or error occurs(including timedout).
         stub.Echo(&cntl, &request, &response, nullptr);
         if (!cntl.Failed()) {
-            MELON_LOG(INFO) << "Received response[index=" << response.index()
+            TURBO_LOG(INFO) << "Received response[index=" << response.index()
                       << "] from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << " latency=" << cntl.latency_us() << "us";
         } else {
-            MELON_LOG(WARNING) << cntl.ErrorText();
+            TURBO_LOG(WARNING) << cntl.ErrorText();
         }
         sleep(1);
     }
 
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

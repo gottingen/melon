@@ -21,7 +21,7 @@
 
 #include <google/protobuf/message.h>              // Message
 #include <google/protobuf/io/gzip_stream.h>
-#include "melon/io/cord_buf.h"                           // melon::cord_buf
+#include "turbo/io/cord_buf.h"                           // turbo::cord_buf
 
 
 namespace melon::rpc {
@@ -30,23 +30,23 @@ namespace melon::rpc {
         typedef google::protobuf::io::GzipOutputStream::Options GzipCompressOptions;
 
         // Compress serialized `msg' into `buf'.
-        bool GzipCompress(const google::protobuf::Message &msg, melon::cord_buf *buf);
+        bool GzipCompress(const google::protobuf::Message &msg, turbo::cord_buf *buf);
 
-        bool ZlibCompress(const google::protobuf::Message &msg, melon::cord_buf *buf);
+        bool ZlibCompress(const google::protobuf::Message &msg, turbo::cord_buf *buf);
 
         // Parse `msg' from decompressed `buf'.
-        bool GzipDecompress(const melon::cord_buf &buf, google::protobuf::Message *msg);
+        bool GzipDecompress(const turbo::cord_buf &buf, google::protobuf::Message *msg);
 
-        bool ZlibDecompress(const melon::cord_buf &buf, google::protobuf::Message *msg);
+        bool ZlibDecompress(const turbo::cord_buf &buf, google::protobuf::Message *msg);
 
         // Put compressed `in' into `out'.
-        bool GzipCompress(const melon::cord_buf &in, melon::cord_buf *out,
+        bool GzipCompress(const turbo::cord_buf &in, turbo::cord_buf *out,
                                   const GzipCompressOptions *);
 
         // Put decompressed `in' into `out'.
-        bool GzipDecompress(const melon::cord_buf &in, melon::cord_buf *out);
+        bool GzipDecompress(const turbo::cord_buf &in, turbo::cord_buf *out);
 
-        bool ZlibDecompress(const melon::cord_buf &in, melon::cord_buf *out);
+        bool ZlibDecompress(const turbo::cord_buf &in, turbo::cord_buf *out);
 
     }  // namespace policy
 } // namespace melon::rpc

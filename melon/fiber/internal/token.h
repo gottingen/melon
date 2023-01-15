@@ -2,7 +2,7 @@
 #ifndef MELON_FIBER_INTERNAL_TOKEN_H_
 #define MELON_FIBER_INTERNAL_TOKEN_H_
 
-#include "melon/base/profile.h"              // MELON_SYMBOLSTR
+#include "turbo/base/profile.h"              // TURBO_SYMBOLSTR
 #include "melon/fiber/internal/types.h"
 
 __BEGIN_DECLS
@@ -53,7 +53,7 @@ int fiber_token_cancel(fiber_token_t id);
 // If `id' is destroyed, un-called on_error are dropped.
 // Returns 0 on success, error code otherwise.
 #define fiber_token_error(id, err)                                        \
-    fiber_token_error_verbose(id, err, __FILE__ ":" MELON_SYMBOLSTR(__LINE__))
+    fiber_token_error_verbose(id, err, __FILE__ ":" TURBO_SYMBOLSTR(__LINE__))
 
 int fiber_token_error_verbose(fiber_token_t id, int error_code,
                              const char *location);
@@ -76,7 +76,7 @@ int fiber_token_trylock(fiber_token_t id, void **pdata);
 // On success return 0 and set `pdata' with the `data' parameter to
 // fiber_token_create[_ranged], error code otherwise.
 #define fiber_token_lock(id, pdata)                                      \
-    fiber_token_lock_verbose(id, pdata, __FILE__ ":" MELON_SYMBOLSTR(__LINE__))
+    fiber_token_lock_verbose(id, pdata, __FILE__ ":" TURBO_SYMBOLSTR(__LINE__))
 int fiber_token_lock_verbose(fiber_token_t id, void **pdata,
                             const char *location);
 
@@ -85,7 +85,7 @@ int fiber_token_lock_verbose(fiber_token_t id, void **pdata,
 // smaller than the original range of this id, nothing happens about the range
 #define fiber_token_lock_and_reset_range(id, pdata, range)               \
     fiber_token_lock_and_reset_range_verbose(id, pdata, range,           \
-                               __FILE__ ":" MELON_SYMBOLSTR(__LINE__))
+                               __FILE__ ":" TURBO_SYMBOLSTR(__LINE__))
 int fiber_token_lock_and_reset_range_verbose(
         fiber_token_t id, void **pdata,
         int range, const char *location);
@@ -159,7 +159,7 @@ int fiber_token_create2_ranged(
         int range);
 
 #define fiber_token_error2(id, ec, et)                                   \
-    fiber_token_error2_verbose(id, ec, et, __FILE__ ":" MELON_SYMBOLSTR(__LINE__))
+    fiber_token_error2_verbose(id, ec, et, __FILE__ ":" TURBO_SYMBOLSTR(__LINE__))
 
 int fiber_token_error2_verbose(fiber_token_t id, int error_code,
                               const std::string &error_text,

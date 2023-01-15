@@ -19,7 +19,7 @@
 #include <dlfcn.h>                               // dlsym
 #include <cstdlib>                              // getenv
 #include "melon/rpc/details/tcmalloc_extension.h"
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 
 namespace {
 typedef MallocExtension* (*GetInstanceFn)();
@@ -31,7 +31,7 @@ static void InitGetInstanceFn() {
 }
 } // namespace
 
-MallocExtension* MELON_WEAK MallocExtension::instance() {
+MallocExtension* TURBO_WEAK MallocExtension::instance() {
     // On fedora 26, this weak function is NOT overriden by the one in tcmalloc
     // which is dynamically linked.The same issue can't be re-produced in
     // Ubuntu and the exact cause is unknown yet. Using dlsym to get the

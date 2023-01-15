@@ -29,16 +29,16 @@ namespace melon::rpc {
         // Actions to a (server) response in public-pbrpc format.
         void ProcessPublicPbrpcResponse(InputMessageBase *msg);
 
-        void SerializePublicPbrpcRequest(melon::cord_buf *buf, Controller *cntl,
+        void SerializePublicPbrpcRequest(turbo::cord_buf *buf, Controller *cntl,
                                          const google::protobuf::Message *request);
 
         // Pack `request' to `method' into `buf'.
-        void PackPublicPbrpcRequest(melon::cord_buf *buf,
+        void PackPublicPbrpcRequest(turbo::cord_buf *buf,
                                     SocketMessage **,
                                     uint64_t correlation_id,
                                     const google::protobuf::MethodDescriptor *method,
                                     Controller *controller,
-                                    const melon::cord_buf &request,
+                                    const turbo::cord_buf &request,
                                     const Authenticator *auth);
 
         class PublicPbrpcServiceAdaptor : public NsheadPbServiceAdaptor {

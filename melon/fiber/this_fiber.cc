@@ -7,11 +7,11 @@
 
 #include "melon/fiber/this_fiber.h"
 #include "melon/fiber/internal/fiber_worker.h"
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 
 namespace melon::fiber_internal {
-    extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
+    extern TURBO_THREAD_LOCAL fiber_worker *tls_task_group;
 }  // namespace melon::fiber_internal
 
 namespace melon {
@@ -27,7 +27,7 @@ namespace melon {
     }
 
     int fiber_sleep_until(const int64_t &expires_at_us) {
-        int64_t now = melon::get_current_time_micros();
+        int64_t now = turbo::get_current_time_micros();
         int64_t expires_in_us = expires_at_us - now;
         if (expires_in_us > 0) {
             return fiber_sleep_for(expires_in_us);

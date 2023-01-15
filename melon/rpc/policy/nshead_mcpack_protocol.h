@@ -29,16 +29,16 @@ namespace melon::rpc {
         // Actions to a (server) response in nshead+mcpack format.
         void ProcessNsheadMcpackResponse(InputMessageBase *msg);
 
-        void SerializeNsheadMcpackRequest(melon::cord_buf *buf, Controller *cntl,
+        void SerializeNsheadMcpackRequest(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *request);
 
         // Pack `request' to `method' into `buf'.
-        void PackNsheadMcpackRequest(melon::cord_buf *buf,
+        void PackNsheadMcpackRequest(turbo::cord_buf *buf,
                                      SocketMessage **,
                                      uint64_t correlation_id,
                                      const google::protobuf::MethodDescriptor *method,
                                      Controller *controller,
-                                     const melon::cord_buf &request,
+                                     const turbo::cord_buf &request,
                                      const Authenticator *auth);
 
         class NsheadMcpackAdaptor : public NsheadPbServiceAdaptor {

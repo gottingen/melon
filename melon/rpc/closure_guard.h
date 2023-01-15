@@ -20,7 +20,7 @@
 #define MELON_RPC_CLOSURE_GUARD_H_
 
 #include <google/protobuf/service.h>
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 
 
 namespace melon::rpc {
@@ -63,7 +63,7 @@ namespace melon::rpc {
 
     private:
         // Copying this object makes no sense.
-        MELON_DISALLOW_COPY_AND_ASSIGN(ClosureGuard);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(ClosureGuard);
 
         google::protobuf::Closure *_done;
     };

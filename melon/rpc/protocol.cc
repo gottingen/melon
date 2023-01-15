@@ -31,8 +31,8 @@ const uint64_t PB_TOTAL_BYETS_LIMITS =
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/text_format.h>
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/base/singleton_on_pthread_once.h"
+#include "turbo/log/logging.h"
+#include "turbo/base/singleton_on_pthread_once.h"
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/controller.h"
 #include "melon/rpc/compress.h"
@@ -67,7 +67,7 @@ namespace melon::rpc {
     };
 
     inline ProtocolEntry *get_protocol_map() {
-        return melon::get_leaky_singleton<ProtocolMap>()->entries;
+        return turbo::get_leaky_singleton<ProtocolMap>()->entries;
     }
 
     static pthread_mutex_t s_protocol_map_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -75,18 +75,18 @@ namespace melon::rpc {
     int RegisterProtocol(ProtocolType type, const Protocol &protocol) {
         const size_t index = type;
         if (index >= MAX_PROTOCOL_SIZE) {
-            MELON_LOG(ERROR) << "ProtocolType=" << type << " is out of range";
+            TURBO_LOG(ERROR) << "ProtocolType=" << type << " is out of range";
             return -1;
         }
         if (!protocol.support_client() && !protocol.support_server()) {
-            MELON_LOG(ERROR) << "ProtocolType=" << type
+            TURBO_LOG(ERROR) << "ProtocolType=" << type
                              << " neither supports client nor server";
             return -1;
         }
         ProtocolEntry *const protocol_map = get_protocol_map();
-        MELON_SCOPED_LOCK(s_protocol_map_mutex);
+        TURBO_SCOPED_LOCK(s_protocol_map_mutex);
         if (protocol_map[index].valid.load(std::memory_order_relaxed)) {
-            MELON_LOG(ERROR) << "ProtocolType=" << type << " was registered";
+            TURBO_LOG(ERROR) << "ProtocolType=" << type << " was registered";
             return -1;
         }
         protocol_map[index].protocol = protocol;
@@ -98,7 +98,7 @@ namespace melon::rpc {
     const Protocol *FindProtocol(ProtocolType type) {
         const size_t index = type;
         if (index >= MAX_PROTOCOL_SIZE) {
-            MELON_LOG(ERROR) << "ProtocolType=" << type << " is out of range";
+            TURBO_LOG(ERROR) << "ProtocolType=" << type << " is out of range";
             return nullptr;
         }
         ProtocolEntry *const protocol_map = get_protocol_map();
@@ -128,7 +128,7 @@ namespace melon::rpc {
         }
     }
 
-    void SerializeRequestDefault(melon::cord_buf *buf,
+    void SerializeRequestDefault(turbo::cord_buf *buf,
                                  Controller *cntl,
                                  const google::protobuf::Message *request) {
         // Check sanity of request.
@@ -186,7 +186,7 @@ namespace melon::rpc {
                     err << ' ' << protocol_map[i].protocol.name;
                 }
             }
-            MELON_LOG(ERROR) << err.str();
+            TURBO_LOG(ERROR) << err.str();
         }
         return PROTOCOL_UNKNOWN;
     }
@@ -202,7 +202,7 @@ namespace melon::rpc {
         return "unknown";
     }
 
-    MELON_FORCE_INLINE bool ParsePbFromZeroCopyStreamInlined(
+    TURBO_FORCE_INLINE bool ParsePbFromZeroCopyStreamInlined(
             google::protobuf::Message *msg,
             google::protobuf::io::ZeroCopyInputStream *input) {
         google::protobuf::io::CodedInputStream decoder(input);
@@ -215,7 +215,7 @@ namespace melon::rpc {
         return msg->ParseFromCodedStream(&decoder) && decoder.ConsumedEntireMessage();
     }
 
-    MELON_FORCE_INLINE bool ParsePbTextFromZeroCopyStreamInlined(
+    TURBO_FORCE_INLINE bool ParsePbTextFromZeroCopyStreamInlined(
             google::protobuf::Message *msg,
             google::protobuf::io::ZeroCopyInputStream *input) {
         return google::protobuf::TextFormat::Parse(input, msg);
@@ -227,13 +227,13 @@ namespace melon::rpc {
         return ParsePbFromZeroCopyStreamInlined(msg, input);
     }
 
-    bool ParsePbTextFromCordBuf(google::protobuf::Message* msg, const melon::cord_buf& buf) {
-        melon::cord_buf_as_zero_copy_input_stream stream(buf);
+    bool ParsePbTextFromCordBuf(google::protobuf::Message* msg, const turbo::cord_buf& buf) {
+        turbo::cord_buf_as_zero_copy_input_stream stream(buf);
         return ParsePbTextFromZeroCopyStreamInlined(msg, &stream);
     }
 
-    bool ParsePbFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf) {
-        melon::cord_buf_as_zero_copy_input_stream stream(buf);
+    bool ParsePbFromCordBuf(google::protobuf::Message *msg, const turbo::cord_buf &buf) {
+        turbo::cord_buf_as_zero_copy_input_stream stream(buf);
         return ParsePbFromZeroCopyStreamInlined(msg, &stream);
     }
 
@@ -254,10 +254,10 @@ namespace melon::rpc {
         }
         if (FLAGS_log_error_text && c->ErrorCode()) {
             if (c->ErrorCode() == ECLOSE) {
-                MELON_LOG(WARNING) << "Close connection to " << c->remote_side()
+                TURBO_LOG(WARNING) << "Close connection to " << c->remote_side()
                                    << ": " << c->ErrorText();
             } else {
-                MELON_LOG(WARNING) << "Error to " << c->remote_side()
+                TURBO_LOG(WARNING) << "Error to " << c->remote_side()
                                    << ": " << c->ErrorText();
             }
         }

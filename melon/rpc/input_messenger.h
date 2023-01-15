@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_INPUT_MESSENGER_H_
 #define MELON_RPC_INPUT_MESSENGER_H_
 
-#include "melon/io/cord_buf.h"                    // melon::cord_buf
+#include "turbo/io/cord_buf.h"                    // turbo::cord_buf
 #include "melon/rpc/socket.h"              // SocketId, SocketUser
 #include "melon/rpc/parse_result.h"        // ParseResult
 #include "melon/rpc/input_message_base.h"  // InputMessageBase
@@ -41,7 +41,7 @@ namespace melon::rpc {
         //     from `source' before returning.
         //  MakeMessage(InputMessageBase*):
         //     The message is parsed successfully and cut from `source'.
-        typedef ParseResult (*Parse)(melon::cord_buf *source, Socket *socket,
+        typedef ParseResult (*Parse)(turbo::cord_buf *source, Socket *socket,
                                      bool read_eof, const void *arg);
 
         Parse parse;
@@ -85,7 +85,7 @@ namespace melon::rpc {
         int AddHandler(const InputMessageHandler &handler);
 
         // [thread-safe] Create a socket to process input messages.
-        int Create(const melon::end_point &remote_side,
+        int Create(const turbo::end_point &remote_side,
                    time_t health_check_interval_s,
                    SocketId *id);
 
@@ -129,7 +129,7 @@ namespace melon::rpc {
     };
 
     // Get the global InputMessenger at client-side.
-    MELON_FORCE_INLINE InputMessenger *get_client_side_messenger() {
+    TURBO_FORCE_INLINE InputMessenger *get_client_side_messenger() {
         extern InputMessenger *g_messenger;
         return g_messenger;
     }

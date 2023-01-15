@@ -17,10 +17,10 @@
 
 
 #include <gflags/gflags.h>                            // DEFINE_int32
-#include "melon/base/compat.h"
-#include "melon/base/fd_utility.h"                         // make_close_on_exec
-#include "melon/log/logging.h"                            // MELON_LOG
-#include "melon/hash/murmurhash3.h"// fmix32
+#include "turbo/base/compat.h"
+#include "turbo/base/fd_utility.h"                         // make_close_on_exec
+#include "turbo/log/logging.h"                            // TURBO_LOG
+#include "turbo/hash/murmurhash3.h"// fmix32
 #include "melon/fiber/internal/fiber.h"                          // fiber_start_background
 #include "melon/rpc/event_dispatcher.h"
 
@@ -30,7 +30,7 @@
 
 #include "melon/rpc/reloadable_flags.h"
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
 
 #include <sys/types.h>
 #include <sys/event.h>
@@ -47,27 +47,27 @@ namespace melon::rpc {
 
     EventDispatcher::EventDispatcher()
             : _epfd(-1), _stop(false), _tid(0), _consumer_thread_attr(FIBER_ATTR_NORMAL) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         _epfd = epoll_create(1024 * 1024);
         if (_epfd < 0) {
-            MELON_PLOG(FATAL) << "Fail to create epoll";
+            TURBO_PLOG(FATAL) << "Fail to create epoll";
             return;
         }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         _epfd = kqueue();
         if (_epfd < 0) {
-            MELON_PLOG(FATAL) << "Fail to create kqueue";
+            TURBO_PLOG(FATAL) << "Fail to create kqueue";
             return;
         }
 #else
 #error Not implemented
 #endif
-        MELON_CHECK_EQ(0, melon::base::make_close_on_exec(_epfd));
+        TURBO_CHECK_EQ(0, turbo::base::make_close_on_exec(_epfd));
 
         _wakeup_fds[0] = -1;
         _wakeup_fds[1] = -1;
         if (pipe(_wakeup_fds) != 0) {
-            MELON_PLOG(FATAL) << "Fail to create pipe";
+            TURBO_PLOG(FATAL) << "Fail to create pipe";
             return;
         }
     }
@@ -87,16 +87,16 @@ namespace melon::rpc {
 
     int EventDispatcher::Start(const fiber_attribute *consumer_thread_attr) {
         if (_epfd < 0) {
-#if defined(MELON_PLATFORM_LINUX)
-            MELON_LOG(FATAL) << "epoll was not created";
-#elif defined(MELON_PLATFORM_OSX)
-            MELON_LOG(FATAL) << "kqueue was not created";
+#if defined(TURBO_PLATFORM_LINUX)
+            TURBO_LOG(FATAL) << "epoll was not created";
+#elif defined(TURBO_PLATFORM_OSX)
+            TURBO_LOG(FATAL) << "kqueue was not created";
 #endif
             return -1;
         }
 
         if (_tid != 0) {
-            MELON_LOG(FATAL) << "Already started this dispatcher(" << this
+            TURBO_LOG(FATAL) << "Already started this dispatcher(" << this
                        << ") in fiber=" << _tid;
             return -1;
         }
@@ -118,7 +118,7 @@ namespace melon::rpc {
         int rc = fiber_start_background(
                 &_tid, &_epoll_thread_attr, RunThis, this);
         if (rc) {
-            MELON_LOG(FATAL) << "Fail to create epoll/kqueue thread: " << melon_error(rc);
+            TURBO_LOG(FATAL) << "Fail to create epoll/kqueue thread: " << turbo_error(rc);
             return -1;
         }
         return 0;
@@ -132,10 +132,10 @@ namespace melon::rpc {
         _stop = true;
 
         if (_epfd >= 0) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             epoll_event evt = { EPOLLOUT,  { nullptr } };
             epoll_ctl(_epfd, EPOLL_CTL_ADD, _wakeup_fds[1], &evt);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             struct kevent kqueue_event;
             EV_SET(&kqueue_event, _wakeup_fds[1], EVFILT_WRITE, EV_ADD | EV_ENABLE,
                    0, 0, nullptr);
@@ -157,7 +157,7 @@ namespace melon::rpc {
             return -1;
         }
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         epoll_event evt;
         evt.data.u64 = socket_id;
         evt.events = EPOLLOUT | EPOLLET;
@@ -176,7 +176,7 @@ namespace melon::rpc {
                 return -1;
             }
         }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         struct kevent evt;
         //TODO(zhujiashun): add EV_EOF
         EV_SET(&evt, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_CLEAR,
@@ -197,7 +197,7 @@ namespace melon::rpc {
 
     int EventDispatcher::RemoveEpollOut(SocketId socket_id,
                                         int fd, bool pollin) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         if (pollin) {
             epoll_event evt;
             evt.data.u64 = socket_id;
@@ -209,7 +209,7 @@ namespace melon::rpc {
         } else {
             return epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr);
         }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         struct kevent evt;
         EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
         if (kevent(_epfd, &evt, 1, nullptr, 0, nullptr) < 0) {
@@ -230,7 +230,7 @@ namespace melon::rpc {
             errno = EINVAL;
             return -1;
         }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         epoll_event evt;
         evt.events = EPOLLIN | EPOLLET;
         evt.data.u64 = socket_id;
@@ -238,7 +238,7 @@ namespace melon::rpc {
         evt.events |= has_epollrdhup;
 #endif
         return epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &evt);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         struct kevent evt;
         EV_SET(&evt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR,
                0, 0, (void *) socket_id);
@@ -258,12 +258,12 @@ namespace melon::rpc {
         // from epoll again! If the fd was level-triggered and there's data left,
         // epoll_wait will keep returning events of the fd continuously, making
         // program abnormal.
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr) < 0) {
-            MELON_PLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
+            TURBO_PLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
             return -1;
         }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         struct kevent evt;
         EV_SET(&evt, fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
         kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
@@ -280,20 +280,20 @@ namespace melon::rpc {
 
     void EventDispatcher::Run() {
         while (!_stop) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             epoll_event e[32];
 #ifdef MELON_RPC_ADDITIONAL_EPOLL
             // Performance downgrades in examples.
-            int n = epoll_wait(_epfd, e, MELON_ARRAY_SIZE(e), 0);
+            int n = epoll_wait(_epfd, e, TURBO_ARRAY_SIZE(e), 0);
             if (n == 0) {
-                n = epoll_wait(_epfd, e, MELON_ARRAY_SIZE(e), -1);
+                n = epoll_wait(_epfd, e, TURBO_ARRAY_SIZE(e), -1);
             }
 #else
-            const int n = epoll_wait(_epfd, e, MELON_ARRAY_SIZE(e), -1);
+            const int n = epoll_wait(_epfd, e, TURBO_ARRAY_SIZE(e), -1);
 #endif
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             struct kevent e[32];
-            int n = kevent(_epfd, nullptr, 0, e, MELON_ARRAY_SIZE(e), nullptr);
+            int n = kevent(_epfd, nullptr, 0, e, TURBO_ARRAY_SIZE(e), nullptr);
 #endif
             if (_stop) {
                 // epoll_ctl/epoll_wait should have some sort of memory fencing
@@ -306,15 +306,15 @@ namespace melon::rpc {
                     // We've checked _stop, no wake-up will be missed.
                     continue;
                 }
-#if defined(MELON_PLATFORM_LINUX)
-                    MELON_PLOG(FATAL) << "Fail to epoll_wait epfd=" << _epfd;
-#elif defined(MELON_PLATFORM_OSX)
-                MELON_PLOG(FATAL) << "Fail to kqueue epfd=" << _epfd;
+#if defined(TURBO_PLATFORM_LINUX)
+                    TURBO_PLOG(FATAL) << "Fail to epoll_wait epfd=" << _epfd;
+#elif defined(TURBO_PLATFORM_OSX)
+                TURBO_PLOG(FATAL) << "Fail to kqueue epfd=" << _epfd;
 #endif
                 break;
             }
             for (int i = 0; i < n; ++i) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                 if (e[i].events & (EPOLLIN | EPOLLERR | EPOLLHUP)
 #ifdef MELON_RPC_SOCKET_HAS_EOF
                     || (e[i].events & has_epollrdhup)
@@ -324,7 +324,7 @@ namespace melon::rpc {
                     Socket::StartInputEvent(e[i].data.u64, e[i].events,
                                             _consumer_thread_attr);
                 }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
                 if ((e[i].flags & EV_ERROR) || e[i].filter == EVFILT_READ) {
                     // We don't care about the return value.
                     Socket::StartInputEvent((SocketId) e[i].udata, e[i].filter,
@@ -333,12 +333,12 @@ namespace melon::rpc {
 #endif
             }
             for (int i = 0; i < n; ++i) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                 if (e[i].events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) {
                     // We don't care about the return value.
                     Socket::HandleEpollOut(e[i].data.u64);
                 }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
                 if ((e[i].flags & EV_ERROR) || e[i].filter == EVFILT_WRITE) {
                     // We don't care about the return value.
                     Socket::HandleEpollOut((SocketId) e[i].udata);
@@ -363,11 +363,11 @@ namespace melon::rpc {
         for (int i = 0; i < FLAGS_event_dispatcher_num; ++i) {
             const fiber_attribute attr = FLAGS_usercode_in_pthread ?
                                         FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
-            MELON_CHECK_EQ(0, g_edisp[i].Start(&attr));
+            TURBO_CHECK_EQ(0, g_edisp[i].Start(&attr));
         }
         // This atexit is will be run before g_task_control.stop() because above
         // Start() initializes g_task_control by creating fiber (to run epoll/kqueue).
-        MELON_CHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
+        TURBO_CHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
     }
 
     EventDispatcher &GetGlobalEventDispatcher(int fd) {
@@ -375,7 +375,7 @@ namespace melon::rpc {
         if (FLAGS_event_dispatcher_num == 1) {
             return g_edisp[0];
         }
-        int index = melon::hash::fmix32(fd) % FLAGS_event_dispatcher_num;
+        int index = turbo::hash::fmix32(fd) % FLAGS_event_dispatcher_num;
         return g_edisp[index];
     }
 

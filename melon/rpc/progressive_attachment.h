@@ -21,9 +21,9 @@
 
 #include <mutex>
 #include "melon/rpc/callback.h"
-#include "melon/base/static_atomic.h"
-#include "melon/io/cord_buf.h"
-#include "melon/base/endpoint.h"       // melon::end_point
+#include "turbo/base/static_atomic.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/base/endpoint.h"       // turbo::end_point
 #include "melon/fiber/internal/types.h"        // fiber_token_t
 #include "melon/rpc/socket_id.h"       // SocketUniquePtr
 #include "melon/rpc/shared_object.h"   // SharedObject
@@ -38,14 +38,14 @@ namespace melon::rpc {
         // Write `data' as one HTTP chunk to peer ASAP.
         // Returns 0 on success, -1 otherwise and errno is set.
         // Errnos are same as what Socket.Write may set.
-        int Write(const melon::cord_buf &data);
+        int Write(const turbo::cord_buf &data);
 
         int Write(const void *data, size_t n);
 
         // Get ip/port of peer/self.
-        melon::end_point remote_side() const;
+        turbo::end_point remote_side() const;
 
-        melon::end_point local_side() const;
+        turbo::end_point local_side() const;
 
         // [Not thread-safe and can only be called once]
         // Run the callback when the underlying connection is broken (thus
@@ -73,7 +73,7 @@ namespace melon::rpc {
         std::atomic<int> _rpc_state;
         std::mutex _mutex;
         SocketUniquePtr _httpsock;
-        melon::cord_buf _saved_buf;
+        turbo::cord_buf _saved_buf;
         fiber_token_t _notify_id;
 
     private:

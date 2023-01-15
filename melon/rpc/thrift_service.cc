@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/base/class_name.h"
+#include "turbo/base/class_name.h"
 #include "melon/rpc/thrift_service.h"
 #include "melon/rpc/details/method_status.h"
 
@@ -24,7 +24,7 @@ namespace melon::rpc {
 
     ThriftService::ThriftService() {
         _status = new(std::nothrow) MethodStatus;
-        MELON_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
+        TURBO_LOG_IF(FATAL, _status == nullptr) << "Fail to new MethodStatus";
     }
 
     ThriftService::~ThriftService() {
@@ -33,7 +33,7 @@ namespace melon::rpc {
     }
 
     void ThriftService::Describe(std::ostream &os, const DescribeOptions &) const {
-        os << melon::base::class_name_str(*this);
+        os << turbo::base::class_name_str(*this);
     }
 
     void ThriftService::Expose(const std::string_view &prefix) {
@@ -41,7 +41,7 @@ namespace melon::rpc {
             return;
         }
         std::string s;
-        const std::string &cached_name = melon::base::class_name_str(*this);
+        const std::string &cached_name = turbo::base::class_name_str(*this);
         s.reserve(prefix.size() + 1 + cached_name.size());
         s.append(prefix.data(), prefix.size());
         s.push_back('_');

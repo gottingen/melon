@@ -24,9 +24,9 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
-#include "melon/files/temp_file.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/files/temp_file.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -41,7 +41,7 @@
 #include "melon/rpc/controller.h"
 #include "echo.pb.h"
 #include "melon/rpc/options.pb.h"
-#include "melon/strings/ends_with.h"
+#include "turbo/strings/ends_with.h"
 #include "melon/fiber/this_fiber.h"
 
 namespace melon::rpc {
@@ -81,7 +81,7 @@ namespace {
 
         ~DeleteOnlyOnceChannel() {
             if (_c.fetch_sub(1) != 1) {
-                MELON_LOG(ERROR) << "Delete more than once!";
+                TURBO_LOG(ERROR) << "Delete more than once!";
                 abort();
             }
         }
@@ -104,7 +104,7 @@ namespace {
         }
 
         int VerifyCredential(const std::string &,
-                             const melon::end_point &,
+                             const turbo::end_point &,
                              melon::rpc::AuthContext *ctx) const {
             ctx->set_user(MOCK_CONTEXT);
             ctx->set_group(MOCK_CONTEXT);
@@ -123,7 +123,7 @@ namespace {
         melon::rpc::Socket *ptr = msg->socket();
 
         melon::rpc::policy::RpcMeta meta;
-        melon::cord_buf_as_zero_copy_input_stream wrapper(msg->meta);
+        turbo::cord_buf_as_zero_copy_input_stream wrapper(msg->meta);
         EXPECT_TRUE(meta.ParseFromZeroCopyStream(&wrapper));
 
         if (meta.has_authentication_data()) {
@@ -132,7 +132,7 @@ namespace {
             EXPECT_EQ(meta.authentication_data(), MOCK_CREDENTIAL);
             MyAuthenticator authenticator;
             return authenticator.VerifyCredential(
-                    "", melon::end_point(), ptr->mutable_auth_context()) == 0;
+                    "", turbo::end_point(), ptr->mutable_auth_context()) == 0;
         }
         return true;
     }
@@ -151,12 +151,12 @@ namespace {
                 return;
             }
             if (req->close_fd()) {
-                MELON_LOG(INFO) << "close fd...";
+                TURBO_LOG(INFO) << "close fd...";
                 cntl->CloseConnection("Close connection according to request");
                 return;
             }
             if (req->sleep_us() > 0) {
-                MELON_LOG(INFO) << "sleep " << req->sleep_us() << "us...";
+                TURBO_LOG(INFO) << "sleep " << req->sleep_us() << "us...";
                 melon::fiber_sleep_for(req->sleep_us());
             }
             res->set_message("received " + req->message());
@@ -173,7 +173,7 @@ namespace {
     protected:
 
         ChannelTest()
-                : _ep(melon::IP_ANY, 8787), _close_fd_once(false) {
+                : _ep(turbo::IP_ANY, 8787), _close_fd_once(false) {
             pthread_once(&register_mock_protocol, register_protocol);
             const melon::rpc::InputMessageHandler pairs[] = {
                     {melon::rpc::policy::ParseRpcMessage,
@@ -181,7 +181,7 @@ namespace {
             };
             EXPECT_EQ(0, _messenger.AddHandler(pairs[0]));
 
-            EXPECT_EQ(0, _server_list.save(melon::endpoint2str(_ep).c_str()));
+            EXPECT_EQ(0, _server_list.save(turbo::endpoint2str(_ep).c_str()));
             _naming_url = std::string("File://") + _server_list.fname();
         };
 
@@ -225,7 +225,7 @@ namespace {
             }
 
             melon::rpc::policy::RpcMeta meta;
-            melon::cord_buf_as_zero_copy_input_stream wrapper(msg->meta);
+            turbo::cord_buf_as_zero_copy_input_stream wrapper(msg->meta);
             EXPECT_TRUE(meta.ParseFromZeroCopyStream(&wrapper));
             const melon::rpc::policy::RpcRequestMeta &req_meta = meta.request();
             ASSERT_EQ(ts->_svc.descriptor()->full_name(), req_meta.service_name());
@@ -234,12 +234,12 @@ namespace {
             google::protobuf::Message *req =
                     ts->_svc.GetRequestPrototype(method).New();
             if (meta.attachment_size() != 0) {
-                melon::cord_buf req_buf;
+                turbo::cord_buf req_buf;
                 msg->payload.cutn(&req_buf, msg->payload.size() - meta.attachment_size());
-                melon::cord_buf_as_zero_copy_input_stream wrapper2(req_buf);
+                turbo::cord_buf_as_zero_copy_input_stream wrapper2(req_buf);
                 EXPECT_TRUE(req->ParseFromZeroCopyStream(&wrapper2));
             } else {
-                melon::cord_buf_as_zero_copy_input_stream wrapper2(msg->payload);
+                turbo::cord_buf_as_zero_copy_input_stream wrapper2(msg->payload);
                 EXPECT_TRUE(req->ParseFromZeroCopyStream(&wrapper2));
             }
             melon::rpc::Controller *cntl = new melon::rpc::Controller();
@@ -262,7 +262,7 @@ namespace {
             ts->_svc.CallMethod(method, cntl, req, res, done);
         }
 
-        int StartAccept(melon::end_point ep) {
+        int StartAccept(turbo::end_point ep) {
             int listening_fd = -1;
             while ((listening_fd = tcp_listen(ep)) < 0) {
                 if (errno == EADDRINUSE) {
@@ -383,7 +383,7 @@ namespace {
 
             EXPECT_TRUE(melon::rpc::ETOOMANYFAILS == cntl.ErrorCode() ||
                         ECONNREFUSED == cntl.ErrorCode()) << cntl.ErrorText();
-            MELON_LOG(INFO) << cntl.ErrorText();
+            TURBO_LOG(INFO) << cntl.ErrorText();
         }
 
         void TestConnectionFailedSelective(bool single_server, bool async,
@@ -413,7 +413,7 @@ namespace {
             ASSERT_EQ(1, cntl.sub_count());
             EXPECT_EQ(ECONNREFUSED, cntl.sub(0)->ErrorCode())
                                 << cntl.sub(0)->ErrorText();
-            MELON_LOG(INFO) << cntl.ErrorText();
+            TURBO_LOG(INFO) << cntl.ErrorText();
         }
 
         void TestSuccess(bool single_server, bool async, bool short_connection) {
@@ -441,9 +441,9 @@ namespace {
             EXPECT_EQ("received " + std::string(__FUNCTION__), res.message());
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -583,9 +583,9 @@ namespace {
             }
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -635,9 +635,9 @@ namespace {
             }
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -679,9 +679,9 @@ namespace {
 
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -728,9 +728,9 @@ namespace {
             }
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -763,7 +763,7 @@ namespace {
 
             for (size_t i = 0; i < NCHANS; ++i) {
                 ::test::EchoRequest *sub_req = req.add_requests();
-                sub_req->set_message(melon::string_printf("hello_%llu", (long long) i));
+                sub_req->set_message(turbo::string_printf("hello_%llu", (long long) i));
                 sub_req->set_code(i + 1);
             }
 
@@ -772,7 +772,7 @@ namespace {
             CallMethod(&subchans[0], &cntl, &req, &res, false);
             ASSERT_TRUE(cntl.Failed());
             ASSERT_EQ(melon::rpc::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
-            ASSERT_TRUE(melon::ends_with(cntl.ErrorText(), "Method ComboEcho() not implemented."));
+            ASSERT_TRUE(turbo::ends_with(cntl.ErrorText(), "Method ComboEcho() not implemented."));
 
             // do the rpc call.
             cntl.Reset();
@@ -782,16 +782,16 @@ namespace {
             ASSERT_GT(cntl.latency_us(), 0);
             ASSERT_EQ((int) NCHANS, res.responses_size());
             for (int i = 0; i < res.responses_size(); ++i) {
-                EXPECT_EQ(melon::string_printf("received hello_%d", i),
+                EXPECT_EQ(turbo::string_printf("received hello_%d", i),
                           res.responses(i).message());
                 ASSERT_EQ(1, res.responses(i).code_list_size());
                 EXPECT_EQ(i + 1, res.responses(i).code_list(0));
             }
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -810,7 +810,7 @@ namespace {
             if (arg->sleep_before_cancel_us > 0) {
                 melon::fiber_sleep_for(arg->sleep_before_cancel_us);
             }
-            MELON_LOG(INFO) << "Start to cancel cid=" << arg->cid.value;
+            TURBO_LOG(INFO) << "Start to cancel cid=" << arg->cid.value;
             melon::rpc::StartCancel(arg->cid);
             return nullptr;
         }
@@ -920,7 +920,7 @@ namespace {
             CancelerArg carg = {10000, cid};
             ASSERT_EQ(0, pthread_create(&th, nullptr, Canceler, &carg));
             req.set_sleep_us(carg.sleep_before_cancel_us * 2);
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -961,7 +961,7 @@ namespace {
             CancelerArg carg = {10000, cid};
             ASSERT_EQ(0, pthread_create(&th, nullptr, Canceler, &carg));
             req.set_sleep_us(carg.sleep_before_cancel_us * 2);
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -1003,7 +1003,7 @@ namespace {
             CancelerArg carg = {10000, cid};
             ASSERT_EQ(0, pthread_create(&th, nullptr, Canceler, &carg));
             req.set_sleep_us(carg.sleep_before_cancel_us * 2);
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -1090,9 +1090,9 @@ namespace {
             EXPECT_EQ("received " + std::string(__FUNCTION__), res.message());
             if (short_connection) {
                 // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -1140,7 +1140,7 @@ namespace {
             test::EchoResponse res;
             CallMethod(&channel, &cntl, &req, &res, async);
             EXPECT_EQ(melon::rpc::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
-            MELON_LOG(WARNING) << cntl.ErrorText();
+            TURBO_LOG(WARNING) << cntl.ErrorText();
             StopAndJoin();
         }
 
@@ -1165,7 +1165,7 @@ namespace {
             test::EchoResponse res;
             CallMethod(&channel, &cntl, &req, &res, async);
             EXPECT_EQ(melon::rpc::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
-            MELON_LOG(WARNING) << cntl.ErrorText();
+            TURBO_LOG(WARNING) << cntl.ErrorText();
             ASSERT_EQ(1, cntl.sub_count());
             ASSERT_EQ(melon::rpc::EREQUEST, cntl.sub(0)->ErrorCode());
             StopAndJoin();
@@ -1185,7 +1185,7 @@ namespace {
             req.set_message(__FUNCTION__);
             req.set_sleep_us(70000); // 70ms
             cntl.set_timeout_ms(17);
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -1217,7 +1217,7 @@ namespace {
             req.set_message(__FUNCTION__);
             cntl.set_timeout_ms(17);
             req.set_sleep_us(70000); // 70ms
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -1266,7 +1266,7 @@ namespace {
             test::EchoResponse res;
             req.set_message(__FUNCTION__);
             cntl.set_timeout_ms(30);
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -1305,7 +1305,7 @@ namespace {
             req.set_message(__FUNCTION__);
             cntl.set_timeout_ms(17);
             req.set_sleep_us(70000); // 70ms
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             CallMethod(&channel, &cntl, &req, &res, async);
             tm.stop();
@@ -1445,7 +1445,7 @@ namespace {
             CallMethod(&channel, &cntl, &req, &res, async);
 
             EXPECT_EQ(melon::rpc::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
-            MELON_LOG(INFO) << cntl.ErrorText();
+            TURBO_LOG(INFO) << cntl.ErrorText();
             StopAndJoin();
         }
 
@@ -1476,7 +1476,7 @@ namespace {
             ASSERT_EQ(1, cntl.sub_count());
             ASSERT_EQ(melon::rpc::EINTERNAL, cntl.sub(0)->ErrorCode());
 
-            MELON_LOG(INFO) << cntl.ErrorText();
+            TURBO_LOG(INFO) << cntl.ErrorText();
             StopAndJoin();
         }
 
@@ -1498,9 +1498,9 @@ namespace {
             EXPECT_EQ(0, cntl.ErrorCode()) << cntl.ErrorText();
             EXPECT_EQ("received " + std::string(__FUNCTION__), res.message());
             // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-            const int64_t start_time = melon::get_current_time_micros();
+            const int64_t start_time = turbo::get_current_time_micros();
             while (_messenger.ConnectionCount() != 0) {
-                EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                 melon::fiber_sleep_for(1000);
             }
 
@@ -1531,9 +1531,9 @@ namespace {
             EXPECT_EQ(0, cntl.ErrorCode()) << cntl.ErrorText();
             EXPECT_EQ("received " + std::string(__FUNCTION__), res.message());
             // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-            const int64_t start_time = melon::get_current_time_micros();
+            const int64_t start_time = turbo::get_current_time_micros();
             while (_messenger.ConnectionCount() != 0) {
-                EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                 melon::fiber_sleep_for(1000);
             }
             StopAndJoin();
@@ -1567,9 +1567,9 @@ namespace {
             ASSERT_EQ(0, cntl.sub(0)->ErrorCode());
 
             // Sleep to let `_messenger' detect `Socket' being `SetFailed'
-            const int64_t start_time = melon::get_current_time_micros();
+            const int64_t start_time = turbo::get_current_time_micros();
             while (_messenger.ConnectionCount() != 0) {
-                EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                 melon::fiber_sleep_for(1000);
             }
             StopAndJoin();
@@ -1764,9 +1764,9 @@ namespace {
                 EXPECT_EQ(0, cntl.ErrorCode()) << cntl.ErrorText();
                 EXPECT_EQ(1, cntl.retried_count());
 
-                const int64_t start_time = melon::get_current_time_micros();
+                const int64_t start_time = turbo::get_current_time_micros();
                 while (_messenger.ConnectionCount() != 0) {
-                    EXPECT_LT(melon::get_current_time_micros(), start_time + 100000L/*100ms*/);
+                    EXPECT_LT(turbo::get_current_time_micros(), start_time + 100000L/*100ms*/);
                     melon::fiber_sleep_for(1000);
                 }
             } else {
@@ -1797,7 +1797,7 @@ namespace {
             if (short_connection) {
                 opt.connection_type = melon::rpc::CONNECTION_TYPE_SHORT;
             }
-            melon::temp_file server_list;
+            turbo::temp_file server_list;
             EXPECT_EQ(0, server_list.save_format(
                     "127.0.0.1:100\n"
                     "127.0.0.1:200\n"
@@ -1818,8 +1818,8 @@ namespace {
             StopAndJoin();
         }
 
-        melon::end_point _ep;
-        melon::temp_file _server_list;
+        turbo::end_point _ep;
+        turbo::temp_file _server_list;
         std::string _naming_url;
 
         melon::rpc::Acceptor _messenger;
@@ -1853,10 +1853,10 @@ namespace {
         {
             MyShared *s1 = new MyShared;
             ASSERT_EQ(0, s1->ref_count());
-            melon::container::intrusive_ptr<MyShared> p1 = s1;
+            turbo::container::intrusive_ptr<MyShared> p1 = s1;
             ASSERT_EQ(1, p1->ref_count());
             {
-                melon::container::intrusive_ptr<MyShared> p2 = s1;
+                turbo::container::intrusive_ptr<MyShared> p2 = s1;
                 ASSERT_EQ(2, p2->ref_count());
                 ASSERT_EQ(2, p1->ref_count());
             }
@@ -1880,7 +1880,7 @@ namespace {
             ASSERT_EQ(0, channel.Init("127.0.0.1", 8888, nullptr));
         }
 
-        melon::end_point ep;
+        turbo::end_point ep;
         melon::rpc::Channel channel;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:8888", &ep));
         ASSERT_EQ(0, channel.Init(ep, nullptr));
@@ -1914,7 +1914,7 @@ namespace {
         melon::rpc::ChannelOptions opt;
         opt.succeed_without_server = false;
         melon::rpc::Channel channel;
-        melon::temp_file server_list;
+        turbo::temp_file server_list;
         ASSERT_EQ(0, server_list.save(""));
         std::string naming_url = std::string("file://") + server_list.fname();
         // empty file list results in error.
@@ -1936,7 +1936,7 @@ namespace {
 
     TEST_F(ChannelTest, init_using_naming_service) {
         melon::rpc::Channel *channel = new melon::rpc::Channel();
-        melon::temp_file server_list;
+        turbo::temp_file server_list;
         ASSERT_EQ(0, server_list.save("127.0.0.1:8888"));
         std::string naming_url = std::string("filE://") + server_list.fname();
         // Rr are intended to test case-insensitivity.
@@ -1963,7 +1963,7 @@ namespace {
 
         // `lb' should be valid even if `channel' has destroyed
         // since we hold another reference to it
-        melon::container::intrusive_ptr<melon::rpc::SharedLoadBalancer>
+        turbo::container::intrusive_ptr<melon::rpc::SharedLoadBalancer>
                 another_ctx = channel->_lb;
         delete channel;
         ASSERT_EQ(lb, another_ctx.get());
@@ -2033,10 +2033,10 @@ namespace {
                 "localhost:1234",
                 "github.com:1234"
         };
-        melon::temp_file tmp_file;
+        turbo::temp_file tmp_file;
         {
             FILE *fp = fopen(tmp_file.fname(), "w");
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
                 ASSERT_TRUE(fprintf(fp, "%s\n", address_list[i]));
             }
             fclose(fp);
@@ -2583,7 +2583,7 @@ namespace {
     }
 
     TEST_F(ChannelTest, sizeof) {
-        MELON_LOG(INFO) << "Size of Channel is " << sizeof(melon::rpc::Channel)
+        TURBO_LOG(INFO) << "Size of Channel is " << sizeof(melon::rpc::Channel)
                   << ", Size of ParallelChannel is " << sizeof(melon::rpc::ParallelChannel)
                   << ", Size of Controller is " << sizeof(melon::rpc::Controller)
                   << ", Size of vector is " << sizeof(std::vector<melon::rpc::Controller>);

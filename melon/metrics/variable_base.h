@@ -8,8 +8,8 @@
 #include <string_view>
 #include <unordered_map>
 #include <gflags/gflags_declare.h>
-#include "melon/base/profile.h"               // MELON_DISALLOW_COPY_AND_ASSIGN
-#include "melon/times/time.h"
+#include "turbo/base/profile.h"               // TURBO_DISALLOW_COPY_AND_ASSIGN
+#include "turbo/times/time.h"
 #include "melon/metrics/cache_metric.h"
 #include "melon/metrics/dumper.h"
 
@@ -174,7 +174,7 @@ namespace melon {
         tag_type _tags;
         // variable uses TLS, thus copying/assignment need to copy TLS stuff as well,
         // which is heavy. We disable copying/assignment now.
-        MELON_DISALLOW_COPY_AND_ASSIGN(variable_base);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(variable_base);
     };
 
     // Make name only use lowercased alphabets / digits / underscores, and append

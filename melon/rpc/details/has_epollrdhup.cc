@@ -16,14 +16,14 @@
 // under the License.
 
 
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
 
 #include <sys/epoll.h>                             // epoll_create
 #include <sys/types.h>                             // socketpair
 #include <sys/socket.h>                            // ^
-#include "melon/base/fd_guard.h"                         // fd_guard
+#include "turbo/base/fd_guard.h"                         // fd_guard
 #include "melon/rpc/details/has_epollrdhup.h"
 
 #ifndef EPOLLRDHUP
@@ -33,11 +33,11 @@
 namespace melon::rpc {
 
     static unsigned int check_epollrdhup() {
-        melon::base::fd_guard epfd(epoll_create(16));
+        turbo::base::fd_guard epfd(epoll_create(16));
         if (epfd < 0) {
             return 0;
         }
-        melon::base::fd_guard fds[2];
+        turbo::base::fd_guard fds[2];
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, (int*)fds) < 0) {
             return 0;
         }
@@ -68,4 +68,4 @@ namespace melon::rpc {
     extern const unsigned int has_epollrdhup = false;
 }
 
-#endif // defined(MELON_PLATFORM_LINUX)
+#endif // defined(TURBO_PLATFORM_LINUX)

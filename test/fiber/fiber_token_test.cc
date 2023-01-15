@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include "testing/gtest_wrap.h"
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/fiber/internal/fiber_worker.h"
 #include "melon/fiber/internal/waitable_event.h"
@@ -66,16 +66,16 @@ namespace {
         ASSERT_EQ(get_version(id1), melon::fiber_internal::token_value(id1));
         ASSERT_EQ(get_version(id1), melon::fiber_internal::token_value(id2));
         pthread_t th[8];
-        SignalArg args[MELON_ARRAY_SIZE(th)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        SignalArg args[TURBO_ARRAY_SIZE(th)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             args[i].sleep_us_before_fight = 0;
             args[i].sleep_us_before_signal = 0;
             args[i].id = (i == 0 ? id1 : id2);
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, signaller, &args[i]));
         }
-        void *ret[MELON_ARRAY_SIZE(th)];
+        void *ret[TURBO_ARRAY_SIZE(th)];
         size_t non_null_ret = 0;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], &ret[i]));
             non_null_ret += (ret[i] != nullptr);
         }
@@ -93,8 +93,8 @@ namespace {
         ASSERT_EQ(0, fiber_token_create(&id1, &x, nullptr));
         ASSERT_EQ(get_version(id1), melon::fiber_internal::token_value(id1));
         pthread_t th[8];
-        SignalArg args[MELON_ARRAY_SIZE(th)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        SignalArg args[TURBO_ARRAY_SIZE(th)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             args[i].sleep_us_before_fight = 10000;
             args[i].sleep_us_before_signal = 0;
             args[i].id = id1;
@@ -104,9 +104,9 @@ namespace {
         ASSERT_EQ(0xdead + 1, x);
         ASSERT_EQ(get_version(id1) + 4, melon::fiber_internal::token_value(id1));
 
-        void *ret[MELON_ARRAY_SIZE(th)];
+        void *ret[TURBO_ARRAY_SIZE(th)];
         size_t non_null_ret = 0;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], &ret[i]));
             non_null_ret += (ret[i] != nullptr);
         }
@@ -215,13 +215,13 @@ namespace {
 
     static void *locker(void *arg) {
         fiber_token_t id = {(uintptr_t) arg};
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         EXPECT_EQ(0, fiber_token_lock(id, nullptr));
         melon::fiber_sleep_for(2000);
         EXPECT_EQ(0, fiber_token_unlock(id));
         tm.stop();
-        MELON_LOG(INFO) << "Unlocked, tm=" << tm.u_elapsed();
+        TURBO_LOG(INFO) << "Unlocked, tm=" << tm.u_elapsed();
         return nullptr;
     }
 
@@ -230,11 +230,11 @@ namespace {
         ASSERT_EQ(0, fiber_token_create(&id1, nullptr, nullptr));
         ASSERT_EQ(get_version(id1), melon::fiber_internal::token_value(id1));
         pthread_t th[8];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, locker,
                                         (void *) id1.value));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
     }
@@ -257,12 +257,12 @@ namespace {
         ASSERT_EQ(0, fiber_token_create(&id1, nullptr, nullptr));
         ASSERT_EQ(get_version(id1), melon::fiber_internal::token_value(id1));
         pthread_t th[8];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, failed_locker,
                                         (void *) id1.value));
         }
         int non_null = 0;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             void *ret = nullptr;
             ASSERT_EQ(0, pthread_join(th[i], &ret));
             non_null += (ret != nullptr);
@@ -276,8 +276,8 @@ namespace {
         ASSERT_EQ(0, fiber_token_create(&id1, &x, nullptr));
         ASSERT_EQ(get_version(id1), melon::fiber_internal::token_value(id1));
         pthread_t th[8];
-        SignalArg args[MELON_ARRAY_SIZE(th)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        SignalArg args[TURBO_ARRAY_SIZE(th)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             args[i].sleep_us_before_fight = 0;
             args[i].sleep_us_before_signal = 20000;
             args[i].id = id1;
@@ -289,9 +289,9 @@ namespace {
         ASSERT_EQ(0xdead + 1, x);
         ASSERT_EQ(get_version(id1) + 4, melon::fiber_internal::token_value(id1));
 
-        void *ret[MELON_ARRAY_SIZE(th)];
+        void *ret[TURBO_ARRAY_SIZE(th)];
         size_t non_null_ret = 0;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], &ret[i]));
             non_null_ret += (ret[i] != nullptr);
         }
@@ -320,23 +320,23 @@ namespace {
         ASSERT_EQ(0, fiber_token_trylock(id1, &data));
         ASSERT_EQ(&x, data);
         fiber_id_t th[8];
-        StoppedWaiterArgs args[MELON_ARRAY_SIZE(th)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        StoppedWaiterArgs args[TURBO_ARRAY_SIZE(th)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             args[i].id = id1;
             args[i].thread_started = false;
             ASSERT_EQ(0, fiber_start_urgent(&th[i], nullptr, stopped_waiter, &args[i]));
         }
         // stop does not wake up fiber_token_join
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             fiber_stop(th[i]);
         }
         melon::fiber_sleep_for(10000);
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_TRUE(melon::fiber_internal::fiber_worker::exists(th[i]));
         }
         // destroy the id to end the joinings.
         ASSERT_EQ(0, fiber_token_unlock_and_destroy(id1));
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, fiber_join(th[i], nullptr));
         }
     }
@@ -359,21 +359,21 @@ namespace {
         fiber_token_list_t list;
         ASSERT_EQ(0, fiber_token_list_init(&list, 32, 32));
         fiber_token_t id[16];
-        int data[MELON_ARRAY_SIZE(id)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(id); ++i) {
+        int data[TURBO_ARRAY_SIZE(id)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(id); ++i) {
             data[i] = i;
             ASSERT_EQ(0, fiber_token_create(&id[i], &data[i], handle_data));
             ASSERT_EQ(get_version(id[i]), melon::fiber_internal::token_value(id[i]));
             ASSERT_EQ(0, fiber_token_list_add(&list, id[i]));
         }
-        pthread_t th[MELON_ARRAY_SIZE(id)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        pthread_t th[TURBO_ARRAY_SIZE(id)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, waiter, (void *) (intptr_t) id[i].value));
         }
         melon::fiber_sleep_for(10000);
         ASSERT_EQ(0, fiber_token_list_reset(&list, EBADF));
 
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ((int) (i + 1), data[i]);
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
             // already reset.
@@ -427,7 +427,7 @@ namespace {
 
     static void *fail_to_lock_id(void *args_in) {
         FailToLockIdArgs *args = (FailToLockIdArgs *) args_in;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         EXPECT_EQ(args->expected_return, fiber_token_lock(args->id, nullptr));
         any_thread_quit = true;
         return nullptr;

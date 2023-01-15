@@ -20,9 +20,9 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"                       // MELON_LOG()
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
+#include "turbo/log/logging.h"                       // TURBO_LOG()
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/socket.h"                   // Socket
@@ -32,7 +32,7 @@
 #include "melon/rpc/redis.h"
 #include "melon/rpc/redis_command.h"
 #include "melon/rpc/policy/redis_protocol.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 
 namespace melon::rpc {
 
@@ -73,13 +73,13 @@ namespace melon::rpc {
             int batched_size;
 
             RedisCommandParser parser;
-            melon::Arena arena;
+            turbo::Arena arena;
         };
 
         int ConsumeCommand(RedisConnContext *ctx,
                            const std::vector<std::string_view> &args,
                            bool flush_batched,
-                           melon::cord_buf_appender *appender) {
+                           turbo::cord_buf_appender *appender) {
             RedisReply output(&ctx->arena);
             RedisCommandHandlerResult result = REDIS_CMD_HANDLED;
             if (ctx->transaction_handler) {
@@ -87,20 +87,20 @@ namespace melon::rpc {
                 if (result == REDIS_CMD_HANDLED) {
                     ctx->transaction_handler.reset(nullptr);
                 } else if (result == REDIS_CMD_BATCHED) {
-                    MELON_LOG(ERROR) << "BATCHED should not be returned by a transaction handler.";
+                    TURBO_LOG(ERROR) << "BATCHED should not be returned by a transaction handler.";
                     return -1;
                 }
             } else {
                 RedisCommandHandler *ch = ctx->redis_service->FindCommandHandler(args[0]);
                 if (!ch) {
                     char buf[64];
-                    snprintf(buf, sizeof(buf), "ERR unknown command `%s`", melon::as_string(args[0]).c_str());
+                    snprintf(buf, sizeof(buf), "ERR unknown command `%s`", turbo::as_string(args[0]).c_str());
                     output.SetError(buf);
                 } else {
                     result = ch->Run(args, &output, flush_batched);
                     if (result == REDIS_CMD_CONTINUE) {
                         if (ctx->batched_size != 0) {
-                            MELON_LOG(ERROR) << "CONTINUE should not be returned in a batched process.";
+                            TURBO_LOG(ERROR) << "CONTINUE should not be returned in a batched process.";
                             return -1;
                         }
                         ctx->transaction_handler.reset(ch->NewTransactionHandler());
@@ -112,7 +112,7 @@ namespace melon::rpc {
             if (result == REDIS_CMD_HANDLED) {
                 if (ctx->batched_size) {
                     if ((int) output.size() != (ctx->batched_size + 1)) {
-                        MELON_LOG(ERROR) << "reply array size can't be matched with batched size, "
+                        TURBO_LOG(ERROR) << "reply array size can't be matched with batched size, "
                                          << " expected=" << ctx->batched_size + 1 << " actual=" << output.size();
                         return -1;
                     }
@@ -128,7 +128,7 @@ namespace melon::rpc {
             } else if (result == REDIS_CMD_BATCHED) {
                 // just do nothing and wait handler to return OK.
             } else {
-                MELON_LOG(ERROR) << "unknown status=" << result;
+                TURBO_LOG(ERROR) << "unknown status=" << result;
                 return -1;
             }
             return 0;
@@ -144,7 +144,7 @@ namespace melon::rpc {
 
         // ========== impl of RedisConnContext ==========
 
-        ParseResult ParseRedisMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseRedisMessage(turbo::cord_buf *source, Socket *socket,
                                       bool read_eof, const void *arg) {
             if (read_eof || source->empty()) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
@@ -161,7 +161,7 @@ namespace melon::rpc {
                     socket->reset_parsing_context(ctx);
                 }
                 std::vector<std::string_view> current_args;
-                melon::cord_buf_appender appender;
+                turbo::cord_buf_appender appender;
                 ParseError err = PARSE_OK;
 
                 err = ctx->parser.Consume(*source, &current_args, &ctx->arena);
@@ -183,12 +183,12 @@ namespace melon::rpc {
                                    true /*must be the last message*/, &appender) != 0) {
                     return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                 }
-                melon::cord_buf sendbuf;
+                turbo::cord_buf sendbuf;
                 appender.move_to(sendbuf);
-                MELON_CHECK(!sendbuf.empty());
+                TURBO_CHECK(!sendbuf.empty());
                 Socket::WriteOptions wopt;
                 wopt.ignore_eovercrowded = true;
-                MELON_LOG_IF(WARNING, socket->Write(&sendbuf, &wopt) != 0)
+                TURBO_LOG_IF(WARNING, socket->Write(&sendbuf, &wopt) != 0)
                                 << "Fail to send redis reply";
                 ctx->arena.clear();
                 return MakeParseError(err);
@@ -204,7 +204,7 @@ namespace melon::rpc {
                 // in most cases, and the time decreases to ~0.14s.
                 PipelinedInfo pi;
                 if (!socket->PopPipelinedInfo(&pi)) {
-                    MELON_LOG(WARNING) << "No corresponding PipelinedInfo in socket";
+                    TURBO_LOG(WARNING) << "No corresponding PipelinedInfo in socket";
                     return MakeParseError(PARSE_ERROR_TRY_OTHERS);
                 }
 
@@ -227,7 +227,7 @@ namespace melon::rpc {
                         if (msg->response.reply_size() != 1 ||
                             !(msg->response.reply(0).type() == melon::rpc::REDIS_REPLY_STATUS &&
                               msg->response.reply(0).data().compare("OK") == 0)) {
-                            MELON_LOG(ERROR) << "Redis Auth failed: " << msg->response;
+                            TURBO_LOG(ERROR) << "Redis Auth failed: " << msg->response;
                             return MakeParseError(PARSE_ERROR_NO_RESOURCE,
                                                   "Fail to authenticate with Redis");
                         }
@@ -238,7 +238,7 @@ namespace melon::rpc {
                         continue;
                     }
 
-                    MELON_CHECK_EQ((uint32_t) msg->response.reply_size(), pi.count);
+                    TURBO_CHECK_EQ((uint32_t) msg->response.reply_size(), pi.count);
                     msg->id_wait = pi.id_wait;
                     socket->release_parsing_context();
                     return MakeMessage(msg);
@@ -249,15 +249,15 @@ namespace melon::rpc {
         }
 
         void ProcessRedisResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<InputResponse> msg(static_cast<InputResponse *>(msg_base));
 
             const fiber_token_t cid = msg->id_wait;
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -282,7 +282,7 @@ namespace melon::rpc {
                     }
                     ((RedisResponse *) cntl->response())->Swap(&msg->response);
                     if (FLAGS_redis_verbose) {
-                        MELON_LOG(INFO) << "\n[REDIS RESPONSE] "
+                        TURBO_LOG(INFO) << "\n[REDIS RESPONSE] "
                                         << *((RedisResponse *) cntl->response());
                     }
                 }
@@ -296,7 +296,7 @@ namespace melon::rpc {
 
         void ProcessRedisRequest(InputMessageBase *msg_base) {}
 
-        void SerializeRedisRequest(melon::cord_buf *buf,
+        void SerializeRedisRequest(turbo::cord_buf *buf,
                                    Controller *cntl,
                                    const google::protobuf::Message *request) {
             if (request == nullptr) {
@@ -312,16 +312,16 @@ namespace melon::rpc {
             }
             ControllerPrivateAccessor(cntl).set_pipelined_count(rr->command_size());
             if (FLAGS_redis_verbose) {
-                MELON_LOG(INFO) << "\n[REDIS REQUEST] " << *rr;
+                TURBO_LOG(INFO) << "\n[REDIS REQUEST] " << *rr;
             }
         }
 
-        void PackRedisRequest(melon::cord_buf *buf,
+        void PackRedisRequest(turbo::cord_buf *buf,
                               SocketMessage **,
                               uint64_t /*correlation_id*/,
                               const google::protobuf::MethodDescriptor *,
                               Controller *cntl,
-                              const melon::cord_buf &request,
+                              const turbo::cord_buf &request,
                               const Authenticator *auth) {
             if (auth) {
                 std::string auth_str;

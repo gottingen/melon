@@ -21,7 +21,7 @@
 
 #include <mutex>
 #include <string_view>   // std::string_view
-#include "melon/base/endpoint.h"               // melon::end_point
+#include "turbo/base/endpoint.h"               // turbo::end_point
 #include "melon/rpc/shared_object.h"          // SharedObject, intrusive_ptr
 #include "melon/rpc/socket_id.h"              // SocketUniquePtr
 #include "melon/rpc/controller.h"             // Controller, cord_buf
@@ -111,7 +111,7 @@ struct RtmpAudioMessage {
     FlvSoundRate rate;
     FlvSoundBits bits;
     FlvSoundType type;
-    melon::cord_buf data;
+    turbo::cord_buf data;
 
     bool IsAACSequenceHeader() const;
     size_t size() const { return data.size() + 1; }
@@ -133,10 +133,10 @@ struct RtmpAACMessage {
 
     // For sequence header:  AudioSpecificConfig
     // For raw:              Raw AAC frame data
-    melon::cord_buf data;
+    turbo::cord_buf data;
 
     // Create AAC message from audio message.
-    melon::result_status Create(const RtmpAudioMessage& msg);
+    turbo::result_status Create(const RtmpAudioMessage& msg);
 
     // Size of serialized message.
     size_t size() const { return data.size() + 2; }
@@ -155,8 +155,8 @@ static const AACObjectType AAC_OBJECT_UNKNOWN = (AACObjectType)0;
 
 struct AudioSpecificConfig {
     AudioSpecificConfig();
-    melon::result_status Create(const melon::cord_buf& buf);
-    melon::result_status Create(const void* data, size_t len);
+    turbo::result_status Create(const turbo::cord_buf& buf);
+    turbo::result_status Create(const void* data, size_t len);
 
     AACObjectType  aac_object;
     uint8_t        aac_sample_rate;
@@ -211,7 +211,7 @@ struct RtmpVideoMessage {
     uint32_t timestamp;
     FlvVideoFrameType frame_type;
     FlvVideoCodec codec;
-    melon::cord_buf data;
+    turbo::cord_buf data;
 
     // True iff this message is a sequence header of AVC codec.
     bool IsAVCSequenceHeader() const;
@@ -241,10 +241,10 @@ struct RtmpAVCMessage {
     // For sequence header:  AVCDecoderConfigurationRecord
     // For NALU:             One or more NALUs
     // For end of sequence:  empty
-    melon::cord_buf data;
+    turbo::cord_buf data;
 
     // Create a AVC message from a video message.
-    melon::result_status Create(const RtmpVideoMessage&);
+    turbo::result_status Create(const RtmpVideoMessage&);
 
     // Size of serialized message.
     size_t size() const { return data.size() + 5; }
@@ -314,8 +314,8 @@ enum AVCNaluType {
 struct AVCDecoderConfigurationRecord {
     AVCDecoderConfigurationRecord();
     
-    melon::result_status Create(const melon::cord_buf& buf);
-    melon::result_status Create(const void* data, size_t len);
+    turbo::result_status Create(const turbo::cord_buf& buf);
+    turbo::result_status Create(const void* data, size_t len);
 
     int             width;
     int             height;
@@ -326,7 +326,7 @@ struct AVCDecoderConfigurationRecord {
     std::vector<std::string> pps_list;
 
 private:
-    melon::result_status ParseSPS(const std::string_view& buf, size_t sps_length);
+    turbo::result_status ParseSPS(const std::string_view& buf, size_t sps_length);
 };
 std::ostream& operator<<(std::ostream&, const AVCDecoderConfigurationRecord&);
 
@@ -339,22 +339,22 @@ enum AVCNaluFormat {
 // Iterate NALUs inside RtmpAVCMessage.data
 class AVCNaluIterator {
 public:
-    AVCNaluIterator(melon::cord_buf* data, uint32_t length_size_minus1,
+    AVCNaluIterator(turbo::cord_buf* data, uint32_t length_size_minus1,
                     AVCNaluFormat* format_inout);
     ~AVCNaluIterator();
     void operator++();
     operator void*() const { return _data; }
-    melon::cord_buf& operator*() { return _cur_nalu; }
-    melon::cord_buf* operator->() { return &_cur_nalu; }
+    turbo::cord_buf& operator*() { return _cur_nalu; }
+    turbo::cord_buf* operator->() { return &_cur_nalu; }
     AVCNaluType nalu_type() const { return _nalu_type; }
 private:
     // `data' is mutable, improper to be copied.
-    MELON_DISALLOW_COPY_AND_ASSIGN(AVCNaluIterator);
+    TURBO_DISALLOW_COPY_AND_ASSIGN(AVCNaluIterator);
     bool next_as_annexb();
     bool next_as_ibmf();
     void set_end() { _data = nullptr; }
-    melon::cord_buf* _data;
-    melon::cord_buf _cur_nalu;
+    turbo::cord_buf* _data;
+    turbo::cord_buf _cur_nalu;
     AVCNaluFormat* _format;
     uint32_t _length_size_minus1;
     AVCNaluType _nalu_type;
@@ -402,21 +402,21 @@ enum FlvTagType {
 class FlvWriter {
 public:
     // Start appending FLV tags into the buffer
-    explicit FlvWriter(melon::cord_buf* buf);
-    explicit FlvWriter(melon::cord_buf* buf, const FlvWriterOptions& options);
+    explicit FlvWriter(turbo::cord_buf* buf);
+    explicit FlvWriter(turbo::cord_buf* buf, const FlvWriterOptions& options);
     
     // Append a video/audio/metadata/cuepoint message into the output buffer.
-    melon::result_status Write(const RtmpVideoMessage&);
-    melon::result_status Write(const RtmpAudioMessage&);
-    melon::result_status Write(const RtmpMetaData&);
-    melon::result_status Write(const RtmpCuePoint&);
+    turbo::result_status Write(const RtmpVideoMessage&);
+    turbo::result_status Write(const RtmpAudioMessage&);
+    turbo::result_status Write(const RtmpMetaData&);
+    turbo::result_status Write(const RtmpCuePoint&);
 
 private:
-    melon::result_status WriteScriptData(const melon::cord_buf& req_buf, uint32_t timestamp);
+    turbo::result_status WriteScriptData(const turbo::cord_buf& req_buf, uint32_t timestamp);
 
 private:
     bool _write_header;
-    melon::cord_buf* _buf;
+    turbo::cord_buf* _buf;
     FlvWriterOptions _options;
 };
 
@@ -424,30 +424,30 @@ class FlvReader {
 public:
     // Start reading FLV tags from the buffer. The data read by the following 
     // Read functions would be removed from *buf.
-    explicit FlvReader(melon::cord_buf* buf);
+    explicit FlvReader(turbo::cord_buf* buf);
 
     // Get the next message type.
-    // If it is a valid flv tag, melon::result_status::OK() is returned and the
+    // If it is a valid flv tag, turbo::result_status::OK() is returned and the
     // type is written to *type. Otherwise an error would be returned,
     // leaving *type unchanged.
     // Note: If error_code of the return value is EAGAIN, the caller 
     // should wait more data and try call PeekMessageType again.
-    melon::result_status PeekMessageType(FlvTagType* type);
+    turbo::result_status PeekMessageType(FlvTagType* type);
 
     // Read a video/audio/metadata message from the input buffer.
     // Caller should use the result of function PeekMessageType to select an
     // appropriate function, e.g., if *type is set to FLV_TAG_AUDIO in 
     // PeekMessageType, caller should call Read(RtmpAudioMessage*) subsequently.
-    melon::result_status Read(RtmpVideoMessage* msg);
-    melon::result_status Read(RtmpAudioMessage* msg);
-    melon::result_status Read(RtmpMetaData* object, std::string* object_name);
+    turbo::result_status Read(RtmpVideoMessage* msg);
+    turbo::result_status Read(RtmpAudioMessage* msg);
+    turbo::result_status Read(RtmpMetaData* object, std::string* object_name);
 
 private:
-    melon::result_status ReadHeader();
+    turbo::result_status ReadHeader();
 
 private:
     bool _read_header;
-    melon::cord_buf* _buf;
+    turbo::cord_buf* _buf;
 };
 
 struct RtmpPlayOptions {
@@ -585,8 +585,8 @@ public:
     uint32_t chunk_stream_id() const { return _chunk_stream_id; }
 
     // Get ip/port of peer/self
-    virtual melon::end_point remote_side() const;
-    virtual melon::end_point local_side() const;
+    virtual turbo::end_point remote_side() const;
+    virtual turbo::end_point local_side() const;
 
     bool is_client_stream() const { return _is_client; }
     bool is_server_stream() const { return !_is_client; }
@@ -594,7 +594,7 @@ public:
     // True iff OnStop() was called.
     bool is_stopped() const { return _stopped; }
 
-    // When this stream is created, got from melon::get_current_time_micros().
+    // When this stream is created, got from turbo::get_current_time_micros().
     int64_t create_realtime_us() const { return _create_realtime_us; }
     
     bool is_paused() const { return _paused; }
@@ -623,7 +623,7 @@ friend class policy::OnServerStreamCreated;
     virtual ~RtmpStreamBase();
 
     int SendMessage(uint32_t timestamp, uint8_t message_type,
-                    const melon::cord_buf& body);
+                    const turbo::cord_buf& body);
     int SendControlMessage(uint8_t message_type, const void* body, size_t);
 
     // OnStop is mutually exclusive with OnXXXMessage, following methods
@@ -729,7 +729,7 @@ public:
     RtmpClient& operator=(const RtmpClient&);
 
     // Specify the servers to connect.
-    int Init(melon::end_point server_addr_and_port,
+    int Init(turbo::end_point server_addr_and_port,
              const RtmpClientOptions& options);
     int Init(const char* server_addr_and_port,
              const RtmpClientOptions& options);
@@ -748,7 +748,7 @@ public:
 
 private:
 friend class RtmpClientStream;
-    melon::container::intrusive_ptr<RtmpClientImpl> _impl;
+    turbo::container::intrusive_ptr<RtmpClientImpl> _impl;
 };
 
 struct RtmpHashCode {
@@ -860,8 +860,8 @@ friend class RtmpRetryingClientStream;
     // client stream self.
     void SignalError() override;
 
-    melon::container::intrusive_ptr<RtmpClientImpl> _client_impl;
-    melon::container::intrusive_ptr<RtmpClientStream> _self_ref;
+    turbo::container::intrusive_ptr<RtmpClientImpl> _client_impl;
+    turbo::container::intrusive_ptr<RtmpClientStream> _self_ref;
     fiber_token_t _onfail_id;
     CallId _create_stream_rpc_id;
     bool _from_socketmap;
@@ -935,7 +935,7 @@ public:
     void OnSubStreamStop(RtmpStreamBase* sub_stream);
 
 private:
-    melon::container::intrusive_ptr<RtmpRetryingClientStream> _parent;
+    turbo::container::intrusive_ptr<RtmpRetryingClientStream> _parent;
 };
 
 class SubStreamCreator {
@@ -944,7 +944,7 @@ public:
     // the current SubStream. *sub_stream is set iff the creation is successful.
     // Note: message_handler is OWNED by this creator and deleted by the creator.
     virtual void NewSubStream(RtmpMessageHandler* message_handler,
-                              melon::container::intrusive_ptr<RtmpStreamBase>* sub_stream) = 0;
+                              turbo::container::intrusive_ptr<RtmpStreamBase>* sub_stream) = 0;
     
     // Do the Initialization of sub_stream. If an error happens, sub_stream->Destroy()
     // would be called.
@@ -979,8 +979,8 @@ public:
     int SendAACMessage(const RtmpAACMessage& msg);
     int SendVideoMessage(const RtmpVideoMessage& msg);
     int SendAVCMessage(const RtmpAVCMessage& msg);
-    melon::end_point remote_side() const;
-    melon::end_point local_side() const;
+    turbo::end_point remote_side() const;
+    turbo::end_point local_side() const;
 
     // Call this function to stop current stream. New sub stream will be
     // tried to be created later.
@@ -1000,13 +1000,13 @@ private:
 friend class RetryingClientMessageHandler;
 
     void OnSubStreamStop(RtmpStreamBase* sub_stream);
-    int AcquireStreamToSend(melon::container::intrusive_ptr<RtmpStreamBase>*);
+    int AcquireStreamToSend(turbo::container::intrusive_ptr<RtmpStreamBase>*);
     static void OnRecreateTimer(void* arg);
     void Recreate();
     void CallOnStopIfNeeded();
     
-    melon::container::intrusive_ptr<RtmpStreamBase> _using_sub_stream;
-    melon::container::intrusive_ptr<RtmpRetryingClientStream> _self_ref;
+    turbo::container::intrusive_ptr<RtmpStreamBase> _using_sub_stream;
+    turbo::container::intrusive_ptr<RtmpRetryingClientStream> _self_ref;
     mutable std::mutex _stream_mutex;
     RtmpRetryingClientStreamOptions _options;
     std::atomic<bool> _destroying;
@@ -1059,7 +1059,7 @@ public:
     virtual ~RtmpService() {}
 
     // Called when receiving a Pong response from `remote_side'.
-    virtual void OnPingResponse(const melon::end_point& remote_side,
+    virtual void OnPingResponse(const turbo::end_point& remote_side,
                                 uint32_t ping_timestamp);
 
     // Called to create a server-side stream.
@@ -1081,7 +1081,7 @@ public:
     // Call done->Run() when the play request is processed (either accepted
     // or rejected)
     virtual void OnPlay(const RtmpPlayOptions&,
-                        melon::result_status* status,
+                        turbo::result_status* status,
                         google::protobuf::Closure* done);
     
     // Called when receiving a publish request.
@@ -1090,7 +1090,7 @@ public:
     // Returns 0 on success, -1 otherwise.
     virtual void OnPublish(const std::string& stream_name,
                            RtmpPublishType publish_type,
-                           melon::result_status* status,
+                           turbo::result_status* status,
                            google::protobuf::Closure* done);
     
     // Called when receiving a play2 request.

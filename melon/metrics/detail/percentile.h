@@ -12,17 +12,17 @@
 #include "melon/metrics/window.h"                // window
 #include "melon/metrics/detail/combiner.h"       // agent_combiner
 #include "melon/metrics/detail/sampler.h"        // reducer_sampler
-#include "melon/base/fast_rand.h"
+#include "turbo/base/fast_rand.h"
 
 namespace melon {
     namespace metrics_detail {
 
         // Round of expectation of a rational number |a/b| to a natural number.
         inline unsigned long round_of_expectation(unsigned long a, unsigned long b) {
-            if (MELON_UNLIKELY(b == 0)) {
+            if (TURBO_UNLIKELY(b == 0)) {
                 return 0;
             }
-            return a / b + (melon::base::fast_rand_less_than(b) < a % b);
+            return a / b + (turbo::base::fast_rand_less_than(b) < a % b);
         }
 
         // Storing latencies inside a interval.
@@ -46,7 +46,7 @@ namespace melon {
                     std::sort(_samples, _samples + saved_num);
                     _sorted = true;
                 }
-                MELON_CHECK_EQ(saved_num, _num_samples) << "You must call get_number() on"
+                TURBO_CHECK_EQ(saved_num, _num_samples) << "You must call get_number() on"
                                                            " a unchanging percentile_interval";
                 return _samples[index];
             }
@@ -63,7 +63,7 @@ namespace melon {
                 }
                 static_assert(SAMPLE_SIZE >= size2,
                               "must merge small interval into larger one currently");
-                MELON_CHECK_EQ(rhs._num_samples, rhs._num_added);
+                TURBO_CHECK_EQ(rhs._num_samples, rhs._num_added);
                 // Assume that the probability of each sample in |this| is a0/b0 and
                 // the probability of each sample in |rhs| is a1/b1.
                 // We are going to randomly pick some samples from |this| and |rhs| to
@@ -76,7 +76,7 @@ namespace melon {
                 // |b1*SAMPLE_SIZE/(b0+b1)| from |rhs|.
                 if (_num_added + rhs._num_added <= SAMPLE_SIZE) {
                     // No sample should be dropped
-                    MELON_CHECK_EQ(_num_samples, _num_added)
+                    TURBO_CHECK_EQ(_num_samples, _num_added)
                         << "_num_added=" << _num_added
                         << " rhs._num_added" << rhs._num_added
                         << " _num_samples=" << _num_samples
@@ -97,23 +97,23 @@ namespace melon {
                     //    num_remain < SAMPLE_SIZE = _num_added
                     size_t num_remain = round_of_expectation(
                             _num_added * SAMPLE_SIZE, _num_added + rhs._num_added);
-                    MELON_CHECK_LE(num_remain, _num_samples);
+                    TURBO_CHECK_LE(num_remain, _num_samples);
                     // Randomly drop samples of this
                     for (size_t i = _num_samples; i > num_remain; --i) {
-                        _samples[melon::base::fast_rand_less_than(i)] = _samples[i - 1];
+                        _samples[turbo::base::fast_rand_less_than(i)] = _samples[i - 1];
                     }
                     const size_t num_remain_from_rhs = SAMPLE_SIZE - num_remain;
-                    MELON_CHECK_LE(num_remain_from_rhs, rhs._num_samples);
+                    TURBO_CHECK_LE(num_remain_from_rhs, rhs._num_samples);
                     // Have to copy data from rhs to shuffle since it's const
                     DEFINE_SMALL_ARRAY(uint32_t, tmp, rhs._num_samples, 64);
                     memcpy(tmp, rhs._samples, sizeof(uint32_t) * rhs._num_samples);
                     for (size_t i = 0; i < num_remain_from_rhs; ++i) {
-                        const int index = melon::base::fast_rand_less_than(rhs._num_samples - i);
+                        const int index = turbo::base::fast_rand_less_than(rhs._num_samples - i);
                         _samples[num_remain++] = tmp[index];
                         tmp[index] = tmp[rhs._num_samples - i - 1];
                     }
                     _num_samples = num_remain;
-                    MELON_CHECK_EQ(_num_samples, SAMPLE_SIZE);
+                    TURBO_CHECK_EQ(_num_samples, SAMPLE_SIZE);
                 }
                 _num_added += rhs._num_added;
             }
@@ -121,7 +121,7 @@ namespace melon {
             // Randomly pick n samples from mutable_rhs to |this|
             template<size_t size2>
             void merge_with_expectation(percentile_interval<size2> &mutable_rhs, size_t n) {
-                MELON_CHECK(n <= mutable_rhs._num_samples);
+                TURBO_CHECK(n <= mutable_rhs._num_samples);
                 _num_added += mutable_rhs._num_added;
                 if (_num_samples + n <= SAMPLE_SIZE && n == mutable_rhs._num_samples) {
                     memcpy(_samples + _num_samples, mutable_rhs._samples, sizeof(_samples[0]) * n);
@@ -129,11 +129,11 @@ namespace melon {
                     return;
                 }
                 for (size_t i = 0; i < n; ++i) {
-                    size_t index = melon::base::fast_rand_less_than(mutable_rhs._num_samples - i);
+                    size_t index = turbo::base::fast_rand_less_than(mutable_rhs._num_samples - i);
                     if (_num_samples < SAMPLE_SIZE) {
                         _samples[_num_samples++] = mutable_rhs._samples[index];
                     } else {
-                        _samples[melon::base::fast_rand_less_than(_num_samples)]
+                        _samples[turbo::base::fast_rand_less_than(_num_samples)]
                                 = mutable_rhs._samples[index];
                     }
                     std::swap(mutable_rhs._samples[index],
@@ -146,8 +146,8 @@ namespace melon {
             // sample into the thread_local_percentile_samples.
             // Returns true if the input was stored.
             bool add32(uint32_t x) {
-                if (MELON_UNLIKELY(_num_samples >= SAMPLE_SIZE)) {
-                    MELON_LOG(ERROR) << "This interval was full";
+                if (TURBO_UNLIKELY(_num_samples >= SAMPLE_SIZE)) {
+                    TURBO_LOG(ERROR) << "This interval was full";
                     return false;
                 }
                 ++_num_added;
@@ -291,7 +291,7 @@ namespace melon {
                     }
                     n -= invl.added_count();
                 }
-                MELON_CHECK(false) << "Can't reach here";
+                TURBO_CHECK(false) << "Can't reach here";
                 return std::numeric_limits<uint32_t>::max();
             }
 
@@ -351,7 +351,7 @@ namespace melon {
                         if (!iter->_intervals[i] || iter->_intervals[i]->empty()) {
                             continue;
                         }
-                        typename melon::add_reference<decltype(*(iter->_intervals[i]))>::type
+                        typename turbo::add_reference<decltype(*(iter->_intervals[i]))>::type
                                 invl = *(iter->_intervals[i]);
                         if (total <= SAMPLE_SIZE) {
                             get_interval_at(i).merge_with_expectation(
@@ -480,7 +480,7 @@ namespace melon {
             }
 
         private:
-            MELON_DISALLOW_COPY_AND_ASSIGN(percentile);
+            TURBO_DISALLOW_COPY_AND_ASSIGN(percentile);
 
             combiner_type *_combiner;
             sampler_type *_sampler;

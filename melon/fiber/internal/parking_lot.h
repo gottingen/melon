@@ -22,13 +22,13 @@
 #ifndef MELON_FIBER_INTERNAL_PARKING_LOT_H_
 #define MELON_FIBER_INTERNAL_PARKING_LOT_H_
 
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/fiber/internal/sys_futex.h"
 
 namespace melon::fiber_internal {
 
     // Park idle workers.
-    class MELON_CACHELINE_ALIGNMENT ParkingLot {
+    class TURBO_CACHELINE_ALIGNMENT ParkingLot {
     public:
         class State {
         public:

@@ -19,7 +19,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include <melon/rpc/nshead_pb_service_adaptor.h>
 #include "echo.pb.h"
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     options.nshead_service = new MyNsheadProtocol;  // the adaptor
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

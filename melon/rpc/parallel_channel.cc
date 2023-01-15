@@ -18,9 +18,9 @@
 #include <inttypes.h>
 #include "melon/fiber/internal/fiber.h"                  // fiber_token_xx
 #include "melon/fiber/internal/unstable.h"                 // fiber_timer_add
-#include "melon/base/static_atomic.h"
-#include "melon/times/time.h"
-#include "melon/base/profile.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/times/time.h"
+#include "turbo/base/profile.h"
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/parallel_channel.h"
 
@@ -75,7 +75,7 @@ namespace melon::rpc {
             }
 
             ParallelChannelDone *shared_data;
-            melon::container::intrusive_ptr<ResponseMerger> merger;
+            turbo::container::intrusive_ptr<ResponseMerger> merger;
             SubCall ap;
             Controller cntl;
         };
@@ -111,14 +111,14 @@ namespace melon::rpc {
             } else {
                 mem = malloc(req_size);
                 memsize = req_size;
-                if (MELON_UNLIKELY(nullptr == mem)) {
+                if (TURBO_UNLIKELY(nullptr == mem)) {
                     return nullptr;
                 }
             }
 #else
             mem = malloc(req_size);
             memsize = req_size;
-            if (MELON_UNLIKELY(nullptr == mem)) {
+            if (TURBO_UNLIKELY(nullptr == mem)) {
                 return nullptr;
             }
 #endif
@@ -146,7 +146,7 @@ namespace melon::rpc {
                         d->sub_done_map(i) = done_index++;
                     }
                 }
-                MELON_CHECK_EQ(ndone, done_index);
+                TURBO_CHECK_EQ(ndone, done_index);
             }
             return d;
         }
@@ -183,7 +183,7 @@ namespace melon::rpc {
                 _cntl->_error_code = 0;
                 _cntl->_error_text.clear();
             } else {
-                MELON_CHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
+                TURBO_CHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
             }
             OnSubDoneRun(nullptr);
         }
@@ -281,7 +281,7 @@ namespace melon::rpc {
                 fiber_attribute attr = (FLAGS_usercode_in_pthread ?
                                         FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
                 if (fiber_start_background(&bh, &attr, RunOnComplete, this) != 0) {
-                    MELON_LOG(FATAL) << "Fail to start fiber";
+                    TURBO_LOG(FATAL) << "Fail to start fiber";
                     OnComplete();
                 }
             } else {
@@ -378,10 +378,10 @@ namespace melon::rpc {
             // NOTE: we don't destroy self here, controller destroys this done in
             // Reset() so that user can access sub controllers before Reset().
             if (user_done) {
-                _cntl->OnRPCEnd(melon::get_current_time_micros());
+                _cntl->OnRPCEnd(turbo::get_current_time_micros());
                 user_done->Run();
             }
-            MELON_CHECK_EQ(0, fiber_token_unlock_and_destroy(saved_cid));
+            TURBO_CHECK_EQ(0, fiber_token_unlock_and_destroy(saved_cid));
         }
 
         int sub_done_size() const { return _ndone; }
@@ -421,7 +421,7 @@ namespace melon::rpc {
         int _ndone;
         int _nchan;
 #if defined(__clang__)
-        int MELON_ALLOW_UNUSED _memsize;
+        int TURBO_ALLOW_UNUSED _memsize;
 #else
         int _memsize;
 #endif
@@ -457,7 +457,7 @@ namespace melon::rpc {
                                     CallMapper *call_mapper,
                                     ResponseMerger *merger) {
         if (nullptr == sub_channel) {
-            MELON_LOG(ERROR) << "Param[sub_channel] is nullptr";
+            TURBO_LOG(ERROR) << "Param[sub_channel] is nullptr";
             return -1;
         }
         if (_chans.capacity() == 0) {
@@ -516,7 +516,7 @@ namespace melon::rpc {
                 std::unique(_chans.begin(), _chans.end(), EqualChannelPtr())
                 - _chans.begin();
         for (size_t i = 0; i < uniq_size; ++i) {
-            MELON_CHECK_EQ(_chans[i].ownership, OWNS_CHANNEL);
+            TURBO_CHECK_EQ(_chans[i].ownership, OWNS_CHANNEL);
             delete _chans[i].chan;
         }
         _chans.clear();
@@ -539,7 +539,7 @@ namespace melon::rpc {
         // Save call_id from the controller which may be deleted after Run().
         const fiber_token_t cid = c->call_id();
         done->Run();
-        MELON_CHECK_EQ(0, fiber_token_unlock_and_destroy(cid));
+        TURBO_CHECK_EQ(0, fiber_token_unlock_and_destroy(cid));
         return nullptr;
     }
 
@@ -550,7 +550,7 @@ namespace melon::rpc {
             google::protobuf::Message *response,
             google::protobuf::Closure *done) {
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        cntl->OnRPCBegin(melon::get_current_time_micros());
+        cntl->OnRPCBegin(turbo::get_current_time_micros());
         // Make sure cntl->sub_count() always equal #sub-channels
         const int nchan = _chans.size();
         cntl->_pchan_sub_count = nchan;
@@ -558,11 +558,11 @@ namespace melon::rpc {
         const CallId cid = cntl->call_id();
         const int rc = fiber_token_lock(cid, nullptr);
         if (rc != 0) {
-            MELON_CHECK_EQ(EINVAL, rc);
+            TURBO_CHECK_EQ(EINVAL, rc);
             if (!cntl->FailedInline()) {
                 cntl->SetFailed(EINVAL, "Fail to lock call_id=%" PRId64, cid.value);
             }
-            MELON_LOG_IF(ERROR, cntl->is_used_by_rpc())
+            TURBO_LOG_IF(ERROR, cntl->is_used_by_rpc())
                             << "Controller=" << cntl << " was used by another RPC before. "
                                                         "Did you forget to Reset() it before reuse?";
             // Have to run done in-place.
@@ -659,7 +659,7 @@ namespace melon::rpc {
             // Setup timer for RPC timetout
             const int rc = fiber_timer_add(
                     &cntl->_timeout_id,
-                    melon::time_point::from_unix_micros(cntl->_deadline_us).to_timespec(),
+                    turbo::time_point::from_unix_micros(cntl->_deadline_us).to_timespec(),
                     HandleTimeout, (void *) cid.value);
             if (rc != 0) {
                 cntl->SetFailed(rc, "Fail to add timer");
@@ -669,7 +669,7 @@ namespace melon::rpc {
             cntl->_deadline_us = -1;
         }
         d->SaveThreadInfoOfCallsite();
-        MELON_CHECK_EQ(0, fiber_token_unlock(cid));
+        TURBO_CHECK_EQ(0, fiber_token_unlock(cid));
         // Don't touch `cntl' and `d' again (for async RPC)
 
         for (int i = 0, j = 0; i < nchan; ++i) {
@@ -687,7 +687,7 @@ namespace melon::rpc {
         }
         if (done == nullptr) {
             Join(cid);
-            cntl->OnRPCEnd(melon::get_current_time_micros());
+            cntl->OnRPCEnd(turbo::get_current_time_micros());
         }
         return;
 
@@ -709,11 +709,11 @@ namespace melon::rpc {
                     return;
                 }
                 cntl->_done = nullptr;
-                MELON_LOG(FATAL) << "Fail to start fiber";
+                TURBO_LOG(FATAL) << "Fail to start fiber";
             }
             done->Run();
         }
-        MELON_CHECK_EQ(0, fiber_token_unlock_and_destroy(cid));
+        TURBO_CHECK_EQ(0, fiber_token_unlock_and_destroy(cid));
     }
 
     int ParallelChannel::Weight() {

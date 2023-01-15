@@ -17,7 +17,7 @@
 
 
 #include <pthread.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/policy/gzip_compress.h"
 #include "melon/rpc/builtin/jquery_min_js.h"
 
@@ -25,22 +25,22 @@
 namespace melon::rpc {
 
     static pthread_once_t s_jquery_min_buf_once = PTHREAD_ONCE_INIT;
-    static melon::cord_buf *s_jquery_min_buf = nullptr;
-    static melon::cord_buf *s_jquery_min_buf_gzip = nullptr;
+    static turbo::cord_buf *s_jquery_min_buf = nullptr;
+    static turbo::cord_buf *s_jquery_min_buf_gzip = nullptr;
 
     static void InitJQueryMinBuf() {
-        s_jquery_min_buf = new melon::cord_buf;
+        s_jquery_min_buf = new turbo::cord_buf;
         s_jquery_min_buf->append(jquery_min_js());
-        s_jquery_min_buf_gzip = new melon::cord_buf;
-        MELON_CHECK(policy::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, nullptr));
+        s_jquery_min_buf_gzip = new turbo::cord_buf;
+        TURBO_CHECK(policy::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, nullptr));
     }
 
-    const melon::cord_buf &jquery_min_js_iobuf() {
+    const turbo::cord_buf &jquery_min_js_iobuf() {
         pthread_once(&s_jquery_min_buf_once, InitJQueryMinBuf);
         return *s_jquery_min_buf;
     }
 
-    const melon::cord_buf &jquery_min_js_iobuf_gzip() {
+    const turbo::cord_buf &jquery_min_js_iobuf_gzip() {
         pthread_once(&s_jquery_min_buf_once, InitJQueryMinBuf);
         return *s_jquery_min_buf_gzip;
     }

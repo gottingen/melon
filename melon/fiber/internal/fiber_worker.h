@@ -2,12 +2,12 @@
 #ifndef MELON_FIBER_INTERNAL_FIBER_WORKER_H_
 #define MELON_FIBER_INTERNAL_FIBER_WORKER_H_
 
-#include "melon/times/time.h"                             // cpuwide_time_ns
+#include "turbo/times/time.h"                             // cpuwide_time_ns
 #include "melon/fiber/internal/schedule_group.h"
 #include "melon/fiber/internal/fiber_entity.h"                     // fiber_id_t, fiber_entity
 #include "melon/fiber/internal/work_stealing_queue.h"           // WorkStealingQueue
 #include "melon/fiber/internal/remote_task_queue.h"             // RemoteTaskQueue
-#include "melon/memory/resource_pool.h"                    // ResourceId
+#include "turbo/memory/resource_pool.h"                    // ResourceId
 #include "melon/fiber/internal/parking_lot.h"
 
 namespace melon::fiber_internal {
@@ -132,7 +132,7 @@ namespace melon::fiber_internal {
         fiber_id_t current_fid() const { return _cur_meta->tid; }
 
         // Uptime of current task in nanoseconds.
-        int64_t current_uptime_ns() const { return melon::get_current_time_nanos() - _cur_meta->cpuwide_start_ns; }
+        int64_t current_uptime_ns() const { return turbo::get_current_time_nanos() - _cur_meta->cpuwide_start_ns; }
 
         // True iff current task is the one running run_main_task()
         bool is_current_main_task() const { return current_fid() == _main_tid; }

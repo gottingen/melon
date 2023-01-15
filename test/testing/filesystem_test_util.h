@@ -8,7 +8,7 @@
 #ifndef TEST_TESTING_FILESYSTEM_TEST_UTIL_H_
 #define TEST_TESTING_FILESYSTEM_TEST_UTIL_H_
 
-#include <melon/base/profile.h>
+#include <turbo/base/profile.h>
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -45,7 +45,7 @@ using fstream = std::fstream;
 
 #else
 
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 
 #endif
 
@@ -70,7 +70,7 @@ using fstream = std::fstream;
 // file with that name, it is superceded by P1164R1, so only activate if really needed
 // #define TEST_LWG_2935_BEHAVIOUR
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// LWG #2937 enforces that melon::equivalent emits an error, if !melon::exists(p1)||!exists(p2)
+// LWG #2937 enforces that melon::equivalent emits an error, if !turbo::exists(p1)||!exists(p2)
 #define TEST_LWG_2937_BEHAVIOUR
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -107,29 +107,29 @@ public:
                 filename += "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[rng()];
             }
             _path = melon::canonical(melon::temp_directory_path()) / filename;
-        } while (melon::exists(_path));
-        melon::create_directories(_path);
+        } while (turbo::exists(_path));
+        turbo::create_directories(_path);
         if (opt == TempOpt::change_path) {
-            _orig_dir = melon::current_path();
-            melon::current_path(_path);
+            _orig_dir = turbo::current_path();
+            turbo::current_path(_path);
         }
     }
 
     ~TemporaryDirectory() {
         if (!_orig_dir.empty()) {
-            melon::current_path(_orig_dir);
+            turbo::current_path(_orig_dir);
         }
-        melon::remove_all(_path);
+        turbo::remove_all(_path);
     }
 
-    const melon::file_path &path() const { return _path; }
+    const turbo::file_path &path() const { return _path; }
 
 private:
-    melon::file_path _path;
-    melon::file_path _orig_dir;
+    turbo::file_path _path;
+    turbo::file_path _orig_dir;
 };
 
-static void generateFile(const melon::file_path &pathname, int withSize = -1) {
+static void generateFile(const turbo::file_path &pathname, int withSize = -1) {
     melon::ofstream outfile(pathname);
     if (withSize < 0) {
         outfile << "Hello world!" << std::endl;
@@ -200,7 +200,7 @@ static bool is_symlink_creation_supported() {
 #endif
 
 static bool has_host_root_name_support() {
-    return melon::file_path("//host").has_root_name();
+    return turbo::file_path("//host").has_root_name();
 }
 
 template<class T>

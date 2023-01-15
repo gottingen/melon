@@ -22,13 +22,13 @@
 #include <signal.h>
 #include <gflags/gflags.h>
 #include "testing/gtest_wrap.h"
-#include "melon/base/compat.h"
-#include "melon/times/time.h"
-#include "melon/base/errno.h"
+#include "turbo/base/compat.h"
+#include "turbo/times/time.h"
+#include "turbo/base/errno.h"
 #include <melon/fiber/internal/sys_futex.h>
 #include <melon/fiber/internal/waitable_event.h>
 #include "melon/fiber/internal/fiber.h"
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 
 namespace {
 DEFINE_int32(thread_num, 1, "#pairs of threads doing ping pong");
@@ -36,18 +36,18 @@ DEFINE_bool(loop, false, "run until ctrl-C is pressed");
 DEFINE_bool(use_futex, false, "use futex instead of pipe");
 DEFINE_bool(use_butex, false, "use butex instead of pipe");
 
-void MELON_ALLOW_UNUSED (*ignore_sigpipe)(int) = signal(SIGPIPE, SIG_IGN);
+void TURBO_ALLOW_UNUSED (*ignore_sigpipe)(int) = signal(SIGPIPE, SIG_IGN);
 
 volatile bool stop = false;
 void quit_handler(int) {
     stop = true;
 }
 
-struct MELON_CACHELINE_ALIGNMENT AlignedIntWrapper {
+struct TURBO_CACHELINE_ALIGNMENT AlignedIntWrapper {
     int value;
 };
 
-struct MELON_CACHELINE_ALIGNMENT PlayerArg {
+struct TURBO_CACHELINE_ALIGNMENT PlayerArg {
     int read_fd;
     int write_fd;
     int* wait_addr;
@@ -191,7 +191,7 @@ TEST(PingPongTest, ping_pong) {
     long last_counter = 0;
     long last_wakeup = 0;
     while (!stop) {
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         sleep(1);
         tm.stop();

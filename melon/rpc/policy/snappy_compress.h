@@ -20,23 +20,23 @@
 #define MELON_RPC_POLICY_SNAPPY_COMPRESS_H_
 
 #include <google/protobuf/message.h>          // Message
-#include "melon/io/cord_buf.h"                       // cord_buf
+#include "turbo/io/cord_buf.h"                       // cord_buf
 
 
 namespace melon::rpc {
     namespace policy {
 
         // Compress serialized `msg' into `buf'.
-        bool SnappyCompress(const google::protobuf::Message &msg, melon::cord_buf *buf);
+        bool SnappyCompress(const google::protobuf::Message &msg, turbo::cord_buf *buf);
 
         // Parse `msg' from decompressed `buf'
-        bool SnappyDecompress(const melon::cord_buf &data, google::protobuf::Message *msg);
+        bool SnappyDecompress(const turbo::cord_buf &data, google::protobuf::Message *msg);
 
         // Put compressed `in' into `out'.
-        bool SnappyCompress(const melon::cord_buf &in, melon::cord_buf *out);
+        bool SnappyCompress(const turbo::cord_buf &in, turbo::cord_buf *out);
 
         // Put decompressed `in' into `out'.
-        bool SnappyDecompress(const melon::cord_buf &in, melon::cord_buf *out);
+        bool SnappyDecompress(const turbo::cord_buf &in, turbo::cord_buf *out);
 
     }  // namespace policy
 } // namespace melon::rpc

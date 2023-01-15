@@ -21,7 +21,7 @@
 
 #include <google/protobuf/message.h>
 #include "melon/rpc/nshead.h"                     // nshead_t
-#include "melon/io/cord_buf.h"                     // cord_buf
+#include "turbo/io/cord_buf.h"                     // cord_buf
 #include "melon/rpc/proto_base.pb.h"
 
 namespace melon::rpc {
@@ -30,7 +30,7 @@ namespace melon::rpc {
     class NsheadMessage : public ::google::protobuf::Message {
     public:
         nshead_t head;
-        melon::cord_buf body;
+        turbo::cord_buf body;
 
     public:
         NsheadMessage();

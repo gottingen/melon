@@ -16,8 +16,8 @@
 // under the License.
 
 #include <iostream>
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/memcache.h>
 #include <melon/rpc/channel.h>
 #include "testing/gtest_wrap.h"
@@ -40,7 +40,7 @@ static void RemoveMemcached() {
     puts("[Stopping memcached]");
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "kill %d", g_mc_pid);
-    MELON_CHECK(0 == system(cmd));
+    TURBO_CHECK(0 == system(cmd));
     // Wait for mc to stop
     usleep(50000);
 }

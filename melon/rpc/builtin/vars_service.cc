@@ -18,7 +18,7 @@
 
 #include <ostream>
 #include <vector>                           // std::vector
-#include "melon/strings/string_splitter.h"
+#include "turbo/strings/string_splitter.h"
 #include "melon/metrics/all.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
@@ -260,7 +260,7 @@ namespace melon::rpc {
 
     class VarsDumper : public melon::variable_dumper {
     public:
-        explicit VarsDumper(melon::cord_buf_builder &os, bool use_html)
+        explicit VarsDumper(turbo::cord_buf_builder &os, bool use_html)
                 : _os(os), _use_html(use_html) {}
 
         bool dump(const std::string &name, const std::string_view &desc) {
@@ -294,14 +294,14 @@ namespace melon::rpc {
             return true;
         }
 
-        void move_to(melon::cord_buf &buf) {
+        void move_to(turbo::cord_buf &buf) {
             _os.move_to(buf);
         }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(VarsDumper);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(VarsDumper);
 
-        melon::cord_buf_builder &_os;
+        turbo::cord_buf_builder &_os;
         bool _use_html;
     };
 
@@ -312,7 +312,7 @@ namespace melon::rpc {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         if (cntl->http_request().uri().GetQuery("series") != nullptr) {
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             melon::variable_series_options series_options;
             const int rc = melon::variable_base::describe_series_exposed(
                     cntl->http_request().unresolved_path(), os, series_options);
@@ -336,7 +336,7 @@ namespace melon::rpc {
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
 
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         if (with_tabs) {
             os << "<!DOCTYPE html><html><head>\n"
                   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n";

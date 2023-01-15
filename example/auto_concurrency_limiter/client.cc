@@ -18,8 +18,8 @@
 // A client sending requests to server asynchronously every 1 second.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
 #include <melon/rpc/channel.h>
 #include <melon/metrics/all.h>
 #include <melon/fiber/internal/timer_thread.h>
@@ -56,7 +56,7 @@ void DisplayStage(const test::Stage &stage) {
             << "Stage:[" << stage.lower_bound() << ':'
             << stage.upper_bound() << "]"
             << " , Type:" << type;
-    MELON_LOG(INFO) << ss.str();
+    TURBO_LOG(INFO) << ss.str();
 }
 
 uint32_t cast_func(void *arg) {
@@ -74,13 +74,13 @@ melon::LatencyRecorder g_latency_rec;
 void LoadCaseSet(test::TestCaseSet *case_set, const std::string &file_path) {
     std::ifstream ifs(file_path.c_str(), std::ios::in);
     if (!ifs) {
-        MELON_LOG(FATAL) << "Fail to open case set file: " << file_path;
+        TURBO_LOG(FATAL) << "Fail to open case set file: " << file_path;
     }
     std::string case_set_json((std::istreambuf_iterator<char>(ifs)),
                               std::istreambuf_iterator<char>());
     std::string err;
     if (!json2pb::JsonToProtoMessage(case_set_json, case_set, &err)) {
-        MELON_LOG(FATAL)
+        TURBO_LOG(FATAL)
                 << "Fail to trans case_set from json to protobuf message: "
                 << err;
     }
@@ -95,10 +95,10 @@ void HandleEchoResponse(
 
     if (cntl->Failed() && cntl->ErrorCode() == melon::rpc::ERPCTIMEDOUT) {
         g_timeout.fetch_add(1, std::memory_order_relaxed);
-        MELON_LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
+        TURBO_LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else if (cntl->Failed()) {
         g_error.fetch_add(1, std::memory_order_relaxed);
-        MELON_LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
+        TURBO_LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else {
         g_succ.fetch_add(1, std::memory_order_relaxed);
         g_latency_rec << cntl->latency_us();
@@ -116,13 +116,13 @@ void Expose() {
 struct TestCaseContext {
     TestCaseContext(const test::TestCase &tc)
             : running(true), stage_index(0), test_case(tc), next_stage_sec(test_case.qps_stage_list(0).duration_sec() +
-                                                                           melon::time_now().to_unix_seconds()) {
+                                                                           turbo::time_now().to_unix_seconds()) {
         DisplayStage(test_case.qps_stage_list(stage_index));
         Update();
     }
 
     bool Update() {
-        if (melon::time_now().to_unix_seconds() >= next_stage_sec) {
+        if (turbo::time_now().to_unix_seconds() >= next_stage_sec) {
             ++stage_index;
             if (stage_index < test_case.qps_stage_list_size()) {
                 next_stage_sec += test_case.qps_stage_list(stage_index).duration_sec();
@@ -137,11 +137,11 @@ struct TestCaseContext {
         const int lower_bound = qps_stage.lower_bound();
         const int upper_bound = qps_stage.upper_bound();
         if (qps_stage.type() == test::FLUCTUATE) {
-            qps = melon::base::fast_rand_less_than(upper_bound - lower_bound) + lower_bound;
+            qps = turbo::base::fast_rand_less_than(upper_bound - lower_bound) + lower_bound;
         } else if (qps_stage.type() == test::SMOOTH) {
             qps = lower_bound + (upper_bound - lower_bound) /
                                 double(qps_stage.duration_sec()) * (qps_stage.duration_sec() - next_stage_sec
-                                                                    + melon::time_now().to_unix_seconds());
+                                                                    + turbo::time_now().to_unix_seconds());
         }
         interval_us.store(1.0 / qps * 1000000, std::memory_order_relaxed);
         return true;
@@ -159,7 +159,7 @@ void RunUpdateTask(void *data) {
     bool should_continue = context->Update();
     if (should_continue) {
         melon::fiber_internal::get_global_timer_thread()->schedule(RunUpdateTask, data,
-                                                                   melon::time_point::future_unix_micros(FLAGS_client_qps_change_interval_us).to_timespec());
+                                                                   turbo::time_point::future_unix_micros(FLAGS_client_qps_change_interval_us).to_timespec());
     } else {
         context->running.store(false, std::memory_order_release);
     }
@@ -167,7 +167,7 @@ void RunUpdateTask(void *data) {
 
 void RunCase(test::ControlService_Stub &cntl_stub,
              const test::TestCase &test_case) {
-    MELON_LOG(INFO) << "Running case:`" << test_case.case_name() << '\'';
+    TURBO_LOG(INFO) << "Running case:`" << test_case.case_name() << '\'';
     melon::rpc::Channel channel;
     melon::rpc::ChannelOptions options;
     options.protocol = FLAGS_protocol;
@@ -175,7 +175,7 @@ void RunCase(test::ControlService_Stub &cntl_stub,
     options.timeout_ms = FLAGS_timeout_ms;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_echo_server.c_str(), &options) != 0) {
-        MELON_LOG(FATAL) << "Fail to initialize channel";
+        TURBO_LOG(FATAL) << "Fail to initialize channel";
     }
     test::EchoService_Stub echo_stub(&channel);
 
@@ -184,11 +184,11 @@ void RunCase(test::ControlService_Stub &cntl_stub,
     melon::rpc::Controller cntl;
     cntl_req.set_message("StartCase");
     cntl_stub.Notify(&cntl, &cntl_req, &cntl_rsp, nullptr);
-    MELON_CHECK(!cntl.Failed()) << "control failed";
+    TURBO_CHECK(!cntl.Failed()) << "control failed";
 
     TestCaseContext context(test_case);
     melon::fiber_internal::get_global_timer_thread()->schedule(RunUpdateTask, &context,
-                                                               melon::time_point::future_unix_micros(
+                                                               turbo::time_point::future_unix_micros(
                                                                        FLAGS_client_qps_change_interval_us).to_timespec());
 
     while (context.running.load(std::memory_order_acquire)) {
@@ -202,13 +202,13 @@ void RunCase(test::ControlService_Stub &cntl_stub,
         ::usleep(context.interval_us.load(std::memory_order_relaxed));
     }
 
-    MELON_LOG(INFO) << "Waiting to stop case: `" << test_case.case_name() << '\'';
+    TURBO_LOG(INFO) << "Waiting to stop case: `" << test_case.case_name() << '\'';
     ::sleep(FLAGS_case_interval);
     cntl.Reset();
     cntl_req.set_message("StopCase");
     cntl_stub.Notify(&cntl, &cntl_req, &cntl_rsp, nullptr);
-    MELON_CHECK(!cntl.Failed()) << "control failed";
-    MELON_LOG(INFO) << "Case `" << test_case.case_name() << "' finshed:";
+    TURBO_CHECK(!cntl.Failed()) << "control failed";
+    TURBO_LOG(INFO) << "Case `" << test_case.case_name() << "' finshed:";
 }
 
 int main(int argc, char *argv[]) {
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
     options.timeout_ms = FLAGS_timeout_ms;
 
     if (channel.Init(FLAGS_cntl_server.c_str(), &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
     test::ControlService_Stub cntl_stub(&channel);
@@ -236,10 +236,10 @@ int main(int argc, char *argv[]) {
     test::NotifyResponse cntl_rsp;
     cntl_req.set_message("ResetCaseSet");
     cntl_stub.Notify(&cntl, &cntl_req, &cntl_rsp, nullptr);
-    MELON_CHECK(!cntl.Failed()) << "Cntl Failed";
+    TURBO_CHECK(!cntl.Failed()) << "Cntl Failed";
     for (int i = 0; i < case_set.test_case_size(); ++i) {
         RunCase(cntl_stub, case_set.test_case(i));
     }
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

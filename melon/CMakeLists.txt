@@ -22,7 +22,6 @@ endif ()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(MELON_BASE_LIB ${MELON_SRC})
 add_library(SOURCES_LIB OBJECT ${SOURCES})
 add_dependencies(SOURCES_LIB PROTO_LIB)
 
@@ -30,11 +29,10 @@ add_dependencies(SOURCES_LIB PROTO_LIB)
 set_property(TARGET ${SOURCES_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET ${MELON_BASE_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(melon-shared SHARED $<TARGET_OBJECTS:MELON_BASE_LIB>
+add_library(melon-shared SHARED
         $<TARGET_OBJECTS:SOURCES_LIB>
         $<TARGET_OBJECTS:PROTO_LIB>)
 add_library(melon-static STATIC
-        $<TARGET_OBJECTS:MELON_BASE_LIB>
         $<TARGET_OBJECTS:SOURCES_LIB>
         $<TARGET_OBJECTS:PROTO_LIB>)
 

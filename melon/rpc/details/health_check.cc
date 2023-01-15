@@ -84,7 +84,7 @@ namespace melon::rpc {
                      << " was abandoned during health checking";
             return;
         }
-        MELON_LOG(INFO) << "Checking path=" << ptr->remote_side() << FLAGS_health_check_path;
+        TURBO_LOG(INFO) << "Checking path=" << ptr->remote_side() << FLAGS_health_check_path;
         OnAppHealthCheckDone *done = new OnAppHealthCheckDone;
         done->id = id;
         done->interval_s = check_interval_s;
@@ -94,7 +94,7 @@ namespace melon::rpc {
         options.timeout_ms =
                 std::min((int64_t) FLAGS_health_check_timeout_ms, check_interval_s * 1000);
         if (done->channel.Init(id, &options) != 0) {
-            MELON_LOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
+            TURBO_LOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
             ptr->_ninflight_app_health_check.fetch_sub(
                     1, std::memory_order_relaxed);
             delete done;
@@ -108,7 +108,7 @@ namespace melon::rpc {
         done->cntl.Reset();
         done->cntl.http_request().uri() = FLAGS_health_check_path;
         ControllerPrivateAccessor(&done->cntl).set_health_check_call();
-        done->last_check_time_ms = melon::time_now().to_unix_millis();
+        done->last_check_time_ms = turbo::time_now().to_unix_millis();
         done->channel.CallMethod(nullptr, &done->cntl, nullptr, nullptr, done);
         return nullptr;
     }
@@ -123,7 +123,7 @@ namespace melon::rpc {
             return;
         }
         if (!cntl.Failed() || ptr->Failed()) {
-            MELON_LOG_IF(INFO, !cntl.Failed()) << "Succeeded to call "
+            TURBO_LOG_IF(INFO, !cntl.Failed()) << "Succeeded to call "
                                                << ptr->remote_side() << FLAGS_health_check_path;
             // if ptr->Failed(), previous SetFailed would trigger next round
             // of hc, just return here.
@@ -135,7 +135,7 @@ namespace melon::rpc {
                  << ", " << cntl.ErrorText();
 
         int64_t sleep_time_ms =
-                last_check_time_ms + interval_s * 1000 - melon::time_now().to_unix_millis();
+                last_check_time_ms + interval_s * 1000 - turbo::time_now().to_unix_millis();
         if (sleep_time_ms > 0) {
             // TODO(zhujiashun): we need to handle the case when timer fails
             // and melon::fiber_sleep_for returns immediately. In most situations,
@@ -165,7 +165,7 @@ namespace melon::rpc {
     bool HealthCheckTask::OnTriggeringTask(timespec *next_abstime) {
         SocketUniquePtr ptr;
         const int rc = Socket::AddressFailedAsWell(_id, &ptr);
-        MELON_CHECK(rc != 0);
+        TURBO_CHECK(rc != 0);
         if (rc < 0) {
             RPC_VLOG << "SocketId=" << _id
                      << " was abandoned before health checking";
@@ -191,7 +191,7 @@ namespace melon::rpc {
         if (_first_time) {  // Only check at first time.
             _first_time = false;
             if (ptr->WaitAndReset(2/*note*/) != 0) {
-                MELON_LOG(INFO) << "Cancel checking " << *ptr;
+                TURBO_LOG(INFO) << "Cancel checking " << *ptr;
                 return false;
             }
         }
@@ -222,11 +222,11 @@ namespace melon::rpc {
             }
             return false;
         } else if (hc == ESTOP) {
-            MELON_LOG(INFO) << "Cancel checking " << *ptr;
+            TURBO_LOG(INFO) << "Cancel checking " << *ptr;
             return false;
         }
         ++ptr->_hc_count;
-        *next_abstime = melon::time_point::future_unix_seconds(ptr->_health_check_interval_s).to_timespec();
+        *next_abstime = turbo::time_point::future_unix_seconds(ptr->_health_check_interval_s).to_timespec();
         return true;
     }
 
@@ -236,7 +236,7 @@ namespace melon::rpc {
 
     void StartHealthCheck(SocketId id, int64_t delay_ms) {
         PeriodicTaskManager::StartTaskAt(new HealthCheckTask(id),
-                                         melon::time_point::future_unix_millis(delay_ms).to_timespec());
+                                         turbo::time_point::future_unix_millis(delay_ms).to_timespec());
     }
 
 } // namespace melon::rpc

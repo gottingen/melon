@@ -17,7 +17,7 @@
 
 
 #include <pthread.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/policy/gzip_compress.h"
 #include "melon/rpc/builtin/viz_min_js.h"
 
@@ -25,12 +25,12 @@
 namespace melon::rpc {
 
 static pthread_once_t s_viz_min_buf_once = PTHREAD_ONCE_INIT;
-static melon::cord_buf* s_viz_min_buf = nullptr;
+static turbo::cord_buf* s_viz_min_buf = nullptr;
 static void InitVizMinBuf() {
-    s_viz_min_buf = new melon::cord_buf;
+    s_viz_min_buf = new turbo::cord_buf;
     s_viz_min_buf->append(viz_min_js());
 }
-const melon::cord_buf& viz_min_js_iobuf() {
+const turbo::cord_buf& viz_min_js_iobuf() {
     pthread_once(&s_viz_min_buf_once, InitVizMinBuf);
     return *s_viz_min_buf;
 }
@@ -38,14 +38,14 @@ const melon::cord_buf& viz_min_js_iobuf() {
 // viz.js is huge. We separate the creation of gzip version from uncompress
 // version so that at most time we only keep gzip version in memory.
 static pthread_once_t s_viz_min_buf_gzip_once = PTHREAD_ONCE_INIT;
-static melon::cord_buf* s_viz_min_buf_gzip = nullptr;
+static turbo::cord_buf* s_viz_min_buf_gzip = nullptr;
 static void InitVizMinBufGzip() {
-    melon::cord_buf viz_min;
+    turbo::cord_buf viz_min;
     viz_min.append(viz_min_js());
-    s_viz_min_buf_gzip = new melon::cord_buf;
-    MELON_CHECK(policy::GzipCompress(viz_min, s_viz_min_buf_gzip, nullptr));
+    s_viz_min_buf_gzip = new turbo::cord_buf;
+    TURBO_CHECK(policy::GzipCompress(viz_min, s_viz_min_buf_gzip, nullptr));
 }
-const melon::cord_buf& viz_min_js_iobuf_gzip() {
+const turbo::cord_buf& viz_min_js_iobuf_gzip() {
     pthread_once(&s_viz_min_buf_gzip_once, InitVizMinBufGzip);
     return *s_viz_min_buf_gzip;
 }

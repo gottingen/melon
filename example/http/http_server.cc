@@ -18,8 +18,8 @@
 // A server to receive HttpRequest and send back HttpResponse.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/bootstrap/bootstrap.h"
+#include "turbo/log/logging.h"
+#include <turbo/bootstrap/bootstrap.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
 #include "http.pb.h"
@@ -56,7 +56,7 @@ namespace example {
                     static_cast<melon::rpc::Controller *>(cntl_base);
             // Fill response.
             cntl->http_response().set_content_type("text/plain");
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             os << "queries:";
             for (melon::rpc::URI::QueryIterator it = cntl->http_request().uri().QueryBegin();
                  it != cntl->http_request().uri().QueryEnd(); ++it) {
@@ -75,13 +75,13 @@ namespace example {
         virtual ~FileServiceImpl() {};
 
         struct Args {
-            melon::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa;
+            turbo::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa;
         };
 
         static void *SendLargeFile(void *raw_args) {
             std::unique_ptr<Args> args(static_cast<Args *>(raw_args));
             if (args->pa == nullptr) {
-                MELON_LOG(ERROR) << "ProgressiveAttachment is nullptr";
+                TURBO_LOG(ERROR) << "ProgressiveAttachment is nullptr";
                 return nullptr;
             }
             for (int i = 0; i < 100; ++i) {
@@ -166,8 +166,8 @@ namespace example {
 
 int main(int argc, char *argv[]) {
 
-    melon::bootstrap_init(argc, argv);
-    melon::run_bootstrap();
+    turbo::bootstrap_init(argc, argv);
+    turbo::run_bootstrap();
     // Generally you only need one Server.
     melon::rpc::Server server;
 
@@ -180,12 +180,12 @@ int main(int argc, char *argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&http_svc,
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add http_svc";
+        TURBO_LOG(ERROR) << "Fail to add http_svc";
         return -1;
     }
     if (server.AddService(&file_svc,
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add file_svc";
+        TURBO_LOG(ERROR) << "Fail to add file_svc";
         return -1;
     }
     if (server.AddService(&queue_svc,
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
                           "/v1/queue/start   => start,"
                           "/v1/queue/stop    => stop,"
                           "/v1/queue/stats/* => getstats") != 0) {
-        MELON_LOG(ERROR) << "Fail to add queue_svc";
+        TURBO_LOG(ERROR) << "Fail to add queue_svc";
         return -1;
     }
 
@@ -204,12 +204,12 @@ int main(int argc, char *argv[]) {
     options.mutable_ssl_options()->default_cert.private_key = FLAGS_private_key;
     options.mutable_ssl_options()->ciphers = FLAGS_ciphers;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start HttpServer";
+        TURBO_LOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }
 
     // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
     server.RunUntilAskedToQuit();
-    melon::run_finalizers();
+    turbo::run_finalizers();
     return 0;
 }

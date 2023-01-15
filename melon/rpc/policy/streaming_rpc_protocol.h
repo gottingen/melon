@@ -26,11 +26,11 @@
 namespace melon::rpc {
     namespace policy {
 
-        void PackStreamMessage(melon::cord_buf *out,
+        void PackStreamMessage(turbo::cord_buf *out,
                                const StreamFrameMeta &fm,
-                               const melon::cord_buf *data);
+                               const turbo::cord_buf *data);
 
-        ParseResult ParseStreamingMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseStreamingMessage(turbo::cord_buf *source, Socket *socket,
                                           bool read_eof, const void *arg);
 
         void ProcessStreamingMessage(InputMessageBase *msg);
@@ -40,7 +40,7 @@ namespace melon::rpc {
         void SendStreamClose(Socket *sock, int64_t remote_stream_id,
                              int64_t source_stream_id);
 
-        int SendStreamData(Socket *sock, const melon::cord_buf *data,
+        int SendStreamData(Socket *sock, const turbo::cord_buf *data,
                            int64_t remote_stream_id, int64_t source_stream_id);
 
     }  // namespace policy

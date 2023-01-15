@@ -18,7 +18,7 @@
 
 #include <unistd.h>                    // write, _exit
 #include <gflags/gflags.h>
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 #include "melon/rpc/reloadable_flags.h"
 
 namespace melon::rpc {
@@ -61,7 +61,7 @@ static bool RegisterFlagValidatorOrDieImpl(
     }
     // Error printed by gflags does not have newline. Add one to it.
     char newline = '\n';
-    melon::base::ignore_result(write(2, &newline, 1));
+    turbo::base::ignore_result(write(2, &newline, 1));
     _exit(1);
 }
 

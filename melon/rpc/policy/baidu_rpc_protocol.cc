@@ -20,10 +20,10 @@
 #include <google/protobuf/message.h>            // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "melon/log/logging.h"                       // MELON_LOG()
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
-#include "melon/io/raw_pack.h"                      // raw_packer raw_unpacker
+#include "turbo/log/logging.h"                       // TURBO_LOG()
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
+#include "turbo/io/raw_pack.h"                      // raw_packer raw_unpacker
 #include "melon/rpc/controller.h"                    // Controller
 #include "melon/rpc/socket.h"                        // Socket
 #include "melon/rpc/server.h"                        // Server
@@ -65,13 +65,13 @@ namespace melon::rpc {
         inline void PackRpcHeader(char *rpc_header, int meta_size, int payload_size) {
             uint32_t *dummy = (uint32_t *) rpc_header;  // suppress strict-alias warning
             *dummy = *(uint32_t *) "PRPC";
-            melon::raw_packer(rpc_header + 4)
+            turbo::raw_packer(rpc_header + 4)
                     .pack32(meta_size + payload_size)
                     .pack32(meta_size);
         }
 
         static void SerializeRpcHeaderAndMeta(
-                melon::cord_buf *out, const RpcMeta &meta, int payload_size) {
+                turbo::cord_buf *out, const RpcMeta &meta, int payload_size) {
             const int meta_size = meta.ByteSizeLong();
             if (meta_size <= 244) { // most common cases
                 char header_and_meta[12 + meta_size];
@@ -79,20 +79,20 @@ namespace melon::rpc {
                 ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 12, meta_size);
                 ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
                 meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-                MELON_CHECK(!coded_out.HadError());
+                TURBO_CHECK(!coded_out.HadError());
                 out->append(header_and_meta, sizeof(header_and_meta));
             } else {
                 char header[12];
                 PackRpcHeader(header, meta_size, payload_size);
                 out->append(header, sizeof(header));
-                melon::cord_buf_as_zero_copy_output_stream buf_stream(out);
+                turbo::cord_buf_as_zero_copy_output_stream buf_stream(out);
                 ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
                 meta.SerializeWithCachedSizes(&coded_out);
-                MELON_CHECK(!coded_out.HadError());
+                TURBO_CHECK(!coded_out.HadError());
             }
         }
 
-        ParseResult ParseRpcMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseRpcMessage(turbo::cord_buf *source, Socket *socket,
                                     bool /*read_eof*/, const void *) {
             char header_buf[12];
             const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -111,18 +111,18 @@ namespace melon::rpc {
             }
             uint32_t body_size;
             uint32_t meta_size;
-            melon::raw_unpacker(header_buf + 4).unpack32(body_size).unpack32(meta_size);
+            turbo::raw_unpacker(header_buf + 4).unpack32(body_size).unpack32(meta_size);
             if (body_size > FLAGS_max_body_size) {
                 // We need this log to report the body_size to give users some clues
                 // which is not printed in InputMessenger.
-                MELON_LOG(ERROR) << "body_size=" << body_size << " from "
+                TURBO_LOG(ERROR) << "body_size=" << body_size << " from "
                                  << socket->remote_side() << " is too large";
                 return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
             } else if (source->length() < sizeof(header_buf) + body_size) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
             if (meta_size > body_size) {
-                MELON_LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+                TURBO_LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                                  << body_size;
                 // Pop the message
                 source->pop_front(sizeof(header_buf) + body_size);
@@ -146,7 +146,7 @@ namespace melon::rpc {
             ControllerPrivateAccessor accessor(cntl);
             Span *span = accessor.span();
             if (span) {
-                span->set_start_send_us(melon::get_current_time_micros());
+                span->set_start_send_us(turbo::get_current_time_micros());
             }
             Socket *sock = accessor.get_sending_socket();
             std::unique_ptr<Controller, LogErrorTextAndDelete> recycle_cntl(cntl);
@@ -162,7 +162,7 @@ namespace melon::rpc {
                 return;
             }
             bool append_body = false;
-            melon::cord_buf res_body;
+            turbo::cord_buf res_body;
             // `res' can be nullptr here, in which case we don't serialize it
             // If user calls `SetFailed' on Controller, we don't serialize
             // response either
@@ -214,12 +214,12 @@ namespace melon::rpc {
                     s->FillSettings(meta.mutable_stream_settings());
                     s->SetHostSocket(sock);
                 } else {
-                    MELON_LOG(WARNING) << "Stream=" << response_stream_id
+                    TURBO_LOG(WARNING) << "Stream=" << response_stream_id
                                        << " was closed before sending response";
                 }
             }
 
-            melon::cord_buf res_buf;
+            turbo::cord_buf res_buf;
             SerializeRpcHeaderAndMeta(&res_buf, meta, res_size + attached_size);
             if (append_body) {
                 res_buf.append(res_body.movable());
@@ -241,7 +241,7 @@ namespace melon::rpc {
                                    accessor.remote_stream_settings()->stream_id(),
                                    accessor.response_stream()) != 0) {
                     const int errcode = errno;
-                    MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+                    TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
                     cntl->SetFailed(errcode, "Fail to write into %s",
                                     sock->description().c_str());
                     if(stream_ptr) {
@@ -261,7 +261,7 @@ namespace melon::rpc {
                 wopt.ignore_eovercrowded = true;
                 if (sock->Write(&res_buf, &wopt) != 0) {
                     const int errcode = errno;
-                    MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+                    TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
                     cntl->SetFailed(errcode, "Fail to write into %s",
                                     sock->description().c_str());
                     return;
@@ -270,7 +270,7 @@ namespace melon::rpc {
 
             if (span) {
                 // TODO: this is not sent
-                span->set_sent_us(melon::get_current_time_micros());
+                span->set_sent_us(turbo::get_current_time_micros());
             }
         }
 
@@ -309,7 +309,7 @@ namespace melon::rpc {
         };
 
         void ProcessRpcRequest(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             SocketUniquePtr socket_guard(msg->ReleaseSocket());
             Socket *socket = socket_guard.get();
@@ -318,7 +318,7 @@ namespace melon::rpc {
 
             RpcMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
+                TURBO_LOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
                 socket->SetFailed(EREQUEST, "Fail to parse RpcMeta from %s",
                                   socket->description().c_str());
                 return;
@@ -339,7 +339,7 @@ namespace melon::rpc {
 
             std::unique_ptr<Controller> cntl(new(std::nothrow) Controller);
             if (nullptr == cntl.get()) {
-                MELON_LOG(WARNING) << "Fail to new Controller";
+                TURBO_LOG(WARNING) << "Fail to new Controller";
                 return;
             }
             std::unique_ptr<google::protobuf::Message> req;
@@ -401,7 +401,7 @@ namespace melon::rpc {
 
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::endpoint2str(socket->remote_side()).c_str());
+                                    turbo::endpoint2str(socket->remote_side()).c_str());
                     break;
                 }
 
@@ -465,8 +465,8 @@ namespace melon::rpc {
                     span->ResetServerSpanName(method->full_name());
                 }
                 const int req_size = static_cast<int>(msg->payload.size());
-                melon::cord_buf req_buf;
-                melon::cord_buf *req_buf_ptr = &msg->payload;
+                turbo::cord_buf req_buf;
+                turbo::cord_buf *req_buf_ptr = &msg->payload;
                 if (meta.has_attachment_size()) {
                     if (req_size < meta.attachment_size()) {
                         cntl->SetFailed(EREQUEST,
@@ -504,7 +504,7 @@ namespace melon::rpc {
                 req_buf.clear();
 
                 if (span) {
-                    span->set_start_callback_us(melon::get_current_time_micros());
+                    span->set_start_callback_us(turbo::get_current_time_micros());
                     span->AsParent();
                 }
                 if (!FLAGS_usercode_in_pthread) {
@@ -537,7 +537,7 @@ namespace melon::rpc {
 
             RpcMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse RpcRequestMeta";
+                TURBO_LOG(WARNING) << "Fail to parse RpcRequestMeta";
                 return false;
             }
             const Authenticator *auth = server->options().auth;
@@ -554,11 +554,11 @@ namespace melon::rpc {
         }
 
         void ProcessRpcResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             RpcMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse from response meta";
+                TURBO_LOG(WARNING) << "Fail to parse from response meta";
                 return;
             }
 
@@ -567,8 +567,8 @@ namespace melon::rpc {
             StreamId remote_stream_id = meta.has_stream_settings() ? meta.stream_settings().stream_id(): INVALID_STREAM_ID;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 if (remote_stream_id != INVALID_STREAM_ID) {
                     SendStreamRst(msg->socket(), meta.stream_settings().stream_id());
                 }
@@ -597,9 +597,9 @@ namespace melon::rpc {
                     break;
                 }
                 // Parse response message iff error code from meta is 0
-                melon::cord_buf res_buf;
+                turbo::cord_buf res_buf;
                 const int res_size = msg->payload.length();
-                melon::cord_buf *res_buf_ptr = &msg->payload;
+                turbo::cord_buf *res_buf_ptr = &msg->payload;
                 if (meta.has_attachment_size()) {
                     if (meta.attachment_size() > res_size) {
                         cntl->SetFailed(
@@ -632,12 +632,12 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void PackRpcRequest(melon::cord_buf *req_buf,
+        void PackRpcRequest(turbo::cord_buf *req_buf,
                             SocketMessage **,
                             uint64_t correlation_id,
                             const google::protobuf::MethodDescriptor *method,
                             Controller *cntl,
-                            const melon::cord_buf &request_body,
+                            const turbo::cord_buf &request_body,
                             const Authenticator *auth) {
             RpcMeta meta;
             if (auth && auth->GenerateCredential(

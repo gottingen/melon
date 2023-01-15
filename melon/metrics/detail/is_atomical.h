@@ -2,7 +2,7 @@
 #ifndef MELON_VARIABLE_DETAIL_IS_ATOMICAL_H_
 #define MELON_VARIABLE_DETAIL_IS_ATOMICAL_H_
 
-#include "melon/base/type_traits.h"
+#include "turbo/base/type_traits.h"
 
 namespace melon {
     namespace metrics_detail {

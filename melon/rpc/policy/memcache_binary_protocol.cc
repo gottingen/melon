@@ -19,10 +19,10 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"                       // MELON_LOG()
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
-#include "melon/base/endian.h"
+#include "turbo/log/logging.h"                       // TURBO_LOG()
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
+#include "turbo/base/endian.h"
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/socket.h"                   // Socket
@@ -34,7 +34,7 @@
 #include "melon/rpc/policy/memcache_binary_header.h"
 #include "melon/rpc/memcache.h"
 #include "melon/rpc/policy/most_common_message.h"
-#include "melon/container/flat_map.h"
+#include "turbo/container/flat_map.h"
 
 
 namespace melon::rpc {
@@ -50,30 +50,30 @@ namespace melon::rpc {
         static pthread_once_t supported_cmd_map_once = PTHREAD_ONCE_INIT;
 
         static void InitSupportedCommandMap() {
-            melon::container::bit_array_clear(supported_cmd_map, 256);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_GET);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_SET);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_ADD);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_REPLACE);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_DELETE);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_INCREMENT);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_DECREMENT);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_FLUSH);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_VERSION);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_NOOP);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_APPEND);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_PREPEND);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_STAT);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_TOUCH);
-            melon::container::bit_array_set(supported_cmd_map, MC_BINARY_SASL_AUTH);
+            turbo::container::bit_array_clear(supported_cmd_map, 256);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_GET);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_SET);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_ADD);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_REPLACE);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_DELETE);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_INCREMENT);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_DECREMENT);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_FLUSH);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_VERSION);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_NOOP);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_APPEND);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_PREPEND);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_STAT);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_TOUCH);
+            turbo::container::bit_array_set(supported_cmd_map, MC_BINARY_SASL_AUTH);
         }
 
         inline bool IsSupportedCommand(uint8_t command) {
             pthread_once(&supported_cmd_map_once, InitSupportedCommandMap);
-            return melon::container::bit_array_get(supported_cmd_map, command);
+            return turbo::container::bit_array_get(supported_cmd_map, command);
         }
 
-        ParseResult ParseMemcacheMessage(melon::cord_buf *source,
+        ParseResult ParseMemcacheMessage(turbo::cord_buf *source,
                                          Socket *socket, bool /*read_eof*/, const void */*arg*/) {
             while (1) {
                 const uint8_t *p_mcmagic = (const uint8_t *) source->fetch1();
@@ -89,20 +89,20 @@ namespace melon::rpc {
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 }
                 const MemcacheResponseHeader *header = (const MemcacheResponseHeader *) p;
-                uint32_t total_body_length = melon::base::melon_ntoh32(header->total_body_length);
+                uint32_t total_body_length = turbo::base::turbo_ntoh32(header->total_body_length);
                 if (source->size() < sizeof(*header) + total_body_length) {
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 }
 
                 if (!IsSupportedCommand(header->command)) {
-                    MELON_LOG(WARNING) << "Not support command=" << header->command;
+                    TURBO_LOG(WARNING) << "Not support command=" << header->command;
                     source->pop_front(sizeof(*header) + total_body_length);
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 }
 
                 PipelinedInfo pi;
                 if (!socket->PopPipelinedInfo(&pi)) {
-                    MELON_LOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
+                    TURBO_LOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
                     source->pop_front(sizeof(*header) + total_body_length);
                     return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
                 }
@@ -117,20 +117,20 @@ namespace melon::rpc {
                 const MemcacheResponseHeader local_header = {
                         header->magic,
                         header->command,
-                        melon::base::melon_ntoh16(header->key_length),
+                        turbo::base::turbo_ntoh16(header->key_length),
                         header->extras_length,
                         header->data_type,
-                        melon::base::melon_ntoh16(header->status),
+                        turbo::base::turbo_ntoh16(header->status),
                         total_body_length,
-                        melon::base::melon_ntoh32(header->opaque),
-                        melon::base::melon_ntoh64(header->cas_value),
+                        turbo::base::turbo_ntoh32(header->opaque),
+                        turbo::base::turbo_ntoh64(header->cas_value),
                 };
                 msg->meta.append(&local_header, sizeof(local_header));
                 source->pop_front(sizeof(*header));
                 source->cutn(&msg->meta, total_body_length);
                 if (header->command == MC_BINARY_SASL_AUTH) {
                     if (header->status != 0) {
-                        MELON_LOG(ERROR) << "Failed to authenticate the couchbase bucket.";
+                        TURBO_LOG(ERROR) << "Failed to authenticate the couchbase bucket.";
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE,
                                               "Fail to authenticate with the couchbase bucket");
                     }
@@ -139,7 +139,7 @@ namespace melon::rpc {
                     socket->GivebackPipelinedInfo(pi);
                 } else {
                     if (++msg->pi.count >= pi.count) {
-                        MELON_CHECK_EQ(msg->pi.count, pi.count);
+                        TURBO_CHECK_EQ(msg->pi.count, pi.count);
                         msg = static_cast<MostCommonMessage *>(socket->release_parsing_context());
                         msg->pi = pi;
                         return MakeMessage(msg);
@@ -151,15 +151,15 @@ namespace melon::rpc {
         }
 
         void ProcessMemcacheResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
 
             const fiber_token_t cid = msg->pi.id_wait;
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -191,7 +191,7 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void SerializeMemcacheRequest(melon::cord_buf *buf,
+        void SerializeMemcacheRequest(turbo::cord_buf *buf,
                                       Controller *cntl,
                                       const google::protobuf::Message *request) {
             if (request == nullptr) {
@@ -206,12 +206,12 @@ namespace melon::rpc {
             ControllerPrivateAccessor(cntl).set_pipelined_count(mr->pipelined_count());
         }
 
-        void PackMemcacheRequest(melon::cord_buf *buf,
+        void PackMemcacheRequest(turbo::cord_buf *buf,
                                  SocketMessage **,
                                  uint64_t /*correlation_id*/,
                                  const google::protobuf::MethodDescriptor *,
                                  Controller *cntl,
-                                 const melon::cord_buf &request,
+                                 const turbo::cord_buf &request,
                                  const Authenticator *auth) {
             if (auth) {
                 std::string auth_str;

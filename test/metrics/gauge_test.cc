@@ -19,10 +19,10 @@ TEST(metrics, gauge) {
     g1<<1;
     g1<<5;
     EXPECT_EQ(g1.get_value(), 6);
-    auto n = melon::time_now();
+    auto n = turbo::time_now();
     melon::cache_metrics cm;
     g1.collect_metrics(cm);
-    auto t = melon::time_now();
+    auto t = turbo::time_now();
     auto str = melon::prometheus_dumper::dump_to_string(cm, &t);
     std::string g1_s = "# HELP g1\n"
                        "# TYPE g1 gauge\n"

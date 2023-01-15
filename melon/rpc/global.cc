@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include <fcntl.h>                               // O_RDONLY
 #include <signal.h>
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 #include "melon/rpc/policy/file_naming_service.h"
 #include "melon/rpc/policy/list_naming_service.h"
 #include "melon/rpc/policy/domain_naming_service.h"
@@ -78,16 +78,16 @@
 #include "melon/rpc/trackme.h"             // TrackMe
 #include "melon/rpc/details/usercode_backup_pool.h"
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
 #include <malloc.h>                   // malloc_trim
 #endif
 
-#include "melon/base/fd_guard.h"
-#include "melon/files/file_watcher.h"
+#include "turbo/base/fd_guard.h"
+#include "turbo/files/file_watcher.h"
 
 extern "C" {
 // defined in gperftools/malloc_extension_c.h
-void MELON_WEAK MallocExtension_ReleaseFreeMemory(void);
+void TURBO_WEAK MallocExtension_ReleaseFreeMemory(void);
 }
 
 namespace melon::rpc {
@@ -141,16 +141,16 @@ namespace melon::rpc {
     static GlobalExtensions *g_ext = nullptr;
 
     static long ReadPortOfDummyServer(const char *filename) {
-        melon::base::fd_guard fd(open(filename, O_RDONLY));
+        turbo::base::fd_guard fd(open(filename, O_RDONLY));
         if (fd < 0) {
-            MELON_LOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
+            TURBO_LOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
             return -1;
         }
         char port_str[32];
         const ssize_t nr = read(fd, port_str, sizeof(port_str));
         if (nr <= 0) {
-            MELON_LOG(ERROR) << "Fail to read `" << DUMMY_SERVER_PORT_FILE << "': "
-                             << (nr == 0 ? "nothing to read" : melon_error());
+            TURBO_LOG(ERROR) << "Fail to read `" << DUMMY_SERVER_PORT_FILE << "': "
+                             << (nr == 0 ? "nothing to read" : turbo_error());
             return -1;
         }
         port_str[std::min((size_t) nr, sizeof(port_str) - 1)] = '\0';
@@ -160,31 +160,31 @@ namespace melon::rpc {
         const long port = strtol(p, &endptr, 10);
         for (; isspace(*endptr); ++endptr) {}
         if (*endptr != '\0') {
-            MELON_LOG(ERROR) << "Invalid port=`" << port_str << "'";
+            TURBO_LOG(ERROR) << "Invalid port=`" << port_str << "'";
             return -1;
         }
         return port;
     }
 
-    // Expose counters of melon::cord_buf
+    // Expose counters of turbo::cord_buf
     static size_t GetCordBufBlockCount(void *) {
-        return melon::cord_buf::block_count();
+        return turbo::cord_buf::block_count();
     }
 
     static size_t GetCordBufBlockCountHitTLSThreshold(void *) {
-        return melon::cord_buf::block_count_hit_tls_threshold();
+        return turbo::cord_buf::block_count_hit_tls_threshold();
     }
 
     static size_t GetCordBufNewBigViewCount(void *) {
-        return melon::cord_buf::new_bigview_count();
+        return turbo::cord_buf::new_bigview_count();
     }
 
     static size_t GetCordBufBlockMemory(void *) {
-        return melon::cord_buf::block_memory();
+        return turbo::cord_buf::block_memory();
     }
 
 // Defined in server.cpp
-    extern melon::static_atomic<int> g_running_server_count;
+    extern turbo::static_atomic<int> g_running_server_count;
 
     static int GetRunningServerCount(void *) {
         return g_running_server_count.load(std::memory_order_relaxed);
@@ -207,33 +207,33 @@ namespace melon::rpc {
         melon::status_gauge<int> var_running_server_count(
                 "rpc_server_count", GetRunningServerCount, nullptr);
 
-        melon::file_watcher fw;
+        turbo::file_watcher fw;
         if (fw.init_from_not_exist(DUMMY_SERVER_PORT_FILE) < 0) {
-            MELON_LOG(FATAL) << "Fail to init file_watcher on `" << DUMMY_SERVER_PORT_FILE << "'";
+            TURBO_LOG(FATAL) << "Fail to init file_watcher on `" << DUMMY_SERVER_PORT_FILE << "'";
             return nullptr;
         }
 
         std::vector<SocketId> conns;
-        const int64_t start_time_us = melon::get_current_time_micros();
+        const int64_t start_time_us = turbo::get_current_time_micros();
         const int WARN_NOSLEEP_THRESHOLD = 2;
         int64_t last_time_us = start_time_us;
         int consecutive_nosleep = 0;
         int64_t last_return_free_memory_time = start_time_us;
         while (1) {
-            const int64_t sleep_us = 1000000L + last_time_us - melon::get_current_time_micros();
+            const int64_t sleep_us = 1000000L + last_time_us - turbo::get_current_time_micros();
             if (sleep_us > 0) {
                 if (melon::fiber_sleep_for(sleep_us) < 0) {
-                    MELON_PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
+                    TURBO_PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
                     break;
                 }
                 consecutive_nosleep = 0;
             } else {
                 if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                     consecutive_nosleep = 0;
-                    MELON_LOG(WARNING) << __FUNCTION__ << " is too busy!";
+                    TURBO_LOG(WARNING) << __FUNCTION__ << " is too busy!";
                 }
             }
-            last_time_us = melon::get_current_time_micros();
+            last_time_us = turbo::get_current_time_micros();
 
             TrackMe();
 
@@ -247,7 +247,7 @@ namespace melon::rpc {
             }
 
             SocketMapList(&conns);
-            const int64_t now_ms = melon::time_now().to_unix_millis();
+            const int64_t now_ms = turbo::time_now().to_unix_millis();
             for (size_t i = 0; i < conns.size(); ++i) {
                 SocketUniquePtr ptr;
                 if (Socket::Address(conns[i], &ptr) == 0) {
@@ -269,7 +269,7 @@ namespace melon::rpc {
                 if (MallocExtension_ReleaseFreeMemory != nullptr) {
                     MallocExtension_ReleaseFreeMemory();
                 } else {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                     // GNU specific.
                     malloc_trim(10 * 1024 * 1024/*leave 10M pad*/);
 #endif
@@ -284,19 +284,19 @@ namespace melon::rpc {
                                             const std::string &message) {
         switch (level) {
             case google::protobuf::LOGLEVEL_INFO:
-                MELON_LOG(INFO) << filename << ':' << line << ' ' << message;
+                TURBO_LOG(INFO) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_WARNING:
-                MELON_LOG(WARNING) << filename << ':' << line << ' ' << message;
+                TURBO_LOG(WARNING) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_ERROR:
-                MELON_LOG(ERROR) << filename << ':' << line << ' ' << message;
+                TURBO_LOG(ERROR) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_FATAL:
-                MELON_LOG(FATAL) << filename << ':' << line << ' ' << message;
+                TURBO_LOG(FATAL) << filename << ':' << line << ' ' << message;
                 return;
         }
-        MELON_CHECK(false) << filename << ':' << line << ' ' << message;
+        TURBO_CHECK(false) << filename << ':' << line << ' ' << message;
     }
 
     static void GlobalInitializeOrDieImpl() {
@@ -310,7 +310,7 @@ namespace melon::rpc {
         struct sigaction oldact;
         if (sigaction(SIGPIPE, nullptr, &oldact) != 0 ||
             (oldact.sa_handler == nullptr && oldact.sa_sigaction == nullptr)) {
-            MELON_CHECK(nullptr == signal(SIGPIPE, SIG_IGN));
+            TURBO_CHECK(nullptr == signal(SIGPIPE, SIG_IGN));
         }
 
         // Make GOOGLE_LOG print to comlog device
@@ -597,14 +597,14 @@ namespace melon::rpc {
 
         // We never join GlobalUpdate, let it quit with the process.
         fiber_id_t th;
-        MELON_CHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
+        TURBO_CHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
                         << "Fail to start GlobalUpdate";
     }
 
     void GlobalInitializeOrDie() {
         if (pthread_once(&register_extensions_once,
                          GlobalInitializeOrDieImpl) != 0) {
-            MELON_LOG(FATAL) << "Fail to pthread_once";
+            TURBO_LOG(FATAL) << "Fail to pthread_once";
             exit(1);
         }
     }

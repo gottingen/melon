@@ -20,7 +20,7 @@
 #define MELON_RPC_POLICY_RTMP_PROTOCOL_H_
 
 #include <mutex>
-#include "melon/container/flat_map.h"
+#include "turbo/container/flat_map.h"
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/rtmp.h"
 #include "melon/rpc/amf.h"
@@ -169,7 +169,7 @@ namespace melon::rpc {
             // Set RtmpContext::_chunk_size_out to this in AppendAndDestroySelf()
             // if this field is non-zero.
             uint32_t new_chunk_size;
-            melon::cord_buf body;
+            turbo::cord_buf body;
             // If next is not nullptr, next->AppendAndDestroySelf() will be called
             // recursively. For implementing batched messages.
             SocketMessagePtr<RtmpUnsentMessage> next;
@@ -178,7 +178,7 @@ namespace melon::rpc {
                     : chunk_stream_id(0), new_chunk_size(0), next(nullptr) {}
 
             // @SocketMessage
-            melon::result_status AppendAndDestroySelf(melon::cord_buf *out, Socket *);
+            turbo::result_status AppendAndDestroySelf(turbo::cord_buf *out, Socket *);
         };
 
         // Notice that we can't directly pack CreateStream command in PackRtmpRequest, because
@@ -193,7 +193,7 @@ namespace melon::rpc {
             explicit RtmpCreateStreamMessage() {}
 
             // @SocketMessage
-            melon::result_status AppendAndDestroySelf(melon::cord_buf *out, Socket *);
+            turbo::result_status AppendAndDestroySelf(turbo::cord_buf *out, Socket *);
         };
 
         enum RtmpChunkType {
@@ -235,7 +235,7 @@ namespace melon::rpc {
                 uint8_t message_type, const void *body, size_t size);
 
         RtmpUnsentMessage *MakeUnsentControlMessage(
-                uint8_t message_type, const melon::cord_buf &body);
+                uint8_t message_type, const turbo::cord_buf &body);
 
     // The callback associated with a transaction_id.
     // If the transaction is successfully done, Run() will be called, otherwise
@@ -283,7 +283,7 @@ namespace melon::rpc {
             // Parse `source' from `socket'.
             // This method is only called from Protocol.Parse thus does not need
             // to be thread-safe.
-            ParseResult Feed(melon::cord_buf *source, Socket *socket);
+            ParseResult Feed(turbo::cord_buf *source, Socket *socket);
 
             const RtmpClientOptions *client_options() const { return _client_options; }
 
@@ -301,7 +301,7 @@ namespace melon::rpc {
             // Find the stream by its id and reference the stream with intrusive_ptr.
             // Returns true on success.
             bool FindMessageStream(uint32_t stream_id,
-                                   melon::container::intrusive_ptr<RtmpStreamBase> *stream);
+                                   turbo::container::intrusive_ptr<RtmpStreamBase> *stream);
 
             // Called in client-side to map the id to stream.
             bool AddClientStream(RtmpStreamBase *stream);
@@ -358,25 +358,25 @@ namespace melon::rpc {
             bool can_stream_be_created_with_play_or_publish() const { return _create_stream_with_play_or_publish; }
 
             // Call this fn to change _state.
-            void SetState(const melon::end_point &remote_side, State new_state);
+            void SetState(const turbo::end_point &remote_side, State new_state);
 
             void set_create_stream_with_play_or_publish(
                     bool create_stream_with_play_or_publish) { _create_stream_with_play_or_publish = create_stream_with_play_or_publish; }
 
             void set_simplified_rtmp(bool simplified_rtmp) { _simplified_rtmp = simplified_rtmp; }
 
-            int SendConnectRequest(const melon::end_point &remote_side, int fd, bool simplified_rtmp);
+            int SendConnectRequest(const turbo::end_point &remote_side, int fd, bool simplified_rtmp);
 
         private:
-            ParseResult WaitForC0C1orSimpleRtmp(melon::cord_buf *source, Socket *socket);
+            ParseResult WaitForC0C1orSimpleRtmp(turbo::cord_buf *source, Socket *socket);
 
-            ParseResult WaitForC2(melon::cord_buf *source, Socket *socket);
+            ParseResult WaitForC2(turbo::cord_buf *source, Socket *socket);
 
-            ParseResult WaitForS0S1(melon::cord_buf *source, Socket *socket);
+            ParseResult WaitForS0S1(turbo::cord_buf *source, Socket *socket);
 
-            ParseResult WaitForS2(melon::cord_buf *source, Socket *socket);
+            ParseResult WaitForS2(turbo::cord_buf *source, Socket *socket);
 
-            ParseResult OnChunks(melon::cord_buf *source, Socket *socket);
+            ParseResult OnChunks(turbo::cord_buf *source, Socket *socket);
 
             // Count received bytes and send ack back if needed.
             void AddReceivedBytes(Socket *socket, uint32_t size);
@@ -412,14 +412,14 @@ namespace melon::rpc {
             // Mapping message_stream_id to message streams.
             std::mutex _stream_mutex;
             struct MessageStreamInfo {
-                melon::container::intrusive_ptr<RtmpStreamBase> stream;
+                turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             };
-            melon::container::FlatMap<uint32_t, MessageStreamInfo> _mstream_map;
+            turbo::container::FlatMap<uint32_t, MessageStreamInfo> _mstream_map;
 
             // Mapping transaction id to handlers.
             std::mutex _trans_mutex;
             uint32_t _trans_id_allocator;
-            melon::container::FlatMap<uint32_t, RtmpTransactionHandler *> _trans_map;
+            turbo::container::FlatMap<uint32_t, RtmpTransactionHandler *> _trans_map;
 
             RtmpConnectRequest _connect_req;
 
@@ -441,7 +441,7 @@ namespace melon::rpc {
         class RtmpChunkStream {
         public:
             typedef bool (RtmpChunkStream::*MessageHandler)(
-                    const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket);
+                    const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket);
 
             typedef bool (RtmpChunkStream::*CommandHandler)(
                     const RtmpMessageHeader &mh, AMFInputStream *, Socket *socket);
@@ -450,30 +450,30 @@ namespace melon::rpc {
             RtmpChunkStream(RtmpContext *conn_ctx, uint32_t cs_id);
 
             ParseResult Feed(const RtmpBasicHeader &bh,
-                             melon::cord_buf *source, Socket *socket);
+                             turbo::cord_buf *source, Socket *socket);
 
             RtmpContext *connection_context() const { return _conn_ctx; }
 
             uint32_t chunk_stream_id() const { return _cs_id; }
 
-            int SerializeMessage(melon::cord_buf *buf, const RtmpMessageHeader &mh,
-                                 melon::cord_buf *body);
+            int SerializeMessage(turbo::cord_buf *buf, const RtmpMessageHeader &mh,
+                                 turbo::cord_buf *body);
 
             bool OnMessage(
                     const RtmpBasicHeader &bh, const RtmpMessageHeader &mh,
-                    melon::cord_buf *msg_body, Socket *socket);
+                    turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnSetChunkSize(const RtmpMessageHeader &mh,
-                                melon::cord_buf *msg_body, Socket *socket);
+                                turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnAbortMessage(const RtmpMessageHeader &mh,
-                                melon::cord_buf *msg_body, Socket *socket);
+                                turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnAck(const RtmpMessageHeader &mh,
-                       melon::cord_buf *msg_body, Socket *socket);
+                       turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnUserControlMessage(const RtmpMessageHeader &mh,
-                                      melon::cord_buf *msg_body, Socket *socket);
+                                      turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnStreamBegin(const RtmpMessageHeader &,
                                const std::string_view &event_data, Socket *socket);
@@ -503,37 +503,37 @@ namespace melon::rpc {
                                const std::string_view &event_data, Socket *socket);
 
             bool OnWindowAckSize(const RtmpMessageHeader &mh,
-                                 melon::cord_buf *msg_body, Socket *socket);
+                                 turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnSetPeerBandwidth(const RtmpMessageHeader &mh,
-                                    melon::cord_buf *msg_body, Socket *socket);
+                                    turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnAudioMessage(const RtmpMessageHeader &mh,
-                                melon::cord_buf *msg_body, Socket *socket);
+                                turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnVideoMessage(const RtmpMessageHeader &mh,
-                                melon::cord_buf *msg_body, Socket *socket);
+                                turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnDataMessageAMF0(const RtmpMessageHeader &mh,
-                                   melon::cord_buf *msg_body, Socket *socket);
+                                   turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnDataMessageAMF3(const RtmpMessageHeader &mh,
-                                   melon::cord_buf *msg_body, Socket *socket);
+                                   turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnSharedObjectMessageAMF0(const RtmpMessageHeader &mh,
-                                           melon::cord_buf *msg_body, Socket *socket);
+                                           turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnSharedObjectMessageAMF3(const RtmpMessageHeader &mh,
-                                           melon::cord_buf *msg_body, Socket *socket);
+                                           turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnCommandMessageAMF0(const RtmpMessageHeader &mh,
-                                      melon::cord_buf *msg_body, Socket *socket);
+                                      turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnCommandMessageAMF3(const RtmpMessageHeader &mh,
-                                      melon::cord_buf *msg_body, Socket *socket);
+                                      turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnAggregateMessage(const RtmpMessageHeader &mh,
-                                    melon::cord_buf *msg_body, Socket *socket);
+                                    turbo::cord_buf *msg_body, Socket *socket);
 
             bool OnStatus(const RtmpMessageHeader &mh, AMFInputStream *istream,
                           Socket *socket);
@@ -598,7 +598,7 @@ namespace melon::rpc {
                 uint32_t last_timestamp_delta;
                 uint32_t left_message_length;
                 RtmpMessageHeader last_msg_header;
-                melon::cord_buf msg_body;
+                turbo::cord_buf msg_body;
             };
 
             struct WriteParams {
@@ -616,23 +616,23 @@ namespace melon::rpc {
         };
 
         // Parse binary format of rmtp.
-        ParseResult ParseRtmpMessage(melon::cord_buf *source, Socket *socket, bool read_eof,
+        ParseResult ParseRtmpMessage(turbo::cord_buf *source, Socket *socket, bool read_eof,
                                      const void *arg);
 
         // no-op placeholder, never be called.
         void ProcessRtmpMessage(InputMessageBase *msg);
 
         // Pack createStream message
-        void PackRtmpRequest(melon::cord_buf *buf,
+        void PackRtmpRequest(turbo::cord_buf *buf,
                              SocketMessage **,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *method,
                              Controller *controller,
-                             const melon::cord_buf &request,
+                             const turbo::cord_buf &request,
                              const Authenticator *auth);
 
         // Serialize createStream message
-        void SerializeRtmpRequest(melon::cord_buf *buf,
+        void SerializeRtmpRequest(turbo::cord_buf *buf,
                                   Controller *cntl,
                                   const google::protobuf::Message *request);
 
@@ -689,7 +689,7 @@ namespace melon::rpc {
 
         inline void WriteBigEndian3Bytes(char **buf, uint32_t val) {
             const char *p = (const char *) &val;
-            MELON_CHECK_EQ(p[3], 0);
+            TURBO_CHECK_EQ(p[3], 0);
             char *out = *buf;
             out[0] = p[2];
             out[1] = p[1];

@@ -18,7 +18,7 @@
 // A client sending requests to server in batch every 1 second.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/channel.h>
 #include <melon/rpc/stream.h>
 #include "echo.pb.h"
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), nullptr) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -54,30 +54,30 @@ int main(int argc, char* argv[]) {
     melon::rpc::Controller cntl;
     melon::rpc::StreamId stream;
     if (melon::rpc::StreamCreate(&stream, cntl, nullptr) != 0) {
-        MELON_LOG(ERROR) << "Fail to create stream";
+        TURBO_LOG(ERROR) << "Fail to create stream";
         return -1;
     }
-    MELON_LOG(INFO) << "Created Stream=" << stream;
+    TURBO_LOG(INFO) << "Created Stream=" << stream;
     example::EchoRequest request;
     example::EchoResponse response;
     request.set_message("I'm a RPC to connect stream");
     stub.Echo(&cntl, &request, &response, nullptr);
     if (cntl.Failed()) {
-        MELON_LOG(ERROR) << "Fail to connect stream, " << cntl.ErrorText();
+        TURBO_LOG(ERROR) << "Fail to connect stream, " << cntl.ErrorText();
         return -1;
     }
     
     while (!melon::rpc::IsAskedToQuit()) {
-        melon::cord_buf msg1;
+        turbo::cord_buf msg1;
         msg1.append("abcdefghijklmnopqrstuvwxyz");
-        MELON_CHECK_EQ(0, melon::rpc::StreamWrite(stream, msg1));
-        melon::cord_buf msg2;
+        TURBO_CHECK_EQ(0, melon::rpc::StreamWrite(stream, msg1));
+        turbo::cord_buf msg2;
         msg2.append("0123456789");
-        MELON_CHECK_EQ(0, melon::rpc::StreamWrite(stream, msg2));
+        TURBO_CHECK_EQ(0, melon::rpc::StreamWrite(stream, msg2));
         sleep(1);
     }
 
-    MELON_CHECK_EQ(0, melon::rpc::StreamClose(stream));
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_CHECK_EQ(0, melon::rpc::StreamClose(stream));
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

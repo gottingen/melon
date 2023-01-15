@@ -20,7 +20,7 @@
 #include <google/protobuf/reflection_ops.h>                 // ReflectionOps::Merge
 #include <google/protobuf/wire_format.h>
 #include "melon/rpc/nshead_message.h"
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 
 namespace melon::rpc {
 
@@ -94,7 +94,7 @@ namespace melon::rpc {
         GOOGLE_CHECK_NE(&from, this);
         const NsheadMessage *source = dynamic_cast<const NsheadMessage *>(&from);
         if (source == nullptr) {
-            MELON_LOG(ERROR) << "Can only merge from NsheadMessage";
+            TURBO_LOG(ERROR) << "Can only merge from NsheadMessage";
             return;
         } else {
             MergeFrom(*source);

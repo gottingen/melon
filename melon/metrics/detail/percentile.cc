@@ -1,6 +1,6 @@
 
 #include "melon/metrics/detail/percentile.h"
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 
 namespace melon {
     namespace metrics_detail {
@@ -92,8 +92,8 @@ namespace melon {
 
         percentile &percentile::operator<<(int64_t latency) {
             agent_type *agent = _combiner->get_or_create_tls_agent();
-            if (MELON_UNLIKELY(!agent)) {
-                MELON_LOG(FATAL) << "Fail to create agent";
+            if (TURBO_UNLIKELY(!agent)) {
+                TURBO_LOG(FATAL) << "Fail to create agent";
                 return *this;
             }
             if (latency < 0) {
@@ -101,10 +101,10 @@ namespace melon {
                 // overflowed value which is included in last range does not affect
                 // overall distribution of other values too much.
                 if (!_debug_name.empty()) {
-                    MELON_LOG(WARNING) << "Input=" << latency << " to `" << _debug_name
+                    TURBO_LOG(WARNING) << "Input=" << latency << " to `" << _debug_name
                                        << "' is negative, drop";
                 } else {
-                    MELON_LOG(WARNING) << "Input=" << latency << " to percentile("
+                    TURBO_LOG(WARNING) << "Input=" << latency << " to percentile("
                                        << (void *) this << ") is negative, drop";
                 }
                 return *this;

@@ -13,17 +13,17 @@
 
 namespace melon {
     class fiber_cond {
-        MELON_DISALLOW_COPY_AND_ASSIGN(fiber_cond);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(fiber_cond);
 
     public:
         typedef fiber_cond_t *native_handler_type;
 
         fiber_cond() {
-            MELON_CHECK_EQ(0, fiber_cond_init(&_cond, nullptr));
+            TURBO_CHECK_EQ(0, fiber_cond_init(&_cond, nullptr));
         }
 
         ~fiber_cond() {
-            MELON_CHECK_EQ(0, fiber_cond_destroy(&_cond));
+            TURBO_CHECK_EQ(0, fiber_cond_destroy(&_cond));
         }
 
         native_handler_type native_handler() { return &_cond; }
@@ -40,12 +40,12 @@ namespace melon {
         // rather than std::timeout
         int wait_for(std::unique_lock<melon::fiber_mutex> &lock,
                      long timeout_us) {
-            return wait_until(lock,  melon::time_point::future_unix_micros(timeout_us).to_timespec());
+            return wait_until(lock,  turbo::time_point::future_unix_micros(timeout_us).to_timespec());
         }
 
         int wait_for(std::unique_lock<fiber_mutex_t> &lock,
                      long timeout_us) {
-            return wait_until(lock,  melon::time_point::future_unix_micros(timeout_us).to_timespec());
+            return wait_until(lock,  turbo::time_point::future_unix_micros(timeout_us).to_timespec());
         }
 
         int wait_until(std::unique_lock<melon::fiber_mutex> &lock,

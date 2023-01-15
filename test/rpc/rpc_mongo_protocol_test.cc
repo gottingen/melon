@@ -25,7 +25,7 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -68,7 +68,7 @@ class MyContext : public ::melon::rpc::MongoContext {
 
 class MyMongoAdaptor : public melon::rpc::MongoServiceAdaptor {
 public:
-    virtual void SerializeError(int /*response_to*/, melon::cord_buf* out_buf) const {
+    virtual void SerializeError(int /*response_to*/, turbo::cord_buf* out_buf) const {
         melon::rpc::mongo_head_t header = {
             (int32_t)(sizeof(melon::rpc::mongo_head_t) + sizeof(int32_t) * 3 +
                 sizeof(int64_t) + EXP_REQUEST.length()),
@@ -154,7 +154,7 @@ TEST_F(MongoTest, process_request_logoff) {
     melon::rpc::mongo_head_t header = { 0, 0, 0, 0 };
     header.op_code = melon::rpc::MONGO_OPCODE_REPLY;
     header.message_length = sizeof(header) + EXP_REQUEST.length();
-    melon::cord_buf total_buf;
+    turbo::cord_buf total_buf;
     total_buf.append(static_cast<const void*>(&header), sizeof(header));
     total_buf.append(EXP_REQUEST);
     melon::rpc::ParseResult req_pr = melon::rpc::policy::ParseMongoMessage(
@@ -169,7 +169,7 @@ TEST_F(MongoTest, process_request_failed_socket) {
     melon::rpc::mongo_head_t header = { 0, 0, 0, 0 };
     header.op_code = melon::rpc::MONGO_OPCODE_REPLY;
     header.message_length = sizeof(header) + EXP_REQUEST.length();
-    melon::cord_buf total_buf;
+    turbo::cord_buf total_buf;
     total_buf.append(static_cast<const void*>(&header), sizeof(header));
     total_buf.append(EXP_REQUEST);
     melon::rpc::ParseResult req_pr = melon::rpc::policy::ParseMongoMessage(
@@ -181,8 +181,8 @@ TEST_F(MongoTest, process_request_failed_socket) {
 }
 
 TEST_F(MongoTest, complete_flow) {
-    melon::cord_buf request_buf;
-    melon::cord_buf total_buf;
+    turbo::cord_buf request_buf;
+    turbo::cord_buf total_buf;
     melon::rpc::Controller cntl;
     melon::rpc::policy::MongoRequest req;
     melon::rpc::policy::MongoResponse res;
@@ -212,7 +212,7 @@ TEST_F(MongoTest, complete_flow) {
     ProcessMessage(melon::rpc::policy::ProcessMongoRequest, req_msg, false);
 
     // Read response from pipe
-    melon::IOPortal response_buf;
+    turbo::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     char buf[sizeof(melon::rpc::mongo_head_t)];
     const melon::rpc::mongo_head_t *phead = static_cast<const melon::rpc::mongo_head_t*>(

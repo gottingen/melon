@@ -19,7 +19,7 @@
 #include <deque>
 #include <vector>
 #include <gflags/gflags.h>
-#include "melon/base/scoped_lock.h"
+#include "turbo/base/scoped_lock.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 namespace melon::fiber_internal {
@@ -65,7 +65,7 @@ namespace melon::rpc {
     static pthread_mutex_t s_usercode_mutex = PTHREAD_MUTEX_INITIALIZER;
     static pthread_cond_t s_usercode_cond = PTHREAD_COND_INITIALIZER;
     static pthread_once_t s_usercode_init = PTHREAD_ONCE_INIT;
-    melon::static_atomic<int> g_usercode_inplace = MELON_STATIC_ATOMIC_INIT(0);
+    turbo::static_atomic<int> g_usercode_inplace = TURBO_STATIC_ATOMIC_INIT(0);
     bool g_too_many_usercode = false;
     static UserCodeBackupPool *s_usercode_pool = nullptr;
 
@@ -74,7 +74,7 @@ namespace melon::rpc {
     }
 
     static size_t GetUserCodeQueueSize(void *) {
-        MELON_SCOPED_LOCK(s_usercode_mutex);
+        TURBO_SCOPED_LOCK(s_usercode_mutex);
         return (s_usercode_pool != nullptr ? s_usercode_pool->queue.size() : 0);
     }
 
@@ -101,7 +101,7 @@ namespace melon::rpc {
         for (int i = 0; i < FLAGS_usercode_backup_threads; ++i) {
             pthread_t th;
             if (pthread_create(&th, nullptr, UserCodeRunner, this) != 0) {
-                MELON_LOG(ERROR) << "Fail to create UserCodeRunner";
+                TURBO_LOG(ERROR) << "Fail to create UserCodeRunner";
                 return -1;
             }
         }
@@ -111,12 +111,12 @@ namespace melon::rpc {
     // Entry of backup thread for running user code.
     void UserCodeBackupPool::UserCodeRunningLoop() {
         melon::fiber_internal::run_worker_startfn();
-        int64_t last_time = melon::get_current_time_micros();
+        int64_t last_time = turbo::get_current_time_micros();
         while (true) {
             bool blocked = false;
             UserCode usercode = {nullptr, nullptr};
             {
-                MELON_SCOPED_LOCK(s_usercode_mutex);
+                TURBO_SCOPED_LOCK(s_usercode_mutex);
                 while (queue.empty()) {
                     pthread_cond_wait(&s_usercode_cond, &s_usercode_mutex);
                     blocked = true;
@@ -128,9 +128,9 @@ namespace melon::rpc {
                     g_too_many_usercode = false;
                 }
             }
-            const int64_t begin_time = (blocked ? melon::get_current_time_micros() : last_time);
+            const int64_t begin_time = (blocked ? turbo::get_current_time_micros() : last_time);
             usercode.fn(usercode.arg);
-            const int64_t end_time = melon::get_current_time_micros();
+            const int64_t end_time = turbo::get_current_time_micros();
             inpool_count << 1;
             inpool_elapse_us << (end_time - begin_time);
             last_time = end_time;
@@ -140,7 +140,7 @@ namespace melon::rpc {
     static void InitUserCodeBackupPool() {
         s_usercode_pool = new UserCodeBackupPool;
         if (s_usercode_pool->Init() != 0) {
-            MELON_LOG(ERROR) << "Fail to init UserCodeBackupPool";
+            TURBO_LOG(ERROR) << "Fail to init UserCodeBackupPool";
             // rare and critical, often happen when the program just started since
             // this function is called from GlobalInitializeOrDieImpl() as well,
             // quiting is the best choice.

@@ -19,8 +19,8 @@
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <melon/rpc/server.h>
-#include "melon/log/logging.h"
-#include <melon/strings/string_splitter.h>
+#include "turbo/log/logging.h"
+#include <turbo/strings/string_splitter.h>
 #include <string.h>
 #include "rpc_press_impl.h"
 
@@ -49,7 +49,7 @@ DEFINE_bool(pretty, true, "output pretty jsons");
 bool set_press_options(pbrpcframework::PressOptions *options) {
     size_t dot_pos = FLAGS_method.find_last_of('.');
     if (dot_pos == std::string::npos) {
-        MELON_LOG(ERROR) << "-method must be in form of: package.service.method";
+        TURBO_LOG(ERROR) << "-method must be in form of: package.service.method";
         return false;
     }
     options->service = FLAGS_method.substr(0, dot_pos);
@@ -75,7 +75,7 @@ bool set_press_options(pbrpcframework::PressOptions *options) {
     const int rate_limit_per_thread = 1000000;
     double req_rate_per_thread = options->test_req_rate / options->test_thread_num;
     if (req_rate_per_thread > rate_limit_per_thread) {
-        MELON_LOG(ERROR) << "req_rate: " << (int64_t) req_rate_per_thread << " is too large in one thread. The rate limit is "
+        TURBO_LOG(ERROR) << "req_rate: " << (int64_t) req_rate_per_thread << " is too large in one thread. The rate limit is "
                    <<  rate_limit_per_thread << " in one thread";
         return false;
     }
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
     }
     pbrpcframework::RpcPress *rpc_press = new pbrpcframework::RpcPress;
     if (0 != rpc_press->init(&options)) {
-        MELON_LOG(FATAL) << "Fail to init rpc_press";
+        TURBO_LOG(FATAL) << "Fail to init rpc_press";
         return -1;
     }
 

@@ -3,11 +3,11 @@
 #ifndef MELON_FIBER_INTERNAL_SYS_FUTEX_H_
 #define MELON_FIBER_INTERNAL_SYS_FUTEX_H_
 
-#include "melon/base/profile.h"         // MELON_PLATFORM_OSX
+#include "turbo/base/profile.h"         // TURBO_PLATFORM_OSX
 #include <unistd.h>                     // syscall
 #include <time.h>                       // timespec
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
 #include <syscall.h>                    // SYS_futex
 #include <linux/futex.h>                // FUTEX_WAIT, FUTEX_WAKE
 
@@ -35,7 +35,7 @@ inline int futex_requeue_private(void* addr1, int nwake, void* addr2) {
 
 }  // namespace melon::fiber_internal
 
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
 
 namespace melon::fiber_internal {
 

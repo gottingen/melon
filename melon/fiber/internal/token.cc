@@ -1,10 +1,10 @@
 
 #include <deque>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/internal/waitable_event.h"                       // butex_*
 #include "melon/fiber/internal/mutex.h"
 #include "melon/fiber/internal/list_of_abafree_id.h"
-#include "melon/memory/resource_pool.h"
+#include "turbo/memory/resource_pool.h"
 #include "melon/fiber/internal/fiber.h"
 
 namespace melon::fiber_internal {
@@ -72,7 +72,7 @@ namespace melon::fiber_internal {
         }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(SmallQueue);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(SmallQueue);
 
         int _begin;
         int _size;
@@ -89,7 +89,7 @@ namespace melon::fiber_internal {
         PendingError() : tn(INVALID_FIBER_TOKEN), error_code(0), location(nullptr) {}
     };
 
-    struct MELON_CACHELINE_ALIGNMENT token {
+    struct TURBO_CACHELINE_ALIGNMENT token {
         // first_ver ~ locked_ver - 1: unlocked versions
         // locked_ver: locked
         // unlockable_ver: locked and about to be destroyed
@@ -138,7 +138,7 @@ namespace melon::fiber_internal {
 
     static_assert(sizeof(token) % 64 == 0, "sizeof token must align");
 
-    typedef melon::ResourceId<token> IdResourceId;
+    typedef turbo::ResourceId<token> IdResourceId;
 
     inline fiber_token_t make_id(uint32_t version, IdResourceId slot) {
         const fiber_token_t tmp =
@@ -275,7 +275,7 @@ namespace melon::fiber_internal {
     }
 
     void token_pool_status(std::ostream &os) {
-        os << melon::describe_resources<token>() << '\n';
+        os << turbo::describe_resources<token>() << '\n';
     }
 
     struct token_traits {
@@ -296,7 +296,7 @@ namespace melon::fiber_internal {
 
         void operator()(fiber_token_t &tn) const {
             fiber_token_error2_verbose(
-                    tn, _error_code, _error_text, __FILE__ ":" MELON_SYMBOLSTR(__LINE__));
+                    tn, _error_code, _error_text, __FILE__ ":" TURBO_SYMBOLSTR(__LINE__));
             tn = INVALID_FIBER_TOKEN;
         }
 
@@ -324,7 +324,7 @@ namespace melon::fiber_internal {
             meta->data = data;
             meta->on_error = on_error;
             meta->on_error2 = on_error2;
-            MELON_CHECK(meta->pending_q.empty());
+            TURBO_CHECK(meta->pending_q.empty());
             uint32_t *event = meta->event;
             if (0 == *event || *event + TOKEN_MAX_RANGE + 2 < *event) {
                 // Skip 0 so that fiber_token_t is never 0
@@ -346,8 +346,8 @@ namespace melon::fiber_internal {
             int (*on_error2)(fiber_token_t, void *, int, const std::string &),
             int range) {
         if (range < 1 || range > TOKEN_MAX_RANGE) {
-            MELON_LOG_IF(FATAL, range < 1) << "range must be positive, actually " << range;
-            MELON_LOG_IF(FATAL, range > TOKEN_MAX_RANGE) << "max of range is "
+            TURBO_LOG_IF(FATAL, range < 1) << "range must be positive, actually " << range;
+            TURBO_LOG_IF(FATAL, range > TOKEN_MAX_RANGE) << "max of range is "
                                                    << TOKEN_MAX_RANGE << ", actually " << range;
             return EINVAL;
         }
@@ -357,7 +357,7 @@ namespace melon::fiber_internal {
             meta->data = data;
             meta->on_error = on_error;
             meta->on_error2 = on_error2;
-            MELON_CHECK(meta->pending_q.empty());
+            TURBO_CHECK(meta->pending_q.empty());
             uint32_t *event = meta->event;
             if (0 == *event || *event + TOKEN_MAX_RANGE + 2 < *event) {
                 // Skip 0 so that fiber_token_t is never 0
@@ -413,9 +413,9 @@ int fiber_token_lock_and_reset_range_verbose(
             } else if (range < 0 ||
                        range > melon::fiber_internal::TOKEN_MAX_RANGE ||
                        range + meta->first_ver <= meta->locked_ver) {
-                MELON_LOG_IF(FATAL, range < 0) << "range must be positive, actually "
+                TURBO_LOG_IF(FATAL, range < 0) << "range must be positive, actually "
                                          << range;
-                MELON_LOG_IF(FATAL, range > melon::fiber_internal::TOKEN_MAX_RANGE)
+                TURBO_LOG_IF(FATAL, range > melon::fiber_internal::TOKEN_MAX_RANGE)
                                 << "max range is " << melon::fiber_internal::TOKEN_MAX_RANGE
                                 << ", actually " << range;
             } else {
@@ -465,7 +465,7 @@ int fiber_token_about_to_destroy(fiber_token_t tn) {
     }
     if (*event == meta->first_ver) {
         meta->mutex.unlock();
-        MELON_LOG(FATAL) << "fiber_token=" << tn.value << " is not locked!";
+        TURBO_LOG(FATAL) << "fiber_token=" << tn.value << " is not locked!";
         return EPERM;
     }
     const bool contended = (*event == meta->contended_ver());
@@ -568,12 +568,12 @@ int fiber_token_unlock(fiber_token_t tn) {
     meta->mutex.lock();
     if (!meta->has_version(token_ver)) {
         meta->mutex.unlock();
-        MELON_LOG(FATAL) << "Invalid fiber_token=" << tn.value;
+        TURBO_LOG(FATAL) << "Invalid fiber_token=" << tn.value;
         return EINVAL;
     }
     if (*event == meta->first_ver) {
         meta->mutex.unlock();
-        MELON_LOG(FATAL) << "fiber_token=" << tn.value << " is not locked!";
+        TURBO_LOG(FATAL) << "fiber_token=" << tn.value << " is not locked!";
         return EPERM;
     }
     melon::fiber_internal::PendingError front;
@@ -609,12 +609,12 @@ int fiber_token_unlock_and_destroy(fiber_token_t tn) {
     meta->mutex.lock();
     if (!meta->has_version(token_ver)) {
         meta->mutex.unlock();
-        MELON_LOG(FATAL) << "Invalid fiber_token=" << tn.value;
+        TURBO_LOG(FATAL) << "Invalid fiber_token=" << tn.value;
         return EINVAL;
     }
     if (*event == meta->first_ver) {
         meta->mutex.unlock();
-        MELON_LOG(FATAL) << "fiber_token=" << tn.value << " is not locked!";
+        TURBO_LOG(FATAL) << "fiber_token=" << tn.value << " is not locked!";
         return EPERM;
     }
     const uint32_t next_ver = meta->end_ver();

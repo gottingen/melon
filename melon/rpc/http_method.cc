@@ -17,8 +17,8 @@
 
 
 #include <cstdlib>                     // abort()
-#include "melon/base/profile.h"
-#include "melon/log/logging.h"
+#include "turbo/base/profile.h"
+#include "turbo/log/logging.h"
 #include <pthread.h>
 #include <algorithm>
 #include "melon/rpc/http_method.h"
@@ -71,20 +71,20 @@ namespace melon::rpc {
     };
 
     static void BuildHttpMethodMaps() {
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(g_method_pairs); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(g_method_pairs); ++i) {
             const int method = (int) g_method_pairs[i].method;
-            if (method < 0 || method > (int) MELON_ARRAY_SIZE(g_method2str_map)) {
+            if (method < 0 || method > (int) TURBO_ARRAY_SIZE(g_method2str_map)) {
                 abort();
             }
             g_method2str_map[method] = g_method_pairs[i].str;
         }
-        std::sort(g_method_pairs, g_method_pairs + MELON_ARRAY_SIZE(g_method_pairs),
+        std::sort(g_method_pairs, g_method_pairs + TURBO_ARRAY_SIZE(g_method_pairs),
                   LessThanByName());
         char last_fc = '\0';
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(g_method_pairs); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(g_method_pairs); ++i) {
             char fc = g_method_pairs[i].str[0];
             if (fc < 'A' || fc > 'Z') {
-                MELON_LOG(ERROR) << "Invalid method_name=" << g_method_pairs[i].str;
+                TURBO_LOG(ERROR) << "Invalid method_name=" << g_method_pairs[i].str;
                 abort();
             }
             if (fc != last_fc) {
@@ -97,7 +97,7 @@ namespace melon::rpc {
     const char *HttpMethod2Str(HttpMethod method) {
         pthread_once(&g_init_maps_once, BuildHttpMethodMaps);
         if ((int) method < 0 ||
-            (int) method >= (int) MELON_ARRAY_SIZE(g_method2str_map)) {
+            (int) method >= (int) TURBO_ARRAY_SIZE(g_method2str_map)) {
             return "UNKNOWN";
         }
         const char *s = g_method2str_map[method];
@@ -129,7 +129,7 @@ namespace melon::rpc {
             return false;
         }
         --index;
-        for (; index < MELON_ARRAY_SIZE(g_method_pairs); ++index) {
+        for (; index < TURBO_ARRAY_SIZE(g_method_pairs); ++index) {
             const HttpMethodPair &p = g_method_pairs[index];
             if (strcasecmp(method_str, p.str) == 0) {
                 *method = p.method;

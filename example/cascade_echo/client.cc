@@ -19,15 +19,15 @@
 // again according to the field `depth'
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
 #include <melon/fiber/this_fiber.h>
 #include <melon/fiber/internal/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/metrics/all.h>
-#include <melon/base/fast_rand.h>
+#include <turbo/base/fast_rand.h>
 
 DEFINE_int32(thread_num, 2, "Number of threads to send requests");
 DEFINE_bool(use_fiber, false, "Use fiber to send requests");
@@ -65,7 +65,7 @@ void* sender(void* arg) {
         }
 
         // Set request_id to be a random string
-        cntl.set_request_id(melon::base::fast_rand_printable(9));
+        cntl.set_request_id(turbo::base::fast_rand_printable(9));
 
         // Set attachment which is wired to network directly instead of 
         // being serialized into protobuf messages.
@@ -75,7 +75,7 @@ void* sender(void* arg) {
         // the response comes back or error occurs(including timedout).
         stub.Echo(&cntl, &request, &response, nullptr);
         if (cntl.Failed()) {
-            //MELON_LOG_EVERY_SECOND(WARNING) << "Fail to send EchoRequest, " << cntl.ErrorText();
+            //TURBO_LOG_EVERY_SECOND(WARNING) << "Fail to send EchoRequest, " << cntl.ErrorText();
         } else {
             g_latency_recorder << cntl.latency_us();
         }
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Initialize the channel, nullptr means using default options.
     // options, see `melon/rpc/channel.h'.
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
-                MELON_LOG(ERROR) << "Fail to create pthread";
+                TURBO_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], nullptr, sender, &channel) != 0) {
-                MELON_LOG(ERROR) << "Fail to create fiber";
+                TURBO_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -134,11 +134,11 @@ int main(int argc, char* argv[]) {
 
     while (!melon::rpc::IsAskedToQuit()) {
         sleep(1);
-        MELON_LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
+        TURBO_LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], nullptr);

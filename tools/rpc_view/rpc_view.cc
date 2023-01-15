@@ -17,7 +17,7 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include "view.pb.h"
@@ -37,8 +37,8 @@ static void handle_response(melon::rpc::Controller* client_cntl,
     server_cntl->response_attachment() = client_cntl->response_attachment();
     // Insert "rpc_view: <target>" before </body> so that users are always
     // visually notified with target server w/o confusions.
-    melon::cord_buf& content = server_cntl->response_attachment();
-    melon::cord_buf before_body;
+    turbo::cord_buf& content = server_cntl->response_attachment();
+    turbo::cord_buf before_body;
     if (content.cut_until(&before_body, "</body>") == 0) {
         before_body.append(
             "<style type=\"text/css\">\n"
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     if (FLAGS_target.empty() &&
         (argc != 2 || 
          google::SetCommandLineOption("target", argv[1]).empty())) {
-        MELON_LOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
+        TURBO_LOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
         return -1;
     }
     // This keeps ad-hoc creation of channels reuse previous connections.
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     melon::rpc::ServerOptions server_opt;
     server_opt.http_master_service = new ViewServiceImpl;
     if (server.Start(FLAGS_port, &server_opt) != 0) {
-        MELON_LOG(ERROR) << "Fail to start ViewServer";
+        TURBO_LOG(ERROR) << "Fail to start ViewServer";
         return -1;
     }
     server.RunUntilAskedToQuit();

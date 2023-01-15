@@ -22,12 +22,12 @@
 #include <iostream>                            // std::ostream
 #include <deque>                               // std::deque
 #include <set>                                 // std::set
-#include "melon/base/static_atomic.h"                    // std::atomic
+#include "turbo/base/static_atomic.h"                    // std::atomic
 #include "melon/fiber/internal/types.h"                      // fiber_token_t
-#include "melon/io/cord_buf.h"                        // melon::cord_buf, IOPortal
-#include "melon/base/profile.h"                       // MELON_DISALLOW_COPY_AND_ASSIGN
-#include "melon/base/endpoint.h"                     // melon::end_point
-#include "melon/memory/resource_pool.h"                // melon::ResourceId
+#include "turbo/io/cord_buf.h"                        // turbo::cord_buf, IOPortal
+#include "turbo/base/profile.h"                       // TURBO_DISALLOW_COPY_AND_ASSIGN
+#include "turbo/base/endpoint.h"                     // turbo::end_point
+#include "turbo/memory/resource_pool.h"                // turbo::ResourceId
 #include "melon/fiber/internal/waitable_event.h"                      // waitable_event_create_checked
 #include "melon/rpc/authenticator.h"           // Authenticator
 #include "melon/rpc/errno.pb.h"                // EFAILEDSOCKET
@@ -95,9 +95,9 @@ namespace melon::rpc {
                             int (*on_connect)(int, int, void *), void *) = 0;
 
         // Cut cord_buf into fd or SSL Channel
-        virtual ssize_t CutMessageIntoFileDescriptor(int, melon::cord_buf **, size_t) = 0;
+        virtual ssize_t CutMessageIntoFileDescriptor(int, turbo::cord_buf **, size_t) = 0;
 
-        virtual ssize_t CutMessageIntoSSLChannel(SSL *, melon::cord_buf **, size_t) = 0;
+        virtual ssize_t CutMessageIntoSSLChannel(SSL *, turbo::cord_buf **, size_t) = 0;
     };
 
     // Application-level connect. After TCP connected, the client sends some
@@ -185,7 +185,7 @@ namespace melon::rpc {
         // ownership. Socket will close the fd(if needed) and call
         // user->BeforeRecycle() before recycling.
         int fd;
-        melon::end_point remote_side;
+        turbo::end_point remote_side;
         SocketUser *user;
 
         // When *edge-triggered* events happen on the file descriptor, callback
@@ -207,7 +207,7 @@ namespace melon::rpc {
 
 // Abstractions on reading from and writing into file descriptors.
 // NOTE: accessed by multiple threads(frequently), align it by cacheline.
-    class MELON_CACHELINE_ALIGNMENT/*note*/ Socket {
+    class TURBO_CACHELINE_ALIGNMENT/*note*/ Socket {
         friend class EventDispatcher;
 
         friend class InputMessenger;
@@ -295,7 +295,7 @@ namespace melon::rpc {
                       ignore_eovercrowded(false) {}
         };
 
-        int Write(melon::cord_buf *msg, const WriteOptions *options = nullptr);
+        int Write(turbo::cord_buf *msg, const WriteOptions *options = nullptr);
 
         // Write an user-defined message. `msg' is released when Write() is
         // successful and *may* remain unchanged otherwise.
@@ -305,10 +305,10 @@ namespace melon::rpc {
         int fd() const { return _fd.load(std::memory_order_relaxed); }
 
         // ip/port of the local end of the connection
-        melon::end_point local_side() const { return _local_side; }
+        turbo::end_point local_side() const { return _local_side; }
 
         // ip/port of the other end of the connection.
-        melon::end_point remote_side() const { return _remote_side; }
+        turbo::end_point remote_side() const { return _remote_side; }
 
         // Positive value enables health checking.
         // Initialized by SocketOptions.health_check_interval_s.
@@ -571,7 +571,7 @@ namespace melon::rpc {
         fiber_keytable_pool_t *keytable_pool() const { return _keytable_pool; }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(Socket);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(Socket);
 
         int ConductError(fiber_token_t);
 
@@ -751,10 +751,10 @@ namespace melon::rpc {
         int64_t _reset_fd_real_us; // When _fd was reset, in microseconds.
 
         // Address of peer. Initialized by SocketOptions.remote_side.
-        melon::end_point _remote_side;
+        turbo::end_point _remote_side;
 
         // Address of self. Initialized in ResetFileDescriptor().
-        melon::end_point _local_side;
+        turbo::end_point _local_side;
 
         // Called when edge-triggered events happened on `_fd'. Read comments
         // of EventDispatcher::AddConsumer (event_dispatcher.h)
@@ -789,7 +789,7 @@ namespace melon::rpc {
         uint32_t _avg_msg_size;
 
         // Storing data read from `_fd' but cut-off yet.
-        melon::IOPortal _read_buf;
+        turbo::IOPortal _read_buf;
 
         // Set with cpuwide_time_us() at last read operation
         std::atomic<int64_t> _last_readtime_us;

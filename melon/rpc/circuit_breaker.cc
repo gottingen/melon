@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 
 #include "melon/rpc/errno.pb.h"
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 namespace melon::rpc {
 
@@ -199,7 +199,7 @@ bool CircuitBreaker::OnCallEnd(int error_code, int64_t latency) {
 void CircuitBreaker::Reset() {
     _long_window.Reset();
     _short_window.Reset();
-    _last_reset_time_ms = melon::time_now().to_unix_millis();
+    _last_reset_time_ms = turbo::time_now().to_unix_millis();
     _broken.store(false, std::memory_order_release);
 }
 
@@ -211,7 +211,7 @@ void CircuitBreaker::MarkAsBroken() {
 }
 
 void CircuitBreaker::UpdateIsolationDuration() {
-    int64_t now_time_ms = melon::time_now().to_unix_millis();
+    int64_t now_time_ms = turbo::time_now().to_unix_millis();
     int isolation_duration_ms = _isolation_duration_ms.load(std::memory_order_relaxed);
     const int max_isolation_duration_ms =
         FLAGS_circuit_breaker_max_isolation_duration_ms;

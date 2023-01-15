@@ -13,14 +13,14 @@
 #else
 #endif
 
-#include "melon/files/filesystem.h"
-#include "melon/times/time.h"
-#include "melon/base/singleton_on_pthread_once.h"
-#include "melon/base/scoped_lock.h"
-#include "melon/files/sequential_read_file.h"
-#include "melon/system/process.h"
+#include "turbo/files/filesystem.h"
+#include "turbo/times/time.h"
+#include "turbo/base/singleton_on_pthread_once.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/files/sequential_read_file.h"
+#include "turbo/system/process.h"
 #include "melon/metrics/gauge.h"
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 
 namespace melon {
 
@@ -59,10 +59,10 @@ namespace melon {
     static bool read_proc_status(ProcStat &stat) {
         stat = ProcStat();
         errno = 0;
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         // Read status from /proc/self/stat. Information from `man proc' is out of date,
         // see http://man7.org/linux/man-pages/man5/proc.5.html
-        melon::sequential_read_file file;
+        turbo::sequential_read_file file;
         auto status = file.open("/proc/self/stat");
         if (!status.is_ok()) {
             MELON_PLOG_ONCE(WARNING) << "Fail to open /proc/self/stat";
@@ -80,11 +80,11 @@ namespace melon {
                    &stat.flags, &stat.minflt, &stat.cminflt, &stat.majflt,
                    &stat.cmajflt, &stat.utime, &stat.stime, &stat.cutime, &stat.cstime,
                    &stat.priority, &stat.nice, &stat.num_threads) != 19) {
-            MELON_PLOG(WARNING) << "Fail to sscanf";
+            TURBO_PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         // TODO(zhujiashun): get remaining state in MacOS.
         memset(&stat, 0, sizeof(stat));
         static pid_t pid = getpid();
@@ -93,8 +93,8 @@ namespace melon {
         snprintf(cmdbuf, sizeof(cmdbuf),
                  "ps -p %ld -o pid,ppid,pgid,sess"
                  ",tpgid,flags,pri,nice | tail -n1", (long) pid);
-        if (melon::read_command_output(oss, cmdbuf) != 0) {
-            MELON_LOG(ERROR) << "Fail to read stat";
+        if (turbo::read_command_output(oss, cmdbuf) != 0) {
+            TURBO_LOG(ERROR) << "Fail to read stat";
             return -1;
         }
         const std::string &result = oss.str();
@@ -102,7 +102,7 @@ namespace melon {
                                    "%d %u %ld %ld",
                    &stat.pid, &stat.ppid, &stat.pgrp, &stat.session,
                    &stat.tpgid, &stat.flags, &stat.priority, &stat.nice) != 8) {
-            MELON_PLOG(WARNING) << "Fail to sscanf";
+            TURBO_PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
@@ -116,7 +116,7 @@ namespace melon {
     class CachedReader {
     public:
         CachedReader() : _mtime_us(0) {
-            MELON_CHECK_EQ(0, pthread_mutex_init(&_mutex, nullptr));
+            TURBO_CHECK_EQ(0, pthread_mutex_init(&_mutex, nullptr));
         }
 
         ~CachedReader() {
@@ -130,8 +130,8 @@ namespace melon {
         // and 64-bit numbers.
         template<typename ReadFn>
         static const T &get_value(const ReadFn &fn) {
-            CachedReader *p = melon::get_leaky_singleton<CachedReader>();
-            const int64_t now = melon::get_current_time_micros();
+            CachedReader *p = turbo::get_leaky_singleton<CachedReader>();
+            const int64_t now = turbo::get_current_time_micros();
             if (now > p->_mtime_us + CACHED_INTERVAL_US) {
                 pthread_mutex_lock(&p->_mutex);
                 if (now > p->_mtime_us + CACHED_INTERVAL_US) {
@@ -197,8 +197,8 @@ namespace melon {
     static bool read_proc_memory(ProcMemory &m) {
         m = ProcMemory();
         errno = 0;
-#if defined(MELON_PLATFORM_LINUX)
-        melon::sequential_read_file file;
+#if defined(TURBO_PLATFORM_LINUX)
+        turbo::sequential_read_file file;
         auto status = file.open("/proc/self/statm");
         if (!status.is_ok()) {
             MELON_PLOG_ONCE(WARNING) << "Fail to open /proc/self/statm";
@@ -209,11 +209,11 @@ namespace melon {
         if (sscanf(content.c_str(), "%ld %ld %ld %ld %ld %ld %ld",
                    &m.size, &m.resident, &m.share,
                    &m.trs, &m.lrs, &m.drs, &m.dt) != 7) {
-            MELON_PLOG(WARNING) << "Fail to sscanf /proc/self/statm";
+            TURBO_PLOG(WARNING) << "Fail to sscanf /proc/self/statm";
             return false;
         }
         return true;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         // TODO(zhujiashun): get remaining memory info in MacOS.
         memset(&m, 0, sizeof(m));
         static pid_t pid = getpid();
@@ -221,13 +221,13 @@ namespace melon {
         std::ostringstream oss;
         char cmdbuf[128];
         snprintf(cmdbuf, sizeof(cmdbuf), "ps -p %ld -o rss=,vsz=", (long) pid);
-        if (melon::read_command_output(oss, cmdbuf) != 0) {
-            MELON_LOG(ERROR) << "Fail to read memory state";
+        if (turbo::read_command_output(oss, cmdbuf) != 0) {
+            TURBO_LOG(ERROR) << "Fail to read memory state";
             return -1;
         }
         const std::string &result = oss.str();
         if (sscanf(result.c_str(), "%ld %ld", &m.resident, &m.size) != 2) {
-            MELON_PLOG(WARNING) << "Fail to sscanf";
+            TURBO_PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         // resident and size in Kbytes
@@ -268,8 +268,8 @@ namespace melon {
     };
 
     static bool read_load_average(LoadAverage &m) {
-#if defined(MELON_PLATFORM_LINUX)
-        melon::sequential_read_file file;
+#if defined(TURBO_PLATFORM_LINUX)
+        turbo::sequential_read_file file;
         auto status = file.open("/proc/loadavg");
         if (!status.is_ok()) {
             MELON_PLOG_ONCE(WARNING) << "Fail to open /proc/loadavg";
@@ -281,20 +281,20 @@ namespace melon {
         file.read(&content);
         if (sscanf(content.c_str(), "%lf %lf %lf",
                    &m.loadavg_1m, &m.loadavg_5m, &m.loadavg_15m) != 3) {
-            MELON_PLOG(WARNING) << "Fail to fscanf";
+            TURBO_PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         std::ostringstream oss;
-        if (melon::read_command_output(oss, "sysctl -n vm.loadavg") != 0) {
-            MELON_LOG(ERROR) << "Fail to read loadavg";
+        if (turbo::read_command_output(oss, "sysctl -n vm.loadavg") != 0) {
+            TURBO_LOG(ERROR) << "Fail to read loadavg";
             return -1;
         }
         const std::string &result = oss.str();
         if (sscanf(result.c_str(), "{ %lf %lf %lf }",
                    &m.loadavg_1m, &m.loadavg_5m, &m.loadavg_15m) != 3) {
-            MELON_PLOG(WARNING) << "Fail to sscanf";
+            TURBO_PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
@@ -326,22 +326,22 @@ namespace melon {
 // ==================================================
 
     static int get_fd_count(int limit) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         std::error_code ec;
-        melon::directory_iterator di("/proc/self/fd", ec);
+        turbo::directory_iterator di("/proc/self/fd", ec);
         if (ec) {
-            MELON_PLOG(WARNING) << "Fail to open /proc/self/fd";
+            TURBO_PLOG(WARNING) << "Fail to open /proc/self/fd";
             return -1;
         }
 
         // Have to limit the scaning which consumes a lot of CPU when #fd
         // are huge (100k+)
         int count = 0;
-        melon::directory_iterator endDi;
+        turbo::directory_iterator endDi;
         for (; di != endDi && count <= limit + 3; ++count, ++di) {}
         return count - 3; /* skipped ., .. and the fd in di*/
 
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         // TODO(zhujiashun): following code will cause core dump with some
         // probability under mac when program exits. Fix it.
         /*
@@ -350,14 +350,14 @@ namespace melon {
         char cmdbuf[128];
         snprintf(cmdbuf, sizeof(cmdbuf),
                 "lsof -p %ld | grep -v \"txt\" | wc -l", (long)pid);
-        if (melon::read_command_output(oss, cmdbuf) != 0) {
-            MELON_LOG(ERROR) << "Fail to read open files";
+        if (turbo::read_command_output(oss, cmdbuf) != 0) {
+            TURBO_LOG(ERROR) << "Fail to read open files";
             return -1;
         }
         const std::string& result = oss.str();
         int count = 0;
         if (sscanf(result.c_str(), "%d", &count) != 1) {
-            MELON_PLOG(WARNING) << "Fail to sscanf";
+            TURBO_PLOG(WARNING) << "Fail to sscanf";
             return -1;
         }
         // skipped . and first column line
@@ -373,7 +373,7 @@ namespace melon {
     extern status_gauge<int> g_fd_num;
 
     const int MAX_FD_SCAN_COUNT = 10003;
-    static melon::static_atomic<bool> s_ever_reached_fd_scan_limit = MELON_STATIC_ATOMIC_INIT(false);
+    static turbo::static_atomic<bool> s_ever_reached_fd_scan_limit = TURBO_STATIC_ATOMIC_INIT(false);
 
     class FdReader {
     public:
@@ -430,8 +430,8 @@ namespace melon {
     };
 
     static bool read_proc_io(ProcIO *s) {
-#if defined(MELON_PLATFORM_LINUX)
-        melon::sequential_read_file file;
+#if defined(TURBO_PLATFORM_LINUX)
+        turbo::sequential_read_file file;
         auto status = file.open("/proc/self/io");
         if (!status.is_ok()) {
             MELON_PLOG_ONCE(WARNING) << "Fail to open /proc/self/io";
@@ -444,18 +444,18 @@ namespace melon {
                    &s->rchar, &s->wchar, &s->syscr, &s->syscw,
                    &s->read_bytes, &s->write_bytes, &s->cancelled_write_bytes)
             != 7) {
-            MELON_PLOG(WARNING) << "Fail to fscanf";
+            TURBO_PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         // TODO(zhujiashun): get rchar, wchar, syscr, syscw, cancelled_write_bytes
         // in MacOS.
         memset(s, 0, sizeof(ProcIO));
         static pid_t pid = getpid();
         rusage_info_current rusage;
         if (proc_pid_rusage(pid, RUSAGE_INFO_CURRENT, (void **) &rusage) != 0) {
-            MELON_PLOG(WARNING) << "Fail to proc_pid_rusage";
+            TURBO_PLOG(WARNING) << "Fail to proc_pid_rusage";
             return false;
         }
         s->read_bytes = rusage.ri_diskio_bytesread;
@@ -542,8 +542,8 @@ namespace melon {
     };
 
     static bool read_disk_stat(DiskStat *s) {
-#if defined(MELON_PLATFORM_LINUX)
-         melon::sequential_read_file file;
+#if defined(TURBO_PLATFORM_LINUX)
+         turbo::sequential_read_file file;
         auto status = file.open("/proc/diskstats");
         if (!status.is_ok()) {
             MELON_PLOG_ONCE(WARNING) << "Fail to open /proc/diskstats";
@@ -568,11 +568,11 @@ namespace melon {
                    &s->io_in_progress,
                    &s->time_spent_io_ms,
                    &s->weighted_time_spent_io_ms) != 14) {
-            MELON_PLOG(WARNING) << "Fail to fscanf";
+            TURBO_PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         // TODO(zhujiashun)
         return false;
 #else
@@ -605,13 +605,13 @@ namespace melon {
 
         ReadSelfCmdline() {
             char buf[1024];
-            const ssize_t nr = melon::read_command_line(buf, sizeof(buf), true);
+            const ssize_t nr = turbo::read_command_line(buf, sizeof(buf), true);
             content.append(buf, nr);
         }
     };
 
     static void get_cmdline(std::ostream &os, void *) {
-        os << melon::get_leaky_singleton<ReadSelfCmdline>()->content;
+        os << turbo::get_leaky_singleton<ReadSelfCmdline>()->content;
     }
 
     struct ReadVersion {
@@ -619,8 +619,8 @@ namespace melon {
 
         ReadVersion() {
             std::ostringstream oss;
-            if (melon::read_command_output(oss, "uname -ap") != 0) {
-                MELON_LOG(ERROR) << "Fail to read kernel version";
+            if (turbo::read_command_output(oss, "uname -ap") != 0) {
+                TURBO_LOG(ERROR) << "Fail to read kernel version";
                 return;
             }
             content.append(oss.str());
@@ -628,15 +628,15 @@ namespace melon {
     };
 
     static void get_kernel_version(std::ostream &os, void *) {
-        os << melon::get_leaky_singleton<ReadVersion>()->content;
+        os << turbo::get_leaky_singleton<ReadVersion>()->content;
     }
 
 // ======================================
 
-    static int64_t g_starting_time = melon::get_current_time_micros();
+    static int64_t g_starting_time = turbo::get_current_time_micros();
 
     static timeval get_uptime(void *) {
-        int64_t uptime_us = melon::get_current_time_micros() - g_starting_time;
+        int64_t uptime_us = turbo::get_current_time_micros() - g_starting_time;
         timeval tm;
         tm.tv_sec = uptime_us / 1000000L;
         tm.tv_usec = uptime_us - tm.tv_sec * 1000000L;
@@ -650,7 +650,7 @@ namespace melon {
         bool operator()(rusage *stat) const {
             const int rc = getrusage(RUSAGE_SELF, stat);
             if (rc < 0) {
-                MELON_PLOG(WARNING) << "Fail to getrusage";
+                TURBO_PLOG(WARNING) << "Fail to getrusage";
                 return false;
             }
             return true;
@@ -686,7 +686,7 @@ namespace melon {
             buf[sizeof(buf) - 1] = '\0';
             os << buf;
         } else {
-            os << "unknown (" << melon_error() << ')';
+            os << "unknown (" << turbo_error() << ')';
         }
     }
 
@@ -770,9 +770,9 @@ namespace melon {
     }
 
     static TimePercent get_cputime_percent(void *) {
-        TimePercent tp = {(melon::time_point::from_timeval(g_ru_stime.get_value()) +
-                           melon::duration::from_timeval(g_ru_utime.get_value())).to_unix_micros(),
-                          melon::time_point::from_timeval(g_uptime.get_value()).to_unix_micros()};
+        TimePercent tp = {(turbo::time_point::from_timeval(g_ru_stime.get_value()) +
+                           turbo::duration::from_timeval(g_ru_utime.get_value())).to_unix_micros(),
+                          turbo::time_point::from_timeval(g_uptime.get_value()).to_unix_micros()};
         return tp;
     }
 
@@ -781,8 +781,8 @@ namespace melon {
             "process_cpu_usage", &g_cputime_percent, FLAGS_variable_dump_interval);
 
     static TimePercent get_stime_percent(void *) {
-        TimePercent tp = {melon::time_point::from_timeval(g_ru_stime.get_value()).to_unix_micros(),
-                          melon::time_point::from_timeval(g_uptime.get_value()).to_unix_micros()};
+        TimePercent tp = {turbo::time_point::from_timeval(g_ru_stime.get_value()).to_unix_micros(),
+                          turbo::time_point::from_timeval(g_uptime.get_value()).to_unix_micros()};
         return tp;
     }
 
@@ -791,8 +791,8 @@ namespace melon {
             "process_cpu_usage_system", &g_stime_percent, FLAGS_variable_dump_interval);
 
     static TimePercent get_utime_percent(void *) {
-        TimePercent tp = {melon::time_point::from_timeval(g_ru_utime.get_value()).to_unix_micros(),
-                          melon::time_point::from_timeval(g_uptime.get_value()).to_unix_micros()};
+        TimePercent tp = {turbo::time_point::from_timeval(g_ru_utime.get_value()).to_unix_micros(),
+                          turbo::time_point::from_timeval(g_uptime.get_value()).to_unix_micros()};
         return tp;
     }
 
@@ -879,8 +879,8 @@ namespace melon {
 
     void get_work_dir(std::ostream &os, void *) {
         std::error_code ec;
-        melon::file_path curr = melon::current_path(ec);
-        MELON_LOG_IF(WARNING, ec) << "Fail to GetCurrentDirectory";
+        turbo::file_path curr = turbo::current_path(ec);
+        TURBO_LOG_IF(WARNING, ec) << "Fail to GetCurrentDirectory";
         os << curr.c_str();
     }
 

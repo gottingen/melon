@@ -24,8 +24,8 @@
 #include <fstream>
 #include "testing/gtest_wrap.h"
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"
-#include "melon/base/fd_guard.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fd_guard.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/builtin/version_service.h"
 #include "melon/rpc/builtin/health_service.h"
@@ -79,7 +79,7 @@ public:
     }
 
     int VerifyCredential(const std::string&,
-                         const melon::end_point&,
+                         const turbo::end_point&,
                          melon::rpc::AuthContext*) const {
         return 0;
     }
@@ -104,11 +104,11 @@ public:
         EXPECT_EQ(EXP_REQUEST, request->message());
         response->set_message(EXP_RESPONSE);
         if (request->sleep_us() > 0) {
-            MELON_LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
+            TURBO_LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
                       << cntl->request_protocol(); 
             melon::fiber_sleep_for(request->sleep_us());
         } else {
-            MELON_LOG(INFO) << "No sleep, protocol=" << cntl->request_protocol();
+            TURBO_LOG(INFO) << "No sleep, protocol=" << cntl->request_protocol();
         }
     }
 
@@ -198,7 +198,7 @@ TEST_F(ServerTest, sanity) {
         ASSERT_EQ(0, server.Start("127.0.0.1:8613", nullptr));
     }
 
-    melon::end_point ep;
+    turbo::end_point ep;
     MyAuthenticator auth;
     melon::rpc::Server server;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
@@ -225,7 +225,7 @@ TEST_F(ServerTest, sanity) {
 }
 
 TEST_F(ServerTest, invalid_protocol_in_enabled_protocols) {
-    melon::end_point ep;
+    turbo::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::rpc::Server server;
     melon::rpc::ServerOptions opt;
@@ -251,7 +251,7 @@ public:
         if (request->has_message()) {
             response->set_message(request->message() + "_v1");
         } else {
-            MELON_CHECK_EQ(melon::rpc::PROTOCOL_HTTP, cntl->request_protocol());
+            TURBO_CHECK_EQ(melon::rpc::PROTOCOL_HTTP, cntl->request_protocol());
             cntl->response_attachment() = cntl->request_attachment();
         }
         ncalled.fetch_add(1);
@@ -312,7 +312,7 @@ public:
 };
 
 TEST_F(ServerTest, empty_enabled_protocols) {
-    melon::end_point ep;
+    turbo::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::rpc::Server server;
     EchoServiceImpl echo_svc;
@@ -339,7 +339,7 @@ TEST_F(ServerTest, empty_enabled_protocols) {
 }
 
 TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
-    melon::end_point ep;
+    turbo::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::rpc::Server server;
     EchoServiceImpl echo_svc;
@@ -466,7 +466,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EREQUEST, cntl.ErrorCode());
-    MELON_LOG(INFO) << "Expected error: " << cntl.ErrorText();
+    TURBO_LOG(INFO) << "Expected error: " << cntl.ErrorText();
     ASSERT_EQ(2, service_v1.ncalled.load());
 
     // Additional path(stored in unresolved_path) after method is acceptible
@@ -498,7 +498,7 @@ TEST_F(ServerTest, missing_required_fields) {
     http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
-    MELON_LOG(INFO) << cntl.ErrorText();
+    TURBO_LOG(INFO) << cntl.ErrorText();
     ASSERT_EQ(melon::rpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
     ASSERT_EQ(0, service_v1.ncalled.load());
 
@@ -730,7 +730,7 @@ TEST_F(ServerTest, restful_mapping) {
     http_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::rpc::EHTTP, cntl.ErrorCode());
-    MELON_LOG(INFO) << "Expected error: " << cntl.ErrorText();
+    TURBO_LOG(INFO) << "Expected error: " << cntl.ErrorText();
     ASSERT_EQ(3, service_v1.ncalled.load());
 
     // Access v1.Echo via /v2/echo
@@ -998,7 +998,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_TRUE(nullptr == server.FindServiceByFullName(
         test::EchoService::descriptor()->name()));
 
-    melon::end_point ep;
+    turbo::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, nullptr));
 
@@ -1026,7 +1026,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_EQ(0ul, server.service_count());
 }
 
-void SendSleepRPC(melon::end_point ep, int sleep_ms, bool succ) {
+void SendSleepRPC(turbo::end_point ep, int sleep_ms, bool succ) {
     melon::rpc::Channel channel;
     ASSERT_EQ(0, channel.Init(ep, nullptr));
 
@@ -1048,7 +1048,7 @@ void SendSleepRPC(melon::end_point ep, int sleep_ms, bool succ) {
 }
 
 TEST_F(ServerTest, close_idle_connections) {
-    melon::end_point ep;
+    turbo::end_point ep;
     melon::rpc::Server server;
     melon::rpc::ServerOptions opt;
     opt.idle_timeout_sec = 1;
@@ -1068,8 +1068,8 @@ TEST_F(ServerTest, close_idle_connections) {
 }
 
 TEST_F(ServerTest, logoff_and_multiple_start) {
-    melon::stop_watcher timer;
-    melon::end_point ep;
+    turbo::stop_watcher timer;
+    turbo::end_point ep;
     EchoServiceImpl echo_svc;
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
@@ -1162,7 +1162,7 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
     }
 }
 
-void SendMultipleRPC(melon::end_point ep, int count) {
+void SendMultipleRPC(turbo::end_point ep, int count) {
     melon::rpc::Channel channel;
     EXPECT_EQ(0, channel.Init(ep, nullptr));
 
@@ -1183,7 +1183,7 @@ TEST_F(ServerTest, serving_requests) {
     melon::rpc::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
                                    melon::rpc::SERVER_DOESNT_OWN_SERVICE));
-    melon::end_point ep;
+    turbo::end_point ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, nullptr));
 
@@ -1222,11 +1222,12 @@ TEST_F(ServerTest, create_pid_file) {
 TEST_F(ServerTest, range_start) {
     const int START_PORT = 8713;
     const int END_PORT = 8719;
-    melon::base::fd_guard listen_fds[END_PORT - START_PORT];
-    melon::end_point point;
+    turbo::base::fd_guard listen_fds[END_PORT - START_PORT];
+    turbo::end_point point;
     for (int i = START_PORT; i < END_PORT; ++i) {
         point.port = i;
-        listen_fds[i - START_PORT].reset(melon::tcp_listen(point));
+
+        listen_fds[i - START_PORT].reset(turbo::tcp_listen(point));
     }
 
     melon::rpc::Server server;
@@ -1279,7 +1280,7 @@ TEST_F(ServerTest, base64_to_string) {
         ASSERT_EQ(0, chan.Init("localhost:8613", &opt));
         melon::rpc::Controller cntl;
         cntl.http_request().uri() = "/EchoService/BytesEcho" +
-                melon::string_printf("%d", i + 1);
+                turbo::string_printf("%d", i + 1);
         cntl.http_request().set_method(melon::rpc::HTTP_METHOD_POST);
         cntl.http_request().set_content_type("application/json");
         cntl.set_pb_bytes_to_base64(true);
@@ -1351,7 +1352,7 @@ TEST_F(ServerTest, max_concurrency) {
     stub.Echo(&cntl2, &req, &res, melon::rpc::DoNothing());
 
     melon::fiber_sleep_for(20000);
-    MELON_LOG(INFO) << "Send other requests";
+    TURBO_LOG(INFO) << "Send other requests";
     
     melon::rpc::Controller cntl3;
     cntl3.http_request().uri() = "/EchoService/Echo";

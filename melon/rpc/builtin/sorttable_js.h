@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_BUILTIN_SORTTABLE_JS_H_
 #define MELON_RPC_BUILTIN_SORTTABLE_JS_H_
 
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 
 
 namespace melon::rpc {
@@ -29,7 +29,7 @@ namespace melon::rpc {
     // accessed without external resources and network connection.
     const char *sorttable_js();
 
-    const melon::cord_buf &sorttable_js_iobuf();
+    const turbo::cord_buf &sorttable_js_iobuf();
 
 } // namespace melon::rpc
 

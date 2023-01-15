@@ -50,14 +50,14 @@ namespace melon::rpc {
 
             int CheckHealth(Socket *ptr) {
                 if (ptr->health_check_count() == 0) {
-                    MELON_LOG(INFO) << "Checking " << *chan << " chan=0x" << (void *) chan
+                    TURBO_LOG(INFO) << "Checking " << *chan << " chan=0x" << (void *) chan
                                     << " Fake" << *ptr;
                 }
                 return chan->CheckHealth();
             }
 
             void AfterRevived(Socket *ptr) {
-                MELON_LOG(INFO) << "Revived " << *chan << " chan=0x" << (void *) chan
+                TURBO_LOG(INFO) << "Revived " << *chan << " chan=0x" << (void *) chan
                                 << " Fake" << *ptr << " (Connectable)";
             }
         };
@@ -187,18 +187,18 @@ namespace melon::rpc {
         int ChannelBalancer::AddChannel(ChannelBase *sub_channel,
                                         SelectiveChannel::ChannelHandle *handle) {
             if (nullptr == sub_channel) {
-                MELON_LOG(ERROR) << "Parameter[sub_channel] is nullptr";
+                TURBO_LOG(ERROR) << "Parameter[sub_channel] is nullptr";
                 return -1;
             }
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (_chan_map.find(sub_channel) != _chan_map.end()) {
-                MELON_LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
+                TURBO_LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
                 return -1;
             }
             SubChannel *sub_chan = new (std::nothrow)
             SubChannel;
             if (sub_chan == nullptr) {
-                MELON_LOG(FATAL) << "Fail to to new SubChannel";
+                TURBO_LOG(FATAL) << "Fail to to new SubChannel";
                 return -1;
             }
             sub_chan->chan = sub_channel;
@@ -209,13 +209,13 @@ namespace melon::rpc {
 
             if (Socket::Create(options, &sock_id) != 0) {
                 delete sub_chan;
-                MELON_LOG(ERROR) << "Fail to create fake socket for sub channel";
+                TURBO_LOG(ERROR) << "Fail to create fake socket for sub channel";
                 return -1;
             }
             SocketUniquePtr ptr;
-            MELON_CHECK_EQ(0, Socket::Address(sock_id, &ptr));
+            TURBO_CHECK_EQ(0, Socket::Address(sock_id, &ptr));
             if (!AddServer(ServerId(sock_id))) {
-                MELON_LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
+                TURBO_LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
                 // sub_chan will be deleted when the socket is recycled.
                 ptr->SetFailed();
                 return -1;
@@ -236,8 +236,8 @@ namespace melon::rpc {
             if (rc >= 0) {
                 SubChannel *sub = static_cast<SubChannel *>(ptr->user());
                 {
-                    MELON_SCOPED_LOCK(_mutex);
-                    MELON_CHECK_EQ(1UL, _chan_map.erase(sub->chan));
+                    TURBO_SCOPED_LOCK(_mutex);
+                    TURBO_CHECK_EQ(1UL, _chan_map.erase(sub->chan));
                 }
                 {
                     SocketUniquePtr ptr2(ptr.get()); // Dereference.
@@ -260,7 +260,7 @@ namespace melon::rpc {
         }
 
         int ChannelBalancer::CheckHealth() {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             for (ChannelToIdMap::const_iterator it = _chan_map.begin();
                  it != _chan_map.end(); ++it) {
                 if (!it->second->Failed() &&
@@ -273,7 +273,7 @@ namespace melon::rpc {
 
         void ChannelBalancer::Describe(std::ostream &os,
                                        const DescribeOptions &options) {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (!options.verbose) {
                 os << _chan_map.size();
                 return;
@@ -308,17 +308,17 @@ namespace melon::rpc {
             const int rc = static_cast<ChannelBalancer *>(_main_cntl->_lb.get())
                     ->SelectChannel(sel_in, &sel_out);
             if (rc != 0) {
-                _main_cntl->SetFailed(rc, "Fail to select channel, %s", melon_error(rc));
+                _main_cntl->SetFailed(rc, "Fail to select channel, %s", turbo_error(rc));
                 return -1;
             }
-            MELON_DLOG(INFO) << "Selected channel=" << sel_out.channel() << ", size="
+            TURBO_DLOG(INFO) << "Selected channel=" << sel_out.channel() << ", size="
                              << (_main_cntl->_accessed ? _main_cntl->_accessed->size() : 0);
             _main_cntl->_current_call.need_feedback = sel_out.need_feedback;
             _main_cntl->_current_call.peer_id = sel_out.fake_sock->id();
 
             Resource r = PopFree();
             if (r.sub_done == nullptr) {
-                MELON_CHECK(false) << "Impossible!";
+                TURBO_CHECK(false) << "Impossible!";
                 _main_cntl->SetFailed("Impossible happens");
                 return -1;
             }
@@ -353,8 +353,8 @@ namespace melon::rpc {
             if (rc != 0) {
                 // _cid must be valid because schan does not dtor before cancelling
                 // all sub calls.
-                MELON_LOG(ERROR) << "Fail to lock correlation_id="
-                                 << _cid.value << ": " << melon_error(rc);
+                TURBO_LOG(ERROR) << "Fail to lock correlation_id="
+                                 << _cid.value << ": " << turbo_error(rc);
                 return;
             }
             // NOTE: Copying gettable-but-settable fields which are generally set
@@ -397,7 +397,7 @@ namespace melon::rpc {
                     ids[i] = _alloc_resources[i].sub_done->_cntl.call_id();
                 }
                 CallId cid = _main_cntl->call_id();
-                MELON_CHECK_EQ(0, fiber_token_unlock(cid));
+                TURBO_CHECK_EQ(0, fiber_token_unlock(cid));
                 for (int i = 0; i < saved_nalloc; ++i) {
                     fiber_token_error(ids[i], error);
                 }
@@ -436,7 +436,7 @@ namespace melon::rpc {
                     _alloc_resources[_nalloc++] = r;
                     return r;
                 } else {
-                    MELON_CHECK(false) << "nalloc=" << _nalloc;
+                    TURBO_CHECK(false) << "nalloc=" << _nalloc;
                     return Resource();
                 }
             } else {
@@ -460,7 +460,7 @@ namespace melon::rpc {
                 }
                 return true;
             } else {
-                MELON_CHECK(false) << "Impossible!";
+                TURBO_CHECK(false) << "Impossible!";
                 return false;
             }
         }
@@ -487,7 +487,7 @@ namespace melon::rpc {
         return static_cast<const schan::Sender *>(sender)->SubController(index);
     }
 
-    static void PassSerializeRequest(melon::cord_buf *, Controller *,
+    static void PassSerializeRequest(turbo::cord_buf *, Controller *,
                                      const google::protobuf::Message *) {
     }
 
@@ -499,17 +499,17 @@ namespace melon::rpc {
         // Force naming services to register.
         GlobalInitializeOrDie();
         if (initialized()) {
-            MELON_LOG(ERROR) << "Already initialized";
+            TURBO_LOG(ERROR) << "Already initialized";
             return -1;
         }
         schan::ChannelBalancer *lb = new (std::nothrow)
         schan::ChannelBalancer;
         if (nullptr == lb) {
-            MELON_LOG(FATAL) << "Fail to new ChannelBalancer";
+            TURBO_LOG(FATAL) << "Fail to new ChannelBalancer";
             return -1;
         }
         if (lb->Init(lb_name) != 0) {
-            MELON_LOG(ERROR) << "Fail to init lb";
+            TURBO_LOG(ERROR) << "Fail to init lb";
             delete lb;
             return -1;
         }
@@ -535,7 +535,7 @@ namespace melon::rpc {
         schan::ChannelBalancer *lb =
                 static_cast<schan::ChannelBalancer *>(_chan._lb.get());
         if (lb == nullptr) {
-            MELON_LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
+            TURBO_LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
             return -1;
         }
         return lb->AddChannel(sub_channel, handle);
@@ -545,7 +545,7 @@ namespace melon::rpc {
         schan::ChannelBalancer *lb =
                 static_cast<schan::ChannelBalancer *>(_chan._lb.get());
         if (lb == nullptr) {
-            MELON_LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
+            TURBO_LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
             return;
         }
         lb->RemoveAndDestroyChannel(handle);
@@ -569,7 +569,7 @@ namespace melon::rpc {
         _chan.CallMethod(method, cntl, request, response, sndr);
         if (user_done == nullptr) {
             Join(cid);
-            cntl->OnRPCEnd(melon::get_current_time_micros());
+            cntl->OnRPCEnd(turbo::get_current_time_micros());
         }
     }
 

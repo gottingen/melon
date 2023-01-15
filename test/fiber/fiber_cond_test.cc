@@ -18,10 +18,10 @@
 #include <inttypes.h>
 #include <map>
 #include "testing/gtest_wrap.h"
-#include "melon/base/static_atomic.h"
-#include "melon/times/time.h"
-#include "melon/base/scoped_lock.h"
-#include "melon/base/gperftools_profiler.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/times/time.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/base/gperftools_profiler.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/fiber/fiber_cond.h"
 #include "melon/fiber/internal/stack.h"
@@ -42,7 +42,7 @@ namespace {
 
     void *signaler(void *void_arg) {
         Arg *a = (Arg *) void_arg;
-        signal_start_time = melon::get_current_time_micros();
+        signal_start_time = turbo::get_current_time_micros();
         while (!stop) {
             melon::fiber_sleep_for(SIGNAL_INTERVAL_US);
             fiber_cond_signal(&a->c);
@@ -56,9 +56,9 @@ namespace {
         while (!stop) {
             fiber_cond_wait(&a->c, &a->m);
 
-            MELON_SCOPED_LOCK(wake_mutex);
+            TURBO_SCOPED_LOCK(wake_mutex);
             wake_tid.push_back(fiber_self());
-            wake_time.push_back(melon::get_current_time_micros());
+            wake_time.push_back(turbo::get_current_time_micros());
         }
         fiber_mutex_unlock(&a->m);
         return nullptr;
@@ -78,7 +78,7 @@ namespace {
         wake_time.clear();
 
         fiber_id_t wth[8];
-        const size_t NW = MELON_ARRAY_SIZE(wth);
+        const size_t NW = TURBO_ARRAY_SIZE(wth);
         for (size_t i = 0; i < NW; ++i) {
             ASSERT_EQ(0, fiber_start_urgent(&wth[i], nullptr, waiter, &a));
         }
@@ -143,7 +143,7 @@ namespace {
 
     void *cv_signaler(void *void_arg) {
         WrapperArg *a = (WrapperArg *) void_arg;
-        signal_start_time = melon::get_current_time_micros();
+        signal_start_time = turbo::get_current_time_micros();
         while (!stop) {
             melon::fiber_sleep_for(SIGNAL_INTERVAL_US);
             a->cond.notify_one();
@@ -183,7 +183,7 @@ namespace {
         pthread_t mutex_waiter_threads[8];
         pthread_t signal_thread;
         WrapperArg a;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(bmutex_waiter_threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(bmutex_waiter_threads); ++i) {
             ASSERT_EQ(0, pthread_create(&bmutex_waiter_threads[i], nullptr,
                                         cv_bmutex_waiter, &a));
             ASSERT_EQ(0, pthread_create(&mutex_waiter_threads[i], nullptr,
@@ -192,12 +192,12 @@ namespace {
         ASSERT_EQ(0, pthread_create(&signal_thread, nullptr, cv_signaler, &a));
         melon::fiber_sleep_for(100L * 1000);
         {
-            MELON_SCOPED_LOCK(a.mutex);
+            TURBO_SCOPED_LOCK(a.mutex);
             stop = true;
         }
         pthread_join(signal_thread, nullptr);
         a.cond.notify_all();
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(bmutex_waiter_threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(bmutex_waiter_threads); ++i) {
             pthread_join(bmutex_waiter_threads[i], nullptr);
             pthread_join(mutex_waiter_threads[i], nullptr);
         }
@@ -214,7 +214,7 @@ namespace {
         Signal() : _signal(0) {}
 
         void notify() {
-            MELON_SCOPED_LOCK(_m);
+            TURBO_SCOPED_LOCK(_m);
             ++_signal;
             _c.notify_one();
         }
@@ -277,7 +277,7 @@ namespace {
             ASSERT_EQ(0, fiber_join(threads[i], nullptr));
         }
         ProfilerStop();
-        MELON_LOG(INFO) << "total_count=" << arg.total_count.load();
+        TURBO_LOG(INFO) << "total_count=" << arg.total_count.load();
     }
 
     struct BroadcastArg {
@@ -426,7 +426,7 @@ namespace {
         fiber_id_t tid;
         FiberCond c;
         c.Init();
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         fiber_start_urgent(&tid, &FIBER_ATTR_PTHREAD, wait_cond_thread, &c);
         std::vector<fiber_id_t> tids;
         tids.reserve(32768);
@@ -437,16 +437,16 @@ namespace {
             tids.push_back(t0);
         }
         tm.stop();
-        MELON_LOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
+        TURBO_LOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
         usleep(3 * 1000 * 1000L);
         c.Signal();
         g_stop = true;
         fiber_join(tid, nullptr);
         for (size_t i = 0; i < tids.size(); ++i) {
-            MELON_LOG_EVERY_SECOND(INFO) << "Joined " << i << " threads";
+            TURBO_LOG_EVERY_SECOND(INFO) << "Joined " << i << " threads";
             fiber_join(tids[i], nullptr);
         }
-        MELON_LOG_EVERY_SECOND(INFO) << "Joined " << tids.size() << " threads";
+        TURBO_LOG_EVERY_SECOND(INFO) << "Joined " << tids.size() << " threads";
     }
 
     TEST(CondTest, too_many_fibers_from_pthread) {

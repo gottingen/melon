@@ -17,12 +17,12 @@
 
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
-#include "melon/base/static_atomic.h"
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
-#include "melon/thread/thread.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/thread/thread.h"
 #include <melon/fiber/internal/waitable_event.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/runtime.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/fiber/internal/schedule_group.h"
@@ -61,7 +61,7 @@ namespace {
 
     static std::atomic<int> nfibers(0);
     static std::atomic<int> npthreads(0);
-    static MELON_THREAD_LOCAL bool counted = false;
+    static TURBO_THREAD_LOCAL bool counted = false;
     static std::atomic<bool> stop(false);
 
     static void *odd_thread(void *) {
@@ -118,11 +118,11 @@ namespace {
         for (size_t i = 0; i < tids.size(); ++i) {
             fiber_join(tids[i], nullptr);
         }
-        MELON_LOG(INFO) << "All fibers has quit";
+        TURBO_LOG(INFO) << "All fibers has quit";
         ASSERT_EQ(2 * N, nfibers);
         // This is not necessarily true, not all workers need to run sth.
         //ASSERT_EQ(N, npthreads);
-        MELON_LOG(INFO) << "Touched pthreads=" << npthreads;
+        TURBO_LOG(INFO) << "Touched pthreads=" << npthreads;
     }
 
     void *sleep_proc(void *) {

@@ -95,7 +95,7 @@ namespace melon::rpc {
                             google::protobuf::Message *response) = 0;
 
     protected:
-        // Only callable by subclasses and melon::container::intrusive_ptr
+        // Only callable by subclasses and turbo::container::intrusive_ptr
         virtual ~CallMapper() {}
     };
 
@@ -131,7 +131,7 @@ namespace melon::rpc {
                              const google::protobuf::Message *sub_response) = 0;
 
     protected:
-        // Only callable by subclasses and melon::container::intrusive_ptr
+        // Only callable by subclasses and turbo::container::intrusive_ptr
         virtual ~ResponseMerger() {}
     };
 
@@ -236,10 +236,10 @@ namespace melon::rpc {
         struct SubChan {
             ChannelBase *chan;
             ChannelOwnership ownership;
-            melon::container::intrusive_ptr<CallMapper> call_mapper;
+            turbo::container::intrusive_ptr<CallMapper> call_mapper;
             // ParallelChannel may be dtor before async RPC call finishes and
             // merger is shared with SubDone.
-            melon::container::intrusive_ptr<ResponseMerger> merger;
+            turbo::container::intrusive_ptr<ResponseMerger> merger;
         };
         typedef std::vector<SubChan> ChannelList;
 

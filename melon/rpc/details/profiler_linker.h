@@ -20,7 +20,7 @@
 #define MELON_RPC_PROFILER_LINKER_H_
 
 #if defined(MELON_ENABLE_CPU_PROFILER)
-#include "melon/base/gperftools_profiler.h"
+#include "turbo/base/gperftools_profiler.h"
 #endif
 
 namespace melon::rpc {

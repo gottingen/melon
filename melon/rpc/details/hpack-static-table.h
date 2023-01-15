@@ -90,7 +90,7 @@ namespace melon::rpc {
             {"www-authenticate",            ""}
     };
 
-    static_assert(MELON_ARRAY_SIZE(s_static_headers) == 61u,
+    static_assert(TURBO_ARRAY_SIZE(s_static_headers) == 61u,
                   "number_of_entries_in_static_table_must_be_61");
 
     struct HuffmanCode {
@@ -358,7 +358,7 @@ namespace melon::rpc {
             {0x3fffffff, 30},
     };
 
-    static_assert(MELON_ARRAY_SIZE(s_huffman_table) == 257u,
+    static_assert(TURBO_ARRAY_SIZE(s_huffman_table) == 257u,
                   "sizeof_s_huffman_table_must_be_257");
 
     const static int32_t HPACK_HUFFMAN_EOS = 256;

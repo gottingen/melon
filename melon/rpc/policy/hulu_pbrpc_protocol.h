@@ -26,7 +26,7 @@ namespace melon::rpc {
     namespace policy {
 
         // Parse binary format of hulu-pbrpc.
-        ParseResult ParseHuluMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+        ParseResult ParseHuluMessage(turbo::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
 
         // Actions to a (client) request in hulu-pbrpc format.
         void ProcessHuluRequest(InputMessageBase *msg);
@@ -38,12 +38,12 @@ namespace melon::rpc {
         bool VerifyHuluRequest(const InputMessageBase *msg);
 
         // Pack `request' to `method' into `buf'.
-        void PackHuluRequest(melon::cord_buf *buf,
+        void PackHuluRequest(turbo::cord_buf *buf,
                              SocketMessage **,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *method,
                              Controller *controller,
-                             const melon::cord_buf &request,
+                             const turbo::cord_buf &request,
                              const Authenticator *auth);
 
     }  // namespace policy

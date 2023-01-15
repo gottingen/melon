@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_POLICY_MOST_COMMON_MESSAGE_H_
 #define MELON_RPC_POLICY_MOST_COMMON_MESSAGE_H_
 
-#include "melon/memory/object_pool.h"
+#include "turbo/memory/object_pool.h"
 #include "melon/rpc/input_messenger.h"
 
 
@@ -30,13 +30,13 @@ namespace melon::rpc {
         // Process() to maximize usage of ObjectPool<MostCommonMessage>, otherwise
         // you have to new the messages or use a separate ObjectPool (which is likely
         // to waste more memory)
-        struct MELON_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
-            melon::cord_buf meta;
-            melon::cord_buf payload;
+        struct TURBO_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
+            turbo::cord_buf meta;
+            turbo::cord_buf payload;
             PipelinedInfo pi;
 
             inline static MostCommonMessage *Get() {
-                return melon::get_object<MostCommonMessage>();
+                return turbo::get_object<MostCommonMessage>();
             }
 
             // @InputMessageBase
@@ -44,7 +44,7 @@ namespace melon::rpc {
                 meta.clear();
                 payload.clear();
                 pi.reset();
-                melon::return_object(this);
+                turbo::return_object(this);
             }
         };
 

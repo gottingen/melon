@@ -22,9 +22,9 @@
 #include <fstream>
 #include "testing/gtest_wrap.h"
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"
-#include "melon/base/fd_guard.h"
-#include <melon/files/sequential_read_file.h>
+#include "turbo/times/time.h"
+#include "turbo/base/fd_guard.h"
+#include <turbo/files/sequential_read_file.h>
 #include "melon/rpc/global.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/server.h"
@@ -67,7 +67,7 @@ public:
 
         response->set_message(EXP_RESPONSE);
         if (request->sleep_us() > 0) {
-            MELON_LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
+            TURBO_LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
                       << cntl->request_protocol();
             melon::fiber_sleep_for(request->sleep_us());
         }
@@ -202,7 +202,7 @@ void CheckCert(const char *cname, const char *cert) {
 }
 
 std::string GetRawPemString(const char *fname) {
-    melon::sequential_read_file file;
+    turbo::sequential_read_file file;
     file.open(fname);
     std::string content;
     auto fs = file.read(&content);
@@ -301,15 +301,15 @@ void *ssl_perf_client(void *arg) {
     EXPECT_EQ(1, SSL_do_handshake(ssl));
 
     char buf[4096];
-    melon::stop_watcher tm;
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(BUFSIZE); ++i) {
+    turbo::stop_watcher tm;
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(BUFSIZE); ++i) {
         int size = BUFSIZE[i];
         tm.start();
         for (int j = 0; j < REP; ++j) {
             SSL_write(ssl, buf, size);
         }
         tm.stop();
-        MELON_LOG(INFO) << "SSL_write(" << size << ") tp="
+        TURBO_LOG(INFO) << "SSL_write(" << size << ") tp="
                   << size * REP / tm.u_elapsed() << "M/s"
                   << ", latency=" << tm.u_elapsed() / REP << "us";
     }
@@ -320,7 +320,7 @@ void *ssl_perf_server(void *arg) {
     SSL *ssl = (SSL *) arg;
     EXPECT_EQ(1, SSL_do_handshake(ssl));
     char buf[4096];
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(BUFSIZE); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(BUFSIZE); ++i) {
         int size = BUFSIZE[i];
         for (int j = 0; j < REP; ++j) {
             SSL_read(ssl, buf, size);
@@ -330,8 +330,8 @@ void *ssl_perf_server(void *arg) {
 }
 
 TEST_F(SSLTest, ssl_perf) {
-    const melon::end_point ep(melon::IP_ANY, 5961);
-    melon::base::fd_guard listenfd(melon::tcp_listen(ep));
+    const turbo::end_point ep(turbo::IP_ANY, 5961);
+    turbo::base::fd_guard listenfd(turbo::tcp_listen(ep));
     ASSERT_GT(listenfd, 0);
     int clifd = tcp_connect(ep, nullptr);
     ASSERT_GT(clifd, 0);

@@ -17,7 +17,7 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"
@@ -53,7 +53,7 @@ namespace melon::rpc {
                     RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                     return 0;
                 }
-                MELON_PLOG(FATAL) << "Fail to sleep";
+                TURBO_PLOG(FATAL) << "Fail to sleep";
                 return -1;
             }
         }

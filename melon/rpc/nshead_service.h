@@ -113,7 +113,7 @@ namespace melon::rpc {
         void Describe(std::ostream &os, const DescribeOptions &) const;
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(NsheadService);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(NsheadService);
 
         friend class NsheadClosure;
 

@@ -18,8 +18,8 @@
 #include "testing/gtest_wrap.h"
 #include <iostream>
 
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/details/http_parser.h"
 #include "melon/rpc/builtin/common.h"  // AppendFileName
 
@@ -35,7 +35,7 @@ protected:
 
 TEST_F(HttpParserTest, init_perf) {
     const size_t loops = 10000000;
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     timer.start();
     for (size_t i = 0; i < loops; ++i) {
         http_parser parser;
@@ -48,37 +48,37 @@ TEST_F(HttpParserTest, init_perf) {
 }
 
 int on_message_begin(http_parser *) {
-    MELON_LOG(INFO) << "Start parsing message";
+    TURBO_LOG(INFO) << "Start parsing message";
     return 0;
 }
 
 int on_url(http_parser *, const char *at, const size_t length) {
-    MELON_LOG(INFO) << "Get url " << std::string(at, length);
+    TURBO_LOG(INFO) << "Get url " << std::string(at, length);
     return 0;
 }
 
 int on_headers_complete(http_parser *) {
-    MELON_LOG(INFO) << "Header complete";
+    TURBO_LOG(INFO) << "Header complete";
     return 0;
 }
 
 int on_message_complete(http_parser *) {
-    MELON_LOG(INFO) << "Message complete";
+    TURBO_LOG(INFO) << "Message complete";
     return 0;
 }
 
 int on_header_field(http_parser *, const char *at, const size_t length) {
-    MELON_LOG(INFO) << "Get header field " << std::string(at, length);
+    TURBO_LOG(INFO) << "Get header field " << std::string(at, length);
     return 0;
 }
 
 int on_header_value(http_parser *, const char *at, const size_t length) {
-    MELON_LOG(INFO) << "Get header value " << std::string(at, length);
+    TURBO_LOG(INFO) << "Get header value " << std::string(at, length);
     return 0;
 }
 
 int on_body(http_parser *, const char *at, const size_t length) {
-    MELON_LOG(INFO) << "Get body " << std::string(at, length);
+    TURBO_LOG(INFO) << "Get body " << std::string(at, length);
     return 0;
 }
 
@@ -107,7 +107,7 @@ TEST_F(HttpParserTest, http_example) {
     settings.on_header_field = on_header_field;
     settings.on_header_value = on_header_value;
     settings.on_body = on_body;
-    MELON_LOG(INFO) << http_parser_execute(&parser, &settings, http_request, strlen(http_request));
+    TURBO_LOG(INFO) << http_parser_execute(&parser, &settings, http_request, strlen(http_request));
 }
 
 TEST_F(HttpParserTest, append_filename) {

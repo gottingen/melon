@@ -18,10 +18,10 @@
 
 #include <algorithm>
 
-#include "melon/base/fast_rand.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/policy/weighted_round_robin_load_balancer.h"
-#include "melon/strings/numbers.h"
+#include "turbo/strings/numbers.h"
 
 namespace {
 
@@ -64,7 +64,7 @@ namespace {
                && !IsCoprime(weight_sum, *iter)) {
             ++iter;
         }
-        MELON_CHECK(iter != prime_stride.end()) << "Failed to get stride";
+        TURBO_CHECK(iter != prime_stride.end()) << "Failed to get stride";
         return *iter > weight_sum ? *iter % weight_sum : *iter;
     }
 
@@ -79,7 +79,7 @@ namespace melon::rpc {
             }
             uint32_t weight = 0;
             int64_t r;
-            if (melon::simple_atoi(id.tag, &r) && r > 0) {
+            if (turbo::simple_atoi(id.tag, &r) && r > 0) {
                 weight = r;
                 bool insert_server =
                         bg.server_map.emplace(id.id, bg.server_list.size()).second;
@@ -89,7 +89,7 @@ namespace melon::rpc {
                     return true;
                 }
             } else {
-                MELON_LOG(ERROR) << "Invalid weight is set: " << id.tag;
+                TURBO_LOG(ERROR) << "Invalid weight is set: " << id.tag;
             }
             return false;
         }
@@ -137,7 +137,7 @@ namespace melon::rpc {
         size_t WeightedRoundRobinLoadBalancer::AddServersInBatch(
                 const std::vector<ServerId> &servers) {
             const size_t n = _db_servers.Modify(BatchAdd, servers);
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to AddServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
@@ -146,14 +146,14 @@ namespace melon::rpc {
         size_t WeightedRoundRobinLoadBalancer::RemoveServersInBatch(
                 const std::vector<ServerId> &servers) {
             const size_t n = _db_servers.Modify(BatchRemove, servers);
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to RemoveServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
         }
 
         int WeightedRoundRobinLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-            melon::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 return ENOMEM;
             }
@@ -163,7 +163,7 @@ namespace melon::rpc {
             TLS &tls = s.tls();
             if (tls.IsNeededCaculateNewStride(s->weight_sum, s->server_list.size())) {
                 if (tls.stride == 0) {
-                    tls.position = melon::base::fast_rand_less_than(s->server_list.size());
+                    tls.position = turbo::base::fast_rand_less_than(s->server_list.size());
                 }
                 tls.stride = GetStride(s->weight_sum, s->server_list.size());
             }
@@ -258,7 +258,7 @@ namespace melon::rpc {
                 return;
             }
             os << "WeightedRoundRobin{";
-            melon::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 os << "fail to read _db_servers";
             } else {

@@ -23,8 +23,8 @@
 
 #include <string_view>
 #include "melon/rpc/options.pb.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/safe_substr.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/safe_substr.h"
 
 namespace melon::rpc {
 
@@ -60,7 +60,7 @@ namespace melon::rpc {
             std::string_view param;
             const size_t pos = name.find(':');
             if (pos != std::string_view::npos) {
-                param = melon::safe_substr(name, pos + 1);
+                param = turbo::safe_substr(name, pos + 1);
                 name.remove_suffix(name.size() - pos);
             }
             _type = StringToProtocolType(name);

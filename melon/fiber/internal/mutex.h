@@ -23,7 +23,7 @@
 #define  MELON_FIBER_INTERNAL_MUTEX_H_
 
 #include "melon/fiber/internal/types.h"
-#include "melon/base/scoped_lock.h"
+#include "turbo/base/scoped_lock.h"
 #include "melon/metrics/utils/lock_timer.h"
 
 __BEGIN_DECLS
@@ -55,7 +55,7 @@ namespace melon::fiber_internal {
             bool try_lock();
 
         private:
-            MELON_DISALLOW_COPY_AND_ASSIGN(FastPthreadMutex);
+            TURBO_DISALLOW_COPY_AND_ASSIGN(FastPthreadMutex);
 
             int lock_contended();
 
@@ -80,7 +80,7 @@ namespace std {
 #if !defined(NDEBUG)
             const int rc = fiber_mutex_lock(_pmutex);
             if (rc) {
-                MELON_LOG(FATAL) << "Fail to lock fiber_mutex_t=" << _pmutex << ", " << melon_error(rc);
+                TURBO_LOG(FATAL) << "Fail to lock fiber_mutex_t=" << _pmutex << ", " << turbo_error(rc);
                 _pmutex = nullptr;
             }
 #else
@@ -99,14 +99,14 @@ namespace std {
         }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(lock_guard);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(lock_guard);
 
         fiber_mutex_t *_pmutex;
     };
 
     template<>
     class unique_lock<fiber_mutex_t> {
-        MELON_DISALLOW_COPY_AND_ASSIGN(unique_lock);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(unique_lock);
 
     public:
         typedef fiber_mutex_t mutex_type;
@@ -135,11 +135,11 @@ namespace std {
 
         void lock() {
             if (!_mutex) {
-                MELON_CHECK(false) << "Invalid operation";
+                TURBO_CHECK(false) << "Invalid operation";
                 return;
             }
             if (_owns_lock) {
-                MELON_CHECK(false) << "Detected deadlock issue";
+                TURBO_CHECK(false) << "Detected deadlock issue";
                 return;
             }
             fiber_mutex_lock(_mutex);
@@ -148,11 +148,11 @@ namespace std {
 
         bool try_lock() {
             if (!_mutex) {
-                MELON_CHECK(false) << "Invalid operation";
+                TURBO_CHECK(false) << "Invalid operation";
                 return false;
             }
             if (_owns_lock) {
-                MELON_CHECK(false) << "Detected deadlock issue";
+                TURBO_CHECK(false) << "Detected deadlock issue";
                 return false;
             }
             _owns_lock = !fiber_mutex_trylock(_mutex);
@@ -161,7 +161,7 @@ namespace std {
 
         void unlock() {
             if (!_owns_lock) {
-                MELON_CHECK(false) << "Invalid operation";
+                TURBO_CHECK(false) << "Invalid operation";
                 return;
             }
             if (_mutex) {

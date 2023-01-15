@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -51,7 +51,7 @@ public:
         // The purpose of following logs is to help you to understand
         // how clients interact with servers more intuitively. You should 
         // remove these logs in performance-sensitive servers.
-        MELON_LOG(INFO) << "Received request[log_id=" << cntl->log_id()
+        TURBO_LOG(INFO) << "Received request[log_id=" << cntl->log_id()
                   << "] from " << cntl->remote_side() 
                   << " to " << cntl->local_side()
                   << ": " << request->message()
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     melon::rpc::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

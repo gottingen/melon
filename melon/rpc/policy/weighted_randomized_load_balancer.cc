@@ -18,10 +18,10 @@
 
 #include <algorithm>
 
-#include "melon/base/fast_rand.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/policy/weighted_randomized_load_balancer.h"
-#include "melon/strings/numbers.h"
+#include "turbo/strings/numbers.h"
 
 namespace melon::rpc {
     namespace policy {
@@ -37,7 +37,7 @@ namespace melon::rpc {
             }
             uint32_t weight = 0;
             int64_t r;
-            if (melon::simple_atoi(id.tag, &r) && r > 0) {
+            if (turbo::simple_atoi(id.tag, &r) && r > 0) {
                 weight = r;
                 bool insert_server =
                         bg.server_map.emplace(id.id, bg.server_list.size()).second;
@@ -48,7 +48,7 @@ namespace melon::rpc {
                     return true;
                 }
             } else {
-                MELON_LOG(ERROR) << "Invalid weight is set: " << id.tag;
+                TURBO_LOG(ERROR) << "Invalid weight is set: " << id.tag;
             }
             return false;
         }
@@ -112,7 +112,7 @@ namespace melon::rpc {
         }
 
         int WeightedRandomizedLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 return ENOMEM;
             }
@@ -122,7 +122,7 @@ namespace melon::rpc {
             }
             uint64_t weight_sum = s->weight_sum;
             for (size_t i = 0; i < n; ++i) {
-                uint64_t random_weight = melon::base::fast_rand_less_than(weight_sum);
+                uint64_t random_weight = turbo::base::fast_rand_less_than(weight_sum);
                 const Server random_server(0, 0, random_weight);
                 const auto &server = std::lower_bound(s->server_list.begin(), s->server_list.end(), random_server,
                                                       server_compare);
@@ -156,7 +156,7 @@ namespace melon::rpc {
                 return;
             }
             os << "WeightedRandomized{";
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 os << "fail to read _db_servers";
             } else {

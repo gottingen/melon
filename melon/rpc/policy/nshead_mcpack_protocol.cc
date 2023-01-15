@@ -20,8 +20,8 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                        // melon::cord_buf
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                        // turbo::cord_buf
 
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
@@ -77,7 +77,7 @@ namespace melon::rpc {
             }
             CompressType type = cntl->response_compress_type();
             if (type != COMPRESS_TYPE_NONE) {
-                MELON_LOG(WARNING) << "nshead_mcpack protocol doesn't support compression";
+                TURBO_LOG(WARNING) << "nshead_mcpack protocol doesn't support compression";
                 type = COMPRESS_TYPE_NONE;
             }
 
@@ -96,7 +96,7 @@ namespace melon::rpc {
         }
 
         void ProcessNsheadMcpackResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             const Socket *socket = msg->socket();
 
@@ -105,8 +105,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -135,7 +135,7 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void SerializeNsheadMcpackRequest(melon::cord_buf *buf, Controller *cntl,
+        void SerializeNsheadMcpackRequest(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *pb_req) {
             CompressType type = cntl->request_compress_type();
             if (type != COMPRESS_TYPE_NONE) {
@@ -151,12 +151,12 @@ namespace melon::rpc {
             }
         }
 
-        void PackNsheadMcpackRequest(melon::cord_buf *buf,
+        void PackNsheadMcpackRequest(turbo::cord_buf *buf,
                                      SocketMessage **,
                                      uint64_t correlation_id,
                                      const google::protobuf::MethodDescriptor *,
                                      Controller *controller,
-                                     const melon::cord_buf &request,
+                                     const turbo::cord_buf &request,
                                      const Authenticator * /*not supported*/) {
             ControllerPrivateAccessor accessor(controller);
             if (controller->connection_type() == CONNECTION_TYPE_SINGLE) {

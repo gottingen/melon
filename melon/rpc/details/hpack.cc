@@ -21,9 +21,9 @@
 #include <limits.h>
 #include <limits>                                       // std::numeric_limits
 #include <vector>
-#include "melon/container/bounded_queue.h"              // melon::container::bounded_queue
-#include "melon/container/flat_map.h"                   // melon::container::FlatMap
-#include "melon/container/case_ignored_flat_map.h"      // melon::container::FlatMap
+#include "turbo/container/bounded_queue.h"              // turbo::container::bounded_queue
+#include "turbo/container/flat_map.h"                   // turbo::container::FlatMap
+#include "turbo/container/case_ignored_flat_map.h"      // turbo::container::FlatMap
 #include "melon/rpc/details/hpack-static-table.h"       // s_static_headers
 
 
@@ -48,8 +48,8 @@ namespace melon::rpc {
 
     struct HeaderHasher {
         size_t operator()(const HPacker::Header &h) const {
-            return melon::container::CaseIgnoredHasher()(h.name)
-                   * 101 + melon::container::DefaultHasher<std::string>()(h.value);
+            return turbo::container::CaseIgnoredHasher()(h.name)
+                   * 101 + turbo::container::DefaultHasher<std::string>()(h.value);
         }
 
         size_t operator()(const HeaderAndHashCode &h) const {
@@ -59,8 +59,8 @@ namespace melon::rpc {
 
     struct HeaderEqualTo {
         bool operator()(const HPacker::Header &h1, const HPacker::Header &h2) const {
-            return melon::container::CaseIgnoredEqual()(h1.name, h2.name)
-                   && melon::container::DefaultEqualTo<std::string>()(h1.value, h2.value);
+            return turbo::container::CaseIgnoredEqual()(h1.name, h2.name)
+                   && turbo::container::DefaultEqualTo<std::string>()(h1.value, h2.value);
         }
 
         bool operator()(const HPacker::Header &h1, const HeaderAndHashCode &h2) const {
@@ -68,8 +68,8 @@ namespace melon::rpc {
         }
     };
 
-    class MELON_CACHELINE_ALIGNMENT IndexTable {
-        MELON_DISALLOW_COPY_AND_ASSIGN(IndexTable);
+    class TURBO_CACHELINE_ALIGNMENT IndexTable {
+        TURBO_DISALLOW_COPY_AND_ASSIGN(IndexTable);
 
         typedef HPacker::Header Header;
     public:
@@ -81,30 +81,30 @@ namespace melon::rpc {
         int Init(const IndexTableOptions &options);
 
         const Header *HeaderAt(int index) const {
-            if (MELON_UNLIKELY(index < _start_index)) {
+            if (TURBO_UNLIKELY(index < _start_index)) {
                 return nullptr;
             }
             return _header_queue.bottom(index - _start_index);
         };
 
         int GetIndexOfHeader(const HeaderAndHashCode &h) {
-            MELON_DCHECK(_need_indexes);
+            TURBO_DCHECK(_need_indexes);
             const uint64_t *v = _header_index.seek(h);
             if (!v) {
                 return 0;
             }
-            MELON_DCHECK_LE(_add_times - *v, _header_queue.size());
+            TURBO_DCHECK_LE(_add_times - *v, _header_queue.size());
             // The latest added entry has the smallest index
             return _start_index + (_add_times - *v) - 1;
         }
 
         int GetIndexOfName(const std::string &name) {
-            MELON_DCHECK(_need_indexes);
+            TURBO_DCHECK(_need_indexes);
             const uint64_t *v = _name_index.seek(name);
             if (!v) {
                 return 0;
             }
-            MELON_DCHECK_LE(_add_times - *v, _header_queue.size());
+            TURBO_DCHECK_LE(_add_times - *v, _header_queue.size());
             // The latest added entry has the smallest index
             return _start_index + (_add_times - *v) - 1;
         }
@@ -121,10 +121,10 @@ namespace melon::rpc {
         }
 
         void PopHeader() {
-            MELON_DCHECK(!empty());
+            TURBO_DCHECK(!empty());
             const Header *h = _header_queue.top();
             const size_t entry_size = HeaderSize(*h);
-            MELON_DCHECK_LE(entry_size, _size);
+            TURBO_DCHECK_LE(entry_size, _size);
             const uint64_t id = _add_times - _header_queue.size();
             if (_need_indexes) {
                 RemoveHeaderFromIndexes(*h, id);
@@ -136,20 +136,20 @@ namespace melon::rpc {
         void RemoveHeaderFromIndexes(const Header &h, uint64_t expected_id) {
             if (!h.value.empty()) {
                 const uint64_t *v = _header_index.seek(h);
-                MELON_DCHECK(v);
+                TURBO_DCHECK(v);
                 if (*v == expected_id) {
                     _header_index.erase(h);
                 }
             }
             const uint64_t *v = _name_index.seek(h.name);
-            MELON_DCHECK(v);
+            TURBO_DCHECK(v);
             if (*v == expected_id) {
                 _name_index.erase(h.name);
             }
         }
 
         void AddHeader(const Header &h) {
-            MELON_CHECK(!h.name.empty());
+            TURBO_CHECK(!h.name.empty());
             const size_t entry_size = HeaderSize(h);
 
             while (!empty() && (_size + entry_size) > _max_size) {
@@ -159,12 +159,12 @@ namespace melon::rpc {
             if (entry_size > _max_size) {
                 // https://tools.ietf.org/html/rfc7541#section-4.1
                 // If this header is larger than the max size, clear the table only.
-                MELON_DCHECK(empty());
+                TURBO_DCHECK(empty());
                 return;
             }
 
             _size += entry_size;
-            MELON_CHECK(!_header_queue.full());
+            TURBO_CHECK(!_header_queue.full());
             _header_queue.push(h);
 
             const int id = _add_times++;
@@ -178,10 +178,10 @@ namespace melon::rpc {
         }
 
         void ResetMaxSize(size_t new_max_size) {
-            MELON_LOG(INFO) << this << ".size=" << _size << " new_max_size=" << new_max_size
+            TURBO_LOG(INFO) << this << ".size=" << _size << " new_max_size=" << new_max_size
                             << " max_size=" << _max_size;
             if (new_max_size > _max_size) {
-                //MELON_LOG(ERROR) << "Invalid new_max_size=" << new_max_size;
+                //TURBO_LOG(ERROR) << "Invalid new_max_size=" << new_max_size;
                 //return -1;
                 _max_size = new_max_size;
                 return;
@@ -204,7 +204,7 @@ namespace melon::rpc {
         uint64_t _add_times;  // Increase when adding a new entry.
         size_t _max_size;
         size_t _size;
-        melon::container::bounded_queue<Header> _header_queue;
+        turbo::container::bounded_queue<Header> _header_queue;
 
         // -----------------------  Encoder only ----------------------------
         // Indexes that map entry to the latest time it was added.
@@ -214,8 +214,8 @@ namespace melon::rpc {
         // Since the encoder just cares whether this header is in the index table
         // rather than which the index number is, only the latest entry of the same
         // header is indexed here, which is definitely the last one to be removed.
-        melon::container::FlatMap<Header, uint64_t, HeaderHasher, HeaderEqualTo> _header_index;
-        melon::container::CaseIgnoredFlatMap<uint64_t> _name_index;
+        turbo::container::FlatMap<Header, uint64_t, HeaderHasher, HeaderEqualTo> _header_index;
+        turbo::container::CaseIgnoredFlatMap<uint64_t> _name_index;
     };
 
     int IndexTable::Init(const IndexTableOptions &options) {
@@ -231,22 +231,22 @@ namespace melon::rpc {
         }
         void *header_queue_storage = malloc(num_headers * sizeof(Header));
         if (!header_queue_storage) {
-            MELON_LOG(ERROR) << "Fail to malloc space for " << num_headers << " headers";
+            TURBO_LOG(ERROR) << "Fail to malloc space for " << num_headers << " headers";
             return -1;
         }
-        melon::container::bounded_queue<Header> tmp(
+        turbo::container::bounded_queue<Header> tmp(
                 header_queue_storage, num_headers * sizeof(Header),
-                melon::container::OWNS_STORAGE);
+                turbo::container::OWNS_STORAGE);
         _header_queue.swap(tmp);
         _start_index = options.start_index;
         _need_indexes = options.need_indexes;
         if (_need_indexes) {
             if (_name_index.init(num_headers * 2) != 0) {
-                MELON_LOG(ERROR) << "Fail to init _name_index";
+                TURBO_LOG(ERROR) << "Fail to init _name_index";
                 return -1;
             }
             if (_header_index.init(num_headers * 2) != 0) {
-                MELON_LOG(ERROR) << "Fail to init _name_index";
+                TURBO_LOG(ERROR) << "Fail to init _name_index";
                 return -1;
             }
         }
@@ -280,8 +280,8 @@ namespace melon::rpc {
         int32_t value;
     };
 
-    class MELON_CACHELINE_ALIGNMENT HuffmanTree {
-        MELON_DISALLOW_COPY_AND_ASSIGN(HuffmanTree);
+    class TURBO_CACHELINE_ALIGNMENT HuffmanTree {
+        TURBO_DISALLOW_COPY_AND_ASSIGN(HuffmanTree);
 
     public:
         typedef uint16_t NodeId;
@@ -300,7 +300,7 @@ namespace melon::rpc {
         void AddLeafNode(int32_t value, const HuffmanCode &code) {
             NodeId cur = ROOT_NODE;
             for (int i = code.bit_len; i > 0; i--) {
-                MELON_CHECK_EQ(node(cur).value, INVALID_VALUE) << "value=" << value << "cur=" << cur;
+                TURBO_CHECK_EQ(node(cur).value, INVALID_VALUE) << "value=" << value << "cur=" << cur;
                 if (code.code & (1u << (i - 1))) {
                     if (node(cur).right_child == NULL_NODE) {
                         NodeId new_id = AllocNode();
@@ -315,9 +315,9 @@ namespace melon::rpc {
                     cur = node(cur).left_child;
                 }
             }
-            MELON_CHECK_EQ(INVALID_VALUE, node(cur).value) << "value=" << value << " cur=" << cur;
-            MELON_CHECK_EQ(NULL_NODE, node(cur).left_child);
-            MELON_CHECK_EQ(NULL_NODE, node(cur).right_child);
+            TURBO_CHECK_EQ(INVALID_VALUE, node(cur).value) << "value=" << value << " cur=" << cur;
+            TURBO_CHECK_EQ(NULL_NODE, node(cur).left_child);
+            TURBO_CHECK_EQ(NULL_NODE, node(cur).right_child);
             node(cur).value = value;
         }
 
@@ -349,10 +349,10 @@ namespace melon::rpc {
     };
 
     class HuffmanEncoder {
-        MELON_DISALLOW_COPY_AND_ASSIGN(HuffmanEncoder);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(HuffmanEncoder);
 
     public:
-        HuffmanEncoder(melon::cord_buf_appender *out, const HuffmanCode *table)
+        HuffmanEncoder(turbo::cord_buf_appender *out, const HuffmanCode *table)
                 : _out(out), _table(table), _partial_byte(0), _remain_bit(8), _out_bytes(0) {}
 
         void Encode(unsigned char byte) {
@@ -379,7 +379,7 @@ namespace melon::rpc {
             if (_remain_bit == 8u) {
                 return;
             }
-            MELON_DCHECK_LT(_remain_bit, 8u);
+            TURBO_DCHECK_LT(_remain_bit, 8u);
             // Add padding `1's to lsb to make _out aligned
             _partial_byte |= (1 << _remain_bit) - 1;
             // TODO: push_back is probably costly since it acquires tls everytime it
@@ -394,7 +394,7 @@ namespace melon::rpc {
         uint32_t out_bytes() const { return _out_bytes; }
 
     private:
-        melon::cord_buf_appender *_out;
+        turbo::cord_buf_appender *_out;
         const HuffmanCode *_table;
         uint8_t _partial_byte;
         uint16_t _remain_bit;
@@ -402,7 +402,7 @@ namespace melon::rpc {
     };
 
     class HuffmanDecoder {
-        MELON_DISALLOW_COPY_AND_ASSIGN(HuffmanDecoder);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(HuffmanDecoder);
 
     public:
         HuffmanDecoder(std::string *out, const HuffmanTree *tree)
@@ -415,13 +415,13 @@ namespace melon::rpc {
             for (int i = 7; i >= 0; --i) {
                 if (byte & (1u << i)) {
                     _cur_node = _tree->node(_cur_node->right_child);
-                    if (MELON_UNLIKELY(!_cur_node)) {
-                        MELON_LOG(ERROR) << "Decoder stream reaches NULL_NODE";
+                    if (TURBO_UNLIKELY(!_cur_node)) {
+                        TURBO_LOG(ERROR) << "Decoder stream reaches NULL_NODE";
                         return -1;
                     }
                     if (_cur_node->value != HuffmanTree::INVALID_VALUE) {
-                        if (MELON_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
-                            MELON_LOG(ERROR) << "Decoder stream reaches EOS";
+                        if (TURBO_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
+                            TURBO_LOG(ERROR) << "Decoder stream reaches EOS";
                             return -1;
                         }
                         _out->push_back(static_cast<uint8_t>(_cur_node->value));
@@ -433,13 +433,13 @@ namespace melon::rpc {
                     _padding &= 1;
                 } else {
                     _cur_node = _tree->node(_cur_node->left_child);
-                    if (MELON_UNLIKELY(!_cur_node)) {
-                        MELON_LOG(ERROR) << "Decoder stream reaches NULL_NODE";
+                    if (TURBO_UNLIKELY(!_cur_node)) {
+                        TURBO_LOG(ERROR) << "Decoder stream reaches NULL_NODE";
                         return -1;
                     }
                     if (_cur_node->value != HuffmanTree::INVALID_VALUE) {
-                        if (MELON_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
-                            MELON_LOG(ERROR) << "Decoder stream reaches EOS";
+                        if (TURBO_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
+                            TURBO_LOG(ERROR) << "Decoder stream reaches EOS";
                             return -1;
                         }
                         _out->push_back(static_cast<uint8_t>(_cur_node->value));
@@ -478,7 +478,7 @@ namespace melon::rpc {
 // Primitive Type Representations
 
 // Encode variant intger and return the size
-    inline void EncodeInteger(melon::cord_buf_appender *out, uint8_t msb,
+    inline void EncodeInteger(turbo::cord_buf_appender *out, uint8_t msb,
                               uint8_t prefix_size, uint32_t value) {
         uint8_t max_prefix_value = (1 << prefix_size) - 1;
         if (value < max_prefix_value) {
@@ -505,25 +505,25 @@ namespace melon::rpc {
 
     static void CreateStaticTableOrDie() {
         s_huffman_tree = new HuffmanTree;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(s_huffman_table); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(s_huffman_table); ++i) {
             s_huffman_tree->AddLeafNode(i, s_huffman_table[i]);
         }
         IndexTableOptions options;
         options.max_size = UINT_MAX;
         options.static_table = s_static_headers;
-        options.static_table_size = MELON_ARRAY_SIZE(s_static_headers);
+        options.static_table_size = TURBO_ARRAY_SIZE(s_static_headers);
         options.start_index = 1;
         options.need_indexes = true;
         s_static_table = new IndexTable;
         if (s_static_table->Init(options) != 0) {
-            MELON_LOG(ERROR) << "Fail to init static table";
+            TURBO_LOG(ERROR) << "Fail to init static table";
             exit(1);
         }
     }
 
     static void CreateStaticTableOnceOrDie() {
         if (pthread_once(&s_create_once, CreateStaticTableOrDie) != 0) {
-            MELON_PLOG(ERROR) << "Fail to pthread_once";
+            TURBO_PLOG(ERROR) << "Fail to pthread_once";
             exit(1);
         }
     }
@@ -531,7 +531,7 @@ namespace melon::rpc {
 // Assume that no header would be larger than 10MB
     static const size_t MAX_HPACK_INTEGER = 10 * 1024 * 1024ul;
 
-    inline ssize_t DecodeInteger(melon::cord_buf_bytes_iterator &iter,
+    inline ssize_t DecodeInteger(turbo::cord_buf_bytes_iterator &iter,
                                  uint8_t prefix_size, uint32_t *value) {
         if (iter == nullptr) {
             return 0; // No enough data
@@ -558,7 +558,7 @@ namespace melon::rpc {
         } while ((cur_byte & 0x80) && (tmp < MAX_HPACK_INTEGER));
 
         if (tmp >= MAX_HPACK_INTEGER) {
-            MELON_LOG(ERROR) << "Source stream is likely malformed";
+            TURBO_LOG(ERROR) << "Source stream is likely malformed";
             return -1;
         }
 
@@ -569,13 +569,13 @@ namespace melon::rpc {
 
     template<bool LOWERCASE>
     // use template to remove dead branches.
-    inline void EncodeString(melon::cord_buf_appender *out, const std::string &s,
+    inline void EncodeString(turbo::cord_buf_appender *out, const std::string &s,
                              bool huffman_encoding) {
         if (!huffman_encoding) {
             EncodeInteger(out, 0x00, 7, s.size());
             if (LOWERCASE) {
                 for (size_t i = 0; i < s.size(); ++i) {
-                    out->push_back(melon::ascii::to_lower(s[i]));
+                    out->push_back(turbo::ascii::to_lower(s[i]));
                 }
             } else {
                 out->append(s);
@@ -586,7 +586,7 @@ namespace melon::rpc {
         uint32_t bit_len = 0;
         if (LOWERCASE) {
             for (size_t i = 0; i < s.size(); ++i) {
-                bit_len += s_huffman_table[(uint8_t) melon::ascii::to_lower(s[i])].bit_len;
+                bit_len += s_huffman_table[(uint8_t) turbo::ascii::to_lower(s[i])].bit_len;
             }
         } else {
             for (size_t i = 0; i < s.size(); ++i) {
@@ -597,7 +597,7 @@ namespace melon::rpc {
         HuffmanEncoder e(out, s_huffman_table);
         if (LOWERCASE) {
             for (size_t i = 0; i < s.size(); ++i) {
-                e.Encode(melon::ascii::to_lower(s[i]));
+                e.Encode(turbo::ascii::to_lower(s[i]));
             }
         } else {
             for (size_t i = 0; i < s.size(); ++i) {
@@ -607,7 +607,7 @@ namespace melon::rpc {
         e.EndStream();
     }
 
-    inline ssize_t DecodeString(melon::cord_buf_bytes_iterator &iter, std::string *out) {
+    inline ssize_t DecodeString(turbo::cord_buf_bytes_iterator &iter, std::string *out) {
         if (iter == nullptr) {
             return 0;
         }
@@ -655,15 +655,15 @@ namespace melon::rpc {
     }
 
     int HPacker::Init(size_t max_table_size) {
-        MELON_CHECK(!_encode_table);
-        MELON_CHECK(!_decode_table);
+        TURBO_CHECK(!_encode_table);
+        TURBO_CHECK(!_decode_table);
         IndexTableOptions encode_table_options;
         encode_table_options.max_size = max_table_size;
         encode_table_options.start_index = s_static_table->end_index();
         encode_table_options.need_indexes = true;
         _encode_table = new IndexTable;
         if (_encode_table->Init(encode_table_options) != 0) {
-            MELON_LOG(ERROR) << "Fail to init encode table";
+            TURBO_LOG(ERROR) << "Fail to init encode table";
             return -1;
         }
         IndexTableOptions decode_table_options;
@@ -672,7 +672,7 @@ namespace melon::rpc {
         decode_table_options.need_indexes = false;
         _decode_table = new IndexTable;
         if (_decode_table->Init(decode_table_options) != 0) {
-            MELON_LOG(ERROR) << "Fail to init decode table";
+            TURBO_LOG(ERROR) << "Fail to init decode table";
             return -1;
         }
         return 0;
@@ -696,7 +696,7 @@ namespace melon::rpc {
         return _encode_table->GetIndexOfName(name);
     }
 
-    void HPacker::Encode(melon::cord_buf_appender *out, const Header &header,
+    void HPacker::Encode(turbo::cord_buf_appender *out, const Header &header,
                          const HPackOptions &options) {
         if (options.index_policy != HPACK_NEVER_INDEX_HEADER) {
             const int index = FindHeaderFromIndexTable(header);
@@ -734,38 +734,38 @@ namespace melon::rpc {
     }
 
     inline ssize_t HPacker::DecodeWithKnownPrefix(
-            melon::cord_buf_bytes_iterator &iter, Header *h, uint8_t prefix_size) const {
+            turbo::cord_buf_bytes_iterator &iter, Header *h, uint8_t prefix_size) const {
         int index = 0;
         ssize_t index_bytes = DecodeInteger(iter, prefix_size, (uint32_t *) &index);
         ssize_t name_bytes = 0;
         if (index_bytes <= 0) {
-            MELON_LOG(ERROR) << "Fail to decode index";
+            TURBO_LOG(ERROR) << "Fail to decode index";
             return -1;
         }
         if (index != 0) {
             const Header *indexed_header = HeaderAt(index);
             if (indexed_header == nullptr) {
-                MELON_LOG(ERROR) << "No header at index=" << index;
+                TURBO_LOG(ERROR) << "No header at index=" << index;
                 return -1;
             }
             h->name = indexed_header->name;
         } else {
             name_bytes = DecodeString(iter, &h->name);
             if (name_bytes <= 0) {
-                MELON_LOG(ERROR) << "Fail to decode name";
+                TURBO_LOG(ERROR) << "Fail to decode name";
                 return -1;
             }
             tolower(&h->name);
         }
         ssize_t value_bytes = DecodeString(iter, &h->value);
         if (value_bytes <= 0) {
-            MELON_LOG(ERROR) << "Fail to decode value";
+            TURBO_LOG(ERROR) << "Fail to decode value";
             return -1;
         }
         return index_bytes + name_bytes + value_bytes;
     }
 
-    ssize_t HPacker::Decode(melon::cord_buf_bytes_iterator &iter, Header *h) {
+    ssize_t HPacker::Decode(turbo::cord_buf_bytes_iterator &iter, Header *h) {
         if (iter == nullptr) {
             return 0;
         }
@@ -790,7 +790,7 @@ namespace melon::rpc {
                 }
                 const Header *indexed_header = HeaderAt(index);
                 if (indexed_header == nullptr) {
-                    MELON_LOG(ERROR) << "No header at index=" << index;
+                    TURBO_LOG(ERROR) << "No header at index=" << index;
                     return -1;
                 }
                 *h = *indexed_header;
@@ -823,7 +823,7 @@ namespace melon::rpc {
                     return read_bytes;
                 }
                 if (max_size > H2Settings::DEFAULT_HEADER_TABLE_SIZE) {
-                    MELON_LOG(ERROR) << "Invalid max_size=" << max_size;
+                    TURBO_LOG(ERROR) << "Invalid max_size=" << max_size;
                     return -1;
                 }
                 _decode_table->ResetMaxSize(max_size);
@@ -840,7 +840,7 @@ namespace melon::rpc {
                 return DecodeWithKnownPrefix(iter, h, 4);
                 // TODO: Expose NeverIndex to the caller.
             default:
-                MELON_CHECK(false) << "Can't reach here";
+                TURBO_CHECK(false) << "Can't reach here";
                 return -1;
         }
     }
@@ -871,7 +871,7 @@ namespace melon::rpc {
         const char *d = s->c_str();
         for (size_t i = 0; i < s->size(); ++i) {
             const char c = d[i];
-            const char c2 = melon::ascii::to_lower(c);
+            const char c2 = turbo::ascii::to_lower(c);
             if (c2 != c) {
                 (*s)[i] = c2;
             }

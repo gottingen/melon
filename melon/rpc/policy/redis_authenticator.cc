@@ -17,17 +17,17 @@
 
 #include "melon/rpc/policy/redis_authenticator.h"
 
-#include "melon/base/base64.h"
-#include "melon/io/cord_buf.h"
-#include "melon/strings/str_format.h"
-#include "melon/base/endian.h"
+#include "turbo/base/base64.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/base/endian.h"
 #include "melon/rpc/redis_command.h"
 
 namespace melon::rpc {
     namespace policy {
 
         int RedisAuthenticator::GenerateCredential(std::string *auth_str) const {
-            melon::cord_buf buf;
+            turbo::cord_buf buf;
             melon::rpc::RedisCommandFormat(&buf, "AUTH %s", passwd_.c_str());
             *auth_str = buf.to_string();
             return 0;

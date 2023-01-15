@@ -20,8 +20,8 @@
 #include <gflags/gflags.h>
 #include <melon/fiber/this_fiber.h>
 #include <melon/fiber/internal/fiber.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
 #include <melon/rpc/parallel_channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
@@ -79,7 +79,7 @@ static void *sender(void *arg) {
             }
         } else {
             g_error_count << 1;
-            MELON_CHECK(melon::rpc::IsAskedToQuit() || !FLAGS_dont_fail)
+            TURBO_CHECK(melon::rpc::IsAskedToQuit() || !FLAGS_dont_fail)
                             << "error=" << cntl.ErrorText() << " latency=" << cntl.latency_us();
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     melon::rpc::ParallelChannelOptions pchan_options;
     pchan_options.timeout_ms = FLAGS_timeout_ms;
     if (channel.Init(&pchan_options) != 0) {
-        MELON_LOG(ERROR) << "Fail to init ParallelChannel";
+        TURBO_LOG(ERROR) << "Fail to init ParallelChannel";
         return -1;
     }
 
@@ -117,13 +117,13 @@ int main(int argc, char *argv[]) {
         // Initialize the channel, nullptr means using default options.
         // options, see `melon/rpc/channel.h'.
         if (sub_channel->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &sub_options) != 0) {
-            MELON_LOG(ERROR) << "Fail to initialize sub_channel";
+            TURBO_LOG(ERROR) << "Fail to initialize sub_channel";
             return -1;
         }
         for (int i = 0; i < FLAGS_channel_num; ++i) {
             if (channel.AddChannel(sub_channel, melon::rpc::OWNS_CHANNEL,
                                    nullptr, nullptr) != 0) {
-                MELON_LOG(ERROR) << "Fail to AddChannel, i=" << i;
+                TURBO_LOG(ERROR) << "Fail to AddChannel, i=" << i;
                 return -1;
             }
         }
@@ -133,12 +133,12 @@ int main(int argc, char *argv[]) {
             // Initialize the channel, nullptr means using default options.
             // options, see `melon/rpc/channel.h'.
             if (sub_channel->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &sub_options) != 0) {
-                MELON_LOG(ERROR) << "Fail to initialize sub_channel[" << i << "]";
+                TURBO_LOG(ERROR) << "Fail to initialize sub_channel[" << i << "]";
                 return -1;
             }
             if (channel.AddChannel(sub_channel, melon::rpc::OWNS_CHANNEL,
                                    nullptr, nullptr) != 0) {
-                MELON_LOG(ERROR) << "Fail to AddChannel, i=" << i;
+                TURBO_LOG(ERROR) << "Fail to AddChannel, i=" << i;
                 return -1;
             }
         }
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
     g_sub_channel_latency = new melon::LatencyRecorder[FLAGS_channel_num];
     for (int i = 0; i < FLAGS_channel_num; ++i) {
         std::string name;
-        melon::string_printf(&name, "client_sub_%d", i);
+        turbo::string_printf(&name, "client_sub_%d", i);
         g_sub_channel_latency[i].expose(name);
     }
 
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
         g_attachment.resize(FLAGS_attachment_size, 'a');
     }
     if (FLAGS_request_size <= 0) {
-        MELON_LOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
+        TURBO_LOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
         return -1;
     }
     g_request.resize(FLAGS_request_size, 'r');
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
-                MELON_LOG(ERROR) << "Fail to create pthread";
+                TURBO_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -180,7 +180,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], nullptr, sender, &channel) != 0) {
-                MELON_LOG(ERROR) << "Fail to create fiber";
+                TURBO_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -188,16 +188,16 @@ int main(int argc, char *argv[]) {
 
     while (!melon::rpc::IsAskedToQuit()) {
         sleep(1);
-        MELON_LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
+        TURBO_LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
                         << " latency=" << g_latency_recorder.latency(1);
         for (int i = 0; i < FLAGS_channel_num; ++i) {
-            MELON_LOG(INFO) << " latency_" << i << "="
+            TURBO_LOG(INFO) << " latency_" << i << "="
                             << g_sub_channel_latency[i].latency(1);
         }
-        MELON_LOG(INFO);
+        TURBO_LOG(INFO);
     }
 
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], nullptr);

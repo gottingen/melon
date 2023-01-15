@@ -20,8 +20,8 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                        // melon::cord_buf
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                        // turbo::cord_buf
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"                    // Controller
 #include "melon/rpc/socket.h"                        // Socket
@@ -66,8 +66,8 @@ struct thrift_head_t {
 
 // A faster implementation of TProtocol::readMessageBegin without depending
 // on thrift stuff.
-static melon::result_status
-ReadThriftMessageBegin(melon::cord_buf* body,
+static turbo::result_status
+ReadThriftMessageBegin(turbo::cord_buf* body,
                        std::string* method_name,
                        ::apache::thrift::protocol::TMessageType* mtype,
                        uint32_t* seq_id) {
@@ -120,7 +120,7 @@ WriteThriftMessageBegin(char* buf,
     *p = htonl(seq_id);
 }
 
-bool ReadThriftStruct(const melon::cord_buf& body,
+bool ReadThriftStruct(const turbo::cord_buf& body,
                       ThriftMessageBase* raw_msg,
                       int16_t expected_fid) {
     const size_t body_len  = body.size();
@@ -164,7 +164,7 @@ bool ReadThriftStruct(const melon::cord_buf& body,
     return success;
 }
 
-void ReadThriftException(const melon::cord_buf& body,
+void ReadThriftException(const turbo::cord_buf& body,
                          ::apache::thrift::TApplicationException* x) {
     size_t body_len  = body.size();
     uint8_t* thrift_buffer = (uint8_t*)malloc(body_len);
@@ -236,7 +236,7 @@ void ThriftClosure::DoRun() {
     ControllerPrivateAccessor accessor(&_controller);
     Span* span = accessor.span();
     if (span) {
-        span->set_start_send_us(melon::get_current_time_micros());
+        span->set_start_send_us(turbo::get_current_time_micros());
     }
     Socket* sock = accessor.get_sending_socket();
     MethodStatus* method_status = (server->options().thrift_service ? 
@@ -276,7 +276,7 @@ void ThriftClosure::DoRun() {
     }
     const uint32_t seq_id = (uint32_t)_controller.log_id();
 
-    melon::cord_buf write_buf;
+    turbo::cord_buf write_buf;
 
     // The following code was taken and modified from thrift auto generated code
     if (_controller.Failed()) {
@@ -345,7 +345,7 @@ void ThriftClosure::DoRun() {
     wopt.ignore_eovercrowded = true;
     if (sock->Write(&write_buf, &wopt) != 0) {
         const int errcode = errno;
-        MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+        TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
         _controller.SetFailed(errcode, "Fail to write into %s",
                               sock->description().c_str());
         return;
@@ -353,11 +353,11 @@ void ThriftClosure::DoRun() {
 
     if (span) {
         // TODO: this is not sent
-        span->set_sent_us(melon::get_current_time_micros());
+        span->set_sent_us(turbo::get_current_time_micros());
     }
 }
 
-ParseResult ParseThriftMessage(melon::cord_buf* source,
+ParseResult ParseThriftMessage(turbo::cord_buf* source,
                                Socket*, bool /*read_eof*/, const void* /*arg*/) {
     char header_buf[sizeof(thrift_head_t) + 4];
     const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -442,7 +442,7 @@ static void EndRunningCallMethodInPool(ThriftService* service,
 };
 
 void ProcessThriftRequest(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = melon::get_current_time_micros();
+    const int64_t start_parse_us = turbo::get_current_time_micros();
 
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     SocketUniquePtr socket_guard(msg->ReleaseSocket());
@@ -483,7 +483,7 @@ void ProcessThriftRequest(InputMessageBase* msg_base) {
 
     ThriftService* service = server->options().thrift_service;
     if (service == nullptr) {
-        MELON_LOG_EVERY_SECOND(ERROR)
+        TURBO_LOG_EVERY_SECOND(ERROR)
             << "Received thrift request however the server does not set"
             " ServerOptions.thrift_service, close the connection.";
         return cntl->SetFailed(EINTERNAL, "ServerOptions.thrift_service is nullptr");
@@ -522,7 +522,7 @@ void ProcessThriftRequest(InputMessageBase* msg_base) {
     }
     if (socket->is_overcrowded()) {
         return cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                melon::endpoint2str(socket->remote_side()).c_str());
+                turbo::endpoint2str(socket->remote_side()).c_str());
     }
     if (!server_accessor.AddConcurrency(cntl)) {
         return cntl->SetFailed(ELIMIT, "Reached server's max_concurrency=%d",
@@ -537,7 +537,7 @@ void ProcessThriftRequest(InputMessageBase* msg_base) {
 
     if (span) {
         span->ResetServerSpanName(cntl->thrift_method_name());
-        span->set_start_callback_us(melon::get_current_time_micros());
+        span->set_start_callback_us(turbo::get_current_time_micros());
         span->AsParent();
     }
 
@@ -556,7 +556,7 @@ void ProcessThriftRequest(InputMessageBase* msg_base) {
 }
 
 void ProcessThriftResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = melon::get_current_time_micros();
+    const int64_t start_parse_us = turbo::get_current_time_micros();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     
     // Fetch correlation id that we saved before in `PacThriftRequest'
@@ -564,8 +564,8 @@ void ProcessThriftResponse(InputMessageBase* msg_base) {
     Controller* cntl = nullptr;
     const int rc = fiber_token_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-            << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+        TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+            << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
         return;
     }
 
@@ -635,13 +635,13 @@ void ProcessThriftResponse(InputMessageBase* msg_base) {
 bool VerifyThriftRequest(const InputMessageBase* msg_base) {
     Server* server = (Server*)msg_base->arg();
     if (server->options().auth) {
-        MELON_LOG(WARNING) << "thrift does not support authentication";
+        TURBO_LOG(WARNING) << "thrift does not support authentication";
         return false;
     }
     return true;
 }
 
-void SerializeThriftRequest(melon::cord_buf* request_buf, Controller* cntl,
+void SerializeThriftRequest(turbo::cord_buf* request_buf, Controller* cntl,
                             const google::protobuf::Message* req_base) {
     if (req_base == nullptr) {
         return cntl->SetFailed(EREQUEST, "request is nullptr");
@@ -721,12 +721,12 @@ void SerializeThriftRequest(melon::cord_buf* request_buf, Controller* cntl,
 }
 
 void PackThriftRequest(
-    melon::cord_buf* packet_buf,
+    turbo::cord_buf* packet_buf,
     SocketMessage**,
     uint64_t correlation_id,
     const google::protobuf::MethodDescriptor*,
     Controller* cntl,
-    const melon::cord_buf& request,
+    const turbo::cord_buf& request,
     const Authenticator*) {
     ControllerPrivateAccessor accessor(cntl);
     if (cntl->connection_type() == CONNECTION_TYPE_SINGLE) {

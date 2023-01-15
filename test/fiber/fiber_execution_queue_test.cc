@@ -5,9 +5,9 @@
 #include <melon/fiber/internal/execution_queue.h>
 #include <melon/fiber/internal/sys_futex.h>
 #include <melon/fiber/fiber_latch.h>
-#include "melon/times/time.h"
-#include "melon/base/fast_rand.h"
-#include "melon/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fast_rand.h"
+#include "turbo/base/gperftools_profiler.h"
 #include "melon/fiber/this_fiber.h"
 
 namespace {
@@ -56,7 +56,7 @@ namespace {
             expected_result += i;
             ASSERT_EQ(0, melon::fiber_internal::execution_queue_execute(queue_id, i));
         }
-        MELON_LOG(INFO) << "stop";
+        TURBO_LOG(INFO) << "stop";
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
         ASSERT_NE(0, melon::fiber_internal::execution_queue_execute(queue_id, 0));
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_join(queue_id));
@@ -80,7 +80,7 @@ namespace {
     void *push_thread(void *arg) {
         PushArg *pa = (PushArg *) arg;
         int64_t sum = 0;
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         timer.start();
         int num = 0;
         melon::fiber_latch e;
@@ -106,7 +106,7 @@ namespace {
     void *push_thread_which_addresses_execq(void *arg) {
         PushArg *pa = (PushArg *) arg;
         int64_t sum = 0;
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         timer.start();
         int num = 0;
         melon::fiber_internal::ExecutionQueue<LongIntTask>::scoped_ptr_t ptr
@@ -138,21 +138,21 @@ namespace {
         pa.expected_value = 0;
         pa.stopped = false;
         ProfilerStart("execq.prof");
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_create(&threads[i], nullptr, &push_thread_which_addresses_execq, &pa);
         }
         usleep(500 * 1000);
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_join(threads[i], nullptr);
         }
         ProfilerStop();
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_join(queue_id));
         ASSERT_EQ(pa.expected_value.load(), result);
-        MELON_LOG(INFO) << "With addressed execq, each execution_queue_execute takes "
+        TURBO_LOG(INFO) << "With addressed execq, each execution_queue_execute takes "
                   << pa.total_time.load() / pa.total_num.load()
                   << " total_num=" << pa.total_num
-                  << " ns with " << MELON_ARRAY_SIZE(threads) << " threads";
+                  << " ns with " << TURBO_ARRAY_SIZE(threads) << " threads";
 #define BENCHMARK_BOTH
 #ifdef BENCHMARK_BOTH
         result = 0;
@@ -164,21 +164,21 @@ namespace {
         pa.expected_value = 0;
         pa.stopped = false;
         ProfilerStart("execq_id.prof");
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_create(&threads[i], nullptr, &push_thread, &pa);
         }
         usleep(500 * 1000);
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_join(threads[i], nullptr);
         }
         ProfilerStop();
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_join(queue_id));
         ASSERT_EQ(pa.expected_value.load(), result);
-        MELON_LOG(INFO) << "With id explicitly, execution_queue_execute takes "
+        TURBO_LOG(INFO) << "With id explicitly, execution_queue_execute takes "
                   << pa.total_time.load() / pa.total_num.load()
                   << " total_num=" << pa.total_num
-                  << " ns with " << MELON_ARRAY_SIZE(threads) << " threads";
+                  << " ns with " << TURBO_ARRAY_SIZE(threads) << " threads";
 #endif  // BENCHMARK_BOTH
     }
 
@@ -234,7 +234,7 @@ namespace {
         pa.expected_value = 0;
         pa.stopped = false;
         pa.wait_task_completed = true;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_create(&threads[i], nullptr, &push_thread, &pa);
         }
         g_suspending = false;
@@ -253,10 +253,10 @@ namespace {
         usleep(500 * 1000);
         pa.stopped = true;
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_join(threads[i], nullptr);
         }
-        MELON_LOG(INFO) << "result=" << result;
+        TURBO_LOG(INFO) << "result=" << result;
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_join(queue_id));
         ASSERT_EQ(pa.expected_value.load(), result);
     }
@@ -274,7 +274,7 @@ namespace {
         while (!g_suspending) {
             usleep(10);
         }
-        MELON_LOG(INFO) << "Going to push";
+        TURBO_LOG(INFO) << "Going to push";
         int64_t expected = 0;
         for (int i = 1; i < 100; ++i) {
             expected += i;
@@ -286,7 +286,7 @@ namespace {
         g_suspending = false;
         std::atomic_thread_fence(std::memory_order_acq_rel);
         usleep(10 * 1000);
-        MELON_LOG(INFO) << "going to quit";
+        TURBO_LOG(INFO) << "going to quit";
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_join(queue_id));
         ASSERT_EQ(expected, result);
@@ -298,7 +298,7 @@ namespace {
     void *push_thread_with_id(void *arg) {
         melon::fiber_internal::ExecutionQueueId<LongIntTask> id = {(uint64_t) arg};
         int thread_id = num_threads.fetch_add(1, std::memory_order_relaxed);
-        MELON_LOG(INFO) << "Start thread" << thread_id;
+        TURBO_LOG(INFO) << "Start thread" << thread_id;
         for (int i = 0; i < 100000; ++i) {
             melon::fiber_internal::execution_queue_execute(id, ((long) thread_id << 32) | i);
         }
@@ -327,10 +327,10 @@ namespace {
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_start(&queue_id, &options,
                                                                   check_order, &disorder_times));
         pthread_t threads[12];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_create(&threads[i], nullptr, &push_thread_with_id, (void *) queue_id.value);
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_join(threads[i], nullptr);
         }
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
@@ -426,7 +426,7 @@ namespace {
     void *inplace_push_thread(void *arg) {
         melon::fiber_internal::ExecutionQueueId<LongIntTask> id = {(uint64_t) arg};
         int thread_id = num_threads.fetch_add(1, std::memory_order_relaxed);
-        MELON_LOG(INFO) << "Start thread" << thread_id;
+        TURBO_LOG(INFO) << "Start thread" << thread_id;
         for (int i = 0; i < 100000; ++i) {
             melon::fiber_internal::execution_queue_execute(id, ((long) thread_id << 32) | i,
                                                            &melon::fiber_internal::TASK_OPTIONS_INPLACE);
@@ -442,10 +442,10 @@ namespace {
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_start(&queue_id, &options,
                                                                   check_order, &disorder_times));
         pthread_t threads[12];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_create(&threads[i], nullptr, &inplace_push_thread, (void *) queue_id.value);
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_join(threads[i], nullptr);
         }
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
@@ -454,7 +454,7 @@ namespace {
     }
 
     TEST_F(ExecutionQueueTest, size_of_task_node) {
-        MELON_LOG(INFO) << "sizeof(TaskNode)=" << sizeof(melon::fiber_internal::TaskNode);
+        TURBO_LOG(INFO) << "sizeof(TaskNode)=" << sizeof(melon::fiber_internal::TaskNode);
     }
 
     int add_with_suspend2(void *meta, melon::fiber_internal::TaskIterator<LongIntTask> &iter) {
@@ -588,7 +588,7 @@ namespace {
             t.value = i;
             t.cancel_task = false;
             ASSERT_EQ(0, melon::fiber_internal::execution_queue_execute(queue_id, t, nullptr, &h));
-            const int r = melon::base::fast_rand_less_than(4);
+            const int r = turbo::base::fast_rand_less_than(4);
             expected += i;
             if (r == 0) {
                 if (melon::fiber_internal::execution_queue_cancel(h) == 0) {
@@ -613,7 +613,7 @@ namespace {
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_stop(queue_id));
         ASSERT_EQ(0, melon::fiber_internal::execution_queue_join(queue_id));
         ASSERT_EQ(m.sum, m.expected.load());
-        MELON_LOG(INFO) << "sum=" << m.sum << " race_times=" << m.race_times
+        TURBO_LOG(INFO) << "sum=" << m.sum << " race_times=" << m.race_times
                   << " succ_times=" << m.succ_times
                   << " fail_times=" << m.fail_times;
 

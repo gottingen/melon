@@ -5,12 +5,12 @@
 namespace melon::fiber_internal {
 
     // Utilities to manipulate fiber_id_t
-    inline fiber_id_t make_tid(uint32_t version, melon::ResourceId<fiber_entity> slot) {
+    inline fiber_id_t make_tid(uint32_t version, turbo::ResourceId<fiber_entity> slot) {
         return (((fiber_id_t) version) << 32) | (fiber_id_t) slot.value;
     }
 
-    inline melon::ResourceId<fiber_entity> get_slot(fiber_id_t tid) {
-        melon::ResourceId<fiber_entity> id = {(tid & 0xFFFFFFFFul)};
+    inline turbo::ResourceId<fiber_entity> get_slot(fiber_id_t tid) {
+        turbo::ResourceId<fiber_entity> id = {(tid & 0xFFFFFFFFul)};
         return id;
     }
 
@@ -69,7 +69,7 @@ namespace melon::fiber_internal {
             //   are busy at creating fibers (proved by test_input_messenger in
             //   melon)
             flush_nosignal_tasks();
-            MELON_LOG_EVERY_SECOND(ERROR) << "_rq is full, capacity=" << _rq.capacity();
+            TURBO_LOG_EVERY_SECOND(ERROR) << "_rq is full, capacity=" << _rq.capacity();
             // TODO(gejun): May cause deadlock when all workers are spinning here.
             // A better solution is to pop and run existing fibers, however which
             // make set_remained()-callbacks do context switches and need extensive

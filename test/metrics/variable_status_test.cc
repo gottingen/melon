@@ -12,7 +12,7 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/metrics/all.h"
 
 namespace {
@@ -102,7 +102,7 @@ namespace {
         ASSERT_EQ("var2_again", vars[3]);
 
         melon::read_most_gauge<void *> st5((void *) 19UL);
-        MELON_LOG(INFO) << st5;
+        TURBO_LOG(INFO) << st5;
         ASSERT_EQ("0x13", st5.get_description());
     }
 
@@ -116,7 +116,7 @@ namespace {
 
     TEST_F(StatusTest, passive_status) {
         melon::basic_status_gauge<std::string> st1("var11", print1, (void *) 9UL);
-        MELON_LOG(INFO) << st1;
+        TURBO_LOG(INFO) << st1;
         std::ostringstream ss;
         ASSERT_EQ(0, melon::variable_base::describe_exposed("var11", ss));
         ASSERT_EQ("0x9", ss.str());

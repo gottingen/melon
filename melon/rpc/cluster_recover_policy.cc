@@ -19,13 +19,13 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include "melon/rpc/cluster_recover_policy.h"
-#include "melon/base/scoped_lock.h"
+#include "turbo/base/scoped_lock.h"
 #include "melon/rpc/server_id.h"
 #include "melon/rpc/socket.h"
-#include "melon/base/fast_rand.h"
-#include "melon/times/time.h"
-#include "melon/strings/string_splitter.h"
-#include "melon/strings/numbers.h"
+#include "turbo/base/fast_rand.h"
+#include "turbo/times/time.h"
+#include "turbo/strings/string_splitter.h"
+#include "turbo/strings/numbers.h"
 
 namespace melon::rpc {
 
@@ -46,7 +46,7 @@ namespace melon::rpc {
         if (!_recovering) {
             return false;
         }
-        int64_t now_ms = melon::time_now().to_unix_millis();
+        int64_t now_ms = turbo::time_now().to_unix_millis();
         std::unique_lock<std::mutex> mu(_mutex);
         if (_last_usable_change_time_ms != 0 && _last_usable != 0 &&
             (now_ms - _last_usable_change_time_ms > _hold_seconds * 1000)) {
@@ -87,7 +87,7 @@ namespace melon::rpc {
         if (!_recovering) {
             return false;
         }
-        int64_t now_ms = melon::time_now().to_unix_millis();
+        int64_t now_ms = turbo::time_now().to_unix_millis();
         uint64_t usable = GetUsableServerCount(now_ms, server_list);
         if (_last_usable != usable) {
             std::unique_lock<std::mutex> mu(_mutex);
@@ -96,7 +96,7 @@ namespace melon::rpc {
                 _last_usable_change_time_ms = now_ms;
             }
         }
-        if (melon::base::fast_rand_less_than(_min_working_instances) >= usable) {
+        if (turbo::base::fast_rand_less_than(_min_working_instances) >= usable) {
             return true;
         }
         return false;
@@ -107,15 +107,15 @@ namespace melon::rpc {
         int64_t min_working_instances = -1;
         int64_t hold_seconds = -1;
         bool has_meet_params = false;
-        for (melon::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
+        for (turbo::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
              sp; ++sp) {
             if (sp.value().empty()) {
-                MELON_LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
+                TURBO_LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
                 return false;
             }
             if (sp.key() == "min_working_instances") {
                 int64_t r;
-                if (!melon::simple_atoi(sp.value(), &r)) {
+                if (!turbo::simple_atoi(sp.value(), &r)) {
                     return false;
                 }
 
@@ -124,14 +124,14 @@ namespace melon::rpc {
                 continue;
             } else if (sp.key() == "hold_seconds") {
                 int64_t r;
-                if (!melon::simple_atoi(sp.value(), &r)) {
+                if (!turbo::simple_atoi(sp.value(), &r)) {
                     return false;
                 }
                 hold_seconds = r;
                 has_meet_params = true;
                 continue;
             }
-            MELON_LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
+            TURBO_LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
             return false;
         }
         if (min_working_instances > 0 && hold_seconds > 0) {
@@ -140,7 +140,7 @@ namespace melon::rpc {
         } else if (has_meet_params) {
             // In this case, user set some params but not in the right way, just return
             // false to let user take care of this situation.
-            MELON_LOG(ERROR) << "Invalid params=`" << params << "'";
+            TURBO_LOG(ERROR) << "Invalid params=`" << params << "'";
             return false;
         }
         return true;

@@ -19,9 +19,9 @@
 #include <gflags/gflags.h>
 #include <map>
 #include "melon/fiber/internal/fiber.h"
-#include "melon/times/time.h"
-#include "melon/base/scoped_lock.h"
-#include "melon/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/input_messenger.h"
@@ -52,7 +52,7 @@ namespace melon::rpc {
     MELON_RPC_VALIDATE_GFLAG(show_socketmap_in_vars, PassValidate);
 
     static pthread_once_t g_socket_map_init = PTHREAD_ONCE_INIT;
-    static melon::static_atomic<SocketMap *> g_socket_map = MELON_STATIC_ATOMIC_INIT(nullptr);
+    static turbo::static_atomic<SocketMap *> g_socket_map = TURBO_STATIC_ATOMIC_INIT(nullptr);
 
     class GlobalSocketCreator : public SocketCreator {
     public:
@@ -70,7 +70,7 @@ namespace melon::rpc {
         options.idle_timeout_second_dynamic = &FLAGS_idle_timeout_second;
         options.defer_close_second_dynamic = &FLAGS_defer_close_second;
         if (socket_map->Init(options) != 0) {
-            MELON_LOG(FATAL) << "Fail to init SocketMap";
+            TURBO_LOG(FATAL) << "Fail to init SocketMap";
             exit(1);
         }
         g_socket_map.store(socket_map, std::memory_order_release);
@@ -154,7 +154,7 @@ namespace melon::rpc {
                 }
             }
             if (nleft) {
-                MELON_LOG(ERROR) << err.str();
+                TURBO_LOG(ERROR) << err.str();
             }
         }
 
@@ -167,23 +167,23 @@ namespace melon::rpc {
 
     int SocketMap::Init(const SocketMapOptions &options) {
         if (_options.socket_creator != nullptr) {
-            MELON_LOG(ERROR) << "Already initialized";
+            TURBO_LOG(ERROR) << "Already initialized";
             return -1;
         }
         _options = options;
         if (_options.socket_creator == nullptr) {
-            MELON_LOG(ERROR) << "SocketOptions.socket_creator must be set";
+            TURBO_LOG(ERROR) << "SocketOptions.socket_creator must be set";
             return -1;
         }
         if (_map.init(_options.suggested_map_size, 70) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _map";
+            TURBO_LOG(ERROR) << "Fail to init _map";
             return -1;
         }
         if (_options.idle_timeout_second_dynamic != nullptr ||
             _options.idle_timeout_second > 0) {
             if (fiber_start_background(&_close_idle_thread, nullptr,
                                        RunWatchConnections, this) != 0) {
-                MELON_LOG(FATAL) << "Fail to start fiber";
+                TURBO_LOG(FATAL) << "Fail to start fiber";
                 return -1;
             }
             _has_close_idle_thread = true;
@@ -229,7 +229,7 @@ namespace melon::rpc {
         opt.remote_side = key.peer.addr;
         opt.initial_ssl_ctx = ssl_ctx;
         if (_options.socket_creator->CreateSocket(opt, &tmp_id) != 0) {
-            MELON_PLOG(FATAL) << "Fail to create socket to " << key.peer;
+            TURBO_PLOG(FATAL) << "Fail to create socket to " << key.peer;
             return -1;
         }
         // Add a reference to make sure that sc->socket is always accessible. Not
@@ -237,7 +237,7 @@ namespace melon::rpc {
         // The ref will be removed at entry's removal.
         SocketUniquePtr ptr;
         if (Socket::Address(tmp_id, &ptr) != 0) {
-            MELON_LOG(FATAL) << "Fail to address SocketId=" << tmp_id;
+            TURBO_LOG(FATAL) << "Fail to address SocketId=" << tmp_id;
             return -1;
         }
         SingleConnection new_sc = {1, ptr.release(), 0};
@@ -281,7 +281,7 @@ namespace melon::rpc {
                                                                                : _options.defer_close_second;
             if (!remove_orphan && defer_close_second > 0) {
                 // Start count down on this Socket
-                sc->no_ref_us = melon::get_current_time_micros();
+                sc->no_ref_us = turbo::get_current_time_micros();
             } else {
                 Socket *const s = sc->socket;
                 _map.erase(key);
@@ -304,7 +304,7 @@ namespace melon::rpc {
     }
 
     int SocketMap::Find(const SocketMapKey &key, SocketId *id) {
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         SingleConnection *sc = _map.seek(key);
         if (sc) {
             *id = sc->socket->id();
@@ -315,15 +315,15 @@ namespace melon::rpc {
 
     void SocketMap::List(std::vector<SocketId> *ids) {
         ids->clear();
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
             ids->push_back(it->second.socket->id());
         }
     }
 
-    void SocketMap::List(std::vector<melon::end_point> *pts) {
+    void SocketMap::List(std::vector<turbo::end_point> *pts) {
         pts->clear();
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
             pts->push_back(it->second.socket->remote_side());
         }
@@ -331,8 +331,8 @@ namespace melon::rpc {
 
     void SocketMap::ListOrphans(int64_t defer_us, std::vector<SocketMapKey> *out) {
         out->clear();
-        const int64_t now = melon::get_current_time_micros();
-        MELON_SCOPED_LOCK(_mutex);
+        const int64_t now = turbo::get_current_time_micros();
+        TURBO_SCOPED_LOCK(_mutex);
         for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
             SingleConnection &sc = it->second;
             if (sc.ref_count == 0 && now - sc.no_ref_us >= defer_us) {

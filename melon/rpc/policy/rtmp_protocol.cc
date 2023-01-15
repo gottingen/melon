@@ -18,9 +18,9 @@
 
 #include <openssl/hmac.h> // HMAC_CTX_init
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include "melon/base/scoped_lock.h"
-#include "melon/base/fast_rand.h"
-#include "melon/base/endian.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/base/fast_rand.h"
+#include "turbo/base/endian.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/details/controller_private_accessor.h"
@@ -28,12 +28,12 @@
 #include "melon/rpc/span.h"
 #include "melon/rpc/policy/dh.h"
 #include "melon/rpc/policy/rtmp_protocol.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 #include "melon/fiber/this_fiber.h"
 
 // For printing logs with useful prefixes.
 #define RTMP_LOG(level, socket, mh)                                     \
-    MELON_LOG(level) << (socket)->remote_side() << '[' << (mh).stream_id << "] "
+    TURBO_LOG(level) << (socket)->remote_side() << '[' << (mh).stream_id << "] "
 #define RTMP_ERROR(socket, mh) RTMP_LOG(ERROR, (socket), (mh))
 #define RTMP_WARNING(socket, mh) RTMP_LOG(WARNING, (socket), (mh))
 
@@ -123,36 +123,36 @@ namespace melon::rpc {
         // ========== The handshaking described in RTMP spec ==========
 
         // The random data for handshaking
-        static melon::cord_buf *s_rtmp_handshake_server_random = nullptr;
+        static turbo::cord_buf *s_rtmp_handshake_server_random = nullptr;
         static pthread_once_t s_sr_once = PTHREAD_ONCE_INIT;
 
         static void InitRtmpHandshakeServerRandom() {
             char buf[1528];
             for (int i = 0; i < 191; ++i) {
-                ((uint64_t *) buf)[i] = melon::base::fast_rand();
+                ((uint64_t *) buf)[i] = turbo::base::fast_rand();
             }
-            s_rtmp_handshake_server_random = new melon::cord_buf;
+            s_rtmp_handshake_server_random = new turbo::cord_buf;
             s_rtmp_handshake_server_random->append(buf, sizeof(buf));
         }
 
-        static const melon::cord_buf &GetRtmpHandshakeServerRandom() {
+        static const turbo::cord_buf &GetRtmpHandshakeServerRandom() {
             pthread_once(&s_sr_once, InitRtmpHandshakeServerRandom);
             return *s_rtmp_handshake_server_random;
         }
 
-        static melon::cord_buf *s_rtmp_handshake_client_random = nullptr;
+        static turbo::cord_buf *s_rtmp_handshake_client_random = nullptr;
         static pthread_once_t s_cr_once = PTHREAD_ONCE_INIT;
 
         static void InitRtmpHandshakeClientRandom() {
             char buf[1528];
             for (int i = 0; i < 191; ++i) {
-                ((uint64_t *) buf)[i] = melon::base::fast_rand();
+                ((uint64_t *) buf)[i] = turbo::base::fast_rand();
             }
-            s_rtmp_handshake_client_random = new melon::cord_buf;
+            s_rtmp_handshake_client_random = new turbo::cord_buf;
             s_rtmp_handshake_client_random->append(buf, sizeof(buf));
         }
 
-        static const melon::cord_buf &GetRtmpHandshakeClientRandom() {
+        static const turbo::cord_buf &GetRtmpHandshakeClientRandom() {
             pthread_once(&s_cr_once, InitRtmpHandshakeClientRandom);
             return *s_rtmp_handshake_client_random;
         }
@@ -169,7 +169,7 @@ namespace melon::rpc {
             int openssl_HMACsha256(const void *key, int key_size,
                                    const void *data, int data_size, void *digest) {
                 if (nullptr == EVP_sha256) {
-                    MELON_LOG_ONCE(ERROR) << "Fail to find EVP_sha256, fall back to simple handshaking";
+                    TURBO_LOG_ONCE(ERROR) << "Fail to find EVP_sha256, fall back to simple handshaking";
                     return -1;
                 }
                 unsigned int digest_size = 0;
@@ -178,7 +178,7 @@ namespace melon::rpc {
                     // NOTE: first parameter of EVP_Digest in older openssl is void*.
                     if (EVP_Digest(const_cast<void *>(data), data_size, temp_digest,
                                    &digest_size, EVP_sha256(), nullptr) < 0) {
-                        MELON_LOG(ERROR) << "Fail to EVP_Digest";
+                        TURBO_LOG(ERROR) << "Fail to EVP_Digest";
                         return -1;
                     }
                 } else {
@@ -187,12 +187,12 @@ namespace melon::rpc {
                     if (HMAC(EVP_sha256(), key, key_size,
                              (const unsigned char *) data, data_size,
                              temp_digest, &digest_size) == nullptr) {
-                        MELON_LOG(ERROR) << "Fail to HMAC";
+                        TURBO_LOG(ERROR) << "Fail to HMAC";
                         return -1;
                     }
                 }
                 if (digest_size != 32) {
-                    MELON_LOG(ERROR) << "digest_size=" << digest_size << " of sha256 is not 32";
+                    TURBO_LOG(ERROR) << "digest_size=" << digest_size << " of sha256 is not 32";
                     return -1;
                 }
                 return 0;
@@ -374,11 +374,11 @@ namespace melon::rpc {
 
             // ===== impl. =====
             void KeyBlock::Generate() {
-                _offset_data = melon::base::fast_rand() & 0xFFFFFFFF;
+                _offset_data = turbo::base::fast_rand() & 0xFFFFFFFF;
                 const uint8_t *p = (const uint8_t *) &_offset_data;
                 _offset = ((uint32_t) p[0] + p[1] + p[2] + p[3]) % (SIZE - KEY_SIZE - 4);
                 for (size_t i = 0; i < sizeof(_buf) / 8; ++i) {
-                    ((uint64_t *) _buf)[i] = melon::base::fast_rand();
+                    ((uint64_t *) _buf)[i] = turbo::base::fast_rand();
                 }
             }
 
@@ -401,11 +401,11 @@ namespace melon::rpc {
             }
 
             void DigestBlock::Generate() {
-                _offset_data = melon::base::fast_rand() & 0xFFFFFFFF;
+                _offset_data = turbo::base::fast_rand() & 0xFFFFFFFF;
                 const uint8_t *p = (const uint8_t *) &_offset_data;
                 _offset = ((uint32_t) p[0] + p[1] + p[2] + p[3]) % (SIZE - DIGEST_SIZE - 4);
                 for (size_t i = 0; i < sizeof(_buf) / 8; ++i) {
-                    ((uint64_t *) _buf)[i] = melon::base::fast_rand();
+                    ((uint64_t *) _buf)[i] = turbo::base::fast_rand();
                 }
             }
 
@@ -448,7 +448,7 @@ namespace melon::rpc {
                     key_blk.Save(p + DigestBlock::SIZE);
                     return true;
                 } else {
-                    MELON_CHECK(false) << "Invalid schema=" << (int) _schema;
+                    TURBO_CHECK(false) << "Invalid schema=" << (int) _schema;
                     return false;
                 }
             }
@@ -466,12 +466,12 @@ namespace melon::rpc {
                     digest_blk.SaveWithoutDigest(p);
                     key_blk.Save(p + DigestBlock::SIZE - DigestBlock::DIGEST_SIZE);
                 } else {
-                    MELON_LOG(ERROR) << "Invalid schema=" << (int) _schema;
+                    TURBO_LOG(ERROR) << "Invalid schema=" << (int) _schema;
                     return false;
                 }
                 char tmp_digest[EVP_MAX_MD_SIZE];
                 if (openssl_HMACsha256(key, key_size, buf, sizeof(buf), tmp_digest) != 0) {
-                    MELON_LOG(WARNING) << "Fail to compute digest of C1/S1";
+                    TURBO_LOG(WARNING) << "Fail to compute digest of C1/S1";
                     return false;
                 }
                 memcpy(digest, tmp_digest, DigestBlock::DIGEST_SIZE);
@@ -497,7 +497,7 @@ namespace melon::rpc {
                 digest_blk.Load(p + 8 + KeyBlock::SIZE);
                 char tmp_digest[DigestBlock::DIGEST_SIZE];
                 if (!ComputeDigest(tmp_digest)) {
-                    MELON_LOG(WARNING) << "Fail to compute digest of C1 (schema0)";
+                    TURBO_LOG(WARNING) << "Fail to compute digest of C1 (schema0)";
                     return false;
                 }
                 if (memcmp(tmp_digest, digest_blk.digest(),
@@ -509,7 +509,7 @@ namespace melon::rpc {
                 digest_blk.Load(p + 8);
                 key_blk.Load(p + 8 + DigestBlock::SIZE);
                 if (!ComputeDigest(tmp_digest)) {
-                    MELON_LOG(WARNING) << "Fail to compute digest of C1 (schema1)";
+                    TURBO_LOG(WARNING) << "Fail to compute digest of C1 (schema1)";
                     return false;
                 }
                 if (memcmp(tmp_digest, digest_blk.digest(),
@@ -534,7 +534,7 @@ namespace melon::rpc {
                 int pkey_size = 128;
                 if (dh.copy_shared_key(c1.key_blk.key(), 128,
                                        key_blk.key(), &pkey_size) != 0) { // took ~0.9ms
-                    MELON_LOG(ERROR) << "Fail to compute key of S1";
+                    TURBO_LOG(ERROR) << "Fail to compute key of S1";
                     return false;
                 }
                 return ComputeDigest(digest_blk.digest());
@@ -554,7 +554,7 @@ namespace melon::rpc {
                 }
                 char tmp_digest[DigestBlock::DIGEST_SIZE];
                 if (!ComputeDigest(tmp_digest)) {
-                    MELON_LOG(WARNING) << "Fail to compute digest of S1";
+                    TURBO_LOG(WARNING) << "Fail to compute digest of S1";
                     return false;
                 }
                 if (memcmp(tmp_digest, digest_blk.digest(),
@@ -569,13 +569,13 @@ namespace melon::rpc {
                 char temp_key[EVP_MAX_MD_SIZE];
                 if (openssl_HMACsha256(key, key_size, c1s1_digest, DigestBlock::DIGEST_SIZE,
                                        temp_key) != 0) {
-                    MELON_LOG(WARNING) << "Fail to create temp key";
+                    TURBO_LOG(WARNING) << "Fail to create temp key";
                     return false;
                 }
                 char tmp_digest[EVP_MAX_MD_SIZE];
                 if (openssl_HMACsha256(temp_key, 32, random, SIZE - DIGEST_SIZE,
                                        tmp_digest) != 0) {
-                    MELON_LOG(WARNING) << "Fail to create temp digest";
+                    TURBO_LOG(WARNING) << "Fail to create temp digest";
                     return false;
                 }
                 memcpy(digest, tmp_digest, 32);
@@ -585,7 +585,7 @@ namespace melon::rpc {
             bool C2S2Base::Generate(const void *key, int key_size,
                                     const void *c1s1_digest) {
                 for (int i = 0; i < (SIZE - DIGEST_SIZE) / 8; ++i) {
-                    ((uint64_t *) random)[i] = melon::base::fast_rand();
+                    ((uint64_t *) random)[i] = turbo::base::fast_rand();
                 }
                 return ComputeDigest(key, key_size, c1s1_digest, digest);
             }
@@ -596,7 +596,7 @@ namespace melon::rpc {
                 memcpy(digest, (const char *) buf + SIZE - DIGEST_SIZE, DIGEST_SIZE);
                 char tmp_digest[DIGEST_SIZE];
                 if (!ComputeDigest(key, key_size, c1s1_digest, tmp_digest)) {
-                    MELON_LOG(WARNING) << "Fail to compute digest of C2/S2";
+                    TURBO_LOG(WARNING) << "Fail to compute digest of C2/S2";
                     return false;
                 }
                 return memcmp(tmp_digest, digest, DIGEST_SIZE) == 0;
@@ -629,7 +629,7 @@ namespace melon::rpc {
         WriteBasicHeader(char **buf, RtmpChunkType chunk_type, uint32_t cs_id) {
             char *out = *buf;
             if (cs_id < 2) {
-                MELON_CHECK(false) << "Reserved chunk_stream_id=" << cs_id;
+                TURBO_CHECK(false) << "Reserved chunk_stream_id=" << cs_id;
             } else if (cs_id <= 63) {
                 *out++ = (((uint32_t) chunk_type << 6) | cs_id);
             } else if (cs_id <= 319) {
@@ -640,7 +640,7 @@ namespace melon::rpc {
                 *out++ = (cs_id - 64) & 0xFF;
                 *out++ = ((cs_id - 64) >> 8);
             } else {
-                MELON_CHECK(false) << "Invalid chunk_stream_id=" << cs_id;
+                TURBO_CHECK(false) << "Invalid chunk_stream_id=" << cs_id;
             }
             *buf = out;
         }
@@ -649,7 +649,7 @@ namespace melon::rpc {
         // Returns 0 on success, -1 otherwise.
         // Writing *all* is possible because we only call this fn during handshaking
         // and connecting, the data in total is generally less than socket buffer.
-        static int WriteAll(int fd, melon::cord_buf *buf) {
+        static int WriteAll(int fd, turbo::cord_buf *buf) {
             while (!buf->empty()) {
                 ssize_t nw = buf->cut_into_file_descriptor(fd);
                 if (nw < 0) {
@@ -662,7 +662,7 @@ namespace melon::rpc {
                         // write is less than buffer size of the fd. If the
                         // impossible really happens, just spin until the fd becomes
                         // writable.
-                        MELON_LOG_EVERY_SECOND(ERROR) << "Impossible: meet EAGAIN!";
+                        TURBO_LOG_EVERY_SECOND(ERROR) << "Impossible: meet EAGAIN!";
                         melon::fiber_sleep_for(1000);
                         continue;
                     }
@@ -676,7 +676,7 @@ namespace melon::rpc {
         // Used in rtmp.cpp
         int SendC0C1(int fd, bool *is_simple_handshake) {
             bool done_adobe_hs = false;
-            melon::cord_buf tmp;
+            turbo::cord_buf tmp;
             if (!FLAGS_rtmp_client_use_simple_handshake) {
                 adobe_hs::C1 c1;
                 if (c1.Generate(adobe_hs::SCHEMA1)) {
@@ -686,7 +686,7 @@ namespace melon::rpc {
                     tmp.append(buf, sizeof(buf));
                     done_adobe_hs = true;
                 } else {
-                    MELON_LOG(WARNING) << "Fail to generate C1, use simple handshaking";
+                    TURBO_LOG(WARNING) << "Fail to generate C1, use simple handshaking";
                 }
             }
             if (is_simple_handshake) {
@@ -720,7 +720,7 @@ namespace melon::rpc {
             return "Unknown state";
         }
 
-        void RtmpContext::SetState(const melon::end_point &remote_side, State new_state) {
+        void RtmpContext::SetState(const turbo::end_point &remote_side, State new_state) {
             const State old_state = _state;
             _state = new_state;
             RPC_VLOG << remote_side << ": " << state2str(old_state)
@@ -746,7 +746,7 @@ namespace melon::rpc {
         }
 
         RtmpUnsentMessage *MakeUnsentControlMessage(
-                uint8_t message_type, uint32_t chunk_stream_id, const melon::cord_buf &body) {
+                uint8_t message_type, uint32_t chunk_stream_id, const turbo::cord_buf &body) {
             RtmpUnsentMessage *msg = new RtmpUnsentMessage;
             msg->header.message_length = body.size();
             msg->header.message_type = message_type;
@@ -757,7 +757,7 @@ namespace melon::rpc {
         }
 
         RtmpUnsentMessage *MakeUnsentControlMessage(
-                uint8_t message_type, const melon::cord_buf &body) {
+                uint8_t message_type, const turbo::cord_buf &body) {
             return MakeUnsentControlMessage(
                     message_type, RTMP_CONTROL_CHUNK_STREAM_ID, body);
         }
@@ -773,8 +773,8 @@ namespace melon::rpc {
                 _service = server->options().rtmp_service;
             }
             _free_ms_ids.reserve(32);
-            MELON_CHECK_EQ(0, _mstream_map.init(1024, 70));
-            MELON_CHECK_EQ(0, _trans_map.init(1024, 70));
+            TURBO_CHECK_EQ(0, _mstream_map.init(1024, 70));
+            TURBO_CHECK_EQ(0, _trans_map.init(1024, 70));
             memset(static_cast<void *>(_cstream_ctx), 0, sizeof(_cstream_ctx));
         }
 
@@ -782,7 +782,7 @@ namespace melon::rpc {
             if (!_mstream_map.empty()) {
                 size_t ncstream = 0;
                 size_t nsstream = 0;
-                for (melon::container::FlatMap<uint32_t, MessageStreamInfo>::iterator
+                for (turbo::container::FlatMap<uint32_t, MessageStreamInfo>::iterator
                              it = _mstream_map.begin(); it != _mstream_map.end(); ++it) {
                     if (it->second.stream->is_server_stream()) {
                         ++nsstream;
@@ -791,14 +791,14 @@ namespace melon::rpc {
                     }
                 }
                 _mstream_map.clear();
-                MELON_LOG(FATAL) << "RtmpContext=" << this << " is deallocated"
+                TURBO_LOG(FATAL) << "RtmpContext=" << this << " is deallocated"
                                                               " before all streams(" << ncstream << " client, "
                                  << nsstream
                                  << "server) on the connection quit";
             }
 
             // cancel incomplete transactions
-            for (melon::container::FlatMap<uint32_t, RtmpTransactionHandler *>::iterator
+            for (turbo::container::FlatMap<uint32_t, RtmpTransactionHandler *>::iterator
                          it = _trans_map.begin(); it != _trans_map.end(); ++it) {
                 if (it->second) {
                     it->second->Cancel();
@@ -823,28 +823,28 @@ namespace melon::rpc {
             delete this;
         }
 
-        melon::result_status
-        RtmpUnsentMessage::AppendAndDestroySelf(melon::cord_buf *out, Socket *s) {
+        turbo::result_status
+        RtmpUnsentMessage::AppendAndDestroySelf(turbo::cord_buf *out, Socket *s) {
             std::unique_ptr<RtmpUnsentMessage> destroy_self(this);
             if (s == nullptr) { // abandoned
                 RPC_VLOG << "Socket=nullptr";
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
             RtmpContext *ctx = static_cast<RtmpContext *>(s->parsing_context());
             RtmpChunkStream *cstream = ctx->GetChunkStream(chunk_stream_id);
             if (cstream == nullptr) {
                 s->SetFailed(EINVAL, "Invalid chunk_stream_id=%u", chunk_stream_id);
-                return melon::result_status(EINVAL, "Invalid chunk_stream_id={}", chunk_stream_id);
+                return turbo::result_status(EINVAL, "Invalid chunk_stream_id={}", chunk_stream_id);
             }
             if (cstream->SerializeMessage(out, header, &body) != 0) {
                 s->SetFailed(EINVAL, "Fail to serialize message");
-                return melon::result_status(EINVAL, "Fail to serialize message");
+                return turbo::result_status(EINVAL, "Fail to serialize message");
             }
             if (new_chunk_size) {
                 ctx->_chunk_size_out = new_chunk_size;
             }
             if (!next) {
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
             RtmpUnsentMessage *p = next.release();
             destroy_self.reset();
@@ -867,7 +867,7 @@ namespace melon::rpc {
 
         RtmpChunkStream *RtmpContext::GetChunkStream(uint32_t cs_id) {
             if (cs_id > RTMP_MAX_CHUNK_STREAM_ID) {
-                MELON_LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
+                TURBO_LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
                 return nullptr;
             }
             const uint32_t index1 = cs_id / RTMP_CHUNK_ARRAY_2ND_SIZE;
@@ -901,21 +901,21 @@ namespace melon::rpc {
 
         void RtmpContext::ClearChunkStream(uint32_t cs_id) {
             if (cs_id > RTMP_MAX_CHUNK_STREAM_ID) {
-                MELON_LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
+                TURBO_LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
                 return;
             }
             const uint32_t index1 = cs_id / RTMP_CHUNK_ARRAY_2ND_SIZE;
             SubChunkArray *sub_array =
                     _cstream_ctx[index1].load(std::memory_order_consume);
             if (sub_array == nullptr) {
-                MELON_LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
+                TURBO_LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
                 return;
             }
             const uint32_t index2 = cs_id - index1 * RTMP_CHUNK_ARRAY_2ND_SIZE;
             RtmpChunkStream *cstream =
                     sub_array->ptrs[index2].load(std::memory_order_consume);
             if (cstream == nullptr) {
-                MELON_LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
+                TURBO_LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
                 return;
             }
             delete sub_array->ptrs[index2].exchange(
@@ -957,8 +957,8 @@ namespace melon::rpc {
         }
 
         bool RtmpContext::FindMessageStream(
-                uint32_t stream_id, melon::container::intrusive_ptr<RtmpStreamBase> *stream) {
-            MELON_SCOPED_LOCK(_stream_mutex);
+                uint32_t stream_id, turbo::container::intrusive_ptr<RtmpStreamBase> *stream) {
+            TURBO_SCOPED_LOCK(_stream_mutex);
             MessageStreamInfo *info = _mstream_map.seek(stream_id);
             if (info == nullptr || info->stream == nullptr) {
                 return false;
@@ -970,7 +970,7 @@ namespace melon::rpc {
         bool RtmpContext::AddClientStream(RtmpStreamBase *stream) {
             const uint32_t stream_id = stream->stream_id();
             if (stream_id == RTMP_CONTROL_MESSAGE_STREAM_ID) {
-                MELON_LOG(ERROR) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
+                TURBO_LOG(ERROR) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
                                  << " is reserved for control stream";
                 return false;
             }
@@ -980,7 +980,7 @@ namespace melon::rpc {
                 MessageStreamInfo &info = _mstream_map[stream_id];
                 if (info.stream != nullptr) {
                     mu.unlock();
-                    MELON_LOG(ERROR) << "stream_id=" << stream_id << " is already used";
+                    TURBO_LOG(ERROR) << "stream_id=" << stream_id << " is already used";
                     return false;
                 }
                 AllocateChunkStreamId(&chunk_stream_id);
@@ -1000,7 +1000,7 @@ namespace melon::rpc {
                 MessageStreamInfo &info = _mstream_map[stream_id];
                 if (info.stream != nullptr) {
                     mu.unlock();
-                    MELON_LOG(ERROR) << "stream_id=" << stream_id << " is already used";
+                    TURBO_LOG(ERROR) << "stream_id=" << stream_id << " is already used";
                     return false;
                 }
                 info.stream.reset(stream);
@@ -1012,17 +1012,17 @@ namespace melon::rpc {
 
         bool RtmpContext::RemoveMessageStream(RtmpStreamBase *stream) {
             if (stream == nullptr) {
-                MELON_LOG(FATAL) << "Param[stream] is nullptr";
+                TURBO_LOG(FATAL) << "Param[stream] is nullptr";
                 return false;
             }
             const uint32_t stream_id = stream->stream_id();
             if (stream_id == RTMP_CONTROL_MESSAGE_STREAM_ID) {
-                MELON_LOG(FATAL) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
+                TURBO_LOG(FATAL) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
                                  << " is reserved for control stream";
                 return false;
             }
             // for deref the stream outside _stream_mutex.
-            melon::container::intrusive_ptr<RtmpStreamBase> deref_ptr;
+            turbo::container::intrusive_ptr<RtmpStreamBase> deref_ptr;
             {
                 std::unique_lock<std::mutex> mu(_stream_mutex);
                 MessageStreamInfo *info = _mstream_map.seek(stream_id);
@@ -1032,7 +1032,7 @@ namespace melon::rpc {
                 }
                 if (stream != info->stream) {
                     mu.unlock();
-                    MELON_LOG(FATAL) << "Unmatched "
+                    TURBO_LOG(FATAL) << "Unmatched "
                                      << (stream->is_client_stream() ? "client" : "server")
                                      << " stream of stream_id=" << stream_id;
                     return false;
@@ -1057,7 +1057,7 @@ namespace melon::rpc {
                                          RtmpTransactionHandler *handler) {
             uint32_t transaction_id = 0;
             uint32_t step = 1;
-            MELON_SCOPED_LOCK(_trans_mutex);
+            TURBO_SCOPED_LOCK(_trans_mutex);
             for (int i = 0; i < 10; ++i) {
                 transaction_id = _trans_id_allocator;
                 _trans_id_allocator += step;
@@ -1078,7 +1078,7 @@ namespace melon::rpc {
         RtmpContext::RemoveTransaction(uint32_t transaction_id) {
             RtmpTransactionHandler *handler = nullptr;
             {
-                MELON_SCOPED_LOCK(_trans_mutex);
+                TURBO_SCOPED_LOCK(_trans_mutex);
                 RtmpTransactionHandler **phandler = _trans_map.seek(transaction_id);
                 if (phandler != nullptr) {
                     handler = *phandler;
@@ -1088,16 +1088,16 @@ namespace melon::rpc {
             return handler;
         }
 
-        int RtmpContext::SendConnectRequest(const melon::end_point &remote_side, int fd, bool simplified_rtmp) {
-            melon::cord_buf req_buf;
+        int RtmpContext::SendConnectRequest(const turbo::end_point &remote_side, int fd, bool simplified_rtmp) {
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_CONNECT, &ostream);
                 WriteAMFUint32(1, &ostream);
                 RtmpConnectRequest req;
                 if (_client_options->app.empty()) {
-                    MELON_LOG(ERROR) << "RtmpClientOptions.app must be set";
+                    TURBO_LOG(ERROR) << "RtmpClientOptions.app must be set";
                     return -1;
                 }
                 req.set_app(_client_options->app);
@@ -1112,7 +1112,7 @@ namespace melon::rpc {
                     std::string *const tcurl = req.mutable_tcurl();
                     tcurl->reserve(32 + _client_options->app.size());
                     tcurl->append("rtmp://");
-                    tcurl->append(melon::endpoint2str(remote_side).c_str());
+                    tcurl->append(turbo::endpoint2str(remote_side).c_str());
                     tcurl->push_back('/');
                     tcurl->append(_client_options->app);
                 } else {
@@ -1130,7 +1130,7 @@ namespace melon::rpc {
                 req.set_stream_multiplexing(true);
                 WriteAMFObject(req, &ostream);
                 if (!ostream.good()) {
-                    MELON_LOG(ERROR) << "Fail to serialize connect request";
+                    TURBO_LOG(ERROR) << "Fail to serialize connect request";
                     return -1;
                 }
             }
@@ -1139,7 +1139,7 @@ namespace melon::rpc {
             header.message_type = RTMP_MESSAGE_COMMAND_AMF0;
             header.stream_id = RTMP_CONTROL_MESSAGE_STREAM_ID;
 
-            melon::cord_buf msg_buf;
+            turbo::cord_buf msg_buf;
             if (simplified_rtmp) {
                 char buf[5];
                 char *p = buf;
@@ -1149,7 +1149,7 @@ namespace melon::rpc {
             }
             RtmpChunkStream *cstream = GetChunkStream(RTMP_CONTROL_CHUNK_STREAM_ID);
             if (cstream->SerializeMessage(&msg_buf, header, &req_buf) != 0) {
-                MELON_LOG(ERROR) << "Fail to serialize connect message";
+                TURBO_LOG(ERROR) << "Fail to serialize connect message";
                 return -1;
             }
 
@@ -1162,10 +1162,10 @@ namespace melon::rpc {
                 header2.message_length = sizeof(cntl_buf);
                 header2.message_type = RTMP_MESSAGE_WINDOW_ACK_SIZE;
                 header2.stream_id = RTMP_CONTROL_MESSAGE_STREAM_ID;
-                melon::cord_buf tmp;
+                turbo::cord_buf tmp;
                 tmp.append(cntl_buf, sizeof(cntl_buf));
                 if (cstream->SerializeMessage(&msg_buf, header2, &tmp) != 0) {
-                    MELON_LOG(ERROR) << "Fail to serialize WindowAckSize message";
+                    TURBO_LOG(ERROR) << "Fail to serialize WindowAckSize message";
                     return -1;
                 }
             }
@@ -1179,10 +1179,10 @@ namespace melon::rpc {
                 header3.message_length = sizeof(cntl_buf);
                 header3.message_type = RTMP_MESSAGE_SET_CHUNK_SIZE;
                 header3.stream_id = RTMP_CONTROL_MESSAGE_STREAM_ID;
-                melon::cord_buf tmp;
+                turbo::cord_buf tmp;
                 tmp.append(cntl_buf, sizeof(cntl_buf));
                 if (cstream->SerializeMessage(&msg_buf, header3, &tmp) != 0) {
-                    MELON_LOG(ERROR) << "Fail to serialize SetChunkSize message";
+                    TURBO_LOG(ERROR) << "Fail to serialize SetChunkSize message";
                     return -1;
                 }
                 _chunk_size_out = _client_options->chunk_size;
@@ -1191,7 +1191,7 @@ namespace melon::rpc {
             return WriteAll(fd, &msg_buf);
         }
 
-        ParseResult RtmpContext::Feed(melon::cord_buf *source, Socket *socket) {
+        ParseResult RtmpContext::Feed(turbo::cord_buf *source, Socket *socket) {
             switch (_state) {
                 case STATE_UNINITIALIZED:
                     if (socket->CreatedByConnect()) {
@@ -1207,11 +1207,11 @@ namespace melon::rpc {
                 case STATE_RECEIVED_C2:
                     return OnChunks(source, socket);
             }
-            MELON_CHECK(false) << "Never here!";
+            TURBO_CHECK(false) << "Never here!";
             return MakeParseError(PARSE_ERROR_NO_RESOURCE);
         }
 
-        ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(melon::cord_buf *source, Socket *socket) {
+        ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(turbo::cord_buf *source, Socket *socket) {
             if (source->length() < RTMP_HANDSHAKE_SIZE0 + MAGIC_NUMBER_SIZE) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
@@ -1232,7 +1232,7 @@ namespace melon::rpc {
             source->cutn(c0c1_buf, sizeof(c0c1_buf));
             SetState(socket->remote_side(), STATE_RECEIVED_C0C1);
 
-            melon::cord_buf tmp;
+            turbo::cord_buf tmp;
             adobe_hs::C1 c1;
             if (c1.Load(c0c1_buf + RTMP_HANDSHAKE_SIZE0)) {
                 RPC_VLOG << socket->remote_side() << ": Loaded C1 with schema"
@@ -1241,7 +1241,7 @@ namespace melon::rpc {
                 {
                     adobe_hs::S1 s1;
                     if (!s1.Generate(c1)) {
-                        MELON_LOG(WARNING) << socket->remote_side() << ": Fail to generate s1";
+                        TURBO_LOG(WARNING) << socket->remote_side() << ": Fail to generate s1";
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                     }
                     char buf[RTMP_HANDSHAKE_SIZE1];
@@ -1249,7 +1249,7 @@ namespace melon::rpc {
                     tmp.append(buf, RTMP_HANDSHAKE_SIZE1);
                     _s1_digest = malloc(adobe_hs::DigestBlock::DIGEST_SIZE);
                     if (_s1_digest == nullptr) {
-                        MELON_LOG(ERROR) << "Fail to malloc";
+                        TURBO_LOG(ERROR) << "Fail to malloc";
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                     }
                     memcpy(_s1_digest, s1.digest_blk.digest(),
@@ -1258,7 +1258,7 @@ namespace melon::rpc {
                 {
                     adobe_hs::S2 s2;
                     if (!s2.Generate(c1.digest_blk.digest())) {
-                        MELON_LOG(ERROR) << socket->remote_side() << ": Fail to generate s2";
+                        TURBO_LOG(ERROR) << socket->remote_side() << ": Fail to generate s2";
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                     }
                     char buf[RTMP_HANDSHAKE_SIZE2];
@@ -1283,13 +1283,13 @@ namespace melon::rpc {
                 tmp.append(s2, RTMP_HANDSHAKE_SIZE2);
             }
             if (WriteAll(socket->fd(), &tmp) != 0) {
-                MELON_LOG(WARNING) << socket->remote_side() << ": Fail to write S0 S1 S2";
+                TURBO_LOG(WARNING) << socket->remote_side() << ": Fail to write S0 S1 S2";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             return WaitForC2(source, socket);
         }
 
-        ParseResult RtmpContext::WaitForC2(melon::cord_buf *source, Socket *socket) {
+        ParseResult RtmpContext::WaitForC2(turbo::cord_buf *source, Socket *socket) {
             if (source->length() < RTMP_HANDSHAKE_SIZE2) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
@@ -1301,14 +1301,14 @@ namespace melon::rpc {
             // if (_s1_digest) {
             //     adobe_hs::C2 c2;
             //     if (!c2.Load(_s1_digest, c2_buf)) {
-            //         MELON_LOG(WARNING) << socket->remote_side() << ": Fail to load C2";
+            //         TURBO_LOG(WARNING) << socket->remote_side() << ": Fail to load C2";
             //     }
             // }
             SetState(socket->remote_side(), STATE_RECEIVED_C2);
             return OnChunks(source, socket);
         }
 
-        ParseResult RtmpContext::WaitForS0S1(melon::cord_buf *source, Socket *socket) {
+        ParseResult RtmpContext::WaitForS0S1(turbo::cord_buf *source, Socket *socket) {
             if (source->length() < RTMP_HANDSHAKE_SIZE0 + RTMP_HANDSHAKE_SIZE1) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
@@ -1317,7 +1317,7 @@ namespace melon::rpc {
             source->cutn(s0s1_buf, sizeof(s0s1_buf));
             SetState(socket->remote_side(), STATE_RECEIVED_S0S1);
 
-            melon::cord_buf tmp;
+            turbo::cord_buf tmp;
             bool done_adobe_hs = false;
             if (!_only_check_simple_s0s1) {
                 adobe_hs::S1 s1;
@@ -1325,7 +1325,7 @@ namespace melon::rpc {
                     RPC_VLOG << socket->remote_side() << ": Loaded S1 with schema1";
                     adobe_hs::C2 c2;
                     if (!c2.Generate(s1.digest_blk.digest())) {
-                        MELON_LOG(ERROR) << socket->remote_side() << ": Fail to generate c2";
+                        TURBO_LOG(ERROR) << socket->remote_side() << ": Fail to generate c2";
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                     }
                     c2.Save(s0s1_buf + RTMP_HANDSHAKE_SIZE0);
@@ -1344,13 +1344,13 @@ namespace melon::rpc {
                 tmp.append(c2, RTMP_HANDSHAKE_SIZE2);
             }
             if (WriteAll(socket->fd(), &tmp) != 0) {
-                MELON_LOG(WARNING) << socket->remote_side() << ": Fail to write C2";
+                TURBO_LOG(WARNING) << socket->remote_side() << ": Fail to write C2";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             return WaitForS2(source, socket);
         }
 
-        ParseResult RtmpContext::WaitForS2(melon::cord_buf *source, Socket *socket) {
+        ParseResult RtmpContext::WaitForS2(turbo::cord_buf *source, Socket *socket) {
             if (source->length() < RTMP_HANDSHAKE_SIZE2) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
@@ -1359,13 +1359,13 @@ namespace melon::rpc {
             SetState(socket->remote_side(), STATE_RECEIVED_S2);
 
             if (SendConnectRequest(socket->remote_side(), socket->fd(), false) != 0) {
-                MELON_LOG(ERROR) << "Fail to send connect request to " << socket->remote_side();
+                TURBO_LOG(ERROR) << "Fail to send connect request to " << socket->remote_side();
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             return OnChunks(source, socket);
         }
 
-        ParseResult RtmpContext::OnChunks(melon::cord_buf *source, Socket *socket) {
+        ParseResult RtmpContext::OnChunks(turbo::cord_buf *source, Socket *socket) {
             // Parse basic header.
             const char *p = (const char *) source->fetch1();
             if (nullptr == p) {
@@ -1397,14 +1397,14 @@ namespace melon::rpc {
             RtmpBasicHeader bh = {cs_id, fmt, basic_header_len};
             RtmpChunkStream *cstream = GetChunkStream(cs_id);
             if (cstream == nullptr) {
-                MELON_LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
+                TURBO_LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             return cstream->Feed(bh, source, socket);
         }
 
         static int SendAck(Socket *socket, uint64_t received_bytes) {
-            const uint32_t data = melon::base::melon_hton32(received_bytes);
+            const uint32_t data = turbo::base::turbo_hton32(received_bytes);
             SocketMessagePtr<RtmpUnsentMessage> msg(
                     MakeUnsentControlMessage(RTMP_MESSAGE_ACK, &data, sizeof(data)));
             return WriteWithoutOvercrowded(socket, msg);
@@ -1415,7 +1415,7 @@ namespace melon::rpc {
             _nonack_bytes += sz;
             if (_nonack_bytes > _window_ack_size) {
                 _nonack_bytes -= _window_ack_size;
-                MELON_PLOG_IF(WARNING, SendAck(socket, _received_bytes) != 0)
+                TURBO_PLOG_IF(WARNING, SendAck(socket, _received_bytes) != 0)
                                 << socket->remote_side() << ": Fail to send ack";
             }
         }
@@ -1459,11 +1459,11 @@ namespace melon::rpc {
         };
 
         inline void AddChunk() {
-            melon::get_leaky_singleton<ChunkStatus>()->count << 1;
+            turbo::get_leaky_singleton<ChunkStatus>()->count << 1;
         }
 
         ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader &bh,
-                                          melon::cord_buf *source, Socket *socket) {
+                                          turbo::cord_buf *source, Socket *socket) {
             // Parse message header. Notice that basic header is still in source.
             uint32_t header_len = bh.header_length;
             bool has_extended_ts = false;
@@ -1541,7 +1541,7 @@ namespace melon::rpc {
                         has_extended_ts = true;
                     }
                     if (!_r.last_msg_header.is_valid()) {
-                        MELON_LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
+                        TURBO_LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
                                          << " for ChunkType1";
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                     }
@@ -1584,7 +1584,7 @@ namespace melon::rpc {
                         has_extended_ts = true;
                     }
                     if (!_r.last_msg_header.is_valid()) {
-                        MELON_LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
+                        TURBO_LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
                                          << " for ChunkType2";
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                     }
@@ -1626,7 +1626,7 @@ namespace melon::rpc {
                         }
                     }
                     if (!_r.last_msg_header.is_valid()) {
-                        MELON_LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
+                        TURBO_LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
                                          << " for ChunkType3";
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                     }
@@ -1651,7 +1651,7 @@ namespace melon::rpc {
             source->cutn(&_r.msg_body, cur_chunk_size);
             ctx->AddReceivedBytes(socket, header_len + cur_chunk_size);
             const int vlvl = RPC_VLOG_LEVEL + 2;
-            MELON_VLOG(vlvl) << socket->remote_side()
+            TURBO_VLOG(vlvl) << socket->remote_side()
                              << ": Chunk{chunk_stream_id=" << bh.chunk_stream_id
                              << " fmt=" << bh.fmt
                              << " body_size=" << cur_chunk_size << '}';
@@ -1671,9 +1671,9 @@ namespace melon::rpc {
                     st = g_client_msg_status;
                 }
                 if (st) {
-                    melon::stop_watcher tm;
+                    turbo::stop_watcher tm;
                     tm.start();
-                    MELON_CHECK(st->OnRequested());
+                    TURBO_CHECK(st->OnRequested());
                     const bool ret = OnMessage(bh, mh, &_r.msg_body, socket);
                     tm.stop();
                     st->OnResponded(ret, tm.u_elapsed());
@@ -1689,17 +1689,17 @@ namespace melon::rpc {
             return MakeMessage(nullptr);
         }
 
-        int RtmpChunkStream::SerializeMessage(melon::cord_buf *buf,
+        int RtmpChunkStream::SerializeMessage(turbo::cord_buf *buf,
                                               const RtmpMessageHeader &mh,
-                                              melon::cord_buf *body) {
+                                              turbo::cord_buf *body) {
             const size_t bh_size = GetBasicHeaderLength(_cs_id);
             if (bh_size == 0) {
-                MELON_CHECK(false) << "Invalid chunk_stream_id=" << _cs_id;
+                TURBO_CHECK(false) << "Invalid chunk_stream_id=" << _cs_id;
                 return -1;
             }
             // NOTE: body->size() may be longer than mh.message_length;
             uint32_t left_size = mh.message_length;
-            MELON_CHECK_LE((size_t) left_size, body->size());
+            TURBO_CHECK_LE((size_t) left_size, body->size());
             bool has_extended_ts = false;
             uint32_t timestamp_delta = 0;
             const uint32_t chunk_size_out = connection_context()->_chunk_size_out;
@@ -1807,14 +1807,14 @@ namespace melon::rpc {
                 &RtmpChunkStream::OnAggregateMessage, // 22
         };
 
-        typedef melon::container::FlatMap<std::string, RtmpChunkStream::CommandHandler> CommandHandlerMap;
+        typedef turbo::container::FlatMap<std::string, RtmpChunkStream::CommandHandler> CommandHandlerMap;
         static CommandHandlerMap *s_cmd_handlers = nullptr;
         static pthread_once_t s_cmd_handlers_init_once = PTHREAD_ONCE_INIT;
 
         static void InitCommandHandlers() {
             // Dispatch commands based on "Command Name".
             s_cmd_handlers = new CommandHandlerMap;
-            MELON_CHECK_EQ(0, s_cmd_handlers->init(64, 70));
+            TURBO_CHECK_EQ(0, s_cmd_handlers->init(64, 70));
             (*s_cmd_handlers)[RTMP_AMF0_COMMAND_CONNECT] = &RtmpChunkStream::OnConnect;
             (*s_cmd_handlers)[RTMP_AMF0_COMMAND_ON_BW_DONE] = &RtmpChunkStream::OnBWDone;
             (*s_cmd_handlers)[RTMP_AMF0_COMMAND_RESULT] = &RtmpChunkStream::OnResult;
@@ -1837,11 +1837,11 @@ namespace melon::rpc {
 
         bool RtmpChunkStream::OnMessage(const RtmpBasicHeader &bh,
                                         const RtmpMessageHeader &mh,
-                                        melon::cord_buf *msg_body,
+                                        turbo::cord_buf *msg_body,
                                         Socket *socket) {
             // Make sure msg_body is consistent with the header. Previous code
             // forgot to clear msg_body before appending new message.
-            MELON_CHECK_EQ((size_t) mh.message_length, msg_body->size());
+            TURBO_CHECK_EQ((size_t) mh.message_length, msg_body->size());
 
             if (mh.message_type >= 1 && mh.message_type <= 6) {
                 // protocol/user control messages MUST/SHOULD have message stream ID 0
@@ -1854,7 +1854,7 @@ namespace melon::rpc {
                 }
             }
             const uint32_t index = mh.message_type - 1;
-            if (index >= MELON_ARRAY_SIZE(s_msg_handlers)) {
+            if (index >= TURBO_ARRAY_SIZE(s_msg_handlers)) {
                 RTMP_ERROR(socket, mh) << "Unknown message_type=" << (int) mh.message_type;
                 return false;
             }
@@ -1868,7 +1868,7 @@ namespace melon::rpc {
                                mh.message_type != RTMP_MESSAGE_VIDEO &&
                                mh.message_type != RTMP_MESSAGE_ACK) ?
                               (RPC_VLOG_LEVEL + 1) : (RPC_VLOG_LEVEL + 2));
-            MELON_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
+            TURBO_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
                              << "] Message{timestamp=" << mh.timestamp
                              << " type=" << messagetype2str(mh.message_type)
                              << " body_size=" << mh.message_length << '}';
@@ -1876,7 +1876,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnSetChunkSize(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             if (mh.message_length != 4u) {
                 RTMP_ERROR(socket, mh) << "Expected message_length=4, actually "
                                        << mh.message_length;
@@ -1898,7 +1898,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnAbortMessage(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             if (mh.message_length != 4u) {
                 RTMP_ERROR(socket, mh) << "Expected message_length=4, actually "
                                        << mh.message_length;
@@ -1916,7 +1916,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnAck(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             if (mh.message_length != 4u) {
                 RTMP_ERROR(socket, mh) << "Expected message_length=4, actually "
                                        << mh.message_length;
@@ -1932,7 +1932,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnWindowAckSize(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             if (mh.message_length != 4u) {
                 RTMP_ERROR(socket, mh) << "Expected message_length=4, actually "
                                        << mh.message_length;
@@ -1949,7 +1949,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnSetPeerBandwidth(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             if (mh.message_length != 5u) {
                 RTMP_ERROR(socket, mh) << "Expected message_length=5, actually "
                                        << mh.message_length;
@@ -1966,7 +1966,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnUserControlMessage(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             if (mh.message_length > 32) {
                 RTMP_ERROR(socket, mh) << "No user control message long as "
                                        << mh.message_length << " bytes";
@@ -2090,7 +2090,7 @@ namespace melon::rpc {
                 // Ignore SetBufferSize for control stream.
                 return true;
             }
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(stream_id, &stream)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << stream_id;
                 return false;
@@ -2120,7 +2120,7 @@ namespace melon::rpc {
             SocketMessagePtr<RtmpUnsentMessage> msg(
                     MakeUnsentControlMessage(RTMP_MESSAGE_USER_CONTROL, data, sizeof(data)));
             if (socket->Write(msg) != 0) {
-                MELON_PLOG(WARNING) << "Fail to send back PingResponse";
+                TURBO_PLOG(WARNING) << "Fail to send back PingResponse";
                 return false;
             }
             return true;
@@ -2157,7 +2157,7 @@ namespace melon::rpc {
             }
             const uint32_t tmp = ReadBigEndian4Bytes(event_data.data());
             const int vlvl = RPC_VLOG_LEVEL + 1;
-            MELON_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
+            TURBO_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
                              << "] BufferEmpty(" << tmp << ')';
             return true;
         }
@@ -2172,13 +2172,13 @@ namespace melon::rpc {
             }
             const uint32_t tmp = ReadBigEndian4Bytes(event_data.data());
             const int vlvl = RPC_VLOG_LEVEL + 1;
-            MELON_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
+            TURBO_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
                              << "] BufferReady(" << tmp << ')';
             return true;
         }
 
         bool RtmpChunkStream::OnAudioMessage(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             char first_byte = 0;
             if (!msg_body->cut1(&first_byte)) {
                 // pretty common, don't print logs.
@@ -2194,10 +2194,10 @@ namespace melon::rpc {
             msg_body->swap(msg.data);
 
             const int vlvl = RPC_VLOG_LEVEL + 1;
-            MELON_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            TURBO_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-                MELON_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
+                TURBO_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
                                                 << ": Fail to find stream_id=" << mh.stream_id;
                 return false;
             }
@@ -2206,7 +2206,7 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnVideoMessage(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             char first_byte = 0;
             if (!msg_body->cut1(&first_byte)) {
                 // pretty common, don't print logs.
@@ -2226,10 +2226,10 @@ namespace melon::rpc {
             msg_body->swap(msg.data);
 
             const int vlvl = RPC_VLOG_LEVEL + 1;
-            MELON_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            TURBO_VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-                MELON_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
+                TURBO_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
                                                 << ": Fail to find stream_id=" << mh.stream_id;
                 return false;
             }
@@ -2238,8 +2238,8 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnDataMessageAMF0(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
-            melon::cord_buf_as_zero_copy_input_stream zc_stream(*msg_body);
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
+            turbo::cord_buf_as_zero_copy_input_stream zc_stream(*msg_body);
             AMFInputStream istream(&zc_stream);
             std::string name;
             if (!ReadAMFString(&name, &istream)) {
@@ -2268,9 +2268,9 @@ namespace melon::rpc {
                     return false;
                 }
                 // TODO: execq?
-                melon::container::intrusive_ptr<RtmpStreamBase> stream;
+                turbo::container::intrusive_ptr<RtmpStreamBase> stream;
                 if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-                    MELON_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
+                    TURBO_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
                                                     << ": Fail to find stream_id=" << mh.stream_id;
                     return false;
                 }
@@ -2287,9 +2287,9 @@ namespace melon::rpc {
                     return false;
                 }
                 // TODO: execq?
-                melon::container::intrusive_ptr<RtmpStreamBase> stream;
+                turbo::container::intrusive_ptr<RtmpStreamBase> stream;
                 if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-                    MELON_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
+                    TURBO_LOG_EVERY_SECOND(WARNING) << socket->remote_side()
                                                     << ": Fail to find stream_id=" << mh.stream_id;
                     return false;
                 }
@@ -2304,14 +2304,14 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnSharedObjectMessageAMF0(
-                const RtmpMessageHeader &, melon::cord_buf *, Socket *socket) {
-            MELON_LOG_EVERY_SECOND(ERROR) << socket->remote_side() << ": Not implemented";
+                const RtmpMessageHeader &, turbo::cord_buf *, Socket *socket) {
+            TURBO_LOG_EVERY_SECOND(ERROR) << socket->remote_side() << ": Not implemented";
             return false;
         }
 
         bool RtmpChunkStream::OnCommandMessageAMF0(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
-            melon::cord_buf_as_zero_copy_input_stream zc_stream(*msg_body);
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
+            turbo::cord_buf_as_zero_copy_input_stream zc_stream(*msg_body);
             AMFInputStream istream(&zc_stream);
             std::string command_name;
             if (!ReadAMFString(&command_name, &istream)) {
@@ -2332,26 +2332,26 @@ namespace melon::rpc {
         }
 
         bool RtmpChunkStream::OnDataMessageAMF3(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             msg_body->pop_front(1);
             return OnDataMessageAMF0(mh, msg_body, socket);
         }
 
         bool RtmpChunkStream::OnSharedObjectMessageAMF3(
-                const RtmpMessageHeader &, melon::cord_buf *, Socket *) {
-            MELON_LOG(ERROR) << "Not implemented";
+                const RtmpMessageHeader &, turbo::cord_buf *, Socket *) {
+            TURBO_LOG(ERROR) << "Not implemented";
             return false;
         }
 
         bool RtmpChunkStream::OnCommandMessageAMF3(
-                const RtmpMessageHeader &mh, melon::cord_buf *msg_body, Socket *socket) {
+                const RtmpMessageHeader &mh, turbo::cord_buf *msg_body, Socket *socket) {
             msg_body->pop_front(1);
             return OnCommandMessageAMF0(mh, msg_body, socket);
         }
 
         bool RtmpChunkStream::OnAggregateMessage(
-                const RtmpMessageHeader &, melon::cord_buf *, Socket *) {
-            MELON_LOG(ERROR) << "Not implemented";
+                const RtmpMessageHeader &, turbo::cord_buf *, Socket *) {
+            TURBO_LOG(ERROR) << "Not implemented";
             return false;
         }
 
@@ -2426,13 +2426,13 @@ namespace melon::rpc {
             msgs.push().reset(scs_msg);
 
             // _result
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             RtmpInfo info;
             RtmpConnectResponse response;
             // TODO: Set this field.
             std::string error_text;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString((!error_text.empty() ? RTMP_AMF0_COMMAND_ERROR :
                                 RTMP_AMF0_COMMAND_RESULT), &ostream);
@@ -2460,7 +2460,7 @@ namespace melon::rpc {
                     info.set_description(error_text);
                 }
                 WriteAMFObject(info, &ostream);
-                MELON_CHECK(ostream.good());
+                TURBO_CHECK(ostream.good());
             }
             msgs.push().reset(MakeUnsentControlMessage(
                     RTMP_MESSAGE_COMMAND_AMF0, chunk_stream_id(), req_buf));
@@ -2468,12 +2468,12 @@ namespace melon::rpc {
             // onBWDone
             req_buf.clear();
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_ON_BW_DONE, &ostream);
                 WriteAMFUint32(0, &ostream);
                 WriteAMFNull(&ostream);
-                MELON_CHECK(ostream.good());
+                TURBO_CHECK(ostream.good());
             }
             // chunk_stream_id is same with _result to connect, confirmed in SRS.
             msgs.push().reset(MakeUnsentControlMessage(
@@ -2483,7 +2483,7 @@ namespace melon::rpc {
                 msgs[i - 2]->next.reset(msgs[i - 1].release());
             }
             if (socket->Write(msgs[0]) != 0) {
-                MELON_PLOG(WARNING) << socket->remote_side() << ": Fail to respond connect";
+                TURBO_PLOG(WARNING) << socket->remote_side() << ": Fail to respond connect";
                 socket->SetFailed(EFAILEDSOCKET, "Fail to respond connect");
                 return false;
             }
@@ -2533,7 +2533,7 @@ namespace melon::rpc {
                         }
                         connection_context()->OnConnected(0);
                     } else {
-                        MELON_CHECK(connect_res.create_stream_with_play_or_publish());
+                        TURBO_CHECK(connect_res.create_stream_with_play_or_publish());
                     }
                 } // else nothing to do with transaction_id=0
                 return true;
@@ -2604,7 +2604,7 @@ namespace melon::rpc {
                 RTMP_ERROR(socket, mh) << "Fail to read onStatus.InfoObject";
                 return false;
             }
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
                 return false;
@@ -2642,7 +2642,7 @@ namespace melon::rpc {
             }
             const AMFField *stream_name_field = cmd_obj.Find("StreamName");
             if (stream_name_field != nullptr && stream_name_field->IsString()) {
-                melon::copy_to_string(stream_name_field->AsString(), &stream_name);
+                turbo::copy_to_string(stream_name_field->AsString(), &stream_name);
             }
             if (is_publish) {
                 const AMFField *publish_type_field = cmd_obj.Find("PublishType");
@@ -2653,7 +2653,7 @@ namespace melon::rpc {
             RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
                      << "] createStream{transaction_id=" << transaction_id << '}';
             std::string error_text;
-            melon::container::intrusive_ptr<RtmpServerStream> stream(
+            turbo::container::intrusive_ptr<RtmpServerStream> stream(
                     service->NewStream(connection_context()->_connect_req));
             if (connection_context()->_connect_req.stream_multiplexing() &&
                 stream != nullptr) {
@@ -2661,31 +2661,31 @@ namespace melon::rpc {
             }
             if (nullptr == stream) {
                 error_text = "Fail to create stream";
-                MELON_LOG(ERROR) << error_text;
+                TURBO_LOG(ERROR) << error_text;
             } else {
                 socket->ReAddress(&stream->_rtmpsock);
                 if (!connection_context()->AddServerStream(stream.get())) {
                     error_text = "Fail to add stream";
-                    MELON_LOG(ERROR) << error_text;
+                    TURBO_LOG(ERROR) << error_text;
                 } else {
                     const int rc = fiber_token_create(&stream->_onfail_id, stream.get(),
                                                       RtmpServerStream::RunOnFailed);
                     if (rc) {
-                        MELON_LOG(ERROR) << "Fail to create RtmpServerStream._onfail_id: "
-                                         << melon_error(rc);
+                        TURBO_LOG(ERROR) << "Fail to create RtmpServerStream._onfail_id: "
+                                         << turbo_error(rc);
                         stream->OnStopInternal();
                         return false;
                     }
                     // Add a ref for RunOnFailed.
-                    melon::container::intrusive_ptr<RtmpServerStream>(stream).detach();
+                    turbo::container::intrusive_ptr<RtmpServerStream>(stream).detach();
                     socket->fail_me_at_server_stop();
                     socket->NotifyOnFailed(stream->_onfail_id);
                 }
             }
             // Respond createStream
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString((!error_text.empty() ? RTMP_AMF0_COMMAND_ERROR :
                                 RTMP_AMF0_COMMAND_RESULT), &ostream);
@@ -2708,13 +2708,13 @@ namespace melon::rpc {
                     info.set_description(error_text);
                     WriteAMFObject(info, &ostream);
                 }
-                MELON_CHECK(ostream.good());
+                TURBO_CHECK(ostream.good());
             }
             SocketMessagePtr<RtmpUnsentMessage> msg(
                     MakeUnsentControlMessage(
                             RTMP_MESSAGE_COMMAND_AMF0, chunk_stream_id(), req_buf));
             if (WriteWithoutOvercrowded(socket, msg) != 0) {
-                MELON_PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
+                TURBO_PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
                                     << "] Fail to respond createStream";
                 // End the stream at server-side.
                 const fiber_token_t id = stream->_onfail_id;
@@ -2729,9 +2729,9 @@ namespace melon::rpc {
             if (stream_name.empty()) {
                 return true;
             }
-            melon::cord_buf cmd_buf;
+            turbo::cord_buf cmd_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_ostream(&cmd_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_ostream(&cmd_buf);
                 AMFOutputStream ostream(&zc_ostream);
                 WriteAMFUint32(0, &ostream);  // TransactionId
                 WriteAMFNull(&ostream);       // CommandObject
@@ -2740,7 +2740,7 @@ namespace melon::rpc {
                     WriteAMFString(RtmpPublishType2Str(publish_type), &ostream);
                 }
             }
-            melon::cord_buf_as_zero_copy_input_stream zc_istream(cmd_buf);
+            turbo::cord_buf_as_zero_copy_input_stream zc_istream(cmd_buf);
             AMFInputStream cmd_istream(&zc_istream);
             RtmpMessageHeader header;
             header.timestamp = mh.timestamp;
@@ -2759,8 +2759,8 @@ namespace melon::rpc {
             void Run();
 
         public:
-            melon::result_status status;
-            melon::container::intrusive_ptr<RtmpServerStream> player_stream;
+            turbo::result_status status;
+            turbo::container::intrusive_ptr<RtmpServerStream> player_stream;
         };
 
         void OnPlayContinuation::Run() {
@@ -2776,11 +2776,11 @@ namespace melon::rpc {
             }
 
             if (player_stream->SendStopMessage(status.error_cstr()) != 0) {
-                MELON_PLOG(WARNING) << "Fail to send StreamNotFound to "
+                TURBO_PLOG(WARNING) << "Fail to send StreamNotFound to "
                                     << player_stream->remote_side();
             }
             if (FLAGS_log_error_text) {
-                MELON_LOG(WARNING) << "Error to " << player_stream->remote_side() << '['
+                TURBO_LOG(WARNING) << "Error to " << player_stream->remote_side() << '['
                                    << player_stream->stream_id() << "]: " << status;
             }
         }
@@ -2835,7 +2835,7 @@ namespace melon::rpc {
                      << " duration=" << play_opt.duration
                      << " reset=" << play_opt.reset << '}';
 
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             TemporaryArrayBuilder<SocketMessagePtr<RtmpUnsentMessage>, 5> msgs;
 
             // TODO(gejun): RTMP spec sends StreamIsRecorded before StreamBegin
@@ -2855,7 +2855,7 @@ namespace melon::rpc {
                 // play command sent by the client has set the reset flag.
                 req_buf.clear();
                 {
-                    melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                    turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                     AMFOutputStream ostream(&zc_stream);
                     WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
                     WriteAMFUint32(0, &ostream);
@@ -2878,7 +2878,7 @@ namespace melon::rpc {
             // Play.Start
             req_buf.clear();
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
                 WriteAMFUint32(0, &ostream);
@@ -2900,7 +2900,7 @@ namespace melon::rpc {
             // |RtmpSampleAccess(true, true)
             req_buf.clear();
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_SAMPLE_ACCESS, &ostream);
                 WriteAMFBool(true, &ostream);
@@ -2917,7 +2917,7 @@ namespace melon::rpc {
             // onStatus(NetStream.Data.Start)
             req_buf.clear();
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
                 RtmpInfo info;
@@ -2932,7 +2932,7 @@ namespace melon::rpc {
             msg4->body = req_buf;
             msgs.push().reset(msg4);
 
-            melon::container::intrusive_ptr<RtmpStreamBase> stream_guard;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream_guard;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream_guard)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
                 return false;
@@ -2946,7 +2946,7 @@ namespace melon::rpc {
                 msgs[i - 2]->next.reset(msgs[i - 1].release());
             }
             if (WriteWithoutOvercrowded(socket, msgs[0]) != 0) {
-                MELON_PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
+                TURBO_PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
                                     << "] Fail to respond play";
                 return false;
             }
@@ -2986,7 +2986,7 @@ namespace melon::rpc {
                 RTMP_ERROR(socket, mh) << "Fail to read play2.Parameters";
                 return false;
             }
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
                 return false;
@@ -3016,7 +3016,7 @@ namespace melon::rpc {
                 RTMP_ERROR(socket, mh) << "Fail to read deleteStream.StreamId";
                 return false;
             }
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(stream_id, &stream)) {
                 // TODO: frequent, commented now
                 //RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << stream_id;
@@ -3045,7 +3045,7 @@ namespace melon::rpc {
                 RTMP_ERROR(socket, mh) << "Fail to read closeStream.CommandObject";
                 return false;
             }
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
                 // TODO: frequent, commented now
                 //RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
@@ -3064,28 +3064,28 @@ namespace melon::rpc {
             void Run();
 
         public:
-            melon::result_status status;
+            turbo::result_status status;
             std::string publish_name;
-            melon::container::intrusive_ptr<RtmpServerStream> publish_stream;
+            turbo::container::intrusive_ptr<RtmpServerStream> publish_stream;
         };
 
         void OnPublishContinuation::Run() {
             std::unique_ptr<OnPublishContinuation> delete_self(this);
             if (!status.is_ok()) {
                 if (publish_stream->SendStopMessage(status.error_cstr()) != 0) {
-                    MELON_PLOG(WARNING) << "Fail to send StreamNotFound to "
+                    TURBO_PLOG(WARNING) << "Fail to send StreamNotFound to "
                                         << publish_stream->remote_side();
                 }
                 if (FLAGS_log_error_text) {
-                    MELON_LOG(WARNING) << "Error to " << publish_stream->remote_side()
+                    TURBO_LOG(WARNING) << "Error to " << publish_stream->remote_side()
                                        << '[' << publish_stream->stream_id() << "]: "
                                        << status;
                 }
                 return;
             }
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
                 WriteAMFUint32(0, &ostream);
@@ -3095,7 +3095,7 @@ namespace melon::rpc {
                 info.set_level(RTMP_INFO_LEVEL_STATUS);
                 info.set_description("Started publishing " + publish_name);
                 WriteAMFObject(info, &ostream);
-                MELON_CHECK(ostream.good());
+                TURBO_CHECK(ostream.good());
             }
             SocketMessagePtr<RtmpUnsentMessage> msg(new RtmpUnsentMessage);
             msg->header.message_length = req_buf.size();
@@ -3105,7 +3105,7 @@ namespace melon::rpc {
             msg->body = req_buf;
 
             if (WriteWithoutOvercrowded(publish_stream->socket(), msg) != 0) {
-                MELON_PLOG(WARNING) << publish_stream->remote_side() << '['
+                TURBO_PLOG(WARNING) << publish_stream->remote_side() << '['
                                     << publish_stream->stream_id() << "] Fail to respond publish";
             }
         }
@@ -3147,7 +3147,7 @@ namespace melon::rpc {
                      << " stream_name=" << publish_name
                      << " type=" << RtmpPublishType2Str(publish_type) << '}';
 
-            melon::container::intrusive_ptr<RtmpStreamBase> stream_guard;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream_guard;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream_guard)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
                 return false;
@@ -3166,20 +3166,20 @@ namespace melon::rpc {
         }
 
         static bool SendFMLEStartResponse(Socket *sock, double transaction_id) {
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_RESULT, &ostream);
                 WriteAMFNumber(transaction_id, &ostream);
                 WriteAMFNull(&ostream);
                 WriteAMFUndefined(&ostream);
-                MELON_CHECK(ostream.good());
+                TURBO_CHECK(ostream.good());
             }
             SocketMessagePtr<RtmpUnsentMessage> msg(
                     MakeUnsentControlMessage(RTMP_MESSAGE_COMMAND_AMF0, req_buf));
             if (sock->Write(msg) != 0) {
-                MELON_PLOG(WARNING) << sock->remote_side() << ": Fail to respond FMLEStart";
+                TURBO_PLOG(WARNING) << sock->remote_side() << ": Fail to respond FMLEStart";
                 return false;
             }
             return true;
@@ -3296,16 +3296,16 @@ namespace melon::rpc {
                 return false;
             }
 
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
                 return false;
             }
             // TODO(gejun): Run in execq.
             int rc = static_cast<RtmpServerStream *>(stream.get())->OnSeek(milliseconds);
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 if (rc == 0) {
                     WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
@@ -3316,7 +3316,7 @@ namespace melon::rpc {
                     info.set_level(RTMP_INFO_LEVEL_STATUS);
                     info.set_description("Seek successfully.");
                     WriteAMFObject(info, &ostream);
-                    MELON_CHECK(ostream.good());
+                    TURBO_CHECK(ostream.good());
                 } else {
                     WriteAMFString(RTMP_AMF0_COMMAND_ERROR, &ostream);
                     WriteAMFNumber(0, &ostream);
@@ -3326,7 +3326,7 @@ namespace melon::rpc {
                     info.set_code(RTMP_STATUS_CODE_STREAM_SEEK); // TODO
                     info.set_description("Fail to seek");
                     WriteAMFObject(info, &ostream);
-                    MELON_CHECK(ostream.good());
+                    TURBO_CHECK(ostream.good());
                 }
             }
             SocketMessagePtr<RtmpUnsentMessage> msg(new RtmpUnsentMessage);
@@ -3337,7 +3337,7 @@ namespace melon::rpc {
             msg->body = req_buf;
 
             if (socket->Write(msg) != 0) {
-                MELON_PLOG(WARNING) << socket->remote_side() << ": Fail to respond seek";
+                TURBO_PLOG(WARNING) << socket->remote_side() << ": Fail to respond seek";
                 return false;
             }
             return (rc == 0);
@@ -3370,7 +3370,7 @@ namespace melon::rpc {
                 return false;
             }
 
-            melon::container::intrusive_ptr<RtmpStreamBase> stream;
+            turbo::container::intrusive_ptr<RtmpStreamBase> stream;
             if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
                 RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
                 return false;
@@ -3387,9 +3387,9 @@ namespace melon::rpc {
                     pause_or_unpause, milliseconds);
 
             // Send back status.
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 if (rc == 0) {
                     WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
@@ -3404,7 +3404,7 @@ namespace melon::rpc {
                     info.set_level(RTMP_INFO_LEVEL_STATUS);
                     info.set_description("Paused stream.");
                     WriteAMFObject(info, &ostream);
-                    MELON_CHECK(ostream.good());
+                    TURBO_CHECK(ostream.good());
                 } else {
                     WriteAMFString(RTMP_AMF0_COMMAND_ERROR, &ostream);
                     WriteAMFNumber(0, &ostream);
@@ -3419,7 +3419,7 @@ namespace melon::rpc {
                     info.set_description(pause_or_unpause ? "Fail to pause" :
                                          "Fail to unpause");
                     WriteAMFObject(info, &ostream);
-                    MELON_CHECK(ostream.good());
+                    TURBO_CHECK(ostream.good());
                 }
             }
             SocketMessagePtr<RtmpUnsentMessage> msg1(new RtmpUnsentMessage);
@@ -3443,7 +3443,7 @@ namespace melon::rpc {
             msg1->next.reset(msg2);
 
             if (WriteWithoutOvercrowded(socket, msg1) != 0) {
-                MELON_PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
+                TURBO_PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
                                     << "] Fail to respond " << (pause_or_unpause ? "pause" : "unpause");
                 return false;
             }
@@ -3456,7 +3456,7 @@ namespace melon::rpc {
 
 // ============== protocol handlers =============
 
-        inline ParseResult IsPossiblyRtmp(const melon::cord_buf *source) {
+        inline ParseResult IsPossiblyRtmp(const turbo::cord_buf *source) {
             const char *p = (const char *) source->fetch1();
             if (p == nullptr) {
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
@@ -3467,7 +3467,7 @@ namespace melon::rpc {
             return MakeMessage(nullptr);
         }
 
-        ParseResult ParseRtmpMessage(melon::cord_buf *source, Socket *socket, bool read_eof,
+        ParseResult ParseRtmpMessage(turbo::cord_buf *source, Socket *socket, bool read_eof,
                                      const void *arg) {
             RtmpContext *rtmp_ctx = static_cast<RtmpContext *>(socket->parsing_context());
             if (rtmp_ctx == nullptr) {
@@ -3495,7 +3495,7 @@ namespace melon::rpc {
                 }
                 rtmp_ctx = new(std::nothrow) RtmpContext(nullptr, server);
                 if (rtmp_ctx == nullptr) {
-                    MELON_LOG(FATAL) << "Fail to new RtmpContext";
+                    TURBO_LOG(FATAL) << "Fail to new RtmpContext";
                     return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                 }
                 socket->reset_parsing_context(rtmp_ctx);
@@ -3505,7 +3505,7 @@ namespace melon::rpc {
         }
 
         void ProcessRtmpMessage(InputMessageBase *) {
-            MELON_CHECK(false) << "Should never be called";
+            TURBO_CHECK(false) << "Should never be called";
         }
 
         class OnServerStreamCreated : public RtmpTransactionHandler {
@@ -3518,7 +3518,7 @@ namespace melon::rpc {
             void Cancel();
 
         private:
-            melon::container::intrusive_ptr<RtmpClientStream> _stream;
+            turbo::container::intrusive_ptr<RtmpClientStream> _stream;
             CallId _call_id;
         };
 
@@ -3534,19 +3534,19 @@ namespace melon::rpc {
             // End the createStream call.
             RtmpContext *ctx = static_cast<RtmpContext *>(socket->parsing_context());
             if (ctx == nullptr) {
-                MELON_LOG(FATAL) << "RtmpContext must be created";
+                TURBO_LOG(FATAL) << "RtmpContext must be created";
                 return;
             }
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             // TODO(gejun): Don't have received time right now.
             const int64_t received_us = start_parse_us;
-            const int64_t base_realtime = melon::get_current_time_micros() - received_us;
+            const int64_t base_realtime = turbo::get_current_time_micros() - received_us;
             const fiber_token_t cid = _call_id;
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -3605,21 +3605,21 @@ namespace melon::rpc {
             delete this;
         }
 
-        melon::result_status
-        RtmpCreateStreamMessage::AppendAndDestroySelf(melon::cord_buf *out, Socket *s) {
+        turbo::result_status
+        RtmpCreateStreamMessage::AppendAndDestroySelf(turbo::cord_buf *out, Socket *s) {
             std::unique_ptr<RtmpCreateStreamMessage> destroy_self(this);
             if (s == nullptr) {  // abandoned
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
             // Serialize createStream command
             RtmpContext *ctx = static_cast<RtmpContext *>(socket->parsing_context());
             if (ctx == nullptr) {
-                return melon::result_status(EINVAL, "RtmpContext of {} is not created",
+                return turbo::result_status(EINVAL, "RtmpContext of {} is not created",
                                                  socket->description().c_str());
             }
-            melon::cord_buf req_buf;
+            turbo::cord_buf req_buf;
             {
-                melon::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
+                turbo::cord_buf_as_zero_copy_output_stream zc_stream(&req_buf);
                 AMFOutputStream ostream(&zc_stream);
                 WriteAMFString(RTMP_AMF0_COMMAND_CREATE_STREAM, &ostream);
                 WriteAMFUint32(transaction_id, &ostream);
@@ -3651,13 +3651,13 @@ namespace melon::rpc {
                 } else {
                     WriteAMFNull(&ostream);
                 }
-                MELON_CHECK(ostream.good());
+                TURBO_CHECK(ostream.good());
             }
             RtmpChunkStream *cstream = ctx->GetChunkStream(RTMP_CONTROL_CHUNK_STREAM_ID);
             if (cstream == nullptr) {
                 socket->SetFailed(EINVAL, "Invalid chunk_stream_id=%u",
                                   RTMP_CONTROL_CHUNK_STREAM_ID);
-                return melon::result_status(EINVAL, "Invalid chunk_stream_id={}",
+                return turbo::result_status(EINVAL, "Invalid chunk_stream_id={}",
                                                  RTMP_CONTROL_CHUNK_STREAM_ID);
             }
             RtmpMessageHeader header;
@@ -3666,17 +3666,17 @@ namespace melon::rpc {
             header.stream_id = RTMP_CONTROL_MESSAGE_STREAM_ID;
             if (cstream->SerializeMessage(out, header, &req_buf) != 0) {
                 socket->SetFailed(EINVAL, "Fail to serialize message");
-                return melon::result_status(EINVAL, "Fail to serialize message");
+                return turbo::result_status(EINVAL, "Fail to serialize message");
             }
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
 
-        void PackRtmpRequest(melon::cord_buf * /*buf*/,
+        void PackRtmpRequest(turbo::cord_buf * /*buf*/,
                              SocketMessage **user_message,
                              uint64_t /*correlation_id*/,
                              const google::protobuf::MethodDescriptor * /*nullptr*/,
                              Controller *cntl,
-                             const melon::cord_buf & /*request*/,
+                             const turbo::cord_buf & /*request*/,
                              const Authenticator *) {
             // Send createStream command
             ControllerPrivateAccessor accessor(cntl);
@@ -3693,7 +3693,7 @@ namespace melon::rpc {
             // Hack: save last transaction_id into log_id(useless here) so that we
             // can get it back and cancel the transaction before creating new one
             // (for retrying).
-            MELON_CHECK_LT(cntl->log_id(), (uint64_t) std::numeric_limits<uint32_t>::max());
+            TURBO_CHECK_LT(cntl->log_id(), (uint64_t) std::numeric_limits<uint32_t>::max());
             uint32_t transaction_id = cntl->log_id();
             if (transaction_id != 0) {
                 RtmpTransactionHandler *last_handler =
@@ -3716,7 +3716,7 @@ namespace melon::rpc {
             *user_message = msg;
         }
 
-        void SerializeRtmpRequest(melon::cord_buf * /*buf*/,
+        void SerializeRtmpRequest(turbo::cord_buf * /*buf*/,
                                   Controller * /*cntl*/,
                                   const google::protobuf::Message * /*nullptr*/) {
         }

@@ -20,7 +20,7 @@
 #define  MELON_RPC_HTTP_HEADER_H_
 
 #include <string_view>  // StringPiece
-#include "melon/container/case_ignored_flat_map.h"
+#include "turbo/container/case_ignored_flat_map.h"
 #include "melon/rpc/uri.h"              // URI
 #include "melon/rpc/http_method.h"      // HttpMethod
 #include "melon/rpc/http_status_code.h"
@@ -40,7 +40,7 @@ namespace melon::rpc {
     // Non-body part of a HTTP message.
     class HttpHeader {
     public:
-        typedef melon::container::CaseIgnoredFlatMap<std::string> HeaderMap;
+        typedef turbo::container::CaseIgnoredFlatMap<std::string> HeaderMap;
         typedef HeaderMap::const_iterator HeaderIterator;
 
         HttpHeader();
@@ -78,7 +78,7 @@ namespace melon::rpc {
 
         // Get value of a header which is case-insensitive according to:
         //   https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-        // Namely, GetHeader("log-id"), GetHeader("Log-Id"), GetHeader("MELON_LOG-ID")
+        // Namely, GetHeader("log-id"), GetHeader("Log-Id"), GetHeader("TURBO_LOG-ID")
         // point to the same value.
         // Return pointer to the value, nullptr on not found.
         // NOTE: Not work for "Content-Type", call content_type() instead.

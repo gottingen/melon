@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_BUILTIN_FLOT_MIN_JS_H_
 #define MELON_RPC_BUILTIN_FLOT_MIN_JS_H_
 
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 
 
 namespace melon::rpc {
@@ -29,9 +29,9 @@ namespace melon::rpc {
     // accessed without external resources and network connection.
     const char *flot_min_js();
 
-    const melon::cord_buf &flot_min_js_iobuf();
+    const turbo::cord_buf &flot_min_js_iobuf();
 
-    const melon::cord_buf &flot_min_js_iobuf_gzip();
+    const turbo::cord_buf &flot_min_js_iobuf_gzip();
 
 } // namespace melon::rpc
 

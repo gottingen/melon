@@ -11,15 +11,15 @@
 #include <cstddef>
 #include <memory>
 #include <iostream>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/metrics/recorder.h"
 #include "melon/metrics/latency_recorder.h"
 #include "melon/metrics/gauge.h"
-#include "melon/strings/str_join.h"
+#include "turbo/strings/str_join.h"
 
 namespace {
     TEST(RecorderTest, test_complement) {
-        MELON_LOG(INFO) << "sizeof(LatencyRecorder)=" << sizeof(melon::LatencyRecorder)
+        TURBO_LOG(INFO) << "sizeof(LatencyRecorder)=" << sizeof(melon::LatencyRecorder)
                         << " " << sizeof(melon::metrics_detail::percentile)
                         << " " << sizeof(melon::max_gauge<int64_t>)
                         << " " << sizeof(melon::IntRecorder)
@@ -63,7 +63,7 @@ namespace {
             ASSERT_EQ("2", melon::variable_base::describe_exposed("var1"));
             std::vector<std::string> vars;
             melon::variable_base::list_exposed(&vars);
-            ASSERT_EQ(1UL, vars.size()) << melon::string_join(vars, ",");
+            ASSERT_EQ(1UL, vars.size()) << turbo::string_join(vars, ",");
             ASSERT_EQ("var1", vars[0]);
             ASSERT_EQ(1UL, melon::variable_base::count_exposed());
         }
@@ -78,13 +78,13 @@ namespace {
         melon::window<melon::IntRecorder> w3(&c1, 3);
 
         const int N = 10000;
-        int64_t last_time = melon::get_current_time_micros();
+        int64_t last_time = turbo::get_current_time_micros();
         for (int i = 1; i <= N; ++i) {
             c1 << i;
-            int64_t now = melon::get_current_time_micros();
+            int64_t now = turbo::get_current_time_micros();
             if (now - last_time >= 1000000L) {
                 last_time = now;
-                MELON_LOG(INFO) << "c1=" << c1 << " w1=" << w1 << " w2=" << w2 << " w3=" << w3;
+                TURBO_LOG(INFO) << "c1=" << c1 << " w1=" << w1 << " w2=" << w2 << " w3=" << w3;
             } else {
                 usleep(950);
             }
@@ -168,7 +168,7 @@ namespace {
 
     static void *thread_counter(void *arg) {
         melon::IntRecorder *recorder = (melon::IntRecorder *) arg;
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         timer.start();
         for (int i = 0; i < (int) OPS_PER_THREAD; ++i) {
             *recorder << i;
@@ -181,18 +181,18 @@ namespace {
         melon::IntRecorder recorder;
         ASSERT_TRUE(recorder.valid());
         pthread_t threads[8];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             pthread_create(&threads[i], nullptr, &thread_counter, (void *) &recorder);
         }
         long totol_time = 0;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
             void *ret;
             pthread_join(threads[i], &ret);
             totol_time += (long) ret;
         }
         ASSERT_EQ(((int64_t) OPS_PER_THREAD - 1) / 2, recorder.average());
-        MELON_LOG(INFO) << "Recorder takes " << totol_time / (OPS_PER_THREAD * MELON_ARRAY_SIZE(threads))
-                        << "ns per sample with " << MELON_ARRAY_SIZE(threads)
+        TURBO_LOG(INFO) << "Recorder takes " << totol_time / (OPS_PER_THREAD * TURBO_ARRAY_SIZE(threads))
+                        << "ns per sample with " << TURBO_ARRAY_SIZE(threads)
                         << " threads";
     }
 } // namespace

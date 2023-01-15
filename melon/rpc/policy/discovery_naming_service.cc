@@ -17,12 +17,12 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/rapidjson/document.h"
-#include "melon/rapidjson/memorybuffer.h"
-#include "melon/rapidjson/writer.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/str_split.h"
-#include "melon/base/fast_rand.h"
+#include "turbo/rapidjson/document.h"
+#include "turbo/rapidjson/memorybuffer.h"
+#include "turbo/rapidjson/writer.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/str_split.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/controller.h"
@@ -57,14 +57,14 @@ namespace melon::rpc {
             channel_options.timeout_ms = FLAGS_discovery_timeout_ms;
             channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
             if (api_channel.Init(discovery_api_addr, "", &channel_options) != 0) {
-                MELON_LOG(FATAL) << "Fail to init channel to " << discovery_api_addr;
+                TURBO_LOG(FATAL) << "Fail to init channel to " << discovery_api_addr;
                 return -1;
             }
             Controller cntl;
             cntl.http_request().uri() = discovery_api_addr;
             api_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
-                MELON_LOG(FATAL) << "Fail to access " << cntl.http_request().uri()
+                TURBO_LOG(FATAL) << "Fail to access " << cntl.http_request().uri()
                                  << ": " << cntl.ErrorText();
                 return -1;
             }
@@ -75,17 +75,17 @@ namespace melon::rpc {
             RAPIDJSON_NAMESPACE::Document d;
             d.Parse(response.c_str());
             if (!d.IsObject()) {
-                MELON_LOG(ERROR) << "Fail to parse " << response << " as json object";
+                TURBO_LOG(ERROR) << "Fail to parse " << response << " as json object";
                 return -1;
             }
             auto itr = d.FindMember("data");
             if (itr == d.MemberEnd()) {
-                MELON_LOG(ERROR) << "No data field in discovery nodes response";
+                TURBO_LOG(ERROR) << "No data field in discovery nodes response";
                 return -1;
             }
             const RAPIDJSON_NAMESPACE::Value &data = itr->value;
             if (!data.IsArray()) {
-                MELON_LOG(ERROR) << "data field is not an array";
+                TURBO_LOG(ERROR) << "data field is not an array";
                 return -1;
             }
             for (RAPIDJSON_NAMESPACE::SizeType i = 0; i < data.Size(); ++i) {
@@ -113,7 +113,7 @@ namespace melon::rpc {
             // a NamingService, however which is too heavy for solving such a rare case.
             std::string discovery_servers;
             if (ListDiscoveryNodes(FLAGS_discovery_api_addr.c_str(), &discovery_servers) != 0) {
-                MELON_LOG(ERROR) << "Fail to get discovery nodes from " << FLAGS_discovery_api_addr;
+                TURBO_LOG(ERROR) << "Fail to get discovery nodes from " << FLAGS_discovery_api_addr;
                 return;
             }
             ChannelOptions channel_options;
@@ -122,7 +122,7 @@ namespace melon::rpc {
             channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
             s_discovery_channel = new Channel;
             if (s_discovery_channel->Init(discovery_servers.c_str(), "rr", &channel_options) != 0) {
-                MELON_LOG(ERROR) << "Fail to init channel to " << discovery_servers;
+                TURBO_LOG(ERROR) << "Fail to init channel to " << discovery_servers;
                 return;
             }
         }
@@ -148,17 +148,17 @@ namespace melon::rpc {
             }
         }
 
-        static int ParseCommonResult(const melon::cord_buf &buf, std::string *error_text) {
+        static int ParseCommonResult(const turbo::cord_buf &buf, std::string *error_text) {
             const std::string s = buf.to_string();
             RAPIDJSON_NAMESPACE::Document d;
             d.Parse(s.c_str());
             if (!d.IsObject()) {
-                MELON_LOG(ERROR) << "Fail to parse " << buf << " as json object";
+                TURBO_LOG(ERROR) << "Fail to parse " << buf << " as json object";
                 return -1;
             }
             auto itr_code = d.FindMember("code");
             if (itr_code == d.MemberEnd() || !itr_code->value.IsInt()) {
-                MELON_LOG(ERROR) << "Invalid `code' field in " << buf;
+                TURBO_LOG(ERROR) << "Invalid `code' field in " << buf;
                 return -1;
             }
             int code = itr_code->value.GetInt();
@@ -178,7 +178,7 @@ namespace melon::rpc {
             channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
             Channel chan;
             if (chan.Init(_current_discovery_server, &channel_options) != 0) {
-                MELON_LOG(FATAL) << "Fail to init channel to " << _current_discovery_server;
+                TURBO_LOG(FATAL) << "Fail to init channel to " << _current_discovery_server;
                 return -1;
             }
 
@@ -186,7 +186,7 @@ namespace melon::rpc {
             cntl.http_request().set_method(HTTP_METHOD_POST);
             cntl.http_request().uri() = "/discovery/renew";
             cntl.http_request().set_content_type("application/x-www-form-urlencoded");
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             os << "appid=" << _params.appid
                << "&hostname=" << _params.hostname
                << "&env=" << _params.env
@@ -195,12 +195,12 @@ namespace melon::rpc {
             os.move_to(cntl.request_attachment());
             chan.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
-                MELON_LOG(ERROR) << "Fail to post /discovery/renew: " << cntl.ErrorText();
+                TURBO_LOG(ERROR) << "Fail to post /discovery/renew: " << cntl.ErrorText();
                 return -1;
             }
             std::string error_text;
             if (ParseCommonResult(cntl.response_attachment(), &error_text) != 0) {
-                MELON_LOG(ERROR) << "Fail to renew " << _params.hostname << " to " << _params.appid
+                TURBO_LOG(ERROR) << "Fail to renew " << _params.hostname << " to " << _params.appid
                                  << ": " << error_text;
                 return -1;
             }
@@ -211,7 +211,7 @@ namespace melon::rpc {
             DiscoveryClient *d = static_cast<DiscoveryClient *>(arg);
             int consecutive_renew_error = 0;
             int64_t init_sleep_s = FLAGS_discovery_renew_interval_s / 2 +
-                                   melon::base::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
+                                   turbo::base::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
             if (melon::fiber_sleep_for(init_sleep_s * 1000000) != 0) {
                 if (errno == ESTOP) {
                     return nullptr;
@@ -220,7 +220,7 @@ namespace melon::rpc {
 
             while (!fiber_stopped(fiber_self())) {
                 if (consecutive_renew_error == FLAGS_discovery_reregister_threshold) {
-                    MELON_LOG(WARNING) << "Re-register since discovery renew error threshold reached";
+                    TURBO_LOG(WARNING) << "Re-register since discovery renew error threshold reached";
                     // Do register until succeed or Cancel is called
                     while (!fiber_stopped(fiber_self())) {
                         if (d->DoRegister() == 0) {
@@ -254,7 +254,7 @@ namespace melon::rpc {
                 return -1;
             }
             if (fiber_start_background(&_th, nullptr, PeriodicRenew, this) != 0) {
-                MELON_LOG(ERROR) << "Fail to start background PeriodicRenew";
+                TURBO_LOG(ERROR) << "Fail to start background PeriodicRenew";
                 return -1;
             }
             return 0;
@@ -263,18 +263,18 @@ namespace melon::rpc {
         int DiscoveryClient::DoRegister() {
             Channel *chan = GetOrNewDiscoveryChannel();
             if (nullptr == chan) {
-                MELON_LOG(ERROR) << "Fail to create discovery channel";
+                TURBO_LOG(ERROR) << "Fail to create discovery channel";
                 return -1;
             }
             Controller cntl;
             cntl.http_request().set_method(HTTP_METHOD_POST);
             cntl.http_request().uri() = "/discovery/register";
             cntl.http_request().set_content_type("application/x-www-form-urlencoded");
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             os << "appid=" << _params.appid
                << "&hostname=" << _params.hostname;
 
-            std::vector<std::string_view> addrs = melon::string_split(_params.addrs, ',');
+            std::vector<std::string_view> addrs = turbo::string_split(_params.addrs, ',');
             for (size_t i = 0; i < addrs.size(); ++i) {
                 if (!addrs[i].empty()) {
                     os << "&addrs=" << addrs[i];
@@ -290,12 +290,12 @@ namespace melon::rpc {
             os.move_to(cntl.request_attachment());
             chan->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
-                MELON_LOG(ERROR) << "Fail to register " << _params.appid << ": " << cntl.ErrorText();
+                TURBO_LOG(ERROR) << "Fail to register " << _params.appid << ": " << cntl.ErrorText();
                 return -1;
             }
             std::string error_text;
             if (ParseCommonResult(cntl.response_attachment(), &error_text) != 0) {
-                MELON_LOG(ERROR) << "Fail to register " << _params.hostname << " to " << _params.appid
+                TURBO_LOG(ERROR) << "Fail to register " << _params.hostname << " to " << _params.appid
                                  << ": " << error_text;
                 return -1;
             }
@@ -311,7 +311,7 @@ namespace melon::rpc {
             channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
             Channel chan;
             if (chan.Init(_current_discovery_server, &channel_options) != 0) {
-                MELON_LOG(FATAL) << "Fail to init channel to " << _current_discovery_server;
+                TURBO_LOG(FATAL) << "Fail to init channel to " << _current_discovery_server;
                 return -1;
             }
 
@@ -319,7 +319,7 @@ namespace melon::rpc {
             cntl.http_request().set_method(HTTP_METHOD_POST);
             cntl.http_request().uri() = "/discovery/cancel";
             cntl.http_request().set_content_type("application/x-www-form-urlencoded");
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             os << "appid=" << _params.appid
                << "&hostname=" << _params.hostname
                << "&env=" << _params.env
@@ -328,12 +328,12 @@ namespace melon::rpc {
             os.move_to(cntl.request_attachment());
             chan.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
-                MELON_LOG(ERROR) << "Fail to post /discovery/cancel: " << cntl.ErrorText();
+                TURBO_LOG(ERROR) << "Fail to post /discovery/cancel: " << cntl.ErrorText();
                 return -1;
             }
             std::string error_text;
             if (ParseCommonResult(cntl.response_attachment(), &error_text) != 0) {
-                MELON_LOG(ERROR) << "Fail to cancel " << _params.hostname << " in " << _params.appid
+                TURBO_LOG(ERROR) << "Fail to cancel " << _params.hostname << " in " << _params.appid
                                  << ": " << error_text;
                 return -1;
             }
@@ -347,17 +347,17 @@ namespace melon::rpc {
             if (service_name == nullptr || *service_name == '\0' ||
                 FLAGS_discovery_env.empty() ||
                 FLAGS_discovery_status.empty()) {
-                MELON_LOG_ONCE(ERROR) << "Invalid parameters";
+                TURBO_LOG_ONCE(ERROR) << "Invalid parameters";
                 return -1;
             }
             Channel *chan = GetOrNewDiscoveryChannel();
             if (nullptr == chan) {
-                MELON_LOG(ERROR) << "Fail to create discovery channel";
+                TURBO_LOG(ERROR) << "Fail to create discovery channel";
                 return -1;
             }
             servers->clear();
             Controller cntl;
-            std::string uri_str = melon::string_printf(
+            std::string uri_str = turbo::string_printf(
                     "/discovery/fetchs?appid=%s&env=%s&status=%s", service_name,
                     FLAGS_discovery_env.c_str(), FLAGS_discovery_status.c_str());
             if (!FLAGS_discovery_zone.empty()) {
@@ -367,7 +367,7 @@ namespace melon::rpc {
             cntl.http_request().uri() = uri_str;
             chan->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
-                MELON_LOG(ERROR) << "Fail to get /discovery/fetchs: " << cntl.ErrorText();
+                TURBO_LOG(ERROR) << "Fail to get /discovery/fetchs: " << cntl.ErrorText();
                 return -1;
             }
 
@@ -375,29 +375,29 @@ namespace melon::rpc {
             RAPIDJSON_NAMESPACE::Document d;
             d.Parse(response.c_str());
             if (!d.IsObject()) {
-                MELON_LOG(ERROR) << "Fail to parse " << response << " as json object";
+                TURBO_LOG(ERROR) << "Fail to parse " << response << " as json object";
                 return -1;
             }
             auto itr_data = d.FindMember("data");
             if (itr_data == d.MemberEnd()) {
-                MELON_LOG(ERROR) << "No data field in discovery/fetchs response";
+                TURBO_LOG(ERROR) << "No data field in discovery/fetchs response";
                 return -1;
             }
             const RAPIDJSON_NAMESPACE::Value &data = itr_data->value;
             auto itr_service = data.FindMember(service_name);
             if (itr_service == data.MemberEnd()) {
-                MELON_LOG(ERROR) << "No " << service_name << " field in discovery response";
+                TURBO_LOG(ERROR) << "No " << service_name << " field in discovery response";
                 return -1;
             }
             const RAPIDJSON_NAMESPACE::Value &services = itr_service->value;
             auto itr_instances = services.FindMember("instances");
             if (itr_instances == services.MemberEnd()) {
-                MELON_LOG(ERROR) << "Fail to find instances";
+                TURBO_LOG(ERROR) << "Fail to find instances";
                 return -1;
             }
             const RAPIDJSON_NAMESPACE::Value &instances = itr_instances->value;
             if (!instances.IsArray()) {
-                MELON_LOG(ERROR) << "Fail to parse instances as an array";
+                TURBO_LOG(ERROR) << "Fail to parse instances as an array";
                 return -1;
             }
 
@@ -414,7 +414,7 @@ namespace melon::rpc {
 
                 auto itr = instances[i].FindMember("addrs");
                 if (itr == instances[i].MemberEnd() || !itr->value.IsArray()) {
-                    MELON_LOG(ERROR) << "Fail to find addrs or addrs is not an array";
+                    TURBO_LOG(ERROR) << "Fail to find addrs or addrs is not an array";
                     return -1;
                 }
                 const RAPIDJSON_NAMESPACE::Value &addrs = itr->value;
@@ -440,7 +440,7 @@ namespace melon::rpc {
                     // null-terminated string, so it is safe to pass addr.data() as the
                     // first parameter to str2endpoint.
                     if (str2endpoint(addr.data(), &node.addr) != 0) {
-                        MELON_LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                        TURBO_LOG(ERROR) << "Invalid address=`" << addr << '\'';
                         continue;
                     }
                     servers->push_back(node);

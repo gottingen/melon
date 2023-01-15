@@ -25,7 +25,7 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -52,7 +52,7 @@ public:
     }
 
     int VerifyCredential(const std::string& auth_str,
-                         const melon::end_point&,
+                         const turbo::end_point&,
                          melon::rpc::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);
@@ -131,7 +131,7 @@ protected:
 
         test::EchoRequest req;
         req.set_message(EXP_REQUEST);
-        melon::cord_buf_as_zero_copy_output_stream req_stream(&msg->payload);
+        turbo::cord_buf_as_zero_copy_output_stream req_stream(&msg->payload);
         EXPECT_TRUE(req.SerializeToZeroCopyStream(&req_stream));
         return msg;
     }
@@ -145,7 +145,7 @@ protected:
         
         test::EchoResponse res;
         res.set_message(EXP_RESPONSE);
-        melon::cord_buf_as_zero_copy_output_stream res_stream(&msg->payload);
+        turbo::cord_buf_as_zero_copy_output_stream res_stream(&msg->payload);
         EXPECT_TRUE(res.SerializeToZeroCopyStream(&res_stream));
         return msg;
     }
@@ -207,8 +207,8 @@ TEST_F(NovaTest, process_response_after_eof) {
 }
 
 TEST_F(NovaTest, complete_flow) {
-    melon::cord_buf request_buf;
-    melon::cord_buf total_buf;
+    turbo::cord_buf request_buf;
+    turbo::cord_buf total_buf;
     melon::rpc::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
@@ -234,7 +234,7 @@ TEST_F(NovaTest, complete_flow) {
     ProcessMessage(melon::rpc::policy::ProcessNsheadRequest, req_msg, false);
 
     // Read response from pipe
-    melon::IOPortal response_buf;
+    turbo::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::rpc::ParseResult res_pr =
             melon::rpc::policy::ParseNsheadMessage(&response_buf, nullptr, false, nullptr);
@@ -247,8 +247,8 @@ TEST_F(NovaTest, complete_flow) {
 }
 
 TEST_F(NovaTest, close_in_callback) {
-    melon::cord_buf request_buf;
-    melon::cord_buf total_buf;
+    turbo::cord_buf request_buf;
+    turbo::cord_buf total_buf;
     melon::rpc::Controller cntl;
     test::EchoRequest req;
     cntl._connection_type = melon::rpc::CONNECTION_TYPE_SHORT;

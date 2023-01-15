@@ -18,11 +18,11 @@
 #define MELON_DCHECK_IS_ON() 0
 
 #include <algorithm>                         // std::sort
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 #include "testing/gtest_wrap.h"
-#include "melon/times/time.h"
-#include "melon/base/scoped_lock.h"
-#include "melon/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/fiber/internal/unstable.h"
 #include "melon/fiber/this_fiber.h"
@@ -56,7 +56,7 @@ namespace {
             if (_c) {
                 _c->ndestroy.fetch_add(1, std::memory_order_relaxed);
             }
-            MELON_CHECK_EQ(0, fiber_key_delete(_key));
+            TURBO_CHECK_EQ(0, fiber_key_delete(_key));
         }
 
     private:
@@ -74,18 +74,18 @@ namespace {
     static void worker1_impl(Counters *cs) {
         cs->nenterthread.fetch_add(1, std::memory_order_relaxed);
         fiber_local_key k[NKEY_PER_WORKER];
-        CountersWrapper *ws[MELON_ARRAY_SIZE(k)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(k); ++i) {
+        CountersWrapper *ws[TURBO_ARRAY_SIZE(k)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(k); ++i) {
             ASSERT_EQ(0, fiber_key_create(&k[i], destroy_counters_wrapper));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(k); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(k); ++i) {
             ws[i] = new CountersWrapper(cs, k[i]);
         }
         // Get just-created tls should return nullptr.
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(k); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(k); ++i) {
             ASSERT_EQ(nullptr, fiber_getspecific(k[i]));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(k); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(k); ++i) {
             cs->ncreate.fetch_add(1, std::memory_order_relaxed);
             ASSERT_EQ(0, fiber_setspecific(k[i], ws[i]))
                                         << "i=" << i << " is_fiber=" << !!fiber_self();
@@ -94,7 +94,7 @@ namespace {
         // Sleep a while to make some context switches. TLS should be unchanged.
         melon::fiber_sleep_for(10000);
 
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(k); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(k); ++i) {
             ASSERT_EQ(ws[i], fiber_getspecific(k[i])) << "i=" << i;
         }
         cs->nleavethread.fetch_add(1, std::memory_order_relaxed);
@@ -110,25 +110,25 @@ namespace {
         memset(&args, 0, sizeof(args));
         pthread_t th[8];
         fiber_id_t bth[8];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, worker1, &args));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(bth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(bth); ++i) {
             ASSERT_EQ(0, fiber_start_background(&bth[i], nullptr, worker1, &args));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(bth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(bth); ++i) {
             ASSERT_EQ(0, fiber_join(bth[i], nullptr));
         }
-        ASSERT_EQ(MELON_ARRAY_SIZE(th) + MELON_ARRAY_SIZE(bth),
+        ASSERT_EQ(TURBO_ARRAY_SIZE(th) + TURBO_ARRAY_SIZE(bth),
                   args.nenterthread.load(std::memory_order_relaxed));
-        ASSERT_EQ(MELON_ARRAY_SIZE(th) + MELON_ARRAY_SIZE(bth),
+        ASSERT_EQ(TURBO_ARRAY_SIZE(th) + TURBO_ARRAY_SIZE(bth),
                   args.nleavethread.load(std::memory_order_relaxed));
-        ASSERT_EQ(NKEY_PER_WORKER * (MELON_ARRAY_SIZE(th) + MELON_ARRAY_SIZE(bth)),
+        ASSERT_EQ(NKEY_PER_WORKER * (TURBO_ARRAY_SIZE(th) + TURBO_ARRAY_SIZE(bth)),
                   args.ncreate.load(std::memory_order_relaxed));
-        ASSERT_EQ(NKEY_PER_WORKER * (MELON_ARRAY_SIZE(th) + MELON_ARRAY_SIZE(bth)),
+        ASSERT_EQ(NKEY_PER_WORKER * (TURBO_ARRAY_SIZE(th) + TURBO_ARRAY_SIZE(bth)),
                   args.ndestroy.load(std::memory_order_relaxed));
     }
 
@@ -137,7 +137,7 @@ namespace {
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     void dtor2(void *arg) {
-        MELON_SCOPED_LOCK(mutex);
+        TURBO_SCOPED_LOCK(mutex);
         seqs.push_back((size_t) arg);
     }
 
@@ -154,27 +154,27 @@ namespace {
 
     TEST(KeyTest, use_one_key_in_different_threads) {
         fiber_local_key k;
-        ASSERT_EQ(0, fiber_key_create(&k, dtor2)) << melon_error();
+        ASSERT_EQ(0, fiber_key_create(&k, dtor2)) << turbo_error();
         seqs.clear();
 
         pthread_t th[16];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, worker2, &k));
         }
         fiber_id_t bth[1];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(bth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(bth); ++i) {
             ASSERT_EQ(0, fiber_start_urgent(&bth[i], nullptr, worker2, &k));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(bth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(bth); ++i) {
             ASSERT_EQ(0, fiber_join(bth[i], nullptr));
         }
-        ASSERT_EQ(MELON_ARRAY_SIZE(th) + MELON_ARRAY_SIZE(bth), seqs.size());
+        ASSERT_EQ(TURBO_ARRAY_SIZE(th) + TURBO_ARRAY_SIZE(bth), seqs.size());
         std::sort(seqs.begin(), seqs.end());
         ASSERT_EQ(seqs.end(), std::unique(seqs.begin(), seqs.end()));
-        ASSERT_EQ(MELON_ARRAY_SIZE(th) + MELON_ARRAY_SIZE(bth) - 1, *(seqs.end() - 1) - *seqs.begin());
+        ASSERT_EQ(TURBO_ARRAY_SIZE(th) + TURBO_ARRAY_SIZE(bth) - 1, *(seqs.end() - 1) - *seqs.begin());
 
         ASSERT_EQ(0, fiber_key_delete(k));
     }

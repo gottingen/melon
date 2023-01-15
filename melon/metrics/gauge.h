@@ -13,9 +13,9 @@
 #include <string>
 #include <mutex>
 #include "melon/metrics/variable_reducer.h"
-#include "melon/base/static_atomic.h"
-#include "melon/base/type_traits.h"
-#include "melon/strings/str_format.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/base/type_traits.h"
+#include "turbo/strings/str_format.h"
 #include "melon/metrics/detail/is_atomical.h"
 #include "melon/metrics/variable_base.h"
 
@@ -340,7 +340,7 @@ namespace melon {
         }
 
         Tp reset() {
-            MELON_CHECK(false) << "status_gauge::reset() should never be called, abort";
+            TURBO_CHECK(false) << "status_gauge::reset() should never be called, abort";
             abort();
         }
 
@@ -620,14 +620,14 @@ namespace melon {
 
         template<class... Args>
         read_most_gauge(const std::string_view &name, const std::string_view &fmt, Args &&... args) {
-            _value = melon::string_format(fmt, std::forward<Args>(args)...);
+            _value = turbo::string_format(fmt, std::forward<Args>(args)...);
             expose(name, "");
         }
 
         template<class... Args>
         read_most_gauge(const std::string_view &prefix,
                         const std::string_view &name, const std::string_view &fmt, Args &&... args) {
-            _value = melon::string_format(fmt, std::forward<Args>(args)...);
+            _value = turbo::string_format(fmt, std::forward<Args>(args)...);
             expose_as(prefix, name, "");
         }
 
@@ -649,7 +649,7 @@ namespace melon {
         template<class... Args>
         void set_value(const std::string_view &fmt, Args &&... args) {
             std::unique_lock<std::mutex> guard(_lock);
-            _value = melon::string_format(fmt, std::forward<Args>(args)...);
+            _value = turbo::string_format(fmt, std::forward<Args>(args)...);
         }
 
         void set_value(const std::string &s) {

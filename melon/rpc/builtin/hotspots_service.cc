@@ -19,9 +19,9 @@
 #include <cstdio>
 #include <thread>
 #include <gflags/gflags.h>
-#include "melon/files/filesystem.h"
-#include "melon/system/process.h"                         // melon::read_command_output
-#include "melon/base/fd_guard.h"                      // melon::base::fd_guard
+#include "turbo/files/filesystem.h"
+#include "turbo/system/process.h"                         // turbo::read_command_output
+#include "turbo/base/fd_guard.h"                      // turbo::base::fd_guard
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"
 #include "melon/rpc/server.h"
@@ -29,8 +29,8 @@
 #include "melon/rpc/builtin/pprof_perl.h"
 #include "melon/rpc/builtin/hotspots_service.h"
 #include "melon/rpc/details/tcmalloc_extension.h"
-#include "melon/strings/starts_with.h"
-#include "melon/strings/ends_with.h"
+#include "turbo/strings/starts_with.h"
+#include "turbo/strings/ends_with.h"
 #include "melon/fiber/this_fiber.h"
 
 extern "C" {
@@ -48,7 +48,7 @@ namespace melon::rpc {
     enum class DisplayType {
         kUnknown,
         kDot,
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         kFlameGraph,
 #endif
         kText
@@ -58,7 +58,7 @@ namespace melon::rpc {
         switch (type) {
             case DisplayType::kDot:
                 return "dot";
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                 case DisplayType::kFlameGraph: return "flame";
 #endif
             case DisplayType::kText:
@@ -69,13 +69,13 @@ namespace melon::rpc {
     }
 
     static DisplayType StringToDisplayType(const std::string &val) {
-        static melon::container::CaseIgnoredFlatMap<DisplayType> *display_type_map;
+        static turbo::container::CaseIgnoredFlatMap<DisplayType> *display_type_map;
         static std::once_flag flag;
         std::call_once(flag, []() {
-            display_type_map = new melon::container::CaseIgnoredFlatMap<DisplayType>;
+            display_type_map = new turbo::container::CaseIgnoredFlatMap<DisplayType>;
             display_type_map->init(10);
             (*display_type_map)["dot"] = DisplayType::kDot;
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             (*display_type_map)["flame"] = DisplayType::kFlameGraph;
 #endif
             (*display_type_map)["text"] = DisplayType::kText;
@@ -89,11 +89,11 @@ namespace melon::rpc {
 
     static std::string DisplayTypeToPProfArgument(DisplayType type) {
         switch (type) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             case DisplayType::kDot: return " --dot ";
             case DisplayType::kFlameGraph: return " --collapsed ";
             case DisplayType::kText: return " --text ";
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             case DisplayType::kDot:
                 return " -dot ";
             case DisplayType::kText:
@@ -138,7 +138,7 @@ namespace melon::rpc {
         int64_t end_us;
         int seconds;
         int64_t id;
-        melon::end_point point;
+        turbo::end_point point;
     };
 
     struct ProfilingResult {
@@ -146,7 +146,7 @@ namespace melon::rpc {
 
         int64_t id;
         int status_code;
-        melon::cord_buf result;
+        turbo::cord_buf result;
     };
 
     static bool g_written_pprof_perl = false;
@@ -172,46 +172,46 @@ namespace melon::rpc {
     static bool WriteSmallFile(const char *filepath_in,
                                const std::string_view &content) {
         std::error_code ec;
-        melon::file_path dir = melon::file_path(filepath_in).parent_path();
-        if (!melon::create_directories(dir, ec)) {
-            MELON_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
+        turbo::file_path dir = turbo::file_path(filepath_in).parent_path();
+        if (!turbo::create_directories(dir, ec)) {
+            TURBO_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
                              << "', " << ec.message();
             return false;
         }
         FILE *fp = fopen(filepath_in, "w");
         if (nullptr == fp) {
-            MELON_LOG(ERROR) << "Fail to open `" << filepath_in << '\'';
+            TURBO_LOG(ERROR) << "Fail to open `" << filepath_in << '\'';
             return false;
         }
         bool ret = true;
         if (fwrite(content.data(), content.size(), 1UL, fp) != 1UL) {
-            MELON_LOG(ERROR) << "Fail to write into " << filepath_in;
+            TURBO_LOG(ERROR) << "Fail to write into " << filepath_in;
             ret = false;
         }
-        MELON_CHECK_EQ(0, fclose(fp));
+        TURBO_CHECK_EQ(0, fclose(fp));
         return ret;
     }
 
     static bool WriteSmallFile(const char *filepath_in,
-                               const melon::cord_buf &content) {
+                               const turbo::cord_buf &content) {
         std::error_code ec;
-        melon::file_path dir = melon::file_path(filepath_in).parent_path();
-        if (!melon::create_directories(dir, ec)) {
-            MELON_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
+        turbo::file_path dir = turbo::file_path(filepath_in).parent_path();
+        if (!turbo::create_directories(dir, ec)) {
+            TURBO_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
                              << "', " << ec.message();
             return false;
         }
         FILE *fp = fopen(filepath_in, "w");
         if (nullptr == fp) {
-            MELON_LOG(ERROR) << "Fail to open `" << filepath_in << '\'';
+            TURBO_LOG(ERROR) << "Fail to open `" << filepath_in << '\'';
             return false;
         }
-        melon::cord_buf_as_zero_copy_input_stream iter(content);
+        turbo::cord_buf_as_zero_copy_input_stream iter(content);
         const void *data = nullptr;
         int size = 0;
         while (iter.Next(&data, &size)) {
             if (fwrite(data, size, 1UL, fp) != 1UL) {
-                MELON_LOG(ERROR) << "Fail to write into " << filepath_in;
+                TURBO_LOG(ERROR) << "Fail to write into " << filepath_in;
                 fclose(fp);
                 return false;
             }
@@ -266,7 +266,7 @@ namespace melon::rpc {
 // system related functions (popen/system/exec ...) to avoid potential
 // injections from URL and other user inputs.
     static bool ValidProfilePath(const std::string_view &path) {
-        if (!melon::starts_with(path, FLAGS_rpc_profiling_dir)) {
+        if (!turbo::starts_with(path, FLAGS_rpc_profiling_dir)) {
             // Must be under the directory.
             return false;
         }
@@ -334,13 +334,13 @@ namespace melon::rpc {
     static void ConsumeWaiters(ProfilingType type, const Controller *cur_cntl,
                                std::vector<ProfilingWaiter> *waiters) {
         waiters->clear();
-        if ((int) type >= (int) MELON_ARRAY_SIZE(g_env)) {
-            MELON_LOG(ERROR) << "Invalid type=" << type;
+        if ((int) type >= (int) TURBO_ARRAY_SIZE(g_env)) {
+            TURBO_LOG(ERROR) << "Invalid type=" << type;
             return;
         }
         ProfilingEnvironment &env = g_env[type];
         if (env.client) {
-            MELON_SCOPED_LOCK(env.mutex);
+            TURBO_SCOPED_LOCK(env.mutex);
             if (env.client == nullptr) {
                 return;
             }
@@ -367,7 +367,7 @@ namespace melon::rpc {
             return;
         }
         std::vector<ProfilingWaiter> saved_waiters;
-        MELON_CHECK(g_env[type].client);
+        TURBO_CHECK(g_env[type].client);
         ConsumeWaiters(type, cur_cntl, &saved_waiters);
         for (size_t i = 0; i < saved_waiters.size(); ++i) {
             Controller *cntl = saved_waiters[i].cntl;
@@ -379,7 +379,7 @@ namespace melon::rpc {
         }
     }
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
     static const char *s_pprof_binary_path = nullptr;
 
     static bool check_GOOGLE_PPROF_BINARY_PATH() {
@@ -387,7 +387,7 @@ namespace melon::rpc {
         if (str == nullptr) {
             return false;
         }
-        melon::base::fd_guard fd(open(str, O_RDONLY));
+        turbo::base::fd_guard fd(open(str, O_RDONLY));
         if (fd < 0) {
             return false;
         }
@@ -405,15 +405,15 @@ namespace melon::rpc {
     static void DisplayResult(Controller *cntl,
                               google::protobuf::Closure *done,
                               const char *prof_name,
-                              const melon::cord_buf &result_prefix) {
+                              const turbo::cord_buf &result_prefix) {
         ClosureGuard done_guard(done);
-        melon::cord_buf prof_result;
+        turbo::cord_buf prof_result;
         if (cntl->IsCanceled()) {
             // If the page is refreshed, older connections are likely to be
             // already closed by browser.
             return;
         }
-        melon::cord_buf &resp = cntl->response_attachment();
+        turbo::cord_buf &resp = cntl->response_attachment();
         const bool use_html = UseHTML(cntl->http_request());
         const bool show_ccount = cntl->http_request().uri().GetQuery("ccount");
         const std::string *base_name = cntl->http_request().uri().GetQuery("base");
@@ -425,7 +425,7 @@ namespace melon::rpc {
             if (display_type == DisplayType::kUnknown) {
                 return cntl->SetFailed(EINVAL, "Invalid display_type=%s", display_type_query->c_str());
             }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             if (display_type == DisplayType::kFlameGraph && !flamegraph_tool) {
                 return cntl->SetFailed(EINVAL, "Failed to find environment variable "
                     "FLAMEGRAPH_PL_PATH, please read cpu_profiler doc"
@@ -437,12 +437,12 @@ namespace melon::rpc {
             if (!ValidProfilePath(*base_name)) {
                 return cntl->SetFailed(EINVAL, "Invalid query `base'");
             }
-            if (!melon::exists(*base_name)) {
+            if (!turbo::exists(*base_name)) {
                 return cntl->SetFailed(
                         EINVAL, "The profile denoted by `base' does not exist");
             }
         }
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         os << result_prefix;
         char expected_result_name[256];
         MakeCacheName(expected_result_name, sizeof(expected_result_name),
@@ -463,14 +463,14 @@ namespace melon::rpc {
                         succ = true;
                         break;
                     } else if (ferror(fp)) {
-                        MELON_LOG(ERROR) << "Encountered error while reading for "
+                        TURBO_LOG(ERROR) << "Encountered error while reading for "
                                          << expected_result_name;
                         break;
                     }
                     // retry;
                 }
             }
-            MELON_PLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
+            TURBO_PLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
             if (succ) {
                 RPC_VLOG << "Hit cache=" << expected_result_name;
                 os.move_to(resp);
@@ -489,7 +489,7 @@ namespace melon::rpc {
 
         std::string pprof_tool{GeneratePerlScriptPath(PPROF_FILENAME)};
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         cmd_builder << "perl " << pprof_tool
                     << DisplayTypeToPProfArgument(display_type)
                     << (show_ccount ? " --contention " : "");
@@ -505,7 +505,7 @@ namespace melon::rpc {
             cmd_builder << " 2>/dev/null " << " | " << "perl " << flamegraph_tool;
         }
         cmd_builder << " 2>&1 ";
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         cmd_builder << s_pprof_binary_path << " "
                     << DisplayTypeToPProfArgument(display_type)
                     << (show_ccount ? " -contentions " : "");
@@ -530,11 +530,11 @@ namespace melon::rpc {
             }
             errno = 0; // read_command_output may not set errno, clear it to make sure if
             // we see non-zero errno, it's real error.
-            melon::cord_buf_builder pprof_output;
+            turbo::cord_buf_builder pprof_output;
             RPC_VLOG << "Running cmd=" << cmd;
-            const int rc = melon::read_command_output(pprof_output, cmd.c_str());
+            const int rc = turbo::read_command_output(pprof_output, cmd.c_str());
             if (rc != 0) {
-                if (!melon::exists(pprof_tool)) {
+                if (!turbo::exists(pprof_tool)) {
                     // Write the script again.
                     g_written_pprof_perl = false;
                     // tell user.
@@ -542,7 +542,7 @@ namespace melon::rpc {
                     continue;
                 }
                 if (rc < 0) {
-                    os << "Fail to execute `" << cmd << "', " << melon_error()
+                    os << "Fail to execute `" << cmd << "', " << turbo_error()
                        << (use_html ? "</body></html>" : "\n");
                     os.move_to(resp);
                     cntl->http_response().set_status_code(
@@ -559,8 +559,8 @@ namespace melon::rpc {
 
             // Append the profile name as the visual reminder for what
             // current profile is.
-            melon::cord_buf before_label;
-            melon::cord_buf tmp;
+            turbo::cord_buf before_label;
+            turbo::cord_buf tmp;
             if (cntl->http_request().uri().GetQuery("view") == nullptr) {
                 tmp.append(prof_name);
                 tmp.append("[addToProfEnd]");
@@ -590,8 +590,8 @@ namespace melon::rpc {
             }
 
             if (!WriteSmallFile(result_name, prof_result)) {
-                MELON_LOG(ERROR) << "Fail to write " << result_name;
-                MELON_CHECK(melon::remove(result_name));
+                TURBO_LOG(ERROR) << "Fail to write " << result_name;
+                TURBO_CHECK(turbo::remove(result_name));
             }
             break;
         }
@@ -611,11 +611,11 @@ namespace melon::rpc {
                             ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        melon::cord_buf &resp = cntl->response_attachment();
+        turbo::cord_buf &resp = cntl->response_attachment();
         const bool use_html = UseHTML(cntl->http_request());
         cntl->http_response().set_content_type(use_html ? "text/html" : "text/plain");
 
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n"
                   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n"
@@ -635,7 +635,7 @@ namespace melon::rpc {
             if (!ValidProfilePath(*view)) {
                 return cntl->SetFailed(EINVAL, "Invalid query `view'");
             }
-            if (!melon::exists(*view)) {
+            if (!turbo::exists(*view)) {
                 return cntl->SetFailed(
                         EINVAL, "The profile denoted by `view' does not exist");
             }
@@ -663,9 +663,9 @@ namespace melon::rpc {
         }
         client_info << " requests for profiling " << ProfilingType2String(type);
         if (type == PROFILING_CPU || type == PROFILING_CONTENTION) {
-            MELON_LOG(INFO) << client_info.str() << " for " << seconds << " seconds";
+            TURBO_LOG(INFO) << client_info.str() << " for " << seconds << " seconds";
         } else {
-            MELON_LOG(INFO) << client_info.str();
+            TURBO_LOG(INFO) << client_info.str();
         }
         int64_t prof_id = 0;
         const std::string *prof_id_str =
@@ -673,11 +673,11 @@ namespace melon::rpc {
         if (prof_id_str != nullptr) {
             char *endptr = nullptr;
             prof_id = strtoll(prof_id_str->c_str(), &endptr, 10);
-            MELON_LOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
+            TURBO_LOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
         }
 
         {
-            MELON_SCOPED_LOCK(g_env[type].mutex);
+            TURBO_SCOPED_LOCK(g_env[type].mutex);
             if (g_env[type].client) {
                 if (nullptr == g_env[type].waiters) {
                     g_env[type].waiters = new std::vector<ProfilingWaiter>;
@@ -696,9 +696,9 @@ namespace melon::rpc {
                 RPC_VLOG << "Hit cached result, id=" << prof_id;
                 return;
             }
-            MELON_CHECK(nullptr == g_env[type].client);
+            TURBO_CHECK(nullptr == g_env[type].client);
             g_env[type].client = new ProfilingClient;
-            g_env[type].client->end_us = melon::get_current_time_micros() + seconds * 1000000L;
+            g_env[type].client->end_us = turbo::get_current_time_micros() + seconds * 1000000L;
             g_env[type].client->seconds = seconds;
             // This id work arounds an issue of chrome (or jquery under chrome) that
             // the ajax call in another tab may be delayed until ajax call in
@@ -719,14 +719,14 @@ namespace melon::rpc {
 
         char prof_name[128];
         if (MakeProfName(type, prof_name, sizeof(prof_name)) != 0) {
-            os << "Fail to create prof name: " << melon_error()
+            os << "Fail to create prof name: " << turbo_error()
                << (use_html ? "</body></html>" : "\n");
             os.move_to(resp);
             cntl->http_response().set_status_code(HTTP_STATUS_INTERNAL_SERVER_ERROR);
             return NotifyWaiters(type, cntl, view);
         }
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
         if (!has_GOOGLE_PPROF_BINARY_PATH()) {
             os << "no GOOGLE_PPROF_BINARY_PATH in env"
                << (use_html ? "</body></html>" : "\n");
@@ -743,9 +743,9 @@ namespace melon::rpc {
                 cntl->http_response().set_status_code(HTTP_STATUS_FORBIDDEN);
                 return NotifyWaiters(type, cntl, view);
             }
-            const melon::file_path dir = melon::file_path(prof_name).parent_path();
+            const turbo::file_path dir = turbo::file_path(prof_name).parent_path();
             std::error_code ec;
-            if (!melon::create_directories(dir, ec)) {
+            if (!turbo::create_directories(dir, ec)) {
                 os << "Fail to create directory=`" << dir.c_str() << ", "
                    << ec.message() << (use_html ? "</body></html>" : "\n");
                 os.move_to(resp);
@@ -761,7 +761,7 @@ namespace melon::rpc {
                 return NotifyWaiters(type, cntl, view);
             }
             if (melon::fiber_sleep_for(seconds * 1000000L) != 0) {
-                MELON_PLOG(WARNING) << "Profiling has been interrupted";
+                TURBO_PLOG(WARNING) << "Profiling has been interrupted";
             }
             ProfilerStop();
         } else if (type == PROFILING_CONTENTION) {
@@ -773,7 +773,7 @@ namespace melon::rpc {
                 return NotifyWaiters(type, cntl, view);
             }
             if (melon::fiber_sleep_for(seconds * 1000000L) != 0) {
-                MELON_PLOG(WARNING) << "Profiling has been interrupted";
+                TURBO_PLOG(WARNING) << "Profiling has been interrupted";
             }
             melon::fiber_internal::ContentionProfilerStop();
         } else if (type == PROFILING_HEAP) {
@@ -842,9 +842,9 @@ namespace melon::rpc {
                                ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        melon::cord_buf &resp = cntl->response_attachment();
+        turbo::cord_buf &resp = cntl->response_attachment();
         const bool use_html = UseHTML(cntl->http_request());
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         bool enabled = false;
         const char *extra_desc = "";
         if (type == PROFILING_CPU) {
@@ -862,7 +862,7 @@ namespace melon::rpc {
         }
         const char *const type_str = ProfilingType2String(type);
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
         if (!has_GOOGLE_PPROF_BINARY_PATH()) {
             enabled = false;
             extra_desc = "(no GOOGLE_PPROF_BINARY_PATH in env)";
@@ -894,7 +894,7 @@ namespace melon::rpc {
             if (display_type == DisplayType::kUnknown) {
                 return cntl->SetFailed(EINVAL, "Invalid display_type=%s", display_type_query->c_str());
             }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             if (display_type == DisplayType::kFlameGraph && !getenv("FLAMEGRAPH_PL_PATH")) {
                 return cntl->SetFailed(EINVAL, "Failed to find environment variable "
                     "FLAMEGRAPH_PL_PATH, please read cpu_profiler doc"
@@ -907,7 +907,7 @@ namespace melon::rpc {
         size_t nwaiters = 0;
         ProfilingEnvironment &env = g_env[type];
         if (view == nullptr) {
-            MELON_SCOPED_LOCK(env.mutex);
+            TURBO_SCOPED_LOCK(env.mutex);
             if (env.client) {
                 profiling_client = *env.client;
                 nwaiters = (env.waiters ? env.waiters->size() : 0);
@@ -1028,17 +1028,17 @@ namespace melon::rpc {
 
         TRACEPRINTF("Begin to enumerate profiles");
         std::vector<std::string> past_profs;
-        melon::file_path prof_dir(FLAGS_rpc_profiling_dir);
+        turbo::file_path prof_dir(FLAGS_rpc_profiling_dir);
         prof_dir /= GetProgramChecksum();
         std::error_code pec;
-        melon::directory_iterator prof_enum(prof_dir, pec);
+        turbo::directory_iterator prof_enum(prof_dir, pec);
         if (!pec) {
             for (auto &entry : prof_enum) {
                 // NOTE: name already includes dir.
                 if (past_profs.empty()) {
                     past_profs.reserve(16);
                 }
-                if (!entry.is_directory() && melon::ends_with(entry.file_path().c_str(), type_str)) {
+                if (!entry.is_directory() && turbo::ends_with(entry.file_path().c_str(), type_str)) {
                     past_profs.push_back(entry.file_path().generic_string());
                 }
             }
@@ -1054,12 +1054,12 @@ namespace melon::rpc {
                 TRACEPRINTF("Remove %lu profiles",
                             past_profs.size() - (size_t) max_profiles);
                 for (size_t i = max_profiles; i < past_profs.size(); ++i) {
-                    MELON_CHECK(melon::remove(past_profs[i]));
+                    TURBO_CHECK(turbo::remove(past_profs[i]));
                     std::string cache_path;
                     cache_path.reserve(past_profs[i].size() + 7);
                     cache_path += past_profs[i];
                     cache_path += ".cache";
-                    MELON_CHECK(melon::remove_all(cache_path));
+                    TURBO_CHECK(turbo::remove_all(cache_path));
                 }
                 past_profs.resize(max_profiles);
             }
@@ -1080,7 +1080,7 @@ namespace melon::rpc {
         os << "<div><pre style='display:inline'>Display: </pre>"
               "<select id='display_type' onchange='onSelectProf()'>"
               "<option value=dot" << (display_type == DisplayType::kDot ? " selected" : "") << ">dot</option>"
-                                                                                               #if defined(MELON_PLATFORM_LINUX)
+                                                                                               #if defined(TURBO_PLATFORM_LINUX)
                                                                                                "<option value=flame" << (display_type == DisplayType::kFlameGraph ? " selected" : "") << ">flame</option>"
                                                                                                #endif
                                                                                                "<option value=text"
@@ -1135,7 +1135,7 @@ namespace melon::rpc {
         os << "<div id=\"profiling-result\">";
         if (profiling_client.seconds != 0) {
             const int wait_seconds =
-                    (int) ceil((profiling_client.end_us - melon::get_current_time_micros())
+                    (int) ceil((profiling_client.end_us - turbo::get_current_time_micros())
                                / 1000000.0);
             os << "Your request is merged with the request from "
                << profiling_client.point;

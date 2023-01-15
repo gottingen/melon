@@ -22,10 +22,10 @@
 #include "melon/fiber/internal/errno.h"
 
 #define RPC_VLOG_LEVEL     99
-#define RPC_VLOG_IS_ON     MELON_VLOG_IS_ON(RPC_VLOG_LEVEL)
-#define RPC_VLOG           MELON_VLOG(RPC_VLOG_LEVEL)
+#define RPC_VLOG_IS_ON     TURBO_VLOG_IS_ON(RPC_VLOG_LEVEL)
+#define RPC_VLOG           TURBO_VLOG(RPC_VLOG_LEVEL)
 #define RPC_VPLOG          VPLOG(RPC_VLOG_LEVEL)
-#define RPC_VLOG_IF(cond)  MELON_VLOG_IF(RPC_VLOG_LEVEL, (cond))
+#define RPC_VLOG_IF(cond)  TURBO_VLOG_IF(RPC_VLOG_LEVEL, (cond))
 #define RPC_VPLOG_IF(cond) VPLOG_IF(RPC_VLOG_LEVEL, (cond))
 
 #endif  // MELON_RPC_LOG_H_

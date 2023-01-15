@@ -34,11 +34,11 @@ namespace melon::rpc {
             return -1;
         }
         if (GetNamingServiceThread(&_nsthread_ptr, ns_url, options) != 0) {
-            MELON_LOG(FATAL) << "Fail to get NamingServiceThread";
+            TURBO_LOG(FATAL) << "Fail to get NamingServiceThread";
             return -1;
         }
         if (_nsthread_ptr->AddWatcher(this, filter) != 0) {
-            MELON_LOG(FATAL) << "Fail to add watcher into _server_list";
+            TURBO_LOG(FATAL) << "Fail to add watcher into _server_list";
             return -1;
         }
         return 0;

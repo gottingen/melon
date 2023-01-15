@@ -19,8 +19,8 @@
 #include <google/protobuf/descriptor.h>            // MethodDescriptor
 #include <google/protobuf/message.h>               // Message
 #include <gflags/gflags.h>
-#include "melon/io/snappy/snappy.h"        // snappy::Compress
-#include "melon/times/time.h"
+#include "turbo/io/snappy/snappy.h"        // snappy::Compress
+#include "turbo/times/time.h"
 #include "melon/rpc/controller.h"                       // Controller
 #include "melon/rpc/socket.h"                           // Socket
 #include "melon/rpc/server.h"                           // Server
@@ -119,7 +119,7 @@ namespace melon::rpc {
             ResponseHead *head = whole_res.mutable_responsehead();
             ResponseBody *body = whole_res.add_responsebody();
 
-            head->set_from_host(melon::ip2str(melon::my_ip()).c_str());
+            head->set_from_host(turbo::ip2str(turbo::my_ip()).c_str());
             body->set_version(meta.user_string());
             body->set_id(meta.correlation_id());
             if (cntl->Failed()) {
@@ -136,12 +136,12 @@ namespace melon::rpc {
                 }
                 if (cntl->response_compress_type() == COMPRESS_TYPE_SNAPPY) {
                     std::string tmp;
-                    melon::snappy::Compress(response_str->data(), response_str->size(), &tmp);
+                    turbo::snappy::Compress(response_str->data(), response_str->size(), &tmp);
                     response_str->swap(tmp);
                     head->set_compress_type(COMPRESS_TYPE);
                 }
             }
-            melon::cord_buf_as_zero_copy_output_stream wrapper(&raw_res->body);
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(&raw_res->body);
             if (!whole_res.SerializeToZeroCopyStream(&wrapper)) {
                 cntl->CloseConnection("Close connection due to failure of "
                                       "serializing the whole response");
@@ -150,16 +150,16 @@ namespace melon::rpc {
         }
 
         void ProcessPublicPbrpcResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
 
             PublicPbrpcResponse pbres;
             if (!ParsePbFromCordBuf(&pbres, msg->payload)) {
-                MELON_LOG(WARNING) << "Fail to parse from PublicPbrpcResponse";
+                TURBO_LOG(WARNING) << "Fail to parse from PublicPbrpcResponse";
                 return;
             }
             if (pbres.responsebody_size() == 0) {
-                MELON_LOG(WARNING) << "Missing response body inside PublicPbrpcResponse";
+                TURBO_LOG(WARNING) << "Missing response body inside PublicPbrpcResponse";
                 return;
             }
             const ResponseHead &head = pbres.responsehead();
@@ -168,8 +168,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -192,7 +192,7 @@ namespace melon::rpc {
                                      COMPRESS_TYPE_SNAPPY : COMPRESS_TYPE_NONE);
                 bool parse_result = false;
                 if (type == COMPRESS_TYPE_SNAPPY) {
-                    melon::cord_buf tmp;
+                    turbo::cord_buf tmp;
                     tmp.append(res_data);
                     parse_result = ParseFromCompressedData(tmp, cntl->response(), type);
                 } else {
@@ -213,7 +213,7 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void SerializePublicPbrpcRequest(melon::cord_buf *buf, Controller *cntl,
+        void SerializePublicPbrpcRequest(turbo::cord_buf *buf, Controller *cntl,
                                          const google::protobuf::Message *request) {
             CompressType type = cntl->request_compress_type();
             if (type != COMPRESS_TYPE_NONE && type != COMPRESS_TYPE_SNAPPY) {
@@ -224,19 +224,19 @@ namespace melon::rpc {
             return SerializeRequestDefault(buf, cntl, request);
         }
 
-        void PackPublicPbrpcRequest(melon::cord_buf *buf,
+        void PackPublicPbrpcRequest(turbo::cord_buf *buf,
                                     SocketMessage **,
                                     uint64_t correlation_id,
                                     const google::protobuf::MethodDescriptor *method,
                                     Controller *controller,
-                                    const melon::cord_buf &request,
+                                    const turbo::cord_buf &request,
                                     const Authenticator * /*not supported*/) {
             PublicPbrpcRequest pbreq;
             RequestHead *head = pbreq.mutable_requesthead();
             RequestBody *body = pbreq.add_requestbody();
-            melon::cord_buf_as_zero_copy_output_stream request_stream(buf);
+            turbo::cord_buf_as_zero_copy_output_stream request_stream(buf);
 
-            head->set_from_host(melon::ip2str(melon::my_ip()).c_str());
+            head->set_from_host(turbo::ip2str(turbo::my_ip()).c_str());
             head->set_content_type(CONTENT_TYPE);
             bool short_connection = (controller->connection_type() == CONNECTION_TYPE_SHORT);
             head->set_connection(!short_connection);

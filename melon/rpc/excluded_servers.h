@@ -19,8 +19,8 @@
 #ifndef MELON_RPC_EXCLUDED_SERVERS_H_
 #define MELON_RPC_EXCLUDED_SERVERS_H_
 
-#include "melon/base/scoped_lock.h"
-#include "melon/container/bounded_queue.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/container/bounded_queue.h"
 #include "melon/rpc/socket_id.h"                       // SocketId
 
 
@@ -52,7 +52,7 @@ namespace melon::rpc {
     private:
 
         ExcludedServers(int cap)
-                : _l(_space, sizeof(SocketId) * cap, melon::container::NOT_OWN_STORAGE) {}
+                : _l(_space, sizeof(SocketId) * cap, turbo::container::NOT_OWN_STORAGE) {}
 
         ~ExcludedServers() {}
 
@@ -60,7 +60,7 @@ namespace melon::rpc {
         // all mutable methods with this mutex. In ordinary channels, this mutex
         // is never contended.
         mutable std::mutex _mutex;
-        melon::container::bounded_queue<SocketId> _l;
+        turbo::container::bounded_queue<SocketId> _l;
         SocketId _space[0];
     };
 
@@ -83,7 +83,7 @@ namespace melon::rpc {
     }
 
     inline void ExcludedServers::Add(SocketId id) {
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         const SocketId *last_id = _l.bottom();
         if (last_id == nullptr || *last_id != id) {
             _l.elim_push(id);
@@ -91,7 +91,7 @@ namespace melon::rpc {
     }
 
     inline bool ExcludedServers::IsExcluded(SocketId id) const {
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         for (size_t i = 0; i < _l.size(); ++i) {
             if (*_l.bottom(i) == id) {
                 return true;

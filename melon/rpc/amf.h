@@ -23,7 +23,7 @@
 #include <deque>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/message.h>
-#include "melon/base/endian.h"
+#include "turbo/base/endian.h"
 #include <string_view>
 
 
@@ -305,13 +305,13 @@ namespace melon::rpc {
     std::ostream &operator<<(std::ostream &os, const AMFArray &);
 
     inline const AMFField &AMFArray::operator[](size_t index) const {
-        return (index < MELON_ARRAY_SIZE(_fields) ? _fields[index] :
-                _morefields[index - MELON_ARRAY_SIZE(_fields)]);
+        return (index < TURBO_ARRAY_SIZE(_fields) ? _fields[index] :
+                _morefields[index - TURBO_ARRAY_SIZE(_fields)]);
     }
 
     inline AMFField &AMFArray::operator[](size_t index) {
-        return (index < MELON_ARRAY_SIZE(_fields) ? _fields[index] :
-                _morefields[index - MELON_ARRAY_SIZE(_fields)]);
+        return (index < TURBO_ARRAY_SIZE(_fields) ? _fields[index] :
+                _morefields[index - TURBO_ARRAY_SIZE(_fields)]);
     }
 
 // Parse types of the stream.

@@ -25,7 +25,7 @@
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
 
 #include "melon/rpc/esp_head.h"
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 #include "melon/rpc/proto_base.pb.h"
 
 namespace melon::rpc {
@@ -33,7 +33,7 @@ namespace melon::rpc {
     class EspMessage : public ::google::protobuf::Message {
     public:
         EspHead head;
-        melon::cord_buf body;
+        turbo::cord_buf body;
 
     public:
         EspMessage();

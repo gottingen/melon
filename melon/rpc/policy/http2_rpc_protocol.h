@@ -131,14 +131,14 @@ namespace melon::rpc {
             }
         };
         inline h2_variables* get_h2_variables() {
-            return melon::get_leaky_singleton<h2_variables>();
+            return turbo::get_leaky_singleton<h2_variables>();
         }
 #endif
 
         class H2UnsentRequest : public SocketMessage, public StreamUserData {
-            friend void PackH2Request(melon::cord_buf *, SocketMessage **,
+            friend void PackH2Request(turbo::cord_buf *, SocketMessage **,
                                       uint64_t, const google::protobuf::MethodDescriptor *,
-                                      Controller *, const melon::cord_buf &, const Authenticator *);
+                                      Controller *, const turbo::cord_buf &, const Authenticator *);
 
         public:
             static H2UnsentRequest *New(Controller *c);
@@ -155,7 +155,7 @@ namespace melon::rpc {
             }
 
             // @SocketMessage
-            melon::result_status AppendAndDestroySelf(melon::cord_buf *out, Socket *) override;
+            turbo::result_status AppendAndDestroySelf(turbo::cord_buf *out, Socket *) override;
 
             size_t EstimatedByteSize() override;
 
@@ -210,7 +210,7 @@ namespace melon::rpc {
             void Print(std::ostream &os) const;
 
             // @SocketMessage
-            melon::result_status AppendAndDestroySelf(melon::cord_buf *out, Socket *) override;
+            turbo::result_status AppendAndDestroySelf(turbo::cord_buf *out, Socket *) override;
 
             size_t EstimatedByteSize() override;
 
@@ -233,7 +233,7 @@ namespace melon::rpc {
             uint32_t _size;
             uint32_t _stream_id;
             std::unique_ptr<HttpHeader> _http_response;
-            melon::cord_buf _data;
+            turbo::cord_buf _data;
             bool _is_grpc;
             GrpcStatus _grpc_status;
             std::string _grpc_message;
@@ -252,17 +252,17 @@ namespace melon::rpc {
             // Decode headers in HPACK from *it and set into this->header(). The input
             // does not need to complete.
             // Returns 0 on success, -1 otherwise.
-            int ConsumeHeaders(melon::cord_buf_bytes_iterator &it);
+            int ConsumeHeaders(turbo::cord_buf_bytes_iterator &it);
 
             H2ParseResult OnEndStream();
 
-            H2ParseResult OnData(melon::cord_buf_bytes_iterator &, const H2FrameHead &,
+            H2ParseResult OnData(turbo::cord_buf_bytes_iterator &, const H2FrameHead &,
                                  uint32_t frag_size, uint8_t pad_length);
 
-            H2ParseResult OnHeaders(melon::cord_buf_bytes_iterator &, const H2FrameHead &,
+            H2ParseResult OnHeaders(turbo::cord_buf_bytes_iterator &, const H2FrameHead &,
                                     uint32_t frag_size, uint8_t pad_length);
 
-            H2ParseResult OnContinuation(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnContinuation(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
             H2ParseResult OnResetStream(H2Error h2_error, const H2FrameHead &);
 
@@ -299,20 +299,20 @@ namespace melon::rpc {
             std::atomic<int64_t> _remote_window_left;
             std::atomic<int64_t> _deferred_window_update;
             uint64_t _correlation_id;
-            melon::cord_buf _remaining_header_fragment;
+            turbo::cord_buf _remaining_header_fragment;
         };
 
         StreamCreator *get_h2_global_stream_creator();
 
-        ParseResult ParseH2Message(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseH2Message(turbo::cord_buf *source, Socket *socket,
                                    bool read_eof, const void *arg);
 
-        void PackH2Request(melon::cord_buf *buf,
+        void PackH2Request(turbo::cord_buf *buf,
                            SocketMessage **user_message_out,
                            uint64_t correlation_id,
                            const google::protobuf::MethodDescriptor *method,
                            Controller *controller,
-                           const melon::cord_buf &request,
+                           const turbo::cord_buf &request,
                            const Authenticator *auth);
 
         class H2GlobalStreamCreator : public StreamCreator {
@@ -340,7 +340,7 @@ namespace melon::rpc {
         class H2Context : public Destroyable, public Describable {
         public:
             typedef H2ParseResult (H2Context::*FrameHandler)(
-                    melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+                    turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
             // main_socket: the socket owns this object as parsing_context
             // server: nullptr means client-side
@@ -353,7 +353,7 @@ namespace melon::rpc {
 
             H2ConnectionState state() const { return _conn_state; }
 
-            ParseResult Consume(melon::cord_buf_bytes_iterator &it, Socket *);
+            ParseResult Consume(turbo::cord_buf_bytes_iterator &it, Socket *);
 
             void ClearAbandonedStreams();
 
@@ -397,27 +397,27 @@ namespace melon::rpc {
 
             friend void InitFrameHandlers();
 
-            ParseResult ConsumeFrameHead(melon::cord_buf_bytes_iterator &, H2FrameHead *);
+            ParseResult ConsumeFrameHead(turbo::cord_buf_bytes_iterator &, H2FrameHead *);
 
-            H2ParseResult OnData(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnData(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnHeaders(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnHeaders(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnPriority(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnPriority(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnResetStream(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnResetStream(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnSettings(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnSettings(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnPushPromise(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnPushPromise(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnPing(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnPing(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnGoAway(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnGoAway(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnWindowUpdate(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnWindowUpdate(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
-            H2ParseResult OnContinuation(melon::cord_buf_bytes_iterator &, const H2FrameHead &);
+            H2ParseResult OnContinuation(turbo::cord_buf_bytes_iterator &, const H2FrameHead &);
 
             H2StreamContext *RemoveStream(int stream_id);
 
@@ -442,7 +442,7 @@ namespace melon::rpc {
             HPacker _hpacker;
             mutable std::mutex _abandoned_streams_mutex;
             std::vector<uint32_t> _abandoned_streams;
-            typedef melon::container::FlatMap<int, H2StreamContext *> StreamMap;
+            typedef turbo::container::FlatMap<int, H2StreamContext *> StreamMap;
             mutable std::mutex _stream_mutex;
             StreamMap _pending_streams;
             std::atomic<int64_t> _deferred_window_update;
@@ -450,7 +450,7 @@ namespace melon::rpc {
 
         inline int H2Context::AllocateClientStreamId() {
             if (RunOutStreams()) {
-                MELON_LOG(WARNING) << "Fail to allocate new client stream, _last_sent_stream_id="
+                TURBO_LOG(WARNING) << "Fail to allocate new client stream, _last_sent_stream_id="
                                    << _last_sent_stream_id;
                 return -1;
             }

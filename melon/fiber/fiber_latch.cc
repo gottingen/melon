@@ -1,5 +1,5 @@
 
-#include "melon/base/static_atomic.h"     // std::atomic<int>
+#include "turbo/base/static_atomic.h"     // std::atomic<int>
 #include "melon/fiber/internal/waitable_event.h"
 #include "melon/fiber/fiber_latch.h"
 
@@ -7,7 +7,7 @@ namespace melon {
 
     fiber_latch::fiber_latch(int initial_count) {
         if (initial_count < 0) {
-            MELON_LOG(FATAL) << "Invalid initial_count=" << initial_count;
+            TURBO_LOG(FATAL) << "Invalid initial_count=" << initial_count;
             abort();
         }
         _event = melon::fiber_internal::waitable_event_create_checked<int>();
@@ -29,7 +29,7 @@ namespace melon {
         if (prev > sig) {
             return;
         }
-        MELON_LOG_IF(ERROR, prev < sig) << "Counter is over decreased";
+        TURBO_LOG_IF(ERROR, prev < sig) << "Counter is over decreased";
         melon::fiber_internal::waitable_event_wake_all(saved_event);
     }
 
@@ -50,23 +50,23 @@ namespace melon {
 
     void fiber_latch::add_count(int v) {
         if (v <= 0) {
-            MELON_LOG_IF(ERROR, v < 0) << "Invalid count=" << v;
+            TURBO_LOG_IF(ERROR, v < 0) << "Invalid count=" << v;
             return;
         }
-        MELON_LOG_IF(ERROR, _wait_was_invoked)
+        TURBO_LOG_IF(ERROR, _wait_was_invoked)
                         << "Invoking add_count() after wait() was invoked";
         ((std::atomic<int> *) _event)->fetch_add(v, std::memory_order_release);
     }
 
     void fiber_latch::reset(int v) {
         if (v < 0) {
-            MELON_LOG(ERROR) << "Invalid count=" << v;
+            TURBO_LOG(ERROR) << "Invalid count=" << v;
             return;
         }
         const int prev_counter =
                 ((std::atomic<int> *) _event)
                         ->exchange(v, std::memory_order_release);
-        MELON_LOG_IF(ERROR, _wait_was_invoked && prev_counter)
+        TURBO_LOG_IF(ERROR, _wait_was_invoked && prev_counter)
                         << "Invoking reset() while count=" << prev_counter;
         _wait_was_invoked = false;
     }

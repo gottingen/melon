@@ -28,7 +28,7 @@
 namespace melon::rpc {
 
     ProtobufsService::ProtobufsService(Server *server) : _server(server) {
-        MELON_CHECK_EQ(0, Init());
+        TURBO_CHECK_EQ(0, Init());
     }
 
     int ProtobufsService::Init() {
@@ -74,7 +74,7 @@ namespace melon::rpc {
                                           ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         const std::string &filter = cntl->http_request().unresolved_path();
         if (filter.empty()) {
             const bool use_html = UseHTML(cntl->http_request());

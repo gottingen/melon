@@ -19,7 +19,7 @@
 #ifndef  MELON_RPC_METHOD_STATUS_H_
 #define  MELON_RPC_METHOD_STATUS_H_
 
-#include "melon/base/profile.h"                  // MELON_DISALLOW_COPY_AND_ASSIGN
+#include "turbo/base/profile.h"                  // TURBO_DISALLOW_COPY_AND_ASSIGN
 #include "melon/metrics/all.h"                    // vars
 #include "melon/rpc/describable.h"
 #include "melon/rpc/concurrency_limiter.h"
@@ -63,7 +63,7 @@ namespace melon::rpc {
 
     private:
         friend class Server;
-        MELON_DISALLOW_COPY_AND_ASSIGN(MethodStatus);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(MethodStatus);
 
         // Note: SetConcurrencyLimiter() is not thread safe and can only be called
         // before the server is started.
@@ -88,7 +88,7 @@ namespace melon::rpc {
         ~ConcurrencyRemover();
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(ConcurrencyRemover);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(ConcurrencyRemover);
 
         MethodStatus *_status;
         Controller *_c;

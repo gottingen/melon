@@ -18,7 +18,7 @@
 // A server to receive HelloRequest and send back HelloReply
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
 #include "helloworld.pb.h"
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&http_svc,
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add http_svc";
+        TURBO_LOG(ERROR) << "Fail to add http_svc";
         return -1;
     }
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     melon::rpc::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start HttpServer";
+        TURBO_LOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }
 

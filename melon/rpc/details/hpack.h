@@ -19,7 +19,7 @@
 #ifndef  MELON_RPC_HPACK_H_
 #define  MELON_RPC_HPACK_H_
 
-#include "melon/io/cord_buf.h"                             // melon::cord_buf
+#include "turbo/io/cord_buf.h"                             // turbo::cord_buf
 #include <string_view>              // std::string_view
 #include "melon/rpc/http2.h"
 #include "melon/rpc/describable.h"
@@ -103,10 +103,10 @@ namespace melon::rpc {
 
         // Encode header and append the encoded buffer to |out|
         // Returns true on success.
-        void Encode(melon::cord_buf_appender *out, const Header &header,
+        void Encode(turbo::cord_buf_appender *out, const Header &header,
                     const HPackOptions &options);
 
-        void Encode(melon::cord_buf_appender *out, const Header &header) { return Encode(out, header, HPackOptions()); }
+        void Encode(turbo::cord_buf_appender *out, const Header &header) { return Encode(out, header, HPackOptions()); }
 
         // Try to decode at most one Header from source and erase corresponding
         // buffer.
@@ -114,16 +114,16 @@ namespace melon::rpc {
         //  * $size of decoded buffer when a header is succesfully decoded
         //  * 0 when the source is incompleted
         //  * -1 when the source is malformed
-        ssize_t Decode(melon::cord_buf *source, Header *h);
+        ssize_t Decode(turbo::cord_buf *source, Header *h);
 
         // Like the previous function, except that the source is from
         // cord_buf_bytes_iterator.
-        ssize_t Decode(melon::cord_buf_bytes_iterator &source, Header *h);
+        ssize_t Decode(turbo::cord_buf_bytes_iterator &source, Header *h);
 
         void Describe(std::ostream &os, const DescribeOptions &) const;
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(HPacker);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(HPacker);
 
         int FindHeaderFromIndexTable(const Header &h) const;
 
@@ -132,7 +132,7 @@ namespace melon::rpc {
         const Header *HeaderAt(int index) const;
 
         ssize_t DecodeWithKnownPrefix(
-                melon::cord_buf_bytes_iterator &iter, Header *h, uint8_t prefix_size) const;
+                turbo::cord_buf_bytes_iterator &iter, Header *h, uint8_t prefix_size) const;
 
         IndexTable *_encode_table;
         IndexTable *_decode_table;
@@ -141,8 +141,8 @@ namespace melon::rpc {
 // Lowercase the input string, a fast implementation.
     void tolower(std::string *s);
 
-    inline ssize_t HPacker::Decode(melon::cord_buf *source, Header *h) {
-        melon::cord_buf_bytes_iterator iter(*source);
+    inline ssize_t HPacker::Decode(turbo::cord_buf *source, Header *h) {
+        turbo::cord_buf_bytes_iterator iter(*source);
         const ssize_t nc = Decode(iter, h);
         if (nc > 0) {
             source->pop_front(nc);

@@ -21,9 +21,9 @@
 
 #include "melon/fiber/internal/execution_queue.h"
 #include "melon/fiber/this_fiber.h"
-#include "melon/base/singleton_on_pthread_once.h"
-#include "melon/memory/object_pool.h"           // melon::get_object
-#include "melon/memory/resource_pool.h"         // melon::get_resource
+#include "turbo/base/singleton_on_pthread_once.h"
+#include "turbo/memory/object_pool.h"           // turbo::get_object
+#include "turbo/memory/resource_pool.h"         // turbo::get_resource
 
 namespace melon::fiber_internal {
 
@@ -33,9 +33,9 @@ namespace melon::fiber_internal {
     static_assert(sizeof(TaskIterator<int>) == sizeof(TaskIteratorBase),
                   "sizeof_TaskIterator_must_be_the_same_with_TaskIteratorBase");
     namespace /*anonymous*/ {
-        typedef melon::ResourceId<ExecutionQueueBase> slot_id_t;
+        typedef turbo::ResourceId<ExecutionQueueBase> slot_id_t;
 
-        inline slot_id_t MELON_WARN_UNUSED_RESULT slot_of_id(uint64_t id) {
+        inline slot_id_t TURBO_WARN_UNUSED_RESULT slot_of_id(uint64_t id) {
             slot_id_t slot = {(id & 0xFFFFFFFFul)};
             return slot;
         }
@@ -59,7 +59,7 @@ namespace melon::fiber_internal {
     }
 
     inline ExecutionQueueVars *get_execq_vars() {
-        return melon::get_leaky_singleton<ExecutionQueueVars>();
+        return turbo::get_leaky_singleton<ExecutionQueueVars>();
     }
 
     void ExecutionQueueBase::start_execute(TaskNode *node) {
@@ -109,12 +109,12 @@ namespace melon::fiber_internal {
             // cause undefined behavior (e.g. deadlock)
             if (fiber_start_background(&tid, &_options.fiber_attr,
                                          _execute_tasks, node) != 0) {
-                MELON_PLOG(FATAL) << "Fail to start fiber";
+                TURBO_PLOG(FATAL) << "Fail to start fiber";
                 _execute_tasks(node);
             }
         } else {
             if (_options.executor->submit(_execute_tasks, node) != 0) {
-                MELON_PLOG(FATAL) << "Fail to submit task";
+                TURBO_PLOG(FATAL) << "Fail to submit task";
                 _execute_tasks(node);
             }
         }
@@ -128,7 +128,7 @@ namespace melon::fiber_internal {
         bool destroy_queue = false;
         for (;;) {
             if (head->iterated) {
-                MELON_CHECK(head->next != nullptr);
+                TURBO_CHECK(head->next != nullptr);
                 TaskNode *saved_head = head;
                 head = head->next;
                 m->return_task_node(saved_head);
@@ -162,15 +162,15 @@ namespace melon::fiber_internal {
             }
             // break when no more tasks and head has been executed
             if (!m->_more_tasks(cur_tail, &cur_tail, !head->iterated)) {
-                MELON_CHECK_EQ(cur_tail, head);
-                MELON_CHECK(head->iterated);
+                TURBO_CHECK_EQ(cur_tail, head);
+                TURBO_CHECK(head->iterated);
                 m->return_task_node(head);
                 break;
             }
         }
         if (destroy_queue) {
-            MELON_CHECK(m->_head.load(std::memory_order_relaxed) == nullptr);
-            MELON_CHECK(m->_stopped);
+            TURBO_CHECK(m->_head.load(std::memory_order_relaxed) == nullptr);
+            TURBO_CHECK(m->_stopped);
             // Add _join_butex by 2 to make it equal to the next version of the
             // ExecutionQueue from the same slot so that join with old id would
             // return immediatly.
@@ -180,7 +180,7 @@ namespace melon::fiber_internal {
             m->_join_butex->fetch_add(2, std::memory_order_release/*1*/);
             waitable_event_wake_all(m->_join_butex);
             vars->execq_count << -1;
-            melon::return_resource(slot_of_id(m->_this_id));
+            turbo::return_resource(slot_of_id(m->_this_id));
         }
         vars->execq_active_count << -1;
         return nullptr;
@@ -188,15 +188,15 @@ namespace melon::fiber_internal {
 
     void ExecutionQueueBase::return_task_node(TaskNode *node) {
         node->clear_before_return(_clear_func);
-        melon::return_object<TaskNode>(node);
+        turbo::return_object<TaskNode>(node);
         get_execq_vars()->running_task_count << -1;
     }
 
     void ExecutionQueueBase::_on_recycle() {
         // Push a closed tasks
         while (true) {
-            TaskNode *node = melon::get_object<TaskNode>();
-            if (MELON_LIKELY(node != nullptr)) {
+            TaskNode *node = turbo::get_object<TaskNode>();
+            if (TURBO_LIKELY(node != nullptr)) {
                 get_execq_vars()->running_task_count << 1;
                 node->stop_task = true;
                 node->high_priority = false;
@@ -204,14 +204,14 @@ namespace melon::fiber_internal {
                 start_execute(node);
                 break;
             }
-            MELON_CHECK(false) << "Fail to create task_node_t, " << melon_error();
+            TURBO_CHECK(false) << "Fail to create task_node_t, " << turbo_error();
             melon::fiber_sleep_for(1000);
         }
     }
 
     int ExecutionQueueBase::join(uint64_t id) {
         const slot_id_t slot = slot_of_id(id);
-        ExecutionQueueBase *const m = melon::address_resource(slot);
+        ExecutionQueueBase *const m = turbo::address_resource(slot);
         if (m == nullptr) {
             // The queue is not created yet, this join is definitely wrong.
             return EINVAL;
@@ -254,7 +254,7 @@ namespace melon::fiber_internal {
 
     int ExecutionQueueBase::_execute(TaskNode *head, bool high_priority, int *niterated) {
         if (head != nullptr && head->stop_task) {
-            MELON_CHECK(head->next == nullptr);
+            TURBO_CHECK(head->next == nullptr);
             head->iterated = true;
             head->status = EXECUTED;
             TaskIteratorBase iter(nullptr, this, true, false);
@@ -280,7 +280,7 @@ namespace melon::fiber_internal {
 
     TaskNode *ExecutionQueueBase::allocate_node() {
         get_execq_vars()->running_task_count << 1;
-        return melon::get_object<TaskNode>();
+        return turbo::get_object<TaskNode>();
     }
 
     TaskNode *const TaskNode::UNCONNECTED = (TaskNode *) -1L;
@@ -288,8 +288,8 @@ namespace melon::fiber_internal {
     ExecutionQueueBase::scoped_ptr_t ExecutionQueueBase::address(uint64_t id) {
         scoped_ptr_t ret;
         const slot_id_t slot = slot_of_id(id);
-        ExecutionQueueBase *const m = melon::address_resource(slot);
-        if (MELON_LIKELY(m != nullptr)) {
+        ExecutionQueueBase *const m = turbo::address_resource(slot);
+        if (TURBO_LIKELY(m != nullptr)) {
             // acquire fence makes sure this thread sees latest changes before
             // _dereference()
             const uint64_t vref1 = m->_versioned_ref.fetch_add(
@@ -321,15 +321,15 @@ namespace melon::fiber_internal {
                             // is excuted m would be finally reset and returned
                         }
                     } else {
-                        MELON_CHECK(false) << "ref-version=" << ver1
+                        TURBO_CHECK(false) << "ref-version=" << ver1
                                      << " unref-version=" << ver2;
                     }
                 } else {
-                    MELON_CHECK_EQ(ver1, ver2);
+                    TURBO_CHECK_EQ(ver1, ver2);
                     // Addressed a free slot.
                 }
             } else {
-                MELON_CHECK(false) << "Over dereferenced id=" << id;
+                TURBO_CHECK(false) << "Over dereferenced id=" << id;
             }
         }
         return ret.Pass();
@@ -344,14 +344,14 @@ namespace melon::fiber_internal {
         }
 
         slot_id_t slot;
-        ExecutionQueueBase *const m = melon::get_resource(&slot, Forbidden());
-        if (MELON_LIKELY(m != nullptr)) {
+        ExecutionQueueBase *const m = turbo::get_resource(&slot, Forbidden());
+        if (TURBO_LIKELY(m != nullptr)) {
             m->_execute_func = execute_func;
             m->_clear_func = clear_func;
             m->_meta = meta;
             m->_type_specific_function = type_specific_function;
-            MELON_CHECK(m->_head.load(std::memory_order_relaxed) == nullptr);
-            MELON_CHECK_EQ(0, m->_high_priority_tasks.load(std::memory_order_relaxed));
+            TURBO_CHECK(m->_head.load(std::memory_order_relaxed) == nullptr);
+            TURBO_CHECK_EQ(0, m->_high_priority_tasks.load(std::memory_order_relaxed));
             ExecutionQueueOptions opt;
             if (options != nullptr) {
                 opt = *options;

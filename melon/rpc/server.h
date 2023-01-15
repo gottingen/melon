@@ -26,11 +26,11 @@
 #include "melon/fiber/internal/fiber.h"      // Server may need some fiber functions,
 // e.g. melon::fiber_sleep_for
 #include <google/protobuf/service.h>                 // google::protobuf::Service
-#include "melon/base/profile.h"                            // MELON_DISALLOW_COPY_AND_ASSIGN
-#include "melon/container/doubly_buffered_data.h"   // DoublyBufferedData
+#include "turbo/base/profile.h"                            // TURBO_DISALLOW_COPY_AND_ASSIGN
+#include "turbo/container/doubly_buffered_data.h"   // DoublyBufferedData
 #include "melon/metrics/all.h"
-#include "melon/container/case_ignored_flat_map.h"  // [CaseIgnored]FlatMap
-#include "melon/container/ptr_container.h"
+#include "turbo/container/case_ignored_flat_map.h"  // [CaseIgnored]FlatMap
+#include "turbo/container/ptr_container.h"
 #include "melon/rpc/controller.h"                   // melon::rpc::Controller
 #include "melon/rpc/ssl_options.h"                  // ServerSSLOptions
 #include "melon/rpc/describable.h"                  // User often needs this
@@ -255,7 +255,7 @@ namespace melon::rpc {
     private:
         // SSLOptions is large and not often used, allocate it on heap to
         // prevent ServerOptions from being bloated in most cases.
-        melon::container::ptr_container<ServerSSLOptions> _ssl_options;
+        turbo::container::ptr_container<ServerSSLOptions> _ssl_options;
     };
 
     // This struct is originally designed to contain basic statistics of the
@@ -347,7 +347,7 @@ namespace melon::rpc {
             const std::string &service_name() const;
         };
 
-        typedef melon::container::FlatMap<std::string, ServiceProperty> ServiceMap;
+        typedef turbo::container::FlatMap<std::string, ServiceProperty> ServiceMap;
 
         struct MethodProperty {
             bool is_builtin_service;
@@ -376,7 +376,7 @@ namespace melon::rpc {
             MethodProperty();
         };
 
-        typedef melon::container::FlatMap<std::string, MethodProperty> MethodMap;
+        typedef turbo::container::FlatMap<std::string, MethodProperty> MethodMap;
 
         struct ThreadLocalOptions {
             fiber_local_key tls_key;
@@ -402,7 +402,7 @@ namespace melon::rpc {
         // Start on an address in form of "0.0.0.0:8000".
         int Start(const char *ip_port_str, const ServerOptions *opt);
 
-        int Start(const melon::end_point &ip_port, const ServerOptions *opt);
+        int Start(const turbo::end_point &ip_port, const ServerOptions *opt);
 
         // Start on IP_ANY:port.
         int Start(int port, const ServerOptions *opt);
@@ -514,7 +514,7 @@ namespace melon::rpc {
         const std::string &version() const { return _version; }
 
         // Return the address this server is listening
-        melon::end_point listen_address() const { return _listen_addr; }
+        turbo::end_point listen_address() const { return _listen_addr; }
 
         // Last time that Start() was successfully called. 0 if Start() was
         // never called
@@ -594,7 +594,7 @@ namespace melon::rpc {
         // Create acceptor with handlers of protocols.
         Acceptor *BuildAcceptor();
 
-        int StartInternal(const melon::end_point &ep,
+        int StartInternal(const turbo::end_point &ep,
                           const PortRange &port_range,
                           const ServerOptions *opt);
 
@@ -634,7 +634,7 @@ namespace melon::rpc {
         std::string ServerPrefix() const;
 
         // Mapping from hostname to corresponding SSL_CTX
-        typedef melon::container::CaseIgnoredFlatMap<std::shared_ptr<SocketSSLContext> > CertMap;
+        typedef turbo::container::CaseIgnoredFlatMap<std::shared_ptr<SocketSSLContext> > CertMap;
         struct CertMaps {
             CertMap cert_map;
             CertMap wildcard_cert_map;
@@ -645,7 +645,7 @@ namespace melon::rpc {
             std::vector<std::string> filters;
         };
         // Mapping from [certficate + private-key] to SSLContext
-        typedef melon::container::FlatMap<std::string, SSLContext> SSLContextMap;
+        typedef turbo::container::FlatMap<std::string, SSLContext> SSLContextMap;
 
         void FreeSSLContexts();
 
@@ -664,7 +664,7 @@ namespace melon::rpc {
 
         int MaxConcurrencyOf(const MethodProperty *) const;
 
-        MELON_DISALLOW_COPY_AND_ASSIGN(Server);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(Server);
 
         // Put frequently-accessed data pool at first.
         SimpleDataPool *_session_local_data_pool;
@@ -703,13 +703,13 @@ namespace melon::rpc {
         std::shared_ptr<SocketSSLContext> _default_ssl_ctx;
 
         // Reloadable SSL mappings
-        melon::container::DoublyBufferedData<CertMaps> _reload_cert_maps;
+        turbo::container::DoublyBufferedData<CertMaps> _reload_cert_maps;
 
         // Holds the memory of all SSL_CTXs
         SSLContextMap _ssl_ctx_map;
 
         ServerOptions _options;
-        melon::end_point _listen_addr;
+        turbo::end_point _listen_addr;
 
         std::string _version;
         time_t _last_start_time;
@@ -719,7 +719,7 @@ namespace melon::rpc {
 
         // mutable is required for `ServerPrivateAccessor' to change this variable
         mutable melon::gauge<int64_t> _nerror_var;
-        mutable std::atomic<int32_t> MELON_CACHELINE_ALIGNMENT _concurrency;
+        mutable std::atomic<int32_t> TURBO_CACHELINE_ALIGNMENT _concurrency;
 
     };
 

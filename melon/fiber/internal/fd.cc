@@ -19,22 +19,22 @@
 
 // Date: Thu Aug  7 18:56:27 CST 2014
 
-#include "melon/base/compat.h"
+#include "turbo/base/compat.h"
 #include <new>                                   // std::nothrow
 #include <sys/poll.h>                            // poll()
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
 
 #include <sys/types.h>                           // struct kevent
 #include <sys/event.h>                           // kevent(), kqueue()
 
 #endif
 
-#include "melon/base/static_atomic.h"
-#include "melon/times/time.h"
-#include "melon/base/fd_utility.h"                     // make_non_blocking
-#include "melon/log/logging.h"
-#include "melon/hash/murmurhash3.h"   // fmix32
+#include "turbo/base/static_atomic.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fd_utility.h"                     // make_non_blocking
+#include "turbo/log/logging.h"
+#include "turbo/hash/murmurhash3.h"   // fmix32
 #include "melon/fiber/internal/waitable_event.h"                       // butex_*
 #include "melon/fiber/internal/fiber_worker.h"                  // fiber_worker
 #include "melon/fiber/internal/fiber.h"                             // fiber_start_urgent
@@ -43,7 +43,7 @@
 
 namespace melon::fiber_internal {
 
-    extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
+    extern TURBO_THREAD_LOCAL fiber_worker *tls_task_group;
 
     template<typename T, size_t NBLOCK, size_t BLOCK_SIZE>
     class LazyArray {
@@ -104,7 +104,7 @@ namespace melon::fiber_internal {
     static EpollButex *const CLOSING_GUARD = (EpollButex *) (intptr_t) -1L;
 
 #ifndef NDEBUG
-    melon::static_atomic<int> break_nums = MELON_STATIC_ATOMIC_INIT(0);
+    turbo::static_atomic<int> break_nums = TURBO_STATIC_ATOMIC_INIT(0);
 #endif
 
 // Able to address 67108864 file descriptors, should be enough.
@@ -128,21 +128,21 @@ namespace melon::fiber_internal {
                 _start_mutex.unlock();
                 return -1;
             }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             _epfd = epoll_create(epoll_size);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             _epfd = kqueue();
 #endif
             _start_mutex.unlock();
             if (_epfd < 0) {
-                MELON_PLOG(FATAL) << "Fail to epoll_create/kqueue";
+                TURBO_PLOG(FATAL) << "Fail to epoll_create/kqueue";
                 return -1;
             }
             if (fiber_start_background(
                     &_tid, nullptr, EpollThread::run_this, this) != 0) {
                 close(_epfd);
                 _epfd = -1;
-                MELON_LOG(FATAL) << "Fail to create epoll fiber";
+                TURBO_LOG(FATAL) << "Fail to create epoll fiber";
                 return -1;
             }
             return 0;
@@ -169,27 +169,27 @@ namespace melon::fiber_internal {
             _stop = true;
             int closing_epoll_pipe[2];
             if (pipe(closing_epoll_pipe)) {
-                MELON_PLOG(FATAL) << "Fail to create closing_epoll_pipe";
+                TURBO_PLOG(FATAL) << "Fail to create closing_epoll_pipe";
                 return -1;
             }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             epoll_event evt = { EPOLLOUT, { nullptr } };
             if (epoll_ctl(saved_epfd, EPOLL_CTL_ADD,
                           closing_epoll_pipe[1], &evt) < 0) {
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             struct kevent kqueue_event;
             EV_SET(&kqueue_event, closing_epoll_pipe[1], EVFILT_WRITE, EV_ADD | EV_ENABLE,
                    0, 0, nullptr);
             if (kevent(saved_epfd, &kqueue_event, 1, nullptr, 0, nullptr) < 0) {
 #endif
-                MELON_PLOG(FATAL) << "Fail to add closing_epoll_pipe into epfd="
+                TURBO_PLOG(FATAL) << "Fail to add closing_epoll_pipe into epfd="
                             << saved_epfd;
                 return -1;
             }
 
             const int rc = fiber_join(_tid, nullptr);
             if (rc) {
-                MELON_LOG(FATAL) << "Fail to join EpollThread, " << melon_error(rc);
+                TURBO_LOG(FATAL) << "Fail to join EpollThread, " << turbo_error(rc);
                 return -1;
             }
             close(closing_epoll_pipe[0]);
@@ -232,21 +232,21 @@ namespace melon::fiber_internal {
             // and EPOLL_CTL_ADD shall have release fence.
             const int expected_val = butex->load(std::memory_order_relaxed);
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             epoll_event evt;
             evt.events = events;
             evt.data.fd = fd;
             if (epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &evt) < 0 &&
                 errno != EEXIST) {
-                MELON_PLOG(FATAL) << "Fail to add fd=" << fd << " into epfd=" << _epfd;
+                TURBO_PLOG(FATAL) << "Fail to add fd=" << fd << " into epfd=" << _epfd;
                 return -1;
             }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             struct kevent kqueue_event;
             EV_SET(&kqueue_event, fd, events, EV_ADD | EV_ENABLE | EV_ONESHOT,
                    0, 0, butex);
             if (kevent(_epfd, &kqueue_event, 1, nullptr, 0, nullptr) < 0) {
-                MELON_PLOG(FATAL) << "Fail to add fd=" << fd << " into kqueuefd=" << _epfd;
+                TURBO_PLOG(FATAL) << "Fail to add fd=" << fd << " into kqueuefd=" << _epfd;
                 return -1;
             }
 #endif
@@ -279,9 +279,9 @@ namespace melon::fiber_internal {
                 butex->fetch_add(1, std::memory_order_relaxed);
                 waitable_event_wake_all(butex);
             }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             struct kevent evt;
             EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
             kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
@@ -305,25 +305,25 @@ namespace melon::fiber_internal {
         void *run() {
             const int initial_epfd = _epfd;
             const size_t MAX_EVENTS = 32;
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             epoll_event* e = new (std::nothrow) epoll_event[MAX_EVENTS];
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             typedef struct kevent KEVENT;
             struct kevent *e = new(std::nothrow) KEVENT[MAX_EVENTS];
 #endif
             if (nullptr == e) {
-                MELON_LOG(FATAL) << "Fail to new epoll_event";
+                TURBO_LOG(FATAL) << "Fail to new epoll_event";
                 return nullptr;
             }
 
-#if defined(MELON_PLATFORM_LINUX)
-            MELON_DLOG(INFO) << "Use DEL+ADD instead of EPOLLONESHOT+MOD due to kernel bug. Performance will be much lower.";
+#if defined(TURBO_PLATFORM_LINUX)
+            TURBO_DLOG(INFO) << "Use DEL+ADD instead of EPOLLONESHOT+MOD due to kernel bug. Performance will be much lower.";
 #endif
             while (!_stop) {
                 const int epfd = _epfd;
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                 const int n = epoll_wait(epfd, e, MAX_EVENTS, -1);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
                 const int n = kevent(epfd, nullptr, 0, e, MAX_EVENTS, nullptr);
 #endif
                 if (_stop) {
@@ -335,29 +335,29 @@ namespace melon::fiber_internal {
 #ifndef NDEBUG
                         break_nums.fetch_add(1, std::memory_order_relaxed);
                         int* p = &errno;
-                        const char* b = melon_error();
-                        const char* b2 = melon_error(errno);
-                        MELON_DLOG(FATAL) << "Fail to epoll epfd=" << epfd << ", "
+                        const char* b = turbo_error();
+                        const char* b2 = turbo_error(errno);
+                        TURBO_DLOG(FATAL) << "Fail to epoll epfd=" << epfd << ", "
                                     << errno << " " << p << " " <<  b << " " <<  b2;
 #endif
                         continue;
                     }
 
-                    MELON_PLOG(INFO) << "Fail to epoll epfd=" << epfd;
+                    TURBO_PLOG(INFO) << "Fail to epoll epfd=" << epfd;
                     break;
                 }
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                 for (int i = 0; i < n; ++i) {
                     epoll_ctl(epfd, EPOLL_CTL_DEL, e[i].data.fd, nullptr);
                 }
 #endif
                 for (int i = 0; i < n; ++i) {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                     std::atomic<EpollButex*>* pbutex = fd_butexes.get(e[i].data.fd);
                     EpollButex* butex = pbutex ?
                         pbutex->load(std::memory_order_consume) : nullptr;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
                     EpollButex *butex = static_cast<EpollButex *>(e[i].udata);
 #endif
                     if (butex != nullptr && butex != CLOSING_GUARD) {
@@ -368,7 +368,7 @@ namespace melon::fiber_internal {
             }
 
             delete[] e;
-            MELON_DLOG(INFO) << "EpollThread=" << _tid << "(epfd="
+            TURBO_DLOG(INFO) << "EpollThread=" << _tid << "(epfd="
                        << initial_epfd << ") is about to stop";
             return nullptr;
         }
@@ -388,12 +388,11 @@ namespace melon::fiber_internal {
             return et;
         }
 
-        EpollThread &et = epoll_thread[melon::hash::fmix32(fd) % FIBER_EPOLL_THREAD_NUM];
+        EpollThread &et = epoll_thread[turbo::hash::fmix32(fd) % FIBER_EPOLL_THREAD_NUM];
         et.start(FIBER_DEFAULT_EPOLL_SIZE);
         return et;
     }
 
-//TODO(zhujiashun): change name
     int stop_and_join_epoll_threads() {
         // Returns -1 if any epoll thread failed to stop.
         int rc = 0;
@@ -405,7 +404,7 @@ namespace melon::fiber_internal {
         return rc;
     }
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
     short epoll_to_poll_events(uint32_t epoll_events) {
         // Most POLL* and EPOLL* are same values.
         short poll_events = (epoll_events &
@@ -414,10 +413,10 @@ namespace melon::fiber_internal {
                               EPOLLWRNORM | EPOLLWRBAND |
                               EPOLLMSG | EPOLLERR | EPOLLHUP));
         // nocheck always not equal
-      //  MELON_CHECK_EQ((uint32_t)poll_events, epoll_events);
+      //  TURBO_CHECK_EQ((uint32_t)poll_events, epoll_events);
         return poll_events;
     }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
 
     static short kqueue_to_poll_events(int kqueue_events) {
         //TODO: add more values?
@@ -438,17 +437,17 @@ namespace melon::fiber_internal {
                         const timespec *abstime) {
         int diff_ms = -1;
         if (abstime) {
-            int64_t now_us = melon::time_now().to_unix_micros();
-            int64_t abstime_us = melon::time_point::from_timespec(*abstime).to_unix_micros();
+            int64_t now_us = turbo::time_now().to_unix_micros();
+            int64_t abstime_us = turbo::time_point::from_timespec(*abstime).to_unix_micros();
             if (abstime_us <= now_us) {
                 errno = ETIMEDOUT;
                 return -1;
             }
             diff_ms = (abstime_us - now_us + 999L) / 1000L;
         }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         const short poll_events = melon::fiber_internal::epoll_to_poll_events(events);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         const short poll_events = melon::fiber_internal::kqueue_to_poll_events(events);
 #endif
         if (poll_events == 0) {
@@ -512,14 +511,14 @@ int fiber_connect(int sockfd, const sockaddr *serv_addr,
         return ::connect(sockfd, serv_addr, addrlen);
     }
     // FIXME: Scoped non-blocking?
-    melon::base::make_non_blocking(sockfd);
+    turbo::base::make_non_blocking(sockfd);
     const int rc = connect(sockfd, serv_addr, addrlen);
     if (rc == 0 || errno != EINPROGRESS) {
         return rc;
     }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
     if (fiber_fd_wait(sockfd, EPOLLOUT) < 0) {
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
     if (fiber_fd_wait(sockfd, EVFILT_WRITE) < 0) {
 #endif
         return -1;
@@ -527,11 +526,11 @@ int fiber_connect(int sockfd, const sockaddr *serv_addr,
     int err;
     socklen_t errlen = sizeof(err);
     if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &errlen) < 0) {
-        MELON_PLOG(FATAL) << "Fail to getsockopt";
+        TURBO_PLOG(FATAL) << "Fail to getsockopt";
         return -1;
     }
     if (err != 0) {
-        MELON_CHECK(err != EINPROGRESS);
+        TURBO_CHECK(err != EINPROGRESS);
         errno = err;
         return -1;
     }

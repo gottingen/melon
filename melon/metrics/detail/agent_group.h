@@ -9,10 +9,10 @@
 #include <deque>                            // std::deque
 #include <vector>                           // std::vector
 
-#include "melon/base/errno.h"                      // errno
-#include "melon/thread/thread.h"              // thread_atexit
-#include "melon/base/scoped_lock.h"
-#include "melon/log/logging.h"
+#include "turbo/base/errno.h"                      // errno
+#include "turbo/thread/thread.h"              // thread_atexit
+#include "turbo/base/scoped_lock.h"
+#include "turbo/log/logging.h"
 
 namespace melon {
     namespace metrics_detail {
@@ -60,7 +60,7 @@ namespace melon {
             // makes alignment of ThreadBlock harder and to address the agent we have
             // to touch an additional cacheline: the bitmap. Whereas in the first
             // method, bitmap and ThreadBlock* are in one cacheline.
-            struct MELON_CACHELINE_ALIGNMENT ThreadBlock {
+            struct TURBO_CACHELINE_ALIGNMENT ThreadBlock {
                 inline Agent *at(size_t offset) { return _agents + offset; };
 
             private:
@@ -68,7 +68,7 @@ namespace melon {
             };
 
             inline static agent_id create_new_agent() {
-                MELON_SCOPED_LOCK(_s_mutex);
+                TURBO_SCOPED_LOCK(_s_mutex);
                 agent_id agent_id = 0;
                 if (!_get_free_ids().empty()) {
                     agent_id = _get_free_ids().back();
@@ -81,7 +81,7 @@ namespace melon {
 
             inline static int destroy_agent(agent_id id) {
                 // TODO: How to avoid double free?
-                MELON_SCOPED_LOCK(_s_mutex);
+                TURBO_SCOPED_LOCK(_s_mutex);
                 if (id < 0 || id >= _s_agent_kinds) {
                     errno = EINVAL;
                     return -1;
@@ -110,16 +110,16 @@ namespace melon {
             // Note: May return non-null for unexist id, see notes on ThreadBlock
             inline static Agent *get_or_create_tls_agent(agent_id id) {
                 if (__builtin_expect(id < 0, 0)) {
-                    MELON_CHECK(false) << "Invalid id=" << id;
+                    TURBO_CHECK(false) << "Invalid id=" << id;
                     return nullptr;
                 }
                 if (_s_tls_blocks == nullptr) {
                     _s_tls_blocks = new(std::nothrow) std::vector<ThreadBlock *>;
                     if (__builtin_expect(_s_tls_blocks == nullptr, 0)) {
-                        MELON_LOG(FATAL) << "Fail to create vector, " << melon_error();
+                        TURBO_LOG(FATAL) << "Fail to create vector, " << turbo_error();
                         return nullptr;
                     }
-                    melon::thread::atexit(_destroy_tls_blocks);
+                    turbo::thread::atexit(_destroy_tls_blocks);
                 }
                 const size_t block_id = (size_t) id / ELEMENTS_PER_BLOCK;
                 if (block_id >= _s_tls_blocks->size()) {

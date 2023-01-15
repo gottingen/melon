@@ -19,12 +19,12 @@
 #include <stdio.h>                                      // getline
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/files/file_watcher.h"                    // file_watcher
-#include "melon/files/readline_file.h"
+#include "turbo/files/file_watcher.h"                    // file_watcher
+#include "turbo/files/readline_file.h"
 #include "melon/fiber/internal/fiber.h"                            // melon::fiber_sleep_for
 #include "melon/rpc/log.h"
 #include "melon/rpc/policy/file_naming_service.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 #include "melon/fiber/this_fiber.h"
 
 
@@ -76,30 +76,30 @@ namespace melon::rpc {
             // set to de-duplicate and keep the order.
             std::set < ServerNode > presence;
 
-            melon::readline_file file;
+            turbo::readline_file file;
             auto status = file.open(service_name);
             if (!status.is_ok()) {
-                MELON_PLOG(ERROR) << "Fail to open `" << service_name << "'";
+                TURBO_PLOG(ERROR) << "Fail to open `" << service_name << "'";
                 return errno;
             }
             auto &lines = file.lines();
             for (auto line : lines) {
-                line = strip_suffix(line, "\n");
+                line = turbo::strip_suffix(line, "\n");
                 std::string_view addr;
                 std::string_view tag;
                 if (!SplitIntoServerAndTag(line, &addr, &tag)) {
                     continue;
                 }
                 const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-                melon::end_point point;
+                turbo::end_point point;
                 if (str2endpoint(addr.data(), &point) != 0 &&
                     hostname2endpoint(addr.data(), &point) != 0) {
-                    MELON_LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                    TURBO_LOG(ERROR) << "Invalid address=`" << addr << '\'';
                     continue;
                 }
                 ServerNode node;
                 node.addr = point;
-                melon::copy_to_string(tag, &node.tag);
+                turbo::copy_to_string(tag, &node.tag);
                 if (presence.insert(node).second) {
                     servers->push_back(node);
                 } else {
@@ -114,9 +114,9 @@ namespace melon::rpc {
         int FileNamingService::RunNamingService(const char *service_name,
                                                 NamingServiceActions *actions) {
             std::vector<ServerNode> servers;
-            melon::file_watcher fw;
+            turbo::file_watcher fw;
             if (fw.init(service_name) < 0) {
-                MELON_LOG(ERROR) << "Fail to init file_watcher on `" << service_name << "'";
+                TURBO_LOG(ERROR) << "Fail to init file_watcher on `" << service_name << "'";
                 return -1;
             }
             for (;;) {
@@ -127,23 +127,23 @@ namespace melon::rpc {
                 actions->ResetServers(servers);
 
                 for (;;) {
-                    melon::file_watcher::Change change = fw.check_and_consume();
+                    turbo::file_watcher::Change change = fw.check_and_consume();
                     if (change > 0) {
                         break;
                     }
                     if (change < 0) {
-                        MELON_LOG(ERROR) << "`" << service_name << "' was deleted";
+                        TURBO_LOG(ERROR) << "`" << service_name << "' was deleted";
                     }
                     if (melon::fiber_sleep_for(100000L/*100ms*/) < 0) {
                         if (errno == ESTOP) {
                             return 0;
                         }
-                        MELON_PLOG(ERROR) << "Fail to sleep";
+                        TURBO_PLOG(ERROR) << "Fail to sleep";
                         return -1;
                     }
                 }
             }
-            MELON_CHECK(false);
+            TURBO_CHECK(false);
             return -1;
         }
 

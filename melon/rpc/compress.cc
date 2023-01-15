@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/compress.h"
 #include "melon/rpc/protocol.h"
 
@@ -29,16 +29,16 @@ namespace melon::rpc {
     int RegisterCompressHandler(CompressType type,
                                 CompressHandler handler) {
         if (nullptr == handler.Compress || nullptr == handler.Decompress) {
-            MELON_LOG(FATAL) << "Invalid parameter: handler function is nullptr";
+            TURBO_LOG(FATAL) << "Invalid parameter: handler function is nullptr";
             return -1;
         }
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            MELON_LOG(FATAL) << "CompressType=" << type << " is out of range";
+            TURBO_LOG(FATAL) << "CompressType=" << type << " is out of range";
             return -1;
         }
         if (s_handler_map[index].Compress != nullptr) {
-            MELON_LOG(FATAL) << "CompressType=" << type << " was registered";
+            TURBO_LOG(FATAL) << "CompressType=" << type << " was registered";
             return -1;
         }
         s_handler_map[index] = handler;
@@ -50,7 +50,7 @@ namespace melon::rpc {
     inline const CompressHandler *FindCompressHandler(CompressType type) {
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            MELON_LOG(ERROR) << "CompressType=" << type << " is out of range";
+            TURBO_LOG(ERROR) << "CompressType=" << type << " is out of range";
             return nullptr;
         }
         if (nullptr == s_handler_map[index].Compress) {
@@ -76,7 +76,7 @@ namespace melon::rpc {
         }
     }
 
-    bool ParseFromCompressedData(const melon::cord_buf &data,
+    bool ParseFromCompressedData(const turbo::cord_buf &data,
                                  google::protobuf::Message *msg,
                                  CompressType compress_type) {
         if (compress_type == COMPRESS_TYPE_NONE) {
@@ -90,9 +90,9 @@ namespace melon::rpc {
     }
 
     bool SerializeAsCompressedData(const google::protobuf::Message &msg,
-                                   melon::cord_buf *buf, CompressType compress_type) {
+                                   turbo::cord_buf *buf, CompressType compress_type) {
         if (compress_type == COMPRESS_TYPE_NONE) {
-            melon::cord_buf_as_zero_copy_output_stream wrapper(buf);
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(buf);
             return msg.SerializeToZeroCopyStream(&wrapper);
         }
         const CompressHandler *handler = FindCompressHandler(compress_type);

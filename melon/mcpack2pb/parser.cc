@@ -89,13 +89,13 @@ void ObjectIterator::operator++() {
             // skipping untouched values is acceptible.
             _stream->popn(_current_field.value.size());
         } else if (_stream->popped_bytes() < _expected_popped_bytes) {
-            MELON_CHECK(false) << "value of name=" << _current_field.name
+            TURBO_CHECK(false) << "value of name=" << _current_field.name
                          << " is not fully consumed, expected="
                          << _expected_popped_bytes << " actually="
                          << _stream->popped_bytes();
             return set_bad();
         } else {
-            MELON_CHECK(false) << "Over popped in value of name=" << _current_field.name
+            TURBO_CHECK(false) << "Over popped in value of name=" << _current_field.name
                        << " expected=" << _expected_popped_bytes << " actually="
                        << _stream->popped_bytes();
             return set_bad();
@@ -109,7 +109,7 @@ void ObjectIterator::operator++() {
         FieldFixedHead head;
         if (_stream->cut_packed_pod(&head) != sizeof(FieldFixedHead) ||
             left_size() < head.full_size()) {
-            MELON_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
+            TURBO_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
             return set_bad();
         }
         _expected_popped_bytes = _stream->popped_bytes() + head.full_size()
@@ -127,7 +127,7 @@ void ObjectIterator::operator++() {
         FieldShortHead head;
         if (_stream->cut_packed_pod(&head) != sizeof(FieldShortHead) ||
             left_size() < head.full_size()) {
-            MELON_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
+            TURBO_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
             return set_bad();
         }
         _expected_popped_bytes = _stream->popped_bytes() + head.full_size()
@@ -148,7 +148,7 @@ void ObjectIterator::operator++() {
         FieldLongHead head;
         if (_stream->cut_packed_pod(&head) != sizeof(FieldLongHead) ||
             left_size() < head.full_size()) {
-            MELON_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
+            TURBO_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
             return set_bad();
         }
         _expected_popped_bytes = _stream->popped_bytes() + head.full_size()
@@ -173,12 +173,12 @@ void ArrayIterator::operator++() {
             // skipping untouched values is acceptible.
             _stream->popn(_current_field.size());
         } else if (_stream->popped_bytes() < _expected_popped_bytes) {
-            MELON_CHECK(false) << "previous value is not fully consumed, expected="
+            TURBO_CHECK(false) << "previous value is not fully consumed, expected="
                          << _expected_popped_bytes << " actually="
                          << _stream->popped_bytes();
             return set_bad();
         } else {
-            MELON_CHECK(false) << "Over popped in previous value, expected="
+            TURBO_CHECK(false) << "Over popped in previous value, expected="
                        << _expected_popped_bytes << " actually="
                        << _stream->popped_bytes();
             return set_bad();
@@ -192,7 +192,7 @@ void ArrayIterator::operator++() {
         FieldFixedHead head;
         if (_stream->cut_packed_pod(&head) != sizeof(FieldFixedHead) ||
             left_size() < head.full_size()) {
-            MELON_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
+            TURBO_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
             return set_bad();
         }
         _expected_popped_bytes = _stream->popped_bytes() + head.full_size()
@@ -211,7 +211,7 @@ void ArrayIterator::operator++() {
         FieldShortHead head;
         if (_stream->cut_packed_pod(&head) != sizeof(FieldShortHead) ||
             left_size() < head.full_size()) {
-            MELON_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
+            TURBO_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
             return set_bad();
         }
         _expected_popped_bytes = _stream->popped_bytes() + head.full_size()
@@ -232,7 +232,7 @@ void ArrayIterator::operator++() {
         FieldLongHead head;
         if (_stream->cut_packed_pod(&head) != sizeof(FieldLongHead) ||
             left_size() < head.full_size()) {
-            MELON_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
+            TURBO_CHECK(false) << "buffer(size=" << left_size() << ") is not enough";
             return set_bad();
         }
         _expected_popped_bytes = _stream->popped_bytes() + head.full_size()
@@ -253,19 +253,19 @@ void ArrayIterator::operator++() {
 size_t unbox(InputStream* stream) {
     FieldLongHead head;
     if (stream->cut_packed_pod(&head) != sizeof(FieldLongHead)) {
-        MELON_CHECK(false) << "Input buffer is not enough";
+        TURBO_CHECK(false) << "Input buffer is not enough";
         return 0;
     }
     if (head.type() != FIELD_OBJECT) {
-        MELON_CHECK(false) << "type=" << type2str(head.type()) << " is not object";
+        TURBO_CHECK(false) << "type=" << type2str(head.type()) << " is not object";
         return 0;
     }
     if (!(head.type() & FIELD_NON_DELETED_MASK)) {
-        MELON_CHECK(false) << "The item is deleted";
+        TURBO_CHECK(false) << "The item is deleted";
         return 0;
     }
     if (head.name_size() != 0) {
-        MELON_CHECK(false) << "The object should not have name";
+        TURBO_CHECK(false) << "The object should not have name";
         return 0;
     }
     return head.value_size();
@@ -299,24 +299,24 @@ int64_t UnparsedValue::as_int64(const char* var) {
         if (value <= (uint64_t)std::numeric_limits<int64_t>::max()) {
             return (int64_t)value;
         }
-        MELON_CHECK(false) << "uint64=" << value << " to " << var << " overflows";
+        TURBO_CHECK(false) << "uint64=" << value << " to " << var << " overflows";
         _stream->set_bad();
         return std::numeric_limits<int64_t>::max();
     }
     case PRIMITIVE_FIELD_BOOL:
         return _stream->cut_packed_pod<bool>();
     case PRIMITIVE_FIELD_FLOAT:
-        MELON_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
+        TURBO_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     case PRIMITIVE_FIELD_DOUBLE:
-        MELON_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
+        TURBO_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return 0;
 }
@@ -328,7 +328,7 @@ uint64_t UnparsedValue::as_uint64(const char* var) {
         if (value >= 0) {
             return (uint64_t)value;
         }
-        MELON_CHECK(false) << "Can't set int8=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int8=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -337,7 +337,7 @@ uint64_t UnparsedValue::as_uint64(const char* var) {
         if (value >= 0) {
             return (uint64_t)value;
         }
-        MELON_CHECK(false) << "Can't set int16=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int16=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -346,7 +346,7 @@ uint64_t UnparsedValue::as_uint64(const char* var) {
         if (value >= 0) {
             return (uint64_t)value;
         }
-        MELON_CHECK(false) << "Can't set int32=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int32=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -355,7 +355,7 @@ uint64_t UnparsedValue::as_uint64(const char* var) {
         if (value >= 0) {
             return (uint64_t)value;
         }
-        MELON_CHECK(false) << "Can't set int64_t=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int64_t=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -370,17 +370,17 @@ uint64_t UnparsedValue::as_uint64(const char* var) {
     case PRIMITIVE_FIELD_BOOL:
         return _stream->cut_packed_pod<bool>();
     case PRIMITIVE_FIELD_FLOAT:
-        MELON_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
+        TURBO_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     case PRIMITIVE_FIELD_DOUBLE:
-        MELON_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
+        TURBO_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return 0;
 }
@@ -396,11 +396,11 @@ int32_t UnparsedValue::as_int32(const char* var) {
     case PRIMITIVE_FIELD_INT64: {
         const int64_t value = _stream->cut_packed_pod<int64_t>();
         if (value > std::numeric_limits<int32_t>::max()) {
-            MELON_CHECK(false) << "int64_t=" << value << " to " << var << " overflows";
+            TURBO_CHECK(false) << "int64_t=" << value << " to " << var << " overflows";
             _stream->set_bad();
             return std::numeric_limits<int32_t>::max();
         } else if (value < std::numeric_limits<int32_t>::min()) {
-            MELON_CHECK(false) << "int64_t=" << value << " to " << var << " underflows";
+            TURBO_CHECK(false) << "int64_t=" << value << " to " << var << " underflows";
             _stream->set_bad();
             return std::numeric_limits<int32_t>::min();
         }
@@ -415,7 +415,7 @@ int32_t UnparsedValue::as_int32(const char* var) {
         if (value <= (uint32_t)std::numeric_limits<int32_t>::max()) {
             return (int32_t)value;
         }
-        MELON_CHECK(false) << "uint32=" << value << " to " << var << " overflows";
+        TURBO_CHECK(false) << "uint32=" << value << " to " << var << " overflows";
         _stream->set_bad();
         return std::numeric_limits<int32_t>::max();
     }
@@ -424,24 +424,24 @@ int32_t UnparsedValue::as_int32(const char* var) {
         if (value <= (uint64_t)std::numeric_limits<int32_t>::max()) {
             return (int32_t)value;
         }
-        MELON_CHECK(false) << "uint64=" << value << " to " << var << " overflows";
+        TURBO_CHECK(false) << "uint64=" << value << " to " << var << " overflows";
         _stream->set_bad();
         return std::numeric_limits<int32_t>::max();
     }
     case PRIMITIVE_FIELD_BOOL:
         return _stream->cut_packed_pod<bool>();
     case PRIMITIVE_FIELD_FLOAT:
-        MELON_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
+        TURBO_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     case PRIMITIVE_FIELD_DOUBLE:
-        MELON_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
+        TURBO_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return 0;
 }
@@ -453,7 +453,7 @@ uint32_t UnparsedValue::as_uint32(const char* var) {
         if (value >= 0) {
             return (uint32_t)value;
         }
-        MELON_CHECK(false) << "Can't set int8=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int8=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -462,7 +462,7 @@ uint32_t UnparsedValue::as_uint32(const char* var) {
         if (value >= 0) {
             return (uint32_t)value;
         }
-        MELON_CHECK(false) << "Can't set int16=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int16=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -471,7 +471,7 @@ uint32_t UnparsedValue::as_uint32(const char* var) {
         if (value >= 0) {
             return (uint32_t)value;
         }
-        MELON_CHECK(false) << "Can't set int32=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int32=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -481,7 +481,7 @@ uint32_t UnparsedValue::as_uint32(const char* var) {
             value <= (int64_t)std::numeric_limits<uint32_t>::max()) {
             return (uint32_t)value;
         }
-        MELON_CHECK(false) << "Can't set int64_t=" << value << " to " << var;
+        TURBO_CHECK(false) << "Can't set int64_t=" << value << " to " << var;
         _stream->set_bad();
         return 0;
     }
@@ -496,24 +496,24 @@ uint32_t UnparsedValue::as_uint32(const char* var) {
         if (value <= std::numeric_limits<uint32_t>::max()) {
             return (uint32_t)value;
         }
-        MELON_CHECK(false) << "uint64=" << value << " to " << var << " overflows";
+        TURBO_CHECK(false) << "uint64=" << value << " to " << var << " overflows";
         _stream->set_bad();
         return std::numeric_limits<uint32_t>::max();
     }
     case PRIMITIVE_FIELD_BOOL:
         return _stream->cut_packed_pod<bool>();
     case PRIMITIVE_FIELD_FLOAT:
-        MELON_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
+        TURBO_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     case PRIMITIVE_FIELD_DOUBLE:
-        MELON_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
+        TURBO_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
                      << " to " << var;
         _stream->set_bad();
         return 0;
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return 0;
 }
@@ -539,17 +539,17 @@ bool UnparsedValue::as_bool(const char* var) {
     case PRIMITIVE_FIELD_BOOL:
         return _stream->cut_packed_pod<bool>();
     case PRIMITIVE_FIELD_FLOAT:
-        MELON_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
+        TURBO_CHECK(false) << "Can't set float=" << _stream->cut_packed_pod<float>()
                      << " to " << var;
         _stream->set_bad();
         return false;
     case PRIMITIVE_FIELD_DOUBLE:
-        MELON_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
+        TURBO_CHECK(false) << "Can't set double=" << _stream->cut_packed_pod<double>()
                      << " to " << var;
         _stream->set_bad();
         return false;
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return false;
 }
@@ -560,7 +560,7 @@ float UnparsedValue::as_float(const char* var) {
     } else if (_type == FIELD_FLOAT) {
         return _stream->cut_packed_pod<float>();
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return 0;
 }
@@ -571,7 +571,7 @@ double UnparsedValue::as_double(const char* var) {
     } else if (_type == FIELD_FLOAT) {
         return _stream->cut_packed_pod<float>();
     }
-    MELON_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
+    TURBO_CHECK(false) << "Can't set type=" << type2str(_type) << " to " << var;
     _stream->set_bad();
     return 0;
 }
@@ -579,7 +579,7 @@ double UnparsedValue::as_double(const char* var) {
 void UnparsedValue::as_string(std::string* out, const char* var) {
     out->resize(_size - 1);
     if (_stream->cutn(&(*out)[0], _size - 1) != _size - 1) {
-        MELON_CHECK(false) << "Not enough data for " << var;
+        TURBO_CHECK(false) << "Not enough data for " << var;
         return;
     }
     _stream->popn(1);
@@ -594,7 +594,7 @@ std::string UnparsedValue::as_string(const char* var) {
 void UnparsedValue::as_binary(std::string* out, const char* var) {
     out->resize(_size);
     if (_stream->cutn(&(*out)[0], _size) != _size) {
-        MELON_CHECK(false) << "Not enough data for " << var;
+        TURBO_CHECK(false) << "Not enough data for " << var;
         return;
     }
 }

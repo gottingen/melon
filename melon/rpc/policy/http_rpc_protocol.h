@@ -84,16 +84,16 @@ namespace melon::rpc {
             HttpContext(bool read_body_progressively)
                     : InputMessageBase(), HttpMessage(read_body_progressively), _is_stage2(false) {
                 // add one ref for Destroy
-                melon::container::intrusive_ptr<HttpContext>(this).detach();
+                turbo::container::intrusive_ptr<HttpContext>(this).detach();
             }
 
             void AddOneRefForStage2() {
-                melon::container::intrusive_ptr<HttpContext>(this).detach();
+                turbo::container::intrusive_ptr<HttpContext>(this).detach();
                 _is_stage2 = true;
             }
 
             void RemoveOneRefForStage2() {
-                melon::container::intrusive_ptr<HttpContext>(this, false);
+                turbo::container::intrusive_ptr<HttpContext>(this, false);
             }
 
             // True if AddOneRefForStage2() was ever called.
@@ -114,7 +114,7 @@ namespace melon::rpc {
         };
 
         // Implement functions required in protocol.h
-        ParseResult ParseHttpMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseHttpMessage(turbo::cord_buf *source, Socket *socket,
                                      bool read_eof, const void *arg);
 
         void ProcessHttpRequest(InputMessageBase *msg);
@@ -123,19 +123,19 @@ namespace melon::rpc {
 
         bool VerifyHttpRequest(const InputMessageBase *msg);
 
-        void SerializeHttpRequest(melon::cord_buf *request_buf,
+        void SerializeHttpRequest(turbo::cord_buf *request_buf,
                                   Controller *cntl,
                                   const google::protobuf::Message *msg);
 
-        void PackHttpRequest(melon::cord_buf *buf,
+        void PackHttpRequest(turbo::cord_buf *buf,
                              SocketMessage **user_message_out,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *method,
                              Controller *controller,
-                             const melon::cord_buf &request,
+                             const turbo::cord_buf &request,
                              const Authenticator *auth);
 
-        bool ParseHttpServerAddress(melon::end_point *out, const char *server_addr_and_port);
+        bool ParseHttpServerAddress(turbo::end_point *out, const char *server_addr_and_port);
 
         const std::string &GetHttpMethodName(const google::protobuf::MethodDescriptor *,
                                              const Controller *);

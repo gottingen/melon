@@ -20,8 +20,8 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
 #include "melon/rpc/server.h"                   // Server
@@ -45,7 +45,7 @@ namespace melon::rpc {
         void UbrpcAdaptor::ParseNsheadMeta(
                 const Server &, const NsheadMessage &request, Controller *cntl,
                 NsheadMeta *out_meta) const {
-            melon::cord_buf_as_zero_copy_input_stream zc_stream(request.body);
+            turbo::cord_buf_as_zero_copy_input_stream zc_stream(request.body);
             mcpack2pb::InputStream stream(&zc_stream);
             if (!::mcpack2pb::unbox(&stream)) {
                 cntl->SetFailed(EREQUEST, "Request is not a compack/mcpack2 object");
@@ -147,7 +147,7 @@ namespace melon::rpc {
             }
 
             // Change request.body with the user's request.
-            melon::cord_buf &buf = const_cast<melon::cord_buf &>(request.body);
+            turbo::cord_buf &buf = const_cast<turbo::cord_buf &>(request.body);
             buf.pop_front(user_req_offset);
             if (buf.size() != user_req_size) {
                 if (buf.size() < user_req_size) {
@@ -175,7 +175,7 @@ namespace melon::rpc {
                 return cntl->SetFailed(EREQUEST, "Fail to find parser of %s",
                                        msg_name.c_str());
             }
-            melon::cord_buf_as_zero_copy_input_stream bodystream(raw_req.body);
+            turbo::cord_buf_as_zero_copy_input_stream bodystream(raw_req.body);
             if (!handler.parse_body(pb_req, &bodystream, raw_req.body.size())) {
                 cntl->SetFailed(EREQUEST, "Fail to parse %s", msg_name.c_str());
                 return;
@@ -183,8 +183,8 @@ namespace melon::rpc {
         }
 
         static void AppendError(const NsheadMeta &meta,
-                                Controller *cntl, melon::cord_buf &buf) {
-            melon::cord_buf_as_zero_copy_output_stream wrapper(&buf);
+                                Controller *cntl, turbo::cord_buf &buf) {
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(&buf);
             mcpack2pb::OutputStream ostream(&wrapper);
             mcpack2pb::Serializer sr(&ostream);
             sr.begin_object();
@@ -210,7 +210,7 @@ namespace melon::rpc {
                 const google::protobuf::Message *pb_res, NsheadMessage *raw_res) const {
             CompressType type = cntl->response_compress_type();
             if (type != COMPRESS_TYPE_NONE) {
-                MELON_LOG(WARNING) << "ubrpc protocol doesn't support compression";
+                TURBO_LOG(WARNING) << "ubrpc protocol doesn't support compression";
                 type = COMPRESS_TYPE_NONE;
             }
 
@@ -235,7 +235,7 @@ namespace melon::rpc {
                 return AppendError(meta, cntl, raw_res->body);
             }
 
-            melon::cord_buf_as_zero_copy_output_stream owrapper(&raw_res->body);
+            turbo::cord_buf_as_zero_copy_output_stream owrapper(&raw_res->body);
             mcpack2pb::OutputStream ostream(&owrapper);
             mcpack2pb::Serializer sr(&ostream);
             sr.begin_object();
@@ -273,7 +273,7 @@ namespace melon::rpc {
             }
         }
 
-        static void ParseResponse(Controller *cntl, melon::cord_buf &buf,
+        static void ParseResponse(Controller *cntl, turbo::cord_buf &buf,
                                   google::protobuf::Message *res) {
             if (res == nullptr) {
                 // silently ignore response.
@@ -285,7 +285,7 @@ namespace melon::rpc {
                 return cntl->SetFailed(ERESPONSE, "Fail to find parser of %s",
                                        msg_name.c_str());
             }
-            melon::cord_buf_as_zero_copy_input_stream zc_stream(buf);
+            turbo::cord_buf_as_zero_copy_input_stream zc_stream(buf);
             mcpack2pb::InputStream stream(&zc_stream);
             if (!::mcpack2pb::unbox(&stream)) {
                 cntl->SetFailed(ERESPONSE, "Response is not a compack/mcpack2 object");
@@ -429,7 +429,7 @@ namespace melon::rpc {
                 }
                 buf.pop_back(buf.size() - user_res_size);
             }
-            melon::cord_buf_as_zero_copy_input_stream bufstream(buf);
+            turbo::cord_buf_as_zero_copy_input_stream bufstream(buf);
             if (!handler.parse_body(res, &bufstream, buf.size())) {
                 cntl->SetFailed(ERESPONSE, "Fail to parse %s from response.content[0]."
                                            "result_params.%s", msg_name.c_str(), response_name);
@@ -438,7 +438,7 @@ namespace melon::rpc {
         }
 
         void ProcessUbrpcResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             Socket *socket = msg->socket();
 
@@ -447,8 +447,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -469,7 +469,7 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        static void SerializeUbrpcRequest(melon::cord_buf *buf, Controller *cntl,
+        static void SerializeUbrpcRequest(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *request,
                                           mcpack2pb::SerializationFormat format) {
             CompressType type = cntl->request_compress_type();
@@ -487,7 +487,7 @@ namespace melon::rpc {
                                        msg_name.c_str());
             }
 
-            melon::cord_buf_as_zero_copy_output_stream owrapper(buf);
+            turbo::cord_buf_as_zero_copy_output_stream owrapper(buf);
             mcpack2pb::OutputStream ostream(&owrapper);
             mcpack2pb::Serializer sr(&ostream);
             sr.begin_object();
@@ -525,22 +525,22 @@ namespace melon::rpc {
             }
         }
 
-        void SerializeUbrpcCompackRequest(melon::cord_buf *buf, Controller *cntl,
+        void SerializeUbrpcCompackRequest(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *request) {
             return SerializeUbrpcRequest(buf, cntl, request, mcpack2pb::FORMAT_COMPACK);
         }
 
-        void SerializeUbrpcMcpack2Request(melon::cord_buf *buf, Controller *cntl,
+        void SerializeUbrpcMcpack2Request(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *request) {
             return SerializeUbrpcRequest(buf, cntl, request, mcpack2pb::FORMAT_MCPACK_V2);
         }
 
-        void PackUbrpcRequest(melon::cord_buf *buf,
+        void PackUbrpcRequest(turbo::cord_buf *buf,
                               SocketMessage **,
                               uint64_t correlation_id,
                               const google::protobuf::MethodDescriptor *,
                               Controller *controller,
-                              const melon::cord_buf &request,
+                              const turbo::cord_buf &request,
                               const Authenticator * /*not supported*/) {
             ControllerPrivateAccessor accessor(controller);
             if (controller->connection_type() == CONNECTION_TYPE_SINGLE) {

@@ -23,7 +23,7 @@
 #define  MELON_FIBER_INTERNAL_EXECUTION_QUEUE_H_
 
 #include "melon/fiber/internal/fiber.h"
-#include "melon/base/type_traits.h"
+#include "turbo/base/type_traits.h"
 
 namespace melon::fiber_internal {
 
@@ -42,7 +42,7 @@ namespace melon::fiber_internal {
     class ExecutionQueueBase;
 
     class TaskIteratorBase {
-        MELON_DISALLOW_COPY_AND_ASSIGN(TaskIteratorBase);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(TaskIteratorBase);
 
         friend class ExecutionQueueBase;
 
@@ -198,7 +198,7 @@ namespace melon::fiber_internal {
     // Execute a task with defaut TaskOptions (normal task);
     template<typename T>
     int execution_queue_execute(ExecutionQueueId<T> id,
-                                typename melon::add_const_reference<T>::type task);
+                                typename turbo::add_const_reference<T>::type task);
 
     // Thread-safe and Wait-free.
     // Execute a task with options. e.g
@@ -207,12 +207,12 @@ namespace melon::fiber_internal {
     // If |handle| is not nullptr, we will assign it with the hanlder of this task.
     template<typename T>
     int execution_queue_execute(ExecutionQueueId<T> id,
-                                typename melon::add_const_reference<T>::type task,
+                                typename turbo::add_const_reference<T>::type task,
                                 const TaskOptions *options);
 
     template<typename T>
     int execution_queue_execute(ExecutionQueueId<T> id,
-                                typename melon::add_const_reference<T>::type task,
+                                typename turbo::add_const_reference<T>::type task,
                                 const TaskOptions *options,
                                 TaskHandle *handle);
 

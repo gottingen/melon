@@ -20,8 +20,8 @@
 #define MELON_RPC_THRIFT_MESSAGE_H_
 
 #include <google/protobuf/message.h>
-#include "melon/io/cord_buf.h"
-#include "melon/base/class_name.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/base/class_name.h"
 #include "melon/rpc/channel_base.h"
 #include "melon/rpc/controller.h"
 #include "melon/rpc/proto_base.pb.h"
@@ -60,7 +60,7 @@ namespace melon::rpc {
         friend class ThriftStub;
 
     public:
-        melon::cord_buf body; // ~= "{ raw_instance }"
+        turbo::cord_buf body; // ~= "{ raw_instance }"
         int16_t field_id;  // must be set when body is set.
 
     private:
@@ -150,7 +150,7 @@ namespace melon::rpc {
 
     namespace policy {
 // Implemented in policy/thrift_protocol.cpp
-        bool ReadThriftStruct(const melon::cord_buf &body,
+        bool ReadThriftStruct(const turbo::cord_buf &body,
                               ThriftMessageBase *raw_msg,
                               int16_t expected_fid);
     }
@@ -230,7 +230,7 @@ namespace melon::rpc {
 
         if (!body.empty()) {
             if (!policy::ReadThriftStruct(body, _raw_instance, field_id)) {
-                MELON_LOG(ERROR) << "Fail to parse " << melon::base::class_name<T>();
+                TURBO_LOG(ERROR) << "Fail to parse " << turbo::base::class_name<T>();
             }
         }
         return raw_msg;

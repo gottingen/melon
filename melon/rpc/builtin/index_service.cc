@@ -18,7 +18,7 @@
 
 #include <gflags/gflags.h>                  // DECLARE_xxx
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"                      // gettimeofday_us
+#include "turbo/times/time.h"                      // gettimeofday_us
 #include "melon/rpc/server.h"                    // Server
 #include "melon/rpc/builtin/index_service.h"
 #include "melon/rpc/builtin/status_service.h"
@@ -62,11 +62,11 @@ namespace melon::rpc {
         }
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
-        const melon::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
+        const turbo::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
         const char *const NL = (use_html ? "<br>\n" : "\n");
         const char *const SP = (use_html ? "&nbsp;" : "  ");
 
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         if (use_html) {
             os << "<!DOCTYPE html><html>";
             if (as_more) {
@@ -115,7 +115,7 @@ namespace melon::rpc {
                << SP << Path("/rpcz/stats", html_addr) << " : Statistics of rpcz" << NL;
 
             std::ostringstream tmp_oss;
-            const int64_t seconds_before = melon::get_current_time_micros() - 30 * 1000000L;
+            const int64_t seconds_before = turbo::get_current_time_micros() - 30 * 1000000L;
             tmp_oss << "/rpcz?" << TIME_STR << '=';
             PrintRealDateTime(tmp_oss, seconds_before, true);
             os << SP << Path(tmp_oss.str().c_str(), html_addr)
@@ -143,10 +143,10 @@ namespace melon::rpc {
                << (!IsHeapProfilerEnabled() ? " (disabled)" : "") << NL;
         }
         os << "curl -H 'Content-Type: application/json' -d 'JSON' ";
-        if (melon::is_endpoint_extended(server->listen_address())) {
+        if (turbo::is_endpoint_extended(server->listen_address())) {
             os << "<listen_address>";
         } else {
-            const melon::end_point my_addr(melon::my_ip(), server->listen_address().port);
+            const turbo::end_point my_addr(turbo::my_ip(), server->listen_address().port);
             os << my_addr;
         }
         os << "/ServiceName/MethodName : Call method by http+json" << NL
@@ -154,7 +154,7 @@ namespace melon::rpc {
            << Path("/version", html_addr)
            << " : Version of this server, set by Server::set_version()" << NL
            << Path("/health", html_addr) << " : Test healthy" << NL
-           << Path("/vlog", html_addr) << " : List all MELON_VLOG callsites" << NL
+           << Path("/vlog", html_addr) << " : List all TURBO_VLOG callsites" << NL
            << Path("/sockets", html_addr) << " : Check status of a Socket" << NL
            << Path("/fibers", html_addr) << " : Check status of a fiber" << NL
            << Path("/token", html_addr) << " : Check status of a fiber_id" << NL

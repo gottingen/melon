@@ -7,7 +7,7 @@
 
 #include "testing/gtest_wrap.h"
 #include "melon/metrics/detail/percentile.h"
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <fstream>
 
 class PercentileTest : public testing::Test {
@@ -33,7 +33,7 @@ TEST_F(PercentileTest, add) {
             EXPECT_GT(value, (k * 1000 - 500)) << "k=" << k;
             EXPECT_LT(value, (k * 1000 + 500)) << "k=" << k;
         }
-        MELON_LOG(INFO) << "99%:" << b.get_number(0.99) << ' '
+        TURBO_LOG(INFO) << "99%:" << b.get_number(0.99) << ' '
                         << "99.9%:" << b.get_number(0.999) << ' '
                         << "99.99%:" << b.get_number(0.9999);
 

@@ -19,9 +19,9 @@
 #ifndef MELON_RPC_RPC_DUMP_H_
 #define MELON_RPC_RPC_DUMP_H_
 
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 #include <gflags/gflags_declare.h>
-#include "melon/io/cord_buf.h"                            // cord_buf
+#include "turbo/io/cord_buf.h"                            // cord_buf
 #include "melon/metrics/collector.h"
 #include "melon/rpc/rpc_dump.pb.h"                       // RpcDumpMeta
 
@@ -46,7 +46,7 @@ namespace melon::rpc {
 
     class SampledRequest : public melon::Collected {
     public:
-        melon::cord_buf request;
+        turbo::cord_buf request;
         RpcDumpMeta meta;
 
         // Implement methods of Sampled.
@@ -92,11 +92,11 @@ namespace melon::rpc {
     private:
         // Parse on request from the buf. Set `format_error' to true when
         // the buf does not match the format.
-        static SampledRequest *Pop(melon::cord_buf &buf, bool *format_error);
+        static SampledRequest *Pop(turbo::cord_buf &buf, bool *format_error);
 
-        melon::IOPortal _cur_buf;
+        turbo::IOPortal _cur_buf;
         int _cur_fd;
-        melon::directory_iterator _enum;
+        turbo::directory_iterator _enum;
         std::string _dir;
     };
 

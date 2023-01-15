@@ -19,8 +19,8 @@
 #include "melon/rpc/stream.h"
 
 #include <gflags/gflags.h>
-#include "melon/times/time.h"
-#include "melon/memory/object_pool.h"
+#include "turbo/times/time.h"
+#include "turbo/memory/object_pool.h"
 #include <memory>
 #include "melon/fiber/internal/unstable.h"
 #include "melon/rpc/log.h"
@@ -36,19 +36,19 @@ namespace melon::rpc {
 
     DECLARE_bool(usercode_in_pthread);
 
-    const static melon::cord_buf *TIMEOUT_TASK = (melon::cord_buf *) -1L;
+    const static turbo::cord_buf *TIMEOUT_TASK = (turbo::cord_buf *) -1L;
 
     Stream::Stream()
             : _host_socket(nullptr), _fake_socket_weak_ref(nullptr), _connected(false), _closed(false), _produced(0),
               _remote_consumed(0), _local_consumed(0), _parse_rpc_response(false), _pending_buf(nullptr),
               _start_idle_timer_us(0), _idle_timer(0) {
         _connect_meta.on_connect = nullptr;
-        MELON_CHECK_EQ(0, fiber_mutex_init(&_connect_mutex, nullptr));
-        MELON_CHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, nullptr));
+        TURBO_CHECK_EQ(0, fiber_mutex_init(&_connect_mutex, nullptr));
+        TURBO_CHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, nullptr));
     }
 
     Stream::~Stream() {
-        MELON_CHECK(_host_socket == nullptr);
+        TURBO_CHECK(_host_socket == nullptr);
         fiber_mutex_destroy(&_connect_mutex);
         fiber_mutex_destroy(&_congestion_control_mutex);
         fiber_token_list_destroy(&_writable_wait_list);
@@ -77,7 +77,7 @@ namespace melon::rpc {
         q_opt.fiber_attr
                 = FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
         if (melon::fiber_internal::execution_queue_start(&s->_consumer_queue, &q_opt, Consume, s) != 0) {
-            MELON_LOG(FATAL) << "Fail to create ExecutionQueue";
+            TURBO_LOG(FATAL) << "Fail to create ExecutionQueue";
             delete s;
             return -1;
         }
@@ -89,7 +89,7 @@ namespace melon::rpc {
             return -1;
         }
         SocketUniquePtr ptr;
-        MELON_CHECK_EQ(0, Socket::Address(fake_sock_id, &ptr));
+        TURBO_CHECK_EQ(0, Socket::Address(fake_sock_id, &ptr));
         s->_fake_socket_weak_ref = ptr.get();
         s->_id = fake_sock_id;
         *id = s->id();
@@ -102,7 +102,7 @@ namespace melon::rpc {
         if (_connected) {
             // Send CLOSE frame
             RPC_VLOG << "Send close frame";
-            MELON_CHECK(_host_socket != nullptr);
+            TURBO_CHECK(_host_socket != nullptr);
             policy::SendStreamClose(_host_socket,
                                     _remote_settings.stream_id(), id());
         }
@@ -116,22 +116,22 @@ namespace melon::rpc {
     }
 
     ssize_t Stream::CutMessageIntoFileDescriptor(int /*fd*/,
-                                                 melon::cord_buf **data_list,
+                                                 turbo::cord_buf **data_list,
                                                  size_t size) {
         if (_host_socket == nullptr) {
-            MELON_CHECK(false) << "Not connected";
+            TURBO_CHECK(false) << "Not connected";
             errno = EBADF;
             return -1;
         }
         if (!_remote_settings.writable()) {
-            MELON_LOG(WARNING) << "The remote side of Stream=" << id()
+            TURBO_LOG(WARNING) << "The remote side of Stream=" << id()
                                << "->" << _remote_settings.stream_id()
                                << "@" << _host_socket->remote_side()
                                << " doesn't have a handler";
             errno = EBADF;
             return -1;
         }
-        melon::cord_buf out;
+        turbo::cord_buf out;
         ssize_t len = 0;
         for (size_t i = 0; i < size; ++i) {
             StreamFrameMeta fm;
@@ -148,12 +148,12 @@ namespace melon::rpc {
         return len;
     }
 
-    void Stream::WriteToHostSocket(melon::cord_buf *b) {
+    void Stream::WriteToHostSocket(turbo::cord_buf *b) {
         MELON_RPC_HANDLE_EOVERCROWDED(_host_socket->Write(b));
     }
 
-    ssize_t Stream::CutMessageIntoSSLChannel(SSL *, melon::cord_buf **, size_t) {
-        MELON_CHECK(false) << "Stream does support SSL";
+    ssize_t Stream::CutMessageIntoSSLChannel(SSL *, turbo::cord_buf **, size_t) {
+        TURBO_CHECK(false) << "Stream does support SSL";
         errno = EINVAL;
         return -1;
     }
@@ -171,10 +171,10 @@ namespace melon::rpc {
 
     int Stream::Connect(Socket *ptr, const timespec *,
                         int (*on_connect)(int, int, void *), void *data) {
-        MELON_CHECK_EQ(ptr->id(), _id);
+        TURBO_CHECK_EQ(ptr->id(), _id);
         fiber_mutex_lock(&_connect_mutex);
         if (_connect_meta.on_connect != nullptr) {
-            MELON_CHECK(false) << "Connect is supposed to be called once";
+            TURBO_CHECK(false) << "Connect is supposed to be called once";
             fiber_mutex_unlock(&_connect_mutex);
             return -1;
         }
@@ -188,7 +188,7 @@ namespace melon::rpc {
             fiber_mutex_unlock(&_connect_mutex);
             fiber_id_t tid;
             if (fiber_start_urgent(&tid, &FIBER_ATTR_NORMAL, RunOnConnect, meta) != 0) {
-                MELON_LOG(FATAL) << "Fail to start fiber, " << melon_error();
+                TURBO_LOG(FATAL) << "Fail to start fiber, " << turbo_error();
                 RunOnConnect(meta);
             }
             return 0;
@@ -208,18 +208,18 @@ namespace melon::rpc {
             return;
         }
         if (_connected) {
-            MELON_CHECK(false);
+            TURBO_CHECK(false);
             fiber_mutex_unlock(&_connect_mutex);
             return;
         }
-        MELON_CHECK(_host_socket != nullptr);
+        TURBO_CHECK(_host_socket != nullptr);
         if (remote_settings != nullptr) {
-            MELON_CHECK(!_remote_settings.IsInitialized());
+            TURBO_CHECK(!_remote_settings.IsInitialized());
             _remote_settings.MergeFrom(*remote_settings);
         } else {
-            MELON_CHECK(_remote_settings.IsInitialized());
+            TURBO_CHECK(_remote_settings.IsInitialized());
         }
-        MELON_CHECK(_host_socket != nullptr);
+        TURBO_CHECK(_host_socket != nullptr);
         RPC_VLOG << "stream=" << id() << " is connected to stream_id="
                  << _remote_settings.stream_id() << " at host_socket=" << *_host_socket;
         _connected = true;
@@ -242,7 +242,7 @@ namespace melon::rpc {
             fiber_mutex_unlock(&_connect_mutex);
             fiber_id_t tid;
             if (fiber_start_urgent(&tid, &FIBER_ATTR_NORMAL, RunOnConnect, meta) != 0) {
-                MELON_LOG(FATAL) << "Fail to start fiber, " << melon_error();
+                TURBO_LOG(FATAL) << "Fail to start fiber, " << turbo_error();
                 RunOnConnect(meta);
             }
             return;
@@ -250,7 +250,7 @@ namespace melon::rpc {
         fiber_mutex_unlock(&_connect_mutex);
     }
 
-    int Stream::AppendIfNotFull(const melon::cord_buf &data) {
+    int Stream::AppendIfNotFull(const turbo::cord_buf &data) {
         if (_options.max_buf_size > 0) {
             std::unique_lock<fiber_mutex_t> lck(_congestion_control_mutex);
             if (_produced >= _remote_consumed + (size_t) _options.max_buf_size) {
@@ -266,12 +266,12 @@ namespace melon::rpc {
             }
             _produced += data.length();
         }
-        melon::cord_buf copied_data(data);
+        turbo::cord_buf copied_data(data);
         const int rc = _fake_socket_weak_ref->Write(&copied_data);
         if (rc != 0) {
             // Stream may be closed by peer before
-            MELON_LOG(WARNING) << "Fail to write to _fake_socket, " << melon_error();
-            MELON_SCOPED_LOCK(_congestion_control_mutex);
+            TURBO_LOG(WARNING) << "Fail to write to _fake_socket, " << turbo_error();
+            TURBO_SCOPED_LOCK(_congestion_control_mutex);
             _produced -= data.length();
             return -1;
         }
@@ -279,7 +279,7 @@ namespace melon::rpc {
     }
 
     void Stream::SetRemoteConsumed(size_t new_remote_consumed) {
-        MELON_CHECK(_options.max_buf_size > 0);
+        TURBO_CHECK(_options.max_buf_size > 0);
         fiber_token_list_t tmplist;
         fiber_token_list_init(&tmplist, 0, 0);
         fiber_mutex_lock(&_congestion_control_mutex);
@@ -320,7 +320,7 @@ namespace melon::rpc {
                                               : &FIBER_ATTR_NORMAL;
             fiber_id_t tid;
             if (fiber_start_background(&tid, attr, RunOnWritable, wm) != 0) {
-                MELON_LOG(FATAL) << "Fail to start fiber" << melon_error();
+                TURBO_LOG(FATAL) << "Fail to start fiber" << turbo_error();
                 RunOnWritable(wm);
             }
         } else {
@@ -345,7 +345,7 @@ namespace melon::rpc {
         fiber_token_t wait_id;
         const int rc = fiber_token_create(&wait_id, wm, TriggerOnWritable);
         if (rc != 0) {
-            MELON_CHECK(false) << "Fail to create fiber_token, " << melon_error(rc);
+            TURBO_CHECK(false) << "Fail to create fiber_token, " << turbo_error(rc);
             wm->error_code = rc;
             RunOnWritable(wm);
             return;
@@ -353,28 +353,28 @@ namespace melon::rpc {
         if (join_id) {
             *join_id = wait_id;
         }
-        MELON_CHECK_EQ(0, fiber_token_lock(wait_id, nullptr));
+        TURBO_CHECK_EQ(0, fiber_token_lock(wait_id, nullptr));
         if (due_time != nullptr) {
             wm->has_timer = true;
             const int rc = fiber_timer_add(&wm->timer, *due_time,
                                            OnTimedOut,
                                            reinterpret_cast<void *>(wait_id.value));
             if (rc != 0) {
-                MELON_LOG(ERROR) << "Fail to add timer, " << melon_error(rc);
-                MELON_CHECK_EQ(0, TriggerOnWritable(wait_id, wm, rc));
+                TURBO_LOG(ERROR) << "Fail to add timer, " << turbo_error(rc);
+                TURBO_CHECK_EQ(0, TriggerOnWritable(wait_id, wm, rc));
             }
         }
         fiber_mutex_lock(&_congestion_control_mutex);
         if (_options.max_buf_size <= 0
             || _produced < _remote_consumed + (size_t) _options.max_buf_size) {
             fiber_mutex_unlock(&_congestion_control_mutex);
-            MELON_CHECK_EQ(0, TriggerOnWritable(wait_id, wm, 0));
+            TURBO_CHECK_EQ(0, TriggerOnWritable(wait_id, wm, 0));
             return;
         } else {
             fiber_token_list_add(&_writable_wait_list, wait_id);
             fiber_mutex_unlock(&_congestion_control_mutex);
         }
-        MELON_CHECK_EQ(0, fiber_token_unlock(wait_id));
+        TURBO_CHECK_EQ(0, fiber_token_unlock(wait_id));
     }
 
     void Stream::Wait(void (*on_writable)(StreamId, void *, int), void *arg,
@@ -396,7 +396,7 @@ namespace melon::rpc {
         return rc;
     }
 
-    int Stream::OnReceived(const StreamFrameMeta &fm, melon::cord_buf *buf, Socket *sock) {
+    int Stream::OnReceived(const StreamFrameMeta &fm, turbo::cord_buf *buf, Socket *sock) {
         if (_host_socket == nullptr) {
             if (SetHostSocket(sock) != 0) {
                 return -1;
@@ -405,21 +405,21 @@ namespace melon::rpc {
         switch (fm.frame_type()) {
             case FRAME_TYPE_FEEDBACK:
                 SetRemoteConsumed(fm.feedback().consumed_size());
-                MELON_CHECK(buf->empty());
+                TURBO_CHECK(buf->empty());
                 break;
             case FRAME_TYPE_DATA:
                 if (_pending_buf != nullptr) {
                     _pending_buf->append(*buf);
                     buf->clear();
                 } else {
-                    _pending_buf = new melon::cord_buf;
+                    _pending_buf = new turbo::cord_buf;
                     _pending_buf->swap(*buf);
                 }
                 if (!fm.has_continuation()) {
-                    melon::cord_buf *tmp = _pending_buf;
+                    turbo::cord_buf *tmp = _pending_buf;
                     _pending_buf = nullptr;
                     if (melon::fiber_internal::execution_queue_execute(_consumer_queue, tmp) != 0) {
-                        MELON_CHECK(false) << "Fail to push into channel";
+                        TURBO_CHECK(false) << "Fail to push into channel";
                         delete tmp;
                         Close();
                     }
@@ -443,7 +443,7 @@ namespace melon::rpc {
 
     class MessageBatcher {
     public:
-        MessageBatcher(melon::cord_buf *storage[], size_t cap, Stream *s)
+        MessageBatcher(turbo::cord_buf *storage[], size_t cap, Stream *s)
                 : _storage(storage), _cap(cap), _size(0), _total_length(0), _s(s) {}
 
         ~MessageBatcher() { flush(); }
@@ -459,7 +459,7 @@ namespace melon::rpc {
             _size = 0;
         }
 
-        void push(melon::cord_buf *buf) {
+        void push(turbo::cord_buf *buf) {
             if (_size == _cap) {
                 flush();
             }
@@ -471,14 +471,14 @@ namespace melon::rpc {
         size_t total_length() { return _total_length; }
 
     private:
-        melon::cord_buf **_storage;
+        turbo::cord_buf **_storage;
         size_t _cap;
         size_t _size;
         size_t _total_length;
         Stream *_s;
     };
 
-    int Stream::Consume(void *meta, melon::fiber_internal::TaskIterator<melon::cord_buf *> &iter) {
+    int Stream::Consume(void *meta, melon::fiber_internal::TaskIterator<turbo::cord_buf *> &iter) {
         Stream *s = (Stream *) meta;
         s->StopIdleTimer();
         if (iter.is_queue_stopped()) {
@@ -493,11 +493,11 @@ namespace melon::rpc {
             delete s;
             return 0;
         }
-        DEFINE_SMALL_ARRAY(melon::cord_buf*, buf_list, s->_options.messages_in_batch, 256);
+        DEFINE_SMALL_ARRAY(turbo::cord_buf*, buf_list, s->_options.messages_in_batch, 256);
         MessageBatcher mb(buf_list, s->_options.messages_in_batch, s);
         bool has_timeout_task = false;
         for (; iter; ++iter) {
-            melon::cord_buf *t = *iter;
+            turbo::cord_buf *t = *iter;
             if (t == TIMEOUT_TASK) {
                 has_timeout_task = true;
             } else {
@@ -529,14 +529,14 @@ namespace melon::rpc {
         fm.set_stream_id(_remote_settings.stream_id());
         fm.set_source_stream_id(id());
         fm.mutable_feedback()->set_consumed_size(_local_consumed);
-        melon::cord_buf out;
+        turbo::cord_buf out;
         policy::PackStreamMessage(&out, fm, nullptr);
         WriteToHostSocket(&out);
     }
 
     int Stream::SetHostSocket(Socket *host_socket) {
         if (_host_socket != nullptr) {
-            MELON_CHECK(false) << "SetHostSocket has already been called";
+            TURBO_CHECK(false) << "SetHostSocket has already been called";
             return -1;
         }
         SocketUniquePtr ptr;
@@ -556,20 +556,20 @@ namespace melon::rpc {
     }
 
     void OnIdleTimeout(void *arg) {
-        melon::fiber_internal::ExecutionQueueId<melon::cord_buf *> q = {(uint64_t) arg};
-        melon::fiber_internal::execution_queue_execute(q, (melon::cord_buf *) TIMEOUT_TASK);
+        melon::fiber_internal::ExecutionQueueId<turbo::cord_buf *> q = {(uint64_t) arg};
+        melon::fiber_internal::execution_queue_execute(q, (turbo::cord_buf *) TIMEOUT_TASK);
     }
 
     void Stream::StartIdleTimer() {
         if (_options.idle_timeout_ms < 0) {
             return;
         }
-        _start_idle_timer_us = melon::get_current_time_micros();
-        timespec due_time = melon::time_point::from_unix_micros(
+        _start_idle_timer_us = turbo::get_current_time_micros();
+        timespec due_time = turbo::time_point::from_unix_micros(
                 _start_idle_timer_us + _options.idle_timeout_ms * 1000).to_timespec();
         const int rc = fiber_timer_add(&_idle_timer, due_time, OnIdleTimeout,
                                        (void *) (_consumer_queue.value));
-        MELON_LOG_IF(WARNING, rc != 0) << "Fail to add timer";
+        TURBO_LOG_IF(WARNING, rc != 0) << "Fail to add timer";
     }
 
     void Stream::StopIdleTimer() {
@@ -609,31 +609,31 @@ namespace melon::rpc {
         return 0;
     }
 
-    void Stream::HandleRpcResponse(melon::cord_buf *response_buffer) {
-        MELON_CHECK(!_remote_settings.IsInitialized());
-        MELON_CHECK(_host_socket != nullptr);
-        std::unique_ptr<melon::cord_buf> buf_guard(response_buffer);
+    void Stream::HandleRpcResponse(turbo::cord_buf *response_buffer) {
+        TURBO_CHECK(!_remote_settings.IsInitialized());
+        TURBO_CHECK(_host_socket != nullptr);
+        std::unique_ptr<turbo::cord_buf> buf_guard(response_buffer);
         ParseResult pr = policy::ParseRpcMessage(response_buffer, nullptr, true, nullptr);
         if (!pr.is_ok()) {
-            MELON_CHECK(false);
+            TURBO_CHECK(false);
             Close();
             return;
         }
         InputMessageBase *msg = pr.message();
         if (msg == nullptr) {
-            MELON_CHECK(false);
+            TURBO_CHECK(false);
             Close();
             return;
         }
         _host_socket->PostponeEOF();
         _host_socket->ReAddress(&msg->_socket);
-        msg->_received_us = melon::get_current_time_micros();
-        msg->_base_real_us = melon::get_current_time_micros();
+        msg->_received_us = turbo::get_current_time_micros();
+        msg->_base_real_us = turbo::get_current_time_micros();
         msg->_arg = nullptr; // ProcessRpcResponse() don't need arg
         policy::ProcessRpcResponse(msg);
     }
 
-    int StreamWrite(StreamId stream_id, const melon::cord_buf &message) {
+    int StreamWrite(StreamId stream_id, const turbo::cord_buf &message) {
         SocketUniquePtr ptr;
         if (Socket::Address(stream_id, &ptr) != 0) {
             return EINVAL;
@@ -661,7 +661,7 @@ namespace melon::rpc {
                                               : &FIBER_ATTR_NORMAL;
             fiber_id_t tid;
             if (fiber_start_background(&tid, attr, Stream::RunOnWritable, wm) != 0) {
-                MELON_PLOG(FATAL) << "Fail to start fiber";
+                TURBO_PLOG(FATAL) << "Fail to start fiber";
                 Stream::RunOnWritable(wm);
             }
             return;
@@ -686,11 +686,11 @@ namespace melon::rpc {
     int StreamCreate(StreamId *request_stream, Controller &cntl,
                      const StreamOptions *options) {
         if (cntl._request_stream != INVALID_STREAM_ID) {
-            MELON_LOG(ERROR) << "Can't create request stream more than once";
+            TURBO_LOG(ERROR) << "Can't create request stream more than once";
             return -1;
         }
         if (request_stream == nullptr) {
-            MELON_LOG(ERROR) << "request_stream is nullptr";
+            TURBO_LOG(ERROR) << "request_stream is nullptr";
             return -1;
         }
         StreamId stream_id;
@@ -699,7 +699,7 @@ namespace melon::rpc {
             opt = *options;
         }
         if (Stream::Create(opt, nullptr, &stream_id) != 0) {
-            MELON_LOG(ERROR) << "Fail to create stream";
+            TURBO_LOG(ERROR) << "Fail to create stream";
             return -1;
         }
         cntl._request_stream = stream_id;
@@ -711,15 +711,15 @@ namespace melon::rpc {
                      const StreamOptions *options) {
 
         if (cntl._response_stream != INVALID_STREAM_ID) {
-            MELON_LOG(ERROR) << "Can't create reponse stream more than once";
+            TURBO_LOG(ERROR) << "Can't create reponse stream more than once";
             return -1;
         }
         if (response_stream == nullptr) {
-            MELON_LOG(ERROR) << "response_stream is nullptr";
+            TURBO_LOG(ERROR) << "response_stream is nullptr";
             return -1;
         }
         if (!cntl.has_remote_stream()) {
-            MELON_LOG(ERROR) << "No stream along with this request";
+            TURBO_LOG(ERROR) << "No stream along with this request";
             return -1;
         }
         StreamOptions opt;
@@ -728,7 +728,7 @@ namespace melon::rpc {
         }
         StreamId stream_id;
         if (Stream::Create(opt, cntl._remote_stream_settings, &stream_id) != 0) {
-            MELON_LOG(ERROR) << "Fail to create stream";
+            TURBO_LOG(ERROR) << "Fail to create stream";
             return -1;
         }
         cntl._response_stream = stream_id;

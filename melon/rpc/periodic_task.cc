@@ -41,7 +41,7 @@ namespace melon::rpc {
         int rc = fiber_start_background(
                 &th, &FIBER_ATTR_NORMAL, PeriodicTaskThread, arg);
         if (rc != 0) {
-            MELON_LOG(ERROR) << "Fail to start PeriodicTaskThread";
+            TURBO_LOG(ERROR) << "Fail to start PeriodicTaskThread";
             static_cast<PeriodicTask *>(arg)->OnDestroyingTask();
             return;
         }
@@ -49,14 +49,14 @@ namespace melon::rpc {
 
     void PeriodicTaskManager::StartTaskAt(PeriodicTask *task, const timespec &abstime) {
         if (task == nullptr) {
-            MELON_LOG(ERROR) << "Param[task] is nullptr";
+            TURBO_LOG(ERROR) << "Param[task] is nullptr";
             return;
         }
         fiber_timer_id timer_id;
         const int rc = fiber_timer_add(
                 &timer_id, abstime, RunPeriodicTaskThread, task);
         if (rc != 0) {
-            MELON_LOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";
+            TURBO_LOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";
             task->OnDestroyingTask();
             return;
         }

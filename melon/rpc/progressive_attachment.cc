@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/internal/fiber.h"   // INVALID_FIBER_TOKEN before fiber r32748
 #include "melon/rpc/progressive_attachment.h"
 #include "melon/rpc/socket.h"
@@ -41,12 +41,12 @@ namespace melon::rpc {
 
     ProgressiveAttachment::~ProgressiveAttachment() {
         if (_httpsock) {
-            MELON_CHECK(_rpc_state.load(std::memory_order_relaxed) != RPC_RUNNING);
-            MELON_CHECK(_saved_buf.empty());
+            TURBO_CHECK(_rpc_state.load(std::memory_order_relaxed) != RPC_RUNNING);
+            TURBO_CHECK(_saved_buf.empty());
             if (!_before_http_1_1) {
                 // note: _httpsock may already be failed.
                 if (_rpc_state.load(std::memory_order_relaxed) == RPC_SUCCEED) {
-                    melon::cord_buf tmpbuf;
+                    turbo::cord_buf tmpbuf;
                     tmpbuf.append("0\r\n\r\n", 5);
                     Socket::WriteOptions wopt;
                     wopt.ignore_eovercrowded = true;
@@ -71,7 +71,7 @@ namespace melon::rpc {
 
     inline char ToHex(uint32_t size/*0-15*/) { return s_hex_map[size]; }
 
-    inline void AppendChunkHead(melon::cord_buf *buf, uint32_t size) {
+    inline void AppendChunkHead(turbo::cord_buf *buf, uint32_t size) {
         char tmp[32];
         int i = (int) sizeof(tmp);
         tmp[--i] = '\n';
@@ -92,7 +92,7 @@ namespace melon::rpc {
         buf->append(tmp + i + 1, sizeof(tmp) - i - 1);
     }
 
-    inline void AppendAsChunk(melon::cord_buf *chunk_buf, const melon::cord_buf &data,
+    inline void AppendAsChunk(turbo::cord_buf *chunk_buf, const turbo::cord_buf &data,
                               bool before_http_1_1) {
         if (!before_http_1_1) {
             AppendChunkHead(chunk_buf, data.size());
@@ -103,7 +103,7 @@ namespace melon::rpc {
         }
     }
 
-    inline void AppendAsChunk(melon::cord_buf *chunk_buf, const void *data,
+    inline void AppendAsChunk(turbo::cord_buf *chunk_buf, const void *data,
                               size_t length, bool before_http_1_1) {
         if (!before_http_1_1) {
             AppendChunkHead(chunk_buf, length);
@@ -114,9 +114,9 @@ namespace melon::rpc {
         }
     }
 
-    int ProgressiveAttachment::Write(const melon::cord_buf &data) {
+    int ProgressiveAttachment::Write(const turbo::cord_buf &data) {
         if (data.empty()) {
-            MELON_LOG_EVERY_SECOND(WARNING)
+            TURBO_LOG_EVERY_SECOND(WARNING)
                             << "Write an empty chunk. To suppress this warning, check emptiness"
                                " of the chunk before calling ProgressiveAttachment.Write()";
             return 0;
@@ -139,7 +139,7 @@ namespace melon::rpc {
         // The RPC is already done (http headers were written into the socket)
         // write into the socket directly.
         if (rpc_state == RPC_SUCCEED) {
-            melon::cord_buf tmpbuf;
+            turbo::cord_buf tmpbuf;
             AppendAsChunk(&tmpbuf, data, _before_http_1_1);
             return _httpsock->Write(&tmpbuf);
         } else {
@@ -150,7 +150,7 @@ namespace melon::rpc {
 
     int ProgressiveAttachment::Write(const void *data, size_t n) {
         if (data == nullptr || n == 0) {
-            MELON_LOG_EVERY_SECOND(WARNING)
+            TURBO_LOG_EVERY_SECOND(WARNING)
                             << "Write an empty chunk. To suppress this warning, check emptiness"
                                " of the chunk before calling ProgressiveAttachment.Write()";
             return 0;
@@ -172,7 +172,7 @@ namespace melon::rpc {
         // The RPC is already done (http headers were written into the socket)
         // write into the socket directly.
         if (rpc_state == RPC_SUCCEED) {
-            melon::cord_buf tmpbuf;
+            turbo::cord_buf tmpbuf;
             AppendAsChunk(&tmpbuf, data, n, _before_http_1_1);
             return _httpsock->Write(&tmpbuf);
         } else {
@@ -201,7 +201,7 @@ namespace melon::rpc {
         do {
             std::unique_lock<std::mutex> mu(_mutex);
             if (_saved_buf.empty() || permanent_error || rpc_failed) {
-                melon::cord_buf tmp;
+                turbo::cord_buf tmp;
                 tmp.swap(_saved_buf); // Clear _saved_buf outside lock.
                 _pause_from_mark_rpc_as_done = false;
                 _rpc_state.store((rpc_failed ? RPC_FAILED : RPC_SUCCEED),
@@ -212,7 +212,7 @@ namespace melon::rpc {
             if (++ntry > MAX_TRY) {
                 _pause_from_mark_rpc_as_done = true;
             }
-            melon::cord_buf copied;
+            turbo::cord_buf copied;
             copied.swap(_saved_buf);
             mu.unlock();
             Socket::WriteOptions wopt;
@@ -223,12 +223,12 @@ namespace melon::rpc {
         } while (true);
     }
 
-    melon::end_point ProgressiveAttachment::remote_side() const {
-        return _httpsock ? _httpsock->remote_side() : melon::end_point();
+    turbo::end_point ProgressiveAttachment::remote_side() const {
+        return _httpsock ? _httpsock->remote_side() : turbo::end_point();
     }
 
-    melon::end_point ProgressiveAttachment::local_side() const {
-        return _httpsock ? _httpsock->local_side() : melon::end_point();
+    turbo::end_point ProgressiveAttachment::local_side() const {
+        return _httpsock ? _httpsock->local_side() : turbo::end_point();
     }
 
     static int RunOnFailed(fiber_token_t id, void *data, int) {
@@ -239,11 +239,11 @@ namespace melon::rpc {
 
     void ProgressiveAttachment::NotifyOnStopped(google::protobuf::Closure *done) {
         if (done == nullptr) {
-            MELON_LOG(ERROR) << "Param[done] is nullptr";
+            TURBO_LOG(ERROR) << "Param[done] is nullptr";
             return;
         }
         if (_notify_id != INVALID_FIBER_TOKEN) {
-            MELON_LOG(ERROR) << "NotifyOnStopped() can only be called once";
+            TURBO_LOG(ERROR) << "NotifyOnStopped() can only be called once";
             return done->Run();
         }
         if (_httpsock == nullptr) {
@@ -251,7 +251,7 @@ namespace melon::rpc {
         }
         const int rc = fiber_token_create(&_notify_id, done, RunOnFailed);
         if (rc) {
-            MELON_LOG(ERROR) << "Fail to create _notify_id: " << melon_error(rc);
+            TURBO_LOG(ERROR) << "Fail to create _notify_id: " << turbo_error(rc);
             return done->Run();
         }
         _httpsock->NotifyOnFailed(_notify_id);

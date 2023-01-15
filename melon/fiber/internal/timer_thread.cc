@@ -19,10 +19,10 @@
 
 
 #include <queue>                           // heap functions
-#include "melon/base/scoped_lock.h"
-#include "melon/log/logging.h"
-#include "melon/hash/murmurhash3.h"   // fmix64
-#include "melon/memory/resource_pool.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/log/logging.h"
+#include "turbo/hash/murmurhash3.h"   // fmix64
+#include "turbo/memory/resource_pool.h"
 #include "melon/metrics/all.h"
 #include "melon/fiber/internal/sys_futex.h"
 #include "melon/fiber/internal/timer_thread.h"
@@ -41,7 +41,7 @@ TimerThreadOptions::TimerThreadOptions()
 
 // A task contains the necessary information for running fn(arg).
 // Tasks are created in Bucket::schedule and destroyed in TimerThread::run
-struct MELON_CACHELINE_ALIGNMENT TimerThread::Task {
+struct TURBO_CACHELINE_ALIGNMENT TimerThread::Task {
     Task* next;                 // For linking tasks in a Bucket.
     int64_t run_time;           // run the task at this realtime
     void (*fn)(void*);          // the fn(arg) to run
@@ -67,7 +67,7 @@ struct MELON_CACHELINE_ALIGNMENT TimerThread::Task {
 };
 
 // Timer tasks are sharded into different Buckets to reduce contentions.
-class MELON_CACHELINE_ALIGNMENT TimerThread::Bucket {
+class TURBO_CACHELINE_ALIGNMENT TimerThread::Bucket {
 public:
     Bucket()
         : _nearest_run_time(std::numeric_limits<int64_t>::max())
@@ -98,13 +98,13 @@ private:
 
 // Utilies for making and extracting TaskId.
 inline TimerThread::TaskId make_task_id(
-    melon::ResourceId<TimerThread::Task> slot, uint32_t version) {
+    turbo::ResourceId<TimerThread::Task> slot, uint32_t version) {
     return TimerThread::TaskId((((uint64_t)version) << 32) | slot.value);
 }
 
 inline
-melon::ResourceId<TimerThread::Task> slot_of_task_id(TimerThread::TaskId id) {
-    melon::ResourceId<TimerThread::Task> slot = { (id & 0xFFFFFFFFul) };
+turbo::ResourceId<TimerThread::Task> slot_of_task_id(TimerThread::TaskId id) {
+    turbo::ResourceId<TimerThread::Task> slot = { (id & 0xFFFFFFFFul) };
     return slot;
 }
 
@@ -144,16 +144,16 @@ int TimerThread::start(const TimerThreadOptions* options_in) {
         _options = *options_in;
     }
     if (_options.num_buckets == 0) {
-        MELON_LOG(ERROR) << "num_buckets can't be 0";
+        TURBO_LOG(ERROR) << "num_buckets can't be 0";
         return EINVAL;
     }
     if (_options.num_buckets > 1024) {
-        MELON_LOG(ERROR) << "num_buckets=" << _options.num_buckets << " is too big";
+        TURBO_LOG(ERROR) << "num_buckets=" << _options.num_buckets << " is too big";
         return EINVAL;
     }
     _buckets = new (std::nothrow) Bucket[_options.num_buckets];
     if (nullptr == _buckets) {
-        MELON_LOG(ERROR) << "Fail to new _buckets";
+        TURBO_LOG(ERROR) << "Fail to new _buckets";
         return ENOMEM;
     }        
     const int ret = pthread_create(&_thread, nullptr, TimerThread::run_this, this);
@@ -170,7 +170,7 @@ TimerThread::Task* TimerThread::Bucket::consume_tasks() {
         // by TimerThread._nearest_run_time and fenced by TimerThread._mutex.
         // We can avoid touching the mutex and related cacheline when the
         // bucket is actually empty.
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         if (_task_head) {
             head = _task_head;
             _task_head = nullptr;
@@ -183,8 +183,8 @@ TimerThread::Task* TimerThread::Bucket::consume_tasks() {
 TimerThread::Bucket::ScheduleResult
 TimerThread::Bucket::schedule(void (*fn)(void*), void* arg,
                               const timespec& abstime) {
-    melon::ResourceId<Task> slot_id;
-    Task* task = melon::get_resource<Task>(&slot_id);
+    turbo::ResourceId<Task> slot_id;
+    Task* task = turbo::get_resource<Task>(&slot_id);
     if (task == nullptr) {
         ScheduleResult result = { INVALID_TASK_ID, false };
         return result;
@@ -192,7 +192,7 @@ TimerThread::Bucket::schedule(void (*fn)(void*), void* arg,
     task->next = nullptr;
     task->fn = fn;
     task->arg = arg;
-    task->run_time = melon::time_point::from_timespec(abstime).to_unix_micros();
+    task->run_time = turbo::time_point::from_timespec(abstime).to_unix_micros();
     uint32_t version = task->version.load(std::memory_order_relaxed);
     if (version == 0) {  // skip 0.
         task->version.fetch_add(2, std::memory_order_relaxed);
@@ -202,7 +202,7 @@ TimerThread::Bucket::schedule(void (*fn)(void*), void* arg,
     task->task_id = id;
     bool earlier = false;
     {
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         task->next = _task_head;
         _task_head = task;
         if (task->run_time < _nearest_run_time) {
@@ -222,13 +222,13 @@ TimerThread::TaskId TimerThread::schedule(
     }
     // Hashing by pthread id is better for cache locality.
     const Bucket::ScheduleResult result = 
-        _buckets[melon::hash::fmix64(pthread_numeric_id()) % _options.num_buckets]
+        _buckets[turbo::hash::fmix64(pthread_numeric_id()) % _options.num_buckets]
         .schedule(fn, arg, abstime);
     if (result.earlier) {
         bool earlier = false;
-        const int64_t run_time =  melon::time_point::from_timespec(abstime).to_unix_micros();
+        const int64_t run_time =  turbo::time_point::from_timespec(abstime).to_unix_micros();
         {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (run_time < _nearest_run_time) {
                 _nearest_run_time = run_time;
                 ++_nsignals;
@@ -252,10 +252,10 @@ TimerThread::TaskId TimerThread::schedule(
 // between timeout and latency in most RPC scenarios, this is why we don't
 // try to reuse tasks right now inside unschedule() with more complicated code.
 int TimerThread::unschedule(TaskId task_id) {
-    const melon::ResourceId<Task> slot_id = slot_of_task_id(task_id);
-    Task* const task = melon::address_resource(slot_id);
+    const turbo::ResourceId<Task> slot_id = slot_of_task_id(task_id);
+    Task* const task = turbo::address_resource(slot_id);
     if (task == nullptr) {
-        MELON_LOG(ERROR) << "Invalid task_id=" << task_id;
+        TURBO_LOG(ERROR) << "Invalid task_id=" << task_id;
         return -1;
     }
     const uint32_t id_version = version_of_task_id(task_id);
@@ -281,15 +281,15 @@ bool TimerThread::Task::run_and_delete() {
         // The release fence is paired with acquire fence in
         // TimerThread::unschedule to make changes of fn(arg) visible.
         version.store(id_version + 2, std::memory_order_release);
-        melon::return_resource(slot_of_task_id(task_id));
+        turbo::return_resource(slot_of_task_id(task_id));
         return true;
     } else if (expected_version == id_version + 2) {
         // already unscheduled.
-        melon::return_resource(slot_of_task_id(task_id));
+        turbo::return_resource(slot_of_task_id(task_id));
         return false;
     } else {
         // Impossible.
-        MELON_LOG(ERROR) << "Invalid version=" << expected_version
+        TURBO_LOG(ERROR) << "Invalid version=" << expected_version
                    << ", expecting " << id_version + 2;
         return false;
     }
@@ -298,8 +298,8 @@ bool TimerThread::Task::run_and_delete() {
 bool TimerThread::Task::try_delete() {
     const uint32_t id_version = version_of_task_id(task_id);
     if (version.load(std::memory_order_relaxed) != id_version) {
-        MELON_CHECK_EQ(version.load(std::memory_order_relaxed), id_version + 2);
-        melon::return_resource(slot_of_task_id(task_id));
+        TURBO_CHECK_EQ(version.load(std::memory_order_relaxed), id_version + 2);
+        turbo::return_resource(slot_of_task_id(task_id));
         return true;
     }
     return false;
@@ -312,7 +312,7 @@ static T deref_value(void* arg) {
 
 void TimerThread::run() {
     run_worker_startfn();
-    int64_t last_sleep_time = melon::get_current_time_micros();
+    int64_t last_sleep_time = turbo::get_current_time_micros();
     BT_VLOG << "Started TimerThread=" << pthread_self();
 
     // min heap of tasks (ordered by run_time)
@@ -340,7 +340,7 @@ void TimerThread::run() {
         // This helps us to be aware of earliest task of the new tasks before we
         // would run the consumed tasks.
         {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             _nearest_run_time = std::numeric_limits<int64_t>::max();
         }
         
@@ -363,7 +363,7 @@ void TimerThread::run() {
         bool pull_again = false;
         while (!tasks.empty()) {
             Task* task1 = tasks[0];  // the about-to-run task
-            if (melon::get_current_time_micros() < task1->run_time) {  // not ready yet.
+            if (turbo::get_current_time_micros() < task1->run_time) {  // not ready yet.
                 break;
             }
             // Each time before we run the earliest task (that we think), 
@@ -377,7 +377,7 @@ void TimerThread::run() {
             // insertion, and they'll grab _mutex and change _nearest_run_time
             // frequently, fortunately this is not true at most of time).
             {
-                MELON_SCOPED_LOCK(_mutex);
+                TURBO_SCOPED_LOCK(_mutex);
                 if (task1->run_time > _nearest_run_time) {
                     // a task is earlier than task1. We need to check buckets.
                     pull_again = true;
@@ -406,7 +406,7 @@ void TimerThread::run() {
         // is earlier that the realtime that we wait for, we'll wake up.
         int expected_nsignals = 0;
         {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (next_run_time > _nearest_run_time) {
                 // a task is earlier that what we would wait for.
                 // We need to check buckets.
@@ -418,14 +418,14 @@ void TimerThread::run() {
         }
         timespec* ptimeout = nullptr;
         timespec next_timeout = { 0, 0 };
-        const int64_t now = melon::get_current_time_micros();
+        const int64_t now = turbo::get_current_time_micros();
         if (next_run_time != std::numeric_limits<int64_t>::max()) {
-            next_timeout = melon::duration::microseconds(next_run_time - now).to_timespec();
+            next_timeout = turbo::duration::microseconds(next_run_time - now).to_timespec();
             ptimeout = &next_timeout;
         }
         busy_seconds += (now - last_sleep_time) / 1000000.0;
         futex_wait_private(&_nsignals, expected_nsignals, ptimeout);
-        last_sleep_time = melon::get_current_time_micros();
+        last_sleep_time = turbo::get_current_time_micros();
     }
     BT_VLOG << "Ended TimerThread=" << pthread_self();
 }
@@ -434,7 +434,7 @@ void TimerThread::stop_and_join() {
     _stop.store(true, std::memory_order_relaxed);
     if (_started) {
         {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
              // trigger pull_again and wakeup TimerThread
             _nearest_run_time = 0;
             ++_nsignals;
@@ -453,14 +453,14 @@ static TimerThread* g_timer_thread = nullptr;
 static void init_global_timer_thread() {
     g_timer_thread = new (std::nothrow) TimerThread;
     if (g_timer_thread == nullptr) {
-        MELON_LOG(FATAL) << "Fail to new g_timer_thread";
+        TURBO_LOG(FATAL) << "Fail to new g_timer_thread";
         return;
     }
     TimerThreadOptions options;
     options.variable_prefix = "fiber_timer";
     const int rc = g_timer_thread->start(&options);
     if (rc != 0) {
-        MELON_LOG(FATAL) << "Fail to start timer_thread, " << melon_error(rc);
+        TURBO_LOG(FATAL) << "Fail to start timer_thread, " << turbo_error(rc);
         delete g_timer_thread;
         g_timer_thread = nullptr;
         return;

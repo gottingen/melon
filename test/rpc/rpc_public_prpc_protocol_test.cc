@@ -23,7 +23,7 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -57,7 +57,7 @@ public:
     }
 
     int VerifyCredential(const std::string& auth_str,
-                         const melon::end_point&,
+                         const turbo::end_point&,
                          melon::rpc::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);
@@ -141,7 +141,7 @@ protected:
             EXPECT_TRUE(req.SerializeToString(
                 meta->mutable_requestbody(0)->mutable_serialized_request()));
         }
-        melon::cord_buf_as_zero_copy_output_stream meta_stream(&msg->payload);
+        turbo::cord_buf_as_zero_copy_output_stream meta_stream(&msg->payload);
         EXPECT_TRUE(meta->SerializeToZeroCopyStream(&meta_stream));
         return msg;
     }
@@ -159,7 +159,7 @@ protected:
             EXPECT_TRUE(res.SerializeToString(
                 meta->mutable_responsebody(0)->mutable_serialized_response()));
         }
-        melon::cord_buf_as_zero_copy_output_stream meta_stream(&msg->payload);
+        turbo::cord_buf_as_zero_copy_output_stream meta_stream(&msg->payload);
         EXPECT_TRUE(meta->SerializeToZeroCopyStream(&meta_stream));
         return msg;
     }
@@ -173,7 +173,7 @@ protected:
         }
 
         EXPECT_GT(bytes_in_pipe, 0);
-        melon::IOPortal buf;
+        turbo::IOPortal buf;
         EXPECT_EQ((ssize_t)bytes_in_pipe,
                   buf.append_from_file_descriptor(_pipe_fds[0], 1024));
         melon::rpc::ParseResult pr = melon::rpc::policy::ParseNsheadMessage(&buf, nullptr, false, nullptr);
@@ -182,7 +182,7 @@ protected:
             static_cast<melon::rpc::policy::MostCommonMessage*>(pr.message());
 
         melon::rpc::policy::PublicPbrpcResponse meta;
-        melon::cord_buf_as_zero_copy_input_stream meta_stream(msg->payload);
+        turbo::cord_buf_as_zero_copy_input_stream meta_stream(msg->payload);
         EXPECT_TRUE(meta.ParseFromZeroCopyStream(&meta_stream));
         EXPECT_EQ(expect_code, meta.responsehead().code());
     }
@@ -260,8 +260,8 @@ TEST_F(PublicPbrpcTest, process_response_error_code) {
 }
 
 TEST_F(PublicPbrpcTest, complete_flow) {
-    melon::cord_buf request_buf;
-    melon::cord_buf total_buf;
+    turbo::cord_buf request_buf;
+    turbo::cord_buf total_buf;
     melon::rpc::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
@@ -286,7 +286,7 @@ TEST_F(PublicPbrpcTest, complete_flow) {
     ProcessMessage(melon::rpc::policy::ProcessNsheadRequest, req_msg, false);
 
     // Read response from pipe
-    melon::IOPortal response_buf;
+    turbo::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::rpc::ParseResult res_pr =
             melon::rpc::policy::ParseNsheadMessage(&response_buf, nullptr, false, nullptr);
@@ -299,8 +299,8 @@ TEST_F(PublicPbrpcTest, complete_flow) {
 }
 
 TEST_F(PublicPbrpcTest, close_in_callback) {
-    melon::cord_buf request_buf;
-    melon::cord_buf total_buf;
+    turbo::cord_buf request_buf;
+    turbo::cord_buf total_buf;
     melon::rpc::Controller cntl;
     test::EchoRequest req;
 

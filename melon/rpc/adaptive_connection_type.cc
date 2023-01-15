@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/adaptive_connection_type.h"
 
 
@@ -39,7 +39,7 @@ namespace melon::rpc {
         } else if (CompareStringPieceWithoutCase(type, "short")) {
             return CONNECTION_TYPE_SHORT;
         }
-        MELON_LOG_IF(ERROR, print_log_on_unknown && !type.empty())
+        TURBO_LOG_IF(ERROR, print_log_on_unknown && !type.empty())
                         << "Unknown connection_type `" << type
                         << "', supported types: single pooled short";
         return CONNECTION_TYPE_UNKNOWN;

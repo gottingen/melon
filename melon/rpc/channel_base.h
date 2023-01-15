@@ -21,7 +21,7 @@
 
 #include <cstdlib>
 #include <ostream>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <google/protobuf/service.h>            // google::protobuf::RpcChannel
 #include "melon/rpc/describable.h"
 
@@ -36,7 +36,7 @@ namespace melon::rpc {
                         public Describable {
     public:
         virtual int Weight() {
-            MELON_CHECK(false) << "Not implemented";
+            TURBO_CHECK(false) << "Not implemented";
             abort();
         };
 

@@ -24,10 +24,10 @@
 
 #include <gflags/gflags.h>                     // Users often need gflags
 #include <string>
-#include "melon/container/intrusive_ptr.h"             // melon::container::intrusive_ptr
+#include "turbo/container/intrusive_ptr.h"             // turbo::container::intrusive_ptr
 #include "melon/fiber/internal/errno.h"                     // Redefine errno
-#include "melon/base/endpoint.h"                    // melon::end_point
-#include "melon/io/cord_buf.h"                       // melon::cord_buf
+#include "turbo/base/endpoint.h"                    // turbo::end_point
+#include "turbo/io/cord_buf.h"                       // turbo::cord_buf
 #include "melon/fiber/internal/types.h"                     // fiber_token_t
 #include "melon/rpc/options.pb.h"                   // CompressType
 #include "melon/rpc/errno.pb.h"                     // error code
@@ -45,7 +45,7 @@
 #include "melon/rpc/progressive_reader.h"           // ProgressiveReader
 #include "melon/rpc/grpc.h"
 #include "melon/rpc/kvmap.h"
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 // EAUTH is defined in MAC
 #ifndef EAUTH
@@ -230,7 +230,7 @@ namespace melon::rpc {
         // it gets queue time before server processes the RPC call.
         int64_t latency_us() const {
             if (_end_time_us == UNSET_MAGIC_NUM) {
-                return melon::get_current_time_micros() - _begin_time_us;
+                return turbo::get_current_time_micros() - _begin_time_us;
             }
             return _end_time_us - _begin_time_us;
         }
@@ -287,7 +287,7 @@ namespace melon::rpc {
 
         // User attached data or body of http request, which is wired to network
         // directly instead of being serialized into protobuf messages.
-        melon::cord_buf &request_attachment() { return _request_attachment; }
+        turbo::cord_buf &request_attachment() { return _request_attachment; }
 
         ConnectionType connection_type() const { return _connection_type; }
 
@@ -432,13 +432,13 @@ namespace melon::rpc {
 
         // User attached data or body of http response, which is wired to network
         // directly instead of being serialized into protobuf messages.
-        melon::cord_buf &response_attachment() { return _response_attachment; }
+        turbo::cord_buf &response_attachment() { return _response_attachment; }
 
         // Create a ProgressiveAttachment to write (often after RPC).
         // If `stop_style' is FORCE_STOP, the underlying socket will be failed
         // immediately when the socket becomes idle or server is stopped.
         // Default value of `stop_style' is WAIT_FOR_STOP.
-        melon::container::intrusive_ptr<ProgressiveAttachment>
+        turbo::container::intrusive_ptr<ProgressiveAttachment>
         CreateProgressiveAttachment(StopStyle stop_style = WAIT_FOR_STOP);
 
         bool has_progressive_writer() const { return _wpa != nullptr; }
@@ -486,13 +486,13 @@ namespace melon::rpc {
         // Client-side: successful or last server called. Accessible from
         // PackXXXRequest() in protocols.
         // Server-side: returns the client sending the request
-        melon::end_point remote_side() const { return _remote_side; }
+        turbo::end_point remote_side() const { return _remote_side; }
 
         // Client-side: the local address for talking with server, undefined until
         // this RPC succeeds (because the connection may not be established
         // before RPC).
         // Server-side: the address that clients access.
-        melon::end_point local_side() const { return _local_side; }
+        turbo::end_point local_side() const { return _local_side; }
 
         // Protocol of the request sent by client or received by server.
         ProtocolType request_protocol() const { return _request_protocol; }
@@ -521,7 +521,7 @@ namespace melon::rpc {
         bool Failed() const override;
 
         // If Failed() is true, return description of the errors.
-        // NOTE: ErrorText() != melon_error(ErrorCode()).
+        // NOTE: ErrorText() != turbo_error(ErrorCode()).
         std::string ErrorText() const override;
 
         // Last error code. Equals 0 iff Failed() is false.
@@ -547,12 +547,12 @@ namespace melon::rpc {
             return _http_response != nullptr ? *_http_response : DefaultHttpHeader();
         }
 
-        const melon::cord_buf &request_attachment() const { return _request_attachment; }
+        const turbo::cord_buf &request_attachment() const { return _request_attachment; }
 
-        const melon::cord_buf &response_attachment() const { return _response_attachment; }
+        const turbo::cord_buf &response_attachment() const { return _response_attachment; }
 
         // Get the object to write key/value which will be flushed into
-        // MELON_LOG(INFO) when this controller is deleted.
+        // TURBO_LOG(INFO) when this controller is deleted.
         KVMap &SessionKV();
 
         // Flush SessionKV() into `os'
@@ -775,14 +775,14 @@ namespace melon::rpc {
         uint32_t _flags; // all boolean fields inside Controller
         int32_t _error_code;
         std::string _error_text;
-        melon::end_point _remote_side;
-        melon::end_point _local_side;
+        turbo::end_point _remote_side;
+        turbo::end_point _local_side;
 
         void *_session_local_data;
         const Server *_server;
         fiber_token_t _oncancel_id;
         const AuthContext *_auth_context;        // Authentication result
-        melon::container::intrusive_ptr<MongoContext> _mongo_session_data;
+        turbo::container::intrusive_ptr<MongoContext> _mongo_session_data;
         SampledRequest *_sampled_request;
 
         ProtocolType _request_protocol;
@@ -827,7 +827,7 @@ namespace melon::rpc {
         RPCSender *_sender;
         uint64_t _request_code;
         SocketId _single_server_id;
-        melon::container::intrusive_ptr<SharedLoadBalancer> _lb;
+        turbo::container::intrusive_ptr<SharedLoadBalancer> _lb;
 
         // for passing parameters to created fiber, don't modify it otherwhere.
         CompletionInfo _tmp_completion_info;
@@ -842,7 +842,7 @@ namespace melon::rpc {
         Protocol::PackRequest _pack_request;
         const google::protobuf::MethodDescriptor *_method;
         const Authenticator *_auth;
-        melon::cord_buf _request_buf;
+        turbo::cord_buf _request_buf;
         IdlNames _idl_names;
         int64_t _idl_result;
 
@@ -852,13 +852,13 @@ namespace melon::rpc {
         std::unique_ptr<KVMap> _session_kv;
 
         // Fields with large size but low access frequency
-        melon::cord_buf _request_attachment;
-        melon::cord_buf _response_attachment;
+        turbo::cord_buf _request_attachment;
+        turbo::cord_buf _response_attachment;
 
         // Writable progressive attachment
-        melon::container::intrusive_ptr<ProgressiveAttachment> _wpa;
+        turbo::container::intrusive_ptr<ProgressiveAttachment> _wpa;
         // Readable progressive attachment
-        melon::container::intrusive_ptr<ReadableProgressiveAttachment> _rpa;
+        turbo::container::intrusive_ptr<ReadableProgressiveAttachment> _rpa;
 
         // TODO: Replace following fields with StreamCreator
         // Defined at client side
@@ -907,7 +907,7 @@ namespace melon::rpc {
 // and eases debugging. The REQUEST_ID is carried in http/rpc request or 
 // inherited from another controller.
 // As a server:
-//   Call CLOG*(cntl) << ... to log instead of MELON_LOG(*) << ..
+//   Call CLOG*(cntl) << ... to log instead of TURBO_LOG(*) << ..
 // As a client:
 //   Inside a service:
 //     Use Controller(service_cntl->inheritable()) to create controllers which 
@@ -916,11 +916,11 @@ namespace melon::rpc {
 //     Set cntl->set_request_id(REQUEST_ID);
 //   Standalone http client:
 //     Set header 'X-REQUEST-ID'
-#define CLOGD(cntl) MELON_LOG(DEBUG) << (cntl)->LogPrefix()
-#define CLOGI(cntl) MELON_LOG(INFO) << (cntl)->LogPrefix()
-#define CLOGW(cntl) MELON_LOG(WARNING) << (cntl)->LogPrefix()
-#define CLOGE(cntl) MELON_LOG(ERROR) << (cntl)->LogPrefix()
-#define CLOGF(cntl) MELON_LOG(FATAL) << (cntl)->LogPrefix()
-#define CVLOG(v, cntl) MELON_VLOG(v) << (cntl)->LogPrefix()
+#define CLOGD(cntl) TURBO_LOG(DEBUG) << (cntl)->LogPrefix()
+#define CLOGI(cntl) TURBO_LOG(INFO) << (cntl)->LogPrefix()
+#define CLOGW(cntl) TURBO_LOG(WARNING) << (cntl)->LogPrefix()
+#define CLOGE(cntl) TURBO_LOG(ERROR) << (cntl)->LogPrefix()
+#define CLOGF(cntl) TURBO_LOG(FATAL) << (cntl)->LogPrefix()
+#define CVLOG(v, cntl) TURBO_VLOG(v) << (cntl)->LogPrefix()
 
 #endif  // MELON_RPC_CONTROLLER_H_

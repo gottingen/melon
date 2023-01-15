@@ -20,7 +20,7 @@ TEST(metrics, counter) {
     EXPECT_EQ(c1.get_value(), 6);
     melon::cache_metrics cm;
     c1.collect_metrics(cm);
-    auto t = melon::time_now();
+    auto t = turbo::time_now();
     auto str = melon::prometheus_dumper::dump_to_string(cm,&t);
     std::string c1_s = "# HELP c1\n"
                        "# TYPE c1 counter\n"

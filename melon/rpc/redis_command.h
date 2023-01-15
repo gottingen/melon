@@ -22,25 +22,25 @@
 #include <memory>           // std::unique_ptr
 #include <vector>
 #include <limits>
-#include "melon/io/cord_buf.h"
-#include "melon/base/result_status.h"
-#include "melon/memory/arena.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/base/result_status.h"
+#include "turbo/memory/arena.h"
 #include "melon/rpc/parse_result.h"
 
 namespace melon::rpc {
 
     // Format a redis command and append it to `buf'.
-    // Returns melon::result_status::success() on success.
-    melon::result_status RedisCommandFormat(melon::cord_buf *buf, const char *fmt, ...);
+    // Returns turbo::result_status::success() on success.
+    turbo::result_status RedisCommandFormat(turbo::cord_buf *buf, const char *fmt, ...);
 
-    melon::result_status RedisCommandFormatV(melon::cord_buf *buf, const char *fmt, va_list args);
+    turbo::result_status RedisCommandFormatV(turbo::cord_buf *buf, const char *fmt, va_list args);
 
     // Just convert the command to the text format of redis without processing the
     // specifiers(%) inside.
-    melon::result_status RedisCommandNoFormat(melon::cord_buf *buf, const std::string_view &command);
+    turbo::result_status RedisCommandNoFormat(turbo::cord_buf *buf, const std::string_view &command);
 
     // Concatenate components to form a redis command.
-    melon::result_status RedisCommandByComponents(melon::cord_buf *buf,
+    turbo::result_status RedisCommandByComponents(turbo::cord_buf *buf,
                                                        const std::string_view *components,
                                                        size_t num_components);
 
@@ -52,8 +52,8 @@ namespace melon::rpc {
         // Parse raw message from `buf'. Return PARSE_OK and set the parsed command
         // to `args' and length to `len' if successful. Memory of args are allocated
         // in `arena'.
-        ParseError Consume(melon::cord_buf &buf, std::vector<std::string_view> *args,
-                           melon::Arena *arena);
+        ParseError Consume(turbo::cord_buf &buf, std::vector<std::string_view> *args,
+                           turbo::Arena *arena);
 
     private:
         // Reset parser to the initial state.

@@ -33,12 +33,12 @@ namespace melon::rpc {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         const std::string &constraint = cntl->http_request().unresolved_path();
 
         if (constraint.empty()) {
             os << "# Use /sockets/<SocketId>\n"
-               << melon::describe_resources<Socket>() << '\n';
+               << turbo::describe_resources<Socket>() << '\n';
         } else {
             char *endptr = nullptr;
             SocketId sid = strtoull(constraint.c_str(), &endptr, 10);

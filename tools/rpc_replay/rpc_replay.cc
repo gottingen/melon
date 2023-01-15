@@ -17,9 +17,9 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
-#include "melon/files/filesystem.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/files/filesystem.h"
 #include <melon/metrics/all.h>
 #include <melon/fiber/internal/fiber.h>
 #include <melon/rpc/channel.h>
@@ -91,7 +91,7 @@ int ChannelGroup::Init() {
             options.max_retry = FLAGS_max_retry;
             if (chan->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(),
                         &options) != 0) {
-                MELON_LOG(ERROR) << "Fail to initialize channel";
+                TURBO_LOG(ERROR) << "Fail to initialize channel";
                 return -1;
             }
             _chans[prot] = chan;
@@ -112,7 +112,7 @@ static void handle_response(melon::rpc::Controller* cntl, int64_t start_time,
     // TODO(jeff): some fibers are starved when new fibers are created
     // continuously, which happens when server is down and RPC keeps failing.
     // Sleep a while on error to avoid that now.
-    const int64_t end_time = melon::get_current_time_micros();
+    const int64_t end_time = turbo::get_current_time_micros();
     const int64_t elp = end_time - start_time;
     if (!cntl->Failed()) {
         g_latency_recorder << elp;
@@ -139,7 +139,7 @@ static void* replay_thread(void* arg) {
     } else if (MAX_QUEUE_SIZE > 2000) {
         MAX_QUEUE_SIZE = 2000;
     }
-    timeq.push_back(melon::get_current_time_micros());
+    timeq.push_back(turbo::get_current_time_micros());
     for (int i = 0; !melon::rpc::IsAskedToQuit() && i < FLAGS_times; ++i) {
         melon::rpc::SampleIterator it(FLAGS_dir);
         int j = 0;
@@ -152,7 +152,7 @@ static void* replay_thread(void* arg) {
             melon::rpc::Channel* chan =
                 chan_group->channel(sample->meta.protocol_type());
             if (chan == nullptr) {
-                MELON_LOG(ERROR) << "No channel on protocol="
+                TURBO_LOG(ERROR) << "No channel on protocol="
                            << sample->meta.protocol_type();
                 continue;
             }
@@ -183,7 +183,7 @@ static void* replay_thread(void* arg) {
                 req.serialized_data() = sample->request.movable();
             }
             g_sent_count << 1;
-            const int64_t start_time = melon::get_current_time_micros();
+            const int64_t start_time = turbo::get_current_time_micros();
             if (FLAGS_qps <= 0) {
                 chan->CallMethod(nullptr/*use rpc_dump_context in cntl instead*/,
                         cntl, req_ptr, nullptr/*ignore response*/, nullptr);
@@ -193,7 +193,7 @@ static void* replay_thread(void* arg) {
                     melon::rpc::NewCallback(handle_response, cntl, start_time, false);
                 chan->CallMethod(nullptr/*use rpc_dump_context in cntl instead*/,
                         cntl, req_ptr, nullptr/*ignore response*/, done);
-                const int64_t end_time = melon::get_current_time_micros();
+                const int64_t end_time = turbo::get_current_time_micros();
                 int64_t expected_elp = 0;
                 int64_t actual_elp = 0;
                 timeq.push_back(end_time);
@@ -219,8 +219,8 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_dir.empty() ||
-        !melon::exists(FLAGS_dir)) {
-        MELON_LOG(ERROR) << "--dir=<dir-of-dumped-files> is required";
+        !turbo::exists(FLAGS_dir)) {
+        TURBO_LOG(ERROR) << "--dir=<dir-of-dumped-files> is required";
         return -1;
     }
 
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     
     ChannelGroup chan_group;
     if (chan_group.Init() != 0) {
-        MELON_LOG(ERROR) << "Fail to init ChannelGroup";
+        TURBO_LOG(ERROR) << "Fail to init ChannelGroup";
         return -1;
     }
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], nullptr, replay_thread, &chan_group) != 0) {
-                MELON_LOG(ERROR) << "Fail to create pthread";
+                TURBO_LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], nullptr, replay_thread, &chan_group) != 0) {
-                MELON_LOG(ERROR) << "Fail to create fiber";
+                TURBO_LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
     info_thr_opt.sent_count = &g_sent_count;
     
     if (!info_thr.start(info_thr_opt)) {
-        MELON_LOG(ERROR) << "Fail to create info_thread";
+        TURBO_LOG(ERROR) << "Fail to create info_thread";
         return -1;
     }
 

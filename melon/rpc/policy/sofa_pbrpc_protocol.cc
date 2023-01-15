@@ -20,7 +20,7 @@
 #include <google/protobuf/message.h>             // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/controller.h"                // Controller
 #include "melon/rpc/socket.h"                    // Socket
 #include "melon/rpc/server.h"                    // Server
@@ -60,7 +60,7 @@ namespace melon::rpc {
                 case SOFA_COMPRESS_TYPE_ZLIB:
                     return COMPRESS_TYPE_ZLIB;
                 default:
-                    MELON_LOG(ERROR) << "Unknown SofaCompressType=" << type;
+                    TURBO_LOG(ERROR) << "Unknown SofaCompressType=" << type;
                     return COMPRESS_TYPE_NONE;
             }
         }
@@ -76,10 +76,10 @@ namespace melon::rpc {
                 case COMPRESS_TYPE_ZLIB:
                     return SOFA_COMPRESS_TYPE_ZLIB;
                 case COMPRESS_TYPE_LZ4:
-                    MELON_LOG(ERROR) << "sofa-pbrpc does not support LZ4";
+                    TURBO_LOG(ERROR) << "sofa-pbrpc does not support LZ4";
                     return SOFA_COMPRESS_TYPE_NONE;
                 default:
-                    MELON_LOG(ERROR) << "Unknown SofaCompressType=" << type;
+                    TURBO_LOG(ERROR) << "Unknown SofaCompressType=" << type;
                     return SOFA_COMPRESS_TYPE_NONE;
             }
         }
@@ -138,7 +138,7 @@ namespace melon::rpc {
         }
 
         static void SerializeSofaHeaderAndMeta(
-                melon::cord_buf *out, const SofaRpcMeta &meta, int payload_size) {
+                turbo::cord_buf *out, const SofaRpcMeta &meta, int payload_size) {
             const int meta_size = meta.ByteSizeLong();
             if (meta_size <= 232) { // most common cases
                 char header_and_meta[24 + meta_size];
@@ -146,20 +146,20 @@ namespace melon::rpc {
                 ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 24, meta_size);
                 ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
                 meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-                MELON_CHECK(!coded_out.HadError());
+                TURBO_CHECK(!coded_out.HadError());
                 out->append(header_and_meta, sizeof(header_and_meta));
             } else {
                 char header[24];
                 PackSofaHeader(header, meta_size, payload_size);
                 out->append(header, sizeof(header));
-                melon::cord_buf_as_zero_copy_output_stream buf_stream(out);
+                turbo::cord_buf_as_zero_copy_output_stream buf_stream(out);
                 ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
                 meta.SerializeWithCachedSizes(&coded_out);
-                MELON_CHECK(!coded_out.HadError());
+                TURBO_CHECK(!coded_out.HadError());
             }
         }
 
-        ParseResult ParseSofaMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseSofaMessage(turbo::cord_buf *source, Socket *socket,
                                      bool /*read_eof*/, const void * /*arg*/) {
             char header_buf[24];
             const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -182,14 +182,14 @@ namespace melon::rpc {
             SofaRawUnpacker ru(header_buf + 4);
             ru.unpack32(meta_size).unpack64(body_size).unpack64(msg_size);
             if (msg_size != meta_size + body_size) {
-                MELON_LOG(ERROR) << "msg_size=" << msg_size << " != meta_size=" << meta_size
+                TURBO_LOG(ERROR) << "msg_size=" << msg_size << " != meta_size=" << meta_size
                                  << " + body_size=" << body_size;
                 return MakeParseError(PARSE_ERROR_TRY_OTHERS);
             }
             if (body_size > FLAGS_max_body_size) {
                 // We need this log to report the body_size to give users some clues
                 // which is not printed in InputMessenger.
-                MELON_LOG(ERROR) << "body_size=" << body_size << " from "
+                TURBO_LOG(ERROR) << "body_size=" << body_size << " from "
                                  << socket->remote_side() << " is too large";
                 return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
             } else if (source->length() < sizeof(header_buf) + msg_size) {
@@ -214,7 +214,7 @@ namespace melon::rpc {
             ControllerPrivateAccessor accessor(cntl);
             Span *span = accessor.span();
             if (span) {
-                span->set_start_send_us(melon::get_current_time_micros());
+                span->set_start_send_us(turbo::get_current_time_micros());
             }
             Socket *sock = accessor.get_sending_socket();
             std::unique_ptr<Controller, LogErrorTextAndDelete> recycle_cntl(cntl);
@@ -227,12 +227,12 @@ namespace melon::rpc {
                 return;
             }
 
-            MELON_LOG_IF(WARNING, !cntl->response_attachment().empty())
+            TURBO_LOG_IF(WARNING, !cntl->response_attachment().empty())
                             << "sofa-pbrpc does not support attachment, "
                                "your response_attachment will not be sent";
 
             bool append_body = false;
-            melon::cord_buf res_body;
+            turbo::cord_buf res_body;
             // `res' can be nullptr here, in which case we don't serialize it
             // If user calls `SetFailed' on Controller, we don't serialize
             // response either
@@ -271,7 +271,7 @@ namespace melon::rpc {
             meta.set_compress_type(
                     CompressType2Sofa(cntl->response_compress_type()));
 
-            melon::cord_buf res_buf;
+            turbo::cord_buf res_buf;
             SerializeSofaHeaderAndMeta(&res_buf, meta, res_size);
             if (append_body) {
                 res_buf.append(res_body.movable());
@@ -285,14 +285,14 @@ namespace melon::rpc {
             wopt.ignore_eovercrowded = true;
             if (sock->Write(&res_buf, &wopt) != 0) {
                 const int errcode = errno;
-                MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+                TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
                 cntl->SetFailed(errcode, "Fail to write into %s",
                                 sock->description().c_str());
                 return;
             }
             if (span) {
                 // TODO: this is not sent
-                span->set_sent_us(melon::get_current_time_micros());
+                span->set_sent_us(turbo::get_current_time_micros());
             }
         }
 
@@ -306,7 +306,7 @@ namespace melon::rpc {
                 ::google::protobuf::Closure *done);
 
         void ProcessSofaRequest(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             SocketUniquePtr socket_guard(msg->ReleaseSocket());
             Socket *socket = socket_guard.get();
@@ -315,7 +315,7 @@ namespace melon::rpc {
 
             SofaRpcMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse SofaRpcMeta from " << *socket;
+                TURBO_LOG(WARNING) << "Fail to parse SofaRpcMeta from " << *socket;
                 socket->SetFailed(EREQUEST, "Fail to parse SofaRpcMeta from %s",
                                   socket->description().c_str());
                 return;
@@ -333,7 +333,7 @@ namespace melon::rpc {
 
             std::unique_ptr<Controller> cntl(new(std::nothrow) Controller);
             if (nullptr == cntl.get()) {
-                MELON_LOG(WARNING) << "Fail to new Controller";
+                TURBO_LOG(WARNING) << "Fail to new Controller";
                 return;
             }
             std::unique_ptr<google::protobuf::Message> req;
@@ -383,7 +383,7 @@ namespace melon::rpc {
 
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::endpoint2str(socket->remote_side()).c_str());
+                                    turbo::endpoint2str(socket->remote_side()).c_str());
                     break;
                 }
 
@@ -445,7 +445,7 @@ namespace melon::rpc {
 
                 // `cntl', `req' and `res' will be deleted inside `done'
                 if (span) {
-                    span->set_start_callback_us(melon::get_current_time_micros());
+                    span->set_start_callback_us(turbo::get_current_time_micros());
                     span->AsParent();
                 }
                 if (!FLAGS_usercode_in_pthread) {
@@ -473,18 +473,18 @@ namespace melon::rpc {
         bool VerifySofaRequest(const InputMessageBase *msg_base) {
             const Server *server = static_cast<const Server *>(msg_base->arg());
             if (server->options().auth) {
-                MELON_LOG(WARNING) << "sofa-pbrpc does not support authentication";
+                TURBO_LOG(WARNING) << "sofa-pbrpc does not support authentication";
                 return false;
             }
             return true;
         }
 
         void ProcessSofaResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             SofaRpcMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse response meta";
+                TURBO_LOG(WARNING) << "Fail to parse response meta";
                 return;
             }
 
@@ -492,8 +492,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -530,15 +530,15 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void PackSofaRequest(melon::cord_buf *req_buf,
+        void PackSofaRequest(turbo::cord_buf *req_buf,
                              SocketMessage **,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *method,
                              Controller *cntl,
-                             const melon::cord_buf &req_body,
+                             const turbo::cord_buf &req_body,
                              const Authenticator * /*not supported*/) {
             if (!cntl->request_attachment().empty()) {
-                MELON_LOG(WARNING) << "sofa-pbrpc does not support attachment, "
+                TURBO_LOG(WARNING) << "sofa-pbrpc does not support attachment, "
                                       "your request_attachment will not be sent";
             }
             SofaRpcMeta meta;

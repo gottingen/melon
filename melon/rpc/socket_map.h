@@ -22,7 +22,7 @@
 #include <mutex>
 #include <vector>                             // std::vector
 #include "melon/metrics/all.h"                        // melon::status_gauge
-#include "melon/container/flat_map.h"        // FlatMap
+#include "turbo/container/flat_map.h"        // FlatMap
 #include "melon/rpc/socket_id.h"                   // SockdetId
 #include "melon/rpc/options.pb.h"                  // ProtocolType
 #include "melon/rpc/input_messenger.h"             // InputMessageHandler
@@ -50,10 +50,10 @@ namespace melon::rpc {
     // The following fields uniquely define a Socket. In other word,
     // Socket can't be shared between 2 different SocketMapKeys
     struct SocketMapKey {
-        explicit SocketMapKey(const melon::end_point &pt)
+        explicit SocketMapKey(const turbo::end_point &pt)
                 : peer(pt) {}
 
-        SocketMapKey(const melon::end_point &pt, const ChannelSignature &cs)
+        SocketMapKey(const turbo::end_point &pt, const ChannelSignature &cs)
                 : peer(pt), channel_signature(cs) {}
 
         SocketMapKey(const ServerNode &sn, const ChannelSignature &cs)
@@ -69,8 +69,8 @@ namespace melon::rpc {
 
     struct SocketMapKeyHasher {
         size_t operator()(const SocketMapKey &key) const {
-            size_t h = melon::container::DefaultHasher<melon::end_point>()(key.peer.addr);
-            h = h * 101 + melon::container::DefaultHasher<std::string>()(key.peer.tag);
+            size_t h = turbo::container::DefaultHasher<turbo::end_point>()(key.peer.addr);
+            h = h * 101 + turbo::container::DefaultHasher<std::string>()(key.peer.tag);
             h = h * 101 + key.channel_signature.data[1];
             return h;
         }
@@ -163,7 +163,7 @@ namespace melon::rpc {
 
         void List(std::vector<SocketId> *ids);
 
-        void List(std::vector<melon::end_point> *pts);
+        void List(std::vector<turbo::end_point> *pts);
 
         const SocketMapOptions &options() const { return _options; }
 
@@ -190,7 +190,7 @@ namespace melon::rpc {
 
         // TODO: When RpcChannels connecting to one end_point are frequently created
         //       and destroyed, a single map+mutex may become hot-spots.
-        typedef melon::container::FlatMap<SocketMapKey, SingleConnection,
+        typedef turbo::container::FlatMap<SocketMapKey, SingleConnection,
                 SocketMapKeyHasher> Map;
         SocketMapOptions _options;
         std::mutex _mutex;

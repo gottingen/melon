@@ -21,7 +21,7 @@
 #include "melon/rpc/thrift_message.h"
 
 #include <algorithm>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 
 #include <google/protobuf/stubs/once.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -99,7 +99,7 @@ namespace melon::rpc {
 
     int ThriftFramedMessage::ByteSize() const {
         if (_raw_instance) {
-            MELON_LOG(ERROR) << "ByteSize() is always 0 when _raw_instance is set";
+            TURBO_LOG(ERROR) << "ByteSize() is always 0 when _raw_instance is set";
             return 0;
         }
         return body.size();
@@ -107,22 +107,22 @@ namespace melon::rpc {
 
     void ThriftFramedMessage::MergeFrom(const ::google::protobuf::Message &from) {
         GOOGLE_CHECK_NE(&from, this);
-        MELON_LOG(ERROR) << "ThriftFramedMessage does not support MergeFrom";
+        TURBO_LOG(ERROR) << "ThriftFramedMessage does not support MergeFrom";
     }
 
     void ThriftFramedMessage::MergeFrom(const ThriftFramedMessage &from) {
         GOOGLE_CHECK_NE(&from, this);
-        MELON_LOG(ERROR) << "ThriftFramedMessage does not support MergeFrom";
+        TURBO_LOG(ERROR) << "ThriftFramedMessage does not support MergeFrom";
     }
 
     void ThriftFramedMessage::CopyFrom(const ::google::protobuf::Message &from) {
         if (&from == this) return;
-        MELON_LOG(ERROR) << "ThriftFramedMessage does not support CopyFrom";
+        TURBO_LOG(ERROR) << "ThriftFramedMessage does not support CopyFrom";
     }
 
     void ThriftFramedMessage::CopyFrom(const ThriftFramedMessage &from) {
         if (&from == this) return;
-        MELON_LOG(ERROR) << "ThriftFramedMessage does not support CopyFrom";
+        TURBO_LOG(ERROR) << "ThriftFramedMessage does not support CopyFrom";
     }
 
     bool ThriftFramedMessage::IsInitialized() const {

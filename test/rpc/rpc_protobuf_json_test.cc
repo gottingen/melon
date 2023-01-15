@@ -21,10 +21,10 @@
 #include <fstream>
 #include <string>
 #include <google/protobuf/text_format.h>
-#include "melon/io/cord_buf.h"
-#include "melon/rapidjson/rapidjson.h"
-#include "melon/times/time.h"
-#include "melon/base/gperftools_profiler.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/rapidjson/rapidjson.h"
+#include "turbo/times/time.h"
+#include "turbo/base/gperftools_profiler.h"
 #include "melon/json2pb/pb_to_json.h"
 #include "melon/json2pb/json_to_pb.h"
 #include "melon/json2pb/encode_decode.h"
@@ -258,11 +258,11 @@ TEST_F(ProtobufJsonTest, json_to_pb_unicode_case) {
     ret = json2pb::ProtoMessageToJson(address_book_test, &info2, &error);
     ASSERT_TRUE(ret);
     ASSERT_TRUE(!info1.compare(info2));
-    melon::cord_buf buf;
-    melon::cord_buf_as_zero_copy_output_stream stream(&buf);
+    turbo::cord_buf buf;
+    turbo::cord_buf_as_zero_copy_output_stream stream(&buf);
     bool res = json2pb::ProtoMessageToJson(address_book, &stream, nullptr);
     ASSERT_TRUE(res);
-    melon::cord_buf_as_zero_copy_input_stream stream2(buf);
+    turbo::cord_buf_as_zero_copy_input_stream stream2(buf);
     AddressBook address_book_test3;
     ret = json2pb::JsonToProtoMessage(&stream2, &address_book_test3, &error);
     ASSERT_TRUE(ret);
@@ -505,7 +505,7 @@ TEST_F(ProtobufJsonTest, json_to_pb_perf_case) {
     std::string error; 
   
     ProfilerStart("json_to_pb_perf.prof");
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     float avg_time2 = 0;
@@ -542,7 +542,7 @@ TEST_F(ProtobufJsonTest, json_to_pb_encode_decode_perf_case) {
     std::string error; 
     
     ProfilerStart("json_to_pb_encode_decode_perf.prof");
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     float avg_time2 = 0;
@@ -574,7 +574,7 @@ TEST_F(ProtobufJsonTest, json_to_pb_complex_perf_case) {
     std::ifstream in("jsonout", std::ios::in);
     std::ostringstream tmp;
     tmp << in.rdbuf();
-    melon::cord_buf buf;
+    turbo::cord_buf buf;
     buf.append(tmp.str());
     in.close();
 
@@ -582,7 +582,7 @@ TEST_F(ProtobufJsonTest, json_to_pb_complex_perf_case) {
 
     std::string error; 
   
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
 
     bool res;
     float avg_time1 = 0;
@@ -592,7 +592,7 @@ TEST_F(ProtobufJsonTest, json_to_pb_complex_perf_case) {
     ProfilerStart("json_to_pb_complex_perf.prof");
     for (int i = 0; i < times; i++) { 
         gss::message::gss_us_res_t data;
-        melon::cord_buf_as_zero_copy_input_stream stream(buf);
+        turbo::cord_buf_as_zero_copy_input_stream stream(buf);
         timer.start();
         res = json2pb::JsonToProtoMessage(&stream, &data, options, &error);
         timer.stop();
@@ -615,7 +615,7 @@ TEST_F(ProtobufJsonTest, json_to_pb_to_string_complex_perf_case) {
 
     std::string error; 
   
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     const int times = 10000;
@@ -1087,8 +1087,8 @@ TEST_F(ProtobufJsonTest, pb_to_json_unicode_case) {
     printf("----------test pb to json------------\n\n");
     bool ret = json2pb::ProtoMessageToJson(address_book, &info1, &error);
     ASSERT_TRUE(ret);
-    melon::cord_buf buf;
-    melon::cord_buf_as_zero_copy_output_stream stream(&buf);
+    turbo::cord_buf buf;
+    turbo::cord_buf_as_zero_copy_output_stream stream(&buf);
     bool res = json2pb::ProtoMessageToJson(address_book, &stream, nullptr);
     ASSERT_TRUE(res);
     ASSERT_TRUE(!info1.compare(buf.to_string()));
@@ -1221,7 +1221,7 @@ TEST_F(ProtobufJsonTest, pb_to_json_perf_case) {
 
     printf("----------test pb to json performance------------\n\n");
     ProfilerStart("pb_to_json_perf.prof");
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     float avg_time2 = 0;
@@ -1280,7 +1280,7 @@ TEST_F(ProtobufJsonTest, pb_to_json_encode_decode_perf_case) {
 
     printf("----------test pb to json encode decode performance------------\n\n");
     ProfilerStart("pb_to_json_encode_decode_perf.prof");
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     float avg_time2 = 0;
@@ -1319,7 +1319,7 @@ TEST_F(ProtobufJsonTest, pb_to_json_complex_perf_case) {
 
     std::string error;
 
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     float avg_time2 = 0;
@@ -1336,8 +1336,8 @@ TEST_F(ProtobufJsonTest, pb_to_json_complex_perf_case) {
     for (int i = 0; i < times; i++) { 
         std::string error1;
         timer.start();
-        melon::cord_buf buf;
-        melon::cord_buf_as_zero_copy_output_stream stream(&buf);
+        turbo::cord_buf buf;
+        turbo::cord_buf_as_zero_copy_output_stream stream(&buf);
         res = json2pb::ProtoMessageToJson(data, &stream, &error1);
         timer.stop();
         avg_time2 += timer.u_elapsed();
@@ -1359,7 +1359,7 @@ TEST_F(ProtobufJsonTest, pb_to_json_to_string_complex_perf_case) {
 
     std::string error; 
   
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     bool res;
     float avg_time1 = 0;
     float avg_time2 = 0;
@@ -1430,8 +1430,8 @@ TEST_F(ProtobufJsonTest, json_to_zero_copy_stream_normal_case) {
     person.set_id(9);
     person.set_datadouble(2.2);
     person.set_datafloat(1);
-    melon::cord_buf iobuf;
-    melon::cord_buf_as_zero_copy_output_stream wrapper(&iobuf);
+    turbo::cord_buf iobuf;
+    turbo::cord_buf_as_zero_copy_output_stream wrapper(&iobuf);
     std::string error;
     ASSERT_TRUE(json2pb::ProtoMessageToJson(person, &wrapper, &error)) << error;
     std::string out = iobuf.to_string();
@@ -1439,9 +1439,9 @@ TEST_F(ProtobufJsonTest, json_to_zero_copy_stream_normal_case) {
 }
 
 TEST_F(ProtobufJsonTest, zero_copy_stream_to_json_normal_case) {
-    melon::cord_buf iobuf;
+    turbo::cord_buf iobuf;
     iobuf = "{\"name\":\"hello\",\"id\":9,\"datadouble\":2.2,\"datafloat\":1.0}";
-    melon::cord_buf_as_zero_copy_input_stream wrapper(iobuf);
+    turbo::cord_buf_as_zero_copy_input_stream wrapper(iobuf);
     Person person;
     ASSERT_TRUE(json2pb::JsonToProtoMessage(&wrapper, &person));
     ASSERT_STREQ("hello", person.name().c_str());

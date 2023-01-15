@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include <melon/rpc/nshead_service.h>
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     // Start the server.
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

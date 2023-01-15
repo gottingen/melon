@@ -19,8 +19,8 @@
 #include <ostream>
 #include <dirent.h>                    // opendir
 #include <fcntl.h>                     // O_RDONLY
-#include "melon/base/fd_guard.h"
-#include "melon/base/fd_utility.h"
+#include "turbo/base/fd_guard.h"
+#include "turbo/base/fd_utility.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
@@ -49,15 +49,15 @@ namespace melon::rpc {
         }
         DIR *dir = opendir(open_path.c_str());
         if (nullptr == dir) {
-            melon::base::fd_guard fd(open(open_path.c_str(), O_RDONLY));
+            turbo::base::fd_guard fd(open(open_path.c_str(), O_RDONLY));
             if (fd < 0) {
                 cntl->SetFailed(errno, "Cannot open `%s'", open_path.c_str());
                 return;
             }
-            melon::base::make_non_blocking(fd);
-            melon::base::make_close_on_exec(fd);
+            turbo::base::make_non_blocking(fd);
+            turbo::base::make_close_on_exec(fd);
 
-            melon::IOPortal read_portal;
+            turbo::IOPortal read_portal;
             size_t total_read = 0;
             do {
                 const ssize_t nr = read_portal.append_from_file_descriptor(
@@ -71,7 +71,7 @@ namespace melon::rpc {
                 }
                 total_read += nr;
             } while (total_read < MAX_READ);
-            melon::cord_buf &resp = cntl->response_attachment();
+            turbo::cord_buf &resp = cntl->response_attachment();
             resp.swap(read_portal);
             if (total_read >= MAX_READ) {
                 std::ostringstream oss;
@@ -81,7 +81,7 @@ namespace melon::rpc {
             cntl->http_response().set_content_type("text/plain");
         } else {
             const bool use_html = UseHTML(cntl->http_request());
-            const melon::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
+            const turbo::end_point *const html_addr = (use_html ? Path::LOCAL : nullptr);
             cntl->http_response().set_content_type(
                     use_html ? "text/html" : "text/plain");
 
@@ -97,10 +97,10 @@ namespace melon::rpc {
 #endif
                 files.push_back(p->d_name);
             }
-            MELON_CHECK_EQ(0, closedir(dir));
+            TURBO_CHECK_EQ(0, closedir(dir));
 
             std::sort(files.begin(), files.end());
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             if (use_html) {
                 os << "<!DOCTYPE html><html><body><pre>";
             }

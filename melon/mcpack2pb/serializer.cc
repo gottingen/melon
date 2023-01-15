@@ -23,7 +23,7 @@
 
 namespace mcpack2pb {
 
-    const static OutputStream::Area INVALID_AREA(melon::base::LINKER_INITIALIZED);
+    const static OutputStream::Area INVALID_AREA(turbo::base::LINKER_INITIALIZED);
 
 // Binary head before fixed-size types.
     struct FieldFixedHead {
@@ -218,7 +218,7 @@ namespace mcpack2pb {
             for (; _ndepth > 0; --_ndepth) {
                 oss << ' ' << peek_group_info();
             }
-            MELON_CHECK(false) << oss.str();
+            TURBO_CHECK(false) << oss.str();
         }
         free(_group_info_more);
         _group_info_more = nullptr;
@@ -230,11 +230,11 @@ namespace mcpack2pb {
     inline bool object_add_item(Serializer::GroupInfo &group_info,
                                 const StringWrapper &name) {
         if (name.size() > 254) {
-            MELON_CHECK(false) << "Too long name=`" << name << '\'';
+            TURBO_CHECK(false) << "Too long name=`" << name << '\'';
             return false;
         }
         if (group_info.type != FIELD_OBJECT) {
-            MELON_CHECK(false) << "Cannot add `" << name << "' to " << group_info;
+            TURBO_CHECK(false) << "Cannot add `" << name << "' to " << group_info;
             return false;
         }
         ++group_info.item_count;
@@ -254,7 +254,7 @@ namespace mcpack2pb {
             return true;
         }
         if (group_info.type == FIELD_ARRAY) {
-            MELON_CHECK(false) << "Different item_type=" << type2str(item_type)
+            TURBO_CHECK(false) << "Different item_type=" << type2str(item_type)
                          << " from " << group_info;
             return false;
         }
@@ -263,7 +263,7 @@ namespace mcpack2pb {
             group_info.item_count += n;
             return true;
         } else {
-            MELON_CHECK(false) << "Cannot add field without name to " << group_info;
+            TURBO_CHECK(false) << "Cannot add field without name to " << group_info;
             return false;
         }
     }
@@ -600,11 +600,11 @@ namespace mcpack2pb {
             return;
         }
         if (group_info.type != FIELD_ARRAY) {
-            MELON_CHECK(false) << "Cannot add nulls without name to " << group_info;
+            TURBO_CHECK(false) << "Cannot add nulls without name to " << group_info;
             return stream->set_bad();
         }
         if (group_info.isomorphic) {
-            MELON_CHECK(false) << "Cannot add nulls to isomorphic " << group_info;
+            TURBO_CHECK(false) << "Cannot add nulls to isomorphic " << group_info;
             return stream->set_bad();
         }
         int n = group_info.pending_null_count;
@@ -612,7 +612,7 @@ namespace mcpack2pb {
         group_info.item_count += n;
         // layout of nulls = [{FIELD_NULL,0,0},{FIELD_NULL,0,0},...]
         while (n) {
-            const int cur_batch = std::min(n, (int) MELON_ARRAY_SIZE(s_null_array));
+            const int cur_batch = std::min(n, (int) TURBO_ARRAY_SIZE(s_null_array));
             n -= cur_batch;
             stream->append(s_null_array, cur_batch * sizeof(NullLayout));
         }
@@ -718,7 +718,7 @@ namespace mcpack2pb {
         }
         GroupInfo *info = push_group_info();
         if (info == nullptr) {
-            MELON_CHECK(false) << "Fail to push object";
+            TURBO_CHECK(false) << "Fail to push object";
             return _stream->set_bad();
         }
         info->item_count = 0;
@@ -744,7 +744,7 @@ namespace mcpack2pb {
         }
         GroupInfo *info = push_group_info();
         if (info == nullptr) {
-            MELON_CHECK(false) << "Fail to push object=" << name;
+            TURBO_CHECK(false) << "Fail to push object=" << name;
             return _stream->set_bad();
         }
         info->item_count = 0;
@@ -763,7 +763,7 @@ namespace mcpack2pb {
         if (ndepth > 0) {
             --ndepth;
         } else {
-            MELON_CHECK(false) << "Nothing to pop";
+            TURBO_CHECK(false) << "Nothing to pop";
         }
     }
 
@@ -773,7 +773,7 @@ namespace mcpack2pb {
         }
         GroupInfo &group_info = peek_group_info();
         if (FIELD_OBJECT != group_info.type) {
-            MELON_CHECK(false) << "end_object() is called on " << group_info;
+            TURBO_CHECK(false) << "end_object() is called on " << group_info;
             return _stream->set_bad();
         }
         if (group_info.name_size == 0) {
@@ -807,7 +807,7 @@ namespace mcpack2pb {
         }
         GroupInfo *info = push_group_info();
         if (info == nullptr) {
-            MELON_CHECK(false) << "Fail to push array";
+            TURBO_CHECK(false) << "Fail to push array";
             return _stream->set_bad();
         }
         info->item_count = 0;
@@ -841,7 +841,7 @@ namespace mcpack2pb {
         }
         GroupInfo *info = push_group_info();
         if (info == nullptr) {
-            MELON_CHECK(false) << "Fail to push array";
+            TURBO_CHECK(false) << "Fail to push array";
             return _stream->set_bad();
         }
         info->item_count = 0;
@@ -868,7 +868,7 @@ namespace mcpack2pb {
         }
         GroupInfo &group_info = peek_group_info();
         if (FIELD_ARRAY != group_info.type) {
-            MELON_CHECK(false) << "end_array() is called on " << group_info;
+            TURBO_CHECK(false) << "end_array() is called on " << group_info;
             return _stream->set_bad();
         }
         if (group_info.item_count == 0 && group_info.pending_null_count == 0) {

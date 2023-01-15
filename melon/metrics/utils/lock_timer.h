@@ -2,8 +2,8 @@
 #ifndef  MELON_VARIABLE_LOCK_TIMER_H_
 #define  MELON_VARIABLE_LOCK_TIMER_H_
 
-#include "melon/times/time.h"             // melon::stop_watcher
-#include "melon/base/scoped_lock.h"      // std::lock_guard std::unique_lock
+#include "turbo/times/time.h"             // turbo::stop_watcher
+#include "turbo/base/scoped_lock.h"      // std::lock_guard std::unique_lock
 #include "melon/metrics/recorder.h"         // IntRecorder
 #include "melon/metrics/latency_recorder.h" // LatencyRecorder
 
@@ -49,7 +49,7 @@
 // void critical_routine_with_lock_guard() {
 //     std::lock_guard<my_mutex_t> guard(mutex);
 //     // ^^^
-//     // Or you can use MELON_SCOPED_LOCK(mutex) to make it simple
+//     // Or you can use TURBO_SCOPED_LOCK(mutex) to make it simple
 //     ... 
 //     doing something inside the critical section
 //     ...
@@ -100,7 +100,7 @@ namespace melon {
         bool operator()(pthread_mutex_t *mutex) const {
 #ifndef NDEBUG
             const int rc = pthread_mutex_init(mutex, nullptr);
-            MELON_CHECK_EQ(0, rc) << "Fail to init pthread_mutex, " << melon_error(rc);
+            TURBO_CHECK_EQ(0, rc) << "Fail to init pthread_mutex, " << turbo_error(rc);
             return rc == 0;
 #else
             return pthread_mutex_init(mutex, nullptr) == 0;
@@ -113,7 +113,7 @@ namespace melon {
         bool operator()(pthread_mutex_t *mutex) const {
 #ifndef NDEBUG
             const int rc = pthread_mutex_destroy(mutex);
-            MELON_CHECK_EQ(0, rc) << "Fail to destroy pthread_mutex, " << melon_error(rc);
+            TURBO_CHECK_EQ(0, rc) << "Fail to destroy pthread_mutex, " << turbo_error(rc);
             return rc == 0;
 #else
             return pthread_mutex_destroy(mutex) == 0;
@@ -126,7 +126,7 @@ namespace melon {
         template<typename Mutex, typename Recorder,
                 typename MCtor, typename MDtor>
         class MutexWithRecorderBase {
-            MELON_DISALLOW_COPY_AND_ASSIGN(MutexWithRecorderBase);
+            TURBO_DISALLOW_COPY_AND_ASSIGN(MutexWithRecorderBase);
 
         public:
             typedef Mutex mutex_type;
@@ -172,7 +172,7 @@ namespace melon {
 
         template<typename Mutex>
         class LockGuardBase {
-            MELON_DISALLOW_COPY_AND_ASSIGN(LockGuardBase);
+            TURBO_DISALLOW_COPY_AND_ASSIGN(LockGuardBase);
 
         public:
             LockGuardBase(Mutex &m)
@@ -185,13 +185,13 @@ namespace melon {
             // This trick makes the recoding happens after the destructor of _lock_guard
             struct TimerAndMutex {
                 TimerAndMutex(Mutex &m)
-                        : timer(melon::stop_watcher::STARTED), mutex(&m) {}
+                        : timer(turbo::stop_watcher::STARTED), mutex(&m) {}
 
                 ~TimerAndMutex() {
                     *mutex << timer.u_elapsed();
                 }
 
-                melon::stop_watcher timer;
+                turbo::stop_watcher timer;
                 Mutex *mutex;
             };
 
@@ -203,13 +203,13 @@ namespace melon {
 
         template<typename Mutex>
         class UniqueLockBase {
-            MELON_DISALLOW_COPY_AND_ASSIGN(UniqueLockBase);
+            TURBO_DISALLOW_COPY_AND_ASSIGN(UniqueLockBase);
 
         public:
             typedef Mutex mutex_type;
 
             explicit UniqueLockBase(mutex_type &mutex)
-                    : _timer(melon::stop_watcher::STARTED), _lock(mutex.mutex()),
+                    : _timer(turbo::stop_watcher::STARTED), _lock(mutex.mutex()),
                       _mutex(&mutex) {
                 _timer.stop();
             }
@@ -219,7 +219,7 @@ namespace melon {
             }
 
             UniqueLockBase(mutex_type &mutex, std::try_to_lock_t try_to_lock)
-                    : _timer(melon::stop_watcher::STARTED), _lock(mutex.mutex(), try_to_lock), _mutex(&mutex) {
+                    : _timer(turbo::stop_watcher::STARTED), _lock(mutex.mutex(), try_to_lock), _mutex(&mutex) {
 
                 _timer.stop();
                 if (!owns_lock()) {
@@ -307,7 +307,7 @@ namespace melon {
 
         private:
             // Don't change the order or timer and _lck;
-            melon::stop_watcher _timer;
+            turbo::stop_watcher _timer;
             std::unique_lock<typename Mutex::mutex_type> _lock;
             mutex_type *_mutex;
         };

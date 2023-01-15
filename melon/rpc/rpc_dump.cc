@@ -17,11 +17,11 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 #include <fcntl.h>                    // O_CREAT
-#include "melon/io/raw_pack.h"
+#include "turbo/io/raw_pack.h"
 #include <memory>
-#include "melon/base/fast_rand.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/metrics/all.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"
@@ -72,15 +72,15 @@ namespace melon::rpc {
 
         void Dump(size_t round, SampledRequest *);
 
-        static bool Serialize(melon::cord_buf &buf, SampledRequest *sample);
+        static bool Serialize(turbo::cord_buf &buf, SampledRequest *sample);
 
         RpcDumpContext()
                 : _cur_req_count(0), _cur_fd(-1), _last_round(0), _max_requests_in_one_file(0), _max_files(0),
-                  _sched_write_time(melon::get_current_time_micros() + FLUSH_TIMEOUT), _last_file_time(0) {
+                  _sched_write_time(turbo::get_current_time_micros() + FLUSH_TIMEOUT), _last_file_time(0) {
             _command_name = melon::read_command_name();
             SaveFlags();
             // Clean the directory at fist time.
-            melon::remove_all(_dir);
+            turbo::remove_all(_dir);
         }
 
         ~RpcDumpContext() {
@@ -106,7 +106,7 @@ namespace melon::rpc {
         // current filename, being here just to reuse memory.
         std::string _cur_filename;
         // buffering output to file so they can be written in batch.
-        melon::cord_buf _unwritten_buf;
+        turbo::cord_buf _unwritten_buf;
     };
 
     melon::CollectorSpeedLimit g_rpc_dump_sl = VARIABLE_COLLECTOR_SPEED_LIMIT_INITIALIZER;
@@ -133,7 +133,7 @@ namespace melon::rpc {
 // Save gflags which could be reloaded at anytime.
     void RpcDumpContext::SaveFlags() {
         std::string dir;
-        MELON_CHECK(google::GetCommandLineOption("rpc_dump_dir", &dir));
+        TURBO_CHECK(google::GetCommandLineOption("rpc_dump_dir", &dir));
 
         const size_t pos = dir.find("<app>");
         if (pos != std::string::npos) {
@@ -162,7 +162,7 @@ namespace melon::rpc {
         } else if (_unwritten_buf.size() >= UNWRITTEN_BUFSIZE) {
             // Too much unwritten data
             RPC_VLOG << "Write because _unwritten_buf=" << _unwritten_buf.size();
-        } else if (melon::get_current_time_micros() >= _sched_write_time) {
+        } else if (turbo::get_current_time_micros() >= _sched_write_time) {
             // Not write for a while.
             RPC_VLOG << "Write because timeout";
         } else {
@@ -172,18 +172,18 @@ namespace melon::rpc {
         // Open file if needed.
         if (_cur_fd < 0) {
             std::error_code ec;
-            if (!melon::create_directories(_dir, ec)) {
-                MELON_LOG(ERROR) << "Fail to create directory=`" << _dir
+            if (!turbo::create_directories(_dir, ec)) {
+                TURBO_LOG(ERROR) << "Fail to create directory=`" << _dir
                            << "', " << ec.message();
                 return;
             }
             // Remove oldest files.
             while ((int) _filenames.size() >= _max_files && !_filenames.empty()) {
-                melon::remove(_filenames.front());
+                turbo::remove(_filenames.front());
                 _filenames.pop_front();
             }
             // Make current time as postfix.
-            int64_t cur_file_time = melon::get_current_time_micros();
+            int64_t cur_file_time = turbo::get_current_time_micros();
             // Make postfix monotonic.
             if (cur_file_time <= _last_file_time) {
                 cur_file_time = _last_file_time + 1;
@@ -192,12 +192,12 @@ namespace melon::rpc {
             struct tm *timeinfo = localtime(&rawtime);
             char ts_buf[64];
             strftime(ts_buf, sizeof(ts_buf), "%Y%m%d_%H%M%S", timeinfo);
-            melon::string_printf(&_cur_filename, "%s/" DUMPED_FILE_PREFIX ".%s_%06u",
+            turbo::string_printf(&_cur_filename, "%s/" DUMPED_FILE_PREFIX ".%s_%06u",
                                        _dir.c_str(), ts_buf,
                                        (unsigned) (cur_file_time - rawtime * 1000000L));
             _cur_fd = open(_cur_filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0666);
             if (_cur_fd < 0) {
-                MELON_PLOG(ERROR) << "Fail to open " << _cur_filename;
+                TURBO_PLOG(ERROR) << "Fail to open " << _cur_filename;
                 return;
             }
             _last_file_time = cur_file_time;
@@ -209,14 +209,14 @@ namespace melon::rpc {
         while (!_unwritten_buf.empty()) {
             if (_unwritten_buf.cut_into_file_descriptor(_cur_fd) < 0) {
                 if (errno != EINTR && errno != EAGAIN) {
-                    MELON_PLOG(ERROR) << "Fail to write into " << _cur_filename;
+                    TURBO_PLOG(ERROR) << "Fail to write into " << _cur_filename;
                     fail_to_write = true;
                     break;
                 }
             }
         }
         _unwritten_buf.clear();
-        _sched_write_time = melon::get_current_time_micros() + FLUSH_TIMEOUT;
+        _sched_write_time = turbo::get_current_time_micros() + FLUSH_TIMEOUT;
         if (fail_to_write || _cur_req_count >= _max_requests_in_one_file) {
             // clean up
             if (_cur_fd >= 0) {
@@ -227,15 +227,15 @@ namespace melon::rpc {
         }
     }
 
-    bool RpcDumpContext::Serialize(melon::cord_buf &buf, SampledRequest *sample) {
+    bool RpcDumpContext::Serialize(turbo::cord_buf &buf, SampledRequest *sample) {
         // Use the header of baidu_std.
         char rpc_header[12];
-        melon::cord_buf::Area header_area = buf.reserve(sizeof(rpc_header));
+        turbo::cord_buf::Area header_area = buf.reserve(sizeof(rpc_header));
 
         const size_t starting_size = buf.size();
-        melon::cord_buf_as_zero_copy_output_stream buf_stream(&buf);
+        turbo::cord_buf_as_zero_copy_output_stream buf_stream(&buf);
         if (!sample->meta.SerializeToZeroCopyStream(&buf_stream)) {
-            MELON_LOG(ERROR) << "Fail to serialize";
+            TURBO_LOG(ERROR) << "Fail to serialize";
             return false;
         }
         const size_t meta_size = buf.size() - starting_size;
@@ -243,10 +243,10 @@ namespace melon::rpc {
 
         uint32_t *dummy = (uint32_t *) rpc_header;  // suppress strict-alias warning
         *dummy = *(uint32_t *) "PRPC";
-        melon::raw_packer(rpc_header + 4)
+        turbo::raw_packer(rpc_header + 4)
                 .pack32(meta_size + sample->request.size())
                 .pack32(meta_size);
-        MELON_CHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
+        TURBO_CHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
         return true;
     }
 
@@ -281,7 +281,7 @@ namespace melon::rpc {
                 ssize_t nr = _cur_buf.append_from_file_descriptor(_cur_fd, 524288);
                 if (nr < 0) {
                     if (errno != EAGAIN && errno != EINTR) {
-                        MELON_PLOG(ERROR) << "Fail to read fd=" << _cur_fd;
+                        TURBO_PLOG(ERROR) << "Fail to read fd=" << _cur_fd;
                         break;
                     }
                 } else if (nr == 0) {  // EOF
@@ -296,15 +296,15 @@ namespace melon::rpc {
                 _cur_fd = -1;
             }
 
-            if (_enum == melon::directory_iterator()) {
+            if (_enum == turbo::directory_iterator()) {
                 std::error_code ec;
-                _enum = melon::directory_iterator(_dir, ec);
+                _enum = turbo::directory_iterator(_dir, ec);
             }
-            while (_enum != melon::directory_iterator() &&
+            while (_enum != turbo::directory_iterator() &&
                    _enum->is_directory()) {
                 ++_enum;
             }
-            if (_enum == melon::directory_iterator()) {
+            if (_enum == turbo::directory_iterator()) {
                 return nullptr;
             }
 
@@ -316,39 +316,39 @@ namespace melon::rpc {
         }
     }
 
-    SampledRequest *SampleIterator::Pop(melon::cord_buf &buf, bool *format_error) {
+    SampledRequest *SampleIterator::Pop(turbo::cord_buf &buf, bool *format_error) {
         char backing_buf[12];
         const char *p = (const char *) buf.fetch(backing_buf, sizeof(backing_buf));
         if (nullptr == p) {  // buf.length() < sizeof(backing_buf)
             return nullptr;
         }
         if (*(const uint32_t *) p != *(const uint32_t *) "PRPC") {
-            MELON_LOG(ERROR) << "Unmatched magic string";
+            TURBO_LOG(ERROR) << "Unmatched magic string";
             *format_error = true;
             return nullptr;
         }
         uint32_t body_size;
         uint32_t meta_size;
-        melon::raw_unpacker(p + 4).unpack32(body_size).unpack32(meta_size);
+        turbo::raw_unpacker(p + 4).unpack32(body_size).unpack32(meta_size);
         if (body_size > FLAGS_max_body_size) {
-            MELON_LOG(ERROR) << "Too big body=" << body_size;
+            TURBO_LOG(ERROR) << "Too big body=" << body_size;
             *format_error = true;
             return nullptr;
         } else if (buf.length() < sizeof(backing_buf) + body_size) {
             return nullptr;
         }
         if (meta_size > body_size) {
-            MELON_LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+            TURBO_LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                        << body_size;
             *format_error = true;
             return nullptr;
         }
         buf.pop_front(sizeof(backing_buf));
-        melon::cord_buf meta_buf;
+        turbo::cord_buf meta_buf;
         buf.cutn(&meta_buf, meta_size);
         std::unique_ptr<SampledRequest> req(new SampledRequest);
         if (!ParsePbFromCordBuf(&req->meta, meta_buf)) {
-            MELON_LOG(ERROR) << "Fail to parse RpcDumpMeta";
+            TURBO_LOG(ERROR) << "Fail to parse RpcDumpMeta";
             *format_error = true;
             return nullptr;
         }

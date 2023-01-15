@@ -21,8 +21,8 @@
 
 #include <pthread.h>
 #include <limits.h>
-#include "melon/base/profile.h"
-#include "melon/base/static_atomic.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/metrics/gauge.h"
 #include "melon/fiber/internal/errno.h"                       // EAGAIN
 #include "melon/fiber/internal/fiber_worker.h"                  // fiber_worker
@@ -73,12 +73,12 @@ namespace melon::fiber_internal {
     static uint32_t s_free_keys[KEYS_MAX];
 
     // Stats.
-    static melon::static_atomic<size_t> nkeytable = MELON_STATIC_ATOMIC_INIT(0);
-    static melon::static_atomic<size_t> nsubkeytable = MELON_STATIC_ATOMIC_INIT(0);
+    static turbo::static_atomic<size_t> nkeytable = TURBO_STATIC_ATOMIC_INIT(0);
+    static turbo::static_atomic<size_t> nsubkeytable = TURBO_STATIC_ATOMIC_INIT(0);
 
     // The second-level array.
     // Align with cacheline to avoid false sharing.
-    class MELON_CACHELINE_ALIGNMENT SubKeyTable {
+    class TURBO_CACHELINE_ALIGNMENT SubKeyTable {
     public:
         SubKeyTable() {
             memset(_data, 0, sizeof(_data));
@@ -139,7 +139,7 @@ namespace melon::fiber_internal {
 
     // The first-level array.
     // Align with cacheline to avoid false sharing.
-    class MELON_CACHELINE_ALIGNMENT KeyTable {
+    class TURBO_CACHELINE_ALIGNMENT KeyTable {
     public:
         KeyTable() : next(nullptr) {
             memset(_subs, 0, sizeof(_subs));
@@ -168,7 +168,7 @@ namespace melon::fiber_internal {
                     return;
                 }
             }
-            MELON_LOG(ERROR) << "Fail to destroy all objects in KeyTable[" << this << ']';
+            TURBO_LOG(ERROR) << "Fail to destroy all objects in KeyTable[" << this << ']';
         }
 
         inline void *get_data(fiber_local_key key) const {
@@ -200,7 +200,7 @@ namespace melon::fiber_internal {
                 return 0;
             }
             // TODO nocheck for testing
-            //MELON_CHECK(false) << "fiber_setspecific is called on invalid " << key;
+            //TURBO_CHECK(false) << "fiber_setspecific is called on invalid " << key;
             return EINVAL;
         }
 
@@ -212,7 +212,7 @@ namespace melon::fiber_internal {
 
     static KeyTable *borrow_keytable(fiber_keytable_pool_t *pool) {
         if (pool != nullptr && pool->free_keytables) {
-            MELON_SCOPED_LOCK(pool->mutex);
+            TURBO_SCOPED_LOCK(pool->mutex);
             KeyTable *p = (KeyTable *) pool->free_keytables;
             if (p) {
                 pool->free_keytables = p->next;
@@ -257,7 +257,7 @@ namespace melon::fiber_internal {
     }
 
     static int get_key_count(void *) {
-        MELON_SCOPED_LOCK(melon::fiber_internal::s_key_mutex);
+        TURBO_SCOPED_LOCK(melon::fiber_internal::s_key_mutex);
         return (int) nkey - (int) nfreekey;
     }
 
@@ -284,7 +284,7 @@ extern "C" {
 
 int fiber_keytable_pool_init(fiber_keytable_pool_t *pool) {
     if (pool == nullptr) {
-        MELON_LOG(ERROR) << "Param[pool] is nullptr";
+        TURBO_LOG(ERROR) << "Param[pool] is nullptr";
         return EINVAL;
     }
     pthread_mutex_init(&pool->mutex, nullptr);
@@ -295,12 +295,12 @@ int fiber_keytable_pool_init(fiber_keytable_pool_t *pool) {
 
 int fiber_keytable_pool_destroy(fiber_keytable_pool_t *pool) {
     if (pool == nullptr) {
-        MELON_LOG(ERROR) << "Param[pool] is nullptr";
+        TURBO_LOG(ERROR) << "Param[pool] is nullptr";
         return EINVAL;
     }
     melon::fiber_internal::KeyTable *saved_free_keytables = nullptr;
     {
-        MELON_SCOPED_LOCK(pool->mutex);
+        TURBO_SCOPED_LOCK(pool->mutex);
         if (pool->free_keytables) {
             saved_free_keytables = (melon::fiber_internal::KeyTable *) pool->free_keytables;
             pool->free_keytables = nullptr;
@@ -335,7 +335,7 @@ int fiber_keytable_pool_destroy(fiber_keytable_pool_t *pool) {
 int fiber_keytable_pool_getstat(fiber_keytable_pool_t *pool,
                                 fiber_keytable_pool_stat_t *stat) {
     if (pool == nullptr || stat == nullptr) {
-        MELON_LOG(ERROR) << "Param[pool] or Param[stat] is nullptr";
+        TURBO_LOG(ERROR) << "Param[pool] or Param[stat] is nullptr";
         return EINVAL;
     }
     std::unique_lock<pthread_mutex_t> mu(pool->mutex);
@@ -355,12 +355,12 @@ void fiber_keytable_pool_reserve(fiber_keytable_pool_t *pool,
                                  void *ctor(const void *),
                                  const void *ctor_args) {
     if (pool == nullptr) {
-        MELON_LOG(ERROR) << "Param[pool] is nullptr";
+        TURBO_LOG(ERROR) << "Param[pool] is nullptr";
         return;
     }
     fiber_keytable_pool_stat_t stat;
     if (fiber_keytable_pool_getstat(pool, &stat) != 0) {
-        MELON_LOG(ERROR) << "Fail to getstat of pool=" << pool;
+        TURBO_LOG(ERROR) << "Fail to getstat of pool=" << pool;
         return;
     }
     for (size_t i = stat.nfree; i < nfree; ++i) {
@@ -392,7 +392,7 @@ int fiber_key_create2(fiber_local_key *key,
                       const void *dtor_args) {
     uint32_t index = 0;
     {
-        MELON_SCOPED_LOCK(melon::fiber_internal::s_key_mutex);
+        TURBO_SCOPED_LOCK(melon::fiber_internal::s_key_mutex);
         if (melon::fiber_internal::nfreekey > 0) {
             index = melon::fiber_internal::s_free_keys[--melon::fiber_internal::nfreekey];
         } else if (melon::fiber_internal::nkey < melon::fiber_internal::KEYS_MAX) {
@@ -423,7 +423,7 @@ int fiber_key_create(fiber_local_key *key, void (*dtor)(void *)) {
 int fiber_key_delete(fiber_local_key key) {
     if (key.index < melon::fiber_internal::KEYS_MAX &&
         key.version == melon::fiber_internal::s_key_info[key.index].version) {
-        MELON_SCOPED_LOCK(melon::fiber_internal::s_key_mutex);
+        TURBO_SCOPED_LOCK(melon::fiber_internal::s_key_mutex);
         if (key.version == melon::fiber_internal::s_key_info[key.index].version) {
             if (++melon::fiber_internal::s_key_info[key.index].version == 0) {
                 ++melon::fiber_internal::s_key_info[key.index].version;
@@ -434,7 +434,7 @@ int fiber_key_delete(fiber_local_key key) {
             return 0;
         }
     }
-    MELON_CHECK(false) << "fiber_key_delete is called on invalid " << key;
+    TURBO_CHECK(false) << "fiber_key_delete is called on invalid " << key;
     return EINVAL;
 }
 
@@ -457,7 +457,7 @@ int fiber_setspecific(fiber_local_key key, void *data) {
         } else {
             if (!melon::fiber_internal::tls_ever_created_keytable) {
                 melon::fiber_internal::tls_ever_created_keytable = true;
-                MELON_CHECK_EQ(0, melon::thread::atexit(melon::fiber_internal::cleanup_pthread, kt));
+                TURBO_CHECK_EQ(0, turbo::thread::atexit(melon::fiber_internal::cleanup_pthread, kt));
             }
         }
     }

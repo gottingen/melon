@@ -23,7 +23,7 @@
 #include "melon/rpc/log.h"
 #include "melon/rpc/details/http_parser.h"      // http_parser_parse_url
 #include "melon/rpc/uri.h"                      // URI
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 
 namespace melon::rpc {
 
@@ -279,7 +279,7 @@ namespace melon::rpc {
                 }
             } else if (*p == ' ') {
                 if (!is_all_spaces(p + 1)) {
-                    MELON_LOG(ERROR) << "Invalid space in url=`" << url << '\'';
+                    TURBO_LOG(ERROR) << "Invalid space in url=`" << url << '\'';
                     return -1;
                 }
                 break;
@@ -345,7 +345,7 @@ namespace melon::rpc {
 
     void URI::InitializeQueryMap() const {
         if (!_query_map.initialized()) {
-            MELON_CHECK_EQ(0, _query_map.init(QUERY_MAP_INITIAL_BUCKET));
+            TURBO_CHECK_EQ(0, _query_map.init(QUERY_MAP_INITIAL_BUCKET));
         }
         ParseQueries(_query_map, _query);
         _query_was_modified = false;
@@ -500,7 +500,7 @@ namespace melon::rpc {
     void append_query(std::string *query_string,
                       const std::string_view &key,
                       const std::string_view &value) {
-        if (!query_string->empty() && melon::back_char(*query_string) != '?') {
+        if (!query_string->empty() && turbo::back_char(*query_string) != '?') {
             query_string->push_back('&');
         }
         query_string->append(key.data(), key.size());

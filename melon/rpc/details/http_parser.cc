@@ -37,8 +37,8 @@
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
-#ifndef MELON_ARRAY_SIZE
-# define MELON_ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+#ifndef TURBO_ARRAY_SIZE
+# define TURBO_ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
 #ifndef BIT_AT
@@ -48,7 +48,7 @@
 #endif
 
 #ifndef ELEM_AT
-# define ELEM_AT(a, i, v) ((unsigned int) (i) < MELON_ARRAY_SIZE(a) ? (a)[(i)] : (v))
+# define ELEM_AT(a, i, v) ((unsigned int) (i) < TURBO_ARRAY_SIZE(a) ? (a)[(i)] : (v))
 #endif
 
 #define SET_ERRNO(e)                                                 \

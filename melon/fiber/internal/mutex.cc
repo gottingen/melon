@@ -21,19 +21,19 @@
 
 #include <pthread.h>
 #include <execinfo.h>
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 #include <dlfcn.h>                               // dlsym
 #include <fcntl.h>                               // O_RDONLY
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/metrics/all.h"
 #include "melon/metrics/collector.h"
-#include "melon/container/flat_map.h"
-#include "melon/io/cord_buf.h"
-#include "melon/base/fd_guard.h"
+#include "turbo/container/flat_map.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/base/fd_guard.h"
 #include <memory>
-#include "melon/hash/murmurhash3.h"
-#include "melon/log/logging.h"
-#include "melon/memory/object_pool.h"
+#include "turbo/hash/murmurhash3.h"
+#include "turbo/log/logging.h"
+#include "turbo/memory/object_pool.h"
 #include "melon/fiber/internal/waitable_event.h"                       // waitable_event_*
 #include "melon/fiber/internal/processor.h"                   // cpu_relax, barrier
 #include "melon/fiber/internal/mutex.h"                       // fiber_mutex_t
@@ -47,7 +47,7 @@ extern void *_dl_sym(void *handle, const char *symbol, void *caller);
 namespace melon::fiber_internal {
 // Warm up backtrace before main().
     void *dummy_buf[4];
-    const int MELON_ALLOW_UNUSED dummy_bt = backtrace(dummy_buf, MELON_ARRAY_SIZE(dummy_buf));
+    const int TURBO_ALLOW_UNUSED dummy_bt = backtrace(dummy_buf, TURBO_ARRAY_SIZE(dummy_buf));
 
 // For controlling contentions collected per second.
     static melon::CollectorSpeedLimit g_cp_sl = VARIABLE_COLLECTOR_SPEED_LIMIT_INITIALIZER;
@@ -78,7 +78,7 @@ namespace melon::fiber_internal {
             }
             uint32_t code = 1;
             uint32_t seed = nframes;
-            melon::hash::MurmurHash3_x86_32(stack, sizeof(void *) * nframes, seed, &code);
+            turbo::hash::MurmurHash3_x86_32(stack, sizeof(void *) * nframes, seed, &code);
             return code;
         }
     };
@@ -105,7 +105,7 @@ namespace melon::fiber_internal {
 // The global context for contention profiler.
     class ContentionProfiler {
     public:
-        typedef melon::container::FlatMap<SampledContention *, SampledContention *,
+        typedef turbo::container::FlatMap<SampledContention *, SampledContention *,
                 ContentionHash, ContentionEqual> ContentionMap;
 
         explicit ContentionProfiler(const char *name);
@@ -124,7 +124,7 @@ namespace melon::fiber_internal {
         bool _init;  // false before first dump_and_destroy is called
         bool _first_write;      // true if buffer was not written to file yet.
         std::string _filename;  // the file storing profiling result.
-        melon::cord_buf _disk_buf;  // temp buf before saving the file.
+        turbo::cord_buf _disk_buf;  // temp buf before saving the file.
         ContentionMap _dedup_map; // combining same samples to make result smaller.
     };
 
@@ -145,7 +145,7 @@ namespace melon::fiber_internal {
         if (!_init) {
             // Already output nanoseconds, always set cycles/second to 1000000000.
             _disk_buf.append("--- contention\ncycles/second=1000000000\n");
-            MELON_CHECK_EQ(0, _dedup_map.init(1024, 60));
+            TURBO_CHECK_EQ(0, _dedup_map.init(1024, 60));
             _init = true;
         }
     }
@@ -175,7 +175,7 @@ namespace melon::fiber_internal {
         // Serialize contentions in _dedup_map into _disk_buf.
         if (!_dedup_map.empty()) {
             BT_VLOG << "dedup_map=" << _dedup_map.size();
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             for (ContentionMap::const_iterator
                          it = _dedup_map.begin(); it != _dedup_map.end(); ++it) {
                 SampledContention *c = it->second;
@@ -195,8 +195,8 @@ namespace melon::fiber_internal {
         if (ending) {
             BT_VLOG << "Append /proc/self/maps";
             // Failures are not critical, don't return directly.
-            melon::IOPortal mem_maps;
-            const melon::base::fd_guard fd(open("/proc/self/maps", O_RDONLY));
+            turbo::IOPortal mem_maps;
+            const turbo::base::fd_guard fd(open("/proc/self/maps", O_RDONLY));
             if (fd >= 0) {
                 while (true) {
                     ssize_t nr = mem_maps.append_from_file_descriptor(fd, 8192);
@@ -204,7 +204,7 @@ namespace melon::fiber_internal {
                         if (errno == EINTR) {
                             continue;
                         }
-                        MELON_PLOG(ERROR) << "Fail to read /proc/self/maps";
+                        TURBO_PLOG(ERROR) << "Fail to read /proc/self/maps";
                         break;
                     }
                     if (nr == 0) {
@@ -213,15 +213,15 @@ namespace melon::fiber_internal {
                     }
                 }
             } else {
-                MELON_PLOG(ERROR) << "Fail to open /proc/self/maps";
+                TURBO_PLOG(ERROR) << "Fail to open /proc/self/maps";
             }
         }
         // Write _disk_buf into _filename
         std::error_code ec;
-        melon::file_path path(_filename);
+        turbo::file_path path(_filename);
         auto dir = path.parent_path();
-        if (!melon::create_directories(dir, ec)) {
-            MELON_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
+        if (!turbo::create_directories(dir, ec)) {
+            TURBO_LOG(ERROR) << "Fail to create directory=`" << dir.c_str()
                        << "', " << ec.message();
             return;
         }
@@ -231,9 +231,9 @@ namespace melon::fiber_internal {
             _first_write = false;
             flag = O_TRUNC;
         }
-        melon::base::fd_guard fd(open(_filename.c_str(), O_WRONLY | O_CREAT | flag, 0666));
+        turbo::base::fd_guard fd(open(_filename.c_str(), O_WRONLY | O_CREAT | flag, 0666));
         if (fd < 0) {
-            MELON_PLOG(ERROR) << "Fail to open " << _filename;
+            TURBO_PLOG(ERROR) << "Fail to open " << _filename;
             return;
         }
         // Write once normally, write until empty in the end.
@@ -243,7 +243,7 @@ namespace melon::fiber_internal {
                 if (errno == EINTR) {
                     continue;
                 }
-                MELON_PLOG(ERROR) << "Fail to write into " << _filename;
+                TURBO_PLOG(ERROR) << "Fail to write into " << _filename;
                 return;
             }
             BT_VLOG << "Write " << nw << " bytes into " << _filename;
@@ -252,7 +252,7 @@ namespace melon::fiber_internal {
 
 // If contention profiler is on, this variable will be set with a valid
 // instance. nullptr otherwise.
-    static ContentionProfiler *MELON_CACHELINE_ALIGNMENT g_cp = nullptr;
+    static ContentionProfiler *TURBO_CACHELINE_ALIGNMENT g_cp = nullptr;
 // Need this version to solve an issue that non-empty entries left by
 // previous contention profilers should be detected and overwritten.
     static uint64_t g_cp_version = 0;
@@ -272,8 +272,8 @@ namespace melon::fiber_internal {
 // lock a lot of mutexes simultaneously.
     const size_t MUTEX_MAP_SIZE = 1024;
     static_assert((MUTEX_MAP_SIZE & (MUTEX_MAP_SIZE - 1)) == 0, "must_be_power_of_2");
-    struct MELON_CACHELINE_ALIGNMENT MutexMapEntry {
-        melon::static_atomic<uint64_t> versioned_mutex;
+    struct TURBO_CACHELINE_ALIGNMENT MutexMapEntry {
+        turbo::static_atomic<uint64_t> versioned_mutex;
         fiber_contention_site_t csite;
     };
     static MutexMapEntry g_mutex_map[MUTEX_MAP_SIZE] = {}; // zero-initialize
@@ -283,7 +283,7 @@ namespace melon::fiber_internal {
             // Must be protected with mutex to avoid race with deletion of ctx.
             // dump_and_destroy is called from dumping thread only so this mutex
             // is not contended at most of time.
-            MELON_SCOPED_LOCK(g_cp_mutex);
+            TURBO_SCOPED_LOCK(g_cp_mutex);
             if (g_cp) {
                 g_cp->dump_and_destroy(this);
                 return;
@@ -293,11 +293,11 @@ namespace melon::fiber_internal {
     }
 
     void SampledContention::destroy() {
-        melon::return_object(this);
+        turbo::return_object(this);
     }
 
 // Remember the conflict hashes for troubleshooting, should be 0 at most of time.
-    static melon::static_atomic<int64_t> g_nconflicthash = MELON_STATIC_ATOMIC_INIT(0);
+    static turbo::static_atomic<int64_t> g_nconflicthash = TURBO_STATIC_ATOMIC_INIT(0);
 
     static int64_t get_nconflicthash(void *) {
         return g_nconflicthash.load(std::memory_order_relaxed);
@@ -306,7 +306,7 @@ namespace melon::fiber_internal {
 // Start profiling contention.
     bool ContentionProfilerStart(const char *filename) {
         if (filename == nullptr) {
-            MELON_LOG(ERROR) << "Parameter [filename] is nullptr";
+            TURBO_LOG(ERROR) << "Parameter [filename] is nullptr";
             return false;
         }
         // g_cp is also the flag marking start/stop.
@@ -323,7 +323,7 @@ namespace melon::fiber_internal {
         // Optimistic locking. A not-used ContentionProfiler does not write file.
         std::unique_ptr<ContentionProfiler> ctx(new ContentionProfiler(filename));
         {
-            MELON_SCOPED_LOCK(g_cp_mutex);
+            TURBO_SCOPED_LOCK(g_cp_mutex);
             if (g_cp) {
                 return false;
             }
@@ -351,15 +351,15 @@ namespace melon::fiber_internal {
                 return;
             }
         }
-        MELON_LOG(ERROR) << "Contention profiler is not started!";
+        TURBO_LOG(ERROR) << "Contention profiler is not started!";
     }
 
-    MELON_FORCE_INLINE bool
+    TURBO_FORCE_INLINE bool
     is_contention_site_valid(const fiber_contention_site_t &cs) {
         return cs.sampling_range;
     }
 
-    MELON_FORCE_INLINE void
+    TURBO_FORCE_INLINE void
     make_contention_site_invalid(fiber_contention_site_t *cs) {
         cs->sampling_range = 0;
     }
@@ -379,12 +379,12 @@ namespace melon::fiber_internal {
     static pthread_once_t init_sys_mutex_lock_once = PTHREAD_ONCE_INIT;
 
     static void init_sys_mutex_lock() {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         // TODO: may need dlvsym when GLIBC has multiple versions of a same symbol.
         // http://blog.fesnel.com/blog/2009/08/25/preloading-with-multiple-symbol-versions
         sys_pthread_mutex_lock = (MutexOp)_dl_sym(RTLD_NEXT, "pthread_mutex_lock", (void*)init_sys_mutex_lock);
         sys_pthread_mutex_unlock = (MutexOp)_dl_sym(RTLD_NEXT, "pthread_mutex_unlock", (void*)init_sys_mutex_lock);
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         // TODO: look workaround for dlsym on mac
         sys_pthread_mutex_lock = (MutexOp) dlsym(RTLD_NEXT, "pthread_mutex_lock");
         sys_pthread_mutex_unlock = (MutexOp) dlsym(RTLD_NEXT, "pthread_mutex_unlock");
@@ -392,7 +392,7 @@ namespace melon::fiber_internal {
     }
 
 // Make sure pthread functions are ready before main().
-    const int MELON_ALLOW_UNUSED dummy = pthread_once(&init_sys_mutex_lock_once, init_sys_mutex_lock);
+    const int TURBO_ALLOW_UNUSED dummy = pthread_once(&init_sys_mutex_lock_once, init_sys_mutex_lock);
 
     int first_sys_pthread_mutex_lock(pthread_mutex_t *mutex) {
         pthread_once(&init_sys_mutex_lock_once, init_sys_mutex_lock);
@@ -405,7 +405,7 @@ namespace melon::fiber_internal {
     }
 
     inline uint64_t hash_mutex_ptr(const pthread_mutex_t *m) {
-        return melon::hash::fmix64((uint64_t) m);
+        return turbo::hash::fmix64((uint64_t) m);
     }
 
 // Mark being inside locking so that pthread_mutex calls inside collecting
@@ -441,7 +441,7 @@ namespace melon::fiber_internal {
     inline fiber_contention_site_t *
     add_pthread_contention_site(pthread_mutex_t *mutex) {
         MutexMapEntry &entry = g_mutex_map[hash_mutex_ptr(mutex) & (MUTEX_MAP_SIZE - 1)];
-        melon::static_atomic<uint64_t> &m = entry.versioned_mutex;
+        turbo::static_atomic<uint64_t> &m = entry.versioned_mutex;
         uint64_t expected = m.load(std::memory_order_relaxed);
         // If the entry is not used or used by previous profiler, try to CAS it.
         if (expected == 0 ||
@@ -459,7 +459,7 @@ namespace melon::fiber_internal {
     inline bool remove_pthread_contention_site(
             pthread_mutex_t *mutex, fiber_contention_site_t *saved_csite) {
         MutexMapEntry &entry = g_mutex_map[hash_mutex_ptr(mutex) & (MUTEX_MAP_SIZE - 1)];
-        melon::static_atomic<uint64_t> &m = entry.versioned_mutex;
+        turbo::static_atomic<uint64_t> &m = entry.versioned_mutex;
         if ((m.load(std::memory_order_relaxed) & ((((uint64_t) 1) << PTR_BITS) - 1))
             != (uint64_t) mutex) {
             // This branch should be the most common case since most locks are
@@ -480,19 +480,19 @@ namespace melon::fiber_internal {
 // Submit the contention along with the callsite('s stacktrace)
     void submit_contention(const fiber_contention_site_t &csite, int64_t now_ns) {
         tls_inside_lock = true;
-        SampledContention *sc = melon::get_object<SampledContention>();
+        SampledContention *sc = turbo::get_object<SampledContention>();
         // Normalize duration_us and count so that they're addable in later
         // processings. Notice that sampling_range is adjusted periodically by
         // collecting thread.
         sc->duration_ns = csite.duration_ns * melon::COLLECTOR_SAMPLING_BASE
                           / csite.sampling_range;
         sc->count = melon::COLLECTOR_SAMPLING_BASE / (double) csite.sampling_range;
-        sc->nframes = backtrace(sc->stack, MELON_ARRAY_SIZE(sc->stack)); // may lock
+        sc->nframes = backtrace(sc->stack, TURBO_ARRAY_SIZE(sc->stack)); // may lock
         sc->submit(now_ns / 1000);  // may lock
         tls_inside_lock = false;
     }
 
-    MELON_FORCE_INLINE int pthread_mutex_lock_impl(pthread_mutex_t *mutex) {
+    TURBO_FORCE_INLINE int pthread_mutex_lock_impl(pthread_mutex_t *mutex) {
         // Don't change behavior of lock when profiler is off.
         if (!g_cp ||
             // collecting code including backtrace() and submit() may call
@@ -529,7 +529,7 @@ namespace melon::fiber_internal {
             return sys_pthread_mutex_lock(mutex);
         }
         // Lock and monitor the waiting time.
-        const int64_t start_ns = melon::get_current_time_nanos();
+        const int64_t start_ns = turbo::get_current_time_nanos();
         rc = sys_pthread_mutex_lock(mutex);
         if (!rc) { // Inside lock
             if (!csite) {
@@ -538,13 +538,13 @@ namespace melon::fiber_internal {
                     return rc;
                 }
             }
-            csite->duration_ns = melon::get_current_time_nanos() - start_ns;
+            csite->duration_ns = turbo::get_current_time_nanos() - start_ns;
             csite->sampling_range = sampling_range;
         } // else rare
         return rc;
     }
 
-    MELON_FORCE_INLINE int pthread_mutex_unlock_impl(pthread_mutex_t *mutex) {
+    TURBO_FORCE_INLINE int pthread_mutex_unlock_impl(pthread_mutex_t *mutex) {
         // Don't change behavior of unlock when profiler is off.
         if (!g_cp || tls_inside_lock) {
             // This branch brings an issue that an entry created by
@@ -561,7 +561,7 @@ namespace melon::fiber_internal {
             if (fast_alt.list[i].mutex == mutex) {
                 if (is_contention_site_valid(fast_alt.list[i].csite)) {
                     saved_csite = fast_alt.list[i].csite;
-                    unlock_start_ns = melon::get_current_time_nanos();
+                    unlock_start_ns = turbo::get_current_time_nanos();
                 }
                 fast_alt.list[i] = fast_alt.list[--fast_alt.count];
                 miss_in_tls = false;
@@ -573,13 +573,13 @@ namespace melon::fiber_internal {
         // inside critical section.
         if (miss_in_tls) {
             if (remove_pthread_contention_site(mutex, &saved_csite)) {
-                unlock_start_ns = melon::get_current_time_nanos();
+                unlock_start_ns = turbo::get_current_time_nanos();
             }
         }
         const int rc = sys_pthread_mutex_unlock(mutex);
         // [Outside lock]
         if (unlock_start_ns) {
-            const int64_t unlock_end_ns = melon::get_current_time_nanos();
+            const int64_t unlock_end_ns = turbo::get_current_time_nanos();
             saved_csite.duration_ns += unlock_end_ns - unlock_start_ns;
             submit_contention(saved_csite, unlock_end_ns);
         }
@@ -588,8 +588,8 @@ namespace melon::fiber_internal {
 
 // Implement fiber_mutex_t related functions
     struct MutexInternal {
-        melon::static_atomic<unsigned char> locked;
-        melon::static_atomic<unsigned char> contended;
+        turbo::static_atomic<unsigned char> locked;
+        turbo::static_atomic<unsigned char> contended;
         unsigned short padding;
     };
 
@@ -715,12 +715,12 @@ int fiber_mutex_lock(fiber_mutex_t *m) {
         return melon::fiber_internal::mutex_lock_contended(m);
     }
     // Start sampling.
-    const int64_t start_ns = melon::get_current_time_nanos();
+    const int64_t start_ns = turbo::get_current_time_nanos();
     // NOTE: Don't modify m->csite outside lock since multiple threads are
     // still contending with each other.
     const int rc = melon::fiber_internal::mutex_lock_contended(m);
     if (!rc) { // Inside lock
-        m->csite.duration_ns = melon::get_current_time_nanos() - start_ns;
+        m->csite.duration_ns = turbo::get_current_time_nanos() - start_ns;
         m->csite.sampling_range = sampling_range;
     } // else rare
     return rc;
@@ -742,16 +742,16 @@ int fiber_mutex_timedlock(fiber_mutex_t *__restrict m,
         return melon::fiber_internal::mutex_timedlock_contended(m, abstime);
     }
     // Start sampling.
-    const int64_t start_ns = melon::get_current_time_nanos();
+    const int64_t start_ns = turbo::get_current_time_nanos();
     // NOTE: Don't modify m->csite outside lock since multiple threads are
     // still contending with each other.
     const int rc = melon::fiber_internal::mutex_timedlock_contended(m, abstime);
     if (!rc) { // Inside lock
-        m->csite.duration_ns = melon::get_current_time_nanos() - start_ns;
+        m->csite.duration_ns = turbo::get_current_time_nanos() - start_ns;
         m->csite.sampling_range = sampling_range;
     } else if (rc == ETIMEDOUT) {
         // Failed to lock due to ETIMEDOUT, submit the elapse directly.
-        const int64_t end_ns = melon::get_current_time_nanos();
+        const int64_t end_ns = turbo::get_current_time_nanos();
         const fiber_contention_site_t csite = {end_ns - start_ns, sampling_range};
         melon::fiber_internal::submit_contention(csite, end_ns);
     }
@@ -775,9 +775,9 @@ int fiber_mutex_unlock(fiber_mutex_t *m) {
         melon::fiber_internal::waitable_event_wake(whole);
         return 0;
     }
-    const int64_t unlock_start_ns = melon::get_current_time_nanos();
+    const int64_t unlock_start_ns = turbo::get_current_time_nanos();
     melon::fiber_internal::waitable_event_wake(whole);
-    const int64_t unlock_end_ns = melon::get_current_time_nanos();
+    const int64_t unlock_end_ns = turbo::get_current_time_nanos();
     saved_csite.duration_ns += unlock_end_ns - unlock_start_ns;
     melon::fiber_internal::submit_contention(saved_csite, unlock_end_ns);
     return 0;

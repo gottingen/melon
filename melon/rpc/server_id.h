@@ -23,8 +23,8 @@
 // on internal structures, use opaque pointers instead.
 
 #include <vector>
-#include "melon/container/hash_tables.h"   // hash
-#include "melon/container/flat_map.h"
+#include "turbo/container/hash_tables.h"   // hash
+#include "turbo/container/flat_map.h"
 #include "melon/rpc/socket_id.h"
 
 namespace melon::rpc {
@@ -82,15 +82,15 @@ namespace melon::rpc {
         std::vector<SocketId> &RemoveServers(const std::vector<ServerId> &servers);
 
     private:
-        melon::container::FlatMap<SocketId, int> _nref_map;
+        turbo::container::FlatMap<SocketId, int> _nref_map;
         std::vector<SocketId> _tmp;
     };
 
 } // namespace melon::rpc
 
 
-namespace MELON_HASH_NAMESPACE {
-#if defined(MELON_COMPILER_GNUC) || defined(MELON_COMPILER_CLANG)
+namespace TURBO_HASH_NAMESPACE {
+#if defined(TURBO_COMPILER_GNUC) || defined(TURBO_COMPILER_CLANG)
 
     template<>
     struct hash<melon::rpc::ServerId> {
@@ -99,7 +99,7 @@ namespace MELON_HASH_NAMESPACE {
         }
     };
 
-#elif defined(defined(MELON_COMPILER_MSVC)
+#elif defined(defined(TURBO_COMPILER_MSVC)
     inline size_t hash_value(const ::melon::rpc::ServerId& tagged_id) {
         return hash_value(tagged_id.tag) * 101 + tagged_id.id;
     }

@@ -22,9 +22,9 @@
 #ifndef MELON_FIBER_INTERNAL_WORK_STEALING_QUEUE_H_
 #define MELON_FIBER_INTERNAL_WORK_STEALING_QUEUE_H_
 
-#include "melon/base/profile.h"
-#include "melon/base/static_atomic.h"
-#include "melon/log/logging.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/log/logging.h"
 
 namespace melon::fiber_internal {
 
@@ -42,15 +42,15 @@ namespace melon::fiber_internal {
 
         int init(size_t capacity) {
             if (_capacity != 0) {
-                MELON_LOG(ERROR) << "Already initialized";
+                TURBO_LOG(ERROR) << "Already initialized";
                 return -1;
             }
             if (capacity == 0) {
-                MELON_LOG(ERROR) << "Invalid capacity=" << capacity;
+                TURBO_LOG(ERROR) << "Invalid capacity=" << capacity;
                 return -1;
             }
             if (capacity & (capacity - 1)) {
-                MELON_LOG(ERROR) << "Invalid capacity=" << capacity
+                TURBO_LOG(ERROR) << "Invalid capacity=" << capacity
                            << " which must be power of 2";
                 return -1;
             }
@@ -141,12 +141,12 @@ namespace melon::fiber_internal {
 
     private:
         // Copying a concurrent structure makes no sense.
-        MELON_DISALLOW_COPY_AND_ASSIGN(WorkStealingQueue);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(WorkStealingQueue);
 
         std::atomic<size_t> _bottom;
         size_t _capacity;
         T *_buffer;
-        std::atomic<size_t> MELON_CACHELINE_ALIGNMENT _top;
+        std::atomic<size_t> TURBO_CACHELINE_ALIGNMENT _top;
     };
 
 }  // namespace melon::fiber_internal

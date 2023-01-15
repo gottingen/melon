@@ -19,14 +19,14 @@
 #include <pthread.h>
 #include <map>
 #include <limits>
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 #include <sys/stat.h>
 #include <fcntl.h>                          // O_RDONLY
-#include "melon/strings/str_format.h"             // string_printf
-#include "melon/strings/string_splitter.h"           // StringSplitter
-#include "melon/files/readline_file.h"         // readline_file
-#include "melon/times/time.h"
-#include "melon/system/process.h"             // melon::read_command_line
+#include "turbo/strings/str_format.h"             // string_printf
+#include "turbo/strings/string_splitter.h"           // StringSplitter
+#include "turbo/files/readline_file.h"         // readline_file
+#include "turbo/times/time.h"
+#include "turbo/system/process.h"             // turbo::read_command_line
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"                // Controller
 #include "melon/rpc/closure_guard.h"             // ClosureGuard
@@ -34,11 +34,11 @@
 #include "melon/rpc/builtin/common.h"
 #include "melon/rpc/details/tcmalloc_extension.h"
 #include "melon/fiber/internal/fiber.h"                // melon::fiber_sleep_for
-#include "melon/base/fd_guard.h"
+#include "turbo/base/fd_guard.h"
 #include "melon/fiber/this_fiber.h"
 
 extern "C" {
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
 extern char *program_invocation_name;
 #endif
 int __attribute__((weak)) ProfilerStart(const char *fname);
@@ -104,7 +104,7 @@ namespace melon::rpc {
         if ((void *) ProfilerStart == nullptr || (void *) ProfilerStop == nullptr) {
             cntl->SetFailed(ENOMETHOD, "%s, to enable cpu profiler, check out "
                                        "docs/cn/cpu_profiler.md",
-                            melon_error(ENOMETHOD));
+                            turbo_error(ENOMETHOD));
             return;
         }
         int sleep_sec = ReadSeconds(cntl);
@@ -123,18 +123,18 @@ namespace melon::rpc {
         } else {
             client_info << "(no auth)";
         }
-        MELON_LOG(INFO) << client_info.str() << " requests for cpu profile for "
+        TURBO_LOG(INFO) << client_info.str() << " requests for cpu profile for "
                         << sleep_sec << " seconds";
 
         char prof_name[256];
         if (MakeProfName(PROFILING_CPU, prof_name, sizeof(prof_name)) != 0) {
-            cntl->SetFailed(errno, "Fail to create .prof file, %s", melon_error());
+            cntl->SetFailed(errno, "Fail to create .prof file, %s", turbo_error());
             return;
         }
         std::error_code error;
-        const melon::file_path dir = melon::file_path(prof_name).parent_path();
+        const turbo::file_path dir = turbo::file_path(prof_name).parent_path();
 
-        if (!melon::create_directories(dir, error)) {
+        if (!turbo::create_directories(dir, error)) {
             cntl->SetFailed(EPERM, "Fail to create directory=`%s'", dir.c_str());
             return;
         }
@@ -143,16 +143,16 @@ namespace melon::rpc {
             return;
         }
         if (melon::fiber_sleep_for(sleep_sec * 1000000L) != 0) {
-            MELON_PLOG(WARNING) << "Profiling has been interrupted";
+            TURBO_PLOG(WARNING) << "Profiling has been interrupted";
         }
         ProfilerStop();
 
-        melon::base::fd_guard fd(open(prof_name, O_RDONLY));
+        turbo::base::fd_guard fd(open(prof_name, O_RDONLY));
         if (fd < 0) {
             cntl->SetFailed(ENOENT, "Fail to open %s", prof_name);
             return;
         }
-        melon::IOPortal portal;
+        turbo::IOPortal portal;
         portal.append_from_file_descriptor(fd, ULONG_MAX);
         cntl->response_attachment().swap(portal);
     }
@@ -181,12 +181,12 @@ namespace melon::rpc {
         } else {
             client_info << "(no auth)";
         }
-        MELON_LOG(INFO) << client_info.str() << " requests for contention profile for "
+        TURBO_LOG(INFO) << client_info.str() << " requests for contention profile for "
                         << sleep_sec << " seconds";
 
         char prof_name[256];
         if (MakeProfName(PROFILING_CONTENTION, prof_name, sizeof(prof_name)) != 0) {
-            cntl->SetFailed(errno, "Fail to create .prof file, %s", melon_error());
+            cntl->SetFailed(errno, "Fail to create .prof file, %s", turbo_error());
             return;
         }
         if (!melon::fiber_internal::ContentionProfilerStart(prof_name)) {
@@ -194,16 +194,16 @@ namespace melon::rpc {
             return;
         }
         if (melon::fiber_sleep_for(sleep_sec * 1000000L) != 0) {
-            MELON_PLOG(WARNING) << "Profiling has been interrupted";
+            TURBO_PLOG(WARNING) << "Profiling has been interrupted";
         }
         melon::fiber_internal::ContentionProfilerStop();
 
-        melon::base::fd_guard fd(open(prof_name, O_RDONLY));
+        turbo::base::fd_guard fd(open(prof_name, O_RDONLY));
         if (fd < 0) {
             cntl->SetFailed(ENOENT, "Fail to open %s", prof_name);
             return;
         }
-        melon::IOPortal portal;
+        turbo::IOPortal portal;
         portal.append_from_file_descriptor(fd, ULONG_MAX);
         cntl->response_attachment().swap(portal);
     }
@@ -234,7 +234,7 @@ namespace melon::rpc {
         } else {
             client_info << "(no auth)";
         }
-        MELON_LOG(INFO) << client_info.str() << " requests for heap profile";
+        TURBO_LOG(INFO) << client_info.str() << " requests for heap profile";
 
         std::string obj;
         malloc_ext->GetHeapSample(&obj);
@@ -253,7 +253,7 @@ namespace melon::rpc {
         if (malloc_ext == nullptr) {
             cntl->SetFailed(ENOMETHOD, "%s, to enable growth profiler, check out "
                                        "docs/cn/heap_profiler.md",
-                            melon_error(ENOMETHOD));
+                            turbo_error(ENOMETHOD));
             return;
         }
         // Log requester
@@ -264,7 +264,7 @@ namespace melon::rpc {
         } else {
             client_info << "(no auth)";
         }
-        MELON_LOG(INFO) << client_info.str() << " requests for growth profile";
+        TURBO_LOG(INFO) << client_info.str() << " requests for growth profile";
 
         std::string obj;
         malloc_ext->GetHeapGrowthStacks(&obj);
@@ -292,19 +292,19 @@ namespace melon::rpc {
     }
 
     static int ExtractSymbolsFromBinary(std::map<uintptr_t, std::string> &addr_map, const LibInfo &lib_info) {
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         std::string cmd = "nm -C -p ";
         cmd.append(lib_info.path);
         std::stringstream ss;
-        const int rc = melon::read_command_output(ss, cmd.c_str());
+        const int rc = turbo::read_command_output(ss, cmd.c_str());
         if (rc < 0) {
-            MELON_LOG(ERROR) << "Fail to popen `" << cmd << "'";
+            TURBO_LOG(ERROR) << "Fail to popen `" << cmd << "'";
             return -1;
         }
         std::string line;
         while (std::getline(ss, line)) {
-            melon::StringSplitter sp(line.c_str(), ' ');
+            turbo::StringSplitter sp(line.c_str(), ' ');
             if (sp == nullptr) {
                 continue;
             }
@@ -391,9 +391,9 @@ namespace melon::rpc {
     }
 
     static void LoadSymbols() {
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
-        melon::readline_file file;
+        turbo::readline_file file;
         auto status = file.open("/proc/self/maps");
         if (!status.is_ok()) {
             return;
@@ -402,7 +402,7 @@ namespace melon::rpc {
         auto lines = file.lines();
 
         for (auto line : lines) {
-            melon::StringSplitter sp(line, ' ');
+            turbo::StringSplitter sp(line, ' ');
             if (sp == nullptr) {
                 continue;
             }
@@ -457,14 +457,14 @@ namespace melon::rpc {
         info.start_addr = 0;
         info.end_addr = std::numeric_limits<uintptr_t>::max();
         info.offset = 0;
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         info.path = program_invocation_name;
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         info.path = getprogname();
 #endif
         ExtractSymbolsFromBinary(symbol_map, info);
 
-        melon::stop_watcher tm2;
+        turbo::stop_watcher tm2;
         tm2.start();
         size_t num_removed = 0;
         bool last_is_empty = false;
@@ -490,7 +490,7 @@ namespace melon::rpc {
         RPC_VLOG << "Loaded all symbols in " << tm.m_elapsed() << "ms";
     }
 
-    static void FindSymbols(melon::cord_buf *out, std::vector<uintptr_t> &addr_list) {
+    static void FindSymbols(turbo::cord_buf *out, std::vector<uintptr_t> &addr_list) {
         char buf[32];
         for (size_t i = 0; i < addr_list.size(); ++i) {
             int len = snprintf(buf, sizeof(buf), "0x%08lx\t", addr_list[i]);
@@ -541,7 +541,7 @@ namespace melon::rpc {
             }
             std::vector<uintptr_t> addr_list;
             addr_list.reserve(32);
-            melon::StringSplitter sp(addr_cstr, '+');
+            turbo::StringSplitter sp(addr_cstr, '+');
             for (; sp != nullptr; ++sp) {
                 char *endptr;
                 uintptr_t addr = strtoull(sp.field(), &endptr, 16);
@@ -559,7 +559,7 @@ namespace melon::rpc {
         Controller *cntl = static_cast<Controller *>(controller_base);
         cntl->http_response().set_content_type("text/plain" /*FIXME*/);
         char buf[1024];  // should be enough?
-        const ssize_t nr = melon::read_command_line(buf, sizeof(buf), true);
+        const ssize_t nr = turbo::read_command_line(buf, sizeof(buf), true);
         if (nr < 0) {
             cntl->SetFailed(ENOENT, "Fail to read cmdline");
             return;

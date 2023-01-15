@@ -18,8 +18,8 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
 #include "melon/rpc/server.h"                   // Server
@@ -75,7 +75,7 @@ namespace melon::rpc {
 
             const MongoServiceAdaptor *adaptor =
                     server->options().mongo_service_adaptor;
-            melon::cord_buf res_buf;
+            turbo::cord_buf res_buf;
             if (cntl.Failed()) {
                 adaptor->SerializeError(res.header().response_to(), &res_buf);
             } else if (res.has_message()) {
@@ -103,13 +103,13 @@ namespace melon::rpc {
                 Socket::WriteOptions wopt;
                 wopt.ignore_eovercrowded = true;
                 if (socket->Write(&res_buf, &wopt) != 0) {
-                    MELON_PLOG(WARNING) << "Fail to write into " << *socket;
+                    TURBO_PLOG(WARNING) << "Fail to write into " << *socket;
                     return;
                 }
             }
         }
 
-        ParseResult ParseMongoMessage(melon::cord_buf *source,
+        ParseResult ParseMongoMessage(turbo::cord_buf *source,
                                       Socket *socket, bool /*read_eof*/, const void *arg) {
             const Server *server = static_cast<const Server *>(arg);
             const MongoServiceAdaptor *adaptor = server->options().mongo_service_adaptor;
@@ -157,7 +157,7 @@ namespace melon::rpc {
             source->cutn(&msg->meta, sizeof(buf));
             size_t act_body_len = source->cutn(&msg->payload, body_len - sizeof(buf));
             if (act_body_len != body_len - sizeof(buf)) {
-                MELON_CHECK(false);     // Very unlikely, unless memory is corrupted.
+                TURBO_CHECK(false);     // Very unlikely, unless memory is corrupted.
                 return MakeParseError(PARSE_ERROR_TRY_OTHERS);
             }
             return MakeMessage(msg);
@@ -185,7 +185,7 @@ namespace melon::rpc {
 
             const google::protobuf::ServiceDescriptor *srv_des = MongoService::descriptor();
             if (1 != srv_des->method_count()) {
-                MELON_LOG(WARNING) << "method count:" << srv_des->method_count()
+                TURBO_LOG(WARNING) << "method count:" << srv_des->method_count()
                                    << " of MongoService should be equal to 1!";
             }
 
@@ -196,7 +196,7 @@ namespace melon::rpc {
             MongoContextMessage *context_msg =
                     dynamic_cast<MongoContextMessage *>(socket->parsing_context());
             if (nullptr == context_msg) {
-                MELON_LOG(WARNING) << "socket context wasn't set correctly";
+                TURBO_LOG(WARNING) << "socket context wasn't set correctly";
                 return;
             }
 

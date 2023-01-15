@@ -20,7 +20,7 @@
 #define MELON_RPC_SERIALIZED_REQUEST_H_
 
 #include <google/protobuf/message.h>
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 #include "melon/rpc/proto_base.pb.h"
 
 namespace melon::rpc {
@@ -60,9 +60,9 @@ namespace melon::rpc {
 
         int GetCachedSize() const override { return (int) _serialized.size(); }
 
-        melon::cord_buf &serialized_data() { return _serialized; }
+        turbo::cord_buf &serialized_data() { return _serialized; }
 
-        const melon::cord_buf &serialized_data() const { return _serialized; }
+        const turbo::cord_buf &serialized_data() const { return _serialized; }
 
     protected:
         ::google::protobuf::Metadata GetMetadata() const override;
@@ -88,7 +88,7 @@ namespace melon::rpc {
         void SetCachedSize(int size) const override;
 
     private:
-        melon::cord_buf _serialized;
+        turbo::cord_buf _serialized;
     };
 
 } // namespace melon::rpc

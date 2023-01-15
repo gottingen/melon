@@ -25,9 +25,9 @@
 #include <vector>                                  // std::vector
 #include <stdint.h>                                // uint64_t
 #include <gflags/gflags_declare.h>                 // DECLARE_xxx
-#include "melon/base/endpoint.h"                         // melon::end_point
-#include "melon/io/cord_buf.h"
-#include "melon/log/logging.h"
+#include "turbo/base/endpoint.h"                         // turbo::end_point
+#include "turbo/io/cord_buf.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/options.pb.h"                  // ProtocolType
 #include "melon/rpc/socket_id.h"                   // SocketId
 #include "melon/rpc/parse_result.h"                // ParseResult
@@ -82,7 +82,7 @@ namespace melon::rpc {
         //     from `source' before returning.
         //  MakeMessage(InputMessageBase*):
         //     The message is parsed successfully and cut from `source'.
-        typedef ParseResult (*Parse)(melon::cord_buf *source, Socket *socket,
+        typedef ParseResult (*Parse)(turbo::cord_buf *source, Socket *socket,
                                      bool read_eof, const void *arg);
 
         Parse parse;
@@ -93,7 +93,7 @@ namespace melon::rpc {
         // `cntl' provides additional data needed by some protocol (say HTTP).
         // Call cntl->SetFailed() on error.
         typedef void (*SerializeRequest)(
-                melon::cord_buf *request_buf,
+                turbo::cord_buf *request_buf,
                 Controller *cntl,
                 const google::protobuf::Message *request);
 
@@ -105,12 +105,12 @@ namespace melon::rpc {
         // Remember to pack authentication information when `auth' is not nullptr.
         // Call cntl->SetFailed() on error.
         typedef void (*PackRequest)(
-                melon::cord_buf *iobuf_out,
+                turbo::cord_buf *iobuf_out,
                 SocketMessage **user_message_out,
                 uint64_t correlation_id,
                 const google::protobuf::MethodDescriptor *method,
                 Controller *controller,
-                const melon::cord_buf &request_buf,
+                const turbo::cord_buf &request_buf,
                 const Authenticator *auth);
 
         PackRequest pack_request;
@@ -145,8 +145,8 @@ namespace melon::rpc {
         Verify verify;
 
         // [Optional]
-        // Convert `server_addr_and_port'(a parameter to Channel) to melon::end_point.
-        typedef bool (*ParseServerAddress)(melon::end_point *out,
+        // Convert `server_addr_and_port'(a parameter to Channel) to turbo::end_point.
+        typedef bool (*ParseServerAddress)(turbo::end_point *out,
                                            const char *server_addr_and_port);
 
         ParseServerAddress parse_server_address;
@@ -199,7 +199,7 @@ namespace melon::rpc {
     void ListProtocols(std::vector<std::pair<ProtocolType, Protocol> > *vec);
 
     // The common serialize_request implementation used by many protocols.
-    void SerializeRequestDefault(melon::cord_buf *buf,
+    void SerializeRequestDefault(turbo::cord_buf *buf,
                                  Controller *cntl,
                                  const google::protobuf::Message *request);
 
@@ -208,9 +208,9 @@ namespace melon::rpc {
     bool ParsePbFromZeroCopyStream(google::protobuf::Message *msg,
                                    google::protobuf::io::ZeroCopyInputStream *input);
 
-    bool ParsePbFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf);
+    bool ParsePbFromCordBuf(google::protobuf::Message *msg, const turbo::cord_buf &buf);
 
-    bool ParsePbTextFromCordBuf(google::protobuf::Message *msg, const melon::cord_buf &buf);
+    bool ParsePbTextFromCordBuf(google::protobuf::Message *msg, const turbo::cord_buf &buf);
 
     bool ParsePbFromArray(google::protobuf::Message *msg, const void *data, size_t size);
 
@@ -244,7 +244,7 @@ namespace melon::rpc {
             if (_size < N) {
                 return _arr[_size++];
             } else {
-                MELON_CHECK(false) << "push to a full array, cap=" << N;
+                TURBO_CHECK(false) << "push to a full array, cap=" << N;
                 static T dummy;
                 return dummy;
             }

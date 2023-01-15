@@ -1,18 +1,18 @@
 
 #include <melon/rpc/server.h>
 #include <melon/rpc/redis.h>
-#include <melon/base/crc32c.h>
+#include <turbo/base/crc32c.h>
 #include <gflags/gflags.h>
 #include <unordered_map>
 
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 DEFINE_int32(port, 6379, "TCP Port of this server");
 
 class RedisServiceImpl : public melon::rpc::RedisService {
 public:
     bool Set(const std::string& key, const std::string& value) {
-        int slot = melon::base::value(key.c_str(), key.size()) % kHashSlotNum;
+        int slot = turbo::base::value(key.c_str(), key.size()) % kHashSlotNum;
         _mutex[slot].lock();
         _map[slot][key] = value;
         _mutex[slot].unlock();
@@ -20,7 +20,7 @@ public:
     }
 
     bool Get(const std::string& key, std::string* value) {
-        int slot = melon::base::value(key.c_str(), key.size()) % kHashSlotNum;
+        int slot = turbo::base::value(key.c_str(), key.size()) % kHashSlotNum;
         _mutex[slot].lock();
         auto it = _map[slot].find(key);
         if (it == _map[slot].end()) {
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     melon::rpc::ServerOptions server_options;
     server_options.redis_service = rsimpl;
     if (server.Start(FLAGS_port, &server_options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start server";
+        TURBO_LOG(ERROR) << "Fail to start server";
         return -1;
     }
     server.RunUntilAskedToQuit();

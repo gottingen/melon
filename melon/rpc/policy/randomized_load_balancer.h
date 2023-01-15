@@ -21,7 +21,7 @@
 
 #include <vector>                                      // std::vector
 #include <map>                                         // std::map
-#include "melon/container/doubly_buffered_data.h"
+#include "turbo/container/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/cluster_recover_policy.h"
 
@@ -65,7 +65,7 @@ namespace melon::rpc {
 
             static size_t BatchRemove(Servers &bg, const std::vector<ServerId> &servers);
 
-            melon::container::DoublyBufferedData<Servers> _db_servers;
+            turbo::container::DoublyBufferedData<Servers> _db_servers;
             std::shared_ptr<ClusterRecoverPolicy> _cluster_recover_policy;
         };
 

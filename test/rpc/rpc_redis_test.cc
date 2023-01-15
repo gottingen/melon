@@ -18,16 +18,16 @@
 
 #include <iostream>
 #include <unordered_map>
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/redis.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/policy/redis_authenticator.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/redis_command.h>
 #include "testing/gtest_wrap.h"
-#include "melon/strings/utility.h"
-#include "melon/strings/starts_with.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/starts_with.h"
 
 namespace melon::rpc {
     DECLARE_int32(idle_timeout_second);
@@ -49,7 +49,7 @@ namespace {
             puts("[Stopping redis-server]");
             char cmd[256];
             snprintf(cmd, sizeof(cmd), "kill %d", g_redis_pid);
-            MELON_CHECK(0 == system(cmd));
+            TURBO_CHECK(0 == system(cmd));
             // Wait for redis to stop
             usleep(50000);
         }
@@ -101,7 +101,7 @@ namespace {
         if (&reply1 == &reply2) {
             return;
         }
-        MELON_CHECK_EQ(reply1.type(), reply2.type());
+        TURBO_CHECK_EQ(reply1.type(), reply2.type());
         switch (reply1.type()) {
             case melon::rpc::REDIS_REPLY_ARRAY:
                 ASSERT_EQ(reply1.size(), reply2.size());
@@ -324,10 +324,10 @@ namespace {
         std::string_view comp3[] = {"incrby", "counter2", "10"};
         std::string_view comp4[] = {"decrby", "counter2", "20"};
 
-        request.AddCommandByComponents(comp1, MELON_ARRAY_SIZE(comp1));
-        request.AddCommandByComponents(comp2, MELON_ARRAY_SIZE(comp2));
-        request.AddCommandByComponents(comp3, MELON_ARRAY_SIZE(comp3));
-        request.AddCommandByComponents(comp4, MELON_ARRAY_SIZE(comp4));
+        request.AddCommandByComponents(comp1, TURBO_ARRAY_SIZE(comp1));
+        request.AddCommandByComponents(comp2, TURBO_ARRAY_SIZE(comp2));
+        request.AddCommandByComponents(comp3, TURBO_ARRAY_SIZE(comp3));
+        request.AddCommandByComponents(comp4, TURBO_ARRAY_SIZE(comp4));
 
         channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -351,7 +351,7 @@ namespace {
         std::string result;
         result.reserve(12);
         for (size_t i = 0; i < result.capacity(); ++i) {
-            result.push_back(melon::base::fast_rand_in('a', 'z'));
+            result.push_back(turbo::base::fast_rand_in('a', 'z'));
         }
         return result;
     }
@@ -364,7 +364,7 @@ namespace {
         // generate a random password
         const std::string passwd1 = GeneratePassword();
         const std::string passwd2 = GeneratePassword();
-        MELON_LOG(INFO) << "Generated passwd1=" << passwd1 << " passwd2=" << passwd2;
+        TURBO_LOG(INFO) << "Generated passwd1=" << passwd1 << " passwd2=" << passwd2;
 
         // config auth
         {
@@ -559,9 +559,9 @@ namespace {
 
     TEST_F(RedisTest, command_parser) {
         melon::rpc::RedisCommandParser parser;
-        melon::cord_buf buf;
+        turbo::cord_buf buf;
         std::vector<std::string_view> command_out;
-        melon::Arena arena;
+        turbo::Arena arena;
         {
             // parse from whole command
             std::string command = "set abc edc";
@@ -581,7 +581,7 @@ namespace {
                     if (i == size - 1) {
                         ASSERT_EQ(melon::rpc::PARSE_OK, parser.Consume(buf, &command_out, &arena));
                     } else {
-                        if (melon::base::fast_rand_less_than(2) == 0) {
+                        if (turbo::base::fast_rand_less_than(2) == 0) {
                             ASSERT_EQ(melon::rpc::PARSE_ERROR_NOT_ENOUGH_DATA,
                                       parser.Consume(buf, &command_out, &arena));
                         }
@@ -627,12 +627,12 @@ namespace {
     }
 
     TEST_F(RedisTest, redis_reply_codec) {
-        melon::Arena arena;
+        turbo::Arena arena;
         // status
         {
             melon::rpc::RedisReply r(&arena);
-            melon::cord_buf buf;
-            melon::cord_buf_appender appender;
+            turbo::cord_buf buf;
+            turbo::cord_buf_appender appender;
             r.SetStatus("OK");
             ASSERT_TRUE(r.SerializeTo(&appender));
             appender.move_to(buf);
@@ -648,8 +648,8 @@ namespace {
         // error
         {
             melon::rpc::RedisReply r(&arena);
-            melon::cord_buf buf;
-            melon::cord_buf_appender appender;
+            turbo::cord_buf buf;
+            turbo::cord_buf_appender appender;
             r.SetError("not exist \'key\'");
             ASSERT_TRUE(r.SerializeTo(&appender));
             appender.move_to(buf);
@@ -664,8 +664,8 @@ namespace {
         // string
         {
             melon::rpc::RedisReply r(&arena);
-            melon::cord_buf buf;
-            melon::cord_buf_appender appender;
+            turbo::cord_buf buf;
+            turbo::cord_buf_appender appender;
             r.SetNullString();
             ASSERT_TRUE(r.SerializeTo(&appender));
             appender.move_to(buf);
@@ -706,8 +706,8 @@ namespace {
         // integer
         {
             melon::rpc::RedisReply r(&arena);
-            melon::cord_buf buf;
-            melon::cord_buf_appender appender;
+            turbo::cord_buf buf;
+            turbo::cord_buf_appender appender;
             int t = 2;
             int input[] = {-1, 1234567};
             const char *output[] = {":-1\r\n", ":1234567\r\n"};
@@ -727,8 +727,8 @@ namespace {
         // array
         {
             melon::rpc::RedisReply r(&arena);
-            melon::cord_buf buf;
-            melon::cord_buf_appender appender;
+            turbo::cord_buf buf;
+            turbo::cord_buf_appender appender;
             r.SetArray(3);
             melon::rpc::RedisReply &sub_reply = r[0];
             sub_reply.SetArray(2);
@@ -814,15 +814,15 @@ namespace {
                                                         melon::rpc::RedisReply *output, bool flush_batched) {
             if (_batched_command.empty() && flush_batched) {
                 if (args[0] == "set") {
-                    DoSet(melon::as_string(args[1]), melon::as_string(args[2]), output);
+                    DoSet(turbo::as_string(args[1]), turbo::as_string(args[2]), output);
                 } else if (args[0] == "get") {
-                    DoGet(melon::as_string(args[1]), output);
+                    DoGet(turbo::as_string(args[1]), output);
                 }
                 return melon::rpc::REDIS_CMD_HANDLED;
             }
             std::vector<std::string> comm;
             for (int i = 0; i < (int) args.size(); ++i) {
-                comm.push_back(melon::as_string(args[i]));
+                comm.push_back(turbo::as_string(args[i]));
             }
             _batched_command.push_back(comm);
             if (flush_batched) {
@@ -876,7 +876,7 @@ namespace {
             if (_batch_process) {
                 return _rs->OnBatched(args, output, flush_batched);
             } else {
-                DoSet(melon::as_string(args[1]), melon::as_string(args[2]), output);
+                DoSet(turbo::as_string(args[1]), turbo::as_string(args[2]), output);
                 return melon::rpc::REDIS_CMD_HANDLED;
             }
         }
@@ -906,7 +906,7 @@ namespace {
             if (_batch_process) {
                 return _rs->OnBatched(args, output, flush_batched);
             } else {
-                DoGet(melon::as_string(args[1]), output);
+                DoGet(turbo::as_string(args[1]), output);
                 return melon::rpc::REDIS_CMD_HANDLED;
             }
         }
@@ -938,7 +938,7 @@ namespace {
             }
             int64_t value;
             s_mutex.lock();
-            value = ++int_map[melon::as_string(args[1])];
+            value = ++int_map[turbo::as_string(args[1])];
             s_mutex.unlock();
             output->SetInteger(value);
             return melon::rpc::REDIS_CMD_HANDLED;
@@ -988,7 +988,7 @@ namespace {
         ASSERT_EQ(melon::rpc::REDIS_REPLY_STRING, response.reply(5).type());
         ASSERT_STREQ("value2", response.reply(5).c_str());
         ASSERT_EQ(melon::rpc::REDIS_REPLY_ERROR, response.reply(6).type());
-        ASSERT_TRUE(melon::starts_with(response.reply(6).error_message(), "ERR unknown command"));
+        ASSERT_TRUE(turbo::starts_with(response.reply(6).error_message(), "ERR unknown command"));
 
         cntl.Reset();
         request.Clear();
@@ -1093,7 +1093,7 @@ namespace {
                 if (args[0] != "exec") {
                     std::vector<std::string> comm;
                     for (int i = 0; i < (int) args.size(); ++i) {
-                        comm.push_back(melon::as_string(args[i]));
+                        comm.push_back(turbo::as_string(args[i]));
                     }
                     _commands.push_back(comm);
                     output->SetStatus("QUEUED");

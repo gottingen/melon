@@ -2,7 +2,7 @@
 #include <gflags/gflags.h>
 #include <memory>
 #include "melon/metrics/latency_recorder.h"
-#include "melon/strings/ends_with.h"
+#include "turbo/strings/ends_with.h"
 
 namespace melon {
 
@@ -16,11 +16,11 @@ namespace melon {
         return v > 0 && v < 100;
     }
 
-    const bool MELON_ALLOW_UNUSED dummy_variable_latency_p1 = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_latency_p1 = ::google::RegisterFlagValidator(
             &FLAGS_variable_latency_p1, valid_percentile);
-    const bool MELON_ALLOW_UNUSED dummy_variable_latency_p2 = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_latency_p2 = ::google::RegisterFlagValidator(
             &FLAGS_variable_latency_p2, valid_percentile);
-    const bool MELON_ALLOW_UNUSED dummy_variable_latency_p3 = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_latency_p3 = ::google::RegisterFlagValidator(
             &FLAGS_variable_latency_p3, valid_percentile);
 
     namespace metrics_detail {
@@ -61,7 +61,7 @@ namespace melon {
             }
             values[n++] = std::make_pair(100, cb->get_number(0.999));
             values[n++] = std::make_pair(101, cb->get_number(0.9999));
-            MELON_CHECK_EQ(n, MELON_ARRAY_SIZE(values));
+            TURBO_CHECK_EQ(n, TURBO_ARRAY_SIZE(values));
             os << "{\"label\":\"cdf\",\"data\":[";
             for (size_t i = 0; i < n; ++i) {
                 if (i) {
@@ -161,15 +161,15 @@ namespace melon {
     int LatencyRecorder::expose(const std::string_view &prefix1,
                                 const std::string_view &prefix2) {
         if (prefix2.empty()) {
-            MELON_LOG(ERROR) << "Parameter[prefix2] is empty";
+            TURBO_LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
         std::string_view prefix = prefix2;
         // User may add "_latency" as the suffix, remove it.
-        if (melon::ends_with_ignore_case(prefix, "latency")) {
+        if (turbo::ends_with_ignore_case(prefix, "latency")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
-                MELON_LOG(ERROR) << "Invalid prefix2=" << prefix2;
+                TURBO_LOG(ERROR) << "Invalid prefix2=" << prefix2;
                 return -1;
             }
         }
@@ -226,7 +226,7 @@ namespace melon {
         snprintf(namebuf, sizeof(namebuf), "%d%%,%d%%,%d%%,99.9%%",
                  (int) FLAGS_variable_latency_p1, (int) FLAGS_variable_latency_p2,
                  (int) FLAGS_variable_latency_p3);
-        MELON_CHECK_EQ(0, _latency_percentiles.set_vector_names(namebuf));
+        TURBO_CHECK_EQ(0, _latency_percentiles.set_vector_names(namebuf));
         return 0;
     }
 

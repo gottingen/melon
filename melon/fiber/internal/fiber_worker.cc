@@ -3,11 +3,11 @@
 #include <stddef.h>                         // size_t
 #include <inttypes.h>
 #include <gflags/gflags.h>
-#include "melon/base/compat.h"                   // MELON_PLATFORM_OSX
-#include "melon/base/scoped_lock.h"              // MELON_SCOPED_LOCK
-#include "melon/base/fast_rand.h"
+#include "turbo/base/compat.h"                   // TURBO_PLATFORM_OSX
+#include "turbo/base/scoped_lock.h"              // TURBO_SCOPED_LOCK
+#include "turbo/base/fast_rand.h"
 #include <memory>
-#include "melon/hash/murmurhash3.h" // fmix64
+#include "turbo/hash/murmurhash3.h" // fmix64
 #include "melon/fiber/internal/errno.h"                  // ESTOP
 #include "melon/fiber/internal/waitable_event.h"                  // butex_*
 #include "melon/fiber/internal/sys_futex.h"              // futex_wake_private
@@ -27,13 +27,13 @@ namespace melon::fiber_internal {
     DEFINE_bool(show_fiber_creation_in_vars, false, "When this flags is on, The time "
                                                     "from fiber creation to first run will be recorded and shown "
                                                     "in /vars");
-    const bool MELON_ALLOW_UNUSED dummy_show_fiber_creation_in_vars =
+    const bool TURBO_ALLOW_UNUSED dummy_show_fiber_creation_in_vars =
             ::google::RegisterFlagValidator(&FLAGS_show_fiber_creation_in_vars,
                                                pass_bool);
 
     DEFINE_bool(show_per_worker_usage_in_vars, false,
                 "Show per-worker usage in /vars/fiber_per_worker_usage_<tid>");
-    const bool MELON_ALLOW_UNUSED dummy_show_per_worker_usage_in_vars =
+    const bool TURBO_ALLOW_UNUSED dummy_show_per_worker_usage_in_vars =
             ::google::RegisterFlagValidator(&FLAGS_show_per_worker_usage_in_vars,
                                                pass_bool);
 
@@ -48,7 +48,7 @@ namespace melon::fiber_internal {
 
     // [Hacky] This is a special TLS set by fiber-rpc privately... to save
     // overhead of creation keytable, may be removed later.
-    MELON_THREAD_LOCAL void *tls_unique_user_ptr = nullptr;
+    TURBO_THREAD_LOCAL void *tls_unique_user_ptr = nullptr;
 
     const fiber_statistics EMPTY_STAT = {0, 0};
 
@@ -60,7 +60,7 @@ namespace melon::fiber_internal {
         fiber_entity *const m = address_meta(tid);
         if (m != nullptr) {
             const uint32_t given_ver = get_version(tid);
-            MELON_SCOPED_LOCK(m->version_lock);
+            TURBO_SCOPED_LOCK(m->version_lock);
             if (given_ver == *m->version_butex) {
                 *out = m->attr;
                 return 0;
@@ -74,7 +74,7 @@ namespace melon::fiber_internal {
         fiber_entity *const m = address_meta(tid);
         if (m != nullptr) {
             const uint32_t given_ver = get_version(tid);
-            MELON_SCOPED_LOCK(m->version_lock);
+            TURBO_SCOPED_LOCK(m->version_lock);
             if (given_ver == *m->version_butex) {
                 m->stop = true;
             }
@@ -85,7 +85,7 @@ namespace melon::fiber_internal {
         fiber_entity *const m = address_meta(tid);
         if (m != nullptr) {
             const uint32_t given_ver = get_version(tid);
-            MELON_SCOPED_LOCK(m->version_lock);
+            TURBO_SCOPED_LOCK(m->version_lock);
             if (given_ver == *m->version_butex) {
                 return m->stop;
             }
@@ -131,14 +131,14 @@ namespace melon::fiber_internal {
         fiber_id_t tid;
         while (wait_task(&tid)) {
             fiber_worker::sched_to(&dummy, tid);
-            MELON_DCHECK_EQ(this, dummy);
-            MELON_DCHECK_EQ(_cur_meta->stack, _main_stack);
+            TURBO_DCHECK_EQ(this, dummy);
+            TURBO_DCHECK_EQ(_cur_meta->stack, _main_stack);
             if (_cur_meta->tid != _main_tid) {
                 fiber_worker::task_runner(1/*skip remained*/);
             }
             if (FLAGS_show_per_worker_usage_in_vars && !usage_variable) {
                 char name[32];
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
                 snprintf(name, sizeof(name), "fiber_worker_usage_%" PRIu64,
                          pthread_numeric_id());
 #else
@@ -150,7 +150,7 @@ namespace melon::fiber_internal {
             }
         }
         // Don't forget to add elapse of last wait_task.
-        current_task()->stat.cputime_ns += melon::get_current_time_nanos() - _last_run_ns;
+        current_task()->stat.cputime_ns += turbo::get_current_time_nanos() - _last_run_ns;
     }
 
     fiber_worker::fiber_worker(schedule_group *c)
@@ -159,19 +159,19 @@ namespace melon::fiber_internal {
             _sched_recursive_guard(0),
 #endif
             _cur_meta(nullptr), _control(c), _num_nosignal(0), _nsignaled(0),
-            _last_run_ns(melon::get_current_time_nanos()),
+            _last_run_ns(turbo::get_current_time_nanos()),
             _cumulated_cputime_ns(0), _nswitch(0), _last_context_remained(nullptr), _last_context_remained_arg(nullptr),
             _pl(nullptr), _main_stack(nullptr), _main_tid(0), _remote_num_nosignal(0), _remote_nsignaled(0) {
-        _steal_seed = melon::base::fast_rand();
-        _steal_offset = OFFSET_TABLE[_steal_seed % MELON_ARRAY_SIZE(OFFSET_TABLE)];
-        _pl = &c->_pl[melon::hash::fmix64(pthread_numeric_id()) % schedule_group::PARKING_LOT_NUM];
-        MELON_CHECK(c);
+        _steal_seed = turbo::base::fast_rand();
+        _steal_offset = OFFSET_TABLE[_steal_seed % TURBO_ARRAY_SIZE(OFFSET_TABLE)];
+        _pl = &c->_pl[turbo::hash::fmix64(pthread_numeric_id()) % schedule_group::PARKING_LOT_NUM];
+        TURBO_CHECK(c);
     }
 
     fiber_worker::~fiber_worker() {
         if (_main_tid) {
             fiber_entity *m = address_meta(_main_tid);
-            MELON_CHECK(_main_stack == m->stack);
+            TURBO_CHECK(_main_stack == m->stack);
             return_stack(m->release_stack());
             return_resource(get_slot(_main_tid));
             _main_tid = 0;
@@ -180,22 +180,22 @@ namespace melon::fiber_internal {
 
     int fiber_worker::init(size_t runqueue_capacity) {
         if (_rq.init(runqueue_capacity) != 0) {
-            MELON_LOG(FATAL) << "Fail to init _rq";
+            TURBO_LOG(FATAL) << "Fail to init _rq";
             return -1;
         }
         if (_remote_rq.init(runqueue_capacity / 2) != 0) {
-            MELON_LOG(FATAL) << "Fail to init _remote_rq";
+            TURBO_LOG(FATAL) << "Fail to init _remote_rq";
             return -1;
         }
         fiber_contextual_stack *stk = get_stack(STACK_TYPE_MAIN, nullptr);
         if (nullptr == stk) {
-            MELON_LOG(FATAL) << "Fail to get main stack container";
+            TURBO_LOG(FATAL) << "Fail to get main stack container";
             return -1;
         }
-        melon::ResourceId<fiber_entity> slot;
-        fiber_entity *m = melon::get_resource<fiber_entity>(&slot);
+        turbo::ResourceId<fiber_entity> slot;
+        fiber_entity *m = turbo::get_resource<fiber_entity>(&slot);
         if (nullptr == m) {
-            MELON_LOG(FATAL) << "Fail to get fiber_entity";
+            TURBO_LOG(FATAL) << "Fail to get fiber_entity";
             return -1;
         }
         m->stop = false;
@@ -204,7 +204,7 @@ namespace melon::fiber_internal {
         m->fn = nullptr;
         m->arg = nullptr;
         m->local_storage = LOCAL_STORAGE_INIT;
-        m->cpuwide_start_ns = melon::get_current_time_nanos();
+        m->cpuwide_start_ns = turbo::get_current_time_nanos();
         m->stat = EMPTY_STAT;
         m->attr = FIBER_ATTR_TASKGROUP;
         m->tid = make_tid(*m->version_butex, slot);
@@ -213,7 +213,7 @@ namespace melon::fiber_internal {
         _cur_meta = m;
         _main_tid = m->tid;
         _main_stack = stk;
-        _last_run_ns = melon::get_current_time_nanos();
+        _last_run_ns = turbo::get_current_time_nanos();
         return 0;
     }
 
@@ -252,7 +252,7 @@ namespace melon::fiber_internal {
                 // considerable time because a single melon::LatencyRecorder
                 // contains many variable.
                 g->_control->exposed_pending_time() <<
-                                                    (melon::get_current_time_nanos() - m->cpuwide_start_ns) / 1000L;
+                                                    (turbo::get_current_time_nanos() - m->cpuwide_start_ns) / 1000L;
             }
 
             // Not catch exceptions except ExitException which is for implementing
@@ -276,7 +276,7 @@ namespace melon::fiber_internal {
             // use fiber local storage internally, or will cause memory leak.
             // FIXME: the time from quiting fn to here is not counted into cputime
             if (m->attr.flags & FIBER_LOG_START_AND_FINISH) {
-                MELON_LOG(INFO) << "Finished fiber " << m->tid << ", cputime="
+                TURBO_LOG(INFO) << "Finished fiber " << m->tid << ", cputime="
                           << m->stat.cputime_ns / 1000000.0 << "ms";
             }
 
@@ -296,7 +296,7 @@ namespace melon::fiber_internal {
             // or join to the fiber after changing version will be rejected.
             // The spinlock is for visibility of fiber_worker::get_attr.
             {
-                MELON_SCOPED_LOCK(m->version_lock);
+                TURBO_SCOPED_LOCK(m->version_lock);
                 if (0 == ++*m->version_butex) {
                     ++*m->version_butex;
                 }
@@ -332,20 +332,20 @@ namespace melon::fiber_internal {
         if (__builtin_expect(!fn, 0)) {
             return EINVAL;
         }
-        const int64_t start_ns = melon::get_current_time_nanos();
+        const int64_t start_ns = turbo::get_current_time_nanos();
         const fiber_attribute using_attr = (attr ? *attr : FIBER_ATTR_NORMAL);
-        melon::ResourceId<fiber_entity> slot;
-        fiber_entity *m = melon::get_resource(&slot);
+        turbo::ResourceId<fiber_entity> slot;
+        fiber_entity *m = turbo::get_resource(&slot);
         if (__builtin_expect(!m, 0)) {
             return ENOMEM;
         }
-        MELON_CHECK(m->current_waiter.load(std::memory_order_relaxed) == nullptr);
+        TURBO_CHECK(m->current_waiter.load(std::memory_order_relaxed) == nullptr);
         m->stop = false;
         m->interrupted = false;
         m->about_to_quit = false;
         m->fn = std::move(fn);
         m->arg = arg;
-        MELON_CHECK(m->stack == nullptr);
+        TURBO_CHECK(m->stack == nullptr);
         m->attr = using_attr;
         m->local_storage = LOCAL_STORAGE_INIT;
         m->cpuwide_start_ns = start_ns;
@@ -353,7 +353,7 @@ namespace melon::fiber_internal {
         m->tid = make_tid(*m->version_butex, slot);
         *th = m->tid;
         if (using_attr.flags & FIBER_LOG_START_AND_FINISH) {
-            MELON_LOG(INFO) << "Started fiber " << m->tid;
+            TURBO_LOG(INFO) << "Started fiber " << m->tid;
         }
 
         fiber_worker *g = *pg;
@@ -387,20 +387,20 @@ namespace melon::fiber_internal {
         if (__builtin_expect(!fn, 0)) {
             return EINVAL;
         }
-        const int64_t start_ns = melon::get_current_time_nanos();
+        const int64_t start_ns = turbo::get_current_time_nanos();
         const fiber_attribute using_attr = (attr ? *attr : FIBER_ATTR_NORMAL);
-        melon::ResourceId<fiber_entity> slot;
-        fiber_entity *m = melon::get_resource(&slot);
+        turbo::ResourceId<fiber_entity> slot;
+        fiber_entity *m = turbo::get_resource(&slot);
         if (__builtin_expect(!m, 0)) {
             return ENOMEM;
         }
-        MELON_CHECK(m->current_waiter.load(std::memory_order_relaxed) == nullptr);
+        TURBO_CHECK(m->current_waiter.load(std::memory_order_relaxed) == nullptr);
         m->stop = false;
         m->interrupted = false;
         m->about_to_quit = false;
         m->fn = std::move(fn);
         m->arg = arg;
-        MELON_CHECK(m->stack == nullptr);
+        TURBO_CHECK(m->stack == nullptr);
         m->attr = using_attr;
         m->local_storage = LOCAL_STORAGE_INIT;
         m->cpuwide_start_ns = start_ns;
@@ -408,7 +408,7 @@ namespace melon::fiber_internal {
         m->tid = make_tid(*m->version_butex, slot);
         *th = m->tid;
         if (using_attr.flags & FIBER_LOG_START_AND_FINISH) {
-            MELON_LOG(INFO) << "Started fiber " << m->tid;
+            TURBO_LOG(INFO) << "Started fiber " << m->tid;
         }
         _control->_nfibers << 1;
         if (REMOTE) {
@@ -535,7 +535,7 @@ namespace melon::fiber_internal {
         fiber_worker *g = *pg;
 #ifndef NDEBUG
         if ((++g->_sched_recursive_guard) > 1) {
-            MELON_LOG(FATAL) << "Recursively(" << g->_sched_recursive_guard - 1
+            TURBO_LOG(FATAL) << "Recursively(" << g->_sched_recursive_guard - 1
                        << ") call sched_to(" << g << ")";
         }
 #endif
@@ -544,7 +544,7 @@ namespace melon::fiber_internal {
         void *saved_unique_user_ptr = tls_unique_user_ptr;
 
         fiber_entity *const cur_meta = g->_cur_meta;
-        const int64_t now = melon::get_current_time_nanos();
+        const int64_t now = turbo::get_current_time_nanos();
         const int64_t elp_ns = now - g->_last_run_ns;
         g->_last_run_ns = now;
         cur_meta->stat.cputime_ns += elp_ns;
@@ -564,7 +564,7 @@ namespace melon::fiber_internal {
             // use fiber local storage internally, or will cause memory leak.
             if ((cur_meta->attr.flags & FIBER_LOG_CONTEXT_SWITCH) ||
                 (next_meta->attr.flags & FIBER_LOG_CONTEXT_SWITCH)) {
-                MELON_LOG(INFO) << "Switch fiber: " << cur_meta->tid << " -> "
+                TURBO_LOG(INFO) << "Switch fiber: " << cur_meta->tid << " -> "
                           << next_meta->tid;
             }
 
@@ -578,13 +578,13 @@ namespace melon::fiber_internal {
                 else {
                     // else pthread_task is switching to another pthread_task, sc
                     // can only equal when they're both _main_stack
-                    MELON_CHECK(cur_meta->stack == g->_main_stack);
+                    TURBO_CHECK(cur_meta->stack == g->_main_stack);
                 }
 #endif
             }
             // else because of ending_sched(including pthread_task->pthread_task)
         } else {
-            MELON_LOG(FATAL) << "fiber=" << g->current_fid() << " sched_to itself!";
+            TURBO_LOG(FATAL) << "fiber=" << g->current_fid() << " sched_to itself!";
         }
 
         while (g->_last_context_remained) {
@@ -609,7 +609,7 @@ namespace melon::fiber_internal {
             _control->_destroy_group(this);
             _control = nullptr;
         } else {
-            MELON_CHECK(false);
+            TURBO_CHECK(false);
         }
     }
 
@@ -638,7 +638,7 @@ namespace melon::fiber_internal {
         _remote_rq._mutex.lock();
         while (!_remote_rq.push_locked(tid)) {
             flush_nosignal_tasks_remote_locked(_remote_rq._mutex);
-            MELON_LOG_EVERY_SECOND(ERROR) << "_remote_rq is full, capacity="
+            TURBO_LOG_EVERY_SECOND(ERROR) << "_remote_rq is full, capacity="
                                     << _remote_rq.capacity();
             ::usleep(1000);
             _remote_rq._mutex.lock();
@@ -699,7 +699,7 @@ namespace melon::fiber_internal {
     };
 
     static void ready_to_run_from_timer_thread(void *arg) {
-        MELON_CHECK(tls_task_group == nullptr);
+        TURBO_CHECK(tls_task_group == nullptr);
         const SleepArgs *e = static_cast<const SleepArgs *>(arg);
         e->group->control()->choose_one_group()->ready_to_run_remote(e->tid);
     }
@@ -714,7 +714,7 @@ namespace melon::fiber_internal {
         TimerThread::TaskId sleep_id;
         sleep_id = get_global_timer_thread()->schedule(
                 ready_to_run_from_timer_thread, void_args,
-                melon::time_point::future_unix_micros(e.timeout_us).to_timespec());
+                turbo::time_point::future_unix_micros(e.timeout_us).to_timespec());
 
         if (!sleep_id) {
             // fail to schedule timer, go back to previous thread.
@@ -725,7 +725,7 @@ namespace melon::fiber_internal {
         // Set fiber_entity::current_sleep which is for interruption.
         const uint32_t given_ver = get_version(e.tid);
         {
-            MELON_SCOPED_LOCK(e.meta->version_lock);
+            TURBO_SCOPED_LOCK(e.meta->version_lock);
             if (given_ver == *e.meta->version_butex && !e.meta->interrupted) {
                 e.meta->current_sleep = sleep_id;
                 return;
@@ -784,7 +784,7 @@ namespace melon::fiber_internal {
             return EINVAL;
         }
         const uint32_t given_ver = get_version(tid);
-        MELON_SCOPED_LOCK(m->version_lock);
+        TURBO_SCOPED_LOCK(m->version_lock);
         if (given_ver == *m->version_butex) {
             *pw = m->current_waiter.exchange(nullptr, std::memory_order_acquire);
             *sleep_id = m->current_sleep;
@@ -799,7 +799,7 @@ namespace melon::fiber_internal {
         fiber_entity *const m = fiber_worker::address_meta(tid);
         if (m != nullptr) {
             const uint32_t given_ver = get_version(tid);
-            MELON_SCOPED_LOCK(m->version_lock);
+            TURBO_SCOPED_LOCK(m->version_lock);
             if (given_ver == *m->version_butex) {
                 // Release fence makes m->interrupted visible to waitable_event_wait
                 m->current_waiter.store(w, std::memory_order_release);
@@ -825,14 +825,14 @@ namespace melon::fiber_internal {
             return rc;
         }
         // a fiber cannot wait on a butex and be sleepy at the same time.
-        MELON_CHECK(!sleep_id || !w);
+        TURBO_CHECK(!sleep_id || !w);
         if (w != nullptr) {
             erase_from_event_because_of_interruption(w);
             // If waitable_event_wait() already wakes up before we set current_waiter back,
             // the function will spin until current_waiter becomes non-nullptr.
             rc = set_event_waiter(tid, w);
             if (rc) {
-                MELON_LOG(FATAL) << "waitable_event_wait should spin until setting back waiter";
+                TURBO_LOG(FATAL) << "waitable_event_wait should spin until setting back waiter";
                 return rc;
             }
         } else if (sleep_id != 0) {
@@ -876,7 +876,7 @@ namespace melon::fiber_internal {
         int64_t cpuwide_start_ns = 0;
         fiber_statistics stat = {0, 0};
         {
-            MELON_SCOPED_LOCK(m->version_lock);
+            TURBO_SCOPED_LOCK(m->version_lock);
             if (given_ver == *m->version_butex) {
                 matched = true;
                 stop = m->stop;
@@ -902,7 +902,7 @@ namespace melon::fiber_internal {
                << " flags=" << attr.flags
                << " keytable_pool=" << attr.keytable_pool
                << "}\nhas_tls=" << has_tls
-               << "\nuptime_ns=" << melon::get_current_time_nanos() - cpuwide_start_ns
+               << "\nuptime_ns=" << turbo::get_current_time_nanos() - cpuwide_start_ns
                << "\ncputime_ns=" << stat.cputime_ns
                << "\nnswitch=" << stat.nswitch;
         }

@@ -20,7 +20,7 @@
 
 #include <mutex>
 #include "melon/metrics/all.h"
-#include "melon/container/bounded_queue.h"
+#include "turbo/container/bounded_queue.h"
 #include "melon/rpc/concurrency_limiter.h"
 
 namespace melon::rpc {
@@ -75,12 +75,12 @@ namespace melon::rpc {
             double _explore_ratio;
 
             // modified per sample.
-            std::atomic<int64_t> MELON_CACHELINE_ALIGNMENT _last_sampling_time_us;
+            std::atomic<int64_t> TURBO_CACHELINE_ALIGNMENT _last_sampling_time_us;
             std::mutex _sw_mutex;
             SampleWindow _sw;
 
             // modified per request.
-            std::atomic<int32_t> MELON_CACHELINE_ALIGNMENT _total_succ_req;
+            std::atomic<int32_t> TURBO_CACHELINE_ALIGNMENT _total_succ_req;
         };
 
     }  // namespace policy

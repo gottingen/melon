@@ -25,12 +25,12 @@
 #include <google/protobuf/descriptor.h>             // ServiceDescriptor
 #include "melon/idl_options.pb.h"                         // option(idl_support)
 #include "melon/fiber/internal/unstable.h"                       // fiber_keytable_pool_init
-#include "melon/base/profile.h"                            // MELON_ARRAY_SIZE
-#include "melon/base/fd_guard.h"                          // fd_guard
-#include "melon/log/logging.h"                           // MELON_CHECK
-#include "melon/times/time.h"
-#include "melon/base/class_name.h"
-#include "melon/strings/str_format.h"
+#include "turbo/base/profile.h"                            // TURBO_ARRAY_SIZE
+#include "turbo/base/fd_guard.h"                          // fd_guard
+#include "turbo/log/logging.h"                           // TURBO_CHECK
+#include "turbo/times/time.h"
+#include "turbo/base/class_name.h"
+#include "turbo/strings/str_format.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/compress.h"
 #include "melon/rpc/policy/nova_pbrpc_protocol.h"
@@ -40,10 +40,10 @@
 #include "melon/rpc/details/ssl_helper.h"           // CreateServerSSLContext
 #include "melon/rpc/protocol.h"                     // ListProtocols
 #include "melon/rpc/nshead_service.h"               // NsheadService
-#include "melon/strings/str_format.h"
+#include "turbo/strings/str_format.h"
 #include "melon/fiber/this_fiber.h"
-#include "melon/strings/utility.h"
-#include "melon/strings/trim.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/trim.h"
 
 #ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
 #include "melon/rpc/thrift_service.h"               // ThriftService
@@ -113,7 +113,7 @@ namespace melon::rpc {
         return "UNKNOWN_STATUS";
     }
 
-    melon::static_atomic<int> g_running_server_count = MELON_STATIC_ATOMIC_INIT(0);
+    turbo::static_atomic<int> g_running_server_count = TURBO_STATIC_ATOMIC_INIT(0);
 
     // Following services may have security issues and are disabled by default.
     DEFINE_bool(enable_dir_service, false, "Enable /dir");
@@ -160,7 +160,7 @@ namespace melon::rpc {
     }
 
     static timeval GetUptime(void *arg/*start_time*/) {
-        return melon::time_point::from_unix_micros(melon::get_current_time_micros() - (intptr_t) arg).to_timeval();
+        return turbo::time_point::from_unix_micros(turbo::get_current_time_micros() - (intptr_t) arg).to_timeval();
     }
 
     static void PrintStartTime(std::ostream &os, void *arg) {
@@ -260,11 +260,11 @@ namespace melon::rpc {
     }
 
     std::string Server::ServerPrefix() const {
-        return melon::string_printf("%s_%d", g_server_info_prefix, listen_address().port);
+        return turbo::string_printf("%s_%d", g_server_info_prefix, listen_address().port);
     }
 
     void *Server::UpdateDerivedVars(void *arg) {
-        const int64_t start_us = melon::get_current_time_micros();
+        const int64_t start_us = turbo::get_current_time_micros();
 
         Server *server = static_cast<Server *>(arg);
         const std::string prefix = server->ServerPrefix();
@@ -316,23 +316,23 @@ namespace melon::rpc {
         }
 #endif
 
-        int64_t last_time = melon::get_current_time_micros();
+        int64_t last_time = turbo::get_current_time_micros();
         int consecutive_nosleep = 0;
         while (1) {
-            const int64_t sleep_us = 1000000L + last_time - melon::get_current_time_micros();
+            const int64_t sleep_us = 1000000L + last_time - turbo::get_current_time_micros();
             if (sleep_us < 1000L) {
                 if (++consecutive_nosleep >= 2) {
                     consecutive_nosleep = 0;
-                    MELON_LOG(WARNING) << __FUNCTION__ << " is too busy!";
+                    TURBO_LOG(WARNING) << __FUNCTION__ << " is too busy!";
                 }
             } else {
                 consecutive_nosleep = 0;
                 if (melon::fiber_sleep_for(sleep_us) < 0) {
-                    MELON_PLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
+                    TURBO_PLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
                     return nullptr;
                 }
             }
-            last_time = melon::get_current_time_micros();
+            last_time = turbo::get_current_time_micros();
 
             // Update stats of accepted sockets.
             if (server->_am) {
@@ -341,7 +341,7 @@ namespace melon::rpc {
             if (server->_internal_am) {
                 server->_internal_am->ListConnections(&internal_conns);
             }
-            const int64_t now_ms = melon::time_now().to_unix_millis();
+            const int64_t now_ms = turbo::time_now().to_unix_millis();
             for (size_t i = 0; i < conns.size(); ++i) {
                 SocketUniquePtr ptr;
                 if (Socket::Address(conns[i], &ptr) == 0) {
@@ -423,102 +423,102 @@ namespace melon::rpc {
     int Server::AddBuiltinServices() {
         // Firstly add services shown in tabs.
         if (AddBuiltinService(new(std::nothrow) StatusService)) {
-            MELON_LOG(ERROR) << "Fail to add StatusService";
+            TURBO_LOG(ERROR) << "Fail to add StatusService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) VarsService)) {
-            MELON_LOG(ERROR) << "Fail to add VarsService";
+            TURBO_LOG(ERROR) << "Fail to add VarsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) ConnectionsService)) {
-            MELON_LOG(ERROR) << "Fail to add ConnectionsService";
+            TURBO_LOG(ERROR) << "Fail to add ConnectionsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) FlagsService)) {
-            MELON_LOG(ERROR) << "Fail to add FlagsService";
+            TURBO_LOG(ERROR) << "Fail to add FlagsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) RpczService)) {
-            MELON_LOG(ERROR) << "Fail to add RpczService";
+            TURBO_LOG(ERROR) << "Fail to add RpczService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) HotspotsService)) {
-            MELON_LOG(ERROR) << "Fail to add HotspotsService";
+            TURBO_LOG(ERROR) << "Fail to add HotspotsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) IndexService)) {
-            MELON_LOG(ERROR) << "Fail to add IndexService";
+            TURBO_LOG(ERROR) << "Fail to add IndexService";
             return -1;
         }
 
         // Add other services.
         if (AddBuiltinService(new(std::nothrow) VersionService(this))) {
-            MELON_LOG(ERROR) << "Fail to add VersionService";
+            TURBO_LOG(ERROR) << "Fail to add VersionService";
             return -1;
         }
 
         if (FLAGS_health_check.empty()) {
             if (AddBuiltinService(new(std::nothrow) HealthService)) {
-                MELON_LOG(ERROR) << "Fail to add HealthService";
+                TURBO_LOG(ERROR) << "Fail to add HealthService";
                 return -1;
             }
         } else {
             std::string mc = FLAGS_health_check + " => default_method";
             if (AddBuiltinService(new(std::nothrow) HealthService, mc, true)) {
-                MELON_LOG(ERROR) << "Fail to add HealthService";
+                TURBO_LOG(ERROR) << "Fail to add HealthService";
                 return -1;
             }
         }
         if (AddBuiltinService(new(std::nothrow) ProtobufsService(this))) {
-            MELON_LOG(ERROR) << "Fail to add ProtobufsService";
+            TURBO_LOG(ERROR) << "Fail to add ProtobufsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) BadMethodService)) {
-            MELON_LOG(ERROR) << "Fail to add BadMethodService";
+            TURBO_LOG(ERROR) << "Fail to add BadMethodService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) ListService(this))) {
-            MELON_LOG(ERROR) << "Fail to add ListService";
+            TURBO_LOG(ERROR) << "Fail to add ListService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) PrometheusMetricsService)) {
-            MELON_LOG(ERROR) << "Fail to add MetricsService";
+            TURBO_LOG(ERROR) << "Fail to add MetricsService";
             return -1;
         }
         if (FLAGS_enable_threads_service &&
             AddBuiltinService(new(std::nothrow) ThreadsService)) {
-            MELON_LOG(ERROR) << "Fail to add ThreadsService";
+            TURBO_LOG(ERROR) << "Fail to add ThreadsService";
             return -1;
         }
 
 
         if (AddBuiltinService(new(std::nothrow) PProfService)) {
-            MELON_LOG(ERROR) << "Fail to add PProfService";
+            TURBO_LOG(ERROR) << "Fail to add PProfService";
             return -1;
         }
         if (FLAGS_enable_dir_service &&
             AddBuiltinService(new(std::nothrow) DirService)) {
-            MELON_LOG(ERROR) << "Fail to add DirService";
+            TURBO_LOG(ERROR) << "Fail to add DirService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) FibersService)) {
-            MELON_LOG(ERROR) << "Fail to add FibersService";
+            TURBO_LOG(ERROR) << "Fail to add FibersService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) TokenService)) {
-            MELON_LOG(ERROR) << "Fail to add TokenService";
+            TURBO_LOG(ERROR) << "Fail to add TokenService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) SocketsService)) {
-            MELON_LOG(ERROR) << "Fail to add SocketsService";
+            TURBO_LOG(ERROR) << "Fail to add SocketsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) GetFaviconService)) {
-            MELON_LOG(ERROR) << "Fail to add GetFaviconService";
+            TURBO_LOG(ERROR) << "Fail to add GetFaviconService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) GetJsService)) {
-            MELON_LOG(ERROR) << "Fail to add GetJsService";
+            TURBO_LOG(ERROR) << "Fail to add GetJsService";
             return -1;
         }
         return 0;
@@ -533,7 +533,7 @@ namespace melon::rpc {
 
     Acceptor *Server::BuildAcceptor() {
         std::set<std::string> whitelist;
-        for (melon::StringSplitter sp(_options.enabled_protocols.c_str(), ' ');
+        for (turbo::StringSplitter sp(_options.enabled_protocols.c_str(), ' ');
              sp; ++sp) {
             std::string protocol(sp.field(), sp.length());
             whitelist.insert(protocol);
@@ -541,7 +541,7 @@ namespace melon::rpc {
         const bool has_whitelist = !whitelist.empty();
         Acceptor *acceptor = new(std::nothrow) Acceptor(_keytable_pool);
         if (nullptr == acceptor) {
-            MELON_LOG(ERROR) << "Fail to new Acceptor";
+            TURBO_LOG(ERROR) << "Fail to new Acceptor";
             return nullptr;
         }
         InputMessageHandler handler;
@@ -566,7 +566,7 @@ namespace melon::rpc {
             handler.arg = this;
             handler.name = protocols[i].name;
             if (acceptor->AddHandler(handler) != 0) {
-                MELON_LOG(ERROR) << "Fail to add handler into Acceptor("
+                TURBO_LOG(ERROR) << "Fail to add handler into Acceptor("
                                  << acceptor << ')';
                 delete acceptor;
                 return nullptr;
@@ -581,7 +581,7 @@ namespace melon::rpc {
             }
             err << '\'';
             delete acceptor;
-            MELON_LOG(ERROR) << err.str();
+            TURBO_LOG(ERROR) << err.str();
             return nullptr;
         }
         return acceptor;
@@ -597,19 +597,19 @@ namespace melon::rpc {
             return 0;
         }
         if (_fullname_service_map.init(INITIAL_SERVICE_CAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _fullname_service_map";
+            TURBO_LOG(ERROR) << "Fail to init _fullname_service_map";
             return -1;
         }
         if (_service_map.init(INITIAL_SERVICE_CAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _service_map";
+            TURBO_LOG(ERROR) << "Fail to init _service_map";
             return -1;
         }
         if (_method_map.init(INITIAL_SERVICE_CAP * 2) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _method_map";
+            TURBO_LOG(ERROR) << "Fail to init _method_map";
             return -1;
         }
         if (_ssl_ctx_map.init(INITIAL_CERT_MAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _ssl_ctx_map";
+            TURBO_LOG(ERROR) << "Fail to init _ssl_ctx_map";
             return -1;
         }
         _status = READY;
@@ -670,12 +670,12 @@ namespace melon::rpc {
         const ConcurrencyLimiter *cl =
                 ConcurrencyLimiterExtension()->Find(amc.type().c_str());
         if (cl == nullptr) {
-            MELON_LOG(ERROR) << "Fail to find ConcurrencyLimiter by `" << amc.value() << "'";
+            TURBO_LOG(ERROR) << "Fail to find ConcurrencyLimiter by `" << amc.value() << "'";
             return false;
         }
         ConcurrencyLimiter *cl_copy = cl->New(amc);
         if (cl_copy == nullptr) {
-            MELON_LOG(ERROR) << "Fail to new ConcurrencyLimiter";
+            TURBO_LOG(ERROR) << "Fail to new ConcurrencyLimiter";
             return false;
         }
         *out = cl_copy;
@@ -684,27 +684,27 @@ namespace melon::rpc {
 
     static AdaptiveMaxConcurrency g_default_max_concurrency_of_method(0);
 
-    int Server::StartInternal(const melon::end_point &endpoint,
+    int Server::StartInternal(const turbo::end_point &endpoint,
                               const PortRange &port_range,
                               const ServerOptions *opt) {
         std::unique_ptr<Server, RevertServerStatus> revert_server(this);
         if (_failed_to_set_max_concurrency_of_method) {
             _failed_to_set_max_concurrency_of_method = false;
-            MELON_LOG(ERROR) << "previous call to MaxConcurrencyOf() was failed, "
+            TURBO_LOG(ERROR) << "previous call to MaxConcurrencyOf() was failed, "
                                 "fix it before starting server";
             return -1;
         }
         if (InitializeOnce() != 0) {
-            MELON_LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
+            TURBO_LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
             return -1;
         }
         const Status st = status();
         if (st != READY) {
             if (st == RUNNING) {
-                MELON_LOG(ERROR) << "Server[" << version() << "] is already running on "
+                TURBO_LOG(ERROR) << "Server[" << version() << "] is already running on "
                                  << _listen_addr;
             } else {
-                MELON_LOG(ERROR) << "Can't start Server[" << version()
+                TURBO_LOG(ERROR) << "Can't start Server[" << version()
                                  << "] which is " << status_str(status());
             }
             return -1;
@@ -718,7 +718,7 @@ namespace melon::rpc {
         }
 
         if (!_options.h2_settings.IsValid(true/*log_error*/)) {
-            MELON_LOG(ERROR) << "Invalid h2_settings";
+            TURBO_LOG(ERROR) << "Invalid h2_settings";
             return -1;
         }
 
@@ -730,16 +730,16 @@ namespace melon::rpc {
             const google::protobuf::MethodDescriptor *md =
                     sd->FindMethodByName("default_method");
             if (md == nullptr) {
-                MELON_LOG(ERROR) << "http_master_service must have a method named `default_method'";
+                TURBO_LOG(ERROR) << "http_master_service must have a method named `default_method'";
                 return -1;
             }
             if (md->input_type()->field_count() != 0) {
-                MELON_LOG(ERROR) << "The request type of http_master_service must have "
+                TURBO_LOG(ERROR) << "The request type of http_master_service must have "
                                     "no fields, actually " << md->input_type()->field_count();
                 return -1;
             }
             if (md->output_type()->field_count() != 0) {
-                MELON_LOG(ERROR) << "The response type of http_master_service must have "
+                TURBO_LOG(ERROR) << "The response type of http_master_service must have "
                                     "no fields, actually " << md->output_type()->field_count();
                 return -1;
             }
@@ -754,7 +754,7 @@ namespace melon::rpc {
                 _session_local_data_pool =
                         new(std::nothrow) SimpleDataPool(_options.session_local_data_factory);
                 if (nullptr == _session_local_data_pool) {
-                    MELON_LOG(ERROR) << "Fail to new SimpleDataPool";
+                    TURBO_LOG(ERROR) << "Fail to new SimpleDataPool";
                     return -1;
                 }
             } else {
@@ -767,7 +767,7 @@ namespace melon::rpc {
         // should be destroyed in Join().
         _keytable_pool = new fiber_keytable_pool_t;
         if (fiber_keytable_pool_init(_keytable_pool) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _keytable_pool";
+            TURBO_LOG(ERROR) << "Fail to init _keytable_pool";
             delete _keytable_pool;
             _keytable_pool = nullptr;
             return -1;
@@ -777,7 +777,7 @@ namespace melon::rpc {
             _tl_options.thread_local_data_factory = _options.thread_local_data_factory;
             if (fiber_key_create2(&_tl_options.tls_key, DestroyServerTLS,
                                   _options.thread_local_data_factory) != 0) {
-                MELON_LOG(ERROR) << "Fail to create thread-local key";
+                TURBO_LOG(ERROR) << "Fail to create thread-local key";
                 return -1;
             }
             if (_options.reserved_thread_local_data) {
@@ -832,12 +832,12 @@ namespace melon::rpc {
             }
             delete[] init_args;
             if (ncreated != _options.fiber_init_count) {
-                MELON_LOG(ERROR) << "Fail to create "
+                TURBO_LOG(ERROR) << "Fail to create "
                                  << _options.fiber_init_count - ncreated << " fibers";
                 return -1;
             }
             if (num_failed_result != 0) {
-                MELON_LOG(ERROR) << num_failed_result << " fiber_init_fn failed";
+                TURBO_LOG(ERROR) << num_failed_result << " fiber_init_fn failed";
                 return -1;
             }
         }
@@ -847,7 +847,7 @@ namespace melon::rpc {
         if (_options.has_ssl_options()) {
             CertInfo &default_cert = _options.mutable_ssl_options()->default_cert;
             if (default_cert.certificate.empty()) {
-                MELON_LOG(ERROR) << "default_cert is empty";
+                TURBO_LOG(ERROR) << "default_cert is empty";
                 return -1;
             }
             if (AddCertificate(default_cert) != 0) {
@@ -868,14 +868,14 @@ namespace melon::rpc {
         if (_options.has_builtin_services &&
             _builtin_service_count <= 0 &&
             AddBuiltinServices() != 0) {
-            MELON_LOG(ERROR) << "Fail to add builtin services";
+            TURBO_LOG(ERROR) << "Fail to add builtin services";
             return -1;
         }
         // If a server is started/stopped for mutiple times and one of the options
         // sets has_builtin_service to true, builtin services will be enabled for
         // any later re-start. Check this case and report to user.
         if (!_options.has_builtin_services && _builtin_service_count > 0) {
-            MELON_LOG(ERROR) << "A server started/stopped for multiple times must be "
+            TURBO_LOG(ERROR) << "A server started/stopped for multiple times must be "
                                 "consistent on ServerOptions.has_builtin_services";
             return -1;
         }
@@ -912,7 +912,7 @@ namespace melon::rpc {
                 }
                 ConcurrencyLimiter *cl = nullptr;
                 if (!CreateConcurrencyLimiter(*amc, &cl)) {
-                    MELON_LOG(ERROR) << "Fail to create ConcurrencyLimiter for method";
+                    TURBO_LOG(ERROR) << "Fail to create ConcurrencyLimiter for method";
                     return -1;
                 }
                 it->second.status->SetConcurrencyLimiter(cl);
@@ -921,29 +921,29 @@ namespace melon::rpc {
 
         // Create listening ports
         if (port_range.min_port > port_range.max_port) {
-            MELON_LOG(ERROR) << "Invalid port_range=[" << port_range.min_port << '-'
+            TURBO_LOG(ERROR) << "Invalid port_range=[" << port_range.min_port << '-'
                              << port_range.max_port << ']';
             return -1;
         }
-        if (melon::is_endpoint_extended(endpoint) &&
+        if (turbo::is_endpoint_extended(endpoint) &&
             (port_range.min_port != endpoint.port || port_range.max_port != endpoint.port)) {
-            MELON_LOG(ERROR) << "Only IPv4 address supports port range feature";
+            TURBO_LOG(ERROR) << "Only IPv4 address supports port range feature";
             return -1;
         }
         _listen_addr = endpoint;
         for (int port = port_range.min_port; port <= port_range.max_port; ++port) {
             _listen_addr.port = port;
-            melon::base::fd_guard sockfd(tcp_listen(_listen_addr));
+            turbo::base::fd_guard sockfd(tcp_listen(_listen_addr));
             if (sockfd < 0) {
                 if (port != port_range.max_port) { // not the last port, try next
                     continue;
                 }
                 if (port_range.min_port != port_range.max_port) {
-                    MELON_LOG(ERROR) << "Fail to listen " << _listen_addr.ip
+                    TURBO_LOG(ERROR) << "Fail to listen " << _listen_addr.ip
                                      << ":[" << port_range.min_port << '-'
                                      << port_range.max_port << ']';
                 } else {
-                    MELON_LOG(ERROR) << "Fail to listen " << _listen_addr;
+                    TURBO_LOG(ERROR) << "Fail to listen " << _listen_addr;
                 }
                 return -1;
             }
@@ -952,14 +952,14 @@ namespace melon::rpc {
                 // https://en.wikipedia.org/wiki/Ephemeral_port
                 _listen_addr.port = get_port_from_fd(sockfd);
                 if (_listen_addr.port <= 0) {
-                    MELON_LOG(ERROR) << "Fail to get port from fd=" << sockfd;
+                    TURBO_LOG(ERROR) << "Fail to get port from fd=" << sockfd;
                     return -1;
                 }
             }
             if (_am == nullptr) {
                 _am = BuildAcceptor();
                 if (nullptr == _am) {
-                    MELON_LOG(ERROR) << "Fail to build acceptor";
+                    TURBO_LOG(ERROR) << "Fail to build acceptor";
                     return -1;
                 }
             }
@@ -973,7 +973,7 @@ namespace melon::rpc {
             // Pass ownership of `sockfd' to `_am'
             if (_am->StartAccept(sockfd, _options.idle_timeout_sec,
                                  _default_ssl_ctx) != 0) {
-                MELON_LOG(ERROR) << "Fail to start acceptor";
+                TURBO_LOG(ERROR) << "Fail to start acceptor";
                 return -1;
             }
             sockfd.release();
@@ -981,38 +981,38 @@ namespace melon::rpc {
         }
         if (_options.internal_port >= 0 && _options.has_builtin_services) {
             if (_options.internal_port == _listen_addr.port) {
-                MELON_LOG(ERROR) << "ServerOptions.internal_port=" << _options.internal_port
+                TURBO_LOG(ERROR) << "ServerOptions.internal_port=" << _options.internal_port
                                  << " is same with port=" << _listen_addr.port << " to Start()";
                 return -1;
             }
             if (_options.internal_port == 0) {
-                MELON_LOG(ERROR) << "ServerOptions.internal_port cannot be 0, which"
+                TURBO_LOG(ERROR) << "ServerOptions.internal_port cannot be 0, which"
                                     " allocates a dynamic and probabaly unfiltered port,"
                                     " against the purpose of \"being internal\".";
                 return -1;
             }
-            if (melon::is_endpoint_extended(endpoint)) {
-                MELON_LOG(ERROR) << "internal_port is available in IPv4 address only";
+            if (turbo::is_endpoint_extended(endpoint)) {
+                TURBO_LOG(ERROR) << "internal_port is available in IPv4 address only";
                 return -1;
             }
-            melon::end_point internal_point = _listen_addr;
+            turbo::end_point internal_point = _listen_addr;
             internal_point.port = _options.internal_port;
-            melon::base::fd_guard sockfd(tcp_listen(internal_point));
+            turbo::base::fd_guard sockfd(tcp_listen(internal_point));
             if (sockfd < 0) {
-                MELON_LOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
+                TURBO_LOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
                 return -1;
             }
             if (nullptr == _internal_am) {
                 _internal_am = BuildAcceptor();
                 if (nullptr == _internal_am) {
-                    MELON_LOG(ERROR) << "Fail to build internal acceptor";
+                    TURBO_LOG(ERROR) << "Fail to build internal acceptor";
                     return -1;
                 }
             }
             // Pass ownership of `sockfd' to `_internal_am'
             if (_internal_am->StartAccept(sockfd, _options.idle_timeout_sec,
                                           _default_ssl_ctx) != 0) {
-                MELON_LOG(ERROR) << "Fail to start internal_acceptor";
+                TURBO_LOG(ERROR) << "Fail to start internal_acceptor";
                 return -1;
             }
             sockfd.release();
@@ -1021,17 +1021,17 @@ namespace melon::rpc {
         PutPidFileIfNeeded();
 
         // Launch _derivative_thread.
-        MELON_CHECK_EQ(INVALID_FIBER_ID, _derivative_thread);
+        TURBO_CHECK_EQ(INVALID_FIBER_ID, _derivative_thread);
         if (fiber_start_background(&_derivative_thread, nullptr,
                                    UpdateDerivedVars, this) != 0) {
-            MELON_LOG(ERROR) << "Fail to create _derivative_thread";
+            TURBO_LOG(ERROR) << "Fail to create _derivative_thread";
             return -1;
         }
 
         // Print tips to server launcher.
-        if (melon::is_endpoint_extended(_listen_addr)) {
+        if (turbo::is_endpoint_extended(_listen_addr)) {
             const char *builtin_msg = _options.has_builtin_services ? " with builtin service" : "";
-            MELON_LOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
+            TURBO_LOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
                             << builtin_msg << '.';
             //TODO add TrackMe support
         } else {
@@ -1043,32 +1043,32 @@ namespace melon::rpc {
                 http_port = _options.internal_port;
                 server_info << " and internal_port=" << _options.internal_port;
             }
-            MELON_LOG(INFO) << server_info.str() << '.';
+            TURBO_LOG(INFO) << server_info.str() << '.';
 
             if (_options.has_builtin_services) {
-                MELON_LOG(INFO) << "Check out http://" << melon::my_hostname() << ':'
+                TURBO_LOG(INFO) << "Check out http://" << turbo::my_hostname() << ':'
                                 << http_port << " in web browser.";
             } else {
-                MELON_LOG(WARNING) << "Builtin services are disabled according to "
+                TURBO_LOG(WARNING) << "Builtin services are disabled according to "
                                       "ServerOptions.has_builtin_services";
             }
             // For trackme reporting
-            SetTrackMeAddress(melon::end_point(melon::my_ip(), http_port));
+            SetTrackMeAddress(turbo::end_point(turbo::my_ip(), http_port));
         }
         revert_server.release();
         return 0;
     }
 
-    int Server::Start(const melon::end_point &endpoint, const ServerOptions *opt) {
+    int Server::Start(const turbo::end_point &endpoint, const ServerOptions *opt) {
         return StartInternal(
                 endpoint, PortRange(endpoint.port, endpoint.port), opt);
     }
 
     int Server::Start(const char *ip_port_str, const ServerOptions *opt) {
-        melon::end_point point;
+        turbo::end_point point;
         if (str2endpoint(ip_port_str, &point) != 0 &&
             hostname2endpoint(ip_port_str, &point) != 0) {
-            MELON_LOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
+            TURBO_LOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
             return -1;
         }
         return Start(point, opt);
@@ -1076,21 +1076,21 @@ namespace melon::rpc {
 
     int Server::Start(int port, const ServerOptions *opt) {
         if (port < 0 || port > 65535) {
-            MELON_LOG(ERROR) << "Invalid port=" << port;
+            TURBO_LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }
-        return Start(melon::end_point(melon::IP_ANY, port), opt);
+        return Start(turbo::end_point(turbo::IP_ANY, port), opt);
     }
 
     int Server::Start(const char *ip_str, PortRange port_range,
                       const ServerOptions *opt) {
-        melon::ip_t ip;
-        if (melon::str2ip(ip_str, &ip) != 0 &&
-            melon::hostname2ip(ip_str, &ip) != 0) {
-            MELON_LOG(ERROR) << "Invalid address=`" << ip_str << '\'';
+        turbo::ip_t ip;
+        if (turbo::str2ip(ip_str, &ip) != 0 &&
+            turbo::hostname2ip(ip_str, &ip) != 0) {
+            TURBO_LOG(ERROR) << "Invalid address=`" << ip_str << '\'';
             return -1;
         }
-        return StartInternal(melon::end_point(ip,0), port_range, opt);
+        return StartInternal(turbo::end_point(ip,0), port_range, opt);
     }
 
     int Server::Stop(int timeout_ms) {
@@ -1099,7 +1099,7 @@ namespace melon::rpc {
         }
         _status = STOPPING;
 
-        MELON_LOG(INFO) << "Server[" << version() << "] is going to quit";
+        TURBO_LOG(INFO) << "Server[" << version() << "] is going to quit";
 
         if (_am) {
             _am->StopAccept(timeout_ms);
@@ -1134,7 +1134,7 @@ namespace melon::rpc {
             // done here (before leaving Join) because it's legal for users to
             // delete fiber keys after Join which makes related objects
             // in KeyTables undeletable anymore and leaked.
-            MELON_CHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
+            TURBO_CHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
             // TODO: Can't delete _keytable_pool which may be accessed by
             // still-running fibers (created by the server). The memory is
             // leaked but servers are unlikely to be started/stopped frequently,
@@ -1144,7 +1144,7 @@ namespace melon::rpc {
 
         // Delete tls_key as well since we don't need it anymore.
         if (_tl_options.tls_key != INVALID_FIBER_KEY) {
-            MELON_CHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
+            TURBO_CHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
             _tl_options.tls_key = INVALID_FIBER_KEY;
         }
 
@@ -1166,34 +1166,34 @@ namespace melon::rpc {
                                    bool is_builtin_service,
                                    const ServiceOptions &svc_opt) {
         if (nullptr == service) {
-            MELON_LOG(ERROR) << "Parameter[service] is nullptr!";
+            TURBO_LOG(ERROR) << "Parameter[service] is nullptr!";
             return -1;
         }
         const google::protobuf::ServiceDescriptor *sd = service->GetDescriptor();
         if (sd->method_count() == 0) {
-            MELON_LOG(ERROR) << "service=" << sd->full_name()
+            TURBO_LOG(ERROR) << "service=" << sd->full_name()
                              << " does not have any method.";
             return -1;
         }
 
         if (InitializeOnce() != 0) {
-            MELON_LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
+            TURBO_LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
             return -1;
         }
         if (status() != READY) {
-            MELON_LOG(ERROR) << "Can't add service=" << sd->full_name() << " to Server["
+            TURBO_LOG(ERROR) << "Can't add service=" << sd->full_name() << " to Server["
                              << version() << "] which is " << status_str(status());
             return -1;
         }
 
         if (_fullname_service_map.seek(sd->full_name()) != nullptr) {
-            MELON_LOG(ERROR) << "service=" << sd->full_name() << " already exists";
+            TURBO_LOG(ERROR) << "service=" << sd->full_name() << " already exists";
             return -1;
         }
         ServiceProperty *old_ss = _service_map.seek(sd->name());
         if (old_ss != nullptr) {
             // names conflict.
-            MELON_LOG(ERROR) << "Conflict service name between "
+            TURBO_LOG(ERROR) << "Conflict service name between "
                              << sd->full_name() << " and "
                              << old_ss->service_name();
             return -1;
@@ -1229,7 +1229,7 @@ namespace melon::rpc {
                 if (_method_map.seek(full_name_wo_ns) == nullptr) {
                     _method_map[full_name_wo_ns] = mp2;
                 } else {
-                    MELON_LOG(ERROR) << '`' << full_name_wo_ns << "' already exists";
+                    TURBO_LOG(ERROR) << '`' << full_name_wo_ns << "' already exists";
                     RemoveMethodsOf(service);
                     return -1;
                 }
@@ -1249,18 +1249,18 @@ namespace melon::rpc {
         }
 
         std::string_view restful_mappings = svc_opt.restful_mappings;
-        restful_mappings = melon::trim_all(restful_mappings);
+        restful_mappings = turbo::trim_all(restful_mappings);
         if (!restful_mappings.empty()) {
             // Parse the mappings.
             std::vector<RestfulMapping> mappings;
             if (!ParseRestfulMappings(restful_mappings, &mappings)) {
-                MELON_LOG(ERROR) << "Fail to parse mappings `" << restful_mappings << '\'';
+                TURBO_LOG(ERROR) << "Fail to parse mappings `" << restful_mappings << '\'';
                 RemoveService(service);
                 return -1;
             }
             if (mappings.empty()) {
                 // we already trimmed at the beginning, this is impossible.
-                MELON_LOG(ERROR) << "Impossible: Nothing in restful_mappings";
+                TURBO_LOG(ERROR) << "Impossible: Nothing in restful_mappings";
                 RemoveService(service);
                 return -1;
             }
@@ -1284,7 +1284,7 @@ namespace melon::rpc {
                         sd->full_name() + "." + mappings[i].method_name;
                 MethodProperty *mp = _method_map.seek(full_method_name);
                 if (mp == nullptr) {
-                    MELON_LOG(ERROR) << "Unknown method=`" << full_method_name << '\'';
+                    TURBO_LOG(ERROR) << "Unknown method=`" << full_method_name << '\'';
                     RemoveService(service);
                     return -1;
                 }
@@ -1302,7 +1302,7 @@ namespace melon::rpc {
                     if (!_global_restful_map->AddMethod(
                             mappings[i].path, service, params,
                             mappings[i].method_name, mp->status)) {
-                        MELON_LOG(ERROR) << "Fail to map `" << mappings[i].path
+                        TURBO_LOG(ERROR) << "Fail to map `" << mappings[i].path
                                          << "' to `" << full_method_name << '\'';
                         RemoveService(service);
                         return -1;
@@ -1321,7 +1321,7 @@ namespace melon::rpc {
                 ServiceProperty *sp2 = _service_map.seek(svc_name);
                 if (((!!sp) != (!!sp2)) ||
                     (sp != nullptr && sp->service != sp2->service)) {
-                    MELON_LOG(ERROR) << "Impossible: _fullname_service and _service_map are"
+                    TURBO_LOG(ERROR) << "Impossible: _fullname_service and _service_map are"
                                         " inconsistent before inserting " << svc_name;
                     RemoveService(service);
                     return -1;
@@ -1339,7 +1339,7 @@ namespace melon::rpc {
                 params.pb_bytes_to_base64 = svc_opt.pb_bytes_to_base64;
                 if (!m->AddMethod(mappings[i].path, service, params,
                                   mappings[i].method_name, mp->status)) {
-                    MELON_LOG(ERROR) << "Fail to map `" << mappings[i].path << "' to `"
+                    TURBO_LOG(ERROR) << "Fail to map `" << mappings[i].path << "' to `"
                                      << sd->full_name() << '.' << mappings[i].method_name
                                      << '\'';
                     if (sp == nullptr) {
@@ -1376,7 +1376,7 @@ namespace melon::rpc {
             for (size_t i = last_size; i != cur_size; ++i) {
                 const TabInfo &info = (*_tab_info_list)[i];
                 if (!info.valid()) {
-                    MELON_LOG(ERROR) << "Invalid TabInfo: path=" << info.path
+                    TURBO_LOG(ERROR) << "Invalid TabInfo: path=" << info.path
                                      << " tab_name=" << info.tab_name;
                     _tab_info_list->resize(last_size);
                     RemoveService(service);
@@ -1405,7 +1405,7 @@ namespace melon::rpc {
         ServiceOptions options;
         options.ownership = ownership;
         // TODO: This is weird
-        options.restful_mappings = melon::as_string(restful_mappings);
+        options.restful_mappings = turbo::as_string(restful_mappings);
         options.allow_default_url = allow_default_url;
         return AddServiceInternal(service, false, options);
     }
@@ -1427,7 +1427,7 @@ namespace melon::rpc {
         ServiceOptions options;
         options.ownership = SERVER_OWNS_SERVICE;
         // TODO: This is weird
-        options.restful_mappings = melon::as_string(restful_mappings);
+        options.restful_mappings = turbo::as_string(restful_mappings);
         options.allow_default_url = allow_default_url;
         return AddServiceInternal(service, true, options);
 
@@ -1449,18 +1449,18 @@ namespace melon::rpc {
                 _method_map.erase(full_name_wo_ns);
             }
             if (mp == nullptr) {
-                MELON_LOG(ERROR) << "Fail to find method=" << md->full_name();
+                TURBO_LOG(ERROR) << "Fail to find method=" << md->full_name();
                 continue;
             }
             if (mp->http_url) {
-                melon::StringSplitter at_sp(mp->http_url->c_str(), '@');
+                turbo::StringSplitter at_sp(mp->http_url->c_str(), '@');
                 for (; at_sp; ++at_sp) {
                     std::string_view path(at_sp.field(), at_sp.length());
-                    path = melon::trim_all(path);
-                    melon::StringSplitter slash_sp(
+                    path = turbo::trim_all(path);
+                    turbo::StringSplitter slash_sp(
                             path.data(), path.data() + path.size(), '/');
                     if (slash_sp == nullptr) {
-                        MELON_LOG(ERROR) << "Invalid http_url=" << *mp->http_url;
+                        TURBO_LOG(ERROR) << "Invalid http_url=" << *mp->http_url;
                         break;
                     }
                     std::string_view v_svc_name(slash_sp.field(), slash_sp.length());
@@ -1468,19 +1468,19 @@ namespace melon::rpc {
                     if (vsp == nullptr) {
                         if (_global_restful_map) {
                             std::string path_str;
-                            melon::copy_to_string(path, &path_str);
+                            turbo::copy_to_string(path, &path_str);
                             if (_global_restful_map->RemoveByPathString(path_str)) {
                                 continue;
                             }
                         }
-                        MELON_LOG(ERROR) << "Impossible: service=" << v_svc_name
+                        TURBO_LOG(ERROR) << "Impossible: service=" << v_svc_name
                                          << " for restful_map does not exist";
                         break;
                     }
                     std::string path_str;
-                    melon::copy_to_string(path, &path_str);
+                    turbo::copy_to_string(path, &path_str);
                     if (!vsp->restful_map->RemoveByPathString(path_str)) {
-                        MELON_LOG(ERROR) << "Fail to find path=" << path
+                        TURBO_LOG(ERROR) << "Fail to find path=" << path
                                          << " in restful_map of service=" << v_svc_name;
                     }
                 }
@@ -1496,11 +1496,11 @@ namespace melon::rpc {
 
     int Server::RemoveService(google::protobuf::Service *service) {
         if (nullptr == service) {
-            MELON_LOG(ERROR) << "Parameter[service] is nullptr";
+            TURBO_LOG(ERROR) << "Parameter[service] is nullptr";
             return -1;
         }
         if (status() != READY) {
-            MELON_LOG(ERROR) << "Can't remove service="
+            TURBO_LOG(ERROR) << "Can't remove service="
                              << service->GetDescriptor()->full_name() << " from Server["
                              << version() << "] which is " << status_str(status());
             return -1;
@@ -1533,7 +1533,7 @@ namespace melon::rpc {
 
     void Server::ClearServices() {
         if (status() != READY) {
-            MELON_LOG_IF(ERROR, status() != UNINITIALIZED)
+            TURBO_LOG_IF(ERROR, status() != UNINITIALIZED)
                             << "Can't clear services from Server[" << version()
                             << "] which is " << status_str(status());
             return;
@@ -1611,14 +1611,14 @@ namespace melon::rpc {
                 if (!_version.empty()) {
                     _version.push_back('+');
                 }
-                _version.append(melon::base::class_name_str(*it->second.service));
+                _version.append(turbo::base::class_name_str(*it->second.service));
             }
         }
         if (_options.nshead_service) {
             if (!_version.empty()) {
                 _version.push_back('+');
             }
-            _version.append(melon::base::class_name_str(*_options.nshead_service));
+            _version.append(turbo::base::class_name_str(*_options.nshead_service));
         }
 
 #ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
@@ -1626,7 +1626,7 @@ namespace melon::rpc {
             if (!_version.empty()) {
                 _version.push_back('+');
             }
-            _version.append(melon::base::class_name_str(*_options.thrift_service));
+            _version.append(turbo::base::class_name_str(*_options.thrift_service));
         }
 #endif
 
@@ -1634,14 +1634,14 @@ namespace melon::rpc {
             if (!_version.empty()) {
                 _version.push_back('+');
             }
-            _version.append(melon::base::class_name_str(*_options.rtmp_service));
+            _version.append(turbo::base::class_name_str(*_options.rtmp_service));
         }
 
         if (_options.redis_service) {
             if (!_version.empty()) {
                 _version.push_back('+');
             }
-            _version.append(melon::base::class_name_str(*_options.redis_service));
+            _version.append(turbo::base::class_name_str(*_options.redis_service));
         }
     }
 
@@ -1652,7 +1652,7 @@ namespace melon::rpc {
         std::string ret;
         wordexp_t p;
         wordexp(path.c_str(), &p, 0);
-        MELON_CHECK_EQ(p.we_wordc, 1u);
+        TURBO_CHECK_EQ(p.we_wordc, 1u);
         if (p.we_wordc == 1) {
             ret = p.we_wordv[0];
         }
@@ -1673,25 +1673,25 @@ namespace melon::rpc {
             int rc = mkdir(dir_name.c_str(),
                            S_IFDIR | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP);
             if (rc != 0 && errno != EEXIST
-                #if defined(MELON_PLATFORM_OSX)
+                #if defined(TURBO_PLATFORM_OSX)
                 && errno != EISDIR
 #endif
                     ) {
-                MELON_PLOG(WARNING) << "Fail to create " << dir_name;
+                TURBO_PLOG(WARNING) << "Fail to create " << dir_name;
                 _options.pid_file.clear();
                 return;
             }
         }
         int fd = open(_options.pid_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
         if (fd < 0) {
-            MELON_LOG(WARNING) << "Fail to open " << _options.pid_file;
+            TURBO_LOG(WARNING) << "Fail to open " << _options.pid_file;
             _options.pid_file.clear();
             return;
         }
         char buf[32];
         int nw = snprintf(buf, sizeof(buf), "%lld", (long long) getpid());
-        MELON_CHECK_EQ(nw, write(fd, buf, nw));
-        MELON_CHECK_EQ(0, close(fd));
+        TURBO_CHECK_EQ(nw, write(fd, buf, nw));
+        TURBO_CHECK_EQ(0, close(fd));
     }
 
     void Server::RunUntilAskedToQuit() {
@@ -1708,15 +1708,15 @@ namespace melon::rpc {
         if (tl_options == nullptr) { // not in server threads.
             return nullptr;
         }
-        if (MELON_UNLIKELY(tl_options->thread_local_data_factory == nullptr)) {
-            MELON_CHECK(false) << "The protocol impl. may not set tls correctly";
+        if (TURBO_UNLIKELY(tl_options->thread_local_data_factory == nullptr)) {
+            TURBO_CHECK(false) << "The protocol impl. may not set tls correctly";
             return nullptr;
         }
         void *data = fiber_getspecific(tl_options->tls_key);
         if (data == nullptr) {
             data = tl_options->thread_local_data_factory->CreateData();
             if (data != nullptr) {
-                MELON_CHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
+                TURBO_CHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
             }
         }
         return data;
@@ -1751,19 +1751,19 @@ namespace melon::rpc {
 
     int StartDummyServerAt(int port, ProfilerLinker) {
         if (port < 0 || port >= 65536) {
-            MELON_LOG(ERROR) << "Invalid port=" << port;
+            TURBO_LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }
         if (g_dummy_server == nullptr) {  // (1)
-            MELON_SCOPED_LOCK(g_dummy_server_mutex);
+            TURBO_SCOPED_LOCK(g_dummy_server_mutex);
             if (g_dummy_server == nullptr) {
                 Server *dummy_server = new Server;
-                dummy_server->set_version(melon::string_printf(
+                dummy_server->set_version(turbo::string_printf(
                         "DummyServerOf(%s)", GetProgramName()));
                 ServerOptions options;
                 options.num_threads = 0;
                 if (dummy_server->Start(port, &options) != 0) {
-                    MELON_LOG(ERROR) << "Fail to start dummy_server at port=" << port;
+                    TURBO_LOG(ERROR) << "Fail to start dummy_server at port=" << port;
                     return -1;
                 }
                 // (1) may see uninitialized dummy_server due to relaxed memory
@@ -1773,7 +1773,7 @@ namespace melon::rpc {
                 return 0;
             }
         }
-        MELON_LOG(ERROR) << "Already have dummy_server at port="
+        TURBO_LOG(ERROR) << "Already have dummy_server at port="
                          << g_dummy_server->listen_address().port;
         return -1;
     }
@@ -1835,13 +1835,13 @@ namespace melon::rpc {
 
     int Server::AddCertificate(const CertInfo &cert) {
         if (!_options.has_ssl_options()) {
-            MELON_LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+            TURBO_LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
             return -1;
         }
         std::string cert_key(cert.certificate);
         cert_key.append(cert.private_key);
         if (_ssl_ctx_map.seek(cert_key) != nullptr) {
-            MELON_LOG(WARNING) << cert << " already exists";
+            TURBO_LOG(WARNING) << cert << " already exists";
             return 0;
         }
 
@@ -1861,7 +1861,7 @@ namespace melon::rpc {
 #endif
 
         if (!_reload_cert_maps.Modify(AddCertMapping, ssl_ctx)) {
-            MELON_LOG(ERROR) << "Fail to add mappings into _reload_cert_maps";
+            TURBO_LOG(ERROR) << "Fail to add mappings into _reload_cert_maps";
             return -1;
         }
         _ssl_ctx_map[cert_key] = ssl_ctx;
@@ -1871,12 +1871,12 @@ namespace melon::rpc {
     bool Server::AddCertMapping(CertMaps &bg, const SSLContext &ssl_ctx) {
         if (!bg.cert_map.initialized()
             && bg.cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _cert_map";
+            TURBO_LOG(ERROR) << "Fail to init _cert_map";
             return false;
         }
         if (!bg.wildcard_cert_map.initialized()
             && bg.wildcard_cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _wildcard_cert_map";
+            TURBO_LOG(ERROR) << "Fail to init _wildcard_cert_map";
             return false;
         }
 
@@ -1892,7 +1892,7 @@ namespace melon::rpc {
             if (cmap->seek(hostname) == nullptr) {
                 cmap->insert(hostname, ssl_ctx.ctx);
             } else {
-                MELON_LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
+                TURBO_LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
             }
         }
         return true;
@@ -1900,24 +1900,24 @@ namespace melon::rpc {
 
     int Server::RemoveCertificate(const CertInfo &cert) {
         if (!_options.has_ssl_options()) {
-            MELON_LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+            TURBO_LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
             return -1;
         }
         std::string cert_key(cert.certificate);
         cert_key.append(cert.private_key);
         SSLContext *ssl_ctx = _ssl_ctx_map.seek(cert_key);
         if (ssl_ctx == nullptr) {
-            MELON_LOG(WARNING) << cert << " doesn't exist";
+            TURBO_LOG(WARNING) << cert << " doesn't exist";
             return 0;
         }
         if (ssl_ctx->ctx == _default_ssl_ctx) {
-            MELON_LOG(WARNING) << "Cannot remove: " << cert
+            TURBO_LOG(WARNING) << "Cannot remove: " << cert
                                << " since it's the default certificate";
             return -1;
         }
 
         if (!_reload_cert_maps.Modify(RemoveCertMapping, *ssl_ctx)) {
-            MELON_LOG(ERROR) << "Fail to remove mappings from _reload_cert_maps";
+            TURBO_LOG(ERROR) << "Fail to remove mappings from _reload_cert_maps";
             return -1;
         }
 
@@ -1945,13 +1945,13 @@ namespace melon::rpc {
 
     int Server::ResetCertificates(const std::vector<CertInfo> &certs) {
         if (!_options.has_ssl_options()) {
-            MELON_LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+            TURBO_LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
             return -1;
         }
 
         SSLContextMap tmp_map;
         if (tmp_map.init(INITIAL_CERT_MAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to initialize tmp_map";
+            TURBO_LOG(ERROR) << "Fail to initialize tmp_map";
             return -1;
         }
 
@@ -1965,7 +1965,7 @@ namespace melon::rpc {
             std::string cert_key(certs[i].certificate);
             cert_key.append(certs[i].private_key);
             if (tmp_map.seek(cert_key) != nullptr) {
-                MELON_LOG(WARNING) << certs[i] << " already exists";
+                TURBO_LOG(WARNING) << certs[i] << " already exists";
                 return 0;
             }
 
@@ -1997,12 +1997,12 @@ namespace melon::rpc {
     bool Server::ResetCertMappings(CertMaps &bg, const SSLContextMap &ctx_map) {
         if (!bg.cert_map.initialized()
             && bg.cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _cert_map";
+            TURBO_LOG(ERROR) << "Fail to init _cert_map";
             return false;
         }
         if (!bg.wildcard_cert_map.initialized()
             && bg.wildcard_cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MELON_LOG(ERROR) << "Fail to init _wildcard_cert_map";
+            TURBO_LOG(ERROR) << "Fail to init _wildcard_cert_map";
             return false;
         }
         bg.cert_map.clear();
@@ -2023,7 +2023,7 @@ namespace melon::rpc {
                 if (cmap->seek(hostname) == nullptr) {
                     cmap->insert(hostname, ssl_ctx.ctx);
                 } else {
-                    MELON_LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
+                    TURBO_LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
                 }
             }
         }
@@ -2044,7 +2044,7 @@ namespace melon::rpc {
 
     int Server::ResetMaxConcurrency(int max_concurrency) {
         if (!IsRunning()) {
-            MELON_LOG(WARNING) << "ResetMaxConcurrency is only allowd for a Running Server";
+            TURBO_LOG(WARNING) << "ResetMaxConcurrency is only allowd for a Running Server";
             return -1;
         }
         // Assume that modifying int32 is atomical in X86
@@ -2054,11 +2054,11 @@ namespace melon::rpc {
 
     AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(MethodProperty *mp) {
         if (IsRunning()) {
-            MELON_LOG(WARNING) << "MaxConcurrencyOf is only allowd before Server started";
+            TURBO_LOG(WARNING) << "MaxConcurrencyOf is only allowd before Server started";
             return g_default_max_concurrency_of_method;
         }
         if (mp->status == nullptr) {
-            MELON_LOG(ERROR) << "method=" << mp->method->full_name()
+            TURBO_LOG(ERROR) << "method=" << mp->method->full_name()
                              << " does not support max_concurrency";
             _failed_to_set_max_concurrency_of_method = true;
             return g_default_max_concurrency_of_method;
@@ -2068,7 +2068,7 @@ namespace melon::rpc {
 
     int Server::MaxConcurrencyOf(const MethodProperty *mp) const {
         if (IsRunning()) {
-            MELON_LOG(WARNING) << "MaxConcurrencyOf is only allowd before Server started";
+            TURBO_LOG(WARNING) << "MaxConcurrencyOf is only allowd before Server started";
             return g_default_max_concurrency_of_method;
         }
         if (mp == nullptr || mp->status == nullptr) {
@@ -2080,7 +2080,7 @@ namespace melon::rpc {
     AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(const std::string_view &full_method_name) {
         MethodProperty *mp = _method_map.seek(full_method_name);
         if (mp == nullptr) {
-            MELON_LOG(ERROR) << "Fail to find method=" << full_method_name;
+            TURBO_LOG(ERROR) << "Fail to find method=" << full_method_name;
             _failed_to_set_max_concurrency_of_method = true;
             return g_default_max_concurrency_of_method;
         }
@@ -2096,7 +2096,7 @@ namespace melon::rpc {
         MethodProperty *mp = const_cast<MethodProperty *>(
                 FindMethodPropertyByFullName(full_service_name, method_name));
         if (mp == nullptr) {
-            MELON_LOG(ERROR) << "Fail to find method=" << full_service_name
+            TURBO_LOG(ERROR) << "Fail to find method=" << full_service_name
                              << '/' << method_name;
             _failed_to_set_max_concurrency_of_method = true;
             return g_default_max_concurrency_of_method;
@@ -2131,7 +2131,7 @@ namespace melon::rpc {
             return strict_sni ? SSL_TLSEXT_ERR_ALERT_FATAL : SSL_TLSEXT_ERR_NOACK;
         }
 
-        melon::container::DoublyBufferedData<CertMaps>::ScopedPtr s;
+        turbo::container::DoublyBufferedData<CertMaps>::ScopedPtr s;
         if (server->_reload_cert_maps.Read(&s) != 0) {
             return SSL_TLSEXT_ERR_ALERT_FATAL;
         }

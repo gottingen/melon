@@ -5,10 +5,10 @@
 #include <mutex>
 #include <string>                       // std::string
 #include <vector>                       // std::vector
-#include "melon/base/static_atomic.h"
-#include "melon/base/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/base/type_traits.h"           // melon::add_cr_non_integral
-#include "melon/container/linked_list.h"// link_node
+#include "turbo/base/static_atomic.h"
+#include "turbo/base/scoped_lock.h"           // TURBO_SCOPED_LOCK
+#include "turbo/base/type_traits.h"           // turbo::add_cr_non_integral
+#include "turbo/container/linked_list.h"// link_node
 #include "melon/metrics/detail/agent_group.h"    // detail::agent_group
 #include "melon/metrics/detail/is_atomical.h"
 #include "melon/metrics/detail/call_op_returning_void.h"
@@ -146,7 +146,7 @@ namespace melon {
 
             friend class GlobalValue<self_type>;
 
-            struct Agent : public melon::container::link_node<Agent> {
+            struct Agent : public turbo::container::link_node<Agent> {
                 Agent() : combiner(nullptr) {}
 
                 ~Agent() {
@@ -220,7 +220,7 @@ namespace melon {
                 ElementTp tls_value;
                 std::unique_lock guard(_lock);
                 ResultTp ret = _global_result;
-                for (melon::container::link_node<Agent> *node = _agents.head();
+                for (turbo::container::link_node<Agent> *node = _agents.head();
                      node != _agents.end(); node = node->next()) {
                     node->value()->element.load(&tls_value);
                     call_op_returning_void(_op, ret, tls_value);
@@ -228,10 +228,10 @@ namespace melon {
                 return ret;
             }
 
-            typename melon::add_cr_non_integral<ElementTp>::type
+            typename turbo::add_cr_non_integral<ElementTp>::type
             element_identity() const { return _element_identity; }
 
-            typename melon::add_cr_non_integral<ResultTp>::type
+            typename turbo::add_cr_non_integral<ResultTp>::type
             result_identity() const { return _result_identity; }
 
             // [Threadsafe] May be called from anywhere.
@@ -240,7 +240,7 @@ namespace melon {
                 std::unique_lock guard(_lock);
                 ResultTp tmp = _global_result;
                 _global_result = _result_identity;
-                for (melon::container::link_node<Agent> *node = _agents.head();
+                for (turbo::container::link_node<Agent> *node = _agents.head();
                      node != _agents.end(); node = node->next()) {
                     node->value()->element.exchange(&prev, _element_identity);
                     call_op_returning_void(_op, tmp, prev);
@@ -280,7 +280,7 @@ namespace melon {
                     // Create the agent
                     agent = agent_group::get_or_create_tls_agent(_id);
                     if (nullptr == agent) {
-                        MELON_LOG(FATAL) << "Fail to create agent";
+                        TURBO_LOG(FATAL) << "Fail to create agent";
                         return nullptr;
                     }
                 }
@@ -301,10 +301,10 @@ namespace melon {
                 // reseting agents is must because the agent object may be reused.
                 // Set element to be default-constructed so that if it's non-pod,
                 // internal allocations should be released.
-                for (melon::container::link_node<Agent> *
+                for (turbo::container::link_node<Agent> *
                         node = _agents.head(); node != _agents.end();) {
                     node->value()->reset(ElementTp(), nullptr);
-                    melon::container::link_node<Agent> *const saved_next = node->next();
+                    turbo::container::link_node<Agent> *const saved_next = node->next();
                     node->remove_from_list();
                     node = saved_next;
                 }
@@ -321,7 +321,7 @@ namespace melon {
             ResultTp _global_result;
             ResultTp _result_identity;
             ElementTp _element_identity;
-            melon::container::linked_list<Agent> _agents;
+            turbo::container::linked_list<Agent> _agents;
         };
 
     }  // namespace metrics_detail

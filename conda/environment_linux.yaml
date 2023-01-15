@@ -2,6 +2,7 @@ name: melon-dev
 channels:
   - conda-forge
   - defaults
+  - mgottingen
 dependencies:
   - gcc =8.5 # [linux]
   - gxx =8.5 # [linux]
@@ -11,6 +12,7 @@ dependencies:
   - leveldb >=1.22
   - protobuf >=3.9.2, <=3.19.1
   - gperftools =2.9.1
+  - turbo
   - gtest
   - gmock
   - benchmark

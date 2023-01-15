@@ -211,7 +211,7 @@ namespace melon::rpc {
 
         uint8_t continuity_counter;
 
-        melon::cord_buf payload;
+        turbo::cord_buf payload;
     };
 
 // whether the sid indicates the elementary stream audio.
@@ -276,7 +276,7 @@ namespace melon::rpc {
 
     TsAdaptationField *TsPacket::CreateAdaptationField() {
         if (_adaptation_field != nullptr) {
-            MELON_LOG(ERROR) << "_adaptation_field is not nullptr";
+            TURBO_LOG(ERROR) << "_adaptation_field is not nullptr";
             return _adaptation_field;
         }
         _adaptation_field = new TsAdaptationField;
@@ -285,7 +285,7 @@ namespace melon::rpc {
         } else if (_adaptation_field_control == TS_AF_PAYLOAD_ONLY) {
             _adaptation_field_control = TS_AF_BOTH;
         } else {
-            MELON_LOG(ERROR) << "Invalid _adaptation_field_control="
+            TURBO_LOG(ERROR) << "Invalid _adaptation_field_control="
                              << _adaptation_field_control;
         }
         return _adaptation_field;
@@ -325,7 +325,7 @@ namespace melon::rpc {
 
         if (_adaptation_field) {
             if (_adaptation_field->Encode(p, af_control) != 0) {
-                MELON_LOG(ERROR) << "Fail to encode _adaptation_field";
+                TURBO_LOG(ERROR) << "Fail to encode _adaptation_field";
                 return -1;
             }
             p += _adaptation_field->ByteSize();
@@ -333,7 +333,7 @@ namespace melon::rpc {
 
         if (_payload) {
             if (_payload->Encode(p) != 0) {
-                MELON_LOG(ERROR) << "Fail to encode _payload";
+                TURBO_LOG(ERROR) << "Fail to encode _payload";
                 return -1;
             }
             p += _payload->ByteSize();
@@ -380,7 +380,7 @@ namespace melon::rpc {
                               TsPid apid, TsStream as) {
         if (vs != TS_STREAM_VIDEO_H264 &&
             as != TS_STREAM_AUDIO_AAC && as != TS_STREAM_AUDIO_MP3) {
-            MELON_LOG(ERROR) << "Unsupported video_stream=" << vs << " audio_stream=" << as;
+            TURBO_LOG(ERROR) << "Unsupported video_stream=" << vs << " audio_stream=" << as;
             return -1;
         }
 
@@ -509,12 +509,12 @@ namespace melon::rpc {
 
         if (adaptation_field_control == TS_AF_BOTH) {
             if (af_length > 182) {
-                MELON_LOG(ERROR) << "Invalid af_length=" << af_length;
+                TURBO_LOG(ERROR) << "Invalid af_length=" << af_length;
                 return -1;
             }
         } else if (adaptation_field_control == TS_AF_ADAPTATION_ONLY) {
             if (af_length != 183) {
-                MELON_LOG(ERROR) << "Invalid af_length=" << af_length;
+                TURBO_LOG(ERROR) << "Invalid af_length=" << af_length;
                 return -1;
             }
         }
@@ -571,7 +571,7 @@ namespace melon::rpc {
             if (seamless_splice_flag) { p += 5; } // Ignore seamless_splice
             p += nb_af_ext_reserved;
             if (adaptation_field_extension_length != p - saved_p) {
-                MELON_LOG(ERROR) << "af_extension_length="
+                TURBO_LOG(ERROR) << "af_extension_length="
                                  << adaptation_field_extension_length
                                  << " does not match other fields";
                 return -1;
@@ -657,7 +657,7 @@ namespace melon::rpc {
     int TsPayloadPES::Encode(void *data) const {
         if (_PES_header_data_length < 0) {
             (void) ByteSize();
-            MELON_CHECK_GE(_PES_header_data_length, 0);
+            TURBO_CHECK_GE(_PES_header_data_length, 0);
         }
         char *p = (char *) data;
 
@@ -702,7 +702,7 @@ namespace melon::rpc {
             encode_33bits_dts_pts(&p, 0x01, dts);
             // the diff of dts and pts should never be greater than 1s.
             if (labs(dts - pts) > 90000) {
-                MELON_LOG(WARNING) << "Diff between dts=" << dts << " and pts=" << pts
+                TURBO_LOG(WARNING) << "Diff between dts=" << dts << " and pts=" << pts
                                    << " is greater than 1 second";
             }
         }
@@ -770,7 +770,7 @@ namespace melon::rpc {
         char *p = (char *) data;
         if (_section_length < 0) {
             (void) ByteSize();
-            MELON_CHECK_GE(_section_length, 0);
+            TURBO_CHECK_GE(_section_length, 0);
         }
         if (packet()->payload_unit_start_indicator()) {
             policy::Write1Byte(&p, pointer_field);
@@ -786,7 +786,7 @@ namespace melon::rpc {
             return 0;
         }
         if (PsiEncode(p) != 0) {
-            MELON_LOG(ERROR) << "Fail to TsPayloadPSI.PsiEncode";
+            TURBO_LOG(ERROR) << "Fail to TsPayloadPSI.PsiEncode";
             return -1;
         }
         p += _section_length - 4;
@@ -840,7 +840,7 @@ namespace melon::rpc {
 
         for (size_t i = 0; i < programs.size(); ++i) {
             if (programs[i].Encode(p) != 0) {
-                MELON_LOG(ERROR) << "Fail to encode TsPayloadPAT.programs[" << i << ']';
+                TURBO_LOG(ERROR) << "Fail to encode TsPayloadPAT.programs[" << i << ']';
                 return -1;
             }
             p += programs[i].ByteSize();
@@ -937,7 +937,7 @@ namespace melon::rpc {
         for (size_t i = 0; i < infos.size(); ++i) {
             TsPayloadPMTESInfo *info = infos[i];
             if (info->Encode(p) != 0) {
-                MELON_LOG(ERROR) << "Fail to encode TsPayloadPMT.infos[" << i << ']';
+                TURBO_LOG(ERROR) << "Fail to encode TsPayloadPMT.infos[" << i << ']';
                 return -1;
             }
             p += info->ByteSize();
@@ -955,7 +955,7 @@ namespace melon::rpc {
                     packet()->channel_group()->set(info->elementary_PID);
                     break;
                 default:
-                    MELON_LOG(WARNING) << "Drop pid=" << info->elementary_PID
+                    TURBO_LOG(WARNING) << "Drop pid=" << info->elementary_PID
                                        << " stream=" << info->stream_type;
                     break;
             }
@@ -1028,7 +1028,7 @@ namespace melon::rpc {
         return AAC_PROFILE_UNKNOWN;
     }
 
-    TsWriter::TsWriter(melon::cord_buf *outbuf)
+    TsWriter::TsWriter(turbo::cord_buf *outbuf)
             : _outbuf(outbuf), _nalu_format(AVC_NALU_FORMAT_UNKNOWN), _has_avc_seq_header(false),
               _has_aac_seq_header(false), _encoded_pat_pmt(false), _last_video_stream(TS_STREAM_VIDEO_H264),
               _last_video_pid(TS_PID_VIDEO_AVC), _last_audio_stream(TS_STREAM_AUDIO_AAC),
@@ -1038,10 +1038,10 @@ namespace melon::rpc {
     TsWriter::~TsWriter() {
     }
 
-    melon::result_status TsWriter::Write(const RtmpAudioMessage &msg) {
+    turbo::result_status TsWriter::Write(const RtmpAudioMessage &msg) {
         // ts support audio codec: aac/mp3
         if (msg.codec != FLV_AUDIO_AAC && msg.codec != FLV_AUDIO_MP3) {
-            return melon::result_status(EINVAL, "Unsupported codec={}",
+            return turbo::result_status(EINVAL, "Unsupported codec={}",
                                              FlvAudioCodec2Str(msg.codec));
         }
         const int64_t dts = static_cast<int64_t>(msg.timestamp) * 90;
@@ -1053,25 +1053,25 @@ namespace melon::rpc {
 
         if (msg.codec == FLV_AUDIO_AAC) {
             RtmpAACMessage aac_msg;
-            melon::result_status st = aac_msg.Create(msg);
+            turbo::result_status st = aac_msg.Create(msg);
             if (!st.is_ok()) {
                 return st;
             }
             // ignore sequence header
             if (aac_msg.packet_type == FLV_AAC_PACKET_SEQUENCE_HEADER) {
-                melon::result_status st2 = _aac_seq_header.Create(aac_msg.data);
+                turbo::result_status st2 = _aac_seq_header.Create(aac_msg.data);
                 if (!st2.is_ok()) {
                     return st2;
                 }
                 _has_aac_seq_header = true;
                 ++_discontinuity_counter;
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
             if (!_has_aac_seq_header) {
-                return melon::result_status(EINVAL, "Lack of AAC sequence header");
+                return turbo::result_status(EINVAL, "Lack of AAC sequence header");
             }
             if (aac_msg.data.size() > 0x1fff) {
-                return melon::result_status(EINVAL, "Invalid AAC data_size={}",
+                return turbo::result_status(EINVAL, "Invalid AAC data_size={}",
                                                  (uint64_t) aac_msg.data.size());
             }
 
@@ -1087,7 +1087,7 @@ namespace melon::rpc {
             const AACProfile aac_profile =
                     AACObjectType2Profile(_aac_seq_header.aac_object);
             if (aac_profile == AAC_PROFILE_UNKNOWN) {
-                return melon::result_status(EINVAL, "Invalid aac_object={}",
+                return turbo::result_status(EINVAL, "Invalid aac_object={}",
                                                  (int) _aac_seq_header.aac_object);
             }
             adts_header[2] = (aac_profile << 6) & 0xc0;
@@ -1112,7 +1112,7 @@ namespace melon::rpc {
         TsPid apid = TS_PID_NULL;
         TsStream as = FlvAudioCodec2TsStream(msg.codec, &apid);
         if (as == TS_STREAM_RESERVED) {
-            return melon::result_status(EINVAL, "Unsupported audio codec={}",
+            return turbo::result_status(EINVAL, "Unsupported audio codec={}",
                                              FlvAudioCodec2Str(msg.codec));
         }
         return Encode(&tsmsg, as, apid);
@@ -1196,33 +1196,33 @@ namespace melon::rpc {
     static const uint8_t fresh_nalu_header_and_aud_nalu_7[] =
             {0x00, 0x00, 0x00, 0x01, 0x09, 0xf0};
 
-    melon::result_status TsWriter::Write(const RtmpVideoMessage &msg) {
+    turbo::result_status TsWriter::Write(const RtmpVideoMessage &msg) {
         if (msg.frame_type == FLV_VIDEO_FRAME_INFOFRAME) {
             // Ignore info frame.
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
         if (msg.codec != FLV_VIDEO_AVC) {
-            return melon::result_status(EINVAL, "video_codec={} is not AVC",
+            return turbo::result_status(EINVAL, "video_codec={} is not AVC",
                                              FlvVideoCodec2Str(msg.codec));
         }
         RtmpAVCMessage avc_msg;
-        melon::result_status st = avc_msg.Create(msg);
+        turbo::result_status st = avc_msg.Create(msg);
         if (!st.is_ok()) {
             return st;
         }
         // ignore sequence header
         if (avc_msg.frame_type == FLV_VIDEO_FRAME_KEYFRAME &&
             avc_msg.packet_type == FLV_AVC_PACKET_SEQUENCE_HEADER) {
-            melon::result_status st2 = _avc_seq_header.Create(avc_msg.data);
+            turbo::result_status st2 = _avc_seq_header.Create(avc_msg.data);
             if (!st2.is_ok()) {
                 return st2;
             }
             _has_avc_seq_header = true;
             ++_discontinuity_counter;
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
         if (!_has_avc_seq_header) {
-            return melon::result_status(EINVAL, "Lack of AVC sequence header");
+            return turbo::result_status(EINVAL, "Lack of AVC sequence header");
         }
 
         const int64_t dts = static_cast<int64_t>(avc_msg.timestamp) * 90;
@@ -1234,8 +1234,8 @@ namespace melon::rpc {
 
         // always append a aud nalu for each frame.
         tsmsg.payload.append(fresh_nalu_header_and_aud_nalu_7,
-                             MELON_ARRAY_SIZE(fresh_nalu_header_and_aud_nalu_7));
-        melon::cord_buf nalus;
+                             TURBO_ARRAY_SIZE(fresh_nalu_header_and_aud_nalu_7));
+        turbo::cord_buf nalus;
         bool has_idr = false;
         for (AVCNaluIterator it(&avc_msg.data, _avc_seq_header.length_size_minus1,
                                 &_nalu_format); it != nullptr; ++it) {
@@ -1262,20 +1262,20 @@ namespace melon::rpc {
             bool first = true;
             for (size_t i = 0; i < _avc_seq_header.sps_list.size(); ++i) {
                 if (first) {
-                    tsmsg.payload.append(fresh_nalu_header, MELON_ARRAY_SIZE(fresh_nalu_header));
+                    tsmsg.payload.append(fresh_nalu_header, TURBO_ARRAY_SIZE(fresh_nalu_header));
                     first = false;
                 } else {
-                    tsmsg.payload.append(cont_nalu_header, MELON_ARRAY_SIZE(cont_nalu_header));
+                    tsmsg.payload.append(cont_nalu_header, TURBO_ARRAY_SIZE(cont_nalu_header));
                 }
                 tsmsg.payload.append(_avc_seq_header.sps_list[i]);
                 RPC_VLOG << "Append sps[" << i << "]=" << _avc_seq_header.sps_list[i].size();
             }
             for (size_t i = 0; i < _avc_seq_header.pps_list.size(); ++i) {
                 if (first) {
-                    tsmsg.payload.append(fresh_nalu_header, MELON_ARRAY_SIZE(fresh_nalu_header));
+                    tsmsg.payload.append(fresh_nalu_header, TURBO_ARRAY_SIZE(fresh_nalu_header));
                     first = false;
                 } else {
-                    tsmsg.payload.append(cont_nalu_header, MELON_ARRAY_SIZE(cont_nalu_header));
+                    tsmsg.payload.append(cont_nalu_header, TURBO_ARRAY_SIZE(cont_nalu_header));
                 }
                 tsmsg.payload.append(_avc_seq_header.pps_list[i]);
                 RPC_VLOG << "Append pps[" << i << "]=" << _avc_seq_header.pps_list[i].size();
@@ -1286,13 +1286,13 @@ namespace melon::rpc {
         TsPid vpid = TS_PID_PAT;
         TsStream vs = FlvVideoCodec2TsStream(msg.codec, &vpid);
         if (vs == TS_STREAM_RESERVED) {
-            return melon::result_status(EINVAL, "Unsupported video codec={}",
+            return turbo::result_status(EINVAL, "Unsupported video codec={}",
                                              FlvVideoCodec2Str(msg.codec));
         }
         return Encode(&tsmsg, vs, vpid);
     }
 
-    melon::result_status
+    turbo::result_status
     TsWriter::EncodePATPMT(TsStream vs, TsPid vpid, TsStream as, TsPid apid) {
         char buf[TS_PACKET_SIZE];
 
@@ -1300,31 +1300,31 @@ namespace melon::rpc {
         pat.CreateAsPAT(TS_PMT_NUMBER, TS_PID_PMT);
         // set the left bytes with 0xFF.
         const size_t size1 = pat.ByteSize();
-        MELON_CHECK_LT(size1, TS_PACKET_SIZE);
+        TURBO_CHECK_LT(size1, TS_PACKET_SIZE);
         memset(buf, 0xFF, TS_PACKET_SIZE);
         if (pat.Encode(buf) != 0) {
-            return melon::result_status(EINVAL, "Fail to encode PAT");
+            return turbo::result_status(EINVAL, "Fail to encode PAT");
         }
         _outbuf->append(buf, TS_PACKET_SIZE);
 
         TsPacket pmt(&_tschan_group);
         if (pmt.CreateAsPMT(TS_PMT_NUMBER, TS_PID_PMT, vpid, vs, apid, as) != 0) {
-            return melon::result_status(EINVAL, "Fail to CreateAsPMT");
+            return turbo::result_status(EINVAL, "Fail to CreateAsPMT");
         }
         // set the left bytes with 0xFF.
         const size_t size2 = pmt.ByteSize();
-        MELON_CHECK_LT(size2, TS_PACKET_SIZE);
+        TURBO_CHECK_LT(size2, TS_PACKET_SIZE);
         memset(buf, 0xFF, TS_PACKET_SIZE);
         if (pmt.Encode(buf) != 0) {
-            return melon::result_status(EINVAL, "Fail to encode PMT");
+            return turbo::result_status(EINVAL, "Fail to encode PMT");
         }
         _outbuf->append(buf, TS_PACKET_SIZE);
-        return melon::result_status::success();
+        return turbo::result_status::success();
     }
 
-    melon::result_status TsWriter::Encode(TsMessage *msg, TsStream stream, TsPid pid) {
+    turbo::result_status TsWriter::Encode(TsMessage *msg, TsStream stream, TsPid pid) {
         if (stream == TS_STREAM_RESERVED) {
-            return melon::result_status(EINVAL, "Invalid stream={}", (int) stream);
+            return turbo::result_status(EINVAL, "Invalid stream={}", (int) stream);
         }
         // Encode the media frame to PES packets over TS.
         bool add_pat_pmt = false;
@@ -1341,14 +1341,14 @@ namespace melon::rpc {
                 add_pat_pmt = true;
             }
         } else {
-            return melon::result_status(EINVAL, "Unknown stream_id={}", (int) msg->sid);
+            return turbo::result_status(EINVAL, "Unknown stream_id={}", (int) msg->sid);
         }
         if (!_encoded_pat_pmt) {
             _encoded_pat_pmt = true;
             add_pat_pmt = true;
         }
         if (add_pat_pmt) {
-            melon::result_status st = EncodePATPMT(_last_video_stream, _last_video_pid,
+            turbo::result_status st = EncodePATPMT(_last_video_stream, _last_video_pid,
                                                         _last_audio_stream, _last_audio_pid);
             if (!st.is_ok()) {
                 return st;
@@ -1358,21 +1358,21 @@ namespace melon::rpc {
                          (_last_video_stream == TS_STREAM_RESERVED));
     }
 
-    melon::result_status TsWriter::EncodePES(TsMessage *msg, TsStream sid, TsPid pid,
+    turbo::result_status TsWriter::EncodePES(TsMessage *msg, TsStream sid, TsPid pid,
                                                   bool pure_audio) {
         if (msg->payload.empty()) {
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
         if (sid != TS_STREAM_VIDEO_H264 &&
             sid != TS_STREAM_AUDIO_MP3 &&
             sid != TS_STREAM_AUDIO_AAC) {
-            MELON_LOG(WARNING) << "Ignore unknown stream_id=" << sid;
-            return melon::result_status::success();
+            TURBO_LOG(WARNING) << "Ignore unknown stream_id=" << sid;
+            return turbo::result_status::success();
         }
 
         TsChannel *channel = _tschan_group.get(pid);
         if (channel == nullptr) {
-            return melon::result_status(EINVAL, "Fail to get channel on pid={}", (int) pid);
+            return turbo::result_status(EINVAL, "Fail to get channel on pid={}", (int) pid);
         }
 
         bool first_msg = true;
@@ -1402,7 +1402,7 @@ namespace melon::rpc {
 
             // set the left bytes with 0xFF.
             size_t pkt_size = pkt.ByteSize();
-            MELON_CHECK_LT(pkt_size, TS_PACKET_SIZE);
+            TURBO_CHECK_LT(pkt_size, TS_PACKET_SIZE);
 
             size_t left = std::min(msg->payload.size(), TS_PACKET_SIZE - pkt_size);
             const size_t nb_stuffings = TS_PACKET_SIZE - pkt_size - left;
@@ -1413,22 +1413,22 @@ namespace melon::rpc {
                 pkt.AddPadding(nb_stuffings);
 
                 pkt_size = pkt.ByteSize();   // size changed, recalculate.
-                MELON_CHECK_LT(pkt_size, TS_PACKET_SIZE);
+                TURBO_CHECK_LT(pkt_size, TS_PACKET_SIZE);
 
                 left = std::min(msg->payload.size(), TS_PACKET_SIZE - pkt_size);
                 if (TS_PACKET_SIZE != pkt_size + left) {
-                    MELON_LOG(ERROR) << "pkt_size=" << pkt_size << " left=" << left
+                    TURBO_LOG(ERROR) << "pkt_size=" << pkt_size << " left=" << left
                                      << " stuffing=" << nb_stuffings << " payload="
                                      << msg->payload.size();
                 }
             }
             msg->payload.cutn(buf + pkt_size, left);
             if (pkt.Encode(buf) != 0) {
-                return melon::result_status(EINVAL, "Fail to encode PES");
+                return turbo::result_status(EINVAL, "Fail to encode PES");
             }
             _outbuf->append(buf, TS_PACKET_SIZE);
         }
-        return melon::result_status::success();
+        return turbo::result_status::success();
     }
 
 } // namespace melon::rpc

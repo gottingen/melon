@@ -60,7 +60,7 @@ extern int fiber_connect(int sockfd, const sockaddr *serv_addr,
                            socklen_t addrlen);
 
 // Add a startup function that each pthread worker will run at the beginning
-// To run code at the end, use melon::thread::atexit()
+// To run code at the end, use turbo::thread::atexit()
 // Returns 0 on success, error code otherwise.
 extern int fiber_set_worker_startfn(void (*start_fn)());
 

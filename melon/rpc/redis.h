@@ -24,8 +24,8 @@
 #include <memory>
 #include <list>
 #include <string_view>
-#include "melon/io/cord_buf.h"
-#include "melon/memory/arena.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/memory/arena.h"
 #include "melon/rpc/proto_base.pb.h"
 #include "melon/rpc/redis_reply.h"
 #include "melon/rpc/parse_result.h"
@@ -43,7 +43,7 @@ namespace melon::rpc {
     //   RedisResponse response;
     //   channel.CallMethod(&controller, &request, &response, nullptr/*done*/);
     //   if (!cntl.Failed()) {
-    //       MELON_LOG(INFO) << response.reply(0);
+    //       TURBO_LOG(INFO) << response.reply(0);
     //   }
     class RedisRequest : public ::google::protobuf::Message {
     public:
@@ -69,7 +69,7 @@ namespace melon::rpc {
         // redisCommandArgv() in hiredis.
         // Example:
         //   std::string_view components[] = { "set", "key", "value" };
-        //   request.AddCommandByComponents(components, MELON_ARRAY_SIZE(components));
+        //   request.AddCommandByComponents(components, TURBO_ARRAY_SIZE(components));
         bool AddCommandByComponents(const std::string_view *components, size_t n);
 
         // Add a command with variadic args to this request.
@@ -108,7 +108,7 @@ namespace melon::rpc {
         bool has_error() const { return _has_error; }
 
         // Serialize the request into `buf'. Return true on success.
-        bool SerializeTo(melon::cord_buf *buf) const;
+        bool SerializeTo(turbo::cord_buf *buf) const;
 
         // Protobuf methods.
         RedisRequest *New() const;
@@ -157,7 +157,7 @@ namespace melon::rpc {
 
         int _ncommand;    // # of valid commands
         bool _has_error;  // previous AddCommand had error
-        melon::cord_buf _buf;  // the serialized request.
+        turbo::cord_buf _buf;  // the serialized request.
         mutable int _cached_size_;  // ByteSize
     };
 
@@ -196,7 +196,7 @@ namespace melon::rpc {
         // Returns PARSE_OK on success.
         // Returns PARSE_ERROR_NOT_ENOUGH_DATA if data in `buf' is not enough to parse.
         // Returns PARSE_ERROR_ABSOLUTELY_WRONG if the parsing failed.
-        ParseError ConsumePartialCordBuf(melon::cord_buf &buf, int reply_count);
+        ParseError ConsumePartialCordBuf(turbo::cord_buf &buf, int reply_count);
 
         // implements Message ----------------------------------------------
 
@@ -242,7 +242,7 @@ namespace melon::rpc {
 
         RedisReply _first_reply;
         RedisReply *_other_replies;
-        melon::Arena _arena;
+        turbo::Arena _arena;
         int _nreply;
         mutable int _cached_size_;
     };

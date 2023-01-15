@@ -18,8 +18,8 @@
 #include <stdio.h>
 #include "testing/gtest_wrap.h"
 #include <vector>
-#include "melon/strings/str_format.h"
-#include "melon/files/temp_file.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/files/temp_file.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/rpc/policy/consul_naming_service.h"
 #include "melon/rpc/policy/domain_naming_service.h"
@@ -29,7 +29,7 @@
 #include "melon/rpc/policy/discovery_naming_service.h"
 #include "echo.pb.h"
 #include "melon/rpc/server.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 
 
 namespace melon::rpc {
@@ -49,7 +49,7 @@ namespace melon::rpc {
 
 namespace {
 
-    bool IsIPListEqual(const std::set<melon::ip_t> &s1, const std::set<melon::ip_t> &s2) {
+    bool IsIPListEqual(const std::set<turbo::ip_t> &s1, const std::set<turbo::ip_t> &s2) {
         if (s1.size() != s2.size()) {
             return false;
         }
@@ -69,25 +69,25 @@ namespace {
         ASSERT_EQ(2u, servers.size());
         ASSERT_EQ(1234, servers[0].addr.port);
         ASSERT_EQ(1234, servers[1].addr.port);
-        const std::set<melon::ip_t> expected_ips{servers[0].addr.ip, servers[1].addr.ip};
+        const std::set<turbo::ip_t> expected_ips{servers[0].addr.ip, servers[1].addr.ip};
 
         ASSERT_EQ(0, dns.GetServers("baidu.com", &servers));
         ASSERT_EQ(2u, servers.size());
-        const std::set<melon::ip_t> ip_list1{servers[0].addr.ip, servers[1].addr.ip};
+        const std::set<turbo::ip_t> ip_list1{servers[0].addr.ip, servers[1].addr.ip};
         ASSERT_TRUE(IsIPListEqual(expected_ips, ip_list1));
         ASSERT_EQ(80, servers[0].addr.port);
         ASSERT_EQ(80, servers[1].addr.port);
 
         ASSERT_EQ(0, dns.GetServers("baidu.com:1234/useless1/useless2", &servers));
         ASSERT_EQ(2u, servers.size());
-        const std::set<melon::ip_t> ip_list2{servers[0].addr.ip, servers[1].addr.ip};
+        const std::set<turbo::ip_t> ip_list2{servers[0].addr.ip, servers[1].addr.ip};
         ASSERT_TRUE(IsIPListEqual(expected_ips, ip_list2));
         ASSERT_EQ(1234, servers[0].addr.port);
         ASSERT_EQ(1234, servers[1].addr.port);
 
         ASSERT_EQ(0, dns.GetServers("baidu.com/useless1/useless2", &servers));
         ASSERT_EQ(2u, servers.size());
-        const std::set<melon::ip_t> ip_list3{servers[0].addr.ip, servers[1].addr.ip};
+        const std::set<turbo::ip_t> ip_list3{servers[0].addr.ip, servers[1].addr.ip};
         ASSERT_TRUE(IsIPListEqual(expected_ips, ip_list3));
         ASSERT_EQ(80, servers[0].addr.port);
         ASSERT_EQ(80, servers[1].addr.port);
@@ -99,31 +99,31 @@ namespace {
                 "localhost:1234",
                 "baidu.com:1234"
         };
-        melon::temp_file tmp_file;
+        turbo::temp_file tmp_file;
         {
             FILE *fp = fopen(tmp_file.fname(), "w");
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
                 ASSERT_TRUE(fprintf(fp, "%s\n", address_list[i]));
             }
             fclose(fp);
         }
         melon::rpc::policy::FileNamingService fns;
         ASSERT_EQ(0, fns.GetServers(tmp_file.fname(), &servers));
-        ASSERT_EQ(MELON_ARRAY_SIZE(address_list), servers.size());
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list) - 2; ++i) {
+        ASSERT_EQ(TURBO_ARRAY_SIZE(address_list), servers.size());
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list) - 2; ++i) {
             std::ostringstream oss;
             oss << servers[i];
             ASSERT_EQ(address_list[i], oss.str()) << "i=" << i;
         }
 
         std::string s;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
-            ASSERT_EQ(0, melon::string_appendf(&s, "%s,", address_list[i]));
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
+            ASSERT_EQ(0, turbo::string_appendf(&s, "%s,", address_list[i]));
         }
         melon::rpc::policy::ListNamingService lns;
         ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
-        ASSERT_EQ(MELON_ARRAY_SIZE(address_list), servers.size());
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list) - 2; ++i) {
+        ASSERT_EQ(TURBO_ARRAY_SIZE(address_list), servers.size());
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list) - 2; ++i) {
             std::ostringstream oss;
             oss << servers[i];
             ASSERT_EQ(address_list[i], oss.str()) << "i=" << i;
@@ -152,25 +152,25 @@ namespace {
                 "tencent.com:1234",
                 "LOCAL:1234"
         };
-        melon::temp_file tmp_file;
+        turbo::temp_file tmp_file;
         {
             FILE *fp = fopen(tmp_file.fname(), "w");
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
                 ASSERT_TRUE(fprintf(fp, "%s\n", address_list[i]));
             }
             fclose(fp);
         }
         melon::rpc::policy::FileNamingService fns;
         ASSERT_EQ(0, fns.GetServers(tmp_file.fname(), &servers));
-        ASSERT_EQ(MELON_ARRAY_SIZE(address_list) - 4, servers.size());
+        ASSERT_EQ(TURBO_ARRAY_SIZE(address_list) - 4, servers.size());
 
         std::string s;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
-            ASSERT_EQ(0, melon::string_appendf(&s, ", %s", address_list[i]));
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
+            ASSERT_EQ(0, turbo::string_appendf(&s, ", %s", address_list[i]));
         }
         melon::rpc::policy::ListNamingService lns;
         ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
-        ASSERT_EQ(MELON_ARRAY_SIZE(address_list) - 4, servers.size());
+        ASSERT_EQ(TURBO_ARRAY_SIZE(address_list) - 4, servers.size());
     }
 
     class UserNamingServiceImpl : public test::UserNamingService {
@@ -214,10 +214,10 @@ namespace {
         ASSERT_EQ(0, server2.AddService(&svc2, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
         ASSERT_EQ(0, server2.Start("localhost:8636", nullptr));
 
-        melon::end_point n1;
-        ASSERT_EQ(0, melon::str2endpoint("0.0.0.0:8635", &n1));
-        melon::end_point n2;
-        ASSERT_EQ(0, melon::str2endpoint("0.0.0.0:8636", &n2));
+        turbo::end_point n1;
+        ASSERT_EQ(0, turbo::str2endpoint("0.0.0.0:8635", &n1));
+        turbo::end_point n2;
+        ASSERT_EQ(0, turbo::str2endpoint("0.0.0.0:8636", &n2));
         std::vector<melon::rpc::ServerNode> expected_servers;
         expected_servers.push_back(melon::rpc::ServerNode(n1, "tag1"));
         expected_servers.push_back(melon::rpc::ServerNode(n2, "tag2"));
@@ -393,11 +393,11 @@ namespace {
                 "10.128.0.1:1234",
                 "10.129.0.1:1234",
         };
-        melon::temp_file tmp_file;
+        turbo::temp_file tmp_file;
         const char *service_name = tmp_file.fname();
         {
             FILE *fp = fopen(tmp_file.fname(), "w");
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
                 ASSERT_TRUE(fprintf(fp, "%s\n", address_list[i]));
             }
             fclose(fp);
@@ -407,8 +407,8 @@ namespace {
         std::vector<melon::rpc::ServerNode> servers;
         melon::rpc::policy::ConsulNamingService cns;
         ASSERT_EQ(0, cns.GetServers(service_name, &servers));
-        ASSERT_EQ(MELON_ARRAY_SIZE(address_list), servers.size());
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
+        ASSERT_EQ(TURBO_ARRAY_SIZE(address_list), servers.size());
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
             std::ostringstream oss;
             oss << servers[i];
             ASSERT_EQ(address_list[i], oss.str()) << "i=" << i;
@@ -427,10 +427,10 @@ namespace {
 
         melon::fiber_sleep_for(5000000);
 
-        melon::end_point n1;
-        ASSERT_EQ(0, melon::str2endpoint("10.121.36.189:8003", &n1));
-        melon::end_point n2;
-        ASSERT_EQ(0, melon::str2endpoint("10.121.36.190:8003", &n2));
+        turbo::end_point n1;
+        ASSERT_EQ(0, turbo::str2endpoint("10.121.36.189:8003", &n1));
+        turbo::end_point n2;
+        ASSERT_EQ(0, turbo::str2endpoint("10.121.36.190:8003", &n2));
         std::vector<melon::rpc::ServerNode> expected_servers;
         expected_servers.push_back(melon::rpc::ServerNode(n1, "1"));
         expected_servers.push_back(melon::rpc::ServerNode(n2, "2"));
@@ -571,7 +571,7 @@ namespace {
             auto body = cntl->request_attachment().to_string();
             for (melon::rpc::QuerySplitter sp(body); sp; ++sp) {
                 if (sp.key() == "addrs") {
-                    _addrs.insert(melon::as_string(sp.value()));
+                    _addrs.insert(turbo::as_string(sp.value()));
                 }
             }
             cntl->response_attachment().append(R"({

@@ -7,7 +7,7 @@
 #include <mutex>
 #include "melon/metrics/vector.h"
 #include "melon/metrics/detail/call_op_returning_void.h"
-#include "melon/strings/str_split.h"
+#include "turbo/strings/str_split.h"
 
 namespace melon::metrics_detail {
 
@@ -216,7 +216,7 @@ namespace melon::metrics_detail {
     template<typename T, typename Op>
     void series<T, Op>::describe(std::ostream &os,
                                  const std::string *vector_names) const {
-        MELON_CHECK(vector_names == nullptr);
+        TURBO_CHECK(vector_names == nullptr);
         this->_mutex.lock();
         const int second_begin = this->_nsecond;
         const int minute_begin = this->_nminute;
@@ -269,7 +269,7 @@ namespace melon::metrics_detail {
         // to exactly accurate.
         this->_mutex.unlock();
 
-        std::vector<std::string_view> vnames = melon::string_split(vector_names ? vector_names->c_str() : "", ',');
+        std::vector<std::string_view> vnames = turbo::string_split(vector_names ? vector_names->c_str() : "", ',');
         auto it = vnames.begin();
         os << '[';
         for (size_t j = 0; j < N; ++j) {

@@ -20,13 +20,13 @@
 // Date: Wed Mar 14 17:44:58 CST 2018
 
 #include "melon/fiber/internal/sys_futex.h"
-#include "melon/base/scoped_lock.h"
-#include "melon/base/static_atomic.h"
-#include "melon/times/time.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/times/time.h"
 #include <pthread.h>
 #include <unordered_map>
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
 
 namespace melon::fiber_internal {
 
@@ -64,7 +64,7 @@ namespace melon::fiber_internal {
 
     int futex_wait_private(void *addr1, int expected, const timespec *timeout) {
         if (pthread_once(&init_futex_map_once, InitFutexMap) != 0) {
-            MELON_LOG(FATAL) << "Fail to pthread_once";
+            TURBO_LOG(FATAL) << "Fail to pthread_once";
             exit(1);
         }
         std::unique_lock<pthread_mutex_t> mu(s_futex_map_mutex);
@@ -78,7 +78,7 @@ namespace melon::fiber_internal {
             if (static_cast<std::atomic<int> *>(addr1)->load() == expected) {
                 ++simu_futex.counts;
                 if (timeout) {
-                    timespec timeout_abs = melon::time_point::future_timespec(*timeout).to_timespec();
+                    timespec timeout_abs = turbo::time_point::future_timespec(*timeout).to_timespec();
                     if ((rc = pthread_cond_timedwait(&simu_futex.cond, &simu_futex.lock, &timeout_abs)) != 0) {
                         errno = rc;
                         rc = -1;
@@ -106,7 +106,7 @@ namespace melon::fiber_internal {
 
     int futex_wake_private(void *addr1, int nwake) {
         if (pthread_once(&init_futex_map_once, InitFutexMap) != 0) {
-            MELON_LOG(FATAL) << "Fail to pthread_once";
+            TURBO_LOG(FATAL) << "Fail to pthread_once";
             exit(1);
         }
         std::unique_lock<pthread_mutex_t> mu(s_futex_map_mutex);

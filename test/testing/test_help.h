@@ -8,7 +8,7 @@
 
 #include "testing/gtest_wrap.h"
 
-#include "melon/memory/allocator.h"
+#include "turbo/memory/allocator.h"
 
 // SchedulerParams holds Scheduler construction parameters for testing.
 struct SchedulerParams {

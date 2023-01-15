@@ -20,7 +20,7 @@
 #define MELON_RPC_COMPRESS_H_
 
 #include <google/protobuf/message.h>              // Message
-#include "melon/io/cord_buf.h"                           // melon::cord_buf
+#include "turbo/io/cord_buf.h"                           // turbo::cord_buf
 #include "melon/rpc/options.pb.h"                     // CompressType
 
 namespace melon::rpc {
@@ -28,11 +28,11 @@ namespace melon::rpc {
     struct CompressHandler {
         // Compress serialized `msg' into `buf'.
         // Returns true on success, false otherwise
-        bool (*Compress)(const google::protobuf::Message &msg, melon::cord_buf *buf);
+        bool (*Compress)(const google::protobuf::Message &msg, turbo::cord_buf *buf);
 
         // Parse decompressed `data' as `msg'.
         // Returns true on success, false otherwise
-        bool (*Decompress)(const melon::cord_buf &data, google::protobuf::Message *msg);
+        bool (*Decompress)(const turbo::cord_buf &data, google::protobuf::Message *msg);
 
         // Name of the compression algorithm, must be string constant.
         const char *name;
@@ -50,14 +50,14 @@ namespace melon::rpc {
 
     // Parse decompressed `data' as `msg' using registered `compress_type'.
     // Returns true on success, false otherwise
-    bool ParseFromCompressedData(const melon::cord_buf &data,
+    bool ParseFromCompressedData(const turbo::cord_buf &data,
                                  google::protobuf::Message *msg,
                                  CompressType compress_type);
 
     // Compress serialized `msg' into `buf' using registered `compress_type'.
     // Returns true on success, false otherwise
     bool SerializeAsCompressedData(const google::protobuf::Message &msg,
-                                   melon::cord_buf *buf,
+                                   turbo::cord_buf *buf,
                                    CompressType compress_type);
 
 } // namespace melon::rpc

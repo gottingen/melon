@@ -18,8 +18,8 @@
 #include <stdio.h>
 #include "testing/gtest_wrap.h"
 #include <vector>
-#include "melon/strings/str_format.h"
-#include "melon/files/temp_file.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/files/temp_file.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/load_balancer.h"
@@ -47,10 +47,10 @@ TEST_F(NamingServiceFilterTest, sanity) {
         "localhost:1234",
         "baidu.com:1234"
     };
-    melon::temp_file tmp_file;
+    turbo::temp_file tmp_file;
     {
         FILE* fp = fopen(tmp_file.fname(), "w");
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(address_list); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(address_list); ++i) {
             ASSERT_TRUE(fprintf(fp, "%s\n", address_list[i]));
         }
         fclose(fp);
@@ -62,8 +62,8 @@ TEST_F(NamingServiceFilterTest, sanity) {
     std::string ns = std::string("file://") + tmp_file.fname();
     ASSERT_EQ(0, channel.Init(ns.c_str(), "rr", &opt));
 
-    melon::end_point ep;
-    ASSERT_EQ(0, melon::hostname2endpoint("10.128.0.1:1234", &ep));
+    turbo::end_point ep;
+    ASSERT_EQ(0, turbo::hostname2endpoint("10.128.0.1:1234", &ep));
     for (int i = 0; i < 10; ++i) {
         melon::rpc::SocketUniquePtr tmp_sock;
         melon::rpc::LoadBalancer::SelectIn sel_in = { 0, false, false, 0, nullptr };

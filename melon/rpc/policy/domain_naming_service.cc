@@ -22,7 +22,7 @@
 #include "melon/fiber/internal/fiber.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/policy/domain_naming_service.h"
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 
 
 namespace melon::rpc {
@@ -35,7 +35,7 @@ namespace melon::rpc {
                                             std::vector<ServerNode> *servers) {
             servers->clear();
             if (!dns_name) {
-                MELON_LOG(ERROR) << "dns_name is nullptr";
+                TURBO_LOG(ERROR) << "dns_name is nullptr";
                 return -1;
             }
 
@@ -47,7 +47,7 @@ namespace melon::rpc {
                 buf[i] = dns_name[i];
             }
             if (i == sizeof(buf) - 1) {
-                MELON_LOG(ERROR) << "dns_name=`" << dns_name << "' is too long";
+                TURBO_LOG(ERROR) << "dns_name=`" << dns_name << "' is too long";
                 return -1;
             }
 
@@ -58,11 +58,11 @@ namespace melon::rpc {
                 char *end = nullptr;
                 port = strtol(dns_name + i, &end, 10);
                 if (end == dns_name + i) {
-                    MELON_LOG(ERROR) << "No port after colon in `" << dns_name << '\'';
+                    TURBO_LOG(ERROR) << "No port after colon in `" << dns_name << '\'';
                     return -1;
                 } else if (*end != '\0') {
                     if (*end != '/') {
-                        MELON_LOG(ERROR) << "Invalid content=`" << end << "' after port="
+                        TURBO_LOG(ERROR) << "Invalid content=`" << end << "' after port="
                                          << port << " in `" << dns_name << '\'';
                         return -1;
                     }
@@ -73,18 +73,18 @@ namespace melon::rpc {
                 }
             }
             if (port < 0 || port > 65535) {
-                MELON_LOG(ERROR) << "Invalid port=" << port << " in `" << dns_name << '\'';
+                TURBO_LOG(ERROR) << "Invalid port=" << port << " in `" << dns_name << '\'';
                 return -1;
             }
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
             _aux_buf_len = 0; // suppress unused warning
             // gethostbyname on MAC is thread-safe (with current usage) since the
             // returned hostent is TLS. Check following link for the ref:
             // https://lists.apple.com/archives/darwin-dev/2006/May/msg00008.html
             struct hostent *result = gethostbyname(buf);
             if (result == nullptr) {
-                MELON_LOG(WARNING) << "result of gethostbyname is nullptr";
+                TURBO_LOG(WARNING) << "result of gethostbyname is nullptr";
                 return -1;
             }
 #else
@@ -111,17 +111,17 @@ namespace melon::rpc {
             } while (1);
             if (ret != 0) {
                 // `hstrerror' is thread safe under linux
-                MELON_LOG(WARNING) << "Can't resolve `" << buf << "', return=`" << melon_error(ret)
+                TURBO_LOG(WARNING) << "Can't resolve `" << buf << "', return=`" << turbo_error(ret)
                              << "' herror=`" << hstrerror(error) << '\'';
                 return -1;
             }
             if (result == nullptr) {
-                MELON_LOG(WARNING) << "result of gethostbyname_r is nullptr";
+                TURBO_LOG(WARNING) << "result of gethostbyname_r is nullptr";
                 return -1;
             }
 #endif
 
-            melon::end_point point;
+            turbo::end_point point;
             point.port = port;
             for (int i = 0; result->h_addr_list[i] != nullptr; ++i) {
                 if (result->h_addrtype == AF_INET) {
@@ -129,7 +129,7 @@ namespace melon::rpc {
                     bcopy(result->h_addr_list[i], &point.ip, result->h_length);
                     servers->push_back(ServerNode(point, std::string()));
                 } else {
-                    MELON_LOG(WARNING) << "Found address of unsupported protocol="
+                    TURBO_LOG(WARNING) << "Found address of unsupported protocol="
                                        << result->h_addrtype;
                 }
             }

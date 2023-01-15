@@ -61,7 +61,7 @@ namespace melon::rpc {
         void Describe(std::ostream &os, const DescribeOptions &) const;
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(ThriftService);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(ThriftService);
 
         friend class policy::ThriftClosure;
 

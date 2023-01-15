@@ -3,11 +3,11 @@
 #ifndef  MELON_FIBER_INTERNAL_EXECUTION_QUEUE_INL_H_
 #define  MELON_FIBER_INTERNAL_EXECUTION_QUEUE_INL_H_
 
-#include "melon/base/static_atomic.h"             // std::atomic
-#include "melon/base/profile.h"                // MELON_CACHELINE_ALIGNMENT
-#include "melon/memory/scoped_ptr.h"     // melon::scoped_ptr
-#include "melon/log/logging.h"               // MELON_LOG
-#include "melon/times/time.h"                  // melon::base::cpuwide_time_ns
+#include "turbo/base/static_atomic.h"             // std::atomic
+#include "turbo/base/profile.h"                // TURBO_CACHELINE_ALIGNMENT
+#include "turbo/memory/scoped_ptr.h"     // melon::scoped_ptr
+#include "turbo/log/logging.h"               // TURBO_LOG
+#include "turbo/times/time.h"                  // turbo::base::cpuwide_time_ns
 #include "melon/metrics/all.h"
 #include "melon/fiber/internal/waitable_event.h"
 
@@ -30,7 +30,7 @@ namespace melon::fiber_internal {
 
     typedef void (*clear_task_mem)(TaskNode *);
 
-    struct MELON_CACHELINE_ALIGNMENT TaskNode {
+    struct TURBO_CACHELINE_ALIGNMENT TaskNode {
         TaskNode()
                 : version(0), status(UNEXECUTED), stop_task(false), iterated(false), high_priority(false),
                   in_place(false), next(UNCONNECTED), q(nullptr) {}
@@ -38,7 +38,7 @@ namespace melon::fiber_internal {
         ~TaskNode() {}
 
         int cancel(int64_t expected_version) {
-            MELON_SCOPED_LOCK(mutex);
+            TURBO_SCOPED_LOCK(mutex);
             if (version != expected_version) {
                 return -1;
             }
@@ -50,12 +50,12 @@ namespace melon::fiber_internal {
         }
 
         void set_executed() {
-            MELON_SCOPED_LOCK(mutex);
+            TURBO_SCOPED_LOCK(mutex);
             status = EXECUTED;
         }
 
         bool peek_to_execute() {
-            MELON_SCOPED_LOCK(mutex);
+            TURBO_SCOPED_LOCK(mutex);
             if (status == UNEXECUTED) {
                 status = EXECUTING;
                 return true;
@@ -80,7 +80,7 @@ namespace melon::fiber_internal {
         void clear_before_return(clear_task_mem clear_func) {
             if (!stop_task) {
                 clear_func(this);
-                MELON_CHECK(iterated);
+                TURBO_CHECK(iterated);
             }
             q = nullptr;
             std::unique_lock<std::mutex> lck(mutex);
@@ -88,8 +88,8 @@ namespace melon::fiber_internal {
             const int saved_status = status;
             status = UNEXECUTED;
             lck.unlock();
-            MELON_CHECK_NE(saved_status, UNEXECUTED);
-            MELON_LOG_IF(WARNING, saved_status == EXECUTING)
+            TURBO_CHECK_NE(saved_status, UNEXECUTED);
+            TURBO_LOG_IF(WARNING, saved_status == EXECUTING)
                             << "Return a executing node, did you return before "
                                "iterator reached the end?";
         }
@@ -132,8 +132,8 @@ namespace melon::fiber_internal {
 
     class TaskIteratorBase;
 
-    class MELON_CACHELINE_ALIGNMENT ExecutionQueueBase {
-        MELON_DISALLOW_COPY_AND_ASSIGN(ExecutionQueueBase);
+    class TURBO_CACHELINE_ALIGNMENT ExecutionQueueBase {
+        TURBO_DISALLOW_COPY_AND_ASSIGN(ExecutionQueueBase);
 
         struct Forbidden {
         };
@@ -179,7 +179,7 @@ namespace melon::fiber_internal {
                           clear_task_mem clear_func,
                           void *meta, void *type_specific_function);
 
-        static scoped_ptr_t address(uint64_t id) MELON_WARN_UNUSED_RESULT;
+        static scoped_ptr_t address(uint64_t id) TURBO_WARN_UNUSED_RESULT;
 
         void start_execute(TaskNode *node);
 
@@ -202,15 +202,15 @@ namespace melon::fiber_internal {
 
         static void *_execute_tasks(void *arg);
 
-        static inline uint32_t _version_of_id(uint64_t id) MELON_WARN_UNUSED_RESULT {
+        static inline uint32_t _version_of_id(uint64_t id) TURBO_WARN_UNUSED_RESULT {
             return (uint32_t) (id >> 32);
         }
 
-        static inline uint32_t _version_of_vref(int64_t vref) MELON_WARN_UNUSED_RESULT {
+        static inline uint32_t _version_of_vref(int64_t vref) TURBO_WARN_UNUSED_RESULT {
             return (uint32_t) (vref >> 32);
         }
 
-        static inline uint32_t _ref_of_vref(int64_t vref) MELON_WARN_UNUSED_RESULT {
+        static inline uint32_t _ref_of_vref(int64_t vref) TURBO_WARN_UNUSED_RESULT {
             return (int32_t) (vref & 0xFFFFFFFFul);
         }
 
@@ -221,9 +221,9 @@ namespace melon::fiber_internal {
 
         // Don't change the order of _head, _versioned_ref and _stopped unless you
         // see improvement of performance in test
-        std::atomic<TaskNode *> MELON_CACHELINE_ALIGNMENT _head;
-        std::atomic<uint64_t> MELON_CACHELINE_ALIGNMENT _versioned_ref;
-        std::atomic<bool> MELON_CACHELINE_ALIGNMENT _stopped;
+        std::atomic<TaskNode *> TURBO_CACHELINE_ALIGNMENT _head;
+        std::atomic<uint64_t> TURBO_CACHELINE_ALIGNMENT _versioned_ref;
+        std::atomic<bool> TURBO_CACHELINE_ALIGNMENT _stopped;
         std::atomic<int64_t> _high_priority_tasks;
         uint64_t _this_id;
         void *_meta;
@@ -284,28 +284,28 @@ namespace melon::fiber_internal {
                                 clear_task_mem, meta, (void *) execute_func);
         }
 
-        inline static scoped_ptr_t address(id_t id) MELON_WARN_UNUSED_RESULT {
+        inline static scoped_ptr_t address(id_t id) TURBO_WARN_UNUSED_RESULT {
             Base::scoped_ptr_t ptr = Base::address(id.value);
             Base *b = ptr.release();
             scoped_ptr_t ret((self_type *) b);
             return ret.Pass();
         }
 
-        int execute(typename melon::add_const_reference<T>::type task) {
+        int execute(typename turbo::add_const_reference<T>::type task) {
             return execute(task, nullptr, nullptr);
         }
 
-        int execute(typename melon::add_const_reference<T>::type task,
+        int execute(typename turbo::add_const_reference<T>::type task,
                     const TaskOptions *options, TaskHandle *handle) {
             if (stopped()) {
                 return EINVAL;
             }
             TaskNode *node = allocate_node();
-            if (MELON_UNLIKELY(node == nullptr)) {
+            if (TURBO_UNLIKELY(node == nullptr)) {
                 return ENOMEM;
             }
             void *const mem = allocator::allocate(node);
-            if (MELON_UNLIKELY(!mem)) {
+            if (TURBO_UNLIKELY(!mem)) {
                 return_task_node(node);
                 return ENOMEM;
             }
@@ -346,20 +346,20 @@ namespace melon::fiber_internal {
 
     template<typename T>
     inline int execution_queue_execute(ExecutionQueueId<T> id,
-                                       typename melon::add_const_reference<T>::type task) {
+                                       typename turbo::add_const_reference<T>::type task) {
         return execution_queue_execute(id, task, nullptr);
     }
 
     template<typename T>
     inline int execution_queue_execute(ExecutionQueueId<T> id,
-                                       typename melon::add_const_reference<T>::type task,
+                                       typename turbo::add_const_reference<T>::type task,
                                        const TaskOptions *options) {
         return execution_queue_execute(id, task, options, nullptr);
     }
 
     template<typename T>
     inline int execution_queue_execute(ExecutionQueueId<T> id,
-                                       typename melon::add_const_reference<T>::type task,
+                                       typename turbo::add_const_reference<T>::type task,
                                        const TaskOptions *options,
                                        TaskHandle *handle) {
         typename ExecutionQueue<T>::scoped_ptr_t
@@ -433,7 +433,7 @@ namespace melon::fiber_internal {
             TaskNode *old_head, TaskNode **new_tail,
             bool has_uniterated) {
 
-        MELON_CHECK(old_head->next == nullptr);
+        TURBO_CHECK(old_head->next == nullptr);
         // Try to set _head to nullptr to mark that the execute is done.
         TaskNode *new_head = old_head;
         TaskNode *desired = nullptr;
@@ -447,7 +447,7 @@ namespace melon::fiber_internal {
             // No one added new tasks.
             return return_when_no_more;
         }
-        MELON_CHECK_NE(new_head, old_head);
+        TURBO_CHECK_NE(new_head, old_head);
         // Above acquire fence pairs release fence of exchange in Write() to make
         // sure that we see all fields of requests set.
 
@@ -467,7 +467,7 @@ namespace melon::fiber_internal {
             p->next = tail;
             tail = p;
             p = saved_next;
-            MELON_CHECK(p != nullptr);
+            TURBO_CHECK(p != nullptr);
         } while (p != old_head);
 
         // Link old list with new list.
@@ -526,10 +526,10 @@ namespace melon::fiber_internal {
                 }
                 return 0;
             }
-            MELON_LOG(FATAL) << "Invalid id=" << id;
+            TURBO_LOG(FATAL) << "Invalid id=" << id;
             return -1;
         }
-        MELON_LOG(FATAL) << "Over dereferenced id=" << id;
+        TURBO_LOG(FATAL) << "Over dereferenced id=" << id;
         return -1;
     }
 

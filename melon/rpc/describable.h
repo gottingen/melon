@@ -20,8 +20,8 @@
 #define MELON_RPC_DESCRIBABLE_H_
 
 #include <ostream>
-#include "melon/base/profile.h"
-#include "melon/base/class_name.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/class_name.h"
 
 namespace melon::rpc {
 
@@ -38,7 +38,7 @@ namespace melon::rpc {
         virtual ~Describable() {}
 
         virtual void Describe(std::ostream &os, const DescribeOptions &) const {
-            os << melon::base::class_name_str(*this);
+            os << turbo::base::class_name_str(*this);
         }
     };
 
@@ -47,7 +47,7 @@ namespace melon::rpc {
         virtual ~NonConstDescribable() {}
 
         virtual void Describe(std::ostream &os, const DescribeOptions &) {
-            os << melon::base::class_name_str(*this);
+            os << turbo::base::class_name_str(*this);
         }
     };
 
@@ -102,7 +102,7 @@ namespace melon::rpc {
         }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(IndentingOStream);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(IndentingOStream);
 
         std::streambuf *_dest;
         bool _is_at_start_of_line;

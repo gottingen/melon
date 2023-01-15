@@ -23,11 +23,11 @@
 #include <sys/socket.h>
 #include <netdb.h>                   //
 #include "testing/gtest_wrap.h"
-#include "melon/base/gperftools_profiler.h"
-#include "melon/times/time.h"
-#include "melon/base/fd_utility.h"
-#include "melon/base/unix_socket.h"
-#include "melon/base/fd_guard.h"
+#include "turbo/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fd_utility.h"
+#include "turbo/base/unix_socket.h"
+#include "turbo/base/fd_guard.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
 
@@ -80,7 +80,7 @@ inline uint32_t fmix32(uint32_t h) {
 
 volatile bool client_stop = false;
 
-struct MELON_CACHELINE_ALIGNMENT ClientMeta {
+struct TURBO_CACHELINE_ALIGNMENT ClientMeta {
     size_t times;
     size_t bytes;
 };
@@ -105,16 +105,16 @@ void *client_thread(void *arg) {
     char socket_name[64];
     snprintf(socket_name, sizeof(socket_name), "input_messenger.socket%lu",
              (id % NEPOLL));
-    melon::base::fd_guard fd(melon::base::unix_socket_connect(socket_name));
+    turbo::base::fd_guard fd(turbo::base::unix_socket_connect(socket_name));
     if (fd < 0) {
-        MELON_PLOG(FATAL) << "Fail to connect to " << socket_name;
+        TURBO_PLOG(FATAL) << "Fail to connect to " << socket_name;
         return nullptr;
     }
 #else
-    melon::end_point point(melon::IP_ANY, 7878);
-    melon::base::fd_guard fd(melon::base::tcp_connect(point, nullptr));
+    turbo::end_point point(turbo::IP_ANY, 7878);
+    turbo::base::fd_guard fd(turbo::base::tcp_connect(point, nullptr));
     if (fd < 0) {
-        MELON_PLOG(FATAL) << "Fail to connect to " << point;
+        TURBO_PLOG(FATAL) << "Fail to connect to " << point;
         return nullptr;
     }
 #endif
@@ -133,7 +133,7 @@ void *client_thread(void *arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                MELON_PLOG(FATAL) << "Fail to write fd=" << fd;
+                TURBO_PLOG(FATAL) << "Fail to write fd=" << fd;
                 return nullptr;
             }
         } else {
@@ -164,12 +164,12 @@ TEST_F(MessengerTest, dispatch_tasks) {
 #ifdef USE_UNIX_DOMAIN_SOCKET
         char buf[64];
         snprintf(buf, sizeof(buf), "input_messenger.socket%lu", i);
-        int listening_fd = melon::base::unix_socket_listen(buf);
+        int listening_fd = turbo::base::unix_socket_listen(buf);
 #else
-        int listening_fd = tcp_listen(melon::end_point(melon::IP_ANY, 7878));
+        int listening_fd = tcp_listen(turbo::end_point(turbo::IP_ANY, 7878));
 #endif
         ASSERT_TRUE(listening_fd > 0);
-        melon::base::make_non_blocking(listening_fd);
+        turbo::base::make_non_blocking(listening_fd);
         ASSERT_EQ(0, messenger[i].AddHandler(pairs[0]));
         ASSERT_EQ(0, messenger[i].StartAccept(listening_fd, -1, nullptr));
     }
@@ -183,21 +183,21 @@ TEST_F(MessengerTest, dispatch_tasks) {
 
     sleep(1);
 
-    MELON_LOG(INFO) << "Begin to profile... (5 seconds)";
+    TURBO_LOG(INFO) << "Begin to profile... (5 seconds)";
     ProfilerStart("input_messenger.prof");
 
     size_t start_client_bytes = 0;
     for (size_t i = 0; i < NCLIENT; ++i) {
         start_client_bytes += cm[i]->bytes;
     }
-    melon::stop_watcher tm;
+    turbo::stop_watcher tm;
     tm.start();
 
     sleep(5);
 
     tm.stop();
     ProfilerStop();
-    MELON_LOG(INFO) << "End profiling";
+    TURBO_LOG(INFO) << "End profiling";
 
     client_stop = true;
 
@@ -205,7 +205,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
     for (size_t i = 0; i < NCLIENT; ++i) {
         client_bytes += cm[i]->bytes;
     }
-    MELON_LOG(INFO) << "client_tp=" << (client_bytes - start_client_bytes) / (double) tm.u_elapsed()
+    TURBO_LOG(INFO) << "client_tp=" << (client_bytes - start_client_bytes) / (double) tm.u_elapsed()
               << "MB/s client_msg="
               << (client_bytes - start_client_bytes) * 1000000L / (MESSAGE_SIZE * tm.u_elapsed())
               << "/s";
@@ -218,5 +218,5 @@ TEST_F(MessengerTest, dispatch_tasks) {
         messenger[i].StopAccept(0);
     }
     sleep(1);
-    MELON_LOG(WARNING) << "begin to exit!!!!";
+    TURBO_LOG(WARNING) << "begin to exit!!!!";
 }

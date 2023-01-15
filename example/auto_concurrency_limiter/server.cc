@@ -18,11 +18,11 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
-#include <melon/base/static_atomic.h>
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
+#include <turbo/base/static_atomic.h>
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
 #include <melon/json2pb/json_to_pb.h>
 #include <melon/fiber/internal/timer_thread.h>
 #include <melon/fiber/this_fiber.h>
@@ -74,7 +74,7 @@ void DisplayStage(const test::Stage &stage) {
             << "Stage:[" << stage.lower_bound() << ':'
             << stage.upper_bound() << "]"
             << " , Type:" << type;
-    MELON_LOG(INFO) << ss.str();
+    TURBO_LOG(INFO) << ss.str();
 }
 
 std::atomic<int> cnt(0);
@@ -98,14 +98,14 @@ public:
     void SetTestCase(const test::TestCase &test_case) {
         _test_case = test_case;
         _next_stage_start = _test_case.latency_stage_list(0).duration_sec() +
-                            melon::time_now().to_unix_seconds();
+                            turbo::time_now().to_unix_seconds();
         _stage_index = 0;
         _running_case = false;
         DisplayStage(_test_case.latency_stage_list(_stage_index));
     }
 
     void StartTestCase() {
-        MELON_CHECK(!_running_case);
+        TURBO_CHECK(!_running_case);
         _running_case = true;
         UpdateLatency();
     }
@@ -120,7 +120,7 @@ public:
         }
         ComputeLatency();
         g_timer_thread.schedule(TimerTask, (void *) this,
-                                melon::time_point::future_unix_micros(FLAGS_latency_change_interval_us).to_timespec());
+                                turbo::time_point::future_unix_micros(FLAGS_latency_change_interval_us).to_timespec());
     }
 
     virtual void Echo(google::protobuf::RpcController *cntl_base,
@@ -139,7 +139,7 @@ public:
 
     void ComputeLatency() {
         if (_stage_index < _test_case.latency_stage_list_size() &&
-            melon::time_now().to_unix_seconds() > _next_stage_start) {
+            turbo::time_now().to_unix_seconds() > _next_stage_start) {
             ++_stage_index;
             if (_stage_index < _test_case.latency_stage_list_size()) {
                 _next_stage_start += _test_case.latency_stage_list(_stage_index).duration_sec();
@@ -163,16 +163,16 @@ public:
         const int lower_bound = latency_stage.lower_bound();
         const int upper_bound = latency_stage.upper_bound();
         if (latency_stage.type() == test::FLUCTUATE) {
-            _latency.store(melon::base::fast_rand_less_than(upper_bound - lower_bound) + lower_bound,
+            _latency.store(turbo::base::fast_rand_less_than(upper_bound - lower_bound) + lower_bound,
                            std::memory_order_relaxed);
         } else if (latency_stage.type() == test::SMOOTH) {
             int latency = lower_bound + (upper_bound - lower_bound) /
                                         double(latency_stage.duration_sec()) *
                                         (latency_stage.duration_sec() - _next_stage_start +
-                                         melon::time_now().to_unix_seconds());
+                                         turbo::time_now().to_unix_seconds());
             _latency.store(latency, std::memory_order_relaxed);
         } else {
-            MELON_LOG(FATAL) << "Wrong Type:" << latency_stage.type();
+            TURBO_LOG(FATAL) << "Wrong Type:" << latency_stage.type();
         }
     }
 
@@ -197,7 +197,7 @@ public:
         _echo_service = new EchoServiceImpl;
         if (_server.AddService(_echo_service,
                                melon::rpc::SERVER_OWNS_SERVICE) != 0) {
-            MELON_LOG(FATAL) << "Fail to add service";
+            TURBO_LOG(FATAL) << "Fail to add service";
         }
         g_timer_thread.start(nullptr);
     }
@@ -213,7 +213,7 @@ public:
                         google::protobuf::Closure *done) {
         melon::rpc::ClosureGuard done_guard(done);
         const std::string &message = request->message();
-        MELON_LOG(INFO) << message;
+        TURBO_LOG(INFO) << message;
         if (message == "ResetCaseSet") {
             _server.Stop(0);
             _server.Join();
@@ -223,7 +223,7 @@ public:
             _case_index = 0;
             response->set_message("CaseSetReset");
         } else if (message == "StartCase") {
-            MELON_CHECK(!_server.IsRunning()) << "Continuous StartCase";
+            TURBO_CHECK(!_server.IsRunning()) << "Continuous StartCase";
             const test::TestCase &test_case = _case_set.test_case(_case_index++);
             _echo_service->SetTestCase(test_case);
             melon::rpc::ServerOptions options;
@@ -234,14 +234,14 @@ public:
             _echo_service->StartTestCase();
             response->set_message("CaseStarted");
         } else if (message == "StopCase") {
-            MELON_CHECK(_server.IsRunning()) << "Continuous StopCase";
+            TURBO_CHECK(_server.IsRunning()) << "Continuous StopCase";
             _server.Stop(0);
             _server.Join();
 
             _echo_service->StopTestCase();
             response->set_message("CaseStopped");
         } else {
-            MELON_LOG(FATAL) << "Invalid message:" << message;
+            TURBO_LOG(FATAL) << "Invalid message:" << message;
             response->set_message("Invalid Cntl Message");
         }
     }
@@ -250,14 +250,14 @@ private:
     void LoadCaseSet(const std::string &file_path) {
         std::ifstream ifs(file_path.c_str(), std::ios::in);
         if (!ifs) {
-            MELON_LOG(FATAL) << "Fail to open case set file: " << file_path;
+            TURBO_LOG(FATAL) << "Fail to open case set file: " << file_path;
         }
         std::string case_set_json((std::istreambuf_iterator<char>(ifs)),
                                   std::istreambuf_iterator<char>());
         test::TestCaseSet case_set;
         std::string err;
         if (!json2pb::JsonToProtoMessage(case_set_json, &case_set, &err)) {
-            MELON_LOG(FATAL)
+            TURBO_LOG(FATAL)
                     << "Fail to trans case_set from json to protobuf message: "
                     << err;
         }
@@ -283,12 +283,12 @@ int main(int argc, char *argv[]) {
 
     if (server.AddService(&control_service_impl,
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     if (server.Start(FLAGS_cntl_port, nullptr) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

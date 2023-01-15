@@ -21,12 +21,12 @@
 #include <string>                                       // std::string
 #include <set>                                          // std::set
 #include "melon/fiber/internal/fiber.h"                            // melon::fiber_sleep_for
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/policy/remote_file_naming_service.h"
-#include "melon/strings/utility.h"
-#include "melon/strings/safe_substr.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/safe_substr.h"
 
 namespace melon::rpc {
     namespace policy {
@@ -42,17 +42,17 @@ namespace melon::rpc {
                                    std::string_view *server_addr,
                                    std::string_view *tag);
 
-        static bool CutLineFromCordBuf(melon::cord_buf *source, std::string *line_out) {
+        static bool CutLineFromCordBuf(turbo::cord_buf *source, std::string *line_out) {
             if (source->empty()) {
                 return false;
             }
-            melon::cord_buf line_data;
+            turbo::cord_buf line_data;
             if (source->cut_until(&line_data, "\n") != 0) {
                 source->cutn(line_out, source->size());
                 return true;
             }
             line_data.copy_to(line_out);
-            if (!line_out->empty() && melon::back_char(*line_out) == '\r') {
+            if (!line_out->empty() && turbo::back_char(*line_out) == '\r') {
                 line_out->resize(line_out->size() - 1);
             }
             return true;
@@ -67,14 +67,14 @@ namespace melon::rpc {
                 size_t pos = tmpname.find("://");
                 std::string_view proto;
                 if (pos != std::string_view::npos) {
-                    proto = melon::safe_substr(tmpname, 0, pos);
+                    proto = turbo::safe_substr(tmpname, 0, pos);
                     for (pos += 3; tmpname[pos] == '/'; ++pos) {}
                     tmpname.remove_prefix(pos);
                 } else {
                     proto = "http";
                 }
                 if (proto != "bns" && proto != "http") {
-                    MELON_LOG(ERROR) << "Invalid protocol=`" << proto
+                    TURBO_LOG(ERROR) << "Invalid protocol=`" << proto
                                      << "\' in service_name=" << service_name_cstr;
                     return -1;
                 }
@@ -84,8 +84,8 @@ namespace melon::rpc {
                     server_addr_piece = tmpname;
                     _path = "/";
                 } else {
-                    server_addr_piece = melon::safe_substr(tmpname, 0, slash_pos);
-                    _path = melon::as_string(melon::safe_substr(tmpname, slash_pos));
+                    server_addr_piece = turbo::safe_substr(tmpname, 0, slash_pos);
+                    _path = turbo::as_string(turbo::safe_substr(tmpname, slash_pos));
                 }
                 _server_addr.reserve(proto.size() + 3 + server_addr_piece.size());
                 _server_addr.append(proto.data(), proto.size());
@@ -98,7 +98,7 @@ namespace melon::rpc {
                 opt.timeout_ms = FLAGS_remote_file_timeout_ms;
                 std::unique_ptr<Channel> chan(new Channel);
                 if (chan->Init(_server_addr.c_str(), "rr", &opt) != 0) {
-                    MELON_LOG(ERROR) << "Fail to init channel to " << _server_addr;
+                    TURBO_LOG(ERROR) << "Fail to init channel to " << _server_addr;
                     return -1;
                 }
                 _channel.swap(chan);
@@ -108,7 +108,7 @@ namespace melon::rpc {
             cntl.http_request().uri() = _path;
             _channel->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
             if (cntl.Failed()) {
-                MELON_LOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
+                TURBO_LOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
                                    << cntl.ErrorText();
                 return -1;
             }
@@ -125,15 +125,15 @@ namespace melon::rpc {
                     continue;
                 }
                 const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-                melon::end_point point;
+                turbo::end_point point;
                 if (str2endpoint(addr.data(), &point) != 0 &&
                     hostname2endpoint(addr.data(), &point) != 0) {
-                    MELON_LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                    TURBO_LOG(ERROR) << "Invalid address=`" << addr << '\'';
                     continue;
                 }
                 ServerNode node;
                 node.addr = point;
-                melon::copy_to_string(tag, &node.tag);
+                turbo::copy_to_string(tag, &node.tag);
                 if (presence.insert(node).second) {
                     servers->push_back(node);
                 } else {

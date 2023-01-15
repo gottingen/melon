@@ -19,8 +19,8 @@
 #ifndef  MELON_RPC_STREAM_H_
 #define  MELON_RPC_STREAM_H_
 
-#include "melon/io/cord_buf.h"
-#include "melon/base/scoped_generic.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/base/scoped_generic.h"
 #include "melon/rpc/socket_id.h"
 
 namespace melon::rpc {
@@ -35,14 +35,14 @@ namespace melon::rpc {
     };
 
     // Auto-closed Stream
-    typedef melon::base::scoped_generic<StreamId, detail::StreamIdTraits> ScopedStream;
+    typedef turbo::base::scoped_generic<StreamId, detail::StreamIdTraits> ScopedStream;
 
     class StreamInputHandler {
     public:
         virtual ~StreamInputHandler() = default;
 
         virtual int on_received_messages(StreamId id,
-                                         melon::cord_buf *const messages[],
+                                         turbo::cord_buf *const messages[],
                                          size_t size) = 0;
 
         virtual void on_idle_timeout(StreamId id) = 0;
@@ -97,7 +97,7 @@ namespace melon::rpc {
     //  - EAGAIN: |stream_id| is created with positive |max_buf_size| and buf size
     //            which the remote side hasn't consumed yet excceeds the number.
     //  - EINVAL: |stream_id| is invalied or has been closed
-    int StreamWrite(StreamId stream_id, const melon::cord_buf &message);
+    int StreamWrite(StreamId stream_id, const turbo::cord_buf &message);
 
     // Write util the pending buffer size is less than |max_buf_size| or orrur
     // occurs

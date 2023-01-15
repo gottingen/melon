@@ -16,9 +16,9 @@
 // under the License.
 
 #include "testing/gtest_wrap.h"
-#include "melon/base/static_atomic.h"
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
+#include "turbo/base/static_atomic.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/internal/waitable_event.h"
 #include "melon/fiber/internal/schedule_group.h"
 #include "melon/fiber/internal/fiber_worker.h"
@@ -51,15 +51,15 @@ namespace {
     }
 
     void *joiner(void *arg) {
-        const long t1 = melon::get_current_time_micros();
+        const long t1 = turbo::get_current_time_micros();
         for (fiber_id_t *th = (fiber_id_t *) arg; *th; ++th) {
             if (0 != fiber_join(*th, nullptr)) {
-                MELON_LOG(FATAL) << "fail to join thread_" << th - (fiber_id_t *) arg;
+                TURBO_LOG(FATAL) << "fail to join thread_" << th - (fiber_id_t *) arg;
             }
-            long elp = melon::get_current_time_micros() - t1;
+            long elp = turbo::get_current_time_micros() - t1;
             EXPECT_LE(labs(elp - (th - (fiber_id_t *) arg + 1) * 100000L), 15000L)
                                 << "timeout when joining thread_" << th - (fiber_id_t *) arg;
-            MELON_LOG(INFO) << "Joined thread " << *th << " at " << elp << "us ["
+            TURBO_LOG(INFO) << "Joined thread " << *th << " at " << elp << "us ["
                       << fiber_self() << "]";
         }
         for (fiber_id_t *th = (fiber_id_t *) arg; *th; ++th) {
@@ -105,7 +105,7 @@ namespace {
 
         for (size_t i = 0; i < M; ++i) {
             ASSERT_EQ(0, fiber_join(jth[i], nullptr))
-                                        << "i=" << i << " error=" << melon_error();
+                                        << "i=" << i << " error=" << turbo_error();
         }
         for (size_t i = 0; i < M; ++i) {
             ASSERT_EQ(0, pthread_join(pth[i], nullptr));
@@ -122,16 +122,16 @@ namespace {
 
     void *waiter(void *arg) {
         WaiterArg *wa = (WaiterArg *) arg;
-        const long t1 = melon::get_current_time_micros();
+        const long t1 = turbo::get_current_time_micros();
         const int rc = melon::fiber_internal::waitable_event_wait(
                 wa->event, wa->expected_value, wa->ptimeout);
-        const long t2 = melon::get_current_time_micros();
+        const long t2 = turbo::get_current_time_micros();
         if (rc == 0) {
             EXPECT_EQ(wa->expected_result, 0) << fiber_self();
         } else {
             EXPECT_EQ(wa->expected_result, errno) << fiber_self();
         }
-        MELON_LOG(INFO) << "after wait, time=" << (t2 - t1) << "us";
+        TURBO_LOG(INFO) << "after wait, time=" << (t2 - t1) << "us";
         return nullptr;
     }
 
@@ -157,7 +157,7 @@ namespace {
         fiber_id_t th;
         ASSERT_EQ(0, fiber_start_urgent(&th, nullptr, waiter, unmatched_arg));
 
-        const timespec abstime = melon::time_point::future_unix_seconds(1).to_timespec();
+        const timespec abstime = turbo::time_point::future_unix_seconds(1).to_timespec();
         for (size_t i = 0; i < 4 * N; ++i) {
             args[i].expected_value = *b1;
             args[i].event = b1;
@@ -194,7 +194,7 @@ namespace {
 
     void *wait_event(void *void_arg) {
         event_wait_arg *arg = static_cast<event_wait_arg *>(void_arg);
-        const timespec ts = melon::time_point::future_unix_millis(arg->wait_msec).to_timespec();
+        const timespec ts = turbo::time_point::future_unix_millis(arg->wait_msec).to_timespec();
         int rc = melon::fiber_internal::waitable_event_wait(arg->event, arg->expected_val, &ts);
         int saved_errno = errno;
         if (arg->error_code) {
@@ -209,7 +209,7 @@ namespace {
     TEST(WaitableEventTest, wait_without_stop) {
         int *event = melon::fiber_internal::waitable_event_create_checked<int>();
         *event = 7;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         const long WAIT_MSEC = 500;
         for (int i = 0; i < 2; ++i) {
             const fiber_attribute attr =
@@ -230,7 +230,7 @@ namespace {
     TEST(WaitableEventTest, stop_after_running) {
         int *event = melon::fiber_internal::waitable_event_create_checked<int>();
         *event = 7;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         const long WAIT_MSEC = 500;
         const long SLEEP_MSEC = 10;
         for (int i = 0; i < 2; ++i) {
@@ -257,7 +257,7 @@ namespace {
     TEST(WaitableEventTest, stop_before_running) {
         int *event = melon::fiber_internal::waitable_event_create_checked<int>();
         *event = 7;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         const long WAIT_MSEC = 500;
 
         for (int i = 0; i < 2; ++i) {
@@ -290,7 +290,7 @@ namespace {
         const long WAIT_MSEC = 100;
         int *event = melon::fiber_internal::waitable_event_create_checked<int>();
         *event = 7;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         event_wait_arg arg = {event, *event, 1000, EINTR};
 
         for (int i = 0; i < 2; ++i) {
@@ -317,7 +317,7 @@ namespace {
     }
 
     TEST(WaitableEventTest, stop_after_slept) {
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         const long SLEEP_MSEC = 100;
         const long WAIT_MSEC = 10;
 
@@ -344,7 +344,7 @@ namespace {
     }
 
     TEST(WaitableEventTest, stop_just_when_sleeping) {
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         const long SLEEP_MSEC = 100;
 
         for (int i = 0; i < 2; ++i) {
@@ -369,7 +369,7 @@ namespace {
     }
 
     TEST(WaitableEventTest, stop_before_sleeping) {
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         const long SLEEP_MSEC = 100;
 
         for (int i = 0; i < 2; ++i) {

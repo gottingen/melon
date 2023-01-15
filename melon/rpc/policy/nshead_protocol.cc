@@ -19,8 +19,8 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
@@ -67,7 +67,7 @@ namespace melon::rpc {
         ControllerPrivateAccessor accessor(&_controller);
         Span *span = accessor.span();
         if (span) {
-            span->set_start_send_us(melon::get_current_time_micros());
+            span->set_start_send_us(turbo::get_current_time_micros());
         }
         Socket *sock = accessor.get_sending_socket();
         MethodStatus *method_status = _server->options().nshead_service->_status;
@@ -103,7 +103,7 @@ namespace melon::rpc {
                 int response_size = sizeof(nshead_t) + _response.head.body_len;
                 span->set_response_size(response_size);
             }
-            melon::cord_buf write_buf;
+            turbo::cord_buf write_buf;
             write_buf.append(&_response.head, sizeof(nshead_t));
             write_buf.append(_response.body.movable());
             // Have the risk of unlimited pending responses, in which case, tell
@@ -112,7 +112,7 @@ namespace melon::rpc {
             wopt.ignore_eovercrowded = true;
             if (sock->Write(&write_buf, &wopt) != 0) {
                 const int errcode = errno;
-                MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+                TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
                 _controller.SetFailed(errcode, "Fail to write into %s",
                                       sock->description().c_str());
                 return;
@@ -120,7 +120,7 @@ namespace melon::rpc {
         }
         if (span) {
             // TODO: this is not sent
-            span->set_sent_us(melon::get_current_time_micros());
+            span->set_sent_us(turbo::get_current_time_micros());
         }
     }
 
@@ -134,7 +134,7 @@ namespace melon::rpc {
 
     namespace policy {
 
-        ParseResult ParseNsheadMessage(melon::cord_buf *source,
+        ParseResult ParseNsheadMessage(turbo::cord_buf *source,
                                        Socket *, bool /*read_eof*/, const void * /*arg*/) {
             char header_buf[sizeof(nshead_t)];
             const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -199,7 +199,7 @@ namespace melon::rpc {
         };
 
         void ProcessNsheadRequest(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
 
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             SocketUniquePtr socket_guard(msg->ReleaseSocket());
@@ -213,7 +213,7 @@ namespace melon::rpc {
 
             NsheadService *service = server->options().nshead_service;
             if (service == nullptr) {
-                MELON_LOG_EVERY_SECOND(WARNING)
+                TURBO_LOG_EVERY_SECOND(WARNING)
                                 << "Received nshead request however the server does not set"
                                    " ServerOptions.nshead_service, close the connection.";
                 socket->SetFailed();
@@ -221,7 +221,7 @@ namespace melon::rpc {
             }
             void *space = malloc(sizeof(NsheadClosure) + service->_additional_space);
             if (!space) {
-                MELON_LOG(FATAL) << "Fail to new NsheadClosure";
+                TURBO_LOG(FATAL) << "Fail to new NsheadClosure";
                 socket->SetFailed();
                 return;
             }
@@ -230,7 +230,7 @@ namespace melon::rpc {
             non_service_error.release();
             MethodStatus *method_status = service->_status;
             if (method_status) {
-                MELON_CHECK(method_status->OnRequested());
+                TURBO_CHECK(method_status->OnRequested());
             }
 
             void *sub_space = nullptr;
@@ -288,7 +288,7 @@ namespace melon::rpc {
                 }
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::endpoint2str(socket->remote_side()).c_str());
+                                    turbo::endpoint2str(socket->remote_side()).c_str());
                     break;
                 }
                 if (!server_accessor.AddConcurrency(cntl)) {
@@ -307,7 +307,7 @@ namespace melon::rpc {
             msg.reset();  // optional, just release resourse ASAP
             if (span) {
                 span->ResetServerSpanName(service->_cached_name);
-                span->set_start_callback_us(melon::get_current_time_micros());
+                span->set_start_callback_us(turbo::get_current_time_micros());
                 span->AsParent();
             }
             if (!FLAGS_usercode_in_pthread) {
@@ -323,7 +323,7 @@ namespace melon::rpc {
         }
 
         void ProcessNsheadResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
 
             // Fetch correlation id that we saved before in `PackNsheadRequest'
@@ -331,8 +331,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -361,13 +361,13 @@ namespace melon::rpc {
         bool VerifyNsheadRequest(const InputMessageBase *msg_base) {
             Server *server = (Server *) msg_base->arg();
             if (server->options().auth) {
-                MELON_LOG(WARNING) << "nshead does not support authentication";
+                TURBO_LOG(WARNING) << "nshead does not support authentication";
                 return false;
             }
             return true;
         }
 
-        void SerializeNsheadRequest(melon::cord_buf *request_buf, Controller *cntl,
+        void SerializeNsheadRequest(turbo::cord_buf *request_buf, Controller *cntl,
                                     const google::protobuf::Message *req_base) {
             if (req_base == nullptr) {
                 return cntl->SetFailed(EREQUEST, "request is nullptr");
@@ -391,12 +391,12 @@ namespace melon::rpc {
         }
 
         void PackNsheadRequest(
-                melon::cord_buf *packet_buf,
+                turbo::cord_buf *packet_buf,
                 SocketMessage **,
                 uint64_t correlation_id,
                 const google::protobuf::MethodDescriptor *,
                 Controller *cntl,
-                const melon::cord_buf &request,
+                const turbo::cord_buf &request,
                 const Authenticator *) {
             ControllerPrivateAccessor accessor(cntl);
             if (cntl->connection_type() == CONNECTION_TYPE_SINGLE) {

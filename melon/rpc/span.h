@@ -25,9 +25,9 @@
 #include <string>
 #include <deque>
 #include <ostream>
-#include "melon/base/profile.h"
-#include "melon/base/endpoint.h"
-#include "melon/strings/string_splitter.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/endpoint.h"
+#include "turbo/strings/string_splitter.h"
 #include "melon/metrics/collector.h"
 #include "melon/fiber/internal/fiber_entity.h"
 #include "melon/rpc/options.pb.h"                 // ProtocolType
@@ -103,7 +103,7 @@ namespace melon::rpc {
 
         void set_ending_cid(fiber_token_t id) { _ending_cid = id; }
 
-        void set_remote_side(const melon::end_point &pt) { _remote_side = pt; }
+        void set_remote_side(const turbo::end_point &pt) { _remote_side = pt; }
 
         void set_protocol(ProtocolType p) { _protocol = p; }
 
@@ -145,7 +145,7 @@ namespace melon::rpc {
 
         fiber_token_t ending_cid() const { return _ending_cid; }
 
-        const melon::end_point &remote_side() const { return _remote_side; }
+        const turbo::end_point &remote_side() const { return _remote_side; }
 
         SpanType type() const { return _type; }
 
@@ -174,7 +174,7 @@ namespace melon::rpc {
         const std::string &info() const { return _info; }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(Span);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(Span);
 
         void dump_and_destroy(size_t round_index);
 
@@ -196,7 +196,7 @@ namespace melon::rpc {
         uint64_t _log_id;
         fiber_token_t _base_cid;
         fiber_token_t _ending_cid;
-        melon::end_point _remote_side;
+        turbo::end_point _remote_side;
         SpanType _type;
         bool _async;
         ProtocolType _protocol;
@@ -230,7 +230,7 @@ namespace melon::rpc {
                            int64_t *time, std::string *annotation);
 
     private:
-        melon::StringSplitter _sp;
+        turbo::StringSplitter _sp;
     };
 
 // These two functions can be used for composing TRACEPRINT as well as hiding

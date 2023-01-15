@@ -21,8 +21,8 @@
 #include <set>
 #include <gflags/gflags.h>                  // GetAllFlags
 // CommandLineFlagInfo
-#include "melon/strings/str_format.h"
-#include "melon/strings/string_splitter.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/string_splitter.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
@@ -121,7 +121,7 @@ namespace melon::rpc {
             cntl->SetFailed(ENOMETHOD, "No such gflag");
             return;
         }
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         const bool is_string = (info.type == "string");
         os << "<!DOCTYPE html><html><body>"
               "<form action='' method='get'>"
@@ -184,7 +184,7 @@ namespace melon::rpc {
                                 (value_str->empty() ? "empty string" : value_str->c_str()));
                 return;
             }
-            melon::cord_buf_builder os;
+            turbo::cord_buf_builder os;
             os << "Set `" << constraint << "' to " << *value_str;
             if (use_html) {
                 os << "<br><a href='/flags'>[back to flags]</a>";
@@ -197,7 +197,7 @@ namespace melon::rpc {
         std::vector<std::string> wildcards;
         std::set<std::string> exact;
         if (!constraint.empty()) {
-            for (melon::StringMultiSplitter sp(constraint.c_str(), ",;"); sp != nullptr; ++sp) {
+            for (turbo::StringMultiSplitter sp(constraint.c_str(), ",;"); sp != nullptr; ++sp) {
                 std::string name(sp.field(), sp.length());
                 if (name.find_first_of("$*") != std::string::npos) {
                     wildcards.push_back(name);
@@ -208,7 +208,7 @@ namespace melon::rpc {
         }
 
         // Print header of the table
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n" << gridtable_style()
                << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"

@@ -55,7 +55,7 @@ namespace melon::rpc {
         // can load values more easily.
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         std::string str;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n"
@@ -124,7 +124,7 @@ namespace melon::rpc {
             if (!sp.is_user_service()) {
                 continue;
             }
-            MELON_CHECK(sp.service);
+            TURBO_CHECK(sp.service);
             if (dynamic_cast<Tabbed *>(sp.service)) {
                 // Tabbed services are probably for monitoring, their own status
                 // are not important.

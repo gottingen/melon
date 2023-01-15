@@ -16,7 +16,7 @@
 // under the License.
 
 #include <limits>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/details/hpack.h"
 #include "melon/rpc/errno.pb.h"
 #include "melon/rpc/http2.h"
@@ -32,17 +32,17 @@ namespace melon::rpc {
 
     bool H2Settings::IsValid(bool log_error) const {
         if (stream_window_size > MAX_WINDOW_SIZE) {
-            MELON_LOG_IF(ERROR, log_error) << "Invalid stream_window_size=" << stream_window_size;
+            TURBO_LOG_IF(ERROR, log_error) << "Invalid stream_window_size=" << stream_window_size;
             return false;
         }
         if (connection_window_size < DEFAULT_INITIAL_WINDOW_SIZE ||
             connection_window_size > MAX_WINDOW_SIZE) {
-            MELON_LOG_IF(ERROR, log_error) << "Invalid connection_window_size=" << connection_window_size;
+            TURBO_LOG_IF(ERROR, log_error) << "Invalid connection_window_size=" << connection_window_size;
             return false;
         }
         if (max_frame_size < DEFAULT_MAX_FRAME_SIZE ||
             max_frame_size > MAX_OF_MAX_FRAME_SIZE) {
-            MELON_LOG_IF(ERROR, log_error) << "Invalid max_frame_size=" << max_frame_size;
+            TURBO_LOG_IF(ERROR, log_error) << "Invalid max_frame_size=" << max_frame_size;
             return false;
         }
         return true;

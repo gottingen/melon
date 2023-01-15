@@ -11,7 +11,7 @@ namespace melon {
 
     namespace metrics_detail {
         // Write a double as a string, with proper formatting for infinity and NaN
-        void write_value(cord_buf_builder *out, double value) {
+        void write_value(turbo::cord_buf_builder *out, double value) {
             if (std::isnan(value)) {
                 *out << "Nan";
             } else if (std::isinf(value)) {
@@ -23,7 +23,7 @@ namespace melon {
             }
         }
 
-        void write_value(cord_buf_builder *out, const std::string &value) {
+        void write_value(turbo::cord_buf_builder *out, const std::string &value) {
             for (auto c : value) {
                 if (c == '\\' || c == '"' || c == '\n') {
                     *out << "\\";
@@ -35,7 +35,7 @@ namespace melon {
 
         // Write a line header: metric name and labels
         template<typename T = std::string>
-        void write_head(cord_buf_builder *out, const cache_metrics &metric,
+        void write_head(turbo::cord_buf_builder *out, const cache_metrics &metric,
                         const std::string &suffix = "",
                         const std::string &extraLabelName = "",
                         const T &extraLabelValue = T()) {
@@ -61,28 +61,28 @@ namespace melon {
         }
 
         // Write a line trailer: timestamp
-        void write_tail(cord_buf_builder *out, const cache_metrics &metrics, const melon::time_point *tp) {
+        void write_tail(turbo::cord_buf_builder *out, const cache_metrics &metrics, const turbo::time_point *tp) {
             if (tp) {
                 *out << " " << tp->to_unix_millis();
             }
             *out << "\n";
         }
 
-        void serialize_counter(cord_buf_builder *out, const cache_metrics &metric, const melon::time_point *tp) {
+        void serialize_counter(turbo::cord_buf_builder *out, const cache_metrics &metric, const turbo::time_point *tp) {
             write_head(out, metric);
             write_value(out, metric.counter.value);
             write_tail(out, metric, tp);
         }
 
-        void serialize_gauge(cord_buf_builder *out,
-                             const cache_metrics &metric, const melon::time_point *tp) {
+        void serialize_gauge(turbo::cord_buf_builder *out,
+                             const cache_metrics &metric, const turbo::time_point *tp) {
             write_head(out, metric);
             write_value(out, metric.gauge.value);
             write_tail(out, metric, tp);
         }
 
-        void serialize_histogram(cord_buf_builder *out,
-                                 const cache_metrics &metric, const melon::time_point *tp) {
+        void serialize_histogram(turbo::cord_buf_builder *out,
+                                 const cache_metrics &metric, const turbo::time_point *tp) {
             auto &hist = metric.histogram;
             write_head(out, metric, "_count");
             *out << hist.sample_count;
@@ -109,7 +109,7 @@ namespace melon {
 
     }
 
-    bool prometheus_dumper::dump(const cache_metrics &metric, const melon::time_point *tp) {
+    bool prometheus_dumper::dump(const cache_metrics &metric, const turbo::time_point *tp) {
         *_buf << "# HELP " << metric.help << "\n";
 
         switch (metric.type) {
@@ -135,8 +135,8 @@ namespace melon {
         return true;
     }
 
-    std::string prometheus_dumper::dump_to_string(const cache_metrics &metric, const melon::time_point *tp) {
-        melon::cord_buf_builder out;
+    std::string prometheus_dumper::dump_to_string(const cache_metrics &metric, const turbo::time_point *tp) {
+        turbo::cord_buf_builder out;
         prometheus_dumper dumper(&out);
         dumper.dump(metric, tp);
         return out.buf().to_string();

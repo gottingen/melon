@@ -22,8 +22,8 @@
 #include <stdint.h>                                     // uint32_t
 #include <functional>
 #include <vector>                                       // std::vector
-#include "melon/base/endpoint.h"                              // melon::end_point
-#include "melon/container/doubly_buffered_data.h"
+#include "turbo/base/endpoint.h"                              // turbo::end_point
+#include "turbo/container/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 
 
@@ -46,7 +46,7 @@ namespace melon::rpc {
             struct Node {
                 uint32_t hash;
                 ServerId server_sock;
-                melon::end_point server_addr;  // To make sorting stable among all clients
+                turbo::end_point server_addr;  // To make sorting stable among all clients
                 bool operator<(const Node &rhs) const {
                     if (hash < rhs.hash) { return true; }
                     if (hash > rhs.hash) { return false; }
@@ -79,7 +79,7 @@ namespace melon::rpc {
         private:
             bool SetParameters(const std::string_view &params);
 
-            void GetLoads(std::map<melon::end_point, double> *load_map);
+            void GetLoads(std::map<turbo::end_point, double> *load_map);
 
             static size_t AddBatch(std::vector<Node> &bg, const std::vector<Node> &fg,
                                    const std::vector<Node> &servers, bool *executed);
@@ -92,7 +92,7 @@ namespace melon::rpc {
 
             size_t _num_replicas;
             ConsistentHashingLoadBalancerType _type;
-            melon::container::DoublyBufferedData<std::vector<Node> > _db_hash_ring;
+            turbo::container::DoublyBufferedData<std::vector<Node> > _db_hash_ring;
         };
 
     }  // namespace policy

@@ -21,11 +21,11 @@
 #include <string>                               // std::string
 #include <iostream>
 #include <gflags/gflags.h>
-#include "melon/base/profile.h"
-#include "melon/log/logging.h"                       // MELON_LOG
-#include "melon/base/scoped_lock.h"
-#include "melon/base/endpoint.h"
-#include "melon/base/base64.h"
+#include "turbo/base/profile.h"
+#include "turbo/log/logging.h"                       // TURBO_LOG
+#include "turbo/base/scoped_lock.h"
+#include "turbo/base/endpoint.h"
+#include "turbo/base/base64.h"
 #include "melon/fiber/internal/fiber.h"                    // melon::fiber_sleep_for
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"
@@ -95,7 +95,7 @@ namespace melon::rpc {
             http_message->_stage = HTTP_ON_HEADER_VALUE;
             first_entry = true;
             if (http_message->_cur_header.empty()) {
-                MELON_LOG(ERROR) << "Header name is empty";
+                TURBO_LOG(ERROR) << "Header name is empty";
                 return -1;
             }
             http_message->_cur_value =
@@ -108,18 +108,18 @@ namespace melon::rpc {
             http_message->_cur_value->append(at, length);
         }
         if (FLAGS_http_verbose) {
-            melon::cord_buf_builder *vs = http_message->_vmsgbuilder;
+            turbo::cord_buf_builder *vs = http_message->_vmsgbuilder;
             if (vs == nullptr) {
-                vs = new melon::cord_buf_builder;
+                vs = new turbo::cord_buf_builder;
                 http_message->_vmsgbuilder = vs;
                 if (parser->type == HTTP_REQUEST) {
-                    *vs << "[ HTTP REQUEST @" << melon::my_ip() << " ]\n< "
+                    *vs << "[ HTTP REQUEST @" << turbo::my_ip() << " ]\n< "
                         << HttpMethod2Str((HttpMethod) parser->method) << ' '
                         << http_message->_url << " HTTP/" << parser->http_major
                         << '.' << parser->http_minor;
                 } else {
                     // NOTE: http_message->header().status_code() may not be set yet.
-                    *vs << "[ HTTP RESPONSE @" << melon::my_ip() << " ]\n< HTTP/"
+                    *vs << "[ HTTP RESPONSE @" << turbo::my_ip() << " ]\n< HTTP/"
                         << parser->http_major
                         << '.' << parser->http_minor << ' ' << parser->status_code
                         << ' ' << HttpReasonPhrase(parser->status_code);
@@ -145,7 +145,7 @@ namespace melon::rpc {
         if (parser->http_major > 1) {
             // NOTE: this checking is a MUST because ProcessHttpResponse relies
             // on it to cast InputMessageBase* into different types.
-            MELON_LOG(WARNING) << "Invalid major_version=" << parser->http_major;
+            TURBO_LOG(WARNING) << "Invalid major_version=" << parser->http_major;
             parser->http_major = 1;
         }
         http_message->header().set_version(parser->http_major, parser->http_minor);
@@ -161,7 +161,7 @@ namespace melon::rpc {
         http_message->header().set_method(static_cast<HttpMethod>(parser->method));
         if (parser->type == HTTP_REQUEST &&
             http_message->header().uri().SetHttpURL(http_message->_url) != 0) {
-            MELON_LOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
+            TURBO_LOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
             return -1;
         }
         //rfc2616-sec5.2
@@ -186,12 +186,12 @@ namespace melon::rpc {
             mu.unlock();
             return 0;
         }
-        melon::cord_buf body_seen = _body.movable();
+        turbo::cord_buf body_seen = _body.movable();
         ProgressiveReader *r = _body_reader;
         mu.unlock();
         for (size_t i = 0; i < body_seen.backing_block_num(); ++i) {
             std::string_view blk = body_seen.backing_block(i);
-            melon::result_status st = r->OnReadOnePart(blk.data(), blk.size());
+            turbo::result_status st = r->OnReadOnePart(blk.data(), blk.size());
             if (!st.is_ok()) {
                 mu.lock();
                 _body_reader = nullptr;
@@ -223,14 +223,14 @@ namespace melon::rpc {
                 // description which is very helpful for debugging. Otherwise
                 // the body is probably streaming data which is too long to print.
                 header().status_code() == HTTP_STATUS_OK) {
-                MELON_LOG(INFO) << '\n' << _vmsgbuilder->buf();
+                TURBO_LOG(INFO) << '\n' << _vmsgbuilder->buf();
                 delete _vmsgbuilder;
                 _vmsgbuilder = nullptr;
             } else {
                 if (_vbodylen < (size_t) FLAGS_http_verbose_max_body_length) {
                     int plen = std::min(length, (size_t) FLAGS_http_verbose_max_body_length
                                                 - _vbodylen);
-                    std::string str = melon::to_printable_string(
+                    std::string str = turbo::to_printable_string(
                             at, plen, std::numeric_limits<size_t>::max());
                     _vmsgbuilder->write(str.data(), str.size());
                 }
@@ -271,7 +271,7 @@ namespace melon::rpc {
         if (UnlockAndFlushToBodyReader(mu) != 0) {
             return -1;
         }
-        melon::result_status st = r->OnReadOnePart(at, length);
+        turbo::result_status st = r->OnReadOnePart(at, length);
         if (st.is_ok()) {
             return 0;
         }
@@ -288,7 +288,7 @@ namespace melon::rpc {
                 *_vmsgbuilder << "\n<skipped " << _vbodylen
                                                   - (size_t) FLAGS_http_verbose_max_body_length << " bytes>";
             }
-            MELON_LOG(INFO) << '\n' << _vmsgbuilder->buf();
+            TURBO_LOG(INFO) << '\n' << _vmsgbuilder->buf();
             delete _vmsgbuilder;
             _vmsgbuilder = nullptr;
         }
@@ -313,7 +313,7 @@ namespace melon::rpc {
             ProgressiveReader *r = _body_reader;
             _body_reader = nullptr;
             mu.unlock();
-            r->OnEndOfMessage(melon::result_status());
+            r->OnEndOfMessage(turbo::result_status());
         }
         return 0;
     }
@@ -321,12 +321,12 @@ namespace melon::rpc {
     class FailAllRead : public ProgressiveReader {
     public:
         // @ProgressiveReader
-        melon::result_status OnReadOnePart(const void * /*data*/, size_t /*length*/) {
-            return melon::result_status(-1, "Trigger by FailAllRead at {}:{}",
+        turbo::result_status OnReadOnePart(const void * /*data*/, size_t /*length*/) {
+            return turbo::result_status(-1, "Trigger by FailAllRead at {}:{}",
                                              __FILE__, __LINE__);
         }
 
-        void OnEndOfMessage(const melon::result_status &) {}
+        void OnEndOfMessage(const turbo::result_status &) {}
     };
 
     static FailAllRead *s_fail_all_read = nullptr;
@@ -337,7 +337,7 @@ namespace melon::rpc {
     void HttpMessage::SetBodyReader(ProgressiveReader *r) {
         if (!_read_body_progressively) {
             return r->OnEndOfMessage(
-                    melon::result_status(EPERM, "Call SetBodyReader on HttpMessage with"
+                    turbo::result_status(EPERM, "Call SetBodyReader on HttpMessage with"
                                                      " read_body_progressively=false"));
         }
         const int MAX_TRY = 3;
@@ -347,7 +347,7 @@ namespace melon::rpc {
             if (_body_reader != nullptr) {
                 mu.unlock();
                 return r->OnEndOfMessage(
-                        melon::result_status(EPERM, "SetBodyReader is called more than once"));
+                        turbo::result_status(EPERM, "SetBodyReader is called more than once"));
             }
             if (_body.empty()) {
                 if (_stage <= HTTP_ON_BODY) {
@@ -355,7 +355,7 @@ namespace melon::rpc {
                     return;
                 } else {  // The body is complete and successfully consumed.
                     mu.unlock();
-                    return r->OnEndOfMessage(melon::result_status());
+                    return r->OnEndOfMessage(turbo::result_status());
                 }
             } else if (_stage <= HTTP_ON_BODY && ++ntry >= MAX_TRY) {
                 // Stop making _body empty after we've tried several times.
@@ -365,11 +365,11 @@ namespace melon::rpc {
                 _body_reader = r;
                 return;
             }
-            melon::cord_buf body_seen = _body.movable();
+            turbo::cord_buf body_seen = _body.movable();
             mu.unlock();
             for (size_t i = 0; i < body_seen.backing_block_num(); ++i) {
                 std::string_view blk = body_seen.backing_block(i);
-                melon::result_status st = r->OnReadOnePart(blk.data(), blk.size());
+                turbo::result_status st = r->OnReadOnePart(blk.data(), blk.size());
                 if (!st.is_ok()) {
                     r->OnEndOfMessage(st);
                     // Make OnBody() or OnMessageComplete() fail on next call to
@@ -411,7 +411,7 @@ namespace melon::rpc {
             // _body_reader here just means the socket is broken before completion
             // of the message.
             saved_body_reader->OnEndOfMessage(
-                    melon::result_status(ECONNRESET, "The socket was broken"));
+                    turbo::result_status(ECONNRESET, "The socket was broken"));
         }
     }
 
@@ -420,7 +420,7 @@ namespace melon::rpc {
             if (length == 0) {
                 return 0;
             }
-            MELON_LOG(ERROR) << "Append data(len=" << length
+            TURBO_LOG(ERROR) << "Append data(len=" << length
                              << ") to already-completed message";
             return -1;
         }
@@ -436,12 +436,12 @@ namespace melon::rpc {
         return nprocessed;
     }
 
-    ssize_t HttpMessage::ParseFromCordBuf(const melon::cord_buf &buf) {
+    ssize_t HttpMessage::ParseFromCordBuf(const turbo::cord_buf &buf) {
         if (Completed()) {
             if (buf.empty()) {
                 return 0;
             }
-            MELON_LOG(ERROR) << "Append data(len=" << buf.size()
+            TURBO_LOG(ERROR) << "Append data(len=" << buf.size()
                              << ") to already-completed message";
             return -1;
         }
@@ -457,7 +457,7 @@ namespace melon::rpc {
             if (_parser.http_errno != 0) {
                 // May try HTTP on other formats, failure is norm.
                 RPC_VLOG << "Fail to parse http message, parser=" << _parser
-                         << ", buf=" << melon::to_printable(buf);
+                         << ", buf=" << turbo::to_printable(buf);
                 return -1;
             }
             if (Completed()) {
@@ -534,11 +534,11 @@ namespace melon::rpc {
     //                | "CONNECT"                ; Section 9.9
     //                | extension-method
     // extension-method = token
-    void MakeRawHttpRequest(melon::cord_buf *request,
+    void MakeRawHttpRequest(turbo::cord_buf *request,
                             HttpHeader *h,
-                            const melon::end_point &remote_side,
-                            const melon::cord_buf *content) {
-        melon::cord_buf_builder os;
+                            const turbo::end_point &remote_side,
+                            const turbo::cord_buf *content) {
+        turbo::cord_buf_builder os;
         os << HttpMethod2Str(h->method()) << ' ';
         const URI &uri = h->uri();
         uri.PrintWithoutHost(os); // host is sent by "Host" header.
@@ -593,7 +593,7 @@ namespace melon::rpc {
             // characters in this part and even if users did, most of them are
             // invalid and rejected by http_parser_parse_url().
             std::string encoded_user_info;
-            melon::base::base64_encode(user_info, &encoded_user_info);
+            turbo::base::base64_encode(user_info, &encoded_user_info);
             os << "Authorization: Basic " << encoded_user_info << MELON_RPC_CRLF;
         }
         os << MELON_RPC_CRLF;  // CRLF before content
@@ -611,10 +611,10 @@ namespace melon::rpc {
     //                CRLF
     //                [ message-body ]          ; Section 7.2
     // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
-    void MakeRawHttpResponse(melon::cord_buf *response,
+    void MakeRawHttpResponse(turbo::cord_buf *response,
                              HttpHeader *h,
-                             melon::cord_buf *content) {
-        melon::cord_buf_builder os;
+                             turbo::cord_buf *content) {
+        turbo::cord_buf_builder os;
         os << "HTTP/" << h->major_version() << '.'
            << h->minor_version() << ' ' << h->status_code()
            << ' ' << h->reason_phrase() << MELON_RPC_CRLF;
@@ -636,7 +636,7 @@ namespace melon::rpc {
         os << MELON_RPC_CRLF;  // CRLF before content
         os.move_to(*response);
         if (content) {
-            response->append(melon::cord_buf::Movable(*content));
+            response->append(turbo::cord_buf::Movable(*content));
         }
     }
 

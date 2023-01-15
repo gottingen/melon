@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     options.max_concurrency = FLAGS_max_concurrency;
     options.internal_port = FLAGS_internal_port;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

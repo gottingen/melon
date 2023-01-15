@@ -23,7 +23,7 @@ namespace melon::rpc {
 
 ServerId2SocketIdMapper::ServerId2SocketIdMapper() {
     _tmp.reserve(128);
-    MELON_CHECK_EQ(0, _nref_map.init(128));
+    TURBO_CHECK_EQ(0, _nref_map.init(128));
 }
 
 ServerId2SocketIdMapper::~ServerId2SocketIdMapper() {
@@ -36,7 +36,7 @@ bool ServerId2SocketIdMapper::AddServer(const ServerId& server) {
 bool ServerId2SocketIdMapper::RemoveServer(const ServerId& server) {
     int* nref = _nref_map.seek(server.id);
     if (nref == nullptr) {
-        MELON_LOG(ERROR) << "Unexist SocketId=" << server.id;
+        TURBO_LOG(ERROR) << "Unexist SocketId=" << server.id;
         return false;
     }
     if (--*nref <= 0) {

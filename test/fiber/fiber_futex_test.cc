@@ -21,10 +21,10 @@
 #include <stdio.h>
 #include <signal.h>
 #include "testing/gtest_wrap.h"
-#include "melon/times/time.h"
-#include "melon/base/errno.h"
+#include "turbo/times/time.h"
+#include "turbo/base/errno.h"
 #include <limits.h>                            // INT_MAX
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/fiber/internal/fiber.h"
 #include <melon/fiber/internal/sys_futex.h>
 #include <melon/fiber/internal/processor.h>
@@ -44,8 +44,8 @@ namespace {
                 if (x > 0) {
                     while ((x = m->fetch_sub(1)) > 0) {
                         ++njob;
-                        const long start = melon::get_current_time_nanos();
-                        while (melon::get_current_time_nanos() < start + 10000) {
+                        const long start = turbo::get_current_time_nanos();
+                        while (turbo::get_current_time_nanos() < start + 10000) {
                         }
                         if (stop) {
                             return new int(njob);
@@ -68,11 +68,11 @@ namespace {
         const size_t N = 100000;
         std::atomic<int> lock1(0);
         pthread_t rth[8];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(rth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(rth); ++i) {
             ASSERT_EQ(0, pthread_create(&rth[i], nullptr, read_thread, &lock1));
         }
 
-        const int64_t t1 = melon::get_current_time_nanos();
+        const int64_t t1 = turbo::get_current_time_nanos();
         for (size_t i = 0; i < N; ++i) {
             if (nthread) {
                 lock1.fetch_add(1);
@@ -84,7 +84,7 @@ namespace {
                 }
             }
         }
-        const int64_t t2 = melon::get_current_time_nanos();
+        const int64_t t2 = turbo::get_current_time_nanos();
 
         melon::fiber_sleep_for(3000000);
         stop = true;
@@ -95,7 +95,7 @@ namespace {
 
         int njob = 0;
         int *res;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(rth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(rth); ++i) {
             pthread_join(rth[i], (void **) &res);
             njob += *res;
             delete res;
@@ -127,7 +127,7 @@ namespace {
 
         sleep(1);
         int nwakeup = 0;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         for (size_t i = 0; i < N; ++i) {
             nwakeup += melon::fiber_internal::futex_wake_private(&lock1, 1);
@@ -154,7 +154,7 @@ namespace {
         melon::fiber_sleep_for(10000);
         const size_t REP = 100000;
         int nwakeup = 0;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         for (size_t i = 0; i < REP; ++i) {
             nwakeup += melon::fiber_internal::futex_wake_private(lock, 1);
@@ -169,7 +169,7 @@ namespace {
         melon::fiber_sleep_for(10000);
         const size_t REP = 100000;
         int nwakeup = 0;
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         for (size_t i = 0; i < REP; ++i) {
             if (nevent.fetch_add(1, std::memory_order_relaxed) == 0) {
@@ -194,17 +194,17 @@ namespace {
         pthread_t th[8];
         int lock1;
         std::cout << "[Direct wake]" << std::endl;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, waker, &lock1));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
         std::cout << "[Batch wake]" << std::endl;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, batch_waker, &lock1));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
     }

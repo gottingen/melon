@@ -17,10 +17,10 @@
 
 #include "melon/rpc/policy/couchbase_authenticator.h"
 
-#include "melon/base/base64.h"
-#include "melon/io/cord_buf.h"
-#include "melon/strings/str_format.h"
-#include "melon/base/endian.h"
+#include "turbo/base/base64.h"
+#include "turbo/io/cord_buf.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/base/endian.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
 
 namespace melon::rpc {
@@ -38,8 +38,8 @@ namespace melon::rpc {
         int CouchbaseAuthenticator::GenerateCredential(std::string *auth_str) const {
             const melon::rpc::policy::MemcacheRequestHeader header = {
                     melon::rpc::policy::MC_MAGIC_REQUEST, melon::rpc::policy::MC_BINARY_SASL_AUTH,
-                    melon::base::melon_hton16(sizeof(kPlainAuthCommand) - 1), 0, 0, 0,
-                    melon::base::melon_hton32(sizeof(kPlainAuthCommand) + 1 +
+                    turbo::base::turbo_hton16(sizeof(kPlainAuthCommand) - 1), 0, 0, 0,
+                    turbo::base::turbo_hton32(sizeof(kPlainAuthCommand) + 1 +
                                               bucket_name_.length() * 2 + bucket_password_.length()),
                     0, 0};
             auth_str->clear();

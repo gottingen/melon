@@ -26,24 +26,24 @@ namespace melon::rpc {
     namespace policy {
 
         // Parse memcache messags.
-        ParseResult ParseMemcacheMessage(melon::cord_buf *source, Socket *socket, bool read_eof,
+        ParseResult ParseMemcacheMessage(turbo::cord_buf *source, Socket *socket, bool read_eof,
                                          const void *arg);
 
         // Actions to a memcache response.
         void ProcessMemcacheResponse(InputMessageBase *msg);
 
         // Serialize a memcache request.
-        void SerializeMemcacheRequest(melon::cord_buf *buf,
+        void SerializeMemcacheRequest(turbo::cord_buf *buf,
                                       Controller *cntl,
                                       const google::protobuf::Message *request);
 
         // Pack `request' to `method' into `buf'.
-        void PackMemcacheRequest(melon::cord_buf *buf,
+        void PackMemcacheRequest(turbo::cord_buf *buf,
                                  SocketMessage **,
                                  uint64_t correlation_id,
                                  const google::protobuf::MethodDescriptor *method,
                                  Controller *controller,
-                                 const melon::cord_buf &request,
+                                 const turbo::cord_buf &request,
                                  const Authenticator *auth);
 
         const std::string &GetMemcacheMethodName(

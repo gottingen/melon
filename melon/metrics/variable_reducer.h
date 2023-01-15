@@ -3,9 +3,9 @@
 #define  MELON_VARIABLE_REDUCER_H_
 
 #include <limits>                                 // std::numeric_limits
-#include "melon/log/logging.h"                         // MELON_LOG()
-#include "melon/base/type_traits.h"                     // melon::base::add_cr_non_integral
-#include "melon/base/class_name.h"                      // class_name_str
+#include "turbo/log/logging.h"                         // TURBO_LOG()
+#include "turbo/base/type_traits.h"                     // turbo::base::add_cr_non_integral
+#include "turbo/base/class_name.h"                      // class_name_str
 #include "melon/metrics/variable_base.h"                        // variable_base
 #include "melon/metrics/detail/combiner.h"                 // metrics_detail::agent_combiner
 #include "melon/metrics/detail/sampler.h"                  // reducer_sampler
@@ -45,7 +45,7 @@ namespace melon {
     // }
     // melon::Adder<MyType> my_type_sum;
     // my_type_sum << MyType(1) << MyType(2) << MyType(3);
-    // MELON_LOG(INFO) << my_type_sum;  // "MyType{6}"
+    // TURBO_LOG(INFO) << my_type_sum;  // "MyType{6}"
 
     template<typename T, typename Op, typename InvOp = metrics_detail::void_op>
     class variable_reducer : public variable_base {
@@ -72,7 +72,7 @@ namespace melon {
 
     public:
         // The `identify' must satisfy: identity Op a == a
-        variable_reducer(typename melon::add_cr_non_integral<T>::type identity = T(),
+        variable_reducer(typename turbo::add_cr_non_integral<T>::type identity = T(),
                 const Op &op = Op(),
                 const InvOp &inv_op = InvOp())
                 : _combiner(identity, identity, op), _sampler(nullptr), _series_sampler(nullptr), _inv_op(inv_op) {
@@ -93,15 +93,15 @@ namespace melon {
 
         // Add a value.
         // Returns self reference for chaining.
-        variable_reducer &operator<<(typename melon::add_cr_non_integral<T>::type value);
+        variable_reducer &operator<<(typename turbo::add_cr_non_integral<T>::type value);
 
         // Get reduced value.
         // Notice that this function walks through threads that ever add values
         // into this reducer. You should avoid calling it frequently.
         T get_value() const {
-            MELON_CHECK(!(std::is_same<InvOp, metrics_detail::void_op>::value) || _sampler == nullptr)
-                            << "You should not call variable_reducer<" << melon::base::class_name_str<T>()
-                            << ", " << melon::base::class_name_str<Op>() << ">::get_value() when a"
+            TURBO_CHECK(!(std::is_same<InvOp, metrics_detail::void_op>::value) || _sampler == nullptr)
+                            << "You should not call variable_reducer<" << turbo::base::class_name_str<T>()
+                            << ", " << turbo::base::class_name_str<Op>() << ">::get_value() when a"
                             << " window<> is used because the operator does not have inverse.";
             return _combiner.combine_agents();
         }
@@ -173,11 +173,11 @@ namespace melon {
 
     template<typename T, typename Op, typename InvOp>
     inline variable_reducer<T, Op, InvOp> &variable_reducer<T, Op, InvOp>::operator<<(
-            typename melon::add_cr_non_integral<T>::type value) {
+            typename turbo::add_cr_non_integral<T>::type value) {
         // It's wait-free for most time
         agent_type *agent = _combiner.get_or_create_tls_agent();
         if (__builtin_expect(!agent, 0)) {
-            MELON_LOG(FATAL) << "Fail to create agent";
+            TURBO_LOG(FATAL) << "Fail to create agent";
             return *this;
         }
         agent->element.modify(_combiner.op(), value);
@@ -188,13 +188,13 @@ namespace melon {
         template<typename Tp>
         struct add_to {
             void operator()(Tp &lhs,
-                            typename melon::add_cr_non_integral<Tp>::type rhs) const { lhs += rhs; }
+                            typename turbo::add_cr_non_integral<Tp>::type rhs) const { lhs += rhs; }
         };
 
         template<typename Tp>
         struct minus_from {
             void operator()(Tp &lhs,
-                            typename melon::add_cr_non_integral<Tp>::type rhs) const { lhs -= rhs; }
+                            typename turbo::add_cr_non_integral<Tp>::type rhs) const { lhs -= rhs; }
         };
     }
 
@@ -202,7 +202,7 @@ namespace melon {
         template<typename Tp>
         struct max_to {
             void operator()(Tp &lhs,
-                            typename melon::add_cr_non_integral<Tp>::type rhs) const {
+                            typename turbo::add_cr_non_integral<Tp>::type rhs) const {
                 // Use operator< as well.
                 if (lhs < rhs) {
                     lhs = rhs;
@@ -215,7 +215,7 @@ namespace melon {
         template<typename Tp>
         struct min_to {
             void operator()(Tp &lhs,
-                            typename melon::add_cr_non_integral<Tp>::type rhs) const {
+                            typename turbo::add_cr_non_integral<Tp>::type rhs) const {
                 if (rhs < lhs) {
                     lhs = rhs;
                 }

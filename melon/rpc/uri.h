@@ -20,9 +20,9 @@
 #define  MELON_RPC_URI_H_
 
 #include <string>                   // std::string
-#include "melon/container/flat_map.h"
-#include "melon/base/result_status.h"
-#include "melon/strings/string_splitter.h"
+#include "turbo/container/flat_map.h"
+#include "turbo/base/result_status.h"
+#include "turbo/strings/string_splitter.h"
 
 // To melon developers: This is a class exposed to end-user. DON'T put impl.
 // details in this header, use opaque pointers instead.
@@ -52,7 +52,7 @@ namespace melon::rpc {
     class URI {
     public:
         static const size_t QUERY_MAP_INITIAL_BUCKET = 16;
-        typedef melon::container::FlatMap<std::string, std::string> QueryMap;
+        typedef turbo::container::FlatMap<std::string, std::string> QueryMap;
         typedef QueryMap::const_iterator QueryIterator;
 
         // You can copy a URI.
@@ -79,12 +79,12 @@ namespace melon::rpc {
         void operator=(const std::string &url) { SetHttpURL(url); }
 
         // Status of previous SetHttpURL or opreator=.
-        const melon::result_status &status() const { return _st; }
+        const turbo::result_status &status() const { return _st; }
 
         // Sub fields. Empty string if the field is not set.
         const std::string &scheme() const { return _scheme; }
 
-        MELON_DEPRECATED const std::string &schema() const { return scheme(); }
+        TURBO_DEPRECATED const std::string &schema() const { return scheme(); }
 
         const std::string &host() const { return _host; }
 
@@ -106,7 +106,7 @@ namespace melon::rpc {
         // NOTE: The input MUST be guaranteed to be valid.
         void set_scheme(const std::string &scheme) { _scheme = scheme; }
 
-        MELON_DEPRECATED void set_schema(const std::string &s) { set_scheme(s); }
+        TURBO_DEPRECATED void set_schema(const std::string &s) { set_scheme(s); }
 
         void set_path(const std::string &path) { _path = path; }
 
@@ -166,7 +166,7 @@ namespace melon::rpc {
         // Iterate _query_map and append all queries to `query'
         void AppendQueryString(std::string *query, bool append_question_mark) const;
 
-        melon::result_status _st;
+        turbo::result_status _st;
         int _port;
         mutable bool _query_was_modified;
         mutable bool _initialized_query_map;
@@ -219,7 +219,7 @@ namespace melon::rpc {
     }
 
 // Split query in the format of "key1=value1&key2&key3=value3"
-    class QuerySplitter : public melon::KeyValuePairsSplitter {
+    class QuerySplitter : public turbo::KeyValuePairsSplitter {
     public:
         inline QuerySplitter(const char *str_begin, const char *str_end)
                 : KeyValuePairsSplitter(str_begin, str_end, '&', '=') {}

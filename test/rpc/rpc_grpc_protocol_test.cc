@@ -22,8 +22,8 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/grpc.h"
-#include "melon/times/time.h"
-#include "melon/strings/ends_with.h"
+#include "turbo/times/time.h"
+#include "turbo/strings/ends_with.h"
 #include "melon/fiber/this_fiber.h"
 #include "grpc.pb.h"
 
@@ -74,7 +74,7 @@ public:
                 EXPECT_EQ(-1, cntl->deadline_us());
             } else {
                 EXPECT_NEAR(cntl->deadline_us(),
-                    melon::get_current_time_micros() + req->timeout_us(), 5000);
+                    turbo::get_current_time_micros() + req->timeout_us(), 5000);
             }
         }
     }
@@ -174,7 +174,7 @@ TEST_F(GrpcTest, return_error) {
     stub.Method(&cntl, &req, &res, nullptr);
     EXPECT_TRUE(cntl.Failed());
     EXPECT_EQ(cntl.ErrorCode(), melon::rpc::EINTERNAL);
-    EXPECT_TRUE(melon::ends_with(cntl.ErrorText(), melon::string_printf("%s", g_prefix.c_str())));
+    EXPECT_TRUE(turbo::ends_with(cntl.ErrorText(), turbo::string_printf("%s", g_prefix.c_str())));
 }
 
 TEST_F(GrpcTest, RpcTimedOut) {
@@ -207,7 +207,7 @@ TEST_F(GrpcTest, MethodNotExist) {
     stub.MethodNotExist(&cntl, &req, &res, nullptr);
     EXPECT_TRUE(cntl.Failed());
     EXPECT_EQ(cntl.ErrorCode(), melon::rpc::EINTERNAL);
-    ASSERT_TRUE(melon::ends_with(cntl.ErrorText(), "Method MethodNotExist() not implemented."));
+    ASSERT_TRUE(turbo::ends_with(cntl.ErrorText(), "Method MethodNotExist() not implemented."));
 }
 
 TEST_F(GrpcTest, GrpcTimeOut) {
@@ -229,7 +229,7 @@ TEST_F(GrpcTest, GrpcTimeOut) {
     };
 
     // test all timeout format
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(timeouts); i = i + 2) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(timeouts); i = i + 2) {
         test::GrpcRequest req;
         test::GrpcResponse res;
         melon::rpc::Controller cntl;

@@ -78,7 +78,7 @@ namespace melon::fiber_internal {
         size_t get_sizes(size_t *counts, size_t n);
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(ListOfABAFreeId);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(ListOfABAFreeId);
 
         struct IdBlock {
             Id ids[token_traits::BLOCK_SIZE];
@@ -133,7 +133,7 @@ namespace melon::fiber_internal {
     int ListOfABAFreeId<Id, token_traits>::add(Id id) {
         // Scan for at most 4 positions, if any of them is empty, use the position.
         Id *saved_pos[4];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(saved_pos); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(saved_pos); ++i) {
             Id *const pos = _cur_block->ids + _cur_index;
             forward_index();
             // The position is not used.

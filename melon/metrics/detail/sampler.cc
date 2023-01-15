@@ -1,6 +1,6 @@
 
-#include "melon/times/time.h"
-#include "melon/base/singleton_on_pthread_once.h"
+#include "turbo/times/time.h"
+#include "turbo/base/singleton_on_pthread_once.h"
 #include "melon/metrics/variable_reducer.h"
 #include "melon/metrics/detail/sampler.h"
 #include "melon/metrics/gauge.h"
@@ -64,13 +64,13 @@ namespace melon {
             // * A forked program can be forked again.
 
             static void child_callback_atfork() {
-                melon::get_leaky_singleton<sampler_collector>()->after_forked_as_child();
+                turbo::get_leaky_singleton<sampler_collector>()->after_forked_as_child();
             }
 
             void create_sampling_thread() {
                 const int rc = pthread_create(&_tid, nullptr, sampling_thread, this);
                 if (rc != 0) {
-                    MELON_LOG(FATAL) << "Fail to create sampling_thread, " << melon_error(rc);
+                    TURBO_LOG(FATAL) << "Fail to create sampling_thread, " << turbo_error(rc);
                 } else {
                     _created = true;
                     if (!registered_atfork) {
@@ -126,19 +126,19 @@ namespace melon {
             }
 #endif
 
-            melon::container::link_node<variable_sampler> root;
+            turbo::container::link_node<variable_sampler> root;
             int consecutive_nosleep = 0;
             while (!_stop) {
-                int64_t abstime = melon::get_current_time_micros();
+                int64_t abstime = turbo::get_current_time_micros();
                 variable_sampler *s = this->reset();
                 if (s) {
                     s->insert_before_as_list(&root);
                 }
                 int nremoved = 0;
                 int nsampled = 0;
-                for (melon::container::link_node<variable_sampler> *p = root.next(); p != &root;) {
+                for (turbo::container::link_node<variable_sampler> *p = root.next(); p != &root;) {
                     // We may remove p from the list, save next first.
-                    melon::container::link_node<variable_sampler> *saved_next = p->next();
+                    turbo::container::link_node<variable_sampler> *saved_next = p->next();
                     variable_sampler *s = p->value();
                     s->_mutex.lock();
                     if (!s->_used) {
@@ -154,20 +154,20 @@ namespace melon {
                     p = saved_next;
                 }
                 bool slept = false;
-                int64_t now = melon::get_current_time_micros();
+                int64_t now = turbo::get_current_time_micros();
                 _cumulated_time_us += now - abstime;
                 abstime += 1000000L;
                 while (abstime > now) {
                     ::usleep(abstime - now);
                     slept = true;
-                    now = melon::get_current_time_micros();
+                    now = turbo::get_current_time_micros();
                 }
                 if (slept) {
                     consecutive_nosleep = 0;
                 } else {
                     if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                         consecutive_nosleep = 0;
-                        MELON_LOG(WARNING) << "variable is busy at sampling for "
+                        TURBO_LOG(WARNING) << "variable is busy at sampling for "
                                            << WARN_NOSLEEP_THRESHOLD << " seconds!";
                     }
                 }
@@ -179,7 +179,7 @@ namespace melon {
         variable_sampler::~variable_sampler() {}
 
         void variable_sampler::schedule() {
-            *melon::get_leaky_singleton<sampler_collector>() << this;
+            *turbo::get_leaky_singleton<sampler_collector>() << this;
         }
 
         void variable_sampler::destroy() {

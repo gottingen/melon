@@ -17,10 +17,10 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/base/fd_guard.h"                      // fd_guard
-#include "melon/log/logging.h"                       // MELON_CHECK
-#include "melon/times/time.h"                          // cpuwide_time_us
-#include "melon/base/fd_utility.h"                    // make_non_blocking
+#include "turbo/base/fd_guard.h"                      // fd_guard
+#include "turbo/log/logging.h"                       // TURBO_CHECK
+#include "turbo/times/time.h"                          // cpuwide_time_us
+#include "turbo/base/fd_utility.h"                    // make_non_blocking
 #include "melon/fiber/internal/fiber.h"                     // fiber_start_background
 #include "melon/fiber/internal/unstable.h"                   // fiber_flush
 #include "melon/metrics/all.h"                          // melon::Adder
@@ -80,7 +80,7 @@ namespace melon::rpc {
                     return result;
                 } else if (result.error() != PARSE_ERROR_TRY_OTHERS) {
                     // Critical error, return directly.
-                    MELON_LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
+                    TURBO_LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
                                     << "A message from " << m->remote_side()
                                     << "(protocol=" << _handlers[cur_index].name
                                     << ") is bigger than " << FLAGS_max_body_size
@@ -96,7 +96,7 @@ namespace melon::rpc {
                         continue;
                     } else {
                         // The protocol is fixed at client-side, no need to try others.
-                        MELON_LOG(ERROR) << "Fail to parse response from " << m->remote_side()
+                        TURBO_LOG(ERROR) << "Fail to parse response from " << m->remote_side()
                                          << " by " << _handlers[preferred].name
                                          << " at client-side";
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
@@ -126,7 +126,7 @@ namespace melon::rpc {
                 return result;
             } else if (result.error() != PARSE_ERROR_TRY_OTHERS) {
                 // Critical error, return directly.
-                MELON_LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
+                TURBO_LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
                                 << "A message from " << m->remote_side()
                                 << "(protocol=" << _handlers[i].name
                                 << ") is bigger than " << FLAGS_max_body_size
@@ -184,7 +184,7 @@ namespace melon::rpc {
         // - If the socket has only one message, the message will be parsed and
         //   processed in this fiber. nova-pbrpc and http works in this way.
         // - If the socket has several messages, all messages will be parsed (
-        //   meaning cutting from melon::cord_buf. serializing from protobuf is part of
+        //   meaning cutting from turbo::cord_buf. serializing from protobuf is part of
         //   "process") in this fiber. All messages except the last one will be
         //   processed in separate fibers. To minimize the overhead, scheduling
         //   is batched(notice the FIBER_NOSIGNAL and fiber_flush).
@@ -200,8 +200,8 @@ namespace melon::rpc {
         std::unique_ptr<InputMessageBase, RunLastMessage> last_msg;
         bool read_eof = false;
         while (!read_eof) {
-            const int64_t received_us = melon::get_current_time_micros();
-            const int64_t base_realtime = melon::get_current_time_micros() - received_us;
+            const int64_t received_us = turbo::get_current_time_micros();
+            const int64_t base_realtime = turbo::get_current_time_micros() - received_us;
 
             // Calculate bytes to be read.
             size_t once_read = m->_avg_msg_size * 16;
@@ -218,16 +218,16 @@ namespace melon::rpc {
                     // Set `read_eof' flag and proceed to feed EOF into `Protocol'
                     // (implied by m->_read_buf.empty), which may produce a new
                     // `InputMessageBase' under some protocols such as HTTP
-                    MELON_LOG_IF(WARNING, FLAGS_log_connection_close) << *m << " was closed by remote side";
+                    TURBO_LOG_IF(WARNING, FLAGS_log_connection_close) << *m << " was closed by remote side";
                     read_eof = true;
                 } else if (errno != EAGAIN) {
                     if (errno == EINTR) {
                         continue;  // just retry
                     }
                     const int saved_errno = errno;
-                    MELON_PLOG(WARNING) << "Fail to read from " << *m;
+                    TURBO_PLOG(WARNING) << "Fail to read from " << *m;
                     m->SetFailed(saved_errno, "Fail to read from %s: %s",
-                                 m->description().c_str(), melon_error(saved_errno));
+                                 m->description().c_str(), turbo_error(saved_errno));
                     return;
                 } else if (!m->MoreReadEvents(&progress)) {
                     return;
@@ -254,14 +254,14 @@ namespace melon::rpc {
                         m->_last_msg_size += (last_size - m->_read_buf.length());
                         break;
                     } else if (pr.error() == PARSE_ERROR_TRY_OTHERS) {
-                        MELON_LOG(WARNING)
+                        TURBO_LOG(WARNING)
                                 << "Close " << *m << " due to unknown message: "
-                                << melon::to_printable(m->_read_buf);
+                                << turbo::to_printable(m->_read_buf);
                         m->SetFailed(EINVAL, "Close %s due to unknown message",
                                      m->description().c_str());
                         return;
                     } else {
-                        MELON_LOG(WARNING) << "Close " << *m << ": " << pr.error_str();
+                        TURBO_LOG(WARNING) << "Close " << *m << ": " << pr.error_str();
                         m->SetFailed(EINVAL, "Close %s: %s",
                                      m->description().c_str(), pr.error_str());
                         return;
@@ -301,7 +301,7 @@ namespace melon::rpc {
                 QueueMessage(last_msg.release(), &num_fiber_created,
                              m->_keytable_pool);
                 if (handlers[index].process == nullptr) {
-                    MELON_LOG(ERROR) << "process of index=" << index << " is nullptr";
+                    TURBO_LOG(ERROR) << "process of index=" << index << " is nullptr";
                     continue;
                 }
                 m->ReAddress(&msg->_socket);
@@ -317,13 +317,13 @@ namespace melon::rpc {
                             m->SetAuthentication(0);
                         } else {
                             m->SetAuthentication(ERPCAUTH);
-                            MELON_LOG(WARNING) << "Fail to authenticate " << *m;
+                            TURBO_LOG(WARNING) << "Fail to authenticate " << *m;
                             m->SetFailed(ERPCAUTH, "Fail to authenticate %s",
                                          m->description().c_str());
                             return;
                         }
                     } else {
-                        MELON_LOG_IF(FATAL, auth_error != 0) <<
+                        TURBO_LOG_IF(FATAL, auth_error != 0) <<
                                                              "Impossible! Socket should have been "
                                                              "destroyed when authentication failed";
                     }
@@ -362,31 +362,31 @@ namespace melon::rpc {
     int InputMessenger::AddHandler(const InputMessageHandler &handler) {
         if (handler.parse == nullptr || handler.process == nullptr
             || handler.name == nullptr) {
-            MELON_CHECK(false) << "Invalid argument";
+            TURBO_CHECK(false) << "Invalid argument";
             return -1;
         }
-        MELON_SCOPED_LOCK(_add_handler_mutex);
+        TURBO_SCOPED_LOCK(_add_handler_mutex);
         if (nullptr == _handlers) {
             _handlers = new(std::nothrow) InputMessageHandler[_capacity];
             if (nullptr == _handlers) {
-                MELON_LOG(FATAL) << "Fail to new array of InputMessageHandler";
+                TURBO_LOG(FATAL) << "Fail to new array of InputMessageHandler";
                 return -1;
             }
             memset(_handlers, 0, sizeof(*_handlers) * _capacity);
             _non_protocol = false;
         }
         if (_non_protocol) {
-            MELON_CHECK(false) << "AddNonProtocolHandler was invoked";
+            TURBO_CHECK(false) << "AddNonProtocolHandler was invoked";
             return -1;
         }
         ProtocolType type = FindProtocolOfHandler(handler);
         if (type == PROTOCOL_UNKNOWN) {
-            MELON_CHECK(false) << "Adding a handler which doesn't belong to any protocol";
+            TURBO_CHECK(false) << "Adding a handler which doesn't belong to any protocol";
             return -1;
         }
         const int index = type;
         if (index >= (int) _capacity) {
-            MELON_LOG(FATAL) << "Can't add more handlers than " << _capacity;
+            TURBO_LOG(FATAL) << "Can't add more handlers than " << _capacity;
             return -1;
         }
         if (_handlers[index].parse == nullptr) {
@@ -394,8 +394,8 @@ namespace melon::rpc {
             _handlers[index] = handler;
         } else if (_handlers[index].parse != handler.parse
                    || _handlers[index].process != handler.process) {
-            MELON_CHECK(_handlers[index].parse == handler.parse);
-            MELON_CHECK(_handlers[index].process == handler.process);
+            TURBO_CHECK(_handlers[index].parse == handler.parse);
+            TURBO_CHECK(_handlers[index].process == handler.process);
             return -1;
         }
         if (index > _max_index.load(std::memory_order_relaxed)) {
@@ -407,21 +407,21 @@ namespace melon::rpc {
     int InputMessenger::AddNonProtocolHandler(const InputMessageHandler &handler) {
         if (handler.parse == nullptr || handler.process == nullptr
             || handler.name == nullptr) {
-            MELON_CHECK(false) << "Invalid argument";
+            TURBO_CHECK(false) << "Invalid argument";
             return -1;
         }
-        MELON_SCOPED_LOCK(_add_handler_mutex);
+        TURBO_SCOPED_LOCK(_add_handler_mutex);
         if (nullptr == _handlers) {
             _handlers = new(std::nothrow) InputMessageHandler[_capacity];
             if (nullptr == _handlers) {
-                MELON_LOG(FATAL) << "Fail to new array of InputMessageHandler";
+                TURBO_LOG(FATAL) << "Fail to new array of InputMessageHandler";
                 return -1;
             }
             memset(_handlers, 0, sizeof(*_handlers) * _capacity);
             _non_protocol = true;
         }
         if (!_non_protocol) {
-            MELON_CHECK(false) << "AddHandler was invoked";
+            TURBO_CHECK(false) << "AddHandler was invoked";
             return -1;
         }
         const int index = _max_index.load(std::memory_order_relaxed) + 1;
@@ -430,7 +430,7 @@ namespace melon::rpc {
         return 0;
     }
 
-    int InputMessenger::Create(const melon::end_point &remote_side,
+    int InputMessenger::Create(const turbo::end_point &remote_side,
                                time_t health_check_interval_s,
                                SocketId *id) {
         SocketOptions options;

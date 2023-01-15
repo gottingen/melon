@@ -2,7 +2,7 @@
 #ifndef  MELON_VARIABLE_SCOPED_TIMER_H_
 #define  MELON_VARIABLE_SCOPED_TIMER_H_
 
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 // Accumulate microseconds spent by scopes into variable, useful for debugging.
 // Example:
@@ -23,16 +23,16 @@ namespace melon {
     class scoped_timer {
     public:
         explicit scoped_timer(T &variable)
-                : _start_time(melon::get_current_time_micros()), _var(&variable) {}
+                : _start_time(turbo::get_current_time_micros()), _var(&variable) {}
 
         ~scoped_timer() {
-            *_var << (melon::get_current_time_micros() - _start_time);
+            *_var << (turbo::get_current_time_micros() - _start_time);
         }
 
-        void reset() { _start_time = melon::get_current_time_micros(); }
+        void reset() { _start_time = turbo::get_current_time_micros(); }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(scoped_timer);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(scoped_timer);
 
         int64_t _start_time;
         T *_var;

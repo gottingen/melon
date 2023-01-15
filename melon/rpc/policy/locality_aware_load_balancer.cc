@@ -18,8 +18,8 @@
 
 #include <limits>                                            // numeric_limits
 #include <gflags/gflags.h>
-#include "melon/times/time.h"                                       // gettimeofday_us
-#include "melon/base/fast_rand.h"
+#include "turbo/times/time.h"                                       // gettimeofday_us
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/reloadable_flags.h"
@@ -263,7 +263,7 @@ namespace melon::rpc {
         }
 
         int LocalityAwareLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 return ENOMEM;
             }
@@ -274,7 +274,7 @@ namespace melon::rpc {
             size_t ntry = 0;
             size_t nloop = 0;
             int64_t total = _total.load(std::memory_order_relaxed);
-            int64_t dice = melon::base::fast_rand_less_than(total);
+            int64_t dice = turbo::base::fast_rand_less_than(total);
             size_t index = 0;
             int64_t self = 0;
             while (total > 0) {
@@ -282,7 +282,7 @@ namespace melon::rpc {
                 // falls into infinite loop. This branch should never be entered in
                 // production servers. If it does, there must be a bug.
                 if (++nloop > 10000) {
-                    MELON_LOG(ERROR) << "A selection runs too long!";
+                    TURBO_LOG(ERROR) << "A selection runs too long!";
                     return EHOSTDOWN;
                 }
 
@@ -347,14 +347,14 @@ namespace melon::rpc {
                     }
                 }
                 total = _total.load(std::memory_order_relaxed);
-                dice = melon::base::fast_rand_less_than(total);
+                dice = turbo::base::fast_rand_less_than(total);
                 index = 0;
             }
             return EHOSTDOWN;
         }
 
         void LocalityAwareLoadBalancer::Feedback(const CallInfo &info) {
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 return;
             }
@@ -373,9 +373,9 @@ namespace melon::rpc {
 
         int64_t LocalityAwareLoadBalancer::Weight::Update(
                 const CallInfo &ci, size_t index) {
-            const int64_t end_time_us = melon::get_current_time_micros();
+            const int64_t end_time_us = turbo::get_current_time_micros();
             const int64_t latency = end_time_us - ci.begin_time_us;
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (Disabled()) {
                 // The weight was disabled and will be removed soon, do nothing
                 // and the diff is 0.
@@ -517,11 +517,11 @@ namespace melon::rpc {
             }
             os << "LocalityAware{total="
                << _total.load(std::memory_order_relaxed) << ' ';
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 os << "fail to read _db_servers";
             } else {
-                const int64_t now = melon::get_current_time_micros();
+                const int64_t now = turbo::get_current_time_micros();
                 const size_t n = s->weight_tree.size();
                 os << '[';
                 for (size_t i = 0; i < n; ++i) {
@@ -546,14 +546,14 @@ namespace melon::rpc {
         LocalityAwareLoadBalancer::Weight::Weight(int64_t initial_weight)
                 : _weight(initial_weight), _base_weight(initial_weight), _begin_time_sum(0), _begin_time_count(0),
                   _old_diff_sum(0), _old_index((size_t) -1L), _old_weight(0), _avg_latency(0),
-                  _time_q(_time_q_items, sizeof(_time_q_items), melon::container::NOT_OWN_STORAGE) {
+                  _time_q(_time_q_items, sizeof(_time_q_items), turbo::container::NOT_OWN_STORAGE) {
         }
 
         LocalityAwareLoadBalancer::Weight::~Weight() {
         }
 
         int64_t LocalityAwareLoadBalancer::Weight::Disable() {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             const int64_t saved = _weight;
             _base_weight = -1;
             _weight = 0;
@@ -561,7 +561,7 @@ namespace melon::rpc {
         }
 
         int64_t LocalityAwareLoadBalancer::Weight::MarkOld(size_t index) {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             const int64_t saved = _weight;
             _old_weight = saved;
             _old_diff_sum = 0;
@@ -570,7 +570,7 @@ namespace melon::rpc {
         }
 
         std::pair<int64_t, int64_t> LocalityAwareLoadBalancer::Weight::ClearOld() {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             const int64_t old_weight = _old_weight;
             const int64_t diff = _old_diff_sum;
             _old_diff_sum = 0;

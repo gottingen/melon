@@ -18,7 +18,7 @@
 #ifndef MELON_RPC_CIRCUIT_BREAKER_H_
 #define MELON_RPC_CIRCUIT_BREAKER_H_
 
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 
 namespace melon::rpc {
 

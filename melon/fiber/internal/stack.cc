@@ -23,9 +23,9 @@
 #include <sys/mman.h>                             // mmap, munmap, mprotect
 #include <algorithm>                              // std::max
 #include <cstdlib>                               // posix_memalign
-#include "melon/base/singleton_on_pthread_once.h"
-#include "melon/base/dynamic_annotations/dynamic_annotations.h" // RunningOnValgrind
-#include "melon/base/valgrind/valgrind.h"   // VALGRIND_STACK_REGISTER
+#include "turbo/base/singleton_on_pthread_once.h"
+#include "turbo/base/dynamic_annotations/dynamic_annotations.h" // RunningOnValgrind
+#include "turbo/base/valgrind/valgrind.h"   // VALGRIND_STACK_REGISTER
 #include "melon/metrics/gauge.h"
 #include "melon/fiber/internal/types.h"                        // FIBER_STACKTYPE_*
 #include "melon/fiber/internal/stack.h"
@@ -45,7 +45,7 @@ namespace melon::fiber_internal {
     static_assert(FIBER_STACKTYPE_LARGE == STACK_TYPE_LARGE, "must match");
     static_assert(STACK_TYPE_MAIN == 0, "must_be_0");
 
-    static melon::static_atomic<int64_t> s_stack_count = MELON_STATIC_ATOMIC_INIT(0);
+    static turbo::static_atomic<int64_t> s_stack_count = TURBO_STATIC_ATOMIC_INIT(0);
 
     static int64_t get_stack_count(void *) {
         return s_stack_count.load(std::memory_order_relaxed);
@@ -68,7 +68,7 @@ namespace melon::fiber_internal {
         if (guardsize_in <= 0) {
             void *mem = malloc(stacksize);
             if (nullptr == mem) {
-                MELON_PLOG_EVERY_SECOND(ERROR) << "Fail to malloc (size="
+                TURBO_PLOG_EVERY_SECOND(ERROR) << "Fail to malloc (size="
                                          << stacksize << ")";
                 return -1;
             }
@@ -94,7 +94,7 @@ namespace melon::fiber_internal {
                                    (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
 
             if (MAP_FAILED == mem) {
-                MELON_PLOG_EVERY_SECOND(ERROR)
+                TURBO_PLOG_EVERY_SECOND(ERROR)
                                 << "Fail to mmap size=" << memsize << " stack_count="
                                 << s_stack_count.load(std::memory_order_relaxed)
                                 << ", possibly limited by /proc/sys/vm/max_map_count";
@@ -104,14 +104,14 @@ namespace melon::fiber_internal {
 
             void *aligned_mem = (void *) (((intptr_t) mem + PAGESIZE_M1) & ~PAGESIZE_M1);
             if (aligned_mem != mem) {
-                MELON_LOG_ONCE(ERROR) << "addr=" << mem << " returned by mmap is not "
+                TURBO_LOG_ONCE(ERROR) << "addr=" << mem << " returned by mmap is not "
                                                      "aligned by pagesize=" << PAGESIZE;
             }
             const int offset = (char *) aligned_mem - (char *) mem;
             if (guardsize <= offset ||
                 mprotect(aligned_mem, guardsize - offset, PROT_NONE) != 0) {
                 munmap(mem, memsize);
-                MELON_PLOG_EVERY_SECOND(ERROR)
+                TURBO_PLOG_EVERY_SECOND(ERROR)
                                 << "Fail to mprotect " << (void *) aligned_mem << " length="
                                 << guardsize - offset;
                 return -1;

@@ -20,10 +20,10 @@
 #define MELON_RPC_HTTP_MESSAGE_H_
 
 #include <string>                      // std::string
-#include "melon/base/profile.h"
-#include "melon/io/cord_buf.h"               // melon::cord_buf
-#include "melon/base/scoped_lock.h"
-#include "melon/base/endpoint.h"
+#include "turbo/base/profile.h"
+#include "turbo/io/cord_buf.h"               // turbo::cord_buf
+#include "turbo/base/scoped_lock.h"
+#include "turbo/base/endpoint.h"
 #include "melon/rpc/details/http_parser.h"  // http_parser
 #include "melon/rpc/http_header.h"          // HttpHeader
 #include "melon/rpc/progressive_reader.h"   // ProgressiveReader
@@ -50,18 +50,18 @@ namespace melon::rpc {
 
         ~HttpMessage();
 
-        const melon::cord_buf &body() const { return _body; }
+        const turbo::cord_buf &body() const { return _body; }
 
-        melon::cord_buf &body() { return _body; }
+        turbo::cord_buf &body() { return _body; }
 
         // Parse from array, length=0 is treated as EOF.
         // Returns bytes parsed, -1 on failure.
         ssize_t ParseFromArray(const char *data, const size_t length);
 
-        // Parse from melon::cord_buf.
+        // Parse from turbo::cord_buf.
         // Emtpy `buf' is sliently ignored, which is different from ParseFromArray.
         // Returns bytes parsed, -1 on failure.
-        ssize_t ParseFromCordBuf(const melon::cord_buf &buf);
+        ssize_t ParseFromCordBuf(const turbo::cord_buf &buf);
 
         bool Completed() const { return _stage == HTTP_ON_MESSAGE_COMPLETE; }
 
@@ -107,7 +107,7 @@ namespace melon::rpc {
         size_t _parsed_length;
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(HttpMessage);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(HttpMessage);
 
         int UnlockAndFlushToBodyReader(std::unique_lock<std::mutex> &locked);
 
@@ -119,7 +119,7 @@ namespace melon::rpc {
         std::mutex _body_mutex;
         // Read body progressively
         ProgressiveReader *_body_reader;
-        melon::cord_buf _body;
+        turbo::cord_buf _body;
 
         // Parser related members
         struct http_parser _parser;
@@ -128,7 +128,7 @@ namespace melon::rpc {
 
     protected:
         // Only valid when -http_verbose is on
-        melon::cord_buf_builder *_vmsgbuilder;
+        turbo::cord_buf_builder *_vmsgbuilder;
         size_t _vbodylen;
     };
 
@@ -138,17 +138,17 @@ namespace melon::rpc {
 // header: may be modified in some cases
 // remote_side: used when "Host" is absent
 // content: could be nullptr.
-    void MakeRawHttpRequest(melon::cord_buf *request,
+    void MakeRawHttpRequest(turbo::cord_buf *request,
                             HttpHeader *header,
-                            const melon::end_point &remote_side,
-                            const melon::cord_buf *content);
+                            const turbo::end_point &remote_side,
+                            const turbo::cord_buf *content);
 
     // Serialize a http response.
     // header: may be modified in some cases
     // content: cleared after usage. could be nullptr.
-    void MakeRawHttpResponse(melon::cord_buf *response,
+    void MakeRawHttpResponse(turbo::cord_buf *response,
                              HttpHeader *header,
-                             melon::cord_buf *content);
+                             turbo::cord_buf *content);
 
 } // namespace melon::rpc
 

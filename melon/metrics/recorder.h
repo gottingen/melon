@@ -3,7 +3,7 @@
 #define  MELON_VARIABLE_RECORDER_H_
 
 #include <stdint.h>                              // int64_t uint64_t
-#include "melon/log/logging.h"                        // MELON_LOG
+#include "turbo/log/logging.h"                        // TURBO_LOG
 #include "melon/metrics/detail/combiner.h"                // detail::agent_combiner
 #include "melon/metrics/variable_base.h"
 #include "melon/metrics/window.h"
@@ -68,7 +68,7 @@ namespace melon {
     // Example:
     //   IntRecorder latency;
     //   latency << 1 << 3 << 5;
-    //   MELON_CHECK_EQ(3, latency.average());
+    //   TURBO_CHECK_EQ(3, latency.average());
     class IntRecorder : public variable_base {
     public:
         // Compressing format:
@@ -227,7 +227,7 @@ namespace melon {
     };
 
     inline IntRecorder &IntRecorder::operator<<(int64_t sample) {
-        if (MELON_UNLIKELY((int64_t) (int) sample != sample)) {
+        if (TURBO_UNLIKELY((int64_t) (int) sample != sample)) {
             const char *reason = nullptr;
             if (sample > std::numeric_limits<int>::max()) {
                 reason = "overflows";
@@ -239,19 +239,19 @@ namespace melon {
             // Truncate to be max or min of int. We're using 44 bits to store the
             // sum thus following aggregations are not likely to be over/underflow.
             if (!name().empty()) {
-                MELON_LOG(WARNING) << "Input=" << sample << " to `" << name()
+                TURBO_LOG(WARNING) << "Input=" << sample << " to `" << name()
                                    << "\' " << reason;
             } else if (!_debug_name.empty()) {
-                MELON_LOG(WARNING) << "Input=" << sample << " to `" << _debug_name
+                TURBO_LOG(WARNING) << "Input=" << sample << " to `" << _debug_name
                                    << "\' " << reason;
             } else {
-                MELON_LOG(WARNING) << "Input=" << sample << " to IntRecorder("
+                TURBO_LOG(WARNING) << "Input=" << sample << " to IntRecorder("
                                    << (void *) this << ") " << reason;
             }
         }
         agent_type *agent = _combiner.get_or_create_tls_agent();
-        if (MELON_UNLIKELY(!agent)) {
-            MELON_LOG(FATAL) << "Fail to create agent";
+        if (TURBO_UNLIKELY(!agent)) {
+            TURBO_LOG(FATAL) << "Fail to create agent";
             return *this;
         }
         uint64_t n;
@@ -262,7 +262,7 @@ namespace melon {
         do {
             num = _get_num(n);
             sum = _get_sum(n);
-            if (MELON_UNLIKELY((num + 1 > MAX_NUM_PER_THREAD) ||
+            if (TURBO_UNLIKELY((num + 1 > MAX_NUM_PER_THREAD) ||
                                _will_overflow(_extend_sign_bit(sum), sample))) {
                 // Although agent->element might have been cleared at this
                 // point, it is just OK because the very value is 0 in

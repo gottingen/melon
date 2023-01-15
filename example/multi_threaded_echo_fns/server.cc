@@ -4,10 +4,10 @@
 #include <random>
 #include <chrono>
 #include <gflags/gflags.h>
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
-//#include <melon/base/strings.h>
-#include <melon/strings/str_split.h>
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
+//#include <turbo/base/strings.h>
+#include <turbo/strings/str_split.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -58,8 +58,8 @@ public:
                 }
             }
             if (FLAGS_spin) {
-                int64_t end_time = melon::get_current_time_micros() + (int64_t)delay;
-                while (melon::get_current_time_micros() < end_time) {}
+                int64_t end_time = turbo::get_current_time_micros() + (int64_t)delay;
+                while (turbo::get_current_time_micros() < end_time) {}
             } else {
                 melon::fiber_sleep_for((int64_t)delay);
             }
@@ -88,14 +88,14 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_server_num <= 0) {
-        MELON_LOG(ERROR) << "server_num must be positive";
+        TURBO_LOG(ERROR) << "server_num must be positive";
         return -1;
     }
 
     // We need multiple servers in this example.
     melon::rpc::Server* servers = new melon::rpc::Server[FLAGS_server_num];
 
-    melon::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
+    turbo::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
     std::vector<int64_t> sleep_list;
     for (; sp; ++sp) {
         sleep_list.push_back(strtoll(sp.field(), nullptr, 10));
@@ -113,11 +113,11 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < FLAGS_server_num; ++i) {
         int64_t sleep_us = sleep_list[(size_t)i < sleep_list.size() ? i : (sleep_list.size() - 1)];
         echo_service_impls[i].set_index(i, sleep_us);
-        servers[i].set_version(melon::string_printf(
+        servers[i].set_version(turbo::string_printf(
                     "example/multi_threaded_echo_fns_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            MELON_LOG(ERROR) << "Fail to add service";
+            TURBO_LOG(ERROR) << "Fail to add service";
             return -1;
         }
         // Start the server.
@@ -126,20 +126,20 @@ int main(int argc, char* argv[]) {
         options.max_concurrency = FLAGS_max_concurrency;
         const int port = FLAGS_port + i;
         if (servers[i].Start(port, &options) != 0) {
-            MELON_LOG(ERROR) << "Fail to start EchoServer";
+            TURBO_LOG(ERROR) << "Fail to start EchoServer";
             return -1;
         }
 
         // Intended no truncate so that multiple servers can be added to list
         int fd = open("./server_list", O_APPEND | O_WRONLY | O_CREAT, 0666);
         if (fd < 0) {
-            MELON_PLOG(ERROR) << "Fail to open server_list";
+            TURBO_PLOG(ERROR) << "Fail to open server_list";
             return -1;
         }
         char buf[64];
-        int nw = snprintf(buf, sizeof(buf), "%s:%d\n", melon::my_ip_cstr(), port);
+        int nw = snprintf(buf, sizeof(buf), "%s:%d\n", turbo::my_ip_cstr(), port);
         if (write(fd, buf, nw) != nw) {
-            MELON_LOG(ERROR) << "Fail to fully write int fd=" << fd;
+            TURBO_LOG(ERROR) << "Fail to fully write int fd=" << fd;
         }
         close(fd);
     }
@@ -157,9 +157,9 @@ int main(int argc, char* argv[]) {
             size_t diff = current_num_requests - last_num_requests[i];
             cur_total += diff;
             last_num_requests[i] = current_num_requests;
-            MELON_LOG(INFO) << "S[" << i << "]=" << diff << ' ';
+            TURBO_LOG(INFO) << "S[" << i << "]=" << diff << ' ';
         }
-        MELON_LOG(INFO) << "[total=" << cur_total << ']';
+        TURBO_LOG(INFO) << "[total=" << cur_total << ']';
     }
 
     // Don't forget to stop and join the server otherwise still-running

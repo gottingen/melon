@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_TRACEPRINTF_H_
 #define MELON_RPC_TRACEPRINTF_H_
 
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 
 // To melon developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
@@ -40,7 +40,7 @@ namespace melon::rpc {
 #define TRACEPRINTF(fmt, args...)                                       \
     do {                                                                \
         if (::melon::rpc::CanAnnotateSpan()) {                          \
-            ::melon::rpc::AnnotateSpan("[" __FILE__ ":" MELON_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
+            ::melon::rpc::AnnotateSpan("[" __FILE__ ":" TURBO_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
         }                                                               \
     } while (0)
 

@@ -27,7 +27,7 @@ namespace melon::rpc {
     namespace policy {
 
         // Parse binary format of sofa-pbrpc.
-        ParseResult ParseSofaMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+        ParseResult ParseSofaMessage(turbo::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
 
         // Actions to a (client) request in sofa-pbrpc format.
         void ProcessSofaRequest(InputMessageBase *msg);
@@ -39,12 +39,12 @@ namespace melon::rpc {
         bool VerifySofaRequest(const InputMessageBase *msg);
 
         // Pack `request' to `method' into `buf'.
-        void PackSofaRequest(melon::cord_buf *buf,
+        void PackSofaRequest(turbo::cord_buf *buf,
                              SocketMessage **,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *method,
                              Controller *controller,
-                             const melon::cord_buf &request,
+                             const turbo::cord_buf &request,
                              const Authenticator *auth);
 
     }  // namespace policy

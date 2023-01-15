@@ -26,16 +26,16 @@
 #include <random>
 #include "testing/gtest_wrap.h"
 #include "melon/fiber/internal/fiber.h"
-#include "melon/base/gperftools_profiler.h"
-#include "melon/times/time.h"
-#include "melon/base/fast_rand.h"
-#include "melon/container/doubly_buffered_data.h"
+#include "turbo/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fast_rand.h"
+#include "turbo/container/doubly_buffered_data.h"
 #include "melon/rpc/describable.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/socket_map.h"
 #include "melon/rpc/global.h"
 #include "melon/rpc/details/load_balancer_with_naming.h"
-#include "melon/strings/numbers.h"
+#include "turbo/strings/numbers.h"
 #include "melon/rpc/excluded_servers.h"
 #include "melon/rpc/policy/weighted_round_robin_load_balancer.h"
 #include "melon/rpc/policy/round_robin_load_balancer.h"
@@ -112,29 +112,29 @@ namespace {
         const size_t old_TLS_ctor = TLS_ctor;
         const size_t old_TLS_dtor = TLS_dtor;
         {
-            melon::container::DoublyBufferedData<Foo, TLS> d2;
-            melon::container::DoublyBufferedData<Foo, TLS>::ScopedPtr ptr;
+            turbo::container::DoublyBufferedData<Foo, TLS> d2;
+            turbo::container::DoublyBufferedData<Foo, TLS>::ScopedPtr ptr;
             d2.Read(&ptr);
             ASSERT_EQ(old_TLS_ctor + 1, TLS_ctor);
         }
         ASSERT_EQ(old_TLS_ctor + 1, TLS_ctor);
         ASSERT_EQ(old_TLS_dtor + 1, TLS_dtor);
 
-        melon::container::DoublyBufferedData<Foo> d;
+        turbo::container::DoublyBufferedData<Foo> d;
         {
-            melon::container::DoublyBufferedData<Foo>::ScopedPtr ptr;
+            turbo::container::DoublyBufferedData<Foo>::ScopedPtr ptr;
             ASSERT_EQ(0, d.Read(&ptr));
             ASSERT_EQ(0, ptr->x);
         }
         {
-            melon::container::DoublyBufferedData<Foo>::ScopedPtr ptr;
+            turbo::container::DoublyBufferedData<Foo>::ScopedPtr ptr;
             ASSERT_EQ(0, d.Read(&ptr));
             ASSERT_EQ(0, ptr->x);
         }
 
         d.Modify(AddN, 10);
         {
-            melon::container::DoublyBufferedData<Foo>::ScopedPtr ptr;
+            turbo::container::DoublyBufferedData<Foo>::ScopedPtr ptr;
             ASSERT_EQ(0, d.Read(&ptr));
             ASSERT_EQ(10, ptr->x);
         }
@@ -204,7 +204,7 @@ namespace {
             for (; cur_count < N; ++cur_count) {
                 char addr[32];
                 snprintf(addr, sizeof(addr), "192.168.1.%d:8080", (int) cur_count);
-                melon::end_point dummy;
+                turbo::end_point dummy;
                 ASSERT_EQ(0, str2endpoint(addr, &dummy));
                 melon::rpc::ServerId id(8888);
                 melon::rpc::SocketOptions options;
@@ -266,8 +266,8 @@ namespace {
             }
             ++(*selected_count)[ptr->id()];
         }
-        MELON_LOG_IF(INFO, ret != 0) << "select_server[" << pthread_self()
-                                     << "] quits before of " << melon_error(ret);
+        TURBO_LOG_IF(INFO, ret != 0) << "select_server[" << pthread_self()
+                                     << "] quits before of " << turbo_error(ret);
         return selected_count;
     }
 
@@ -315,7 +315,7 @@ namespace {
             for (int i = 0; i < 256; ++i) {
                 char addr[32];
                 snprintf(addr, sizeof(addr), "192.%d.1.%d:8080", i, i);
-                melon::end_point dummy;
+                turbo::end_point dummy;
                 ASSERT_EQ(0, str2endpoint(addr, &dummy));
                 melon::rpc::ServerId id(8888);
                 if (3 == round) {
@@ -339,10 +339,10 @@ namespace {
                     ptr->SetLogOff();
                 }
             }
-            std::cout << "Time " << melon::base::class_name_str(*lb) << " ..." << std::endl;
-            melon::stop_watcher tm;
+            std::cout << "Time " << turbo::base::class_name_str(*lb) << " ..." << std::endl;
+            turbo::stop_watcher tm;
             tm.start();
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
                 ASSERT_EQ(0, pthread_create(&th[i], nullptr, select_server, &sa));
             }
             std::vector<melon::rpc::ServerId> removed;
@@ -374,16 +374,16 @@ namespace {
                 }
             }
             global_stop = true;
-            MELON_LOG(INFO) << "Stop all...";
+            TURBO_LOG(INFO) << "Stop all...";
 
-            void *retval[MELON_ARRAY_SIZE(th)];
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+            void *retval[TURBO_ARRAY_SIZE(th)];
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
                 ASSERT_EQ(0, pthread_join(th[i], &retval[i]));
             }
             tm.stop();
 
             CountMap total_count;
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
                 CountMap *selected_count = (CountMap *) retval[i];
                 size_t count = 0;
                 for (CountMap::const_iterator it = selected_count->begin();
@@ -444,7 +444,7 @@ namespace {
             }
             sa.lb = lb;
 
-            std::string lb_name = melon::base::class_name_str(*lb);
+            std::string lb_name = turbo::base::class_name_str(*lb);
             // Remove namespace
             size_t ns_pos = lb_name.find_last_of(':');
             if (ns_pos != std::string::npos) {
@@ -458,16 +458,16 @@ namespace {
             for (int i = 0; i < 256; ++i) {
                 char addr[32];
                 snprintf(addr, sizeof(addr), "192.168.1.%d:8080", i);
-                melon::end_point dummy;
+                turbo::end_point dummy;
                 ASSERT_EQ(0, str2endpoint(addr, &dummy));
                 melon::rpc::ServerId id(8888);
                 if (3 == round) {
                     id.tag = "100";
                 } else if (4 == round) {
                     if (i % 50 == 0) {
-                        id.tag = std::to_string(i * 2 + melon::base::fast_rand_less_than(40) + 80);
+                        id.tag = std::to_string(i * 2 + turbo::base::fast_rand_less_than(40) + 80);
                     } else {
-                        id.tag = std::to_string(melon::base::fast_rand_less_than(40) + 80);
+                        id.tag = std::to_string(turbo::base::fast_rand_less_than(40) + 80);
                     }
                 }
                 melon::rpc::SocketOptions options;
@@ -478,7 +478,7 @@ namespace {
                 lb->AddServer(id);
             }
 
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
                 ASSERT_EQ(0, pthread_create(&th[i], nullptr, select_server, &sa));
             }
             melon::fiber_sleep_for(10000);
@@ -489,7 +489,7 @@ namespace {
             global_stop = true;
 
             CountMap total_count;
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
                 void *retval;
                 ASSERT_EQ(0, pthread_join(th[i], &retval));
                 CountMap *selected_count = (CountMap *) retval;
@@ -583,15 +583,15 @@ namespace {
                 "[2408:871a:2100:3:0:ff:b025:348d]:8833",
                 "unix:test.sock",
         };
-        for (size_t round = 0; round < MELON_ARRAY_SIZE(hashs); ++round) {
+        for (size_t round = 0; round < TURBO_ARRAY_SIZE(hashs); ++round) {
             melon::rpc::policy::ConsistentHashingLoadBalancer chlb(hash_type[round]);
             std::vector<melon::rpc::ServerId> ids;
-            std::vector<melon::end_point> addrs;
+            std::vector<turbo::end_point> addrs;
             for (int j = 0;j < 5; ++j) {
-                for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
+                for (size_t i = 0; i < TURBO_ARRAY_SIZE(servers); ++i) {
                     const char *addr = servers[i];
                     //snprintf(addr, sizeof(addr), "192.168.1.%d:8080", i);
-                    melon::end_point dummy;
+                    turbo::end_point dummy;
                     ASSERT_EQ(0, str2endpoint(addr, &dummy));
                     melon::rpc::ServerId id(8888);
                     melon::rpc::SocketOptions options;
@@ -611,7 +611,7 @@ namespace {
                 std::cout << chlb;
             }
             const size_t SELECT_TIMES = 1000000;
-            std::map<melon::end_point, size_t> times;
+            std::map<turbo::end_point, size_t> times;
             melon::rpc::SocketUniquePtr ptr;
             melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
             ::melon::rpc::LoadBalancer::SelectOut out(&ptr);
@@ -621,7 +621,7 @@ namespace {
                 chlb.SelectServer(in, &out);
                 ++times[ptr->remote_side()];
             }
-            std::map<melon::end_point, double> load_map;
+            std::map<turbo::end_point, double> load_map;
             chlb.GetLoads(&load_map);
             ASSERT_EQ(times.size(), load_map.size());
             double load_sum = 0;;
@@ -655,13 +655,13 @@ namespace {
                 "10.42.122.202:8836"
         };
         std::string weight[] = {"3", "2", "7", "200000000", "1ab", "-1", "0"};
-        std::map<melon::end_point, int> configed_weight;
+        std::map<turbo::end_point, int> configed_weight;
         melon::rpc::policy::WeightedRoundRobinLoadBalancer wrrlb;
 
         // Add server to selected list. The server with invalid weight will be skipped.
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(servers); ++i) {
             const char *addr = servers[i];
-            melon::end_point dummy;
+            turbo::end_point dummy;
             ASSERT_EQ(0, str2endpoint(addr, &dummy));
             melon::rpc::ServerId id(8888);
             melon::rpc::SocketOptions options;
@@ -676,7 +676,7 @@ namespace {
             }
             if (i < 4) {
                 int weight_num;
-                ASSERT_TRUE(melon::simple_atoi(weight[i], &weight_num));
+                ASSERT_TRUE(turbo::simple_atoi(weight[i], &weight_num));
                 configed_weight[dummy] = weight_num;
                 EXPECT_TRUE(wrrlb.AddServer(id));
             } else {
@@ -688,12 +688,12 @@ namespace {
         // There are 3 valid servers with weight 3, 2 and 7 respectively.
         // We run SelectServer for 12 times. The result number of each server seleted should be
         // consistent with weight configured.
-        std::map<melon::end_point, size_t> select_result;
+        std::map<turbo::end_point, size_t> select_result;
         melon::rpc::SocketUniquePtr ptr;
         melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
         int total_weight = 12;
-        std::vector<melon::end_point> select_servers;
+        std::vector<turbo::end_point> select_servers;
         for (int i = 0; i != total_weight; ++i) {
             EXPECT_EQ(0, wrrlb.SelectServer(in, &out));
             select_servers.emplace_back(ptr->remote_side());
@@ -720,12 +720,12 @@ namespace {
                 "10.36.150.32:8833"
         };
         std::string weight[] = {"200000000", "2", "600000"};
-        std::map<melon::end_point, int> configed_weight;
+        std::map<turbo::end_point, int> configed_weight;
         melon::rpc::policy::WeightedRoundRobinLoadBalancer wrrlb;
         melon::rpc::ExcludedServers *exclude = melon::rpc::ExcludedServers::Create(3);
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(servers); ++i) {
             const char *addr = servers[i];
-            melon::end_point dummy;
+            turbo::end_point dummy;
             ASSERT_EQ(0, str2endpoint(addr, &dummy));
             melon::rpc::ServerId id(8888);
             melon::rpc::SocketOptions options;
@@ -765,15 +765,15 @@ namespace {
                 "10.42.122.202:8836"
         };
         std::string weight[] = {"3", "2", "5", "10", "1ab", "-1", "0"};
-        std::map<melon::end_point, int> configed_weight;
+        std::map<turbo::end_point, int> configed_weight;
         uint64_t configed_weight_sum = 0;
         melon::rpc::policy::WeightedRandomizedLoadBalancer wrlb;
         size_t valid_weight_num = 4;
 
         // Add server to selected list. The server with invalid weight will be skipped.
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(servers); ++i) {
             const char *addr = servers[i];
-            melon::end_point dummy;
+            turbo::end_point dummy;
             ASSERT_EQ(0, str2endpoint(addr, &dummy));
             melon::rpc::ServerId id(8888);
             melon::rpc::SocketOptions options;
@@ -783,7 +783,7 @@ namespace {
             id.tag = weight[i];
             if (i < valid_weight_num) {
                 int weight_num;
-                ASSERT_TRUE(melon::simple_atoi(weight[i], &weight_num));
+                ASSERT_TRUE(turbo::simple_atoi(weight[i], &weight_num));
                 configed_weight[dummy] = weight_num;
                 configed_weight_sum += weight_num;
                 EXPECT_TRUE(wrlb.AddServer(id));
@@ -796,12 +796,12 @@ namespace {
         // There are 4 valid servers with weight 3, 2, 5 and 10 respectively.
         // We run SelectServer for multiple times. The result number of each server seleted should be
         // weight randomized with weight configured.
-        std::map<melon::end_point, size_t> select_result;
+        std::map<turbo::end_point, size_t> select_result;
         melon::rpc::SocketUniquePtr ptr;
         melon::rpc::LoadBalancer::SelectIn in = {0, false, false, 0u, nullptr};
         melon::rpc::LoadBalancer::SelectOut out(&ptr);
         int run_times = configed_weight_sum * 10;
-        std::vector<melon::end_point> select_servers;
+        std::vector<turbo::end_point> select_servers;
         for (int i = 0; i < run_times; ++i) {
             EXPECT_EQ(0, wrlb.SelectServer(in, &out));
             select_servers.emplace_back(ptr->remote_side());
@@ -844,8 +844,8 @@ namespace {
         for (int i = 0; i < (int) lbs.size(); ++i) {
             melon::rpc::LoadBalancer *lb = lbs[i];
             std::vector<melon::rpc::ServerId> ids;
-            for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
-                melon::end_point dummy;
+            for (size_t i = 0; i < TURBO_ARRAY_SIZE(servers); ++i) {
+                turbo::end_point dummy;
                 ASSERT_EQ(0, str2endpoint(servers[i], &dummy));
                 melon::rpc::ServerId id(8888);
                 melon::rpc::SocketOptions options;
@@ -915,7 +915,7 @@ namespace {
                 "10.42.122.201:8833",
         };
         melon::rpc::LoadBalancer *lb = nullptr;
-        int rand = melon::base::fast_rand_less_than(2);
+        int rand = turbo::base::fast_rand_less_than(2);
         if (rand == 0) {
             melon::rpc::policy::RandomizedLoadBalancer rlb;
             lb = rlb.New("min_working_instances=2 hold_seconds=2");
@@ -924,8 +924,8 @@ namespace {
             lb = rrlb.New("min_working_instances=2 hold_seconds=2");
         }
         melon::rpc::SocketUniquePtr ptr[2];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(servers); ++i) {
-            melon::end_point dummy;
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(servers); ++i) {
+            turbo::end_point dummy;
             ASSERT_EQ(0, str2endpoint(servers[i], &dummy));
             melon::rpc::SocketOptions options;
             options.remote_side = dummy;
@@ -1032,7 +1032,7 @@ namespace {
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
         ASSERT_EQ(channel.Init("list://127.0.0.1:7777 50, 127.0.0.1:7778 50",
-                               lb_algo[melon::base::fast_rand_less_than(MELON_ARRAY_SIZE(lb_algo))],
+                               lb_algo[turbo::base::fast_rand_less_than(TURBO_ARRAY_SIZE(lb_algo))],
                                &options), -1);
     }
 
@@ -1053,7 +1053,7 @@ namespace {
         // Disable retry to make health check happen one by one
         options.max_retry = 0;
         ASSERT_EQ(channel.Init("list://127.0.0.1:7777 50, 127.0.0.1:7778 50",
-                               lb_algo[melon::base::fast_rand_less_than(MELON_ARRAY_SIZE(lb_algo))],
+                               lb_algo[turbo::base::fast_rand_less_than(TURBO_ARRAY_SIZE(lb_algo))],
                                &options), 0);
         test::EchoRequest req;
         req.set_message("123");
@@ -1073,20 +1073,20 @@ namespace {
             stub.Echo(&cntl, &req, &res, nullptr);
         }
 
-        melon::end_point point(melon::IP_ANY, 7777);
+        turbo::end_point point(turbo::IP_ANY, 7777);
         melon::rpc::Server server;
         EchoServiceImpl service;
         ASSERT_EQ(0, server.AddService(&service, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
         ASSERT_EQ(0, server.Start(point, nullptr));
 
-        melon::end_point point2(melon::IP_ANY, 7778);
+        turbo::end_point point2(turbo::IP_ANY, 7778);
         melon::rpc::Server server2;
         EchoServiceImpl service2;
         ASSERT_EQ(0, server2.AddService(&service2, melon::rpc::SERVER_DOESNT_OWN_SERVICE));
         ASSERT_EQ(0, server2.Start(point2, nullptr));
 
-        int64_t start_ms = melon::time_now().to_unix_millis();
-        while ((melon::time_now().to_unix_millis() - start_ms) < 3500) {
+        int64_t start_ms = turbo::time_now().to_unix_millis();
+        while ((turbo::time_now().to_unix_millis() - start_ms) < 3500) {
             Done *done = new Done;
             done->req.set_message("123");
             stub.Echo(&done->cntl, &done->req, &done->res, done);
@@ -1114,9 +1114,9 @@ namespace {
     TEST_F(LoadBalancerTest, la_selection_too_long) {
         melon::rpc::GlobalInitializeOrDie();
         melon::rpc::LoadBalancerWithNaming lb;
-        MELON_CHECK_EQ(0, lb.Init("list://127.0.0.1:8888", "la", nullptr, nullptr));
+        TURBO_CHECK_EQ(0, lb.Init("list://127.0.0.1:8888", "la", nullptr, nullptr));
         char addr[] = "127.0.0.1:8888";
-        melon::end_point ep;
+        turbo::end_point ep;
         ASSERT_EQ(0, str2endpoint(addr, &ep));
         melon::rpc::SocketId id;
         ASSERT_EQ(0, melon::rpc::SocketMapFind(melon::rpc::SocketMapKey(ep), &id));

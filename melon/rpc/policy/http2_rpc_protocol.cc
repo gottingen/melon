@@ -19,7 +19,7 @@
 #include "melon/rpc/policy/http2_rpc_protocol.h"
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/server.h"
-#include "melon/base/base64.h"
+#include "turbo/base/base64.h"
 #include "melon/rpc/log.h"
 
 namespace melon::rpc {
@@ -92,13 +92,13 @@ namespace melon::rpc {
         }
 
         // A series of utilities to load numbers from http2 streams.
-        inline uint8_t LoadUint8(melon::cord_buf_bytes_iterator &it) {
+        inline uint8_t LoadUint8(turbo::cord_buf_bytes_iterator &it) {
             uint8_t v = *it;
             ++it;
             return v;
         }
 
-        inline uint16_t LoadUint16(melon::cord_buf_bytes_iterator &it) {
+        inline uint16_t LoadUint16(turbo::cord_buf_bytes_iterator &it) {
             uint16_t v = *it;
             ++it;
             v = ((v << 8) | *it);
@@ -106,7 +106,7 @@ namespace melon::rpc {
             return v;
         }
 
-        inline uint32_t LoadUint32(melon::cord_buf_bytes_iterator &it) {
+        inline uint32_t LoadUint32(turbo::cord_buf_bytes_iterator &it) {
             uint32_t v = *it;
             ++it;
             v = ((v << 8) | *it);
@@ -162,7 +162,7 @@ namespace melon::rpc {
         }
 
         static int WriteAck(Socket *s, const void *data, size_t n) {
-            melon::cord_buf sendbuf;
+            turbo::cord_buf sendbuf;
             sendbuf.append(data, n);
             Socket::WriteOptions wopt;
             wopt.ignore_eovercrowded = true;
@@ -182,10 +182,10 @@ namespace melon::rpc {
 
         // Parse from n bytes from the iterator.
         // Returns true on success.
-        bool ParseH2Settings(H2Settings *out, melon::cord_buf_bytes_iterator &it, size_t n) {
+        bool ParseH2Settings(H2Settings *out, turbo::cord_buf_bytes_iterator &it, size_t n) {
             const uint32_t npairs = n / 6;
             if (npairs * 6 != n) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << n;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << n;
                 return false;
             }
             for (uint32_t i = 0; i < npairs; ++i) {
@@ -197,7 +197,7 @@ namespace melon::rpc {
                         break;
                     case H2_SETTINGS_ENABLE_PUSH:
                         if (value > 1) {
-                            MELON_LOG(ERROR) << "Invalid value=" << value << " for ENABLE_PUSH";
+                            TURBO_LOG(ERROR) << "Invalid value=" << value << " for ENABLE_PUSH";
                             return false;
                         }
                         out->enable_push = value;
@@ -207,7 +207,7 @@ namespace melon::rpc {
                         break;
                     case H2_SETTINGS_STREAM_WINDOW_SIZE:
                         if (value > H2Settings::MAX_WINDOW_SIZE) {
-                            MELON_LOG(ERROR) << "Invalid stream_window_size=" << value;
+                            TURBO_LOG(ERROR) << "Invalid stream_window_size=" << value;
                             return false;
                         }
                         out->stream_window_size = value;
@@ -215,7 +215,7 @@ namespace melon::rpc {
                     case H2_SETTINGS_MAX_FRAME_SIZE:
                         if (value > H2Settings::MAX_OF_MAX_FRAME_SIZE ||
                             value < H2Settings::DEFAULT_MAX_FRAME_SIZE) {
-                            MELON_LOG(ERROR) << "Invalid max_frame_size=" << value;
+                            TURBO_LOG(ERROR) << "Invalid max_frame_size=" << value;
                             return false;
                         }
                         out->max_frame_size = value;
@@ -226,7 +226,7 @@ namespace melon::rpc {
                     default:
                         // An endpoint that receives a SETTINGS frame with any unknown or
                         // unsupported identifier MUST ignore that setting (section 6.5.2)
-                        MELON_LOG(WARNING) << "Unknown setting, id=" << id << " value=" << value;
+                        TURBO_LOG(WARNING) << "Unknown setting, id=" << id << " value=" << value;
                         break;
                 }
             }
@@ -383,11 +383,11 @@ namespace melon::rpc {
 
         int H2Context::Init() {
             if (_pending_streams.init(64, 70) != 0) {
-                MELON_LOG(ERROR) << "Fail to init _pending_streams";
+                TURBO_LOG(ERROR) << "Fail to init _pending_streams";
                 return -1;
             }
             if (_hpacker.Init(_unack_local_settings.header_table_size) != 0) {
-                MELON_LOG(ERROR) << "Fail to init _hpacker";
+                TURBO_LOG(ERROR) << "Fail to init _hpacker";
                 return -1;
             }
             return 0;
@@ -459,7 +459,7 @@ namespace melon::rpc {
         }
 
         ParseResult H2Context::ConsumeFrameHead(
-                melon::cord_buf_bytes_iterator &it, H2FrameHead *frame_head) {
+                turbo::cord_buf_bytes_iterator &it, H2FrameHead *frame_head) {
             uint8_t length_buf[3];
             size_t n = it.copy_and_forward(length_buf, sizeof(length_buf));
             if (n < 3) {
@@ -468,7 +468,7 @@ namespace melon::rpc {
             const uint32_t length = ((uint32_t) length_buf[0] << 16)
                                     | ((uint32_t) length_buf[1] << 8) | length_buf[2];
             if (length > _local_settings.max_frame_size) {
-                MELON_LOG(ERROR) << "Too large frame length=" << length << " max="
+                TURBO_LOG(ERROR) << "Too large frame length=" << length << " max="
                                  << _local_settings.max_frame_size;
                 return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
             }
@@ -480,7 +480,7 @@ namespace melon::rpc {
             frame_head->flags = LoadUint8(it);
             const uint32_t stream_id = LoadUint32(it);
             if (stream_id & 0x80000000) {
-                MELON_LOG(ERROR) << "Invalid stream_id=" << stream_id;
+                TURBO_LOG(ERROR) << "Invalid stream_id=" << stream_id;
                 return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
             }
             frame_head->stream_id = static_cast<int>(stream_id);
@@ -488,7 +488,7 @@ namespace melon::rpc {
         }
 
         ParseResult H2Context::Consume(
-                melon::cord_buf_bytes_iterator &it, Socket *socket) {
+                turbo::cord_buf_bytes_iterator &it, Socket *socket) {
             if (_conn_state == H2_CONNECTION_UNINITIALIZED) {
                 if (is_server_side()) {
                     // Wait for the client connection preface prefix
@@ -506,7 +506,7 @@ namespace melon::rpc {
                                      FRAME_HEAD_SIZE + 4/*for WU*/];
                     const size_t nb = SerializeH2SettingsFrameAndWU(_unack_local_settings, settingsbuf);
                     if (WriteAck(socket, settingsbuf, nb) != 0) {
-                        MELON_LOG(WARNING) << "Fail to respond http2-client with settings to " << *socket;
+                        TURBO_LOG(WARNING) << "Fail to respond http2-client with settings to " << *socket;
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                     }
                 } else {
@@ -521,7 +521,7 @@ namespace melon::rpc {
                 }
                 H2Context::FrameHandler handler = FindFrameHandler(frame_head.type);
                 if (handler == nullptr) {
-                    MELON_LOG(ERROR) << "Invalid frame type=" << (int) frame_head.type;
+                    TURBO_LOG(ERROR) << "Invalid frame type=" << (int) frame_head.type;
                     return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                 }
                 H2ParseResult h2_res = (this->*handler)(it, frame_head);
@@ -534,7 +534,7 @@ namespace melon::rpc {
                                        0, h2_res.stream_id());
                     SaveUint32(rstbuf + FRAME_HEAD_SIZE, h2_res.error());
                     if (WriteAck(_socket, rstbuf, sizeof(rstbuf)) != 0) {
-                        MELON_LOG(WARNING) << "Fail to send RST_STREAM to " << *_socket;
+                        TURBO_LOG(WARNING) << "Fail to send RST_STREAM to " << *_socket;
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                     }
                     H2StreamContext *sctx = RemoveStream(h2_res.stream_id());
@@ -555,7 +555,7 @@ namespace melon::rpc {
                     SaveUint32(goawaybuf + FRAME_HEAD_SIZE, _last_received_stream_id);
                     SaveUint32(goawaybuf + FRAME_HEAD_SIZE + 4, h2_res.error());
                     if (WriteAck(_socket, goawaybuf, sizeof(goawaybuf)) != 0) {
-                        MELON_LOG(WARNING) << "Fail to send GOAWAY to " << *_socket;
+                        TURBO_LOG(WARNING) << "Fail to send GOAWAY to " << *_socket;
                         return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
                     }
                     return MakeMessage(nullptr);
@@ -566,19 +566,19 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2Context::OnHeaders(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             // HEADERS frames MUST be associated with a stream.  If a HEADERS frame
             // is received whose stream identifier field is 0x0, the recipient MUST
             // respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
             if (frame_head.stream_id == 0) {
-                MELON_LOG(ERROR) << "Invalid stream_id=" << frame_head.stream_id;
+                TURBO_LOG(ERROR) << "Invalid stream_id=" << frame_head.stream_id;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             const bool has_padding = (frame_head.flags & H2_FLAGS_PADDED);
             const bool has_priority = (frame_head.flags & H2_FLAGS_PRIORITY);
             if (frame_head.payload_size <
                 (size_t) (has_priority ? 5 : 0) + (size_t) has_padding) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             uint32_t frag_size = frame_head.payload_size;
@@ -588,12 +588,12 @@ namespace melon::rpc {
                 --frag_size;
             }
             if (has_priority) {
-                // const uint32_t MELON_ALLOW_UNUSED stream_dep = LoadUint32(it);
-                // const uint32_t MELON_ALLOW_UNUSED weight = LoadUint8(it);
+                // const uint32_t TURBO_ALLOW_UNUSED stream_dep = LoadUint32(it);
+                // const uint32_t TURBO_ALLOW_UNUSED weight = LoadUint8(it);
                 frag_size -= 5;
             }
             if (frag_size < pad_length) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             frag_size -= pad_length;
@@ -601,7 +601,7 @@ namespace melon::rpc {
             if (is_server_side() &&
                 frame_head.stream_id > _last_received_stream_id) { // new stream
                 if ((frame_head.stream_id & 1) == 0) {
-                    MELON_LOG(ERROR) << "stream_id=" << frame_head.stream_id
+                    TURBO_LOG(ERROR) << "stream_id=" << frame_head.stream_id
                                      << " created by client is not odd";
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
@@ -611,7 +611,7 @@ namespace melon::rpc {
                 const int rc = TryToInsertStream(frame_head.stream_id, sctx);
                 if (rc < 0) {
                     delete sctx;
-                    MELON_LOG(ERROR) << "Fail to insert existing stream_id=" << frame_head.stream_id;
+                    TURBO_LOG(ERROR) << "Fail to insert existing stream_id=" << frame_head.stream_id;
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 } else if (rc > 0) {
                     delete sctx;
@@ -628,7 +628,7 @@ namespace melon::rpc {
                         tmp_sctx.OnHeaders(it, frame_head, frag_size, pad_length);
                         return MakeH2Message(nullptr);
                     } else {
-                        MELON_LOG(ERROR) << "Fail to find stream_id=" << frame_head.stream_id;
+                        TURBO_LOG(ERROR) << "Fail to find stream_id=" << frame_head.stream_id;
                         return MakeH2Error(H2_PROTOCOL_ERROR);
                     }
                 }
@@ -637,20 +637,20 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2StreamContext::OnHeaders(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head,
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head,
                 uint32_t frag_size, uint8_t pad_length) {
             _parsed_length += FRAME_HEAD_SIZE + frame_head.payload_size;
 #if defined(MELON_RPC_H2_STREAM_STATE)
             SetState(H2_STREAM_OPEN);
 #endif
-            melon::cord_buf_bytes_iterator it2(it, frag_size);
+            turbo::cord_buf_bytes_iterator it2(it, frag_size);
             if (ConsumeHeaders(it2) < 0) {
-                MELON_LOG(ERROR) << "Invalid header, frag_size=" << frag_size
+                TURBO_LOG(ERROR) << "Invalid header, frag_size=" << frag_size
                                  << ", stream_id=" << frame_head.stream_id;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             const size_t nskip = frag_size - it2.bytes_left();
-            MELON_CHECK_EQ(nskip, it.forward(nskip));
+            TURBO_CHECK_EQ(nskip, it.forward(nskip));
             if (it2.bytes_left()) {
                 it.append_and_forward(&_remaining_header_fragment,
                                       it2.bytes_left());
@@ -658,7 +658,7 @@ namespace melon::rpc {
             it.forward(pad_length);
             if (frame_head.flags & H2_FLAGS_END_HEADERS) {
                 if (it2.bytes_left() != 0) {
-                    MELON_LOG(ERROR) << "Incomplete header: payload_size=" << frame_head.payload_size
+                    TURBO_LOG(ERROR) << "Incomplete header: payload_size=" << frame_head.payload_size
                                      << ", stream_id=" << frame_head.stream_id;
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
@@ -676,7 +676,7 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2Context::OnContinuation(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             H2StreamContext *sctx = FindStream(frame_head.stream_id);
             if (sctx == nullptr) {
                 if (is_client_side()) {
@@ -687,7 +687,7 @@ namespace melon::rpc {
                     tmp_sctx.OnContinuation(it, frame_head);
                     return MakeH2Message(nullptr);
                 } else {
-                    MELON_LOG(ERROR) << "Fail to find stream_id=" << frame_head.stream_id;
+                    TURBO_LOG(ERROR) << "Fail to find stream_id=" << frame_head.stream_id;
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
             }
@@ -695,20 +695,20 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2StreamContext::OnContinuation(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             _parsed_length += FRAME_HEAD_SIZE + frame_head.payload_size;
             it.append_and_forward(&_remaining_header_fragment, frame_head.payload_size);
             const size_t size = _remaining_header_fragment.size();
-            melon::cord_buf_bytes_iterator it2(_remaining_header_fragment);
+            turbo::cord_buf_bytes_iterator it2(_remaining_header_fragment);
             if (ConsumeHeaders(it2) < 0) {
-                MELON_LOG(ERROR) << "Invalid header: payload_size=" << frame_head.payload_size
+                TURBO_LOG(ERROR) << "Invalid header: payload_size=" << frame_head.payload_size
                                  << ", stream_id=" << frame_head.stream_id;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             _remaining_header_fragment.pop_front(size - it2.bytes_left());
             if (frame_head.flags & H2_FLAGS_END_HEADERS) {
                 if (it2.bytes_left() != 0) {
-                    MELON_LOG(ERROR) << "Incomplete header: payload_size=" << frame_head.payload_size
+                    TURBO_LOG(ERROR) << "Incomplete header: payload_size=" << frame_head.payload_size
                                      << ", stream_id=" << frame_head.stream_id;
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
@@ -720,7 +720,7 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2Context::OnData(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             uint32_t frag_size = frame_head.payload_size;
             uint8_t pad_length = 0;
             if (frame_head.flags & H2_FLAGS_PADDED) {
@@ -728,7 +728,7 @@ namespace melon::rpc {
                 pad_length = LoadUint8(it);
             }
             if (frag_size < pad_length) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             frag_size -= pad_length;
@@ -742,23 +742,23 @@ namespace melon::rpc {
                 tmp_sctx.OnData(it, frame_head, frag_size, pad_length);
                 DeferWindowUpdate(tmp_sctx.ReleaseDeferredWindowUpdate());
 
-                MELON_LOG(ERROR) << "Fail to find stream_id=" << frame_head.stream_id;
+                TURBO_LOG(ERROR) << "Fail to find stream_id=" << frame_head.stream_id;
                 return MakeH2Error(H2_STREAM_CLOSED_ERROR, frame_head.stream_id);
             }
             return sctx->OnData(it, frame_head, frag_size, pad_length);
         }
 
         H2ParseResult H2StreamContext::OnData(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head,
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head,
                 uint32_t frag_size, uint8_t pad_length) {
             _parsed_length += FRAME_HEAD_SIZE + frame_head.payload_size;
-            melon::cord_buf data;
+            turbo::cord_buf data;
             it.append_and_forward(&data, frag_size);
             it.forward(pad_length);
             for (size_t i = 0; i < data.backing_block_num(); ++i) {
                 const std::string_view blk = data.backing_block(i);
                 if (OnBody(blk.data(), blk.size()) != 0) {
-                    MELON_LOG(ERROR) << "Fail to parse data";
+                    TURBO_LOG(ERROR) << "Fail to parse data";
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
             }
@@ -766,7 +766,7 @@ namespace melon::rpc {
             const int64_t acc = _deferred_window_update.fetch_add(frag_size, std::memory_order_relaxed) + frag_size;
             if (acc >= _conn_ctx->local_settings().stream_window_size / 2) {
                 if (acc > _conn_ctx->local_settings().stream_window_size) {
-                    MELON_LOG(ERROR) << "Fail to satisfy the stream-level flow control policy";
+                    TURBO_LOG(ERROR) << "Fail to satisfy the stream-level flow control policy";
                     return MakeH2Error(H2_FLOW_CONTROL_ERROR, frame_head.stream_id);
                 }
                 // Rarely happen for small messages.
@@ -785,7 +785,7 @@ namespace melon::rpc {
                     SerializeFrameHead(p, 4, H2_FRAME_WINDOW_UPDATE, 0, 0);
                     SaveUint32(p + FRAME_HEAD_SIZE, conn_wu);
                     if (WriteAck(_conn_ctx->_socket, winbuf, sizeof(winbuf)) != 0) {
-                        MELON_LOG(WARNING) << "Fail to send WINDOW_UPDATE to " << *_conn_ctx->_socket;
+                        TURBO_LOG(WARNING) << "Fail to send WINDOW_UPDATE to " << *_conn_ctx->_socket;
                         return MakeH2Error(H2_INTERNAL_ERROR);
                     }
                 }
@@ -797,9 +797,9 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2Context::OnResetStream(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             if (frame_head.payload_size != 4) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             const H2Error h2_error = static_cast<H2Error>(LoadUint32(it));
@@ -820,14 +820,14 @@ namespace melon::rpc {
             } else if (state() == H2_STREAM_HALF_CLOSED_LOCAL) {
                 SetState(H2_STREAM_CLOSED);
             } else {
-                MELON_LOG(ERROR) << "Invalid state=" << H2StreamState2Str(_state)
+                TURBO_LOG(ERROR) << "Invalid state=" << H2StreamState2Str(_state)
                            << " in stream_id=" << stream_id();
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
 #endif
             H2StreamContext *sctx = _conn_ctx->RemoveStream(stream_id());
             if (sctx == nullptr) {
-                MELON_LOG(ERROR) << "Fail to find stream_id=" << stream_id();
+                TURBO_LOG(ERROR) << "Fail to find stream_id=" << stream_id();
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             if (_conn_ctx->is_client_side()) {
@@ -847,7 +847,7 @@ namespace melon::rpc {
             } else if (state() == H2_STREAM_HALF_CLOSED_LOCAL) {
                 SetState(H2_STREAM_CLOSED);
             } else {
-                MELON_LOG(ERROR) << "Invalid state=" << H2StreamState2Str(_state)
+                TURBO_LOG(ERROR) << "Invalid state=" << H2StreamState2Str(_state)
                            << " in stream_id=" << stream_id();
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
@@ -857,26 +857,26 @@ namespace melon::rpc {
                 RPC_VLOG << "Fail to find stream_id=" << stream_id();
                 return MakeH2Message(nullptr);
             }
-            MELON_CHECK_EQ(sctx, this);
+            TURBO_CHECK_EQ(sctx, this);
 
             OnMessageComplete();
             return MakeH2Message(sctx);
         }
 
         H2ParseResult H2Context::OnSettings(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             // SETTINGS frames always apply to a connection, never a single stream.
             // The stream identifier for a SETTINGS frame MUST be zero (0x0).  If an
             // endpoint receives a SETTINGS frame whose stream identifier field is
             // anything other than 0x0, the endpoint MUST respond with a connection
             // error (Section 5.4.1) of type PROTOCOL_ERROR.
             if (frame_head.stream_id != 0) {
-                MELON_LOG(ERROR) << "Invalid stream_id=" << frame_head.stream_id;
+                TURBO_LOG(ERROR) << "Invalid stream_id=" << frame_head.stream_id;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             if (frame_head.flags & H2_FLAGS_ACK) {
                 if (frame_head.payload_size != 0) {
-                    MELON_LOG(ERROR) << "Non-zero payload_size=" << frame_head.payload_size
+                    TURBO_LOG(ERROR) << "Non-zero payload_size=" << frame_head.payload_size
                                      << " for settings-ACK";
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
@@ -893,7 +893,7 @@ namespace melon::rpc {
                 // MAX_WINDOW_SIZE. In this case we need to revert this value to default.
                 H2Settings tmp_settings;
                 if (!ParseH2Settings(&tmp_settings, it, frame_head.payload_size)) {
-                    MELON_LOG(ERROR) << "Fail to parse from SETTINGS";
+                    TURBO_LOG(ERROR) << "Fail to parse from SETTINGS";
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
                 _remote_settings = tmp_settings;
@@ -903,7 +903,7 @@ namespace melon::rpc {
                 _remote_settings_received = true;
             } else {
                 if (!ParseH2Settings(&_remote_settings, it, frame_head.payload_size)) {
-                    MELON_LOG(ERROR) << "Fail to parse from SETTINGS";
+                    TURBO_LOG(ERROR) << "Fail to parse from SETTINGS";
                     return MakeH2Error(H2_PROTOCOL_ERROR);
                 }
             }
@@ -927,32 +927,32 @@ namespace melon::rpc {
             char headbuf[FRAME_HEAD_SIZE];
             SerializeFrameHead(headbuf, 0, H2_FRAME_SETTINGS, H2_FLAGS_ACK, 0);
             if (WriteAck(_socket, headbuf, sizeof(headbuf)) != 0) {
-                MELON_LOG(WARNING) << "Fail to respond settings with ack to " << *_socket;
+                TURBO_LOG(WARNING) << "Fail to respond settings with ack to " << *_socket;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             return MakeH2Message(nullptr);
         }
 
         H2ParseResult H2Context::OnPriority(
-                melon::cord_buf_bytes_iterator &, const H2FrameHead &) {
-            MELON_LOG(ERROR) << "Not support PRIORITY frame yet";
+                turbo::cord_buf_bytes_iterator &, const H2FrameHead &) {
+            TURBO_LOG(ERROR) << "Not support PRIORITY frame yet";
             return MakeH2Error(H2_PROTOCOL_ERROR);
         }
 
         H2ParseResult H2Context::OnPushPromise(
-                melon::cord_buf_bytes_iterator &, const H2FrameHead &) {
-            MELON_LOG(ERROR) << "Not support PUSH_PROMISE frame yet";
+                turbo::cord_buf_bytes_iterator &, const H2FrameHead &) {
+            TURBO_LOG(ERROR) << "Not support PUSH_PROMISE frame yet";
             return MakeH2Error(H2_PROTOCOL_ERROR);
         }
 
         H2ParseResult H2Context::OnPing(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             if (frame_head.payload_size != 8) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             if (frame_head.stream_id != 0) {
-                MELON_LOG(ERROR) << "Invalid stream_id=" << frame_head.stream_id;
+                TURBO_LOG(ERROR) << "Invalid stream_id=" << frame_head.stream_id;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             if (frame_head.flags & H2_FLAGS_ACK) {
@@ -963,7 +963,7 @@ namespace melon::rpc {
             SerializeFrameHead(pongbuf, 8, H2_FRAME_PING, H2_FLAGS_ACK, 0);
             it.copy_and_forward(pongbuf + FRAME_HEAD_SIZE, 8);
             if (WriteAck(_socket, pongbuf, sizeof(pongbuf)) != 0) {
-                MELON_LOG(WARNING) << "Fail to send ack of PING to " << *_socket;
+                TURBO_LOG(WARNING) << "Fail to send ack of PING to " << *_socket;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             return MakeH2Message(nullptr);
@@ -975,23 +975,23 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2Context::OnGoAway(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &h) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &h) {
             if (h.payload_size < 8) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << h.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << h.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             if (h.stream_id != 0) {
-                MELON_LOG(ERROR) << "Invalid stream_id=" << h.stream_id;
+                TURBO_LOG(ERROR) << "Invalid stream_id=" << h.stream_id;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             if (h.flags) {
-                MELON_LOG(ERROR) << "Invalid flags=" << h.flags;
+                TURBO_LOG(ERROR) << "Invalid flags=" << h.flags;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             // Skip Additional Debug Data
             it.forward(h.payload_size - 8);
             const int last_stream_id = static_cast<int>(LoadUint32(it));
-            // const H2Error MELON_ALLOW_UNUSED h2_error = static_cast<H2Error>(LoadUint32(it));
+            // const H2Error TURBO_ALLOW_UNUSED h2_error = static_cast<H2Error>(LoadUint32(it));
             // TODO(zhujiashun): client and server should unify the code.
             // Server Push is not supported so it works fine now.
             if (is_client_side()) {
@@ -1013,7 +1013,7 @@ namespace melon::rpc {
                                            FIBER_ATTR_PTHREAD :
                                            FIBER_ATTR_NORMAL);
                     tmp.keytable_pool = _socket->keytable_pool();
-                    MELON_CHECK_EQ(0, fiber_start_background(&th, &tmp, ProcessHttpResponseWrapper,
+                    TURBO_CHECK_EQ(0, fiber_start_background(&th, &tmp, ProcessHttpResponseWrapper,
                                                              static_cast<InputMessageBase *>(goaway_streams[i])));
                 }
                 return MakeH2Message(goaway_streams[0]);
@@ -1024,19 +1024,19 @@ namespace melon::rpc {
         }
 
         H2ParseResult H2Context::OnWindowUpdate(
-                melon::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
+                turbo::cord_buf_bytes_iterator &it, const H2FrameHead &frame_head) {
             if (frame_head.payload_size != 4) {
-                MELON_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
+                TURBO_LOG(ERROR) << "Invalid payload_size=" << frame_head.payload_size;
                 return MakeH2Error(H2_FRAME_SIZE_ERROR);
             }
             const uint32_t inc = LoadUint32(it);
             if ((inc & 0x80000000) || (inc == 0)) {
-                MELON_LOG(ERROR) << "Invalid window_size_increment=" << inc;
+                TURBO_LOG(ERROR) << "Invalid window_size_increment=" << inc;
                 return MakeH2Error(H2_PROTOCOL_ERROR);
             }
             if (frame_head.stream_id == 0) {
                 if (!AddWindowSize(&_remote_window_left, inc)) {
-                    MELON_LOG(ERROR) << "Invalid connection-level window_size_increment=" << inc;
+                    TURBO_LOG(ERROR) << "Invalid connection-level window_size_increment=" << inc;
                     return MakeH2Error(H2_FLOW_CONTROL_ERROR);
                 }
                 return MakeH2Message(nullptr);
@@ -1047,7 +1047,7 @@ namespace melon::rpc {
                     return MakeH2Message(nullptr);
                 }
                 if (!AddWindowSize(&sctx->_remote_window_left, inc)) {
-                    MELON_LOG(ERROR) << "Invalid stream-level window_size_increment=" << inc
+                    TURBO_LOG(ERROR) << "Invalid stream-level window_size_increment=" << inc
                                      << " to remote_window_left="
                                      << sctx->_remote_window_left.load(std::memory_order_relaxed);
                     return MakeH2Error(H2_FLOW_CONTROL_ERROR);
@@ -1077,7 +1077,7 @@ namespace melon::rpc {
             os << '}';
             size_t abandoned_size = 0;
             {
-                MELON_SCOPED_LOCK(_abandoned_streams_mutex);
+                TURBO_SCOPED_LOCK(_abandoned_streams_mutex);
                 abandoned_size = _abandoned_streams.size();
             }
             os << sep << "abandoned_streams=" << abandoned_size
@@ -1107,7 +1107,7 @@ namespace melon::rpc {
                     SerializeFrameHead(winbuf, 4, H2_FRAME_WINDOW_UPDATE, 0, 0);
                     SaveUint32(winbuf + FRAME_HEAD_SIZE, conn_wu);
                     if (WriteAck(_socket, winbuf, sizeof(winbuf)) != 0) {
-                        MELON_LOG(WARNING) << "Fail to send WINDOW_UPDATE";
+                        TURBO_LOG(WARNING) << "Fail to send WINDOW_UPDATE";
                     }
                 }
             }
@@ -1119,7 +1119,7 @@ namespace melon::rpc {
             "h2_parse_second", &g_parse_time);
 #endif
 
-        ParseResult ParseH2Message(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseH2Message(turbo::cord_buf *source, Socket *socket,
                                    bool read_eof, const void *arg) {
 #if defined(MELON_RPC_PROFILE_H2)
             melon::scoped_timer<melon::counter<int64_t> > tm(g_parse_time);
@@ -1133,14 +1133,14 @@ namespace melon::rpc {
                 ctx = new H2Context(socket, server);
                 if (ctx->Init() != 0) {
                     delete ctx;
-                    MELON_LOG(ERROR) << "Fail to init H2Context";
+                    TURBO_LOG(ERROR) << "Fail to init H2Context";
                     return MakeParseError(PARSE_ERROR_NO_RESOURCE);
                 }
                 socket->initialize_parsing_context(&ctx);
             }
-            melon::cord_buf_bytes_iterator it(*source);
+            turbo::cord_buf_bytes_iterator it(*source);
             size_t last_bytes_left = it.bytes_left();
-            MELON_CHECK_EQ(last_bytes_left, source->size());
+            TURBO_CHECK_EQ(last_bytes_left, source->size());
             while (true) {
                 ParseResult res = ctx->Consume(it, socket);
                 if (res.is_ok()) {
@@ -1230,14 +1230,14 @@ namespace melon::rpc {
             }
             int64_t after_sub = _remote_window_left.fetch_sub(size, std::memory_order_relaxed) - size;
             if (after_sub < 0) {
-                MELON_LOG(FATAL) << "Impossible, the http2 impl is buggy";
+                TURBO_LOG(FATAL) << "Impossible, the http2 impl is buggy";
                 _remote_window_left.fetch_add(size, std::memory_order_relaxed);
                 return false;
             }
             return true;
         }
 
-        int H2StreamContext::ConsumeHeaders(melon::cord_buf_bytes_iterator &it) {
+        int H2StreamContext::ConsumeHeaders(turbo::cord_buf_bytes_iterator &it) {
             HPacker &hpacker = _conn_ctx->hpacker();
             HttpHeader &h = header();
             while (it) {
@@ -1264,7 +1264,7 @@ namespace melon::rpc {
                                 matched = true;
                                 HttpMethod method;
                                 if (!Str2HttpMethod(pair.value.c_str(), &method)) {
-                                    MELON_LOG(ERROR) << "Invalid method=" << pair.value;
+                                    TURBO_LOG(ERROR) << "Invalid method=" << pair.value;
                                     return -1;
                                 }
                                 h.set_method(method);
@@ -1286,7 +1286,7 @@ namespace melon::rpc {
                                 char *endptr = nullptr;
                                 const int sc = strtol(pair.value.c_str(), &endptr, 10);
                                 if (*endptr != '\0') {
-                                    MELON_LOG(ERROR) << "Invalid status=" << pair.value;
+                                    TURBO_LOG(ERROR) << "Invalid status=" << pair.value;
                                     return -1;
                                 }
                                 h.set_status_code(sc);
@@ -1296,7 +1296,7 @@ namespace melon::rpc {
                             break;
                     }
                     if (!matched) {
-                        MELON_LOG(ERROR) << "Unknown name=`" << name << '\'';
+                        TURBO_LOG(ERROR) << "Unknown name=`" << name << '\'';
                         return -1;
                     }
                 } else if (name[0] == 'c' &&
@@ -1308,14 +1308,14 @@ namespace melon::rpc {
                 }
 
                 if (FLAGS_http_verbose) {
-                    melon::cord_buf_builder *vs = this->_vmsgbuilder;
+                    turbo::cord_buf_builder *vs = this->_vmsgbuilder;
                     if (vs == nullptr) {
-                        vs = new melon::cord_buf_builder;
+                        vs = new turbo::cord_buf_builder;
                         this->_vmsgbuilder = vs;
                         if (_conn_ctx->is_server_side()) {
-                            *vs << "[ H2 REQUEST @" << melon::my_ip() << " ]";
+                            *vs << "[ H2 REQUEST @" << turbo::my_ip() << " ]";
                         } else {
-                            *vs << "[ H2 RESPONSE @" << melon::my_ip() << " ]";
+                            *vs << "[ H2 RESPONSE @" << turbo::my_ip() << " ]";
                         }
                     }
                     // print \n first to be consistent with code in http_message.cpp
@@ -1327,10 +1327,10 @@ namespace melon::rpc {
 
         const CommonStrings *get_common_strings();
 
-        static void PackH2Message(melon::cord_buf *out,
-                                  melon::cord_buf &headers,
-                                  melon::cord_buf &trailer_headers,
-                                  const melon::cord_buf &data,
+        static void PackH2Message(turbo::cord_buf *out,
+                                  turbo::cord_buf &headers,
+                                  turbo::cord_buf &trailer_headers,
+                                  const turbo::cord_buf &data,
                                   int stream_id,
                                   H2Context *conn_ctx) {
             const H2Settings &remote_settings = conn_ctx->remote_settings();
@@ -1344,7 +1344,7 @@ namespace melon::rpc {
                 headers_head.flags |= H2_FLAGS_END_HEADERS;
                 SerializeFrameHead(headbuf, headers_head);
                 out->append(headbuf, sizeof(headbuf));
-                out->append(melon::cord_buf::Movable(headers));
+                out->append(turbo::cord_buf::Movable(headers));
             } else {
                 headers_head.payload_size = remote_settings.max_frame_size;
                 SerializeFrameHead(headbuf, headers_head);
@@ -1366,7 +1366,7 @@ namespace melon::rpc {
             }
             if (!data.empty()) {
                 H2FrameHead data_head = {0, H2_FRAME_DATA, 0, stream_id};
-                melon::cord_buf_bytes_iterator it(data);
+                turbo::cord_buf_bytes_iterator it(data);
                 while (it.bytes_left()) {
                     if (it.bytes_left() <= remote_settings.max_frame_size) {
                         data_head.payload_size = it.bytes_left();
@@ -1388,7 +1388,7 @@ namespace melon::rpc {
                 headers_head.flags |= H2_FLAGS_END_HEADERS;
                 SerializeFrameHead(headbuf, headers_head);
                 out->append(headbuf, sizeof(headbuf));
-                out->append(melon::cord_buf::Movable(trailer_headers));
+                out->append(turbo::cord_buf::Movable(trailer_headers));
             }
             const int64_t conn_wu = conn_ctx->ReleaseDeferredWindowUpdate();
             if (conn_wu > 0) {
@@ -1444,10 +1444,10 @@ namespace melon::rpc {
                     if (uri.port() < 0) {
                         *val = uri.host();
                     } else {
-                        melon::string_printf(val, "%s:%d", uri.host().c_str(), uri.port());
+                        turbo::string_printf(val, "%s:%d", uri.host().c_str(), uri.port());
                     }
                 } else if (c->remote_side().port != 0) {
-                    *val = melon::endpoint2str(c->remote_side()).c_str();
+                    *val = turbo::endpoint2str(c->remote_side()).c_str();
                 }
             }
             if (need_content_type) {
@@ -1465,7 +1465,7 @@ namespace melon::rpc {
                 // characters in this part and even if users did, most of them are
                 // invalid and rejected by http_parser_parse_url().
                 std::string encoded_user_info;
-                melon::base::base64_encode(user_info, &encoded_user_info);
+                turbo::base::base64_encode(user_info, &encoded_user_info);
                 std::string *val = &msg->push(common->AUTHORIZATION);
                 val->reserve(6 + encoded_user_info.size());
                 val->append("Basic ");
@@ -1489,7 +1489,7 @@ namespace melon::rpc {
             ~RemoveRefOnQuit() { _msg->RemoveRefManually(); }
 
         private:
-            MELON_DISALLOW_COPY_AND_ASSIGN(RemoveRefOnQuit);
+            TURBO_DISALLOW_COPY_AND_ASSIGN(RemoveRefOnQuit);
 
             H2UnsentRequest *_msg;
         };
@@ -1500,7 +1500,7 @@ namespace melon::rpc {
                                                     bool /*end_of_rpc*/) {
             RemoveRefOnQuit deref_self(this);
             if (sending_sock != nullptr && error_code != 0) {
-                MELON_CHECK_EQ(cntl, _cntl);
+                TURBO_CHECK_EQ(cntl, _cntl);
                 std::unique_lock<std::mutex> mu(_mutex);
                 _cntl = nullptr;
                 if (_stream_id != 0) {
@@ -1516,24 +1516,24 @@ namespace melon::rpc {
             "h2_append_request_second",     &g_append_request_time);
 #endif
 
-        melon::result_status
-        H2UnsentRequest::AppendAndDestroySelf(melon::cord_buf *out, Socket *socket) {
+        turbo::result_status
+        H2UnsentRequest::AppendAndDestroySelf(turbo::cord_buf *out, Socket *socket) {
 #if defined(MELON_RPC_PROFILE_H2)
             melon::scoped_timer<melon::counter<int64_t> > tm(g_append_request_time);
 #endif
             RemoveRefOnQuit deref_self(this);
             if (socket == nullptr) {
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
             H2Context *ctx = static_cast<H2Context *>(socket->parsing_context());
 
             // Create a http2 stream and store correlation_id in.
             if (ctx == nullptr) {
-                MELON_CHECK(socket->CreatedByConnect());
+                TURBO_CHECK(socket->CreatedByConnect());
                 ctx = new H2Context(socket, nullptr);
                 if (ctx->Init() != 0) {
                     delete ctx;
-                    return melon::result_status(EINTERNAL, "Fail to init H2Context");
+                    return turbo::result_status(EINTERNAL, "Fail to init H2Context");
                 }
                 socket->initialize_parsing_context(&ctx);
 
@@ -1550,14 +1550,14 @@ namespace melon::rpc {
 
             // TODO(zhujiashun): also check this in server push
             if (ctx->VolatilePendingStreamSize() > ctx->remote_settings().max_concurrent_streams) {
-                return melon::result_status(ELIMIT, "Pending Stream count exceeds max concurrent stream");
+                return turbo::result_status(ELIMIT, "Pending Stream count exceeds max concurrent stream");
             }
 
             // Although the critical section looks huge, it should rarely be contended
             // since timeout of RPC is much larger than the delay of sending.
             std::unique_lock<std::mutex> mu(_mutex);
             if (_cntl == nullptr) {
-                return melon::result_status(ECANCELED, "The RPC was already failed");
+                return turbo::result_status(ECANCELED, "The RPC was already failed");
             }
 
             const int id = ctx->AllocateClientStreamId();
@@ -1567,7 +1567,7 @@ namespace melon::rpc {
                 // other RPC successfully sent requests and waiting for responses.
                 RPC_VLOG << "Fail to allocate stream_id on " << *socket
                          << " h2req=" << (StreamUserData *) this;
-                return melon::result_status(EH2RUNOUTSTREAMS, "Fail to allocate stream_id");
+                return turbo::result_status(EH2RUNOUTSTREAMS, "Fail to allocate stream_id");
             }
 
             _sctx->Init(ctx, id);
@@ -1575,23 +1575,23 @@ namespace melon::rpc {
             if (!_cntl->request_attachment().empty()) {
                 const int64_t data_size = _cntl->request_attachment().size();
                 if (!_sctx->ConsumeWindowSize(data_size)) {
-                    return melon::result_status(ELIMIT, "remote_window_left is not enough, data_size={}",
+                    return turbo::result_status(ELIMIT, "remote_window_left is not enough, data_size={}",
                                                      data_size);
                 }
             }
 
             const int rc = ctx->TryToInsertStream(id, _sctx.get());
             if (rc < 0) {
-                return melon::result_status(EINTERNAL, "Fail to insert existing stream_id");
+                return turbo::result_status(EINTERNAL, "Fail to insert existing stream_id");
             } else if (rc > 0) {
-                return melon::result_status(ELOGOFF, "the connection just issued GOAWAY");
+                return turbo::result_status(ELOGOFF, "the connection just issued GOAWAY");
             }
             _stream_id = _sctx->stream_id();
             // After calling TryToInsertStream, the ownership of _sctx is transferred to ctx
             _sctx.release();
 
             HPacker &hpacker = ctx->hpacker();
-            melon::cord_buf_appender appender;
+            turbo::cord_buf_appender appender;
             HPackOptions options;
             options.encode_name = FLAGS_h2_hpack_encode_name;
             options.encode_value = FLAGS_h2_hpack_encode_value;
@@ -1606,11 +1606,11 @@ namespace melon::rpc {
                     hpacker.Encode(&appender, header, options);
                 }
             }
-            melon::cord_buf frag;
+            turbo::cord_buf frag;
             appender.move_to(frag);
-            melon::cord_buf dummy_buf;
+            turbo::cord_buf dummy_buf;
             PackH2Message(out, frag, dummy_buf, _cntl->request_attachment(), _stream_id, ctx);
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
 
         size_t H2UnsentRequest::EstimatedByteSize() {
@@ -1634,7 +1634,7 @@ namespace melon::rpc {
         }
 
         void H2UnsentRequest::Print(std::ostream &os) const {
-            os << "[ H2 REQUEST @" << melon::my_ip() << " ]\n";
+            os << "[ H2 REQUEST @" << turbo::my_ip() << " ]\n";
             for (size_t i = 0; i < _size; ++i) {
                 os << "> " << _list[i].name << " = " << _list[i].value << '\n';
             }
@@ -1649,11 +1649,11 @@ namespace melon::rpc {
                     os << "> " << it->first << " = " << it->second << '\n';
                 }
             }
-            const melon::cord_buf *body = &_cntl->request_attachment();
+            const turbo::cord_buf *body = &_cntl->request_attachment();
             if (!body->empty()) {
                 os << "> \n";
             }
-            os << melon::to_printable(*body, FLAGS_http_verbose_max_body_length);
+            os << turbo::to_printable(*body, FLAGS_http_verbose_max_body_length);
 
         }
 
@@ -1679,7 +1679,7 @@ namespace melon::rpc {
             if (h->status_code() == 200) {
                 msg->push(common->H2_STATUS, common->STATUS_200);
             } else {
-                melon::string_printf(&msg->push(common->H2_STATUS),
+                turbo::string_printf(&msg->push(common->H2_STATUS),
                                      "%d", h->status_code());
             }
             if (need_content_type) {
@@ -1702,14 +1702,14 @@ namespace melon::rpc {
             "h2_append_response_second",     &g_append_response_time);
 #endif
 
-        melon::result_status
-        H2UnsentResponse::AppendAndDestroySelf(melon::cord_buf *out, Socket *socket) {
+        turbo::result_status
+        H2UnsentResponse::AppendAndDestroySelf(turbo::cord_buf *out, Socket *socket) {
 #if defined(MELON_RPC_PROFILE_H2)
             melon::scoped_timer<melon::counter<int64_t> > tm(g_append_response_time);
 #endif
             DestroyingPtr<H2UnsentResponse> destroy_self(this);
             if (socket == nullptr) {
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
             H2Context *ctx = static_cast<H2Context *>(socket->parsing_context());
 
@@ -1725,11 +1725,11 @@ namespace melon::rpc {
                 SerializeFrameHead(rstbuf, 4, H2_FRAME_RST_STREAM, 0, _stream_id);
                 SaveUint32(rstbuf + FRAME_HEAD_SIZE, H2_FLOW_CONTROL_ERROR);
                 out->append(rstbuf, sizeof(rstbuf));
-                return melon::result_status::success();
+                return turbo::result_status::success();
             }
 
             HPacker &hpacker = ctx->hpacker();
-            melon::cord_buf_appender appender;
+            turbo::cord_buf_appender appender;
             HPackOptions options;
             options.encode_name = FLAGS_h2_hpack_encode_name;
             options.encode_value = FLAGS_h2_hpack_encode_value;
@@ -1744,13 +1744,13 @@ namespace melon::rpc {
                     hpacker.Encode(&appender, header, options);
                 }
             }
-            melon::cord_buf frag;
+            turbo::cord_buf frag;
             appender.move_to(frag);
 
-            melon::cord_buf trailer_frag;
+            turbo::cord_buf trailer_frag;
             if (_is_grpc) {
                 HPacker::Header status_header("grpc-status",
-                                              melon::string_printf("%d", _grpc_status));
+                                              turbo::string_printf("%d", _grpc_status));
                 hpacker.Encode(&appender, status_header, options);
                 if (!_grpc_message.empty()) {
                     HPacker::Header msg_header("grpc-message", _grpc_message);
@@ -1760,7 +1760,7 @@ namespace melon::rpc {
             }
 
             PackH2Message(out, frag, trailer_frag, _data, _stream_id, ctx);
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
 
         size_t H2UnsentResponse::EstimatedByteSize() {
@@ -1779,7 +1779,7 @@ namespace melon::rpc {
         }
 
         void H2UnsentResponse::Print(std::ostream &os) const {
-            os << "[ H2 RESPONSE @" << melon::my_ip() << " ]\n";
+            os << "[ H2 RESPONSE @" << turbo::my_ip() << " ]\n";
             for (size_t i = 0; i < _size; ++i) {
                 os << "> " << _list[i].name << " = " << _list[i].value << '\n';
             }
@@ -1792,15 +1792,15 @@ namespace melon::rpc {
             if (!_data.empty()) {
                 os << "> \n";
             }
-            os << melon::to_printable(_data, FLAGS_http_verbose_max_body_length);
+            os << turbo::to_printable(_data, FLAGS_http_verbose_max_body_length);
         }
 
-        void PackH2Request(melon::cord_buf *,
+        void PackH2Request(turbo::cord_buf *,
                            SocketMessage **user_message,
                            uint64_t correlation_id,
                            const google::protobuf::MethodDescriptor *,
                            Controller *cntl,
-                           const melon::cord_buf &,
+                           const turbo::cord_buf &,
                            const Authenticator *auth) {
             ControllerPrivateAccessor accessor(cntl);
 
@@ -1814,13 +1814,13 @@ namespace melon::rpc {
             }
 
             H2UnsentRequest *h2_req = dynamic_cast<H2UnsentRequest *>(accessor.get_stream_user_data());
-            MELON_CHECK(h2_req);
+            TURBO_CHECK(h2_req);
             h2_req->AddRefManually();   // add ref for AppendAndDestroySelf
             h2_req->_sctx->set_correlation_id(correlation_id);
             *user_message = h2_req;
 
             if (FLAGS_http_verbose) {
-                MELON_LOG(INFO) << '\n' << *h2_req;
+                TURBO_LOG(INFO) << '\n' << *h2_req;
             }
         }
 
@@ -1850,7 +1850,7 @@ namespace melon::rpc {
         }
 
         StreamCreator *get_h2_global_stream_creator() {
-            return melon::get_leaky_singleton<H2GlobalStreamCreator>();
+            return turbo::get_leaky_singleton<H2GlobalStreamCreator>();
         }
 
     }  // namespace policy

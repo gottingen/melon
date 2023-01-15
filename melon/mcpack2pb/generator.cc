@@ -24,7 +24,7 @@
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/compiler/plugin.h>
-#include "melon/strings/str_format.h"
+#include "turbo/strings/str_format.h"
 #include "melon/mcpack2pb/mcpack2pb.h"
 #include "idl_options.pb.h"
 
@@ -237,7 +237,7 @@ bool generate_declarations(const std::set<std::string>& ref_msgs,
     "    }\n"                                                           \
     "    return value.stream()->good();\n"                              \
     "  }\n"                                                             \
-    "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated " #pbtype ")\";\n" \
+    "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated " #pbtype ")\";\n" \
     "  return false;\n"                                                 \
     "}\n"
 
@@ -250,15 +250,15 @@ static bool is_map_entry(const google::protobuf::Descriptor* d) {
         return false;
     }
     if (d->field(0)->is_repeated()) {
-        MELON_LOG(ERROR) << d->field(0)->full_name() << " must be required or optional";
+        TURBO_LOG(ERROR) << d->field(0)->full_name() << " must be required or optional";
         return false;
     }
     if (d->field(1)->is_repeated()) {
-        MELON_LOG(ERROR) << d->field(1)->full_name() << " must be required or optional";
+        TURBO_LOG(ERROR) << d->field(1)->full_name() << " must be required or optional";
         return false;
     }
     if (d->field(0)->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-        MELON_LOG(ERROR) << "key of idl map must be string";
+        TURBO_LOG(ERROR) << "key of idl map must be string";
         return false;
     }
     return true;
@@ -279,7 +279,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
             impl.Print("// repeated $type$ $name$ = $number$;\n"
                        , "type", field_to_string(f)
                        , "name", f->name()
-                       , "number", melon::string_printf("%d", f->number()));
+                       , "number", turbo::string_printf("%d", f->number()));
             impl.Print(TEMPLATE_OF_ADD_FUNC_SIGNATURE()
                        , "vmsg", var_name
                        , "lcfield", f->lowercase_name());
@@ -333,7 +333,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     "    }\n"
                     "    return value.stream()->good();\n"
                     "  }\n"                                                             
-                    "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to repeated $enum$\";\n"
+                    "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to repeated $enum$\";\n"
                     "  return false;\n"                                                 
                     "}\n"
                     , "msg", cpp_name
@@ -365,13 +365,13 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     "      } else if (it->type() == ::mcpack2pb::FIELD_BINARY) {\n"
                     "        it->as_binary(msg->add_$lcfield$(), \"$field$\");\n"
                     "      } else {\n"
-                    "        MELON_LOG(ERROR) << \"Can't add \" << *it << \" to $field$ (repeated string)\";\n"
+                    "        TURBO_LOG(ERROR) << \"Can't add \" << *it << \" to $field$ (repeated string)\";\n"
                     "        return false;\n"    
                     "      }\n"
                     "    }\n"
                     "    return value.stream()->good();\n"
                     "  }\n"                                                             
-                    "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated string)\";\n"
+                    "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated string)\";\n"
                     "  return false;\n"    
                     "}\n"
                     , "msg", cpp_name
@@ -401,7 +401,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                         "    }\n"
                         "    return value.stream()->good();\n"
                         "  }\n"
-                        "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated $msg2$)\";\n"
+                        "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated $msg2$)\";\n"
                         "  return false;\n"    
                         "}\n"
                         , "vmsg2", var_name2
@@ -421,7 +421,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     "        if (!FLAGS_mcpack2pb_absent_field_is_error) {\n"
                     "          continue;\n"
                     "        } else {\n"
-                    "          MELON_LOG(ERROR) << \"No field=\" << it->name << \" (\"\n"
+                    "          TURBO_LOG(ERROR) << \"No field=\" << it->name << \" (\"\n"
                     "                     << value << \") in $msg$\";\n"
                     "          return false;\n"
                     "        }\n"
@@ -438,16 +438,16 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     "          }\n"
                     "          if (it2->type() != ::mcpack2pb::FIELD_NULL) {\n"
                     "            if (!(*fn)(sub_msg, *it2)) {\n"
-                    "              MELON_LOG(ERROR) << \"Fail to set item of \" << it->name;\n"
+                    "              TURBO_LOG(ERROR) << \"Fail to set item of \" << it->name;\n"
                     "              return false;\n"
                     "            }\n"
                     "          }\n"
                     "        }\n"
                     "      } else if (it->value.type() == ::mcpack2pb::FIELD_ISOARRAY) {\n"
-                    "         MELON_LOG(ERROR) << \"Shouldn't be a iso array, name=\" << it->name;\n"
+                    "         TURBO_LOG(ERROR) << \"Shouldn't be a iso array, name=\" << it->name;\n"
                     "         return false;\n"
                     "      } else {\n"
-                    "         MELON_LOG(ERROR) << \"Can't add \" << value << \" to repeated $msg$\";\n"
+                    "         TURBO_LOG(ERROR) << \"Can't add \" << value << \" to repeated $msg$\";\n"
                     "         return false;\n"
                     "      }\n"
                     "    }\n"
@@ -461,7 +461,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     "          return false;\n"
                     "        }\n"
                     "      } else {\n"
-                    "        MELON_LOG(ERROR) << \"Can't add \" << *it << \" to repeated $msg$\";\n"
+                    "        TURBO_LOG(ERROR) << \"Can't add \" << *it << \" to repeated $msg$\";\n"
                     "        return false;\n"    
                     "      }\n"
                     "    }\n"
@@ -471,7 +471,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     , "msg", cpp_name
                     , "lcfield", f->lowercase_name());
                 impl.Print(
-                    "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated $msg2$)\";\n"
+                    "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (repeated $msg2$)\";\n"
                     "  return false;\n"    
                     "}\n"
                     , "msg2", f->message_type()->full_name()
@@ -483,12 +483,12 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                 impl.Print("// optional $type$ $name$ = $number$;\n"
                            , "type", field_to_string(f)
                            , "name", f->name()
-                           , "number", melon::string_printf("%d", f->number()));
+                           , "number", turbo::string_printf("%d", f->number()));
             } else {
                 impl.Print("// required $type$ $name$ = $number$;\n"
                            , "type", field_to_string(f)
                            , "name", f->name()
-                           , "number", melon::string_printf("%d", f->number()));
+                           , "number", turbo::string_printf("%d", f->number()));
             }
             impl.Print(TEMPLATE_OF_SET_FUNC_SIGNATURE()
                        , "vmsg", var_name
@@ -557,7 +557,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     "    value.as_binary(static_cast<$msg$*>(msg_base)->mutable_$lcfield$(), \"$field$\");\n"
                     "    return value.stream()->good();\n"
                     "  }\n"
-                    "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (string)\";\n"
+                    "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to $field$ (string)\";\n"
                     "  return false;\n"
                     "}\n"
                     , "msg", cpp_name
@@ -577,7 +577,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
                     , "lcfield", f->lowercase_name());
                 impl.Print(
                     // FIXME: describe type.
-                    "  MELON_LOG(ERROR) << \"Can't set \" << value << \" to $field$\";\n"
+                    "  TURBO_LOG(ERROR) << \"Can't set \" << value << \" to $field$\";\n"
                     "  return false;\n"
                     "}\n"
                     , "field", f->full_name());
@@ -597,7 +597,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
         "      if (!FLAGS_mcpack2pb_absent_field_is_error) {\n"
         "        continue;\n"
         "      } else {\n"
-        "        MELON_LOG(ERROR) << \"No field=\" << it->name << \" (\"\n"
+        "        TURBO_LOG(ERROR) << \"No field=\" << it->name << \" (\"\n"
         "                   << it->value << \") in $msg$\";\n"
         "        return false;\n"
         "      }\n"
@@ -618,7 +618,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
         "    return false;\n"
         "  }\n"
         "  if (!msg->IsInitialized()) {\n"
-        "    MELON_LOG(ERROR) << \"Missing required fields: \" << msg->InitializationErrorString();\n"
+        "    TURBO_LOG(ERROR) << \"Missing required fields: \" << msg->InitializationErrorString();\n"
         "    return false;\n"
         "  }\n"
         "  return true;\n"
@@ -629,7 +629,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
         "  ::mcpack2pb::InputStream mc_stream(input);\n"
         "  const size_t value_size = ::mcpack2pb::unbox(&mc_stream);\n"
         "  if (!value_size) {\n"
-        "    MELON_LOG(ERROR) << \"Fail to unbox\";\n"
+        "    TURBO_LOG(ERROR) << \"Fail to unbox\";\n"
         "    return 0;\n"
         "  }\n"
         "  ::mcpack2pb::UnparsedValue value(::mcpack2pb::FIELD_OBJECT, &mc_stream, value_size);\n"
@@ -637,7 +637,7 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
         "    return 0;\n"
         "  }\n"
         "  if (!msg->IsInitialized()) {\n"
-        "    MELON_LOG(ERROR) << \"Missing required fields: \" << msg->InitializationErrorString();\n"
+        "    TURBO_LOG(ERROR) << \"Missing required fields: \" << msg->InitializationErrorString();\n"
         "    return 0;\n"
         "  }\n"
         "  return 6/*sizeof(FieldLongHead)*/ + value_size;\n"
@@ -706,11 +706,11 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
         }                                                               \
     } else {                                                            \
         if ((field)->type() == google::protobuf::FieldDescriptor::TYPE_ENUM) { \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << (field)->enum_type()->full_name() << ") to " \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         } else {                                                        \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << field_to_string(field) << ") to "     \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         }                                                               \
@@ -725,11 +725,11 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
 #define TEMPLATE_SERIALIZE(cit, printer, field, cond)                   \
     if (!(cond)) {                                                      \
         if ((field)->type() == google::protobuf::FieldDescriptor::TYPE_ENUM) { \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << (field)->enum_type()->full_name() << ") to " \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         } else {                                                        \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << field_to_string(field) << ") to "     \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         }                                                               \
@@ -811,11 +811,11 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
         }                                                               \
     } else {                                                            \
         if ((field)->type() == google::protobuf::FieldDescriptor::TYPE_ENUM) { \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << (field)->enum_type()->full_name() << ") to " \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         } else {                                                        \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << field_to_string(field) << ") to "     \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         }                                                               \
@@ -830,11 +830,11 @@ static bool generate_parsing(const google::protobuf::Descriptor* d,
 #define TEMPLATE_INNER_SERIALIZE(msg, cit, printer, field, cond)        \
     if (!(cond)) {                                                      \
         if ((field)->type() == google::protobuf::FieldDescriptor::TYPE_ENUM) { \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << (field)->enum_type()->full_name() << ") to " \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         } else {                                                        \
-            MELON_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
+            TURBO_LOG(ERROR) << "Disallow converting " << (field)->full_name() \
                        << " (" << field_to_string(field) << ") to "     \
                        << to_mcpack_typestr(cit, (field)) << " (idl)";  \
         }                                                               \
@@ -882,12 +882,12 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
         // Print the field as comment.
         std::string comment_template;
         if (cit == IDL_AUTO) {
-            melon::string_printf(&comment_template,
+            turbo::string_printf(&comment_template,
                                 "// %s $type$ $name$ = $number$;\n",
                                 (f->is_repeated() ? "repeated" :
                                  (f->is_optional() ? "optional" : "required")));
         } else {
-            melon::string_printf(&comment_template,
+            turbo::string_printf(&comment_template,
                                 "// %s $type$ $name$ = $number$ [(idl_type)=%s];\n",
                                 (f->is_repeated() ? "repeated" :
                                  (f->is_optional() ? "optional" : "required")),
@@ -896,7 +896,7 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
         impl.Print(comment_template.c_str()
                    , "type", field_to_string(f)
                    , "name", f->name()
-                   , "number", melon::string_printf("%d", f->number()));
+                   , "number", turbo::string_printf("%d", f->number()));
         if (f->is_repeated()) {
             switch (f->cpp_type()) {
             case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
@@ -933,13 +933,13 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
                         cit, impl, f, false,
                         (cit == IDL_AUTO || cit == IDL_BINARY || cit == IDL_STRING));
                 } else {
-                    MELON_LOG(ERROR) << "Unknown pb type=" << f->type();
+                    TURBO_LOG(ERROR) << "Unknown pb type=" << f->type();
                     return false;
                 }
                 break;
             case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE: {
                 if (cit != IDL_AUTO) {
-                    MELON_LOG(ERROR) << "Disallow converting " << f->full_name()
+                    TURBO_LOG(ERROR) << "Disallow converting " << f->full_name()
                                << " (" << f->message_type()->full_name() << ") to "
                                << to_mcpack_typestr(cit, f) << " (idl)";
                     return false;
@@ -1042,7 +1042,7 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
                     impl.Indent();
                     if (f2->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
                         if (cit2 != IDL_AUTO) {
-                            MELON_LOG(ERROR) << "Disallow converting " << f2->full_name()
+                            TURBO_LOG(ERROR) << "Disallow converting " << f2->full_name()
                                        << " (" << f2->message_type()->full_name() << ") to "
                                        << to_mcpack_typestr(cit2, f2) << " (idl)";
                             return false;
@@ -1089,7 +1089,7 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
                                 , "lcfield2", f2->lowercase_name());
                         }
                     } else if (f2->is_repeated()) {
-                        const std::string msgstr = melon::string_printf(
+                        const std::string msgstr = turbo::string_printf(
                             "msg.%s(i)", f->lowercase_name().c_str());
                         switch (f2->cpp_type()) {
                         case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
@@ -1130,16 +1130,16 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
                                     msgstr.c_str(), cit2, impl, f2, false,
                                     (cit2 == IDL_AUTO || cit2 == IDL_BINARY || cit2 == IDL_STRING));
                             } else {
-                                MELON_LOG(ERROR) << "Unknown pb type=" << f2->type();
+                                TURBO_LOG(ERROR) << "Unknown pb type=" << f2->type();
                                 return false;
                             }
                             break;
                         case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-                            MELON_CHECK(false) << "Impossible";
+                            TURBO_CHECK(false) << "Impossible";
                             return false;
                         }
                     } else {
-                        const std::string msgstr = melon::string_printf(
+                        const std::string msgstr = turbo::string_printf(
                             "msg.%s(i)", f->lowercase_name().c_str());
                         switch (f2->cpp_type()) {
                         case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
@@ -1174,12 +1174,12 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
                                     msgstr.c_str(), cit2, impl, f2,
                                     (cit2 == IDL_AUTO || cit2 == IDL_BINARY || cit2 == IDL_STRING));
                             } else {
-                                MELON_LOG(ERROR) << "Unknown pb type=" << f2->type();
+                                TURBO_LOG(ERROR) << "Unknown pb type=" << f2->type();
                                 return false;
                             }
                             break;
                         case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-                            MELON_LOG(ERROR) << "Impossible";
+                            TURBO_LOG(ERROR) << "Impossible";
                             return false;
                         }
                     }
@@ -1227,13 +1227,13 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
                         cit, impl, f,
                         (cit == IDL_AUTO || cit == IDL_BINARY || cit == IDL_STRING));
                 } else {
-                    MELON_LOG(ERROR) << "Unknown pb type=" << f->type();
+                    TURBO_LOG(ERROR) << "Unknown pb type=" << f->type();
                     return false;
                 }
                 break;
             case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE: {
                 if (cit != IDL_AUTO) {
-                    MELON_LOG(ERROR) << "Disallow converting " << f->full_name()
+                    TURBO_LOG(ERROR) << "Disallow converting " << f->full_name()
                                << " (" << f->message_type()->full_name() << ") to "
                                << to_mcpack_typestr(cit, f) << " (idl)";
                     return false;
@@ -1252,7 +1252,7 @@ static bool generate_serializing(const google::protobuf::Descriptor* d,
             } // switch
             if (f->is_required()) {
                 impl.Print(" else {\n"
-                           "  MELON_LOG(ERROR) << \"Missing required $field$\";\n"
+                           "  TURBO_LOG(ERROR) << \"Missing required $field$\";\n"
                            "  return serializer.set_bad();\n"
                            "}\n", "field", f->full_name());
             } else {
@@ -1313,9 +1313,9 @@ static bool generate_registration(
         impl.Print(
             "\n"
             "g_$vmsg$_fields = new ::mcpack2pb::FieldMap;\n"
-            "MELON_CHECK_EQ(0, g_$vmsg$_fields->init(std::max($field_count$, 1), 30));\n"
+            "TURBO_CHECK_EQ(0, g_$vmsg$_fields->init(std::max($field_count$, 1), 30));\n"
             , "vmsg", var_name
-            , "field_count", ::melon::string_printf("%d", d->field_count()));
+            , "field_count", ::turbo::string_printf("%d", d->field_count()));
         for (int i = 0; i < d->field_count(); ++i) {
             const google::protobuf::FieldDescriptor* f = d->field(i);
             impl.Print("(*g_$vmsg$_fields)[\"$field$\"] = ::set_$vmsg$_$lcfield$;\n"
@@ -1362,7 +1362,7 @@ bool McpackToProtobuf::Generate(const google::protobuf::FileDescriptor* file,
     std::string cpp_name = file->name();
     const size_t pos = cpp_name.find_last_of('.');
     if (pos == std::string::npos) {
-        ::melon::string_printf(error, "Bad filename=%s", cpp_name.c_str());
+        ::turbo::string_printf(error, "Bad filename=%s", cpp_name.c_str());
         return false;
     }
     cpp_name.resize(pos);
@@ -1388,13 +1388,13 @@ bool McpackToProtobuf::Generate(const google::protobuf::FileDescriptor* file,
     for (int i = 0; i < file->message_type_count(); ++i) {
         const google::protobuf::Descriptor* d = file->message_type(i);
         if (!generate_parsing(d, ref_msgs, ref_maps, gimpl_printer)) {
-            ::melon::string_printf(
+            ::turbo::string_printf(
                 error, "Fail to generate parsing code for %s",
                 d->full_name().c_str());
             return false;
         }
         if (!generate_serializing(d, ref_msgs, ref_maps, gimpl_printer)) {
-            ::melon::string_printf(
+            ::turbo::string_printf(
                 error, "Fail to generate serializing code for %s",
                 d->full_name().c_str());
             return false;
@@ -1405,13 +1405,13 @@ bool McpackToProtobuf::Generate(const google::protobuf::FileDescriptor* file,
             , "vmsg", var_name);
     }
     if (!generate_declarations(ref_msgs, ref_maps, gdecl_printer)) {
-        ::melon::string_printf(
+        ::turbo::string_printf(
             error, "Fail to generate declarations for %s",
             cpp_name.c_str());
         return false;        
     }
     if (!generate_registration(file, gimpl_printer)) {
-        ::melon::string_printf(
+        ::turbo::string_printf(
             error, "Fail to generate registration code for %s",
             cpp_name.c_str());
         return false;

@@ -23,9 +23,9 @@
 #include <vector>                                      // std::vector
 #include <deque>                                       // std::deque
 #include <map>                                         // std::map
-#include "melon/container/flat_map.h"                  // FlatMap
-#include "melon/container/doubly_buffered_data.h"      // DoublyBufferedData
-#include "melon/container/bounded_queue.h"             // bounded_queue
+#include "turbo/container/flat_map.h"                  // FlatMap
+#include "turbo/container/doubly_buffered_data.h"      // DoublyBufferedData
+#include "turbo/container/bounded_queue.h"             // bounded_queue
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/controller.h"
 
@@ -120,7 +120,7 @@ namespace melon::rpc {
                 size_t _old_index;
                 int64_t _old_weight;
                 int64_t _avg_latency;
-                melon::container::bounded_queue<TimeInfo> _time_q;
+                turbo::container::bounded_queue<TimeInfo> _time_q;
                 // content of _time_q
                 TimeInfo _time_q_items[RECV_QUEUE_SIZE];
             };
@@ -134,10 +134,10 @@ namespace melon::rpc {
             class Servers {
             public:
                 std::vector<ServerInfo> weight_tree;
-                melon::container::FlatMap<SocketId, size_t> server_map;
+                turbo::container::FlatMap<SocketId, size_t> server_map;
 
                 Servers() {
-                    MELON_CHECK_EQ(0, server_map.init(1024, 70));
+                    TURBO_CHECK_EQ(0, server_map.init(1024, 70));
                 }
 
                 // Add diff to left_weight of all parent nodes of node `index'.
@@ -170,7 +170,7 @@ namespace melon::rpc {
             void PopLeft() { _left_weights.pop_back(); }
 
             std::atomic<int64_t> _total;
-            melon::container::DoublyBufferedData<Servers> _db_servers;
+            turbo::container::DoublyBufferedData<Servers> _db_servers;
             std::deque<int64_t> _left_weights;
             ServerId2SocketIdMapper _id_mapper;
         };
@@ -214,7 +214,7 @@ namespace melon::rpc {
         inline LocalityAwareLoadBalancer::Weight::AddInflightResult
         LocalityAwareLoadBalancer::Weight::AddInflight(
                 const SelectIn &in, size_t index, int64_t dice) {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (Disabled()) {
                 AddInflightResult r = {false, 0};
                 return r;
@@ -233,7 +233,7 @@ namespace melon::rpc {
 
         inline int64_t LocalityAwareLoadBalancer::Weight::MarkFailed(
                 size_t index, int64_t avg_weight) {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (_base_weight <= avg_weight) {
                 return 0;
             }

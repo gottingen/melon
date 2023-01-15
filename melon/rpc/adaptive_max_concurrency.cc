@@ -17,10 +17,10 @@
 
 #include <cstring>
 #include <strings.h>
-#include "melon/strings/utility.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/numbers.h"
-#include "melon/log/logging.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/numbers.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/adaptive_max_concurrency.h"
 
 namespace melon::rpc {
@@ -35,14 +35,14 @@ namespace melon::rpc {
             _value = UNLIMITED();
             _max_concurrency = 0;
         } else {
-            _value = melon::string_printf("%d", max_concurrency);
+            _value = turbo::string_printf("%d", max_concurrency);
             _max_concurrency = max_concurrency;
         }
     }
 
     inline bool CompareStringPieceWithoutCase(
             const std::string_view &s1, const char *s2) {
-        MELON_DCHECK(s2 != nullptr);
+        TURBO_DCHECK(s2 != nullptr);
         if (std::strlen(s2) != s1.size()) {
             return false;
         }
@@ -52,20 +52,20 @@ namespace melon::rpc {
     AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const std::string_view &value)
             : _max_concurrency(0) {
         int64_t max_concurrency;
-        if (melon::simple_atoi(value, &max_concurrency)) {
+        if (turbo::simple_atoi(value, &max_concurrency)) {
             operator=(max_concurrency);
         } else {
-            melon::copy_to_string(value, &_value);
+            turbo::copy_to_string(value, &_value);
             _max_concurrency = -1;
         }
     }
 
     void AdaptiveMaxConcurrency::operator=(const std::string_view &value) {
         int64_t max_concurrency;
-        if (melon::simple_atoi(value, &max_concurrency)) {
+        if (turbo::simple_atoi(value, &max_concurrency)) {
             return operator=(max_concurrency);
         } else {
-            melon::copy_to_string(value, &_value);
+            turbo::copy_to_string(value, &_value);
             _max_concurrency = -1;
         }
     }
@@ -75,7 +75,7 @@ namespace melon::rpc {
             _value = UNLIMITED();
             _max_concurrency = 0;
         } else {
-            _value = melon::string_printf("%d", max_concurrency);
+            _value = turbo::string_printf("%d", max_concurrency);
             _max_concurrency = max_concurrency;
         }
     }

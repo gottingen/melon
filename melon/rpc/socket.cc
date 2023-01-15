@@ -16,19 +16,19 @@
 // under the License.
 
 
-#include "melon/base/compat.h"                        // MELON_PLATFORM_OSX
+#include "turbo/base/compat.h"                        // TURBO_PLATFORM_OSX
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <netinet/tcp.h>                         // getsockopt
 #include <gflags/gflags.h>
 #include "melon/fiber/internal/unstable.h"                    // fiber_timer_del
-#include "melon/base/fd_utility.h"                     // make_non_blocking
-#include "melon/base/fd_guard.h"                       // fd_guard
-#include "melon/times/time.h"                           // cpuwide_time_us
-#include "melon/memory/object_pool.h"                    // get_object
-#include "melon/log/logging.h"                        // MELON_CHECK
-#include "melon/base/profile.h"
-#include "melon/base/class_name.h"                     // melon::base::class_name
+#include "turbo/base/fd_utility.h"                     // make_non_blocking
+#include "turbo/base/fd_guard.h"                       // fd_guard
+#include "turbo/times/time.h"                           // cpuwide_time_us
+#include "turbo/memory/object_pool.h"                    // get_object
+#include "turbo/log/logging.h"                        // TURBO_CHECK
+#include "turbo/base/profile.h"
+#include "turbo/base/class_name.h"                     // turbo::base::class_name
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"          // MELON_RPC_VALIDATE_GFLAG
 #include "melon/rpc/errno.pb.h"
@@ -45,7 +45,7 @@
 #include "melon/rpc/details/health_check.h"
 #include "melon/fiber/this_fiber.h"
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
 
 #include <sys/event.h>
 
@@ -102,7 +102,7 @@ namespace melon::rpc {
 
     const int WAIT_EPOLLOUT_TIMEOUT_MS = 50;
 
-    class MELON_CACHELINE_ALIGNMENT SocketPool {
+    class TURBO_CACHELINE_ALIGNMENT SocketPool {
         friend class Socket;
 
     public:
@@ -126,7 +126,7 @@ namespace melon::rpc {
         SocketOptions _options;
         std::mutex _mutex;
         std::vector<SocketId> _pool;
-        melon::end_point _remote_side;
+        turbo::end_point _remote_side;
         std::atomic<int> _numfree; // #free sockets in all sub pools.
         std::atomic<int> _numinflight; // #inflight sockets in all sub pools.
     };
@@ -274,7 +274,7 @@ namespace melon::rpc {
     }
 
     void Socket::CreateVarsOnce() {
-        MELON_CHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
+        TURBO_CHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
     }
 
     // Used by ConnectionService
@@ -292,10 +292,10 @@ namespace melon::rpc {
     SocketMessage *const DUMMY_USER_MESSAGE = (SocketMessage *) 0x1;
     const uint32_t MAX_PIPELINED_COUNT = 32768;
 
-    struct MELON_CACHELINE_ALIGNMENT Socket::WriteRequest {
+    struct TURBO_CACHELINE_ALIGNMENT Socket::WriteRequest {
         static WriteRequest *const UNCONNECTED;
 
-        melon::cord_buf data;
+        turbo::cord_buf data;
         WriteRequest *next;
         fiber_token_t id_wait;
         Socket *socket;
@@ -332,7 +332,7 @@ namespace melon::rpc {
             SocketMessage *msg = user_message();
             if (msg) {
                 if (msg != DUMMY_USER_MESSAGE) {
-                    melon::cord_buf dummy_buf;
+                    turbo::cord_buf dummy_buf;
                     // We don't care about the return value since the request
                     // is already failed.
                     (void) msg->AppendAndDestroySelf(&dummy_buf, nullptr);
@@ -355,7 +355,7 @@ namespace melon::rpc {
         if (msg) {
             clear_user_message();
             if (msg != DUMMY_USER_MESSAGE) {
-                melon::result_status st = msg->AppendAndDestroySelf(&data, s);
+                turbo::result_status st = msg->AppendAndDestroySelf(&data, s);
                 if (!st.is_ok()) {
                     // Abandon the request.
                     data.clear();
@@ -437,10 +437,10 @@ namespace melon::rpc {
     }
 
     void Socket::ReturnSuccessfulWriteRequest(Socket::WriteRequest *p) {
-        MELON_DCHECK(p->data.empty());
+        TURBO_DCHECK(p->data.empty());
         AddOutputMessages(1);
         const fiber_token_t id_wait = p->id_wait;
-        melon::return_object(p);
+        turbo::return_object(p);
         if (id_wait != INVALID_FIBER_TOKEN) {
             NotifyOnFailed(id_wait);
         }
@@ -453,7 +453,7 @@ namespace melon::rpc {
         }
         p->data.clear();  // data is probably not written.
         const fiber_token_t id_wait = p->id_wait;
-        melon::return_object(p);
+        turbo::return_object(p);
         if (id_wait != INVALID_FIBER_TOKEN) {
             fiber_token_error2(id_wait, error_code, error_text);
         }
@@ -471,7 +471,7 @@ namespace melon::rpc {
     }
 
     void Socket::ReleaseAllFailedWriteRequests(Socket::WriteRequest *req) {
-        MELON_CHECK(Failed());
+        TURBO_CHECK(Failed());
         pthread_mutex_lock(&_id_wait_list_mutex);
         const int error_code = non_zero_error_code();
         const std::string error_text = _error_text;
@@ -494,38 +494,38 @@ namespace melon::rpc {
         // MUST store `_fd' before adding itself into epoll device to avoid
         // race conditions with the callback function inside epoll
         _fd.store(fd, std::memory_order_release);
-        _reset_fd_real_us = melon::get_current_time_micros();
+        _reset_fd_real_us = turbo::get_current_time_micros();
         if (!ValidFileDescriptor(fd)) {
             return 0;
         }
         // OK to fail, non-socket fd does not support this.
-        if (melon::get_local_side(fd, &_local_side) != 0) {
-            _local_side = melon::end_point();
+        if (turbo::get_local_side(fd, &_local_side) != 0) {
+            _local_side = turbo::end_point();
         }
 
         // FIXME : close-on-exec should be set by new syscalls or worse: set right
         // after fd-creation syscall. Setting at here has higher probabilities of
         // race condition.
-        melon::base::make_close_on_exec(fd);
+        turbo::base::make_close_on_exec(fd);
 
         // Make the fd non-blocking.
-        if (melon::base::make_non_blocking(fd) != 0) {
-            MELON_PLOG(ERROR) << "Fail to set fd=" << fd << " to non-blocking";
+        if (turbo::base::make_non_blocking(fd) != 0) {
+            TURBO_PLOG(ERROR) << "Fail to set fd=" << fd << " to non-blocking";
             return -1;
         }
         // turn off nagling.
         // OK to fail, namely unix domain socket does not support this.
-        melon::base::make_no_delay(fd);
+        turbo::base::make_no_delay(fd);
         if (_tos > 0 &&
             setsockopt(fd, IPPROTO_IP, IP_TOS, &_tos, sizeof(_tos)) < 0) {
-            MELON_PLOG(FATAL) << "Fail to set tos of fd=" << fd << " to " << _tos;
+            TURBO_PLOG(FATAL) << "Fail to set tos of fd=" << fd << " to " << _tos;
         }
 
         if (FLAGS_socket_send_buffer_size > 0) {
             int buff_size = FLAGS_socket_send_buffer_size;
             socklen_t size = sizeof(buff_size);
             if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff_size, size) != 0) {
-                MELON_PLOG(FATAL) << "Fail to set sndbuf of fd=" << fd << " to "
+                TURBO_PLOG(FATAL) << "Fail to set sndbuf of fd=" << fd << " to "
                                   << buff_size;
             }
         }
@@ -534,14 +534,14 @@ namespace melon::rpc {
             int buff_size = FLAGS_socket_recv_buffer_size;
             socklen_t size = sizeof(buff_size);
             if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buff_size, size) != 0) {
-                MELON_PLOG(FATAL) << "Fail to set rcvbuf of fd=" << fd << " to "
+                TURBO_PLOG(FATAL) << "Fail to set rcvbuf of fd=" << fd << " to "
                                   << buff_size;
             }
         }
 
         if (_on_edge_triggered_events) {
             if (GetGlobalEventDispatcher(fd).AddConsumer(id(), fd) != 0) {
-                MELON_PLOG(ERROR) << "Fail to add SocketId=" << id()
+                TURBO_PLOG(ERROR) << "Fail to add SocketId=" << id()
                                   << " into EventDispatcher";
                 _fd.store(-1, std::memory_order_release);
                 return -1;
@@ -554,14 +554,14 @@ namespace melon::rpc {
     //   version: from version part of _versioned_nref, must be an EVEN number.
     //   slot: designated by ResourcePool.
     int Socket::Create(const SocketOptions &options, SocketId *id) {
-        melon::ResourceId<Socket> slot;
-        Socket *const m = melon::get_resource(&slot, Forbidden());
+        turbo::ResourceId<Socket> slot;
+        Socket *const m = turbo::get_resource(&slot, Forbidden());
         if (m == nullptr) {
-            MELON_LOG(FATAL) << "Fail to get_resource<Socket>";
+            TURBO_LOG(FATAL) << "Fail to get_resource<Socket>";
             return -1;
         }
         g_vars->nsocket << 1;
-        MELON_CHECK(nullptr == m->_shared_part.load(std::memory_order_relaxed));
+        TURBO_CHECK(nullptr == m->_shared_part.load(std::memory_order_relaxed));
         m->_nevent.store(0, std::memory_order_relaxed);
         m->_keytable_pool = options.keytable_pool;
         m->_tos = 0;
@@ -579,8 +579,8 @@ namespace melon::rpc {
                         1, std::memory_order_release)), slot);
         m->_preferred_index = -1;
         m->_hc_count = 0;
-        MELON_CHECK(m->_read_buf.empty());
-        const int64_t cpuwide_now = melon::get_current_time_micros();
+        TURBO_CHECK(m->_read_buf.empty());
+        const int64_t cpuwide_now = turbo::get_current_time_micros();
         m->_last_readtime_us.store(cpuwide_now, std::memory_order_relaxed);
         m->reset_parsing_context(options.initial_parsing_context);
         m->_correlation_id = 0;
@@ -589,8 +589,8 @@ namespace melon::rpc {
         m->_auth_flag_error.store(0, std::memory_order_relaxed);
         const int rc2 = fiber_token_create(&m->_auth_id, nullptr, nullptr);
         if (rc2) {
-            MELON_LOG(ERROR) << "Fail to create auth_id: " << melon_error(rc2);
-            m->SetFailed(rc2, "Fail to create auth_id: %s", melon_error(rc2));
+            TURBO_LOG(ERROR) << "Fail to create auth_id: " << turbo_error(rc2);
+            m->SetFailed(rc2, "Fail to create auth_id: %s", turbo_error(rc2));
             return -1;
         }
         // Disable SSL check if there is no SSL context
@@ -611,20 +611,20 @@ namespace melon::rpc {
         // NOTE: last two params are useless in fiber > r32787
         const int rc = fiber_token_list_init(&m->_id_wait_list, 512, 512);
         if (rc) {
-            MELON_LOG(ERROR) << "Fail to init _id_wait_list: " << melon_error(rc);
-            m->SetFailed(rc, "Fail to init _id_wait_list: %s", melon_error(rc));
+            TURBO_LOG(ERROR) << "Fail to init _id_wait_list: " << turbo_error(rc);
+            m->SetFailed(rc, "Fail to init _id_wait_list: %s", turbo_error(rc));
             return -1;
         }
         m->_last_writetime_us.store(cpuwide_now, std::memory_order_relaxed);
         m->_unwritten_bytes.store(0, std::memory_order_relaxed);
-        MELON_CHECK(nullptr == m->_write_head.load(std::memory_order_relaxed));
+        TURBO_CHECK(nullptr == m->_write_head.load(std::memory_order_relaxed));
         // Must be last one! Internal fields of this Socket may be access
         // just after calling ResetFileDescriptor.
         if (m->ResetFileDescriptor(options.fd) != 0) {
             const int saved_errno = errno;
-            MELON_PLOG(ERROR) << "Fail to ResetFileDescriptor";
+            TURBO_PLOG(ERROR) << "Fail to ResetFileDescriptor";
             m->SetFailed(saved_errno, "Fail to ResetFileDescriptor: %s",
-                         melon_error(saved_errno));
+                         turbo_error(saved_errno));
             return -1;
         }
         *id = m->_this_id;
@@ -640,12 +640,12 @@ namespace melon::rpc {
             // inconsistent states to be seen by others.
             vref = _versioned_ref.load(std::memory_order_acquire);
             if (VersionOfVRef(vref) != id_ver + 1) {
-                MELON_LOG(WARNING) << "SocketId=" << _this_id << " is already alive or recycled";
+                TURBO_LOG(WARNING) << "SocketId=" << _this_id << " is already alive or recycled";
                 return -1;
             }
             if (NRefOfVRef(vref) > expected_nref) {
                 if (melon::fiber_sleep_for(1000L/*FIXME*/) < 0) {
-                    MELON_PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
+                    TURBO_PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
                     return -1;
                 }
             } else if (NRefOfVRef(vref) < expected_nref) {
@@ -668,7 +668,7 @@ namespace melon::rpc {
                 g_vars->channel_conn << -1;
             }
         }
-        _local_side = melon::end_point();
+        _local_side = turbo::end_point();
         if (_ssl_session) {
             SSL_free(_ssl_session);
             _ssl_session = nullptr;
@@ -686,16 +686,16 @@ namespace melon::rpc {
         fiber_token_error(_auth_id, 0);
         const int rc = fiber_token_create(&_auth_id, nullptr, nullptr);
         if (rc != 0) {
-            MELON_LOG(FATAL) << "Fail to create _auth_id, " << melon_error(rc);
+            TURBO_LOG(FATAL) << "Fail to create _auth_id, " << turbo_error(rc);
             return -1;
         }
 
-        const int64_t cpuwide_now = melon::get_current_time_micros();
+        const int64_t cpuwide_now = turbo::get_current_time_micros();
         _last_readtime_us.store(cpuwide_now, std::memory_order_relaxed);
         _last_writetime_us.store(cpuwide_now, std::memory_order_relaxed);
         _logoff_flag.store(false, std::memory_order_relaxed);
         {
-            MELON_SCOPED_LOCK(_pipeline_mutex);
+            TURBO_SCOPED_LOCK(_pipeline_mutex);
             if (_pipeline_q) {
                 _pipeline_q->clear();
             }
@@ -714,12 +714,12 @@ namespace melon::rpc {
         const uint32_t id_ver = VersionOfSocketId(_this_id);
         uint64_t vref = _versioned_ref.load(std::memory_order_relaxed);
         while (1) {
-            MELON_CHECK_EQ(id_ver + 1, VersionOfVRef(vref));
+            TURBO_CHECK_EQ(id_ver + 1, VersionOfVRef(vref));
 
             int32_t nref = NRefOfVRef(vref);
             if (nref <= 1) {
-                MELON_CHECK_EQ(1, nref);
-                MELON_LOG(WARNING) << *this << " was abandoned during revival";
+                TURBO_CHECK_EQ(1, nref);
+                TURBO_LOG(WARNING) << *this << " was abandoned during revival";
                 return;
             }
             // +1 is the additional ref added in Create(). TODO(gejun): we should
@@ -733,7 +733,7 @@ namespace melon::rpc {
                 if (_user) {
                     _user->AfterRevived(this);
                 } else {
-                    MELON_LOG(INFO) << "Revived " << *this << " (Connectable)";
+                    TURBO_LOG(INFO) << "Revived " << *this << " (Connectable)";
                 }
                 return;
             }
@@ -777,7 +777,7 @@ namespace melon::rpc {
 
     int Socket::SetFailed(int error_code, const char *error_fmt, ...) {
         if (error_code == 0) {
-            MELON_CHECK(false) << "error_code is 0";
+            TURBO_CHECK(false) << "error_code is 0";
             error_code = EFAILEDSOCKET;
         }
         const uint32_t id_ver = VersionOfSocketId(_this_id);
@@ -797,7 +797,7 @@ namespace melon::rpc {
                 if (error_fmt != nullptr) {
                     va_list ap;
                     va_start(ap, error_fmt);
-                    melon::string_vprintf(&error_text, error_fmt, ap);
+                    turbo::string_vprintf(&error_text, error_fmt, ap);
                     va_end(ap);
                 }
                 pthread_mutex_lock(&_id_wait_list_mutex);
@@ -818,7 +818,7 @@ namespace melon::rpc {
                 melon::fiber_internal::waitable_event_wake_all(_epollout_butex);
 
                 // Wake up all unresponded RPC.
-                MELON_CHECK_EQ(0, fiber_token_list_reset2_pthreadsafe(
+                TURBO_CHECK_EQ(0, fiber_token_list_reset2_pthreadsafe(
                         &_id_wait_list, error_code, error_text,
                         &_id_wait_list_mutex));
 
@@ -849,17 +849,17 @@ namespace melon::rpc {
     void Socket::FeedbackCircuitBreaker(int error_code, int64_t latency_us) {
         if (!GetOrNewSharedPart()->circuit_breaker.OnCallEnd(error_code, latency_us)) {
             if (SetFailed(main_socket_id()) == 0) {
-                MELON_LOG(ERROR) << "Socket[" << *this << "] isolated by circuit breaker";
+                TURBO_LOG(ERROR) << "Socket[" << *this << "] isolated by circuit breaker";
             }
         }
     }
 
     int Socket::ReleaseReferenceIfIdle(int idle_seconds) {
         const int64_t last_active_us = last_active_time_us();
-        if (melon::get_current_time_micros() - last_active_us <= idle_seconds * 1000000L) {
+        if (turbo::get_current_time_micros() - last_active_us <= idle_seconds * 1000000L) {
             return 0;
         }
-        MELON_LOG_IF(WARNING, FLAGS_log_idle_connection_close)
+        TURBO_LOG_IF(WARNING, FLAGS_log_idle_connection_close)
                         << "Close " << *this << " due to no data transmission for "
                         << idle_seconds << " seconds";
         if (shall_fail_me_at_server_stop()) {
@@ -898,7 +898,7 @@ namespace melon::rpc {
 
     // For unit-test.
     int Socket::Status(SocketId id, int32_t *nref) {
-        const melon::ResourceId<Socket> slot = SlotOfSocketId(id);
+        const turbo::ResourceId<Socket> slot = SlotOfSocketId(id);
         Socket *const m = address_resource(slot);
         if (m != nullptr) {
             const uint64_t vref = m->_versioned_ref.load(std::memory_order_relaxed);
@@ -1001,7 +1001,7 @@ namespace melon::rpc {
     bool Socket::IsWriteComplete(Socket::WriteRequest *old_head,
                                  bool singular_node,
                                  Socket::WriteRequest **new_tail) {
-        MELON_CHECK(nullptr == old_head->next);
+        TURBO_CHECK(nullptr == old_head->next);
         // Try to set _write_head to nullptr to mark that the write is done.
         WriteRequest *new_head = old_head;
         WriteRequest *desired = nullptr;
@@ -1019,7 +1019,7 @@ namespace melon::rpc {
             }
             return return_when_no_more;
         }
-        MELON_CHECK_NE(new_head, old_head);
+        TURBO_CHECK_NE(new_head, old_head);
         // Above acquire fence pairs release fence of exchange in Write() to make
         // sure that we see all fields of requests set.
 
@@ -1036,7 +1036,7 @@ namespace melon::rpc {
             p->next = tail;
             tail = p;
             p = saved_next;
-            MELON_CHECK(p != nullptr);
+            TURBO_CHECK(p != nullptr);
         } while (p != old_head);
 
         // Link old list with new list.
@@ -1073,7 +1073,7 @@ namespace melon::rpc {
         }
         // Ignore return value since `fd' might have been removed
         // by `RemoveConsumer' in `SetFailed'
-        melon::base::ignore_result(edisp.RemoveEpollOut(id(), fd, pollin));
+        turbo::base::ignore_result(edisp.RemoveEpollOut(id(), fd, pollin));
         errno = saved_errno;
         // Could be writable or spurious wakeup (by former epollout)
         return rc;
@@ -1088,29 +1088,29 @@ namespace melon::rpc {
         }
         struct sockaddr_storage serv_addr;
         socklen_t addr_size = 0;
-        if (melon::endpoint2sockaddr(remote_side(), &serv_addr, &addr_size) != 0) {
-            MELON_PLOG(ERROR) << "Fail to get sockaddr";
+        if (turbo::endpoint2sockaddr(remote_side(), &serv_addr, &addr_size) != 0) {
+            TURBO_PLOG(ERROR) << "Fail to get sockaddr";
             return -1;
         }
-        melon::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
+        turbo::base::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
-            MELON_PLOG(ERROR) << "Fail to create socket";
+            TURBO_PLOG(ERROR) << "Fail to create socket";
             return -1;
         }
-        MELON_CHECK_EQ(0, melon::base::make_close_on_exec(sockfd));
+        TURBO_CHECK_EQ(0, turbo::base::make_close_on_exec(sockfd));
         // We need to do async connect (to manage the timeout by ourselves).
-        MELON_CHECK_EQ(0, melon::base::make_non_blocking(sockfd));
+        TURBO_CHECK_EQ(0, turbo::base::make_non_blocking(sockfd));
 
         const int rc = ::connect(
                 sockfd, (struct sockaddr *) &serv_addr, addr_size);
         if (rc != 0 && errno != EINPROGRESS) {
-            MELON_PLOG(WARNING) << "Fail to connect to " << remote_side();
+            TURBO_PLOG(WARNING) << "Fail to connect to " << remote_side();
             return -1;
         }
         if (on_connect) {
             EpollOutRequest *req = new(std::nothrow) EpollOutRequest;
             if (req == nullptr) {
-                MELON_LOG(FATAL) << "Fail to new EpollOutRequest";
+                TURBO_LOG(FATAL) << "Fail to new EpollOutRequest";
                 return -1;
             }
             req->fd = sockfd;
@@ -1123,7 +1123,7 @@ namespace melon::rpc {
             SocketOptions options;
             options.user = req;
             if (Socket::Create(options, &connect_id) != 0) {
-                MELON_LOG(FATAL) << "Fail to create Socket";
+                TURBO_LOG(FATAL) << "Fail to create Socket";
                 delete req;
                 return -1;
             }
@@ -1131,16 +1131,16 @@ namespace melon::rpc {
             // `connect_id'. We hold an additional reference here to
             // ensure `req' to be valid in this scope
             SocketUniquePtr s;
-            MELON_CHECK_EQ(0, Socket::Address(connect_id, &s));
+            TURBO_CHECK_EQ(0, Socket::Address(connect_id, &s));
 
             // Add `sockfd' into epoll so that `HandleEpollOutRequest' will
             // be called with `req' when epoll event reaches
             if (GetGlobalEventDispatcher(sockfd).
                     AddEpollOut(connect_id, sockfd, false) != 0) {
                 const int saved_errno = errno;
-                MELON_PLOG(WARNING) << "Fail to add fd=" << sockfd << " into epoll";
+                TURBO_PLOG(WARNING) << "Fail to add fd=" << sockfd << " into epoll";
                 s->SetFailed(saved_errno, "Fail to add fd=%d into epoll: %s",
-                             (int) sockfd, melon_error(saved_errno));
+                             (int) sockfd, turbo_error(saved_errno));
                 return -1;
             }
 
@@ -1155,15 +1155,15 @@ namespace melon::rpc {
                                          HandleEpollOutTimeout,
                                          (void *) connect_id);
                 if (rc) {
-                    MELON_LOG(ERROR) << "Fail to add timer: " << melon_error(rc);
-                    s->SetFailed(rc, "Fail to add timer: %s", melon_error(rc));
+                    TURBO_LOG(ERROR) << "Fail to add timer: " << turbo_error(rc);
+                    s->SetFailed(rc, "Fail to add timer: %s", turbo_error(rc));
                     return -1;
                 }
             }
 
         } else {
             if (WaitEpollOut(sockfd, false, abstime) != 0) {
-                MELON_PLOG(WARNING) << "Fail to wait EPOLLOUT of fd=" << sockfd;
+                TURBO_PLOG(WARNING) << "Fail to wait EPOLLOUT of fd=" << sockfd;
                 return -1;
             }
             if (CheckConnected(sockfd) != 0) {
@@ -1180,18 +1180,18 @@ namespace melon::rpc {
         int err = 0;
         socklen_t errlen = sizeof(err);
         if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &errlen) < 0) {
-            MELON_PLOG(ERROR) << "Fail to getsockopt of fd=" << sockfd;
+            TURBO_PLOG(ERROR) << "Fail to getsockopt of fd=" << sockfd;
             return -1;
         }
         if (err != 0) {
-            MELON_CHECK_NE(err, EINPROGRESS);
+            TURBO_CHECK_NE(err, EINPROGRESS);
             errno = err;
             return -1;
         }
 
-        melon::end_point local_point;
-        MELON_CHECK_EQ(0, melon::get_local_side(sockfd, &local_point));
-        MELON_LOG_IF(INFO, FLAGS_log_connected)
+        turbo::end_point local_point;
+        TURBO_CHECK_EQ(0, turbo::get_local_side(sockfd, &local_point));
+        TURBO_LOG_IF(INFO, FLAGS_log_connected)
                         << "Connected to " << remote_side()
                         << " via fd=" << (int) sockfd << " SocketId=" << id()
                         << " local_side=" << local_point;
@@ -1255,7 +1255,7 @@ namespace melon::rpc {
         }
         EpollOutRequest *req = dynamic_cast<EpollOutRequest *>(s->user());
         if (req == nullptr) {
-            MELON_LOG(FATAL) << "Impossible! SocketUser MUST be EpollOutRequest here";
+            TURBO_LOG(FATAL) << "Impossible! SocketUser MUST be EpollOutRequest here";
             return;
         }
         s->HandleEpollOutRequest(ETIMEDOUT, req);
@@ -1287,7 +1287,7 @@ namespace melon::rpc {
             fiber_id_t th;
             if (fiber_start_background(
                     &th, &FIBER_ATTR_NORMAL, KeepWrite, req) != 0) {
-                MELON_PLOG(WARNING) << "Fail to start KeepWrite";
+                TURBO_PLOG(WARNING) << "Fail to start KeepWrite";
                 KeepWrite(req);
             }
         } else {
@@ -1306,7 +1306,7 @@ namespace melon::rpc {
             }
 
             s->SetFailed(err, "Fail to connect %s: %s",
-                         s->description().c_str(), melon_error(err));
+                         s->description().c_str(), turbo_error(err));
             s->ReleaseAllFailedWriteRequests(req);
         }
     }
@@ -1330,7 +1330,7 @@ namespace melon::rpc {
                                               RunClosure, thrd_func)) == 0) {
                 return 0;
             } else {
-                MELON_PLOG(ERROR) << "Fail to start fiber";
+                TURBO_PLOG(ERROR) << "Fail to start fiber";
                 // Fall through with non zero `err'
             }
         }
@@ -1339,10 +1339,10 @@ namespace melon::rpc {
     }
 
     void Socket::CheckConnectedAndKeepWrite(int fd, int err, void *data) {
-        melon::base::fd_guard sockfd(fd);
+        turbo::base::fd_guard sockfd(fd);
         WriteRequest *req = static_cast<WriteRequest *>(data);
         Socket *s = req->socket;
-        MELON_CHECK_GE(sockfd, 0);
+        TURBO_CHECK_GE(sockfd, 0);
         if (err == 0 && s->CheckConnected(sockfd) == 0
             && s->ResetFileDescriptor(sockfd) == 0) {
             if (s->_app_connect) {
@@ -1398,7 +1398,7 @@ namespace melon::rpc {
         return SSL_get_peer_certificate(_ssl_session);
     }
 
-    int Socket::Write(melon::cord_buf *data, const WriteOptions *options_in) {
+    int Socket::Write(turbo::cord_buf *data, const WriteOptions *options_in) {
         WriteOptions opt;
         if (options_in) {
             opt = *options_in;
@@ -1407,7 +1407,7 @@ namespace melon::rpc {
             return SetError(opt.id_wait, EINVAL);
         }
         if (opt.pipelined_count > MAX_PIPELINED_COUNT) {
-            MELON_LOG(ERROR) << "pipelined_count=" << opt.pipelined_count
+            TURBO_LOG(ERROR) << "pipelined_count=" << opt.pipelined_count
                              << " is too large";
             return SetError(opt.id_wait, EOVERFLOW);
         }
@@ -1422,7 +1422,7 @@ namespace melon::rpc {
             return SetError(opt.id_wait, EOVERCROWDED);
         }
 
-        WriteRequest *req = melon::get_object<WriteRequest>();
+        WriteRequest *req = turbo::get_object<WriteRequest>();
         if (!req) {
             return SetError(opt.id_wait, ENOMEM);
         }
@@ -1443,7 +1443,7 @@ namespace melon::rpc {
             opt = *options_in;
         }
         if (opt.pipelined_count > MAX_PIPELINED_COUNT) {
-            MELON_LOG(ERROR) << "pipelined_count=" << opt.pipelined_count
+            TURBO_LOG(ERROR) << "pipelined_count=" << opt.pipelined_count
                              << " is too large";
             return SetError(opt.id_wait, EOVERFLOW);
         }
@@ -1459,7 +1459,7 @@ namespace melon::rpc {
             return SetError(opt.id_wait, EOVERCROWDED);
         }
 
-        WriteRequest *req = melon::get_object<WriteRequest>();
+        WriteRequest *req = turbo::get_object<WriteRequest>();
         if (!req) {
             return SetError(opt.id_wait, ENOMEM);
         }
@@ -1520,7 +1520,7 @@ namespace melon::rpc {
         // Write once in the calling thread. If the write is not complete,
         // continue it in KeepWrite thread.
         if (_conn) {
-            melon::cord_buf *data_arr[1] = {&req->data};
+            turbo::cord_buf *data_arr[1] = {&req->data};
             nw = _conn->CutMessageIntoFileDescriptor(fd(), data_arr, 1);
         } else {
             nw = req->data.cut_into_file_descriptor(fd());
@@ -1530,9 +1530,9 @@ namespace melon::rpc {
             if (errno != EAGAIN && errno != EOVERCROWDED) {
                 saved_errno = errno;
                 // EPIPE is common in pooled connections + backup requests.
-                MELON_PLOG_IF(WARNING, errno != EPIPE) << "Fail to write into " << *this;
+                TURBO_PLOG_IF(WARNING, errno != EPIPE) << "Fail to write into " << *this;
                 SetFailed(saved_errno, "Fail to write into %s: %s",
-                          description().c_str(), melon_error(saved_errno));
+                          description().c_str(), turbo_error(saved_errno));
                 goto FAIL_TO_WRITE;
             }
         } else {
@@ -1548,7 +1548,7 @@ namespace melon::rpc {
         req->socket = ptr_for_keep_write.release();
         if (fiber_start_background(&th, &FIBER_ATTR_NORMAL,
                                    KeepWrite, req) != 0) {
-            MELON_LOG(FATAL) << "Fail to start KeepWrite";
+            TURBO_LOG(FATAL) << "Fail to start KeepWrite";
             KeepWrite(req);
         }
         return 0;
@@ -1584,9 +1584,9 @@ namespace melon::rpc {
             if (nw < 0) {
                 if (errno != EAGAIN && errno != EOVERCROWDED) {
                     const int saved_errno = errno;
-                    MELON_PLOG(WARNING) << "Fail to keep-write into " << *s;
+                    TURBO_PLOG(WARNING) << "Fail to keep-write into " << *s;
                     s->SetFailed(saved_errno, "Fail to keep-write into %s: %s",
-                                 s->description().c_str(), melon_error(saved_errno));
+                                 s->description().c_str(), turbo_error(saved_errno));
                     break;
                 }
             } else {
@@ -1612,13 +1612,13 @@ namespace melon::rpc {
                 // which may turn on _overcrowded to stop pending requests from
                 // growing infinitely.
                 const timespec duetime =
-                        melon::time_point::future_unix_millis(WAIT_EPOLLOUT_TIMEOUT_MS).to_timespec();
+                        turbo::time_point::future_unix_millis(WAIT_EPOLLOUT_TIMEOUT_MS).to_timespec();
                 const int rc = s->WaitEpollOut(s->fd(), pollin, &duetime);
                 if (rc < 0 && errno != ETIMEDOUT) {
                     const int saved_errno = errno;
-                    MELON_PLOG(WARNING) << "Fail to wait epollout of " << *s;
+                    TURBO_PLOG(WARNING) << "Fail to wait epollout of " << *s;
                     s->SetFailed(saved_errno, "Fail to wait epollout of %s: %s",
-                                 s->description().c_str(), melon_error(saved_errno));
+                                 s->description().c_str(), turbo_error(saved_errno));
                     break;
                 }
             }
@@ -1629,7 +1629,7 @@ namespace melon::rpc {
             // Return when there's no more WriteRequests and req is completely
             // written.
             if (s->IsWriteComplete(cur_tail, (req == cur_tail), &cur_tail)) {
-                MELON_CHECK_EQ(cur_tail, req);
+                TURBO_CHECK_EQ(cur_tail, req);
                 s->ReturnSuccessfulWriteRequest(req);
                 return nullptr;
             }
@@ -1641,8 +1641,8 @@ namespace melon::rpc {
     }
 
     ssize_t Socket::DoWrite(WriteRequest *req) {
-        // Group melon::cord_buf in the list into a batch array.
-        melon::cord_buf *data_list[DATA_LIST_MAX];
+        // Group turbo::cord_buf in the list into a batch array.
+        turbo::cord_buf *data_list[DATA_LIST_MAX];
         size_t ndata = 0;
         for (WriteRequest *p = req; p != nullptr && ndata < DATA_LIST_MAX;
              p = p->next) {
@@ -1654,19 +1654,19 @@ namespace melon::rpc {
             if (_conn) {
                 return _conn->CutMessageIntoFileDescriptor(fd(), data_list, ndata);
             } else {
-                ssize_t nw = melon::cord_buf::cut_multiple_into_file_descriptor(
+                ssize_t nw = turbo::cord_buf::cut_multiple_into_file_descriptor(
                         fd(), data_list, ndata);
                 return nw;
             }
         }
 
-        MELON_CHECK_EQ(SSL_CONNECTED, ssl_state());
+        TURBO_CHECK_EQ(SSL_CONNECTED, ssl_state());
         if (_conn) {
             // TODO: Separate SSL stuff from SocketConnection
             return _conn->CutMessageIntoSSLChannel(_ssl_session, data_list, ndata);
         }
         int ssl_error = 0;
-        ssize_t nw = melon::cord_buf::cut_multiple_into_SSL_channel(
+        ssize_t nw = turbo::cord_buf::cut_multiple_into_SSL_channel(
                 _ssl_session, data_list, ndata, &ssl_error);
         switch (ssl_error) {
             case SSL_ERROR_NONE:
@@ -1684,12 +1684,12 @@ namespace melon::rpc {
             default: {
                 const unsigned long e = ERR_get_error();
                 if (e != 0) {
-                    MELON_LOG(WARNING) << "Fail to write into ssl_fd=" << fd() << ": "
+                    TURBO_LOG(WARNING) << "Fail to write into ssl_fd=" << fd() << ": "
                                        << SSLError(ERR_get_error());
                     errno = ESSL;
                 } else {
                     // System error with corresponding errno set
-                    MELON_PLOG(WARNING) << "Fail to write into ssl_fd=" << fd();
+                    TURBO_PLOG(WARNING) << "Fail to write into ssl_fd=" << fd();
                 }
                 break;
             }
@@ -1700,7 +1700,7 @@ namespace melon::rpc {
     int Socket::SSLHandshake(int fd, bool server_mode) {
         if (_ssl_ctx == nullptr) {
             if (server_mode) {
-                MELON_LOG(ERROR) << "Lack SSL configuration to handle SSL request";
+                TURBO_LOG(ERROR) << "Lack SSL configuration to handle SSL request";
                 return -1;
             }
             return 0;
@@ -1713,7 +1713,7 @@ namespace melon::rpc {
         }
         _ssl_session = CreateSSLSession(_ssl_ctx->raw_ctx, id(), fd, server_mode);
         if (_ssl_session == nullptr) {
-            MELON_LOG(ERROR) << "Fail to CreateSSLSession";
+            TURBO_LOG(ERROR) << "Fail to CreateSSLSession";
             return -1;
         }
 #if defined(SSL_CTRL_SET_TLSEXT_HOSTNAME)
@@ -1738,9 +1738,9 @@ namespace melon::rpc {
             int ssl_error = SSL_get_error(_ssl_session, rc);
             switch (ssl_error) {
                 case SSL_ERROR_WANT_READ:
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                     if (fiber_fd_wait(fd, EPOLLIN) != 0) {
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
                     if (fiber_fd_wait(fd, EVFILT_READ) != 0) {
 #endif
                         return -1;
@@ -1748,9 +1748,9 @@ namespace melon::rpc {
                     break;
 
                 case SSL_ERROR_WANT_WRITE:
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
                     if (fiber_fd_wait(fd, EPOLLOUT) != 0) {
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
                     if (fiber_fd_wait(fd, EVFILT_WRITE) != 0) {
 #endif
                         return -1;
@@ -1761,12 +1761,12 @@ namespace melon::rpc {
                     const unsigned long e = ERR_get_error();
                     if (ssl_error == SSL_ERROR_ZERO_RETURN || e == 0) {
                         errno = ECONNRESET;
-                        MELON_LOG(ERROR) << "SSL connection was shutdown by peer: " << _remote_side;
+                        TURBO_LOG(ERROR) << "SSL connection was shutdown by peer: " << _remote_side;
                     } else if (ssl_error == SSL_ERROR_SYSCALL) {
-                        MELON_PLOG(ERROR) << "Fail to SSL_do_handshake";
+                        TURBO_PLOG(ERROR) << "Fail to SSL_do_handshake";
                     } else {
                         errno = ESSL;
-                        MELON_LOG(ERROR) << "Fail to SSL_do_handshake: " << SSLError(e);
+                        TURBO_LOG(ERROR) << "Fail to SSL_do_handshake: " << SSLError(e);
                     }
                     return -1;
                 }
@@ -1795,7 +1795,7 @@ namespace melon::rpc {
                     break;
 
                 case SSL_CONNECTED:
-                    MELON_CHECK(false) << "Impossible to reach here";
+                    TURBO_CHECK(false) << "Impossible to reach here";
                     break;
 
                 case SSL_OFF:
@@ -1807,7 +1807,7 @@ namespace melon::rpc {
             return _read_buf.append_from_file_descriptor(fd(), size_hint);
         }
 
-        MELON_CHECK_EQ(SSL_CONNECTED, ssl_state());
+        TURBO_CHECK_EQ(SSL_CONNECTED, ssl_state());
         int ssl_error = 0;
         ssize_t nr = _read_buf.append_from_SSL_channel(_ssl_session, &ssl_error, size_hint);
         switch (ssl_error) {
@@ -1829,12 +1829,12 @@ namespace melon::rpc {
                 if (nr == 0) {
                     // Socket EOF or SSL session EOF
                 } else if (e != 0) {
-                    MELON_LOG(WARNING) << "Fail to read from ssl_fd=" << fd()
+                    TURBO_LOG(WARNING) << "Fail to read from ssl_fd=" << fd()
                                        << ": " << SSLError(e);
                     errno = ESSL;
                 } else {
                     // System error with corresponding errno set
-                    MELON_PLOG(WARNING) << "Fail to read from ssl_fd=" << fd();
+                    TURBO_PLOG(WARNING) << "Fail to read from ssl_fd=" << fd();
                 }
                 break;
             }
@@ -1875,18 +1875,18 @@ namespace melon::rpc {
             if (error_code != 0) {
                 SetFailed(error_code, "Fail to authenticate %s", description().c_str());
             }
-            MELON_CHECK_EQ(0, fiber_token_unlock_and_destroy(_auth_id));
+            TURBO_CHECK_EQ(0, fiber_token_unlock_and_destroy(_auth_id));
         }
     }
 
     AuthContext *Socket::mutable_auth_context() {
         if (_auth_context != nullptr) {
-            MELON_LOG(FATAL) << "Impossible! This function is supposed to be called "
+            TURBO_LOG(FATAL) << "Impossible! This function is supposed to be called "
                                 "only once when verification succeeds in server side";
             return nullptr;
         }
         _auth_context = new(std::nothrow) AuthContext();
-        MELON_CHECK(_auth_context);
+        TURBO_CHECK(_auth_context);
         return _auth_context;
     }
 
@@ -1902,10 +1902,10 @@ namespace melon::rpc {
             return 0;
         }
         if (s->fd() < 0) {
-#if defined(MELON_PLATFORM_LINUX)
-            MELON_CHECK(!(events & EPOLLIN)) << "epoll_events=" << events;
-#elif defined(MELON_PLATFORM_OSX)
-            MELON_CHECK((short) events != EVFILT_READ) << "kqueue filter=" << events;
+#if defined(TURBO_PLATFORM_LINUX)
+            TURBO_CHECK(!(events & EPOLLIN)) << "epoll_events=" << events;
+#elif defined(TURBO_PLATFORM_OSX)
+            TURBO_CHECK((short) events != EVFILT_READ) << "kqueue filter=" << events;
 #endif
             return -1;
         }
@@ -1929,7 +1929,7 @@ namespace melon::rpc {
             fiber_attribute attr = thread_attr;
             attr.keytable_pool = p->_keytable_pool;
             if (fiber_start_urgent(&tid, &attr, ProcessEvent, p) != 0) {
-                MELON_LOG(FATAL) << "Fail to start ProcessEvent";
+                TURBO_LOG(FATAL) << "Fail to start ProcessEvent";
                 ProcessEvent(p);
             }
         }
@@ -1962,7 +1962,7 @@ namespace melon::rpc {
     template<typename T>
     std::ostream &operator<<(std::ostream &os, const ObjectPtr<T> &obj) {
         if (obj._obj != nullptr) {
-            os << '(' << melon::base::class_name_str(*obj._obj) << "*)";
+            os << '(' << turbo::base::class_name_str(*obj._obj) << "*)";
         }
         return os << obj._obj;
     }
@@ -1988,16 +1988,16 @@ namespace melon::rpc {
         size_t idsizes[4];
         size_t nidsize = 0;
         {
-            MELON_SCOPED_LOCK(ptr->_pipeline_mutex);
+            TURBO_SCOPED_LOCK(ptr->_pipeline_mutex);
             if (ptr->_pipeline_q) {
                 npipelined = ptr->_pipeline_q->size();
             }
         }
         {
-            MELON_SCOPED_LOCK(ptr->_id_wait_list_mutex);
+            TURBO_SCOPED_LOCK(ptr->_id_wait_list_mutex);
             if (melon::fiber_internal::get_sizes) {
                 nidsize = melon::fiber_internal::get_sizes(
-                        &ptr->_id_wait_list, idsizes, MELON_ARRAY_SIZE(idsizes));
+                        &ptr->_id_wait_list, idsizes, TURBO_ARRAY_SIZE(idsizes));
             }
         }
         const int preferred_index = ptr->preferred_index();
@@ -2038,7 +2038,7 @@ namespace melon::rpc {
            << "\nnevent=" << ptr->_nevent.load(std::memory_order_relaxed)
            << "\nfd=" << fd
            << "\ntos=" << ptr->_tos
-           << "\nreset_fd_to_now=" << melon::get_current_time_micros() - ptr->_reset_fd_real_us << "us"
+           << "\nreset_fd_to_now=" << turbo::get_current_time_micros() - ptr->_reset_fd_real_us << "us"
            << "\nremote_side=" << ptr->_remote_side
            << "\nlocal_side=" << ptr->_local_side
            << "\non_et_events=" << (void *) ptr->_on_edge_triggered_events
@@ -2049,10 +2049,10 @@ namespace melon::rpc {
         if (messenger != nullptr) {
             os << " (" << messenger->NameOfProtocol(preferred_index) << ')';
         }
-        const int64_t cpuwide_now = melon::get_current_time_micros();
+        const int64_t cpuwide_now = turbo::get_current_time_micros();
         os << "\nhc_count=" << ptr->_hc_count
            << "\navg_input_msg_size=" << ptr->_avg_msg_size
-           // NOTE: We're assuming that melon::cord_buf.size() is thread-safe, it is now
+           // NOTE: We're assuming that turbo::cord_buf.size() is thread-safe, it is now
            // however it's not guaranteed.
            << "\nread_buf=" << ptr->_read_buf.size()
            << "\nlast_read_to_now=" << cpuwide_now - ptr->_last_readtime_us << "us"
@@ -2069,7 +2069,7 @@ namespace melon::rpc {
         Destroyable *const parsing_context = ptr->parsing_context();
         Describable *parsing_context_desc = dynamic_cast<Describable *>(parsing_context);
         if (parsing_context_desc) {
-            os << "\nparsing_context=" << melon::base::class_name_str(*parsing_context) << '{';
+            os << "\nparsing_context=" << turbo::base::class_name_str(*parsing_context) << '{';
             DescribeOptions opt;
             opt.verbose = true;
             IndentingOStream os2(os, 2);
@@ -2111,7 +2111,7 @@ namespace melon::rpc {
             Print(os, ptr->_ssl_session, "\n  ");
             os << "\n}";
         }
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
         struct tcp_connection_info ti;
         socklen_t len = sizeof(ti);
         if (fd >= 0 && getsockopt(fd, IPPROTO_TCP, TCP_CONNECTION_INFO, &ti, &len) == 0) {
@@ -2131,7 +2131,7 @@ namespace melon::rpc {
                << "\n  rttvar=" << ti.tcpi_rttvar
                << "\n}";
         }
-#elif defined(MELON_PLATFORM_LINUX)
+#elif defined(TURBO_PLATFORM_LINUX)
         struct tcp_info ti;
         socklen_t len = sizeof(ti);
         if (fd >= 0 && getsockopt(fd, SOL_TCP, TCP_INFO, &ti, &len) == 0) {
@@ -2171,10 +2171,10 @@ namespace melon::rpc {
 
     int Socket::CheckHealth() {
         if (_hc_count == 0) {
-            MELON_LOG(INFO) << "Checking " << *this;
+            TURBO_LOG(INFO) << "Checking " << *this;
         }
         const timespec duetime =
-                melon::time_point::future_unix_millis(FLAGS_health_check_timeout_ms).to_timespec();
+                turbo::time_point::future_unix_millis(FLAGS_health_check_timeout_ms).to_timespec();
         const int connected_fd = Connect(&duetime, nullptr, nullptr);
         if (connected_fd >= 0) {
             ::close(connected_fd);
@@ -2201,7 +2201,7 @@ namespace melon::rpc {
         _stream_mutex.lock();
         if (_stream_set == nullptr) {
             _stream_mutex.unlock();
-            MELON_CHECK(false) << "AddStream was not called";
+            TURBO_CHECK(false) << "AddStream was not called";
             return -1;
         }
         _stream_set->erase(stream_id);
@@ -2210,7 +2210,7 @@ namespace melon::rpc {
     }
 
     void Socket::ResetAllStreams() {
-        MELON_DCHECK(Failed());
+        TURBO_DCHECK(Failed());
         std::set<StreamId> saved_stream_set;
         _stream_mutex.lock();
         if (_stream_set != nullptr) {
@@ -2231,7 +2231,7 @@ namespace melon::rpc {
     }
 
     void SocketUser::AfterRevived(Socket *ptr) {
-        MELON_LOG(INFO) << "Revived " << *ptr << " (Connectable)";
+        TURBO_LOG(INFO) << "Revived " << *ptr << " (Connectable)";
     }
 
     ////////// SocketPool //////////////
@@ -2271,7 +2271,7 @@ namespace melon::rpc {
         if (connection_pool_size > 0) {
             for (;;) {
                 {
-                    MELON_SCOPED_LOCK(_mutex);
+                    TURBO_SCOPED_LOCK(_mutex);
                     if (_pool.empty()) {
                         break;
                     }
@@ -2306,7 +2306,7 @@ namespace melon::rpc {
         if (_numfree.fetch_add(1, std::memory_order_relaxed) <
             connection_pool_size) {
             const SocketId sid = sock->id();
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             _pool.push_back(sid);
         } else {
             // Cancel the addition and close the pooled socket.
@@ -2350,7 +2350,7 @@ namespace melon::rpc {
             if (!_shared_part.compare_exchange_strong(
                     expected, shared_part, std::memory_order_acq_rel)) {
                 shared_part->RemoveRefManually();
-                MELON_CHECK(expected);
+                TURBO_CHECK(expected);
                 shared_part = expected;
             }
         }
@@ -2369,12 +2369,12 @@ namespace melon::rpc {
 
     int Socket::GetPooledSocket(SocketUniquePtr *pooled_socket) {
         if (pooled_socket == nullptr) {
-            MELON_LOG(ERROR) << "pooled_socket is nullptr";
+            TURBO_LOG(ERROR) << "pooled_socket is nullptr";
             return -1;
         }
         SharedPart *main_sp = GetOrNewSharedPart();
         if (main_sp == nullptr) {
-            MELON_LOG(ERROR) << "_shared_part is nullptr";
+            TURBO_LOG(ERROR) << "_shared_part is nullptr";
             return -1;
         }
         // Create socket_pool optimistically.
@@ -2392,7 +2392,7 @@ namespace melon::rpc {
             if (!main_sp->socket_pool.compare_exchange_strong(
                     expected, socket_pool, std::memory_order_acq_rel)) {
                 delete socket_pool;
-                MELON_CHECK(expected);
+                TURBO_CHECK(expected);
                 socket_pool = expected;
             }
         }
@@ -2400,7 +2400,7 @@ namespace melon::rpc {
             return -1;
         }
         (*pooled_socket)->ShareStats(this);
-        MELON_CHECK((*pooled_socket)->parsing_context() == nullptr)
+        TURBO_CHECK((*pooled_socket)->parsing_context() == nullptr)
                         << "context=" << (*pooled_socket)->parsing_context()
                         << " is not nullptr when " << *(*pooled_socket) << " is got from"
                                                                            " SocketPool, the protocol implementation is buggy";
@@ -2410,18 +2410,18 @@ namespace melon::rpc {
     int Socket::ReturnToPool() {
         SharedPart *sp = _shared_part.exchange(nullptr, std::memory_order_acquire);
         if (sp == nullptr) {
-            MELON_LOG(ERROR) << "_shared_part is nullptr";
+            TURBO_LOG(ERROR) << "_shared_part is nullptr";
             SetFailed(EINVAL, "_shared_part is nullptr");
             return -1;
         }
         SocketPool *pool = sp->socket_pool.load(std::memory_order_consume);
         if (pool == nullptr) {
-            MELON_LOG(ERROR) << "_shared_part->socket_pool is nullptr";
+            TURBO_LOG(ERROR) << "_shared_part->socket_pool is nullptr";
             SetFailed(EINVAL, "_shared_part->socket_pool is nullptr");
             sp->RemoveRefManually();
             return -1;
         }
-        MELON_CHECK(parsing_context() == nullptr)
+        TURBO_CHECK(parsing_context() == nullptr)
                         << "context=" << parsing_context() << " is not released when "
                         << *this << " is returned to SocketPool, the protocol "
                                     "implementation is buggy";
@@ -2472,7 +2472,7 @@ namespace melon::rpc {
 
     int Socket::GetShortSocket(SocketUniquePtr *short_socket) {
         if (short_socket == nullptr) {
-            MELON_LOG(ERROR) << "short_socket is nullptr";
+            TURBO_LOG(ERROR) << "short_socket is nullptr";
             return -1;
         }
         SocketId id;
@@ -2504,7 +2504,7 @@ namespace melon::rpc {
             }
             do {
                 if (GetShortSocket(&tmp_sock) != 0) {
-                    MELON_LOG(ERROR) << "Fail to get short socket from " << *this;
+                    TURBO_LOG(ERROR) << "Fail to get short socket from " << *this;
                     return -1;
                 }
                 if (checkfn == nullptr || checkfn(tmp_sock.get())) {
@@ -2561,7 +2561,7 @@ namespace melon::rpc {
 
     void Socket::AddOutputBytes(size_t bytes) {
         GetOrNewSharedPart()->out_size.fetch_add(bytes, std::memory_order_relaxed);
-        _last_writetime_us.store(melon::get_current_time_micros(),
+        _last_writetime_us.store(turbo::get_current_time_micros(),
                                  std::memory_order_relaxed);
         CancelUnwrittenBytes(bytes);
     }
@@ -2595,18 +2595,18 @@ namespace melon::rpc {
         // NOTE: The output should be consistent with operator<<()
         std::string result;
         result.reserve(64);
-        melon::string_appendf(&result, "Socket{id=%" PRIu64, id());
+        turbo::string_appendf(&result, "Socket{id=%" PRIu64, id());
         const int saved_fd = fd();
         if (saved_fd >= 0) {
-            melon::string_appendf(&result, " fd=%d", saved_fd);
+            turbo::string_appendf(&result, " fd=%d", saved_fd);
         }
-        melon::string_appendf(&result, " addr=%s",
-                              melon::endpoint2str(remote_side()).c_str());
+        turbo::string_appendf(&result, " addr=%s",
+                              turbo::endpoint2str(remote_side()).c_str());
         const int local_port = local_side().port;
         if (local_port > 0) {
-            melon::string_appendf(&result, ":%d", local_port);
+            turbo::string_appendf(&result, ":%d", local_port);
         }
-        melon::string_appendf(&result, "} (0x%p)", this);
+        turbo::string_appendf(&result, "} (0x%p)", this);
         return result;
     }
 

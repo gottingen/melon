@@ -22,11 +22,11 @@
 #include <deque>
 #include <melon/fiber/this_fiber.h>
 #include <melon/fiber/internal/fiber.h>
-#include "melon/log/logging.h"
-#include "melon/strings/starts_with.h"
-#include "melon/strings/trim.h"
-#include "melon/strings/utility.h"
-#include "melon/files/readline_file.h"
+#include "turbo/log/logging.h"
+#include "turbo/strings/starts_with.h"
+#include "turbo/strings/trim.h"
+#include "turbo/strings/utility.h"
+#include "turbo/files/readline_file.h"
 #include "melon/rpc/channel.h"
 
 DEFINE_string(url_file, "", "The file containing urls to fetch. If this flag is"
@@ -41,7 +41,7 @@ DEFINE_bool(only_show_host, false, "Print host name only");
 struct AccessThreadArgs {
     const std::deque<std::string> *url_list;
     size_t offset;
-    std::deque<std::pair<std::string, melon::cord_buf> > output_queue;
+    std::deque<std::pair<std::string, turbo::cord_buf> > output_queue;
     std::mutex output_queue_mutex;
     std::atomic<int> current_concurrency;
 };
@@ -59,9 +59,9 @@ public:
 void OnHttpCallEnd::Run() {
     std::unique_ptr<OnHttpCallEnd> delete_self(this);
     {
-        MELON_SCOPED_LOCK(args->output_queue_mutex);
+        TURBO_SCOPED_LOCK(args->output_queue_mutex);
         if (cntl.Failed()) {
-            args->output_queue.push_back(std::make_pair(url, melon::cord_buf()));
+            args->output_queue.push_back(std::make_pair(url, turbo::cord_buf()));
         } else {
             args->output_queue.push_back(
                     std::make_pair(url, cntl.response_attachment()));
@@ -83,9 +83,9 @@ void *access_thread(void *void_args) {
         std::string const &url = (*args->url_list)[i];
         melon::rpc::Channel channel;
         if (channel.Init(url.c_str(), &options) != 0) {
-            MELON_LOG(ERROR) << "Fail to create channel to url=" << url;
-            MELON_SCOPED_LOCK(args->output_queue_mutex);
-            args->output_queue.push_back(std::make_pair(url, melon::cord_buf()));
+            TURBO_LOG(ERROR) << "Fail to create channel to url=" << url;
+            TURBO_SCOPED_LOCK(args->output_queue_mutex);
+            args->output_queue.push_back(std::make_pair(url, turbo::cord_buf()));
             continue;
         }
         while (args->current_concurrency.fetch_add(1, std::memory_order_relaxed)
@@ -110,24 +110,24 @@ int main(int argc, char **argv) {
     //     FLAGS_path = "/" + FLAGS_path;
     // }
 
-    melon::readline_file file;
+    turbo::readline_file file;
     if (!FLAGS_url_file.empty()) {
         if (!file.open(FLAGS_url_file.c_str()).is_ok()) {
-            MELON_PLOG(ERROR) << "Fail to open `" << FLAGS_url_file << '\'';
+            TURBO_PLOG(ERROR) << "Fail to open `" << FLAGS_url_file << '\'';
             return -1;
         }
     } else {
-        MELON_PLOG(ERROR) << "must set `FLAGS_url_file`";
+        TURBO_PLOG(ERROR) << "must set `FLAGS_url_file`";
         return 0;
     }
 
     std::deque<std::string> url_list;
     auto lines = file.lines();
     for (auto line : lines) {
-        line = melon::strip_suffix(line, "\n");
-        line = melon::trim_all(line);
+        line = turbo::strip_suffix(line, "\n");
+        line = turbo::trim_all(line);
         if (!line.empty()) {
-            url_list.push_back(melon::as_string(line));
+            url_list.push_back(turbo::as_string(line));
         }
     }
     if (url_list.empty()) {
@@ -142,20 +142,20 @@ int main(int argc, char **argv) {
     std::vector<fiber_id_t> tids;
     tids.resize(FLAGS_thread_num);
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        MELON_CHECK_EQ(0, fiber_start_background(&tids[i], nullptr, access_thread, &args[i]));
+        TURBO_CHECK_EQ(0, fiber_start_background(&tids[i], nullptr, access_thread, &args[i]));
     }
-    std::deque<std::pair<std::string, melon::cord_buf> > output_queue;
+    std::deque<std::pair<std::string, turbo::cord_buf> > output_queue;
     size_t nprinted = 0;
     while (nprinted != url_list.size()) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             {
-                MELON_SCOPED_LOCK(args[i].output_queue_mutex);
+                TURBO_SCOPED_LOCK(args[i].output_queue_mutex);
                 output_queue.swap(args[i].output_queue);
             }
             for (size_t i = 0; i < output_queue.size(); ++i) {
                 std::string_view url = output_queue[i].first;
                 std::string_view hostname;
-                if (melon::starts_with(url, "http://")) {
+                if (turbo::starts_with(url, "http://")) {
                     url.remove_prefix(7);
                 }
                 size_t slash_pos = url.find('/');

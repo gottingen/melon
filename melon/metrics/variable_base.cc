@@ -4,20 +4,20 @@
 #include <fstream>                              // std::ifstream
 #include <sstream>                              // std::ostringstream
 #include <gflags/gflags.h>
-#include "melon/files/filesystem.h"
-#include "melon/container/flat_map.h"           // melon::container::FlatMap
-#include "melon/base/scoped_lock.h"                   // MELON_SCOPE_LOCK
-#include "melon/strings/string_splitter.h"               // melon::StringSplitter
-#include "melon/base/errno.h"                          // melon_error
-#include "melon/times/time.h"                          // milliseconds_from_now
+#include "turbo/files/filesystem.h"
+#include "turbo/container/flat_map.h"           // turbo::container::FlatMap
+#include "turbo/base/scoped_lock.h"                   // MELON_SCOPE_LOCK
+#include "turbo/strings/string_splitter.h"               // turbo::StringSplitter
+#include "turbo/base/errno.h"                          // turbo_error
+#include "turbo/times/time.h"                          // milliseconds_from_now
 #include "melon/metrics/gflag.h"
 #include "melon/metrics/variable_base.h"
-#include "melon/strings/utility.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/ends_with.h"
-#include "melon/strings/strip.h"
-#include "melon/strings/str_join.h"
-#include "melon/log/logging.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/ends_with.h"
+#include "turbo/strings/strip.h"
+#include "turbo/strings/str_join.h"
+#include "turbo/log/logging.h"
 
 namespace melon {
 
@@ -37,13 +37,13 @@ namespace melon {
         if (v && s_var_may_abort) {
             // Name conflict happens before handling args of main(), this is
             // generally caused by global variable.
-            MELON_LOG(FATAL) << "Abort due to name conflict";
+            TURBO_LOG(FATAL) << "Abort due to name conflict";
             abort();
         }
         return true;
     }
 
-    const bool MELON_ALLOW_UNUSED dummy_variable_abort_on_same_name = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_abort_on_same_name = ::google::RegisterFlagValidator(
             &FLAGS_variable_abort_on_same_name, validate_variable_abort_on_same_name);
 
 
@@ -62,13 +62,13 @@ namespace melon {
         display_filter filter;
     };
 
-    typedef melon::container::FlatMap<std::string, VarEntry> VarMap;
+    typedef turbo::container::FlatMap<std::string, VarEntry> VarMap;
 
     struct VarMapWithLock : public VarMap {
         pthread_mutex_t mutex;
 
         VarMapWithLock() {
-            MELON_CHECK_EQ(0, init(1024, 80));
+            TURBO_CHECK_EQ(0, init(1024, 80));
             pthread_mutexattr_t attr;
             pthread_mutexattr_init(&attr);
             pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -111,7 +111,7 @@ namespace melon {
     }
 
     variable_base::~variable_base() {
-        MELON_CHECK(!hide()) << "Subclass of variable_base MUST call hide() manually in their"
+        TURBO_CHECK(!hide()) << "Subclass of variable_base MUST call hide() manually in their"
                                 " dtors to avoid displaying a variable that is just destructing";
     }
 
@@ -121,7 +121,7 @@ namespace melon {
                                    const tag_type &tags,
                                    display_filter filter) {
         if (name.empty()) {
-            MELON_LOG(ERROR) << "Parameter[name] is empty";
+            TURBO_LOG(ERROR) << "Parameter[name] is empty";
             return -1;
         }
         // NOTE: It's impossible to atomically erase from a submap and insert into
@@ -139,12 +139,12 @@ namespace melon {
         _index_name.clear();
         _tags.clear();
         _tags = tags;
-        std::string tags_str = melon::string_join(_tags, "_", melon::pair_formatter("_"));
+        std::string tags_str = turbo::string_join(_tags, "_", turbo::pair_formatter("_"));
         _name.reserve((prefix.size() + name.size()) * 5 / 4);
         _index_name.reserve((prefix.size() + name.size() + tags_str.size()) * 5 / 4);
         if (!prefix.empty()) {
             to_underscored_name(&_name, prefix);
-            if (!_name.empty() && melon::back_char(_name) != '_') {
+            if (!_name.empty() && turbo::back_char(_name) != '_') {
                 _name.push_back('_');
             }
         }
@@ -161,7 +161,7 @@ namespace melon {
         }
         VarMapWithLock &m = get_var_map(_index_name);
         {
-            MELON_SCOPED_LOCK(m.mutex);
+            TURBO_SCOPED_LOCK(m.mutex);
             VarEntry *entry = m.seek(_index_name);
             if (entry == nullptr) {
                 entry = &m[_index_name];
@@ -171,7 +171,7 @@ namespace melon {
             }
         }
         if (FLAGS_variable_abort_on_same_name) {
-            MELON_LOG(FATAL) << "Abort due to name conflict";
+            TURBO_LOG(FATAL) << "Abort due to name conflict";
             abort();
         } else if (!s_var_may_abort) {
             // Mark name conflict occurs, If this conflict happens before
@@ -180,7 +180,7 @@ namespace melon {
             s_var_may_abort = true;
         }
 
-        MELON_LOG(ERROR) << "Already exposed `" << _index_name << "' whose value is `"
+        TURBO_LOG(ERROR) << "Already exposed `" << _index_name << "' whose value is `"
                          << describe_exposed(_index_name) << '\'';
         _name.clear();
         _index_name.clear();
@@ -192,12 +192,12 @@ namespace melon {
             return false;
         }
         VarMapWithLock &m = get_var_map(_index_name);
-        MELON_SCOPED_LOCK(m.mutex);
+        TURBO_SCOPED_LOCK(m.mutex);
         VarEntry *entry = m.seek(_index_name);
         if (entry) {
-            MELON_CHECK_EQ(1UL, m.erase(_index_name));
+            TURBO_CHECK_EQ(1UL, m.erase(_index_name));
         } else {
-            MELON_CHECK(false) << "`" << _index_name << "' must exist";
+            TURBO_CHECK(false) << "`" << _index_name << "' must exist";
         }
         _index_name.clear();
         _name.clear();
@@ -274,7 +274,7 @@ namespace melon {
                         break;
                     }
                 }
-                MELON_LOG(INFO) << it->first << ": " << it->second.filter;
+                TURBO_LOG(INFO) << it->first << ": " << it->second.filter;
                 if (it->second.filter & DISPLAY_ON_METRICS) {
                     cache_metrics m;
                     it->second.var->collect_metrics(m);
@@ -297,7 +297,7 @@ namespace melon {
                                         bool quote_string,
                                         display_filter filter) {
         VarMapWithLock &m = get_var_map(name);
-        MELON_SCOPED_LOCK(m.mutex);
+        TURBO_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
         if (p == nullptr) {
             return -1;
@@ -330,7 +330,7 @@ namespace melon {
                                                std::ostream &os,
                                                const variable_series_options &options) {
         VarMapWithLock &m = get_var_map(name);
-        MELON_SCOPED_LOCK(m.mutex);
+        TURBO_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
         if (p == nullptr) {
             return -1;
@@ -374,7 +374,7 @@ namespace melon {
         }
         size_t new_size = std::max(_size * 3 / 2, (size_t) 64);
         char *new_data = (char *) malloc(new_size);
-        if (MELON_UNLIKELY(new_data == nullptr)) {
+        if (TURBO_UNLIKELY(new_data == nullptr)) {
             setp(nullptr, nullptr);
             return std::streambuf::traits_type::eof();
         }
@@ -446,7 +446,7 @@ namespace melon {
             }
             std::string name;
             const char wc_pattern[3] = {'*', question_mark, '\0'};
-            for (melon::StringMultiSplitter sp(wildcards.c_str(), ",;");
+            for (turbo::StringMultiSplitter sp(wildcards.c_str(), ",;");
                  sp != nullptr; ++sp) {
                 name.assign(sp.field(), sp.length());
                 if (name.find_first_of(wc_pattern) != std::string::npos) {
@@ -492,7 +492,7 @@ namespace melon {
 
     int variable_base::dump_exposed(variable_dumper *dumper, const variable_dump_options *poptions) {
         if (nullptr == dumper) {
-            MELON_LOG(ERROR) << "Parameter[dumper] is nullptr";
+            TURBO_LOG(ERROR) << "Parameter[dumper] is nullptr";
             return -1;
         }
         variable_dump_options opt;
@@ -559,14 +559,14 @@ namespace melon {
             }
         }
         if (log_dummped) {
-            MELON_LOG(INFO) << "Dumpped variables:" << dumpped_info.str();
+            TURBO_LOG(INFO) << "Dumpped variables:" << dumpped_info.str();
         }
         return count;
     }
 
     int variable_base::dump_metrics(metrics_dumper *dumper, const metrics_dump_options *poptions) {
         if (nullptr == dumper) {
-            MELON_LOG(ERROR) << "Parameter[dumper] is nullptr";
+            TURBO_LOG(ERROR) << "Parameter[dumper] is nullptr";
             return -1;
         }
         metrics_dump_options opt;
@@ -595,7 +595,7 @@ namespace melon {
             }
         }
         if (log_dummped) {
-            MELON_LOG(INFO) << "Dumpped variables:" << dumpped_info.str();
+            TURBO_LOG(INFO) << "Dumpped variables:" << dumpped_info.str();
         }
         return count;
     }
@@ -618,7 +618,7 @@ namespace melon {
         // safety we normalize the name.
         std::string s;
         if (command_name.size() >= 2UL && command_name[0] == '(' &&
-            melon::back_char(command_name) == ')') {
+            turbo::back_char(command_name) == ')') {
             // remove parenthesis.
             to_underscored_name(&s,
                                 std::string_view(command_name.data() + 1,
@@ -641,7 +641,7 @@ namespace melon {
             // normalize it.
             if (!s.empty()) {
                 to_underscored_name(&_prefix, s);
-                if (melon::back_char(_prefix) != '_') {
+                if (turbo::back_char(_prefix) != '_') {
                     _prefix.push_back('_');
                 }
             }
@@ -661,15 +661,15 @@ namespace melon {
         bool dump(const std::string &name, const std::string_view &desc) override {
             if (_fp == nullptr) {
                 std::error_code ec;
-                melon::file_path dirPath = melon::file_path(_filename).parent_path();
-                if (!melon::create_directories(dirPath, ec)) {
-                    MELON_LOG(ERROR) << "Fail to create directory=`" << dirPath.c_str()
+                turbo::file_path dirPath = turbo::file_path(_filename).parent_path();
+                if (!turbo::create_directories(dirPath, ec)) {
+                    TURBO_LOG(ERROR) << "Fail to create directory=`" << dirPath.c_str()
                                      << "', " << ec.message();
                     return false;
                 }
                 _fp = fopen(_filename.c_str(), "w");
                 if (nullptr == _fp) {
-                    MELON_LOG(ERROR) << "Fail to open " << _filename;
+                    TURBO_LOG(ERROR) << "Fail to open " << _filename;
                     return false;
                 }
             }
@@ -677,7 +677,7 @@ namespace melon {
                         (int) _prefix.size(), _prefix.data(),
                         (int) name.size(), name.data(),
                         (int) desc.size(), desc.data()) < 0) {
-                MELON_PLOG(ERROR) << "Fail to write into " << _filename;
+                TURBO_PLOG(ERROR) << "Fail to write into " << _filename;
                 return false;
             }
             return true;
@@ -695,16 +695,16 @@ namespace melon {
         FileDumperGroup(std::string tabs, std::string filename,
                         std::string_view s/*prefix*/) {
             std::string_view path_str(filename);
-            if (melon::ends_with(path_str, ".data")) {
+            if (turbo::ends_with(path_str, ".data")) {
                 // .data will be appended later
-                melon::consume_suffix(&path_str, ".data");
+                turbo::consume_suffix(&path_str, ".data");
             }
 
-            for (melon::KeyValuePairsSplitter sp(tabs, ';', '='); sp; ++sp) {
-                std::string key = melon::as_string(sp.key());
-                std::string value = melon::as_string(sp.value());
+            for (turbo::KeyValuePairsSplitter sp(tabs, ';', '='); sp; ++sp) {
+                std::string key = turbo::as_string(sp.key());
+                std::string value = turbo::as_string(sp.value());
                 std::string pathString(path_str.data(), path_str.size());
-                melon::string_appendf(&pathString, ".%s.data", key.c_str());
+                turbo::string_appendf(&pathString, ".%s.data", key.c_str());
                 FileDumper *f = new FileDumper(pathString, s);
                 WildcardMatcher *m = new WildcardMatcher(value, '?', true);
                 dumpers.emplace_back(f, m);
@@ -779,25 +779,25 @@ namespace melon {
             std::string prefix;
             std::string tabs;
             if (!google::GetCommandLineOption("variable_dump_file", &filename)) {
-                MELON_LOG(ERROR) << "Fail to get gflag variable_dump_file";
+                TURBO_LOG(ERROR) << "Fail to get gflag variable_dump_file";
                 return nullptr;
             }
             if (!google::GetCommandLineOption("variable_dump_include",
                                               &options.white_wildcards)) {
-                MELON_LOG(ERROR) << "Fail to get gflag variable_dump_include";
+                TURBO_LOG(ERROR) << "Fail to get gflag variable_dump_include";
                 return nullptr;
             }
             if (!google::GetCommandLineOption("variable_dump_exclude",
                                               &options.black_wildcards)) {
-                MELON_LOG(ERROR) << "Fail to get gflag variable_dump_exclude";
+                TURBO_LOG(ERROR) << "Fail to get gflag variable_dump_exclude";
                 return nullptr;
             }
             if (!google::GetCommandLineOption("variable_dump_prefix", &prefix)) {
-                MELON_LOG(ERROR) << "Fail to get gflag variable_dump_prefix";
+                TURBO_LOG(ERROR) << "Fail to get gflag variable_dump_prefix";
                 return nullptr;
             }
             if (!google::GetCommandLineOption("variable_dump_tabs", &tabs)) {
-                MELON_LOG(ERROR) << "Fail to get gflags variable_dump_tabs";
+                TURBO_LOG(ERROR) << "Fail to get gflags variable_dump_tabs";
                 return nullptr;
             }
 
@@ -813,7 +813,7 @@ namespace melon {
                 }
                 if (last_filename != filename) {
                     last_filename = filename;
-                    MELON_LOG(INFO) << "Write all variable to " << filename << " every "
+                    TURBO_LOG(INFO) << "Write all variable to " << filename << " every "
                                     << FLAGS_variable_dump_interval << " seconds.";
                 }
                 const size_t pos2 = prefix.find("<app>");
@@ -823,7 +823,7 @@ namespace melon {
                 FileDumperGroup dumper(tabs, filename, prefix);
                 int nline = variable_base::dump_exposed(&dumper, &options);
                 if (nline < 0) {
-                    MELON_LOG(ERROR) << "Fail to dump vars into " << filename;
+                    TURBO_LOG(ERROR) << "Fail to dump vars into " << filename;
                 }
             }
 
@@ -834,10 +834,10 @@ namespace melon {
             const int post_sleep_ms = 50;
             int cond_sleep_ms = FLAGS_variable_dump_interval * 1000 - post_sleep_ms;
             if (cond_sleep_ms < 0) {
-                MELON_LOG(ERROR) << "Bad cond_sleep_ms=" << cond_sleep_ms;
+                TURBO_LOG(ERROR) << "Bad cond_sleep_ms=" << cond_sleep_ms;
                 cond_sleep_ms = 10000;
             }
-            timespec deadline = melon::time_point::future_unix_millis(cond_sleep_ms).to_timespec();
+            timespec deadline = turbo::time_point::future_unix_millis(cond_sleep_ms).to_timespec();
             pthread_mutex_lock(&dump_mutex);
             pthread_cond_timedwait(&dump_cond, &dump_mutex, &deadline);
             pthread_mutex_unlock(&dump_mutex);
@@ -849,11 +849,11 @@ namespace melon {
         pthread_t thread_id;
         int rc = pthread_create(&thread_id, nullptr, dumping_thread, nullptr);
         if (rc != 0) {
-            MELON_LOG(FATAL) << "Fail to launch dumping thread: " << melon_error(rc);
+            TURBO_LOG(FATAL) << "Fail to launch dumping thread: " << turbo_error(rc);
             return;
         }
         // Detach the thread because no one would join it.
-        MELON_CHECK_EQ(0, pthread_detach(thread_id));
+        TURBO_CHECK_EQ(0, pthread_detach(thread_id));
         created_dumping_thread = true;
     }
 
@@ -870,7 +870,7 @@ namespace melon {
         return true;
     }
 
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump, validate_variable_dump);
 
     // validators (to make these gflags reloadable in melon)
@@ -880,18 +880,18 @@ namespace melon {
         // this is just fine since people rarely have the intention of modifying
         // this flag at runtime.
         if (v < 1) {
-            MELON_LOG(ERROR) << "Invalid variable_dump_interval=" << v;
+            TURBO_LOG(ERROR) << "Invalid variable_dump_interval=" << v;
             return false;
         }
         return true;
     }
 
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump_interval = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump_interval = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump_interval, validate_variable_dump_interval);
 
     static bool validate_variable_log_dumpped(const char *, bool) { return true; }
 
-    const bool MELON_ALLOW_UNUSED dummy_variable_log_dumpped = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_log_dumpped = ::google::RegisterFlagValidator(
             &FLAGS_variable_log_dumpped, validate_variable_log_dumpped);
 
     static bool wakeup_dumping_thread(const char *, const std::string &) {
@@ -901,15 +901,15 @@ namespace melon {
         return true;
     }
 
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump_file = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump_file = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump_file, wakeup_dumping_thread);
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump_filter = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump_filter = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump_include, wakeup_dumping_thread);
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump_exclude = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump_exclude = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump_exclude, wakeup_dumping_thread);
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump_prefix = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump_prefix = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump_prefix, wakeup_dumping_thread);
-    const bool MELON_ALLOW_UNUSED dummy_variable_dump_tabs = ::google::RegisterFlagValidator(
+    const bool TURBO_ALLOW_UNUSED dummy_variable_dump_tabs = ::google::RegisterFlagValidator(
             &FLAGS_variable_dump_tabs, wakeup_dumping_thread);
 
     void to_underscored_name(std::string *name, const std::string_view &src) {
@@ -918,7 +918,7 @@ namespace melon {
             if (isalpha(*p)) {
                 if (*p < 'a') { // upper cases
                     if (p != src.data() && !isupper(p[-1]) &&
-                        melon::back_char(*name) != '_') {
+                        turbo::back_char(*name) != '_') {
                         name->push_back('_');
                     }
                     name->push_back(*p - 'A' + 'a');
@@ -927,7 +927,7 @@ namespace melon {
                 }
             } else if (isdigit(*p)) {
                 name->push_back(*p);
-            } else if (name->empty() || melon::back_char(*name) != '_') {
+            } else if (name->empty() || turbo::back_char(*name) != '_') {
                 name->push_back('_');
             }
         }

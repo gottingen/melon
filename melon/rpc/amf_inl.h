@@ -64,7 +64,7 @@ namespace melon::rpc {
     inline size_t AMFInputStream::cut_u16(uint16_t *val) {
         if (_size >= 2) {
             const uint16_t netval = *(uint16_t *) _data;
-            *val = melon::base::melon_ntoh16(netval);
+            *val = turbo::base::turbo_ntoh16(netval);
             _data = (const char *) _data + 2;
             _size -= 2;
             _popped_bytes += 2;
@@ -72,14 +72,14 @@ namespace melon::rpc {
         }
         uint16_t netval = 0;
         const size_t ret = cutn(&netval, 2);
-        *val = melon::base::melon_ntoh16(netval);
+        *val = turbo::base::turbo_ntoh16(netval);
         return ret;
     }
 
     inline size_t AMFInputStream::cut_u32(uint32_t *val) {
         if (_size >= 4) {
             const uint32_t netval = *(uint32_t *) _data;
-            *val = melon::base::melon_ntoh32(netval);
+            *val = turbo::base::turbo_ntoh32(netval);
             _data = (const char *) _data + 4;
             _size -= 4;
             _popped_bytes += 4;
@@ -87,14 +87,14 @@ namespace melon::rpc {
         }
         uint32_t netval = 0;
         const size_t ret = cutn(&netval, 4);
-        *val = melon::base::melon_ntoh32(netval);
+        *val = turbo::base::turbo_ntoh32(netval);
         return ret;
     }
 
     inline size_t AMFInputStream::cut_u64(uint64_t *val) {
         if (_size >= 8) {
             const uint64_t netval = *(uint64_t *) _data;
-            *val = melon::base::melon_ntoh64(netval);
+            *val = turbo::base::turbo_ntoh64(netval);
             _data = (const char *) _data + 8;
             _size -= 8;
             _popped_bytes += 8;
@@ -102,7 +102,7 @@ namespace melon::rpc {
         }
         uint64_t netval = 0;
         const size_t ret = cutn(&netval, 8);
-        *val = melon::base::melon_ntoh64(netval);
+        *val = turbo::base::turbo_ntoh64(netval);
         return ret;
     }
 
@@ -151,17 +151,17 @@ namespace melon::rpc {
     }
 
     inline void AMFOutputStream::put_u16(uint16_t val) {
-        uint16_t netval = melon::base::melon_hton16(val);
+        uint16_t netval = turbo::base::turbo_hton16(val);
         return putn(&netval, sizeof(netval));
     }
 
     inline void AMFOutputStream::put_u32(uint32_t val) {
-        uint32_t netval = melon::base::melon_hton32(val);
+        uint32_t netval = turbo::base::turbo_hton32(val);
         return putn(&netval, sizeof(netval));
     }
 
     inline void AMFOutputStream::put_u64(uint64_t val) {
-        uint64_t netval = melon::base::melon_hton64(val);
+        uint64_t netval = turbo::base::turbo_hton64(val);
         return putn(&netval, sizeof(netval));
     }
 

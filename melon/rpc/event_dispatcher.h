@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_EVENT_DISPATCHER_H_
 #define MELON_RPC_EVENT_DISPATCHER_H_
 
-#include "melon/base/profile.h"                     // MELON_DISALLOW_COPY_AND_ASSIGN
+#include "turbo/base/profile.h"                     // TURBO_DISALLOW_COPY_AND_ASSIGN
 #include "melon/fiber/internal/types.h"                   // fiber_id_t, fiber_attribute
 #include "melon/rpc/socket.h"                     // Socket, SocketId
 
@@ -71,7 +71,7 @@ public:
     int RemoveEpollOut(SocketId socket_id, int fd, bool pollin);
 
 private:
-    MELON_DISALLOW_COPY_AND_ASSIGN(EventDispatcher);
+    TURBO_DISALLOW_COPY_AND_ASSIGN(EventDispatcher);
 
     // Calls Run()
     static void* RunThis(void* arg);

@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/log/logging.h"
-#include "melon/io/snappy/snappy.h"
+#include "turbo/log/logging.h"
+#include "turbo/io/snappy/snappy.h"
 #include "melon/rpc/policy/snappy_compress.h"
 #include "melon/rpc/protocol.h"
 
@@ -25,39 +25,39 @@
 namespace melon::rpc {
     namespace policy {
 
-        bool SnappyCompress(const google::protobuf::Message &res, melon::cord_buf *buf) {
-            melon::cord_buf serialized_pb;
-            melon::cord_buf_as_zero_copy_output_stream wrapper(&serialized_pb);
+        bool SnappyCompress(const google::protobuf::Message &res, turbo::cord_buf *buf) {
+            turbo::cord_buf serialized_pb;
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(&serialized_pb);
             if (res.SerializeToZeroCopyStream(&wrapper)) {
-                melon::cord_buf_as_snappy_source source(serialized_pb);
-                melon::cord_buf_as_snappy_sink sink(*buf);
-                return melon::snappy::Compress(&source, &sink);
+                turbo::cord_buf_as_snappy_source source(serialized_pb);
+                turbo::cord_buf_as_snappy_sink sink(*buf);
+                return turbo::snappy::Compress(&source, &sink);
             }
-            MELON_LOG(WARNING) << "Fail to serialize input pb=" << &res;
+            TURBO_LOG(WARNING) << "Fail to serialize input pb=" << &res;
             return false;
         }
 
-        bool SnappyDecompress(const melon::cord_buf &data, google::protobuf::Message *req) {
-            melon::cord_buf_as_snappy_source source(data);
-            melon::cord_buf binary_pb;
-            melon::cord_buf_as_snappy_sink sink(binary_pb);
-            if (melon::snappy::Uncompress(&source, &sink)) {
+        bool SnappyDecompress(const turbo::cord_buf &data, google::protobuf::Message *req) {
+            turbo::cord_buf_as_snappy_source source(data);
+            turbo::cord_buf binary_pb;
+            turbo::cord_buf_as_snappy_sink sink(binary_pb);
+            if (turbo::snappy::Uncompress(&source, &sink)) {
                 return ParsePbFromCordBuf(req, binary_pb);
             }
-            MELON_LOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
+            TURBO_LOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
             return false;
         }
 
-        bool SnappyCompress(const melon::cord_buf &in, melon::cord_buf *out) {
-            melon::cord_buf_as_snappy_source source(in);
-            melon::cord_buf_as_snappy_sink sink(*out);
-            return melon::snappy::Compress(&source, &sink);
+        bool SnappyCompress(const turbo::cord_buf &in, turbo::cord_buf *out) {
+            turbo::cord_buf_as_snappy_source source(in);
+            turbo::cord_buf_as_snappy_sink sink(*out);
+            return turbo::snappy::Compress(&source, &sink);
         }
 
-        bool SnappyDecompress(const melon::cord_buf &in, melon::cord_buf *out) {
-            melon::cord_buf_as_snappy_source source(in);
-            melon::cord_buf_as_snappy_sink sink(*out);
-            return melon::snappy::Uncompress(&source, &sink);
+        bool SnappyDecompress(const turbo::cord_buf &in, turbo::cord_buf *out) {
+            turbo::cord_buf_as_snappy_source source(in);
+            turbo::cord_buf_as_snappy_sink sink(*out);
+            return turbo::snappy::Uncompress(&source, &sink);
         }
 
     }  // namespace policy

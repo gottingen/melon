@@ -22,9 +22,9 @@
 #include <memory>
 #include <iostream>
 
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/metrics/detail/agent_group.h"
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 
 
 namespace {
@@ -51,7 +51,7 @@ protected:
             EXPECT_TRUE(false);
             return nullptr;
         }
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         timer.start();
         for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
             agent_type *element = agent_group<agent_type>::get_or_create_tls_agent(id);
@@ -82,7 +82,7 @@ TEST_F(AgentGroupTest, test_sanity) {
 std::atomic<uint64_t> g_counter(0);
 
 void *global_add(void *) {
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
         g_counter.fetch_add(2, std::memory_order_relaxed);
@@ -99,7 +99,7 @@ TEST_F(AgentGroupTest, test_perf) {
         ids[i] = agent_group<agent_type>::create_new_agent();
         ASSERT_TRUE(ids[i] >= 0);
     }
-    melon::stop_watcher timer;
+    turbo::stop_watcher timer;
     timer.start();
     for (size_t i = 0; i < loops; ++i) {
         for (size_t j = 0; j < id_num; ++j) {
@@ -109,7 +109,7 @@ TEST_F(AgentGroupTest, test_perf) {
         }
     }
     timer.stop();
-    MELON_LOG(INFO) << "It takes " << timer.n_elapsed() / (loops * id_num)
+    TURBO_LOG(INFO) << "It takes " << timer.n_elapsed() / (loops * id_num)
               << " ns to get tls agent for " << id_num << " agents";
     for (size_t i = 0; i < id_num; ++i) {
         agent_group<agent_type>::destroy_agent(ids[i]);
@@ -121,29 +121,29 @@ TEST_F(AgentGroupTest, test_all_perf) {
     long id = agent_group<agent_type>::create_new_agent();
     ASSERT_TRUE(id >= 0) << id;
     pthread_t threads[24];
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
         pthread_create(&threads[i], nullptr, &thread_counter, (void *)id);
     }
     long totol_time = 0;
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
         void *ret; 
         pthread_join(threads[i], &ret);
         totol_time += (long)ret;
     }
-    MELON_LOG(INFO) << "ThreadAgent takes "
-              << totol_time / (OPS_PER_THREAD * MELON_ARRAY_SIZE(threads));
+    TURBO_LOG(INFO) << "ThreadAgent takes "
+              << totol_time / (OPS_PER_THREAD * TURBO_ARRAY_SIZE(threads));
     totol_time = 0;
     g_counter.store(0, std::memory_order_relaxed);
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
         pthread_create(&threads[i], nullptr, global_add, (void *)id);
     }
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(threads); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(threads); ++i) {
         void *ret; 
         pthread_join(threads[i], &ret);
         totol_time += (long)ret;
     }
-    MELON_LOG(INFO) << "Global Atomic takes "
-              << totol_time / (OPS_PER_THREAD * MELON_ARRAY_SIZE(threads));
+    TURBO_LOG(INFO) << "Global Atomic takes "
+              << totol_time / (OPS_PER_THREAD * TURBO_ARRAY_SIZE(threads));
     agent_group<agent_type>::destroy_agent(id);
     //sleep(1000);
 }

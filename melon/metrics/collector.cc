@@ -2,7 +2,7 @@
 
 #include <map>
 #include <gflags/gflags.h>
-#include "melon/base/singleton_on_pthread_once.h"
+#include "turbo/base/singleton_on_pthread_once.h"
 #include "melon/metrics/all.h"
 #include "melon/metrics/collector.h"
 
@@ -83,18 +83,18 @@ namespace melon {
         bool _stop;         // Set to true in dtor.
         pthread_t _grab_thread;     // For joining.
         pthread_t _dump_thread;
-        int64_t _ngrab MELON_CACHELINE_ALIGNMENT;
+        int64_t _ngrab TURBO_CACHELINE_ALIGNMENT;
         int64_t _ndrop;
         int64_t _ndump;
         pthread_mutex_t _dump_thread_mutex;
         pthread_cond_t _dump_thread_cond;
-        melon::container::link_node<Collected> _dump_root;
+        turbo::container::link_node<Collected> _dump_root;
         pthread_mutex_t _sleep_mutex;
         pthread_cond_t _sleep_cond;
     };
 
     Collector::Collector()
-            : _last_active_cpuwide_us(melon::get_current_time_micros()), _created(false), _stop(false), _grab_thread(0),
+            : _last_active_cpuwide_us(turbo::get_current_time_micros()), _created(false), _stop(false), _grab_thread(0),
               _dump_thread(0), _ngrab(0), _ndrop(0), _ndump(0) {
         pthread_mutex_init(&_dump_thread_mutex, nullptr);
         pthread_cond_init(&_dump_thread_cond, nullptr);
@@ -102,7 +102,7 @@ namespace melon {
         pthread_cond_init(&_sleep_cond, nullptr);
         int rc = pthread_create(&_grab_thread, nullptr, run_grab_thread, this);
         if (rc != 0) {
-            MELON_LOG(ERROR) << "Fail to create Collector, " << melon_error(rc);
+            TURBO_LOG(ERROR) << "Fail to create Collector, " << turbo_error(rc);
         } else {
             _created = true;
         }
@@ -129,14 +129,14 @@ namespace melon {
     static CollectorSpeedLimit g_null_speed_limit = VARIABLE_COLLECTOR_SPEED_LIMIT_INITIALIZER;
 
     void Collector::grab_thread() {
-        _last_active_cpuwide_us = melon::get_current_time_micros();
+        _last_active_cpuwide_us = turbo::get_current_time_micros();
         int64_t last_before_update_sl = _last_active_cpuwide_us;
 
         // This is the thread for collecting TLS submissions. User's callbacks are
         // called inside the separate _dump_thread to prevent a slow callback
         // (caused by busy disk generally) from blocking collecting code too long
         // that pending requests may explode memory.
-        MELON_CHECK_EQ(0, pthread_create(&_dump_thread, nullptr, run_dump_thread, this));
+        TURBO_CHECK_EQ(0, pthread_create(&_dump_thread, nullptr, run_dump_thread, this));
 
         // vars
         melon::status_gauge<int64_t> pending_sampled_data(
@@ -170,22 +170,22 @@ namespace melon {
             }
 
             // Collect TLS submissions and give them to dump_thread.
-            melon::container::link_node<Collected> *head = this->reset();
+            turbo::container::link_node<Collected> *head = this->reset();
             if (head) {
-                melon::container::link_node<Collected> tmp_root;
+                turbo::container::link_node<Collected> tmp_root;
                 head->insert_before_as_list(&tmp_root);
                 head = nullptr;
 
                 // Group samples by preprocessors.
-                for (melon::container::link_node<Collected> *p = tmp_root.next(); p != &tmp_root;) {
-                    melon::container::link_node<Collected> *saved_next = p->next();
+                for (turbo::container::link_node<Collected> *p = tmp_root.next(); p != &tmp_root;) {
+                    turbo::container::link_node<Collected> *saved_next = p->next();
                     p->remove_from_list();
                     CollectorPreprocessor *prep = p->value()->preprocessor();
                     prep_map[prep].push_back(p->value());
                     p = saved_next;
                 }
                 // Iterate prep_map
-                melon::container::link_node<Collected> root;
+                turbo::container::link_node<Collected> root;
                 for (PreprocessorMap::iterator it = prep_map.begin();
                      it != prep_map.end(); ++it) {
                     std::vector<Collected *> &list = it->second;
@@ -219,14 +219,14 @@ namespace melon {
                 }
                 // Give the samples to dump_thread
                 if (root.next() != &root) {  // non empty
-                    melon::container::link_node<Collected> *head2 = root.next();
+                    turbo::container::link_node<Collected> *head2 = root.next();
                     root.remove_from_list();
-                    MELON_SCOPED_LOCK(_dump_thread_mutex);
+                    TURBO_SCOPED_LOCK(_dump_thread_mutex);
                     head2->insert_before_as_list(&_dump_root);
                     pthread_cond_signal(&_dump_thread_cond);
                 }
             }
-            int64_t now = melon::get_current_time_micros();
+            int64_t now = turbo::get_current_time_micros();
             int64_t interval = now - last_before_update_sl;
             last_before_update_sl = now;
             for (GrapMap::iterator it = ngrab_map.begin();
@@ -235,27 +235,27 @@ namespace melon {
                                    it->second, interval);
             }
 
-            now = melon::get_current_time_micros();
+            now = turbo::get_current_time_micros();
             // calcuate thread usage.
             busy_seconds += (now - _last_active_cpuwide_us) / 1000000.0;
             _last_active_cpuwide_us = now;
 
             // sleep for the next round.
             if (!_stop && abstime > now) {
-                timespec abstimespec = melon::time_point::future_unix_micros(abstime - now).to_timespec();
+                timespec abstimespec = turbo::time_point::future_unix_micros(abstime - now).to_timespec();
                 pthread_mutex_lock(&_sleep_mutex);
                 pthread_cond_timedwait(&_sleep_cond, &_sleep_mutex, &abstimespec);
                 pthread_mutex_unlock(&_sleep_mutex);
             }
-            _last_active_cpuwide_us = melon::get_current_time_micros();
+            _last_active_cpuwide_us = turbo::get_current_time_micros();
         }
         // make sure _stop is true, we may have other reasons to quit above loop
         {
-            MELON_SCOPED_LOCK(_dump_thread_mutex);
+            TURBO_SCOPED_LOCK(_dump_thread_mutex);
             _stop = true;
             pthread_cond_signal(&_dump_thread_cond);
         }
-        MELON_CHECK_EQ(0, pthread_join(_dump_thread, nullptr));
+        TURBO_CHECK_EQ(0, pthread_join(_dump_thread, nullptr));
     }
 
     void Collector::wakeup_grab_thread() {
@@ -281,7 +281,7 @@ namespace melon {
         const size_t old_sampling_range = sl->sampling_range;
         if (!sl->ever_grabbed) {
             if (sl->first_sample_real_us) {
-                interval_us = melon::get_current_time_micros() - sl->first_sample_real_us;
+                interval_us = turbo::get_current_time_micros() - sl->first_sample_real_us;
                 if (interval_us < 0) {
                     interval_us = 0;
                 }
@@ -325,9 +325,9 @@ namespace melon {
             int before_add = sl->count_before_grabbed.fetch_add(
                     1, std::memory_order_relaxed);
             if (before_add == 0) {
-                sl->first_sample_real_us = melon::get_current_time_micros();
+                sl->first_sample_real_us = turbo::get_current_time_micros();
             } else if (before_add >= FLAGS_variable_collector_expected_per_second) {
-                melon::get_leaky_singleton<Collector>()->wakeup_grab_thread();
+                turbo::get_leaky_singleton<Collector>()->wakeup_grab_thread();
             }
         }
         return sl->sampling_range;
@@ -335,7 +335,7 @@ namespace melon {
 
 // Call user's callbacks in this thread.
     void Collector::dump_thread() {
-        int64_t last_ns = melon::get_current_time_nanos();
+        int64_t last_ns = turbo::get_current_time_nanos();
 
         // vars
         double busy_seconds = 0;
@@ -347,21 +347,21 @@ namespace melon {
         melon::per_second<melon::status_gauge<int64_t> > ndumped_second(
                 "melon::collector_dump_second", &ndumped_var);
 
-        melon::container::link_node<Collected> root;
+        turbo::container::link_node<Collected> root;
         size_t round = 0;
 
         // The main loop
         while (!_stop) {
             ++round;
             // Get new samples set by grab_thread.
-            melon::container::link_node<Collected> *newhead = nullptr;
+            turbo::container::link_node<Collected> *newhead = nullptr;
             {
-                MELON_SCOPED_LOCK(_dump_thread_mutex);
+                TURBO_SCOPED_LOCK(_dump_thread_mutex);
                 while (!_stop && _dump_root.next() == &_dump_root) {
-                    const int64_t now_ns = melon::get_current_time_nanos();
+                    const int64_t now_ns = turbo::get_current_time_nanos();
                     busy_seconds += (now_ns - last_ns) / 1000000000.0;
                     pthread_cond_wait(&_dump_thread_cond, &_dump_thread_mutex);
-                    last_ns = melon::get_current_time_nanos();
+                    last_ns = turbo::get_current_time_nanos();
                 }
                 if (_stop) {
                     break;
@@ -369,13 +369,13 @@ namespace melon {
                 newhead = _dump_root.next();
                 _dump_root.remove_from_list();
             }
-            MELON_CHECK(newhead != &_dump_root);
+            TURBO_CHECK(newhead != &_dump_root);
             newhead->insert_before_as_list(&root);
 
             // Call callbacks.
-            for (melon::container::link_node<Collected> *p = root.next(); !_stop && p != &root;) {
+            for (turbo::container::link_node<Collected> *p = root.next(); !_stop && p != &root;) {
                 // We remove p from the list, save next first.
-                melon::container::link_node<Collected> *saved_next = p->next();
+                turbo::container::link_node<Collected> *saved_next = p->next();
                 p->remove_from_list();
                 Collected *s = p->value();
                 s->dump_and_destroy(round);
@@ -386,7 +386,7 @@ namespace melon {
     }
 
     void Collected::submit(int64_t cpuwide_us) {
-        Collector *d = melon::get_leaky_singleton<Collector>();
+        Collector *d = turbo::get_leaky_singleton<Collector>();
         // Destroy the sample in-place if the grab_thread did not run for twice
         // of the normal interval. This also applies to the situation that
         // grab_thread aborts due to severe errors.

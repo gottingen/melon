@@ -20,7 +20,7 @@
 #include <google/protobuf/message.h>             // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/controller.h"                     // Controller
 #include "melon/rpc/socket.h"                         // Socket
 #include "melon/rpc/server.h"                         // Server
@@ -73,7 +73,7 @@ namespace melon::rpc {
                 case HULU_COMPRESS_TYPE_ZLIB:
                     return COMPRESS_TYPE_ZLIB;
                 default:
-                    MELON_LOG(ERROR) << "Unknown HuluCompressType=" << type;
+                    TURBO_LOG(ERROR) << "Unknown HuluCompressType=" << type;
                     return COMPRESS_TYPE_NONE;
             }
         }
@@ -89,10 +89,10 @@ namespace melon::rpc {
                 case COMPRESS_TYPE_ZLIB:
                     return HULU_COMPRESS_TYPE_ZLIB;
                 case COMPRESS_TYPE_LZ4:
-                    MELON_LOG(ERROR) << "Hulu doesn't support LZ4";
+                    TURBO_LOG(ERROR) << "Hulu doesn't support LZ4";
                     return HULU_COMPRESS_TYPE_NONE;
                 default:
-                    MELON_LOG(ERROR) << "Unknown CompressType=" << type;
+                    TURBO_LOG(ERROR) << "Unknown CompressType=" << type;
                     return HULU_COMPRESS_TYPE_NONE;
             }
         }
@@ -151,7 +151,7 @@ namespace melon::rpc {
 
         template<typename Meta>
         static void SerializeHuluHeaderAndMeta(
-                melon::cord_buf *out, const Meta &meta, int payload_size) {
+                turbo::cord_buf *out, const Meta &meta, int payload_size) {
             const int meta_size = meta.ByteSizeLong();
             if (meta_size <= 244) { // most common cases
                 char header_and_meta[12 + meta_size];
@@ -159,20 +159,20 @@ namespace melon::rpc {
                 ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 12, meta_size);
                 ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
                 meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-                MELON_CHECK(!coded_out.HadError());
+                TURBO_CHECK(!coded_out.HadError());
                 out->append(header_and_meta, sizeof(header_and_meta));
             } else {
                 char header[12];
                 PackHuluHeader(header, meta_size, payload_size);
                 out->append(header, sizeof(header));
-                melon::cord_buf_as_zero_copy_output_stream buf_stream(out);
+                turbo::cord_buf_as_zero_copy_output_stream buf_stream(out);
                 ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
                 meta.SerializeWithCachedSizes(&coded_out);
-                MELON_CHECK(!coded_out.HadError());
+                TURBO_CHECK(!coded_out.HadError());
             }
         }
 
-        ParseResult ParseHuluMessage(melon::cord_buf *source, Socket *socket,
+        ParseResult ParseHuluMessage(turbo::cord_buf *source, Socket *socket,
                                      bool /*read_eof*/, const void * /*arg*/) {
             char header_buf[12];
             const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -195,7 +195,7 @@ namespace melon::rpc {
             if (body_size > FLAGS_max_body_size) {
                 // We need this log to report the body_size to give users some clues
                 // which is not printed in InputMessenger.
-                MELON_LOG(ERROR) << "body_size=" << body_size << " from "
+                TURBO_LOG(ERROR) << "body_size=" << body_size << " from "
                                  << socket->remote_side() << " is too large";
                 return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
             } else if (source->length() < sizeof(header_buf) + body_size) {
@@ -204,7 +204,7 @@ namespace melon::rpc {
             uint32_t meta_size;
             ru.unpack32(meta_size);
             if (__builtin_expect(meta_size > body_size, 0)) {
-                MELON_LOG(ERROR) << "meta_size=" << meta_size
+                TURBO_LOG(ERROR) << "meta_size=" << meta_size
                                  << " is bigger than body_size=" << body_size;
                 // Pop the message
                 source->pop_front(sizeof(header_buf) + body_size);
@@ -229,7 +229,7 @@ namespace melon::rpc {
             ControllerPrivateAccessor accessor(cntl);
             Span *span = accessor.span();
             if (span) {
-                span->set_start_send_us(melon::get_current_time_micros());
+                span->set_start_send_us(turbo::get_current_time_micros());
             }
             Socket *sock = accessor.get_sending_socket();
             std::unique_ptr<HuluController, LogErrorTextAndDelete> recycle_cntl(cntl);
@@ -243,7 +243,7 @@ namespace melon::rpc {
             }
 
             bool append_body = false;
-            melon::cord_buf res_body_buf;
+            turbo::cord_buf res_body_buf;
             // `res' can be nullptr here, in which case we don't serialize it
             // If user calls `SetFailed' on Controller, we don't serialize
             // response either
@@ -290,7 +290,7 @@ namespace melon::rpc {
                 meta.set_user_data(cntl->response_user_data());
             }
 
-            melon::cord_buf res_buf;
+            turbo::cord_buf res_buf;
             SerializeHuluHeaderAndMeta(&res_buf, meta, res_size + attached_size);
             if (append_body) {
                 res_buf.append(res_body_buf.movable());
@@ -308,14 +308,14 @@ namespace melon::rpc {
             wopt.ignore_eovercrowded = true;
             if (sock->Write(&res_buf, &wopt) != 0) {
                 const int errcode = errno;
-                MELON_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+                TURBO_PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
                 cntl->SetFailed(errcode, "Fail to write into %s",
                                 sock->description().c_str());
                 return;
             }
             if (span) {
                 // TODO: this is not sent
-                span->set_sent_us(melon::get_current_time_micros());
+                span->set_sent_us(turbo::get_current_time_micros());
             }
         }
 
@@ -329,7 +329,7 @@ namespace melon::rpc {
                 ::google::protobuf::Closure *done);
 
         void ProcessHuluRequest(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             SocketUniquePtr socket_guard(msg->ReleaseSocket());
             Socket *socket = socket_guard.get();
@@ -338,7 +338,7 @@ namespace melon::rpc {
 
             HuluRpcRequestMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse HuluRpcRequestMeta, close the connection";
+                TURBO_LOG(WARNING) << "Fail to parse HuluRpcRequestMeta, close the connection";
                 socket->SetFailed();
                 return;
             }
@@ -362,7 +362,7 @@ namespace melon::rpc {
 
             std::unique_ptr<HuluController> cntl(new(std::nothrow) HuluController());
             if (nullptr == cntl.get()) {
-                MELON_LOG(WARNING) << "Fail to new Controller";
+                TURBO_LOG(WARNING) << "Fail to new Controller";
                 return;
             }
             std::unique_ptr<google::protobuf::Message> req;
@@ -424,7 +424,7 @@ namespace melon::rpc {
 
                 if (socket->is_overcrowded()) {
                     cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                                    melon::endpoint2str(socket->remote_side()).c_str());
+                                    turbo::endpoint2str(socket->remote_side()).c_str());
                     break;
                 }
 
@@ -473,8 +473,8 @@ namespace melon::rpc {
                     span->ResetServerSpanName(method->full_name());
                 }
                 const int reqsize = msg->payload.length();
-                melon::cord_buf req_buf;
-                melon::cord_buf *req_buf_ptr = &msg->payload;
+                turbo::cord_buf req_buf;
+                turbo::cord_buf *req_buf_ptr = &msg->payload;
                 if (meta.has_user_message_size()) {
                     msg->payload.cutn(&req_buf, meta.user_message_size());
                     req_buf_ptr = &req_buf;
@@ -504,7 +504,7 @@ namespace melon::rpc {
                 req_buf.clear();
 
                 if (span) {
-                    span->set_start_callback_us(melon::get_current_time_micros());
+                    span->set_start_callback_us(turbo::get_current_time_micros());
                     span->AsParent();
                 }
                 if (!FLAGS_usercode_in_pthread) {
@@ -537,7 +537,7 @@ namespace melon::rpc {
 
             HuluRpcRequestMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse HuluRpcRequestMeta";
+                TURBO_LOG(WARNING) << "Fail to parse HuluRpcRequestMeta";
                 return false;
             }
             const Authenticator *auth = server->options().auth;
@@ -554,11 +554,11 @@ namespace melon::rpc {
         }
 
         void ProcessHuluResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
             HuluRpcResponseMeta meta;
             if (!ParsePbFromCordBuf(&meta, msg->meta)) {
-                MELON_LOG(WARNING) << "Fail to parse from response meta";
+                TURBO_LOG(WARNING) << "Fail to parse from response meta";
                 return;
             }
 
@@ -566,8 +566,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ": " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ": " << turbo_error(rc);
                 return;
             }
 
@@ -586,8 +586,8 @@ namespace melon::rpc {
                                 "%s", meta.error_text().c_str());
             } else {
                 // Parse response message iff error code from meta is 0
-                melon::cord_buf res_buf;
-                melon::cord_buf *res_buf_ptr = &msg->payload;
+                turbo::cord_buf res_buf;
+                turbo::cord_buf *res_buf_ptr = &msg->payload;
                 if (meta.has_user_message_size()) {
                     msg->payload.cutn(&res_buf, meta.user_message_size());
                     res_buf_ptr = &res_buf;
@@ -623,12 +623,12 @@ namespace melon::rpc {
             accessor.OnResponse(cid, saved_error);
         }
 
-        void PackHuluRequest(melon::cord_buf *req_buf,
+        void PackHuluRequest(turbo::cord_buf *req_buf,
                              SocketMessage **,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor *method,
                              Controller *cntl,
-                             const melon::cord_buf &req_body,
+                             const turbo::cord_buf &req_body,
                              const Authenticator *auth) {
             HuluRpcRequestMeta meta;
             if (auth != nullptr && auth->GenerateCredential(

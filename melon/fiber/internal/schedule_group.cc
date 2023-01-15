@@ -19,10 +19,10 @@
 
 // Date: Tue Jul 10 17:40:58 CST 2012
 
-#include "melon/base/scoped_lock.h"             // MELON_SCOPED_LOCK
-#include "melon/base/errno.h"                    // melon_error
-#include "melon/log/logging.h"
-#include "melon/hash/murmurhash3.h"
+#include "turbo/base/scoped_lock.h"             // TURBO_SCOPED_LOCK
+#include "turbo/base/errno.h"                    // turbo_error
+#include "turbo/log/logging.h"
+#include "turbo/hash/murmurhash3.h"
 #include "melon/fiber/internal/sys_futex.h"            // futex_wake_private
 #include "melon/fiber/internal/interrupt_pthread.h"
 #include "melon/fiber/internal/processor.h"            // cpu_relax
@@ -45,7 +45,7 @@ namespace melon::fiber_internal {
     DECLARE_int32(fiber_min_concurrency);
 
     extern pthread_mutex_t g_task_control_mutex;
-    extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
+    extern TURBO_THREAD_LOCAL fiber_worker *tls_task_group;
 
     void (*g_worker_startfn)() = nullptr;
 
@@ -63,7 +63,7 @@ namespace melon::fiber_internal {
         fiber_worker *g = c->create_group();
         fiber_statistics stat;
         if (nullptr == g) {
-            MELON_LOG(ERROR) << "Fail to create fiber_worker in pthread=" << pthread_self();
+            TURBO_LOG(ERROR) << "Fail to create fiber_worker in pthread=" << pthread_self();
             return nullptr;
         }
         BT_VLOG << "Created worker=" << pthread_self()
@@ -86,11 +86,11 @@ namespace melon::fiber_internal {
     fiber_worker *schedule_group::create_group() {
         fiber_worker *g = new(std::nothrow) fiber_worker(this);
         if (nullptr == g) {
-            MELON_LOG(FATAL) << "Fail to new fiber_worker";
+            TURBO_LOG(FATAL) << "Fail to new fiber_worker";
             return nullptr;
         }
         if (g->init(FLAGS_task_group_runqueue_capacity) != 0) {
-            MELON_LOG(ERROR) << "Fail to init fiber_worker";
+            TURBO_LOG(ERROR) << "Fail to init fiber_worker";
             delete g;
             return nullptr;
         }
@@ -132,23 +132,23 @@ namespace melon::fiber_internal {
               _signal_per_second(&_cumulated_signal_count), _status(print_rq_sizes_in_the_tc, this),
               _nfibers("fiber_count") {
         // calloc shall set memory to zero
-        MELON_CHECK(_groups) << "Fail to create array of groups";
+        TURBO_CHECK(_groups) << "Fail to create array of groups";
     }
 
     int schedule_group::init(int concurrency) {
         if (_concurrency != 0) {
-            MELON_LOG(ERROR) << "Already initialized";
+            TURBO_LOG(ERROR) << "Already initialized";
             return -1;
         }
         if (concurrency <= 0) {
-            MELON_LOG(ERROR) << "Invalid concurrency=" << concurrency;
+            TURBO_LOG(ERROR) << "Invalid concurrency=" << concurrency;
             return -1;
         }
         _concurrency = concurrency;
 
         // Make sure TimerThread is ready.
         if (get_or_create_global_timer_thread() == nullptr) {
-            MELON_LOG(ERROR) << "Fail to get global_timer_thread";
+            TURBO_LOG(ERROR) << "Fail to get global_timer_thread";
             return -1;
         }
 
@@ -156,7 +156,7 @@ namespace melon::fiber_internal {
         for (int i = 0; i < _concurrency; ++i) {
             const int rc = pthread_create(&_workers[i], nullptr, worker_thread, this);
             if (rc) {
-                MELON_LOG(ERROR) << "Fail to create _workers[" << i << "], " << melon_error(rc);
+                TURBO_LOG(ERROR) << "Fail to create _workers[" << i << "], " << turbo_error(rc);
                 return -1;
             }
         }
@@ -191,8 +191,8 @@ namespace melon::fiber_internal {
             const int rc = pthread_create(
                     &_workers[i + old_concurency], nullptr, worker_thread, this);
             if (rc) {
-                MELON_LOG(WARNING) << "Fail to create _workers[" << i + old_concurency
-                             << "], " << melon_error(rc);
+                TURBO_LOG(WARNING) << "Fail to create _workers[" << i + old_concurency
+                             << "], " << turbo_error(rc);
                 _concurrency.fetch_sub(1, std::memory_order_release);
                 break;
             }
@@ -205,9 +205,9 @@ namespace melon::fiber_internal {
     fiber_worker *schedule_group::choose_one_group() {
         const size_t ngroup = _ngroup.load(std::memory_order_acquire);
         if (ngroup != 0) {
-            return _groups[melon::base::fast_rand_less_than(ngroup)];
+            return _groups[turbo::base::fast_rand_less_than(ngroup)];
         }
-        MELON_CHECK(false) << "Impossible: ngroup is 0";
+        TURBO_CHECK(false) << "Impossible: ngroup is 0";
         return nullptr;
     }
 
@@ -216,11 +216,11 @@ namespace melon::fiber_internal {
     void schedule_group::stop_and_join() {
         // Close epoll threads so that worker threads are not waiting on epoll(
         // which cannot be woken up by signal_task below)
-        MELON_CHECK_EQ(0, stop_and_join_epoll_threads());
+        TURBO_CHECK_EQ(0, stop_and_join_epoll_threads());
 
         // Stop workers
         {
-            MELON_SCOPED_LOCK(_modify_group_mutex);
+            TURBO_SCOPED_LOCK(_modify_group_mutex);
             _stop = true;
             _ngroup.exchange(0, std::memory_order_relaxed);
         }
@@ -278,17 +278,17 @@ namespace melon::fiber_internal {
 
     int schedule_group::_destroy_group(fiber_worker *g) {
         if (nullptr == g) {
-            MELON_LOG(ERROR) << "Param[g] is nullptr";
+            TURBO_LOG(ERROR) << "Param[g] is nullptr";
             return -1;
         }
         if (g->_control != this) {
-            MELON_LOG(ERROR) << "fiber_worker=" << g
+            TURBO_LOG(ERROR) << "fiber_worker=" << g
                        << " does not belong to this schedule_group=" << this;
             return -1;
         }
         bool erased = false;
         {
-            MELON_SCOPED_LOCK(_modify_group_mutex);
+            TURBO_SCOPED_LOCK(_modify_group_mutex);
             const size_t ngroup = _ngroup.load(std::memory_order_relaxed);
             for (size_t i = 0; i < ngroup; ++i) {
                 if (_groups[i] == g) {
@@ -319,7 +319,7 @@ namespace melon::fiber_internal {
         if (erased) {
             get_global_timer_thread()->schedule(
                     delete_task_group, g,
-                    melon::time_point::future_unix_seconds(FLAGS_task_group_delete_delay).to_timespec());
+                    turbo::time_point::future_unix_seconds(FLAGS_task_group_delete_delay).to_timespec());
         }
         return 0;
     }
@@ -364,7 +364,7 @@ namespace melon::fiber_internal {
         if (num_task > 2) {
             num_task = 2;
         }
-        int start_index = melon::hash::fmix64(pthread_numeric_id()) % PARKING_LOT_NUM;
+        int start_index = turbo::hash::fmix64(pthread_numeric_id()) % PARKING_LOT_NUM;
         num_task -= _pl[start_index].signal(1);
         if (num_task > 0) {
             for (int i = 1; i < PARKING_LOT_NUM && num_task > 0; ++i) {
@@ -378,7 +378,7 @@ namespace melon::fiber_internal {
             FLAGS_fiber_min_concurrency > 0 &&    // test min_concurrency for performance
             _concurrency.load(std::memory_order_relaxed) < FLAGS_fiber_concurrency) {
             // TODO: Reduce this lock
-            MELON_SCOPED_LOCK(g_task_control_mutex);
+            TURBO_SCOPED_LOCK(g_task_control_mutex);
             if (_concurrency.load(std::memory_order_acquire) < FLAGS_fiber_concurrency) {
                 add_workers(1);
             }
@@ -389,7 +389,7 @@ namespace melon::fiber_internal {
         const size_t ngroup = _ngroup.load(std::memory_order_relaxed);
         DEFINE_SMALL_ARRAY(int, nums, ngroup, 128);
         {
-            MELON_SCOPED_LOCK(_modify_group_mutex);
+            TURBO_SCOPED_LOCK(_modify_group_mutex);
             // ngroup > _ngroup: nums[_ngroup ... ngroup-1] = 0
             // ngroup < _ngroup: just ignore _groups[_ngroup ... ngroup-1]
             for (size_t i = 0; i < ngroup; ++i) {
@@ -403,7 +403,7 @@ namespace melon::fiber_internal {
 
     double schedule_group::get_cumulated_worker_time() {
         int64_t cputime_ns = 0;
-        MELON_SCOPED_LOCK(_modify_group_mutex);
+        TURBO_SCOPED_LOCK(_modify_group_mutex);
         const size_t ngroup = _ngroup.load(std::memory_order_relaxed);
         for (size_t i = 0; i < ngroup; ++i) {
             if (_groups[i]) {
@@ -415,7 +415,7 @@ namespace melon::fiber_internal {
 
     int64_t schedule_group::get_cumulated_switch_count() {
         int64_t c = 0;
-        MELON_SCOPED_LOCK(_modify_group_mutex);
+        TURBO_SCOPED_LOCK(_modify_group_mutex);
         const size_t ngroup = _ngroup.load(std::memory_order_relaxed);
         for (size_t i = 0; i < ngroup; ++i) {
             if (_groups[i]) {
@@ -427,7 +427,7 @@ namespace melon::fiber_internal {
 
     int64_t schedule_group::get_cumulated_signal_count() {
         int64_t c = 0;
-        MELON_SCOPED_LOCK(_modify_group_mutex);
+        TURBO_SCOPED_LOCK(_modify_group_mutex);
         const size_t ngroup = _ngroup.load(std::memory_order_relaxed);
         for (size_t i = 0; i < ngroup; ++i) {
             fiber_worker *g = _groups[i];

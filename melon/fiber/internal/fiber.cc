@@ -21,7 +21,7 @@
 
 #include <gflags/gflags.h>
 #include <utility>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/fiber/internal/fiber_worker.h"                // fiber_worker
 #include "melon/fiber/internal/schedule_group.h"              // schedule_group
 #include "melon/fiber/internal/timer_thread.h"
@@ -46,13 +46,13 @@ namespace melon::fiber_internal {
         return fiber_setconcurrency(val) == 0;
     }
 
-    const int MELON_ALLOW_UNUSED register_FLAGS_fiber_concurrency =
+    const int TURBO_ALLOW_UNUSED register_FLAGS_fiber_concurrency =
             ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency,
                                                validate_fiber_concurrency);
 
     static bool validate_fiber_min_concurrency(const char *, int32_t val);
 
-    const int MELON_ALLOW_UNUSED register_FLAGS_fiber_min_concurrency =
+    const int TURBO_ALLOW_UNUSED register_FLAGS_fiber_min_concurrency =
             ::google::RegisterFlagValidator(&FLAGS_fiber_min_concurrency,
                                                validate_fiber_min_concurrency);
 
@@ -64,7 +64,7 @@ namespace melon::fiber_internal {
     // are not constructed before main().
     schedule_group *g_task_control = nullptr;
 
-    extern MELON_THREAD_LOCAL fiber_worker *tls_task_group;
+    extern TURBO_THREAD_LOCAL fiber_worker *tls_task_group;
 
     extern void (*g_worker_startfn)();
 
@@ -78,7 +78,7 @@ namespace melon::fiber_internal {
         if (c != nullptr) {
             return c;
         }
-        MELON_SCOPED_LOCK(g_task_control_mutex);
+        TURBO_SCOPED_LOCK(g_task_control_mutex);
         c = p->load(std::memory_order_consume);
         if (c != nullptr) {
             return c;
@@ -91,7 +91,7 @@ namespace melon::fiber_internal {
                           FLAGS_fiber_min_concurrency :
                           FLAGS_fiber_concurrency;
         if (c->init(concurrency) != 0) {
-            MELON_LOG(ERROR) << "Fail to init g_task_control";
+            TURBO_LOG(ERROR) << "Fail to init g_task_control";
             delete c;
             return nullptr;
         }
@@ -110,7 +110,7 @@ namespace melon::fiber_internal {
         if (!c) {
             return true;
         }
-        MELON_SCOPED_LOCK(g_task_control_mutex);
+        TURBO_SCOPED_LOCK(g_task_control_mutex);
         int concurrency = c->concurrency();
         if (val > concurrency) {
             int added = c->add_workers(val - concurrency);
@@ -122,7 +122,7 @@ namespace melon::fiber_internal {
 
     __thread fiber_worker *tls_task_group_nosignal = nullptr;
 
-    MELON_FORCE_INLINE int
+    TURBO_FORCE_INLINE int
     start_from_non_worker(fiber_id_t *__restrict tid,
                           const fiber_attribute *__restrict attr,
                           std::function<void *(void *)> &&fn,
@@ -271,7 +271,7 @@ int fiber_getconcurrency(void) {
 
 int fiber_setconcurrency(int num) {
     if (num < FIBER_MIN_CONCURRENCY || num > FIBER_MAX_CONCURRENCY) {
-        MELON_LOG(ERROR) << "Invalid concurrency=" << num;
+        TURBO_LOG(ERROR) << "Invalid concurrency=" << num;
         return EINVAL;
     }
     if (melon::fiber_internal::FLAGS_fiber_min_concurrency > 0) {
@@ -292,7 +292,7 @@ int fiber_setconcurrency(int num) {
             return 0;
         }
     }
-    MELON_SCOPED_LOCK(melon::fiber_internal::g_task_control_mutex);
+    TURBO_SCOPED_LOCK(melon::fiber_internal::g_task_control_mutex);
     c = melon::fiber_internal::get_task_control();
     if (c == nullptr) {
         if (melon::fiber_internal::never_set_fiber_concurrency) {
@@ -304,7 +304,7 @@ int fiber_setconcurrency(int num) {
         return 0;
     }
     if (melon::fiber_internal::FLAGS_fiber_concurrency != c->concurrency()) {
-        MELON_LOG(ERROR) << "MELON_CHECK failed: fiber_concurrency="
+        TURBO_LOG(ERROR) << "TURBO_CHECK failed: fiber_concurrency="
                    << melon::fiber_internal::FLAGS_fiber_concurrency
                    << " != tc_concurrency=" << c->concurrency();
         melon::fiber_internal::FLAGS_fiber_concurrency = c->concurrency();

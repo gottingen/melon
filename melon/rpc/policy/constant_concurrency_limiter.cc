@@ -37,7 +37,7 @@ namespace melon::rpc {
 
         ConstantConcurrencyLimiter *
         ConstantConcurrencyLimiter::New(const AdaptiveMaxConcurrency &amc) const {
-            MELON_CHECK_EQ(amc.type(), AdaptiveMaxConcurrency::CONSTANT());
+            TURBO_CHECK_EQ(amc.type(), AdaptiveMaxConcurrency::CONSTANT());
             return new ConstantConcurrencyLimiter(static_cast<int>(amc));
         }
 

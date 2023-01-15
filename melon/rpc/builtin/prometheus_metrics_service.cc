@@ -25,10 +25,10 @@
 #include "melon/rpc/builtin/prometheus_metrics_service.h"
 #include "melon/rpc/builtin/common.h"
 #include "melon/metrics/all.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/utility.h"
-#include "melon/strings/starts_with.h"
-#include "melon/strings/ends_with.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/starts_with.h"
+#include "turbo/strings/ends_with.h"
 
 namespace melon {
     DECLARE_int32(variable_latency_p1);
@@ -50,7 +50,7 @@ namespace melon::rpc {
     // calculates quantiles in the server side.
     class PrometheusMetricsDumper : public melon::variable_dumper {
     public:
-        explicit PrometheusMetricsDumper(melon::cord_buf_builder *os,
+        explicit PrometheusMetricsDumper(turbo::cord_buf_builder *os,
                                          const std::string &server_prefix)
                 : _os(os), _server_prefix(server_prefix) {
         }
@@ -58,7 +58,7 @@ namespace melon::rpc {
         bool dump(const std::string &name, const std::string_view &desc) override;
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(PrometheusMetricsDumper);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(PrometheusMetricsDumper);
 
         // Return true iff name ends with suffix output by LatencyRecorder.
         bool DumpLatencyRecorderSuffix(const std::string_view &name,
@@ -80,7 +80,7 @@ namespace melon::rpc {
                                                          const std::string_view &desc);
 
     private:
-        melon::cord_buf_builder *_os;
+        turbo::cord_buf_builder *_os;
         const std::string _server_prefix;
         std::map<std::string, SummaryItems> _m;
     };
@@ -106,39 +106,39 @@ namespace melon::rpc {
     PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const std::string_view &name,
                                                           const std::string_view &desc) {
         static std::string latency_names[] = {
-                melon::string_printf("_latency_%d", (int) melon::FLAGS_variable_latency_p1),
-                melon::string_printf("_latency_%d", (int) melon::FLAGS_variable_latency_p2),
-                melon::string_printf("_latency_%d", (int) melon::FLAGS_variable_latency_p3),
+                turbo::string_printf("_latency_%d", (int) melon::FLAGS_variable_latency_p1),
+                turbo::string_printf("_latency_%d", (int) melon::FLAGS_variable_latency_p2),
+                turbo::string_printf("_latency_%d", (int) melon::FLAGS_variable_latency_p3),
                 "_latency_999", "_latency_9999", "_max_latency"
         };
-        MELON_CHECK(NPERCENTILES == MELON_ARRAY_SIZE(latency_names));
+        TURBO_CHECK(NPERCENTILES == TURBO_ARRAY_SIZE(latency_names));
         const std::string desc_str(desc.data(), desc.size());
         std::string_view metric_name(name);
         for (int i = 0; i < NPERCENTILES; ++i) {
-            if (!melon::ends_with(metric_name, latency_names[i])) {
+            if (!turbo::ends_with(metric_name, latency_names[i])) {
                 continue;
             }
             metric_name.remove_suffix(latency_names[i].size());
-            SummaryItems *si = &_m[melon::as_string(metric_name)];
+            SummaryItems *si = &_m[turbo::as_string(metric_name)];
             si->latency_percentiles[i] = desc_str;
             if (i == NPERCENTILES - 1) {
                 // '_max_latency' is the last suffix name that appear in the sorted variable
                 // list, which means all related percentiles have been gathered and we are
                 // ready to output a Summary.
-                si->metric_name = melon::as_string(metric_name);
+                si->metric_name = turbo::as_string(metric_name);
             }
             return si;
         }
         // Get the average of latency in recent window size
-        if (melon::ends_with(metric_name, "_latency")) {
+        if (turbo::ends_with(metric_name, "_latency")) {
             metric_name.remove_suffix(8);
-            SummaryItems *si = &_m[melon::as_string(metric_name)];
+            SummaryItems *si = &_m[turbo::as_string(metric_name)];
             si->latency_avg = strtoll(desc_str.data(), nullptr, 10);
             return si;
         }
-        if (melon::ends_with(metric_name, "_count")) {
+        if (turbo::ends_with(metric_name, "_count")) {
             metric_name.remove_suffix(6);
-            SummaryItems *si = &_m[melon::as_string(metric_name)];
+            SummaryItems *si = &_m[turbo::as_string(metric_name)];
             si->count = strtoll(desc_str.data(), nullptr, 10);
             return si;
         }
@@ -148,7 +148,7 @@ namespace melon::rpc {
     bool PrometheusMetricsDumper::DumpLatencyRecorderSuffix(
             const std::string_view &name,
             const std::string_view &desc) {
-        if (!melon::starts_with(name, _server_prefix)) {
+        if (!turbo::starts_with(name, _server_prefix)) {
             return false;
         }
         const SummaryItems *si = ProcessLatencyRecorderSuffix(name, desc);
@@ -196,8 +196,8 @@ namespace melon::rpc {
         }
     }
 
-    int DumpPrometheusMetricsToCordBuf(melon::cord_buf *output) {
-        melon::cord_buf_builder os;
+    int DumpPrometheusMetricsToCordBuf(turbo::cord_buf *output) {
+        turbo::cord_buf_builder os;
         melon::prometheus_dumper dumper(&os);
         const int ndump = melon::variable_base::dump_metrics(&dumper, nullptr);
         if (ndump < 0) {
@@ -209,8 +209,8 @@ namespace melon::rpc {
 
 
     /*
-     * int DumpPrometheusMetricsToCordBuf(melon::cord_buf *output) {
-        melon::cord_buf_builder os;
+     * int DumpPrometheusMetricsToCordBuf(turbo::cord_buf *output) {
+        turbo::cord_buf_builder os;
         PrometheusMetricsDumper dumper(&os, g_server_info_prefix);
         const int ndump = melon::variable_base::dump_exposed(&dumper, nullptr);
         if (ndump < 0) {

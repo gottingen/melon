@@ -16,8 +16,8 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "melon/log/logging.h"
-#include "melon/io/ssl_compat.h"
+#include "turbo/log/logging.h"
+#include "turbo/io/ssl_compat.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/policy/dh.h"
 
@@ -57,17 +57,17 @@ namespace melon::rpc {
             // copy public key to bytes.
             // sometimes, the key_size is 127, seems ok.
             int key_size = BN_num_bytes(pub_key);
-            MELON_CHECK_GT(key_size, 0);
+            TURBO_CHECK_GT(key_size, 0);
 
             // maybe the key_size is 127, but dh will write all 128bytes pkey,
             // no need to set/initialize the pkey.
             // @see https://github.com/ossrs/srs/issues/165
             key_size = BN_bn2bin(pub_key, (unsigned char *) pkey);
-            MELON_CHECK_GT(key_size, 0);
+            TURBO_CHECK_GT(key_size, 0);
 
             // output the size of public key.
             // @see https://github.com/ossrs/srs/issues/165
-            MELON_CHECK_LE(key_size, *pkey_size);
+            TURBO_CHECK_LE(key_size, *pkey_size);
             *pkey_size = key_size;
             return 0;
         }
@@ -76,13 +76,13 @@ namespace melon::rpc {
                                        void *skey, int *skey_size) const {
             BIGNUM *ppk = BN_bin2bn((const unsigned char *) ppkey, ppkey_size, 0);
             if (ppk == nullptr) {
-                MELON_LOG(ERROR) << "Fail to BN_bin2bn";
+                TURBO_LOG(ERROR) << "Fail to BN_bin2bn";
                 return -1;
             }
             // @see https://github.com/ossrs/srs/issues/165
             int key_size = DH_compute_key((unsigned char *) skey, ppk, _pdh);
             if (key_size < 0 || key_size > *skey_size) {
-                MELON_LOG(ERROR) << "Fail to compute shared key";
+                TURBO_LOG(ERROR) << "Fail to compute shared key";
                 BN_free(ppk);
                 return -1;
             }
@@ -113,7 +113,7 @@ namespace melon::rpc {
 
             // Generate private and public key
             if (!DH_generate_key(_pdh)) {
-                MELON_LOG(ERROR) << "Fail to DH_generate_key";
+                TURBO_LOG(ERROR) << "Fail to DH_generate_key";
                 return -1;
             }
             return 0;

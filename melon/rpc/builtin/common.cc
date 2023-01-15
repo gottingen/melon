@@ -18,16 +18,16 @@
 
 #include <iomanip>
 #include <sys/time.h>
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 #include <fcntl.h>                           // O_RDONLY
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/base/fd_guard.h"                  // fd_guard
-#include "melon/hash/murmurhash3.h"
-#include "melon/system/process.h"              // read_command_line
+#include "turbo/log/logging.h"
+#include "turbo/base/fd_guard.h"                  // fd_guard
+#include "turbo/hash/murmurhash3.h"
+#include "turbo/system/process.h"              // read_command_line
 #include "melon/rpc/server.h"
 #include "melon/rpc/builtin/common.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 
 namespace melon::rpc {
 
@@ -143,7 +143,7 @@ namespace melon::rpc {
         return os;
     }
 
-    const melon::end_point *Path::LOCAL = (melon::end_point *) 0x01;
+    const turbo::end_point *Path::LOCAL = (turbo::end_point *) 0x01;
 
     void AppendFileName(std::string *dir, const std::string &filename) {
         if (dir->empty()) {
@@ -152,20 +152,20 @@ namespace melon::rpc {
         }
         const size_t len = filename.size();
         if (len >= 3) {
-            if (melon::back_char(*dir) != '/') {
+            if (turbo::back_char(*dir) != '/') {
                 dir->push_back('/');
             }
             dir->append(filename);
         } else if (len == 1) {
             if (filename[0] != '.') {
-                if (melon::back_char(*dir) != '/') {
+                if (turbo::back_char(*dir) != '/') {
                     dir->push_back('/');
                 }
                 dir->append(filename);
             }
         } else if (len == 2) {
             if (filename[0] != '.' || filename[1] != '.') {
-                if (melon::back_char(*dir) != '/') {
+                if (turbo::back_char(*dir) != '/') {
                     dir->push_back('/');
                 }
                 dir->append(filename);
@@ -321,19 +321,19 @@ namespace melon::rpc {
     }
 
     int FileChecksum(const char *file_path, unsigned char *checksum) {
-        melon::base::fd_guard fd(open(file_path, O_RDONLY));
+        turbo::base::fd_guard fd(open(file_path, O_RDONLY));
         if (fd < 0) {
-            MELON_PLOG(ERROR) << "Fail to open `" << file_path << "'";
+            TURBO_PLOG(ERROR) << "Fail to open `" << file_path << "'";
             return -1;
         }
         char block[16 * 1024];   // 16k each time
         ssize_t size = 0L;
-        melon::hash::MurmurHash3_x64_128_Context mm_ctx;
-        melon::hash::MurmurHash3_x64_128_Init(&mm_ctx, 0);
+        turbo::hash::MurmurHash3_x64_128_Context mm_ctx;
+        turbo::hash::MurmurHash3_x64_128_Init(&mm_ctx, 0);
         while ((size = read(fd, block, sizeof(block))) > 0) {
-            melon::hash::MurmurHash3_x64_128_Update(&mm_ctx, block, size);
+            turbo::hash::MurmurHash3_x64_128_Update(&mm_ctx, block, size);
         }
-        melon::hash::MurmurHash3_x64_128_Final(checksum, &mm_ctx);
+        turbo::hash::MurmurHash3_x64_128_Final(checksum, &mm_ctx);
         return 0;
     }
 
@@ -342,7 +342,7 @@ namespace melon::rpc {
     static char s_cmdline[256];
 
     static void CreateProgramName() {
-        const ssize_t nr = melon::read_command_line(s_cmdline, sizeof(s_cmdline) - 1, false);
+        const ssize_t nr = turbo::read_command_line(s_cmdline, sizeof(s_cmdline) - 1, false);
         if (nr > 0) {
             s_cmdline[nr] = '\0';
             s_program_name = s_cmdline;

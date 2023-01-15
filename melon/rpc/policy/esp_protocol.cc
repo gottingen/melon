@@ -19,8 +19,8 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 
-#include "melon/times/time.h"
-#include "melon/io/cord_buf.h"                         // melon::cord_buf
+#include "turbo/times/time.h"
+#include "turbo/io/cord_buf.h"                         // turbo::cord_buf
 
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
@@ -38,7 +38,7 @@ namespace melon::rpc {
     namespace policy {
 
         ParseResult ParseEspMessage(
-                melon::cord_buf *source,
+                turbo::cord_buf *source,
                 Socket *,
                 bool /*read_eof*/,
                 const void * /*arg*/) {
@@ -63,7 +63,7 @@ namespace melon::rpc {
         }
 
         void SerializeEspRequest(
-                melon::cord_buf *request_buf,
+                turbo::cord_buf *request_buf,
                 Controller *cntl,
                 const google::protobuf::Message *req_base) {
 
@@ -86,12 +86,12 @@ namespace melon::rpc {
             request_buf->append(req->body);
         }
 
-        void PackEspRequest(melon::cord_buf *packet_buf,
+        void PackEspRequest(turbo::cord_buf *packet_buf,
                             SocketMessage **,
                             uint64_t correlation_id,
                             const google::protobuf::MethodDescriptor *,
                             Controller *cntl,
-                            const melon::cord_buf &request,
+                            const turbo::cord_buf &request,
                             const Authenticator *auth) {
 
             ControllerPrivateAccessor accessor(cntl);
@@ -117,7 +117,7 @@ namespace melon::rpc {
         }
 
         void ProcessEspResponse(InputMessageBase *msg_base) {
-            const int64_t start_parse_us = melon::get_current_time_micros();
+            const int64_t start_parse_us = turbo::get_current_time_micros();
             DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage *>(msg_base));
 
             // Fetch correlation id that we saved before in `PackEspRequest'
@@ -125,8 +125,8 @@ namespace melon::rpc {
             Controller *cntl = nullptr;
             const int rc = fiber_token_lock(cid, (void **) &cntl);
             if (rc != 0) {
-                MELON_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
-                                << "Fail to lock correlation_id=" << cid << ", " << melon_error(rc);
+                TURBO_LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+                                << "Fail to lock correlation_id=" << cid << ", " << turbo_error(rc);
                 return;
             }
 
@@ -147,7 +147,7 @@ namespace melon::rpc {
                 msg->payload.swap(response->body);
                 if (response->head.msg != 0) {
                     cntl->SetFailed(ENOENT, "esp response head msg != 0");
-                    MELON_LOG(WARNING) << "Server " << msg->socket()->remote_side()
+                    TURBO_LOG(WARNING) << "Server " << msg->socket()->remote_side()
                                        << " doesn't contain the right data";
                 }
             } // else just ignore the response.

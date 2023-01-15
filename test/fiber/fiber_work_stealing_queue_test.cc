@@ -18,8 +18,8 @@
 #include "testing/gtest_wrap.h"
 
 #include <algorithm>                        // std::sort
-#include "melon/times/time.h"
-#include "melon/base/scoped_lock.h"
+#include "turbo/times/time.h"
+#include "turbo/base/scoped_lock.h"
 #include "melon/fiber/internal/work_stealing_queue.h"
 
 namespace {
@@ -88,7 +88,7 @@ namespace {
         ASSERT_EQ(0, q.init(CAP));
         pthread_t rth[8];
         pthread_t wth, pop_th;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(rth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(rth); ++i) {
             ASSERT_EQ(0, pthread_create(&rth[i], nullptr, steal_thread, &q));
         }
         ASSERT_EQ(0, pthread_create(&wth, nullptr, push_thread, &q));
@@ -97,7 +97,7 @@ namespace {
         std::vector<value_type> values;
         values.reserve(N);
         size_t nstolen = 0, npopped = 0;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(rth); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(rth); ++i) {
             std::vector<value_type> *res = nullptr;
             pthread_join(rth[i], (void **) &res);
             for (size_t j = 0; j < res->size(); ++j, ++nstolen) {

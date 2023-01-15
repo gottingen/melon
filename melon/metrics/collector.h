@@ -2,10 +2,10 @@
 #ifndef MELON_VARIABLE_COLLECTOR_H_
 #define MELON_VARIABLE_COLLECTOR_H_
 
-#include "melon/container/linked_list.h"
-#include "melon/base/fast_rand.h"
-#include "melon/times/time.h"
-#include "melon/base/static_atomic.h"
+#include "turbo/container/linked_list.h"
+#include "turbo/base/fast_rand.h"
+#include "turbo/times/time.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/metrics/gauge.h"
 
 namespace melon {
@@ -15,14 +15,14 @@ namespace melon {
         // [Managed by Collector, don't change!]
         size_t sampling_range;
         bool ever_grabbed;
-        melon::static_atomic<int> count_before_grabbed;
+        turbo::static_atomic<int> count_before_grabbed;
         int64_t first_sample_real_us;
     };
 
     static const size_t COLLECTOR_SAMPLING_BASE = 16384;
 
 #define VARIABLE_COLLECTOR_SPEED_LIMIT_INITIALIZER                          \
-    { ::melon::COLLECTOR_SAMPLING_BASE, false, MELON_STATIC_ATOMIC_INIT(0), 0 }
+    { ::melon::COLLECTOR_SAMPLING_BASE, false, TURBO_STATIC_ATOMIC_INIT(0), 0 }
 
     class Collected;
 
@@ -36,7 +36,7 @@ namespace melon {
     //  1. Implement Collected
     //  2. Create an instance and fill in data.
     //  3. submit() the instance.
-    class Collected : public melon::container::link_node<Collected> {
+    class Collected : public turbo::container::link_node<Collected> {
     public:
         virtual ~Collected() {}
 
@@ -46,20 +46,20 @@ namespace melon {
         // interleaving status of threads even in highly contended situations.
         // You should also create the sample using a malloc() impl. that are
         // unlikely to contend, keeping interruptions minimal.
-        // `cpuwide_us' should be got from melon::get_current_time_micros(). If it's far
+        // `cpuwide_us' should be got from turbo::get_current_time_micros(). If it's far
         // from the timestamp updated by collecting thread(which basically means
         // the thread is not scheduled by OS in time), this sample is directly
         // destroy()-ed to avoid memory explosion.
         void submit(int64_t cpuwide_us);
 
-        void submit() { submit(melon::get_current_time_micros()); }
+        void submit() { submit(turbo::get_current_time_micros()); }
 
         // Implement this method to dump the sample into files and destroy it.
         // This method is called in a separate thread and can be blocked
         // indefinitely long(not recommended). If too many samples wait for
         // this funcion due to previous sample's blocking, they'll be destroy()-ed.
         // If you need to run destruction code upon thread's exit, use
-        // melon::thread::atexit. Dumping thread run this function in batch, each
+        // turbo::thread::atexit. Dumping thread run this function in batch, each
         // batch is counted as one "round", `round_index' is the round that
         // dumping thread is currently at, counting from 1.
         virtual void dump_and_destroy(size_t round_index) = 0;
@@ -96,7 +96,7 @@ namespace melon {
         if (speed_limit->ever_grabbed) { // most common case
             const size_t sampling_range = speed_limit->sampling_range;
             // fast_rand is faster than fast_rand_in
-            if ((melon::base::fast_rand() & (COLLECTOR_SAMPLING_BASE - 1)) >= sampling_range) {
+            if ((turbo::base::fast_rand() & (COLLECTOR_SAMPLING_BASE - 1)) >= sampling_range) {
                 return 0;
             }
             return sampling_range;

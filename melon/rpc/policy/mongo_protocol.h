@@ -26,7 +26,7 @@ namespace melon::rpc {
     namespace policy {
 
         // Parse binary format of mongo
-        ParseResult ParseMongoMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+        ParseResult ParseMongoMessage(turbo::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
 
         // Actions to a (client) request in mongo format
         void ProcessMongoRequest(InputMessageBase *msg);

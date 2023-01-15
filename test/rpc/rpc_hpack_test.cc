@@ -21,7 +21,7 @@
 
 #include "testing/gtest_wrap.h"
 #include "melon/rpc/details/hpack.h"
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 
 class HPackTest : public testing::Test {
 };
@@ -37,10 +37,10 @@ TEST_F(HPackTest, header_with_indexing) {
     h.value = "custom-header";
     melon::rpc::HPackOptions options;
     options.index_policy = melon::rpc::HPACK_INDEX_HEADER;
-    melon::cord_buf_appender buf;
+    turbo::cord_buf_appender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     uint8_t expected[] = {
         0x40, 0x0a, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d, 0x6b, 0x65, 0x79,
         0x0d, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d, 0x68, 0x65, 0x61, 0x64,
@@ -67,10 +67,10 @@ TEST_F(HPackTest, header_without_indexing) {
     h.value = "/sample/path";
     melon::rpc::HPackOptions options;
     options.index_policy = melon::rpc::HPACK_NOT_INDEX_HEADER;
-    melon::cord_buf_appender buf;
+    turbo::cord_buf_appender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     uint8_t expected[] = {
         0x04, 0x0c, 0x2f, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x70, 0x61,
         0x74, 0x68, 
@@ -97,10 +97,10 @@ TEST_F(HPackTest, header_never_indexed) {
     h.value = "secret";
     melon::rpc::HPackOptions options;
     options.index_policy = melon::rpc::HPACK_NEVER_INDEX_HEADER;
-    melon::cord_buf_appender buf;
+    turbo::cord_buf_appender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     uint8_t expected[] = {
         0x10, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64,
         0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 
@@ -125,10 +125,10 @@ TEST_F(HPackTest, indexed_header) {
     h.value = "GET";
     melon::rpc::HPackOptions options;
     options.index_policy = melon::rpc::HPACK_INDEX_HEADER;
-    melon::cord_buf_appender buf;
+    turbo::cord_buf_appender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     uint8_t expected[] = {
         0x82,
     };
@@ -159,8 +159,8 @@ TEST_F(HPackTest, requests_without_huffman) {
         {":path", "/"},
         {":authority", "www.example.com"},
     };
-    melon::cord_buf_appender buf;
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    turbo::cord_buf_appender buf;
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
@@ -173,7 +173,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2e, 0x63, 0x6f, 0x6d, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
@@ -189,7 +189,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         {"cache-control", "no-cache"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
@@ -202,7 +202,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         0x63, 0x61, 0x63, 0x68, 0x65, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
@@ -217,7 +217,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         {"custom-key", "custom-value"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
@@ -231,7 +231,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         0x76, 0x61, 0x6c, 0x75, 0x65, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
@@ -252,8 +252,8 @@ TEST_F(HPackTest, requests_with_huffman) {
         {":path", "/"},
         {":authority", "www.example.com"},
     };
-    melon::cord_buf_appender buf;
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    turbo::cord_buf_appender buf;
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
@@ -267,9 +267,9 @@ TEST_F(HPackTest, requests_with_huffman) {
         0x82, 0x86, 0x84, 0x41, 0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b,
         0xa0, 0xab, 0x90, 0xf4, 0xff
     };
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
@@ -285,7 +285,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         {"cache-control", "no-cache"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
@@ -299,7 +299,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         0x82, 0x86, 0x84, 0xbe, 0x58, 0x86, 0xa8, 0xeb, 0x10, 0x64, 0x9c, 0xbf, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
@@ -314,7 +314,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         {"custom-key", "custom-value"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
@@ -329,7 +329,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         0x7d, 0x7f, 0x89, 0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xb8, 0xe8, 0xb4, 0xbf, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
@@ -351,8 +351,8 @@ TEST_F(HPackTest, responses_without_huffman) {
         {"date", "Mon, 21 Oct 2013 20:13:21 GMT"},
         {"location", "https://www.example.com"},
     };
-    melon::cord_buf_appender buf;
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    turbo::cord_buf_appender buf;
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
@@ -368,9 +368,9 @@ TEST_F(HPackTest, responses_without_huffman) {
         0x74, 0x74, 0x70, 0x73, 0x3a, 0x2f, 0x2f, 0x77, 0x77, 0x77, 0x2e, 0x65,
         0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2e, 0x63, 0x6f, 0x6d, 
     };
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
@@ -385,7 +385,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         {"location", "https://www.example.com"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
@@ -397,7 +397,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         0x48, 0x03, 0x33, 0x30, 0x37, 0xc1, 0xc0, 0xbf, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
@@ -413,7 +413,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         {"set-cookie", "foo=ASDJKHQKBZXOQWEOPIUAXQWEOIU; max-age=3600; version=1"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
@@ -433,7 +433,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         0x3d, 0x31, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
@@ -455,8 +455,8 @@ TEST_F(HPackTest, responses_with_huffman) {
         {"date", "Mon, 21 Oct 2013 20:13:21 GMT"},
         {"location", "https://www.example.com"},
     };
-    melon::cord_buf_appender buf;
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    turbo::cord_buf_appender buf;
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
@@ -473,9 +473,9 @@ TEST_F(HPackTest, responses_with_huffman) {
         0x91, 0x9d, 0x29, 0xad, 0x17, 0x18, 0x63, 0xc7, 0x8f, 0x0b, 0x97, 0xc8, 
         0xe9, 0xae, 0x82, 0xae, 0x43, 0xd3,             
     };
-    MELON_LOG(INFO) << melon::to_printable(buf.buf());
+    TURBO_LOG(INFO) << turbo::to_printable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header1); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header1); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
@@ -490,7 +490,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         {"location", "https://www.example.com"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
@@ -504,7 +504,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         0x48, 0x83, 0x64, 0x0e, 0xff, 0xc1, 0xc0, 0xbf, 
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header2); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header2); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
@@ -520,7 +520,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         {"set-cookie", "foo=ASDJKHQKBZXOQWEOPIUAXQWEOIU; max-age=3600; version=1"},
     };
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
@@ -540,7 +540,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         0x4e, 0xe5, 0xb1, 0x06, 0x3d, 0x50, 0x07,
     };
     ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(header3); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(header3); ++i) {
         melon::rpc::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);

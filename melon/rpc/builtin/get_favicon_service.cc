@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/base/profile.h"                           // MELON_ARRAY_SIZE
-#include "melon/io/cord_buf.h"                            // melon::cord_buf
+#include "turbo/base/profile.h"                           // TURBO_ARRAY_SIZE
+#include "turbo/io/cord_buf.h"                            // turbo::cord_buf
 #include "melon/rpc/controller.h"                   // Controller
 #include "melon/rpc/builtin/get_favicon_service.h"
 
@@ -51,15 +51,15 @@ namespace melon::rpc {
     };
 
     static pthread_once_t s_favicon_buf_once = PTHREAD_ONCE_INIT;
-    static melon::cord_buf *s_favicon_buf = nullptr;
+    static turbo::cord_buf *s_favicon_buf = nullptr;
 
     static void InitFavIcon() {
-        s_favicon_buf = new melon::cord_buf;
+        s_favicon_buf = new turbo::cord_buf;
         s_favicon_buf->append((const void *) s_favicon_array,
-                              MELON_ARRAY_SIZE(s_favicon_array));
+                              TURBO_ARRAY_SIZE(s_favicon_array));
     }
 
-    static const melon::cord_buf &GetFavIcon() {
+    static const turbo::cord_buf &GetFavIcon() {
         pthread_once(&s_favicon_buf_once, InitFavIcon);
         return *s_favicon_buf;
     }

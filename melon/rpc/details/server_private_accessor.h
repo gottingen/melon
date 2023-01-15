@@ -32,7 +32,7 @@ namespace melon::rpc {
     class ServerPrivateAccessor {
     public:
         explicit ServerPrivateAccessor(const Server *svr) {
-            MELON_CHECK(svr);
+            TURBO_CHECK(svr);
             _server = svr;
         }
 
@@ -125,7 +125,7 @@ namespace melon::rpc {
         }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(ScopedNonServiceError);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(ScopedNonServiceError);
 
         const Server *_server;
     };

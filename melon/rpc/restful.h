@@ -100,7 +100,7 @@ namespace melon::rpc {
         size_t size() const { return _dedup_map.size(); }
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(RestfulMap);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(RestfulMap);
 
         std::string _service_name;
         // refreshed each time

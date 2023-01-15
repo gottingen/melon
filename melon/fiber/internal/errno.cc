@@ -20,23 +20,23 @@
 // Date: Wed Jul 30 11:47:19 CST 2014
 
 #include "melon/fiber/internal/errno.h"
-#include "melon/base/profile.h"
+#include "turbo/base/profile.h"
 
 // Define errno in fiber/internal/errno.h
 extern const int ESTOP = -20;
 
-MELON_REGISTER_ERRNO(ESTOP, "The structure is stopping")
+TURBO_REGISTER_ERRNO(ESTOP, "The structure is stopping")
 
 extern "C" {
 
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
 
 extern int *__errno_location() __attribute__((__const__));
 
 int *fiber_errno_location() {
     return __errno_location();
 }
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
 
 extern int * __error(void);
 

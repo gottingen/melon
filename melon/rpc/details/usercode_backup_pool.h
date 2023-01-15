@@ -19,7 +19,7 @@
 #ifndef  MELON_RPC_USERCODE_BACKUP_POOL_H_
 #define  MELON_RPC_USERCODE_BACKUP_POOL_H_
 
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/fiber/internal/fiber.h"
 #include <gflags/gflags_declare.h>
 
@@ -54,13 +54,13 @@ namespace melon::rpc {
     // in backup threads.
     // Check RunUserCode() below to see the usage pattern.
     inline bool BeginRunningUserCode() {
-        extern melon::static_atomic<int> g_usercode_inplace;
+        extern turbo::static_atomic<int> g_usercode_inplace;
         return (g_usercode_inplace.fetch_add(1, std::memory_order_relaxed)
                 + FLAGS_usercode_backup_threads) < fiber_getconcurrency();
     }
 
     inline void EndRunningUserCodeInPlace() {
-        extern melon::static_atomic<int> g_usercode_inplace;
+        extern turbo::static_atomic<int> g_usercode_inplace;
         g_usercode_inplace.fetch_sub(1, std::memory_order_relaxed);
     }
 

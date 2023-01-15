@@ -22,10 +22,10 @@
 #include <gflags/gflags.h>
 #include "testing/gtest_wrap.h"
 #include "melon/fiber/internal/fiber.h"
-#include "melon/base/static_atomic.h"
+#include "turbo/base/static_atomic.h"
 #include "melon/rpc/policy/http_rpc_protocol.h"
 #include "melon/rpc/policy/http2_rpc_protocol.h"
-#include "melon/base/gperftools_profiler.h"
+#include "turbo/base/gperftools_profiler.h"
 
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
 TEST(H2UnsentMessage, request_throughput) {
     melon::rpc::Controller cntl;
-    melon::cord_buf request_buf;
+    turbo::cord_buf request_buf;
     cntl.http_request().uri() = "0.0.0.0:8010/HttpService/Echo";
     melon::rpc::policy::SerializeHttpRequest(&request_buf, &cntl, nullptr);
 
@@ -47,7 +47,7 @@ TEST(H2UnsentMessage, request_throughput) {
 
     melon::rpc::policy::H2Context* ctx =
         new melon::rpc::policy::H2Context(h2_client_sock.get(), nullptr);
-    MELON_CHECK_EQ(ctx->Init(), 0);
+    TURBO_CHECK_EQ(ctx->Init(), 0);
     h2_client_sock->initialize_parsing_context(&ctx);
     ctx->_last_sent_stream_id = 0;
     ctx->_remote_window_left = melon::rpc::H2Settings::MAX_WINDOW_SIZE;
@@ -55,23 +55,23 @@ TEST(H2UnsentMessage, request_throughput) {
     int64_t ntotal = 500000;
 
     // calc H2UnsentRequest throughput
-    melon::cord_buf dummy_buf;
+    turbo::cord_buf dummy_buf;
     ProfilerStart("h2_unsent_req.prof");
-    int64_t start_us = melon::get_current_time_micros();
+    int64_t start_us = turbo::get_current_time_micros();
     for (int i = 0; i < ntotal; ++i) {
         melon::rpc::policy::H2UnsentRequest* req = melon::rpc::policy::H2UnsentRequest::New(&cntl);
         req->AppendAndDestroySelf(&dummy_buf, h2_client_sock.get());
     }
-    int64_t end_us = melon::get_current_time_micros();
+    int64_t end_us = turbo::get_current_time_micros();
     ProfilerStop();
     int64_t elapsed = end_us - start_us;
-    MELON_LOG(INFO) << "H2UnsentRequest average qps="
+    TURBO_LOG(INFO) << "H2UnsentRequest average qps="
         << (ntotal * 1000000L) / elapsed << "/s, data throughput="
         << dummy_buf.size() * 1000000L / elapsed << "/s";
 
     // calc H2UnsentResponse throughput
     dummy_buf.clear();
-    start_us = melon::get_current_time_micros();
+    start_us = turbo::get_current_time_micros();
     for (int i = 0; i < ntotal; ++i) {
         // H2UnsentResponse::New would release cntl.http_response() and swap
         // cntl.response_attachment()
@@ -80,9 +80,9 @@ TEST(H2UnsentMessage, request_throughput) {
         melon::rpc::policy::H2UnsentResponse* res = melon::rpc::policy::H2UnsentResponse::New(&cntl, 0, false);
         res->AppendAndDestroySelf(&dummy_buf, h2_client_sock.get());
     }
-    end_us = melon::get_current_time_micros();
+    end_us = turbo::get_current_time_micros();
     elapsed = end_us - start_us;
-    MELON_LOG(INFO) << "H2UnsentResponse average qps="
+    TURBO_LOG(INFO) << "H2UnsentResponse average qps="
         << (ntotal * 1000000L) / elapsed << "/s, data throughput="
         << dummy_buf.size() * 1000000L / elapsed << "/s";
 }

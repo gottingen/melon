@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse asynchronously.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -105,10 +105,10 @@ static void* process_thread(void* args) {
 class EchoServiceWithThreadAndSessionLocal : public example::EchoService {
 public:
     EchoServiceWithThreadAndSessionLocal() {
-        MELON_CHECK_EQ(0, fiber_key_create(&_tls2_key, MyThreadLocalData::deleter));
+        TURBO_CHECK_EQ(0, fiber_key_create(&_tls2_key, MyThreadLocalData::deleter));
     }
     ~EchoServiceWithThreadAndSessionLocal() {
-        MELON_CHECK_EQ(0, fiber_key_delete(_tls2_key));
+        TURBO_CHECK_EQ(0, fiber_key_delete(_tls2_key));
     };
     void Echo(google::protobuf::RpcController* cntl_base,
               const example::EchoRequest* request,
@@ -125,7 +125,7 @@ public:
         if (sd == nullptr) {
             cntl->SetFailed("Require ServerOptions.session_local_data_factory to be"
                             " set with a correctly implemented instance");
-            MELON_LOG(ERROR) << cntl->ErrorText();
+            TURBO_LOG(ERROR) << cntl->ErrorText();
             return;
         }
         const int expected_value = sd->x + (((uintptr_t)cntl) & 0xFFFFFFFF);
@@ -140,7 +140,7 @@ public:
         if (tls == nullptr) {
             cntl->SetFailed("Require ServerOptions.thread_local_data_factory "
                             "to be set with a correctly implemented instance");
-            MELON_LOG(ERROR) << cntl->ErrorText();
+            TURBO_LOG(ERROR) << cntl->ErrorText();
             return;
         }
         tls->y = expected_value;
@@ -155,7 +155,7 @@ public:
             static_cast<MyThreadLocalData*>(fiber_getspecific(_tls2_key));
         if (tls2 == nullptr) {
             tls2 = new MyThreadLocalData;
-            MELON_CHECK_EQ(0, fiber_setspecific(_tls2_key, tls2));
+            TURBO_CHECK_EQ(0, fiber_setspecific(_tls2_key, tls2));
         }
         tls2->y = expected_value + 1;
         
@@ -163,11 +163,11 @@ public:
         melon::fiber_sleep_for(10000);
 
         // tls is unchanged after context switching.
-        MELON_CHECK_EQ(tls, melon::rpc::thread_local_data());
-        MELON_CHECK_EQ(expected_value, tls->y);
+        TURBO_CHECK_EQ(tls, melon::rpc::thread_local_data());
+        TURBO_CHECK_EQ(expected_value, tls->y);
 
-        MELON_CHECK_EQ(tls2, fiber_getspecific(_tls2_key));
-        MELON_CHECK_EQ(expected_value + 1, tls2->y);
+        TURBO_CHECK_EQ(tls2, fiber_getspecific(_tls2_key));
+        TURBO_CHECK_EQ(expected_value + 1, tls2->y);
 
         // Process the request asynchronously.
         AsyncJob* job = new AsyncJob;
@@ -178,12 +178,12 @@ public:
         job->response = response;
         job->done = done;
         fiber_id_t th;
-        MELON_CHECK_EQ(0, fiber_start_background(&th, nullptr, process_thread, job));
+        TURBO_CHECK_EQ(0, fiber_start_background(&th, nullptr, process_thread, job));
 
         // We don't want to call done->Run() here, release the guard.
         done_guard.release();
         
-        MELON_LOG_EVERY_SECOND(INFO) << "ntls=" << ntls.load(std::memory_order_relaxed)
+        TURBO_LOG_EVERY_SECOND(INFO) << "ntls=" << ntls.load(std::memory_order_relaxed)
                                << " nsd=" << nsd.load(std::memory_order_relaxed);
     }
 
@@ -201,8 +201,8 @@ void AsyncJob::run() {
     // This is the major difference between session-local data and thread-local
     // data which was already destroyed upon Echo() exit.
     MySessionLocalData* sd = static_cast<MySessionLocalData*>(cntl->session_local_data());
-    MELON_CHECK_EQ(expected_session_local_data, sd);
-    MELON_CHECK_EQ(expected_session_value, sd->x);
+    TURBO_CHECK_EQ(expected_session_local_data, sd);
+    TURBO_CHECK_EQ(expected_session_value, sd->x);
 
     // Echo request and its attachment
     response->set_message(request->message());
@@ -237,19 +237,19 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server. 
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 
     // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
     server.RunUntilAskedToQuit();
-    MELON_CHECK_EQ(ntls, 0);
-    MELON_CHECK_EQ(nsd, 0);
+    TURBO_CHECK_EQ(ntls, 0);
+    TURBO_CHECK_EQ(nsd, 0);
     return 0;
 }

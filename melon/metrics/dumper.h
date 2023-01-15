@@ -9,7 +9,7 @@
 #define MELON_METRICS_DUMPER_H_
 
 #include <string>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 namespace melon {
 
@@ -36,7 +36,7 @@ namespace melon {
     public:
         virtual ~metrics_dumper() {}
 
-        virtual bool dump(const cache_metrics &metric, const melon::time_point *tp) = 0;
+        virtual bool dump(const cache_metrics &metric, const turbo::time_point *tp) = 0;
     };
 
     // Options for variable_base::dump_exposed().
@@ -50,7 +50,7 @@ namespace melon {
         // Name matched by these wildcards (or exact names) are skipped.
         std::string black_wildcards;
 
-        melon::time_point *dump_time{nullptr};
+        turbo::time_point *dump_time{nullptr};
     };
 
     // Options for variable_base::dump_exposed().

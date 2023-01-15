@@ -17,7 +17,7 @@
 
 
 #include <google/protobuf/io/gzip_stream.h>    // GzipXXXStream
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/policy/gzip_compress.h"
 #include "melon/rpc/protocol.h"
 
@@ -27,22 +27,22 @@ namespace melon::rpc {
 
         static void LogError(const google::protobuf::io::GzipOutputStream &gzip) {
             if (gzip.ZlibErrorMessage()) {
-                MELON_LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
+                TURBO_LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
             } else {
-                MELON_LOG(WARNING) << "Fail to decompress.";
+                TURBO_LOG(WARNING) << "Fail to decompress.";
             }
         }
 
         static void LogError(const google::protobuf::io::GzipInputStream &gzip) {
             if (gzip.ZlibErrorMessage()) {
-                MELON_LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
+                TURBO_LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
             } else {
-                MELON_LOG(WARNING) << "Fail to decompress.";
+                TURBO_LOG(WARNING) << "Fail to decompress.";
             }
         }
 
-        bool GzipCompress(const google::protobuf::Message &msg, melon::cord_buf *buf) {
-            melon::cord_buf_as_zero_copy_output_stream wrapper(buf);
+        bool GzipCompress(const google::protobuf::Message &msg, turbo::cord_buf *buf) {
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(buf);
             google::protobuf::io::GzipOutputStream::Options gzip_opt;
             gzip_opt.format = google::protobuf::io::GzipOutputStream::GZIP;
             google::protobuf::io::GzipOutputStream gzip(&wrapper, gzip_opt);
@@ -53,8 +53,8 @@ namespace melon::rpc {
             return gzip.Close();
         }
 
-        bool GzipDecompress(const melon::cord_buf &data, google::protobuf::Message *msg) {
-            melon::cord_buf_as_zero_copy_input_stream wrapper(data);
+        bool GzipDecompress(const turbo::cord_buf &data, google::protobuf::Message *msg) {
+            turbo::cord_buf_as_zero_copy_input_stream wrapper(data);
             google::protobuf::io::GzipInputStream gzip(
                     &wrapper, google::protobuf::io::GzipInputStream::GZIP);
             if (!ParsePbFromZeroCopyStream(msg, &gzip)) {
@@ -64,15 +64,15 @@ namespace melon::rpc {
             return true;
         }
 
-        bool GzipCompress(const melon::cord_buf &msg, melon::cord_buf *buf,
+        bool GzipCompress(const turbo::cord_buf &msg, turbo::cord_buf *buf,
                           const GzipCompressOptions *options_in) {
-            melon::cord_buf_as_zero_copy_output_stream wrapper(buf);
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(buf);
             google::protobuf::io::GzipOutputStream::Options gzip_opt;
             if (options_in) {
                 gzip_opt = *options_in;
             }
             google::protobuf::io::GzipOutputStream out(&wrapper, gzip_opt);
-            melon::cord_buf_as_zero_copy_input_stream in(msg);
+            turbo::cord_buf_as_zero_copy_input_stream in(msg);
             const void *data_in = nullptr;
             int size_in = 0;
             void *data_out = nullptr;
@@ -103,11 +103,11 @@ namespace melon::rpc {
         }
 
         inline bool GzipDecompressBase(
-                const melon::cord_buf &data, melon::cord_buf *msg,
+                const turbo::cord_buf &data, turbo::cord_buf *msg,
                 google::protobuf::io::GzipInputStream::Format format) {
-            melon::cord_buf_as_zero_copy_input_stream wrapper(data);
+            turbo::cord_buf_as_zero_copy_input_stream wrapper(data);
             google::protobuf::io::GzipInputStream in(&wrapper, format);
-            melon::cord_buf_as_zero_copy_output_stream out(msg);
+            turbo::cord_buf_as_zero_copy_output_stream out(msg);
             const void *data_in = nullptr;
             int size_in = 0;
             void *data_out = nullptr;
@@ -141,27 +141,27 @@ namespace melon::rpc {
             return true;
         }
 
-        bool ZlibCompress(const google::protobuf::Message &res, melon::cord_buf *buf) {
-            melon::cord_buf_as_zero_copy_output_stream wrapper(buf);
+        bool ZlibCompress(const google::protobuf::Message &res, turbo::cord_buf *buf) {
+            turbo::cord_buf_as_zero_copy_output_stream wrapper(buf);
             google::protobuf::io::GzipOutputStream::Options zlib_opt;
             zlib_opt.format = google::protobuf::io::GzipOutputStream::ZLIB;
             google::protobuf::io::GzipOutputStream zlib(&wrapper, zlib_opt);
             return res.SerializeToZeroCopyStream(&zlib) && zlib.Close();
         }
 
-        bool ZlibDecompress(const melon::cord_buf &data, google::protobuf::Message *req) {
-            melon::cord_buf_as_zero_copy_input_stream wrapper(data);
+        bool ZlibDecompress(const turbo::cord_buf &data, google::protobuf::Message *req) {
+            turbo::cord_buf_as_zero_copy_input_stream wrapper(data);
             google::protobuf::io::GzipInputStream zlib(
                     &wrapper, google::protobuf::io::GzipInputStream::ZLIB);
             return ParsePbFromZeroCopyStream(req, &zlib);
         }
 
-        bool GzipDecompress(const melon::cord_buf &data, melon::cord_buf *msg) {
+        bool GzipDecompress(const turbo::cord_buf &data, turbo::cord_buf *msg) {
             return GzipDecompressBase(
                     data, msg, google::protobuf::io::GzipInputStream::GZIP);
         }
 
-        bool ZlibDecompress(const melon::cord_buf &data, melon::cord_buf *msg) {
+        bool ZlibDecompress(const turbo::cord_buf &data, turbo::cord_buf *msg) {
             return GzipDecompressBase(
                     data, msg, google::protobuf::io::GzipInputStream::ZLIB);
         }

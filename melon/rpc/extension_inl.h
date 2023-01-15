@@ -26,7 +26,7 @@ namespace melon::rpc {
     Extension <T> *Extension<T>::instance() {
         // NOTE: We don't delete extensions because in principle they can be
         // accessed during exiting, e.g. create a channel to send rpc at exit.
-        return melon::get_leaky_singleton<Extension<T> >();
+        return turbo::get_leaky_singleton<Extension<T> >();
     }
 
     template<typename T>
@@ -41,12 +41,12 @@ namespace melon::rpc {
     template<typename T>
     int Extension<T>::Register(const std::string &name, T *instance) {
         if (nullptr == instance) {
-            MELON_LOG(ERROR) << "instance to \"" << name << "\" is nullptr";
+            TURBO_LOG(ERROR) << "instance to \"" << name << "\" is nullptr";
             return -1;
         }
-        MELON_SCOPED_LOCK(_map_mutex);
+        TURBO_SCOPED_LOCK(_map_mutex);
         if (_instance_map.seek(name) != nullptr) {
-            MELON_LOG(ERROR) << "\"" << name << "\" was registered";
+            TURBO_LOG(ERROR) << "\"" << name << "\" was registered";
             return -1;
         }
         _instance_map[name] = instance;
@@ -66,7 +66,7 @@ namespace melon::rpc {
         if (nullptr == name) {
             return nullptr;
         }
-        MELON_SCOPED_LOCK(_map_mutex);
+        TURBO_SCOPED_LOCK(_map_mutex);
         T **p = _instance_map.seek(name);
         if (p) {
             return *p;
@@ -76,8 +76,8 @@ namespace melon::rpc {
 
     template<typename T>
     void Extension<T>::List(std::ostream &os, char separator) {
-        MELON_SCOPED_LOCK(_map_mutex);
-        for (typename melon::container::CaseIgnoredFlatMap<T *>::iterator
+        TURBO_SCOPED_LOCK(_map_mutex);
+        for (typename turbo::container::CaseIgnoredFlatMap<T *>::iterator
                      it = _instance_map.begin(); it != _instance_map.end(); ++it) {
             // private extensions which is not intended to be seen by users starts
             // with underscore.

@@ -17,8 +17,8 @@
 
 
 #include <limits>
-#include "melon/log/logging.h"
-#include "melon/strings/str_format.h"
+#include "turbo/log/logging.h"
+#include "turbo/strings/str_format.h"
 #include "melon/rpc/redis_reply.h"
 
 namespace melon::rpc {
@@ -45,7 +45,7 @@ namespace melon::rpc {
         }
     }
 
-    bool RedisReply::SerializeTo(melon::cord_buf_appender *appender) {
+    bool RedisReply::SerializeTo(turbo::cord_buf_appender *appender) {
         switch (_type) {
             case REDIS_REPLY_ERROR:
                 // fall through
@@ -89,14 +89,14 @@ namespace melon::rpc {
                 }
                 return true;
             case REDIS_REPLY_NIL:
-                MELON_LOG(ERROR) << "Do you forget to call SetXXX()?";
+                TURBO_LOG(ERROR) << "Do you forget to call SetXXX()?";
                 return false;
         }
-        MELON_CHECK(false) << "unknown redis type=" << _type;
+        TURBO_CHECK(false) << "unknown redis type=" << _type;
         return false;
     }
 
-    ParseError RedisReply::ConsumePartialCordBuf(melon::cord_buf &buf) {
+    ParseError RedisReply::ConsumePartialCordBuf(turbo::cord_buf &buf) {
         if (_type == REDIS_REPLY_ARRAY && _data.array.last_index >= 0) {
             // The parsing was suspended while parsing sub replies,
             // continue the parsing.
@@ -122,11 +122,11 @@ namespace melon::rpc {
         switch (fc) {
             case '-':   // Error          "-<message>\r\n"
             case '+': { // Simple String  "+<string>\r\n"
-                melon::cord_buf str;
+                turbo::cord_buf str;
                 if (buf.cut_until(&str, "\r\n") != 0) {
                     const size_t len = buf.size();
                     if (len > std::numeric_limits<uint32_t>::max()) {
-                        MELON_LOG(ERROR) << "simple string is too long! max length=2^32-1,"
+                        TURBO_LOG(ERROR) << "simple string is too long! max length=2^32-1,"
                                             " actually=" << len;
                         return PARSE_ERROR_ABSOLUTELY_WRONG;
                     }
@@ -142,10 +142,10 @@ namespace melon::rpc {
                 }
                 char *d = (char *) _arena->allocate((len / 8 + 1) * 8);
                 if (d == nullptr) {
-                    MELON_LOG(FATAL) << "Fail to allocate string[" << len << "]";
+                    TURBO_LOG(FATAL) << "Fail to allocate string[" << len << "]";
                     return PARSE_ERROR_ABSOLUTELY_WRONG;
                 }
-                MELON_CHECK_EQ(len, str.copy_to_cstr(d, (size_t) -1L, 1/*skip fc*/));
+                TURBO_CHECK_EQ(len, str.copy_to_cstr(d, (size_t) -1L, 1/*skip fc*/));
                 _type = (fc == '-' ? REDIS_REPLY_ERROR : REDIS_REPLY_STATUS);
                 _length = len;
                 _data.long_str = d;
@@ -164,7 +164,7 @@ namespace melon::rpc {
                 char *endptr = nullptr;
                 int64_t value = strtoll(intbuf + 1/*skip fc*/, &endptr, 10);
                 if (endptr != intbuf + crlf_pos) {
-                    MELON_LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
+                    TURBO_LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
                     return PARSE_ERROR_ABSOLUTELY_WRONG;
                 }
                 if (fc == ':') {
@@ -183,7 +183,7 @@ namespace melon::rpc {
                         return PARSE_OK;
                     }
                     if (len > (int64_t) std::numeric_limits<uint32_t>::max()) {
-                        MELON_LOG(ERROR) << "bulk string is too long! max length=2^32-1,"
+                        TURBO_LOG(ERROR) << "bulk string is too long! max length=2^32-1,"
                                             " actually=" << len;
                         return PARSE_ERROR_ABSOLUTELY_WRONG;
                     }
@@ -202,7 +202,7 @@ namespace melon::rpc {
                     } else {
                         char *d = (char *) _arena->allocate((len / 8 + 1) * 8);
                         if (d == nullptr) {
-                            MELON_LOG(FATAL) << "Fail to allocate string[" << len << "]";
+                            TURBO_LOG(FATAL) << "Fail to allocate string[" << len << "]";
                             return PARSE_ERROR_ABSOLUTELY_WRONG;
                         }
                         buf.pop_front(crlf_pos + 2/*CRLF*/);
@@ -215,7 +215,7 @@ namespace melon::rpc {
                     char crlf[2];
                     buf.cutn(crlf, sizeof(crlf));
                     if (crlf[0] != '\r' || crlf[1] != '\n') {
-                        MELON_LOG(ERROR) << "Bulk string is not ended with CRLF";
+                        TURBO_LOG(ERROR) << "Bulk string is not ended with CRLF";
                         return PARSE_ERROR_ABSOLUTELY_WRONG;
                     }
                     return PARSE_OK;
@@ -237,14 +237,14 @@ namespace melon::rpc {
                         return PARSE_OK;
                     }
                     if (count > (int64_t) std::numeric_limits<uint32_t>::max()) {
-                        MELON_LOG(ERROR) << "Too many sub replies! max count=2^32-1,"
+                        TURBO_LOG(ERROR) << "Too many sub replies! max count=2^32-1,"
                                             " actually=" << count;
                         return PARSE_ERROR_ABSOLUTELY_WRONG;
                     }
                     // FIXME(gejun): Call allocate_aligned instead.
                     RedisReply *subs = (RedisReply *) _arena->allocate(sizeof(RedisReply) * count);
                     if (subs == nullptr) {
-                        MELON_LOG(FATAL) << "Fail to allocate RedisReply[" << count << "]";
+                        TURBO_LOG(FATAL) << "Fail to allocate RedisReply[" << count << "]";
                         return PARSE_ERROR_ABSOLUTELY_WRONG;
                     }
                     for (int64_t i = 0; i < count; ++i) {
@@ -270,7 +270,7 @@ namespace melon::rpc {
                 }
             }
             default:
-                MELON_LOG(ERROR) << "Invalid first character=" << (int) fc;
+                TURBO_LOG(ERROR) << "Invalid first character=" << (int) fc;
                 return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
         return PARSE_ERROR_ABSOLUTELY_WRONG;
@@ -372,7 +372,7 @@ namespace melon::rpc {
             case REDIS_REPLY_ARRAY: {
                 RedisReply *subs = (RedisReply *) _arena->allocate(sizeof(RedisReply) * _length);
                 if (subs == nullptr) {
-                    MELON_LOG(FATAL) << "Fail to allocate RedisReply[" << _length << "]";
+                    TURBO_LOG(FATAL) << "Fail to allocate RedisReply[" << _length << "]";
                     return;
                 }
                 for (int i = 0; i < _length; ++i) {
@@ -407,7 +407,7 @@ namespace melon::rpc {
                 } else {
                     char *d = (char *) _arena->allocate((_length / 8 + 1) * 8);
                     if (d == nullptr) {
-                        MELON_LOG(FATAL) << "Fail to allocate string[" << _length << "]";
+                        TURBO_LOG(FATAL) << "Fail to allocate string[" << _length << "]";
                         return;
                     }
                     memcpy(d, other._data.long_str, _length + 1);
@@ -423,7 +423,7 @@ namespace melon::rpc {
         }
         _type = REDIS_REPLY_ARRAY;
         if (size < 0) {
-            MELON_LOG(ERROR) << "negative size=" << size << " when calling SetArray";
+            TURBO_LOG(ERROR) << "negative size=" << size << " when calling SetArray";
             return;
         } else if (size == 0) {
             _length = 0;
@@ -431,7 +431,7 @@ namespace melon::rpc {
         }
         RedisReply *subs = (RedisReply *) _arena->allocate(sizeof(RedisReply) * size);
         if (!subs) {
-            MELON_LOG(FATAL) << "Fail to allocate RedisReply[" << size << "]";
+            TURBO_LOG(FATAL) << "Fail to allocate RedisReply[" << size << "]";
             return;
         }
         for (int i = 0; i < size; ++i) {
@@ -452,7 +452,7 @@ namespace melon::rpc {
         } else {
             char *d = (char *) _arena->allocate((size / 8 + 1) * 8);
             if (!d) {
-                MELON_LOG(FATAL) << "Fail to allocate string[" << size << "]";
+                TURBO_LOG(FATAL) << "Fail to allocate string[" << size << "]";
                 return;
             }
             memcpy(d, str.data(), size);
@@ -470,14 +470,14 @@ namespace melon::rpc {
         int ret = vsnprintf(buf, sizeof(buf), fmt, copied_args);
         va_end(copied_args);
         if (ret < 0) {
-            MELON_LOG(FATAL) << "Fail to vsnprintf into buf=" << (void *) buf << " size=" << sizeof(buf);
+            TURBO_LOG(FATAL) << "Fail to vsnprintf into buf=" << (void *) buf << " size=" << sizeof(buf);
             return;
         } else if (ret < (int) sizeof(buf)) {
             return SetStringImpl(buf, type);
         } else {
             std::string str;
             str.reserve(ret + 1);
-            melon::string_vappendf(&str, fmt, args);
+            turbo::string_vappendf(&str, fmt, args);
             return SetStringImpl(str, type);
         }
     }

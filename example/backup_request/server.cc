@@ -1,6 +1,6 @@
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -36,17 +36,17 @@ public:
         // how clients interact with servers more intuitively. You should 
         // remove these logs in performance-sensitive servers.
         // The noflush prevents the log from being flushed immediately.
-        MELON_LOG(INFO) << "Received request[index=" << request->index()
+        TURBO_LOG(INFO) << "Received request[index=" << request->index()
                   << "] from " << cntl->remote_side() 
                   << " to " << cntl->local_side();
         // Sleep a while for 0th, 2nd, 4th, 6th ... requests to trigger backup request
         // at client-side.
         bool do_sleep = (_count.fetch_add(1, std::memory_order_relaxed) % 2 == 0);
         if (do_sleep) {
-            MELON_LOG(INFO) << ", sleep " << FLAGS_sleep_ms
+            TURBO_LOG(INFO) << ", sleep " << FLAGS_sleep_ms
                       << " ms to trigger backup request";
         }
-        MELON_LOG(INFO);
+        TURBO_LOG(INFO);
 
         // Fill response.
         response->set_index(request->index());
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     melon::rpc::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_LOAD_BALANCER_WITH_NAMING_H_
 #define MELON_RPC_LOAD_BALANCER_WITH_NAMING_H_
 
-#include "melon/container/intrusive_ptr.h"
+#include "turbo/container/intrusive_ptr.h"
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/details/naming_service_thread.h"         // NamingServiceWatcher
 
@@ -44,7 +44,7 @@ namespace melon::rpc {
         void Describe(std::ostream &os, const DescribeOptions &options);
 
     private:
-        melon::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+        turbo::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
     };
 
 } // namespace melon::rpc

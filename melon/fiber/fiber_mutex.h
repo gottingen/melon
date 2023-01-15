@@ -25,7 +25,7 @@ namespace melon {
             }
         }
 
-        ~fiber_mutex() { MELON_CHECK_EQ(0, fiber_mutex_destroy(&_mutex)); }
+        ~fiber_mutex() { TURBO_CHECK_EQ(0, fiber_mutex_destroy(&_mutex)); }
 
         native_handler_type native_handler() { return &_mutex; }
 
@@ -41,7 +41,7 @@ namespace melon {
         bool try_lock() { return !fiber_mutex_trylock(&_mutex); }
         // TODO(jeff.li): Complement interfaces for C++11
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(fiber_mutex);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(fiber_mutex);
 
         fiber_mutex_t _mutex;
     };

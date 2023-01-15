@@ -22,7 +22,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/base/base64.h"
+#include "turbo/base/base64.h"
 #include "zero_copy_stream_writer.h"
 #include "encode_decode.h"
 #include "protobuf_map.h"
@@ -203,7 +203,7 @@ bool PbToJsonConverter::_PbFieldToJson(
                 if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES
                     && _option.bytes_to_base64) {
                     std::string value_decoded;
-                    melon::base::base64_encode(value, &value_decoded);
+                    turbo::base::base64_encode(value, &value_decoded);
                     handler.String(value_decoded.data(), value_decoded.size(), false);
                 } else {
                     handler.String(value.data(), value.size(), false);
@@ -216,7 +216,7 @@ bool PbToJsonConverter::_PbFieldToJson(
             if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES
                 && _option.bytes_to_base64) {
                 std::string value_decoded;
-                melon::base::base64_encode(value, &value_decoded);
+                turbo::base::base64_encode(value, &value_decoded);
                 handler.String(value_decoded.data(), value_decoded.size(), false);
             } else {
                 handler.String(value.data(), value.size(), false);

@@ -4,13 +4,13 @@
 
 #include <vector>
 #include <mutex>
-#include "melon/container/linked_list.h"
-#include "melon/base/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/log/logging.h"               // MELON_LOG()
-#include "melon/container/bounded_queue.h"// bounded_queue
-#include "melon/base/type_traits.h"           // is_same
-#include "melon/times/time.h"                  // gettimeofday_us
-#include "melon/base/class_name.h"
+#include "turbo/container/linked_list.h"
+#include "turbo/base/scoped_lock.h"           // TURBO_SCOPED_LOCK
+#include "turbo/log/logging.h"               // TURBO_LOG()
+#include "turbo/container/bounded_queue.h"// bounded_queue
+#include "turbo/base/type_traits.h"           // is_same
+#include "turbo/times/time.h"                  // gettimeofday_us
+#include "turbo/base/class_name.h"
 
 namespace melon {
     namespace metrics_detail {
@@ -26,7 +26,7 @@ namespace melon {
         };
 
         // The base class for all samplers whose take_sample() are called periodically.
-        class variable_sampler : public melon::container::link_node<variable_sampler> {
+        class variable_sampler : public turbo::container::link_node<variable_sampler> {
         public:
             variable_sampler();
 
@@ -59,7 +59,7 @@ namespace melon {
         struct void_op {
             template<typename T>
             T operator()(const T &, const T &) const {
-                MELON_CHECK(false) << "This function should never be called, abort";
+                TURBO_CHECK(false) << "This function should never be called, abort";
                 abort();
             }
         };
@@ -97,8 +97,8 @@ namespace melon {
                     if (nullptr == mem) {
                         return;
                     }
-                    melon::container::bounded_queue<variable_sample<T> > new_q(
-                            mem, memsize, melon::container::OWNS_STORAGE);
+                    turbo::container::bounded_queue<variable_sample<T> > new_q(
+                            mem, memsize, turbo::container::OWNS_STORAGE);
                     variable_sample<T> tmp;
                     while (_q.pop(&tmp)) {
                         new_q.push(tmp);
@@ -122,16 +122,16 @@ namespace melon {
                     // get_value() of _reducer can still be called.
                     latest.data = _reducer->get_value();
                 }
-                latest.time_us = melon::get_current_time_micros();
+                latest.time_us = turbo::get_current_time_micros();
                 _q.elim_push(latest);
             }
 
             bool get_value(time_t window_size, variable_sample<T> *result) {
                 if (window_size <= 0) {
-                    MELON_LOG(FATAL) << "Invalid window_size=" << window_size;
+                    TURBO_LOG(FATAL) << "Invalid window_size=" << window_size;
                     return false;
                 }
-                MELON_SCOPED_LOCK(_mutex);
+                TURBO_SCOPED_LOCK(_mutex);
                 if (_q.size() <= 1UL) {
                     // We need more samples to get reasonable result.
                     return false;
@@ -141,7 +141,7 @@ namespace melon {
                     oldest = _q.top();
                 }
                 variable_sample<T> *latest = _q.bottom();
-                MELON_DCHECK(latest != oldest);
+                TURBO_DCHECK(latest != oldest);
                 if (std::is_same<InvOp, void_op>::value) {
                     // No inverse op. Sum up all samples within the window.
                     result->data = latest->data;
@@ -164,10 +164,10 @@ namespace melon {
             // Change the time window which can only go larger.
             int set_window_size(time_t window_size) {
                 if (window_size <= 0 || window_size > MAX_SECONDS_LIMIT) {
-                    MELON_LOG(ERROR) << "Invalid window_size=" << window_size;
+                    TURBO_LOG(ERROR) << "Invalid window_size=" << window_size;
                     return -1;
                 }
-                MELON_SCOPED_LOCK(_mutex);
+                TURBO_SCOPED_LOCK(_mutex);
                 if (window_size > _window_size) {
                     _window_size = window_size;
                 }
@@ -176,10 +176,10 @@ namespace melon {
 
             void get_samples(std::vector<T> *samples, time_t window_size) {
                 if (window_size <= 0) {
-                    MELON_LOG(FATAL) << "Invalid window_size=" << window_size;
+                    TURBO_LOG(FATAL) << "Invalid window_size=" << window_size;
                     return;
                 }
-                MELON_SCOPED_LOCK(_mutex);
+                TURBO_SCOPED_LOCK(_mutex);
                 if (_q.size() <= 1) {
                     // We need more samples to get reasonable result.
                     return;
@@ -200,7 +200,7 @@ namespace melon {
         private:
             R *_reducer;
             time_t _window_size;
-            melon::container::bounded_queue<variable_sample<T> > _q;
+            turbo::container::bounded_queue<variable_sample<T> > _q;
         };
 
     }  // namespace metrics_detail

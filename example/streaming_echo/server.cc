@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/rpc/stream.h>
@@ -33,20 +33,20 @@ DEFINE_int32(logoff_ms, 2000, "Maximum duration of server's LOGOFF state "
 class StreamReceiver : public melon::rpc::StreamInputHandler {
 public:
     virtual int on_received_messages(melon::rpc::StreamId id,
-                                     melon::cord_buf *const messages[],
+                                     turbo::cord_buf *const messages[],
                                      size_t size) {
         std::ostringstream os;
         for (size_t i = 0; i < size; ++i) {
             os << "msg[" << i << "]=" << *messages[i];
         }
-        MELON_LOG(INFO) << "Received from Stream=" << id << ": " << os.str();
+        TURBO_LOG(INFO) << "Received from Stream=" << id << ": " << os.str();
         return 0;
     }
     virtual void on_idle_timeout(melon::rpc::StreamId id) {
-        MELON_LOG(INFO) << "Stream=" << id << " has no data transmission for a while";
+        TURBO_LOG(INFO) << "Stream=" << id << " has no data transmission for a while";
     }
     virtual void on_closed(melon::rpc::StreamId id) {
-        MELON_LOG(INFO) << "Stream=" << id << " is closed";
+        TURBO_LOG(INFO) << "Stream=" << id << " is closed";
     }
 
 };
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // use melon::rpc::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::rpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MELON_LOG(ERROR) << "Fail to add service";
+        TURBO_LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     melon::rpc::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to start EchoServer";
+        TURBO_LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

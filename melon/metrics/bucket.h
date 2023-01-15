@@ -11,7 +11,7 @@
 
 
 #include <vector>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 
 namespace melon {
     typedef std::vector<double> bucket;
@@ -22,9 +22,9 @@ namespace melon {
 
         static bucket exponential_values(double start, double factor, size_t num);
 
-        static bucket liner_duration(melon::duration start, melon::duration width, size_t num);
+        static bucket liner_duration(turbo::duration start, turbo::duration width, size_t num);
 
-        static bucket exponential_duration(melon::duration start, uint64_t factor, size_t num);
+        static bucket exponential_duration(turbo::duration start, uint64_t factor, size_t num);
     };
 }
 #endif  // MELON_METRICS_BUCKET_H_

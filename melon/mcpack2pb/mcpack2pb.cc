@@ -28,11 +28,11 @@ DEFINE_bool(mcpack2pb_absent_field_is_error, false, "Parsing fails if the "
 namespace mcpack2pb {
 
 static pthread_once_t s_init_handler_map_once = PTHREAD_ONCE_INIT;
-static melon::container::FlatMap<std::string, MessageHandler>* s_handler_map = nullptr;
+static turbo::container::FlatMap<std::string, MessageHandler>* s_handler_map = nullptr;
 static void init_handler_map() {
-    s_handler_map = new melon::container::FlatMap<std::string, MessageHandler>;
+    s_handler_map = new turbo::container::FlatMap<std::string, MessageHandler>;
     if (s_handler_map->init(64, 50) != 0) {
-        MELON_LOG(ERROR) << "Fail to init s_handler_map";
+        TURBO_LOG(ERROR) << "Fail to init s_handler_map";
         exit(1);
     }
 }
@@ -40,7 +40,7 @@ void register_message_handler_or_die(const std::string& full_name,
                                      const MessageHandler& handler) {
     pthread_once(&s_init_handler_map_once, init_handler_map);
     if (s_handler_map->seek(full_name) != nullptr) {
-        MELON_LOG(ERROR) << full_name << " was registered before!";
+        TURBO_LOG(ERROR) << full_name << " was registered before!";
         exit(1);
     } else {
         (*s_handler_map)[full_name] = handler;

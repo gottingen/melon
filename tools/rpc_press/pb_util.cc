@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include "pb_util.h"
 
 using google::protobuf::ServiceDescriptor;
@@ -37,7 +37,7 @@ const MethodDescriptor* find_method_by_name(const string& service_name,
     const ServiceDescriptor* descriptor =
         importer->pool()->FindServiceByName(service_name);
     if (nullptr == descriptor) {
-        MELON_LOG(FATAL) << "Fail to find service=" << service_name;
+        TURBO_LOG(FATAL) << "Fail to find service=" << service_name;
         return nullptr;
     }
     return descriptor->FindMethodByName(method_name);
@@ -48,7 +48,7 @@ const Message* get_prototype_by_method_descriptor(
     bool is_input, 
     DynamicMessageFactory* factory) {
     if (nullptr == descripter) {
-        MELON_LOG(FATAL) <<"Param[descripter] is nullptr";
+        TURBO_LOG(FATAL) <<"Param[descripter] is nullptr";
         return nullptr;
     }   
     const Descriptor* message_descriptor = nullptr;

@@ -17,9 +17,9 @@
 
 #include <execinfo.h>
 #include "testing/gtest_wrap.h"
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
-#include "melon/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/base/gperftools_profiler.h"
 #include "melon/fiber/internal/fiber.h"
 #include "melon/fiber/internal/unstable.h"
 #include "melon/fiber/internal/fiber_entity.h"
@@ -46,11 +46,11 @@ namespace {
     };
 
     TEST_F(FiberTest, sizeof_task_meta) {
-        MELON_LOG(INFO) << "sizeof(fiber_entity)=" << sizeof(melon::fiber_internal::fiber_entity);
+        TURBO_LOG(INFO) << "sizeof(fiber_entity)=" << sizeof(melon::fiber_internal::fiber_entity);
     }
 
     void *unrelated_pthread(void *) {
-        MELON_LOG(INFO) << "I did not call any fiber function, "
+        TURBO_LOG(INFO) << "I did not call any fiber function, "
                      "I should begin and end without any problem";
         return (void *) (intptr_t) 1;
     }
@@ -104,14 +104,14 @@ namespace {
     std::atomic<bool> stop(false);
 
     void *sleep_for_awhile(void *arg) {
-        MELON_LOG(INFO) << "sleep_for_awhile(" << arg << ")";
+        TURBO_LOG(INFO) << "sleep_for_awhile(" << arg << ")";
         melon::fiber_sleep_for(100000L);
-        MELON_LOG(INFO) << "sleep_for_awhile(" << arg << ") wakes up";
+        TURBO_LOG(INFO) << "sleep_for_awhile(" << arg << ") wakes up";
         return nullptr;
     }
 
     void *just_exit(void *arg) {
-        MELON_LOG(INFO) << "just_exit(" << arg << ")";
+        TURBO_LOG(INFO) << "just_exit(" << arg << ")";
         fiber_exit(nullptr);
         EXPECT_TRUE(false) << "just_exit(" << arg << ") should never be here";
         return nullptr;
@@ -119,7 +119,7 @@ namespace {
 
     void *repeated_sleep(void *arg) {
         for (size_t i = 0; !stop; ++i) {
-            MELON_LOG(INFO) << "repeated_sleep(" << arg << ") i=" << i;
+            TURBO_LOG(INFO) << "repeated_sleep(" << arg << ") i=" << i;
             melon::fiber_sleep_for(1000000L);
         }
         return nullptr;
@@ -127,23 +127,23 @@ namespace {
 
     void *spin_and_log(void *arg) {
         // This thread never yields CPU.
-        melon::every_duration every_1s(melon::duration::seconds(1));
+        turbo::every_duration every_1s(turbo::duration::seconds(1));
         size_t i = 0;
         while (!stop) {
             if (every_1s) {
-                MELON_LOG(INFO) << "spin_and_log(" << arg << ")=" << i++;
+                TURBO_LOG(INFO) << "spin_and_log(" << arg << ")=" << i++;
             }
         }
         return nullptr;
     }
 
     void *do_nothing(void *arg) {
-        MELON_LOG(INFO) << "do_nothing(" << arg << ")";
+        TURBO_LOG(INFO) << "do_nothing(" << arg << ")";
         return nullptr;
     }
 
     void *launcher(void *arg) {
-        MELON_LOG(INFO) << "launcher(" << arg << ")";
+        TURBO_LOG(INFO) << "launcher(" << arg << ")";
         for (size_t i = 0; !stop; ++i) {
             fiber_id_t th;
             fiber_start_urgent(&th, nullptr, do_nothing, (void *) i);
@@ -157,13 +157,13 @@ namespace {
         // never yields CPU) is scheduled to main thread, main thread cannot get
         // to run again.
         melon::fiber_sleep_for(5 * 1000000L);
-        MELON_LOG(INFO) << "about to stop";
+        TURBO_LOG(INFO) << "about to stop";
         stop = true;
         return nullptr;
     }
 
     void *misc(void *arg) {
-        MELON_LOG(INFO) << "misc(" << arg << ")";
+        TURBO_LOG(INFO) << "misc(" << arg << ")";
         fiber_id_t th[8];
         EXPECT_EQ(0, fiber_start_urgent(&th[0], nullptr, sleep_for_awhile, (void *) 2));
         EXPECT_EQ(0, fiber_start_urgent(&th[1], nullptr, just_exit, (void *) 3));
@@ -173,17 +173,17 @@ namespace {
         EXPECT_EQ(0, fiber_start_urgent(&th[5], nullptr, spin_and_log, (void *) 85));
         EXPECT_EQ(0, fiber_start_urgent(&th[6], nullptr, launcher, (void *) 6));
         EXPECT_EQ(0, fiber_start_urgent(&th[7], nullptr, stopper, nullptr));
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             EXPECT_EQ(0, fiber_join(th[i], nullptr));
         }
         return nullptr;
     }
 
     TEST_F(FiberTest, sanity) {
-        MELON_LOG(INFO) << "main thread " << pthread_self();
+        TURBO_LOG(INFO) << "main thread " << pthread_self();
         fiber_id_t th1;
         ASSERT_EQ(0, fiber_start_urgent(&th1, nullptr, misc, (void *) 1));
-        MELON_LOG(INFO) << "back to main thread " << th1 << " " << pthread_self();
+        TURBO_LOG(INFO) << "back to main thread " << th1 << " " << pthread_self();
         ASSERT_EQ(0, fiber_join(th1, nullptr));
     }
 
@@ -238,7 +238,7 @@ namespace {
 
     void *show_self(void *) {
         EXPECT_NE(0ul, fiber_self());
-        MELON_LOG(INFO) << "fiber_self=" << fiber_self();
+        TURBO_LOG(INFO) << "fiber_self=" << fiber_self();
         return nullptr;
     }
 
@@ -285,11 +285,11 @@ namespace {
         if (sleep_in_adding_func > 0) {
             long t1 = 0;
             if (10000 == s->fetch_add(1)) {
-                t1 = melon::get_current_time_micros();
+                t1 = turbo::get_current_time_micros();
             }
             melon::fiber_sleep_for(sleep_in_adding_func);
             if (t1) {
-                MELON_LOG(INFO) << "elapse is " << melon::get_current_time_micros() - t1 << "ns";
+                TURBO_LOG(INFO) << "elapse is " << turbo::get_current_time_micros() - t1 << "ns";
             }
         } else {
             s->fetch_add(1);
@@ -311,7 +311,7 @@ namespace {
             size_t N = (sleep_in_adding_func ? 40000 : 100000);
             std::vector<fiber_id_t> th;
             th.reserve(N);
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             for (size_t j = 0; j < 3; ++j) {
                 th.clear();
                 if (j == 1) {
@@ -331,7 +331,7 @@ namespace {
                 for (size_t i = 0; i < N; ++i) {
                     fiber_join(th[i], nullptr);
                 }
-                MELON_LOG(INFO) << "[Round " << j + 1 << "] fiber_start_urgent takes "
+                TURBO_LOG(INFO) << "[Round " << j + 1 << "] fiber_start_urgent takes "
                           << tm.n_elapsed() / N << "ns, sum=" << s;
                 ASSERT_EQ(N * (j + 1), (size_t) s);
 
@@ -350,7 +350,7 @@ namespace {
         return nullptr;
     }
 
-    struct MELON_CACHELINE_ALIGNMENT AlignedCounter {
+    struct TURBO_CACHELINE_ALIGNMENT AlignedCounter {
         AlignedCounter() : value(0) {}
 
         std::atomic<size_t> value;
@@ -374,7 +374,7 @@ namespace {
                 ASSERT_EQ(0, fiber_start_urgent(
                         &th[i], nullptr, fiber_starter, &counters[i].value));
             }
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             melon::fiber_sleep_for(200000L);
             stop = true;
@@ -394,7 +394,7 @@ namespace {
     }
 
     void *log_start_latency(void *void_arg) {
-        melon::stop_watcher *tm = static_cast<melon::stop_watcher *>(void_arg);
+        turbo::stop_watcher *tm = static_cast<turbo::stop_watcher *>(void_arg);
         tm->stop();
         return nullptr;
     }
@@ -405,13 +405,13 @@ namespace {
         long elp2 = 0;
         int REP = 0;
         for (int i = 0; i < 10000; ++i) {
-            melon::stop_watcher tm;
+            turbo::stop_watcher tm;
             tm.start();
             fiber_id_t th;
             fiber_start_urgent(&th, nullptr, log_start_latency, &tm);
             fiber_join(th, nullptr);
             fiber_id_t th2;
-            melon::stop_watcher tm2;
+            turbo::stop_watcher tm2;
             tm2.start();
             fiber_start_background(&th2, nullptr, log_start_latency, &tm2);
             fiber_join(th2, nullptr);
@@ -423,7 +423,7 @@ namespace {
                 warmup = false;
             }
         }
-        MELON_LOG(INFO) << "start_urgent=" << elp1 / REP << "ns start_background="
+        TURBO_LOG(INFO) << "start_urgent=" << elp1 / REP << "ns start_background="
                   << elp2 / REP << "ns";
     }
 
@@ -436,7 +436,7 @@ namespace {
         fiber_id_t th;
         ASSERT_EQ(0, fiber_start_urgent(
                 &th, nullptr, sleep_for_awhile_with_sleep, (void *) 1000000L));
-        melon::stop_watcher tm;
+        turbo::stop_watcher tm;
         tm.start();
         melon::fiber_sleep_for(10000);
         ASSERT_EQ(0, fiber_stop(th));

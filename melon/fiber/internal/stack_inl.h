@@ -52,11 +52,11 @@ namespace melon::fiber_internal {
         };
 
         static fiber_contextual_stack *get_stack(void (*entry)(intptr_t)) {
-            return melon::get_object<Wrapper>(entry);
+            return turbo::get_object<Wrapper>(entry);
         }
 
         static void return_stack(fiber_contextual_stack *sc) {
-            melon::return_object(static_cast<Wrapper *>(sc));
+            turbo::return_object(static_cast<Wrapper *>(sc));
         }
     };
 
@@ -119,7 +119,7 @@ namespace melon::fiber_internal {
 
 }  // namespace melon::fiber_internal
 
-namespace melon {
+namespace turbo {
 
     template<>
     struct ObjectPoolBlockMaxItem<

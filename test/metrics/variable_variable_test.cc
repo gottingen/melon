@@ -13,8 +13,8 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
-#include "melon/times/time.h"
-#include "melon/strings/utility.h"
+#include "turbo/times/time.h"
+#include "turbo/strings/utility.h"
 #include "melon/metrics/all.h"
 #include "melon/metrics/gauge.h"
 
@@ -126,7 +126,7 @@ namespace {
         ASSERT_EQ("var2_again", vars[3]);
 
         melon::read_most_gauge<void *> st5((void *) 19UL);
-        MELON_LOG(INFO) << st5;
+        TURBO_LOG(INFO) << st5;
         ASSERT_EQ("0x13", st5.get_description());
     }
 
@@ -180,7 +180,7 @@ namespace {
     public:
         bool dump(const std::string &name,
                   const std::string_view &description) {
-            _list.push_back(std::make_pair(name, melon::as_string(description)));
+            _list.push_back(std::make_pair(name, turbo::as_string(description)));
             return true;
         }
 
@@ -362,14 +362,14 @@ namespace {
         pthread_mutex_t mutex;
         pthread_mutex_init(&mutex, &attr);
         pthread_mutexattr_destroy(&attr);
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         const size_t N = 1000000;
         timer.start();
         for (size_t i = 0; i < N; ++i) {
-            MELON_SCOPED_LOCK(mutex);
+            TURBO_SCOPED_LOCK(mutex);
         }
         timer.stop();
-        MELON_LOG(INFO) << "Each recursive mutex lock/unlock pair take "
+        TURBO_LOG(INFO) << "Each recursive mutex lock/unlock pair take "
                         << timer.n_elapsed() / N << "ns";
     }
 } // namespace

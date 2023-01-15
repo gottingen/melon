@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/base/profile.h"
-#include "melon/base/fast_rand.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/policy/dynpart_load_balancer.h"
 
@@ -86,7 +86,7 @@ namespace melon::rpc {
         size_t DynPartLoadBalancer::AddServersInBatch(
                 const std::vector<ServerId> &servers) {
             const size_t n = _db_servers.Modify(BatchAdd, servers);
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to AddServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
@@ -95,14 +95,14 @@ namespace melon::rpc {
         size_t DynPartLoadBalancer::RemoveServersInBatch(
                 const std::vector<ServerId> &servers) {
             const size_t n = _db_servers.Modify(BatchRemove, servers);
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to RemoveServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
         }
 
         int DynPartLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 return ENOMEM;
             }
@@ -131,7 +131,7 @@ namespace melon::rpc {
                             ptrs[nptr].second = total_weight;
                             ++nptr;
                         } else {
-                            MELON_CHECK(false) << "Not supported yet";
+                            TURBO_CHECK(false) << "Not supported yet";
                             abort();
                         }
                     }
@@ -143,7 +143,7 @@ namespace melon::rpc {
                     return EHOSTDOWN;
                 }
                 exclusion = false;
-                MELON_CHECK_EQ(0, total_weight);
+                TURBO_CHECK_EQ(0, total_weight);
                 total_weight = 0;
             } while (1);
 
@@ -151,7 +151,7 @@ namespace melon::rpc {
                 out->ptr->reset(ptrs[0].first.release());
                 return 0;
             }
-            uint32_t r = melon::base::fast_rand_less_than(total_weight);
+            uint32_t r = turbo::base::fast_rand_less_than(total_weight);
             for (int i = 0; i < nptr; ++i) {
                 if (ptrs[i].second > r) {
                     out->ptr->reset(ptrs[i].first.release());
@@ -176,7 +176,7 @@ namespace melon::rpc {
                 return;
             }
             os << "DynPart{";
-            melon::container::DoublyBufferedData<Servers>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 os << "fail to read _db_servers";
             } else {

@@ -26,7 +26,7 @@ namespace melon::rpc {
     namespace policy {
 
         // Parse binary format of nshead
-        ParseResult ParseNsheadMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+        ParseResult ParseNsheadMessage(turbo::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
 
         // Actions to a (client) request in nshead format
         void ProcessNsheadRequest(InputMessageBase *msg);
@@ -34,16 +34,16 @@ namespace melon::rpc {
         // Actions to a (server) response in nshead format
         void ProcessNsheadResponse(InputMessageBase *msg);
 
-        void SerializeNsheadRequest(melon::cord_buf *request_buf, Controller *controller,
+        void SerializeNsheadRequest(turbo::cord_buf *request_buf, Controller *controller,
                                     const google::protobuf::Message *request);
 
         void PackNsheadRequest(
-                melon::cord_buf *packet_buf,
+                turbo::cord_buf *packet_buf,
                 SocketMessage **,
                 uint64_t correlation_id,
                 const google::protobuf::MethodDescriptor *,
                 Controller *controller,
-                const melon::cord_buf &,
+                const turbo::cord_buf &,
                 const Authenticator *);
 
         // Verify authentication information in nshead format

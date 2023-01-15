@@ -3,8 +3,8 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/controller.h"
-#include "melon/strings/ends_with.h"
-#include "melon/strings/str_split.h"
+#include "turbo/strings/ends_with.h"
+#include "turbo/strings/str_split.h"
 #include "echo.pb.h"
 
 int main(int argc, char* argv[]) {
@@ -67,7 +67,7 @@ TEST(PrometheusMetrics, sanity) {
     bool has_ever_gauge = false;
     bool has_ever_counter = false;
 
-    std::vector<std::string> lines = melon::string_split(res, '\n');
+    std::vector<std::string> lines = turbo::string_split(res, '\n');
 
     for(auto &item : lines) {
         res[end_pos] = '\0';       // safe;
@@ -126,10 +126,10 @@ TEST(PrometheusMetrics, sanity) {
                     matched = sscanf(item.c_str(), "%s %d", name_type, &gauge_num);
                     ASSERT_EQ(2, matched);
                     ASSERT_TRUE(strncmp(name_type, name_help, strlen(name_help)) == 0);
-                    if (melon::ends_with(name_type, "_sum")) {
+                    if (turbo::ends_with(name_type, "_sum")) {
                         ASSERT_FALSE(summary_sum_gathered);
                         summary_sum_gathered = true;
-                    } else if (melon::ends_with(name_type, "_count")) {
+                    } else if (turbo::ends_with(name_type, "_count")) {
                         ASSERT_FALSE(summary_count_gathered);
                         summary_count_gathered = true;
                     } else {

@@ -23,9 +23,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "testing/gtest_wrap.h"
-#include "melon/base/gperftools_profiler.h"
-#include "melon/times/time.h"
-#include "melon/base/fd_utility.h"
+#include "turbo/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fd_utility.h"
 #include "melon/rpc/event_dispatcher.h"
 #include "melon/rpc/details/has_epollrdhup.h"
 
@@ -44,7 +44,7 @@ protected:
 };
 
 TEST_F(EventDispatcherTest, has_epollrdhup) {
-    MELON_LOG(INFO) << melon::rpc::has_epollrdhup;
+    TURBO_LOG(INFO) << melon::rpc::has_epollrdhup;
 }
 
 TEST_F(EventDispatcherTest, versioned_ref) {
@@ -62,13 +62,13 @@ pthread_mutex_t rel_fd_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 volatile bool client_stop = false;
 
-struct MELON_CACHELINE_ALIGNMENT ClientMeta {
+struct TURBO_CACHELINE_ALIGNMENT ClientMeta {
     int fd;
     size_t times;
     size_t bytes;
 };
 
-struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::rpc::SocketUser {
+struct TURBO_CACHELINE_ALIGNMENT SocketExtra : public melon::rpc::SocketUser {
     char *buf;
     size_t buf_cap;
     size_t bytes;
@@ -101,7 +101,7 @@ struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::rpc::SocketUser {
                 pthread_mutex_lock(&err_fd_mutex);
                 err_fd.push_back(m->fd());
                 pthread_mutex_unlock(&err_fd_mutex);
-                MELON_LOG(WARNING) << "Another end closed fd=" << m->fd();
+                TURBO_LOG(WARNING) << "Another end closed fd=" << m->fd();
                 return -1;
             } else if (n > 0) {
                 e->bytes += n;
@@ -117,7 +117,7 @@ struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::rpc::SocketUser {
                 } else if (errno == EINTR) {
                     continue;
                 } else {
-                    MELON_PLOG(WARNING) << "Fail to read fd=" << m->fd();
+                    TURBO_PLOG(WARNING) << "Fail to read fd=" << m->fd();
                     return -1;
                 }
             }
@@ -160,7 +160,7 @@ void *client_thread(void *arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                MELON_PLOG(WARNING) << "Fail to write fd=" << m->fd;
+                TURBO_PLOG(WARNING) << "Fail to write fd=" << m->fd;
                 break;
             }
         } else {
@@ -187,8 +187,8 @@ inline uint32_t fmix32(uint32_t h) {
 
 TEST_F(EventDispatcherTest, dispatch_tasks) {
 #ifdef MELON_RESOURCE_POOL_NEED_FREE_ITEM_NUM
-    const melon::base::ResourcePoolInfo old_info =
-        melon::describe_resources<melon::rpc::Socket>();
+    const turbo::base::ResourcePoolInfo old_info =
+        turbo::describe_resources<melon::rpc::Socket>();
 #endif
 
     client_stop = false;
@@ -205,7 +205,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         sm[i] = new SocketExtra;
 
         const int fd = fds[i * 2];
-        melon::base::make_non_blocking(fd);
+        turbo::base::make_non_blocking(fd);
         melon::rpc::SocketId socket_id;
         melon::rpc::SocketOptions options;
         options.fd = fd;
@@ -220,16 +220,16 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         ASSERT_EQ(0, pthread_create(&cth[i], nullptr, client_thread, cm[i]));
     }
 
-    MELON_LOG(INFO) << "Begin to profile... (5 seconds)";
+    TURBO_LOG(INFO) << "Begin to profile... (5 seconds)";
     ProfilerStart("event_dispatcher.prof");
-    melon::stop_watcher tm;
+    turbo::stop_watcher tm;
     tm.start();
 
     sleep(5);
 
     tm.stop();
     ProfilerStop();
-    MELON_LOG(INFO) << "End profiling";
+    TURBO_LOG(INFO) << "End profiling";
 
     size_t client_bytes = 0;
     size_t server_bytes = 0;
@@ -237,7 +237,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         client_bytes += cm[i]->bytes;
         server_bytes += sm[i]->bytes;
     }
-    MELON_LOG(INFO) << "client_tp=" << client_bytes / (double) tm.u_elapsed()
+    TURBO_LOG(INFO) << "client_tp=" << client_bytes / (double) tm.u_elapsed()
               << "MB/s server_tp=" << server_bytes / (double) tm.u_elapsed()
               << "MB/s";
 
@@ -262,9 +262,9 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         ASSERT_EQ(copy1[i], copy2[i]) << i;
     }
     ASSERT_EQ(NCLIENT, copy1.size());
-    const melon::ResourcePoolInfo info
-            = melon::describe_resources<melon::rpc::Socket>();
-    MELON_LOG(INFO) << info;
+    const turbo::ResourcePoolInfo info
+            = turbo::describe_resources<melon::rpc::Socket>();
+    TURBO_LOG(INFO) << info;
 #ifdef MELON_RESOURCE_POOL_NEED_FREE_ITEM_NUM
     ASSERT_EQ(NCLIENT, info.free_item_num - old_info.free_item_num);
 #endif

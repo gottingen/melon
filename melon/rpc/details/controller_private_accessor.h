@@ -62,7 +62,7 @@ namespace melon::rpc {
         }
 
         void move_in_server_receiving_sock(SocketUniquePtr &ptr) {
-            MELON_CHECK(_cntl->_current_call.sending_sock == nullptr);
+            TURBO_CHECK(_cntl->_current_call.sending_sock == nullptr);
             _cntl->_current_call.sending_sock.reset(ptr.release());
         }
 
@@ -75,12 +75,12 @@ namespace melon::rpc {
             return *this;
         }
 
-        ControllerPrivateAccessor &set_remote_side(const melon::end_point &pt) {
+        ControllerPrivateAccessor &set_remote_side(const turbo::end_point &pt) {
             _cntl->_remote_side = pt;
             return *this;
         }
 
-        ControllerPrivateAccessor &set_local_side(const melon::end_point &pt) {
+        ControllerPrivateAccessor &set_local_side(const turbo::end_point &pt) {
             _cntl->_local_side = pt;
             return *this;
         }

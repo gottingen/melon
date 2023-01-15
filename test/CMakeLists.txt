@@ -26,7 +26,6 @@ set(TEST_PROTO_FILES addressbook1.proto
         addressbook_map.proto
         addressbook.proto
         echo.proto
-        cord_buf.proto
         message.proto
         repeated.proto
         snappy_message.proto
@@ -65,10 +64,6 @@ file(COPY ${PROJECT_SOURCE_DIR}/test/cert1.crt DESTINATION ${CMAKE_CURRENT_BINAR
 file(COPY ${PROJECT_SOURCE_DIR}/test/cert2.crt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rpc)
 file(COPY ${PROJECT_SOURCE_DIR}/test/jsonout DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rpc)
 
-set(IO_TEST_SRC
-        ${PROJECT_SOURCE_DIR}/test/io/cord_buf_test.cc
-        )
-
 
 # fiber_* functions are used in logging.cc, and they need to be marked as
 # weak symbols explicitly in Darwin system.
@@ -83,18 +78,15 @@ file(GLOB_RECURSE TESTING_SOURCES "${PROJECT_SOURCE_DIR}/test/testing/*.cc")
 
 add_library(TESTING_DEBUG_LIB OBJECT ${TESTING_SOURCES})
 
-add_library(MELON_BASE_DEBUG_LIB OBJECT ${MELON_SRC})
 add_library(SOURCES_DEBUG_LIB OBJECT ${SOURCES})
 add_dependencies(SOURCES_DEBUG_LIB PROTO_LIB)
 
 # shared library needs POSITION_INDEPENDENT_CODE
 set_property(TARGET ${SOURCES_DEBUG_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_property(TARGET ${MELON_BASE_DEBUG_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET ${TESTING_DEBUG_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 add_library(melon-shared-debug SHARED
         $<TARGET_OBJECTS:TESTING_DEBUG_LIB>
-        $<TARGET_OBJECTS:MELON_BASE_DEBUG_LIB>
         $<TARGET_OBJECTS:SOURCES_DEBUG_LIB>
         $<TARGET_OBJECTS:PROTO_LIB>)
 # change the debug lib output dir to be different from the release output
@@ -103,16 +95,6 @@ set_target_properties(melon-shared-debug PROPERTIES
 
 target_link_libraries(melon-shared-debug ${DYNAMIC_LIB})
 
-# test_io
-add_executable(test_io io/cord_buf_test.cc
-        ${CMAKE_CURRENT_BINARY_DIR}/cord_buf.pb.cc)
-target_link_libraries(test_io melon-shared-debug
-        ${GTEST_MAIN_LIB}
-        ${GTEST_LIB}
-        ${DYNAMIC_LIB}
-        ${GPERFTOOLS_LIBRARIES})
-
-add_test(NAME test_io COMMAND test_io)
 
 # test_variable
 # -DVARIABLE_NOT_LINK_DEFAULT_VARIABLES not work for gcc >= 5.0, just remove the file to prevent linking into unit tests
@@ -127,20 +109,4 @@ add_subdirectory(fiber)
 # rpc tests
 add_subdirectory(rpc)
 
-#
-add_subdirectory(base)
-add_subdirectory(bootstrap)
-add_subdirectory(container)
-add_subdirectory(files)
-add_subdirectory(future)
-add_subdirectory(hash)
-add_subdirectory(log)
-add_subdirectory(memory)
-add_subdirectory(strings)
-add_subdirectory(io)
-add_subdirectory(debugging)
-add_subdirectory(times)
-add_subdirectory(thread)
-add_subdirectory(dag)
-add_subdirectory(rapidjson)
 

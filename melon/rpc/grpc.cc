@@ -22,7 +22,7 @@
 #include "melon/rpc/grpc.h"
 #include "melon/rpc/errno.pb.h"
 #include "melon/rpc/http_status_code.h"
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 
 namespace melon::rpc {
 
@@ -220,7 +220,7 @@ namespace melon::rpc {
             default:
                 return -1;
         }
-        MELON_CHECK(false) << "Impossible";
+        TURBO_CHECK(false) << "Impossible";
     }
 
 } // namespace melon::rpc

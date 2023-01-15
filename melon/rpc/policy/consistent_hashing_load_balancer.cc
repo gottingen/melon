@@ -19,13 +19,13 @@
 #include <algorithm>                                           // std::set_union
 #include <array>
 #include <gflags/gflags.h>
-#include "melon/container/flat_map.h"
-#include "melon/base/errno.h"
+#include "turbo/container/flat_map.h"
+#include "turbo/base/errno.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/policy/consistent_hashing_load_balancer.h"
 #include "melon/rpc/policy/hasher.h"
-#include "melon/strings/numbers.h"
-#include "melon/strings/string_splitter.h"
+#include "turbo/strings/numbers.h"
+#include "turbo/strings/string_splitter.h"
 
 namespace melon::rpc {
     namespace policy {
@@ -101,7 +101,7 @@ namespace melon::rpc {
             }
             replicas->clear();
             const size_t points_per_hash = 4;
-            MELON_CHECK(num_replicas % points_per_hash == 0)
+            TURBO_CHECK(num_replicas % points_per_hash == 0)
                             << "Ketam hash replicas number(" << num_replicas << ") should be n*4";
             for (size_t i = 0; i < num_replicas / points_per_hash; ++i) {
                 char host[32];
@@ -148,7 +148,7 @@ namespace melon::rpc {
         ConsistentHashingLoadBalancer::ConsistentHashingLoadBalancer(
                 ConsistentHashingLoadBalancerType type)
                 : _num_replicas(FLAGS_chash_num_replicas), _type(type) {
-            MELON_CHECK(GetReplicaPolicy(_type))
+            TURBO_CHECK(GetReplicaPolicy(_type))
                             << "Fail to find replica policy for consistency lb type: '" << _type << '\'';
         }
 
@@ -178,7 +178,7 @@ namespace melon::rpc {
                 bg = fg;
                 return 0;
             }
-            melon::container::FlatSet<ServerId> id_set;
+            turbo::container::FlatSet<ServerId> id_set;
             bool use_set = true;
             if (id_set.init(servers.size() * 2) == 0) {
                 for (size_t i = 0; i < servers.size(); ++i) {
@@ -190,7 +190,7 @@ namespace melon::rpc {
             } else {
                 use_set = false;
             }
-            MELON_CHECK(use_set) << "Fail to construct id_set, " << melon_error();
+            TURBO_CHECK(use_set) << "Fail to construct id_set, " << turbo_error();
             bg.clear();
             for (size_t i = 0; i < fg.size(); ++i) {
                 const bool removed =
@@ -230,7 +230,7 @@ namespace melon::rpc {
             bool executed = false;
             const size_t ret = _db_hash_ring.ModifyWithForeground(
                     AddBatch, add_nodes, &executed);
-            MELON_CHECK(ret == 0 || ret == _num_replicas) << ret;
+            TURBO_CHECK(ret == 0 || ret == _num_replicas) << ret;
             return ret != 0;
         }
 
@@ -249,9 +249,9 @@ namespace melon::rpc {
             std::sort(add_nodes.begin(), add_nodes.end());
             bool executed = false;
             const size_t ret = _db_hash_ring.ModifyWithForeground(AddBatch, add_nodes, &executed);
-            MELON_CHECK(ret % _num_replicas == 0);
+            TURBO_CHECK(ret % _num_replicas == 0);
             const size_t n = ret / _num_replicas;
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to AddServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
@@ -260,7 +260,7 @@ namespace melon::rpc {
         bool ConsistentHashingLoadBalancer::RemoveServer(const ServerId &server) {
             bool executed = false;
             const size_t ret = _db_hash_ring.ModifyWithForeground(Remove, server, &executed);
-            MELON_CHECK(ret == 0 || ret == _num_replicas);
+            TURBO_CHECK(ret == 0 || ret == _num_replicas);
             return ret != 0;
         }
 
@@ -268,9 +268,9 @@ namespace melon::rpc {
                 const std::vector<ServerId> &servers) {
             bool executed = false;
             const size_t ret = _db_hash_ring.ModifyWithForeground(RemoveBatch, servers, &executed);
-            MELON_CHECK(ret % _num_replicas == 0);
+            TURBO_CHECK(ret % _num_replicas == 0);
             const size_t n = ret / _num_replicas;
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to RemoveServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
@@ -293,14 +293,14 @@ namespace melon::rpc {
         int ConsistentHashingLoadBalancer::SelectServer(
                 const SelectIn &in, SelectOut *out) {
             if (!in.has_request_code) {
-                MELON_LOG(ERROR) << "Controller.set_request_code() is required";
+                TURBO_LOG(ERROR) << "Controller.set_request_code() is required";
                 return EINVAL;
             }
             if (in.request_code > UINT_MAX) {
-                MELON_LOG(ERROR) << "request_code must be 32-bit currently";
+                TURBO_LOG(ERROR) << "request_code must be 32-bit currently";
                 return EINVAL;
             }
-            melon::container::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
+            turbo::container::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
             if (_db_hash_ring.Read(&s) != 0) {
                 return ENOMEM;
             }
@@ -336,14 +336,14 @@ namespace melon::rpc {
             os << "ConsistentHashingLoadBalancer {\n"
                << "  hash function: " << GetReplicaPolicy(_type)->name() << '\n'
                << "  replica per host: " << _num_replicas << '\n';
-            std::map<melon::end_point, double> load_map;
+            std::map<turbo::end_point, double> load_map;
             GetLoads(&load_map);
             os << "  number of hosts: " << load_map.size() << '\n';
             os << "  load of hosts: {\n";
             double expected_load_per_server = 1.0 / load_map.size();
             double load_sum = 0;
             double load_sqr_sum = 0;
-            for (std::map<melon::end_point, double>::iterator
+            for (std::map<turbo::end_point, double>::iterator
                          it = load_map.begin(); it != load_map.end(); ++it) {
                 os << "    " << it->first << ": " << it->second << '\n';
                 double normalized_load = it->second / expected_load_per_server;
@@ -358,11 +358,11 @@ namespace melon::rpc {
         }
 
         void ConsistentHashingLoadBalancer::GetLoads(
-                std::map<melon::end_point, double> *load_map) {
+                std::map<turbo::end_point, double> *load_map) {
             load_map->clear();
-            std::map<melon::end_point, uint32_t> count_map;
+            std::map<turbo::end_point, uint32_t> count_map;
             do {
-                melon::container::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
+                turbo::container::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
                 if (_db_hash_ring.Read(&s) != 0) {
                     break;
                 }
@@ -376,28 +376,28 @@ namespace melon::rpc {
                             (*s.get())[i].hash - (*s.get())[i - 1].hash;
                 }
             } while (0);
-            for (std::map<melon::end_point, uint32_t>::iterator
+            for (std::map<turbo::end_point, uint32_t>::iterator
                          it = count_map.begin(); it != count_map.end(); ++it) {
                 (*load_map)[it->first] = (double) it->second / UINT_MAX;
             }
         }
 
         bool ConsistentHashingLoadBalancer::SetParameters(const std::string_view &params) {
-            for (melon::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
+            for (turbo::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
                  sp; ++sp) {
                 if (sp.value().empty()) {
-                    MELON_LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
+                    TURBO_LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
                     return false;
                 }
                 if (sp.key() == "replicas") {
                     int64_t r;
-                    if (!melon::simple_atoi(sp.value(), &r)) {
+                    if (!turbo::simple_atoi(sp.value(), &r)) {
                         return false;
                     }
                     _num_replicas = r;
                     continue;
                 }
-                MELON_LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
+                TURBO_LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
             }
             return true;
         }

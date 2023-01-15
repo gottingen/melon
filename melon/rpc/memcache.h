@@ -22,7 +22,7 @@
 #include <string>
 #include <google/protobuf/message.h>
 
-#include "melon/io/cord_buf.h"
+#include "turbo/io/cord_buf.h"
 #include <string_view>
 #include "melon/rpc/proto_base.pb.h"
 
@@ -91,9 +91,9 @@ namespace melon::rpc {
 
         int pipelined_count() const { return _pipelined_count; }
 
-        melon::cord_buf &raw_buffer() { return _buf; }
+        turbo::cord_buf &raw_buffer() { return _buf; }
 
-        const melon::cord_buf &raw_buffer() const { return _buf; }
+        const turbo::cord_buf &raw_buffer() const { return _buf; }
 
         // Protobuf methods.
         MemcacheRequest *New() const;
@@ -148,7 +148,7 @@ namespace melon::rpc {
         void SetCachedSize(int size) const override;
 
         int _pipelined_count;
-        melon::cord_buf _buf;
+        turbo::cord_buf _buf;
         mutable int _cached_size_;
     };
 
@@ -161,17 +161,17 @@ namespace melon::rpc {
     //   channel.CallMethod(&controller, &request, &response, nullptr/*done*/);
     //   ...
     //   if (!response.PopGet(&my_value1, &flags1, &cas1)) {
-    //       MELON_LOG(FATAL) << "Fail to pop GET: " << response.LastError();
+    //       TURBO_LOG(FATAL) << "Fail to pop GET: " << response.LastError();
     //   } else {
     //       // Use my_value1, flags1, cas1
     //   }
     //   if (!response.PopGet(&my_value2, &flags2, &cas2)) {
-    //       MELON_LOG(FATAL) << "Fail to pop GET: " << response.LastError();
+    //       TURBO_LOG(FATAL) << "Fail to pop GET: " << response.LastError();
     //   } else {
     //       // Use my_value2, flags2, cas2
     //   }
     //   if (!response.PopSet(&cas3)) {
-    //       MELON_LOG(FATAL) << "Fail to pop SET: " << response.LastError();
+    //       TURBO_LOG(FATAL) << "Fail to pop SET: " << response.LastError();
     //   } else {
     //       // the SET was successful.
     //   }
@@ -208,7 +208,7 @@ namespace melon::rpc {
 
         const std::string &LastError() const { return _err; }
 
-        bool PopGet(melon::cord_buf *value, uint32_t *flags, uint64_t *cas_value);
+        bool PopGet(turbo::cord_buf *value, uint32_t *flags, uint64_t *cas_value);
 
         bool PopGet(std::string *value, uint32_t *flags, uint64_t *cas_value);
 
@@ -234,9 +234,9 @@ namespace melon::rpc {
 
         bool PopVersion(std::string *version);
 
-        melon::cord_buf &raw_buffer() { return _buf; }
+        turbo::cord_buf &raw_buffer() { return _buf; }
 
-        const melon::cord_buf &raw_buffer() const { return _buf; }
+        const turbo::cord_buf &raw_buffer() const { return _buf; }
 
         static const char *status_str(Status);
 
@@ -289,7 +289,7 @@ namespace melon::rpc {
         void SetCachedSize(int size) const override;
 
         std::string _err;
-        melon::cord_buf _buf;
+        turbo::cord_buf _buf;
         mutable int _cached_size_;
     };
 

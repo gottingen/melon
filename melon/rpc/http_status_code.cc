@@ -18,9 +18,9 @@
 
 #include <stdio.h>                                  // snprintf
 
-#include "melon/log/logging.h"
-#include "melon/base/profile.h"                            // MELON_ARRAY_SIZE
-#include "melon/thread/thread.h"                      // thread_local
+#include "turbo/log/logging.h"
+#include "turbo/base/profile.h"                            // TURBO_ARRAY_SIZE
+#include "turbo/thread/thread.h"                      // thread_local
 #include "melon/rpc/errno.pb.h"
 #include "melon/rpc/http_status_code.h"
 
@@ -87,12 +87,12 @@ namespace melon::rpc {
 
     static void InitReasonPhrases() {
         memset(phrases, 0, sizeof(phrases));
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(status_pairs); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(status_pairs); ++i) {
             if (status_pairs[i].status_code >= 0 &&
-                status_pairs[i].status_code < (int) MELON_ARRAY_SIZE(phrases)) {
+                status_pairs[i].status_code < (int) TURBO_ARRAY_SIZE(phrases)) {
                 phrases[status_pairs[i].status_code] = status_pairs[i].reason_phrase;
             } else {
-                MELON_LOG(FATAL) << "The status_pairs[" << i << "] is invalid"
+                TURBO_LOG(FATAL) << "The status_pairs[" << i << "] is invalid"
                                  << " status_code=" << status_pairs[i].status_code
                                  << " reason_phrase=`" << status_pairs[i].reason_phrase
                                  << '\'';
@@ -100,13 +100,13 @@ namespace melon::rpc {
         }
     }
 
-    static MELON_THREAD_LOCAL char tls_phrase_cache[64];
+    static TURBO_THREAD_LOCAL char tls_phrase_cache[64];
 
     const char *HttpReasonPhrase(int status_code) {
         pthread_once(&init_reason_phrases_once, InitReasonPhrases);
         const char *desc = nullptr;
         if (status_code >= 0 &&
-            status_code < (int) MELON_ARRAY_SIZE(phrases) &&
+            status_code < (int) TURBO_ARRAY_SIZE(phrases) &&
             (desc = phrases[status_code])) {
             return desc;
         }

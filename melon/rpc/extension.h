@@ -20,10 +20,10 @@
 #define MELON_RPC_EXTENSION_H_
 
 #include <string>
-#include "melon/base/scoped_lock.h"
-#include "melon/log/logging.h"
-#include "melon/container/case_ignored_flat_map.h"
-#include "melon/base/singleton_on_pthread_once.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/log/logging.h"
+#include "turbo/container/case_ignored_flat_map.h"
+#include "turbo/base/singleton_on_pthread_once.h"
 
 namespace melon::base {
     template<typename T>
@@ -52,13 +52,13 @@ namespace melon::rpc {
         void List(std::ostream &os, char separator);
 
     private:
-        friend class melon::GetLeakySingleton<Extension<T> >;
+        friend class turbo::GetLeakySingleton<Extension<T> >;
 
         Extension();
 
         ~Extension();
 
-        melon::container::CaseIgnoredFlatMap<T *> _instance_map;
+        turbo::container::CaseIgnoredFlatMap<T *> _instance_map;
         std::mutex _map_mutex;
     };
 

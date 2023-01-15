@@ -19,16 +19,16 @@
 #include <netinet/in.h>
 #include <gflags/gflags.h>
 #include <leveldb/db.h>
-#include "melon/files/filesystem.h"
+#include "turbo/files/filesystem.h"
 #include <leveldb/comparator.h>
 #include "melon/fiber/internal/fiber.h"
-#include "melon/base/scoped_lock.h"
-#include "melon/thread/thread.h"
-#include "melon/strings/str_format.h"
-#include "melon/times/time.h"
-#include "melon/log/logging.h"
-#include "melon/memory/object_pool.h"
-#include "melon/base/fast_rand.h"
+#include "turbo/base/scoped_lock.h"
+#include "turbo/thread/thread.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/memory/object_pool.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/shared_object.h"
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/span.h"
@@ -63,7 +63,7 @@ namespace melon::rpc {
         bool init;
         uint16_t seq;
         uint64_t current_random;
-        melon::base::FastRandSeed seed;
+        turbo::base::FastRandSeed seed;
     };
 
     static __thread IdGen tls_trace_id_gen = {false, 0, 0, {{0, 0}}};
@@ -101,7 +101,7 @@ namespace melon::rpc {
 
     Span *Span::CreateClientSpan(const std::string &full_method_name,
                                  int64_t base_real_us) {
-        Span *span = melon::get_object<Span>(Forbidden());
+        Span *span = turbo::get_object<Span>(Forbidden());
         if (__builtin_expect(span == nullptr, 0)) {
             return nullptr;
         }
@@ -150,7 +150,7 @@ namespace melon::rpc {
             const std::string &full_method_name,
             uint64_t trace_id, uint64_t span_id, uint64_t parent_span_id,
             int64_t base_real_us) {
-        Span *span = melon::get_object<Span>(Forbidden());
+        Span *span = turbo::get_object<Span>(Forbidden());
         if (__builtin_expect(span == nullptr, 0)) {
             return nullptr;
         }
@@ -199,40 +199,40 @@ namespace melon::rpc {
         while (p) {
             Span *p_next = p->_next_client;
             p->_info.clear();
-            melon::return_object(p);
+            turbo::return_object(p);
             p = p_next;
         }
         _info.clear();
-        melon::return_object(this);
+        turbo::return_object(this);
     }
 
     void Span::Annotate(const char *fmt, ...) {
-        const int64_t anno_time = melon::get_current_time_micros() + _base_real_us;
-        melon::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
+        const int64_t anno_time = turbo::get_current_time_micros() + _base_real_us;
+        turbo::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                               (long long) anno_time);
         va_list ap;
         va_start(ap, fmt);
-        melon::string_vappendf(&_info, fmt, ap);
+        turbo::string_vappendf(&_info, fmt, ap);
         va_end(ap);
     }
 
     void Span::Annotate(const char *fmt, va_list args) {
-        const int64_t anno_time = melon::get_current_time_micros() + _base_real_us;
-        melon::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
+        const int64_t anno_time = turbo::get_current_time_micros() + _base_real_us;
+        turbo::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                               (long long) anno_time);
-        melon::string_vappendf(&_info, fmt, args);
+        turbo::string_vappendf(&_info, fmt, args);
     }
 
     void Span::Annotate(const std::string &info) {
-        const int64_t anno_time = melon::get_current_time_micros() + _base_real_us;
-        melon::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
+        const int64_t anno_time = turbo::get_current_time_micros() + _base_real_us;
+        turbo::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                               (long long) anno_time);
         _info.append(info);
     }
 
     void Span::AnnotateCStr(const char *info, size_t length) {
-        const int64_t anno_time = melon::get_current_time_micros() + _base_real_us;
-        melon::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
+        const int64_t anno_time = turbo::get_current_time_micros() + _base_real_us;
+        turbo::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                               (long long) anno_time);
         if (length <= 0) {
             _info.append(info);
@@ -268,7 +268,7 @@ namespace melon::rpc {
     bool SpanInfoExtractor::PopAnnotation(
             int64_t before_this_time, int64_t *time, std::string *annotation) {
         for (; _sp != nullptr; ++_sp) {
-            melon::StringSplitter sp_time(_sp.field(), _sp.field() + _sp.length(), ' ');
+            turbo::StringSplitter sp_time(_sp.field(), _sp.field() + _sp.length(), ' ');
             if (sp_time) {
                 char *endptr;
                 const int64_t anno_time = strtoll(sp_time.field(), &endptr, 10);
@@ -285,7 +285,7 @@ namespace melon::rpc {
                     return true;
                 }
             }
-            MELON_LOG(ERROR) << "Unknown annotation: "
+            TURBO_LOG(ERROR) << "Unknown annotation: "
                              << std::string(_sp.field(), _sp.length());
         }
         return false;
@@ -333,10 +333,10 @@ namespace melon::rpc {
             delete id_db;
             delete time_db;
             if (!FLAGS_rpcz_keep_span_db) {
-                std::string cmd = melon::string_printf("rm -rf %s %s",
+                std::string cmd = turbo::string_printf("rm -rf %s %s",
                                                        id_db_name.c_str(),
                                                        time_db_name.c_str());
-                melon::base::ignore_result(system(cmd.c_str()));
+                turbo::base::ignore_result(system(cmd.c_str()));
             }
         }
     };
@@ -386,7 +386,7 @@ namespace melon::rpc {
     static void ResetSpanDB(SpanDB *db) {
         SpanDB *old_db = nullptr;
         {
-            MELON_SCOPED_LOCK(g_span_db_mutex);
+            TURBO_SCOPED_LOCK(g_span_db_mutex);
             old_db = g_span_db;
             g_span_db = db;
             if (g_span_db) {
@@ -416,8 +416,8 @@ namespace melon::rpc {
         return started_span_indexing ? 0 : -1;
     }
 
-    inline int GetSpanDB(melon::container::intrusive_ptr<SpanDB> *db) {
-        MELON_SCOPED_LOCK(g_span_db_mutex);
+    inline int GetSpanDB(turbo::container::intrusive_ptr<SpanDB> *db) {
+        TURBO_SCOPED_LOCK(g_span_db_mutex);
         if (g_span_db != nullptr) {
             *db = g_span_db;
             return 0;
@@ -438,7 +438,7 @@ namespace melon::rpc {
         out->set_log_id(span->log_id());
         out->set_base_cid(span->base_cid().value);
         out->set_ending_cid(span->ending_cid().value);
-        out->set_remote_ip(melon::ip2int(span->remote_side().ip));
+        out->set_remote_ip(turbo::ip2int(span->remote_side().ip));
         out->set_remote_port(span->remote_side().port);
         out->set_type(span->type());
         out->set_async(span->async());
@@ -484,9 +484,9 @@ namespace melon::rpc {
         local.id_db_name.append(prefix, nw + nw2);
         // Create the dir first otherwise leveldb fails.
         std::error_code ec;
-        const melon::file_path dir(local.id_db_name);
-        if (!melon::create_directories(dir, ec)) {
-            MELON_LOG(ERROR) << "Fail to create directory=`" << dir.c_str() << ", "
+        const turbo::file_path dir(local.id_db_name);
+        if (!turbo::create_directories(dir, ec)) {
+            TURBO_LOG(ERROR) << "Fail to create directory=`" << dir.c_str() << ", "
                              << ec.message();
             return nullptr;
         }
@@ -494,7 +494,7 @@ namespace melon::rpc {
         local.id_db_name.append("/id.db");
         st = leveldb::DB::Open(options, local.id_db_name.c_str(), &local.id_db);
         if (!st.ok()) {
-            MELON_LOG(ERROR) << "Fail to open id_db: " << st.ToString();
+            TURBO_LOG(ERROR) << "Fail to open id_db: " << st.ToString();
             return nullptr;
         }
 
@@ -503,14 +503,14 @@ namespace melon::rpc {
         local.time_db_name.append("/time.db");
         st = leveldb::DB::Open(options, local.time_db_name.c_str(), &local.time_db);
         if (!st.ok()) {
-            MELON_LOG(ERROR) << "Fail to open time_db: " << st.ToString();
+            TURBO_LOG(ERROR) << "Fail to open time_db: " << st.ToString();
             return nullptr;
         }
         SpanDB *db = new(std::nothrow) SpanDB;
         if (nullptr == db) {
             return nullptr;
         }
-        MELON_LOG(INFO) << "Opened " << local.id_db_name << " and "
+        TURBO_LOG(INFO) << "Opened " << local.id_db_name << " and "
                         << local.time_db_name;
         Swap(local, *db);
         return db;
@@ -607,7 +607,7 @@ namespace melon::rpc {
         leveldb::Iterator *it = time_db->NewIterator(leveldb::ReadOptions());
         for (it->SeekToFirst(); it->Valid(); it->Next()) {
             if (it->key().size() != 8) {
-                MELON_LOG(ERROR) << "Invalid key size: " << it->key().size();
+                TURBO_LOG(ERROR) << "Invalid key size: " << it->key().size();
                 continue;
             }
             const int64_t realtime =
@@ -623,15 +623,15 @@ namespace melon::rpc {
                 leveldb::Slice key((char *) key_data, sizeof(key_data));
                 rc = id_db->Delete(options, key);
                 if (!rc.ok()) {
-                    MELON_LOG(ERROR) << "Fail to delete from id_db";
+                    TURBO_LOG(ERROR) << "Fail to delete from id_db";
                     break;
                 }
             } else {
-                MELON_LOG(ERROR) << "Fail to parse from value";
+                TURBO_LOG(ERROR) << "Fail to parse from value";
             }
             rc = time_db->Delete(options, it->key());
             if (!rc.ok()) {
-                MELON_LOG(ERROR) << "Fail to delete from time_db";
+                TURBO_LOG(ERROR) << "Fail to delete from time_db";
                 break;
             }
         }
@@ -645,7 +645,7 @@ namespace melon::rpc {
 
         std::string value_buf;
 
-        melon::container::intrusive_ptr<SpanDB> db;
+        turbo::container::intrusive_ptr<SpanDB> db;
         if (GetSpanDB(&db) != 0) {
             if (g_span_ending) {
                 destroy();
@@ -653,7 +653,7 @@ namespace melon::rpc {
             }
             SpanDB *db2 = SpanDB::Open();
             if (db2 == nullptr) {
-                MELON_LOG(WARNING) << "Fail to open SpanDB";
+                TURBO_LOG(WARNING) << "Fail to open SpanDB";
                 destroy();
                 return;
             }
@@ -664,7 +664,7 @@ namespace melon::rpc {
         leveldb::Status st = db->Index(this, &value_buf);
         destroy();
         if (!st.ok()) {
-            MELON_LOG(WARNING) << st.ToString();
+            TURBO_LOG(WARNING) << st.ToString();
             if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
                 ResetSpanDB(nullptr);
                 return;
@@ -672,13 +672,13 @@ namespace melon::rpc {
         }
 
         // Remove old spans
-        const int64_t now = melon::get_current_time_micros();
+        const int64_t now = turbo::get_current_time_micros();
         if (now > g_last_delete_tm + SPAN_DELETE_INTERVAL_US) {
             g_last_delete_tm = now;
             leveldb::Status st = db->RemoveSpansBefore(
                     now - FLAGS_rpcz_keep_span_seconds * 1000000L);
             if (!st.ok()) {
-                MELON_LOG(ERROR) << st.ToString();
+                TURBO_LOG(ERROR) << st.ToString();
                 if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
                     ResetSpanDB(nullptr);
                     return;
@@ -688,7 +688,7 @@ namespace melon::rpc {
     }
 
     int FindSpan(uint64_t trace_id, uint64_t span_id, RpczSpan *response) {
-        melon::container::intrusive_ptr<SpanDB> db;
+        turbo::container::intrusive_ptr<SpanDB> db;
         if (GetSpanDB(&db) != 0) {
             return -1;
         }
@@ -702,7 +702,7 @@ namespace melon::rpc {
             return -1;
         }
         if (!response->ParseFromString(value)) {
-            MELON_LOG(ERROR) << "Fail to parse from the value";
+            TURBO_LOG(ERROR) << "Fail to parse from the value";
             return -1;
         }
         return 0;
@@ -710,7 +710,7 @@ namespace melon::rpc {
 
     void FindSpans(uint64_t trace_id, std::deque<RpczSpan> *out) {
         out->clear();
-        melon::container::intrusive_ptr<SpanDB> db;
+        turbo::container::intrusive_ptr<SpanDB> db;
         if (GetSpanDB(&db) != 0) {
             return;
         }
@@ -721,7 +721,7 @@ namespace melon::rpc {
         leveldb::Slice key((char *) key_data, sizeof(key_data));
         for (it->Seek(key); it->Valid(); it->Next()) {
             if (it->key().size() != sizeof(key_data)) {
-                MELON_LOG(ERROR) << "Invalid key size: " << it->key().size();
+                TURBO_LOG(ERROR) << "Invalid key size: " << it->key().size();
                 break;
             }
             const uint64_t stored_trace_id =
@@ -733,7 +733,7 @@ namespace melon::rpc {
             if (span.ParseFromArray(it->value().data(), it->value().size())) {
                 out->push_back(span);
             } else {
-                MELON_LOG(ERROR) << "Fail to parse from value";
+                TURBO_LOG(ERROR) << "Fail to parse from value";
             }
         }
         delete it;
@@ -742,7 +742,7 @@ namespace melon::rpc {
     void ListSpans(int64_t starting_realtime, size_t max_scan,
                    std::deque<BriefSpan> *out, SpanFilter *filter) {
         out->clear();
-        melon::container::intrusive_ptr<SpanDB> db;
+        turbo::container::intrusive_ptr<SpanDB> db;
         if (GetSpanDB(&db) != 0) {
             return;
         }
@@ -772,14 +772,14 @@ namespace melon::rpc {
                 // scaning too many entries.
                 ++nscan;
             } else {
-                MELON_LOG(ERROR) << "Fail to parse from value";
+                TURBO_LOG(ERROR) << "Fail to parse from value";
             }
         }
         delete it;
     }
 
     void DescribeSpanDB(std::ostream &os) {
-        melon::container::intrusive_ptr<SpanDB> db;
+        turbo::container::intrusive_ptr<SpanDB> db;
         if (GetSpanDB(&db) != 0) {
             return;
         }

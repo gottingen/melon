@@ -19,10 +19,10 @@
 #include <inttypes.h>
 #include <google/protobuf/descriptor.h>
 #include <gflags/gflags.h>
-#include "melon/times/time.h"                              // milliseconds_from_now
-#include "melon/log/logging.h"
-#include "melon/strings/trim.h"
-#include "melon/hash/murmurhash3.h"
+#include "turbo/times/time.h"                              // milliseconds_from_now
+#include "turbo/log/logging.h"
+#include "turbo/strings/trim.h"
+#include "turbo/hash/murmurhash3.h"
 #include "melon/fiber/internal/unstable.h"                        // fiber_timer_add
 #include "melon/rpc/socket_map.h"                         // SocketMapInsert
 #include "melon/rpc/compress.h"
@@ -62,10 +62,10 @@ namespace melon::rpc {
         uint32_t seed = 0;
         std::string buf;
         buf.reserve(1024);
-        melon::hash::MurmurHash3_x64_128_Context mm_ctx;
+        turbo::hash::MurmurHash3_x64_128_Context mm_ctx;
         do {
             buf.clear();
-            melon::hash::MurmurHash3_x64_128_Init(&mm_ctx, seed);
+            turbo::hash::MurmurHash3_x64_128_Init(&mm_ctx, seed);
 
             if (!opt.connection_group.empty()) {
                 buf.append("|conng=");
@@ -91,22 +91,22 @@ namespace melon::rpc {
             } else {
                 // All disabled ChannelSSLOptions are the same
             }
-            melon::hash::MurmurHash3_x64_128_Update(&mm_ctx, buf.data(), buf.size());
+            turbo::hash::MurmurHash3_x64_128_Update(&mm_ctx, buf.data(), buf.size());
             buf.clear();
 
             if (opt.has_ssl_options()) {
                 const CertInfo &cert = opt.ssl_options().client_cert;
                 if (!cert.certificate.empty()) {
                     // Certificate may be too long (PEM string) to fit into `buf'
-                    melon::hash::MurmurHash3_x64_128_Update(
+                    turbo::hash::MurmurHash3_x64_128_Update(
                             &mm_ctx, cert.certificate.data(), cert.certificate.size());
-                    melon::hash::MurmurHash3_x64_128_Update(
+                    turbo::hash::MurmurHash3_x64_128_Update(
                             &mm_ctx, cert.private_key.data(), cert.private_key.size());
                 }
             }
             // sni_filters has no effect in ChannelSSLOptions
             ChannelSignature result;
-            melon::hash::MurmurHash3_x64_128_Final(result.data, &mm_ctx);
+            turbo::hash::MurmurHash3_x64_128_Final(result.data, &mm_ctx);
             if (result != ChannelSignature()) {
                 // the empty result is reserved for default case and cannot
                 // be used, increment the seed and retry.
@@ -134,7 +134,7 @@ namespace melon::rpc {
         }
         const Protocol *protocol = FindProtocol(_options.protocol);
         if (nullptr == protocol || !protocol->support_client()) {
-            MELON_LOG(ERROR) << "Channel does not support the protocol";
+            TURBO_LOG(ERROR) << "Channel does not support the protocol";
             return -1;
         }
         _serialize_request = protocol->serialize_request;
@@ -155,13 +155,13 @@ namespace melon::rpc {
                 _options.connection_type = CONNECTION_TYPE_SHORT;
             }
             if (has_error) {
-                MELON_LOG(ERROR) << "Channel=" << this << " chose connection_type="
+                TURBO_LOG(ERROR) << "Channel=" << this << " chose connection_type="
                                  << _options.connection_type.name() << " for protocol="
                                  << _options.protocol.name();
             }
         } else {
             if (!(_options.connection_type & protocol->supported_connection_type)) {
-                MELON_LOG(ERROR) << protocol->name << " does not support connection_type="
+                TURBO_LOG(ERROR) << protocol->name << " does not support connection_type="
                                  << ConnectionTypeToString(_options.connection_type);
                 return -1;
             }
@@ -169,7 +169,7 @@ namespace melon::rpc {
 
         _preferred_index = get_client_side_messenger()->FindProtocolIndex(_options.protocol);
         if (_preferred_index < 0) {
-            MELON_LOG(ERROR) << "Fail to get index for protocol="
+            TURBO_LOG(ERROR) << "Fail to get index for protocol="
                              << _options.protocol.name();
             return -1;
         }
@@ -183,7 +183,7 @@ namespace melon::rpc {
         // Normalize connection_group
         std::string &cg = _options.connection_group;
         if (!cg.empty() && (::isspace(cg.front()) || ::isspace(cg.back()))) {
-            melon::trim_inplace_all(&cg);
+            turbo::trim_inplace_all(&cg);
         }
         return 0;
     }
@@ -191,16 +191,16 @@ namespace melon::rpc {
     int Channel::Init(const char *server_addr_and_port,
                       const ChannelOptions *options) {
         GlobalInitializeOrDie();
-        melon::end_point point;
+        turbo::end_point point;
         const AdaptiveProtocolType &ptype = (options ? options->protocol : _options.protocol);
         const Protocol *protocol = FindProtocol(ptype);
         if (protocol == nullptr || !protocol->support_client()) {
-            MELON_LOG(ERROR) << "Channel does not support the protocol";
+            TURBO_LOG(ERROR) << "Channel does not support the protocol";
             return -1;
         }
         if (protocol->parse_server_address != nullptr) {
             if (!protocol->parse_server_address(&point, server_addr_and_port)) {
-                MELON_LOG(ERROR) << "Fail to parse address=`" << server_addr_and_port << '\'';
+                TURBO_LOG(ERROR) << "Fail to parse address=`" << server_addr_and_port << '\'';
                 return -1;
             }
         } else {
@@ -209,11 +209,11 @@ namespace melon::rpc {
                 // Many users called the wrong Init(). Print some log to save
                 // our troubleshooting time.
                 if (strstr(server_addr_and_port, "://")) {
-                    MELON_LOG(ERROR) << "Invalid address=`" << server_addr_and_port
+                    TURBO_LOG(ERROR) << "Invalid address=`" << server_addr_and_port
                                      << "'. Use Init(naming_service_name, "
                                         "load_balancer_name, options) instead.";
                 } else {
-                    MELON_LOG(ERROR) << "Invalid address=`" << server_addr_and_port << '\'';
+                    TURBO_LOG(ERROR) << "Invalid address=`" << server_addr_and_port << '\'';
                 }
                 return -1;
             }
@@ -224,23 +224,23 @@ namespace melon::rpc {
     int Channel::Init(const char *server_addr, int port,
                       const ChannelOptions *options) {
         GlobalInitializeOrDie();
-        melon::end_point point;
+        turbo::end_point point;
         const AdaptiveProtocolType &ptype = (options ? options->protocol : _options.protocol);
         const Protocol *protocol = FindProtocol(ptype);
         if (protocol == nullptr || !protocol->support_client()) {
-            MELON_LOG(ERROR) << "Channel does not support the protocol";
+            TURBO_LOG(ERROR) << "Channel does not support the protocol";
             return -1;
         }
         if (protocol->parse_server_address != nullptr) {
             if (!protocol->parse_server_address(&point, server_addr)) {
-                MELON_LOG(ERROR) << "Fail to parse address=`" << server_addr << '\'';
+                TURBO_LOG(ERROR) << "Fail to parse address=`" << server_addr << '\'';
                 return -1;
             }
             point.port = port;
         } else {
             if (str2endpoint(server_addr, port, &point) != 0 &&
                 hostname2endpoint(server_addr, port, &point) != 0) {
-                MELON_LOG(ERROR) << "Invalid address=`" << server_addr << '\'';
+                TURBO_LOG(ERROR) << "Invalid address=`" << server_addr << '\'';
                 return -1;
             }
         }
@@ -252,7 +252,7 @@ namespace melon::rpc {
         if (options.has_ssl_options()) {
             SSL_CTX *raw_ctx = CreateClientSSLContext(options.ssl_options());
             if (!raw_ctx) {
-                MELON_LOG(ERROR) << "Fail to CreateClientSSLContext";
+                TURBO_LOG(ERROR) << "Fail to CreateClientSSLContext";
                 return -1;
             }
             *ssl_ctx = std::make_shared<SocketSSLContext>();
@@ -264,12 +264,12 @@ namespace melon::rpc {
         return 0;
     }
 
-    int Channel::Init(melon::end_point server_addr_and_port,
+    int Channel::Init(turbo::end_point server_addr_and_port,
                       const ChannelOptions *options) {
         return InitSingle(server_addr_and_port, "", options);
     }
 
-    int Channel::InitSingle(const melon::end_point &server_addr_and_port,
+    int Channel::InitSingle(const turbo::end_point &server_addr_and_port,
                             const char *raw_server_address,
                             const ChannelOptions *options,
                             int raw_port) {
@@ -290,7 +290,7 @@ namespace melon::rpc {
         }
         const int port = server_addr_and_port.port;
         if (port < 0) {
-            MELON_LOG(ERROR) << "Invalid port=" << port;
+            TURBO_LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }
         _server_address = server_addr_and_port;
@@ -301,7 +301,7 @@ namespace melon::rpc {
         }
         if (SocketMapInsert(SocketMapKey(server_addr_and_port, sig),
                             &_server_id, ssl_ctx) != 0) {
-            MELON_LOG(ERROR) << "Fail to insert into SocketMap";
+            TURBO_LOG(ERROR) << "Fail to insert into SocketMap";
             return -1;
         }
         return 0;
@@ -331,7 +331,7 @@ namespace melon::rpc {
         }
         LoadBalancerWithNaming *lb = new(std::nothrow) LoadBalancerWithNaming;
         if (nullptr == lb) {
-            MELON_LOG(FATAL) << "Fail to new LoadBalancerWithNaming";
+            TURBO_LOG(FATAL) << "Fail to new LoadBalancerWithNaming";
             return -1;
         }
         GetNamingServiceThreadOptions ns_opt;
@@ -342,7 +342,7 @@ namespace melon::rpc {
             return -1;
         }
         if (lb->Init(ns_url, lb_name, _options.ns_filter, &ns_opt) != 0) {
-            MELON_LOG(ERROR) << "Fail to initialize LoadBalancerWithNaming";
+            TURBO_LOG(ERROR) << "Fail to initialize LoadBalancerWithNaming";
             delete lb;
             return -1;
         }
@@ -365,7 +365,7 @@ namespace melon::rpc {
                              const google::protobuf::Message *request,
                              google::protobuf::Message *response,
                              google::protobuf::Closure *done) {
-        const int64_t start_send_real_us = melon::get_current_time_micros();
+        const int64_t start_send_real_us = turbo::get_current_time_micros();
         Controller *cntl = static_cast<Controller *>(controller_base);
         cntl->OnRPCBegin(start_send_real_us);
         // Override max_retry first to reset the range of correlation_id
@@ -380,7 +380,7 @@ namespace melon::rpc {
         // HTTP needs this field to be set before any SetFailed()
         cntl->_request_protocol = _options.protocol;
         if (_options.protocol.has_param()) {
-            MELON_CHECK(cntl->protocol_param().empty());
+            TURBO_CHECK(cntl->protocol_param().empty());
             cntl->protocol_param() = _options.protocol.param();
         }
         if (_options.protocol == melon::rpc::PROTOCOL_HTTP) {
@@ -398,12 +398,12 @@ namespace melon::rpc {
         const int rc = fiber_token_lock_and_reset_range(
                 correlation_id, nullptr, 2 + cntl->max_retry());
         if (rc != 0) {
-            MELON_CHECK_EQ(EINVAL, rc);
+            TURBO_CHECK_EQ(EINVAL, rc);
             if (!cntl->FailedInline()) {
                 cntl->SetFailed(EINVAL, "Fail to lock call_id=%" PRId64,
                                 correlation_id.value);
             }
-            MELON_LOG_IF(ERROR, cntl->is_used_by_rpc())
+            TURBO_LOG_IF(ERROR, cntl->is_used_by_rpc())
                             << "Controller=" << cntl << " was used by another RPC before. "
                                                         "Did you forget to Reset() it before reuse?";
             // Have to run done in-place. If the done runs in another thread,
@@ -421,7 +421,7 @@ namespace melon::rpc {
         cntl->set_used_by_rpc();
 
         if (cntl->_sender == nullptr && IsTraceable(Span::tls_parent())) {
-            const int64_t start_send_us = melon::get_current_time_micros();
+            const int64_t start_send_us = turbo::get_current_time_micros();
             const std::string *method_name = nullptr;
             if (_get_method_name) {
                 method_name = &_get_method_name(method, cntl);
@@ -505,10 +505,10 @@ namespace melon::rpc {
             }
             const int rc = fiber_timer_add(
                     &cntl->_timeout_id,
-                    melon::time_point::from_unix_micros(
+                    turbo::time_point::from_unix_micros(
                             cntl->backup_request_ms() * 1000L + start_send_real_us).to_timespec(),
                     HandleBackupRequest, (void *) correlation_id.value);
-            if (MELON_UNLIKELY(rc != 0)) {
+            if (TURBO_UNLIKELY(rc != 0)) {
                 cntl->SetFailed(rc, "Fail to add timer for backup request");
                 return cntl->HandleSendFailed();
             }
@@ -519,9 +519,9 @@ namespace melon::rpc {
             cntl->_deadline_us = cntl->timeout_ms() * 1000L + start_send_real_us;
             const int rc = fiber_timer_add(
                     &cntl->_timeout_id,
-                    melon::time_point::from_unix_micros(cntl->_deadline_us).to_timespec(),
+                    turbo::time_point::from_unix_micros(cntl->_deadline_us).to_timespec(),
                     HandleTimeout, (void *) correlation_id.value);
-            if (MELON_UNLIKELY(rc != 0)) {
+            if (TURBO_UNLIKELY(rc != 0)) {
                 cntl->SetFailed(rc, "Fail to add timer for timeout");
                 return cntl->HandleSendFailed();
             }
@@ -538,7 +538,7 @@ namespace melon::rpc {
             if (cntl->_span) {
                 cntl->SubmitSpan();
             }
-            cntl->OnRPCEnd(melon::get_current_time_micros());
+            cntl->OnRPCEnd(turbo::get_current_time_micros());
         }
     }
 

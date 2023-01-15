@@ -24,30 +24,30 @@
 namespace melon::rpc {
 
 // Utility functions to combine and extract SocketId.
-    MELON_FORCE_INLINE SocketId
-    MakeSocketId(uint32_t version, melon::ResourceId<Socket> slot) {
+    TURBO_FORCE_INLINE SocketId
+    MakeSocketId(uint32_t version, turbo::ResourceId<Socket> slot) {
         return SocketId((((uint64_t) version) << 32) | slot.value);
     }
 
-    MELON_FORCE_INLINE melon::ResourceId<Socket> SlotOfSocketId(SocketId sid) {
-        melon::ResourceId<Socket> id = {(sid & 0xFFFFFFFFul)};
+    TURBO_FORCE_INLINE turbo::ResourceId<Socket> SlotOfSocketId(SocketId sid) {
+        turbo::ResourceId<Socket> id = {(sid & 0xFFFFFFFFul)};
         return id;
     }
 
-    MELON_FORCE_INLINE uint32_t VersionOfSocketId(SocketId sid) {
+    TURBO_FORCE_INLINE uint32_t VersionOfSocketId(SocketId sid) {
         return (uint32_t) (sid >> 32);
     }
 
     // Utility functions to combine and extract Socket::_versioned_ref
-    MELON_FORCE_INLINE uint32_t VersionOfVRef(uint64_t vref) {
+    TURBO_FORCE_INLINE uint32_t VersionOfVRef(uint64_t vref) {
         return (uint32_t) (vref >> 32);
     }
 
-    MELON_FORCE_INLINE int32_t NRefOfVRef(uint64_t vref) {
+    TURBO_FORCE_INLINE int32_t NRefOfVRef(uint64_t vref) {
         return (int32_t) (vref & 0xFFFFFFFFul);
     }
 
-    MELON_FORCE_INLINE uint64_t MakeVRef(uint32_t version, int32_t nref) {
+    TURBO_FORCE_INLINE uint64_t MakeVRef(uint32_t version, int32_t nref) {
         // 1: Intended conversion to uint32_t, nref=-1 is 00000000FFFFFFFF
         return (((uint64_t) version) << 32) | (uint32_t/*1*/) nref;
     }
@@ -107,15 +107,15 @@ namespace melon::rpc {
                 }
                 return 0;
             }
-            MELON_LOG(FATAL) << "Invalid SocketId=" << id;
+            TURBO_LOG(FATAL) << "Invalid SocketId=" << id;
             return -1;
         }
-        MELON_LOG(FATAL) << "Over dereferenced SocketId=" << id;
+        TURBO_LOG(FATAL) << "Over dereferenced SocketId=" << id;
         return -1;
     }
 
     inline int Socket::Address(SocketId id, SocketUniquePtr *ptr) {
-        const melon::ResourceId<Socket> slot = SlotOfSocketId(id);
+        const turbo::ResourceId<Socket> slot = SlotOfSocketId(id);
         Socket *const m = address_resource(slot);
         if (__builtin_expect(m != nullptr, 1)) {
             // acquire fence makes sure this thread sees latest changes before
@@ -146,15 +146,15 @@ namespace melon::rpc {
                             return_resource(SlotOfSocketId(id));
                         }
                     } else {
-                        MELON_CHECK(false) << "ref-version=" << ver1
+                        TURBO_CHECK(false) << "ref-version=" << ver1
                                            << " unref-version=" << ver2;
                     }
                 } else {
-                    MELON_CHECK_EQ(ver1, ver2);
+                    TURBO_CHECK_EQ(ver1, ver2);
                     // Addressed a free slot.
                 }
             } else {
-                MELON_CHECK(false) << "Over dereferenced SocketId=" << id;
+                TURBO_CHECK(false) << "Over dereferenced SocketId=" << id;
             }
         }
         return -1;
@@ -166,7 +166,7 @@ namespace melon::rpc {
     }
 
     inline int Socket::AddressFailedAsWell(SocketId id, SocketUniquePtr *ptr) {
-        const melon::ResourceId<Socket> slot = SlotOfSocketId(id);
+        const turbo::ResourceId<Socket> slot = SlotOfSocketId(id);
         Socket *const m = address_resource(slot);
         if (__builtin_expect(m != nullptr, 1)) {
             const uint64_t vref1 = m->_versioned_ref.fetch_add(
@@ -199,14 +199,14 @@ namespace melon::rpc {
                             return_resource(slot);
                         }
                     } else {
-                        MELON_CHECK(false) << "ref-version=" << ver1
+                        TURBO_CHECK(false) << "ref-version=" << ver1
                                            << " unref-version=" << ver2;
                     }
                 } else {
                     // Addressed a free slot.
                 }
             } else {
-                MELON_CHECK(false) << "Over dereferenced SocketId=" << id;
+                TURBO_CHECK(false) << "Over dereferenced SocketId=" << id;
             }
         }
         return -1;
@@ -232,7 +232,7 @@ namespace melon::rpc {
                 // events. We need to `SetFailed' it to trigger health
                 // checking, otherwise it may be blocked forever
                 SetFailed(ELOGOFF, "The server at %s is stopping",
-                          melon::endpoint2str(remote_side()).c_str());
+                          turbo::endpoint2str(remote_side()).c_str());
             }
         }
     }
@@ -301,7 +301,7 @@ namespace melon::rpc {
 
 // NOTE: Push/Pop may be called from different threads simultaneously.
     inline void Socket::PushPipelinedInfo(const PipelinedInfo &pi) {
-        MELON_SCOPED_LOCK(_pipeline_mutex);
+        TURBO_SCOPED_LOCK(_pipeline_mutex);
         if (_pipeline_q == nullptr) {
             _pipeline_q = new std::deque<PipelinedInfo>;
         }
@@ -309,7 +309,7 @@ namespace melon::rpc {
     }
 
     inline bool Socket::PopPipelinedInfo(PipelinedInfo *info) {
-        MELON_SCOPED_LOCK(_pipeline_mutex);
+        TURBO_SCOPED_LOCK(_pipeline_mutex);
         if (_pipeline_q != nullptr && !_pipeline_q->empty()) {
             *info = _pipeline_q->front();
             _pipeline_q->pop_front();
@@ -319,7 +319,7 @@ namespace melon::rpc {
     }
 
     inline void Socket::GivebackPipelinedInfo(const PipelinedInfo &pi) {
-        MELON_SCOPED_LOCK(_pipeline_mutex);
+        TURBO_SCOPED_LOCK(_pipeline_mutex);
         if (_pipeline_q != nullptr) {
             _pipeline_q->push_front(pi);
         }

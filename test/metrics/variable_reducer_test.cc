@@ -10,10 +10,10 @@
 
 #include "melon/metrics/variable_reducer.h"
 #include "melon/metrics/gauge.h"
-#include "melon/times/time.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/string_splitter.h"
-#include "melon/container/hash_tables.h"
+#include "turbo/times/time.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/string_splitter.h"
+#include "turbo/container/hash_tables.h"
 
 namespace {
     class ReducerTest : public testing::Test {
@@ -52,7 +52,7 @@ namespace {
 
     static void *thread_counter(void *arg) {
         melon::gauge<uint64_t> *reducer = (melon::gauge<uint64_t> *) arg;
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         timer.start();
         for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
             (*reducer) << 2;
@@ -63,7 +63,7 @@ namespace {
 
     void *add_atomic(void *arg) {
         std::atomic<uint64_t> *counter = (std::atomic<uint64_t> *) arg;
-        melon::stop_watcher timer;
+        turbo::stop_watcher timer;
         timer.start();
         for (size_t i = 0; i < OPS_PER_THREAD / 100; ++i) {
             counter->fetch_add(2, std::memory_order_relaxed);
@@ -112,12 +112,12 @@ namespace {
         for (size_t i = 1; i <= 24; ++i) {
             oss << i << '\t' << start_perf_test_with_adder(i) << '\n';
         }
-        MELON_LOG(INFO) << "Adder performance:\n" << oss.str();
+        TURBO_LOG(INFO) << "Adder performance:\n" << oss.str();
         oss.str("");
         for (size_t i = 1; i <= 24; ++i) {
             oss << i << '\t' << start_perf_test_with_atomic(i) << '\n';
         }
-        MELON_LOG(INFO) << "Atomic performance:\n" << oss.str();
+        TURBO_LOG(INFO) << "Atomic performance:\n" << oss.str();
     }
 
     TEST_F(ReducerTest, Min) {
@@ -194,18 +194,18 @@ namespace {
         const int N = 6000;
         int count = 0;
         int total_count = 0;
-        int64_t last_time = melon::get_current_time_micros();
+        int64_t last_time = turbo::get_current_time_micros();
         for (int i = 1; i <= N; ++i) {
             c1 << 1;
             c2 << N - i;
             c3 << i;
             ++count;
             ++total_count;
-            int64_t now = melon::get_current_time_micros();
+            int64_t now = turbo::get_current_time_micros();
             if (now - last_time >= 1000000L) {
                 last_time = now;
                 ASSERT_EQ(total_count, c1.get_value());
-                MELON_LOG(INFO) << "c1=" << total_count
+                TURBO_LOG(INFO) << "c1=" << total_count
                                 << " count=" << count
                                 << " w1=" << w1
                                 << " w2=" << w2
@@ -254,7 +254,7 @@ namespace {
     static void *string_appender(void *arg) {
         melon::gauge<std::string> *cater = (melon::gauge<std::string> *) arg;
         int count = 0;
-        std::string id = melon::string_printf("%lld", (long long) pthread_self());
+        std::string id = turbo::string_printf("%lld", (long long) pthread_self());
         std::string tmp = "a";
         for (count = 0; !count || !g_stop; ++count) {
             *cater << id << ":";
@@ -266,7 +266,7 @@ namespace {
         }
         StringAppenderResult *res = new StringAppenderResult;
         res->count = count;
-        MELON_LOG(INFO) << "Appended " << count;
+        TURBO_LOG(INFO) << "Appended " << count;
         return res;
     }
 
@@ -274,21 +274,21 @@ namespace {
         melon::gauge<std::string> cater;
         pthread_t th[8];
         g_stop = false;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             pthread_create(&th[i], nullptr, string_appender, &cater);
         }
         usleep(50000);
         g_stop = true;
-        melon::container::hash_map<pthread_t, int> appended_count;
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        turbo::container::hash_map<pthread_t, int> appended_count;
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             StringAppenderResult *res = nullptr;
             pthread_join(th[i], (void **) &res);
             appended_count[th[i]] = res->count;
             delete res;
         }
-        melon::container::hash_map<pthread_t, int> got_count;
+        turbo::container::hash_map<pthread_t, int> got_count;
         std::string res = cater.get_value();
-        for (melon::StringSplitter sp(res.c_str(), '.'); sp; ++sp) {
+        for (turbo::StringSplitter sp(res.c_str(), '.'); sp; ++sp) {
             char *endptr = nullptr;
             ++got_count[(pthread_t) strtoll(sp.field(), &endptr, 10)];
             ASSERT_EQ(27LL, sp.field() + sp.length() - endptr)
@@ -296,7 +296,7 @@ namespace {
             ASSERT_EQ(0, memcmp(":abcdefghijklmnopqrstuvwxyz", endptr, 27));
         }
         ASSERT_EQ(appended_count.size(), got_count.size());
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(appended_count[th[i]], got_count[th[i]]);
         }
     }

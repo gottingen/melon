@@ -19,10 +19,10 @@
 #include <algorithm>
 #include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/wire_format.h>
-#include "melon/strings/str_format.h"
-#include "melon/base/profile.h"
-#include "melon/base/endian.h"
-#include "melon/log/logging.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/endian.h"
+#include "turbo/log/logging.h"
 #include "melon/rpc/memcache.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
 
@@ -74,17 +74,17 @@ namespace melon::rpc {
 
     bool MemcacheRequest::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *input) {
-        MELON_LOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
+        TURBO_LOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
 
         // simple approach just making it work.
-        melon::cord_buf tmp;
+        turbo::cord_buf tmp;
         const void *data = nullptr;
         int size = 0;
         while (input->GetDirectBufferPointer(&data, &size)) {
             tmp.append(data, size);
             input->Skip(size);
         }
-        const melon::cord_buf saved = tmp;
+        const turbo::cord_buf saved = tmp;
         int count = 0;
         for (; !tmp.empty(); ++count) {
             char aux_buf[sizeof(policy::MemcacheRequestHeader)];
@@ -96,7 +96,7 @@ namespace melon::rpc {
             if (header->magic != (uint8_t) policy::MC_MAGIC_REQUEST) {
                 return false;
             }
-            uint32_t total_body_length = melon::base::melon_ntoh32(header->total_body_length);
+            uint32_t total_body_length = turbo::base::turbo_ntoh32(header->total_body_length);
             if (tmp.size() < sizeof(*header) + total_body_length) {
                 return false;
             }
@@ -109,10 +109,10 @@ namespace melon::rpc {
 
     void MemcacheRequest::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *output) const {
-        MELON_LOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
+        TURBO_LOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
 
         // simple approach just making it work.
-        melon::cord_buf_as_zero_copy_input_stream wrapper(_buf);
+        turbo::cord_buf_as_zero_copy_input_stream wrapper(_buf);
         const void *data = nullptr;
         int size = 0;
         while (wrapper.Next(&data, &size)) {
@@ -221,7 +221,7 @@ namespace melon::rpc {
 
     bool MemcacheResponse::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *input) {
-        MELON_LOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
+        TURBO_LOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
 
         // simple approach just making it work.
         const void *data = nullptr;
@@ -235,10 +235,10 @@ namespace melon::rpc {
 
     void MemcacheResponse::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *output) const {
-        MELON_LOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
+        TURBO_LOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
 
         // simple approach just making it work.
-        melon::cord_buf_as_zero_copy_input_stream wrapper(_buf);
+        turbo::cord_buf_as_zero_copy_input_stream wrapper(_buf);
         const void *data = nullptr;
         int size = 0;
         while (wrapper.Next(&data, &size)) {
@@ -342,11 +342,11 @@ namespace melon::rpc {
         const policy::MemcacheRequestHeader header = {
                 policy::MC_MAGIC_REQUEST,
                 command,
-                melon::base::melon_hton16(key.size()),
+                turbo::base::turbo_hton16(key.size()),
                 0,
                 policy::MC_BINARY_RAW_BYTES,
                 0,
-                melon::base::melon_hton32(key.size()),
+                turbo::base::turbo_hton32(key.size()),
                 0,
                 0
         };
@@ -394,9 +394,9 @@ namespace melon::rpc {
                                                             FLUSH_EXTRAS,
                                                             policy::MC_BINARY_RAW_BYTES,
                                                             0,
-                                                            melon::base::melon_hton32(FLUSH_EXTRAS),
+                                                            turbo::base::turbo_hton32(FLUSH_EXTRAS),
                                                             0,
-                                                            0}, melon::base::melon_hton32(timeout)};
+                                                            0}, turbo::base::turbo_hton32(timeout)};
         if (FLUSH_EXTRAS == 0) {
             if (_buf.append(&header_with_extras.header,
                             sizeof(policy::MemcacheRequestHeader))) {
@@ -424,30 +424,30 @@ namespace melon::rpc {
 //   +---------------+---------------+---------------+---------------+
 //   Total 4 bytes
     bool MemcacheResponse::PopGet(
-            melon::cord_buf *value, uint32_t *flags, uint64_t *cas_value) {
+            turbo::cord_buf *value, uint32_t *flags, uint64_t *cas_value) {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            melon::string_printf(&_err, "buffer is too small to contain a header");
+            turbo::string_printf(&_err, "buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != (uint8_t) policy::MC_BINARY_GET) {
-            melon::string_printf(&_err, "not a GET response");
+            turbo::string_printf(&_err, "not a GET response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            melon::string_printf(&_err, "response=%u < header=%u + body=%u",
+            turbo::string_printf(&_err, "response=%u < header=%u + body=%u",
                                  (unsigned) n, (unsigned) sizeof(header), header.total_body_length);
             return false;
         }
         if (header.status != (uint16_t) STATUS_SUCCESS) {
-            MELON_LOG_IF(ERROR, header.extras_length != 0) << "GET response must not have flags";
-            MELON_LOG_IF(ERROR, header.key_length != 0) << "GET response must not have key";
+            TURBO_LOG_IF(ERROR, header.extras_length != 0) << "GET response must not have flags";
+            TURBO_LOG_IF(ERROR, header.key_length != 0) << "GET response must not have key";
             const int value_size = (int) header.total_body_length - (int) header.extras_length
                                    - (int) header.key_length;
             if (value_size < 0) {
-                melon::string_printf(&_err, "value_size=%d is non-negative", value_size);
+                turbo::string_printf(&_err, "value_size=%d is non-negative", value_size);
                 return false;
             }
             _buf.pop_front(sizeof(header) + header.extras_length +
@@ -457,25 +457,25 @@ namespace melon::rpc {
             return false;
         }
         if (header.extras_length != 4u) {
-            melon::string_printf(&_err, "GET response must have flags as extras, actual length=%u",
+            turbo::string_printf(&_err, "GET response must have flags as extras, actual length=%u",
                                  header.extras_length);
             return false;
         }
         if (header.key_length != 0) {
-            melon::string_printf(&_err, "GET response must not have key");
+            turbo::string_printf(&_err, "GET response must not have key");
             return false;
         }
         const int value_size = (int) header.total_body_length - (int) header.extras_length
                                - (int) header.key_length;
         if (value_size < 0) {
-            melon::string_printf(&_err, "value_size=%d is non-negative", value_size);
+            turbo::string_printf(&_err, "value_size=%d is non-negative", value_size);
             return false;
         }
         _buf.pop_front(sizeof(header));
         uint32_t raw_flags = 0;
         _buf.cutn(&raw_flags, sizeof(raw_flags));
         if (flags) {
-            *flags = melon::base::melon_ntoh32(raw_flags);
+            *flags = turbo::base::turbo_ntoh32(raw_flags);
         }
         if (value) {
             value->clear();
@@ -490,7 +490,7 @@ namespace melon::rpc {
 
     bool MemcacheResponse::PopGet(
             std::string *value, uint32_t *flags, uint64_t *cas_value) {
-        melon::cord_buf tmp;
+        turbo::cord_buf tmp;
         if (PopGet(&tmp, flags, cas_value)) {
             tmp.copy_to(value);
             return true;
@@ -537,16 +537,16 @@ namespace melon::rpc {
         StoreHeaderWithExtras header_with_extras = {{
                                                             policy::MC_MAGIC_REQUEST,
                                                             command,
-                                                            melon::base::melon_hton16(key.size()),
+                                                            turbo::base::turbo_hton16(key.size()),
                                                             STORE_EXTRAS,
                                                             policy::MC_BINARY_RAW_BYTES,
                                                             0,
-                                                            melon::base::melon_hton32(
+                                                            turbo::base::turbo_hton32(
                                                                     STORE_EXTRAS + key.size() + value.size()),
                                                             0,
-                                                            melon::base::melon_hton64(cas_value)
-                                                    }, melon::base::melon_hton32(flags),
-                                                    melon::base::melon_hton32(exptime)};
+                                                            turbo::base::turbo_hton64(cas_value)
+                                                    }, turbo::base::turbo_hton32(flags),
+                                                    turbo::base::turbo_hton32(exptime)};
         if (_buf.append(&header_with_extras, sizeof(header_with_extras))) {
             return false;
         }
@@ -568,20 +568,20 @@ namespace melon::rpc {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            melon::string_printf(&_err, "buffer is too small to contain a header");
+            turbo::string_printf(&_err, "buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != command) {
-            melon::string_printf(&_err, "Not a STORE response");
+            turbo::string_printf(&_err, "Not a STORE response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            melon::string_printf(&_err, "Not enough data");
+            turbo::string_printf(&_err, "Not enough data");
             return false;
         }
-        MELON_LOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
-        MELON_LOG_IF(ERROR, header.key_length != 0) << "STORE response must not have key";
+        TURBO_LOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
+        TURBO_LOG_IF(ERROR, header.key_length != 0) << "STORE response must not have key";
         int value_size = (int) header.total_body_length - (int) header.extras_length
                          - (int) header.key_length;
         if (header.status != (uint16_t) STATUS_SUCCESS) {
@@ -590,11 +590,11 @@ namespace melon::rpc {
             _buf.cutn(&_err, value_size);
             return false;
         }
-        MELON_LOG_IF(ERROR, value_size != 0) << "STORE response must not have value, actually="
+        TURBO_LOG_IF(ERROR, value_size != 0) << "STORE response must not have value, actually="
                                              << value_size;
         _buf.pop_front(sizeof(header) + header.total_body_length);
         if (cas_value) {
-            MELON_CHECK(header.cas_value);
+            TURBO_CHECK(header.cas_value);
             *cas_value = header.cas_value;
         }
         _err.clear();
@@ -623,7 +623,7 @@ namespace melon::rpc {
             const std::string_view &key, const std::string_view &value,
             uint32_t flags, uint32_t exptime, uint64_t cas_value) {
         if (value.empty()) {
-            MELON_LOG(ERROR) << "value to append must be non-empty";
+            TURBO_LOG(ERROR) << "value to append must be non-empty";
             return false;
         }
         return Store(policy::MC_BINARY_APPEND, key, value, flags, exptime, cas_value);
@@ -633,7 +633,7 @@ namespace melon::rpc {
             const std::string_view &key, const std::string_view &value,
             uint32_t flags, uint32_t exptime, uint64_t cas_value) {
         if (value.empty()) {
-            MELON_LOG(ERROR) << "value to prepend must be non-empty";
+            TURBO_LOG(ERROR) << "value to prepend must be non-empty";
             return false;
         }
         return Store(policy::MC_BINARY_PREPEND, key, value, flags, exptime, cas_value);
@@ -693,15 +693,15 @@ namespace melon::rpc {
         IncrHeaderWithExtras header_with_extras = {{
                                                            policy::MC_MAGIC_REQUEST,
                                                            command,
-                                                           melon::base::melon_hton16(key.size()),
+                                                           turbo::base::turbo_hton16(key.size()),
                                                            INCR_EXTRAS,
                                                            policy::MC_BINARY_RAW_BYTES,
                                                            0,
-                                                           melon::base::melon_hton32(INCR_EXTRAS + key.size()),
+                                                           turbo::base::turbo_hton32(INCR_EXTRAS + key.size()),
                                                            0,
-                                                           0}, melon::base::melon_hton64(delta),
-                                                   melon::base::melon_hton64(initial_value),
-                                                   melon::base::melon_hton32(exptime)};
+                                                           0}, turbo::base::turbo_hton64(delta),
+                                                   turbo::base::turbo_hton64(initial_value),
+                                                   turbo::base::turbo_hton32(exptime)};
         if (_buf.append(&header_with_extras, sizeof(header_with_extras))) {
             return false;
         }
@@ -738,28 +738,28 @@ namespace melon::rpc {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            melon::string_printf(&_err, "buffer is too small to contain a header");
+            turbo::string_printf(&_err, "buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != command) {
-            melon::string_printf(&_err, "not a INCR/DECR response");
+            turbo::string_printf(&_err, "not a INCR/DECR response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            melon::string_printf(&_err, "response=%u < header=%u + body=%u",
+            turbo::string_printf(&_err, "response=%u < header=%u + body=%u",
                                  (unsigned) n, (unsigned) sizeof(header), header.total_body_length);
             return false;
         }
-        MELON_LOG_IF(ERROR, header.extras_length != 0) << "INCR/DECR response must not have flags";
-        MELON_LOG_IF(ERROR, header.key_length != 0) << "INCR/DECR response must not have key";
+        TURBO_LOG_IF(ERROR, header.extras_length != 0) << "INCR/DECR response must not have flags";
+        TURBO_LOG_IF(ERROR, header.key_length != 0) << "INCR/DECR response must not have key";
         const int value_size = (int) header.total_body_length - (int) header.extras_length
                                - (int) header.key_length;
         _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);
 
         if (header.status != (uint16_t) STATUS_SUCCESS) {
             if (value_size < 0) {
-                melon::string_printf(&_err, "value_size=%d is negative", value_size);
+                turbo::string_printf(&_err, "value_size=%d is negative", value_size);
             } else {
                 _err.clear();
                 _buf.cutn(&_err, value_size);
@@ -767,12 +767,12 @@ namespace melon::rpc {
             return false;
         }
         if (value_size != 8) {
-            melon::string_printf(&_err, "value_size=%d is not 8", value_size);
+            turbo::string_printf(&_err, "value_size=%d is not 8", value_size);
             return false;
         }
         uint64_t raw_value = 0;
         _buf.cutn(&raw_value, sizeof(raw_value));
-        *new_value = melon::base::melon_ntoh64(raw_value);
+        *new_value = turbo::base::turbo_ntoh64(raw_value);
         if (cas_value) {
             *cas_value = header.cas_value;
         }
@@ -813,13 +813,13 @@ namespace melon::rpc {
         TouchHeaderWithExtras header_with_extras = {{
                                                             policy::MC_MAGIC_REQUEST,
                                                             policy::MC_BINARY_TOUCH,
-                                                            melon::base::melon_hton16(key.size()),
+                                                            turbo::base::turbo_hton16(key.size()),
                                                             TOUCH_EXTRAS,
                                                             policy::MC_BINARY_RAW_BYTES,
                                                             0,
-                                                            melon::base::melon_hton32(TOUCH_EXTRAS + key.size()),
+                                                            turbo::base::turbo_hton32(TOUCH_EXTRAS + key.size()),
                                                             0,
-                                                            0}, melon::base::melon_hton32(exptime)};
+                                                            0}, turbo::base::turbo_hton32(exptime)};
         if (_buf.append(&header_with_extras, sizeof(header_with_extras))) {
             return false;
         }
@@ -859,26 +859,26 @@ namespace melon::rpc {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            melon::string_printf(&_err, "buffer is too small to contain a header");
+            turbo::string_printf(&_err, "buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != policy::MC_BINARY_VERSION) {
-            melon::string_printf(&_err, "not a VERSION response");
+            turbo::string_printf(&_err, "not a VERSION response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            melon::string_printf(&_err, "response=%u < header=%u + body=%u",
+            turbo::string_printf(&_err, "response=%u < header=%u + body=%u",
                                  (unsigned) n, (unsigned) sizeof(header), header.total_body_length);
             return false;
         }
-        MELON_LOG_IF(ERROR, header.extras_length != 0) << "VERSION response must not have flags";
-        MELON_LOG_IF(ERROR, header.key_length != 0) << "VERSION response must not have key";
+        TURBO_LOG_IF(ERROR, header.extras_length != 0) << "VERSION response must not have flags";
+        TURBO_LOG_IF(ERROR, header.key_length != 0) << "VERSION response must not have key";
         const int value_size = (int) header.total_body_length - (int) header.extras_length
                                - (int) header.key_length;
         _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);
         if (value_size < 0) {
-            melon::string_printf(&_err, "value_size=%d is negative", value_size);
+            turbo::string_printf(&_err, "value_size=%d is negative", value_size);
             return false;
         }
         if (header.status != (uint16_t) STATUS_SUCCESS) {

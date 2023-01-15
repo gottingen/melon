@@ -29,18 +29,18 @@ namespace melon::rpc {
 
         void ProcessUbrpcResponse(InputMessageBase *msg);
 
-        void SerializeUbrpcCompackRequest(melon::cord_buf *buf, Controller *cntl,
+        void SerializeUbrpcCompackRequest(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *request);
 
-        void SerializeUbrpcMcpack2Request(melon::cord_buf *buf, Controller *cntl,
+        void SerializeUbrpcMcpack2Request(turbo::cord_buf *buf, Controller *cntl,
                                           const google::protobuf::Message *request);
 
-        void PackUbrpcRequest(melon::cord_buf *buf,
+        void PackUbrpcRequest(turbo::cord_buf *buf,
                               SocketMessage **,
                               uint64_t correlation_id,
                               const google::protobuf::MethodDescriptor *method,
                               Controller *controller,
-                              const melon::cord_buf &request,
+                              const turbo::cord_buf &request,
                               const Authenticator *auth);
 
         class UbrpcAdaptor : public NsheadPbServiceAdaptor {

@@ -26,7 +26,7 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include "melon/times/time.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -47,10 +47,10 @@ public:
         , _called_on_first_message(0)
         , _nvideomsg(0)
         , _naudiomsg(0) {
-        MELON_LOG(INFO) << __FUNCTION__;
+        TURBO_LOG(INFO) << __FUNCTION__;
     }
     ~TestRtmpClientStream() {
-        MELON_LOG(INFO) << __FUNCTION__;
+        TURBO_LOG(INFO) << __FUNCTION__;
         assertions_on_stop();
     }
     void assertions_on_stop() {
@@ -76,13 +76,13 @@ public:
     void OnVideoMessage(melon::rpc::RtmpVideoMessage* msg) {
         ++_nvideomsg;
         // video data is ascii in UT, print it out.
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
     void OnAudioMessage(melon::rpc::RtmpAudioMessage* msg) {
         ++_naudiomsg;
         // audio data is ascii in UT, print it out.
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
 private:
@@ -99,10 +99,10 @@ public:
         : _called_on_stop(0)
         , _called_on_first_message(0)
         , _called_on_playable(0) {
-        MELON_LOG(INFO) << __FUNCTION__;
+        TURBO_LOG(INFO) << __FUNCTION__;
     }
     ~TestRtmpRetryingClientStream() {
-        MELON_LOG(INFO) << __FUNCTION__;
+        TURBO_LOG(INFO) << __FUNCTION__;
         assertions_on_stop();
     }
     void assertions_on_stop() {
@@ -120,12 +120,12 @@ public:
 
     void OnVideoMessage(melon::rpc::RtmpVideoMessage* msg) {
         // video data is ascii in UT, print it out.
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
     void OnAudioMessage(melon::rpc::RtmpAudioMessage* msg) {
         // audio data is ascii in UT, print it out.
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
 private:
@@ -145,16 +145,16 @@ public:
     };
     PlayingDummyStream(int64_t sleep_ms)
         : _state(STATE_UNPLAYING), _sleep_ms(sleep_ms) {
-        MELON_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        TURBO_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     ~PlayingDummyStream() {
-        MELON_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        TURBO_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     void OnPlay(const melon::rpc::RtmpPlayOptions& opt,
-                melon::result_status* status,
+                turbo::result_status* status,
                 google::protobuf::Closure* done) {
         melon::rpc::ClosureGuard done_guard(done);
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got play{stream_name=" << opt.stream_name
                   << " start=" << opt.start
                   << " duration=" << opt.duration
@@ -164,7 +164,7 @@ public:
             return;
         }
         if (_sleep_ms > 0) {
-            MELON_LOG(INFO) << "Sleep " << _sleep_ms
+            TURBO_LOG(INFO) << "Sleep " << _sleep_ms
                       << " ms before responding play request";
             melon::fiber_sleep_for(_sleep_ms * 1000L);
         }
@@ -180,13 +180,13 @@ public:
                 fiber_stop(_play_thread);
                 fiber_join(_play_thread, nullptr);
             } else {
-                MELON_CHECK(false) << "Impossible";
+                TURBO_CHECK(false) << "Impossible";
             }
         }
     }
 
     void OnStop() {
-        MELON_LOG(INFO) << "OnStop of PlayingDummyStream=" << this;
+        TURBO_LOG(INFO) << "OnStop of PlayingDummyStream=" << this;
         if (_state.exchange(STATE_STOPPED) == STATE_PLAYING) {
             fiber_stop(_play_thread);
             fiber_join(_play_thread, nullptr);
@@ -207,7 +207,7 @@ private:
 };
 
 void PlayingDummyStream::SendData() {
-    MELON_LOG(INFO) << "Enter SendData of PlayingDummyStream=" << this;
+    TURBO_LOG(INFO) << "Enter SendData of PlayingDummyStream=" << this;
 
     melon::rpc::RtmpVideoMessage vmsg;
     melon::rpc::RtmpAudioMessage amsg;
@@ -221,7 +221,7 @@ void PlayingDummyStream::SendData() {
         vmsg.frame_type = melon::rpc::FLV_VIDEO_FRAME_KEYFRAME;
         vmsg.codec = melon::rpc::FLV_VIDEO_AVC;
         vmsg.data.clear();
-        vmsg.data.append(melon::string_printf("video_%d(ms_id=%u)",
+        vmsg.data.append(turbo::string_printf("video_%d(ms_id=%u)",
                                              i, stream_id()));
         //failing to send is possible
         SendVideoMessage(vmsg);
@@ -231,14 +231,14 @@ void PlayingDummyStream::SendData() {
         amsg.bits = melon::rpc::FLV_SOUND_16BIT;
         amsg.type = melon::rpc::FLV_SOUND_STEREO;
         amsg.data.clear();
-        amsg.data.append(melon::string_printf("audio_%d(ms_id=%u)",
+        amsg.data.append(turbo::string_printf("audio_%d(ms_id=%u)",
                                              i, stream_id()));
         SendAudioMessage(amsg);
 
         melon::fiber_sleep_for(1000000);
     }
 
-    MELON_LOG(INFO) << "Quit SendData of PlayingDummyStream=" << this;
+    TURBO_LOG(INFO) << "Quit SendData of PlayingDummyStream=" << this;
 }
 
 class PlayingDummyService : public melon::rpc::RtmpService {
@@ -262,10 +262,10 @@ public:
         , _called_on_first_message(0)
         , _nvideomsg(0)
         , _naudiomsg(0) {
-        MELON_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        TURBO_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     ~PublishStream() {
-        MELON_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        TURBO_LOG(INFO) << __FUNCTION__ << "(" << this << ")";
         assertions_on_stop();
     }
     void assertions_on_stop() {
@@ -273,10 +273,10 @@ public:
     }
     void OnPublish(const std::string& stream_name,
                    melon::rpc::RtmpPublishType publish_type,
-                   melon::result_status* status,
+                   turbo::result_status* status,
                    google::protobuf::Closure* done) {
         melon::rpc::ClosureGuard done_guard(done);
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got publish{stream_name=" << stream_name
                   << " type=" << melon::rpc::RtmpPublishType2Str(publish_type)
                   << '}';
@@ -285,7 +285,7 @@ public:
             return;
         }
         if (_sleep_ms > 0) {
-            MELON_LOG(INFO) << "Sleep " << _sleep_ms
+            TURBO_LOG(INFO) << "Sleep " << _sleep_ms
                       << " ms before responding play request";
             melon::fiber_sleep_for(_sleep_ms * 1000L);
         }
@@ -294,19 +294,19 @@ public:
         ++_called_on_first_message;
     }
     void OnStop() {
-        MELON_LOG(INFO) << "OnStop of PublishStream=" << this;
+        TURBO_LOG(INFO) << "OnStop of PublishStream=" << this;
         ++_called_on_stop;
     }
     void OnVideoMessage(melon::rpc::RtmpVideoMessage* msg) {
         ++_nvideomsg;
         // video data is ascii in UT, print it out.
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
     void OnAudioMessage(melon::rpc::RtmpAudioMessage* msg) {
         ++_naudiomsg;
         // audio data is ascii in UT, print it out.
-        MELON_LOG(INFO) << remote_side() << "|stream=" << stream_id()
+        TURBO_LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
 private:
@@ -326,9 +326,9 @@ public:
         pthread_mutex_destroy(&_mutex);
     }
     void move_created_streams(
-        std::vector<melon::container::intrusive_ptr<PublishStream> >* out) {
+        std::vector<turbo::container::intrusive_ptr<PublishStream> >* out) {
         out->clear();
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         out->swap(_created_streams);
     }
 
@@ -338,14 +338,14 @@ private:
         const melon::rpc::RtmpConnectRequest&) {
         PublishStream* stream = new PublishStream(_sleep_ms);
         {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             _created_streams.push_back(stream);
         }
         return stream;
     }
     int64_t _sleep_ms;
     pthread_mutex_t _mutex;
-    std::vector<melon::container::intrusive_ptr<PublishStream> > _created_streams;
+    std::vector<turbo::container::intrusive_ptr<PublishStream> > _created_streams;
 };
 
 class RtmpSubStream : public melon::rpc::RtmpClientStream {
@@ -396,7 +396,7 @@ public:
 
     // @SubStreamCreator
     void NewSubStream(melon::rpc::RtmpMessageHandler* message_handler,
-                      melon::container::intrusive_ptr<melon::rpc::RtmpStreamBase>* sub_stream);
+                      turbo::container::intrusive_ptr<melon::rpc::RtmpStreamBase>* sub_stream);
     void LaunchSubStream(melon::rpc::RtmpStreamBase* sub_stream,
                          melon::rpc::RtmpRetryingClientStreamOptions* options);
 
@@ -410,7 +410,7 @@ RtmpSubStreamCreator::RtmpSubStreamCreator(const melon::rpc::RtmpClient* client)
 RtmpSubStreamCreator::~RtmpSubStreamCreator() {}
  
 void RtmpSubStreamCreator::NewSubStream(melon::rpc::RtmpMessageHandler* message_handler,
-                                        melon::container::intrusive_ptr<melon::rpc::RtmpStreamBase>* sub_stream) {
+                                        turbo::container::intrusive_ptr<melon::rpc::RtmpStreamBase>* sub_stream) {
     if (sub_stream) { 
         (*sub_stream).reset(new RtmpSubStream(message_handler));
     }
@@ -542,8 +542,8 @@ TEST(RtmpTest, successfully_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::rpc::RtmpClientStreamOptions opt;
-        opt.play_name = melon::string_printf("play_name_%d", i);
-        //opt.publish_name = melon::string_printf("pub_name_%d", i);
+        opt.play_name = turbo::string_printf("play_name_%d", i);
+        //opt.publish_name = turbo::string_printf("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
@@ -551,7 +551,7 @@ TEST(RtmpTest, successfully_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i]->assertions_on_successful_play();
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, fail_to_play_streams) {
@@ -582,7 +582,7 @@ TEST(RtmpTest, fail_to_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i]->assertions_on_failure();
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, successfully_publish_streams) {
@@ -605,7 +605,7 @@ TEST(RtmpTest, successfully_publish_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::rpc::RtmpClientStreamOptions opt;
-        opt.publish_name = melon::string_printf("pub_name_%d", i);
+        opt.publish_name = turbo::string_printf("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
@@ -615,7 +615,7 @@ TEST(RtmpTest, successfully_publish_streams) {
         vmsg.timestamp = 1000 + i * 20;
         vmsg.frame_type = melon::rpc::FLV_VIDEO_FRAME_KEYFRAME;
         vmsg.codec = melon::rpc::FLV_VIDEO_AVC;
-        vmsg.data.append(melon::string_printf("video_%d", i));
+        vmsg.data.append(turbo::string_printf("video_%d", i));
         for (int j = 0; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendVideoMessage(vmsg));
         }
@@ -626,14 +626,14 @@ TEST(RtmpTest, successfully_publish_streams) {
         amsg.rate = melon::rpc::FLV_SOUND_RATE_44100HZ;
         amsg.bits = melon::rpc::FLV_SOUND_16BIT;
         amsg.type = melon::rpc::FLV_SOUND_STEREO;
-        amsg.data.append(melon::string_printf("audio_%d", i));
+        amsg.data.append(turbo::string_printf("audio_%d", i));
         for (int j = 1; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendAudioMessage(amsg));
         }
         
         melon::fiber_sleep_for(500000);
     }
-    std::vector<melon::container::intrusive_ptr<PublishStream> > created_streams;
+    std::vector<turbo::container::intrusive_ptr<PublishStream> > created_streams;
     rtmp_service.move_created_streams(&created_streams);
     ASSERT_EQ(NSTREAM, (int)created_streams.size());
     for (int i = 0; i < NSTREAM; ++i) {
@@ -645,7 +645,7 @@ TEST(RtmpTest, successfully_publish_streams) {
     for (int j = 1; j < NSTREAM; j += 2) {
         ASSERT_EQ(REP, created_streams[j]->_naudiomsg);
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, failed_to_publish_streams) {
@@ -676,7 +676,7 @@ TEST(RtmpTest, failed_to_publish_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i]->assertions_on_failure();
     }
-    std::vector<melon::container::intrusive_ptr<PublishStream> > created_streams;
+    std::vector<turbo::container::intrusive_ptr<PublishStream> > created_streams;
     rtmp_service.move_created_streams(&created_streams);
     ASSERT_EQ(NSTREAM, (int)created_streams.size());
     for (int i = 0; i < NSTREAM; ++i) {
@@ -684,7 +684,7 @@ TEST(RtmpTest, failed_to_publish_streams) {
         ASSERT_EQ(0, created_streams[i]->_nvideomsg);
         ASSERT_EQ(0, created_streams[i]->_naudiomsg);
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, failed_to_connect_client_streams) {
@@ -701,12 +701,12 @@ TEST(RtmpTest, failed_to_connect_client_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::rpc::RtmpClientStreamOptions opt;
-        opt.play_name = melon::string_printf("play_name_%d", i);
+        opt.play_name = turbo::string_printf("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_client_streams_before_init) {
@@ -719,19 +719,19 @@ TEST(RtmpTest, destroy_client_streams_before_init) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    melon::container::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
+    turbo::container::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
         ASSERT_EQ(melon::rpc::RtmpClientStream::STATE_DESTROYING, cstreams[i]->_state);
         melon::rpc::RtmpClientStreamOptions opt;
-        opt.play_name = melon::string_printf("play_name_%d", i);
+        opt.play_name = turbo::string_printf("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
@@ -744,18 +744,18 @@ TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    melon::container::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
+    turbo::container::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
         melon::rpc::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = melon::string_printf("play_name_%d", i);
+        opt.play_name = turbo::string_printf("play_name_%d", i);
         melon::rpc::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_client_streams_during_creation) {
@@ -774,11 +774,11 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    melon::container::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
+    turbo::container::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::rpc::RtmpClientStreamOptions opt;
-        opt.play_name = melon::string_printf("play_name_%d", i);
+        opt.play_name = turbo::string_printf("play_name_%d", i);
         cstreams[i]->Init(&rtmp_client, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
         usleep(500*1000);
@@ -787,7 +787,7 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
         usleep(10*1000);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
@@ -806,11 +806,11 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    melon::container::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
+    turbo::container::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         melon::rpc::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = melon::string_printf("play_name_%d", i);
+        opt.play_name = turbo::string_printf("play_name_%d", i);
         melon::rpc::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
@@ -820,7 +820,7 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
         usleep(10*1000);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, retrying_stream) {
@@ -844,15 +844,15 @@ TEST(RtmpTest, retrying_stream) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         melon::rpc::Controller cntl;
         melon::rpc::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = melon::string_printf("name_%d", i);
+        opt.play_name = turbo::string_printf("name_%d", i);
         melon::rpc::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
     }
     sleep(3);
-    MELON_LOG(INFO) << "Stopping server";
+    TURBO_LOG(INFO) << "Stopping server";
     server.Stop(0);
     server.Join();
-    MELON_LOG(INFO) << "Stopped server and sleep for a while";
+    TURBO_LOG(INFO) << "Stopped server and sleep for a while";
     sleep(3);
     ASSERT_EQ(0, server.Start(8576, &server_opt));
     sleep(3);
@@ -860,5 +860,5 @@ TEST(RtmpTest, retrying_stream) {
         ASSERT_EQ(1, cstreams[i]->_called_on_first_message);
         ASSERT_EQ(2, cstreams[i]->_called_on_playable);
     }
-    MELON_LOG(INFO) << "Quiting program...";
+    TURBO_LOG(INFO) << "Quiting program...";
 }

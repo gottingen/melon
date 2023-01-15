@@ -24,10 +24,10 @@
 #include <fcntl.h>  // F_GETFD
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
-#include "melon/base/gperftools_profiler.h"
-#include "melon/times/time.h"
-#include "melon/base/fd_utility.h"
-#include "melon/strings/starts_with.h"
+#include "turbo/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
+#include "turbo/base/fd_utility.h"
+#include "turbo/strings/starts_with.h"
 #include "melon/fiber/internal/unstable.h"
 #include "melon/fiber/internal/schedule_group.h"
 #include "melon/rpc/socket.h"
@@ -43,7 +43,7 @@
 #include "melon/fiber/this_fiber.h"
 #include "health_check.pb.h"
 
-#if defined(MELON_PLATFORM_OSX)
+#if defined(TURBO_PLATFORM_OSX)
 
 #include <sys/event.h>
 
@@ -122,7 +122,7 @@ TEST_F(SocketTest, not_recycle_until_zero_nref) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     melon::rpc::SocketId id = 8888;
-    melon::end_point dummy;
+    turbo::end_point dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::rpc::SocketOptions options;
     options.fd = fds[1];
@@ -171,10 +171,10 @@ TEST_F(SocketTest, authentication) {
     ASSERT_EQ(0, melon::rpc::Socket::Address(id, &s));
 
     fiber_id_t th[64];
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
         ASSERT_EQ(0, fiber_start_urgent(&th[i], nullptr, auth_fighter, s.get()));
     }
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
         ASSERT_EQ(0, fiber_join(th[i], nullptr));
     }
     // Only one fighter wins
@@ -197,13 +197,13 @@ public:
 
 private:
 
-    melon::result_status AppendAndDestroySelf(melon::cord_buf *out_buf, melon::rpc::Socket *) {
+    turbo::result_status AppendAndDestroySelf(turbo::cord_buf *out_buf, melon::rpc::Socket *) {
         out_buf->append(_str, _len);
         if (_called) {
             *_called = g_called_seq.fetch_add(1, std::memory_order_relaxed);
         }
         delete this;
-        return melon::result_status::success();
+        return turbo::result_status::success();
     };
     const char *_str;
     size_t _len;
@@ -212,21 +212,21 @@ private:
 
 class MyErrorMessage : public melon::rpc::SocketMessage {
 public:
-    explicit MyErrorMessage(const melon::result_status &st) : _status(st) {}
+    explicit MyErrorMessage(const turbo::result_status &st) : _status(st) {}
 
 private:
 
-    melon::result_status AppendAndDestroySelf(melon::cord_buf *, melon::rpc::Socket *) {
+    turbo::result_status AppendAndDestroySelf(turbo::cord_buf *, melon::rpc::Socket *) {
         return _status;
     };
-    melon::result_status _status;
+    turbo::result_status _status;
 };
 
 TEST_F(SocketTest, single_threaded_write) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     melon::rpc::SocketId id = 8888;
-    melon::end_point dummy;
+    turbo::end_point dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::rpc::SocketOptions options;
     options.fd = fds[1];
@@ -250,7 +250,7 @@ TEST_F(SocketTest, single_threaded_write) {
                 ASSERT_EQ(0, s->Write(msg));
             } else if (i % 4 == 1) {
                 melon::rpc::SocketMessagePtr<MyErrorMessage> msg(
-                        new MyErrorMessage(melon::result_status(EINVAL, "Invalid input")));
+                        new MyErrorMessage(turbo::result_status(EINVAL, "Invalid input")));
                 fiber_token_t wait_id;
                 WaitData data;
                 ASSERT_EQ(0, fiber_token_create2(&wait_id, &data, OnWaitIdReset));
@@ -285,7 +285,7 @@ TEST_F(SocketTest, single_threaded_write) {
                     ASSERT_LT(seq[j - 1], seq[j]) << "j=" << j;
                 }
             } else {
-                melon::cord_buf src;
+                turbo::cord_buf src;
                 src.append(buf);
                 ASSERT_EQ(len, src.length());
                 ASSERT_EQ(0, s->Write(&src));
@@ -304,7 +304,7 @@ TEST_F(SocketTest, single_threaded_write) {
 void EchoProcessHuluRequest(melon::rpc::InputMessageBase *msg_base) {
     melon::rpc::DestroyingPtr<melon::rpc::policy::MostCommonMessage> msg(
             static_cast<melon::rpc::policy::MostCommonMessage *>(msg_base));
-    melon::cord_buf buf;
+    turbo::cord_buf buf;
     buf.append(msg->meta);
     buf.append(msg->payload);
     ASSERT_EQ(0, msg->socket()->Write(&buf));
@@ -317,14 +317,14 @@ public:
     void StartConnect(const melon::rpc::Socket *,
                       void (*done)(int err, void *data),
                       void *data) {
-        MELON_LOG(INFO) << "Start application-level connect";
+        TURBO_LOG(INFO) << "Start application-level connect";
         _done = done;
         _data = data;
         _called_start_connect = true;
     }
 
     void StopConnect(melon::rpc::Socket *) {
-        MELON_LOG(INFO) << "Stop application-level connect";
+        TURBO_LOG(INFO) << "Stop application-level connect";
     }
 
     void MakeConnectDone() {
@@ -349,10 +349,10 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
                     EchoProcessHuluRequest, nullptr, nullptr, "dummy_hulu"}
     };
 
-    melon::end_point point(melon::IP_ANY, 7878);
+    turbo::end_point point(turbo::IP_ANY, 7878);
     int listening_fd = tcp_listen(point);
     ASSERT_TRUE(listening_fd > 0);
-    melon::base::make_non_blocking(listening_fd);
+    turbo::base::make_non_blocking(listening_fd);
     ASSERT_EQ(0, messenger->AddHandler(pairs[0]));
     ASSERT_EQ(0, messenger->StartAccept(listening_fd, -1, nullptr));
 
@@ -389,7 +389,7 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
                         new MyMessage(buf, 12 + meta_len + len, &called));
                 ASSERT_EQ(0, s->Write(msg));
             } else {
-                melon::cord_buf src;
+                turbo::cord_buf src;
                 src.append(buf, 12 + meta_len + len);
                 ASSERT_EQ(12 + meta_len + len, src.length());
                 ASSERT_EQ(0, s->Write(&src));
@@ -405,14 +405,14 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
                 my_connect->MakeConnectDone();
                 ASSERT_LT(0, called); // serialized
             }
-            int64_t start_time = melon::get_current_time_micros();
+            int64_t start_time = turbo::get_current_time_micros();
             while (s->fd() < 0) {
                 melon::fiber_sleep_for(1000);
-                ASSERT_LT(melon::get_current_time_micros(), start_time + 1000000L) << "Too long!";
+                ASSERT_LT(turbo::get_current_time_micros(), start_time + 1000000L) << "Too long!";
             }
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
             ASSERT_EQ(0, fiber_fd_wait(s->fd(), EPOLLIN));
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
             ASSERT_EQ(0, fiber_fd_wait(s->fd(), EVFILT_READ));
 #endif
             char dest[sizeof(buf)];
@@ -451,9 +451,9 @@ void *FailedWriter(void *void_arg) {
     for (size_t i = 0; i < arg->times; ++i) {
         fiber_token_t id;
         EXPECT_EQ(0, fiber_token_create(&id, nullptr, nullptr));
-        snprintf(buf, sizeof(buf), "%0" MELON_SYMBOLSTR(NUMBER_WIDTH) "lu",
+        snprintf(buf, sizeof(buf), "%0" TURBO_SYMBOLSTR(NUMBER_WIDTH) "lu",
                  i + arg->offset);
-        melon::cord_buf src;
+        turbo::cord_buf src;
         src.append(buf);
         melon::rpc::Socket::WriteOptions wopt;
         wopt.id_wait = id;
@@ -468,7 +468,7 @@ void *FailedWriter(void *void_arg) {
 
 TEST_F(SocketTest, fail_to_connect) {
     const size_t REP = 10;
-    melon::end_point point(melon::IP_ANY, 7563/*not listened*/);
+    turbo::end_point point(turbo::IP_ANY, 7563/*not listened*/);
     melon::rpc::SocketId id = 8888;
     melon::rpc::SocketOptions options;
     options.remote_side = point;
@@ -483,24 +483,24 @@ TEST_F(SocketTest, fail_to_connect) {
         ASSERT_EQ(point, s->remote_side());
         ASSERT_EQ(id, s->id());
         pthread_t th[8];
-        WriterArg args[MELON_ARRAY_SIZE(th)];
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        WriterArg args[TURBO_ARRAY_SIZE(th)];
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             args[i].times = REP;
             args[i].offset = i * REP;
             args[i].socket_id = id;
             ASSERT_EQ(0, pthread_create(&th[i], nullptr, FailedWriter, &args[i]));
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
         ASSERT_EQ(-1, s->SetFailed());  // already SetFailed
         ASSERT_EQ(-1, s->fd());
     }
     // KeepWrite is possibly still running.
-    int64_t start_time = melon::get_current_time_micros();
+    int64_t start_time = turbo::get_current_time_micros();
     while (global_sock != nullptr) {
         melon::fiber_sleep_for(1000);
-        ASSERT_LT(melon::get_current_time_micros(), start_time + 1000000L) << "Too long!";
+        ASSERT_LT(turbo::get_current_time_micros(), start_time + 1000000L) << "Too long!";
     }
     ASSERT_EQ(-1, melon::rpc::Socket::Status(id));
     // The id is invalid.
@@ -510,7 +510,7 @@ TEST_F(SocketTest, fail_to_connect) {
 
 TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
     melon::rpc::SocketId id = 8888;
-    melon::end_point point(melon::IP_ANY, 7584/*not listened*/);
+    turbo::end_point point(turbo::IP_ANY, 7584/*not listened*/);
     melon::rpc::SocketOptions options;
     options.remote_side = point;
     options.user = new CheckRecycle;
@@ -535,7 +535,7 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
         // HULU uses host byte order directly...
         *(uint32_t *) (buf + 4) = len + meta_len;
         *(uint32_t *) (buf + 8) = meta_len;
-        melon::cord_buf src;
+        turbo::cord_buf src;
         src.append(buf, 12 + meta_len + len);
         ASSERT_EQ(12 + meta_len + len, src.length());
 #ifdef CONNECT_IN_KEEPWRITE
@@ -548,7 +548,7 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
         ASSERT_EQ(0, fiber_token_join(wait_id));
         ASSERT_EQ(wait_id.value, data.id.value);
         ASSERT_EQ(ECONNREFUSED, data.error_code);
-        ASSERT_TRUE(melon::starts_with(data.error_text,
+        ASSERT_TRUE(turbo::starts_with(data.error_text,
                                        "Fail to connect "));
 #else
         ASSERT_EQ(-1, s->Write(&src));
@@ -561,10 +561,10 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
     // is nullptr(set in CheckRecycle::BeforeRecycle). Notice that you should
     // not spin until Socket::Status(id) becomes -1 and assert global_sock
     // to be nullptr because invalidating id happens before calling BeforeRecycle.
-    const int64_t start_time = melon::get_current_time_micros();
+    const int64_t start_time = turbo::get_current_time_micros();
     while (global_sock != nullptr) {
         melon::fiber_sleep_for(1000);
-        ASSERT_LT(melon::get_current_time_micros(), start_time + 1000000L);
+        ASSERT_LT(turbo::get_current_time_micros(), start_time + 1000000L);
     }
     ASSERT_EQ(-1, melon::rpc::Socket::Status(id));
 }
@@ -597,7 +597,7 @@ TEST_F(SocketTest, app_level_health_check) {
     google::SetCommandLineOption("health_check_path", "/HealthCheckTestService");
     google::SetCommandLineOption("health_check_interval", "1");
 
-    melon::end_point point(melon::IP_ANY, 7777);
+    turbo::end_point point(turbo::IP_ANY, 7777);
     melon::rpc::ChannelOptions options;
     options.protocol = "http";
     options.max_retry = 0;
@@ -658,7 +658,7 @@ TEST_F(SocketTest, health_check) {
     melon::rpc::Acceptor *messenger = new melon::rpc::Acceptor;
 
     melon::rpc::SocketId id = 8888;
-    melon::end_point point(melon::IP_ANY, 7878);
+    turbo::end_point point(turbo::IP_ANY, 7878);
     const int kCheckInteval = 1;
     melon::rpc::SocketOptions options;
     options.remote_side = point;
@@ -687,12 +687,12 @@ TEST_F(SocketTest, health_check) {
     // HULU uses host byte order directly...
     *(uint32_t *) (buf + 4) = len + meta_len;
     *(uint32_t *) (buf + 8) = meta_len;
-    const bool use_my_message = (melon::base::fast_rand_less_than(2) == 0);
+    const bool use_my_message = (turbo::base::fast_rand_less_than(2) == 0);
     melon::rpc::SocketMessagePtr<MyMessage> msg;
     int appended_msg = 0;
-    melon::cord_buf src;
+    turbo::cord_buf src;
     if (use_my_message) {
-        MELON_LOG(INFO) << "Use MyMessage";
+        TURBO_LOG(INFO) << "Use MyMessage";
         msg.reset(new MyMessage(buf, 12 + meta_len + len, &appended_msg));
     } else {
         src.append(buf, 12 + meta_len + len);
@@ -712,7 +712,7 @@ TEST_F(SocketTest, health_check) {
     ASSERT_EQ(0, fiber_token_join(wait_id));
     ASSERT_EQ(wait_id.value, data.id.value);
     ASSERT_EQ(ECONNREFUSED, data.error_code);
-    ASSERT_TRUE(melon::starts_with(data.error_text,
+    ASSERT_TRUE(turbo::starts_with(data.error_text,
                                    "Fail to connect "));
     if (use_my_message) {
         ASSERT_TRUE(appended_msg);
@@ -739,15 +739,15 @@ TEST_F(SocketTest, health_check) {
 
     int listening_fd = tcp_listen(point);
     ASSERT_TRUE(listening_fd > 0);
-    melon::base::make_non_blocking(listening_fd);
+    turbo::base::make_non_blocking(listening_fd);
     ASSERT_EQ(0, messenger->AddHandler(pairs[0]));
     ASSERT_EQ(0, messenger->StartAccept(listening_fd, -1, nullptr));
 
-    int64_t start_time = melon::get_current_time_micros();
+    int64_t start_time = turbo::get_current_time_micros();
     nref = -1;
     while (melon::rpc::Socket::Status(id, &nref) != 0) {
         melon::fiber_sleep_for(1000);
-        ASSERT_LT(melon::get_current_time_micros(),
+        ASSERT_LT(turbo::get_current_time_micros(),
                   start_time + kCheckInteval * 1000000L + 100000L/*100ms*/);
     }
     //ASSERT_EQ(2, nref);
@@ -764,10 +764,10 @@ TEST_F(SocketTest, health_check) {
     // SetFailed again, should reconnect and succeed soon.
     ASSERT_EQ(0, s->SetFailed());
     ASSERT_EQ(fd, s->fd());
-    start_time = melon::get_current_time_micros();
+    start_time = turbo::get_current_time_micros();
     while (melon::rpc::Socket::Status(id) != 0) {
         melon::fiber_sleep_for(1000);
-        ASSERT_LT(melon::get_current_time_micros(), start_time + 1000000L);
+        ASSERT_LT(turbo::get_current_time_micros(), start_time + 1000000L);
     }
     ASSERT_TRUE(global_sock);
 
@@ -788,10 +788,10 @@ TEST_F(SocketTest, health_check) {
 
     ASSERT_EQ(0, melon::rpc::Socket::SetFailed(id));
     // HealthCheckThread is possibly still addressing the Socket.
-    start_time = melon::get_current_time_micros();
+    start_time = turbo::get_current_time_micros();
     while (global_sock != nullptr) {
         melon::fiber_sleep_for(1000);
-        ASSERT_LT(melon::get_current_time_micros(), start_time + 1000000L);
+        ASSERT_LT(turbo::get_current_time_micros(), start_time + 1000000L);
     }
     ASSERT_EQ(-1, melon::rpc::Socket::Status(id));
     // The id is invalid.
@@ -808,9 +808,9 @@ void *Writer(void *void_arg) {
     }
     char buf[32];
     for (size_t i = 0; i < arg->times; ++i) {
-        snprintf(buf, sizeof(buf), "%0" MELON_SYMBOLSTR(NUMBER_WIDTH) "lu",
+        snprintf(buf, sizeof(buf), "%0" TURBO_SYMBOLSTR(NUMBER_WIDTH) "lu",
                  i + arg->offset);
-        melon::cord_buf src;
+        turbo::cord_buf src;
         src.append(buf);
         if (sock->Write(&src) != 0) {
             if (errno == melon::rpc::EOVERCROWDED) {
@@ -820,7 +820,7 @@ void *Writer(void *void_arg) {
                 continue;
             }
             printf("Fail to write into SocketId=%" PRIu64 ", %s\n",
-                   arg->socket_id, melon_error());
+                   arg->socket_id, turbo_error());
             break;
         }
     }
@@ -834,12 +834,12 @@ TEST_F(SocketTest, multi_threaded_write) {
         printf("Round %d\n", k + 1);
         ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
         pthread_t th[8];
-        WriterArg args[MELON_ARRAY_SIZE(th)];
+        WriterArg args[TURBO_ARRAY_SIZE(th)];
         std::vector<size_t> result;
-        result.reserve(MELON_ARRAY_SIZE(th) * REP);
+        result.reserve(TURBO_ARRAY_SIZE(th) * REP);
 
         melon::rpc::SocketId id = 8888;
-        melon::end_point dummy;
+        turbo::end_point dummy;
         ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
         melon::rpc::SocketOptions options;
         options.fd = fds[1];
@@ -854,9 +854,9 @@ TEST_F(SocketTest, multi_threaded_write) {
         ASSERT_EQ(fds[1], s->fd());
         ASSERT_EQ(dummy, s->remote_side());
         ASSERT_EQ(id, s->id());
-        melon::base::make_non_blocking(fds[0]);
+        turbo::base::make_non_blocking(fds[0]);
 
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             args[i].times = REP;
             args[i].offset = i * REP;
             args[i].socket_id = id;
@@ -868,8 +868,8 @@ TEST_F(SocketTest, multi_threaded_write) {
             melon::fiber_sleep_for(100000);
         }
 
-        melon::IOPortal dest;
-        const int64_t start_time = melon::get_current_time_micros();
+        turbo::IOPortal dest;
+        const int64_t start_time = turbo::get_current_time_micros();
         for (;;) {
             ssize_t nr = dest.append_from_file_descriptor(fds[0], 32768);
             if (nr < 0) {
@@ -877,11 +877,11 @@ TEST_F(SocketTest, multi_threaded_write) {
                     continue;
                 }
                 if (EAGAIN != errno) {
-                    ASSERT_EQ(EAGAIN, errno) << melon_error();
+                    ASSERT_EQ(EAGAIN, errno) << turbo_error();
                 }
                 melon::fiber_sleep_for(1000);
-                if (melon::get_current_time_micros() >= start_time + 2000000L) {
-                    MELON_LOG(FATAL) << "Wait too long!";
+                if (turbo::get_current_time_micros() >= start_time + 2000000L) {
+                    TURBO_LOG(FATAL) << "Wait too long!";
                     break;
                 }
                 continue;
@@ -893,25 +893,25 @@ TEST_F(SocketTest, multi_threaded_write) {
                 result.push_back(strtol(buf, nullptr, 10));
                 dest.pop_front(NUMBER_WIDTH);
             }
-            if (result.size() >= REP * MELON_ARRAY_SIZE(th)) {
+            if (result.size() >= REP * TURBO_ARRAY_SIZE(th)) {
                 break;
             }
         }
-        for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+        for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_join(th[i], nullptr));
         }
         ASSERT_TRUE(dest.empty());
         melon::fiber_internal::g_task_control->print_rq_sizes(std::cout);
         std::cout << std::endl;
 
-        ASSERT_EQ(REP * MELON_ARRAY_SIZE(th), result.size())
+        ASSERT_EQ(REP * TURBO_ARRAY_SIZE(th), result.size())
                                     << "write_head=" << s->_write_head;
         std::sort(result.begin(), result.end());
         result.resize(std::unique(result.begin(),
                                   result.end()) - result.begin());
-        ASSERT_EQ(REP * MELON_ARRAY_SIZE(th), result.size());
+        ASSERT_EQ(REP * TURBO_ARRAY_SIZE(th), result.size());
         ASSERT_EQ(0UL, *result.begin());
-        ASSERT_EQ(REP * MELON_ARRAY_SIZE(th) - 1, *(result.end() - 1));
+        ASSERT_EQ(REP * TURBO_ARRAY_SIZE(th) - 1, *(result.end() - 1));
 
         ASSERT_EQ(0, s->SetFailed());
         s.release()->Dereference();
@@ -928,11 +928,11 @@ void *FastWriter(void *void_arg) {
         return nullptr;
     }
     char buf[] = "hello reader side!";
-    int64_t begin_ts = melon::get_current_time_micros();
+    int64_t begin_ts = turbo::get_current_time_micros();
     int64_t nretry = 0;
     size_t c = 0;
     for (; c < arg->times; ++c) {
-        melon::cord_buf src;
+        turbo::cord_buf src;
         src.append(buf, 16);
         if (sock->Write(&src) != 0) {
             if (errno == melon::rpc::EOVERCROWDED) {
@@ -943,11 +943,11 @@ void *FastWriter(void *void_arg) {
                 continue;
             }
             printf("Fail to write into SocketId=%" PRIu64 ", %s\n",
-                   arg->socket_id, melon_error());
+                   arg->socket_id, turbo_error());
             break;
         }
     }
-    int64_t end_ts = melon::get_current_time_micros();
+    int64_t end_ts = turbo::get_current_time_micros();
     int64_t total_time = end_ts - begin_ts;
     printf("total=%ld count=%ld nretry=%ld\n",
            (long) total_time * 1000 / c, (long) c, (long) nretry);
@@ -982,10 +982,10 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     fiber_id_t th[3];
-    WriterArg args[MELON_ARRAY_SIZE(th)];
+    WriterArg args[TURBO_ARRAY_SIZE(th)];
 
     melon::rpc::SocketId id = 8888;
-    melon::end_point dummy;
+    turbo::end_point dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::rpc::SocketOptions options;
     options.fd = fds[1];
@@ -1002,7 +1002,7 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     ASSERT_EQ(dummy, s->remote_side());
     ASSERT_EQ(id, s->id());
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
         args[i].times = REP;
         args[i].offset = i * REP;
         args[i].socket_id = id;
@@ -1013,7 +1013,7 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     ReaderArg reader_arg = {fds[0], 0};
     pthread_create(&rth, nullptr, reader, &reader_arg);
 
-    melon::stop_watcher tm;
+    turbo::stop_watcher tm;
     ProfilerStart("write.prof");
     const uint64_t old_nread = reader_arg.nread;
     tm.start();
@@ -1024,10 +1024,10 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
 
     printf("tp=%" PRIu64 "M/s\n", (new_nread - old_nread) / tm.u_elapsed());
 
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
         args[i].times = 0;
     }
-    for (size_t i = 0; i < MELON_ARRAY_SIZE(th); ++i) {
+    for (size_t i = 0; i < TURBO_ARRAY_SIZE(th); ++i) {
         ASSERT_EQ(0, fiber_join(th[i], nullptr));
     }
     ASSERT_EQ(0, s->SetFailed());

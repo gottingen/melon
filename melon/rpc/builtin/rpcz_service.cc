@@ -19,10 +19,10 @@
 #include <ostream>
 #include <iomanip>
 #include <gflags/gflags.h>
-#include "melon/strings/utility.h"
-#include "melon/strings/string_splitter.h"
-#include "melon/base/profile.h"
-#include "melon/times/time.h"
+#include "turbo/strings/utility.h"
+#include "turbo/strings/string_splitter.h"
+#include "turbo/base/profile.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
 #include "melon/rpc/builtin/common.h"
@@ -152,7 +152,7 @@ namespace melon::rpc {
             return;
         }
 
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         DescribeSpanDB(os);
         os.move_to(cntl->response_attachment());
     }
@@ -196,7 +196,7 @@ namespace melon::rpc {
                 PrintRealTime(os, anno_time);
                 PrintElapse(os, anno_time, last_time);
                 os << ' ' << a;
-                if (a.empty() || melon::back_char(a) != '\n') {
+                if (a.empty() || turbo::back_char(a) != '\n') {
                     os << '\n';
                 }
             }
@@ -227,8 +227,8 @@ namespace melon::rpc {
         }
     };
 
-    static melon::ip_t loopback_ip = melon::IP_ANY;
-    static int MELON_ALLOW_UNUSED init_loopback_ip_dummy = melon::str2ip("127.0.0.1", &loopback_ip);
+    static turbo::ip_t loopback_ip = turbo::IP_ANY;
+    static int TURBO_ALLOW_UNUSED init_loopback_ip_dummy = turbo::str2ip("127.0.0.1", &loopback_ip);
 
     static void PrintClientSpan(
             std::ostream &os, const RpczSpan &span,
@@ -241,14 +241,14 @@ namespace melon::rpc {
         }
         extr[num_extr++] = &client_extr;
         // start_send_us is always set for client spans.
-        MELON_CHECK(PrintAnnotationsAndRealTimeSpan(os, span.start_send_real_us(),
+        TURBO_CHECK(PrintAnnotationsAndRealTimeSpan(os, span.start_send_real_us(),
                                                     last_time, extr, num_extr));
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
-        const melon::end_point remote_side(melon::int2ip(span.remote_ip()), span.remote_port());
-        melon::end_point abs_remote_side = remote_side;
+        const turbo::end_point remote_side(turbo::int2ip(span.remote_ip()), span.remote_port());
+        turbo::end_point abs_remote_side = remote_side;
         if (abs_remote_side.ip == loopback_ip) {
-            abs_remote_side.ip = melon::my_ip();
+            abs_remote_side.ip = turbo::my_ip();
         }
         os << " Requesting " << span.full_method_name() << '@' << remote_side
            << ' ' << protocol_name << ' ' << LOG_ID_STR << '=';
@@ -316,8 +316,8 @@ namespace melon::rpc {
         SpanInfoExtractor server_extr(span.info().c_str());
         SpanInfoExtractor *extr[1] = {&server_extr};
         int64_t last_time = span.received_real_us();
-        const melon::end_point remote_side(
-                melon::int2ip(span.remote_ip()), span.remote_port());
+        const turbo::end_point remote_side(
+                turbo::int2ip(span.remote_ip()), span.remote_port());
         PrintRealDateTime(os, last_time);
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
@@ -338,14 +338,14 @@ namespace melon::rpc {
         os << std::endl;
         if (PrintAnnotationsAndRealTimeSpan(
                 os, span.start_parse_real_us(),
-                &last_time, extr, MELON_ARRAY_SIZE(extr))) {
+                &last_time, extr, TURBO_ARRAY_SIZE(extr))) {
             os << " Processing the request in a new fiber" << std::endl;
         }
 
         bool entered_user_method = false;
         if (PrintAnnotationsAndRealTimeSpan(
                 os, span.start_callback_real_us(),
-                &last_time, extr, MELON_ARRAY_SIZE(extr))) {
+                &last_time, extr, TURBO_ARRAY_SIZE(extr))) {
             entered_user_method = true;
             os << " Enter " << span.full_method_name() << std::endl;
         }
@@ -358,7 +358,7 @@ namespace melon::rpc {
 
         if (PrintAnnotationsAndRealTimeSpan(
                 os, span.start_send_real_us(),
-                &last_time, extr, MELON_ARRAY_SIZE(extr))) {
+                &last_time, extr, TURBO_ARRAY_SIZE(extr))) {
             if (entered_user_method) {
                 os << " Leave " << span.full_method_name() << std::endl;
             } else {
@@ -368,12 +368,12 @@ namespace melon::rpc {
 
         if (PrintAnnotationsAndRealTimeSpan(
                 os, span.sent_real_us(),
-                &last_time, extr, MELON_ARRAY_SIZE(extr))) {
+                &last_time, extr, TURBO_ARRAY_SIZE(extr))) {
             os << " Responded(" << span.response_size() << ')' << std::endl;
         }
 
         PrintAnnotations(os, std::numeric_limits<int64_t>::max(),
-                         &last_time, extr, MELON_ARRAY_SIZE(extr));
+                         &last_time, extr, TURBO_ARRAY_SIZE(extr));
     }
 
     class RpczSpanFilter : public SpanFilter {
@@ -479,7 +479,7 @@ namespace melon::rpc {
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
 
-        melon::cord_buf_builder os;
+        turbo::cord_buf_builder os;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n"
                << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"
@@ -501,7 +501,7 @@ namespace melon::rpc {
             os.move_to(cntl->response_attachment());
             return;
         }
-        melon::end_point my_addr(melon::my_ip(),
+        turbo::end_point my_addr(turbo::my_ip(),
                                        cntl->server()->listen_address().port);
 
         const std::string *trace_id_str =
@@ -562,7 +562,7 @@ namespace melon::rpc {
                     cntl->http_request().uri().GetQuery(TIME_STR);
             int64_t start_tm;
             if (time_str == nullptr) {
-                start_tm = melon::get_current_time_micros();
+                start_tm = turbo::get_current_time_micros();
             } else {
                 start_tm = ParseDateTime(*time_str);
                 if (start_tm < 0) {
@@ -667,7 +667,7 @@ namespace melon::rpc {
                 if (span.error_code() == 0) {
                     os << " [OK]";
                 } else {
-                    os << " [" << melon_error(span.error_code()) << "] ";
+                    os << " [" << turbo_error(span.error_code()) << "] ";
                 }
                 os << std::endl;
             }

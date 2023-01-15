@@ -23,14 +23,14 @@
 namespace melon::rpc {
 
     static pthread_once_t s_sorttable_buf_once = PTHREAD_ONCE_INIT;
-    static melon::cord_buf *s_sorttable_buf = nullptr;
+    static turbo::cord_buf *s_sorttable_buf = nullptr;
 
     static void InitSortTableBuf() {
-        s_sorttable_buf = new melon::cord_buf;
+        s_sorttable_buf = new turbo::cord_buf;
         s_sorttable_buf->append(sorttable_js());
     }
 
-    const melon::cord_buf &sorttable_js_iobuf() {
+    const turbo::cord_buf &sorttable_js_iobuf() {
         pthread_once(&s_sorttable_buf_once, InitSortTableBuf);
         return *s_sorttable_buf;
     }

@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/base/profile.h"
-#include "melon/base/fast_rand.h"
+#include "turbo/base/profile.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/policy/round_robin_load_balancer.h"
 
@@ -30,7 +30,7 @@ namespace melon::rpc {
         };
 
         inline uint32_t GenRandomStride() {
-            return prime_offset[melon::base::fast_rand_less_than(MELON_ARRAY_SIZE(prime_offset))];
+            return prime_offset[turbo::base::fast_rand_less_than(TURBO_ARRAY_SIZE(prime_offset))];
         }
 
         bool RoundRobinLoadBalancer::Add(Servers &bg, const ServerId &id) {
@@ -88,7 +88,7 @@ namespace melon::rpc {
         size_t RoundRobinLoadBalancer::AddServersInBatch(
                 const std::vector<ServerId> &servers) {
             const size_t n = _db_servers.Modify(BatchAdd, servers);
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to AddServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
@@ -97,14 +97,14 @@ namespace melon::rpc {
         size_t RoundRobinLoadBalancer::RemoveServersInBatch(
                 const std::vector<ServerId> &servers) {
             const size_t n = _db_servers.Modify(BatchRemove, servers);
-            MELON_LOG_IF(ERROR, n != servers.size())
+            TURBO_LOG_IF(ERROR, n != servers.size())
                             << "Fail to RemoveServersInBatch, expected " << servers.size()
                             << " actually " << n;
             return n;
         }
 
         int RoundRobinLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-            melon::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 return ENOMEM;
             }
@@ -162,7 +162,7 @@ namespace melon::rpc {
                 return;
             }
             os << "RoundRobin{";
-            melon::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+            turbo::container::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
             if (_db_servers.Read(&s) != 0) {
                 os << "fail to read _db_servers";
             } else {

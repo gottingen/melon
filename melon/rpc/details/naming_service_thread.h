@@ -20,7 +20,7 @@
 #define MELON_RPC_NAMING_SERVICE_THREAD_H_
 
 #include <string>
-#include "melon/container/intrusive_ptr.h"               // melon::container::intrusive_ptr
+#include "turbo/container/intrusive_ptr.h"               // turbo::container::intrusive_ptr
 #include "melon/fiber/internal/fiber.h"                    // fiber_id_t
 #include "melon/rpc/server_id.h"                     // ServerId
 #include "melon/rpc/shared_object.h"                 // SharedObject
@@ -143,7 +143,7 @@ namespace melon::rpc {
     // available, unless `options->succeed_without_server' is on, this function
     // returns -1.
     // Returns 0 on success, -1 otherwise.
-    int GetNamingServiceThread(melon::container::intrusive_ptr<NamingServiceThread> *ns_thread,
+    int GetNamingServiceThread(turbo::container::intrusive_ptr<NamingServiceThread> *ns_thread,
                                const char *url,
                                const GetNamingServiceThreadOptions *options);
 

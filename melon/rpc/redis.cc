@@ -18,11 +18,11 @@
 
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
 #include <gflags/gflags.h>
-#include "melon/base/result_status.h"
-#include "melon/strings/case_conv.h"
+#include "turbo/base/result_status.h"
+#include "turbo/strings/case_conv.h"
 #include "melon/rpc/redis.h"
 #include "melon/rpc/redis_command.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 
 namespace melon::rpc {
 
@@ -72,13 +72,13 @@ namespace melon::rpc {
 
     bool RedisRequest::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *) {
-        MELON_LOG(WARNING) << "You're not supposed to parse a RedisRequest";
+        TURBO_LOG(WARNING) << "You're not supposed to parse a RedisRequest";
         return true;
     }
 
     void RedisRequest::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *) const {
-        MELON_LOG(WARNING) << "You're not supposed to serialize a RedisRequest";
+        TURBO_LOG(WARNING) << "You're not supposed to serialize a RedisRequest";
     }
 
     ::google::protobuf::uint8 *RedisRequest::SerializeWithCachedSizesToArray(
@@ -138,12 +138,12 @@ namespace melon::rpc {
         if (_has_error) {
             return false;
         }
-        const melon::result_status st = RedisCommandNoFormat(&_buf, command);
+        const turbo::result_status st = RedisCommandNoFormat(&_buf, command);
         if (st.is_ok()) {
             ++_ncommand;
             return true;
         } else {
-            MELON_CHECK(st.is_ok()) << st;
+            TURBO_CHECK(st.is_ok()) << st;
             _has_error = true;
             return false;
         }
@@ -154,12 +154,12 @@ namespace melon::rpc {
         if (_has_error) {
             return false;
         }
-        const melon::result_status st = RedisCommandByComponents(&_buf, components, n);
+        const turbo::result_status st = RedisCommandByComponents(&_buf, components, n);
         if (st.is_ok()) {
             ++_ncommand;
             return true;
         } else {
-            MELON_CHECK(st.is_ok()) << st;
+            TURBO_CHECK(st.is_ok()) << st;
             _has_error = true;
             return false;
         }
@@ -171,13 +171,13 @@ namespace melon::rpc {
         }
         va_list ap;
         va_start(ap, fmt);
-        const melon::result_status st = RedisCommandFormatV(&_buf, fmt, ap);
+        const turbo::result_status st = RedisCommandFormatV(&_buf, fmt, ap);
         va_end(ap);
         if (st.is_ok()) {
             ++_ncommand;
             return true;
         } else {
-            MELON_CHECK(st.is_ok()) << st;
+            TURBO_CHECK(st.is_ok()) << st;
             _has_error = true;
             return false;
         }
@@ -187,20 +187,20 @@ namespace melon::rpc {
         if (_has_error) {
             return false;
         }
-        const melon::result_status st = RedisCommandFormatV(&_buf, fmt, ap);
+        const turbo::result_status st = RedisCommandFormatV(&_buf, fmt, ap);
         if (st.is_ok()) {
             ++_ncommand;
             return true;
         } else {
-            MELON_CHECK(st.is_ok()) << st;
+            TURBO_CHECK(st.is_ok()) << st;
             _has_error = true;
             return false;
         }
     }
 
-    bool RedisRequest::SerializeTo(melon::cord_buf *buf) const {
+    bool RedisRequest::SerializeTo(turbo::cord_buf *buf) const {
         if (_has_error) {
-            MELON_LOG(ERROR) << "Reject serialization due to error in AddCommand[V]";
+            TURBO_LOG(ERROR) << "Reject serialization due to error in AddCommand[V]";
             return false;
         }
         *buf = _buf;
@@ -219,8 +219,8 @@ namespace melon::rpc {
     }
 
     void RedisRequest::Print(std::ostream &os) const {
-        melon::cord_buf cp = _buf;
-        melon::cord_buf seg;
+        turbo::cord_buf cp = _buf;
+        turbo::cord_buf seg;
         while (cp.cut_until(&seg, "\r\n") == 0) {
             os << seg;
             if (FLAGS_redis_verbose_crlf2space) {
@@ -289,13 +289,13 @@ namespace melon::rpc {
 
     bool RedisResponse::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *) {
-        MELON_LOG(WARNING) << "You're not supposed to parse a RedisResponse";
+        TURBO_LOG(WARNING) << "You're not supposed to parse a RedisResponse";
         return true;
     }
 
     void RedisResponse::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *) const {
-        MELON_LOG(WARNING) << "You're not supposed to serialize a RedisResponse";
+        TURBO_LOG(WARNING) << "You're not supposed to serialize a RedisResponse";
     }
 
     ::google::protobuf::uint8 *RedisResponse::SerializeWithCachedSizesToArray(
@@ -344,7 +344,7 @@ namespace melon::rpc {
         for (int i = !_nreply; i < from._nreply; ++i) {
             new_others[new_other_index++].CopyFromDifferentArena(from.reply(i));
         }
-        MELON_DCHECK_EQ(new_nreply - 1, new_other_index);
+        TURBO_DCHECK_EQ(new_nreply - 1, new_other_index);
         _other_replies = new_others;
         _nreply = new_nreply;
     }
@@ -388,7 +388,7 @@ namespace melon::rpc {
 
 // ===================================================================
 
-    ParseError RedisResponse::ConsumePartialCordBuf(melon::cord_buf &buf, int reply_count) {
+    ParseError RedisResponse::ConsumePartialCordBuf(turbo::cord_buf &buf, int reply_count) {
         size_t oldsize = buf.size();
         if (reply_size() == 0) {
             ParseError err = _first_reply.ConsumePartialCordBuf(buf);
@@ -405,7 +405,7 @@ namespace melon::rpc {
                 _other_replies = (RedisReply *) _arena.allocate(
                         sizeof(RedisReply) * (reply_count - 1));
                 if (_other_replies == nullptr) {
-                    MELON_LOG(ERROR) << "Fail to allocate RedisReply[" << reply_count - 1 << "]";
+                    TURBO_LOG(ERROR) << "Fail to allocate RedisReply[" << reply_count - 1 << "]";
                     return PARSE_ERROR_ABSOLUTELY_WRONG;
                 }
                 for (int i = 0; i < reply_count - 1; ++i) {
@@ -445,10 +445,10 @@ namespace melon::rpc {
     }
 
     bool RedisService::AddCommandHandler(const std::string &name, RedisCommandHandler *handler) {
-        std::string lcname = melon::string_to_lower(name);
+        std::string lcname = turbo::string_to_lower(name);
         auto it = _command_map.find(lcname);
         if (it != _command_map.end()) {
-            MELON_LOG(ERROR) << "redis command name=" << name << " exist";
+            TURBO_LOG(ERROR) << "redis command name=" << name << " exist";
             return false;
         }
         _command_map[lcname] = handler;
@@ -456,7 +456,7 @@ namespace melon::rpc {
     }
 
     RedisCommandHandler *RedisService::FindCommandHandler(const std::string_view &name) const {
-        auto it = _command_map.find(melon::as_string(name));
+        auto it = _command_map.find(turbo::as_string(name));
         if (it != _command_map.end()) {
             return it->second;
         }
@@ -464,7 +464,7 @@ namespace melon::rpc {
     }
 
     RedisCommandHandler *RedisCommandHandler::NewTransactionHandler() {
-        MELON_LOG(ERROR) << "NewTransactionHandler is not implemented";
+        TURBO_LOG(ERROR) << "NewTransactionHandler is not implemented";
         return nullptr;
     }
 

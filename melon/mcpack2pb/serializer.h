@@ -25,7 +25,7 @@
 #include <limits>
 #include <vector>
 #include <google/protobuf/io/zero_copy_stream.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <string_view>
 #include "melon/mcpack2pb/field_type.h"
 
@@ -41,7 +41,7 @@ namespace mcpack2pb {
         public:
             Area() : _addr1(nullptr), _addr2(nullptr), _size1(0), _size2(0), _addional_area(nullptr) {}
 
-            Area(const melon::base::LinkerInitialized &) {}
+            Area(const turbo::base::LinkerInitialized &) {}
 
             Area(const Area &rhs);
 
@@ -325,7 +325,7 @@ namespace mcpack2pb {
         };
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(Serializer);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(Serializer);
 
         GroupInfo *push_group_info();
 

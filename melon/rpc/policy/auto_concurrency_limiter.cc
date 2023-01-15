@@ -80,7 +80,7 @@ namespace melon::rpc {
 
         AutoConcurrencyLimiter::AutoConcurrencyLimiter()
                 : _max_concurrency(FLAGS_auto_cl_initial_max_concurrency),
-                  _remeasure_start_us(NextResetTime(melon::get_current_time_micros())), _reset_latency_us(0),
+                  _remeasure_start_us(NextResetTime(turbo::get_current_time_micros())), _reset_latency_us(0),
                   _min_latency_us(-1), _ema_max_qps(-1), _explore_ratio(FLAGS_auto_cl_max_explore_ratio),
                   _last_sampling_time_us(0), _total_succ_req(0) {
         }
@@ -100,7 +100,7 @@ namespace melon::rpc {
                 return;
             }
 
-            const int64_t now_time_us = melon::get_current_time_micros();
+            const int64_t now_time_us = turbo::get_current_time_micros();
             int64_t last_sampling_time_us =
                     _last_sampling_time_us.load(std::memory_order_relaxed);
 
@@ -115,7 +115,7 @@ namespace melon::rpc {
                     if (sample_window_submitted) {
                         // The following log prints has data-race in extreme cases,
                         // unless you are in debug, you should not open it.
-                        MELON_VLOG(1)
+                        TURBO_VLOG(1)
                                         << "Sample window submitted, current max_concurrency:"
                                         << _max_concurrency
                                         << ", min_latency_us:" << _min_latency_us
@@ -133,7 +133,7 @@ namespace melon::rpc {
         int64_t AutoConcurrencyLimiter::NextResetTime(int64_t sampling_time_us) {
             int64_t reset_start_us = sampling_time_us +
                                      (FLAGS_auto_cl_noload_latency_remeasure_interval_ms / 2 +
-                                      melon::base::fast_rand_less_than(
+                                      turbo::base::fast_rand_less_than(
                                               FLAGS_auto_cl_noload_latency_remeasure_interval_ms / 2)) * 1000;
             return reset_start_us;
         }

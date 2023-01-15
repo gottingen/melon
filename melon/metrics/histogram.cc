@@ -15,7 +15,7 @@ namespace melon {
                          const variable_base::tag_type &tags)
             : _bucket_boundaries(buckets),
               _sum(name + "_sum", "", std::unordered_map<std::string, std::string>(), DISPLAY_NON) {
-        MELON_CHECK(std::is_sorted(std::begin(_bucket_boundaries),
+        TURBO_CHECK(std::is_sorted(std::begin(_bucket_boundaries),
                                    std::end(_bucket_boundaries)));
         make_bucket(name, buckets);
         variable_base::expose(name, help, tags, DISPLAY_ON_METRICS);
@@ -52,7 +52,7 @@ namespace melon {
                   const variable_base::tag_type &tags) {
         _sum.expose(prefix + name + "_sum", "", std::unordered_map<std::string, std::string>(), DISPLAY_NON);
         make_bucket(prefix + name, buckets);
-        MELON_CHECK(std::is_sorted(std::begin(_bucket_boundaries),
+        TURBO_CHECK(std::is_sorted(std::begin(_bucket_boundaries),
                                    std::end(_bucket_boundaries)));
         return variable_base::expose_as(prefix, name, help, tags, DISPLAY_ON_METRICS);
     }
@@ -72,7 +72,7 @@ namespace melon {
     }
 
 /*
-    void histogram::describe_metrics(std::ostream &out, const melon::time_point *stamp) const {
+    void histogram::describe_metrics(std::ostream &out, const turbo::time_point *stamp) const {
         out << "# HELP " << _name << "\n";
         out << "# TYPE " << _name << " histogram\n";
         size_t cnt = 0;

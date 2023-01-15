@@ -66,8 +66,8 @@ namespace melon::rpc {
 
         // Check comments on ParallelChannel.AddChannel in parallel_channel.h
         // Sub channels in PartitionChannel share the same mapper and merger.
-        melon::container::intrusive_ptr<CallMapper> call_mapper;
-        melon::container::intrusive_ptr<ResponseMerger> response_merger;
+        turbo::container::intrusive_ptr<CallMapper> call_mapper;
+        turbo::container::intrusive_ptr<ResponseMerger> response_merger;
     };
 
     // PartitionChannel is a specialized ParallelChannel whose sub channels are
@@ -123,7 +123,7 @@ namespace melon::rpc {
         int CheckHealth();
 
         PartitionChannelBase *_pchan;
-        melon::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+        turbo::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
         PartitionParser *_parser;
     };
 
@@ -167,7 +167,7 @@ namespace melon::rpc {
 
         SelectiveChannel _schan;
         Partitioner *_partitioner;
-        melon::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+        turbo::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
         PartitionParser *_parser;
     };
 

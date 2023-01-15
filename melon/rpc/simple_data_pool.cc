@@ -33,7 +33,7 @@ namespace melon::rpc {
         void **saved_pool = nullptr;
         const DataFactory *saved_factory = nullptr;
         {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             saved_size = _size;
             saved_pool = _pool;
             saved_factory = _factory;
@@ -57,7 +57,7 @@ namespace melon::rpc {
         if (_capacity >= n) {
             return;
         }
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         if (_capacity >= n) {
             return;
         }
@@ -87,7 +87,7 @@ namespace melon::rpc {
 
     void *SimpleDataPool::Borrow() {
         if (_size) {
-            MELON_SCOPED_LOCK(_mutex);
+            TURBO_SCOPED_LOCK(_mutex);
             if (_size) {
                 return _pool[--_size];
             }

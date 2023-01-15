@@ -19,10 +19,10 @@
 #include <cstdlib>                                   // strtol
 #include <string>                                     // std::string
 #include <set>                                        // std::set
-#include "melon/strings/string_splitter.h"                     // StringSplitter
+#include "turbo/strings/string_splitter.h"                     // StringSplitter
 #include "melon/rpc/log.h"
 #include "melon/rpc/policy/list_naming_service.h"
-#include "melon/strings/utility.h"
+#include "turbo/strings/utility.h"
 
 
 namespace melon::rpc {
@@ -43,10 +43,10 @@ namespace melon::rpc {
             std::string line;
 
             if (!service_name) {
-                MELON_LOG(FATAL) << "Param[service_name] is nullptr";
+                TURBO_LOG(FATAL) << "Param[service_name] is nullptr";
                 return -1;
             }
-            for (melon::StringSplitter sp(service_name, ','); sp != nullptr; ++sp) {
+            for (turbo::StringSplitter sp(service_name, ','); sp != nullptr; ++sp) {
                 line.assign(sp.field(), sp.length());
                 std::string_view addr;
                 std::string_view tag;
@@ -54,15 +54,15 @@ namespace melon::rpc {
                     continue;
                 }
                 const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-                melon::end_point point;
+                turbo::end_point point;
                 if (str2endpoint(addr.data(), &point) != 0 &&
                     hostname2endpoint(addr.data(), &point) != 0) {
-                    MELON_LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                    TURBO_LOG(ERROR) << "Invalid address=`" << addr << '\'';
                     continue;
                 }
                 ServerNode node;
                 node.addr = point;
-                melon::copy_to_string(tag, &node.tag);
+                turbo::copy_to_string(tag, &node.tag);
                 if (presence.insert(node).second) {
                     servers->push_back(node);
                 } else {

@@ -20,7 +20,7 @@
 #define MELON_RPC_SPARSE_MINUTE_COUNTER_H_
 
 
-#include "melon/container/bounded_queue.h"
+#include "turbo/container/bounded_queue.h"
 
 namespace melon::rpc {
 
@@ -58,9 +58,9 @@ namespace melon::rpc {
         bool TryPop(int64_t now_ms, T *popped);
 
     private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(SparseMinuteCounter);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(SparseMinuteCounter);
 
-        typedef melon::container::bounded_queue<Item> Q;
+        typedef turbo::container::bounded_queue<Item> Q;
 
         static Q *CreateQueue(uint32_t cap);
 
@@ -127,7 +127,7 @@ namespace melon::rpc {
         const size_t memsize =
                 sizeof(Q) + sizeof(Item) * cap;
         char *mem = (char *) malloc(memsize); // intended crash on ENOMEM
-        return new(mem) Q(mem + sizeof(Q), sizeof(Item) * cap, melon::container::NOT_OWN_STORAGE);
+        return new(mem) Q(mem + sizeof(Q), sizeof(Item) * cap, turbo::container::NOT_OWN_STORAGE);
     }
 
     template<typename T>
@@ -140,7 +140,7 @@ namespace melon::rpc {
 
     template<typename T>
     void SparseMinuteCounter<T>::Resize() {
-        MELON_CHECK_LT(_q->capacity(), (size_t) 60);
+        TURBO_CHECK_LT(_q->capacity(), (size_t) 60);
         uint32_t new_cap = std::min(2 * (uint32_t) _q->capacity(), 60u);
         Q *new_q = CreateQueue(new_cap);
         for (size_t i = 0; i < _q->size(); ++i) {

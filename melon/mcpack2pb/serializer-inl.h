@@ -210,7 +210,7 @@ namespace mcpack2pb {
         _zc_stream->BackUp(n + _size);
         const int64_t nbackup = saved_bytecount - _zc_stream->ByteCount();
         if (nbackup != n + _size) {
-            MELON_CHECK(false) << "Expect output stream backward for " << n + _size
+            TURBO_CHECK(false) << "Expect output stream backward for " << n + _size
                          << " bytes, actually " << nbackup << " bytes";
         }
         _size = 0;
@@ -220,7 +220,7 @@ namespace mcpack2pb {
     }
 
     inline Serializer::GroupInfo *Serializer::push_group_info() {
-        if (_ndepth + 1 < (int) MELON_ARRAY_SIZE(_group_info_fast)) {
+        if (_ndepth + 1 < (int) TURBO_ARRAY_SIZE(_group_info_fast)) {
             return &_group_info_fast[++_ndepth];
         }
         if (_ndepth >= MAX_DEPTH) {
@@ -228,20 +228,20 @@ namespace mcpack2pb {
         }
         if (_group_info_more == nullptr) {
             _group_info_more =
-                    (GroupInfo *) malloc((MAX_DEPTH + 1 - MELON_ARRAY_SIZE(_group_info_fast))
+                    (GroupInfo *) malloc((MAX_DEPTH + 1 - TURBO_ARRAY_SIZE(_group_info_fast))
                                          * sizeof(GroupInfo));
             if (_group_info_more == nullptr) {
                 return nullptr;
             }
         }
-        return &_group_info_more[++_ndepth - MELON_ARRAY_SIZE(_group_info_fast)];
+        return &_group_info_more[++_ndepth - TURBO_ARRAY_SIZE(_group_info_fast)];
     }
 
     inline Serializer::GroupInfo &Serializer::peek_group_info() {
-        if (_ndepth < (int) MELON_ARRAY_SIZE(_group_info_fast)) {
+        if (_ndepth < (int) TURBO_ARRAY_SIZE(_group_info_fast)) {
             return _group_info_fast[_ndepth];
         } else {
-            return _group_info_more[_ndepth - MELON_ARRAY_SIZE(_group_info_fast)];
+            return _group_info_more[_ndepth - TURBO_ARRAY_SIZE(_group_info_fast)];
         }
     }
 

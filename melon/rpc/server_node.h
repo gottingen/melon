@@ -19,7 +19,7 @@
 #define MELON_RPC_SERVER_NODE_H_
 
 #include <string>
-#include "melon/base/endpoint.h"
+#include "turbo/base/endpoint.h"
 
 namespace melon::rpc {
 
@@ -27,17 +27,17 @@ namespace melon::rpc {
     struct ServerNode {
         ServerNode() {}
 
-        explicit ServerNode(const melon::end_point &pt) : addr(pt) {}
+        explicit ServerNode(const turbo::end_point &pt) : addr(pt) {}
 
-        ServerNode(melon::ip_t ip, int port, const std::string &tag2)
+        ServerNode(turbo::ip_t ip, int port, const std::string &tag2)
                 : addr(ip, port), tag(tag2) {}
 
-        ServerNode(const melon::end_point &pt, const std::string &tag2)
+        ServerNode(const turbo::end_point &pt, const std::string &tag2)
                 : addr(pt), tag(tag2) {}
 
-        ServerNode(melon::ip_t ip, int port) : addr(ip, port) {}
+        ServerNode(turbo::ip_t ip, int port) : addr(ip, port) {}
 
-        melon::end_point addr;
+        turbo::end_point addr;
         std::string tag;
     };
 

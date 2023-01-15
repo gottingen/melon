@@ -20,10 +20,10 @@
 #define MELON_RPC_REDIS_REPLY_H_
 
 #include <stdarg.h>
-#include "melon/io/cord_buf.h"                  // melon::cord_buf
+#include "turbo/io/cord_buf.h"                  // turbo::cord_buf
 #include <string_view>   // std::string_view
-#include "melon/memory/arena.h"                  // melon::Arena
-#include "melon/log/logging.h"                // MELON_CHECK
+#include "turbo/memory/arena.h"                  // turbo::Arena
+#include "turbo/log/logging.h"                // TURBO_CHECK
 #include "parse_result.h"                 // ParseError
 
 
@@ -46,7 +46,7 @@ namespace melon::rpc {
     public:
         // The initial value for a reply is a nil.
         // All needed memory is allocated on `arena'.
-        RedisReply(melon::Arena *arena);
+        RedisReply(turbo::Arena *arena);
 
         // Type of the reply.
         redis_reply_type type() const { return _type; }
@@ -126,10 +126,10 @@ namespace melon::rpc {
         // reply. As a contrast, if the parsing needs `buf' to be intact,
         // the complexity in worst case may be O(N^2).
         // Returns PARSE_ERROR_ABSOLUTELY_WRONG if the parsing failed.
-        ParseError ConsumePartialCordBuf(melon::cord_buf &buf);
+        ParseError ConsumePartialCordBuf(turbo::cord_buf &buf);
 
         // Serialize to cord_buf appender using redis protocol
-        bool SerializeTo(melon::cord_buf_appender *appender);
+        bool SerializeTo(turbo::cord_buf_appender *appender);
 
         // Swap internal fields with another reply.
         void Swap(RedisReply &other);
@@ -151,7 +151,7 @@ namespace melon::rpc {
 
         // RedisReply does not own the memory of fields, copying must be done
         // by calling CopyFrom[Different|Same]Arena.
-        MELON_DISALLOW_COPY_AND_ASSIGN(RedisReply);
+        TURBO_DISALLOW_COPY_AND_ASSIGN(RedisReply);
 
         void FormatStringImpl(const char *fmt, va_list args, redis_reply_type type);
 
@@ -169,7 +169,7 @@ namespace melon::rpc {
             } array;
             uint64_t padding[2]; // For swapping, must cover all bytes.
         } _data;
-        melon::Arena *_arena;
+        turbo::Arena *_arena;
     };
 
     // =========== inline impl. ==============
@@ -187,7 +187,7 @@ namespace melon::rpc {
         // _arena should not be reset because further memory allocation needs it.
     }
 
-    inline RedisReply::RedisReply(melon::Arena *arena)
+    inline RedisReply::RedisReply(turbo::Arena *arena)
             : _arena(arena) {
         Reset();
     }
@@ -208,7 +208,7 @@ namespace melon::rpc {
         if (is_integer()) {
             return _data.integer;
         }
-        MELON_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        TURBO_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                            << ", not an integer";
         return 0;
     }
@@ -279,7 +279,7 @@ namespace melon::rpc {
                 return _data.long_str;
             }
         }
-        MELON_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        TURBO_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                            << ", not a string";
         return "";
     }
@@ -292,7 +292,7 @@ namespace melon::rpc {
                 return std::string_view(_data.long_str, _length);
             }
         }
-        MELON_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        TURBO_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                            << ", not a string";
         return std::string_view();
     }
@@ -305,7 +305,7 @@ namespace melon::rpc {
                 return _data.long_str;
             }
         }
-        MELON_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        TURBO_CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                            << ", not an error";
         return "";
     }

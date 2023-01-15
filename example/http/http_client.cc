@@ -23,7 +23,7 @@
 //   ./http_client www.foo.com
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/rpc/channel.h>
 
 DEFINE_string(d, "", "POST this data to the http server");
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (argc != 2) {
-        MELON_LOG(ERROR) << "Usage: ./http_client \"http(s)://www.foo.com\"";
+        TURBO_LOG(ERROR) << "Usage: ./http_client \"http(s)://www.foo.com\"";
         return -1;
     }
     char* url = argv[1];
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     // Initialize the channel, nullptr means using default options.
     // options, see `melon/rpc/channel.h'.
     if (channel.Init(url, FLAGS_load_balancer.c_str(), &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 

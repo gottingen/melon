@@ -36,18 +36,18 @@ void InfoThread::run() {
     int64_t last_sent_count = 0;
     int64_t last_succ_count = 0;
     int64_t last_error_count = 0;
-    int64_t start_time = melon::get_current_time_micros();
+    int64_t start_time = turbo::get_current_time_micros();
     while (!_stop) {
         int64_t end_time = 0;
         while (!_stop &&
-               (end_time = melon::get_current_time_micros()) < start_time + 1000000L) {
-            MELON_SCOPED_LOCK(_mutex);
+               (end_time = turbo::get_current_time_micros()) < start_time + 1000000L) {
+            TURBO_SCOPED_LOCK(_mutex);
             if (!_stop) {
-                timespec ts = melon::time_point::from_unix_micros(end_time).to_timespec();
+                timespec ts = turbo::time_point::from_unix_micros(end_time).to_timespec();
                 pthread_cond_timedwait(&_cond, &_mutex, &ts);
             }
         }
-        start_time = melon::get_current_time_micros();
+        start_time = turbo::get_current_time_micros();
         char buf[64];
         const time_t tm_s = start_time / 1000000L;
         struct tm lt;
@@ -103,13 +103,13 @@ bool InfoThread::start(const InfoThreadOptions& options) {
     if (options.latency_recorder == nullptr ||
         options.error_count == nullptr ||
         options.sent_count == nullptr) {
-        MELON_LOG(ERROR) << "Some required options are nullptr";
+        TURBO_LOG(ERROR) << "Some required options are nullptr";
         return false;
     }
     _options = options;
     _stop = false;
     if (pthread_create(&_tid, nullptr, run_info_thread, this) != 0) {
-        MELON_LOG(ERROR) << "Fail to create info_thread";
+        TURBO_LOG(ERROR) << "Fail to create info_thread";
         return false;
     }
     return true;
@@ -117,7 +117,7 @@ bool InfoThread::start(const InfoThreadOptions& options) {
 
 void InfoThread::stop() {
     {
-        MELON_SCOPED_LOCK(_mutex);
+        TURBO_SCOPED_LOCK(_mutex);
         if (_stop) {
             return;
         }

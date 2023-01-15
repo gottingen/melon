@@ -18,8 +18,8 @@
 // A client sending requests to server every 1 second.
 
 #include <gflags/gflags.h>
-#include "melon/log/logging.h"
-#include "melon/times/time.h"
+#include "turbo/log/logging.h"
+#include "turbo/times/time.h"
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MELON_LOG(ERROR) << "Fail to initialize channel";
+        TURBO_LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -75,17 +75,17 @@ int main(int argc, char* argv[]) {
         // the response comes back or error occurs(including timedout).
         stub.Echo(&cntl, &request, &response, nullptr);
         if (!cntl.Failed()) {
-            MELON_LOG(INFO) << "Received response from " << cntl.remote_side()
+            TURBO_LOG(INFO) << "Received response from " << cntl.remote_side()
                 << " to " << cntl.local_side()
                 << ": " << response.message() << " (attached="
                 << cntl.response_attachment() << ")"
                 << " latency=" << cntl.latency_us() << "us";
         } else {
-            MELON_LOG(WARNING) << cntl.ErrorText();
+            TURBO_LOG(WARNING) << cntl.ErrorText();
         }
         usleep(FLAGS_interval_ms * 1000L);
     }
 
-    MELON_LOG(INFO) << "EchoClient is going to quit";
+    TURBO_LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

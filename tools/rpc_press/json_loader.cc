@@ -16,7 +16,7 @@
 // under the License.
 
 #include <algorithm>
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 #include <melon/json2pb/pb_to_json.h>
 #include <melon/json2pb/json_to_pb.h>
 #include "pb_util.h"
@@ -42,7 +42,7 @@ public:
         _file_buf.append(jsons);
     }
 
-    bool get_next_json(melon::cord_buf* json1);
+    bool get_next_json(turbo::cord_buf* json1);
     bool read_some();
 
 private:
@@ -50,7 +50,7 @@ private:
     int _brace_depth;
     bool _quoted; // quoted by " or '
     char _quote_char;
-    melon::IOPortal _file_buf;
+    turbo::IOPortal _file_buf;
 };
 
 // Load data from the file.
@@ -63,7 +63,7 @@ bool JsonLoader::Reader::read_some() {
         if (errno == EINTR) {
             return read_some();
         }
-        MELON_PLOG(ERROR) << "Fail to read fd=" << _fd;
+        TURBO_PLOG(ERROR) << "Fail to read fd=" << _fd;
         return false;
     } else if (nr == 0) {
         return false;
@@ -73,8 +73,8 @@ bool JsonLoader::Reader::read_some() {
 }
 
 // Ignore json only with spaces and newline
-static bool possibly_valid_json(const melon::cord_buf& json) {
-    melon::cord_buf_as_zero_copy_input_stream it(json);
+static bool possibly_valid_json(const turbo::cord_buf& json) {
+    turbo::cord_buf_as_zero_copy_input_stream it(json);
     const void* data = nullptr;
     int size = 0;
     int total_size = 0;
@@ -90,7 +90,7 @@ static bool possibly_valid_json(const melon::cord_buf& json) {
 }
 
 // Separate jsons with closed braces.
-bool JsonLoader::Reader::get_next_json(melon::cord_buf* json1) {
+bool JsonLoader::Reader::get_next_json(turbo::cord_buf* json1) {
     if (_file_buf.empty()) {
         if (!read_some()) {
             return false;
@@ -98,7 +98,7 @@ bool JsonLoader::Reader::get_next_json(melon::cord_buf* json1) {
     }
     json1->clear();
     while (1) {
-        melon::cord_buf_as_zero_copy_input_stream it(_file_buf);
+        turbo::cord_buf_as_zero_copy_input_stream it(_file_buf);
         const void* data = nullptr;
         int size = 0;
         int total_size = 0;
@@ -118,7 +118,7 @@ bool JsonLoader::Reader::get_next_json(melon::cord_buf* json1) {
                     if (!_quoted) {
                         ++_brace_depth;
                     } else {
-                        MELON_VLOG(1) << "Quoted left brace";
+                        TURBO_VLOG(1) << "Quoted left brace";
                     }                        
                     break;
                 case '}':
@@ -130,11 +130,11 @@ bool JsonLoader::Reader::get_next_json(melon::cord_buf* json1) {
                             json1->pop_front(skipped);
                             return possibly_valid_json(*json1);
                         } else if (_brace_depth < 0) {
-                            MELON_LOG(ERROR) << "More right braces than left braces";
+                            TURBO_LOG(ERROR) << "More right braces than left braces";
                             return false;
                         }
                     } else {
-                        MELON_VLOG(1) << "Quoted right brace";
+                        TURBO_VLOG(1) << "Quoted right brace";
                     }
                     break;
                 case '"':
@@ -195,21 +195,21 @@ void JsonLoader::load_messages(
     JsonLoader::Reader* ctx,
     std::deque<google::protobuf::Message*>* out_msgs) {
     out_msgs->clear();
-    melon::cord_buf request_json;
+    turbo::cord_buf request_json;
     while (ctx->get_next_json(&request_json)) {
-        MELON_VLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
+        TURBO_VLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
                 << request_json << '\'';
         std::string error;
         google::protobuf::Message* request = _request_prototype->New();
-        melon::cord_buf_as_zero_copy_input_stream wrapper(request_json);
+        turbo::cord_buf_as_zero_copy_input_stream wrapper(request_json);
         if (!json2pb::JsonToProtoMessage(&wrapper, request, &error)) {
-            MELON_LOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
+            TURBO_LOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
                          << request_json << '\'';
             delete request;
             continue;
         }
         out_msgs->push_back(request);
-        MELON_LOG_IF(INFO, (out_msgs->size() % 10000) == 0)
+        TURBO_LOG_IF(INFO, (out_msgs->size() % 10000) == 0)
             << "Loaded " << out_msgs->size() << " jsons";
     }
 }

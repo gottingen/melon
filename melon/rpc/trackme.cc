@@ -24,15 +24,15 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
-#include "melon/base/fast_rand.h"
+#include "turbo/base/fast_rand.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/trackme.pb.h"
 #include "melon/rpc/policy/hasher.h"
-#include "melon/files/readline_file.h"
-#include "melon/strings/str_format.h"
-#include "melon/strings/strip.h"
-#include "melon/strings/numbers.h"
+#include "turbo/files/readline_file.h"
+#include "turbo/strings/str_format.h"
+#include "turbo/strings/strip.h"
+#include "turbo/strings/numbers.h"
 
 
 namespace melon::rpc {
@@ -87,22 +87,22 @@ namespace melon::rpc {
             RPC_VLOG << "Fail to get password file entry of uid=" << uid;
             return -1;
         }
-        std::string JPAAS_LOG_PATH =  melon::string_format("{}/jpaas_run/logs/env.log", pw->pw_dir);
-        melon::readline_file file;
+        std::string JPAAS_LOG_PATH =  turbo::string_format("{}/jpaas_run/logs/env.log", pw->pw_dir);
+        turbo::readline_file file;
         auto fs = file.open(JPAAS_LOG_PATH);
         if (!fs.is_ok()) {
             RPC_VLOG << "Fail to open `" << JPAAS_LOG_PATH << '\'';
             return -1;
         }
         int host_port = -1;
-        std::string prefix = melon::string_format( "JPAAS_HOST_PORT_{}=", container_port);
+        std::string prefix = turbo::string_format( "JPAAS_HOST_PORT_{}=", container_port);
         auto lines = file.lines();
         for (auto line : lines) {
-            line = melon::strip_suffix(line, "\n");
-            if (melon::starts_with(line, prefix)) {
+            line = turbo::strip_suffix(line, "\n");
+            if (turbo::starts_with(line, prefix)) {
                 line = line.substr(prefix.size());
-                auto r = melon::simple_atoi(line, &host_port);
-                MELON_UNUSED(r);
+                auto r = turbo::simple_atoi(line, &host_port);
+                TURBO_UNUSED(r);
                 break;
             }
         }
@@ -111,8 +111,8 @@ namespace melon::rpc {
     }
 
     // Called in server.cpp
-    void SetTrackMeAddress(melon::end_point pt) {
-        MELON_SCOPED_LOCK(s_trackme_mutex);
+    void SetTrackMeAddress(turbo::end_point pt) {
+        TURBO_SCOPED_LOCK(s_trackme_mutex);
         if (s_trackme_addr == nullptr) {
             // JPAAS has NAT capabilities, read its log to figure out the open port
             // accessible from outside.
@@ -122,7 +122,7 @@ namespace melon::rpc {
                          << " instead of jpaas_container_port=" << pt.port;
                 pt.port = jpaas_port;
             }
-            s_trackme_addr = new std::string(melon::endpoint2str(pt).c_str());
+            s_trackme_addr = new std::string(turbo::endpoint2str(pt).c_str());
         }
     }
 
@@ -135,7 +135,7 @@ namespace melon::rpc {
             cur_info.error_text = res->error_text();
             bool already_reported = false;
             {
-                MELON_SCOPED_LOCK(s_trackme_mutex);
+                TURBO_SCOPED_LOCK(s_trackme_mutex);
                 if (g_bug_info != nullptr && *g_bug_info == cur_info) {
                     // we've shown the bug.
                     already_reported = true;
@@ -153,15 +153,15 @@ namespace melon::rpc {
                     case TrackMeOK:
                         break;
                     case TrackMeFatal:
-                        MELON_LOG(ERROR) << "Your melon (r" << g_rpc_version
+                        TURBO_LOG(ERROR) << "Your melon (r" << g_rpc_version
                                          << ") is affected by: " << res->error_text();
                         break;
                     case TrackMeWarning:
-                        MELON_LOG(WARNING) << "Your melon (r" << g_rpc_version
+                        TURBO_LOG(WARNING) << "Your melon (r" << g_rpc_version
                                            << ") is affected by: " << res->error_text();
                         break;
                     default:
-                        MELON_LOG(WARNING) << "Unknown severity=" << res->severity();
+                        TURBO_LOG(WARNING) << "Unknown severity=" << res->severity();
                         break;
                 }
             }
@@ -189,14 +189,14 @@ namespace melon::rpc {
         if (s_trackme_chan == nullptr) {
             Channel *chan = new(std::nothrow) Channel;
             if (chan == nullptr) {
-                MELON_LOG(FATAL) << "Fail to new trackme channel";
+                TURBO_LOG(FATAL) << "Fail to new trackme channel";
                 return;
             }
             ChannelOptions opt;
             // keep #connections on server-side low
             opt.connection_type = CONNECTION_TYPE_SHORT;
             if (chan->Init(FLAGS_trackme_server.c_str(), "c_murmurhash", &opt) != 0) {
-                MELON_LOG(WARNING) << "Fail to connect to " << FLAGS_trackme_server;
+                TURBO_LOG(WARNING) << "Fail to connect to " << FLAGS_trackme_server;
                 delete chan;
                 return;
             }
@@ -221,13 +221,13 @@ namespace melon::rpc {
         if (FLAGS_trackme_server.empty()) {
             return;
         }
-        int64_t now = melon::get_current_time_micros();
+        int64_t now = turbo::get_current_time_micros();
         std::unique_lock<pthread_mutex_t> mu(s_trackme_mutex);
         if (s_trackme_last_time == 0) {
             // Delay the first ping randomly within s_trackme_interval. This
             // protects trackme_server from ping storms.
             s_trackme_last_time =
-                    now + melon::base::fast_rand_less_than(s_trackme_interval) * 1000000L;
+                    now + turbo::base::fast_rand_less_than(s_trackme_interval) * 1000000L;
         }
         if (now > s_trackme_last_time + 1000000L * s_trackme_interval) {
             s_trackme_last_time = now;

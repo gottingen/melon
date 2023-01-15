@@ -31,7 +31,7 @@ namespace melon::rpc {
                             ::google::protobuf::Closure *done) override;
     };
 
-    int DumpPrometheusMetricsToCordBuf(melon::cord_buf *output);
+    int DumpPrometheusMetricsToCordBuf(turbo::cord_buf *output);
 
 } // namepace melon::rpc
 

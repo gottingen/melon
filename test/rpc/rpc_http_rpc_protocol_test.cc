@@ -26,9 +26,9 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/text_format.h>
-#include "melon/times/time.h"
-#include "melon/files/sequential_read_file.h"
-#include "melon/base/fd_guard.h"
+#include "turbo/times/time.h"
+#include "turbo/files/sequential_read_file.h"
+#include "turbo/base/fd_guard.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -41,8 +41,8 @@
 #include "melon/json2pb/pb_to_json.h"
 #include "melon/json2pb/json_to_pb.h"
 #include "melon/rpc/details/method_status.h"
-#include "melon/strings/starts_with.h"
-#include "melon/strings/ends_with.h"
+#include "turbo/strings/starts_with.h"
+#include "turbo/strings/ends_with.h"
 #include "melon/fiber/this_fiber.h"
 #include "melon/rpc/rpc_dump.h"
 #include "melon/metrics/collector.h"
@@ -86,7 +86,7 @@ namespace {
         }
 
         int VerifyCredential(const std::string &auth_str,
-                             const melon::end_point &,
+                             const turbo::end_point &,
                              melon::rpc::AuthContext *ctx) const {
             EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
             ctx->set_user(MOCK_USER);
@@ -173,7 +173,7 @@ namespace {
 
             test::EchoRequest req;
             req.set_message(EXP_REQUEST);
-            melon::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
+            turbo::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
             EXPECT_TRUE(json2pb::ProtoMessageToJson(req, &req_stream, nullptr));
             return msg;
         }
@@ -187,7 +187,7 @@ namespace {
 
             test::EchoRequest req;
             req.set_message(EXP_REQUEST);
-            melon::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
+            turbo::cord_buf_as_zero_copy_output_stream req_stream(&msg->body());
             EXPECT_TRUE(google::protobuf::TextFormat::Print(req, &req_stream));
             return msg;
         }
@@ -207,7 +207,7 @@ namespace {
 
             test::EchoResponse res;
             res.set_message(EXP_RESPONSE);
-            melon::cord_buf_as_zero_copy_output_stream res_stream(&msg->body());
+            turbo::cord_buf_as_zero_copy_output_stream res_stream(&msg->body());
             EXPECT_TRUE(json2pb::ProtoMessageToJson(res, &res_stream, nullptr));
             return msg;
         }
@@ -221,7 +221,7 @@ namespace {
             }
 
             EXPECT_GT(bytes_in_pipe, 0);
-            melon::IOPortal buf;
+            turbo::IOPortal buf;
             EXPECT_EQ((ssize_t) bytes_in_pipe,
                       buf.append_from_file_descriptor(_pipe_fds[0], 1024));
             melon::rpc::ParseResult pr =
@@ -234,8 +234,8 @@ namespace {
             msg->Destroy();
         }
 
-        void MakeH2EchoRequestBuf(melon::cord_buf *out, melon::rpc::Controller *cntl, int *h2_stream_id) {
-            melon::cord_buf request_buf;
+        void MakeH2EchoRequestBuf(turbo::cord_buf *out, melon::rpc::Controller *cntl, int *h2_stream_id) {
+            turbo::cord_buf request_buf;
             test::EchoRequest req;
             req.set_message(EXP_REQUEST);
             cntl->http_request().set_method(melon::rpc::HTTP_METHOD_POST);
@@ -246,24 +246,24 @@ namespace {
             melon::rpc::SocketMessage *socket_message = nullptr;
             melon::rpc::policy::PackH2Request(nullptr, &socket_message, cntl->call_id().value,
                                               nullptr, cntl, request_buf, nullptr);
-            melon::result_status st = socket_message->AppendAndDestroySelf(out, _h2_client_sock.get());
+            turbo::result_status st = socket_message->AppendAndDestroySelf(out, _h2_client_sock.get());
             ASSERT_TRUE(st.is_ok());
             *h2_stream_id = h2_req->_stream_id;
         }
 
-        void MakeH2EchoResponseBuf(melon::cord_buf *out, int h2_stream_id) {
+        void MakeH2EchoResponseBuf(turbo::cord_buf *out, int h2_stream_id) {
             melon::rpc::Controller cntl;
             test::EchoResponse res;
             res.set_message(EXP_RESPONSE);
             cntl.http_request().set_content_type("application/proto");
             {
-                melon::cord_buf_as_zero_copy_output_stream wrapper(&cntl.response_attachment());
+                turbo::cord_buf_as_zero_copy_output_stream wrapper(&cntl.response_attachment());
                 EXPECT_TRUE(res.SerializeToZeroCopyStream(&wrapper));
             }
             melon::rpc::policy::H2UnsentResponse *h2_res = melon::rpc::policy::H2UnsentResponse::New(&cntl,
                                                                                                      h2_stream_id,
                                                                                                      false /*is grpc*/);
-            melon::result_status st = h2_res->AppendAndDestroySelf(out, _h2_client_sock.get());
+            turbo::result_status st = h2_res->AppendAndDestroySelf(out, _h2_client_sock.get());
             ASSERT_TRUE(st);
         }
 
@@ -291,32 +291,32 @@ namespace {
 
     TEST_F(HttpTest, parse_http_address) {
         const std::string EXP_HOSTNAME = "www.baidu.com:9876";
-        melon::end_point EXP_ENDPOINT;
+        turbo::end_point EXP_ENDPOINT;
         {
             std::string url = "https://" + EXP_HOSTNAME;
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&EXP_ENDPOINT, url.c_str()));
         }
         {
-            melon::end_point ep;
+            turbo::end_point ep;
             std::string url = "http://" +
                               std::string(endpoint2str(EXP_ENDPOINT).c_str());
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&ep, url.c_str()));
             EXPECT_EQ(EXP_ENDPOINT, ep);
         }
         {
-            melon::end_point ep;
+            turbo::end_point ep;
             std::string url = "https://" +
-                              std::string(melon::ip2str(EXP_ENDPOINT.ip).c_str());
+                              std::string(turbo::ip2str(EXP_ENDPOINT.ip).c_str());
             EXPECT_TRUE(melon::rpc::policy::ParseHttpServerAddress(&ep, url.c_str()));
             EXPECT_EQ(EXP_ENDPOINT.ip, ep.ip);
             EXPECT_EQ(443, ep.port);
         }
         {
-            melon::end_point ep;
+            turbo::end_point ep;
             EXPECT_FALSE(melon::rpc::policy::ParseHttpServerAddress(&ep, "invalid_url"));
         }
         {
-            melon::end_point ep;
+            turbo::end_point ep;
             EXPECT_FALSE(melon::rpc::policy::ParseHttpServerAddress(
                     &ep, "https://no.such.machine:9090"));
         }
@@ -438,8 +438,8 @@ namespace {
     }
 
     TEST_F(HttpTest, complete_flow) {
-        melon::cord_buf request_buf;
-        melon::cord_buf total_buf;
+        turbo::cord_buf request_buf;
+        turbo::cord_buf total_buf;
         melon::rpc::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
@@ -466,7 +466,7 @@ namespace {
         ProcessMessage(melon::rpc::policy::ProcessHttpRequest, req_msg, false);
 
         // Read response from pipe
-        melon::IOPortal response_buf;
+        turbo::IOPortal response_buf;
         response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
         melon::rpc::ParseResult res_pr =
                 melon::rpc::policy::ParseHttpMessage(&response_buf, _socket.get(), false, nullptr);
@@ -488,7 +488,7 @@ namespace {
         const std::string req = "{\"message\":\"hello\"}";
         const std::string res_fname = "curl.out";
         std::string cmd;
-        melon::string_printf(&cmd, "curl -X POST -d '%s' -H 'Transfer-Encoding:chunked' "
+        turbo::string_printf(&cmd, "curl -X POST -d '%s' -H 'Transfer-Encoding:chunked' "
                                    "-H 'Content-Type:application/json' -o %s "
                                    "http://localhost:%d/EchoService/Echo",
                              req.c_str(), res_fname.c_str(), port);
@@ -496,7 +496,7 @@ namespace {
 
         // Check response
         const std::string exp_res = "{\"message\":\"world\"}";
-        melon::sequential_read_file file;
+        turbo::sequential_read_file file;
         file.open(res_fname);
         std::string content;
         ASSERT_TRUE(file.read(&content));
@@ -533,7 +533,7 @@ namespace {
             cntl->http_response().set_content_type("text/plain");
             melon::rpc::StopStyle stop_style = (_nrep == std::numeric_limits<size_t>::max()
                                                 ? melon::rpc::FORCE_STOP : melon::rpc::WAIT_FOR_STOP);
-            melon::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa
+            turbo::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa
                     = cntl->CreateProgressiveAttachment(stop_style);
             if (pa == nullptr) {
                 cntl->SetFailed("The socket was just failed");
@@ -548,7 +548,7 @@ namespace {
                 CopyPAPrefixedWithSeqNo(buf, c);
                 if (pa->Write(buf, sizeof(buf)) != 0) {
                     if (errno == melon::rpc::EOVERCROWDED) {
-                        MELON_LOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
+                        TURBO_LOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
                         _ever_full = true;
                         melon::fiber_sleep_for(10000);
                         continue;
@@ -564,7 +564,7 @@ namespace {
             if (_done_place == DONE_AFTER_CREATE_PA_BEFORE_DESTROY_PA) {
                 done_guard.reset(nullptr);
             }
-            MELON_LOG(INFO) << "Destroy pa=" << pa.get();
+            TURBO_LOG(INFO) << "Destroy pa=" << pa.get();
             pa.reset(nullptr);
             if (_done_place == DONE_AFTER_DESTROY_PA) {
                 done_guard.reset(nullptr);
@@ -581,7 +581,7 @@ namespace {
             cntl->http_response().set_content_type("text/plain");
             melon::rpc::StopStyle stop_style = (_nrep == std::numeric_limits<size_t>::max()
                                                 ? melon::rpc::FORCE_STOP : melon::rpc::WAIT_FOR_STOP);
-            melon::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa
+            turbo::container::intrusive_ptr<melon::rpc::ProgressiveAttachment> pa
                     = cntl->CreateProgressiveAttachment(stop_style);
             if (pa == nullptr) {
                 cntl->SetFailed("The socket was just failed");
@@ -591,7 +591,7 @@ namespace {
             while (true) {
                 if (pa->Write(buf, sizeof(buf)) != 0) {
                     if (errno == melon::rpc::EOVERCROWDED) {
-                        MELON_LOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
+                        TURBO_LOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
                         melon::fiber_sleep_for(10000);
                         continue;
                     } else {
@@ -608,8 +608,8 @@ namespace {
 
             // Return value of Write after controller has failed should
             // be less than zero.
-            MELON_CHECK_LT(pa->Write(buf, sizeof(buf)), 0);
-            MELON_CHECK_EQ(errno, ECANCELED);
+            TURBO_CHECK_LT(pa->Write(buf, sizeof(buf)), 0);
+            TURBO_CHECK_EQ(errno, ECANCELED);
         }
 
         void set_done_place(DonePlace done_place) { _done_place = done_place; }
@@ -640,7 +640,7 @@ namespace {
             melon::rpc::Channel channel;
             melon::rpc::ChannelOptions options;
             options.protocol = melon::rpc::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
             melon::rpc::Controller cntl;
             cntl.http_request().uri() = "/DownloadService/Download";
             channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
@@ -662,7 +662,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         cntl.http_request().uri() = "/DownloadService/DownloadFailed";
@@ -682,10 +682,10 @@ namespace {
     public:
         ReadBody()
                 : _nread(0), _ncount(0), _destroyed(false) {
-            melon::container::intrusive_ptr<ReadBody>(this).detach(); // ref
+            turbo::container::intrusive_ptr<ReadBody>(this).detach(); // ref
         }
 
-        melon::result_status OnReadOnePart(const void *data, size_t length) {
+        turbo::result_status OnReadOnePart(const void *data, size_t length) {
             _nread += length;
             while (length > 0) {
                 size_t nappend = std::min(_buf.size() + length, PA_DATA_LEN) - _buf.size();
@@ -701,21 +701,21 @@ namespace {
                     _buf.clear();
                 }
             }
-            return melon::result_status::success();
+            return turbo::result_status::success();
         }
 
-        void OnEndOfMessage(const melon::result_status &st) {
-            melon::container::intrusive_ptr<ReadBody>(this, false); // deref
+        void OnEndOfMessage(const turbo::result_status &st) {
+            turbo::container::intrusive_ptr<ReadBody>(this, false); // deref
             ASSERT_LT(_buf.size(), PA_DATA_LEN);
             ASSERT_EQ(0, memcmp(_buf.data(), PA_DATA, _buf.size()));
             _destroyed = true;
             _destroying_st = st;
-            MELON_LOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
+            TURBO_LOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
         }
 
         bool destroyed() const { return _destroyed; }
 
-        const melon::result_status &destroying_status() const { return _destroying_st; }
+        const turbo::result_status &destroying_status() const { return _destroying_st; }
 
         size_t read_bytes() const { return _nread; }
 
@@ -724,13 +724,13 @@ namespace {
         size_t _nread;
         size_t _ncount;
         bool _destroyed;
-        melon::result_status _destroying_st;
+        turbo::result_status _destroying_st;
     };
 
     static const int GENERAL_DELAY_US = 300000; // 0.3s
 
     TEST_F(HttpTest, read_long_body_progressively) {
-        melon::container::intrusive_ptr<ReadBody> reader;
+        turbo::container::intrusive_ptr<ReadBody> reader;
         {
             const int port = 8923;
             melon::rpc::Server server;
@@ -742,7 +742,7 @@ namespace {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
@@ -756,7 +756,7 @@ namespace {
                     for (size_t i = 0; i < 3; ++i) {
                         sleep(1);
                         size_t current_read = reader->read_bytes();
-                        MELON_LOG(INFO) << "read=" << current_read - last_read
+                        TURBO_LOG(INFO) << "read=" << current_read - last_read
                                         << " total=" << current_read;
                         last_read = current_read;
                     }
@@ -779,7 +779,7 @@ namespace {
     }
 
     TEST_F(HttpTest, read_short_body_progressively) {
-        melon::container::intrusive_ptr<ReadBody> reader;
+        turbo::container::intrusive_ptr<ReadBody> reader;
         const int port = 8923;
         melon::rpc::Server server;
         const int NREP = 10000;
@@ -790,7 +790,7 @@ namespace {
             melon::rpc::Channel channel;
             melon::rpc::ChannelOptions options;
             options.protocol = melon::rpc::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
             {
                 melon::rpc::Controller cntl;
                 cntl.response_will_be_read_progressively();
@@ -804,7 +804,7 @@ namespace {
                 for (size_t i = 0; i < 3; ++i) {
                     sleep(1);
                     size_t current_read = reader->read_bytes();
-                    MELON_LOG(INFO) << "read=" << current_read - last_read
+                    TURBO_LOG(INFO) << "read=" << current_read - last_read
                                     << " total=" << current_read;
                     last_read = current_read;
                 }
@@ -817,7 +817,7 @@ namespace {
     }
 
     TEST_F(HttpTest, read_progressively_after_cntl_destroys) {
-        melon::container::intrusive_ptr<ReadBody> reader;
+        turbo::container::intrusive_ptr<ReadBody> reader;
         {
             const int port = 8923;
             melon::rpc::Server server;
@@ -829,7 +829,7 @@ namespace {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
@@ -844,7 +844,7 @@ namespace {
                 for (size_t i = 0; i < 3; ++i) {
                     sleep(1);
                     size_t current_read = reader->read_bytes();
-                    MELON_LOG(INFO) << "read=" << current_read - last_read
+                    TURBO_LOG(INFO) << "read=" << current_read - last_read
                                     << " total=" << current_read;
                     last_read = current_read;
                 }
@@ -863,7 +863,7 @@ namespace {
     }
 
     TEST_F(HttpTest, read_progressively_after_long_delay) {
-        melon::container::intrusive_ptr<ReadBody> reader;
+        turbo::container::intrusive_ptr<ReadBody> reader;
         {
             const int port = 8923;
             melon::rpc::Server server;
@@ -875,7 +875,7 @@ namespace {
                 melon::rpc::Channel channel;
                 melon::rpc::ChannelOptions options;
                 options.protocol = melon::rpc::PROTOCOL_HTTP;
-                ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+                ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
                 {
                     melon::rpc::Controller cntl;
                     cntl.response_will_be_read_progressively();
@@ -883,7 +883,7 @@ namespace {
                     channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
                     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
                     ASSERT_TRUE(cntl.response_attachment().empty());
-                    MELON_LOG(INFO) << "Sleep 3 seconds to make PA at server-side full";
+                    TURBO_LOG(INFO) << "Sleep 3 seconds to make PA at server-side full";
                     sleep(3);
                     EXPECT_TRUE(svc.ever_full());
                     ASSERT_EQ(0, svc.last_errno());
@@ -893,7 +893,7 @@ namespace {
                     for (size_t i = 0; i < 3; ++i) {
                         sleep(1);
                         size_t current_read = reader->read_bytes();
-                        MELON_LOG(INFO) << "read=" << current_read - last_read
+                        TURBO_LOG(INFO) << "read=" << current_read - last_read
                                         << " total=" << current_read;
                         last_read = current_read;
                     }
@@ -922,7 +922,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -932,11 +932,11 @@ namespace {
             ASSERT_TRUE(cntl.response_attachment().empty());
         }
         const size_t old_written_bytes = svc.written_bytes();
-        MELON_LOG(INFO) << "Sleep 3 seconds after destroy of Controller";
+        TURBO_LOG(INFO) << "Sleep 3 seconds after destroy of Controller";
         sleep(3);
         const size_t new_written_bytes = svc.written_bytes();
         ASSERT_EQ(0, svc.last_errno());
-        MELON_LOG(INFO) << "Server still wrote " << new_written_bytes - old_written_bytes;
+        TURBO_LOG(INFO) << "Server still wrote " << new_written_bytes - old_written_bytes;
         // The server side still wrote things.
         ASSERT_GT(new_written_bytes - old_written_bytes, (size_t) 100000);
     }
@@ -944,12 +944,12 @@ namespace {
     class AlwaysFailRead : public melon::rpc::ProgressiveReader {
     public:
         // @ProgressiveReader
-        melon::result_status OnReadOnePart(const void * /*data*/, size_t /*length*/) {
-            return melon::result_status(-1, "intended fail at {}:{}", __FILE__, __LINE__);
+        turbo::result_status OnReadOnePart(const void * /*data*/, size_t /*length*/) {
+            return turbo::result_status(-1, "intended fail at {}:{}", __FILE__, __LINE__);
         }
 
-        void OnEndOfMessage(const melon::result_status &st) {
-            MELON_LOG(INFO) << "Destroy " << this << ": " << st;
+        void OnEndOfMessage(const turbo::result_status &st) {
+            TURBO_LOG(INFO) << "Destroy " << this << ": " << st;
             delete this;
         }
     };
@@ -964,7 +964,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -974,13 +974,13 @@ namespace {
             ASSERT_TRUE(cntl.response_attachment().empty());
             cntl.ReadProgressiveAttachmentBy(new AlwaysFailRead);
         }
-        MELON_LOG(INFO) << "Sleep 1 second";
+        TURBO_LOG(INFO) << "Sleep 1 second";
         sleep(1);
         ASSERT_NE(0, svc.last_errno());
     }
 
     TEST_F(HttpTest, broken_socket_stops_progressive_reading) {
-        melon::container::intrusive_ptr<ReadBody> reader;
+        turbo::container::intrusive_ptr<ReadBody> reader;
         const int port = 8923;
         melon::rpc::Server server;
         DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
@@ -991,7 +991,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = melon::rpc::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
         {
             melon::rpc::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -1005,7 +1005,7 @@ namespace {
             for (size_t i = 0; i < 3; ++i) {
                 sleep(1);
                 size_t current_read = reader->read_bytes();
-                MELON_LOG(INFO) << "read=" << current_read - last_read
+                TURBO_LOG(INFO) << "read=" << current_read - last_read
                                 << " total=" << current_read;
                 last_read = current_read;
             }
@@ -1014,7 +1014,7 @@ namespace {
         }
         // the socket still holds a ref.
         ASSERT_FALSE(reader->destroyed());
-        MELON_LOG(INFO) << "Stopping the server";
+        TURBO_LOG(INFO) << "Stopping the server";
         server.Stop(0);
         server.Join();
 
@@ -1033,7 +1033,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "h2";
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
 
         // Check that the first request with size larger than the default window can
         // be sent out, when remote settings are not received.
@@ -1078,11 +1078,11 @@ namespace {
         melon::rpc::Controller cntl;
 
         // Prepare request
-        melon::cord_buf req_out;
+        turbo::cord_buf req_out;
         int h2_stream_id = 0;
         MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
         // Prepare response
-        melon::cord_buf res_out;
+        turbo::cord_buf res_out;
         char pingbuf[9 /*FRAME_HEAD_SIZE*/ + 8 /*Opaque Data*/];
         melon::rpc::policy::SerializeFrameHead(pingbuf, 8, melon::rpc::policy::H2_FRAME_PING, 0, 0);
         // insert ping before header and data
@@ -1110,11 +1110,11 @@ namespace {
     TEST_F(HttpTest, http2_rst_before_header) {
         melon::rpc::Controller cntl;
         // Prepare request
-        melon::cord_buf req_out;
+        turbo::cord_buf req_out;
         int h2_stream_id = 0;
         MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
         // Prepare response
-        melon::cord_buf res_out;
+        turbo::cord_buf res_out;
         char rstbuf[9 /*FRAME_HEAD_SIZE*/ + 4];
         melon::rpc::policy::SerializeFrameHead(rstbuf, 4, melon::rpc::policy::H2_FRAME_RST_STREAM, 0, h2_stream_id);
         SaveUint32(rstbuf + 9, melon::rpc::H2_INTERNAL_ERROR);
@@ -1134,11 +1134,11 @@ namespace {
     TEST_F(HttpTest, http2_rst_after_header_and_data) {
         melon::rpc::Controller cntl;
         // Prepare request
-        melon::cord_buf req_out;
+        turbo::cord_buf req_out;
         int h2_stream_id = 0;
         MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
         // Prepare response
-        melon::cord_buf res_out;
+        turbo::cord_buf res_out;
         MakeH2EchoResponseBuf(&res_out, h2_stream_id);
         char rstbuf[9 /*FRAME_HEAD_SIZE*/ + 4];
         melon::rpc::policy::SerializeFrameHead(rstbuf, 4, melon::rpc::policy::H2_FRAME_RST_STREAM, 0, h2_stream_id);
@@ -1156,7 +1156,7 @@ namespace {
 
     TEST_F(HttpTest, http2_window_used_up) {
         melon::rpc::Controller cntl;
-        melon::cord_buf request_buf;
+        turbo::cord_buf request_buf;
         test::EchoRequest req;
         // longer message to trigger using up window size sooner
         req.set_message("FLOW_CONTROL_FLOW_CONTROL");
@@ -1169,7 +1169,7 @@ namespace {
         const size_t nb = melon::rpc::policy::SerializeH2Settings(h2_settings,
                                                                   settingsbuf + melon::rpc::policy::FRAME_HEAD_SIZE);
         melon::rpc::policy::SerializeFrameHead(settingsbuf, nb, melon::rpc::policy::H2_FRAME_SETTINGS, 0, 0);
-        melon::cord_buf buf;
+        turbo::cord_buf buf;
         buf.append(settingsbuf, melon::rpc::policy::FRAME_HEAD_SIZE + nb);
         melon::rpc::policy::ParseH2Message(&buf, _h2_client_sock.get(), false, nullptr);
 
@@ -1180,13 +1180,13 @@ namespace {
             melon::rpc::SocketMessage *socket_message = nullptr;
             melon::rpc::policy::PackH2Request(nullptr, &socket_message, cntl.call_id().value,
                                               nullptr, &cntl, request_buf, nullptr);
-            melon::cord_buf dummy;
-            melon::result_status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
+            turbo::cord_buf dummy;
+            turbo::result_status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
             if (i == nsuc) {
                 // the last message should fail according to flow control policy.
                 ASSERT_FALSE(st);
                 ASSERT_TRUE(st.error_code() == melon::rpc::ELIMIT);
-                ASSERT_TRUE(melon::starts_with(st.error_data(), "remote_window_left is not enough"));
+                ASSERT_TRUE(turbo::starts_with(st.error_data(), "remote_window_left is not enough"));
             } else {
                 ASSERT_TRUE(st);
             }
@@ -1203,25 +1203,25 @@ namespace {
         const size_t nb = melon::rpc::policy::SerializeH2Settings(h2_settings,
                                                                   settingsbuf + melon::rpc::policy::FRAME_HEAD_SIZE);
         melon::rpc::policy::SerializeFrameHead(settingsbuf, nb, melon::rpc::policy::H2_FRAME_SETTINGS, 0, 0);
-        melon::cord_buf buf;
+        turbo::cord_buf buf;
         buf.append(settingsbuf, melon::rpc::policy::FRAME_HEAD_SIZE + nb);
 
         melon::rpc::policy::H2Context *ctx = new melon::rpc::policy::H2Context(_socket.get(), nullptr);
-        MELON_CHECK_EQ(ctx->Init(), 0);
+        TURBO_CHECK_EQ(ctx->Init(), 0);
         _socket->initialize_parsing_context(&ctx);
         ctx->_conn_state = melon::rpc::policy::H2_CONNECTION_READY;
         // parse settings
         melon::rpc::policy::ParseH2Message(&buf, _socket.get(), false, nullptr);
 
-        melon::IOPortal response_buf;
-        MELON_CHECK_EQ(response_buf.append_from_file_descriptor(_pipe_fds[0], 1024),
+        turbo::IOPortal response_buf;
+        TURBO_CHECK_EQ(response_buf.append_from_file_descriptor(_pipe_fds[0], 1024),
                        (ssize_t) melon::rpc::policy::FRAME_HEAD_SIZE);
         melon::rpc::policy::H2FrameHead frame_head;
-        melon::cord_buf_bytes_iterator it(response_buf);
+        turbo::cord_buf_bytes_iterator it(response_buf);
         ctx->ConsumeFrameHead(it, &frame_head);
-        MELON_CHECK_EQ(frame_head.type, melon::rpc::policy::H2_FRAME_SETTINGS);
-        MELON_CHECK_EQ(frame_head.flags, 0x01 /* H2_FLAGS_ACK */);
-        MELON_CHECK_EQ(frame_head.stream_id, 0);
+        TURBO_CHECK_EQ(frame_head.type, melon::rpc::policy::H2_FRAME_SETTINGS);
+        TURBO_CHECK_EQ(frame_head.flags, 0x01 /* H2_FLAGS_ACK */);
+        TURBO_CHECK_EQ(frame_head.stream_id, 0);
         ASSERT_TRUE(ctx->_remote_settings.header_table_size == 8192);
         ASSERT_TRUE(ctx->_remote_settings.max_concurrent_streams == 1024);
         ASSERT_TRUE(ctx->_remote_settings.stream_window_size == (1u << 29) - 1);
@@ -1258,7 +1258,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "h2";
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
 
         test::EchoRequest req;
         test::EchoResponse res;
@@ -1308,24 +1308,24 @@ namespace {
         melon::rpc::Controller cntl;
 
         // Prepare request
-        melon::cord_buf req_out;
+        turbo::cord_buf req_out;
         int h2_stream_id = 0;
         MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
 
         // Prepare response to res_out
-        melon::cord_buf res_out;
+        turbo::cord_buf res_out;
         {
-            melon::cord_buf data_buf;
+            turbo::cord_buf data_buf;
             test::EchoResponse res;
             res.set_message(EXP_RESPONSE);
             {
-                melon::cord_buf_as_zero_copy_output_stream wrapper(&data_buf);
+                turbo::cord_buf_as_zero_copy_output_stream wrapper(&data_buf);
                 EXPECT_TRUE(res.SerializeToZeroCopyStream(&wrapper));
             }
             melon::rpc::policy::H2Context *ctx =
                     static_cast<melon::rpc::policy::H2Context *>(_h2_client_sock->parsing_context());
             melon::rpc::HPacker &hpacker = ctx->hpacker();
-            melon::cord_buf_appender header1_appender;
+            turbo::cord_buf_appender header1_appender;
             melon::rpc::HPackOptions options;
             options.encode_name = false;    /* disable huffman encoding */
             options.encode_value = false;
@@ -1335,7 +1335,7 @@ namespace {
             }
             {
                 melon::rpc::HPacker::Header header("content-length",
-                                                   melon::string_printf("%llu", (unsigned long long) data_buf.size()));
+                                                   turbo::string_printf("%llu", (unsigned long long) data_buf.size()));
                 hpacker.Encode(&header1_appender, header, options);
             }
             {
@@ -1350,7 +1350,7 @@ namespace {
                 melon::rpc::HPacker::Header header("user-defined1", "a");
                 hpacker.Encode(&header1_appender, header, options);
             }
-            melon::cord_buf header1;
+            turbo::cord_buf header1;
             header1_appender.move_to(header1);
 
             char headbuf[melon::rpc::policy::FRAME_HEAD_SIZE];
@@ -1358,15 +1358,15 @@ namespace {
                                                    melon::rpc::policy::H2_FRAME_HEADERS, 0, h2_stream_id);
             // append header1
             res_out.append(headbuf, sizeof(headbuf));
-            res_out.append(melon::cord_buf::Movable(header1));
+            res_out.append(turbo::cord_buf::Movable(header1));
 
             melon::rpc::policy::SerializeFrameHead(headbuf, data_buf.size(),
                                                    melon::rpc::policy::H2_FRAME_DATA, 0, h2_stream_id);
             // append data
             res_out.append(headbuf, sizeof(headbuf));
-            res_out.append(melon::cord_buf::Movable(data_buf));
+            res_out.append(turbo::cord_buf::Movable(data_buf));
 
-            melon::cord_buf_appender header2_appender;
+            turbo::cord_buf_appender header2_appender;
             {
                 melon::rpc::HPacker::Header header("user-defined1", "overwrite-a");
                 hpacker.Encode(&header2_appender, header, options);
@@ -1375,7 +1375,7 @@ namespace {
                 melon::rpc::HPacker::Header header("user-defined2", "b");
                 hpacker.Encode(&header2_appender, header, options);
             }
-            melon::cord_buf header2;
+            turbo::cord_buf header2;
             header2_appender.move_to(header2);
 
             melon::rpc::policy::SerializeFrameHead(headbuf, header2.size(),
@@ -1384,7 +1384,7 @@ namespace {
                                                    h2_stream_id);
             // append header2
             res_out.append(headbuf, sizeof(headbuf));
-            res_out.append(melon::cord_buf::Movable(header2));
+            res_out.append(turbo::cord_buf::Movable(header2));
         }
         // parse response
         melon::rpc::ParseResult res_pr =
@@ -1406,11 +1406,11 @@ namespace {
     TEST_F(HttpTest, http2_goaway_sanity) {
         melon::rpc::Controller cntl;
         // Prepare request
-        melon::cord_buf req_out;
+        turbo::cord_buf req_out;
         int h2_stream_id = 0;
         MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
         // Prepare response
-        melon::cord_buf res_out;
+        turbo::cord_buf res_out;
         MakeH2EchoResponseBuf(&res_out, h2_stream_id);
         // append goaway
         char goawaybuf[9 /*FRAME_HEAD_SIZE*/ + 8];
@@ -1435,11 +1435,11 @@ namespace {
         cntl._current_call.stream_user_data = h2_req;
         melon::rpc::SocketMessage *socket_message = nullptr;
         melon::rpc::policy::PackH2Request(nullptr, &socket_message, cntl.call_id().value,
-                                          nullptr, &cntl, melon::cord_buf(), nullptr);
-        melon::cord_buf dummy;
-        melon::result_status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
+                                          nullptr, &cntl, turbo::cord_buf(), nullptr);
+        turbo::cord_buf dummy;
+        turbo::result_status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
         ASSERT_EQ(st.error_code(), melon::rpc::ELOGOFF);
-        ASSERT_TRUE(melon::ends_with(st.error_data(), "the connection just issued GOAWAY"));
+        ASSERT_TRUE(turbo::ends_with(st.error_data(), "the connection just issued GOAWAY"));
     }
 
     class AfterRecevingGoAway : public ::google::protobuf::Closure {
@@ -1453,8 +1453,8 @@ namespace {
     };
 
     TEST_F(HttpTest, http2_handle_goaway_streams) {
-        const melon::end_point ep(melon::IP_ANY, 5961);
-        melon::base::fd_guard listenfd(melon::tcp_listen(ep));
+        const turbo::end_point ep(turbo::IP_ANY, 5961);
+        turbo::base::fd_guard listenfd(turbo::tcp_listen(ep));
         ASSERT_GT(listenfd, 0);
 
         melon::rpc::Channel channel;
@@ -1511,7 +1511,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
 
         // send request and dump it to file
         {
@@ -1564,7 +1564,7 @@ namespace {
         }
 
         // delete dump directory
-        melon::remove_all(melon::rpc::FLAGS_rpc_dump_dir);
+        turbo::remove_all(melon::rpc::FLAGS_rpc_dump_dir);
 
         // restore gflag and global variable
         melon::rpc::FLAGS_rpc_dump = false;
@@ -1583,7 +1583,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         test::EchoRequest req;
@@ -1619,7 +1619,7 @@ namespace {
         melon::rpc::Channel channel;
         melon::rpc::ChannelOptions options;
         options.protocol = "http";
-        ASSERT_EQ(0, channel.Init(melon::end_point(melon::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(turbo::end_point(turbo::my_ip(), port), &options));
 
         melon::rpc::Controller cntl;
         test::EchoRequest req;

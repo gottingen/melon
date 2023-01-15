@@ -17,7 +17,7 @@
 
 
 #include "melon/rpc/serialized_request.h"
-#include "melon/log/logging.h"
+#include "turbo/log/logging.h"
 
 namespace melon::rpc {
 
@@ -43,7 +43,7 @@ namespace melon::rpc {
     }
 
     void SerializedRequest::SetCachedSize(int /*size*/) const {
-        MELON_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        TURBO_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
     }
 
     const ::google::protobuf::Descriptor *SerializedRequest::descriptor() {
@@ -64,18 +64,18 @@ namespace melon::rpc {
 
     bool SerializedRequest::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *) {
-        MELON_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        TURBO_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
         return false;
     }
 
     void SerializedRequest::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *) const {
-        MELON_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        TURBO_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
     }
 
     ::google::protobuf::uint8 *SerializedRequest::SerializeWithCachedSizesToArray(
             ::google::protobuf::uint8 *target) const {
-        MELON_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        TURBO_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
         return target;
     }
 
@@ -84,18 +84,18 @@ namespace melon::rpc {
     }
 
     void SerializedRequest::MergeFrom(const ::google::protobuf::Message &) {
-        MELON_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        TURBO_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
     }
 
     void SerializedRequest::MergeFrom(const SerializedRequest &) {
-        MELON_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        TURBO_CHECK(false) << "You're not supposed to call " << __FUNCTION__;
     }
 
     void SerializedRequest::CopyFrom(const ::google::protobuf::Message &from) {
         if (&from == this) return;
         const SerializedRequest *source = dynamic_cast<const SerializedRequest *>(&from);
         if (source == nullptr) {
-            MELON_CHECK(false) << "SerializedRequest can only CopyFrom SerializedRequest";
+            TURBO_CHECK(false) << "SerializedRequest can only CopyFrom SerializedRequest";
         } else {
             _serialized = source->_serialized;
         }

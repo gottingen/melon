@@ -21,12 +21,12 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <memory>
-#include "melon/log/logging.h"
-#include "melon/io/ssl_compat.h"
-#include "melon/strings/string_splitter.h"
+#include "turbo/log/logging.h"
+#include "turbo/io/ssl_compat.h"
+#include "turbo/strings/string_splitter.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/details/ssl_helper.h"
-#include "melon/strings/trim.h"
+#include "turbo/strings/trim.h"
 
 namespace melon::rpc {
 
@@ -64,11 +64,11 @@ namespace melon::rpc {
 
     static int ParseSSLProtocols(const std::string &str_protocol) {
         int protocol_flag = 0;
-        melon::StringSplitter sp(str_protocol.data(),
+        turbo::StringSplitter sp(str_protocol.data(),
                                  str_protocol.data() + str_protocol.size(), ',');
         for (; sp; ++sp) {
             std::string_view protocol(sp.field(), sp.length());
-            protocol = melon::trim_all(protocol);
+            protocol = turbo::trim_all(protocol);
             if (strncasecmp(protocol.data(), "SSLv3", protocol.size()) == 0) {
                 protocol_flag |= SSLv3;
             } else if (strncasecmp(protocol.data(), "TLSv1", protocol.size()) == 0) {
@@ -78,7 +78,7 @@ namespace melon::rpc {
             } else if (strncasecmp(protocol.data(), "TLSv1.2", protocol.size()) == 0) {
                 protocol_flag |= TLSv1_2;
             } else {
-                MELON_LOG(ERROR) << "Unknown SSL protocol=" << protocol;
+                TURBO_LOG(ERROR) << "Unknown SSL protocol=" << protocol;
                 return -1;
             }
         }
@@ -133,7 +133,7 @@ namespace melon::rpc {
         if (where & SSL_CB_HANDSHAKE_START) {
             if (s->ssl_state() == SSL_CONNECTED) {
                 // Disable renegotiation (CVE-2009-3555)
-                MELON_LOG(ERROR) << "Close " << *s << " due to insecure "
+                TURBO_LOG(ERROR) << "Close " << *s << " due to insecure "
                                  << "renegotiation detected (CVE-2009-3555)";
                 s->SetFailed();
             }
@@ -285,7 +285,7 @@ namespace melon::rpc {
             std::unique_ptr<EVP_PKEY, FreeEVPKEY> key(
                     PEM_read_bio_PrivateKey(kbio.get(), nullptr, 0, nullptr));
             if (SSL_CTX_use_PrivateKey(ctx, key.get()) != 1) {
-                MELON_LOG(ERROR) << "Fail to load " << private_key << ": "
+                TURBO_LOG(ERROR) << "Fail to load " << private_key << ": "
                                  << SSLError(ERR_get_error());
                 return -1;
             }
@@ -293,7 +293,7 @@ namespace melon::rpc {
         } else {
             if (SSL_CTX_use_PrivateKey_file(
                     ctx, private_key.c_str(), SSL_FILETYPE_PEM) != 1) {
-                MELON_LOG(ERROR) << "Fail to load " << private_key << ": "
+                TURBO_LOG(ERROR) << "Fail to load " << private_key << ": "
                                  << SSLError(ERR_get_error());
                 return -1;
             }
@@ -306,7 +306,7 @@ namespace melon::rpc {
         } else {
             cbio.reset(BIO_new(BIO_s_file()));
             if (BIO_read_filename(cbio.get(), certificate.c_str()) <= 0) {
-                MELON_LOG(ERROR) << "Fail to read " << certificate << ": "
+                TURBO_LOG(ERROR) << "Fail to read " << certificate << ": "
                                  << SSLError(ERR_get_error());
                 return -1;
             }
@@ -314,14 +314,14 @@ namespace melon::rpc {
         std::unique_ptr<X509, FreeX509> x(
                 PEM_read_bio_X509_AUX(cbio.get(), nullptr, 0, nullptr));
         if (!x) {
-            MELON_LOG(ERROR) << "Fail to parse " << certificate << ": "
+            TURBO_LOG(ERROR) << "Fail to parse " << certificate << ": "
                              << SSLError(ERR_get_error());
             return -1;
         }
 
         // Load the main certficate
         if (SSL_CTX_use_certificate(ctx, x.get()) != 1) {
-            MELON_LOG(ERROR) << "Fail to load " << certificate << ": "
+            TURBO_LOG(ERROR) << "Fail to load " << certificate << ": "
                              << SSLError(ERR_get_error());
             return -1;
         }
@@ -338,7 +338,7 @@ namespace melon::rpc {
         X509 *ca = nullptr;
         while ((ca = PEM_read_bio_X509(cbio.get(), nullptr, 0, nullptr))) {
             if (SSL_CTX_add_extra_chain_cert(ctx, ca) != 1) {
-                MELON_LOG(ERROR) << "Fail to load chain certificate in "
+                TURBO_LOG(ERROR) << "Fail to load chain certificate in "
                                  << certificate << ": " << SSLError(ERR_get_error());
                 X509_free(ca);
                 return -1;
@@ -348,7 +348,7 @@ namespace melon::rpc {
         int err = ERR_get_error();
         if (err != 0 && (ERR_GET_LIB(err) != ERR_LIB_PEM
                          || ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-            MELON_LOG(ERROR) << "Fail to read chain certificate in "
+            TURBO_LOG(ERROR) << "Fail to read chain certificate in "
                              << certificate << ": " << SSLError(ERR_get_error());
             return -1;
         }
@@ -356,7 +356,7 @@ namespace melon::rpc {
 
         // Validate certificate and private key
         if (SSL_CTX_check_private_key(ctx) != 1) {
-            MELON_LOG(ERROR) << "Fail to verify " << private_key << ": "
+            TURBO_LOG(ERROR) << "Fail to verify " << private_key << ": "
                              << SSLError(ERR_get_error());
             return -1;
         }
@@ -403,7 +403,7 @@ namespace melon::rpc {
 
         if (!ciphers.empty() &&
             SSL_CTX_set_cipher_list(ctx, ciphers.c_str()) != 1) {
-            MELON_LOG(ERROR) << "Fail to set cipher list to " << ciphers
+            TURBO_LOG(ERROR) << "Fail to set cipher list to " << ciphers
                              << ": " << SSLError(ERR_get_error());
             return -1;
         }
@@ -419,10 +419,10 @@ namespace melon::rpc {
             }
             if (SSL_CTX_load_verify_locations(ctx, cafile.c_str(), nullptr) == 0) {
                 if (verify.ca_file_path.empty()) {
-                    MELON_LOG(WARNING) << "Fail to load default CA file " << cafile
+                    TURBO_LOG(WARNING) << "Fail to load default CA file " << cafile
                                        << ": " << SSLError(ERR_get_error());
                 } else {
-                    MELON_LOG(ERROR) << "Fail to load CA file " << cafile
+                    TURBO_LOG(ERROR) << "Fail to load CA file " << cafile
                                      << ": " << SSLError(ERR_get_error());
                     return -1;
                 }
@@ -444,7 +444,7 @@ namespace melon::rpc {
         std::unique_ptr<SSL_CTX, FreeSSLCTX> ssl_ctx(
                 SSL_CTX_new(SSLv23_client_method()));
         if (!ssl_ctx) {
-            MELON_LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
+            TURBO_LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
             return nullptr;
         }
 
@@ -473,7 +473,7 @@ namespace melon::rpc {
         std::unique_ptr<SSL_CTX, FreeSSLCTX> ssl_ctx(
                 SSL_CTX_new(SSLv23_server_method()));
         if (!ssl_ctx) {
-            MELON_LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
+            TURBO_LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
             return nullptr;
         }
 
@@ -509,7 +509,7 @@ namespace melon::rpc {
         EC_KEY *ecdh = nullptr;
         int i = OBJ_sn2nid(options.ecdhe_curve_name.c_str());
         if (!i || ((ecdh = EC_KEY_new_by_curve_name(i)) == nullptr)) {
-            MELON_LOG(ERROR) << "Fail to find ECDHE named curve="
+            TURBO_LOG(ERROR) << "Fail to find ECDHE named curve="
                              << options.ecdhe_curve_name
                              << ": " << SSLError(ERR_get_error());
             return nullptr;
@@ -525,16 +525,16 @@ namespace melon::rpc {
 
     SSL *CreateSSLSession(SSL_CTX *ctx, SocketId id, int fd, bool server_mode) {
         if (ctx == nullptr) {
-            MELON_LOG(WARNING) << "Lack SSL_ctx to create an SSL session";
+            TURBO_LOG(WARNING) << "Lack SSL_ctx to create an SSL session";
             return nullptr;
         }
         SSL *ssl = SSL_new(ctx);
         if (ssl == nullptr) {
-            MELON_LOG(ERROR) << "Fail to SSL_new: " << SSLError(ERR_get_error());
+            TURBO_LOG(ERROR) << "Fail to SSL_new: " << SSLError(ERR_get_error());
             return nullptr;
         }
         if (SSL_set_fd(ssl, fd) != 1) {
-            MELON_LOG(ERROR) << "Fail to SSL_set_fd: " << SSLError(ERR_get_error());
+            TURBO_LOG(ERROR) << "Fail to SSL_set_fd: " << SSLError(ERR_get_error());
             SSL_free(ssl);
             return nullptr;
         }
@@ -751,19 +751,19 @@ namespace melon::rpc {
     int SSLDHInit() {
 #ifndef OPENSSL_NO_DH
         if ((g_dh_1024 = SSLGetDH1024()) == nullptr) {
-            MELON_LOG(ERROR) << "Fail to initialize DH-1024";
+            TURBO_LOG(ERROR) << "Fail to initialize DH-1024";
             return -1;
         }
         if ((g_dh_2048 = SSLGetDH2048()) == nullptr) {
-            MELON_LOG(ERROR) << "Fail to initialize DH-2048";
+            TURBO_LOG(ERROR) << "Fail to initialize DH-2048";
             return -1;
         }
         if ((g_dh_4096 = SSLGetDH4096()) == nullptr) {
-            MELON_LOG(ERROR) << "Fail to initialize DH-4096";
+            TURBO_LOG(ERROR) << "Fail to initialize DH-4096";
             return -1;
         }
         if ((g_dh_8192 = SSLGetDH8192()) == nullptr) {
-            MELON_LOG(ERROR) << "Fail to initialize DH-8192";
+            TURBO_LOG(ERROR) << "Fail to initialize DH-8192";
             return -1;
         }
 #endif  // OPENSSL_NO_DH

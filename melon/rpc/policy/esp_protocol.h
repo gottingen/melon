@@ -28,22 +28,22 @@ namespace melon::rpc {
     namespace policy {
 
         ParseResult ParseEspMessage(
-                melon::cord_buf *source,
+                turbo::cord_buf *source,
                 Socket *socket,
                 bool read_eof,
                 const void *arg);
 
         void SerializeEspRequest(
-                melon::cord_buf *request_buf,
+                turbo::cord_buf *request_buf,
                 Controller *controller,
                 const google::protobuf::Message *request);
 
-        void PackEspRequest(melon::cord_buf *packet_buf,
+        void PackEspRequest(turbo::cord_buf *packet_buf,
                             SocketMessage **,
                             uint64_t correlation_id,
                             const google::protobuf::MethodDescriptor *,
                             Controller *controller,
-                            const melon::cord_buf &,
+                            const turbo::cord_buf &,
                             const Authenticator *);
 
         void ProcessEspResponse(InputMessageBase *msg);

@@ -25,8 +25,8 @@
 #include "testing/gtest_wrap.h"
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/base/gperftools_profiler.h"
-#include "melon/times/time.h"
+#include "turbo/base/gperftools_profiler.h"
+#include "turbo/times/time.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
@@ -105,7 +105,7 @@ private:
 };
 
 void MyVLogSite() {
-    MELON_VLOG(3) << "This is a MELON_VLOG!";
+    TURBO_VLOG(3) << "This is a TURBO_VLOG!";
 }
 
 void CheckContent(const melon::rpc::Controller &cntl, const char *name) {
@@ -133,7 +133,7 @@ void CheckFieldInContent(const melon::rpc::Controller &cntl,
 void CheckAnnotation(const melon::rpc::Controller &cntl, int64_t expect) {
     const std::string &content = cntl.response_attachment().to_string();
     std::string expect_str;
-    melon::string_printf(&expect_str, "MyAnnotation: %" PRId64, expect);
+    turbo::string_printf(&expect_str, "MyAnnotation: %" PRId64, expect);
     std::size_t pos = content.find(expect_str);
     ASSERT_TRUE(pos != std::string::npos) << expect;
 }
@@ -210,7 +210,7 @@ protected:
         melon::rpc::Controller cntl;
         ClosureChecker done;
         SetUpController(&cntl, use_html);
-        melon::end_point ep;
+        turbo::end_point ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9798", &ep));
         ASSERT_EQ(0, _server.Start(ep, nullptr));
         int self_port = -1;
@@ -362,7 +362,7 @@ protected:
 
         ASSERT_EQ(0, _server.AddService(new EchoServiceImpl(),
                                         melon::rpc::SERVER_OWNS_SERVICE));
-        melon::end_point ep;
+        turbo::end_point ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9748", &ep));
         ASSERT_EQ(0, _server.Start(ep, nullptr));
         melon::rpc::Channel channel;
@@ -696,9 +696,9 @@ TEST_F(BuiltinServiceTest, dir) {
         cntl.http_request()._unresolved_path = "/usr/include/errno.h";
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
-#if defined(MELON_PLATFORM_LINUX)
+#if defined(TURBO_PLATFORM_LINUX)
         CheckContent(cntl, "ERRNO_H");
-#elif defined(MELON_PLATFORM_OSX)
+#elif defined(TURBO_PLATFORM_OSX)
         CheckContent(cntl, "sys/errno.h");
 #endif
     }
@@ -739,7 +739,7 @@ TEST_F(BuiltinServiceTest, token) {
         ClosureChecker done;
         melon::rpc::Controller cntl;
         std::string id_string;
-        melon::string_printf(&id_string, "%llu", (unsigned long long) id.value);
+        turbo::string_printf(&id_string, "%llu", (unsigned long long) id.value);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
@@ -777,7 +777,7 @@ TEST_F(BuiltinServiceTest, fibers) {
         ClosureChecker done;
         melon::rpc::Controller cntl;
         std::string id_string;
-        melon::string_printf(&id_string, "%llu", (unsigned long long) th);
+        turbo::string_printf(&id_string, "%llu", (unsigned long long) th);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
@@ -811,7 +811,7 @@ TEST_F(BuiltinServiceTest, sockets) {
         ClosureChecker done;
         melon::rpc::Controller cntl;
         std::string id_string;
-        melon::string_printf(&id_string, "%llu", (unsigned long long) id);
+        turbo::string_printf(&id_string, "%llu", (unsigned long long) id);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());

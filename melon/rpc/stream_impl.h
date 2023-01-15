@@ -27,7 +27,7 @@
 
 namespace melon::rpc {
 
-    class MELON_CACHELINE_ALIGNMENT Stream : public SocketConnection {
+    class TURBO_CACHELINE_ALIGNMENT Stream : public SocketConnection {
     public:
         // |--------------------------------------------------|
         // |----------- Implement SocketConnection -----------|
@@ -36,16 +36,16 @@ namespace melon::rpc {
         int Connect(Socket *ptr, const timespec *due_time,
                     int (*on_connect)(int, int, void *), void *data);
 
-        ssize_t CutMessageIntoFileDescriptor(int, melon::cord_buf **data_list,
+        ssize_t CutMessageIntoFileDescriptor(int, turbo::cord_buf **data_list,
                                              size_t size);
 
-        ssize_t CutMessageIntoSSLChannel(SSL *, melon::cord_buf **, size_t);
+        ssize_t CutMessageIntoSSLChannel(SSL *, turbo::cord_buf **, size_t);
 
         void BeforeRecycle(Socket *);
 
         // --------------------- SocketConnection --------------
 
-        int AppendIfNotFull(const melon::cord_buf &msg);
+        int AppendIfNotFull(const turbo::cord_buf &msg);
 
         static int Create(const StreamOptions &options,
                           const StreamSettings *remote_settings,
@@ -53,7 +53,7 @@ namespace melon::rpc {
 
         StreamId id() { return _id; }
 
-        int OnReceived(const StreamFrameMeta &fm, melon::cord_buf *buf, Socket *sock);
+        int OnReceived(const StreamFrameMeta &fm, turbo::cord_buf *buf, Socket *sock);
 
         void SetRemoteSettings(const StreamSettings &remote_settings) {
             _remote_settings.MergeFrom(remote_settings);
@@ -101,11 +101,11 @@ namespace melon::rpc {
 
         void StopIdleTimer();
 
-        void HandleRpcResponse(melon::cord_buf *response_buffer);
+        void HandleRpcResponse(turbo::cord_buf *response_buffer);
 
-        void WriteToHostSocket(melon::cord_buf *b);
+        void WriteToHostSocket(turbo::cord_buf *b);
 
-        static int Consume(void *meta, melon::fiber_internal::TaskIterator<melon::cord_buf *> &iter);
+        static int Consume(void *meta, melon::fiber_internal::TaskIterator<turbo::cord_buf *> &iter);
 
         static int TriggerOnWritable(fiber_token_t id, void *data, int error_code);
 
@@ -150,8 +150,8 @@ namespace melon::rpc {
         StreamSettings _remote_settings;
 
         bool _parse_rpc_response;
-        melon::fiber_internal::ExecutionQueueId<melon::cord_buf *> _consumer_queue;
-        melon::cord_buf *_pending_buf;
+        melon::fiber_internal::ExecutionQueueId<turbo::cord_buf *> _consumer_queue;
+        turbo::cord_buf *_pending_buf;
         int64_t _start_idle_timer_us;
         fiber_timer_id _idle_timer;
     };
