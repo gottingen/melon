@@ -30,7 +30,7 @@ namespace melon::raft {
     void ClosureQueue::clear() {
         std::deque<Closure *> saved_queue;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             saved_queue.swap(_queue);
             _first_index = 0;
         }
@@ -49,20 +49,20 @@ namespace melon::raft {
     }
 
     void ClosureQueue::reset_first_index(int64_t first_index) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         CHECK(_queue.empty());
         _first_index = first_index;
     }
 
     void ClosureQueue::append_pending_closure(Closure *c) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _queue.push_back(c);
     }
 
     int ClosureQueue::pop_closure_until(int64_t index,
                                         std::vector<Closure *> *out, int64_t *out_first_index) {
         out->clear();
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_queue.empty() || index < _first_index) {
             *out_first_index = index + 1;
             return 0;

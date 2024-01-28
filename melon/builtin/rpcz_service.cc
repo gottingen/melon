@@ -27,7 +27,7 @@
 #include "melon/rpc/controller.h"           // Controller
 #include "melon/builtin/common.h"
 #include "melon/rpc/server.h"
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/span.h"
 #include "melon/builtin/rpcz_service.h"
 

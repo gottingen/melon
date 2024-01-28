@@ -94,7 +94,7 @@ inline TaskControl* get_or_new_task_control() {
     if (c != NULL) {
         return c;
     }
-    BAIDU_SCOPED_LOCK(g_task_control_mutex);
+    MELON_SCOPED_LOCK(g_task_control_mutex);
     c = p->load(butil::memory_order_consume);
     if (c != NULL) {
         return c;
@@ -135,7 +135,7 @@ static bool validate_bthread_min_concurrency(const char*, int32_t val) {
     if (!c) {
         return true;
     }
-    BAIDU_SCOPED_LOCK(g_task_control_mutex);
+    MELON_SCOPED_LOCK(g_task_control_mutex);
     int concurrency = c->concurrency();
     if (val > concurrency) {
         int added = bthread::add_workers_for_each_tag(val - concurrency);
@@ -149,7 +149,7 @@ static bool validate_bthread_current_tag(const char*, int32_t val) {
     if (val < BTHREAD_TAG_DEFAULT || val >= FLAGS_task_group_ntags) {
         return false;
     }
-    BAIDU_SCOPED_LOCK(bthread::g_task_control_mutex);
+    MELON_SCOPED_LOCK(bthread::g_task_control_mutex);
     auto c = bthread::get_task_control();
     if (c == NULL) {
         FLAGS_bthread_concurrency_by_tag = 0;
@@ -348,7 +348,7 @@ int bthread_setconcurrency(int num) {
             return 0;
         }
     }
-    BAIDU_SCOPED_LOCK(bthread::g_task_control_mutex);
+    MELON_SCOPED_LOCK(bthread::g_task_control_mutex);
     c = bthread::get_task_control();
     if (c == NULL) {
         if (bthread::never_set_bthread_concurrency) {
@@ -374,7 +374,7 @@ int bthread_setconcurrency(int num) {
 }
 
 int bthread_getconcurrency_by_tag(bthread_tag_t tag) {
-    BAIDU_SCOPED_LOCK(bthread::g_task_control_mutex);
+    MELON_SCOPED_LOCK(bthread::g_task_control_mutex);
     auto c = bthread::get_task_control();
     if (c == NULL) {
         return EPERM;
@@ -387,7 +387,7 @@ int bthread_setconcurrency_by_tag(int num, bthread_tag_t tag) {
         bthread::never_set_bthread_concurrency_by_tag = false;
         return 0;
     }
-    BAIDU_SCOPED_LOCK(bthread::g_task_control_mutex);
+    MELON_SCOPED_LOCK(bthread::g_task_control_mutex);
     auto c = bthread::get_task_control();
     if (c == NULL) {
         return EPERM;

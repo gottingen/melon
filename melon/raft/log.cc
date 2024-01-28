@@ -27,7 +27,7 @@
 #include <melon/butil/fd_utility.h>                        // butil::make_close_on_exec
 #include <melon/rpc/reloadable_flags.h>             //
 
-#include "melon/raft/local_storage.pb.h"
+#include "melon/proto/raft/local_storage.pb.h"
 #include "melon/raft/log_entry.h"
 #include "melon/raft/protobuf_file.h"
 #include "melon/raft/util.h"
@@ -229,7 +229,7 @@ namespace melon::raft {
     }
 
     int Segment::_get_meta(int64_t index, LogMeta *meta) const {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (index > _last_index.load(butil::memory_order_relaxed)
             || index < _first_index) {
             // out of range
@@ -426,7 +426,7 @@ namespace melon::raft {
             written += n;
             for (; start < ARRAY_SIZE(pieces) && pieces[start]->empty(); ++start) {}
         }
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _offset_and_term.push_back(std::make_pair(_bytes, entry->id.term));
         _last_index.fetch_add(1, butil::memory_order_relaxed);
         _bytes += to_write;
@@ -808,7 +808,7 @@ namespace melon::raft {
             std::vector<scoped_refptr<Segment> > *popped) {
         popped->clear();
         popped->reserve(32);
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _first_log_index.store(first_index_kept, butil::memory_order_release);
         for (SegmentMap::iterator it = _segments.begin(); it != _segments.end();) {
             scoped_refptr<Segment> &segment = it->second;
@@ -867,7 +867,7 @@ namespace melon::raft {
         popped->clear();
         popped->reserve(32);
         *last_segment = NULL;
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _last_log_index.store(last_index_kept, butil::memory_order_release);
         if (_open_segment) {
             if (_open_segment->first_index() <= last_index_kept) {
@@ -913,7 +913,7 @@ namespace melon::raft {
                 truncate_last_segment = true;
             } else {
                 // trucate_prefix() and truncate_suffix() to discard entire logs
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 popped.push_back(last_segment);
                 _segments.erase(last_segment->first_index());
                 if (_open_segment) {
@@ -936,7 +936,7 @@ namespace melon::raft {
             bool closed = !last_segment->is_open();
             ret = last_segment->truncate(last_index_kept);
             if (ret == 0 && closed && last_segment->is_open()) {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 CHECK(!_open_segment);
                 _segments.erase(last_segment->first_index());
                 _open_segment.swap(last_segment);
@@ -1175,7 +1175,7 @@ namespace melon::raft {
     scoped_refptr<Segment> SegmentLogStorage::open_segment() {
         scoped_refptr<Segment> prev_open_segment;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             if (!_open_segment) {
                 _open_segment = new Segment(_path, last_log_index() + 1, _checksum_type);
                 if (_open_segment->create() != 0) {
@@ -1191,7 +1191,7 @@ namespace melon::raft {
         do {
             if (prev_open_segment) {
                 if (prev_open_segment->close(_enable_sync) == 0) {
-                    BAIDU_SCOPED_LOCK(_mutex);
+                    MELON_SCOPED_LOCK(_mutex);
                     _open_segment = new Segment(_path, last_log_index() + 1, _checksum_type);
                     if (_open_segment->create() == 0) {
                         // success
@@ -1201,7 +1201,7 @@ namespace melon::raft {
                 PLOG(ERROR) << "Fail to close old open_segment or create new open_segment"
                             << " path: " << _path;
                 // Failed, revert former changes
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 _segments.erase(prev_open_segment->first_index());
                 _open_segment.swap(prev_open_segment);
                 return NULL;
@@ -1211,7 +1211,7 @@ namespace melon::raft {
     }
 
     int SegmentLogStorage::get_segment(int64_t index, scoped_refptr<Segment> *ptr) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         int64_t first_index = first_log_index();
         int64_t last_index = last_log_index();
         if (first_index == last_index + 1) {
@@ -1241,7 +1241,7 @@ namespace melon::raft {
     }
 
     void SegmentLogStorage::list_files(std::vector<std::string> *seg_files) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         seg_files->push_back(BRAFT_SEGMENT_META_FILE);
         for (SegmentMap::iterator it = _segments.begin(); it != _segments.end(); ++it) {
             scoped_refptr<Segment> &segment = it->second;
@@ -1255,7 +1255,7 @@ namespace melon::raft {
     void SegmentLogStorage::sync() {
         std::vector<scoped_refptr<Segment> > segments;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             for (SegmentMap::iterator it = _segments.begin(); it != _segments.end(); ++it) {
                 segments.push_back(it->second);
             }

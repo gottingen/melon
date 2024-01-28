@@ -185,7 +185,7 @@ namespace melon::raft {
         butil::Status gc_instance(const std::string &uri) const;
 
         SegmentMap segments() {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             return _segments;
         }
 

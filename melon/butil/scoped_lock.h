@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BUTIL_BAIDU_SCOPED_LOCK_H
-#define BUTIL_BAIDU_SCOPED_LOCK_H
+#ifndef BUTIL_MELON_SCOPED_LOCK_H
+#define BUTIL_MELON_SCOPED_LOCK_H
 
 #include "melon/butil/build_config.h"
 
@@ -30,7 +30,7 @@
 #include "melon/butil/errno.h"
 
 #if !defined(BUTIL_CXX11_ENABLED)
-#define BAIDU_SCOPED_LOCK(ref_of_lock)                                  \
+#define MELON_SCOPED_LOCK(ref_of_lock)                                  \
     std::lock_guard<BAIDU_TYPEOF(ref_of_lock)>                          \
     BAIDU_CONCAT(scoped_locker_dummy_at_line_, __LINE__)(ref_of_lock)
 #else
@@ -43,7 +43,7 @@ std::lock_guard<typename std::remove_reference<T>::type> get_lock_guard();
 }  // namespace detail
 }  // namespace butil
 
-#define BAIDU_SCOPED_LOCK(ref_of_lock)                                  \
+#define MELON_SCOPED_LOCK(ref_of_lock)                                  \
     decltype(::butil::detail::get_lock_guard<decltype(ref_of_lock)>()) \
     BAIDU_CONCAT(scoped_locker_dummy_at_line_, __LINE__)(ref_of_lock)
 #endif
@@ -397,4 +397,4 @@ void double_lock(std::unique_lock<Mutex1> &lck1, std::unique_lock<Mutex2> &lck2)
 
 };
 
-#endif  // BUTIL_BAIDU_SCOPED_LOCK_H
+#endif  // BUTIL_MELON_SCOPED_LOCK_H

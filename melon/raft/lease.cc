@@ -30,20 +30,20 @@ namespace melon::raft {
     }
 
     void LeaderLease::on_leader_start(int64_t term) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         ++_lease_epoch;
         _term = term;
         _last_active_timestamp = 0;
     }
 
     void LeaderLease::on_leader_stop() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _last_active_timestamp = 0;
         _term = 0;
     }
 
     void LeaderLease::on_lease_start(int64_t expect_lease_epoch, int64_t last_active_timestamp) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_term == 0 || expect_lease_epoch != _lease_epoch) {
             return;
         }
@@ -51,7 +51,7 @@ namespace melon::raft {
     }
 
     void LeaderLease::renew(int64_t last_active_timestamp) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _last_active_timestamp = last_active_timestamp;
     }
 
@@ -63,7 +63,7 @@ namespace melon::raft {
             return;
         }
 
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_term == 0) {
             lease_info->state = LeaderLease::EXPIRED;
             return;
@@ -82,12 +82,12 @@ namespace melon::raft {
     }
 
     int64_t LeaderLease::lease_epoch() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         return _lease_epoch;
     }
 
     void LeaderLease::reset_election_timeout_ms(int64_t election_timeout_ms) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _election_timeout_ms = election_timeout_ms;
     }
 

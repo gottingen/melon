@@ -108,7 +108,7 @@ void ExecutionQueueBase::start_execute(TaskNode* node) {
     if (nullptr == _options.executor) {
         if (_options.use_pthread) {
             if (_pthread_started) {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 _current_head = node;
                 _cond.Signal();
             } else {
@@ -214,7 +214,7 @@ void* ExecutionQueueBase::_execute_tasks_pthread(void* arg) {
     auto m = (ExecutionQueueBase*)head->q;
     m->_current_head = head;
     while (true) {
-        BAIDU_SCOPED_LOCK(m->_mutex);
+        MELON_SCOPED_LOCK(m->_mutex);
         while (!m->_current_head) {
             m->_cond.Wait();
         }

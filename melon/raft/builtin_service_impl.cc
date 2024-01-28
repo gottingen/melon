@@ -19,7 +19,7 @@
 
 #include <melon/rpc/controller.h>
 #include <melon/rpc/closure_guard.h>
-#include <melon/rpc/http_status_code.h>
+#include <melon/rpc/http/http_status_code.h>
 #include <melon/builtin/common.h>
 #include "melon/raft/node.h"
 #include "melon/raft/replicator.h"

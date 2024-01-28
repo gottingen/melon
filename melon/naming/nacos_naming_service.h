@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "melon/rpc/channel.h"
-#include "melon/rpc/periodic_naming_service.h"
+#include "melon/naming/periodic_naming_service.h"
 #include "melon/rpc/server_node.h"
 
 namespace melon::naming {

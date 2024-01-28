@@ -22,7 +22,7 @@
 
 #include <vector>
 #include "melon/butil/containers/linked_list.h"// LinkNode
-#include "melon/butil/scoped_lock.h"           // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
 #include "melon/butil/logging.h"               // LOG()
 #include "melon/butil/containers/bounded_queue.h"// BoundedQueue
 #include "melon/butil/type_traits.h"           // is_same
@@ -147,7 +147,7 @@ namespace melon::var {
                     LOG(FATAL) << "Invalid window_size=" << window_size;
                     return false;
                 }
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 if (_q.size() <= 1UL) {
                     // We need more samples to get reasonable result.
                     return false;
@@ -183,7 +183,7 @@ namespace melon::var {
                     LOG(ERROR) << "Invalid window_size=" << window_size;
                     return -1;
                 }
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 if (window_size > _window_size) {
                     _window_size = window_size;
                 }
@@ -195,7 +195,7 @@ namespace melon::var {
                     LOG(FATAL) << "Invalid window_size=" << window_size;
                     return;
                 }
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 if (_q.size() <= 1) {
                     // We need more samples to get reasonable result.
                     return;

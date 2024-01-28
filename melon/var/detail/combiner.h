@@ -23,7 +23,7 @@
 #include <string>                       // std::string
 #include <vector>                       // std::vector
 #include "melon/butil/atomicops.h"             // butil::atomic
-#include "melon/butil/scoped_lock.h"           // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
 #include "melon/butil/type_traits.h"           // butil::add_cr_non_integral
 #include "melon/butil/synchronization/lock.h"  // butil::Lock
 #include "melon/butil/containers/linked_list.h"// LinkNode

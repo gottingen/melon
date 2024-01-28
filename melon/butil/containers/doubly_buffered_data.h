@@ -265,7 +265,7 @@ public:
     };
 
     inline static WrapperTLSId key_create() {
-        BAIDU_SCOPED_LOCK(_s_mutex);
+        MELON_SCOPED_LOCK(_s_mutex);
         WrapperTLSId id = 0;
         if (!_get_free_ids().empty()) {
             id = _get_free_ids().back();
@@ -277,7 +277,7 @@ public:
     }
 
     inline static int key_delete(WrapperTLSId id) {
-        BAIDU_SCOPED_LOCK(_s_mutex);
+        MELON_SCOPED_LOCK(_s_mutex);
         if (id < 0 || id >= _s_id) {
             errno = EINVAL;
             return -1;
@@ -409,19 +409,19 @@ public:
     // Thread-local reference count which be protected by _mutex
     // will be decremented by one.
     inline void EndRead(int index) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         SubRef(index);
         SignalReadCond(index);
     }
 
     inline void WaitReadDone() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
     }
 
     // For `AllowBthreadSuspended=true'.
     // Wait until all read of foreground instance done.
     inline void WaitReadDone(int index) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         int& ref = index == 0 ? _ref[0] : _ref[1];
         while (ref != 0) {
             _modify_wait = true;
@@ -479,7 +479,7 @@ DoublyBufferedData<T, TLS, AllowBthreadSuspended>::AddWrapper(
     }
     try {
         w->_control = this;
-        BAIDU_SCOPED_LOCK(_wrappers_mutex);
+        MELON_SCOPED_LOCK(_wrappers_mutex);
         _wrappers.push_back(w);
     } catch (std::exception& e) {
         return NULL;
@@ -494,7 +494,7 @@ void DoublyBufferedData<T, TLS, AllowBthreadSuspended>::RemoveWrapper(
     if (NULL == w) {
         return;
     }
-    BAIDU_SCOPED_LOCK(_wrappers_mutex);
+    MELON_SCOPED_LOCK(_wrappers_mutex);
     for (size_t i = 0; i < _wrappers.size(); ++i) {
         if (_wrappers[i] == w) {
             _wrappers[i] = _wrappers.back();
@@ -530,7 +530,7 @@ DoublyBufferedData<T, TLS, AllowBthreadSuspended>::~DoublyBufferedData() {
     // this function.
     
     {
-        BAIDU_SCOPED_LOCK(_wrappers_mutex);
+        MELON_SCOPED_LOCK(_wrappers_mutex);
         for (size_t i = 0; i < _wrappers.size(); ++i) {
             _wrappers[i]->_control = NULL;  // hack: disable removal.
         }
@@ -577,7 +577,7 @@ size_t DoublyBufferedData<T, TLS, AllowBthreadSuspended>::Modify(Fn& fn) {
     // than _wrappers_mutex is to avoid blocking threads calling
     // AddWrapper() or RemoveWrapper() too long. Most of the time, modifications
     // are done by one thread, contention should be negligible.
-    BAIDU_SCOPED_LOCK(_modify_mutex);
+    MELON_SCOPED_LOCK(_modify_mutex);
     int bg_index = !_index.load(butil::memory_order_relaxed);
     // background instance is not accessed by other threads, being safe to
     // modify.
@@ -596,7 +596,7 @@ size_t DoublyBufferedData<T, TLS, AllowBthreadSuspended>::Modify(Fn& fn) {
     // Wait until all threads finishes current reading. When they begin next
     // read, they should see updated _index.
     {
-        BAIDU_SCOPED_LOCK(_wrappers_mutex);
+        MELON_SCOPED_LOCK(_wrappers_mutex);
         for (size_t i = 0; i < _wrappers.size(); ++i) {
             // Wait read of old foreground instance done.
             if (AllowBthreadSuspended) {

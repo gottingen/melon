@@ -26,7 +26,7 @@
 #include "melon/butil/fast_rand.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/channel.h"
-#include "melon/rpc/trackme.pb.h"
+#include "melon/proto/rpc/trackme.pb.h"
 #include "melon/rpc/policy/hasher.h"
 #include "melon/butil/files/scoped_file.h"
 
@@ -111,7 +111,7 @@ int ReadJPaasHostPort(int container_port) {
 
 // Called in server.cpp
 void SetTrackMeAddress(butil::EndPoint pt) {
-    BAIDU_SCOPED_LOCK(s_trackme_mutex);
+    MELON_SCOPED_LOCK(s_trackme_mutex);
     if (s_trackme_addr == NULL) {
         // JPAAS has NAT capabilities, read its log to figure out the open port
         // accessible from outside.
@@ -134,7 +134,7 @@ static void HandleTrackMeResponse(Controller* cntl, TrackMeResponse* res) {
         cur_info.error_text = res->error_text();
         bool already_reported = false;
         {
-            BAIDU_SCOPED_LOCK(s_trackme_mutex);
+            MELON_SCOPED_LOCK(s_trackme_mutex);
             if (g_bug_info != NULL && *g_bug_info == cur_info) {
                 // we've shown the bug.
                 already_reported = true;

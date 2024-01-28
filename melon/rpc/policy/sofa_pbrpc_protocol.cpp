@@ -27,10 +27,10 @@
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/span.h"
 #include "melon/rpc/compress.h"                  // ParseFromCompressedData
-#include "melon/rpc/rpc_dump.h"
+#include "melon/rpc/dump/rpc_dump.h"
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/policy/most_common_message.h"
-#include "melon/rpc/policy/sofa_pbrpc_meta.pb.h" // SofaRpcMeta
+#include "melon/proto/rpc/sofa_pbrpc_meta.pb.h" // SofaRpcMeta
 #include "melon/rpc/policy/sofa_pbrpc_protocol.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
 

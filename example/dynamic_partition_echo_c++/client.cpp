@@ -55,7 +55,7 @@ static void* sender(void* arg) {
 
     SenderInfo* info = NULL;
     {
-        BAIDU_SCOPED_LOCK(g_latency_mutex);
+        MELON_SCOPED_LOCK(g_latency_mutex);
         g_sender_info.push_back(SenderInfo());
         info = &g_sender_info.back();
     }

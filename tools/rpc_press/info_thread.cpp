@@ -41,7 +41,7 @@ void InfoThread::run() {
         int64_t end_time = 0;
         while (!_stop &&
                (end_time = butil::gettimeofday_us()) < start_time + 1000000L) {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             if (!_stop) {
                 timespec ts = butil::microseconds_to_timespec(end_time);
                 pthread_cond_timedwait(&_cond, &_mutex, &ts);
@@ -117,7 +117,7 @@ bool InfoThread::start(const InfoThreadOptions& options) {
 
 void InfoThread::stop() {
     {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_stop) {
             return;
         }

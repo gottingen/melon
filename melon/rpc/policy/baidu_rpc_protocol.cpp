@@ -30,8 +30,8 @@
 #include "melon/rpc/span.h"
 #include "melon/rpc/compress.h"                      // ParseFromCompressedData
 #include "melon/rpc/stream_impl.h"
-#include "melon/rpc/rpc_dump.h"                      // SampledRequest
-#include "melon/rpc/policy/baidu_rpc_meta.pb.h"      // RpcRequestMeta
+#include "melon/rpc/dump/rpc_dump.h"                      // SampledRequest
+#include "melon/proto/rpc/baidu_rpc_meta.pb.h"      // RpcRequestMeta
 #include "melon/rpc/policy/baidu_rpc_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/policy/streaming_rpc_protocol.h"

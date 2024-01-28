@@ -20,7 +20,7 @@
 #include "melon/bthread/bthread.h"   // INVALID_BTHREAD_ID before bthread r32748
 #include "melon/rpc/progressive_attachment.h"
 #include "melon/rpc/socket.h"
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 
 
 namespace melon {

@@ -22,7 +22,7 @@
 #include "melon/butil/logging.h"                   // CHECK, LOG
 #include "melon/butil/sys_byteorder.h"             // HostToNet,NetToHost
 #include "melon/bthread/bthread.h"
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/event_dispatcher.h"
 #include "melon/rpc/input_messenger.h"
 #include "melon/rpc/socket.h"
@@ -1104,7 +1104,7 @@ int RdmaEndpoint::AllocateResources() {
 
     if (_sq_size <= FLAGS_rdma_prepared_qp_size &&
         _rq_size <= FLAGS_rdma_prepared_qp_size) {
-        BAIDU_SCOPED_LOCK(*g_rdma_resource_mutex);
+        MELON_SCOPED_LOCK(*g_rdma_resource_mutex);
         if (g_rdma_resource_list) {
             _resource = g_rdma_resource_list;
             g_rdma_resource_list = g_rdma_resource_list->next;
@@ -1285,7 +1285,7 @@ void RdmaEndpoint::DeallocateResources() {
         if (_resource->cq) {
             IbvAckCqEvents(_resource->cq, _cq_events);
         }
-        BAIDU_SCOPED_LOCK(*g_rdma_resource_mutex);
+        MELON_SCOPED_LOCK(*g_rdma_resource_mutex);
         _resource->next = g_rdma_resource_list;
         g_rdma_resource_list = _resource;
     }
@@ -1481,7 +1481,7 @@ int RdmaEndpoint::GlobalInitialize() {
 
 void RdmaEndpoint::GlobalRelease() {
     if (g_rdma_resource_mutex) {
-        BAIDU_SCOPED_LOCK(*g_rdma_resource_mutex);
+        MELON_SCOPED_LOCK(*g_rdma_resource_mutex);
         while (g_rdma_resource_list) {
             RdmaResource* res = g_rdma_resource_list;
             g_rdma_resource_list = g_rdma_resource_list->next;

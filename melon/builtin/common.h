@@ -22,7 +22,7 @@
 #include <vector>                           // std::vector
 #include <gflags/gflags_declare.h>
 #include "melon/butil/endpoint.h"
-#include "melon/rpc/http_header.h"
+#include "melon/rpc/http/http_header.h"
 
 
 namespace melon {

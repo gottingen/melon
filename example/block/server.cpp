@@ -234,7 +234,7 @@ private:
     typedef scoped_refptr<SharedFD> scoped_fd;
 
     scoped_fd get_fd() const {
-        BAIDU_SCOPED_LOCK(_fd_mutex);
+        MELON_SCOPED_LOCK(_fd_mutex);
         return _fd;
     }
 friend class BlockClosure;

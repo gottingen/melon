@@ -54,7 +54,7 @@
 #include "melon/builtin/common.h"
 #include "melon/builtin/bad_method_service.h"
 #include "echo.pb.h"
-#include "melon/rpc/grpc_health_check.pb.h"
+#include "melon/proto/rpc/grpc_health_check.pb.h"
 #include "melon/json2pb/pb_to_json.h"
 
 DEFINE_bool(foo, false, "Flags for UT");

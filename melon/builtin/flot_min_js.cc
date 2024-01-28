@@ -18,7 +18,7 @@
 
 #include <pthread.h>
 #include "melon/butil/logging.h"
-#include "melon/rpc/policy/gzip_compress.h"
+#include "melon/compress/gzip_compress.h"
 #include "melon/builtin/flot_min_js.h"
 
 
@@ -32,7 +32,7 @@ namespace melon {
         s_flot_min_buf = new butil::IOBuf;
         s_flot_min_buf->append(flot_min_js());
         s_flot_min_buf_gzip = new butil::IOBuf;
-        CHECK(policy::GzipCompress(*s_flot_min_buf, s_flot_min_buf_gzip, NULL));
+        CHECK(compress::GzipCompress(*s_flot_min_buf, s_flot_min_buf_gzip, NULL));
     }
 
     const butil::IOBuf &flot_min_js_iobuf() {

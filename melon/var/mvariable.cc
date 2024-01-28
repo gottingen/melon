@@ -120,7 +120,7 @@ namespace melon::var {
     int MVariable::describe_exposed(const std::string &name,
                                     std::ostream &os) {
         MVarMapWithLock &m = get_mvar_map();
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         MVarEntry *entry = m.seek(name);
         if (entry == NULL) {
             return -1;
@@ -172,7 +172,7 @@ namespace melon::var {
 
         MVarMapWithLock &m = get_mvar_map();
         {
-            BAIDU_SCOPED_LOCK(m.mutex);
+            MELON_SCOPED_LOCK(m.mutex);
             MVarEntry *entry = m.seek(_name);
             if (entry == NULL) {
                 entry = &m[_name];
@@ -202,7 +202,7 @@ namespace melon::var {
         }
 
         MVarMapWithLock &m = get_mvar_map();
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         MVarEntry *entry = m.seek(_name);
         if (entry) {
             CHECK_EQ(1UL, m.erase(_name));
@@ -216,14 +216,14 @@ namespace melon::var {
 #ifdef UNIT_TEST
     void MVariable::hide_all() {
         MVarMapWithLock& m = get_mvar_map();
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         m.clear();
     }
 #endif // end UNIT_TEST
 
     size_t MVariable::count_exposed() {
         MVarMapWithLock &m = get_mvar_map();
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         return m.size();
     }
 
@@ -235,7 +235,7 @@ namespace melon::var {
         names->clear();
 
         MVarMapWithLock &mvar_map = get_mvar_map();
-        BAIDU_SCOPED_LOCK(mvar_map.mutex);
+        MELON_SCOPED_LOCK(mvar_map.mutex);
         names->reserve(mvar_map.size());
         for (MVarMap::const_iterator it = mvar_map.begin(); it != mvar_map.end(); ++it) {
             names->push_back(it->first);
@@ -256,7 +256,7 @@ namespace melon::var {
         size_t n = 0;
         for (auto &mvar: mvars) {
             MVarMapWithLock &m = get_mvar_map();
-            BAIDU_SCOPED_LOCK(m.mutex);
+            MELON_SCOPED_LOCK(m.mutex);
             MVarEntry *entry = m.seek(mvar);
             if (entry) {
                 n += entry->var->dump(dumper, &opt);

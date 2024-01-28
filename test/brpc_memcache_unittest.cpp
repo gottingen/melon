@@ -18,7 +18,7 @@
 #include <iostream>
 #include "melon/butil/time.h"
 #include "melon/butil/logging.h"
-#include <melon/rpc/memcache.h>
+#include <melon/rpc/memcache/memcache.h>
 #include <melon/rpc/channel.h>
 #include <gtest/gtest.h>
 

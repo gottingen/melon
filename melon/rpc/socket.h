@@ -30,15 +30,15 @@
 #include "melon/butil/resource_pool.h"                // butil::ResourceId
 #include "melon/bthread/butex.h"                      // butex_create_checked
 #include "melon/rpc/authenticator.h"           // Authenticator
-#include "melon/rpc/errno.pb.h"                // EFAILEDSOCKET
+#include "melon/proto/rpc/errno.pb.h"                // EFAILEDSOCKET
 #include "melon/rpc/details/ssl_helper.h"      // SSLState
 #include "melon/rpc/stream.h"                  // StreamId
 #include "melon/rpc/destroyable.h"             // Destroyable
-#include "melon/rpc/options.pb.h"              // ConnectionType
+#include "melon/proto/rpc/options.pb.h"              // ConnectionType
 #include "melon/rpc/socket_id.h"               // SocketId
 #include "melon/rpc/socket_message.h"          // SocketMessagePtr
 #include "melon/var/var.h"
-#include "http_method.h"
+#include "melon/rpc/http/http_method.h"
 
 namespace melon {
 namespace policy {

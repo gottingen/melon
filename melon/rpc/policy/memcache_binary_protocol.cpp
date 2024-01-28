@@ -32,7 +32,7 @@
 #include "melon/rpc/compress.h"                 // ParseFromCompressedData
 #include "melon/rpc/policy/memcache_binary_protocol.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
-#include "melon/rpc/memcache.h"
+#include "melon/rpc/memcache/memcache.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/butil/containers/flat_map.h"
 

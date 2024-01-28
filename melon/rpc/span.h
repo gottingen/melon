@@ -30,8 +30,8 @@
 #include "melon/butil/string_splitter.h"
 #include "melon/var/collector.h"
 #include "melon/bthread/task_meta.h"
-#include "melon/rpc/options.pb.h"                 // ProtocolType
-#include "melon/rpc/span.pb.h"
+#include "melon/proto/rpc/options.pb.h"                 // ProtocolType
+#include "melon/proto/rpc/span.pb.h"
 
 namespace bthread {
 extern __thread bthread::LocalStorage tls_bls;

@@ -39,8 +39,8 @@
 #include "melon/rpc/details/profiler_linker.h"
 #include "melon/rpc/health_reporter.h"
 #include "melon/rpc/adaptive_max_concurrency.h"
-#include "melon/rpc/http2.h"
-#include "melon/rpc/redis.h"
+#include "melon/rpc/http/http2.h"
+#include "melon/rpc/redis/redis.h"
 #include "melon/rpc/interceptor.h"
 
 namespace melon {

@@ -25,7 +25,7 @@
 #include "melon/raft/storage.h"                       // SnapshotStorage
 #include "melon/raft/raft.h"                          // Closure
 #include "melon/raft/configuration.h"                 // Configuration
-#include "melon/raft/raft.pb.h"                       // AppendEntriesRequest
+#include "melon/proto/raft/raft.pb.h"                       // AppendEntriesRequest
 #include "melon/raft/log_manager.h"                   // LogManager
 
 namespace melon::raft {

@@ -51,8 +51,8 @@
 
 // Compress handlers
 #include "melon/rpc/compress.h"
-#include "melon/rpc/policy/gzip_compress.h"
-#include "melon/rpc/policy/snappy_compress.h"
+#include "melon/compress/gzip_compress.h"
+#include "melon/compress/snappy_compress.h"
 
 // Protocols
 #include "melon/rpc/protocol.h"
@@ -371,17 +371,17 @@ namespace melon {
 
         // Compress Handlers
         const CompressHandler gzip_compress =
-                {GzipCompress, GzipDecompress, "gzip"};
+                {melon::compress::GzipCompress, melon::compress::GzipDecompress, "gzip"};
         if (RegisterCompressHandler(COMPRESS_TYPE_GZIP, gzip_compress) != 0) {
             exit(1);
         }
         const CompressHandler zlib_compress =
-                {ZlibCompress, ZlibDecompress, "zlib"};
+                {melon::compress::ZlibCompress, melon::compress::ZlibDecompress, "zlib"};
         if (RegisterCompressHandler(COMPRESS_TYPE_ZLIB, zlib_compress) != 0) {
             exit(1);
         }
         const CompressHandler snappy_compress =
-                {SnappyCompress, SnappyDecompress, "snappy"};
+                {melon::compress::SnappyCompress, melon::compress::SnappyDecompress, "snappy"};
         if (RegisterCompressHandler(COMPRESS_TYPE_SNAPPY, snappy_compress) != 0) {
             exit(1);
         }

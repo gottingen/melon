@@ -295,7 +295,7 @@ void SampledContention::dump_and_destroy(size_t /*round*/) {
         // Must be protected with mutex to avoid race with deletion of ctx.
         // dump_and_destroy is called from dumping thread only so this mutex
         // is not contended at most of time.
-        BAIDU_SCOPED_LOCK(g_cp_mutex);
+        MELON_SCOPED_LOCK(g_cp_mutex);
         if (g_cp) {
             g_cp->dump_and_destroy(this);
             return;
@@ -335,7 +335,7 @@ bool ContentionProfilerStart(const char* filename) {
     // Optimistic locking. A not-used ContentionProfiler does not write file.
     std::unique_ptr<ContentionProfiler> ctx(new ContentionProfiler(filename));
     {
-        BAIDU_SCOPED_LOCK(g_cp_mutex);
+        MELON_SCOPED_LOCK(g_cp_mutex);
         if (g_cp) {
             return false;
         }

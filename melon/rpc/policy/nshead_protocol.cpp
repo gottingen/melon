@@ -26,7 +26,7 @@
 #include "melon/rpc/socket.h"                   // Socket
 #include "melon/rpc/server.h"                   // Server
 #include "melon/rpc/span.h"
-#include "melon/rpc/rpc_dump.h"
+#include "melon/rpc/dump/rpc_dump.h"
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/nshead_service.h"

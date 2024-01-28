@@ -28,7 +28,7 @@
 #include "melon/butil/raw_pack.h"                      // RawPacker RawUnpacker
 #include "melon/rpc/log.h"
 #include "melon/rpc/socket.h"                        // Socket
-#include "melon/rpc/streaming_rpc_meta.pb.h"         // StreamFrameMeta
+#include "melon/proto/rpc/streaming_rpc_meta.pb.h"         // StreamFrameMeta
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/stream_impl.h"
 

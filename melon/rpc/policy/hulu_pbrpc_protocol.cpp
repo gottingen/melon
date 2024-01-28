@@ -28,8 +28,8 @@
 #include "melon/rpc/span.h"
 #include "melon/rpc/compress.h"                       // ParseFromCompressedData
 #include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/rpc_dump.h"
-#include "melon/rpc/policy/hulu_pbrpc_meta.pb.h"      // HuluRpcRequestMeta
+#include "melon/rpc/dump/rpc_dump.h"
+#include "melon/proto/rpc/hulu_pbrpc_meta.pb.h"      // HuluRpcRequestMeta
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/policy/hulu_pbrpc_controller.h"   // HuluController

@@ -121,12 +121,12 @@ namespace melon::raft {
         }
 
         PeerId leader_id() {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             return _leader_id;
         }
 
         bool is_leader() {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             return _state == STATE_LEADER;
         }
 

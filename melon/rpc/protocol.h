@@ -28,7 +28,7 @@
 #include "melon/butil/endpoint.h"                         // butil::EndPoint
 #include "melon/butil/iobuf.h"
 #include "melon/butil/logging.h"
-#include "melon/rpc/options.pb.h"                  // ProtocolType
+#include "melon/proto/rpc/options.pb.h"                  // ProtocolType
 #include "melon/rpc/socket_id.h"                   // SocketId
 #include "melon/rpc/parse_result.h"                // ParseResult
 #include "melon/rpc/adaptive_connection_type.h"

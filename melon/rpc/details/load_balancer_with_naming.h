@@ -21,7 +21,7 @@
 
 #include "melon/butil/intrusive_ptr.hpp"
 #include "melon/rpc/load_balancer.h"
-#include "melon/rpc/details/naming_service_thread.h"         // NamingServiceWatcher
+#include "melon/naming/naming_service_thread.h"         // NamingServiceWatcher
 
 
 namespace melon {

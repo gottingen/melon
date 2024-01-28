@@ -32,7 +32,7 @@
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/policy/baidu_rpc_protocol.h"
-#include "melon/rpc/policy/baidu_rpc_meta.pb.h"
+#include "melon/proto/rpc/baidu_rpc_meta.pb.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/details/load_balancer_with_naming.h"
@@ -45,7 +45,7 @@
 #else
 #include "echo.pb.h"
 #endif   // BAZEL_TEST
-#include "melon/rpc/options.pb.h"
+#include "melon/proto/rpc/options.pb.h"
 
 namespace melon {
 DECLARE_int32(idle_timeout_second);

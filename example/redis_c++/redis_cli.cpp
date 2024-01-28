@@ -24,7 +24,7 @@
 #include <gflags/gflags.h>
 #include <melon/butil/logging.h>
 #include <melon/rpc/channel.h>
-#include <melon/rpc/redis.h>
+#include <melon/rpc/redis/redis.h>
 
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "127.0.0.1:6379", "IP Address of server");

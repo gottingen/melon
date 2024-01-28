@@ -23,7 +23,7 @@
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/server.h"
 #include "melon/builtin/common.h"
 #include "melon/builtin/vars_service.h"

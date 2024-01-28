@@ -27,7 +27,7 @@
 #include <algorithm>                     // std::max, std::min
 #include "melon/butil/atomicops.h"              // butil::atomic
 #include "melon/butil/macros.h"                 // BAIDU_CACHELINE_ALIGNMENT
-#include "melon/butil/scoped_lock.h"            // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"            // MELON_SCOPED_LOCK
 #include "melon/butil/thread_local.h"           // BAIDU_THREAD_LOCAL
 #include <vector>
 
@@ -361,7 +361,7 @@ private:
     // Shall be called infrequently because a BlockGroup is pretty big.
     static bool add_block_group(size_t old_ngroup) {
         BlockGroup* bg = NULL;
-        BAIDU_SCOPED_LOCK(_block_group_mutex);
+        MELON_SCOPED_LOCK(_block_group_mutex);
         const size_t ngroup = _ngroup.load(butil::memory_order_acquire);
         if (ngroup != old_ngroup) {
             // Other thread got lock and added group before this thread.
@@ -388,7 +388,7 @@ private:
         if (NULL == lp) {
             return NULL;
         }
-        BAIDU_SCOPED_LOCK(_change_thread_mutex); //avoid race with clear()
+        MELON_SCOPED_LOCK(_change_thread_mutex); //avoid race with clear()
         _local_pool = lp;
         butil::thread_atexit(LocalPool::delete_local_pool, lp);
         _nlocal.fetch_add(1, butil::memory_order_relaxed);
@@ -410,7 +410,7 @@ private:
         // be deallocated correctly in tests, so wrap the function with 
         // a macro which is only defined in unittests.
 #ifdef BAIDU_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
-        BAIDU_SCOPED_LOCK(_change_thread_mutex);  // including acquire fence.
+        MELON_SCOPED_LOCK(_change_thread_mutex);  // including acquire fence.
         // Do nothing if there're active threads.
         if (_nlocal.load(butil::memory_order_relaxed) != 0) {
             return;

@@ -20,7 +20,7 @@
 #define  BRPC_STREAMING_RPC_PROTOCOL_H
 
 #include "melon/rpc/protocol.h"
-#include "melon/rpc/streaming_rpc_meta.pb.h"
+#include "melon/proto/rpc/streaming_rpc_meta.pb.h"
 
 
 namespace melon {

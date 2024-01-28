@@ -18,7 +18,7 @@
 
 #include <pthread.h>
 #include "melon/butil/logging.h"
-#include "melon/rpc/policy/gzip_compress.h"
+#include "melon/compress/gzip_compress.h"
 #include "melon/builtin/viz_min_js.h"
 
 
@@ -43,7 +43,7 @@ static void InitVizMinBufGzip() {
     butil::IOBuf viz_min;
     viz_min.append(viz_min_js());
     s_viz_min_buf_gzip = new butil::IOBuf;
-    CHECK(policy::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
+    CHECK(compress::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
 }
 const butil::IOBuf& viz_min_js_iobuf_gzip() {
     pthread_once(&s_viz_min_buf_gzip_once, InitVizMinBufGzip);

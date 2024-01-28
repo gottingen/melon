@@ -33,9 +33,9 @@
 #include "melon/rpc/policy/mongo_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/controller.h"
-#include "melon/rpc/mongo_head.h"
-#include "melon/rpc/mongo_service_adaptor.h"
-#include "melon/rpc/policy/mongo.pb.h"
+#include "melon/rpc/mongo/mongo_head.h"
+#include "melon/rpc/mongo/mongo_service_adaptor.h"
+#include "melon/proto/rpc/mongo.pb.h"
 
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);

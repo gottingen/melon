@@ -21,7 +21,7 @@
 #include <google/protobuf/descriptor.h>
 
 #include "melon/rpc/server.h"
-#include "melon/rpc/details/http_message.h"
+#include "melon/rpc/http/http_message.h"
 #include "melon/rpc/policy/http_rpc_protocol.h"
 #include "echo.pb.h"
 

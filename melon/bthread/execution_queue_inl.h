@@ -61,7 +61,7 @@ struct BAIDU_CACHELINE_ALIGNMENT TaskNode {
     {}
     ~TaskNode() {}
     int cancel(int64_t expected_version) {
-        BAIDU_SCOPED_LOCK(mutex);
+        MELON_SCOPED_LOCK(mutex);
         if (version != expected_version) {
             return -1;
         }
@@ -72,11 +72,11 @@ struct BAIDU_CACHELINE_ALIGNMENT TaskNode {
         return status == EXECUTED ? -1 : 1;
     }
     void set_executed() {
-        BAIDU_SCOPED_LOCK(mutex);
+        MELON_SCOPED_LOCK(mutex);
         status = EXECUTED;
     }
     bool peek_to_execute() {
-        BAIDU_SCOPED_LOCK(mutex);
+        MELON_SCOPED_LOCK(mutex);
         if (status == UNEXECUTED) {
             status = EXECUTING;
             return true;

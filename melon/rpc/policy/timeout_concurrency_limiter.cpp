@@ -17,7 +17,7 @@
 
 #include "melon/rpc/policy/timeout_concurrency_limiter.h"
 #include "melon/rpc/controller.h"
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include <cmath>
 #include <gflags/gflags.h>
 

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/rpc/policy/sofa_pbrpc_meta.pb.h"
+#include "melon/proto/rpc/sofa_pbrpc_meta.pb.h"
 #include "melon/rpc/policy/sofa_pbrpc_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"
 

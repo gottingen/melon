@@ -70,7 +70,7 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/trackme.h"
 #include "melon/rpc/restful.h"
-#include "melon/rpc/rtmp.h"
+#include "melon/rpc/rtmp/rtmp.h"
 #include "melon/builtin/common.h"               // GetProgramName
 #include "melon/rpc/details/tcmalloc_extension.h"
 #include "melon/rpc/rdma/rdma_helper.h"
@@ -1857,7 +1857,7 @@ int StartDummyServerAt(int port, ProfilerLinker) {
         return -1;
     }
     if (g_dummy_server == NULL) {  // (1)
-        BAIDU_SCOPED_LOCK(g_dummy_server_mutex);
+        MELON_SCOPED_LOCK(g_dummy_server_mutex);
         if (g_dummy_server == NULL) {
             Server* dummy_server = new Server;
             dummy_server->set_version(butil::string_printf(

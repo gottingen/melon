@@ -96,7 +96,7 @@ typedef pthread_mutex_t* MutexHandle;
 #include <limits>
 #include "melon/butil/atomicops.h"
 #include "melon/butil/thread_local.h"
-#include "melon/butil/scoped_lock.h"                        // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"                        // MELON_SCOPED_LOCK
 #include "melon/butil/string_splitter.h"
 #include "melon/butil/time.h"
 #include "melon/butil/containers/doubly_buffered_data.h"
@@ -586,7 +586,7 @@ void AsyncLogger::LogImpl(LogRequest* log_req) {
         }
     }
 
-    BAIDU_SCOPED_LOCK(_mutex);
+    MELON_SCOPED_LOCK(_mutex);
     if (_stop.load(butil::memory_order_relaxed)) {
         // Async logger is stopped, fallback to sync log.
         LogTask(log_req);
@@ -599,7 +599,7 @@ void AsyncLogger::LogImpl(LogRequest* log_req) {
 
 void AsyncLogger::StopAndJoin() {
     if (!_stop.exchange(true, butil::memory_order_relaxed)) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _cond.Signal();
     }
     if (!HasBeenJoined()) {
@@ -609,7 +609,7 @@ void AsyncLogger::StopAndJoin() {
 
 void AsyncLogger::Run() {
     while (true) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         while (!_stop.load(butil::memory_order_relaxed) &&
                !_current_log_request) {
             _cond.Wait();
@@ -1759,7 +1759,7 @@ private:
 static int vlog_site_list_add(VLogSite* site,
                               VModuleList** expected_module_list,
                               int* expected_default_v) {
-    BAIDU_SCOPED_LOCK(vlog_site_list_mutex);
+    MELON_SCOPED_LOCK(vlog_site_list_mutex);
     if (vmodule_list != *expected_module_list) {
         *expected_module_list = vmodule_list;
         return -1;
@@ -1795,7 +1795,7 @@ bool add_vlog_site(const int** v, const char* filename, int line_no,
 void print_vlog_sites(VLogSitePrinter* printer) {
     VLogSite* head = NULL;
     {
-        BAIDU_SCOPED_LOCK(vlog_site_list_mutex);
+        MELON_SCOPED_LOCK(vlog_site_list_mutex);
         head = vlog_site_list;
     }
     VLogSitePrinter::Site site;
@@ -1811,7 +1811,7 @@ void print_vlog_sites(VLogSitePrinter* printer) {
 // [Thread-safe] Reset FLAGS_vmodule.
 static int on_reset_vmodule(const char* vmodule) {
     // resetting must be serialized.
-    BAIDU_SCOPED_LOCK(reset_vmodule_and_v_mutex);
+    MELON_SCOPED_LOCK(reset_vmodule_and_v_mutex);
     
     VModuleList* module_list = new (std::nothrow) VModuleList;
     if (NULL == module_list) {
@@ -1828,7 +1828,7 @@ static int on_reset_vmodule(const char* vmodule) {
     VLogSite* old_vlog_site_list = NULL;
     {
         {
-            BAIDU_SCOPED_LOCK(vlog_site_list_mutex);
+            MELON_SCOPED_LOCK(vlog_site_list_mutex);
             old_module_list = vmodule_list;
             vmodule_list = module_list;
             old_vlog_site_list = vlog_site_list;
@@ -1871,9 +1871,9 @@ static void on_reset_verbose(int default_v) {
     VLogSite* cur_vlog_site_list = NULL;
     {
         // resetting must be serialized.
-        BAIDU_SCOPED_LOCK(reset_vmodule_and_v_mutex);
+        MELON_SCOPED_LOCK(reset_vmodule_and_v_mutex);
         {
-            BAIDU_SCOPED_LOCK(vlog_site_list_mutex);
+            MELON_SCOPED_LOCK(vlog_site_list_mutex);
             cur_module_list = vmodule_list;
             cur_vlog_site_list = vlog_site_list;
         }

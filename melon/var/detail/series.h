@@ -22,7 +22,7 @@
 
 #include <math.h>                       // round
 #include <ostream>
-#include "melon/butil/scoped_lock.h"           // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
 #include "melon/butil/type_traits.h"
 #include "melon/var/vector.h"
 #include "melon/var/detail/call_op_returning_void.h"
@@ -111,7 +111,7 @@ namespace melon::var {
         }
 
         void append(const T &value) {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             return append_second(value, _op);
         }
 

@@ -24,7 +24,7 @@
 #include "melon/bthread/bthread.h"                     // bthread_start_background
 #include "melon/bthread/unstable.h"                   // bthread_flush
 #include "melon/var/var.h"                          // melon::var::Adder
-#include "melon/rpc/options.pb.h"               // ProtocolType
+#include "melon/proto/rpc/options.pb.h"               // ProtocolType
 #include "melon/rpc/reloadable_flags.h"         // BRPC_VALIDATE_GFLAG
 #include "melon/rpc/protocol.h"                 // ListProtocols
 #include "melon/rpc/rdma/rdma_endpoint.h"
@@ -416,7 +416,7 @@ int InputMessenger::AddHandler(const InputMessageHandler& handler) {
         CHECK(false) << "Invalid argument";
         return -1;
     }
-    BAIDU_SCOPED_LOCK(_add_handler_mutex);
+    MELON_SCOPED_LOCK(_add_handler_mutex);
     if (NULL == _handlers) {
         _handlers = new (std::nothrow) InputMessageHandler[_capacity];
         if (NULL == _handlers) {
@@ -461,7 +461,7 @@ int InputMessenger::AddNonProtocolHandler(const InputMessageHandler& handler) {
         CHECK(false) << "Invalid argument";
         return -1;
     }
-    BAIDU_SCOPED_LOCK(_add_handler_mutex);
+    MELON_SCOPED_LOCK(_add_handler_mutex);
     if (NULL == _handlers) {
         _handlers = new (std::nothrow) InputMessageHandler[_capacity];
         if (NULL == _handlers) {

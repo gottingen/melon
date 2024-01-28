@@ -22,7 +22,7 @@
 #include <melon/rpc/uri.h>
 #include "melon/raft/util.h"
 #include "melon/raft/protobuf_file.h"
-#include "melon/raft/local_storage.pb.h"
+#include "melon/proto/raft/local_storage.pb.h"
 #include "melon/raft/remote_file_copier.h"
 #include "melon/raft/snapshot.h"
 #include "melon/raft/node.h"
@@ -502,7 +502,7 @@ namespace melon::raft {
     }
 
     void LocalSnapshotStorage::ref(const int64_t index) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _ref_map[index]++;
     }
 
@@ -615,7 +615,7 @@ namespace melon::raft {
             }
             int64_t old_index = 0;
             {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 old_index = _last_snapshot_index;
             }
             int64_t new_index = writer->snapshot_index();
@@ -646,7 +646,7 @@ namespace melon::raft {
 
             ref(new_index);
             {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 CHECK_EQ(old_index, _last_snapshot_index);
                 _last_snapshot_index = new_index;
             }
@@ -1006,7 +1006,7 @@ namespace melon::raft {
     }
 
     void LocalSnapshotCopier::cancel() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_cancelled) {
             return;
         }

@@ -155,7 +155,7 @@ namespace melon::var {
 
         VarMapWithLock &m = get_var_map(_name);
         {
-            BAIDU_SCOPED_LOCK(m.mutex);
+            MELON_SCOPED_LOCK(m.mutex);
             VarEntry *entry = m.seek(_name);
             if (entry == NULL) {
                 entry = &m[_name];
@@ -188,7 +188,7 @@ namespace melon::var {
             return false;
         }
         VarMapWithLock &m = get_var_map(_name);
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         VarEntry *entry = m.seek(_name);
         if (entry) {
             CHECK_EQ(1UL, m.erase(_name));
@@ -248,7 +248,7 @@ namespace melon::var {
                                    bool quote_string,
                                    DisplayFilter display_filter) {
         VarMapWithLock &m = get_var_map(name);
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
         if (p == NULL) {
             return -1;
@@ -281,7 +281,7 @@ namespace melon::var {
                                           std::ostream &os,
                                           const SeriesOptions &options) {
         VarMapWithLock &m = get_var_map(name);
-        BAIDU_SCOPED_LOCK(m.mutex);
+        MELON_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
         if (p == NULL) {
             return -1;

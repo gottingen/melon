@@ -27,8 +27,8 @@
 #include <melon/butil/status.h>
 #include <melon/rpc/callback.h>
 #include "melon/raft/configuration.h"
-#include "melon/raft/enum.pb.h"
-#include "melon/raft/errno.pb.h"
+#include "melon/proto/raft/enum.pb.h"
+#include "melon/proto/raft/errno.pb.h"
 
 template<typename T>
 class scoped_refptr;

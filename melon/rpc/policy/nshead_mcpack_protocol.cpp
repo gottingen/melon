@@ -28,7 +28,7 @@
 #include "melon/rpc/server.h"                   // Server
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/span.h"
-#include "melon/rpc/errno.pb.h"                 // EREQUEST, ERESPONSE
+#include "melon/proto/rpc/errno.pb.h"                 // EREQUEST, ERESPONSE
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/policy/nshead_mcpack_protocol.h"

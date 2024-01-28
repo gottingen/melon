@@ -23,7 +23,7 @@
 #include "melon/var/var.h"                        // melon::var::PassiveStatus
 #include "melon/butil/containers/flat_map.h"        // FlatMap
 #include "melon/rpc/socket_id.h"                   // SockdetId
-#include "melon/rpc/options.pb.h"                  // ProtocolType
+#include "melon/proto/rpc/options.pb.h"                  // ProtocolType
 #include "melon/rpc/input_messenger.h"             // InputMessageHandler
 #include "melon/rpc/server_node.h"                 // ServerNode
 

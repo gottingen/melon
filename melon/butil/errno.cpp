@@ -24,7 +24,7 @@
 #include <stdio.h>                                     // snprintf
 #include <pthread.h>                                   // pthread_mutex_t
 #include <unistd.h>                                    // _exit
-#include "melon/butil/scoped_lock.h"                         // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"                         // MELON_SCOPED_LOCK
 
 namespace butil {
 
@@ -38,7 +38,7 @@ __thread char tls_error_buf[ERROR_BUFSIZE];
 
 int DescribeCustomizedErrno(
     int error_code, const char* error_name, const char* description) {
-    BAIDU_SCOPED_LOCK(modify_desc_mutex);
+    MELON_SCOPED_LOCK(modify_desc_mutex);
     if (error_code < ERRNO_BEGIN || error_code >= ERRNO_END) {
         // error() is a non-portable GNU extension that should not be used.
         fprintf(stderr, "Fail to define %s(%d) which is out of range, abort.",

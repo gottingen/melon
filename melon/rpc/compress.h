@@ -16,51 +16,51 @@
 // under the License.
 
 
-#ifndef BRPC_COMPRESS_H
-#define BRPC_COMPRESS_H
+#ifndef MELON_RPC_COMPRESS_H_
+#define MELON_RPC_COMPRESS_H_
 
 #include <google/protobuf/message.h>              // Message
 #include "melon/butil/iobuf.h"                           // butil::IOBuf
-#include "melon/rpc/options.pb.h"                     // CompressType
+#include "melon/proto/rpc/options.pb.h"                     // CompressType
 
 namespace melon {
 
-struct CompressHandler {
-    // Compress serialized `msg' into `buf'.
+    struct CompressHandler {
+        // Compress serialized `msg' into `buf'.
+        // Returns true on success, false otherwise
+        bool (*Compress)(const google::protobuf::Message &msg, butil::IOBuf *buf);
+
+        // Parse decompressed `data' as `msg'.
+        // Returns true on success, false otherwise
+        bool (*Decompress)(const butil::IOBuf &data, google::protobuf::Message *msg);
+
+        // Name of the compression algorithm, must be string constant.
+        const char *name;
+    };
+
+    // [NOT thread-safe] Register `handler' using key=`type'
+    // Returns 0 on success, -1 otherwise
+    int RegisterCompressHandler(CompressType type, CompressHandler handler);
+
+    // Returns the `name' of the CompressType if registered
+    const char *CompressTypeToCStr(CompressType type);
+
+    // Put all registered handlers into `vec'.
+    void ListCompressHandler(std::vector<CompressHandler> *vec);
+
+    // Parse decompressed `data' as `msg' using registered `compress_type'.
     // Returns true on success, false otherwise
-    bool (*Compress)(const google::protobuf::Message& msg, butil::IOBuf* buf);
+    bool ParseFromCompressedData(const butil::IOBuf &data,
+                                 google::protobuf::Message *msg,
+                                 CompressType compress_type);
 
-    // Parse decompressed `data' as `msg'.
+    // Compress serialized `msg' into `buf' using registered `compress_type'.
     // Returns true on success, false otherwise
-    bool (*Decompress)(const butil::IOBuf& data, google::protobuf::Message* msg);
-
-    // Name of the compression algorithm, must be string constant.
-    const char* name;
-};
-
-// [NOT thread-safe] Register `handler' using key=`type'
-// Returns 0 on success, -1 otherwise
-int RegisterCompressHandler(CompressType type, CompressHandler handler);
-
-// Returns the `name' of the CompressType if registered
-const char* CompressTypeToCStr(CompressType type);
-
-// Put all registered handlers into `vec'.
-void ListCompressHandler(std::vector<CompressHandler>* vec);
-
-// Parse decompressed `data' as `msg' using registered `compress_type'.
-// Returns true on success, false otherwise
-bool ParseFromCompressedData(const butil::IOBuf& data,
-                             google::protobuf::Message* msg,
-                             CompressType compress_type);
-
-// Compress serialized `msg' into `buf' using registered `compress_type'.
-// Returns true on success, false otherwise
-bool SerializeAsCompressedData(const google::protobuf::Message& msg,
-                               butil::IOBuf* buf,
-                               CompressType compress_type);
+    bool SerializeAsCompressedData(const google::protobuf::Message &msg,
+                                   butil::IOBuf *buf,
+                                   CompressType compress_type);
 
 } // namespace melon
 
 
-#endif // BRPC_COMPRESS_H
+#endif // MELON_RPC_COMPRESS_H_

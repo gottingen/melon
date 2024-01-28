@@ -21,7 +21,7 @@
 #include <melon/butil/memory/ref_counted.h>            // butil::RefCountedThreadSafe
 #include <melon/butil/third_party/murmurhash3/murmurhash3.h>  // fmix64
 #include "melon/raft/configuration.h"
-#include "melon/raft/raft.pb.h"
+#include "melon/proto/raft/raft.pb.h"
 #include "melon/raft/util.h"
 
 namespace melon::raft {

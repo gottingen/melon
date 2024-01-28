@@ -172,7 +172,7 @@ TimerThread::Task* TimerThread::Bucket::consume_tasks() {
         // by TimerThread._nearest_run_time and fenced by TimerThread._mutex.
         // We can avoid touching the mutex and related cacheline when the
         // bucket is actually empty.
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_task_head) {
             head = _task_head;
             _task_head = NULL;
@@ -204,7 +204,7 @@ TimerThread::Bucket::schedule(void (*fn)(void*), void* arg,
     task->task_id = id;
     bool earlier = false;
     {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         task->next = _task_head;
         _task_head = task;
         if (task->run_time < _nearest_run_time) {
@@ -230,7 +230,7 @@ TimerThread::TaskId TimerThread::schedule(
         bool earlier = false;
         const int64_t run_time = butil::timespec_to_microseconds(abstime);
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             if (run_time < _nearest_run_time) {
                 _nearest_run_time = run_time;
                 ++_nsignals;
@@ -343,7 +343,7 @@ void TimerThread::run() {
         // This helps us to be aware of earliest task of the new tasks before we
         // would run the consumed tasks.
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             _nearest_run_time = std::numeric_limits<int64_t>::max();
         }
         
@@ -380,7 +380,7 @@ void TimerThread::run() {
             // insertion, and they'll grab _mutex and change _nearest_run_time
             // frequently, fortunately this is not true at most of time).
             {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 if (task1->run_time > _nearest_run_time) {
                     // a task is earlier than task1. We need to check buckets.
                     pull_again = true;
@@ -409,7 +409,7 @@ void TimerThread::run() {
         // is earlier than the realtime that we wait for, we'll wake up.
         int expected_nsignals = 0;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             if (next_run_time > _nearest_run_time) {
                 // a task is earlier than what we would wait for.
                 // We need to check the buckets.
@@ -437,7 +437,7 @@ void TimerThread::stop_and_join() {
     _stop.store(true, butil::memory_order_relaxed);
     if (_started) {
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
              // trigger pull_again and wakeup TimerThread
             _nearest_run_time = 0;
             ++_nsignals;

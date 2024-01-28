@@ -20,11 +20,11 @@
 #include <unordered_map>
 #include <melon/butil/time.h>
 #include <melon/butil/logging.h>
-#include <melon/rpc/redis.h>
+#include <melon/rpc/redis/redis.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/policy/redis_authenticator.h>
 #include <melon/rpc/server.h>
-#include <melon/rpc/redis_command.h>
+#include <melon/rpc/redis/redis_command.h>
 #include <gtest/gtest.h>
 
 namespace melon {

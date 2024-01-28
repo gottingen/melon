@@ -19,7 +19,7 @@
 #ifndef BRPC_POLICY_HULU_PBRPC_PROTOCOL_H
 #define BRPC_POLICY_HULU_PBRPC_PROTOCOL_H
 
-#include "melon/rpc/policy/hulu_pbrpc_meta.pb.h"
+#include "melon/proto/rpc/hulu_pbrpc_meta.pb.h"
 #include "melon/rpc/protocol.h"
 
 namespace melon {

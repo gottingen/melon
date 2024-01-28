@@ -132,7 +132,7 @@ std::vector<size_t> seqs;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void dtor2(void* arg) {
-    BAIDU_SCOPED_LOCK(mutex);
+    MELON_SCOPED_LOCK(mutex);
     seqs.push_back((size_t)arg);
 }
 

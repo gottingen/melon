@@ -30,17 +30,17 @@
 #include "melon/butil/time.h"
 #include "melon/butil/sys_byteorder.h"
 #include "melon/rpc/compress.h"
-#include "melon/rpc/errno.pb.h"                     // ENOSERVICE, ENOMETHOD
+#include "melon/proto/rpc/errno.pb.h"                     // ENOSERVICE, ENOMETHOD
 #include "melon/rpc/controller.h"                   // Controller
 #include "melon/rpc/server.h"                       // Server
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/span.h"
 #include "melon/rpc/socket.h"                       // Socket
-#include "melon/rpc/rpc_dump.h"                     // SampledRequest
-#include "melon/rpc/http_status_code.h"             // HTTP_STATUS_*
+#include "melon/rpc/dump/rpc_dump.h"                     // SampledRequest
+#include "melon/rpc/http/http_status_code.h"             // HTTP_STATUS_*
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/builtin/index_service.h"        // IndexService
-#include "melon/rpc/policy/gzip_compress.h"
+#include "melon/compress/gzip_compress.h"
 #include "melon/rpc/policy/http2_rpc_protocol.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
 #include "melon/rpc/grpc.h"
@@ -447,7 +447,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
             TRACEPRINTF("Decompressing response=%lu",
                         (unsigned long)res_body.size());
             butil::IOBuf uncompressed;
-            if (!policy::GzipDecompress(res_body, &uncompressed)) {
+            if (!compress::GzipDecompress(res_body, &uncompressed)) {
                 cntl->SetFailed(ERESPONSE, "Fail to un-gzip response body");
                 break;
             }
@@ -589,7 +589,7 @@ void SerializeHttpRequest(butil::IOBuf* /*not used*/,
         if (request_size >= (size_t)FLAGS_http_body_compress_threshold) {
             TRACEPRINTF("Compressing request=%lu", (unsigned long)request_size);
             butil::IOBuf compressed;
-            if (GzipCompress(cntl->request_attachment(), &compressed, NULL)) {
+            if (melon::compress::GzipCompress(cntl->request_attachment(), &compressed, NULL)) {
                 cntl->request_attachment().swap(compressed);
                 if (is_grpc) {
                     grpc_compressed = true;
@@ -902,7 +902,7 @@ HttpResponseSender::~HttpResponseSender() {
             && (is_http2 || SupportGzip(cntl))) {
             TRACEPRINTF("Compressing response=%lu", (unsigned long)response_size);
             butil::IOBuf tmpbuf;
-            if (GzipCompress(cntl->response_attachment(), &tmpbuf, NULL)) {
+            if (melon::compress::GzipCompress(cntl->response_attachment(), &tmpbuf, NULL)) {
                 cntl->response_attachment().swap(tmpbuf);
                 if (is_grpc) {
                     grpc_compressed = true;
@@ -1545,7 +1545,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
                 TRACEPRINTF("Decompressing request=%lu",
                             (unsigned long)req_body.size());
                 butil::IOBuf uncompressed;
-                if (!policy::GzipDecompress(req_body, &uncompressed)) {
+                if (!compress::GzipDecompress(req_body, &uncompressed)) {
                     cntl->SetFailed(EREQUEST, "Fail to un-gzip request body");
                     return;
                 }

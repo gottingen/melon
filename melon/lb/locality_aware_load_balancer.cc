@@ -378,7 +378,7 @@ namespace melon::lb {
             const CallInfo &ci, size_t index) {
         const int64_t end_time_us = butil::gettimeofday_us();
         const int64_t latency = end_time_us - ci.begin_time_us;
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (Disabled()) {
             // The weight was disabled and will be removed soon, do nothing
             // and the diff is 0.
@@ -556,7 +556,7 @@ namespace melon::lb {
     }
 
     int64_t LocalityAwareLoadBalancer::Weight::Disable() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         const int64_t saved = _weight;
         _base_weight = -1;
         _weight = 0;
@@ -564,7 +564,7 @@ namespace melon::lb {
     }
 
     int64_t LocalityAwareLoadBalancer::Weight::MarkOld(size_t index) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         const int64_t saved = _weight;
         _old_weight = saved;
         _old_diff_sum = 0;
@@ -573,7 +573,7 @@ namespace melon::lb {
     }
 
     std::pair<int64_t, int64_t> LocalityAwareLoadBalancer::Weight::ClearOld() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         const int64_t old_weight = _old_weight;
         const int64_t diff = _old_diff_sum;
         _old_diff_sum = 0;

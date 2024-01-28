@@ -19,7 +19,7 @@
 #ifndef  MELON_NAMING_DOMAIN_NAMING_SERVICE_H_
 #define  MELON_NAMING_DOMAIN_NAMING_SERVICE_H_
 
-#include "melon/rpc/periodic_naming_service.h"
+#include "melon/naming/periodic_naming_service.h"
 #include "melon/butil/unique_ptr.h"
 
 

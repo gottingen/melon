@@ -17,11 +17,11 @@
 //          Xiong,Kai(xiongkai@baidu.com)
 
 #include <melon/bthread/unstable.h>
-#include <melon/rpc/errno.pb.h>
+#include <melon/proto/rpc/errno.pb.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
 
-#include "melon/raft/errno.pb.h"
+#include "melon/proto/raft/errno.pb.h"
 #include "melon/raft/util.h"
 #include "melon/raft/raft.h"
 #include "melon/raft/node.h"
@@ -32,7 +32,7 @@
 #include "melon/raft/builtin_service_impl.h"
 #include "melon/raft/node_manager.h"
 #include "melon/raft/snapshot_executor.h"
-#include "melon/raft/errno.pb.h"
+#include "melon/proto/raft/errno.pb.h"
 
 namespace melon::raft {
 
@@ -679,7 +679,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::on_configuration_change_done(int64_t term) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_state > STATE_TRANSFERRING || term != _current_term) {
             LOG(WARNING) << "node " << node_id()
                          << " process on_configuration_change_done "
@@ -719,7 +719,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     void NodeImpl::on_caughtup(const PeerId &peer, int64_t term,
                                int64_t version, const butil::Status &st) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         // CHECK _state and _current_term to avoid ABA problem
         if (_state != STATE_LEADER || term != _current_term) {
             // if leader stepped down, reset() has already been called in step_down(),
@@ -794,7 +794,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::handle_stepdown_timeout() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
 
         // check state
         if (_state > STATE_TRANSFERRING) {
@@ -862,7 +862,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     butil::Status NodeImpl::list_peers(std::vector<PeerId> *peers) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_state != STATE_LEADER) {
             return butil::Status(EPERM, "Not leader");
         }
@@ -871,26 +871,26 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::add_peer(const PeerId &peer, Closure *done) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         Configuration new_conf = _conf.conf;
         new_conf.add_peer(peer);
         return unsafe_register_conf_change(_conf.conf, new_conf, done);
     }
 
     void NodeImpl::remove_peer(const PeerId &peer, Closure *done) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         Configuration new_conf = _conf.conf;
         new_conf.remove_peer(peer);
         return unsafe_register_conf_change(_conf.conf, new_conf, done);
     }
 
     void NodeImpl::change_peers(const Configuration &new_peers, Closure *done) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         return unsafe_register_conf_change(_conf.conf, new_peers, done);
     }
 
     butil::Status NodeImpl::reset_peers(const Configuration &new_peers) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
 
         if (new_peers.empty()) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id << " set empty peers";
@@ -959,7 +959,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // Note: shutdown is probably invoked more than once, make sure this method
         // is idempotent
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
 
             LOG(INFO) << "node " << _group_id << ":" << _server_id << " shutdown,"
                                                                       " current_term " << _current_term << " state "
@@ -1148,7 +1148,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::handle_transfer_timeout(int64_t term, const PeerId &peer) {
         LOG(INFO) << "node " << node_id() << " failed to transfer leadership to peer="
                   << peer << " : reached timeout";
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (term == _current_term) {
             _replicator_group.stop_transfer_leadership(peer);
             if (_state == STATE_TRANSFERRING) {
@@ -1371,7 +1371,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::handle_request_vote_response(const PeerId &peer_id, const int64_t term,
                                                 const int64_t ctx_version,
                                                 const RequestVoteResponse &response) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
 
         if (ctx_version != _vote_ctx.version()) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
@@ -2556,7 +2556,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     int NodeImpl::increase_term_to(int64_t new_term, const butil::Status &status) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (new_term <= _current_term) {
             return EINVAL;
         }
@@ -2571,7 +2571,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::after_shutdown() {
         std::vector<Closure *> saved_done;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             CHECK_EQ(STATE_SHUTTING, _state);
             _state = STATE_SHUTDOWN;
             std::swap(saved_done, _shutdown_continuations);
@@ -2655,7 +2655,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::update_configuration_after_installing_snapshot() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _log_manager->check_and_set_configuration(&_conf);
     }
 
@@ -3344,7 +3344,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::enter_readonly_mode() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (!_node_readonly) {
             LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " enter readonly mode";
@@ -3353,7 +3353,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::leave_readonly_mode() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_node_readonly) {
             LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " leave readonly mode";
@@ -3362,12 +3362,12 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     bool NodeImpl::readonly() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         return _node_readonly || _majority_nodes_readonly;
     }
 
     int NodeImpl::change_readonly_config(int64_t term, const PeerId &peer_id, bool readonly) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (term != _current_term && _state != STATE_LEADER) {
             return EINVAL;
         }
@@ -3436,7 +3436,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 break;
         }
 
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_state != STATE_LEADER) {
             lease_status->state = LEASE_EXPIRED;
             return;
@@ -3583,7 +3583,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::leader_lease_start(int64_t lease_epoch) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_state == STATE_LEADER) {
             _leader_lease.on_lease_start(
                     lease_epoch, last_leader_active_timestamp());

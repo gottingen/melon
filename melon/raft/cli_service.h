@@ -18,7 +18,7 @@
 #define  MELON_RAFT_CLI_SERVICE_H_
 
 #include <melon/butil/status.h>
-#include "melon/raft/cli.pb.h"                // CliService
+#include "melon/proto/raft/cli.pb.h"                // CliService
 #include "melon/raft/node.h"                  // NodeImpl
 
 namespace melon::raft {

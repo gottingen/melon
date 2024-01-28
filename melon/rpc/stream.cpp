@@ -297,7 +297,7 @@ int Stream::AppendIfNotFull(const butil::IOBuf &data,
     if (rc != 0) {
         // Stream may be closed by peer before
         LOG(WARNING) << "Fail to write to _fake_socket, " << berror();
-        BAIDU_SCOPED_LOCK(_congestion_control_mutex);
+        MELON_SCOPED_LOCK(_congestion_control_mutex);
         _produced -= data_length;
         return -1;
     }

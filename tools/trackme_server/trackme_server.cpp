@@ -24,7 +24,7 @@
 #include <melon/rpc/server.h>
 #include <melon/butil/files/file_watcher.h>
 #include <melon/butil/files/scoped_file.h>
-#include <melon/rpc/trackme.pb.h>
+#include <melon/proto/rpc/trackme.pb.h>
 
 DEFINE_string(bug_file, "./bugs", "A file containing revision and information of bugs");
 DEFINE_int32(port, 8877, "TCP Port of this server");

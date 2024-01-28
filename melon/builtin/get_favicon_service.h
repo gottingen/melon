@@ -19,7 +19,7 @@
 #ifndef  MELON_BUILTIN_GET_FAVICON_SERVICE_H_
 #define  MELON_BUILTIN_GET_FAVICON_SERVICE_H_
 
-#include "melon/rpc/get_favicon.pb.h"
+#include "melon/proto/rpc/get_favicon.pb.h"
 
 namespace melon {
 

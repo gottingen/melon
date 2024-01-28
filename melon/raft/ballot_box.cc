@@ -94,7 +94,7 @@ namespace melon::raft {
     int BallotBox::clear_pending_tasks() {
         std::deque<Ballot> saved_meta;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             saved_meta.swap(_pending_meta_queue);
             _pending_index = 0;
         }
@@ -103,7 +103,7 @@ namespace melon::raft {
     }
 
     int BallotBox::reset_pending_index(int64_t new_pending_index) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         CHECK(_pending_index == 0 && _pending_meta_queue.empty())
         << "pending_index " << _pending_index << " pending_meta_queue "
         << _pending_meta_queue.size();
@@ -122,7 +122,7 @@ namespace melon::raft {
             return -1;
         }
 
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         CHECK(_pending_index > 0);
         _pending_meta_queue.push_back(Ballot());
         _pending_meta_queue.back().swap(bl);

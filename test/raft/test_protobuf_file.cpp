@@ -17,7 +17,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "melon/raft/local_storage.pb.h"
+#include "melon/proto/raft/local_storage.pb.h"
 #include "melon/raft/protobuf_file.h"
 
 class TestUsageSuits : public testing::Test {

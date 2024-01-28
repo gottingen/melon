@@ -61,7 +61,7 @@ static void DestroyTlsData() {
     }
     std::vector<ThreadKeyInfo> dummy_keys;
     {
-        BAIDU_SCOPED_LOCK(g_thread_key_mutex);
+        MELON_SCOPED_LOCK(g_thread_key_mutex);
         if (BAIDU_LIKELY(g_thread_keys)) {
             dummy_keys.insert(dummy_keys.end(), g_thread_keys->begin(), g_thread_keys->end());
         }
@@ -87,7 +87,7 @@ static std::deque<size_t>* GetGlobalFreeIds() {
 }
 
 int thread_key_create(ThreadKey& thread_key, DtorFunction dtor) {
-    BAIDU_SCOPED_LOCK(g_thread_key_mutex);
+    MELON_SCOPED_LOCK(g_thread_key_mutex);
     size_t id;
     auto free_ids = GetGlobalFreeIds();
     if (!free_ids) {
@@ -126,7 +126,7 @@ int thread_key_delete(ThreadKey& thread_key) {
         return EINVAL;
     }
 
-    BAIDU_SCOPED_LOCK(g_thread_key_mutex);
+    MELON_SCOPED_LOCK(g_thread_key_mutex);
     size_t id = thread_key._id;
     size_t seq = thread_key._seq;
     if (id >= g_thread_keys->size() ||

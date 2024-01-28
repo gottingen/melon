@@ -22,7 +22,7 @@
 // on internal structures, use opaque pointers instead.
 
 #include "melon/butil/strings/string_piece.h"
-#include "melon/rpc/options.pb.h"
+#include "melon/proto/rpc/options.pb.h"
 
 namespace melon {
 

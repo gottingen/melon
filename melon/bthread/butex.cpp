@@ -20,7 +20,7 @@
 // Date: Tue Jul 22 17:30:12 CST 2014
 
 #include "melon/butil/atomicops.h"                // butil::atomic
-#include "melon/butil/scoped_lock.h"              // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"              // MELON_SCOPED_LOCK
 #include "melon/butil/macros.h"
 #include "melon/butil/containers/linked_list.h"   // LinkNode
 #ifdef SHOW_BTHREAD_BUTEX_WAITER_COUNT_IN_VARS
@@ -299,7 +299,7 @@ int butex_wake(void* arg, bool nosignal) {
     Butex* b = container_of(static_cast<butil::atomic<int>*>(arg), Butex, value);
     ButexWaiter* front = NULL;
     {
-        BAIDU_SCOPED_LOCK(b->waiter_lock);
+        MELON_SCOPED_LOCK(b->waiter_lock);
         if (b->waiters.empty()) {
             return 0;
         }
@@ -328,7 +328,7 @@ int butex_wake_all(void* arg, bool nosignal) {
     ButexWaiterList bthread_waiters;
     ButexWaiterList pthread_waiters;
     {
-        BAIDU_SCOPED_LOCK(b->waiter_lock);
+        MELON_SCOPED_LOCK(b->waiter_lock);
         while (!b->waiters.empty()) {
             ButexWaiter* bw = b->waiters.head()->value();
             bw->RemoveFromList();
@@ -387,7 +387,7 @@ int butex_wake_except(void* arg, bthread_t excluded_bthread) {
     ButexWaiterList pthread_waiters;
     {
         ButexWaiter* excluded_waiter = NULL;
-        BAIDU_SCOPED_LOCK(b->waiter_lock);
+        MELON_SCOPED_LOCK(b->waiter_lock);
         while (!b->waiters.empty()) {
             ButexWaiter* bw = b->waiters.head()->value();
             bw->RemoveFromList();
@@ -501,7 +501,7 @@ inline bool erase_from_butex(ButexWaiter* bw, bool wakeup, WaiterState state) {
     int saved_errno = errno;
     while ((b = bw->container.load(butil::memory_order_acquire))) {
         // b can be NULL when the waiter is scheduled but queued.
-        BAIDU_SCOPED_LOCK(b->waiter_lock);
+        MELON_SCOPED_LOCK(b->waiter_lock);
         if (b == bw->container.load(butil::memory_order_relaxed)) {
             bw->RemoveFromList();
             bw->container.store(NULL, butil::memory_order_relaxed);
@@ -543,7 +543,7 @@ static void wait_for_butex(void* arg) {
     // sequenced by two locks, both threads are guaranteed to see the correct
     // value.
     {
-        BAIDU_SCOPED_LOCK(b->waiter_lock);
+        MELON_SCOPED_LOCK(b->waiter_lock);
         if (b->value.load(butil::memory_order_relaxed) != bw->expected_value) {
             bw->waiter_state = WAITER_STATE_UNMATCHEDVALUE;
         } else if (bw->waiter_state == WAITER_STATE_READY/*1*/ &&

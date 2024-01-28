@@ -24,7 +24,7 @@
 #include <melon/var/var.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
-#include <melon/rpc/redis.h>
+#include <melon/rpc/redis/redis.h>
 
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
 DEFINE_bool(use_bthread, false, "Use bthread to send requests");

@@ -1056,7 +1056,7 @@ void H2Context::Describe(std::ostream& os, const DescribeOptions& opt) const {
     os << '}';
     size_t abandoned_size = 0;
     {
-        BAIDU_SCOPED_LOCK(_abandoned_streams_mutex);
+        MELON_SCOPED_LOCK(_abandoned_streams_mutex);
         abandoned_size = _abandoned_streams.size();
     }
     os << sep << "abandoned_streams=" << abandoned_size

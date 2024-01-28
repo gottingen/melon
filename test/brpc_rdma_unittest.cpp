@@ -33,7 +33,7 @@
 #include "melon/rpc/controller.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/socket.h"
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/parallel_channel.h"
 #include "melon/rpc/selective_channel.h"
 #include "melon/rpc/rdma/block_pool.h"

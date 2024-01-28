@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/rpc/details/http_message.h"
+#include "melon/rpc/http/http_message.h"
 #include "melon/rpc/policy/http_rpc_protocol.h"
 
 #define kMinInputLength 5

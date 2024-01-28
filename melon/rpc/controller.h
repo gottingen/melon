@@ -30,9 +30,9 @@
 #include "melon/butil/endpoint.h"                    // butil::EndPoint
 #include "melon/butil/iobuf.h"                       // butil::IOBuf
 #include "melon/bthread/types.h"                     // bthread_id_t
-#include "melon/rpc/options.pb.h"                   // CompressType
-#include "melon/rpc/errno.pb.h"                     // error code
-#include "melon/rpc/http_header.h"                  // HttpHeader
+#include "melon/proto/rpc/options.pb.h"                   // CompressType
+#include "melon/proto/rpc/errno.pb.h"                     // error code
+#include "melon/rpc/http/http_header.h"                  // HttpHeader
 #include "melon/rpc/authenticator.h"                // AuthContext
 #include "melon/rpc/socket_id.h"                    // SocketId
 #include "melon/rpc/stream.h"                       // StreamId

@@ -20,7 +20,7 @@
 #define  MELON_BUILTIN_LIST_SERVICE_H_
 
 #include <ostream>
-#include "melon/rpc/builtin_service.pb.h"
+#include "melon/proto/rpc/builtin_service.pb.h"
 
 namespace melon {
 

@@ -19,7 +19,7 @@
 #ifndef MELON_BUILTIN_GRPC_HEALTH_CHECK_SERVICE_H_
 #define MELON_BUILTIN_GRPC_HEALTH_CHECK_SERVICE_H_
 
-#include "melon/rpc/grpc_health_check.pb.h"
+#include "melon/proto/rpc/grpc_health_check.pb.h"
 
 namespace melon {
 

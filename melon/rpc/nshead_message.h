@@ -22,7 +22,7 @@
 #include <google/protobuf/message.h>
 #include "melon/rpc/nshead.h"                     // nshead_t
 #include "melon/butil/iobuf.h"                     // IOBuf
-#include "melon/rpc/proto_base.pb.h"
+#include "melon/proto/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
 namespace melon {

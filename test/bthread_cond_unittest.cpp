@@ -55,7 +55,7 @@ void* waiter(void* void_arg) {
     while (!stop) {
         bthread_cond_wait(&a->c, &a->m);
         
-        BAIDU_SCOPED_LOCK(wake_mutex);
+        MELON_SCOPED_LOCK(wake_mutex);
         wake_tid.push_back(bthread_self());
         wake_time.push_back(butil::gettimeofday_us());
     }
@@ -191,7 +191,7 @@ TEST(CondTest, cpp_wrapper) {
     ASSERT_EQ(0, pthread_create(&signal_thread, NULL, cv_signaler, &a));
     bthread_usleep(100L * 1000);
     {
-        BAIDU_SCOPED_LOCK(a.mutex);
+        MELON_SCOPED_LOCK(a.mutex);
         stop = true;
     }
     pthread_join(signal_thread, NULL);
@@ -211,7 +211,7 @@ class Signal {
 protected:
     Signal() : _signal(0) {}
     void notify() {
-        BAIDU_SCOPED_LOCK(_m);
+        MELON_SCOPED_LOCK(_m);
         ++_signal;
         _c.notify_one();
     }

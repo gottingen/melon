@@ -25,7 +25,7 @@ option(DEBUG "Print debug logs" OFF)
 option(WITH_DEBUG_SYMBOLS "With debug symbols" ON)
 option(WITH_SNAPPY "With snappy" OFF)
 option(WITH_RDMA "With RDMA" OFF)
-option(BUILD_UNIT_TESTS "Whether to build unit tests" OFF)
+option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
 option(BUILD_FUZZ_TESTS "Whether to build fuzz tests" OFF)
 option(BUILD_MELON_TOOLS "Whether to build brpc tools" ON)
 option(DOWNLOAD_GTEST "Download and build a fresh copy of googletest. Requires Internet access." ON)
@@ -421,6 +421,7 @@ file(GLOB_RECURSE BRPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cpp")
 file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cc")
 file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
 file(GLOB_RECURSE BUILTIN_SOURCES "${PROJECT_SOURCE_DIR}/melon/builtin/*.cc")
+file(GLOB_RECURSE COMPRESS_SOURCES "${PROJECT_SOURCE_DIR}/melon/compress/*.cc")
 file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cc")
 file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cpp")
 
@@ -437,32 +438,32 @@ set(MCPACK2PB_SOURCES
 
 include(CompileProto)
 set(PROTO_FILES melon/idl_options.proto
-        melon/rpc/rtmp.proto
-        melon/rpc/rpc_dump.proto
-        melon/rpc/get_favicon.proto
-        melon/rpc/span.proto
-        melon/rpc/builtin_service.proto
-        melon/rpc/grpc_health_check.proto
-        melon/rpc/get_js.proto
-        melon/rpc/errno.proto
-        melon/rpc/nshead_meta.proto
-        melon/rpc/options.proto
-        melon/rpc/policy/baidu_rpc_meta.proto
-        melon/rpc/policy/hulu_pbrpc_meta.proto
-        melon/rpc/policy/public_pbrpc_meta.proto
-        melon/rpc/policy/sofa_pbrpc_meta.proto
-        melon/rpc/policy/mongo.proto
-        melon/rpc/trackme.proto
-        melon/rpc/streaming_rpc_meta.proto
-        melon/rpc/proto_base.proto
-        melon/raft/builtin_service.proto
-        melon/raft/cli.proto
-        melon/raft/enum.proto
-        melon/raft/errno.proto
-        melon/raft/file_service.proto
-        melon/raft/local_file_meta.proto
-        melon/raft/local_storage.proto
-        melon/raft/raft.proto
+        melon/proto/rpc/rtmp.proto
+        melon/proto/rpc/rpc_dump.proto
+        melon/proto/rpc/get_favicon.proto
+        melon/proto/rpc/span.proto
+        melon/proto/rpc/builtin_service.proto
+        melon/proto/rpc/grpc_health_check.proto
+        melon/proto/rpc/get_js.proto
+        melon/proto/rpc/errno.proto
+        melon/proto/rpc/nshead_meta.proto
+        melon/proto/rpc/options.proto
+        melon/proto/rpc/baidu_rpc_meta.proto
+        melon/proto/rpc/hulu_pbrpc_meta.proto
+        melon/proto/rpc/public_pbrpc_meta.proto
+        melon/proto/rpc/sofa_pbrpc_meta.proto
+        melon/proto/rpc/mongo.proto
+        melon/proto/rpc/trackme.proto
+        melon/proto/rpc/streaming_rpc_meta.proto
+        melon/proto/rpc/proto_base.proto
+        melon/proto/raft/builtin_service.proto
+        melon/proto/raft/cli.proto
+        melon/proto/raft/enum.proto
+        melon/proto/raft/errno.proto
+        melon/proto/raft/file_service.proto
+        melon/proto/raft/local_file_meta.proto
+        melon/proto/raft/local_storage.proto
+        melon/proto/raft/raft.proto
 )
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/output/include/melon/rpc)
 set(PROTOC_FLAGS ${PROTOC_FLAGS} -I${PROTOBUF_INCLUDE_DIR})
@@ -480,6 +481,7 @@ set(SOURCES
         ${BRPC_SOURCES}
         ${NAMING_SOURCES}
         ${LB_SOURCES}
+        ${COMPRESS_SOURCES}
         ${BUILTIN_SOURCES}
         ${RAFT_SOURCES}
 )

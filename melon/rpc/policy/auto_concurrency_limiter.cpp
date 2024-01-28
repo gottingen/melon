@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <gflags/gflags.h>
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/policy/auto_concurrency_limiter.h"
 
 namespace bthread {

@@ -23,7 +23,7 @@
 #include "melon/bthread/execution_queue.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/stream.h"
-#include "melon/rpc/streaming_rpc_meta.pb.h"
+#include "melon/proto/rpc/streaming_rpc_meta.pb.h"
 
 namespace melon {
 

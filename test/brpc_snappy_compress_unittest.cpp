@@ -26,8 +26,8 @@
 #include "melon/butil/iobuf.h"
 #include "melon/butil/time.h"
 #include "snappy_message.pb.h"
-#include "melon/rpc/policy/snappy_compress.h"
-#include "melon/rpc/policy/gzip_compress.h"
+#include "melon/compress/snappy_compress.h"
+#include "melon/compress/gzip_compress.h"
 
 typedef bool (*Compress)(const google::protobuf::Message&, butil::IOBuf*);
 typedef bool (*Decompress)(const butil::IOBuf&, google::protobuf::Message*);
@@ -84,9 +84,9 @@ TEST_F(test_compress_method, snappy) {
     old_msg.add_numbers(7);
     old_msg.add_numbers(45);
     butil::IOBuf buf;
-    ASSERT_TRUE(melon::policy::SnappyCompress(old_msg, &buf));
+    ASSERT_TRUE(melon::compress::SnappyCompress(old_msg, &buf));
     snappy_message::SnappyMessageProto new_msg;
-    ASSERT_TRUE(melon::policy::SnappyDecompress(buf, &new_msg));
+    ASSERT_TRUE(melon::compress::SnappyDecompress(buf, &new_msg));
     ASSERT_TRUE(strcmp(new_msg.text().c_str(), "Hello World!") == 0);
     ASSERT_TRUE(new_msg.numbers_size() == 3);
     ASSERT_EQ(new_msg.numbers(0), 2);
@@ -98,8 +98,8 @@ TEST_F(test_compress_method, snappy_iobuf) {
     butil::IOBuf buf, output_buf, check_buf; 
     const char* test = "this is a test";
     buf.append(test, strlen(test));
-    ASSERT_TRUE(melon::policy::SnappyCompress(buf, &output_buf));
-    ASSERT_TRUE(melon::policy::SnappyDecompress(output_buf, &check_buf));
+    ASSERT_TRUE(melon::compress::SnappyCompress(buf, &output_buf));
+    ASSERT_TRUE(melon::compress::SnappyDecompress(output_buf, &check_buf));
     ASSERT_STREQ(check_buf.to_string().c_str(), test);
 }
 
@@ -122,9 +122,9 @@ TEST_F(test_compress_method, mass_snappy) {
     old_msg.add_numbers(45);
     butil::IOBuf buf;
     ProfilerStart("./snappy_compress.prof");
-    ASSERT_TRUE(melon::policy::SnappyCompress(old_msg, &buf));
+    ASSERT_TRUE(melon::compress::SnappyCompress(old_msg, &buf));
     snappy_message::SnappyMessageProto new_msg;
-    ASSERT_TRUE(melon::policy::SnappyDecompress(buf, &new_msg));
+    ASSERT_TRUE(melon::compress::SnappyDecompress(buf, &new_msg));
     ProfilerStop();
     ASSERT_TRUE(strcmp(new_msg.text().c_str(), text) == 0);
     ASSERT_TRUE(new_msg.numbers_size() == 3);
@@ -186,14 +186,14 @@ TEST_F(test_compress_method, throughput_compare) {
         old_msg.set_text(text);
         int k = std::min(32*1024*1024/len, 5000);
         CompressMessage("Snappy", k, old_msg, len, 
-                         melon::policy::SnappyCompress,
-                         melon::policy::SnappyDecompress);
+                         melon::compress::SnappyCompress,
+                         melon::compress::SnappyDecompress);
         CompressMessage("Gzip", k, old_msg, len, 
-                         melon::policy::GzipCompress,
-                         melon::policy::GzipDecompress);
+                         melon::compress::GzipCompress,
+                         melon::compress::GzipDecompress);
         CompressMessage("Zlib", k, old_msg, len, 
-                         melon::policy::ZlibCompress,
-                         melon::policy::ZlibDecompress);
+                         melon::compress::ZlibCompress,
+                         melon::compress::ZlibDecompress);
         printf("\n");
         delete [] text;
     }
@@ -220,14 +220,14 @@ TEST_F(test_compress_method, throughput_compare_complete_random) {
         old_msg.set_text(text);
         int k = std::min(32*1024*1024/len, 5000);
         CompressMessage("Snappy", k, old_msg, len, 
-                         melon::policy::SnappyCompress,
-                         melon::policy::SnappyDecompress);
+                         melon::compress::SnappyCompress,
+                         melon::compress::SnappyDecompress);
         CompressMessage("Gzip", k, old_msg, len, 
-                         melon::policy::GzipCompress,
-                         melon::policy::GzipDecompress);
+                         melon::compress::GzipCompress,
+                         melon::compress::GzipDecompress);
         CompressMessage("Zlib", k, old_msg, len, 
-                         melon::policy::ZlibCompress,
-                         melon::policy::ZlibDecompress);
+                         melon::compress::ZlibCompress,
+                         melon::compress::ZlibDecompress);
         printf("\n");
         delete [] text;
     }
@@ -245,7 +245,7 @@ TEST_F(test_compress_method, mass_snappy_iobuf) {
     text[len] = '\0';
     buf.append(text, strlen(text));
     butil::IOBuf output_buf, check_buf;
-    ASSERT_TRUE(melon::policy::SnappyCompress(buf, &output_buf));
+    ASSERT_TRUE(melon::compress::SnappyCompress(buf, &output_buf));
     const std::string output_str = output_buf.to_string();
     len = output_str.size();
     ASSERT_TRUE(SnappyDecompressIOBuf(const_cast<char*>(output_str.data()), len, &check_buf));

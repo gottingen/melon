@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include <melon/rpc/redis.h>
-#include <melon/rpc/redis_command.h>
+#include <melon/rpc/redis/redis.h>
+#include <melon/rpc/redis/redis_command.h>
 
 #define kMinInputLength 5
 #define kMaxInputLength 1024

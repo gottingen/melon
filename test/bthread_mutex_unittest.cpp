@@ -109,7 +109,7 @@ TEST(MutexTest, cpp_wrapper) {
     mutex.lock();
     mutex.unlock();
     {
-        BAIDU_SCOPED_LOCK(mutex);
+        MELON_SCOPED_LOCK(mutex);
     }
     {
         std::unique_lock<bthread::Mutex> lck1;
@@ -121,7 +121,7 @@ TEST(MutexTest, cpp_wrapper) {
     ASSERT_TRUE(mutex.try_lock());
     mutex.unlock();
     {
-        BAIDU_SCOPED_LOCK(*mutex.native_handler());
+        MELON_SCOPED_LOCK(*mutex.native_handler());
     }
     {
         std::unique_lock<bthread_mutex_t> lck1;
@@ -160,7 +160,7 @@ void* add_with_mutex(void* void_arg) {
     }
     t.start();
     while (!g_stopped) {
-        BAIDU_SCOPED_LOCK(*args->mutex);
+        MELON_SCOPED_LOCK(*args->mutex);
         ++args->counter;
     }
     t.stop();
@@ -232,7 +232,7 @@ TEST(MutexTest, performance) {
 void* loop_until_stopped(void* arg) {
     bthread::Mutex *m = (bthread::Mutex*)arg;
     while (!g_stopped) {
-        BAIDU_SCOPED_LOCK(*m);
+        MELON_SCOPED_LOCK(*m);
         bthread_usleep(20);
     }
     return NULL;

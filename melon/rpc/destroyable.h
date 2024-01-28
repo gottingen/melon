@@ -16,34 +16,37 @@
 // under the License.
 
 
-#ifndef BRPC_DESTROYABLE_H
-#define BRPC_DESTROYABLE_H
+#ifndef MELON_RPC_DESTROYABLE_H_
+#define MELON_RPC_DESTROYABLE_H_
 
 #include "melon/butil/unique_ptr.h"           // std::unique_ptr
 
 
 namespace melon {
 
-class Destroyable {
-public:
-    virtual ~Destroyable() {}
-    virtual void Destroy() = 0;
-};
+    class Destroyable {
+    public:
+        virtual ~Destroyable() {}
 
-namespace detail {
-template <typename T> struct Destroyer {
-    void operator()(T* obj) const { if (obj) { obj->Destroy(); } }
-};
-}
+        virtual void Destroy() = 0;
+    };
 
-// A special unique_ptr that calls "obj->Destroy()" instead of "delete obj".
-template <typename T>
-struct DestroyingPtr : public std::unique_ptr<T, detail::Destroyer<T> > {
-    DestroyingPtr() {}
-    DestroyingPtr(T* p) : std::unique_ptr<T, detail::Destroyer<T> >(p) {}
-};
+    namespace detail {
+        template<typename T>
+        struct Destroyer {
+            void operator()(T *obj) const { if (obj) { obj->Destroy(); }}
+        };
+    }
+
+    // A special unique_ptr that calls "obj->Destroy()" instead of "delete obj".
+    template<typename T>
+    struct DestroyingPtr : public std::unique_ptr<T, detail::Destroyer<T> > {
+        DestroyingPtr() {}
+
+        DestroyingPtr(T *p) : std::unique_ptr<T, detail::Destroyer<T> >(p) {}
+    };
 
 } // namespace melon
 
 
-#endif  // BRPC_DESTROYABLE_H
+#endif  // MELON_RPC_DESTROYABLE_H_

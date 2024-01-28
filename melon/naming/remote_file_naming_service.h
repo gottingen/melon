@@ -19,7 +19,7 @@
 #ifndef  BMELON_NAMING_HTTP_FILE_NAMING_SERVICE_H_
 #define  BMELON_NAMING_HTTP_FILE_NAMING_SERVICE_H_
 
-#include "melon/rpc/periodic_naming_service.h"
+#include "melon/naming/periodic_naming_service.h"
 #include "melon/rpc/channel.h"
 #include "melon/butil/unique_ptr.h"
 

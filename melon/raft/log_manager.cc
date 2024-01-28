@@ -67,7 +67,7 @@ namespace melon::raft {
     }
 
     int LogManager::init(const LogManagerOptions &options) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (options.log_storage == NULL) {
             return EINVAL;
         }
@@ -119,7 +119,7 @@ namespace melon::raft {
         do {
             nentries = 0;
             {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 while (!_logs_in_memory.empty()
                        && nentries < ARRAY_SIZE(entries_to_clear)) {
                     LogEntry *entry = _logs_in_memory.front();
@@ -137,7 +137,7 @@ namespace melon::raft {
     }
 
     int64_t LogManager::first_log_index() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         return _first_log_index;
     }
 
@@ -776,7 +776,7 @@ namespace melon::raft {
     }
 
     void LogManager::get_configuration(const int64_t index, ConfigurationEntry *conf) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         return _config_manager->get(index, conf);
     }
 
@@ -785,7 +785,7 @@ namespace melon::raft {
             CHECK(false) << "current should not be NULL";
             return false;
         }
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
 
         const ConfigurationEntry &last_conf = _config_manager->last_configuration();
         if (current->id != last_conf.id) {
@@ -869,7 +869,7 @@ namespace melon::raft {
     int LogManager::remove_waiter(WaitId id) {
         WaitMeta *wm = NULL;
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             WaitMeta **pwm = _wait_map.seek(id);
             if (pwm) {
                 wm = *pwm;
@@ -942,7 +942,7 @@ namespace melon::raft {
     }
 
     butil::Status LogManager::check_consistency() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         CHECK_GT(_first_log_index, 0);
         CHECK_GE(_last_log_index, 0);
         if (_last_snapshot_id == LogId(0, 0)) {

@@ -22,7 +22,7 @@
 #include "melon/rpc/policy/http_rpc_protocol.h"   // HttpContext
 #include "melon/rpc/input_message_base.h"
 #include "melon/rpc/protocol.h"
-#include "melon/rpc/details/hpack.h"
+#include "melon/rpc/http/hpack.h"
 #include "melon/rpc/stream_creator.h"
 #include "melon/rpc/controller.h"
 

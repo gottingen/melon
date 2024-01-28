@@ -20,7 +20,7 @@
 #define BRPC_NSHEAD_PB_SERVICE_ADAPTOR_H
 
 #include "melon/rpc/nshead_service.h"             // NsheadService
-#include "melon/rpc/nshead_meta.pb.h"            // NsheadMeta
+#include "melon/proto/rpc/nshead_meta.pb.h"            // NsheadMeta
 
 namespace melon {
 

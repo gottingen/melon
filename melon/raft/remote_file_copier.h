@@ -21,7 +21,7 @@
 
 #include <melon/rpc/channel.h>
 #include <melon/bthread/countdown_event.h>
-#include "melon/raft/file_service.pb.h"
+#include "melon/proto/raft/file_service.pb.h"
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot_throttle.h"
 

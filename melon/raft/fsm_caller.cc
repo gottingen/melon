@@ -21,9 +21,9 @@
 #include "melon/raft/log_manager.h"
 #include "melon/raft/node.h"
 #include "melon/raft/util.h"
-#include "melon/raft/raft.pb.h"
+#include "melon/proto/raft/raft.pb.h"
 #include "melon/raft/log_entry.h"
-#include "melon/raft/errno.pb.h"
+#include "melon/proto/raft/errno.pb.h"
 #include "melon/raft/node.h"
 
 #include "melon/raft/fsm_caller.h"

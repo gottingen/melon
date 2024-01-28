@@ -69,7 +69,7 @@
 // void critical_routine_with_lock_guard() {
 //     std::lock_guard<my_mutex_t> guard(mutex);
 //     // ^^^
-//     // Or you can use BAIDU_SCOPED_LOCK(mutex) to make it simple
+//     // Or you can use MELON_SCOPED_LOCK(mutex) to make it simple
 //     ... 
 //     doing something inside the critical section
 //     ...

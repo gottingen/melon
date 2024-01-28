@@ -20,7 +20,7 @@
 #define MELON_BUILTIN_HOTSPOTS_SERVICE_H_
 
 #include "melon/builtin/common.h"
-#include "melon/rpc/builtin_service.pb.h"
+#include "melon/proto/rpc/builtin_service.pb.h"
 #include "melon/builtin/tabbed.h"
 
 

@@ -18,7 +18,7 @@
 
 #include <melon/rpc/channel.h>          // melon::Channel
 #include <melon/rpc/controller.h>       // melon::Controller
-#include "melon/raft/cli.pb.h"                // CliService_Stub
+#include "melon/proto/raft/cli.pb.h"                // CliService_Stub
 #include "melon/raft/util.h"
 
 namespace melon::raft {

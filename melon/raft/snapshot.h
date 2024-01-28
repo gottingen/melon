@@ -23,7 +23,7 @@
 #include <string>
 #include "melon/raft/storage.h"
 #include "melon/raft/macros.h"
-#include "melon/raft/local_file_meta.pb.h"
+#include "melon/proto/raft/local_file_meta.pb.h"
 #include "melon/raft/file_system_adaptor.h"
 #include "melon/raft/remote_file_copier.h"
 #include "melon/raft/snapshot_throttle.h"

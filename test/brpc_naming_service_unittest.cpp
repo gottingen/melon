@@ -22,7 +22,7 @@
 #include "melon/butil/strings/string_split.h"
 #include "melon/butil/files/temp_file.h"
 #include "melon/bthread/bthread.h"
-#include "melon/rpc/http_status_code.h"
+#include "melon/rpc/http/http_status_code.h"
 #include "melon/naming/consul_naming_service.h"
 #include "melon/naming/domain_naming_service.h"
 #include "melon/naming/file_naming_service.h"

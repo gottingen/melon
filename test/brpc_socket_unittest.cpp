@@ -32,7 +32,7 @@
 #include "melon/bthread/unstable.h"
 #include "melon/bthread/task_control.h"
 #include "melon/rpc/socket.h"
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"

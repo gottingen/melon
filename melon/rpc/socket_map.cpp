@@ -308,7 +308,7 @@ void SocketMap::RemoveInternal(const SocketMapKey& key,
 }
 
 int SocketMap::Find(const SocketMapKey& key, SocketId* id) {
-    BAIDU_SCOPED_LOCK(_mutex);
+    MELON_SCOPED_LOCK(_mutex);
     SingleConnection* sc = _map.seek(key);
     if (sc) {
         *id = sc->socket->id();
@@ -319,7 +319,7 @@ int SocketMap::Find(const SocketMapKey& key, SocketId* id) {
 
 void SocketMap::List(std::vector<SocketId>* ids) {
     ids->clear();
-    BAIDU_SCOPED_LOCK(_mutex);
+    MELON_SCOPED_LOCK(_mutex);
     for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
         ids->push_back(it->second.socket->id());
     }
@@ -327,7 +327,7 @@ void SocketMap::List(std::vector<SocketId>* ids) {
 
 void SocketMap::List(std::vector<butil::EndPoint>* pts) {
     pts->clear();
-    BAIDU_SCOPED_LOCK(_mutex);
+    MELON_SCOPED_LOCK(_mutex);
     for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
         pts->push_back(it->second.socket->remote_side());
     }
@@ -336,7 +336,7 @@ void SocketMap::List(std::vector<butil::EndPoint>* pts) {
 void SocketMap::ListOrphans(int64_t defer_us, std::vector<SocketMapKey>* out) {
     out->clear();
     const int64_t now = butil::cpuwide_time_us();
-    BAIDU_SCOPED_LOCK(_mutex);
+    MELON_SCOPED_LOCK(_mutex);
     for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
         SingleConnection& sc = it->second;
         if (sc.ref_count == 0 && now - sc.no_ref_us >= defer_us) {

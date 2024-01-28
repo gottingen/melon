@@ -23,7 +23,7 @@
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot.h"
 #include "melon/raft/storage.h"
-#include "melon/raft/raft.pb.h"
+#include "melon/proto/raft/raft.pb.h"
 #include "melon/raft/fsm_caller.h"
 #include "melon/raft/log_manager.h"
 

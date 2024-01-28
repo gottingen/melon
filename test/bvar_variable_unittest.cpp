@@ -371,7 +371,7 @@ TEST_F(VariableTest, recursive_mutex) {
     const size_t N = 1000000;
     timer.start();
     for (size_t i = 0; i < N; ++i) {
-        BAIDU_SCOPED_LOCK(mutex);
+        MELON_SCOPED_LOCK(mutex);
     }
     timer.stop();
     LOG(INFO) << "Each recursive mutex lock/unlock pair take "

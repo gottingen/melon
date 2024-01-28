@@ -38,7 +38,7 @@ namespace melon::raft {
     }
 
     void RepeatedTimerTask::stop() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         BRAFT_RETURN_IF(_stopped);
         _stopped = true;
         CHECK(_running);

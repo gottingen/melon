@@ -35,7 +35,7 @@
 #include <melon/butil/strings/string_number_conversions.h>
 #include <melon/rpc/policy/http_rpc_protocol.h>
 #include <melon/butil/base64.h>
-#include "melon/rpc/http_method.h"
+#include "melon/rpc/http/http_method.h"
 #include "melon/butil/iobuf.h"
 #include "melon/butil/logging.h"
 #include "melon/butil/files/scoped_file.h"
@@ -52,7 +52,7 @@
 #include "melon/json2pb/pb_to_json.h"
 #include "melon/json2pb/json_to_pb.h"
 #include "melon/rpc/details/method_status.h"
-#include "melon/rpc/rpc_dump.h"
+#include "melon/rpc/dump/rpc_dump.h"
 #include "melon/bthread/unstable.h"
 
 namespace melon {

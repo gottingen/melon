@@ -20,7 +20,7 @@
 // Date: 2017/04/25 00:23:12
 
 #include <gtest/gtest.h>
-#include "melon/rpc/details/hpack.h"
+#include "melon/rpc/http/hpack.h"
 #include "melon/butil/logging.h"
 
 class HPackTest : public testing::Test {

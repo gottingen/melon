@@ -41,9 +41,9 @@
 #include "melon/rpc/retry_policy.h"
 #include "melon/rpc/stream_impl.h"
 #include "melon/rpc/policy/streaming_rpc_protocol.h" // FIXME
-#include "melon/rpc/rpc_dump.h"
+#include "melon/rpc/dump/rpc_dump.h"
 #include "melon/rpc/details/usercode_backup_pool.h"  // RunUserCode
-#include "melon/rpc/mongo_service_adaptor.h"
+#include "melon/rpc/mongo/mongo_service_adaptor.h"
 
 // Force linking the .o in UT (which analysis deps by inclusions)
 #include "melon/rpc/parallel_channel.h"

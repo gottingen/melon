@@ -311,7 +311,7 @@ bool Socket::initialize_parsing_context(T** ctx) {
 
 // NOTE: Push/Pop may be called from different threads simultaneously.
 inline void Socket::PushPipelinedInfo(const PipelinedInfo& pi) {
-    BAIDU_SCOPED_LOCK(_pipeline_mutex);
+    MELON_SCOPED_LOCK(_pipeline_mutex);
     if (_pipeline_q == NULL) {
         _pipeline_q = new std::deque<PipelinedInfo>;
     }
@@ -319,7 +319,7 @@ inline void Socket::PushPipelinedInfo(const PipelinedInfo& pi) {
 }
 
 inline bool Socket::PopPipelinedInfo(PipelinedInfo* info) {
-    BAIDU_SCOPED_LOCK(_pipeline_mutex);
+    MELON_SCOPED_LOCK(_pipeline_mutex);
     if (_pipeline_q != NULL && !_pipeline_q->empty()) {
         *info = _pipeline_q->front();
         _pipeline_q->pop_front();
@@ -329,7 +329,7 @@ inline bool Socket::PopPipelinedInfo(PipelinedInfo* info) {
 }
 
 inline void Socket::GivebackPipelinedInfo(const PipelinedInfo& pi) {
-    BAIDU_SCOPED_LOCK(_pipeline_mutex);
+    MELON_SCOPED_LOCK(_pipeline_mutex);
     if (_pipeline_q != NULL) {
         _pipeline_q->push_front(pi);
     }

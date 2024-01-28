@@ -37,7 +37,7 @@
 #include "melon/butil/class_name.h"                     // butil::class_name
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"          // BRPC_VALIDATE_GFLAG
-#include "melon/rpc/errno.pb.h"
+#include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/event_dispatcher.h"          // RemoveConsumer
 #include "melon/rpc/socket.h"
 #include "melon/rpc/describable.h"               // Describable
@@ -839,7 +839,7 @@ int Socket::WaitAndReset(int32_t expected_nref) {
     _last_writetime_us.store(cpuwide_now, butil::memory_order_relaxed);
     _logoff_flag.store(false, butil::memory_order_relaxed);
     {
-        BAIDU_SCOPED_LOCK(_pipeline_mutex);
+        MELON_SCOPED_LOCK(_pipeline_mutex);
         if (_pipeline_q) {
             _pipeline_q->clear();
         }
@@ -1576,7 +1576,7 @@ X509* Socket::GetPeerCertificate() const {
     if (ssl_state() != SSL_CONNECTED) {
         return NULL;
     }
-    BAIDU_SCOPED_LOCK(_ssl_session_mutex);
+    MELON_SCOPED_LOCK(_ssl_session_mutex);
     return SSL_get_peer_certificate(_ssl_session);
 }
 
@@ -1887,13 +1887,13 @@ ssize_t Socket::DoWrite(WriteRequest* req) {
     CHECK_EQ(SSL_CONNECTED, ssl_state());
     if (_conn) {
         // TODO: Separate SSL stuff from SocketConnection
-        BAIDU_SCOPED_LOCK(_ssl_session_mutex);
+        MELON_SCOPED_LOCK(_ssl_session_mutex);
         return _conn->CutMessageIntoSSLChannel(_ssl_session, data_list, ndata);
     }
     int ssl_error = 0;
     ssize_t nw = 0;
     {
-        BAIDU_SCOPED_LOCK(_ssl_session_mutex);
+        MELON_SCOPED_LOCK(_ssl_session_mutex);
         nw = butil::IOBuf::cut_multiple_into_SSL_channel(_ssl_session, data_list, ndata, &ssl_error);
     }
     switch (ssl_error) {
@@ -2072,7 +2072,7 @@ ssize_t Socket::DoRead(size_t size_hint) {
     int ssl_error = 0;
     ssize_t nr = 0;
     {
-        BAIDU_SCOPED_LOCK(_ssl_session_mutex);
+        MELON_SCOPED_LOCK(_ssl_session_mutex);
         nr = _read_buf.append_from_SSL_channel(_ssl_session, &ssl_error, size_hint);
     }
     switch (ssl_error) {
@@ -2259,13 +2259,13 @@ void Socket::DebugSocket(std::ostream& os, SocketId id) {
     size_t idsizes[4];
     size_t nidsize = 0;
     {
-        BAIDU_SCOPED_LOCK(ptr->_pipeline_mutex);
+        MELON_SCOPED_LOCK(ptr->_pipeline_mutex);
         if (ptr->_pipeline_q) {
             npipelined = ptr->_pipeline_q->size();
         }
     }
     {
-        BAIDU_SCOPED_LOCK(ptr->_id_wait_list_mutex);
+        MELON_SCOPED_LOCK(ptr->_id_wait_list_mutex);
         if (bthread::get_sizes) {
             nidsize = bthread::get_sizes(
                 &ptr->_id_wait_list, idsizes, arraysize(idsizes));
@@ -2606,7 +2606,7 @@ inline int SocketPool::GetSocket(SocketUniquePtr* ptr) {
     if (connection_pool_size > 0) {
         for (;;) {
             {
-                BAIDU_SCOPED_LOCK(_mutex);
+                MELON_SCOPED_LOCK(_mutex);
                 if (_pool.empty()) {
                     break;
                 }
@@ -2641,7 +2641,7 @@ inline void SocketPool::ReturnSocket(Socket* sock) {
     if (_numfree.fetch_add(1, butil::memory_order_relaxed) <
         connection_pool_size) {
         const SocketId sid = sock->id();
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _pool.push_back(sid);
     } else {
         // Cancel the addition and close the pooled socket.

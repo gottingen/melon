@@ -13,7 +13,7 @@
 #include "melon/raft/snapshot.h"
 #include "melon/raft/raft.h"
 #include "melon/raft/util.h"
-#include "melon/raft/local_file_meta.pb.h"
+#include "melon/proto/raft/local_file_meta.pb.h"
 #include "melon/raft/snapshot_throttle.h"
 #include "memory_file_system_adaptor.h"
 

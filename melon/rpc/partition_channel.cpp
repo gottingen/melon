@@ -19,7 +19,7 @@
 #include "melon/butil/containers/flat_map.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/load_balancer.h"
-#include "melon/rpc/details/naming_service_thread.h"
+#include "melon/naming/naming_service_thread.h"
 #include "melon/rpc/partition_channel.h"
 #include "melon/rpc/global.h"
 

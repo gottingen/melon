@@ -87,7 +87,7 @@ namespace melon::var {
             };
 
             inline static AgentId create_new_agent() {
-                BAIDU_SCOPED_LOCK(_s_mutex);
+                MELON_SCOPED_LOCK(_s_mutex);
                 AgentId agent_id = 0;
                 if (!_get_free_ids().empty()) {
                     agent_id = _get_free_ids().back();
@@ -100,7 +100,7 @@ namespace melon::var {
 
             inline static int destroy_agent(AgentId id) {
                 // TODO: How to avoid double free?
-                BAIDU_SCOPED_LOCK(_s_mutex);
+                MELON_SCOPED_LOCK(_s_mutex);
                 if (id < 0 || id >= _s_agent_kinds) {
                     errno = EINVAL;
                     return -1;

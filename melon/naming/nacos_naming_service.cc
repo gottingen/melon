@@ -21,7 +21,7 @@
 
 #include <set>
 
-#include "melon/rpc/http_status_code.h"
+#include "melon/rpc/http/http_status_code.h"
 #include "melon/rpc/log.h"
 #include "melon/butil/iobuf.h"
 #include "melon/butil/logging.h"

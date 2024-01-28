@@ -22,7 +22,7 @@
 #include <melon/butil/logging.h>
 #include <melon/butil/string_printf.h>
 #include <melon/rpc/channel.h>
-#include <melon/rpc/memcache.h>
+#include <melon/rpc/memcache/memcache.h>
 #include <melon/rpc/policy/couchbase_authenticator.h>
 
 DEFINE_int32(thread_num, 10, "Number of threads to send requests");

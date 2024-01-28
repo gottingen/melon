@@ -16,7 +16,7 @@
 // under the License.
 
 #include "melon/rpc/uri.h"
-#include "melon/rpc/rtmp.h"
+#include "melon/rpc/rtmp/rtmp.h"
 
 #define kMinInputLength 5
 #define kMaxInputLength 1024

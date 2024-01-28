@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BRPC_EXTENSION_H
-#define BRPC_EXTENSION_H
+#ifndef MELON_RPC_EXTENSION_H_
+#define MELON_RPC_EXTENSION_H_
 
 #include <string>
 #include "melon/butil/scoped_lock.h"
@@ -26,38 +26,45 @@
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 
 namespace butil {
-template <typename T> class GetLeakySingleton;
+    template<typename T>
+    class GetLeakySingleton;
 }
 
 
 namespace melon {
 
-// A global map from string to user-extended instances (typed T).
-// It's used by NamingService and LoadBalancer to maintain globally
-// available instances.
-// All names are case-insensitive. Names are printed in lowercases.
+    // A global map from string to user-extended instances (typed T).
+    // It's used by NamingService and LoadBalancer to maintain globally
+    // available instances.
+    // All names are case-insensitive. Names are printed in lowercases.
 
-template <typename T>
-class Extension {
-public:
-    static Extension<T>* instance();
+    template<typename T>
+    class Extension {
+    public:
+        static Extension<T> *instance();
 
-    int Register(const std::string& name, T* instance);
-    int RegisterOrDie(const std::string& name, T* instance);
-    T* Find(const char* name);
-    void List(std::ostream& os, char separator);
+        int Register(const std::string &name, T *instance);
 
-private:
-friend class butil::GetLeakySingleton<Extension<T> >;
-    Extension();
-    ~Extension();
-    butil::CaseIgnoredFlatMap<T*> _instance_map;
-    butil::Mutex _map_mutex;
-};
+        int RegisterOrDie(const std::string &name, T *instance);
+
+        T *Find(const char *name);
+
+        void List(std::ostream &os, char separator);
+
+    private:
+        friend class butil::GetLeakySingleton<Extension<T> >;
+
+        Extension();
+
+        ~Extension();
+
+        butil::CaseIgnoredFlatMap<T *> _instance_map;
+        butil::Mutex _map_mutex;
+    };
 
 } // namespace melon
 
 
 #include "melon/rpc/extension_inl.h"
 
-#endif  // BRPC_EXTENSION_H
+#endif  // MELON_RPC_EXTENSION_H_

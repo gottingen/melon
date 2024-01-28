@@ -34,7 +34,7 @@ protected:
 TEST_F(ScopedLockTest, mutex) {    
     pthread_mutex_t m1 = PTHREAD_MUTEX_INITIALIZER;
     {
-        BAIDU_SCOPED_LOCK(m1);
+        MELON_SCOPED_LOCK(m1);
         ASSERT_EQ(EBUSY, pthread_mutex_trylock(&m1));
     }
     ASSERT_EQ(0, pthread_mutex_trylock(&m1));
@@ -45,7 +45,7 @@ TEST_F(ScopedLockTest, spinlock) {
     pthread_spinlock_t s1;
     pthread_spin_init(&s1, 0);
     {
-        BAIDU_SCOPED_LOCK(s1);
+        MELON_SCOPED_LOCK(s1);
         ASSERT_EQ(EBUSY, pthread_spin_trylock(&s1));
     }
     ASSERT_EQ(0, pthread_spin_lock(&s1));
@@ -71,7 +71,7 @@ TEST_F(ScopedLockTest, unique_lock_mutex) {
         ASSERT_FALSE(lck3.owns_lock());
     }
     {
-        BAIDU_SCOPED_LOCK(m1);
+        MELON_SCOPED_LOCK(m1);
         ASSERT_EQ(EBUSY, pthread_mutex_trylock(&m1));
     }
     ASSERT_EQ(0, pthread_mutex_trylock(&m1));
@@ -93,7 +93,7 @@ TEST_F(ScopedLockTest, unique_lock_spin) {
         ASSERT_TRUE(lck.try_lock());
     }
     {
-        BAIDU_SCOPED_LOCK(s1);
+        MELON_SCOPED_LOCK(s1);
         ASSERT_EQ(EBUSY, pthread_spin_trylock(&s1));
     }
     ASSERT_EQ(0, pthread_spin_lock(&s1));

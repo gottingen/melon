@@ -379,7 +379,7 @@ melon::var::CollectorPreprocessor* Span::preprocessor() {
 static void ResetSpanDB(SpanDB* db) {
     SpanDB* old_db = NULL;
     {
-        BAIDU_SCOPED_LOCK(g_span_db_mutex);
+        MELON_SCOPED_LOCK(g_span_db_mutex);
         old_db = g_span_db;
         g_span_db = db;
         if (g_span_db) {
@@ -410,7 +410,7 @@ static int StartIndexingIfNeeded() {
 }
 
 inline int GetSpanDB(butil::intrusive_ptr<SpanDB>* db) {
-    BAIDU_SCOPED_LOCK(g_span_db_mutex);
+    MELON_SCOPED_LOCK(g_span_db_mutex);
     if (g_span_db != NULL) {
         *db = g_span_db;
         return 0;

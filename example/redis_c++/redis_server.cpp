@@ -20,7 +20,7 @@
 // implement melon::RedisCommandHandler.
 
 #include <melon/rpc/server.h>
-#include <melon/rpc/redis.h>
+#include <melon/rpc/redis/redis.h>
 #include <melon/butil/crc32c.h>
 #include <melon/butil/strings/string_split.h>
 #include <gflags/gflags.h>

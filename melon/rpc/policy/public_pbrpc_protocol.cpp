@@ -28,7 +28,7 @@
 #include "melon/rpc/span.h"
 #include "melon/rpc/compress.h"                          // ParseFromCompressedData
 #include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/policy/public_pbrpc_meta.pb.h"       // PublicRpcRequestMeta
+#include "melon/proto/rpc/public_pbrpc_meta.pb.h"       // PublicRpcRequestMeta
 #include "melon/rpc/policy/public_pbrpc_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"
 

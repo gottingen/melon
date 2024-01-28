@@ -24,7 +24,7 @@
 #include <gflags/gflags.h>
 #include "melon/butil/compat.h"                   // OS_MACOSX
 #include "melon/butil/macros.h"                   // ARRAY_SIZE
-#include "melon/butil/scoped_lock.h"              // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"              // MELON_SCOPED_LOCK
 #include "melon/butil/fast_rand.h"
 #include "melon/butil/unique_ptr.h"
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h" // fmix64
@@ -80,7 +80,7 @@ int TaskGroup::get_attr(bthread_t tid, bthread_attr_t* out) {
     TaskMeta* const m = address_meta(tid);
     if (m != NULL) {
         const uint32_t given_ver = get_version(tid);
-        BAIDU_SCOPED_LOCK(m->version_lock);
+        MELON_SCOPED_LOCK(m->version_lock);
         if (given_ver == *m->version_butex) {
             *out = m->attr;
             return 0;
@@ -94,7 +94,7 @@ void TaskGroup::set_stopped(bthread_t tid) {
     TaskMeta* const m = address_meta(tid);
     if (m != NULL) {
         const uint32_t given_ver = get_version(tid);
-        BAIDU_SCOPED_LOCK(m->version_lock);
+        MELON_SCOPED_LOCK(m->version_lock);
         if (given_ver == *m->version_butex) {
             m->stop = true;
         }
@@ -105,7 +105,7 @@ bool TaskGroup::is_stopped(bthread_t tid) {
     TaskMeta* const m = address_meta(tid);
     if (m != NULL) {
         const uint32_t given_ver = get_version(tid);
-        BAIDU_SCOPED_LOCK(m->version_lock);
+        MELON_SCOPED_LOCK(m->version_lock);
         if (given_ver == *m->version_butex) {
             return m->stop;
         }
@@ -327,7 +327,7 @@ void TaskGroup::task_runner(intptr_t skip_remained) {
         // or join to the bthread after changing version will be rejected.
         // The spinlock is for visibility of TaskGroup::get_attr.
         {
-            BAIDU_SCOPED_LOCK(m->version_lock);
+            MELON_SCOPED_LOCK(m->version_lock);
             if (0 == ++*m->version_butex) {
                 ++*m->version_butex;
             }
@@ -767,7 +767,7 @@ void TaskGroup::_add_sleep_event(void* void_args) {
     // Set TaskMeta::current_sleep which is for interruption.
     const uint32_t given_ver = get_version(e.tid);
     {
-        BAIDU_SCOPED_LOCK(e.meta->version_lock);
+        MELON_SCOPED_LOCK(e.meta->version_lock);
         if (given_ver == *e.meta->version_butex && !e.meta->interrupted) {
             e.meta->current_sleep = sleep_id;
             return;
@@ -831,7 +831,7 @@ static int interrupt_and_consume_waiters(
         return EINVAL;
     }
     const uint32_t given_ver = get_version(tid);
-    BAIDU_SCOPED_LOCK(m->version_lock);
+    MELON_SCOPED_LOCK(m->version_lock);
     if (given_ver == *m->version_butex) {
         *pw = m->current_waiter.exchange(NULL, butil::memory_order_acquire);
         *sleep_id = m->current_sleep;
@@ -846,7 +846,7 @@ static int set_butex_waiter(bthread_t tid, ButexWaiter* w) {
     TaskMeta* const m = TaskGroup::address_meta(tid);
     if (m != NULL) {
         const uint32_t given_ver = get_version(tid);
-        BAIDU_SCOPED_LOCK(m->version_lock);
+        MELON_SCOPED_LOCK(m->version_lock);
         if (given_ver == *m->version_butex) {
             // Release fence makes m->interrupted visible to butex_wait
             m->current_waiter.store(w, butil::memory_order_release);
@@ -923,7 +923,7 @@ void print_task(std::ostream& os, bthread_t tid) {
     int64_t cpuwide_start_ns = 0;
     TaskStatistics stat = {0, 0};
     {
-        BAIDU_SCOPED_LOCK(m->version_lock);
+        MELON_SCOPED_LOCK(m->version_lock);
         if (given_ver == *m->version_butex) {
             matched = true;
             stop = m->stop;

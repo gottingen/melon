@@ -32,8 +32,8 @@
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/controller.h"
-#include "melon/rpc/rtmp.h"
-#include "melon/rpc/amf.h"
+#include "melon/rpc/rtmp/rtmp.h"
+#include "melon/rpc/rtmp/amf.h"
 
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
@@ -329,7 +329,7 @@ public:
     void move_created_streams(
         std::vector<butil::intrusive_ptr<PublishStream> >* out) {
         out->clear();
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         out->swap(_created_streams);
     }
 
@@ -339,7 +339,7 @@ private:
         const melon::RtmpConnectRequest&) {
         PublishStream* stream = new PublishStream(_sleep_ms);
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             _created_streams.push_back(stream);
         }
         return stream;

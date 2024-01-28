@@ -27,7 +27,7 @@ namespace melon::raft {
     NodeManager::~NodeManager() {}
 
     bool NodeManager::server_exists(butil::EndPoint addr) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (addr.ip != butil::IP_ANY) {
             butil::EndPoint any_addr(butil::IP_ANY, addr.port);
             if (_addr_set.find(any_addr) != _addr_set.end()) {
@@ -38,7 +38,7 @@ namespace melon::raft {
     }
 
     void NodeManager::remove_address(butil::EndPoint addr) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         _addr_set.erase(addr);
     }
 
@@ -74,7 +74,7 @@ namespace melon::raft {
         }
 
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             _addr_set.insert(listen_address);
         }
         return 0;

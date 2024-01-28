@@ -18,7 +18,7 @@
 #define  MELON_RAFT_FILE_SERVICE_H_
 
 #include <melon/butil/memory/singleton.h>
-#include "melon/raft/file_service.pb.h"
+#include "melon/proto/raft/file_service.pb.h"
 #include "melon/raft/file_reader.h"
 #include "melon/raft/util.h"
 

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/rpc/details/hpack.h"
+#include "melon/rpc/http/hpack.h"
 #include "melon/butil/logging.h"
 
 #define kMinInputLength 5

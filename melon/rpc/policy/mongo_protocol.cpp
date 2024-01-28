@@ -24,13 +24,13 @@
 #include "melon/rpc/socket.h"                   // Socket
 #include "melon/rpc/server.h"                   // Server
 #include "melon/rpc/span.h"
-#include "melon/rpc/mongo_head.h"
+#include "melon/rpc/mongo/mongo_head.h"
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/mongo_service_adaptor.h"
+#include "melon/rpc/mongo/mongo_service_adaptor.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/policy/nshead_protocol.h"
-#include "melon/rpc/policy/mongo.pb.h"
+#include "melon/proto/rpc/mongo.pb.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 extern "C" {

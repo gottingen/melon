@@ -18,7 +18,7 @@
 #ifndef  MELON_RAFT_BUILTIN_SERVICE_IMPL_H_
 #define  MELON_RAFT_BUILTIN_SERVICE_IMPL_H_
 
-#include "melon/raft/builtin_service.pb.h"
+#include "melon/proto/raft/builtin_service.pb.h"
 #include <melon/builtin/tabbed.h>
 
 namespace melon::raft {

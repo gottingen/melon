@@ -212,7 +212,7 @@ namespace melon::lb {
     inline LocalityAwareLoadBalancer::Weight::AddInflightResult
     LocalityAwareLoadBalancer::Weight::AddInflight(
             const SelectIn &in, size_t index, int64_t dice) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (Disabled()) {
             AddInflightResult r = {false, 0};
             return r;
@@ -231,7 +231,7 @@ namespace melon::lb {
 
     inline int64_t LocalityAwareLoadBalancer::Weight::MarkFailed(
             size_t index, int64_t avg_weight) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_base_weight <= avg_weight) {
             return 0;
         }

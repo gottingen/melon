@@ -21,7 +21,7 @@
 #include "melon/butil/iobuf.h"
 #include "melon/butil/string_printf.h"
 #include "melon/butil/sys_byteorder.h"
-#include "melon/rpc/redis_command.h"
+#include "melon/rpc/redis/redis_command.h"
 
 namespace melon {
 namespace policy {

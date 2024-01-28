@@ -15,7 +15,7 @@
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/log_entry.h"
-#include "melon/raft/local_storage.pb.h"
+#include "melon/proto/raft/local_storage.pb.h"
 
 namespace melon::raft {
 

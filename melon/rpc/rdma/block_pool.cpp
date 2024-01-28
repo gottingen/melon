@@ -289,10 +289,10 @@ static void* AllocBlockFrom(int block_type) {
     }
 
     uint64_t index = butil::fast_rand() % g_buckets;
-    BAIDU_SCOPED_LOCK(*g_info->lock[block_type][index]);
+    MELON_SCOPED_LOCK(*g_info->lock[block_type][index]);
     IdleNode* node = g_info->idle_list[block_type][index];
     if (!node) {
-        BAIDU_SCOPED_LOCK(g_info->extend_lock);
+        MELON_SCOPED_LOCK(g_info->extend_lock);
         node = g_info->idle_list[block_type][index];
         if (!node) {
             // There is no block left, extend a new region
@@ -379,7 +379,7 @@ void RecycleAll() {
         tls_idle_list = node->next;
         Region* r = GetRegion(node->start);
         uint64_t index = ((uintptr_t)node->start - r->start) * g_buckets / r->size;
-        BAIDU_SCOPED_LOCK(*g_info->lock[0][index]);
+        MELON_SCOPED_LOCK(*g_info->lock[0][index]);
         node->next = g_info->idle_list[0][index];
         g_info->idle_list[0][index] = node;
     }
@@ -419,7 +419,7 @@ int DeallocBlock(void* buf) {
         if (!tls_inited) {
             tls_inited = true;
             butil::thread_atexit(RecycleAll);
-            BAIDU_SCOPED_LOCK(*g_tls_info_mutex);
+            MELON_SCOPED_LOCK(*g_tls_info_mutex);
             if (g_tls_info_cnt < 1024) {
                 g_tls_info[g_tls_info_cnt++] = &tls_idle_num;
             }
@@ -446,7 +446,7 @@ int DeallocBlock(void* buf) {
             new_head = new_head->next;
         }
         if (recycle_tail) {
-            BAIDU_SCOPED_LOCK(*g_info->lock[0][index]);
+            MELON_SCOPED_LOCK(*g_info->lock[0][index]);
             recycle_tail->next = node;
             node->next = g_info->idle_list[0][index];
             g_info->idle_list[0][index] = tls_idle_list;
@@ -455,7 +455,7 @@ int DeallocBlock(void* buf) {
         tls_idle_list = new_head;
         tls_idle_num -= num;
     } else {
-        BAIDU_SCOPED_LOCK(*g_info->lock[block_type][index]);
+        MELON_SCOPED_LOCK(*g_info->lock[block_type][index]);
         node->next = g_info->idle_list[block_type][index];
         g_info->idle_list[block_type][index] = node;
         g_info->idle_size[block_type][index] += node->len;
@@ -476,7 +476,7 @@ void DumpMemoryPoolInfo(std::ostream& os) {
     }
     g_dump_enable = true;
     usleep(1000); // wait until all the threads read new g_dump_enable
-    BAIDU_SCOPED_LOCK(*g_dump_mutex);
+    MELON_SCOPED_LOCK(*g_dump_mutex);
     os << "********************* Memory Pool Info Dump **********************\n";
     os << "Region Info:\n";
     for (int i = 0; i < g_region_num; ++i) {

@@ -22,7 +22,7 @@
 #include <melon/butil/containers/flat_map.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
-#include "melon/raft/cli.pb.h"
+#include "melon/proto/raft/cli.pb.h"
 
 namespace melon::raft {
     namespace rtb {

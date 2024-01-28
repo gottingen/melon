@@ -19,7 +19,7 @@
 #ifndef BRPC_POLICY_HTTP_RPC_PROTOCOL_H
 #define BRPC_POLICY_HTTP_RPC_PROTOCOL_H
 
-#include "melon/rpc/details/http_message.h"         // HttpMessage
+#include "melon/rpc/http/http_message.h"         // HttpMessage
 #include "melon/rpc/input_messenger.h"              // InputMessenger
 #include "melon/rpc/protocol.h"
 

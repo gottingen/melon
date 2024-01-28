@@ -18,7 +18,7 @@
 #ifndef  MELON_BUILTIN_GET_JAVASCRIPT_SERVICE_H_
 #define  MELON_BUILTIN_GET_JAVASCRIPT_SERVICE_H_
 
-#include "melon/rpc/get_js.pb.h"
+#include "melon/proto/rpc/get_js.pb.h"
 
 
 namespace melon {

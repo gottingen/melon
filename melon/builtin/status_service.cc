@@ -24,7 +24,7 @@
 #include "melon/rpc/details/method_status.h"        // MethodStatus
 #include "melon/builtin/status_service.h"
 #include "melon/rpc/nshead_service.h"       // NsheadService
-#include "melon/rpc/rtmp.h"                 // RtmpService
+#include "melon/rpc/rtmp/rtmp.h"                 // RtmpService
 #include "melon/builtin/common.h"
 
 

@@ -37,7 +37,7 @@ void SimpleDataPool::Reset(const DataFactory* factory) {
     void** saved_pool = NULL;
     const DataFactory* saved_factory = NULL;
     {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         saved_size = _size;
         saved_pool = _pool;
         saved_factory = _factory;
@@ -61,7 +61,7 @@ void SimpleDataPool::Reserve(unsigned n) {
     if (_capacity >= n) {
         return;
     }
-    BAIDU_SCOPED_LOCK(_mutex);
+    MELON_SCOPED_LOCK(_mutex);
     if (_capacity >= n) {
         return;
     }
@@ -91,7 +91,7 @@ void SimpleDataPool::Reserve(unsigned n) {
 
 void* SimpleDataPool::Borrow() {
     if (_size) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_size) {
             return _pool[--_size];
         }

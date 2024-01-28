@@ -915,7 +915,7 @@ void RtmpContext::DeallocateMessageStreamId(uint32_t stream_id) {
 
 bool RtmpContext::FindMessageStream(
     uint32_t stream_id, butil::intrusive_ptr<RtmpStreamBase>* stream) {
-    BAIDU_SCOPED_LOCK(_stream_mutex);
+    MELON_SCOPED_LOCK(_stream_mutex);
     MessageStreamInfo* info = _mstream_map.seek(stream_id);
     if (info == NULL || info->stream == NULL) {
         return false;
@@ -1014,7 +1014,7 @@ bool RtmpContext::AddTransaction(uint32_t* out_transaction_id,
                                  RtmpTransactionHandler* handler) {
     uint32_t transaction_id = 0;
     uint32_t step = 1;
-    BAIDU_SCOPED_LOCK(_trans_mutex);
+    MELON_SCOPED_LOCK(_trans_mutex);
     for (int i = 0; i < 10; ++i) {
         transaction_id = _trans_id_allocator;
         _trans_id_allocator += step;
@@ -1035,7 +1035,7 @@ RtmpTransactionHandler*
 RtmpContext::RemoveTransaction(uint32_t transaction_id) {
     RtmpTransactionHandler* handler = NULL;
     {
-        BAIDU_SCOPED_LOCK(_trans_mutex);
+        MELON_SCOPED_LOCK(_trans_mutex);
         RtmpTransactionHandler** phandler = _trans_map.seek(transaction_id);
         if (phandler != NULL) {
             handler = *phandler;

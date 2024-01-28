@@ -356,7 +356,7 @@ namespace melon::raft {
     }
 
     void RemoteFileCopier::Session::cancel() {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (_finished) {
             return;
         }

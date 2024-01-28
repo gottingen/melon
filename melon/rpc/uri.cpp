@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 #include "melon/rpc/log.h"
-#include "melon/rpc/details/http_parser.h"      // http_parser_parse_url
+#include "melon/rpc/http/http_parser.h"      // http_parser_parse_url
 #include "melon/rpc/uri.h"                      // URI
 
 

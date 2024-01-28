@@ -30,8 +30,8 @@
 #include "melon/rpc/server.h"                   // Server
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/span.h"
-#include "melon/rpc/redis.h"
-#include "melon/rpc/redis_command.h"
+#include "melon/rpc/redis/redis.h"
+#include "melon/rpc/redis/redis_command.h"
 #include "melon/rpc/policy/redis_protocol.h"
 
 namespace melon {

@@ -20,7 +20,7 @@
 #define  MELON_NAMING_LIST_NAMING_SERVICE_H_
 
 #include "melon/naming/naming_service.h"
-#include "melon/rpc/periodic_naming_service.h"
+#include "melon/naming/periodic_naming_service.h"
 
 
 namespace melon::naming {

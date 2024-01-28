@@ -63,7 +63,7 @@ int Acceptor::StartAccept(int listened_fd, int idle_timeout_sec,
         return -1;
     }
     
-    BAIDU_SCOPED_LOCK(_map_mutex);
+    MELON_SCOPED_LOCK(_map_mutex);
     if (_status == UNINITIALIZED) {
         if (Initialize() != 0) {
             LOG(FATAL) << "Fail to initialize Acceptor";
@@ -128,7 +128,7 @@ void Acceptor::StopAccept(int /*closewait_ms*/) {
     // the requests may be deleted and invalid.
 
     {
-        BAIDU_SCOPED_LOCK(_map_mutex);
+        MELON_SCOPED_LOCK(_map_mutex);
         if (_status != RUNNING) {
             return;
         }
@@ -194,7 +194,7 @@ void Acceptor::Join() {
     }
     
     {
-        BAIDU_SCOPED_LOCK(_map_mutex);
+        MELON_SCOPED_LOCK(_map_mutex);
         _status = READY;
     }
 }
@@ -316,7 +316,7 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
         if (Socket::AddressFailedAsWell(socket_id, &sock) >= 0) {
             bool is_running = true;
             {
-                BAIDU_SCOPED_LOCK(am->_map_mutex);
+                MELON_SCOPED_LOCK(am->_map_mutex);
                 is_running = (am->status() == RUNNING);
                 // Always add this socket into `_socket_map' whether it
                 // has been `SetFailed' or not, whether `Acceptor' is
@@ -349,7 +349,7 @@ void Acceptor::OnNewConnections(Socket* acception) {
 }
 
 void Acceptor::BeforeRecycle(Socket* sock) {
-    BAIDU_SCOPED_LOCK(_map_mutex);
+    MELON_SCOPED_LOCK(_map_mutex);
     if (sock->id() == _acception_id) {
         // Set _listened_fd to -1 when acception socket has been recycled
         // so that we are ensured no more events will arrive (and `Join'

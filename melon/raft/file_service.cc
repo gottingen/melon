@@ -105,14 +105,14 @@ namespace melon::raft {
     }
 
     int FileServiceImpl::add_reader(FileReader *reader, int64_t *reader_id) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         *reader_id = _next_id++;
         _reader_map[*reader_id] = reader;
         return 0;
     }
 
     int FileServiceImpl::remove_reader(int64_t reader_id) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         return _reader_map.erase(reader_id) == 1 ? 0 : -1;
     }
 

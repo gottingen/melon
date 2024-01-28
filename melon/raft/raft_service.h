@@ -17,7 +17,7 @@
 #ifndef MELON_RAFT_RAFT_SERVICE_H_
 #define MELON_RAFT_RAFT_SERVICE_H_
 
-#include "melon/raft/raft.pb.h"
+#include "melon/proto/raft/raft.pb.h"
 
 namespace melon::raft {
 

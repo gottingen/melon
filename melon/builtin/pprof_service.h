@@ -18,7 +18,7 @@
 #ifndef  MELON_BUILTIN_PPROF_SERVICE_H_
 #define  MELON_BUILTIN_PPROF_SERVICE_H_
 
-#include "melon/rpc/builtin_service.pb.h"
+#include "melon/proto/rpc/builtin_service.pb.h"
 
 
 namespace melon {

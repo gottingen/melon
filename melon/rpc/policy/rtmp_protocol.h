@@ -21,8 +21,8 @@
 
 #include "melon/butil/containers/flat_map.h"
 #include "melon/rpc/protocol.h"
-#include "melon/rpc/rtmp.h"
-#include "melon/rpc/amf.h"
+#include "melon/rpc/rtmp/rtmp.h"
+#include "melon/rpc/rtmp/amf.h"
 #include "melon/rpc/socket.h"
 
 

@@ -31,7 +31,7 @@
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
-#include "melon/rpc/policy/hulu_pbrpc_meta.pb.h"
+#include "melon/proto/rpc/hulu_pbrpc_meta.pb.h"
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/controller.h"

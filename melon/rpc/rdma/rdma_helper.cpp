@@ -132,7 +132,7 @@ static void GlobalRelease() {
     RdmaEndpoint::GlobalRelease();
 
     if (g_user_mrs_lock) {
-        BAIDU_SCOPED_LOCK(*g_user_mrs_lock);
+        MELON_SCOPED_LOCK(*g_user_mrs_lock);
         for (butil::FlatMap<void*, ibv_mr*>::iterator it = g_user_mrs->begin();
                 it != g_user_mrs->end(); ++it) {
             IbvDeregMr(it->second);
@@ -585,7 +585,7 @@ uint32_t RegisterMemoryForRdma(void* buf, size_t len) {
         return 0;
     }
     {
-        BAIDU_SCOPED_LOCK(*g_user_mrs_lock);
+        MELON_SCOPED_LOCK(*g_user_mrs_lock);
         if (!g_user_mrs->insert(buf, mr)) {
             LOG(WARNING) << "Fail to insert to user mr maps (now there are "
                          << g_user_mrs->size() << " mrs already";
@@ -602,7 +602,7 @@ uint32_t RegisterMemoryForRdma(void* buf, size_t len) {
 void DeregisterMemoryForRdma(void* buf) {
     ibv_mr* mr = NULL;
     {
-        BAIDU_SCOPED_LOCK(*g_user_mrs_lock);
+        MELON_SCOPED_LOCK(*g_user_mrs_lock);
         ibv_mr** mr_ptr = g_user_mrs->seek(buf);
         if (mr_ptr) {
             mr = *mr_ptr;
@@ -643,7 +643,7 @@ ibv_pd* GetRdmaPd() {
 }
 
 uint32_t GetLKey(void* buf) {
-    BAIDU_SCOPED_LOCK(*g_user_mrs_lock);
+    MELON_SCOPED_LOCK(*g_user_mrs_lock);
     ibv_mr** mr_ptr = g_user_mrs->seek(buf);
     if (mr_ptr) {
         return (*mr_ptr)->lkey;

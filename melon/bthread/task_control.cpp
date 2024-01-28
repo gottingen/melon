@@ -19,7 +19,7 @@
 
 // Date: Tue Jul 10 17:40:58 CST 2012
 
-#include "melon/butil/scoped_lock.h"             // BAIDU_SCOPED_LOCK
+#include "melon/butil/scoped_lock.h"             // MELON_SCOPED_LOCK
 #include "melon/butil/errno.h"                   // berror
 #include "melon/butil/logging.h"
 #include "melon/butil/threading/platform_thread.h"
@@ -287,7 +287,7 @@ void TaskControl::stop_and_join() {
 
     // Stop workers
     {
-        BAIDU_SCOPED_LOCK(_modify_group_mutex);
+        MELON_SCOPED_LOCK(_modify_group_mutex);
         _stop = true;
         std::for_each(
             _tagged_ngroup.begin(), _tagged_ngroup.end(),
@@ -358,7 +358,7 @@ int TaskControl::_destroy_group(TaskGroup* g) {
     }
     bool erased = false;
     {
-        BAIDU_SCOPED_LOCK(_modify_group_mutex);
+        MELON_SCOPED_LOCK(_modify_group_mutex);
         auto tag = g->tag();
         auto& groups = tag_group(tag);
         const size_t ngroup = tag_ngroup(tag).load(butil::memory_order_relaxed);
@@ -453,7 +453,7 @@ void TaskControl::signal_task(int num_task, bthread_tag_t tag) {
         FLAGS_bthread_min_concurrency > 0 &&    // test min_concurrency for performance
         _concurrency.load(butil::memory_order_relaxed) < FLAGS_bthread_concurrency) {
         // TODO: Reduce this lock
-        BAIDU_SCOPED_LOCK(g_task_control_mutex);
+        MELON_SCOPED_LOCK(g_task_control_mutex);
         if (_concurrency.load(butil::memory_order_acquire) < FLAGS_bthread_concurrency) {
             add_workers(1, tag);
         }
@@ -467,7 +467,7 @@ void TaskControl::print_rq_sizes(std::ostream& os) {
     });
     DEFINE_SMALL_ARRAY(int, nums, ngroup, 128);
     {
-        BAIDU_SCOPED_LOCK(_modify_group_mutex);
+        MELON_SCOPED_LOCK(_modify_group_mutex);
         // ngroup > _ngroup: nums[_ngroup ... ngroup-1] = 0
         // ngroup < _ngroup: just ignore _groups[_ngroup ... ngroup-1]
         int i = 0;
@@ -483,7 +483,7 @@ void TaskControl::print_rq_sizes(std::ostream& os) {
 
 double TaskControl::get_cumulated_worker_time() {
     int64_t cputime_ns = 0;
-    BAIDU_SCOPED_LOCK(_modify_group_mutex);
+    MELON_SCOPED_LOCK(_modify_group_mutex);
     for_each_task_group([&](TaskGroup* g) {
         if (g) {
             cputime_ns += g->_cumulated_cputime_ns;
@@ -494,7 +494,7 @@ double TaskControl::get_cumulated_worker_time() {
 
 double TaskControl::get_cumulated_worker_time_with_tag(bthread_tag_t tag) {
     int64_t cputime_ns = 0;
-    BAIDU_SCOPED_LOCK(_modify_group_mutex);
+    MELON_SCOPED_LOCK(_modify_group_mutex);
     const size_t ngroup = tag_ngroup(tag).load(butil::memory_order_relaxed);
     auto& groups = tag_group(tag);
     for (size_t i = 0; i < ngroup; ++i) {
@@ -507,7 +507,7 @@ double TaskControl::get_cumulated_worker_time_with_tag(bthread_tag_t tag) {
 
 int64_t TaskControl::get_cumulated_switch_count() {
     int64_t c = 0;
-    BAIDU_SCOPED_LOCK(_modify_group_mutex);
+    MELON_SCOPED_LOCK(_modify_group_mutex);
     for_each_task_group([&](TaskGroup* g) {
         if (g) {
             c += g->_nswitch;
@@ -518,7 +518,7 @@ int64_t TaskControl::get_cumulated_switch_count() {
 
 int64_t TaskControl::get_cumulated_signal_count() {
     int64_t c = 0;
-    BAIDU_SCOPED_LOCK(_modify_group_mutex);
+    MELON_SCOPED_LOCK(_modify_group_mutex);
     for_each_task_group([&](TaskGroup* g) {
         if (g) {
             c += g->_nsignaled + g->_remote_nsignaled;

@@ -21,7 +21,7 @@
 
 #include <google/protobuf/message.h>
 #include "melon/butil/iobuf.h"
-#include "melon/rpc/proto_base.pb.h"
+#include "melon/proto/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
 namespace melon {

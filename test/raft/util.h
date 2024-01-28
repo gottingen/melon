@@ -19,8 +19,8 @@
 
 #include <gflags/gflags.h>
 #include "melon/raft/node.h"
-#include "melon/raft/enum.pb.h"
-#include "melon/raft/errno.pb.h"
+#include "melon/proto/raft/enum.pb.h"
+#include "melon/proto/raft/errno.pb.h"
 #include "melon/raft/snapshot_throttle.h"
 #include "melon/raft/snapshot_executor.h"
 

@@ -145,7 +145,7 @@ template <typename T>
 ThreadLocal<T>::~ThreadLocal() {
     thread_key_delete(_key);
     if (!_delete_on_thread_exit) {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         for (auto ptr : ptrs) {
             DefaultDtor(ptr);
         }
@@ -167,7 +167,7 @@ T* ThreadLocal<T>::get() {
             return NULL;
         }
         {
-            BAIDU_SCOPED_LOCK(_mutex);
+            MELON_SCOPED_LOCK(_mutex);
             ptrs.push_back(ptr);
         }
     }
@@ -181,7 +181,7 @@ void ThreadLocal<T>::reset(T* ptr) {
         return;
     }
     {
-        BAIDU_SCOPED_LOCK(_mutex);
+        MELON_SCOPED_LOCK(_mutex);
         if (ptr) {
             ptrs.push_back(ptr);
         }

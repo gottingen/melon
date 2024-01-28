@@ -85,7 +85,7 @@ void Consume2(butil::MPSCQueue<uint>& q) {
         }
         ASSERT_LT(d, MAX_COUNT);
         {
-            BAIDU_SCOPED_LOCK(g_mutex);
+            MELON_SCOPED_LOCK(g_mutex);
             ASSERT_FALSE(g_counts[d]);
             g_counts[d] = true;
         }

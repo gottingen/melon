@@ -241,7 +241,7 @@ namespace melon::var {
                 if (root.next() != &root) {  // non empty
                     butil::LinkNode<Collected> *head2 = root.next();
                     root.RemoveFromList();
-                    BAIDU_SCOPED_LOCK(_dump_thread_mutex);
+                    MELON_SCOPED_LOCK(_dump_thread_mutex);
                     head2->InsertBeforeAsList(&_dump_root);
                     pthread_cond_signal(&_dump_thread_cond);
                 }
@@ -271,7 +271,7 @@ namespace melon::var {
         }
         // make sure _stop is true, we may have other reasons to quit above loop
         {
-            BAIDU_SCOPED_LOCK(_dump_thread_mutex);
+            MELON_SCOPED_LOCK(_dump_thread_mutex);
             _stop = true;
             pthread_cond_signal(&_dump_thread_cond);
         }
@@ -376,7 +376,7 @@ namespace melon::var {
             // Get new samples set by grab_thread.
             butil::LinkNode<Collected> *newhead = NULL;
             {
-                BAIDU_SCOPED_LOCK(_dump_thread_mutex);
+                MELON_SCOPED_LOCK(_dump_thread_mutex);
                 while (!_stop && _dump_root.next() == &_dump_root) {
                     const int64_t now_ns = butil::cpuwide_time_ns();
                     busy_seconds += (now_ns - last_ns) / 1000000000.0;

@@ -28,8 +28,8 @@
 #include <melon/rpc/rpc_dump.h>
 #include <melon/rpc/serialized_request.h>
 #include <melon/rpc/nshead_message.h>
-#include <melon/rpc/details/http_message.h>
-#include "melon/rpc/options.pb.h"
+#include "melon/rpc/http/http_message.h"
+#include "melon/proto/rpc/options.pb.h"
 #include "info_thread.h"
 
 DEFINE_string(dir, "", "The directory of dumped requests");

@@ -345,7 +345,7 @@ namespace melon {
         }
         ProfilingEnvironment &env = g_env[type];
         if (env.client) {
-            BAIDU_SCOPED_LOCK(env.mutex);
+            MELON_SCOPED_LOCK(env.mutex);
             if (env.client == NULL) {
                 return;
             }
@@ -684,7 +684,7 @@ namespace melon {
         }
 
         {
-            BAIDU_SCOPED_LOCK(g_env[type].mutex);
+            MELON_SCOPED_LOCK(g_env[type].mutex);
             if (g_env[type].client) {
                 if (NULL == g_env[type].waiters) {
                     g_env[type].waiters = new std::vector<ProfilingWaiter>;
@@ -915,7 +915,7 @@ namespace melon {
         size_t nwaiters = 0;
         ProfilingEnvironment &env = g_env[type];
         if (view == NULL) {
-            BAIDU_SCOPED_LOCK(env.mutex);
+            MELON_SCOPED_LOCK(env.mutex);
             if (env.client) {
                 profiling_client = *env.client;
                 nwaiters = (env.waiters ? env.waiters->size() : 0);
