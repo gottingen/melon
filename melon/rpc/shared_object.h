@@ -23,7 +23,7 @@
 #include "melon/butil/atomicops.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Inherit this class to be intrusively shared. Comparing to shared_ptr,
 // intrusive_ptr saves one malloc (for shared_count) and gets better cache
@@ -67,7 +67,7 @@ inline void intrusive_ptr_release(SharedObject* obj) {
     obj->RemoveRefManually();
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_SHARED_OBJECT_H

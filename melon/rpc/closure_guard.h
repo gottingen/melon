@@ -23,7 +23,7 @@
 #include "melon/butil/macros.h"
 
 
-namespace brpc {
+namespace melon {
 
 // RAII: Call Run() of the closure on destruction.
 class ClosureGuard {
@@ -68,7 +68,7 @@ private:
     google::protobuf::Closure* _done;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_CLOSURE_GUARD_H

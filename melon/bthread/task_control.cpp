@@ -72,9 +72,6 @@ struct WorkerThreadArgs {
 
 void* TaskControl::worker_thread(void* arg) {
     run_worker_startfn();
-#ifdef BAIDU_INTERNAL
-    logging::ComlogInitializer comlog_initializer;
-#endif
 
     auto dummy = static_cast<WorkerThreadArgs*>(arg);
     auto c = dummy->c;

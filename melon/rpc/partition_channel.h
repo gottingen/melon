@@ -26,7 +26,7 @@
 #include "melon/rpc/selective_channel.h" // For DynamicPartitionChannel
 
 
-namespace brpc {
+namespace melon {
 
 class NamingServiceThread;
 class PartitionChannelBase;
@@ -168,7 +168,7 @@ private:
     PartitionParser* _parser;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PARTITION_CHANNEL_H

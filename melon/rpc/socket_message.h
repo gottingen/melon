@@ -22,7 +22,7 @@
 #include "melon/butil/status.h"                          // butil::Status
 
 
-namespace brpc {
+namespace melon {
 
 // Generate the IOBuf to write dynamically, for implementing complex protocols.
 // Used in RTMP and HTTP2 right now.
@@ -80,7 +80,7 @@ struct SocketMessagePtr : public SocketMessagePtr<> {
     T* release() { return static_cast<T*>(SocketMessagePtr<>::release()); }
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_SOCKET_MESSAGE_H

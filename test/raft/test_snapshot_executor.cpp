@@ -36,7 +36,7 @@ protected:
         _server.Stop(0);
         _server.Join();
     }
-    brpc::Server _server;
+    melon::Server _server;
 };
 
 class MockFSMCaller : public braft::FSMCaller {
@@ -255,7 +255,7 @@ struct InstallArg {
     SnapshotExecutor* e;
     InstallSnapshotRequest request;
     InstallSnapshotResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     SyncClosure done;
 };
 

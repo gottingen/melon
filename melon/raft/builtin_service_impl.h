@@ -23,14 +23,14 @@
 
 namespace braft {
 
-class RaftStatImpl : public raft_stat, public brpc::Tabbed {
+class RaftStatImpl : public raft_stat, public melon::Tabbed {
 public:
     void default_method(::google::protobuf::RpcController* controller,
                         const ::braft::IndexRequest* request,
                         ::braft::IndexResponse* response,
                         ::google::protobuf::Closure* done);
 
-    void GetTabInfo(brpc::TabInfoList*) const;
+    void GetTabInfo(melon::TabInfoList*) const;
 };
 
 }  //  namespace braft

@@ -23,7 +23,7 @@
 #include "melon/butil/scoped_generic.h"
 #include "melon/rpc/socket_id.h"
 
-namespace brpc {
+namespace melon {
 
 class Controller;
 
@@ -156,7 +156,7 @@ struct StreamIdTraits {
 
 }  // namespace detail
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_STREAM_H

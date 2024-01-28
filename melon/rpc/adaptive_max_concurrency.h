@@ -24,7 +24,7 @@
 #include "melon/butil/strings/string_piece.h"
 #include "melon/rpc/options.pb.h"
 
-namespace brpc {
+namespace melon {
 
 // timeout concurrency limiter config
 struct TimeoutConcurrencyConf {
@@ -97,7 +97,7 @@ inline bool operator!=(const butil::StringPiece& concurrency,
     return !(adaptive_concurrency == concurrency);
 }
 
-}  // namespace brpc
+}  // namespace melon
 
 
 #endif // BRPC_ADAPTIVE_MAX_CONCURRENCY_H

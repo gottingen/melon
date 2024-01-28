@@ -16,7 +16,7 @@
 //          Zhangyi Chen(chenzhangyi01@baidu.com)
 //          Xiong,Kai(xiongkai@baidu.com)
 
-#include <bthread/unstable.h>
+#include <melon/bthread/unstable.h>
 #include <melon/rpc/errno.pb.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
@@ -38,32 +38,32 @@ namespace braft {
 
 DEFINE_int32(raft_max_election_delay_ms, 1000, 
              "Max election delay time allowed by user");
-BRPC_VALIDATE_GFLAG(raft_max_election_delay_ms, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_max_election_delay_ms, melon::PositiveInteger);
 
 DEFINE_bool(raft_step_down_when_vote_timedout, true, 
             "candidate steps down when reaching timeout");
-BRPC_VALIDATE_GFLAG(raft_step_down_when_vote_timedout, brpc::PassValidate);
+BRPC_VALIDATE_GFLAG(raft_step_down_when_vote_timedout, melon::PassValidate);
 
 DEFINE_bool(raft_enable_append_entries_cache, false,
             "enable cache for out-of-order append entries requests, should used when "
             "pipeline replication is enabled (raft_max_parallel_append_entries_rpc_num > 1).");
-BRPC_VALIDATE_GFLAG(raft_enable_append_entries_cache, ::brpc::PassValidate);
+BRPC_VALIDATE_GFLAG(raft_enable_append_entries_cache, ::melon::PassValidate);
 
 DEFINE_int32(raft_max_append_entries_cache_size, 8,
              "the max size of out-of-order append entries cache");
-BRPC_VALIDATE_GFLAG(raft_max_append_entries_cache_size, ::brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_max_append_entries_cache_size, ::melon::PositiveInteger);
 
 DEFINE_int64(raft_append_entry_high_lat_us, 1000 * 1000,
              "append entry high latency us");
-BRPC_VALIDATE_GFLAG(raft_append_entry_high_lat_us, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_append_entry_high_lat_us, melon::PositiveInteger);
 
 DEFINE_bool(raft_trace_append_entry_latency, false,
             "trace append entry latency");
-BRPC_VALIDATE_GFLAG(raft_trace_append_entry_latency, brpc::PassValidate);
+BRPC_VALIDATE_GFLAG(raft_trace_append_entry_latency, melon::PassValidate);
 
 DEFINE_int32(raft_rpc_channel_connect_timeout_ms, 200,
              "Timeout in milliseconds for establishing connections of RPCs");
-BRPC_VALIDATE_GFLAG(raft_rpc_channel_connect_timeout_ms, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_rpc_channel_connect_timeout_ms, melon::PositiveInteger);
 
 DECLARE_bool(raft_enable_leader_lease);
 
@@ -368,7 +368,7 @@ int NodeImpl::init_fsm_caller(const LogId& bootstrap_id) {
     fsm_caller_options.usercode_in_pthread = _options.usercode_in_pthread;
     this->AddRef();
     fsm_caller_options.after_shutdown =
-        brpc::NewCallback<NodeImpl*>(after_shutdown, this);
+        melon::NewCallback<NodeImpl*>(after_shutdown, this);
     fsm_caller_options.log_manager = _log_manager;
     fsm_caller_options.fsm = _options.fsm;
     fsm_caller_options.closure_queue = _closure_queue;
@@ -664,7 +664,7 @@ int NodeImpl::init(const NodeOptions& options) {
 
 DEFINE_int32(raft_apply_batch, 32, "Max number of tasks that can be applied "
                                    " in a single batch");
-BRPC_VALIDATE_GFLAG(raft_apply_batch, ::brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_apply_batch, ::melon::PositiveInteger);
 
 int NodeImpl::execute_applying_tasks(
         void* meta, bthread::TaskIterator<LogEntryAndClosure>& iter) {
@@ -1089,11 +1089,11 @@ void NodeImpl::handle_election_timeout() {
     // Don't touch any thing of *this ever after
 }
 
-void NodeImpl::handle_timeout_now_request(brpc::Controller* controller,
+void NodeImpl::handle_timeout_now_request(melon::Controller* controller,
                                           const TimeoutNowRequest* request,
                                           TimeoutNowResponse* response,
                                           google::protobuf::Closure* done) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     std::unique_lock<raft_mutex_t> lck(_mutex);
     if (request->term() != _current_term) {
         const int64_t saved_current_term = _current_term;
@@ -1495,7 +1495,7 @@ struct OnRequestVoteRPCDone : public google::protobuf::Closure {
     int64_t ctx_version;
     RequestVoteRequest request;
     RequestVoteResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     NodeImpl* node;
 };
 
@@ -1608,7 +1608,7 @@ struct OnPreVoteRPCDone : public google::protobuf::Closure {
     int64_t ctx_version;
     RequestVoteRequest request;
     RequestVoteResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     NodeImpl* node;
 };
 
@@ -1649,11 +1649,11 @@ void NodeImpl::pre_vote(std::unique_lock<raft_mutex_t>* lck, bool triggered) {
         if (*iter == _server_id) {
             continue;
         }
-        brpc::ChannelOptions options;
-        options.connection_type = brpc::CONNECTION_TYPE_SINGLE;
+        melon::ChannelOptions options;
+        options.connection_type = melon::CONNECTION_TYPE_SINGLE;
         options.max_retry = 0;
         options.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
-        brpc::Channel channel;
+        melon::Channel channel;
         if (0 != channel.Init(iter->addr, &options)) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " channel init failed, addr " << iter->addr;
@@ -1755,11 +1755,11 @@ void NodeImpl::request_peers_to_vote(const std::set<PeerId>& peers,
         if (*iter == _server_id) {
             continue;
         }
-        brpc::ChannelOptions options;
-        options.connection_type = brpc::CONNECTION_TYPE_SINGLE;
+        melon::ChannelOptions options;
+        options.connection_type = melon::CONNECTION_TYPE_SINGLE;
         options.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
         options.max_retry = 0;
-        brpc::Channel channel;
+        melon::Channel channel;
         if (0 != channel.Init(iter->addr, &options)) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " channel init failed, addr " << iter->addr;
@@ -2290,7 +2290,7 @@ int NodeImpl::handle_request_vote_request(const RequestVoteRequest* request,
 class FollowerStableClosure : public LogManager::StableClosure {
 public:
     FollowerStableClosure(
-            brpc::Controller* cntl,
+            melon::Controller* cntl,
             const AppendEntriesRequest* request,
             AppendEntriesResponse* response,
             google::protobuf::Closure* done,
@@ -2316,7 +2316,7 @@ private:
         }
     }
     void run() {
-        brpc::ClosureGuard done_guard(_done);
+        melon::ClosureGuard done_guard(_done);
         if (!status().ok()) {
             _cntl->SetFailed(status().error_code(), "%s",
                              status().error_cstr());
@@ -2375,7 +2375,7 @@ private:
         }
     }
 
-    brpc::Controller* _cntl;
+    melon::Controller* _cntl;
     const AppendEntriesRequest* _request;
     AppendEntriesResponse* _response;
     google::protobuf::Closure* _done;
@@ -2383,14 +2383,14 @@ private:
     int64_t _term;
 };
 
-void NodeImpl::handle_append_entries_request(brpc::Controller* cntl,
+void NodeImpl::handle_append_entries_request(melon::Controller* cntl,
                                              const AppendEntriesRequest* request,
                                              AppendEntriesResponse* response,
                                              google::protobuf::Closure* done,
                                              bool from_append_entries_cache) {
     std::vector<LogEntry*> entries;
     entries.reserve(request->entries_size());
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     std::unique_lock<raft_mutex_t> lck(_mutex);
 
     // pre set term, to avoid get term in lock
@@ -2414,7 +2414,7 @@ void NodeImpl::handle_append_entries_request(brpc::Controller* cntl,
         LOG(WARNING) << "node " << _group_id << ":" << _server_id
                      << " received AppendEntries from " << request->server_id()
                      << " server_id bad format";
-        cntl->SetFailed(brpc::EREQUEST,
+        cntl->SetFailed(melon::EREQUEST,
                         "Fail to parse server_id `%s'",
                         request->server_id().c_str());
         return;
@@ -2601,18 +2601,18 @@ void NodeImpl::after_shutdown() {
     }
 }
 
-void NodeImpl::handle_install_snapshot_request(brpc::Controller* cntl,
+void NodeImpl::handle_install_snapshot_request(melon::Controller* cntl,
                                     const InstallSnapshotRequest* request,
                                     InstallSnapshotResponse* response,
                                     google::protobuf::Closure* done) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     if (_snapshot_executor == NULL) {
         cntl->SetFailed(EINVAL, "Not support snapshot");
         return;
     }
     PeerId server_id;
     if (0 != server_id.parse(request->server_id())) {
-        cntl->SetFailed(brpc::EREQUEST, "Fail to parse server_id=`%s'",
+        cntl->SetFailed(melon::EREQUEST, "Fail to parse server_id=`%s'",
                         request->server_id().c_str());
         return;
     }
@@ -2904,7 +2904,7 @@ void NodeImpl::stop_replicator(const std::set<PeerId>& keep,
     }
 }
 
-bool NodeImpl::handle_out_of_order_append_entries(brpc::Controller* cntl,
+bool NodeImpl::handle_out_of_order_append_entries(melon::Controller* cntl,
                                                   const AppendEntriesRequest* request,
                                                   AppendEntriesResponse* response,
                                                   google::protobuf::Closure* done,

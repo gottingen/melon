@@ -28,15 +28,15 @@ class HPackTest : public testing::Test {
 
 // Copied test cases from example of rfc7541
 TEST_F(HPackTest, header_with_indexing) {
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(4096));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(4096));
-    brpc::HPacker::Header h;
+    melon::HPacker::Header h;
     h.name = "Custom-Key";
     h.value = "custom-header";
-    brpc::HPackOptions options;
-    options.index_policy = brpc::HPACK_INDEX_HEADER;
+    melon::HPackOptions options;
+    options.index_policy = melon::HPACK_INDEX_HEADER;
     butil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
@@ -47,26 +47,26 @@ TEST_F(HPackTest, header_with_indexing) {
         0x65, 0x72};
     butil::StringPiece sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
-    brpc::HPacker::Header h2;
+    melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
     ASSERT_EQ(nread, nwrite);
     ASSERT_TRUE(buf.buf().empty());
     std::string lowercase_name = h.name;
-    brpc::tolower(&lowercase_name);
+    melon::tolower(&lowercase_name);
     ASSERT_EQ(lowercase_name, h2.name);
     ASSERT_EQ(h.value, h2.value);
 }
 
 TEST_F(HPackTest, header_without_indexing) {
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(4096));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(4096));
-    brpc::HPacker::Header h;
+    melon::HPacker::Header h;
     h.name = ":path";
     h.value = "/sample/path";
-    brpc::HPackOptions options;
-    options.index_policy = brpc::HPACK_NOT_INDEX_HEADER;
+    melon::HPackOptions options;
+    options.index_policy = melon::HPACK_NOT_INDEX_HEADER;
     butil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
@@ -77,26 +77,26 @@ TEST_F(HPackTest, header_without_indexing) {
     };
     butil::StringPiece sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
-    brpc::HPacker::Header h2;
+    melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
     ASSERT_EQ(nread, nwrite);
     ASSERT_TRUE(buf.buf().empty());
     std::string lowercase_name = h.name;
-    brpc::tolower(&lowercase_name);
+    melon::tolower(&lowercase_name);
     ASSERT_EQ(lowercase_name, h2.name);
     ASSERT_EQ(h.value, h2.value);
 }
 
 TEST_F(HPackTest, header_never_indexed) {
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(4096));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(4096));
-    brpc::HPacker::Header h;
+    melon::HPacker::Header h;
     h.name = "password";
     h.value = "secret";
-    brpc::HPackOptions options;
-    options.index_policy = brpc::HPACK_NEVER_INDEX_HEADER;
+    melon::HPackOptions options;
+    options.index_policy = melon::HPACK_NEVER_INDEX_HEADER;
     butil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
@@ -107,7 +107,7 @@ TEST_F(HPackTest, header_never_indexed) {
     };
     butil::StringPiece sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
-    brpc::HPacker::Header h2;
+    melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
     ASSERT_EQ(nread, nwrite);
     ASSERT_TRUE(buf.buf().empty());
@@ -116,15 +116,15 @@ TEST_F(HPackTest, header_never_indexed) {
 }
 
 TEST_F(HPackTest, indexed_header) {
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(4096));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(4096));
-    brpc::HPacker::Header h;
+    melon::HPacker::Header h;
     h.name = ":method";
     h.value = "GET";
-    brpc::HPackOptions options;
-    options.index_policy = brpc::HPACK_INDEX_HEADER;
+    melon::HPackOptions options;
+    options.index_policy = melon::HPACK_INDEX_HEADER;
     butil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
@@ -134,7 +134,7 @@ TEST_F(HPackTest, indexed_header) {
     };
     butil::StringPiece sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
-    brpc::HPacker::Header h2;
+    melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
     ASSERT_EQ(nread, nwrite);
     ASSERT_TRUE(buf.buf().empty());
@@ -148,9 +148,9 @@ struct ConstHeader {
 };
 
 TEST_F(HPackTest, requests_without_huffman) {
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(4096));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(4096));
 
     ConstHeader header1[] = { 
@@ -161,11 +161,11 @@ TEST_F(HPackTest, requests_without_huffman) {
     };
     butil::IOBufAppender buf;
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected1[] = {
@@ -174,7 +174,7 @@ TEST_F(HPackTest, requests_without_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
         ASSERT_EQ(header1[i].value, h.value);
@@ -190,11 +190,11 @@ TEST_F(HPackTest, requests_without_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected2[] = {
@@ -203,7 +203,7 @@ TEST_F(HPackTest, requests_without_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
         ASSERT_EQ(header2[i].value, h.value);
@@ -218,11 +218,11 @@ TEST_F(HPackTest, requests_without_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected3[] = {
@@ -232,7 +232,7 @@ TEST_F(HPackTest, requests_without_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
         ASSERT_EQ(header3[i].value, h.value);
@@ -241,9 +241,9 @@ TEST_F(HPackTest, requests_without_huffman) {
 }
 
 TEST_F(HPackTest, requests_with_huffman) {
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(4096));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(4096));
 
     ConstHeader header1[] = { 
@@ -254,11 +254,11 @@ TEST_F(HPackTest, requests_with_huffman) {
     };
     butil::IOBufAppender buf;
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         options.encode_name = true;
         options.encode_value = true;
         p1.Encode(&buf, h, options);
@@ -270,7 +270,7 @@ TEST_F(HPackTest, requests_with_huffman) {
     LOG(INFO) << butil::ToPrintable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
         ASSERT_EQ(header1[i].value, h.value);
@@ -286,13 +286,13 @@ TEST_F(HPackTest, requests_with_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
-        brpc::HPackOptions options;
+        melon::HPackOptions options;
         options.encode_name = true;
         options.encode_value = true;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected2[] = {
@@ -300,7 +300,7 @@ TEST_F(HPackTest, requests_with_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
         ASSERT_EQ(header2[i].value, h.value);
@@ -315,13 +315,13 @@ TEST_F(HPackTest, requests_with_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
-        brpc::HPackOptions options;
+        melon::HPackOptions options;
         options.encode_name = true;
         options.encode_value = true;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected3[] = {
@@ -330,7 +330,7 @@ TEST_F(HPackTest, requests_with_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
         ASSERT_EQ(header3[i].value, h.value);
@@ -340,9 +340,9 @@ TEST_F(HPackTest, requests_with_huffman) {
 
 TEST_F(HPackTest, responses_without_huffman) {
     // https://tools.ietf.org/html/rfc7541#appendix-C.5
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(256));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(256));
 
     ConstHeader header1[] = { 
@@ -353,11 +353,11 @@ TEST_F(HPackTest, responses_without_huffman) {
     };
     butil::IOBufAppender buf;
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected1[] = {
@@ -371,7 +371,7 @@ TEST_F(HPackTest, responses_without_huffman) {
     LOG(INFO) << butil::ToPrintable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
         ASSERT_EQ(header1[i].value, h.value);
@@ -386,11 +386,11 @@ TEST_F(HPackTest, responses_without_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected2[] = {
@@ -398,7 +398,7 @@ TEST_F(HPackTest, responses_without_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
         ASSERT_EQ(header2[i].value, h.value);
@@ -414,11 +414,11 @@ TEST_F(HPackTest, responses_without_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
-        brpc::HPackOptions options;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        melon::HPackOptions options;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected3[] = {
@@ -434,7 +434,7 @@ TEST_F(HPackTest, responses_without_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
         ASSERT_EQ(header3[i].value, h.value);
@@ -444,9 +444,9 @@ TEST_F(HPackTest, responses_without_huffman) {
 
 TEST_F(HPackTest, responses_with_huffman) {
     // https://tools.ietf.org/html/rfc7541#appendix-C.5
-    brpc::HPacker p1;
+    melon::HPacker p1;
     ASSERT_EQ(0, p1.Init(256));
-    brpc::HPacker p2;
+    melon::HPacker p2;
     ASSERT_EQ(0, p2.Init(256));
 
     ConstHeader header1[] = { 
@@ -457,13 +457,13 @@ TEST_F(HPackTest, responses_with_huffman) {
     };
     butil::IOBufAppender buf;
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header1[i].name;
         h.value = header1[i].value;
-        brpc::HPackOptions options;
+        melon::HPackOptions options;
         options.encode_name = true;
         options.encode_value = true;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected1[] = {
@@ -476,7 +476,7 @@ TEST_F(HPackTest, responses_with_huffman) {
     LOG(INFO) << butil::ToPrintable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header1[i].name, h.name);
         ASSERT_EQ(header1[i].value, h.value);
@@ -491,13 +491,13 @@ TEST_F(HPackTest, responses_with_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header2[i].name;
         h.value = header2[i].value;
-        brpc::HPackOptions options;
+        melon::HPackOptions options;
         options.encode_name = true;
         options.encode_value = true;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected2[] = {
@@ -505,7 +505,7 @@ TEST_F(HPackTest, responses_with_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header2[i].name, h.name);
         ASSERT_EQ(header2[i].value, h.value);
@@ -521,13 +521,13 @@ TEST_F(HPackTest, responses_with_huffman) {
     };
 
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         h.name = header3[i].name;
         h.value = header3[i].value;
-        brpc::HPackOptions options;
+        melon::HPackOptions options;
         options.encode_name = true;
         options.encode_value = true;
-        options.index_policy = brpc::HPACK_INDEX_HEADER;
+        options.index_policy = melon::HPACK_INDEX_HEADER;
         p1.Encode(&buf, h, options);
     }
     uint8_t expected3[] = {
@@ -541,7 +541,7 @@ TEST_F(HPackTest, responses_with_huffman) {
     };
     ASSERT_TRUE(buf.buf().equals(butil::StringPiece((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
-        brpc::HPacker::Header h;
+        melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
         ASSERT_EQ(header3[i].name, h.name);
         ASSERT_EQ(header3[i].value, h.value);

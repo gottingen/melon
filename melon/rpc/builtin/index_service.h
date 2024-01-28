@@ -24,19 +24,19 @@
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace brpc {
+namespace melon {
 
 class IndexService : public index, public Tabbed {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::IndexRequest* request,
-                        ::brpc::IndexResponse* response,
+                        const ::melon::IndexRequest* request,
+                        ::melon::IndexResponse* response,
                         ::google::protobuf::Closure* done);
 
-    void GetTabInfo(brpc::TabInfoList*) const;
+    void GetTabInfo(melon::TabInfoList*) const;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_INDEX_SERVICE_H

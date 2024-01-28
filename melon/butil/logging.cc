@@ -102,9 +102,6 @@ typedef pthread_mutex_t* MutexHandle;
 #include "melon/butil/containers/doubly_buffered_data.h"
 #include "melon/butil/memory/singleton.h"
 #include "melon/butil/endpoint.h"
-#ifdef BAIDU_INTERNAL
-#include "melon/butil/comlog_sink.h"
-#endif
 
 extern "C" {
 uint64_t BAIDU_WEAK bthread_self();
@@ -1310,10 +1307,6 @@ void LogStream::FlushWithoutReset() {
     pbump(-1); 
 
     // Give any logsink first dibs on the message.
-#ifdef BAIDU_INTERNAL
-    // If the logsink fails and it's not comlog, try comlog. stderr on last try.
-    bool tried_comlog = false;
-#endif
     bool tried_default = false;
     {
         DoublyBufferedLogSink::ScopedPtr ptr;
@@ -1330,21 +1323,10 @@ void LogStream::FlushWithoutReset() {
             if (result) {
                 goto FINISH_LOGGING;
             }
-#ifdef BAIDU_INTERNAL
-            tried_comlog = (*ptr == ComlogSink::GetInstance());
-#endif
             tried_default = (*ptr == DefaultLogSink::GetInstance());
         }
     }
 
-#ifdef BAIDU_INTERNAL
-    if (!tried_comlog) {
-        if (ComlogSink::GetInstance()->OnLogMessage(
-                _severity, _file, _line, _func, content())) {
-            goto FINISH_LOGGING;
-        }
-    }
-#endif
     if (!tried_default) {
         if (FLAGS_log_func_name) {
             DefaultLogSink::GetInstance()->OnLogMessage(

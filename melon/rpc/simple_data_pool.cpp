@@ -18,7 +18,7 @@
 
 #include "melon/rpc/simple_data_pool.h"
 
-namespace brpc {
+namespace melon {
 
 SimpleDataPool::SimpleDataPool(const DataFactory* factory)
     : _capacity(0)
@@ -133,5 +133,5 @@ SimpleDataPool::Stat SimpleDataPool::stat() const {
     return s;
 }
 
-} // namespace brpc
+} // namespace melon
 

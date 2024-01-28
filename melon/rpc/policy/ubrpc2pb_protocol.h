@@ -19,12 +19,12 @@
 #ifndef BRPC_POLICY_UBRPC2PB_PROTOCOL_H
 #define BRPC_POLICY_UBRPC2PB_PROTOCOL_H
 
-#include "mcpack2pb/mcpack2pb.h"
+#include "melon/mcpack2pb/mcpack2pb.h"
 #include "melon/rpc/nshead_pb_service_adaptor.h"
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 void ProcessUbrpcResponse(InputMessageBase* msg);
@@ -77,7 +77,7 @@ public:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_UBRPC2PB_PROTOCOL_H

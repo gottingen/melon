@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <gflags/gflags.h>
-#include <bthread/bthread.h>
+#include <melon/bthread/bthread.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/raft/raft.h>
@@ -34,7 +34,7 @@ DEFINE_string(group, "Block", "Id of the replication group");
 bvar::LatencyRecorder g_latency_recorder("block_client");
 
 static void* sender(void* arg) {
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         braft::PeerId leader;
         // Select leader of the target group from RouteTable
         if (braft::rtb::select_leader(FLAGS_group, &leader) != 0) {
@@ -52,7 +52,7 @@ static void* sender(void* arg) {
 
         // Now we known who is the leader, construct Stub and then sending
         // rpc
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
             bthread_usleep(FLAGS_timeout_ms * 1000L);
@@ -60,7 +60,7 @@ static void* sender(void* arg) {
         }
         example::BlockService_Stub stub(&channel);
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.set_timeout_ms(FLAGS_timeout_ms);
         // Randomly select which request we want send;
         example::BlockRequest request;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         sleep(1);
         LOG_IF(INFO, !FLAGS_log_each_request)
                 << "Sending Request to " << FLAGS_group

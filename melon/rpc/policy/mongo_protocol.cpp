@@ -38,7 +38,7 @@ void bthread_assign_data(void* data);
 }
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 struct SendMongoResponse : public google::protobuf::Closure {
@@ -295,4 +295,4 @@ void ProcessMongoRequest(InputMessageBase* msg_base) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

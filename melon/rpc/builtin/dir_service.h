@@ -22,17 +22,17 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class DirService : public dir {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::DirRequest* request,
-                        ::brpc::DirResponse* response,
+                        const ::melon::DirRequest* request,
+                        ::melon::DirResponse* response,
                         ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 

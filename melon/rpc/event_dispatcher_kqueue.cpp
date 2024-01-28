@@ -20,7 +20,7 @@
 #include <sys/event.h>
 #include <sys/time.h>
 
-namespace brpc {
+namespace melon {
 
 EventDispatcher::EventDispatcher()
     : _epfd(-1)
@@ -220,4 +220,4 @@ void EventDispatcher::Run() {
     }
 }
 
-} // namespace brpc
+} // namespace melon

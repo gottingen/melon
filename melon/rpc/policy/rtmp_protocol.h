@@ -26,7 +26,7 @@
 #include "melon/rpc/socket.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Server;
 class RtmpService;
@@ -635,7 +635,7 @@ inline void WriteLittleEndian4Bytes(char** buf, uint32_t val) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_RTMP_PROTOCOL_H

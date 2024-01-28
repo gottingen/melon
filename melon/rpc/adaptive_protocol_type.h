@@ -24,7 +24,7 @@
 #include "melon/butil/strings/string_piece.h"
 #include "melon/rpc/options.pb.h"
 
-namespace brpc {
+namespace melon {
 
 // NOTE: impl. are in brpc/protocol.cpp
 
@@ -88,6 +88,6 @@ private:
     std::string _param;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_ADAPTIVE_PROTOCOL_TYPE_H

@@ -23,7 +23,7 @@
 #include "melon/butil/gperftools_profiler.h"
 #endif
 
-namespace brpc {
+namespace melon {
 
 // defined in src/brpc/builtin/index_service.cpp
 extern bool cpu_profiler_enabled;
@@ -49,7 +49,7 @@ struct ProfilerLinker {
     }
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PROFILER_LINKER_H

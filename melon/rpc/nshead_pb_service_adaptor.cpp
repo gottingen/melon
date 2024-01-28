@@ -32,7 +32,7 @@
 #include "melon/rpc/policy/most_common_message.h"
 
 
-namespace brpc {
+namespace melon {
 
 struct SendNsheadPbResponse : public google::protobuf::Closure {
     SendNsheadPbResponse(const NsheadPbServiceAdaptor* adaptor,
@@ -143,4 +143,4 @@ void NsheadPbServiceAdaptor::ProcessNsheadRequest(
     pbdone->Run();
 } 
 
-} // namespace brpc
+} // namespace melon

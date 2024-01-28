@@ -29,11 +29,11 @@ class HttpStatusTest : public testing::Test {
 };
 
 TEST_F(HttpStatusTest, sanity) {
-    ASSERT_STREQ("OK", brpc::HttpReasonPhrase(
-                     brpc::HTTP_STATUS_OK));
-    ASSERT_STREQ("Continue", brpc::HttpReasonPhrase(
-                     brpc::HTTP_STATUS_CONTINUE));
-    ASSERT_STREQ("HTTP Version Not Supported", brpc::HttpReasonPhrase(
-                     brpc::HTTP_STATUS_VERSION_NOT_SUPPORTED));
-    ASSERT_STREQ("Unknown status code (-2)", brpc::HttpReasonPhrase(-2));
+    ASSERT_STREQ("OK", melon::HttpReasonPhrase(
+                     melon::HTTP_STATUS_OK));
+    ASSERT_STREQ("Continue", melon::HttpReasonPhrase(
+                     melon::HTTP_STATUS_CONTINUE));
+    ASSERT_STREQ("HTTP Version Not Supported", melon::HttpReasonPhrase(
+                     melon::HTTP_STATUS_VERSION_NOT_SUPPORTED));
+    ASSERT_STREQ("Unknown status code (-2)", melon::HttpReasonPhrase(-2));
 }

@@ -32,7 +32,7 @@ DEFINE_int32(timeout_ms, 2000, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
 DEFINE_string(protocol, "http", "Client-side protocol");
 
-namespace brpc {
+namespace melon {
 DECLARE_bool(http_verbose);
 }
 
@@ -48,14 +48,14 @@ int main(int argc, char* argv[]) {
     
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
-    brpc::ChannelOptions options;
+    melon::Channel channel;
+    melon::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
 
     // Initialize the channel, NULL means using default options. 
-    // options, see `brpc/channel.h'.
+    // options, see `melon/rpc/channel.h'.
     if (channel.Init(url, FLAGS_load_balancer.c_str(), &options) != 0) {
         LOG(ERROR) << "Fail to initialize channel";
         return -1;
@@ -63,11 +63,11 @@ int main(int argc, char* argv[]) {
 
     // We will receive response synchronously, safe to put variables
     // on stack.
-    brpc::Controller cntl;
+    melon::Controller cntl;
 
     cntl.http_request().uri() = url;
     if (!FLAGS_d.empty()) {
-        cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+        cntl.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl.request_attachment().append(FLAGS_d);
     }
 
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
         std::cerr << cntl.ErrorText() << std::endl;
         return -1;
     }
-    // If -http_verbose is on, brpc already prints the response to stderr.
-    if (!brpc::FLAGS_http_verbose) {
+    // If -http_verbose is on, melon already prints the response to stderr.
+    if (!melon::FLAGS_http_verbose) {
         std::cout << cntl.response_attachment() << std::endl;
     }
     return 0;

@@ -27,7 +27,7 @@
 #include "melon/rpc/periodic_naming_service.h"
 #include "melon/rpc/server_node.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Acquire server list from nacos
@@ -53,7 +53,7 @@ private:
                        std::vector<ServerNode>* nodes);
 
 private:
-    brpc::Channel _channel;
+    melon::Channel _channel;
     std::string _nacos_url;
     std::string _access_token;
     bool _nacos_connected;
@@ -62,6 +62,6 @@ private:
 };
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // BRPC_POLICY_NACOS_NAMING_SERVICE_H

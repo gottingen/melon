@@ -36,7 +36,7 @@ public:
                       const test::EchoRequest* request,
                       test::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         return;
     }
 };
@@ -49,21 +49,21 @@ enum STATE {
 };
 
 TEST(PrometheusMetrics, sanity) {
-    brpc::Server server;
+    melon::Server server;
     DummyEchoServiceImpl echo_svc;
-    ASSERT_EQ(0, server.AddService(&echo_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server.AddService(&echo_svc, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server.Start("127.0.0.1:8614", NULL));
 
-    brpc::Server server2;
+    melon::Server server2;
     DummyEchoServiceImpl echo_svc2;
-    ASSERT_EQ(0, server2.AddService(&echo_svc2, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server2.AddService(&echo_svc2, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server2.Start("127.0.0.1:8615", NULL));
 
-    brpc::Channel channel;
-    brpc::ChannelOptions channel_opts;
+    melon::Channel channel;
+    melon::ChannelOptions channel_opts;
     channel_opts.protocol = "http";
     ASSERT_EQ(0, channel.Init("127.0.0.1:8614", &channel_opts));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/brpc_metrics";
     channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed());

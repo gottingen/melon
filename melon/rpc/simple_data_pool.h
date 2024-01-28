@@ -23,7 +23,7 @@
 #include "melon/rpc/data_factory.h"
 
 
-namespace brpc {
+namespace melon {
 
 // As the name says, this is a simple unbounded dynamic-size pool for
 // reusing void* data. We're assuming that data consumes considerable
@@ -55,6 +55,6 @@ private:
     const DataFactory* _factory;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_SIMPLE_DATA_POOL_H

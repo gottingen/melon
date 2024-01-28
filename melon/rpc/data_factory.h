@@ -22,7 +22,7 @@
 // To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
 
-namespace brpc {
+namespace melon {
 
 // ---- thread safety ----
 // Method implementations of this interface should be thread-safe
@@ -45,6 +45,6 @@ public:
     virtual bool ResetData(void*) const { return true; }
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_DATA_FACTORY_H

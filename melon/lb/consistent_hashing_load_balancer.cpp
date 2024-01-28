@@ -26,7 +26,7 @@
 #include "melon/lb/consistent_hashing_load_balancer.h"
 #include "melon/rpc/policy/hasher.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // TODO: or 160?
@@ -397,4 +397,4 @@ bool ConsistentHashingLoadBalancer::SetParameters(const butil::StringPiece& para
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

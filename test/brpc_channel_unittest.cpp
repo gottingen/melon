@@ -47,7 +47,7 @@
 #endif   // BAZEL_TEST
 #include "melon/rpc/options.pb.h"
 
-namespace brpc {
+namespace melon {
 DECLARE_int32(idle_timeout_second);
 DECLARE_int32(max_connection_pool_size);
 class Server;
@@ -61,8 +61,8 @@ void SendRpcResponse(int64_t correlation_id, Controller* cntl,
 } // brpc
 
 int main(int argc, char* argv[]) {
-    brpc::FLAGS_idle_timeout_second = 0;
-    brpc::FLAGS_max_connection_pool_size = 0;
+    melon::FLAGS_idle_timeout_second = 0;
+    melon::FLAGS_max_connection_pool_size = 0;
     testing::InitGoogleTest(&argc, argv);
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
     return RUN_ALL_TESTS();
@@ -75,7 +75,7 @@ void* RunClosure(void* arg) {
     return NULL;
 }
 
-class DeleteOnlyOnceChannel : public brpc::Channel {
+class DeleteOnlyOnceChannel : public melon::Channel {
 public:
     DeleteOnlyOnceChannel() : _c(1) {
     }
@@ -90,7 +90,7 @@ private:
 static std::string MOCK_CREDENTIAL = "mock credential";
 static std::string MOCK_CONTEXT = "mock context";
 
-class MyAuthenticator : public brpc::Authenticator {
+class MyAuthenticator : public melon::Authenticator {
 public:
     MyAuthenticator() : count(0) {}
 
@@ -102,7 +102,7 @@ public:
 
     int VerifyCredential(const std::string&,
                          const butil::EndPoint&,
-                         brpc::AuthContext* ctx) const {
+                         melon::AuthContext* ctx) const {
         ctx->set_user(MOCK_CONTEXT);
         ctx->set_group(MOCK_CONTEXT);
         ctx->set_roles(MOCK_CONTEXT);
@@ -113,12 +113,12 @@ public:
     mutable butil::atomic<int32_t> count;
 };
 
-static bool VerifyMyRequest(const brpc::InputMessageBase* msg_base) {
-    const brpc::policy::MostCommonMessage* msg = 
-        static_cast<const brpc::policy::MostCommonMessage*>(msg_base);
-    brpc::Socket* ptr = msg->socket();
+static bool VerifyMyRequest(const melon::InputMessageBase* msg_base) {
+    const melon::policy::MostCommonMessage* msg =
+        static_cast<const melon::policy::MostCommonMessage*>(msg_base);
+    melon::Socket* ptr = msg->socket();
     
-    brpc::policy::RpcMeta meta;
+    melon::policy::RpcMeta meta;
     butil::IOBufAsZeroCopyInputStream wrapper(msg->meta);
     EXPECT_TRUE(meta.ParseFromZeroCopyStream(&wrapper));
 
@@ -154,12 +154,12 @@ class MyEchoService : public ::test::EchoService {
               const ::test::EchoRequest* req,
               ::test::EchoResponse* res,
               google::protobuf::Closure* done) {
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
         std::shared_ptr<CallAfterRpcObject> str_test(new CallAfterRpcObject());
         cntl->set_after_rpc_resp_fn(std::bind(&MyEchoService::CallAfterRpc, str_test,
             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         if (req->server_fail()) {
             cntl->SetFailed(req->server_fail(), "Server fail1");
             cntl->SetFailed(req->server_fail(), "Server fail2");
@@ -181,7 +181,7 @@ class MyEchoService : public ::test::EchoService {
         res->set_receiving_socket_id(cntl->_current_call.sending_sock->id());
     }
     static void CallAfterRpc(std::shared_ptr<CallAfterRpcObject> str,
-                        brpc::Controller* cntl,
+                        melon::Controller* cntl,
                         const google::protobuf::Message* req,
                         const google::protobuf::Message* res) {
         const test::EchoRequest* request = static_cast<const test::EchoRequest*>(req);
@@ -201,8 +201,8 @@ protected:
         : _ep(butil::IP_ANY, 8787)
         , _close_fd_once(false) {
         pthread_once(&register_mock_protocol, register_protocol);
-        const brpc::InputMessageHandler pairs[] = {
-            { brpc::policy::ParseRpcMessage, 
+        const melon::InputMessageHandler pairs[] = {
+            { melon::policy::ParseRpcMessage,
               ProcessRpcRequest, VerifyMyRequest, this, "baidu_std" }
         };
         EXPECT_EQ(0, _messenger.AddHandler(pairs[0]));
@@ -219,21 +219,21 @@ protected:
     };
 
     static void register_protocol() {
-        brpc::Protocol dummy_protocol = 
-                                 { brpc::policy::ParseRpcMessage,
-                                   brpc::SerializeRequestDefault, 
-                                   brpc::policy::PackRpcRequest,
+        melon::Protocol dummy_protocol =
+                                 { melon::policy::ParseRpcMessage,
+                                   melon::SerializeRequestDefault,
+                                   melon::policy::PackRpcRequest,
                                    NULL, ProcessRpcRequest,
                                    VerifyMyRequest, NULL, NULL,
-                                   brpc::CONNECTION_TYPE_ALL, "baidu_std" };
-        ASSERT_EQ(0,  RegisterProtocol((brpc::ProtocolType)30, dummy_protocol));
+                                   melon::CONNECTION_TYPE_ALL, "baidu_std" };
+        ASSERT_EQ(0,  RegisterProtocol((melon::ProtocolType)30, dummy_protocol));
     }
 
-    static void ProcessRpcRequest(brpc::InputMessageBase* msg_base) {
-        brpc::DestroyingPtr<brpc::policy::MostCommonMessage> msg(
-            static_cast<brpc::policy::MostCommonMessage*>(msg_base));
-        brpc::SocketUniquePtr ptr(msg->ReleaseSocket());
-        const brpc::AuthContext* auth = ptr->auth_context();
+    static void ProcessRpcRequest(melon::InputMessageBase* msg_base) {
+        melon::DestroyingPtr<melon::policy::MostCommonMessage> msg(
+            static_cast<melon::policy::MostCommonMessage*>(msg_base));
+        melon::SocketUniquePtr ptr(msg->ReleaseSocket());
+        const melon::AuthContext* auth = ptr->auth_context();
         if (auth) {
             EXPECT_EQ(MOCK_CONTEXT, auth->user());
             EXPECT_EQ(MOCK_CONTEXT, auth->group());
@@ -248,10 +248,10 @@ protected:
             return;
         }
         
-        brpc::policy::RpcMeta meta;
+        melon::policy::RpcMeta meta;
         butil::IOBufAsZeroCopyInputStream wrapper(msg->meta);
         EXPECT_TRUE(meta.ParseFromZeroCopyStream(&wrapper));
-        const brpc::policy::RpcRequestMeta& req_meta = meta.request();
+        const melon::policy::RpcRequestMeta& req_meta = meta.request();
         ASSERT_EQ(ts->_svc.descriptor()->full_name(), req_meta.service_name());
         const google::protobuf::MethodDescriptor* method =
             ts->_svc.descriptor()->FindMethodByName(req_meta.method_name());
@@ -266,7 +266,7 @@ protected:
             butil::IOBufAsZeroCopyInputStream wrapper2(msg->payload);
             EXPECT_TRUE(req->ParseFromZeroCopyStream(&wrapper2));
         }
-        brpc::Controller* cntl = new brpc::Controller();
+        melon::Controller* cntl = new melon::Controller();
         cntl->_current_call.peer_id = ptr->id();
         cntl->_current_call.sending_sock.reset(ptr.release());
         cntl->_server = &ts->_dummy;
@@ -274,13 +274,13 @@ protected:
         google::protobuf::Message* res =
               ts->_svc.GetResponsePrototype(method).New();
         google::protobuf::Closure* done =
-              brpc::NewCallback<
-            int64_t, brpc::Controller*,
+              melon::NewCallback<
+            int64_t, melon::Controller*,
             const google::protobuf::Message*,
             const google::protobuf::Message*,
-            const brpc::Server*,
-            brpc::MethodStatus*, int64_t>(
-                &brpc::policy::SendRpcResponse,
+            const melon::Server*,
+            melon::MethodStatus*, int64_t>(
+                &melon::policy::SendRpcResponse,
                 meta.correlation_id(), cntl, req, res,
                 &ts->_dummy, NULL, -1);
         ts->_svc.CallMethod(method, cntl, req, res, done);
@@ -306,14 +306,14 @@ protected:
         _messenger.Join();
     }
 
-    void SetUpChannel(brpc::Channel* channel, 
+    void SetUpChannel(melon::Channel* channel,
                       bool single_server,
                       bool short_connection,
-                      const brpc::Authenticator* auth = NULL,
+                      const melon::Authenticator* auth = NULL,
                       std::string connection_group = std::string()) {
-        brpc::ChannelOptions opt;
+        melon::ChannelOptions opt;
         if (short_connection) {
-            opt.connection_type = brpc::CONNECTION_TYPE_SHORT;
+            opt.connection_type = melon::CONNECTION_TYPE_SHORT;
         }
         opt.auth = auth;
         opt.max_retry = 0;
@@ -325,15 +325,15 @@ protected:
         }                                         
     }
     
-    void CallMethod(brpc::ChannelBase* channel, 
-                    brpc::Controller* cntl,
+    void CallMethod(melon::ChannelBase* channel,
+                    melon::Controller* cntl,
                     test::EchoRequest* req, test::EchoResponse* res,
                     bool async, bool destroy = false) {
         google::protobuf::Closure* done = NULL;                     
-        brpc::CallId sync_id = { 0 };
+        melon::CallId sync_id = { 0 };
         if (async) {
             sync_id = cntl->call_id();
-            done = brpc::DoNothing();
+            done = melon::DoNothing();
         }
         ::test::EchoService::Stub(channel).Echo(cntl, req, res, done);
         if (async) {
@@ -345,15 +345,15 @@ protected:
         }
     }
 
-    void CallMethod(brpc::ChannelBase* channel, 
-                    brpc::Controller* cntl,
+    void CallMethod(melon::ChannelBase* channel,
+                    melon::Controller* cntl,
                     test::ComboRequest* req, test::ComboResponse* res,
                     bool async, bool destroy = false) {
         google::protobuf::Closure* done = NULL;
-        brpc::CallId sync_id = { 0 };
+        melon::CallId sync_id = { 0 };
         if (async) {
             sync_id = cntl->call_id();
-            done = brpc::DoNothing();
+            done = melon::DoNothing();
         }
         ::test::EchoService::Stub(channel).ComboEcho(cntl, req, res, done);
         if (async) {
@@ -371,10 +371,10 @@ protected:
                   << " async=" << async
                   << " short=" << short_connection << std::endl;
 
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -390,22 +390,22 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_TRUE(brpc::ETOOMANYFAILS == cntl.ErrorCode() ||
+        EXPECT_TRUE(melon::ETOOMANYFAILS == cntl.ErrorCode() ||
                     ECONNREFUSED == cntl.ErrorCode()) << cntl.ErrorText();
         LOG(INFO) << cntl.ErrorText();
     }
@@ -417,17 +417,17 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         const size_t NCHANS = 8;
-        brpc::SelectiveChannel channel;
-        brpc::ChannelOptions options;
+        melon::SelectiveChannel channel;
+        melon::ChannelOptions options;
         options.max_retry = 0;
         ASSERT_EQ(0, channel.Init("rr", &options));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -446,10 +446,10 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -475,7 +475,7 @@ protected:
         }
         if (single_server && !short_connection) {
             // Reuse the connection
-            brpc::Channel channel2;
+            melon::Channel channel2;
             SetUpChannel(&channel2, single_server, short_connection);
             cntl.Reset();
             req.Clear();
@@ -487,7 +487,7 @@ protected:
             EXPECT_EQ(receiving_socket_id, res.receiving_socket_id());
 
             // A different connection_group does not reuse the connection
-            brpc::Channel channel3;
+            melon::Channel channel3;
             SetUpChannel(&channel3, single_server, short_connection,
                          NULL, "another_group");
             cntl.Reset();
@@ -502,7 +502,7 @@ protected:
 
             // Channel in the same connection_group reuses the connection
             // note that the leading/trailing spaces should be trimed.
-            brpc::Channel channel4;
+            melon::Channel channel4;
             SetUpChannel(&channel4, single_server, short_connection,
                          NULL, " another_group ");
             cntl.Reset();
@@ -517,37 +517,37 @@ protected:
         StopAndJoin();
     }
 
-    class SetCode : public brpc::CallMapper {
+    class SetCode : public melon::CallMapper {
     public:
-        brpc::SubCall Map(
+        melon::SubCall Map(
             int channel_index,
             const google::protobuf::MethodDescriptor* method,
             const google::protobuf::Message* req_base,
             google::protobuf::Message* response) {
-            test::EchoRequest* req = brpc::Clone<test::EchoRequest>(req_base);
+            test::EchoRequest* req = melon::Clone<test::EchoRequest>(req_base);
             req->set_code(channel_index + 1/*non-zero*/);
-            return brpc::SubCall(method, req, response->New(),
-                                brpc::DELETE_REQUEST | brpc::DELETE_RESPONSE);
+            return melon::SubCall(method, req, response->New(),
+                                melon::DELETE_REQUEST | melon::DELETE_RESPONSE);
         }
     };
 
     class SetCodeOnEven : public SetCode {
     public:
-        brpc::SubCall Map(
+        melon::SubCall Map(
             int channel_index,
             const google::protobuf::MethodDescriptor* method,
             const google::protobuf::Message* req_base,
             google::protobuf::Message* response) {
             if (channel_index % 2) {
-                return brpc::SubCall::Skip();
+                return melon::SubCall::Skip();
             }
             return SetCode::Map(channel_index, method, req_base, response);
         }
     };
 
 
-    class GetReqAndAddRes : public brpc::CallMapper {
-        brpc::SubCall Map(
+    class GetReqAndAddRes : public melon::CallMapper {
+        melon::SubCall Map(
             int channel_index,
             const google::protobuf::MethodDescriptor* method,
             const google::protobuf::Message* req_base,
@@ -558,18 +558,18 @@ protected:
             if (method->name() != "ComboEcho" ||
                 res == NULL || req == NULL ||
                 req->requests_size() <= channel_index) {
-                return brpc::SubCall::Bad();
+                return melon::SubCall::Bad();
             }
-            return brpc::SubCall(::test::EchoService::descriptor()->method(0),
+            return melon::SubCall(::test::EchoService::descriptor()->method(0),
                                 &req->requests(channel_index),
                                 res->add_responses(), 0);
         }
     };
 
-    class MergeNothing : public brpc::ResponseMerger {
+    class MergeNothing : public melon::ResponseMerger {
         Result Merge(google::protobuf::Message* /*response*/,
                      const google::protobuf::Message* /*sub_response*/) {
-            return brpc::ResponseMerger::MERGED;
+            return melon::ResponseMerger::MERGED;
         }
     };
 
@@ -580,15 +580,15 @@ protected:
 
         ASSERT_EQ(0, StartAccept(_ep));
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           new SetCode, NULL));
         }
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -626,9 +626,9 @@ protected:
 
         ASSERT_EQ(0, StartAccept(_ep));
         const size_t NCHANS = 8;
-        brpc::Channel* subchan = new DeleteOnlyOnceChannel;
+        melon::Channel* subchan = new DeleteOnlyOnceChannel;
         SetUpChannel(subchan, single_server, short_connection);
-        brpc::ParallelChannel channel;
+        melon::ParallelChannel channel;
         // Share the CallMapper and ResponseMerger should be fine because
         // they're intrusively shared.
         SetCode* set_code = new SetCode;
@@ -636,11 +636,11 @@ protected:
             ASSERT_EQ(0, channel.AddChannel(
                           subchan,
                           // subchan should be deleted (for only once)
-                          ((i % 2) ? brpc::DOESNT_OWN_CHANNEL : brpc::OWNS_CHANNEL),
+                          ((i % 2) ? melon::DOESNT_OWN_CHANNEL : melon::OWNS_CHANNEL),
                           set_code, NULL));
         }
         ASSERT_EQ((int)NCHANS, set_code->ref_count());
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -677,16 +677,16 @@ protected:
 
         const size_t NCHANS = 8;
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::SelectiveChannel channel;
-        brpc::ChannelOptions options;
+        melon::SelectiveChannel channel;
+        melon::ChannelOptions options;
         options.max_retry = 0;
         ASSERT_EQ(0, channel.Init("rr", &options));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -721,15 +721,15 @@ protected:
 
         ASSERT_EQ(0, StartAccept(_ep));
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           new SetCodeOnEven, NULL));
         }
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -770,20 +770,20 @@ protected:
 
         ASSERT_EQ(0, StartAccept(_ep));
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           new GetReqAndAddRes, new MergeNothing));
         }
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::ComboRequest req;
         test::ComboResponse res;
         CallMethod(&channel, &cntl, &req, &res, false);
         ASSERT_TRUE(cntl.Failed()); // req does not have .requests
-        ASSERT_EQ(brpc::EREQUEST, cntl.ErrorCode());
+        ASSERT_EQ(melon::EREQUEST, cntl.ErrorCode());
 
         for (size_t i = 0; i < NCHANS; ++i) {
             ::test::EchoRequest* sub_req = req.add_requests();
@@ -795,7 +795,7 @@ protected:
         cntl.Reset();
         CallMethod(&subchans[0], &cntl, &req, &res, false);
         ASSERT_TRUE(cntl.Failed());
-        ASSERT_EQ(brpc::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
+        ASSERT_EQ(melon::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
         ASSERT_TRUE(butil::StringPiece(cntl.ErrorText()).ends_with("Method ComboEcho() not implemented."));
 
         // do the rpc call.
@@ -826,7 +826,7 @@ protected:
     
     struct CancelerArg {
         int64_t sleep_before_cancel_us;
-        brpc::CallId cid;
+        melon::CallId cid;
     };
 
     static void* Canceler(void* void_arg) {
@@ -835,7 +835,7 @@ protected:
             bthread_usleep(arg->sleep_before_cancel_us);
         }
         LOG(INFO) << "Start to cancel cid=" << arg->cid.value;
-        brpc::StartCancel(arg->cid);
+        melon::StartCancel(arg->cid);
         return NULL;
     }
 
@@ -847,16 +847,16 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
-        brpc::StartCancel(cid);
+        melon::StartCancel(cid);
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(ECANCELED, cntl.ErrorCode()) << cntl.ErrorText();
         StopAndJoin();
@@ -871,22 +871,22 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
-        brpc::StartCancel(cid);
+        melon::StartCancel(cid);
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(ECANCELED, cntl.ErrorCode()) << cntl.ErrorText();
         EXPECT_EQ(NCHANS, (size_t)cntl.sub_count());
@@ -904,21 +904,21 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::SelectiveChannel channel;
+        melon::SelectiveChannel channel;
         ASSERT_EQ(0, channel.Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
-        brpc::StartCancel(cid);
+        melon::StartCancel(cid);
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(ECANCELED, cntl.ErrorCode()) << cntl.ErrorText();
         StopAndJoin();
@@ -931,14 +931,14 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
         pthread_t th;
         CancelerArg carg = { 10000, cid };
@@ -966,20 +966,20 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
         pthread_t th;
         CancelerArg carg = { 10000, cid };
@@ -1009,19 +1009,19 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::SelectiveChannel channel;
+        melon::SelectiveChannel channel;
         ASSERT_EQ(0, channel.Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
         pthread_t th;
         CancelerArg carg = { 10000, cid };
@@ -1046,14 +1046,14 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(0, cntl.ErrorCode());
@@ -1071,20 +1071,20 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        const brpc::CallId cid = cntl.call_id();
+        const melon::CallId cid = cntl.call_id();
         ASSERT_TRUE(cid.value != 0);
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(0, cntl.ErrorCode());
@@ -1098,10 +1098,10 @@ protected:
 
     void TestAttachment(bool async, bool short_connection) {
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, true, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.request_attachment().append("attachment");
         test::EchoRequest req;
         test::EchoResponse res;
@@ -1131,14 +1131,14 @@ protected:
                   << " async=" << async
                   << " short=" << short_connection << std::endl;
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         CallMethod(&channel, &cntl, &req, &res, async);
-        EXPECT_EQ(brpc::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
         StopAndJoin();
     }
 
@@ -1150,20 +1150,20 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
         
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         CallMethod(&channel, &cntl, &req, &res, async);
-        EXPECT_EQ(brpc::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
         LOG(WARNING) << cntl.ErrorText();
         StopAndJoin();
     }
@@ -1176,22 +1176,22 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::SelectiveChannel channel;
+        melon::SelectiveChannel channel;
         ASSERT_EQ(0, channel.Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
         
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         CallMethod(&channel, &cntl, &req, &res, async);
-        EXPECT_EQ(brpc::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
         LOG(WARNING) << cntl.ErrorText();
         ASSERT_EQ(1, cntl.sub_count());
-        ASSERT_EQ(brpc::EREQUEST, cntl.sub(0)->ErrorCode());
+        ASSERT_EQ(melon::EREQUEST, cntl.sub(0)->ErrorCode());
         StopAndJoin();
     }
     
@@ -1200,10 +1200,10 @@ protected:
                   << " async=" << async
                   << " short=" << short_connection << std::endl;
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -1213,7 +1213,7 @@ protected:
         tm.start();
         CallMethod(&channel, &cntl, &req, &res, async);
         tm.stop();
-        EXPECT_EQ(brpc::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
         EXPECT_LT(labs(tm.m_elapsed() - cntl.timeout_ms()), 15);
         StopAndJoin();
     }
@@ -1226,16 +1226,16 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
         
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -1245,7 +1245,7 @@ protected:
         tm.start();
         CallMethod(&channel, &cntl, &req, &res, async);
         tm.stop();
-        EXPECT_EQ(brpc::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
         EXPECT_EQ(NCHANS, (size_t)cntl.sub_count());
         for (int i = 0; i < cntl.sub_count(); ++i) {
             EXPECT_EQ(ECANCELED, cntl.sub(i)->ErrorCode()) << "i=" << i;
@@ -1254,17 +1254,17 @@ protected:
         StopAndJoin();
     }
 
-    class MakeTheRequestTimeout : public brpc::CallMapper {
+    class MakeTheRequestTimeout : public melon::CallMapper {
     public:
-        brpc::SubCall Map(
+        melon::SubCall Map(
             int /*channel_index*/,
             const google::protobuf::MethodDescriptor* method,
             const google::protobuf::Message* req_base,
             google::protobuf::Message* response) {
-            test::EchoRequest* req = brpc::Clone<test::EchoRequest>(req_base);
+            test::EchoRequest* req = melon::Clone<test::EchoRequest>(req_base);
             req->set_sleep_us(70000); // 70ms
-            return brpc::SubCall(method, req, response->New(),
-                                brpc::DELETE_REQUEST | brpc::DELETE_RESPONSE);
+            return melon::SubCall(method, req, response->New(),
+                                melon::DELETE_REQUEST | melon::DELETE_RESPONSE);
         }
     };
 
@@ -1276,16 +1276,16 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
         
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           ((i % 2) ? new MakeTheRequestTimeout : NULL), NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -1315,15 +1315,15 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::SelectiveChannel channel;
+        melon::SelectiveChannel channel;
         ASSERT_EQ(0, channel.Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -1333,9 +1333,9 @@ protected:
         tm.start();
         CallMethod(&channel, &cntl, &req, &res, async);
         tm.stop();
-        EXPECT_EQ(brpc::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
         EXPECT_EQ(1, cntl.sub_count());
-        EXPECT_EQ(brpc::ERPCTIMEDOUT, cntl.sub(0)->ErrorCode());
+        EXPECT_EQ(melon::ERPCTIMEDOUT, cntl.sub(0)->ErrorCode());
         EXPECT_LT(labs(tm.m_elapsed() - cntl.timeout_ms()), 15);
         EXPECT_EQ(-1, cntl.sub(0)->_timeout_ms);
         EXPECT_EQ(17, cntl.sub(0)->_real_timeout_ms);
@@ -1348,17 +1348,17 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
         req.set_close_fd(true);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_EQ(brpc::EEOF, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EEOF, cntl.ErrorCode()) << cntl.ErrorText();
         StopAndJoin();
     }
 
@@ -1370,24 +1370,24 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
         req.set_close_fd(true);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_TRUE(brpc::EEOF == cntl.ErrorCode() ||
-                    brpc::ETOOMANYFAILS == cntl.ErrorCode() ||
+        EXPECT_TRUE(melon::EEOF == cntl.ErrorCode() ||
+                    melon::ETOOMANYFAILS == cntl.ErrorCode() ||
                     ECONNRESET == cntl.ErrorCode()) << cntl.ErrorText();
         StopAndJoin();
     }
@@ -1400,26 +1400,26 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::SelectiveChannel channel;
-        brpc::ChannelOptions options;
+        melon::SelectiveChannel channel;
+        melon::ChannelOptions options;
         options.max_retry = 0;
         ASSERT_EQ(0, channel.Init("rr", &options));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
         req.set_close_fd(true);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_EQ(brpc::EEOF, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EEOF, cntl.ErrorCode()) << cntl.ErrorText();
         ASSERT_EQ(1, cntl.sub_count());
-        ASSERT_EQ(brpc::EEOF, cntl.sub(0)->ErrorCode());
+        ASSERT_EQ(melon::EEOF, cntl.sub(0)->ErrorCode());
 
         StopAndJoin();
     }
@@ -1430,17 +1430,17 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        req.set_server_fail(brpc::EINTERNAL);
+        req.set_server_fail(melon::EINTERNAL);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_EQ(brpc::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
         StopAndJoin();
     }
 
@@ -1452,23 +1452,23 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 8;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (size_t i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        req.set_server_fail(brpc::EINTERNAL);
+        req.set_server_fail(melon::EINTERNAL);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_EQ(brpc::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
         LOG(INFO) << cntl.ErrorText();
         StopAndJoin();
     }
@@ -1481,24 +1481,24 @@ protected:
         ASSERT_EQ(0, StartAccept(_ep));
 
         const size_t NCHANS = 5;
-        brpc::SelectiveChannel channel;
+        melon::SelectiveChannel channel;
         ASSERT_EQ(0, channel.Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
-        req.set_server_fail(brpc::EINTERNAL);
+        req.set_server_fail(melon::EINTERNAL);
         CallMethod(&channel, &cntl, &req, &res, async);
         
-        EXPECT_EQ(brpc::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
         ASSERT_EQ(1, cntl.sub_count());
-        ASSERT_EQ(brpc::EINTERNAL, cntl.sub(0)->ErrorCode());
+        ASSERT_EQ(melon::EINTERNAL, cntl.sub(0)->ErrorCode());
 
         LOG(INFO) << cntl.ErrorText();
         StopAndJoin();
@@ -1509,10 +1509,10 @@ protected:
                   << ", short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel* channel = new brpc::Channel();
+        melon::Channel* channel = new melon::Channel();
         SetUpChannel(channel, single_server, short_connection);
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -1537,15 +1537,15 @@ protected:
 
         const size_t NCHANS = 5;
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::ParallelChannel* channel = new brpc::ParallelChannel;
+        melon::ParallelChannel* channel = new melon::ParallelChannel;
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel();
+            melon::Channel* subchan = new melon::Channel();
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel->AddChannel(
-                          subchan, brpc::OWNS_CHANNEL, NULL, NULL));
+                          subchan, melon::OWNS_CHANNEL, NULL, NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_sleep_us(10000);
@@ -1569,15 +1569,15 @@ protected:
 
         const size_t NCHANS = 5;
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::SelectiveChannel* channel = new brpc::SelectiveChannel;
+        melon::SelectiveChannel* channel = new melon::SelectiveChannel;
         ASSERT_EQ(0, channel->Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel();
+            melon::Channel* subchan = new melon::Channel();
             SetUpChannel(subchan, single_server, short_connection);
             ASSERT_EQ(0, channel->AddChannel(subchan, NULL));
         }
                 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_sleep_us(10000);
@@ -1599,8 +1599,8 @@ protected:
         StopAndJoin();
     }
 
-    void RPCThread(brpc::ChannelBase* channel, bool async) {
-        brpc::Controller cntl;
+    void RPCThread(melon::ChannelBase* channel, bool async) {
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(__FUNCTION__);
@@ -1610,8 +1610,8 @@ protected:
         EXPECT_EQ("received " + std::string(__FUNCTION__), res.message());
     }
 
-    void RPCThread(brpc::ChannelBase* channel, bool async, int count) {
-        brpc::Controller cntl;
+    void RPCThread(melon::ChannelBase* channel, bool async, int count) {
+        melon::Controller cntl;
         for (int i = 0; i < count; ++i) {
             test::EchoRequest req;
             test::EchoResponse res;
@@ -1625,10 +1625,10 @@ protected:
     }
 
     void RPCThread(bool single_server, bool async, bool short_connection,
-                   const brpc::Authenticator* auth, int count) {
-        brpc::Channel channel;
+                   const melon::Authenticator* auth, int count) {
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection, auth);
-        brpc::Controller cntl;
+        melon::Controller cntl;
         for (int i = 0; i < count; ++i) {
             test::EchoRequest req;
             test::EchoResponse res;
@@ -1649,15 +1649,15 @@ protected:
 
         ASSERT_EQ(0, StartAccept(_ep));
         MyAuthenticator auth;
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection, &auth);
 
         const int NUM = 10;
         pthread_t tids[NUM];
         for (int i = 0; i < NUM; ++i) {
             google::protobuf::Closure* thrd_func = 
-                brpc::NewCallback(
-                    this, &ChannelTest::RPCThread, (brpc::ChannelBase*)&channel, async);
+                melon::NewCallback(
+                    this, &ChannelTest::RPCThread, (melon::ChannelBase*)&channel, async);
             EXPECT_EQ(0, pthread_create(&tids[i], NULL,
                                         RunClosure, thrd_func));
         }
@@ -1683,12 +1683,12 @@ protected:
         MyAuthenticator auth;
 
         const int NCHANS = 5;
-        brpc::Channel subchans[NCHANS];
-        brpc::ParallelChannel channel;
+        melon::Channel subchans[NCHANS];
+        melon::ParallelChannel channel;
         for (int i = 0; i < NCHANS; ++i) {
             SetUpChannel(&subchans[i], single_server, short_connection, &auth);
             ASSERT_EQ(0, channel.AddChannel(
-                          &subchans[i], brpc::DOESNT_OWN_CHANNEL,
+                          &subchans[i], melon::DOESNT_OWN_CHANNEL,
                           NULL, NULL));
         }
         
@@ -1696,8 +1696,8 @@ protected:
         pthread_t tids[NUM];
         for (int i = 0; i < NUM; ++i) {
             google::protobuf::Closure* thrd_func = 
-                brpc::NewCallback(
-                    this, &ChannelTest::RPCThread, (brpc::ChannelBase*)&channel, async);
+                melon::NewCallback(
+                    this, &ChannelTest::RPCThread, (melon::ChannelBase*)&channel, async);
             EXPECT_EQ(0, pthread_create(&tids[i], NULL,
                                         RunClosure, thrd_func));
         }
@@ -1723,10 +1723,10 @@ protected:
         MyAuthenticator auth;
 
         const size_t NCHANS = 5;
-        brpc::SelectiveChannel channel;
+        melon::SelectiveChannel channel;
         ASSERT_EQ(0, channel.Init("rr", NULL));
         for (size_t i = 0; i < NCHANS; ++i) {
-            brpc::Channel* subchan = new brpc::Channel;
+            melon::Channel* subchan = new melon::Channel;
             SetUpChannel(subchan, single_server, short_connection, &auth);
             ASSERT_EQ(0, channel.AddChannel(subchan, NULL)) << "i=" << i;
         }
@@ -1735,8 +1735,8 @@ protected:
         pthread_t tids[NUM];
         for (int i = 0; i < NUM; ++i) {
             google::protobuf::Closure* thrd_func = 
-                brpc::NewCallback(
-                    this, &ChannelTest::RPCThread, (brpc::ChannelBase*)&channel, async);
+                melon::NewCallback(
+                    this, &ChannelTest::RPCThread, (melon::ChannelBase*)&channel, async);
             EXPECT_EQ(0, pthread_create(&tids[i], NULL,
                                         RunClosure, thrd_func));
         }
@@ -1758,13 +1758,13 @@ protected:
                   << " short=" << short_connection << std::endl;
 
         ASSERT_EQ(0, StartAccept(_ep));
-        brpc::Channel channel;
+        melon::Channel channel;
         SetUpChannel(&channel, single_server, short_connection);
 
         const int RETRY_NUM = 3;
         test::EchoRequest req;
         test::EchoResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         req.set_message(__FUNCTION__);
 
         // No retry when timeout
@@ -1772,7 +1772,7 @@ protected:
         cntl.set_timeout_ms(10);  // 10ms
         req.set_sleep_us(70000); // 70ms
         CallMethod(&channel, &cntl, &req, &res, async);
-        EXPECT_EQ(brpc::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
+        EXPECT_EQ(melon::ERPCTIMEDOUT, cntl.ErrorCode()) << cntl.ErrorText();
         EXPECT_EQ(0, cntl.retried_count());
         bthread_usleep(100000);  // wait for the sleep task to finish
 
@@ -1816,11 +1816,11 @@ protected:
     void TestRetryOtherServer(bool async, bool short_connection) {
         ASSERT_EQ(0, StartAccept(_ep));
 
-        brpc::Channel channel;
-        brpc::ChannelOptions opt;
+        melon::Channel channel;
+        melon::ChannelOptions opt;
         opt.timeout_ms = 1000;
         if (short_connection) {
-            opt.connection_type = brpc::CONNECTION_TYPE_SHORT;
+            opt.connection_type = melon::CONNECTION_TYPE_SHORT;
         }
         butil::TempFile server_list;                                        
         EXPECT_EQ(0, server_list.save_format(
@@ -1834,7 +1834,7 @@ protected:
         const int RETRY_NUM = 3;
         test::EchoRequest req;
         test::EchoResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         req.set_message(__FUNCTION__);
         cntl.set_max_retry(RETRY_NUM);
         CallMethod(&channel, &cntl, &req, &res, async);
@@ -1872,26 +1872,26 @@ protected:
 
         const int32_t backoff_time_ms = 100;
         const int32_t no_backoff_remaining_rpc_time_ms = 100;
-        std::unique_ptr<brpc::RetryPolicy> retry_ptr;
+        std::unique_ptr<melon::RetryPolicy> retry_ptr;
         if (fixed_backoff) {
             retry_ptr.reset(
-                    new brpc::RpcRetryPolicyWithFixedBackoff(backoff_time_ms,
+                    new melon::RpcRetryPolicyWithFixedBackoff(backoff_time_ms,
                                                              no_backoff_remaining_rpc_time_ms,
                                                              retry_backoff_in_pthread));
         } else {
             retry_ptr.reset(
-                    new brpc::RpcRetryPolicyWithJitteredBackoff(backoff_time_ms,
+                    new melon::RpcRetryPolicyWithJitteredBackoff(backoff_time_ms,
                                                                 backoff_time_ms + 20,
                                                                 no_backoff_remaining_rpc_time_ms,
                                                                 retry_backoff_in_pthread));
         }
 
-        brpc::Channel channel;
-        brpc::ChannelOptions opt;
+        melon::Channel channel;
+        melon::ChannelOptions opt;
         opt.timeout_ms = 1000;
         opt.retry_policy = retry_ptr.get();
         if (short_connection) {
-            opt.connection_type = brpc::CONNECTION_TYPE_SHORT;
+            opt.connection_type = melon::CONNECTION_TYPE_SHORT;
         }
         butil::TempFile server_list;
         EXPECT_EQ(0, server_list.save_format(
@@ -1905,7 +1905,7 @@ protected:
         const int RETRY_NUM = 3;
         test::EchoRequest req;
         test::EchoResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         req.set_message(__FUNCTION__);
         cntl.set_max_retry(RETRY_NUM);
         CallMethod(&channel, &cntl, &req, &res, async);
@@ -1922,9 +1922,9 @@ protected:
     butil::TempFile _server_list;                                        
     std::string _naming_url;
     
-    brpc::Acceptor _messenger;
+    melon::Acceptor _messenger;
     // Dummy server for `Server::AddError'
-    brpc::Server _dummy;
+    melon::Server _dummy;
     std::string _mock_fail_str;
 
     bool _close_fd_once;
@@ -1932,10 +1932,10 @@ protected:
     MyEchoService _svc;
 };
 
-class MyShared : public brpc::SharedObject {
+class MyShared : public melon::SharedObject {
 public:
     MyShared() { ++ nctor; }
-    MyShared(const MyShared&) : brpc::SharedObject() { ++ nctor; }
+    MyShared(const MyShared&) : melon::SharedObject() { ++ nctor; }
     ~MyShared() override { ++ ndtor; }
 
     static int nctor;
@@ -1965,31 +1965,31 @@ TEST_F(ChannelTest, intrusive_ptr_sanity) {
 
 TEST_F(ChannelTest, init_as_single_server) {
     {
-        brpc::Channel channel;
+        melon::Channel channel;
         ASSERT_EQ(-1, channel.Init("127.0.0.1:12345:asdf", NULL));
         ASSERT_EQ(-1, channel.Init("127.0.0.1:99999", NULL)); 
         ASSERT_EQ(0, channel.Init("127.0.0.1:8888", NULL));
     }
     {
-        brpc::Channel channel;
+        melon::Channel channel;
         ASSERT_EQ(-1, channel.Init("127.0.0.1asdf", 12345, NULL));
         ASSERT_EQ(-1, channel.Init("127.0.0.1", 99999, NULL));
         ASSERT_EQ(0, channel.Init("127.0.0.1", 8888, NULL));
     }
 
     butil::EndPoint ep;
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8888", &ep));
     ASSERT_EQ(0, channel.Init(ep, NULL));
     ASSERT_TRUE(channel.SingleServer());
     ASSERT_EQ(ep, channel._server_address);
 
-    brpc::SocketId id;
-    ASSERT_EQ(0, brpc::SocketMapFind(brpc::SocketMapKey(ep), &id));
+    melon::SocketId id;
+    ASSERT_EQ(0, melon::SocketMapFind(melon::SocketMapKey(ep), &id));
     ASSERT_EQ(id, channel._server_id);
 
     const int NUM = 10;
-    brpc::Channel channels[NUM];
+    melon::Channel channels[NUM];
     for (int i = 0; i < 10; ++i) {
         ASSERT_EQ(0, channels[i].Init(ep, NULL));
         // Share the same server socket
@@ -1998,19 +1998,19 @@ TEST_F(ChannelTest, init_as_single_server) {
 }
 
 TEST_F(ChannelTest, init_using_unknown_naming_service) {
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(-1, channel.Init("unknown://unknown", "unknown", NULL));
 }
 
 TEST_F(ChannelTest, init_using_unexist_fns) {
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(-1, channel.Init("fiLe://no_such_file", "rr", NULL));
 }
 
 TEST_F(ChannelTest, init_using_empty_fns) {
-    brpc::ChannelOptions opt;
+    melon::ChannelOptions opt;
     opt.succeed_without_server = false;
-    brpc::Channel channel;
+    melon::Channel channel;
     butil::TempFile server_list;
     ASSERT_EQ(0, server_list.save(""));
     std::string naming_url = std::string("file://") + server_list.fname();
@@ -2023,16 +2023,16 @@ TEST_F(ChannelTest, init_using_empty_fns) {
 }
 
 TEST_F(ChannelTest, init_using_empty_lns) {
-    brpc::ChannelOptions opt;
+    melon::ChannelOptions opt;
     opt.succeed_without_server = false;
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(-1, channel.Init("list:// ", "rr", &opt));
     ASSERT_EQ(-1, channel.Init("list://", "rr", &opt));
     ASSERT_EQ(-1, channel.Init("list://blahblah", "rr", &opt)); 
 }
 
 TEST_F(ChannelTest, init_using_naming_service) {
-    brpc::Channel* channel = new brpc::Channel();
+    melon::Channel* channel = new melon::Channel();
     butil::TempFile server_list;
     ASSERT_EQ(0, server_list.save("127.0.0.1:8888"));
     std::string naming_url = std::string("filE://") + server_list.fname();
@@ -2040,19 +2040,19 @@ TEST_F(ChannelTest, init_using_naming_service) {
     ASSERT_EQ(0, channel->Init(naming_url.c_str(), "Rr", NULL));
     ASSERT_FALSE(channel->SingleServer());
 
-    brpc::LoadBalancerWithNaming* lb =
-        dynamic_cast<brpc::LoadBalancerWithNaming*>(channel->_lb.get());
+    melon::LoadBalancerWithNaming* lb =
+        dynamic_cast<melon::LoadBalancerWithNaming*>(channel->_lb.get());
     ASSERT_TRUE(lb != NULL);
-    brpc::NamingServiceThread* ns = lb->_nsthread_ptr.get();
+    melon::NamingServiceThread* ns = lb->_nsthread_ptr.get();
 
     {
         const int NUM = 10;
-        brpc::Channel channels[NUM];
+        melon::Channel channels[NUM];
         for (int i = 0; i < NUM; ++i) {
             // Share the same naming thread
             ASSERT_EQ(0, channels[i].Init(naming_url.c_str(), "rr", NULL));
-            brpc::LoadBalancerWithNaming* lb2 =
-                dynamic_cast<brpc::LoadBalancerWithNaming*>(channels[i]._lb.get());
+            melon::LoadBalancerWithNaming* lb2 =
+                dynamic_cast<melon::LoadBalancerWithNaming*>(channels[i]._lb.get());
             ASSERT_TRUE(lb2 != NULL);
             ASSERT_EQ(ns, lb2->_nsthread_ptr.get());
         }
@@ -2060,7 +2060,7 @@ TEST_F(ChannelTest, init_using_naming_service) {
 
     // `lb' should be valid even if `channel' has destroyed
     // since we hold another reference to it
-    butil::intrusive_ptr<brpc::SharedLoadBalancer>
+    butil::intrusive_ptr<melon::SharedLoadBalancer>
         another_ctx = channel->_lb;
     delete channel;
     ASSERT_EQ(lb, another_ctx.get());
@@ -2069,10 +2069,10 @@ TEST_F(ChannelTest, init_using_naming_service) {
 }
 
 TEST_F(ChannelTest, parse_hostname) {
-    brpc::ChannelOptions opt;
+    melon::ChannelOptions opt;
     opt.succeed_without_server = false;
-    opt.protocol = brpc::PROTOCOL_HTTP;
-    brpc::Channel channel;
+    opt.protocol = melon::PROTOCOL_HTTP;
+    melon::Channel channel;
 
     ASSERT_EQ(-1, channel.Init("", 8888, &opt));
     ASSERT_EQ("", channel._service_name);
@@ -2138,7 +2138,7 @@ TEST_F(ChannelTest, parse_hostname) {
         }
         fclose(fp);
     }
-    brpc::Channel ns_channel;
+    melon::Channel ns_channel;
     std::string ns = std::string("file://") + tmp_file.fname();
     ASSERT_EQ(0, ns_channel.Init(ns.c_str(), "rr", &opt));
     ASSERT_EQ(tmp_file.fname(), ns_channel._service_name);
@@ -2155,9 +2155,9 @@ TEST_F(ChannelTest, connection_failed) {
 }
 
 TEST_F(ChannelTest, empty_parallel_channel) {
-    brpc::ParallelChannel channel;
+    melon::ParallelChannel channel;
 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message(__FUNCTION__);
@@ -2166,10 +2166,10 @@ TEST_F(ChannelTest, empty_parallel_channel) {
 }
 
 TEST_F(ChannelTest, empty_selective_channel) {
-    brpc::SelectiveChannel channel;
+    melon::SelectiveChannel channel;
     ASSERT_EQ(0, channel.Init("rr", NULL));
 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message(__FUNCTION__);
@@ -2177,53 +2177,53 @@ TEST_F(ChannelTest, empty_selective_channel) {
     EXPECT_EQ(ENODATA, cntl.ErrorCode()) << cntl.ErrorText();
 }
 
-class BadCall : public brpc::CallMapper {
-    brpc::SubCall Map(int,
+class BadCall : public melon::CallMapper {
+    melon::SubCall Map(int,
                      const google::protobuf::MethodDescriptor*,
                      const google::protobuf::Message*,
                      google::protobuf::Message*) {
-        return brpc::SubCall::Bad();
+        return melon::SubCall::Bad();
     }
 };
 
 TEST_F(ChannelTest, returns_bad_parallel) {
     const size_t NCHANS = 5;
-    brpc::ParallelChannel channel;
+    melon::ParallelChannel channel;
     for (size_t i = 0; i < NCHANS; ++i) {
-        brpc::Channel* subchan = new brpc::Channel();
+        melon::Channel* subchan = new melon::Channel();
         SetUpChannel(subchan, true, false);
         ASSERT_EQ(0, channel.AddChannel(
-                      subchan, brpc::OWNS_CHANNEL, new BadCall, NULL));
+                      subchan, melon::OWNS_CHANNEL, new BadCall, NULL));
     }
                 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message(__FUNCTION__);
     CallMethod(&channel, &cntl, &req, &res, false);
-    EXPECT_EQ(brpc::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
+    EXPECT_EQ(melon::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
 }
 
-class SkipCall : public brpc::CallMapper {
-    brpc::SubCall Map(int,
+class SkipCall : public melon::CallMapper {
+    melon::SubCall Map(int,
                      const google::protobuf::MethodDescriptor*,
                      const google::protobuf::Message*,
                      google::protobuf::Message*) {
-        return brpc::SubCall::Skip();
+        return melon::SubCall::Skip();
     }
 };
 
 TEST_F(ChannelTest, skip_all_channels) {
     const size_t NCHANS = 5;
-    brpc::ParallelChannel channel;
+    melon::ParallelChannel channel;
     for (size_t i = 0; i < NCHANS; ++i) {
-        brpc::Channel* subchan = new brpc::Channel();
+        melon::Channel* subchan = new melon::Channel();
         SetUpChannel(subchan, true, false);
         ASSERT_EQ(0, channel.AddChannel(
-                      subchan, brpc::OWNS_CHANNEL, new SkipCall, NULL));
+                      subchan, melon::OWNS_CHANNEL, new SkipCall, NULL));
     }
                 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message(__FUNCTION__);
@@ -2614,14 +2614,14 @@ TEST_F(ChannelTest, multiple_threads_single_channel) {
                           << " single=" << single_server
                           << " auth=" << need_auth
                           << " async=" << async << std::endl;
-                brpc::Channel channel;
+                melon::Channel channel;
                 SetUpChannel(&channel, single_server, 
                              short_connection, (need_auth ? &auth : NULL));
                 for (int i = 0; i < NUM; ++i) {
                     google::protobuf::Closure* thrd_func = 
-                        brpc::NewCallback(
+                        melon::NewCallback(
                             this, &ChannelTest::RPCThread, 
-                            (brpc::ChannelBase*)&channel,
+                            (melon::ChannelBase*)&channel,
                             (bool)async, COUNT);
                     EXPECT_EQ(0, pthread_create(&tids[i], NULL,
                                                 RunClosure, thrd_func));
@@ -2654,9 +2654,9 @@ TEST_F(ChannelTest, multiple_threads_multiple_channels) {
                           << " async=" << async << std::endl;
                 for (int i = 0; i < NUM; ++i) {
                     google::protobuf::Closure* thrd_func = 
-                        brpc::NewCallback<
+                        melon::NewCallback<
                         ChannelTest, ChannelTest*,
-                        bool, bool, bool, const brpc::Authenticator*, int>
+                        bool, bool, bool, const melon::Authenticator*, int>
                         (this, &ChannelTest::RPCThread, single_server,
                          async, short_connection, (need_auth ? &auth : NULL), COUNT);
                     EXPECT_EQ(0, pthread_create(&tids[i], NULL,
@@ -2703,13 +2703,13 @@ TEST_F(ChannelTest, destroy_channel_selective) {
 }
 
 TEST_F(ChannelTest, sizeof) {
-    LOG(INFO) << "Size of Channel is " << sizeof(brpc::Channel)
-               << ", Size of ParallelChannel is " << sizeof(brpc::ParallelChannel)
-               << ", Size of Controller is " << sizeof(brpc::Controller)
-               << ", Size of vector is " << sizeof(std::vector<brpc::Controller>);
+    LOG(INFO) << "Size of Channel is " << sizeof(melon::Channel)
+               << ", Size of ParallelChannel is " << sizeof(melon::ParallelChannel)
+               << ", Size of Controller is " << sizeof(melon::Controller)
+               << ", Size of vector is " << sizeof(std::vector<melon::Controller>);
 }
 
-brpc::Channel g_chan;
+melon::Channel g_chan;
 
 TEST_F(ChannelTest, global_channel_should_quit_successfully) {
     g_chan.Init("bns://qa-pbrpc.SAT.tjyx", "rr", NULL);
@@ -2717,22 +2717,22 @@ TEST_F(ChannelTest, global_channel_should_quit_successfully) {
 
 TEST_F(ChannelTest, unused_call_id) {
     {
-        brpc::Controller cntl;
+        melon::Controller cntl;
     }
     {
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.Reset();
     }
-    brpc::CallId cid1 = { 0 };
+    melon::CallId cid1 = { 0 };
     {
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cid1 = cntl.call_id();
     }
     ASSERT_EQ(EINVAL, bthread_id_error(cid1, ECANCELED));
 
     {
-        brpc::CallId cid2 = { 0 };
-        brpc::Controller cntl;
+        melon::CallId cid2 = { 0 };
+        melon::Controller cntl;
         cid2 = cntl.call_id();
         cntl.Reset();
         ASSERT_EQ(EINVAL, bthread_id_error(cid2, ECANCELED));
@@ -2740,72 +2740,72 @@ TEST_F(ChannelTest, unused_call_id) {
 }
 
 TEST_F(ChannelTest, adaptive_connection_type) {
-    brpc::AdaptiveConnectionType ctype;
-    ASSERT_EQ(brpc::CONNECTION_TYPE_UNKNOWN, ctype);
+    melon::AdaptiveConnectionType ctype;
+    ASSERT_EQ(melon::CONNECTION_TYPE_UNKNOWN, ctype);
     ASSERT_FALSE(ctype.has_error());
     ASSERT_STREQ("unknown", ctype.name());
 
-    ctype = brpc::CONNECTION_TYPE_SINGLE;
-    ASSERT_EQ(brpc::CONNECTION_TYPE_SINGLE, ctype);
+    ctype = melon::CONNECTION_TYPE_SINGLE;
+    ASSERT_EQ(melon::CONNECTION_TYPE_SINGLE, ctype);
     ASSERT_STREQ("single", ctype.name());
 
     ctype = "shorT";
-    ASSERT_EQ(brpc::CONNECTION_TYPE_SHORT, ctype);
+    ASSERT_EQ(melon::CONNECTION_TYPE_SHORT, ctype);
     ASSERT_STREQ("short", ctype.name());
     
     ctype = "PooLed";
-    ASSERT_EQ(brpc::CONNECTION_TYPE_POOLED, ctype);
+    ASSERT_EQ(melon::CONNECTION_TYPE_POOLED, ctype);
     ASSERT_STREQ("pooled", ctype.name());
 
     ctype = "SINGLE";
-    ASSERT_EQ(brpc::CONNECTION_TYPE_SINGLE, ctype);
+    ASSERT_EQ(melon::CONNECTION_TYPE_SINGLE, ctype);
     ASSERT_FALSE(ctype.has_error());
     ASSERT_STREQ("single", ctype.name());
 
     ctype = "blah";
-    ASSERT_EQ(brpc::CONNECTION_TYPE_UNKNOWN, ctype);
+    ASSERT_EQ(melon::CONNECTION_TYPE_UNKNOWN, ctype);
     ASSERT_TRUE(ctype.has_error());
     ASSERT_STREQ("unknown", ctype.name());
 
     ctype = "single";
-    ASSERT_EQ(brpc::CONNECTION_TYPE_SINGLE, ctype);
+    ASSERT_EQ(melon::CONNECTION_TYPE_SINGLE, ctype);
     ASSERT_FALSE(ctype.has_error());
     ASSERT_STREQ("single", ctype.name());
 }
 
 TEST_F(ChannelTest, adaptive_protocol_type) {
-    brpc::AdaptiveProtocolType ptype;
-    ASSERT_EQ(brpc::PROTOCOL_UNKNOWN, ptype);
+    melon::AdaptiveProtocolType ptype;
+    ASSERT_EQ(melon::PROTOCOL_UNKNOWN, ptype);
     ASSERT_STREQ("unknown", ptype.name());
     ASSERT_FALSE(ptype.has_param());
     ASSERT_EQ("", ptype.param());
 
-    ptype = brpc::PROTOCOL_HTTP;
-    ASSERT_EQ(brpc::PROTOCOL_HTTP, ptype);
+    ptype = melon::PROTOCOL_HTTP;
+    ASSERT_EQ(melon::PROTOCOL_HTTP, ptype);
     ASSERT_STREQ("http", ptype.name());
     ASSERT_FALSE(ptype.has_param());
     ASSERT_EQ("", ptype.param());
 
     ptype = "http:xyz ";
-    ASSERT_EQ(brpc::PROTOCOL_HTTP, ptype);
+    ASSERT_EQ(melon::PROTOCOL_HTTP, ptype);
     ASSERT_STREQ("http", ptype.name());
     ASSERT_TRUE(ptype.has_param());
     ASSERT_EQ("xyz ", ptype.param());
 
     ptype = "HuLu_pbRPC";
-    ASSERT_EQ(brpc::PROTOCOL_HULU_PBRPC, ptype);
+    ASSERT_EQ(melon::PROTOCOL_HULU_PBRPC, ptype);
     ASSERT_STREQ("hulu_pbrpc", ptype.name());
     ASSERT_FALSE(ptype.has_param());
     ASSERT_EQ("", ptype.param());
     
     ptype = "blah";
-    ASSERT_EQ(brpc::PROTOCOL_UNKNOWN, ptype);
+    ASSERT_EQ(melon::PROTOCOL_UNKNOWN, ptype);
     ASSERT_STREQ("blah", ptype.name());
     ASSERT_FALSE(ptype.has_param());
     ASSERT_EQ("", ptype.param());
 
     ptype = "Baidu_STD";
-    ASSERT_EQ(brpc::PROTOCOL_BAIDU_STD, ptype);
+    ASSERT_EQ(melon::PROTOCOL_BAIDU_STD, ptype);
     ASSERT_STREQ("baidu_std", ptype.name());
     ASSERT_FALSE(ptype.has_param());
     ASSERT_EQ("", ptype.param());

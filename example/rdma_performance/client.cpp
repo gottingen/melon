@@ -101,19 +101,19 @@ public:
     inline bool IsStop() { return _stop; }
 
     int Init() {
-        brpc::ChannelOptions options;
+        melon::ChannelOptions options;
         options.use_rdma = FLAGS_use_rdma;
         options.protocol = FLAGS_protocol;
         options.connection_type = FLAGS_connection_type;
         options.timeout_ms = FLAGS_rpc_timeout_ms;
         options.max_retry = 0;
         std::string server = g_servers[(rr_index++) % g_servers.size()];
-        _channel = new brpc::Channel();
+        _channel = new melon::Channel();
         if (_channel->Init(server.c_str(), &options) != 0) {
             LOG(ERROR) << "Fail to initialize channel";
             return -1;
         }
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::PerfTestResponse response;
         test::PerfTestRequest request;
         request.set_echo_attachment(_echo_attachment);
@@ -127,7 +127,7 @@ public:
     }
 
     struct RespClosure {
-        brpc::Controller* cntl;
+        melon::Controller* cntl;
         test::PerfTestResponse* resp;
         PerformanceTest* test;
     };
@@ -142,17 +142,17 @@ public:
         RespClosure* closure = new RespClosure;
         test::PerfTestRequest request;
         closure->resp = new test::PerfTestResponse();
-        closure->cntl = new brpc::Controller();
+        closure->cntl = new melon::Controller();
         request.set_echo_attachment(_echo_attachment);
         closure->cntl->request_attachment().append(_attachment);
         closure->test = this;
-        google::protobuf::Closure* done = brpc::NewCallback(&HandleResponse, closure);
+        google::protobuf::Closure* done = melon::NewCallback(&HandleResponse, closure);
         test::PerfTestService_Stub stub(_channel);
         stub.Test(closure->cntl, &request, closure->resp, done);
     }
 
     static void HandleResponse(RespClosure* closure) {
-        std::unique_ptr<brpc::Controller> cntl_guard(closure->cntl);
+        std::unique_ptr<melon::Controller> cntl_guard(closure->cntl);
         std::unique_ptr<test::PerfTestResponse> response_guard(closure->resp);
         if (closure->cntl->Failed()) {
             LOG(ERROR) << "RPC call failed: " << closure->cntl->ErrorText();
@@ -204,7 +204,7 @@ public:
 
 private:
     void* _addr;
-    brpc::Channel* _channel;
+    melon::Channel* _channel;
     uint64_t _start_time;
     uint32_t _iterations;
     volatile bool _stop;
@@ -276,10 +276,10 @@ int main(int argc, char* argv[]) {
 
     // Initialize RDMA environment in advance.
     if (FLAGS_use_rdma) {
-        brpc::rdma::GlobalRdmaInitializeOrDie();
+        melon::rdma::GlobalRdmaInitializeOrDie();
     }
 
-    brpc::StartDummyServerAt(FLAGS_dummy_port);
+    melon::StartDummyServerAt(FLAGS_dummy_port);
 
     std::string::size_type pos1 = 0;
     std::string::size_type pos2 = FLAGS_servers.find('+');
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
 #else
 
 int main(int argc, char* argv[]) {
-    LOG(ERROR) << " brpc is not compiled with rdma. To enable it, please refer to https://github.com/apache/brpc/blob/master/docs/en/rdma.md";
+    LOG(ERROR) << " melon is not compiled with rdma. To enable it, please refer to https://github.com/apache/brpc/blob/master/docs/en/rdma.md";
     return 0;
 }
 

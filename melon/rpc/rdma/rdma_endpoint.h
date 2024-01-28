@@ -30,7 +30,7 @@
 #include "melon/rpc/socket.h"
 
 
-namespace brpc {
+namespace melon {
 class Socket;
 namespace rdma {
 
@@ -63,7 +63,7 @@ struct RdmaResource {
 
 class BAIDU_CACHELINE_ALIGNMENT RdmaEndpoint : public SocketUser {
 friend class RdmaConnect;
-friend class brpc::Socket;
+friend class melon::Socket;
 public:
     RdmaEndpoint(Socket* s);
     ~RdmaEndpoint();
@@ -248,7 +248,7 @@ private:
 };
 
 }  // namespace rdma
-}  // namespace brpc
+}  // namespace melon
 
 #else  // if BRPC_WITH_RDMA
 

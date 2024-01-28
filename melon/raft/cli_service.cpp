@@ -16,20 +16,20 @@
 
 #include "melon/raft/cli_service.h"
 
-#include <melon/rpc/controller.h>       // brpc::Controller
+#include <melon/rpc/controller.h>       // melon::Controller
 #include "melon/raft/node_manager.h"          // NodeManager
 #include "melon/raft/closure_helper.h"        // NewCallback
 
 namespace braft {
 
-static void add_peer_returned(brpc::Controller* cntl,
+static void add_peer_returned(melon::Controller* cntl,
                           const AddPeerRequest* request,
                           AddPeerResponse* response,
                           std::vector<PeerId> old_peers,
                           scoped_refptr<NodeImpl> /*node*/,
                           ::google::protobuf::Closure* done,
                           const butil::Status& st) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     if (!st.ok()) {
         cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
         return;
@@ -51,8 +51,8 @@ void CliServiceImpl::add_peer(::google::protobuf::RpcController* controller,
                               const ::braft::AddPeerRequest* request,
                               ::braft::AddPeerResponse* response,
                               ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     scoped_refptr<NodeImpl> node;
     butil::Status st = get_node(&node, request->group_id(), request->leader_id());
     if (!st.ok()) {
@@ -80,14 +80,14 @@ void CliServiceImpl::add_peer(::google::protobuf::RpcController* controller,
     return node->add_peer(adding_peer, add_peer_done);
 }
 
-static void remove_peer_returned(brpc::Controller* cntl,
+static void remove_peer_returned(melon::Controller* cntl,
                           const RemovePeerRequest* request,
                           RemovePeerResponse* response,
                           std::vector<PeerId> old_peers,
                           scoped_refptr<NodeImpl> /*node*/,
                           ::google::protobuf::Closure* done,
                           const butil::Status& st) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     if (!st.ok()) {
         cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
         return;
@@ -104,8 +104,8 @@ void CliServiceImpl::remove_peer(::google::protobuf::RpcController* controller,
                                  const ::braft::RemovePeerRequest* request,
                                  ::braft::RemovePeerResponse* response,
                                  ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     scoped_refptr<NodeImpl> node;
     butil::Status st = get_node(&node, request->group_id(), request->leader_id());
     if (!st.ok()) {
@@ -137,8 +137,8 @@ void CliServiceImpl::reset_peer(::google::protobuf::RpcController* controller,
                                 const ::braft::ResetPeerRequest* request,
                                 ::braft::ResetPeerResponse* response,
                                 ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     scoped_refptr<NodeImpl> node;
     butil::Status st = get_node(&node, request->group_id(), request->peer_id());
     if (!st.ok()) {
@@ -163,11 +163,11 @@ void CliServiceImpl::reset_peer(::google::protobuf::RpcController* controller,
     }
 }
 
-static void snapshot_returned(brpc::Controller* cntl,
+static void snapshot_returned(melon::Controller* cntl,
                               scoped_refptr<NodeImpl> node,
                               ::google::protobuf::Closure* done,
                               const butil::Status& st) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     if (!st.ok()) {
         cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
     }
@@ -178,8 +178,8 @@ void CliServiceImpl::snapshot(::google::protobuf::RpcController* controller,
                               ::braft::SnapshotResponse* response,
                               ::google::protobuf::Closure* done) {
 
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     scoped_refptr<NodeImpl> node;
     butil::Status st = get_node(&node, request->group_id(), request->peer_id());
     if (!st.ok()) {
@@ -195,8 +195,8 @@ void CliServiceImpl::get_leader(::google::protobuf::RpcController* controller,
                                 const ::braft::GetLeaderRequest* request,
                                 ::braft::GetLeaderResponse* response,
                                 ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     std::vector<scoped_refptr<NodeImpl> > nodes;
     if (request->has_peer_id()) {
         PeerId peer;
@@ -262,7 +262,7 @@ butil::Status CliServiceImpl::get_node(scoped_refptr<NodeImpl>* node,
     return butil::Status::OK();
 }
 
-static void change_peers_returned(brpc::Controller* cntl,
+static void change_peers_returned(melon::Controller* cntl,
                           const ChangePeersRequest* request,
                           ChangePeersResponse* response,
                           std::vector<PeerId> old_peers,
@@ -270,7 +270,7 @@ static void change_peers_returned(brpc::Controller* cntl,
                           scoped_refptr<NodeImpl> /*node*/,
                           ::google::protobuf::Closure* done,
                           const butil::Status& st) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     if (!st.ok()) {
         cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
         return;
@@ -288,8 +288,8 @@ void CliServiceImpl::change_peers(::google::protobuf::RpcController* controller,
                                   const ::braft::ChangePeersRequest* request,
                                   ::braft::ChangePeersResponse* response,
                                   ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     scoped_refptr<NodeImpl> node;
     butil::Status st = get_node(&node, request->group_id(), request->leader_id());
     if (!st.ok()) {
@@ -324,8 +324,8 @@ void CliServiceImpl::transfer_leader(
                     const ::braft::TransferLeaderRequest* request,
                     ::braft::TransferLeaderResponse* response,
                     ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl = (brpc::Controller*)controller;
-    brpc::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
     scoped_refptr<NodeImpl> node;
     butil::Status st = get_node(&node, request->group_id(), request->leader_id());
     if (!st.ok()) {

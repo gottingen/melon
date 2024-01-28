@@ -42,14 +42,14 @@ protected:
 };
 
 TEST_F(EventDispatcherTest, has_epollrdhup) {
-    LOG(INFO) << brpc::has_epollrdhup;
+    LOG(INFO) << melon::has_epollrdhup;
 }
 
 TEST_F(EventDispatcherTest, versioned_ref) {
     butil::atomic<uint64_t> versioned_ref(2);
-    versioned_ref.fetch_add(brpc::MakeVRef(0, -1),
+    versioned_ref.fetch_add(melon::MakeVRef(0, -1),
                             butil::memory_order_release);
-    ASSERT_EQ(brpc::MakeVRef(1, 1), versioned_ref);
+    ASSERT_EQ(melon::MakeVRef(1, 1), versioned_ref);
 }
 
 std::vector<int> err_fd;
@@ -66,7 +66,7 @@ struct BAIDU_CACHELINE_ALIGNMENT ClientMeta {
     size_t bytes;
 };
 
-struct BAIDU_CACHELINE_ALIGNMENT SocketExtra : public brpc::SocketUser {
+struct BAIDU_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
     char* buf;
     size_t buf_cap;
     size_t bytes;
@@ -79,14 +79,14 @@ struct BAIDU_CACHELINE_ALIGNMENT SocketExtra : public brpc::SocketUser {
         times = 0;
     }
 
-    virtual void BeforeRecycle(brpc::Socket* m) {
+    virtual void BeforeRecycle(melon::Socket* m) {
         pthread_mutex_lock(&rel_fd_mutex);
         rel_fd.push_back(m->fd());
         pthread_mutex_unlock(&rel_fd_mutex);
         delete this;
     }
 
-    static int OnEdgeTriggeredEventOnce(brpc::Socket* m) {
+    static int OnEdgeTriggeredEventOnce(melon::Socket* m) {
         SocketExtra* e = static_cast<SocketExtra*>(m->user());
         // Read all data.
         do {
@@ -105,7 +105,7 @@ struct BAIDU_CACHELINE_ALIGNMENT SocketExtra : public brpc::SocketUser {
                 e->bytes += n;
                 ++e->times;
 #ifdef BRPC_SOCKET_HAS_EOF
-                if ((size_t)n < e->buf_cap && brpc::has_epollrdhup) {
+                if ((size_t)n < e->buf_cap && melon::has_epollrdhup) {
                     break;
                 }
 #endif
@@ -123,8 +123,8 @@ struct BAIDU_CACHELINE_ALIGNMENT SocketExtra : public brpc::SocketUser {
         return 0;
     }
 
-    static void OnEdgeTriggeredEvents(brpc::Socket* m) {
-        int progress = brpc::Socket::PROGRESS_INIT;
+    static void OnEdgeTriggeredEvents(melon::Socket* m) {
+        int progress = melon::Socket::PROGRESS_INIT;
         do {
             if (OnEdgeTriggeredEventOnce(m) != 0) {
                 m->SetFailed();
@@ -186,7 +186,7 @@ inline uint32_t fmix32 ( uint32_t h ) {
 TEST_F(EventDispatcherTest, dispatch_tasks) {
 #ifdef BUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
     const butil::ResourcePoolInfo old_info =
-        butil::describe_resources<brpc::Socket>();
+        butil::describe_resources<melon::Socket>();
 #endif
 
     client_stop = false;
@@ -204,13 +204,13 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
 
         const int fd = fds[i * 2];
         butil::make_non_blocking(fd);
-        brpc::SocketId socket_id;
-        brpc::SocketOptions options;
+        melon::SocketId socket_id;
+        melon::SocketOptions options;
         options.fd = fd;
         options.user = sm[i];
         options.on_edge_triggered_events = SocketExtra::OnEdgeTriggeredEvents;
 
-        ASSERT_EQ(0, brpc::Socket::Create(options, &socket_id));
+        ASSERT_EQ(0, melon::Socket::Create(options, &socket_id));
         cm[i] = new ClientMeta;
         cm[i]->fd = fds[i * 2 + 1];
         cm[i]->times = 0;
@@ -261,7 +261,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
     }
     ASSERT_EQ(NCLIENT, copy1.size());
     const butil::ResourcePoolInfo info
-        = butil::describe_resources<brpc::Socket>();
+        = butil::describe_resources<melon::Socket>();
     LOG(INFO) << info;
 #ifdef BUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
     ASSERT_EQ(NCLIENT, info.free_item_num - old_info.free_item_num);

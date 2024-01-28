@@ -40,7 +40,7 @@ extern void  (*blockmem_deallocate)(void*);
 }
 }
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 
 void* g_handle_ibverbs = NULL;
@@ -687,14 +687,14 @@ bool SupportedByRdma(std::string protocol) {
 }
 
 }  // namespace rdma
-}  // namespace brpc
+}  // namespace melon
 
 #else
 
 #include <stdlib.h>
 #include "melon/butil/logging.h"
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 void GlobalRdmaInitializeOrDie() {
     LOG(ERROR) << "brpc is not compiled with rdma. To enable it, please refer to "

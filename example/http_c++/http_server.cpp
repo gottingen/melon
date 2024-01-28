@@ -45,10 +45,10 @@ public:
               google::protobuf::Closure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
 
         // optional: set a callback function which is called after response is sent
         // and before cntl/req/res is destructed.
@@ -59,7 +59,7 @@ public:
         cntl->http_response().set_content_type("text/plain");
         butil::IOBufBuilder os;
         os << "queries:";
-        for (brpc::URI::QueryIterator it = cntl->http_request().uri().QueryBegin();
+        for (melon::URI::QueryIterator it = cntl->http_request().uri().QueryBegin();
                 it != cntl->http_request().uri().QueryEnd(); ++it) {
             os << ' ' << it->first << '=' << it->second;
         }
@@ -68,7 +68,7 @@ public:
     }
 
     // optional
-    static void CallAfterRpc(brpc::Controller* cntl,
+    static void CallAfterRpc(melon::Controller* cntl,
                         const google::protobuf::Message* req,
                         const google::protobuf::Message* res) {
         // at this time res is already sent to client, but cntl/req/res is not destructed
@@ -88,7 +88,7 @@ public:
     virtual ~FileServiceImpl() {}
 
     struct Args {
-        butil::intrusive_ptr<brpc::ProgressiveAttachment> pa;
+        butil::intrusive_ptr<melon::ProgressiveAttachment> pa;
     };
 
     static void* SendLargeFile(void* raw_args) {
@@ -112,9 +112,9 @@ public:
                         const HttpRequest*,
                         HttpResponse*,
                         google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
         const std::string& filename = cntl->http_request().unresolved_path();
         if (filename == "largefile") {
             // Send the "largefile" with ProgressiveAttachment.
@@ -140,27 +140,27 @@ public:
                const HttpRequest*,
                HttpResponse*,
                google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
         cntl->response_attachment().append("queue started");
     }
     void stop(google::protobuf::RpcController* cntl_base,
               const HttpRequest*,
               HttpResponse*,
               google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
         cntl->response_attachment().append("queue stopped");
     }
     void getstats(google::protobuf::RpcController* cntl_base,
                   const HttpRequest*,
                   HttpResponse*,
                   google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
         const std::string& unresolved_path = cntl->http_request().unresolved_path();
         if (unresolved_path.empty()) {
             cntl->response_attachment().append("Require a name after /stats");
@@ -178,7 +178,7 @@ public:
 
     struct PredictJobArgs {
         std::vector<uint32_t> input_ids;
-        butil::intrusive_ptr<brpc::ProgressiveAttachment> pa;
+        butil::intrusive_ptr<melon::ProgressiveAttachment> pa;
     };
 
     static void* Predict(void* raw_args) {
@@ -202,9 +202,9 @@ public:
                 const HttpRequest*,
                 HttpResponse*,
                 google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
 
         // Send the first SSE response
         cntl->http_response().set_content_type("text/event-stream");
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     // Generally you only need one Server.
-    brpc::Server server;
+    melon::Server server;
 
     example::HttpServiceImpl http_svc;
     example::FileServiceImpl file_svc;
@@ -237,19 +237,19 @@ int main(int argc, char* argv[]) {
     
     // Add services into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
+    // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&http_svc,
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add http_svc";
         return -1;
     }
     if (server.AddService(&file_svc,
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add file_svc";
         return -1;
     }
     if (server.AddService(&queue_svc,
-                          brpc::SERVER_DOESNT_OWN_SERVICE,
+                          melon::SERVER_DOESNT_OWN_SERVICE,
                           "/v1/queue/start   => start,"
                           "/v1/queue/stop    => stop,"
                           "/v1/queue/stats/* => getstats") != 0) {
@@ -257,13 +257,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     if (server.AddService(&sse_svc,
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add sse_svc";
         return -1;
     }
 
     // Start the server.
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     options.mutable_ssl_options()->default_cert.certificate = FLAGS_certificate;
     options.mutable_ssl_options()->default_cert.private_key = FLAGS_private_key;

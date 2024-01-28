@@ -24,7 +24,7 @@
 #include "melon/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
-namespace brpc {
+namespace melon {
 
 class SerializedRequest : public ::google::protobuf::Message {
 public:
@@ -77,7 +77,7 @@ private:
     butil::IOBuf _serialized;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_SERIALIZED_REQUEST_H

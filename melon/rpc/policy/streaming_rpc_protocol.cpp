@@ -33,7 +33,7 @@
 #include "melon/rpc/stream_impl.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Notes on Streaming RPC Protocol:
@@ -162,4 +162,4 @@ int SendStreamData(Socket* sock, const butil::IOBuf* data,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

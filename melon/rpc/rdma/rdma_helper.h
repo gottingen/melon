@@ -24,7 +24,7 @@
 #include <string>
 
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 
 // Initialize RDMA environment
@@ -80,7 +80,7 @@ void GlobalDisableRdma();
 bool SupportedByRdma(std::string protocol);
 
 }  // namespace rdma
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // if BRPC_WITH_RDMA
 

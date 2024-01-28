@@ -22,7 +22,7 @@
 #include "melon/rpc/controller.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Inherit this class to customize when the RPC should be retried.
 class RetryPolicy {
@@ -35,25 +35,25 @@ public:
     // HTTP_STATUS_FORBIDDEN in your app. You can implement the RetryPolicy
     // as follows:
     //
-    //   class MyRetryPolicy : public brpc::RetryPolicy {
+    //   class MyRetryPolicy : public melon::RetryPolicy {
     //   public:
-    //     bool DoRetry(const brpc::Controller* cntl) const {
+    //     bool DoRetry(const melon::Controller* cntl) const {
     //       if (cntl->ErrorCode() == 0) { // don't retry successful RPC
     //         return false;
     //       }
-    //       if (cntl->ErrorCode() == brpc::EHTTP && // http errors
-    //           cntl->http_response().status_code() == brpc::HTTP_STATUS_FORBIDDEN) {
+    //       if (cntl->ErrorCode() == melon::EHTTP && // http errors
+    //           cntl->http_response().status_code() == melon::HTTP_STATUS_FORBIDDEN) {
     //         return true;
     //       }
     //       // Leave other cases to default.
-    //       return brpc::DefaultRetryPolicy()->DoRetry(cntl);
+    //       return melon::DefaultRetryPolicy()->DoRetry(cntl);
     //     }
     //   };
     // 
     // You can retry unqualified responses even if the RPC was successful
-    //   class MyRetryPolicy : public brpc::RetryPolicy {
+    //   class MyRetryPolicy : public melon::RetryPolicy {
     //   public:
-    //     bool DoRetry(const brpc::Controller* cntl) const {
+    //     bool DoRetry(const melon::Controller* cntl) const {
     //       if (cntl->ErrorCode() == 0) { // successful RPC
     //         if (!is_qualified(cntl->response())) {
     //           cntl->response()->Clear();  // reset the response
@@ -62,7 +62,7 @@ public:
     //         return false;
     //       }
     //       // Leave other cases to default.
-    //       return brpc::DefaultRetryPolicy()->DoRetry(cntl);
+    //       return melon::DefaultRetryPolicy()->DoRetry(cntl);
     //     }
     //   };
     virtual bool DoRetry(const Controller* controller) const = 0;
@@ -133,7 +133,7 @@ private:
     bool _retry_backoff_in_pthread;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_RETRY_POLICY_H

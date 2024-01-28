@@ -36,7 +36,7 @@
 #define BRPC_SPAN_INFO_SEP "\1"
 
 
-namespace brpc {
+namespace melon {
 
 const int64_t SPAN_DELETE_INTERVAL_US = 10000000L/*10s*/;
 
@@ -798,4 +798,4 @@ void DescribeSpanDB(std::ostream& os) {
     }
 }
 
-} // namespace brpc
+} // namespace melon

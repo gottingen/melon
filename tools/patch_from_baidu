@@ -58,12 +58,12 @@ cat $PATCHFILE | sed -e 's/src\/baidu\/rpc\//src\/brpc\//g' \
             -e 's/\<test\/test_object_pool\.cpp/test\/object_pool_unittest.cpp/g' \
             -e 's/\<test\/test_resource_pool\.cpp/test\/resource_pool_unittest.cpp/g' \
             -e "s/\<test\/test_\(\S*\)\.cpp/test\/${TEST_PREFIX}\1${TEST_SUFFIX}.cpp/g" \
-            -e 's/\<namespace \+baidu *{/namespace brpc {/g' \
+            -e 's/\<namespace \+baidu *{/namespace melon {/g' \
             -e 's/\<namespace \+rpc *{//g' \
-            -e 's/} *\/\/ \+namespace \+baidu/} \/\/ namespace brpc/g' \
+            -e 's/} *\/\/ \+namespace \+baidu/} \/\/ namespace melon/g' \
             -e 's/} *\/\/ \+namespace \+rpc\>//g' \
-            -e 's/\<baidu::rpc::/brpc::/g' \
-            -e 's/\<rpc::/brpc::/g' \
+            -e 's/\<baidu::rpc::/melon::/g' \
+            -e 's/\<rpc::/melon::/g' \
             -e 's/\<base::/butil::/g' \
             -e 's/\<BAIDU_RPC_/BRPC_/g' \
             -e 's/\<protocol\/\(\S*\)\.proto/src\/\1.proto/g' \

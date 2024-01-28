@@ -32,7 +32,7 @@ DEFINE_bool(use_http, false, "Use http protocol to transfer messages");
 DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
 
-brpc::Channel channel;
+melon::Channel channel;
 
 // Your implementation of example::EchoService
 namespace example {
@@ -46,17 +46,17 @@ public:
                       google::protobuf::Closure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
 
         if (request->depth() > 0) {
             CLOGI(cntl) << "I'm about to call myself for another time, depth=" << request->depth();
             example::EchoService_Stub stub(&channel);
             example::EchoRequest request2;
             example::EchoResponse response2;
-            brpc::Controller cntl2(cntl->inheritable());
+            melon::Controller cntl2(cntl->inheritable());
             request2.set_message(request->message());
             request2.set_depth(request->depth() - 1);
 
@@ -90,13 +90,13 @@ int main(int argc, char* argv[]) {
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::ChannelOptions coption;
+    melon::ChannelOptions coption;
     if (FLAGS_use_http) {
-        coption.protocol = brpc::PROTOCOL_HTTP;
+        coption.protocol = melon::PROTOCOL_HTTP;
     }
     
     // Initialize the channel, NULL means using default options. 
-    // options, see `brpc/channel.h'.
+    // options, see `melon/rpc/channel.h'.
     if (FLAGS_server.empty()) {
         if (channel.Init("localhost", FLAGS_port, &coption) != 0) {
             LOG(ERROR) << "Fail to initialize channel";
@@ -110,9 +110,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Generally you only need one Server.
-    brpc::Server server;
-    // For more options see `brpc/server.h'.
-    brpc::ServerOptions options;
+    melon::Server server;
+    // For more options see `melon/rpc/server.h'.
+    melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
 
     // Instance of your service.
@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
+    // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }

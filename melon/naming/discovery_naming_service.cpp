@@ -28,7 +28,7 @@
 #include "melon/rpc/controller.h"
 #include "melon/naming/discovery_naming_service.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 #ifdef BILIBILI_INTERNAL
@@ -466,4 +466,4 @@ void DiscoveryNamingService::Destroy() {
 
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon

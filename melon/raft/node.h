@@ -23,7 +23,7 @@
 #include <melon/butil/atomic_ref_count.h>
 #include <melon/butil/memory/ref_counted.h>
 #include <melon/butil/iobuf.h>
-#include <bthread/execution_queue.h>
+#include <melon/bthread/execution_queue.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/log_manager.h"
@@ -161,19 +161,19 @@ public:
                      RequestVoteResponse* response);
 
     // handle received AppendEntries
-    void handle_append_entries_request(brpc::Controller* cntl,
+    void handle_append_entries_request(melon::Controller* cntl,
                                       const AppendEntriesRequest* request,
                                       AppendEntriesResponse* response,
                                       google::protobuf::Closure* done,
                                       bool from_append_entries_cache = false);
 
     // handle received InstallSnapshot
-    void handle_install_snapshot_request(brpc::Controller* controller,
+    void handle_install_snapshot_request(melon::Controller* controller,
                                         const InstallSnapshotRequest* request,
                                         InstallSnapshotResponse* response,
                                         google::protobuf::Closure* done);
 
-    void handle_timeout_now_request(brpc::Controller* controller,
+    void handle_timeout_now_request(melon::Controller* controller,
                                     const TimeoutNowRequest* request,
                                     TimeoutNowResponse* response,
                                     google::protobuf::Closure* done);
@@ -306,7 +306,7 @@ friend class butil::RefCountedThreadSafe<NodeImpl>;
     void apply(LogEntryAndClosure tasks[], size_t size);
     void check_dead_nodes(const Configuration& conf, int64_t now_ms);
     void check_witness(const Configuration& conf);
-    bool handle_out_of_order_append_entries(brpc::Controller* cntl,
+    bool handle_out_of_order_append_entries(melon::Controller* cntl,
                                             const AppendEntriesRequest* request,
                                             AppendEntriesResponse* response,
                                             google::protobuf::Closure* done,
@@ -394,7 +394,7 @@ private:
     };
 
     struct AppendEntriesRpc : public butil::LinkNode<AppendEntriesRpc> {
-        brpc::Controller* cntl;
+        melon::Controller* cntl;
         const AppendEntriesRequest* request;
         AppendEntriesResponse* response;
         google::protobuf::Closure* done;

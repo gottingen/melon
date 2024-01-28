@@ -22,12 +22,12 @@
 #include <melon/rpc/channel.h>
 #include <gtest/gtest.h>
 
-namespace brpc {
+namespace melon {
 DECLARE_int32(idle_timeout_second);
 } 
 
 int main(int argc, char* argv[]) {
-    brpc::FLAGS_idle_timeout_second = 0;
+    melon::FLAGS_idle_timeout_second = 0;
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
@@ -39,11 +39,7 @@ static pid_t g_mc_pid = -1;
 static void RemoveMemcached() {
     puts("[Stopping memcached]");
     char cmd[256];
-#if defined(BAIDU_INTERNAL)
-    snprintf(cmd, sizeof(cmd), "kill %d; rm -rf memcached_for_test", g_mc_pid);
-#else
     snprintf(cmd, sizeof(cmd), "kill %d", g_mc_pid);
-#endif
     CHECK(0 == system(cmd));
     // Wait for mc to stop
     usleep(50000);
@@ -53,20 +49,10 @@ static void RemoveMemcached() {
 #define MEMCACHED_PORT "11211"
 
 static void RunMemcached() {
-#if defined(BAIDU_INTERNAL)
-    puts("Downloading memcached...");
-    if (system("mkdir -p memcached_for_test && cd memcached_for_test && svn co https://svn.baidu.com/third-64/tags/memcached/memcached_1-4-15-100_PD_BL/bin") != 0) {
-        puts("Fail to get memcached from svn");
-        return;
-    }
-# undef MEMCACHED_BIN
-# define MEMCACHED_BIN "memcached_for_test/bin/memcached";
-#else
     if (system("which " MEMCACHED_BIN) != 0) {
         puts("Fail to find " MEMCACHED_BIN ", following tests will be skipped");
         return;
     }
-#endif
     atexit(RemoveMemcached);
 
     g_mc_pid = fork();
@@ -102,13 +88,13 @@ TEST_F(MemcacheTest, sanity) {
         puts("Skipped due to absence of memcached");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_MEMCACHE;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_MEMCACHE;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" MEMCACHED_PORT, &options));
-    brpc::MemcacheRequest request;
-    brpc::MemcacheResponse response;
-    brpc::Controller cntl;
+    melon::MemcacheRequest request;
+    melon::MemcacheResponse response;
+    melon::Controller cntl;
 
     // Clear all contents in MC which is still holding older data after
     // restarting in Ubuntu 18.04 (mc=1.5.6)
@@ -173,13 +159,13 @@ TEST_F(MemcacheTest, incr_and_decr) {
         puts("Skipped due to absence of memcached");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_MEMCACHE;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_MEMCACHE;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" MEMCACHED_PORT, &options));
-    brpc::MemcacheRequest request;
-    brpc::MemcacheResponse response;
-    brpc::Controller cntl;
+    melon::MemcacheRequest request;
+    melon::MemcacheResponse response;
+    melon::Controller cntl;
     request.Increment("counter1", 2, 10, 10);
     request.Decrement("counter1", 1, 10, 10);
     request.Increment("counter1", 3, 10, 10);
@@ -208,13 +194,13 @@ TEST_F(MemcacheTest, version) {
         puts("Skipped due to absence of memcached");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_MEMCACHE;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_MEMCACHE;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" MEMCACHED_PORT, &options));
-    brpc::MemcacheRequest request;
-    brpc::MemcacheResponse response;
-    brpc::Controller cntl;
+    melon::MemcacheRequest request;
+    melon::MemcacheResponse response;
+    melon::Controller cntl;
     request.Version();
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();

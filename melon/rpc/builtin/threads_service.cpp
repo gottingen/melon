@@ -25,11 +25,11 @@
 #include "melon/rpc/builtin/common.h"
 #include "melon/butil/string_printf.h"
 
-namespace brpc {
+namespace melon {
 
 void ThreadsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                    const ::brpc::ThreadsRequest*,
-                                    ::brpc::ThreadsResponse*,
+                                    const ::melon::ThreadsRequest*,
+                                    ::melon::ThreadsResponse*,
                                     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -50,4 +50,4 @@ void ThreadsService::default_method(::google::protobuf::RpcController* cntl_base
     resp.append(butil::string_printf("\n\ntime=%" PRId64 "ms", tm.m_elapsed()));
 }
 
-} // namespace brpc
+} // namespace melon

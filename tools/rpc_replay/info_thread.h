@@ -21,7 +21,7 @@
 #include <pthread.h>
 #include <melon/bvar/bvar.h>
 
-namespace brpc {
+namespace melon {
 
 struct InfoThreadOptions {
     bvar::LatencyRecorder* latency_recorder;

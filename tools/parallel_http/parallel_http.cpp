@@ -46,7 +46,7 @@ class OnHttpCallEnd : public google::protobuf::Closure {
 public:
     void Run();
 public:
-    brpc::Controller cntl;
+    melon::Controller cntl;
     AccessThreadArgs* args;
     std::string url;
 };
@@ -67,8 +67,8 @@ void OnHttpCallEnd::Run() {
 
 void* access_thread(void* void_args) {
     AccessThreadArgs* args = (AccessThreadArgs*)void_args;
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_HTTP;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_HTTP;
     options.connect_timeout_ms = FLAGS_timeout_ms / 2;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
@@ -76,7 +76,7 @@ void* access_thread(void* void_args) {
 
     for (size_t i = args->offset; i < args->url_list->size(); i += FLAGS_thread_num) {
         std::string const& url = (*args->url_list)[i];
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(url.c_str(), &options) != 0) {
             LOG(ERROR) << "Fail to create channel to url=" << url;
             BAIDU_SCOPED_LOCK(args->output_queue_mutex);

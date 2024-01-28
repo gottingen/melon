@@ -22,7 +22,7 @@
 #include "melon/rpc/policy/dynpart_load_balancer.h"
 
 
-namespace brpc {
+namespace melon {
 
 namespace schan {
 // defined in brpc/selective_channel.cpp
@@ -185,4 +185,4 @@ void DynPartLoadBalancer::Describe(
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

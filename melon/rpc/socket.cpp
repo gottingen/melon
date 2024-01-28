@@ -61,7 +61,7 @@ get_sizes(const bthread_id_list_t* list, size_t* cnt, size_t n);
 }
 
 
-namespace brpc {
+namespace melon {
 
 // NOTE: This flag was true by default before r31206. Connected to somewhere
 // is not an important event now, we can check the connection in /connections
@@ -1504,7 +1504,7 @@ int Socket::KeepWriteIfConnected(int fd, int err, void* data) {
         // Run ssl connect in a new bthread to avoid blocking
         // the current bthread (thus blocking the EventDispatcher)
         bthread_t th;
-        std::unique_ptr<google::protobuf::Closure> thrd_func(brpc::NewCallback(
+        std::unique_ptr<google::protobuf::Closure> thrd_func(melon::NewCallback(
                 Socket::CheckConnectedAndKeepWrite, fd, err, data));
         if ((err = bthread_start_background(&th, &BTHREAD_ATTR_NORMAL,
                                             RunClosure, thrd_func.get())) == 0) {
@@ -2957,11 +2957,11 @@ SocketSSLContext::~SocketSSLContext() {
     }
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 namespace std {
-ostream& operator<<(ostream& os, const brpc::Socket& sock) {
+ostream& operator<<(ostream& os, const melon::Socket& sock) {
     // NOTE: The output should be consistent with Socket::description()
     os << "Socket{id=" << sock.id();
     const int fd = sock.fd();

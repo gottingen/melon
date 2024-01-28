@@ -29,7 +29,7 @@
 // To rpc developers: DON'T put impl. details here, use opaque pointers instead.
 
 
-namespace brpc {
+namespace melon {
 class InputMessageBase;
 namespace policy {
 void ProcessHttpRequest(InputMessageBase *msg);
@@ -162,7 +162,7 @@ friend void policy::ProcessHttpRequest(InputMessageBase *msg);
 
 const HttpHeader& DefaultHttpHeader();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_HTTP_HEADER_H

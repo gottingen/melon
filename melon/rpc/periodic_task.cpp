@@ -20,7 +20,7 @@
 #include <melon/bthread/unstable.h>
 #include "melon/rpc/periodic_task.h"
 
-namespace brpc {
+namespace melon {
 
 PeriodicTask::~PeriodicTask() {
 }
@@ -62,4 +62,4 @@ void PeriodicTaskManager::StartTaskAt(PeriodicTask* task, const timespec& abstim
     }
 }
 
-} // namespace brpc
+} // namespace melon

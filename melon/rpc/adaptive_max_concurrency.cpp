@@ -22,7 +22,7 @@
 #include "melon/butil/strings/string_number_conversions.h"
 #include "melon/rpc/adaptive_max_concurrency.h"
 
-namespace brpc {
+namespace melon {
 
 AdaptiveMaxConcurrency::AdaptiveMaxConcurrency()
     : _value(UNLIMITED())
@@ -116,4 +116,4 @@ bool operator==(const AdaptiveMaxConcurrency& adaptive_concurrency,
                                          adaptive_concurrency.value().c_str());
 }
 
-}  // namespace brpc
+}  // namespace melon

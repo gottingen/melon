@@ -27,7 +27,7 @@
 
 DECLARE_int32(task_group_ntags);
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(event_dispatcher_num, 1, "Number of event dispatcher");
 
@@ -71,7 +71,7 @@ EventDispatcher& GetGlobalEventDispatcher(int fd, bthread_tag_t tag) {
     return g_edisp[tag * FLAGS_event_dispatcher_num + index];
 }
 
-} // namespace brpc
+} // namespace melon
 
 #if defined(OS_LINUX)
     #include "melon/rpc/event_dispatcher_epoll.cpp"

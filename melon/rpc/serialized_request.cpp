@@ -19,7 +19,7 @@
 #include "melon/rpc/serialized_request.h"
 #include "melon/butil/logging.h"
 
-namespace brpc {
+namespace melon {
 
 SerializedRequest::SerializedRequest()
     : ::google::protobuf::Message() {
@@ -126,4 +126,4 @@ void SerializedRequest::Swap(SerializedRequest* other) {
     return metadata;
 }
 
-} // namespace brpc
+} // namespace melon

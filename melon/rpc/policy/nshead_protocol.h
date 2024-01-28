@@ -22,7 +22,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse binary format of nshead
@@ -50,7 +50,7 @@ void PackNsheadRequest(
 bool VerifyNsheadRequest(const InputMessageBase *msg);
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_NSHEAD_PROTOCOL_H

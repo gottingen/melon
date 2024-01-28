@@ -33,7 +33,7 @@ DEFINE_int32(reporting_interval, 300, "Reporting interval of clients");
 struct RevisionInfo {
     int64_t min_rev;
     int64_t max_rev;
-    brpc::TrackMeSeverity severity;
+    melon::TrackMeSeverity severity;
     std::string error_text;
 };
 
@@ -43,7 +43,7 @@ public:
     BugsLoader();
     bool start(const std::string& bugs_file);
     void stop();
-    bool find(int64_t revision, brpc::TrackMeResponse* response);
+    bool find(int64_t revision, melon::TrackMeResponse* response);
 private:
     void load_bugs();
     void run();
@@ -56,19 +56,19 @@ private:
     std::shared_ptr<BugList> _bug_list;
 };
 
-class TrackMeServiceImpl : public brpc::TrackMeService {
+class TrackMeServiceImpl : public melon::TrackMeService {
 public:
     explicit TrackMeServiceImpl(BugsLoader* bugs) : _bugs(bugs) {
     }
     ~TrackMeServiceImpl() {}
     void TrackMe(google::protobuf::RpcController* cntl_base,
-                 const brpc::TrackMeRequest* request,
-                 brpc::TrackMeResponse* response,
+                 const melon::TrackMeRequest* request,
+                 melon::TrackMeResponse* response,
                  google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = (brpc::Controller*)cntl_base;
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)cntl_base;
         // Set to OK by default.
-        response->set_severity(brpc::TrackMeOK);
+        response->set_severity(melon::TrackMeOK);
         // Check if the version is affected by bugs if client set it.
         if (request->has_rpc_version()) {
             _bugs->find(request->rpc_version(), response);
@@ -90,7 +90,7 @@ private:
 int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
     
-    brpc::Server server;
+    melon::Server server;
     server.set_version("trackme_server");
     BugsLoader bugs;
     if (!bugs.start(FLAGS_bug_file)) {
@@ -99,11 +99,11 @@ int main(int argc, char* argv[]) {
     }
     TrackMeServiceImpl echo_service_impl(&bugs);
     if (server.AddService(&echo_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     // I've noticed that many connections do not report. Don't know the
     // root cause yet. Set the idle_time to keep connections clean.
     options.idle_timeout_sec = FLAGS_reporting_interval * 2;
@@ -212,12 +212,12 @@ void BugsLoader::load_bugs() {
             LOG(WARNING) << "[line" << nline << "] Fail to parse column3 as severity";
             continue;
         }
-        brpc::TrackMeSeverity severity = brpc::TrackMeOK;
+        melon::TrackMeSeverity severity = melon::TrackMeOK;
         butil::StringPiece severity_str(sp.field(), sp.length());
         if (severity_str == "f" || severity_str == "F") {
-            severity = brpc::TrackMeFatal;
+            severity = melon::TrackMeFatal;
         } else if (severity_str == "w" || severity_str == "W") {\
-            severity = brpc::TrackMeWarning;
+            severity = melon::TrackMeWarning;
         } else {
             LOG(WARNING) << "[line" << nline << "] Invalid severity=" << severity_str;
             continue;
@@ -244,7 +244,7 @@ void BugsLoader::load_bugs() {
     _bug_list.reset(m.release());
 }
 
-bool BugsLoader::find(int64_t revision, brpc::TrackMeResponse* response) {
+bool BugsLoader::find(int64_t revision, melon::TrackMeResponse* response) {
     // Add reference to make sure the bug list is not deleted.
     std::shared_ptr<BugList> local_list = _bug_list;
     if (local_list.get() == NULL) {
@@ -260,7 +260,7 @@ bool BugsLoader::find(int64_t revision, brpc::TrackMeResponse* response) {
             if (info.severity > response->severity()) {
                 response->set_severity(info.severity);
             }
-            if (info.severity != brpc::TrackMeOK) {
+            if (info.severity != melon::TrackMeOK) {
                 std::string* error = response->mutable_error_text();
                 char prefix[64];
                 if (info.min_rev != info.max_rev) {

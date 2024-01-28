@@ -32,9 +32,9 @@
 
 template <typename T> class scoped_refptr;
 
-namespace brpc {
+namespace melon {
 class Server;
-}  // namespace brpc
+}  // namespace melon
 
 namespace braft {
 
@@ -127,7 +127,7 @@ class IteratorImpl;
 // Example:
 // void YouStateMachine::on_apply(braft::Iterator& iter) {
 //     for (; iter.valid(); iter.next()) {
-//         brpc::ClosureGuard done_guard(iter.done());
+//         melon::ClosureGuard done_guard(iter.done());
 //         process(iter.data());
 //     }
 // }
@@ -843,9 +843,9 @@ int bootstrap(const BootstrapOptions& options);
 // listen address, if the Server is going to be started from a range of ports, 
 // the behavior is undefined.
 // Returns 0 on success, -1 otherwise.
-int add_service(brpc::Server* server, const butil::EndPoint& listen_addr);
-int add_service(brpc::Server* server, int port);
-int add_service(brpc::Server* server, const char* listen_ip_and_port);
+int add_service(melon::Server* server, const butil::EndPoint& listen_addr);
+int add_service(melon::Server* server, int port);
+int add_service(melon::Server* server, const char* listen_ip_and_port);
 
 // GC
 struct GCOptions {

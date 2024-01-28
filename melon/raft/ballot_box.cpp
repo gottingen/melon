@@ -15,8 +15,8 @@
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include <melon/butil/scoped_lock.h>
-#include <bvar/latency_recorder.h>
-#include <bthread/unstable.h>
+#include <melon/bvar/latency_recorder.h>
+#include <melon/bthread/unstable.h>
 #include "melon/raft/ballot_box.h"
 #include "melon/raft/util.h"
 #include "melon/raft/fsm_caller.h"

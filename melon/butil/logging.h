@@ -60,18 +60,6 @@
 
 #else
 
-#ifdef BAIDU_INTERNAL
-// gejun: com_log.h includes ul_def.h, undef conflict macros
-// FIXME(gejun): We have to include com_log which is assumed to be included
-// in other modules right now.
-#include <com_log.h>
-#undef Uchar
-#undef Ushort
-#undef Uint
-#undef Max
-#undef Min
-#undef Exchange
-#endif // BAIDU_INTERNAL
 
 #include <inttypes.h>
 #include <gflags/gflags_declare.h>

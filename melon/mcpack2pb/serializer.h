@@ -27,7 +27,7 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 #include "melon/butil/logging.h"
 #include "melon/butil/strings/string_piece.h"
-#include "mcpack2pb/field_type.h"
+#include "melon/mcpack2pb/field_type.h"
 
 // CAUTION: Methods in this header is not intended to be public to users of
 // brpc, and subject to change at any future time.
@@ -284,6 +284,6 @@ private:
 
 }  // namespace mcpack2pb
 
-#include "mcpack2pb/serializer-inl.h"
+#include "melon/mcpack2pb/serializer-inl.h"
 
 #endif  // MCPACK2PB_MCPACK_SERIALIZER_H

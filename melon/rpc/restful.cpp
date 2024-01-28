@@ -22,7 +22,7 @@
 #include "melon/rpc/details/method_status.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Define in http_parser.cpp
 extern bool is_url_char(char c);
@@ -510,4 +510,4 @@ RestfulMap::FindMethodProperty(const butil::StringPiece& method_path,
     return NULL;
 }
 
-} // namespace brpc
+} // namespace melon

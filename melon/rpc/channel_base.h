@@ -29,7 +29,7 @@
 // on internal structures, use opaque pointers instead.
 
 
-namespace brpc {
+namespace melon {
 
 // Base of all brpc channels.
 class ChannelBase : public google::protobuf::RpcChannel/*non-copyable*/,
@@ -43,7 +43,7 @@ public:
     virtual int CheckHealth() = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_CHANNEL_BASE_H

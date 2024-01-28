@@ -20,7 +20,7 @@
 #include "melon/rpc/adaptive_connection_type.h"
 
 
-namespace brpc {
+namespace melon {
 
 inline bool CompareStringPieceWithoutCase(
         const butil::StringPiece& s1, const char* s2) {
@@ -69,4 +69,4 @@ void AdaptiveConnectionType::operator=(const butil::StringPiece& name) {
     }
 }
 
-} // namespace brpc
+} // namespace melon

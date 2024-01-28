@@ -21,7 +21,7 @@
 #include "melon/rpc/authenticator.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class EspAuthenticator: public Authenticator {
@@ -36,7 +36,7 @@ public:
 const Authenticator* global_esp_authenticator();
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_GIANO_AUTHENTICATOR_H

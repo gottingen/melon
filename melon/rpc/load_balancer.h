@@ -27,7 +27,7 @@
 #include "melon/rpc/server_id.h"                       // ServerId
 #include "melon/rpc/extension.h"                       // Extension<T>
 
-namespace brpc {
+namespace melon {
 
 class Controller;
 
@@ -184,7 +184,7 @@ inline Extension<const LoadBalancer>* LoadBalancerExtension() {
     return Extension<const LoadBalancer>::instance();
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_LOAD_BALANCER_H

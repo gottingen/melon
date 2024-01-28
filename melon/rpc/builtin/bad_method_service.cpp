@@ -29,7 +29,7 @@
 #include "melon/rpc/details/server_private_accessor.h"
 
 
-namespace brpc {
+namespace melon {
 
 void BadMethodService::no_method(::google::protobuf::RpcController* cntl_base,
                                  const BadMethodRequest* request,
@@ -64,4 +64,4 @@ void BadMethodService::no_method(::google::protobuf::RpcController* cntl_base,
     cntl->SetFailed(ENOMETHOD, "%s", os.str().c_str());
 }
 
-} // namespace brpc
+} // namespace melon

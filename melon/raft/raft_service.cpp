@@ -32,9 +32,9 @@ void RaftServiceImpl::pre_vote(google::protobuf::RpcController* cntl_base,
                           const RequestVoteRequest* request,
                           RequestVoteResponse* response,
                           google::protobuf::Closure* done) {
-    brpc::ClosureGuard done_guard(done);
-    brpc::Controller* cntl =
-        static_cast<brpc::Controller*>(cntl_base);
+    melon::ClosureGuard done_guard(done);
+    melon::Controller* cntl =
+        static_cast<melon::Controller*>(cntl_base);
 
     PeerId peer_id;
     if (0 != peer_id.parse(request->peer_id())) {
@@ -62,9 +62,9 @@ void RaftServiceImpl::request_vote(google::protobuf::RpcController* cntl_base,
                           const RequestVoteRequest* request,
                           RequestVoteResponse* response,
                           google::protobuf::Closure* done) {
-    brpc::ClosureGuard done_guard(done);
-    brpc::Controller* cntl =
-        static_cast<brpc::Controller*>(cntl_base);
+    melon::ClosureGuard done_guard(done);
+    melon::Controller* cntl =
+        static_cast<melon::Controller*>(cntl_base);
 
     PeerId peer_id;
     if (0 != peer_id.parse(request->peer_id())) {
@@ -91,9 +91,9 @@ void RaftServiceImpl::append_entries(google::protobuf::RpcController* cntl_base,
                             const AppendEntriesRequest* request,
                             AppendEntriesResponse* response,
                             google::protobuf::Closure* done) {
-    brpc::ClosureGuard done_guard(done);
-    brpc::Controller* cntl =
-        static_cast<brpc::Controller*>(cntl_base);
+    melon::ClosureGuard done_guard(done);
+    melon::Controller* cntl =
+        static_cast<melon::Controller*>(cntl_base);
 
     PeerId peer_id;
     if (0 != peer_id.parse(request->peer_id())) {
@@ -117,8 +117,8 @@ void RaftServiceImpl::install_snapshot(google::protobuf::RpcController* cntl_bas
                               const InstallSnapshotRequest* request,
                               InstallSnapshotResponse* response,
                               google::protobuf::Closure* done) {
-    brpc::Controller* cntl =
-        static_cast<brpc::Controller*>(cntl_base);
+    melon::Controller* cntl =
+        static_cast<melon::Controller*>(cntl_base);
 
     PeerId peer_id;
     if (0 != peer_id.parse(request->peer_id())) {
@@ -144,8 +144,8 @@ void RaftServiceImpl::timeout_now(::google::protobuf::RpcController* controller,
                                   const ::braft::TimeoutNowRequest* request,
                                   ::braft::TimeoutNowResponse* response,
                                   ::google::protobuf::Closure* done) {
-    brpc::Controller* cntl =
-        static_cast<brpc::Controller*>(controller);
+    melon::Controller* cntl =
+        static_cast<melon::Controller*>(controller);
 
     PeerId peer_id;
     if (0 != peer_id.parse(request->peer_id())) {

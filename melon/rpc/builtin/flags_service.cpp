@@ -32,7 +32,7 @@
 #include "melon/rpc/builtin/flags_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 DEFINE_bool(immutable_flags, false, "gflags on /flags page can't be modified");
 
@@ -133,8 +133,8 @@ void FlagsService::set_value_page(Controller* cntl,
 }
 
 void FlagsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                  const ::brpc::FlagsRequest*,
-                                  ::brpc::FlagsResponse*,
+                                  const ::melon::FlagsRequest*,
+                                  ::melon::FlagsResponse*,
                                   ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -254,4 +254,4 @@ void FlagsService::GetTabInfo(TabInfoList* info_list) const {
     info->tab_name = "flags";
 }
 
-} // namespace brpc
+} // namespace melon

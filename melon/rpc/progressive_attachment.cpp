@@ -23,7 +23,7 @@
 #include "melon/rpc/errno.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 // defined in socket.cpp
 DECLARE_int64(socket_max_unwritten_bytes);
@@ -258,4 +258,4 @@ void ProgressiveAttachment::NotifyOnStopped(google::protobuf::Closure* done) {
     _httpsock->NotifyOnFailed(_notify_id);
 }
     
-} // namespace brpc
+} // namespace melon

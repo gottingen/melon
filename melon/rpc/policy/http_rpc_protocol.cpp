@@ -49,7 +49,7 @@ extern "C" {
 void bthread_assign_data(void* data);
 }
 
-namespace brpc {
+namespace melon {
 
 int is_failed_after_queries(const http_parser* parser);
 int is_failed_after_http_version(const http_parser* parser);
@@ -1665,4 +1665,4 @@ void HttpContext::CheckProgressiveRead(const void* arg, Socket *socket) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

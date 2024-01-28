@@ -50,7 +50,7 @@ static const std::string EXP_RESPONSE = "world";
 static const std::string MOCK_CREDENTIAL = "mock credential";
 static const std::string MOCK_USER = "mock user";
 
-class MyAuthenticator : public brpc::Authenticator {
+class MyAuthenticator : public melon::Authenticator {
 public:
     MyAuthenticator() {}
 
@@ -61,7 +61,7 @@ public:
 
     int VerifyCredential(const std::string& auth_str,
                          const butil::EndPoint&,
-                         brpc::AuthContext* ctx) const {
+                         melon::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);
         return 0;
@@ -73,8 +73,8 @@ class MyEchoService : public ::test::EchoService {
               const ::test::EchoRequest* req,
               ::test::EchoResponse* res,
               ::google::protobuf::Closure* done) {
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
-        brpc::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
 
         if (req->close_fd()) {
             cntl->CloseConnection("Close connection according to request");
@@ -89,35 +89,35 @@ class SofaTest : public ::testing::Test{
 protected:
     SofaTest() {
         EXPECT_EQ(0, _server.AddService(
-            &_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
+            &_svc, melon::SERVER_DOESNT_OWN_SERVICE));
         // Hack: Regard `_server' as running 
-        _server._status = brpc::Server::RUNNING;
+        _server._status = melon::Server::RUNNING;
         // Sofa doesn't support authentication
         // _server._options.auth = &_auth;
         
         EXPECT_EQ(0, pipe(_pipe_fds));
 
-        brpc::SocketId id;
-        brpc::SocketOptions options;
+        melon::SocketId id;
+        melon::SocketOptions options;
         options.fd = _pipe_fds[1];
-        EXPECT_EQ(0, brpc::Socket::Create(options, &id));
-        EXPECT_EQ(0, brpc::Socket::Address(id, &_socket));
+        EXPECT_EQ(0, melon::Socket::Create(options, &id));
+        EXPECT_EQ(0, melon::Socket::Address(id, &_socket));
     };
 
     virtual ~SofaTest() {};
     virtual void SetUp() {};
     virtual void TearDown() {};
 
-    void VerifyMessage(brpc::InputMessageBase* msg) {
+    void VerifyMessage(melon::InputMessageBase* msg) {
         if (msg->_socket == NULL) {
             _socket->ReAddress(&msg->_socket);
         }
         msg->_arg = &_server;
-        EXPECT_TRUE(brpc::policy::VerifySofaRequest(msg));
+        EXPECT_TRUE(melon::policy::VerifySofaRequest(msg));
     }
 
-    void ProcessMessage(void (*process)(brpc::InputMessageBase*),
-                        brpc::InputMessageBase* msg, bool set_eof) {
+    void ProcessMessage(void (*process)(melon::InputMessageBase*),
+                        melon::InputMessageBase* msg, bool set_eof) {
         if (msg->_socket == NULL) {
             _socket->ReAddress(&msg->_socket);
         }
@@ -129,10 +129,10 @@ protected:
         (*process)(msg);
     }
 
-    brpc::policy::MostCommonMessage* MakeRequestMessage(
-        const brpc::policy::SofaRpcMeta& meta) {
-        brpc::policy::MostCommonMessage* msg =
-                brpc::policy::MostCommonMessage::Get();
+    melon::policy::MostCommonMessage* MakeRequestMessage(
+        const melon::policy::SofaRpcMeta& meta) {
+        melon::policy::MostCommonMessage* msg =
+                melon::policy::MostCommonMessage::Get();
         butil::IOBufAsZeroCopyOutputStream meta_stream(&msg->meta);
         EXPECT_TRUE(meta.SerializeToZeroCopyStream(&meta_stream));
 
@@ -143,10 +143,10 @@ protected:
         return msg;
     }
 
-    brpc::policy::MostCommonMessage* MakeResponseMessage(
-        const brpc::policy::SofaRpcMeta& meta) {
-        brpc::policy::MostCommonMessage* msg =
-                brpc::policy::MostCommonMessage::Get();
+    melon::policy::MostCommonMessage* MakeResponseMessage(
+        const melon::policy::SofaRpcMeta& meta) {
+        melon::policy::MostCommonMessage* msg =
+                melon::policy::MostCommonMessage::Get();
         butil::IOBufAsZeroCopyOutputStream meta_stream(&msg->meta);
         EXPECT_TRUE(meta.SerializeToZeroCopyStream(&meta_stream));
 
@@ -169,144 +169,144 @@ protected:
         butil::IOPortal buf;
         EXPECT_EQ((ssize_t)bytes_in_pipe,
                   buf.append_from_file_descriptor(_pipe_fds[0], 1024));
-        brpc::ParseResult pr = brpc::policy::ParseSofaMessage(&buf, NULL, false, NULL);
-        EXPECT_EQ(brpc::PARSE_OK, pr.error());
-        brpc::policy::MostCommonMessage* msg =
-            static_cast<brpc::policy::MostCommonMessage*>(pr.message());
+        melon::ParseResult pr = melon::policy::ParseSofaMessage(&buf, NULL, false, NULL);
+        EXPECT_EQ(melon::PARSE_OK, pr.error());
+        melon::policy::MostCommonMessage* msg =
+            static_cast<melon::policy::MostCommonMessage*>(pr.message());
 
-        brpc::policy::SofaRpcMeta meta;
+        melon::policy::SofaRpcMeta meta;
         butil::IOBufAsZeroCopyInputStream meta_stream(msg->meta);
         EXPECT_TRUE(meta.ParseFromZeroCopyStream(&meta_stream));
         EXPECT_EQ(expect_code, meta.error_code());
     }
 
-    void TestSofaCompress(brpc::CompressType type) {
+    void TestSofaCompress(melon::CompressType type) {
         butil::IOBuf request_buf;
         butil::IOBuf total_buf;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         cntl._response = &res;
 
         req.set_message(EXP_REQUEST);
         cntl.set_request_compress_type(type);
-        brpc::SerializeRequestDefault(&request_buf, &cntl, &req);
+        melon::SerializeRequestDefault(&request_buf, &cntl, &req);
         ASSERT_FALSE(cntl.Failed());
-        brpc::policy::PackSofaRequest(
+        melon::policy::PackSofaRequest(
             &total_buf, NULL, cntl.call_id().value,
             test::EchoService::descriptor()->method(0),
             &cntl, request_buf, &_auth);
         ASSERT_FALSE(cntl.Failed());
 
-        brpc::ParseResult req_pr =
-                brpc::policy::ParseSofaMessage(&total_buf, NULL, false, NULL);
-        ASSERT_EQ(brpc::PARSE_OK, req_pr.error());
-        brpc::InputMessageBase* req_msg = req_pr.message();
-        ProcessMessage(brpc::policy::ProcessSofaRequest, req_msg, false);
+        melon::ParseResult req_pr =
+                melon::policy::ParseSofaMessage(&total_buf, NULL, false, NULL);
+        ASSERT_EQ(melon::PARSE_OK, req_pr.error());
+        melon::InputMessageBase* req_msg = req_pr.message();
+        ProcessMessage(melon::policy::ProcessSofaRequest, req_msg, false);
         CheckResponseCode(false, 0);
     }
 
     int _pipe_fds[2];
-    brpc::SocketUniquePtr _socket;
-    brpc::Server _server;
+    melon::SocketUniquePtr _socket;
+    melon::Server _server;
 
     MyEchoService _svc;
     MyAuthenticator _auth;
 };
 
 TEST_F(SofaTest, process_request_failed_socket) {
-    brpc::policy::SofaRpcMeta meta;
-    meta.set_type(brpc::policy::SofaRpcMeta::REQUEST);
+    melon::policy::SofaRpcMeta meta;
+    meta.set_type(melon::policy::SofaRpcMeta::REQUEST);
     meta.set_sequence_id(0);
     meta.set_method("EchoService.Echo");
-    brpc::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
+    melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     _socket->SetFailed();
-    ProcessMessage(brpc::policy::ProcessSofaRequest, msg, false);
+    ProcessMessage(melon::policy::ProcessSofaRequest, msg, false);
     ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
     CheckResponseCode(true, 0);
 }
 
 TEST_F(SofaTest, process_request_logoff) {
-    brpc::policy::SofaRpcMeta meta;
-    meta.set_type(brpc::policy::SofaRpcMeta::REQUEST);
+    melon::policy::SofaRpcMeta meta;
+    meta.set_type(melon::policy::SofaRpcMeta::REQUEST);
     meta.set_sequence_id(0);
     meta.set_method("EchoService.Echo");
-    brpc::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
-    _server._status = brpc::Server::READY;
-    ProcessMessage(brpc::policy::ProcessSofaRequest, msg, false);
+    melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
+    _server._status = melon::Server::READY;
+    ProcessMessage(melon::policy::ProcessSofaRequest, msg, false);
     ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
-    CheckResponseCode(false, brpc::ELOGOFF);
+    CheckResponseCode(false, melon::ELOGOFF);
 }
 
 TEST_F(SofaTest, process_request_wrong_method) {
-    brpc::policy::SofaRpcMeta meta;
-    meta.set_type(brpc::policy::SofaRpcMeta::REQUEST);
+    melon::policy::SofaRpcMeta meta;
+    meta.set_type(melon::policy::SofaRpcMeta::REQUEST);
     meta.set_sequence_id(0);
     meta.set_method("EchoService.NO_SUCH_METHOD");
-    brpc::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
-    ProcessMessage(brpc::policy::ProcessSofaRequest, msg, false);
+    melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
+    ProcessMessage(melon::policy::ProcessSofaRequest, msg, false);
     ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
-    CheckResponseCode(false, brpc::ENOMETHOD);
+    CheckResponseCode(false, melon::ENOMETHOD);
 }
 
 TEST_F(SofaTest, process_response_after_eof) {
-    brpc::policy::SofaRpcMeta meta;
+    melon::policy::SofaRpcMeta meta;
     test::EchoResponse res;
-    brpc::Controller cntl;
-    meta.set_type(brpc::policy::SofaRpcMeta::RESPONSE);
+    melon::Controller cntl;
+    meta.set_type(melon::policy::SofaRpcMeta::RESPONSE);
     meta.set_sequence_id(cntl.call_id().value);
     cntl._response = &res;
-    brpc::policy::MostCommonMessage* msg = MakeResponseMessage(meta);
-    ProcessMessage(brpc::policy::ProcessSofaResponse, msg, true);
+    melon::policy::MostCommonMessage* msg = MakeResponseMessage(meta);
+    ProcessMessage(melon::policy::ProcessSofaResponse, msg, true);
     ASSERT_EQ(EXP_RESPONSE, res.message());
     ASSERT_TRUE(_socket->Failed());
 }
 
 TEST_F(SofaTest, process_response_error_code) {
     const int ERROR_CODE = 12345;
-    brpc::policy::SofaRpcMeta meta;
-    brpc::Controller cntl;
-    meta.set_type(brpc::policy::SofaRpcMeta::RESPONSE);
+    melon::policy::SofaRpcMeta meta;
+    melon::Controller cntl;
+    meta.set_type(melon::policy::SofaRpcMeta::RESPONSE);
     meta.set_sequence_id(cntl.call_id().value);
     meta.set_error_code(ERROR_CODE);
-    brpc::policy::MostCommonMessage* msg = MakeResponseMessage(meta);
-    ProcessMessage(brpc::policy::ProcessSofaResponse, msg, false);
+    melon::policy::MostCommonMessage* msg = MakeResponseMessage(meta);
+    ProcessMessage(melon::policy::ProcessSofaResponse, msg, false);
     ASSERT_EQ(ERROR_CODE, cntl.ErrorCode());
 }
 
 TEST_F(SofaTest, complete_flow) {
     butil::IOBuf request_buf;
     butil::IOBuf total_buf;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     cntl._response = &res;
 
     // Send request
     req.set_message(EXP_REQUEST);
-    brpc::SerializeRequestDefault(&request_buf, &cntl, &req);
+    melon::SerializeRequestDefault(&request_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
-    brpc::policy::PackSofaRequest(
+    melon::policy::PackSofaRequest(
         &total_buf, NULL, cntl.call_id().value,
         test::EchoService::descriptor()->method(0), &cntl, request_buf, &_auth);
     ASSERT_FALSE(cntl.Failed());
 
     // Verify and handle request
-    brpc::ParseResult req_pr =
-            brpc::policy::ParseSofaMessage(&total_buf, NULL, false, NULL);
-    ASSERT_EQ(brpc::PARSE_OK, req_pr.error());
-    brpc::InputMessageBase* req_msg = req_pr.message();
+    melon::ParseResult req_pr =
+            melon::policy::ParseSofaMessage(&total_buf, NULL, false, NULL);
+    ASSERT_EQ(melon::PARSE_OK, req_pr.error());
+    melon::InputMessageBase* req_msg = req_pr.message();
     VerifyMessage(req_msg);
-    ProcessMessage(brpc::policy::ProcessSofaRequest, req_msg, false);
+    ProcessMessage(melon::policy::ProcessSofaRequest, req_msg, false);
 
     // Read response from pipe
     butil::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
-    brpc::ParseResult res_pr =
-            brpc::policy::ParseSofaMessage(&response_buf, NULL, false, NULL);
-    ASSERT_EQ(brpc::PARSE_OK, res_pr.error());
-    brpc::InputMessageBase* res_msg = res_pr.message();
-    ProcessMessage(brpc::policy::ProcessSofaResponse, res_msg, false);
+    melon::ParseResult res_pr =
+            melon::policy::ParseSofaMessage(&response_buf, NULL, false, NULL);
+    ASSERT_EQ(melon::PARSE_OK, res_pr.error());
+    melon::InputMessageBase* res_msg = res_pr.message();
+    ProcessMessage(melon::policy::ProcessSofaResponse, res_msg, false);
 
     ASSERT_FALSE(cntl.Failed());
     ASSERT_EQ(EXP_RESPONSE, res.message());
@@ -315,33 +315,33 @@ TEST_F(SofaTest, complete_flow) {
 TEST_F(SofaTest, close_in_callback) {
     butil::IOBuf request_buf;
     butil::IOBuf total_buf;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
 
     // Send request
     req.set_message(EXP_REQUEST);
     req.set_close_fd(true);
-    brpc::SerializeRequestDefault(&request_buf, &cntl, &req);
+    melon::SerializeRequestDefault(&request_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
-    brpc::policy::PackSofaRequest(
+    melon::policy::PackSofaRequest(
         &total_buf, NULL, cntl.call_id().value,
         test::EchoService::descriptor()->method(0), &cntl, request_buf, &_auth);
     ASSERT_FALSE(cntl.Failed());
 
     // Handle request
-    brpc::ParseResult req_pr =
-            brpc::policy::ParseSofaMessage(&total_buf, NULL, false, NULL);
-    ASSERT_EQ(brpc::PARSE_OK, req_pr.error());
-    brpc::InputMessageBase* req_msg = req_pr.message();
-    ProcessMessage(brpc::policy::ProcessSofaRequest, req_msg, false);
+    melon::ParseResult req_pr =
+            melon::policy::ParseSofaMessage(&total_buf, NULL, false, NULL);
+    ASSERT_EQ(melon::PARSE_OK, req_pr.error());
+    melon::InputMessageBase* req_msg = req_pr.message();
+    ProcessMessage(melon::policy::ProcessSofaRequest, req_msg, false);
 
     // Socket should be closed
     ASSERT_TRUE(_socket->Failed());
 }
 
 TEST_F(SofaTest, sofa_compress) {
-    TestSofaCompress(brpc::COMPRESS_TYPE_SNAPPY);
-    TestSofaCompress(brpc::COMPRESS_TYPE_GZIP);
-    TestSofaCompress(brpc::COMPRESS_TYPE_ZLIB);
+    TestSofaCompress(melon::COMPRESS_TYPE_SNAPPY);
+    TestSofaCompress(melon::COMPRESS_TYPE_GZIP);
+    TestSofaCompress(melon::COMPRESS_TYPE_ZLIB);
 }
 } //namespace

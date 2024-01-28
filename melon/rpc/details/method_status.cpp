@@ -22,7 +22,7 @@
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/details/method_status.h"
 
-namespace brpc {
+namespace melon {
 
 static int cast_int(void* arg) {
     return *(int*)arg;
@@ -157,4 +157,4 @@ ConcurrencyRemover::~ConcurrencyRemover() {
     ServerPrivateAccessor(_c->server()).RemoveConcurrency(_c);
 }
 
-}  // namespace brpc
+}  // namespace melon

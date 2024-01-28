@@ -34,11 +34,7 @@ Pb2JsonOptions::Pb2JsonOptions()
     : enum_option(OUTPUT_ENUM_BY_NAME)
     , pretty_json(false)
     , enable_protobuf_map(true)
-#ifdef BAIDU_INTERNAL
-    , bytes_to_base64(false)
-#else
     , bytes_to_base64(true)
-#endif
     , jsonify_empty_array(false)
     , always_print_primitive_fields(false)
     , single_repeated_to_array(false) {

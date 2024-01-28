@@ -134,10 +134,6 @@ public:
             os << get_value();
         }
     }
-    
-#ifdef BAIDU_INTERNAL
-    void get_value(boost::any* value) const override { *value = get_value(); }
-#endif
 
     // True if this reducer is constructed successfully.
     bool valid() const { return _combiner.valid(); }

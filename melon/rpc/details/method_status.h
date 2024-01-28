@@ -25,7 +25,7 @@
 #include "melon/rpc/concurrency_limiter.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Controller;
 class Server;
@@ -112,6 +112,6 @@ inline void MethodStatus::OnResponded(int error_code, int64_t latency) {
     }
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif  //BRPC_METHOD_STATUS_H

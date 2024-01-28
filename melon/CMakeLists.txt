@@ -31,7 +31,7 @@ add_dependencies(SOURCES_LIB PROTO_LIB)
 set_property(TARGET ${SOURCES_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET ${BUTIL_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(brpc-static STATIC $<TARGET_OBJECTS:BUTIL_LIB>
+add_library(melon-static STATIC $<TARGET_OBJECTS:BUTIL_LIB>
                                $<TARGET_OBJECTS:SOURCES_LIB>
                                $<TARGET_OBJECTS:PROTO_LIB>)
 
@@ -59,12 +59,7 @@ function(check_thrift_version target_arg)
 endfunction()
 
 
-if(WITH_THRIFT)
-   target_link_libraries(brpc-static ${THRIFT_LIB})
-   check_thrift_version(brpc-static)
-endif()
-
-SET_TARGET_PROPERTIES(brpc-static PROPERTIES OUTPUT_NAME brpc CLEAN_DIRECT_OUTPUT 1)
+SET_TARGET_PROPERTIES(melon-static PROPERTIES OUTPUT_NAME melon CLEAN_DIRECT_OUTPUT 1)
 
 # for protoc-gen-mcpack
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/output/bin)
@@ -76,33 +71,29 @@ set(protoc_gen_mcpack_SOURCES
 add_executable(protoc-gen-mcpack ${protoc_gen_mcpack_SOURCES})
 
 if(BUILD_SHARED_LIBS)
-    add_library(brpc-shared SHARED $<TARGET_OBJECTS:BUTIL_LIB> 
+    add_library(melon-shared SHARED $<TARGET_OBJECTS:BUTIL_LIB>
                                    $<TARGET_OBJECTS:SOURCES_LIB>
                                    $<TARGET_OBJECTS:PROTO_LIB>)
-    target_link_libraries(brpc-shared ${DYNAMIC_LIB})
+    target_link_libraries(melon-shared ${DYNAMIC_LIB})
     if(WITH_GLOG)
-        target_link_libraries(brpc-shared ${GLOG_LIB})
+        target_link_libraries(melon-shared ${GLOG_LIB})
     endif()
-    if(WITH_THRIFT)
-        target_link_libraries(brpc-shared ${THRIFT_LIB})
-        check_thrift_version(brpc-shared)
-    endif()
-    SET_TARGET_PROPERTIES(brpc-shared PROPERTIES OUTPUT_NAME brpc CLEAN_DIRECT_OUTPUT 1)
+    SET_TARGET_PROPERTIES(melon-shared PROPERTIES OUTPUT_NAME melon CLEAN_DIRECT_OUTPUT 1)
 
-    target_link_libraries(protoc-gen-mcpack brpc-shared ${DYNAMIC_LIB} pthread)
+    target_link_libraries(protoc-gen-mcpack melon-shared ${DYNAMIC_LIB} pthread)
 
-    install(TARGETS brpc-shared
+    install(TARGETS melon-shared
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             )
 else()
-    target_link_libraries(protoc-gen-mcpack brpc-static ${DYNAMIC_LIB} pthread)
+    target_link_libraries(protoc-gen-mcpack melon-static ${DYNAMIC_LIB} pthread)
 endif()
 
 
 
-install(TARGETS brpc-static
+install(TARGETS melon-static
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

@@ -127,7 +127,7 @@ do {                                                                 \
 #define CLOSE "close"
 
 
-namespace brpc {
+namespace melon {
 
 static const char *method_strings[] =
   {
@@ -2356,4 +2356,4 @@ http_parser_version(void) {
          HTTP_PARSER_VERSION_PATCH * 0x00001;
 }
 
-} // namespace brpc
+} // namespace melon

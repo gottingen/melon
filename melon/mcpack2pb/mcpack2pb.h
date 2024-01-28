@@ -26,8 +26,8 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include "melon/butil/containers/flat_map.h"
 #include "melon/butil/iobuf.h"
-#include "mcpack2pb/parser.h"
-#include "mcpack2pb/serializer.h"
+#include "melon/mcpack2pb/parser.h"
+#include "melon/mcpack2pb/serializer.h"
 
 namespace mcpack2pb {
 

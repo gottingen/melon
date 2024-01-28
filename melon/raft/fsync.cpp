@@ -24,6 +24,6 @@ DEFINE_bool(raft_use_fsync_rather_than_fdatasync,
             "Use fsync rather than fdatasync to flush page cache");
 
 BRPC_VALIDATE_GFLAG(raft_use_fsync_rather_than_fdatasync,
-                         brpc::PassValidate);
+                         melon::PassValidate);
 
 }  //  namespace braft

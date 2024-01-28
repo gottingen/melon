@@ -26,7 +26,7 @@
 #include "melon/rpc/details/hpack-static-table.h"       // s_static_headers
 
 
-namespace brpc {
+namespace melon {
 
 // Options to initialize a IndexTable
 struct IndexTableOptions {
@@ -877,4 +877,4 @@ void tolower(std::string* s) {
     }
 }
 
-} // namespace brpc
+} // namespace melon

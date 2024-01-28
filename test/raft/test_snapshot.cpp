@@ -214,7 +214,7 @@ TEST_F(SnapshotTest, copy) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -279,7 +279,7 @@ TEST_F(SnapshotTest, file_escapes_directory) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -497,7 +497,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -653,7 +653,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -730,7 +730,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -817,7 +817,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -901,7 +901,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
@@ -984,7 +984,7 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
         fs->delete_file("data", true);
     }
 
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 

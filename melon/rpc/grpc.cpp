@@ -24,7 +24,7 @@
 #include "melon/rpc/http_status_code.h"
 #include "melon/butil/logging.h"
 
-namespace brpc {
+namespace melon {
 
 const char* GrpcStatusToString(GrpcStatus s) {
     switch (s) {
@@ -205,4 +205,4 @@ int64_t ConvertGrpcTimeoutToUS(const std::string* grpc_timeout) {
     CHECK(false) << "Impossible";
 }
 
-} // namespace brpc
+} // namespace melon

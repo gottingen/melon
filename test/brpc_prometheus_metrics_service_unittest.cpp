@@ -32,11 +32,11 @@ protected:
 };
 
 TEST_F(PrometheusMetricsDumperTest, GetMetricsName) {
-  EXPECT_EQ("", brpc::GetMetricsName(""));
+  EXPECT_EQ("", melon::GetMetricsName(""));
 
-  EXPECT_EQ("commit_count", brpc::GetMetricsName("commit_count"));
+  EXPECT_EQ("commit_count", melon::GetMetricsName("commit_count"));
 
-  EXPECT_EQ("commit_count", brpc::GetMetricsName("commit_count{region=\"1000\"}"));
+  EXPECT_EQ("commit_count", melon::GetMetricsName("commit_count{region=\"1000\"}"));
 }
 
 }

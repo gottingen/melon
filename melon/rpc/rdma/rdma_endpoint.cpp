@@ -32,7 +32,7 @@
 #include "melon/rpc/rdma/rdma_endpoint.h"
 
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 
 extern ibv_cq* (*IbvCreateCq)(ibv_context*, int, void*, ibv_comp_channel*, int);
@@ -57,7 +57,7 @@ DEFINE_int32(rdma_cqe_poll_once, 32, "The maximum of cqe number polled once.");
 DEFINE_int32(rdma_prepared_qp_size, 128, "SQ and RQ size for prepared QP.");
 DEFINE_int32(rdma_prepared_qp_cnt, 1024, "Initial count of prepared QP.");
 DEFINE_bool(rdma_trace_verbose, false, "Print log message verbosely");
-BRPC_VALIDATE_GFLAG(rdma_trace_verbose, brpc::PassValidate);
+BRPC_VALIDATE_GFLAG(rdma_trace_verbose, melon::PassValidate);
 
 static const size_t IOBUF_BLOCK_HEADER_LEN = 32; // implementation-dependent
 static const size_t IOBUF_BLOCK_DEFAULT_PAYLOAD =
@@ -1491,6 +1491,6 @@ void RdmaEndpoint::GlobalRelease() {
 }
 
 }  // namespace rdma
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // if BRPC_WITH_RDMA

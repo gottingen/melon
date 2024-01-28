@@ -17,15 +17,15 @@
 # under the License.
 #
 
-Name:		brpc
+Name:		melon
 Version:	1.6.0
 Release:	1%{?dist}
 Summary:	Industrial-grade RPC framework using C++ Language.
 
 Group:		Development
 License:	Apache2
-URL:		https://github.com/apache/brpc
-Source0:	https://downloads.apache.org/brpc/%{version}/apache-brpc-%{version}-src.tar.gz
+URL:		https://github.com/gottingen/melon
+Source0:	https://github.com/gottingen/melon/%{version}/melon-%{version}-src.tar.gz
 
 # https://access.redhat.com/solutions/519993
 %global  _filter_GLIBC_PRIVATE 1
@@ -51,7 +51,7 @@ BuildRequires:	leveldb-devel
 BuildRequires:	openssl-devel
 
 %description
-Apache bRPC is an Industrial-grade RPC framework using C++ Language,
+Apache melon is an Industrial-grade RPC framework using C++ Language,
 which is often used in high performance systems such as Search, Storage,
 Machine learning, Advertisement, Recommendation etc.
 
@@ -69,7 +69,7 @@ Headers and shared object symbolic links for the %{name} library.
 
 %package static
 Summary: The %{name} static development libraries
-Requires: brpc-devel = %{version}-%{release}
+Requires: melon-devel = %{version}-%{release}
 %description static
 Static %{name} libraries.
 
@@ -82,13 +82,13 @@ Static %{name} libraries.
 %endif
 
 %if 0%{?fedora} >= 33 || 0%{?rhel} >= 8
-%{cmake} -DBUILD_BRPC_TOOLS:BOOLEAN=ON -DDOWNLOAD_GTEST:BOOLEAN=OFF
+%{cmake} -DBUILD_MELON_TOOLS:BOOLEAN=ON -DDOWNLOAD_GTEST:BOOLEAN=OFF
 %{cmake_build}
 %else
 mkdir -p %{_target_platform}
 pushd %{_target_platform}
 
-%{cmake} -DBUILD_BRPC_TOOLS:BOOLEAN=ON -DDOWNLOAD_GTEST:BOOLEAN=OFF ..
+%{cmake} -DBUILD_MELON_TOOLS:BOOLEAN=ON -DDOWNLOAD_GTEST:BOOLEAN=OFF ..
 make %{?_smp_mflags}
 
 popd
@@ -109,7 +109,7 @@ popd
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%{_libdir}/libbrpc.so
+%{_libdir}/libmelon.so
 
 %files tools
 %{_bindir}/*
@@ -119,7 +119,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/pkgconfig/*
 
 %files static
-%{_libdir}/libbrpc.a
+%{_libdir}/libmelon.a
 
 %changelog
 

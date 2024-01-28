@@ -30,7 +30,7 @@
 #define EPOLLRDHUP 0x2000
 #endif
 
-namespace brpc {
+namespace melon {
 
 static unsigned int check_epollrdhup() {
     butil::fd_guard epfd(epoll_create(16));
@@ -60,11 +60,11 @@ static unsigned int check_epollrdhup() {
 
 extern const unsigned int has_epollrdhup = check_epollrdhup();
 
-} // namespace brpc
+} // namespace melon
 
 #else
 
-namespace brpc {
+namespace melon {
 extern const unsigned int has_epollrdhup = false;
 }
 

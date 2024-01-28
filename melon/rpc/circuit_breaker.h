@@ -20,7 +20,7 @@
 
 #include "melon/butil/atomicops.h"
 
-namespace brpc {
+namespace melon {
 
 class CircuitBreaker {
 public:
@@ -89,6 +89,6 @@ private:
     butil::atomic<bool> _broken;
 };
 
-}  // namespace brpc
+}  // namespace melon
 
 #endif // BRPC_CIRCUIT_BREAKER_H_

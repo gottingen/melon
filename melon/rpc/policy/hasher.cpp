@@ -22,7 +22,7 @@
 #include "melon/rpc/policy/hasher.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 void MD5HashSignature(const void* key, size_t len, unsigned char* results) {
@@ -168,4 +168,4 @@ const char *GetHashName(HashFunc hasher) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

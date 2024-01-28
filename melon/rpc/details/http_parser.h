@@ -62,7 +62,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 
-namespace brpc {
+namespace melon {
 
 struct http_parser;
 
@@ -325,7 +325,7 @@ const char* http_parser_type_name(enum http_parser_type type);
 const char* http_parser_state_name(unsigned int state);
 const char* http_parser_header_state_name(unsigned int header_state);
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_HTTP_PARSER_H

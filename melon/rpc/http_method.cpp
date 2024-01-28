@@ -22,7 +22,7 @@
 #include <algorithm>
 #include "melon/rpc/http_method.h"
 
-namespace brpc {
+namespace melon {
 
 struct HttpMethodPair {
     HttpMethod method;
@@ -139,4 +139,4 @@ bool Str2HttpMethod(const char* method_str, HttpMethod* method) {
     return false;
 }
 
-} // namespace brpc
+} // namespace melon

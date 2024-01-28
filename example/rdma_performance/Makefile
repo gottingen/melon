@@ -44,15 +44,15 @@ SERVER_OBJS = $(addsuffix .o, $(basename $(SERVER_SOURCES)))
 
 ifeq ($(SYSTEM),Darwin)
  ifneq ("$(LINK_SO)", "")
-    STATIC_LINKINGS += -lbrpc
+    STATIC_LINKINGS += -lmelon
  else
     # *.a must be explicitly specified in clang
-    STATIC_LINKINGS += $(BRPC_PATH)/output/lib/libbrpc.a
+    STATIC_LINKINGS += $(BRPC_PATH)/output/lib/libmelon.a
  endif
     LINK_OPTIONS_SO = $^ $(STATIC_LINKINGS) $(DYNAMIC_LINKINGS)
     LINK_OPTIONS = $^ $(STATIC_LINKINGS) $(DYNAMIC_LINKINGS)
 else ifeq ($(SYSTEM),Linux)
-    STATIC_LINKINGS += -lbrpc
+    STATIC_LINKINGS += -lmelon
     LINK_OPTIONS_SO = -Xlinker "-(" $^ -Xlinker "-)" $(STATIC_LINKINGS) $(DYNAMIC_LINKINGS)
     LINK_OPTIONS = -Xlinker "-(" $^ -Wl,-Bstatic $(STATIC_LINKINGS) -Wl,-Bdynamic -Xlinker "-)" $(DYNAMIC_LINKINGS)
 endif

@@ -20,7 +20,7 @@
 #define BRPC_PARSE_RESULT_H
 
 
-namespace brpc {
+namespace melon {
 
 enum ParseError {
     PARSE_OK = 0,
@@ -86,7 +86,7 @@ inline ParseResult MakeMessage(InputMessageBase* msg) {
     return ParseResult(msg);
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PARSE_RESULT_H

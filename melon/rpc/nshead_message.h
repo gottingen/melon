@@ -25,7 +25,7 @@
 #include "melon/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
-namespace brpc {
+namespace melon {
 
 // Representing a nshead request or response.
 class NsheadMessage : public ::google::protobuf::Message {
@@ -77,7 +77,7 @@ private:
     void SharedDtor();
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_NSHEAD_MESSAGE_H

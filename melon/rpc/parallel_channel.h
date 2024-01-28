@@ -27,7 +27,7 @@
 #include "melon/rpc/channel.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Possible values of SubCall.flag, MUST be bitwise exclusive.
 static const int DELETE_REQUEST = 1;
@@ -80,7 +80,7 @@ struct SubCall {
 //   return SubCall(method, request, response->New(), DELETE_RESPONSE);
 //
 // 2. change sth. of the request and merge responses:
-//   FooRequest* copied_req = brpc::Clone<FooRequest>(request);
+//   FooRequest* copied_req = melon::Clone<FooRequest>(request);
 //   copied_req->set_xxx(...);
 //   return SubCall(method, copied_req, response->New(),
 //                  DELETE_REQUEST | DELETE_RESPONSE);
@@ -196,7 +196,7 @@ public:
     // `sub_channel' will be deleted in dtor of ParallelChannel when ownership
     // is OWNS_CHANNEL.
     // A sub channel can be added multiple times. If it's added with
-    // brpc::OWNS_CHANNEL, it will be deleted for only once.
+    // melon::OWNS_CHANNEL, it will be deleted for only once.
     // If call_mapper is NULL:
     //  - Every sub_channel will get the same `request' to ParallelChannel
     //  - responses of sub channels are New()-ed from the `response' to
@@ -269,7 +269,7 @@ protected:
     ChannelList _chans;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PARALLEL_CHANNEL_H

@@ -46,7 +46,7 @@ class IOBuf;
 }
 
 
-namespace brpc {
+namespace melon {
 class Socket;
 class SocketMessage;
 class Controller;
@@ -247,7 +247,7 @@ private:
     T _arr[N];
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_PROTOCOL_H

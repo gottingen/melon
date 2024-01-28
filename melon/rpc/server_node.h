@@ -21,7 +21,7 @@
 #include <string>
 #include "melon/butil/endpoint.h"
 
-namespace brpc {
+namespace melon {
 
 // Representing a server inside a NamingService.
 struct ServerNode {
@@ -58,6 +58,6 @@ inline std::ostream& operator<<(std::ostream& os, const ServerNode& n) {
     return os;
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_SERVER_NODE_H

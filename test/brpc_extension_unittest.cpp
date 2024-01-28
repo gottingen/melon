@@ -38,12 +38,12 @@ protected:
     };
 };
 
-inline brpc::Extension<const int>* ConstIntExtension() {
-    return brpc::Extension<const int>::instance();
+inline melon::Extension<const int>* ConstIntExtension() {
+    return melon::Extension<const int>::instance();
 }
 
-inline brpc::Extension<int>* IntExtension() {
-    return brpc::Extension<int>::instance();
+inline melon::Extension<int>* IntExtension() {
+    return melon::Extension<int>::instance();
 }
 
 

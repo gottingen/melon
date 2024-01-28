@@ -33,7 +33,7 @@
 #include "melon/rpc/socket.h"
 #include "melon/rpc/pb_compat.h"
 
-namespace brpc {
+namespace melon {
 
 // Request to redis.
 // Notice that you can pipeline multiple commands in one request and sent
@@ -269,7 +269,7 @@ public:
     // handler that all the following commands are sent to this tranction handler until
     // it returns REDIS_CMD_HANDLED. Read the comment below.
     virtual RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                          brpc::RedisReply* output,
+                                          melon::RedisReply* output,
                                           bool flush_batched) = 0;
 
     // The Run() returns CONTINUE for "multi", which makes brpc call this method to
@@ -289,6 +289,6 @@ public:
     virtual RedisCommandHandler* NewTransactionHandler();
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_REDIS_H

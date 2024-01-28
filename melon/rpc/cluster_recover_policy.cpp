@@ -27,7 +27,7 @@
 #include "melon/butil/time.h"
 #include "melon/butil/string_splitter.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int64(detect_available_server_interval_ms, 10, "The interval "
         "to detect available server count in DefaultClusterRecoverPolicy");
@@ -146,4 +146,4 @@ bool GetRecoverPolicyByParams(const butil::StringPiece& params,
     return true;
 }
 
-} // namespace brpc
+} // namespace melon

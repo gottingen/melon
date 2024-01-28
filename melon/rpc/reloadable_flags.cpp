@@ -21,7 +21,7 @@
 #include "melon/butil/macros.h"
 #include "melon/rpc/reloadable_flags.h"
 
-namespace brpc {
+namespace melon {
 
 bool PassValidate(const char*, bool) {
     return true;
@@ -95,4 +95,4 @@ bool RegisterFlagValidatorOrDie(const double* flag,
     return RegisterFlagValidatorOrDieImpl(flag, validate_fn);
 }
 
-} // namespace brpc
+} // namespace melon

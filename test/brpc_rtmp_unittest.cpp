@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     return RUN_ALL_TESTS();
 }
 
-class TestRtmpClientStream : public brpc::RtmpClientStream {
+class TestRtmpClientStream : public melon::RtmpClientStream {
 public:
     TestRtmpClientStream()
         : _called_on_stop(0)
@@ -74,13 +74,13 @@ public:
     void OnStop() {
         ++_called_on_stop;
     }
-    void OnVideoMessage(brpc::RtmpVideoMessage* msg) {
+    void OnVideoMessage(melon::RtmpVideoMessage* msg) {
         ++_nvideomsg;
         // video data is ascii in UT, print it out.
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
-    void OnAudioMessage(brpc::RtmpAudioMessage* msg) {
+    void OnAudioMessage(melon::RtmpAudioMessage* msg) {
         ++_naudiomsg;
         // audio data is ascii in UT, print it out.
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
@@ -94,7 +94,7 @@ private:
 };
 
 class TestRtmpRetryingClientStream
-    : public brpc::RtmpRetryingClientStream {
+    : public melon::RtmpRetryingClientStream {
 public:
     TestRtmpRetryingClientStream()
         : _called_on_stop(0)
@@ -119,12 +119,12 @@ public:
         ++_called_on_playable;
     }
 
-    void OnVideoMessage(brpc::RtmpVideoMessage* msg) {
+    void OnVideoMessage(melon::RtmpVideoMessage* msg) {
         // video data is ascii in UT, print it out.
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
-    void OnAudioMessage(brpc::RtmpAudioMessage* msg) {
+    void OnAudioMessage(melon::RtmpAudioMessage* msg) {
         // audio data is ascii in UT, print it out.
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
@@ -137,7 +137,7 @@ private:
 
 const char* UNEXIST_NAME = "unexist_stream";
 
-class PlayingDummyStream : public brpc::RtmpServerStream {
+class PlayingDummyStream : public melon::RtmpServerStream {
 public:
     enum State {
         STATE_UNPLAYING,
@@ -151,10 +151,10 @@ public:
     ~PlayingDummyStream() {
         LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
-    void OnPlay(const brpc::RtmpPlayOptions& opt,
+    void OnPlay(const melon::RtmpPlayOptions& opt,
                 butil::Status* status,
                 google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got play{stream_name=" << opt.stream_name
                   << " start=" << opt.start
@@ -210,8 +210,8 @@ private:
 void PlayingDummyStream::SendData() {
     LOG(INFO) << "Enter SendData of PlayingDummyStream=" << this;
 
-    brpc::RtmpVideoMessage vmsg;
-    brpc::RtmpAudioMessage amsg;
+    melon::RtmpVideoMessage vmsg;
+    melon::RtmpAudioMessage amsg;
 
     vmsg.timestamp = 1000;
     amsg.timestamp = 1000;
@@ -219,18 +219,18 @@ void PlayingDummyStream::SendData() {
         vmsg.timestamp += 20;
         amsg.timestamp += 20;
 
-        vmsg.frame_type = brpc::FLV_VIDEO_FRAME_KEYFRAME;
-        vmsg.codec = brpc::FLV_VIDEO_AVC;
+        vmsg.frame_type = melon::FLV_VIDEO_FRAME_KEYFRAME;
+        vmsg.codec = melon::FLV_VIDEO_AVC;
         vmsg.data.clear();
         vmsg.data.append(butil::string_printf("video_%d(ms_id=%u)",
                                              i, stream_id()));
         //failing to send is possible
         SendVideoMessage(vmsg);
 
-        amsg.codec = brpc::FLV_AUDIO_AAC;
-        amsg.rate = brpc::FLV_SOUND_RATE_44100HZ;
-        amsg.bits = brpc::FLV_SOUND_16BIT;
-        amsg.type = brpc::FLV_SOUND_STEREO;
+        amsg.codec = melon::FLV_AUDIO_AAC;
+        amsg.rate = melon::FLV_SOUND_RATE_44100HZ;
+        amsg.bits = melon::FLV_SOUND_16BIT;
+        amsg.type = melon::FLV_SOUND_STEREO;
         amsg.data.clear();
         amsg.data.append(butil::string_printf("audio_%d(ms_id=%u)",
                                              i, stream_id()));
@@ -242,20 +242,20 @@ void PlayingDummyStream::SendData() {
     LOG(INFO) << "Quit SendData of PlayingDummyStream=" << this;
 }
 
-class PlayingDummyService : public brpc::RtmpService {
+class PlayingDummyService : public melon::RtmpService {
 public:
     PlayingDummyService(int64_t sleep_ms = 0) : _sleep_ms(sleep_ms) {}
 
 private:
     // Called to create a server-side stream.
-    virtual brpc::RtmpServerStream* NewStream(
-        const brpc::RtmpConnectRequest&) {
+    virtual melon::RtmpServerStream* NewStream(
+        const melon::RtmpConnectRequest&) {
         return new PlayingDummyStream(_sleep_ms);
     }
     int64_t _sleep_ms;
 };
 
-class PublishStream : public brpc::RtmpServerStream {
+class PublishStream : public melon::RtmpServerStream {
 public:
     PublishStream(int64_t sleep_ms)
         : _sleep_ms(sleep_ms)
@@ -273,13 +273,13 @@ public:
         ASSERT_EQ(1, _called_on_stop);
     }
     void OnPublish(const std::string& stream_name,
-                   brpc::RtmpPublishType publish_type,
+                   melon::RtmpPublishType publish_type,
                    butil::Status* status,
                    google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got publish{stream_name=" << stream_name
-                  << " type=" << brpc::RtmpPublishType2Str(publish_type)
+                  << " type=" << melon::RtmpPublishType2Str(publish_type)
                   << '}';
         if (stream_name == UNEXIST_NAME) {
             status->set_error(EPERM, "Unexist stream");
@@ -298,13 +298,13 @@ public:
         LOG(INFO) << "OnStop of PublishStream=" << this;
         ++_called_on_stop;
     }
-    void OnVideoMessage(brpc::RtmpVideoMessage* msg) {
+    void OnVideoMessage(melon::RtmpVideoMessage* msg) {
         ++_nvideomsg;
         // video data is ascii in UT, print it out.
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
-    void OnAudioMessage(brpc::RtmpAudioMessage* msg) {
+    void OnAudioMessage(melon::RtmpAudioMessage* msg) {
         ++_naudiomsg;
         // audio data is ascii in UT, print it out.
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
@@ -318,7 +318,7 @@ private:
     int _naudiomsg;
 };
 
-class PublishService : public brpc::RtmpService {
+class PublishService : public melon::RtmpService {
 public:
     PublishService(int64_t sleep_ms = 0) : _sleep_ms(sleep_ms) {
         pthread_mutex_init(&_mutex, NULL);
@@ -335,8 +335,8 @@ public:
 
 private:
     // Called to create a server-side stream.
-    virtual brpc::RtmpServerStream* NewStream(
-        const brpc::RtmpConnectRequest&) {
+    virtual melon::RtmpServerStream* NewStream(
+        const melon::RtmpConnectRequest&) {
         PublishStream* stream = new PublishStream(_sleep_ms);
         {
             BAIDU_SCOPED_LOCK(_mutex);
@@ -349,38 +349,38 @@ private:
     std::vector<butil::intrusive_ptr<PublishStream> > _created_streams;
 };
 
-class RtmpSubStream : public brpc::RtmpClientStream {
+class RtmpSubStream : public melon::RtmpClientStream {
 public:
-    explicit RtmpSubStream(brpc::RtmpMessageHandler* mh)
+    explicit RtmpSubStream(melon::RtmpMessageHandler* mh)
         : _message_handler(mh) {}
     // @RtmpStreamBase
-    void OnMetaData(brpc::RtmpMetaData*, const butil::StringPiece&);
-    void OnSharedObjectMessage(brpc::RtmpSharedObjectMessage* msg);
-    void OnAudioMessage(brpc::RtmpAudioMessage* msg);
-    void OnVideoMessage(brpc::RtmpVideoMessage* msg);
+    void OnMetaData(melon::RtmpMetaData*, const butil::StringPiece&);
+    void OnSharedObjectMessage(melon::RtmpSharedObjectMessage* msg);
+    void OnAudioMessage(melon::RtmpAudioMessage* msg);
+    void OnVideoMessage(melon::RtmpVideoMessage* msg);
     void OnFirstMessage();
     void OnStop();
 private:
-    std::unique_ptr<brpc::RtmpMessageHandler> _message_handler;
+    std::unique_ptr<melon::RtmpMessageHandler> _message_handler;
 };
 
 void RtmpSubStream::OnFirstMessage() {
     _message_handler->OnPlayable();
 }
 
-void RtmpSubStream::OnMetaData(brpc::RtmpMetaData* obj, const butil::StringPiece& name) {
+void RtmpSubStream::OnMetaData(melon::RtmpMetaData* obj, const butil::StringPiece& name) {
     _message_handler->OnMetaData(obj, name);
 }
 
-void RtmpSubStream::OnSharedObjectMessage(brpc::RtmpSharedObjectMessage* msg) {
+void RtmpSubStream::OnSharedObjectMessage(melon::RtmpSharedObjectMessage* msg) {
     _message_handler->OnSharedObjectMessage(msg);
 }
 
-void RtmpSubStream::OnAudioMessage(brpc::RtmpAudioMessage* msg) {
+void RtmpSubStream::OnAudioMessage(melon::RtmpAudioMessage* msg) {
     _message_handler->OnAudioMessage(msg);
 }
 
-void RtmpSubStream::OnVideoMessage(brpc::RtmpVideoMessage* msg) {
+void RtmpSubStream::OnVideoMessage(melon::RtmpVideoMessage* msg) {
     _message_handler->OnVideoMessage(msg);
 }
 
@@ -389,29 +389,29 @@ void RtmpSubStream::OnStop() {
 }
 
 
-class RtmpSubStreamCreator : public brpc::SubStreamCreator {
+class RtmpSubStreamCreator : public melon::SubStreamCreator {
 public:
-    RtmpSubStreamCreator(const brpc::RtmpClient* client);
+    RtmpSubStreamCreator(const melon::RtmpClient* client);
 
     ~RtmpSubStreamCreator();
 
     // @SubStreamCreator
-    void NewSubStream(brpc::RtmpMessageHandler* message_handler,
-                      butil::intrusive_ptr<brpc::RtmpStreamBase>* sub_stream);
-    void LaunchSubStream(brpc::RtmpStreamBase* sub_stream,
-                         brpc::RtmpRetryingClientStreamOptions* options);
+    void NewSubStream(melon::RtmpMessageHandler* message_handler,
+                      butil::intrusive_ptr<melon::RtmpStreamBase>* sub_stream);
+    void LaunchSubStream(melon::RtmpStreamBase* sub_stream,
+                         melon::RtmpRetryingClientStreamOptions* options);
 
 private:
-    const brpc::RtmpClient* _client;
+    const melon::RtmpClient* _client;
 };
 
-RtmpSubStreamCreator::RtmpSubStreamCreator(const brpc::RtmpClient* client)
+RtmpSubStreamCreator::RtmpSubStreamCreator(const melon::RtmpClient* client)
     : _client(client) {}
 
 RtmpSubStreamCreator::~RtmpSubStreamCreator() {}
  
-void RtmpSubStreamCreator::NewSubStream(brpc::RtmpMessageHandler* message_handler,
-                                        butil::intrusive_ptr<brpc::RtmpStreamBase>* sub_stream) {
+void RtmpSubStreamCreator::NewSubStream(melon::RtmpMessageHandler* message_handler,
+                                        butil::intrusive_ptr<melon::RtmpStreamBase>* sub_stream) {
     if (sub_stream) { 
         (*sub_stream).reset(new RtmpSubStream(message_handler));
     }
@@ -419,9 +419,9 @@ void RtmpSubStreamCreator::NewSubStream(brpc::RtmpMessageHandler* message_handle
 }
 
 void RtmpSubStreamCreator::LaunchSubStream(
-    brpc::RtmpStreamBase* sub_stream, 
-    brpc::RtmpRetryingClientStreamOptions* options) {
-    brpc::RtmpClientStreamOptions client_options = *options;
+    melon::RtmpStreamBase* sub_stream,
+    melon::RtmpRetryingClientStreamOptions* options) {
+    melon::RtmpClientStreamOptions client_options = *options;
     dynamic_cast<RtmpSubStream*>(sub_stream)->Init(_client, client_options);
 }
 
@@ -432,7 +432,7 @@ TEST(RtmpTest, parse_rtmp_url) {
     butil::StringPiece app;
     butil::StringPiece stream_name;
 
-    brpc::ParseRtmpURL("rtmp://HOST/APP/STREAM",
+    melon::ParseRtmpURL("rtmp://HOST/APP/STREAM",
                              &host, &vhost, &port, &app, &stream_name);
     ASSERT_EQ("HOST", host);
     ASSERT_TRUE(vhost.empty());
@@ -440,7 +440,7 @@ TEST(RtmpTest, parse_rtmp_url) {
     ASSERT_EQ("APP", app);
     ASSERT_EQ("STREAM", stream_name);
 
-    brpc::ParseRtmpURL("HOST/APP/STREAM",
+    melon::ParseRtmpURL("HOST/APP/STREAM",
                              &host, &vhost, &port, &app, &stream_name);
     ASSERT_EQ("HOST", host);
     ASSERT_TRUE(vhost.empty());
@@ -448,7 +448,7 @@ TEST(RtmpTest, parse_rtmp_url) {
     ASSERT_EQ("APP", app);
     ASSERT_EQ("STREAM", stream_name);
 
-    brpc::ParseRtmpURL("rtmp://HOST:8765//APP?vhost=abc///STREAM?queries",
+    melon::ParseRtmpURL("rtmp://HOST:8765//APP?vhost=abc///STREAM?queries",
                              &host, &vhost, &port, &app, &stream_name);
     ASSERT_EQ("HOST", host);
     ASSERT_EQ("abc", vhost);
@@ -456,7 +456,7 @@ TEST(RtmpTest, parse_rtmp_url) {
     ASSERT_EQ("APP", app);
     ASSERT_EQ("STREAM?queries", stream_name);
 
-    brpc::ParseRtmpURL("HOST:8765//APP?vhost=abc///STREAM?queries",
+    melon::ParseRtmpURL("HOST:8765//APP?vhost=abc///STREAM?queries",
                              &host, &vhost, &port, &app, &stream_name);
     ASSERT_EQ("HOST", host);
     ASSERT_EQ("abc", vhost);
@@ -464,7 +464,7 @@ TEST(RtmpTest, parse_rtmp_url) {
     ASSERT_EQ("APP", app);
     ASSERT_EQ("STREAM?queries", stream_name);
 
-    brpc::ParseRtmpURL("HOST:8765//APP?vhost=abc///STREAM?queries/",
+    melon::ParseRtmpURL("HOST:8765//APP?vhost=abc///STREAM?queries/",
                              &host, &vhost, &port, &app, &stream_name);
     ASSERT_EQ("HOST", host);
     ASSERT_EQ("abc", vhost);
@@ -472,7 +472,7 @@ TEST(RtmpTest, parse_rtmp_url) {
     ASSERT_EQ("APP", app);
     ASSERT_EQ("STREAM?queries/", stream_name);
 
-    brpc::ParseRtmpURL("HOST:8765/APP?vhost=abc",
+    melon::ParseRtmpURL("HOST:8765/APP?vhost=abc",
                              &host, &vhost, &port, &app, &stream_name);
     ASSERT_EQ("HOST", host);
     ASSERT_EQ("abc", vhost);
@@ -483,41 +483,41 @@ TEST(RtmpTest, parse_rtmp_url) {
 
 TEST(RtmpTest, amf) {
     std::string req_buf;
-    brpc::RtmpInfo info;
-    brpc::AMFObject obj;
+    melon::RtmpInfo info;
+    melon::AMFObject obj;
     std::string dummy = "_result";
     {
         google::protobuf::io::StringOutputStream zc_stream(&req_buf);
-        brpc::AMFOutputStream ostream(&zc_stream);
-        brpc::WriteAMFString(dummy, &ostream);
-        brpc::WriteAMFUint32(17, &ostream);
+        melon::AMFOutputStream ostream(&zc_stream);
+        melon::WriteAMFString(dummy, &ostream);
+        melon::WriteAMFUint32(17, &ostream);
         info.set_code("NetConnection.Connect"); // TODO
         info.set_level("error");
         info.set_description("heheda hello foobar");
-        brpc::WriteAMFObject(info, &ostream);
+        melon::WriteAMFObject(info, &ostream);
         ASSERT_TRUE(ostream.good());
         obj.SetString("code", "foo");
         obj.SetString("level", "bar");
         obj.SetString("description", "heheda");
-        brpc::WriteAMFObject(obj, &ostream);
+        melon::WriteAMFObject(obj, &ostream);
         ASSERT_TRUE(ostream.good());
     }
 
     google::protobuf::io::ArrayInputStream zc_stream(req_buf.data(), req_buf.size());
-    brpc::AMFInputStream istream(&zc_stream);
+    melon::AMFInputStream istream(&zc_stream);
     std::string result;
-    ASSERT_TRUE(brpc::ReadAMFString(&result, &istream));
+    ASSERT_TRUE(melon::ReadAMFString(&result, &istream));
     ASSERT_EQ(dummy, result);
     uint32_t num = 0;
-    ASSERT_TRUE(brpc::ReadAMFUint32(&num, &istream));
+    ASSERT_TRUE(melon::ReadAMFUint32(&num, &istream));
     ASSERT_EQ(17u, num);
-    brpc::RtmpInfo info2;
-    ASSERT_TRUE(brpc::ReadAMFObject(&info2, &istream));
+    melon::RtmpInfo info2;
+    ASSERT_TRUE(melon::ReadAMFObject(&info2, &istream));
     ASSERT_EQ(info.code(), info2.code());
     ASSERT_EQ(info.level(), info2.level());
     ASSERT_EQ(info.description(), info2.description());
-    brpc::RtmpInfo info3;
-    ASSERT_TRUE(brpc::ReadAMFObject(&info3, &istream));
+    melon::RtmpInfo info3;
+    ASSERT_TRUE(melon::ReadAMFObject(&info3, &istream));
     ASSERT_EQ("foo", info3.code());
     ASSERT_EQ("bar", info3.level());
     ASSERT_EQ("heheda", info3.description());
@@ -525,24 +525,24 @@ TEST(RtmpTest, amf) {
 
 TEST(RtmpTest, successfully_play_streams) {
     PlayingDummyService rtmp_service;
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8571, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8571", rtmp_opt));
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    brpc::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
+    melon::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
-        brpc::RtmpClientStreamOptions opt;
+        melon::RtmpClientStreamOptions opt;
         opt.play_name = butil::string_printf("play_name_%d", i);
         //opt.publish_name = butil::string_printf("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
@@ -557,24 +557,24 @@ TEST(RtmpTest, successfully_play_streams) {
 
 TEST(RtmpTest, fail_to_play_streams) {
     PlayingDummyService rtmp_service;
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8571, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8571", rtmp_opt));
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    brpc::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
+    melon::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
-        brpc::RtmpClientStreamOptions opt;
+        melon::RtmpClientStreamOptions opt;
         opt.play_name = UNEXIST_NAME;
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
@@ -588,45 +588,45 @@ TEST(RtmpTest, fail_to_play_streams) {
 
 TEST(RtmpTest, successfully_publish_streams) {
     PublishService rtmp_service;
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8571, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8571", rtmp_opt));
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    brpc::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
+    melon::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
-        brpc::RtmpClientStreamOptions opt;
+        melon::RtmpClientStreamOptions opt;
         opt.publish_name = butil::string_printf("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
     const int REP = 5;
     for (int i = 0; i < REP; ++i) {
-        brpc::RtmpVideoMessage vmsg;
+        melon::RtmpVideoMessage vmsg;
         vmsg.timestamp = 1000 + i * 20;
-        vmsg.frame_type = brpc::FLV_VIDEO_FRAME_KEYFRAME;
-        vmsg.codec = brpc::FLV_VIDEO_AVC;
+        vmsg.frame_type = melon::FLV_VIDEO_FRAME_KEYFRAME;
+        vmsg.codec = melon::FLV_VIDEO_AVC;
         vmsg.data.append(butil::string_printf("video_%d", i));
         for (int j = 0; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendVideoMessage(vmsg));
         }
         
-        brpc::RtmpAudioMessage amsg;
+        melon::RtmpAudioMessage amsg;
         amsg.timestamp = 1000 + i * 20;
-        amsg.codec = brpc::FLV_AUDIO_AAC;
-        amsg.rate = brpc::FLV_SOUND_RATE_44100HZ;
-        amsg.bits = brpc::FLV_SOUND_16BIT;
-        amsg.type = brpc::FLV_SOUND_STEREO;
+        amsg.codec = melon::FLV_AUDIO_AAC;
+        amsg.rate = melon::FLV_SOUND_RATE_44100HZ;
+        amsg.bits = melon::FLV_SOUND_16BIT;
+        amsg.type = melon::FLV_SOUND_STEREO;
         amsg.data.append(butil::string_printf("audio_%d", i));
         for (int j = 1; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendAudioMessage(amsg));
@@ -651,24 +651,24 @@ TEST(RtmpTest, successfully_publish_streams) {
 
 TEST(RtmpTest, failed_to_publish_streams) {
     PublishService rtmp_service;
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8575, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8575", rtmp_opt));
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    brpc::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
+    melon::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
-        brpc::RtmpClientStreamOptions opt;
+        melon::RtmpClientStreamOptions opt;
         opt.publish_name = UNEXIST_NAME;
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
@@ -689,19 +689,19 @@ TEST(RtmpTest, failed_to_publish_streams) {
 }
 
 TEST(RtmpTest, failed_to_connect_client_streams) {
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8572", rtmp_opt));
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    brpc::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
+    melon::DestroyingPtr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
-        brpc::RtmpClientStreamOptions opt;
+        melon::RtmpClientStreamOptions opt;
         opt.play_name = butil::string_printf("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
@@ -711,11 +711,11 @@ TEST(RtmpTest, failed_to_connect_client_streams) {
 }
 
 TEST(RtmpTest, destroy_client_streams_before_init) {
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8573", rtmp_opt));
 
     // Create multiple streams.
@@ -725,8 +725,8 @@ TEST(RtmpTest, destroy_client_streams_before_init) {
         cstreams[i].reset(new TestRtmpClientStream);
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
-        ASSERT_EQ(brpc::RtmpClientStream::STATE_DESTROYING, cstreams[i]->_state);
-        brpc::RtmpClientStreamOptions opt;
+        ASSERT_EQ(melon::RtmpClientStream::STATE_DESTROYING, cstreams[i]->_state);
+        melon::RtmpClientStreamOptions opt;
         opt.play_name = butil::string_printf("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
@@ -736,11 +736,11 @@ TEST(RtmpTest, destroy_client_streams_before_init) {
 }
 
 TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8573", rtmp_opt));
 
     // Create multiple streams.
@@ -750,9 +750,9 @@ TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
-        brpc::RtmpRetryingClientStreamOptions opt;
+        melon::RtmpRetryingClientStreamOptions opt;
         opt.play_name = butil::string_printf("play_name_%d", i);
-        brpc::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
+        melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
@@ -761,16 +761,16 @@ TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
 
 TEST(RtmpTest, destroy_client_streams_during_creation) {
     PlayingDummyService rtmp_service(2000/*sleep 2s*/);
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8574, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8574", rtmp_opt));
 
     // Create multiple streams.
@@ -778,7 +778,7 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
     butil::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
-        brpc::RtmpClientStreamOptions opt;
+        melon::RtmpClientStreamOptions opt;
         opt.play_name = butil::string_printf("play_name_%d", i);
         cstreams[i]->Init(&rtmp_client, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
@@ -793,16 +793,16 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
 
 TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
     PlayingDummyService rtmp_service(2000/*sleep 2s*/);
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8574, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8574", rtmp_opt));
 
     // Create multiple streams.
@@ -810,9 +810,9 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
     butil::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
-        brpc::RtmpRetryingClientStreamOptions opt;
+        melon::RtmpRetryingClientStreamOptions opt;
         opt.play_name = butil::string_printf("play_name_%d", i);
-        brpc::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
+        melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
         usleep(500*1000);
@@ -826,27 +826,27 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
 
 TEST(RtmpTest, retrying_stream) {
     PlayingDummyService rtmp_service;
-    brpc::Server server;
-    brpc::ServerOptions server_opt;
+    melon::Server server;
+    melon::ServerOptions server_opt;
     server_opt.rtmp_service = &rtmp_service;
     ASSERT_EQ(0, server.Start(8576, &server_opt));
 
-    brpc::RtmpClientOptions rtmp_opt;
+    melon::RtmpClientOptions rtmp_opt;
     rtmp_opt.app = "hello";
     rtmp_opt.swfUrl = "anything";
     rtmp_opt.tcUrl = "rtmp://heheda";
-    brpc::RtmpClient rtmp_client;
+    melon::RtmpClient rtmp_client;
     ASSERT_EQ(0, rtmp_client.Init("localhost:8576", rtmp_opt));
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    brpc::DestroyingPtr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
+    melon::DestroyingPtr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
-        brpc::Controller cntl;
-        brpc::RtmpRetryingClientStreamOptions opt;
+        melon::Controller cntl;
+        melon::RtmpRetryingClientStreamOptions opt;
         opt.play_name = butil::string_printf("name_%d", i);
-        brpc::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
+        melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
     }
     sleep(3);

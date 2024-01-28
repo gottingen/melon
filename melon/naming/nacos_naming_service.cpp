@@ -27,7 +27,7 @@
 #include "melon/butil/logging.h"
 #include "melon/butil/third_party/rapidjson/document.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_string(nacos_address, "",
@@ -58,7 +58,7 @@ int NacosNamingService::Connect() {
 int NacosNamingService::RefreshAccessToken(const char *service_name) {
     Controller cntl;
     cntl.http_request().uri() = FLAGS_nacos_service_auth_path;
-    cntl.http_request().set_method(brpc::HttpMethod::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HttpMethod::HTTP_METHOD_POST);
     cntl.http_request().set_content_type("application/x-www-form-urlencoded");
 
     auto &buf = cntl.request_attachment();
@@ -286,4 +286,4 @@ NamingService *NacosNamingService::New() const {
 void NacosNamingService::Destroy() { delete this; }
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon

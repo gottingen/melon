@@ -27,7 +27,7 @@
 #include "melon/raft/node.h"
 
 #include "melon/raft/fsm_caller.h"
-#include <bthread/unstable.h>
+#include <melon/bthread/unstable.h>
 
 namespace braft {
 
@@ -36,7 +36,7 @@ static bvar::CounterRecorder g_commit_tasks_batch_counter(
 
 DEFINE_int32(raft_fsm_caller_commit_batch, 512, 
              "Max numbers of logs for the state machine to commit in a single batch");
-BRPC_VALIDATE_GFLAG(raft_fsm_caller_commit_batch, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_fsm_caller_commit_batch, melon::PositiveInteger);
 
 FSMCaller::FSMCaller()
     : _log_manager(NULL)
@@ -141,7 +141,7 @@ int FSMCaller::run(void* meta, bthread::TaskIterator<ApplyTask>& iter) {
 }
 
 bool FSMCaller::pass_by_status(Closure* done) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     if (!_error.status().ok()) {
         if (done) {
             done->status().set_error(
@@ -242,7 +242,7 @@ int FSMCaller::on_error(const Error& e) {
 }
 
 void FSMCaller::do_on_error(OnErrorClousre* done) {
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     set_error(done->error());
 }
 

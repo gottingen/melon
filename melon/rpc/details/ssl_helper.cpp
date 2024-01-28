@@ -32,7 +32,7 @@
 #include "melon/rpc/socket.h"
 #include "melon/rpc/details/ssl_helper.h"
 
-namespace brpc {
+namespace melon {
 
 #ifndef OPENSSL_NO_DH
 static DH* g_dh_1024 = NULL;
@@ -874,7 +874,7 @@ void Print(std::ostream& os, X509* cert, const char* sep) {
 
     BIO_printf(buf, "%scommon_name=", sep);
     std::vector<std::string> hostnames;
-    brpc::ExtractHostnames(cert, &hostnames);
+    melon::ExtractHostnames(cert, &hostnames);
     for (size_t i = 0; i < hostnames.size(); ++i) {
         BIO_printf(buf, "%s;", hostnames[i].c_str());
     }
@@ -934,6 +934,6 @@ bool BuildALPNProtocolList(
     return true;
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif // USE_MESALINK

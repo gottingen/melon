@@ -25,7 +25,7 @@
 #include "melon/rpc/uri.h"                      // URI
 
 
-namespace brpc {
+namespace melon {
 
 URI::URI() 
     : _port(-1)
@@ -514,4 +514,4 @@ void append_query(std::string *query_string,
     query_string->append(value.data(), value.size());
 }
 
-} // namespace brpc
+} // namespace melon

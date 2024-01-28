@@ -27,7 +27,7 @@
 #include "melon/butil/arena.h"
 #include "melon/rpc/parse_result.h"
 
-namespace brpc {
+namespace melon {
 
 // Format a redis command and append it to `buf'.
 // Returns butil::Status::OK() on success.
@@ -65,7 +65,7 @@ private:
     std::vector<butil::StringPiece> _args;  // parsed command string
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_REDIS_COMMAND_H

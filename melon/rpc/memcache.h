@@ -27,7 +27,7 @@
 #include "melon/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
-namespace brpc {
+namespace melon {
 
 // Request to memcache.
 // Notice that you can pipeline multiple operations in one request and sent
@@ -240,7 +240,7 @@ private:
     mutable int _cached_size_;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_MEMCACHE_H

@@ -33,7 +33,7 @@ namespace bvar {
 std::string read_command_name();
 }
 
-namespace brpc {
+namespace melon {
 
 DECLARE_uint64(max_body_size);
 
@@ -361,4 +361,4 @@ SampledRequest* SampleIterator::Pop(butil::IOBuf& buf, bool* format_error) {
 
 #undef DUMPED_FILE_PREFIX
 
-} // namespace brpc
+} // namespace melon

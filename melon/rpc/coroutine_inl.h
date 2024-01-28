@@ -21,7 +21,7 @@
 #include "melon/bthread/unstable.h"   // bthread_timer_add
 #include "melon/bthread/butex.h"      // butex_wake/butex_wait
 
-namespace brpc {
+namespace melon {
 namespace experimental {
 
 namespace detail {
@@ -307,6 +307,6 @@ inline Awaitable<int> Coroutine::usleep(int sleep_us) {
 }
 
 } // namespace experimental
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_COROUTINE_INL_H

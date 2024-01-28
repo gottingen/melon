@@ -23,7 +23,7 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Server;
 
@@ -32,14 +32,14 @@ public:
     explicit VersionService(Server* server) : _server(server) {}
     
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::VersionRequest* request,
-                        ::brpc::VersionResponse* response,
+                        const ::melon::VersionRequest* request,
+                        ::melon::VersionResponse* response,
                         ::google::protobuf::Closure* done);
 private:
     Server* _server;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_VERSION_SERVICE_H

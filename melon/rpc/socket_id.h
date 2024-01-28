@@ -26,7 +26,7 @@
 #include "melon/butil/unique_ptr.h"      // std::unique_ptr
 
 
-namespace brpc {
+namespace melon {
 
 // Unique identifier of a Socket.
 // Users shall store SocketId instead of Sockets and call Socket::Address()
@@ -48,7 +48,7 @@ struct SocketDeleter {
 
 typedef std::unique_ptr<Socket, SocketDeleter> SocketUniquePtr;
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_SOCKET_ID_H

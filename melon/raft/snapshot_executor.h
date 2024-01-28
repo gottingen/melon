@@ -76,7 +76,7 @@ public:
     //  - Interrupted: happens when interrupt_downloading_snapshot is called or
     //    a new RPC with the same or newer snapshot arrives
     //  - Busy: the state machine is saving or loading snapshot
-    void install_snapshot(brpc::Controller* controller,
+    void install_snapshot(melon::Controller* controller,
                           const InstallSnapshotRequest* request,
                           InstallSnapshotResponse* response,
                           google::protobuf::Closure* done);
@@ -130,7 +130,7 @@ friend class InstallSnapshotDone;
     struct DownloadingSnapshot {
         const InstallSnapshotRequest* request;
         InstallSnapshotResponse* response;
-        brpc::Controller* cntl;
+        melon::Controller* cntl;
         google::protobuf::Closure* done;
     };
 

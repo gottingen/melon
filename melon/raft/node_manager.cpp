@@ -42,7 +42,7 @@ void NodeManager::remove_address(butil::EndPoint addr) {
     _addr_set.erase(addr);
 }
 
-int NodeManager::add_service(brpc::Server* server, 
+int NodeManager::add_service(melon::Server* server,
                              const butil::EndPoint& listen_address) {
     if (server == NULL) {
         LOG(ERROR) << "server is NULL";
@@ -52,23 +52,23 @@ int NodeManager::add_service(brpc::Server* server,
         return 0;
     }
 
-    if (0 != server->AddService(file_service(), brpc::SERVER_DOESNT_OWN_SERVICE)) {
+    if (0 != server->AddService(file_service(), melon::SERVER_DOESNT_OWN_SERVICE)) {
         LOG(ERROR) << "Fail to add FileService";
         return -1;
     }
 
     if (0 != server->AddService(
                 new RaftServiceImpl(listen_address), 
-                brpc::SERVER_OWNS_SERVICE)) {
+                melon::SERVER_OWNS_SERVICE)) {
         LOG(ERROR) << "Fail to add RaftService";
         return -1;
     }
 
-    if (0 != server->AddService(new RaftStatImpl, brpc::SERVER_OWNS_SERVICE)) {
+    if (0 != server->AddService(new RaftStatImpl, melon::SERVER_OWNS_SERVICE)) {
         LOG(ERROR) << "Fail to add RaftStatService";
         return -1;
     }
-    if (0 != server->AddService(new CliServiceImpl, brpc::SERVER_OWNS_SERVICE)) {
+    if (0 != server->AddService(new CliServiceImpl, melon::SERVER_OWNS_SERVICE)) {
         LOG(ERROR) << "Fail to add CliService";
         return -1;
     }

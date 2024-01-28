@@ -44,7 +44,7 @@ bvar::Adder<int> g_error_count("client_error_count");
 
 struct SenderArgs {
     int base_index;
-    brpc::Channel* redis_channel;
+    melon::Channel* redis_channel;
 };
 
 static void* sender(void* void_args) {
@@ -60,15 +60,15 @@ static void* sender(void* void_args) {
             "%s_%04d", FLAGS_value.c_str(), args->base_index + i);
     }
 
-    brpc::RedisRequest request;
+    melon::RedisRequest request;
     for (int i = 0; i < FLAGS_batch; ++i) {
         CHECK(request.AddCommand("GET %s", kvs[i].first.c_str()));
     }
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
         // on stack.
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisResponse response;
+        melon::Controller cntl;
 
         // Because `done'(last parameter) is NULL, this function waits until
         // the response comes back or error occurs(including timedout).
@@ -83,7 +83,7 @@ static void* sender(void* void_args) {
             }
         } else {
             g_error_count << 1;
-            CHECK(brpc::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << elp;
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -101,11 +101,11 @@ int main(int argc, char* argv[]) {
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
     
     // Initialize the channel, NULL means using default options. 
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
@@ -117,9 +117,9 @@ int main(int argc, char* argv[]) {
 
     // Pipeline #batch * #thread_num SET requests into redis so that we
     // have keys to get.
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
     for (int i = 0; i < FLAGS_batch * FLAGS_thread_num; ++i) {
         if (!request.AddCommand("SET %s_%04d %s_%04d", 
                     FLAGS_key.c_str(), i,
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num << " values";
 
     if (FLAGS_dummy_port >= 0) {
-        brpc::StartDummyServerAt(FLAGS_dummy_port);
+        melon::StartDummyServerAt(FLAGS_dummy_port);
     }
 
     std::vector<bthread_t> bids;
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         sleep(1);
         
         LOG(INFO) << "Accessing redis-server at qps=" << g_latency_recorder.qps(1)

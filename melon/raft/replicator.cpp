@@ -19,7 +19,7 @@
 #include <gflags/gflags.h>                       // DEFINE_int32
 #include <melon/butil/unique_ptr.h>                    // std::unique_ptr
 #include <melon/butil/time.h>                          // butil::gettimeofday_us
-#include <melon/rpc/controller.h>                     // brpc::Controller
+#include <melon/rpc/controller.h>                     // melon::Controller
 #include <melon/rpc/reloadable_flags.h>               // BRPC_VALIDATE_GFLAG
 #include "melon/raft/replicator.h"
 #include "melon/raft/node.h"                          // NodeImpl
@@ -31,21 +31,21 @@ namespace braft {
 
 DEFINE_int32(raft_max_entries_size, 1024,
              "The max number of entries in AppendEntriesRequest");
-BRPC_VALIDATE_GFLAG(raft_max_entries_size, ::brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_max_entries_size, ::melon::PositiveInteger);
 
 DEFINE_int32(raft_max_parallel_append_entries_rpc_num, 1,
              "The max number of parallel AppendEntries requests");
 BRPC_VALIDATE_GFLAG(raft_max_parallel_append_entries_rpc_num,
-                    ::brpc::PositiveInteger);
+                    ::melon::PositiveInteger);
 
 DEFINE_int32(raft_max_body_size, 512 * 1024,
              "The max byte size of AppendEntriesRequest");
-BRPC_VALIDATE_GFLAG(raft_max_body_size, ::brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_max_body_size, ::melon::PositiveInteger);
 
 DEFINE_int32(raft_retry_replicate_interval_ms, 1000,
              "Interval of retry to append entries or install snapshot");
 BRPC_VALIDATE_GFLAG(raft_retry_replicate_interval_ms,
-                    brpc::PositiveInteger);
+                    melon::PositiveInteger);
 
 DECLARE_bool(raft_enable_witness_to_leader);
 DECLARE_int64(raft_append_entry_high_lat_us);
@@ -113,7 +113,7 @@ int Replicator::start(const ReplicatorOptions& options, ReplicatorId *id) {
         return -1;
     }
     Replicator* r = new Replicator();
-    brpc::ChannelOptions channel_opt;
+    melon::ChannelOptions channel_opt;
     channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
     channel_opt.timeout_ms = -1; // We don't need RPC timeout
     if (r->_sending_channel.Init(options.peer_id.addr, &channel_opt) != 0) {
@@ -277,11 +277,11 @@ void Replicator::_block(long start_time_us, int error_code) {
 }
 
 void Replicator::_on_heartbeat_returned(
-        ReplicatorId id, brpc::Controller* cntl,
+        ReplicatorId id, melon::Controller* cntl,
         AppendEntriesRequest* request, 
         AppendEntriesResponse* response,
         int64_t rpc_send_time) {
-    std::unique_ptr<brpc::Controller> cntl_guard(cntl);
+    std::unique_ptr<melon::Controller> cntl_guard(cntl);
     std::unique_ptr<AppendEntriesRequest>  req_guard(request);
     std::unique_ptr<AppendEntriesResponse> res_guard(response);
     Replicator *r = NULL;
@@ -356,11 +356,11 @@ void Replicator::_on_heartbeat_returned(
     return;
 }
 
-void Replicator::_on_rpc_returned(ReplicatorId id, brpc::Controller* cntl,
+void Replicator::_on_rpc_returned(ReplicatorId id, melon::Controller* cntl,
                      AppendEntriesRequest* request, 
                      AppendEntriesResponse* response,
                      int64_t rpc_send_time) {
-    std::unique_ptr<brpc::Controller> cntl_guard(cntl);
+    std::unique_ptr<melon::Controller> cntl_guard(cntl);
     std::unique_ptr<AppendEntriesRequest>  req_guard(request);
     std::unique_ptr<AppendEntriesResponse> res_guard(response);
     Replicator *r = NULL;
@@ -554,7 +554,7 @@ int Replicator::_fill_common_fields(AppendEntriesRequest* request,
 }
 
 void Replicator::_send_empty_entries(bool is_heartbeat) {
-    std::unique_ptr<brpc::Controller> cntl(new brpc::Controller);
+    std::unique_ptr<melon::Controller> cntl(new melon::Controller);
     std::unique_ptr<AppendEntriesRequest> request(new AppendEntriesRequest);
     std::unique_ptr<AppendEntriesResponse> response(new AppendEntriesResponse);
     if (_fill_common_fields(
@@ -584,7 +584,7 @@ void Replicator::_send_empty_entries(bool is_heartbeat) {
         << " prev_log_index " << request->prev_log_index()
         << " last_committed_index " << request->committed_index();
 
-    google::protobuf::Closure* done = brpc::NewCallback(
+    google::protobuf::Closure* done = melon::NewCallback(
                 is_heartbeat ? _on_heartbeat_returned : _on_rpc_returned, 
                 _id.value, cntl.get(), request.get(), response.get(),
                 butil::monotonic_time_ms());
@@ -649,7 +649,7 @@ void Replicator::_send_entries() {
         return;
     }
 
-    std::unique_ptr<brpc::Controller> cntl(new brpc::Controller);
+    std::unique_ptr<melon::Controller> cntl(new melon::Controller);
     std::unique_ptr<AppendEntriesRequest> request(new AppendEntriesRequest);
     std::unique_ptr<AppendEntriesResponse> response(new AppendEntriesResponse);
     if (_fill_common_fields(request.get(), _next_index - 1, false) != 0) {
@@ -703,7 +703,7 @@ void Replicator::_send_entries() {
     _st.st = APPENDING_ENTRIES;
     _st.first_log_index = _min_flying_index();
     _st.last_log_index = _next_index - 1;
-    google::protobuf::Closure* done = brpc::NewCallback(
+    google::protobuf::Closure* done = melon::NewCallback(
                 _on_rpc_returned, _id.value, cntl.get(), 
                 request.get(), response.get(), butil::monotonic_time_ms());
     RaftService_Stub stub(&_sending_channel);
@@ -834,7 +834,7 @@ void Replicator::_install_snapshot() {
         node_impl->Release();
         return;
     } 
-    brpc::Controller* cntl = new brpc::Controller;
+    melon::Controller* cntl = new melon::Controller;
     cntl->set_max_retry(0);
     cntl->set_timeout_ms(-1);
     InstallSnapshotRequest* request = new InstallSnapshotRequest();
@@ -855,8 +855,8 @@ void Replicator::_install_snapshot() {
     _install_snapshot_counter++;
     _st.last_log_included = meta.last_included_index();
     _st.last_term_included = meta.last_included_term();
-    google::protobuf::Closure* done = brpc::NewCallback<
-                ReplicatorId, brpc::Controller*,
+    google::protobuf::Closure* done = melon::NewCallback<
+                ReplicatorId, melon::Controller*,
                 InstallSnapshotRequest*, InstallSnapshotResponse*>(
                     _on_install_snapshot_returned, _id.value,
                     cntl, request, response);
@@ -866,10 +866,10 @@ void Replicator::_install_snapshot() {
 }
 
 void Replicator::_on_install_snapshot_returned(
-            ReplicatorId id, brpc::Controller* cntl,
+            ReplicatorId id, melon::Controller* cntl,
             InstallSnapshotRequest* request, 
             InstallSnapshotResponse* response) {
-    std::unique_ptr<brpc::Controller> cntl_guard(cntl);
+    std::unique_ptr<melon::Controller> cntl_guard(cntl);
     std::unique_ptr<InstallSnapshotRequest> request_guard(request);
     std::unique_ptr<InstallSnapshotResponse> response_guard(response);
     Replicator *r = NULL;
@@ -992,9 +992,9 @@ void* Replicator::_send_heartbeat(void* arg) {
 int Replicator::_on_error(bthread_id_t id, void* arg, int error_code) {
     Replicator* r = (Replicator*)arg;
     if (error_code == ESTOP) {
-        brpc::StartCancel(r->_install_snapshot_in_fly);
-        brpc::StartCancel(r->_heartbeat_in_fly);
-        brpc::StartCancel(r->_timeout_now_in_fly);
+        melon::StartCancel(r->_install_snapshot_in_fly);
+        melon::StartCancel(r->_heartbeat_in_fly);
+        melon::StartCancel(r->_timeout_now_in_fly);
         r->_cancel_append_entries_rpcs();
         bthread_timer_del(r->_heartbeat_timer);
         r->_options.log_manager->remove_waiter(r->_wait_id);
@@ -1077,7 +1077,7 @@ void Replicator::_cancel_append_entries_rpcs() {
     for (std::deque<FlyingAppendEntriesRpc>::iterator rpc_it =
         _append_entries_in_fly.begin();
         rpc_it != _append_entries_in_fly.end(); ++rpc_it) {
-        brpc::StartCancel(rpc_it->call_id);
+        melon::StartCancel(rpc_it->call_id);
     }
     _append_entries_in_fly.clear();
 }
@@ -1102,7 +1102,7 @@ void Replicator::_send_timeout_now(bool unlock_id, bool old_leader_stepped_down,
     request->set_server_id(_options.server_id.to_string());
     request->set_peer_id(_options.peer_id.to_string());
     request->set_old_leader_stepped_down(old_leader_stepped_down);
-    brpc::Controller* cntl = new brpc::Controller;
+    melon::Controller* cntl = new melon::Controller;
     if (!old_leader_stepped_down) {
         // This RPC is issued by transfer_leadership, save this call_id so that
         // the RPC can be cancelled by stop.
@@ -1113,7 +1113,7 @@ void Replicator::_send_timeout_now(bool unlock_id, bool old_leader_stepped_down,
         cntl->set_timeout_ms(timeout_ms);
     }
     RaftService_Stub stub(&_sending_channel);
-    ::google::protobuf::Closure* done = brpc::NewCallback(
+    ::google::protobuf::Closure* done = melon::NewCallback(
             _on_timeout_now_returned, _id.value, cntl, request, response,
             old_leader_stepped_down);
     stub.timeout_now(cntl, request, response, done);
@@ -1123,11 +1123,11 @@ void Replicator::_send_timeout_now(bool unlock_id, bool old_leader_stepped_down,
 }
 
 void Replicator::_on_timeout_now_returned(
-                ReplicatorId id, brpc::Controller* cntl,
+                ReplicatorId id, melon::Controller* cntl,
                 TimeoutNowRequest* request, 
                 TimeoutNowResponse* response,
                 bool old_leader_stepped_down) {
-    std::unique_ptr<brpc::Controller> cntl_guard(cntl);
+    std::unique_ptr<melon::Controller> cntl_guard(cntl);
     std::unique_ptr<TimeoutNowRequest>  req_guard(request);
     std::unique_ptr<TimeoutNowResponse> res_guard(response);
     Replicator *r = NULL;

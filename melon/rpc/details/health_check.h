@@ -24,13 +24,13 @@
 #include "melon/bvar/bvar.h"
 #include "melon/rpc/socket.h"
 
-namespace brpc {
+namespace melon {
 
 // Start health check for socket id after delay_ms.
 // If delay_ms <= 0, HealthCheck would be started
 // immediately.
 void StartHealthCheck(SocketId id, int64_t delay_ms);
 
-} // namespace brpc
+} // namespace melon
 
 #endif

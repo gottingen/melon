@@ -23,7 +23,7 @@ namespace braft {
 DEFINE_bool(raft_enable_leader_lease, false,
             "Enable or disable leader lease. only when all peers in a raft group "
             "set this configuration to true, leader lease check and vote are safe.");
-BRPC_VALIDATE_GFLAG(raft_enable_leader_lease, ::brpc::PassValidate);
+BRPC_VALIDATE_GFLAG(raft_enable_leader_lease, ::melon::PassValidate);
 
 void LeaderLease::init(int64_t election_timeout_ms) {
     _election_timeout_ms = election_timeout_ms;

@@ -23,19 +23,19 @@ protobuf_generate_cpp(PROTO_SRC PROTO_HEADER block.proto)
 # include PROTO_HEADER
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-find_path(BRPC_INCLUDE_PATH NAMES brpc/server.h)
+find_path(MELON_INCLUDE_PATH NAMES melon/rpc/server.h)
 if(EXAMPLE_LINK_SO)
-    find_library(BRPC_LIB NAMES brpc)
+    find_library(MELON_LIB NAMES melon)
     find_library(BRAFT_LIB NAMES braft)
 else()
-    find_library(BRPC_LIB NAMES libbrpc.a brpc)
+    find_library(MELON_LIB NAMES libmelon.a melon)
     find_library(BRAFT_LIB NAMES libbraft.a braft)
 endif()
 
-if((NOT BRPC_INCLUDE_PATH) OR (NOT BRPC_LIB))
-    message(FATAL_ERROR "Fail to find brpc")
+if((NOT MELON_INCLUDE_PATH) OR (NOT MELON_LIB))
+    message(FATAL_ERROR "Fail to find melon")
 endif()
-include_directories(${BRPC_INCLUDE_PATH})
+include_directories(${MELON_INCLUDE_PATH})
 
 find_path(BRAFT_INCLUDE_PATH NAMES braft/raft.h)
 if ((NOT BRAFT_INCLUDE_PATH) OR (NOT BRAFT_LIB))
@@ -117,7 +117,7 @@ set(DYNAMIC_LIB
     ${GPERFTOOLS_LIBRARIES}
     ${LEVELDB_LIB}
     ${BRAFT_LIB}
-    ${BRPC_LIB}
+    ${MELON_LIB}
     rt
     ssl
     crypto

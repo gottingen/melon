@@ -28,7 +28,7 @@
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/socket_map.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(health_check_interval, 3, 
              "seconds between consecutive health-checkings");
@@ -391,4 +391,4 @@ void SocketMap::WatchConnections() {
     }
 }
 
-} // namespace brpc
+} // namespace melon

@@ -23,7 +23,7 @@
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Actions to a (server) response in nshead+mcpack format.
@@ -60,7 +60,7 @@ public:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_NSHEAD_MCPACK_PROTOCOL_H

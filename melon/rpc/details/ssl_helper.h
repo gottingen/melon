@@ -34,7 +34,7 @@
 #include "melon/rpc/ssl_options.h"               // ServerSSLOptions
 #include "melon/rpc/adaptive_protocol_type.h"    // AdaptiveProtocolType
 
-namespace brpc {
+namespace melon {
 
 // The calculation method is the same as OPENSSL_VERSION_NUMBER in the openssl/crypto.h file.
 // SSL_VERSION_NUMBER can pass parameter calculation instead of using fixed macro.
@@ -120,6 +120,6 @@ bool BuildALPNProtocolList(
     std::vector<unsigned char>& result
 );
 
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_SSL_HELPER_H

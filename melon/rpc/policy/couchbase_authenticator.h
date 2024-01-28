@@ -20,7 +20,7 @@
 
 #include "melon/rpc/authenticator.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Request to couchbase for authentication.
@@ -36,7 +36,7 @@ class CouchbaseAuthenticator : public Authenticator {
   int GenerateCredential(std::string* auth_str) const;
 
   int VerifyCredential(const std::string&, const butil::EndPoint&,
-                       brpc::AuthContext*) const {
+                       melon::AuthContext*) const {
     return 0;
   }
 
@@ -46,6 +46,6 @@ class CouchbaseAuthenticator : public Authenticator {
 };
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // BRPC_POLICY_COUCHBASE_AUTHENTICATOR_H

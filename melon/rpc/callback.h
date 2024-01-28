@@ -38,7 +38,7 @@
 // Another reason is that we add more overloads to the function which is
 // probably widely used throughout baidu. When user's callback creation 
 // code breaks in protobuf 3.0, they can simply replace
-// google::protobuf::NewCallback with brpc::NewCallback.
+// google::protobuf::NewCallback with melon::NewCallback.
 
 #ifndef BRPC_CALLBACK_H
 #define BRPC_CALLBACK_H
@@ -50,7 +50,7 @@
 #include <google/protobuf/stubs/callback.h>
 #endif
 
-namespace brpc {
+namespace melon {
 
 // Abstract interface for a callback.  When calling an RPC, you must provide
 // a Closure to call when the procedure completes.  See the Service interface
@@ -1091,7 +1091,7 @@ inline ::google::protobuf::Closure* NewPermanentCallback(
     object, method, false, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_CALLBACK_H

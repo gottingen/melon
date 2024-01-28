@@ -26,7 +26,7 @@
 #include "melon/naming/file_naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 bool SplitIntoServerAndTag(const butil::StringPiece& line,
@@ -165,4 +165,4 @@ void FileNamingService::Destroy() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

@@ -22,7 +22,7 @@
 #include "melon/butil/unique_ptr.h"           // std::unique_ptr
 
 
-namespace brpc {
+namespace melon {
 
 class Destroyable {
 public:
@@ -43,7 +43,7 @@ struct DestroyingPtr : public std::unique_ptr<T, detail::Destroyer<T> > {
     DestroyingPtr(T* p) : std::unique_ptr<T, detail::Destroyer<T> >(p) {}
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_DESTROYABLE_H

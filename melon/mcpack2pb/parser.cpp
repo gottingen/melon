@@ -19,7 +19,7 @@
 
 // Date: Mon Oct 19 17:17:36 CST 2015
 
-#include "mcpack2pb/parser.h"
+#include "melon/mcpack2pb/parser.h"
 
 namespace mcpack2pb {
 

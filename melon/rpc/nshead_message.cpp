@@ -22,7 +22,7 @@
 #include "melon/rpc/nshead_message.h"
 #include "melon/butil/logging.h"
 
-namespace brpc {
+namespace melon {
 
 NsheadMessage::NsheadMessage()
     : ::google::protobuf::Message() {
@@ -142,4 +142,4 @@ void NsheadMessage::Swap(NsheadMessage* other) {
     return metadata;
 }
 
-} // namespace brpc
+} // namespace melon

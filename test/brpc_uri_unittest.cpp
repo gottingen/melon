@@ -20,7 +20,7 @@
 #include "melon/rpc/uri.h"
 
 TEST(URITest, everything) {
-    brpc::URI uri;
+    melon::URI uri;
     std::string uri_str = " foobar://user:passwd@www.baidu.com:80/s?wd=uri#frag  ";
     ASSERT_EQ(0, uri.SetHttpURL(uri_str));
     ASSERT_EQ("foobar", uri.scheme());
@@ -36,14 +36,14 @@ TEST(URITest, everything) {
     std::string scheme;
     std::string host_out;
     int port_out = -1;
-    brpc::ParseURL(uri_str.c_str(), &scheme, &host_out, &port_out);
+    melon::ParseURL(uri_str.c_str(), &scheme, &host_out, &port_out);
     ASSERT_EQ("foobar", scheme);
     ASSERT_EQ("www.baidu.com", host_out);
     ASSERT_EQ(80, port_out);
 }
 
 TEST(URITest, only_host) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL("  foo1://www.baidu1.com?wd=uri2&nonkey=22 "));
     ASSERT_EQ("foo1", uri.scheme());
     ASSERT_EQ(-1, uri.port());
@@ -90,7 +90,7 @@ TEST(URITest, only_host) {
 }
 
 TEST(URITest, no_scheme) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL(" user:passwd2@www.baidu1.com/s?wd=uri2&nonkey=22#frag "));
     ASSERT_EQ("", uri.scheme());
     ASSERT_EQ(-1, uri.port());
@@ -105,7 +105,7 @@ TEST(URITest, no_scheme) {
 }
 
 TEST(URITest, no_scheme_and_user_info) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL(" www.baidu2.com/s?wd=uri2&nonkey=22#frag "));
     ASSERT_EQ("", uri.scheme());
     ASSERT_EQ(-1, uri.port());
@@ -120,7 +120,7 @@ TEST(URITest, no_scheme_and_user_info) {
 }
 
 TEST(URITest, no_host) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL(" /sb?wd=uri3#frag2 ")) << uri.status();
     ASSERT_EQ("", uri.scheme());
     ASSERT_EQ(-1, uri.port());
@@ -146,7 +146,7 @@ TEST(URITest, no_host) {
 }
 
 TEST(URITest, consecutive_ampersand) {
-    brpc::URI uri;
+    melon::URI uri;
     uri._query = "&key1=value1&&key3=value3";
     ASSERT_TRUE(uri.GetQuery("key1"));
     ASSERT_TRUE(uri.GetQuery("key3"));
@@ -156,7 +156,7 @@ TEST(URITest, consecutive_ampersand) {
 }
 
 TEST(URITest, only_equality) {
-    brpc::URI uri;
+    melon::URI uri;
     uri._query = "key1=&&key2&&=&key3=value3";
     ASSERT_TRUE(uri.GetQuery("key1"));
     ASSERT_EQ("", *uri.GetQuery("key1"));
@@ -167,7 +167,7 @@ TEST(URITest, only_equality) {
 }
 
 TEST(URITest, set_query) {
-    brpc::URI uri;
+    melon::URI uri;
     uri._query = "key1=&&key2&&=&key3=value3";
     ASSERT_TRUE(uri.GetQuery("key1"));
     ASSERT_TRUE(uri.GetQuery("key3"));
@@ -183,7 +183,7 @@ TEST(URITest, set_query) {
 }
 
 TEST(URITest, set_h2_path) {
-    brpc::URI uri;
+    melon::URI uri;
     uri.SetH2Path("/dir?key1=&&key2&&=&key3=value3");
     ASSERT_EQ("/dir", uri.path());
     ASSERT_TRUE(uri.GetQuery("key1"));
@@ -208,7 +208,7 @@ TEST(URITest, set_h2_path) {
 }
 
 TEST(URITest, generate_h2_path) {
-    brpc::URI uri;
+    melon::URI uri;
     const std::string ref1 = "/dir?key1=&&key2&&=&key3=value3";
     uri.SetH2Path(ref1);
     ASSERT_EQ("/dir", uri.path());
@@ -258,21 +258,21 @@ TEST(URITest, generate_h2_path) {
 }
 
 TEST(URITest, only_one_key) {
-    brpc::URI uri;
+    melon::URI uri;
     uri._query = "key1";
     ASSERT_TRUE(uri.GetQuery("key1"));
     ASSERT_EQ("", *uri.GetQuery("key1"));
 }
 
 TEST(URITest, empty_host) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL("http://"));
     ASSERT_EQ("", uri.host());
     ASSERT_EQ("", uri.path());
 }
 
 TEST(URITest, invalid_spaces) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(-1, uri.SetHttpURL("foo bar://user:passwd@www.baidu.com:80/s?wd=uri#frag"));
     ASSERT_STREQ("Invalid space in url", uri.status().error_cstr());
     ASSERT_EQ(-1, uri.SetHttpURL("foobar://us er:passwd@www.baidu.com:80/s?wd=uri#frag"));
@@ -298,13 +298,13 @@ TEST(URITest, invalid_spaces) {
 }
 
 TEST(URITest, invalid_query) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL("http://a.b.c/?a-b-c:def"));
     ASSERT_EQ("a-b-c:def", uri.query());
 }
 
 TEST(URITest, print_url) {
-    brpc::URI uri;
+    melon::URI uri;
 
     const std::string url1 = "http://user:passwd@a.b.c/?d=c&a=b&e=f#frg1";
     ASSERT_EQ(0, uri.SetHttpURL(url1));
@@ -336,15 +336,15 @@ TEST(URITest, print_url) {
 }
 
 TEST(URITest, copy_and_assign) {
-    brpc::URI uri;
+    melon::URI uri;
     const std::string url = "http://user:passwd@a.b.c/?d=c&a=b&e=f#frg1";
     ASSERT_EQ(0, uri.SetHttpURL(url));
-    brpc::URI uri2 = uri;
+    melon::URI uri2 = uri;
 }
 
 TEST(URITest, query_remover_sanity) {
     std::string query = "key1=value1&key2=value2&key3=value3";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ASSERT_EQ(qr.key(), "key1");
     ASSERT_EQ(qr.value(), "value1");
@@ -360,7 +360,7 @@ TEST(URITest, query_remover_sanity) {
 
 TEST(URITest, query_remover_remove_current_key_and_value) {
     std::string query = "key1=value1&key2=value2&key3=value3";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     qr.remove_current_key_and_value();
     ASSERT_EQ(qr.modified_query(), "key2=value2&key3=value3");
@@ -381,7 +381,7 @@ TEST(URITest, query_remover_remove_current_key_and_value) {
 TEST(URITest, query_remover_random_remove) {
     std::string query = "key1=value1&key2=value2&key3=value3&key4=value4"
                         "&key5=value5&key6=value6";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ++qr;
     ++qr;
@@ -396,7 +396,7 @@ TEST(URITest, query_remover_random_remove) {
 TEST(URITest, query_remover_onekey_remove) {
     std::string query = "key1=value1&key2=value2&key3=value3&key4=value4"
                         "&key5=value5&key6=value6";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ++qr;
     ++qr;
@@ -414,7 +414,7 @@ TEST(URITest, query_remover_onekey_remove) {
 
 TEST(URITest, query_remover_consecutive_ampersand) {
     std::string query = "key1=value1&&&key2=value2&key3=value3&&";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     qr.remove_current_key_and_value();
     ASSERT_EQ(qr.modified_query(), "key2=value2&key3=value3&&");
@@ -430,7 +430,7 @@ TEST(URITest, query_remover_consecutive_ampersand) {
 
 TEST(URITest, query_remover_only_equality) {
     std::string query ="key1=&&key2&=&key3=value3";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ASSERT_EQ(qr.key(), "key1");
     ASSERT_EQ(qr.value(), "");
@@ -451,7 +451,7 @@ TEST(URITest, query_remover_only_equality) {
 
 TEST(URITest, query_remover_only_one_key) {
     std::string query = "key1";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ASSERT_EQ(qr.key(), "key1");
     ASSERT_EQ(qr.value(), "");
@@ -463,7 +463,7 @@ TEST(URITest, query_remover_only_one_key) {
 
 TEST(URITest, query_remover_no_modify) {
     std::string query = "key1=value1&key2=value2&key3=value3";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ASSERT_EQ(qr.key(), "key1");
     ASSERT_EQ(qr.value(), "value1");
@@ -476,7 +476,7 @@ TEST(URITest, query_remover_no_modify) {
 
 TEST(URITest, query_remover_key_value_not_changed_after_modified_query) {
     std::string query = "key1=value1&key2=value2&key3=value3";
-    brpc::QueryRemover qr(&query);
+    melon::QueryRemover qr(&query);
     ASSERT_TRUE(qr);
     ++qr;
     ASSERT_EQ(qr.key(), "key2");
@@ -489,6 +489,6 @@ TEST(URITest, query_remover_key_value_not_changed_after_modified_query) {
 }
 
 TEST(URITest, valid_character) {
-    brpc::URI uri;
+    melon::URI uri;
     ASSERT_EQ(0, uri.SetHttpURL("www.baidu2.com':/?#[]@!$&()*+,;=-._~%"));
 }

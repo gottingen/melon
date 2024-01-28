@@ -24,7 +24,7 @@
 #include "melon/butil/endpoint.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Set the server address for reporting.
 // Currently only the first address will be saved.
@@ -34,7 +34,7 @@ void SetTrackMeAddress(butil::EndPoint pt);
 // TrackMeRequest to -trackme_server every TRACKME_INTERVAL seconds.
 void TrackMe();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_TRACKME_H

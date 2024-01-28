@@ -23,7 +23,7 @@
 #include "melon/rpc/streaming_rpc_meta.pb.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 void PackStreamMessage(butil::IOBuf* out,
@@ -44,7 +44,7 @@ int SendStreamData(Socket* sock, const butil::IOBuf* data,
                    int64_t remote_stream_id, int64_t source_stream_id);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_STREAMING_RPC_PROTOCOL_H

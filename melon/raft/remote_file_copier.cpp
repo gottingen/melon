@@ -23,7 +23,7 @@
 #include <melon/butil/strings/string_number_conversions.h>
 #include <melon/butil/files/file_path.h>
 #include <melon/butil/file_util.h>
-#include <bthread/bthread.h>
+#include <melon/bthread/bthread.h>
 #include <melon/rpc/controller.h>
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot.h"
@@ -32,15 +32,15 @@ namespace braft {
 
 DEFINE_int32(raft_max_byte_count_per_rpc, 1024 * 128 /*128K*/,
              "Maximum of block size per RPC");
-BRPC_VALIDATE_GFLAG(raft_max_byte_count_per_rpc, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_max_byte_count_per_rpc, melon::PositiveInteger);
 DEFINE_bool(raft_allow_read_partly_when_install_snapshot, true,
             "Whether allowing read snapshot data partly");
 BRPC_VALIDATE_GFLAG(raft_allow_read_partly_when_install_snapshot,
-                    ::brpc::PassValidate);
+                    ::melon::PassValidate);
 DEFINE_bool(raft_enable_throttle_when_install_snapshot, true,
             "enable throttle when install snapshot, for both leader and follower");
 BRPC_VALIDATE_GFLAG(raft_enable_throttle_when_install_snapshot,
-                    ::brpc::PassValidate);
+                    ::melon::PassValidate);
 
 DECLARE_int32(raft_rpc_channel_connect_timeout_ms);
 
@@ -67,7 +67,7 @@ int RemoteFileCopier::init(const std::string& uri, FileSystemAdaptor* fs,
                    << " in " << uri;
         return -1;
     }
-    brpc::ChannelOptions channel_opt;
+    melon::ChannelOptions channel_opt;
     channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
     if (_channel.Init(ip_and_port.as_string().c_str(), &channel_opt) != 0) {
         LOG(ERROR) << "Fail to init Channel to " << ip_and_port;
@@ -85,7 +85,7 @@ int RemoteFileCopier::read_piece_of_file(
             size_t max_count,
             long timeout_ms,
             bool* is_eof) {
-    brpc::Controller cntl;
+    melon::Controller cntl;
     GetFileRequest request;
     request.set_reader_id(_reader_id);
     request.set_filename(source);
@@ -369,7 +369,7 @@ void RemoteFileCopier::Session::cancel() {
     if (_finished) {
         return; 
     }
-    brpc::StartCancel(_rpc_call);
+    melon::StartCancel(_rpc_call);
     if (bthread_timer_del(_timer) == 0) {
         // Release reference of the timer task
         Release();

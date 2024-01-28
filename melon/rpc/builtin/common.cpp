@@ -28,7 +28,7 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/builtin/common.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_string(rpc_profiling_dir, "./rpc_data/profiling",
               "For storing profiling results.");
@@ -377,4 +377,4 @@ void Time2GMT(time_t t, char* buf, size_t size) {
     strftime(buf, size, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 }
 
-} // namespace brpc
+} // namespace melon

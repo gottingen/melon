@@ -39,7 +39,7 @@ const uint64_t PB_TOTAL_BYETS_LIMITS =
 #include "melon/rpc/input_messenger.h"
 
 
-namespace brpc {
+namespace melon {
 
 DEFINE_uint64(max_body_size, 64 * 1024 * 1024,
               "Maximum size of a single message body in all protocols");
@@ -264,4 +264,4 @@ void LogErrorTextAndDelete::operator()(Controller* c) const {
     }
 }
 
-} // namespace brpc
+} // namespace melon

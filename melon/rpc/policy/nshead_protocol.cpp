@@ -39,7 +39,7 @@ void bthread_assign_data(void* data);
 }
 
 
-namespace brpc {
+namespace melon {
 
 NsheadClosure::NsheadClosure(void* additional_space)
     : _server(NULL)
@@ -437,4 +437,4 @@ void PackNsheadRequest(
 }
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon

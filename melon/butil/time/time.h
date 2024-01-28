@@ -48,16 +48,6 @@
 
 #include <limits>
 
-#ifdef BAIDU_INTERNAL
-// gejun: Force inclusion of ul_def.h and undef conflict macros
-#include <ul_def.h>
-#undef Uchar
-#undef Ushort
-#undef Uint
-#undef Max
-#undef Min
-#undef Exchange
-#endif // BAIDU_INTERNAL
 
 namespace butil {
 

@@ -274,13 +274,6 @@ std::string Variable::get_description() const {
     return os.str();
 }
 
-#ifdef BAIDU_INTERNAL
-void Variable::get_value(boost::any* value) const {
-    std::ostringstream os;
-    describe(os, false);
-    *value = os.str();
-}
-#endif
 
 int Variable::describe_series_exposed(const std::string& name,
                                       std::ostream& os,
@@ -294,18 +287,6 @@ int Variable::describe_series_exposed(const std::string& name,
     return p->var->describe_series(os, options);
 }
 
-#ifdef BAIDU_INTERNAL
-int Variable::get_exposed(const std::string& name, boost::any* value) {
-    VarMapWithLock& m = get_var_map(name);
-    BAIDU_SCOPED_LOCK(m.mutex);
-    VarEntry* p = m.seek(name);
-    if (p == NULL) {
-        return -1;
-    }
-    p->var->get_value(value);
-    return 0;
-}
-#endif
 
 // TODO(gejun): This is copied from otherwhere, common it if possible.
 

@@ -41,7 +41,7 @@ bool ContentionProfilerStart(const char* filename);
 void ContentionProfilerStop();
 }
 
-namespace brpc {
+namespace melon {
 enum class DisplayType{
     kUnknown,
     kDot,
@@ -1164,64 +1164,64 @@ static void StartProfiling(ProfilingType type,
 
 void HotspotsService::cpu(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return StartProfiling(PROFILING_CPU, cntl_base, done);
 }
 
 void HotspotsService::heap(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return StartProfiling(PROFILING_HEAP, cntl_base, done);
 }
 
 void HotspotsService::growth(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return StartProfiling(PROFILING_GROWTH, cntl_base, done);
 }
 
 void HotspotsService::contention(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return StartProfiling(PROFILING_CONTENTION, cntl_base, done);
 }
 
 void HotspotsService::cpu_non_responsive(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return DoProfiling(PROFILING_CPU, cntl_base, done);
 }
 
 void HotspotsService::heap_non_responsive(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return DoProfiling(PROFILING_HEAP, cntl_base, done);
 }
 
 void HotspotsService::growth_non_responsive(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return DoProfiling(PROFILING_GROWTH, cntl_base, done);
 }
 
 void HotspotsService::contention_non_responsive(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::HotspotsRequest*,
-    ::brpc::HotspotsResponse*,
+    const ::melon::HotspotsRequest*,
+    ::melon::HotspotsResponse*,
     ::google::protobuf::Closure* done) {
     return DoProfiling(PROFILING_CONTENTION, cntl_base, done);
 }
@@ -1241,4 +1241,4 @@ void HotspotsService::GetTabInfo(TabInfoList* info_list) const {
     info->tab_name = "contention";
 }
 
-} // namespace brpc
+} // namespace melon

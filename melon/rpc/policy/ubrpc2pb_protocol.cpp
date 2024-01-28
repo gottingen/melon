@@ -34,7 +34,7 @@
 #include "melon/rpc/compress.h"
 
 
-namespace brpc {
+namespace melon {
 
 extern const int64_t IDL_VOID_RESULT;
 
@@ -569,4 +569,4 @@ void PackUbrpcRequest(butil::IOBuf* buf,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

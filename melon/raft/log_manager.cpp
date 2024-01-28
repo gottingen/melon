@@ -19,8 +19,8 @@
 
 #include <melon/butil/logging.h>                       // LOG
 #include <melon/butil/object_pool.h>                   // butil::get_object
-#include <bthread/unstable.h>                   // bthread_flush
-#include <bthread/countdown_event.h>            // bthread::CountdownEvent
+#include <melon/bthread/unstable.h>                   // bthread_flush
+#include <melon/bthread/countdown_event.h>            // bthread::CountdownEvent
 #include <melon/rpc/reloadable_flags.h>         // BRPC_VALIDATE_GFLAG
 #include "melon/raft/storage.h"                       // LogStorage
 #include "melon/raft/fsm_caller.h"                    // FSMCaller
@@ -28,7 +28,7 @@
 namespace braft {
 
 DEFINE_int32(raft_leader_batch, 256, "max leader io batch");
-BRPC_VALIDATE_GFLAG(raft_leader_batch, ::brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_leader_batch, ::melon::PositiveInteger);
 
 static bvar::Adder<int64_t> g_read_entry_from_storage
             ("raft_read_entry_from_storage_count");

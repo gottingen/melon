@@ -25,7 +25,7 @@
 #include "melon/rpc/builtin/common.h"
 
 
-namespace brpc {
+namespace melon {
 
 ProtobufsService::ProtobufsService(Server* server) : _server(server) {
     CHECK_EQ(0, Init());
@@ -112,4 +112,4 @@ void ProtobufsService::default_method(::google::protobuf::RpcController* cntl_ba
     os.move_to(cntl->response_attachment());
 }
 
-} // namespace brpc
+} // namespace melon

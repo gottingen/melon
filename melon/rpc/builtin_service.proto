@@ -18,7 +18,7 @@
 syntax="proto2";
 import "google/protobuf/descriptor.proto";
 
-package brpc;
+package melon;
 
 option cc_generic_services = true;
 option java_generic_services = true;

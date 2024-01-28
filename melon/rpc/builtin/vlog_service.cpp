@@ -24,7 +24,7 @@
 #include "melon/rpc/builtin/vlog_service.h"
 #include "melon/rpc/builtin/common.h"
 
-namespace brpc {
+namespace melon {
 
 class VLogPrinter : public VLogSitePrinter {
 public:
@@ -62,8 +62,8 @@ private:
 };
 
 void VLogService::default_method(::google::protobuf::RpcController* cntl_base,
-                                 const ::brpc::VLogRequest*,
-                                 ::brpc::VLogResponse*,
+                                 const ::melon::VLogRequest*,
+                                 ::melon::VLogResponse*,
                                  ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -93,7 +93,7 @@ void VLogService::default_method(::google::protobuf::RpcController* cntl_base,
     os.move_to(cntl->response_attachment());
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif
 

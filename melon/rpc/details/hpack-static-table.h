@@ -19,7 +19,7 @@
 
 
 
-namespace brpc {
+namespace melon {
 
 struct HeaderCstr {
     const char* name;
@@ -363,4 +363,4 @@ BAIDU_CASSERT(ARRAY_SIZE(s_huffman_table) == 257u,
 
 const static int32_t HPACK_HUFFMAN_EOS = 256;
 
-} // namespace brpc
+} // namespace melon

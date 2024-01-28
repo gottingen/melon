@@ -44,9 +44,9 @@
 static const int PORT = 8713;
 static const size_t RDMA_HELLO_MSG_LEN = 40; 
 
-using namespace brpc;
+using namespace melon;
 
-namespace brpc {
+namespace melon {
 
 DECLARE_int64(socket_max_unwritten_bytes);
 DECLARE_bool(log_idle_connection_close);

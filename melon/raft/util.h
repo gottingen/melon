@@ -37,10 +37,10 @@
 #include <melon/butil/containers/doubly_buffered_data.h>
 #include <melon/butil/crc32c.h>
 #include <melon/butil/file_util.h>
-#include <bthread/bthread.h>
-#include <bthread/unstable.h>
-#include <bthread/countdown_event.h>
-#include <bvar/bvar.h>
+#include <melon/bthread/bthread.h>
+#include <melon/bthread/unstable.h>
+#include <melon/bthread/countdown_event.h>
+#include <melon/bvar/bvar.h>
 #include "melon/raft/macros.h"
 #include "melon/raft/raft.h"
 

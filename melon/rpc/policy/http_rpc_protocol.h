@@ -23,7 +23,7 @@
 #include "melon/rpc/input_messenger.h"              // InputMessenger
 #include "melon/rpc/protocol.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Put commonly used std::strings (or other constants that need memory
@@ -157,6 +157,6 @@ enum HttpContentType {
 HttpContentType ParseContentType(butil::StringPiece content_type, bool* is_grpc_ct);
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_POLICY_HTTP_RPC_PROTOCOL_H

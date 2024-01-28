@@ -126,15 +126,6 @@ public:
         os << get_value();
     }
 
-#ifdef BAIDU_INTERNAL
-    void get_value(boost::any* value) const override {
-        if (_getfn) {
-            *value = _getfn(_arg);
-        } else {
-            *value = Tp();
-        }
-    }
-#endif
     
     Tp get_value() const {
         return (_getfn ? _getfn(_arg) : Tp());

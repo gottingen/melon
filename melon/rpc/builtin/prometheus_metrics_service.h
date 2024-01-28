@@ -21,13 +21,13 @@
 
 #include "melon/rpc/builtin_service.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class PrometheusMetricsService : public brpc_metrics {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::MetricsRequest* request,
-                        ::brpc::MetricsResponse* response,
+                        const ::melon::MetricsRequest* request,
+                        ::melon::MetricsResponse* response,
                         ::google::protobuf::Closure* done) override;
 };
 

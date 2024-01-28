@@ -33,7 +33,7 @@ namespace bthread {
 // identifiers are remembered for error notifications. While insertions are 
 // easy, removals are hard to be done in O(1) time. More importantly, 
 // insertions are often done in one thread, while removals come from many
-// threads simultaneously. Think about the usage in brpc::Socket, most 
+// threads simultaneously. Think about the usage in melon::Socket, most
 // bthread_id_t are inserted by one thread (the thread calling non-contended
 // Write or the KeepWrite thread), but removals are from many threads 
 // processing responses simultaneously.

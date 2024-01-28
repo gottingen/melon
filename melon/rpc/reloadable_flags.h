@@ -29,7 +29,7 @@
 // You should call this macro within global scope. for example:
 //
 //   DEFINE_int32(foo, 0, "blah blah");
-//   BRPC_VALIDATE_GFLAG(foo, brpc::PassValidate);
+//   BRPC_VALIDATE_GFLAG(foo, melon::PassValidate);
 //
 // This macro does not work for string-flags because they're thread-unsafe to
 // modify directly. To emphasize this, you have to write the validator by
@@ -37,11 +37,11 @@
 #define BRPC_VALIDATE_GFLAG(flag, validate_fn)                     \
     const int register_FLAGS_ ## flag ## _dummy                         \
                  __attribute__((__unused__)) =                          \
-        ::brpc::RegisterFlagValidatorOrDie(                       \
+        ::melon::RegisterFlagValidatorOrDie(                       \
             &FLAGS_##flag, (validate_fn))
 
 
-namespace brpc {
+namespace melon {
 
 extern bool PassValidate(const char*, bool);
 extern bool PassValidate(const char*, int32_t);
@@ -70,7 +70,7 @@ extern bool RegisterFlagValidatorOrDie(const uint64_t* flag,
                                   bool (*validate_fn)(const char*, uint64_t));
 extern bool RegisterFlagValidatorOrDie(const double* flag,
                                   bool (*validate_fn)(const char*, double));
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_RELOADABLE_FLAGS_H

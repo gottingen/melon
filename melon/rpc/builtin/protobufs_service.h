@@ -23,7 +23,7 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Server;
 
@@ -36,8 +36,8 @@ public:
     explicit ProtobufsService(Server* server);
     
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::ProtobufsRequest* request,
-                        ::brpc::ProtobufsResponse* response,
+                        const ::melon::ProtobufsRequest* request,
+                        ::melon::ProtobufsResponse* response,
                         ::google::protobuf::Closure* done);
 private:
     int Init();
@@ -47,7 +47,7 @@ private:
     Map _map;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_PROTOBUFS_SERVICE_H

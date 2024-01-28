@@ -51,7 +51,7 @@ void ContentionProfilerStop();
 }
 
 
-namespace brpc {
+namespace melon {
 
 static int ReadSeconds(Controller* cntl) {
     int seconds = 0;
@@ -94,8 +94,8 @@ int MakeProfName(ProfilingType type, char* buf, size_t buf_len) {
 
 void PProfService::profile(
     ::google::protobuf::RpcController* controller_base,
-    const ::brpc::ProfileRequest* /*request*/,
-    ::brpc::ProfileResponse* /*response*/,
+    const ::melon::ProfileRequest* /*request*/,
+    ::melon::ProfileResponse* /*response*/,
     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller* cntl = static_cast<Controller*>(controller_base);
@@ -157,8 +157,8 @@ void PProfService::profile(
 
 void PProfService::contention(
     ::google::protobuf::RpcController* controller_base,
-    const ::brpc::ProfileRequest* /*request*/,
-    ::brpc::ProfileResponse* /*response*/,
+    const ::melon::ProfileRequest* /*request*/,
+    ::melon::ProfileResponse* /*response*/,
     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller* cntl = static_cast<Controller*>(controller_base);
@@ -208,8 +208,8 @@ void PProfService::contention(
 
 void PProfService::heap(
     ::google::protobuf::RpcController* controller_base,
-    const ::brpc::ProfileRequest* /*request*/,
-    ::brpc::ProfileResponse* /*response*/,
+    const ::melon::ProfileRequest* /*request*/,
+    ::melon::ProfileResponse* /*response*/,
     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller* cntl = static_cast<Controller*>(controller_base);
@@ -242,8 +242,8 @@ void PProfService::heap(
 
 void PProfService::growth(
     ::google::protobuf::RpcController* controller_base,
-    const ::brpc::ProfileRequest* /*request*/,
-    ::brpc::ProfileResponse* /*response*/,
+    const ::melon::ProfileRequest* /*request*/,
+    ::melon::ProfileResponse* /*response*/,
     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller* cntl = static_cast<Controller*>(controller_base);
@@ -519,8 +519,8 @@ static void FindSymbols(butil::IOBuf* out, std::vector<uintptr_t>& addr_list) {
 
 void PProfService::symbol(
     ::google::protobuf::RpcController* controller_base,
-    const ::brpc::ProfileRequest* /*request*/,
-    ::brpc::ProfileResponse* /*response*/,
+    const ::melon::ProfileRequest* /*request*/,
+    ::melon::ProfileResponse* /*response*/,
     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller* cntl = static_cast<Controller*>(controller_base);
@@ -554,8 +554,8 @@ void PProfService::symbol(
 }
 
 void PProfService::cmdline(::google::protobuf::RpcController* controller_base,
-                           const ::brpc::ProfileRequest* /*request*/,
-                           ::brpc::ProfileResponse* /*response*/,
+                           const ::melon::ProfileRequest* /*request*/,
+                           ::melon::ProfileResponse* /*response*/,
                            ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller* cntl = static_cast<Controller*>(controller_base);
@@ -569,4 +569,4 @@ void PProfService::cmdline(::google::protobuf::RpcController* controller_base,
     cntl->response_attachment().append(buf, nr);
 }
 
-} // namespace brpc
+} // namespace melon

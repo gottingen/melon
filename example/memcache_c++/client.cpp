@@ -57,15 +57,15 @@ static void* sender(void* arg) {
         kvs[i].first = butil::string_printf("%s%d", FLAGS_key.c_str(), base_index + i);
         kvs[i].second = butil::string_printf("%s%d", FLAGS_value.c_str(), base_index + i);
     }
-    brpc::MemcacheRequest request;
+    melon::MemcacheRequest request;
     for (int i = 0; i < FLAGS_batch; ++i) {
         CHECK(request.Get(kvs[i].first));
     }
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
         // on stack.
-        brpc::MemcacheResponse response;
-        brpc::Controller cntl;
+        melon::MemcacheResponse response;
+        melon::Controller cntl;
 
         // Because `done'(last parameter) is NULL, this function waits until
         // the response comes back or error occurs(including timedout).
@@ -77,7 +77,7 @@ static void* sender(void* arg) {
                 uint32_t flags;
                 if (!response.PopGet(&value, &flags, NULL)) {
                     LOG(INFO) << "Fail to GET the key, " << response.LastError();
-                    brpc::AskToQuit();
+                    melon::AskToQuit();
                     return NULL;
                 }
                 CHECK(flags == 0xdeadbeef + base_index + i)
@@ -87,7 +87,7 @@ static void* sender(void* arg) {
             }
         } else {
             g_error_count << 1; 
-            CHECK(brpc::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << elp;
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -108,17 +108,17 @@ int main(int argc, char* argv[]) {
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
     
     // Initialize the channel, NULL means using default options. 
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_MEMCACHE;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_MEMCACHE;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (FLAGS_use_couchbase && !FLAGS_bucket_name.empty()) {
-        brpc::policy::CouchbaseAuthenticator* auth =
-            new brpc::policy::CouchbaseAuthenticator(FLAGS_bucket_name,
+        melon::policy::CouchbaseAuthenticator* auth =
+            new melon::policy::CouchbaseAuthenticator(FLAGS_bucket_name,
                                                      FLAGS_bucket_password);
         options.auth = auth;
     }
@@ -130,9 +130,9 @@ int main(int argc, char* argv[]) {
 
     // Pipeline #batch * #thread_num SET requests into memcache so that we
     // have keys to get.
-    brpc::MemcacheRequest request;
-    brpc::MemcacheResponse response;
-    brpc::Controller cntl;
+    melon::MemcacheRequest request;
+    melon::MemcacheResponse response;
+    melon::Controller cntl;
     for (int i = 0; i < FLAGS_batch * FLAGS_thread_num; ++i) {
         if (!request.Set(butil::string_printf("%s%d", FLAGS_key.c_str(), i),
                          butil::string_printf("%s%d", FLAGS_value.c_str(), i),
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         sleep(1);
         LOG(INFO) << "Accessing memcache server at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);

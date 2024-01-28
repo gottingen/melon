@@ -43,7 +43,7 @@ const EVP_MD* __attribute__((weak)) EVP_sha256(void);
 }
 
 
-namespace brpc {
+namespace melon {
 
 DECLARE_int64(socket_max_unwritten_bytes);
 DECLARE_bool(use_normal_stack_for_keepwrite);
@@ -3669,7 +3669,7 @@ void SerializeRtmpRequest(butil::IOBuf* /*buf*/,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #undef RTMP_LOG

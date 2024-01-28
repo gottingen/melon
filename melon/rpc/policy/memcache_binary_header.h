@@ -20,7 +20,7 @@
 #define BRPC_MEMCACHE_BINARY_HEADER_H
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // https://code.google.com/p/memcached/wiki/BinaryProtocolRevamped
@@ -156,7 +156,7 @@ struct MemcacheResponseHeader {
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_MEMCACHE_BINARY_HEADER_H

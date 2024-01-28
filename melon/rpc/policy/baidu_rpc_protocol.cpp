@@ -44,7 +44,7 @@ void bthread_assign_data(void* data);
 }
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_bool(baidu_protocol_use_fullname, true,
@@ -156,7 +156,7 @@ void SendRpcResponse(int64_t correlation_id,
     std::unique_ptr<Controller, LogErrorTextAndDelete> recycle_cntl(cntl);
     ConcurrencyRemover concurrency_remover(method_status, cntl, received_us);
 
-    ClosureGuard guard(brpc::NewCallback(cntl, &Controller::CallAfterRpcResp, req, res));
+    ClosureGuard guard(melon::NewCallback(cntl, &Controller::CallAfterRpcResp, req, res));
     
     StreamId response_stream_id = accessor.response_stream();
 
@@ -519,7 +519,7 @@ void ProcessRpcRequest(InputMessageBase* msg_base) {
         
         res.reset(svc->GetResponsePrototype(method).New());
         // `socket' will be held until response has been sent
-        google::protobuf::Closure* done = ::brpc::NewCallback<
+        google::protobuf::Closure* done = ::melon::NewCallback<
             int64_t, Controller*, const google::protobuf::Message*,
             const google::protobuf::Message*, const Server*,
             MethodStatus*, int64_t>(
@@ -751,4 +751,4 @@ void PackRpcRequest(butil::IOBuf* req_buf,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

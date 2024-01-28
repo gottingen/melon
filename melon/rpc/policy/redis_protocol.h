@@ -22,7 +22,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse redis response.
@@ -58,7 +58,7 @@ const std::string& GetRedisMethodName(
     const Controller*);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_REDIS_PROTOCOL_H

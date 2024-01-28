@@ -27,7 +27,7 @@
 #include "melon/butil/containers/flat_map.h"
 #include "melon/rpc/socket_id.h"
 
-namespace brpc {
+namespace melon {
 
 // Representing a server inside LoadBalancer.
 struct ServerId {
@@ -75,19 +75,19 @@ private:
     std::vector<SocketId> _tmp;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 namespace BUTIL_HASH_NAMESPACE {
 #if defined(COMPILER_GCC)
 template<>
-struct hash<brpc::ServerId> {
-    std::size_t operator()(const ::brpc::ServerId& tagged_id) const {
+struct hash<melon::ServerId> {
+    std::size_t operator()(const ::melon::ServerId& tagged_id) const {
         return hash<std::string>()(tagged_id.tag) * 101 + tagged_id.id;
     }
 };
 #elif defined(COMPILER_MSVC)
-inline size_t hash_value(const ::brpc::ServerId& tagged_id) {
+inline size_t hash_value(const ::melon::ServerId& tagged_id) {
     return hash_value(tagged_id.tag) * 101 + tagged_id.id;
 }
 #endif  // COMPILER

@@ -22,17 +22,17 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class BadMethodService : public badmethod {
 public:
     void no_method(::google::protobuf::RpcController* cntl_base,
-                   const ::brpc::BadMethodRequest* request,
-                   ::brpc::BadMethodResponse* response,
+                   const ::melon::BadMethodRequest* request,
+                   ::melon::BadMethodResponse* response,
                    ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 

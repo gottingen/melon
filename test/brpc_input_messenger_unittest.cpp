@@ -32,20 +32,20 @@
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
 
-void EmptyProcessHuluRequest(brpc::InputMessageBase* msg_base) {
-    brpc::DestroyingPtr<brpc::InputMessageBase> a(msg_base);
+void EmptyProcessHuluRequest(melon::InputMessageBase* msg_base) {
+    melon::DestroyingPtr<melon::InputMessageBase> a(msg_base);
 }
 
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
-    brpc::Protocol dummy_protocol = 
-                             { brpc::policy::ParseHuluMessage,
-                               brpc::SerializeRequestDefault, 
-                               brpc::policy::PackHuluRequest,
+    melon::Protocol dummy_protocol =
+                             { melon::policy::ParseHuluMessage,
+                               melon::SerializeRequestDefault,
+                               melon::policy::PackHuluRequest,
                                EmptyProcessHuluRequest, EmptyProcessHuluRequest,
                                NULL, NULL, NULL,
-                               brpc::CONNECTION_TYPE_ALL, "dummy_hulu" };
-    EXPECT_EQ(0,  RegisterProtocol((brpc::ProtocolType)30, dummy_protocol));
+                               melon::CONNECTION_TYPE_ALL, "dummy_hulu" };
+    EXPECT_EQ(0,  RegisterProtocol((melon::ProtocolType)30, dummy_protocol));
     return RUN_ALL_TESTS();
 }
 
@@ -149,12 +149,12 @@ void* client_thread(void* arg) {
 TEST_F(MessengerTest, dispatch_tasks) {
     client_stop = false;
     
-    brpc::Acceptor messenger[NEPOLL];
+    melon::Acceptor messenger[NEPOLL];
     pthread_t cth[NCLIENT];
     ClientMeta* cm[NCLIENT];
 
-    const brpc::InputMessageHandler pairs[] = {
-        { brpc::policy::ParseHuluMessage, 
+    const melon::InputMessageHandler pairs[] = {
+        { melon::policy::ParseHuluMessage,
           EmptyProcessHuluRequest, NULL, NULL, "dummy_hulu" }
     };
 

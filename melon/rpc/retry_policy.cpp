@@ -20,7 +20,7 @@
 #include "melon/butil/fast_rand.h"
 
 
-namespace brpc {
+namespace melon {
 
 bool RpcRetryPolicy::DoRetry(const Controller* controller) const {
     const int error_code = controller->ErrorCode();
@@ -75,4 +75,4 @@ int32_t RpcRetryPolicyWithJitteredBackoff::GetBackoffTimeMs(
                                _max_backoff_time_ms);
 }
 
-} // namespace brpc
+} // namespace melon

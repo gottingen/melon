@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
 
 #ifdef BRPC_ENABLE_COROUTINE
 
-using brpc::experimental::Awaitable;
-using brpc::experimental::AwaitableDone;
-using brpc::experimental::Coroutine;
+using melon::experimental::Awaitable;
+using melon::experimental::AwaitableDone;
+using melon::experimental::Coroutine;
 
 class Trace {
 public:
@@ -59,8 +59,8 @@ public:
                       const test::EchoRequest* request,
                       test::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        // brpc::Controller* cntl = (brpc::Controller*)cntl_base;
-        // brpc::ClosureGuard done_guard(done);
+        // melon::Controller* cntl = (melon::Controller*)cntl_base;
+        // melon::ClosureGuard done_guard(done);
         // response->set_message(request->message());
 
         // Create a detached coroutine, so the current bthread will return at once.
@@ -72,7 +72,7 @@ public:
                                    google::protobuf::Closure* done) {
         Trace t("EchoAsync");
         // This is important to test RAII object's destruction after coroutine finished
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         if (request->has_sleep_us()) {
             LOG(INFO) << "sleep " << request->sleep_us() << " us at server side";
             co_await Coroutine::usleep(request->sleep_us());
@@ -120,13 +120,13 @@ Awaitable<float> exception_func() {
     throw std::string("error");
 }
 
-Awaitable<void> func(brpc::Channel& channel, int* out) {
+Awaitable<void> func(melon::Channel& channel, int* out) {
     Trace t("func");
     test::EchoService_Stub stub(&channel);
     test::EchoRequest request;
     request.set_message("hello world");
     test::EchoResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
 
     LOG(INFO) << "before start coroutine";
     Coroutine coro(sleep_func());
@@ -179,13 +179,13 @@ TEST_F(CoroutineTest, coroutine) {
     butil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
 
-    brpc::Server server;
+    melon::Server server;
     EchoServiceImpl service;
-    server.AddService(&service, brpc::SERVER_DOESNT_OWN_SERVICE);
+    server.AddService(&service, melon::SERVER_DOESNT_OWN_SERVICE);
     ASSERT_EQ(0, server.Start(ep, NULL));
 
-    brpc::Channel channel;
-    brpc::ChannelOptions options;
+    melon::Channel channel;
+    melon::ChannelOptions options;
     ASSERT_EQ(0, channel.Init(ep, &options));
 
     int out = 0;

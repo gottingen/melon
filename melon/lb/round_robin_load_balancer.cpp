@@ -22,7 +22,7 @@
 #include "melon/lb/round_robin_load_balancer.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 const uint32_t prime_offset[] = {
@@ -181,4 +181,4 @@ bool RoundRobinLoadBalancer::SetParameters(const butil::StringPiece& params) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

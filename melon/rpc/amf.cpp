@@ -23,7 +23,7 @@
 #include "melon/rpc/log.h"
 #include "melon/rpc/amf.h"
 
-namespace brpc {
+namespace melon {
 
 const char* marker2str(AMFMarker marker) {
     switch (marker) {
@@ -1208,4 +1208,4 @@ std::ostream& operator<<(std::ostream& os, const AMFArray& arr) {
     return os << ']';
 }
 
-} // namespace brpc
+} // namespace melon

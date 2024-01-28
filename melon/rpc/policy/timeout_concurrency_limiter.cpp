@@ -21,7 +21,7 @@
 #include <cmath>
 #include <gflags/gflags.h>
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_int32(timeout_cl_sample_window_size_ms, 1000,
@@ -178,4 +178,4 @@ void TimeoutConcurrencyLimiter::UpdateAvgLatency() {
 }
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon

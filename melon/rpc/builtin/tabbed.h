@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace brpc {
+namespace melon {
 
 // Contain the information for showing a tab.
 struct TabInfo {
@@ -54,8 +54,8 @@ private:
 // Example:
 //   #include <melon/rpc/builtin/common.h>
 //   ...
-//   void MySerivce::GetTabInfo(brpc::TabInfoList* info_list) const {
-//     brpc::TabInfo* info = info_list->add();
+//   void MySerivce::GetTabInfo(melon::TabInfoList* info_list) const {
+//     melon::TabInfo* info = info_list->add();
 //     info->tab_name = "my_tab";
 //     info->path = "/MyService/MyMethod";
 //   }
@@ -67,7 +67,7 @@ private:
 //     if (use_html) {
 //       os << "<!DOCTYPE html><html><head>\n"
 //          << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"
-//          << brpc::TabsHead() << "</head><body>";
+//          << melon::TabsHead() << "</head><body>";
 //       cntl->server()->PrintTabsBody(os, "my_tab");
 //     }
 //     ...
@@ -82,7 +82,7 @@ public:
     virtual void GetTabInfo(TabInfoList* info_list) const = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_BUILTIN_TABBED_H

@@ -22,7 +22,7 @@
 
 #include "melon/butil/containers/bounded_queue.h"
 
-namespace brpc {
+namespace melon {
 
 // An utility to add up per-second value into per-minute value.
 // About "sparse":
@@ -162,7 +162,7 @@ bool SparseMinuteCounter<T>::TryPop(int64_t now_ms, T* popped) {
     }
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_SPARSE_MINUTE_COUNTER_H

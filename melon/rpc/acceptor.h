@@ -24,7 +24,7 @@
 #include "melon/rpc/input_messenger.h"
 
 
-namespace brpc {
+namespace melon {
 
 struct ConnectStatistics {
 };
@@ -117,7 +117,7 @@ private:
     bthread_tag_t _bthread_tag;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_ACCEPTOR_H

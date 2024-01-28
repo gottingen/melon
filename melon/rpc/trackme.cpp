@@ -30,14 +30,9 @@
 #include "melon/rpc/policy/hasher.h"
 #include "melon/butil/files/scoped_file.h"
 
-namespace brpc {
+namespace melon {
 
-#ifdef BAIDU_INTERNAL
-DEFINE_string(trackme_server, "http://brpc.baidu.com:8877",
-              "Where the TrackMe requests are sent to");
-#else
 DEFINE_string(trackme_server, "", "Where the TrackMe requests are sent to");
-#endif
 
 static const int32_t TRACKME_MIN_INTERVAL = 30;
 static const int32_t TRACKME_MAX_INTERVAL = 600;
@@ -215,7 +210,7 @@ static void TrackMeNow(std::unique_lock<pthread_mutex_t>& mu) {
     Controller* cntl = new Controller;
     cntl->set_request_code(policy::MurmurHash32(s_trackme_addr->data(), s_trackme_addr->size()));
     google::protobuf::Closure* done =
-        ::brpc::NewCallback(&HandleTrackMeResponse, cntl, res);
+        ::melon::NewCallback(&HandleTrackMeResponse, cntl, res);
     stub.TrackMe(cntl, &req, res, done);
 }
 
@@ -239,4 +234,4 @@ void TrackMe() {
     }
 }
 
-} // namespace brpc
+} // namespace melon

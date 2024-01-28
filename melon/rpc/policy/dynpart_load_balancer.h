@@ -25,7 +25,7 @@
 #include "melon/rpc/load_balancer.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // CAUTION: This is just a quick/hacking impl. for loading balancing between
@@ -56,7 +56,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_DYNPART_LOAD_BALANCER_H

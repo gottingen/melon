@@ -25,7 +25,7 @@
 #include "melon/rpc/http_status_code.h"
 
 
-namespace brpc {
+namespace melon {
 
 static struct status_pair{
     int status_code;
@@ -141,4 +141,4 @@ int ErrorCodeToStatusCode(int error_code) {
     }
 }
 
-} // namespace brpc
+} // namespace melon

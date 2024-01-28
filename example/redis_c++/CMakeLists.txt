@@ -42,23 +42,17 @@ find_path(GPERFTOOLS_INCLUDE_DIR NAMES gperftools/heap-profiler.h)
 find_library(GPERFTOOLS_LIBRARIES NAMES tcmalloc_and_profiler)
 include_directories(${GPERFTOOLS_INCLUDE_DIR})
 
-# Search for libthrift* by best effort. If it is not found and brpc is
-# compiled with thrift protocol enabled, a link error would be reported.
-find_library(THRIFT_LIB NAMES thrift)
-if (NOT THRIFT_LIB)
-    set(THRIFT_LIB "")
-endif()
 
-find_path(BRPC_INCLUDE_PATH NAMES brpc/server.h)
+find_path(MELON_INCLUDE_PATH NAMES melon/rpc/server.h)
 if(LINK_SO)
-    find_library(BRPC_LIB NAMES brpc)
+    find_library(MELON_LIB NAMES melon)
 else()
-    find_library(BRPC_LIB NAMES libbrpc.a brpc)
+    find_library(MELON_LIB NAMES libmelon.a melon)
 endif()
-if((NOT BRPC_INCLUDE_PATH) OR (NOT BRPC_LIB))
-    message(FATAL_ERROR "Fail to find brpc")
+if((NOT MELON_INCLUDE_PATH) OR (NOT MELON_LIB))
+    message(FATAL_ERROR "Fail to find melon")
 endif()
-include_directories(${BRPC_INCLUDE_PATH})
+include_directories(${MELON_INCLUDE_PATH})
 
 find_path(GFLAGS_INCLUDE_PATH gflags/gflags.h)
 find_library(GFLAGS_LIBRARY NAMES gflags libgflags)
@@ -123,7 +117,6 @@ set(DYNAMIC_LIB
     ${LEVELDB_LIB}
     ${OPENSSL_CRYPTO_LIBRARY}
     ${OPENSSL_SSL_LIBRARY}
-    ${THRIFT_LIB}
     ${GPERFTOOLS_LIBRARIES}
     dl
     )
@@ -149,6 +142,6 @@ add_executable(redis_server redis_server.cpp)
 
 set(AUX_LIB readline ncurses)
 
-target_link_libraries(redis_cli ${BRPC_LIB} ${DYNAMIC_LIB} ${AUX_LIB})
-target_link_libraries(redis_press ${BRPC_LIB} ${DYNAMIC_LIB})
-target_link_libraries(redis_server ${BRPC_LIB} ${DYNAMIC_LIB})
+target_link_libraries(redis_cli ${MELON_LIB} ${DYNAMIC_LIB} ${AUX_LIB})
+target_link_libraries(redis_press ${MELON_LIB} ${DYNAMIC_LIB})
+target_link_libraries(redis_server ${MELON_LIB} ${DYNAMIC_LIB})

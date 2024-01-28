@@ -21,7 +21,7 @@
 #include "melon/butil/sys_byteorder.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Sync with
 //   https://github.com/mongodb/mongo-c-driver/blob/master/src/mongoc/mongoc-opcode.h
@@ -72,7 +72,7 @@ struct mongo_head_t {
 };
 #pragma pack()
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_MONGO_HEAD_H

@@ -21,7 +21,7 @@
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/server.h"               // Server
 
-namespace brpc {
+namespace melon {
     void GrpcHealthCheckService::Check(::google::protobuf::RpcController* cntl_base,
                                   const grpc::health::v1::HealthCheckRequest* request,
                                   grpc::health::v1::HealthCheckResponse* response,
@@ -37,5 +37,5 @@ namespace brpc {
         }
     }
 
-} // namespace brpc
+} // namespace melon
 

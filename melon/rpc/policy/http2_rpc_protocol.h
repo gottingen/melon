@@ -30,7 +30,7 @@
 #include "melon/bvar/bvar.h"
 #endif
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class H2StreamContext;
@@ -421,6 +421,6 @@ inline std::ostream& operator<<(std::ostream& os, const H2UnsentResponse& res) {
 }
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon
 
 #endif // BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H

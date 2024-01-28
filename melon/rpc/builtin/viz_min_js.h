@@ -22,7 +22,7 @@
 #include "melon/butil/iobuf.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Get the viz.min.js as string or IOBuf.
 // We need to pack all js inside C++ code so that builtin services can be
@@ -31,7 +31,7 @@ const char* viz_min_js();
 const butil::IOBuf& viz_min_js_iobuf();
 const butil::IOBuf& viz_min_js_iobuf_gzip();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_BUILTIN_VIZ_MIN_JS_H

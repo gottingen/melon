@@ -28,11 +28,11 @@ void id_pool_status(std::ostream& os);
 }
 
 
-namespace brpc {
+namespace melon {
 
 void IdsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                const ::brpc::IdsRequest*,
-                                ::brpc::IdsResponse*,
+                                const ::melon::IdsRequest*,
+                                ::melon::IdsResponse*,
                                 ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -57,4 +57,4 @@ void IdsService::default_method(::google::protobuf::RpcController* cntl_base,
     os.move_to(cntl->response_attachment());
 }
 
-} // namespace brpc
+} // namespace melon

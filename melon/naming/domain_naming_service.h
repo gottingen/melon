@@ -23,7 +23,7 @@
 #include "melon/butil/unique_ptr.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class DomainNamingService : public PeriodicNamingService {
@@ -48,7 +48,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_POLICY_DOMAIN_NAMING_SERVICE_H

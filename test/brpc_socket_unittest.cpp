@@ -53,7 +53,7 @@ namespace bthread {
 extern TaskControl* g_task_control;
 }
 
-namespace brpc {
+namespace melon {
 DECLARE_int32(health_check_interval);
 DECLARE_bool(socket_keepalive);
 DECLARE_int32(socket_keepalive_idle_s);
@@ -61,19 +61,19 @@ DECLARE_int32(socket_keepalive_interval_s);
 DECLARE_int32(socket_keepalive_count);
 }
 
-void EchoProcessHuluRequest(brpc::InputMessageBase* msg_base);
+void EchoProcessHuluRequest(melon::InputMessageBase* msg_base);
 
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
-    brpc::Protocol dummy_protocol = 
-                             { brpc::policy::ParseHuluMessage,
-                               brpc::SerializeRequestDefault, 
-                               brpc::policy::PackHuluRequest,
+    melon::Protocol dummy_protocol =
+                             { melon::policy::ParseHuluMessage,
+                               melon::SerializeRequestDefault,
+                               melon::policy::PackHuluRequest,
                                EchoProcessHuluRequest, EchoProcessHuluRequest,
                                NULL, NULL, NULL,
-                               brpc::CONNECTION_TYPE_ALL, "dummy_hulu" };
-    EXPECT_EQ(0,  RegisterProtocol((brpc::ProtocolType)30, dummy_protocol));
+                               melon::CONNECTION_TYPE_ALL, "dummy_hulu" };
+    EXPECT_EQ(0,  RegisterProtocol((melon::ProtocolType)30, dummy_protocol));
     return RUN_ALL_TESTS();
 }
 
@@ -103,10 +103,10 @@ protected:
     };
 };
 
-brpc::Socket* global_sock = NULL;
+melon::Socket* global_sock = NULL;
 
-class CheckRecycle : public brpc::SocketUser {
-    void BeforeRecycle(brpc::Socket* s) {
+class CheckRecycle : public melon::SocketUser {
+    void BeforeRecycle(melon::Socket* s) {
         ASSERT_TRUE(global_sock);
         ASSERT_EQ(global_sock, s);
         global_sock = NULL;
@@ -115,20 +115,20 @@ class CheckRecycle : public brpc::SocketUser {
 };
 
 TEST_F(SocketTest, not_recycle_until_zero_nref) {
-    std::cout << "sizeof(Socket)=" << sizeof(brpc::Socket) << std::endl;
+    std::cout << "sizeof(Socket)=" << sizeof(melon::Socket) << std::endl;
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
-    brpc::SocketId id = 8888;
+    melon::SocketId id = 8888;
     butil::EndPoint dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
-    brpc::SocketOptions options;
+    melon::SocketOptions options;
     options.fd = fds[1];
     options.remote_side = dummy;
     options.user = new CheckRecycle;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
     {
-        brpc::SocketUniquePtr s;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+        melon::SocketUniquePtr s;
+        ASSERT_EQ(0, melon::Socket::Address(id, &s));
         global_sock = s.get();
         ASSERT_TRUE(s.get());
         ASSERT_EQ(fds[1], s->fd());
@@ -137,11 +137,11 @@ TEST_F(SocketTest, not_recycle_until_zero_nref) {
         ASSERT_EQ(0, s->SetFailed());
         ASSERT_EQ(s.get(), global_sock);
     }
-    ASSERT_EQ((brpc::Socket*)NULL, global_sock);
+    ASSERT_EQ((melon::Socket*)NULL, global_sock);
     close(fds[0]);
 
-    brpc::SocketUniquePtr ptr;
-    ASSERT_EQ(-1, brpc::Socket::Address(id, &ptr));
+    melon::SocketUniquePtr ptr;
+    ASSERT_EQ(-1, melon::Socket::Address(id, &ptr));
 }
 
 butil::atomic<int> winner_count(0);
@@ -150,7 +150,7 @@ const int AUTH_ERR = -9;
 void* auth_fighter(void* arg) {
     bthread_usleep(10000);
     int auth_error = 0;
-    brpc::Socket* s = (brpc::Socket*)arg;
+    melon::Socket* s = (melon::Socket*)arg;
     if (s->FightAuthentication(&auth_error) == 0) {
         winner_count.fetch_add(1);
         s->SetAuthentication(AUTH_ERR);
@@ -161,11 +161,11 @@ void* auth_fighter(void* arg) {
 }
 
 TEST_F(SocketTest, authentication) {
-    brpc::SocketId id;
-    brpc::SocketOptions options;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-    brpc::SocketUniquePtr s;
-    ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+    melon::SocketId id;
+    melon::SocketOptions options;
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
+    melon::SocketUniquePtr s;
+    ASSERT_EQ(0, melon::Socket::Address(id, &s));
     
     bthread_t th[64];
     for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
@@ -182,16 +182,16 @@ TEST_F(SocketTest, authentication) {
     ASSERT_NE(0, s->FightAuthentication(&auth_error));
     ASSERT_EQ(AUTH_ERR, auth_error);
     // Socket has been `SetFailed' when authentication failed
-    ASSERT_TRUE(brpc::Socket::Address(s->id(), NULL));
+    ASSERT_TRUE(melon::Socket::Address(s->id(), NULL));
 }
 
 static butil::atomic<int> g_called_seq(1);
-class MyMessage : public brpc::SocketMessage {
+class MyMessage : public melon::SocketMessage {
 public:
     MyMessage(const char* str, size_t len, int* called = NULL)
         : _str(str), _len(len), _called(called) {}
 private:
-    butil::Status AppendAndDestroySelf(butil::IOBuf* out_buf, brpc::Socket*) {
+    butil::Status AppendAndDestroySelf(butil::IOBuf* out_buf, melon::Socket*) {
         out_buf->append(_str, _len);
         if (_called) {
             *_called = g_called_seq.fetch_add(1, butil::memory_order_relaxed);
@@ -204,11 +204,11 @@ private:
     int* _called;
 };
 
-class MyErrorMessage : public brpc::SocketMessage {
+class MyErrorMessage : public melon::SocketMessage {
 public:
     explicit MyErrorMessage(const butil::Status& st) : _status(st) {}
 private:
-    butil::Status AppendAndDestroySelf(butil::IOBuf*, brpc::Socket*) {
+    butil::Status AppendAndDestroySelf(butil::IOBuf*, melon::Socket*) {
         return _status;
     };
     butil::Status _status;
@@ -217,17 +217,17 @@ private:
 TEST_F(SocketTest, single_threaded_write) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
-    brpc::SocketId id = 8888;
+    melon::SocketId id = 8888;
     butil::EndPoint dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
-    brpc::SocketOptions options;
+    melon::SocketOptions options;
     options.fd = fds[1];
     options.remote_side = dummy;
     options.user = new CheckRecycle;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
     {
-        brpc::SocketUniquePtr s;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+        melon::SocketUniquePtr s;
+        ASSERT_EQ(0, melon::Socket::Address(id, &s));
         global_sock = s.get();
         ASSERT_TRUE(s.get());
         ASSERT_EQ(fds[1], s->fd());
@@ -238,15 +238,15 @@ TEST_F(SocketTest, single_threaded_write) {
             char buf[32 * BATCH];
             size_t len = snprintf(buf, sizeof(buf), "hello world! %lu", i);
             if (i % 4 == 0) {
-                brpc::SocketMessagePtr<MyMessage> msg(new MyMessage(buf, len));
+                melon::SocketMessagePtr<MyMessage> msg(new MyMessage(buf, len));
                 ASSERT_EQ(0, s->Write(msg));
             } else if (i % 4 == 1) {
-                brpc::SocketMessagePtr<MyErrorMessage> msg(
+                melon::SocketMessagePtr<MyErrorMessage> msg(
                     new MyErrorMessage(butil::Status(EINVAL, "Invalid input")));
                 bthread_id_t wait_id;
                 WaitData data;
                 ASSERT_EQ(0, bthread_id_create2(&wait_id, &data, OnWaitIdReset));
-                brpc::Socket::WriteOptions wopt;
+                melon::Socket::WriteOptions wopt;
                 wopt.id_wait = wait_id;
                 ASSERT_EQ(0, s->Write(msg, &wopt));
                 ASSERT_EQ(0, bthread_id_join(wait_id));
@@ -256,7 +256,7 @@ TEST_F(SocketTest, single_threaded_write) {
                 continue;
             } else if (i % 4 == 2) {
                 int seq[BATCH] = {};
-                brpc::SocketMessagePtr<MyMessage> msgs[BATCH];
+                melon::SocketMessagePtr<MyMessage> msgs[BATCH];
                 // re-print the buffer.
                 len = 0;
                 for (int j = 0; j < BATCH; ++j) {
@@ -289,23 +289,23 @@ TEST_F(SocketTest, single_threaded_write) {
         }
         ASSERT_EQ(0, s->SetFailed());
     }
-    ASSERT_EQ((brpc::Socket*)NULL, global_sock);
+    ASSERT_EQ((melon::Socket*)NULL, global_sock);
     close(fds[0]);
 }
 
-void EchoProcessHuluRequest(brpc::InputMessageBase* msg_base) {
-    brpc::DestroyingPtr<brpc::policy::MostCommonMessage> msg(
-        static_cast<brpc::policy::MostCommonMessage*>(msg_base));
+void EchoProcessHuluRequest(melon::InputMessageBase* msg_base) {
+    melon::DestroyingPtr<melon::policy::MostCommonMessage> msg(
+        static_cast<melon::policy::MostCommonMessage*>(msg_base));
     butil::IOBuf buf;
     buf.append(msg->meta);
     buf.append(msg->payload);
     ASSERT_EQ(0, msg->socket()->Write(&buf));
 }
 
-class MyConnect : public brpc::AppConnect {
+class MyConnect : public melon::AppConnect {
 public:
     MyConnect() : _done(NULL), _data(NULL), _called_start_connect(false) {}
-    void StartConnect(const brpc::Socket*,
+    void StartConnect(const melon::Socket*,
                       void (*done)(int err, void* data),
                       void* data) {
         LOG(INFO) << "Start application-level connect";
@@ -313,7 +313,7 @@ public:
         _data = data;
         _called_start_connect = true;
     }
-    void StopConnect(brpc::Socket*) {
+    void StopConnect(melon::Socket*) {
         LOG(INFO) << "Stop application-level connect";
     }
     void MakeConnectDone() {
@@ -328,9 +328,9 @@ private:
 
 TEST_F(SocketTest, single_threaded_connect_and_write) {
     // FIXME(gejun): Messenger has to be new otherwise quitting may crash.
-    brpc::Acceptor* messenger = new brpc::Acceptor;
-    const brpc::InputMessageHandler pairs[] = {
-        { brpc::policy::ParseHuluMessage, 
+    melon::Acceptor* messenger = new melon::Acceptor;
+    const melon::InputMessageHandler pairs[] = {
+        { melon::policy::ParseHuluMessage,
           EchoProcessHuluRequest, NULL, NULL, "dummy_hulu" }
     };
 
@@ -341,16 +341,16 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
     ASSERT_EQ(0, messenger->AddHandler(pairs[0]));
     ASSERT_EQ(0, messenger->StartAccept(listening_fd, -1, NULL, false));
 
-    brpc::SocketId id = 8888;
-    brpc::SocketOptions options;
+    melon::SocketId id = 8888;
+    melon::SocketOptions options;
     options.remote_side = point;
     std::shared_ptr<MyConnect> my_connect = std::make_shared<MyConnect>();
     options.app_connect = my_connect;
     options.user = new CheckRecycle;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
     {
-        brpc::SocketUniquePtr s;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+        melon::SocketUniquePtr s;
+        ASSERT_EQ(0, melon::Socket::Address(id, &s));
         global_sock = s.get();
         ASSERT_TRUE(s.get());
         ASSERT_EQ(-1, s->fd());
@@ -370,7 +370,7 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
 
             int called = 0;
             if (i % 2 == 0) {
-                brpc::SocketMessagePtr<MyMessage> msg(
+                melon::SocketMessagePtr<MyMessage> msg(
                     new MyMessage(buf, 12 + meta_len + len, &called));
                 ASSERT_EQ(0, s->Write(msg));
             } else {
@@ -406,10 +406,10 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
         }
         ASSERT_EQ(0, s->SetFailed());
     }
-    ASSERT_EQ((brpc::Socket*)NULL, global_sock);
+    ASSERT_EQ((melon::Socket*)NULL, global_sock);
     // The id is invalid.
-    brpc::SocketUniquePtr ptr;
-    ASSERT_EQ(-1, brpc::Socket::Address(id, &ptr));
+    melon::SocketUniquePtr ptr;
+    ASSERT_EQ(-1, melon::Socket::Address(id, &ptr));
 
     messenger->StopAccept(0);
     ASSERT_EQ(-1, messenger->listened_fd());
@@ -422,13 +422,13 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
 struct WriterArg {
     size_t times;
     size_t offset;
-    brpc::SocketId socket_id;
+    melon::SocketId socket_id;
 };
 
 void* FailedWriter(void* void_arg) {
     WriterArg* arg = static_cast<WriterArg*>(void_arg);
-    brpc::SocketUniquePtr sock;
-    if (brpc::Socket::Address(arg->socket_id, &sock) < 0) {
+    melon::SocketUniquePtr sock;
+    if (melon::Socket::Address(arg->socket_id, &sock) < 0) {
         printf("Fail to address SocketId=%" PRIu64 "\n", arg->socket_id);
         return NULL;
     }
@@ -440,7 +440,7 @@ void* FailedWriter(void* void_arg) {
                  i + arg->offset);
         butil::IOBuf src;
         src.append(buf);
-        brpc::Socket::WriteOptions wopt;
+        melon::Socket::WriteOptions wopt;
         wopt.id_wait = id;
         sock->Write(&src, &wopt);
         EXPECT_EQ(0, bthread_id_join(id));
@@ -454,14 +454,14 @@ void* FailedWriter(void* void_arg) {
 TEST_F(SocketTest, fail_to_connect) {
     const size_t REP = 10;
     butil::EndPoint point(butil::IP_ANY, 7563/*not listened*/);
-    brpc::SocketId id = 8888;
-    brpc::SocketOptions options;
+    melon::SocketId id = 8888;
+    melon::SocketOptions options;
     options.remote_side = point;
     options.user = new CheckRecycle;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
     {
-        brpc::SocketUniquePtr s;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+        melon::SocketUniquePtr s;
+        ASSERT_EQ(0, melon::Socket::Address(id, &s));
         global_sock = s.get();
         ASSERT_TRUE(s.get());
         ASSERT_EQ(-1, s->fd());
@@ -487,23 +487,23 @@ TEST_F(SocketTest, fail_to_connect) {
         bthread_usleep(1000);
         ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
     }
-    ASSERT_EQ(-1, brpc::Socket::Status(id));
+    ASSERT_EQ(-1, melon::Socket::Status(id));
     // The id is invalid.
-    brpc::SocketUniquePtr ptr;
-    ASSERT_EQ(-1, brpc::Socket::Address(id, &ptr));
+    melon::SocketUniquePtr ptr;
+    ASSERT_EQ(-1, melon::Socket::Address(id, &ptr));
 }
 
 TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
-    brpc::SocketId id = 8888;
+    melon::SocketId id = 8888;
     butil::EndPoint point(butil::IP_ANY, 7584/*not listened*/);
-    brpc::SocketOptions options;
+    melon::SocketOptions options;
     options.remote_side = point;
     options.user = new CheckRecycle;
     options.health_check_interval_s = 1/*s*/;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
     {
-        brpc::SocketUniquePtr s;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+        melon::SocketUniquePtr s;
+        ASSERT_EQ(0, melon::Socket::Address(id, &s));
         s->SetHCRelatedRefHeld(); // set held status
         global_sock = s.get();
         ASSERT_TRUE(s.get());
@@ -528,7 +528,7 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
         bthread_id_t wait_id;
         WaitData data;
         ASSERT_EQ(0, bthread_id_create2(&wait_id, &data, OnWaitIdReset));
-        brpc::Socket::WriteOptions wopt;
+        melon::Socket::WriteOptions wopt;
         wopt.id_wait = wait_id;
         ASSERT_EQ(0, s->Write(&src, &wopt));
         ASSERT_EQ(0, bthread_id_join(wait_id));
@@ -552,7 +552,7 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
         bthread_usleep(1000);
         ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L);
     }
-    ASSERT_EQ(-1, brpc::Socket::Status(id));
+    ASSERT_EQ(-1, melon::Socket::Status(id));
 }
 
 class HealthCheckTestServiceImpl : public test::HealthCheckTestService {
@@ -565,8 +565,8 @@ public:
                                 const test::HealthCheckRequest* request,
                                 test::HealthCheckResponse* response,
                                 google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = (brpc::Controller*)cntl_base;
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)cntl_base;
         if (_sleep_flag) {
             bthread_usleep(510000 /* 510ms, a little bit longer than the default
                                      timeout of health check rpc */);
@@ -578,18 +578,18 @@ public:
 };
 
 TEST_F(SocketTest, app_level_health_check) {
-    int old_health_check_interval = brpc::FLAGS_health_check_interval;
+    int old_health_check_interval = melon::FLAGS_health_check_interval;
     GFLAGS_NS::SetCommandLineOption("health_check_path", "/HealthCheckTestService");
     GFLAGS_NS::SetCommandLineOption("health_check_interval", "1");
 
     butil::EndPoint point(butil::IP_ANY, 7777);
-    brpc::ChannelOptions options;
+    melon::ChannelOptions options;
     options.protocol = "http";
     options.max_retry = 0;
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init(point, &options));
     {
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/";
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         EXPECT_TRUE(cntl.Failed());
@@ -607,15 +607,15 @@ TEST_F(SocketTest, app_level_health_check) {
     close(listening_fd);
     bthread_usleep(2000000);
    
-    brpc::Server server;
+    melon::Server server;
     HealthCheckTestServiceImpl hc_service;
-    ASSERT_EQ(0, server.AddService(&hc_service, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server.AddService(&hc_service, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server.Start(point, NULL));
 
     for (int i = 0; i < 4; ++i) {
         // although ::connect would succeed, the stall in hc_service makes
         // the health check rpc fail.
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/";
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_EQ(EHOSTDOWN, cntl.ErrorCode());
@@ -625,7 +625,7 @@ TEST_F(SocketTest, app_level_health_check) {
     bthread_usleep(2000000 /* a little bit longer than hc rpc timeout + hc interval */);
     // should recover now
     {
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/";
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_FALSE(cntl.Failed());
@@ -640,18 +640,18 @@ TEST_F(SocketTest, app_level_health_check) {
 
 TEST_F(SocketTest, health_check) {
     // FIXME(gejun): Messenger has to be new otherwise quitting may crash.
-    brpc::Acceptor* messenger = new brpc::Acceptor;
+    melon::Acceptor* messenger = new melon::Acceptor;
 
-    brpc::SocketId id = 8888;
+    melon::SocketId id = 8888;
     butil::EndPoint point(butil::IP_ANY, 7878);
     const int kCheckInteval = 1;
-    brpc::SocketOptions options;
+    melon::SocketOptions options;
     options.remote_side = point;
     options.user = new CheckRecycle;
     options.health_check_interval_s = kCheckInteval/*s*/;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-    brpc::SocketUniquePtr s;
-    ASSERT_EQ(0, brpc::Socket::Address(id, &s));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
+    melon::SocketUniquePtr s;
+    ASSERT_EQ(0, melon::Socket::Address(id, &s));
 
     s->SetHCRelatedRefHeld(); // set held status
     global_sock = s.get();
@@ -660,7 +660,7 @@ TEST_F(SocketTest, health_check) {
     ASSERT_EQ(point, s->remote_side());
     ASSERT_EQ(id, s->id());
     int32_t nref = -1;
-    ASSERT_EQ(0, brpc::Socket::Status(id, &nref));
+    ASSERT_EQ(0, melon::Socket::Status(id, &nref));
     ASSERT_EQ(2, nref);
 
     char buf[64];
@@ -674,7 +674,7 @@ TEST_F(SocketTest, health_check) {
     *(uint32_t*)(buf + 4) = len + meta_len;
     *(uint32_t*)(buf + 8) = meta_len;
     const bool use_my_message = (butil::fast_rand_less_than(2) == 0);
-    brpc::SocketMessagePtr<MyMessage> msg;
+    melon::SocketMessagePtr<MyMessage> msg;
     int appended_msg = 0;
     butil::IOBuf src;
     if (use_my_message) {
@@ -688,7 +688,7 @@ TEST_F(SocketTest, health_check) {
     bthread_id_t wait_id;
     WaitData data;
     ASSERT_EQ(0, bthread_id_create2(&wait_id, &data, OnWaitIdReset));
-    brpc::Socket::WriteOptions wopt;
+    melon::Socket::WriteOptions wopt;
     wopt.id_wait = wait_id;
     if (use_my_message) {
         ASSERT_EQ(0, s->Write(msg, &wopt));
@@ -714,12 +714,12 @@ TEST_F(SocketTest, health_check) {
     ASSERT_TRUE(src.empty());
     ASSERT_EQ(-1, s->fd());
     ASSERT_TRUE(global_sock);
-    brpc::SocketUniquePtr invalid_ptr;
-    ASSERT_EQ(-1, brpc::Socket::Address(id, &invalid_ptr));
-    ASSERT_EQ(1, brpc::Socket::Status(id));
+    melon::SocketUniquePtr invalid_ptr;
+    ASSERT_EQ(-1, melon::Socket::Address(id, &invalid_ptr));
+    ASSERT_EQ(1, melon::Socket::Status(id));
 
-    const brpc::InputMessageHandler pairs[] = {
-        { brpc::policy::ParseHuluMessage, 
+    const melon::InputMessageHandler pairs[] = {
+        { melon::policy::ParseHuluMessage,
           EchoProcessHuluRequest, NULL, NULL, "dummy_hulu" }
     };
 
@@ -731,7 +731,7 @@ TEST_F(SocketTest, health_check) {
 
     int64_t start_time = butil::gettimeofday_us();
     nref = -1;
-    while (brpc::Socket::Status(id, &nref) != 0) {
+    while (melon::Socket::Status(id, &nref) != 0) {
         bthread_usleep(1000);
         ASSERT_LT(butil::gettimeofday_us(),
                   start_time + kCheckInteval * 1000000L + 100000L/*100ms*/);
@@ -741,8 +741,8 @@ TEST_F(SocketTest, health_check) {
 
     int fd = 0;
     {
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         ASSERT_NE(0, ptr->fd());
         fd = ptr->fd();
     }
@@ -751,15 +751,15 @@ TEST_F(SocketTest, health_check) {
     ASSERT_EQ(0, s->SetFailed());
     ASSERT_EQ(fd, s->fd());
     start_time = butil::gettimeofday_us();
-    while (brpc::Socket::Status(id) != 0) {
+    while (melon::Socket::Status(id) != 0) {
         bthread_usleep(1000);
         ASSERT_LT(butil::gettimeofday_us(), start_time + 1200000L);
     }
     ASSERT_TRUE(global_sock);
 
     {
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         ASSERT_NE(0, ptr->fd());
     }
 
@@ -772,23 +772,23 @@ TEST_F(SocketTest, health_check) {
     ASSERT_EQ(-1, fcntl(listening_fd, F_GETFD));
     ASSERT_EQ(EBADF, errno);
 
-    ASSERT_EQ(0, brpc::Socket::SetFailed(id));
+    ASSERT_EQ(0, melon::Socket::SetFailed(id));
     // StartHealthCheck is possibly still addressing the Socket.
     start_time = butil::gettimeofday_us();
     while (global_sock != NULL) {
         bthread_usleep(1000);
         ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L);
     }
-    ASSERT_EQ(-1, brpc::Socket::Status(id));
+    ASSERT_EQ(-1, melon::Socket::Status(id));
     // The id is invalid.
-    brpc::SocketUniquePtr ptr;
-    ASSERT_EQ(-1, brpc::Socket::Address(id, &ptr));
+    melon::SocketUniquePtr ptr;
+    ASSERT_EQ(-1, melon::Socket::Address(id, &ptr));
 }
 
 void* Writer(void* void_arg) {
     WriterArg* arg = static_cast<WriterArg*>(void_arg);
-    brpc::SocketUniquePtr sock;
-    if (brpc::Socket::Address(arg->socket_id, &sock) < 0) {
+    melon::SocketUniquePtr sock;
+    if (melon::Socket::Address(arg->socket_id, &sock) < 0) {
         printf("Fail to address SocketId=%" PRIu64 "\n", arg->socket_id);
         return NULL;
     }
@@ -799,7 +799,7 @@ void* Writer(void* void_arg) {
         butil::IOBuf src;
         src.append(buf);
         if (sock->Write(&src) != 0) {
-            if (errno == brpc::EOVERCROWDED) {
+            if (errno == melon::EOVERCROWDED) {
                 // The buf is full, sleep a while and retry.
                 bthread_usleep(1000);
                 --i;
@@ -824,17 +824,17 @@ TEST_F(SocketTest, multi_threaded_write) {
         std::vector<size_t> result;
         result.reserve(ARRAY_SIZE(th) * REP);
 
-        brpc::SocketId id = 8888;
+        melon::SocketId id = 8888;
         butil::EndPoint dummy;
         ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = fds[1];
         options.remote_side = dummy;
         options.user = new CheckRecycle;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr s;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &s));    
-        s->_ssl_state = brpc::SSL_OFF;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr s;
+        ASSERT_EQ(0, melon::Socket::Address(id, &s));
+        s->_ssl_state = melon::SSL_OFF;
         global_sock = s.get();
         ASSERT_TRUE(s.get());
         ASSERT_EQ(fds[1], s->fd());
@@ -901,15 +901,15 @@ TEST_F(SocketTest, multi_threaded_write) {
 
         ASSERT_EQ(0, s->SetFailed());
         s.release()->Dereference();
-        ASSERT_EQ((brpc::Socket*)NULL, global_sock);
+        ASSERT_EQ((melon::Socket*)NULL, global_sock);
         close(fds[0]);
     }
 }
 
 void* FastWriter(void* void_arg) {
     WriterArg* arg = static_cast<WriterArg*>(void_arg);
-    brpc::SocketUniquePtr sock;
-    if (brpc::Socket::Address(arg->socket_id, &sock) < 0) {
+    melon::SocketUniquePtr sock;
+    if (melon::Socket::Address(arg->socket_id, &sock) < 0) {
         printf("Fail to address SocketId=%" PRIu64 "\n", arg->socket_id);
         return NULL;
     }
@@ -921,7 +921,7 @@ void* FastWriter(void* void_arg) {
         butil::IOBuf src;
         src.append(buf, 16);
         if (sock->Write(&src) != 0) {
-            if (errno == brpc::EOVERCROWDED) {
+            if (errno == melon::EOVERCROWDED) {
                 // The buf is full, sleep a while and retry.
                 bthread_usleep(1000);
                 --c;
@@ -970,18 +970,18 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     bthread_t th[3];
     WriterArg args[ARRAY_SIZE(th)];
 
-    brpc::SocketId id = 8888;
+    melon::SocketId id = 8888;
     butil::EndPoint dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
-    brpc::SocketOptions options;
+    melon::SocketOptions options;
     options.fd = fds[1];
     options.remote_side = dummy;
     options.user = new CheckRecycle;
-    ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-    brpc::SocketUniquePtr s;
-    ASSERT_EQ(0, brpc::Socket::Address(id, &s));
-    s->_ssl_state = brpc::SSL_OFF;
-    ASSERT_EQ(2, brpc::NRefOfVRef(s->_versioned_ref));
+    ASSERT_EQ(0, melon::Socket::Create(options, &id));
+    melon::SocketUniquePtr s;
+    ASSERT_EQ(0, melon::Socket::Address(id, &s));
+    s->_ssl_state = melon::SSL_OFF;
+    ASSERT_EQ(2, melon::NRefOfVRef(s->_versioned_ref));
     global_sock = s.get();
     ASSERT_TRUE(s.get());
     ASSERT_EQ(fds[1], s->fd());
@@ -1019,7 +1019,7 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     ASSERT_EQ(0, s->SetFailed());
     s.release()->Dereference();
     pthread_join(rth, NULL);
-    ASSERT_EQ((brpc::Socket*)NULL, global_sock);
+    ASSERT_EQ((melon::Socket*)NULL, global_sock);
     close(fds[0]);
 }
 
@@ -1109,12 +1109,12 @@ TEST_F(SocketTest, keepalive) {
     // Disable keepalive.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckNoKeepalive(ptr->fd());
         sockfd.release();
     }
@@ -1125,13 +1125,13 @@ TEST_F(SocketTest, keepalive) {
     // Enable keepalive.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        default_keepalive_idle,
@@ -1143,15 +1143,15 @@ TEST_F(SocketTest, keepalive) {
     // Enable keepalive and set keepalive idle.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_idle_s
             = keepalive_idle;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        keepalive_idle,
@@ -1163,15 +1163,15 @@ TEST_F(SocketTest, keepalive) {
     // Enable keepalive and set keepalive interval.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_interval_s
             = keepalive_interval;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        default_keepalive_idle,
@@ -1183,15 +1183,15 @@ TEST_F(SocketTest, keepalive) {
     // Enable keepalive and set keepalive count.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_count
             = keepalive_count;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        default_keepalive_idle,
@@ -1203,19 +1203,19 @@ TEST_F(SocketTest, keepalive) {
     // Enable keepalive and set keepalive idle, interval, count.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_idle_s
             = keepalive_idle;
         options.keepalive_options->keepalive_interval_s
             = keepalive_interval;
         options.keepalive_options->keepalive_count
             = keepalive_count;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::Socket::Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::Socket::Create(options, &id));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        keepalive_idle,
@@ -1243,28 +1243,28 @@ TEST_F(SocketTest, keepalive_input_message) {
     // Disable keepalive.
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckNoKeepalive(ptr->fd());
         sockfd.release();
     }
 
     // Enable keepalive.
-    brpc::FLAGS_socket_keepalive = true;
+    melon::FLAGS_socket_keepalive = true;
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        default_keepalive_idle,
@@ -1274,59 +1274,59 @@ TEST_F(SocketTest, keepalive_input_message) {
     }
 
     // Enable keepalive and set keepalive idle.
-    brpc::FLAGS_socket_keepalive_idle_s = 10;
+    melon::FLAGS_socket_keepalive_idle_s = 10;
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
-                       brpc::FLAGS_socket_keepalive_idle_s,
+                       melon::FLAGS_socket_keepalive_idle_s,
                        default_keepalive_interval,
                        default_keepalive_count);
         sockfd.release();
     }
 
     // Enable keepalive and set keepalive idle, interval.
-    brpc::FLAGS_socket_keepalive_interval_s = 10;
+    melon::FLAGS_socket_keepalive_interval_s = 10;
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
-                       brpc::FLAGS_socket_keepalive_idle_s,
-                       brpc::FLAGS_socket_keepalive_interval_s,
+                       melon::FLAGS_socket_keepalive_idle_s,
+                       melon::FLAGS_socket_keepalive_interval_s,
                        default_keepalive_count);
         sockfd.release();
     }
 
     // Enable keepalive and set keepalive idle, interval, count.
-    brpc::FLAGS_socket_keepalive_count = 10;
+    melon::FLAGS_socket_keepalive_count = 10;
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
-                       brpc::FLAGS_socket_keepalive_idle_s,
-                       brpc::FLAGS_socket_keepalive_interval_s,
-                       brpc::FLAGS_socket_keepalive_count);
+                       melon::FLAGS_socket_keepalive_idle_s,
+                       melon::FLAGS_socket_keepalive_interval_s,
+                       melon::FLAGS_socket_keepalive_count);
         sockfd.release();
     }
 
@@ -1336,80 +1336,80 @@ TEST_F(SocketTest, keepalive_input_message) {
     int keepalive_count = 2;
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_idle_s
             = keepalive_idle;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        keepalive_idle,
-                       brpc::FLAGS_socket_keepalive_interval_s,
-                       brpc::FLAGS_socket_keepalive_count);
+                       melon::FLAGS_socket_keepalive_interval_s,
+                       melon::FLAGS_socket_keepalive_count);
         sockfd.release();
     }
 
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_interval_s
             = keepalive_interval;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
-                       brpc::FLAGS_socket_keepalive_idle_s,
+                       melon::FLAGS_socket_keepalive_idle_s,
                        keepalive_interval,
-                       brpc::FLAGS_socket_keepalive_count);
+                       melon::FLAGS_socket_keepalive_count);
         sockfd.release();
     }
 
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_count
             = keepalive_count;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
-                       brpc::FLAGS_socket_keepalive_idle_s,
-                       brpc::FLAGS_socket_keepalive_interval_s,
+                       melon::FLAGS_socket_keepalive_idle_s,
+                       melon::FLAGS_socket_keepalive_interval_s,
                        keepalive_count);
         sockfd.release();
     }
 
     {
         butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
-        brpc::SocketOptions options;
+        melon::SocketOptions options;
         options.fd = sockfd;
-        options.keepalive_options = std::make_shared<brpc::SocketKeepaliveOptions>();
+        options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
         options.keepalive_options->keepalive_idle_s
             = keepalive_idle;
         options.keepalive_options->keepalive_interval_s
             = keepalive_interval;
         options.keepalive_options->keepalive_count
             = keepalive_count;
-        brpc::SocketId id;
-        ASSERT_EQ(0, brpc::get_or_new_client_side_messenger()
+        melon::SocketId id;
+        ASSERT_EQ(0, melon::get_or_new_client_side_messenger()
             ->Create(options, &id));
-        brpc::SocketUniquePtr ptr;
-        ASSERT_EQ(0, brpc::Socket::Address(id, &ptr));
+        melon::SocketUniquePtr ptr;
+        ASSERT_EQ(0, melon::Socket::Address(id, &ptr));
         CheckKeepalive(ptr->fd(),
                        true,
                        keepalive_idle,

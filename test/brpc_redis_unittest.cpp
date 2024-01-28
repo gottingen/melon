@@ -27,12 +27,12 @@
 #include <melon/rpc/redis_command.h>
 #include <gtest/gtest.h>
 
-namespace brpc {
+namespace melon {
 DECLARE_int32(idle_timeout_second);
 }
 
 int main(int argc, char* argv[]) {
-    brpc::FLAGS_idle_timeout_second = 0;
+    melon::FLAGS_idle_timeout_second = 0;
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
@@ -46,11 +46,7 @@ static void RemoveRedisServer() {
     if (g_redis_pid > 0) {
         puts("[Stopping redis-server]");
         char cmd[256];
-#if defined(BAIDU_INTERNAL)
-        snprintf(cmd, sizeof(cmd), "kill %d; rm -rf redis_server_for_test", g_redis_pid);
-#else
         snprintf(cmd, sizeof(cmd), "kill %d", g_redis_pid);
-#endif
         CHECK(0 == system(cmd));
         // Wait for redis to stop
         usleep(50000);
@@ -61,20 +57,10 @@ static void RemoveRedisServer() {
 #define REDIS_SERVER_PORT "6479"
 
 static void RunRedisServer() {
-#if defined(BAIDU_INTERNAL)
-    puts("Downloading redis-server...");
-    if (system("mkdir -p redis_server_for_test && cd redis_server_for_test && svn co https://svn.baidu.com/third-64/tags/redis/redis_2-6-14-100_PD_BL/bin") != 0) {
-        puts("Fail to get redis-server from svn");
-        return;
-    }
-# undef REDIS_SERVER_BIN
-# define REDIS_SERVER_BIN "redis_server_for_test/bin/redis-server";
-#else
     if (system("which " REDIS_SERVER_BIN) != 0) {
         puts("Fail to find " REDIS_SERVER_BIN ", following tests will be skipped");
         return;
     }
-#endif
     atexit(RemoveRedisServer);
 
     g_redis_pid = fork();
@@ -105,40 +91,40 @@ protected:
     void TearDown() {}
 };
 
-void AssertReplyEqual(const brpc::RedisReply& reply1,
-                      const brpc::RedisReply& reply2) {
+void AssertReplyEqual(const melon::RedisReply& reply1,
+                      const melon::RedisReply& reply2) {
     if (&reply1 == &reply2) {
         return;
     }
     CHECK_EQ(reply1.type(), reply2.type());
     switch (reply1.type()) {
-    case brpc::REDIS_REPLY_ARRAY:
+    case melon::REDIS_REPLY_ARRAY:
         ASSERT_EQ(reply1.size(), reply2.size());
         for (size_t j = 0; j < reply1.size(); ++j) {
             ASSERT_NE(&reply1[j], &reply2[j]); // from different arena
             AssertReplyEqual(reply1[j], reply2[j]);
         }
         break;
-    case brpc::REDIS_REPLY_INTEGER:
+    case melon::REDIS_REPLY_INTEGER:
         ASSERT_EQ(reply1.integer(), reply2.integer());
         break;
-    case brpc::REDIS_REPLY_NIL:
+    case melon::REDIS_REPLY_NIL:
         break;
-    case brpc::REDIS_REPLY_STRING:
+    case melon::REDIS_REPLY_STRING:
         // fall through
-    case brpc::REDIS_REPLY_STATUS:
+    case melon::REDIS_REPLY_STATUS:
         ASSERT_NE(reply1.c_str(), reply2.c_str()); // from different arena
         ASSERT_EQ(reply1.data(), reply2.data());
         break;
-    case brpc::REDIS_REPLY_ERROR:
+    case melon::REDIS_REPLY_ERROR:
         ASSERT_NE(reply1.error_message(), reply2.error_message()); // from different arena
         ASSERT_STREQ(reply1.error_message(), reply2.error_message());
         break;
     }
 }
 
-void AssertResponseEqual(const brpc::RedisResponse& r1,
-                         const brpc::RedisResponse& r2,
+void AssertResponseEqual(const melon::RedisResponse& r1,
+                         const melon::RedisResponse& r2,
                          int repeated_times = 1) {
     if (&r1 == &r2) {
         ASSERT_EQ(repeated_times, 1);
@@ -158,19 +144,19 @@ TEST_F(RedisTest, sanity) {
         puts("Skipped due to absence of redis-server");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
 
     ASSERT_TRUE(request.AddCommand("get hello"));
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_NIL, response.reply(0).type())
+    ASSERT_EQ(melon::REDIS_REPLY_NIL, response.reply(0).type())
         << response;
 
     cntl.Reset();
@@ -180,7 +166,7 @@ TEST_F(RedisTest, sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(0).type());
     ASSERT_EQ("OK", response.reply(0).data());
 
     cntl.Reset();
@@ -190,7 +176,7 @@ TEST_F(RedisTest, sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed());
     ASSERT_EQ(1, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(0).type());
     ASSERT_EQ("world", response.reply(0).data());
 
     cntl.Reset();
@@ -200,7 +186,7 @@ TEST_F(RedisTest, sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(0).type());
     ASSERT_EQ("OK", response.reply(0).data());
     
     cntl.Reset();
@@ -210,7 +196,7 @@ TEST_F(RedisTest, sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed());
     ASSERT_EQ(1, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(0).type());
     ASSERT_EQ("world2", response.reply(0).data());
 
     cntl.Reset();
@@ -219,7 +205,7 @@ TEST_F(RedisTest, sanity) {
     ASSERT_TRUE(request.AddCommand("del hello"));
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(0).type());
     ASSERT_EQ(1, response.reply(0).integer());
 
     cntl.Reset();
@@ -229,7 +215,7 @@ TEST_F(RedisTest, sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(1, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_NIL, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_NIL, response.reply(0).type());
 }
 
 TEST_F(RedisTest, keys_with_spaces) {
@@ -237,13 +223,13 @@ TEST_F(RedisTest, keys_with_spaces) {
         puts("Skipped due to absence of redis-server");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
     
     cntl.Reset();
     request.Clear();
@@ -259,22 +245,22 @@ TEST_F(RedisTest, keys_with_spaces) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(7, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(0).type());
     ASSERT_EQ("OK", response.reply(0).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(1).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(1).type());
     ASSERT_EQ("OK", response.reply(1).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(2).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(2).type());
     ASSERT_EQ("OK", response.reply(2).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(3).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(3).type());
     ASSERT_EQ("he1 he1 da1", response.reply(3).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(4).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(4).type());
     ASSERT_EQ("he1 he1 da1", response.reply(4).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(5).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(5).type());
     ASSERT_EQ("he2 he2 da2", response.reply(5).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(6).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(6).type());
     ASSERT_EQ("he3 he3 da3", response.reply(6).data());
 
-    brpc::RedisResponse response2 = response;
+    melon::RedisResponse response2 = response;
     AssertResponseEqual(response2, response);
     response2.MergeFrom(response);
     AssertResponseEqual(response2, response, 2);
@@ -285,13 +271,13 @@ TEST_F(RedisTest, incr_and_decr) {
         puts("Skipped due to absence of redis-server");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
 
     request.AddCommand("incr counter1");
     request.AddCommand("decr counter1");
@@ -300,16 +286,16 @@ TEST_F(RedisTest, incr_and_decr) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(4, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(0).type());
     ASSERT_EQ(1, response.reply(0).integer());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(1).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(1).type());
     ASSERT_EQ(0, response.reply(1).integer());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(2).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(2).type());
     ASSERT_EQ(10, response.reply(2).integer());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(3).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(3).type());
     ASSERT_EQ(-10, response.reply(3).integer());
 
-    brpc::RedisResponse response2 = response;
+    melon::RedisResponse response2 = response;
     AssertResponseEqual(response2, response);
     response2.MergeFrom(response);
     AssertResponseEqual(response2, response, 2);
@@ -320,13 +306,13 @@ TEST_F(RedisTest, by_components) {
         puts("Skipped due to absence of redis-server");
         return;
     }
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
 
     butil::StringPiece comp1[] = { "incr", "counter2" };
     butil::StringPiece comp2[] = { "decr", "counter2" };
@@ -341,16 +327,16 @@ TEST_F(RedisTest, by_components) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(4, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(0).type());
     ASSERT_EQ(1, response.reply(0).integer());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(1).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(1).type());
     ASSERT_EQ(0, response.reply(1).integer());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(2).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(2).type());
     ASSERT_EQ(10, response.reply(2).integer());
-    ASSERT_EQ(brpc::REDIS_REPLY_INTEGER, response.reply(3).type());
+    ASSERT_EQ(melon::REDIS_REPLY_INTEGER, response.reply(3).type());
     ASSERT_EQ(-10, response.reply(3).integer());
 
-    brpc::RedisResponse response2 = response;
+    melon::RedisResponse response2 = response;
     AssertResponseEqual(response2, response);
     response2.MergeFrom(response);
     AssertResponseEqual(response2, response, 2);
@@ -377,13 +363,13 @@ TEST_F(RedisTest, auth) {
 
     // config auth
     {
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_REDIS;
-        brpc::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_REDIS;
+        melon::Channel channel;
         ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
 
         request.AddCommand("set mykey %s", passwd1.c_str());
         request.AddCommand("config set requirepass %s", passwd1.c_str());
@@ -393,46 +379,46 @@ TEST_F(RedisTest, auth) {
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(4, response.reply_size());
-        ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(0).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(0).type());
         ASSERT_STREQ("OK", response.reply(0).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(1).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(1).type());
         ASSERT_STREQ("OK", response.reply(1).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(2).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(2).type());
         ASSERT_STREQ("OK", response.reply(2).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(3).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(3).type());
         ASSERT_STREQ(passwd1.c_str(), response.reply(3).c_str());
     }
 
     // Auth failed
     {
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_REDIS;
-        brpc::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_REDIS;
+        melon::Channel channel;
         ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
 
         request.AddCommand("get mykey");
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(1, response.reply_size());
-        ASSERT_EQ(brpc::REDIS_REPLY_ERROR, response.reply(0).type());
+        ASSERT_EQ(melon::REDIS_REPLY_ERROR, response.reply(0).type());
     }
 
     // Auth with RedisAuthenticator and change to passwd2 (setting to empty
     // pass does not work on redis 6.0.6)
     {
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_REDIS;
-        brpc::Channel channel;
-        brpc::policy::RedisAuthenticator* auth =
-          new brpc::policy::RedisAuthenticator(passwd1.c_str());
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_REDIS;
+        melon::Channel channel;
+        melon::policy::RedisAuthenticator* auth =
+          new melon::policy::RedisAuthenticator(passwd1.c_str());
         options.auth = auth;
         ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
 
         request.AddCommand("get mykey");
         request.AddCommand("config set requirepass %s", passwd2.c_str());
@@ -440,30 +426,30 @@ TEST_F(RedisTest, auth) {
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(2, response.reply_size());
-        ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(0).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(0).type());
         ASSERT_STREQ(passwd1.c_str(), response.reply(0).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(1).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(1).type());
         ASSERT_STREQ("OK", response.reply(1).c_str());
     }
 
     // Auth with passwd2
     {
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_REDIS;
-        brpc::policy::RedisAuthenticator* auth =
-          new brpc::policy::RedisAuthenticator(passwd2.c_str());
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_REDIS;
+        melon::policy::RedisAuthenticator* auth =
+          new melon::policy::RedisAuthenticator(passwd2.c_str());
         options.auth = auth;
-        brpc::Channel channel;
+        melon::Channel channel;
         ASSERT_EQ(0, channel.Init("0.0.0.0:" REDIS_SERVER_PORT, &options));
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
 
         request.AddCommand("get mykey");
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_EQ(1, response.reply_size());
-        ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(0).type()) << response.reply(0);
+        ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(0).type()) << response.reply(0);
         ASSERT_STREQ(passwd1.c_str(), response.reply(0).c_str());
     }
 }
@@ -473,7 +459,7 @@ TEST_F(RedisTest, cmd_format) {
         puts("Skipped due to absence of redis-server");
         return;
     }
-    brpc::RedisRequest request;
+    melon::RedisRequest request;
     // set empty string
     request.AddCommand("set a ''");
     ASSERT_STREQ("*3\r\n$3\r\nset\r\n$1\r\na\r\n$0\r\n\r\n", 
@@ -517,7 +503,7 @@ TEST_F(RedisTest, quote_and_escape) {
         puts("Skipped due to absence of redis-server");
         return;
     }
-    brpc::RedisRequest request;
+    melon::RedisRequest request;
     request.AddCommand("set a 'foo bar'");
     ASSERT_STREQ("*3\r\n$3\r\nset\r\n$1\r\na\r\n$7\r\nfoo bar\r\n",
                  request._buf.to_string().c_str());
@@ -567,15 +553,15 @@ std::string GetCompleteCommand(const std::vector<butil::StringPiece>& commands) 
 
 
 TEST_F(RedisTest, command_parser) {
-    brpc::RedisCommandParser parser;
+    melon::RedisCommandParser parser;
     butil::IOBuf buf;
     std::vector<butil::StringPiece> command_out;
     butil::Arena arena;
     {
         // parse from whole command
         std::string command = "set abc edc";
-        ASSERT_TRUE(brpc::RedisCommandNoFormat(&buf, command.c_str()).ok());
-        ASSERT_EQ(brpc::PARSE_OK, parser.Consume(buf, &command_out, &arena));
+        ASSERT_TRUE(melon::RedisCommandNoFormat(&buf, command.c_str()).ok());
+        ASSERT_EQ(melon::PARSE_OK, parser.Consume(buf, &command_out, &arena));
         ASSERT_TRUE(buf.empty());
         ASSERT_EQ(command, GetCompleteCommand(command_out));
     }
@@ -588,10 +574,10 @@ TEST_F(RedisTest, command_parser) {
             for (int i = 0; i < size; ++i) {
                 buf.push_back(raw_string[i]);
                 if (i == size - 1) {
-                    ASSERT_EQ(brpc::PARSE_OK, parser.Consume(buf, &command_out, &arena));
+                    ASSERT_EQ(melon::PARSE_OK, parser.Consume(buf, &command_out, &arena));
                 } else {
                     if (butil::fast_rand_less_than(2) == 0) {
-                        ASSERT_EQ(brpc::PARSE_ERROR_NOT_ENOUGH_DATA,
+                        ASSERT_EQ(melon::PARSE_ERROR_NOT_ENOUGH_DATA,
                                 parser.Consume(buf, &command_out, &arena));
                     }
                 }
@@ -603,34 +589,34 @@ TEST_F(RedisTest, command_parser) {
     {
         // there is a non-string message in command and parse should fail
         buf.append("*3\r\n$3");
-        ASSERT_EQ(brpc::PARSE_ERROR_NOT_ENOUGH_DATA, parser.Consume(buf, &command_out, &arena));
+        ASSERT_EQ(melon::PARSE_ERROR_NOT_ENOUGH_DATA, parser.Consume(buf, &command_out, &arena));
         ASSERT_EQ((int)buf.size(), 2);    // left "$3"
         buf.append("\r\nset\r\n:123\r\n$3\r\ndef\r\n");
-        ASSERT_EQ(brpc::PARSE_ERROR_ABSOLUTELY_WRONG, parser.Consume(buf, &command_out, &arena));
+        ASSERT_EQ(melon::PARSE_ERROR_ABSOLUTELY_WRONG, parser.Consume(buf, &command_out, &arena));
         parser.Reset();
     }
     {
         // not array
         buf.append(":123456\r\n");
-        ASSERT_EQ(brpc::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
+        ASSERT_EQ(melon::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
         parser.Reset();
     }
     {
         // not array
         buf.append("+Error\r\n");
-        ASSERT_EQ(brpc::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
+        ASSERT_EQ(melon::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
         parser.Reset();
     }
     {
         // not array
         buf.append("+OK\r\n");
-        ASSERT_EQ(brpc::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
+        ASSERT_EQ(melon::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
         parser.Reset();
     }
     {
         // not array
         buf.append("$5\r\nhello\r\n");
-        ASSERT_EQ(brpc::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
+        ASSERT_EQ(melon::PARSE_ERROR_TRY_OTHERS, parser.Consume(buf, &command_out, &arena));
         parser.Reset();
     }
 }
@@ -639,7 +625,7 @@ TEST_F(RedisTest, redis_reply_codec) {
     butil::Arena arena;
     // status
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         butil::IOBuf buf;
         butil::IOBufAppender appender;
         r.SetStatus("OK");
@@ -648,15 +634,15 @@ TEST_F(RedisTest, redis_reply_codec) {
         ASSERT_STREQ(buf.to_string().c_str(), "+OK\r\n");
         ASSERT_STREQ(r.c_str(), "OK");
 
-        brpc::RedisReply r2(&arena);
-        brpc::ParseError err = r2.ConsumePartialIOBuf(buf);
-        ASSERT_EQ(err, brpc::PARSE_OK);
+        melon::RedisReply r2(&arena);
+        melon::ParseError err = r2.ConsumePartialIOBuf(buf);
+        ASSERT_EQ(err, melon::PARSE_OK);
         ASSERT_TRUE(r2.is_string());
         ASSERT_STREQ("OK", r2.c_str());
     }
     // error
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         butil::IOBuf buf;
         butil::IOBufAppender appender;
         r.SetError("not exist \'key\'");
@@ -664,15 +650,15 @@ TEST_F(RedisTest, redis_reply_codec) {
         appender.move_to(buf);
         ASSERT_STREQ(buf.to_string().c_str(), "-not exist \'key\'\r\n");
 
-        brpc::RedisReply r2(&arena);
-        brpc::ParseError err = r2.ConsumePartialIOBuf(buf);
-        ASSERT_EQ(err, brpc::PARSE_OK);
+        melon::RedisReply r2(&arena);
+        melon::ParseError err = r2.ConsumePartialIOBuf(buf);
+        ASSERT_EQ(err, melon::PARSE_OK);
         ASSERT_TRUE(r2.is_error());
         ASSERT_STREQ("not exist \'key\'", r2.error_message());
     }
     // string
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         butil::IOBuf buf;
         butil::IOBufAppender appender;
         r.SetNullString();
@@ -680,9 +666,9 @@ TEST_F(RedisTest, redis_reply_codec) {
         appender.move_to(buf);
         ASSERT_STREQ(buf.to_string().c_str(), "$-1\r\n");
         
-        brpc::RedisReply r2(&arena);
-        brpc::ParseError err = r2.ConsumePartialIOBuf(buf);
-        ASSERT_EQ(err, brpc::PARSE_OK);
+        melon::RedisReply r2(&arena);
+        melon::ParseError err = r2.ConsumePartialIOBuf(buf);
+        ASSERT_EQ(err, melon::PARSE_OK);
         ASSERT_TRUE(r2.is_nil());
 
         r.SetString("abcde'hello world");
@@ -703,15 +689,15 @@ TEST_F(RedisTest, redis_reply_codec) {
         ASSERT_STREQ(buf.to_string().c_str(), "$86\r\nverylongstring verylongstring verylongstring verylongstring int:123 str:foobar fp:3.21\r\n");
         ASSERT_STREQ("verylongstring verylongstring verylongstring verylongstring int:123 str:foobar fp:3.21", r.c_str());
         
-        brpc::RedisReply r3(&arena);
+        melon::RedisReply r3(&arena);
         err = r3.ConsumePartialIOBuf(buf);
-        ASSERT_EQ(err, brpc::PARSE_OK);
+        ASSERT_EQ(err, melon::PARSE_OK);
         ASSERT_TRUE(r3.is_string());
         ASSERT_STREQ(r.c_str(), r3.c_str());
     }
     // integer
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         butil::IOBuf buf;
         butil::IOBufAppender appender;
         int t = 2;
@@ -723,20 +709,20 @@ TEST_F(RedisTest, redis_reply_codec) {
             appender.move_to(buf);
             ASSERT_STREQ(buf.to_string().c_str(), output[i]);
 
-            brpc::RedisReply r2(&arena);
-            brpc::ParseError err = r2.ConsumePartialIOBuf(buf);
-            ASSERT_EQ(err, brpc::PARSE_OK);
+            melon::RedisReply r2(&arena);
+            melon::ParseError err = r2.ConsumePartialIOBuf(buf);
+            ASSERT_EQ(err, melon::PARSE_OK);
             ASSERT_TRUE(r2.is_integer());
             ASSERT_EQ(r2.integer(), input[i]);
         }
     }
     // array
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         butil::IOBuf buf;
         butil::IOBufAppender appender;
         r.SetArray(3);
-        brpc::RedisReply& sub_reply = r[0];
+        melon::RedisReply& sub_reply = r[0];
         sub_reply.SetArray(2);
         sub_reply[0].SetString("hello, it's me");
         sub_reply[1].SetInteger(422);
@@ -749,8 +735,8 @@ TEST_F(RedisTest, redis_reply_codec) {
                 "*3\r\n*2\r\n$14\r\nhello, it's me\r\n:422\r\n$21\r\n"
                 "To go over everything\r\n:1\r\n");
 
-        brpc::RedisReply r2(&arena);
-        ASSERT_EQ(r2.ConsumePartialIOBuf(buf), brpc::PARSE_OK);
+        melon::RedisReply r2(&arena);
+        ASSERT_EQ(r2.ConsumePartialIOBuf(buf), melon::PARSE_OK);
         ASSERT_TRUE(r2.is_array());
         ASSERT_EQ(3ul, r2.size());
         ASSERT_TRUE(r2[0].is_array());
@@ -769,20 +755,20 @@ TEST_F(RedisTest, redis_reply_codec) {
         ASSERT_TRUE(r.SerializeTo(&appender));
         appender.move_to(buf);
         ASSERT_STREQ(buf.to_string().c_str(), "*-1\r\n");
-        ASSERT_EQ(r.ConsumePartialIOBuf(buf), brpc::PARSE_OK);
+        ASSERT_EQ(r.ConsumePartialIOBuf(buf), melon::PARSE_OK);
         ASSERT_TRUE(r.is_nil());
     }
 
     // CopyFromDifferentArena
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         r.SetArray(1);
-        brpc::RedisReply& sub_reply = r[0];
+        melon::RedisReply& sub_reply = r[0];
         sub_reply.SetArray(2);
         sub_reply[0].SetString("hello, it's me");
         sub_reply[1].SetInteger(422);
 
-        brpc::RedisReply r2(&arena);
+        melon::RedisReply r2(&arena);
         r2.CopyFromDifferentArena(r);
         ASSERT_TRUE(r2.is_array());
         ASSERT_EQ((int)r2[0].size(), 2);
@@ -791,7 +777,7 @@ TEST_F(RedisTest, redis_reply_codec) {
     }
     // SetXXX can be called multiple times.
     {
-        brpc::RedisReply r(&arena);
+        melon::RedisReply r(&arena);
         r.SetStatus("OK");
         ASSERT_TRUE(r.is_string());
         r.SetNullString();
@@ -811,20 +797,20 @@ butil::Mutex s_mutex;
 std::unordered_map<std::string, std::string> m;
 std::unordered_map<std::string, int64_t> int_map;
 
-class RedisServiceImpl : public brpc::RedisService {
+class RedisServiceImpl : public melon::RedisService {
 public:
     RedisServiceImpl()
         : _batch_count(0) {}
 
-    brpc::RedisCommandHandlerResult OnBatched(const std::vector<butil::StringPiece>& args,
-                   brpc::RedisReply* output, bool flush_batched) {
+    melon::RedisCommandHandlerResult OnBatched(const std::vector<butil::StringPiece>& args,
+                   melon::RedisReply* output, bool flush_batched) {
         if (_batched_command.empty() && flush_batched) {
             if (args[0] == "set") {
                 DoSet(args[1].as_string(), args[2].as_string(), output);
             } else if (args[0] == "get") {
                 DoGet(args[1].as_string(), output);
             }
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
         std::vector<std::string> comm;
         for (int i = 0; i < (int)args.size(); ++i) {
@@ -842,18 +828,18 @@ public:
             }
             _batch_count++;
             _batched_command.clear();
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         } else {
-            return brpc::REDIS_CMD_BATCHED;
+            return melon::REDIS_CMD_BATCHED;
         }
     }
 
-    void DoSet(const std::string& key, const std::string& value, brpc::RedisReply* output) {
+    void DoSet(const std::string& key, const std::string& value, melon::RedisReply* output) {
         m[key] = value;
         output->SetStatus("OK");
     }
 
-    void DoGet(const std::string& key, brpc::RedisReply* output) {
+    void DoGet(const std::string& key, melon::RedisReply* output) {
         auto it = m.find(key);
         if (it != m.end()) {
             output->SetString(it->second);
@@ -867,28 +853,28 @@ public:
 };
 
 
-class SetCommandHandler : public brpc::RedisCommandHandler {
+class SetCommandHandler : public melon::RedisCommandHandler {
 public:
     SetCommandHandler(RedisServiceImpl* rs, bool batch_process = false)
         : _rs(rs)
         , _batch_process(batch_process) {}
 
-    brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                        brpc::RedisReply* output,
+    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                        melon::RedisReply* output,
                                         bool flush_batched) {
         if (args.size() < 3) {
             output->SetError("ERR wrong number of arguments for 'set' command");
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
         if (_batch_process) {
             return _rs->OnBatched(args, output, flush_batched);
         } else {
             DoSet(args[1].as_string(), args[2].as_string(), output);
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
     }
 
-    void DoSet(const std::string& key, const std::string& value, brpc::RedisReply* output) {
+    void DoSet(const std::string& key, const std::string& value, melon::RedisReply* output) {
         m[key] = value;
         output->SetStatus("OK");
     }
@@ -898,28 +884,28 @@ private:
     bool _batch_process;
 };
 
-class GetCommandHandler : public brpc::RedisCommandHandler {
+class GetCommandHandler : public melon::RedisCommandHandler {
 public:
     GetCommandHandler(RedisServiceImpl* rs, bool batch_process = false)
         : _rs(rs)
         , _batch_process(batch_process) {}
 
-    brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                        brpc::RedisReply* output,
+    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                        melon::RedisReply* output,
                                         bool flush_batched) {
         if (args.size() < 2) {
             output->SetError("ERR wrong number of arguments for 'get' command");
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
         if (_batch_process) {
             return _rs->OnBatched(args, output, flush_batched);
         } else {
             DoGet(args[1].as_string(), output);
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
     }
 
-    void DoGet(const std::string& key, brpc::RedisReply* output) {
+    void DoGet(const std::string& key, melon::RedisReply* output) {
         auto it = m.find(key);
         if (it != m.end()) {
             output->SetString(it->second);
@@ -933,29 +919,29 @@ private:
     bool _batch_process;
 };
 
-class IncrCommandHandler : public brpc::RedisCommandHandler {
+class IncrCommandHandler : public melon::RedisCommandHandler {
 public:
     IncrCommandHandler() {}
 
-    brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                        brpc::RedisReply* output,
+    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                        melon::RedisReply* output,
                                         bool flush_batched) {
         if (args.size() < 2) {
             output->SetError("ERR wrong number of arguments for 'incr' command");
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
         int64_t value;
         s_mutex.lock();
         value = ++int_map[args[1].as_string()];
         s_mutex.unlock();
         output->SetInteger(value);
-        return brpc::REDIS_CMD_HANDLED;
+        return melon::REDIS_CMD_HANDLED;
     }
 };
 
 TEST_F(RedisTest, server_sanity) {
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     RedisServiceImpl* rsimpl = new RedisServiceImpl;
     GetCommandHandler *gh = new GetCommandHandler(rsimpl);
     SetCommandHandler *sh = new SetCommandHandler(rsimpl);
@@ -964,17 +950,17 @@ TEST_F(RedisTest, server_sanity) {
     rsimpl->AddCommandHandler("set", sh);
     rsimpl->AddCommandHandler("incr", ih);
     server_options.redis_service = rsimpl;
-    brpc::PortRange pr(8081, 8900);
+    melon::PortRange pr(8081, 8900);
     ASSERT_EQ(0, server.Start("127.0.0.1", pr, &server_options));
 
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("127.0.0.1", server.listen_address().port, &options));
 
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
     ASSERT_TRUE(request.AddCommand("get hello"));
     ASSERT_TRUE(request.AddCommand("get hello2"));
     ASSERT_TRUE(request.AddCommand("set key1 value1"));
@@ -985,17 +971,17 @@ TEST_F(RedisTest, server_sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(7, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_NIL, response.reply(0).type());
-    ASSERT_EQ(brpc::REDIS_REPLY_NIL, response.reply(1).type());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(2).type());
+    ASSERT_EQ(melon::REDIS_REPLY_NIL, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_NIL, response.reply(1).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(2).type());
     ASSERT_STREQ("OK", response.reply(2).c_str());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(3).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(3).type());
     ASSERT_STREQ("value1", response.reply(3).c_str());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(4).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(4).type());
     ASSERT_STREQ("OK", response.reply(4).c_str());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(5).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(5).type());
     ASSERT_STREQ("value2", response.reply(5).c_str());
-    ASSERT_EQ(brpc::REDIS_REPLY_ERROR, response.reply(6).type());
+    ASSERT_EQ(melon::REDIS_REPLY_ERROR, response.reply(6).type());
     ASSERT_TRUE(butil::StringPiece(response.reply(6).error_message()).starts_with("ERR unknown command"));
 
     cntl.Reset(); 
@@ -1015,25 +1001,25 @@ TEST_F(RedisTest, server_sanity) {
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
     ASSERT_EQ(4, response.reply_size());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(0).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(0).type());
     ASSERT_STREQ("OK", response.reply(0).c_str());
-    ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(1).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(1).type());
     ASSERT_STREQ("OK", response.reply(1).c_str());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(2).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(2).type());
     ASSERT_STREQ("value3", response.reply(2).c_str());
     ASSERT_NE("value3", response.reply(2).data());
     ASSERT_EQ(value3, response.reply(2).data());
-    ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(3).type());
+    ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(3).type());
     ASSERT_EQ("", response.reply(3).data());
 }
 
 void* incr_thread(void* arg) {
-    brpc::Channel* c = static_cast<brpc::Channel*>(arg);
+    melon::Channel* c = static_cast<melon::Channel*>(arg);
 
     for (int i = 0; i < 5000; ++i) {
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
         EXPECT_TRUE(request.AddCommand("incr count"));
         c->CallMethod(NULL, &cntl, &request, &response, NULL);
         EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -1045,22 +1031,22 @@ void* incr_thread(void* arg) {
 
 TEST_F(RedisTest, server_concurrency) {
     int N = 10;
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     RedisServiceImpl* rsimpl = new RedisServiceImpl;
     IncrCommandHandler *ih = new IncrCommandHandler;
     rsimpl->AddCommandHandler("incr", ih);
     server_options.redis_service = rsimpl;
-    brpc::PortRange pr(8081, 8900);
+    melon::PortRange pr(8081, 8900);
     ASSERT_EQ(0, server.Start("0.0.0.0", pr, &server_options));
 
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
     options.connection_type = "pooled";
     std::vector<bthread_t> bths;
-    std::vector<brpc::Channel*> channels;
+    std::vector<melon::Channel*> channels;
     for (int i = 0; i < N; ++i) {
-        channels.push_back(new brpc::Channel);
+        channels.push_back(new melon::Channel);
         ASSERT_EQ(0, channels.back()->Init("127.0.0.1", server.listen_address().port, &options));
         bthread_t bth;
         ASSERT_EQ(bthread_start_background(&bth, NULL, incr_thread, channels.back()), 0);
@@ -1074,29 +1060,29 @@ TEST_F(RedisTest, server_concurrency) {
     ASSERT_EQ(int_map["count"], 10 * 5000LL);
 }
 
-class MultiCommandHandler : public brpc::RedisCommandHandler {
+class MultiCommandHandler : public melon::RedisCommandHandler {
 public:
     MultiCommandHandler() {}
 
-    brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                        brpc::RedisReply* output,
+    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                        melon::RedisReply* output,
                                         bool flush_batched) {
         output->SetStatus("OK");
-        return brpc::REDIS_CMD_CONTINUE;
+        return melon::REDIS_CMD_CONTINUE;
     }
 
     RedisCommandHandler* NewTransactionHandler() override {
         return new MultiTransactionHandler;
     }
 
-    class MultiTransactionHandler : public brpc::RedisCommandHandler {
+    class MultiTransactionHandler : public melon::RedisCommandHandler {
     public:
-        brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                            brpc::RedisReply* output,
+        melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                            melon::RedisReply* output,
                                             bool flush_batched) {
             if (args[0] == "multi") {
                 output->SetError("ERR duplicate multi");
-                return brpc::REDIS_CMD_CONTINUE;
+                return melon::REDIS_CMD_CONTINUE;
             }
             if (args[0] != "exec") {
                 std::vector<std::string> comm;
@@ -1105,7 +1091,7 @@ public:
                 }
                 _commands.push_back(comm);
                 output->SetStatus("QUEUED");
-                return brpc::REDIS_CMD_CONTINUE;
+                return melon::REDIS_CMD_CONTINUE;
             }
             output->SetArray(_commands.size());
             s_mutex.lock();
@@ -1119,7 +1105,7 @@ public:
                 }
             }
             s_mutex.unlock();
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
     private:
         std::vector<std::vector<std::string> > _commands;
@@ -1127,26 +1113,26 @@ public:
 };
 
 TEST_F(RedisTest, server_command_continue) {
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     RedisServiceImpl* rsimpl = new RedisServiceImpl;
     rsimpl->AddCommandHandler("get", new GetCommandHandler(rsimpl));
     rsimpl->AddCommandHandler("set", new SetCommandHandler(rsimpl));
     rsimpl->AddCommandHandler("incr", new IncrCommandHandler);
     rsimpl->AddCommandHandler("multi", new MultiCommandHandler);
     server_options.redis_service = rsimpl;
-    brpc::PortRange pr(8081, 8900);
+    melon::PortRange pr(8081, 8900);
     ASSERT_EQ(0, server.Start("127.0.0.1", pr, &server_options));
 
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("127.0.0.1", server.listen_address().port, &options));
 
     {
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
         ASSERT_TRUE(request.AddCommand("set hello world"));
         ASSERT_TRUE(request.AddCommand("get hello"));
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
@@ -1155,9 +1141,9 @@ TEST_F(RedisTest, server_command_continue) {
         ASSERT_STREQ("world", response.reply(1).c_str());
     }
     {
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
         ASSERT_TRUE(request.AddCommand("multi"));
         ASSERT_TRUE(request.AddCommand("mUltI"));
         int count = 10;
@@ -1168,14 +1154,14 @@ TEST_F(RedisTest, server_command_continue) {
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
         ASSERT_EQ(13, response.reply_size());
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
-        ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(0).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(0).type());
         ASSERT_STREQ("OK", response.reply(0).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_ERROR, response.reply(1).type());
+        ASSERT_EQ(melon::REDIS_REPLY_ERROR, response.reply(1).type());
         for (int i = 2; i < count + 2; ++i) {
-            ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(i).type());
+            ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(i).type());
             ASSERT_STREQ("QUEUED", response.reply(i).c_str());
         }
-        const brpc::RedisReply& m = response.reply(count + 2);
+        const melon::RedisReply& m = response.reply(count + 2);
         ASSERT_EQ(count, (int)m.size());
         for (int i = 0; i < count; ++i) {
             ASSERT_EQ(i+1, m[i].integer());
@@ -1183,9 +1169,9 @@ TEST_F(RedisTest, server_command_continue) {
     }
     // After 'multi', normal requests should be successful
     {
-        brpc::RedisRequest request;
-        brpc::RedisResponse response;
-        brpc::Controller cntl;
+        melon::RedisRequest request;
+        melon::RedisResponse response;
+        melon::Controller cntl;
         ASSERT_TRUE(request.AddCommand("get hello"));
         ASSERT_TRUE(request.AddCommand("get hello2"));
         ASSERT_TRUE(request.AddCommand("set key1 value1"));
@@ -1193,17 +1179,17 @@ TEST_F(RedisTest, server_command_continue) {
         channel.CallMethod(NULL, &cntl, &request, &response, NULL);
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
         ASSERT_STREQ("world", response.reply(0).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_NIL, response.reply(1).type());
-        ASSERT_EQ(brpc::REDIS_REPLY_STATUS, response.reply(2).type());
+        ASSERT_EQ(melon::REDIS_REPLY_NIL, response.reply(1).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STATUS, response.reply(2).type());
         ASSERT_STREQ("OK", response.reply(2).c_str());
-        ASSERT_EQ(brpc::REDIS_REPLY_STRING, response.reply(3).type());
+        ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(3).type());
         ASSERT_STREQ("value1", response.reply(3).c_str());
     }
 }
 
 TEST_F(RedisTest, server_handle_pipeline) {
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     RedisServiceImpl* rsimpl = new RedisServiceImpl;
     GetCommandHandler* getch = new GetCommandHandler(rsimpl, true);
     SetCommandHandler* setch = new SetCommandHandler(rsimpl, true);
@@ -1211,17 +1197,17 @@ TEST_F(RedisTest, server_handle_pipeline) {
     rsimpl->AddCommandHandler("set", setch);
     rsimpl->AddCommandHandler("multi", new MultiCommandHandler);
     server_options.redis_service = rsimpl;
-    brpc::PortRange pr(8081, 8900);
+    melon::PortRange pr(8081, 8900);
     ASSERT_EQ(0, server.Start("127.0.0.1", pr, &server_options));
 
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
-    brpc::Channel channel;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("127.0.0.1", server.listen_address().port, &options));
 
-    brpc::RedisRequest request;
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisRequest request;
+    melon::RedisResponse response;
+    melon::Controller cntl;
     ASSERT_TRUE(request.AddCommand("set key1 v1"));
     ASSERT_TRUE(request.AddCommand("set key2 v2"));
     ASSERT_TRUE(request.AddCommand("set key3 v3"));

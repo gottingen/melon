@@ -21,13 +21,13 @@
 #include "melon/rpc/get_js.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Get packed js.
 //   "/js/sorttable"  : http://www.kryogenix.org/code/browser/sorttable/
 //   "/js/jquery_min" : jquery 1.8.3
 //   "/js/flot_min"   : plotting library for jquery.
-class GetJsService : public ::brpc::js {
+class GetJsService : public ::melon::js {
 public:
     void sorttable(::google::protobuf::RpcController* controller,
                    const GetJsRequest* request,
@@ -50,7 +50,7 @@ public:
                  ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_GET_JAVASCRIPT_SERVICE_H

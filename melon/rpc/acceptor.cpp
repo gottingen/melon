@@ -25,7 +25,7 @@
 #include "melon/rpc/acceptor.h"
 
 
-namespace brpc {
+namespace melon {
 
 static const int INITIAL_CONNECTION_CAP = 65536;
 
@@ -366,4 +366,4 @@ void Acceptor::BeforeRecycle(Socket* sock) {
     }
 }
 
-} // namespace brpc
+} // namespace melon

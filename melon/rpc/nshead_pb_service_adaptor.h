@@ -22,7 +22,7 @@
 #include "melon/rpc/nshead_service.h"             // NsheadService
 #include "melon/rpc/nshead_meta.pb.h"            // NsheadMeta
 
-namespace brpc {
+namespace melon {
 
 class NsheadPbServiceAdaptor;
 extern const size_t SendNsheadPbResponseSize;
@@ -89,7 +89,7 @@ private:
         NsheadClosure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_NSHEAD_PB_SERVICE_ADAPTOR_H

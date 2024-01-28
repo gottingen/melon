@@ -29,7 +29,7 @@
 #include "melon/rpc/extension.h"                         // Extension<T>
 #include "melon/rpc/server_node.h"                       // ServerNode
 
-namespace brpc {
+namespace melon {
 
 // Continuing actions to added/removed servers.
 // NOTE: You don't have to implement this class.
@@ -72,6 +72,6 @@ inline Extension<const NamingService>* NamingServiceExtension() {
     return Extension<const NamingService>::instance();
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_NAMING_SERVICE_H

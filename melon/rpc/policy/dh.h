@@ -22,7 +22,7 @@
 #include <openssl/dh.h>
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Diffie-Hellman key exchange
@@ -61,7 +61,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_DH_H

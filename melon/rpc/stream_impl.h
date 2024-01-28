@@ -25,7 +25,7 @@
 #include "melon/rpc/stream.h"
 #include "melon/rpc/streaming_rpc_meta.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class BAIDU_CACHELINE_ALIGNMENT Stream : public SocketConnection {
 public:
@@ -128,7 +128,7 @@ friend class MessageBatcher;
     bthread_timer_t _idle_timer;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 

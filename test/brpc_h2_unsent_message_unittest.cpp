@@ -33,24 +33,24 @@ int main(int argc, char* argv[]) {
 }
 
 TEST(H2UnsentMessage, request_throughput) {
-    brpc::Controller cntl;
+    melon::Controller cntl;
     butil::IOBuf request_buf;
     cntl.http_request().uri() = "0.0.0.0:8010/HttpService/Echo";
-    brpc::policy::SerializeHttpRequest(&request_buf, &cntl, NULL);
+    melon::policy::SerializeHttpRequest(&request_buf, &cntl, NULL);
 
-    brpc::SocketId id;
-    brpc::SocketUniquePtr h2_client_sock;
-    brpc::SocketOptions h2_client_options;
-    h2_client_options.user = brpc::get_client_side_messenger();
-    EXPECT_EQ(0, brpc::Socket::Create(h2_client_options, &id));
-    EXPECT_EQ(0, brpc::Socket::Address(id, &h2_client_sock));
+    melon::SocketId id;
+    melon::SocketUniquePtr h2_client_sock;
+    melon::SocketOptions h2_client_options;
+    h2_client_options.user = melon::get_client_side_messenger();
+    EXPECT_EQ(0, melon::Socket::Create(h2_client_options, &id));
+    EXPECT_EQ(0, melon::Socket::Address(id, &h2_client_sock));
 
-    brpc::policy::H2Context* ctx =
-        new brpc::policy::H2Context(h2_client_sock.get(), NULL);
+    melon::policy::H2Context* ctx =
+        new melon::policy::H2Context(h2_client_sock.get(), NULL);
     CHECK_EQ(ctx->Init(), 0);
     h2_client_sock->initialize_parsing_context(&ctx);
     ctx->_last_sent_stream_id = 0;
-    ctx->_remote_window_left = brpc::H2Settings::MAX_WINDOW_SIZE;
+    ctx->_remote_window_left = melon::H2Settings::MAX_WINDOW_SIZE;
 
     int64_t ntotal = 500000;
 
@@ -59,7 +59,7 @@ TEST(H2UnsentMessage, request_throughput) {
     ProfilerStart("h2_unsent_req.prof");
     int64_t start_us = butil::gettimeofday_us();
     for (int i = 0; i < ntotal; ++i) {
-        brpc::policy::H2UnsentRequest* req = brpc::policy::H2UnsentRequest::New(&cntl);
+        melon::policy::H2UnsentRequest* req = melon::policy::H2UnsentRequest::New(&cntl);
         req->AppendAndDestroySelf(&dummy_buf, h2_client_sock.get());
     }
     int64_t end_us = butil::gettimeofday_us();
@@ -77,7 +77,7 @@ TEST(H2UnsentMessage, request_throughput) {
         // cntl.response_attachment()
         cntl.http_response().set_content_type("text/plain");
         cntl.response_attachment().append("0123456789abcedef");
-        brpc::policy::H2UnsentResponse* res = brpc::policy::H2UnsentResponse::New(&cntl, 0, false);
+        melon::policy::H2UnsentResponse* res = melon::policy::H2UnsentResponse::New(&cntl, 0, false);
         res->AppendAndDestroySelf(&dummy_buf, h2_client_sock.get());
     }
     end_us = butil::gettimeofday_us();

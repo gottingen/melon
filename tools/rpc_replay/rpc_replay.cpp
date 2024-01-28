@@ -58,7 +58,7 @@ public:
     ~ChannelGroup();
 
     // Get channel by protocol type.
-    brpc::Channel* channel(brpc::ProtocolType type) {
+    melon::Channel* channel(melon::ProtocolType type) {
         if ((size_t)type < _chans.size()) {
             return _chans[(size_t)type];
         }
@@ -66,16 +66,16 @@ public:
     }
     
 private:
-    std::vector<brpc::Channel*> _chans;
+    std::vector<melon::Channel*> _chans;
 };
 
 int ChannelGroup::Init() {
     {
         // force global initialization of rpc.
-        brpc::Channel dummy_channel;
+        melon::Channel dummy_channel;
     }
-    std::vector<std::pair<brpc::ProtocolType, brpc::Protocol> > protocols;
-    brpc::ListProtocols(&protocols);
+    std::vector<std::pair<melon::ProtocolType, melon::Protocol> > protocols;
+    melon::ListProtocols(&protocols);
     size_t max_protocol_size = 0;
     for (size_t i = 0; i < protocols.size(); ++i) {
         max_protocol_size = std::max(max_protocol_size,
@@ -83,18 +83,18 @@ int ChannelGroup::Init() {
     }
     _chans.resize(max_protocol_size + 1);
     for (size_t i = 0; i < protocols.size(); ++i) {
-        const brpc::ProtocolType protocol_type = protocols[i].first;
-        const brpc::Protocol protocol = protocols[i].second;
-        brpc::ChannelOptions options;
+        const melon::ProtocolType protocol_type = protocols[i].first;
+        const melon::Protocol protocol = protocols[i].second;
+        melon::ChannelOptions options;
         options.protocol = protocol_type;
         options.connection_type = FLAGS_connection_type;
         options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
         options.max_retry = FLAGS_max_retry;
-        if ((options.connection_type == brpc::CONNECTION_TYPE_UNKNOWN || 
+        if ((options.connection_type == melon::CONNECTION_TYPE_UNKNOWN ||
             options.connection_type & protocol.supported_connection_type) &&
             protocol.support_client() &&
             protocol.support_server()) {
-            brpc::Channel* chan = new brpc::Channel;
+            melon::Channel* chan = new melon::Channel;
             if (chan->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(),
                         &options) != 0) {
                 LOG(ERROR) << "Fail to initialize channel";
@@ -114,7 +114,7 @@ ChannelGroup::~ChannelGroup() {
     _chans.clear();
 }
 
-static void handle_response(brpc::Controller* cntl, int64_t start_time,
+static void handle_response(melon::Controller* cntl, int64_t start_time,
                             bool sleep_on_error/*note*/) {
     // TODO(gejun): some bthreads are starved when new bthreads are created 
     // continuously, which happens when server is down and RPC keeps failing.
@@ -138,22 +138,22 @@ static void* replay_thread(void* arg) {
     ChannelGroup* chan_group = static_cast<ChannelGroup*>(arg);
     const int thread_offset = g_thread_offset.fetch_add(1, butil::memory_order_relaxed);
     double req_rate = FLAGS_qps / (double)FLAGS_thread_num;
-    brpc::SerializedRequest req;
-    brpc::NsheadMessage nshead_req;
+    melon::SerializedRequest req;
+    melon::NsheadMessage nshead_req;
     int64_t last_expected_time = butil::monotonic_time_ns();
     const int64_t interval = (int64_t) (1000000000L / req_rate);
     // the max tolerant delay between end_time and expected_time. 10ms or 10 intervals
     int64_t max_tolerant_delay = std::max((int64_t) 10000000L, 10 * interval);
-    for (int i = 0; !brpc::IsAskedToQuit() && i < FLAGS_times; ++i) {
-        brpc::SampleIterator it(FLAGS_dir);
+    for (int i = 0; !melon::IsAskedToQuit() && i < FLAGS_times; ++i) {
+        melon::SampleIterator it(FLAGS_dir);
         int j = 0;
-        for (brpc::SampledRequest* sample = it.Next();
-             !brpc::IsAskedToQuit() && sample != NULL; sample = it.Next(), ++j) {
-            std::unique_ptr<brpc::SampledRequest> sample_guard(sample);
+        for (melon::SampledRequest* sample = it.Next();
+             !melon::IsAskedToQuit() && sample != NULL; sample = it.Next(), ++j) {
+            std::unique_ptr<melon::SampledRequest> sample_guard(sample);
             if ((j % FLAGS_thread_num) != thread_offset) {
                 continue;
             }
-            brpc::Channel* chan =
+            melon::Channel* chan =
                 chan_group->channel(sample->meta.protocol_type());
             if (chan == NULL) {
                 LOG(ERROR) << "No channel on protocol="
@@ -161,13 +161,13 @@ static void* replay_thread(void* arg) {
                 continue;
             }
             
-            brpc::Controller* cntl = new brpc::Controller;
+            melon::Controller* cntl = new melon::Controller;
             req.Clear();
             
             google::protobuf::Message* req_ptr = &req;
             cntl->reset_sampled_request(sample_guard.release());
-            if (sample->meta.protocol_type() == brpc::PROTOCOL_HTTP) {
-                brpc::HttpMessage http_message;
+            if (sample->meta.protocol_type() == melon::PROTOCOL_HTTP) {
+                melon::HttpMessage http_message;
                 http_message.ParseFromIOBuf(sample->request);
                 cntl->http_request().Swap(http_message.header());
                 if (!FLAGS_http_host.empty()) {
@@ -176,7 +176,7 @@ static void* replay_thread(void* arg) {
                 }
                 cntl->request_attachment() = http_message.body().movable();
                 req_ptr = NULL;
-            } else if (sample->meta.protocol_type() == brpc::PROTOCOL_NSHEAD) {
+            } else if (sample->meta.protocol_type() == melon::PROTOCOL_NSHEAD) {
                 nshead_req.Clear();
                 memcpy(&nshead_req.head, sample->meta.nshead().c_str(), sample->meta.nshead().length());
                 nshead_req.body = sample->request;
@@ -197,7 +197,7 @@ static void* replay_thread(void* arg) {
                 handle_response(cntl, start_time, true);
             } else {
                 google::protobuf::Closure* done =
-                    brpc::NewCallback(handle_response, cntl, start_time, false);
+                    melon::NewCallback(handle_response, cntl, start_time, false);
                 chan->CallMethod(NULL/*use rpc_dump_context in cntl instead*/,
                         cntl, req_ptr, NULL/*ignore response*/, done);
                 int64_t end_time = butil::monotonic_time_ns();
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (FLAGS_dummy_port >= 0) {
-        brpc::StartDummyServerAt(FLAGS_dummy_port);
+        melon::StartDummyServerAt(FLAGS_dummy_port);
     }
     
     ChannelGroup chan_group;
@@ -277,8 +277,8 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    brpc::InfoThread info_thr;
-    brpc::InfoThreadOptions info_thr_opt;
+    melon::InfoThread info_thr;
+    melon::InfoThreadOptions info_thr_opt;
     info_thr_opt.latency_recorder = &g_latency_recorder;
     info_thr_opt.error_count = &g_error_count;
     info_thr_opt.sent_count = &g_sent_count;

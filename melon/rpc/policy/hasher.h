@@ -24,7 +24,7 @@
 #include "melon/butil/strings/string_piece.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 using HashFunc = uint32_t(*)(const void*, size_t);
@@ -37,7 +37,7 @@ uint32_t MurmurHash32(const void* key, size_t len);
 uint32_t MurmurHash32V(const butil::StringPiece* keys, size_t num_keys);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_HASHER_H

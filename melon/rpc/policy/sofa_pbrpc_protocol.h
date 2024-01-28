@@ -23,7 +23,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse binary format of sofa-pbrpc.
@@ -48,7 +48,7 @@ void PackSofaRequest(butil::IOBuf* buf,
                      const Authenticator* auth);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_SOFA_PBRPC_PROTOCOL_H

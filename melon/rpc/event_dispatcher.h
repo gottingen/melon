@@ -24,7 +24,7 @@
 #include "melon/rpc/socket.h"                     // Socket, SocketId
 
 
-namespace brpc {
+namespace melon {
 
 // Dispatch edge-triggered events of file descriptors to consumers
 // running in separate bthreads.
@@ -101,7 +101,7 @@ private:
 
 EventDispatcher& GetGlobalEventDispatcher(int fd, bthread_tag_t tag);
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_EVENT_DISPATCHER_H

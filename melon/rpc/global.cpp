@@ -29,9 +29,6 @@
 
 #include "melon/butil/build_config.h"                  // OS_LINUX
 // Naming services
-#ifdef BAIDU_INTERNAL
-#include "melon/rpc/policy/baidu_naming_service.h"
-#endif
 #include "melon/naming/file_naming_service.h"
 #include "melon/naming/list_naming_service.h"
 #include "melon/naming/domain_naming_service.h"
@@ -72,9 +69,6 @@
 #include "melon/rpc/policy/nshead_mcpack_protocol.h"
 #include "melon/rpc/policy/rtmp_protocol.h"
 #include "melon/rpc/policy/esp_protocol.h"
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-# include "brpc/policy/thrift_protocol.h"
-#endif
 
 // Concurrency Limiters
 #include "melon/rpc/concurrency_limiter.h"
@@ -98,7 +92,7 @@ extern "C" {
 void BAIDU_WEAK MallocExtension_ReleaseFreeMemory(void);
 }
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(usercode_in_pthread);
 
@@ -125,10 +119,7 @@ struct GlobalExtensions {
         , ch_ketama_lb(CONS_HASH_LB_KETAMA)
         , constant_cl(0) {
     }
-    
-#ifdef BAIDU_INTERNAL
-    BaiduNamingService bns;
-#endif
+
     FileNamingService fns;
     ListNamingService lns;
     DomainListNamingService dlns;
@@ -350,9 +341,6 @@ static void GlobalInitializeOrDieImpl() {
         exit(1);
     }
     // Naming Services
-#ifdef BAIDU_INTERNAL
-    NamingServiceExtension()->RegisterOrDie("bns", &g_ext->bns);
-#endif
     NamingServiceExtension()->RegisterOrDie("file", &g_ext->fns);
     NamingServiceExtension()->RegisterOrDie("list", &g_ext->lns);
     NamingServiceExtension()->RegisterOrDie("dlist", &g_ext->dlns);
@@ -517,18 +505,6 @@ static void GlobalInitializeOrDieImpl() {
         exit(1);
     }
 
-// Use Macro is more straight forward than weak link technology(becasue of static link issue)
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-    Protocol thrift_binary_protocol = {
-        policy::ParseThriftMessage,
-        policy::SerializeThriftRequest, policy::PackThriftRequest,
-        policy::ProcessThriftRequest, policy::ProcessThriftResponse,
-        policy::VerifyThriftRequest, NULL, NULL,
-        CONNECTION_TYPE_POOLED_AND_SHORT, "thrift" };
-    if (RegisterProtocol(PROTOCOL_THRIFT, thrift_binary_protocol) != 0) {
-        exit(1);
-    }
-#endif
 
     // Only valid at client side
     Protocol ubrpc_compack_protocol = {
@@ -627,4 +603,4 @@ void GlobalInitializeOrDie() {
     }
 }
 
-} // namespace brpc
+} // namespace melon

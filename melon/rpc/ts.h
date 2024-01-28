@@ -45,7 +45,7 @@
 #include "melon/rpc/rtmp.h"
 
 
-namespace brpc {
+namespace melon {
 
 class TsAdaptationField;
 class TsPayload;
@@ -1256,7 +1256,7 @@ private:
     TsChannelGroup _tschan_group;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_TS_H

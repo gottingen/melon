@@ -27,11 +27,11 @@ void print_task(std::ostream& os, bthread_t tid);
 }
 
 
-namespace brpc {
+namespace melon {
 
 void BthreadsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                     const ::brpc::BthreadsRequest*,
-                                     ::brpc::BthreadsResponse*,
+                                     const ::melon::BthreadsRequest*,
+                                     ::melon::BthreadsResponse*,
                                      ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -54,4 +54,4 @@ void BthreadsService::default_method(::google::protobuf::RpcController* cntl_bas
     os.move_to(cntl->response_attachment());
 }
 
-} // namespace brpc
+} // namespace melon

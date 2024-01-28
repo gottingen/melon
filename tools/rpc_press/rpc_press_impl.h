@@ -89,12 +89,12 @@ public:
     }
 
     int init();
-    void call_method(brpc::Controller* cntl,
+    void call_method(melon::Controller* cntl,
                      google::protobuf::Message* request, 
                      google::protobuf::Message* response, 
                      google::protobuf::Closure* done);
 public:
-    brpc::Channel _rpc_client;
+    melon::Channel _rpc_client;
     std::string _attachment;
     const PressOptions* _options;
     const google::protobuf::MethodDescriptor* _method_descriptor;
@@ -117,7 +117,7 @@ private:
     
     bool new_pbrpc_press_client_by_client_type(int client_type);
     void sync_client();
-    void handle_response(brpc::Controller* cntl,
+    void handle_response(melon::Controller* cntl,
                          google::protobuf::Message* request,
                          google::protobuf::Message* response,
                          int64_t start_time_ns);
@@ -135,7 +135,7 @@ private:
     google::protobuf::compiler::Importer* _importer;
     google::protobuf::DynamicMessageFactory _factory;
     std::vector<pthread_t> _ttid;
-    brpc::InfoThread _info_thr;
+    melon::InfoThread _info_thr;
 };
 }
 #endif // PBRPCPRESS_PBRPC_PRESS_H

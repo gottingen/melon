@@ -23,7 +23,7 @@
 #include "melon/rpc/input_messenger.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Try to use this message as the intermediate message between Parse() and
@@ -49,7 +49,7 @@ struct BAIDU_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_MOST_COMMON_MESSAGE_H

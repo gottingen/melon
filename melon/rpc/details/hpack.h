@@ -24,7 +24,7 @@
 #include "melon/rpc/http2.h"
 #include "melon/rpc/describable.h"
 
-namespace brpc {
+namespace melon {
 
 enum HeaderIndexPolicy {
     // Append this header, alerting the decoder dynamic table
@@ -146,7 +146,7 @@ inline ssize_t HPacker::Decode(butil::IOBuf* source, Header* h) {
     return nc;
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_HPACK_H

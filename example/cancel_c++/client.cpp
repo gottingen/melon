@@ -23,7 +23,7 @@
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
 
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in src/brpc/options.proto");
+DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:8000", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
@@ -33,14 +33,14 @@ DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
 // A special done for canceling another RPC.
 class CancelRPC : public google::protobuf::Closure {
 public:
-    explicit CancelRPC(brpc::CallId rpc_id) : _rpc_id(rpc_id) {}
+    explicit CancelRPC(melon::CallId rpc_id) : _rpc_id(rpc_id) {}
     
     void Run() {
-        brpc::StartCancel(_rpc_id);
+        melon::StartCancel(_rpc_id);
     }
     
 private:
-    brpc::CallId _rpc_id;
+    melon::CallId _rpc_id;
 };
 
 int main(int argc, char* argv[]) {
@@ -49,10 +49,10 @@ int main(int argc, char* argv[]) {
     
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
 
     // Initialize the channel, NULL means using default options. 
-    brpc::ChannelOptions options;
+    melon::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
@@ -68,14 +68,14 @@ int main(int argc, char* argv[]) {
 
     // Send a request and wait for the response every 1 second.
     int log_id = 0;
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         example::EchoRequest request1;
         example::EchoResponse response1;
-        brpc::Controller cntl1;
+        melon::Controller cntl1;
 
         example::EchoRequest request2;
         example::EchoResponse response2;
-        brpc::Controller cntl2;
+        melon::Controller cntl2;
 
         request1.set_message("hello1");
         request2.set_message("hello2");
@@ -83,8 +83,8 @@ int main(int argc, char* argv[]) {
         cntl1.set_log_id(log_id ++);  // set by user
         cntl2.set_log_id(log_id ++);
 
-        const brpc::CallId id1 = cntl1.call_id();
-        const brpc::CallId id2 = cntl2.call_id();
+        const melon::CallId id1 = cntl1.call_id();
+        const melon::CallId id2 = cntl2.call_id();
         CancelRPC done1(id2);
         CancelRPC done2(id1);
         
@@ -102,8 +102,8 @@ int main(int argc, char* argv[]) {
         //   5                              cancel RPC1 (no effect)
         stub.Echo(&cntl1, &request1, &response1, &done1);
         stub.Echo(&cntl2, &request2, &response2, &done2);
-        brpc::Join(id1);
-        brpc::Join(id2);
+        melon::Join(id1);
+        melon::Join(id2);
         tm.stop();
         if (cntl1.Failed() && cntl2.Failed()) {
             LOG(WARNING) << "Both failed. rpc1:" << cntl1.ErrorText()

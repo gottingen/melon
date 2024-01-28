@@ -33,7 +33,7 @@
 #include "melon/rpc/policy/most_common_message.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Notes on public_pbrpc Protocol:
@@ -284,5 +284,5 @@ void PackPublicPbrpcRequest(butil::IOBuf* buf,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 

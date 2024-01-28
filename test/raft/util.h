@@ -99,7 +99,7 @@ public:
                                                    << " apply " << iter.index()
                                                    << " data_size " << iter.data().size();
             BRAFT_VLOG << "data " << iter.data();
-            ::brpc::ClosureGuard guard(iter.done());
+            ::melon::ClosureGuard guard(iter.done());
             lock();
             logs.push_back(iter.data());
             unlock();
@@ -114,7 +114,7 @@ public:
     virtual void on_snapshot_save(braft::SnapshotWriter* writer, braft::Closure* done) {
         std::string file_path = writer->get_path();
         file_path.append("/data");
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
         LOG(INFO) << "on_snapshot_save to " << file_path;
 
@@ -248,7 +248,7 @@ public:
               int snapshot_interval_s = 30,
               braft::Closure* leader_start_closure = NULL, bool witness = false) {
         if (_server_map[listen_addr] == NULL) {
-            brpc::Server* server = new brpc::Server();
+            melon::Server* server = new melon::Server();
             if (braft::add_service(server, listen_addr) != 0 
                     || server->Start(listen_addr, NULL) != 0) {
                 LOG(ERROR) << "Fail to start raft service";
@@ -537,7 +537,7 @@ private:
     std::vector<braft::PeerId> _peers;
     std::vector<braft::Node*> _nodes;
     std::vector<MockFSM*> _fsms;
-    std::map<butil::EndPoint, brpc::Server*> _server_map;
+    std::map<butil::EndPoint, melon::Server*> _server_map;
     int32_t _election_timeout_ms;
     int32_t _max_clock_drift_ms;
     raft_mutex_t _mutex;

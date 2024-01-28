@@ -21,9 +21,6 @@
 #include <gflags/gflags.h>
 #include "melon/butil/scoped_lock.h"
 #include "melon/butil/threading/platform_thread.h"
-#ifdef BAIDU_INTERNAL
-#include "melon/butil/comlog_sink.h"
-#endif
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 namespace bthread {
@@ -32,7 +29,7 @@ void run_worker_startfn();
 }
 
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(usercode_backup_threads, 5, "# of backup threads to run user code"
              " when too many pthread worker of bthreads are used");
@@ -113,9 +110,6 @@ int UserCodeBackupPool::Init() {
 // Entry of backup thread for running user code.
 void UserCodeBackupPool::UserCodeRunningLoop() {
     bthread::run_worker_startfn();
-#ifdef BAIDU_INTERNAL
-    logging::ComlogInitializer comlog_initializer;
-#endif
     
     int64_t last_time = butil::cpuwide_time_us();
     while (true) {
@@ -183,4 +177,4 @@ void EndRunningUserCodeInPool(void (*fn)(void*), void* arg) {
     pthread_cond_signal(&s_usercode_cond);
 }
 
-} // namespace brpc
+} // namespace melon

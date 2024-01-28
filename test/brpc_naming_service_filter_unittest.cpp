@@ -31,15 +31,15 @@ protected:
     void TearDown() {}
 }; 
 
-class MyNSFilter: public brpc::NamingServiceFilter {
+class MyNSFilter: public melon::NamingServiceFilter {
 public:
-    bool Accept(const brpc::ServerNode& node) const {
+    bool Accept(const melon::ServerNode& node) const {
         return node.tag == "enable";
     }
 };
 
 TEST_F(NamingServiceFilterTest, sanity) {
-    std::vector<brpc::ServerNode> servers;
+    std::vector<melon::ServerNode> servers;
     const char *address_list[] =  {
         "10.127.0.1:1234",
         "10.128.0.1:1234 enable",
@@ -56,8 +56,8 @@ TEST_F(NamingServiceFilterTest, sanity) {
         fclose(fp);
     }
     MyNSFilter ns_filter;
-    brpc::Channel channel;
-    brpc::ChannelOptions opt;
+    melon::Channel channel;
+    melon::ChannelOptions opt;
     opt.ns_filter = &ns_filter;
     std::string ns = std::string("file://") + tmp_file.fname();
     ASSERT_EQ(0, channel.Init(ns.c_str(), "rr", &opt));
@@ -65,9 +65,9 @@ TEST_F(NamingServiceFilterTest, sanity) {
     butil::EndPoint ep;
     ASSERT_EQ(0, butil::hostname2endpoint("10.128.0.1:1234", &ep));
     for (int i = 0; i < 10; ++i) {
-        brpc::SocketUniquePtr tmp_sock;
-        brpc::LoadBalancer::SelectIn sel_in = { 0, false, false, 0, NULL };
-        brpc::LoadBalancer::SelectOut sel_out(&tmp_sock);
+        melon::SocketUniquePtr tmp_sock;
+        melon::LoadBalancer::SelectIn sel_in = { 0, false, false, 0, NULL };
+        melon::LoadBalancer::SelectOut sel_out(&tmp_sock);
         ASSERT_EQ(0, channel._lb->SelectServer(sel_in, &sel_out));
         ASSERT_EQ(ep, tmp_sock->remote_side());
     }

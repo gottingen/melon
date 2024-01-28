@@ -23,7 +23,7 @@
 #include <string>                               // std::string
 #include "melon/rpc/controller.h"                    // Controller
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Special Controller that can be filled with hulu-pbrpc specific meta fields.
@@ -87,6 +87,6 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 #endif  //BRPC_HULU_PBRPC_CONTROLLER_H

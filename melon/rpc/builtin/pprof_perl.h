@@ -20,11 +20,11 @@
 #define BRPC_BUILTIN_PPROF_PERL_H
 
 
-namespace brpc {
+namespace melon {
 
 const char* pprof_perl();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_BUILTIN_PPROF_PERL_H

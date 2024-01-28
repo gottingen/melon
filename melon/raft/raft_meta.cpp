@@ -30,7 +30,7 @@ namespace braft {
 
 DEFINE_int32(raft_meta_write_batch, 128, 
              "Max number of tasks that can be written into db in a single batch");
-BRPC_VALIDATE_GFLAG(raft_meta_write_batch, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_meta_write_batch, melon::PositiveInteger);
 
 static bvar::LatencyRecorder g_load_pb_raft_meta("raft_load_pb_raft_meta");
 static bvar::LatencyRecorder g_save_pb_raft_meta("raft_save_pb_raft_meta");

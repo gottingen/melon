@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <gflags/gflags.h>
-#include <bthread/bthread.h>
+#include <melon/bthread/bthread.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/raft/raft.h>
@@ -47,7 +47,7 @@ int get(const int64_t id) {
         }
         // Now we known who is the leader, construct Stub and then sending
         // rpc
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
             bthread_usleep(FLAGS_timeout_ms * 1000L);
@@ -55,7 +55,7 @@ int get(const int64_t id) {
         }
         // get request
         example::AtomicService_Stub stub(&channel);
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.set_timeout_ms(FLAGS_timeout_ms);
 
         example::GetRequest request;
@@ -65,7 +65,7 @@ int get(const int64_t id) {
         if (cntl.Failed()) {
             LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
-            if (cntl.ErrorCode() == brpc::ERPCTIMEDOUT) {
+            if (cntl.ErrorCode() == melon::ERPCTIMEDOUT) {
                 return ETIMEDOUT;
             }
             // Clear leadership since this RPC failed.
@@ -108,7 +108,7 @@ int exchange(const int64_t id, const int64_t value) {
         }
         // Now we known who is the leader, construct Stub and then sending
         // rpc
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
             bthread_usleep(FLAGS_timeout_ms * 1000L);
@@ -116,7 +116,7 @@ int exchange(const int64_t id, const int64_t value) {
         }
         // get request
         example::AtomicService_Stub stub(&channel);
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.set_timeout_ms(FLAGS_timeout_ms);
 
         example::ExchangeRequest request;
@@ -127,7 +127,7 @@ int exchange(const int64_t id, const int64_t value) {
         if (cntl.Failed()) {
             LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
-            if (cntl.ErrorCode() == brpc::ERPCTIMEDOUT) {
+            if (cntl.ErrorCode() == melon::ERPCTIMEDOUT) {
                 return ETIMEDOUT;
             }
             // Clear leadership since this RPC failed.
@@ -173,7 +173,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
 
         // Now we known who is the leader, construct Stub and then sending
         // rpc
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
             bthread_usleep(FLAGS_timeout_ms * 1000L);
@@ -181,7 +181,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         }
         example::AtomicService_Stub stub(&channel);
 
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.set_timeout_ms(FLAGS_timeout_ms);
         example::CompareExchangeRequest request;
         example::AtomicResponse response;
@@ -194,7 +194,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         if (cntl.Failed()) {
             LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
-            if (cntl.ErrorCode() == brpc::ERPCTIMEDOUT) {
+            if (cntl.ErrorCode() == melon::ERPCTIMEDOUT) {
                 return ETIMEDOUT;
             }
             // Clear leadership since this RPC failed.

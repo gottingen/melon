@@ -45,11 +45,6 @@ TEST_F(ReducerTest, adder) {
     ASSERT_TRUE(reducer1.valid());
     reducer1 << 2 << 4;
     ASSERT_EQ(6ul, reducer1.get_value());
-#ifdef BAIDU_INTERNAL
-    boost::any v1;
-    reducer1.get_value(&v1);
-    ASSERT_EQ(6u, boost::any_cast<unsigned int>(v1));
-#endif
 
     bvar::Adder<double> reducer2;
     ASSERT_TRUE(reducer2.valid());

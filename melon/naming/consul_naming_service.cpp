@@ -31,7 +31,7 @@
 #include "melon/naming/consul_naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_string(consul_agent_addr, "http://127.0.0.1:8500",
@@ -216,7 +216,7 @@ int ConsulNamingService::RunNamingService(const char* service_name,
     for (;;) {
         servers.clear();
         const int rc = GetServers(service_name, &servers);
-        // If `bthread_stop' is called to stop the ns bthread when `brpc::Join‘ is called
+        // If `bthread_stop' is called to stop the ns bthread when `melon::Join‘ is called
         // in `GetServers' to wait for a rpc to complete. The bthread will be woken up,
         // reset `TaskMeta::interrupted' and continue to join the rpc. After the rpc is complete,
         // `bthread_usleep' will not sense the interrupt signal and sleep successfully.
@@ -266,4 +266,4 @@ void ConsulNamingService::Destroy() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

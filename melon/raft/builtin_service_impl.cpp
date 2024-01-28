@@ -27,8 +27,8 @@
 
 namespace braft {
 
-void RaftStatImpl::GetTabInfo(brpc::TabInfoList* info_list) const {
-    brpc::TabInfo* info = info_list->add();
+void RaftStatImpl::GetTabInfo(melon::TabInfoList* info_list) const {
+    melon::TabInfo* info = info_list->add();
     info->tab_name = "raft";
     info->path = "/raft_stat";
 }
@@ -37,8 +37,8 @@ void RaftStatImpl::default_method(::google::protobuf::RpcController* controller,
                               const ::braft::IndexRequest* /*request*/,
                               ::braft::IndexResponse* /*response*/,
                               ::google::protobuf::Closure* done) {
-    brpc::ClosureGuard done_guard(done);
-    brpc::Controller* cntl = (brpc::Controller*)controller;
+    melon::ClosureGuard done_guard(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
     std::string group_id = cntl->http_request().unresolved_path();
     std::vector<scoped_refptr<NodeImpl> > nodes;
     if (group_id.empty()) {
@@ -46,7 +46,7 @@ void RaftStatImpl::default_method(::google::protobuf::RpcController* controller,
     } else {
         global_node_manager->get_nodes_by_group_id(group_id, &nodes);
     }
-    const bool html = brpc::UseHTML(cntl->http_request());
+    const bool html = melon::UseHTML(cntl->http_request());
     if (html) {
         cntl->http_response().set_content_type("text/html");
     } else {
@@ -56,7 +56,7 @@ void RaftStatImpl::default_method(::google::protobuf::RpcController* controller,
     if (html) {
         os << "<!DOCTYPE html><html><head>\n"
            << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"
-           << brpc::TabsHead() << "</head><body>";
+           << melon::TabsHead() << "</head><body>";
         cntl->server()->PrintTabsBody(os, "raft");
     }
     if (nodes.empty()) {

@@ -32,7 +32,7 @@
 #include "melon/rpc/ssl_options.h"
 #include "melon/rpc/details/ssl_helper.h"
 
-namespace brpc {
+namespace melon {
 
 static const char* const PEM_START = "-----BEGIN";
 
@@ -397,6 +397,6 @@ void Print(std::ostream& os, SSL* ssl, const char* sep) {
        << "protocol=" << SSL_get_version(ssl) << sep;
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif // USE_MESALINK

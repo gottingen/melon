@@ -29,7 +29,7 @@
 
 #include "melon/rpc/builtin/pprof_perl.h"
 
-namespace brpc {
+namespace melon {
 
 const char* pprof_perl() {
     return "#! /usr/bin/env perl\n"
@@ -5506,4 +5506,4 @@ const char* pprof_perl() {
         "}\n";
 }
 
-} // namespace brpc
+} // namespace melon

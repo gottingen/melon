@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // set global log option
 
     if (FLAGS_dummy_port >= 0) {
-        brpc::StartDummyServerAt(FLAGS_dummy_port);
+        melon::StartDummyServerAt(FLAGS_dummy_port);
     }
 
     pbrpcframework::PressOptions options;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     rpc_press->start();
     if (FLAGS_duration <= 0) {
-        while (!brpc::IsAskedToQuit()) {
+        while (!melon::IsAskedToQuit()) {
             sleep(1);
         }
     } else {

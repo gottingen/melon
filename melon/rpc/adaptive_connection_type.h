@@ -25,7 +25,7 @@
 #include "melon/butil/strings/string_piece.h"
 #include "melon/rpc/options.pb.h"
 
-namespace brpc {
+namespace melon {
 
 // Convert a case-insensitive string to corresponding ConnectionType
 // Possible options are: short, pooled, single
@@ -64,7 +64,7 @@ private:
     bool _error;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_ADAPTIVE_CONNECTION_TYPE_H

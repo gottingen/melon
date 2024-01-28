@@ -25,7 +25,7 @@ namespace braft {
 DEFINE_int32(raft_do_snapshot_min_index_gap, 1, 
              "Will do snapshot only when actual gap between applied_index and"
              " last_snapshot_index is equal to or larger than this value");
-BRPC_VALIDATE_GFLAG(raft_do_snapshot_min_index_gap, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_do_snapshot_min_index_gap, melon::PositiveInteger);
 
 class SaveSnapshotDone : public SaveSnapshotClosure {
 public:
@@ -399,12 +399,12 @@ int SnapshotExecutor::init(const SnapshotExecutorOptions& options) {
     return 0;
 }
 
-void SnapshotExecutor::install_snapshot(brpc::Controller* cntl,
+void SnapshotExecutor::install_snapshot(melon::Controller* cntl,
                                         const InstallSnapshotRequest* request,
                                         InstallSnapshotResponse* response,
                                         google::protobuf::Closure* done) {
     int ret = 0;
-    brpc::ClosureGuard done_guard(done);
+    melon::ClosureGuard done_guard(done);
     SnapshotMeta meta = request->meta();
 
     // check if install_snapshot tasks num exceeds threshold 
@@ -454,7 +454,7 @@ void SnapshotExecutor::load_downloading_snapshot(DownloadingSnapshot* ds,
     std::unique_ptr<DownloadingSnapshot> ds_guard(ds);
     std::unique_lock<raft_mutex_t> lck(_mutex);
     CHECK_EQ(ds, _downloading_snapshot.load(butil::memory_order_relaxed));
-    brpc::ClosureGuard done_guard(ds->done);
+    melon::ClosureGuard done_guard(ds->done);
     CHECK(_cur_copier);
     SnapshotReader* reader = _cur_copier->get_reader();
     if (!_cur_copier->ok()) {
@@ -483,7 +483,7 @@ void SnapshotExecutor::load_downloading_snapshot(DownloadingSnapshot* ds,
         }
         _downloading_snapshot.store(NULL, butil::memory_order_release);
         lck.unlock();
-        ds->cntl->SetFailed(brpc::EINTERNAL, 
+        ds->cntl->SetFailed(melon::EINTERNAL,
                            "Fail to copy snapshot from %s",
                             ds->request->uri().c_str());
         _running_jobs.signal();

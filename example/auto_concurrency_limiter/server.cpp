@@ -125,7 +125,7 @@ public:
                       const test::NotifyRequest* request,
                       test::NotifyResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done); 
+        melon::ClosureGuard done_guard(done);
         response->set_message("hello");
         ::usleep(FLAGS_server_sync_sleep_us);
         if (FLAGS_use_usleep) {
@@ -194,7 +194,7 @@ public:
         LoadCaseSet(FLAGS_case_file);
         _echo_service = new EchoServiceImpl;
         if (_server.AddService(_echo_service,
-                                brpc::SERVER_OWNS_SERVICE) != 0) {
+                                melon::SERVER_OWNS_SERVICE) != 0) {
             LOG(FATAL) << "Fail to add service";
         }
         g_timer_thread.start(NULL);
@@ -208,7 +208,7 @@ public:
                         const test::NotifyRequest* request,
                         test::NotifyResponse* response,
                         google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         const std::string& message = request->message();
         LOG(INFO) << message;
         if (message == "ResetCaseSet") {
@@ -223,7 +223,7 @@ public:
             CHECK(!_server.IsRunning()) << "Continuous StartCase";
             const test::TestCase& test_case = _case_set.test_case(_case_index++);
             _echo_service->SetTestCase(test_case);
-            brpc::ServerOptions options;
+            melon::ServerOptions options;
             options.max_concurrency = FLAGS_server_max_concurrency;
             _server.MaxConcurrencyOf("test.EchoService.Echo") = test_case.max_concurrency();
 
@@ -262,7 +262,7 @@ private:
         ifs.close();
     }
 
-    brpc::Server _server;
+    melon::Server _server;
     EchoServiceImpl* _echo_service;
     test::TestCaseSet _case_set;
     int _case_index;
@@ -274,12 +274,12 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
     bthread::FLAGS_bthread_concurrency= FLAGS_server_bthread_concurrency;
 
-    brpc::Server server;
+    melon::Server server;
 
     ControlServiceImpl control_service_impl;
 
     if (server.AddService(&control_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }

@@ -23,9 +23,6 @@
 #include "melon/butil/files/temp_file.h"
 #include "melon/bthread/bthread.h"
 #include "melon/rpc/http_status_code.h"
-#ifdef BAIDU_INTERNAL
-#include "melon/rpc/policy/baidu_naming_service.h"
-#endif
 #include "melon/naming/consul_naming_service.h"
 #include "melon/naming/domain_naming_service.h"
 #include "melon/naming/file_naming_service.h"
@@ -37,7 +34,7 @@
 #include "melon/rpc/server.h"
 
 
-namespace brpc {
+namespace melon {
 DECLARE_int32(health_check_interval);
 
 namespace policy {
@@ -70,14 +67,10 @@ bool IsIPListEqual(const std::set<butil::ip_t>& s1, const std::set<butil::ip_t>&
 }
 
 TEST(NamingServiceTest, sanity) {
-    std::vector<brpc::ServerNode> servers;
+    std::vector<melon::ServerNode> servers;
 
-#ifdef BAIDU_INTERNAL
-    brpc::policy::BaiduNamingService bns;
-    ASSERT_EQ(0, bns.GetServers("qa-pbrpc.SAT.tjyx", &servers));
-#endif
 
-    brpc::policy::DomainNamingService dns;
+    melon::policy::DomainNamingService dns;
     ASSERT_EQ(0, dns.GetServers("baidu.com:1234", &servers));
     ASSERT_EQ(2u, servers.size());
     ASSERT_EQ(1234, servers[0].addr.port);
@@ -120,7 +113,7 @@ TEST(NamingServiceTest, sanity) {
         }
         fclose(fp);
     }
-    brpc::policy::FileNamingService fns;
+    melon::policy::FileNamingService fns;
     ASSERT_EQ(0, fns.GetServers(tmp_file.fname(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list), servers.size());
     for (size_t i = 0; i < ARRAY_SIZE(address_list) - 2; ++i) {
@@ -133,7 +126,7 @@ TEST(NamingServiceTest, sanity) {
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
         ASSERT_EQ(0, butil::string_appendf(&s, "%s,", address_list[i]));
     }
-    brpc::policy::ListNamingService lns;
+    melon::policy::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list), servers.size());
     for (size_t i = 0; i < ARRAY_SIZE(address_list) - 2; ++i) {
@@ -144,26 +137,18 @@ TEST(NamingServiceTest, sanity) {
 }
 
 TEST(NamingServiceTest, invalid_port) {
-    std::vector<brpc::ServerNode> servers;
+    std::vector<melon::ServerNode> servers;
 
-#ifdef BAIDU_INTERNAL
-    brpc::policy::BaiduNamingService bns;
-    ASSERT_EQ(0, bns.GetServers("qa-pbrpc.SAT.tjyx:main", &servers));
-#endif
 
-    brpc::policy::DomainNamingService dns;
+    melon::policy::DomainNamingService dns;
     ASSERT_EQ(-1, dns.GetServers("baidu.com:", &servers));
     ASSERT_EQ(-1, dns.GetServers("baidu.com:123a", &servers));
     ASSERT_EQ(-1, dns.GetServers("baidu.com:99999", &servers));
 }
 
 TEST(NamingServiceTest, wrong_name) {
-    std::vector<brpc::ServerNode> servers;
+    std::vector<melon::ServerNode> servers;
 
-#ifdef BAIDU_INTERNAL
-    brpc::policy::BaiduNamingService bns;
-    ASSERT_EQ(-1, bns.GetServers("Wrong", &servers));
-#endif
 
     const char *address_list[] =  {
         "10.127.0.1:1234",
@@ -183,7 +168,7 @@ TEST(NamingServiceTest, wrong_name) {
         }
         fclose(fp);
     }
-    brpc::policy::FileNamingService fns;
+    melon::policy::FileNamingService fns;
     ASSERT_EQ(0, fns.GetServers(tmp_file.fname(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list) - 4, servers.size());
 
@@ -191,7 +176,7 @@ TEST(NamingServiceTest, wrong_name) {
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
         ASSERT_EQ(0, butil::string_appendf(&s, ", %s", address_list[i]));
     }
-    brpc::policy::ListNamingService lns;
+    melon::policy::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list) - 4, servers.size());
 }
@@ -204,8 +189,8 @@ public:
                    const test::HttpRequest*,
                    test::HttpResponse*,
                    google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = (brpc::Controller*)cntl_base;
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)cntl_base;
         cntl->http_response().set_content_type("text/plain");
         cntl->response_attachment().append(
             "0.0.0.0:8635 tag1\r\n0.0.0.0:8636 tag2\n"
@@ -216,7 +201,7 @@ public:
                const test::HttpRequest*,
                test::HttpResponse*,
                google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         touch_count.fetch_add(1);
     }
 
@@ -225,28 +210,28 @@ public:
 };
 
 TEST(NamingServiceTest, remotefile) {
-    brpc::Server server1;
+    melon::Server server1;
     UserNamingServiceImpl svc1;
-    ASSERT_EQ(0, server1.AddService(&svc1, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server1.AddService(&svc1, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server1.Start("localhost:8635", NULL));
-    brpc::Server server2;
+    melon::Server server2;
     UserNamingServiceImpl svc2;
-    ASSERT_EQ(0, server2.AddService(&svc2, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server2.AddService(&svc2, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server2.Start("localhost:8636", NULL));
 
     butil::EndPoint n1;
     ASSERT_EQ(0, butil::str2endpoint("0.0.0.0:8635", &n1));
     butil::EndPoint n2;
     ASSERT_EQ(0, butil::str2endpoint("0.0.0.0:8636", &n2));
-    std::vector<brpc::ServerNode> expected_servers;
-    expected_servers.push_back(brpc::ServerNode(n1, "tag1"));
-    expected_servers.push_back(brpc::ServerNode(n2, "tag2"));
-    expected_servers.push_back(brpc::ServerNode(n1, "tag3"));
-    expected_servers.push_back(brpc::ServerNode(n2));
+    std::vector<melon::ServerNode> expected_servers;
+    expected_servers.push_back(melon::ServerNode(n1, "tag1"));
+    expected_servers.push_back(melon::ServerNode(n2, "tag2"));
+    expected_servers.push_back(melon::ServerNode(n1, "tag3"));
+    expected_servers.push_back(melon::ServerNode(n2));
     std::sort(expected_servers.begin(), expected_servers.end());
 
-    std::vector<brpc::ServerNode> servers;
-    brpc::policy::RemoteFileNamingService rfns;
+    std::vector<melon::ServerNode> servers;
+    melon::policy::RemoteFileNamingService rfns;
     ASSERT_EQ(0, rfns.GetServers("0.0.0.0:8635/UserNamingService/ListNames", &servers));
     ASSERT_EQ(expected_servers.size(), servers.size());
     std::sort(servers.begin(), servers.end());
@@ -271,8 +256,8 @@ public:
                    const test::HttpRequest*,
                    test::HttpResponse*,
                    google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = (brpc::Controller*)cntl_base;
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)cntl_base;
         cntl->http_response().SetHeader("X-Consul-Index", "1");
         cntl->response_attachment().append(
             R"([
@@ -393,7 +378,7 @@ public:
                const test::HttpRequest*,
                test::HttpResponse*,
                google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         touch_count.fetch_add(1);
     }
 
@@ -402,9 +387,9 @@ public:
 };
 
 TEST(NamingServiceTest, consul_with_backup_file) {
-    brpc::policy::FLAGS_consul_enable_degrade_to_file_naming_service = true;
-    const int saved_hc_interval = brpc::FLAGS_health_check_interval;
-    brpc::FLAGS_health_check_interval = 1;
+    melon::policy::FLAGS_consul_enable_degrade_to_file_naming_service = true;
+    const int saved_hc_interval = melon::FLAGS_health_check_interval;
+    melon::FLAGS_health_check_interval = 1;
     const char *address_list[] =  {
         "10.127.0.1:1234",
         "10.128.0.1:1234",
@@ -421,8 +406,8 @@ TEST(NamingServiceTest, consul_with_backup_file) {
     }
     std::cout << tmp_file.fname() << std::endl;
 
-    std::vector<brpc::ServerNode> servers;
-    brpc::policy::ConsulNamingService cns;
+    std::vector<melon::ServerNode> servers;
+    melon::policy::ConsulNamingService cns;
     ASSERT_EQ(0, cns.GetServers(service_name, &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list), servers.size());
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
@@ -431,14 +416,14 @@ TEST(NamingServiceTest, consul_with_backup_file) {
         ASSERT_EQ(address_list[i], oss.str()) << "i=" << i;
     }
 
-    brpc::Server server;
+    melon::Server server;
     ConsulNamingServiceImpl svc;
-    std::string restful_map(brpc::policy::FLAGS_consul_service_discovery_url);
+    std::string restful_map(melon::policy::FLAGS_consul_service_discovery_url);
     restful_map.append("/");
     restful_map.append(service_name);
     restful_map.append("   => ListNames");
     ASSERT_EQ(0, server.AddService(&svc,
-                                   brpc::SERVER_DOESNT_OWN_SERVICE,
+                                   melon::SERVER_DOESNT_OWN_SERVICE,
                                    restful_map.c_str()));
     ASSERT_EQ(0, server.Start("localhost:8500", NULL));
 
@@ -448,9 +433,9 @@ TEST(NamingServiceTest, consul_with_backup_file) {
     ASSERT_EQ(0, butil::str2endpoint("10.121.36.189:8003", &n1));
     butil::EndPoint n2;
     ASSERT_EQ(0, butil::str2endpoint("10.121.36.190:8003", &n2));
-    std::vector<brpc::ServerNode> expected_servers;
-    expected_servers.push_back(brpc::ServerNode(n1, "1"));
-    expected_servers.push_back(brpc::ServerNode(n2, "2"));
+    std::vector<melon::ServerNode> expected_servers;
+    expected_servers.push_back(melon::ServerNode(n1, "1"));
+    expected_servers.push_back(melon::ServerNode(n2, "2"));
     std::sort(expected_servers.begin(), expected_servers.end());
 
     servers.clear();
@@ -460,7 +445,7 @@ TEST(NamingServiceTest, consul_with_backup_file) {
     for (size_t i = 0; i < expected_servers.size(); ++i) {
         ASSERT_EQ(expected_servers[i], servers[i]);
     }
-    brpc::FLAGS_health_check_interval = saved_hc_interval;
+    melon::FLAGS_health_check_interval = saved_hc_interval;
 }
 
 
@@ -565,8 +550,8 @@ public:
                const test::HttpRequest*,
                test::HttpResponse*,
                google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
         cntl->response_attachment().append(s_nodes_result);
     }
 
@@ -574,8 +559,8 @@ public:
                 const test::HttpRequest*,
                 test::HttpResponse*,
                 google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
         cntl->response_attachment().append(s_fetchs_result);
     }
 
@@ -583,10 +568,10 @@ public:
                  const test::HttpRequest*,
                  test::HttpResponse*,
                  google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
         auto body = cntl->request_attachment().to_string();
-        for (brpc::QuerySplitter sp(body); sp; ++sp) {
+        for (melon::QuerySplitter sp(body); sp; ++sp) {
             if (sp.key() == "addrs") {
                 _addrs.insert(sp.value().as_string());
             }
@@ -602,8 +587,8 @@ public:
                const test::HttpRequest*,
                test::HttpResponse*,
                google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
         cntl->response_attachment().append(R"({
             "code": 0,
             "message": "0"
@@ -616,8 +601,8 @@ public:
                 const test::HttpRequest*,
                 test::HttpResponse*,
                 google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
         cntl->response_attachment().append(R"({
             "code": 0,
             "message": "0"
@@ -643,9 +628,9 @@ private:
 };
 
 TEST(NamingServiceTest, discovery_sanity) {
-    brpc::policy::FLAGS_discovery_api_addr = "http://127.0.0.1:8635/discovery/nodes";
-    brpc::policy::FLAGS_discovery_renew_interval_s = 1;
-    brpc::Server server;
+    melon::policy::FLAGS_discovery_api_addr = "http://127.0.0.1:8635/discovery/nodes";
+    melon::policy::FLAGS_discovery_renew_interval_s = 1;
+    melon::Server server;
     DiscoveryNamingServiceImpl svc;
     std::string rest_mapping =
         "/discovery/nodes => Nodes, "
@@ -653,16 +638,16 @@ TEST(NamingServiceTest, discovery_sanity) {
         "/discovery/register => Register, "
         "/discovery/renew => Renew, "
         "/discovery/cancel => Cancel";
-    ASSERT_EQ(0, server.AddService(&svc, brpc::SERVER_DOESNT_OWN_SERVICE,
+    ASSERT_EQ(0, server.AddService(&svc, melon::SERVER_DOESNT_OWN_SERVICE,
                 rest_mapping.c_str()));
     ASSERT_EQ(0, server.Start("localhost:8635", NULL));
 
-    brpc::policy::DiscoveryNamingService dcns;
-    std::vector<brpc::ServerNode> servers;
+    melon::policy::DiscoveryNamingService dcns;
+    std::vector<melon::ServerNode> servers;
     ASSERT_EQ(0, dcns.GetServers("admin.test", &servers));
     ASSERT_EQ((size_t)1, servers.size());
 
-    brpc::policy::DiscoveryRegisterParam dparam;
+    melon::policy::DiscoveryRegisterParam dparam;
     dparam.appid = "main.test";
     dparam.hostname = "hostname";
     dparam.addrs = "grpc://10.0.0.1:8000";
@@ -671,12 +656,12 @@ TEST(NamingServiceTest, discovery_sanity) {
     dparam.status = 1;
     dparam.version = "v1";
     {
-        brpc::policy::DiscoveryClient dc;
+        melon::policy::DiscoveryClient dc;
     }
     // Cancel is called iff Register is called
     ASSERT_EQ(svc.CancelCount(), 0);
     {
-        brpc::policy::DiscoveryClient dc;
+        melon::policy::DiscoveryClient dc;
         // Two Register should start one Renew task , and make
         // svc.RenewCount() be one.
         ASSERT_EQ(0, dc.Register(dparam));
@@ -694,7 +679,7 @@ TEST(NamingServiceTest, discovery_sanity) {
     // addrs splitted by `,'
     dparam.addrs = ",grpc://10.0.0.1:8000,,http://10.0.0.1:8000,";
     {
-        brpc::policy::DiscoveryClient dc;
+        melon::policy::DiscoveryClient dc;
         ASSERT_EQ(0, dc.Register(dparam));
         ASSERT_TRUE(svc.HasAddr("grpc://10.0.0.1:8000"));
         ASSERT_TRUE(svc.HasAddr("http://10.0.0.1:8000"));
@@ -708,8 +693,8 @@ public:
     void Login(google::protobuf::RpcController* cntl_base,
                const test::HttpRequest*, test::HttpResponse*,
                google::protobuf::Closure* done) override {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
 
         butil::StringPairs user;
         butil::SplitStringIntoKeyValuePairs(
@@ -728,7 +713,7 @@ R"({
      "username": "nacos"
    })");
         } else {
-            cntl->http_response().set_status_code(brpc::HTTP_STATUS_FORBIDDEN);
+            cntl->http_response().set_status_code(melon::HTTP_STATUS_FORBIDDEN);
             cntl->response_attachment().append("unknow user!");
         }
     }
@@ -736,8 +721,8 @@ R"({
     void List(google::protobuf::RpcController* cntl_base,
               const test::HttpRequest*, test::HttpResponse*,
               google::protobuf::Closure* done) override {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = (brpc::Controller*)cntl_base;
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)cntl_base;
 
         auto token = cntl->http_request().uri().GetQuery("accessToken");
         if (token == nullptr ||
@@ -745,7 +730,7 @@ R"({
                 "eyJhbGciOiJIUzI1NiJ9."
                 "eyJzdWIiOiJuYWNvcyIsImV4cCI6MTY2MzAwODMzNn0."
                 "YKJJwzHT4v9cpC7kVqWroeJK1WioOYe0JZy4KX8nExs") {
-            cntl->http_response().set_status_code(brpc::HTTP_STATUS_FORBIDDEN);
+            cntl->http_response().set_status_code(melon::HTTP_STATUS_FORBIDDEN);
             cntl->response_attachment().append(
 R"({
      "timestamp": "2022-09-12T22:56:02.730+08:00",
@@ -764,7 +749,7 @@ R"({
             group_name == nullptr || *group_name != "g1" ||
             namespace_id == nullptr || *namespace_id != "n1" ||
             clusters == nullptr || *clusters != "wx") {
-            cntl->http_response().set_status_code(brpc::HTTP_STATUS_NOT_FOUND);
+            cntl->http_response().set_status_code(melon::HTTP_STATUS_NOT_FOUND);
             return;
         }
 
@@ -804,9 +789,9 @@ R"({
 };
 
 TEST(NamingServiceTest, nacos) {
-    brpc::Server server;
+    melon::Server server;
     NacosNamingServiceImpl svc;
-    ASSERT_EQ(0, server.AddService(&svc, brpc::SERVER_DOESNT_OWN_SERVICE,
+    ASSERT_EQ(0, server.AddService(&svc, melon::SERVER_DOESNT_OWN_SERVICE,
                                    "/nacos/v1/auth/login => Login, "
                                    "/nacos/v1/ns/instance/list => List"));
     ASSERT_EQ(0, server.Start("localhost:8848", nullptr));
@@ -815,25 +800,25 @@ TEST(NamingServiceTest, nacos) {
 
     butil::EndPoint ep;
     ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:8888", &ep));
-    const auto expected_node = brpc::ServerNode(ep, "10");
+    const auto expected_node = melon::ServerNode(ep, "10");
 
     const char* service_name =
         "serviceName=test&groupName=g1&namespaceId=n1&clusters=wx";
-    brpc::policy::FLAGS_nacos_address = "http://localhost:8848";
-    brpc::policy::FLAGS_nacos_username = "nacos";
-    brpc::policy::FLAGS_nacos_password = "nacos";
+    melon::policy::FLAGS_nacos_address = "http://localhost:8848";
+    melon::policy::FLAGS_nacos_username = "nacos";
+    melon::policy::FLAGS_nacos_password = "nacos";
 
     {
-        brpc::policy::NacosNamingService nns;
-        std::vector<brpc::ServerNode> nodes;
+        melon::policy::NacosNamingService nns;
+        std::vector<melon::ServerNode> nodes;
         ASSERT_EQ(0, nns.GetServers(service_name, &nodes));
         ASSERT_EQ(nodes.size(), 1);
         ASSERT_EQ(expected_node, nodes[0]);
     }
     {
-        brpc::policy::FLAGS_nacos_password = "invalid_password";
-        brpc::policy::NacosNamingService nns;
-        std::vector<brpc::ServerNode> nodes;
+        melon::policy::FLAGS_nacos_password = "invalid_password";
+        melon::policy::NacosNamingService nns;
+        std::vector<melon::ServerNode> nodes;
         ASSERT_NE(0, nns.GetServers(service_name, &nodes));
     }
 }

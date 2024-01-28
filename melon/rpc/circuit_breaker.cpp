@@ -23,7 +23,7 @@
 #include "melon/rpc/errno.pb.h"
 #include "melon/butil/time.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(circuit_breaker_short_window_size, 1500,
     "Short window sample size.");
@@ -227,4 +227,4 @@ void CircuitBreaker::UpdateIsolationDuration() {
 }
 
 
-}  // namespace brpc
+}  // namespace melon

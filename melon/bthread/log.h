@@ -22,9 +22,6 @@
 #ifndef BTHREAD_LOG_H
 #define BTHREAD_LOG_H
 
-#ifdef BAIDU_INTERNAL
-#include "melon/bthread/comlog_initializer.h"
-#endif
 
 #define BT_VLOG VLOG(100)
 

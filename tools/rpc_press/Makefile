@@ -20,7 +20,7 @@ include $(BRPC_PATH)/config.mk
 CXXFLAGS = $(CPPFLAGS) -std=c++0x -DNDEBUG -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-unused-parameter
 HDRPATHS = -I$(BRPC_PATH)/output/include $(addprefix -I, $(HDRS))
 LIBPATHS = -L$(BRPC_PATH)/output/lib $(addprefix -L, $(LIBS))
-STATIC_LINKINGS += $(BRPC_PATH)/output/lib/libbrpc.a
+STATIC_LINKINGS += $(BRPC_PATH)/output/lib/libmelon.a
 
 SOURCES = $(wildcard *.cpp)
 OBJS = $(addsuffix .o, $(basename $(SOURCES))) 

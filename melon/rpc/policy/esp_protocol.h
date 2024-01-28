@@ -24,7 +24,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 ParseResult ParseEspMessage(
@@ -49,7 +49,7 @@ void PackEspRequest(butil::IOBuf* packet_buf,
 void ProcessEspResponse(InputMessageBase* msg);
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_ESP_PROTOCOL_H

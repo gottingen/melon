@@ -18,7 +18,7 @@
 syntax="proto2";
 import "melon/rpc/options.proto";
 
-package brpc;
+package melon;
 
 message RpcDumpMeta {
   // baidu_std, hulu_pbrpc

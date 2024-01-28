@@ -53,11 +53,7 @@
 namespace json2pb {
 
 Json2PbOptions::Json2PbOptions()
-#ifdef BAIDU_INTERNAL
-    : base64_to_bytes(false)
-#else
     : base64_to_bytes(true)
-#endif
     , array_to_single_repeated(false)
     , allow_remaining_bytes_after_parsing(false) {
 }

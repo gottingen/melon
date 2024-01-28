@@ -22,7 +22,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 bool SnappyCompress(const google::protobuf::Message& res, butil::IOBuf* buf) {
@@ -61,4 +61,4 @@ bool SnappyDecompress(const butil::IOBuf& in, butil::IOBuf* out) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

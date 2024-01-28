@@ -29,7 +29,7 @@
 #include "melon/rpc/destroyable.h"            // DestroyingPtr
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 class RtmpContext;
 class RtmpChunkStream;
@@ -908,10 +908,10 @@ class RtmpMessageHandler {
 public:
     virtual void OnPlayable() = 0;
     virtual void OnUserData(void*) = 0;
-    virtual void OnCuePoint(brpc::RtmpCuePoint* cuepoint) = 0;
-    virtual void OnMetaData(brpc::RtmpMetaData* metadata, const butil::StringPiece& name) = 0;
-    virtual void OnAudioMessage(brpc::RtmpAudioMessage* msg) = 0;
-    virtual void OnVideoMessage(brpc::RtmpVideoMessage* msg) = 0;
+    virtual void OnCuePoint(melon::RtmpCuePoint* cuepoint) = 0;
+    virtual void OnMetaData(melon::RtmpMetaData* metadata, const butil::StringPiece& name) = 0;
+    virtual void OnAudioMessage(melon::RtmpAudioMessage* msg) = 0;
+    virtual void OnVideoMessage(melon::RtmpVideoMessage* msg) = 0;
     virtual void OnSharedObjectMessage(RtmpSharedObjectMessage* msg) = 0;
     virtual void OnSubStreamStop(RtmpStreamBase* sub_stream) = 0;
     virtual ~RtmpMessageHandler() {}
@@ -926,10 +926,10 @@ public:
 
     void OnPlayable();
     void OnUserData(void*);
-    void OnCuePoint(brpc::RtmpCuePoint* cuepoint);
-    void OnMetaData(brpc::RtmpMetaData* metadata, const butil::StringPiece& name);
-    void OnAudioMessage(brpc::RtmpAudioMessage* msg);
-    void OnVideoMessage(brpc::RtmpVideoMessage* msg);
+    void OnCuePoint(melon::RtmpCuePoint* cuepoint);
+    void OnMetaData(melon::RtmpMetaData* metadata, const butil::StringPiece& name);
+    void OnAudioMessage(melon::RtmpAudioMessage* msg);
+    void OnVideoMessage(melon::RtmpVideoMessage* msg);
     void OnSharedObjectMessage(RtmpSharedObjectMessage* msg);
     void OnSubStreamStop(RtmpStreamBase* sub_stream);
 
@@ -1124,7 +1124,7 @@ friend class policy::RtmpChunkStream;
     bthread_id_t _onfail_id;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_RTMP_H

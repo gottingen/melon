@@ -23,7 +23,7 @@ class FileServiceTest : public testing::Test {
 protected:
     void SetUp() {
         ASSERT_EQ(0, _server.AddService(braft::file_service(), 
-                                        brpc::SERVER_DOESNT_OWN_SERVICE));
+                                        melon::SERVER_DOESNT_OWN_SERVICE));
 	for (int i = 10000; i < 60000; i++) {
             if (0 == _server.Start(i, NULL)) {
 		g_port = i;
@@ -36,7 +36,7 @@ protected:
         _server.Stop(0);
         _server.Join();
     }
-    brpc::Server _server;
+    melon::Server _server;
 };
 
 TEST_F(FileServiceTest, sanity) {

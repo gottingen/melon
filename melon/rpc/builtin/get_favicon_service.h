@@ -21,7 +21,7 @@
 
 #include "melon/rpc/get_favicon.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class GetFaviconService : public ico {
 public:
@@ -31,7 +31,7 @@ public:
                         ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_GET_FAVICON_SERVICE_H

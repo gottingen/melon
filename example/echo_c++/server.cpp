@@ -31,7 +31,7 @@ DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
 
 // Your implementation of example::EchoService
-// Notice that implementing brpc::Describable grants the ability to put
+// Notice that implementing melon::Describable grants the ability to put
 // additional information in /status.
 namespace example {
 class EchoServiceImpl : public EchoService {
@@ -44,10 +44,10 @@ public:
                       google::protobuf::Closure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
 
         // optional: set a callback function which is called after response is sent
         // and before cntl/req/res is destructed.
@@ -68,7 +68,7 @@ public:
 
         // You can compress the response by setting Controller, but be aware
         // that compression may be costly, evaluate before turning on.
-        // cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);
+        // cntl->set_response_compress_type(melon::COMPRESS_TYPE_GZIP);
 
         if (FLAGS_echo_attachment) {
             // Set attachment which is wired to network directly instead of
@@ -78,7 +78,7 @@ public:
     }
 
     // optional
-    static void CallAfterRpc(brpc::Controller* cntl,
+    static void CallAfterRpc(melon::Controller* cntl,
                         const google::protobuf::Message* req,
                         const google::protobuf::Message* res) {
         // at this time res is already sent to client, but cntl/req/res is not destructed
@@ -97,16 +97,16 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     // Generally you only need one Server.
-    brpc::Server server;
+    melon::Server server;
 
     // Instance of your service.
     example::EchoServiceImpl echo_service_impl;
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
+    // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
         point = butil::EndPoint(butil::IP_ANY, FLAGS_port);
     }
     // Start the server.
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(point, &options) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";

@@ -22,7 +22,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 static void LogError(const google::protobuf::io::GzipOutputStream& gzip) {
@@ -167,4 +167,4 @@ bool ZlibDecompress(const butil::IOBuf& data, butil::IOBuf* msg) {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

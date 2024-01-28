@@ -9,7 +9,7 @@
 #include <melon/butil/string_printf.h>
 #include <melon/butil/macros.h>
 
-#include <bthread/countdown_event.h>
+#include <melon/bthread/countdown_event.h>
 #include "melon/raft/log_manager.h"
 #include "melon/raft/configuration.h"
 #include "melon/raft/log.h"

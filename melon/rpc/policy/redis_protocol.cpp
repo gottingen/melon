@@ -34,7 +34,7 @@
 #include "melon/rpc/redis_command.h"
 #include "melon/rpc/policy/redis_protocol.h"
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(enable_rpcz);
 DECLARE_bool(usercode_in_pthread);
@@ -229,7 +229,7 @@ ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
                 for (int i = 0; i < (int)pi.auth_flags; ++i) {
                     if (i >= msg->response.reply_size() ||
                         !(msg->response.reply(i).type() ==
-                              brpc::REDIS_REPLY_STATUS &&
+                              melon::REDIS_REPLY_STATUS &&
                           msg->response.reply(i).data().compare("OK") == 0)) {
                         LOG(ERROR) << "Redis Auth failed: " << msg->response;
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE,
@@ -361,4 +361,4 @@ const std::string& GetRedisMethodName(
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

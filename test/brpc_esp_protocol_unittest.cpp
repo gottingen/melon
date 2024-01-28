@@ -55,19 +55,19 @@ class EspTest : public ::testing::Test{
 protected:
     EspTest() {
         EXPECT_EQ(0, pipe(_pipe_fds));
-        brpc::SocketId id;
-        brpc::SocketOptions options;
+        melon::SocketId id;
+        melon::SocketOptions options;
         options.fd = _pipe_fds[1];
-        EXPECT_EQ(0, brpc::Socket::Create(options, &id));
-        EXPECT_EQ(0, brpc::Socket::Address(id, &_socket));
+        EXPECT_EQ(0, melon::Socket::Create(options, &id));
+        EXPECT_EQ(0, melon::Socket::Address(id, &_socket));
     };
 
     virtual ~EspTest() {};
     virtual void SetUp() {};
     virtual void TearDown() {};
 
-    void WriteResponse(brpc::Controller& cntl, int msg) {
-        brpc::EspMessage req;
+    void WriteResponse(melon::Controller& cntl, int msg) {
+        melon::EspMessage req;
     
         req.head.to.stub = STUB;
         req.head.msg = msg;
@@ -75,21 +75,21 @@ protected:
         req.body.append(EXP_RESPONSE);
     
         butil::IOBuf req_buf;
-        brpc::policy::SerializeEspRequest(&req_buf, &cntl, &req);
+        melon::policy::SerializeEspRequest(&req_buf, &cntl, &req);
     
         butil::IOBuf packet_buf;
-        brpc::policy::PackEspRequest(&packet_buf, NULL, cntl.call_id().value, NULL, &cntl, req_buf, NULL);
+        melon::policy::PackEspRequest(&packet_buf, NULL, cntl.call_id().value, NULL, &cntl, req_buf, NULL);
     
         packet_buf.cut_into_file_descriptor(_pipe_fds[1], packet_buf.size());
     }
 
     int _pipe_fds[2];
-    brpc::SocketUniquePtr _socket;
+    melon::SocketUniquePtr _socket;
 };
 
 TEST_F(EspTest, complete_flow) {
-    brpc::EspMessage req;
-    brpc::EspMessage res;
+    melon::EspMessage req;
+    melon::EspMessage res;
 
     req.head.to.stub = STUB;
     req.head.msg = MSG;
@@ -97,17 +97,17 @@ TEST_F(EspTest, complete_flow) {
     req.body.append(EXP_REQUEST);
 
     butil::IOBuf req_buf;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl._response = &res;
-    ASSERT_EQ(0, brpc::Socket::Address(_socket->id(), &cntl._current_call.sending_sock));
+    ASSERT_EQ(0, melon::Socket::Address(_socket->id(), &cntl._current_call.sending_sock));
 
-    brpc::policy::SerializeEspRequest(&req_buf, &cntl, &req);
+    melon::policy::SerializeEspRequest(&req_buf, &cntl, &req);
     ASSERT_FALSE(cntl.Failed());
     ASSERT_EQ(sizeof(req.head) + req.body.size(), req_buf.size());
 
-    const brpc::Authenticator* auth = brpc::policy::global_esp_authenticator();
+    const melon::Authenticator* auth = melon::policy::global_esp_authenticator();
     butil::IOBuf packet_buf;
-    brpc::policy::PackEspRequest(&packet_buf, NULL, cntl.call_id().value, NULL, &cntl, req_buf, auth);
+    melon::policy::PackEspRequest(&packet_buf, NULL, cntl.call_id().value, NULL, &cntl, req_buf, auth);
 
     std::string auth_str;
     auth->GenerateCredential(&auth_str);
@@ -120,38 +120,38 @@ TEST_F(EspTest, complete_flow) {
     butil::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
 
-    brpc::ParseResult res_pr =
-            brpc::policy::ParseEspMessage(&response_buf, NULL, false, NULL);
-    ASSERT_EQ(brpc::PARSE_OK, res_pr.error());
+    melon::ParseResult res_pr =
+            melon::policy::ParseEspMessage(&response_buf, NULL, false, NULL);
+    ASSERT_EQ(melon::PARSE_OK, res_pr.error());
 
-    brpc::InputMessageBase* res_msg = res_pr.message();
+    melon::InputMessageBase* res_msg = res_pr.message();
     _socket->ReAddress(&res_msg->_socket);
 
-    brpc::policy::ProcessEspResponse(res_msg);
+    melon::policy::ProcessEspResponse(res_msg);
 
     ASSERT_FALSE(cntl.Failed());
     ASSERT_EQ(EXP_RESPONSE, res.body.to_string());
 }
 
 TEST_F(EspTest, wrong_response_head) {
-    brpc::EspMessage res;
-    brpc::Controller cntl;
+    melon::EspMessage res;
+    melon::Controller cntl;
     cntl._response = &res;
-    ASSERT_EQ(0, brpc::Socket::Address(_socket->id(), &cntl._current_call.sending_sock));
+    ASSERT_EQ(0, melon::Socket::Address(_socket->id(), &cntl._current_call.sending_sock));
 
     WriteResponse(cntl, WRONG_MSG);
 
     butil::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
 
-    brpc::ParseResult res_pr =
-            brpc::policy::ParseEspMessage(&response_buf, NULL, false, NULL);
-    ASSERT_EQ(brpc::PARSE_OK, res_pr.error());
+    melon::ParseResult res_pr =
+            melon::policy::ParseEspMessage(&response_buf, NULL, false, NULL);
+    ASSERT_EQ(melon::PARSE_OK, res_pr.error());
 
-    brpc::InputMessageBase* res_msg = res_pr.message();
+    melon::InputMessageBase* res_msg = res_pr.message();
     _socket->ReAddress(&res_msg->_socket);
 
-    brpc::policy::ProcessEspResponse(res_msg);
+    melon::policy::ProcessEspResponse(res_msg);
 
     ASSERT_TRUE(cntl.Failed());
 }

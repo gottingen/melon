@@ -36,7 +36,7 @@
 #include "melon/rpc/rdma/rdma_helper.h"
 #include "melon/rpc/policy/esp_authenticator.h"
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(enable_rpcz);
 DECLARE_bool(usercode_in_pthread);
@@ -52,9 +52,9 @@ ChannelOptions::ChannelOptions()
     , succeed_without_server(true)
     , log_succeed_without_server(true)
     , use_rdma(false)
-    , auth(NULL)
-    , retry_policy(NULL)
-    , ns_filter(NULL)
+    , auth(nullptr)
+    , retry_policy(nullptr)
+    , ns_filter(nullptr)
 {}
 
 ChannelSSLOptions* ChannelOptions::mutable_ssl_options() {
@@ -65,7 +65,7 @@ ChannelSSLOptions* ChannelOptions::mutable_ssl_options() {
 }
 
 static ChannelSignature ComputeChannelSignature(const ChannelOptions& opt) {
-    if (opt.auth == NULL &&
+    if (opt.auth == nullptr &&
         !opt.has_ssl_options() &&
         opt.connection_group.empty()) {
         // Returning zeroized result by default is more intuitive for users.
@@ -133,9 +133,9 @@ static ChannelSignature ComputeChannelSignature(const ChannelOptions& opt) {
 
 Channel::Channel(ProfilerLinker)
     : _server_id(INVALID_SOCKET_ID)
-    , _serialize_request(NULL)
-    , _pack_request(NULL)
-    , _get_method_name(NULL)
+    , _serialize_request(nullptr)
+    , _pack_request(nullptr)
+    , _get_method_name(nullptr)
     , _preferred_index(-1) {
 }
 
@@ -166,7 +166,7 @@ int Channel::InitChannelOptions(const ChannelOptions* options) {
         _options = *options;
     }
     const Protocol* protocol = FindProtocol(_options.protocol);
-    if (NULL == protocol || !protocol->support_client()) {
+    if (nullptr == protocol || !protocol->support_client()) {
         LOG(ERROR) << "Channel does not support the protocol";
         return -1;
     }
@@ -221,7 +221,7 @@ int Channel::InitChannelOptions(const ChannelOptions* options) {
     }
 
     if (_options.protocol == PROTOCOL_ESP) {
-        if (_options.auth == NULL) {
+        if (_options.auth == nullptr) {
             _options.auth = policy::global_esp_authenticator();
         }
     }
@@ -240,11 +240,11 @@ int Channel::Init(const char* server_addr_and_port,
     butil::EndPoint point;
     const AdaptiveProtocolType& ptype = (options ? options->protocol : _options.protocol);
     const Protocol* protocol = FindProtocol(ptype);
-    if (protocol == NULL || !protocol->support_client()) {
+    if (protocol == nullptr || !protocol->support_client()) {
         LOG(ERROR) << "Channel does not support the protocol";
         return -1;
     }
-    if (protocol->parse_server_address != NULL) {
+    if (protocol->parse_server_address != nullptr) {
         if (!protocol->parse_server_address(&point, server_addr_and_port)) {
             LOG(ERROR) << "Fail to parse address=`" << server_addr_and_port << '\'';
             return -1;
@@ -273,11 +273,11 @@ int Channel::Init(const char* server_addr, int port,
     butil::EndPoint point;
     const AdaptiveProtocolType& ptype = (options ? options->protocol : _options.protocol);
     const Protocol* protocol = FindProtocol(ptype);
-    if (protocol == NULL || !protocol->support_client()) {
+    if (protocol == nullptr || !protocol->support_client()) {
         LOG(ERROR) << "Channel does not support the protocol";
         return -1;
     }
-    if (protocol->parse_server_address != NULL) {
+    if (protocol->parse_server_address != nullptr) {
         if (!protocol->parse_server_address(&point, server_addr)) {
             LOG(ERROR) << "Fail to parse address=`" << server_addr << '\'';
             return -1;
@@ -306,7 +306,7 @@ static int CreateSocketSSLContext(const ChannelOptions& options,
         (*ssl_ctx)->sni_name = options.ssl_options().sni_name;
         (*ssl_ctx)->alpn_protocols = options.ssl_options().alpn_protocols;
     } else {
-        (*ssl_ctx) = NULL;
+        (*ssl_ctx) = nullptr;
     }
     return 0;
 }
@@ -324,12 +324,12 @@ int Channel::InitSingle(const butil::EndPoint& server_addr_and_port,
     if (InitChannelOptions(options) != 0) {
         return -1;
     }
-    int* port_out = raw_port == -1 ? &raw_port: NULL;
+    int* port_out = raw_port == -1 ? &raw_port: nullptr;
     ParseURL(raw_server_address, &_scheme, &_service_name, port_out);
     if (raw_port != -1) {
         _service_name.append(":").append(std::to_string(raw_port));
     }
-    if (_options.protocol == brpc::PROTOCOL_HTTP && _scheme == "https") {
+    if (_options.protocol == melon::PROTOCOL_HTTP && _scheme == "https") {
         if (_options.mutable_ssl_options()->sni_name.empty()) {
             _options.mutable_ssl_options()->sni_name = _service_name;
         }
@@ -356,7 +356,7 @@ int Channel::InitSingle(const butil::EndPoint& server_addr_and_port,
 int Channel::Init(const char* ns_url,
                   const char* lb_name,
                   const ChannelOptions* options) {
-    if (lb_name == NULL || *lb_name == '\0') {
+    if (lb_name == nullptr || *lb_name == '\0') {
         // Treat ns_url as server_addr_and_port
         return Init(ns_url, options);
     }
@@ -369,14 +369,14 @@ int Channel::Init(const char* ns_url,
     if (raw_port != -1) {
         _service_name.append(":").append(std::to_string(raw_port));
     }
-    if (_options.protocol == brpc::PROTOCOL_HTTP && _scheme == "https") {
+    if (_options.protocol == melon::PROTOCOL_HTTP && _scheme == "https") {
         if (_options.mutable_ssl_options()->sni_name.empty()) {
             _options.mutable_ssl_options()->sni_name = _service_name;
         }
     }
     std::unique_ptr<LoadBalancerWithNaming> lb(new (std::nothrow)
                                                    LoadBalancerWithNaming);
-    if (NULL == lb) {
+    if (nullptr == lb) {
         LOG(FATAL) << "Fail to new LoadBalancerWithNaming";
         return -1;        
     }
@@ -429,7 +429,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
         CHECK(cntl->protocol_param().empty());
         cntl->protocol_param() = _options.protocol.param();
     }
-    if (_options.protocol == brpc::PROTOCOL_HTTP && (_scheme == "https" || _scheme == "http")) {
+    if (_options.protocol == melon::PROTOCOL_HTTP && (_scheme == "https" || _scheme == "http")) {
         URI& uri = cntl->http_request().uri();
         if (uri.host().empty() && !_service_name.empty()) {
             uri.SetHostAndPort(_service_name);
@@ -442,7 +442,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
     }
     const CallId correlation_id = cntl->call_id();
     const int rc = bthread_id_lock_and_reset_range(
-                    correlation_id, NULL, 2 + cntl->max_retry());
+                    correlation_id, nullptr, 2 + cntl->max_retry());
     if (rc != 0) {
         CHECK_EQ(EINVAL, rc);
         if (!cntl->FailedInline()) {
@@ -466,9 +466,9 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
     }
     cntl->set_used_by_rpc();
 
-    if (cntl->_sender == NULL && IsTraceable(Span::tls_parent())) {
+    if (cntl->_sender == nullptr && IsTraceable(Span::tls_parent())) {
         const int64_t start_send_us = butil::cpuwide_time_us();
-        const std::string* method_name = NULL;
+        const std::string* method_name = nullptr;
         if (_get_method_name) {
             method_name = &_get_method_name(method, cntl);
         } else if (method) {
@@ -523,7 +523,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
         return cntl->HandleSendFailed();
     }
     if (FLAGS_usercode_in_pthread &&
-        done != NULL &&
+        done != nullptr &&
         TooManyUserCode()) {
         cntl->SetFailed(ELIMIT, "Too many user code to run when "
                         "-usercode_in_pthread is on");
@@ -576,7 +576,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
     }
 
     cntl->IssueRPC(start_send_real_us);
-    if (done == NULL) {
+    if (done == nullptr) {
         // MUST wait for response when sending synchronous RPC. It will
         // be woken up by callback when RPC finishes (succeeds or still
         // fails after retry)
@@ -603,7 +603,7 @@ int Channel::Weight() {
 }
 
 int Channel::CheckHealth() {
-    if (_lb == NULL) {
+    if (_lb == nullptr) {
         SocketUniquePtr ptr;
         if (Socket::Address(_server_id, &ptr) == 0 && ptr->IsAvailable()) {
             return 0;
@@ -611,10 +611,10 @@ int Channel::CheckHealth() {
         return -1;
     } else {
         SocketUniquePtr tmp_sock;
-        LoadBalancer::SelectIn sel_in = { 0, false, true, 0, NULL };
+        LoadBalancer::SelectIn sel_in = { 0, false, true, 0, nullptr };
         LoadBalancer::SelectOut sel_out(&tmp_sock);
         return _lb->SelectServer(sel_in, &sel_out);
     }
 }
 
-} // namespace brpc
+} // namespace melon

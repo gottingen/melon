@@ -23,7 +23,7 @@
 #include "melon/rpc/destroyable.h"         // DestroyingPtr
 
 
-namespace brpc {
+namespace melon {
 
 // Messages returned by Parse handlers must extend this class
 class InputMessageBase : public Destroyable {
@@ -62,7 +62,7 @@ friend class Stream;
     const void* _arg;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_INPUT_MESSAGE_BASE_H

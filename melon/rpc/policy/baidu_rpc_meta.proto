@@ -19,7 +19,7 @@ syntax="proto2";
 import "melon/rpc/options.proto";
 import "melon/rpc/streaming_rpc_meta.proto";
 
-package brpc.policy;
+package melon.policy;
 option java_package="com.brpc.policy";
 option java_outer_classname="BaiduRpcProto";
 

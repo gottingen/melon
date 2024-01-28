@@ -26,7 +26,7 @@
 #include "parse_result.h"                 // ParseError
 
 
-namespace brpc {
+namespace melon {
 
 // Different types of replies.
 enum RedisReplyType {
@@ -330,6 +330,6 @@ inline void RedisReply::CopyFromSameArena(const RedisReply& other) {
     _arena = other._arena;
 }
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_REDIS_H

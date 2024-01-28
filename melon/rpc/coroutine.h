@@ -27,7 +27,7 @@
 #include <atomic>
 #include "melon/rpc/callback.h"
 
-namespace brpc {
+namespace melon {
 namespace experimental {
 
 namespace detail {
@@ -139,7 +139,7 @@ private:
 };
 
 } // namespace experimental
-} // namespace brpc
+} // namespace melon
 
 #include "melon/rpc/coroutine_inl.h"
 

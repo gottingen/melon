@@ -22,7 +22,7 @@
 #include <stdint.h>  // int32_t
 #include <stddef.h>  // size_t
 
-namespace brpc {
+namespace melon {
 
 // Extract bits one by one from the bytes.
 class BitStream {
@@ -57,7 +57,7 @@ private:
 int avc_nalu_read_uev(BitStream* stream, int32_t* v);
 int avc_nalu_read_bit(BitStream* stream, int8_t* v);
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_DETAILS_RTMP_UTILS_H

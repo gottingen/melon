@@ -38,7 +38,7 @@ extern __thread bthread::LocalStorage tls_bls;
 }
 
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(enable_rpcz);
 
@@ -233,7 +233,7 @@ inline bool IsTraceable(bool is_upstream_traced) {
         (FLAGS_enable_rpcz && bvar::is_collectable(&g_span_sl));
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_SPAN_H

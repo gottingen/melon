@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 //
-// A brpc based redis-server. Currently just implement set and
+// A melon based redis-server. Currently just implement set and
 // get, but it's sufficient that you can get the idea how to
-// implement brpc::RedisCommandHandler.
+// implement melon::RedisCommandHandler.
 
 #include <melon/rpc/server.h>
 #include <melon/rpc/redis.h>
@@ -31,7 +31,7 @@
 
 DEFINE_int32(port, 6379, "TCP Port of this server");
 
-class RedisServiceImpl : public brpc::RedisService {
+class RedisServiceImpl : public melon::RedisService {
 public:
     bool Set(const std::string& key, const std::string& value) {
         int slot = butil::crc32c::Value(key.c_str(), key.size()) % kHashSlotNum;
@@ -60,17 +60,17 @@ private:
     butil::Mutex _mutex[kHashSlotNum];
 };
 
-class GetCommandHandler : public brpc::RedisCommandHandler {
+class GetCommandHandler : public melon::RedisCommandHandler {
 public:
     explicit GetCommandHandler(RedisServiceImpl* rsimpl)
         : _rsimpl(rsimpl) {}
 
-    brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                        brpc::RedisReply* output,
+    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                        melon::RedisReply* output,
                                         bool /*flush_batched*/) override {
         if (args.size() != 2ul) {
             output->FormatError("Expect 1 arg for 'get', actually %lu", args.size()-1);
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
         const std::string key(args[1].data(), args[1].size());
         std::string value;
@@ -79,30 +79,30 @@ public:
         } else {
             output->SetNullString();
         }
-        return brpc::REDIS_CMD_HANDLED;
+        return melon::REDIS_CMD_HANDLED;
 	}
 
 private:
    	RedisServiceImpl* _rsimpl;
 };
 
-class SetCommandHandler : public brpc::RedisCommandHandler {
+class SetCommandHandler : public melon::RedisCommandHandler {
 public:
     explicit SetCommandHandler(RedisServiceImpl* rsimpl)
         : _rsimpl(rsimpl) {}
 
-    brpc::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
-                                        brpc::RedisReply* output,
+    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+                                        melon::RedisReply* output,
                                         bool /*flush_batched*/) override {
         if (args.size() != 3ul) {
             output->FormatError("Expect 2 args for 'set', actually %lu", args.size()-1);
-            return brpc::REDIS_CMD_HANDLED;
+            return melon::REDIS_CMD_HANDLED;
         }
         const std::string key(args[1].data(), args[1].size());
         const std::string value(args[2].data(), args[2].size());
         _rsimpl->Set(key, value);
         output->SetStatus("OK");
-        return brpc::REDIS_CMD_HANDLED;
+        return melon::REDIS_CMD_HANDLED;
 	}
 
 private:
@@ -117,8 +117,8 @@ int main(int argc, char* argv[]) {
     rsimpl->AddCommandHandler("get", get_handler.get());
     rsimpl->AddCommandHandler("set", set_handler.get());
 
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     server_options.redis_service = rsimpl;
     if (server.Start(FLAGS_port, &server_options) != 0) {
         LOG(ERROR) << "Fail to start server";

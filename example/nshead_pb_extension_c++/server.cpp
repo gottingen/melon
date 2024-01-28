@@ -40,7 +40,7 @@ public:
                       google::protobuf::Closure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
         // Echo response.
         response->set_message(request->message());
@@ -49,36 +49,36 @@ public:
 }  // namespace example
 
 // Adapt your own nshead-based protocol to use pbrpc interface
-class MyNsheadProtocol : public brpc::NsheadPbServiceAdaptor {
+class MyNsheadProtocol : public melon::NsheadPbServiceAdaptor {
 public:
     void ParseNsheadMeta(
-        const brpc::Server&, const brpc::NsheadMessage&,
-        brpc::Controller*,
-        brpc::NsheadMeta* out_meta) const {
+        const melon::Server&, const melon::NsheadMessage&,
+        melon::Controller*,
+        melon::NsheadMeta* out_meta) const {
         // Always use EchoService::Echo
         const google::protobuf::ServiceDescriptor* svc =
                 example::EchoService::descriptor();
         out_meta->set_full_method_name(svc->method(0)->full_name());
     }
 
-    void ParseRequestFromIOBuf(const brpc::NsheadMeta&,
-                               const brpc::NsheadMessage& raw_req,
-                               brpc::Controller* cntl,
+    void ParseRequestFromIOBuf(const melon::NsheadMeta&,
+                               const melon::NsheadMessage& raw_req,
+                               melon::Controller* cntl,
                                google::protobuf::Message* pb_req) const {
         // `req' MUST be EchoRequest here since we have only one RPCMethod
         example::EchoRequest* echo_req =
                 dynamic_cast<example::EchoRequest*>(pb_req);
         if (!echo_req) {
-            cntl->SetFailed(brpc::EREQUEST, "Fail to parse request");
+            cntl->SetFailed(melon::EREQUEST, "Fail to parse request");
             return;
         }
         echo_req->set_message(raw_req.body.to_string());
     }
 
     void SerializeResponseToIOBuf(
-        const brpc::NsheadMeta&, brpc::Controller* cntl,
+        const melon::NsheadMeta&, melon::Controller* cntl,
         const google::protobuf::Message* pb_res,
-        brpc::NsheadMessage* raw_res) const {
+        melon::NsheadMessage* raw_res) const {
         if (cntl->Failed()) {
             // Can't send failure feedback in this protocol
             cntl->CloseConnection("Close connection due to previous error");
@@ -99,20 +99,20 @@ int main(int argc, char* argv[]) {
     // Parse gflags. We recommend you to use gflags as well.
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
-    brpc::Server server;
+    melon::Server server;
     example::EchoServiceImpl echo_service_impl;
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
+    // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server.
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     options.nshead_service = new MyNsheadProtocol;  // the adaptor
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {

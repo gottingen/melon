@@ -24,11 +24,11 @@
 #include "melon/rpc/builtin/list_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 void ListService::default_method(::google::protobuf::RpcController*, 
-                                 const ::brpc::ListRequest*,
-                                 ::brpc::ListResponse* response,
+                                 const ::melon::ListRequest*,
+                                 ::melon::ListResponse* response,
                                  ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     std::vector<google::protobuf::Service*> services;
@@ -39,4 +39,4 @@ void ListService::default_method(::google::protobuf::RpcController*,
     }
 }
 
-} // namespace brpc
+} // namespace melon

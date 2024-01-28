@@ -23,7 +23,7 @@
 #include "melon/lb/weighted_randomized_load_balancer.h"
 #include "melon/butil/strings/string_number_conversions.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 static bool server_compare(const WeightedRandomizedLoadBalancer::Server& lhs, const WeightedRandomizedLoadBalancer::Server& rhs) {
@@ -171,4 +171,4 @@ void WeightedRandomizedLoadBalancer::Describe(
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

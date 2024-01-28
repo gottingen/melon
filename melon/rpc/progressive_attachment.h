@@ -27,7 +27,7 @@
 #include "melon/rpc/socket_id.h"       // SocketUniquePtr
 #include "melon/rpc/shared_object.h"   // SharedObject
 
-namespace brpc {
+namespace melon {
 
 class ProgressiveAttachment : public SharedObject {
 friend class Controller;
@@ -77,7 +77,7 @@ private:
     static const int RPC_FAILED;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PROGRESSIVE_ATTACHMENT_H

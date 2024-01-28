@@ -31,12 +31,12 @@
 #include "melon/rpc/adaptive_protocol_type.h"    // AdaptiveProtocolType
 #include "melon/rpc/adaptive_connection_type.h"  // AdaptiveConnectionType
 #include "melon/rpc/socket_id.h"                 // SocketId
-#include "melon/rpc/controller.h"                // brpc::Controller
+#include "melon/rpc/controller.h"                // melon::Controller
 #include "melon/rpc/details/profiler_linker.h"
 #include "melon/rpc/retry_policy.h"
 #include "melon/naming/naming_service_filter.h"
 
-namespace brpc {
+namespace melon {
 
 struct ChannelOptions {
     // Constructed with default options.
@@ -144,7 +144,7 @@ private:
 // on another machines. Normally, you should not call a Channel directly, but
 // instead construct a stub Service wrapping it.
 // Example:
-//   brpc::Channel channel;
+//   melon::Channel channel;
 //   channel.Init("bns://rdev.matrix.all", "rr", NULL/*default options*/);
 //   MyService_Stub stub(&channel);
 //   stub.MyMethod(&controller, &request, &response, NULL);
@@ -245,6 +245,6 @@ enum ChannelOwnership {
     DOESNT_OWN_CHANNEL
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_CHANNEL_H

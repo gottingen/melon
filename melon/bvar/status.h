@@ -58,13 +58,6 @@ public:
     void describe(std::ostream& os, bool /*quote_string*/) const override {
         os << get_value();
     }
-    
-#ifdef BAIDU_INTERNAL
-    void get_value(boost::any* value) const override {
-        butil::AutoLock guard(_lock);
-        *value = _value;
-    }
-#endif
 
     T get_value() const {
         butil::AutoLock guard(_lock);
@@ -127,12 +120,7 @@ public:
     void describe(std::ostream& os, bool /*quote_string*/) const override {
         os << get_value();
     }
-    
-#ifdef BAIDU_INTERNAL
-    void get_value(boost::any* value) const override {
-        *value = get_value();
-    }
-#endif
+
     
     T get_value() const {
         return _value.load(butil::memory_order_relaxed);
@@ -211,11 +199,6 @@ public:
         return _value;
     }
 
-#ifdef BAIDU_INTERNAL
-    void get_value(boost::any* value) const override {
-        *value = get_value();
-    }
-#endif
     
     void set_value(const char* fmt, ...) {
         va_list ap;

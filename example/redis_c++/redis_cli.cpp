@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// A brpc based command-line interface to talk with redis-server
+// A melon based command-line interface to talk with redis-server
 
 #include <signal.h>
 #include <stdio.h>
@@ -31,19 +31,19 @@ DEFINE_string(server, "127.0.0.1:6379", "IP Address of server");
 DEFINE_int32(timeout_ms, 1000, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
 
-namespace brpc {
+namespace melon {
 const char* logo();
 }
 
 // Send `command' to redis-server via `channel'
-static bool access_redis(brpc::Channel& channel, const char* command) {
-    brpc::RedisRequest request;
+static bool access_redis(melon::Channel& channel, const char* command) {
+    melon::RedisRequest request;
     if (!request.AddCommand(command)) {
         LOG(ERROR) << "Fail to add command";
         return false;
     }
-    brpc::RedisResponse response;
-    brpc::Controller cntl;
+    melon::RedisResponse response;
+    melon::Controller cntl;
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     if (cntl.Failed()) {
         LOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
@@ -81,11 +81,11 @@ int main(int argc, char* argv[]) {
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
     
     // Initialize the channel, NULL means using default options.
-    brpc::ChannelOptions options;
-    options.protocol = brpc::PROTOCOL_REDIS;
+    melon::ChannelOptions options;
+    options.protocol = melon::PROTOCOL_REDIS;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
@@ -103,9 +103,9 @@ int main(int argc, char* argv[]) {
         rl_getc_function = cli_getc;
 
         // Print welcome information.
-        printf("%s\n", brpc::logo());
+        printf("%s\n", melon::logo());
         printf("This command-line tool mimics the look-n-feel of official "
-               "redis-cli, as a demostration of brpc's capability of"
+               "redis-cli, as a demostration of melon's capability of"
                " talking to redis-server. The output and behavior is "
                "not exactly same with the official one.\n\n");
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
             add_history(command.get());
 
             if (!strcmp(command.get(), "help")) {
-                printf("This is a redis CLI written in brpc.\n");
+                printf("This is a redis CLI written in melon.\n");
                 continue;
             }
             if (!strcmp(command.get(), "quit")) {

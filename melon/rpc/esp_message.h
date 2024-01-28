@@ -29,7 +29,7 @@
 #include "melon/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
-namespace brpc {
+namespace melon {
 
 class EspMessage : public ::google::protobuf::Message {
 public:
@@ -82,6 +82,6 @@ private:
     void SharedDtor();
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_ESP_MESSAGE_H

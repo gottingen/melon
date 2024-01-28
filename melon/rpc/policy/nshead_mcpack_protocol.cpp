@@ -32,10 +32,10 @@
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/policy/most_common_message.h"
 #include "melon/rpc/policy/nshead_mcpack_protocol.h"
-#include "mcpack2pb/mcpack2pb.h"
+#include "melon/mcpack2pb/mcpack2pb.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 void NsheadMcpackAdaptor::ParseNsheadMeta(
@@ -184,4 +184,4 @@ void PackNsheadMcpackRequest(butil::IOBuf* buf,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

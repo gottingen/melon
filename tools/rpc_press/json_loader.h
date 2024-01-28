@@ -25,7 +25,7 @@
 #include <google/protobuf/dynamic_message.h>
 #include <melon/butil/iobuf.h>
 
-namespace brpc {
+namespace melon {
 
 // This utility loads pb messages in json format from a file or string.
 class JsonLoader {
@@ -58,6 +58,6 @@ private:
     const google::protobuf::Message* _request_prototype;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_JSON_LOADER_H

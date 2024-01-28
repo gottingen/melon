@@ -24,7 +24,7 @@
 #include "melon/rpc/nshead_service.h"
 #include "echo.pb.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 DECLARE_bool(use_http_error_code);
 }
@@ -51,23 +51,23 @@ public:
               const ::test::EchoRequest* request,
               ::test::EchoResponse* response,
               google::protobuf::Closure* done) override {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         ASSERT_EQ(EXP_REQUEST, request->message());
         response->set_message(EXP_RESPONSE);
     }
 };
 
-// Adapt your own nshead-based protocol to use brpc
-class MyNsheadProtocol : public brpc::NsheadService {
+// Adapt your own nshead-based protocol to use melon
+class MyNsheadProtocol : public melon::NsheadService {
 public:
-    void ProcessNsheadRequest(const brpc::Server&,
-                              brpc::Controller* cntl,
-                              const brpc::NsheadMessage& request,
-                              brpc::NsheadMessage* response,
-                              brpc::NsheadClosure* done) {
+    void ProcessNsheadRequest(const melon::Server&,
+                              melon::Controller* cntl,
+                              const melon::NsheadMessage& request,
+                              melon::NsheadMessage* response,
+                              melon::NsheadClosure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
         response->head = request.head;
         if (cntl->Failed()) {
@@ -80,13 +80,13 @@ public:
     }
 };
 
-class MyInterceptor : public brpc::Interceptor {
+class MyInterceptor : public melon::Interceptor {
 public:
     MyInterceptor() = default;
 
     ~MyInterceptor() override = default;
 
-    bool Accept(const brpc::Controller* controller,
+    bool Accept(const melon::Controller* controller,
                 int& error_code,
                 std::string& error_txt) const override {
         if (g_index % 2 == 0) {
@@ -103,8 +103,8 @@ class InterceptorTest : public ::testing::Test {
 public:
     InterceptorTest() {
         EXPECT_EQ(0, _server.AddService(&_echo_svc,
-                                        brpc::SERVER_DOESNT_OWN_SERVICE));
-        brpc::ServerOptions options;
+                                        melon::SERVER_DOESNT_OWN_SERVICE));
+        melon::ServerOptions options;
         options.interceptor = new MyInterceptor;
         options.nshead_service = new MyNsheadProtocol;
         options.server_owns_interceptor = true;
@@ -117,7 +117,7 @@ public:
                            ::test::EchoRequest& req,
                            ::test::EchoResponse& res) {
         for (g_index = 0; g_index < 1000; ++g_index) {
-            brpc::Controller cntl;
+            melon::Controller cntl;
             stub.Echo(&cntl, &req, &res, NULL);
             if (g_index % 2 == 0) {
                 ASSERT_TRUE(cntl.Failed());
@@ -130,7 +130,7 @@ public:
     }
 
 private:
-    brpc::Server _server;
+    melon::Server _server;
     EchoServiceImpl _echo_svc;
 };
 
@@ -141,8 +141,8 @@ TEST_F(InterceptorTest, sanity) {
 
     // PROTOCOL_BAIDU_STD
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
+        melon::Channel channel;
+        melon::ChannelOptions options;
         ASSERT_EQ(0, channel.Init("localhost", port, &options));
         test::EchoService_Stub stub(&channel);
         CallMethod(stub, req, res);
@@ -150,21 +150,21 @@ TEST_F(InterceptorTest, sanity) {
 
     // PROTOCOL_HTTP
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_HTTP;
+        melon::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_HTTP;
         ASSERT_EQ(0, channel.Init("localhost", port, &options));
         test::EchoService_Stub stub(&channel);
         // Set the x-bd-error-code header of http response to brpc error code.
-        brpc::policy::FLAGS_use_http_error_code = true;
+        melon::policy::FLAGS_use_http_error_code = true;
         CallMethod(stub, req, res);
     }
 
     // PROTOCOL_HULU_PBRPC
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_HULU_PBRPC;
+        melon::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_HULU_PBRPC;
         ASSERT_EQ(0, channel.Init("localhost", port, &options));
         test::EchoService_Stub stub(&channel);
         CallMethod(stub, req, res);
@@ -172,9 +172,9 @@ TEST_F(InterceptorTest, sanity) {
 
     // PROTOCOL_SOFA_PBRPC
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_SOFA_PBRPC;
+        melon::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_SOFA_PBRPC;
         ASSERT_EQ(0, channel.Init("localhost", port, &options));
         test::EchoService_Stub stub(&channel);
         CallMethod(stub, req, res);
@@ -182,14 +182,14 @@ TEST_F(InterceptorTest, sanity) {
 
     // PROTOCOL_NSHEAD
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_NSHEAD;
+        melon::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_NSHEAD;
         ASSERT_EQ(0, channel.Init("localhost", port, &options));
-        brpc::NsheadMessage request;
+        melon::NsheadMessage request;
         for (g_index = 0; g_index < 1000; ++g_index) {
-            brpc::Controller cntl;
-            brpc::NsheadMessage response;
+            melon::Controller cntl;
+            melon::NsheadMessage response;
             channel.CallMethod(NULL, &cntl, &request, &response, NULL);
             if (g_index % 2 == 0) {
                 ASSERT_EQ(NSHEAD_EXP_RESPONSE, response.body.to_string());

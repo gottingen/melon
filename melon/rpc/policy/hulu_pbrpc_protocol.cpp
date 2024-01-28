@@ -40,7 +40,7 @@ void bthread_assign_data(void* data);
 }
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Notes:
@@ -496,7 +496,7 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
 
         res.reset(svc->GetResponsePrototype(method).New());
         // `socket' will be held until response has been sent
-        google::protobuf::Closure* done = ::brpc::NewCallback<
+        google::protobuf::Closure* done = ::melon::NewCallback<
             int64_t, HuluController*, const google::protobuf::Message*,
             const google::protobuf::Message*, const Server*,
                   MethodStatus *, int64_t>(
@@ -695,5 +695,5 @@ void PackHuluRequest(butil::IOBuf* req_buf,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 

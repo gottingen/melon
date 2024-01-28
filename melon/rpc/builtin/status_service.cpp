@@ -24,14 +24,11 @@
 #include "melon/rpc/details/method_status.h"        // MethodStatus
 #include "melon/rpc/builtin/status_service.h"
 #include "melon/rpc/nshead_service.h"       // NsheadService
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-#include "melon/rpc/thrift_service.h"       // ThriftService
-#endif
 #include "melon/rpc/rtmp.h"                 // RtmpService
 #include "melon/rpc/builtin/common.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 extern MethodStatus* g_client_msg_status;
 extern MethodStatus* g_server_msg_status;
@@ -41,8 +38,8 @@ extern MethodStatus* g_server_msg_status;
 void PutVarsHeading(std::ostream& os, bool expand_all);
 
 void StatusService::default_method(::google::protobuf::RpcController* cntl_base,
-                                   const ::brpc::StatusRequest*,
-                                   ::brpc::StatusResponse*,
+                                   const ::melon::StatusRequest*,
+                                   ::melon::StatusResponse*,
                                    ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -211,19 +208,7 @@ void StatusService::default_method(::google::protobuf::RpcController* cntl_base,
         nshead_svc->_status->Describe(os, desc_options);
         os << '\n';
     }
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-    const ThriftService* thrift_svc = server->options().thrift_service;
-    if (thrift_svc && thrift_svc->_status) {
-        DescribeOptions options;
-        options.verbose = false;
-        options.use_html = use_html;
-        os << (use_html ? "<h3>" : "[");
-        thrift_svc->Describe(os, options);
-        os << (use_html ? "</h3>\n" : "]\n");
-        thrift_svc->_status->Describe(os, desc_options);
-        os << '\n';
-    }
-#endif
+
     if (policy::g_server_msg_status) {
         DescribeOptions options;
         options.verbose = false;
@@ -258,4 +243,4 @@ void StatusService::GetTabInfo(TabInfoList* info_list) const {
     info->tab_name = "status";
 }
 
-} // namespace brpc
+} // namespace melon

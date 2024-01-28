@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BRPC_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H
-#define BRPC_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H
+#ifndef MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_
+#define MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_
 
 #include <vector>                                      // std::vector
 #include <deque>                                       // std::deque
@@ -29,7 +29,7 @@
 #include "melon/rpc/controller.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DECLARE_int64(min_weight);
@@ -217,7 +217,7 @@ inline int64_t LocalityAwareLoadBalancer::Weight::MarkFailed(
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
-#endif  // BRPC_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H
+#endif  // MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_

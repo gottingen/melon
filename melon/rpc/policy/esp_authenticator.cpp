@@ -20,7 +20,7 @@
 #include "melon/rpc/policy/esp_authenticator.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 const char* MAGICNUM = "\0ESP\x01\x02";
@@ -46,4 +46,4 @@ const Authenticator* global_esp_authenticator() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

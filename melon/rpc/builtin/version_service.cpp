@@ -22,11 +22,11 @@
 #include "melon/rpc/builtin/version_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 void VersionService::default_method(::google::protobuf::RpcController* controller,
-                                    const ::brpc::VersionRequest*,
-                                    ::brpc::VersionResponse*,
+                                    const ::melon::VersionRequest*,
+                                    ::melon::VersionResponse*,
                                     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = (Controller *)controller;
@@ -38,4 +38,4 @@ void VersionService::default_method(::google::protobuf::RpcController* controlle
     }
 }
 
-} // namespace brpc
+} // namespace melon

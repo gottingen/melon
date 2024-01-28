@@ -47,10 +47,10 @@ using ::butil::RawUnpacker;
 DECLARE_bool(raft_trace_append_entry_latency);
 DEFINE_int32(raft_max_segment_size, 8 * 1024 * 1024 /*8M*/, 
              "Max size of one segment file");
-BRPC_VALIDATE_GFLAG(raft_max_segment_size, brpc::PositiveInteger);
+BRPC_VALIDATE_GFLAG(raft_max_segment_size, melon::PositiveInteger);
 
 DEFINE_bool(raft_sync_segments, false, "call fsync when a segment is closed");
-BRPC_VALIDATE_GFLAG(raft_sync_segments, ::brpc::PassValidate);
+BRPC_VALIDATE_GFLAG(raft_sync_segments, ::melon::PassValidate);
 
 static bvar::LatencyRecorder g_open_segment_latency("raft_open_segment");
 static bvar::LatencyRecorder g_segment_append_entry_latency("raft_segment_append_entry");

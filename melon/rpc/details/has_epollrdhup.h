@@ -20,7 +20,7 @@
 #define BRPC_HAS_EPOLLRDHUP_H
 
 
-namespace brpc {
+namespace melon {
 
 // Check if the kernel supports EPOLLRDHUP which is added in Linux 2.6.17
 // This flag is useful in Edge Triggered mode. Without the flag user has
@@ -28,7 +28,7 @@ namespace brpc {
 // than given `count', otherwise return value=0(indicating EOF) may be lost.
 extern const unsigned int has_epollrdhup;
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_HAS_EPOLLRDHUP_H

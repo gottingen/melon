@@ -28,11 +28,11 @@ namespace braft {
 DEFINE_int64(raft_minimal_throttle_threshold_mb, 0,
             "minimal throttle throughput threshold per second");
 BRPC_VALIDATE_GFLAG(raft_minimal_throttle_threshold_mb,
-                    brpc::NonNegativeInteger);
+                    melon::NonNegativeInteger);
 DEFINE_int32(raft_max_install_snapshot_tasks_num, 1000, 
              "Max num of install_snapshot tasks per disk at the same time");
 BRPC_VALIDATE_GFLAG(raft_max_install_snapshot_tasks_num, 
-                    brpc::PositiveInteger);
+                    melon::PositiveInteger);
 
 ThroughputSnapshotThrottle::ThroughputSnapshotThrottle(
         int64_t throttle_throughput_bytes, int64_t check_cycle) 

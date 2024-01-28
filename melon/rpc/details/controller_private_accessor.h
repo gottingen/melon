@@ -31,7 +31,7 @@ class Message;
 }
 
 
-namespace brpc {
+namespace melon {
 
 class AuthContext;
 
@@ -164,7 +164,7 @@ public:
     virtual int IssueRPC(int64_t start_realtime_us) = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_CONTROLLER_PRIVATE_ACCESSOR_H

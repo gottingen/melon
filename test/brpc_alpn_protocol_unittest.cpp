@@ -43,10 +43,10 @@ public:
                         const ::test::EchoRequest* request,
                         test::EchoResponse* response,
                         google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         response->set_message(request->message());
 
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(controller);
+        melon::Controller* cntl = static_cast<melon::Controller*>(controller);
         LOG(NOTICE) << "protocol:" << cntl->request_protocol();
   }
 };
@@ -58,14 +58,14 @@ public:
 
     virtual void SetUp() override { 
         // Start brpc server with SSL
-        brpc::ServerOptions server_options;
+        melon::ServerOptions server_options;
         auto&& ssl_options = server_options.mutable_ssl_options();
         ssl_options->default_cert.certificate = "cert1.crt";
         ssl_options->default_cert.private_key = "cert1.key";
         ssl_options->alpns = "http, h2, baidu_std";
 
         EXPECT_EQ(0, _server.AddService(&_echo_server_impl,
-                                        brpc::SERVER_DOESNT_OWN_SERVICE));
+                                        melon::SERVER_DOESNT_OWN_SERVICE));
         EXPECT_EQ(0, _server.Start(FLAGS_listen_addr.data(), &server_options));
     }
     
@@ -76,13 +76,13 @@ public:
 
     std::string HandshakeWithServer(std::vector<std::string> alpns) {
         // Init client ssl ctx and set alpn.
-        brpc::ChannelSSLOptions options;
-        SSL_CTX* ssl_ctx = brpc::CreateClientSSLContext(options);
+        melon::ChannelSSLOptions options;
+        SSL_CTX* ssl_ctx = melon::CreateClientSSLContext(options);
         EXPECT_NE(nullptr, ssl_ctx);
 
         std::string raw_alpn;
         for (auto&& alpn : alpns) {
-            raw_alpn.append(brpc::ALPNProtocolToString(brpc::AdaptiveProtocolType(alpn)));
+            raw_alpn.append(melon::ALPNProtocolToString(melon::AdaptiveProtocolType(alpn)));
         }
         SSL_CTX_set_alpn_protos(ssl_ctx, 
                 reinterpret_cast<const unsigned char*>(raw_alpn.data()), raw_alpn.size());
@@ -96,7 +96,7 @@ public:
         EXPECT_NE(0, cli_fd);
 
         // SSL handshake.
-        SSL* ssl = brpc::CreateSSLSession(ssl_ctx, 0, cli_fd, false);
+        SSL* ssl = melon::CreateSSLSession(ssl_ctx, 0, cli_fd, false);
         EXPECT_NE(nullptr, ssl);
         EXPECT_EQ(1, SSL_do_handshake(ssl)); 
 
@@ -108,7 +108,7 @@ public:
     }
 
 private:
-    brpc::Server _server;
+    melon::Server _server;
     EchoServerImpl _echo_server_impl;
 };
 

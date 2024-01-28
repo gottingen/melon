@@ -25,7 +25,7 @@
 #include "melon/rpc/input_message_base.h"  // InputMessageBase
 
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 class RdmaEndpoint;
 }
@@ -158,7 +158,7 @@ BUTIL_FORCE_INLINE InputMessenger* get_client_side_messenger() {
 
 InputMessenger* get_or_new_client_side_messenger();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_INPUT_MESSENGER_H

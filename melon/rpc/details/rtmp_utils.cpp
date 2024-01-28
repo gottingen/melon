@@ -19,7 +19,7 @@
 #include "melon/rpc/details/rtmp_utils.h"
 
 
-namespace brpc {
+namespace melon {
 
 int avc_nalu_read_uev(BitStream* stream, int32_t* v) {
     if (stream->empty()) {
@@ -57,4 +57,4 @@ int avc_nalu_read_bit(BitStream* stream, int8_t* v) {
     return 0;
 }
 
-} // namespace brpc
+} // namespace melon

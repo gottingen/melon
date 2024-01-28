@@ -22,7 +22,7 @@
 #include "melon/rpc/builtin/memory_service.h"
 #include "melon/rpc/details/tcmalloc_extension.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(max_tc_stats_buf_len, 32 * 1024, "max length of TCMalloc stats");
 BRPC_VALIDATE_GFLAG(max_tc_stats_buf_len, PositiveInteger);
@@ -59,8 +59,8 @@ static void get_tcmalloc_memory_info(butil::IOBuf& out) {
 }
 
 void MemoryService::default_method(::google::protobuf::RpcController* cntl_base,
-                                    const ::brpc::MemoryRequest*,
-                                    ::brpc::MemoryResponse*,
+                                    const ::melon::MemoryRequest*,
+                                    ::melon::MemoryResponse*,
                                     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     auto cntl = static_cast<Controller*>(cntl_base);
@@ -77,4 +77,4 @@ void MemoryService::default_method(::google::protobuf::RpcController* cntl_base,
     }
 }
 
-} // namespace brpc
+} // namespace melon

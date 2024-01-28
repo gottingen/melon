@@ -20,7 +20,7 @@
 
 #if BRPC_WITH_RDMA
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 
 // This is used as a memory pool for RDMA. The reason why we use memory
@@ -97,7 +97,7 @@ size_t GetBlockSize(int type);
 void DumpMemoryPoolInfo(std::ostream& os);
 
 }  // namespace rdma
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // if BRPC_WITH_RDMA
 

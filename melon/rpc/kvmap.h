@@ -20,7 +20,7 @@
 
 #include "melon/butil/containers/flat_map.h"
 
-namespace brpc {
+namespace melon {
     
 // Remember Key/Values in string
 class KVMap {
@@ -70,6 +70,6 @@ private:
     Map _entries;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_KVMAP_H

@@ -25,7 +25,7 @@
 #include "melon/rpc/builtin/common.h"
 #include "melon/rpc/details/tcmalloc_extension.h"
 
-namespace brpc {
+namespace melon {
 
 void IndexService::GetTabInfo(TabInfoList* info_list) const {
     TabInfo* info = info_list->add();
@@ -173,4 +173,4 @@ void IndexService::default_method(::google::protobuf::RpcController* controller,
     os.move_to(cntl->response_attachment());
 }
 
-} // namespace brpc
+} // namespace melon

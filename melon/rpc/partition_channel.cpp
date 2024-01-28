@@ -24,7 +24,7 @@
 #include "melon/rpc/global.h"
 
 
-namespace brpc {
+namespace melon {
 
 // ================= PartitionChannelBase ====================
 
@@ -492,4 +492,4 @@ void DynamicPartitionChannel::CallMethod(
     _schan.CallMethod(method, controller, request, response, done);
 }
 
-} // namespace brpc
+} // namespace melon

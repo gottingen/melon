@@ -21,7 +21,7 @@
 
 #include "melon/rpc/protocol.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse binary format of baidu_std
@@ -47,6 +47,6 @@ void PackRpcRequest(butil::IOBuf* buf,
                     const Authenticator* auth);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_POLICY_BRPC_PROTOCOL_H

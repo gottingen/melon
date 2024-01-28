@@ -23,20 +23,20 @@
 #include "melon/butil/sys_byteorder.h"
 #include "melon/rpc/redis_command.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 int RedisAuthenticator::GenerateCredential(std::string* auth_str) const {
     butil::IOBuf buf;
     if (!passwd_.empty()) {
-        brpc::RedisCommandFormat(&buf, "AUTH %s", passwd_.c_str());
+        melon::RedisCommandFormat(&buf, "AUTH %s", passwd_.c_str());
     }
     if (db_ >= 0) {
-        brpc::RedisCommandFormat(&buf, "SELECT %d", db_);
+        melon::RedisCommandFormat(&buf, "SELECT %d", db_);
     }
     *auth_str = buf.to_string();
     return 0;
 }
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon

@@ -22,7 +22,7 @@
 #include <map>
 #include <melon/rpc/http2.h>
 
-namespace brpc {
+namespace melon {
 
 enum GrpcStatus {
     // OK is returned on success.
@@ -156,6 +156,6 @@ void PercentEncode(const std::string& str, std::string* str_out);
 void PercentDecode(const std::string& str, std::string* str_out);
 
 
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_GRPC_H

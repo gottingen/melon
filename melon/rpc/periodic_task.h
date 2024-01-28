@@ -19,7 +19,7 @@
 #ifndef BRPC_PERIODIC_TASK_H
 #define BRPC_PERIODIC_TASK_H
 
-namespace brpc {
+namespace melon {
 
 // Override OnTriggeringTask() with code that needs to be periodically run. If
 // the task is completed, the method should return false; Otherwise the method
@@ -43,6 +43,6 @@ public:
 };
 
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_PERIODIC_TASK_H

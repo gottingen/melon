@@ -18,7 +18,7 @@
 #ifndef BRPC_ESP_HEAD_H
 #define BRPC_ESP_HEAD_H
 
-namespace brpc {
+namespace melon {
 
 #pragma pack(push, r1, 1)
 union EspAddress {
@@ -39,6 +39,6 @@ struct EspHead {
 };
 #pragma pack(pop, r1)
 
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_ESP_HEAD_H

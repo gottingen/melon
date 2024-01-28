@@ -18,7 +18,7 @@
 
 #include "melon/rpc/ssl_options.h"
 
-namespace brpc {
+namespace melon {
 
 VerifyOptions::VerifyOptions() : verify_depth(0) {}
 
@@ -36,4 +36,4 @@ ServerSSLOptions::ServerSSLOptions()
     , ecdhe_curve_name("prime256v1")
 {}
 
-} // namespace brpc
+} // namespace melon

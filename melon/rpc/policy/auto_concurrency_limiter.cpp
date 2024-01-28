@@ -26,7 +26,7 @@ DECLARE_int32(bthread_concurrency);
 
 }  // namespace bthread
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_int32(auto_cl_sample_window_size_ms, 1000, "Duration of the sampling window.");
@@ -264,4 +264,4 @@ void AutoConcurrencyLimiter::UpdateMaxConcurrency(int64_t sampling_time_us) {
 }
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon

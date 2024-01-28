@@ -21,7 +21,7 @@
 #include "melon/rpc/details/method_status.h"
 
 
-namespace brpc {
+namespace melon {
 
 BAIDU_CASSERT(sizeof(nshead_t) == 36, sizeof_nshead_must_be_36);
 
@@ -60,4 +60,4 @@ void NsheadService::Expose(const butil::StringPiece& prefix) {
     _status->Expose(s);
 }
 
-} // namespace brpc
+} // namespace melon

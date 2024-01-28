@@ -19,7 +19,7 @@
 #include "melon/rpc/details/load_balancer_with_naming.h"
 
 
-namespace brpc {
+namespace melon {
 
 LoadBalancerWithNaming::~LoadBalancerWithNaming() {
     if (_nsthread_ptr.get()) {
@@ -65,4 +65,4 @@ void LoadBalancerWithNaming::Describe(std::ostream& os,
     SharedLoadBalancer::Describe(os, options);
 }
 
-} // namespace brpc
+} // namespace melon

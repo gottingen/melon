@@ -24,7 +24,7 @@
 #include <gflags/gflags_declare.h>
 
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(usercode_in_pthread);
 DECLARE_int32(usercode_backup_threads);
@@ -82,7 +82,7 @@ inline void RunUserCode(void (*fn)(void*), void* arg) {
 // called, it will be called in EndRunningUserCodeInPool
 void InitUserCodeBackupPoolOnceOrDie();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_USERCODE_BACKUP_POOL_H

@@ -24,7 +24,7 @@
 #include "echo.pb.h"
 
 DEFINE_bool(send_attachment, true, "Carry attachment along with requests");
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in src/brpc/options.proto");
+DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:8003", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
@@ -32,10 +32,10 @@ DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
 
 void HandleEchoResponse(
-        brpc::Controller* cntl,
+        melon::Controller* cntl,
         example::EchoResponse* response) {
     // std::unique_ptr makes sure cntl/response will be deleted before returning.
-    std::unique_ptr<brpc::Controller> cntl_guard(cntl);
+    std::unique_ptr<melon::Controller> cntl_guard(cntl);
     std::unique_ptr<example::EchoResponse> response_guard(response);
 
     if (cntl->Failed()) {
@@ -55,10 +55,10 @@ int main(int argc, char* argv[]) {
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
 
     // Initialize the channel, NULL means using default options.
-    brpc::ChannelOptions options;
+    melon::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
@@ -74,12 +74,12 @@ int main(int argc, char* argv[]) {
     
     // Send a request and wait for the response every 1 second.
     int log_id = 0;
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         // Since we are sending asynchronous RPC (`done' is not NULL),
         // these objects MUST remain valid until `done' is called.
         // As a result, we allocate these objects on heap
         example::EchoResponse* response = new example::EchoResponse();
-        brpc::Controller* cntl = new brpc::Controller();
+        melon::Controller* cntl = new melon::Controller();
 
         // Notice that you don't have to new request, which can be modified
         // or destroyed just after stub.Echo is called.
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
         // We use protobuf utility `NewCallback' to create a closure object
         // that will call our callback `HandleEchoResponse'. This closure
         // will automatically delete itself after being called once
-        google::protobuf::Closure* done = brpc::NewCallback(
+        google::protobuf::Closure* done = melon::NewCallback(
             &HandleEchoResponse, cntl, response);
         stub.Echo(cntl, &request, response, done);
 

@@ -20,7 +20,7 @@
 #include "melon/rpc/http_header.h"
 
 
-namespace brpc {
+namespace melon {
 
 HttpHeader::HttpHeader() 
     : _status_code(HTTP_STATUS_OK)
@@ -93,4 +93,4 @@ const HttpHeader& DefaultHttpHeader() {
     return h;
 }
 
-} // namespace brpc
+} // namespace melon

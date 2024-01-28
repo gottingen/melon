@@ -26,7 +26,7 @@
 #include "melon/bthread/unstable.h"
 #include "melon/bthread/bthread.h"
 
-namespace brpc {
+namespace melon {
 
 // Declared at socket.cpp
 extern SocketVarsCollector* g_vars;
@@ -39,7 +39,7 @@ DEFINE_string(health_check_path, "", "Http path of health check call."
 DEFINE_int32(health_check_timeout_ms, 500, "The timeout for both establishing "
         "the connection and the http call to -health_check_path over the connection");
 
-class HealthCheckChannel : public brpc::Channel {
+class HealthCheckChannel : public melon::Channel {
 public:
     HealthCheckChannel() {}
     ~HealthCheckChannel() {}
@@ -48,7 +48,7 @@ public:
 };
 
 int HealthCheckChannel::Init(SocketId id, const ChannelOptions* options) {
-    brpc::GlobalInitializeOrDie();
+    melon::GlobalInitializeOrDie();
     if (InitChannelOptions(options) != 0) {
         return -1;
     }
@@ -61,7 +61,7 @@ public:
     virtual void Run();
 
     HealthCheckChannel channel;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     SocketId id;
     int64_t interval_s;
     int64_t last_check_time_ms;
@@ -85,7 +85,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
     OnAppHealthCheckDone* done = new OnAppHealthCheckDone;
     done->id = id;
     done->interval_s = check_interval_s;
-    brpc::ChannelOptions options;
+    melon::ChannelOptions options;
     options.protocol = PROTOCOL_HTTP;
     options.max_retry = 0;
     options.timeout_ms =
@@ -239,4 +239,4 @@ void StartHealthCheck(SocketId id, int64_t delay_ms) {
             butil::milliseconds_from_now(delay_ms));
 }
 
-} // namespace brpc
+} // namespace melon

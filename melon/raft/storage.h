@@ -360,16 +360,16 @@ public:
     static butil::Status destroy(const std::string& uri);
 };
 
-inline brpc::Extension<const LogStorage>* log_storage_extension() {
-    return brpc::Extension<const LogStorage>::instance();
+inline melon::Extension<const LogStorage>* log_storage_extension() {
+    return melon::Extension<const LogStorage>::instance();
 }
 
-inline brpc::Extension<const RaftMetaStorage>* meta_storage_extension() {
-    return brpc::Extension<const RaftMetaStorage>::instance();
+inline melon::Extension<const RaftMetaStorage>* meta_storage_extension() {
+    return melon::Extension<const RaftMetaStorage>::instance();
 }
 
-inline brpc::Extension<const SnapshotStorage>* snapshot_storage_extension() {
-    return brpc::Extension<const SnapshotStorage>::instance();
+inline melon::Extension<const SnapshotStorage>* snapshot_storage_extension() {
+    return melon::Extension<const SnapshotStorage>::instance();
 }
 
 }

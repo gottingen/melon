@@ -22,7 +22,7 @@
 #include "melon/rpc/builtin/get_favicon_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 static unsigned char s_favicon_array[] = {
     71, 73, 70, 56, 57, 97, 16, 0, 16, 0, 241, 0, 0, 0, 0, 0, 153, 153, 153, 255,
@@ -76,4 +76,4 @@ void GetFaviconService::default_method(
     }
 }
 
-} // namespace brpc
+} // namespace melon

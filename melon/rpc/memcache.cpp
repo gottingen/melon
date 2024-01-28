@@ -26,7 +26,7 @@
 #include "melon/rpc/memcache.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
 
-namespace brpc {
+namespace melon {
 
 MemcacheRequest::MemcacheRequest()
     : ::google::protobuf::Message() {
@@ -887,4 +887,4 @@ bool MemcacheResponse::PopVersion(std::string* version) {
     return true;
 }
  
-} // namespace brpc
+} // namespace melon

@@ -33,7 +33,7 @@ DECLARE_bool(quote_vector);
 }
 
 
-namespace brpc {
+namespace melon {
 
 // TODO(gejun): parameterize.
 // This function returns the script to make bvar plot-able.
@@ -306,8 +306,8 @@ private:
 };
 
 void VarsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                 const ::brpc::VarsRequest*,
-                                 ::brpc::VarsResponse*,
+                                 const ::melon::VarsRequest*,
+                                 ::melon::VarsResponse*,
                                  ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);    
@@ -435,4 +435,4 @@ void VarsService::GetTabInfo(TabInfoList* info_list) const {
     info->tab_name = "vars";
 }
 
-} // namespace brpc
+} // namespace melon

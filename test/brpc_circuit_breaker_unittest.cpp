@@ -47,22 +47,22 @@ const int kLatency = 1000;
 const int kThreadNum = 3;
 } // namespace
 
-namespace brpc {
+namespace melon {
 DECLARE_int32(circuit_breaker_short_window_size);
 DECLARE_int32(circuit_breaker_long_window_size);
 DECLARE_int32(circuit_breaker_short_window_error_percent);
 DECLARE_int32(circuit_breaker_long_window_error_percent);
 DECLARE_int32(circuit_breaker_min_isolation_duration_ms);
 DECLARE_int32(circuit_breaker_max_isolation_duration_ms);
-} // namespace brpc
+} // namespace melon
 
 int main(int argc, char* argv[]) {
-    brpc::FLAGS_circuit_breaker_short_window_size = kShortWindowSize;
-    brpc::FLAGS_circuit_breaker_long_window_size = kLongWindowSize;
-    brpc::FLAGS_circuit_breaker_short_window_error_percent = kShortWindowErrorPercent;
-    brpc::FLAGS_circuit_breaker_long_window_error_percent = kLongWindowErrorPercent;
-    brpc::FLAGS_circuit_breaker_min_isolation_duration_ms = kMinIsolationDurationMs;
-    brpc::FLAGS_circuit_breaker_max_isolation_duration_ms = kMaxIsolationDurationMs;
+    melon::FLAGS_circuit_breaker_short_window_size = kShortWindowSize;
+    melon::FLAGS_circuit_breaker_long_window_size = kLongWindowSize;
+    melon::FLAGS_circuit_breaker_short_window_error_percent = kShortWindowErrorPercent;
+    melon::FLAGS_circuit_breaker_long_window_error_percent = kLongWindowErrorPercent;
+    melon::FLAGS_circuit_breaker_min_isolation_duration_ms = kMinIsolationDurationMs;
+    melon::FLAGS_circuit_breaker_max_isolation_duration_ms = kMaxIsolationDurationMs;
     testing::InitGoogleTest(&argc, argv);
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
     return RUN_ALL_TESTS();
@@ -72,7 +72,7 @@ pthread_once_t initialize_random_control = PTHREAD_ONCE_INIT;
 
 struct FeedbackControl {
     FeedbackControl(int req_num, int error_percent,
-                 brpc::CircuitBreaker* circuit_breaker)
+                 melon::CircuitBreaker* circuit_breaker)
         : _req_num(req_num)
         , _error_percent(error_percent)
         , _circuit_breaker(circuit_breaker)
@@ -81,7 +81,7 @@ struct FeedbackControl {
         , _healthy(true) {}
     int _req_num;
     int _error_percent;
-    brpc::CircuitBreaker* _circuit_breaker;
+    melon::CircuitBreaker* _circuit_breaker;
     int _healthy_cnt;
     int _unhealthy_cnt;
     bool _healthy;
@@ -131,7 +131,7 @@ protected:
         }
     }
 
-    brpc::CircuitBreaker _circuit_breaker;
+    melon::CircuitBreaker _circuit_breaker;
 };
 
 TEST_F(CircuitBreakerTest, should_not_isolate) {
@@ -214,10 +214,10 @@ TEST_F(CircuitBreakerTest, isolation_duration_grow_and_reset) {
 }
 
 TEST_F(CircuitBreakerTest, maximum_isolation_duration) {
-    brpc::FLAGS_circuit_breaker_max_isolation_duration_ms =
-        brpc::FLAGS_circuit_breaker_min_isolation_duration_ms + 1;
-    ASSERT_LT(brpc::FLAGS_circuit_breaker_max_isolation_duration_ms,
-              2 * brpc::FLAGS_circuit_breaker_min_isolation_duration_ms);
+    melon::FLAGS_circuit_breaker_max_isolation_duration_ms =
+        melon::FLAGS_circuit_breaker_min_isolation_duration_ms + 1;
+    ASSERT_LT(melon::FLAGS_circuit_breaker_max_isolation_duration_ms,
+              2 * melon::FLAGS_circuit_breaker_min_isolation_duration_ms);
     std::vector<pthread_t> thread_list;
     std::vector<std::unique_ptr<FeedbackControl>> fc_list;
 
@@ -232,5 +232,5 @@ TEST_F(CircuitBreakerTest, maximum_isolation_duration) {
         EXPECT_GT(fc->_unhealthy_cnt, 0);
     }
     EXPECT_EQ(_circuit_breaker.isolation_duration_ms(),
-              brpc::FLAGS_circuit_breaker_max_isolation_duration_ms);
+              melon::FLAGS_circuit_breaker_max_isolation_duration_ms);
 }

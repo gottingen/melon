@@ -20,7 +20,7 @@
 
 #include "melon/rpc/authenticator.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Request to redis for authentication.
@@ -32,7 +32,7 @@ public:
     int GenerateCredential(std::string* auth_str) const;
 
     int VerifyCredential(const std::string&, const butil::EndPoint&,
-                         brpc::AuthContext*) const {
+                         melon::AuthContext*) const {
         return 0;
     }
 
@@ -54,6 +54,6 @@ private:
 };
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // BRPC_POLICY_COUCHBASE_AUTHENTICATOR_H

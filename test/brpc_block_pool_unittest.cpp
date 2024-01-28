@@ -30,7 +30,7 @@ protected:
     ~BlockPoolTest() { }
 };
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 DECLARE_int32(rdma_memory_pool_initial_size_mb);
 DECLARE_int32(rdma_memory_pool_increase_size_mb);
@@ -43,7 +43,7 @@ extern size_t GetRegionNum();
 }
 }
 
-using namespace brpc::rdma;
+using namespace melon::rdma;
 
 static uint32_t DummyCallback(void*, size_t) {
     return 1;

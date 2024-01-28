@@ -23,11 +23,11 @@
 #include "melon/rpc/builtin/common.h"
 
 
-namespace brpc {
+namespace melon {
 
 void HealthService::default_method(::google::protobuf::RpcController* cntl_base,
-                                   const ::brpc::HealthRequest*,
-                                   ::brpc::HealthResponse*,
+                                   const ::melon::HealthRequest*,
+                                   ::melon::HealthResponse*,
                                    ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -41,4 +41,4 @@ void HealthService::default_method(::google::protobuf::RpcController* cntl_base,
     }
 }
 
-} // namespace brpc
+} // namespace melon

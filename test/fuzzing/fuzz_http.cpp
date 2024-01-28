@@ -33,11 +33,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     {
         butil::IOBuf buf;
         buf.append(input);
-        brpc::HttpMessage http_message;
+        melon::HttpMessage http_message;
         http_message.ParseFromIOBuf(buf);
     }
     {
-        brpc::HttpMessage http_message;
+        melon::HttpMessage http_message;
         http_message.ParseFromArray((char *)data, size);
     }
 

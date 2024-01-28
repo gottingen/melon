@@ -29,15 +29,15 @@ const std::string kHttp = "hTTp";
 const std::string kPooled = "PoOled";
 
 TEST(AdaptiveMaxConcurrencyTest, ShouldConvertCorrectly) {
-    brpc::AdaptiveMaxConcurrency amc(0);
+    melon::AdaptiveMaxConcurrency amc(0);
 
-    EXPECT_EQ(brpc::AdaptiveMaxConcurrency::UNLIMITED(), amc.type());
-    EXPECT_EQ(brpc::AdaptiveMaxConcurrency::UNLIMITED(), amc.value());
+    EXPECT_EQ(melon::AdaptiveMaxConcurrency::UNLIMITED(), amc.type());
+    EXPECT_EQ(melon::AdaptiveMaxConcurrency::UNLIMITED(), amc.value());
     EXPECT_EQ(0, int(amc));
-    EXPECT_TRUE(amc == brpc::AdaptiveMaxConcurrency::UNLIMITED());
+    EXPECT_TRUE(amc == melon::AdaptiveMaxConcurrency::UNLIMITED());
 
     amc = 10;
-    EXPECT_EQ(brpc::AdaptiveMaxConcurrency::CONSTANT(), amc.type());
+    EXPECT_EQ(melon::AdaptiveMaxConcurrency::CONSTANT(), amc.type());
     EXPECT_EQ("10", amc.value());
     EXPECT_EQ(10, int(amc));
     EXPECT_EQ(amc, "10");
@@ -50,26 +50,26 @@ TEST(AdaptiveMaxConcurrencyTest, ShouldConvertCorrectly) {
 }
 
 TEST(AdaptiveProtocolTypeTest, ShouldConvertCorrectly) {
-    brpc::AdaptiveProtocolType apt;
+    melon::AdaptiveProtocolType apt;
 
     apt = kHttp;
-    EXPECT_EQ(apt, brpc::ProtocolType::PROTOCOL_HTTP);
-    EXPECT_NE(apt, brpc::ProtocolType::PROTOCOL_BAIDU_STD);
+    EXPECT_EQ(apt, melon::ProtocolType::PROTOCOL_HTTP);
+    EXPECT_NE(apt, melon::ProtocolType::PROTOCOL_BAIDU_STD);
 
-    apt = brpc::ProtocolType::PROTOCOL_HTTP;
-    EXPECT_EQ(apt, brpc::ProtocolType::PROTOCOL_HTTP);
-    EXPECT_NE(apt, brpc::ProtocolType::PROTOCOL_BAIDU_STD);
+    apt = melon::ProtocolType::PROTOCOL_HTTP;
+    EXPECT_EQ(apt, melon::ProtocolType::PROTOCOL_HTTP);
+    EXPECT_NE(apt, melon::ProtocolType::PROTOCOL_BAIDU_STD);
 }
 
 TEST(AdaptiveConnectionTypeTest, ShouldConvertCorrectly) {
-    brpc::AdaptiveConnectionType act;
+    melon::AdaptiveConnectionType act;
 
-    act = brpc::ConnectionType::CONNECTION_TYPE_POOLED;
-    EXPECT_EQ(act, brpc::ConnectionType::CONNECTION_TYPE_POOLED);
-    EXPECT_NE(act, brpc::ConnectionType::CONNECTION_TYPE_SINGLE);
+    act = melon::ConnectionType::CONNECTION_TYPE_POOLED;
+    EXPECT_EQ(act, melon::ConnectionType::CONNECTION_TYPE_POOLED);
+    EXPECT_NE(act, melon::ConnectionType::CONNECTION_TYPE_SINGLE);
 
     act = kPooled;
-    EXPECT_EQ(act, brpc::ConnectionType::CONNECTION_TYPE_POOLED);
-    EXPECT_NE(act, brpc::ConnectionType::CONNECTION_TYPE_SINGLE);
+    EXPECT_EQ(act, melon::ConnectionType::CONNECTION_TYPE_POOLED);
+    EXPECT_NE(act, melon::ConnectionType::CONNECTION_TYPE_SINGLE);
 }
 

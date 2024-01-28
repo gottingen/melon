@@ -24,7 +24,7 @@
 #include "melon/naming/list_naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Defined in file_naming_service.cpp
@@ -121,4 +121,4 @@ NamingService* DomainListNamingService::New() const {
 void DomainListNamingService::Destroy() { delete this; }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

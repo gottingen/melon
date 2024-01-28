@@ -34,6 +34,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     butil::IOBuf buf;
     buf.append(input);
 
-    brpc::policy::ParseSofaMessage(&buf, NULL, false, NULL);
+    melon::policy::ParseSofaMessage(&buf, NULL, false, NULL);
     return 0;
 }

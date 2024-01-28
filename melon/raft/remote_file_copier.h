@@ -20,7 +20,7 @@
 #define  BRAFT_REMOTE_FILE_COPIER_H
 
 #include <melon/rpc/channel.h>
-#include <bthread/countdown_event.h>
+#include <melon/bthread/countdown_event.h>
 #include "melon/raft/file_service.pb.h"
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot_throttle.h"
@@ -76,17 +76,17 @@ public:
 
         raft_mutex_t _mutex;
         butil::Status _st;
-        brpc::Channel* _channel;
+        melon::Channel* _channel;
         std::string _dest_path;
         FileAdaptor* _file;
         int _retry_times;
         bool _finished;
-        brpc::CallId _rpc_call;
+        melon::CallId _rpc_call;
         butil::IOBuf* _buf;
         bthread_timer_t _timer;
         CopyOptions _options;
         Closure _done;
-        brpc::Controller _cntl;
+        melon::Controller _cntl;
         GetFileRequest _request;
         GetFileResponse _response;
         bthread::CountdownEvent _finish_event;
@@ -118,7 +118,7 @@ private:
                            off_t offset, size_t max_count,
                            long timeout_ms, bool* is_eof);
     DISALLOW_COPY_AND_ASSIGN(RemoteFileCopier);
-    brpc::Channel _channel;
+    melon::Channel _channel;
     int64_t _reader_id;
     scoped_refptr<FileSystemAdaptor> _fs;
     scoped_refptr<SnapshotThrottle> _throttle;

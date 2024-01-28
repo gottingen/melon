@@ -22,7 +22,7 @@
 void* fast_memcpy(void *__restrict dest, const void *__restrict src, size_t n);
 
 
-namespace brpc {
+namespace melon {
 
 inline size_t AMFInputStream::cutn(void* out, size_t n) {
     const size_t saved_n = n;
@@ -165,7 +165,7 @@ inline void AMFOutputStream::put_u64(uint64_t val) {
     return putn(&netval, sizeof(netval));
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_AMF_INL_H

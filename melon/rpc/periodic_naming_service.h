@@ -22,7 +22,7 @@
 #include "melon/naming/naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 class PeriodicNamingService : public NamingService {
 protected:
@@ -35,7 +35,7 @@ protected:
                          NamingServiceActions* actions) override;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PERIODIC_NAMING_SERVICE_H

@@ -35,7 +35,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     std::string input(reinterpret_cast<const char*>(data), size);
     {
-        brpc::URI uri;
+        melon::URI uri;
         uri.SetHttpURL(input);
     }
     {
@@ -45,7 +45,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         butil::StringPiece app;
         butil::StringPiece stream_name;
 
-        brpc::ParseRtmpURL(input, &host, &vhost, &port, &app, &stream_name);
+        melon::ParseRtmpURL(input, &host, &vhost, &port, &app, &stream_name);
     }
 
     return 0;

@@ -32,7 +32,7 @@
 #include "melon/rpc/stream_impl.h"
 
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(usercode_in_pthread);
 DECLARE_int64(socket_max_streams_unconsumed_bytes);
@@ -786,4 +786,4 @@ int StreamAccept(StreamId* response_stream, Controller &cntl,
     return 0;
 }
 
-} // namespace brpc
+} // namespace melon

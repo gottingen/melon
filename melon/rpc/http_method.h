@@ -19,7 +19,7 @@
 #ifndef  BRPC_HTTP_METHOD_H
 #define  BRPC_HTTP_METHOD_H
 
-namespace brpc {
+namespace melon {
 
 enum HttpMethod {
     HTTP_METHOD_DELETE      =   0,
@@ -58,6 +58,6 @@ const char *HttpMethod2Str(HttpMethod http_method);
 // Returns true on success. 
 bool Str2HttpMethod(const char* method_str, HttpMethod* method);
 
-} // namespace brpc
+} // namespace melon
 
 #endif  //BRPC_HTTP_METHOD_H

@@ -17,7 +17,7 @@
 
 #include "melon/rpc/policy/constant_concurrency_limiter.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 ConstantConcurrencyLimiter::ConstantConcurrencyLimiter(int max_concurrency)
@@ -42,4 +42,4 @@ ConstantConcurrencyLimiter::New(const AdaptiveMaxConcurrency& amc) const {
 }
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon

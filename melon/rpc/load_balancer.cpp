@@ -21,7 +21,7 @@
 #include "melon/rpc/load_balancer.h"
 
 
-namespace brpc {
+namespace melon {
 
 DEFINE_bool(show_lb_in_vars, false, "Describe LoadBalancers in vars");
 DEFINE_int32(default_weight_of_wlb, 0, "Default weight value of Weighted LoadBalancer(wlb). "
@@ -123,4 +123,4 @@ bool SharedLoadBalancer::ParseParameters(const butil::StringPiece& lb_protocol,
     return true;
 }
 																				 
-} // namespace brpc
+} // namespace melon

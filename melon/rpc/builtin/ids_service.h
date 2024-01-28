@@ -22,17 +22,17 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class IdsService: public ids {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::IdsRequest* request,
-                        ::brpc::IdsResponse* response,
+                        const ::melon::IdsRequest* request,
+                        ::melon::IdsResponse* response,
                         ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_IDS_SERVICE_H

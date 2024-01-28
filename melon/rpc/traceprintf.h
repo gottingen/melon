@@ -25,12 +25,12 @@
 // on internal structures, use opaque pointers instead.
 
 
-namespace brpc {
+namespace melon {
 
 bool CanAnnotateSpan();
 void AnnotateSpan(const char* fmt, ...);
 
-} // namespace brpc
+} // namespace melon
 
 
 // Use this macro to print log to /rpcz and tracing system.
@@ -38,8 +38,8 @@ void AnnotateSpan(const char* fmt, ...);
 // have (critical) side effects in arguments.
 #define TRACEPRINTF(fmt, args...)                                       \
     do {                                                                \
-        if (::brpc::CanAnnotateSpan()) {                          \
-            ::brpc::AnnotateSpan("[" __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
+        if (::melon::CanAnnotateSpan()) {                          \
+            ::melon::AnnotateSpan("[" __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
         }                                                               \
     } while (0)
 

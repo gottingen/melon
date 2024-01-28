@@ -19,7 +19,7 @@
 
 #include <melon/butil/macros.h>
 #include <melon/butil/logging.h>
-#include <bvar/utils/lock_timer.h>
+#include <melon/bvar/utils/lock_timer.h>
 
 #define BRAFT_VLOG_IS_ON     VLOG_IS_ON(89)
 #define BRAFT_VLOG           VLOG(89)
@@ -31,7 +31,7 @@
 
 #ifdef USE_BTHREAD_MUTEX
 
-#include <bthread/mutex.h>
+#include <melon/bthread/mutex.h>
 
 namespace braft {
 typedef ::bthread::Mutex raft_mutex_t;

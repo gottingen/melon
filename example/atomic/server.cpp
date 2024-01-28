@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #include <fstream>
-#include <bthread/bthread.h>
+#include <melon/bthread/bthread.h>
 #include <gflags/gflags.h>
 #include <melon/butil/containers/flat_map.h>
 #include <melon/butil/logging.h>
-#include <bthread/bthread.h>
+#include <melon/bthread/bthread.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/server.h>
 #include <melon/raft/raft.h>
@@ -154,7 +154,7 @@ friend class AtomicClosure;
 
     void apply(AtomicOpType type, const google::protobuf::Message* request,
                AtomicResponse* response, google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         // Serialize request to the replicated write-ahead-log so that all the
         // peers in the group receive this request as well.
         // Notice that _value can't be modified in this routine otherwise it
@@ -400,7 +400,7 @@ friend class AtomicClosure;
     static void* save_snapshot(void* arg) {
         SnapshotClosure* sc = (SnapshotClosure*)arg;
         std::unique_ptr<SnapshotClosure> sc_guard(sc);
-        brpc::ClosureGuard done_guard(sc->done);
+        melon::ClosureGuard done_guard(sc->done);
         std::string snapshot_path = sc->writer->get_path();
         snapshot_path.append("/data");
         std::ofstream os(snapshot_path.c_str());
@@ -426,7 +426,7 @@ friend class AtomicClosure;
 
 void AtomicClosure::Run() {
     std::unique_ptr<AtomicClosure> self_guard(this);
-    brpc::ClosureGuard done_guard(_done);
+    melon::ClosureGuard done_guard(_done);
     if (status().ok()) {
         return;
     }
@@ -471,13 +471,13 @@ int main(int argc, char* argv[]) {
     butil::AtExitManager exit_manager;
 
     // Generally you only need one Server.
-    brpc::Server server;
+    melon::Server server;
     example::Atomic atomic;
     example::AtomicServiceImpl service(&atomic);
 
     // Add your service into RPC rerver
     if (server.AddService(&service, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
@@ -508,7 +508,7 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "Atomic service is running on " << server.listen_address();
     // Wait until 'CTRL-C' is pressed. then Stop() and Join() the service
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         sleep(1);
     }
 

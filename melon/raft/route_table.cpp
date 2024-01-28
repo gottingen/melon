@@ -173,7 +173,7 @@ butil::Status refresh_leader(const GroupId& group, int timeout_ms) {
     butil::Status error;
     for (Configuration::const_iterator
             iter = conf.begin(); iter != conf.end(); ++iter) {
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(iter->addr, NULL) != 0) {
             if (error.ok()) {
                 error.set_error(-1, "Fail to init channel to %s",
@@ -186,7 +186,7 @@ butil::Status refresh_leader(const GroupId& group, int timeout_ms) {
             }
             continue;
         }
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.set_timeout_ms(timeout_ms);
         GetLeaderRequest request;
         request.set_group_id(group);

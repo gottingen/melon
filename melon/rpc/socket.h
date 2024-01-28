@@ -40,7 +40,7 @@
 #include "melon/bvar/bvar.h"
 #include "http_method.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 class ConsistentHashingLoadBalancer;
 class RtmpContext;
@@ -931,7 +931,7 @@ private:
     HttpMethod _http_request_method;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 // Sleep a while when `write_expr' returns negative with errno=EOVERCROWDED
@@ -943,7 +943,7 @@ private:
         int sleep_time = 250;                                           \
         while (true) {                                                  \
             __ret_code__ = (write_expr);                                \
-            if (__ret_code__ >= 0 || errno != ::brpc::EOVERCROWDED) { \
+            if (__ret_code__ >= 0 || errno != ::melon::EOVERCROWDED) { \
                 break;                                                  \
             }                                                           \
             sleep_time *= 2;                                            \
@@ -961,7 +961,7 @@ private:
         int sleep_time = 250;                                           \
         for (int i = static_cast<int>(nretry); i >= 0; --i) {           \
             __ret_code__ = (write_expr);                                \
-            if (__ret_code__ >= 0 || errno != ::brpc::EOVERCROWDED) { \
+            if (__ret_code__ >= 0 || errno != ::melon::EOVERCROWDED) { \
                 break;                                                  \
             }                                                           \
             sleep_time *= 2;                                            \
@@ -972,7 +972,7 @@ private:
     })
 
 namespace std {
-ostream& operator<<(ostream& os, const brpc::Socket& sock);
+ostream& operator<<(ostream& os, const melon::Socket& sock);
 }
 
 #include "melon/rpc/socket_inl.h"

@@ -33,7 +33,7 @@ DECLARE_int32(bvar_latency_p3);
 DECLARE_int32(bvar_max_dump_multi_dimension_metric_number);
 }
 
-namespace brpc {
+namespace melon {
 
 // Defined in server.cpp
 extern const char* const g_server_info_prefix;
@@ -192,8 +192,8 @@ bool PrometheusMetricsDumper::DumpLatencyRecorderSuffix(
 }
 
 void PrometheusMetricsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                              const ::brpc::MetricsRequest*,
-                                              ::brpc::MetricsResponse*,
+                                              const ::melon::MetricsRequest*,
+                                              ::melon::MetricsResponse*,
                                               ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -224,4 +224,4 @@ int DumpPrometheusMetricsToIOBuf(butil::IOBuf* output) {
     return 0;
 }
 
-} // namespace brpc
+} // namespace melon

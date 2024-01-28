@@ -22,7 +22,7 @@
 #include "melon/rpc/shared_object.h"
 
 
-namespace brpc {
+namespace melon {
 
 // [Implement by user]
 // To read a very long or infinitely long response progressively.
@@ -86,7 +86,7 @@ public:
     virtual void ReadProgressiveAttachmentBy(ProgressiveReader* r) = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_PROGRESSIVE_READER_H

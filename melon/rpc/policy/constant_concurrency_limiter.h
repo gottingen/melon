@@ -20,7 +20,7 @@
 
 #include "melon/rpc/concurrency_limiter.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class ConstantConcurrencyLimiter : public ConcurrencyLimiter {
@@ -40,7 +40,7 @@ private:
 };
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 
 #endif // BRPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H

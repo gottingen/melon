@@ -26,7 +26,7 @@
 #include "melon/rpc/global.h"
 
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(channel_check_interval, 1, 
              "seconds between consecutive health-checking of unaccessible"
@@ -585,4 +585,4 @@ void SelectiveChannel::Describe(
     os << ']';
 }
 
-} // namespace brpc
+} // namespace melon

@@ -23,7 +23,7 @@
 #include "melon/butil/sys_byteorder.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 namespace {
@@ -36,8 +36,8 @@ constexpr char kPadding[1] = {'\0'};
 // To get the couchbase authentication protocol, see
 // https://developer.couchbase.com/documentation/server/3.x/developer/dev-guide-3.0/sasl.html
 int CouchbaseAuthenticator::GenerateCredential(std::string* auth_str) const {
-    const brpc::policy::MemcacheRequestHeader header = {
-        brpc::policy::MC_MAGIC_REQUEST, brpc::policy::MC_BINARY_SASL_AUTH,
+    const melon::policy::MemcacheRequestHeader header = {
+        melon::policy::MC_MAGIC_REQUEST, melon::policy::MC_BINARY_SASL_AUTH,
         butil::HostToNet16(sizeof(kPlainAuthCommand) - 1), 0, 0, 0,
         butil::HostToNet32(sizeof(kPlainAuthCommand) + 1 +
                            bucket_name_.length() * 2 + bucket_password_.length()),
@@ -54,4 +54,4 @@ int CouchbaseAuthenticator::GenerateCredential(std::string* auth_str) const {
 }
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon

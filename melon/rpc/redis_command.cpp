@@ -27,7 +27,7 @@ const size_t CTX_WIDTH = 5;
 
 } // namespace
 
-namespace brpc {
+namespace melon {
 
 // Much faster than snprintf(..., "%lu", d);
 inline size_t AppendDecimal(char* outbuf, unsigned long d) {
@@ -457,4 +457,4 @@ void RedisCommandParser::Reset() {
     _args.clear();
 }
 
-} // namespace brpc
+} // namespace melon

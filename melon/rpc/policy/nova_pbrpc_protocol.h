@@ -23,7 +23,7 @@
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Actions to a (server) response in nova_pbrpc format.
@@ -60,7 +60,7 @@ public:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_NOVA_PBRPC_PROTOCOL_H

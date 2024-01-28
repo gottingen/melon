@@ -20,7 +20,7 @@
 #define BRPC_EXTENSION_INL_H
 
 
-namespace brpc {
+namespace melon {
 
 template <typename T>
 Extension<T>* Extension<T>::instance() {
@@ -90,7 +90,7 @@ void Extension<T>::List(std::ostream& os, char separator) {
     }
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_EXTENSION_INL_H

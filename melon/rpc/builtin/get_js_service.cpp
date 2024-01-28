@@ -26,7 +26,7 @@
 #include "melon/rpc/builtin/common.h"
 
 
-namespace brpc {
+namespace melon {
 
 static const char* g_last_modified = "Wed, 16 Sep 2015 01:25:30 GMT";
 
@@ -129,4 +129,4 @@ void GetJsService::viz_min(
     }
 }
 
-} // namespace brpc
+} // namespace melon

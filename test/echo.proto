@@ -16,7 +16,7 @@
 // under the License.
 
 syntax="proto2";
-import "idl_options.proto";
+import "melon/idl_options.proto";
 option (idl_support) = true;
 option cc_generic_services = true;
 package test;

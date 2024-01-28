@@ -24,7 +24,7 @@
 #include "melon/rpc/socket_id.h"                       // SocketId
 
 
-namespace brpc {
+namespace melon {
 
 // Remember servers that should be avoided in selection. These servers
 // are often selected in previous tries inside a RPC.
@@ -96,7 +96,7 @@ inline bool ExcludedServers::IsExcluded(SocketId id) const {
     return false;
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_EXCLUDED_SERVERS_H

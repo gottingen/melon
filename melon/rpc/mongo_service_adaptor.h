@@ -23,7 +23,7 @@
 #include "melon/rpc/shared_object.h"
 
 
-namespace brpc {
+namespace melon {
 
 // custom mongo context. derive this and implement your own functionalities.
 class MongoContext : public SharedObject {
@@ -55,7 +55,7 @@ public:
     virtual MongoContext* CreateSocketContext() const = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif

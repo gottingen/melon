@@ -23,7 +23,7 @@
 #include "melon/rpc/redis.h"
 #include "melon/rpc/redis_command.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_bool(redis_verbose_crlf2space, false, "[DEBUG] Show \\r\\n as a space");
 
@@ -472,4 +472,4 @@ RedisCommandHandler* RedisCommandHandler::NewTransactionHandler() {
     return NULL;
 }
 
-} // namespace brpc
+} // namespace melon

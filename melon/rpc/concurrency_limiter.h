@@ -24,7 +24,7 @@
 #include "melon/rpc/adaptive_max_concurrency.h"        // AdaptiveMaxConcurrency
 #include "melon/rpc/controller.h"
 
-namespace brpc {
+namespace melon {
 
 class ConcurrencyLimiter {
 public:
@@ -56,7 +56,7 @@ inline Extension<const ConcurrencyLimiter>* ConcurrencyLimiterExtension() {
     return Extension<const ConcurrencyLimiter>::instance();
 }
 
-}  // namespace brpc
+}  // namespace melon
 
 
 #endif // BRPC_CONCURRENCY_LIMITER_H

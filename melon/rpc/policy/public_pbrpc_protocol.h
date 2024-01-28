@@ -23,7 +23,7 @@
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Actions to a (server) response in public-pbrpc format.
@@ -58,7 +58,7 @@ public:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H

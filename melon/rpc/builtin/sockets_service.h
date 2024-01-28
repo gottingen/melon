@@ -22,17 +22,17 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class SocketsService : public sockets {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::SocketsRequest* request,
-                        ::brpc::SocketsResponse* response,
+                        const ::melon::SocketsRequest* request,
+                        ::melon::SocketsResponse* response,
                         ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_SOCKETS_SERVICE_H

@@ -21,7 +21,7 @@
 #define BRPC_SOCKET_INL_H
 
 
-namespace brpc {
+namespace melon {
 
 // Utility functions to combine and extract SocketId.
 BUTIL_FORCE_INLINE SocketId
@@ -351,7 +351,7 @@ inline Socket::SharedPart* Socket::GetOrNewSharedPart() {
     return GetOrNewSharedPartSlower();
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_SOCKET_INL_H

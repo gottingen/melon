@@ -23,7 +23,7 @@
 #include "melon/rpc/periodic_naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class ListNamingService : public NamingService {
@@ -57,7 +57,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_POLICY_LIST_NAMING_SERVICE

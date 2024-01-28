@@ -14,8 +14,8 @@
 #include <melon/butil/file_util.h>
 #include <melon/butil/fast_rand.h>
 #include <melon/rpc/closure_guard.h>
-#include <bthread/bthread.h>
-#include <bthread/countdown_event.h>
+#include <melon/bthread/bthread.h>
+#include <melon/bthread/countdown_event.h>
 #include "../test/util.h"
 
 namespace braft {
@@ -71,7 +71,7 @@ private:
 };
 
 TEST_P(NodeTest, InitShutdown) {
-    brpc::Server server;
+    melon::Server server;
     int ret = braft::add_service(&server, "0.0.0.0:5006");
     ASSERT_EQ(0, ret);
     ASSERT_EQ(0, server.Start("0.0.0.0:5006", NULL));
@@ -100,8 +100,8 @@ TEST_P(NodeTest, InitShutdown) {
 }
 
 TEST_P(NodeTest, Server) {
-    brpc::Server server1;
-    brpc::Server server2;
+    melon::Server server1;
+    melon::Server server2;
     ASSERT_EQ(0, braft::add_service(&server1, "0.0.0.0:5006"));
     ASSERT_EQ(0, braft::add_service(&server1, "0.0.0.0:5006"));
     ASSERT_EQ(0, braft::add_service(&server2, "0.0.0.0:5007"));
@@ -110,7 +110,7 @@ TEST_P(NodeTest, Server) {
 }
 
 TEST_P(NodeTest, SingleNode) {
-    brpc::Server server;
+    melon::Server server;
     int ret = braft::add_service(&server, 5006);
     server.Start(5006, NULL);
     ASSERT_EQ(0, ret);
@@ -263,18 +263,18 @@ TEST_P(NodeTest, TripleNode) {
     cluster.ensure_same();
 
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_HTTP;
+        melon::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_HTTP;
 
         if (channel.Init(leader->node_id().peer_id.addr, &options) != 0) {
             LOG(ERROR) << "Fail to initialize channel";
         }
 
         {
-            brpc::Controller cntl;
+            melon::Controller cntl;
             cntl.http_request().uri() = "/raft_stat";
-            cntl.http_request().set_method(brpc::HTTP_METHOD_GET);
+            cntl.http_request().set_method(melon::HTTP_METHOD_GET);
 
             channel.CallMethod(NULL, &cntl, NULL, NULL, NULL/*done*/);
 
@@ -282,9 +282,9 @@ TEST_P(NodeTest, TripleNode) {
         }
 
         {
-            brpc::Controller cntl;
+            melon::Controller cntl;
             cntl.http_request().uri() = "/raft_stat/unittest";
-            cntl.http_request().set_method(brpc::HTTP_METHOD_GET);
+            cntl.http_request().set_method(melon::HTTP_METHOD_GET);
 
             channel.CallMethod(NULL, &cntl, NULL, NULL, NULL/*done*/);
 
@@ -700,16 +700,16 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     usleep(500 * 1000);
 
     {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = brpc::PROTOCOL_HTTP;
+        melon::Channel channel;
+        melon::ChannelOptions options;
+        options.protocol = melon::PROTOCOL_HTTP;
         if (channel.Init(leader->node_id().peer_id.addr, &options) != 0) {
             LOG(ERROR) << "Fail to initialize channel";
         }
         {
-            brpc::Controller cntl;
+            melon::Controller cntl;
             cntl.http_request().uri() = "/raft_stat/unittest";
-            cntl.http_request().set_method(brpc::HTTP_METHOD_GET);
+            cntl.http_request().set_method(melon::HTTP_METHOD_GET);
             channel.CallMethod(NULL, &cntl, NULL, NULL, NULL/* done*/);
             LOG(INFO) << "http return: \n" << cntl.response_attachment();
         }
@@ -1682,8 +1682,8 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
 }
 
 TEST_P(NodeTest, NoSnapshot) {
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     int ret = braft::add_service(&server, "0.0.0.0:5006");
     ASSERT_EQ(0, ret);
     ASSERT_EQ(0, server.Start(5006, &server_options));
@@ -1739,8 +1739,8 @@ TEST_P(NodeTest, NoSnapshot) {
 }
 
 TEST_P(NodeTest, AutoSnapshot) {
-    brpc::Server server;
-    brpc::ServerOptions server_options;
+    melon::Server server;
+    melon::ServerOptions server_options;
     int ret = braft::add_service(&server, "0.0.0.0:5006");
     ASSERT_EQ(0, ret);
     ASSERT_EQ(0, server.Start(5006, &server_options));
@@ -2139,7 +2139,7 @@ protected:
 };
 
 TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
-    brpc::Server server;
+    melon::Server server;
     int ret = braft::add_service(&server, 5006);
     server.Start(5006, NULL);
     ASSERT_EQ(0, ret);
@@ -2729,7 +2729,7 @@ TEST_P(NodeTest, boostrap_with_snapshot) {
     boptions.node_owns_fsm = false;
     boptions.fsm = &fsm;
     ASSERT_EQ(0, braft::bootstrap(boptions));
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, addr));
     ASSERT_EQ(0, server.Start(addr, NULL));
     braft::Node node("test", braft::PeerId(addr));
@@ -2763,7 +2763,7 @@ TEST_P(NodeTest, boostrap_without_snapshot) {
     boptions.snapshot_uri = "local://./data/snapshot";
     boptions.group_conf.add_peer(braft::PeerId(addr));
     ASSERT_EQ(0, braft::bootstrap(boptions));
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, braft::add_service(&server, addr));
     ASSERT_EQ(0, server.Start(addr, NULL));
     braft::Node node("test", braft::PeerId(addr));
@@ -3101,7 +3101,7 @@ TEST_P(NodeTest, change_peers_chaos_without_snapshot) {
 class AppendEntriesSyncClosure : public google::protobuf::Closure {
 public:
     AppendEntriesSyncClosure() {
-        _cntl = new brpc::Controller;
+        _cntl = new melon::Controller;
     }
     ~AppendEntriesSyncClosure() {
         if (_cntl) {
@@ -3116,7 +3116,7 @@ public:
     }
     braft::AppendEntriesRequest& request() { return _request; }
     braft::AppendEntriesResponse& response() { return _response; }
-    brpc::Controller& cntl() {
+    melon::Controller& cntl() {
         return *_cntl;
     }
 
@@ -3124,7 +3124,7 @@ private:
     bthread::CountdownEvent _event;
     braft::AppendEntriesRequest _request;
     braft::AppendEntriesResponse _response;
-    brpc::Controller* _cntl;
+    melon::Controller* _cntl;
 };
 
 void follower_append_entries(

@@ -20,21 +20,21 @@
 #include "melon/bthread/bthread.h"
 #include <gtest/gtest.h>
 
-namespace brpc {
+namespace melon {
 namespace policy {
 DECLARE_int32(timeout_cl_sample_window_size_ms);
 DECLARE_int32(timeout_cl_min_sample_count);
 DECLARE_int32(timeout_cl_max_sample_count);
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 TEST(TimeoutConcurrencyLimiterTest, AddSample) {
     {
-        brpc::policy::FLAGS_timeout_cl_sample_window_size_ms = 10;
-        brpc::policy::FLAGS_timeout_cl_min_sample_count = 5;
-        brpc::policy::FLAGS_timeout_cl_max_sample_count = 10;
+        melon::policy::FLAGS_timeout_cl_sample_window_size_ms = 10;
+        melon::policy::FLAGS_timeout_cl_min_sample_count = 5;
+        melon::policy::FLAGS_timeout_cl_max_sample_count = 10;
 
-        brpc::policy::TimeoutConcurrencyLimiter limiter;
+        melon::policy::TimeoutConcurrencyLimiter limiter;
         limiter.AddSample(0, 50, butil::gettimeofday_us());
         limiter.AddSample(0, 50, butil::gettimeofday_us());
         limiter.AddSample(0, 50, butil::gettimeofday_us());
@@ -91,10 +91,10 @@ TEST(TimeoutConcurrencyLimiterTest, AddSample) {
 }
 
 TEST(TimeoutConcurrencyLimiterTest, OnResponded) {
-    brpc::policy::FLAGS_timeout_cl_sample_window_size_ms = 10;
-    brpc::policy::FLAGS_timeout_cl_min_sample_count = 5;
-    brpc::policy::FLAGS_timeout_cl_max_sample_count = 10;
-    brpc::policy::TimeoutConcurrencyLimiter limiter;
+    melon::policy::FLAGS_timeout_cl_sample_window_size_ms = 10;
+    melon::policy::FLAGS_timeout_cl_min_sample_count = 5;
+    melon::policy::FLAGS_timeout_cl_max_sample_count = 10;
+    melon::policy::TimeoutConcurrencyLimiter limiter;
     limiter.OnResponded(0, 50);
     limiter.OnResponded(0, 50);
     bthread_usleep(100);
@@ -106,23 +106,23 @@ TEST(TimeoutConcurrencyLimiterTest, OnResponded) {
 
 TEST(TimeoutConcurrencyLimiterTest, AdaptiveMaxConcurrencyTest) {
     {
-        brpc::AdaptiveMaxConcurrency concurrency(
-            brpc::TimeoutConcurrencyConf{100, 100});
+        melon::AdaptiveMaxConcurrency concurrency(
+            melon::TimeoutConcurrencyConf{100, 100});
         ASSERT_EQ(concurrency.type(), "timeout");
         ASSERT_EQ(concurrency.value(), "timeout");
     }
     {
-        brpc::AdaptiveMaxConcurrency concurrency;
+        melon::AdaptiveMaxConcurrency concurrency;
         concurrency = "timeout";
         ASSERT_EQ(concurrency.type(), "timeout");
         ASSERT_EQ(concurrency.value(), "timeout");
     }
     {
-        brpc::AdaptiveMaxConcurrency concurrency;
-        concurrency = brpc::TimeoutConcurrencyConf{50, 100};
+        melon::AdaptiveMaxConcurrency concurrency;
+        concurrency = melon::TimeoutConcurrencyConf{50, 100};
         ASSERT_EQ(concurrency.type(), "timeout");
         ASSERT_EQ(concurrency.value(), "timeout");
-        auto time_conf = static_cast<brpc::TimeoutConcurrencyConf>(concurrency);
+        auto time_conf = static_cast<melon::TimeoutConcurrencyConf>(concurrency);
         ASSERT_EQ(time_conf.timeout_ms, 50);
         ASSERT_EQ(time_conf.max_concurrency, 100);
     }

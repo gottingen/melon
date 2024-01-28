@@ -20,7 +20,7 @@
 
 #include "melon/rpc/concurrency_limiter.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class TimeoutConcurrencyLimiter : public ConcurrencyLimiter {
@@ -72,6 +72,6 @@ class TimeoutConcurrencyLimiter : public ConcurrencyLimiter {
 };
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // BRPC_POLICY_TIMEOUT_CONCURRENCY_LIMITER_H

@@ -27,7 +27,7 @@
 #include "melon/rpc/details/naming_service_thread.h"
 
 
-namespace brpc {
+namespace melon {
 
 struct NSKey {
     std::string protocol;
@@ -506,4 +506,4 @@ std::ostream& operator<<(std::ostream& os, const NamingServiceThread& nsthr) {
     return os;
 }
 
-} // namespace brpc
+} // namespace melon

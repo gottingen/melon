@@ -16,8 +16,8 @@
 
 #include "melon/raft/cli.h"
 
-#include <melon/rpc/channel.h>          // brpc::Channel
-#include <melon/rpc/controller.h>       // brpc::Controller
+#include <melon/rpc/channel.h>          // melon::Channel
+#include <melon/rpc/controller.h>       // melon::Controller
 #include "melon/raft/cli.pb.h"                // CliService_Stub
 #include "melon/raft/util.h"
 
@@ -34,7 +34,7 @@ static butil::Status get_leader(const GroupId& group_id, const Configuration& co
     leader_id->reset();
     for (Configuration::const_iterator
             iter = conf.begin(); iter != conf.end(); ++iter) {
-        brpc::Channel channel;
+        melon::Channel channel;
         if (channel.Init(iter->addr, NULL) != 0) {
             return butil::Status(-1, "Fail to init channel to %s",
                                      iter->to_string().c_str());
@@ -42,7 +42,7 @@ static butil::Status get_leader(const GroupId& group_id, const Configuration& co
         CliService_Stub stub(&channel);
         GetLeaderRequest request;
         GetLeaderResponse response;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         request.set_group_id(group_id);
         request.set_peer_id(iter->to_string());
         stub.get_leader(&cntl, &request, &response, NULL);
@@ -72,7 +72,7 @@ butil::Status add_peer(const GroupId& group_id, const Configuration& conf,
     PeerId leader_id;
     butil::Status st = get_leader(group_id, conf, &leader_id);
     BRAFT_RETURN_IF(!st.ok(), st);
-    brpc::Channel channel;
+    melon::Channel channel;
     if (channel.Init(leader_id.addr, NULL) != 0) {
         return butil::Status(-1, "Fail to init channel to %s",
                                 leader_id.to_string().c_str());
@@ -82,7 +82,7 @@ butil::Status add_peer(const GroupId& group_id, const Configuration& conf,
     request.set_leader_id(leader_id.to_string());
     request.set_peer_id(peer_id.to_string());
     AddPeerResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.set_timeout_ms(options.timeout_ms);
     cntl.set_max_retry(options.max_retry);
 
@@ -110,7 +110,7 @@ butil::Status remove_peer(const GroupId& group_id, const Configuration& conf,
     PeerId leader_id;
     butil::Status st = get_leader(group_id, conf, &leader_id);
     BRAFT_RETURN_IF(!st.ok(), st);
-    brpc::Channel channel;
+    melon::Channel channel;
     if (channel.Init(leader_id.addr, NULL) != 0) {
         return butil::Status(-1, "Fail to init channel to %s",
                                 leader_id.to_string().c_str());
@@ -120,7 +120,7 @@ butil::Status remove_peer(const GroupId& group_id, const Configuration& conf,
     request.set_leader_id(leader_id.to_string());
     request.set_peer_id(peer_id.to_string());
     RemovePeerResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.set_timeout_ms(options.timeout_ms);
     cntl.set_max_retry(options.max_retry);
 
@@ -149,12 +149,12 @@ butil::Status reset_peer(const GroupId& group_id, const PeerId& peer_id,
     if (new_conf.empty()) {
         return butil::Status(EINVAL, "new_conf is empty");
     }
-    brpc::Channel channel;
+    melon::Channel channel;
     if (channel.Init(peer_id.addr, NULL) != 0) {
         return butil::Status(-1, "Fail to init channel to %s",
                                 peer_id.to_string().c_str());
     }
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.set_timeout_ms(options.timeout_ms);
     cntl.set_max_retry(options.max_retry);
     ResetPeerRequest request;
@@ -175,12 +175,12 @@ butil::Status reset_peer(const GroupId& group_id, const PeerId& peer_id,
 
 butil::Status snapshot(const GroupId& group_id, const PeerId& peer_id,
                       const CliOptions& options) {
-    brpc::Channel channel;
+    melon::Channel channel;
     if (channel.Init(peer_id.addr, NULL) != 0) {
         return butil::Status(-1, "Fail to init channel to %s",
                                 peer_id.to_string().c_str());
     }
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.set_timeout_ms(options.timeout_ms);
     cntl.set_max_retry(options.max_retry);
     SnapshotRequest request;
@@ -203,7 +203,7 @@ butil::Status change_peers(const GroupId& group_id, const Configuration& conf,
     BRAFT_RETURN_IF(!st.ok(), st);
     LOG(INFO) << "conf=" << conf << " leader=" << leader_id
               << " new_peers=" << new_peers;
-    brpc::Channel channel;
+    melon::Channel channel;
     if (channel.Init(leader_id.addr, NULL) != 0) {
         return butil::Status(-1, "Fail to init channel to %s",
                                 leader_id.to_string().c_str());
@@ -217,7 +217,7 @@ butil::Status change_peers(const GroupId& group_id, const Configuration& conf,
         request.add_new_peers(iter->to_string());
     }
     ChangePeersResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.set_timeout_ms(options.timeout_ms);
     cntl.set_max_retry(options.max_retry);
 
@@ -249,7 +249,7 @@ butil::Status transfer_leader(const GroupId& group_id, const Configuration& conf
         LOG(INFO) << "peer " << peer << " is already the leader";
         return butil::Status::OK();
     }
-    brpc::Channel channel;
+    melon::Channel channel;
     if (channel.Init(leader_id.addr, NULL) != 0) {
         return butil::Status(-1, "Fail to init channel to %s",
                                 leader_id.to_string().c_str());
@@ -261,7 +261,7 @@ butil::Status transfer_leader(const GroupId& group_id, const Configuration& conf
         request.set_peer_id(peer.to_string());
     }
     TransferLeaderResponse response;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.set_timeout_ms(options.timeout_ms);
     cntl.set_max_retry(options.max_retry);
     CliService_Stub stub(&channel);

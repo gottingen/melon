@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef  BRPC_CONSISTENT_HASHING_LOAD_BALANCER_H
-#define  BRPC_CONSISTENT_HASHING_LOAD_BALANCER_H
+#ifndef  MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_
+#define  MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_
 
 #include <stdint.h>                                     // uint32_t
 #include <functional>
@@ -27,7 +27,7 @@
 #include "melon/rpc/load_balancer.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class ReplicaPolicy;
@@ -81,7 +81,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
-#endif  //BRPC_CONSISTENT_HASHING_LOAD_BALANCER_H
+#endif  // MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_

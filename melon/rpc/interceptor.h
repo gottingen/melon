@@ -21,7 +21,7 @@
 #include "melon/rpc/controller.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Interceptor {
 public:
@@ -30,13 +30,13 @@ public:
     // Returns true if accept request, reject request otherwise.
     // When server rejects request, You can fill `error_code'
     // and `error_txt' which will send to client.
-    virtual bool Accept(const brpc::Controller* controller,
+    virtual bool Accept(const melon::Controller* controller,
                         int& error_code,
                         std::string& error_txt) const = 0;
 
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif //BRPC_INTERCEPTOR_H

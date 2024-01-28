@@ -16,7 +16,7 @@
 // under the License.
 
 syntax="proto2";
-package brpc;
+package melon;
 option java_package="com.brpc";
 option java_outer_classname="BaiduRpcErrno";
 

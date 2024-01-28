@@ -20,8 +20,8 @@
 #define  BRAFT_FSM_CALLER_H
 
 #include <melon/butil/macros.h>                        // BAIDU_CACHELINE_ALIGNMENT
-#include <bthread/bthread.h>
-#include <bthread/execution_queue.h>
+#include <melon/bthread/bthread.h>
+#include <melon/bthread/execution_queue.h>
 #include "melon/raft/ballot_box.h"
 #include "melon/raft/closure_queue.h"
 #include "melon/raft/macros.h"

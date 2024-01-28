@@ -314,9 +314,6 @@ static T deref_value(void* arg) {
 
 void TimerThread::run() {
     run_worker_startfn();
-#ifdef BAIDU_INTERNAL
-    logging::ComlogInitializer comlog_initializer;
-#endif
 
     int64_t last_sleep_time = butil::gettimeofday_us();
     BT_VLOG << "Started TimerThread=" << pthread_self();

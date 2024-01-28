@@ -24,7 +24,7 @@
 // To baidu-rpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
 
-namespace brpc {
+namespace melon {
 
 struct H2Settings {
     // Construct with default values.
@@ -121,6 +121,6 @@ const char* H2ErrorToString(H2Error e);
 // Convert the error to status code with similar semantics
 int H2ErrorToStatusCode(H2Error e);
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BAIDU_RPC_HTTP2_H

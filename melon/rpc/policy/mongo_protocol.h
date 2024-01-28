@@ -22,7 +22,7 @@
 #include "melon/rpc/input_messenger.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse binary format of mongo
@@ -32,7 +32,7 @@ ParseResult ParseMongoMessage(butil::IOBuf* source, Socket* socket, bool read_eo
 void ProcessMongoRequest(InputMessageBase* msg);
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_MONGO_PROTOCOL_H

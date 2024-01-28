@@ -19,7 +19,7 @@
 
 // Date: Mon Oct 19 17:17:36 CST 2015
 
-#include "mcpack2pb/field_type.h"
+#include "melon/mcpack2pb/field_type.h"
 
 namespace mcpack2pb {
 

@@ -23,7 +23,7 @@
 #include "json_loader.h"
 #include <errno.h>
 
-namespace brpc {
+namespace melon {
 
 class JsonLoader::Reader {
 public:
@@ -226,4 +226,4 @@ void JsonLoader::load_messages(
     load_messages(&ctx, out_msgs);
 }
 
-} // namespace brpc
+} // namespace melon

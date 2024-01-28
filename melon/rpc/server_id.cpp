@@ -19,7 +19,7 @@
 #include "melon/rpc/server_id.h"
 
 
-namespace brpc {
+namespace melon {
 
 ServerId2SocketIdMapper::ServerId2SocketIdMapper() {
     _tmp.reserve(128);
@@ -68,4 +68,4 @@ std::vector<SocketId>& ServerId2SocketIdMapper::RemoveServers(
     return _tmp;
 }
 
-} // namespace brpc
+} // namespace melon

@@ -26,8 +26,8 @@
 #include <google/protobuf/compiler/plugin.h>
 #include "melon/butil/string_printf.h"
 #include "melon/butil/file_util.h"
-#include "mcpack2pb/mcpack2pb.h"
-#include "idl_options.pb.h"
+#include "melon/mcpack2pb/mcpack2pb.h"
+#include "melon/idl_options.pb.h"
 
 namespace mcpack2pb {
 

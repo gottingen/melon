@@ -14,7 +14,7 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#include <bthread/unstable.h>
+#include <melon/bthread/unstable.h>
 #include "melon/raft/closure_queue.h"
 #include "melon/raft/raft.h"
 

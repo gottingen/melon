@@ -25,7 +25,7 @@
 #include "melon/butil/strings/string_piece.h"
 #include "melon/butil/strings/string_number_conversions.h"
 
-namespace brpc {
+namespace melon {
 
 struct ServerId;
 
@@ -83,7 +83,7 @@ private:
 bool GetRecoverPolicyByParams(const butil::StringPiece& params,
                               std::shared_ptr<ClusterRecoverPolicy>* ptr_out);
 
-} // namespace brpc
+} // namespace melon
 
 #endif
 

@@ -29,11 +29,11 @@ DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
 DEFINE_int32(sleep_ms, 20, "Sleep so many milliseconds on even-th requests");
 
 // Your implementation of example::EchoService
-// Notice that implementing brpc::Describable grants the ability to put
+// Notice that implementing melon::Describable grants the ability to put
 // additional information in /status.
 namespace example {
 class SleepyEchoService : public EchoService
-                        , public brpc::Describable {
+                        , public melon::Describable {
 public:
     SleepyEchoService() : _count(0) {}
     virtual ~SleepyEchoService() {}
@@ -43,10 +43,10 @@ public:
                       google::protobuf::Closure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(cntl_base);
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(cntl_base);
 
         // The purpose of following logs is to help you to understand
         // how clients interact with servers more intuitively. You should 
@@ -81,22 +81,22 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     // Generally you only need one Server.
-    brpc::Server server;
+    melon::Server server;
 
     // Instance of your service.
     example::SleepyEchoService echo_service_impl;
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
+    // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server.
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";

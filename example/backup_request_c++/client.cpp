@@ -25,7 +25,7 @@
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
 
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in src/brpc/options.proto");
+DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:8000", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
@@ -39,10 +39,10 @@ int main(int argc, char* argv[]) {
     
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
 
     // Initialize the channel, NULL means using default options.
-    brpc::ChannelOptions options;
+    melon::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
@@ -59,12 +59,12 @@ int main(int argc, char* argv[]) {
 
     // Send a request and wait for the response every 1 second.
     int counter = 0;
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
         // on stack.
         example::EchoRequest request;
         example::EchoResponse response;
-        brpc::Controller cntl;
+        melon::Controller cntl;
 
         request.set_index(++counter);
 

@@ -22,7 +22,7 @@
 
 #include "melon/butil/logging.h"
 
-namespace brpc {
+namespace melon {
 
 EspMessage::EspMessage()
     : ::google::protobuf::Message() {
@@ -147,4 +147,4 @@ void EspMessage::Swap(EspMessage* other) {
     return metadata;
 }
 
-} // namespace brpc
+} // namespace melon

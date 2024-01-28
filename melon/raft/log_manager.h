@@ -21,7 +21,7 @@
 #include <melon/butil/macros.h>                        // BAIDU_CACHELINE_ALIGNMENT
 #include <melon/butil/containers/flat_map.h>           // butil::FlatMap
 #include <deque>                                // std::deque
-#include <bthread/execution_queue.h>            // bthread::ExecutionQueueId
+#include <melon/bthread/execution_queue.h>            // bthread::ExecutionQueueId
 
 #include "melon/raft/raft.h"                          // Closure
 #include "melon/raft/util.h"                          // raft_mutex_t

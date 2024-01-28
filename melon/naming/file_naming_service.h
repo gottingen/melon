@@ -22,7 +22,7 @@
 #include "melon/naming/naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class FileNamingService : public NamingService {
@@ -42,7 +42,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_POLICY_FILE_NAMING_SERVICE

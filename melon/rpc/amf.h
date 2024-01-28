@@ -27,7 +27,7 @@
 #include "melon/butil/strings/string_piece.h"
 
 
-namespace brpc {
+namespace melon {
 
 // For parsing and serializing Action Message Format used throughout RTMP.
 
@@ -296,7 +296,7 @@ void WriteAMFObject(const google::protobuf::Message& msg,
 void WriteAMFObject(const AMFObject& obj, AMFOutputStream* stream);
 void WriteAMFArray(const AMFArray& arr, AMFOutputStream* stream);
 
-} // namespace brpc
+} // namespace melon
 
 
 #include "melon/rpc/amf_inl.h"

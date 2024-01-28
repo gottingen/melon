@@ -20,13 +20,13 @@
 #define BRPC_GLOBAL_H
 
 
-namespace brpc {
+namespace melon {
 
 // Register all naming service, load balancers, compress handlers inside
 // `brpc/policy/' directory
 void GlobalInitializeOrDie();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_GLOBAL_H

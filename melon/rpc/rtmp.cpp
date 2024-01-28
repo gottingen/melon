@@ -30,7 +30,7 @@
 #include "melon/rpc/details/rtmp_utils.h"
 
 
-namespace brpc {
+namespace melon {
 
 DEFINE_bool(rtmp_server_close_connection_on_error, true,
             "Close the client connection on play/publish errors, clients setting"
@@ -2304,19 +2304,19 @@ void RetryingClientMessageHandler::OnUserData(void* msg) {
     _parent->CallOnUserData(msg);
 }
 
-void RetryingClientMessageHandler::OnCuePoint(brpc::RtmpCuePoint* cuepoint) {
+void RetryingClientMessageHandler::OnCuePoint(melon::RtmpCuePoint* cuepoint) {
     _parent->CallOnCuePoint(cuepoint);
 }
 
-void RetryingClientMessageHandler::OnMetaData(brpc::RtmpMetaData* metadata, const butil::StringPiece& name) {
+void RetryingClientMessageHandler::OnMetaData(melon::RtmpMetaData* metadata, const butil::StringPiece& name) {
     _parent->CallOnMetaData(metadata, name);
 }
 
-void RetryingClientMessageHandler::OnAudioMessage(brpc::RtmpAudioMessage* msg) {
+void RetryingClientMessageHandler::OnAudioMessage(melon::RtmpAudioMessage* msg) {
     _parent->CallOnAudioMessage(msg);
 }
 
-void RetryingClientMessageHandler::OnVideoMessage(brpc::RtmpVideoMessage* msg) {
+void RetryingClientMessageHandler::OnVideoMessage(melon::RtmpVideoMessage* msg) {
     _parent->CallOnVideoMessage(msg);
 }
 
@@ -2882,4 +2882,4 @@ std::string MakeRtmpURL(const butil::StringPiece& host,
     return result;
 }
 
-} // namespace brpc
+} // namespace melon

@@ -70,7 +70,7 @@ uint64_t GetStride(const uint64_t weight_sum, const size_t num) {
 
 }  // namespace
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 bool WeightedRoundRobinLoadBalancer::Add(Servers& bg, const ServerId& id) {
@@ -276,4 +276,4 @@ void WeightedRoundRobinLoadBalancer::Describe(
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

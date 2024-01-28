@@ -28,9 +28,9 @@ DEFINE_int32(port, 8001, "TCP Port of this server");
 DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
 
-class StreamReceiver : public brpc::StreamInputHandler {
+class StreamReceiver : public melon::StreamInputHandler {
 public:
-    virtual int on_received_messages(brpc::StreamId id, 
+    virtual int on_received_messages(melon::StreamId id,
                                      butil::IOBuf *const messages[], 
                                      size_t size) {
         std::ostringstream os;
@@ -40,10 +40,10 @@ public:
         LOG(INFO) << "Received from Stream=" << id << ": " << os.str();
         return 0;
     }
-    virtual void on_idle_timeout(brpc::StreamId id) {
+    virtual void on_idle_timeout(melon::StreamId id) {
         LOG(INFO) << "Stream=" << id << " has no data transmission for a while";
     }
-    virtual void on_closed(brpc::StreamId id) {
+    virtual void on_closed(melon::StreamId id) {
         LOG(INFO) << "Stream=" << id << " is closed";
     }
 
@@ -52,9 +52,9 @@ public:
 // Your implementation of example::EchoService
 class StreamingEchoService : public example::EchoService {
 public:
-    StreamingEchoService() : _sd(brpc::INVALID_STREAM_ID) {}
+    StreamingEchoService() : _sd(melon::INVALID_STREAM_ID) {}
     virtual ~StreamingEchoService() {
-        brpc::StreamClose(_sd);
+        melon::StreamClose(_sd);
     };
     virtual void Echo(google::protobuf::RpcController* controller,
                       const example::EchoRequest* /*request*/,
@@ -62,13 +62,13 @@ public:
                       google::protobuf::Closure* done) {
         // This object helps you to call done->Run() in RAII style. If you need
         // to process the request asynchronously, pass done_guard.release().
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
 
-        brpc::Controller* cntl =
-            static_cast<brpc::Controller*>(controller);
-        brpc::StreamOptions stream_options;
+        melon::Controller* cntl =
+            static_cast<melon::Controller*>(controller);
+        melon::StreamOptions stream_options;
         stream_options.handler = &_receiver;
-        if (brpc::StreamAccept(&_sd, *cntl, &stream_options) != 0) {
+        if (melon::StreamAccept(&_sd, *cntl, &stream_options) != 0) {
             cntl->SetFailed("Fail to accept stream");
             return;
         }
@@ -77,7 +77,7 @@ public:
 
 private:
     StreamReceiver _receiver;
-    brpc::StreamId _sd;
+    melon::StreamId _sd;
 };
 
 int main(int argc, char* argv[]) {
@@ -85,22 +85,22 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     // Generally you only need one Server.
-    brpc::Server server;
+    melon::Server server;
 
     // Instance of your service.
     StreamingEchoService echo_service_impl;
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
+    // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server. 
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";

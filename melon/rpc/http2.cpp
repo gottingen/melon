@@ -21,7 +21,7 @@
 #include "melon/rpc/errno.pb.h"
 #include "melon/rpc/http2.h"
 
-namespace brpc {
+namespace melon {
 
 H2Settings::H2Settings()
     : header_table_size(DEFAULT_HEADER_TABLE_SIZE)
@@ -112,4 +112,4 @@ int H2ErrorToStatusCode(H2Error e) {
     return HTTP_STATUS_INTERNAL_SERVER_ERROR;
 }
 
-} // namespace brpc
+} // namespace melon

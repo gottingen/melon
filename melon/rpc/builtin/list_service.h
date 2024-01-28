@@ -22,7 +22,7 @@
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class Server;
 
@@ -31,14 +31,14 @@ public:
     explicit ListService(Server* server) : _server(server) {}
     
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::ListRequest* request,
-                        ::brpc::ListResponse* response,
+                        const ::melon::ListRequest* request,
+                        ::melon::ListResponse* response,
                         ::google::protobuf::Closure* done);
 private:
     Server* _server;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_LIST_SERVICE_H

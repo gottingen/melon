@@ -24,7 +24,7 @@
 #include "melon/butil/iobuf.h"                           // butil::IOBuf
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 typedef google::protobuf::io::GzipOutputStream::Options GzipCompressOptions;
@@ -46,7 +46,7 @@ bool GzipDecompress(const butil::IOBuf& in, butil::IOBuf* out);
 bool ZlibDecompress(const butil::IOBuf& in, butil::IOBuf* out);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_POLICY_GZIP_COMPRESS_H

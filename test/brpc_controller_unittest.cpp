@@ -42,17 +42,17 @@ void MyCancelCallback(bool* cancel_flag) {
 }
 
 TEST_F(ControllerTest, notify_on_failed) {
-    brpc::SocketId id = 0;
-    ASSERT_EQ(0, brpc::Socket::Create(brpc::SocketOptions(), &id));
+    melon::SocketId id = 0;
+    ASSERT_EQ(0, melon::Socket::Create(melon::SocketOptions(), &id));
 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl._current_call.peer_id = id;
     ASSERT_FALSE(cntl.IsCanceled());
 
     bool cancel = false;
-    cntl.NotifyOnCancel(brpc::NewCallback(&MyCancelCallback, &cancel));
+    cntl.NotifyOnCancel(melon::NewCallback(&MyCancelCallback, &cancel));
     // Trigger callback
-    brpc::Socket::SetFailed(id);
+    melon::Socket::SetFailed(id);
     usleep(20000); // sleep a while to wait for the canceling which will be
                    // happening in another thread.
     ASSERT_TRUE(cancel);
@@ -60,15 +60,15 @@ TEST_F(ControllerTest, notify_on_failed) {
 }
 
 TEST_F(ControllerTest, notify_on_destruction) {
-    brpc::SocketId id = 0;
-    ASSERT_EQ(0, brpc::Socket::Create(brpc::SocketOptions(), &id));
+    melon::SocketId id = 0;
+    ASSERT_EQ(0, melon::Socket::Create(melon::SocketOptions(), &id));
 
-    brpc::Controller* cntl = new brpc::Controller;
+    melon::Controller* cntl = new melon::Controller;
     cntl->_current_call.peer_id = id;
     ASSERT_FALSE(cntl->IsCanceled());
 
     bool cancel = false;
-    cntl->NotifyOnCancel(brpc::NewCallback(&MyCancelCallback, &cancel));
+    cntl->NotifyOnCancel(melon::NewCallback(&MyCancelCallback, &cancel));
     // Trigger callback
     delete cntl;
     ASSERT_TRUE(cancel);
@@ -96,7 +96,7 @@ TEST_F(ControllerTest, SessionKV) {
     logging::StringSink sink1;
     auto oldSink = logging::SetLogSink(&sink1);
     {
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.set_log_id(123); // not working now
         // set
         cntl.SessionKV().Set("Apple", 1234567);    

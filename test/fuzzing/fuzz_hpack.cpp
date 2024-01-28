@@ -31,8 +31,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     std::string input(reinterpret_cast<const char*>(data), size);
 
     butil::IOBuf buf;
-    brpc::HPacker p2;
-    brpc::HPacker::Header h2;
+    melon::HPacker p2;
+    melon::HPacker::Header h2;
 
     p2.Init(4096);
     buf.append(input);

@@ -31,7 +31,7 @@
 #include "melon/rpc/input_messenger.h"
 
 
-namespace brpc {
+namespace melon {
 
 InputMessenger* g_messenger = NULL;
 static pthread_once_t g_messenger_init = PTHREAD_ONCE_INIT;
@@ -597,4 +597,4 @@ Socket* InputMessageBase::ReleaseSocket() {
 
 InputMessageBase::~InputMessageBase() {}
 
-} // namespace brpc
+} // namespace melon

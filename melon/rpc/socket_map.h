@@ -27,7 +27,7 @@
 #include "melon/rpc/input_messenger.h"             // InputMessageHandler
 #include "melon/rpc/server_node.h"                 // ServerNode
 
-namespace brpc {
+namespace melon {
 
 // Different signature means that the Channel needs separate sockets.
 struct ChannelSignature {
@@ -197,6 +197,6 @@ private:
     bthread_t _close_idle_thread;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_SOCKET_MAP_H

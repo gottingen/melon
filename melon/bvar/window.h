@@ -117,10 +117,7 @@ public:
             os << get_value();
         }
     }
-    
-#ifdef BAIDU_INTERNAL
-    void get_value(boost::any* value) const override { *value = get_value(); }
-#endif
+
 
     time_t window_size() const { return _window_size; }
 

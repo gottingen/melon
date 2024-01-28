@@ -21,7 +21,7 @@
 
 #include "melon/rpc/socket_id.h"
 
-namespace brpc {
+namespace melon {
 class Controller;
 class StreamUserData;
 
@@ -77,7 +77,7 @@ public:
                                        bool end_of_rpc) = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_STREAM_CREATOR_H

@@ -16,8 +16,8 @@
 #include <fcntl.h>                      // open
 #include <gflags/gflags.h>              // DEFINE_*
 #include <melon/butil/sys_byteorder.h>        // butil::NetToHost32
-#include <melon/rpc/controller.h>            // brpc::Controller
-#include <melon/rpc/server.h>                // brpc::Server
+#include <melon/rpc/controller.h>            // melon::Controller
+#include <melon/rpc/server.h>                // melon::Server
 #include <melon/raft/raft.h>                 // braft::Node braft::StateMachine
 #include <melon/raft/storage.h>              // braft::SnapshotWriter
 #include <melon/raft/util.h>                 // braft::AsyncClosureGuard
@@ -121,7 +121,7 @@ public:
                BlockResponse* response,
                butil::IOBuf* data,
                google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         // Serialize request to the replicated write-ahead-log so that all the
         // peers in the group receive this request as well.
         // Notice that _value can't be modified in this routine otherwise it
@@ -330,7 +330,7 @@ friend class BlockClosure;
         SnapshotArg* sa = (SnapshotArg*) arg;
         std::unique_ptr<SnapshotArg> arg_guard(sa);
         // Serialize StateMachine to the snapshot
-        brpc::ClosureGuard done_guard(sa->done);
+        melon::ClosureGuard done_guard(sa->done);
         std::string snapshot_path = sa->writer->get_path() + "/data";
         // Sync buffered data before
         int rc = 0;
@@ -430,7 +430,7 @@ void BlockClosure::Run() {
     // Auto delete this after Run()
     std::unique_ptr<BlockClosure> self_guard(this);
     // Repsond this RPC.
-    brpc::ClosureGuard done_guard(_done);
+    melon::ClosureGuard done_guard(_done);
     if (status().ok()) {
         return;
     }
@@ -446,7 +446,7 @@ public:
                const ::example::BlockRequest* request,
                ::example::BlockResponse* response,
                ::google::protobuf::Closure* done) {
-        brpc::Controller* cntl = (brpc::Controller*)controller;
+        melon::Controller* cntl = (melon::Controller*)controller;
         return _block->write(request, response,
                              &cntl->request_attachment(), done);
     }
@@ -454,8 +454,8 @@ public:
               const ::example::BlockRequest* request,
               ::example::BlockResponse* response,
               ::google::protobuf::Closure* done) {
-        brpc::Controller* cntl = (brpc::Controller*)controller;
-        brpc::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)controller;
+        melon::ClosureGuard done_guard(done);
         return _block->read(request, response, &cntl->response_attachment());
     }
 private:
@@ -469,13 +469,13 @@ int main(int argc, char* argv[]) {
     butil::AtExitManager exit_manager;
 
     // Generally you only need one Server.
-    brpc::Server server;
+    melon::Server server;
     example::Block block;
     example::BlockServiceImpl service(&block);
 
     // Add your service into RPC rerver
     if (server.AddService(&service, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
@@ -506,7 +506,7 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "Block service is running on " << server.listen_address();
     // Wait until 'CTRL-C' is pressed. then Stop() and Join() the service
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         sleep(1);
     }
     LOG(INFO) << "Block service is going to quit";

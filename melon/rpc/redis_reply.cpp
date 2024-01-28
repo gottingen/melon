@@ -21,7 +21,7 @@
 #include "melon/butil/string_printf.h"
 #include "melon/rpc/redis_reply.h"
 
-namespace brpc {
+namespace melon {
 
 //BAIDU_CASSERT(sizeof(RedisReply) == 24, size_match);
 const int RedisReply::npos = -1;
@@ -473,4 +473,4 @@ void RedisReply::FormatStringImpl(const char* fmt, va_list args, RedisReplyType 
     }
 }
 
-} // namespace brpc
+} // namespace melon

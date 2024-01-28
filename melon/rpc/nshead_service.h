@@ -24,7 +24,7 @@
 #include "melon/rpc/describable.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Server;
 class MethodStatus;
@@ -122,7 +122,7 @@ private:
     std::string _cached_name;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_NSHEAD_SERVICE_H

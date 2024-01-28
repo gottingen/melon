@@ -30,7 +30,7 @@ template <typename T> class GetLeakySingleton;
 }
 
 
-namespace brpc {
+namespace melon {
 
 // A global map from string to user-extended instances (typed T).
 // It's used by NamingService and LoadBalancer to maintain globally
@@ -55,7 +55,7 @@ friend class butil::GetLeakySingleton<Extension<T> >;
     butil::Mutex _map_mutex;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #include "melon/rpc/extension_inl.h"

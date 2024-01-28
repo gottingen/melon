@@ -37,7 +37,7 @@
 #include "melon/butil/containers/flat_map.h"
 
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(enable_rpcz);
 
@@ -231,4 +231,4 @@ const std::string& GetMemcacheMethodName(
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

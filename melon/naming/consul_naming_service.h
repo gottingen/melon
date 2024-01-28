@@ -23,7 +23,7 @@
 #include "melon/rpc/channel.h"
 
 
-namespace brpc {
+namespace melon {
 class Channel;
 namespace policy {
 
@@ -53,7 +53,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_POLICY_CONSUL_NAMING_SERVICE

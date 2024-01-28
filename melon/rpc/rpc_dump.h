@@ -29,7 +29,7 @@ namespace butil {
 class FileEnumerator;
 }
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(rpc_dump);
 
@@ -100,7 +100,7 @@ private:
     butil::FilePath _dir;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_RPC_DUMP_H

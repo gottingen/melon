@@ -19,8 +19,8 @@
 #ifndef  BRAFT_REPLICATOR_H
 #define  BRAFT_REPLICATOR_H
 
-#include <bthread/bthread.h>                            // bthread_id
-#include <melon/rpc/channel.h>                  // brpc::Channel
+#include <melon/bthread/bthread.h>                            // bthread_id
+#include <melon/rpc/channel.h>                  // melon::Channel
 
 #include "melon/raft/storage.h"                       // SnapshotStorage
 #include "melon/raft/raft.h"                          // Closure
@@ -171,19 +171,19 @@ private:
     int _change_readonly_config(bool readonly);
 
     static void _on_rpc_returned(
-                ReplicatorId id, brpc::Controller* cntl,
+                ReplicatorId id, melon::Controller* cntl,
                 AppendEntriesRequest* request, 
                 AppendEntriesResponse* response,
                 int64_t);
 
     static void _on_heartbeat_returned(
-                ReplicatorId id, brpc::Controller* cntl,
+                ReplicatorId id, melon::Controller* cntl,
                 AppendEntriesRequest* request, 
                 AppendEntriesResponse* response,
                 int64_t);
 
     static void _on_timeout_now_returned(
-                ReplicatorId id, brpc::Controller* cntl,
+                ReplicatorId id, melon::Controller* cntl,
                 TimeoutNowRequest* request, 
                 TimeoutNowResponse* response,
                 bool old_leader_stepped_down);
@@ -198,7 +198,7 @@ private:
     static void _on_block_timedout(void *arg);
     static void* _on_block_timedout_in_new_thread(void *arg);
     static void _on_install_snapshot_returned(
-                ReplicatorId id, brpc::Controller* cntl,
+                ReplicatorId id, melon::Controller* cntl,
                 InstallSnapshotRequest* request, 
                 InstallSnapshotResponse* response);
     void _destroy();
@@ -234,12 +234,12 @@ private:
     struct FlyingAppendEntriesRpc {
         int64_t log_index;
         int entries_size;
-        brpc::CallId call_id;
-        FlyingAppendEntriesRpc(int64_t index, int size, brpc::CallId id)
+        melon::CallId call_id;
+        FlyingAppendEntriesRpc(int64_t index, int size, melon::CallId id)
             : log_index(index), entries_size(size), call_id(id) {}
     };
     
-    brpc::Channel _sending_channel;
+    melon::Channel _sending_channel;
     int64_t _next_index;
     int64_t _flying_append_entries_size;
     int _consecutive_error_times;
@@ -251,9 +251,9 @@ private:
     int64_t _readonly_index;
     Stat _st;
     std::deque<FlyingAppendEntriesRpc> _append_entries_in_fly;
-    brpc::CallId _install_snapshot_in_fly;
-    brpc::CallId _heartbeat_in_fly;
-    brpc::CallId _timeout_now_in_fly;
+    melon::CallId _install_snapshot_in_fly;
+    melon::CallId _heartbeat_in_fly;
+    melon::CallId _timeout_now_in_fly;
     LogManager::WaitId _wait_id;
     bool _is_waiter_canceled;
     bthread_id_t _id;

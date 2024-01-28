@@ -52,29 +52,6 @@ void GFlag::describe(std::ostream& os, bool quote_string) const {
     }
 }
 
-#ifdef BAIDU_INTERNAL
-void GFlag::get_value(boost::any* value) const {
-    GFLAGS_NS::CommandLineFlagInfo info;
-    if (!GFLAGS_NS::GetCommandLineFlagInfo(gflag_name().c_str(), &info)) {
-        *value = "Unknown gflag=" + gflag_name();
-    } else if (info.type == "string") {
-        *value = info.current_value;
-    } else if (info.type == "int32") {
-        *value = static_cast<int>(atoi(info.current_value.c_str()));
-    } else if (info.type == "int64") {
-        *value = static_cast<int64_t>(atoll(info.current_value.c_str()));
-    } else if (info.type == "uint64") {
-        *value = static_cast<uint64_t>(
-            strtoull(info.current_value.c_str(), NULL, 10));
-    } else if (info.type == "bool") {
-        *value = (info.current_value == "true");
-    } else if (info.type == "double") {
-        *value = strtod(info.current_value.c_str(), NULL);
-    } else {
-        *value = "Unknown type=" + info.type + " of gflag=" + gflag_name();
-    }
-}
-#endif
 
 std::string GFlag::get_value() const {
     std::string str;

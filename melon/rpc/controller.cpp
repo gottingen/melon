@@ -56,39 +56,39 @@ extern BAIDU_THREAD_LOCAL TaskGroup* tls_task_group;
 
 // This is the only place that both client/server must link, so we put
 // registrations of errno here.
-BAIDU_REGISTER_ERRNO(brpc::ENOSERVICE, "No such service");
-BAIDU_REGISTER_ERRNO(brpc::ENOMETHOD, "No such method");
-BAIDU_REGISTER_ERRNO(brpc::EREQUEST, "Bad request");
-BAIDU_REGISTER_ERRNO(brpc::ERPCAUTH, "Authentication failed");
-BAIDU_REGISTER_ERRNO(brpc::ETOOMANYFAILS, "Too many sub channels failed");
-BAIDU_REGISTER_ERRNO(brpc::EPCHANFINISH, "ParallelChannel finished");
-BAIDU_REGISTER_ERRNO(brpc::EBACKUPREQUEST, "Sending backup request");
-BAIDU_REGISTER_ERRNO(brpc::ERPCTIMEDOUT, "RPC call is timed out");
-BAIDU_REGISTER_ERRNO(brpc::EFAILEDSOCKET, "Broken socket");
-BAIDU_REGISTER_ERRNO(brpc::EHTTP, "Bad http call");
-BAIDU_REGISTER_ERRNO(brpc::EOVERCROWDED, "The server is overcrowded");
-BAIDU_REGISTER_ERRNO(brpc::ERTMPPUBLISHABLE, "RtmpRetryingClientStream is publishable");
-BAIDU_REGISTER_ERRNO(brpc::ERTMPCREATESTREAM, "createStream was rejected by the RTMP server");
-BAIDU_REGISTER_ERRNO(brpc::EEOF, "Got EOF");
-BAIDU_REGISTER_ERRNO(brpc::EUNUSED, "The socket was not needed");
-BAIDU_REGISTER_ERRNO(brpc::ESSL, "SSL related operation failed");
-BAIDU_REGISTER_ERRNO(brpc::EH2RUNOUTSTREAMS, "The H2 socket was run out of streams");
+BAIDU_REGISTER_ERRNO(melon::ENOSERVICE, "No such service");
+BAIDU_REGISTER_ERRNO(melon::ENOMETHOD, "No such method");
+BAIDU_REGISTER_ERRNO(melon::EREQUEST, "Bad request");
+BAIDU_REGISTER_ERRNO(melon::ERPCAUTH, "Authentication failed");
+BAIDU_REGISTER_ERRNO(melon::ETOOMANYFAILS, "Too many sub channels failed");
+BAIDU_REGISTER_ERRNO(melon::EPCHANFINISH, "ParallelChannel finished");
+BAIDU_REGISTER_ERRNO(melon::EBACKUPREQUEST, "Sending backup request");
+BAIDU_REGISTER_ERRNO(melon::ERPCTIMEDOUT, "RPC call is timed out");
+BAIDU_REGISTER_ERRNO(melon::EFAILEDSOCKET, "Broken socket");
+BAIDU_REGISTER_ERRNO(melon::EHTTP, "Bad http call");
+BAIDU_REGISTER_ERRNO(melon::EOVERCROWDED, "The server is overcrowded");
+BAIDU_REGISTER_ERRNO(melon::ERTMPPUBLISHABLE, "RtmpRetryingClientStream is publishable");
+BAIDU_REGISTER_ERRNO(melon::ERTMPCREATESTREAM, "createStream was rejected by the RTMP server");
+BAIDU_REGISTER_ERRNO(melon::EEOF, "Got EOF");
+BAIDU_REGISTER_ERRNO(melon::EUNUSED, "The socket was not needed");
+BAIDU_REGISTER_ERRNO(melon::ESSL, "SSL related operation failed");
+BAIDU_REGISTER_ERRNO(melon::EH2RUNOUTSTREAMS, "The H2 socket was run out of streams");
 
-BAIDU_REGISTER_ERRNO(brpc::EINTERNAL, "General internal error");
-BAIDU_REGISTER_ERRNO(brpc::ERESPONSE, "Bad response");
-BAIDU_REGISTER_ERRNO(brpc::ELOGOFF, "Server is stopping");
-BAIDU_REGISTER_ERRNO(brpc::ELIMIT, "Reached server's max_concurrency");
-BAIDU_REGISTER_ERRNO(brpc::ECLOSE, "Close socket initiatively");
-BAIDU_REGISTER_ERRNO(brpc::EITP, "Bad Itp response");
+BAIDU_REGISTER_ERRNO(melon::EINTERNAL, "General internal error");
+BAIDU_REGISTER_ERRNO(melon::ERESPONSE, "Bad response");
+BAIDU_REGISTER_ERRNO(melon::ELOGOFF, "Server is stopping");
+BAIDU_REGISTER_ERRNO(melon::ELIMIT, "Reached server's max_concurrency");
+BAIDU_REGISTER_ERRNO(melon::ECLOSE, "Close socket initiatively");
+BAIDU_REGISTER_ERRNO(melon::EITP, "Bad Itp response");
 
 #if BRPC_WITH_RDMA
-BAIDU_REGISTER_ERRNO(brpc::ERDMA, "RDMA verbs error");
-BAIDU_REGISTER_ERRNO(brpc::ERDMAMEM, "Memory not registered for RDMA");
+BAIDU_REGISTER_ERRNO(melon::ERDMA, "RDMA verbs error");
+BAIDU_REGISTER_ERRNO(melon::ERDMAMEM, "Memory not registered for RDMA");
 #endif
 
 DECLARE_bool(log_as_json);
 
-namespace brpc {
+namespace melon {
 
 DEFINE_bool(graceful_quit_on_sigterm, false,
             "Register SIGTERM handle func to quit graceful");
@@ -241,9 +241,7 @@ void Controller::ResetPods() {
     // defined in header. Better for cpu cache and faster for lookup.
     _span = NULL;
     _flags = 0;
-#ifndef BAIDU_INTERNAL
     set_pb_bytes_to_base64(true);
-#endif
     _error_code = 0;
     _session_local_data = NULL;
     _server = NULL;
@@ -373,7 +371,7 @@ void StartCancel(CallId id) {
 }
 
 void Controller::StartCancel() {
-    LOG(FATAL) << "You must call brpc::StartCancel(id) instead!"
+    LOG(FATAL) << "You must call melon::StartCancel(id) instead!"
         " because this function is racing with ~Controller() in "
         " asynchronous calls.";
 }
@@ -937,8 +935,8 @@ void Controller::EndRPC(const CompletionInfo& info) {
             // mode is on. Otherwise there's a tricky deadlock:
             // void SomeService::CallMethod(...) { // -usercode_in_pthread=true
             //   ...
-            //   channel.CallMethod(...., brpc::DoNothing());
-            //   brpc::Join(cntl.call_id());
+            //   channel.CallMethod(...., melon::DoNothing());
+            //   melon::Join(cntl.call_id());
             //   ...
             // }
             // Join is not signalled when the done does not Run() and the done
@@ -1651,4 +1649,4 @@ void Controller::DoPrintLogPrefix(std::ostream& os) const {
     }
 }
 
-} // namespace brpc
+} // namespace melon

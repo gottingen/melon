@@ -23,13 +23,13 @@
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace brpc {
+namespace melon {
 
 class FlagsService : public flags, public Tabbed {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::FlagsRequest* request,
-                        ::brpc::FlagsResponse* response,
+                        const ::melon::FlagsRequest* request,
+                        ::melon::FlagsResponse* response,
                         ::google::protobuf::Closure* done);
 
     void GetTabInfo(TabInfoList* info_list) const;
@@ -39,7 +39,7 @@ private:
 
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 

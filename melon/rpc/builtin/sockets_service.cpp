@@ -24,11 +24,11 @@
 #include "melon/rpc/socket.h"
 
 
-namespace brpc {
+namespace melon {
 
 void SocketsService::default_method(::google::protobuf::RpcController* cntl_base,
-                                     const ::brpc::SocketsRequest*,
-                                     ::brpc::SocketsResponse*,
+                                     const ::melon::SocketsRequest*,
+                                     ::melon::SocketsResponse*,
                                      ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -52,4 +52,4 @@ void SocketsService::default_method(::google::protobuf::RpcController* cntl_base
     os.move_to(cntl->response_attachment());
 }
 
-} // namespace brpc
+} // namespace melon

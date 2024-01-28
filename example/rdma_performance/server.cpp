@@ -41,7 +41,7 @@ public:
               const PerfTestRequest* request,
               PerfTestResponse* response,
               google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         uint64_t last = g_last_time.load(butil::memory_order_relaxed);
         uint64_t now = butil::monotonic_time_us();
         if (now > last && now - last > 100000) {
@@ -54,8 +54,8 @@ public:
             response->set_cpu_usage("");
         }
         if (request->echo_attachment()) {
-            brpc::Controller* cntl =
-                static_cast<brpc::Controller*>(cntl_base);
+            melon::Controller* cntl =
+                static_cast<melon::Controller*>(cntl_base);
             cntl->response_attachment().append(cntl->request_attachment());
         }
     }
@@ -65,17 +65,17 @@ public:
 int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
-    brpc::Server server;
+    melon::Server server;
     test::PerfTestServiceImpl perf_test_service_impl;
 
     if (server.AddService(&perf_test_service_impl, 
-                          brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+                          melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
     g_last_time.store(0, butil::memory_order_relaxed);
 
-    brpc::ServerOptions options;
+    melon::ServerOptions options;
     options.use_rdma = FLAGS_use_rdma;
     if (server.Start(FLAGS_port, &options) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
 
 int main(int argc, char* argv[]) {
-    LOG(ERROR) << " brpc is not compiled with rdma. To enable it, please refer to https://github.com/apache/brpc/blob/master/docs/en/rdma.md";
+    LOG(ERROR) << " melon is not compiled with rdma. To enable it, please refer to https://github.com/apache/brpc/blob/master/docs/en/rdma.md";
     return 0;
 }
 

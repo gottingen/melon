@@ -53,18 +53,18 @@ public:
                 const ::test::GrpcRequest* req,
                 ::test::GrpcResponse* res,
                 ::google::protobuf::Closure* done) {
-        brpc::Controller* cntl =
-                static_cast<brpc::Controller*>(cntl_base);
-        brpc::ClosureGuard done_guard(done);
+        melon::Controller* cntl =
+                static_cast<melon::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
 
         EXPECT_EQ(g_req, req->message());
         if (req->gzip()) {
-            cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);
+            cntl->set_response_compress_type(melon::COMPRESS_TYPE_GZIP);
         }
         res->set_message(g_prefix + req->message());
 
         if (req->return_error()) {
-            cntl->SetFailed(brpc::EINTERNAL, "%s", g_prefix.c_str());
+            cntl->SetFailed(melon::EINTERNAL, "%s", g_prefix.c_str());
             return;
         }
         if (req->has_timeout_us()) {
@@ -81,7 +81,7 @@ public:
               const ::test::GrpcRequest* req,
               ::test::GrpcResponse* res,
               ::google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         bthread_usleep(2000000 /*2s*/);
         res->set_message(g_prefix + req->message());
         return;
@@ -91,9 +91,9 @@ public:
 class GrpcTest : public ::testing::Test {
 protected:
     GrpcTest() {
-        EXPECT_EQ(0, _server.AddService(&_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
+        EXPECT_EQ(0, _server.AddService(&_svc, melon::SERVER_DOESNT_OWN_SERVICE));
         EXPECT_EQ(0, _server.Start(g_server_addr.c_str(), NULL));
-        brpc::ChannelOptions options;
+        melon::ChannelOptions options;
         options.protocol = g_protocol;
         options.timeout_ms = g_timeout_ms;
         EXPECT_EQ(0, _channel.Init(g_server_addr.c_str(), "", &options));
@@ -106,9 +106,9 @@ protected:
     void CallMethod(bool req_gzip, bool res_gzip) {
         test::GrpcRequest req;
         test::GrpcResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         if (req_gzip) {
-            cntl.set_request_compress_type(brpc::COMPRESS_TYPE_GZIP);
+            cntl.set_request_compress_type(melon::COMPRESS_TYPE_GZIP);
         }
         req.set_message(g_req);
         req.set_gzip(res_gzip);
@@ -120,22 +120,22 @@ protected:
         EXPECT_EQ(res.message(), g_prefix + g_req);
     }
 
-    brpc::Server _server;
+    melon::Server _server;
     MyGrpcService _svc;
-    brpc::Channel _channel;
+    melon::Channel _channel;
 };
 
 TEST_F(GrpcTest, percent_encode) {
     std::string out;
     std::string s1("abcdefg !@#$^&*()/");
     std::string s1_out("abcdefg%20%21%40%23%24%5e%26%2a%28%29%2f");
-    brpc::PercentEncode(s1, &out);
+    melon::PercentEncode(s1, &out);
     EXPECT_TRUE(out == s1_out) << s1_out << " vs " << out;
 
     char s2_buf[] = "\0\0%\33\35 brpc";
     std::string s2(s2_buf, sizeof(s2_buf) - 1);
     std::string s2_expected_out("%00%00%25%1b%1d%20brpc");
-    brpc::PercentEncode(s2, &out);
+    melon::PercentEncode(s2, &out);
     EXPECT_TRUE(out == s2_expected_out) << s2_expected_out << " vs " << out;
 }
 
@@ -143,13 +143,13 @@ TEST_F(GrpcTest, percent_decode) {
     std::string out;
     std::string s1("abcdefg%20%21%40%23%24%5e%26%2a%28%29%2f");
     std::string s1_out("abcdefg !@#$^&*()/");
-    brpc::PercentDecode(s1, &out);
+    melon::PercentDecode(s1, &out);
     EXPECT_TRUE(out == s1_out) << s1_out << " vs " << out;
 
     std::string s2("%00%00%1b%1d%20brpc");
     char s2_expected_out_buf[] = "\0\0\33\35 brpc";
     std::string s2_expected_out(s2_expected_out_buf, sizeof(s2_expected_out_buf) - 1);
-    brpc::PercentDecode(s2, &out);
+    melon::PercentDecode(s2, &out);
     EXPECT_TRUE(out == s2_expected_out) << s2_expected_out << " vs " << out;
 }
 
@@ -164,47 +164,47 @@ TEST_F(GrpcTest, sanity) {
 TEST_F(GrpcTest, return_error) {
     test::GrpcRequest req;
     test::GrpcResponse res;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     req.set_message(g_req);
     req.set_gzip(false);
     req.set_return_error(true);
     test::GrpcService_Stub stub(&_channel);
     stub.Method(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
-    EXPECT_EQ(cntl.ErrorCode(), brpc::EINTERNAL);
+    EXPECT_EQ(cntl.ErrorCode(), melon::EINTERNAL);
     EXPECT_TRUE(butil::StringPiece(cntl.ErrorText()).ends_with(butil::string_printf("%s", g_prefix.c_str())));
 }
 
 TEST_F(GrpcTest, RpcTimedOut) {
-    brpc::Channel channel;
-    brpc::ChannelOptions options;
+    melon::Channel channel;
+    melon::ChannelOptions options;
     options.protocol = g_protocol;
     options.timeout_ms = g_timeout_ms;
     EXPECT_EQ(0, channel.Init(g_server_addr.c_str(), "", &options));
 
     test::GrpcRequest req;
     test::GrpcResponse res;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     req.set_message(g_req);
     req.set_gzip(false);
     req.set_return_error(false);
     test::GrpcService_Stub stub(&_channel);
     stub.MethodTimeOut(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
-    EXPECT_EQ(cntl.ErrorCode(), brpc::ERPCTIMEDOUT);
+    EXPECT_EQ(cntl.ErrorCode(), melon::ERPCTIMEDOUT);
 }
 
 TEST_F(GrpcTest, MethodNotExist) {
     test::GrpcRequest req;
     test::GrpcResponse res;
-    brpc::Controller cntl;
+    melon::Controller cntl;
     req.set_message(g_req);
     req.set_gzip(false);
     req.set_return_error(false);
     test::GrpcService_Stub stub(&_channel);
     stub.MethodNotExist(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
-    EXPECT_EQ(cntl.ErrorCode(), brpc::EINTERNAL);
+    EXPECT_EQ(cntl.ErrorCode(), melon::EINTERNAL);
     ASSERT_TRUE(butil::StringPiece(cntl.ErrorText()).ends_with("Method MethodNotExist() not implemented."));
 }
 
@@ -230,7 +230,7 @@ TEST_F(GrpcTest, GrpcTimeOut) {
     for (size_t i = 0; i < arraysize(timeouts); i = i + 2) {
         test::GrpcRequest req;
         test::GrpcResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         req.set_message(g_req);
         req.set_gzip(false);
         req.set_return_error(false);
@@ -246,7 +246,7 @@ TEST_F(GrpcTest, GrpcTimeOut) {
     {
         test::GrpcRequest req;
         test::GrpcResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         req.set_message(g_req);
         req.set_gzip(false);
         req.set_return_error(false);
@@ -261,7 +261,7 @@ TEST_F(GrpcTest, GrpcTimeOut) {
     {
         test::GrpcRequest req;
         test::GrpcResponse res;
-        brpc::Controller cntl;
+        melon::Controller cntl;
         req.set_message(g_req);
         req.set_gzip(false);
         req.set_return_error(false);

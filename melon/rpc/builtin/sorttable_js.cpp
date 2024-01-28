@@ -20,7 +20,7 @@
 #include "melon/rpc/builtin/sorttable_js.h"
 
 
-namespace brpc {
+namespace melon {
 
 static pthread_once_t s_sorttable_buf_once = PTHREAD_ONCE_INIT; 
 static butil::IOBuf* s_sorttable_buf = NULL;
@@ -526,4 +526,4 @@ const char* sorttable_js() {
 "};";
 }
 
-} // namespace brpc
+} // namespace melon

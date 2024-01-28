@@ -28,7 +28,7 @@
 // details in this header, use opaque pointers instead.
 
 
-namespace brpc {
+namespace melon {
 
 // The class for URI scheme : http://en.wikipedia.org/wiki/URI_scheme
 //
@@ -257,7 +257,7 @@ void append_query(std::string *query_string,
                   const butil::StringPiece& key,
                   const butil::StringPiece& value);
 
-} // namespace brpc
+} // namespace melon
 
 
 #if __cplusplus < 201103L  // < C++11
@@ -268,7 +268,7 @@ void append_query(std::string *query_string,
 
 namespace std {
 template<>
-inline void swap(brpc::URI &lhs, brpc::URI &rhs) {
+inline void swap(melon::URI &lhs, melon::URI &rhs) {
     lhs.Swap(rhs);
 }
 }  // namespace std

@@ -28,11 +28,11 @@
 #include "melon/rpc/builtin/dir_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 void DirService::default_method(::google::protobuf::RpcController* cntl_base,
-                                const ::brpc::DirRequest*,
-                                ::brpc::DirResponse*,
+                                const ::melon::DirRequest*,
+                                ::melon::DirResponse*,
                                 ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -126,4 +126,4 @@ void DirService::default_method(::google::protobuf::RpcController* cntl_base,
 }
 
 
-} // namespace brpc
+} // namespace melon

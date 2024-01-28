@@ -23,7 +23,7 @@
 #include "melon/butil/iobuf.h"                           // butil::IOBuf
 #include "melon/rpc/options.pb.h"                     // CompressType
 
-namespace brpc {
+namespace melon {
 
 struct CompressHandler {
     // Compress serialized `msg' into `buf'.
@@ -60,7 +60,7 @@ bool SerializeAsCompressedData(const google::protobuf::Message& msg,
                                butil::IOBuf* buf,
                                CompressType compress_type);
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_COMPRESS_H

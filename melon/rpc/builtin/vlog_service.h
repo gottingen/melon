@@ -24,18 +24,18 @@
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class VLogService : public vlog {
 public:
     void default_method(::google::protobuf::RpcController* controller,
-                        const ::brpc::VLogRequest* request,
-                        ::brpc::VLogResponse* response,
+                        const ::melon::VLogRequest* request,
+                        ::melon::VLogResponse* response,
                         ::google::protobuf::Closure* done);
 
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_WITH_GLOG
 

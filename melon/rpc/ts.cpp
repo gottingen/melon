@@ -39,7 +39,7 @@
 #include "melon/rpc/ts.h"
 
 
-namespace brpc {
+namespace melon {
 
 /*-
  * Copyright (c) 2008 Joerg Sonnenberger
@@ -1474,4 +1474,4 @@ butil::Status TsWriter::EncodePES(TsMessage* msg, TsStream sid, TsPid pid,
     return butil::Status::OK();
 }
 
-} // namespace brpc
+} // namespace melon

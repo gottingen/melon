@@ -22,7 +22,7 @@
 #include "melon/rpc/policy/hulu_pbrpc_meta.pb.h"
 #include "melon/rpc/protocol.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse binary format of hulu-pbrpc.
@@ -47,7 +47,7 @@ void PackHuluRequest(butil::IOBuf* buf,
                      const Authenticator* auth);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_HULU_PBRPC_PROTOCOL_H

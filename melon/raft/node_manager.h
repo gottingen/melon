@@ -48,7 +48,7 @@ public:
     void get_all_nodes(std::vector<scoped_refptr<NodeImpl> >* nodes);
 
     // Add service to |server| at |listen_addr|
-    int add_service(brpc::Server* server, 
+    int add_service(melon::Server* server,
                     const butil::EndPoint& listen_addr);
 
     // Return true if |addr| is reachable by a RPC Server

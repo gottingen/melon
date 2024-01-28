@@ -27,7 +27,7 @@
 #include "melon/naming/remote_file_naming_service.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_int32(remote_file_connect_timeout_ms, -1,
@@ -160,4 +160,4 @@ void RemoteFileNamingService::Destroy() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

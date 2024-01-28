@@ -25,7 +25,7 @@
 #include "melon/rpc/builtin/bad_method_service.h"
 #include "melon/rpc/restful.h"
 
-namespace brpc {
+namespace melon {
 
 // A wrapper to access some private methods/fields of `Server'
 // This is supposed to be used by internal RPC protocols ONLY
@@ -124,7 +124,7 @@ private:
     const Server* _server;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_SERVER_PRIVATE_ACCESSOR_H

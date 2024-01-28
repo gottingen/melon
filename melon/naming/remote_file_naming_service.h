@@ -24,7 +24,7 @@
 #include "melon/butil/unique_ptr.h"
 
 
-namespace brpc {
+namespace melon {
 class Channel;
 namespace policy {
 
@@ -46,7 +46,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_POLICY_HTTP_FILE_NAMING_SERVICE

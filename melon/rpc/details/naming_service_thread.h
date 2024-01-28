@@ -28,7 +28,7 @@
 #include "melon/naming/naming_service_filter.h"         // NamingServiceFilter
 #include "melon/rpc/socket_map.h"
 
-namespace brpc {
+namespace melon {
 
 // Inherit this class to observer NamingService changes.
 // NOTE: Same SocketId with different tags are treated as different entries.
@@ -137,7 +137,7 @@ int GetNamingServiceThread(butil::intrusive_ptr<NamingServiceThread>* ns_thread,
                            const char* url,
                            const GetNamingServiceThreadOptions* options);
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_NAMING_SERVICE_THREAD_H

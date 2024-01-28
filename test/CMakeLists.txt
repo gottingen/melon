@@ -18,7 +18,7 @@
 find_package(Gperftools)
 include_directories(${GPERFTOOLS_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
+#[[
 include(CompileProto)
 set(TEST_PROTO_FILES addressbook1.proto
                      addressbook_encode_decode.proto
@@ -34,19 +34,19 @@ set(TEST_PROTO_FILES addressbook1.proto
                      grpc.proto
                      health_check.proto)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test/hdrs)
-set(PROTOC_FLAGS ${PROTOC_FLAGS} -I${CMAKE_SOURCE_DIR}/src)
-compile_proto(PROTO_HDRS PROTO_SRCS ${CMAKE_BINARY_DIR}/test
-                                    ${CMAKE_BINARY_DIR}/test/hdrs
-                                    ${CMAKE_SOURCE_DIR}/test
+set(PROTOC_FLAGS ${PROTOC_FLAGS} -I${PROJECT_SOURCE_DIR})
+compile_proto(PROTO_HDRS PROTO_SRCS ${PROJECT_BINARY_DIR}/test
+                                    ${PROJECT_BINARY_DIR}/test/hdrs
+                                    ${PROJECT_SOURCE_DIR}/test
                                     "${TEST_PROTO_FILES}")
 add_library(TEST_PROTO_LIB OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
-
-set(BRPC_SYSTEM_GTEST_SOURCE_DIR "" CACHE PATH "System googletest source directory.")
+]]
+set(MELON_SYSTEM_GTEST_SOURCE_DIR "" CACHE PATH "System googletest source directory.")
 
 if(DOWNLOAD_GTEST)
     include(SetupGtest)
-elseif(BRPC_SYSTEM_GTEST_SOURCE_DIR)
-    add_subdirectory("${BRPC_SYSTEM_GTEST_SOURCE_DIR}" "${PROJECT_BINARY_DIR}/system-googletest-build")
+elseif(MELON_SYSTEM_GTEST_SOURCE_DIR)
+    add_subdirectory("${MELON_SYSTEM_GTEST_SOURCE_DIR}" "${PROJECT_BINARY_DIR}/system-googletest-build")
 else()
     message(FATAL_ERROR "Googletest is not available")
 endif()
@@ -199,30 +199,30 @@ add_dependencies(SOURCES_DEBUG_LIB PROTO_LIB)
 set_property(TARGET ${BUTIL_DEBUG_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET ${SOURCES_DEBUG_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(brpc-shared-debug SHARED $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>
+add_library(melon-shared-debug SHARED $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>
                                      $<TARGET_OBJECTS:SOURCES_DEBUG_LIB>
                                      $<TARGET_OBJECTS:PROTO_LIB>)
 # change the debug lib output dir to be different from the release output
-set_target_properties(brpc-shared-debug PROPERTIES
+set_target_properties(melon-shared-debug PROPERTIES
          LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/test)
 
-target_link_libraries(brpc-shared-debug ${DYNAMIC_LIB})
+target_link_libraries(melon-shared-debug ${DYNAMIC_LIB})
 if(BRPC_WITH_GLOG)
-    target_link_libraries(brpc-shared-debug ${GLOG_LIB})
+    target_link_libraries(melon-shared-debug ${GLOG_LIB})
 endif()
 
 # test_butil
 add_executable(test_butil ${TEST_BUTIL_SOURCES}
-                          ${CMAKE_CURRENT_BINARY_DIR}/iobuf.pb.cc)
-target_link_libraries(test_butil brpc-shared-debug
+                          $<TARGET_OBJECTS:TEST_PROTO_LIB>)
+target_link_libraries(test_butil melon-shared-debug
                                  gtest
                                  ${GPERFTOOLS_LIBRARIES})
 
 add_test(NAME test_butil COMMAND test_butil)
 
-# test_bvar
+# test_var
 # -DBVAR_NOT_LINK_DEFAULT_VARIABLES not work for gcc >= 5.0, just remove the file to prevent linking into unit tests
-list(REMOVE_ITEM BVAR_SOURCES ${PROJECT_SOURCE_DIR}/src/bvar/default_variables.cpp)
+list(REMOVE_ITEM BVAR_SOURCES ${PROJECT_SOURCE_DIR}/melon/bvar/default_variables.cpp)
 
 add_library(BVAR_DEBUG_LIB OBJECT ${BVAR_SOURCES})
 file(GLOB TEST_BVAR_SRCS "bvar_*_unittest.cpp")
@@ -240,7 +240,7 @@ foreach(BTHREAD_UT ${BTHREAD_UNITTESTS})
     get_filename_component(BTHREAD_UT_WE ${BTHREAD_UT} NAME_WE)
     add_executable(${BTHREAD_UT_WE} ${BTHREAD_UT})
     target_link_libraries(${BTHREAD_UT_WE} gtest_main
-                                           brpc-shared-debug
+                                           melon-shared-debug
                                            ${GPERFTOOLS_LIBRARIES})
     add_test(NAME ${BTHREAD_UT_WE} COMMAND ${BTHREAD_UT_WE})
 endforeach()
@@ -250,23 +250,23 @@ file(GLOB BRPC_UNITTESTS "brpc_*_unittest.cpp")
 foreach(BRPC_UT ${BRPC_UNITTESTS})
     get_filename_component(BRPC_UT_WE ${BRPC_UT} NAME_WE)
     add_executable(${BRPC_UT_WE} ${BRPC_UT} $<TARGET_OBJECTS:TEST_PROTO_LIB>)
-    target_link_libraries(${BRPC_UT_WE} brpc-shared-debug
+    target_link_libraries(${BRPC_UT_WE} melon-shared-debug
                                         gtest_main
                                         ${GPERFTOOLS_LIBRARIES})
     add_test(NAME ${BRPC_UT_WE} COMMAND ${BRPC_UT_WE})
 endforeach()
 
 if(BUILD_FUZZ_TESTS)
-    add_library(brpc-static-debug STATIC $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>
+    add_library(melon-static-debug STATIC $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>
                                         $<TARGET_OBJECTS:SOURCES_DEBUG_LIB>
                                         $<TARGET_OBJECTS:PROTO_LIB>)
     # change the debug lib output dir to be different from the release output
-    set_target_properties(brpc-static-debug PROPERTIES
+    set_target_properties(melon-static-debug PROPERTIES
             LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/test)
 
-    target_link_libraries(brpc-static-debug ${DYNAMIC_LIB})
+    target_link_libraries(melon-static-debug ${DYNAMIC_LIB})
     if(BRPC_WITH_GLOG)
-        target_link_libraries(brpc-static-debug ${GLOG_LIB})
+        target_link_libraries(melon-static-debug ${GLOG_LIB})
     endif()
 
     set(FUZZ_TARGETS fuzz_butil fuzz_esp fuzz_hpack fuzz_http
@@ -274,7 +274,7 @@ if(BUILD_FUZZ_TESTS)
 
     foreach(target ${FUZZ_TARGETS})
         add_executable(${target} fuzzing/${target}.cpp $<TARGET_OBJECTS:TEST_PROTO_LIB>)
-        target_link_libraries(${target} brpc-static-debug ${LIB_FUZZING_ENGINE})
+        target_link_libraries(${target} melon-static-debug ${LIB_FUZZING_ENGINE})
         set_target_properties(${target} PROPERTIES
             BUILD_WITH_INSTALL_RPATH TRUE
             INSTALL_RPATH "$ORIGIN/lib")

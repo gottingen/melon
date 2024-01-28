@@ -23,17 +23,17 @@
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace brpc {
+namespace melon {
 
 class HealthService : public health {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::HealthRequest* request,
-                        ::brpc::HealthResponse* response,
+                        const ::melon::HealthRequest* request,
+                        ::melon::HealthResponse* response,
                         ::google::protobuf::Closure* done);
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_HEALTH_SERVICE_H

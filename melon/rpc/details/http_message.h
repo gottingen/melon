@@ -30,7 +30,7 @@
 #include "melon/rpc/progressive_reader.h"   // ProgressiveReader
 
 
-namespace brpc {
+namespace melon {
 
 enum HttpParserStage {
     HTTP_ON_MESSAGE_BEGIN,
@@ -145,6 +145,6 @@ void MakeRawHttpResponse(butil::IOBuf* response,
                          HttpHeader* header,
                          butil::IOBuf* content);
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_HTTP_MESSAGE_H

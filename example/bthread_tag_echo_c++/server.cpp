@@ -44,8 +44,8 @@ public:
     ~EchoServiceImpl() {}
     void Echo(google::protobuf::RpcController* cntl_base, const EchoRequest* request,
               EchoResponse* response, google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
 
         // Echo request and its attachment
         response->set_message(request->message());
@@ -83,21 +83,21 @@ int main(int argc, char* argv[]) {
     bthread_set_tagged_worker_startfn(my_tagged_worker_start_fn);
 
     // Generally you only need one Server.
-    brpc::Server server1;
+    melon::Server server1;
 
     // Instance of your service.
     example::EchoServiceImpl echo_service_impl1;
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
-    if (server1.AddService(&echo_service_impl1, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+    // use melon::SERVER_OWNS_SERVICE.
+    if (server1.AddService(&echo_service_impl1, melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server.
-    brpc::ServerOptions options1;
+    melon::ServerOptions options1;
     options1.idle_timeout_sec = FLAGS_idle_timeout_s;
     options1.max_concurrency = FLAGS_max_concurrency;
     options1.internal_port = FLAGS_internal_port1;
@@ -108,21 +108,21 @@ int main(int argc, char* argv[]) {
     }
 
     // Generally you only need one Server.
-    brpc::Server server2;
+    melon::Server server2;
 
     // Instance of your service.
     example::EchoServiceImpl echo_service_impl2;
 
     // Add the service into server. Notice the second parameter, because the
     // service is put on stack, we don't want server to delete it, otherwise
-    // use brpc::SERVER_OWNS_SERVICE.
-    if (server2.AddService(&echo_service_impl2, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+    // use melon::SERVER_OWNS_SERVICE.
+    if (server2.AddService(&echo_service_impl2, melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server.
-    brpc::ServerOptions options2;
+    melon::ServerOptions options2;
     options2.idle_timeout_sec = FLAGS_idle_timeout_s;
     options2.max_concurrency = FLAGS_max_concurrency;
     options2.internal_port = FLAGS_internal_port2;

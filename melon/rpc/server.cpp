@@ -22,7 +22,7 @@
 #include <sys/stat.h>                               // mkdir
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>             // ServiceDescriptor
-#include "idl_options.pb.h"                         // option(idl_support)
+#include "melon/idl_options.pb.h"                         // option(idl_support)
 #include "melon/bthread/unstable.h"                       // bthread_keytable_pool_init
 #include "melon/butil/macros.h"                            // ARRAY_SIZE
 #include "melon/butil/fd_guard.h"                          // fd_guard
@@ -39,9 +39,6 @@
 #include "melon/rpc/details/ssl_helper.h"           // CreateServerSSLContext
 #include "melon/rpc/protocol.h"                     // ListProtocols
 #include "melon/rpc/nshead_service.h"               // NsheadService
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-#include "melon/rpc/thrift_service.h"               // ThriftService
-#endif
 #include "melon/rpc/builtin/bad_method_service.h"   // BadMethodService
 #include "melon/rpc/builtin/get_favicon_service.h"
 #include "melon/rpc/builtin/get_js_service.h"
@@ -91,7 +88,7 @@ void* bthread_get_assigned_data();
 
 DECLARE_int32(task_group_ntags);
 
-namespace brpc {
+namespace melon {
 
 BAIDU_CASSERT(sizeof(int32_t) == sizeof(butil::subtle::Atomic32),
               Atomic32_must_be_int32);
@@ -342,11 +339,6 @@ void* Server::UpdateDerivedVars(void* arg) {
         server->options().nshead_service->Expose(prefix);
     }
 
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-    if (server->options().thrift_service) {
-        server->options().thrift_service->Expose(prefix);
-    }
-#endif
 
     int64_t last_time = butil::gettimeofday_us();
     int consecutive_nosleep = 0;
@@ -433,10 +425,6 @@ Server::~Server() {
     delete _options.nshead_service;
     _options.nshead_service = NULL;
 
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-    delete _options.thrift_service;
-    _options.thrift_service = NULL;
-#endif
 
     delete _options.http_master_service;
     _options.http_master_service = NULL;
@@ -1537,11 +1525,7 @@ ServiceOptions::ServiceOptions()
     : ownership(SERVER_DOESNT_OWN_SERVICE)
     , allow_default_url(false)
     , allow_http_body_to_pb(true)
-#ifdef BAIDU_INTERNAL
-    , pb_bytes_to_base64(false)
-#else
     , pb_bytes_to_base64(true)
-#endif
     , pb_single_repeated_to_array(false)
     , enable_progressive_read(false)
     {}
@@ -1763,15 +1747,6 @@ void Server::GenerateVersionIfNeeded() {
         }
         _version.append(butil::class_name_str(*_options.nshead_service));
     }
-
-#ifdef ENABLE_THRIFT_FRAMED_PROTOCOL
-    if (_options.thrift_service) {
-        if (!_version.empty()) {
-            _version.push_back('+');
-        }
-        _version.append(butil::class_name_str(*_options.thrift_service));
-    }
-#endif
 
     if (_options.rtmp_service) {
         if (!_version.empty()) {
@@ -2310,4 +2285,4 @@ int Server::SSLSwitchCTXByHostname(struct ssl_st* ssl,
 }
 #endif // SSL_CTRL_SET_TLSEXT_HOSTNAME
 
-}  // namespace brpc
+}  // namespace melon

@@ -21,7 +21,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 
 static const int MAX_HANDLER_SIZE = 1024;
 static CompressHandler s_handler_map[MAX_HANDLER_SIZE] = { { NULL, NULL, NULL } };
@@ -102,4 +102,4 @@ bool SerializeAsCompressedData(const google::protobuf::Message& msg,
     return false;
 }
 
-} // namespace brpc
+} // namespace melon

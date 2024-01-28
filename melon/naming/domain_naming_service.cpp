@@ -26,7 +26,7 @@
 
 DEFINE_bool(dns_support_ipv6, false, "Resolve DNS by IPV6 address first");
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DomainNamingService::DomainNamingService(int default_port)
@@ -181,4 +181,4 @@ void DomainNamingService::Destroy() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

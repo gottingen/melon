@@ -24,7 +24,7 @@
 #include "melon/rpc/server.h"
 
 
-namespace brpc {
+namespace melon {
 
 struct RestfulMethodPath {
     std::string service_name;
@@ -108,7 +108,7 @@ private:
 
 std::ostream& operator<<(std::ostream& os, const RestfulMethodPath&);
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_RESTFUL_H

@@ -25,7 +25,7 @@
 #include "melon/rpc/http_header.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Controller;
 
@@ -140,7 +140,7 @@ inline std::ostream& operator<<(std::ostream& os, const MinWidth<T>& fw) {
     return os;
 }
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_BUILTIN_COMMON_H

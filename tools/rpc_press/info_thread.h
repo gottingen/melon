@@ -21,7 +21,7 @@
 #include <pthread.h>
 #include <melon/bvar/bvar.h>
 
-namespace brpc {
+namespace melon {
 
 struct InfoThreadOptions {
     bvar::LatencyRecorder* latency_recorder;
@@ -50,6 +50,6 @@ private:
     pthread_t _tid;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif //BRPC_RPC_REPLAY_INFO_THREAD_H

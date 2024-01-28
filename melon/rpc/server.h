@@ -31,7 +31,7 @@
 #include "melon/bvar/bvar.h"
 #include "melon/butil/containers/case_ignored_flat_map.h"  // [CaseIgnored]FlatMap
 #include "melon/butil/ptr_container.h"
-#include "melon/rpc/controller.h"                   // brpc::Controller
+#include "melon/rpc/controller.h"                   // melon::Controller
 #include "melon/rpc/ssl_options.h"                  // ServerSSLOptions
 #include "melon/rpc/describable.h"                  // User often needs this
 #include "melon/rpc/data_factory.h"                 // DataFactory
@@ -43,7 +43,7 @@
 #include "melon/rpc/redis.h"
 #include "melon/rpc/interceptor.h"
 
-namespace brpc {
+namespace melon {
 
 class Acceptor;
 class MethodStatus;
@@ -169,13 +169,13 @@ struct ServerOptions {
 
     // The factory to create/destroy data attached to each searching thread
     // in server.
-    // If this option is NULL, brpc::thread_local_data() is always NULL.
+    // If this option is NULL, melon::thread_local_data() is always NULL.
     // NOT owned by Server and must be valid when Server is running.
     // Default: NULL
     const DataFactory* thread_local_data_factory;
 
     // Prepare so many thread-local data before server starts, so that calls
-    // to brpc::thread_local_data() get data directly rather than calling
+    // to melon::thread_local_data() get data directly rather than calling
     // thread_local_data_factory->Create() at first time. Useful when Create()
     // is slow, otherwise the RPC session may be blocked by the creation
     // of data and not served within timeout.
@@ -320,7 +320,7 @@ struct ServiceOptions {
 
     // decode json string to protobuf bytes using base64 decoding when this
     // option is turned on.
-    // Default: false if BAIDU_INTERNAL is defined, otherwise true
+    // Default: true
     bool pb_bytes_to_base64;
 
     // decode json array to protobuf message which contains a single repeated field.
@@ -756,6 +756,6 @@ bool IsDummyServerRunning();
 // Returns 0 on success, -1 otherwise.
 int StartDummyServerAt(int port, ProfilerLinker = ProfilerLinker());
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_SERVER_H

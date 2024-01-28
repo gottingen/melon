@@ -19,7 +19,7 @@
 #define BRPC_NSHEAD_H
 
 
-namespace brpc {
+namespace melon {
 
 // Copied from public/nshead/nshead.h which is essentially unchangable. (Or
 // even if it's changed, servers accepting new formats should also accept
@@ -35,7 +35,7 @@ struct nshead_t {
     unsigned int   body_len;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_NSHEAD_H

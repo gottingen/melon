@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace brpc {
+namespace melon {
 
 struct CertInfo {
     // Certificate in PEM format.
@@ -164,6 +164,6 @@ struct ServerSSLOptions {
 // Legacy name defined in server.h
 typedef ServerSSLOptions SSLOptions;
 
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_SSL_OPTION_H

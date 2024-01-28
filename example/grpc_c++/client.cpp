@@ -23,7 +23,7 @@
 #include <melon/rpc/channel.h>
 #include "helloworld.pb.h"
 
-DEFINE_string(protocol, "h2:grpc", "Protocol type. Defined in src/brpc/options.proto");
+DEFINE_string(protocol, "h2:grpc", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(server, "0.0.0.0:50051", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
@@ -40,10 +40,10 @@ int main(int argc, char* argv[]) {
     
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    brpc::Channel channel;
+    melon::Channel channel;
     
     // Initialize the channel, NULL means using default options.
-    brpc::ChannelOptions options;
+    melon::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
@@ -57,16 +57,16 @@ int main(int argc, char* argv[]) {
     helloworld::Greeter_Stub stub(&channel);
 
     // Send a request and wait for the response every 1 second.
-    while (!brpc::IsAskedToQuit()) {
+    while (!melon::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
         // on stack.
         helloworld::HelloRequest request;
         helloworld::HelloReply response;
-        brpc::Controller cntl;
+        melon::Controller cntl;
 
-        request.set_name("grpc_req_from_brpc");
+        request.set_name("grpc_req_from_melon");
         if (FLAGS_gzip) {
-            cntl.set_request_compress_type(brpc::COMPRESS_TYPE_GZIP);
+            cntl.set_request_compress_type(melon::COMPRESS_TYPE_GZIP);
         }
         // Because `done'(last parameter) is NULL, this function waits until
         // the response comes back or error occurs(including timedout).

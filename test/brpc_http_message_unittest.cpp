@@ -25,7 +25,7 @@
 #include "melon/rpc/policy/http_rpc_protocol.h"
 #include "echo.pb.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 Server::MethodProperty*
 FindMethodPropertyByURI(const std::string& uri_path, const Server* server,
@@ -34,35 +34,35 @@ bool ParseHttpServerAddress(butil::EndPoint *point, const char *server_addr_and_
 }}
 
 namespace {
-using brpc::policy::FindMethodPropertyByURI;
-using brpc::policy::ParseHttpServerAddress;
+using melon::policy::FindMethodPropertyByURI;
+using melon::policy::ParseHttpServerAddress;
 
 TEST(HttpMessageTest, http_method) {
-    ASSERT_STREQ("DELETE", brpc::HttpMethod2Str(brpc::HTTP_METHOD_DELETE));
-    ASSERT_STREQ("GET", brpc::HttpMethod2Str(brpc::HTTP_METHOD_GET));
-    ASSERT_STREQ("POST", brpc::HttpMethod2Str(brpc::HTTP_METHOD_POST));
-    ASSERT_STREQ("PUT", brpc::HttpMethod2Str(brpc::HTTP_METHOD_PUT));
+    ASSERT_STREQ("DELETE", melon::HttpMethod2Str(melon::HTTP_METHOD_DELETE));
+    ASSERT_STREQ("GET", melon::HttpMethod2Str(melon::HTTP_METHOD_GET));
+    ASSERT_STREQ("POST", melon::HttpMethod2Str(melon::HTTP_METHOD_POST));
+    ASSERT_STREQ("PUT", melon::HttpMethod2Str(melon::HTTP_METHOD_PUT));
 
-    brpc::HttpMethod m;
-    ASSERT_TRUE(brpc::Str2HttpMethod("DELETE", &m));
-    ASSERT_EQ(brpc::HTTP_METHOD_DELETE, m);
-    ASSERT_TRUE(brpc::Str2HttpMethod("GET", &m));
-    ASSERT_EQ(brpc::HTTP_METHOD_GET, m);
-    ASSERT_TRUE(brpc::Str2HttpMethod("POST", &m));
-    ASSERT_EQ(brpc::HTTP_METHOD_POST, m);
-    ASSERT_TRUE(brpc::Str2HttpMethod("PUT", &m));
-    ASSERT_EQ(brpc::HTTP_METHOD_PUT, m);
+    melon::HttpMethod m;
+    ASSERT_TRUE(melon::Str2HttpMethod("DELETE", &m));
+    ASSERT_EQ(melon::HTTP_METHOD_DELETE, m);
+    ASSERT_TRUE(melon::Str2HttpMethod("GET", &m));
+    ASSERT_EQ(melon::HTTP_METHOD_GET, m);
+    ASSERT_TRUE(melon::Str2HttpMethod("POST", &m));
+    ASSERT_EQ(melon::HTTP_METHOD_POST, m);
+    ASSERT_TRUE(melon::Str2HttpMethod("PUT", &m));
+    ASSERT_EQ(melon::HTTP_METHOD_PUT, m);
 
     // case-insensitive
-    ASSERT_TRUE(brpc::Str2HttpMethod("DeLeTe", &m));
-    ASSERT_EQ(brpc::HTTP_METHOD_DELETE, m);
-    ASSERT_TRUE(brpc::Str2HttpMethod("get", &m));
-    ASSERT_EQ(brpc::HTTP_METHOD_GET, m);
+    ASSERT_TRUE(melon::Str2HttpMethod("DeLeTe", &m));
+    ASSERT_EQ(melon::HTTP_METHOD_DELETE, m);
+    ASSERT_TRUE(melon::Str2HttpMethod("get", &m));
+    ASSERT_EQ(melon::HTTP_METHOD_GET, m);
 
     // non-existed
-    ASSERT_FALSE(brpc::Str2HttpMethod("DEL", &m));
-    ASSERT_FALSE(brpc::Str2HttpMethod("DELETE ", &m));
-    ASSERT_FALSE(brpc::Str2HttpMethod("GOT", &m));
+    ASSERT_FALSE(melon::Str2HttpMethod("DEL", &m));
+    ASSERT_FALSE(melon::Str2HttpMethod("DELETE ", &m));
+    ASSERT_FALSE(melon::Str2HttpMethod("GOT", &m));
 }
 
 TEST(HttpMessageTest, eof) {
@@ -93,7 +93,7 @@ TEST(HttpMessageTest, eof) {
         "X_BD_SUBSYS: apimap\r\n";
     butil::IOBuf buf;
     buf.append(http_request);
-    brpc::HttpMessage http_message;
+    melon::HttpMessage http_message;
     ASSERT_EQ((ssize_t)buf.size(), http_message.ParseFromIOBuf(buf));
     ASSERT_EQ(2, http_message.ParseFromArray("\r\n", 2));
     ASSERT_TRUE(http_message.Completed());
@@ -115,10 +115,10 @@ TEST(HttpMessageTest, request_sanity) {
         "\r\n"
         "Message Body sdfsdf\r\n"
     ;
-    brpc::HttpMessage http_message;
+    melon::HttpMessage http_message;
     ASSERT_EQ((ssize_t)strlen(http_request), 
               http_message.ParseFromArray(http_request, strlen(http_request)));
-    const brpc::HttpHeader& header = http_message.header();
+    const melon::HttpHeader& header = http_message.header();
     // Check all keys
     ASSERT_EQ("json", header.content_type());
     ASSERT_TRUE(header.GetHeader("HOST"));
@@ -134,8 +134,8 @@ TEST(HttpMessageTest, request_sanity) {
     
     ASSERT_EQ(1, header.major_version());
     ASSERT_EQ(34, header.minor_version());
-    ASSERT_EQ(brpc::HTTP_METHOD_POST, header.method());
-    ASSERT_EQ(brpc::HTTP_STATUS_OK, header.status_code());
+    ASSERT_EQ(melon::HTTP_METHOD_POST, header.method());
+    ASSERT_EQ(melon::HTTP_STATUS_OK, header.status_code());
     ASSERT_STREQ("OK", header.reason_phrase());
 
     ASSERT_TRUE(header.GetHeader("log-id"));
@@ -159,11 +159,11 @@ TEST(HttpMessageTest, response_sanity) {
         "\r\n"
         "Message Body sdfsdf\r\n"
     ;
-    brpc::HttpMessage http_message;
+    melon::HttpMessage http_message;
     ASSERT_EQ((ssize_t)strlen(http_response), 
               http_message.ParseFromArray(http_response, strlen(http_response)));
     // Check all keys
-    const brpc::HttpHeader& header = http_message.header();
+    const melon::HttpHeader& header = http_message.header();
     ASSERT_EQ("json2", header.content_type());
     ASSERT_TRUE(header.GetHeader("HOST"));
     ASSERT_EQ("myhost", *header.GetHeader("host"));
@@ -179,9 +179,9 @@ TEST(HttpMessageTest, response_sanity) {
     ASSERT_EQ(1, header.major_version());
     ASSERT_EQ(34, header.minor_version());
     // method is undefined for response, in our case, it's set to 0.
-    ASSERT_EQ(brpc::HTTP_METHOD_DELETE, header.method());
-    ASSERT_EQ(brpc::HTTP_STATUS_GONE, header.status_code());
-    ASSERT_STREQ(brpc::HttpReasonPhrase(header.status_code()), /*not GoneBlah*/
+    ASSERT_EQ(melon::HTTP_METHOD_DELETE, header.method());
+    ASSERT_EQ(melon::HTTP_STATUS_GONE, header.status_code());
+    ASSERT_STREQ(melon::HttpReasonPhrase(header.status_code()), /*not GoneBlah*/
                  header.reason_phrase());
     
     ASSERT_TRUE(header.GetHeader("log-id"));
@@ -193,13 +193,13 @@ TEST(HttpMessageTest, response_sanity) {
 TEST(HttpMessageTest, bad_format) {
     const char *http_request =
         "slkdjflksdf skldjf\r\n";
-    brpc::HttpMessage http_message;
+    melon::HttpMessage http_message;
     ASSERT_EQ(-1, http_message.ParseFromArray(http_request, strlen(http_request)));
 }
 
 TEST(HttpMessageTest, incompleted_request_line) {
     const char *http_request = "GE" ;
-    brpc::HttpMessage http_message;
+    melon::HttpMessage http_message;
     ASSERT_TRUE(http_message.ParseFromArray(http_request, strlen(http_request)) >= 0);
     ASSERT_FALSE(http_message.Completed());
 }
@@ -219,7 +219,7 @@ TEST(HttpMessageTest, parse_from_iobuf) {
     request.append(header);
     request.append(content);
 
-    brpc::HttpMessage http_message;
+    melon::HttpMessage http_message;
     ASSERT_TRUE(http_message.ParseFromIOBuf(request) >= 0);
     ASSERT_TRUE(http_message.Completed());
     ASSERT_EQ(content, http_message.body().to_string());
@@ -235,7 +235,7 @@ TEST(HttpMessageTest, parse_http_head_response) {
     butil::IOBuf request;
     request.append(response1);
 
-    brpc::HttpMessage http_message(false, brpc::HTTP_METHOD_HEAD);
+    melon::HttpMessage http_message(false, melon::HTTP_METHOD_HEAD);
     ASSERT_TRUE(http_message.ParseFromIOBuf(request) >= 0);
     ASSERT_TRUE(http_message.Completed()) << http_message.stage();
     ASSERT_EQ("text/plain", http_message.header().content_type());
@@ -250,7 +250,7 @@ TEST(HttpMessageTest, parse_http_head_response) {
                            "\r\n";
     butil::IOBuf request2;
     request2.append(response2);
-    brpc::HttpMessage http_message2(false, brpc::HTTP_METHOD_HEAD);
+    melon::HttpMessage http_message2(false, melon::HTTP_METHOD_HEAD);
     ASSERT_TRUE(http_message2.ParseFromIOBuf(request2) >= 0);
     ASSERT_TRUE(http_message2.Completed()) << http_message2.stage();
     ASSERT_EQ("text/plain", http_message2.header().content_type());
@@ -260,12 +260,12 @@ TEST(HttpMessageTest, parse_http_head_response) {
 }
 
 TEST(HttpMessageTest, find_method_property_by_uri) {
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, server.AddService(new test::EchoService(),
-                                   brpc::SERVER_OWNS_SERVICE));
+                                   melon::SERVER_OWNS_SERVICE));
     ASSERT_EQ(0, server.Start(9237, NULL));
     std::string unknown_method;
-    brpc::Server::MethodProperty* mp = NULL;
+    melon::Server::MethodProperty* mp = NULL;
               
     mp = FindMethodPropertyByURI("", &server, NULL);
     ASSERT_TRUE(mp);
@@ -293,7 +293,7 @@ TEST(HttpMessageTest, find_method_property_by_uri) {
     ASSERT_EQ("flags", mp->method->service()->name());
     ASSERT_EQ("foo/bar", unknown_method);
     
-    mp = FindMethodPropertyByURI("/brpc.flags/$*",
+    mp = FindMethodPropertyByURI("/melon.flags/$*",
                                  &server, &unknown_method);
     ASSERT_TRUE(mp);
     ASSERT_EQ("flags", mp->method->service()->name());
@@ -319,7 +319,7 @@ TEST(HttpMessageTest, find_method_property_by_uri) {
 }
 
 TEST(HttpMessageTest, http_header) {
-    brpc::HttpHeader header;
+    melon::HttpHeader header;
     
     header.set_version(10, 100);
     ASSERT_EQ(10, header.major_version());
@@ -346,21 +346,21 @@ TEST(HttpMessageTest, http_header) {
     header.RemoveHeader("key1");
     ASSERT_FALSE(header.GetHeader("key1"));
 
-    ASSERT_EQ(brpc::HTTP_METHOD_GET, header.method());
-    header.set_method(brpc::HTTP_METHOD_POST);
-    ASSERT_EQ(brpc::HTTP_METHOD_POST, header.method());
+    ASSERT_EQ(melon::HTTP_METHOD_GET, header.method());
+    header.set_method(melon::HTTP_METHOD_POST);
+    ASSERT_EQ(melon::HTTP_METHOD_POST, header.method());
 
-    ASSERT_EQ(brpc::HTTP_STATUS_OK, header.status_code());
-    ASSERT_STREQ(brpc::HttpReasonPhrase(header.status_code()),
+    ASSERT_EQ(melon::HTTP_STATUS_OK, header.status_code());
+    ASSERT_STREQ(melon::HttpReasonPhrase(header.status_code()),
                  header.reason_phrase());
-    header.set_status_code(brpc::HTTP_STATUS_CONTINUE);
-    ASSERT_EQ(brpc::HTTP_STATUS_CONTINUE, header.status_code());
-    ASSERT_STREQ(brpc::HttpReasonPhrase(header.status_code()),
+    header.set_status_code(melon::HTTP_STATUS_CONTINUE);
+    ASSERT_EQ(melon::HTTP_STATUS_CONTINUE, header.status_code());
+    ASSERT_STREQ(melon::HttpReasonPhrase(header.status_code()),
                  header.reason_phrase());
     
-    header.set_status_code(brpc::HTTP_STATUS_GONE);
-    ASSERT_EQ(brpc::HTTP_STATUS_GONE, header.status_code());
-    ASSERT_STREQ(brpc::HttpReasonPhrase(header.status_code()),
+    header.set_status_code(melon::HTTP_STATUS_GONE);
+    ASSERT_EQ(melon::HTTP_STATUS_GONE, header.status_code());
+    ASSERT_STREQ(melon::HttpReasonPhrase(header.status_code()),
                  header.reason_phrase());
 }
 
@@ -370,11 +370,11 @@ TEST(HttpMessageTest, empty_url) {
 }
 
 TEST(HttpMessageTest, serialize_http_request) {
-    brpc::HttpHeader header;
+    melon::HttpHeader header;
     ASSERT_EQ(0u, header.HeaderCount());
     header.SetHeader("Foo", "Bar");
     ASSERT_EQ(1u, header.HeaderCount());
-    header.set_method(brpc::HTTP_METHOD_POST);
+    header.set_method(melon::HTTP_METHOD_POST);
     butil::EndPoint ep;
     ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:1234", &ep));
     butil::IOBuf request;
@@ -409,16 +409,16 @@ TEST(HttpMessageTest, serialize_http_request) {
     ASSERT_EQ("POST / HTTP/1.1\r\nContent-Length: 4\r\naccePT: blahblah\r\nuser-AGENT: myUA\r\nauthorization: myAuthString\r\nFoo: Bar\r\nHost: MyHost: 4321\r\n\r\ndata", request);
 
     // GET does not serialize content and user-set content-length is ignored.
-    header.set_method(brpc::HTTP_METHOD_GET);
+    header.set_method(melon::HTTP_METHOD_GET);
     header.SetHeader("Content-Length", "100");
     MakeRawHttpRequest(&request, &header, ep, &content);
     ASSERT_EQ("GET / HTTP/1.1\r\naccePT: blahblah\r\nuser-AGENT: myUA\r\nauthorization: myAuthString\r\nFoo: Bar\r\nHost: MyHost: 4321\r\n\r\n", request);
 }
 
 TEST(HttpMessageTest, serialize_http_response) {
-    brpc::HttpHeader header;
+    melon::HttpHeader header;
     header.SetHeader("Foo", "Bar");
-    header.set_method(brpc::HTTP_METHOD_POST);
+    header.set_method(melon::HTTP_METHOD_POST);
     butil::IOBuf response;
     butil::IOBuf content;
     content.append("data");
@@ -444,21 +444,21 @@ TEST(HttpMessageTest, serialize_http_response) {
     // 204 No Content.
     header.SetHeader("Content-Length", "100");
     header.SetHeader("Transfer-Encoding", "chunked");
-    header.set_status_code(brpc::HTTP_STATUS_NO_CONTENT);
+    header.set_status_code(melon::HTTP_STATUS_NO_CONTENT);
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 204 No Content\r\nFoo: Bar\r\n\r\n", response);
     // 101 Continue
     header.SetHeader("Content-Length", "100");
     header.SetHeader("Transfer-Encoding", "chunked");
-    header.set_status_code(brpc::HTTP_STATUS_CONTINUE);
+    header.set_status_code(melon::HTTP_STATUS_CONTINUE);
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 100 Continue\r\nFoo: Bar\r\n\r\n", response)
         << butil::ToPrintable(response);
 
     // when request method is HEAD:
     // 1. There isn't user-set content-length, length of content is used.
-    header.set_method(brpc::HTTP_METHOD_HEAD);
-    header.set_status_code(brpc::HTTP_STATUS_OK);content.append("data2");
+    header.set_method(melon::HTTP_METHOD_HEAD);
+    header.set_status_code(melon::HTTP_STATUS_OK);content.append("data2");
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nFoo: Bar\r\n\r\n", response)
         << butil::ToPrintable(response);

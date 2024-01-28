@@ -22,7 +22,7 @@
 #include "melon/rpc/protocol.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Parse memcache messages.
@@ -51,7 +51,7 @@ const std::string& GetMemcacheMethodName(
     const Controller*);
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_POLICY_MEMCACHE_BINARY_PROTOCOL_H

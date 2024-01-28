@@ -33,27 +33,21 @@ protobuf_generate_cpp(PROTO_SRC PROTO_HEADER echo.proto)
 # include PROTO_HEADER
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# Search for libthrift* by best effort. If it is not found and brpc is
-# compiled with thrift protocol enabled, a link error would be reported.
-find_library(THRIFT_LIB NAMES thrift)
-if (NOT THRIFT_LIB)
-    set(THRIFT_LIB "")
-endif()
 
 find_path(GPERFTOOLS_INCLUDE_DIR NAMES gperftools/heap-profiler.h)
 find_library(GPERFTOOLS_LIBRARIES NAMES tcmalloc_and_profiler)
 include_directories(${GPERFTOOLS_INCLUDE_DIR})
 
-find_path(BRPC_INCLUDE_PATH NAMES brpc/server.h)
+find_path(MELON_INCLUDE_PATH NAMES melon/rpc/server.h)
 if(LINK_SO)
-    find_library(BRPC_LIB NAMES brpc)
+    find_library(MELON_LIB NAMES melon)
 else()
-    find_library(BRPC_LIB NAMES libbrpc.a brpc)
+    find_library(MELON_LIB NAMES libmelon.a melon)
 endif()
-if((NOT BRPC_INCLUDE_PATH) OR (NOT BRPC_LIB))
-    message(FATAL_ERROR "Fail to find brpc")
+if((NOT MELON_INCLUDE_PATH) OR (NOT MELON_LIB))
+    message(FATAL_ERROR "Fail to find melon")
 endif()
-include_directories(${BRPC_INCLUDE_PATH})
+include_directories(${MELON_INCLUDE_PATH})
 
 find_path(GFLAGS_INCLUDE_PATH gflags/gflags.h)
 find_library(GFLAGS_LIBRARY NAMES gflags libgflags)
@@ -120,7 +114,6 @@ set(DYNAMIC_LIB
     ${LEVELDB_LIB}
     ${OPENSSL_CRYPTO_LIBRARY}
     ${OPENSSL_SSL_LIBRARY}
-    ${THRIFT_LIB}
     dl
     )
 
@@ -142,5 +135,5 @@ endif()
 add_executable(echo_client client.cpp ${PROTO_SRC} ${PROTO_HEADER})
 add_executable(echo_server server.cpp ${PROTO_SRC} ${PROTO_HEADER})
 
-target_link_libraries(echo_client ${BRPC_LIB} ${DYNAMIC_LIB} ${GPERFTOOLS_LIBRARIES})
-target_link_libraries(echo_server ${BRPC_LIB} ${DYNAMIC_LIB} ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(echo_client ${MELON_LIB} ${DYNAMIC_LIB} ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(echo_server ${MELON_LIB} ${DYNAMIC_LIB} ${GPERFTOOLS_LIBRARIES})

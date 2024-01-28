@@ -21,7 +21,7 @@
 #include "melon/rpc/log.h"
 #include "melon/rpc/policy/dh.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 void DHWrapper::clear() {
@@ -120,4 +120,4 @@ int DHWrapper::do_initialize() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

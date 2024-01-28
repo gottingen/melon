@@ -22,7 +22,7 @@
 #include "melon/butil/containers/bounded_queue.h"
 #include "melon/rpc/concurrency_limiter.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 class AutoConcurrencyLimiter : public ConcurrencyLimiter {
@@ -82,7 +82,7 @@ private:
 };
 
 }  // namespace policy
-}  // namespace brpc
+}  // namespace melon
 
 
 #endif // BRPC_POLICY_AUTO_CONCURRENCY_LIMITER_H

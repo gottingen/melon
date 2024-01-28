@@ -20,7 +20,7 @@
 #define  BRPC_HTTP_STATUS_CODE_H
 
 
-namespace brpc {
+namespace melon {
 
 // Read the description of a status code carefully before using it
 
@@ -677,7 +677,7 @@ static const int HTTP_STATUS_GATEWAY_TIMEOUT                 = 504;
 // that server. 
 static const int HTTP_STATUS_VERSION_NOT_SUPPORTED           = 505;
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  //BRPC_HTTP_STATUS_CODE_H

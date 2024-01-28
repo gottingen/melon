@@ -25,7 +25,7 @@
 #include "melon/rpc/parallel_channel.h"
 
 
-namespace brpc {
+namespace melon {
 
 ParallelChannelOptions::ParallelChannelOptions()
     : timeout_ms(500)
@@ -793,4 +793,4 @@ void ParallelChannel::Describe(
     os << "]";
 }
 
-} // namespace brpc
+} // namespace melon

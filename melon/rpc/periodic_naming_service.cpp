@@ -23,7 +23,7 @@
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/periodic_naming_service.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_int32(ns_access_interval, 5,
              "Wait so many seconds before next access to naming service");
@@ -51,7 +51,7 @@ int PeriodicNamingService::RunNamingService(
             actions->ResetServers(servers);
         }
 
-        // If `bthread_stop' is called to stop the ns bthread when `brpc::Join‘ is called
+        // If `bthread_stop' is called to stop the ns bthread when `melon::Join‘ is called
         // in `GetServers' to wait for a rpc to complete. The bthread will be woken up,
         // reset `TaskMeta::interrupted' and continue to join the rpc. After the rpc is complete,
         // `bthread_usleep' will not sense the interrupt signal and sleep successfully.
@@ -72,4 +72,4 @@ int PeriodicNamingService::RunNamingService(
     }
 }
 
-} // namespace brpc
+} // namespace melon

@@ -33,13 +33,13 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     buf.append(input);
     {
         butil::Arena arena;
-        brpc::RedisCommandParser parser;
+        melon::RedisCommandParser parser;
         std::vector<butil::StringPiece> command_out;
         parser.Consume(buf, &command_out, &arena);
     }
     {
         butil::Arena arena;
-        brpc::RedisReply r2(&arena);
+        melon::RedisReply r2(&arena);
         r2.ConsumePartialIOBuf(buf);
     }
 

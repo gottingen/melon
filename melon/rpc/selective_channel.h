@@ -26,7 +26,7 @@
 #include "melon/rpc/channel.h"
 
 
-namespace brpc {
+namespace melon {
 
 // A combo channel to split traffic to sub channels, aka "schan". The main
 // purpose of schan is to load balance between groups of servers.
@@ -57,7 +57,7 @@ public:
     ~SelectiveChannel();
 
     // You MUST initialize a schan before using it. `load_balancer_name' is the
-    // name of load balancing algorithm which is listed in brpc/channel.h
+    // name of load balancing algorithm which is listed in melon/rpc/channel.h
     // if `options' is NULL, use default options.
     int Init(const char* load_balancer_name, const ChannelOptions* options);
 
@@ -90,7 +90,7 @@ private:
     Channel _chan;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_SELECTIVE_CHANNEL_H

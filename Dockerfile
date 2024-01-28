@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A image for building/testing brpc
+# A image for building/testing melon
 FROM ubuntu:20.04
 
 # prepare env
@@ -37,6 +37,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libsnappy-dev && \
         apt-get clean -y
 
-RUN git clone https://github.com/apache/brpc.git
-RUN cd brpc && sh config_brpc.sh --headers=/usr/include --libs=/usr/lib && \
+RUN git clone https://github.com/gottinen/melon.git
+RUN cd melon && sh config_melon.sh --headers=/usr/include --libs=/usr/lib && \
     make -j "$(nproc)"

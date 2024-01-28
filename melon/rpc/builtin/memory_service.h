@@ -20,17 +20,17 @@
 
 #include "melon/rpc/builtin_service.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class MemoryService : public memory {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::MemoryRequest* request,
-                        ::brpc::MemoryResponse* response,
+                        const ::melon::MemoryRequest* request,
+                        ::melon::MemoryResponse* response,
                         ::google::protobuf::Closure* done) override;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_MALLOC_SERVICE_H

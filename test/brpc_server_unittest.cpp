@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     return RUN_ALL_TESTS();
 }
 
-namespace brpc {
+namespace melon {
 DECLARE_bool(enable_threads_service);
 DECLARE_bool(enable_dir_service);
 
@@ -78,7 +78,7 @@ void* RunClosure(void* arg) {
     return NULL;
 }
 
-class MyAuthenticator : public brpc::Authenticator {
+class MyAuthenticator : public melon::Authenticator {
 public:
     MyAuthenticator() {}
     virtual ~MyAuthenticator() {}
@@ -88,7 +88,7 @@ public:
 
     int VerifyCredential(const std::string&,
                          const butil::EndPoint&,
-                         brpc::AuthContext*) const {
+                         melon::AuthContext*) const {
         return 0;
     }
 };
@@ -108,8 +108,8 @@ public:
                       const test::EchoRequest* request,
                       test::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
-        brpc::Controller* cntl = (brpc::Controller*)cntl_base;
+        melon::ClosureGuard done_guard(done);
+        melon::Controller* cntl = (melon::Controller*)cntl_base;
         count.fetch_add(1, butil::memory_order_relaxed);
         EXPECT_EQ(EXP_REQUEST, request->message());
         response->set_message(EXP_RESPONSE);
@@ -133,7 +133,7 @@ public:
                            const test::ComboRequest* request,
                            test::ComboResponse* response,
                            google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         for (int i = 0; i < request->requests_size(); ++i) {
             response->add_responses()->set_message(request->requests(i).message());
         }
@@ -143,7 +143,7 @@ public:
                             const test::BytesRequest* request,
                             test::BytesResponse* response,
                             google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         EXPECT_EQ(EXP_REQUEST, request->databytes());
         response->set_databytes(request->databytes());
     }
@@ -152,7 +152,7 @@ public:
                             const test::BytesRequest* request,
                             test::BytesResponse* response,
                             google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         EXPECT_EQ(EXP_REQUEST_BASE64, request->databytes());
         response->set_databytes(request->databytes());
     }
@@ -183,41 +183,41 @@ protected:
 
     void TestAddBuiltinService(
         const google::protobuf::ServiceDescriptor* conflict_sd) {
-        brpc::Server server;
+        melon::Server server;
         EvilService evil(conflict_sd);
         EXPECT_EQ(0, server.AddServiceInternal(
-                      &evil, false, brpc::ServiceOptions()));
+                      &evil, false, melon::ServiceOptions()));
         EXPECT_EQ(-1, server.AddBuiltinServices());
     }
 };
 
 TEST_F(ServerTest, sanity) {
     {
-        brpc::Server server;
+        melon::Server server;
         ASSERT_EQ(-1, server.Start("127.0.0.1:12345:asdf", NULL));
         ASSERT_EQ(-1, server.Start("127.0.0.1:99999", NULL)); 
         ASSERT_EQ(0, server.Start("127.0.0.1:8613", NULL));
     }
     {
-        brpc::Server server;
+        melon::Server server;
         // accept hostname as well.
         ASSERT_EQ(0, server.Start("localhost:8613", NULL));
     }
     {
-        brpc::Server server;
+        melon::Server server;
         ASSERT_EQ(0, server.Start("localhost:0", NULL));
         // port should be replaced with the actually used one.
         ASSERT_NE(0, server.listen_address().port);
     }
 
     {
-        brpc::Server server;
+        melon::Server server;
         ASSERT_EQ(-1, server.Start(99999, NULL));
         ASSERT_EQ(0, server.Start(8613, NULL));
     }
     {
-        brpc::Server server;
-        brpc::ServerOptions options;
+        melon::Server server;
+        melon::ServerOptions options;
         options.internal_port = 8613;          // The same as service port
         ASSERT_EQ(-1, server.Start("127.0.0.1:8613", &options));
         ASSERT_FALSE(server.IsRunning());      // Revert server's status
@@ -225,9 +225,9 @@ TEST_F(ServerTest, sanity) {
         ASSERT_EQ(0, server.Start("127.0.0.1:8613", NULL));
     }
     {
-        brpc::Server server;
-        brpc::ServerOptions options;
-        ASSERT_EQ(0, server.Start(brpc::PortRange(8000, 9000), &options));
+        melon::Server server;
+        melon::ServerOptions options;
+        ASSERT_EQ(0, server.Start(melon::PortRange(8000, 9000), &options));
         ASSERT_TRUE(server.IsRunning());
         ASSERT_EQ(0ul, server.service_count());
         ASSERT_TRUE(NULL == server.first_service());
@@ -237,9 +237,9 @@ TEST_F(ServerTest, sanity) {
 
     butil::EndPoint ep;
     MyAuthenticator auth;
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
-    brpc::ServerOptions opt;
+    melon::ServerOptions opt;
     opt.auth = &auth;
     ASSERT_EQ(0, server.Start(ep, &opt));
     ASSERT_TRUE(server.IsRunning());
@@ -251,7 +251,7 @@ TEST_F(ServerTest, sanity) {
     server.ListServices(&services);
     ASSERT_TRUE(services.empty());
     ASSERT_EQ(0UL, server.service_count());
-    for (brpc::Server::ServiceMap::const_iterator it
+    for (melon::Server::ServiceMap::const_iterator it
                  = server._service_map.begin();
          it != server._service_map.end(); ++it) {
         ASSERT_TRUE(it->second.is_builtin_service);
@@ -264,8 +264,8 @@ TEST_F(ServerTest, sanity) {
 TEST_F(ServerTest, invalid_protocol_in_enabled_protocols) {
     butil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
-    brpc::Server server;
-    brpc::ServerOptions opt;
+    melon::Server server;
+    melon::ServerOptions opt;
     opt.enabled_protocols = "hehe baidu_std";
     ASSERT_EQ(-1, server.Start(ep, &opt));
 }
@@ -283,12 +283,12 @@ public:
                       const v1::EchoRequest* request,
                       v1::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
-        brpc::ClosureGuard done_guard(done);
+        melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
+        melon::ClosureGuard done_guard(done);
         if (request->has_message()) {
             response->set_message(request->message() + "_v1");
         } else {
-            CHECK_EQ(brpc::PROTOCOL_HTTP, cntl->request_protocol());
+            CHECK_EQ(melon::PROTOCOL_HTTP, cntl->request_protocol());
             cntl->response_attachment() = cntl->request_attachment();
         }
         ncalled.fetch_add(1);
@@ -297,7 +297,7 @@ public:
                       const v1::EchoRequest* request,
                       v1::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         response->set_message(request->message() + "_v1_Echo2");
         ncalled_echo2.fetch_add(1);
     }
@@ -305,7 +305,7 @@ public:
                       const v1::EchoRequest* request,
                       v1::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         response->set_message(request->message() + "_v1_Echo3");
         ncalled_echo3.fetch_add(1);
     }
@@ -313,7 +313,7 @@ public:
                       const v1::EchoRequest* request,
                       v1::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         response->set_message(request->message() + "_v1_Echo4");
         ncalled_echo4.fetch_add(1);
     }
@@ -321,7 +321,7 @@ public:
                       const v1::EchoRequest* request,
                       v1::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         response->set_message(request->message() + "_v1_Echo5");
         ncalled_echo5.fetch_add(1);
     }
@@ -341,7 +341,7 @@ public:
                       const v2::EchoRequest* request,
                       v2::EchoResponse* response,
                       google::protobuf::Closure* done) {
-        brpc::ClosureGuard done_guard(done);
+        melon::ClosureGuard done_guard(done);
         response->set_value(request->value() + 1);
         ncalled.fetch_add(1);
     }
@@ -351,19 +351,19 @@ public:
 TEST_F(ServerTest, empty_enabled_protocols) {
     butil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
-    brpc::Server server;
+    melon::Server server;
     EchoServiceImpl echo_svc;
     ASSERT_EQ(0, server.AddService(
-                  &echo_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
-    brpc::ServerOptions opt;
+                  &echo_svc, melon::SERVER_DOESNT_OWN_SERVICE));
+    melon::ServerOptions opt;
     opt.enabled_protocols = "   ";
     ASSERT_EQ(0, server.Start(ep, &opt));
 
-    brpc::Channel chan;
-    brpc::ChannelOptions copt;
+    melon::Channel chan;
+    melon::ChannelOptions copt;
     copt.protocol = "baidu_std";
     ASSERT_EQ(0, chan.Init(ep, &copt));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message(EXP_REQUEST);
@@ -378,19 +378,19 @@ TEST_F(ServerTest, empty_enabled_protocols) {
 TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
     butil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
-    brpc::Server server;
+    melon::Server server;
     EchoServiceImpl echo_svc;
     ASSERT_EQ(0, server.AddService(
-                  &echo_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
-    brpc::ServerOptions opt;
+                  &echo_svc, melon::SERVER_DOESNT_OWN_SERVICE));
+    melon::ServerOptions opt;
     opt.enabled_protocols = "hulu_pbrpc";
     ASSERT_EQ(0, server.Start(ep, &opt));
 
-    brpc::ChannelOptions copt;
-    brpc::Controller cntl;
+    melon::ChannelOptions copt;
+    melon::Controller cntl;
 
     // http is always allowed.
-    brpc::Channel http_channel;
+    melon::Channel http_channel;
     copt.protocol = "http";
     ASSERT_EQ(0, http_channel.Init(ep, &copt));
     cntl.Reset();
@@ -398,7 +398,7 @@ TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
 
     // Unmatched protocols are not allowed.
-    brpc::Channel chan;
+    melon::Channel chan;
     copt.protocol = "baidu_std";
     ASSERT_EQ(0, chan.Init(ep, &copt));
     test::EchoRequest req;
@@ -416,24 +416,24 @@ TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
 
 TEST_F(ServerTest, services_in_different_ns) {
     const int port = 9200;
-    brpc::Server server1;
+    melon::Server server1;
     EchoServiceV1 service_v1;
-    ASSERT_EQ(0, server1.AddService(&service_v1, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server1.AddService(&service_v1, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server1.Start(port, NULL));
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(1, service_v1.ncalled.load());
     cntl.Reset();
     cntl.http_request().uri() = "/v1.EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
@@ -446,21 +446,21 @@ TEST_F(ServerTest, services_in_different_ns) {
     // ends at this point.
     EchoServiceV2 service_v2;
 #ifndef ALLOW_SAME_NAMED_SERVICE_IN_DIFFERENT_NAMESPACE
-    ASSERT_EQ(-1, server1.AddService(&service_v2, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(-1, server1.AddService(&service_v2, melon::SERVER_DOESNT_OWN_SERVICE));
 #else
-    ASSERT_EQ(0, server1.AddService(&service_v2, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server1.AddService(&service_v2, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server1.Start(port, NULL));
     //sleep(3); // wait for HC
     cntl.Reset();
     cntl.http_request().uri() = "/v2.EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"value\":33}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
     ASSERT_EQ(1, service_v2.ncalled.load());
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"value\":33}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
@@ -472,17 +472,17 @@ TEST_F(ServerTest, services_in_different_ns) {
 
 TEST_F(ServerTest, various_forms_of_uri_paths) {
     const int port = 9200;
-    brpc::Server server1;
+    melon::Server server1;
     EchoServiceV1 service_v1;
-    ASSERT_EQ(0, server1.AddService(&service_v1, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server1.AddService(&service_v1, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server1.Start(port, NULL));
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
@@ -490,7 +490,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService///Echo//";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText() << cntl.response_attachment();
@@ -498,18 +498,18 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService /Echo/";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
-    ASSERT_EQ(brpc::EREQUEST, cntl.ErrorCode());
+    ASSERT_EQ(melon::EREQUEST, cntl.ErrorCode());
     LOG(INFO) << "Expected error: " << cntl.ErrorText();
     ASSERT_EQ(2, service_v1.ncalled.load());
 
     // Additional path(stored in unresolved_path) after method is acceptible
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo/Foo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -522,68 +522,68 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
 
 TEST_F(ServerTest, missing_required_fields) {
     const int port = 9200;
-    brpc::Server server1;
+    melon::Server server1;
     EchoServiceV1 service_v1;
-    ASSERT_EQ(0, server1.AddService(&service_v1, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server1.AddService(&service_v1, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server1.Start(port, NULL));
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/EchoService/Echo";
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
-    ASSERT_EQ(brpc::EHTTP, cntl.ErrorCode());
+    ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
     LOG(INFO) << cntl.ErrorText();
-    ASSERT_EQ(brpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
+    ASSERT_EQ(melon::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
     ASSERT_EQ(0, service_v1.ncalled.load());
 
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
-    ASSERT_EQ(brpc::EHTTP, cntl.ErrorCode());
-    ASSERT_EQ(brpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
+    ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
+    ASSERT_EQ(melon::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
     ASSERT_EQ(0, service_v1.ncalled.load());
 
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message2\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
-    ASSERT_EQ(brpc::EHTTP, cntl.ErrorCode());
-    ASSERT_EQ(brpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
+    ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
+    ASSERT_EQ(melon::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
     ASSERT_EQ(0, service_v1.ncalled.load());
 }
 
 TEST_F(ServerTest, disallow_http_body_to_pb) {
     const int port = 9200;
-    brpc::Server server1;
+    melon::Server server1;
     EchoServiceV1 service_v1;
-    brpc::ServiceOptions svc_opt;
+    melon::ServiceOptions svc_opt;
     svc_opt.allow_http_body_to_pb = false;
     svc_opt.restful_mappings = "/access_echo1=>Echo";
     ASSERT_EQ(0, server1.AddService(&service_v1, svc_opt));
     ASSERT_EQ(0, server1.Start(port, NULL));
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/access_echo1";
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
-    ASSERT_EQ(brpc::EHTTP, cntl.ErrorCode());
-    ASSERT_EQ(brpc::HTTP_STATUS_INTERNAL_SERVER_ERROR,
+    ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
+    ASSERT_EQ(melon::HTTP_STATUS_INTERNAL_SERVER_ERROR,
               cntl.http_response().status_code());
     ASSERT_EQ(1, service_v1.ncalled.load());
 
     cntl.Reset();
     cntl.http_request().uri() = "/access_echo1";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("heheda");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -596,11 +596,11 @@ TEST_F(ServerTest, restful_mapping) {
     EchoServiceV1 service_v1;
     EchoServiceV2 service_v2;
     
-    brpc::Server server1;
+    melon::Server server1;
     ASSERT_EQ(0u, server1.service_count());
     ASSERT_EQ(0, server1.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/echo/ => Echo,"
 
                   // Map another path to the same method is ok.
@@ -628,86 +628,86 @@ TEST_F(ServerTest, restful_mapping) {
     ASSERT_EQ(1UL, server1._global_restful_map->size());
 
     // Disallow duplicated path
-    brpc::Server server2;
+    melon::Server server2;
     ASSERT_EQ(-1, server2.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/echo => Echo,"
                   "/v1/echo => Echo"));
     ASSERT_EQ(0u, server2.service_count());
     
     // NOTE: PATH/* and PATH cannot coexist in previous versions, now it's OK.
-    brpc::Server server3;
+    melon::Server server3;
     ASSERT_EQ(0, server3.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/echo/* => Echo,"
                   "/v1/echo   => Echo"));
     ASSERT_EQ(1u, server3.service_count());
     
     // Same named services can't be added even with restful mapping
-    brpc::Server server4;
+    melon::Server server4;
     ASSERT_EQ(0, server4.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/echo => Echo"));
     ASSERT_EQ(1u, server4.service_count());
     ASSERT_EQ(-1, server4.AddService(
                   &service_v2,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v2/echo => Echo"));
     ASSERT_EQ(1u, server4.service_count());
 
     // Invalid method name.
-    brpc::Server server5;
+    melon::Server server5;
     ASSERT_EQ(-1, server5.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/echo => UnexistMethod"));
     ASSERT_EQ(0u, server5.service_count());
 
     // Invalid path.
-    brpc::Server server6;
+    melon::Server server6;
     ASSERT_EQ(-1, server6.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/ echo => Echo"));
     ASSERT_EQ(0u, server6.service_count());
 
     // Empty path
-    brpc::Server server7;
+    melon::Server server7;
     ASSERT_EQ(-1, server7.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "  => Echo"));
     ASSERT_EQ(0u, server7.service_count());
 
     // Disabled pattern "/A*/B => M"
-    brpc::Server server8;
+    melon::Server server8;
     ASSERT_EQ(-1, server8.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   " abc* => Echo"));
     ASSERT_EQ(0u, server8.service_count());
     ASSERT_EQ(-1, server8.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   " abc/def* => Echo"));
     ASSERT_EQ(0u, server8.service_count());
 
     // More than one wildcard
-    brpc::Server server9;
+    melon::Server server9;
     ASSERT_EQ(-1, server9.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   " /v1/*/* => Echo"));
     ASSERT_EQ(0u, server9.service_count());
     
     // default url access
-    brpc::Server server10;
+    melon::Server server10;
     ASSERT_EQ(0, server10.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/v1/echo => Echo",
                   true));
     ASSERT_EQ(1u, server10.service_count());
@@ -715,15 +715,15 @@ TEST_F(ServerTest, restful_mapping) {
 
     // Access services
     ASSERT_EQ(0, server1.Start(port, NULL));
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
 
     // reject /EchoService/Echo
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
@@ -732,7 +732,7 @@ TEST_F(ServerTest, restful_mapping) {
     // access v1.Echo via /v1/echo.
     cntl.Reset();
     cntl.http_request().uri() = "/v1/echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -742,7 +742,7 @@ TEST_F(ServerTest, restful_mapping) {
     // access v1.Echo via /v3/echo.
     cntl.Reset();
     cntl.http_request().uri() = "/v3/echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"bar\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -752,7 +752,7 @@ TEST_F(ServerTest, restful_mapping) {
     // Adding extra slashes (and heading/trailing spaces) is OK.
     cntl.Reset();
     cntl.http_request().uri() = " //v1///echo////  ";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"hello\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -762,18 +762,18 @@ TEST_F(ServerTest, restful_mapping) {
     // /v3/echo must be exactly matched.
     cntl.Reset();
     cntl.http_request().uri() = "/v3/echo/anything";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
-    ASSERT_EQ(brpc::EHTTP, cntl.ErrorCode());
+    ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
     LOG(INFO) << "Expected error: " << cntl.ErrorText();
     ASSERT_EQ(3, service_v1.ncalled.load());
 
     // Access v1.Echo via /v2/echo
     cntl.Reset();
     cntl.http_request().uri() = "/v2/echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"hehe\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -783,7 +783,7 @@ TEST_F(ServerTest, restful_mapping) {
     // Access v1.Echo via /v2/echo/anything
     cntl.Reset();
     cntl.http_request().uri() = "/v2/echo/anything";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"good\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -792,7 +792,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v4_echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"hoho\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -801,7 +801,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v5/echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -810,7 +810,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v6/echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -819,7 +819,7 @@ TEST_F(ServerTest, restful_mapping) {
     
     cntl.Reset();
     cntl.http_request().uri() = "/v6/echo/test";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -828,7 +828,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v6/abc/heheda/def";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"abc_heheda\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -837,7 +837,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v6/abc/def";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"abc\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -847,7 +847,7 @@ TEST_F(ServerTest, restful_mapping) {
     // Incorrect suffix
     cntl.Reset();
     cntl.http_request().uri() = "/v6/abc/heheda/def2";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"xyz\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
@@ -855,7 +855,7 @@ TEST_F(ServerTest, restful_mapping) {
     
     cntl.Reset();
     cntl.http_request().uri() = "/v6/echo/1.flv";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"1.flv\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -864,7 +864,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "//v6//d.flv//";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"d.flv\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -874,7 +874,7 @@ TEST_F(ServerTest, restful_mapping) {
     // matched the global restful map.
     cntl.Reset();
     cntl.http_request().uri() = "//d.flv//";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"d.flv\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -883,7 +883,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v7/e.flv";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"e.flv\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -892,7 +892,7 @@ TEST_F(ServerTest, restful_mapping) {
 
     cntl.Reset();
     cntl.http_request().uri() = "/v0/f.flv";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"f.flv\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -902,7 +902,7 @@ TEST_F(ServerTest, restful_mapping) {
     // matched nothing
     cntl.Reset();
     cntl.http_request().uri() = "/v6/ech/1.ts";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"1.ts\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
@@ -916,7 +916,7 @@ TEST_F(ServerTest, restful_mapping) {
     // access v1.Echo via /v1/echo.
     cntl.Reset();
     cntl.http_request().uri() = "/v1/echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -926,7 +926,7 @@ TEST_F(ServerTest, restful_mapping) {
     // access v1.Echo via default url
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -944,61 +944,61 @@ TEST_F(ServerTest, restful_mapping) {
 }
 
 TEST_F(ServerTest, http_error_code) {
-    brpc::policy::FLAGS_use_http_error_code = true;
+    melon::policy::FLAGS_use_http_error_code = true;
 
     const int port = 9200;
-    // missing_required_fields -> brpc::EREQUEST
+    // missing_required_fields -> melon::EREQUEST
     {
-        brpc::Server server1;
+        melon::Server server1;
         EchoServiceV1 service_v1;
-        ASSERT_EQ(0, server1.AddService(&service_v1, brpc::SERVER_DOESNT_OWN_SERVICE));
+        ASSERT_EQ(0, server1.AddService(&service_v1, melon::SERVER_DOESNT_OWN_SERVICE));
         ASSERT_EQ(0, server1.Start(port, NULL));
 
-        brpc::Channel http_channel;
-        brpc::ChannelOptions chan_options;
+        melon::Channel http_channel;
+        melon::ChannelOptions chan_options;
         chan_options.protocol = "http";
         ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/EchoService/Echo";
         http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_TRUE(cntl.Failed());
-        ASSERT_EQ(brpc::EREQUEST, cntl.ErrorCode());
+        ASSERT_EQ(melon::EREQUEST, cntl.ErrorCode());
         LOG(INFO) << cntl.ErrorText();
-        ASSERT_EQ(brpc::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
+        ASSERT_EQ(melon::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
         ASSERT_EQ(0, service_v1.ncalled.load());
     }
 
-    // disallow_http_body_to_pb -> brpc::ERESPONSE
+    // disallow_http_body_to_pb -> melon::ERESPONSE
     {
-        brpc::Server server1;
+        melon::Server server1;
         EchoServiceV1 service_v1;
-        brpc::ServiceOptions svc_opt;
+        melon::ServiceOptions svc_opt;
         svc_opt.allow_http_body_to_pb = false;
         svc_opt.restful_mappings = "/access_echo1=>Echo";
         ASSERT_EQ(0, server1.AddService(&service_v1, svc_opt));
         ASSERT_EQ(0, server1.Start(port, NULL));
-        brpc::Channel http_channel;
-        brpc::ChannelOptions chan_options;
+        melon::Channel http_channel;
+        melon::ChannelOptions chan_options;
         chan_options.protocol = "http";
         ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/access_echo1";
         http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_TRUE(cntl.Failed());
-        ASSERT_EQ(brpc::ERESPONSE, cntl.ErrorCode());
-        ASSERT_EQ(brpc::HTTP_STATUS_INTERNAL_SERVER_ERROR,
+        ASSERT_EQ(melon::ERESPONSE, cntl.ErrorCode());
+        ASSERT_EQ(melon::HTTP_STATUS_INTERNAL_SERVER_ERROR,
             cntl.http_response().status_code());
         ASSERT_EQ(1, service_v1.ncalled.load());
     }
 
-    // restful_mapping -> brpc::ENOMETHOD
+    // restful_mapping -> melon::ENOMETHOD
     {
-        brpc::Server server1;
+        melon::Server server1;
         EchoServiceV1 service_v1;
         ASSERT_EQ(0u, server1.service_count());
         ASSERT_EQ(0, server1.AddService(
             &service_v1,
-            brpc::SERVER_DOESNT_OWN_SERVICE,
+            melon::SERVER_DOESNT_OWN_SERVICE,
             "/v1/echo/ => Echo,"
 
             // Map another path to the same method is ok.
@@ -1026,84 +1026,84 @@ TEST_F(ServerTest, http_error_code) {
         ASSERT_EQ(1UL, server1._global_restful_map->size());
 
         ASSERT_EQ(0, server1.Start(port, NULL));
-        brpc::Channel http_channel;
-        brpc::ChannelOptions chan_options;
+        melon::Channel http_channel;
+        melon::ChannelOptions chan_options;
         chan_options.protocol = "http";
         ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/v3/echo/anything";
-        cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+        cntl.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl.request_attachment().append("{\"message\":\"foo\"}");
         http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_TRUE(cntl.Failed());
-        ASSERT_EQ(brpc::ENOMETHOD, cntl.ErrorCode());
+        ASSERT_EQ(melon::ENOMETHOD, cntl.ErrorCode());
         LOG(INFO) << "Expected error: " << cntl.ErrorText();
         ASSERT_EQ(0, service_v1.ncalled.load());
     }
 
-    // max_concurrency -> brpc::ELIMIT
+    // max_concurrency -> melon::ELIMIT
     {
-        brpc::Server server1;
+        melon::Server server1;
         EchoServiceImpl service1;
-        ASSERT_EQ(0, server1.AddService(&service1, brpc::SERVER_DOESNT_OWN_SERVICE));
+        ASSERT_EQ(0, server1.AddService(&service1, melon::SERVER_DOESNT_OWN_SERVICE));
         server1.MaxConcurrencyOf("test.EchoService.Echo") = 1;
         ASSERT_EQ(1, server1.MaxConcurrencyOf("test.EchoService.Echo"));
         server1.MaxConcurrencyOf(&service1, "Echo") = 2;
         ASSERT_EQ(2, server1.MaxConcurrencyOf(&service1, "Echo"));
 
         ASSERT_EQ(0, server1.Start(port, NULL));
-        brpc::Channel http_channel;
-        brpc::ChannelOptions chan_options;
+        melon::Channel http_channel;
+        melon::ChannelOptions chan_options;
         chan_options.protocol = "http";
         ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
 
-        brpc::Channel normal_channel;
+        melon::Channel normal_channel;
         ASSERT_EQ(0, normal_channel.Init("0.0.0.0", port, NULL));
         test::EchoService_Stub stub(&normal_channel);
 
-        brpc::Controller cntl1;
+        melon::Controller cntl1;
         cntl1.http_request().uri() = "/EchoService/Echo";
-        cntl1.http_request().set_method(brpc::HTTP_METHOD_POST);
+        cntl1.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl1.request_attachment().append("{\"message\":\"hello\",\"sleep_us\":100000}");
-        http_channel.CallMethod(NULL, &cntl1, NULL, NULL, brpc::DoNothing());
+        http_channel.CallMethod(NULL, &cntl1, NULL, NULL, melon::DoNothing());
 
-        brpc::Controller cntl2;
+        melon::Controller cntl2;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message("hello");
         req.set_sleep_us(100000);
-        stub.Echo(&cntl2, &req, &res, brpc::DoNothing());
+        stub.Echo(&cntl2, &req, &res, melon::DoNothing());
 
         bthread_usleep(20000);
         LOG(INFO) << "Send other requests";
 
-        brpc::Controller cntl3;
+        melon::Controller cntl3;
         cntl3.http_request().uri() = "/EchoService/Echo";
-        cntl3.http_request().set_method(brpc::HTTP_METHOD_POST);
+        cntl3.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl3.request_attachment().append("{\"message\":\"hello\"}");
         http_channel.CallMethod(NULL, &cntl3, NULL, NULL, NULL);
         ASSERT_TRUE(cntl3.Failed());
-        ASSERT_EQ(brpc::ELIMIT, cntl3.ErrorCode());
-        ASSERT_EQ(brpc::HTTP_STATUS_SERVICE_UNAVAILABLE, cntl3.http_response().status_code());
+        ASSERT_EQ(melon::ELIMIT, cntl3.ErrorCode());
+        ASSERT_EQ(melon::HTTP_STATUS_SERVICE_UNAVAILABLE, cntl3.http_response().status_code());
 
-        brpc::Join(cntl1.call_id());
-        brpc::Join(cntl2.call_id());
+        melon::Join(cntl1.call_id());
+        melon::Join(cntl2.call_id());
         ASSERT_FALSE(cntl1.Failed()) << cntl1.ErrorText();
         ASSERT_FALSE(cntl2.Failed()) << cntl2.ErrorText();
     }
 
-    brpc::policy::FLAGS_use_http_error_code = false;
+    melon::policy::FLAGS_use_http_error_code = false;
 }
 
 TEST_F(ServerTest, conflict_name_between_restful_mapping_and_builtin) {
     const int port = 9200;
     EchoServiceV1 service_v1;
     
-    brpc::Server server1;
+    melon::Server server1;
     ASSERT_EQ(0u, server1.service_count());
     ASSERT_EQ(0, server1.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "/status/hello => Echo"));
     ASSERT_EQ(1u, server1.service_count());
     ASSERT_TRUE(server1._global_restful_map == NULL);
@@ -1115,11 +1115,11 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     const int port = 9200;
     EchoServiceV1 service_v1;
     
-    brpc::Server server1;
+    melon::Server server1;
     ASSERT_EQ(0u, server1.service_count());
     ASSERT_EQ(0, server1.AddService(
                   &service_v1,
-                  brpc::SERVER_DOESNT_OWN_SERVICE,
+                  melon::SERVER_DOESNT_OWN_SERVICE,
                   "* => Echo"));
     ASSERT_EQ(1u, server1.service_count());
     ASSERT_TRUE(server1._global_restful_map);
@@ -1127,13 +1127,13 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
 
     ASSERT_EQ(0, server1.Start(port, NULL));
     
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
 
     // accessing /status should be OK.
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.http_request().uri() = "/status";
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -1144,7 +1144,7 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     // reject /EchoService/Echo
     cntl.Reset();
     cntl.http_request().uri() = "/EchoService/Echo";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
@@ -1153,7 +1153,7 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
     // Hit restful map
     cntl.Reset();
     cntl.http_request().uri() = "/non_exist";
-    cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl.request_attachment().append("{\"message\":\"foo\"}");
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -1173,13 +1173,13 @@ TEST_F(ServerTest, restful_mapping_is_tried_after_others) {
 }
 
 TEST_F(ServerTest, add_remove_service) {
-    brpc::Server server;
+    melon::Server server;
     EchoServiceImpl echo_svc;
     ASSERT_EQ(0, server.AddService(
-        &echo_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
+        &echo_svc, melon::SERVER_DOESNT_OWN_SERVICE));
     // Duplicate
     ASSERT_EQ(-1, server.AddService(
-        &echo_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
+        &echo_svc, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_TRUE(server.FindServiceByName(
         test::EchoService::descriptor()->name()) == &echo_svc);
     ASSERT_TRUE(server.FindServiceByFullName(
@@ -1197,7 +1197,7 @@ TEST_F(ServerTest, add_remove_service) {
         test::EchoService::descriptor()->name()) == &echo_svc);
     // Can't add/remove service while running
     ASSERT_EQ(-1, server.AddService(
-        &echo_svc, brpc::SERVER_DOESNT_OWN_SERVICE));
+        &echo_svc, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(-1, server.RemoveService(&echo_svc));
     
     ASSERT_EQ(0, server.Stop(0));
@@ -1207,7 +1207,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_EQ(0ul, server.service_count());
     EchoServiceImpl* svc_on_heap = new EchoServiceImpl();
     ASSERT_EQ(0, server.AddService(svc_on_heap,
-                                   brpc::SERVER_OWNS_SERVICE));
+                                   melon::SERVER_OWNS_SERVICE));
     ASSERT_EQ(0, server.RemoveService(svc_on_heap));
     ASSERT_TRUE(g_delete);
 
@@ -1216,10 +1216,10 @@ TEST_F(ServerTest, add_remove_service) {
 }
 
 void SendSleepRPC(butil::EndPoint ep, int sleep_ms, bool succ) {
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init(ep, NULL));
 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message(EXP_REQUEST);
@@ -1238,8 +1238,8 @@ void SendSleepRPC(butil::EndPoint ep, int sleep_ms, bool succ) {
 
 TEST_F(ServerTest, close_idle_connections) {
     butil::EndPoint ep;
-    brpc::Server server;
-    brpc::ServerOptions opt;
+    melon::Server server;
+    melon::ServerOptions opt;
     opt.idle_timeout_sec = 1;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:9776", &ep));
     ASSERT_EQ(0, server.Start(ep, &opt));
@@ -1247,7 +1247,7 @@ TEST_F(ServerTest, close_idle_connections) {
     const int cfd = tcp_connect(ep, NULL);
     ASSERT_GT(cfd, 0);
     usleep(10000);
-    brpc::ServerStatistics stat;
+    melon::ServerStatistics stat;
     server.GetStat(&stat);
     ASSERT_EQ(1ul, stat.connection_count);
 
@@ -1260,9 +1260,9 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
     butil::Timer timer;
     butil::EndPoint ep;
     EchoServiceImpl echo_svc;
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
-                                   brpc::SERVER_DOESNT_OWN_SERVICE));
+                                   melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, str2endpoint("127.0.0.1:9876", &ep));
     
     // Server::Stop(-1)
@@ -1271,7 +1271,7 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         bthread_t tid;
         const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
-            brpc::NewCallback(SendSleepRPC, ep, 100, true);
+            melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
         while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
             bthread_usleep(1000);
@@ -1291,7 +1291,7 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         bthread_t tid;
         const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
-            brpc::NewCallback(SendSleepRPC, ep, 100, true);
+            melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
         while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
             bthread_usleep(1000);
@@ -1314,7 +1314,7 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         bthread_t tid;
         const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
-            brpc::NewCallback(SendSleepRPC, ep, 100, true);
+            melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
         while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
             bthread_usleep(1000);
@@ -1337,7 +1337,7 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         bthread_t tid;
         const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
-            brpc::NewCallback(SendSleepRPC, ep, 100, true);
+            melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
         while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
             bthread_usleep(1000);
@@ -1352,11 +1352,11 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
 }
 
 void SendMultipleRPC(butil::EndPoint ep, int count) {
-    brpc::Channel channel;
+    melon::Channel channel;
     EXPECT_EQ(0, channel.Init(ep, NULL));
 
     for (int i = 0; i < count; ++i) {
-        brpc::Controller cntl;
+        melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
         req.set_message(EXP_REQUEST);
@@ -1369,9 +1369,9 @@ void SendMultipleRPC(butil::EndPoint ep, int count) {
               
 TEST_F(ServerTest, serving_requests) {
     EchoServiceImpl echo_svc;
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
-                                   brpc::SERVER_DOESNT_OWN_SERVICE));
+                                   melon::SERVER_DOESNT_OWN_SERVICE));
     butil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, NULL));
@@ -1381,7 +1381,7 @@ TEST_F(ServerTest, serving_requests) {
     pthread_t tids[NUM];
     for (int i = 0; i < NUM; ++i) {
         google::protobuf::Closure* thrd_func = 
-                brpc::NewCallback(SendMultipleRPC, ep, COUNT);
+                melon::NewCallback(SendMultipleRPC, ep, COUNT);
         EXPECT_EQ(0, pthread_create(&tids[i], NULL, RunClosure, thrd_func));
     }
     for (int i = 0; i < NUM; ++i) {
@@ -1394,7 +1394,7 @@ TEST_F(ServerTest, serving_requests) {
 
 TEST_F(ServerTest, create_pid_file) {
     {
-        brpc::Server server;
+        melon::Server server;
         server._options.pid_file = "./pid_dir/sub_dir/./.server.pid";
         server.PutPidFileIfNeeded();
         pid_t pid = getpid();
@@ -1418,34 +1418,34 @@ TEST_F(ServerTest, range_start) {
         listen_fds[i - START_PORT].reset(butil::tcp_listen(point));
     }
 
-    brpc::Server server;
-    EXPECT_EQ(-1, server.Start("0.0.0.0", brpc::PortRange(START_PORT, END_PORT - 1), NULL));
+    melon::Server server;
+    EXPECT_EQ(-1, server.Start("0.0.0.0", melon::PortRange(START_PORT, END_PORT - 1), NULL));
     // note: add an extra port after END_PORT to detect the bug that the 
     // probing does not stop at the first valid port(END_PORT).
-    EXPECT_EQ(0, server.Start("0.0.0.0", brpc::PortRange(START_PORT, END_PORT + 1/*note*/), NULL));
+    EXPECT_EQ(0, server.Start("0.0.0.0", melon::PortRange(START_PORT, END_PORT + 1/*note*/), NULL));
     EXPECT_EQ(END_PORT, server.listen_address().port);
 }
 
 TEST_F(ServerTest, add_builtin_service) {
-    TestAddBuiltinService(brpc::IndexService::descriptor());
-    TestAddBuiltinService(brpc::VersionService::descriptor());
-    TestAddBuiltinService(brpc::HealthService::descriptor());
-    TestAddBuiltinService(brpc::StatusService::descriptor());
-    TestAddBuiltinService(brpc::ConnectionsService::descriptor());
-    TestAddBuiltinService(brpc::BadMethodService::descriptor());
-    TestAddBuiltinService(brpc::ListService::descriptor());
-    if (brpc::FLAGS_enable_threads_service) {
-        TestAddBuiltinService(brpc::ThreadsService::descriptor());
+    TestAddBuiltinService(melon::IndexService::descriptor());
+    TestAddBuiltinService(melon::VersionService::descriptor());
+    TestAddBuiltinService(melon::HealthService::descriptor());
+    TestAddBuiltinService(melon::StatusService::descriptor());
+    TestAddBuiltinService(melon::ConnectionsService::descriptor());
+    TestAddBuiltinService(melon::BadMethodService::descriptor());
+    TestAddBuiltinService(melon::ListService::descriptor());
+    if (melon::FLAGS_enable_threads_service) {
+        TestAddBuiltinService(melon::ThreadsService::descriptor());
     }
 #if !BRPC_WITH_GLOG
-    TestAddBuiltinService(brpc::VLogService::descriptor());
+    TestAddBuiltinService(melon::VLogService::descriptor());
 #endif
-    TestAddBuiltinService(brpc::FlagsService::descriptor());
-    TestAddBuiltinService(brpc::VarsService::descriptor());
-    TestAddBuiltinService(brpc::RpczService::descriptor());
-    TestAddBuiltinService(brpc::PProfService::descriptor());
-    if (brpc::FLAGS_enable_dir_service) {
-        TestAddBuiltinService(brpc::DirService::descriptor());
+    TestAddBuiltinService(melon::FlagsService::descriptor());
+    TestAddBuiltinService(melon::VarsService::descriptor());
+    TestAddBuiltinService(melon::RpczService::descriptor());
+    TestAddBuiltinService(melon::PProfService::descriptor());
+    if (melon::FLAGS_enable_dir_service) {
+        TestAddBuiltinService(melon::DirService::descriptor());
     }
 }
 
@@ -1456,22 +1456,22 @@ TEST_F(ServerTest, base64_to_string) {
     // 1. Client sets pb_bytes_to_base64 and server also sets pb_bytes_to_base64
     // 2. Client sets pb_bytes_to_base64, but server doesn't set pb_bytes_to_base64
     for (int i = 0; i < 2; ++i) {
-        brpc::Server server;
+        melon::Server server;
         EchoServiceImpl echo_svc;
-        brpc::ServiceOptions service_opt;
+        melon::ServiceOptions service_opt;
         service_opt.pb_bytes_to_base64 = (i == 0);
         ASSERT_EQ(0, server.AddService(&echo_svc,
                                        service_opt));
         ASSERT_EQ(0, server.Start(8613, NULL));
 
-        brpc::Channel chan;
-        brpc::ChannelOptions opt;
-        opt.protocol = brpc::PROTOCOL_HTTP;
+        melon::Channel chan;
+        melon::ChannelOptions opt;
+        opt.protocol = melon::PROTOCOL_HTTP;
         ASSERT_EQ(0, chan.Init("localhost:8613", &opt));
-        brpc::Controller cntl;
+        melon::Controller cntl;
         cntl.http_request().uri() = "/EchoService/BytesEcho" +
                 butil::string_printf("%d", i + 1);
-        cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+        cntl.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl.http_request().set_content_type("application/json");
         cntl.set_pb_bytes_to_base64(true);
         test::BytesRequest req;
@@ -1487,22 +1487,22 @@ TEST_F(ServerTest, base64_to_string) {
 
 TEST_F(ServerTest, single_repeated_to_array) {
     for (int i = 0; i < 2; ++i) {
-        brpc::Server server;
+        melon::Server server;
         EchoServiceImpl echo_svc;
-        brpc::ServiceOptions service_opt;
+        melon::ServiceOptions service_opt;
         service_opt.pb_single_repeated_to_array = (i == 0);
 
         ASSERT_EQ(0, server.AddService(&echo_svc, service_opt));
         ASSERT_EQ(0, server.Start(8613, NULL));
 
         for (int j = 0; j < 2; ++j) {
-            brpc::Channel chan;
-            brpc::ChannelOptions opt;
-            opt.protocol = brpc::PROTOCOL_HTTP;
+            melon::Channel chan;
+            melon::ChannelOptions opt;
+            opt.protocol = melon::PROTOCOL_HTTP;
             ASSERT_EQ(0, chan.Init("localhost:8613", &opt));
-            brpc::Controller cntl;
+            melon::Controller cntl;
             cntl.http_request().uri() = "/EchoService/ComboEcho";
-            cntl.http_request().set_method(brpc::HTTP_METHOD_POST);
+            cntl.http_request().set_method(melon::HTTP_METHOD_POST);
             cntl.http_request().set_content_type("application/json");
             cntl.set_pb_single_repeated_to_array(j == 0);
             test::ComboRequest req;
@@ -1529,9 +1529,9 @@ TEST_F(ServerTest, single_repeated_to_array) {
 
 TEST_F(ServerTest, too_big_message) {
     EchoServiceImpl echo_svc;
-    brpc::Server server;
+    melon::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
-                                   brpc::SERVER_DOESNT_OWN_SERVICE));
+                                   melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server.Start(8613, NULL));
 
 #if !BRPC_WITH_GLOG
@@ -1539,12 +1539,12 @@ TEST_F(ServerTest, too_big_message) {
     logging::LogSink* old_sink = logging::SetLogSink(&log_str);
 #endif
 
-    brpc::Channel chan;
+    melon::Channel chan;
     ASSERT_EQ(0, chan.Init("localhost:8613", NULL));
-    brpc::Controller cntl;
+    melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
-    req.mutable_message()->resize(brpc::FLAGS_max_body_size + 1);
+    req.mutable_message()->resize(melon::FLAGS_max_body_size + 1);
     test::EchoService_Stub stub(&chan);
     stub.Echo(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
@@ -1552,7 +1552,7 @@ TEST_F(ServerTest, too_big_message) {
 #if !BRPC_WITH_GLOG
     ASSERT_EQ(&log_str, logging::SetLogSink(old_sink));
     std::ostringstream expected_log;
-    expected_log << " is bigger than " << brpc::FLAGS_max_body_size
+    expected_log << " is bigger than " << melon::FLAGS_max_body_size
                  << " bytes, the connection will be closed."
                     " Set max_body_size to allow bigger messages";
     ASSERT_NE(std::string::npos, log_str.find(expected_log.str()));
@@ -1564,63 +1564,63 @@ TEST_F(ServerTest, too_big_message) {
 
 TEST_F(ServerTest, max_concurrency) {
     const int port = 9200;
-    brpc::Server server1;
+    melon::Server server1;
     EchoServiceImpl service1;
-    ASSERT_EQ(0, server1.AddService(&service1, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server1.AddService(&service1, melon::SERVER_DOESNT_OWN_SERVICE));
     server1.MaxConcurrencyOf("test.EchoService.Echo") = 1;
     ASSERT_EQ(1, server1.MaxConcurrencyOf("test.EchoService.Echo"));
     server1.MaxConcurrencyOf(&service1, "Echo") = 2;
     ASSERT_EQ(2, server1.MaxConcurrencyOf(&service1, "Echo")); 
 
     ASSERT_EQ(0, server1.Start(port, NULL));
-    brpc::Channel http_channel;
-    brpc::ChannelOptions chan_options;
+    melon::Channel http_channel;
+    melon::ChannelOptions chan_options;
     chan_options.protocol = "http";
     ASSERT_EQ(0, http_channel.Init("0.0.0.0", port, &chan_options));
     
-    brpc::Channel normal_channel;
+    melon::Channel normal_channel;
     ASSERT_EQ(0, normal_channel.Init("0.0.0.0", port, NULL));
     test::EchoService_Stub stub(&normal_channel);
 
-    brpc::Controller cntl1;
+    melon::Controller cntl1;
     cntl1.http_request().uri() = "/EchoService/Echo";
-    cntl1.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl1.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl1.request_attachment().append("{\"message\":\"hello\",\"sleep_us\":100000}");
-    http_channel.CallMethod(NULL, &cntl1, NULL, NULL, brpc::DoNothing());
+    http_channel.CallMethod(NULL, &cntl1, NULL, NULL, melon::DoNothing());
 
-    brpc::Controller cntl2;
+    melon::Controller cntl2;
     test::EchoRequest req;
     test::EchoResponse res;
     req.set_message("hello");
     req.set_sleep_us(100000);
-    stub.Echo(&cntl2, &req, &res, brpc::DoNothing());
+    stub.Echo(&cntl2, &req, &res, melon::DoNothing());
 
     bthread_usleep(20000);
     LOG(INFO) << "Send other requests";
     
-    brpc::Controller cntl3;
+    melon::Controller cntl3;
     cntl3.http_request().uri() = "/EchoService/Echo";
-    cntl3.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl3.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl3.request_attachment().append("{\"message\":\"hello\"}");
     http_channel.CallMethod(NULL, &cntl3, NULL, NULL, NULL);
     ASSERT_TRUE(cntl3.Failed());
-    ASSERT_EQ(brpc::EHTTP, cntl3.ErrorCode());
-    ASSERT_EQ(brpc::HTTP_STATUS_SERVICE_UNAVAILABLE, cntl3.http_response().status_code());
+    ASSERT_EQ(melon::EHTTP, cntl3.ErrorCode());
+    ASSERT_EQ(melon::HTTP_STATUS_SERVICE_UNAVAILABLE, cntl3.http_response().status_code());
 
-    brpc::Controller cntl4;
+    melon::Controller cntl4;
     req.clear_sleep_us();
     stub.Echo(&cntl4, &req, NULL, NULL);
     ASSERT_TRUE(cntl4.Failed());
-    ASSERT_EQ(brpc::ELIMIT, cntl4.ErrorCode());
+    ASSERT_EQ(melon::ELIMIT, cntl4.ErrorCode());
     
-    brpc::Join(cntl1.call_id());
-    brpc::Join(cntl2.call_id());
+    melon::Join(cntl1.call_id());
+    melon::Join(cntl2.call_id());
     ASSERT_FALSE(cntl1.Failed()) << cntl1.ErrorText();
     ASSERT_FALSE(cntl2.Failed()) << cntl2.ErrorText();
 
     cntl3.Reset();
     cntl3.http_request().uri() = "/EchoService/Echo";
-    cntl3.http_request().set_method(brpc::HTTP_METHOD_POST);
+    cntl3.http_request().set_method(melon::HTTP_METHOD_POST);
     cntl3.request_attachment().append("{\"message\":\"hello\"}");
     http_channel.CallMethod(NULL, &cntl3, NULL, NULL, NULL);
     ASSERT_FALSE(cntl3.Failed()) << cntl3.ErrorText();
@@ -1632,16 +1632,16 @@ TEST_F(ServerTest, max_concurrency) {
 
 TEST_F(ServerTest, user_fields) {
     const int port = 9200;
-    brpc::Server server;
+    melon::Server server;
     EchoServiceImpl service;
-    ASSERT_EQ(0, server.AddService(&service, brpc::SERVER_DOESNT_OWN_SERVICE));
+    ASSERT_EQ(0, server.AddService(&service, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server.Start(port, NULL));
 
-    brpc::Channel channel;
+    melon::Channel channel;
     ASSERT_EQ(0, channel.Init("0.0.0.0", port, NULL));
     test::EchoService_Stub stub(&channel);
 
-    brpc::Controller cntl;
+    melon::Controller cntl;
     cntl.request_user_fields()->insert(EXP_USER_FIELD_KEY, EXP_USER_FIELD_VALUE);
     test::EchoRequest req;
     test::EchoResponse res;

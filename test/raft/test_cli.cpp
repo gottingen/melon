@@ -72,7 +72,7 @@ public:
     }
     braft::PeerId peer_id() const { return _node->node_id().peer_id; }
 protected:
-    brpc::Server _server;
+    melon::Server _server;
     braft::Node* _node;
     MockFSM _fsm;
 };

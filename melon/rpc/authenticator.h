@@ -25,7 +25,7 @@
 #include "melon/rpc/extension.h"              // Extension<T>
 
 
-namespace brpc {
+namespace melon {
 
 class AuthContext {
 public:
@@ -84,7 +84,7 @@ inline std::ostream& operator<<(std::ostream& os, const AuthContext& ctx) {
 }
 
 
-} // namespace brpc
+} // namespace melon
 
 
 

@@ -35,7 +35,7 @@
 #include "melon/rpc/compress.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // Protocol of NOVA PBRPC:
@@ -200,4 +200,4 @@ void PackNovaRequest(butil::IOBuf* buf,
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

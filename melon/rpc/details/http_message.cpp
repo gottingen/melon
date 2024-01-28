@@ -31,7 +31,7 @@
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/details/http_message.h"
 
-namespace brpc {
+namespace melon {
 
 DEFINE_bool(http_verbose, false,
             "[DEBUG] Print EVERY http request/response");
@@ -677,4 +677,4 @@ void MakeRawHttpResponse(butil::IOBuf* response,
 }
 #undef BRPC_CRLF
 
-} // namespace brpc
+} // namespace melon

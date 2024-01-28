@@ -24,14 +24,14 @@
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace brpc {
+namespace melon {
 
 class Acceptor;
 class ConnectionsService : public connections, public Tabbed {
 public:
     void default_method(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::ConnectionsRequest* request,
-                        ::brpc::ConnectionsResponse* response,
+                        const ::melon::ConnectionsRequest* request,
+                        ::melon::ConnectionsResponse* response,
                         ::google::protobuf::Closure* done);
 
     void GetTabInfo(TabInfoList* info_list) const;
@@ -41,7 +41,7 @@ private:
                           bool use_html, const Server*, bool need_local) const;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_CONNECTIONS_SERVICE_H

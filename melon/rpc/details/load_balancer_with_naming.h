@@ -24,7 +24,7 @@
 #include "melon/rpc/details/naming_service_thread.h"         // NamingServiceWatcher
 
 
-namespace brpc {
+namespace melon {
 
 class LoadBalancerWithNaming : public SharedLoadBalancer,
                                public NamingServiceWatcher {
@@ -45,7 +45,7 @@ private:
     butil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_LOAD_BALANCER_WITH_NAMING_H

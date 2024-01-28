@@ -34,8 +34,8 @@ void FileServiceImpl::get_file(::google::protobuf::RpcController* controller,
                                ::braft::GetFileResponse* response,
                                ::google::protobuf::Closure* done) {
     scoped_refptr<FileReader> reader;
-    brpc::ClosureGuard done_gurad(done);
-    brpc::Controller* cntl = (brpc::Controller*)controller;
+    melon::ClosureGuard done_gurad(done);
+    melon::Controller* cntl = (melon::Controller*)controller;
     std::unique_lock<raft_mutex_t> lck(_mutex);
     Map::const_iterator iter = _reader_map.find(request->reader_id());
     if (iter == _reader_map.end()) {
@@ -51,7 +51,7 @@ void FileServiceImpl::get_file(::google::protobuf::RpcController* controller,
                << " offset=" << request->offset() << " count=" << request->count();
 
     if (request->count() <= 0 || request->offset() < 0) {
-        cntl->SetFailed(brpc::EREQUEST, "Invalid request=%s",
+        cntl->SetFailed(melon::EREQUEST, "Invalid request=%s",
                         request->ShortDebugString().c_str());
         return;
     }

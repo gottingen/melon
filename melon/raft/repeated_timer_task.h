@@ -18,7 +18,7 @@
 #ifndef  BRAFT_REPEATED_TIMER_TASK_H
 #define  BRAFT_REPEATED_TIMER_TASK_H
 
-#include <bthread/unstable.h>
+#include <melon/bthread/unstable.h>
 #include "melon/raft/macros.h"
 
 namespace braft {

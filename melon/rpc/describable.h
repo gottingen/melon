@@ -23,7 +23,7 @@
 #include "melon/butil/macros.h"
 #include "melon/butil/class_name.h"
 
-namespace brpc {
+namespace melon {
 
 struct DescribeOptions {
     DescribeOptions()
@@ -109,6 +109,6 @@ private:
     std::string _indent;
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif  // BRPC_DESCRIBABLE_H

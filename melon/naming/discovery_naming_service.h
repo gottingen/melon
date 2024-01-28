@@ -23,7 +23,7 @@
 #include "melon/rpc/channel.h"
 #include "melon/butil/synchronization/lock.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 struct DiscoveryRegisterParam {
@@ -84,6 +84,6 @@ private:
 
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon
 
 #endif // BRPC_POLICY_DISCOVERY_NAMING_SERVICE_H

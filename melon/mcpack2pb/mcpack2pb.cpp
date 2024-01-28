@@ -20,7 +20,7 @@
 // Date: Mon Oct 19 17:17:36 CST 2015
 
 #include <gflags/gflags.h>
-#include "mcpack2pb/mcpack2pb.h"
+#include "melon/mcpack2pb/mcpack2pb.h"
 
 DEFINE_bool(mcpack2pb_absent_field_is_error, false, "Parsing fails if the "
             "field in compack/mcpack does not exist in protobuf");

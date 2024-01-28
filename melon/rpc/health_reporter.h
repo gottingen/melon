@@ -22,7 +22,7 @@
 #include "melon/rpc/controller.h"
 
 
-namespace brpc {
+namespace melon {
 
 // For customizing /health page.
 // Inherit this class and assign an instance to ServerOptions.health_reporter.
@@ -36,7 +36,7 @@ public:
     virtual void GenerateReport(Controller* cntl, google::protobuf::Closure* done) = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif  // BRPC_HEALTH_REPORTER_H

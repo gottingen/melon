@@ -21,7 +21,7 @@
 
 #include "melon/rpc/grpc_health_check.pb.h"
 
-namespace brpc {
+namespace melon {
 
 class GrpcHealthCheckService : public grpc::health::v1::Health {
 public:
@@ -32,6 +32,6 @@ public:
 
 };
 
-} // namespace brpc
+} // namespace melon
 
 #endif //BRPC_GRPC_HEALTH_CHECK_SERVICE_H

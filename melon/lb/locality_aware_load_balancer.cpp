@@ -25,7 +25,7 @@
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/lb/locality_aware_load_balancer.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 DEFINE_int64(min_weight, 1000, "Minimum weight of a node in LALB");
@@ -590,4 +590,4 @@ std::pair<int64_t, int64_t> LocalityAwareLoadBalancer::Weight::ClearOld() {
 }
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon

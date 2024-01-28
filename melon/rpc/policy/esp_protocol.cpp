@@ -34,7 +34,7 @@
 #include "melon/rpc/esp_message.h"
 
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 ParseResult ParseEspMessage(
@@ -159,4 +159,4 @@ void ProcessEspResponse(InputMessageBase* msg_base) {
 }
 
 } // namespace policy
-} // namespace brpc
+} // namespace melon

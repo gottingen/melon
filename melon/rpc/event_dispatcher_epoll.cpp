@@ -20,7 +20,7 @@
 #include "melon/rpc/details/has_epollrdhup.h"
 #endif
 
-namespace brpc {
+namespace melon {
 
 EventDispatcher::EventDispatcher()
     : _epfd(-1)
@@ -238,4 +238,4 @@ void EventDispatcher::Run() {
     }
 }
 
-} // namespace brpc
+} // namespace melon

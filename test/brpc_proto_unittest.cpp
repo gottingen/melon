@@ -27,7 +27,7 @@
 
 namespace {
 using namespace google::protobuf;
-using namespace brpc;
+using namespace melon;
 
 void BuildDependency(const FileDescriptor *file_desc, DescriptorPool *pool) {
     for (int i = 0; i < file_desc->dependency_count(); ++i) {

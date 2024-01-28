@@ -22,7 +22,7 @@
 #include "melon/butil/base64.h"
 #include "melon/rpc/log.h"
 
-namespace brpc {
+namespace melon {
 
 DECLARE_bool(http_verbose);
 DECLARE_int32(http_verbose_max_body_length);
@@ -1839,4 +1839,4 @@ StreamCreator* get_h2_global_stream_creator() {
 
 }  // namespace policy
 
-} // namespace brpc
+} // namespace melon

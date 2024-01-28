@@ -22,7 +22,7 @@
 #include "melon/butil/iobuf.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Get the sorttable.js as string or IOBuf.
 // We need to pack all js inside C++ code so that builtin services can be
@@ -30,7 +30,7 @@ namespace brpc {
 const char* sorttable_js();
 const butil::IOBuf& sorttable_js_iobuf();
 
-} // namespace brpc
+} // namespace melon
 
 
 #endif // BRPC_BUILTIN_SORTTABLE_JS_H

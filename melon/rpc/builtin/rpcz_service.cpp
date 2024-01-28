@@ -32,7 +32,7 @@
 #include "melon/rpc/builtin/rpcz_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 // Defined in span.cpp
 bool has_span_db();
@@ -57,8 +57,8 @@ inline std::ostream& operator<<(std::ostream& os, const Hex& h) {
 }
 
 void RpczService::enable(::google::protobuf::RpcController* cntl_base,
-                         const ::brpc::RpczRequest*,
-                         ::brpc::RpczResponse*,
+                         const ::melon::RpczRequest*,
+                         ::melon::RpczResponse*,
                          ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -86,8 +86,8 @@ void RpczService::enable(::google::protobuf::RpcController* cntl_base,
 }
 
 void RpczService::disable(::google::protobuf::RpcController* cntl_base,
-                          const ::brpc::RpczRequest*,
-                          ::brpc::RpczResponse*,
+                          const ::melon::RpczRequest*,
+                          ::melon::RpczResponse*,
                           ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -115,8 +115,8 @@ void RpczService::disable(::google::protobuf::RpcController* cntl_base,
 }
 
 void RpczService::hex_log_id(::google::protobuf::RpcController* cntl_base,
-                             const ::brpc::RpczRequest*,
-                             ::brpc::RpczResponse*,
+                             const ::melon::RpczRequest*,
+                             ::melon::RpczResponse*,
                              ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -126,8 +126,8 @@ void RpczService::hex_log_id(::google::protobuf::RpcController* cntl_base,
 }
 
 void RpczService::dec_log_id(::google::protobuf::RpcController* cntl_base,
-                             const ::brpc::RpczRequest*,
-                             ::brpc::RpczResponse*,
+                             const ::melon::RpczRequest*,
+                             ::melon::RpczResponse*,
                              ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -137,8 +137,8 @@ void RpczService::dec_log_id(::google::protobuf::RpcController* cntl_base,
 }
 
 void RpczService::stats(::google::protobuf::RpcController* cntl_base,
-                        const ::brpc::RpczRequest*,
-                        ::brpc::RpczResponse*,
+                        const ::melon::RpczRequest*,
+                        ::melon::RpczResponse*,
                         ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -473,8 +473,8 @@ static bool ParseUint64(const std::string* str, uint64_t* val) {
 }
 
 void RpczService::default_method(::google::protobuf::RpcController* cntl_base,
-                                 const ::brpc::RpczRequest*,
-                                 ::brpc::RpczResponse*,
+                                 const ::melon::RpczRequest*,
+                                 ::melon::RpczResponse*,
                                  ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -688,4 +688,4 @@ void RpczService::GetTabInfo(TabInfoList* info_list) const {
     info->tab_name = "rpcz";
 }
 
-} // namespace brpc
+} // namespace melon

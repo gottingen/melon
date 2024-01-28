@@ -22,7 +22,7 @@
 #include "melon/naming/naming_service.h"      // ServerNode
 
 
-namespace brpc {
+namespace melon {
 
 class NamingServiceFilter {
 public:
@@ -33,7 +33,7 @@ public:
     virtual bool Accept(const ServerNode& server) const = 0;
 };
 
-} // namespace brpc
+} // namespace melon
 
 
 

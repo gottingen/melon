@@ -30,7 +30,7 @@
 #include "melon/rpc/builtin/connections_service.h"
 
 
-namespace brpc {
+namespace melon {
 
 int64_t GetChannelConnectionCount();
 
@@ -329,8 +329,8 @@ void ConnectionsService::PrintConnections(
 
 void ConnectionsService::default_method(
     ::google::protobuf::RpcController* cntl_base,
-    const ::brpc::ConnectionsRequest*,
-    ::brpc::ConnectionsResponse*,
+    const ::melon::ConnectionsRequest*,
+    ::melon::ConnectionsResponse*,
     ::google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     Controller *cntl = static_cast<Controller*>(cntl_base);
@@ -408,4 +408,4 @@ void ConnectionsService::GetTabInfo(TabInfoList* info_list) const {
     info->tab_name = "connections";
 }
 
-} // namespace brpc
+} // namespace melon

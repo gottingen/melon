@@ -29,7 +29,7 @@
 #include "melon/rpc/rdma/block_pool.h"
 
 
-namespace brpc {
+namespace melon {
 namespace rdma {
 
 DEFINE_int32(rdma_memory_pool_initial_size_mb, 1024,
@@ -556,6 +556,6 @@ size_t GetRegionNum() {
 }
 
 }  // namespace rdma
-}  // namespace brpc
+}  // namespace melon
 
 #endif  // if BRPC_WITH_RDMA

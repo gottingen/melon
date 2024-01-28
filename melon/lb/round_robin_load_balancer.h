@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BRPC_POLICY_ROUND_ROBIN_LOAD_BALANCER_H
-#define BRPC_POLICY_ROUND_ROBIN_LOAD_BALANCER_H
+#ifndef MELON_LB_POLICY_ROUND_ROBIN_LOAD_BALANCER_H_
+#define MELON_LB_POLICY_ROUND_ROBIN_LOAD_BALANCER_H_
 
 #include <vector>                                      // std::vector
 #include <map>                                         // std::map
@@ -25,7 +25,7 @@
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/cluster_recover_policy.h"
 
-namespace brpc {
+namespace melon {
 namespace policy {
 
 // This LoadBalancer selects server evenly. Selected numbers of servers(added
@@ -62,7 +62,7 @@ private:
 };
 
 }  // namespace policy
-} // namespace brpc
+} // namespace melon
 
 
-#endif  // BRPC_POLICY_ROUND_ROBIN_LOAD_BALANCER_H
+#endif  // MELON_LB_POLICY_ROUND_ROBIN_LOAD_BALANCER_H_
