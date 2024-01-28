@@ -33,16 +33,16 @@
 
 #include <melon/bthread/mutex.h>
 
-namespace braft {
+namespace melon::raft {
 typedef ::bthread::Mutex raft_mutex_t;
-}  // namespace braft
+}  // namespace melon::raft
 
 #else   // USE_BTHREAD_MUTEX
 
 #include <melon/butil/synchronization/lock.h>
-namespace braft {
+namespace melon::raft {
 typedef ::butil::Mutex raft_mutex_t;
-}  // namespace braft
+}  // namespace melon::raft
 
 #endif  // USE_BTHREAD_MUTEX
 

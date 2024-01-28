@@ -22,7 +22,7 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/details/method_status.h"
-#include "melon/rpc/builtin/bad_method_service.h"
+#include "melon/builtin/bad_method_service.h"
 #include "melon/rpc/restful.h"
 
 namespace melon {

@@ -41,12 +41,12 @@ static void* sender(void* arg) {
     SendArg* sa = (SendArg*)arg;
     int64_t value = 0;
     while (!melon::IsAskedToQuit()) {
-        braft::PeerId leader;
+        melon::raft::PeerId leader;
         // Select leader of the target group from RouteTable
-        if (braft::rtb::select_leader(FLAGS_group, &leader) != 0) {
+        if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = braft::rtb::refresh_leader(
+            butil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
@@ -80,7 +80,7 @@ static void* sender(void* arg) {
             LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
             // Clear leadership since this RPC failed.
-            braft::rtb::update_leader(FLAGS_group, braft::PeerId());
+            melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
             bthread_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -93,7 +93,7 @@ static void* sender(void* arg) {
                              << (response.has_redirect() 
                                     ? response.redirect() : "nowhere");
                 // Update route table since we have redirect information
-                braft::rtb::update_leader(FLAGS_group, response.redirect());
+                melon::raft::rtb::update_leader(FLAGS_group, response.redirect());
                 continue;
             }
             // old_value unmatches expected value check if this is the initial
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     butil::AtExitManager exit_manager;
 
     // Register configuration of target group to RouteTable
-    if (braft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
+    if (melon::raft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
         LOG(ERROR) << "Fail to register configuration " << FLAGS_conf
                    << " of group " << FLAGS_group;
         return -1;

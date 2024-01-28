@@ -28,20 +28,20 @@ protected:
 };
 
 TEST_F(TestUsageSuits, LogEntry) {
-    braft::LogEntry* entry = new braft::LogEntry();
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
-    entry->type = braft::ENTRY_TYPE_CONFIGURATION;
-    entry->peers = new std::vector<braft::PeerId>(peers);
+    melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
+    entry->type = melon::raft::ENTRY_TYPE_CONFIGURATION;
+    entry->peers = new std::vector<melon::raft::PeerId>(peers);
 
     entry->AddRef();
     entry->Release();
     entry->Release();
 
-    entry = new braft::LogEntry();
-    entry->type = braft::ENTRY_TYPE_DATA;
+    entry = new melon::raft::LogEntry();
+    entry->type = melon::raft::ENTRY_TYPE_DATA;
     butil::IOBuf buf;
     buf.append("hello, world");
     entry->data = buf;

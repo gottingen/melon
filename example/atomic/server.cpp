@@ -44,7 +44,7 @@ namespace example {
 
 class Atomic;
 // Implements Closure which encloses RPC stuff
-class AtomicClosure : public braft::Closure {
+class AtomicClosure : public melon::raft::Closure {
 public:
     AtomicClosure(Atomic* atomic,
                   const google::protobuf::Message* request,
@@ -67,8 +67,8 @@ private:
     google::protobuf::Closure* _done;
 };
 
-// Implementation of example::Atomic as a braft::StateMachine.
-class Atomic : public braft::StateMachine {
+// Implementation of example::Atomic as a melon::raft::StateMachine.
+class Atomic : public melon::raft::StateMachine {
 public:
     // Define types for different operation
     enum AtomicOpType {
@@ -92,7 +92,7 @@ public:
     // Starts this node
     int start() {
         butil::EndPoint addr(butil::my_ip(), FLAGS_port);
-        braft::NodeOptions node_options;
+        melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
             LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
             return -1;
@@ -106,7 +106,7 @@ public:
         node_options.raft_meta_uri = prefix + "/raft_meta";
         node_options.snapshot_uri = prefix + "/snapshot";
         node_options.disable_cli = FLAGS_disable_cli;
-        braft::Node* node = new braft::Node(FLAGS_group, braft::PeerId(addr));
+        melon::raft::Node* node = new melon::raft::Node(FLAGS_group, melon::raft::PeerId(addr));
         if (node->init(node_options) != 0) {
             LOG(ERROR) << "Fail to init raft node";
             delete node;
@@ -173,8 +173,8 @@ friend class AtomicClosure;
             response->set_success(false);
             return;
         }
-        // Apply this log as a braft::Task
-        braft::Task task;
+        // Apply this log as a melon::raft::Task
+        melon::raft::Task task;
         task.data = &log;
         // This callback would be iovoked when the task actually excuted or
         // fail
@@ -191,21 +191,21 @@ friend class AtomicClosure;
     void redirect(AtomicResponse* response) {
         response->set_success(false);
         if (_node) {
-            braft::PeerId leader = _node->leader_id();
+            melon::raft::PeerId leader = _node->leader_id();
             if (!leader.is_empty()) {
                 response->set_redirect(leader.to_string());
             }
         }
     }
 
-    // @braft::StateMachine
-    void on_apply(braft::Iterator& iter) {
+    // @melon::raft::StateMachine
+    void on_apply(melon::raft::Iterator& iter) {
         // A batch of tasks are committed, which must be processed through 
         // |iter|
         for (; iter.valid(); iter.next()) {
             // This guard helps invoke iter.done()->Run() asynchronously to
             // avoid that callback blocks the StateMachine.
-            braft::AsyncClosureGuard done_guard(iter.done());
+            melon::raft::AsyncClosureGuard done_guard(iter.done());
 
             // Parse data
             butil::IOBuf data = iter.data();
@@ -254,7 +254,7 @@ friend class AtomicClosure;
         }
     }
 
-    void on_snapshot_save(braft::SnapshotWriter* writer, braft::Closure* done) {
+    void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
 
         // Save current StateMachine in memory and starts a new bthread to avoid
         // blocking StateMachine since it's a bit slow to write data to disk
@@ -272,7 +272,7 @@ friend class AtomicClosure;
         bthread_start_urgent(&tid, NULL, save_snapshot, sc);
     }
 
-    int on_snapshot_load(braft::SnapshotReader* reader) {
+    int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         CHECK_EQ(-1, _leader_term) << "Leader is not supposed to load snapshot";
         _value_map.clear();
         std::string snapshot_path = reader->get_path();
@@ -299,20 +299,20 @@ friend class AtomicClosure;
     void on_shutdown() {
         LOG(INFO) << "This node is down";
     }
-    void on_error(const ::braft::Error& e) {
+    void on_error(const ::melon::raft::Error& e) {
         LOG(ERROR) << "Met raft error " << e;
     }
-    void on_configuration_committed(const ::braft::Configuration& conf) {
+    void on_configuration_committed(const ::melon::raft::Configuration& conf) {
         LOG(INFO) << "Configuration of this group is " << conf;
     }
-    void on_stop_following(const ::braft::LeaderChangeContext& ctx) {
+    void on_stop_following(const ::melon::raft::LeaderChangeContext& ctx) {
         LOG(INFO) << "Node stops following " << ctx;
     }
-    void on_start_following(const ::braft::LeaderChangeContext& ctx) {
+    void on_start_following(const ::melon::raft::LeaderChangeContext& ctx) {
         LOG(INFO) << "Node start following " << ctx;
     }
 
-    // end of @braft::StateMachine
+    // end of @melon::raft::StateMachine
     
     void get_value(const butil::IOBuf& data,
                    const google::protobuf::Message* request,
@@ -415,11 +415,11 @@ friend class AtomicClosure;
 
     struct SnapshotClosure {
         std::vector<std::pair<int64_t, int64_t> > values;
-        braft::SnapshotWriter* writer;
-        braft::Closure* done;
+        melon::raft::SnapshotWriter* writer;
+        melon::raft::Closure* done;
     };
 
-    braft::Node* volatile _node;
+    melon::raft::Node* volatile _node;
     butil::atomic<int64_t> _leader_term;
     ValueMap _value_map;
 };
@@ -485,7 +485,7 @@ int main(int argc, char* argv[]) {
     // adding services into a running server is not allowed and the listen
     // address of this server is impossible to get before the server starts. You
     // have to specify the address of the server.
-    if (braft::add_service(&server, FLAGS_port) != 0) {
+    if (melon::raft::add_service(&server, FLAGS_port) != 0) {
         LOG(ERROR) << "Fail to add raft service";
         return -1;
     }

@@ -20,21 +20,21 @@
 class BallotTest : public testing::Test {};
 
 TEST(BallotTest, sanity) {
-    braft::PeerId peer1("127.0.0.1:1");
-    braft::PeerId peer2("127.0.0.1:2");
-    braft::PeerId peer3("127.0.0.1:3");
-    braft::PeerId peer4("127.0.0.1:4");
-    braft::Configuration conf;
+    melon::raft::PeerId peer1("127.0.0.1:1");
+    melon::raft::PeerId peer2("127.0.0.1:2");
+    melon::raft::PeerId peer3("127.0.0.1:3");
+    melon::raft::PeerId peer4("127.0.0.1:4");
+    melon::raft::Configuration conf;
     conf.add_peer(peer1);
     conf.add_peer(peer2);
     conf.add_peer(peer3);
-    braft::Ballot bl;
+    melon::raft::Ballot bl;
     ASSERT_EQ(0, bl.init(conf, NULL));
     ASSERT_EQ(2, bl._quorum);
     ASSERT_EQ(0, bl._old_quorum);
     bl.grant(peer1);
     ASSERT_EQ(1, bl._quorum);
-    braft::Ballot::PosHint hint = bl.grant(peer1, braft::Ballot::PosHint());
+    melon::raft::Ballot::PosHint hint = bl.grant(peer1, melon::raft::Ballot::PosHint());
     ASSERT_EQ(1, bl._quorum);
     hint = bl.grant(peer1, hint);
     ASSERT_EQ(1, bl._quorum);
@@ -45,22 +45,22 @@ TEST(BallotTest, sanity) {
 }
 
 TEST(BallotTest, joint_consensus_same_conf) {
-    braft::PeerId peer1("127.0.0.1:1");
-    braft::PeerId peer2("127.0.0.1:2");
-    braft::PeerId peer3("127.0.0.1:3");
-    braft::PeerId peer4("127.0.0.1:4");
-    braft::Configuration conf;
+    melon::raft::PeerId peer1("127.0.0.1:1");
+    melon::raft::PeerId peer2("127.0.0.1:2");
+    melon::raft::PeerId peer3("127.0.0.1:3");
+    melon::raft::PeerId peer4("127.0.0.1:4");
+    melon::raft::Configuration conf;
     conf.add_peer(peer1);
     conf.add_peer(peer2);
     conf.add_peer(peer3);
-    braft::Ballot bl;
+    melon::raft::Ballot bl;
     ASSERT_EQ(0, bl.init(conf, &conf));
     ASSERT_EQ(2, bl._quorum);
     ASSERT_EQ(2, bl._old_quorum);
     bl.grant(peer1);
     ASSERT_EQ(1, bl._quorum);
     ASSERT_EQ(1, bl._old_quorum);
-    braft::Ballot::PosHint hint = bl.grant(peer1, braft::Ballot::PosHint());
+    melon::raft::Ballot::PosHint hint = bl.grant(peer1, melon::raft::Ballot::PosHint());
     ASSERT_EQ(1, bl._quorum);
     ASSERT_EQ(1, bl._old_quorum);
     hint = bl.grant(peer1, hint);
@@ -78,20 +78,20 @@ TEST(BallotTest, joint_consensus_same_conf) {
 }
 
 TEST(BallotTest, joint_consensus_different_conf) {
-    braft::PeerId peer1("127.0.0.1:1");
-    braft::PeerId peer2("127.0.0.1:2");
-    braft::PeerId peer3("127.0.0.1:3");
-    braft::PeerId peer4("127.0.0.1:4");
-    braft::Configuration conf;
+    melon::raft::PeerId peer1("127.0.0.1:1");
+    melon::raft::PeerId peer2("127.0.0.1:2");
+    melon::raft::PeerId peer3("127.0.0.1:3");
+    melon::raft::PeerId peer4("127.0.0.1:4");
+    melon::raft::Configuration conf;
     conf.add_peer(peer1);
     conf.add_peer(peer2);
     conf.add_peer(peer3);
-    braft::Configuration conf2;
+    melon::raft::Configuration conf2;
     conf2.add_peer(peer1);
     conf2.add_peer(peer2);
     conf2.add_peer(peer3);
     conf2.add_peer(peer4);
-    braft::Ballot bl;
+    melon::raft::Ballot bl;
     ASSERT_EQ(0, bl.init(conf, &conf2));
     bl.grant(peer1);
     bl.grant(peer2);

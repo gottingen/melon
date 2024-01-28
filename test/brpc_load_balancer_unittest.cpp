@@ -306,7 +306,7 @@ TEST_F(LoadBalancerTest, dbd_performance) {
 }
 
 
-typedef melon::policy::LocalityAwareLoadBalancer LALB;
+typedef melon::lb::LocalityAwareLoadBalancer LALB;
 
 static void ValidateWeightTree(
     std::vector<LALB::ServerInfo> & weight_tree) {
@@ -448,16 +448,16 @@ TEST_F(LoadBalancerTest, update_while_selection) {
         SelectArg sa = { NULL, NULL};
         bool is_lalb = false;
         if (round == 0) {
-            lb = new melon::policy::RoundRobinLoadBalancer;
+            lb = new melon::lb::RoundRobinLoadBalancer;
         } else if (round == 1) {
-            lb = new melon::policy::RandomizedLoadBalancer;
+            lb = new melon::lb::RandomizedLoadBalancer;
         } else if (round == 2) {
             lb = new LALB;
             is_lalb = true;
         } else if (round == 3) {
-            lb = new melon::policy::WeightedRoundRobinLoadBalancer;
+            lb = new melon::lb::WeightedRoundRobinLoadBalancer;
         } else {
-            lb = new melon::policy::ConsistentHashingLoadBalancer(melon::policy::CONS_HASH_LB_MURMUR3);
+            lb = new melon::lb::ConsistentHashingLoadBalancer(melon::lb::CONS_HASH_LB_MURMUR3);
             sa.hash = ::melon::policy::MurmurHash32;
         }
         sa.lb = lb;
@@ -589,15 +589,15 @@ TEST_F(LoadBalancerTest, fairness) {
         melon::LoadBalancer* lb = NULL;
         SelectArg sa = { NULL, NULL};
         if (round == 0) {
-            lb = new melon::policy::RoundRobinLoadBalancer;
+            lb = new melon::lb::RoundRobinLoadBalancer;
         } else if (round == 1) {
-            lb = new melon::policy::RandomizedLoadBalancer;
+            lb = new melon::lb::RandomizedLoadBalancer;
         } else if (round == 2) {
             lb = new LALB;
         } else if (3 == round || 4 == round) {
-            lb = new melon::policy::WeightedRoundRobinLoadBalancer;
+            lb = new melon::lb::WeightedRoundRobinLoadBalancer;
         } else {
-            lb = new melon::policy::ConsistentHashingLoadBalancer(melon::policy::CONS_HASH_LB_MURMUR3);
+            lb = new melon::lb::ConsistentHashingLoadBalancer(melon::lb::CONS_HASH_LB_MURMUR3);
             sa.hash = melon::policy::MurmurHash32;
         }
         sa.lb = lb;
@@ -718,17 +718,17 @@ TEST_F(LoadBalancerTest, fairness) {
 }
 
 TEST_F(LoadBalancerTest, consistent_hashing) {
-    ::melon::policy::HashFunc hashs[::melon::policy::CONS_HASH_LB_LAST] = {
+    ::melon::policy::HashFunc hashs[::melon::lb::CONS_HASH_LB_LAST] = {
             ::melon::policy::MurmurHash32,
             ::melon::policy::MD5Hash32,
             ::melon::policy::MD5Hash32
             // ::melon::policy::CRCHash32 crc is a bad hash function in test
     };
 
-    ::melon::policy::ConsistentHashingLoadBalancerType hash_type[::melon::policy::CONS_HASH_LB_LAST] = {
-        ::melon::policy::CONS_HASH_LB_MURMUR3,
-        ::melon::policy::CONS_HASH_LB_MD5,
-        ::melon::policy::CONS_HASH_LB_KETAMA
+    ::melon::lb::ConsistentHashingLoadBalancerType hash_type[::melon::lb::CONS_HASH_LB_LAST] = {
+        ::melon::lb::CONS_HASH_LB_MURMUR3,
+        ::melon::lb::CONS_HASH_LB_MD5,
+        ::melon::lb::CONS_HASH_LB_KETAMA
     };
 
     const char* servers[] = { 
@@ -741,7 +741,7 @@ TEST_F(LoadBalancerTest, consistent_hashing) {
             "unix:test.sock",
     };
     for (size_t round = 0; round < ARRAY_SIZE(hashs); ++round) {
-        melon::policy::ConsistentHashingLoadBalancer chlb(hash_type[round]);
+        melon::lb::ConsistentHashingLoadBalancer chlb(hash_type[round]);
         std::vector<melon::ServerId> ids;
         std::vector<butil::EndPoint> addrs;
         for (int j = 0;j < 5; ++j) {
@@ -813,7 +813,7 @@ TEST_F(LoadBalancerTest, weighted_round_robin) {
     };
     std::string weight[] = {"3", "2", "7", "200000000", "1ab", "-1", "0"};
     std::map<butil::EndPoint, int> configed_weight;
-    melon::policy::WeightedRoundRobinLoadBalancer wrrlb;
+    melon::lb::WeightedRoundRobinLoadBalancer wrrlb;
 
     // Add server to selected list. The server with invalid weight will be skipped.
     for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
@@ -878,7 +878,7 @@ TEST_F(LoadBalancerTest, weighted_round_robin_no_valid_server) {
     };
     std::string weight[] = {"200000000", "2", "600000"};
     std::map<butil::EndPoint, int> configed_weight;
-    melon::policy::WeightedRoundRobinLoadBalancer wrrlb;
+    melon::lb::WeightedRoundRobinLoadBalancer wrrlb;
     melon::ExcludedServers* exclude = melon::ExcludedServers::Create(3);
     for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
         const char *addr = servers[i];
@@ -924,7 +924,7 @@ TEST_F(LoadBalancerTest, weighted_randomized) {
     std::string weight[] = {"3", "2", "5", "10", "1ab", "-1", "0"};
     std::map<butil::EndPoint, int> configed_weight;
     uint64_t configed_weight_sum = 0;
-    melon::policy::WeightedRandomizedLoadBalancer wrlb;
+    melon::lb::WeightedRandomizedLoadBalancer wrlb;
     size_t valid_weight_num = 4;
 
     // Add server to selected list. The server with invalid weight will be skipped.
@@ -994,9 +994,9 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
             "10.42.122.201:8833",
     };
     std::vector<melon::LoadBalancer*> lbs;
-    lbs.push_back(new melon::policy::RoundRobinLoadBalancer);
-    lbs.push_back(new melon::policy::RandomizedLoadBalancer);
-    lbs.push_back(new melon::policy::WeightedRoundRobinLoadBalancer);
+    lbs.push_back(new melon::lb::RoundRobinLoadBalancer);
+    lbs.push_back(new melon::lb::RandomizedLoadBalancer);
+    lbs.push_back(new melon::lb::WeightedRoundRobinLoadBalancer);
 
     for (int i = 0; i < (int)lbs.size(); ++i) {
         melon::LoadBalancer* lb = lbs[i];
@@ -1074,10 +1074,10 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_sanity) {
     melon::LoadBalancer* lb = NULL;
     int rand = butil::fast_rand_less_than(2);
     if (rand == 0) {
-        melon::policy::RandomizedLoadBalancer rlb;
+        melon::lb::RandomizedLoadBalancer rlb;
         lb = rlb.New("min_working_instances=2 hold_seconds=2");
     } else if (rand == 1) {
-        melon::policy::RoundRobinLoadBalancer rrlb;
+        melon::lb::RoundRobinLoadBalancer rrlb;
         lb = rrlb.New("min_working_instances=2 hold_seconds=2");
     }
     melon::SocketUniquePtr ptr[2];

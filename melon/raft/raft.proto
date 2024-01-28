@@ -2,7 +2,7 @@ syntax="proto2";
 
 import "melon/raft/enum.proto";
 
-package braft;
+package melon.raft;
 option cc_generic_services = true;
 
 // data store in baidu-rpc's attachment

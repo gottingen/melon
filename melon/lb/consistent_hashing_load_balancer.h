@@ -27,61 +27,74 @@
 #include "melon/rpc/load_balancer.h"
 
 
-namespace melon {
-namespace policy {
+namespace melon::lb {
 
-class ReplicaPolicy;
+    class ReplicaPolicy;
 
-enum ConsistentHashingLoadBalancerType {
-    CONS_HASH_LB_MURMUR3 = 0,
-    CONS_HASH_LB_MD5 = 1,
-    CONS_HASH_LB_KETAMA = 2,
+    enum ConsistentHashingLoadBalancerType {
+        CONS_HASH_LB_MURMUR3 = 0,
+        CONS_HASH_LB_MD5 = 1,
+        CONS_HASH_LB_KETAMA = 2,
 
-    // Identify the last one.
-    CONS_HASH_LB_LAST = 3
-};
-
-class ConsistentHashingLoadBalancer : public LoadBalancer {
-public:
-    struct Node {
-        uint32_t hash;
-        ServerId server_sock;
-        butil::EndPoint server_addr;  // To make sorting stable among all clients
-        bool operator<(const Node &rhs) const {
-            if (hash < rhs.hash) { return true; }
-            if (hash > rhs.hash) { return false; }
-            return server_addr < rhs.server_addr;
-        }
-        bool operator<(const uint32_t code) const {
-            return hash < code;
-        }
+        // Identify the last one.
+        CONS_HASH_LB_LAST = 3
     };
-    explicit ConsistentHashingLoadBalancer(ConsistentHashingLoadBalancerType type);
-    bool AddServer(const ServerId& server);
-    bool RemoveServer(const ServerId& server);
-    size_t AddServersInBatch(const std::vector<ServerId> &servers);
-    size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
-    LoadBalancer *New(const butil::StringPiece& params) const;
-    void Destroy();
-    int SelectServer(const SelectIn &in, SelectOut *out);
-    void Describe(std::ostream &os, const DescribeOptions& options);
 
-private:
-    bool SetParameters(const butil::StringPiece& params);
-    void GetLoads(std::map<butil::EndPoint, double> *load_map);
-    static size_t AddBatch(std::vector<Node> &bg, const std::vector<Node> &fg,
-                           const std::vector<Node> &servers, bool *executed);
-    static size_t RemoveBatch(std::vector<Node> &bg, const std::vector<Node> &fg,
-                              const std::vector<ServerId> &servers, bool *executed);
-    static size_t Remove(std::vector<Node> &bg, const std::vector<Node> &fg,
-                         const ServerId& server, bool *executed);
-    size_t _num_replicas;
-    ConsistentHashingLoadBalancerType _type;
-    butil::DoublyBufferedData<std::vector<Node> > _db_hash_ring;
-};
+    class ConsistentHashingLoadBalancer : public LoadBalancer {
+    public:
+        struct Node {
+            uint32_t hash;
+            ServerId server_sock;
+            butil::EndPoint server_addr;  // To make sorting stable among all clients
+            bool operator<(const Node &rhs) const {
+                if (hash < rhs.hash) { return true; }
+                if (hash > rhs.hash) { return false; }
+                return server_addr < rhs.server_addr;
+            }
 
-}  // namespace policy
-} // namespace melon
+            bool operator<(const uint32_t code) const {
+                return hash < code;
+            }
+        };
+
+        explicit ConsistentHashingLoadBalancer(ConsistentHashingLoadBalancerType type);
+
+        bool AddServer(const ServerId &server);
+
+        bool RemoveServer(const ServerId &server);
+
+        size_t AddServersInBatch(const std::vector<ServerId> &servers);
+
+        size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
+
+        LoadBalancer *New(const butil::StringPiece &params) const;
+
+        void Destroy();
+
+        int SelectServer(const SelectIn &in, SelectOut *out);
+
+        void Describe(std::ostream &os, const DescribeOptions &options);
+
+    private:
+        bool SetParameters(const butil::StringPiece &params);
+
+        void GetLoads(std::map<butil::EndPoint, double> *load_map);
+
+        static size_t AddBatch(std::vector<Node> &bg, const std::vector<Node> &fg,
+                               const std::vector<Node> &servers, bool *executed);
+
+        static size_t RemoveBatch(std::vector<Node> &bg, const std::vector<Node> &fg,
+                                  const std::vector<ServerId> &servers, bool *executed);
+
+        static size_t Remove(std::vector<Node> &bg, const std::vector<Node> &fg,
+                             const ServerId &server, bool *executed);
+
+        size_t _num_replicas;
+        ConsistentHashingLoadBalancerType _type;
+        butil::DoublyBufferedData<std::vector<Node> > _db_hash_ring;
+    };
+
+} // namespace melon::lb
 
 
 #endif  // MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_

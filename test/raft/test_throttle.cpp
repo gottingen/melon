@@ -17,7 +17,7 @@ protected:
 };
 
 struct ArgThrottle {
-    braft::ThroughputSnapshotThrottle* throttle;
+    melon::raft::ThroughputSnapshotThrottle* throttle;
     volatile int64_t total_throughput;
     volatile bool stopped;
 };
@@ -49,7 +49,7 @@ TEST_F(TestUsageSuits, test_throttled_by_throughput) {
     int64_t check_cycle = 8;
     int64_t throttle_throughput_bytes = 1024;
     int sleep_us = 1000 * 1000 / 8 + 1;
-    braft::ThroughputSnapshotThrottle tt(throttle_throughput_bytes, check_cycle);
+    melon::raft::ThroughputSnapshotThrottle tt(throttle_throughput_bytes, check_cycle);
     int64_t need_bytes = 64;
     EXPECT_EQ(need_bytes, tt.throttled_by_throughput(need_bytes));
     EXPECT_EQ(need_bytes, tt.throttled_by_throughput(need_bytes));
@@ -75,7 +75,7 @@ TEST_F(TestUsageSuits, throttle_functioning) {
     for (int i = 0; i < 10; ++i) {
         usleep(0.8 * cycle_time);
         int64_t now = butil::cpuwide_time_us();
-        int64_t aligning_time = braft::caculate_check_time_us(now, cycles);
+        int64_t aligning_time = melon::raft::caculate_check_time_us(now, cycles);
         ASSERT_TRUE(aligning_time % cycle_time == 0);
         LOG(INFO) << "Time now: " << now << ", aligning time: " << aligning_time;
     }
@@ -83,7 +83,7 @@ TEST_F(TestUsageSuits, throttle_functioning) {
     int64_t request_1 = 1 * 1024 * 1024;
     int64_t request_2 = 2 * 1024 * 1024;
     int64_t request_3 = 3 * 1024 * 1024;
-    braft::ThroughputSnapshotThrottle throttle(limit, cycles);
+    melon::raft::ThroughputSnapshotThrottle throttle(limit, cycles);
     // 1M is ok
     int64_t ret1 = throttle.throttled_by_throughput(request_1);
     int64_t time1 = throttle._last_throughput_check_time_us;

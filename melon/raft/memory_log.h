@@ -14,8 +14,8 @@
 
 // Authors: Qin,Duohao(qinduohao@baidu.com)
 
-#ifndef BRAFT_MEMORY_LOG_H
-#define BRAFT_MEMORY_LOG_H
+#ifndef MELON_RAFT_MEMORY_LOG_H_
+#define MELON_RAFT_MEMORY_LOG_H_
 
 #include <vector>
 #include <deque>
@@ -26,73 +26,74 @@
 #include "melon/raft/storage.h"
 #include "melon/raft/util.h"
 
-namespace braft {
+namespace melon::raft {
 
-class BAIDU_CACHELINE_ALIGNMENT MemoryLogStorage : public LogStorage {
-public:
-    typedef std::deque<LogEntry*> MemoryData;
+    class BAIDU_CACHELINE_ALIGNMENT MemoryLogStorage : public LogStorage {
+    public:
+        typedef std::deque<LogEntry *> MemoryData;
 
-    MemoryLogStorage(const std::string& path)
-            : _path(path),
-            _first_log_index(1),
-            _last_log_index(0) {}
-    MemoryLogStorage()
-            : _first_log_index(1),
-            _last_log_index(0) {}
+        MemoryLogStorage(const std::string &path)
+                : _path(path),
+                  _first_log_index(1),
+                  _last_log_index(0) {}
 
-    virtual ~MemoryLogStorage() { reset(1); }
+        MemoryLogStorage()
+                : _first_log_index(1),
+                  _last_log_index(0) {}
 
-    virtual int init(ConfigurationManager* configuration_manager);
+        virtual ~MemoryLogStorage() { reset(1); }
 
-    // first log index in log
-    virtual int64_t first_log_index() {
-        return _first_log_index.load(butil::memory_order_acquire);
-    }
+        virtual int init(ConfigurationManager *configuration_manager);
 
-    // last log index in log
-    virtual int64_t last_log_index() {
-        return _last_log_index.load(butil::memory_order_acquire);
-    }
+        // first log index in log
+        virtual int64_t first_log_index() {
+            return _first_log_index.load(butil::memory_order_acquire);
+        }
 
-    // get logentry by index
-    virtual LogEntry* get_entry(const int64_t index);
+        // last log index in log
+        virtual int64_t last_log_index() {
+            return _last_log_index.load(butil::memory_order_acquire);
+        }
 
-    // get logentry's term by index
-    virtual int64_t get_term(const int64_t index);
+        // get logentry by index
+        virtual LogEntry *get_entry(const int64_t index);
 
-    // append entries to log
-    virtual int append_entry(const LogEntry* entry);
+        // get logentry's term by index
+        virtual int64_t get_term(const int64_t index);
 
-    // append entries to log and update IOMetric, return append success number 
-    virtual int append_entries(const std::vector<LogEntry*>& entries, IOMetric* metric);
+        // append entries to log
+        virtual int append_entry(const LogEntry *entry);
 
-    // delete logs from storage's head, [first_log_index, first_index_kept) will be discarded
-    virtual int truncate_prefix(const int64_t first_index_kept);
+        // append entries to log and update IOMetric, return append success number
+        virtual int append_entries(const std::vector<LogEntry *> &entries, IOMetric *metric);
 
-    // delete uncommitted logs from storage's tail, (last_index_kept, last_log_index] will be discarded
-    virtual int truncate_suffix(const int64_t last_index_kept);
+        // delete logs from storage's head, [first_log_index, first_index_kept) will be discarded
+        virtual int truncate_prefix(const int64_t first_index_kept);
 
-    // Drop all the existing logs and reset next log index to |next_log_index|.
-    // This function is called after installing snapshot from leader
-    virtual int reset(const int64_t next_log_index);
+        // delete uncommitted logs from storage's tail, (last_index_kept, last_log_index] will be discarded
+        virtual int truncate_suffix(const int64_t last_index_kept);
 
-    // Create an instance of this kind of LogStorage with the parameters encoded
-    // in |uri|
-    // Return the address referenced to the instance on success, NULL otherwise.
-    virtual LogStorage* new_instance(const std::string& uri) const;
+        // Drop all the existing logs and reset next log index to |next_log_index|.
+        // This function is called after installing snapshot from leader
+        virtual int reset(const int64_t next_log_index);
 
-    // GC an instance of this kind of LogStorage with the parameters encoded
-    // in |uri|
-    virtual butil::Status gc_instance(const std::string& uri) const;
+        // Create an instance of this kind of LogStorage with the parameters encoded
+        // in |uri|
+        // Return the address referenced to the instance on success, NULL otherwise.
+        virtual LogStorage *new_instance(const std::string &uri) const;
 
-private:
-    std::string _path;
-    butil::atomic<int64_t> _first_log_index;
-    butil::atomic<int64_t> _last_log_index;
-    MemoryData _log_entry_data;
-    raft_mutex_t _mutex;
-};
+        // GC an instance of this kind of LogStorage with the parameters encoded
+        // in |uri|
+        virtual butil::Status gc_instance(const std::string &uri) const;
 
-} //  namespace braft
+    private:
+        std::string _path;
+        butil::atomic<int64_t> _first_log_index;
+        butil::atomic<int64_t> _last_log_index;
+        MemoryData _log_entry_data;
+        raft_mutex_t _mutex;
+    };
 
-#endif //~BRAFT_MEMORY_LOG_H
+} //  namespace melon::raft
+
+#endif // MELON_RAFT_MEMORY_LOG_H_

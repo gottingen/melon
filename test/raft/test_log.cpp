@@ -19,14 +19,14 @@
 #include "melon/raft/log.h"
 #include "melon/raft/storage.h"
 
-namespace braft {
+namespace melon::raft {
 DECLARE_bool(raft_trace_append_entry_latency);
 }
 
 class LogStorageTest : public testing::Test {
 protected:
     void SetUp() {
-        braft::FLAGS_raft_sync = false;
+        melon::raft::FLAGS_raft_sync = false;
         GFLAGS_NS::SetCommandLineOption("minloglevel", "3");
     }
     void TearDown() {}
@@ -35,10 +35,10 @@ protected:
 TEST_F(LogStorageTest, open_segment) {
     // open segment operation
     ::system("mkdir data/");
-    braft::Segment* seg1 = new braft::Segment("./data", 1L, 0);
+    melon::raft::Segment* seg1 = new melon::raft::Segment("./data", 1L, 0);
 
     // not open
-    braft::LogEntry* entry = seg1->get(1);
+    melon::raft::LogEntry* entry = seg1->get(1);
     ASSERT_TRUE(entry == NULL);
 
     // create and open
@@ -47,9 +47,9 @@ TEST_F(LogStorageTest, open_segment) {
 
     // append entry
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = new braft::LogEntry();
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry();
         entry->AddRef();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.term = 1;
         entry->id.index = i + 1;
 
@@ -67,9 +67,9 @@ TEST_F(LogStorageTest, open_segment) {
         int64_t term = seg1->get_term(i+1);
         ASSERT_EQ(term, 1);
 
-        braft::LogEntry* entry = seg1->get(i+1);
+        melon::raft::LogEntry* entry = seg1->get(i+1);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, i+1);
 
         char data_buf[128];
@@ -78,21 +78,21 @@ TEST_F(LogStorageTest, open_segment) {
         entry->Release();
     }
     {
-        braft::LogEntry* entry = seg1->get(0);
+        melon::raft::LogEntry* entry = seg1->get(0);
         ASSERT_TRUE(entry == NULL);
         entry = seg1->get(11);
         ASSERT_TRUE(entry == NULL);
     }
 
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     // load open segment
-    braft::Segment* seg2 = new braft::Segment("./data", 1, 0);
+    melon::raft::Segment* seg2 = new melon::raft::Segment("./data", 1, 0);
     ASSERT_EQ(0, seg2->load(configuration_manager));
 
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = seg2->get(i+1);
+        melon::raft::LogEntry* entry = seg2->get(i+1);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, i+1);
 
         char data_buf[128];
@@ -101,7 +101,7 @@ TEST_F(LogStorageTest, open_segment) {
         entry->Release();
     }
     {
-        braft::LogEntry* entry = seg2->get(0);
+        melon::raft::LogEntry* entry = seg2->get(0);
         ASSERT_TRUE(entry == NULL);
         entry = seg2->get(11);
         ASSERT_TRUE(entry == NULL);
@@ -111,8 +111,8 @@ TEST_F(LogStorageTest, open_segment) {
     // truncate and read
     ASSERT_EQ(0, seg1->truncate(5));
     for (int i = 0; i < 5; i++) {
-        braft::LogEntry* entry = new braft::LogEntry();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.term = 1;
         entry->id.index = i + 6;
 
@@ -125,9 +125,9 @@ TEST_F(LogStorageTest, open_segment) {
         entry->Release();
     }
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = seg1->get(i+1);
+        melon::raft::LogEntry* entry = seg1->get(i+1);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, i+1);
 
         char data_buf[128];
@@ -149,13 +149,13 @@ TEST_F(LogStorageTest, open_segment) {
 
 TEST_F(LogStorageTest, closed_segment) {
     // open segment operation
-    braft::Segment* seg1 = new braft::Segment("./data", 1L, 0);
+    melon::raft::Segment* seg1 = new melon::raft::Segment("./data", 1L, 0);
     ASSERT_EQ(0, seg1->create());
     ASSERT_TRUE(seg1->is_open());
     // append entry
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = new braft::LogEntry();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.term = 1;
         entry->id.index = i + 1;
 
@@ -171,9 +171,9 @@ TEST_F(LogStorageTest, closed_segment) {
 
     // read entry
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = seg1->get(i+1);
+        melon::raft::LogEntry* entry = seg1->get(i+1);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, i+1);
 
         char data_buf[128];
@@ -182,21 +182,21 @@ TEST_F(LogStorageTest, closed_segment) {
         entry->Release();
     }
     {
-        braft::LogEntry* entry = seg1->get(0);
+        melon::raft::LogEntry* entry = seg1->get(0);
         ASSERT_TRUE(entry == NULL);
         entry = seg1->get(11);
         ASSERT_TRUE(entry == NULL);
     }
 
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     // load open segment
-    braft::Segment* seg2 = new braft::Segment("./data", 1, 10, 0);
+    melon::raft::Segment* seg2 = new melon::raft::Segment("./data", 1, 10, 0);
     ASSERT_EQ(0, seg2->load(configuration_manager));
 
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = seg2->get(i+1);
+        melon::raft::LogEntry* entry = seg2->get(i+1);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, i+1);
 
         char data_buf[128];
@@ -205,7 +205,7 @@ TEST_F(LogStorageTest, closed_segment) {
         entry->Release();
     }
     {
-        braft::LogEntry* entry = seg2->get(0);
+        melon::raft::LogEntry* entry = seg2->get(0);
         ASSERT_TRUE(entry == NULL);
         entry = seg2->get(11);
         ASSERT_TRUE(entry == NULL);
@@ -215,8 +215,8 @@ TEST_F(LogStorageTest, closed_segment) {
     // truncate and read
     ASSERT_EQ(0, seg1->truncate(5));
     for (int i = 0; i < 5; i++) {
-        braft::LogEntry* entry = new braft::LogEntry();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.term = 1;
         entry->id.index = i + 6;
 
@@ -230,7 +230,7 @@ TEST_F(LogStorageTest, closed_segment) {
         entry->Release();
     }
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = seg1->get(i+1);
+        melon::raft::LogEntry* entry = seg1->get(i+1);
         char data_buf[128];
         if (i < 5) {
             snprintf(data_buf, sizeof(data_buf), "hello, world: %d", i + 1);
@@ -238,7 +238,7 @@ TEST_F(LogStorageTest, closed_segment) {
             snprintf(data_buf, sizeof(data_buf), "HELLO, WORLD: %d", i + 1);
         }
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, i+1);
         ASSERT_EQ(data_buf, entry->data.to_string());
         entry->Release();
@@ -251,20 +251,20 @@ TEST_F(LogStorageTest, closed_segment) {
 
 TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
     ::system("rm -rf data");
-    braft::SegmentLogStorage* storage = new braft::SegmentLogStorage("./data");
+    melon::raft::SegmentLogStorage* storage = new melon::raft::SegmentLogStorage("./data");
 
     // init
-    ASSERT_EQ(0, storage->init(new braft::ConfigurationManager()));
+    ASSERT_EQ(0, storage->init(new melon::raft::ConfigurationManager()));
     ASSERT_EQ(1, storage->first_log_index());
     ASSERT_EQ(0, storage->last_log_index());
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -284,9 +284,9 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
     // read entry
     for (int i = 0; i < 500000; i++) {
         int64_t index = i + 1;
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, index);
 
         char data_buf[128];
@@ -304,16 +304,16 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
 
     // boundary truncate prefix
     {
-        braft::SegmentLogStorage::SegmentMap segments1 = storage->segments();
+        melon::raft::SegmentLogStorage::SegmentMap segments1 = storage->segments();
         size_t old_segment_num = segments1.size();
-        braft::Segment* first_seg = segments1.begin()->second.get();
+        melon::raft::Segment* first_seg = segments1.begin()->second.get();
 
         ASSERT_EQ(0, storage->truncate_prefix(first_seg->last_index()));
-        braft::SegmentLogStorage::SegmentMap segments2 = storage->segments();
+        melon::raft::SegmentLogStorage::SegmentMap segments2 = storage->segments();
         ASSERT_EQ(old_segment_num, segments2.size());
 
         ASSERT_EQ(0, storage->truncate_prefix(first_seg->last_index() + 1));
-        braft::SegmentLogStorage::SegmentMap segments3 = storage->segments();
+        melon::raft::SegmentLogStorage::SegmentMap segments3 = storage->segments();
         ASSERT_EQ(old_segment_num - 1, segments3.size());
     }
 
@@ -322,9 +322,9 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
     ASSERT_EQ(storage->last_log_index(), 500000);
     for (int i = 250001; i <= 500000; i++) {
         int64_t index = i;
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, index);
 
         char data_buf[128];
@@ -335,11 +335,11 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
 
     // append
     for (int i = 100000; i < 200000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -365,16 +365,16 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
 
     // boundary truncate suffix
     {
-        braft::SegmentLogStorage::SegmentMap segments1 = storage->segments();
-        braft::Segment* first_seg = segments1.begin()->second.get();
+        melon::raft::SegmentLogStorage::SegmentMap segments1 = storage->segments();
+        melon::raft::Segment* first_seg = segments1.begin()->second.get();
         if (segments1.size() > 1) {
             storage->truncate_suffix(first_seg->last_index() + 1);
         }
-        braft::SegmentLogStorage::SegmentMap segments2 = storage->segments();
+        melon::raft::SegmentLogStorage::SegmentMap segments2 = storage->segments();
         ASSERT_EQ(1ul, segments2.size());
         ASSERT_EQ(storage->last_log_index(), first_seg->last_index() + 1);
         storage->truncate_suffix(first_seg->last_index());
-        braft::SegmentLogStorage::SegmentMap segments3 = storage->segments();
+        melon::raft::SegmentLogStorage::SegmentMap segments3 = storage->segments();
         ASSERT_EQ(1ul, segments3.size());
         ASSERT_EQ(storage->last_log_index(), first_seg->last_index());
     }
@@ -382,9 +382,9 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
     // read
     for (int i = 250001; i <= storage->last_log_index(); i++) {
         int64_t index = i;
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, index);
 
         char data_buf[128];
@@ -397,8 +397,8 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
 
     // re load
     ::system("rm -rf data/log_meta");
-    braft::SegmentLogStorage* storage2 = new braft::SegmentLogStorage("./data");
-    ASSERT_EQ(0, storage2->init(new braft::ConfigurationManager()));
+    melon::raft::SegmentLogStorage* storage2 = new melon::raft::SegmentLogStorage("./data");
+    ASSERT_EQ(0, storage2->init(new melon::raft::ConfigurationManager()));
     ASSERT_EQ(1, storage2->first_log_index());
     ASSERT_EQ(0, storage2->last_log_index());
     delete storage2;
@@ -406,17 +406,17 @@ TEST_F(LogStorageTest, multi_segment_and_segment_logstorage) {
 
 TEST_F(LogStorageTest, append_close_load_append) {
     ::system("rm -rf data");
-    braft::LogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::LogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -437,17 +437,17 @@ TEST_F(LogStorageTest, append_close_load_append) {
     delete configuration_manager;
 
     // reinit 
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 100000; i < 200000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 2;
             entry->id.index = index;
 
@@ -470,13 +470,13 @@ TEST_F(LogStorageTest, append_close_load_append) {
 
     for (int i = 0; i < 200000*5; i++) {
         int64_t index = i + 1;
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         if (i < 100000*5) {
             ASSERT_EQ(entry->id.term, 1);
         } else {
             ASSERT_EQ(entry->id.term, 2);
         }
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, index);
 
         char data_buf[128];
@@ -505,17 +505,17 @@ int truncate_uninterrupted(const char* filename, off_t length) {
 
 TEST_F(LogStorageTest, data_lost) {
     ::system("rm -rf data");
-    braft::LogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::LogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -536,8 +536,8 @@ TEST_F(LogStorageTest, data_lost) {
     delete configuration_manager;
 
     // reinit 
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     ASSERT_EQ(storage->first_log_index(), 1);
@@ -560,8 +560,8 @@ TEST_F(LogStorageTest, data_lost) {
         }
     }
 
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     ASSERT_EQ(storage->first_log_index(), 1);
@@ -585,8 +585,8 @@ TEST_F(LogStorageTest, data_lost) {
         }
     }
 
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_NE(0, storage->init(configuration_manager));
 
     delete storage;
@@ -595,17 +595,17 @@ TEST_F(LogStorageTest, data_lost) {
 
 TEST_F(LogStorageTest, full_segment_has_garbage) {
     ::system("rm -rf data");
-    braft::LogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::LogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -657,36 +657,36 @@ TEST_F(LogStorageTest, full_segment_has_garbage) {
     off1 = st_buf.st_size;
     for (;;) {
         butil::IOPortal buf;
-        ssize_t ret = braft::file_pread(&buf, fd2, off2, 8192);
+        ssize_t ret = melon::raft::file_pread(&buf, fd2, off2, 8192);
         ASSERT_TRUE(ret >= 0);
         if (ret == 0) {
             break;
         }
-        ASSERT_EQ(buf.size(), braft::file_pwrite(buf, fd1, off1));
+        ASSERT_EQ(buf.size(), melon::raft::file_pwrite(buf, fd1, off1));
         off1 += buf.size();
         off2 += buf.size();
     }
     close(fd1);
     close(fd2);
 
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_NE(0, storage->init(configuration_manager));
 }
 
 TEST_F(LogStorageTest, append_read_badcase) {
     ::system("rm -rf data");
-    braft::LogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::LogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -723,8 +723,8 @@ TEST_F(LogStorageTest, append_read_badcase) {
     }
 
     // reinit failed, because load open no permission
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_NE(0, storage->init(configuration_manager));
     delete storage;
     delete configuration_manager;
@@ -741,8 +741,8 @@ TEST_F(LogStorageTest, append_read_badcase) {
     }
 
     // reinit success
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // make file chaos
@@ -770,7 +770,7 @@ TEST_F(LogStorageTest, append_read_badcase) {
     // read will fail
     for (int i = 0; i < 100000*5; i++) {
         int64_t index = i + 1;
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         if (entry) {
             entry->Release();
         }
@@ -782,13 +782,13 @@ TEST_F(LogStorageTest, append_read_badcase) {
 
 TEST_F(LogStorageTest, configuration) {
     ::system("rm -rf data");
-    braft::SegmentLogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::SegmentLogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     {
-        braft::LogEntry entry;
-        entry.type = braft::ENTRY_TYPE_NO_OP;
+        melon::raft::LogEntry entry;
+        entry.type = melon::raft::ENTRY_TYPE_NO_OP;
         entry.id.term = 1;
         entry.id.index = 1;
 
@@ -797,24 +797,24 @@ TEST_F(LogStorageTest, configuration) {
 
     // add peer
     {
-        braft::LogEntry entry;
-        entry.type = braft::ENTRY_TYPE_CONFIGURATION;
+        melon::raft::LogEntry entry;
+        entry.type = melon::raft::ENTRY_TYPE_CONFIGURATION;
         entry.id.term = 1;
         entry.id.index = 2;
-        entry.peers = new std::vector<braft::PeerId>;
-        entry.peers->push_back(braft::PeerId("1.1.1.1:1000:0"));
-        entry.peers->push_back(braft::PeerId("1.1.1.1:2000:0"));
-        entry.peers->push_back(braft::PeerId("1.1.1.1:3000:0"));
+        entry.peers = new std::vector<melon::raft::PeerId>;
+        entry.peers->push_back(melon::raft::PeerId("1.1.1.1:1000:0"));
+        entry.peers->push_back(melon::raft::PeerId("1.1.1.1:2000:0"));
+        entry.peers->push_back(melon::raft::PeerId("1.1.1.1:3000:0"));
         storage->append_entry(&entry);
     }
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 3 + i*5+j;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -833,22 +833,22 @@ TEST_F(LogStorageTest, configuration) {
     // remove peer
     {
         int64_t index = 2 + 100000*5 + 1;
-        braft::LogEntry entry;
-        entry.type = braft::ENTRY_TYPE_CONFIGURATION;
+        melon::raft::LogEntry entry;
+        entry.type = melon::raft::ENTRY_TYPE_CONFIGURATION;
         entry.id.term = 1;
         entry.id.index = index;
-        entry.peers = new std::vector<braft::PeerId>;
-        entry.peers->push_back(braft::PeerId("1.1.1.1:1000:0"));
-        entry.peers->push_back(braft::PeerId("1.1.1.1:2000:0"));
+        entry.peers = new std::vector<melon::raft::PeerId>;
+        entry.peers->push_back(melon::raft::PeerId("1.1.1.1:1000:0"));
+        entry.peers->push_back(melon::raft::PeerId("1.1.1.1:2000:0"));
         storage->append_entry(&entry);
     }
 
     delete storage;
 
-    braft::SegmentLogStorage* storage2 = new braft::SegmentLogStorage("./data");
+    melon::raft::SegmentLogStorage* storage2 = new melon::raft::SegmentLogStorage("./data");
     ASSERT_EQ(0, storage2->init(configuration_manager));
 
-    braft::ConfigurationEntry pair;
+    melon::raft::ConfigurationEntry pair;
     configuration_manager->get(2 + 100000*5, &pair);
     ASSERT_EQ(2, pair.id.index);
     LOG(INFO) << pair.conf;
@@ -873,13 +873,13 @@ butil::atomic<int> g_last_read_index(0);
 bool g_stop = false;
 
 void* read_thread_routine(void* arg) {
-    braft::SegmentLogStorage* storage = (braft::SegmentLogStorage*)arg;
+    melon::raft::SegmentLogStorage* storage = (melon::raft::SegmentLogStorage*)arg;
     while (!g_stop) {
         int a = g_first_read_index.load(butil::memory_order_relaxed);
         int b = g_last_read_index.load(butil::memory_order_relaxed);
         EXPECT_LE(a, b);
         int index = butil::fast_rand_in(a, b);
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         if (entry != NULL) {
             std::string expect;
             butil::string_printf(&expect, "hello_%d", index);
@@ -898,7 +898,7 @@ void* read_thread_routine(void* arg) {
 }
 
 void* write_thread_routine(void* arg) {
-    braft::SegmentLogStorage* storage = (braft::SegmentLogStorage*)arg;
+    melon::raft::SegmentLogStorage* storage = (melon::raft::SegmentLogStorage*)arg;
     // Write operation distribution: 
     //  - 10% truncate_prefix
     //  - 10% truncate_suffix,
@@ -926,8 +926,8 @@ void* write_thread_routine(void* arg) {
                     next_log_index - 1);
             g_last_read_index.store(next_read_index, butil::memory_order_relaxed);
         } else  {  // Append entry
-            braft::LogEntry* entry = new braft::LogEntry;
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry;
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.index = next_log_index;
             std::string data;
             butil::string_printf(&data, "hello_%d", next_log_index);
@@ -940,21 +940,21 @@ void* write_thread_routine(void* arg) {
     return NULL;
 }
 
-namespace braft {
+namespace melon::raft {
 DECLARE_int32(raft_max_segment_size);
 }
 
 TEST_F(LogStorageTest, multi_read_single_modify_thread_safe) {
-    int32_t saved_max_segment_size = braft::FLAGS_raft_max_segment_size;
-    braft::FLAGS_raft_max_segment_size = 1024;
+    int32_t saved_max_segment_size = melon::raft::FLAGS_raft_max_segment_size;
+    melon::raft::FLAGS_raft_max_segment_size = 1024;
     system("rm -rf ./data");
-    braft::SegmentLogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::SegmentLogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
     const int N = 10000;
     for (int i = 1; i <= N; ++i) {
-        braft::LogEntry* entry = new braft::LogEntry;
-        entry->type = braft::ENTRY_TYPE_DATA;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry;
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.index = i;
         std::string data;
         butil::string_printf(&data, "hello_%d", i);
@@ -983,28 +983,28 @@ TEST_F(LogStorageTest, multi_read_single_modify_thread_safe) {
 
     delete configuration_manager;
     delete storage;
-    braft::FLAGS_raft_max_segment_size = saved_max_segment_size;
+    melon::raft::FLAGS_raft_max_segment_size = saved_max_segment_size;
 }
 
 TEST_F(LogStorageTest, max_segment_size_illegal) {
-    int32_t saved_max_segment_size = braft::FLAGS_raft_max_segment_size;
-    braft::FLAGS_raft_max_segment_size = -1;
+    int32_t saved_max_segment_size = melon::raft::FLAGS_raft_max_segment_size;
+    melon::raft::FLAGS_raft_max_segment_size = -1;
     system("rm -rf ./data");
-    braft::SegmentLogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::SegmentLogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(-1, storage->init(configuration_manager));
     delete configuration_manager;
     delete storage;
-    braft::FLAGS_raft_max_segment_size = saved_max_segment_size;
+    melon::raft::FLAGS_raft_max_segment_size = saved_max_segment_size;
 }
 
 TEST_F(LogStorageTest, large_entry) {
     system("rm -rf ./data");
-    braft::SegmentLogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::SegmentLogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
-    braft::LogEntry* entry = new braft::LogEntry;
-    entry->type = braft::ENTRY_TYPE_DATA;
+    melon::raft::LogEntry* entry = new melon::raft::LogEntry;
+    entry->type = melon::raft::ENTRY_TYPE_DATA;
     entry->id.index = 1;
     entry->id.term = 1;
     std::string data;
@@ -1019,11 +1019,11 @@ TEST_F(LogStorageTest, large_entry) {
     ASSERT_EQ(1, storage->_first_log_index); 
     ASSERT_EQ(1, storage->_last_log_index);
     ASSERT_EQ(0, storage->_segments.size());
-    scoped_refptr<braft::Segment> segment = storage->open_segment(); 
+    scoped_refptr<melon::raft::Segment> segment = storage->open_segment();
     ASSERT_EQ(1, storage->_segments.size());
 
-    braft::SegmentLogStorage* storage2 = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager2 = new braft::ConfigurationManager;
+    melon::raft::SegmentLogStorage* storage2 = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager2 = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage2->init(configuration_manager2));
     ASSERT_EQ(1, storage2->_first_log_index); 
     ASSERT_EQ(1, storage2->_last_log_index);
@@ -1032,13 +1032,13 @@ TEST_F(LogStorageTest, large_entry) {
 
 TEST_F(LogStorageTest, reboot_with_checksum_type_changed) {
     system("rm -rf ./data");
-    braft::SegmentLogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::SegmentLogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
     storage->_checksum_type = 0;  // murmurhash
     for (int i = 0; i < 10; i++) {
-        braft::LogEntry* entry = new braft::LogEntry();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.term = 1;
         entry->id.index = i + 1;
 
@@ -1051,12 +1051,12 @@ TEST_F(LogStorageTest, reboot_with_checksum_type_changed) {
         entry->Release();
     }
     delete storage;
-    storage = new braft::SegmentLogStorage("./data");
+    storage = new melon::raft::SegmentLogStorage("./data");
     ASSERT_EQ(0, storage->init(configuration_manager));
     storage->_checksum_type = 1;  // crc32
     for (int i = 10; i < 20; i++) {
-        braft::LogEntry* entry = new braft::LogEntry();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.term = 1;
         entry->id.index = i + 1;
 
@@ -1069,12 +1069,12 @@ TEST_F(LogStorageTest, reboot_with_checksum_type_changed) {
         entry->Release();
     }
     delete storage;
-    storage = new braft::SegmentLogStorage("./data");
+    storage = new melon::raft::SegmentLogStorage("./data");
     ASSERT_EQ(0, storage->init(configuration_manager));
     for (int index = 1; index <= 20; ++index) {
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         ASSERT_EQ(entry->id.term, 1);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, index);
 
         char data_buf[128];
@@ -1088,19 +1088,19 @@ TEST_F(LogStorageTest, reboot_with_checksum_type_changed) {
 
 TEST_F(LogStorageTest, joint_configuration) {
     system("rm -rf ./data");
-    braft::ConfigurationManager cm;
-    std::unique_ptr<braft::SegmentLogStorage>
-                log_storage(new braft::SegmentLogStorage("./data"));
+    melon::raft::ConfigurationManager cm;
+    std::unique_ptr<melon::raft::SegmentLogStorage>
+                log_storage(new melon::raft::SegmentLogStorage("./data"));
     ASSERT_EQ(0, log_storage->init(&cm));
     for (int i = 1; i <= 20; ++i) {
-        scoped_refptr<braft::LogEntry> entry = new braft::LogEntry;
-        entry->id = braft::LogId(i, 1);
-        entry->peers = new std::vector<braft::PeerId>;
-        entry->type = braft::ENTRY_TYPE_CONFIGURATION;
+        scoped_refptr<melon::raft::LogEntry> entry = new melon::raft::LogEntry;
+        entry->id = melon::raft::LogId(i, 1);
+        entry->peers = new std::vector<melon::raft::PeerId>;
+        entry->type = melon::raft::ENTRY_TYPE_CONFIGURATION;
         for (int j = 0; j < 3; ++j) {
             entry->peers->push_back("127.0.0.1:" + std::to_string(i + j));
         }
-        entry->old_peers = new std::vector<braft::PeerId>;
+        entry->old_peers = new std::vector<melon::raft::PeerId>;
         for (int j = 1; j <= 3; ++j) {
             entry->old_peers->push_back("127.0.0.1:" + std::to_string(i + j));
         }
@@ -1108,62 +1108,62 @@ TEST_F(LogStorageTest, joint_configuration) {
     }
 
     for (int i = 1; i <= 20; ++i) {
-        braft::LogEntry* entry = log_storage->get_entry(i);
+        melon::raft::LogEntry* entry = log_storage->get_entry(i);
         ASSERT_TRUE(entry != NULL);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_CONFIGURATION);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_CONFIGURATION);
         ASSERT_TRUE(entry->peers != NULL);
         ASSERT_TRUE(entry->old_peers != NULL);
-        braft::Configuration conf;
+        melon::raft::Configuration conf;
         for (int j = 0; j < 3; ++j) {
             conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
-        braft::Configuration old_conf;
+        melon::raft::Configuration old_conf;
         for (int j = 1; j <= 3; ++j) {
             old_conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
         ASSERT_TRUE(conf.equals(*entry->peers))
-            << conf << " xxxx " << braft::Configuration(*entry->peers);
+            << conf << " xxxx " << melon::raft::Configuration(*entry->peers);
                     
         ASSERT_TRUE(old_conf.equals(*entry->old_peers));
         entry->Release();
     }
 
     // Restart
-    log_storage.reset(new braft::SegmentLogStorage("./data"));
+    log_storage.reset(new melon::raft::SegmentLogStorage("./data"));
     ASSERT_EQ(0, log_storage->init(&cm));
     for (int i = 1; i <= 20; ++i) {
-        braft::LogEntry* entry = log_storage->get_entry(i);
+        melon::raft::LogEntry* entry = log_storage->get_entry(i);
         ASSERT_TRUE(entry != NULL);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_CONFIGURATION);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_CONFIGURATION);
         ASSERT_TRUE(entry->peers != NULL);
         ASSERT_TRUE(entry->old_peers != NULL);
-        braft::Configuration conf;
+        melon::raft::Configuration conf;
         for (int j = 0; j < 3; ++j) {
             conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
-        braft::Configuration old_conf;
+        melon::raft::Configuration old_conf;
         for (int j = 1; j <= 3; ++j) {
             old_conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
         ASSERT_TRUE(conf.equals(*entry->peers))
-            << conf << " xxxx " << braft::Configuration(*entry->peers);
+            << conf << " xxxx " << melon::raft::Configuration(*entry->peers);
                     
         ASSERT_TRUE(old_conf.equals(*entry->old_peers));
         entry->Release();
     }
 
     for (int i = 1; i <= 20; ++i) {
-        braft::LogEntry* entry = log_storage->get_entry(i);
+        melon::raft::LogEntry* entry = log_storage->get_entry(i);
         ASSERT_TRUE(entry != NULL);
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_CONFIGURATION);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_CONFIGURATION);
         ASSERT_TRUE(entry->peers != NULL);
         ASSERT_TRUE(entry->old_peers != NULL);
         ASSERT_EQ(1, entry->id.term);
-        braft::Configuration conf;
+        melon::raft::Configuration conf;
         for (int j = 0; j < 3; ++j) {
             conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
-        braft::Configuration old_conf;
+        melon::raft::Configuration old_conf;
         for (int j = 1; j <= 3; ++j) {
             old_conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
@@ -1173,14 +1173,14 @@ TEST_F(LogStorageTest, joint_configuration) {
     }
 
     for (int i = 1; i <= 20; ++i) {
-        braft::ConfigurationEntry entry;
+        melon::raft::ConfigurationEntry entry;
         cm.get(i, &entry);
-        ASSERT_EQ(braft::LogId(i, 1), entry.id);
-        braft::Configuration conf;
+        ASSERT_EQ(melon::raft::LogId(i, 1), entry.id);
+        melon::raft::Configuration conf;
         for (int j = 0; j < 3; ++j) {
             conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
-        braft::Configuration old_conf;
+        melon::raft::Configuration old_conf;
         for (int j = 1; j <= 3; ++j) {
             old_conf.add_peer("127.0.0.1:" + std::to_string(i + j));
         }
@@ -1191,19 +1191,19 @@ TEST_F(LogStorageTest, joint_configuration) {
 
 TEST_F(LogStorageTest, append_close_load_append_with_io_metric) {
     ::system("rm -rf data");
-    braft::IOMetric metric;
-    braft::FLAGS_raft_trace_append_entry_latency = true;
-    braft::LogStorage* storage = new braft::SegmentLogStorage("./data");
-    braft::ConfigurationManager* configuration_manager = new braft::ConfigurationManager;
+    melon::raft::IOMetric metric;
+    melon::raft::FLAGS_raft_trace_append_entry_latency = true;
+    melon::raft::LogStorage* storage = new melon::raft::SegmentLogStorage("./data");
+    melon::raft::ConfigurationManager* configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 0; i < 100000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 1;
             entry->id.index = index;
 
@@ -1230,17 +1230,17 @@ TEST_F(LogStorageTest, append_close_load_append_with_io_metric) {
     delete configuration_manager;
 
     // reinit 
-    storage = new braft::SegmentLogStorage("./data");
-    configuration_manager = new braft::ConfigurationManager;
+    storage = new melon::raft::SegmentLogStorage("./data");
+    configuration_manager = new melon::raft::ConfigurationManager;
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // append entry
     for (int i = 100000; i < 200000; i++) {
-        std::vector<braft::LogEntry*> entries;
+        std::vector<melon::raft::LogEntry*> entries;
         for (int j = 0; j < 5; j++) {
             int64_t index = 5*i + j + 1;
-            braft::LogEntry* entry = new braft::LogEntry();
-            entry->type = braft::ENTRY_TYPE_DATA;
+            melon::raft::LogEntry* entry = new melon::raft::LogEntry();
+            entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.term = 2;
             entry->id.index = index;
 
@@ -1263,13 +1263,13 @@ TEST_F(LogStorageTest, append_close_load_append_with_io_metric) {
 
     for (int i = 0; i < 200000*5; i++) {
         int64_t index = i + 1;
-        braft::LogEntry* entry = storage->get_entry(index);
+        melon::raft::LogEntry* entry = storage->get_entry(index);
         if (i < 100000*5) {
             ASSERT_EQ(entry->id.term, 1);
         } else {
             ASSERT_EQ(entry->id.term, 2);
         }
-        ASSERT_EQ(entry->type, braft::ENTRY_TYPE_DATA);
+        ASSERT_EQ(entry->type, melon::raft::ENTRY_TYPE_DATA);
         ASSERT_EQ(entry->id.index, index);
 
         char data_buf[128];

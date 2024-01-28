@@ -37,7 +37,7 @@
 namespace melon {
 DECLARE_int32(health_check_interval);
 
-namespace policy {
+namespace naming {
 
 DECLARE_bool(consul_enable_degrade_to_file_naming_service);
 DECLARE_string(consul_file_naming_service_dir);
@@ -49,8 +49,8 @@ DECLARE_string(nacos_address);
 DECLARE_string(nacos_username);
 DECLARE_string(nacos_password);
 
-} // policy
-} // brpc
+} // naming
+} // melon
 
 namespace {
 
@@ -70,7 +70,7 @@ TEST(NamingServiceTest, sanity) {
     std::vector<melon::ServerNode> servers;
 
 
-    melon::policy::DomainNamingService dns;
+    melon::naming::DomainNamingService dns;
     ASSERT_EQ(0, dns.GetServers("baidu.com:1234", &servers));
     ASSERT_EQ(2u, servers.size());
     ASSERT_EQ(1234, servers[0].addr.port);
@@ -113,7 +113,7 @@ TEST(NamingServiceTest, sanity) {
         }
         fclose(fp);
     }
-    melon::policy::FileNamingService fns;
+    melon::naming::FileNamingService fns;
     ASSERT_EQ(0, fns.GetServers(tmp_file.fname(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list), servers.size());
     for (size_t i = 0; i < ARRAY_SIZE(address_list) - 2; ++i) {
@@ -126,7 +126,7 @@ TEST(NamingServiceTest, sanity) {
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
         ASSERT_EQ(0, butil::string_appendf(&s, "%s,", address_list[i]));
     }
-    melon::policy::ListNamingService lns;
+    melon::naming::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list), servers.size());
     for (size_t i = 0; i < ARRAY_SIZE(address_list) - 2; ++i) {
@@ -140,7 +140,7 @@ TEST(NamingServiceTest, invalid_port) {
     std::vector<melon::ServerNode> servers;
 
 
-    melon::policy::DomainNamingService dns;
+    melon::naming::DomainNamingService dns;
     ASSERT_EQ(-1, dns.GetServers("baidu.com:", &servers));
     ASSERT_EQ(-1, dns.GetServers("baidu.com:123a", &servers));
     ASSERT_EQ(-1, dns.GetServers("baidu.com:99999", &servers));
@@ -168,7 +168,7 @@ TEST(NamingServiceTest, wrong_name) {
         }
         fclose(fp);
     }
-    melon::policy::FileNamingService fns;
+    melon::naming::FileNamingService fns;
     ASSERT_EQ(0, fns.GetServers(tmp_file.fname(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list) - 4, servers.size());
 
@@ -176,7 +176,7 @@ TEST(NamingServiceTest, wrong_name) {
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
         ASSERT_EQ(0, butil::string_appendf(&s, ", %s", address_list[i]));
     }
-    melon::policy::ListNamingService lns;
+    melon::naming::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list) - 4, servers.size());
 }
@@ -231,7 +231,7 @@ TEST(NamingServiceTest, remotefile) {
     std::sort(expected_servers.begin(), expected_servers.end());
 
     std::vector<melon::ServerNode> servers;
-    melon::policy::RemoteFileNamingService rfns;
+    melon::naming::RemoteFileNamingService rfns;
     ASSERT_EQ(0, rfns.GetServers("0.0.0.0:8635/UserNamingService/ListNames", &servers));
     ASSERT_EQ(expected_servers.size(), servers.size());
     std::sort(servers.begin(), servers.end());
@@ -387,7 +387,7 @@ public:
 };
 
 TEST(NamingServiceTest, consul_with_backup_file) {
-    melon::policy::FLAGS_consul_enable_degrade_to_file_naming_service = true;
+    melon::naming::FLAGS_consul_enable_degrade_to_file_naming_service = true;
     const int saved_hc_interval = melon::FLAGS_health_check_interval;
     melon::FLAGS_health_check_interval = 1;
     const char *address_list[] =  {
@@ -407,7 +407,7 @@ TEST(NamingServiceTest, consul_with_backup_file) {
     std::cout << tmp_file.fname() << std::endl;
 
     std::vector<melon::ServerNode> servers;
-    melon::policy::ConsulNamingService cns;
+    melon::naming::ConsulNamingService cns;
     ASSERT_EQ(0, cns.GetServers(service_name, &servers));
     ASSERT_EQ(ARRAY_SIZE(address_list), servers.size());
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
@@ -418,7 +418,7 @@ TEST(NamingServiceTest, consul_with_backup_file) {
 
     melon::Server server;
     ConsulNamingServiceImpl svc;
-    std::string restful_map(melon::policy::FLAGS_consul_service_discovery_url);
+    std::string restful_map(melon::naming::FLAGS_consul_service_discovery_url);
     restful_map.append("/");
     restful_map.append(service_name);
     restful_map.append("   => ListNames");
@@ -628,8 +628,8 @@ private:
 };
 
 TEST(NamingServiceTest, discovery_sanity) {
-    melon::policy::FLAGS_discovery_api_addr = "http://127.0.0.1:8635/discovery/nodes";
-    melon::policy::FLAGS_discovery_renew_interval_s = 1;
+    melon::naming::FLAGS_discovery_api_addr = "http://127.0.0.1:8635/discovery/nodes";
+    melon::naming::FLAGS_discovery_renew_interval_s = 1;
     melon::Server server;
     DiscoveryNamingServiceImpl svc;
     std::string rest_mapping =
@@ -642,12 +642,12 @@ TEST(NamingServiceTest, discovery_sanity) {
                 rest_mapping.c_str()));
     ASSERT_EQ(0, server.Start("localhost:8635", NULL));
 
-    melon::policy::DiscoveryNamingService dcns;
+    melon::naming::DiscoveryNamingService dcns;
     std::vector<melon::ServerNode> servers;
     ASSERT_EQ(0, dcns.GetServers("admin.test", &servers));
     ASSERT_EQ((size_t)1, servers.size());
 
-    melon::policy::DiscoveryRegisterParam dparam;
+    melon::naming::DiscoveryRegisterParam dparam;
     dparam.appid = "main.test";
     dparam.hostname = "hostname";
     dparam.addrs = "grpc://10.0.0.1:8000";
@@ -656,12 +656,12 @@ TEST(NamingServiceTest, discovery_sanity) {
     dparam.status = 1;
     dparam.version = "v1";
     {
-        melon::policy::DiscoveryClient dc;
+        melon::naming::DiscoveryClient dc;
     }
     // Cancel is called iff Register is called
     ASSERT_EQ(svc.CancelCount(), 0);
     {
-        melon::policy::DiscoveryClient dc;
+        melon::naming::DiscoveryClient dc;
         // Two Register should start one Renew task , and make
         // svc.RenewCount() be one.
         ASSERT_EQ(0, dc.Register(dparam));
@@ -679,7 +679,7 @@ TEST(NamingServiceTest, discovery_sanity) {
     // addrs splitted by `,'
     dparam.addrs = ",grpc://10.0.0.1:8000,,http://10.0.0.1:8000,";
     {
-        melon::policy::DiscoveryClient dc;
+        melon::naming::DiscoveryClient dc;
         ASSERT_EQ(0, dc.Register(dparam));
         ASSERT_TRUE(svc.HasAddr("grpc://10.0.0.1:8000"));
         ASSERT_TRUE(svc.HasAddr("http://10.0.0.1:8000"));
@@ -804,20 +804,20 @@ TEST(NamingServiceTest, nacos) {
 
     const char* service_name =
         "serviceName=test&groupName=g1&namespaceId=n1&clusters=wx";
-    melon::policy::FLAGS_nacos_address = "http://localhost:8848";
-    melon::policy::FLAGS_nacos_username = "nacos";
-    melon::policy::FLAGS_nacos_password = "nacos";
+    melon::naming::FLAGS_nacos_address = "http://localhost:8848";
+    melon::naming::FLAGS_nacos_username = "nacos";
+    melon::naming::FLAGS_nacos_password = "nacos";
 
     {
-        melon::policy::NacosNamingService nns;
+        melon::naming::NacosNamingService nns;
         std::vector<melon::ServerNode> nodes;
         ASSERT_EQ(0, nns.GetServers(service_name, &nodes));
         ASSERT_EQ(nodes.size(), 1);
         ASSERT_EQ(expected_node, nodes[0]);
     }
     {
-        melon::policy::FLAGS_nacos_password = "invalid_password";
-        melon::policy::NacosNamingService nns;
+        melon::naming::FLAGS_nacos_password = "invalid_password";
+        melon::naming::NacosNamingService nns;
         std::vector<melon::ServerNode> nodes;
         ASSERT_NE(0, nns.GetServers(service_name, &nodes));
     }

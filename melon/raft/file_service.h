@@ -14,50 +14,56 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#ifndef  BRAFT_FILE_SERVICE_H
-#define  BRAFT_FILE_SERVICE_H
+#ifndef  MELON_RAFT_FILE_SERVICE_H_
+#define  MELON_RAFT_FILE_SERVICE_H_
 
 #include <melon/butil/memory/singleton.h>
 #include "melon/raft/file_service.pb.h"
 #include "melon/raft/file_reader.h"
 #include "melon/raft/util.h"
 
-namespace braft {
+namespace melon::raft {
 
-class BAIDU_CACHELINE_ALIGNMENT FileServiceImpl : public FileService {
-public:
-    static FileServiceImpl* GetInstance() {
-        return Singleton<FileServiceImpl>::get();
+    class BAIDU_CACHELINE_ALIGNMENT FileServiceImpl : public FileService {
+    public:
+        static FileServiceImpl *GetInstance() {
+            return Singleton<FileServiceImpl>::get();
+        }
+
+        void get_file(::google::protobuf::RpcController *controller,
+                      const ::melon::raft::GetFileRequest *request,
+                      ::melon::raft::GetFileResponse *response,
+                      ::google::protobuf::Closure *done);
+
+        int add_reader(FileReader *reader, int64_t *reader_id);
+
+        int remove_reader(int64_t reader_id);
+
+    private:
+        friend struct DefaultSingletonTraits<FileServiceImpl>;
+
+        FileServiceImpl();
+
+        ~FileServiceImpl() {}
+
+        typedef std::map<int64_t, scoped_refptr<FileReader> > Map;
+        raft_mutex_t _mutex;
+        int64_t _next_id;
+        Map _reader_map;
+    };
+
+    inline FileServiceImpl *file_service() { return FileServiceImpl::GetInstance(); }
+
+    inline int file_service_add(FileReader *reader, int64_t *reader_id) {
+        FileServiceImpl *const fs = file_service();
+        return fs->add_reader(reader, reader_id);
     }
-    void get_file(::google::protobuf::RpcController* controller,
-                  const ::braft::GetFileRequest* request,
-                  ::braft::GetFileResponse* response,
-                  ::google::protobuf::Closure* done);
-    int add_reader(FileReader* reader, int64_t* reader_id);
-    int remove_reader(int64_t reader_id);
-private:
-friend struct DefaultSingletonTraits<FileServiceImpl>;
-    FileServiceImpl();
-    ~FileServiceImpl() {}
-    typedef std::map<int64_t, scoped_refptr<FileReader> > Map;
-    raft_mutex_t _mutex;
-    int64_t _next_id;
-    Map _reader_map;
-};
 
-inline FileServiceImpl* file_service()
-{ return FileServiceImpl::GetInstance(); }
+    inline int file_service_remove(int64_t reader_id) {
+        FileServiceImpl *const fs = file_service();
+        return fs->remove_reader(reader_id);
+    }
 
-inline int file_service_add(FileReader* reader, int64_t* reader_id) {
-    FileServiceImpl* const fs = file_service();
-    return fs->add_reader(reader, reader_id);
-}
+}  //  namespace melon::raft
 
-inline int file_service_remove(int64_t reader_id) {
-    FileServiceImpl* const fs = file_service();
-    return fs->remove_reader(reader_id);
-}
-
-}  //  namespace braft
-
-#endif  //BRAFT_FILE_SERVICE_H
+#endif  // MELON_RAFT_FILE_SERVICE_H_

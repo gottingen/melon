@@ -14,44 +14,44 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#ifndef  BRAFT_CLI_SERVICE_H
-#define  BRAFT_CLI_SERVICE_H
+#ifndef  MELON_RAFT_CLI_SERVICE_H_
+#define  MELON_RAFT_CLI_SERVICE_H_
 
 #include <melon/butil/status.h>
 #include "melon/raft/cli.pb.h"                // CliService
 #include "melon/raft/node.h"                  // NodeImpl
 
-namespace braft {
+namespace melon::raft {
 
 class CliServiceImpl : public CliService {
 public:
     void add_peer(::google::protobuf::RpcController* controller,
-                  const ::braft::AddPeerRequest* request,
-                  ::braft::AddPeerResponse* response,
+                  const ::melon::raft::AddPeerRequest* request,
+                  ::melon::raft::AddPeerResponse* response,
                   ::google::protobuf::Closure* done);
     void remove_peer(::google::protobuf::RpcController* controller,
-                     const ::braft::RemovePeerRequest* request,
-                     ::braft::RemovePeerResponse* response,
+                     const ::melon::raft::RemovePeerRequest* request,
+                     ::melon::raft::RemovePeerResponse* response,
                      ::google::protobuf::Closure* done);
     void reset_peer(::google::protobuf::RpcController* controller,
-                    const ::braft::ResetPeerRequest* request,
-                    ::braft::ResetPeerResponse* response,
+                    const ::melon::raft::ResetPeerRequest* request,
+                    ::melon::raft::ResetPeerResponse* response,
                     ::google::protobuf::Closure* done);
     void snapshot(::google::protobuf::RpcController* controller,
-                  const ::braft::SnapshotRequest* request,
-                  ::braft::SnapshotResponse* response,
+                  const ::melon::raft::SnapshotRequest* request,
+                  ::melon::raft::SnapshotResponse* response,
                   ::google::protobuf::Closure* done);
     void get_leader(::google::protobuf::RpcController* controller,
-                    const ::braft::GetLeaderRequest* request,
-                    ::braft::GetLeaderResponse* response,
+                    const ::melon::raft::GetLeaderRequest* request,
+                    ::melon::raft::GetLeaderResponse* response,
                     ::google::protobuf::Closure* done);
     void change_peers(::google::protobuf::RpcController* controller,
-                      const ::braft::ChangePeersRequest* request,
-                      ::braft::ChangePeersResponse* response,
+                      const ::melon::raft::ChangePeersRequest* request,
+                      ::melon::raft::ChangePeersResponse* response,
                       ::google::protobuf::Closure* done);
     void transfer_leader(::google::protobuf::RpcController* controller,
-                         const ::braft::TransferLeaderRequest* request,
-                         ::braft::TransferLeaderResponse* response,
+                         const ::melon::raft::TransferLeaderRequest* request,
+                         ::melon::raft::TransferLeaderResponse* response,
                          ::google::protobuf::Closure* done);
 private:
     butil::Status get_node(scoped_refptr<NodeImpl>* node,
@@ -61,4 +61,4 @@ private:
 
 }
 
-#endif  //BRAFT_CLI_SERVICE_H
+#endif  // MELON_RAFT_CLI_SERVICE_H_

@@ -24,12 +24,12 @@
 #include "melon/raft/snapshot_throttle.h"
 #include "melon/raft/snapshot_executor.h"
 
-using namespace braft;
+using namespace melon::raft;
 bool g_dont_print_apply_log = false;
-namespace braft {
+namespace melon::raft {
 DECLARE_bool(raft_enable_witness_to_leader);
 }
-class MockFSM : public braft::StateMachine {
+class MockFSM : public melon::raft::StateMachine {
 public:
     MockFSM(const butil::EndPoint& address_):
         MockFSM(address_,false) {
@@ -60,7 +60,7 @@ public:
     int64_t _on_stop_following_times;
     bool _witness = false;
     volatile int64_t _leader_term;
-    braft::Closure* _on_leader_start_closure;
+    melon::raft::Closure* _on_leader_start_closure;
 
     void lock() {
         pthread_mutex_lock(&mutex);
@@ -70,7 +70,7 @@ public:
         pthread_mutex_unlock(&mutex);
     }
 
-    void set_on_leader_start_closure(braft::Closure* closure) {
+    void set_on_leader_start_closure(melon::raft::Closure* closure) {
         _on_leader_start_closure = closure;
     }
 
@@ -83,13 +83,13 @@ public:
             _on_leader_start_closure = NULL;
         }
     }
-    void on_leader_stop(const braft::LeaderChangeContext&) {
+    void on_leader_stop(const melon::raft::LeaderChangeContext&) {
         _leader_term = -1;
     }
 
     bool is_leader() { return _leader_term > 0; }
 
-    virtual void on_apply(braft::Iterator& iter) {
+    virtual void on_apply(melon::raft::Iterator& iter) {
         for (; iter.valid(); iter.next()) {
             if (_witness && !FLAGS_raft_enable_witness_to_leader) {
                 LOG(INFO) << "addr " << address << " skip witness apply " << iter.index();
@@ -111,7 +111,7 @@ public:
         LOG(INFO) << "addr " << address << " shutdowned";
     }
 
-    virtual void on_snapshot_save(braft::SnapshotWriter* writer, braft::Closure* done) {
+    virtual void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
         std::string file_path = writer->get_path();
         file_path.append("/data");
         melon::ClosureGuard done_guard(done);
@@ -139,7 +139,7 @@ public:
         writer->add_file("data");
     }
 
-    virtual int on_snapshot_load(braft::SnapshotReader* reader) {
+    virtual int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         std::string file_path = reader->get_path();
         file_path.append("/data");
 
@@ -170,24 +170,24 @@ public:
         return 0;
     }
 
-    virtual void on_start_following(const braft::LeaderChangeContext& start_following_context) {
+    virtual void on_start_following(const melon::raft::LeaderChangeContext& start_following_context) {
         LOG(INFO) << "address " << address << " start following new leader: " 
                    <<  start_following_context;
         ++_on_start_following_times;
     }
 
-    virtual void on_stop_following(const braft::LeaderChangeContext& stop_following_context) {
+    virtual void on_stop_following(const melon::raft::LeaderChangeContext& stop_following_context) {
         LOG(INFO) << "address " << address << " stop following old leader: " 
                    <<  stop_following_context;
         ++_on_stop_following_times;
     }
 
-    virtual void on_configuration_committed(const ::braft::Configuration& conf, int64_t index) {
+    virtual void on_configuration_committed(const ::melon::raft::Configuration& conf, int64_t index) {
         LOG(INFO) << "address " << address << " commit conf: " << conf << " at index " << index;
     }
 };
 
-class ExpectClosure : public braft::Closure {
+class ExpectClosure : public melon::raft::Closure {
 public:
     void Run() {
         if (_expect_err_code >= 0) {
@@ -230,7 +230,7 @@ typedef ExpectClosure SnapshotClosure;
 
 class Cluster {
 public:
-    Cluster(const std::string& name, const std::vector<braft::PeerId>& peers,
+    Cluster(const std::string& name, const std::vector<melon::raft::PeerId>& peers,
             int32_t election_timeout_ms = 3000, int max_clock_drift_ms = 1000)
         : _name(name), _peers(peers) 
         , _election_timeout_ms(election_timeout_ms)
@@ -238,7 +238,7 @@ public:
 
         int64_t throttle_throughput_bytes = 10 * 1024 * 1024;
         int64_t check_cycle = 10;
-        _throttle = new braft::ThroughputSnapshotThrottle(throttle_throughput_bytes, check_cycle);
+        _throttle = new melon::raft::ThroughputSnapshotThrottle(throttle_throughput_bytes, check_cycle);
     }
     ~Cluster() {
         stop_all();
@@ -246,10 +246,10 @@ public:
 
     int start(const butil::EndPoint& listen_addr, bool empty_peers = false,
               int snapshot_interval_s = 30,
-              braft::Closure* leader_start_closure = NULL, bool witness = false) {
+              melon::raft::Closure* leader_start_closure = NULL, bool witness = false) {
         if (_server_map[listen_addr] == NULL) {
             melon::Server* server = new melon::Server();
-            if (braft::add_service(server, listen_addr) != 0 
+            if (melon::raft::add_service(server, listen_addr) != 0
                     || server->Start(listen_addr, NULL) != 0) {
                 LOG(ERROR) << "Fail to start raft service";
                 delete server;
@@ -258,13 +258,13 @@ public:
             _server_map[listen_addr] = server;
         }
 
-        braft::NodeOptions options;
+        melon::raft::NodeOptions options;
         options.witness = witness;
         options.election_timeout_ms = _election_timeout_ms;
         options.max_clock_drift_ms = _max_clock_drift_ms;
         options.snapshot_interval_s = snapshot_interval_s;
         if (!empty_peers) {
-            options.initial_conf = braft::Configuration(_peers);
+            options.initial_conf = melon::raft::Configuration(_peers);
         }
         MockFSM* fsm = new MockFSM(listen_addr, witness);
         if (leader_start_closure) {
@@ -279,12 +279,12 @@ public:
         butil::string_printf(&options.snapshot_uri, "local://./data/%s/snapshot",
                             butil::endpoint2str(listen_addr).c_str());
         
-        scoped_refptr<braft::SnapshotThrottle> tst(_throttle);
+        scoped_refptr<melon::raft::SnapshotThrottle> tst(_throttle);
         options.snapshot_throttle = &tst;
 
         options.catchup_margin = 2;
         
-        braft::Node* node = new braft::Node(_name, braft::PeerId(listen_addr, 0, witness));
+        melon::raft::Node* node = new melon::raft::Node(_name, melon::raft::PeerId(listen_addr, 0, witness));
         int ret = node->init(options);
         if (ret != 0) {
             LOG(WARNING) << "init_node failed, server: " << listen_addr;
@@ -305,7 +305,7 @@ public:
     int stop(const butil::EndPoint& listen_addr) {
         
         bthread::CountdownEvent cond;
-        braft::Node* node = remove_node(listen_addr);
+        melon::raft::Node* node = remove_node(listen_addr);
         if (node) {
             node->shutdown(NEW_SHUTDOWNCLOSURE(&cond));
             cond.wait();
@@ -340,9 +340,9 @@ public:
         }
     }
 
-    braft::Node* leader() {
+    melon::raft::Node* leader() {
         std::lock_guard<raft_mutex_t> guard(_mutex);
-        braft::Node* node = NULL;
+        melon::raft::Node* node = NULL;
         for (size_t i = 0; i < _nodes.size(); i++) {
             if (_nodes[i]->is_leader() &&
                     _fsms[i]->_leader_term == _nodes[i]->_impl->_current_term) {
@@ -353,7 +353,7 @@ public:
         return node;
     }
 
-    void followers(std::vector<braft::Node*>* nodes) {
+    void followers(std::vector<melon::raft::Node*>* nodes) {
         nodes->clear();
 
         std::lock_guard<raft_mutex_t> guard(_mutex);
@@ -364,7 +364,7 @@ public:
         }
     }
 
-    void all_nodes(std::vector<braft::Node*>* nodes) {
+    void all_nodes(std::vector<melon::raft::Node*>* nodes) {
         nodes->clear();
 
         std::lock_guard<raft_mutex_t> guard(_mutex);
@@ -373,7 +373,7 @@ public:
         }
     }
 
-    braft::Node* find_node(const braft::PeerId& peer_id) {
+    melon::raft::Node* find_node(const melon::raft::PeerId& peer_id) {
         std::lock_guard<raft_mutex_t> guard(_mutex);
         for (size_t i = 0; i < _nodes.size(); i++) {
             if (peer_id == _nodes[i]->node_id().peer_id) {
@@ -385,7 +385,7 @@ public:
     
     void wait_leader() {
         while (true) {
-            braft::Node* node = leader();
+            melon::raft::Node* node = leader();
             if (node) {
                 return;
             } else {
@@ -395,7 +395,7 @@ public:
     }
 
     void check_node_status() {
-        std::vector<braft::Node*> nodes;
+        std::vector<melon::raft::Node*> nodes;
         {
             std::lock_guard<raft_mutex_t> guard(_mutex);
             for (size_t i = 0; i < _nodes.size(); i++) {
@@ -403,12 +403,12 @@ public:
             }
         }
         for (size_t i = 0; i < nodes.size(); ++i) {
-            braft::NodeStatus status;
+            melon::raft::NodeStatus status;
             nodes[i]->get_status(&status);
             if (nodes[i]->is_leader()) {
-                ASSERT_EQ(status.state, braft::STATE_LEADER);
+                ASSERT_EQ(status.state, melon::raft::STATE_LEADER);
             } else {
-                ASSERT_NE(status.state, braft::STATE_LEADER);
+                ASSERT_NE(status.state, melon::raft::STATE_LEADER);
                 ASSERT_EQ(status.stable_followers.size(), 0);
             }
         }
@@ -418,7 +418,7 @@ public:
 CHECK:
         std::lock_guard<raft_mutex_t> guard(_mutex);
         for (size_t i = 0; i < _nodes.size(); i++) {
-            braft::PeerId leader_id = _nodes[i]->leader_id();
+            melon::raft::PeerId leader_id = _nodes[i]->leader_id();
             if (leader_id.addr != expect_addr) {
                 goto WAIT;
             }
@@ -506,12 +506,12 @@ private:
         }
     }
 
-    braft::Node* remove_node(const butil::EndPoint& addr) {
+    melon::raft::Node* remove_node(const butil::EndPoint& addr) {
         std::lock_guard<raft_mutex_t> guard(_mutex);
 
         // remove node
-        braft::Node* node = NULL;
-        std::vector<braft::Node*> new_nodes;
+        melon::raft::Node* node = NULL;
+        std::vector<melon::raft::Node*> new_nodes;
         for (size_t i = 0; i < _nodes.size(); i++) {
             if (addr.port == _nodes[i]->node_id().peer_id.addr.port) {
                 node = _nodes[i];
@@ -534,14 +534,14 @@ private:
     }
 
     std::string _name;
-    std::vector<braft::PeerId> _peers;
-    std::vector<braft::Node*> _nodes;
+    std::vector<melon::raft::PeerId> _peers;
+    std::vector<melon::raft::Node*> _nodes;
     std::vector<MockFSM*> _fsms;
     std::map<butil::EndPoint, melon::Server*> _server_map;
     int32_t _election_timeout_ms;
     int32_t _max_clock_drift_ms;
     raft_mutex_t _mutex;
-    braft::SnapshotThrottle* _throttle;
+    melon::raft::SnapshotThrottle* _throttle;
 };
 
 #endif // ~PUBLIC_RAFT_TEST_UTIL_H

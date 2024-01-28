@@ -14,8 +14,8 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#ifndef  BRAFT_LOG_ENTRY_H
-#define  BRAFT_LOG_ENTRY_H
+#ifndef  MELON_RAFT_LOG_ENTRY_H_
+#define  MELON_RAFT_LOG_ENTRY_H_
 
 #include <melon/butil/iobuf.h>                         // butil::IOBuf
 #include <melon/butil/memory/ref_counted.h>            // butil::RefCountedThreadSafe
@@ -24,7 +24,7 @@
 #include "melon/raft/raft.pb.h"
 #include "melon/raft/util.h"
 
-namespace braft {
+namespace melon::raft {
 
 // Log identifier
 struct LogId {
@@ -98,6 +98,6 @@ butil::Status parse_configuration_meta(const butil::IOBuf& data, LogEntry* entry
 
 butil::Status serialize_configuration_meta(const LogEntry* entry, butil::IOBuf& data);
 
-}  //  namespace braft
+}  //  namespace melon::raft
 
-#endif  //BRAFT_LOG_ENTRY_H
+#endif  // MELON_RAFT_LOG_ENTRY_H_

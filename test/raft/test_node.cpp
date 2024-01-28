@@ -18,7 +18,7 @@
 #include <melon/bthread/countdown_event.h>
 #include "../test/util.h"
 
-namespace braft {
+namespace melon::raft {
 extern bvar::Adder<int64_t> g_num_nodes;
 DECLARE_int32(raft_max_parallel_append_entries_rpc_num);
 DECLARE_bool(raft_enable_append_entries_cache);
@@ -27,7 +27,7 @@ DECLARE_bool(raft_enable_witness_to_leader);
 
 }
 
-using braft::raft_mutex_t;
+using melon::raft::raft_mutex_t;
 class TestEnvironment : public ::testing::Environment {
 public:
     void SetUp() {
@@ -44,26 +44,26 @@ protected:
         // GFLAGS_NS::SetCommandLineOption("minloglevel", "1");
         GFLAGS_NS::SetCommandLineOption("crash_on_fatal_log", "true");
         if (GetParam() == std::string("NoReplication")) {
-            braft::FLAGS_raft_max_parallel_append_entries_rpc_num = 1;
-            braft::FLAGS_raft_enable_append_entries_cache = false;
+            melon::raft::FLAGS_raft_max_parallel_append_entries_rpc_num = 1;
+            melon::raft::FLAGS_raft_enable_append_entries_cache = false;
         } else if (GetParam() == std::string("NoCache")) {
-            braft::FLAGS_raft_max_parallel_append_entries_rpc_num = 32;
-            braft::FLAGS_raft_enable_append_entries_cache = false;
+            melon::raft::FLAGS_raft_max_parallel_append_entries_rpc_num = 32;
+            melon::raft::FLAGS_raft_enable_append_entries_cache = false;
         } else if (GetParam() == std::string("HasCache")) {
-            braft::FLAGS_raft_max_parallel_append_entries_rpc_num = 32;
-            braft::FLAGS_raft_enable_append_entries_cache = true;
-            braft::FLAGS_raft_max_append_entries_cache_size = 8;
+            melon::raft::FLAGS_raft_max_parallel_append_entries_rpc_num = 32;
+            melon::raft::FLAGS_raft_enable_append_entries_cache = true;
+            melon::raft::FLAGS_raft_max_append_entries_cache_size = 8;
         }
         LOG(INFO) << "Start unitests: " << GetParam();
         ::system("rm -rf data");
-        ASSERT_EQ(0, braft::g_num_nodes.get_value());
+        ASSERT_EQ(0, melon::raft::g_num_nodes.get_value());
     }
     void TearDown() {
         ::system("rm -rf data");
         // Sleep for a while to wait all timer has stopped
-        if (braft::g_num_nodes.get_value() != 0) {
+        if (melon::raft::g_num_nodes.get_value() != 0) {
             usleep(1000 * 1000);
-            ASSERT_EQ(0, braft::g_num_nodes.get_value());
+            ASSERT_EQ(0, melon::raft::g_num_nodes.get_value());
         }
     }
 private:
@@ -72,17 +72,17 @@ private:
 
 TEST_P(NodeTest, InitShutdown) {
     melon::Server server;
-    int ret = braft::add_service(&server, "0.0.0.0:5006");
+    int ret = melon::raft::add_service(&server, "0.0.0.0:5006");
     ASSERT_EQ(0, ret);
     ASSERT_EQ(0, server.Start("0.0.0.0:5006", NULL));
 
-    braft::NodeOptions options;
+    melon::raft::NodeOptions options;
     options.fsm = new MockFSM(butil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
 
-    braft::Node node("unittest", braft::PeerId(butil::EndPoint(butil::my_ip(), 5006), 0));
+    melon::raft::Node node("unittest", melon::raft::PeerId(butil::EndPoint(butil::my_ip(), 5006), 0));
     ASSERT_EQ(0, node.init(options));
 
     node.shutdown(NULL);
@@ -92,7 +92,7 @@ TEST_P(NodeTest, InitShutdown) {
     bthread::CountdownEvent cond;
     butil::IOBuf data;
     data.append("hello");
-    braft::Task task;
+    melon::raft::Task task;
     task.data = &data;
     task.done = NEW_APPLYCLOSURE(&cond);
     node.apply(task);
@@ -102,35 +102,35 @@ TEST_P(NodeTest, InitShutdown) {
 TEST_P(NodeTest, Server) {
     melon::Server server1;
     melon::Server server2;
-    ASSERT_EQ(0, braft::add_service(&server1, "0.0.0.0:5006"));
-    ASSERT_EQ(0, braft::add_service(&server1, "0.0.0.0:5006"));
-    ASSERT_EQ(0, braft::add_service(&server2, "0.0.0.0:5007"));
+    ASSERT_EQ(0, melon::raft::add_service(&server1, "0.0.0.0:5006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server1, "0.0.0.0:5006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server2, "0.0.0.0:5007"));
     server1.Start("0.0.0.0:5006", NULL);
     server2.Start("0.0.0.0:5007", NULL);
 }
 
 TEST_P(NodeTest, SingleNode) {
     melon::Server server;
-    int ret = braft::add_service(&server, 5006);
+    int ret = melon::raft::add_service(&server, 5006);
     server.Start(5006, NULL);
     ASSERT_EQ(0, ret);
 
-    braft::PeerId peer;
+    melon::raft::PeerId peer;
     peer.addr.ip = butil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     peers.push_back(peer);
 
-    braft::NodeOptions options;
+    melon::raft::NodeOptions options;
     options.election_timeout_ms = 300;
-    options.initial_conf = braft::Configuration(peers);
+    options.initial_conf = melon::raft::Configuration(peers);
     options.fsm = new MockFSM(butil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
 
-    braft::Node node("unittest", peer);
+    melon::raft::Node node("unittest", peer);
     ASSERT_EQ(0, node.init(options));
 
     bthread::CountdownEvent cond(10);
@@ -139,7 +139,7 @@ TEST_P(NodeTest, SingleNode) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         node.apply(task);
@@ -155,9 +155,9 @@ TEST_P(NodeTest, SingleNode) {
 }
 
 TEST_P(NodeTest, NoLeader) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -169,11 +169,11 @@ TEST_P(NodeTest, NoLeader) {
     Cluster cluster("unittest", peers);
     cluster.start(peers[1].addr);
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(1, nodes.size());
 
-    braft::Node* follower = nodes[0];
+    melon::raft::Node* follower = nodes[0];
 
     // apply something
     bthread::CountdownEvent cond(10);
@@ -182,7 +182,7 @@ TEST_P(NodeTest, NoLeader) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, EPERM);
         follower->apply(task);
@@ -190,7 +190,7 @@ TEST_P(NodeTest, NoLeader) {
     cond.wait();
 
     // add peer1
-    braft::PeerId peer3;
+    melon::raft::PeerId peer3;
     peer3.addr.ip = butil::my_ip();
     peer3.addr.port = 5006 + 3;
     peer3.idx = 0;
@@ -201,7 +201,7 @@ TEST_P(NodeTest, NoLeader) {
     LOG(INFO) << "add peer " << peer3;
 
     // remove peer1
-    braft::PeerId peer0;
+    melon::raft::PeerId peer0;
     peer0.addr.ip = butil::my_ip();
     peer0.addr.port = 5006 + 0;
     peer0.idx = 0;
@@ -213,9 +213,9 @@ TEST_P(NodeTest, NoLeader) {
 }
 
 TEST_P(NodeTest, TripleNode) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -231,7 +231,7 @@ TEST_P(NodeTest, TripleNode) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -243,7 +243,7 @@ TEST_P(NodeTest, TripleNode) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -255,7 +255,7 @@ TEST_P(NodeTest, TripleNode) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "no closure");
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         leader->apply(task);
     }
@@ -293,7 +293,7 @@ TEST_P(NodeTest, TripleNode) {
     }
 
     // stop cluster
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
 
@@ -302,9 +302,9 @@ TEST_P(NodeTest, TripleNode) {
 }
 
 TEST_P(NodeTest, LeaderFail) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -320,7 +320,7 @@ TEST_P(NodeTest, LeaderFail) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -332,7 +332,7 @@ TEST_P(NodeTest, LeaderFail) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -345,7 +345,7 @@ TEST_P(NodeTest, LeaderFail) {
     cluster.stop(leader->node_id().peer_id.addr);
 
     // apply something when follower
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
@@ -353,7 +353,7 @@ TEST_P(NodeTest, LeaderFail) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "follower apply: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, -1);
         nodes[0]->apply(task);
@@ -373,7 +373,7 @@ TEST_P(NodeTest, LeaderFail) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -391,7 +391,7 @@ TEST_P(NodeTest, LeaderFail) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -415,14 +415,14 @@ TEST_P(NodeTest, LeaderFail) {
 }
 
 TEST_P(NodeTest, LeaderFailWithWitness) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         if (i == 0) {
-            peer.role = braft::Role::WITNESS;
+            peer.role = melon::raft::Role::WITNESS;
         }
         peers.push_back(peer);
     }
@@ -435,7 +435,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -447,7 +447,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -460,7 +460,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     cluster.stop(leader->node_id().peer_id.addr);
 
     // apply something when follower
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
@@ -468,7 +468,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "follower apply: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, -1);
         // node 0 is witness;
@@ -489,7 +489,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -507,7 +507,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -531,8 +531,8 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
 }
 
 TEST_P(NodeTest, JoinNode) {
-    std::vector<braft::PeerId> peers;
-    braft::PeerId peer0;
+    std::vector<melon::raft::PeerId> peers;
+    melon::raft::PeerId peer0;
     peer0.addr.ip = butil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
@@ -545,7 +545,7 @@ TEST_P(NodeTest, JoinNode) {
 
     cluster.wait_leader();
 
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     ASSERT_EQ(leader->node_id().peer_id, peer0);
     LOG(WARNING) << "leader is " << leader->node_id();
@@ -558,7 +558,7 @@ TEST_P(NodeTest, JoinNode) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -566,7 +566,7 @@ TEST_P(NodeTest, JoinNode) {
     cond.wait();
 
     // start peer1
-    braft::PeerId peer1;
+    melon::raft::PeerId peer1;
     peer1.addr.ip = butil::my_ip();
     peer1.addr.port = 5006 + 1;
     peer1.idx = 0;
@@ -584,14 +584,14 @@ TEST_P(NodeTest, JoinNode) {
     cluster.ensure_same();
 
     // add peer2 when peer not start
-    braft::PeerId peer2;
+    melon::raft::PeerId peer2;
     peer2.addr.ip = butil::my_ip();
     peer2.addr.port = 5006 + 2;
     peer2.idx = 0;
 
     cond.reset(1);
     peers.push_back(peer1);
-    leader->add_peer(peer2, NEW_ADDPEERCLOSURE(&cond, braft::ECATCHUP));
+    leader->add_peer(peer2, NEW_ADDPEERCLOSURE(&cond, melon::raft::ECATCHUP));
     cond.wait();
 
     // start peer2 after some seconds wait 
@@ -601,7 +601,7 @@ TEST_P(NodeTest, JoinNode) {
 
     usleep(1000 * 1000L);
 
-    braft::PeerId peer4("192.168.1.1:1234");
+    melon::raft::PeerId peer4("192.168.1.1:1234");
 
     // re add peer2
     cond.reset(2);
@@ -622,8 +622,8 @@ TEST_P(NodeTest, JoinNode) {
 }
 
 TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
-    std::vector<braft::PeerId> peers;
-    braft::PeerId peer0;
+    std::vector<melon::raft::PeerId> peers;
+    melon::raft::PeerId peer0;
     peer0.addr.ip = butil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
@@ -636,7 +636,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
 
     cluster.wait_leader();
 
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     ASSERT_EQ(leader->node_id().peer_id, peer0);
     LOG(WARNING) << "leader is " << leader->node_id();
@@ -649,7 +649,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
         data_buf.resize(256 * 1024, 'a');
         data.append(data_buf);
         
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -670,7 +670,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
         data_buf.resize(256 * 1024, 'b');
         data.append(data_buf);
         
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -684,7 +684,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     cond.wait();
 
     // start peer1
-    braft::PeerId peer1;
+    melon::raft::PeerId peer1;
     peer1.addr.ip = butil::my_ip();
     peer1.addr.port = 5006 + 1;
     peer1.idx = 0;
@@ -718,7 +718,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     LOG(INFO) << "leader " << leader->node_id() 
                 << " step_down because of some error";
     butil::Status status;
-    status.set_error(braft::ERAFTTIMEDOUT, "Majority of the group dies");
+    status.set_error(melon::raft::ERAFTTIMEDOUT, "Majority of the group dies");
     leader->_impl->step_down(leader->_impl->_current_term, false, status);
     cond.wait(); 
     
@@ -738,9 +738,9 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
 
 
 TEST_P(NodeTest, Report_error_during_install_snapshot) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -756,7 +756,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -768,7 +768,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
         data_buf.resize(256 * 1024, 'a');
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -777,7 +777,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
 
@@ -794,7 +794,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
         data_buf.resize(256 * 1024, 'b');
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -815,7 +815,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
         data_buf.resize(256 * 1024, 'c');
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -842,9 +842,9 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
 }
 
 TEST_P(NodeTest, RemoveFollower) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -859,7 +859,7 @@ TEST_P(NodeTest, RemoveFollower) {
     }
 
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -871,7 +871,7 @@ TEST_P(NodeTest, RemoveFollower) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -880,11 +880,11 @@ TEST_P(NodeTest, RemoveFollower) {
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
 
-    const braft::PeerId follower_id = nodes[0]->node_id().peer_id;
+    const melon::raft::PeerId follower_id = nodes[0]->node_id().peer_id;
     const butil::EndPoint follower_addr = follower_id.addr;
     // stop follower
     LOG(WARNING) << "stop and clean follower " << follower_addr;
@@ -905,7 +905,7 @@ TEST_P(NodeTest, RemoveFollower) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -917,7 +917,7 @@ TEST_P(NodeTest, RemoveFollower) {
 
     peers.clear();
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -944,9 +944,9 @@ TEST_P(NodeTest, RemoveFollower) {
 }
 
 TEST_P(NodeTest, RemoveLeader) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -961,7 +961,7 @@ TEST_P(NodeTest, RemoveLeader) {
     }
 
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -973,7 +973,7 @@ TEST_P(NodeTest, RemoveLeader) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -999,7 +999,7 @@ TEST_P(NodeTest, RemoveLeader) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1018,7 +1018,7 @@ TEST_P(NodeTest, RemoveLeader) {
     cond.reset(1);
     peers.clear();
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1027,10 +1027,10 @@ TEST_P(NodeTest, RemoveLeader) {
             peers.push_back(peer);
         }
     }
-    leader->add_peer(braft::PeerId(old_leader_addr, 0), NEW_ADDPEERCLOSURE(&cond, 0));
+    leader->add_peer(melon::raft::PeerId(old_leader_addr, 0), NEW_ADDPEERCLOSURE(&cond, 0));
     cond.wait();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
 
@@ -1038,9 +1038,9 @@ TEST_P(NodeTest, RemoveLeader) {
 }
 
 TEST_P(NodeTest, restart_without_stable_meta) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1056,7 +1056,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -1068,7 +1068,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1077,7 +1077,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
 
@@ -1106,7 +1106,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1120,9 +1120,9 @@ TEST_P(NodeTest, restart_without_stable_meta) {
 }
 
 TEST_P(NodeTest, PreVote) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1137,7 +1137,7 @@ TEST_P(NodeTest, PreVote) {
     }
 
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -1149,7 +1149,7 @@ TEST_P(NodeTest, PreVote) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1158,10 +1158,10 @@ TEST_P(NodeTest, PreVote) {
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
-    const braft::PeerId follower_id = nodes[0]->node_id().peer_id;
+    const melon::raft::PeerId follower_id = nodes[0]->node_id().peer_id;
     const butil::EndPoint follower_addr = follower_id.addr;
 
     const int64_t saved_term = leader->_impl->_current_term;
@@ -1179,7 +1179,7 @@ TEST_P(NodeTest, PreVote) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1192,7 +1192,7 @@ TEST_P(NodeTest, PreVote) {
     LOG(WARNING) << "add follower " << follower_addr;
     peers.clear();
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1213,9 +1213,9 @@ TEST_P(NodeTest, PreVote) {
 
 TEST_P(NodeTest, Vote_timedout) {
     GFLAGS_NS::SetCommandLineOption("raft_step_down_when_vote_timedout", "true");
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 2; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1231,12 +1231,12 @@ TEST_P(NodeTest, Vote_timedout) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
     usleep(1000 * 1000);
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_FALSE(nodes.empty());
     // stop follower, only one node left 
@@ -1265,28 +1265,28 @@ TEST_P(NodeTest, Vote_timedout) {
 
 TEST_P(NodeTest, SetPeer1) {
     // bootstrap from null
-    Cluster cluster("unittest", std::vector<braft::PeerId>());
-    braft::PeerId boot_peer;
+    Cluster cluster("unittest", std::vector<melon::raft::PeerId>());
+    melon::raft::PeerId boot_peer;
     boot_peer.addr.ip = butil::my_ip();
     boot_peer.addr.port = 5006;
     boot_peer.idx = 0;
 
     ASSERT_EQ(0, cluster.start(boot_peer.addr));
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(1, nodes.size());
 
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     peers.push_back(boot_peer);
-    ASSERT_TRUE(nodes[0]->reset_peers(braft::Configuration(peers)).ok());
+    ASSERT_TRUE(nodes[0]->reset_peers(melon::raft::Configuration(peers)).ok());
 
     cluster.wait_leader();
 }
 
 TEST_P(NodeTest, SetPeer2) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1302,7 +1302,7 @@ TEST_P(NodeTest, SetPeer2) {
     }
 
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     butil::EndPoint leader_addr = leader->node_id().peer_id.addr;
     LOG(WARNING) << "leader is " << leader->node_id();
@@ -1316,7 +1316,7 @@ TEST_P(NodeTest, SetPeer2) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1325,11 +1325,11 @@ TEST_P(NodeTest, SetPeer2) {
     std::cout << "Here" << std::endl;
 
     // check follower
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
-    braft::PeerId follower_peer1 = nodes[0]->node_id().peer_id;
-    braft::PeerId follower_peer2 = nodes[1]->node_id().peer_id;
+    melon::raft::PeerId follower_peer1 = nodes[0]->node_id().peer_id;
+    melon::raft::PeerId follower_peer2 = nodes[1]->node_id().peer_id;
 
     LOG(WARNING) << "stop and clean follower " << follower_peer1;
     cluster.stop(follower_peer1.addr);
@@ -1344,7 +1344,7 @@ TEST_P(NodeTest, SetPeer2) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1353,10 +1353,10 @@ TEST_P(NodeTest, SetPeer2) {
     
     std::cout << "Here" << std::endl;
     //set peer when no quorum die
-    std::vector<braft::PeerId> new_peers;
+    std::vector<melon::raft::PeerId> new_peers;
     LOG(WARNING) << "set peer to " << leader_addr;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1373,15 +1373,15 @@ TEST_P(NodeTest, SetPeer2) {
     sleep(2);
 
     new_peers.clear();
-    new_peers.push_back(braft::PeerId(leader_addr, 0));
+    new_peers.push_back(melon::raft::PeerId(leader_addr, 0));
 
     // new peers equal current conf
-    ASSERT_TRUE(leader->reset_peers(braft::Configuration(peers)).ok());
+    ASSERT_TRUE(leader->reset_peers(melon::raft::Configuration(peers)).ok());
     // set peer when quorum die
     LOG(WARNING) << "set peer to " << leader_addr;
     new_peers.clear();
-    new_peers.push_back(braft::PeerId(leader_addr, 0));
-    ASSERT_TRUE(leader->reset_peers(braft::Configuration(new_peers)).ok());
+    new_peers.push_back(melon::raft::PeerId(leader_addr, 0));
+    ASSERT_TRUE(leader->reset_peers(melon::raft::Configuration(new_peers)).ok());
 
     cluster.wait_leader();
     leader = cluster.leader();
@@ -1411,9 +1411,9 @@ TEST_P(NodeTest, SetPeer2) {
 }
 
 TEST_P(NodeTest, RestoreSnapshot) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1429,7 +1429,7 @@ TEST_P(NodeTest, RestoreSnapshot) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
     butil::EndPoint leader_addr = leader->node_id().peer_id.addr;
@@ -1442,7 +1442,7 @@ TEST_P(NodeTest, RestoreSnapshot) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1473,9 +1473,9 @@ TEST_P(NodeTest, RestoreSnapshot) {
 }
 
 TEST_P(NodeTest, InstallSnapshot) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1491,7 +1491,7 @@ TEST_P(NodeTest, InstallSnapshot) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -1503,7 +1503,7 @@ TEST_P(NodeTest, InstallSnapshot) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1512,7 +1512,7 @@ TEST_P(NodeTest, InstallSnapshot) {
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
 
@@ -1529,7 +1529,7 @@ TEST_P(NodeTest, InstallSnapshot) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1550,7 +1550,7 @@ TEST_P(NodeTest, InstallSnapshot) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1576,9 +1576,9 @@ TEST_P(NodeTest, InstallSnapshot) {
 
 TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
     GFLAGS_NS::SetCommandLineOption("raft_max_install_snapshot_tasks_num", "1");
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 5; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1594,7 +1594,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -1606,7 +1606,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1615,7 +1615,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(4, nodes.size());
 
@@ -1634,7 +1634,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
         data_buf.resize(128 * 1024, 'a');
         data.append(data_buf);
         
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);        
@@ -1655,7 +1655,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
         data_buf.resize(128 * 1024, 'b');
         data.append(data_buf);
         
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);    
@@ -1684,25 +1684,25 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
 TEST_P(NodeTest, NoSnapshot) {
     melon::Server server;
     melon::ServerOptions server_options;
-    int ret = braft::add_service(&server, "0.0.0.0:5006");
+    int ret = melon::raft::add_service(&server, "0.0.0.0:5006");
     ASSERT_EQ(0, ret);
     ASSERT_EQ(0, server.Start(5006, &server_options));
 
-    braft::PeerId peer;
+    melon::raft::PeerId peer;
     peer.addr.ip = butil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     peers.push_back(peer);
 
-    braft::NodeOptions options;
+    melon::raft::NodeOptions options;
     options.election_timeout_ms = 300;
-    options.initial_conf = braft::Configuration(peers);
+    options.initial_conf = melon::raft::Configuration(peers);
     options.fsm = new MockFSM(butil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
 
-    braft::Node node("unittest", peer);
+    melon::raft::Node node("unittest", peer);
     ASSERT_EQ(0, node.init(options));
 
     // wait node elect to leader
@@ -1716,7 +1716,7 @@ TEST_P(NodeTest, NoSnapshot) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         node.apply(task);
@@ -1741,27 +1741,27 @@ TEST_P(NodeTest, NoSnapshot) {
 TEST_P(NodeTest, AutoSnapshot) {
     melon::Server server;
     melon::ServerOptions server_options;
-    int ret = braft::add_service(&server, "0.0.0.0:5006");
+    int ret = melon::raft::add_service(&server, "0.0.0.0:5006");
     ASSERT_EQ(0, ret);
     ASSERT_EQ(0, server.Start(5006, &server_options));
 
-    braft::PeerId peer;
+    melon::raft::PeerId peer;
     peer.addr.ip = butil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     peers.push_back(peer);
 
-    braft::NodeOptions options;
+    melon::raft::NodeOptions options;
     options.election_timeout_ms = 300;
-    options.initial_conf = braft::Configuration(peers);
+    options.initial_conf = melon::raft::Configuration(peers);
     options.fsm = new MockFSM(butil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
     options.snapshot_interval_s = 10;
 
-    braft::Node node("unittest", peer);
+    melon::raft::Node node("unittest", peer);
     ASSERT_EQ(0, node.init(options));
 
     // wait node elect to leader
@@ -1775,7 +1775,7 @@ TEST_P(NodeTest, AutoSnapshot) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         node.apply(task);
@@ -1796,9 +1796,9 @@ TEST_P(NodeTest, AutoSnapshot) {
 }
 
 TEST_P(NodeTest, LeaderShouldNotChange) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1814,13 +1814,13 @@ TEST_P(NodeTest, LeaderShouldNotChange) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader0 = cluster.leader();
+    melon::raft::Node* leader0 = cluster.leader();
     ASSERT_TRUE(leader0 != NULL);
     LOG(WARNING) << "leader is " << leader0->node_id();
     const int64_t saved_term = leader0->_impl->_current_term;
     usleep(5000 * 1000);
     cluster.wait_leader();
-    braft::Node* leader1 = cluster.leader();
+    melon::raft::Node* leader1 = cluster.leader();
     LOG(WARNING) << "leader is " << leader1->node_id();
     ASSERT_EQ(leader0, leader1);
     ASSERT_EQ(saved_term, leader1->_impl->_current_term);
@@ -1828,9 +1828,9 @@ TEST_P(NodeTest, LeaderShouldNotChange) {
 }
 
 TEST_P(NodeTest, RecoverFollower) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1846,12 +1846,12 @@ TEST_P(NodeTest, RecoverFollower) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
     usleep(1000 * 1000);
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_FALSE(nodes.empty());
     const butil::EndPoint follower_addr = nodes[0]->_impl->_server_id.addr;
@@ -1865,7 +1865,7 @@ TEST_P(NodeTest, RecoverFollower) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -1876,7 +1876,7 @@ TEST_P(NodeTest, RecoverFollower) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "no closure");
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         leader->apply(task);
     }
@@ -1894,9 +1894,9 @@ TEST_P(NodeTest, RecoverFollower) {
 }
 
 TEST_P(NodeTest, leader_transfer) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -1911,12 +1911,12 @@ TEST_P(NodeTest, leader_transfer) {
     }
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
-    braft::PeerId target = nodes[0]->node_id().peer_id;
+    melon::raft::PeerId target = nodes[0]->node_id().peer_id;
     ASSERT_EQ(0, leader->transfer_leadership_to(target));
     usleep(10 * 1000);
     cluster.wait_leader();
@@ -1927,14 +1927,14 @@ TEST_P(NodeTest, leader_transfer) {
 }
 TEST_P(NodeTest, leader_witness_temporary_be_leader) {
     FLAGS_raft_enable_witness_to_leader = true;
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         if (i == 0) {
-            peer.role = braft::Role::WITNESS;
+            peer.role = melon::raft::Role::WITNESS;
         }
         peers.push_back(peer);
     }
@@ -1946,15 +1946,15 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
 
     // stop follower so witness would had more entry logs than follower
-    braft::Node* follower_node = nodes[1];
-    braft::PeerId follower = follower_node->node_id().peer_id;
+    melon::raft::Node* follower_node = nodes[1];
+    melon::raft::PeerId follower = follower_node->node_id().peer_id;
     cluster.stop(follower.addr);
     // apply something
     bthread::CountdownEvent cond(10);
@@ -1963,7 +1963,7 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2005,9 +2005,9 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
 }
 
 TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2022,12 +2022,12 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
     }
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
-    braft::PeerId target = nodes[0]->node_id().peer_id;
+    melon::raft::PeerId target = nodes[0]->node_id().peer_id;
     cluster.stop(target.addr);
     // apply something
     bthread::CountdownEvent cond(10);
@@ -2036,7 +2036,7 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2044,14 +2044,14 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
     cond.wait();
     ASSERT_EQ(EHOSTUNREACH, leader->transfer_leadership_to(target));
     cond.reset(1);
-    braft::Task task;
+    melon::raft::Task task;
     butil::IOBuf data;
     data.resize(5, 'a');
     task.data = &data;
     task.done = NEW_APPLYCLOSURE(&cond, 0);
     leader->apply(task);
     cond.wait();
-    braft::Node* saved_leader = leader;
+    melon::raft::Node* saved_leader = leader;
     cluster.start(target.addr);
     usleep(5000 * 1000);
     LOG(INFO) << "here";
@@ -2063,9 +2063,9 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
 }
 
 TEST_P(NodeTest, leader_transfer_resume_on_failure) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2080,12 +2080,12 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
     }
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
-    braft::PeerId target = nodes[0]->node_id().peer_id;
+    melon::raft::PeerId target = nodes[0]->node_id().peer_id;
     cluster.stop(target.addr);
     // apply something
     bthread::CountdownEvent cond(10);
@@ -2094,16 +2094,16 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
     }
     cond.wait();
     ASSERT_EQ(EHOSTUNREACH, leader->transfer_leadership_to(target));
-    braft::Node* saved_leader = leader;
+    melon::raft::Node* saved_leader = leader;
     cond.reset(1);
-    braft::Task task;
+    melon::raft::Task task;
     butil::IOBuf data;
     data.resize(5, 'a');
     task.data = &data;
@@ -2132,7 +2132,7 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
 class MockFSM1 : public MockFSM {
 protected:
     MockFSM1() : MockFSM(butil::EndPoint()) {}
-    virtual int on_snapshot_load(braft::SnapshotReader* reader) {
+    virtual int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         (void)reader;
         return -1;
     }
@@ -2140,26 +2140,26 @@ protected:
 
 TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
     melon::Server server;
-    int ret = braft::add_service(&server, 5006);
+    int ret = melon::raft::add_service(&server, 5006);
     server.Start(5006, NULL);
     ASSERT_EQ(0, ret);
 
-    braft::PeerId peer;
+    melon::raft::PeerId peer;
     peer.addr.ip = butil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     peers.push_back(peer);
 
     {
-        braft::NodeOptions options;
+        melon::raft::NodeOptions options;
         options.election_timeout_ms = 300;
-        options.initial_conf = braft::Configuration(peers);
+        options.initial_conf = melon::raft::Configuration(peers);
         options.fsm = new MockFSM1();
         options.log_uri = "local://./data/log";
         options.raft_meta_uri = "local://./data/raft_meta";
         options.snapshot_uri = "local://./data/snapshot";
-        braft::Node node("unittest", peer);
+        melon::raft::Node node("unittest", peer);
         ASSERT_EQ(0, node.init(options));
         sleep(1);
         bthread::CountdownEvent cond(10);
@@ -2168,7 +2168,7 @@ TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
             char data_buf[128];
             snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
             data.append(data_buf);
-            braft::Task task;
+            melon::raft::Task task;
             task.data = &data;
             task.done = NEW_APPLYCLOSURE(&cond, 0);
             node.apply(task);
@@ -2182,14 +2182,14 @@ TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
     }
     
     {
-        braft::NodeOptions options;
+        melon::raft::NodeOptions options;
         options.election_timeout_ms = 300;
-        options.initial_conf = braft::Configuration(peers);
+        options.initial_conf = melon::raft::Configuration(peers);
         options.fsm = new MockFSM1();
         options.log_uri = "local://./data/log";
         options.raft_meta_uri = "local://./data/raft_meta";
         options.snapshot_uri = "local://./data/snapshot";
-        braft::Node node("unittest", peer);
+        melon::raft::Node node("unittest", peer);
         LOG(INFO) << "node init again";
         ASSERT_NE(0, node.init(options));
         node.shutdown(NULL);
@@ -2202,9 +2202,9 @@ TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
 
 TEST_P(NodeTest, shutting_leader_triggers_timeout_now) {
     GFLAGS_NS::SetCommandLineOption("raft_sync", "false");
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2216,7 +2216,7 @@ TEST_P(NodeTest, shutting_leader_triggers_timeout_now) {
         ASSERT_EQ(0, cluster.start(peers[i].addr));
     }
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(INFO) << "shutdown leader" << leader->node_id();
     leader->shutdown(NULL);
@@ -2230,9 +2230,9 @@ TEST_P(NodeTest, shutting_leader_triggers_timeout_now) {
 
 TEST_P(NodeTest, removing_leader_triggers_timeout_now) {
     GFLAGS_NS::SetCommandLineOption("raft_sync", "false");
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2244,9 +2244,9 @@ TEST_P(NodeTest, removing_leader_triggers_timeout_now) {
         ASSERT_EQ(0, cluster.start(peers[i].addr));
     }
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
-    braft::PeerId old_leader_id = leader->node_id().peer_id;
+    melon::raft::PeerId old_leader_id = leader->node_id().peer_id;
     LOG(WARNING) << "remove leader " << old_leader_id;
     bthread::CountdownEvent cond;
     leader->remove_peer(old_leader_id, NEW_REMOVEPEERCLOSURE(&cond, 0));
@@ -2259,9 +2259,9 @@ TEST_P(NodeTest, removing_leader_triggers_timeout_now) {
 }
 
 TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (size_t i = 0; i < 3; ++i) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2273,7 +2273,7 @@ TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
         ASSERT_EQ(0, cluster.start(peers[i].addr));
     }
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     bthread::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
@@ -2281,16 +2281,16 @@ TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
     }
     cond.wait();
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(1, nodes.size());
-    braft::PeerId follower = nodes[0]->node_id().peer_id;
+    melon::raft::PeerId follower = nodes[0]->node_id().peer_id;
     leader->transfer_leadership_to(follower);
     usleep(2000 * 1000);
     leader = cluster.leader();
@@ -2303,7 +2303,7 @@ TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
     cond.wait();
 
     // Start the last peer which should be recover with snapshot
-    braft::PeerId last_peer = peers.back(); 
+    melon::raft::PeerId last_peer = peers.back();
     cluster.start(last_peer.addr);
     usleep(5000 * 1000);
 
@@ -2315,10 +2315,10 @@ TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
 }
 
 TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     // five nodes
     for (int i = 0; i < 5; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2333,7 +2333,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -2344,7 +2344,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2352,16 +2352,16 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     cond.wait();
 
     // set the first Follower to Error state
-    std::vector<braft::Node*> nodes;
+    std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(nodes.size(), 4);
     butil::EndPoint error_follower = nodes[0]->node_id().peer_id.addr;
-    braft::Node* error_follower_node = nodes[0];
+    melon::raft::Node* error_follower_node = nodes[0];
     LOG(WARNING) << "set follower error " << nodes[0]->node_id();
-    braft::NodeImpl *node_impl = nodes[0]->_impl;
+    melon::raft::NodeImpl *node_impl = nodes[0]->_impl;
     node_impl->AddRef();
-    braft::Error e;
-    e.set_type(braft::ERROR_TYPE_STATE_MACHINE);
+    melon::raft::Error e;
+    e.set_type(melon::raft::ERROR_TYPE_STATE_MACHINE);
     e.status().set_error(EINVAL, "Follower has something wrong");
     node_impl->on_error(e);
     node_impl->Release();
@@ -2383,7 +2383,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2410,10 +2410,10 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
 }
 
 TEST_P(NodeTest, on_start_following_and_on_stop_following) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     // five nodes
     for (int i = 0; i < 5; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2428,7 +2428,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
 
     // elect leader_first
     cluster.wait_leader();
-    braft::Node* leader_first = cluster.leader();
+    melon::raft::Node* leader_first = cluster.leader();
     ASSERT_TRUE(leader_first != NULL);
     LOG(WARNING) << "leader_first is " << leader_first->node_id()
                  << ", election_timeout is " 
@@ -2441,7 +2441,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader_first->apply(task);
@@ -2449,7 +2449,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     cond.wait();
    
     // check _on_start_following_times and _on_stop_following_times
-    std::vector<braft::Node*> followers_first;
+    std::vector<melon::raft::Node*> followers_first;
     cluster.followers(&followers_first);
     ASSERT_EQ(followers_first.size(), 4);
     // leader_first's _on_start_following_times and _on_stop_following_times should both be 0.
@@ -2466,7 +2466,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     cluster.stop(leader_first_endpoint);
     // elect new leader
     cluster.wait_leader();
-    braft::Node* leader_second = cluster.leader();
+    melon::raft::Node* leader_second = cluster.leader();
     ASSERT_TRUE(leader_second != NULL);
     LOG(WARNING) << "elect new leader " << leader_second->node_id();
 
@@ -2477,7 +2477,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader_second->apply(task);
@@ -2485,7 +2485,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     cond.wait();
  
     // check _on_start_following_times and _on_stop_following_times again
-    std::vector<braft::Node*> followers_second;
+    std::vector<melon::raft::Node*> followers_second;
     cluster.followers(&followers_second);
     ASSERT_EQ(followers_second.size(), 3);
     // leader_second's _on_start_following_times and _on_stop_following_times should both be 1.
@@ -2504,11 +2504,11 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     }
 
     // transfer leadership to a follower
-    braft::PeerId target = followers_second[0]->node_id().peer_id;
+    melon::raft::PeerId target = followers_second[0]->node_id().peer_id;
     ASSERT_EQ(0, leader_second->transfer_leadership_to(target));
     usleep(10 * 1000);
     cluster.wait_leader();
-    braft::Node* leader_third = cluster.leader();
+    melon::raft::Node* leader_third = cluster.leader();
     ASSERT_EQ(target, leader_third->node_id().peer_id);
     
     // apply something
@@ -2518,7 +2518,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader_third->apply(task);
@@ -2526,7 +2526,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     cond.wait();
     
     // check _on_start_following_times and _on_stop_following_times again 
-    std::vector<braft::Node*> followers_third;
+    std::vector<melon::raft::Node*> followers_third;
     cluster.followers(&followers_third);
     ASSERT_EQ(followers_second.size(), 3);
     // leader_third's _on_start_following_times and _on_stop_following_times should both be 2.
@@ -2554,9 +2554,9 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
 }
 
 TEST_P(NodeTest, read_committed_user_log) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2571,7 +2571,7 @@ TEST_P(NodeTest, read_committed_user_log) {
 
     // elect leader_first
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -2582,7 +2582,7 @@ TEST_P(NodeTest, read_committed_user_log) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2592,7 +2592,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     
     // index == 1 is a CONFIGURATION log, so real_index will be 2 when returned.
     int64_t index = 1;
-    braft::UserLog* user_log = new braft::UserLog();
+    melon::raft::UserLog* user_log = new melon::raft::UserLog();
     butil::Status status = leader->read_committed_user_log(index, user_log);
     ASSERT_EQ(0, status.error_code());
     ASSERT_EQ(2, user_log->log_index());
@@ -2614,7 +2614,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     index = 15;
     user_log->reset();
     status = leader->read_committed_user_log(index, user_log);
-    ASSERT_EQ(braft::ENOMOREUSERLOG, status.error_code());
+    ASSERT_EQ(melon::raft::ENOMOREUSERLOG, status.error_code());
     LOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
         << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
         << ", status:" << status; 
@@ -2635,15 +2635,15 @@ TEST_P(NodeTest, read_committed_user_log) {
     cond.wait();
     
     // remove and add a peer to add two CONFIGURATION logs
-    std::vector<braft::Node*> followers;
+    std::vector<melon::raft::Node*> followers;
     cluster.followers(&followers);
-    braft::PeerId follower_test = followers[0]->node_id().peer_id;
+    melon::raft::PeerId follower_test = followers[0]->node_id().peer_id;
     cond.reset(1);
     leader->remove_peer(follower_test, NEW_REMOVEPEERCLOSURE(&cond, 0));
     cond.wait();
-    std::vector<braft::PeerId> new_peers;
+    std::vector<melon::raft::PeerId> new_peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -2663,7 +2663,7 @@ TEST_P(NodeTest, read_committed_user_log) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2680,7 +2680,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     index = 5;
     user_log->reset();
     status = leader->read_committed_user_log(index, user_log);
-    ASSERT_EQ(braft::ELOGDELETED, status.error_code());
+    ASSERT_EQ(melon::raft::ELOGDELETED, status.error_code());
     LOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
         << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
         << ", status:" << status; 
@@ -2720,20 +2720,20 @@ TEST_P(NodeTest, boostrap_with_snapshot) {
         buf.resize(100, c);
         fsm.logs.push_back(buf);
     }
-    braft::BootstrapOptions boptions;
+    melon::raft::BootstrapOptions boptions;
     boptions.last_log_index = fsm.logs.size();
     boptions.log_uri = "local://./data/log";
     boptions.raft_meta_uri = "local://./data/raft_meta";
     boptions.snapshot_uri = "local://./data/snapshot";
-    boptions.group_conf.add_peer(braft::PeerId(addr));
+    boptions.group_conf.add_peer(melon::raft::PeerId(addr));
     boptions.node_owns_fsm = false;
     boptions.fsm = &fsm;
-    ASSERT_EQ(0, braft::bootstrap(boptions));
+    ASSERT_EQ(0, melon::raft::bootstrap(boptions));
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, addr));
+    ASSERT_EQ(0, melon::raft::add_service(&server, addr));
     ASSERT_EQ(0, server.Start(addr, NULL));
-    braft::Node node("test", braft::PeerId(addr));
-    braft::NodeOptions options;
+    melon::raft::Node node("test", melon::raft::PeerId(addr));
+    melon::raft::NodeOptions options;
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
@@ -2756,18 +2756,18 @@ TEST_P(NodeTest, boostrap_with_snapshot) {
 TEST_P(NodeTest, boostrap_without_snapshot) {
     butil::EndPoint addr;
     ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:5006", &addr));
-    braft::BootstrapOptions boptions;
+    melon::raft::BootstrapOptions boptions;
     boptions.last_log_index = 0;
     boptions.log_uri = "local://./data/log";
     boptions.raft_meta_uri = "local://./data/raft_meta";
     boptions.snapshot_uri = "local://./data/snapshot";
-    boptions.group_conf.add_peer(braft::PeerId(addr));
-    ASSERT_EQ(0, braft::bootstrap(boptions));
+    boptions.group_conf.add_peer(melon::raft::PeerId(addr));
+    ASSERT_EQ(0, melon::raft::bootstrap(boptions));
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, addr));
+    ASSERT_EQ(0, melon::raft::add_service(&server, addr));
     ASSERT_EQ(0, server.Start(addr, NULL));
-    braft::Node node("test", braft::PeerId(addr));
-    braft::NodeOptions options;
+    melon::raft::Node node("test", melon::raft::PeerId(addr));
+    melon::raft::NodeOptions options;
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
@@ -2783,8 +2783,8 @@ TEST_P(NodeTest, boostrap_without_snapshot) {
 }
 
 TEST_P(NodeTest, change_peers) {
-    std::vector<braft::PeerId> peers;
-    braft::PeerId peer0;
+    std::vector<melon::raft::PeerId> peers;
+    melon::raft::PeerId peer0;
     peer0.addr.ip = butil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
@@ -2795,14 +2795,14 @@ TEST_P(NodeTest, change_peers) {
     ASSERT_EQ(0, cluster.start(peer0.addr));
     LOG(INFO) << "start single cluster " << peer0;
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     bthread::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
         butil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2810,20 +2810,20 @@ TEST_P(NodeTest, change_peers) {
     cond.wait();
 
     for (int i = 1; i < 10; ++i) {
-        braft::PeerId peer = peer0;
+        melon::raft::PeerId peer = peer0;
         peer.addr.port += i;
         ASSERT_EQ(0, cluster.start(peer.addr, true));
     }
     for (int i = 0; i < 9; ++i) {
         cluster.wait_leader();
-        braft::Node* leader = cluster.leader();
-        braft::PeerId peer = peer0;
+        melon::raft::Node* leader = cluster.leader();
+        melon::raft::PeerId peer = peer0;
         peer.addr.port += i;
         ASSERT_EQ(leader->node_id().peer_id, peer);
         peer.addr.port += 1;
-        braft::Configuration conf;
+        melon::raft::Configuration conf;
         conf.add_peer(peer);
-        braft::SynchronizedClosure done;
+        melon::raft::SynchronizedClosure done;
         leader->change_peers(conf, &done);
         done.wait();
         ASSERT_TRUE(done.status().ok()) << done.status();
@@ -2833,8 +2833,8 @@ TEST_P(NodeTest, change_peers) {
 }
 
 TEST_P(NodeTest, change_peers_add_multiple_node) {
-    std::vector<braft::PeerId> peers;
-    braft::PeerId peer0;
+    std::vector<melon::raft::PeerId> peers;
+    melon::raft::PeerId peer0;
     peer0.addr.ip = butil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
@@ -2845,37 +2845,37 @@ TEST_P(NodeTest, change_peers_add_multiple_node) {
     ASSERT_EQ(0, cluster.start(peer0.addr));
     LOG(INFO) << "start single cluster " << peer0;
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     bthread::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
         butil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
     }
     cond.wait();
-    braft::Configuration conf;
+    melon::raft::Configuration conf;
     for (int i = 0; i < 3; ++i) {
-        braft::PeerId peer = peer0;
+        melon::raft::PeerId peer = peer0;
         peer.addr.port += i;
         conf.add_peer(peer);
     }
     cluster.wait_leader();
-    braft::SynchronizedClosure done;
+    melon::raft::SynchronizedClosure done;
     leader->change_peers(conf, &done);
     done.wait();
-    ASSERT_EQ(braft::ECATCHUP, done.status().error_code()) << done.status();
-    braft::PeerId peer = peer0;
+    ASSERT_EQ(melon::raft::ECATCHUP, done.status().error_code()) << done.status();
+    melon::raft::PeerId peer = peer0;
     peer.addr.port++;
     cluster.start(peer.addr, false);
     done.reset();
     leader->change_peers(conf, &done);
     done.wait();
-    ASSERT_EQ(braft::ECATCHUP, done.status().error_code()) << done.status();
+    ASSERT_EQ(melon::raft::ECATCHUP, done.status().error_code()) << done.status();
     peer.addr.port++;
     cluster.start(peer.addr, false);
     done.reset();
@@ -2886,11 +2886,11 @@ TEST_P(NodeTest, change_peers_add_multiple_node) {
 }
 
 TEST_P(NodeTest, change_peers_steps_down_in_joint_consensus) {
-    std::vector<braft::PeerId> peers;
-    braft::PeerId peer0("127.0.0.1:5006");
-    braft::PeerId peer1("127.0.0.1:5007");
-    braft::PeerId peer2("127.0.0.1:5008");
-    braft::PeerId peer3("127.0.0.1:5009");
+    std::vector<melon::raft::PeerId> peers;
+    melon::raft::PeerId peer0("127.0.0.1:5006");
+    melon::raft::PeerId peer1("127.0.0.1:5007");
+    melon::raft::PeerId peer2("127.0.0.1:5008");
+    melon::raft::PeerId peer3("127.0.0.1:5009");
 
     // start cluster
     peers.push_back(peer0);
@@ -2898,14 +2898,14 @@ TEST_P(NodeTest, change_peers_steps_down_in_joint_consensus) {
     ASSERT_EQ(0, cluster.start(peer0.addr));
     LOG(INFO) << "start single cluster " << peer0;
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     bthread::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
         butil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -2914,12 +2914,12 @@ TEST_P(NodeTest, change_peers_steps_down_in_joint_consensus) {
     cluster.start(peer1.addr, false);
     cluster.start(peer2.addr, false);
     cluster.start(peer3.addr, false);
-    braft::Configuration conf;
+    melon::raft::Configuration conf;
     conf.add_peer(peer0);
     conf.add_peer(peer1);
     conf.add_peer(peer2);
     conf.add_peer(peer3);
-    braft::SynchronizedClosure done;
+    melon::raft::SynchronizedClosure done;
     leader->change_peers(conf, &done);
     done.wait();
     ASSERT_TRUE(done.status().ok());
@@ -2954,7 +2954,7 @@ TEST_P(NodeTest, change_peers_steps_down_in_joint_consensus) {
 
 struct ChangeArg {
     Cluster* c;
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     volatile bool stop;
     bool dont_remove_first_peer;
 };
@@ -2963,12 +2963,12 @@ static void* change_routine(void* arg) {
     ChangeArg* ca = (ChangeArg*)arg;
     while (!ca->stop) {
         ca->c->wait_leader();
-        braft::Node* leader = ca->c->leader();
+        melon::raft::Node* leader = ca->c->leader();
         if (!leader) {
             continue;
         }
         // Randomly select peers
-        braft::Configuration conf;
+        melon::raft::Configuration conf;
         if (ca->dont_remove_first_peer) {
             conf.add_peer(ca->peers[0]);
         }
@@ -2983,7 +2983,7 @@ static void* change_routine(void* arg) {
             // Bad luck here
             continue;
         }
-        braft::SynchronizedClosure done;
+        melon::raft::SynchronizedClosure done;
         leader->change_peers(conf, &done);
         done.wait();
         CHECK(done.status().ok());
@@ -2996,9 +2996,9 @@ TEST_P(NodeTest, change_peers_chaos_with_snapshot) {
     GFLAGS_NS::SetCommandLineOption("raft_sync", "false");
     ASSERT_FALSE(GFLAGS_NS::SetCommandLineOption("crash_on_fatal_log", "true").empty());
     GFLAGS_NS::SetCommandLineOption("minloglevel", "3");
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     // start cluster
-    peers.push_back(braft::PeerId("127.0.0.1:5006"));
+    peers.push_back(melon::raft::PeerId("127.0.0.1:5006"));
     Cluster cluster("unittest", peers, 2000);
     cluster.start(peers.front().addr, false, 1);
     for (int i = 1; i < 10; ++i) {
@@ -3014,7 +3014,7 @@ TEST_P(NodeTest, change_peers_chaos_with_snapshot) {
     ASSERT_EQ(0, pthread_create(&tid, NULL, change_routine, &arg));
     for (int i = 0; i < 1000;) {
         cluster.wait_leader();
-        braft::Node* leader = cluster.leader();
+        melon::raft::Node* leader = cluster.leader();
         if (!leader) {
             continue;
         }
@@ -3022,8 +3022,8 @@ TEST_P(NodeTest, change_peers_chaos_with_snapshot) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
-        braft::SynchronizedClosure done;
+        melon::raft::Task task;
+        melon::raft::SynchronizedClosure done;
         task.data = &data;
         task.done = &done;
         leader->apply(task);
@@ -3045,9 +3045,9 @@ TEST_P(NodeTest, change_peers_chaos_without_snapshot) {
     GFLAGS_NS::SetCommandLineOption("minloglevel", "3");
     GFLAGS_NS::SetCommandLineOption("raft_sync", "false");
     ASSERT_FALSE(GFLAGS_NS::SetCommandLineOption("crash_on_fatal_log", "true").empty());
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     // start cluster
-    peers.push_back(braft::PeerId("127.0.0.1:5006"));
+    peers.push_back(melon::raft::PeerId("127.0.0.1:5006"));
     Cluster cluster("unittest", peers, 2000);
     cluster.start(peers.front().addr, false, 10000);
     for (int i = 1; i < 10; ++i) {
@@ -3063,7 +3063,7 @@ TEST_P(NodeTest, change_peers_chaos_without_snapshot) {
     ASSERT_EQ(0, pthread_create(&tid, NULL, change_routine, &arg));
     for (int i = 0; i < 10000;) {
         cluster.wait_leader();
-        braft::Node* leader = cluster.leader();
+        melon::raft::Node* leader = cluster.leader();
         if (!leader) {
             continue;
         }
@@ -3071,8 +3071,8 @@ TEST_P(NodeTest, change_peers_chaos_without_snapshot) {
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
-        braft::Task task;
-        braft::SynchronizedClosure done;
+        melon::raft::Task task;
+        melon::raft::SynchronizedClosure done;
         task.data = &data;
         task.done = &done;
         leader->apply(task);
@@ -3086,9 +3086,9 @@ TEST_P(NodeTest, change_peers_chaos_without_snapshot) {
     arg.stop = true;
     pthread_join(tid, NULL);
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
-    braft::SynchronizedClosure done;
-    leader->change_peers(braft::Configuration(peers), &done);
+    melon::raft::Node* leader = cluster.leader();
+    melon::raft::SynchronizedClosure done;
+    leader->change_peers(melon::raft::Configuration(peers), &done);
     done.wait();
     ASSERT_TRUE(done.status().ok()) << done.status();
     cluster.ensure_same();
@@ -3114,31 +3114,31 @@ public:
     void wait() {
         _event.wait();
     }
-    braft::AppendEntriesRequest& request() { return _request; }
-    braft::AppendEntriesResponse& response() { return _response; }
+    melon::raft::AppendEntriesRequest& request() { return _request; }
+    melon::raft::AppendEntriesResponse& response() { return _response; }
     melon::Controller& cntl() {
         return *_cntl;
     }
 
 private:
     bthread::CountdownEvent _event;
-    braft::AppendEntriesRequest _request;
-    braft::AppendEntriesResponse _response;
+    melon::raft::AppendEntriesRequest _request;
+    melon::raft::AppendEntriesResponse _response;
     melon::Controller* _cntl;
 };
 
 void follower_append_entries(
-        const braft::AppendEntriesRequest& request_template, int entry_size,
-        int64_t prev_log_index, AppendEntriesSyncClosure& closure, braft::Node* node) {
-    braft::AppendEntriesRequest& request = closure.request();
+        const melon::raft::AppendEntriesRequest& request_template, int entry_size,
+        int64_t prev_log_index, AppendEntriesSyncClosure& closure, melon::raft::Node* node) {
+    melon::raft::AppendEntriesRequest& request = closure.request();
     request.CopyFrom(request_template);
     request.set_prev_log_index(prev_log_index);
     for (int i = 0; i < entry_size; ++i) {
-        braft::EntryMeta em;
+        melon::raft::EntryMeta em;
         butil::IOBuf data;
         data.append("hello");
         em.set_data_len(data.size());
-        em.set_type(braft::ENTRY_TYPE_DATA);
+        em.set_type(melon::raft::ENTRY_TYPE_DATA);
         em.set_term(request_template.term());
         request.add_entries()->Swap(&em);
         closure.cntl().request_attachment().append(data);
@@ -3148,9 +3148,9 @@ void follower_append_entries(
 }
 
 TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -3166,13 +3166,13 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
     cluster.ensure_same();
 
-    std::vector<braft::Node*> followers;
+    std::vector<melon::raft::Node*> followers;
     cluster.followers(&followers);
     
     while (true) {
@@ -3195,13 +3195,13 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
     std::string peer_id = "";
     int64_t committed_index = followers[0]->_impl->_ballot_box->last_committed_index();
     followers[0]->_impl->_mutex.unlock();
-    int32_t max_append_entries_cache_size = braft::FLAGS_raft_max_append_entries_cache_size;
-    if (!braft::FLAGS_raft_enable_append_entries_cache) {
+    int32_t max_append_entries_cache_size = melon::raft::FLAGS_raft_max_append_entries_cache_size;
+    if (!melon::raft::FLAGS_raft_enable_append_entries_cache) {
         max_append_entries_cache_size = 0;
     }
 
     // Create a template
-    braft::AppendEntriesRequest request_template;
+    melon::raft::AppendEntriesRequest request_template;
     request_template.set_term(term);
     request_template.set_group_id(group_id);
     request_template.set_server_id(server_id);
@@ -3376,9 +3376,9 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
 }
 
 TEST_P(NodeTest, readonly) {
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
-        braft::PeerId peer;
+        melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
@@ -3394,7 +3394,7 @@ TEST_P(NodeTest, readonly) {
 
     // elect leader
     cluster.wait_leader();
-    braft::Node* leader = cluster.leader();
+    melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
@@ -3407,7 +3407,7 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -3425,9 +3425,9 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
-        task.done = NEW_APPLYCLOSURE(&cond, braft::EREADONLY);
+        task.done = NEW_APPLYCLOSURE(&cond, melon::raft::EREADONLY);
         leader->apply(task);
     }
     cond.wait();
@@ -3443,14 +3443,14 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
     }
     cond.wait();
   
-    std::vector<braft::Node*> followers;
+    std::vector<melon::raft::Node*> followers;
     cluster.followers(&followers);
     ASSERT_EQ(2, followers.size());
 
@@ -3465,7 +3465,7 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
@@ -3487,15 +3487,15 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
-        task.done = NEW_APPLYCLOSURE(&cond, braft::EREADONLY);
+        task.done = NEW_APPLYCLOSURE(&cond, melon::raft::EREADONLY);
         leader->apply(task);
     }
     cond.wait();  
 
     // Add a new follower
-    braft::PeerId peer3;
+    melon::raft::PeerId peer3;
     peer3.addr.ip = butil::my_ip();
     peer3.addr.port = 5006 + 3;
     peer3.idx = 0;
@@ -3524,9 +3524,9 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
-        task.done = NEW_APPLYCLOSURE(&cond, braft::EREADONLY);
+        task.done = NEW_APPLYCLOSURE(&cond, melon::raft::EREADONLY);
         leader->apply(task);
     }
     cond.wait();  
@@ -3551,7 +3551,7 @@ TEST_P(NodeTest, readonly) {
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
 
-        braft::Task task;
+        melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);

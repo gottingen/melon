@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef  BRPC_POLICY_HTTP_FILE_NAMING_SERVICE
-#define  BRPC_POLICY_HTTP_FILE_NAMING_SERVICE
+#ifndef  BMELON_NAMING_HTTP_FILE_NAMING_SERVICE_H_
+#define  BMELON_NAMING_HTTP_FILE_NAMING_SERVICE_H_
 
 #include "melon/rpc/periodic_naming_service.h"
 #include "melon/rpc/channel.h"
@@ -25,28 +25,28 @@
 
 
 namespace melon {
-class Channel;
-namespace policy {
+    class Channel;
+}  // namespace melon
+namespace melon::naming {
 
-class RemoteFileNamingService : public PeriodicNamingService {
-private:
-    int GetServers(const char* service_name,
-                   std::vector<ServerNode>* servers) override;
+    class RemoteFileNamingService : public PeriodicNamingService {
+    private:
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers) override;
 
-    void Describe(std::ostream& os, const DescribeOptions&) const override;
+        void Describe(std::ostream &os, const DescribeOptions &) const override;
 
-    NamingService* New() const override;
-    
-    void Destroy() override;
-    
-private:
-    std::unique_ptr<Channel> _channel;
-    std::string _server_addr;
-    std::string _path;
-};
+        NamingService *New() const override;
 
-}  // namespace policy
-} // namespace melon
+        void Destroy() override;
+
+    private:
+        std::unique_ptr<Channel> _channel;
+        std::string _server_addr;
+        std::string _path;
+    };
+
+} // namespace melon::naming
 
 
-#endif  //BRPC_POLICY_HTTP_FILE_NAMING_SERVICE
+#endif  // MELON_NAMING_HTTP_FILE_NAMING_SERVICE_H_

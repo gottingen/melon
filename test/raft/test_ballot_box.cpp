@@ -17,16 +17,16 @@ protected:
 };
 
 void benchmark_vector_set(int num_peers) {
-    std::set<braft::PeerId> peer_set;
-    std::vector<braft::PeerId> peer_vector;
+    std::set<melon::raft::PeerId> peer_set;
+    std::vector<melon::raft::PeerId> peer_vector;
     for (int i = 0; i < num_peers; ++i) {
         std::string peer_desc;
         butil::string_printf(&peer_desc, "192.168.1.%d:9876", i);
-        braft::PeerId peer(peer_desc);
+        melon::raft::PeerId peer(peer_desc);
         peer_set.insert(peer);
         peer_vector.push_back(peer);
     }
-    std::vector<braft::PeerId> find_list(peer_vector);
+    std::vector<melon::raft::PeerId> find_list(peer_vector);
     std::random_shuffle(find_list.begin(), find_list.end());
     const size_t N = 100000;
     size_t counter = 0;
@@ -34,7 +34,7 @@ void benchmark_vector_set(int num_peers) {
     timer.start();
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < find_list.size(); ++j) {
-            std::vector<braft::PeerId>::iterator it;
+            std::vector<melon::raft::PeerId>::iterator it;
             for (it = peer_vector.begin(); 
                     it < peer_vector.end() && *it != find_list[j]; ++it) {}
             counter += (it != peer_vector.end());
@@ -77,7 +77,7 @@ TEST_F(BallotBoxTest, benchmark_vector_set) {
     }
 }
 
-class DummyCaller : public braft::FSMCaller {
+class DummyCaller : public melon::raft::FSMCaller {
 public:
     DummyCaller() : _committed_index(0) {}
     virtual int on_committed(int64_t committed_index) { 
@@ -91,20 +91,20 @@ private:
 
 TEST_F(BallotBoxTest, odd_cluster) {
     DummyCaller caller;
-    braft::ClosureQueue cq(false);
-    braft::BallotBoxOptions opt;
+    melon::raft::ClosureQueue cq(false);
+    melon::raft::BallotBoxOptions opt;
     opt.waiter = &caller;
     opt.closure_queue = &cq;
-    braft::BallotBox cm;
+    melon::raft::BallotBox cm;
     ASSERT_EQ(0, cm.init(opt));
     ASSERT_EQ(0, cm.reset_pending_index(1));
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 1; i <= 3; ++i) {
         std::string peer_addr;
         butil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
-        peers.push_back(braft::PeerId(peer_addr));
+        peers.push_back(melon::raft::PeerId(peer_addr));
     }
-    braft::Configuration conf(peers);
+    melon::raft::Configuration conf(peers);
     const int num_tasks = 10000;
     for (int i = 0; i < num_tasks; ++i) {
         ASSERT_EQ(0, cm.append_pending_task(conf, NULL, NULL));
@@ -124,20 +124,20 @@ TEST_F(BallotBoxTest, odd_cluster) {
 
 TEST_F(BallotBoxTest, even_cluster) {
     DummyCaller caller;
-    braft::ClosureQueue cq(false);
-    braft::BallotBoxOptions opt;
+    melon::raft::ClosureQueue cq(false);
+    melon::raft::BallotBoxOptions opt;
     opt.waiter = &caller;
     opt.closure_queue = &cq;
-    braft::BallotBox cm;
+    melon::raft::BallotBox cm;
     ASSERT_EQ(0, cm.init(opt));
     ASSERT_EQ(0, cm.reset_pending_index(1));
-    std::vector<braft::PeerId> peers;
+    std::vector<melon::raft::PeerId> peers;
     for (int i = 1; i <= 4; ++i) {
         std::string peer_addr;
         butil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
-        peers.push_back(braft::PeerId(peer_addr));
+        peers.push_back(melon::raft::PeerId(peer_addr));
     }
-    braft::Configuration conf(peers);
+    melon::raft::Configuration conf(peers);
     const int num_tasks = 10000;
     for (int i = 0; i < num_tasks; ++i) {
         ASSERT_EQ(0, cm.append_pending_task(conf, NULL, NULL));

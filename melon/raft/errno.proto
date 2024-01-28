@@ -1,5 +1,5 @@
 syntax="proto2";
-package braft;
+package melon.raft;
 
 enum RaftError {
     // Start from 5000, to avoid HTTP error and RPC error (0 ~100, 1000 ~

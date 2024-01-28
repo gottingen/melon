@@ -15,34 +15,34 @@
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 //          Xiong,Kai(xiongkai@baidu.com)
 
-#ifndef  BRAFT_FSYNC_H
-#define  BRAFT_FSYNC_H
+#ifndef  MELON_RAFT_FSYNC_H_
+#define  MELON_RAFT_FSYNC_H_
 
 #include <unistd.h>
 #include <fcntl.h>
 #include <gflags/gflags.h>
 #include "melon/raft/storage.h"
 
-namespace braft {
+namespace melon::raft {
 
-DECLARE_bool(raft_use_fsync_rather_than_fdatasync);
+    DECLARE_bool(raft_use_fsync_rather_than_fdatasync);
 
-inline int raft_fsync(int fd) {
-    if (FLAGS_raft_use_fsync_rather_than_fdatasync) {
-        return fsync(fd);
-    } else {
+    inline int raft_fsync(int fd) {
+        if (FLAGS_raft_use_fsync_rather_than_fdatasync) {
+            return fsync(fd);
+        } else {
 #ifdef __APPLE__
-        return fcntl(fd, F_FULLFSYNC);
+            return fcntl(fd, F_FULLFSYNC);
 #else
-        return fdatasync(fd);
+            return fdatasync(fd);
 #endif
+        }
     }
-}
 
-inline bool raft_sync_meta() {
-    return FLAGS_raft_sync || FLAGS_raft_sync_meta;
-}
+    inline bool raft_sync_meta() {
+        return FLAGS_raft_sync || FLAGS_raft_sync_meta;
+    }
 
-}  //  namespace braft
+}  //  namespace melon::raft
 
-#endif  //BRAFT_FSYNC_H
+#endif  // MELON_RAFT_FSYNC_H_

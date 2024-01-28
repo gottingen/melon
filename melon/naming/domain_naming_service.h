@@ -16,39 +16,38 @@
 // under the License.
 
 
-#ifndef  BRPC_POLICY_DOMAIN_NAMING_SERVICE_H
-#define  BRPC_POLICY_DOMAIN_NAMING_SERVICE_H
+#ifndef  MELON_NAMING_DOMAIN_NAMING_SERVICE_H_
+#define  MELON_NAMING_DOMAIN_NAMING_SERVICE_H_
 
 #include "melon/rpc/periodic_naming_service.h"
 #include "melon/butil/unique_ptr.h"
 
 
-namespace melon {
-namespace policy {
+namespace melon::naming {
 
-class DomainNamingService : public PeriodicNamingService {
-public:
-    DomainNamingService(int default_port);
-    DomainNamingService() : DomainNamingService(80) {}
+    class DomainNamingService : public PeriodicNamingService {
+    public:
+        DomainNamingService(int default_port);
 
-private:
-    int GetServers(const char *service_name,
-                   std::vector<ServerNode>* servers) override;
+        DomainNamingService() : DomainNamingService(80) {}
 
-    void Describe(std::ostream& os, const DescribeOptions&) const override;
+    private:
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers) override;
 
-    NamingService* New() const override;
-    
-    void Destroy() override;
+        void Describe(std::ostream &os, const DescribeOptions &) const override;
 
-private:
-    std::unique_ptr<char[]> _aux_buf;
-    size_t _aux_buf_len;
-    int _default_port;
-};
+        NamingService *New() const override;
 
-}  // namespace policy
-} // namespace melon
+        void Destroy() override;
+
+    private:
+        std::unique_ptr<char[]> _aux_buf;
+        size_t _aux_buf_len;
+        int _default_port;
+    };
+
+} // namespace melon::naming
 
 
-#endif  //BRPC_POLICY_DOMAIN_NAMING_SERVICE_H
+#endif  // MELON_NAMING_DOMAIN_NAMING_SERVICE_H_

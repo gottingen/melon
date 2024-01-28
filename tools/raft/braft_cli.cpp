@@ -19,7 +19,7 @@
 #include <melon/butil/string_printf.h>
 #include <melon/raft/cli.h>          // raft::cli::*
 
-namespace braft {
+namespace melon::raft {
 namespace cli {
 
 DEFINE_int32(timeout_ms, -1, "Timeout (in milliseconds) of the operation");
@@ -235,5 +235,5 @@ int main(int argc , char* argv[]) {
         std::cerr << help_str;
         return -1;
     }
-    return braft::cli::run_command(argv[1]);
+    return melon::raft::cli::run_command(argv[1]);
 }

@@ -14,66 +14,70 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#ifndef  BRAFT_CONFIGURATION_MANAGER_H
-#define  BRAFT_CONFIGURATION_MANAGER_H
+#ifndef  MELON_RAFT_CONFIGURATION_MANAGER_H_
+#define  MELON_RAFT_CONFIGURATION_MANAGER_H_
 
 #include "melon/raft/configuration.h"         // Configuration
 #include "melon/raft/log_entry.h"             // LogId
 
-namespace braft {
+namespace melon::raft {
 
-struct ConfigurationEntry {
-    LogId id;
-    Configuration conf;
-    Configuration old_conf;
+    struct ConfigurationEntry {
+        LogId id;
+        Configuration conf;
+        Configuration old_conf;
 
-    ConfigurationEntry() {}
-    ConfigurationEntry(const LogEntry& entry) {
-        id = entry.id;
-        conf = *(entry.peers);
-        if (entry.old_peers) {
-            old_conf = *(entry.old_peers);
+        ConfigurationEntry() {}
+
+        ConfigurationEntry(const LogEntry &entry) {
+            id = entry.id;
+            conf = *(entry.peers);
+            if (entry.old_peers) {
+                old_conf = *(entry.old_peers);
+            }
         }
-    }
 
-    bool stable() const { return old_conf.empty(); }
-    bool empty() const { return conf.empty(); }
-    void list_peers(std::set<PeerId>* peers) {
-        peers->clear();
-        conf.append_peers(peers);
-        old_conf.append_peers(peers);
-    }
-    bool contains(const PeerId& peer) const
-    { return conf.contains(peer) || old_conf.contains(peer); }
-};
+        bool stable() const { return old_conf.empty(); }
+
+        bool empty() const { return conf.empty(); }
+
+        void list_peers(std::set<PeerId> *peers) {
+            peers->clear();
+            conf.append_peers(peers);
+            old_conf.append_peers(peers);
+        }
+
+        bool contains(const PeerId &peer) const { return conf.contains(peer) || old_conf.contains(peer); }
+    };
 
 // Manager the history of configuration changing
-class ConfigurationManager {
-public:
-    ConfigurationManager() {}
-    ~ConfigurationManager() {}
+    class ConfigurationManager {
+    public:
+        ConfigurationManager() {}
 
-    // add new configuration at index
-    int add(const ConfigurationEntry& entry);
+        ~ConfigurationManager() {}
 
-    // [1, first_index_kept) are being discarded
-    void truncate_prefix(int64_t first_index_kept);
+        // add new configuration at index
+        int add(const ConfigurationEntry &entry);
 
-    // (last_index_kept, infinity) are being discarded
-    void truncate_suffix(int64_t last_index_kept);
+        // [1, first_index_kept) are being discarded
+        void truncate_prefix(int64_t first_index_kept);
 
-    void set_snapshot(const ConfigurationEntry& snapshot);
+        // (last_index_kept, infinity) are being discarded
+        void truncate_suffix(int64_t last_index_kept);
 
-    void get(int64_t last_included_index, ConfigurationEntry* entry);
+        void set_snapshot(const ConfigurationEntry &snapshot);
 
-    const ConfigurationEntry& last_configuration() const;
+        void get(int64_t last_included_index, ConfigurationEntry *entry);
 
-private:
+        const ConfigurationEntry &last_configuration() const;
 
-    std::deque<ConfigurationEntry> _configurations;
-    ConfigurationEntry _snapshot;
-};
+    private:
 
-}  //  namespace braft
+        std::deque<ConfigurationEntry> _configurations;
+        ConfigurationEntry _snapshot;
+    };
 
-#endif  //BRAFT_CONFIGURATION_MANAGER_H
+}  //  namespace melon::raft
+
+#endif  // MELON_RAFT_CONFIGURATION_MANAGER_H_

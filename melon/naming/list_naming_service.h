@@ -16,48 +16,47 @@
 // under the License.
 
 
-#ifndef  BRPC_POLICY_LIST_NAMING_SERVICE
-#define  BRPC_POLICY_LIST_NAMING_SERVICE
+#ifndef  MELON_NAMING_LIST_NAMING_SERVICE_H_
+#define  MELON_NAMING_LIST_NAMING_SERVICE_H_
 
 #include "melon/naming/naming_service.h"
 #include "melon/rpc/periodic_naming_service.h"
 
 
-namespace melon {
-namespace policy {
+namespace melon::naming {
 
-class ListNamingService : public NamingService {
-private:
-    int RunNamingService(const char* service_name,
-                         NamingServiceActions* actions) override;
+    class ListNamingService : public NamingService {
+    private:
+        int RunNamingService(const char *service_name,
+                             NamingServiceActions *actions) override;
 
-    // We don't need a dedicated bthread to run this static NS.
-    bool RunNamingServiceReturnsQuickly() override { return true; }
-    
-    int GetServers(const char *service_name,
-                   std::vector<ServerNode>* servers);
+        // We don't need a dedicated bthread to run this static NS.
+        bool RunNamingServiceReturnsQuickly() override { return true; }
 
-    void Describe(std::ostream& os, const DescribeOptions& options) const override;
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers);
 
-    NamingService* New() const override;
-    
-    void Destroy() override;
-};
+        void Describe(std::ostream &os, const DescribeOptions &options) const override;
 
-class DomainListNamingService : public PeriodicNamingService {
-private:
-    int GetServers(const char* service_name,
-                   std::vector<ServerNode>* servers) override;
-    void Describe(std::ostream& os,
-                  const DescribeOptions& options) const override;
+        NamingService *New() const override;
 
-    NamingService* New() const override;
+        void Destroy() override;
+    };
 
-    void Destroy() override;
-};
+    class DomainListNamingService : public PeriodicNamingService {
+    private:
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers) override;
 
-}  // namespace policy
-} // namespace melon
+        void Describe(std::ostream &os,
+                      const DescribeOptions &options) const override;
+
+        NamingService *New() const override;
+
+        void Destroy() override;
+    };
+
+} // namespace melon::naming
 
 
-#endif  //BRPC_POLICY_LIST_NAMING_SERVICE
+#endif  // MELON_NAMING_LIST_NAMING_SERVICE_H_

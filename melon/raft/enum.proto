@@ -1,5 +1,5 @@
 syntax="proto2";
-package braft;
+package melon.raft;
 
 enum EntryType {
     ENTRY_TYPE_UNKNOWN = 0;

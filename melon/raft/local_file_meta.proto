@@ -1,5 +1,5 @@
 syntax="proto2";
-package braft;
+package melon.raft;
 
 enum FileSource {
     FILE_SOURCE_LOCAL = 0;

@@ -14,46 +14,49 @@
 
 // Authors: Wang,Yao(wangyao02@baidu.com)
 
-#ifndef BRAFT_RAFT_SERVICE_H
-#define BRAFT_RAFT_SERVICE_H
+#ifndef MELON_RAFT_RAFT_SERVICE_H_
+#define MELON_RAFT_RAFT_SERVICE_H_
 
 #include "melon/raft/raft.pb.h"
 
-namespace braft {
+namespace melon::raft {
 
-class RaftServiceImpl : public RaftService {
-public:
-    explicit RaftServiceImpl(butil::EndPoint addr)
-        : _addr(addr) {}
-    ~RaftServiceImpl();
+    class RaftServiceImpl : public RaftService {
+    public:
+        explicit RaftServiceImpl(butil::EndPoint addr)
+                : _addr(addr) {}
 
-    void pre_vote(google::protobuf::RpcController* controller,
-                              const RequestVoteRequest* request,
-                              RequestVoteResponse* response,
-                              google::protobuf::Closure* done);
+        ~RaftServiceImpl();
 
-    void request_vote(google::protobuf::RpcController* controller,
-                              const RequestVoteRequest* request,
-                              RequestVoteResponse* response,
-                              google::protobuf::Closure* done);
+        void pre_vote(google::protobuf::RpcController *controller,
+                      const RequestVoteRequest *request,
+                      RequestVoteResponse *response,
+                      google::protobuf::Closure *done);
 
-    void append_entries(google::protobuf::RpcController* controller,
-                                const AppendEntriesRequest* request,
-                                AppendEntriesResponse* response,
-                                google::protobuf::Closure* done);
+        void request_vote(google::protobuf::RpcController *controller,
+                          const RequestVoteRequest *request,
+                          RequestVoteResponse *response,
+                          google::protobuf::Closure *done);
 
-    void install_snapshot(google::protobuf::RpcController* controller,
-                                  const InstallSnapshotRequest* request,
-                                  InstallSnapshotResponse* response,
-                                  google::protobuf::Closure* done);
-    void timeout_now(::google::protobuf::RpcController* controller,
-                     const ::braft::TimeoutNowRequest* request,
-                     ::braft::TimeoutNowResponse* response,
-                     ::google::protobuf::Closure* done);
-private:
-    butil::EndPoint _addr;
-};
+        void append_entries(google::protobuf::RpcController *controller,
+                            const AppendEntriesRequest *request,
+                            AppendEntriesResponse *response,
+                            google::protobuf::Closure *done);
+
+        void install_snapshot(google::protobuf::RpcController *controller,
+                              const InstallSnapshotRequest *request,
+                              InstallSnapshotResponse *response,
+                              google::protobuf::Closure *done);
+
+        void timeout_now(::google::protobuf::RpcController *controller,
+                         const ::melon::raft::TimeoutNowRequest *request,
+                         ::melon::raft::TimeoutNowResponse *response,
+                         ::google::protobuf::Closure *done);
+
+    private:
+        butil::EndPoint _addr;
+    };
 
 }
 
-#endif //~BRAFT_RAFT_SERVICE_H
+#endif // MELON_RAFT_RAFT_SERVICE_H_

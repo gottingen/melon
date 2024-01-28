@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRPC_POLICY_NACOS_NAMING_SERVICE_H
-#define BRPC_POLICY_NACOS_NAMING_SERVICE_H
+#ifndef MELON_NAMING_NACOS_NAMING_SERVICE_H_
+#define MELON_NAMING_NACOS_NAMING_SERVICE_H_
 
 #include <time.h>
 
@@ -27,41 +27,41 @@
 #include "melon/rpc/periodic_naming_service.h"
 #include "melon/rpc/server_node.h"
 
-namespace melon {
-namespace policy {
+namespace melon::naming {
 
-// Acquire server list from nacos
-class NacosNamingService : public PeriodicNamingService {
-public:
-    NacosNamingService();
+    // Acquire server list from nacos
+    class NacosNamingService : public PeriodicNamingService {
+    public:
+        NacosNamingService();
 
-    int GetServers(const char* service_name,
-                   std::vector<ServerNode>* servers) override;
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers) override;
 
-    int GetNamingServiceAccessIntervalMs() const override;
+        int GetNamingServiceAccessIntervalMs() const override;
 
-    void Describe(std::ostream& os, const DescribeOptions&) const override;
+        void Describe(std::ostream &os, const DescribeOptions &) const override;
 
-    NamingService* New() const override;
+        NamingService *New() const override;
 
-    void Destroy() override;
+        void Destroy() override;
 
-private:
-    int Connect();
-    int RefreshAccessToken(const char* service_name);
-    int GetServerNodes(const char* service_name, bool token_changed,
-                       std::vector<ServerNode>* nodes);
+    private:
+        int Connect();
 
-private:
-    melon::Channel _channel;
-    std::string _nacos_url;
-    std::string _access_token;
-    bool _nacos_connected;
-    long _cache_ms;
-    time_t _token_expire_time;
-};
+        int RefreshAccessToken(const char *service_name);
 
-}  // namespace policy
-}  // namespace melon
+        int GetServerNodes(const char *service_name, bool token_changed,
+                           std::vector<ServerNode> *nodes);
 
-#endif  // BRPC_POLICY_NACOS_NAMING_SERVICE_H
+    private:
+        melon::Channel _channel;
+        std::string _nacos_url;
+        std::string _access_token;
+        bool _nacos_connected;
+        long _cache_ms;
+        time_t _token_expire_time;
+    };
+
+}  // namespace melon::naming
+
+#endif  // MELON_NAMING_NACOS_NAMING_SERVICE_H_

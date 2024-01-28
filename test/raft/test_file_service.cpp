@@ -14,7 +14,7 @@
 #include "melon/raft/remote_file_copier.h"
 #include "melon/raft/file_system_adaptor.h"
 
-namespace braft {
+namespace melon::raft {
 DECLARE_bool(raft_file_check_hole);
 }
 
@@ -22,7 +22,7 @@ int g_port = 0;
 class FileServiceTest : public testing::Test {
 protected:
     void SetUp() {
-        ASSERT_EQ(0, _server.AddService(braft::file_service(), 
+        ASSERT_EQ(0, _server.AddService(melon::raft::file_service(),
                                         melon::SERVER_DOESNT_OWN_SERVICE));
 	for (int i = 10000; i < 60000; i++) {
             if (0 == _server.Start(i, NULL)) {
@@ -40,13 +40,13 @@ protected:
 };
 
 TEST_F(FileServiceTest, sanity) {
-    braft::FileSystemAdaptor* fs = braft::default_file_system();
-    scoped_refptr<braft::LocalDirReader> reader(new braft::LocalDirReader(fs, "a"));
+    melon::raft::FileSystemAdaptor* fs = melon::raft::default_file_system();
+    scoped_refptr<melon::raft::LocalDirReader> reader(new melon::raft::LocalDirReader(fs, "a"));
     int64_t reader_id = 0;
-    ASSERT_EQ(0, braft::file_service_add(reader.get(), &reader_id));
+    ASSERT_EQ(0, melon::raft::file_service_add(reader.get(), &reader_id));
     std::string uri;
     butil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
-    braft::RemoteFileCopier copier;
+    melon::raft::RemoteFileCopier copier;
     {
 	std::string bad_uri;
     	butil::string_printf(&bad_uri, "local://127.0.0.1:%d/123456", g_port);
@@ -83,7 +83,7 @@ TEST_F(FileServiceTest, sanity) {
     ASSERT_NE(0, copier.copy_to_file("c", "./b/cc", NULL));
     ASSERT_EQ(0, system("chmod -R 755 ./a"));
 
-    ASSERT_EQ(0, braft::file_service_remove(reader_id));
+    ASSERT_EQ(0, melon::raft::file_service_remove(reader_id));
 
     // Copy after reader is remove
     ASSERT_NE(0, copier.copy_to_file("c", "./b/d", NULL));
@@ -104,23 +104,23 @@ TEST_F(FileServiceTest, hole_file) {
         ASSERT_EQ(static_cast<size_t>(nwritten), strlen(buf));
     }
     ::close(fd);
-    braft::FileSystemAdaptor* fs = braft::default_file_system();
-    scoped_refptr<braft::LocalDirReader> reader(new braft::LocalDirReader(fs, "a"));
+    melon::raft::FileSystemAdaptor* fs = melon::raft::default_file_system();
+    scoped_refptr<melon::raft::LocalDirReader> reader(new melon::raft::LocalDirReader(fs, "a"));
     int64_t reader_id = 0;
-    ASSERT_EQ(0, braft::file_service_add(reader.get(), &reader_id));
+    ASSERT_EQ(0, melon::raft::file_service_add(reader.get(), &reader_id));
 
-    braft::RemoteFileCopier copier;
+    melon::raft::RemoteFileCopier copier;
     std::string uri;
     butil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
     // normal init
-    braft::FLAGS_raft_file_check_hole = false;
+    melon::raft::FLAGS_raft_file_check_hole = false;
     ASSERT_EQ(0, copier.init(uri, fs, NULL));
     ASSERT_TRUE(butil::CreateDirectory(butil::FilePath("./b")));
     ASSERT_EQ(0, copier.copy_to_file("hole.data", "./b/hole.data", NULL));
     ret = system("diff ./a/hole.data ./b/hole.data");
     ASSERT_EQ(0, ret);
 
-    braft::FLAGS_raft_file_check_hole = true;
+    melon::raft::FLAGS_raft_file_check_hole = true;
     ASSERT_TRUE(butil::CreateDirectory(butil::FilePath("./c")));
     ASSERT_EQ(0, copier.copy_to_file("hole.data", "./c/hole.data", NULL));
     ret = system("diff ./a/hole.data ./c/hole.data");

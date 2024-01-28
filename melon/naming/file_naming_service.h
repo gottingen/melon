@@ -16,33 +16,32 @@
 // under the License.
 
 
-#ifndef  BRPC_POLICY_FILE_NAMING_SERVICE
-#define  BRPC_POLICY_FILE_NAMING_SERVICE
+#ifndef  MELON_NAMING_FILE_NAMING_SERVICE_H_
+#define  MELON_NAMING_FILE_NAMING_SERVICE_H_
 
 #include "melon/naming/naming_service.h"
 
 
-namespace melon {
-namespace policy {
+namespace melon::naming {
 
-class FileNamingService : public NamingService {
-friend class ConsulNamingService;
-private:
-    int RunNamingService(const char* service_name,
-                         NamingServiceActions* actions) override;
+    class FileNamingService : public NamingService {
+        friend class ConsulNamingService;
 
-    int GetServers(const char *service_name,
-                   std::vector<ServerNode>* servers);
+    private:
+        int RunNamingService(const char *service_name,
+                             NamingServiceActions *actions) override;
 
-    void Describe(std::ostream& os, const DescribeOptions&) const override;
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers);
 
-    NamingService* New() const override;
+        void Describe(std::ostream &os, const DescribeOptions &) const override;
 
-    void Destroy() override;
-};
+        NamingService *New() const override;
 
-}  // namespace policy
-} // namespace melon
+        void Destroy() override;
+    };
+
+} // namespace melon::naming
 
 
-#endif  //BRPC_POLICY_FILE_NAMING_SERVICE
+#endif  // MELON_NAMING_FILE_NAMING_SERVICE_H_

@@ -22,7 +22,7 @@ TEST_F(ChecksumTest, benchmark) {
     const size_t N = 10000;
     timer.start();
     for (size_t i = 0; i < N; ++i) {
-        braft::murmurhash32(data, sizeof(data));
+        melon::raft::murmurhash32(data, sizeof(data));
     }
     timer.stop();
     const long mur_elp = timer.u_elapsed();

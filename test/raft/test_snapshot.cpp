@@ -30,9 +30,9 @@ protected:
     void TearDown() {}
 };
 
-class ReadFileAdaptor : public braft::BufferedSequentialReadFileAdaptor {
+class ReadFileAdaptor : public melon::raft::BufferedSequentialReadFileAdaptor {
 public:
-    ReadFileAdaptor(braft::FileAdaptor* file)
+    ReadFileAdaptor(melon::raft::FileAdaptor* file)
         : _file(file), _offset(0)
     {}
     ~ReadFileAdaptor() {
@@ -53,19 +53,19 @@ public:
     }
 
 private:
-    braft::FileAdaptor *_file;
+    melon::raft::FileAdaptor *_file;
     off_t _offset;
 };
 
-class SequentialReadFileSystemAdaptor : public braft::PosixFileSystemAdaptor {
+class SequentialReadFileSystemAdaptor : public melon::raft::PosixFileSystemAdaptor {
 public:
     SequentialReadFileSystemAdaptor() {}
 
-    virtual braft::FileAdaptor* open(const std::string& path, int oflag, 
+    virtual melon::raft::FileAdaptor* open(const std::string& path, int oflag,
                                     const ::google::protobuf::Message* file_meta,
                                     butil::File::Error* e) {
-        braft::FileAdaptor* file =
-            braft::PosixFileSystemAdaptor::open(path, oflag, file_meta, e);
+        melon::raft::FileAdaptor* file =
+            melon::raft::PosixFileSystemAdaptor::open(path, oflag, file_meta, e);
         if (file && (oflag & O_RDONLY)) {
             return new ReadFileAdaptor(file);
         } else {
@@ -75,8 +75,8 @@ public:
 };
 
 #define FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs)                                   \
-    braft::FileSystemAdaptor* file_system_adaptors[] = {                          \
-        NULL, new braft::PosixFileSystemAdaptor, new MemoryFileSystemAdaptor,     \
+    melon::raft::FileSystemAdaptor* file_system_adaptors[] = {                          \
+        NULL, new melon::raft::PosixFileSystemAdaptor, new MemoryFileSystemAdaptor,     \
         new SequentialReadFileSystemAdaptor,                                     \
     };                                                                           \
     for (size_t fs_index = 0; fs_index != sizeof(file_system_adaptors)           \
@@ -86,7 +86,7 @@ public:
 #define FOR_EACH_FILE_SYSTEM_ADAPTOR_END }
 
 TEST_F(SnapshotTest, writer_and_reader) {
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
     
     if (fs == NULL) {
@@ -94,7 +94,7 @@ TEST_F(SnapshotTest, writer_and_reader) {
     } else {
         fs->delete_file("data", true);
     }
-    braft::SnapshotStorage* storage = new braft::LocalSnapshotStorage("./data");
+    melon::raft::SnapshotStorage* storage = new melon::raft::LocalSnapshotStorage("./data");
     if (fs) {
         ASSERT_EQ(storage->set_file_system_adaptor(fs), 0);
     }
@@ -102,20 +102,20 @@ TEST_F(SnapshotTest, writer_and_reader) {
     ASSERT_EQ(0, storage->init());
 
     // empty snapshot
-    braft::SnapshotReader* reader = storage->open();
+    melon::raft::SnapshotReader* reader = storage->open();
     ASSERT_TRUE(reader == NULL);
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
 
     // normal create writer
-    braft::SnapshotWriter* writer = storage->create();
+    melon::raft::SnapshotWriter* writer = storage->create();
     ASSERT_TRUE(writer != NULL);
     ASSERT_EQ(0, writer->save_meta(meta));
     ASSERT_EQ(0, storage->close(writer));
@@ -132,7 +132,7 @@ TEST_F(SnapshotTest, writer_and_reader) {
     // normal open reader
     reader = storage->open();
     ASSERT_TRUE(reader != NULL);
-    braft::SnapshotMeta new_meta;
+    melon::raft::SnapshotMeta new_meta;
     ASSERT_EQ(0, reader->load_meta(&new_meta));
     ASSERT_EQ(meta.last_included_index(), new_meta.last_included_index());
     ASSERT_EQ(meta.last_included_term(), new_meta.last_included_term());
@@ -142,7 +142,7 @@ TEST_F(SnapshotTest, writer_and_reader) {
     delete storage;
 
     // reinit
-    storage = new braft::LocalSnapshotStorage("./data");
+    storage = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage);
     ASSERT_EQ(0, storage->init());
 
@@ -158,7 +158,7 @@ TEST_F(SnapshotTest, writer_and_reader) {
     // normal open reader after reinit
     reader = storage->open();
     ASSERT_TRUE(reader != NULL);
-    braft::SnapshotMeta new_meta2;
+    melon::raft::SnapshotMeta new_meta2;
     ASSERT_EQ(0, reader->load_meta(&new_meta2));
     ASSERT_EQ(meta.last_included_index(), new_meta2.last_included_index());
     ASSERT_EQ(meta.last_included_term(), new_meta2.last_included_term());
@@ -182,7 +182,7 @@ TEST_F(SnapshotTest, writer_and_reader) {
 
     reader = storage->open();
     ASSERT_TRUE(reader != NULL);
-    braft::SnapshotMeta new_meta3;
+    melon::raft::SnapshotMeta new_meta3;
     ASSERT_EQ(0, reader->load_meta(&new_meta3));
     ASSERT_EQ(meta.last_included_index(), new_meta3.last_included_index());
     ASSERT_EQ(meta.last_included_term(), new_meta3.last_included_term());
@@ -205,7 +205,7 @@ TEST_F(SnapshotTest, writer_and_reader) {
 }
 
 TEST_F(SnapshotTest, copy) {
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -215,15 +215,15 @@ TEST_F(SnapshotTest, copy) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -231,7 +231,7 @@ TEST_F(SnapshotTest, copy) {
     }
 
     // storage
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
@@ -239,12 +239,12 @@ TEST_F(SnapshotTest, copy) {
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // normal create writer
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
 
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -254,12 +254,12 @@ TEST_F(SnapshotTest, copy) {
     } else {
         fs->delete_file("data2", true);
     }
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage2->init());
-    braft::SnapshotReader* reader2 = storage2->copy_from(uri);
+    melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
     ASSERT_TRUE(reader2 != NULL);
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(reader2));
@@ -270,7 +270,7 @@ TEST_F(SnapshotTest, copy) {
 }
 
 TEST_F(SnapshotTest, file_escapes_directory) {
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -280,15 +280,15 @@ TEST_F(SnapshotTest, file_escapes_directory) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -296,8 +296,8 @@ TEST_F(SnapshotTest, file_escapes_directory) {
     }
 
     // storage1
-    braft::LocalSnapshotStorage* storage1
-            = new braft::LocalSnapshotStorage("./data/snapshot1/data");
+    melon::raft::LocalSnapshotStorage* storage1
+            = new melon::raft::LocalSnapshotStorage("./data/snapshot1/data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
@@ -307,31 +307,31 @@ TEST_F(SnapshotTest, file_escapes_directory) {
         ASSERT_EQ(0, system("mkdir -p ./data/snapshot1/dir1/ && touch ./data/snapshot1/dir1/file"));
     } else {
         ASSERT_TRUE(fs->create_directory("./data/snapshot1/dir1/", NULL, true));
-        braft::FileAdaptor* file = fs->open("./data/snapshot1/dir1/file", 
+        melon::raft::FileAdaptor* file = fs->open("./data/snapshot1/dir1/file",
                 O_CREAT | O_TRUNC | O_RDWR, NULL, NULL);
         CHECK(file != NULL);
         delete file;
     }
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // normal create writer
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     ASSERT_EQ(0, writer1->add_file("../../dir1/file"));
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
 
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
     // storage2
-    braft::LocalSnapshotStorage* storage2
-            = new braft::LocalSnapshotStorage("./data/snapshot2/data");
+    melon::raft::LocalSnapshotStorage* storage2
+            = new melon::raft::LocalSnapshotStorage("./data/snapshot2/data");
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage2->init());
-    braft::SnapshotReader* reader2 = storage2->copy_from(uri);
+    melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
     if (!fs) {
         ASSERT_TRUE(butil::PathExists(butil::FilePath("./data/snapshot2/dir1/file")));
     } else {
@@ -347,15 +347,15 @@ TEST_F(SnapshotTest, file_escapes_directory) {
 }
 
 struct Arg {
-    braft::SnapshotStorage* storage;
+    melon::raft::SnapshotStorage* storage;
     volatile bool stopped;
 };
 
 void *read_thread(void* arg) {
     Arg *a = (Arg*)arg;
     while (!a->stopped) {
-        braft::SnapshotMeta meta;
-        braft::SnapshotReader* reader = a->storage->open();
+        melon::raft::SnapshotMeta meta;
+        melon::raft::SnapshotReader* reader = a->storage->open();
         if (reader == NULL) {
             EXPECT_TRUE(false);
             break;
@@ -374,18 +374,18 @@ void *read_thread(void* arg) {
 
 void *write_thread(void* arg) {
     Arg *a = (Arg*)arg;
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
 
     while (!a->stopped) {
         // normal create writer
-        braft::SnapshotWriter* writer = a->storage->create();
+        melon::raft::SnapshotWriter* writer = a->storage->create();
         if (writer == NULL) {
             EXPECT_TRUE(false);
             break;
@@ -406,10 +406,10 @@ TEST_F(SnapshotTest, thread_safety) {
     // writer thread will make much log when sleep
     logging::FLAGS_minloglevel = 1;
 
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
-    braft::SnapshotStorage* storage = new braft::LocalSnapshotStorage("./data");
+    melon::raft::SnapshotStorage* storage = new melon::raft::LocalSnapshotStorage("./data");
     if (fs) {
         ASSERT_EQ(storage->set_file_system_adaptor(fs), 0);
     }
@@ -433,11 +433,11 @@ TEST_F(SnapshotTest, thread_safety) {
     logging::FLAGS_minloglevel = 0;
 }
 
-void write_file(braft::FileSystemAdaptor* fs, const std::string& path, const std::string& data) {
+void write_file(melon::raft::FileSystemAdaptor* fs, const std::string& path, const std::string& data) {
     if (!fs) {
-        fs = braft::default_file_system();
+        fs = melon::raft::default_file_system();
     }
-    braft::FileAdaptor* file = fs->open(path, O_CREAT | O_TRUNC | O_RDWR, NULL, NULL);
+    melon::raft::FileAdaptor* file = fs->open(path, O_CREAT | O_TRUNC | O_RDWR, NULL, NULL);
     CHECK(file != NULL);
     butil::IOBuf io_buf;
     io_buf.append(data);
@@ -445,11 +445,11 @@ void write_file(braft::FileSystemAdaptor* fs, const std::string& path, const std
     delete file;
 }
 
-void add_file_meta(braft::FileSystemAdaptor* fs, braft::SnapshotWriter* writer, int index, 
+void add_file_meta(melon::raft::FileSystemAdaptor* fs, melon::raft::SnapshotWriter* writer, int index,
                    const std::string* checksum, const std::string& data) {
     std::stringstream path;
     path << "file" << index;
-    braft::LocalFileMeta file_meta;
+    melon::raft::LocalFileMeta file_meta;
     if (checksum) {
         file_meta.set_checksum(*checksum);
     }
@@ -457,29 +457,29 @@ void add_file_meta(braft::FileSystemAdaptor* fs, braft::SnapshotWriter* writer, 
     ASSERT_EQ(0, writer->add_file(path.str(), &file_meta));
 }
 
-void add_file_without_meta(braft::FileSystemAdaptor* fs, braft::SnapshotWriter* writer, int index, 
+void add_file_without_meta(melon::raft::FileSystemAdaptor* fs, melon::raft::SnapshotWriter* writer, int index,
                    const std::string& data) {
     std::stringstream path;
     path << "file" << index;
     write_file(fs, writer->get_path() + "/" + path.str(), path.str() + ": " + data);
 }
 
-bool check_file_exist(braft::FileSystemAdaptor* fs, const std::string& path, int index) {
+bool check_file_exist(melon::raft::FileSystemAdaptor* fs, const std::string& path, int index) {
     if (fs == NULL) {
-        fs = braft::default_file_system();
+        fs = melon::raft::default_file_system();
     }
     std::stringstream ss;
     ss << path << "/file" << index;
     return fs->path_exists(ss.str());
 }
 
-std::string read_from_file(braft::FileSystemAdaptor* fs, const std::string& path, int index) {
+std::string read_from_file(melon::raft::FileSystemAdaptor* fs, const std::string& path, int index) {
     if (fs == NULL) {
-        fs = braft::default_file_system();
+        fs = melon::raft::default_file_system();
     }
     std::stringstream ss;
     ss << path << "/file" << index;
-    braft::FileAdaptor* file = fs->open(ss.str(), O_RDONLY, NULL, NULL);
+    melon::raft::FileAdaptor* file = fs->open(ss.str(), O_RDONLY, NULL, NULL);
     ssize_t size = file->size();
     butil::IOPortal buf;
     file->read(&buf, 0, size_t(size));
@@ -488,7 +488,7 @@ std::string read_from_file(braft::FileSystemAdaptor* fs, const std::string& path
 }
 
 TEST_F(SnapshotTest, filter_before_copy) {
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -498,15 +498,15 @@ TEST_F(SnapshotTest, filter_before_copy) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -514,7 +514,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
     }
 
     // storage
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
@@ -522,7 +522,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // normal create writer
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
 
     const std::string data1("aaa");
@@ -540,7 +540,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
 
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -553,14 +553,14 @@ TEST_F(SnapshotTest, filter_before_copy) {
         fs->delete_file("snapshot_temp", true);
     }
 
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     storage2->set_filter_before_copy_remote();
     ASSERT_EQ(0, storage2->init());
 
-    braft::SnapshotWriter* writer2 = storage2->create();
+    melon::raft::SnapshotWriter* writer2 = storage2->create();
     ASSERT_TRUE(writer2 != NULL);
 
     meta.set_last_included_index(900);
@@ -614,7 +614,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
     }
 
     ASSERT_EQ(0, storage2->init());
-    braft::SnapshotReader* reader2 = storage2->copy_from(uri);
+    melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
     ASSERT_TRUE(reader2 != NULL);
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(reader2));
@@ -644,7 +644,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
 }
 
 TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -654,15 +654,15 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -670,20 +670,20 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
     }
 
     // storage1
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     // create and set snapshot throttle for storage1
-    braft::ThroughputSnapshotThrottle* throttle = new 
-        braft::ThroughputSnapshotThrottle(60, 10);
+    melon::raft::ThroughputSnapshotThrottle* throttle = new
+        melon::raft::ThroughputSnapshotThrottle(60, 10);
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage1->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // normal create writer
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add file meta for storage1
     const std::string data1("aaa");
@@ -693,7 +693,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
 
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -703,13 +703,13 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
     } else {
         fs->delete_file("data2", true);
     }
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage2->init());
     // copy
-    braft::SnapshotReader* reader2 = storage2->copy_from(uri);
+    melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
     LOG(INFO) << "Copy finish.";
     ASSERT_TRUE(reader2 != NULL);
     ASSERT_EQ(0, storage1->close(reader1));
@@ -721,7 +721,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
 }
 
 TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -731,15 +731,15 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -747,7 +747,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     }
 
     // storage1
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
@@ -755,7 +755,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // create writer1
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add nomal file for storage1
     LOG(INFO) << "add nomal file";
@@ -766,7 +766,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
     // get uri of storage1
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -776,25 +776,25 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     } else {
         fs->delete_file("data2", true);
     }
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     // create and set snapshot throttle for storage2
-    braft::ThroughputSnapshotThrottle* throttle2 = new 
-        braft::ThroughputSnapshotThrottle(3 * 1000 * 1000, 10);
+    melon::raft::ThroughputSnapshotThrottle* throttle2 = new
+        melon::raft::ThroughputSnapshotThrottle(3 * 1000 * 1000, 10);
     ASSERT_TRUE(throttle2);
     ASSERT_EQ(storage2->set_snapshot_throttle(throttle2), 0);
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     // create and set snapshot throttle for storage2
-    braft::SnapshotThrottle* throttle = 
-        new braft::ThroughputSnapshotThrottle(20, 10);
+    melon::raft::SnapshotThrottle* throttle =
+        new melon::raft::ThroughputSnapshotThrottle(20, 10);
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage2->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage2->init());
 
     // copy from storage1 to storage2
     LOG(INFO) << "Copy start.";
-    braft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
+    melon::raft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
     ASSERT_TRUE(copier != NULL);
     copier->join();
     LOG(INFO) << "Copy finish.";
@@ -808,7 +808,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
 
 TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     GFLAGS_NS::SetCommandLineOption("raft_enable_throttle_when_install_snapshot", "false");
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -818,15 +818,15 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -834,20 +834,20 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     }
 
     // storage1
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     // create and set snapshot throttle for storage1
-    braft::ThroughputSnapshotThrottle* throttle = new
-        braft::ThroughputSnapshotThrottle(30, 10);
+    melon::raft::ThroughputSnapshotThrottle* throttle = new
+        melon::raft::ThroughputSnapshotThrottle(30, 10);
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage1->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // normal create writer
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add file meta for storage1
     const std::string data1("aaa");
@@ -857,7 +857,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
 
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -867,10 +867,10 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     } else {
         fs->delete_file("data2", true);
     }
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     // create and set snapshot throttle for storage2
-    braft::ThroughputSnapshotThrottle* throttle2 = new
-        braft::ThroughputSnapshotThrottle(3 * 1000 * 1000, 10);
+    melon::raft::ThroughputSnapshotThrottle* throttle2 = new
+        melon::raft::ThroughputSnapshotThrottle(3 * 1000 * 1000, 10);
     ASSERT_TRUE(throttle2);
     ASSERT_EQ(storage2->set_snapshot_throttle(throttle2), 0);
     if (fs) {
@@ -878,7 +878,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     }
     ASSERT_EQ(0, storage2->init());
     // copy
-    braft::SnapshotReader* reader2 = storage2->copy_from(uri);
+    melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
     LOG(INFO) << "Copy finish.";
     ASSERT_TRUE(reader2 != NULL);
     ASSERT_EQ(0, storage1->close(reader1));
@@ -892,7 +892,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
 
 TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     GFLAGS_NS::SetCommandLineOption("raft_enable_throttle_when_install_snapshot", "false");
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -902,15 +902,15 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -918,7 +918,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     }
 
     // storage1
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
@@ -926,7 +926,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // create writer1
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add nomal file for storage1
     LOG(INFO) << "add nomal file";
@@ -937,7 +937,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
     // get uri of storage1
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -947,20 +947,20 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     } else {
         fs->delete_file("data2", true);
     }
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     // create and set snapshot throttle for storage2
-    braft::SnapshotThrottle* throttle =
-        new braft::ThroughputSnapshotThrottle(20, 10);
+    melon::raft::SnapshotThrottle* throttle =
+        new melon::raft::ThroughputSnapshotThrottle(20, 10);
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage2->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage2->init());
 
     // copy from storage1 to storage2
     LOG(INFO) << "Copy start.";
-    braft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
+    melon::raft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
     ASSERT_TRUE(copier != NULL);
     copier->join();
     LOG(INFO) << "Copy finish.";
@@ -975,7 +975,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
 
 TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     GFLAGS_NS::SetCommandLineOption("raft_minimal_throttle_threshold_mb", "1");
-    braft::FileSystemAdaptor* fs;
+    melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
 
     if (fs == NULL) {
@@ -985,15 +985,15 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     }
 
     melon::Server server;
-    ASSERT_EQ(0, braft::add_service(&server, "0.0.0.0:6006"));
+    ASSERT_EQ(0, melon::raft::add_service(&server, "0.0.0.0:6006"));
     ASSERT_EQ(0, server.Start(6006, NULL));
 
-    std::vector<braft::PeerId> peers;
-    peers.push_back(braft::PeerId("1.2.3.4:1000"));
-    peers.push_back(braft::PeerId("1.2.3.4:2000"));
-    peers.push_back(braft::PeerId("1.2.3.4:3000"));
+    std::vector<melon::raft::PeerId> peers;
+    peers.push_back(melon::raft::PeerId("1.2.3.4:1000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:2000"));
+    peers.push_back(melon::raft::PeerId("1.2.3.4:3000"));
 
-    braft::SnapshotMeta meta;
+    melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);
     meta.set_last_included_term(2);
     for (size_t i = 0; i < peers.size(); ++i) {
@@ -1001,7 +1001,7 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     }
 
     // storage1
-    braft::LocalSnapshotStorage* storage1 = new braft::LocalSnapshotStorage("./data");
+    melon::raft::LocalSnapshotStorage* storage1 = new melon::raft::LocalSnapshotStorage("./data");
     ASSERT_TRUE(storage1);
     if (fs) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
@@ -1009,7 +1009,7 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     ASSERT_EQ(0, storage1->init());
     storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
     // create writer1
-    braft::SnapshotWriter* writer1 = storage1->create();
+    melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add nomal file for storage1
     LOG(INFO) << "add nomal file";
@@ -1020,7 +1020,7 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     ASSERT_EQ(0, writer1->save_meta(meta));
     ASSERT_EQ(0, storage1->close(writer1));
     // get uri of storage1
-    braft::SnapshotReader* reader1 = storage1->open();
+    melon::raft::SnapshotReader* reader1 = storage1->open();
     ASSERT_TRUE(reader1 != NULL);
     std::string uri = reader1->generate_uri_for_copy();
 
@@ -1030,20 +1030,20 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     } else {
         fs->delete_file("data2", true);
     }
-    braft::SnapshotStorage* storage2 = new braft::LocalSnapshotStorage("./data2");
+    melon::raft::SnapshotStorage* storage2 = new melon::raft::LocalSnapshotStorage("./data2");
     if (fs) {
         ASSERT_EQ(storage2->set_file_system_adaptor(fs), 0);
     }
     // create and set snapshot throttle for storage2
-    braft::SnapshotThrottle* throttle =
-        new braft::ThroughputSnapshotThrottle(10, 10);
+    melon::raft::SnapshotThrottle* throttle =
+        new melon::raft::ThroughputSnapshotThrottle(10, 10);
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage2->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage2->init());
 
     // copy from storage1 to storage2
     LOG(INFO) << "Copy start.";
-    braft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
+    melon::raft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
     ASSERT_TRUE(copier != NULL);
     copier->join();
     LOG(INFO) << "Copy finish.";

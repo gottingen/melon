@@ -15,73 +15,79 @@
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 //          Ma,Jingwei(majingwei@baidu.com)
 
-#ifndef  BRAFT_REPEATED_TIMER_TASK_H
-#define  BRAFT_REPEATED_TIMER_TASK_H
+#ifndef  MELON_RAFT_REPEATED_TIMER_TASK_H_
+#define  MELON_RAFT_REPEATED_TIMER_TASK_H_
 
 #include <melon/bthread/unstable.h>
 #include "melon/raft/macros.h"
 
-namespace braft {
+namespace melon::raft {
 
-// Repeated scheduled timer task
-class RepeatedTimerTask{
-DISALLOW_COPY_AND_ASSIGN(RepeatedTimerTask);
-public:
-    RepeatedTimerTask();
-    virtual ~RepeatedTimerTask();
-    // Initialize timer task
-    int init(int timeout_ms);
+    // Repeated scheduled timer task
+    class RepeatedTimerTask {
+        DISALLOW_COPY_AND_ASSIGN(RepeatedTimerTask);
 
-    // Start the timer
-    void start();
+    public:
+        RepeatedTimerTask();
 
-    // Run timer function once now
-    void run_once_now();
+        virtual ~RepeatedTimerTask();
 
-    // Stop the timer
-    void stop();
+        // Initialize timer task
+        int init(int timeout_ms);
 
-    // Reset the timer, and schedule it in the initial timeout_ms
-    void reset();
+        // Start the timer
+        void start();
 
-    // Reset the timer and schedule it in |timeout_ms|
-    void reset(int timeout_ms);
+        // Run timer function once now
+        void run_once_now();
 
-    // Destroy the timer
-    void destroy();
+        // Stop the timer
+        void stop();
 
-    // Describe the current status of timer
-    void describe(std::ostream& os, bool use_html);
+        // Reset the timer, and schedule it in the initial timeout_ms
+        void reset();
 
-protected:
+        // Reset the timer and schedule it in |timeout_ms|
+        void reset(int timeout_ms);
 
-    // Invoked everytime when it reaches the timeout
-    virtual void run() = 0;
+        // Destroy the timer
+        void destroy();
 
-    // Invoked when the timer is finally destroyed
-    virtual void on_destroy() = 0;
+        // Describe the current status of timer
+        void describe(std::ostream &os, bool use_html);
 
-    virtual int adjust_timeout_ms(int timeout_ms) {
-        return timeout_ms;
-    }
+    protected:
 
-private:
+        // Invoked everytime when it reaches the timeout
+        virtual void run() = 0;
 
-    static void on_timedout(void* arg);
-    static void* run_on_timedout_in_new_thread(void* arg);
-    void on_timedout();
-    void schedule(std::unique_lock<raft_mutex_t>& lck);
+        // Invoked when the timer is finally destroyed
+        virtual void on_destroy() = 0;
 
-    raft_mutex_t _mutex;
-    bthread_timer_t _timer;
-    timespec _next_duetime;
-    int  _timeout_ms;
-    bool _stopped;
-    bool _running;
-    bool _destroyed;
-    bool _invoking;
-};
+        virtual int adjust_timeout_ms(int timeout_ms) {
+            return timeout_ms;
+        }
 
-}  //  namespace braft
+    private:
 
-#endif  //BRAFT_REPEATED_TIMER_TASK_H
+        static void on_timedout(void *arg);
+
+        static void *run_on_timedout_in_new_thread(void *arg);
+
+        void on_timedout();
+
+        void schedule(std::unique_lock<raft_mutex_t> &lck);
+
+        raft_mutex_t _mutex;
+        bthread_timer_t _timer;
+        timespec _next_duetime;
+        int _timeout_ms;
+        bool _stopped;
+        bool _running;
+        bool _destroyed;
+        bool _invoking;
+    };
+
+}  //  namespace melon::raft
+
+#endif  // MELON_RAFT_REPEATED_TIMER_TASK_H_

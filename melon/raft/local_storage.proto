@@ -3,7 +3,7 @@ syntax="proto2";
 import "melon/raft/raft.proto";
 import "melon/raft/local_file_meta.proto";
 
-package braft;
+package melon.raft;
 
 message ConfigurationPBMeta {
     repeated string peers = 1;

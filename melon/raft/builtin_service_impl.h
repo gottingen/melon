@@ -15,24 +15,24 @@
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 //          Ge,Jun(gejun@baiud.com)
 
-#ifndef  BRAFT_BUILTIN_SERVICE_IMPL_H
-#define  BRAFT_BUILTIN_SERVICE_IMPL_H
+#ifndef  MELON_RAFT_BUILTIN_SERVICE_IMPL_H_
+#define  MELON_RAFT_BUILTIN_SERVICE_IMPL_H_
 
 #include "melon/raft/builtin_service.pb.h"
-#include <melon/rpc/builtin/tabbed.h>
+#include <melon/builtin/tabbed.h>
 
-namespace braft {
+namespace melon::raft {
 
 class RaftStatImpl : public raft_stat, public melon::Tabbed {
 public:
     void default_method(::google::protobuf::RpcController* controller,
-                        const ::braft::IndexRequest* request,
-                        ::braft::IndexResponse* response,
+                        const ::melon::raft::IndexRequest* request,
+                        ::melon::raft::IndexResponse* response,
                         ::google::protobuf::Closure* done);
 
     void GetTabInfo(melon::TabInfoList*) const;
 };
 
-}  //  namespace braft
+}  //  namespace melon::raft
 
-#endif  //BRAFT_BUILTIN_SERVICE_IMPL_H
+#endif  // MELON_RAFT_BUILTIN_SERVICE_IMPL_H_

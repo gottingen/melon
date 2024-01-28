@@ -34,25 +34,25 @@
 #include "melon/rpc/controller.h"
 #include "melon/rpc/span.h"
 #include "melon/rpc/reloadable_flags.h"
-#include "melon/rpc/builtin/version_service.h"
-#include "melon/rpc/builtin/health_service.h"
-#include "melon/rpc/builtin/list_service.h"
-#include "melon/rpc/builtin/status_service.h"
-#include "melon/rpc/builtin/threads_service.h"
-#include "melon/rpc/builtin/vlog_service.h"
-#include "melon/rpc/builtin/index_service.h"        // IndexService
-#include "melon/rpc/builtin/connections_service.h"  // ConnectionsService
-#include "melon/rpc/builtin/flags_service.h"        // FlagsService
-#include "melon/rpc/builtin/vars_service.h"         // VarsService
-#include "melon/rpc/builtin/rpcz_service.h"         // RpczService
-#include "melon/rpc/builtin/dir_service.h"          // DirService
-#include "melon/rpc/builtin/pprof_service.h"        // PProfService
-#include "melon/rpc/builtin/bthreads_service.h"     // BthreadsService
-#include "melon/rpc/builtin/ids_service.h"          // IdsService
-#include "melon/rpc/builtin/sockets_service.h"      // SocketsService
-#include "melon/rpc/builtin/memory_service.h"
-#include "melon/rpc/builtin/common.h"
-#include "melon/rpc/builtin/bad_method_service.h"
+#include "melon/builtin/version_service.h"
+#include "melon/builtin/health_service.h"
+#include "melon/builtin/list_service.h"
+#include "melon/builtin/status_service.h"
+#include "melon/builtin/threads_service.h"
+#include "melon/builtin/vlog_service.h"
+#include "melon/builtin/index_service.h"        // IndexService
+#include "melon/builtin/connections_service.h"  // ConnectionsService
+#include "melon/builtin/flags_service.h"        // FlagsService
+#include "melon/builtin/vars_service.h"         // VarsService
+#include "melon/builtin/rpcz_service.h"         // RpczService
+#include "melon/builtin/dir_service.h"          // DirService
+#include "melon/builtin/pprof_service.h"        // PProfService
+#include "melon/builtin/bthreads_service.h"     // BthreadsService
+#include "melon/builtin/ids_service.h"          // IdsService
+#include "melon/builtin/sockets_service.h"      // SocketsService
+#include "melon/builtin/memory_service.h"
+#include "melon/builtin/common.h"
+#include "melon/builtin/bad_method_service.h"
 #include "echo.pb.h"
 #include "melon/rpc/grpc_health_check.pb.h"
 #include "melon/json2pb/pb_to_json.h"

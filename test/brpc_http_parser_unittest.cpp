@@ -21,7 +21,7 @@
 #include "melon/butil/time.h"
 #include "melon/butil/logging.h"
 #include "melon/rpc/details/http_parser.h"
-#include "melon/rpc/builtin/common.h"  // AppendFileName
+#include "melon/builtin/common.h"  // AppendFileName
 
 using melon::http_parser;
 using melon::http_parser_init;

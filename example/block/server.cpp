@@ -18,9 +18,9 @@
 #include <melon/butil/sys_byteorder.h>        // butil::NetToHost32
 #include <melon/rpc/controller.h>            // melon::Controller
 #include <melon/rpc/server.h>                // melon::Server
-#include <melon/raft/raft.h>                 // braft::Node braft::StateMachine
-#include <melon/raft/storage.h>              // braft::SnapshotWriter
-#include <melon/raft/util.h>                 // braft::AsyncClosureGuard
+#include <melon/raft/raft.h>                 // melon::raft::Node melon::raft::StateMachine
+#include <melon/raft/storage.h>              // melon::raft::SnapshotWriter
+#include <melon/raft/util.h>                 // melon::raft::AsyncClosureGuard
 #include "block.pb.h"                   // BlockService
 
 DEFINE_bool(check_term, true, "Check if the leader changed to another term");
@@ -38,7 +38,7 @@ namespace example {
 class Block;
 
 // Implements Closure which encloses RPC stuff
-class BlockClosure : public braft::Closure {
+class BlockClosure : public melon::raft::Closure {
 public:
     BlockClosure(Block* block, 
                  const BlockRequest* request,
@@ -66,8 +66,8 @@ private:
     google::protobuf::Closure* _done;
 };
 
-// Implementation of example::Block as a braft::StateMachine.
-class Block : public braft::StateMachine {
+// Implementation of example::Block as a melon::raft::StateMachine.
+class Block : public melon::raft::StateMachine {
 public:
     Block()
         : _node(NULL)
@@ -92,7 +92,7 @@ public:
         }
         _fd = new SharedFD(fd);
         butil::EndPoint addr(butil::my_ip(), FLAGS_port);
-        braft::NodeOptions node_options;
+        melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
             LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
             return -1;
@@ -106,7 +106,7 @@ public:
         node_options.raft_meta_uri = prefix + "/raft_meta";
         node_options.snapshot_uri = prefix + "/snapshot";
         node_options.disable_cli = FLAGS_disable_cli;
-        braft::Node* node = new braft::Node(FLAGS_group, braft::PeerId(addr));
+        melon::raft::Node* node = new melon::raft::Node(FLAGS_group, melon::raft::PeerId(addr));
         if (node->init(node_options) != 0) {
             LOG(ERROR) << "Fail to init raft node";
             delete node;
@@ -142,8 +142,8 @@ public:
             return;
         }
         log.append(*data);
-        // Apply this log as a braft::Task
-        braft::Task task;
+        // Apply this log as a melon::raft::Task
+        melon::raft::Task task;
         task.data = &log;
         // This callback would be iovoked when the task actually excuted or
         // fail
@@ -175,7 +175,7 @@ public:
         // This is the leader and is up-to-date. It's safe to respond client
         scoped_fd fd = get_fd();
         butil::IOPortal portal;
-        const ssize_t nr = braft::file_pread(
+        const ssize_t nr = melon::raft::file_pread(
                 &portal, fd->fd(), request->offset(), request->size());
         if (nr < 0) {
             // Some disk error occurred, shutdown this node and another leader
@@ -242,22 +242,22 @@ friend class BlockClosure;
     void redirect(BlockResponse* response) {
         response->set_success(false);
         if (_node) {
-            braft::PeerId leader = _node->leader_id();
+            melon::raft::PeerId leader = _node->leader_id();
             if (!leader.is_empty()) {
                 response->set_redirect(leader.to_string());
             }
         }
     }
 
-    // @braft::StateMachine
-    void on_apply(braft::Iterator& iter) {
+    // @melon::raft::StateMachine
+    void on_apply(melon::raft::Iterator& iter) {
         // A batch of tasks are committed, which must be processed through 
         // |iter|
         for (; iter.valid(); iter.next()) {
             BlockResponse* response = NULL;
             // This guard helps invoke iter.done()->Run() asynchronously to
             // avoid that callback blocks the StateMachine
-            braft::AsyncClosureGuard closure_guard(iter.done());
+            melon::raft::AsyncClosureGuard closure_guard(iter.done());
             butil::IOBuf data;
             off_t offset = 0;
             if (iter.done()) {
@@ -284,7 +284,7 @@ friend class BlockClosure;
                 offset = request.offset();
             }
 
-            const ssize_t nw = braft::file_pwrite(data, _fd->fd(), offset);
+            const ssize_t nw = melon::raft::file_pwrite(data, _fd->fd(), offset);
             if (nw < 0) {
                 PLOG(ERROR) << "Fail to write to fd=" << _fd->fd();
                 if (response) {
@@ -314,8 +314,8 @@ friend class BlockClosure;
 
     struct SnapshotArg {
         scoped_fd fd;
-        braft::SnapshotWriter* writer;
-        braft::Closure* done;
+        melon::raft::SnapshotWriter* writer;
+        melon::raft::Closure* done;
     };
 
     static int link_overwrite(const char* old_path, const char* new_path) {
@@ -356,7 +356,7 @@ friend class BlockClosure;
         return NULL;
     }
 
-    void on_snapshot_save(braft::SnapshotWriter* writer, braft::Closure* done) {
+    void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
         // Save current StateMachine in memory and starts a new bthread to avoid
         // blocking StateMachine since it's a bit slow to write data to disk
         // file.
@@ -368,7 +368,7 @@ friend class BlockClosure;
         bthread_start_urgent(&tid, NULL, save_snapshot, arg);
     }
 
-    int on_snapshot_load(braft::SnapshotReader* reader) {
+    int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         // Load snasphot from reader, replacing the running StateMachine
         CHECK(!is_leader()) << "Leader is not supposed to load snapshot";
         if (reader->get_file_meta("data", NULL) != 0) {
@@ -405,23 +405,23 @@ friend class BlockClosure;
     void on_shutdown() {
         LOG(INFO) << "This node is down";
     }
-    void on_error(const ::braft::Error& e) {
+    void on_error(const ::melon::raft::Error& e) {
         LOG(ERROR) << "Met raft error " << e;
     }
-    void on_configuration_committed(const ::braft::Configuration& conf) {
+    void on_configuration_committed(const ::melon::raft::Configuration& conf) {
         LOG(INFO) << "Configuration of this group is " << conf;
     }
-    void on_stop_following(const ::braft::LeaderChangeContext& ctx) {
+    void on_stop_following(const ::melon::raft::LeaderChangeContext& ctx) {
         LOG(INFO) << "Node stops following " << ctx;
     }
-    void on_start_following(const ::braft::LeaderChangeContext& ctx) {
+    void on_start_following(const ::melon::raft::LeaderChangeContext& ctx) {
         LOG(INFO) << "Node start following " << ctx;
     }
-    // end of @braft::StateMachine
+    // end of @melon::raft::StateMachine
 
 private:
     mutable butil::Mutex _fd_mutex;
-    braft::Node* volatile _node;
+    melon::raft::Node* volatile _node;
     butil::atomic<int64_t> _leader_term;
     scoped_fd _fd;
 };
@@ -483,7 +483,7 @@ int main(int argc, char* argv[]) {
     // adding services into a running server is not allowed and the listen
     // address of this server is impossible to get before the server starts. You
     // have to specify the address of the server.
-    if (braft::add_service(&server, FLAGS_port) != 0) {
+    if (melon::raft::add_service(&server, FLAGS_port) != 0) {
         LOG(ERROR) << "Fail to add raft service";
         return -1;
     }

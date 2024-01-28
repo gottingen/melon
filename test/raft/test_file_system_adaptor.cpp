@@ -16,9 +16,9 @@ protected:
 TEST_F(TestFileSystemAdaptorSuits, read_write) {
     ::system("rm -f test_file");
     ::system("rm -f test_file1");
-    scoped_refptr<braft::FileSystemAdaptor> fs = new braft::PosixFileSystemAdaptor();
+    scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
     butil::File::Error e;
-    braft::FileAdaptor* file = fs->open("test_file", O_CREAT | O_TRUNC | O_RDWR, NULL, &e);
+    melon::raft::FileAdaptor* file = fs->open("test_file", O_CREAT | O_TRUNC | O_RDWR, NULL, &e);
     ASSERT_TRUE(file != NULL);
     ASSERT_EQ(file->size(), 0);
 
@@ -54,7 +54,7 @@ TEST_F(TestFileSystemAdaptorSuits, read_write) {
 TEST_F(TestFileSystemAdaptorSuits, delete_file) {
     ::system("rm -f test_file");
     ::system("touch test_file");
-    scoped_refptr<braft::FileSystemAdaptor> fs = new braft::PosixFileSystemAdaptor();
+    scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
     ASSERT_TRUE(fs->path_exists("test_file"));
     ASSERT_TRUE(!fs->directory_exists("test_file"));
     ASSERT_TRUE(fs->delete_file("test_file", false));
@@ -82,7 +82,7 @@ TEST_F(TestFileSystemAdaptorSuits, delete_file) {
 TEST_F(TestFileSystemAdaptorSuits, rename) {
     ::system("rm -f test_file");
     ::system("touch test_file");
-    scoped_refptr<braft::FileSystemAdaptor> fs = new braft::PosixFileSystemAdaptor();
+    scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
     ASSERT_TRUE(fs->rename("test_file", "test_file2"));
     ASSERT_TRUE(fs->rename("test_file2", "test_file2"));
     ::system("touch test_file");
@@ -110,7 +110,7 @@ TEST_F(TestFileSystemAdaptorSuits, rename) {
 
 TEST_F(TestFileSystemAdaptorSuits, create_directory) {
     ::system("rm -rf test_dir");
-    scoped_refptr<braft::FileSystemAdaptor> fs = new braft::PosixFileSystemAdaptor();
+    scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
     butil::File::Error error;
     ASSERT_TRUE(fs->create_directory("test_dir", &error, false));
     ASSERT_TRUE(fs->create_directory("test_dir", &error, false));
@@ -123,10 +123,10 @@ TEST_F(TestFileSystemAdaptorSuits, create_directory) {
     ASSERT_TRUE(!fs->create_directory("test_dir/test_file", &error, true));
     ASSERT_EQ(error, butil::File::FILE_ERROR_EXISTS);
 
-    ASSERT_TRUE(!braft::create_sub_directory("test_dir/test_dir2", "test_dir2/test2", fs, &error));
+    ASSERT_TRUE(!melon::raft::create_sub_directory("test_dir/test_dir2", "test_dir2/test2", fs, &error));
     ASSERT_EQ(error, butil::File::FILE_ERROR_NOT_FOUND);
 
-    ASSERT_TRUE(braft::create_sub_directory("test_dir", "test_dir2/test2", fs, &error));
+    ASSERT_TRUE(melon::raft::create_sub_directory("test_dir", "test_dir2/test2", fs, &error));
     ASSERT_TRUE(fs->directory_exists("test_dir/test_dir2/test2"));
 
     ::system("rm -rf test_dir");
@@ -135,8 +135,8 @@ TEST_F(TestFileSystemAdaptorSuits, create_directory) {
 TEST_F(TestFileSystemAdaptorSuits, directory_reader) {
     ::system("rm -rf test_dir");
     ::system("mkdir -p test_dir/test_dir && touch test_dir/test_file");
-    scoped_refptr<braft::FileSystemAdaptor> fs = new braft::PosixFileSystemAdaptor();
-    braft::DirReader* dir_reader = fs->directory_reader("test_dir");
+    scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
+    melon::raft::DirReader* dir_reader = fs->directory_reader("test_dir");
     std::set<std::string> names;
     names.insert("test_dir");
     names.insert("test_file");
@@ -158,26 +158,26 @@ TEST_F(TestFileSystemAdaptorSuits, directory_reader) {
 TEST_F(TestFileSystemAdaptorSuits, create_sub_directory) {
     ::system("rm -rf test_dir");
     ::system("mkdir test_dir");
-    scoped_refptr<braft::FileSystemAdaptor> fs = new braft::PosixFileSystemAdaptor();
+    scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
     std::string parent_path = "test_dir/sub1/";
-    ASSERT_FALSE(braft::create_sub_directory(parent_path, "/", fs, NULL));
-    ASSERT_FALSE(braft::create_sub_directory(parent_path, "", fs, NULL));
-    ASSERT_FALSE(braft::create_sub_directory(parent_path, "/sub2", fs, NULL));
-    ASSERT_FALSE(braft::create_sub_directory(parent_path, "/sub2/sub3", fs, NULL));
-    ASSERT_FALSE(braft::create_sub_directory(parent_path, "sub4/sub5", fs, NULL));
+    ASSERT_FALSE(melon::raft::create_sub_directory(parent_path, "/", fs, NULL));
+    ASSERT_FALSE(melon::raft::create_sub_directory(parent_path, "", fs, NULL));
+    ASSERT_FALSE(melon::raft::create_sub_directory(parent_path, "/sub2", fs, NULL));
+    ASSERT_FALSE(melon::raft::create_sub_directory(parent_path, "/sub2/sub3", fs, NULL));
+    ASSERT_FALSE(melon::raft::create_sub_directory(parent_path, "sub4/sub5", fs, NULL));
     ASSERT_FALSE(fs->directory_exists(parent_path + "sub2/sub3"));
     ASSERT_FALSE(fs->directory_exists(parent_path + "sub4/sub5"));
     ASSERT_FALSE(fs->directory_exists(parent_path));
     ASSERT_TRUE(fs->create_directory(parent_path, NULL, false));
-    ASSERT_TRUE(braft::create_sub_directory(parent_path, "/sub2/sub3", fs, NULL));
-    ASSERT_TRUE(braft::create_sub_directory(parent_path, "sub4/sub5", fs, NULL));
+    ASSERT_TRUE(melon::raft::create_sub_directory(parent_path, "/sub2/sub3", fs, NULL));
+    ASSERT_TRUE(melon::raft::create_sub_directory(parent_path, "sub4/sub5", fs, NULL));
     ASSERT_TRUE(fs->directory_exists(parent_path + "sub2/sub3"));
     ASSERT_TRUE(fs->directory_exists(parent_path + "sub4/sub5"));
-    ASSERT_FALSE(braft::create_sub_directory(parent_path, "../sub4/sub5", fs, NULL));
+    ASSERT_FALSE(melon::raft::create_sub_directory(parent_path, "../sub4/sub5", fs, NULL));
     ::system("rm -rf test_dir");
 }
 
-class TestFileReadAdaptor : public braft::BufferedSequentialReadFileAdaptor {
+class TestFileReadAdaptor : public melon::raft::BufferedSequentialReadFileAdaptor {
 public:
     TestFileReadAdaptor(int bytes, int align_size) {
         for (int i = 0; i < bytes; ++i) {
@@ -263,7 +263,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_read_file_adaptor_fa
 }
 
 // align each write to `_align_size'
-class TestFileWriteAdapor : public braft::BufferedSequentialWriteFileAdaptor {
+class TestFileWriteAdapor : public melon::raft::BufferedSequentialWriteFileAdaptor {
 public:
     TestFileWriteAdapor(butil::IOPortal& portal, int align_size) {
         _portal = portal;
@@ -339,7 +339,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_write_file_adaptor) 
     delete file;
 }
 
-class TestFileReadAdaptorWithHole : public braft::BufferedSequentialReadFileAdaptor {
+class TestFileReadAdaptorWithHole : public melon::raft::BufferedSequentialReadFileAdaptor {
 public:
     TestFileReadAdaptorWithHole(const std::string& path, int align_size) 
         : _path(path)
@@ -371,7 +371,7 @@ private:
     int _align_size;
 };
 
-class TestFileWriteAdaptorWithHole : public braft::BufferedSequentialWriteFileAdaptor {
+class TestFileWriteAdaptorWithHole : public melon::raft::BufferedSequentialWriteFileAdaptor {
 public:
     TestFileWriteAdaptorWithHole(const std::string& path, int align_size) 
         : _path(path) 
@@ -461,7 +461,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_writer_with_hole) {
                     is_eof = true;
                 }
             }
-            if (!braft::is_zero(buf.to_string().c_str(), buf.size())) {
+            if (!melon::raft::is_zero(buf.to_string().c_str(), buf.size())) {
                 // write
                 ssize_t nwrite = writer->write(buf, offset);
                 ASSERT_TRUE(nwrite >= 0);

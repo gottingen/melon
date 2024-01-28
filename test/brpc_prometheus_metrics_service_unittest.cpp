@@ -21,7 +21,7 @@
 
 #include "melon/butil/strings/string_piece.h"
 #include "melon/butil/iobuf.h"
-#include "melon/rpc/builtin/prometheus_metrics_service.h"
+#include "melon/builtin/prometheus_metrics_service.h"
 
 namespace {
 

@@ -18,7 +18,7 @@ protected:
     void TearDown() {}
 };
 
-class OrderedStateMachine : public braft::StateMachine {
+class OrderedStateMachine : public melon::raft::StateMachine {
 public:
     OrderedStateMachine() 
         : _expected_next(0)
@@ -28,7 +28,7 @@ public:
         , _on_snapshot_save_times(0)
         , _on_snapshot_load_times(0)
     {}
-    void on_apply(braft::Iterator& iter) {
+    void on_apply(melon::raft::Iterator& iter) {
         for (; iter.valid(); iter.next()) {
             std::string expected;
             butil::string_printf(&expected, "hello_%" PRIu64, _expected_next++);
@@ -42,11 +42,11 @@ public:
     void on_shutdown() {
         _stopped = true;
     }
-    void on_snapshot_save(braft::SnapshotWriter* /*writer*/, braft::Closure* done) {
+    void on_snapshot_save(melon::raft::SnapshotWriter* /*writer*/, melon::raft::Closure* done) {
         done->Run();
         ++_on_snapshot_save_times;
     }
-    int on_snapshot_load(braft::SnapshotReader* /*reader*/) {
+    int on_snapshot_load(melon::raft::SnapshotReader* /*reader*/) {
         ++_on_snapshot_load_times;
         return 0;
     }
@@ -70,7 +70,7 @@ private:
     int _on_snapshot_load_times;
 };
 
-class SyncClosure : public braft::LogManager::StableClosure {
+class SyncClosure : public melon::raft::LogManager::StableClosure {
 public:
     SyncClosure() {
         _butex = bthread::butex_create_checked<butil::atomic<int> >();
@@ -98,37 +98,37 @@ private:
 
 TEST_F(FSMCallerTest, sanity) {
     system("rm -rf ./data");
-    scoped_ptr<braft::ConfigurationManager> cm(
-                                new braft::ConfigurationManager);
-    scoped_ptr<braft::SegmentLogStorage> storage(
-                                new braft::SegmentLogStorage("./data"));
-    scoped_ptr<braft::LogManager> lm(new braft::LogManager());
-    braft::LogManagerOptions log_opt;
+    scoped_ptr<melon::raft::ConfigurationManager> cm(
+                                new melon::raft::ConfigurationManager);
+    scoped_ptr<melon::raft::SegmentLogStorage> storage(
+                                new melon::raft::SegmentLogStorage("./data"));
+    scoped_ptr<melon::raft::LogManager> lm(new melon::raft::LogManager());
+    melon::raft::LogManagerOptions log_opt;
     log_opt.log_storage = storage.get();
     log_opt.configuration_manager = cm.get();
     ASSERT_EQ(0, lm->init(log_opt));
 
-    braft::ClosureQueue cq(false);
+    melon::raft::ClosureQueue cq(false);
 
     OrderedStateMachine fsm;
     fsm._expected_next = 0;
 
-    braft::FSMCallerOptions opt;
+    melon::raft::FSMCallerOptions opt;
     opt.log_manager = lm.get();
     opt.after_shutdown = NULL;
     opt.fsm = &fsm;
     opt.closure_queue = &cq;
 
-    braft::FSMCaller caller;
+    melon::raft::FSMCaller caller;
     ASSERT_EQ(0, caller.init(opt));
 
     const size_t N = 1000;
 
     for (size_t i = 0; i < N; ++i) {
-        std::vector<braft::LogEntry*> entries;
-        braft::LogEntry* entry = new braft::LogEntry;
+        std::vector<melon::raft::LogEntry*> entries;
+        melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
-        entry->type = braft::ENTRY_TYPE_DATA;
+        entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
         butil::string_printf(&buf, "hello_%lld", (long long)i);
         entry->data.append(buf);
@@ -147,16 +147,16 @@ TEST_F(FSMCallerTest, sanity) {
 }
 
 TEST_F(FSMCallerTest, on_leader_start_and_stop) {
-    scoped_ptr<braft::LogManager> lm(new braft::LogManager());
+    scoped_ptr<melon::raft::LogManager> lm(new melon::raft::LogManager());
     OrderedStateMachine fsm;
     fsm._expected_next = 0;
-    braft::ClosureQueue cq(false);
-    braft::FSMCallerOptions opt;
+    melon::raft::ClosureQueue cq(false);
+    melon::raft::FSMCallerOptions opt;
     opt.log_manager = lm.get();
     opt.after_shutdown = NULL;
     opt.fsm = &fsm;
     opt.closure_queue = &cq;
-    braft::FSMCaller caller;
+    melon::raft::FSMCaller caller;
     ASSERT_EQ(0, caller.init(opt));
     butil::Status status;
     caller.on_leader_stop(status);
@@ -166,9 +166,9 @@ TEST_F(FSMCallerTest, on_leader_start_and_stop) {
     ASSERT_EQ(1, fsm._on_leader_stop_times);
 }
 
-class DummySnapshotReader : public braft::SnapshotReader {
+class DummySnapshotReader : public melon::raft::SnapshotReader {
 public:
-    DummySnapshotReader(braft::SnapshotMeta* meta) 
+    DummySnapshotReader(melon::raft::SnapshotMeta* meta)
         : _meta(meta)
     {
     };
@@ -177,19 +177,19 @@ public:
     void list_files(std::vector<std::string>*) {}
     int get_file_meta(const std::string&, google::protobuf::Message*) { return 0; }
     std::string get_path() { return std::string(); }
-    int load_meta(braft::SnapshotMeta* meta) {
+    int load_meta(melon::raft::SnapshotMeta* meta) {
         *meta = *_meta;
         return 0;
     }
 private:
-    braft::SnapshotMeta* _meta;
+    melon::raft::SnapshotMeta* _meta;
 };
 
-class DummySnapshoWriter : public braft::SnapshotWriter {
+class DummySnapshoWriter : public melon::raft::SnapshotWriter {
 public:
     DummySnapshoWriter() {}
     ~DummySnapshoWriter() {}
-    int save_meta(const braft::SnapshotMeta&) {
+    int save_meta(const melon::raft::SnapshotMeta&) {
         EXPECT_TRUE(false) << "Should never be called";
         return 0;
     }
@@ -201,10 +201,10 @@ public:
 private:
 };
 
-class MockSaveSnapshotClosure : public braft::SaveSnapshotClosure {
+class MockSaveSnapshotClosure : public melon::raft::SaveSnapshotClosure {
 public:
-    MockSaveSnapshotClosure(braft::SnapshotWriter* writer, 
-                            braft::SnapshotMeta *expected_meta) 
+    MockSaveSnapshotClosure(melon::raft::SnapshotWriter* writer,
+                            melon::raft::SnapshotMeta *expected_meta)
         : _start_times(0)
         , _writer(writer)
         , _expected_meta(expected_meta)
@@ -214,7 +214,7 @@ public:
     void Run() {
         ASSERT_TRUE(status().ok()) << status();
     }
-    braft::SnapshotWriter* start(const braft::SnapshotMeta& meta) {
+    melon::raft::SnapshotWriter* start(const melon::raft::SnapshotMeta& meta) {
         EXPECT_EQ(meta.last_included_index(), 
                     _expected_meta->last_included_index());
         EXPECT_EQ(meta.last_included_term(), 
@@ -224,13 +224,13 @@ public:
     }
 private:
     int _start_times;
-    braft::SnapshotWriter* _writer;
-    braft::SnapshotMeta* _expected_meta;
+    melon::raft::SnapshotWriter* _writer;
+    melon::raft::SnapshotMeta* _expected_meta;
 };
 
-class MockLoadSnapshotClosure : public braft::LoadSnapshotClosure {
+class MockLoadSnapshotClosure : public melon::raft::LoadSnapshotClosure {
 public:
-    MockLoadSnapshotClosure(braft::SnapshotReader* reader)
+    MockLoadSnapshotClosure(melon::raft::SnapshotReader* reader)
         : _start_times(0)
         , _reader(reader)
     {}
@@ -238,42 +238,42 @@ public:
     void Run() {
         ASSERT_TRUE(status().ok()) << status();
     }
-    braft::SnapshotReader* start() {
+    melon::raft::SnapshotReader* start() {
         ++_start_times;
         return _reader;
     }
 private:
     int _start_times;
-    braft::SnapshotReader* _reader;
+    melon::raft::SnapshotReader* _reader;
 };
 
 TEST_F(FSMCallerTest, snapshot) {
-    braft::SnapshotMeta snapshot_meta;
+    melon::raft::SnapshotMeta snapshot_meta;
     snapshot_meta.set_last_included_index(0);
     snapshot_meta.set_last_included_term(0);
     DummySnapshotReader dummy_reader(&snapshot_meta);
     DummySnapshoWriter dummy_writer;
     MockSaveSnapshotClosure save_snapshot_done(&dummy_writer, &snapshot_meta);
     system("rm -rf ./data");
-    scoped_ptr<braft::ConfigurationManager> cm(
-                                new braft::ConfigurationManager);
-    scoped_ptr<braft::SegmentLogStorage> storage(
-                                new braft::SegmentLogStorage("./data"));
-    scoped_ptr<braft::LogManager> lm(new braft::LogManager());
-    braft::LogManagerOptions log_opt;
+    scoped_ptr<melon::raft::ConfigurationManager> cm(
+                                new melon::raft::ConfigurationManager);
+    scoped_ptr<melon::raft::SegmentLogStorage> storage(
+                                new melon::raft::SegmentLogStorage("./data"));
+    scoped_ptr<melon::raft::LogManager> lm(new melon::raft::LogManager());
+    melon::raft::LogManagerOptions log_opt;
     log_opt.log_storage = storage.get();
     log_opt.configuration_manager = cm.get();
     ASSERT_EQ(0, lm->init(log_opt));
 
     OrderedStateMachine fsm;
     fsm._expected_next = 0;
-    braft::ClosureQueue cq(false);
-    braft::FSMCallerOptions opt;
+    melon::raft::ClosureQueue cq(false);
+    melon::raft::FSMCallerOptions opt;
     opt.log_manager = lm.get();
     opt.after_shutdown = NULL;
     opt.fsm = &fsm;
     opt.closure_queue = &cq;
-    braft::FSMCaller caller;
+    melon::raft::FSMCaller caller;
     ASSERT_EQ(0, caller.init(opt));
     ASSERT_EQ(0, caller.on_snapshot_save(&save_snapshot_done));
     MockLoadSnapshotClosure load_snapshot_done(&dummy_reader);

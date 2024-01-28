@@ -11,7 +11,7 @@
 #include "melon/raft/util.h"
 #include "melon/raft/raft.h"
 
-namespace braft {
+namespace melon::raft {
 
 class SnapshotExecutorTest : public testing::Test {
 protected:
@@ -21,7 +21,7 @@ protected:
         for (int i = 0; i < 10; ++i) {
             std::stringstream addr_ss;
             addr_ss << "127.0.0.1:" << (6500 + i);
-            if (0 != braft::add_service(&_server, addr_ss.str().c_str())) {
+            if (0 != melon::raft::add_service(&_server, addr_ss.str().c_str())) {
                 continue;
             }
             if (0 != _server.Start(addr_ss.str().c_str(), NULL)) {
@@ -39,17 +39,17 @@ protected:
     melon::Server _server;
 };
 
-class MockFSMCaller : public braft::FSMCaller {
+class MockFSMCaller : public melon::raft::FSMCaller {
 protected:
     BRAFT_MOCK int on_committed(int64_t /*committed_index*/) { return 0; }
     BRAFT_MOCK int on_snapshot_load(LoadSnapshotClosure* done) {
         _snapshot_load_times.fetch_add(1);
-        braft::run_closure_in_bthread(done);
+        melon::raft::run_closure_in_bthread(done);
         return 0;
     }
     BRAFT_MOCK int on_snapshot_save(SaveSnapshotClosure* done) {
         _snapshot_save_times.fetch_add(1);
-        braft::run_closure_in_bthread(done);
+        melon::raft::run_closure_in_bthread(done);
         return 0;
     }
     BRAFT_MOCK int on_error(const Error& /*e*/) {
@@ -61,7 +61,7 @@ protected:
     butil::atomic<int> _snapshot_save_times;
 };
 
-class MockLogManager : public braft::LogManager {
+class MockLogManager : public melon::raft::LogManager {
 protected:
     // Notify the log manager about the latest snapshot, which indicates the
     // logs which can be safely truncated.
@@ -80,7 +80,7 @@ protected:
     butil::atomic<int> _clear_timers;
 };
 
-class MockSnapshotReader : public braft::SnapshotReader {
+class MockSnapshotReader : public melon::raft::SnapshotReader {
 public:
     MockSnapshotReader(const std::string& path)
         : _path(path)
@@ -110,7 +110,7 @@ private:
 
 class MockSnapshotStorage;
 
-class MockSnapshotCopier : public braft::SnapshotCopier {
+class MockSnapshotCopier : public melon::raft::SnapshotCopier {
 friend class MockSnapshotStorage;
 public:
     MockSnapshotCopier();
@@ -132,7 +132,7 @@ private:
     SnapshotReader* _reader;
 };
 
-class MockSnapshotStorage : public braft::SnapshotStorage {
+class MockSnapshotStorage : public melon::raft::SnapshotStorage {
 friend class MockSnapshotCopier;
 public:
     MockSnapshotStorage(const std::string& path)
@@ -450,9 +450,9 @@ TEST_F(SnapshotExecutorTest, retry_request_with_throttle) {
 
     int64_t throttle_throughput_bytes = 100 * 1024 * 1024;
     int64_t check_cycle = 10;
-    braft::ThroughputSnapshotThrottle* throttle = 
-        new braft::ThroughputSnapshotThrottle(throttle_throughput_bytes, check_cycle);
-    scoped_refptr<braft::SnapshotThrottle> tst(throttle);
+    melon::raft::ThroughputSnapshotThrottle* throttle =
+        new melon::raft::ThroughputSnapshotThrottle(throttle_throughput_bytes, check_cycle);
+    scoped_refptr<melon::raft::SnapshotThrottle> tst(throttle);
     options.snapshot_throttle = tst;
 
     SnapshotExecutor executor;

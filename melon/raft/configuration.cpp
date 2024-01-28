@@ -19,33 +19,33 @@
 #include <melon/butil/logging.h>
 #include <melon/butil/string_splitter.h>
 
-namespace braft {
+namespace melon::raft {
 
-std::ostream& operator<<(std::ostream& os, const Configuration& a) {
-    std::vector<PeerId> peers;
-    a.list_peers(&peers);
-    for (size_t i = 0; i < peers.size(); i++) {
-        os << peers[i];
-        if (i < peers.size() - 1) {
-            os << ",";
+    std::ostream &operator<<(std::ostream &os, const Configuration &a) {
+        std::vector<PeerId> peers;
+        a.list_peers(&peers);
+        for (size_t i = 0; i < peers.size(); i++) {
+            os << peers[i];
+            if (i < peers.size() - 1) {
+                os << ",";
+            }
         }
+        return os;
     }
-    return os;
-}
 
-int Configuration::parse_from(butil::StringPiece conf) {
-    reset();
-    std::string peer_str;
-    for (butil::StringSplitter sp(conf.begin(), conf.end(), ','); sp; ++sp) {
-        braft::PeerId peer;
-        peer_str.assign(sp.field(), sp.length());
-        if (peer.parse(peer_str) != 0) {
-            LOG(ERROR) << "Fail to parse " << peer_str;
-            return -1;
+    int Configuration::parse_from(butil::StringPiece conf) {
+        reset();
+        std::string peer_str;
+        for (butil::StringSplitter sp(conf.begin(), conf.end(), ','); sp; ++sp) {
+            melon::raft::PeerId peer;
+            peer_str.assign(sp.field(), sp.length());
+            if (peer.parse(peer_str) != 0) {
+                LOG(ERROR) << "Fail to parse " << peer_str;
+                return -1;
+            }
+            add_peer(peer);
         }
-        add_peer(peer);
+        return 0;
     }
-    return 0;
-}
 
 }

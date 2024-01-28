@@ -31,12 +31,12 @@ DEFINE_string(group, "Atomic", "Id of the replication group");
 
 int get(const int64_t id) {
     for (;;) {
-        braft::PeerId leader;
+        melon::raft::PeerId leader;
         // Select leader of the target group from RouteTable
-        if (braft::rtb::select_leader(FLAGS_group, &leader) != 0) {
+        if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = braft::rtb::refresh_leader(
+            butil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
@@ -69,7 +69,7 @@ int get(const int64_t id) {
                 return ETIMEDOUT;
             }
             // Clear leadership since this RPC failed.
-            braft::rtb::update_leader(FLAGS_group, braft::PeerId());
+            melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
             bthread_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -79,7 +79,7 @@ int get(const int64_t id) {
                          << (response.has_redirect() 
                                 ? response.redirect() : "nowhere");
             // Update route table since we have redirect information
-            braft::rtb::update_leader(FLAGS_group, response.redirect());
+            melon::raft::rtb::update_leader(FLAGS_group, response.redirect());
             continue;
         }
         // make jepsen parse output of get easily
@@ -92,12 +92,12 @@ int get(const int64_t id) {
 
 int exchange(const int64_t id, const int64_t value) {
     for (;;) {
-        braft::PeerId leader;
+        melon::raft::PeerId leader;
         // Select leader of the target group from RouteTable
-        if (braft::rtb::select_leader(FLAGS_group, &leader) != 0) {
+        if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = braft::rtb::refresh_leader(
+            butil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
@@ -131,7 +131,7 @@ int exchange(const int64_t id, const int64_t value) {
                 return ETIMEDOUT;
             }
             // Clear leadership since this RPC failed.
-            braft::rtb::update_leader(FLAGS_group, braft::PeerId());
+            melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
             bthread_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -141,7 +141,7 @@ int exchange(const int64_t id, const int64_t value) {
                          << (response.has_redirect() 
                                 ? response.redirect() : "nowhere");
             // Update route table since we have redirect information
-            braft::rtb::update_leader(FLAGS_group, response.redirect());
+            melon::raft::rtb::update_leader(FLAGS_group, response.redirect());
             continue;
         }
         // make jepsen parse output of get easily
@@ -156,12 +156,12 @@ int exchange(const int64_t id, const int64_t value) {
 
 int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
     for (;;) {
-        braft::PeerId leader;
+        melon::raft::PeerId leader;
         // Select leader of the target group from RouteTable
-        if (braft::rtb::select_leader(FLAGS_group, &leader) != 0) {
+        if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = braft::rtb::refresh_leader(
+            butil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
@@ -198,7 +198,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
                 return ETIMEDOUT;
             }
             // Clear leadership since this RPC failed.
-            braft::rtb::update_leader(FLAGS_group, braft::PeerId());
+            melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
             bthread_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -211,7 +211,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
                              << (response.has_redirect() 
                                     ? response.redirect() : "nowhere");
                 // Update route table since we have redirect information
-                braft::rtb::update_leader(FLAGS_group, response.redirect());
+                melon::raft::rtb::update_leader(FLAGS_group, response.redirect());
                 continue;
             } else {
                 return EIO;
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     // Register configuration of target group to RouteTable
-    if (braft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
+    if (melon::raft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
         LOG(ERROR) << "Fail to register configuration " << FLAGS_conf
                    << " of group " << FLAGS_group;
         return -1;

@@ -10,7 +10,7 @@
 class RepeatedTimerTaskTest : public testing::Test {
 };
 
-class MockTimer : public braft::RepeatedTimerTask {
+class MockTimer : public melon::raft::RepeatedTimerTask {
 protected:
     MockTimer()
         : _blocking(false)

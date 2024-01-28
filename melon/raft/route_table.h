@@ -22,31 +22,33 @@
 
 // Maintain routes to raft groups
 
-namespace braft {
-namespace rtb {
+namespace melon::raft {
+    namespace rtb {
 
-// Update configuration of group in route table
-int update_configuration(const GroupId& group, const Configuration& conf);
-int update_configuration(const GroupId& group, const std::string& conf_str);
+        // Update configuration of group in route table
+        int update_configuration(const GroupId &group, const Configuration &conf);
 
-// Get the cached leader of group.
-// Returns:
-//  0 : success
-//  1 : Not sure about the leader
-//  -1, otherwise
-int select_leader(const GroupId& group, PeerId* leader);
+        int update_configuration(const GroupId &group, const std::string &conf_str);
 
-// Update leader
-int update_leader(const GroupId& group, const PeerId& leader);
-int update_leader(const GroupId& group, const std::string& leader_str);
+        // Get the cached leader of group.
+        // Returns:
+        //  0 : success
+        //  1 : Not sure about the leader
+        //  -1, otherwise
+        int select_leader(const GroupId &group, PeerId *leader);
 
-// Blocking the thread until query_leader finishes
-butil::Status refresh_leader(const GroupId& group, int timeout_ms);
+        // Update leader
+        int update_leader(const GroupId &group, const PeerId &leader);
 
-// Remove this group from route table
-int remove_group(const GroupId& group);
+        int update_leader(const GroupId &group, const std::string &leader_str);
 
-}  // namespace rtb
-}  // namespace braft 
+            // Blocking the thread until query_leader finishes
+        butil::Status refresh_leader(const GroupId &group, int timeout_ms);
+
+        // Remove this group from route table
+        int remove_group(const GroupId &group);
+
+    }  // namespace rtb
+}  // namespace melon::raft
 
 #endif  //BRAFT_ROUTE_TABLE_H

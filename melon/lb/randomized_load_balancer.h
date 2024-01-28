@@ -25,8 +25,7 @@
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/cluster_recover_policy.h"
 
-namespace melon {
-namespace policy {
+namespace melon::lb {
 
 // This LoadBalancer selects servers randomly using a thread-specific random
 // number. Selected numbers of servers(added at the same time) are less close
@@ -57,8 +56,7 @@ private:
     std::shared_ptr<ClusterRecoverPolicy> _cluster_recover_policy;
 };
 
-}  // namespace policy
-} // namespace melon
+} // namespace melon::lb
 
 
 #endif  // MELON_LB_POLICY_RANDOMIZED_LOAD_BALANCER_H_

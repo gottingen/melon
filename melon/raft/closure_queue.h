@@ -14,45 +14,47 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#ifndef  BRAFT_CLOSURE_QUEUE_H
-#define  BRAFT_CLOSURE_QUEUE_H
+#ifndef  MELON_RAFT_CLOSURE_QUEUE_H_
+#define  MELON_RAFT_CLOSURE_QUEUE_H_
 
 #include "melon/raft/util.h"
 
-namespace braft {
+namespace melon::raft {
 
-// Holding the closure waiting for the commitment of logs
-class ClosureQueue {
-public:
-    explicit ClosureQueue(bool usercode_in_pthread);
-    ~ClosureQueue();
+    // Holding the closure waiting for the commitment of logs
+    class ClosureQueue {
+    public:
+        explicit ClosureQueue(bool usercode_in_pthread);
 
-    // Clear all the pending closure and run done
-    void clear();
+        ~ClosureQueue();
 
-    // Called when a candidate becomes the new leader, otherwise the behavior is
-    // undefined.
-    // Reset the first index of the coming pending closures to |first_index|
-    void reset_first_index(int64_t first_index);
+        // Clear all the pending closure and run done
+        void clear();
 
-    // Called by leader, otherwise the behavior is undefined
-    // Append the closure
-    void append_pending_closure(Closure* c);
+        // Called when a candidate becomes the new leader, otherwise the behavior is
+        // undefined.
+        // Reset the first index of the coming pending closures to |first_index|
+        void reset_first_index(int64_t first_index);
 
-    // Pop all the closure until |index| (included) into out in the same order
-    // of their indexes, |out_first_index| would be assigned the index of out[0] if
-    // out is not empty, index + 1 otherwise.
-    int pop_closure_until(int64_t index,
-                          std::vector<Closure*> *out, int64_t *out_first_index);
-private:
-    // TODO: a spsc lock-free queue would help
-    raft_mutex_t                                    _mutex;
-    int64_t                                         _first_index;
-    std::deque<Closure*>                            _queue;
-    bool                                            _usercode_in_pthread;
+        // Called by leader, otherwise the behavior is undefined
+        // Append the closure
+        void append_pending_closure(Closure *c);
 
-};
+        // Pop all the closure until |index| (included) into out in the same order
+        // of their indexes, |out_first_index| would be assigned the index of out[0] if
+        // out is not empty, index + 1 otherwise.
+        int pop_closure_until(int64_t index,
+                              std::vector<Closure *> *out, int64_t *out_first_index);
 
-} //  namespace braft
+    private:
+        // TODO: a spsc lock-free queue would help
+        raft_mutex_t _mutex;
+        int64_t _first_index;
+        std::deque<Closure *> _queue;
+        bool _usercode_in_pthread;
 
-#endif  //BRAFT_CLOSURE_QUEUE_H
+    };
+
+} //  namespace melon::raft
+
+#endif  // MELON_RAFT_CLOSURE_QUEUE_H_

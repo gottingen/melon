@@ -16,25 +16,25 @@
 // under the License.
 
 
-#ifndef BRPC_NAMING_SERVICE_FILTER_H
-#define BRPC_NAMING_SERVICE_FILTER_H
+#ifndef MELON_NAMING_NAMING_SERVICE_FILTER_H_
+#define MELON_NAMING_NAMING_SERVICE_FILTER_H_
 
 #include "melon/naming/naming_service.h"      // ServerNode
 
 
 namespace melon {
 
-class NamingServiceFilter {
-public:
-    virtual ~NamingServiceFilter() {}
+    class NamingServiceFilter {
+    public:
+        virtual ~NamingServiceFilter() {}
 
-    // Return true to take this `server' as a candidate to issue RPC
-    // Return false to filter it out
-    virtual bool Accept(const ServerNode& server) const = 0;
-};
+        // Return true to take this `server' as a candidate to issue RPC
+        // Return false to filter it out
+        virtual bool Accept(const ServerNode &server) const = 0;
+    };
 
 } // namespace melon
 
 
 
-#endif // BRPC_NAMING_SERVICE_FILTER_H
+#endif // MELON_NAMING_NAMING_SERVICE_FILTER_H_

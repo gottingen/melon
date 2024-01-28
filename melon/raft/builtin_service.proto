@@ -1,5 +1,5 @@
 syntax="proto2";
-package braft;
+package melon.raft;
 option cc_generic_services = true;
 
 message IndexRequest {};

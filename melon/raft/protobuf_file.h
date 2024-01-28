@@ -14,32 +14,35 @@
 
 // Authors: Wang,Yao(wangyao02@baidu.com)
 
-#ifndef BRAFT_PROTOBUF_FILE_H
-#define BRAFT_PROTOBUF_FILE_H
+#ifndef MELON_RAFT_PROTOBUF_FILE_H_
+#define MELON_RAFT_PROTOBUF_FILE_H_
 
 #include <string>
 #include <google/protobuf/message.h>
 #include "melon/raft/file_system_adaptor.h"
 
-namespace braft {
+namespace melon::raft {
 
-// protobuf file format:
-// len [4B, in network order]
-// protobuf data
-class ProtoBufFile {
-public:
-    ProtoBufFile(const char* path, FileSystemAdaptor* fs = NULL);
-    ProtoBufFile(const std::string& path, FileSystemAdaptor* fs = NULL);
-    ~ProtoBufFile() {}
+    // protobuf file format:
+    // len [4B, in network order]
+    // protobuf data
+    class ProtoBufFile {
+    public:
+        ProtoBufFile(const char *path, FileSystemAdaptor *fs = NULL);
 
-    int save(const ::google::protobuf::Message* message, bool sync);
-    int load(::google::protobuf::Message* message);
+        ProtoBufFile(const std::string &path, FileSystemAdaptor *fs = NULL);
 
-private:
-    std::string _path;
-    scoped_refptr<FileSystemAdaptor> _fs;
-};
+        ~ProtoBufFile() {}
+
+        int save(const ::google::protobuf::Message *message, bool sync);
+
+        int load(::google::protobuf::Message *message);
+
+    private:
+        std::string _path;
+        scoped_refptr<FileSystemAdaptor> _fs;
+    };
 
 }
 
-#endif //~BRAFT_PROTOBUF_FILE_H
+#endif // MELON_RAFT_PROTOBUF_FILE_H_

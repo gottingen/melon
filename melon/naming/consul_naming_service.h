@@ -16,44 +16,44 @@
 // under the License.
 
 
-#ifndef  BRPC_POLICY_CONSUL_NAMING_SERVICE
-#define  BRPC_POLICY_CONSUL_NAMING_SERVICE
+#ifndef  MELON_NAMING_CONSUL_NAMING_SERVICE_H_
+#define  MELON_NAMING_CONSUL_NAMING_SERVICE_H_
 
 #include "melon/naming/naming_service.h"
 #include "melon/rpc/channel.h"
 
 
 namespace melon {
-class Channel;
-namespace policy {
+    class Channel;
+}  // namespace melon
+namespace melon::naming {
 
-class ConsulNamingService : public NamingService {
-private:
-    int RunNamingService(const char* service_name,
-                         NamingServiceActions* actions) override;
+    class ConsulNamingService : public NamingService {
+    private:
+        int RunNamingService(const char *service_name,
+                             NamingServiceActions *actions) override;
 
-    int GetServers(const char* service_name,
-                   std::vector<ServerNode>* servers);
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers);
 
-    void Describe(std::ostream& os, const DescribeOptions&) const override;
+        void Describe(std::ostream &os, const DescribeOptions &) const override;
 
-    NamingService* New() const override;
+        NamingService *New() const override;
 
-    int DegradeToOtherServiceIfNeeded(const char* service_name,
-                                      std::vector<ServerNode>* servers);
+        int DegradeToOtherServiceIfNeeded(const char *service_name,
+                                          std::vector<ServerNode> *servers);
 
-    void Destroy() override;
+        void Destroy() override;
 
-private:
-    Channel _channel;
-    std::string _consul_index;
-    std::string _consul_url;
-    bool _backup_file_loaded = false;
-    bool _consul_connected = false;
-};
+    private:
+        Channel _channel;
+        std::string _consul_index;
+        std::string _consul_url;
+        bool _backup_file_loaded = false;
+        bool _consul_connected = false;
+    };
 
-}  // namespace policy
-} // namespace melon
+} // namespace melon::naming
 
 
-#endif  //BRPC_POLICY_CONSUL_NAMING_SERVICE
+#endif  // MELON_NAMING_CONSUL_NAMING_SERVICE_H_

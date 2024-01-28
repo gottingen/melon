@@ -35,7 +35,7 @@
 #include "melon/rpc/ssl_options.h"                  // ServerSSLOptions
 #include "melon/rpc/describable.h"                  // User often needs this
 #include "melon/rpc/data_factory.h"                 // DataFactory
-#include "melon/rpc/builtin/tabbed.h"
+#include "melon/builtin/tabbed.h"
 #include "melon/rpc/details/profiler_linker.h"
 #include "melon/rpc/health_reporter.h"
 #include "melon/rpc/adaptive_max_concurrency.h"

@@ -16,74 +16,76 @@
 // under the License.
 
 
-#ifndef BRPC_POLICY_DISCOVERY_NAMING_SERVICE_H
-#define BRPC_POLICY_DISCOVERY_NAMING_SERVICE_H
+#ifndef MELON_NAMING_DISCOVERY_NAMING_SERVICE_H_
+#define MELON_NAMING_DISCOVERY_NAMING_SERVICE_H_
 
 #include "melon/rpc/periodic_naming_service.h"
 #include "melon/rpc/channel.h"
 #include "melon/butil/synchronization/lock.h"
 
-namespace melon {
-namespace policy {
+namespace melon::naming {
 
-struct DiscoveryRegisterParam {
-    std::string appid;
-    std::string hostname;
-    std::string env;
-    std::string zone;
-    std::string region;
-    std::string addrs;          // splitted by ','
-    int status;
-    std::string version;
-    std::string metadata;
+    struct DiscoveryRegisterParam {
+        std::string appid;
+        std::string hostname;
+        std::string env;
+        std::string zone;
+        std::string region;
+        std::string addrs;          // splitted by ','
+        int status;
+        std::string version;
+        std::string metadata;
 
-    bool IsValid() const;
-};
+        bool IsValid() const;
+    };
 
 // ONE DiscoveryClient corresponds to ONE service instance.
 // If your program has multiple service instances to register,
 // you need multiple DiscoveryClient.
 // Note: Cancel to the server is automatically called in dtor.
-class DiscoveryClient {
-public:
-    DiscoveryClient();
-    ~DiscoveryClient();
+    class DiscoveryClient {
+    public:
+        DiscoveryClient();
 
-    // Initialize this client.
-    // Returns 0 on success.
-    // NOTE: Calling more than once does nothing and returns 0.
-    int Register(const DiscoveryRegisterParam& req);
+        ~DiscoveryClient();
 
-private:
-    static void* PeriodicRenew(void* arg);
-    int DoCancel() const;
-    int DoRegister();
-    int DoRenew() const;
+        // Initialize this client.
+        // Returns 0 on success.
+        // NOTE: Calling more than once does nothing and returns 0.
+        int Register(const DiscoveryRegisterParam &req);
 
-private:
-    bthread_t _th;
-    butil::atomic<bool> _registered;
-    DiscoveryRegisterParam _params;
-    butil::EndPoint _current_discovery_server;
-};
+    private:
+        static void *PeriodicRenew(void *arg);
 
-class DiscoveryNamingService : public PeriodicNamingService {
-private:
-    int GetServers(const char* service_name,
-                   std::vector<ServerNode>* servers) override;
+        int DoCancel() const;
 
-    void Describe(std::ostream& os, const DescribeOptions&) const override;
+        int DoRegister();
 
-    NamingService* New() const override;
+        int DoRenew() const;
 
-    void Destroy() override;
+    private:
+        bthread_t _th;
+        butil::atomic<bool> _registered;
+        DiscoveryRegisterParam _params;
+        butil::EndPoint _current_discovery_server;
+    };
 
-private:
-    DiscoveryClient _client;
-};
+    class DiscoveryNamingService : public PeriodicNamingService {
+    private:
+        int GetServers(const char *service_name,
+                       std::vector<ServerNode> *servers) override;
+
+        void Describe(std::ostream &os, const DescribeOptions &) const override;
+
+        NamingService *New() const override;
+
+        void Destroy() override;
+
+    private:
+        DiscoveryClient _client;
+    };
 
 
-} // namespace policy
-} // namespace melon
+} // namespace melon::naming
 
-#endif // BRPC_POLICY_DISCOVERY_NAMING_SERVICE_H
+#endif // MELON_NAMING_DISCOVERY_NAMING_SERVICE_H_

@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include "melon/raft/storage.h"
 
-namespace braft {
+namespace melon::raft {
 extern void global_init_once_or_die();
 };
 
@@ -14,62 +14,62 @@ class StorageTest : public testing::Test {
 protected:
     void SetUp() {
         system("rm -rf data");
-        braft::global_init_once_or_die();
+        melon::raft::global_init_once_or_die();
     }
     void TearDown() {}
 };
 
 TEST_F(StorageTest, sanity) {
     // LogStorage
-    braft::LogStorage* log_storage = braft::LogStorage::create("local://data/log");
+    melon::raft::LogStorage* log_storage = melon::raft::LogStorage::create("local://data/log");
     ASSERT_TRUE(log_storage);
-    braft::ConfigurationManager cm;
+    melon::raft::ConfigurationManager cm;
     ASSERT_EQ(0, log_storage->init(&cm));
-    ASSERT_FALSE(braft::LogStorage::create("hdfs://data/log"));
-    ASSERT_FALSE(braft::LogStorage::create("://data/log"));
-    ASSERT_FALSE(braft::LogStorage::create("data/log"));
-    ASSERT_FALSE(braft::LogStorage::create("  ://data/log"));
+    ASSERT_FALSE(melon::raft::LogStorage::create("hdfs://data/log"));
+    ASSERT_FALSE(melon::raft::LogStorage::create("://data/log"));
+    ASSERT_FALSE(melon::raft::LogStorage::create("data/log"));
+    ASSERT_FALSE(melon::raft::LogStorage::create("  ://data/log"));
 
     // RaftMetaStorage
-    braft::RaftMetaStorage* meta_storage 
-            = braft::RaftMetaStorage::create("local://data/raft_meta");
+    melon::raft::RaftMetaStorage* meta_storage
+            = melon::raft::RaftMetaStorage::create("local://data/raft_meta");
     ASSERT_TRUE(meta_storage);
     ASSERT_TRUE(meta_storage->init().ok());
-    ASSERT_FALSE(braft::RaftMetaStorage::create("hdfs://data/raft_meta"));
-    ASSERT_FALSE(braft::RaftMetaStorage::create("://data/raft_meta"));
-    ASSERT_FALSE(braft::RaftMetaStorage::create("data/raft_meta"));
-    ASSERT_FALSE(braft::RaftMetaStorage::create("  ://data/raft_meta"));
+    ASSERT_FALSE(melon::raft::RaftMetaStorage::create("hdfs://data/raft_meta"));
+    ASSERT_FALSE(melon::raft::RaftMetaStorage::create("://data/raft_meta"));
+    ASSERT_FALSE(melon::raft::RaftMetaStorage::create("data/raft_meta"));
+    ASSERT_FALSE(melon::raft::RaftMetaStorage::create("  ://data/raft_meta"));
 
     // SnapshotStorage
-    braft::SnapshotStorage* snapshot_storage 
-            = braft::SnapshotStorage::create("local://data/snapshot");
+    melon::raft::SnapshotStorage* snapshot_storage
+            = melon::raft::SnapshotStorage::create("local://data/snapshot");
     ASSERT_TRUE(snapshot_storage);
     ASSERT_EQ(0, snapshot_storage->init());
-    ASSERT_FALSE(braft::SnapshotStorage::create("hdfs://data/snapshot"));
-    ASSERT_FALSE(braft::SnapshotStorage::create("://data/snapshot"));
-    ASSERT_FALSE(braft::SnapshotStorage::create("data/snapshot"));
-    ASSERT_FALSE(braft::SnapshotStorage::create("  ://data/snapshot"));
+    ASSERT_FALSE(melon::raft::SnapshotStorage::create("hdfs://data/snapshot"));
+    ASSERT_FALSE(melon::raft::SnapshotStorage::create("://data/snapshot"));
+    ASSERT_FALSE(melon::raft::SnapshotStorage::create("data/snapshot"));
+    ASSERT_FALSE(melon::raft::SnapshotStorage::create("  ://data/snapshot"));
 
 }
 
 TEST_F(StorageTest, extra_space_should_be_trimmed) {
     // LogStorage
-    braft::LogStorage* log_storage = braft::LogStorage::create("local://data/log");
+    melon::raft::LogStorage* log_storage = melon::raft::LogStorage::create("local://data/log");
     ASSERT_TRUE(log_storage);
-    braft::ConfigurationManager cm;
+    melon::raft::ConfigurationManager cm;
     ASSERT_EQ(0, log_storage->init(&cm));
-    braft::LogEntry* entry = new braft::LogEntry();
+    melon::raft::LogEntry* entry = new melon::raft::LogEntry();
     entry->data.append("hello world");
-    entry->id = braft::LogId(1, 1);
-    entry->type = braft::ENTRY_TYPE_DATA;
-    std::vector<braft::LogEntry*> entries;
+    entry->id = melon::raft::LogId(1, 1);
+    entry->type = melon::raft::ENTRY_TYPE_DATA;
+    std::vector<melon::raft::LogEntry*> entries;
     entries.push_back(entry);
     ASSERT_EQ(1u, log_storage->append_entries(entries, NULL));
     entry->Release();
     delete log_storage;
 
     // reopen
-    log_storage = braft::LogStorage::create(" local://./  data// // log ////");
+    log_storage = melon::raft::LogStorage::create(" local://./  data// // log ////");
     ASSERT_EQ(0, log_storage->init(&cm));
     
     ASSERT_EQ(1, log_storage->first_log_index());
@@ -77,7 +77,7 @@ TEST_F(StorageTest, extra_space_should_be_trimmed) {
     entry = log_storage->get_entry(1);
     ASSERT_TRUE(entry);
     ASSERT_EQ("hello world", entry->data.to_string());
-    ASSERT_EQ(braft::LogId(1, 1), entry->id);
+    ASSERT_EQ(melon::raft::LogId(1, 1), entry->id);
     entry->Release();
     entry = NULL;
 }

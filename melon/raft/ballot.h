@@ -19,7 +19,7 @@
 
 #include "melon/raft/configuration.h"
 
-namespace braft {
+namespace melon::raft {
 
     class Ballot {
     public:

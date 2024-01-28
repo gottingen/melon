@@ -39,30 +39,30 @@
 #include "melon/rpc/details/ssl_helper.h"           // CreateServerSSLContext
 #include "melon/rpc/protocol.h"                     // ListProtocols
 #include "melon/rpc/nshead_service.h"               // NsheadService
-#include "melon/rpc/builtin/bad_method_service.h"   // BadMethodService
-#include "melon/rpc/builtin/get_favicon_service.h"
-#include "melon/rpc/builtin/get_js_service.h"
-#include "melon/rpc/builtin/grpc_health_check_service.h"  // GrpcHealthCheckService
-#include "melon/rpc/builtin/version_service.h"
-#include "melon/rpc/builtin/health_service.h"
-#include "melon/rpc/builtin/list_service.h"
-#include "melon/rpc/builtin/status_service.h"
-#include "melon/rpc/builtin/protobufs_service.h"
-#include "melon/rpc/builtin/threads_service.h"
-#include "melon/rpc/builtin/vlog_service.h"
-#include "melon/rpc/builtin/index_service.h"        // IndexService
-#include "melon/rpc/builtin/connections_service.h"  // ConnectionsService
-#include "melon/rpc/builtin/flags_service.h"        // FlagsService
-#include "melon/rpc/builtin/vars_service.h"         // VarsService
-#include "melon/rpc/builtin/rpcz_service.h"         // RpczService
-#include "melon/rpc/builtin/dir_service.h"          // DirService
-#include "melon/rpc/builtin/pprof_service.h"        // PProfService
-#include "melon/rpc/builtin/bthreads_service.h"     // BthreadsService
-#include "melon/rpc/builtin/ids_service.h"          // IdsService
-#include "melon/rpc/builtin/sockets_service.h"      // SocketsService
-#include "melon/rpc/builtin/hotspots_service.h"     // HotspotsService
-#include "melon/rpc/builtin/prometheus_metrics_service.h"
-#include "melon/rpc/builtin/memory_service.h"
+#include "melon/builtin/bad_method_service.h"   // BadMethodService
+#include "melon/builtin/get_favicon_service.h"
+#include "melon/builtin/get_js_service.h"
+#include "melon/builtin/grpc_health_check_service.h"  // GrpcHealthCheckService
+#include "melon/builtin/version_service.h"
+#include "melon/builtin/health_service.h"
+#include "melon/builtin/list_service.h"
+#include "melon/builtin/status_service.h"
+#include "melon/builtin/protobufs_service.h"
+#include "melon/builtin/threads_service.h"
+#include "melon/builtin/vlog_service.h"
+#include "melon/builtin/index_service.h"        // IndexService
+#include "melon/builtin/connections_service.h"  // ConnectionsService
+#include "melon/builtin/flags_service.h"        // FlagsService
+#include "melon/builtin/vars_service.h"         // VarsService
+#include "melon/builtin/rpcz_service.h"         // RpczService
+#include "melon/builtin/dir_service.h"          // DirService
+#include "melon/builtin/pprof_service.h"        // PProfService
+#include "melon/builtin/bthreads_service.h"     // BthreadsService
+#include "melon/builtin/ids_service.h"          // IdsService
+#include "melon/builtin/sockets_service.h"      // SocketsService
+#include "melon/builtin/hotspots_service.h"     // HotspotsService
+#include "melon/builtin/prometheus_metrics_service.h"
+#include "melon/builtin/memory_service.h"
 #include "melon/rpc/details/method_status.h"
 #include "melon/rpc/load_balancer.h"
 #include "melon/naming/naming_service.h"
@@ -71,7 +71,7 @@
 #include "melon/rpc/trackme.h"
 #include "melon/rpc/restful.h"
 #include "melon/rpc/rtmp.h"
-#include "melon/rpc/builtin/common.h"               // GetProgramName
+#include "melon/builtin/common.h"               // GetProgramName
 #include "melon/rpc/details/tcmalloc_extension.h"
 #include "melon/rpc/rdma/rdma_helper.h"
 

@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BRPC_NAMING_SERVICE_H
-#define BRPC_NAMING_SERVICE_H
+#ifndef MELON_NAMING_NAMING_SERVICE_H_
+#define MELON_NAMING_NAMING_SERVICE_H_
 
 #include <vector>                                   // std::vector
 #include <string>                                   // std::string
@@ -33,45 +33,48 @@ namespace melon {
 
 // Continuing actions to added/removed servers.
 // NOTE: You don't have to implement this class.
-class NamingServiceActions {
-public:
-    virtual ~NamingServiceActions() {}
-    virtual void AddServers(const std::vector<ServerNode>& servers) = 0;
-    virtual void RemoveServers(const std::vector<ServerNode>& servers) = 0;
-    virtual void ResetServers(const std::vector<ServerNode>& servers) = 0;
-};
+    class NamingServiceActions {
+    public:
+        virtual ~NamingServiceActions() {}
+
+        virtual void AddServers(const std::vector<ServerNode> &servers) = 0;
+
+        virtual void RemoveServers(const std::vector<ServerNode> &servers) = 0;
+
+        virtual void ResetServers(const std::vector<ServerNode> &servers) = 0;
+    };
 
 // Mapping a name to ServerNodes.
-class NamingService : public Describable, public Destroyable {
-public:    
-    // Implement this method to get servers associated with `service_name'
-    // in periodic or event-driven manner, call methods of `actions' to
-    // tell RPC system about server changes. This method will be run in
-    // a dedicated bthread without access from other threads, thus the
-    // implementation does NOT need to be thread-safe.
-    // Return 0 on success, error code otherwise.
-    virtual int RunNamingService(const char* service_name,
-                                 NamingServiceActions* actions) = 0;
+    class NamingService : public Describable, public Destroyable {
+    public:
+        // Implement this method to get servers associated with `service_name'
+        // in periodic or event-driven manner, call methods of `actions' to
+        // tell RPC system about server changes. This method will be run in
+        // a dedicated bthread without access from other threads, thus the
+        // implementation does NOT need to be thread-safe.
+        // Return 0 on success, error code otherwise.
+        virtual int RunNamingService(const char *service_name,
+                                     NamingServiceActions *actions) = 0;
 
-    // If this method returns true, RunNamingService will be called without
-    // a dedicated bthread. As the name implies, this is suitable for static
-    // and simple impl, saving the cost of creating a bthread. However most
-    // impl of RunNamingService never quit, thread is a must to prevent the
-    // method from blocking the caller.
-    virtual bool RunNamingServiceReturnsQuickly() { return false; }
+        // If this method returns true, RunNamingService will be called without
+        // a dedicated bthread. As the name implies, this is suitable for static
+        // and simple impl, saving the cost of creating a bthread. However most
+        // impl of RunNamingService never quit, thread is a must to prevent the
+        // method from blocking the caller.
+        virtual bool RunNamingServiceReturnsQuickly() { return false; }
 
-    // Create/destroy an instance.
-    // Caller is responsible for Destroy() the instance after usage.
-    virtual NamingService* New() const = 0;
+        // Create/destroy an instance.
+        // Caller is responsible for Destroy() the instance after usage.
+        virtual NamingService *New() const = 0;
 
-protected:
-    virtual ~NamingService() {}
-};
+    protected:
+        virtual ~NamingService() {}
+    };
 
-inline Extension<const NamingService>* NamingServiceExtension() {
-    return Extension<const NamingService>::instance();
-}
+    inline Extension<const NamingService> *NamingServiceExtension() {
+        return Extension<const NamingService>::instance();
+    }
 
 } // namespace melon
 
-#endif  // BRPC_NAMING_SERVICE_H
+#endif  // MELON_NAMING_NAMING_SERVICE_H_

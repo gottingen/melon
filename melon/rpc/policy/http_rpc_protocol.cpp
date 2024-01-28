@@ -39,7 +39,7 @@
 #include "melon/rpc/rpc_dump.h"                     // SampledRequest
 #include "melon/rpc/http_status_code.h"             // HTTP_STATUS_*
 #include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/builtin/index_service.h"        // IndexService
+#include "melon/builtin/index_service.h"        // IndexService
 #include "melon/rpc/policy/gzip_compress.h"
 #include "melon/rpc/policy/http2_rpc_protocol.h"
 #include "melon/rpc/details/usercode_backup_pool.h"

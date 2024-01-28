@@ -10,7 +10,7 @@
 #include <list>
 #include "melon/raft/file_system_adaptor.h"
 
-class MemoryDirReader : public braft::DirReader {
+class MemoryDirReader : public melon::raft::DirReader {
 public:
     MemoryDirReader(const std::vector<std::string>& names) 
         : _names(names), _pos(0) {}
@@ -51,7 +51,7 @@ struct TreeNode : public butil::RefCountedThreadSafe<TreeNode> {
     TreeNode() {}
 };
 
-class MemoryFileAdaptor : public braft::FileAdaptor {
+class MemoryFileAdaptor : public melon::raft::FileAdaptor {
 public:
     MemoryFileAdaptor(TreeNodeImpl* node_impl) : _node_impl(node_impl) {}
 
@@ -106,9 +106,9 @@ private:
     scoped_refptr<TreeNodeImpl> _node_impl;
 };
 
-class MemoryFileSystemAdaptor : public braft::FileSystemAdaptor {
+class MemoryFileSystemAdaptor : public melon::raft::FileSystemAdaptor {
 public:
-    MemoryFileSystemAdaptor() : braft::FileSystemAdaptor() {
+    MemoryFileSystemAdaptor() : melon::raft::FileSystemAdaptor() {
         _root = new TreeNode;
         _root->name = butil::FilePath::kCurrentDirectory;
         _root->impl = new TreeNodeImpl;
@@ -117,7 +117,7 @@ public:
 
     virtual ~MemoryFileSystemAdaptor() {}
 
-    braft::FileAdaptor* open(const std::string& path, int oflag, 
+    melon::raft::FileAdaptor* open(const std::string& path, int oflag,
                             const ::google::protobuf::Message* file_meta,
                             butil::File::Error* e) {
         (void) file_meta;
@@ -249,7 +249,7 @@ public:
         return node_ptr != NULL && !((*node_ptr)->impl->file);
     }
 
-    braft::DirReader* directory_reader(const std::string& path) {
+    melon::raft::DirReader* directory_reader(const std::string& path) {
         std::unique_lock<bthread::Mutex> lck(_mutex);
         std::vector<std::string> names;
         butil::FilePath p(path);
