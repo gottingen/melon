@@ -74,9 +74,9 @@ EventDispatcher& GetGlobalEventDispatcher(int fd, bthread_tag_t tag) {
 } // namespace melon
 
 #if defined(OS_LINUX)
-    #include "melon/rpc/event_dispatcher_epoll.cpp"
+    #include "melon/rpc/event_dispatcher_epoll.cc"
 #elif defined(OS_MACOSX)
-    #include "melon/rpc/event_dispatcher_kqueue.cpp"
+    #include "melon/rpc/event_dispatcher_kqueue.cc"
 #else
     #error Not implemented
 #endif

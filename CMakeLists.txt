@@ -415,15 +415,15 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif ()
 
 file(GLOB_RECURSE BVAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/var/*.cc")
-file(GLOB_RECURSE BTHREAD_SOURCES "${PROJECT_SOURCE_DIR}/melon/bthread/*.cpp")
+file(GLOB_RECURSE BTHREAD_SOURCES "${PROJECT_SOURCE_DIR}/melon/bthread/*.cc")
 file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cc")
-file(GLOB_RECURSE BRPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cpp")
+file(GLOB_RECURSE BRPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cc")
 file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cc")
 file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
 file(GLOB_RECURSE BUILTIN_SOURCES "${PROJECT_SOURCE_DIR}/melon/builtin/*.cc")
 file(GLOB_RECURSE COMPRESS_SOURCES "${PROJECT_SOURCE_DIR}/melon/compress/*.cc")
 file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cc")
-file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cpp")
+file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cc")
 
 
 foreach (v ${EXCLUDE_SOURCES})
