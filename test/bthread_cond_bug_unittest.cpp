@@ -29,7 +29,7 @@
 #include "melon/bthread/mutex.h"
 #include "melon/butil/logging.h"
 #include "melon/butil/macros.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 
 DEFINE_int64(wait_us, 5, "wait us");
 typedef std::unique_lock<bthread::Mutex> Lock;
@@ -41,9 +41,9 @@ const size_t        g_capacity = 2000;
 const int PRODUCER_NUM = 5;
 struct ProducerStat {
     std::atomic<int> loop_count;
-    bvar::Adder<int> wait_count;
-    bvar::Adder<int> wait_timeout_count;
-    bvar::Adder<int> wait_success_count;
+    melon::var::Adder<int> wait_count;
+    melon::var::Adder<int> wait_timeout_count;
+    melon::var::Adder<int> wait_success_count;
 };
 ProducerStat g_stat[PRODUCER_NUM];
 

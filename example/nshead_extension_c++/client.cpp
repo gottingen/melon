@@ -24,9 +24,9 @@
 #include <melon/butil/strings/string_piece.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/nshead_message.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 
-bvar::LatencyRecorder g_latency_recorder("client");
+melon::var::LatencyRecorder g_latency_recorder("client");
 
 DEFINE_string(server, "0.0.0.0:8010", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");

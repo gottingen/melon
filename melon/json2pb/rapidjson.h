@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef  BRPC_JSON2PB_RAPIDJSON_H
-#define  BRPC_JSON2PB_RAPIDJSON_H
+#ifndef  MELON_JSON2PB_RAPIDJSON_H_
+#define  MELON_JSON2PB_RAPIDJSON_H_
 
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
@@ -45,4 +45,4 @@
 #pragma GCC diagnostic pop
 #endif
 
-#endif  //BRPC_JSON2PB_RAPIDJSON_H
+#endif  // MELON_JSON2PB_RAPIDJSON_H_

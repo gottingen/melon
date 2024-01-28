@@ -21,7 +21,7 @@
 #include "melon/butil/logging.h"
 #include "melon/butil/time.h"
 #include "melon/rpc/server.h"
-#include "melon/bvar/variable.h"
+#include "melon/var/variable.h"
 #include "test.pb.h"
 
 #ifdef BRPC_WITH_RDMA
@@ -46,7 +46,7 @@ public:
         uint64_t now = butil::monotonic_time_us();
         if (now > last && now - last > 100000) {
             if (g_last_time.exchange(now, butil::memory_order_relaxed) == last) {
-                response->set_cpu_usage(bvar::Variable::describe_exposed("process_cpu_usage"));
+                response->set_cpu_usage(melon::var::Variable::describe_exposed("process_cpu_usage"));
             } else {
                 response->set_cpu_usage("");
             }

@@ -29,14 +29,14 @@
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "127.0.0.1:6379", "IP Address of server");
 DEFINE_int32(timeout_ms, 1000, "RPC timeout in milliseconds");
-DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
+DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
 
 namespace melon {
-const char* logo();
+    const char *logo();
 }
 
 // Send `command' to redis-server via `channel'
-static bool access_redis(melon::Channel& channel, const char* command) {
+static bool access_redis(melon::Channel &channel, const char *command) {
     melon::RedisRequest request;
     if (!request.AddCommand(command)) {
         LOG(ERROR) << "Fail to add command";
@@ -44,7 +44,7 @@ static bool access_redis(melon::Channel& channel, const char* command) {
     }
     melon::RedisResponse response;
     melon::Controller cntl;
-    channel.CallMethod(NULL, &cntl, &request, &response, NULL);
+    channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     if (cntl.Failed()) {
         LOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
         return false;
@@ -56,7 +56,7 @@ static bool access_redis(melon::Channel& channel, const char* command) {
 
 // For freeing the memory returned by readline().
 struct Freer {
-    void operator()(char* mem) {
+    void operator()(char *mem) {
         free(mem);
     }
 };
@@ -66,6 +66,7 @@ static void dummy_handler(int) {}
 // The getc for readline. The default getc retries reading when meeting
 // EINTR, which is not what we want.
 static bool g_canceled = false;
+
 static int cli_getc(FILE *stream) {
     int c = getc(stream);
     if (c == EOF && errno == EINTR) {
@@ -75,15 +76,15 @@ static int cli_getc(FILE *stream) {
     return c;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // Parse gflags. We recommend you to use gflags as well.
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::Channel channel;
-    
-    // Initialize the channel, NULL means using default options.
+
+    // Initialize the channel, nullptr means using default options.
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_REDIS;
     options.connection_type = FLAGS_connection_type;
@@ -98,7 +99,7 @@ int main(int argc, char* argv[]) {
         // We need this dummy signal hander to interrupt getc (and returning
         // EINTR), SIG_IGN did not work.
         signal(SIGINT, dummy_handler);
-        
+
         // Hook getc of readline.
         rl_getc_function = cli_getc;
 
@@ -113,7 +114,7 @@ int main(int argc, char* argv[]) {
             char prompt[64];
             snprintf(prompt, sizeof(prompt), "redis %s> ", FLAGS_server.c_str());
             std::unique_ptr<char, Freer> command(readline(prompt));
-            if (command == NULL || *command == '\0') {
+            if (command == nullptr || *command == '\0') {
                 if (g_canceled) {
                     // No input after the prompt and user pressed Ctrl-C,
                     // quit the CLI.

@@ -24,9 +24,9 @@
 #include "melon/rpc/closure_guard.h"             // ClosureGuard
 #include "melon/builtin/prometheus_metrics_service.h"
 #include "melon/builtin/common.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 
-namespace bvar {
+namespace melon::var {
     DECLARE_int32(bvar_latency_p1);
     DECLARE_int32(bvar_latency_p2);
     DECLARE_int32(bvar_latency_p3);
@@ -38,14 +38,14 @@ namespace melon {
     // Defined in server.cpp
     extern const char *const g_server_info_prefix;
 
-    // This is a class that convert bvar result to prometheus output.
+    // This is a class that convert var result to prometheus output.
     // Currently the output only includes gauge and summary for two
     // reasons:
     // 1) We cannot tell gauge and counter just from name and what's
     // more counter is just another gauge.
     // 2) Histogram and summary is equivalent except that histogram
     // calculates quantiles in the server side.
-    class PrometheusMetricsDumper : public bvar::Dumper {
+    class PrometheusMetricsDumper : public melon::var::Dumper {
     public:
         explicit PrometheusMetricsDumper(butil::IOBufBuilder *os,
                                          const std::string &server_prefix)
@@ -112,9 +112,9 @@ namespace melon {
     PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const butil::StringPiece &name,
                                                           const butil::StringPiece &desc) {
         static std::string latency_names[] = {
-                butil::string_printf("_latency_%d", (int) bvar::FLAGS_bvar_latency_p1),
-                butil::string_printf("_latency_%d", (int) bvar::FLAGS_bvar_latency_p2),
-                butil::string_printf("_latency_%d", (int) bvar::FLAGS_bvar_latency_p3),
+                butil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p1),
+                butil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p2),
+                butil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p3),
                 "_latency_999", "_latency_9999", "_max_latency"
         };
         CHECK(NPERCENTILES == arraysize(latency_names));
@@ -128,7 +128,7 @@ namespace melon {
             SummaryItems *si = &_m[metric_name.as_string()];
             si->latency_percentiles[i] = desc_str;
             if (i == NPERCENTILES - 1) {
-                // '_max_latency' is the last suffix name that appear in the sorted bvar
+                // '_max_latency' is the last suffix name that appear in the sorted var
                 // list, which means all related percentiles have been gathered and we are
                 // ready to output a Summary.
                 si->metric_name = metric_name.as_string();
@@ -167,13 +167,13 @@ namespace melon {
         *_os << "# HELP " << si->metric_name << '\n'
              << "# TYPE " << si->metric_name << " summary\n"
              << si->metric_name << "{quantile=\""
-             << (double) (bvar::FLAGS_bvar_latency_p1) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_bvar_latency_p1) / 100 << "\"} "
              << si->latency_percentiles[0] << '\n'
              << si->metric_name << "{quantile=\""
-             << (double) (bvar::FLAGS_bvar_latency_p2) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_bvar_latency_p2) / 100 << "\"} "
              << si->latency_percentiles[1] << '\n'
              << si->metric_name << "{quantile=\""
-             << (double) (bvar::FLAGS_bvar_latency_p3) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_bvar_latency_p3) / 100 << "\"} "
              << si->latency_percentiles[2] << '\n'
              << si->metric_name << "{quantile=\"0.999\"} "
              << si->latency_percentiles[3] << '\n'
@@ -184,7 +184,7 @@ namespace melon {
              << si->metric_name << "{quantile=\"avg\"} "
              << si->latency_avg << '\n'
              << si->metric_name << "_sum "
-             // There is no sum of latency in bvar output, just use
+             // There is no sum of latency in var output, just use
              // average * count as approximation
              << si->latency_avg * si->count << '\n'
              << si->metric_name << "_count " << si->count << '\n';
@@ -207,15 +207,15 @@ namespace melon {
     int DumpPrometheusMetricsToIOBuf(butil::IOBuf *output) {
         butil::IOBufBuilder os;
         PrometheusMetricsDumper dumper(&os, g_server_info_prefix);
-        const int ndump = bvar::Variable::dump_exposed(&dumper, NULL);
+        const int ndump = melon::var::Variable::dump_exposed(&dumper, NULL);
         if (ndump < 0) {
             return -1;
         }
         os.move_to(*output);
 
-        if (bvar::FLAGS_bvar_max_dump_multi_dimension_metric_number > 0) {
+        if (melon::var::FLAGS_bvar_max_dump_multi_dimension_metric_number > 0) {
             PrometheusMetricsDumper dumper_md(&os, g_server_info_prefix);
-            const int ndump_md = bvar::MVariable::dump_exposed(&dumper_md, NULL);
+            const int ndump_md = melon::var::MVariable::dump_exposed(&dumper_md, NULL);
             if (ndump_md < 0) {
                 return -1;
             }

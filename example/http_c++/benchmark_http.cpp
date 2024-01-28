@@ -22,7 +22,7 @@
 #include <melon/butil/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 
 DEFINE_string(data, "", "POST this data to the http server");
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
@@ -36,7 +36,7 @@ DEFINE_bool(dont_fail, false, "Print fatal when some call failed");
 DEFINE_int32(dummy_port, -1, "Launch dummy server at this port");
 DEFINE_string(protocol, "http", "Client-side protocol");
 
-bvar::LatencyRecorder g_latency_recorder("client");
+melon::var::LatencyRecorder g_latency_recorder("client");
 
 static void* sender(void* arg) {
     melon::Channel* channel = static_cast<melon::Channel*>(arg);

@@ -19,7 +19,7 @@
 #include <ostream>
 #include <vector>                           // std::vector
 #include "melon/butil/string_splitter.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
@@ -28,7 +28,7 @@
 #include "melon/builtin/common.h"
 #include "melon/builtin/vars_service.h"
 
-namespace bvar {
+namespace melon::var {
     DECLARE_bool(quote_vector);
 }
 
@@ -36,19 +36,19 @@ namespace bvar {
 namespace melon {
 
     // TODO(gejun): parameterize.
-    // This function returns the script to make bvar plot-able.
-    // The idea: flot graphs were attached to plot-able bvar as the next <div>
-    // when the html was generated. When user clicks a bvar, send a request to
-    // server to get the value series of the bvar. When the response comes back,
+    // This function returns the script to make var plot-able.
+    // The idea: flot graphs were attached to plot-able var as the next <div>
+    // when the html was generated. When user clicks a var, send a request to
+    // server to get the value series of the var. When the response comes back,
     // plot and show the graph. Requests will be sent to server every 1 second
-    // until user clicks the bvar and hide the graph.
+    // until user clicks the var and hide the graph.
     void PutVarsHeading(std::ostream &os, bool expand_all) {
         os << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"
               "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/flot_min\"></script>\n"
            << TabsHead()
            << "<style type=\"text/css\">\n"
               "#layer1 { margin:0; padding:0; width:1111px; }\n"
-              // style of plot-able bvar
+              // style of plot-able var
               ".variable {\n"
               "  margin:0px;\n"
               "  color:#000000;\n"
@@ -56,7 +56,7 @@ namespace melon {
               "  position:relative;\n"
               "  background-color:#ffffff;\n"
               "}\n"
-              // style of non-plot-able bvar, the difference with .variable is only
+              // style of non-plot-able var, the difference with .variable is only
               // the cursor .
               ".nonplot-variable {\n"
               "  margin:0px;\n"
@@ -80,15 +80,15 @@ namespace melon {
               "</style>\n"
 
               "<script type=\"text/javascript\">\n"
-              // Mark if a bvar was ever clicked.
+              // Mark if a var was ever clicked.
               "var everEnabled = {}\n"
-              // Mark if a bvar was enabled plotting
+              // Mark if a var was enabled plotting
               "var enabled = {}\n"
-              // the bvar under cursor
+              // the var under cursor
               "var hovering_var = \"\"\n"
               // timeout id of last server call.
               "var timeoutId = {}\n"
-              // last plot of the bvar.
+              // last plot of the var.
               "var lastPlot = {}\n"
 
               "function prepareGraphs() {\n"
@@ -212,7 +212,7 @@ namespace melon {
            "    return x;\n"
            "  }\n"
            "}\n"
-           // Get value series of bvar from server.
+           // Get value series of var from server.
            "function fetchData(var_name) {\n"
            "  function onDataReceived(series) {\n"
            "    if (hovering_var != var_name) {\n"
@@ -224,7 +224,7 @@ namespace melon {
            "        $(\"#value-\" + var_name).html(series.data[series.data.length - 1][1]);\n"
            "      } else {\n"
            "        lastPlot[var_name] = $.plot(\"#\" + var_name, series, trendOptions);\n"
-           << (bvar::FLAGS_quote_vector ?
+           << (melon::var::FLAGS_quote_vector ?
                "        var newValue = '\"[';\n" :
                "        var newValue = '[';\n") <<
            "        var i;\n"
@@ -233,7 +233,7 @@ namespace melon {
            "            var data = series[i].data;\n"
            "            newValue += data[data.length - 1][1];\n"
            "        }\n"
-           << (bvar::FLAGS_quote_vector ?
+           << (melon::var::FLAGS_quote_vector ?
                "        newValue += ']\"';\n" :
                "        newValue += ']';\n") <<
            "        $(\"#value-\" + var_name).html(newValue);\n"
@@ -258,7 +258,7 @@ namespace melon {
 // trailing colon from $1
     static const std::string VAR_SEP = " : ";
 
-    class VarsDumper : public bvar::Dumper {
+    class VarsDumper : public melon::var::Dumper {
     public:
         explicit VarsDumper(butil::IOBufBuilder &os, bool use_html)
                 : _os(os), _use_html(use_html) {}
@@ -266,9 +266,9 @@ namespace melon {
         bool dump(const std::string &name, const butil::StringPiece &desc) {
             bool plot = false;
             if (_use_html) {
-                bvar::SeriesOptions series_options;
+                melon::var::SeriesOptions series_options;
                 series_options.test_only = true;
-                const int rc = bvar::Variable::describe_series_exposed(
+                const int rc = melon::var::Variable::describe_series_exposed(
                         name, _os, series_options);
                 plot = (rc == 0);
                 if (plot) {
@@ -313,14 +313,14 @@ namespace melon {
         Controller *cntl = static_cast<Controller *>(cntl_base);
         if (cntl->http_request().uri().GetQuery("series") != NULL) {
             butil::IOBufBuilder os;
-            bvar::SeriesOptions series_options;
-            const int rc = bvar::Variable::describe_series_exposed(
+            melon::var::SeriesOptions series_options;
+            const int rc = melon::var::Variable::describe_series_exposed(
                     cntl->http_request().unresolved_path(), os, series_options);
             if (rc == 0) {
                 cntl->http_response().set_content_type("application/json");
                 os.move_to(cntl->response_attachment());
             } else if (rc < 0) {
-                cntl->SetFailed(ENOMETHOD, "Fail to find any bvar by `%s'",
+                cntl->SetFailed(ENOMETHOD, "Fail to find any var by `%s'",
                                 cntl->http_request().unresolved_path().c_str());
             } else {
                 cntl->SetFailed(ENODATA, "`%s' does not have value series",
@@ -408,18 +408,18 @@ namespace melon {
                   "<div id=\"layer1\">\n";
         }
         VarsDumper dumper(os, use_html);
-        bvar::DumpOptions options;
+        melon::var::DumpOptions options;
         options.question_mark = '$';
         options.display_filter =
-                (use_html ? bvar::DISPLAY_ON_HTML : bvar::DISPLAY_ON_PLAIN_TEXT);
+                (use_html ? melon::var::DISPLAY_ON_HTML : melon::var::DISPLAY_ON_PLAIN_TEXT);
         options.white_wildcards = cntl->http_request().unresolved_path();
-        const int ndump = bvar::Variable::dump_exposed(&dumper, &options);
+        const int ndump = melon::var::Variable::dump_exposed(&dumper, &options);
         if (ndump < 0) {
             cntl->SetFailed("Fail to dump vars");
             return;
         }
         if (!options.white_wildcards.empty() && ndump == 0) {
-            cntl->SetFailed(ENOMETHOD, "Fail to find any bvar by `%s'",
+            cntl->SetFailed(ENOMETHOD, "Fail to find any var by `%s'",
                             options.white_wildcards.c_str());
         }
         if (with_tabs) {

@@ -218,7 +218,7 @@ void SocketMap::ShowSocketMapInBvarIfNeed() {
         !_exposed_in_bvar.exchange(true, butil::memory_order_release)) {
         char namebuf[32];
         int len = snprintf(namebuf, sizeof(namebuf), "rpc_socketmap_%p", this);
-        _this_map_bvar = new bvar::PassiveStatus<std::string>(
+        _this_map_bvar = new melon::var::PassiveStatus<std::string>(
             butil::StringPiece(namebuf, len), PrintSocketMap, this);
     }
 }

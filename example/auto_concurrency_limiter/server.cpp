@@ -76,7 +76,7 @@ void DisplayStage(const test::Stage& stage) {
 
 butil::atomic<int> cnt(0);
 butil::atomic<int> atomic_sleep_time(0);
-bvar::PassiveStatus<int> atomic_sleep_time_bvar(cast_func, &atomic_sleep_time);
+melon::var::PassiveStatus<int> atomic_sleep_time_bvar(cast_func, &atomic_sleep_time);
 
 namespace bthread {
 DECLARE_int32(bthread_concurrency);

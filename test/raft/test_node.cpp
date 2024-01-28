@@ -19,7 +19,7 @@
 #include "../test/util.h"
 
 namespace melon::raft {
-extern bvar::Adder<int64_t> g_num_nodes;
+extern melon::var::Adder<int64_t> g_num_nodes;
 DECLARE_int32(raft_max_parallel_append_entries_rpc_num);
 DECLARE_bool(raft_enable_append_entries_cache);
 DECLARE_int32(raft_max_append_entries_cache_size);

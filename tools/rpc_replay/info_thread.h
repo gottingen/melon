@@ -19,14 +19,14 @@
 #define BRPC_RPC_REPLAY_INFO_THREAD_H
 
 #include <pthread.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 
 namespace melon {
 
 struct InfoThreadOptions {
-    bvar::LatencyRecorder* latency_recorder;
-    bvar::Adder<int64_t>* sent_count;
-    bvar::Adder<int64_t>* error_count;
+    melon::var::LatencyRecorder* latency_recorder;
+    melon::var::Adder<int64_t>* sent_count;
+    melon::var::Adder<int64_t>* error_count;
 
     InfoThreadOptions()
         : latency_recorder(NULL)

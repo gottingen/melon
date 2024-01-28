@@ -43,8 +43,8 @@ DEFINE_int32(dummy_port, -1, "Launch dummy server at this port");
 
 std::string g_attachment;
 
-bvar::LatencyRecorder g_latency_recorder("client");
-bvar::Adder<int> g_error_count("client_error_count");
+melon::var::LatencyRecorder g_latency_recorder("client");
+melon::var::Adder<int> g_error_count("client_error_count");
 butil::static_atomic<int> g_sender_count = BUTIL_STATIC_ATOMIC_INIT(0);
 
 static void* sender(void* arg) {

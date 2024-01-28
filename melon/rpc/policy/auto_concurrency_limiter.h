@@ -18,7 +18,7 @@
 #ifndef BRPC_POLICY_AUTO_CONCURRENCY_LIMITER_H
 #define BRPC_POLICY_AUTO_CONCURRENCY_LIMITER_H
 
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "melon/butil/containers/bounded_queue.h"
 #include "melon/rpc/concurrency_limiter.h"
 

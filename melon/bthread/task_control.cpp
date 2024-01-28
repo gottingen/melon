@@ -192,12 +192,12 @@ int TaskControl::init(int concurrency) {
     for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
         _tagged_ngroup[i].store(0, std::memory_order_relaxed);
         auto tag_str = std::to_string(i);
-        _tagged_nworkers.push_back(new bvar::Adder<int64_t>("bthread_worker_count", tag_str));
-        _tagged_cumulated_worker_time.push_back(new bvar::PassiveStatus<double>(
+        _tagged_nworkers.push_back(new melon::var::Adder<int64_t>("bthread_worker_count", tag_str));
+        _tagged_cumulated_worker_time.push_back(new melon::var::PassiveStatus<double>(
             get_cumulated_worker_time_from_this_with_tag, new CumulatedWithTagArgs{this, i}));
-        _tagged_worker_usage_second.push_back(new bvar::PerSecond<bvar::PassiveStatus<double>>(
+        _tagged_worker_usage_second.push_back(new melon::var::PerSecond<melon::var::PassiveStatus<double>>(
             "bthread_worker_usage", tag_str, _tagged_cumulated_worker_time[i], 1));
-        _tagged_nbthreads.push_back(new bvar::Adder<int64_t>("bthread_count", tag_str));
+        _tagged_nbthreads.push_back(new melon::var::Adder<int64_t>("bthread_count", tag_str));
     }
 
     // Make sure TimerThread is ready.
@@ -527,12 +527,12 @@ int64_t TaskControl::get_cumulated_signal_count() {
     return c;
 }
 
-bvar::LatencyRecorder* TaskControl::create_exposed_pending_time() {
+melon::var::LatencyRecorder* TaskControl::create_exposed_pending_time() {
     bool is_creator = false;
     _pending_time_mutex.lock();
-    bvar::LatencyRecorder* pt = _pending_time.load(butil::memory_order_consume);
+    melon::var::LatencyRecorder* pt = _pending_time.load(butil::memory_order_consume);
     if (!pt) {
-        pt = new bvar::LatencyRecorder;
+        pt = new melon::var::LatencyRecorder;
         _pending_time.store(pt, butil::memory_order_release);
         is_creator = true;
     }

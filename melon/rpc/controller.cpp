@@ -27,7 +27,7 @@
 #include "melon/butil/time.h"
 #include "melon/bthread/bthread.h"
 #include "melon/bthread/unstable.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/socket_map.h"
 #include "melon/rpc/channel.h"
@@ -112,7 +112,7 @@ static void PrintRevision(std::ostream& os, void*) {
     os << "undefined";
 #endif
 }
-static bvar::PassiveStatus<std::string> s_rpc_revision(
+static melon::var::PassiveStatus<std::string> s_rpc_revision(
     "rpc_revision", PrintRevision, NULL);
 
 static const int RETRY_AVOIDANCE = 8;
@@ -127,12 +127,12 @@ const Controller* GetSubControllerOfSelectiveChannel(
 DECLARE_bool(usercode_in_pthread);
 DECLARE_bool(usercode_in_coroutine);
 static const int MAX_RETRY_COUNT = 1000;
-static bvar::Adder<int64_t>* g_ncontroller = NULL;
+static melon::var::Adder<int64_t>* g_ncontroller = NULL;
 
 static pthread_once_t s_create_vars_once = PTHREAD_ONCE_INIT;
 
 static void CreateVars() {
-    g_ncontroller = new bvar::Adder<int64_t>("rpc_controller_count");
+    g_ncontroller = new melon::var::Adder<int64_t>("rpc_controller_count");
 }
 
 Controller::Controller() {

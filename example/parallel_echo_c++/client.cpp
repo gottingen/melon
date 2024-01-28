@@ -44,9 +44,9 @@ DEFINE_int32(dummy_port, -1, "Launch dummy server at this port");
 
 std::string g_request;
 std::string g_attachment;
-bvar::LatencyRecorder g_latency_recorder("client");
-bvar::Adder<int> g_error_count("client_error_count");
-bvar::LatencyRecorder* g_sub_channel_latency = NULL;
+melon::var::LatencyRecorder g_latency_recorder("client");
+melon::var::Adder<int> g_error_count("client_error_count");
+melon::var::LatencyRecorder* g_sub_channel_latency = NULL;
 
 static void* sender(void* arg) {
     // Normally, you should not call a Channel directly, but instead construct
@@ -147,8 +147,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Initialize bvar for sub channel
-    g_sub_channel_latency = new bvar::LatencyRecorder[FLAGS_channel_num];
+    // Initialize var for sub channel
+    g_sub_channel_latency = new melon::var::LatencyRecorder[FLAGS_channel_num];
     for (int i = 0; i < FLAGS_channel_num; ++i) {
         std::string name;
         butil::string_printf(&name, "client_sub_%d", i);

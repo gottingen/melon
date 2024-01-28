@@ -30,7 +30,7 @@ DEFINE_int32(timeout_ms, 1000, "Timeout for each request");
 DEFINE_string(conf, "", "Configuration of the raft group");
 DEFINE_string(group, "Counter", "Id of the replication group");
 
-bvar::LatencyRecorder g_latency_recorder("counter_client");
+melon::var::LatencyRecorder g_latency_recorder("counter_client");
 
 static void* sender(void* arg) {
     while (!melon::IsAskedToQuit()) {

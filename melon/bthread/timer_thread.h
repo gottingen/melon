@@ -38,7 +38,7 @@ struct TimerThreadOptions {
     // Default: 13
     size_t num_buckets;
 
-    // If this field is not empty, some bvar for reporting stats of TimerThread
+    // If this field is not empty, some var for reporting stats of TimerThread
     // will be exposed with this prefix.
     // Default: ""
     std::string bvar_prefix;

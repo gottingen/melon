@@ -27,8 +27,8 @@
 #include <gtest/gtest.h>
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
-#include "melon/bvar/bvar.h"
-#include "melon/bvar/multi_dimension.h"
+#include "melon/var/var.h"
+#include "melon/var/multi_dimension.h"
 
 static const int num_thread = 24;
 
@@ -40,9 +40,9 @@ static const int labels_count = idc_count * method_count * status_count;
 static const std::list<std::string> labels = {"idc", "method", "status"};
 
 struct thread_perf_data {
-    bvar::MVariable* mbvar;
-    bvar::Variable*  rbvar;
-    bvar::Variable*  wbvar;
+    melon::var::MVariable* mbvar;
+    melon::var::Variable*  rbvar;
+    melon::var::Variable*  wbvar;
 };
 
 class MVariableTest : public testing::Test {
@@ -65,11 +65,11 @@ class HELLO {};
 TEST_F(MVariableTest, expose) {
     std::vector<std::string> list_exposed_vars;
     std::list<std::string> labels_value1 {"bj", "get", "200"};
-    bvar::MultiDimension<bvar::Adder<int> > my_madder1(labels);
-    ASSERT_EQ(0UL, bvar::MVariable::count_exposed());
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder1(labels);
+    ASSERT_EQ(0UL, melon::var::MVariable::count_exposed());
     my_madder1.expose("request_count_madder");
-    ASSERT_EQ(1UL, bvar::MVariable::count_exposed());
-    bvar::Adder<int>* my_adder1 = my_madder1.get_stats(labels_value1);
+    ASSERT_EQ(1UL, melon::var::MVariable::count_exposed());
+    melon::var::Adder<int>* my_adder1 = my_madder1.get_stats(labels_value1);
     ASSERT_TRUE(my_adder1);
     ASSERT_STREQ("request_count_madder", my_madder1.name().c_str());
 
@@ -102,33 +102,33 @@ TEST_F(MVariableTest, expose) {
     list_exposed_vars.push_back("request_count_madder");
 
     ASSERT_EQ(1UL, my_madder1.count_stats());
-    ASSERT_EQ(1UL, bvar::MVariable::count_exposed());
+    ASSERT_EQ(1UL, melon::var::MVariable::count_exposed());
 
     std::list<std::string> labels2 {"user", "url", "cost"};
-    bvar::MultiDimension<bvar::Adder<int> > my_madder2("client_url", labels2);
-    ASSERT_EQ(2UL, bvar::MVariable::count_exposed());
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder2("client_url", labels2);
+    ASSERT_EQ(2UL, melon::var::MVariable::count_exposed());
     list_exposed_vars.push_back("client_url");
 
     std::list<std::string> labels3 {"product", "system", "module"};
-    bvar::MultiDimension<bvar::Adder<int> > my_madder3("request_from", labels3);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder3("request_from", labels3);
     list_exposed_vars.push_back("request_from");
-    ASSERT_EQ(3UL, bvar::MVariable::count_exposed());
+    ASSERT_EQ(3UL, melon::var::MVariable::count_exposed());
 
     std::vector<std::string> exposed_vars;
-    bvar::MVariable::list_exposed(&exposed_vars);
+    melon::var::MVariable::list_exposed(&exposed_vars);
     ASSERT_EQ(3, exposed_vars.size());
 
     my_madder3.hide();
-    ASSERT_EQ(2UL, bvar::MVariable::count_exposed());
+    ASSERT_EQ(2UL, melon::var::MVariable::count_exposed());
     list_exposed_vars.pop_back();
     exposed_vars.clear();
-    bvar::MVariable::list_exposed(&exposed_vars);
+    melon::var::MVariable::list_exposed(&exposed_vars);
     ASSERT_EQ(2, exposed_vars.size());
 }
 
 TEST_F(MVariableTest, labels) {
     std::list<std::string> labels_value1 {"bj", "get", "200"};
-    bvar::MultiDimension<bvar::Adder<int> > my_madder1("request_count_madder", labels);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder1("request_count_madder", labels);
 
     ASSERT_EQ(labels.size(), my_madder1.count_labels());
     ASSERT_STREQ("request_count_madder", my_madder1.name().c_str());
@@ -147,7 +147,7 @@ TEST_F(MVariableTest, labels) {
         }
     }
     ASSERT_EQ(labels_too_long_count, labels_too_long.size());
-    bvar::MultiDimension<bvar::Adder<int> > my_madder2("request_labels_too_long", labels_too_long);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder2("request_labels_too_long", labels_too_long);
     ASSERT_EQ(10, my_madder2.count_labels());
     ASSERT_EQ(labels_max, my_madder2.labels());
 }
@@ -168,50 +168,50 @@ TEST_F(MVariableTest, dump) {
     GFLAGS_NS::SetCommandLineOption("mbvar_dump_prefix", "my_mdump_prefix");
     GFLAGS_NS::SetCommandLineOption("mbvar_dump_format", "common");
 
-    bvar::MultiDimension<bvar::Adder<int> > my_madder("dump_adder", labels);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder("dump_adder", labels);
     std::list<std::string> labels_value1 {"gz", "post", "200"};
-    bvar::Adder<int>* adder1 = my_madder.get_stats(labels_value1);
+    melon::var::Adder<int>* adder1 = my_madder.get_stats(labels_value1);
     ASSERT_TRUE(adder1);
     *adder1 << 1 << 3 << 5;
 
     std::list<std::string> labels_value2 {"tc", "get", "200"};
-    bvar::Adder<int>* adder2 = my_madder.get_stats(labels_value2);
+    melon::var::Adder<int>* adder2 = my_madder.get_stats(labels_value2);
     ASSERT_TRUE(adder2);
     *adder2 << 2 << 4 << 6;
 
     std::list<std::string> labels_value3 {"jx", "post", "500"};
-    bvar::Adder<int>* adder3 = my_madder.get_stats(labels_value3);
+    melon::var::Adder<int>* adder3 = my_madder.get_stats(labels_value3);
     ASSERT_TRUE(adder3);
     *adder3 << 3 << 6 << 9;
 
-    bvar::MultiDimension<bvar::Maxer<int> > my_mmaxer("dump_maxer", labels);
-    bvar::Maxer<int>* maxer1 = my_mmaxer.get_stats(labels_value1);
+    melon::var::MultiDimension<melon::var::Maxer<int> > my_mmaxer("dump_maxer", labels);
+    melon::var::Maxer<int>* maxer1 = my_mmaxer.get_stats(labels_value1);
     ASSERT_TRUE(maxer1);
     *maxer1 << 3 << 1 << 5;
 
-    bvar::Maxer<int>* maxer2 = my_mmaxer.get_stats(labels_value2);
+    melon::var::Maxer<int>* maxer2 = my_mmaxer.get_stats(labels_value2);
     ASSERT_TRUE(maxer2);
     *maxer2 << 2 << 6 << 4;
 
-    bvar::Maxer<int>* maxer3 = my_mmaxer.get_stats(labels_value3);
+    melon::var::Maxer<int>* maxer3 = my_mmaxer.get_stats(labels_value3);
     ASSERT_TRUE(maxer3);
     *maxer3 << 9 << 6 << 3;
 
-    bvar::MultiDimension<bvar::Miner<int> > my_mminer("dump_miner", labels);
-    bvar::Miner<int>* miner1 = my_mminer.get_stats(labels_value1);
+    melon::var::MultiDimension<melon::var::Miner<int> > my_mminer("dump_miner", labels);
+    melon::var::Miner<int>* miner1 = my_mminer.get_stats(labels_value1);
     ASSERT_TRUE(miner1);
     *miner1 << 3 << 1 << 5;
 
-    bvar::Miner<int>* miner2 = my_mminer.get_stats(labels_value2);
+    melon::var::Miner<int>* miner2 = my_mminer.get_stats(labels_value2);
     ASSERT_TRUE(miner2);
     *miner2 << 2 << 6 << 4;
 
-    bvar::Miner<int>* miner3 = my_mminer.get_stats(labels_value3);
+    melon::var::Miner<int>* miner3 = my_mminer.get_stats(labels_value3);
     ASSERT_TRUE(miner3);
     *miner3 << 9 << 6 << 3;
 
-    bvar::MultiDimension<bvar::LatencyRecorder> my_mlatencyrecorder("dump_latencyrecorder", labels);
-    bvar::LatencyRecorder* my_latencyrecorder1 = my_mlatencyrecorder.get_stats(labels_value1);
+    melon::var::MultiDimension<melon::var::LatencyRecorder> my_mlatencyrecorder("dump_latencyrecorder", labels);
+    melon::var::LatencyRecorder* my_latencyrecorder1 = my_mlatencyrecorder.get_stats(labels_value1);
     ASSERT_TRUE(my_latencyrecorder1);
     *my_latencyrecorder1 << 1 << 3 << 5;
     *my_latencyrecorder1 << 2 << 4 << 6;
@@ -227,11 +227,11 @@ TEST_F(MVariableTest, dump) {
 TEST_F(MVariableTest, test_describe_exposed) {
     std::list<std::string> labels_value1 {"bj", "get", "200"};
     std::string bvar_name("request_count_describe");
-    bvar::MultiDimension<bvar::Adder<int> > my_madder1(bvar_name, labels);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder1(bvar_name, labels);
 
-    std::string describe_str = bvar::MVariable::describe_exposed(bvar_name);
+    std::string describe_str = melon::var::MVariable::describe_exposed(bvar_name);
 
     std::ostringstream describe_oss;
-    ASSERT_EQ(0, bvar::MVariable::describe_exposed(bvar_name, describe_oss));
+    ASSERT_EQ(0, melon::var::MVariable::describe_exposed(bvar_name, describe_oss));
     ASSERT_STREQ(describe_str.c_str(), describe_oss.str().c_str());
 }

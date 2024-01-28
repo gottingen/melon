@@ -45,14 +45,14 @@ struct UserCode {
 struct UserCodeBackupPool {
     // Run user code when parallelism of user code reaches the threshold
     std::deque<UserCode> queue;
-    bvar::PassiveStatus<int> inplace_var;
-    bvar::PassiveStatus<size_t> queue_size_var;
-    bvar::Adder<size_t> inpool_count;
-    bvar::PerSecond<bvar::Adder<size_t> > inpool_per_second;
+    melon::var::PassiveStatus<int> inplace_var;
+    melon::var::PassiveStatus<size_t> queue_size_var;
+    melon::var::Adder<size_t> inpool_count;
+    melon::var::PerSecond<melon::var::Adder<size_t> > inpool_per_second;
     // NOTE: we don't use Adder<double> directly which does not compile in gcc 3.4
-    bvar::Adder<int64_t> inpool_elapse_us;
-    bvar::PassiveStatus<double> inpool_elapse_s;
-    bvar::PerSecond<bvar::PassiveStatus<double> > pool_usage;
+    melon::var::Adder<int64_t> inpool_elapse_us;
+    melon::var::PassiveStatus<double> inpool_elapse_s;
+    melon::var::PerSecond<melon::var::PassiveStatus<double> > pool_usage;
 
     UserCodeBackupPool();
     int Init();
@@ -76,7 +76,7 @@ static size_t GetUserCodeQueueSize(void*) {
 }
 
 static double GetInPoolElapseInSecond(void* arg) {
-    return static_cast<bvar::Adder<int64_t>*>(arg)->get_value() / 1000000.0;
+    return static_cast<melon::var::Adder<int64_t>*>(arg)->get_value() / 1000000.0;
 }
 
 UserCodeBackupPool::UserCodeBackupPool()

@@ -46,8 +46,8 @@ if fgrep -q " src/baidu/rpc/" $PATCHFILE; then
 elif fgrep -q " bthread/" $PATCHFILE; then
     TEST_PREFIX="bthread_"
     TEST_SUFFIX="_unittest"
-elif fgrep -q " bvar/" $PATCHFILE; then
-    TEST_PREFIX="bvar_"
+elif fgrep -q " var/" $PATCHFILE; then
+    TEST_PREFIX="var_"
     TEST_SUFFIX="_unittest"
 fi
 

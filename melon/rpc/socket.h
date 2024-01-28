@@ -37,7 +37,7 @@
 #include "melon/rpc/options.pb.h"              // ConnectionType
 #include "melon/rpc/socket_id.h"               // SocketId
 #include "melon/rpc/socket_message.h"          // SocketMessagePtr
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "http_method.h"
 
 namespace melon {
@@ -143,15 +143,15 @@ struct SocketVarsCollector {
         , nwaitepollout_second("rpc_waitepollout_second", &nwaitepollout)
     {}
 
-    bvar::Adder<int64_t> nsocket;
-    bvar::Adder<int64_t> channel_conn;
-    bvar::Adder<int> neventthread;
-    bvar::PerSecond<bvar::Adder<int> > neventthread_second;
-    bvar::Adder<int64_t> nhealthcheck;
-    bvar::Adder<int64_t> nkeepwrite;
-    bvar::PerSecond<bvar::Adder<int64_t> > nkeepwrite_second;
-    bvar::Adder<int64_t> nwaitepollout;
-    bvar::PerSecond<bvar::Adder<int64_t> > nwaitepollout_second;
+    melon::var::Adder<int64_t> nsocket;
+    melon::var::Adder<int64_t> channel_conn;
+    melon::var::Adder<int> neventthread;
+    melon::var::PerSecond<melon::var::Adder<int> > neventthread_second;
+    melon::var::Adder<int64_t> nhealthcheck;
+    melon::var::Adder<int64_t> nkeepwrite;
+    melon::var::PerSecond<melon::var::Adder<int64_t> > nkeepwrite_second;
+    melon::var::Adder<int64_t> nwaitepollout;
+    melon::var::PerSecond<melon::var::Adder<int64_t> > nwaitepollout_second;
 };
 
 struct PipelinedInfo {

@@ -17,7 +17,7 @@
 
 // Date: 2015/09/15 15:42:55
 
-#include "melon/bvar/detail/percentile.h"
+#include "melon/var/detail/percentile.h"
 #include "melon/butil/logging.h"
 #include <gtest/gtest.h>
 #include <fstream>
@@ -29,12 +29,12 @@ protected:
 };
 
 TEST_F(PercentileTest, add) {
-    bvar::detail::Percentile p;
+    melon::var::detail::Percentile p;
     for (int j = 0; j < 10; ++j) {
         for (int i = 0; i < 10000; ++i) {
             p << (i + 1);
         }
-        bvar::detail::GlobalPercentileSamples b = p.reset();
+        melon::var::detail::GlobalPercentileSamples b = p.reset();
         uint32_t last_value = 0;
         for (uint32_t k = 1; k <= 10u; ++k) {
             uint32_t value = b.get_number(k / 10.0);
@@ -62,8 +62,8 @@ TEST_F(PercentileTest, merge1) {
     size_t belong_to_b2 = 0;
 
     for (int repeat = 0; repeat < 100; ++repeat) {
-        bvar::detail::PercentileInterval<SAMPLE_SIZE*3> b0;
-        bvar::detail::PercentileInterval<SAMPLE_SIZE> b1;
+        melon::var::detail::PercentileInterval<SAMPLE_SIZE*3> b0;
+        melon::var::detail::PercentileInterval<SAMPLE_SIZE> b1;
         for (size_t i = 0; i < N; ++i) {
             if (b1.full()) {
                 b0.merge(b1);
@@ -72,7 +72,7 @@ TEST_F(PercentileTest, merge1) {
             ASSERT_TRUE(b1.add32(i));
         }
         b0.merge(b1);
-        bvar::detail::PercentileInterval<SAMPLE_SIZE * 2> b2;
+        melon::var::detail::PercentileInterval<SAMPLE_SIZE * 2> b2;
         for (size_t i = 0; i < N * 2; ++i) {
             if (b2.full()) {
                 b0.merge(b2);
@@ -105,8 +105,8 @@ TEST_F(PercentileTest, merge2) {
     size_t belong_to_b2 = 0;
 
     for (int repeat = 0; repeat < 100; ++repeat) {
-        bvar::detail::PercentileInterval<64> b0;
-        bvar::detail::PercentileInterval<64> b1;
+        melon::var::detail::PercentileInterval<64> b0;
+        melon::var::detail::PercentileInterval<64> b1;
         for (size_t i = 0; i < N1; ++i) {
             if (b1.full()) {
                 b0.merge(b1);
@@ -115,7 +115,7 @@ TEST_F(PercentileTest, merge2) {
             ASSERT_TRUE(b1.add32(i));
         }
         b0.merge(b1);
-        bvar::detail::PercentileInterval<64> b2;
+        melon::var::detail::PercentileInterval<64> b2;
         for (size_t i = 0; i < N2; ++i) {
             if (b2.full()) {
                 b0.merge(b2);
@@ -147,24 +147,24 @@ TEST_F(PercentileTest, combine_of) {
     size_t belongs[num_samplers] = {0};
     size_t total = 0;
     for (int repeat = 0; repeat < 100; ++repeat) {
-        bvar::detail::Percentile p[num_samplers];
+        melon::var::detail::Percentile p[num_samplers];
         for (int i = 0; i < num_samplers; ++i) {
             for (int j = 0; j < N * (i + 1); ++j) {
                 p[i] << base + i * (i + 1) * N / 2+ j;
             }
         }
-        std::vector<bvar::detail::GlobalPercentileSamples> result;
+        std::vector<melon::var::detail::GlobalPercentileSamples> result;
         result.reserve(num_samplers);
         for (int i = 0; i < num_samplers; ++i) {
             result.push_back(p[i].get_value());
         }
-        bvar::detail::PercentileSamples<510> g;
+        melon::var::detail::PercentileSamples<510> g;
         g.combine_of(result.begin(), result.end());
-        for (size_t i = 0; i < bvar::detail::NUM_INTERVALS; ++i) {
+        for (size_t i = 0; i < melon::var::detail::NUM_INTERVALS; ++i) {
             if (g._intervals[i] == NULL) {
                 continue;
             }
-            bvar::detail::PercentileInterval<510>& p = *g._intervals[i];
+            melon::var::detail::PercentileInterval<510>& p = *g._intervals[i];
             total += p._num_samples;
             for (size_t j = 0; j < p._num_samples; ++j) {
                 for (int k = 0; k < num_samplers; ++k) {

@@ -25,7 +25,7 @@
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 #include <melon/butil/fast_rand.h>
 
 DEFINE_int32(thread_num, 2, "Number of threads to send requests");
@@ -42,7 +42,7 @@ DEFINE_int32(depth, 0, "number of loop calls");
 DEFINE_int32(sleep_ms, 1000, "milliseconds to sleep after each RPC");
 DEFINE_int32(dummy_port, -1, "Launch dummy server at this port");
 
-bvar::LatencyRecorder g_latency_recorder("client");
+melon::var::LatencyRecorder g_latency_recorder("client");
 
 void* sender(void* arg) {
     melon::Channel* chan = (melon::Channel*)arg;

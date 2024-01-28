@@ -22,7 +22,7 @@
 #include <gflags/gflags_declare.h>
 #include "melon/butil/iobuf.h"                            // IOBuf
 #include "melon/butil/files/file_path.h"                  // FilePath
-#include "melon/bvar/collector.h"
+#include "melon/var/collector.h"
 #include "melon/rpc/rpc_dump.pb.h"                       // RpcDumpMeta
 
 namespace butil {
@@ -47,7 +47,7 @@ DECLARE_bool(rpc_dump);
 // In practice, sampled requests are just small fraction of all requests.
 // The overhead of sampling should be negligible for overall performance.
 
-class SampledRequest : public bvar::Collected {
+class SampledRequest : public melon::var::Collected {
 public:
     butil::IOBuf request;
     RpcDumpMeta meta;
@@ -55,8 +55,8 @@ public:
     // Implement methods of Sampled.
     void dump_and_destroy(size_t round) override;
     void destroy() override;
-    bvar::CollectorSpeedLimit* speed_limit() override {
-        extern bvar::CollectorSpeedLimit g_rpc_dump_sl;
+    melon::var::CollectorSpeedLimit* speed_limit() override {
+        extern melon::var::CollectorSpeedLimit g_rpc_dump_sl;
         return &g_rpc_dump_sl;
     }
 };
@@ -65,8 +65,8 @@ public:
 // object and submit it for later dumping by calling SubmitSample(). If
 // the caller ignores non-NULL return value, the object is leaked.
 inline SampledRequest* AskToBeSampled() {
-    extern bvar::CollectorSpeedLimit g_rpc_dump_sl;
-    if (!FLAGS_rpc_dump || !bvar::is_collectable(&g_rpc_dump_sl)) {
+    extern melon::var::CollectorSpeedLimit g_rpc_dump_sl;
+    if (!FLAGS_rpc_dump || !melon::var::is_collectable(&g_rpc_dump_sl)) {
         return NULL;
     }
     return new (std::nothrow) SampledRequest;

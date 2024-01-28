@@ -28,7 +28,7 @@
 #include "melon/butil/macros.h"
 #include "melon/butil/endpoint.h"
 #include "melon/butil/string_splitter.h"
-#include "melon/bvar/collector.h"
+#include "melon/var/collector.h"
 #include "melon/bthread/task_meta.h"
 #include "melon/rpc/options.pb.h"                 // ProtocolType
 #include "melon/rpc/span.pb.h"
@@ -44,7 +44,7 @@ DECLARE_bool(enable_rpcz);
 
 // Collect information required by /rpcz and tracing system whose idea is
 // described in http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/36356.pdf
-class Span : public bvar::Collected {
+class Span : public melon::var::Collected {
 friend class SpanDB;
     struct Forbidden {};
 public:
@@ -142,8 +142,8 @@ private:
 
     void dump_and_destroy(size_t round_index);
     void destroy();
-    bvar::CollectorSpeedLimit* speed_limit();
-    bvar::CollectorPreprocessor* preprocessor();
+    melon::var::CollectorSpeedLimit* speed_limit();
+    melon::var::CollectorPreprocessor* preprocessor();
 
     void EndAsParent() {
         if (this == (Span*)bthread::tls_bls.rpcz_parent_span) {
@@ -228,9 +228,9 @@ void ListSpans(SpanDB* db, int64_t before_this_time, size_t max_scan,
 // Check this function first before creating a span.
 // If rpcz of upstream is enabled, local rpcz is enabled automatically.
 inline bool IsTraceable(bool is_upstream_traced) {
-    extern bvar::CollectorSpeedLimit g_span_sl;
+    extern melon::var::CollectorSpeedLimit g_span_sl;
     return is_upstream_traced ||
-        (FLAGS_enable_rpcz && bvar::is_collectable(&g_span_sl));
+        (FLAGS_enable_rpcz && melon::var::is_collectable(&g_span_sl));
 }
 
 } // namespace melon

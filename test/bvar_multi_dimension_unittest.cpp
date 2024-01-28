@@ -27,8 +27,8 @@
 #include <gtest/gtest.h>
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
-#include "melon/bvar/bvar.h"
-#include "melon/bvar/multi_dimension.h"
+#include "melon/var/var.h"
+#include "melon/var/multi_dimension.h"
 #include "melon/butil/third_party/rapidjson/rapidjson.h"
 #include "melon/butil/third_party/rapidjson/document.h"
 
@@ -45,7 +45,7 @@ static const int status_count = 50;
 static const std::list<std::string> labels = {"idc", "method", "status"};
 
 static void *thread_adder(void *arg) {
-    bvar::Adder<uint64_t> *reducer = (bvar::Adder<uint64_t> *)arg;
+    melon::var::Adder<uint64_t> *reducer = (melon::var::Adder<uint64_t> *)arg;
     butil::Timer timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
@@ -55,7 +55,7 @@ static void *thread_adder(void *arg) {
     return (void *)(timer.n_elapsed());
 }
 
-static long start_perf_test_with_madder(size_t num_thread, bvar::Adder<uint64_t>* adder) {
+static long start_perf_test_with_madder(size_t num_thread, melon::var::Adder<uint64_t>* adder) {
     EXPECT_TRUE(adder->valid());
     pthread_t threads[num_thread];
     for (size_t i = 0; i < num_thread; ++i) {
@@ -73,7 +73,7 @@ static long start_perf_test_with_madder(size_t num_thread, bvar::Adder<uint64_t>
 }
 
 static void *thread_maxer(void *arg) {
-    bvar::Maxer<uint64_t> *reducer = (bvar::Maxer<uint64_t> *)arg;
+    melon::var::Maxer<uint64_t> *reducer = (melon::var::Maxer<uint64_t> *)arg;
     butil::Timer timer;
     timer.start();
     for (size_t i = 1; i <= OPS_PER_THREAD; ++i) {
@@ -83,7 +83,7 @@ static void *thread_maxer(void *arg) {
     return (void *)(timer.n_elapsed());
 }
 
-static long start_perf_test_with_mmaxer(size_t num_thread, bvar::Maxer<uint64_t>* maxer) {
+static long start_perf_test_with_mmaxer(size_t num_thread, melon::var::Maxer<uint64_t>* maxer) {
     EXPECT_TRUE(maxer->valid());
     pthread_t threads[num_thread];
     for (size_t i = 0; i < num_thread; ++i) {
@@ -101,7 +101,7 @@ static long start_perf_test_with_mmaxer(size_t num_thread, bvar::Maxer<uint64_t>
 }
 
 static void *thread_miner(void *arg) {
-    bvar::Miner<uint64_t> *reducer = (bvar::Miner<uint64_t> *)arg;
+    melon::var::Miner<uint64_t> *reducer = (melon::var::Miner<uint64_t> *)arg;
     butil::Timer timer;
     timer.start();
     for (size_t i = 1; i <= OPS_PER_THREAD; ++i) {
@@ -111,7 +111,7 @@ static void *thread_miner(void *arg) {
     return (void *)(timer.n_elapsed());
 }
 
-static long start_perf_test_with_mminer(size_t num_thread, bvar::Miner<uint64_t>* miner) {
+static long start_perf_test_with_mminer(size_t num_thread, melon::var::Miner<uint64_t>* miner) {
     EXPECT_TRUE(miner->valid());
     pthread_t threads[num_thread];
     for (size_t i = 0; i < num_thread; ++i) {
@@ -129,7 +129,7 @@ static long start_perf_test_with_mminer(size_t num_thread, bvar::Miner<uint64_t>
 }
 
 static void *thread_intrecorder(void *arg) {
-    bvar::IntRecorder *reducer = (bvar::IntRecorder *)arg;
+    melon::var::IntRecorder *reducer = (melon::var::IntRecorder *)arg;
     butil::Timer timer;
     timer.start();
     for (size_t i = 1; i <= OPS_PER_THREAD_INTRECORDER; ++i) {
@@ -139,7 +139,7 @@ static void *thread_intrecorder(void *arg) {
     return (void *)(timer.n_elapsed());
 }
 
-static long start_perf_test_with_mintrecorder(size_t num_thread, bvar::IntRecorder* intrecorder) {
+static long start_perf_test_with_mintrecorder(size_t num_thread, melon::var::IntRecorder* intrecorder) {
     EXPECT_TRUE(intrecorder->valid());
     pthread_t threads[num_thread];
     for (size_t i = 0; i < num_thread; ++i) {
@@ -165,29 +165,29 @@ protected:
 
 TEST_F(MultiDimensionTest, madder) {
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::MultiDimension<bvar::Adder<uint32_t> > my_madder1("request_count_madder_uint32_t", labels);
-    bvar::Adder<uint32_t>* my_adder1 = my_madder1.get_stats(labels_value);
+    melon::var::MultiDimension<melon::var::Adder<uint32_t> > my_madder1("request_count_madder_uint32_t", labels);
+    melon::var::Adder<uint32_t>* my_adder1 = my_madder1.get_stats(labels_value);
     ASSERT_TRUE(my_adder1);
     ASSERT_TRUE(my_adder1->valid());
     *my_adder1 << 2 << 4;
     ASSERT_EQ(6u, my_adder1->get_value());
 
-    bvar::MultiDimension<bvar::Adder<double> > my_madder2("request_count_madder_double", labels);
-    bvar::Adder<double>* my_adder2 = my_madder2.get_stats(labels_value);
+    melon::var::MultiDimension<melon::var::Adder<double> > my_madder2("request_count_madder_double", labels);
+    melon::var::Adder<double>* my_adder2 = my_madder2.get_stats(labels_value);
     ASSERT_TRUE(my_adder2);
     ASSERT_TRUE(my_adder2->valid());
     *my_adder2 <<  2.0 << 4.0;
     ASSERT_EQ(6.0, my_adder2->get_value());
 
-    bvar::MultiDimension<bvar::Adder<int> > my_madder3("request_count_madder_int", labels);
-    bvar::Adder<int>* my_adder3 = my_madder3.get_stats(labels_value);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder3("request_count_madder_int", labels);
+    melon::var::Adder<int>* my_adder3 = my_madder3.get_stats(labels_value);
     ASSERT_TRUE(my_adder3);
     ASSERT_TRUE(my_adder3->valid());
     *my_adder3 << -9 << 1 << 0 << 3;
     ASSERT_EQ(-5, my_adder3->get_value());
 
-    bvar::MultiDimension<bvar::Adder<std::string> > my_madder_str("my_string", labels);
-    bvar::Adder<std::string> *my_str1 = my_madder_str.get_stats(labels_value);
+    melon::var::MultiDimension<melon::var::Adder<std::string> > my_madder_str("my_string", labels);
+    melon::var::Adder<std::string> *my_str1 = my_madder_str.get_stats(labels_value);
     ASSERT_TRUE(my_str1);
     std::string str1 = "world";
     *my_str1 << "hello " << str1;
@@ -196,8 +196,8 @@ TEST_F(MultiDimensionTest, madder) {
 
 TEST_F(MultiDimensionTest, mmadder_perf) {
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::MultiDimension<bvar::Adder<uint64_t> > my_madder1("request_count_madder_uint64_t", labels);
-    bvar::Adder<uint64_t>* my_adder = my_madder1.get_stats(labels_value);
+    melon::var::MultiDimension<melon::var::Adder<uint64_t> > my_madder1("request_count_madder_uint64_t", labels);
+    melon::var::Adder<uint64_t>* my_adder = my_madder1.get_stats(labels_value);
     ASSERT_TRUE(my_adder);
     
     std::ostringstream oss;
@@ -209,18 +209,18 @@ TEST_F(MultiDimensionTest, mmadder_perf) {
 }
 
 TEST_F(MultiDimensionTest, mmaxer) {
-    bvar::MultiDimension<bvar::Maxer<int> > my_mmaxer("request_count_mmaxer", labels);
+    melon::var::MultiDimension<melon::var::Maxer<int> > my_mmaxer("request_count_mmaxer", labels);
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::Maxer<int>* my_maxer = my_mmaxer.get_stats(labels_value);
+    melon::var::Maxer<int>* my_maxer = my_mmaxer.get_stats(labels_value);
     ASSERT_TRUE(my_maxer);
     *my_maxer << 1 << 2 << 3;
     ASSERT_EQ(3, my_maxer->get_value());
 }
 
 TEST_F(MultiDimensionTest, mmaxer_perf) {
-    bvar::MultiDimension<bvar::Maxer<uint64_t> > my_mmaxer("request_count_mmaxer", labels);
+    melon::var::MultiDimension<melon::var::Maxer<uint64_t> > my_mmaxer("request_count_mmaxer", labels);
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::Maxer<uint64_t>* my_maxer = my_mmaxer.get_stats(labels_value);
+    melon::var::Maxer<uint64_t>* my_maxer = my_mmaxer.get_stats(labels_value);
     ASSERT_TRUE(my_maxer);
     
     std::ostringstream oss;
@@ -232,18 +232,18 @@ TEST_F(MultiDimensionTest, mmaxer_perf) {
 }
 
 TEST_F(MultiDimensionTest, mminer) {
-    bvar::MultiDimension<bvar::Miner<int> > my_mminer("client_request_count_mminer", labels);
+    melon::var::MultiDimension<melon::var::Miner<int> > my_mminer("client_request_count_mminer", labels);
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::Miner<int>* my_miner = my_mminer.get_stats(labels_value);
+    melon::var::Miner<int>* my_miner = my_mminer.get_stats(labels_value);
     ASSERT_TRUE(my_miner);
     *my_miner << 1 << 2 << 3;
     ASSERT_EQ(1, my_miner->get_value());
 }
 
 TEST_F(MultiDimensionTest, mminer_perf) {
-    bvar::MultiDimension<bvar::Miner<uint64_t> > my_mminer("request_count_mminer", labels);
+    melon::var::MultiDimension<melon::var::Miner<uint64_t> > my_mminer("request_count_mminer", labels);
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::Miner<uint64_t>* my_miner = my_mminer.get_stats(labels_value);
+    melon::var::Miner<uint64_t>* my_miner = my_mminer.get_stats(labels_value);
     ASSERT_TRUE(my_miner);
     
     std::ostringstream oss;
@@ -256,18 +256,18 @@ TEST_F(MultiDimensionTest, mminer_perf) {
 
 
 TEST_F(MultiDimensionTest, mintrecoder) {
-    bvar::MultiDimension<bvar::IntRecorder> my_mintrecorder("client_request_count_mintrecorder", labels);
+    melon::var::MultiDimension<melon::var::IntRecorder> my_mintrecorder("client_request_count_mintrecorder", labels);
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::IntRecorder* my_intrecorder = my_mintrecorder.get_stats(labels_value);
+    melon::var::IntRecorder* my_intrecorder = my_mintrecorder.get_stats(labels_value);
     ASSERT_TRUE(my_intrecorder);
     *my_intrecorder << 1 << 2 << 3;
     ASSERT_EQ(2, my_intrecorder->average());
 }
 
 TEST_F(MultiDimensionTest, mintrecorder_perf) {
-    bvar::MultiDimension<bvar::IntRecorder> my_mintrecorder("request_count_mintrecorder", labels);
+    melon::var::MultiDimension<melon::var::IntRecorder> my_mintrecorder("request_count_mintrecorder", labels);
     std::list<std::string> labels_value = {"bj", "get", "200"};
-    bvar::IntRecorder* my_intrecorder = my_mintrecorder.get_stats(labels_value);
+    melon::var::IntRecorder* my_intrecorder = my_mintrecorder.get_stats(labels_value);
     ASSERT_TRUE(my_intrecorder);
     
     std::ostringstream oss;
@@ -281,13 +281,13 @@ TEST_F(MultiDimensionTest, mintrecorder_perf) {
 TEST_F(MultiDimensionTest, stats) {
     std::vector<std::list<std::string> > vec_labels;
     std::vector<std::list<std::string> > vec_labels_no_sort;
-    bvar::MultiDimension<bvar::Adder<int> > my_madder("test_stats", labels);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder("test_stats", labels);
     ASSERT_EQ(0, my_madder.count_stats());
     std::list<std::string> labels_value1 = {"tc", "get", "200"};
     ASSERT_FALSE(my_madder.has_stats(labels_value1));
     vec_labels.push_back(labels_value1);
     vec_labels_no_sort.push_back(labels_value1);
-    bvar::Adder<int>* adder1 = my_madder.get_stats(labels_value1);
+    melon::var::Adder<int>* adder1 = my_madder.get_stats(labels_value1);
     ASSERT_TRUE(adder1);
     ASSERT_TRUE(my_madder.has_stats(labels_value1));
     std::vector<std::list<std::string> > ret_labels;
@@ -297,7 +297,7 @@ TEST_F(MultiDimensionTest, stats) {
 
     std::list<std::string> labels_value2 = {"nj", "get", "200"};
     ASSERT_FALSE(my_madder.has_stats(labels_value2));
-    bvar::Adder<int>* adder2 = my_madder.get_stats(labels_value2);
+    melon::var::Adder<int>* adder2 = my_madder.get_stats(labels_value2);
     ASSERT_TRUE(adder2);
     ASSERT_TRUE(my_madder.has_stats(labels_value2));
     vec_labels.push_back(labels_value2);
@@ -310,7 +310,7 @@ TEST_F(MultiDimensionTest, stats) {
 
     std::list<std::string> labels_value3 = {"hz", "post", "500"};
     ASSERT_FALSE(my_madder.has_stats(labels_value3));
-    bvar::Adder<int>* adder3 = my_madder.get_stats(labels_value3);
+    melon::var::Adder<int>* adder3 = my_madder.get_stats(labels_value3);
     ASSERT_TRUE(adder3);
     ASSERT_TRUE(my_madder.has_stats(labels_value3));
     vec_labels.push_back(labels_value3);
@@ -323,7 +323,7 @@ TEST_F(MultiDimensionTest, stats) {
 
     std::list<std::string> labels_value4 = {"gz", "post", "500"};
     ASSERT_FALSE(my_madder.has_stats(labels_value4));
-    bvar::Adder<int>* adder4 = my_madder.get_stats(labels_value4);
+    melon::var::Adder<int>* adder4 = my_madder.get_stats(labels_value4);
     ASSERT_TRUE(adder4);
     ASSERT_TRUE(my_madder.has_stats(labels_value4));
     ASSERT_EQ(4, my_madder.count_stats());
@@ -355,18 +355,18 @@ TEST_F(MultiDimensionTest, stats) {
     ASSERT_FALSE(my_madder.has_stats(labels_value2));
     ASSERT_FALSE(my_madder.has_stats(labels_value3));
     ASSERT_FALSE(my_madder.has_stats(labels_value4));
-    bvar::Adder<int> *adder5 = my_madder.get_stats(labels_value1);
+    melon::var::Adder<int> *adder5 = my_madder.get_stats(labels_value1);
     ASSERT_TRUE(adder5);
 }
 
 TEST_F(MultiDimensionTest, get_description) {
-    bvar::MultiDimension<bvar::Adder<int> > my_madder("test_get_description", labels);
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder("test_get_description", labels);
     std::list<std::string> labels_value1 = {"gz", "post", "200"};
-    bvar::Adder<int>* adder1 = my_madder.get_stats(labels_value1);
+    melon::var::Adder<int>* adder1 = my_madder.get_stats(labels_value1);
     ASSERT_TRUE(adder1);
     *adder1 << 1;
     std::list<std::string> labels_value2 = {"tc", "post", "200"};
-    bvar::Adder<int>* adder2 = my_madder.get_stats(labels_value2);
+    melon::var::Adder<int>* adder2 = my_madder.get_stats(labels_value2);
     ASSERT_TRUE(adder2);
     *adder2 << 2;
 
@@ -413,9 +413,9 @@ TEST_F(MultiDimensionTest, mlatencyrecorder) {
     GFLAGS_NS::SetCommandLineOption("bvar_latency_p2", "70");
     GFLAGS_NS::SetCommandLineOption("bvar_latency_p3", "80");
 
-    bvar::MultiDimension<bvar::LatencyRecorder> my_mlatencyrecorder("client_request_count_mlatencyrecorder", labels);
+    melon::var::MultiDimension<melon::var::LatencyRecorder> my_mlatencyrecorder("client_request_count_mlatencyrecorder", labels);
     std::list<std::string> labels_value = {"tc", "get", "200"};
-    bvar::LatencyRecorder* my_latencyrecorder = my_mlatencyrecorder.get_stats(labels_value);
+    melon::var::LatencyRecorder* my_latencyrecorder = my_mlatencyrecorder.get_stats(labels_value);
     ASSERT_TRUE(my_latencyrecorder);
     *my_latencyrecorder << 1 << 2 << 3 << 4 << 5 << 6 << 7;
     sleep(1);
@@ -432,9 +432,9 @@ TEST_F(MultiDimensionTest, mlatencyrecorder) {
 }
 
 TEST_F(MultiDimensionTest, mstatus) {
-    bvar::MultiDimension<bvar::Status<int> > my_mstatus("my_mstatus", labels);
+    melon::var::MultiDimension<melon::var::Status<int> > my_mstatus("my_mstatus", labels);
     std::list<std::string> labels_value {"tc", "get", "200"};
-    bvar::Status<int>* my_status = my_mstatus.get_stats(labels_value);
+    melon::var::Status<int>* my_status = my_mstatus.get_stats(labels_value);
     ASSERT_TRUE(my_status);
     my_status->set_value(1);
     ASSERT_EQ(1, my_status->get_value());

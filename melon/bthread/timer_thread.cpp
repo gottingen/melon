@@ -24,7 +24,7 @@
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"   // fmix64
 #include "melon/butil/resource_pool.h"
 #include "melon/butil/threading/platform_thread.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "melon/bthread/sys_futex.h"
 #include "melon/bthread/timer_thread.h"
 #include "melon/bthread/log.h"
@@ -324,14 +324,14 @@ void TimerThread::run() {
 
     // vars
     size_t nscheduled = 0;
-    bvar::PassiveStatus<size_t> nscheduled_var(deref_value<size_t>, &nscheduled);
-    bvar::PerSecond<bvar::PassiveStatus<size_t> > nscheduled_second(&nscheduled_var);
+    melon::var::PassiveStatus<size_t> nscheduled_var(deref_value<size_t>, &nscheduled);
+    melon::var::PerSecond<melon::var::PassiveStatus<size_t> > nscheduled_second(&nscheduled_var);
     size_t ntriggered = 0;
-    bvar::PassiveStatus<size_t> ntriggered_var(deref_value<size_t>, &ntriggered);
-    bvar::PerSecond<bvar::PassiveStatus<size_t> > ntriggered_second(&ntriggered_var);
+    melon::var::PassiveStatus<size_t> ntriggered_var(deref_value<size_t>, &ntriggered);
+    melon::var::PerSecond<melon::var::PassiveStatus<size_t> > ntriggered_second(&ntriggered_var);
     double busy_seconds = 0;
-    bvar::PassiveStatus<double> busy_seconds_var(deref_value<double>, &busy_seconds);
-    bvar::PerSecond<bvar::PassiveStatus<double> > busy_seconds_second(&busy_seconds_var);
+    melon::var::PassiveStatus<double> busy_seconds_var(deref_value<double>, &busy_seconds);
+    melon::var::PerSecond<melon::var::PassiveStatus<double> > busy_seconds_second(&busy_seconds_var);
     if (!_options.bvar_prefix.empty()) {
         nscheduled_second.expose_as(_options.bvar_prefix, "scheduled_second");
         ntriggered_second.expose_as(_options.bvar_prefix, "triggered_second");

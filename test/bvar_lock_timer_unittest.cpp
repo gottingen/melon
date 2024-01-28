@@ -23,7 +23,7 @@
 #endif
 #include <gtest/gtest.h>
 #include "melon/butil/gperftools_profiler.h"
-#include "melon/bvar/utils/lock_timer.h"
+#include "melon/var/utils/lock_timer.h"
 
 namespace {
 struct DummyMutex {};
@@ -50,10 +50,10 @@ public:
 } // namespace std
 
 namespace {
-using bvar::IntRecorder;
-using bvar::LatencyRecorder;
-using bvar::utils::MutexWithRecorder;
-using bvar::utils::MutexWithLatencyRecorder;
+using melon::var::IntRecorder;
+using melon::var::LatencyRecorder;
+using melon::var::utils::MutexWithRecorder;
+using melon::var::utils::MutexWithLatencyRecorder;
 
 class LockTimerTest : public testing::Test {
 };

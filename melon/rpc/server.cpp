@@ -234,19 +234,19 @@ static void PrintEnabledProfilers(std::ostream& os, void*) {
     os << "contention";
 }
 
-static bvar::PassiveStatus<std::string> s_lb_st(
+static melon::var::PassiveStatus<std::string> s_lb_st(
     "rpc_load_balancer", PrintSupportedLB, NULL);
 
-static bvar::PassiveStatus<std::string> s_ns_st(
+static melon::var::PassiveStatus<std::string> s_ns_st(
     "rpc_naming_service", PrintSupportedNS, NULL);
 
-static bvar::PassiveStatus<std::string> s_proto_st(
+static melon::var::PassiveStatus<std::string> s_proto_st(
     "rpc_protocols", PrintSupportedProtocols, NULL);
 
-static bvar::PassiveStatus<std::string> s_comp_st(
+static melon::var::PassiveStatus<std::string> s_comp_st(
     "rpc_compressions", PrintSupportedCompressions, NULL);
 
-static bvar::PassiveStatus<std::string> s_prof_st(
+static melon::var::PassiveStatus<std::string> s_prof_st(
     "rpc_profilers", PrintEnabledProfilers, NULL);
 
 static int32_t GetConnectionCount(void* arg) {
@@ -267,8 +267,8 @@ static int32_t GetBuiltinServiceCount(void* arg) {
     return ss.builtin_service_count;
 }
 
-static bvar::Vector<unsigned, 2> GetSessionLocalDataCount(void* arg) {
-    bvar::Vector<unsigned, 2> v;
+static melon::var::Vector<unsigned, 2> GetSessionLocalDataCount(void* arg) {
+    melon::var::Vector<unsigned, 2> v;
     SimpleDataPool::Stat s =
         static_cast<Server*>(arg)->session_local_data_pool()->stat();
     v[0] = s.ncreated - s.nfree;
@@ -302,22 +302,22 @@ void* Server::UpdateDerivedVars(void* arg) {
 
     server->_concurrency_bvar.expose_as(prefix, "concurrency");
 
-    bvar::PassiveStatus<timeval> uptime_st(
+    melon::var::PassiveStatus<timeval> uptime_st(
         prefix, "uptime", GetUptime, (void*)(intptr_t)start_us);
 
-    bvar::PassiveStatus<std::string> start_time_st(
+    melon::var::PassiveStatus<std::string> start_time_st(
         prefix, "start_time", PrintStartTime, server);
 
-    bvar::PassiveStatus<int32_t> nconn_st(
+    melon::var::PassiveStatus<int32_t> nconn_st(
         prefix, "connection_count", GetConnectionCount, server);
 
-    bvar::PassiveStatus<int32_t> nservice_st(
+    melon::var::PassiveStatus<int32_t> nservice_st(
         prefix, "service_count", GetServiceCount, server);
 
-    bvar::PassiveStatus<int32_t> nbuiltinservice_st(
+    melon::var::PassiveStatus<int32_t> nbuiltinservice_st(
         prefix, "builtin_service_count", GetBuiltinServiceCount, server);
 
-    bvar::PassiveStatus<bvar::Vector<unsigned, 2> > nsessiondata_st(
+    melon::var::PassiveStatus<melon::var::Vector<unsigned, 2> > nsessiondata_st(
         GetSessionLocalDataCount, server);
     if (server->session_local_data_pool()) {
         nsessiondata_st.expose_as(prefix, "session_local_data_count");
@@ -331,7 +331,7 @@ void* Server::UpdateDerivedVars(void* arg) {
         if (!it->second.is_builtin_service) {
             mprefix.resize(prefix.size());
             mprefix.push_back('_');
-            bvar::to_underscored_name(&mprefix, it->second.method->full_name());
+            melon::var::to_underscored_name(&mprefix, it->second.method->full_name());
             it->second.status->Expose(mprefix);
         }
     }
@@ -1251,7 +1251,7 @@ int Server::Join() {
     }
 
     if (_session_local_data_pool) {
-        // We can't delete the pool right here because there's a bvar watching
+        // We can't delete the pool right here because there's a var watching
         // this pool in _derivative_thread which does not quit yet.
         _session_local_data_pool->Reset(NULL);
     }

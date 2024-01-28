@@ -27,7 +27,7 @@
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 #include "melon/butil/third_party/dynamic_annotations/dynamic_annotations.h" // RunningOnValgrind
 #include "melon/butil/third_party/valgrind/valgrind.h"   // VALGRIND_STACK_REGISTER
-#include "melon/bvar/passive_status.h"
+#include "melon/var/passive_status.h"
 #include "melon/bthread/types.h"                        // BTHREAD_STACKTYPE_*
 #include "melon/bthread/stack.h"
 
@@ -50,7 +50,7 @@ static butil::static_atomic<int64_t> s_stack_count = BUTIL_STATIC_ATOMIC_INIT(0)
 static int64_t get_stack_count(void*) {
     return s_stack_count.load(butil::memory_order_relaxed);
 }
-static bvar::PassiveStatus<int64_t> bvar_stack_count(
+static melon::var::PassiveStatus<int64_t> bvar_stack_count(
     "bthread_stack_count", get_stack_count, NULL);
 
 int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) {

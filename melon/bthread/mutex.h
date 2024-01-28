@@ -24,7 +24,7 @@
 
 #include "melon/bthread/types.h"
 #include "melon/butil/scoped_lock.h"
-#include "melon/bvar/utils/lock_timer.h"
+#include "melon/var/utils/lock_timer.h"
 
 __BEGIN_DECLS
 extern int bthread_mutex_init(bthread_mutex_t* __restrict mutex,
@@ -206,7 +206,7 @@ private:
 
 }  // namespace std
 
-namespace bvar {
+namespace melon::var {
 
 template <>
 struct MutexConstructor<bthread_mutex_t> {
@@ -222,6 +222,6 @@ struct MutexDestructor<bthread_mutex_t> {
     }
 };
 
-}  // namespace bvar
+}  // namespace melon::var
 
 #endif  //BTHREAD_MUTEX_H

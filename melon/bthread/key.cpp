@@ -22,7 +22,7 @@
 #include <pthread.h>
 #include "melon/butil/macros.h"
 #include "melon/butil/atomicops.h"
-#include "melon/bvar/passive_status.h"
+#include "melon/var/passive_status.h"
 #include "melon/bthread/errno.h"                       // EAGAIN
 #include "melon/bthread/task_group.h"                  // TaskGroup
 
@@ -263,11 +263,11 @@ static size_t get_keytable_memory(void*) {
     return n * sizeof(KeyTable) + nsub * sizeof(SubKeyTable);
 }
 
-static bvar::PassiveStatus<int> s_bthread_key_count(
+static melon::var::PassiveStatus<int> s_bthread_key_count(
     "bthread_key_count", get_key_count, NULL);
-static bvar::PassiveStatus<size_t> s_bthread_keytable_count(
+static melon::var::PassiveStatus<size_t> s_bthread_keytable_count(
     "bthread_keytable_count", get_keytable_count, NULL);
-static bvar::PassiveStatus<size_t> s_bthread_keytable_memory(
+static melon::var::PassiveStatus<size_t> s_bthread_keytable_memory(
     "bthread_keytable_memory", get_keytable_memory, NULL);
 
 }  // namespace bthread

@@ -105,7 +105,7 @@ namespace melon {
 
                << Path("/vars", html_addr) << " : List all exposed bvars" << NL
                << SP << Path("/vars/rpc_num_sockets", html_addr)
-               << " : List the bvar" << NL
+               << " : List the var" << NL
                << SP << Path("/vars/rpc_server*_count;iobuf_blo$k_*", html_addr)
                << " : List multiple bvars with glob patterns"
                   " (Use $ instead of ? to match single character)" << NL

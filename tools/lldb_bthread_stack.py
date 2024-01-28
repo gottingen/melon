@@ -112,7 +112,7 @@ def get_bthreads_num(target: lldb.SBTarget):
     long_type = target.GetBasicType(lldb.eBasicTypeLong)
 
     last_node = root_agent
-    # agent_type: bvar::detail::AgentCombiner<long, long, bvar::detail::AddTo<long> >::Agent>
+    # agent_type: melon::var::detail::AgentCombiner<long, long, melon::var::detail::AddTo<long> >::Agent>
     agent_type: lldb.SBType = last_node.GetType().GetTemplateArgumentType(0)
     while True:
         agent = last_node.Cast(agent_type)

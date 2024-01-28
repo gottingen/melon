@@ -17,8 +17,8 @@
 
 // protobuf-json: Conversions between protobuf and json.
 
-#ifndef BRPC_JSON2PB_PB_TO_JSON_H
-#define BRPC_JSON2PB_PB_TO_JSON_H
+#ifndef MELON_JSON2PB_PB_TO_JSON_H_
+#define MELON_JSON2PB_PB_TO_JSON_H_
 
 #include <string>
 #include <google/protobuf/message.h>
@@ -92,4 +92,4 @@ bool ProtoMessageToJson(const google::protobuf::Message& message,
                         std::string* error = NULL);
 } // namespace json2pb
 
-#endif // BRPC_JSON2PB_PB_TO_JSON_H
+#endif // MELON_JSON2PB_PB_TO_JSON_H_

@@ -20,7 +20,7 @@
 #define  BRPC_METHOD_STATUS_H
 
 #include "melon/butil/macros.h"                  // DISALLOW_COPY_AND_ASSIGN
-#include "melon/bvar/bvar.h"                    // vars
+#include "melon/var/var.h"                    // vars
 #include "melon/rpc/describable.h"
 #include "melon/rpc/concurrency_limiter.h"
 
@@ -68,11 +68,11 @@ friend class Server;
 
     std::unique_ptr<ConcurrencyLimiter> _cl;
     butil::atomic<int> _nconcurrency;
-    bvar::Adder<int64_t>  _nerror_bvar;
-    bvar::LatencyRecorder _latency_rec;
-    bvar::PassiveStatus<int>  _nconcurrency_bvar;
-    bvar::PerSecond<bvar::Adder<int64_t>> _eps_bvar;
-    bvar::PassiveStatus<int32_t> _max_concurrency_bvar;
+    melon::var::Adder<int64_t>  _nerror_bvar;
+    melon::var::LatencyRecorder _latency_rec;
+    melon::var::PassiveStatus<int>  _nconcurrency_bvar;
+    melon::var::PerSecond<melon::var::Adder<int64_t>> _eps_bvar;
+    melon::var::PassiveStatus<int32_t> _max_concurrency_bvar;
 };
 
 class ConcurrencyRemover {

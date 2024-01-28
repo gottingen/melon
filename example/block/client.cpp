@@ -31,7 +31,7 @@ DEFINE_int32(write_percentage, 100, "Percentage of fetch_add");
 DEFINE_string(conf, "", "Configuration of the raft group");
 DEFINE_string(group, "Block", "Id of the replication group");
 
-bvar::LatencyRecorder g_latency_recorder("block_client");
+melon::var::LatencyRecorder g_latency_recorder("block_client");
 
 static void* sender(void* arg) {
     while (!melon::IsAskedToQuit()) {

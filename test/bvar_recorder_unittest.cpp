@@ -24,22 +24,22 @@
 #include <iostream>
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
-#include "melon/bvar/recorder.h"
-#include "melon/bvar/latency_recorder.h"
+#include "melon/var/recorder.h"
+#include "melon/var/latency_recorder.h"
 #include <gtest/gtest.h>
 
 namespace {
 TEST(RecorderTest, test_complement) {
-    LOG(INFO) << "sizeof(LatencyRecorder)=" << sizeof(bvar::LatencyRecorder)
-              << " " << sizeof(bvar::detail::Percentile)
-              << " " << sizeof(bvar::Maxer<int64_t>)
-              << " " << sizeof(bvar::IntRecorder)
-              << " " << sizeof(bvar::Window<bvar::IntRecorder>)
-              << " " << sizeof(bvar::Window<bvar::detail::Percentile>);
+    LOG(INFO) << "sizeof(LatencyRecorder)=" << sizeof(melon::var::LatencyRecorder)
+              << " " << sizeof(melon::var::detail::Percentile)
+              << " " << sizeof(melon::var::Maxer<int64_t>)
+              << " " << sizeof(melon::var::IntRecorder)
+              << " " << sizeof(melon::var::Window<melon::var::IntRecorder>)
+              << " " << sizeof(melon::var::Window<melon::var::detail::Percentile>);
 
     for (int a = -10000000; a < 10000000; ++a) {
-        const uint64_t complement = bvar::IntRecorder::_get_complement(a);
-        const int64_t b = bvar::IntRecorder::_extend_sign_bit(complement);
+        const uint64_t complement = melon::var::IntRecorder::_get_complement(a);
+        const int64_t b = melon::var::IntRecorder::_extend_sign_bit(complement);
         ASSERT_EQ(a, b);
     }
 }
@@ -47,46 +47,46 @@ TEST(RecorderTest, test_complement) {
 TEST(RecorderTest, test_compress) {
     const uint64_t num = 125345;
     const uint64_t sum = 26032906;
-    const uint64_t compressed = bvar::IntRecorder::_compress(num, sum);
-    ASSERT_EQ(num, bvar::IntRecorder::_get_num(compressed));
-    ASSERT_EQ(sum, bvar::IntRecorder::_get_sum(compressed));
+    const uint64_t compressed = melon::var::IntRecorder::_compress(num, sum);
+    ASSERT_EQ(num, melon::var::IntRecorder::_get_num(compressed));
+    ASSERT_EQ(sum, melon::var::IntRecorder::_get_sum(compressed));
 }
 
 TEST(RecorderTest, test_compress_negtive_number) {
     for (int a = -10000000; a < 10000000; ++a) {
-        const uint64_t sum = bvar::IntRecorder::_get_complement(a);
+        const uint64_t sum = melon::var::IntRecorder::_get_complement(a);
         const uint64_t num = 123456;
-        const uint64_t compressed = bvar::IntRecorder::_compress(num, sum);
-        ASSERT_EQ(num, bvar::IntRecorder::_get_num(compressed));
-        ASSERT_EQ(a, bvar::IntRecorder::_extend_sign_bit(bvar::IntRecorder::_get_sum(compressed)));
+        const uint64_t compressed = melon::var::IntRecorder::_compress(num, sum);
+        ASSERT_EQ(num, melon::var::IntRecorder::_get_num(compressed));
+        ASSERT_EQ(a, melon::var::IntRecorder::_extend_sign_bit(melon::var::IntRecorder::_get_sum(compressed)));
     }
 }
 
 TEST(RecorderTest, sanity) {
     {
-        bvar::IntRecorder recorder;
+        melon::var::IntRecorder recorder;
         ASSERT_TRUE(recorder.valid());
         ASSERT_EQ(0, recorder.expose("var1"));
         for (size_t i = 0; i < 100; ++i) {
             recorder << 2;
         }
         ASSERT_EQ(2l, (int64_t)recorder.average());
-        ASSERT_EQ("2", bvar::Variable::describe_exposed("var1"));
+        ASSERT_EQ("2", melon::var::Variable::describe_exposed("var1"));
         std::vector<std::string> vars;
-        bvar::Variable::list_exposed(&vars);
+        melon::var::Variable::list_exposed(&vars);
         ASSERT_EQ(1UL, vars.size());
         ASSERT_EQ("var1", vars[0]);
-        ASSERT_EQ(1UL, bvar::Variable::count_exposed());
+        ASSERT_EQ(1UL, melon::var::Variable::count_exposed());
     }
-    ASSERT_EQ(0UL, bvar::Variable::count_exposed());
+    ASSERT_EQ(0UL, melon::var::Variable::count_exposed());
 }
 
 TEST(RecorderTest, window) {
-    bvar::IntRecorder c1;
+    melon::var::IntRecorder c1;
     ASSERT_TRUE(c1.valid());
-    bvar::Window<bvar::IntRecorder> w1(&c1, 1);
-    bvar::Window<bvar::IntRecorder> w2(&c1, 2);
-    bvar::Window<bvar::IntRecorder> w3(&c1, 3);
+    melon::var::Window<melon::var::IntRecorder> w1(&c1, 1);
+    melon::var::Window<melon::var::IntRecorder> w2(&c1, 2);
+    melon::var::Window<melon::var::IntRecorder> w3(&c1, 3);
 
     const int N = 10000;
     int64_t last_time = butil::gettimeofday_us();
@@ -103,7 +103,7 @@ TEST(RecorderTest, window) {
 }
 
 TEST(RecorderTest, negative) {
-    bvar::IntRecorder recorder;
+    melon::var::IntRecorder recorder;
     ASSERT_TRUE(recorder.valid());
     for (size_t i = 0; i < 3; ++i) {
         recorder << -2;
@@ -112,14 +112,14 @@ TEST(RecorderTest, negative) {
 }
 
 TEST(RecorderTest, positive_overflow) {
-    bvar::IntRecorder recorder1;
+    melon::var::IntRecorder recorder1;
     ASSERT_TRUE(recorder1.valid());
     for (int i = 0; i < 5; ++i) {
         recorder1 << std::numeric_limits<int64_t>::max();
     }
     ASSERT_EQ(std::numeric_limits<int>::max(), recorder1.average());
 
-    bvar::IntRecorder recorder2;
+    melon::var::IntRecorder recorder2;
     ASSERT_TRUE(recorder2.valid());
     recorder2.set_debug_name("recorder2");
     for (int i = 0; i < 5; ++i) {
@@ -127,7 +127,7 @@ TEST(RecorderTest, positive_overflow) {
     }
     ASSERT_EQ(std::numeric_limits<int>::max(), recorder2.average());
 
-    bvar::IntRecorder recorder3;
+    melon::var::IntRecorder recorder3;
     ASSERT_TRUE(recorder3.valid());
     recorder3.expose("recorder3");
     for (int i = 0; i < 5; ++i) {
@@ -135,23 +135,23 @@ TEST(RecorderTest, positive_overflow) {
     }
     ASSERT_EQ(std::numeric_limits<int>::max(), recorder3.average());
 
-    bvar::LatencyRecorder latency1;
+    melon::var::LatencyRecorder latency1;
     latency1.expose("latency1");
     latency1 << std::numeric_limits<int64_t>::max();
 
-    bvar::LatencyRecorder latency2;
+    melon::var::LatencyRecorder latency2;
     latency2 << std::numeric_limits<int64_t>::max();
 }
 
 TEST(RecorderTest, negtive_overflow) {
-    bvar::IntRecorder recorder1;
+    melon::var::IntRecorder recorder1;
     ASSERT_TRUE(recorder1.valid());
     for (int i = 0; i < 5; ++i) {
         recorder1 << std::numeric_limits<int64_t>::min();
     }
     ASSERT_EQ(std::numeric_limits<int>::min(), recorder1.average());
 
-    bvar::IntRecorder recorder2;
+    melon::var::IntRecorder recorder2;
     ASSERT_TRUE(recorder2.valid());
     recorder2.set_debug_name("recorder2");
     for (int i = 0; i < 5; ++i) {
@@ -159,7 +159,7 @@ TEST(RecorderTest, negtive_overflow) {
     }
     ASSERT_EQ(std::numeric_limits<int>::min(), recorder2.average());
 
-    bvar::IntRecorder recorder3;
+    melon::var::IntRecorder recorder3;
     ASSERT_TRUE(recorder3.valid());
     recorder3.expose("recorder3");
     for (int i = 0; i < 5; ++i) {
@@ -167,18 +167,18 @@ TEST(RecorderTest, negtive_overflow) {
     }
     ASSERT_EQ(std::numeric_limits<int>::min(), recorder3.average());
 
-    bvar::LatencyRecorder latency1;
+    melon::var::LatencyRecorder latency1;
     latency1.expose("latency1");
     latency1 << std::numeric_limits<int64_t>::min();
 
-    bvar::LatencyRecorder latency2;
+    melon::var::LatencyRecorder latency2;
     latency2 << std::numeric_limits<int64_t>::min();
 }
 
 const size_t OPS_PER_THREAD = 20000000;
 
 static void *thread_counter(void *arg) {
-    bvar::IntRecorder *recorder = (bvar::IntRecorder *)arg;
+    melon::var::IntRecorder *recorder = (melon::var::IntRecorder *)arg;
     butil::Timer timer;
     timer.start();
     for (int i = 0; i < (int)OPS_PER_THREAD; ++i) {
@@ -189,7 +189,7 @@ static void *thread_counter(void *arg) {
 }
 
 TEST(RecorderTest, perf) {
-    bvar::IntRecorder recorder;
+    melon::var::IntRecorder recorder;
     ASSERT_TRUE(recorder.valid());
     pthread_t threads[8];
     for (size_t i = 0; i < ARRAY_SIZE(threads); ++i) {
@@ -208,13 +208,13 @@ TEST(RecorderTest, perf) {
 }
 
 TEST(RecorderTest, latency_recorder_qps_accuracy) {
-    bvar::LatencyRecorder lr1(2); // set windows size to 2s
-    bvar::LatencyRecorder lr2(2);
-    bvar::LatencyRecorder lr3(2);
-    bvar::LatencyRecorder lr4(2);
+    melon::var::LatencyRecorder lr1(2); // set windows size to 2s
+    melon::var::LatencyRecorder lr2(2);
+    melon::var::LatencyRecorder lr3(2);
+    melon::var::LatencyRecorder lr4(2);
     usleep(3000000); // wait sampler to sample 3 times
 
-    auto write = [](bvar::LatencyRecorder& lr, int times) {   
+    auto write = [](melon::var::LatencyRecorder& lr, int times) {
         for (int i = 0; i < times; ++i) {
             lr << 1;
         }
@@ -225,7 +225,7 @@ TEST(RecorderTest, latency_recorder_qps_accuracy) {
     write(lr4, 1);
     usleep(1000000); // wait sampler to sample 1 time
 
-    auto read = [](bvar::LatencyRecorder& lr, double exp_qps, int window_size = 0) {
+    auto read = [](melon::var::LatencyRecorder& lr, double exp_qps, int window_size = 0) {
         int64_t qps_sum = 0;
         int64_t exp_qps_int = (int64_t)exp_qps;
         for (int i = 0; i < 1000; ++i) {

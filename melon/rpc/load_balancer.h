@@ -19,7 +19,7 @@
 #ifndef MELON_LB_LOAD_BALANCER_H_
 #define MELON_LB_LOAD_BALANCER_H_
 
-#include "melon/bvar/passive_status.h"
+#include "melon/var/passive_status.h"
 #include "melon/rpc/describable.h"
 #include "melon/rpc/destroyable.h"
 #include "melon/rpc/excluded_servers.h"                // ExcludedServers
@@ -181,7 +181,7 @@ namespace melon {
         butil::atomic<int> _weight_sum;
         volatile bool _exposed;
         butil::Mutex _st_mutex;
-        bvar::PassiveStatus<std::string> _st;
+        melon::var::PassiveStatus<std::string> _st;
     };
 
     // For registering global instances.

@@ -27,7 +27,7 @@
 #include "melon/rpc/controller.h"
 
 #ifndef NDEBUG
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #endif
 
 namespace melon {
@@ -117,8 +117,8 @@ const char* H2StreamState2Str(H2StreamState);
 
 #ifndef NDEBUG
 struct H2Bvars {
-    bvar::Adder<int> h2_unsent_request_count;
-    bvar::Adder<int> h2_stream_context_count;
+    melon::var::Adder<int> h2_unsent_request_count;
+    melon::var::Adder<int> h2_stream_context_count;
 
     H2Bvars()
         : h2_unsent_request_count("h2_unsent_request_count")

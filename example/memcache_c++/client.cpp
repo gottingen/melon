@@ -41,8 +41,8 @@ DEFINE_string(key, "hello", "The key to be get");
 DEFINE_string(value, "world", "The value associated with the key");
 DEFINE_int32(batch, 1, "Pipelined Operations");
 
-bvar::LatencyRecorder g_latency_recorder("client");
-bvar::Adder<int> g_error_count("client_error_count");
+melon::var::LatencyRecorder g_latency_recorder("client");
+melon::var::Adder<int> g_error_count("client_error_count");
 butil::static_atomic<int> g_sender_count = BUTIL_STATIC_ATOMIC_INIT(0);
 
 static void* sender(void* arg) {

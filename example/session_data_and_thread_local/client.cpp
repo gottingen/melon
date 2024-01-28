@@ -22,7 +22,7 @@
 #include <melon/butil/logging.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
 DEFINE_bool(use_bthread, false, "Use bthread to send requests");
@@ -39,7 +39,7 @@ DEFINE_bool(dont_fail, false, "Print fatal when some call failed");
 std::string g_request;
 std::string g_attachment;
 
-bvar::LatencyRecorder g_latency_recorder("client");
+melon::var::LatencyRecorder g_latency_recorder("client");
 
 static void* sender(void* arg) {
     // Normally, you should not call a Channel directly, but instead construct

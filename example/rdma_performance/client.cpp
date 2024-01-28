@@ -26,8 +26,8 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
 #include "melon/bthread/bthread.h"
-#include "melon/bvar/latency_recorder.h"
-#include "melon/bvar/variable.h"
+#include "melon/var/latency_recorder.h"
+#include "melon/var/variable.h"
 #include "test.pb.h"
 
 #ifdef BRPC_WITH_RDMA
@@ -47,9 +47,9 @@ DEFINE_int32(test_seconds, 20, "Test running time");
 DEFINE_int32(test_iterations, 0, "Test iterations");
 DEFINE_int32(dummy_port, 8001, "Dummy server port number");
 
-bvar::LatencyRecorder g_latency_recorder("client");
-bvar::LatencyRecorder g_server_cpu_recorder("server_cpu");
-bvar::LatencyRecorder g_client_cpu_recorder("client_cpu");
+melon::var::LatencyRecorder g_latency_recorder("client");
+melon::var::LatencyRecorder g_server_cpu_recorder("server_cpu");
+melon::var::LatencyRecorder g_client_cpu_recorder("client_cpu");
 butil::atomic<uint64_t> g_last_time(0);
 butil::atomic<uint64_t> g_total_bytes;
 butil::atomic<uint64_t> g_total_cnt;
@@ -180,7 +180,7 @@ public:
         if (now > last && now - last > 100000) {
             if (g_last_time.exchange(now, butil::memory_order_relaxed) == last) {
                 g_client_cpu_recorder << 
-                    atof(bvar::Variable::describe_exposed("process_cpu_usage").c_str()) * 100;
+                    atof(melon::var::Variable::describe_exposed("process_cpu_usage").c_str()) * 100;
             }
         }
         if (now - closure->test->_start_time > FLAGS_test_seconds * 1000000u) {

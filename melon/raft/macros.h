@@ -19,7 +19,7 @@
 
 #include <melon/butil/macros.h>
 #include <melon/butil/logging.h>
-#include <melon/bvar/utils/lock_timer.h>
+#include <melon/var/utils/lock_timer.h>
 
 #define BRAFT_VLOG_IS_ON     VLOG_IS_ON(89)
 #define BRAFT_VLOG           VLOG(89)

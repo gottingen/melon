@@ -38,10 +38,10 @@ DEFINE_bool(rtmp_server_close_connection_on_error, true,
             " by this flag");
 
 struct RtmpBvars {
-    bvar::Adder<int> client_count;
-    bvar::Adder<int> client_stream_count;
-    bvar::Adder<int> retrying_client_stream_count;
-    bvar::Adder<int> server_stream_count;
+    melon::var::Adder<int> client_count;
+    melon::var::Adder<int> client_stream_count;
+    melon::var::Adder<int> retrying_client_stream_count;
+    melon::var::Adder<int> server_stream_count;
 
     RtmpBvars()
         : client_count("rtmp_client_count")

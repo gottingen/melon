@@ -27,7 +27,7 @@
 #include "melon/butil/memory/scoped_ptr.h"     // butil::scoped_ptr
 #include "melon/butil/logging.h"               // LOG
 #include "melon/butil/time.h"                  // butil::cpuwide_time_ns
-#include "melon/bvar/bvar.h"                  // bvar::Adder
+#include "melon/var/var.h"                  // melon::var::Adder
 #include "melon/bthread/butex.h"              // butex_construct
 #include "melon/butil/synchronization/condition_variable.h"
 

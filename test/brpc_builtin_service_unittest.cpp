@@ -690,7 +690,7 @@ TEST_F(BuiltinServiceTest, vars) {
     {
         ClosureChecker done;
         melon::Controller cntl;
-        bvar::Adder<int64_t> myvar;
+        melon::var::Adder<int64_t> myvar;
         myvar.expose("myvar");
         myvar << 9;
         service.default_method(&cntl, &req, &res, &done);

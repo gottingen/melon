@@ -349,18 +349,18 @@ static bool g_span_ending = false;  // don't open span again if this var is true
 // Can't use intrusive_ptr which has ctor/dtor issues.
 static SpanDB* g_span_db = NULL;
 bool has_span_db() { return !!g_span_db; }
-bvar::CollectorSpeedLimit g_span_sl = BVAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
-static bvar::DisplaySamplingRatio s_display_sampling_ratio(
+melon::var::CollectorSpeedLimit g_span_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
+static melon::var::DisplaySamplingRatio s_display_sampling_ratio(
     "rpcz_sampling_ratio", &g_span_sl);
 
 struct SpanEarlier {
-    bool operator()(bvar::Collected* c1, bvar::Collected* c2) const {
+    bool operator()(melon::var::Collected* c1, melon::var::Collected* c2) const {
         return ((Span*)c1)->GetStartRealTimeUs() < ((Span*)c2)->GetStartRealTimeUs();
     }
 };
-class SpanPreprocessor : public bvar::CollectorPreprocessor {
+class SpanPreprocessor : public melon::var::CollectorPreprocessor {
 public:
-    void process(std::vector<bvar::Collected*> & list) {
+    void process(std::vector<melon::var::Collected*> & list) {
         // Sort spans by their starting time so that the code on making
         // time monotonic in Span::Index works better.
         std::sort(list.begin(), list.end(), SpanEarlier());
@@ -368,11 +368,11 @@ public:
 };
 static SpanPreprocessor* g_span_prep = NULL;
 
-bvar::CollectorSpeedLimit* Span::speed_limit() {
+melon::var::CollectorSpeedLimit* Span::speed_limit() {
     return &g_span_sl;
 }
 
-bvar::CollectorPreprocessor* Span::preprocessor() {
+melon::var::CollectorPreprocessor* Span::preprocessor() {
     return g_span_prep;
 }
 

@@ -414,14 +414,14 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             ${PROJECT_SOURCE_DIR}/melon/butil/mac/scoped_mach_port.cc)
 endif ()
 
-file(GLOB_RECURSE BVAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/bvar/*.cpp")
+file(GLOB_RECURSE BVAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/var/*.cc")
 file(GLOB_RECURSE BTHREAD_SOURCES "${PROJECT_SOURCE_DIR}/melon/bthread/*.cpp")
-file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cpp")
+file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cc")
 file(GLOB_RECURSE BRPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cpp")
 file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cc")
 file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
 file(GLOB_RECURSE BUILTIN_SOURCES "${PROJECT_SOURCE_DIR}/melon/builtin/*.cc")
-file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cpp")
+file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cc")
 file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cpp")
 
 

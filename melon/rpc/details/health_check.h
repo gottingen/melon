@@ -21,7 +21,7 @@
 
 #include "melon/rpc/socket_id.h"
 #include "melon/rpc/periodic_task.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "melon/rpc/socket.h"
 
 namespace melon {

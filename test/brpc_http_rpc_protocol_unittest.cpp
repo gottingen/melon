@@ -59,7 +59,7 @@ namespace melon {
 DECLARE_bool(rpc_dump);
 DECLARE_string(rpc_dump_dir);
 DECLARE_int32(rpc_dump_max_requests_in_one_file);
-extern bvar::CollectorSpeedLimit g_rpc_dump_sl;
+extern melon::var::CollectorSpeedLimit g_rpc_dump_sl;
 }
 
 int main(int argc, char* argv[]) {
@@ -1684,7 +1684,7 @@ TEST_F(HttpTest, dump_http_request) {
     melon::FLAGS_rpc_dump_dir = "dump_http_request";
     melon::FLAGS_rpc_dump_max_requests_in_one_file = 1;
     melon::g_rpc_dump_sl.ever_grabbed = true;
-    melon::g_rpc_dump_sl.sampling_range = bvar::COLLECTOR_SAMPLING_BASE;
+    melon::g_rpc_dump_sl.sampling_range = melon::var::COLLECTOR_SAMPLING_BASE;
 
     // init channel
     const int port = 8923;

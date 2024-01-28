@@ -16,7 +16,7 @@
 // under the License.
 
 #include <limits>                           //std::numeric_limits
-#include "melon/bvar/detail/sampler.h"
+#include "melon/var/detail/sampler.h"
 #include "melon/butil/time.h"
 #include "melon/butil/logging.h"
 #include <gtest/gtest.h>
@@ -24,14 +24,14 @@
 namespace {
 
 TEST(SamplerTest, linked_list) {
-    butil::LinkNode<bvar::detail::Sampler> n1, n2;
+    butil::LinkNode<melon::var::detail::Sampler> n1, n2;
     n1.InsertBeforeAsList(&n2);
     ASSERT_EQ(n1.next(), &n2);
     ASSERT_EQ(n1.previous(), &n2);
     ASSERT_EQ(n2.next(), &n1);
     ASSERT_EQ(n2.previous(), &n1);
 
-    butil::LinkNode<bvar::detail::Sampler> n3, n4;
+    butil::LinkNode<melon::var::detail::Sampler> n3, n4;
     n3.InsertBeforeAsList(&n4);
     ASSERT_EQ(n3.next(), &n4);
     ASSERT_EQ(n3.previous(), &n4);
@@ -49,7 +49,7 @@ TEST(SamplerTest, linked_list) {
     ASSERT_EQ(&n4, n1.previous());
 }
 
-class DebugSampler : public bvar::detail::Sampler {
+class DebugSampler : public melon::var::detail::Sampler {
 public:
     DebugSampler() : _ncalled(0) {}
     ~DebugSampler() {

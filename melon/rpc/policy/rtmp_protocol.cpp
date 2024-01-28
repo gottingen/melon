@@ -1411,8 +1411,8 @@ static void InitServerMessageStatus() {
 }
 
 struct ChunkStatus {
-    bvar::Adder<int64_t> count;
-    bvar::PerSecond<bvar::Adder<int64_t> > second;
+    melon::var::Adder<int64_t> count;
+    melon::var::PerSecond<melon::var::Adder<int64_t> > second;
     ChunkStatus() : second("rtmp_chunk_in_second", &count) {}
 };
 inline void AddChunk() {

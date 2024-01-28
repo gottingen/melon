@@ -17,7 +17,7 @@
 
 #include <limits>                           //std::numeric_limits
 
-#include "melon/bvar/reducer.h"
+#include "melon/var/reducer.h"
 
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
@@ -34,24 +34,24 @@ protected:
 };
 
 TEST_F(ReducerTest, atomicity) {
-    ASSERT_EQ(sizeof(int32_t), sizeof(bvar::detail::ElementContainer<int32_t>));
-    ASSERT_EQ(sizeof(int64_t), sizeof(bvar::detail::ElementContainer<int64_t>));
-    ASSERT_EQ(sizeof(float), sizeof(bvar::detail::ElementContainer<float>));
-    ASSERT_EQ(sizeof(double), sizeof(bvar::detail::ElementContainer<double>));
+    ASSERT_EQ(sizeof(int32_t), sizeof(melon::var::detail::ElementContainer<int32_t>));
+    ASSERT_EQ(sizeof(int64_t), sizeof(melon::var::detail::ElementContainer<int64_t>));
+    ASSERT_EQ(sizeof(float), sizeof(melon::var::detail::ElementContainer<float>));
+    ASSERT_EQ(sizeof(double), sizeof(melon::var::detail::ElementContainer<double>));
 }
 
 TEST_F(ReducerTest, adder) {    
-    bvar::Adder<uint32_t> reducer1;
+    melon::var::Adder<uint32_t> reducer1;
     ASSERT_TRUE(reducer1.valid());
     reducer1 << 2 << 4;
     ASSERT_EQ(6ul, reducer1.get_value());
 
-    bvar::Adder<double> reducer2;
+    melon::var::Adder<double> reducer2;
     ASSERT_TRUE(reducer2.valid());
     reducer2 << 2.0 << 4.0;
     ASSERT_DOUBLE_EQ(6.0, reducer2.get_value());
 
-    bvar::Adder<int> reducer3;
+    melon::var::Adder<int> reducer3;
     ASSERT_TRUE(reducer3.valid());
     reducer3 << -9 << 1 << 0 << 3;
     ASSERT_EQ(-5, reducer3.get_value());
@@ -60,7 +60,7 @@ TEST_F(ReducerTest, adder) {
 const size_t OPS_PER_THREAD = 500000;
 
 static void *thread_counter(void *arg) {
-    bvar::Adder<uint64_t> *reducer = (bvar::Adder<uint64_t> *)arg;
+    melon::var::Adder<uint64_t> *reducer = (melon::var::Adder<uint64_t> *)arg;
     butil::Timer timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
@@ -99,7 +99,7 @@ static long start_perf_test_with_atomic(size_t num_thread) {
 }
 
 static long start_perf_test_with_adder(size_t num_thread) {
-    bvar::Adder<uint64_t> reducer;
+    melon::var::Adder<uint64_t> reducer;
     EXPECT_TRUE(reducer.valid());
     pthread_t threads[num_thread];
     for (size_t i = 0; i < num_thread; ++i) {
@@ -130,7 +130,7 @@ TEST_F(ReducerTest, perf) {
 }
 
 TEST_F(ReducerTest, Min) {
-    bvar::Miner<uint64_t> reducer;
+    melon::var::Miner<uint64_t> reducer;
     ASSERT_EQ(std::numeric_limits<uint64_t>::max(), reducer.get_value());
     reducer << 10 << 20;
     ASSERT_EQ(10ul, reducer.get_value());
@@ -141,7 +141,7 @@ TEST_F(ReducerTest, Min) {
     reducer << 0;
     ASSERT_EQ(0ul, reducer.get_value());
 
-    bvar::Miner<int> reducer2;
+    melon::var::Miner<int> reducer2;
     ASSERT_EQ(std::numeric_limits<int>::max(), reducer2.get_value());
     reducer2 << 10 << 20;
     ASSERT_EQ(10, reducer2.get_value());
@@ -156,7 +156,7 @@ TEST_F(ReducerTest, Min) {
 }
 
 TEST_F(ReducerTest, max) {
-    bvar::Maxer<uint64_t> reducer;
+    melon::var::Maxer<uint64_t> reducer;
     ASSERT_EQ(std::numeric_limits<uint64_t>::min(), reducer.get_value());
     ASSERT_TRUE(reducer.valid());
     reducer << 20 << 10;
@@ -166,7 +166,7 @@ TEST_F(ReducerTest, max) {
     reducer << 0;
     ASSERT_EQ(30ul, reducer.get_value());
 
-    bvar::Maxer<int> reducer2;
+    melon::var::Maxer<int> reducer2;
     ASSERT_EQ(std::numeric_limits<int>::min(), reducer2.get_value());
     ASSERT_TRUE(reducer2.valid());
     reducer2 << 20 << 10;
@@ -179,7 +179,7 @@ TEST_F(ReducerTest, max) {
     ASSERT_EQ(std::numeric_limits<int>::max(), reducer2.get_value());
 }
 
-bvar::Adder<long> g_a;
+melon::var::Adder<long> g_a;
 
 TEST_F(ReducerTest, global) {
     ASSERT_TRUE(g_a.valid());
@@ -187,18 +187,18 @@ TEST_F(ReducerTest, global) {
 }
 
 void ReducerTest_window() {
-    bvar::Adder<int> c1;
-    bvar::Maxer<int> c2;
-    bvar::Miner<int> c3;
-    bvar::Window<bvar::Adder<int> > w1(&c1, 1);
-    bvar::Window<bvar::Adder<int> > w2(&c1, 2);
-    bvar::Window<bvar::Adder<int> > w3(&c1, 3);
-    bvar::Window<bvar::Maxer<int> > w4(&c2, 1);
-    bvar::Window<bvar::Maxer<int> > w5(&c2, 2);
-    bvar::Window<bvar::Maxer<int> > w6(&c2, 3);
-    bvar::Window<bvar::Miner<int> > w7(&c3, 1);
-    bvar::Window<bvar::Miner<int> > w8(&c3, 2);
-    bvar::Window<bvar::Miner<int> > w9(&c3, 3);
+    melon::var::Adder<int> c1;
+    melon::var::Maxer<int> c2;
+    melon::var::Miner<int> c3;
+    melon::var::Window<melon::var::Adder<int> > w1(&c1, 1);
+    melon::var::Window<melon::var::Adder<int> > w2(&c1, 2);
+    melon::var::Window<melon::var::Adder<int> > w3(&c1, 3);
+    melon::var::Window<melon::var::Maxer<int> > w4(&c2, 1);
+    melon::var::Window<melon::var::Maxer<int> > w5(&c2, 2);
+    melon::var::Window<melon::var::Maxer<int> > w6(&c2, 3);
+    melon::var::Window<melon::var::Miner<int> > w7(&c3, 1);
+    melon::var::Window<melon::var::Miner<int> > w8(&c3, 2);
+    melon::var::Window<melon::var::Miner<int> > w9(&c3, 3);
 
 #if !BRPC_WITH_GLOG
     logging::StringSink log_str;
@@ -206,7 +206,7 @@ void ReducerTest_window() {
     c2.get_value();
     ASSERT_EQ(&log_str, logging::SetLogSink(old_sink));
     ASSERT_NE(std::string::npos, log_str.find(
-                  "You should not call Reducer<int, bvar::detail::MaxTo<int>>"
+                  "You should not call Reducer<int, melon::var::detail::MaxTo<int>>"
                   "::get_value() when a Window<> is used because the operator"
                   " does not have inverse."));
 #endif
@@ -269,7 +269,7 @@ std::ostream& operator<<(std::ostream& os, const Foo& f) {
 }
 
 TEST_F(ReducerTest, non_primitive) {
-    bvar::Adder<Foo> adder;
+    melon::var::Adder<Foo> adder;
     adder << Foo(2) << Foo(3) << Foo(4);
     ASSERT_EQ(9, adder.get_value().x);
 }
@@ -280,7 +280,7 @@ struct StringAppenderResult {
 };
 
 static void* string_appender(void* arg) {
-    bvar::Adder<std::string>* cater = (bvar::Adder<std::string>*)arg;
+    melon::var::Adder<std::string>* cater = (melon::var::Adder<std::string>*)arg;
     int count = 0;
     std::string id = butil::string_printf("%lld", (long long)pthread_self());
     std::string tmp = "a";
@@ -299,7 +299,7 @@ static void* string_appender(void* arg) {
 }
 
 TEST_F(ReducerTest, non_primitive_mt) {
-    bvar::Adder<std::string> cater;
+    melon::var::Adder<std::string> cater;
     pthread_t th[8];
     g_stop = false;
     for (size_t i = 0; i < arraysize(th); ++i) {
@@ -330,8 +330,8 @@ TEST_F(ReducerTest, non_primitive_mt) {
 }
 
 TEST_F(ReducerTest, simple_window) {
-    bvar::Adder<int64_t> a;
-    bvar::Window<bvar::Adder<int64_t> > w(&a, 10);
+    melon::var::Adder<int64_t> a;
+    melon::var::Window<melon::var::Adder<int64_t> > w(&a, 10);
     a << 100;
     sleep(3);
     const int64_t v = w.get_value();

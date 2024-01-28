@@ -21,7 +21,7 @@
 #include <melon/bthread/bthread.h>
 #include <melon/butil/logging.h>
 #include <melon/butil/string_printf.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/redis.h>
@@ -39,8 +39,8 @@ DEFINE_int32(batch, 1, "Pipelined Operations");
 DEFINE_int32(dummy_port, -1, "port of dummy server(for monitoring)");
 DEFINE_int32(backup_request_ms, -1, "Timeout for sending a backup request");
 
-bvar::LatencyRecorder g_latency_recorder("client");
-bvar::Adder<int> g_error_count("client_error_count");
+melon::var::LatencyRecorder g_latency_recorder("client");
+melon::var::Adder<int> g_error_count("client_error_count");
 
 struct SenderArgs {
     int base_index;

@@ -23,15 +23,15 @@
 
 namespace melon::raft {
 
-class RaftStatImpl : public raft_stat, public melon::Tabbed {
-public:
-    void default_method(::google::protobuf::RpcController* controller,
-                        const ::melon::raft::IndexRequest* request,
-                        ::melon::raft::IndexResponse* response,
-                        ::google::protobuf::Closure* done);
+    class RaftStatImpl : public raft_stat, public melon::Tabbed {
+    public:
+        void default_method(::google::protobuf::RpcController *controller,
+                            const ::melon::raft::IndexRequest *request,
+                            ::melon::raft::IndexResponse *response,
+                            ::google::protobuf::Closure *done);
 
-    void GetTabInfo(melon::TabInfoList*) const;
-};
+        void GetTabInfo(melon::TabInfoList *) const;
+    };
 
 }  //  namespace melon::raft
 

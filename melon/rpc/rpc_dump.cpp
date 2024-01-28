@@ -23,13 +23,13 @@
 #include "melon/butil/unique_ptr.h"
 #include "melon/butil/fast_rand.h"
 #include "melon/butil/files/file_enumerator.h"
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/rpc_dump.h"
 #include "melon/rpc/protocol.h"
 
-namespace bvar {
+namespace melon::var {
 std::string read_command_name();
 }
 
@@ -84,7 +84,7 @@ public:
         , _sched_write_time(butil::gettimeofday_us() + FLUSH_TIMEOUT)
         , _last_file_time(0)
     {
-        _command_name = bvar::read_command_name();
+        _command_name = melon::var::read_command_name();
         SaveFlags();
         // Clean the directory at fist time.
         butil::DeleteFile(_dir, true); 
@@ -115,11 +115,11 @@ private:
     butil::IOBuf _unwritten_buf;
 };
 
-bvar::CollectorSpeedLimit g_rpc_dump_sl = BVAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
+melon::var::CollectorSpeedLimit g_rpc_dump_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
 static RpcDumpContext* g_rpc_dump_ctx = NULL;
 
 void SampledRequest::dump_and_destroy(size_t round) {
-    static bvar::DisplaySamplingRatio sampling_ratio_var(
+    static melon::var::DisplaySamplingRatio sampling_ratio_var(
         "rpc_dump_sampling_ratio", &g_rpc_dump_sl);
     
     // Safe to modify g_rpc_dump_ctx w/o locking.

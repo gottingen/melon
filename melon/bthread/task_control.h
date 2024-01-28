@@ -30,7 +30,7 @@
 #include <array>
 #include <memory>
 #include "melon/butil/atomicops.h"                     // butil::atomic
-#include "melon/bvar/bvar.h"                          // bvar::PassiveStatus
+#include "melon/var/var.h"                          // melon::var::PassiveStatus
 #include "melon/bthread/task_meta.h"                  // TaskMeta
 #include "melon/butil/resource_pool.h"                 // ResourcePool
 #include "melon/bthread/work_stealing_queue.h"        // WorkStealingQueue
@@ -111,54 +111,54 @@ private:
     template <typename F>
     void for_each_task_group(F const& f);
 
-    bvar::LatencyRecorder& exposed_pending_time();
-    bvar::LatencyRecorder* create_exposed_pending_time();
-    bvar::Adder<int64_t>& tag_nworkers(bthread_tag_t tag);
-    bvar::Adder<int64_t>& tag_nbthreads(bthread_tag_t tag);
+    melon::var::LatencyRecorder& exposed_pending_time();
+    melon::var::LatencyRecorder* create_exposed_pending_time();
+    melon::var::Adder<int64_t>& tag_nworkers(bthread_tag_t tag);
+    melon::var::Adder<int64_t>& tag_nbthreads(bthread_tag_t tag);
 
     std::vector<butil::atomic<size_t>> _tagged_ngroup;
     std::vector<TaggedGroups> _tagged_groups;
     butil::Mutex _modify_group_mutex;
 
-    butil::atomic<bool> _init;  // if not init, bvar will case coredump
+    butil::atomic<bool> _init;  // if not init, var will case coredump
     bool _stop;
     butil::atomic<int> _concurrency;
     std::vector<pthread_t> _workers;
     butil::atomic<int> _next_worker_id;
 
-    bvar::Adder<int64_t> _nworkers;
+    melon::var::Adder<int64_t> _nworkers;
     butil::Mutex _pending_time_mutex;
-    butil::atomic<bvar::LatencyRecorder*> _pending_time;
-    bvar::PassiveStatus<double> _cumulated_worker_time;
-    bvar::PerSecond<bvar::PassiveStatus<double> > _worker_usage_second;
-    bvar::PassiveStatus<int64_t> _cumulated_switch_count;
-    bvar::PerSecond<bvar::PassiveStatus<int64_t> > _switch_per_second;
-    bvar::PassiveStatus<int64_t> _cumulated_signal_count;
-    bvar::PerSecond<bvar::PassiveStatus<int64_t> > _signal_per_second;
-    bvar::PassiveStatus<std::string> _status;
-    bvar::Adder<int64_t> _nbthreads;
+    butil::atomic<melon::var::LatencyRecorder*> _pending_time;
+    melon::var::PassiveStatus<double> _cumulated_worker_time;
+    melon::var::PerSecond<melon::var::PassiveStatus<double> > _worker_usage_second;
+    melon::var::PassiveStatus<int64_t> _cumulated_switch_count;
+    melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > _switch_per_second;
+    melon::var::PassiveStatus<int64_t> _cumulated_signal_count;
+    melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > _signal_per_second;
+    melon::var::PassiveStatus<std::string> _status;
+    melon::var::Adder<int64_t> _nbthreads;
 
-    std::vector<bvar::Adder<int64_t>*> _tagged_nworkers;
-    std::vector<bvar::PassiveStatus<double>*> _tagged_cumulated_worker_time;
-    std::vector<bvar::PerSecond<bvar::PassiveStatus<double>>*> _tagged_worker_usage_second;
-    std::vector<bvar::Adder<int64_t>*> _tagged_nbthreads;
+    std::vector<melon::var::Adder<int64_t>*> _tagged_nworkers;
+    std::vector<melon::var::PassiveStatus<double>*> _tagged_cumulated_worker_time;
+    std::vector<melon::var::PerSecond<melon::var::PassiveStatus<double>>*> _tagged_worker_usage_second;
+    std::vector<melon::var::Adder<int64_t>*> _tagged_nbthreads;
 
     std::vector<TaggedParkingLot> _pl;
 };
 
-inline bvar::LatencyRecorder& TaskControl::exposed_pending_time() {
-    bvar::LatencyRecorder* pt = _pending_time.load(butil::memory_order_consume);
+inline melon::var::LatencyRecorder& TaskControl::exposed_pending_time() {
+    melon::var::LatencyRecorder* pt = _pending_time.load(butil::memory_order_consume);
     if (!pt) {
         pt = create_exposed_pending_time();
     }
     return *pt;
 }
 
-inline bvar::Adder<int64_t>& TaskControl::tag_nworkers(bthread_tag_t tag) {
+inline melon::var::Adder<int64_t>& TaskControl::tag_nworkers(bthread_tag_t tag) {
     return *_tagged_nworkers[tag];
 }
 
-inline bvar::Adder<int64_t>& TaskControl::tag_nbthreads(bthread_tag_t tag) {
+inline melon::var::Adder<int64_t>& TaskControl::tag_nbthreads(bthread_tag_t tag) {
     return *_tagged_nbthreads[tag];
 }
 

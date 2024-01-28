@@ -1093,15 +1093,15 @@ void H2Context::DeferWindowUpdate(int64_t size) {
 }
 
 #if defined(BRPC_PROFILE_H2)
-bvar::Adder<int64_t> g_parse_time;
-bvar::PerSecond<bvar::Adder<int64_t> > g_parse_time_per_second(
+melon::var::Adder<int64_t> g_parse_time;
+melon::var::PerSecond<melon::var::Adder<int64_t> > g_parse_time_per_second(
     "h2_parse_second", &g_parse_time);
 #endif
 
 ParseResult ParseH2Message(butil::IOBuf *source, Socket *socket,
                            bool read_eof, const void *arg) {
 #if defined(BRPC_PROFILE_H2)
-    bvar::ScopedTimer<bvar::Adder<int64_t> > tm(g_parse_time);
+    melon::var::ScopedTimer<melon::var::Adder<int64_t> > tm(g_parse_time);
 #endif
     H2Context* ctx = static_cast<H2Context*>(socket->parsing_context());
     if (ctx == NULL) {
@@ -1486,15 +1486,15 @@ void H2UnsentRequest::DestroyStreamUserData(SocketUniquePtr& sending_sock,
 }
 
 #if defined(BRPC_PROFILE_H2)
-bvar::Adder<int64_t> g_append_request_time;
-bvar::PerSecond<bvar::Adder<int64_t> > g_append_request_time_per_second(
+melon::var::Adder<int64_t> g_append_request_time;
+melon::var::PerSecond<melon::var::Adder<int64_t> > g_append_request_time_per_second(
     "h2_append_request_second",     &g_append_request_time);
 #endif
 
 butil::Status
 H2UnsentRequest::AppendAndDestroySelf(butil::IOBuf* out, Socket* socket) {
 #if defined(BRPC_PROFILE_H2)
-    bvar::ScopedTimer<bvar::Adder<int64_t> > tm(g_append_request_time);
+    melon::var::ScopedTimer<melon::var::Adder<int64_t> > tm(g_append_request_time);
 #endif
     RemoveRefOnQuit deref_self(this);
     if (socket == NULL) {
@@ -1678,15 +1678,15 @@ void H2UnsentResponse::Destroy() {
 }
 
 #if defined(BRPC_PROFILE_H2)
-bvar::Adder<int64_t> g_append_response_time;
-bvar::PerSecond<bvar::Adder<int64_t> > g_append_response_time_per_second(
+melon::var::Adder<int64_t> g_append_response_time;
+melon::var::PerSecond<melon::var::Adder<int64_t> > g_append_response_time_per_second(
     "h2_append_response_second",     &g_append_response_time);
 #endif
 
 butil::Status
 H2UnsentResponse::AppendAndDestroySelf(butil::IOBuf* out, Socket* socket) {
 #if defined(BRPC_PROFILE_H2)
-    bvar::ScopedTimer<bvar::Adder<int64_t> > tm(g_append_response_time);
+    melon::var::ScopedTimer<melon::var::Adder<int64_t> > tm(g_append_response_time);
 #endif
     DestroyingPtr<H2UnsentResponse> destroy_self(this);
     if (socket == NULL) {

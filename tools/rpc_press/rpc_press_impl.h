@@ -22,7 +22,7 @@
 #include <deque>
 #include <google/protobuf/compiler/importer.h>
 #include <google/protobuf/dynamic_message.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 #include <melon/rpc/channel.h>
 #include "info_thread.h"
 #include "pb_util.h"
@@ -123,9 +123,9 @@ private:
                          int64_t start_time_ns);
     static void* sync_call_thread(void* arg);
 
-    bvar::LatencyRecorder _latency_recorder;
-    bvar::Adder<int64_t> _error_count;
-    bvar::Adder<int64_t> _sent_count;
+    melon::var::LatencyRecorder _latency_recorder;
+    melon::var::Adder<int64_t> _error_count;
+    melon::var::Adder<int64_t> _sent_count;
     std::deque<google::protobuf::Message*> _msgs;
     PressClient* _pbrpc_client;
     PressOptions _options;

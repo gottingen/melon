@@ -203,18 +203,18 @@ namespace melon {
 // Update global stuff periodically.
     static void *GlobalUpdate(void *) {
         // Expose variables.
-        bvar::PassiveStatus<int64_t> var_iobuf_block_count(
+        melon::var::PassiveStatus<int64_t> var_iobuf_block_count(
                 "iobuf_block_count", GetIOBufBlockCount, nullptr);
-        bvar::PassiveStatus<int64_t> var_iobuf_block_count_hit_tls_threshold(
+        melon::var::PassiveStatus<int64_t> var_iobuf_block_count_hit_tls_threshold(
                 "iobuf_block_count_hit_tls_threshold",
                 GetIOBufBlockCountHitTLSThreshold, nullptr);
-        bvar::PassiveStatus<int64_t> var_iobuf_new_bigview_count(
+        melon::var::PassiveStatus<int64_t> var_iobuf_new_bigview_count(
                 GetIOBufNewBigViewCount, nullptr);
-        bvar::PerSecond<bvar::PassiveStatus<int64_t> > var_iobuf_new_bigview_second(
+        melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > var_iobuf_new_bigview_second(
                 "iobuf_newbigview_second", &var_iobuf_new_bigview_count);
-        bvar::PassiveStatus<int64_t> var_iobuf_block_memory(
+        melon::var::PassiveStatus<int64_t> var_iobuf_block_memory(
                 "iobuf_block_memory", GetIOBufBlockMemory, nullptr);
-        bvar::PassiveStatus<int> var_running_server_count(
+        melon::var::PassiveStatus<int> var_running_server_count(
                 "rpc_server_count", GetRunningServerCount, nullptr);
 
         butil::FileWatcher fw;

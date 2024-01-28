@@ -59,10 +59,10 @@
 namespace bthread {
 
 #ifdef SHOW_BTHREAD_BUTEX_WAITER_COUNT_IN_VARS
-struct ButexWaiterCount : public bvar::Adder<int64_t> {
-    ButexWaiterCount() : bvar::Adder<int64_t>("bthread_butex_waiter_count") {}
+struct ButexWaiterCount : public melon::var::Adder<int64_t> {
+    ButexWaiterCount() : melon::var::Adder<int64_t>("bthread_butex_waiter_count") {}
 };
-inline bvar::Adder<int64_t>& butex_waiter_count() {
+inline melon::var::Adder<int64_t>& butex_waiter_count() {
     return *butil::get_leaky_singleton<ButexWaiterCount>();
 }
 #endif
@@ -609,7 +609,7 @@ static int butex_wait_from_pthread(TaskGroup* g, Butex* b, int expected_value,
         b->waiter_lock.unlock();
 
 #ifdef SHOW_BTHREAD_BUTEX_WAITER_COUNT_IN_VARS
-        bvar::Adder<int64_t>& num_waiters = butex_waiter_count();
+        melon::var::Adder<int64_t>& num_waiters = butex_waiter_count();
         num_waiters << 1;
 #endif
         rc = wait_pthread(pw, abstime);
@@ -670,7 +670,7 @@ int butex_wait(void* arg, int expected_value, const timespec* abstime) {
         }
     }
 #ifdef SHOW_BTHREAD_BUTEX_WAITER_COUNT_IN_VARS
-    bvar::Adder<int64_t>& num_waiters = butex_waiter_count();
+    melon::var::Adder<int64_t>& num_waiters = butex_waiter_count();
     num_waiters << 1;
 #endif
 

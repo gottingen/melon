@@ -40,11 +40,11 @@
 #include <melon/bthread/bthread.h>
 #include <melon/bthread/unstable.h>
 #include <melon/bthread/countdown_event.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 #include "melon/raft/macros.h"
 #include "melon/raft/raft.h"
 
-namespace bvar {
+namespace melon::var {
     namespace detail {
 
         class Percentile;
@@ -81,7 +81,7 @@ namespace bvar {
     } // namespace detail
 
 // Specialized structure to record counter.
-// It's not a Variable, but it contains multiple bvar inside.
+// It's not a Variable, but it contains multiple var inside.
     class CounterRecorder : public detail::CounterRecorderBase {
         typedef detail::CounterRecorderBase Base;
     public:
@@ -164,7 +164,7 @@ namespace bvar {
         // E.g. 0.99 means 99%-ile
         int64_t counter_percentile(double ratio) const;
 
-        // Get name of a sub-bvar.
+        // Get name of a sub-var.
         const std::string &avg_counter_name() const { return _avg_counter_window.name(); }
 
         const std::string &counter_percentiles_name() const { return _counter_percentiles.name(); }
@@ -180,7 +180,7 @@ namespace bvar {
 
     std::ostream &operator<<(std::ostream &os, const CounterRecorder &);
 
-}  // namespace bvar
+}  // namespace melon::var
 
 namespace melon::raft {
     class Closure;

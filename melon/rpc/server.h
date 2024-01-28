@@ -28,7 +28,7 @@
 #include <google/protobuf/service.h>                 // google::protobuf::Service
 #include "melon/butil/macros.h"                            // DISALLOW_COPY_AND_ASSIGN
 #include "melon/butil/containers/doubly_buffered_data.h"   // DoublyBufferedData
-#include "melon/bvar/bvar.h"
+#include "melon/var/var.h"
 #include "melon/butil/containers/case_ignored_flat_map.h"  // [CaseIgnored]FlatMap
 #include "melon/butil/ptr_container.h"
 #include "melon/rpc/controller.h"                   // melon::Controller
@@ -258,7 +258,7 @@ struct ServerOptions {
     // Default: NULL (disabled)
     RedisService* redis_service;
 
-    // Optional info name for composing server bvar prefix. Read ServerPrefix() method for details;
+    // Optional info name for composing server var prefix. Read ServerPrefix() method for details;
     // Default: ""
     std::string server_info_name;
 
@@ -273,7 +273,7 @@ private:
 };
 
 // This struct is originally designed to contain basic statistics of the
-// server. But bvar contains more stats and is more convenient.
+// server. But var contains more stats and is more convenient.
 struct ServerStatistics {
     size_t connection_count;
     int user_service_count;
@@ -731,11 +731,11 @@ friend class Controller;
 
     bthread_keytable_pool_t* _keytable_pool;
 
-    // mutable is required for `ServerPrivateAccessor' to change this bvar
-    mutable bvar::Adder<int64_t> _nerror_bvar;
-    mutable bvar::PerSecond<bvar::Adder<int64_t> > _eps_bvar;
+    // mutable is required for `ServerPrivateAccessor' to change this var
+    mutable melon::var::Adder<int64_t> _nerror_bvar;
+    mutable melon::var::PerSecond<melon::var::Adder<int64_t> > _eps_bvar;
     BAIDU_CACHELINE_ALIGNMENT mutable int32_t _concurrency;
-    bvar::PassiveStatus<int32_t> _concurrency_bvar;
+    melon::var::PassiveStatus<int32_t> _concurrency_bvar;
 
     bool _has_progressive_read_method;
 };

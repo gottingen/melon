@@ -24,13 +24,13 @@
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
 
-#include "melon/bvar/detail/agent_group.h"
+#include "melon/var/detail/agent_group.h"
 #include "melon/butil/atomicops.h"
 
 #include <gtest/gtest.h>
 
 namespace {
-using namespace bvar::detail;
+using namespace melon::var::detail;
 
 struct Add {
     uint64_t operator()(const uint64_t lhs, const uint64_t rhs) const {

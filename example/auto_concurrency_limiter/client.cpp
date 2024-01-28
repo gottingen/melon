@@ -21,7 +21,7 @@
 #include <melon/butil/logging.h>
 #include <melon/butil/time.h>
 #include <melon/rpc/channel.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 #include <melon/bthread/timer_thread.h>
 #include <melon/json2pb/json_to_pb.h>
 
@@ -66,10 +66,10 @@ uint32_t cast_func(void* arg) {
 butil::atomic<uint32_t> g_timeout(0);
 butil::atomic<uint32_t> g_error(0);
 butil::atomic<uint32_t> g_succ(0);
-bvar::PassiveStatus<uint32_t> g_timeout_bvar(cast_func, &g_timeout);
-bvar::PassiveStatus<uint32_t> g_error_bvar(cast_func, &g_error);
-bvar::PassiveStatus<uint32_t> g_succ_bvar(cast_func, &g_succ);
-bvar::LatencyRecorder g_latency_rec;
+melon::var::PassiveStatus<uint32_t> g_timeout_bvar(cast_func, &g_timeout);
+melon::var::PassiveStatus<uint32_t> g_error_bvar(cast_func, &g_error);
+melon::var::PassiveStatus<uint32_t> g_succ_bvar(cast_func, &g_succ);
+melon::var::LatencyRecorder g_latency_rec;
 
 void LoadCaseSet(test::TestCaseSet* case_set, const std::string& file_path) {
     std::ifstream ifs(file_path.c_str(), std::ios::in);  

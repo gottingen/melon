@@ -17,7 +17,7 @@
 
 // Date: 2015/08/27 17:12:38
 
-#include "melon/bvar/reducer.h"
+#include "melon/var/reducer.h"
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #include <stdlib.h>
@@ -29,11 +29,11 @@ protected:
 };
 
 TEST_F(FileDumperTest, filters) {
-    bvar::Adder<int> a1("a_latency");
-    bvar::Adder<int> a2("a_qps");
-    bvar::Adder<int> a3("a_error");
-    bvar::Adder<int> a4("process_*");
-    bvar::Adder<int> a5("default");
+    melon::var::Adder<int> a1("a_latency");
+    melon::var::Adder<int> a2("a_qps");
+    melon::var::Adder<int> a3("a_error");
+    melon::var::Adder<int> a4("process_*");
+    melon::var::Adder<int> a5("default");
     GFLAGS_NS::SetCommandLineOption("bvar_dump_interval", "1");
     GFLAGS_NS::SetCommandLineOption("bvar_dump", "true");
     sleep(2);

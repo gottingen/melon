@@ -23,7 +23,7 @@
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
 DEFINE_bool(use_bthread, false, "Use bthread to send requests");
@@ -42,8 +42,8 @@ DEFINE_int32(dummy_port, -1, "Launch dummy server at this port");
 std::string g_request;
 std::string g_attachment;
 
-bvar::LatencyRecorder g_latency_recorder("client");
-bvar::Adder<int> g_error_count("client_error_count");
+melon::var::LatencyRecorder g_latency_recorder("client");
+melon::var::Adder<int> g_error_count("client_error_count");
 
 static void* sender(void* arg) {
     // Normally, you should not call a Channel directly, but instead construct

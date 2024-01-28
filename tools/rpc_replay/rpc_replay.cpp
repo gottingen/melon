@@ -21,7 +21,7 @@
 #include <melon/butil/time.h>
 #include <melon/butil/macros.h>
 #include <melon/butil/file_util.h>
-#include <melon/bvar/bvar.h>
+#include <melon/var/var.h>
 #include <melon/bthread/bthread.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
@@ -46,9 +46,9 @@ DEFINE_int32(max_retry, 3, "Maximum retry times");
 DEFINE_int32(dummy_port, 8899, "Port of dummy server(to monitor replaying)");
 DEFINE_string(http_host, "", "Host field for http protocol");
 
-bvar::LatencyRecorder g_latency_recorder("rpc_replay");
-bvar::Adder<int64_t> g_error_count("rpc_replay_error_count");
-bvar::Adder<int64_t> g_sent_count;
+melon::var::LatencyRecorder g_latency_recorder("rpc_replay");
+melon::var::Adder<int64_t> g_error_count("rpc_replay_error_count");
+melon::var::Adder<int64_t> g_sent_count;
 
 // Include channels for all protocols that support both client and server.
 class ChannelGroup {

@@ -20,7 +20,7 @@
 #define BRPC_SOCKET_MAP_H
 
 #include <vector>                             // std::vector
-#include "melon/bvar/bvar.h"                        // bvar::PassiveStatus
+#include "melon/var/var.h"                        // melon::var::PassiveStatus
 #include "melon/butil/containers/flat_map.h"        // FlatMap
 #include "melon/rpc/socket_id.h"                   // SockdetId
 #include "melon/rpc/options.pb.h"                  // ProtocolType
@@ -192,7 +192,7 @@ private:
     butil::Mutex _mutex;
     Map _map;
     butil::atomic<bool> _exposed_in_bvar;
-    bvar::PassiveStatus<std::string>* _this_map_bvar;
+    melon::var::PassiveStatus<std::string>* _this_map_bvar;
     bool _has_close_idle_thread;
     bthread_t _close_idle_thread;
 };
