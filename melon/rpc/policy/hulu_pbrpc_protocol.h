@@ -16,38 +16,38 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_HULU_PBRPC_PROTOCOL_H_
-#define MELON_RPC_POLICY_HULU_PBRPC_PROTOCOL_H_
+#ifndef BRPC_POLICY_HULU_PBRPC_PROTOCOL_H
+#define BRPC_POLICY_HULU_PBRPC_PROTOCOL_H
 
 #include "melon/rpc/policy/hulu_pbrpc_meta.pb.h"
 #include "melon/rpc/protocol.h"
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Parse binary format of hulu-pbrpc.
-        ParseResult ParseHuluMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+// Parse binary format of hulu-pbrpc.
+ParseResult ParseHuluMessage(butil::IOBuf* source, Socket *socket, bool read_eof, const void *arg);
 
-        // Actions to a (client) request in hulu-pbrpc format.
-        void ProcessHuluRequest(InputMessageBase *msg);
+// Actions to a (client) request in hulu-pbrpc format.
+void ProcessHuluRequest(InputMessageBase* msg);
 
-        // Actions to a (server) response in hulu-pbrpc format.
-        void ProcessHuluResponse(InputMessageBase *msg);
+// Actions to a (server) response in hulu-pbrpc format.
+void ProcessHuluResponse(InputMessageBase* msg);
 
-        // Verify authentication information in hulu-pbrpc format
-        bool VerifyHuluRequest(const InputMessageBase *msg);
+// Verify authentication information in hulu-pbrpc format
+bool VerifyHuluRequest(const InputMessageBase* msg);
 
-        // Pack `request' to `method' into `buf'.
-        void PackHuluRequest(melon::cord_buf *buf,
-                             SocketMessage **,
-                             uint64_t correlation_id,
-                             const google::protobuf::MethodDescriptor *method,
-                             Controller *controller,
-                             const melon::cord_buf &request,
-                             const Authenticator *auth);
+// Pack `request' to `method' into `buf'.
+void PackHuluRequest(butil::IOBuf* buf,
+                     SocketMessage**,
+                     uint64_t correlation_id,
+                     const google::protobuf::MethodDescriptor* method,
+                     Controller* controller,
+                     const butil::IOBuf& request,
+                     const Authenticator* auth);
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_POLICY_HULU_PBRPC_PROTOCOL_H_
+#endif  // BRPC_POLICY_HULU_PBRPC_PROTOCOL_H

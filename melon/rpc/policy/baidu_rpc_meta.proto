@@ -19,9 +19,9 @@ syntax="proto2";
 import "melon/rpc/options.proto";
 import "melon/rpc/streaming_rpc_meta.proto";
 
-package melon.rpc.policy;
-option java_package="com.melon.rpc.policy";
-option java_outer_classname="MelonRpcProto";
+package brpc.policy;
+option java_package="com.brpc.policy";
+option java_outer_classname="BaiduRpcProto";
 
 message RpcMeta {
     optional RpcRequestMeta request = 1;
@@ -31,7 +31,8 @@ message RpcMeta {
     optional int32 attachment_size = 5;
     optional ChunkInfo chunk_info = 6;
     optional bytes authentication_data = 7;
-    optional StreamSettings stream_settings = 8;   
+    optional StreamSettings stream_settings = 8;
+    map<string, string> user_fields = 9;
 }
 
 message RpcRequestMeta {
@@ -42,7 +43,7 @@ message RpcRequestMeta {
     optional int64 span_id = 5;
     optional int64 parent_span_id = 6;
     optional string request_id = 7; // correspond to x-request-id in http header
-    optional int32 timeout_ms = 8; // client's timeout setting for current call
+    optional int32 timeout_ms = 8;  // client's timeout setting for current call
 }
 
 message RpcResponseMeta {

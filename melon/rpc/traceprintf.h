@@ -16,22 +16,21 @@
 // under the License.
 
 
-#ifndef MELON_RPC_TRACEPRINTF_H_
-#define MELON_RPC_TRACEPRINTF_H_
+#ifndef BRPC_TRACEPRINTF_H
+#define BRPC_TRACEPRINTF_H
 
-#include "melon/base/profile.h"
+#include "melon/butil/macros.h"
 
-// To melon developers: This is a header included by user, don't depend
+// To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    bool CanAnnotateSpan();
+bool CanAnnotateSpan();
+void AnnotateSpan(const char* fmt, ...);
 
-    void AnnotateSpan(const char *fmt, ...);
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
 // Use this macro to print log to /rpcz and tracing system.
@@ -39,9 +38,9 @@ namespace melon::rpc {
 // have (critical) side effects in arguments.
 #define TRACEPRINTF(fmt, args...)                                       \
     do {                                                                \
-        if (::melon::rpc::CanAnnotateSpan()) {                          \
-            ::melon::rpc::AnnotateSpan("[" __FILE__ ":" MELON_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
+        if (::brpc::CanAnnotateSpan()) {                          \
+            ::brpc::AnnotateSpan("[" __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
         }                                                               \
     } while (0)
 
-#endif  // MELON_RPC_TRACEPRINTF_H_
+#endif  // BRPC_TRACEPRINTF_H

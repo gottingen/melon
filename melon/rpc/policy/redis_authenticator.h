@@ -15,32 +15,45 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_POLICY_REDIS_AUTHENTICATOR_H_
-#define MELON_RPC_POLICY_REDIS_AUTHENTICATOR_H_
+#ifndef BRPC_POLICY_REDIS_AUTHENTICATOR_H
+#define BRPC_POLICY_REDIS_AUTHENTICATOR_H
 
 #include "melon/rpc/authenticator.h"
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Request to redis for authentication.
-        class RedisAuthenticator : public Authenticator {
-        public:
-            RedisAuthenticator(const std::string &passwd)
-                    : passwd_(passwd) {}
+// Request to redis for authentication.
+class RedisAuthenticator : public Authenticator {
+public:
+    RedisAuthenticator(const std::string& passwd, int db = -1)
+        : passwd_(passwd), db_(db) {}
 
-            int GenerateCredential(std::string *auth_str) const;
+    int GenerateCredential(std::string* auth_str) const;
 
-            int VerifyCredential(const std::string &, const melon::end_point &,
-                                 melon::rpc::AuthContext *) const {
-                return 0;
-            }
+    int VerifyCredential(const std::string&, const butil::EndPoint&,
+                         brpc::AuthContext*) const {
+        return 0;
+    }
 
-        private:
-            const std::string passwd_;
-        };
+    uint32_t GetAuthFlags() const {
+        uint32_t n = 0;
+        if (!passwd_.empty()) {
+            ++n;
+        }
+        if (db_ >= 0) {
+            ++n;
+        }
+        return n;
+    }
 
-    }  // namespace policy
-}  // namespace melon::rpc
+private:
+    const std::string passwd_;
 
-#endif  // MELON_RPC_POLICY_COUCHBASE_AUTHENTICATOR_H_
+    int db_;
+};
+
+}  // namespace policy
+}  // namespace brpc
+
+#endif  // BRPC_POLICY_COUCHBASE_AUTHENTICATOR_H

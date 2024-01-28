@@ -16,49 +16,49 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H_
-#define MELON_RPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H_
+#ifndef BRPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H
+#define BRPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H
 
 #include "melon/rpc/nshead_pb_service_adaptor.h"
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Actions to a (server) response in public-pbrpc format.
-        void ProcessPublicPbrpcResponse(InputMessageBase *msg);
+// Actions to a (server) response in public-pbrpc format.
+void ProcessPublicPbrpcResponse(InputMessageBase* msg);
 
-        void SerializePublicPbrpcRequest(melon::cord_buf *buf, Controller *cntl,
-                                         const google::protobuf::Message *request);
+void SerializePublicPbrpcRequest(butil::IOBuf* buf, Controller* cntl,
+                                 const google::protobuf::Message* request);
 
-        // Pack `request' to `method' into `buf'.
-        void PackPublicPbrpcRequest(melon::cord_buf *buf,
-                                    SocketMessage **,
-                                    uint64_t correlation_id,
-                                    const google::protobuf::MethodDescriptor *method,
-                                    Controller *controller,
-                                    const melon::cord_buf &request,
-                                    const Authenticator *auth);
+// Pack `request' to `method' into `buf'.
+void PackPublicPbrpcRequest(butil::IOBuf* buf,
+                            SocketMessage**,
+                            uint64_t correlation_id,
+                            const google::protobuf::MethodDescriptor* method,
+                            Controller* controller,
+                            const butil::IOBuf& request,
+                            const Authenticator* auth);
 
-        class PublicPbrpcServiceAdaptor : public NsheadPbServiceAdaptor {
-        public:
-            void ParseNsheadMeta(
-                    const Server &svr, const NsheadMessage &request, Controller *,
-                    NsheadMeta *out_meta) const;
+class PublicPbrpcServiceAdaptor : public NsheadPbServiceAdaptor {
+public:
+    void ParseNsheadMeta(
+        const Server& svr, const NsheadMessage& request, Controller*,
+        NsheadMeta* out_meta) const;
 
-            void ParseRequestFromCordBuf(
-                    const NsheadMeta &meta, const NsheadMessage &raw_req,
-                    Controller *controller, google::protobuf::Message *pb_req) const;
+    void ParseRequestFromIOBuf(
+        const NsheadMeta& meta, const NsheadMessage& raw_req,
+        Controller* controller, google::protobuf::Message* pb_req) const;
 
-            void SerializeResponseToCordBuf(
-                    const NsheadMeta &meta, Controller *controller,
-                    const google::protobuf::Message *pb_res,
-                    NsheadMessage *raw_res) const;
-        };
+    void SerializeResponseToIOBuf(
+        const NsheadMeta& meta, Controller* controller,
+        const google::protobuf::Message* pb_res,
+        NsheadMessage* raw_res) const;
+};
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H_
+#endif  // BRPC_POLICY_PUBLIC_PBRPC_PROTOCOL_H

@@ -16,39 +16,39 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_SOFA_PBRPC_PROTOCOL_H_
-#define MELON_RPC_POLICY_SOFA_PBRPC_PROTOCOL_H_
+#ifndef BRPC_POLICY_SOFA_PBRPC_PROTOCOL_H
+#define BRPC_POLICY_SOFA_PBRPC_PROTOCOL_H
 
 #include "melon/rpc/policy/sofa_pbrpc_meta.pb.h"
 #include "melon/rpc/protocol.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Parse binary format of sofa-pbrpc.
-        ParseResult ParseSofaMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+// Parse binary format of sofa-pbrpc.
+ParseResult ParseSofaMessage(butil::IOBuf* source, Socket *socket, bool read_eof, const void *arg);
 
-        // Actions to a (client) request in sofa-pbrpc format.
-        void ProcessSofaRequest(InputMessageBase *msg);
+// Actions to a (client) request in sofa-pbrpc format.
+void ProcessSofaRequest(InputMessageBase* msg);
 
-        // Actions to a (server) response in sofa-pbrpc format.
-        void ProcessSofaResponse(InputMessageBase *msg);
+// Actions to a (server) response in sofa-pbrpc format.
+void ProcessSofaResponse(InputMessageBase* msg);
 
-        // Verify authentication information in sofa-pbrpc format
-        bool VerifySofaRequest(const InputMessageBase *msg);
+// Verify authentication information in sofa-pbrpc format
+bool VerifySofaRequest(const InputMessageBase* msg);
 
-        // Pack `request' to `method' into `buf'.
-        void PackSofaRequest(melon::cord_buf *buf,
-                             SocketMessage **,
-                             uint64_t correlation_id,
-                             const google::protobuf::MethodDescriptor *method,
-                             Controller *controller,
-                             const melon::cord_buf &request,
-                             const Authenticator *auth);
+// Pack `request' to `method' into `buf'.
+void PackSofaRequest(butil::IOBuf* buf,
+                     SocketMessage**,
+                     uint64_t correlation_id,
+                     const google::protobuf::MethodDescriptor* method,
+                     Controller* controller,
+                     const butil::IOBuf& request,
+                     const Authenticator* auth);
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_POLICY_SOFA_PBRPC_PROTOCOL_H_
+#endif  // BRPC_POLICY_SOFA_PBRPC_PROTOCOL_H

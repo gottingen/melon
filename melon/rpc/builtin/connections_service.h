@@ -16,33 +16,32 @@
 // under the License.
 
 
-#ifndef MELON_RPC_CONNECTIONS_SERVICE_H_
-#define MELON_RPC_CONNECTIONS_SERVICE_H_
+#ifndef BRPC_CONNECTIONS_SERVICE_H
+#define BRPC_CONNECTIONS_SERVICE_H
 
 #include "melon/rpc/socket_id.h"
 #include "melon/rpc/builtin_service.pb.h"
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Acceptor;
+class Acceptor;
+class ConnectionsService : public connections, public Tabbed {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::ConnectionsRequest* request,
+                        ::brpc::ConnectionsResponse* response,
+                        ::google::protobuf::Closure* done);
 
-    class ConnectionsService : public connections, public Tabbed {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::ConnectionsRequest *request,
-                            ::melon::rpc::ConnectionsResponse *response,
-                            ::google::protobuf::Closure *done);
+    void GetTabInfo(TabInfoList* info_list) const;
+    
+private:
+    void PrintConnections(std::ostream& os, const std::vector<SocketId>& conns,
+                          bool use_html, const Server*, bool need_local) const;
+};
 
-        void GetTabInfo(TabInfoList *info_list) const;
-
-    private:
-        void PrintConnections(std::ostream &os, const std::vector<SocketId> &conns,
-                              bool use_html, const Server *, bool need_local) const;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_CONNECTIONS_SERVICE_H_
+#endif // BRPC_CONNECTIONS_SERVICE_H

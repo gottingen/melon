@@ -16,35 +16,35 @@
 // under the License.
 
 
-#ifndef MELON_RPC_DATA_FACTORY_H_
-#define MELON_RPC_DATA_FACTORY_H_
+#ifndef BRPC_DATA_FACTORY_H
+#define BRPC_DATA_FACTORY_H
 
-// To melon developers: This is a header included by user, don't depend
+// To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
 
-namespace melon::rpc {
+namespace brpc {
 
-    // ---- thread safety ----
-    // Method implementations of this interface should be thread-safe
-    class DataFactory {
-    public:
-        virtual ~DataFactory() {}
+// ---- thread safety ----
+// Method implementations of this interface should be thread-safe
+class DataFactory {
+public:
+    virtual ~DataFactory() {}
 
-        // Implement this method to create a piece of data
-        // Returns the data, nullptr on error.
-        virtual void *CreateData() const = 0;
+    // Implement this method to create a piece of data
+    // Returns the data, NULL on error.
+    virtual void* CreateData() const = 0;
 
-        // Implement this method to destroy data created by Create().
-        virtual void DestroyData(void *) const = 0;
+    // Implement this method to destroy data created by Create().
+    virtual void DestroyData(void*) const = 0;
 
-        // Overwrite this method to reset the data before reuse. Nothing done by default.
-        // Returns
-        //   true:  the data can be kept for future reuse
-        //   false: the data is improper to be reused and should be sent to
-        //          DestoryData() immediately after calling this method
-        virtual bool ResetData(void *) const { return true; }
-    };
+    // Overwrite this method to reset the data before reuse. Nothing done by default.
+    // Returns
+    //   true:  the data can be kept for future reuse
+    //   false: the data is improper to be reused and should be sent to 
+    //          DestroyData() immediately after calling this method
+    virtual bool ResetData(void*) const { return true; }
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
-#endif  // MELON_RPC_DATA_FACTORY_H_
+#endif  // BRPC_DATA_FACTORY_H

@@ -15,81 +15,89 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
-#define MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
+#ifndef BRPC_ADAPTIVE_MAX_CONCURRENCY_H
+#define BRPC_ADAPTIVE_MAX_CONCURRENCY_H
 
-// To melon developers: This is a header included by user, don't depend
+// To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
-#include <string_view>
+
+#include "melon/butil/strings/string_piece.h"
 #include "melon/rpc/options.pb.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    class AdaptiveMaxConcurrency {
-    public:
-        explicit AdaptiveMaxConcurrency();
+// timeout concurrency limiter config
+struct TimeoutConcurrencyConf {
+    int64_t timeout_ms;
+    int max_concurrency;
+};
 
-        explicit AdaptiveMaxConcurrency(int max_concurrency);
+class AdaptiveMaxConcurrency{
+public:
+    explicit AdaptiveMaxConcurrency();
+    explicit AdaptiveMaxConcurrency(int max_concurrency);
+    explicit AdaptiveMaxConcurrency(const butil::StringPiece& value);
+    explicit AdaptiveMaxConcurrency(const TimeoutConcurrencyConf& value);
 
-        explicit AdaptiveMaxConcurrency(const std::string_view &value);
+    // Non-trivial destructor to prevent AdaptiveMaxConcurrency from being
+    // passed to variadic arguments without explicit type conversion.
+    // eg:
+    // printf("%d", options.max_concurrency)                  // compile error
+    // printf("%s", options.max_concurrency.value().c_str()) // ok
+    ~AdaptiveMaxConcurrency() {}
 
-        // Non-trivial destructor to prevent AdaptiveMaxConcurrency from being
-        // passed to variadic arguments without explicit type conversion.
-        // eg:
-        // printf("%d", options.max_concurrency)                  // compile error
-        // printf("%s", options.max_concurrency.value().c_str()) // ok
-        ~AdaptiveMaxConcurrency() {}
+    void operator=(int max_concurrency);
+    void operator=(const butil::StringPiece& value);
+    void operator=(const TimeoutConcurrencyConf& value);
 
-        void operator=(int max_concurrency);
+    // 0  for type="unlimited"
+    // >0 for type="constant"
+    // <0 for type="user-defined"
+    operator int() const { return _max_concurrency; }
+    operator TimeoutConcurrencyConf() const { return _timeout_conf; }
 
-        void operator=(const std::string_view &value);
+    // "unlimited" for type="unlimited"
+    // "10" "20" "30" for type="constant"
+    // "user-defined" for type="user-defined"
+    const std::string& value() const { return _value; }
 
-        // 0  for type="unlimited"
-        // >0 for type="constant"
-        // <0 for type="user-defined"
-        operator int() const { return _max_concurrency; }
+    // "unlimited", "constant" or "user-defined"
+    const std::string& type() const;
 
-        // "unlimited" for type="unlimited"
-        // "10" "20" "30" for type="constant"
-        // "user-defined" for type="user-defined"
-        const std::string &value() const { return _value; }
+    // Get strings filled with "unlimited" and "constant"
+    static const std::string& UNLIMITED();
+    static const std::string& CONSTANT();
 
-        // "unlimited", "constant" or "user-defined"
-        const std::string &type() const;
+private:
+    std::string _value;
+    int _max_concurrency;
+    TimeoutConcurrencyConf
+        _timeout_conf;  // TODO std::varient for different type
+};
 
-        // Get strings filled with "unlimited" and "constant"
-        static const std::string &UNLIMITED();
+inline std::ostream& operator<<(std::ostream& os, const AdaptiveMaxConcurrency& amc) {
+    return os << amc.value();
+}
 
-        static const std::string &CONSTANT();
+bool operator==(const AdaptiveMaxConcurrency& adaptive_concurrency,
+                       const butil::StringPiece& concurrency);
 
-    private:
-        std::string _value;
-        int _max_concurrency;
-    };
+inline bool operator==(const butil::StringPiece& concurrency,
+                       const AdaptiveMaxConcurrency& adaptive_concurrency) {
+    return adaptive_concurrency == concurrency;
+}
 
-    inline std::ostream &operator<<(std::ostream &os, const AdaptiveMaxConcurrency &amc) {
-        return os << amc.value();
-    }
+inline bool operator!=(const AdaptiveMaxConcurrency& adaptive_concurrency,
+                       const butil::StringPiece& concurrency) {
+    return !(adaptive_concurrency == concurrency);
+}
 
-    bool operator==(const AdaptiveMaxConcurrency &adaptive_concurrency,
-                    const std::string_view &concurrency);
+inline bool operator!=(const butil::StringPiece& concurrency,
+                  const AdaptiveMaxConcurrency& adaptive_concurrency) {
+    return !(adaptive_concurrency == concurrency);
+}
 
-    inline bool operator==(const std::string_view &concurrency,
-                           const AdaptiveMaxConcurrency &adaptive_concurrency) {
-        return adaptive_concurrency == concurrency;
-    }
-
-    inline bool operator!=(const AdaptiveMaxConcurrency &adaptive_concurrency,
-                           const std::string_view &concurrency) {
-        return !(adaptive_concurrency == concurrency);
-    }
-
-    inline bool operator!=(const std::string_view &concurrency,
-                           const AdaptiveMaxConcurrency &adaptive_concurrency) {
-        return !(adaptive_concurrency == concurrency);
-    }
-
-}  // namespace melon::rpc
+}  // namespace brpc
 
 
-#endif // MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
+#endif // BRPC_ADAPTIVE_MAX_CONCURRENCY_H

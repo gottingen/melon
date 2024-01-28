@@ -16,67 +16,58 @@
 // under the License.
 
 
-#ifndef MELON_RPC_THRIFT_SERVICE_H_
-#define MELON_RPC_THRIFT_SERVICE_H_
+#ifndef BRPC_THRIFT_SERVICE_H
+#define BRPC_THRIFT_SERVICE_H
 
 #include "melon/rpc/controller.h"                        // Controller
 #include "melon/rpc/thrift_message.h"                    // ThriftFramedMessage
 #include "melon/rpc/describable.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Socket;
+class Socket;
+class Server;
+class MethodStatus;
+class StatusService;
+namespace policy {
+class ThriftClosure;
+void ProcessThriftRequest(InputMessageBase* msg_base);
+}
 
-    class Server;
+// Inherit this class to let brpc server understands thrift_binary requests.
+class ThriftService : public Describable {
+public:
+    ThriftService();
+    virtual ~ThriftService();
 
-    class MethodStatus;
+    // Implement this method to handle thrift_binary requests.
+    // Parameters:
+    //   controller  per-rpc settings. controller->Failed() is always false.
+    //   request     The thrift_binary request received.
+    //   response    The thrift_binary response that you should fill in.
+    //   done        You must call done->Run() to end the processing.
+    virtual void ProcessThriftFramedRequest(
+        Controller* controller,
+        ThriftFramedMessage* request,
+        ThriftFramedMessage* response,
+        ::google::protobuf::Closure* done) = 0;
 
-    class StatusService;
-    namespace policy {
-        class ThriftClosure;
+    // Put descriptions into the stream.
+    void Describe(std::ostream &os, const DescribeOptions&) const;
 
-        void ProcessThriftRequest(InputMessageBase *msg_base);
-    }
+private:
+DISALLOW_COPY_AND_ASSIGN(ThriftService);
+friend class policy::ThriftClosure;
+friend void policy::ProcessThriftRequest(InputMessageBase* msg_base);
+friend class StatusService;
+friend class Server;
 
-    // Inherit this class to let melon server understands thrift_binary requests.
-    class ThriftService : public Describable {
-    public:
-        ThriftService();
+private:
+    void Expose(const butil::StringPiece& prefix);
+    
+    MethodStatus* _status;
+};
 
-        virtual ~ThriftService();
+} // namespace brpc
 
-        // Implement this method to handle thrift_binary requests.
-        // Parameters:
-        //   controller  per-rpc settings. controller->Failed() is always false.
-        //   request     The thrift_binary request received.
-        //   response    The thrift_binary response that you should fill in.
-        //   done        You must call done->Run() to end the processing.
-        virtual void ProcessThriftFramedRequest(
-                Controller *controller,
-                ThriftFramedMessage *request,
-                ThriftFramedMessage *response,
-                ::google::protobuf::Closure *done) = 0;
-
-        // Put descriptions into the stream.
-        void Describe(std::ostream &os, const DescribeOptions &) const;
-
-    private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(ThriftService);
-
-        friend class policy::ThriftClosure;
-
-        friend void policy::ProcessThriftRequest(InputMessageBase *msg_base);
-
-        friend class StatusService;
-
-        friend class Server;
-
-    private:
-        void Expose(const std::string_view &prefix);
-
-        MethodStatus *_status;
-    };
-
-} // namespace melon::rpc
-
-#endif // MELON_RPC_THRIFT_SERVICE_H_
+#endif // BRPC_THRIFT_SERVICE_H

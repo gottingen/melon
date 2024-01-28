@@ -18,8 +18,8 @@
 syntax="proto2";
 import "melon/rpc/options.proto";
 
-package melon.rpc;
-option java_package="com.rpc.melon";
+package brpc;
+option java_package="com.brpc";
 option java_outer_classname="Span";
 
 enum SpanType {
@@ -37,7 +37,7 @@ message RpczSpan {
     optional uint64 log_id = 4;
     optional uint64 base_cid = 5;
     optional uint64 ending_cid = 6;
-    // We don't use additional message for end_point to save a memory allocation.
+    // We don't use additional message for EndPoint to save a memory allocation.
     optional uint32 remote_ip = 7;
     optional uint32 remote_port = 8;
     optional SpanType type = 9;

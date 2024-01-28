@@ -16,101 +16,99 @@
 // under the License.
 
 
-#ifndef MELON_RPC_RESTFUL_H_
-#define MELON_RPC_RESTFUL_H_
+#ifndef BRPC_RESTFUL_H
+#define BRPC_RESTFUL_H
 
 #include <string>
-#include <string_view>
+#include "melon/butil/strings/string_piece.h"
 #include "melon/rpc/server.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    struct RestfulMethodPath {
-        std::string service_name;
-        std::string prefix;
-        std::string postfix;
-        bool has_wildcard;
+struct RestfulMethodPath {
+    std::string service_name;
+    std::string prefix;
+    std::string postfix;
+    bool has_wildcard;
 
-        std::string to_string() const;
-    };
+    std::string to_string() const;
+};
+struct RestfulMapping {
+    RestfulMethodPath path;
+    std::string method_name;
+};
 
-    struct RestfulMapping {
-        RestfulMethodPath path;
-        std::string method_name;
-    };
+// Split components of `path_in' into `path_out'.
+// * path_out->service_name does not have /.
+// * path_out->prefix is normalized as
+//   prefix := "/COMPONENT" prefix | "" (no dot in COMPONENT)
+// Returns true on success.
+bool ParseRestfulPath(butil::StringPiece path_in, RestfulMethodPath* path_out);
 
-    // Split components of `path_in' into `path_out'.
-    // * path_out->service_name does not have /.
-    // * path_out->prefix is normalized as
-    //   prefix := "/COMPONENT" prefix | "" (no dot in COMPONENT)
-    // Returns true on success.
-    bool ParseRestfulPath(std::string_view path_in, RestfulMethodPath *path_out);
+// Parse "PATH1 => NAME1, PATH2 => NAME2 ..." where:
+// * PATHs are acceptible by ParseRestfulPath.
+// * NAMEs are valid as method names in protobuf.
+// Returns true on success.
+bool ParseRestfulMappings(const butil::StringPiece& mappings,
+                          std::vector<RestfulMapping>* list);
 
-    // Parse "PATH1 => NAME1, PATH2 => NAME2 ..." where:
-    // * PATHs are acceptible by ParseRestfulPath.
-    // * NAMEs are valid as method names in protobuf.
-    // Returns true on success.
-    bool ParseRestfulMappings(const std::string_view &mappings,
-                              std::vector<RestfulMapping> *list);
+struct RestfulMethodProperty : public Server::MethodProperty {
+    RestfulMethodPath path;
+    ServiceOwnership ownership;
+};
 
-    struct RestfulMethodProperty : public Server::MethodProperty {
-        RestfulMethodPath path;
-        ServiceOwnership ownership;
-    };
+// Store paths under a same toplevel name.
+class RestfulMap {
+public:
+    typedef std::map<std::string, RestfulMethodProperty> DedupMap;
+    typedef std::vector<RestfulMethodProperty*> PathList;
 
-    // Store paths under a same toplevel name.
-    class RestfulMap {
-    public:
-        typedef std::map<std::string, RestfulMethodProperty> DedupMap;
-        typedef std::vector<RestfulMethodProperty *> PathList;
+    explicit RestfulMap(const std::string& service_name)
+        : _service_name(service_name) {}
+    virtual ~RestfulMap();
 
-        explicit RestfulMap(const std::string &service_name)
-                : _service_name(service_name) {}
+    // Map `path' to the method denoted by `method_name' in `service'.
+    // Returns MethodStatus of the method on success, NULL otherwise.
+    bool AddMethod(const RestfulMethodPath& path,
+                   google::protobuf::Service* service,
+                   const Server::MethodProperty::OpaqueParams& params,
+                   const std::string& method_name,
+                   MethodStatus* status);
 
-        virtual ~RestfulMap();
+    // Remove by RestfulMethodPath::to_string() of the path to AddMethod()
+    // Returns number of methods removed (should be 1 or 0 currently)
+    size_t RemoveByPathString(const std::string& path);
 
-        // Map `path' to the method denoted by `method_name' in `service'.
-        // Returns MethodStatus of the method on success, nullptr otherwise.
-        bool AddMethod(const RestfulMethodPath &path,
-                       google::protobuf::Service *service,
-                       const Server::MethodProperty::OpaqueParams &params,
-                       const std::string &method_name,
-                       MethodStatus *status);
+    // Remove all methods.
+    void ClearMethods();
 
-        // Remove by RestfulMethodPath::to_string() of the path to AddMethod()
-        // Returns number of methods removed (should be 1 or 0 currently)
-        size_t RemoveByPathString(const std::string &path);
+    // Called after by Server at starting moment, to refresh _sorted_paths
+    void PrepareForFinding();
+    
+    // Find the method by path.
+    // Time complexity in worst-case is #slashes-in-input * log(#paths-stored)
+    const Server::MethodProperty*
+    FindMethodProperty(const butil::StringPiece& method_path,
+                       std::string* unresolved_path) const;
 
-        // Remove all methods.
-        void ClearMethods();
+    const std::string& service_name() const { return _service_name; }
 
-        // Called after by Server at starting moment, to refresh _sorted_paths
-        void PrepareForFinding();
+    // Number of methods in this map. Only for UT right now.
+    size_t size() const { return _dedup_map.size(); }
+    
+private:
+    DISALLOW_COPY_AND_ASSIGN(RestfulMap);
+    
+    std::string _service_name;
+    // refreshed each time 
+    PathList _sorted_paths;
+    DedupMap _dedup_map;
+};
 
-        // Find the method by path.
-        // Time complexity in worst-case is #slashes-in-input * log(#paths-stored)
-        const Server::MethodProperty *
-        FindMethodProperty(const std::string_view &method_path,
-                           std::string *unresolved_path) const;
+std::ostream& operator<<(std::ostream& os, const RestfulMethodPath&);
 
-        const std::string &service_name() const { return _service_name; }
-
-        // Number of methods in this map. Only for UT right now.
-        size_t size() const { return _dedup_map.size(); }
-
-    private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(RestfulMap);
-
-        std::string _service_name;
-        // refreshed each time
-        PathList _sorted_paths;
-        DedupMap _dedup_map;
-    };
-
-    std::ostream &operator<<(std::ostream &os, const RestfulMethodPath &);
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_RESTFUL_H_
+#endif  // BRPC_RESTFUL_H

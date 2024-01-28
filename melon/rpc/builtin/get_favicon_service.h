@@ -16,22 +16,22 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_GET_FAVICON_SERVICE_H_
-#define  MELON_RPC_GET_FAVICON_SERVICE_H_
+#ifndef  BRPC_GET_FAVICON_SERVICE_H
+#define  BRPC_GET_FAVICON_SERVICE_H
 
 #include "melon/rpc/get_favicon.pb.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    class GetFaviconService : public ico {
-    public:
-        void default_method(::google::protobuf::RpcController *controller,
-                            const GetFaviconRequest *request,
-                            GetFaviconResponse *response,
-                            ::google::protobuf::Closure *done);
-    };
+class GetFaviconService : public ico {
+public:
+    void default_method(::google::protobuf::RpcController* controller,
+                        const GetFaviconRequest* request,
+                        GetFaviconResponse* response,
+                        ::google::protobuf::Closure* done);
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_GET_FAVICON_SERVICE_H_
+#endif  // BRPC_GET_FAVICON_SERVICE_H

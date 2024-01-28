@@ -125,8 +125,8 @@ message app_info_t {
 //    int32_t NeedHilightStr = optional(),default(0);   /**< 是否回传飘红词 */
 //    gss_src_req_t SrcArr[] = optional();              /**< table请求信息 */
 //    //国际化新增参数
-//    int64 resultLang = optional();                  /**< 用户需要的结果语言设置 */
-//    int64 resultLocale = optional();                /**< 用户需要的结果地域 */
+//    int64_t resultLang = optional();                  /**< 用户需要的结果语言设置 */
+//    int64_t resultLocale = optional();                /**< 用户需要的结果地域 */
 //    //终端app 信息
 //    app_info_t AppInfoArr[] = optional();             /**< 用户安装的app信息*/
 //    //终端ua 信息

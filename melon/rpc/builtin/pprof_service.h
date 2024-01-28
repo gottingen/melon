@@ -15,48 +15,48 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef  MELON_RPC_PPROF_SERVICE_H_
-#define  MELON_RPC_PPROF_SERVICE_H_
+#ifndef  BRPC_PPROF_SERVICE_H
+#define  BRPC_PPROF_SERVICE_H
 
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class PProfService : public pprof {
-    public:
-        void profile(::google::protobuf::RpcController *controller,
-                     const ::melon::rpc::ProfileRequest *request,
-                     ::melon::rpc::ProfileResponse *response,
-                     ::google::protobuf::Closure *done);
+class PProfService : public pprof {
+public:
+    void profile(::google::protobuf::RpcController* controller,
+                 const ::brpc::ProfileRequest* request,
+                 ::brpc::ProfileResponse* response,
+                 ::google::protobuf::Closure* done);
 
-        void contention(::google::protobuf::RpcController *controller,
-                        const ::melon::rpc::ProfileRequest *request,
-                        ::melon::rpc::ProfileResponse *response,
-                        ::google::protobuf::Closure *done);
+    void contention(::google::protobuf::RpcController* controller,
+                    const ::brpc::ProfileRequest* request,
+                    ::brpc::ProfileResponse* response,
+                    ::google::protobuf::Closure* done);
+    
+    void heap(::google::protobuf::RpcController* controller,
+              const ::brpc::ProfileRequest* request,
+              ::brpc::ProfileResponse* response,
+              ::google::protobuf::Closure* done);
 
-        void heap(::google::protobuf::RpcController *controller,
-                  const ::melon::rpc::ProfileRequest *request,
-                  ::melon::rpc::ProfileResponse *response,
-                  ::google::protobuf::Closure *done);
+    void growth(::google::protobuf::RpcController* controller,
+                const ::brpc::ProfileRequest* request,
+                ::brpc::ProfileResponse* response,
+                ::google::protobuf::Closure* done);
 
-        void growth(::google::protobuf::RpcController *controller,
-                    const ::melon::rpc::ProfileRequest *request,
-                    ::melon::rpc::ProfileResponse *response,
-                    ::google::protobuf::Closure *done);
+    void symbol(::google::protobuf::RpcController* controller,
+                const ::brpc::ProfileRequest* request,
+                ::brpc::ProfileResponse* response,
+                ::google::protobuf::Closure* done);
 
-        void symbol(::google::protobuf::RpcController *controller,
-                    const ::melon::rpc::ProfileRequest *request,
-                    ::melon::rpc::ProfileResponse *response,
-                    ::google::protobuf::Closure *done);
+    void cmdline(::google::protobuf::RpcController* controller,
+                 const ::brpc::ProfileRequest* request,
+                 ::brpc::ProfileResponse* response,
+                 ::google::protobuf::Closure* done);
+};
 
-        void cmdline(::google::protobuf::RpcController *controller,
-                     const ::melon::rpc::ProfileRequest *request,
-                     ::melon::rpc::ProfileResponse *response,
-                     ::google::protobuf::Closure *done);
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_PPROF_SERVICE_H_
+#endif  //BRPC_PPROF_SERVICE_H

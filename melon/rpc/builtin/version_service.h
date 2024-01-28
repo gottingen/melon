@@ -16,31 +16,30 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_VERSION_SERVICE_H_
-#define  MELON_RPC_VERSION_SERVICE_H_
+#ifndef  BRPC_VERSION_SERVICE_H
+#define  BRPC_VERSION_SERVICE_H
 
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Server;
+class Server;
 
-    class VersionService : public version {
-    public:
-        explicit VersionService(Server *server) : _server(server) {}
+class VersionService : public version {
+public:
+    explicit VersionService(Server* server) : _server(server) {}
+    
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::VersionRequest* request,
+                        ::brpc::VersionResponse* response,
+                        ::google::protobuf::Closure* done);
+private:
+    Server* _server;
+};
 
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::VersionRequest *request,
-                            ::melon::rpc::VersionResponse *response,
-                            ::google::protobuf::Closure *done);
-
-    private:
-        Server *_server;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_VERSION_SERVICE_H_
+#endif  //BRPC_VERSION_SERVICE_H

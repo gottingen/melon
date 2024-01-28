@@ -16,23 +16,24 @@
 // under the License.
 
 
-#ifndef MELON_RPC_PROMETHEUS_METRICS_SERVICE_H_
-#define MELON_RPC_PROMETHEUS_METRICS_SERVICE_H_
+#ifndef BRPC_PROMETHEUS_METRICS_SERVICE_H
+#define BRPC_PROMETHEUS_METRICS_SERVICE_H
 
 #include "melon/rpc/builtin_service.pb.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    class PrometheusMetricsService : public melon_metrics {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::MetricsRequest *request,
-                            ::melon::rpc::MetricsResponse *response,
-                            ::google::protobuf::Closure *done) override;
-    };
+class PrometheusMetricsService : public brpc_metrics {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::MetricsRequest* request,
+                        ::brpc::MetricsResponse* response,
+                        ::google::protobuf::Closure* done) override;
+};
 
-    int DumpPrometheusMetricsToCordBuf(melon::cord_buf *output);
+butil::StringPiece GetMetricsName(const std::string& name);
+int DumpPrometheusMetricsToIOBuf(butil::IOBuf* output);
 
-} // namepace melon::rpc
+} // namepace brpc
 
-#endif  // MELON_RPC_PROMETHEUS_METRICS_SERVICE_H_
+#endif  // BRPC_PROMETHEUS_METRICS_SERVICE_H

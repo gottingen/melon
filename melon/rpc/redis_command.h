@@ -16,56 +16,56 @@
 // under the License.
 
 
-#ifndef MELON_RPC_REDIS_COMMAND_H_
-#define MELON_RPC_REDIS_COMMAND_H_
+#ifndef BRPC_REDIS_COMMAND_H
+#define BRPC_REDIS_COMMAND_H
 
+#include <limits>
 #include <memory>           // std::unique_ptr
 #include <vector>
-#include <limits>
-#include "melon/io/cord_buf.h"
-#include "melon/base/result_status.h"
-#include "melon/memory/arena.h"
+#include "melon/butil/iobuf.h"
+#include "melon/butil/status.h"
+#include "melon/butil/arena.h"
 #include "melon/rpc/parse_result.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Format a redis command and append it to `buf'.
-    // Returns melon::result_status::success() on success.
-    melon::result_status RedisCommandFormat(melon::cord_buf *buf, const char *fmt, ...);
+// Format a redis command and append it to `buf'.
+// Returns butil::Status::OK() on success.
+butil::Status RedisCommandFormat(butil::IOBuf* buf, const char* fmt, ...);
+butil::Status RedisCommandFormatV(butil::IOBuf* buf, const char* fmt, va_list args);
 
-    melon::result_status RedisCommandFormatV(melon::cord_buf *buf, const char *fmt, va_list args);
+// Just convert the command to the text format of redis without processing the
+// specifiers(%) inside.
+butil::Status RedisCommandNoFormat(butil::IOBuf* buf, const butil::StringPiece& command);
 
-    // Just convert the command to the text format of redis without processing the
-    // specifiers(%) inside.
-    melon::result_status RedisCommandNoFormat(melon::cord_buf *buf, const std::string_view &command);
+// Concatenate components to form a redis command.
+butil::Status RedisCommandByComponents(butil::IOBuf* buf,
+                                      const butil::StringPiece* components,
+                                      size_t num_components);
 
-    // Concatenate components to form a redis command.
-    melon::result_status RedisCommandByComponents(melon::cord_buf *buf,
-                                                       const std::string_view *components,
-                                                       size_t num_components);
+// A parser used to parse redis raw command.
+class RedisCommandParser {
+public:
+    RedisCommandParser();
 
-    // A parser used to parse redis raw command.
-    class RedisCommandParser {
-    public:
-        RedisCommandParser();
+    // Parse raw message from `buf'. Return PARSE_OK and set the parsed command
+    // to `args' and length to `len' if successful. Memory of args are allocated 
+    // in `arena'.
+    ParseError Consume(butil::IOBuf& buf, std::vector<butil::StringPiece>* args,
+                       butil::Arena* arena);
+    size_t ParsedArgsSize();
 
-        // Parse raw message from `buf'. Return PARSE_OK and set the parsed command
-        // to `args' and length to `len' if successful. Memory of args are allocated
-        // in `arena'.
-        ParseError Consume(melon::cord_buf &buf, std::vector<std::string_view> *args,
-                           melon::Arena *arena);
+private:
+    // Reset parser to the initial state.
+    void Reset();
 
-    private:
-        // Reset parser to the initial state.
-        void Reset();
+    bool _parsing_array;            // if the parser has met array indicator '*'
+    int _length;                    // array length
+    int _index;                     // current parsing array index
+    std::vector<butil::StringPiece> _args;  // parsed command string
+};
 
-        bool _parsing_array;            // if the parser has met array indicator '*'
-        int _length;                    // array length
-        int _index;                     // current parsing array index
-        std::vector<std::string_view> _args;  // parsed command string
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_REDIS_COMMAND_H_
+#endif  // BRPC_REDIS_COMMAND_H

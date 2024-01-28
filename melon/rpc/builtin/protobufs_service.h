@@ -16,39 +16,38 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_PROTOBUFS_SERVICE_H_
-#define  MELON_RPC_PROTOBUFS_SERVICE_H_
+#ifndef  BRPC_PROTOBUFS_SERVICE_H
+#define  BRPC_PROTOBUFS_SERVICE_H
 
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Server;
+class Server;
 
-    // Show DebugString of protobuf messages used in the server.
-    //   /protobufs         : list all supported messages.
-    //   /protobufs/<msg>/  : Show DebugString() of <msg>
+// Show DebugString of protobuf messages used in the server.
+//   /protobufs         : list all supported messages.
+//   /protobufs/<msg>/  : Show DebugString() of <msg>
 
-    class ProtobufsService : public protobufs {
-    public:
-        explicit ProtobufsService(Server *server);
+class ProtobufsService : public protobufs {
+public:
+    explicit ProtobufsService(Server* server);
+    
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::ProtobufsRequest* request,
+                        ::brpc::ProtobufsResponse* response,
+                        ::google::protobuf::Closure* done);
+private:
+    int Init();
+    
+    Server* _server;
+    typedef std::map<std::string, std::string> Map;
+    Map _map;
+};
 
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::ProtobufsRequest *request,
-                            ::melon::rpc::ProtobufsResponse *response,
-                            ::google::protobuf::Closure *done);
-
-    private:
-        int Init();
-
-        Server *_server;
-        typedef std::map<std::string, std::string> Map;
-        Map _map;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_PROTOBUFS_SERVICE_H_
+#endif  //BRPC_PROTOBUFS_SERVICE_H

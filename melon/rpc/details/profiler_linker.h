@@ -16,40 +16,40 @@
 // under the License.
 
 
-#ifndef MELON_RPC_PROFILER_LINKER_H_
-#define MELON_RPC_PROFILER_LINKER_H_
+#ifndef BRPC_PROFILER_LINKER_H
+#define BRPC_PROFILER_LINKER_H
 
-#if defined(MELON_ENABLE_CPU_PROFILER)
-#include "melon/base/gperftools_profiler.h"
+#if defined(BRPC_ENABLE_CPU_PROFILER) || defined(BAIDU_RPC_ENABLE_CPU_PROFILER)
+#include "melon/butil/gperftools_profiler.h"
 #endif
 
-namespace melon::rpc {
+namespace brpc {
 
-    // defined in melon/rpc/builtin/index_service.cpp
-    extern bool cpu_profiler_enabled;
+// defined in src/brpc/builtin/index_service.cpp
+extern bool cpu_profiler_enabled;
 
-    // defined in melon/rpc/controller.cpp
-    extern int PROFILER_LINKER_DUMMY;
+// defined in src/brpc/controller.cpp
+extern int PROFILER_LINKER_DUMMY;
 
-    struct ProfilerLinker {
-        // [ Must be inlined ]
-        // This function is included by user's compilation unit to force
-        // linking of ProfilerStart()/ProfilerStop()
-        // etc when corresponding macros are defined.
-        inline ProfilerLinker() {
-
-#if defined(MELON_ENABLE_CPU_PROFILER)
-            cpu_profiler_enabled = true;
-            // compiler has no way to tell if PROFILER_LINKER_DUMMY is 0 or not,
-            // so it has to link the function inside the branch.
-            if (PROFILER_LINKER_DUMMY != 0/*must be false*/) {
-                ProfilerStart("this_function_should_never_run");
-            }
-#endif
+struct ProfilerLinker {
+    // [ Must be inlined ]
+    // This function is included by user's compilation unit to force
+    // linking of ProfilerStart()/ProfilerStop()
+    // etc when corresponding macros are defined.
+    inline ProfilerLinker() {
+        
+#if defined(BRPC_ENABLE_CPU_PROFILER) || defined(BAIDU_RPC_ENABLE_CPU_PROFILER)
+        cpu_profiler_enabled = true;
+        // compiler has no way to tell if PROFILER_LINKER_DUMMY is 0 or not,
+        // so it has to link the function inside the branch.
+        if (PROFILER_LINKER_DUMMY != 0/*must be false*/) {
+            ProfilerStart("this_function_should_never_run");
         }
-    };
+#endif
+    }
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_PROFILER_LINKER_H_
+#endif  // BRPC_PROFILER_LINKER_H

@@ -16,55 +16,48 @@
 // under the License.
 
 
-#ifndef MELON_RPC_EXTENSION_H_
-#define MELON_RPC_EXTENSION_H_
+#ifndef BRPC_EXTENSION_H
+#define BRPC_EXTENSION_H
 
 #include <string>
-#include "melon/base/scoped_lock.h"
-#include "melon/log/logging.h"
-#include "melon/container/case_ignored_flat_map.h"
-#include "melon/base/singleton_on_pthread_once.h"
+#include "melon/butil/scoped_lock.h"
+#include "melon/butil/logging.h"
+#include "melon/butil/containers/case_ignored_flat_map.h"
+#include "melon/butil/memory/singleton_on_pthread_once.h"
 
-namespace melon::base {
-    template<typename T>
-    class GetLeakySingleton;
+namespace butil {
+template <typename T> class GetLeakySingleton;
 }
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // A global map from string to user-extended instances (typed T).
-    // It's used by NamingService and LoadBalancer to maintain globally
-    // available instances.
-    // All names are case-insensitive. Names are printed in lowercases.
+// A global map from string to user-extended instances (typed T).
+// It's used by NamingService and LoadBalancer to maintain globally
+// available instances.
+// All names are case-insensitive. Names are printed in lowercases.
 
-    template<typename T>
-    class Extension {
-    public:
-        static Extension<T> *instance();
+template <typename T>
+class Extension {
+public:
+    static Extension<T>* instance();
 
-        int Register(const std::string &name, T *instance);
+    int Register(const std::string& name, T* instance);
+    int RegisterOrDie(const std::string& name, T* instance);
+    T* Find(const char* name);
+    void List(std::ostream& os, char separator);
 
-        int RegisterOrDie(const std::string &name, T *instance);
+private:
+friend class butil::GetLeakySingleton<Extension<T> >;
+    Extension();
+    ~Extension();
+    butil::CaseIgnoredFlatMap<T*> _instance_map;
+    butil::Mutex _map_mutex;
+};
 
-        T *Find(const char *name);
-
-        void List(std::ostream &os, char separator);
-
-    private:
-        friend class melon::GetLeakySingleton<Extension<T> >;
-
-        Extension();
-
-        ~Extension();
-
-        melon::container::CaseIgnoredFlatMap<T *> _instance_map;
-        std::mutex _map_mutex;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
 #include "melon/rpc/extension_inl.h"
 
-#endif  // MELON_RPC_EXTENSION_H_
+#endif  // BRPC_EXTENSION_H

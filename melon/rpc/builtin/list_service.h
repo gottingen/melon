@@ -16,30 +16,29 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_LIST_SERVICE_H_
-#define  MELON_RPC_LIST_SERVICE_H_
+#ifndef  BRPC_LIST_SERVICE_H
+#define  BRPC_LIST_SERVICE_H
 
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Server;
+class Server;
 
-    class ListService : public list {
-    public:
-        explicit ListService(Server *server) : _server(server) {}
+class ListService : public list {
+public:
+    explicit ListService(Server* server) : _server(server) {}
+    
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::ListRequest* request,
+                        ::brpc::ListResponse* response,
+                        ::google::protobuf::Closure* done);
+private:
+    Server* _server;
+};
 
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::ListRequest *request,
-                            ::melon::rpc::ListResponse *response,
-                            ::google::protobuf::Closure *done);
-
-    private:
-        Server *_server;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_LIST_SERVICE_H_
+#endif  //BRPC_LIST_SERVICE_H

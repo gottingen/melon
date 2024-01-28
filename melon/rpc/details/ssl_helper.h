@@ -16,90 +16,110 @@
 // under the License.
 
 
-#ifndef MELON_RPC_SSL_HELPER_H_
-#define MELON_RPC_SSL_HELPER_H_
+#ifndef BRPC_SSL_HELPER_H
+#define BRPC_SSL_HELPER_H
 
 #include <string.h>
+#ifndef USE_MESALINK
 #include <openssl/ssl.h>
 // For some versions of openssl, SSL_* are defined inside this header
 #include <openssl/ossl_typ.h>
-#include "melon/rpc/socket_id.h"            // SocketId
-#include "melon/rpc/ssl_options.h"          // ServerSSLOptions
+#include <openssl/opensslv.h>
+#else
+#include <mesalink/openssl/ssl.h>
+#include <mesalink/openssl/err.h>
+#include <mesalink/openssl/x509.h>
+#endif
+#include "melon/rpc/socket_id.h"                 // SocketId
+#include "melon/rpc/ssl_options.h"               // ServerSSLOptions
+#include "melon/rpc/adaptive_protocol_type.h"    // AdaptiveProtocolType
 
-namespace melon::rpc {
+namespace brpc {
 
-    enum SSLState {
-        SSL_UNKNOWN = 0,
-        SSL_OFF = 1,                // Not an SSL connection
-        SSL_CONNECTING = 2,         // During SSL handshake
-        SSL_CONNECTED = 3,          // SSL handshake completed
-    };
+// The calculation method is the same as OPENSSL_VERSION_NUMBER in the openssl/crypto.h file.
+// SSL_VERSION_NUMBER can pass parameter calculation instead of using fixed macro.
+#define SSL_VERSION_NUMBER(major, minor, patch) \
+    ( (major << 28) | (minor << 20) | (patch << 4) )
 
-    enum SSLProtocol {
-        SSLv3 = 1 << 0,
-        TLSv1 = 1 << 1,
-        TLSv1_1 = 1 << 2,
-        TLSv1_2 = 1 << 3,
-    };
+enum SSLState {
+    SSL_UNKNOWN = 0,
+    SSL_OFF = 1,                // Not an SSL connection
+    SSL_CONNECTING = 2,         // During SSL handshake
+    SSL_CONNECTED = 3,          // SSL handshake completed
+};
 
-    struct FreeSSLCTX {
-        inline void operator()(SSL_CTX *ctx) const {
-            if (ctx != nullptr) {
-                SSL_CTX_free(ctx);
-            }
+enum SSLProtocol {
+    SSLv3 = 1 << 0,
+    TLSv1 = 1 << 1,
+    TLSv1_1 = 1 << 2,
+    TLSv1_2 = 1 << 3,
+};
+
+struct FreeSSLCTX {
+    inline void operator()(SSL_CTX* ctx) const {
+        if (ctx != NULL) {
+            SSL_CTX_free(ctx);
         }
-    };
+    }
+};
 
-    struct SSLError {
-        explicit SSLError(unsigned long e) : error(e) {}
+struct SSLError {
+    explicit SSLError(unsigned long e) : error(e) { }
+    unsigned long error;
+};
+std::ostream& operator<<(std::ostream& os, const SSLError&);
+std::ostream& operator<<(std::ostream& os, const CertInfo&);
 
-        unsigned long error;
-    };
+const char* SSLStateToString(SSLState s);
 
-    std::ostream &operator<<(std::ostream &os, const SSLError &);
+// Initialize locks and callbacks to make SSL work under multi-threaded
+// environment. Return 0 on success, -1 otherwise
+int SSLThreadInit();
 
-    std::ostream &operator<<(std::ostream &os, const CertInfo &);
+// Initialize global Diffie-Hellman parameters used for DH key exchanges
+// Return 0 on success, -1 otherwise
+int SSLDHInit();
 
-    const char *SSLStateToString(SSLState s);
+// Create a new SSL_CTX in client mode and
+// set the right options according `options'
+SSL_CTX* CreateClientSSLContext(const ChannelSSLOptions& options);
 
-    // Initialize locks and callbacks to make SSL work under multi-threaded
-    // environment. Return 0 on success, -1 otherwise
-    int SSLThreadInit();
+// Create a new SSL_CTX in server mode using `certificate_file'
+// and `private_key_file' and then set the right options and alpn
+// onto it according `options'.Finally, extract hostnames from CN/subject
+// fields into `hostnames'
+// Attention: ensure that the life cycle of function return is greater than alpns param.
+SSL_CTX* CreateServerSSLContext(const std::string& certificate_file,
+                                const std::string& private_key_file,
+                                const ServerSSLOptions& options,
+                                const std::string* alpns,
+                                std::vector<std::string>* hostnames);
 
-    // Initialize global Diffie-Hellman parameters used for DH key exchanges
-    // Return 0 on success, -1 otherwise
-    int SSLDHInit();
+// Create a new SSL (per connection object) using configurations in `ctx'.
+// Set the required `fd' and mode. `id' will be set into SSL as app data.
+SSL* CreateSSLSession(SSL_CTX* ctx, SocketId id, int fd, bool server_mode);
 
-    // Create a new SSL_CTX in client mode and
-    // set the right options according `options'
-    SSL_CTX *CreateClientSSLContext(const ChannelSSLOptions &options);
+// Add a buffer layer of BIO in front of the socket fd layer,
+// which can reduce the total number of calls to system read/write
+void AddBIOBuffer(SSL* ssl, int fd, int bufsize);
 
-    // Create a new SSL_CTX in server mode using `certificate_file'
-    // and `private_key_file' and then set the right options onto it
-    // according `options'. Finally, extract hostnames from CN/subject
-    // fields into `hostnames'
-    SSL_CTX *CreateServerSSLContext(const std::string &certificate_file,
-                                    const std::string &private_key_file,
-                                    const ServerSSLOptions &options,
-                                    std::vector<std::string> *hostnames);
+// Judge whether the underlying channel of `fd' is using SSL
+// If the return value is SSL_UNKNOWN, `error_code' will be
+// set to indicate the reason (0 for EOF)
+SSLState DetectSSLState(int fd, int* error_code);
 
-    // Create a new SSL (per connection object) using configurations in `ctx'.
-    // Set the required `fd' and mode. `id' will be set into SSL as app data.
-    SSL *CreateSSLSession(SSL_CTX *ctx, SocketId id, int fd, bool server_mode);
+void Print(std::ostream& os, SSL* ssl, const char* sep);
+void Print(std::ostream& os, X509* cert, const char* sep);
 
-    // Add a buffer layer of BIO in front of the socket fd layer,
-    // which can reduce the total number of calls to system read/write
-    void AddBIOBuffer(SSL *ssl, int fd, int bufsize);
+std::string ALPNProtocolToString(const AdaptiveProtocolType& protocol);
 
-    // Judge whether the underlying channel of `fd' is using SSL
-    // If the return value is SSL_UNKNOWN, `error_code' will be
-    // set to indicate the reason (0 for EOF)
-    SSLState DetectSSLState(int fd, int *error_code);
+// Build a binary formatted ALPN protocol list that OpenSSL's
+// `SSL_CTX_set_alpn_protos` accepts from a C++ string vector.
+bool BuildALPNProtocolList(
+    const std::vector<std::string>& alpn_protocols,
+    std::vector<unsigned char>& result
+);
 
-    void Print(std::ostream &os, SSL *ssl, const char *sep);
+} // namespace brpc
 
-    void Print(std::ostream &os, X509 *cert, const char *sep);
-
-} // namespace melon::rpc
-
-#endif // MELON_RPC_SSL_HELPER_H_
+#endif // BRPC_SSL_HELPER_H

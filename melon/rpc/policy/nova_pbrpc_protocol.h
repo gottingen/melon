@@ -16,51 +16,51 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_NOVA_PBRPC_PROTOCOL_H_
-#define MELON_RPC_POLICY_NOVA_PBRPC_PROTOCOL_H_
+#ifndef BRPC_POLICY_NOVA_PBRPC_PROTOCOL_H
+#define BRPC_POLICY_NOVA_PBRPC_PROTOCOL_H
 
 #include "melon/rpc/nshead_pb_service_adaptor.h"
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Actions to a (server) response in nova_pbrpc format.
-        void ProcessNovaResponse(InputMessageBase *msg);
+// Actions to a (server) response in nova_pbrpc format.
+void ProcessNovaResponse(InputMessageBase* msg);
 
-        void SerializeNovaRequest(melon::cord_buf *buf, Controller *cntl,
-                                  const google::protobuf::Message *request);
+void SerializeNovaRequest(butil::IOBuf* buf, Controller* cntl,
+                                 const google::protobuf::Message* request);
 
-        // Pack `request' to `method' into `buf'.
-        void PackNovaRequest(melon::cord_buf *buf,
-                             SocketMessage **user_message_out,
-                             uint64_t correlation_id,
-                             const google::protobuf::MethodDescriptor *method,
-                             Controller *controller,
-                             const melon::cord_buf &request,
-                             const Authenticator *auth);
+// Pack `request' to `method' into `buf'.
+void PackNovaRequest(butil::IOBuf* buf,
+                     SocketMessage** user_message_out,
+                     uint64_t correlation_id,
+                     const google::protobuf::MethodDescriptor* method,
+                     Controller* controller,
+                     const butil::IOBuf& request,
+                     const Authenticator* auth);
 
-        class NovaServiceAdaptor : public NsheadPbServiceAdaptor {
-        public:
-            void ParseNsheadMeta(const Server &svr,
-                                 const NsheadMessage &request,
-                                 Controller *,
-                                 NsheadMeta *out_meta) const;
+class NovaServiceAdaptor : public NsheadPbServiceAdaptor {
+public:
+    void ParseNsheadMeta(const Server& svr,
+                        const NsheadMessage& request,
+                        Controller*,
+                        NsheadMeta* out_meta) const;
 
-            void ParseRequestFromCordBuf(
-                    const NsheadMeta &meta, const NsheadMessage &ns_req,
-                    Controller *controller, google::protobuf::Message *pb_req) const;
+    void ParseRequestFromIOBuf(
+        const NsheadMeta& meta, const NsheadMessage& ns_req,
+        Controller* controller, google::protobuf::Message* pb_req) const;
 
-            void SerializeResponseToCordBuf(
-                    const NsheadMeta &meta,
-                    Controller *controller,
-                    const google::protobuf::Message *pb_res,
-                    NsheadMessage *ns_res) const;
-        };
+    void SerializeResponseToIOBuf(
+        const NsheadMeta& meta,
+        Controller* controller,
+        const google::protobuf::Message* pb_res,
+        NsheadMessage* ns_res) const;
+};
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_NOVA_PBRPC_PROTOCOL_H_
+#endif // BRPC_POLICY_NOVA_PBRPC_PROTOCOL_H

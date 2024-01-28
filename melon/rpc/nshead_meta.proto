@@ -18,9 +18,9 @@
 syntax="proto2";
 import "melon/rpc/options.proto";
 
-package melon.rpc;
+package brpc;
 
-option java_package="com.rpc.melon";
+option java_package="com.brpc";
 option java_outer_classname="NsheadProto";
 
 message NsheadMeta {

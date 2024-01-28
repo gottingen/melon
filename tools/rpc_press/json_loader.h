@@ -15,17 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_JSON_LOADER_H_
-#define MELON_RPC_JSON_LOADER_H_
+#ifndef BRPC_JSON_LOADER_H
+#define BRPC_JSON_LOADER_H
 
 #include <string>
 #include <deque>
 #include <google/protobuf/message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <google/protobuf/dynamic_message.h>
-#include <melon/io/cord_buf.h>
+#include <melon/butil/iobuf.h>
 
-namespace melon::rpc {
+namespace brpc {
 
 // This utility loads pb messages in json format from a file or string.
 class JsonLoader {
@@ -58,6 +58,6 @@ private:
     const google::protobuf::Message* _request_prototype;
 };
 
-} // namespace melon::rpc
+} // namespace brpc
 
-#endif // MELON_RPC_JSON_LOADER_H_
+#endif // BRPC_JSON_LOADER_H

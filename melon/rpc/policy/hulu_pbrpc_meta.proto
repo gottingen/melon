@@ -18,8 +18,8 @@
 syntax="proto2";
 import "melon/rpc/options.proto";                // For TalkType
 
-package melon.rpc.policy;
-option java_package="com.melon.rpc.policy";
+package brpc.policy;
+option java_package="com.brpc.policy";
 option java_outer_classname="HuluRpcProto";
 
 message HuluRpcRequestMeta {

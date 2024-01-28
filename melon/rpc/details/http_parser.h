@@ -19,8 +19,8 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef MELON_RPC_HTTP_PARSER_H_
-#define MELON_RPC_HTTP_PARSER_H_
+#ifndef BRPC_HTTP_PARSER_H
+#define BRPC_HTTP_PARSER_H
 
 /* Also update SONAME in the Makefile whenever you change these. */
 #define HTTP_PARSER_VERSION_MAJOR 2
@@ -43,26 +43,26 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
-/* Compile with -DMELON_RPC_HTTP_PARSER_STRICT=0 to make less checks, but run
+/* Compile with -DBRPC_HTTP_PARSER_STRICT=0 to make less checks, but run
  * faster
  */
-#ifndef MELON_RPC_HTTP_PARSER_STRICT
-# define MELON_RPC_HTTP_PARSER_STRICT 1
+#ifndef BRPC_HTTP_PARSER_STRICT
+# define BRPC_HTTP_PARSER_STRICT 1
 #endif
 
 /* Maximium header size allowed. If the macro is not defined
  * before including this header then the default is used. To
  * change the maximum header size, define the macro in the build
- * environment (e.g. -DMELON_RPC_HTTP_MAX_HEADER_SIZE=<value>). To remove
+ * environment (e.g. -DBRPC_HTTP_MAX_HEADER_SIZE=<value>). To remove
  * the effective limit on the size of the header, define the macro
- * to a very large number (e.g. -DMELON_RPC_HTTP_MAX_HEADER_SIZE=0x7fffffff)
+ * to a very large number (e.g. -DBRPC_HTTP_MAX_HEADER_SIZE=0x7fffffff)
  */
-#ifndef MELON_RPC_HTTP_MAX_HEADER_SIZE
-# define MELON_RPC_HTTP_MAX_HEADER_SIZE (80*1024)
+#ifndef BRPC_HTTP_MAX_HEADER_SIZE
+# define BRPC_HTTP_MAX_HEADER_SIZE (80*1024)
 #endif
 
 
-namespace melon::rpc {
+namespace brpc {
 
 struct http_parser;
 
@@ -208,7 +208,9 @@ struct http_parser {
   unsigned int index : 8;        /* index into current matcher */
 
   uint32_t nread;          /* # bytes read in various scenarios */
-  uint64_t content_length; /* # bytes in body (0 if no Content-Length header) */
+  uint64_t content_length; /* # bytes in body. `(uint64_t) -1` (all bits one)
+                            * if no Content-Length header.
+                            */
 
   /** READ-ONLY **/
   unsigned short http_major;
@@ -323,7 +325,7 @@ const char* http_parser_type_name(enum http_parser_type type);
 const char* http_parser_state_name(unsigned int state);
 const char* http_parser_header_state_name(unsigned int header_state);
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_HTTP_PARSER_H_
+#endif // BRPC_HTTP_PARSER_H

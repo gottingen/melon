@@ -16,11 +16,11 @@
 // under the License.
 
 syntax="proto2";
-package melon.rpc;
+package brpc;
 
 option cc_generic_services = true;
 option java_generic_services = true;
-option java_package = "com.rpc.melon";
+option java_package = "com.brpc";
 option java_outer_classname = "GetFavicon";
 
 message GetFaviconRequest {}

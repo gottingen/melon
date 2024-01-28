@@ -16,15 +16,15 @@
 // under the License.
 
 
-#ifndef MELON_RPC_BUILTIN_PPROF_PERL_H_
-#define MELON_RPC_BUILTIN_PPROF_PERL_H_
+#ifndef BRPC_BUILTIN_PPROF_PERL_H
+#define BRPC_BUILTIN_PPROF_PERL_H
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    const char *pprof_perl();
+const char* pprof_perl();
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_BUILTIN_PPROF_PERL_H_
+#endif // BRPC_BUILTIN_PPROF_PERL_H

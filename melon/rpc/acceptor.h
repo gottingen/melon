@@ -15,103 +15,109 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_ACCEPTOR_H_
-#define MELON_RPC_ACCEPTOR_H_
+#ifndef BRPC_ACCEPTOR_H
+#define BRPC_ACCEPTOR_H
 
-#include <mutex>
-#include <condition_variable>
-#include "melon/fiber/internal/fiber.h"                       // fiber_id_t
-#include "melon/container/flat_map.h"
+#include "melon/bthread/bthread.h"                       // bthread_t
+#include "melon/butil/synchronization/condition_variable.h"
+#include "melon/butil/containers/flat_map.h"
 #include "melon/rpc/input_messenger.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    struct ConnectStatistics {
+struct ConnectStatistics {
+};
+
+// Accept connections from a specific port and then
+// process messages from which it reads
+class Acceptor : public InputMessenger {
+friend class Server;
+public:
+    typedef butil::FlatMap<SocketId, ConnectStatistics> SocketMap;
+
+    enum Status {
+        UNINITIALIZED = 0,
+        READY = 1,
+        RUNNING = 2,
+        STOPPING = 3,
     };
 
-    // Accept connections from a specific port and then
-    // process messages from which it reads
-    class Acceptor : public InputMessenger {
-    public:
-        typedef melon::container::FlatMap<SocketId, ConnectStatistics> SocketMap;
+public:
+    explicit Acceptor(bthread_keytable_pool_t* pool = NULL);
+    ~Acceptor();
 
-        enum Status {
-            UNINITIALIZED = 0,
-            READY = 1,
-            RUNNING = 2,
-            STOPPING = 3,
-        };
+    // [thread-safe] Accept connections from `listened_fd'. Ownership of
+    // `listened_fd' is also transferred to `Acceptor'. Can be called
+    // multiple times if the last `StartAccept' has been completely stopped
+    // by calling `StopAccept' and `Join'. Connections that has no data
+    // transmission for `idle_timeout_sec' will be closed automatically iff
+    // `idle_timeout_sec' > 0
+    // Return 0 on success, -1 otherwise.
+    int StartAccept(int listened_fd, int idle_timeout_sec,
+                    const std::shared_ptr<SocketSSLContext>& ssl_ctx,
+                    bool force_ssl);
 
-    public:
-        explicit Acceptor(fiber_keytable_pool_t *pool = nullptr);
+    // [thread-safe] Stop accepting connections.
+    // `closewait_ms' is not used anymore.
+    void StopAccept(int /*closewait_ms*/);
 
-        ~Acceptor();
+    // Wait until all existing Sockets(defined in socket.h) are recycled.
+    void Join();
 
-        // [thread-safe] Accept connections from `listened_fd'. Ownership of
-        // `listened_fd' is also transferred to `Acceptor'. Can be called
-        // multiple times if the last `StartAccept' has been completely stopped
-        // by calling `StopAccept' and `Join'. Connections that has no data
-        // transmission for `idle_timeout_sec' will be closed automatically iff
-        // `idle_timeout_sec' > 0
-        // Return 0 on success, -1 otherwise.
-        int StartAccept(int listened_fd, int idle_timeout_sec,
-                        const std::shared_ptr<SocketSSLContext> &ssl_ctx);
+    // The parameter to StartAccept. Negative when acceptor is stopped.
+    int listened_fd() const { return _listened_fd; }
 
-        // [thread-safe] Stop accepting connections.
-        // `closewait_ms' is not used anymore.
-        void StopAccept(int /*closewait_ms*/);
+    // Get number of existing connections.
+    size_t ConnectionCount() const;
 
-        // Wait until all existing Sockets(defined in socket.h) are recycled.
-        void Join();
+    // Clear `conn_list' and append all connections into it.
+    void ListConnections(std::vector<SocketId>* conn_list);
 
-        // The parameter to StartAccept. Negative when acceptor is stopped.
-        int listened_fd() const { return _listened_fd; }
+    // Clear `conn_list' and append all most `max_copied' connections into it.
+    void ListConnections(std::vector<SocketId>* conn_list, size_t max_copied);
 
-        // Get number of existing connections.
-        size_t ConnectionCount() const;
+    Status status() const { return _status; }
 
-        // Clear `conn_list' and append all connections into it.
-        void ListConnections(std::vector<SocketId> *conn_list);
+private:
+    // Accept connections.
+    static void OnNewConnectionsUntilEAGAIN(Socket* m);
+    static void OnNewConnections(Socket* m);
 
-        // Clear `conn_list' and append all most `max_copied' connections into it.
-        void ListConnections(std::vector<SocketId> *conn_list, size_t max_copied);
+    static void* CloseIdleConnections(void* arg);
+    
+    // Initialize internal structure. 
+    int Initialize();
 
-        Status status() const { return _status; }
+    // Remove the accepted socket `sock' from inside
+    void BeforeRecycle(Socket* sock) override;
 
-    private:
-        // Accept connections.
-        static void OnNewConnectionsUntilEAGAIN(Socket *m);
+    bthread_keytable_pool_t* _keytable_pool; // owned by Server
+    Status _status;
+    int _idle_timeout_sec;
+    bthread_t _close_idle_tid;
 
-        static void OnNewConnections(Socket *m);
+    int _listened_fd;
+    // The Socket tso accept connections.
+    SocketId _acception_id;
 
-        static void *CloseIdleConnections(void *arg);
+    butil::Mutex _map_mutex;
+    butil::ConditionVariable _empty_cond;
+    
+    // The map containing all the accepted sockets
+    SocketMap _socket_map;
 
-        // Initialize internal structure.
-        int Initialize();
+    bool _force_ssl;
+    std::shared_ptr<SocketSSLContext> _ssl_ctx;
 
-        // Remove the accepted socket `sock' from inside
-        void BeforeRecycle(Socket *sock) override;
+    // Whether to use rdma or not
+    bool _use_rdma;
 
-        fiber_keytable_pool_t *_keytable_pool; // owned by Server
-        Status _status;
-        int _idle_timeout_sec;
-        fiber_id_t _close_idle_tid;
+    // Acceptor belongs to this tag
+    bthread_tag_t _bthread_tag;
+};
 
-        int _listened_fd;
-        // The Socket tso accept connections.
-        SocketId _acception_id;
-
-        std::mutex _map_mutex;
-        std::condition_variable _empty_cond;
-
-        // The map containing all the accepted sockets
-        SocketMap _socket_map;
-
-        std::shared_ptr<SocketSSLContext> _ssl_ctx;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_ACCEPTOR_H_
+#endif // BRPC_ACCEPTOR_H

@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_JSON2PB_JSON_PROTOBUF_MAP_H_
-#define MELON_RPC_JSON2PB_JSON_PROTOBUF_MAP_H_
+#ifndef BRPC_JSON2PB_JSON_PROTOBUF_MAP_H
+#define BRPC_JSON2PB_JSON_PROTOBUF_MAP_H
 
 #include <google/protobuf/descriptor.h>
 
@@ -49,4 +49,4 @@ bool IsProtobufMap(const google::protobuf::FieldDescriptor* field);
 
 } // namespace json2pb
 
-#endif // MELON_RPC_JSON2PB_JSON_PROTOBUF_MAP_H_
+#endif // BRPC_JSON2PB_JSON_PROTOBUF_MAP_H

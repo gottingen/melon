@@ -1,0 +1,83 @@
+syntax="proto2";
+package braft;
+
+option cc_generic_services = true;
+
+message AddPeerRequest {
+    required string group_id = 1;
+    required string leader_id = 2;
+    required string peer_id = 3;
+}
+
+message AddPeerResponse {
+    repeated string old_peers = 1;
+    repeated string new_peers = 2;
+}
+
+message RemovePeerRequest {
+    required string group_id = 1;
+    required string leader_id = 2;
+    required string peer_id = 3;
+}
+
+message RemovePeerResponse {
+    repeated string old_peers = 1;
+    repeated string new_peers = 2;
+}
+
+message ChangePeersRequest {
+    required string group_id = 1;
+    required string leader_id = 2;
+    repeated string new_peers = 3;
+}
+
+message ChangePeersResponse {
+    repeated string old_peers = 1;
+    repeated string new_peers = 2;
+}
+
+message SnapshotRequest {
+    required string group_id = 1;
+    optional string peer_id = 2;
+};
+
+message ResetPeerRequest {
+    required string group_id = 1;
+    required string peer_id = 2;
+    repeated string old_peers = 3;
+    repeated string new_peers = 4;
+}
+
+message TransferLeaderRequest {
+    required string group_id = 1;
+    required string leader_id = 2;
+    optional string peer_id = 3;
+}
+
+message TransferLeaderResponse {}
+
+message ResetPeerResponse {
+}
+
+message SnapshotResponse {
+}
+
+message GetLeaderRequest {
+    required string group_id = 1;
+    optional string peer_id = 2;
+}
+
+message GetLeaderResponse {
+    required string leader_id = 1;
+}
+
+// service
+service CliService {
+    rpc add_peer(AddPeerRequest) returns (AddPeerResponse);
+    rpc remove_peer(RemovePeerRequest) returns (RemovePeerResponse);
+    rpc change_peers(ChangePeersRequest) returns (ChangePeersResponse);
+    rpc reset_peer(ResetPeerRequest) returns (ResetPeerResponse);
+    rpc snapshot(SnapshotRequest) returns (SnapshotResponse);
+    rpc get_leader(GetLeaderRequest) returns (GetLeaderResponse);
+    rpc transfer_leader(TransferLeaderRequest) returns (TransferLeaderResponse);
+};

@@ -15,27 +15,27 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_NSHEAD_H_
-#define MELON_RPC_NSHEAD_H_
+#ifndef BRPC_NSHEAD_H
+#define BRPC_NSHEAD_H
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Copied from public/nshead/nshead.h which is essentially unchangable. (Or
-    // even if it's changed, servers accepting new formats should also accept
-    // older formats).
-    static const unsigned int NSHEAD_MAGICNUM = 0xfb709394;
-    struct nshead_t {
-        unsigned short id;
-        unsigned short version;
-        unsigned int log_id;
-        char provider[16];
-        unsigned int magic_num;
-        unsigned int reserved;
-        unsigned int body_len;
-    };
+// Copied from public/nshead/nshead.h which is essentially unchangable. (Or
+// even if it's changed, servers accepting new formats should also accept
+// older formats).
+static const unsigned int NSHEAD_MAGICNUM = 0xfb709394;
+struct nshead_t {
+    unsigned short id;
+    unsigned short version;       
+    unsigned int   log_id;
+    char           provider[16];
+    unsigned int   magic_num;
+    unsigned int   reserved;       
+    unsigned int   body_len;
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_NSHEAD_H_
+#endif // BRPC_NSHEAD_H

@@ -17,8 +17,8 @@
 
 syntax="proto2";
 
-package melon.rpc.policy;
-option java_package = "com.policy.rpc.melon";
+package brpc.policy;
+option java_package = "com.brpc.policy";
 option java_outer_classname = "PublicPbrpcProto";
 
 message PublicPbrpcRequest{

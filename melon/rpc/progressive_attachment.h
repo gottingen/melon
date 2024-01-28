@@ -16,73 +16,68 @@
 // under the License.
 
 
-#ifndef MELON_RPC_PROGRESSIVE_ATTACHMENT_H_
-#define MELON_RPC_PROGRESSIVE_ATTACHMENT_H_
+#ifndef BRPC_PROGRESSIVE_ATTACHMENT_H
+#define BRPC_PROGRESSIVE_ATTACHMENT_H
 
-#include <mutex>
 #include "melon/rpc/callback.h"
-#include "melon/base/static_atomic.h"
-#include "melon/io/cord_buf.h"
-#include "melon/base/endpoint.h"       // melon::end_point
-#include "melon/fiber/internal/types.h"        // fiber_token_t
+#include "melon/butil/atomicops.h"
+#include "melon/butil/iobuf.h"
+#include "melon/butil/endpoint.h"       // butil::EndPoint
+#include "melon/bthread/types.h"        // bthread_id_t
 #include "melon/rpc/socket_id.h"       // SocketUniquePtr
 #include "melon/rpc/shared_object.h"   // SharedObject
 
-namespace melon::rpc {
+namespace brpc {
 
-    class ProgressiveAttachment : public SharedObject {
-        friend class Controller;
+class ProgressiveAttachment : public SharedObject {
+friend class Controller;
+public:
+    // [Thread-safe]
+    // Write `data' as one HTTP chunk to peer ASAP.
+    // Returns 0 on success, -1 otherwise and errno is set.
+    // Errnos are same as what Socket.Write may set.
+    int Write(const butil::IOBuf& data);
+    int Write(const void* data, size_t n);
 
-    public:
-        // [Thread-safe]
-        // Write `data' as one HTTP chunk to peer ASAP.
-        // Returns 0 on success, -1 otherwise and errno is set.
-        // Errnos are same as what Socket.Write may set.
-        int Write(const melon::cord_buf &data);
+    // Get ip/port of peer/self.
+    butil::EndPoint remote_side() const;
+    butil::EndPoint local_side() const;
 
-        int Write(const void *data, size_t n);
+    // [Not thread-safe and can only be called once]
+    // Run the callback when the underlying connection is broken (thus
+    // transmission of the attachment is permanently stopped), or when
+    // this attachment is destructed. In another word, the callback will
+    // always be run.
+    void NotifyOnStopped(google::protobuf::Closure* callback);
+    
+protected:
+    // Transfer-Encoding is added since HTTP/1.1. If the protocol of the
+    // response is before_http_1_1, we will write the data directly to the
+    // socket without any futher modification and close the socket after all the
+    // data has been written (so the client would receive EOF). Otherwise we
+    // will encode each piece of data in the format of chunked-encoding.
+    ProgressiveAttachment(SocketUniquePtr& movable_httpsock,
+                          bool before_http_1_1);
+    ~ProgressiveAttachment();
 
-        // Get ip/port of peer/self.
-        melon::end_point remote_side() const;
+    // Called by controller only.
+    void MarkRPCAsDone(bool rpc_failed);
+    
+    bool _before_http_1_1;
+    bool _pause_from_mark_rpc_as_done;
+    butil::atomic<int> _rpc_state;
+    butil::Mutex _mutex;
+    SocketUniquePtr _httpsock;
+    butil::IOBuf _saved_buf;
+    bthread_id_t _notify_id;
 
-        melon::end_point local_side() const;
+private:
+    static const int RPC_RUNNING;
+    static const int RPC_SUCCEED;
+    static const int RPC_FAILED;
+};
 
-        // [Not thread-safe and can only be called once]
-        // Run the callback when the underlying connection is broken (thus
-        // transmission of the attachment is permanently stopped), or when
-        // this attachment is destructed. In another word, the callback will
-        // always be run.
-        void NotifyOnStopped(google::protobuf::Closure *callback);
-
-    protected:
-        // Transfer-Encoding is added since HTTP/1.1. If the protocol of the
-        // response is before_http_1_1, we will write the data directly to the
-        // socket without any futher modification and close the socket after all the
-        // data has been written (so the client would receive EOF). Otherwise we
-        // will encode each piece of data in the format of chunked-encoding.
-        ProgressiveAttachment(SocketUniquePtr &movable_httpsock,
-                              bool before_http_1_1);
-
-        ~ProgressiveAttachment();
-
-        // Called by controller only.
-        void MarkRPCAsDone(bool rpc_failed);
-
-        bool _before_http_1_1;
-        bool _pause_from_mark_rpc_as_done;
-        std::atomic<int> _rpc_state;
-        std::mutex _mutex;
-        SocketUniquePtr _httpsock;
-        melon::cord_buf _saved_buf;
-        fiber_token_t _notify_id;
-
-    private:
-        static const int RPC_RUNNING;
-        static const int RPC_SUCCEED;
-        static const int RPC_FAILED;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_PROGRESSIVE_ATTACHMENT_H_
+#endif  // BRPC_PROGRESSIVE_ATTACHMENT_H

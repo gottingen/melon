@@ -16,24 +16,24 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_THREADS_SERVICE_H_
-#define  MELON_RPC_THREADS_SERVICE_H_
+#ifndef  BRPC_THREADS_SERVICE_H
+#define  BRPC_THREADS_SERVICE_H
 
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class ThreadsService : public threads {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::ThreadsRequest *request,
-                            ::melon::rpc::ThreadsResponse *response,
-                            ::google::protobuf::Closure *done);
-    };
+class ThreadsService : public threads {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::ThreadsRequest* request,
+                        ::brpc::ThreadsResponse* response,
+                        ::google::protobuf::Closure* done);
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_THREADS_SERVICE_H_
+#endif  //BRPC_THREADS_SERVICE_H

@@ -16,7 +16,7 @@
 // under the License.
 
 syntax="proto2";
-import "melon/idl_options.proto";
+import "idl_options.proto";
 option (idl_support) = true;
 option cc_generic_services = true;
 package test;
@@ -65,6 +65,11 @@ service DownloadService {
     rpc DownloadFailed(HttpRequest) returns (HttpResponse);
 }
 
+service UploadService {
+    rpc Upload(HttpRequest) returns (HttpResponse);
+    rpc UploadFailed(HttpRequest) returns (HttpResponse);
+}
+
 service UserNamingService {
     rpc ListNames(HttpRequest) returns (HttpResponse);
     rpc Touch(HttpRequest) returns (HttpResponse);
@@ -77,6 +82,16 @@ service DiscoveryNamingService {
     rpc Renew(HttpRequest) returns (HttpResponse);
     rpc Cancel(HttpRequest) returns (HttpResponse);
 };
+
+service NacosNamingService {
+    rpc Login(HttpRequest) returns (HttpResponse);
+    rpc List(HttpRequest) returns (HttpResponse);
+};
+
+service HttpService {
+    rpc Head(HttpRequest) returns (HttpResponse);
+    rpc Expect(HttpRequest) returns (HttpResponse);
+}
 
 enum State0 {
     STATE0_NUM_0 = 0;

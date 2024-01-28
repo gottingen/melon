@@ -16,38 +16,39 @@
 // under the License.
 
 
-#ifndef MELON_RPC_EVENT_DISPATCHER_H_
-#define MELON_RPC_EVENT_DISPATCHER_H_
+#ifndef BRPC_EVENT_DISPATCHER_H
+#define BRPC_EVENT_DISPATCHER_H
 
-#include "melon/base/profile.h"                     // MELON_DISALLOW_COPY_AND_ASSIGN
-#include "melon/fiber/internal/types.h"                   // fiber_id_t, fiber_attribute
+#include "melon/butil/macros.h"                     // DISALLOW_COPY_AND_ASSIGN
+#include "melon/bthread/types.h"                   // bthread_t, bthread_attr_t
 #include "melon/rpc/socket.h"                     // Socket, SocketId
 
 
-namespace melon::rpc {
+namespace brpc {
 
 // Dispatch edge-triggered events of file descriptors to consumers
-// running in separate fibers.
+// running in separate bthreads.
 class EventDispatcher {
 friend class Socket;
+friend class rdma::RdmaEndpoint;
 public:
     EventDispatcher();
     
     virtual ~EventDispatcher();
 
-    // Start this dispatcher in a fiber.
-    // Use |*consumer_thread_attr| (if it's not nullptr) as the attribute to
-    // create fibers running user callbacks.
+    // Start this dispatcher in a bthread.
+    // Use |*consumer_thread_attr| (if it's not NULL) as the attribute to
+    // create bthreads running user callbacks.
     // Returns 0 on success, -1 otherwise.
-    virtual int Start(const fiber_attribute* consumer_thread_attr);
+    virtual int Start(const bthread_attr_t* consumer_thread_attr);
 
-    // True iff this dispatcher is running in a fiber
+    // True iff this dispatcher is running in a bthread
     bool Running() const;
 
-    // Stop fiber of this dispatcher.
+    // Stop bthread of this dispatcher.
     void Stop();
 
-    // Suspend calling thread until fiber of this dispatcher stops.
+    // Suspend calling thread until bthread of this dispatcher stops.
     void Join();
 
     // When edge-triggered events happen on `fd', call
@@ -71,7 +72,7 @@ public:
     int RemoveEpollOut(SocketId socket_id, int fd, bool pollin);
 
 private:
-    MELON_DISALLOW_COPY_AND_ASSIGN(EventDispatcher);
+    DISALLOW_COPY_AND_ASSIGN(EventDispatcher);
 
     // Calls Run()
     static void* RunThis(void* arg);
@@ -88,22 +89,19 @@ private:
     // false unless Stop() is called.
     volatile bool _stop;
 
-    // identifier of hosting fiber
-    fiber_id_t _tid;
+    // identifier of hosting bthread
+    bthread_t _tid;
 
-    // The attribute of fibers calling user callbacks.
-    fiber_attribute _consumer_thread_attr;
-
-    // The attribute of fiber epoll_wait.
-    fiber_attribute _epoll_thread_attr;
+    // The attribute of bthreads calling user callbacks.
+    bthread_attr_t _consumer_thread_attr;
 
     // Pipe fds to wakeup EventDispatcher from `epoll_wait' in order to quit
     int _wakeup_fds[2];
 };
 
-EventDispatcher& GetGlobalEventDispatcher(int fd);
+EventDispatcher& GetGlobalEventDispatcher(int fd, bthread_tag_t tag);
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_EVENT_DISPATCHER_H_
+#endif  // BRPC_EVENT_DISPATCHER_H

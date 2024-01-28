@@ -18,9 +18,9 @@ exec_prefix=${prefix}
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
 
-Name: melon
-Description: An industrial-grade RPC framework
-Version: @MELON_VERSION@
+Name: brpc
+Description: Apache bRPC is an Industrial-grade RPC framework using C++ Language, which is often used in high performance system such as Search, Storage, Machine learning, Advertisement, Recommendation etc. "bRPC" means "better RPC".
+Version: @BRPC_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir}/ -lbrpc
-Libs.private: @MELON_PRIVATE_LIBS@
+Libs.private: @BRPC_PRIVATE_LIBS@

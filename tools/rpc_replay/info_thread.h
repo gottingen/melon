@@ -15,24 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_RPC_REPLAY_INFO_THREAD_H_
-#define MELON_RPC_RPC_REPLAY_INFO_THREAD_H_
+#ifndef BRPC_RPC_REPLAY_INFO_THREAD_H
+#define BRPC_RPC_REPLAY_INFO_THREAD_H
 
 #include <pthread.h>
-#include <melon/metrics/all.h>
-#include <melon/metrics/counter.h>
+#include <melon/bvar/bvar.h>
 
-namespace melon::rpc {
+namespace brpc {
 
 struct InfoThreadOptions {
-    melon::LatencyRecorder* latency_recorder;
-    melon::counter<int64_t>* sent_count;
-    melon::counter<int64_t>* error_count;
+    bvar::LatencyRecorder* latency_recorder;
+    bvar::Adder<int64_t>* sent_count;
+    bvar::Adder<int64_t>* error_count;
 
     InfoThreadOptions()
-        : latency_recorder(nullptr)
-        , sent_count(nullptr)
-        , error_count(nullptr) {}
+        : latency_recorder(NULL)
+        , sent_count(NULL)
+        , error_count(NULL) {}
 };
 
 class InfoThread {
@@ -51,6 +50,6 @@ private:
     pthread_t _tid;
 };
 
-} // melon::rpc
+} // brpc
 
-#endif // MELON_RPC_RPC_REPLAY_INFO_THREAD_H_
+#endif //BRPC_RPC_REPLAY_INFO_THREAD_H

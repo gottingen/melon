@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-MELON_PATH = ../../
-include $(MELON_PATH)/config.mk
-CXXFLAGS = $(CPPFLAGS) -std=c++0x -DNDEBUG -O2 -D__const__= -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-unused-parameter
-HDRPATHS = -I$(MELON_PATH)/output/include $(addprefix -I, $(HDRS))
-LIBPATHS = -L$(MELON_PATH)/output/lib $(addprefix -L, $(LIBS))
-STATIC_LINKINGS += $(MELON_PATH)/output/lib/libbrpc.a
+BRPC_PATH = ../../
+include $(BRPC_PATH)/config.mk
+CXXFLAGS = $(CPPFLAGS) -std=c++0x -DNDEBUG -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-unused-parameter
+HDRPATHS = -I$(BRPC_PATH)/output/include $(addprefix -I, $(HDRS))
+LIBPATHS = -L$(BRPC_PATH)/output/lib $(addprefix -L, $(LIBS))
+STATIC_LINKINGS += $(BRPC_PATH)/output/lib/libbrpc.a
 
 SOURCES = $(wildcard *.cpp)
 OBJS = $(addsuffix .o, $(basename $(SOURCES))) 

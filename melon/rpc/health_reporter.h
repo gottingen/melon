@@ -16,27 +16,27 @@
 // under the License.
 
 
-#ifndef MELON_RPC_HEALTH_REPORTER_H_
-#define MELON_RPC_HEALTH_REPORTER_H_
+#ifndef BRPC_HEALTH_REPORTER_H
+#define BRPC_HEALTH_REPORTER_H
 
 #include "melon/rpc/controller.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // For customizing /health page.
-    // Inherit this class and assign an instance to ServerOptions.health_reporter.
-    class HealthReporter {
-    public:
-        virtual ~HealthReporter() {}
+// For customizing /health page.
+// Inherit this class and assign an instance to ServerOptions.health_reporter.
+class HealthReporter {
+public:
+    virtual ~HealthReporter() {}
+    
+    // Get the http request from cntl->http_request() / cntl->request_attachment()
+    // and put the response in cntl->http_response() / cntl->response_attachment()
+    // Don't forget to call done->Run() at the end.
+    virtual void GenerateReport(Controller* cntl, google::protobuf::Closure* done) = 0;
+};
 
-        // Get the http request from cntl->http_request() / cntl->request_attachment()
-        // and put the response in cntl->http_response() / cntl->response_attachment()
-        // Don't forget to call done->Run() at the end.
-        virtual void GenerateReport(Controller *cntl, google::protobuf::Closure *done) = 0;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_HEALTH_REPORTER_H_
+#endif  // BRPC_HEALTH_REPORTER_H

@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/tools/rpc_press/*.cc")
+file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/tools/rpc_press/*.cpp")
 add_executable(rpc_press ${SOURCES})
-target_link_libraries(rpc_press melon-static ${DYNAMIC_LIB})
+target_link_libraries(rpc_press brpc-static ${DYNAMIC_LIB})
+install(TARGETS rpc_press RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

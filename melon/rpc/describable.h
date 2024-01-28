@@ -16,99 +16,99 @@
 // under the License.
 
 
-#ifndef MELON_RPC_DESCRIBABLE_H_
-#define MELON_RPC_DESCRIBABLE_H_
+#ifndef BRPC_DESCRIBABLE_H
+#define BRPC_DESCRIBABLE_H
 
 #include <ostream>
-#include "melon/base/profile.h"
-#include "melon/base/class_name.h"
+#include "melon/butil/macros.h"
+#include "melon/butil/class_name.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    struct DescribeOptions {
-        DescribeOptions()
-                : verbose(true), use_html(false) {}
+struct DescribeOptions {
+    DescribeOptions()
+        : verbose(true)
+        , use_html(false)
+    {}
 
-        bool verbose;
-        bool use_html;
-    };
+    bool verbose;
+    bool use_html;
+};
 
-    class Describable {
-    public:
-        virtual ~Describable() {}
-
-        virtual void Describe(std::ostream &os, const DescribeOptions &) const {
-            os << melon::base::class_name_str(*this);
-        }
-    };
-
-    class NonConstDescribable {
-    public:
-        virtual ~NonConstDescribable() {}
-
-        virtual void Describe(std::ostream &os, const DescribeOptions &) {
-            os << melon::base::class_name_str(*this);
-        }
-    };
-
-    inline std::ostream &operator<<(std::ostream &os, const Describable &obj) {
-        DescribeOptions options;
-        options.verbose = false;
-        obj.Describe(os, options);
-        return os;
+class Describable {
+public:
+    virtual ~Describable() {}
+    virtual void Describe(std::ostream& os, const DescribeOptions&) const {
+        os << butil::class_name_str(*this);
     }
+};
 
-    inline std::ostream &operator<<(std::ostream &os,
-                                    NonConstDescribable &obj) {
-        DescribeOptions options;
-        options.verbose = false;
-        obj.Describe(os, options);
-        return os;
+class NonConstDescribable {
+public:
+    virtual ~NonConstDescribable() {}
+    virtual void Describe(std::ostream& os, const DescribeOptions&) {
+        os << butil::class_name_str(*this);
     }
+};
 
-    // Append `indent' spaces after each newline.
-    // Example:
-    //   IndentingOStream os1(std::cout, 2);
-    //   IndentingOStream os2(os1, 2);
-    //   std::cout << "begin1\nhello" << std::endl << "world\nend1" << std::endl;
-    //   os1 << "begin2\nhello" << std::endl << "world\nend2" << std::endl;
-    //   os2 << "begin3\nhello" << std::endl << "world\nend3" << std::endl;
-    // Output:
-    // begin1
-    // hello
-    // world
-    // end1
-    // begin2
-    //   hello
-    //   world
-    //   end2
-    //   begin3
-    //     hello
-    //     world
-    //     end3
-    class IndentingOStream : virtual private std::streambuf, public std::ostream {
-    public:
-        IndentingOStream(std::ostream &dest, int indent)
-                : std::ostream(this), _dest(dest.rdbuf()), _is_at_start_of_line(false), _indent(indent, ' ') {}
+inline std::ostream& operator<<(std::ostream& os, const Describable& obj) {
+    DescribeOptions options;
+    options.verbose = false;
+    obj.Describe(os, options);
+    return os;
+}
 
-    protected:
+inline std::ostream& operator<<(std::ostream& os,
+                                NonConstDescribable& obj) {
+    DescribeOptions options;
+    options.verbose = false;
+    obj.Describe(os, options);
+    return os;
+}
 
-        int overflow(int ch) override {
-            if (_is_at_start_of_line && ch != '\n') {
-                _dest->sputn(_indent.data(), _indent.size());
-            }
-            _is_at_start_of_line = (ch == '\n');
-            return _dest->sputc(ch);
+// Append `indent' spaces after each newline.
+// Example:
+//   IndentingOStream os1(std::cout, 2);
+//   IndentingOStream os2(os1, 2);
+//   std::cout << "begin1\nhello" << std::endl << "world\nend1" << std::endl;
+//   os1 << "begin2\nhello" << std::endl << "world\nend2" << std::endl;
+//   os2 << "begin3\nhello" << std::endl << "world\nend3" << std::endl;
+// Output:
+// begin1
+// hello
+// world
+// end1
+// begin2
+//   hello
+//   world
+//   end2
+//   begin3
+//     hello
+//     world
+//     end3
+class IndentingOStream : virtual private std::streambuf, public std::ostream {
+public:
+    IndentingOStream(std::ostream& dest, int indent)
+        : std::ostream(this)
+        , _dest(dest.rdbuf())
+        , _is_at_start_of_line(false)
+        , _indent(indent, ' ')
+    {}
+protected:
+    int overflow(int ch) override {
+        if (_is_at_start_of_line && ch != '\n' ) {
+            _dest->sputn(_indent.data(), _indent.size());
         }
+        _is_at_start_of_line = (ch == '\n');
+        return _dest->sputc(ch);
+    }
+private:
+    DISALLOW_COPY_AND_ASSIGN(IndentingOStream);
+    std::streambuf* _dest;
+    bool _is_at_start_of_line;
+    std::string _indent;
+};
 
-    private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(IndentingOStream);
+} // namespace brpc
 
-        std::streambuf *_dest;
-        bool _is_at_start_of_line;
-        std::string _indent;
-    };
-
-} // namespace melon::rpc
-
-#endif  // MELON_RPC_DESCRIBABLE_H_
+#endif  // BRPC_DESCRIBABLE_H

@@ -16,41 +16,41 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_NSHEAD_PROTOCOL_H_
-#define MELON_RPC_POLICY_NSHEAD_PROTOCOL_H_
+#ifndef BRPC_POLICY_NSHEAD_PROTOCOL_H
+#define BRPC_POLICY_NSHEAD_PROTOCOL_H
 
 #include "melon/rpc/protocol.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Parse binary format of nshead
-        ParseResult ParseNsheadMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+// Parse binary format of nshead
+ParseResult ParseNsheadMessage(butil::IOBuf* source, Socket* socket, bool read_eof, const void *arg);
 
-        // Actions to a (client) request in nshead format
-        void ProcessNsheadRequest(InputMessageBase *msg);
+// Actions to a (client) request in nshead format
+void ProcessNsheadRequest(InputMessageBase* msg);
 
-        // Actions to a (server) response in nshead format
-        void ProcessNsheadResponse(InputMessageBase *msg);
+// Actions to a (server) response in nshead format
+void ProcessNsheadResponse(InputMessageBase* msg);
 
-        void SerializeNsheadRequest(melon::cord_buf *request_buf, Controller *controller,
-                                    const google::protobuf::Message *request);
+void SerializeNsheadRequest(butil::IOBuf* request_buf, Controller* controller,
+                            const google::protobuf::Message* request);
 
-        void PackNsheadRequest(
-                melon::cord_buf *packet_buf,
-                SocketMessage **,
-                uint64_t correlation_id,
-                const google::protobuf::MethodDescriptor *,
-                Controller *controller,
-                const melon::cord_buf &,
-                const Authenticator *);
+void PackNsheadRequest(
+    butil::IOBuf* packet_buf,
+    SocketMessage**,
+    uint64_t correlation_id,
+    const google::protobuf::MethodDescriptor*,
+    Controller* controller,
+    const butil::IOBuf&,
+    const Authenticator*);
 
-        // Verify authentication information in nshead format
-        bool VerifyNsheadRequest(const InputMessageBase *msg);
+// Verify authentication information in nshead format
+bool VerifyNsheadRequest(const InputMessageBase *msg);
 
-    } // namespace policy
-} // namespace melon::rpc
+} // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_NSHEAD_PROTOCOL_H_
+#endif // BRPC_POLICY_NSHEAD_PROTOCOL_H

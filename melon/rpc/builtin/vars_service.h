@@ -16,26 +16,26 @@
 // under the License.
 
 
-#ifndef MELON_RPC_VARS_SERVICE_H_
-#define MELON_RPC_VARS_SERVICE_H_
+#ifndef BRPC_VARS_SERVICE_H
+#define BRPC_VARS_SERVICE_H
 
 #include "melon/rpc/builtin_service.pb.h"
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class VarsService : public vars, public Tabbed {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::VarsRequest *request,
-                            ::melon::rpc::VarsResponse *response,
-                            ::google::protobuf::Closure *done);
+class VarsService : public vars, public Tabbed {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::VarsRequest* request,
+                        ::brpc::VarsResponse* response,
+                        ::google::protobuf::Closure* done);
 
-        void GetTabInfo(TabInfoList *info_list) const;
-    };
+    void GetTabInfo(TabInfoList* info_list) const;
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_VARS_SERVICE_H_
+#endif // BRPC_VARS_SERVICE_H

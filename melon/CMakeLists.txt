@@ -15,59 +15,95 @@
 # specific language governing permissions and limitations
 # under the License.
 
-if (NOT DEBUG)
+if(NOT DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
-endif ()
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/melon)
 
-add_library(MELON_BASE_LIB ${MELON_SRC})
+add_library(BUTIL_LIB OBJECT ${BUTIL_SOURCES})
 add_library(SOURCES_LIB OBJECT ${SOURCES})
 add_dependencies(SOURCES_LIB PROTO_LIB)
 
 # shared library needs POSITION_INDEPENDENT_CODE
 set_property(TARGET ${SOURCES_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_property(TARGET ${MELON_BASE_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_property(TARGET ${BUTIL_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(melon-shared SHARED $<TARGET_OBJECTS:MELON_BASE_LIB>
-        $<TARGET_OBJECTS:SOURCES_LIB>
-        $<TARGET_OBJECTS:PROTO_LIB>)
-add_library(melon-static STATIC
-        $<TARGET_OBJECTS:MELON_BASE_LIB>
-        $<TARGET_OBJECTS:SOURCES_LIB>
-        $<TARGET_OBJECTS:PROTO_LIB>)
+add_library(brpc-static STATIC $<TARGET_OBJECTS:BUTIL_LIB>
+                               $<TARGET_OBJECTS:SOURCES_LIB>
+                               $<TARGET_OBJECTS:PROTO_LIB>)
 
-target_link_libraries(melon-shared ${DYNAMIC_LIB})
+function(check_thrift_version target_arg)
+    #use thrift command to get version
+    execute_process(
+        COMMAND thrift --version
+        OUTPUT_VARIABLE THRIFT_VERSION_OUTPUT
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" THRIFT_VERSION ${THRIFT_VERSION_OUTPUT})
+    string(REGEX REPLACE "\\." ";" THRIFT_VERSION_LIST ${THRIFT_VERSION})
+
+    list(GET THRIFT_VERSION_LIST 0 THRIFT_MAJOR_VERSION)
+    list(GET THRIFT_VERSION_LIST 1 THRIFT_MINOR_VERSION)
+
+    if (THRIFT_MAJOR_VERSION EQUAL 0 AND THRIFT_MINOR_VERSION LESS 11)
+        message(STATUS "Thrift version is less than 0.11.0")
+        target_compile_definitions($(target_arg) PRIVATE _THRIFT_VERSION_LOWER_THAN_0_11_0_)
+    else()
+        message(STATUS "Thrift version is equal to or greater than 0.11.0")
+    endif()
+endfunction()
 
 
-if (MELON_WITH_THRIFT)
-    target_link_libraries(melon-shared thrift)
-    target_link_libraries(melon-static thrift)
-endif ()
+if(WITH_THRIFT)
+   target_link_libraries(brpc-static ${THRIFT_LIB})
+   check_thrift_version(brpc-static)
+endif()
 
-SET_TARGET_PROPERTIES(melon-static PROPERTIES OUTPUT_NAME melon CLEAN_DIRECT_OUTPUT 1)
-SET_TARGET_PROPERTIES(melon-shared PROPERTIES OUTPUT_NAME melon CLEAN_DIRECT_OUTPUT 1)
+SET_TARGET_PROPERTIES(brpc-static PROPERTIES OUTPUT_NAME brpc CLEAN_DIRECT_OUTPUT 1)
 
 # for protoc-gen-mcpack
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/output/bin)
-
+    
 set(protoc_gen_mcpack_SOURCES
-        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/generator.cc
-        )
+    ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/generator.cpp
+ )
+    
 add_executable(protoc-gen-mcpack ${protoc_gen_mcpack_SOURCES})
-target_link_libraries(protoc-gen-mcpack melon-shared)
 
-#install directory
-install(TARGETS melon-shared
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
-if (INSTALL_STATIC_LIBS)
-    install(TARGETS melon-static
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
+if(BUILD_SHARED_LIBS)
+    add_library(brpc-shared SHARED $<TARGET_OBJECTS:BUTIL_LIB> 
+                                   $<TARGET_OBJECTS:SOURCES_LIB>
+                                   $<TARGET_OBJECTS:PROTO_LIB>)
+    target_link_libraries(brpc-shared ${DYNAMIC_LIB})
+    if(WITH_GLOG)
+        target_link_libraries(brpc-shared ${GLOG_LIB})
+    endif()
+    if(WITH_THRIFT)
+        target_link_libraries(brpc-shared ${THRIFT_LIB})
+        check_thrift_version(brpc-shared)
+    endif()
+    SET_TARGET_PROPERTIES(brpc-shared PROPERTIES OUTPUT_NAME brpc CLEAN_DIRECT_OUTPUT 1)
+
+    target_link_libraries(protoc-gen-mcpack brpc-shared ${DYNAMIC_LIB} pthread)
+
+    install(TARGETS brpc-shared
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             )
-endif ()
+else()
+    target_link_libraries(protoc-gen-mcpack brpc-static ${DYNAMIC_LIB} pthread)
+endif()
+
+
+
+install(TARGETS brpc-static
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )

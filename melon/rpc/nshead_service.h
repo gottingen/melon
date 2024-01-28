@@ -16,123 +16,113 @@
 // under the License.
 
 
-#ifndef MELON_RPC_NSHEAD_SERVICE_H_
-#define MELON_RPC_NSHEAD_SERVICE_H_
+#ifndef BRPC_NSHEAD_SERVICE_H
+#define BRPC_NSHEAD_SERVICE_H
 
 #include "melon/rpc/controller.h"                 // Controller
 #include "melon/rpc/nshead_message.h"             // NsheadMessage
 #include "melon/rpc/describable.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Server;
+class Server;
+class MethodStatus;
+class StatusService;
+namespace policy {
+void ProcessNsheadRequest(InputMessageBase* msg_base);
+}
 
-    class MethodStatus;
+// The continuation of request processing. Namely send response back to client.
+// NOTE: you DON'T need to inherit this class or create instance of this class.
+class NsheadClosure : public google::protobuf::Closure {
+public:
+    explicit NsheadClosure(void* additional_space);
 
-    class StatusService;
-    namespace policy {
-        void ProcessNsheadRequest(InputMessageBase *msg_base);
-    }
+    // [Required] Call this to send response back to the client.
+    void Run();
 
-    // The continuation of request processing. Namely send response back to client.
-    // NOTE: you DON'T need to inherit this class or create instance of this class.
-    class NsheadClosure : public google::protobuf::Closure {
-    public:
-        explicit NsheadClosure(void *additional_space);
+    // [Optional] Set the full method name. If unset, use name of the service.
+    void SetMethodName(const std::string& full_method_name);
+    
+    // The space required by subclass at NsheadServiceOptions. subclass may
+    // utilizes this feature to save the cost of allocating closure separately.
+    // If subclass does not require space, this return value is NULL.
+    void* additional_space() { return _additional_space; }
 
-        // [Required] Call this to send response back to the client.
-        void Run();
+    int64_t received_us() const { return _received_us; }
 
-        // [Optional] Set the full method name. If unset, use name of the service.
-        void SetMethodName(const std::string &full_method_name);
+    // Don't send response back, used by MIMO.
+    void DoNotRespond();
 
-        // The space required by subclass at NsheadServiceOptions. subclass may
-        // utilizes this feature to save the cost of allocating closure separately.
-        // If subclass does not require space, this return value is nullptr.
-        void *additional_space() { return _additional_space; }
+private:
+friend void policy::ProcessNsheadRequest(InputMessageBase* msg_base);
+friend class DeleteNsheadClosure;
+    // Only callable by Run().
+    ~NsheadClosure();
 
-        int64_t received_us() const { return _received_us; }
+    const Server* _server;
+    int64_t _received_us;
+    NsheadMessage _request;
+    NsheadMessage _response;
+    bool _do_respond;
+    void* _additional_space;
+    Controller _controller;
+};
 
-        // Don't send response back, used by MIMO.
-        void DoNotRespond();
+struct NsheadServiceOptions {
+    NsheadServiceOptions() : generate_status(true), additional_space(0) {}
+    NsheadServiceOptions(bool generate_status2, size_t additional_space2)
+        : generate_status(generate_status2)
+        , additional_space(additional_space2) {}
 
-    private:
-        friend void policy::ProcessNsheadRequest(InputMessageBase *msg_base);
+    bool generate_status;
+    size_t additional_space;
+};
 
-        friend class DeleteNsheadClosure;
+// Inherit this class to let brpc server understands nshead requests.
+class NsheadService : public Describable {
+public:
+    NsheadService();
+    NsheadService(const NsheadServiceOptions&);
+    virtual ~NsheadService();
 
-        // Only callable by Run().
-        ~NsheadClosure();
+    // Implement this method to handle nshead requests. Notice that this
+    // method can be called with a failed Controller(something wrong with the
+    // request before calling this method), in which case the implemenetation
+    // shall send specific response with error information back to client.
+    // Parameters:
+    //   server      The server receiving the request.
+    //   controller  per-rpc settings.
+    //   request     The nshead request received.
+    //   response    The nshead response that you should fill in.
+    //   done        You must call done->Run() to end the processing.
+    virtual void ProcessNsheadRequest(const Server& server,
+                                      Controller* controller,
+                                      const NsheadMessage& request,
+                                      NsheadMessage* response,
+                                      NsheadClosure* done) = 0;
 
-        const Server *_server;
-        int64_t _received_us;
-        NsheadMessage _request;
-        NsheadMessage _response;
-        bool _do_respond;
-        void *_additional_space;
-        Controller _controller;
-    };
+    // Put descriptions into the stream.
+    void Describe(std::ostream &os, const DescribeOptions&) const;
 
-    struct NsheadServiceOptions {
-        NsheadServiceOptions() : generate_status(true), additional_space(0) {}
+private:
+DISALLOW_COPY_AND_ASSIGN(NsheadService);
+friend class NsheadClosure;
+friend void policy::ProcessNsheadRequest(InputMessageBase* msg_base);
+friend class StatusService;
+friend class Server;
 
-        NsheadServiceOptions(bool generate_status2, size_t additional_space2)
-                : generate_status(generate_status2), additional_space(additional_space2) {}
+private:
+    void Expose(const butil::StringPiece& prefix);
+    
+    // Tracking status of non NsheadPbService
+    MethodStatus* _status;
+    size_t _additional_space;
+    std::string _cached_name;
+};
 
-        bool generate_status;
-        size_t additional_space;
-    };
-
-    // Inherit this class to let melon server understands nshead requests.
-    class NsheadService : public Describable {
-    public:
-        NsheadService();
-
-        NsheadService(const NsheadServiceOptions &);
-
-        virtual ~NsheadService();
-
-        // Implement this method to handle nshead requests. Notice that this
-        // method can be called with a failed Controller(something wrong with the
-        // request before calling this method), in which case the implemenetation
-        // shall send specific response with error information back to client.
-        // Parameters:
-        //   server      The server receiving the request.
-        //   controller  per-rpc settings.
-        //   request     The nshead request received.
-        //   response    The nshead response that you should fill in.
-        //   done        You must call done->Run() to end the processing.
-        virtual void ProcessNsheadRequest(const Server &server,
-                                          Controller *controller,
-                                          const NsheadMessage &request,
-                                          NsheadMessage *response,
-                                          NsheadClosure *done) = 0;
-
-        // Put descriptions into the stream.
-        void Describe(std::ostream &os, const DescribeOptions &) const;
-
-    private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(NsheadService);
-
-        friend class NsheadClosure;
-
-        friend void policy::ProcessNsheadRequest(InputMessageBase *msg_base);
-
-        friend class StatusService;
-
-        friend class Server;
-
-    private:
-        void Expose(const std::string_view &prefix);
-
-        // Tracking status of non NsheadPbService
-        MethodStatus *_status;
-        size_t _additional_space;
-        std::string _cached_name;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_NSHEAD_SERVICE_H_
+#endif // BRPC_NSHEAD_SERVICE_H

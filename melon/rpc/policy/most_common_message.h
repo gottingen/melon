@@ -16,40 +16,40 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_MOST_COMMON_MESSAGE_H_
-#define MELON_RPC_POLICY_MOST_COMMON_MESSAGE_H_
+#ifndef BRPC_POLICY_MOST_COMMON_MESSAGE_H
+#define BRPC_POLICY_MOST_COMMON_MESSAGE_H
 
-#include "melon/memory/object_pool.h"
+#include "melon/butil/object_pool.h"
 #include "melon/rpc/input_messenger.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Try to use this message as the intermediate message between Parse() and
-        // Process() to maximize usage of ObjectPool<MostCommonMessage>, otherwise
-        // you have to new the messages or use a separate ObjectPool (which is likely
-        // to waste more memory)
-        struct MELON_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
-            melon::cord_buf meta;
-            melon::cord_buf payload;
-            PipelinedInfo pi;
+// Try to use this message as the intermediate message between Parse() and
+// Process() to maximize usage of ObjectPool<MostCommonMessage>, otherwise
+// you have to new the messages or use a separate ObjectPool (which is likely
+// to waste more memory)
+struct BAIDU_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
+    butil::IOBuf meta;
+    butil::IOBuf payload;
+    PipelinedInfo pi;
 
-            inline static MostCommonMessage *Get() {
-                return melon::get_object<MostCommonMessage>();
-            }
+    inline static MostCommonMessage* Get() {
+        return butil::get_object<MostCommonMessage>();
+    }
 
-            // @InputMessageBase
-            void DestroyImpl() {
-                meta.clear();
-                payload.clear();
-                pi.reset();
-                melon::return_object(this);
-            }
-        };
+    // @InputMessageBase
+    void DestroyImpl() {
+        meta.clear();
+        payload.clear();
+        pi.reset();
+        butil::return_object(this);
+    }
+};
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_POLICY_MOST_COMMON_MESSAGE_H_
+#endif  // BRPC_POLICY_MOST_COMMON_MESSAGE_H

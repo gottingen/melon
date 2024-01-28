@@ -16,24 +16,26 @@
 // under the License.
 
 
-#ifndef MELON_RPC_PERIODIC_NAMING_SERVICE_H_
-#define MELON_RPC_PERIODIC_NAMING_SERVICE_H_
+#ifndef BRPC_PERIODIC_NAMING_SERVICE_H
+#define BRPC_PERIODIC_NAMING_SERVICE_H
 
-#include "melon/rpc/naming_service.h"
-
-
-namespace melon::rpc {
-
-    class PeriodicNamingService : public NamingService {
-    protected:
-        virtual int GetServers(const char *service_name,
-                               std::vector<ServerNode> *servers) = 0;
-
-        int RunNamingService(const char *service_name,
-                             NamingServiceActions *actions);
-    };
-
-} // namespace melon::rpc
+#include "melon/naming/naming_service.h"
 
 
-#endif  // MELON_RPC_PERIODIC_NAMING_SERVICE_H_
+namespace brpc {
+
+class PeriodicNamingService : public NamingService {
+protected:
+    virtual int GetServers(const char *service_name,
+                           std::vector<ServerNode>* servers) = 0;
+    
+    virtual int GetNamingServiceAccessIntervalMs() const;
+
+    int RunNamingService(const char* service_name,
+                         NamingServiceActions* actions) override;
+};
+
+} // namespace brpc
+
+
+#endif  // BRPC_PERIODIC_NAMING_SERVICE_H

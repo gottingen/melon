@@ -16,51 +16,51 @@
 // under the License.
 
 
-#ifndef MELON_RPC_RPCZ_SERVICE_H_
-#define MELON_RPC_RPCZ_SERVICE_H_
+#ifndef BRPC_RPCZ_SERVICE_H
+#define BRPC_RPCZ_SERVICE_H
 
 #include "melon/rpc/builtin_service.pb.h"
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class RpczService : public rpcz, public Tabbed {
-    public:
-        void enable(::google::protobuf::RpcController *cntl_base,
-                    const ::melon::rpc::RpczRequest *request,
-                    ::melon::rpc::RpczResponse *response,
-                    ::google::protobuf::Closure *done);
+class RpczService : public rpcz, public Tabbed {
+public:
+    void enable(::google::protobuf::RpcController* cntl_base,
+                const ::brpc::RpczRequest* request,
+                ::brpc::RpczResponse* response,
+                ::google::protobuf::Closure* done);
 
-        void disable(::google::protobuf::RpcController *cntl_base,
-                     const ::melon::rpc::RpczRequest *request,
-                     ::melon::rpc::RpczResponse *response,
-                     ::google::protobuf::Closure *done);
+    void disable(::google::protobuf::RpcController* cntl_base,
+                 const ::brpc::RpczRequest* request,
+                 ::brpc::RpczResponse* response,
+                 ::google::protobuf::Closure* done);
 
-        void stats(::google::protobuf::RpcController *cntl_base,
-                   const ::melon::rpc::RpczRequest *request,
-                   ::melon::rpc::RpczResponse *response,
-                   ::google::protobuf::Closure *done);
+    void stats(::google::protobuf::RpcController* cntl_base,
+               const ::brpc::RpczRequest* request,
+               ::brpc::RpczResponse* response,
+               ::google::protobuf::Closure* done);
 
-        void hex_log_id(::google::protobuf::RpcController *cntl_base,
-                        const ::melon::rpc::RpczRequest *request,
-                        ::melon::rpc::RpczResponse *response,
-                        ::google::protobuf::Closure *done);
+    void hex_log_id(::google::protobuf::RpcController* cntl_base,
+                    const ::brpc::RpczRequest* request,
+                    ::brpc::RpczResponse* response,
+                    ::google::protobuf::Closure* done);
 
-        void dec_log_id(::google::protobuf::RpcController *cntl_base,
-                        const ::melon::rpc::RpczRequest *request,
-                        ::melon::rpc::RpczResponse *response,
-                        ::google::protobuf::Closure *done);
+    void dec_log_id(::google::protobuf::RpcController* cntl_base,
+                    const ::brpc::RpczRequest* request,
+                    ::brpc::RpczResponse* response,
+                    ::google::protobuf::Closure* done);
 
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::RpczRequest *request,
-                            ::melon::rpc::RpczResponse *response,
-                            ::google::protobuf::Closure *done);
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::RpczRequest* request,
+                        ::brpc::RpczResponse* response,
+                        ::google::protobuf::Closure* done);
 
-        void GetTabInfo(melon::rpc::TabInfoList *) const;
-    };
+    void GetTabInfo(brpc::TabInfoList*) const;
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_RPCZ_SERVICE_H_
+#endif // BRPC_RPCZ_SERVICE_H

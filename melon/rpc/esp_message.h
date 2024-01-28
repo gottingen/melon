@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_ESP_MESSAGE_H_
-#define MELON_RPC_ESP_MESSAGE_H_
+#ifndef BRPC_ESP_MESSAGE_H
+#define BRPC_ESP_MESSAGE_H
 
 #include <string>
 
@@ -25,76 +25,63 @@
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
 
 #include "melon/rpc/esp_head.h"
-#include "melon/io/cord_buf.h"
+#include "melon/butil/iobuf.h"
 #include "melon/rpc/proto_base.pb.h"
+#include "melon/rpc/pb_compat.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    class EspMessage : public ::google::protobuf::Message {
-    public:
-        EspHead head;
-        melon::cord_buf body;
+class EspMessage : public ::google::protobuf::Message {
+public:
+    EspHead head;
+    butil::IOBuf body;
 
-    public:
-        EspMessage();
+public:
+    EspMessage();
+    virtual ~EspMessage();
 
-        virtual ~EspMessage();
+    EspMessage(const EspMessage& from);
 
-        EspMessage(const EspMessage &from);
+    inline EspMessage& operator=(const EspMessage& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-        inline EspMessage &operator=(const EspMessage &from) {
-            CopyFrom(from);
-            return *this;
-        }
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const EspMessage& default_instance();
 
-        static const ::google::protobuf::Descriptor *descriptor();
+    void Swap(EspMessage* other);
 
-        static const EspMessage &default_instance();
+    // implements Message ----------------------------------------------
 
-        void Swap(EspMessage *other);
+    EspMessage* New() const PB_319_OVERRIDE;
+#if GOOGLE_PROTOBUF_VERSION >= 3006000
+    EspMessage* New(::google::protobuf::Arena* arena) const override;
+#endif
+    void CopyFrom(const ::google::protobuf::Message& from) PB_321_OVERRIDE;
+    void MergeFrom(const ::google::protobuf::Message& from) override;
+    void CopyFrom(const EspMessage& from);
+    void MergeFrom(const EspMessage& from);
+    void Clear() override;
+    bool IsInitialized() const override;
 
-        // implements Message ----------------------------------------------
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+            ::google::protobuf::io::CodedInputStream* input) PB_310_OVERRIDE;
+    void SerializeWithCachedSizes(
+            ::google::protobuf::io::CodedOutputStream* output) const PB_310_OVERRIDE;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(
+            ::google::protobuf::uint8* output) const PB_310_OVERRIDE;
+    int GetCachedSize() const override { return ByteSize(); }
 
-        EspMessage *New() const ;
+protected:
+    ::google::protobuf::Metadata GetMetadata() const override;
 
+private:
+    void SharedCtor();
+    void SharedDtor();
+};
 
-        EspMessage *New(::google::protobuf::Arena *arena) const override;
+} // namespace brpc
 
-
-        void CopyFrom(const ::google::protobuf::Message &from) override;
-
-        void MergeFrom(const ::google::protobuf::Message &from) override;
-
-        void CopyFrom(const EspMessage &from);
-
-        void MergeFrom(const EspMessage &from);
-
-        void Clear() override;
-
-        bool IsInitialized() const override;
-
-        int ByteSize() const;
-
-        bool MergePartialFromCodedStream(
-                ::google::protobuf::io::CodedInputStream *input);
-
-        void SerializeWithCachedSizes(
-                ::google::protobuf::io::CodedOutputStream *output) const;
-
-        ::google::protobuf::uint8 *SerializeWithCachedSizesToArray(
-                ::google::protobuf::uint8 *output) const;
-
-        int GetCachedSize() const override { return ByteSize(); }
-
-    protected:
-        ::google::protobuf::Metadata GetMetadata() const override;
-
-    private:
-        void SharedCtor();
-
-        void SharedDtor();
-    };
-
-} // namespace melon::rpc
-
-#endif  // MELON_RPC_ESP_MESSAGE_H_
+#endif  // BRPC_ESP_MESSAGE_H

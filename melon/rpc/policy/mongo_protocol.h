@@ -15,24 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_POLICY_MONGO_PROTOCOL_H_
-#define MELON_RPC_POLICY_MONGO_PROTOCOL_H_
+#ifndef BRPC_POLICY_MONGO_PROTOCOL_H
+#define BRPC_POLICY_MONGO_PROTOCOL_H
 
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/input_messenger.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Parse binary format of mongo
-        ParseResult ParseMongoMessage(melon::cord_buf *source, Socket *socket, bool read_eof, const void *arg);
+// Parse binary format of mongo
+ParseResult ParseMongoMessage(butil::IOBuf* source, Socket* socket, bool read_eof, const void *arg);
 
-        // Actions to a (client) request in mongo format
-        void ProcessMongoRequest(InputMessageBase *msg);
+// Actions to a (client) request in mongo format
+void ProcessMongoRequest(InputMessageBase* msg);
 
-    } // namespace policy
-} // namespace melon::rpc
+} // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_MONGO_PROTOCOL_H_
+#endif // BRPC_POLICY_MONGO_PROTOCOL_H

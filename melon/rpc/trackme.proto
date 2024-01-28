@@ -18,7 +18,7 @@
 syntax="proto2";
 option cc_generic_services=true;
 
-package melon.rpc;
+package brpc;
 
 // The request sent to -trackme_server
 message TrackMeRequest {

@@ -17,7 +17,7 @@
 
 syntax="proto2";
 
-package melon.rpc;
+package brpc;
 
 message RtmpConnectRequest {
   // The Server application name the client is connected to.

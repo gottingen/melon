@@ -16,25 +16,25 @@
 // under the License.
 
 
-#ifndef MELON_RPC_TRACKME_H_
-#define MELON_RPC_TRACKME_H_
+#ifndef BRPC_TRACKME_H
+#define BRPC_TRACKME_H
 
 // [Internal] RPC users are not supposed to call functions below. 
 
-#include "melon/base/endpoint.h"
+#include "melon/butil/endpoint.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Set the server address for reporting.
-    // Currently only the first address will be saved.
-    void SetTrackMeAddress(melon::end_point pt);
+// Set the server address for reporting.
+// Currently only the first address will be saved.
+void SetTrackMeAddress(butil::EndPoint pt);
 
-    // Call this function every second (or every several seconds) to send
-    // TrackMeRequest to -trackme_server every TRACKME_INTERVAL seconds.
-    void TrackMe();
+// Call this function every second (or every several seconds) to send
+// TrackMeRequest to -trackme_server every TRACKME_INTERVAL seconds.
+void TrackMe();
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_TRACKME_H_
+#endif // BRPC_TRACKME_H

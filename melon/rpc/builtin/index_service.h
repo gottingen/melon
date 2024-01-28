@@ -16,27 +16,27 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_INDEX_SERVICE_H_
-#define  MELON_RPC_INDEX_SERVICE_H_
+#ifndef  BRPC_INDEX_SERVICE_H
+#define  BRPC_INDEX_SERVICE_H
 
 #include <ostream>
 #include "melon/rpc/builtin_service.pb.h"
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class IndexService : public index, public Tabbed {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::IndexRequest *request,
-                            ::melon::rpc::IndexResponse *response,
-                            ::google::protobuf::Closure *done);
+class IndexService : public index, public Tabbed {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::IndexRequest* request,
+                        ::brpc::IndexResponse* response,
+                        ::google::protobuf::Closure* done);
 
-        void GetTabInfo(melon::rpc::TabInfoList *) const;
-    };
+    void GetTabInfo(brpc::TabInfoList*) const;
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_INDEX_SERVICE_H_
+#endif  //BRPC_INDEX_SERVICE_H

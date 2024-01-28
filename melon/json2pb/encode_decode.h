@@ -14,8 +14,8 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-#ifndef MELON_RPC_JSON2PB_ENCODE_DECODE_H_
-#define MELON_RPC_JSON2PB_ENCODE_DECODE_H_
+#ifndef BRPC_JSON2PB_ENCODE_DECODE_H
+#define BRPC_JSON2PB_ENCODE_DECODE_H
 
 namespace json2pb {
 
@@ -40,4 +40,4 @@ bool decode_name(const std::string& content, std::string& decoded_content);
 
 }
 
-#endif  // MELON_RPC_JSON2PB_ENCODE_DECODE_H_
+#endif  //BRPC_JSON2PB_ENCODE_DECODE_H

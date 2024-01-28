@@ -16,23 +16,23 @@
 // under the License.
 
 
-#ifndef MELON_RPC_SOCKETS_SERVICE_H_
-#define MELON_RPC_SOCKETS_SERVICE_H_
+#ifndef BRPC_SOCKETS_SERVICE_H
+#define BRPC_SOCKETS_SERVICE_H
 
 #include "melon/rpc/builtin_service.pb.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class SocketsService : public sockets {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::SocketsRequest *request,
-                            ::melon::rpc::SocketsResponse *response,
-                            ::google::protobuf::Closure *done);
-    };
+class SocketsService : public sockets {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::SocketsRequest* request,
+                        ::brpc::SocketsResponse* response,
+                        ::google::protobuf::Closure* done);
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_SOCKETS_SERVICE_H_
+#endif // BRPC_SOCKETS_SERVICE_H

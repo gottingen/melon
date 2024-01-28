@@ -15,5 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-add_executable(parallel_http parallel_http.cc)
-target_link_libraries(parallel_http melon-static ${DYNAMIC_LIB})
+add_executable(parallel_http parallel_http.cpp)
+target_link_libraries(parallel_http brpc-static ${DYNAMIC_LIB})
+install(TARGETS parallel_http RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

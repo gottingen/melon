@@ -18,8 +18,8 @@
 syntax="proto2";
 import "google/protobuf/descriptor.proto";
 
-package melon.rpc;
-option java_package="com.rpc.melon";
+package brpc;
+option java_package="com.brpc";
 option java_outer_classname="Options";
 
 enum TalkType {

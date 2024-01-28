@@ -16,8 +16,8 @@
 // under the License.
 
 syntax="proto2";
-package melon.rpc;
-option java_package="com.rpc.melon";
+package brpc;
+option java_package="com.brpc";
 option java_outer_classname="BaiduRpcErrno";
 
 enum Errno {
@@ -49,4 +49,8 @@ enum Errno {
     ELIMIT                  = 2004;  // Reached server's limit on resources
     ECLOSE                  = 2005;  // Close socket initiatively
     EITP                    = 2006;  // Failed Itp response
+
+    // Errno related to RDMA (may happen at both sides)
+    ERDMA                   = 3001;  // RDMA verbs error
+    ERDMAMEM                = 3002;  // Memory not registered for RDMA    
 }

@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef  MELON_RPC_JSON2PB_ZERO_COPY_STREAM_READER_H_
-#define  MELON_RPC_JSON2PB_ZERO_COPY_STREAM_READER_H_
+#ifndef  BRPC_JSON2PB_ZERO_COPY_STREAM_READER_H
+#define  BRPC_JSON2PB_ZERO_COPY_STREAM_READER_H
 
 #include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyInputStream
 
@@ -26,7 +26,7 @@ class ZeroCopyStreamReader {
 public:
     typedef char Ch;
     ZeroCopyStreamReader(google::protobuf::io::ZeroCopyInputStream *stream)
-            : _data(nullptr), _data_size(0), _nread(0), _stream(stream) {
+            : _data(NULL), _data_size(0), _nread(0), _stream(stream) {
     }
     //Take a charactor and return its address.
     const char* PeekAddr() { 
@@ -38,7 +38,7 @@ public:
                 return _data;
             }
         }
-        return nullptr;
+        return NULL;
     }
     const char* TakeWithAddr() {
         const char* c = PeekAddr();
@@ -47,7 +47,7 @@ public:
             --_data_size;
             return _data++;
         }
-        return nullptr;
+        return NULL;
     }
     char Take() {
         const char* c = PeekAddr();
@@ -71,7 +71,7 @@ public:
     size_t Tell() { return _nread; }
     void Put(char) {}
     void Flush() {}
-    char *PutBegin() { return nullptr; }
+    char *PutBegin() { return NULL; }
     size_t PutEnd(char *) { return 0; }
 private:
     const char *_data;
@@ -82,4 +82,4 @@ private:
 
 } // namespace json2pb
 
-#endif  // MELON_RPC_JSON2PB_ZERO_COPY_STREAM_READER_H_
+#endif  //BRPC_JSON2PB_ZERO_COPY_STREAM_READER_H

@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef  MELON_RPC_JSON2PB_RAPIDJSON_H_
-#define  MELON_RPC_JSON2PB_RAPIDJSON_H_
+#ifndef  BRPC_JSON2PB_RAPIDJSON_H
+#define  BRPC_JSON2PB_RAPIDJSON_H
 
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
@@ -27,21 +27,22 @@
 
 #endif
 
-#include "melon/rapidjson/allocators.h"
-#include "melon/rapidjson/document.h"
-#include "melon/rapidjson/encodedstream.h"
-#include "melon/rapidjson/encodings.h"
-#include "melon/rapidjson/filereadstream.h"
-#include "melon/rapidjson/filewritestream.h"
-#include "melon/rapidjson/prettywriter.h"
-#include "melon/rapidjson/rapidjson.h"
-#include "melon/rapidjson/reader.h"
-#include "melon/rapidjson/stringbuffer.h"
-#include "melon/rapidjson/writer.h"
-#include "melon/rapidjson/optimized_writer.h"
+#include "melon/butil/third_party/rapidjson/allocators.h"
+#include "melon/butil/third_party/rapidjson/document.h"
+#include "melon/butil/third_party/rapidjson/encodedstream.h"
+#include "melon/butil/third_party/rapidjson/encodings.h"
+#include "melon/butil/third_party/rapidjson/filereadstream.h"
+#include "melon/butil/third_party/rapidjson/filewritestream.h"
+#include "melon/butil/third_party/rapidjson/prettywriter.h"
+#include "melon/butil/third_party/rapidjson/rapidjson.h"
+#include "melon/butil/third_party/rapidjson/reader.h"
+#include "melon/butil/third_party/rapidjson/stringbuffer.h"
+#include "melon/butil/third_party/rapidjson/writer.h"
+#include "melon/butil/third_party/rapidjson/optimized_writer.h"
+#include "melon/butil/third_party/rapidjson/error/en.h"  // GetErrorCode_En
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
 #pragma GCC diagnostic pop
 #endif
 
-#endif  // MELON_RPC_JSON2PB_RAPIDJSON_H_
+#endif  //BRPC_JSON2PB_RAPIDJSON_H

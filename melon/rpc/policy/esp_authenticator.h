@@ -15,28 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_POLICY_ESP_AUTHENTICATOR_H_
-#define MELON_RPC_POLICY_ESP_AUTHENTICATOR_H_
+#ifndef BRPC_POLICY_ESP_AUTHENTICATOR_H
+#define BRPC_POLICY_ESP_AUTHENTICATOR_H
 
 #include "melon/rpc/authenticator.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        class EspAuthenticator : public Authenticator {
-        public:
-            int GenerateCredential(std::string *auth_str) const;
+class EspAuthenticator: public Authenticator {
+public:
+    int GenerateCredential(std::string* auth_str) const;
 
-            int VerifyCredential(const std::string &auth_str,
-                                 const melon::end_point &client_addr,
-                                 AuthContext *out_ctx) const;
-        };
+    int VerifyCredential(const std::string& auth_str,
+                         const butil::EndPoint& client_addr,
+                         AuthContext* out_ctx) const;
+};
 
-        const Authenticator *global_esp_authenticator();
+const Authenticator* global_esp_authenticator();
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_GIANO_AUTHENTICATOR_H_
+#endif // BRPC_POLICY_GIANO_AUTHENTICATOR_H

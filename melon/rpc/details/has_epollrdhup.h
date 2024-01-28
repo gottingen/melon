@@ -16,19 +16,19 @@
 // under the License.
 
 
-#ifndef MELON_RPC_HAS_EPOLLRDHUP_H_
-#define MELON_RPC_HAS_EPOLLRDHUP_H_
+#ifndef BRPC_HAS_EPOLLRDHUP_H
+#define BRPC_HAS_EPOLLRDHUP_H
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Check if the kernel supports EPOLLRDHUP which is added in Linux 2.6.17
-    // This flag is useful in Edge Triggered mode. Without the flag user has
-    // to call an additional read() even if return value(positive) is less
-    // than given `count', otherwise return value=0(indicating EOF) may be lost.
-    extern const unsigned int has_epollrdhup;
+// Check if the kernel supports EPOLLRDHUP which is added in Linux 2.6.17
+// This flag is useful in Edge Triggered mode. Without the flag user has
+// to call an additional read() even if return value(positive) is less
+// than given `count', otherwise return value=0(indicating EOF) may be lost.
+extern const unsigned int has_epollrdhup;
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_HAS_EPOLLRDHUP_H_
+#endif  // BRPC_HAS_EPOLLRDHUP_H

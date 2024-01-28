@@ -16,15 +16,17 @@
 // under the License.
 
 
-#ifndef MELON_RPC_GLOBAL_H_
-#define MELON_RPC_GLOBAL_H_
+#ifndef BRPC_GLOBAL_H
+#define BRPC_GLOBAL_H
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    void GlobalInitializeOrDie();
+// Register all naming service, load balancers, compress handlers inside
+// `brpc/policy/' directory
+void GlobalInitializeOrDie();
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_GLOBAL_H_
+#endif // BRPC_GLOBAL_H

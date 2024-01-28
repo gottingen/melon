@@ -16,58 +16,47 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_DYNPART_LOAD_BALANCER_H_
-#define MELON_RPC_POLICY_DYNPART_LOAD_BALANCER_H_
+#ifndef BRPC_POLICY_DYNPART_LOAD_BALANCER_H
+#define BRPC_POLICY_DYNPART_LOAD_BALANCER_H
 
 #include <vector>                                      // std::vector
 #include <map>                                         // std::map
-#include "melon/container/doubly_buffered_data.h"
+#include "melon/butil/containers/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // CAUTION: This is just a quick/hacking impl. for loading balancing between
-        // partchans in a DynamicPartitionChannel. Any details are subject to change.
+// CAUTION: This is just a quick/hacking impl. for loading balancing between
+// partchans in a DynamicPartitionChannel. Any details are subject to change.
 
-        class DynPartLoadBalancer : public LoadBalancer {
-        public:
-            bool AddServer(const ServerId &id);
+class DynPartLoadBalancer : public LoadBalancer {
+public:
+    bool AddServer(const ServerId& id);
+    bool RemoveServer(const ServerId& id);
+    size_t AddServersInBatch(const std::vector<ServerId>& servers);
+    size_t RemoveServersInBatch(const std::vector<ServerId>& servers);
+    int SelectServer(const SelectIn& in, SelectOut* out);
+    DynPartLoadBalancer* New(const butil::StringPiece&) const;
+    void Destroy();
+    void Describe(std::ostream&, const DescribeOptions& options);
 
-            bool RemoveServer(const ServerId &id);
+private:
+    struct Servers {
+        std::vector<ServerId> server_list;
+        std::map<ServerId, size_t> server_map;
+    };
+    static bool Add(Servers& bg, const ServerId& id);
+    static bool Remove(Servers& bg, const ServerId& id);
+    static size_t BatchAdd(Servers& bg, const std::vector<ServerId>& servers);
+    static size_t BatchRemove(Servers& bg, const std::vector<ServerId>& servers);
 
-            size_t AddServersInBatch(const std::vector<ServerId> &servers);
+    butil::DoublyBufferedData<Servers> _db_servers;
+};
 
-            size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
-
-            int SelectServer(const SelectIn &in, SelectOut *out);
-
-            DynPartLoadBalancer *New(const std::string_view &) const;
-
-            void Destroy();
-
-            void Describe(std::ostream &, const DescribeOptions &options);
-
-        private:
-            struct Servers {
-                std::vector<ServerId> server_list;
-                std::map<ServerId, size_t> server_map;
-            };
-
-            static bool Add(Servers &bg, const ServerId &id);
-
-            static bool Remove(Servers &bg, const ServerId &id);
-
-            static size_t BatchAdd(Servers &bg, const std::vector<ServerId> &servers);
-
-            static size_t BatchRemove(Servers &bg, const std::vector<ServerId> &servers);
-
-            melon::container::DoublyBufferedData<Servers> _db_servers;
-        };
-
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_POLICY_DYNPART_LOAD_BALANCER_H_
+#endif  // BRPC_POLICY_DYNPART_LOAD_BALANCER_H

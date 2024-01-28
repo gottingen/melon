@@ -16,140 +16,135 @@
 // under the License.
 
 
-#ifndef MELON_RPC_HTTP_MESSAGE_H_
-#define MELON_RPC_HTTP_MESSAGE_H_
+#ifndef BRPC_HTTP_MESSAGE_H
+#define BRPC_HTTP_MESSAGE_H
 
+#include <memory>                      // std::unique_ptr
 #include <string>                      // std::string
-#include "melon/base/profile.h"
-#include "melon/io/cord_buf.h"               // melon::cord_buf
-#include "melon/base/scoped_lock.h"
-#include "melon/base/endpoint.h"
+#include "melon/butil/macros.h"
+#include "melon/butil/iobuf.h"               // butil::IOBuf
+#include "melon/butil/scoped_lock.h"         // butil::unique_lock
+#include "melon/butil/endpoint.h"
 #include "melon/rpc/details/http_parser.h"  // http_parser
 #include "melon/rpc/http_header.h"          // HttpHeader
 #include "melon/rpc/progressive_reader.h"   // ProgressiveReader
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    enum HttpParserStage {
-        HTTP_ON_MESSAGE_BEGIN,
-        HTTP_ON_URL,
-        HTTP_ON_STATUS,
-        HTTP_ON_HEADER_FIELD,
-        HTTP_ON_HEADER_VALUE,
-        HTTP_ON_HEADERS_COMPLETE,
-        HTTP_ON_BODY,
-        HTTP_ON_MESSAGE_COMPLETE
-    };
+enum HttpParserStage {
+    HTTP_ON_MESSAGE_BEGIN,
+    HTTP_ON_URL,
+    HTTP_ON_STATUS,
+    HTTP_ON_HEADER_FIELD, 
+    HTTP_ON_HEADER_VALUE,
+    HTTP_ON_HEADERS_COMPLETE,
+    HTTP_ON_BODY,
+    HTTP_ON_MESSAGE_COMPLETE
+};
 
-    class HttpMessage {
-    public:
-        // If read_body_progressively is true, the body will be read progressively
-        // by using SetBodyReader().
-        HttpMessage(bool read_body_progressively = false);
+class HttpMessage {
+public:
+    // If read_body_progressively is true, the body will be read progressively
+    // by using SetBodyReader().
+    explicit HttpMessage(bool read_body_progressively = false,
+                         HttpMethod request_method = HTTP_METHOD_GET);
+    ~HttpMessage();
 
-        ~HttpMessage();
+    const butil::IOBuf &body() const { return _body; }
+    butil::IOBuf &body() { return _body; }
 
-        const melon::cord_buf &body() const { return _body; }
+    // Parse from array, length=0 is treated as EOF.
+    // Returns bytes parsed, -1 on failure.
+    ssize_t ParseFromArray(const char *data, const size_t length);
+    
+    // Parse from butil::IOBuf.
+    // Emtpy `buf' is sliently ignored, which is different from ParseFromArray.
+    // Returns bytes parsed, -1 on failure.
+    ssize_t ParseFromIOBuf(const butil::IOBuf &buf);
 
-        melon::cord_buf &body() { return _body; }
+    bool Completed() const { return _stage == HTTP_ON_MESSAGE_COMPLETE; }
+    HttpParserStage stage() const { return _stage; }
 
-        // Parse from array, length=0 is treated as EOF.
-        // Returns bytes parsed, -1 on failure.
-        ssize_t ParseFromArray(const char *data, const size_t length);
+    HttpMethod request_method() const { return _request_method; }
 
-        // Parse from melon::cord_buf.
-        // Emtpy `buf' is sliently ignored, which is different from ParseFromArray.
-        // Returns bytes parsed, -1 on failure.
-        ssize_t ParseFromCordBuf(const melon::cord_buf &buf);
+    HttpHeader &header() { return _header; }
+    const HttpHeader &header() const { return _header; }
+    size_t parsed_length() const { return _parsed_length; }
+    
+    // Http parser callback functions
+    static int on_message_begin(http_parser *);
+    static int on_url(http_parser *, const char *, const size_t);
+    static int on_status(http_parser*, const char *, const size_t);
+    static int on_header_field(http_parser *, const char *, const size_t);
+    static int on_header_value(http_parser *, const char *, const size_t);
+    // Returns -1 on error, 0 on success, 1 on success and skip body.
+    static int on_headers_complete(http_parser *);
+    static int on_body_cb(http_parser*, const char *, const size_t);
+    static int on_message_complete_cb(http_parser *);
 
-        bool Completed() const { return _stage == HTTP_ON_MESSAGE_COMPLETE; }
+    const http_parser& parser() const { return _parser; }
 
-        HttpParserStage stage() const { return _stage; }
+    bool read_body_progressively() const { return _read_body_progressively; }
 
-        HttpHeader &header() { return _header; }
+    void set_read_body_progressively(bool read_body_progressively) {
+        this->_read_body_progressively = read_body_progressively;
+    }
 
-        const HttpHeader &header() const { return _header; }
+    // Send new parts of the body to the reader. If the body already has some
+    // data, feed them to the reader immediately.
+    // Any error during the setting will destroy the reader.
+    void SetBodyReader(ProgressiveReader* r);
 
-        size_t parsed_length() const { return _parsed_length; }
+protected:
+    int OnBody(const char* data, size_t size);
+    int OnMessageComplete();
+    size_t _parsed_length;
+    
+private:
+    DISALLOW_COPY_AND_ASSIGN(HttpMessage);
+    int UnlockAndFlushToBodyReader(std::unique_lock<butil::Mutex>& locked);
 
-        // Http parser callback functions
-        static int on_message_begin(http_parser *);
+    HttpParserStage _stage;
+    std::string _url;
+    HttpMethod _request_method;
+    HttpHeader _header;
+    bool _read_body_progressively;
+    // For mutual exclusion between on_body and SetBodyReader.
+    butil::Mutex _body_mutex;
+    // Read body progressively
+    ProgressiveReader* _body_reader;
+    butil::IOBuf _body;
 
-        static int on_url(http_parser *, const char *, const size_t);
+    // Parser related members
+    struct http_parser _parser;
+    std::string _cur_header;
+    std::string *_cur_value;
 
-        static int on_status(http_parser *, const char *, const size_t);
+protected:
+    // Only valid when -http_verbose is on
+    std::unique_ptr<butil::IOBufBuilder> _vmsgbuilder;
+    size_t _vbodylen;
+};
 
-        static int on_header_field(http_parser *, const char *, const size_t);
-
-        static int on_header_value(http_parser *, const char *, const size_t);
-
-        static int on_headers_complete(http_parser *);
-
-        static int on_body_cb(http_parser *, const char *, const size_t);
-
-        static int on_message_complete_cb(http_parser *);
-
-        const http_parser &parser() const { return _parser; }
-
-        bool read_body_progressively() const { return _read_body_progressively; }
-
-        // Send new parts of the body to the reader. If the body already has some
-        // data, feed them to the reader immediately.
-        // Any error during the setting will destroy the reader.
-        void SetBodyReader(ProgressiveReader *r);
-
-    protected:
-        int OnBody(const char *data, size_t size);
-
-        int OnMessageComplete();
-
-        size_t _parsed_length;
-
-    private:
-        MELON_DISALLOW_COPY_AND_ASSIGN(HttpMessage);
-
-        int UnlockAndFlushToBodyReader(std::unique_lock<std::mutex> &locked);
-
-        HttpParserStage _stage;
-        std::string _url;
-        HttpHeader _header;
-        bool _read_body_progressively;
-        // For mutual exclusion between on_body and SetBodyReader.
-        std::mutex _body_mutex;
-        // Read body progressively
-        ProgressiveReader *_body_reader;
-        melon::cord_buf _body;
-
-        // Parser related members
-        struct http_parser _parser;
-        std::string _cur_header;
-        std::string *_cur_value;
-
-    protected:
-        // Only valid when -http_verbose is on
-        melon::cord_buf_builder *_vmsgbuilder;
-        size_t _vbodylen;
-    };
-
-    std::ostream &operator<<(std::ostream &os, const http_parser &parser);
+std::ostream& operator<<(std::ostream& os, const http_parser& parser);
 
 // Serialize a http request.
 // header: may be modified in some cases
 // remote_side: used when "Host" is absent
-// content: could be nullptr.
-    void MakeRawHttpRequest(melon::cord_buf *request,
-                            HttpHeader *header,
-                            const melon::end_point &remote_side,
-                            const melon::cord_buf *content);
+// content: could be NULL.
+void MakeRawHttpRequest(butil::IOBuf* request,
+                        HttpHeader* header,
+                        const butil::EndPoint& remote_side,
+                        const butil::IOBuf* content);
 
-    // Serialize a http response.
-    // header: may be modified in some cases
-    // content: cleared after usage. could be nullptr.
-    void MakeRawHttpResponse(melon::cord_buf *response,
-                             HttpHeader *header,
-                             melon::cord_buf *content);
+// Serialize a http response.
+// header: may be modified in some cases
+// content: cleared after usage. could be NULL. 
+void MakeRawHttpResponse(butil::IOBuf* response,
+                         HttpHeader* header,
+                         butil::IOBuf* content);
 
-} // namespace melon::rpc
+} // namespace brpc
 
-#endif  // MELON_RPC_HTTP_MESSAGE_H_
+#endif  // BRPC_HTTP_MESSAGE_H

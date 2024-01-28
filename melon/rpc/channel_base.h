@@ -16,34 +16,34 @@
 // under the License.
 
 
-#ifndef MELON_RPC_CHANNEL_BASE_H_
-#define MELON_RPC_CHANNEL_BASE_H_
+#ifndef BRPC_CHANNEL_BASE_H
+#define BRPC_CHANNEL_BASE_H
 
-#include <cstdlib>
+#include <stdlib.h>
 #include <ostream>
-#include "melon/log/logging.h"
+#include "melon/butil/logging.h"
 #include <google/protobuf/service.h>            // google::protobuf::RpcChannel
 #include "melon/rpc/describable.h"
 
-// To melon developers: This is a header included by user, don't depend
+// To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Base of all melon/rpc channels.
-    class ChannelBase : public google::protobuf::RpcChannel/*non-copyable*/,
-                        public Describable {
-    public:
-        virtual int Weight() {
-            MELON_CHECK(false) << "Not implemented";
-            abort();
-        };
-
-        virtual int CheckHealth() = 0;
+// Base of all brpc channels.
+class ChannelBase : public google::protobuf::RpcChannel/*non-copyable*/,
+                    public Describable {
+public:
+    virtual int Weight() {
+        CHECK(false) << "Not implemented";
+        abort();
     };
 
-} // namespace melon::rpc
+    virtual int CheckHealth() = 0;
+};
+
+} // namespace brpc
 
 
-#endif  // MELON_RPC_CHANNEL_BASE_H_
+#endif  // BRPC_CHANNEL_BASE_H

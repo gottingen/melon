@@ -16,30 +16,30 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_SNAPPY_COMPRESS_H_
-#define MELON_RPC_POLICY_SNAPPY_COMPRESS_H_
+#ifndef BRPC_POLICY_SNAPPY_COMPRESS_H
+#define BRPC_POLICY_SNAPPY_COMPRESS_H
 
 #include <google/protobuf/message.h>          // Message
-#include "melon/io/cord_buf.h"                       // cord_buf
+#include "melon/butil/iobuf.h"                       // IOBuf
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Compress serialized `msg' into `buf'.
-        bool SnappyCompress(const google::protobuf::Message &msg, melon::cord_buf *buf);
+// Compress serialized `msg' into `buf'.
+bool SnappyCompress(const google::protobuf::Message& msg, butil::IOBuf* buf);
 
-        // Parse `msg' from decompressed `buf'
-        bool SnappyDecompress(const melon::cord_buf &data, google::protobuf::Message *msg);
+// Parse `msg' from decompressed `buf'
+bool SnappyDecompress(const butil::IOBuf& data, google::protobuf::Message* msg);
 
-        // Put compressed `in' into `out'.
-        bool SnappyCompress(const melon::cord_buf &in, melon::cord_buf *out);
+// Put compressed `in' into `out'.
+bool SnappyCompress(const butil::IOBuf& in, butil::IOBuf* out);
 
-        // Put decompressed `in' into `out'.
-        bool SnappyDecompress(const melon::cord_buf &in, melon::cord_buf *out);
+// Put decompressed `in' into `out'.
+bool SnappyDecompress(const butil::IOBuf& in, butil::IOBuf* out);
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_SNAPPY_COMPRESS_H_
+#endif // BRPC_POLICY_SNAPPY_COMPRESS_H

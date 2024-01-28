@@ -3080,7 +3080,7 @@ BEGIN {
     } else {
       # If we're a 64-bit profile, check if we're a 64-bit-capable
       # perl.  Otherwise, each slot will be represented as a float
-      # instead of an int64_t, losing precision and making all the
+      # instead of an int64, losing precision and making all the
       # 64-bit addresses wrong.  We won't complain yet, but will
       # later if we ever see a value that doesn't fit in 32 bits.
       my $has_q = 0;
@@ -4465,7 +4465,7 @@ sub GetProcedureBoundariesViaNm {
 
       # Tag this routine with the starting address in case the image
       # has multiple occurrences of this routine.  We use a syntax
-      # that resembles template paramters that are automatically
+      # that resembles template parameters that are automatically
       # stripped out by ShortFunctionName()
       $this_routine .= "<$start_val>";
 

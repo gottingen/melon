@@ -16,31 +16,28 @@
 // under the License.
 
 
-#ifndef  MELON_RPC_HASHER_H_
-#define  MELON_RPC_HASHER_H_
+#ifndef  BRPC_HASHER_H
+#define  BRPC_HASHER_H
 
 #include <stddef.h>
 #include <stdint.h>
-#include <string_view>
+#include "melon/butil/strings/string_piece.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        using HashFunc = uint32_t(*)(const void *, size_t);
+using HashFunc = uint32_t(*)(const void*, size_t);
 
-        void MD5HashSignature(const void *key, size_t len, unsigned char *results);
+void MD5HashSignature(const void* key, size_t len, unsigned char* results);
+uint32_t MD5Hash32(const void* key, size_t len);
+uint32_t MD5Hash32V(const butil::StringPiece* keys, size_t num_keys);
 
-        uint32_t MD5Hash32(const void *key, size_t len);
+uint32_t MurmurHash32(const void* key, size_t len);
+uint32_t MurmurHash32V(const butil::StringPiece* keys, size_t num_keys);
 
-        uint32_t MD5Hash32V(const std::string_view *keys, size_t num_keys);
-
-        uint32_t MurmurHash32(const void *key, size_t len);
-
-        uint32_t MurmurHash32V(const std::string_view *keys, size_t num_keys);
-
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_HASHER_H_
+#endif  //BRPC_HASHER_H

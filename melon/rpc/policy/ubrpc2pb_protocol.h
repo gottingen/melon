@@ -16,69 +16,68 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_UBRPC2PB_PROTOCOL_H_
-#define MELON_RPC_POLICY_UBRPC2PB_PROTOCOL_H_
+#ifndef BRPC_POLICY_UBRPC2PB_PROTOCOL_H
+#define BRPC_POLICY_UBRPC2PB_PROTOCOL_H
 
-#include "melon/mcpack2pb/mcpack2pb.h"
+#include "mcpack2pb/mcpack2pb.h"
 #include "melon/rpc/nshead_pb_service_adaptor.h"
 #include "melon/rpc/policy/nshead_protocol.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        void ProcessUbrpcResponse(InputMessageBase *msg);
+void ProcessUbrpcResponse(InputMessageBase* msg);
 
-        void SerializeUbrpcCompackRequest(melon::cord_buf *buf, Controller *cntl,
-                                          const google::protobuf::Message *request);
+void SerializeUbrpcCompackRequest(butil::IOBuf* buf, Controller* cntl,
+                                  const google::protobuf::Message* request);
+void SerializeUbrpcMcpack2Request(butil::IOBuf* buf, Controller* cntl,
+                                  const google::protobuf::Message* request);
 
-        void SerializeUbrpcMcpack2Request(melon::cord_buf *buf, Controller *cntl,
-                                          const google::protobuf::Message *request);
+void PackUbrpcRequest(butil::IOBuf* buf,
+                      SocketMessage**,
+                      uint64_t correlation_id,
+                      const google::protobuf::MethodDescriptor* method,
+                      Controller* controller,
+                      const butil::IOBuf& request,
+                      const Authenticator* auth);
 
-        void PackUbrpcRequest(melon::cord_buf *buf,
-                              SocketMessage **,
-                              uint64_t correlation_id,
-                              const google::protobuf::MethodDescriptor *method,
-                              Controller *controller,
-                              const melon::cord_buf &request,
-                              const Authenticator *auth);
+class UbrpcAdaptor : public NsheadPbServiceAdaptor {
+public:
+    explicit UbrpcAdaptor(mcpack2pb::SerializationFormat format)
+        : _format(format) {}
+    
+    void ParseNsheadMeta(const Server& svr,
+                        const NsheadMessage& request,
+                        Controller*,
+                        NsheadMeta* out_meta) const;
 
-        class UbrpcAdaptor : public NsheadPbServiceAdaptor {
-        public:
-            explicit UbrpcAdaptor(mcpack2pb::SerializationFormat format)
-                    : _format(format) {}
+    void ParseRequestFromIOBuf(
+        const NsheadMeta& meta, const NsheadMessage& ns_req,
+        Controller* controller, google::protobuf::Message* pb_req) const;
 
-            void ParseNsheadMeta(const Server &svr,
-                                 const NsheadMessage &request,
-                                 Controller *,
-                                 NsheadMeta *out_meta) const;
+    void SerializeResponseToIOBuf(
+        const NsheadMeta& meta,
+        Controller* controller,
+        const google::protobuf::Message* pb_res,
+        NsheadMessage* ns_res) const;
 
-            void ParseRequestFromCordBuf(
-                    const NsheadMeta &meta, const NsheadMessage &ns_req,
-                    Controller *controller, google::protobuf::Message *pb_req) const;
+private:
+    mcpack2pb::SerializationFormat _format;
+};
 
-            void SerializeResponseToCordBuf(
-                    const NsheadMeta &meta,
-                    Controller *controller,
-                    const google::protobuf::Message *pb_res,
-                    NsheadMessage *ns_res) const;
+class UbrpcCompackAdaptor : public UbrpcAdaptor {
+public:
+    UbrpcCompackAdaptor() : UbrpcAdaptor(mcpack2pb::FORMAT_COMPACK) {}
+};
 
-        private:
-            mcpack2pb::SerializationFormat _format;
-        };
+class UbrpcMcpack2Adaptor : public UbrpcAdaptor {
+public:
+    UbrpcMcpack2Adaptor() : UbrpcAdaptor(mcpack2pb::FORMAT_MCPACK_V2) {}
+};
 
-        class UbrpcCompackAdaptor : public UbrpcAdaptor {
-        public:
-            UbrpcCompackAdaptor() : UbrpcAdaptor(mcpack2pb::FORMAT_COMPACK) {}
-        };
-
-        class UbrpcMcpack2Adaptor : public UbrpcAdaptor {
-        public:
-            UbrpcMcpack2Adaptor() : UbrpcAdaptor(mcpack2pb::FORMAT_MCPACK_V2) {}
-        };
-
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_UBRPC2PB_PROTOCOL_H_
+#endif // BRPC_POLICY_UBRPC2PB_PROTOCOL_H

@@ -17,8 +17,8 @@
 
 // protobuf-json: Conversions between protobuf and json.
 
-#ifndef MELON_RPC_JSON2PB_PB_TO_JSON_H_
-#define MELON_RPC_JSON2PB_PB_TO_JSON_H_
+#ifndef BRPC_JSON2PB_PB_TO_JSON_H
+#define BRPC_JSON2PB_PB_TO_JSON_H
 
 #include <string>
 #include <google/protobuf/message.h>
@@ -51,7 +51,7 @@ struct Pb2JsonOptions {
 
     // Encode the field of type bytes to string in json using base64
     // encoding when this option is turned on.
-    // Default: true.
+    // Default: false for baidu-internal, true otherwise.
     bool bytes_to_base64;
 
     // Convert the repeated field that has no entry
@@ -64,28 +64,32 @@ struct Pb2JsonOptions {
     // int32 field set to 0 will be omitted. Set this flag to true will override
     // the default behavior and print primitive fields regardless of their values.
     bool always_print_primitive_fields;
+
+    // Convert the single repeated field to a json array when this option is turned on.
+    // Default: false.
+    bool single_repeated_to_array;
 };
 
 // Convert protobuf `messge' to `json' according to `options'.
-// Returns true on success. `error' (if not nullptr) will be set with error
+// Returns true on success. `error' (if not NULL) will be set with error
 // message on failure.
 bool ProtoMessageToJson(const google::protobuf::Message& message,
                         std::string* json,
                         const Pb2JsonOptions& options,
-                        std::string* error = nullptr);
+                        std::string* error = NULL);
 // send output to ZeroCopyOutputStream instead of std::string.
 bool ProtoMessageToJson(const google::protobuf::Message& message,
                         google::protobuf::io::ZeroCopyOutputStream *json,
                         const Pb2JsonOptions& options,
-                        std::string* error = nullptr);
+                        std::string* error = NULL);
 
 // Using default Pb2JsonOptions.
 bool ProtoMessageToJson(const google::protobuf::Message& message,
                         std::string* json,
-                        std::string* error = nullptr);
+                        std::string* error = NULL);
 bool ProtoMessageToJson(const google::protobuf::Message& message,
                         google::protobuf::io::ZeroCopyOutputStream* json,
-                        std::string* error = nullptr);
+                        std::string* error = NULL);
 } // namespace json2pb
 
-#endif // MELON_RPC_JSON2PB_PB_TO_JSON_H_
+#endif // BRPC_JSON2PB_PB_TO_JSON_H

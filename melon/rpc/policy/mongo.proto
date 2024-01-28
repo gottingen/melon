@@ -17,11 +17,11 @@
 
 syntax="proto2";
 
-package melon.rpc.policy;
+package brpc.policy;
 
 option cc_generic_services = true;
 option java_generic_services = true;
-option java_package="com.policy.rpc.melon";
+option java_package="com.brpc.policy";
 option java_outer_classname="MongoProto";
 
 enum MongoOp {

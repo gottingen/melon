@@ -15,39 +15,31 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 2.8.10)
+project(brpc C CXX)
 
-project(melon C CXX)
-
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/package)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/recipes)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/copts)
-include(carbin_module)
-
+option(WITH_GLOG "With glog" OFF)
+option(WITH_MESALINK "With MesaLink" OFF)
+option(WITH_BORINGSSL "With BoringSSL" OFF)
 option(DEBUG "Print debug logs" OFF)
 option(WITH_DEBUG_SYMBOLS "With debug symbols" ON)
 option(WITH_THRIFT "With thrift framed protocol supported" OFF)
-option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
-option(BUILD_BENCHMARK "Whether to build benchmarks" ON)
-option(INSTALL_STATIC_LIBS "Whether to install static libraries" OFF)
-option(BUILD_IN_CONDA "build in conda enviroment" ON)
-option(BUILD_EXAMPLES "build in conda environemnt" ON)
-
-if (BUILD_IN_CONDA)
-    list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
-endif (BUILD_IN_CONDA)
+option(WITH_SNAPPY "With snappy" OFF)
+option(WITH_RDMA "With RDMA" OFF)
+option(BUILD_UNIT_TESTS "Whether to build unit tests" OFF)
+option(BUILD_FUZZ_TESTS "Whether to build fuzz tests" OFF)
+option(BUILD_BRPC_TOOLS "Whether to build brpc tools" ON)
+option(DOWNLOAD_GTEST "Download and build a fresh copy of googletest. Requires Internet access." ON)
 
 # Enable MACOSX_RPATH. Run "cmake --help-policy CMP0042" for policy details.
 if (POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
 endif ()
 
-set(MELON_VERSION 0.9.0)
+set(BRPC_VERSION 1.6.0)
 
 SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "melon authors")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "brpc authors")
 INCLUDE(CPack)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -64,6 +56,11 @@ else ()
     message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
 endif ()
 
+set(WITH_GLOG_VAL "0")
+if (WITH_GLOG)
+    set(WITH_GLOG_VAL "1")
+    set(BRPC_WITH_GLOG 1)
+endif ()
 
 if (WITH_DEBUG_SYMBOLS)
     set(DEBUG_SYMBOL "-g")
@@ -71,17 +68,45 @@ endif ()
 
 if (WITH_THRIFT)
     set(THRIFT_CPP_FLAG "-DENABLE_THRIFT_FRAMED_PROTOCOL")
-    set(THRIFT_LIB "thrift")
+    find_library(THRIFT_LIB NAMES thrift)
+    if (NOT THRIFT_LIB)
+        message(FATAL_ERROR "Fail to find Thrift")
+    endif ()
+endif ()
+
+set(WITH_RDMA_VAL "0")
+if (WITH_RDMA)
+    set(WITH_RDMA_VAL "1")
 endif ()
 
 include(GNUInstallDirs)
 
-include(require_gflags)
-include(require_leveldb)
+configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/melon/butil/config.h @ONLY)
+
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+find_package(GFLAGS REQUIRED)
 
 execute_process(
-        COMMAND bash -c "${PROJECT_SOURCE_DIR}/tools/get_melon_revision.sh ${PROJECT_SOURCE_DIR} | tr -d '\n'"
-        OUTPUT_VARIABLE MELON_RPC_REVISION
+        COMMAND bash -c "grep \"namespace [_A-Za-z0-9]\\+ {\" ${GFLAGS_INCLUDE_PATH}/gflags/gflags_declare.h | head -1 | awk '{print $2}' | tr -d '\n'"
+        OUTPUT_VARIABLE GFLAGS_NS
+)
+if (${GFLAGS_NS} STREQUAL "GFLAGS_NAMESPACE")
+    execute_process(
+            COMMAND bash -c "grep \"#define GFLAGS_NAMESPACE [_A-Za-z0-9]\\+\" ${GFLAGS_INCLUDE_PATH}/gflags/gflags_declare.h | head -1 | awk '{print $3}' | tr -d '\n'"
+            OUTPUT_VARIABLE GFLAGS_NS
+    )
+endif ()
+
+include_directories(
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_BINARY_DIR}
+        ${PROJECT_BINARY_DIR}/output/include
+)
+
+execute_process(
+        COMMAND bash -c "${PROJECT_SOURCE_DIR}/tools/get_brpc_revision.sh ${PROJECT_SOURCE_DIR} | tr -d '\n'"
+        OUTPUT_VARIABLE BRPC_REVISION
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -93,20 +118,33 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -Wno-deprecated-declarations -Wno-inconsistent-missing-override")
 endif ()
 
-set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEFINE_CLOCK_GETTIME}")
-set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DFIBER_USE_FAST_PTHREAD_MUTEX -D__const__= -D_GNU_SOURCE -DUSE_SYMBOLIZE -DNO_TCMALLOC -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DMELON_RPC_REVISION=\\\"${MELON_RPC_REVISION}\\\" -D__STRICT_ANSI__")
+set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEFINE_CLOCK_GETTIME} -DBRPC_WITH_GLOG=${WITH_GLOG_VAL} -DBRPC_WITH_RDMA=${WITH_RDMA_VAL} -DGFLAGS_NS=${GFLAGS_NS}")
+if (WITH_MESALINK)
+    set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DUSE_MESALINK")
+endif ()
+set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DBTHREAD_USE_FAST_PTHREAD_MUTEX -D__const__=__unused__ -D_GNU_SOURCE -DUSE_SYMBOLIZE -DNO_TCMALLOC -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DBRPC_REVISION=\\\"${BRPC_REVISION}\\\" -D__STRICT_ANSI__")
 set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEBUG_SYMBOL} ${THRIFT_CPP_FLAG}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-invalid-offsetof -Wno-unused-parameter -fno-omit-frame-pointer")
 set(CMAKE_C_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-unused-parameter -fno-omit-frame-pointer")
 
-macro(use_cxx17)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endmacro(use_cxx17)
+macro(use_cxx11)
+    if (CMAKE_VERSION VERSION_LESS "3.1.3")
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        endif ()
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        endif ()
+    else ()
+        set(CMAKE_CXX_STANDARD 11)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    endif ()
+endmacro(use_cxx11)
 
-use_cxx17()
+use_cxx11()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    #required by butil/crc32.cc to boost performance for 10x
     if ((CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.4))
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4 -msse4.2")
     elseif ((CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64"))
@@ -121,46 +159,116 @@ endif ()
 find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 
+find_path(LEVELDB_INCLUDE_PATH NAMES leveldb/db.h)
+find_library(LEVELDB_LIB NAMES leveldb)
+if ((NOT LEVELDB_INCLUDE_PATH) OR (NOT LEVELDB_LIB))
+    message(FATAL_ERROR "Fail to find leveldb")
+endif ()
+
+if (WITH_SNAPPY)
+    find_path(SNAPPY_INCLUDE_PATH NAMES snappy.h)
+    find_library(SNAPPY_LIB NAMES snappy)
+    if ((NOT SNAPPY_INCLUDE_PATH) OR (NOT SNAPPY_LIB))
+        message(FATAL_ERROR "Fail to find snappy")
+    endif ()
+    include_directories(${SNAPPY_INCLUDE_PATH})
+endif ()
+
+if (WITH_GLOG)
+    find_path(GLOG_INCLUDE_PATH NAMES glog/logging.h)
+    find_library(GLOG_LIB NAMES glog)
+    if ((NOT GLOG_INCLUDE_PATH) OR (NOT GLOG_LIB))
+        message(FATAL_ERROR "Fail to find glog")
+    endif ()
+    include_directories(${GLOG_INCLUDE_PATH})
+endif ()
+
+if (WITH_MESALINK)
+    find_path(MESALINK_INCLUDE_PATH NAMES mesalink/openssl/ssl.h)
+    find_library(MESALINK_LIB NAMES mesalink)
+    if ((NOT MESALINK_INCLUDE_PATH) OR (NOT MESALINK_LIB))
+        message(FATAL_ERROR "Fail to find MesaLink")
+    else ()
+        message(STATUS "Found MesaLink: ${MESALINK_LIB}")
+    endif ()
+    include_directories(${MESALINK_INCLUDE_PATH})
+endif ()
+
+if (WITH_RDMA)
+    message("brpc compile with rdma")
+    find_path(RDMA_INCLUDE_PATH NAMES infiniband/verbs.h)
+    find_library(RDMA_LIB NAMES ibverbs)
+    if ((NOT RDMA_INCLUDE_PATH) OR (NOT RDMA_LIB))
+        message(FATAL_ERROR "Fail to find ibverbs")
+    endif ()
+endif ()
+
 find_library(PROTOC_LIB NAMES protoc)
 if (NOT PROTOC_LIB)
     message(FATAL_ERROR "Fail to find protoc lib")
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(OPENSSL_ROOT_DIR
-            "/usr/local/opt/openssl"    # Homebrew installed OpenSSL
-            )
-endif ()
+if (WITH_BORINGSSL)
+    find_package(BoringSSL)
+    include_directories(${BORINGSSL_INCLUDE_DIR})
+else ()
+    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set(OPENSSL_ROOT_DIR
+                "/usr/local/opt/openssl" # Homebrew installed OpenSSL
+        )
+    endif ()
 
-find_package(OpenSSL)
+    find_package(OpenSSL)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+endif ()
 
 include_directories(
         ${GFLAGS_INCLUDE_PATH}
         ${PROTOBUF_INCLUDE_DIRS}
         ${LEVELDB_INCLUDE_PATH}
-        ${OPENSSL_INCLUDE_DIR}
 )
 
 set(DYNAMIC_LIB
         ${GFLAGS_LIBRARY}
         ${PROTOBUF_LIBRARIES}
-        ${Protobuf_LITE_LIBRARIES}
         ${LEVELDB_LIB}
         ${PROTOC_LIB}
         ${CMAKE_THREAD_LIBS_INIT}
         ${THRIFT_LIB}
-        ${THRIFTNB_LIB}
-        ${OPENSSL_SSL_LIBRARY}
-        ${OPENSSL_CRYPTO_LIBRARY}
         dl
         z)
 
+if (WITH_BORINGSSL)
+    list(APPEND DYNAMIC_LIB ${BORINGSSL_SSL_LIBRARY})
+    list(APPEND DYNAMIC_LIB ${BORINGSSL_CRYPTO_LIBRARY})
+else ()
+    list(APPEND DYNAMIC_LIB ${OPENSSL_CRYPTO_LIBRARY})
+    if (WITH_MESALINK)
+        list(APPEND DYNAMIC_LIB ${MESALINK_LIB})
+    else ()
+        list(APPEND DYNAMIC_LIB ${OPENSSL_SSL_LIBRARY})
+    endif ()
+endif ()
 
-set(MELON_PRIVATE_LIBS "-lgflags -lprotobuf -lleveldb -lprotoc -lssl -lcrypto -ldl -lz")
+if (WITH_RDMA)
+    list(APPEND DYNAMIC_LIB ${RDMA_LIB})
+endif ()
+
+set(BRPC_PRIVATE_LIBS "-lgflags -lprotobuf -lleveldb -lprotoc -lssl -lcrypto -ldl -lz")
+
+if (WITH_GLOG)
+    set(DYNAMIC_LIB ${DYNAMIC_LIB} ${GLOG_LIB})
+    set(BRPC_PRIVATE_LIBS "${BRPC_PRIVATE_LIBS} -lglog")
+endif ()
+
+if (WITH_SNAPPY)
+    set(DYNAMIC_LIB ${DYNAMIC_LIB} ${SNAPPY_LIB})
+    set(BRPC_PRIVATE_LIBS "${BRPC_PRIVATE_LIBS} -lsnappy")
+endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(DYNAMIC_LIB ${DYNAMIC_LIB} rt)
-    set(MELON_PRIVATE_LIBS "${MELON_PRIVATE_LIBS} -lrt")
+    set(BRPC_PRIVATE_LIBS "${BRPC_PRIVATE_LIBS} -lrt")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(DYNAMIC_LIB ${DYNAMIC_LIB}
             pthread
@@ -172,7 +280,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             "-framework Foundation"
             "-Wl,-U,_MallocExtension_ReleaseFreeMemory"
             "-Wl,-U,_ProfilerStart"
-            "-Wl,-U,_ProfilerStop")
+            "-Wl,-U,_ProfilerStop"
+            "-Wl,-U,__Z13GetStackTracePPvii")
 endif ()
 
 # for *.so
@@ -182,66 +291,168 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/output/lib)
 
 # the reason why not using file(GLOB_RECURSE...) is that we want to
 # include different files on different platforms.
+set(BUTIL_SOURCES
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dmg_fp/g_fmt.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dmg_fp/dtoa_wrapper.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dynamic_annotations/dynamic_annotations.c
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/icu/icu_utf.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/superfasthash/superfasthash.c
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/modp_b64/modp_b64.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/symbolize/demangle.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/symbolize/symbolize.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/snappy/snappy-sinksource.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/snappy/snappy-stubs-internal.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/snappy/snappy.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/murmurhash3/murmurhash3.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/arena.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/at_exit.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/atomicops_internals_x86_gcc.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/base64.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/base64url.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/big_endian.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/cpu.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/alias.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/asan_invalid_access.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/crash_logging.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/debugger.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/debugger_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/dump_without_crashing.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/proc_maps_linux.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/stack_trace.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/debug/stack_trace_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/environment.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_enumerator.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_enumerator_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_path.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_path_constants.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/memory_mapped_file.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/memory_mapped_file_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/scoped_file.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/scoped_temp_dir.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/file_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/file_util_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/guid.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/guid_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/hash.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/lazy_instance.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/location.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/memory/aligned_memory.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/memory/ref_counted.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/memory/ref_counted_memory.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/memory/singleton.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/memory/weak_ptr.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/posix/file_descriptor_shuffle.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/posix/global_descriptors.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/process_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/rand_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/rand_util_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/fast_rand.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/safe_strerror_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/sha1_portable.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/latin1_string_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/nullable_string16.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/safe_sprintf.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string16.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_number_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_split.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_piece.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_util_constants.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/stringprintf.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/utf_offset_string_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/utf_string_conversion_utils.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/strings/utf_string_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/synchronization/cancellation_flag.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/synchronization/condition_variable_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/synchronization/waitable_event_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/non_thread_safe_impl.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/platform_thread_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/simple_thread.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_checker_impl.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_collision_warner.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_id_name_manager.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_local_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_local_storage.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_local_storage_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_restrictions.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/threading/watchdog.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/time/clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/time/default_clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/time/default_tick_clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/time/tick_clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/time/time.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/time/time_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/version.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/logging.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/class_name.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/errno.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/find_cstr.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/status.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/string_printf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/thread_local.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/thread_key.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/unix_socket.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/endpoint.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/fd_utility.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/temp_file.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_watcher.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/time.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/zero_copy_stream_as_streambuf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/crc32c.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/containers/case_ignored_flat_map.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/iobuf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/binary_printer.cpp
+        ${PROJECT_SOURCE_DIR}/melon/butil/recordio.cc
+        ${PROJECT_SOURCE_DIR}/melon/butil/popen.cpp
+)
 
-file(GLOB_RECURSE MELON_BASE_SRC "${PROJECT_SOURCE_DIR}/melon/base/*.cc")
-file(GLOB_RECURSE MELON_CONTAINER_SRC "${PROJECT_SOURCE_DIR}/melon/container/*.cc")
-file(GLOB_RECURSE MELON_HASH_SRC "${PROJECT_SOURCE_DIR}/melon/hash/*.cc")
-file(GLOB_RECURSE MELON_MEMORY_SRC "${PROJECT_SOURCE_DIR}/melon/memory/*.cc")
-file(GLOB_RECURSE MELON_IO_SRC "${PROJECT_SOURCE_DIR}/melon/io/*.cc")
-file(GLOB_RECURSE MELON_STRINGS_SRC "${PROJECT_SOURCE_DIR}/melon/strings/*.cc")
-file(GLOB_RECURSE MELON_DEBUG_SRC "${PROJECT_SOURCE_DIR}/melon/debugging/*.cc")
-file(GLOB_RECURSE MELON_LOG_SRC "${PROJECT_SOURCE_DIR}/melon/log/*.cc")
-file(GLOB_RECURSE MELON_BOOTSTRAP_SRC "${PROJECT_SOURCE_DIR}/melon/bootstrap/*.cc")
-file(GLOB_RECURSE MELON_TIMES_SRC "${PROJECT_SOURCE_DIR}/melon/times/*.cc")
-file(GLOB_RECURSE MELON_FILES_SRC "${PROJECT_SOURCE_DIR}/melon/files/*.cc")
-file(GLOB_RECURSE MELON_THREAD_SRC "${PROJECT_SOURCE_DIR}/melon/thread/*.cc")
-file(GLOB_RECURSE MELON_FUTURE_SRC "${PROJECT_SOURCE_DIR}/melon/future/*.cc")
-file(GLOB_RECURSE MELON_DAG_SRC "${PROJECT_SOURCE_DIR}/melon/dag/*.cc")
-file(GLOB_RECURSE MELON_SYSTEM_SRC "${PROJECT_SOURCE_DIR}/melon/system/*.cc")
-file(GLOB_RECURSE MELON_JSON_SRC "${PROJECT_SOURCE_DIR}/melon/rapidjson/*.cc")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(BUTIL_SOURCES ${BUTIL_SOURCES}
+            ${PROJECT_SOURCE_DIR}/melon/butil/file_util_linux.cc
+            ${PROJECT_SOURCE_DIR}/melon/butil/threading/platform_thread_linux.cc
+            ${PROJECT_SOURCE_DIR}/melon/butil/strings/sys_string_conversions_posix.cc)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(BUTIL_SOURCES ${BUTIL_SOURCES}
+            ${PROJECT_SOURCE_DIR}/melon/butil/mac/bundle_locations.mm
+            ${PROJECT_SOURCE_DIR}/melon/butil/mac/foundation_util.mm
+            ${PROJECT_SOURCE_DIR}/melon/butil/file_util_mac.mm
+            ${PROJECT_SOURCE_DIR}/melon/butil/threading/platform_thread_mac.mm
+            ${PROJECT_SOURCE_DIR}/melon/butil/strings/sys_string_conversions_mac.mm
+            ${PROJECT_SOURCE_DIR}/melon/butil/time/time_mac.cc
+            ${PROJECT_SOURCE_DIR}/melon/butil/mac/scoped_mach_port.cc)
+endif ()
 
-set(MELON_SRC
-        "${PROJECT_SOURCE_DIR}/melon/base/dynamic_annotations/dynamic_annotations.c"
-        ${MELON_BASE_SRC}
-        ${MELON_CONTAINER_SRC}
-        ${MELON_HASH_SRC}
-        ${MELON_MEMORY_SRC}
-        ${MELON_IO_SRC}
-        ${MELON_STRINGS_SRC}
-        ${MELON_DEBUG_SRC}
-        ${MELON_LOG_SRC}
-        ${MELON_BOOTSTRAP_SRC}
-        ${MELON_HASH_SRC}
-        ${MELON_TIMES_SRC}
-        ${MELON_FILES_SRC}
-        ${MELON_THREAD_SRC}
-        ${MELON_FUTURE_SRC}
-        ${MELON_DAG_SRC}
-        ${MELON_SYSTEM_SRC}
-        ${MELON_JSON_SRC}
-        )
-
-file(GLOB_RECURSE METRICS_SOURCES "${PROJECT_SOURCE_DIR}/melon/metrics/*.cc")
-file(GLOB_RECURSE FIBER_SOURCES "${PROJECT_SOURCE_DIR}/melon/fiber/*.cc")
-file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cc")
-file(GLOB_RECURSE RPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cc")
-file(GLOB_RECURSE THRIFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/thrift*.cc")
+file(GLOB_RECURSE BVAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/bvar/*.cpp")
+file(GLOB_RECURSE BTHREAD_SOURCES "${PROJECT_SOURCE_DIR}/melon/bthread/*.cpp")
+file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cpp")
+file(GLOB_RECURSE BRPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cpp")
+file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cpp")
+file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cpp")
+file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cpp")
+file(GLOB_RECURSE THRIFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/thrift*.cpp")
+file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cpp")
 
 if (WITH_THRIFT)
-    message("melon compile with thrift protocol")
+    message("brpc compile with thrift protocol")
 else ()
     # Remove thrift sources
     foreach (v ${THRIFT_SOURCES})
-        list(REMOVE_ITEM RPC_SOURCES ${v})
+        list(REMOVE_ITEM BRPC_SOURCES ${v})
     endforeach ()
     set(THRIFT_SOURCES "")
 endif ()
 
+foreach (v ${EXCLUDE_SOURCES})
+    list(REMOVE_ITEM BRPC_SOURCES ${v})
+endforeach ()
+
 set(MCPACK2PB_SOURCES
-        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/field_type.cc
-        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/mcpack2pb.cc
-        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/parser.cc
-        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/serializer.cc)
+        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/field_type.cpp
+        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/mcpack2pb.cpp
+        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/parser.cpp
+        ${PROJECT_SOURCE_DIR}/melon/mcpack2pb/serializer.cpp)
 
 include(CompileProto)
 set(PROTO_FILES melon/idl_options.proto
@@ -250,6 +461,7 @@ set(PROTO_FILES melon/idl_options.proto
         melon/rpc/get_favicon.proto
         melon/rpc/span.proto
         melon/rpc/builtin_service.proto
+        melon/rpc/grpc_health_check.proto
         melon/rpc/get_js.proto
         melon/rpc/errno.proto
         melon/rpc/nshead_meta.proto
@@ -261,66 +473,75 @@ set(PROTO_FILES melon/idl_options.proto
         melon/rpc/policy/mongo.proto
         melon/rpc/trackme.proto
         melon/rpc/streaming_rpc_meta.proto
-        melon/rpc/proto_base.proto)
-
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/output/include/melon)
+        melon/rpc/proto_base.proto
+        melon/raft/builtin_service.proto
+        melon/raft/cli.proto
+        melon/raft/enum.proto
+        melon/raft/errno.proto
+        melon/raft/file_service.proto
+        melon/raft/local_file_meta.proto
+        melon/raft/local_storage.proto
+        melon/raft/raft.proto
+)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/output/include/melon/rpc)
 set(PROTOC_FLAGS ${PROTOC_FLAGS} -I${PROTOBUF_INCLUDE_DIR})
 compile_proto(PROTO_HDRS PROTO_SRCS ${PROJECT_BINARY_DIR}
-        ${PROJECT_BINARY_DIR}/output/include
+        ${PROJECT_BINARY_DIR}/output/include/melon
         ${PROJECT_SOURCE_DIR}
         "${PROTO_FILES}")
 add_library(PROTO_LIB OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
 
 set(SOURCES
-        ${METRICS_SOURCES}
-        ${FIBER_SOURCES}
+        ${BVAR_SOURCES}
+        ${BTHREAD_SOURCES}
         ${JSON2PB_SOURCES}
         ${MCPACK2PB_SOURCES}
-        ${RPC_SOURCES}
+        ${BRPC_SOURCES}
+        ${NAMING_SOURCES}
+        ${LB_SOURCES}
         ${THRIFT_SOURCES}
-        )
+        ${RAFT_SOURCES}
+)
 
 add_subdirectory(melon)
-
-set(MELON_LIB melon-shared)
-
-if (BUILD_EXAMPLES)
-    add_subdirectory(example)
-endif (BUILD_EXAMPLES)
-
-if (BUILD_BENCHMARK)
-    enable_testing()
-    add_subdirectory(benchmark)
-endif (BUILD_BENCHMARK)
-
 if (BUILD_UNIT_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif ()
-add_subdirectory(tools)
 
+if (BUILD_FUZZ_TESTS)
+    if (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "Fuzzing is only supported with clang")
+    endif ()
+    if (NOT BUILD_UNIT_TESTS)
+        message(FATAL_ERROR "BUILD_UNIT_TESTS must be enabled to build fuzz tests")
+    endif ()
+endif ()
+
+if (BUILD_BRPC_TOOLS)
+    add_subdirectory(tools)
+endif ()
 #[[
-file(COPY ${CMAKE_CURRENT_BINARY_DIR}/melon/
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/melon/
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}/brpc/
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/brpc/
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"
         )
-]]
-
+        ]]
 file(COPY ${PROJECT_SOURCE_DIR}/melon/
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/melon/
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/melon
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"
-        )
+)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output/include/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"
-        )
+)
 
 # Install pkgconfig
 configure_file(cmake/melon.pc.in ${PROJECT_BINARY_DIR}/melon.pc @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/melon.pc DESTINATION lib/pkgconfig)
+install(FILES ${PROJECT_BINARY_DIR}/melon.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

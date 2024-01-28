@@ -16,31 +16,31 @@
 // under the License.
 
 
-#ifndef MELON_RPC_FLAGS_SERVICE_H_
-#define MELON_RPC_FLAGS_SERVICE_H_
+#ifndef BRPC_FLAGS_SERVICE_H
+#define BRPC_FLAGS_SERVICE_H
 
 #include "melon/rpc/builtin_service.pb.h"
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class FlagsService : public flags, public Tabbed {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::rpc::FlagsRequest *request,
-                            ::melon::rpc::FlagsResponse *response,
-                            ::google::protobuf::Closure *done);
+class FlagsService : public flags, public Tabbed {
+public:
+    void default_method(::google::protobuf::RpcController* cntl_base,
+                        const ::brpc::FlagsRequest* request,
+                        ::brpc::FlagsResponse* response,
+                        ::google::protobuf::Closure* done);
 
-        void GetTabInfo(TabInfoList *info_list) const;
+    void GetTabInfo(TabInfoList* info_list) const;
 
-    private:
-        void set_value_page(Controller *cntl, ::google::protobuf::Closure *done);
+private:
+    void set_value_page(Controller* cntl, ::google::protobuf::Closure* done);
 
-    };
+};
 
-} // namespace melon::rpc
+} // namespace brpc
 
 
 
-#endif // MELON_RPC_FLAGS_SERVICE_H_
+#endif // BRPC_FLAGS_SERVICE_H

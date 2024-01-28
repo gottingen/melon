@@ -15,24 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef  MELON_RPC_JSON2PB_ZERO_COPY_STREAM_WRITER_H_
-#define  MELON_RPC_JSON2PB_ZERO_COPY_STREAM_WRITER_H_
+#ifndef  BRPC_JSON2PB_ZERO_COPY_STREAM_WRITER_H
+#define  BRPC_JSON2PB_ZERO_COPY_STREAM_WRITER_H
 
 #include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyOutputStream
 #include <iostream>
 
-//class cord_buf_as_zero_copy_output_stream
+//class IOBufAsZeroCopyOutputStream
 //    : public google::protobuf::io::ZeroCopyOutputStream {
 //public:
-//    explicit cord_buf_as_zero_copy_output_stream(cord_buf*);
+//    explicit IOBufAsZeroCopyOutputStream(IOBuf*);
 //
 //    // Interfaces of ZeroCopyOutputStream
 //    bool Next(void** data, int* size);
 //    void BackUp(int count);
-//    google::protobuf::int64_t ByteCount() const;
+//    google::protobuf::int64 ByteCount() const;
 //
 //private:
-//    cord_buf* _buf;
+//    IOBuf* _buf;
 //    size_t _initial_length;
 //};
 
@@ -42,14 +42,14 @@ class ZeroCopyStreamWriter {
 public:
     typedef char Ch;
     ZeroCopyStreamWriter(google::protobuf::io::ZeroCopyOutputStream *stream)
-        : _stream(stream), _data(nullptr),
-          _cursor(nullptr), _data_size(0) {
+        : _stream(stream), _data(NULL), 
+          _cursor(NULL), _data_size(0) {
     }
     ~ZeroCopyStreamWriter() {
         if (_stream && _data) {
             _stream->BackUp(RemainSize());
         }
-        _stream = nullptr;
+        _stream = NULL;
     }
 
     void Put(char c) {
@@ -84,14 +84,14 @@ public:
     char Peek() { return 0; }
     char Take() { return 0; }
     size_t Tell() { return 0; }
-    char *PutBegin() { return nullptr; }
+    char *PutBegin() { return NULL; }
     size_t PutEnd(char *) { return 0; }
 private:
     bool AcquireNextBuf() {
         if (__builtin_expect(!_stream, 0)) {
             return false;
         }
-        if (_data == nullptr || _cursor == _data + _data_size) {
+        if (_data == NULL || _cursor == _data + _data_size) {
             if (!_stream->Next((void **)&_data, &_data_size)) {
                 return false;
             } 
@@ -111,4 +111,4 @@ private:
 
 }  // namespace json2pb
 
-#endif  // MELON_RPC_JSON2PB_ZERO_COPY_STREAM_WRITER_H_
+#endif  //BRPC_JSON2PB_ZERO_COPY_STREAM_WRITER_H

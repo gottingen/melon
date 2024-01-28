@@ -15,32 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H_
-#define MELON_RPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H_
+#ifndef BRPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H
+#define BRPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H
 
 #include "melon/rpc/concurrency_limiter.h"
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        class ConstantConcurrencyLimiter : public ConcurrencyLimiter {
-        public:
-            explicit ConstantConcurrencyLimiter(int max_concurrency);
+class ConstantConcurrencyLimiter : public ConcurrencyLimiter {
+public:
+    explicit ConstantConcurrencyLimiter(int max_concurrency);
+    
+    bool OnRequested(int current_concurrency, Controller*) override;
+    
+    void OnResponded(int error_code, int64_t latency_us) override;
 
-            bool OnRequested(int current_concurrency) override;
+    int MaxConcurrency() override;
 
-            void OnResponded(int error_code, int64_t latency_us) override;
+    ConstantConcurrencyLimiter* New(const AdaptiveMaxConcurrency&) const override;
 
-            int MaxConcurrency() override;
+private:
+    butil::atomic<int> _max_concurrency;
+};
 
-            ConstantConcurrencyLimiter *New(const AdaptiveMaxConcurrency &) const override;
-
-        private:
-            std::atomic<int> _max_concurrency;
-        };
-
-    }  // namespace policy
-}  // namespace melon::rpc
+}  // namespace policy
+}  // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H_
+#endif // BRPC_POLICY_CONSTANT_CONCURRENCY_LIMITER_H

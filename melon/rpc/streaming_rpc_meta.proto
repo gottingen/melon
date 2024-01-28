@@ -17,8 +17,8 @@
 
 syntax="proto2";
 
-package melon.rpc;
-option java_package="com.melon.rpc";
+package brpc;
+option java_package="com.brpc";
 option java_outer_classname="StreamingRpcProto";
 
 message StreamSettings {

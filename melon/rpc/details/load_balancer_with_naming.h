@@ -16,38 +16,36 @@
 // under the License.
 
 
-#ifndef MELON_RPC_LOAD_BALANCER_WITH_NAMING_H_
-#define MELON_RPC_LOAD_BALANCER_WITH_NAMING_H_
+#ifndef BRPC_LOAD_BALANCER_WITH_NAMING_H
+#define BRPC_LOAD_BALANCER_WITH_NAMING_H
 
-#include "melon/container/intrusive_ptr.h"
+#include "melon/butil/intrusive_ptr.hpp"
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/details/naming_service_thread.h"         // NamingServiceWatcher
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class LoadBalancerWithNaming : public SharedLoadBalancer,
-                                   public NamingServiceWatcher {
-    public:
-        LoadBalancerWithNaming() {}
+class LoadBalancerWithNaming : public SharedLoadBalancer,
+                               public NamingServiceWatcher {
+public:
+    LoadBalancerWithNaming() {}
+    ~LoadBalancerWithNaming();
 
-        ~LoadBalancerWithNaming();
+    int Init(const char* ns_url, const char* lb_name,
+             const NamingServiceFilter* filter,
+             const GetNamingServiceThreadOptions* options);
+    
+    void OnAddedServers(const std::vector<ServerId>& servers);
+    void OnRemovedServers(const std::vector<ServerId>& servers);
 
-        int Init(const char *ns_url, const char *lb_name,
-                 const NamingServiceFilter *filter,
-                 const GetNamingServiceThreadOptions *options);
+    void Describe(std::ostream& os, const DescribeOptions& options);
 
-        void OnAddedServers(const std::vector<ServerId> &servers);
+private:
+    butil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+};
 
-        void OnRemovedServers(const std::vector<ServerId> &servers);
-
-        void Describe(std::ostream &os, const DescribeOptions &options);
-
-    private:
-        melon::container::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_LOAD_BALANCER_WITH_NAMING_H_
+#endif // BRPC_LOAD_BALANCER_WITH_NAMING_H

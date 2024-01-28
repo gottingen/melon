@@ -21,16 +21,16 @@
 
 #include "melon/rpc/socket_id.h"
 #include "melon/rpc/periodic_task.h"
-#include "melon/metrics/all.h"
+#include "melon/bvar/bvar.h"
 #include "melon/rpc/socket.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Start health check for socket id after delay_ms.
-    // If delay_ms <= 0, HealthCheck would be started
-    // immediately.
-    void StartHealthCheck(SocketId id, int64_t delay_ms);
+// Start health check for socket id after delay_ms.
+// If delay_ms <= 0, HealthCheck would be started
+// immediately.
+void StartHealthCheck(SocketId id, int64_t delay_ms);
 
-} // namespace melon::rpc
+} // namespace brpc
 
 #endif

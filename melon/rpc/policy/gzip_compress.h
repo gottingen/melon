@@ -16,40 +16,37 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_GZIP_COMPRESS_H_
-#define MELON_RPC_POLICY_GZIP_COMPRESS_H_
+#ifndef BRPC_POLICY_GZIP_COMPRESS_H
+#define BRPC_POLICY_GZIP_COMPRESS_H
 
 #include <google/protobuf/message.h>              // Message
 #include <google/protobuf/io/gzip_stream.h>
-#include "melon/io/cord_buf.h"                           // melon::cord_buf
+#include "melon/butil/iobuf.h"                           // butil::IOBuf
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        typedef google::protobuf::io::GzipOutputStream::Options GzipCompressOptions;
+typedef google::protobuf::io::GzipOutputStream::Options GzipCompressOptions;
 
-        // Compress serialized `msg' into `buf'.
-        bool GzipCompress(const google::protobuf::Message &msg, melon::cord_buf *buf);
+// Compress serialized `msg' into `buf'.
+bool GzipCompress(const google::protobuf::Message& msg, butil::IOBuf* buf);
+bool ZlibCompress(const google::protobuf::Message& msg, butil::IOBuf* buf);
 
-        bool ZlibCompress(const google::protobuf::Message &msg, melon::cord_buf *buf);
+// Parse `msg' from decompressed `buf'.
+bool GzipDecompress(const butil::IOBuf& buf, google::protobuf::Message* msg);
+bool ZlibDecompress(const butil::IOBuf& buf, google::protobuf::Message* msg);
 
-        // Parse `msg' from decompressed `buf'.
-        bool GzipDecompress(const melon::cord_buf &buf, google::protobuf::Message *msg);
+// Put compressed `in' into `out'.
+bool GzipCompress(const butil::IOBuf& in, butil::IOBuf* out,
+                  const GzipCompressOptions*);
 
-        bool ZlibDecompress(const melon::cord_buf &buf, google::protobuf::Message *msg);
+// Put decompressed `in' into `out'.
+bool GzipDecompress(const butil::IOBuf& in, butil::IOBuf* out);
+bool ZlibDecompress(const butil::IOBuf& in, butil::IOBuf* out);
 
-        // Put compressed `in' into `out'.
-        bool GzipCompress(const melon::cord_buf &in, melon::cord_buf *out,
-                                  const GzipCompressOptions *);
-
-        // Put decompressed `in' into `out'.
-        bool GzipDecompress(const melon::cord_buf &in, melon::cord_buf *out);
-
-        bool ZlibDecompress(const melon::cord_buf &in, melon::cord_buf *out);
-
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif // MELON_RPC_POLICY_GZIP_COMPRESS_H_
+#endif // BRPC_POLICY_GZIP_COMPRESS_H

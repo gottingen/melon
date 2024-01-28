@@ -16,59 +16,53 @@
 // under the License.
 
 
-#ifndef MELON_RPC_INPUT_MESSAGE_BASE_H_
-#define MELON_RPC_INPUT_MESSAGE_BASE_H_
+#ifndef BRPC_INPUT_MESSAGE_BASE_H
+#define BRPC_INPUT_MESSAGE_BASE_H
 
 #include "melon/rpc/socket_id.h"           // SocketId
 #include "melon/rpc/destroyable.h"         // DestroyingPtr
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Messages returned by Parse handlers must extend this class
-    class InputMessageBase : public Destroyable {
-    protected:
-        // Implement this method to customize deletion of this message.
-        virtual void DestroyImpl() = 0;
+// Messages returned by Parse handlers must extend this class
+class InputMessageBase : public Destroyable {
+protected:
+    // Implement this method to customize deletion of this message.
+    virtual void DestroyImpl() = 0;
+    
+public:
+    // Called to release the memory of this message instead of "delete"
+    void Destroy();
+    
+    // Own the socket where this message is from.
+    Socket* ReleaseSocket();
 
-    public:
-        // Called to release the memory of this message instead of "delete"
-        void Destroy();
+    // Get the socket where this message is from.
+    Socket* socket() const { return _socket.get(); }
 
-        // Own the socket where this message is from.
-        Socket *ReleaseSocket();
+    // Arg of the InputMessageHandler which parses this message successfully.
+    const void* arg() const { return _arg; }
 
-        // Get the socket where this message is from.
-        Socket *socket() const { return _socket.get(); }
+    // [Internal]
+    int64_t received_us() const { return _received_us; }
+    int64_t base_real_us() const { return _base_real_us; }
 
-        // Arg of the InputMessageHandler which parses this message successfully.
-        const void *arg() const { return _arg; }
+protected:
+    virtual ~InputMessageBase();
 
-        // [Internal]
-        int64_t received_us() const { return _received_us; }
+private:
+friend class InputMessenger;
+friend void* ProcessInputMessage(void*);
+friend class Stream;
+    int64_t _received_us;
+    int64_t _base_real_us;
+    SocketUniquePtr _socket;
+    void (*_process)(InputMessageBase* msg);
+    const void* _arg;
+};
 
-        int64_t base_real_us() const { return _base_real_us; }
-
-    protected:
-        virtual ~InputMessageBase();
-
-    private:
-        friend class InputMessenger;
-
-        friend void *ProcessInputMessage(void *);
-
-        friend class Stream;
-
-        int64_t _received_us;
-        int64_t _base_real_us;
-        SocketUniquePtr _socket;
-
-        void (*_process)(InputMessageBase *msg);
-
-        const void *_arg;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif  // MELON_RPC_INPUT_MESSAGE_BASE_H_
+#endif  // BRPC_INPUT_MESSAGE_BASE_H

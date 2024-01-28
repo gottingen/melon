@@ -16,24 +16,22 @@
 // under the License.
 
 
-#ifndef MELON_RPC_BUILTIN_JQUERY_MIN_JS_H_
-#define MELON_RPC_BUILTIN_JQUERY_MIN_JS_H_
+#ifndef BRPC_BUILTIN_JQUERY_MIN_JS_H
+#define BRPC_BUILTIN_JQUERY_MIN_JS_H
 
-#include "melon/io/cord_buf.h"
-
-
-namespace melon::rpc {
-
-    // Get the jquery.min.js as string or cord_buf.
-    // We need to pack all js inside C++ code so that builtin services can be
-    // accessed without external resources and network connection.
-    const char *jquery_min_js();
-
-    const melon::cord_buf &jquery_min_js_iobuf();
-
-    const melon::cord_buf &jquery_min_js_iobuf_gzip();
-
-} // namespace melon::rpc
+#include "melon/butil/iobuf.h"
 
 
-#endif // MELON_RPC_BUILTIN_JQUERY_MIN_JS_H_
+namespace brpc {
+
+// Get the jquery.min.js as string or IOBuf.
+// We need to pack all js inside C++ code so that builtin services can be
+// accessed without external resources and network connection.
+const char* jquery_min_js();
+const butil::IOBuf& jquery_min_js_iobuf();
+const butil::IOBuf& jquery_min_js_iobuf_gzip();
+
+} // namespace brpc
+
+
+#endif // BRPC_BUILTIN_JQUERY_MIN_JS_H

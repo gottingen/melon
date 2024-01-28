@@ -40,7 +40,7 @@ inline size_t InputStream::popn(size_t n) {
         }
         n -= _size;
     } while (_zc_stream->Next(&_data, &_size));
-    _data = nullptr;
+    _data = NULL;
     _size = 0;
     _popped_bytes += saved_n - n;
     return saved_n - n;
@@ -62,7 +62,7 @@ inline size_t InputStream::cutn(void* out, size_t n) {
             n -= _size;
         }
     } while (_zc_stream->Next(&_data, &_size));
-    _data = nullptr;
+    _data = NULL;
     _size = 0;
     _popped_bytes += saved_n - n;
     return saved_n - n;
@@ -94,9 +94,9 @@ inline T InputStream::cut_packed_pod() {
     return packed_pod;
 }
     
-inline std::string_view InputStream::ref_cut(std::string* aux, size_t n) {
+inline butil::StringPiece InputStream::ref_cut(std::string* aux, size_t n) {
     if (_size >= (int64_t)n) {
-        std::string_view ret((const char*)_data, n);
+        butil::StringPiece ret((const char*)_data, n);
         _data = (const char*)_data + n;
         _size -= n;
         _popped_bytes += n;
@@ -146,7 +146,7 @@ inline void ObjectIterator::init(InputStream* stream, size_t size) {
     _expected_popped_end = _stream->popped_bytes() + size;
     ItemsHead items_head;
     if (_stream->cut_packed_pod(&items_head) != sizeof(ItemsHead)) {
-        MELON_CHECK(false) << "buffer(size=" << size << ") is not enough";
+        CHECK(false) << "buffer(size=" << size << ") is not enough";
         return set_bad();
     }
     _field_count = items_head.item_count;
@@ -160,7 +160,7 @@ inline void ArrayIterator::init(InputStream* stream, size_t size) {
     _expected_popped_end = _stream->popped_bytes() + size;
     ItemsHead items_head;
     if (_stream->cut_packed_pod(&items_head) != sizeof(ItemsHead)) {
-        MELON_CHECK(false) << "buffer(size=" << size << ") is not enough";
+        CHECK(false) << "buffer(size=" << size << ") is not enough";
         return set_bad();
     }
     _item_count = items_head.item_count;
@@ -177,20 +177,20 @@ inline void ISOArrayIterator::init(InputStream* stream, size_t size) {
     _left_item_count = 0;
     IsoItemsHead items_head;
     if (_stream->cut_packed_pod(&items_head) != sizeof(IsoItemsHead)) {
-        MELON_CHECK(false) << "Not enough data";
+        CHECK(false) << "Not enough data";
         return set_bad();
     }
     _item_type = (PrimitiveFieldType)items_head.type;
     _item_size = get_primitive_type_size(_item_type);
     if (!_item_size) {
-        MELON_CHECK(false) << "type=" << type2str(_item_type)
+        CHECK(false) << "type=" << type2str(_item_type)
                    << " in primitive isoarray is not primitive";
         return set_bad();
     }
     const size_t items_full_size = size - sizeof(IsoItemsHead);
     _item_count = items_full_size / _item_size;
     if (_item_count * _item_size != items_full_size) {
-        MELON_CHECK(false) << "inconsistent item_count(" << _item_count
+        CHECK(false) << "inconsistent item_count(" << _item_count
                    << ") and value_size(" << items_full_size
                    << "), item_size=" << _item_size;
         return set_bad();
@@ -215,7 +215,7 @@ inline void ISOArrayIterator::operator++() {
     _buf_index = 0;
     if (_stream->cutn(_item_buf, _buf_count * _item_size) !=
         _buf_count * _item_size) {
-        MELON_CHECK(false) << "Not enough data";
+        CHECK(false) << "Not enough data";
         return set_bad();
     }
     _left_item_count -= _buf_count;

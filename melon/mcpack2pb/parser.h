@@ -24,12 +24,12 @@
 
 #include <limits>  // std::numeric_limits
 #include <google/protobuf/io/zero_copy_stream.h>
-#include "melon/log/logging.h"
-#include <string_view>
-#include "melon/mcpack2pb/field_type.h"
+#include "melon/butil/logging.h"
+#include "melon/butil/strings/string_piece.h"
+#include "mcpack2pb/field_type.h"
 
 // CAUTION: Methods in this header is not intended to be public to users of
-// melon, and subject to change at any future time.
+// brpc, and subject to change at any future time.
 
 namespace mcpack2pb {
 
@@ -39,7 +39,7 @@ public:
     InputStream(google::protobuf::io::ZeroCopyInputStream* stream)
         : _good(true)
         , _size(0)
-        , _data(nullptr)
+        , _data(NULL)
         , _zc_stream(stream)
         , _popped_bytes(0)
     {}
@@ -61,7 +61,7 @@ public:
     // continuous memory, return the reference directly, otherwise copy
     // the data into `aux' and return reference of `aux'.
     // Returns a StringPiece referencing the cut-off data.
-    std::string_view ref_cut(std::string* aux, size_t n);
+    butil::StringPiece ref_cut(std::string* aux, size_t n);
 
     // Peek at the first character. If the stream is empty, 0 is returned.
     uint8_t peek1();
@@ -91,7 +91,7 @@ class ISOArrayIterator;
 // Represent a piece of unparsed(and unread) data of InputStream.
 struct UnparsedValue {
     UnparsedValue()
-        : _type(FIELD_UNKNOWN), _stream(nullptr), _size(0) {}
+        : _type(FIELD_UNKNOWN), _stream(NULL), _size(0) {}
     UnparsedValue(FieldType type, InputStream* stream, size_t size)
         : _type(type), _stream(stream), _size(size) {}
     void set(FieldType type, InputStream* stream, size_t size) {
@@ -141,13 +141,13 @@ size_t unbox(InputStream* stream);
 
 // Iterator all fields in an object which should be created like this:
 //   ObjectIterator it(unparsed_value);
-//   for (; it != nullptr; ++it) {
+//   for (; it != NULL; ++it) {
 //     std::cout << "name=" << it->name << " value=" << it->value << std::endl;
 //   }
 class ObjectIterator {
 public:
     struct Field {
-        std::string_view name;
+        butil::StringPiece name;
         UnparsedValue value;
     };
 
@@ -185,7 +185,7 @@ private:
 
 // Iterator all items in a (mcpack) array which should be created like this:
 //   ArrayIterator it(unparsed_value);
-//   for (; it != nullptr; ++it) {
+//   for (; it != NULL; ++it) {
 //     std::cout << " item=" << *it << std::endl;
 //   }
 class ArrayIterator {
@@ -268,6 +268,6 @@ private:
 
 }  // namespace mcpack2pb
 
-#include "melon/mcpack2pb/parser-inl.h"
+#include "mcpack2pb/parser-inl.h"
 
 #endif  // MCPACK2PB_MCPACK_PARSER_H

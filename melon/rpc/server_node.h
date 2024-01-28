@@ -15,50 +15,49 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_SERVER_NODE_H_
-#define MELON_RPC_SERVER_NODE_H_
+#ifndef BRPC_SERVER_NODE_H
+#define BRPC_SERVER_NODE_H
 
 #include <string>
-#include "melon/base/endpoint.h"
+#include "melon/butil/endpoint.h"
 
-namespace melon::rpc {
+namespace brpc {
 
-    // Representing a server inside a NamingService.
-    struct ServerNode {
-        ServerNode() {}
+// Representing a server inside a NamingService.
+struct ServerNode {
+    ServerNode() {}
+    
+    explicit ServerNode(const butil::EndPoint& pt) : addr(pt) {}
 
-        explicit ServerNode(const melon::end_point &pt) : addr(pt) {}
+    ServerNode(butil::ip_t ip, int port, const std::string& tag2)
+        : addr(ip, port), tag(tag2) {}
 
-        ServerNode(melon::ip_t ip, int port, const std::string &tag2)
-                : addr(ip, port), tag(tag2) {}
+    ServerNode(const butil::EndPoint& pt, const std::string& tag2)
+        : addr(pt), tag(tag2) {}
 
-        ServerNode(const melon::end_point &pt, const std::string &tag2)
-                : addr(pt), tag(tag2) {}
+    ServerNode(butil::ip_t ip, int port) : addr(ip, port) {}
 
-        ServerNode(melon::ip_t ip, int port) : addr(ip, port) {}
+    butil::EndPoint addr;
+    std::string tag;
+};
 
-        melon::end_point addr;
-        std::string tag;
-    };
+inline bool operator<(const ServerNode& n1, const ServerNode& n2)
+{ return n1.addr != n2.addr ? (n1.addr < n2.addr) : (n1.tag < n2.tag); }
 
-    inline bool operator<(const ServerNode &n1, const ServerNode &n2) {
-        return n1.addr != n2.addr ? (n1.addr < n2.addr) : (n1.tag < n2.tag);
+inline bool operator==(const ServerNode& n1, const ServerNode& n2)
+{ return n1.addr == n2.addr && n1.tag == n2.tag; }
+
+inline bool operator!=(const ServerNode& n1, const ServerNode& n2)
+{ return !(n1 == n2); }
+
+inline std::ostream& operator<<(std::ostream& os, const ServerNode& n) {
+    os << n.addr;
+    if (!n.tag.empty()) {
+        os << "(tag=" << n.tag << ')';
     }
+    return os;
+}
 
-    inline bool operator==(const ServerNode &n1, const ServerNode &n2) {
-        return n1.addr == n2.addr && n1.tag == n2.tag;
-    }
+} // namespace brpc
 
-    inline bool operator!=(const ServerNode &n1, const ServerNode &n2) { return !(n1 == n2); }
-
-    inline std::ostream &operator<<(std::ostream &os, const ServerNode &n) {
-        os << n.addr;
-        if (!n.tag.empty()) {
-            os << "(tag=" << n.tag << ')';
-        }
-        return os;
-    }
-
-} // namespace melon::rpc
-
-#endif  // MELON_RPC_SERVER_NODE_H_
+#endif  // BRPC_SERVER_NODE_H

@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef MELON_RPC_CONTROLLER_PRIVATE_ACCESSOR_H_
-#define MELON_RPC_CONTROLLER_PRIVATE_ACCESSOR_H_
+#ifndef BRPC_CONTROLLER_PRIVATE_ACCESSOR_H
+#define BRPC_CONTROLLER_PRIVATE_ACCESSOR_H
 
 // This is an rpc-internal file.
 
@@ -25,151 +25,146 @@
 #include "melon/rpc/stream.h"
 
 namespace google {
-    namespace protobuf {
-        class Message;
-    }
+namespace protobuf {
+class Message;
+}
 }
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class AuthContext;
+class AuthContext;
 
-    // A wrapper to access some private methods/fields of `Controller'
-    // This is supposed to be used by internal RPC protocols ONLY
-    class ControllerPrivateAccessor {
-    public:
-        explicit ControllerPrivateAccessor(Controller *cntl) {
-            _cntl = cntl;
-        }
+// A wrapper to access some private methods/fields of `Controller'
+// This is supposed to be used by internal RPC protocols ONLY
+class ControllerPrivateAccessor {
+public:
+    explicit ControllerPrivateAccessor(Controller* cntl) {
+        _cntl = cntl;
+    }
 
-        void OnResponse(CallId id, int saved_error) {
-            const Controller::CompletionInfo info = {id, true};
-            _cntl->OnVersionedRPCReturned(info, false, saved_error);
-        }
+    void OnResponse(CallId id, int saved_error) {
+        const Controller::CompletionInfo info = { id, true };
+        _cntl->OnVersionedRPCReturned(info, false, saved_error);
+    }
 
-        ControllerPrivateAccessor &set_peer_id(SocketId peer_id) {
-            _cntl->_current_call.peer_id = peer_id;
-            return *this;
-        }
+    ControllerPrivateAccessor &set_peer_id(SocketId peer_id) {
+        _cntl->_current_call.peer_id = peer_id;
+        return *this;
+    }
 
-        Socket *get_sending_socket() {
-            return _cntl->_current_call.sending_sock.get();
-        }
+    Socket* get_sending_socket() {
+        return _cntl->_current_call.sending_sock.get();
+    }
 
-        int64_t real_timeout_ms() {
-            return _cntl->_real_timeout_ms;
-        }
+    int64_t real_timeout_ms() {
+        return _cntl->_real_timeout_ms;
+    }
 
-        void move_in_server_receiving_sock(SocketUniquePtr &ptr) {
-            MELON_CHECK(_cntl->_current_call.sending_sock == nullptr);
-            _cntl->_current_call.sending_sock.reset(ptr.release());
-        }
+    void move_in_server_receiving_sock(SocketUniquePtr& ptr) {
+        CHECK(_cntl->_current_call.sending_sock == NULL);
+        _cntl->_current_call.sending_sock.reset(ptr.release());
+    }
 
-        StreamUserData *get_stream_user_data() {
-            return _cntl->_current_call.stream_user_data;
-        }
+    StreamUserData* get_stream_user_data() {
+        return _cntl->_current_call.stream_user_data;
+    }
 
-        ControllerPrivateAccessor &set_security_mode(bool security_mode) {
-            _cntl->set_flag(Controller::FLAGS_SECURITY_MODE, security_mode);
-            return *this;
-        }
+    ControllerPrivateAccessor &set_security_mode(bool security_mode) {
+        _cntl->set_flag(Controller::FLAGS_SECURITY_MODE, security_mode);
+        return *this;
+    }
 
-        ControllerPrivateAccessor &set_remote_side(const melon::end_point &pt) {
-            _cntl->_remote_side = pt;
-            return *this;
-        }
+    ControllerPrivateAccessor &set_remote_side(const butil::EndPoint& pt) {
+        _cntl->_remote_side = pt;
+        return *this;
+    }
 
-        ControllerPrivateAccessor &set_local_side(const melon::end_point &pt) {
-            _cntl->_local_side = pt;
-            return *this;
-        }
+    ControllerPrivateAccessor &set_local_side(const butil::EndPoint& pt) {
+        _cntl->_local_side = pt;
+        return *this;
+    }
+ 
+    ControllerPrivateAccessor &set_auth_context(const AuthContext* ctx) {
+        _cntl->set_auth_context(ctx);
+        return *this;
+    }
 
-        ControllerPrivateAccessor &set_auth_context(const AuthContext *ctx) {
-            _cntl->set_auth_context(ctx);
-            return *this;
-        }
+    ControllerPrivateAccessor &set_span(Span* span) {
+        _cntl->_span = span;
+        return *this;
+    }
+    
+    ControllerPrivateAccessor &set_request_protocol(ProtocolType protocol) {
+        _cntl->_request_protocol = protocol;
+        return *this;
+    }
+    
+    Span* span() const { return _cntl->_span; }
 
-        ControllerPrivateAccessor &set_span(Span *span) {
-            _cntl->_span = span;
-            return *this;
-        }
+    uint32_t pipelined_count() const { return _cntl->_pipelined_count; }
+    void set_pipelined_count(uint32_t count) {  _cntl->_pipelined_count = count; }
 
-        ControllerPrivateAccessor &set_request_protocol(ProtocolType protocol) {
-            _cntl->_request_protocol = protocol;
-            return *this;
-        }
+    ControllerPrivateAccessor& set_server(const Server* server) {
+        _cntl->_server = server;
+        return *this;
+    }
 
-        Span *span() const { return _cntl->_span; }
+    // Pass the owership of |settings| to _cntl, while is going to be
+    // destroyed in Controller::Reset()
+    void set_remote_stream_settings(StreamSettings *settings) {
+        _cntl->_remote_stream_settings = settings;
+    }
+    StreamSettings* remote_stream_settings() {
+        return _cntl->_remote_stream_settings;
+    }
 
-        uint32_t pipelined_count() const { return _cntl->_pipelined_count; }
+    StreamId request_stream() { return _cntl->_request_stream; }
+    StreamId response_stream() { return _cntl->_response_stream; }
 
-        void set_pipelined_count(uint32_t count) { _cntl->_pipelined_count = count; }
+    void set_method(const google::protobuf::MethodDescriptor* method) 
+    { _cntl->_method = method; }
 
-        ControllerPrivateAccessor &set_server(const Server *server) {
-            _cntl->_server = server;
-            return *this;
-        }
+    void set_readable_progressive_attachment(ReadableProgressiveAttachment* s)
+    { _cntl->_rpa.reset(s); }
 
-        // Pass the owership of |settings| to _cntl, while is going to be
-        // destroyed in Controller::Reset()
-        void set_remote_stream_settings(StreamSettings *settings) {
-            _cntl->_remote_stream_settings = settings;
-        }
+    void set_auth_flags(uint32_t auth_flags) {
+        _cntl->_auth_flags = auth_flags;
+    }
 
-        StreamSettings *remote_stream_settings() {
-            return _cntl->_remote_stream_settings;
-        }
+    void clear_auth_flags() { _cntl->_auth_flags = 0; }
 
-        StreamId request_stream() { return _cntl->_request_stream; }
+    std::string& protocol_param() { return _cntl->protocol_param(); }
+    const std::string& protocol_param() const { return _cntl->protocol_param(); }
 
-        StreamId response_stream() { return _cntl->_response_stream; }
+    // Note: This function can only be called in server side. The deadline of client
+    // side is properly set in the RPC sending path.
+    void set_deadline_us(int64_t deadline_us) { _cntl->_deadline_us = deadline_us; }
 
-        void set_method(const google::protobuf::MethodDescriptor *method) { _cntl->_method = method; }
+    ControllerPrivateAccessor& set_begin_time_us(int64_t begin_time_us) {
+        _cntl->_begin_time_us = begin_time_us;
+        _cntl->_end_time_us = UNSET_MAGIC_NUM;
+        return *this;
+    }
 
-        void set_readable_progressive_attachment(ReadableProgressiveAttachment *s) { _cntl->_rpa.reset(s); }
+    ControllerPrivateAccessor& set_health_check_call() {
+        _cntl->add_flag(Controller::FLAGS_HEALTH_CHECK_CALL);
+        return *this;
+    }
 
-        void add_with_auth() {
-            _cntl->add_flag(Controller::FLAGS_REQUEST_WITH_AUTH);
-        }
+private:
+    Controller* _cntl;
+};
 
-        void clear_with_auth() {
-            _cntl->clear_flag(Controller::FLAGS_REQUEST_WITH_AUTH);
-        }
+// Inherit this class to intercept Controller::IssueRPC. This is an internal
+// utility only useable by brpc developers.
+class RPCSender {
+public:
+    virtual ~RPCSender() {}
+    virtual int IssueRPC(int64_t start_realtime_us) = 0;
+};
 
-        std::string &protocol_param() { return _cntl->protocol_param(); }
-
-        const std::string &protocol_param() const { return _cntl->protocol_param(); }
-
-        // Note: This function can only be called in server side. The deadline of client
-        // side is properly set in the RPC sending path.
-        void set_deadline_us(int64_t deadline_us) { _cntl->_deadline_us = deadline_us; }
-
-        ControllerPrivateAccessor &set_begin_time_us(int64_t begin_time_us) {
-            _cntl->_begin_time_us = begin_time_us;
-            _cntl->_end_time_us = UNSET_MAGIC_NUM;
-            return *this;
-        }
-
-        ControllerPrivateAccessor &set_health_check_call() {
-            _cntl->add_flag(Controller::FLAGS_HEALTH_CHECK_CALL);
-            return *this;
-        }
-
-    private:
-        Controller *_cntl;
-    };
-
-    // Inherit this class to intercept Controller::IssueRPC. This is an internal
-    // utility only useable by melon developers.
-    class RPCSender {
-    public:
-        virtual ~RPCSender() {}
-
-        virtual int IssueRPC(int64_t start_realtime_us) = 0;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
-#endif // MELON_RPC_CONTROLLER_PRIVATE_ACCESSOR_H_
+#endif // BRPC_CONTROLLER_PRIVATE_ACCESSOR_H

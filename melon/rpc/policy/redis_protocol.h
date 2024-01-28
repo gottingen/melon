@@ -16,49 +16,49 @@
 // under the License.
 
 
-#ifndef MELON_RPC_POLICY_REDIS_PROTOCOL_H_
-#define MELON_RPC_POLICY_REDIS_PROTOCOL_H_
+#ifndef BRPC_POLICY_REDIS_PROTOCOL_H
+#define BRPC_POLICY_REDIS_PROTOCOL_H
 
 #include "melon/rpc/protocol.h"
 
 
-namespace melon::rpc {
-    namespace policy {
+namespace brpc {
+namespace policy {
 
-        // Parse redis response.
-        ParseResult ParseRedisMessage(melon::cord_buf *source, Socket *socket, bool read_eof,
-                                      const void *arg);
+// Parse redis response.
+ParseResult ParseRedisMessage(butil::IOBuf* source, Socket *socket, bool read_eof,
+                              const void *arg);
 
-        // Actions to a redis response.
-        void ProcessRedisResponse(InputMessageBase *msg);
+// Actions to a redis response.
+void ProcessRedisResponse(InputMessageBase* msg);
 
-        // Actions to a redis request, which is left unimplemented.
-        // All requests are processed in execution queue pushed in
-        // the parsing process. This function must be declared since
-        // server only enables redis as a server-side protocol when
-        // this function is declared.
-        void ProcessRedisRequest(InputMessageBase *msg);
+// Actions to a redis request, which is left unimplemented.
+// All requests are processed in execution queue pushed in
+// the parsing process. This function must be declared since
+// server only enables redis as a server-side protocol when
+// this function is declared.
+void ProcessRedisRequest(InputMessageBase* msg);
 
-        // Serialize a redis request.
-        void SerializeRedisRequest(melon::cord_buf *buf,
-                                   Controller *cntl,
-                                   const google::protobuf::Message *request);
+// Serialize a redis request.
+void SerializeRedisRequest(butil::IOBuf* buf,
+                           Controller* cntl,
+                           const google::protobuf::Message* request);
 
-        // Pack `request' to `method' into `buf'.
-        void PackRedisRequest(melon::cord_buf *buf,
-                              SocketMessage **,
-                              uint64_t correlation_id,
-                              const google::protobuf::MethodDescriptor *method,
-                              Controller *controller,
-                              const melon::cord_buf &request,
-                              const Authenticator *auth);
+// Pack `request' to `method' into `buf'.
+void PackRedisRequest(butil::IOBuf* buf,
+                      SocketMessage**,
+                      uint64_t correlation_id,
+                      const google::protobuf::MethodDescriptor* method,
+                      Controller* controller,
+                      const butil::IOBuf& request,
+                      const Authenticator* auth);
 
-        const std::string &GetRedisMethodName(
-                const google::protobuf::MethodDescriptor *,
-                const Controller *);
+const std::string& GetRedisMethodName(
+    const google::protobuf::MethodDescriptor*,
+    const Controller*);
 
-    }  // namespace policy
-} // namespace melon::rpc
+}  // namespace policy
+} // namespace brpc
 
 
-#endif  // MELON_RPC_POLICY_REDIS_PROTOCOL_H_
+#endif  // BRPC_POLICY_REDIS_PROTOCOL_H

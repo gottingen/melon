@@ -16,65 +16,65 @@
 // under the License.
 
 
-#ifndef MELON_RPC_HOTSPOTS_SERVICE_H_
-#define MELON_RPC_HOTSPOTS_SERVICE_H_
+#ifndef BRPC_HOTSPOTS_SERVICE_H
+#define BRPC_HOTSPOTS_SERVICE_H
 
 #include "melon/rpc/builtin/common.h"
 #include "melon/rpc/builtin_service.pb.h"
 #include "melon/rpc/builtin/tabbed.h"
 
 
-namespace melon::rpc {
+namespace brpc {
 
-    class Server;
+class Server;
 
-    class HotspotsService : public hotspots, public Tabbed {
-    public:
-        void cpu(::google::protobuf::RpcController *cntl_base,
-                 const ::melon::rpc::HotspotsRequest *request,
-                 ::melon::rpc::HotspotsResponse *response,
-                 ::google::protobuf::Closure *done);
+class HotspotsService : public hotspots, public Tabbed {
+public:
+    void cpu(::google::protobuf::RpcController* cntl_base,
+             const ::brpc::HotspotsRequest* request,
+             ::brpc::HotspotsResponse* response,
+             ::google::protobuf::Closure* done);
+    
+    void heap(::google::protobuf::RpcController* cntl_base,
+              const ::brpc::HotspotsRequest* request,
+              ::brpc::HotspotsResponse* response,
+              ::google::protobuf::Closure* done);
 
-        void heap(::google::protobuf::RpcController *cntl_base,
-                  const ::melon::rpc::HotspotsRequest *request,
-                  ::melon::rpc::HotspotsResponse *response,
-                  ::google::protobuf::Closure *done);
+    void growth(::google::protobuf::RpcController* cntl_base,
+                const ::brpc::HotspotsRequest* request,
+                ::brpc::HotspotsResponse* response,
+                ::google::protobuf::Closure* done);
 
-        void growth(::google::protobuf::RpcController *cntl_base,
-                    const ::melon::rpc::HotspotsRequest *request,
-                    ::melon::rpc::HotspotsResponse *response,
-                    ::google::protobuf::Closure *done);
+    void contention(::google::protobuf::RpcController* cntl_base,
+                    const ::brpc::HotspotsRequest* request,
+                    ::brpc::HotspotsResponse* response,
+                    ::google::protobuf::Closure* done);
 
-        void contention(::google::protobuf::RpcController *cntl_base,
-                        const ::melon::rpc::HotspotsRequest *request,
-                        ::melon::rpc::HotspotsResponse *response,
-                        ::google::protobuf::Closure *done);
+    void cpu_non_responsive(::google::protobuf::RpcController* cntl_base,
+                            const ::brpc::HotspotsRequest* request,
+                            ::brpc::HotspotsResponse* response,
+                            ::google::protobuf::Closure* done);
 
-        void cpu_non_responsive(::google::protobuf::RpcController *cntl_base,
-                                const ::melon::rpc::HotspotsRequest *request,
-                                ::melon::rpc::HotspotsResponse *response,
-                                ::google::protobuf::Closure *done);
+    void heap_non_responsive(::google::protobuf::RpcController* cntl_base,
+                            const ::brpc::HotspotsRequest* request,
+                            ::brpc::HotspotsResponse* response,
+                            ::google::protobuf::Closure* done);
+    
+    void growth_non_responsive(::google::protobuf::RpcController* cntl_base,
+                               const ::brpc::HotspotsRequest* request,
+                               ::brpc::HotspotsResponse* response,
+                               ::google::protobuf::Closure* done);
 
-        void heap_non_responsive(::google::protobuf::RpcController *cntl_base,
-                                 const ::melon::rpc::HotspotsRequest *request,
-                                 ::melon::rpc::HotspotsResponse *response,
-                                 ::google::protobuf::Closure *done);
+    void contention_non_responsive(::google::protobuf::RpcController* cntl_base,
+                                   const ::brpc::HotspotsRequest* request,
+                                   ::brpc::HotspotsResponse* response,
+                                   ::google::protobuf::Closure* done);
 
-        void growth_non_responsive(::google::protobuf::RpcController *cntl_base,
-                                   const ::melon::rpc::HotspotsRequest *request,
-                                   ::melon::rpc::HotspotsResponse *response,
-                                   ::google::protobuf::Closure *done);
+    void GetTabInfo(brpc::TabInfoList*) const;
+};
 
-        void contention_non_responsive(::google::protobuf::RpcController *cntl_base,
-                                       const ::melon::rpc::HotspotsRequest *request,
-                                       ::melon::rpc::HotspotsResponse *response,
-                                       ::google::protobuf::Closure *done);
-
-        void GetTabInfo(melon::rpc::TabInfoList *) const;
-    };
-
-} // namespace melon::rpc
+} // namespace brpc
 
 
 
-#endif // MELON_RPC_HOTSPOTS_SERVICE_H_
+#endif // BRPC_HOTSPOTS_SERVICE_H
