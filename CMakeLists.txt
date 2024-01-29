@@ -414,10 +414,10 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             ${PROJECT_SOURCE_DIR}/melon/butil/mac/scoped_mach_port.cc)
 endif ()
 
-file(GLOB_RECURSE BVAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/var/*.cc")
+file(GLOB_RECURSE VAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/var/*.cc")
 file(GLOB_RECURSE BTHREAD_SOURCES "${PROJECT_SOURCE_DIR}/melon/bthread/*.cc")
 file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cc")
-file(GLOB_RECURSE BRPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cc")
+file(GLOB_RECURSE RPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cc")
 file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cc")
 file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
 file(GLOB_RECURSE BUILTIN_SOURCES "${PROJECT_SOURCE_DIR}/melon/builtin/*.cc")
@@ -427,7 +427,7 @@ file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatc
 
 
 foreach (v ${EXCLUDE_SOURCES})
-    list(REMOVE_ITEM BRPC_SOURCES ${v})
+    list(REMOVE_ITEM RPC_SOURCES ${v})
 endforeach ()
 
 set(MCPACK2PB_SOURCES
@@ -474,11 +474,11 @@ compile_proto(PROTO_HDRS PROTO_SRCS ${PROJECT_BINARY_DIR}
 add_library(PROTO_LIB OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
 
 set(SOURCES
-        ${BVAR_SOURCES}
+        ${VAR_SOURCES}
         ${BTHREAD_SOURCES}
         ${JSON2PB_SOURCES}
         ${MCPACK2PB_SOURCES}
-        ${BRPC_SOURCES}
+        ${RPC_SOURCES}
         ${NAMING_SOURCES}
         ${LB_SOURCES}
         ${COMPRESS_SOURCES}

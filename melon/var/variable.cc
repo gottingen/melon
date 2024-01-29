@@ -707,7 +707,7 @@ namespace melon::var {
     DEFINE_string(mbvar_dump_prefix, "<app>", "Every dumped name starts with this prefix");
     DEFINE_string(mbvar_dump_format, "common", "Dump mbvar write format");
 
-#if !defined(BVAR_NOT_LINK_DEFAULT_VARIABLES)
+#if !defined(MELON_VAR_NOT_LINK_DEFAULT_VARIABLES)
 // Expose bvar-releated gflags so that they're collected by noah.
 // Maybe useful when debugging process of monitoring.
     static GFlag s_gflag_bvar_dump_interval("bvar_dump_interval");
@@ -958,7 +958,7 @@ namespace melon::var {
     }
 
 // UT don't need default variables.
-#if !defined(BVAR_NOT_LINK_DEFAULT_VARIABLES)
+#if !defined(MELON_VAR_NOT_LINK_DEFAULT_VARIABLES)
 // Without these, default_variables.o are stripped.
 // At least working in gcc 4.8
     extern int do_link_default_variables;

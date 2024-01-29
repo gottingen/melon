@@ -15,7 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// brpc - A framework to host and access services throughout Baidu.
 
 // Date: Sun Jul 13 15:04:18 CST 2014
 
@@ -53,7 +52,7 @@
 #include "melon/builtin/memory_service.h"
 #include "melon/builtin/common.h"
 #include "melon/builtin/bad_method_service.h"
-#include "echo.pb.h"
+#include "../echo.pb.h"
 #include "melon/proto/rpc/grpc_health_check.pb.h"
 #include "melon/json2pb/pb_to_json.h"
 
@@ -212,7 +211,7 @@ protected:
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
         EXPECT_EQ(expect_type, cntl.http_response().content_type());
-        CheckContent(cntl, "brpc_builtin_service_unittest");
+        CheckContent(cntl, "rpc_builtin_service_unittest");
 #endif
     }
     
@@ -226,7 +225,7 @@ protected:
         SetUpController(&cntl, use_html);
         butil::EndPoint ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9798", &ep));
-        ASSERT_EQ(0, _server.Start(ep, NULL));
+        ASSERT_EQ(0, _server.Start(ep, nullptr));
         int self_port = -1;
         const int cfd = tcp_connect(ep, &self_port);
         ASSERT_GT(cfd, 0);
@@ -378,9 +377,9 @@ protected:
                                         melon::SERVER_OWNS_SERVICE));
         butil::EndPoint ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9748", &ep));
-        ASSERT_EQ(0, _server.Start(ep, NULL));
+        ASSERT_EQ(0, _server.Start(ep, nullptr));
         melon::Channel channel;
-        ASSERT_EQ(0, channel.Init(ep, NULL));
+        ASSERT_EQ(0, channel.Init(ep, nullptr));
         test::EchoService_Stub stub(&channel);
         int64_t log_id = 1234567890;
         char querystr_buf[128];
@@ -392,7 +391,7 @@ protected:
             melon::Controller echo_cntl;
             echo_req.set_message("hello");
             echo_cntl.set_log_id(++log_id);
-            stub.Echo(&echo_cntl, &echo_req, &echo_res, NULL);
+            stub.Echo(&echo_cntl, &echo_req, &echo_res, nullptr);
             EXPECT_FALSE(echo_cntl.Failed());
 
             // Wait for level db to commit span information
@@ -416,7 +415,7 @@ protected:
             echo_req.set_message("hello");
             echo_req.set_sleep_us(150000);
             echo_cntl.set_log_id(++log_id);
-            stub.Echo(&echo_cntl, &echo_req, &echo_res, NULL);
+            stub.Echo(&echo_cntl, &echo_req, &echo_res, nullptr);
             EXPECT_FALSE(echo_cntl.Failed());
 
             // Wait for level db to commit span information
@@ -440,7 +439,7 @@ protected:
             std::string request_str(1500, 'a');
             echo_req.set_message(request_str);
             echo_cntl.set_log_id(++log_id);
-            stub.Echo(&echo_cntl, &echo_req, &echo_res, NULL);
+            stub.Echo(&echo_cntl, &echo_req, &echo_res, nullptr);
             EXPECT_FALSE(echo_cntl.Failed());
 
             // Wait for level db to commit span information
@@ -463,7 +462,7 @@ protected:
             melon::Controller echo_cntl;
             echo_req.set_message("hello");
             echo_cntl.set_log_id(++log_id);
-            stub.Echo(&echo_cntl, &echo_req, &echo_res, NULL);
+            stub.Echo(&echo_cntl, &echo_req, &echo_res, nullptr);
             EXPECT_FALSE(echo_cntl.Failed());
 
             // Wait for level db to commit span information
@@ -550,7 +549,7 @@ TEST_F(BuiltinServiceTest, customized_health) {
     ASSERT_EQ(0, chan.Init("127.0.0.1:9798", &copt));
     melon::Controller cntl;
     cntl.http_request().uri() = "/health";
-    chan.CallMethod(NULL, &cntl, &req, &res, NULL);
+    chan.CallMethod(nullptr, &cntl, &req, &res, nullptr);
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
     EXPECT_EQ("i'm ok", cntl.response_attachment());
 }
@@ -580,21 +579,21 @@ TEST_F(BuiltinServiceTest, normal_grpc_health) {
 
     grpc::health::v1::HealthCheckResponse response;
     grpc::health::v1::HealthCheckRequest request;
-    request.set_service("grpc_req_from_brpc");
+    request.set_service("grpc_req_from_rpc");
     melon::Controller cntl;
     melon::ChannelOptions copt;
     copt.protocol = "h2:grpc";
     melon::Channel chan;
     ASSERT_EQ(0, chan.Init("127.0.0.1:9798", &copt));
     grpc::health::v1::Health_Stub stub(&chan);
-    stub.Check(&cntl, &request, &response, NULL);
+    stub.Check(&cntl, &request, &response, nullptr);
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
     EXPECT_EQ(response.status(), grpc::health::v1::HealthCheckResponse_ServingStatus_SERVING);
 
     response.Clear();
     melon::Controller cntl1;
     cntl1.http_request().uri() = "/grpc.health.v1.Health/Check";
-    chan.CallMethod(NULL, &cntl1, &request, &response, NULL);
+    chan.CallMethod(nullptr, &cntl1, &request, &response, nullptr);
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
     EXPECT_EQ(response.status(), grpc::health::v1::HealthCheckResponse_ServingStatus_SERVING);
 }
@@ -607,7 +606,7 @@ TEST_F(BuiltinServiceTest, customized_grpc_health) {
 
     grpc::health::v1::HealthCheckResponse response;
     grpc::health::v1::HealthCheckRequest request;
-    request.set_service("grpc_req_from_brpc");
+    request.set_service("grpc_req_from_rpc");
     melon::Controller cntl;
 
     melon::ChannelOptions copt;
@@ -616,7 +615,7 @@ TEST_F(BuiltinServiceTest, customized_grpc_health) {
     ASSERT_EQ(0, chan.Init("127.0.0.1:9798", &copt));
 
     grpc::health::v1::Health_Stub stub(&chan);
-    stub.Check(&cntl, &request, &response, NULL);
+    stub.Check(&cntl, &request, &response, nullptr);
 
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
     EXPECT_EQ(response.status(), grpc::health::v1::HealthCheckResponse_ServingStatus_UNKNOWN);
@@ -643,7 +642,7 @@ TEST_F(BuiltinServiceTest, list) {
 
 void* sleep_thread(void*) {
     sleep(1);
-    return NULL;
+    return nullptr;
 }
 
 TEST_F(BuiltinServiceTest, threads) {
@@ -653,12 +652,12 @@ TEST_F(BuiltinServiceTest, threads) {
     melon::Controller cntl;
     ClosureChecker done;
     pthread_t tid;
-    ASSERT_EQ(0, pthread_create(&tid, NULL, sleep_thread, NULL));
+    ASSERT_EQ(0, pthread_create(&tid, nullptr, sleep_thread, nullptr));
     service.default_method(&cntl, &req, &res, &done);
     EXPECT_FALSE(cntl.Failed());
     // Doesn't work under gcc 4.8.2
     // CheckContent(cntl, "sleep_thread");
-    pthread_join(tid, NULL);
+    pthread_join(tid, nullptr);
 }
 
 TEST_F(BuiltinServiceTest, vlog) {
@@ -683,7 +682,7 @@ TEST_F(BuiltinServiceTest, bad_method) {
 
 TEST_F(BuiltinServiceTest, vars) {
     // Start server to show bvars inside 
-    ASSERT_EQ(0, _server.Start("127.0.0.1:9798", NULL));
+    ASSERT_EQ(0, _server.Start("127.0.0.1:9798", nullptr));
     melon::VarsService service;
     melon::VarsRequest req;
     melon::VarsResponse res;
@@ -723,7 +722,7 @@ TEST_F(BuiltinServiceTest, pprof) {
         ClosureChecker done;
         melon::Controller cntl;
         cntl.http_request().uri().SetQuery("seconds", "1");
-        service.profile(&cntl, NULL, NULL, &done);
+        service.profile(&cntl, nullptr, nullptr, &done);
         // Just for loading symbols in gperftools/profiler.h
         ProfilerFlush();
         EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -732,30 +731,30 @@ TEST_F(BuiltinServiceTest, pprof) {
     {
         ClosureChecker done;
         melon::Controller cntl;
-        service.heap(&cntl, NULL, NULL, &done);
+        service.heap(&cntl, nullptr, nullptr, &done);
         const int rc = getenv("TCMALLOC_SAMPLE_PARAMETER") != nullptr ? 0 : melon::ENOMETHOD;
         EXPECT_EQ(rc, cntl.ErrorCode()) << cntl.ErrorText();
     }
     {
         ClosureChecker done;
         melon::Controller cntl;
-        service.growth(&cntl, NULL, NULL, &done);
+        service.growth(&cntl, nullptr, nullptr, &done);
         // linked tcmalloc in UT
         EXPECT_EQ(0, cntl.ErrorCode()) << cntl.ErrorText();
     }
     {
         ClosureChecker done;
         melon::Controller cntl;
-        service.symbol(&cntl, NULL, NULL, &done);
+        service.symbol(&cntl, nullptr, nullptr, &done);
         EXPECT_FALSE(cntl.Failed());
         CheckContent(cntl, "num_symbols");
     }
     {
         ClosureChecker done;
         melon::Controller cntl;
-        service.cmdline(&cntl, NULL, NULL, &done);
+        service.cmdline(&cntl, nullptr, nullptr, &done);
         EXPECT_FALSE(cntl.Failed());
-        CheckContent(cntl, "brpc_builtin_service_unittest");
+        CheckContent(cntl, "rpc_builtin_service_unittest");
     }
 }
 
@@ -820,7 +819,7 @@ TEST_F(BuiltinServiceTest, ids) {
     }    
     {
         bthread_id_t id;
-        EXPECT_EQ(0, bthread_id_create(&id, NULL, NULL));
+        EXPECT_EQ(0, bthread_id_create(&id, nullptr, nullptr));
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
@@ -834,7 +833,7 @@ TEST_F(BuiltinServiceTest, ids) {
 
 void* dummy_bthread(void*) {
     bthread_usleep(1000000);
-    return NULL;
+    return nullptr;
 }
 
 TEST_F(BuiltinServiceTest, bthreads) {
@@ -858,7 +857,7 @@ TEST_F(BuiltinServiceTest, bthreads) {
     }    
     {
         bthread_t th;
-        EXPECT_EQ(0, bthread_start_background(&th, NULL, dummy_bthread, NULL));
+        EXPECT_EQ(0, bthread_start_background(&th, nullptr, dummy_bthread, nullptr));
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
