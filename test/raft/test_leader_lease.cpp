@@ -19,15 +19,16 @@
 #include "melon/raft/util.h"
 #include "melon/raft/node.h"
 #include "melon/raft/lease.h"
-#include "../test/util.h"
+#include "util.h"
 
 namespace melon::raft {
-DECLARE_bool(raft_enable_leader_lease);
-DECLARE_int32(raft_election_heartbeat_factor);
+    DECLARE_bool(raft_enable_leader_lease);
+    DECLARE_int32(raft_election_heartbeat_factor);
 }
 
 class BaseLeaseTest : public testing::Test {
 protected:
+
     void SetUp() {
         ::system("rm -rf data");
         //logging::FLAGS_v = 90;
@@ -36,6 +37,7 @@ protected:
         melon::raft::FLAGS_raft_election_heartbeat_factor = 3;
         g_dont_print_apply_log = true;
     }
+
     void TearDown() {
         ::system("rm -rf data");
     }
@@ -43,6 +45,7 @@ protected:
 
 class ExtendLeaseTest : public testing::TestWithParam<int> {
 protected:
+
     void SetUp() {
         ::system("rm -rf data");
         //logging::FLAGS_v = 90;
@@ -51,6 +54,7 @@ protected:
         melon::raft::FLAGS_raft_election_heartbeat_factor = 3;
         peer_num = GetParam();
     }
+
     void TearDown() {
         ::system("rm -rf data");
     }
@@ -58,16 +62,16 @@ protected:
     int peer_num;
 };
 
-void check_if_stale_leader_exist(Cluster* cluster, int line) {
+void check_if_stale_leader_exist(Cluster *cluster, int line) {
     // Only one peer can be LEASE_NOT_READY or LEASE_VALID
-    std::vector<melon::raft::Node*> nodes;
+    std::vector<melon::raft::Node *> nodes;
     melon::raft::LeaderLeaseStatus lease_status;
     cluster->all_nodes(&nodes);
     for (int i = 0; i < 2; ++i) {
         int lease_valid_num = 0;
-        melon::raft::Node* leader_node = NULL;
+        melon::raft::Node *leader_node = NULL;
         int64_t leader_term = -1;
-        for (auto& n : nodes) {
+        for (auto &n: nodes) {
             n->get_leader_lease_status(&lease_status);
             if (lease_status.state == melon::raft::LEASE_VALID) {
                 ++lease_valid_num;
@@ -108,8 +112,8 @@ void check_if_stale_leader_exist(Cluster* cluster, int line) {
 
 bool g_check_lease_in_thread_stop = true;
 
-void* check_lease_in_thread(void* arg) {
-    Cluster* cluster = static_cast<Cluster*>(arg);
+void *check_lease_in_thread(void *arg) {
+    Cluster *cluster = static_cast<Cluster *>(arg);
     int round = 0;
     while (!g_check_lease_in_thread_stop) {
         BRAFT_VLOG << "check stale lease, round: " << round++;
@@ -139,8 +143,8 @@ TEST_F(BaseLeaseTest, triple_node) {
 
     // elect leader
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
-    std::vector<melon::raft::Node*> followers;
+    melon::raft::Node *leader = cluster.leader();
+    std::vector<melon::raft::Node *> followers;
     cluster.followers(&followers);
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is elected " << leader->node_id();
@@ -181,7 +185,7 @@ TEST_F(BaseLeaseTest, triple_node) {
     }
 
     // check followrs
-    for (auto& f : followers) {
+    for (auto &f: followers) {
         ASSERT_FALSE(f->is_leader_lease_valid());
         f->get_leader_lease_status(&lease_status);
         ASSERT_EQ(lease_status.state, melon::raft::LEASE_EXPIRED);
@@ -191,7 +195,7 @@ TEST_F(BaseLeaseTest, triple_node) {
     melon::raft::FLAGS_raft_enable_leader_lease = false;
     leader->get_leader_lease_status(&lease_status);
     ASSERT_EQ(lease_status.state, melon::raft::LEASE_DISABLED);
-    for (auto& f : followers) {
+    for (auto &f: followers) {
         ASSERT_FALSE(f->is_leader_lease_valid());
         f->get_leader_lease_status(&lease_status);
         ASSERT_EQ(lease_status.state, melon::raft::LEASE_DISABLED);
@@ -267,7 +271,7 @@ TEST_F(BaseLeaseTest, change_peers) {
     for (int i = 1; i < 10; ++i) {
         LOG(INFO) << "add peer " << i;
         cluster.wait_leader();
-        melon::raft::Node* leader = cluster.leader();
+        melon::raft::Node *leader = cluster.leader();
         melon::raft::PeerId peer = peer0;
         peer.addr.port += i;
         melon::raft::SynchronizedClosure done;
@@ -280,7 +284,7 @@ TEST_F(BaseLeaseTest, change_peers) {
     for (int i = 1; i < 10; ++i) {
         LOG(INFO) << "remove peer " << i;
         cluster.wait_leader();
-        melon::raft::Node* leader = cluster.leader();
+        melon::raft::Node *leader = cluster.leader();
         melon::raft::PeerId peer = peer0;
         peer.addr.port += i;
         melon::raft::SynchronizedClosure done;
@@ -316,7 +320,7 @@ TEST_F(BaseLeaseTest, leader_remove_itself) {
     ASSERT_EQ(0, pthread_create(&tid, NULL, check_lease_in_thread, &cluster));
 
     cluster.wait_leader();
-    
+
     const int follower_num = 3;
     for (int i = 1; i <= follower_num; ++i) {
         LOG(INFO) << "start peer " << i;
@@ -328,7 +332,7 @@ TEST_F(BaseLeaseTest, leader_remove_itself) {
     for (int i = 1; i <= follower_num; ++i) {
         LOG(INFO) << "add peer " << i;
         cluster.wait_leader();
-        melon::raft::Node* leader = cluster.leader();
+        melon::raft::Node *leader = cluster.leader();
         melon::raft::PeerId peer = peer0;
         peer.addr.port += i;
         melon::raft::SynchronizedClosure done;
@@ -337,17 +341,17 @@ TEST_F(BaseLeaseTest, leader_remove_itself) {
         done.wait();
         ASSERT_TRUE(done.status().ok()) << done.status();
     }
-    
+
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
+    melon::raft::Node *leader = cluster.leader();
     ASSERT_EQ(peer0, leader->node_id().peer_id);
     LOG(INFO) << "remove leader " << peer0;
-    
-    std::vector<melon::raft::Node*> nodes;
+
+    std::vector<melon::raft::Node *> nodes;
     cluster.followers(&nodes);
     melon::raft::SynchronizedClosure done;
     for (int i = 0; i < follower_num; ++i) {
-        static_cast<MockFSM*>(nodes[i]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
+        static_cast<MockFSM *>(nodes[i]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
     }
     int64_t begin_ms = butil::monotonic_time_ms();
     melon::raft::SynchronizedClosure remove_done;
@@ -358,13 +362,13 @@ TEST_F(BaseLeaseTest, leader_remove_itself) {
     done.wait();
     const int64_t vote_time = butil::monotonic_time_ms() - begin_ms;
     ASSERT_LT(vote_time, 500);
-    
+
     leader = cluster.leader();
     LOG(INFO) << "new leader is " << leader->node_id().peer_id << " election time is " << vote_time;
 
     g_check_lease_in_thread_stop = true;
     pthread_join(tid, NULL);
-    
+
     cluster.stop_all();
 }
 
@@ -386,10 +390,10 @@ TEST_P(ExtendLeaseTest, transfer_leadership_success) {
     }
     // elect leader
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
+    melon::raft::Node *leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<melon::raft::Node*> nodes;
+    std::vector<melon::raft::Node *> nodes;
     cluster.followers(&nodes);
     melon::raft::PeerId target = nodes[0]->node_id().peer_id;
 
@@ -401,7 +405,7 @@ TEST_P(ExtendLeaseTest, transfer_leadership_success) {
     ASSERT_EQ(new_leader_lease.state, melon::raft::LEASE_EXPIRED);
 
     melon::raft::SynchronizedClosure done;
-    static_cast<MockFSM*>(nodes[0]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
+    static_cast<MockFSM *>(nodes[0]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
 
     ASSERT_EQ(0, leader->transfer_leadership_to(target));
     done.wait();
@@ -436,10 +440,10 @@ TEST_P(ExtendLeaseTest, transfer_leadership_timeout) {
     }
     // elect leader
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
+    melon::raft::Node *leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<melon::raft::Node*> nodes;
+    std::vector<melon::raft::Node *> nodes;
     cluster.followers(&nodes);
     melon::raft::PeerId target = nodes[0]->node_id().peer_id;
 
@@ -451,7 +455,7 @@ TEST_P(ExtendLeaseTest, transfer_leadership_timeout) {
     cluster.stop(nodes[0]->node_id().peer_id.addr);
 
     melon::raft::SynchronizedClosure done;
-    static_cast<MockFSM*>(leader->_impl->_options.fsm)->set_on_leader_start_closure(&done);
+    static_cast<MockFSM *>(leader->_impl->_options.fsm)->set_on_leader_start_closure(&done);
     ASSERT_EQ(0, leader->transfer_leadership_to(target));
     done.wait();
 
@@ -482,10 +486,10 @@ TEST_P(ExtendLeaseTest, vote) {
     }
     // elect leader
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
+    melon::raft::Node *leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<melon::raft::Node*> nodes;
+    std::vector<melon::raft::Node *> nodes;
     cluster.followers(&nodes);
     melon::raft::PeerId target = nodes[0]->node_id().peer_id;
 
@@ -497,11 +501,11 @@ TEST_P(ExtendLeaseTest, vote) {
     ASSERT_EQ(new_leader_lease.state, melon::raft::LEASE_EXPIRED);
 
     melon::raft::SynchronizedClosure done;
-    static_cast<MockFSM*>(nodes[0]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
+    static_cast<MockFSM *>(nodes[0]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
 
     // There isOnLeaderStartHungClosure( little chance that when we want to vote, the heartbeat from
     // old leader interrupt us.
-    for (int i = 0; i < 3; ++ i) {
+    for (int i = 0; i < 3; ++i) {
         int64_t vote_begin_ms = butil::monotonic_time_ms();
         nodes[0]->vote(50);
         usleep(100 * 1000);
@@ -547,15 +551,15 @@ TEST_P(ExtendLeaseTest, leader_step_down) {
     }
     // elect leader
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
+    melon::raft::Node *leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<melon::raft::Node*> nodes;
+    std::vector<melon::raft::Node *> nodes;
     cluster.followers(&nodes);
 
     melon::raft::SynchronizedClosure done;
     for (int i = 0; i < peer_num - 1; ++i) {
-        static_cast<MockFSM*>(nodes[i]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
+        static_cast<MockFSM *>(nodes[i]->_impl->_options.fsm)->set_on_leader_start_closure(&done);
     }
 
     int64_t begin_ms = butil::monotonic_time_ms();
@@ -574,7 +578,7 @@ TEST_P(ExtendLeaseTest, leader_step_down) {
 class OnLeaderStartHungClosure : public melon::raft::SynchronizedClosure {
 public:
     OnLeaderStartHungClosure(int i)
-        : melon::raft::SynchronizedClosure(), idx(i), hung(true), running(false) {}
+            : melon::raft::SynchronizedClosure(), idx(i), hung(true), running(false) {}
 
     void Run() {
         running = true;
@@ -596,7 +600,7 @@ TEST_P(ExtendLeaseTest, apply_thread_hung) {
     ::system("rm -rf data");
     melon::raft::LeaderLeaseStatus lease_status;
     std::vector<melon::raft::PeerId> peers;
-    std::vector<OnLeaderStartHungClosure*> on_leader_start_closures;
+    std::vector<OnLeaderStartHungClosure *> on_leader_start_closures;
     for (int i = 0; i < peer_num; i++) {
         melon::raft::PeerId peer;
         peer.addr.ip = butil::my_ip();
@@ -622,10 +626,10 @@ TEST_P(ExtendLeaseTest, apply_thread_hung) {
 
     // elect leader
     cluster.wait_leader();
-    melon::raft::Node* leader = cluster.leader();
+    melon::raft::Node *leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    std::vector<melon::raft::Node*> nodes;
+    std::vector<melon::raft::Node *> nodes;
     cluster.followers(&nodes);
     melon::raft::PeerId target = nodes[0]->node_id().peer_id;
 
@@ -639,7 +643,7 @@ TEST_P(ExtendLeaseTest, apply_thread_hung) {
     ASSERT_EQ(lease_status.state, melon::raft::LEASE_NOT_READY);
 
     // apply thread resume to work
-    for (auto c : on_leader_start_closures) {
+    for (auto c: on_leader_start_closures) {
         c->hung = false;
         if (c->running) {
             LOG(WARNING) << "waiting leader resume";
@@ -652,7 +656,7 @@ TEST_P(ExtendLeaseTest, apply_thread_hung) {
     ASSERT_EQ(lease_status.state, melon::raft::LEASE_VALID);
     cluster.stop_all();
 
-    for (auto c : on_leader_start_closures) {
+    for (auto c: on_leader_start_closures) {
         delete c;
     }
 }
@@ -699,7 +703,7 @@ TEST_P(ExtendLeaseTest, chaos) {
                 type = NODE_START;
             }
         }
-        melon::raft::Node* target_node = NULL;
+        melon::raft::Node *target_node = NULL;
         switch (type) {
             case NODE_START: {
                 BRAFT_VLOG << "chaos round " << i << ", node start";
@@ -734,7 +738,7 @@ TEST_P(ExtendLeaseTest, chaos) {
             case TRANSFER_LEADER: {
                 BRAFT_VLOG << "chaos round " << i << ", transfer leader";
                 cluster.wait_leader();
-                melon::raft::Node* leader = cluster.leader();
+                melon::raft::Node *leader = cluster.leader();
                 melon::raft::PeerId target;
                 if (stopped_nodes.empty() || butil::fast_rand() % 2 == 0) {
                     target = started_nodes[butil::fast_rand() % started_nodes.size()];
@@ -774,4 +778,6 @@ TEST_P(ExtendLeaseTest, chaos) {
     cluster.stop_all();
 }
 
-INSTANTIATE_TEST_CASE_P(ExtendLeaseTest, ExtendLeaseTest, ::testing::Values(3, 5));
+INSTANTIATE_TEST_CASE_P
+
+(ExtendLeaseTest, ExtendLeaseTest, ::testing::Values(3, 5));

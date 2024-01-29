@@ -77,6 +77,7 @@ add_subdirectory(util)
 add_subdirectory(var)
 add_subdirectory(bthread)
 add_subdirectory(rpc)
+add_subdirectory(raft)
 
 if(BUILD_FUZZ_TESTS)
     add_library(melon-static-debug STATIC $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>

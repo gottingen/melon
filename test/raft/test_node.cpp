@@ -16,7 +16,7 @@
 #include <melon/rpc/closure_guard.h>
 #include <melon/bthread/bthread.h>
 #include <melon/bthread/countdown_event.h>
-#include "../test/util.h"
+#include "util.h"
 
 namespace melon::raft {
 extern melon::var::Adder<int64_t> g_num_nodes;
