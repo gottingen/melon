@@ -25,7 +25,7 @@
 #include <melon/bthread/bthread.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
-#include <melon/rpc/rpc_dump.h>
+#include <melon/rpc/dump/rpc_dump.h>
 #include <melon/rpc/serialized_request.h>
 #include <melon/rpc/nshead_message.h>
 #include "melon/rpc/http/http_message.h"

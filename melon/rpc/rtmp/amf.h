@@ -362,6 +362,6 @@ namespace melon {
 } // namespace melon
 
 
-#include "melon/rpc/amf_inl.h"
+#include "melon/rpc/rtmp/amf_inl.h"
 
 #endif  // MELON_RPC_RTMP_AMF_H_

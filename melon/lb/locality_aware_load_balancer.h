@@ -34,9 +34,9 @@ namespace melon::lb {
     DECLARE_int64(min_weight);
     DECLARE_double(punish_inflight_ratio);
 
-// Locality-aware is an iterative algorithm to send requests to servers which
-// have lowest expected latencies. Read docs/cn/lalb.md to get a peek at the
-// algorithm. The implementation is complex.
+    // Locality-aware is an iterative algorithm to send requests to servers which
+    // have lowest expected latencies. Read docs/cn/lalb.md to get a peek at the
+    // algorithm. The implementation is complex.
     class LocalityAwareLoadBalancer : public LoadBalancer {
     public:
         LocalityAwareLoadBalancer();

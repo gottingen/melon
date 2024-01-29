@@ -21,7 +21,7 @@
 #include "melon/rpc/controller.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
-#include "melon/rpc/grpc.h"
+#include "melon/rpc/grpc/grpc.h"
 #include "melon/butil/time.h"
 #include "grpc.pb.h"
 

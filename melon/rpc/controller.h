@@ -44,7 +44,7 @@
 #include "melon/rpc/callback.h"
 #include "melon/rpc/progressive_attachment.h"       // ProgressiveAttachment
 #include "melon/rpc/progressive_reader.h"           // ProgressiveReader
-#include "melon/rpc/grpc.h"
+#include "melon/rpc/grpc/grpc.h"
 #include "melon/rpc/kvmap.h"
 
 // EAUTH is defined in MAC

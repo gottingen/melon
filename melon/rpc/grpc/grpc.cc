@@ -19,7 +19,7 @@
 
 #include <sstream>                  // std::stringstream
 #include <iomanip>                  // std::setw
-#include "melon/rpc/grpc.h"
+#include "melon/rpc/grpc/grpc.h"
 #include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/http/http_status_code.h"
 #include "melon/butil/logging.h"

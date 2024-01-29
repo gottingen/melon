@@ -43,7 +43,7 @@
 #include "melon/compress/gzip_compress.h"
 #include "melon/rpc/policy/http2_rpc_protocol.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
-#include "melon/rpc/grpc.h"
+#include "melon/rpc/grpc/grpc.h"
 
 extern "C" {
 void bthread_assign_data(void* data);
