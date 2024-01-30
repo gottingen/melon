@@ -91,7 +91,10 @@ else()
     target_link_libraries(protoc-gen-mcpack melon-static ${DYNAMIC_LIB} pthread)
 endif()
 
-
+include (GenerateExportHeader)
+generate_export_header (melon-static
+        EXPORT_MACRO_NAME GLOG_EXPORT
+        EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/melon/log/export.h)
 
 install(TARGETS melon-static
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

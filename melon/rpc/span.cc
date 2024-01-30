@@ -33,7 +33,7 @@
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/span.h"
 
-#define BRPC_SPAN_INFO_SEP "\1"
+#define MELON_RPC_SPAN_INFO_SEP "\1"
 
 
 namespace melon {
@@ -208,7 +208,7 @@ void Span::destroy() {
 
 void Span::Annotate(const char* fmt, ...) {
     const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    butil::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     va_list ap;
     va_start(ap, fmt);
@@ -218,21 +218,21 @@ void Span::Annotate(const char* fmt, ...) {
 
 void Span::Annotate(const char* fmt, va_list args) {
     const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    butil::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     butil::string_vappendf(&_info, fmt, args);
 }
 
 void Span::Annotate(const std::string& info) {
     const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    butil::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     _info.append(info);
 }
 
 void Span::AnnotateCStr(const char* info, size_t length) {
     const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    butil::string_appendf(&_info, MELON_RPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     if (length <= 0) {
         _info.append(info);
@@ -262,7 +262,7 @@ int64_t Span::GetEndRealTimeUs() const {
 }
 
 SpanInfoExtractor::SpanInfoExtractor(const char* info)
-    : _sp(info, *BRPC_SPAN_INFO_SEP) {
+    : _sp(info, *MELON_RPC_SPAN_INFO_SEP) {
 }
 
 bool SpanInfoExtractor::PopAnnotation(

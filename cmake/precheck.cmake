@@ -1,0 +1,17 @@
+
+include (CheckCXXSourceCompiles)
+include (CheckCXXSourceRuns)
+include (CheckCXXSymbolExists)
+include (CheckIncludeFileCXX)
+include (CheckStructHasMember)
+include (CheckTypeSize)
+include (CMakeDependentOption)
+include (CMakePackageConfigHelpers)
+include (CMakePushCheckState)
+include (CPack)
+include (CTest)
+include (DetermineGflagsNamespace)
+include (GenerateExportHeader)
+include (GetCacheVariables)
+include (GNUInstallDirs)
+

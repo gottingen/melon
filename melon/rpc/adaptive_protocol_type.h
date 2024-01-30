@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRPC_ADAPTIVE_PROTOCOL_TYPE_H
-#define BRPC_ADAPTIVE_PROTOCOL_TYPE_H
+#ifndef MELON_RPC_ADAPTIVE_PROTOCOL_TYPE_H_
+#define MELON_RPC_ADAPTIVE_PROTOCOL_TYPE_H_
 
 // To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
@@ -26,68 +26,72 @@
 
 namespace melon {
 
-// NOTE: impl. are in brpc/protocol.cpp
+    // Convert a case-insensitive string to corresponding ProtocolType which is
+    // defined in src/brpc/options.proto
+    // Returns: PROTOCOL_UNKNOWN on error.
+    ProtocolType StringToProtocolType(const butil::StringPiece &type,
+                                      bool print_log_on_unknown);
 
-// Convert a case-insensitive string to corresponding ProtocolType which is
-// defined in src/brpc/options.proto
-// Returns: PROTOCOL_UNKNOWN on error.
-ProtocolType StringToProtocolType(const butil::StringPiece& type,
-                                  bool print_log_on_unknown);
-inline ProtocolType StringToProtocolType(const butil::StringPiece& type)
-{ return StringToProtocolType(type, true); }
-
-// Convert a ProtocolType to a c-style string.
-const char* ProtocolTypeToString(ProtocolType);
-
-// Assignable by both ProtocolType and names.
-class AdaptiveProtocolType {
-public:
-    explicit AdaptiveProtocolType() : _type(PROTOCOL_UNKNOWN) {}
-    explicit AdaptiveProtocolType(ProtocolType type) : _type(type) {}
-    explicit AdaptiveProtocolType(butil::StringPiece name) { *this = name; }
-    ~AdaptiveProtocolType() {}
-
-    void operator=(ProtocolType type) {
-        _type = type;
-        _name.clear();
-        _param.clear();
+    inline ProtocolType StringToProtocolType(const butil::StringPiece &type) {
+        return StringToProtocolType(type, true);
     }
 
-    void operator=(butil::StringPiece name) {
-        butil::StringPiece param;
-        const size_t pos = name.find(':');
-        if (pos != butil::StringPiece::npos) {
-            param = name.substr(pos + 1);
-            name.remove_suffix(name.size() - pos);
-        }
-        _type = StringToProtocolType(name);
-        if (_type == PROTOCOL_UNKNOWN) {
-            _name.assign(name.data(), name.size());
-        } else {
+    // Convert a ProtocolType to a c-style string.
+    const char *ProtocolTypeToString(ProtocolType);
+
+    // Assignable by both ProtocolType and names.
+    class AdaptiveProtocolType {
+    public:
+        explicit AdaptiveProtocolType() : _type(PROTOCOL_UNKNOWN) {}
+
+        explicit AdaptiveProtocolType(ProtocolType type) : _type(type) {}
+
+        explicit AdaptiveProtocolType(butil::StringPiece name) { *this = name; }
+
+        ~AdaptiveProtocolType() {}
+
+        void operator=(ProtocolType type) {
+            _type = type;
             _name.clear();
-        }
-        if (!param.empty()) {
-            _param.assign(param.data(), param.size());
-        } else {
             _param.clear();
         }
+
+        void operator=(butil::StringPiece name) {
+            butil::StringPiece param;
+            const size_t pos = name.find(':');
+            if (pos != butil::StringPiece::npos) {
+                param = name.substr(pos + 1);
+                name.remove_suffix(name.size() - pos);
+            }
+            _type = StringToProtocolType(name);
+            if (_type == PROTOCOL_UNKNOWN) {
+                _name.assign(name.data(), name.size());
+            } else {
+                _name.clear();
+            }
+            if (!param.empty()) {
+                _param.assign(param.data(), param.size());
+            } else {
+                _param.clear();
+            }
+        };
+
+        operator ProtocolType() const { return _type; }
+
+        const char *name() const {
+            return _name.empty() ? ProtocolTypeToString(_type) : _name.c_str();
+        }
+
+        bool has_param() const { return !_param.empty(); }
+
+        const std::string &param() const { return _param; }
+
+    private:
+        ProtocolType _type;
+        std::string _name;
+        std::string _param;
     };
-
-    operator ProtocolType() const { return _type; }
-
-    const char* name() const {
-        return _name.empty() ? ProtocolTypeToString(_type) : _name.c_str();
-    }
-
-    bool has_param() const { return !_param.empty(); }
-    const std::string& param() const { return _param; }
-
-private:
-    ProtocolType _type;
-    std::string _name;
-    std::string _param;
-};
 
 } // namespace melon
 
-#endif  // BRPC_ADAPTIVE_PROTOCOL_TYPE_H
+#endif  // MELON_RPC_ADAPTIVE_PROTOCOL_TYPE_H_

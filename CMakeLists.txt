@@ -16,7 +16,7 @@
 # under the License.
 
 cmake_minimum_required(VERSION 3.15)
-project(brpc C CXX)
+project(melon C CXX)
 
 option(WITH_GLOG "With glog" OFF)
 option(WITH_MESALINK "With MesaLink" OFF)
@@ -27,7 +27,7 @@ option(WITH_SNAPPY "With snappy" OFF)
 option(WITH_RDMA "With RDMA" OFF)
 option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
 option(BUILD_FUZZ_TESTS "Whether to build fuzz tests" OFF)
-option(BUILD_MELON_TOOLS "Whether to build brpc tools" ON)
+option(BUILD_MELON_TOOLS "Whether to build melon tools" ON)
 option(DOWNLOAD_GTEST "Download and build a fresh copy of googletest. Requires Internet access." ON)
 
 # Enable MACOSX_RPATH. Run "cmake --help-policy CMP0042" for policy details.
@@ -38,7 +38,7 @@ endif ()
 set(BRPC_VERSION 1.6.0)
 
 SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "brpc authors")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "melon authors")
 INCLUDE(CPack)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -118,7 +118,7 @@ set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEBUG_SYMBOL} ${THRIFT_CPP_FLAG}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-invalid-offsetof -Wno-unused-parameter -fno-omit-frame-pointer")
 set(CMAKE_C_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-unused-parameter -fno-omit-frame-pointer")
 
-macro(use_cxx11)
+macro(use_cxx17)
     if (CMAKE_VERSION VERSION_LESS "3.1.3")
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -127,12 +127,12 @@ macro(use_cxx11)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
         endif ()
     else ()
-        set(CMAKE_CXX_STANDARD 11)
+        set(CMAKE_CXX_STANDARD 17)
         set(CMAKE_CXX_STANDARD_REQUIRED ON)
     endif ()
-endmacro(use_cxx11)
+endmacro(use_cxx17)
 
-use_cxx11()
+use_cxx17()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     #required by butil/crc32.cc to boost performance for 10x
@@ -186,7 +186,7 @@ if (WITH_MESALINK)
 endif ()
 
 if (WITH_RDMA)
-    message("brpc compile with rdma")
+    message("melon compile with rdma")
     find_path(RDMA_INCLUDE_PATH NAMES infiniband/verbs.h)
     find_library(RDMA_LIB NAMES ibverbs)
     if ((NOT RDMA_INCLUDE_PATH) OR (NOT RDMA_LIB))
@@ -423,6 +423,7 @@ file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
 file(GLOB_RECURSE BUILTIN_SOURCES "${PROJECT_SOURCE_DIR}/melon/builtin/*.cc")
 file(GLOB_RECURSE COMPRESS_SOURCES "${PROJECT_SOURCE_DIR}/melon/compress/*.cc")
 file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cc")
+file(GLOB_RECURSE MC_SOURCES "${PROJECT_SOURCE_DIR}/melon/mc/*.cc")
 file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cc")
 
 
@@ -483,6 +484,7 @@ set(SOURCES
         ${LB_SOURCES}
         ${COMPRESS_SOURCES}
         ${BUILTIN_SOURCES}
+        ${MC_SOURCES}
         ${RAFT_SOURCES}
 )
 

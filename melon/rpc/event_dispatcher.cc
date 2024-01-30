@@ -29,54 +29,57 @@ DECLARE_int32(task_group_ntags);
 
 namespace melon {
 
-DEFINE_int32(event_dispatcher_num, 1, "Number of event dispatcher");
+    DEFINE_int32(event_dispatcher_num, 1, "Number of event dispatcher");
 
-DEFINE_bool(usercode_in_pthread, false, 
-            "Call user's callback in pthreads, use bthreads otherwise");
-DEFINE_bool(usercode_in_coroutine, false,
-            "User's callback are run in coroutine, no bthread or pthread blocking call");
+    DEFINE_bool(usercode_in_pthread, false,
+                "Call user's callback in pthreads, use bthreads otherwise");
+    DEFINE_bool(usercode_in_coroutine, false,
+                "User's callback are run in coroutine, no bthread or pthread blocking call");
 
-static EventDispatcher* g_edisp = NULL;
-static pthread_once_t g_edisp_once = PTHREAD_ONCE_INIT;
+    static EventDispatcher *g_edisp = nullptr;
+    static pthread_once_t g_edisp_once = PTHREAD_ONCE_INIT;
 
-static void StopAndJoinGlobalDispatchers() {
-    for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
-        for (int j = 0; j < FLAGS_event_dispatcher_num; ++j) {
-            g_edisp[i * FLAGS_event_dispatcher_num + j].Stop();
-            g_edisp[i * FLAGS_event_dispatcher_num + j].Join();
+    static void StopAndJoinGlobalDispatchers() {
+        for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
+            for (int j = 0; j < FLAGS_event_dispatcher_num; ++j) {
+                g_edisp[i * FLAGS_event_dispatcher_num + j].Stop();
+                g_edisp[i * FLAGS_event_dispatcher_num + j].Join();
+            }
         }
     }
-}
-void InitializeGlobalDispatchers() {
-    g_edisp = new EventDispatcher[FLAGS_task_group_ntags * FLAGS_event_dispatcher_num];
-    for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
-        for (int j = 0; j < FLAGS_event_dispatcher_num; ++j) {
-            bthread_attr_t attr =
-                FLAGS_usercode_in_pthread ? BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL;
-            attr.tag = (BTHREAD_TAG_DEFAULT + i) % FLAGS_task_group_ntags;
-            CHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
-        }
-    }
-    // This atexit is will be run before g_task_control.stop() because above
-    // Start() initializes g_task_control by creating bthread (to run epoll/kqueue).
-    CHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
-}
 
-EventDispatcher& GetGlobalEventDispatcher(int fd, bthread_tag_t tag) {
-    pthread_once(&g_edisp_once, InitializeGlobalDispatchers);
-    if (FLAGS_task_group_ntags == 1 && FLAGS_event_dispatcher_num == 1) {
-        return g_edisp[0];
+    void InitializeGlobalDispatchers() {
+        g_edisp = new EventDispatcher[FLAGS_task_group_ntags * FLAGS_event_dispatcher_num];
+        for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
+            for (int j = 0; j < FLAGS_event_dispatcher_num; ++j) {
+                bthread_attr_t attr =
+                        FLAGS_usercode_in_pthread ? BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL;
+                attr.tag = (BTHREAD_TAG_DEFAULT + i) % FLAGS_task_group_ntags;
+                CHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
+            }
+        }
+        // This atexit is will be run before g_task_control.stop() because above
+        // Start() initializes g_task_control by creating bthread (to run epoll/kqueue).
+        CHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
     }
-    int index = butil::fmix32(fd) % FLAGS_event_dispatcher_num;
-    return g_edisp[tag * FLAGS_event_dispatcher_num + index];
-}
+
+    EventDispatcher &GetGlobalEventDispatcher(int fd, bthread_tag_t tag) {
+        pthread_once(&g_edisp_once, InitializeGlobalDispatchers);
+        if (FLAGS_task_group_ntags == 1 && FLAGS_event_dispatcher_num == 1) {
+            return g_edisp[0];
+        }
+        int index = butil::fmix32(fd) % FLAGS_event_dispatcher_num;
+        return g_edisp[tag * FLAGS_event_dispatcher_num + index];
+    }
 
 } // namespace melon
 
 #if defined(OS_LINUX)
-    #include "melon/rpc/event_dispatcher_epoll.cc"
+
+#include "melon/rpc/event_dispatcher_epoll.cc"
+
 #elif defined(OS_MACOSX)
-    #include "melon/rpc/event_dispatcher_kqueue.cc"
+#include "melon/rpc/event_dispatcher_kqueue.cc"
 #else
-    #error Not implemented
+#error Not implemented
 #endif

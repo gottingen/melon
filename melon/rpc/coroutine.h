@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRPC_COROUTINE_H
-#define BRPC_COROUTINE_H
+#ifndef MELON_RPC_COROUTINE_H_
+#define MELON_RPC_COROUTINE_H_
 
 #if __cplusplus >= 202002L
 
@@ -145,4 +145,4 @@ private:
 
 #endif // __cplusplus >= 202002L
 
-#endif // BRPC_COROUTINE_H
+#endif // MELON_RPC_COROUTINE_H_

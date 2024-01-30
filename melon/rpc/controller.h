@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BRPC_CONTROLLER_H
-#define BRPC_CONTROLLER_H
+#ifndef MELOM_RPC_CONTROLLER_H_
+#define MELOM_RPC_CONTROLLER_H_
 
 // To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
@@ -120,9 +120,9 @@ namespace melon {
 
     typedef butil::FlatMap<std::string, std::string> UserFieldsMap;
 
-// A Controller mediates a single method call. The primary purpose of
-// the controller is to provide a way to manipulate settings per RPC-call 
-// and to find out about RPC-level errors.
+    // A Controller mediates a single method call. The primary purpose of
+    // the controller is to provide a way to manipulate settings per RPC-call
+    // and to find out about RPC-level errors.
     class Controller : public google::protobuf::RpcController/*non-copyable*/ {
         friend class Channel;
 
@@ -947,33 +947,33 @@ namespace melon {
         AfterRpcRespFnType _after_rpc_resp_fn;
     };
 
-// Advises the RPC system that the caller desires that the RPC call be
-// canceled. If the call is canceled, the "done" callback will still be
-// called and the Controller will indicate that the call failed at that
-// time.
+    // Advises the RPC system that the caller desires that the RPC call be
+    // canceled. If the call is canceled, the "done" callback will still be
+    // called and the Controller will indicate that the call failed at that
+    // time.
     void StartCancel(CallId id);
 
-// Suspend until the RPC finishes.
+    // Suspend until the RPC finishes.
     void Join(CallId id);
 
-// Get a global closure for doing nothing. Used in semi-synchronous
-// RPC calls. Example:
-//   stub1.method1(&cntl1, &request1, &response1, melon::DoNothing());
-//   stub2.method2(&cntl2, &request2, &response2, melon::DoNothing());
-//   ...
-//   melon::Join(cntl1.call_id());
-//   melon::Join(cntl2.call_id());
+    // Get a global closure for doing nothing. Used in semi-synchronous
+    // RPC calls. Example:
+    //   stub1.method1(&cntl1, &request1, &response1, melon::DoNothing());
+    //   stub2.method2(&cntl2, &request2, &response2, melon::DoNothing());
+    //   ...
+    //   melon::Join(cntl1.call_id());
+    //   melon::Join(cntl2.call_id());
     google::protobuf::Closure *DoNothing();
 
-// Convert non-web symbols to web equivalence.
+    // Convert non-web symbols to web equivalence.
     void WebEscape(const std::string &source, std::string *output);
 
     std::string WebEscape(const std::string &source);
 
-// True if Ctrl-C is ever pressed.
+    // True if Ctrl-C is ever pressed.
     bool IsAskedToQuit();
 
-// Send Ctrl-C to current process.
+    // Send Ctrl-C to current process.
     void AskToQuit();
 
     std::ostream &operator<<(std::ostream &os, const Controller::LogPrefixDummy &p);
@@ -1000,4 +1000,4 @@ namespace melon {
 #define CLOGF(cntl) LOG(FATAL) << (cntl)->LogPrefix()
 #define CVLOG(v, cntl) VLOG(v) << (cntl)->LogPrefix()
 
-#endif  // BRPC_CONTROLLER_H
+#endif  // MELOM_RPC_CONTROLLER_H_

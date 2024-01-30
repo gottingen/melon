@@ -29,14 +29,14 @@
 DEFINE_string(d, "", "POST this data to the http server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
 DEFINE_int32(timeout_ms, 2000, "RPC timeout in milliseconds");
-DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
+DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
 DEFINE_string(protocol, "http", "Client-side protocol");
 
 namespace melon {
-DECLARE_bool(http_verbose);
+    DECLARE_bool(http_verbose);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // Parse gflags. We recommend you to use gflags as well.
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
@@ -44,8 +44,8 @@ int main(int argc, char* argv[]) {
         LOG(ERROR) << "Usage: ./http_client \"http(s)://www.foo.com\"";
         return -1;
     }
-    char* url = argv[1];
-    
+    char *url = argv[1];
+
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::Channel channel;

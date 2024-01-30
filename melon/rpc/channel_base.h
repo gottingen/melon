@@ -31,17 +31,17 @@
 
 namespace melon {
 
-// Base of all brpc channels.
-class ChannelBase : public google::protobuf::RpcChannel/*non-copyable*/,
-                    public Describable {
-public:
-    virtual int Weight() {
-        CHECK(false) << "Not implemented";
-        abort();
-    };
+    // Base of all brpc channels.
+    class ChannelBase : public google::protobuf::RpcChannel/*non-copyable*/,
+                        public Describable {
+    public:
+        virtual int Weight() {
+            CHECK(false) << "Not implemented";
+            abort();
+        };
 
-    virtual int CheckHealth() = 0;
-};
+        virtual int CheckHealth() = 0;
+    };
 
 } // namespace melon
 
