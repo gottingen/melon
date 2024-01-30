@@ -13,8 +13,8 @@
 // limitations under the License.
 //
 
-#ifndef MELON_MC_HTTP_H_
-#define MELON_MC_HTTP_H_
+#ifndef MELON_CORE_HTTP_H_
+#define MELON_CORE_HTTP_H_
 
 #include <string>
 #include <string_view>
@@ -264,4 +264,4 @@ namespace melon {
         return _controller.ErrorText();
     }
 }  // namespace melon
-#endif // MELON_MC_HTTP_H_
+#endif // MELON_CORE_HTTP_H_

@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BRPC_RELOADABLE_FLAGS_H
-#define BRPC_RELOADABLE_FLAGS_H
+#ifndef MELON_RPC_RELOADABLE_FLAGS_H_
+#define MELON_RPC_RELOADABLE_FLAGS_H_
 
 // To brpc developers: This is a header included by user, don't depend
 // on internal structures, use opaque pointers instead.
@@ -43,34 +43,48 @@
 
 namespace melon {
 
-extern bool PassValidate(const char*, bool);
-extern bool PassValidate(const char*, int32_t);
-extern bool PassValidate(const char*, uint32_t);
-extern bool PassValidate(const char*, int64_t);
-extern bool PassValidate(const char*, uint64_t);
-extern bool PassValidate(const char*, double);
+    extern bool PassValidate(const char *, bool);
 
-extern bool PositiveInteger(const char*, int32_t);
-extern bool PositiveInteger(const char*, uint32_t);
-extern bool PositiveInteger(const char*, int64_t);
-extern bool PositiveInteger(const char*, uint64_t);
+    extern bool PassValidate(const char *, int32_t);
 
-extern bool NonNegativeInteger(const char*, int32_t);
-extern bool NonNegativeInteger(const char*, int64_t);
+    extern bool PassValidate(const char *, uint32_t);
 
-extern bool RegisterFlagValidatorOrDie(const bool* flag,
-                                  bool (*validate_fn)(const char*, bool));
-extern bool RegisterFlagValidatorOrDie(const int32_t* flag,
-                                  bool (*validate_fn)(const char*, int32_t));
-extern bool RegisterFlagValidatorOrDie(const uint32_t* flag,
-                                  bool (*validate_fn)(const char*, uint32_t));
-extern bool RegisterFlagValidatorOrDie(const int64_t* flag,
-                                  bool (*validate_fn)(const char*, int64_t));
-extern bool RegisterFlagValidatorOrDie(const uint64_t* flag,
-                                  bool (*validate_fn)(const char*, uint64_t));
-extern bool RegisterFlagValidatorOrDie(const double* flag,
-                                  bool (*validate_fn)(const char*, double));
+    extern bool PassValidate(const char *, int64_t);
+
+    extern bool PassValidate(const char *, uint64_t);
+
+    extern bool PassValidate(const char *, double);
+
+    extern bool PositiveInteger(const char *, int32_t);
+
+    extern bool PositiveInteger(const char *, uint32_t);
+
+    extern bool PositiveInteger(const char *, int64_t);
+
+    extern bool PositiveInteger(const char *, uint64_t);
+
+    extern bool NonNegativeInteger(const char *, int32_t);
+
+    extern bool NonNegativeInteger(const char *, int64_t);
+
+    extern bool RegisterFlagValidatorOrDie(const bool *flag,
+                                           bool (*validate_fn)(const char *, bool));
+
+    extern bool RegisterFlagValidatorOrDie(const int32_t *flag,
+                                           bool (*validate_fn)(const char *, int32_t));
+
+    extern bool RegisterFlagValidatorOrDie(const uint32_t *flag,
+                                           bool (*validate_fn)(const char *, uint32_t));
+
+    extern bool RegisterFlagValidatorOrDie(const int64_t *flag,
+                                           bool (*validate_fn)(const char *, int64_t));
+
+    extern bool RegisterFlagValidatorOrDie(const uint64_t *flag,
+                                           bool (*validate_fn)(const char *, uint64_t));
+
+    extern bool RegisterFlagValidatorOrDie(const double *flag,
+                                           bool (*validate_fn)(const char *, double));
 } // namespace melon
 
 
-#endif  // BRPC_RELOADABLE_FLAGS_H
+#endif  // MELON_RPC_RELOADABLE_FLAGS_H_

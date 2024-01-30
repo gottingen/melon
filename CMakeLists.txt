@@ -423,7 +423,7 @@ file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
 file(GLOB_RECURSE BUILTIN_SOURCES "${PROJECT_SOURCE_DIR}/melon/builtin/*.cc")
 file(GLOB_RECURSE COMPRESS_SOURCES "${PROJECT_SOURCE_DIR}/melon/compress/*.cc")
 file(GLOB_RECURSE RAFT_SOURCES "${PROJECT_SOURCE_DIR}/melon/raft/*.cc")
-file(GLOB_RECURSE MC_SOURCES "${PROJECT_SOURCE_DIR}/melon/mc/*.cc")
+file(GLOB_RECURSE CORE_SOURCES "${PROJECT_SOURCE_DIR}/melon/core/*.cc")
 file(GLOB_RECURSE EXCLUDE_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/event_dispatcher_*.cc")
 
 
@@ -484,7 +484,7 @@ set(SOURCES
         ${LB_SOURCES}
         ${COMPRESS_SOURCES}
         ${BUILTIN_SOURCES}
-        ${MC_SOURCES}
+        ${CORE_SOURCES}
         ${RAFT_SOURCES}
 )
 

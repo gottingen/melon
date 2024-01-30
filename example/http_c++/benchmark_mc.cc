@@ -20,7 +20,7 @@
 #include <gflags/gflags.h>
 #include <melon/bthread/bthread.h>
 #include <melon/butil/logging.h>
-#include <melon/mc/http.h>
+#include <melon/core/http.h>
 #include <melon/rpc/server.h>
 #include <melon/var/var.h>
 

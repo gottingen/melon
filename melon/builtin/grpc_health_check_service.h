@@ -23,14 +23,14 @@
 
 namespace melon {
 
-class GrpcHealthCheckService : public grpc::health::v1::Health {
-public:
-    void Check(::google::protobuf::RpcController* cntl_base,
-               const grpc::health::v1::HealthCheckRequest* request,
-               grpc::health::v1::HealthCheckResponse* response,
-               ::google::protobuf::Closure* done);
+    class GrpcHealthCheckService : public grpc::health::v1::Health {
+    public:
+        void Check(::google::protobuf::RpcController *cntl_base,
+                   const grpc::health::v1::HealthCheckRequest *request,
+                   grpc::health::v1::HealthCheckResponse *response,
+                   ::google::protobuf::Closure *done);
 
-};
+    };
 
 } // namespace melon
 

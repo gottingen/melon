@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/mc/http.h"
+#include "melon/core/http.h"
 #include "melon/compress/gzip_compress.h"
 #include "melon/compress/snappy_compress.h"
 #include "melon/butil/fast_rand.h"

@@ -15,45 +15,45 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRPC_POLICY_REDIS_AUTHENTICATOR_H
-#define BRPC_POLICY_REDIS_AUTHENTICATOR_H
+#ifndef MELON_RPC_POLICY_REDIS_AUTHENTICATOR_H_
+#define MELON_RPC_POLICY_REDIS_AUTHENTICATOR_H_
 
 #include "melon/rpc/authenticator.h"
 
 namespace melon {
-namespace policy {
+    namespace policy {
 
-// Request to redis for authentication.
-class RedisAuthenticator : public Authenticator {
-public:
-    RedisAuthenticator(const std::string& passwd, int db = -1)
-        : passwd_(passwd), db_(db) {}
+        // Request to redis for authentication.
+        class RedisAuthenticator : public Authenticator {
+        public:
+            RedisAuthenticator(const std::string &passwd, int db = -1)
+                    : passwd_(passwd), db_(db) {}
 
-    int GenerateCredential(std::string* auth_str) const;
+            int GenerateCredential(std::string *auth_str) const;
 
-    int VerifyCredential(const std::string&, const butil::EndPoint&,
-                         melon::AuthContext*) const {
-        return 0;
-    }
+            int VerifyCredential(const std::string &, const butil::EndPoint &,
+                                 melon::AuthContext *) const {
+                return 0;
+            }
 
-    uint32_t GetAuthFlags() const {
-        uint32_t n = 0;
-        if (!passwd_.empty()) {
-            ++n;
-        }
-        if (db_ >= 0) {
-            ++n;
-        }
-        return n;
-    }
+            uint32_t GetAuthFlags() const {
+                uint32_t n = 0;
+                if (!passwd_.empty()) {
+                    ++n;
+                }
+                if (db_ >= 0) {
+                    ++n;
+                }
+                return n;
+            }
 
-private:
-    const std::string passwd_;
+        private:
+            const std::string passwd_;
 
-    int db_;
-};
+            int db_;
+        };
 
-}  // namespace policy
+    }  // namespace policy
 }  // namespace melon
 
-#endif  // BRPC_POLICY_COUCHBASE_AUTHENTICATOR_H
+#endif  // MELON_RPC_POLICY_REDIS_AUTHENTICATOR_H_
