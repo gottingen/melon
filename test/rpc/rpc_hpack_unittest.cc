@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 #include "melon/rpc/http/hpack.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 class HPackTest : public testing::Test {
 };

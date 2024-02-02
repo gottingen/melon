@@ -24,7 +24,7 @@
 
 #include <limits>  // std::numeric_limits
 #include <google/protobuf/io/zero_copy_stream.h>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_piece.h"
 #include "melon/mcpack2pb/field_type.h"
 

@@ -23,7 +23,7 @@
 #include <limits>                                 // std::numeric_limits
 #include <math.h>                                 // round
 #include <gflags/gflags_declare.h>
-#include "melon/butil/logging.h"                         // LOG
+#include "melon/common/logging.h"                         // LOG
 #include "melon/var/detail/sampler.h"
 #include "melon/var/detail/series.h"
 #include "melon/var/variable.h"

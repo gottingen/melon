@@ -26,7 +26,7 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include "melon/butil/unique_ptr.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/ssl_compat.h"
 #include "melon/butil/string_splitter.h"
 #include "melon/rpc/socket.h"

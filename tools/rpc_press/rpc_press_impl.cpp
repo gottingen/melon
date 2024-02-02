@@ -27,7 +27,7 @@
 #include <melon/butil/time.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/json2pb/pb_to_json.h>
 #include "json_loader.h"
 #include "rpc_press_impl.h"

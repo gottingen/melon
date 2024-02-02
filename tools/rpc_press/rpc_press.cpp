@@ -19,7 +19,7 @@
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <melon/rpc/server.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/string_splitter.h>
 #include <string.h>
 #include "rpc_press_impl.h"

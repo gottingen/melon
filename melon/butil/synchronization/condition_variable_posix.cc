@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/synchronization/lock.h"
 #include "melon/butil/threading/thread_restrictions.h"
 #include "melon/butil/time/time.h"

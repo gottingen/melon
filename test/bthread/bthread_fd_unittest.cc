@@ -26,7 +26,8 @@
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
 #include "melon/butil/fd_utility.h"
-#include "melon/butil/logging.h"
+
+#include "melon/common/logging.h"
 #include "melon/bthread/task_control.h"
 #include "melon/bthread/task_group.h"
 #include "melon/bthread/interrupt_pthread.h"
@@ -446,6 +447,7 @@ TEST(FDTest, invalid_epoll_events) {
     errno = 0;
 #if defined(OS_LINUX)
     ASSERT_EQ(-1, bthread_fd_wait(-1, EPOLLIN));
+    //ASSERT_DEBUG_DEATH(bthread_fd_wait(-1, EPOLLIN), ".*");
 #elif defined(OS_MACOSX)
     ASSERT_EQ(-1, bthread_fd_wait(-1, EVFILT_READ));
 #endif

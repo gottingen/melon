@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include "melon/butil/scoped_lock.h"
 #include "melon/butil/thread_local.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/macros.h"
 #include "melon/butil/type_traits.h"
 #include "melon/butil/errno.h"

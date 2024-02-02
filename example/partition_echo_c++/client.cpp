@@ -19,7 +19,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/string_printf.h>
 #include <melon/butil/time.h>
 #include <melon/butil/macros.h>

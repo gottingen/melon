@@ -16,7 +16,7 @@
 // under the License.
 
 #include <algorithm>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/json2pb/pb_to_json.h>
 #include <melon/json2pb/json_to_pb.h>
 #include "pb_util.h"

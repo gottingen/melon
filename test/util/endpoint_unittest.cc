@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include "melon/butil/errno.h"
 #include "melon/butil/endpoint.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/containers/flat_map.h"
 #include "melon/butil/details/extended_endpoint.hpp"
 

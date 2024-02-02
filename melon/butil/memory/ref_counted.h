@@ -11,7 +11,7 @@
 #include "melon/butil/base_export.h"
 #include "melon/butil/compiler_specific.h"
 #ifndef NDEBUG
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #endif
 #include "melon/butil/threading/thread_collision_warner.h"
 

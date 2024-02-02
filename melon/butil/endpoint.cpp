@@ -31,7 +31,7 @@
 #include "melon/butil/build_config.h"                // OS_MACOSX
 #include "melon/butil/fd_guard.h"                    // fd_guard
 #include "melon/butil/endpoint.h"                    // ip_t
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 #include "melon/butil/strings/string_piece.h"
 

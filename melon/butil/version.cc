@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_number_conversions.h"
 #include "melon/butil/strings/string_split.h"
 #include "melon/butil/strings/string_util.h"

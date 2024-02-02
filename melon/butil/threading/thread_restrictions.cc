@@ -7,7 +7,7 @@
 #if ENABLE_THREAD_RESTRICTIONS
 
 #include "melon/butil/lazy_instance.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/thread_local.h"
 
 namespace butil {

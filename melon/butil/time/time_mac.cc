@@ -14,7 +14,7 @@
 #include <time.h>
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/mac/scoped_cftyperef.h"
 #include "melon/butil/mac/scoped_mach_port.h"
 

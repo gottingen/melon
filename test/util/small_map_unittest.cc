@@ -11,7 +11,7 @@
 #include <map>
 
 #include "melon/butil/containers/hash_tables.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include <gtest/gtest.h>
 
 namespace butil {

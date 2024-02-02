@@ -23,7 +23,7 @@
 #include <vector>
 #include "melon/butil/containers/linked_list.h"// LinkNode
 #include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/butil/logging.h"               // LOG()
+#include "melon/common/logging.h"               // LOG()
 #include "melon/butil/containers/bounded_queue.h"// BoundedQueue
 #include "melon/butil/type_traits.h"           // is_same
 #include "melon/butil/time.h"                  // gettimeofday_us

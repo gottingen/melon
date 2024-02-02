@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/adaptive_connection_type.h"
 
 

@@ -21,7 +21,7 @@
 #include <sys/socket.h>                         // ^
 #include <sys/un.h>                             // unix domain socket
 #include "melon/butil/fd_guard.h"                     // fd_guard
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

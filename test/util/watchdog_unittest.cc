@@ -4,7 +4,7 @@
 
 #include "melon/butil/threading/watchdog.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/synchronization/spin_wait.h"
 #include "melon/butil/threading/platform_thread.h"
 #include "melon/butil/time/time.h"

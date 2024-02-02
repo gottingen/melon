@@ -4,7 +4,7 @@
 
 #include "melon/butil/strings/string_split.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_util.h"
 #include "melon/butil/strings/utf_string_conversions.h"
 #include "melon/butil/third_party/icu/icu_utf.h"

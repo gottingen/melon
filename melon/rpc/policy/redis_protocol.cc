@@ -21,7 +21,7 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 #include "melon/rpc/policy/redis_authenticator.h"
-#include "melon/butil/logging.h"                       // LOG()
+#include "melon/common/logging.h"                       // LOG()
 #include "melon/butil/time.h"
 #include "melon/butil/iobuf.h"                         // butil::IOBuf
 #include "melon/rpc/controller.h"               // Controller

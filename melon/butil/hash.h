@@ -10,7 +10,7 @@
 
 #include "melon/butil/base_export.h"
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

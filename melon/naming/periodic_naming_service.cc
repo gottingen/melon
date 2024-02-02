@@ -17,7 +17,7 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/bthread.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"

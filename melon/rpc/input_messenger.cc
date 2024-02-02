@@ -18,7 +18,7 @@
 
 #include <gflags/gflags.h>
 #include "melon/butil/fd_guard.h"                      // fd_guard
-#include "melon/butil/logging.h"                       // CHECK
+#include "melon/common/logging.h"                       // CHECK
 #include "melon/butil/time.h"                          // cpuwide_time_us
 #include "melon/butil/fd_utility.h"                    // make_non_blocking
 #include "melon/bthread/bthread.h"                     // bthread_start_background

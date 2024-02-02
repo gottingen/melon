@@ -20,7 +20,7 @@
 #ifndef MELON_VAR_MULTI_DIMENSION_H_
 #define MELON_VAR_MULTI_DIMENSION_H_
 
-#include "melon/butil/logging.h"                           // LOG
+#include "melon/common/logging.h"                           // LOG
 #include "melon/butil/macros.h"                            // BAIDU_CASSERT
 #include "melon/butil/scoped_lock.h"                       // BAIDU_SCOPE_LOCK
 #include "melon/butil/containers/doubly_buffered_data.h"   // DBD

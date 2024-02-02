@@ -30,7 +30,7 @@
 #include <melon/butil/scoped_lock.h>
 #include <melon/butil/fast_rand.h>
 #include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/iobuf.h>
 #include <melon/butil/unique_ptr.h>
 #include <melon/butil/memory/singleton.h>

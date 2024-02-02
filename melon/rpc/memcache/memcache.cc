@@ -22,7 +22,7 @@
 #include "melon/butil/string_printf.h"
 #include "melon/butil/macros.h"
 #include "melon/butil/sys_byteorder.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/memcache/memcache.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
 

@@ -26,7 +26,7 @@
 #ifdef SHOW_BTHREAD_BUTEX_WAITER_COUNT_IN_VARS
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 #endif
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/object_pool.h"
 #include "melon/bthread/errno.h"                 // EWOULDBLOCK
 #include "melon/bthread/sys_futex.h"             // futex_*

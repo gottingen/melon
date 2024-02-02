@@ -98,7 +98,7 @@
 #include <iostream>                               // std::ostream
 #include <type_traits>                            // std::aligned_storage
 #include "melon/butil/type_traits.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/find_cstr.h"
 #include "melon/butil/single_threaded_pool.h"            // SingleThreadedPool
 #include "melon/butil/containers/hash_tables.h"          // hash<>

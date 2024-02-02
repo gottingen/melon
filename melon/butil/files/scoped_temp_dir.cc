@@ -5,7 +5,7 @@
 #include "melon/butil/files/scoped_temp_dir.h"
 
 #include "melon/butil/file_util.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/singleton.h"
 #include "melon/butil/strings/string_util.h"
 

@@ -18,7 +18,7 @@
 // A server to receive HelloRequest and send back HelloReply
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
 #include "helloworld.pb.h"

@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #include "melon/butil/base_export.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/scoped_generic.h"
 #include "melon/butil/build_config.h"

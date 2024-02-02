@@ -22,7 +22,7 @@
 #ifndef BUTIL_COMLOG_SINK_H
 #define BUTIL_COMLOG_SINK_H
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 struct com_device_t;
 template <typename T> struct DefaultSingletonTraits;

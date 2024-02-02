@@ -11,7 +11,7 @@
 
 #include "melon/butil/basictypes.h"
 #include "melon/butil/containers/hash_tables.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/manual_constructor.h"
 
 namespace butil {

@@ -26,7 +26,7 @@
 
 #include "melon/butil/synchronization/lock.h"
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/errno.h"
 
 #if !defined(BUTIL_CXX11_ENABLED)

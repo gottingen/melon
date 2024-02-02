@@ -17,7 +17,7 @@
 
 #include "melon/raft/log_manager.h"
 
-#include <melon/butil/logging.h>                       // LOG
+#include <melon/common/logging.h>                       // LOG
 #include <melon/butil/object_pool.h>                   // butil::get_object
 #include <melon/bthread/unstable.h>                   // bthread_flush
 #include <melon/bthread/countdown_event.h>            // bthread::CountdownEvent

@@ -4,7 +4,7 @@
 
 #include "melon/butil/synchronization/cancellation_flag.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

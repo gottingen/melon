@@ -16,7 +16,7 @@
 #include <melon/bthread/bthread.h>
 #include <gflags/gflags.h>
 #include <melon/butil/containers/flat_map.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/bthread/bthread.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/server.h>

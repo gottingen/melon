@@ -4,7 +4,7 @@
 
 #include "melon/butil/mac/bundle_locations.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/mac/foundation_util.h"
 #include "melon/butil/strings/sys_string_conversions.h"
 

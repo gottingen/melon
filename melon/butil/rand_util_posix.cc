@@ -10,7 +10,7 @@
 
 #include "melon/butil/file_util.h"
 #include "melon/butil/lazy_instance.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace {
 

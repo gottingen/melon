@@ -26,7 +26,7 @@
 #define BUTIL_BOUNDED_QUEUE_H
 
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

@@ -10,7 +10,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

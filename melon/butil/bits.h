@@ -8,7 +8,7 @@
 #define BUTIL_BITS_H_
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 namespace bits {

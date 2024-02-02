@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include <memory>
 #include "melon/butil/time.h"                              // milliseconds_from_now
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"
 #include "melon/butil/strings/string_util.h"
 #include "melon/bthread/unstable.h"                        // bthread_timer_add

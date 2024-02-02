@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/rpc/stream.h>

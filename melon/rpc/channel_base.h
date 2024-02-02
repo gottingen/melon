@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 #include <ostream>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include <google/protobuf/service.h>            // google::protobuf::RpcChannel
 #include "melon/rpc/describable.h"
 

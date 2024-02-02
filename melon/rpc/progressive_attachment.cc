@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/bthread.h"   // INVALID_BTHREAD_ID before bthread r32748
 #include "melon/rpc/progressive_attachment.h"
 #include "melon/rpc/socket.h"

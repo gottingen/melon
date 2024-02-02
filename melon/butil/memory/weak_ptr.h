@@ -65,7 +65,7 @@
 
 #include "melon/butil/basictypes.h"
 #include "melon/butil/base_export.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/ref_counted.h"
 #include "melon/butil/type_traits.h"
 

@@ -17,7 +17,7 @@
 
 
 #include "melon/butil/time.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/popen.h"
 #include "melon/rpc/controller.h"           // Controller
 #include "melon/rpc/closure_guard.h"        // ClosureGuard

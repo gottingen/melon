@@ -15,28 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// Date: 2012-10-08 23:53:50
 
-#ifndef  MELON_BUILTIN_VLOG_SERVICE_H_
-#define  MELON_BUILTIN_VLOG_SERVICE_H_
+#include "melon/common/logging.h"
 
-#if !BRPC_WITH_GLOG
-
-#include <ostream>
-#include "melon/proto/rpc/builtin_service.pb.h"
-
-namespace melon {
-
-class VLogService : public vlog {
-public:
-    void default_method(::google::protobuf::RpcController* controller,
-                        const ::melon::VLogRequest* request,
-                        ::melon::VLogResponse* response,
-                        ::google::protobuf::Closure* done);
-
-};
-
-} // namespace melon
-
-#endif  // BRPC_WITH_GLOG
-
-#endif  // MELON_BUILTIN_VLOG_SERVICE_H_
+#include <gflags/gflags.h>
+DEFINE_bool(log_as_json, false, "Print log as a valid JSON");
+DEFINE_bool(escape_log, false, "Escape log content before printing");

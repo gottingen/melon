@@ -22,7 +22,7 @@
 
 #include <stdint.h>                              // int64_t uint64_t
 #include "melon/butil/macros.h"                         // BAIDU_CASSERT
-#include "melon/butil/logging.h"                        // LOG
+#include "melon/common/logging.h"                        // LOG
 #include "melon/var/detail/combiner.h"                // detail::AgentCombiner
 #include "melon/var/variable.h"
 #include "melon/var/window.h"

@@ -19,7 +19,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/redis/redis.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/policy/redis_authenticator.h>

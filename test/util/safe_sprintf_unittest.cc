@@ -9,7 +9,7 @@
 
 #include <limits>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 

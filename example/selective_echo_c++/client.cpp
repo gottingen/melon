@@ -19,7 +19,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/selective_channel.h>
 #include <melon/rpc/parallel_channel.h>
 #include "echo.pb.h"

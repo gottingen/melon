@@ -5,7 +5,7 @@
 // Date: 2015/10/08 17:00:05
 
 #include <gtest/gtest.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

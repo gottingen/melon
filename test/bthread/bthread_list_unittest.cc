@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/task_group.h"
 #include "melon/bthread/bthread.h"
 

@@ -24,7 +24,7 @@
 
 #include <stdint.h>                            // uint64_t
 #if defined(__cplusplus)
-#include "melon/butil/logging.h"                      // CHECK
+#include "melon/common/logging.h"                      // CHECK
 #endif
 
 typedef uint64_t bthread_t;

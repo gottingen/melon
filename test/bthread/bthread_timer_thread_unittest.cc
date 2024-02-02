@@ -20,7 +20,7 @@
 #include "melon/bthread/sys_futex.h"
 #include "melon/bthread/timer_thread.h"
 #include "melon/bthread/bthread.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace {
 

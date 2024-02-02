@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_piece.h"
 #include "melon/butil/strings/string_util.h"
 #include "melon/butil/strings/utf_string_conversions.h"

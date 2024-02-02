@@ -18,7 +18,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(melon C CXX)
 
-option(WITH_GLOG "With glog" OFF)
 option(WITH_MESALINK "With MesaLink" OFF)
 option(WITH_BORINGSSL "With BoringSSL" OFF)
 option(DEBUG "Print debug logs" OFF)
@@ -29,6 +28,8 @@ option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
 option(BUILD_FUZZ_TESTS "Whether to build fuzz tests" OFF)
 option(BUILD_MELON_TOOLS "Whether to build melon tools" ON)
 option(DOWNLOAD_GTEST "Download and build a fresh copy of googletest. Requires Internet access." ON)
+
+list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
 
 # Enable MACOSX_RPATH. Run "cmake --help-policy CMP0042" for policy details.
 if (POLICY CMP0042)
@@ -55,12 +56,6 @@ else ()
     message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
 endif ()
 
-set(WITH_GLOG_VAL "0")
-if (WITH_GLOG)
-    set(WITH_GLOG_VAL "1")
-    set(BRPC_WITH_GLOG 1)
-endif ()
-
 if (WITH_DEBUG_SYMBOLS)
     set(DEBUG_SYMBOL "-g")
 endif ()
@@ -72,19 +67,20 @@ endif ()
 
 include(GNUInstallDirs)
 
-configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/melon/butil/config.h @ONLY)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
-find_package(GFLAGS REQUIRED)
+find_package(gflags REQUIRED)
+find_package(Snappy REQUIRED)
+find_package(leveldb REQUIRED)
+message(STATUS "Found gflags: ${gflags_INCLUDE_DIR}")
 
 execute_process(
-        COMMAND bash -c "grep \"namespace [_A-Za-z0-9]\\+ {\" ${GFLAGS_INCLUDE_PATH}/gflags/gflags_declare.h | head -1 | awk '{print $2}' | tr -d '\n'"
+        COMMAND bash -c "grep \"namespace [_A-Za-z0-9]\\+ {\" ${gflags_INCLUDE_DIR}/gflags/gflags_declare.h | head -1 | awk '{print $2}' | tr -d '\n'"
         OUTPUT_VARIABLE GFLAGS_NS
 )
 if (${GFLAGS_NS} STREQUAL "GFLAGS_NAMESPACE")
     execute_process(
-            COMMAND bash -c "grep \"#define GFLAGS_NAMESPACE [_A-Za-z0-9]\\+\" ${GFLAGS_INCLUDE_PATH}/gflags/gflags_declare.h | head -1 | awk '{print $3}' | tr -d '\n'"
+            COMMAND bash -c "grep \"#define GFLAGS_NAMESPACE [_A-Za-z0-9]\\+\" ${gflags_INCLUDE_DIR}/gflags/gflags_declare.h | head -1 | awk '{print $3}' | tr -d '\n'"
             OUTPUT_VARIABLE GFLAGS_NS
     )
 endif ()
@@ -109,13 +105,13 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -Wno-deprecated-declarations -Wno-inconsistent-missing-override")
 endif ()
 
-set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEFINE_CLOCK_GETTIME} -DBRPC_WITH_GLOG=${WITH_GLOG_VAL} -DBRPC_WITH_RDMA=${WITH_RDMA_VAL} -DGFLAGS_NS=${GFLAGS_NS}")
+set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEFINE_CLOCK_GETTIME} -DBRPC_WITH_RDMA=${WITH_RDMA_VAL} -DGFLAGS_NS=${GFLAGS_NS}")
 if (WITH_MESALINK)
     set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DUSE_MESALINK")
 endif ()
 set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DBTHREAD_USE_FAST_PTHREAD_MUTEX -D__const__=__unused__ -D_GNU_SOURCE -DUSE_SYMBOLIZE -DNO_TCMALLOC -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DBRPC_REVISION=\\\"${BRPC_REVISION}\\\" -D__STRICT_ANSI__")
 set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEBUG_SYMBOL} ${THRIFT_CPP_FLAG}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-invalid-offsetof -Wno-unused-parameter -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-invalid-offsetof -Wno-unused-parameter -fno-omit-frame-pointer -Wno-deprecated-declarations")
 set(CMAKE_C_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-unused-parameter -fno-omit-frame-pointer")
 
 macro(use_cxx17)
@@ -165,14 +161,12 @@ if (WITH_SNAPPY)
     include_directories(${SNAPPY_INCLUDE_PATH})
 endif ()
 
-if (WITH_GLOG)
-    find_path(GLOG_INCLUDE_PATH NAMES glog/logging.h)
-    find_library(GLOG_LIB NAMES glog)
-    if ((NOT GLOG_INCLUDE_PATH) OR (NOT GLOG_LIB))
-        message(FATAL_ERROR "Fail to find glog")
-    endif ()
-    include_directories(${GLOG_INCLUDE_PATH})
+find_path(GLOG_INCLUDE_PATH NAMES glog/logging.h)
+find_library(GLOG_LIB NAMES glog)
+if ((NOT GLOG_INCLUDE_PATH) OR (NOT GLOG_LIB))
+    message(FATAL_ERROR "Fail to find glog")
 endif ()
+include_directories(${GLOG_INCLUDE_PATH})
 
 if (WITH_MESALINK)
     find_path(MESALINK_INCLUDE_PATH NAMES mesalink/openssl/ssl.h)
@@ -214,13 +208,13 @@ else ()
 endif ()
 
 include_directories(
-        ${GFLAGS_INCLUDE_PATH}
+        ${gflags_INCLUDE_DIR}
         ${PROTOBUF_INCLUDE_DIRS}
         ${LEVELDB_INCLUDE_PATH}
 )
-
+message(STATUS "Found gflags: ${gflags_LIBRARIES}")
 set(DYNAMIC_LIB
-        ${GFLAGS_LIBRARY}
+        ${gflags_LIBRARIES}
         ${PROTOBUF_LIBRARIES}
         ${LEVELDB_LIB}
         ${PROTOC_LIB}
@@ -246,10 +240,8 @@ endif ()
 
 set(BRPC_PRIVATE_LIBS "-lgflags -lprotobuf -lleveldb -lprotoc -lssl -lcrypto -ldl -lz")
 
-if (WITH_GLOG)
-    set(DYNAMIC_LIB ${DYNAMIC_LIB} ${GLOG_LIB})
-    set(BRPC_PRIVATE_LIBS "${BRPC_PRIVATE_LIBS} -lglog")
-endif ()
+set(DYNAMIC_LIB ${DYNAMIC_LIB} ${GLOG_LIB})
+set(BRPC_PRIVATE_LIBS "${BRPC_PRIVATE_LIBS} -lglog")
 
 if (WITH_SNAPPY)
     set(DYNAMIC_LIB ${DYNAMIC_LIB} ${SNAPPY_LIB})
@@ -282,6 +274,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/output/lib)
 # the reason why not using file(GLOB_RECURSE...) is that we want to
 # include different files on different platforms.
 set(BUTIL_SOURCES
+        ${PROJECT_SOURCE_DIR}/melon/common/logging.cc
         ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dmg_fp/g_fmt.cc
         ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dmg_fp/dtoa_wrapper.cc
         ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dynamic_annotations/dynamic_annotations.c
@@ -375,7 +368,6 @@ set(BUTIL_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/butil/time/time.cc
         ${PROJECT_SOURCE_DIR}/melon/butil/time/time_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/butil/version.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/logging.cc
         ${PROJECT_SOURCE_DIR}/melon/butil/class_name.cpp
         ${PROJECT_SOURCE_DIR}/melon/butil/errno.cpp
         ${PROJECT_SOURCE_DIR}/melon/butil/find_cstr.cpp

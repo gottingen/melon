@@ -11,7 +11,7 @@
 
 #include <limits>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/scoped_clear_errno.h"
 #include "melon/butil/strings/utf_string_conversions.h"
 #include "melon/butil/third_party/dmg_fp/dmg_fp.h"

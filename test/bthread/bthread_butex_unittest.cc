@@ -19,7 +19,7 @@
 #include "melon/butil/atomicops.h"
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/butex.h"
 #include "melon/bthread/task_control.h"
 #include "melon/bthread/task_group.h"

@@ -31,7 +31,7 @@ const uint64_t PB_TOTAL_BYETS_LIMITS =
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/text_format.h>
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/controller.h"

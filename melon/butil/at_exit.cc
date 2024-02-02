@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

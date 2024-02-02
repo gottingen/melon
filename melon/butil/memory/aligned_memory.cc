@@ -4,7 +4,7 @@
 
 #include "melon/butil/memory/aligned_memory.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 #if defined(OS_ANDROID)
 #include <malloc.h>

@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <melon/butil/fd_guard.h>
 #include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 
 class FsyncTest : public testing::Test {
 };

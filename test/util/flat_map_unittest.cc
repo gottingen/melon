@@ -23,7 +23,7 @@
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
 #include "melon/butil/string_printf.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/containers/hash_tables.h"
 #include "melon/butil/containers/flat_map.h"
 #include "melon/butil/containers/pooled_map.h"

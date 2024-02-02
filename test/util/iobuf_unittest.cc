@@ -28,7 +28,7 @@
 #include <melon/butil/time.h>                 // Timer
 #include <melon/butil/fd_utility.h>           // make_non_blocking
 #include <melon/butil/iobuf.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/fd_guard.h>
 #include <melon/butil/errno.h>
 #include <melon/butil/fast_rand.h>

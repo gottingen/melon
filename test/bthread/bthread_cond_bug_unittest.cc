@@ -27,7 +27,7 @@
 #include "melon/bthread/bthread.h"
 #include "melon/bthread/condition_variable.h"
 #include "melon/bthread/mutex.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/macros.h"
 #include "melon/var/var.h"
 

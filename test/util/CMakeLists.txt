@@ -18,7 +18,6 @@ SET(TEST_BUTIL_SOURCES
         ${PROJECT_SOURCE_DIR}/test/util/cpu_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/crash_logging_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/leak_tracker_unittest.cc
-        ${PROJECT_SOURCE_DIR}/test/util/stack_trace_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/environment_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/file_util_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/dir_reader_posix_unittest.cc
@@ -74,7 +73,6 @@ SET(TEST_BUTIL_SOURCES
         ${PROJECT_SOURCE_DIR}/test/util/watchdog_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/time_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/version_unittest.cc
-        ${PROJECT_SOURCE_DIR}/test/util/logging_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/cacheline_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/class_name_unittest.cc
         ${PROJECT_SOURCE_DIR}/test/util/endpoint_unittest.cc
@@ -102,20 +100,20 @@ SET(TEST_BUTIL_SOURCES
         ${PROJECT_SOURCE_DIR}/test/util/resource_pool_unittest.cc
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     SET(TEST_BUTIL_SOURCES ${TEST_BUTIL_SOURCES}
             ${PROJECT_SOURCE_DIR}/test/util/proc_maps_linux_unittest.cc
             ${PROJECT_SOURCE_DIR}/test/util/test_file_util_linux.cc)
-endif()
+endif ()
 
 # bthread_* functions are used in logging.cc, and they need to be marked as
 # weak symbols explicitly in Darwin system.
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(DYNAMIC_LIB ${DYNAMIC_LIB}
             "-Wl,-U,_bthread_getspecific"
             "-Wl,-U,_bthread_setspecific"
             "-Wl,-U,_bthread_key_create")
-endif()
+endif ()
 
 add_library(BUTIL_DEBUG_LIB OBJECT ${BUTIL_SOURCES})
 add_library(SOURCES_DEBUG_LIB OBJECT ${SOURCES})
@@ -133,15 +131,13 @@ set_target_properties(melon-shared-debug PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/test)
 
 target_link_libraries(melon-shared-debug ${DYNAMIC_LIB})
-if(BRPC_WITH_GLOG)
-    target_link_libraries(melon-shared-debug ${GLOG_LIB})
-endif()
+target_link_libraries(melon-shared-debug ${GLOG_LIB})
 
 # test_butil
 add_executable(test_butil ${TEST_BUTIL_SOURCES}
         $<TARGET_OBJECTS:TEST_PROTO_LIB>)
 target_link_libraries(test_butil melon-shared-debug
-        gtest
+        GTest::gtest
         ${GPERFTOOLS_LIBRARIES})
 
 add_test(NAME test_butil COMMAND test_butil)

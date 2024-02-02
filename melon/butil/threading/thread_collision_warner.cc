@@ -4,7 +4,7 @@
 
 #include "melon/butil/threading/thread_collision_warner.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/platform_thread.h"
 
 namespace butil {

@@ -22,7 +22,7 @@
 #include "melon/butil/iobuf.h"                  // butil::IOBuf
 #include "melon/butil/strings/string_piece.h"   // butil::StringPiece
 #include "melon/butil/arena.h"                  // butil::Arena
-#include "melon/butil/logging.h"                // CHECK
+#include "melon/common/logging.h"                // CHECK
 #include "melon/rpc/parse_result.h"                 // ParseError
 
 

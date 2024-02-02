@@ -27,7 +27,7 @@
 #include <gflags/gflags_declare.h>                 // DECLARE_xxx
 #include "melon/butil/endpoint.h"                         // butil::EndPoint
 #include "melon/butil/iobuf.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/proto/rpc/options.pb.h"                  // ProtocolType
 #include "melon/rpc/socket_id.h"                   // SocketId
 #include "melon/rpc/parse_result.h"                // ParseResult

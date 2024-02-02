@@ -26,7 +26,7 @@ foreach (RAFT_UT ${TEST_BRAFT_SRCS})
             ${GPERFTOOLS_LIBRARY}
             ${DYNAMIC_LIB}
             melon-shared-debug
-            gtest
-            gtest_main
+            GTest::gtest
+            GTest::gtest_main
     )
 endforeach ()

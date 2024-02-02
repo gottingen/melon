@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/strings/string_piece.h"
 #include "melon/butil/strings/utf_string_conversion_utils.h"

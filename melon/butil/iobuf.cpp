@@ -35,7 +35,7 @@
 #include "melon/butil/atomicops.h"                // butil::atomic
 #include "melon/butil/thread_local.h"             // thread_atexit
 #include "melon/butil/macros.h"                   // BAIDU_CASSERT
-#include "melon/butil/logging.h"                  // CHECK, LOG
+#include "melon/common/logging.h"                  // CHECK, LOG
 #include "melon/butil/fd_guard.h"                 // butil::fd_guard
 #include "melon/butil/iobuf.h"
 

@@ -32,7 +32,7 @@
 #include "melon/butil/fd_guard.h"                       // fd_guard
 #include "melon/butil/time.h"                           // cpuwide_time_us
 #include "melon/butil/object_pool.h"                    // get_object
-#include "melon/butil/logging.h"                        // CHECK
+#include "melon/common/logging.h"                        // CHECK
 #include "melon/butil/macros.h"
 #include "melon/butil/class_name.h"                     // butil::class_name
 #include "melon/rpc/log.h"

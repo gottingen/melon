@@ -18,11 +18,11 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/butil/atomicops.h>
 #include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/json2pb/json_to_pb.h>
 #include <melon/bthread/timer_thread.h>
 #include <melon/bthread/bthread.h>

@@ -16,7 +16,7 @@
 // under the License.
 
 #include "melon/rpc/http/hpack.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 #define kMinInputLength 5
 #define kMaxInputLength 1024

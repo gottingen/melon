@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include "melon/bthread/butex.h"
 #include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/socket_map.h"
 #include "melon/naming/naming_service_thread.h"

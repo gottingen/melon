@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/iobuf.h>
 #include <melon/butil/status.h>
 #include <melon/rpc/callback.h>

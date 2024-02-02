@@ -17,7 +17,7 @@
 
 
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include <pthread.h>
 #include <algorithm>
 #include "melon/rpc/http/http_method.h"

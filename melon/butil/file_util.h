@@ -32,7 +32,7 @@
 
 #if defined(OS_POSIX)
 #include "melon/butil/file_descriptor_posix.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/posix/eintr_wrapper.h"
 #endif
 

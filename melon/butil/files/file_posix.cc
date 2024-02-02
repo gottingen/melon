@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "melon/butil/files/file_path.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/posix/eintr_wrapper.h"
 #include "melon/butil/strings/utf_string_conversions.h"
 #include "melon/butil/threading/thread_restrictions.h"

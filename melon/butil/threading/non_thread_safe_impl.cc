@@ -4,7 +4,7 @@
 
 #include "melon/butil/threading/non_thread_safe_impl.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

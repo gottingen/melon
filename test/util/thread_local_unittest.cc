@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/simple_thread.h"
 #include "melon/butil/threading/thread_local.h"
 #include "melon/butil/synchronization/waitable_event.h"

@@ -34,7 +34,6 @@
 #include "melon/builtin/list_service.h"
 #include "melon/builtin/status_service.h"
 #include "melon/builtin/threads_service.h"
-#include "melon/builtin/vlog_service.h"
 #include "melon/builtin/index_service.h"        // IndexService
 #include "melon/builtin/connections_service.h"  // ConnectionsService
 #include "melon/builtin/flags_service.h"        // FlagsService
@@ -1437,9 +1436,6 @@ TEST_F(ServerTest, add_builtin_service) {
     if (melon::FLAGS_enable_threads_service) {
         TestAddBuiltinService(melon::ThreadsService::descriptor());
     }
-#if !BRPC_WITH_GLOG
-    TestAddBuiltinService(melon::VLogService::descriptor());
-#endif
     TestAddBuiltinService(melon::FlagsService::descriptor());
     TestAddBuiltinService(melon::VarsService::descriptor());
     TestAddBuiltinService(melon::RpczService::descriptor());
@@ -1534,10 +1530,6 @@ TEST_F(ServerTest, too_big_message) {
                                    melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server.Start(8613, NULL));
 
-#if !BRPC_WITH_GLOG
-    logging::StringSink log_str;
-    logging::LogSink* old_sink = logging::SetLogSink(&log_str);
-#endif
 
     melon::Channel chan;
     ASSERT_EQ(0, chan.Init("localhost:8613", NULL));
@@ -1548,15 +1540,6 @@ TEST_F(ServerTest, too_big_message) {
     test::EchoService_Stub stub(&chan);
     stub.Echo(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
-
-#if !BRPC_WITH_GLOG
-    ASSERT_EQ(&log_str, logging::SetLogSink(old_sink));
-    std::ostringstream expected_log;
-    expected_log << " is bigger than " << melon::FLAGS_max_body_size
-                 << " bytes, the connection will be closed."
-                    " Set max_body_size to allow bigger messages";
-    ASSERT_NE(std::string::npos, log_str.find(expected_log.str()));
-#endif
 
     server.Stop(0);
     server.Join();

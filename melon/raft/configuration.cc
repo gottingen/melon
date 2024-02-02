@@ -16,7 +16,7 @@
 //          Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/configuration.h"
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/string_splitter.h>
 
 namespace melon::raft {

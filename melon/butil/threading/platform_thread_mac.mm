@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include "melon/butil/lazy_instance.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/thread_id_name_manager.h"
 //#include "melon/butil/tracked_objects.h"
 

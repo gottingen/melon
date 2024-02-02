@@ -31,7 +31,7 @@
 #include "melon/butil/thread_local.h"              // thread_atexit
 #include "melon/butil/macros.h"                    // BAIDU_CACHELINE_ALIGNMENT
 #include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace melon::var {
     namespace detail {

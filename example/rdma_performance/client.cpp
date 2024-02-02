@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include "melon/butil/atomicops.h"
 #include "melon/butil/fast_rand.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/rdma/rdma_helper.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"

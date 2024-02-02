@@ -26,7 +26,7 @@
 #include <google/protobuf/descriptor.h>
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/files/temp_file.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"

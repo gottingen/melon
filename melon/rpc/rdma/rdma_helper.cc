@@ -25,7 +25,7 @@
 #include "melon/butil/containers/flat_map.h"            // butil::FlatMap
 #include "melon/butil/fd_guard.h"
 #include "melon/butil/fd_utility.h"                     // butil::make_non_blocking
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/rdma/block_pool.h"
 #include "melon/rpc/rdma/rdma_endpoint.h"
@@ -692,7 +692,7 @@ bool SupportedByRdma(std::string protocol) {
 #else
 
 #include <stdlib.h>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace melon {
 namespace rdma {

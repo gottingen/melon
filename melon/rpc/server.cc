@@ -26,7 +26,7 @@
 #include "melon/bthread/unstable.h"                       // bthread_keytable_pool_init
 #include "melon/butil/macros.h"                            // ARRAY_SIZE
 #include "melon/butil/fd_guard.h"                          // fd_guard
-#include "melon/butil/logging.h"                           // CHECK
+#include "melon/common/logging.h"                           // CHECK
 #include "melon/butil/time.h"
 #include "melon/butil/class_name.h"
 #include "melon/butil/string_printf.h"
@@ -49,7 +49,6 @@
 #include "melon/builtin/status_service.h"
 #include "melon/builtin/protobufs_service.h"
 #include "melon/builtin/threads_service.h"
-#include "melon/builtin/vlog_service.h"
 #include "melon/builtin/index_service.h"        // IndexService
 #include "melon/builtin/connections_service.h"  // ConnectionsService
 #include "melon/builtin/flags_service.h"        // FlagsService
@@ -521,13 +520,6 @@ int Server::AddBuiltinServices() {
         LOG(ERROR) << "Fail to add MemoryService";
         return -1;
     }
-
-#if !BRPC_WITH_GLOG
-    if (AddBuiltinService(new (std::nothrow) VLogService)) {
-        LOG(ERROR) << "Fail to add VLogService";
-        return -1;
-    }
-#endif
 
     if (AddBuiltinService(new (std::nothrow) PProfService)) {
         LOG(ERROR) << "Fail to add PProfService";

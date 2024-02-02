@@ -35,7 +35,7 @@
 #include "melon/butil/file_util.h"
 #include "melon/butil/unique_ptr.h"
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/object_pool.h"
 #include "melon/bthread/butex.h"                       // butex_*
 #include "melon/bthread/processor.h"                   // cpu_relax, barrier

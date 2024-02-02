@@ -13,7 +13,7 @@
 #include <limits>
 
 #include "melon/butil/file_util.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/build_config.h"
 #include <gtest/gtest.h>

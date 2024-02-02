@@ -21,7 +21,7 @@
 
 #include "melon/butil/scoped_lock.h"             // MELON_SCOPED_LOCK
 #include "melon/butil/errno.h"                   // berror
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/platform_thread.h"
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"
 #include "melon/bthread/sys_futex.h"            // futex_wake_private

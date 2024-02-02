@@ -9,7 +9,7 @@
 #include <ostream>
 
 #include "melon/butil/posix/eintr_wrapper.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

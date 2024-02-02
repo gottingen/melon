@@ -17,7 +17,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include "view.pb.h"

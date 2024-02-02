@@ -47,7 +47,7 @@
 #include "melon/butil/callback.h"
 #include "melon/butil/callback_internal.h"
 #include "melon/butil/compiler_specific.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/weak_ptr.h"
 
 namespace butil {

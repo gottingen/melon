@@ -20,7 +20,7 @@
 // Date: Sun Aug  3 12:46:15 CST 2014
 
 #include <deque>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/butex.h"                       // butex_*
 #include "melon/bthread/mutex.h"
 #include "melon/bthread/list_of_abafree_id.h"

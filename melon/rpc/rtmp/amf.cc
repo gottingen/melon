@@ -18,7 +18,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include "melon/butil/sys_byteorder.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/find_cstr.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/rtmp/amf.h"

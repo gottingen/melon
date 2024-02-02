@@ -5,7 +5,7 @@
 #include "melon/butil/files/memory_mapped_file.h"
 
 #include "melon/butil/files/file_path.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

@@ -9,7 +9,7 @@
 
 #include "melon/butil/debug/stack_trace.h"
 #include "melon/butil/format_macros.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_util.h"
 #include "melon/butil/strings/stringprintf.h"
 

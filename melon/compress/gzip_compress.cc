@@ -17,7 +17,7 @@
 
 
 #include <google/protobuf/io/gzip_stream.h>    // GzipXXXStream
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/compress/gzip_compress.h"
 #include "melon/rpc/protocol.h"
 

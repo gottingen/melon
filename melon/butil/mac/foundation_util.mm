@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "melon/butil/files/file_path.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/mac/bundle_locations.h"
 //#include "melon/butil/mac/mac_logging.h"
 #include "melon/butil/strings/sys_string_conversions.h"

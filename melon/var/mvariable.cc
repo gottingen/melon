@@ -19,7 +19,7 @@
 
 #include <gflags/gflags.h>
 #include <gflags/gflags_declare.h>
-#include "melon/butil/logging.h"                       // LOG
+#include "melon/common/logging.h"                       // LOG
 #include "melon/butil/errno.h"                         // berror
 #include "melon/butil/containers/flat_map.h"           // butil::FlatMap
 #include "melon/butil/scoped_lock.h"                   // BAIDU_SCOPE_LOCK

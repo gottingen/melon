@@ -15,7 +15,7 @@
 // Authors: Wang,Yao(wangyao02@baidu.com)
 //          Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/raft_service.h"
 #include "melon/raft/raft.h"

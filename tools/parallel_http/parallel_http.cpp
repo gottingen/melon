@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include <deque>
 #include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/files/scoped_file.h>
 #include <melon/rpc/channel.h>
 

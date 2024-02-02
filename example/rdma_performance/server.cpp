@@ -18,7 +18,7 @@
 
 #include <gflags/gflags.h>
 #include "melon/butil/atomicops.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/time.h"
 #include "melon/rpc/server.h"
 #include "melon/var/variable.h"

@@ -37,7 +37,7 @@
 #ifndef BUTIL_MEMORY_LINKED_PTR_H_
 #define BUTIL_MEMORY_LINKED_PTR_H_
 
-#include "melon/butil/logging.h"  // for CHECK macros
+#include "melon/common/logging.h"  // for CHECK macros
 
 // This is used internally by all instances of linked_ptr<>.  It needs to be
 // a non-template class because different types of linked_ptr<> can refer to

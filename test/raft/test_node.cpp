@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/files/file_path.h>
 #include <melon/butil/file_util.h>
 #include <melon/butil/fast_rand.h>

@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 #include "melon/butil/files/file_watcher.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace {
 class FileWatcherTest : public ::testing::Test{

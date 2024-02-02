@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/third_party/snappy/snappy.h"
 #include "melon/compress/snappy_compress.h"
 #include "melon/rpc/protocol.h"

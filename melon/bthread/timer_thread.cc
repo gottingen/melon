@@ -20,7 +20,7 @@
 
 #include <queue>                           // heap functions
 #include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"   // fmix64
 #include "melon/butil/resource_pool.h"
 #include "melon/butil/threading/platform_thread.h"

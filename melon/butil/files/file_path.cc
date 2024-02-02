@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 // These includes are just for the *Hack functions, and should be removed
 // when those functions are removed.

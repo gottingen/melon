@@ -37,7 +37,7 @@
 #include <melon/butil/base64.h>
 #include "melon/rpc/http/http_method.h"
 #include "melon/butil/iobuf.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/files/scoped_file.h"
 #include "melon/butil/fd_guard.h"
 #include "melon/butil/file_util.h"

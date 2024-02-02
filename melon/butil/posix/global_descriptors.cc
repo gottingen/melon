@@ -7,7 +7,7 @@
 #include <vector>
 #include <utility>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

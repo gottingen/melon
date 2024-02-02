@@ -20,7 +20,7 @@
 
 #include <gflags/gflags.h>
 #include <memory>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/butil/files/file_watcher.h>
 #include <melon/butil/files/scoped_file.h>

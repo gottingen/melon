@@ -8,7 +8,7 @@
 #include <sched.h>
 
 #include "melon/butil/lazy_instance.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/safe_strerror_posix.h"
 #include "melon/butil/synchronization/waitable_event.h"

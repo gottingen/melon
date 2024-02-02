@@ -20,7 +20,7 @@
 // and ends the RPC when any response comes back.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/time.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"

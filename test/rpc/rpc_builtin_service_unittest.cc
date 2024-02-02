@@ -38,7 +38,6 @@
 #include "melon/builtin/list_service.h"
 #include "melon/builtin/status_service.h"
 #include "melon/builtin/threads_service.h"
-#include "melon/builtin/vlog_service.h"
 #include "melon/builtin/index_service.h"        // IndexService
 #include "melon/builtin/connections_service.h"  // ConnectionsService
 #include "melon/builtin/flags_service.h"        // FlagsService
@@ -197,23 +196,7 @@ protected:
         EXPECT_EQ(expect_type, cntl.http_response().content_type());
         ASSERT_EQ(0, _server.RemoveService(&echo_svc));
     }
-    
-    void TestVLog(bool use_html) {
-#if !BRPC_WITH_GLOG
-        std::string expect_type = (use_html ? "text/html" : "text/plain");
-        melon::VLogService service;
-        melon::VLogRequest req;
-        melon::VLogResponse res;
-        melon::Controller cntl;
-        ClosureChecker done;
-        SetUpController(&cntl, use_html);
-        MyVLogSite();
-        service.default_method(&cntl, &req, &res, &done);
-        EXPECT_FALSE(cntl.Failed());
-        EXPECT_EQ(expect_type, cntl.http_response().content_type());
-        CheckContent(cntl, "rpc_builtin_service_unittest");
-#endif
-    }
+
     
     void TestConnections(bool use_html) {
         std::string expect_type = (use_html ? "text/html" : "text/plain");
@@ -658,11 +641,6 @@ TEST_F(BuiltinServiceTest, threads) {
     // Doesn't work under gcc 4.8.2
     // CheckContent(cntl, "sleep_thread");
     pthread_join(tid, nullptr);
-}
-
-TEST_F(BuiltinServiceTest, vlog) {
-    TestVLog(false);
-    TestVLog(true);
 }
 
 TEST_F(BuiltinServiceTest, connections) {

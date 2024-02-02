@@ -22,7 +22,7 @@
 #include <iostream>
 #include <gflags/gflags.h>
 #include "melon/butil/macros.h"
-#include "melon/butil/logging.h"                       // LOG
+#include "melon/common/logging.h"                       // LOG
 #include "melon/butil/scoped_lock.h"
 #include "melon/butil/endpoint.h"
 #include "melon/butil/base64.h"

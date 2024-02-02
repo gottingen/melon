@@ -16,7 +16,7 @@
 //          Wang,Yao(wangyao02@baidu.com)
 //          Xiong,Kai(xiongkai@baidu.com)
 
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/log_manager.h"
 #include "melon/raft/node.h"

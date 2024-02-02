@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/file_util.h>
 #include <errno.h>
 #include <melon/rpc/server.h>
@@ -17,12 +17,7 @@
 #include "melon/raft/snapshot_throttle.h"
 #include "memory_file_system_adaptor.h"
 
-namespace logging {
 DECLARE_int32(minloglevel);
-#if BRPC_WITH_GLOG
-DEFINE_int32(minloglevel, 1, "");
-#endif
-};
 
 class SnapshotTest : public testing::Test {
 protected:
@@ -404,7 +399,7 @@ void *write_thread(void* arg) {
 
 TEST_F(SnapshotTest, thread_safety) {
     // writer thread will make much log when sleep
-    logging::FLAGS_minloglevel = 1;
+    FLAGS_minloglevel = 1;
 
     melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
@@ -430,7 +425,7 @@ TEST_F(SnapshotTest, thread_safety) {
 
     FOR_EACH_FILE_SYSTEM_ADAPTOR_END;
 
-    logging::FLAGS_minloglevel = 0;
+    FLAGS_minloglevel = 0;
 }
 
 void write_file(melon::raft::FileSystemAdaptor* fs, const std::string& path, const std::string& data) {

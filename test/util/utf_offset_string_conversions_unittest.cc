@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_piece.h"
 #include "melon/butil/strings/utf_offset_string_conversions.h"
 #include <gtest/gtest.h>

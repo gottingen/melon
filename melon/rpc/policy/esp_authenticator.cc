@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 #include "melon/rpc/policy/esp_authenticator.h"
 

@@ -20,7 +20,7 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/string_printf.h>
 #include <melon/butil/string_splitter.h>
 #include <melon/butil/rand_util.h>

@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace butil {
 

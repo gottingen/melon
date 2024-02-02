@@ -16,7 +16,7 @@
 #include <ostream>
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/port.h"
 #include "melon/butil/build_config.h"
 

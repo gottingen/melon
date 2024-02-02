@@ -22,7 +22,7 @@
 #include "melon/rpc/grpc/grpc.h"
 #include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/http/http_status_code.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace melon {
 

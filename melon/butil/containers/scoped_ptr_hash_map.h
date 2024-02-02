@@ -10,7 +10,7 @@
 
 #include "melon/butil/basictypes.h"
 #include "melon/butil/containers/hash_tables.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/stl_util.h"
 

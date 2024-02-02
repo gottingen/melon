@@ -19,7 +19,7 @@
 // again according to the field `depth'
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/time.h>
 #include <melon/bthread/bthread.h>
 #include <melon/rpc/channel.h>

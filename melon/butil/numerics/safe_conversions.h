@@ -7,7 +7,7 @@
 
 #include <limits>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/numerics/safe_conversions_impl.h"
 
 namespace butil {

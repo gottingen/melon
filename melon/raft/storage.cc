@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <melon/butil/string_printf.h>
 #include <melon/butil/string_splitter.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/reloadable_flags.h>
 
 #include "melon/raft/storage.h"

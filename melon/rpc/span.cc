@@ -25,7 +25,7 @@
 #include "melon/butil/thread_local.h"
 #include "melon/butil/string_printf.h"
 #include "melon/butil/time.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/object_pool.h"
 #include "melon/butil/fast_rand.h"
 #include "melon/butil/file_util.h"

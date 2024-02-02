@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include "pb_util.h"
 
 using google::protobuf::ServiceDescriptor;

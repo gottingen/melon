@@ -21,7 +21,7 @@
 
 #include <string>
 #include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/containers/case_ignored_flat_map.h"
 #include "melon/butil/memory/singleton_on_pthread_once.h"
 

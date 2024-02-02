@@ -34,7 +34,7 @@
 #include "melon/butil/files/file_enumerator.h"
 #include "melon/butil/files/file_path.h"
 #include "melon/butil/files/scoped_file.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/memory/singleton.h"
 #include "melon/butil/posix/eintr_wrapper.h"

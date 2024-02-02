@@ -20,7 +20,7 @@
 #include <sys/time.h>
 #include <fcntl.h>                           // O_RDONLY
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/fd_guard.h"                  // fd_guard
 #include "melon/butil/file_util.h"                 // butil::FilePath
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"

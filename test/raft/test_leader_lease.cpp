@@ -15,7 +15,7 @@
 // Authors: Pengfei Zheng (zhengpengfei@baidu.com)
 
 #include <gtest/gtest.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include "melon/raft/util.h"
 #include "melon/raft/node.h"
 #include "melon/raft/lease.h"

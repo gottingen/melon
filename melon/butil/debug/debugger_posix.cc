@@ -35,7 +35,7 @@
 #include <ostream>
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/posix/eintr_wrapper.h"
 #include "melon/butil/safe_strerror_posix.h"

@@ -20,7 +20,7 @@
 #include <google/protobuf/reflection_ops.h>                 // ReflectionOps::Merge
 #include <google/protobuf/wire_format.h>
 #include "melon/rpc/nshead_message.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace melon {
 

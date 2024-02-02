@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #include "melon/butil/at_exit.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "multiprocess_func_list.h"
 
 DEFINE_bool(disable_coredump, false, "Never core dump");
@@ -35,8 +35,5 @@ int main(int argc, char** argv) {
         core_limit.rlim_max = 0;
         setrlimit(RLIMIT_CORE, &core_limit);
     }
-#if !BRPC_WITH_GLOG
-    CHECK(!GFLAGS_NS::SetCommandLineOption("crash_on_fatal_log", "true").empty());
-#endif
     return RUN_ALL_TESTS();
 }

@@ -26,7 +26,7 @@
 #include <unistd.h>                     // read, gitpid
 #include <sstream>                      // std::ostringstream
 #include "melon/butil/fd_guard.h"             // butil::fd_guard
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/popen.h"                // read_command_output
 #include "melon/butil/process_util.h"
 

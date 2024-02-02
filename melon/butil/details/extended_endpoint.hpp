@@ -28,7 +28,7 @@
 #include <mutex>
 #include <unordered_set>
 #include "melon/butil/endpoint.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_piece.h"
 #include "melon/butil/resource_pool.h"
 #include "melon/butil/memory/singleton_on_pthread_once.h"

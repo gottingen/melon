@@ -21,7 +21,7 @@
 #define  MELON_VAR_REDUCER_H_
 
 #include <limits>                                 // std::numeric_limits
-#include "melon/butil/logging.h"                         // LOG()
+#include "melon/common/logging.h"                         // LOG()
 #include "melon/butil/type_traits.h"                     // butil::add_cr_non_integral
 #include "melon/butil/class_name.h"                      // class_name_str
 #include "melon/var/variable.h"                        // Variable

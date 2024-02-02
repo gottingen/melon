@@ -19,7 +19,7 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"                       // LOG()
+#include "melon/common/logging.h"                       // LOG()
 #include "melon/butil/time.h"
 #include "melon/butil/iobuf.h"                         // butil::IOBuf
 #include "melon/butil/sys_byteorder.h"

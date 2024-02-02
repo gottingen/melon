@@ -19,7 +19,7 @@
 
 #include <gflags/gflags.h>
 #include "melon/butil/build_config.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 #if defined(OS_LINUX)
 // clone is a linux specific syscall

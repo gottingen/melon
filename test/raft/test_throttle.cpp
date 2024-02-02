@@ -5,7 +5,7 @@
 // Date: 2017/09/07 14:06:13
 
 #include <gtest/gtest.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot_throttle.h"

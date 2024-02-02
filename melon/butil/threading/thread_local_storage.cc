@@ -5,7 +5,7 @@
 #include "melon/butil/threading/thread_local_storage.h"
 
 #include "melon/butil/atomicops.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 using butil::internal::PlatformThreadLocalStorage;
 

@@ -15,7 +15,7 @@
 #ifdef ENABLE_LEAK_TRACKER
 #include "melon/butil/containers/linked_list.h"
 #include "melon/butil/debug/stack_trace.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #endif  // ENABLE_LEAK_TRACKER
 
 // LeakTracker is a helper to verify that all instances of a class

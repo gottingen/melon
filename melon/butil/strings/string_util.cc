@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/singleton.h"
 #include "melon/butil/strings/utf_string_conversion_utils.h"
 #include "melon/butil/strings/utf_string_conversions.h"

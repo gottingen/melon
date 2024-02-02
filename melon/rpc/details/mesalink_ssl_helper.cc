@@ -26,7 +26,7 @@
 #include <mesalink/openssl/evp.h>
 #include <mesalink/openssl/pem.h>
 #include "melon/butil/unique_ptr.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/string_splitter.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/ssl_options.h"

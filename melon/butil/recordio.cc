@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/recordio.h"
 #include "melon/butil/sys_byteorder.h"
 

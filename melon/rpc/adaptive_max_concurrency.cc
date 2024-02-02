@@ -18,7 +18,7 @@
 #include <cstring>
 #include <strings.h>
 #include "melon/butil/string_printf.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/strings/string_number_conversions.h"
 #include "melon/rpc/adaptive_max_concurrency.h"
 

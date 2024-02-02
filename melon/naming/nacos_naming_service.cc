@@ -24,7 +24,7 @@
 #include "melon/rpc/http/http_status_code.h"
 #include "melon/rpc/log.h"
 #include "melon/butil/iobuf.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/third_party/rapidjson/document.h"
 
 namespace melon::naming {

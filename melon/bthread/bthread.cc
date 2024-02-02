@@ -21,7 +21,7 @@
 
 #include <gflags/gflags.h>
 #include "melon/butil/macros.h"                       // BAIDU_CASSERT
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/task_group.h"                // TaskGroup
 #include "melon/bthread/task_control.h"              // TaskControl
 #include "melon/bthread/timer_thread.h"

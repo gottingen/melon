@@ -19,7 +19,7 @@
 
 #include <gflags/gflags.h>
 #include "melon/butil/fd_utility.h"
-#include "melon/butil/logging.h"                   // CHECK, LOG
+#include "melon/common/logging.h"                   // CHECK, LOG
 #include "melon/butil/sys_byteorder.h"             // HostToNet,NetToHost
 #include "melon/bthread/bthread.h"
 #include "melon/proto/rpc/errno.pb.h"

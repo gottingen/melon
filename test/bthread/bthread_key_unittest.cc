@@ -21,7 +21,7 @@
 #include "melon/butil/time.h"
 #include "melon/butil/macros.h"
 #include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/bthread/bthread.h"
 #include "melon/bthread/unstable.h"
 

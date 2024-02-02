@@ -4,7 +4,7 @@
 
 #include "melon/butil/debug/dump_without_crashing.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace {
 

@@ -14,7 +14,7 @@
 #include <melon/butil/files/file_enumerator.h>
 #include <melon/butil/files/dir_reader_posix.h>
 #include <melon/butil/string_printf.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include "melon/raft/util.h"
 #include "melon/raft/log.h"
 #include "melon/raft/storage.h"

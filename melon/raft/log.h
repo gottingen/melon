@@ -24,7 +24,7 @@
 #include <melon/butil/memory/ref_counted.h>
 #include <melon/butil/atomicops.h>
 #include <melon/butil/iobuf.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include "melon/raft/log_entry.h"
 #include "melon/raft/storage.h"
 #include "melon/raft/util.h"

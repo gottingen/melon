@@ -5,7 +5,7 @@
 // The purpose of this file is to supply the macro definintions necessary
 // to make third_party/dmg_fp/dtoa.cc threadsafe.
 #include "melon/butil/lazy_instance.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/synchronization/lock.h"
 
 // We need two locks because they're sometimes grabbed at the same time.

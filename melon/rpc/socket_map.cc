@@ -21,7 +21,7 @@
 #include "melon/bthread/bthread.h"
 #include "melon/butil/time.h"
 #include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/input_messenger.h"

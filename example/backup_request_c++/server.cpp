@@ -18,7 +18,7 @@
 // A server sleeping for even-th requests to trigger backup request of client.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 

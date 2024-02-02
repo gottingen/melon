@@ -18,7 +18,7 @@
 // Date: 2015/09/15 15:42:55
 
 #include "melon/var/detail/percentile.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include <gtest/gtest.h>
 #include <fstream>
 

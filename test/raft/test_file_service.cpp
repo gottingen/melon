@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/file_util.h>
 
 #include <melon/rpc/server.h>

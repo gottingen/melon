@@ -18,7 +18,7 @@
 // A client sending requests to server every 1 second.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/time.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"

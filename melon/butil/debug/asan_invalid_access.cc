@@ -8,7 +8,7 @@
 
 #include "melon/butil/debug/alias.h"
 #include "melon/butil/debug/asan_invalid_access.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 
 namespace butil {

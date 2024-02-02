@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include "melon/butil/find_cstr.h"
 #include "melon/butil/time.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 namespace {
 class FindCstrTest : public ::testing::Test{

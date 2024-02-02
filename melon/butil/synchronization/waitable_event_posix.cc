@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/synchronization/waitable_event.h"
 #include "melon/butil/synchronization/condition_variable.h"
 #include "melon/butil/synchronization/lock.h"

@@ -29,7 +29,7 @@
 #include "melon/butil/atomicops.h"
 #include "melon/butil/time.h"
 #include "melon/butil/fd_utility.h"                     // make_non_blocking
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"   // fmix32
 #include "melon/bthread/butex.h"                       // butex_*
 #include "melon/bthread/task_group.h"                  // TaskGroup

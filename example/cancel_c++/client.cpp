@@ -18,7 +18,7 @@
 // A client to send 2 requests to server and accept the first returned response.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/butil/time.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"

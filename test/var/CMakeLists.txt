@@ -9,7 +9,7 @@ file(GLOB TEST_VAR_SRCS "var_*_unittest.cc")
 add_executable(test_var ${TEST_VAR_SRCS}
         $<TARGET_OBJECTS:VAR_DEBUG_LIB>
         $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>)
-target_link_libraries(test_var gtest
+target_link_libraries(test_var GTest::gtest
         ${GPERFTOOLS_LIBRARIES}
         ${DYNAMIC_LIB})
 add_test(NAME test_var COMMAND test_var)

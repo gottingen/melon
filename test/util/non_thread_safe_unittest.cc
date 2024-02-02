@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/threading/non_thread_safe.h"
 #include "melon/butil/threading/simple_thread.h"

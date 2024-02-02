@@ -4,7 +4,7 @@
 
 #include "melon/butil/files/scoped_file.h"
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 
 #if defined(OS_POSIX)
 #include <unistd.h>

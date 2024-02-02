@@ -33,7 +33,7 @@
 #include "melon/butil/basictypes.h"
 #include "melon/butil/debug/debugger.h"
 #include "melon/butil/debug/proc_maps_linux.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/memory/scoped_ptr.h"
 #include "melon/butil/memory/singleton.h"
 #include "melon/butil/numerics/safe_conversions.h"

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/butil/debug/debugger.h"
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/platform_thread.h"
 
 namespace butil {

@@ -23,7 +23,7 @@
 //   ./http_client www.foo.com
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/common/logging.h>
 #include <melon/rpc/channel.h>
 
 DEFINE_string(d, "", "POST this data to the http server");

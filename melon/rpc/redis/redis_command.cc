@@ -17,7 +17,7 @@
 
 #include <limits>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/redis/redis_command.h"
 

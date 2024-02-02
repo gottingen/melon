@@ -19,7 +19,7 @@
 #include <gflags/gflags.h>                            // DEFINE_int32
 #include "melon/butil/compat.h"
 #include "melon/butil/fd_utility.h"                         // make_close_on_exec
-#include "melon/butil/logging.h"                            // LOG
+#include "melon/common/logging.h"                            // LOG
 #include "melon/butil/third_party/murmurhash3/murmurhash3.h"// fmix32
 #include "melon/bthread/bthread.h"                          // bthread_start_background
 #include "melon/rpc/event_dispatcher.h"

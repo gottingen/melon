@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <fnmatch.h>
 
-#include "melon/butil/logging.h"
+#include "melon/common/logging.h"
 #include "melon/butil/threading/thread_restrictions.h"
 
 namespace butil {
